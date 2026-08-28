@@ -172,7 +172,7 @@ Manage steel threads for the project
 | `st edit`                           | <id> [file] | --                                                                       | Print the path to a steel thread file, realising the thread if it is not on disk                                                   | keep        |
 | `st attach`                         | <id> <path> | --from <file>                                                            | Write an attachment's content from a local file                                                                                    | new-surface |
 | `st sync`                           | --          | --write, --width <n>, --format terminal/md                               | Synchronize steel_threads.md with individual ST files                                                                              | keep        |
-| `st repair`                         | [id]        | --write                                                                  | Repair malformed steel thread metadata                                                                                             | keep        |
+| `st repair`                         | [id]        | --write                                                                  | Repair malformed steel thread metadata                                                                                             | retire      |
 | `st organize` (alias `st organise`) | --          | --write                                                                  | Organize ST files in directories by status                                                                                         | retire      |
 | `st bootstrap`                      | --          | --audit-only, --dry-run, --deliverable <id>                              | Retrofit ST0000 deliverables into a brownfield project -- audit what is present, missing or partial, then install the missing ones | keep        |
 
@@ -582,7 +582,8 @@ Repair malformed steel thread metadata
     - Parsed inside the FLAG loop, not positionally -- accepted spellings are `ST0001` and `0001` ONLY
 - **Flags:**
   - `--write` (bool) -- Apply the repairs; without it the command is a dry run
-    - **disposition:** keep
+    - **disposition:** retire
+    - **disposition basis:** Retired with its command (hv, 2026-08-28, issue 0118). A retired command never reaches clap, so neither can its flags -- the generator refuses the mismatch rather than shipping a flag with no door.
 - **Exit codes:**
   - `0` -- repaired or dry-run reported
   - `1` -- `error: Unknown option or invalid steel thread ID: <arg>`
@@ -591,8 +592,9 @@ Repair malformed steel thread metadata
 - **stderr:** `error: ...`
 - **Defects observed in v2:**
   - DEAD ARM at bin/intent_st:1231: `[0-9]+)` is a `case` GLOB, where `+` is a literal character -- it matches a single digit followed by a `+`, never a run of digits. So `intent st repair 5` and `intent st repair 12345` both fall through to the error arm. Verified by executing the case statement in isolation, not by reading it. The intended bare-number form is unreachable; only the 4-digit `0001` arm works.
-- **Target:** `pending-hv`
-- **Open question for hv:** Does v3's id parser accept a bare number of any length (what :1231 evidently INTENDED), or only the two spellings that measurably work? Reproducing the dead arm faithfully is not an option -- it is unconstructible in clap. Same class as INV-08: a defect whose fix is forced.
+- **Target:** `retire` -- ratified: hv, 2026-08-28, on issue 0118. **v3 HAS NO SUBJECT FOR THIS VERB.** v2's `st repair` fixes MALFORMED FRONTMATTER -- `bin/intent_st:1250+`, 'Check if frontmatter is malformed (all on one line with \\n)' -- in a hand-authored markdown artefact. In v3 `info.md` is a GENERATED VIEW: `doctor` re-renders every view to detect a hand-edited one, and the remedy for a mangled view is regeneration, not repair. A verb whose entire subject is now regenerated has nothing left to do. **AND IT WAS NEVER THE DOOR 0118 NEEDED**, which is what made this ruling reachable: 0118 reasoned that `repair` is the last exit of a closed loop doctor recruits operators into, and the loop is real, but the exit it named was never the door to that room -- Conflab's 50 findings are threads missing `completed`, which v2's repair never touched. The actual unblock is `--date` on the closing verbs, ruled in the same round and landed at bd5894df.
+- **Note:** **THE BARE-NUMBER ID QUESTION IS NOT ANSWERED BY THIS AND MUST NOT BE READ AS ANSWERED.** The row previously carried, as `target.question`: "Does v3's id parser accept a bare number of any length (what :1231 evidently INTENDED), or only the two spellings that measurably work? Reproducing the dead arm faithfully is not an option -- it is unconstructible in clap. Same class as INV-08: a defect whose fix is forced." That question is about v3's id parser, not about this verb, and retiring the verb removes its only current caller rather than settling it. It stays open on its own row, unanswered by implementation.
+- **spelling:** _(declared empty)_
 - **MCP:** not exposed -- **mutates**
 - **Wants review:**
   - uncertain on `exposed_on_mcp`

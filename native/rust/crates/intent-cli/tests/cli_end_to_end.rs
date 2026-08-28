@@ -22,6 +22,7 @@
 use std::path::Path;
 use std::process::{Command, Output};
 
+use intent_cli::dispatch;
 use intent_cli::spine::{EXIT_ERROR, EXIT_OK, EXIT_UNAVAILABLE};
 
 fn project() -> tempfile::TempDir {
@@ -73,10 +74,21 @@ fn seed_closeable_thread(root: &Path) {
   .expect("write canon");
 }
 
+/// **`HOME` IS FIXTURED BECAUSE THIS FILE NOW CHOOSES VERBS FROM THE TABLE.**
+/// `an_unwired_verb_is_distinguishable_from_a_missing_one` walks
+/// `dispatch::table()` to find a live example, so its reach is the table's
+/// contents AT RUN TIME -- a verb implemented later is a verb this file will
+/// drive, and some of them write under the operator's own `$HOME`.
+///
+/// Caught by `table_driven_tests_fixture_their_home` on the very commit that
+/// made this file table-driven, which is the guard doing precisely the job it
+/// was written for: `dispatch_ssot` had already published this machine's
+/// install pointer to a scratch worktree that was then deleted.
 fn run(root: &Path, args: &[&str]) -> Output {
   Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
     .current_dir(root)
+    .env("HOME", testkit::fixture_home())
     .output()
     .expect("run the v3 binary")
 }
@@ -481,7 +493,41 @@ fn an_unwired_verb_is_distinguishable_from_a_missing_one() {
   let dir = project();
   let root = dir.path();
 
-  let unwired = run(root, &["st", "repair"]);
+  // **THE EXAMPLE IS FOUND, NOT NAMED, BECAUSE THE NAMED ONE STOPPED BEING AN
+  // EXAMPLE.** This read `st repair` until 2026-08-28, when hv retired that row
+  // -- and the test then failed reporting *an unwired verb names itself:
+  // `intent st repair` was retired*, which is the retirement working correctly
+  // and looks exactly like a regression. **A test that hardcodes a member of a
+  // population the project is actively draining goes stale by being right.**
+  // Third instance in one day: a `Super_Seded` control, a `view_skew` title
+  // assertion, and this.
+  //
+  // The population is drained deliberately -- every unwired verb is one someone
+  // intends to build -- so the honest form is to ask which are left and assert
+  // the question is still answerable.
+  let candidates: Vec<String> = dispatch::table()
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .filter(|e| e.verb().is_some() && e.is_shipped())
+    .map(|e| e.path.clone())
+    .collect();
+
+  let (verb, unwired) = candidates
+    .iter()
+    .find_map(|path| {
+      let argv: Vec<&str> = path.split(' ').collect();
+      let out = run(root, &argv);
+      String::from_utf8_lossy(&out.stderr)
+        .contains("is a known command that is not implemented yet")
+        .then(|| (path.clone(), out))
+    })
+    .expect(
+      "no shipped verb is unwired any more -- this arm has nothing left to check. \
+       That is a good day and a dead test: delete it, or repoint it at whatever \
+       now stands for a declared-but-unbuilt command.",
+    );
+
   let missing = run(root, &["st"]);
 
   let unwired_err = String::from_utf8_lossy(&unwired.stderr).to_string();
@@ -492,8 +538,8 @@ fn an_unwired_verb_is_distinguishable_from_a_missing_one() {
     "an unwired verb names itself: {unwired_err}"
   );
   assert!(
-    unwired_err.contains("st repair"),
-    "and names WHICH verb: {unwired_err}"
+    unwired_err.contains(&verb),
+    "and names WHICH verb (`{verb}`): {unwired_err}"
   );
   assert_ne!(
     unwired_err.trim(),

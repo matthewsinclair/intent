@@ -280,6 +280,12 @@ enum Expect {
 /// carries its own rather than importing one, and why retiring any single
 /// holder of the string must leave at least two behind.
 const UNWIRED_PHRASE: &str = "is a known command that is not implemented yet";
+/// A command the surface has RETIRED, which is a different refusal from an
+/// unbuilt one: unwired says *not yet*, this says *not ever, and here is what
+/// to do instead*. `st repair` moved between the two on 2026-08-28 without its
+/// behaviour changing at all -- still rc=2, still writes nothing -- so the
+/// distinction lives entirely in the sentence.
+const RETIRED_PHRASE: &str = "was retired in Intent v3";
 
 struct Case {
   /// The dispatch-table path this exercises, and the label the roster prints.
@@ -430,8 +436,8 @@ fn cases() -> Vec<Case> {
       args: &["st", "repair"],
       prep: NOOP,
       expect: Expect::WritesNothing(2),
-      must_say: Some(UNWIRED_PHRASE),
-      why: "rc=2, same refusal, same reason",
+      must_say: Some(RETIRED_PHRASE),
+      why: "rc=2, writes nothing -- but RETIRED rather than unwired since hv's ruling on issue 0118. v2's `st repair` fixed malformed frontmatter in a hand-authored file; v3 generates that file, so `doctor` reports a hand-edit and the remedy is regeneration. The verb has no subject left. It stays in this table because the property under test is unchanged -- a refusal must move nothing -- and only its reason moved",
     },
     Case {
       verb: "todo notdone",

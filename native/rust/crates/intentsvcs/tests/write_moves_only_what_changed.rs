@@ -432,10 +432,18 @@ const DECLARED_BUT_UNWIRED: &[(&str, &str)] = &[
     "st bootstrap",
     "intent-cli/tests/cli_write_moves_only_what_changed.rs -- `rc=2`, `is a known command that is not implemented yet`, and the projected estate byte-identical. Driven at the CLI because it reaches no `intentsvcs` path to drive.",
   ),
-  (
-    "st repair",
-    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- same refusal, same measurement, same reason it cannot be driven here.",
-  ),
+  // **`st repair` LEFT THIS BUCKET THE SAME WAY, ON 2026-08-28** (hv, issue
+  // 0118). v2's `st repair` fixed malformed frontmatter in a hand-authored
+  // file; v3 generates that file, so a mangled one is reported by `doctor` and
+  // repaired by regeneration. The verb has no subject left, the row is retired
+  // in the dispatch table, and there is nothing here to excuse.
+  //
+  // **The membership check fired on its own again** -- `bucketed but not a
+  // shipped mutator: ["st repair"]` -- which is the fifth site that named this
+  // verb and the fifth to announce itself rather than drift. The other four
+  // were assertions ABOUT the verb; this one is an accounting entry, and it is
+  // the only one that would have inflated a debt figure if it had stayed.
+  //
   // **`issues hydrate` AND `issues dehydrate` LEFT THIS BUCKET BY LEAVING THE
   // SURFACE** (hv, 2026-08-20): issues are canon-and-store only, both rows are
   // retired in the dispatch table, so they are no longer shipped mutators and

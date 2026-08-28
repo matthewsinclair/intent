@@ -1141,7 +1141,8 @@
               ],
               "type": "bool",
               "help": "Apply the repairs; without it the command is a dry run",
-              "disposition": "keep"
+              "disposition": "retire",
+              "disposition_basis": "Retired with its command (hv, 2026-08-28, issue 0118). A retired command never reaches clap, so neither can its flags -- the generator refuses the mismatch rather than shipping a flag with no door."
             }
           ],
           "v2": "bin/intent_st:1212-1433",
@@ -1170,10 +1171,12 @@
             ]
           },
           "target": {
-            "state": "pending-hv",
-            "question": "Does v3's id parser accept a bare number of any length (what :1231 evidently INTENDED), or only the two spellings that measurably work? Reproducing the dead arm faithfully is not an option -- it is unconstructible in clap. Same class as INV-08: a defect whose fix is forced."
+            "state": "retire",
+            "spelling": "",
+            "ratification": "hv, 2026-08-28, on issue 0118. **v3 HAS NO SUBJECT FOR THIS VERB.** v2's `st repair` fixes MALFORMED FRONTMATTER -- `bin/intent_st:1250+`, 'Check if frontmatter is malformed (all on one line with \\\\n)' -- in a hand-authored markdown artefact. In v3 `info.md` is a GENERATED VIEW: `doctor` re-renders every view to detect a hand-edited one, and the remedy for a mangled view is regeneration, not repair. A verb whose entire subject is now regenerated has nothing left to do. **AND IT WAS NEVER THE DOOR 0118 NEEDED**, which is what made this ruling reachable: 0118 reasoned that `repair` is the last exit of a closed loop doctor recruits operators into, and the loop is real, but the exit it named was never the door to that room -- Conflab's 50 findings are threads missing `completed`, which v2's repair never touched. The actual unblock is `--date` on the closing verbs, ruled in the same round and landed at bd5894df.",
+            "note": "**THE BARE-NUMBER ID QUESTION IS NOT ANSWERED BY THIS AND MUST NOT BE READ AS ANSWERED.** The row previously carried, as `target.question`: \"Does v3's id parser accept a bare number of any length (what :1231 evidently INTENDED), or only the two spellings that measurably work? Reproducing the dead arm faithfully is not an option -- it is unconstructible in clap. Same class as INV-08: a defect whose fix is forced.\" That question is about v3's id parser, not about this verb, and retiring the verb removes its only current caller rather than settling it. It stays open on its own row, unanswered by implementation."
           },
-          "disposition": "keep",
+          "disposition": "retire",
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
@@ -7982,13 +7985,13 @@
     {
       "disposition": "keep",
       "target_state": "pending-hv",
-      "n": 6,
+      "n": 5,
       "gloss": "The command survives; what v3 does with it is waiting on hv. The survival question is answered and the behaviour question is not, which is why two fields are better than one here."
     },
     {
       "disposition": "retire",
       "target_state": "retire",
-      "n": 8,
+      "n": 9,
       "gloss": "The command does not ship. The second pair where the fields MUST agree, and the one with teeth: `Entry::is_shipped()` reads both and fails OPEN, so a single hand-edit to either field alone would ship a retired command."
     },
     {
@@ -8296,7 +8299,6 @@
       "st edit",
       "st attach",
       "st sync",
-      "st repair",
       "st bootstrap",
       "wp",
       "wp new",
@@ -8398,6 +8400,7 @@
       "events"
     ],
     "retired": [
+      "st repair",
       "st organize",
       "issues hydrate",
       "issues dehydrate",
@@ -8425,7 +8428,6 @@
       "st edit",
       "st attach",
       "st sync",
-      "st repair",
       "st bootstrap",
       "wp",
       "wp new",
