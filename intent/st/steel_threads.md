@@ -4,6 +4,9 @@ An index of every steel thread in the project. A steel thread is a self-containe
 
 | ID     | Title                                                                                                                                           | Status      | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------- | -------------------- |
+| ST0067 | Build out 'intent llm' so that LLMs can work out how to work with Intent                                                                        | Triage      | 2026-08-28 |                      |
+| ST0066 | Add 'fiat close' as a feature to close STs, WPs, ACs, and ATs                                                                                   | Triage      | 2026-08-28 |                      |
+| ST0065 | Review Intent's use of .md files and /in-* skills for the v3 release                                                                            | Triage      | 2026-08-28 |                      |
 | ST0064 | intentd: the Intent daemon, and a menubar app that controls it                                                                                  | Triage      | 2026-08-26 |                      |
 | ST0063 | start                                                                                                                                           | Triage      | 2026-08-26 |                      |
 | ST0062 | help                                                                                                                                            | Triage      | 2026-08-26 |                      |

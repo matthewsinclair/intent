@@ -1,0 +1,12 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0067",
+  "title": "Build out 'intent llm' so that LLMs can work out how to work with Intent",
+  "slug": "build-out-intent-llm-so-that-llms-can-work-out-h",
+  "status": "triage",
+  "created": "2026-08-28",
+  "objective": "Build out 'intent llm' -- currently a stub -- so that an LLM arriving at an Intent project can work out how to use and work with Intent from the tool itself. It is the only discovery surface an LLM has for Intent; fix asap.",
+  "context": "hv, 2026-08-28: \"'intent llm' -- this is a stub right now. We need to fix this asap. It's the only way that an LLM can work out how to use and work with intent.\"\n\nScope to establish at design time: what the surface serves (verb reference, the ST/WP/AC/AT model, the canon-vs-view contract, the sync discipline, the rules library entry points) and how it stays true as the tool moves -- the estate's standing hazard is a claim outliving its basis, and a hand-maintained LLM guide is that hazard in its purest form, so the design should prefer projecting from the tool's own registries (clap definitions, rule library, dispositions) over prose that drifts. Related: AC-00.9 constrains what Intent may emit into consumer-facing output (no Intent PM state); `intent llm` output lands in consumer sessions, so it inherits that constraint.",
+  "body": "",
+  "preamble": ""
+}

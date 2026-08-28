@@ -1,0 +1,12 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0066",
+  "title": "Add 'fiat close' as a feature to close STs, WPs, ACs, and ATs",
+  "slug": "add-fiat-close-as-a-feature-to-close-sts-wps-acs",
+  "status": "triage",
+  "created": "2026-08-28",
+  "objective": "Add 'fiat close' (FC): a way for the HUMAN to force-close an AC, an AT, a WP, or a whole ST -- easy to invoke, and it MUST carry an explanation of why the fiat close was executed. Where that explanation is recorded is part of the design. The LLM must NEVER be able to fiat-close anything; how that is enforced is an open design question and part of this thread's conversation.",
+  "context": "hv, 2026-08-28, verbatim intent: \"by default, an LLM will over-cook a lot of ACs and ATs and sometimes, rather than just yak-shaving ourselves into a singularity, we need a way to cut and run. I don't think the LLM should ever be able to fiat close (FC) something, so not sure how to _enforce_ that, but it's worth adding to the conversation.\"\n\nThe live motivating case is the same day's ruling: hv fiat-closed Conflab's ST0121/WP-02 and ST0124/WP-02 (an unverifiable panel-survival acceptance half) and the mechanism available was `wp done` plus a hand-written 'accepted unverified on hv's word' note with the provenance carried in prose. FC formalises exactly that: the close, the reason, the authority, and the record, as one verb instead of a convention. Design questions on the table: (1) verb surface (one `fc` verb over st/wp/ac/at vs a `--fiat` flag on the existing close verbs); (2) where the reason lives (the canon model carries it; a Finding-like record vs a field on the row); (3) enforcement that the actor is human -- candidates include a /dev/tty confirmation like the release path (`int build release` reads its confirm from /dev/tty; this estate never passes --no-confirm from a tool-driven session), which is a mechanism the estate already trusts for human-only actions; (4) how doctor and the ac gate report a fiat-closed row (visibly distinct from satisfied, never silently identical).",
+  "body": "",
+  "preamble": ""
+}
