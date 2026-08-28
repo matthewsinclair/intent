@@ -85,14 +85,48 @@ if [ "$rc" -eq 0 ]; then
   echo "guard-home: the self-hosted override is present in the shipped template (condition + assignment)."
   # REPORTED, NEVER GATED. The installed copy is per-machine and gitignored, so
   # its absence is the normal state of a fresh clone and must not fail anything.
+  #
+  # THE CARRIER HAS TWO SHAPES AND THIS ARM USED TO MODEL ONE (issue 0113).
+  #
+  # It asked ONE question -- does the installed copy carry `GUARD_HOME="$_repo_root"`
+  # -- and read a `no` as "predates this template". Since the shim carrier landed
+  # that inference is false by construction: **a shim is a LOCATOR and names no
+  # guard content at all**, so it can never carry the override, and the printed
+  # remedy (`intent claude upgrade --apply`) reinstalls the shim. The NOTE became
+  # a permanent alarm on a healthy tree -- measured on Intent's own, where the
+  # verb HAD been run that morning and the NOTE printed on every commit after.
+  #
+  # A reader who obeys it loops; a reader who learns to skip it skips the arm on
+  # the day it means something. Same family as 0105: a reporter reading the
+  # CARRIER and expecting the GATE BODY's properties.
+  #
+  # SO THE QUESTION IS NOW "WHAT IS THIS CARRIER", not "does it carry the string".
+  # Three states, and the predates-NOTE is reserved for the one that is really
+  # unrecognised rather than being the fallthrough for everything unmodelled.
   installed="$ROOT/.githooks/pre-commit.intent"
+  shim_template="$ROOT/lib/templates/hooks/pre-commit-shim.sh"
   if [ ! -e "$installed" ]; then
     echo "guard-home:   this machine has no installed gate copy yet (normal in a fresh clone)."
   elif grep -q 'GUARD_HOME="\$_repo_root"' "$installed"; then
-    echo "guard-home:   this machine's installed copy agrees with the template."
+    echo "guard-home:   this machine's installed copy carries the override directly (monolithic carrier)."
+  elif [ -f "$shim_template" ] && cmp -s "$installed" "$shim_template"; then
+    echo "guard-home:   this machine's installed copy IS the current shim -- byte-identical to"
+    echo "guard-home:   lib/templates/hooks/pre-commit-shim.sh. IT CARRIES NO OVERRIDE BY CONSTRUCTION,"
+    echo "guard-home:   and that is correct: a shim locates the gate, and the override lives in the"
+    echo "guard-home:   gate body it resolves -- which is the template gated above."
   else
-    echo "guard-home:   NOTE -- this machine's installed copy does NOT carry the override; it predates"
-    echo "guard-home:   this template. Run: intent claude upgrade --apply"
+    echo "guard-home:   NOTE -- this machine's installed copy matches NEITHER the override the template"
+    echo "guard-home:   carries NOR the current shim, so this check cannot say what it is."
+    echo "guard-home:   Most likely it predates one of the two; it may also be a shim installed from a"
+    echo "guard-home:   DIFFERENT Intent install, which this arm compares against THIS tree's template"
+    echo "guard-home:   and cannot distinguish. Ask the carrier itself before reinstalling:"
+    echo "guard-home:     bash .githooks/pre-commit.intent --where"
+    echo "guard-home:   If that resolves to a real install at state OK, the gate runs and nothing is owed."
+    echo "guard-home:   Otherwise: intent claude upgrade --apply -- and note its SCOPE before running it."
+    echo "guard-home:   That verb applies the WHOLE canon set, not just this file: it rewrites CLAUDE.md,"
+    echo "guard-home:   AGENTS.md and .claude/settings.json, and region-edits the pre-commit chain block."
+    echo "guard-home:   (Wording matched from bin/.devbin/cmd/hooks, which is the authority for it --"
+    echo "guard-home:    one fact about a verb, phrased two ways, is the drift this repo calls Highlander.)"
   fi
 fi
 

@@ -265,6 +265,49 @@ resolve_guard_home() {
 # own gate, so it works or it does not. A SHIM IS ONLY AS GOOD AS THE POINTER IT
 # RESOLVES, and a shim whose root is gone REFUSES EVERY COMMIT in that estate.
 # That is a worse condition than staleness and it is invisible to a byte
+# upgrade_apply_scope <indent> -- what `intent claude upgrade --apply` ALSO does.
+#
+# ONE HOME, because this command offers that verb from three places and the fact
+# is the same fact each time (issue 0109). Three copies of a blast radius is
+# three things to update the day the canon set changes, and the one that gets
+# missed is the one an operator reads.
+#
+# WHY IT IS OWED AT ALL. The verb has no narrower mode: there is no flag that
+# installs the carrier alone. So the only offered repair for ONE hook file also
+# rewrites CLAUDE.md, AGENTS.md and .claude/settings.json and region-edits the
+# chain block -- and until this printed, none of that was said where the verb
+# was offered.
+#
+# THE COST IS MEASURED, NOT HYPOTHETICAL. On 2026-08-28 an operator met this
+# command reporting the dispatcher STALE -- a TRUE positive -- dry-ran the
+# printed remedy, found it also rewrote canon files owned by other workstreams
+# in a tree that gates canon currency, and DECLINED TO RUN IT. The carrier then
+# stood stale for six more hours. **A correct diagnosis routed to a remedy wider
+# than the defect does not get run.** The diagnosis was right and the remedy
+# would have worked; the gap between them cost the repair.
+#
+# NOT AN ARGUMENT FOR A NARROWER DEFAULT. `claude upgrade` applying the canon set
+# is exactly what its name says. The defect is non-disclosure at the point of
+# offer, so disclosure is the whole fix.
+#
+# AND THE DECLARED SCOPE IS WHAT IS PRINTED, NEVER THE REALISED ONE. On that
+# tree the run's realised effect was smaller than this list -- most files were
+# already canonical -- which is precisely why the operator needs the declared
+# scope: they are deciding BEFORE the run, when the realised scope is unknown.
+upgrade_apply_scope() {
+  local i="${1:-                 }"
+  printf '%sSCOPE -- that verb applies the WHOLE canon set, not just this file. It has no
+' "$i"
+  printf '%snarrower mode: it rewrites CLAUDE.md, AGENTS.md and .claude/settings.json, and
+' "$i"
+  printf '%sregion-edits the pre-commit chain block. Preserved if already present:
+' "$i"
+  printf '%susage-rules.md and .intent_critic.yml. `intent claude upgrade` with no --apply
+' "$i"
+  printf '%sreports what it would do without writing.
+' "$i"
+}
+
 # comparison, so it is asked first and reported louder.
 carrier_is_shim() {
   grep -q -- '--where' "$HOOKS_DIR/pre-commit.intent" 2>/dev/null
@@ -332,6 +375,7 @@ gate_currency() {
   printf '                   bash %s --where   (or read ~/.intent/home)\n' "$GUARD_HOME/lib/templates/hooks/pre-commit-shim.sh"
   printf '                 if that root is not a real Intent install, the shim will refuse EVERY commit\n'
   printf '                 here -- repoint it first, then upgrade.\n'
+  upgrade_apply_scope '                 '
 }
 
 shipped_guards() {
@@ -534,6 +578,7 @@ if [ "$DO_INSTALL" -eq 0 ]; then
     printf '                 unset above, the hook never runs and nothing refuses anything.\n'
     printf '                 it is gitignored on purpose (it is canon, written by the installer),\n'
     printf '                 so a clone never carries it. Run: intent claude upgrade --apply\n'
+    upgrade_apply_scope '                 '
   fi
   printf '\n'
   if [ "$rc" -eq 0 ]; then
@@ -561,6 +606,7 @@ if [ "$DO_INSTALL" -eq 0 ]; then
     printf 'hooks: this clone is NOT fully wired.\n'
     if [ "$GATE_ABSENT" -eq 1 ]; then
       printf '  the GATE is missing: run `intent claude upgrade --apply`.\n'
+      upgrade_apply_scope '  '
     fi
     if [ "$rc" -ne 0 ] && [ "$GATE_ABSENT" -eq 0 ]; then
       printf '  the RUNNERS are unwired: run `int hooks --install`.\n'

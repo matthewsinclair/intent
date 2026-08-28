@@ -248,10 +248,27 @@ if [ "$rc" -eq 0 ]; then
     echo "skew: $checked apparatus view(s) match their canon; $(printf '%s' "$UNCHECKABLE" | grep -c .) declared un-re-derivable; $(printf '%s' "$AUTHORED" | grep -c .) authored (nothing to check)."
   fi
   if [ -n "$thread_views" ]; then
+    # THIS TOOL'S BOUNDARY IS THIS TOOL'S TO STATE; THE SIBLING'S GATE STATUS IS NOT.
+    #
+    # This paragraph used to end `and no gate runs it. This is a GAP`. That was
+    # true when written and expired 2026-08-27 when thread_view_skew_check.sh was
+    # admitted to the gate -- after which this printed "no gate runs it" a few
+    # lines from the sibling's own output examining every view in the same run.
+    # Its function inverted: written to stop a committer reading silence as a
+    # green, it came to instruct them to distrust a property just verified, and
+    # to re-run by hand a check that had already run (issue 0112).
+    #
+    # THE FIX IS NOT TO SAY `gated in this same run` INSTEAD. That is the same
+    # defect one generation later -- a claim about ANOTHER tool's roster status,
+    # transcribed here, expiring silently the day the roster changes. The roster
+    # is the authority and it is greppable; a status copied out of it is a second
+    # home for a fact that already has one.
     echo "skew: NOT CHECKED -- this change carries thread view(s), which this tool does not cover:"
     printf '%s' "$thread_views"
-    echo "      Their check is thread_view_skew_check.sh and no gate runs it. This is a"
-    echo "      GAP, not a clean result: nothing here has looked at those files."
+    echo "      Their check is thread_view_skew_check.sh. WHETHER IT RUNS AT COMMIT TIME IS THE"
+    echo "      ROSTER'S ANSWER, NOT THIS TOOL'S -- runner_roster_check.sh is the authority."
+    echo "      What this line records is the boundary of THIS check: the files above are"
+    echo "      outside its population, so its result above says nothing about them."
   fi
 fi
 
