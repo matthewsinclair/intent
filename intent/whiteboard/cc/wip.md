@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: 7a90ae04-61f6-4b2f-9de7-dd81eac9bb11
-heartbeat_at: 2026-08-28 12:26Z
+heartbeat_at: 2026-08-28 12:37Z
 status: active
-focus: "**CONFLAB IS ON v3 AND PHASE 4 PASSED: ZERO AUTHORED-CONTENT LOSS.** hv's D1 carry worked; 28 residual losses are all v2 furniture. Issues 0100-0103 at `ab4837f0`. **(B) reached its first estate and the whole path resolves** -- shim `cmp`-identical, chain-block execs it, `--where` state OK; Conflab is OUT of the sweep population, the other sixteen are UNMEASURED. **The day's class was my own instruments: three normalisation asymmetries whose two controls passed every time, a store probe keyed on a field that does not exist, and an attribution that decayed into an assertion inside one paragraph on the one mechanism I own.** Rule 2 holds until vc lifts it. I take work from intent-vc and I direct nobody."
-claims: [ST0056/06, ST0056/10, ST0057/00, ST0057/01, ST0057/03]
+focus: "**HOP CLOSED, NOTHING IN FLIGHT, NOTHING TO BUILD.** Conflab is on v3 with ZERO authored-content loss; Phase 4 passed; issues 0100-0103 at `ab4837f0`. **(B) reached its first estate and BITES** -- conflab-ic's arm 1 refused with check B named, arm 2 committed through the shim. **Rule 2 is LIFTED** and ordinary build ceremony returns: announce before and after by PROPERTIES, never a bare `cargo build --release`, never into the shared target from a dirty `native/rust`. **MINE WHEN hv TURNS TO IT: 0103, the `wp list` 28-vs-71 split** -- 216 rows against 531 store objects, rc=0 with ZERO rows on 71 bucketed threads, REACH not loss. **The day's class was my own instruments and my own attribution, six times, none of which failed loudly.**"
+claims: [ST0056/06, ST0056/10, ST0057/00]
 ---
 
 # Control Claude (cc)
