@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-02: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided

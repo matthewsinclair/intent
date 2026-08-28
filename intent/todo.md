@@ -41,7 +41,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [-] ST0061: dehydrate
 - [-] ST0065: Review Intent's use of .md files and /in-* skills for the v3 release
   - [-] 01: Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set
-  - [ ] 02: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided
+  - [-] 02: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided
 - [-] ST0067: Build out 'intent llm' so that LLMs can work out how to work with Intent
 
 ## TODO
