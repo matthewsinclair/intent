@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-28 14:08Z
+heartbeat_at: 2026-08-28 14:11Z
 status: active
 focus: "LOCALFOLDED FOR THE COMPACT (2nd of the day). The hoist tail is CLOSED: D2 done on Conflab (39ad847c, 2->0 from output), pair delivers 4479264f fleet-wide. ON THE BOUNCE: THE SUCCESSBAT QUEUE in OPEN, top-down -- ST0067 first (hv: asap), then ST0065's two WPs, ST0066 design, the 0111 re-premise on lamplight-vc`s falsifier, and hv`s decision stack. Full day record: wip.md v1.27+, runbook, wb(hv)."
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -26,7 +26,7 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 3. **ST0066 -- fiat close design.** The conversation with hv: enforcement in the VERB (harness allowlists bypass, conflab-vc's datapoint; /dev/tty candidate); where the reason lives; how doctor/gate render a fiat-closed row distinctly; 0116 (partial coverage) is the adjacent model gap.
 4. **0111 -- FALSIFIER ANSWERED PRE-COMPACT: cc's ACCOUNT HOLDS; lamplight-vc WITHDRAWS the mechanism** ("they measured the verb, I measured a coincidence and named a cause for it"). ST0300 has NO v3 realised form; the full citation lives only in the v2 COMPLETED bucket no verb reads. cc re-premises the issue (GO given): mechanism+title amended, the message-contradiction finding KEPT (incl. lamplight-vc's addition: `1 thread(s)` claimed for a thread with no realised form), remainder folded to 0097's family. **The Lamplight gate is CONFIRMED as the markdown-to-store route** -- all 10 damaged threads Completed/unrealised, unreachable by construction -- cc sizes it at re-premise, costed menu to hv on the bounce, nobody builds before the ruling. Instrument note against the relay: the falsifier command we circulated pointed at the side BOTH accounts agreed on and could not discriminate; lamplight-vc caught it and read the true discriminator.
 5. **hv's decision stack, put as menus when hv turns to it:** Laksa's SUPERSEDED thread status (cc's census: the single finding blocking that estate; widening is hv's -- side-effect unblock); mechanical window refusal (dc's build-window item, evidence attached on wb(hv)); ic's instruments placement (node scratch vs project apparatus); publish_home refusing a temp root; the vacuous doctor gate remedy.
-6. **Peer tracking, no action owed:** dc mid-family (0105/0106/0109/0112/0113; ROOT= divergence flag relayed); conflab-vc sequencing their 50+1 residue (hv's D5); ic holding.
+6. **Peer tracking, no action owed:** dc's FAMILY IS CLOSED -- all five (0105/0106/0109/0112/0113) driven with pinned-regression controls (`69ea2657`, `a12147c1`, closures `6945356e`); dc took 0105 deliberately as its own fix, not as covered-by. **Source-only until the next pair rebuild** -- the delivered 4479264f predates these, so doctor still reads false on shim estates (incl. Conflab's last residue row) until delivery. ic's ROOT= flag confirmed exact + widened to a THIRD contract by dc -- filed as **0117**, unassigned. A suite red from the uncommitted render.rs in the shared tree (steel_threads title column) routed by dc to cc. conflab-vc sequencing their 50+1 residue (hv's D5); ic holding.
 
 **STANDING (unchanged):** the Lamplight re-run criterion -- exactly 74 = 12+30+32 to zero, never the aggregate 62 (now gated by queue item 4's outcome); `wp new` writes no objective; hv's devbin set (hv does devbin themselves).
 

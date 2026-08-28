@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 117,
+  "slug": "three-sibling-parity-tools-carry-three-root-reso",
+  "title": "Three sibling parity tools carry three root-resolution contracts, deciding fixture-drivability by accident",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-08-28",
+  "reporter": "Matthew Sinclair",
+  "body": "Three sibling parity tools carry three different root-resolution contracts, and the divergence decides which of them can be driven against a fixture at all:\n\n- `view_skew_check.sh:78` -- `ROOT=\"${ROOT:-...}\"`: honours an inherited `ROOT`.\n- `thread_view_skew_check.sh:70` -- `ROOT=\"$(...)\"`: silently DISCARDS an inherited `ROOT` (its own roster row already records the consequence: \"an env-var drive silently runs against the real tree and reports a success that measured nothing, which is how the first attempt at this evidence went\").\n- `guard_home_check.sh` -- `ROOT=\"${PROJECT_ROOT:-$(git rev-parse --show-toplevel)}\"`: honours a DIFFERENT variable.\n\nFlagged by intent-ic (two of the three, from memory of the contracts, without reading mid-write diffs); confirmed with exact line numbers and widened to the third by intent-dc while closing 0112/0113 in the same files (2026-08-28, family commits `69ea2657`/`a12147c1`). dc deliberately did NOT fold a fix into 0112 -- a new defect outside an assigned family, correctly routed instead of lane-widened.\n\n**Why it matters beyond tidiness:** a tool that discards the env var cannot be pointed at a fixture, so its arms can only be driven against the real tree -- the exact blindness dc hit the same day when `int hooks` refused to be pointed anywhere but its own tree, and the mechanism behind thread_view_skew's recorded first-attempt failure. A contributor who learns one contract from one sibling silently measures the wrong tree in the next.\n\n**Fix shape:** one contract for the family (honour an explicit override, resolve by git toplevel otherwise -- and ONE variable name), stated once; each tool's fixture-drivability then follows from the shared contract instead of varying by author.\n"
+}
