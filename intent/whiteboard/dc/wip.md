@@ -3,10 +3,10 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
-heartbeat_at: 2026-08-28 16:22Z
+heartbeat_at: 2026-08-28 16:24Z
 status: active
-focus: "BACK ON THE BOUNCE 2026-08-28 16:22Z, ACTIVE, under vc. Boot complete, lane clean, NOTHING IN FLIGHT, nothing staged, nothing owed. **STARTED NOTHING.** vc's own bounce queue says *assign the ST0066 build (dc is FREE)*; I have read ST0066 cold -- hv ruled the posture 14:38Z and the package 14:54Z, 6 non-test ACs, 0 ATs, status Triage -- and ASKED vc for the assignment rather than taking it. TWO THINGS FLAGGED TO vc ON THAT READ, NEITHER MINE TO DECIDE: every AC is (non-test) although 00.1-00.5 all describe mechanically drivable behaviour, and the design's own *still open before build* list includes a schema bump that touches cc's lane. PARKED UNCHANGED: WP-11 needs a published tag (hv); bin/int -> bin/devbin held by hv's standing directive (b), step 1 inlined below; ac gate ST0057 PASS 66/66 against hv's board saying BLOCKED 51/53, routed to vc."
-claims: [ST0056/07, ST0056/11]
+focus: "ST0066 IN FLIGHT -- `intent fc`, the fiat close. ASSIGNED by vc, TAKEN at `d692730e` (Triage -> WIP). **THE SPEC IS `intent/.canon/st/ST0066.json`'s BODY, NEVER A SUMMARY OF IT.** hv ruled the posture 14:38Z and the package 14:54Z and the body also records the DECLINED alternatives -- a build that starts to resemble a declined one is a ruling to re-open with vc, not a detail to settle at the keyboard. **PREMISE THE BUILD MAY NEVER CONTRADICT: hard prevention is not achievable on this machine, so enforcement is DETECTION + ATTRIBUTION.** Six ACs, all non-test, all unsatisfied; **vc adjudicates and I never satisfy my own.** THREE OPEN ITEMS ARE MINE TO PROPOSE AND NOT TO SETTLE -- field shapes + extract schema (**a FLEET-WIDE bump; the shape and the migration cost go to hv via vc**), doctor wording, 0116 partial-coverage rendering; everything not depending on the schema answer gets built meanwhile. BOUNDARY 1: AC-00.6 is ic's surface, so the rule text and placement go to vc and I edit no skills. BOUNDARY 2: **source-only until the batch AFTER the imminent rebuild, and it must not race it.** PARKED UNCHANGED: WP-11 needs a published tag; bin/int -> bin/devbin held by hv's directive (b); ac gate ST0057 PASS 66/66 against hv's board saying BLOCKED 51/53, routed to vc."
+claims: [ST0056/07, ST0056/11, ST0066]
 ---
 
 # DevX Claude (dc)
@@ -39,7 +39,16 @@ claims: [ST0056/07, ST0056/11]
 
 ## DOING
 
-**NOTHING IN FLIGHT. Lane clean, nothing staged, nothing owed.** Today verbatim in `.history/20260828/wip.md`.
+**IN FLIGHT: ST0066 -- `intent fc`, the fiat close. Assigned by vc, taken at `d692730e` (Triage -> WIP).** Today verbatim in `.history/20260828/wip.md`.
+
+### ST0066 -- WHAT IS RULED, WHAT IS OPEN, AND WHERE THE TWO BOUNDARIES ARE
+
+- **THE SPEC IS THE BODY OF `intent/.canon/st/ST0066.json`, NOT ANY SUMMARY OF IT** -- vc instructed this explicitly and it is the right instruction. hv ruled the POSTURE 2026-08-28 14:38Z (four points) and the PACKAGE 14:54Z (four points: one verb, record in-model, cascade with inherited-fiat markers, gate semantics), and the body ALSO records the DECLINED alternatives, so an option never on the menu stays distinguishable from one hv refused. **If the build starts to resemble a declined alternative that is a ruling to re-open with vc, never a detail to settle at the keyboard.**
+- **THE PREMISE IS ACCEPTED WITH THE RULING AND THE BUILD MAY NEVER CONTRADICT IT: the LLM shares hv's uid and shell, so HARD PREVENTION IS NOT ACHIEVABLE ON THIS MACHINE.** Enforcement is **DETECTION + ATTRIBUTION, never prevention.** AC-00.6 forbids the deliverable from claiming otherwise, so any wording of mine reading as _an LLM cannot do this_ is a defect in the artefact rather than a stylistic slip.
+- **SIX ACs, ALL `non-test`, ALL UNSATISFIED, AND I NEVER SATISFY MY OWN -- vc adjudicates.** Read them from the extract or `intent ac list ST0066`; never from vc's message and never from this line, which is the second-home failure this board already carries as Family 7.
+- **THREE OPEN ITEMS ARE MINE TO PROPOSE AND NOT TO SETTLE:** (1) the exact model field shapes and their extract schema, (2) how `doctor` words a fiat row, (3) whether `0116`'s partial-coverage case renders distinctly when the FC'd AC was half-covered. **(1) IS A FLEET-WIDE FORMAT CHANGE** -- a schema bump rewrites the format of every tracked `intent/.canon/**` extract here and in every consumer estate, with a migration question attached; vc puts the shape and the migration cost to hv. **Everything that does not depend on the schema answer gets built while that is out.**
+- **BOUNDARY 1 -- AC-00.6 LANDS IN THE RULES LIBRARY AND THE SKILLS, WHICH IS ic's SURFACE.** The rule text and its placement go to vc, who routes them. **I edit no skills directly**, because two writers on one file is precisely what the single-writer rule exists to prevent.
+- **BOUNDARY 2 -- A REBUILD BATCH IS IMMINENT AND THIS WORK MUST NOT RACE IT.** cc calls the batch when `0121` lands and vc puts the GO to hv. **Everything I land today is SOURCE-ONLY until the batch AFTER that one.** The hazard vc named is specific and real: a rebuild landing mid-build would make an unshipped change of mine read as delivered.
 
 ### TODAY LANDED, AS A COLD-SESSION INDEX. Reasoning is in the commit messages and verbatim in `.history/20260828/wip.md`; it is NOT restated here.
 
