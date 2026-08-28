@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 120,
+  "slug": "converge-gitignore-omits-intent-backup-second-in",
+  "title": "converge_gitignore omits intent/.backup/ -- second instance of the 0101 class",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-28",
+  "reporter": "Matthew Sinclair",
+  "body": "`converge_gitignore` writes no rule for `intent/.backup/`, so running doctor's OWN remedy for `backup-stale` (`intent backup`) leaves the backup DB untracked in the consumer's tree -- measured on Conflab 2026-08-28: a 46MB `intent/.backup/db/2026-08-28T14-04-48-749Z.db` appeared and the ignore rule had to be hand-finished at their .gitignore:104.\n\n**Second instance of 0101's class** (first: `intent/events.jsonl`, which Intent ignores in its own .gitignore and does not converge into consumers). The class, named once: **converge_gitignore converges a SUBSET of the ignore rules Intent's own estate relies on, and every omission is a remedy or normal operation dirtying a consumer's tree with only the tidy-up left to the consumer.** Two instances now measured; the fix should enumerate against Intent's own ignore set rather than patch per-instance (and note memory/project rule D34-adjacent: .backup/ must never be committed anywhere, so the missing rule is also a hazard, not just untidiness).\n"
+}
