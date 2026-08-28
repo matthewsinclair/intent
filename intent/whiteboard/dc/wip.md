@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
-heartbeat_at: 2026-08-28 15:21Z
+heartbeat_at: 2026-08-28 15:35Z
 status: active
-focus: "AC-07.6 CLOSED -- vc greened AT-07.6 at `77cb6693` with both doors driven (`27654493` init + consumer test, `fe4515e8` migration limb 6). **AC-07.5 IS ESCALATED, NOT BUILT: eleven deviation classes, ZERO ratified, and BYTE-PARITY IS IMPOSSIBLE IN PRINCIPLE** -- v2 stamps a DATE so its own output is not stable day-to-day, and v2 renders the DIRECTORY name where the config says otherwise, so byte-equality would enshrine a v2 bug and score v3`s fix as a failure. Recommended the row be REWRITTEN like AC-11.1 rather than satisfied. Flagged one possible v3 regression (empty `### Test commands` section) and confirmed it is NOT ST0037 detection. NOTHING IN FLIGHT, waiting on vc."
+focus: "WP-07 CLOSED OUT FOR THE DAY -- AT-07.4, AT-07.5, AT-07.6 all GREEN in vc`s hand. AC-07.5 went ESCALATE -> RATIFY -> REWRITE -> BUILD (`1fb7be15`, 5/5, red-first); the row was UNSATISFIABLE, not unsatisfied, and refusing to test an unratified list is what surfaced that. **THE DEFECT WAS WIDER THAN FILED AND THAT INVERTED THE FIX: a per-language template placeholder would render `no tests configured` NEXT TO `mix test`, so the rule went where the answer is knowable -- a roster-free post-pass.** ic`s 0113 hypothesis RUN and RETIRED by enumeration: 51 files, one flag, and the flag is PROSE describing the defect. **TWICE TODAY THE ESTATE`S OWN CONFIG IS WHAT HID THE BUG FROM IT** -- our hand-written `.prettierignore`, and our declared languages filling every section. NOTHING IN FLIGHT, no open thread, ready for the fold."
 claims: [ST0056/07, ST0056/11]
 ---
 
@@ -50,7 +50,24 @@ claims: [ST0056/07, ST0056/11]
 - **I DID NOT FLIP AT-07.6 AND ARGUED IT SHOULD STAY RED.** The criterion says init AND migration; the migration door is WIRED BUT NOT DRIVEN (needs a v2 fixture). By vc's own AT-07.4 standard the row is about the CRITERION, and **asserting a door I never opened is the same shape as the defect I just fixed.**
 - **A MISSING PRETTIER FAILS, IT DOES NOT SKIP** (vc's instruction, taken as gate-on-presence). The sibling test prints a loud skip and still passes; **a loud skip is only loud to somebody reading the log, and in CI nobody is.**
 
-### AC-07.5 IS BLOCKED ON RATIFICATION AND THE ROW'S OWN WORDING CANNOT SURVIVE -- escalated 15:21Z, NO TEST WRITTEN
+### WP-07's WHOLE AC/AT SET MOVED TODAY -- AT-07.4, AT-07.5, AT-07.6 all GREEN in vc's hand
+
+**AC-07.5 was ESCALATED, RATIFIED (`13262248`), REWRITTEN, then BUILT (`1fb7be15`, 5/5, red-first).** The escalation is the part worth keeping: I refused to write a test against an unratified list, and the row itself turned out to be unsatisfiable rather than unsatisfied.
+
+- **THE DEFECT WAS WIDER THAN IT WAS FILED AND THAT INVERTED THE FIX.** (k) was measured on `languages: []`, which `[[#nolang]]` already covers -- so "two template blocks" looked like the whole job. **The template carries blocks for a SUBSET of the 7 packs: `### Building` has no `shell` arm, and neither section has `author`, `content` or `lua`.** Driven: `[shell]` -> `### Building` bare; `[author]` -> both bare. **4 of 7, none of them the empty case.**
+- **THE PER-LANGUAGE TEMPLATE FIX IS WRONG, NOT MERELY INCOMPLETE.** `[[#lang author]] no tests configured` renders NEXT TO `mix test` for a project declaring both. **A placeholder contradicting the content beside it is worse than the bare heading.** So the rule went where the answer is knowable -- a post-pass in `rootfiles::substitute`, roster-free, covering tomorrow's pack. **Disclosed to vc as a deviation from "the template fix"; endorsed.**
+- **MY FIRST SCANNER FALSE-POSITIVED AND THAT IS THE KEEPER.** It asked for prose before the next heading of ANY level and flagged `## Development Environment` -- a parent whose next line is its own subsection. **Had I "fixed" the template to satisfy it, the result was filler under every parent heading in the document.** Control is now two-sided: find a planted empty leaf AND leave a planted parent alone.
+- **THIS REPO'S OWN `AGENTS.md` IS BYTE-IDENTICAL UNDER THE FIX** -- it declares languages that fill every section. **Same shape as AC-07.6 this morning: the estate's own configuration is what hides the bug from it.** Twice in one day.
+
+### ic's 0113 HYPOTHESIS: RUN, DOES NOT REPRODUCE, RETIRED BY ENUMERATION (read-only, nothing landed)
+
+**51 files swept. ONE flagged, and it is PROSE** -- `runner_roster_check.sh:137`, a roster note DESCRIBING `guard_home_check.sh`, with the carrier hit and the gate-marker hit on the same line. **Scanning prose makes describing the defect indistinguishable from committing it, which is why `whiteboard-header-guard.sh` never reads prose.** Net zero.
+
+- **THE DISCRIMINATOR WAS DRIVEN TWO-SIDED ON PLANTED FIXTURES BEFORE USE** -- planted defect FLAGGED, planted template-reader clean. **The whole output of this sweep is a negative, and an instrument that has only ever said "nothing" cannot be told from one that can say nothing else.**
+- **The shim is not an uncovered blind spot either** -- `pre_commit_shim.bats` carries 10 arms including both `--where` directions. So the family really is closed at 0105 / 0109 / 0113.
+- **COVERAGE STATED, NOT IMPLIED: this tree only.** Other estates' installed carriers are unswept -- that is hv's carrier sweep, and it is where a stale monolith would actually live.
+
+### AC-07.5's ESCALATION, kept because the refusal is the transferable part
 
 **BYTE-PARITY AGAINST v2 IS NOT ACHIEVABLE IN PRINCIPLE, and neither reason is about the deviations.** (1) **v2 STAMPS A DATE** in its footer, so v2's output differs from itself tomorrow -- v3 names the template and stamps nothing, which is `rootfiles.rs`'s own refusal and D42 from the other side. (2) **v2 RENDERS THE DIRECTORY NAME WHERE THE CONFIG SAYS OTHERWISE.** I ran `init parity` inside `par/`; config says `parity`; v2 rendered `par`, v3 rendered `parity`. **A byte-parity test would score v3's correctness as a failure and enshrine a v2 bug as the contract.** Measured off the config key, not inferred.
 
