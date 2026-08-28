@@ -3,9 +3,10 @@
   "number": 119,
   "slug": "ac-new-on-an-existing-id-is-a-silent-full-replac",
   "title": "ac new on an existing id is a silent full replace with defaults that prints created",
-  "status": "open",
+  "status": "closed",
   "severity": "high",
   "created": "2026-08-28",
+  "closed": "2026-08-28",
   "reporter": "Matthew Sinclair",
   "body": "`intent ac new` is the ONLY writer of an AC's prose (the verb roster has no edit: list, status, satisfy, unsatisfy, gate, descope, rescope, withdraw, reinstate, new) and is documented \"caller-assigned id, idempotent\" -- but re-running it on an EXISTING id is a full replace with DEFAULTS, printing `ok: AC-00.1 created` while destroying the record. \"Idempotent\" is true of the ID and false of the RECORD.\n\n**Probed live on Conflab ST0122/AC-00.1 behind a canon backup (conflab-vc, 2026-08-28):** text overwritten as intended; `kind` silently flipped test -> non-test (`--kind` defaults to non-test); `state.is` silently flipped computed -> unsatisfied. The collateral is exactly the fields that decide whether an AC participates in computed satisfaction -- so a node repairing one SENTENCE of a test-backed AC quietly unsatisfies it and the gate goes green over fewer criteria. Restored through the CLI with `--kind test`; canon verified byte-identical.\n\n**Second, independent near-miss the day before (intent-dc, 2026-08-27, on this estate's AC-12.1):** read `ac_new`'s source before an edit precisely because \"idempotent\" could equally have meant no-op, and found the same default-flip -- so the trap has now been found twice, once by source-reading and once by probe, and survives because the word \"idempotent\" in the help is the only documentation of the replace semantics.\n\n`intent at` has the same shape: no edit verb for a test's reference or citation (lint/green/red/na/new only).\n\n**Fix directions (either suffices):** make `ac new` on an existing id REFUSE without an explicit `--replace` (create and replace are different intents and the print should say which happened); or give `ac`/`at` a real edit verb that rewrites named fields and preserves the rest. Either way the success line must stop saying `created` for a replace.\n"
 }
