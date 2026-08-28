@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-28 16:44Z
+heartbeat_at: 2026-08-28 16:49Z
 status: active
-focus: "ALL THREE BOUNCE ITEMS DELIVERED. Prime sweep (2ab7c2e0), retirement-mechanics draft (2719f4c8), AGENTS.md costed proposal (50b454f9). Nothing executed on the last two -- both are design/draft to vc then hv. THE DAY ADDED A SIXTH INSTANCE OF ITS OWN CLASS AND I CAUGHT IT IN-SESSION: I claimed the four principles were readable nowhere in a fresh project. FALSE -- /in-standards carries all four IDs and is auto-loaded. The real defect is the inverse: THREE undetected homes for the index, and CLAUDE.md is the only one honouring the rule. AWAITING vc. Nothing of mine dirty."
+focus: "ALL THREE ST0065 LEGS DELIVERED AND THEN REWRITTEN TO vc's SPEC (137b2d85): hv is the audience, every item costed, unmeasured costs MEASURED rather than flagged. That rule caught a real defect -- I had said the generator renders all three root files; it does not, agents sync hardcodes AGENTS.md. And the template engine has NO include form, which changed the AGENTS.md recommendation from generate-from-one-source to DUPLICATE-PLUS-DRIFT-TEST. FOURTH DELIVERY PATH FOUND: usage-rules.md is seeded once and never synced, so my own hook-path fix will never reach an existing project. IDLE, holding for vc. Nothing dirty."
 claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -19,8 +19,8 @@ claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/1
 
 - **Prime-payload sweep** (`2ab7c2e0`), catalogue section 8. Five findings, three MISGUIDED. Worst: the payload teaches two flags the shipped binary refuses, and the bats test covering one drives the **v2** binary where it works -- green, and structurally unable to see v3's refusal.
 - **Retirement-mechanics draft** (`2719f4c8`). **`sync` NEVER prunes a vanished canon source and `upgrade` IS that sync**, so a canon-only delete strands the skill on every machine while it keeps loading into sessions. Sequenced so nothing dangles; the delete is step 3 of 4. `_wip.md` is the INVERSE shape and is decoupled -- that is cc's answer. **The uninstall step needs the human, not a peer.**
-- **AGENTS.md costed proposal** (`50b454f9`). Four options, recommended is S. **Injection is recorded as explicitly rejected** -- it is what my uncorrected finding would have proposed, and the most expensive option on the list.
-- **The delivery correction**: three paths, not one. Embedded templates need the rebuild; the prime template is live; the four edited skills need a sync and **this session is still running the pre-edit copies**.
+- **AGENTS.md costed proposal** (`50b454f9`, revised `137b2d85`). Four options, recommended S: **duplicate the index in both templates and DRIFT-TEST it**, since the engine has no include form. **That is `agents_sync_parity`'s own argument -- you do not eliminate duplication, you make it detectable.** Injection recorded as explicitly rejected.
+- **The delivery correction**: FOUR paths, not one. Embedded templates need the rebuild; the prime template is live; the four edited skills need a sync and **this session is still running the pre-edit copies**; and **`usage-rules.md` is seeded-once/never-synced, so that fix reaches no existing project at all.**
 
 ## TODO
 
