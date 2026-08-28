@@ -1843,8 +1843,8 @@
       "covers": [
         "AC-07.6"
       ],
-      "status": "to-write",
-      "note": "renders a view carrying authored `*emphasis*`, runs the formatter, asserts unchanged"
+      "status": "red",
+      "note": "The test EXISTS and its five arms pass (27654493), and the row is red because the CRITERION is not proven. AC-07.6 says init AND migration converge the exclusion: the migration door is WIRED (facade.rs, beside converge_gitignore) but NOT DRIVEN -- it needs a v2 estate fixture that does not exist yet. Asserting a door nobody opened is the same shape as the defect this criterion is about, so the row stays red until the migration arm is built. Moved off to-write because to-write is exempt from L2 and L3, and a row whose test exists must not escape those. dc, 2026-08-28; vc concurred in the same terms."
     },
     {
       "id": "AT-08.1",
