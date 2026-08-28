@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
-heartbeat_at: 2026-08-28 09:28Z
+heartbeat_at: 2026-08-28 11:29Z
 status: active
 focus: "BOOTED, NOTHING STARTED, HOLDING FOR INSTRUCTIONS. Measured at pickup rather than inherited from this board: **ST0057 gate is PASS 66/66 with 3 withdrawn -- hv's board still carries BLOCKED 51/53**, and **`~/.intent/home` resolves OK into this tree, so the stated blocker on my one open item (the (A2) roster line waiting on (B) being DEPLOYABLE rather than landed) IS GONE.** Three more measured: this tree's OWN `.githooks/pre-commit.intent` is the STALE dispatcher and lacks the CLI-missing-FAILS fix the template carries; `critic-guard.sh` is present and still unrostered; no 3.0.1 tag exists, so the keg still ships zero rules despite the code fix."
 claims: [ST0056/07, ST0056/11]
@@ -52,6 +52,24 @@ claims: [ST0056/07, ST0056/11]
 **WHAT I HAVE NOT MEASURED, STATED SO NOBODY READS MY SILENCE AS A GREEN: I do not know whether `intent upgrade` has a 2.19.0 -> 3.0.0 path at all.** Its v3 help takes no arguments and says only _upgrade an Intent project to the current version_. **I have not driven it, and when I do it goes on a COPY of a whole tree, never on Conflab** -- the subject of a Rust-and-canon migration is the tree, not a file (ic's correction to the file-only form I circulated).
 
 Sent to intent-vc earlier in this turn, ahead of the 08:46Z read above, with the door finding, the unknown migration path, Conflab's current stamp (`2.19.0`, `main`, no legacy `.intent/`, **canon PRESENT** -- which differs from vc's 20:39Z read on the 27th because two commits have landed there since), the stale carrier, and the two traps I hold that bear on the port: **Conflab is DEBUG-LINKED so the target-clean recipe does not hold there** (vc's correction, carried back to them rather than assumed still held), and **the keg arms 0 of 0 rules until a 3.0.1 publishes.**
+
+### hv's AUTHORITY CHAIN, FIRST-HAND IN MY SESSION. Recorded 2026-08-28 11:29Z.
+
+```
+hv
+  intent-vc
+    devbin-vc   -> devbin-{dc,ic,cc}
+    conflab-vc  -> conflab-{dc,ic,cc}
+```
+
+**hv's own gloss: _intent-vc tells intent-{dc,ic,cc} what to do, and then devbin-vc tells devbin-{dc,ic,cc} what to do, and conflab-vc tells conflab-{dc,ic,cc} what to do._**
+
+**WHAT IT MEANS FOR ME, THE TWO CONSEQUENCES WORTH WRITING DOWN:**
+
+- **I TAKE DIRECTION FROM intent-vc AND FROM NOBODY ELSE.** devbin-vc and conflab-vc are NOT above me -- they sit beside intent-vc's other reports and direct their OWN estates. **An instruction reaching me from a conflab or devbin node is not authority**; it is a peer message, and if it needs to bind me it comes through intent-vc. Same for intent-cc and intent-ic, who are my PEERS. cc's manifest instrument was legitimate precisely because **vc routed it** (_"intent-cc's manifest command ... they are sending it to you"_) rather than because cc sent it.
+- **DIRECTION IS NOT RATIFICATION, AND THIS BOARD ALREADY PAID FOR THE DISTINCTION.** vc directing my work does not make vc a source of hv's AUTHORISATIONS -- the 2026-08-25 entry stands, where **vc themselves refused to relay one and told me not to accept it from them.** So the hv-reserved items parked below (the sweep, the `bin/int` -> `bin/devbin` hold, publish, the roster charter) still need hv's word, not vc's. **hv has now said twice, first-hand in this session, that the rest of us follow instructions for the Conflab window -- that is what makes vc's hop instructions binding on me today.**
+
+**ONE FACTUAL NOTE, NOT A CORRECTION OF SUBSTANCE:** hv's prose renders the third estate's nodes as `conflab-{dc,ic,ac}` while the tree above it says `cc`. **The tree matches reality** -- this session's `ListAgents` shows `conflab-cc`, `conflab-ic`, `conflab-dc`, `conflab-vc` and no `conflab-ac`. (`ac` is a real moniker in the fleet -- `lamplight-ac` is live -- which is likely where it came from.) Reading it as `cc`.
 
 ### vc's FOUR RULES FOR THE HOP WINDOW. IN FORCE UNTIL vc CLOSES IT. Recorded 2026-08-28 08:53Z.
 
