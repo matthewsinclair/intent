@@ -128,14 +128,19 @@ Recorded because a review that only lists defects misrepresents the set.
 
 ## Summary
 
-| #   | Item                                                                     | Verdict                           |
-| --- | ------------------------------------------------------------------------ | --------------------------------- |
-| 1   | `in-start` -- second session-start skill, competes with the enforced one | **RETIRE**                        |
-| 2   | `in-next` -- procedural scaffolding for default behaviour                | **RETIRE (candidate, hv's call)** |
-| 3   | MODULES.md remedy string in `modules check`/`find`                       | **CORRECT**                       |
-| 4   | TCA family, verb resolution, Red Flags convention                        | **KEEP / verified negative**      |
-| 5   | `in-whiteboard` at 35% of session budget                                 | no defect; budget fact for hv     |
+| #   | Item                                                                            | Verdict                            |
+| --- | ------------------------------------------------------------------------------- | ---------------------------------- |
+| 1   | `in-start` -- second session-start skill, competes with the enforced one        | **RETIRE**                         |
+| 2   | `in-next` -- procedural scaffolding for default behaviour                       | **RETIRE (candidate, hv's call)**  |
+| 3   | MODULES.md remedy string in `modules check` / `find`, plus 20 instruction sites | **CORRECT**                        |
+| 3b  | `in-finish` step 4 rewrites state into the entry-point-only file                | **CORRECT** (skill otherwise KEEP) |
+| 3c  | `in-plan` -- 4 MODULES.md mentions, the densest site in the corpus              | **CORRECT** (plan standards KEEP)  |
+| 3d  | `in-verify`, `in-finish`, `in-debug`, `in-review` -- the workflow core          | **KEEP, all four**                 |
+| 4   | TCA family, verb resolution, chain integrity, Red Flags convention              | **KEEP / verified negative**       |
+| 5   | `in-whiteboard` at 35% of session budget                                        | no defect; budget fact for hv      |
 
 **The theme matches WP-01's, and `in-finish` step 4 is its clearest instance.** Every defect here is a document or a string that outlived the mechanism it describes -- a skill duplicating the entry point the gate now enforces, a remedy naming a canon behaviour retired four days ago, and a wrap-up step rebuilding the duplication a fold removed on 08-24. **Nothing found in this half is wrong about how to code; the errors are all about what the tool currently is.**
 
-**The pattern is now six repairs deep and one-sided every time: `init` stopped writing MODULES.md, the fold collapsed the three restart files, the gate took over session entry -- and in all three the artefact was fixed while the instruction that generates it was left running.** Worth hv seeing as one decision rather than six, because the remedy is the same in every case: **when a mechanism is retired, the instructions that drive it are part of the retirement, not a follow-up.**
+**THREE RETIREMENTS, EACH FIXED ON ONE SIDE ONLY.** `init` stopped writing MODULES.md and twenty instructions still name it. The 08-24 fold collapsed the three restart files and `in-finish` step 4 still rebuilds them. The `UserPromptSubmit` gate became the session entry point and `in-start` still offers a second one. **Worth hv seeing as one decision rather than three, because the remedy is identical in every case: when a mechanism is retired, the instructions that drive it are part of the retirement, not a follow-up.**
+
+**AND THE COUNTING ITSELF IS EVIDENCE FOR THAT.** The MODULES.md figure went 4 -> 6 -> 20 across this review because my first two greps were fitted to the surface form I had already seen. **A retirement that leaves its instructions running is hard to size precisely because the survivors are scattered across templates, skills, hooks, code generators and the CLI's own strings** -- no single grep shape finds them, and each partial count reads like a complete one.
