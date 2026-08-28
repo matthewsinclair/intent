@@ -63,6 +63,26 @@ WP-01 finding 2 counted documentation sites. The sweep found the class extends f
 
 ---
 
+## 3b. `in-finish` step 4 rebuilds the duplication the 08-24 fold removed. **CORRECT (third instance of the theme)**
+
+**What `in-finish` is, first: the best-maintained skill in the set.** It is current with v3 -- localfold/globalfold scopes, the `acceptance.md` close-gate, `intent ac descope | withdraw` as the two honest exits, `intent at lint`. Nothing stale in it. **KEEP.**
+
+**The defect is one instruction inside it.** Step 4 says:
+
+> Rewrite `.claude/restart.md` with: **WIP/TODO focus** for Claude Code startup; concise pointers to current work
+
+**`.claude/restart.md` now opens by declaring it holds no such thing:**
+
+> _"This file is the ENTRY POINT and nothing else. The state lives in `intent/wip.md` (current work) and `intent/restart.md` (narrative + traps + conventions). **It was three copies of one narrative until 2026-08-24**, each opening with a banner saying it superseded everything below it -- which is the tell that nobody was deleting, only prepending... **If you find yourself writing a supersedes banner, DELETE WHAT IT SUPERSEDES INSTEAD.**"_
+
+**"WIP/TODO focus" is state, and state is exactly what the file was folded to stop carrying.** The 2026-08-24 fold repaired the three artefacts; the instruction that produced them runs unchanged at every session wrap. The file has to carry a warning banner **because** the skill that rewrites it still says otherwise -- the artefact is defending itself against its own generator.
+
+**Verdict: CORRECT.** One instruction in an otherwise excellent skill. Note the general principle is already written down in the right words -- it is just written in the artefact instead of in the skill that would prevent the problem.
+
+**This settles the `.claude/restart.md` question left open below:** the file is wanted, its role is entry-point-only, and `in-finish` step 4 is what needs the edit -- not the file, and not the four skills that merely read it.
+
+---
+
 ## 4. Verified negative -- do not re-find these
 
 - **Every `intent` verb the skills instruct exists.** 30 distinct invocations extracted across all 25 SKILL.md files; all 30 resolve, top-level and subcommand, checked via `--help` rather than by driving mutating verbs. **The instrument was positive-controlled** -- an injected `intent frobnicate` fires it -- because a clean sweep from an untested checker is worth nothing.
@@ -73,8 +93,8 @@ WP-01 finding 2 counted documentation sites. The sweep found the class extends f
 
 ## 5. Open, not concluded
 
-- **14 skills swept but not read.** No verdict offered on them; the mechanical sweep found nothing dangling in any.
-- **`.claude/restart.md`** is written by 4 skills (`in-essentials`, `in-finish`, `in-tca-finish`, `in-start`) and is **absent from a fresh project**. `in-start` handles this ("skip any that don't exist"); `in-essentials` rule 5 instructs updating it unconditionally. Flagged, not yet judged -- it needs a read of `in-finish` to say whether the file is still wanted at all.
+- **13 skills swept but not read** (`in-finish` has since been read -- finding 3b). No verdict offered on them; the mechanical sweep found nothing dangling in any.
+- **`.claude/restart.md` is RESOLVED** -- see finding 3b. The file is wanted and entry-point-only; `in-finish` step 4 is the site that needs the edit. It is absent from a fresh project because it is created at the first globalfold rather than at init, which is coherent. `in-essentials` rule 5 also instructs updating it and should be read against 3b before either is changed.
 
 ---
 
@@ -88,4 +108,6 @@ WP-01 finding 2 counted documentation sites. The sweep found the class extends f
 | 4   | TCA family, verb resolution, Red Flags convention                        | **KEEP / verified negative**      |
 | 5   | `in-whiteboard` at 35% of session budget                                 | no defect; budget fact for hv     |
 
-**The theme matches WP-01's.** Every defect here is a document or a string that outlived the mechanism it describes -- a skill that duplicates the entry point the gate now enforces, and a remedy that names a canon behaviour retired four days ago. **Nothing found in this half is wrong about how to code; the errors are all about what the tool currently is.**
+**The theme matches WP-01's, and `in-finish` step 4 is its clearest instance.** Every defect here is a document or a string that outlived the mechanism it describes -- a skill duplicating the entry point the gate now enforces, a remedy naming a canon behaviour retired four days ago, and a wrap-up step rebuilding the duplication a fold removed on 08-24. **Nothing found in this half is wrong about how to code; the errors are all about what the tool currently is.**
+
+**The pattern is now six repairs deep and one-sided every time: `init` stopped writing MODULES.md, the fold collapsed the three restart files, the gate took over session entry -- and in all three the artefact was fixed while the instruction that generates it was left running.** Worth hv seeing as one decision rather than six, because the remedy is the same in every case: **when a mechanism is retired, the instructions that drive it are part of the retirement, not a follow-up.**
