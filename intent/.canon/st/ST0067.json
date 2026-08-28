@@ -24,7 +24,8 @@
       "text": "The guide's 'Workflows, methodology and conventions' section is written -- the ST/WP/AC/AT model, the canon-vs-view contract, the sync discipline, gate semantics -- compiled into the binary so it versions with the tool, and the whole guide output stays free of Intent PM identifiers beyond neutral placeholders.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "vc re-read 2026-08-28 after cc's 1f89b3e9: three accuracy fixes verified in source (st list in-progress + --status all pointer; bare-vs-scoped --to-store; markdown has NO store path, ingest --from-md parses and writes nothing) with the new absence+presence arm the_guide_does_not_claim_markdown_reaches_the_store; llm_serves 5/5 in validator's hand; mechanical sweep clean, ST0000 only"
       }
     },
     {
