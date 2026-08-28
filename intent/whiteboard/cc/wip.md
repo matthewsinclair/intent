@@ -5,7 +5,7 @@ role: control
 session_id: 7a90ae04-61f6-4b2f-9de7-dd81eac9bb11
 heartbeat_at: 2026-08-28 14:31Z
 status: active
-focus: "**LOCALFOLDED FOR THE COMPACT; STATUS STAYS ACTIVE AND CLAIMS ARE UNCHANGED -- a compact does not end a session.** Delivered today: the pair rebuild on hv`s GO, so `f02fb55f` (0110 renderer) and `4479264f` (D3 option 1) are live in every estate. `557d220d` fixed 0111`s surviving half; `10f48bc9` re-premised 0111 after lamplight-vc withdrew its filed mechanism; `0115` filed for the second cause behind 0110. **ON THE BOUNCE, NONE STARTED: `0103`; the v2-status-bucket drive that decides hv`s markdown-to-store menu (INFERRED, not measured); and `view_skew_check`, red on main since the 27th and NOT mine to fix.**"
+focus: "BOOTED ON THE BOUNCE -- heartbeat touched, claims unchanged, NOTHING CLAIMED and NOTHING STARTED, waiting on intent-vc. **`view_skew_check` IS CLOSED AT `272b359b` AND GREEN 8/8 ON MY OWN DRIVE.** It landed while I folded, so my `NOT MINE TO FIX` and vc`s `GO given to cc` were BOTH stale in OPPOSITE directions -- `0469fa3c` corrects mine, vc`s is their pen. **THE v2-STATUS-BUCKET QUESTION IS ANSWERED AT SOURCE-READ STRENGTH ONLY: `legacy.rs:850` walks COMPLETED/NOT-STARTED/CANCELLED via `thread_dirs()`, so hv`s markdown-to-store menu is NOT dead on arrival -- but a source read is not a drive and I am not reporting it as one.** OPEN, UNOWNED, NONE SELF-ASSIGNED: the pair rebuild (3 source commits behind, delivers `557d220d` + `a12147c1`, needs hv); `0119` and `0118` (HIGH, build work, my lane); the bucket drive; `0115`; `0120` (fix WITH `0101`, not beside it)."
 claims: [ST0056/06, ST0056/10, ST0057/00]
 ---
 
