@@ -888,8 +888,18 @@
             ]
           },
           "target": {
-            "state": "as-observed",
+            "state": "corrected",
+            "rulings": [
+              {
+                "state": "ratified",
+                "authority": "hv",
+                "date": "2026-08-28",
+                "record": "issue 0121"
+              }
+            ],
+            "ruling_provenance": "WHAT IS FIRST-HAND AND WHAT IS RELAYED, SEPARATED, because the row would otherwise claim more than it can show. FIRST-HAND: issue 0121 is hv's own filing, in writing, against their own tool -- it states the defect, the three-surface reconciliation and three remedy directions, and names direction 3 (`any narrowed render`, not a special case for the default) as the general form. RELAYED BY vc, NOT READ AT SOURCE BY cc: the ruling that chose direction 3 and added the empty-result half -- `when the narrowed result is empty and the store is not, the disclosure IS the output`. The authority is hv either way; what cc has not personally read is the sentence, not the pen.",
             "note": "clap makes the missing-value case an error for free -- that is a `corrected` consequence rather than a choice, same shape as INV-08. Byte-exact column padding is parity-bound: `tests/unit/output_width.bats:44-140` pins it.",
+            "correction": "ISSUE 0121, hv 2026-08-28, filed against their own tool: THE DEFAULT NARROWS TO WIP AND THE OUTPUT SAID SO NOWHERE. v2 does the same, so this moved off `as-observed` -- a filtered view with no filter disclosure is indistinguishable from missing data, and it was read as exactly that (four rows against thirteen thread directories and a 67-thread store, filed as corruption; `67 - 52 - 2 = 13` reconciles all three surfaces). v3 names the scope, the denominator and the widening flag on every narrowed render, and when the filter empties a NON-empty store the disclosure IS the output. AN EMPTY ESTATE IS UNCHANGED and still prints v2's header -- `0 of 0` would blame a filter for a table that would be empty under any filter at all. THE UNNARROWED PATH IS ALSO UNCHANGED, so `st list --status all` stays byte-identical to `st sync`'s dry run as this row's parity note requires. Not a new convention: `events`, `critic` and `search` already carry it, and `issues list` is the remaining holdout at 49 of 101 (measured 2026-08-28, `keep`/`as-observed`, its empty case is v2's own string, so it waits on a ruling).",
             "status_vocabulary": "THE RATIFIED SIX-STATE MACHINE REACHES THE SURFACE HERE, and this flag is the only place a user types a status name. v3 must accept the six states of Machine 1: `triage`, `not started`, `wip`, `hold`, `completed`, `cancelled`. `triage` is the addition -- v2 accepts five and has no spelling for it.",
             "tbc_trap": "MEASURED, and it strengthens the ratified migration rule with a second independent witness. In v2 `TBC` IS NOT A STATE AT ALL -- it is a DISPLAY ABBREVIATION of `Not Started`, narrow enough for the table column. Three sites, all read: `canonical_status()` at bin/intent_helpers:544 maps `tbc` AND `to be commenced` to the stored value `Not Started`; bin/intent_st:120 abbreviates `Not Started` to `TBC` for rendering; and the tool's OWN usage text at bin/intent_st:46 spells it out in words -- `tbc, not started -> TBC   To be commenced`. So the ratified rule (v2 `TBC` maps to `NotStarted`, never to `Triage`) is not merely defensible, it is what the tool has always documented about itself. THE SURFACE TRAP THAT FOLLOWS IS MINE: v3 must NOT abbreviate `Triage` as `TBC`, and must NOT accept `--status tbc` as `Triage`. Either would give a familiar token a second meaning in the render column and the filter -- the two places a v2 user reads fastest and checks least. `tbc` should keep resolving to `NotStarted`, exactly as it always has.",
             "render_order": "bin/intent_st:941 pins the display order as a five-element list -- `WIP TBC HOLD COMPLETED CANCELLED`. Six states means this list grows, and `Triage` belongs BEFORE the `Not Started` slot because it precedes it in the machine. Named here because it is a surface fact hiding in an array literal, and a new state that renders in the wrong place looks like a sorting bug rather than a missing decision."
@@ -7967,7 +7977,7 @@
     {
       "disposition": "keep",
       "target_state": "as-observed",
-      "n": 52,
+      "n": 51,
       "gloss": "The v2 command survives and v3 reproduces what v2 did. The default, and the largest class by a wide margin."
     },
     {
@@ -7979,7 +7989,7 @@
     {
       "disposition": "keep",
       "target_state": "corrected",
-      "n": 27,
+      "n": 28,
       "gloss": "The command survives with a defect fixed. `keep` is right precisely because a corrected command still SURVIVES; the correction is what `target.state` records."
     },
     {

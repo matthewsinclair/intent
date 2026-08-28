@@ -67,7 +67,15 @@ fn run(cwd: &Path, args: &[&str]) -> (String, i32) {
 /// is the same refusal `declared_values_are_enforced.rs` gives an undeclared
 /// disposition.
 const ARGV: &[(&str, &[&str])] = &[
-  ("st list", &["st", "list"]),
+  // **`--status all`, AND THE BARE FORM WAS VACUOUS HERE FROM THE DAY THIS FILE
+  // WAS WRITTEN.** The fixture seeds a thread, `st new` enters it at `Triage`,
+  // and bare `st list` narrows to WIP -- so every `st list --format <value>`
+  // drive below ran over an EMPTY result set, which is precisely the vacuity
+  // this file's header says the fixture exists to prevent. It rendered as a
+  // header-and-separator rather than as a sentence, so the non-empty control
+  // below could not see it; issue 0121's disclosure made it visible and the
+  // control fired the same hour.
+  ("st list", &["st", "list", "--status", "all"]),
   ("st sync", &["st", "sync"]),
   ("wp list", &["wp", "list", "ST0001"]),
   ("issues", &["issues"]),
@@ -130,7 +138,9 @@ fn it_can_fail() {
 fn the_fixture_has_content_to_render() {
   let p = seeded();
   for (what, args) in [
-    ("a thread", &["st", "list"][..]),
+    // The same `--status all` as the roster drive uses, and for the same
+    // reason: the bare form narrows away the one thread the fixture seeds.
+    ("a thread", &["st", "list", "--status", "all"][..]),
     ("a package", &["wp", "list", "ST0001"][..]),
     ("an issue", &["issues", "list"][..]),
   ] {

@@ -190,9 +190,15 @@ fn a_thread_moves_through_its_lifecycle_and_writes_canon_and_views() {
   let listed = ok(root, &["st", "list", "--status", "all"]);
   assert!(listed.contains("ST0001"), "{listed}");
   assert!(listed.contains("Triage"), "{listed}");
+  // **THIS ARM USED TO REQUIRE `header + separator only` AND THAT IS THE
+  // DEFECT hv FILED AS 0121.** The bare form narrows to WIP, the fresh thread
+  // is at `Triage`, and a two-line table with no rows is what the tool's own
+  // author read as missing data. The disclosure is now the whole output, and it
+  // is still not an error and still not silence.
+  let bare = ok(root, &["st", "list"]);
   assert!(
-    ok(root, &["st", "list"]).lines().count() == 2,
-    "and the bare form is header + separator only, not an error and not silence"
+    bare.contains("no thread matches status") && bare.contains("--status all"),
+    "the bare form names the filter that emptied it and how to widen: {bare:?}"
   );
 
   // **`st start` from `Triage` used to be asserted here as a REFUSAL and is

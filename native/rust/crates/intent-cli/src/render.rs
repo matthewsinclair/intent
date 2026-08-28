@@ -240,6 +240,34 @@ fn st_table_all(f: &Facade, a: &ArgMatches) -> Result<String, Failure> {
   st_rows(f, a, None)
 }
 
+/// **A NARROWED RENDER NAMES ITS SCOPE** (hv, 2026-08-28, on issue 0121).
+///
+/// Bare `st list` shows WIP only and said so in `--help` and nowhere in its
+/// OUTPUT, so a filtered view was indistinguishable from missing data -- and it
+/// was read as exactly that by the tool's own author, who compared four rows
+/// against thirteen thread directories and a 67-thread store and filed it as
+/// corruption. **The estate was consistent; the output carried no way to know
+/// it.** Measured here on 2026-08-28: `st list` renders 5 of 67.
+///
+/// # This is not a new convention, it is the two verbs that were missing it
+///
+/// `events` already carries all three arms -- empty store, narrowed-empty,
+/// narrowed non-empty -- and its own comment names the rule this row now
+/// honours: *a count of what was printed reported as a count of what exists is
+/// this estate's most-repeated defect*. `critic` says the same about the rules
+/// it was ASKED for, and `search` says an empty result over an unindexed store
+/// is not an absence. **So the convention had three instances and two
+/// holdouts.** The second holdout is `issues list`, measured the same day at 49
+/// of 101 with no disclosure; it is `keep`/`as-observed` and its empty case is
+/// v2's own string, so it waits on a ruling rather than on effort.
+///
+/// # What is deliberately NOT disclosed
+///
+/// The unnarrowed path stays silent. `st sync`'s dry run renders through here
+/// and is byte-identical to `st list --status all` by contract, so a line
+/// naming `st list` would describe the wrong command on one of its two callers
+/// -- and with nothing narrowed there is nothing a reader could be misled
+/// about.
 fn st_rows(
   f: &Facade,
   a: &ArgMatches,
@@ -259,8 +287,12 @@ fn st_rows(
     .copied()
     .unwrap_or(false);
 
-  let rows: Vec<Vec<String>> = f
-    .st_list()
+  let threads = f.st_list();
+  // The denominator is read BEFORE the filter, from the same call, so the note
+  // below cannot report a count of what was printed as a count of what exists.
+  let total = threads.len();
+
+  let rows: Vec<Vec<String>> = threads
     .into_iter()
     .filter(|t| wanted.as_ref().is_none_or(|w| w.contains(&t.status)))
     .map(|t| {
@@ -284,7 +316,56 @@ fn st_rows(
     .collect();
 
   let columns = if as_slug { ST_SLUG_COLUMNS } else { ST_COLUMNS };
-  table_out(&out, columns, &rows)
+  // **THE FORMAT QUESTION IS ANSWERED BEFORE ANY EMPTY SHORT-CIRCUIT, AND THAT
+  // ORDERING IS THE WHOLE CARE IN THIS FUNCTION.** `--format` is validated as
+  // an argument to the RENDERER, so a verb that returns early on an empty
+  // result never looks at the flag and accepts a value it refuses when it has
+  // rows -- measured across four slots on 2026-08-27, and
+  // `format_roster_is_honoured.rs` drives `st list` against a store whose only
+  // thread is at `Triage`, which is precisely the narrowed-empty case below.
+  // Rendering first means the refusal is a property of the VERB rather than of
+  // how much it happened to find.
+  let table = table_out(&out, columns, &rows)?;
+
+  // Nothing was narrowed, so there is nothing to disclose -- and `st sync`'s
+  // dry run reaches here, where a line naming `st list` would be describing the
+  // wrong command. `st list --status all` and `st sync` stay byte-identical.
+  let Some(wanted) = wanted else {
+    return Ok(table);
+  };
+
+  let scope = match wanted.as_slice() {
+    // `--status ,` and `--status ""` select nothing. Degenerate, and now
+    // visible: it used to render as an empty table indistinguishable from an
+    // estate with no threads in it.
+    [] => "none".to_string(),
+    picked => picked
+      .iter()
+      .map(|s| s.display())
+      .collect::<Vec<_>>()
+      .join(", "),
+  };
+
+  if rows.is_empty() {
+    return Ok(if total == 0 {
+      // **AN EMPTY ESTATE IS A DIFFERENT ANSWER FROM AN EMPTY FILTER, AND THE
+      // HEADER IS HOW v2 SAYS THE FIRST ONE.** hv's ruling scopes the
+      // disclosure to a narrowed result over a store that is NOT empty, which
+      // is why this arm exists rather than falling out of the arithmetic:
+      // `0 of 0` would report a filter as the reason for a table that would be
+      // empty under any filter at all.
+      table
+    } else {
+      format!(
+        "st list: no thread matches status `{scope}`, of {total} in this store -- `--status all` for every thread.\n"
+      )
+    });
+  }
+
+  Ok(format!(
+    "{table}\nst list: showing {} of {total} threads, status `{scope}` -- `--status all` for every thread.\n",
+    rows.len()
+  ))
 }
 
 /// Reconcile the runtime store with the committed canon on disk.
