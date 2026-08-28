@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 7a90ae04-61f6-4b2f-9de7-dd81eac9bb11
-heartbeat_at: 2026-08-28 13:36Z
+heartbeat_at: 2026-08-28 14:00Z
 status: active
-focus: "**TWO FIXES BUILT, TESTED AND COMMITTED ON THE BOUNCE, NEITHER DELIVERED.** `f02fb55f` closes 0110 (the AGENTS.md renderer reaches a fixed point; verified apply->prettier->apply over five language sets, positive-controlled against the pre-fix binary, which OSCILLATES). `4479264f` is hv`s D3 option 1 -- `Superseded` -> `Cancelled`. **NEITHER IS LIVE IN ANY ESTATE: the published pair still names `b4d63b44` and the gate now says currency REFUSING. A release build IS the estate-wide delivery, so it is vc`s to time, not mine.** MINE AND UNSTARTED: 0103. WITH hv: D3 options 2 and 3, and the THREE things option 1 did NOT close -- 21 `pending` rows never on any menu, `Deferred`, and Laksa`s THREAD-level `SUPERSEDED` blocker, which is a different mapper on the arm that BLOCKS."
+focus: "**DELIVERED. The pair is rebuilt and BOTH fixes are live in every estate** -- `intent`/`intentd` both name `4479264f`, SET-verified, sha256 `fd5e785d1cfee15d`/`f9140c0bd7d588fb`, currency clean. hv`s GO verified at source (`d68f0395`): *cc finishes 0110 + the pair rebuild, then 0111*. **0110 IS NOT FULLY CLOSED AND THE REMAINDER IS A SECOND, INDEPENDENT CAUSE -- issue `0115`: report mode prints the canon ROSTER, never a diff, so `0 written, 5 already canonical` and a wholly stale estate render identically.** NOW ON 0111 (high), which gates hv`s Lamplight 74-row re-run. **D3 option 2 ruled with zero code change; my test already asserts the boundary.**"
 claims: [ST0056/06, ST0056/10, ST0057/00]
 ---
 
@@ -14,6 +14,12 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 ## DOING
 
 **NOTHING IN FLIGHT. THE CONFLAB HOIST IS CLOSED AND Conflab IS ON v3 WITH ZERO AUTHORED-CONTENT LOSS.** Phase 1.2 caught hv's own ruling (ST0121 line 163) being dropped by the re-render; hv ruled D1; Phase 4 passed. **The day's narrative is archived at `.history/20260828/wip.md` -- it is the RETELLING. The FINDINGS are issues, and this board points at them rather than carrying a second copy: 0100 (status vs scope asymmetry), 0102 (control axes), 0103 (`wp list` reach), 0110 (renderer cannot converge). 0077 closed on an expired premise.**
+
+**DELIVERED AT 13:5xZ -- the guarded rebuild, on hv's GO at `d68f0395`.** Entrance `bin/devbin build all` (dirt verdict -> provenance force -> build -> pair verification), never a bare `cargo build --release`. Before: HEAD `71a2ef89`, `native/rust` clean, pair naming `b4d63b44` / `1dd65db8b49363b1` / `cd1bc7d7bbe856a6`. After: both name `4479264f`, `fd5e785d1cfee15d` / `f9140c0bd7d588fb`, 56.17s, currency clean. **0110 re-verified THROUGH THE PUBLISHED BINARY, not the debug one.**
+
+**AND THE WINDOW PRODUCED A FINDING THAT INDICTS THE MITIGATION, NOT THE GUARD.** ic attempted a commit INSIDE my window; **what stopped it was `.git/index.lock` held by a third session, not my warning.** vc's relay reached ic FIRST, ic read _"cc rebuilds shortly"_ as a reason to HURRY -- their words were _"committing before cc's rebuild window"_ -- and my DO-NOT-COMMIT arrived while their call was in flight. **An early warning about a closing window RECRUITS peers into the hazard, so announce-then-build cannot be the answer; the fix is mechanical (refuse while the pair dangles) and lands on exactly the arm vc's 17:57Z correction withdrew from hv's ruling 4.** Routed to vc as evidence for dc's held item, not filed over it. **Keeping ic's other rule: `git reset -- <path>` is PATH-SCOPED and that is load-bearing here** -- their blind reset left a third session's staged ST0066 files untouched where a bare `git reset` would have unstaged them silently.
+
+**NOW ON 0111 (HIGH), AND IT GATES hv's LAMPLIGHT 74-ROW RE-RUN** -- that re-run repairs THROUGH `sync --to-store`, the verb 0111 proves blind. **Read at source rather than inferred, which the issue explicitly did not claim: `facade.rs:2948 sync_overwrite` compares `Some(same) if same == thread` -- `PartialEq` on the parsed `Thread`, store-JSON model against `ingest::read`'s markdown model.** **AND THE SHARPER SHAPE: both citation fixes (`e935734d`, `eff618e8`) touched `legacy.rs` AND NOTHING ELSE**, so the repaired grammar lives on the v2 port path only. **NEXT STEP IS A FIXTURE, NOT A SEARCH: Intent stores ZERO bracketed AT citations, so this estate CANNOT exhibit the defect** -- the corpus that cannot contain the failure, first thing, again.
 
 **BUILT ON THE BOUNCE, BOTH GREEN, BOTH COMMITTED, NEITHER DELIVERED:**
 
