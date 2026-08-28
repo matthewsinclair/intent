@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 101,
+  "slug": "converge-gitignore-omits-the-events-jsonl-rule-i",
+  "title": "converge_gitignore omits the events.jsonl rule Intent applies to itself",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-28",
+  "reporter": "Matthew Sinclair",
+  "body": "`converge_gitignore` writes the `.cache/` rule and not the `events.jsonl` rule, so every migrated estate is left with an unignored per-machine file that Intent ignores in its own tree.\n\n**Measured at source and on the Conflab hop (2026-08-28).**\n\n- `converge_gitignore` (`native/rust/crates/intentsvcs/src/facade.rs:159`) writes exactly one rule: `{}/.cache/`.\n- Intent's OWN `.gitignore:149` ignores `intent/events.jsonl`, with the reason recorded beside it: *\"D53: the event log lives in the store; its file form is produced by `intent export`.\"*\n- The migration emits an empty `intent/events.jsonl` -- `migrate.rs:44` says the empty file means \"no recorded history\".\n\nSo a migrated estate gets `.cache/` ignored automatically and `events.jsonl` not, even though both are per-machine artefacts of the same class and Intent has already ruled on the second one for itself. On Conflab the rule had to be added by hand during the hop; the hand-written comment in that diff names this gap.\n\n**The convergence step knows about one member of a two-member class.** Either `events.jsonl` joins the rules `converge_gitignore` writes, or D53's ruling applies only to Intent's own tree and should say so.\n\nRaised by intent-cc during Phase 4 of the Conflab hop.\n"
+}

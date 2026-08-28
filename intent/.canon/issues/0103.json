@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 103,
+  "slug": "wp-list-returns-rc-0-and-zero-rows-for-71-bucket",
+  "title": "wp list returns rc=0 and zero rows for 71 bucketed threads whose WPs are in the store",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-28",
+  "reporter": "Matthew Sinclair",
+  "body": "`wp list` returns rc=0 with zero rows for most bucketed threads, so the verb under-reports the store by more than half. **This is REACH, not loss -- the store figures and the verb figures are given side by side below so the reader cannot mistake one for the other.**\n\n**STORE (canon extract, read by `json.load` over `intent/.canon`, never grep):**\n- 531 WP objects across 123 threads: 22 flat + 509 bucketed.\n- Equal to the pre-hop filesystem census to the unit. **Nothing was lost by the migration.**\n- Independently corroborated: intent-cc counted 531 wp rows during the Conflab Phase 1.2/4 probes; intent-ic counted 531 from the extract.\n\n**VERB (`intent wp list` summed over all 123 threads):** 216 rows.\n\n**The shape of the gap.** 71 bucketed threads return **rc=0 with ZERO rows** while their WPs are demonstrably in the store. 28 other bucketed threads return their correct count. **The 28-vs-71 split is unexplained.**\n\n**It is not the hop.** intent-ic reproduced the zero-rows shape on Intent's own 9 dehydrated threads, so it is pre-existing v3 verb behaviour that the Conflab estate merely made visible at scale.\n\n**Why this matters beyond the count: rc=0 with zero rows is indistinguishable from \"this thread has no work packages\".** A caller has no way to tell an empty answer from an unreachable one, which is the same class as a census that cannot report that it is blind. An operator reading `wp list` on a bucketed thread is told something false in a shape that looks entirely healthy.\n\nMeasured by intent-ic during Conflab Phase 4 parity (2026-08-28); filed by intent-cc on intent-vc's instruction. **Not built, not chased today.**\n"
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 100,
+  "slug": "unmappable-wp-status-defaults-in-silence-while-u",
+  "title": "Unmappable WP status defaults in silence while unmappable scope is carried",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-28",
+  "reporter": "Matthew Sinclair",
+  "body": "The migrator carries a legacy spelling for an unmappable SCOPE and carries nothing for an unmappable STATUS, so an off-vocabulary WP status is defaulted in silence.\n\n**Measured on the Conflab v2.19.0 -> v3.0.0 hop (2026-08-28), on the real tree and on a rehearsal copy, by `json.load` over `intent/.canon` rather than by grep.**\n\nAcross all 531 wp rows the keys are `seq / title / status / objective / body / preamble / scope / scope_legacy`. **`scope_legacy` is present on 7 rows -- exactly the 7 unmappable scope spellings that estate carries. There is no `status_legacy` on any row.**\n\n23 WP rows carried a status the migrator's vocabulary cannot express: `pending` x19, `Pending` x2, `Superseded` x1, `Deferred` x1. All 23 arrive as `not-started`, and the source spelling is retained nowhere. The store vocabulary is `{wip, done, not-started}`.\n\n**Two of the 23 are semantically wrong rather than merely lossy.** `ST0051/WP-03 Superseded -> not-started` and `ST0074/WP-04 Deferred -> not-started`: a superseded work package is not one that has not been started. ST0074's BODY prose still reads \"**Deferred.**\", so the meaning survives where a human reads it and is wrong where a query reads it -- which is the harder direction to notice.\n\n**The defect is the asymmetry, not the mapping.** The same migrator, on the same estate, meets two classes of unmappable value and preserves one by design while dropping the other in silence. Whatever `scope_legacy` is worth, `status_legacy` is worth the same.\n\nRaised by intent-cc during Phase 1.2/4 of the Conflab hop; routed to hv by intent-vc.\n"
+}

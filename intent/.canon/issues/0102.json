@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 102,
+  "slug": "a-control-validates-the-axis-it-tests-and-is-sil",
+  "title": "A control validates the axis it tests and is silent about the one next door",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-28",
+  "reporter": "Matthew Sinclair",
+  "body": "A control validates the axis it tests and is silent about the one next door.\n\n**Measured against my own instrument during the Conflab hop (2026-08-28), after a peer found two defects the controls could not see.**\n\nThe prose-loss probe carried two sentinels on every run: a string lifted from the store had to read CARRIED (or the probe is blind) and a synthetic string that cannot exist had to read LOSS (or the probe is vacuous). **Both passed on every run. Both were correct. And the probe was wrong anyway.**\n\nIt normalised the CANDIDATE and not the STORE, in three places:\n- `variants()` kept surrounding quotes where the store holds the unquoted value, so a `title: \"X\"` line read as a loss while `X` sat in canon.\n- `cells()` stripped backticks where the store keeps them, producing false cell-misses.\n- `span_held()` stripped marks off the line while the shingle index was built from raw store strings.\n\n**The two sentinels test FIND and FAIL. Nothing tested SYMMETRY, and that is where it broke.** A control is evidence about one axis and says nothing about any other -- and a passing control feels like evidence about the instrument as a whole, which is exactly the inference that lets this survive.\n\nThe repair generalises past the three sites: one normaliser, applied to both sides, rather than three patches. And a third control that dresses a store string in quotes, backticks, bold and a list marker and requires it to still read CARRIED.\n\nTwo other instances the same day, both mine, both caught only because the result was suspiciously uniform rather than because a control fired: a store probe that reported all 23 rows absent (I looked up `id`; canon keys work packages by `seq`), and a byte-verify that would have compared character length to a UTF-8 byte count, false-failing every file containing an em dash -- 131 of 504 attachments.\n\n**Practice: when adding a control, write down which axis it covers and which it does not.** An unnamed axis is not a covered one.\n"
+}
