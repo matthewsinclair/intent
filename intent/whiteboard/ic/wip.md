@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-28 16:39Z
+heartbeat_at: 2026-08-28 16:44Z
 status: active
-focus: "TWO OF THREE BOUNCE ITEMS DELIVERED. Prime sweep (2ab7c2e0, catalogue section 8, five findings). Retirement-mechanics DRAFT (2719f4c8) -- and the governing finding is that SYNC NEVER PRUNES A VANISHED CANON SOURCE and upgrade IS that sync, so a canon-only delete strands the skill on every machine while it keeps loading into sessions. Draft only, nothing executed; the uninstall step needs the human, not a peer. NOW ON: the AGENTS.md costed proposal, design-first, nothing edited."
+focus: "ALL THREE BOUNCE ITEMS DELIVERED. Prime sweep (2ab7c2e0), retirement-mechanics draft (2719f4c8), AGENTS.md costed proposal (50b454f9). Nothing executed on the last two -- both are design/draft to vc then hv. THE DAY ADDED A SIXTH INSTANCE OF ITS OWN CLASS AND I CAUGHT IT IN-SESSION: I claimed the four principles were readable nowhere in a fresh project. FALSE -- /in-standards carries all four IDs and is auto-loaded. The real defect is the inverse: THREE undetected homes for the index, and CLAUDE.md is the only one honouring the rule. AWAITING vc. Nothing of mine dirty."
 claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -13,15 +13,14 @@ claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/1
 
 ## DOING
 
-**AGENTS.md COSTED PROPOSAL -- STARTING NOW.** Design-first, nothing edited, to vc then hv. hv's direction: the injected set carries everything an agent must have and AGENTS.md becomes the honest cross-tool mirror. **Four-rules inversion is in scope.** The load-bearing question is that a mirror needs a generator or it drifts, and vc named the prior art: `intent agents sync` IS the generator, dc's `agents_sync_parity` is the structural-invariant test, and `parity.md`'s ratified-deviations list is the model for a mirror contract naming its permitted divergences. **Cost against that shape.**
-
-**MEASURED EVIDENCE ALREADY IN HAND, from the prime sweep rather than argued:** a fresh `intent init` writes **no AGENTS.md at all** -- it appears only after `intent agents sync` -- while the fresh CLAUDE.md points at it FOUR times, including the Rules-of-the-Road pointer that deliberately does NOT restate the four principles on Highlander grounds. **So in a fresh project the four cross-language principles are readable nowhere.** That is the inversion, on a real init.
+**NOTHING IN FLIGHT.** All three bounce items are delivered and reported. Next work comes from vc.
 
 ## DELIVERED THIS SESSION
 
 - **Prime-payload sweep** (`2ab7c2e0`), catalogue section 8. Five findings, three MISGUIDED. Worst: the payload teaches two flags the shipped binary refuses, and the bats test covering one drives the **v2** binary where it works -- green, and structurally unable to see v3's refusal.
-- **Retirement-mechanics draft** (`2719f4c8`). Sequenced so no intermediate state dangles; the delete is step 3 of 4, not the operation. `_wip.md` measured as the INVERSE shape and explicitly decoupled -- that is cc's answer.
-- **The delivery correction**, which was my own claim to fix: three paths, not one. Embedded templates need the rebuild; the prime template is live; the four edited skills need a sync and **this session is still running the pre-edit copies**.
+- **Retirement-mechanics draft** (`2719f4c8`). **`sync` NEVER prunes a vanished canon source and `upgrade` IS that sync**, so a canon-only delete strands the skill on every machine while it keeps loading into sessions. Sequenced so nothing dangles; the delete is step 3 of 4. `_wip.md` is the INVERSE shape and is decoupled -- that is cc's answer. **The uninstall step needs the human, not a peer.**
+- **AGENTS.md costed proposal** (`50b454f9`). Four options, recommended is S. **Injection is recorded as explicitly rejected** -- it is what my uncorrected finding would have proposed, and the most expensive option on the list.
+- **The delivery correction**: three paths, not one. Embedded templates need the rebuild; the prime template is live; the four edited skills need a sync and **this session is still running the pre-edit copies**.
 
 ## TODO
 
