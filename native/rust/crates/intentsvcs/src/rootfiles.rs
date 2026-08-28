@@ -264,6 +264,28 @@ fn resolve_blocks(template: &str, languages: &[String]) -> Result<String, Fault>
   let mut out = String::with_capacity(template.len());
   let mut open: Option<Block> = None;
 
+  // **A MARKER LINE IS STRUCTURE, NOT CONTENT, AND REMOVING ONE MUST NOT
+  // MANUFACTURE A BLANK RUN.** The template separates elements with a blank
+  // line OUTSIDE the markers and carries a leading and a trailing blank INSIDE
+  // each block. Take the marker line out from between them and the two blanks
+  // become adjacent -- which happens when a block is KEPT as well as when one
+  // is dropped, and the kept case is the larger term. Measured on `_AGENTS.md`
+  // (issue 0110): 3 surplus blank lines with no language declared, 12 with
+  // this project's five, 15 with all five language blocks kept.
+  //
+  // **The template cannot be arranged out of it.** Markdown wants exactly one
+  // blank line between elements, and how many elements survive is decided
+  // here, at render time, by the language set -- so no static arrangement of
+  // blanks in the source is correct for every subset. Only this loop knows
+  // what survived, which is why the fix is here and not in `_AGENTS.md`.
+  //
+  // Deliberately NARROWER than collapsing every run to one. That would be
+  // behaviour-identical on today's templates -- not one carries an authored
+  // blank run -- and would silently eat a blank line inside a fenced code
+  // block the first time a template wanted one.
+  let mut last_blank = false;
+  let mut since_marker = false;
+
   // `split_inclusive`, never `lines()`: each piece carries its own terminator, so a
   // template that does not end in a newline does not gain one. Every real
   // template here ends with one and the difference never shows -- which is
@@ -276,6 +298,7 @@ fn resolve_blocks(template: &str, languages: &[String]) -> Result<String, Fault>
         return Err(Fault::Nested(block.opened(), outer.opened()));
       }
       open = Some(block);
+      since_marker = true;
       continue;
     }
 
@@ -288,11 +311,23 @@ fn resolve_blocks(template: &str, languages: &[String]) -> Result<String, Fault>
       // can mean, and a mismatch here would refuse a template whose meaning is
       // unambiguous.
       let _ = block;
+      since_marker = true;
       continue;
     }
 
     let keep = open.as_ref().is_none_or(|b| b.keeps(languages));
     if keep {
+      if t.is_empty() {
+        // A blank the reader would meet as a second one, standing here only
+        // because a marker was removed from between the two.
+        if last_blank && since_marker {
+          continue;
+        }
+        last_blank = true;
+      } else {
+        last_blank = false;
+        since_marker = false;
+      }
       out.push_str(line);
     }
   }

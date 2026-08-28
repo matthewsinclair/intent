@@ -163,6 +163,77 @@ fn a_project_declaring_no_language_is_told_how_to_declare_one() {
   );
 }
 
+/// Issue 0110: **`claude upgrade --apply` could not reach a fixed point on
+/// `AGENTS.md`.** The renderer emitted blank-line runs the repository formatter
+/// collapses, so it reported `written:` every time, the formatter undid it
+/// every time, and the commit netted zero. `written:` came to mean "I rewrote
+/// it" rather than "I changed it to something new", report mode named the file
+/// forever, and a commit after an apply could be EMPTY while its message
+/// claimed content.
+///
+/// The cause is structural rather than cosmetic. A marker sits between two
+/// blank lines -- one outside the block, one inside it -- and removing the
+/// marker line puts the two side by side. **That happens when a block is KEPT
+/// as well as when one is dropped**, so the surplus GROWS with the number of
+/// declared languages, which is why this sweeps five language sets rather than
+/// asserting against one.
+#[test]
+fn no_declared_language_set_renders_a_blank_line_run() {
+  let home = repo_root();
+
+  // **THE POSITIVE CONTROL COMES FIRST, because every arm below asserts that
+  // something is ABSENT and would pass exactly as happily against a detector
+  // that can never fire.**
+  assert_eq!(
+    surplus_blank_lines("a\n\n\nb\n"),
+    1,
+    "the detector cannot see a blank-line run handed to it directly, so the arms below say \
+     nothing about the renderer"
+  );
+  assert_eq!(
+    surplus_blank_lines("a\n\nb\n"),
+    0,
+    "the detector counted a single separating blank line as surplus, so it would fail every \
+     well-formed render"
+  );
+
+  for languages in [
+    &[][..],
+    &["rust"][..],
+    &["elixir"][..],
+    &["elixir", "author", "content", "rust", "shell"][..],
+    &["elixir", "rust", "swift", "lua", "shell"][..],
+  ] {
+    let rendered = rootfiles::render(&home, "AGENTS.md", &config(languages), &ctx())
+      .expect("AGENTS.md renders for every declared language set");
+    assert_eq!(
+      surplus_blank_lines(&rendered),
+      0,
+      "AGENTS.md rendered {} surplus blank line(s) for languages {languages:?} -- the output is \
+       not formatter-stable, so `claude upgrade --apply` oscillates forever on any project that \
+       formats markdown",
+      surplus_blank_lines(&rendered)
+    );
+  }
+}
+
+/// Blank lines beyond the first in each run -- so a lone separating blank
+/// counts zero and a run of three counts two. Deliberately a COUNT rather than
+/// a bool: the figure is what makes a regression legible in the failure
+/// message, and it is the same figure issue 0110 records per language set.
+fn surplus_blank_lines(text: &str) -> usize {
+  let mut surplus = 0;
+  let mut prev_blank = false;
+  for line in text.lines() {
+    let blank = line.trim().is_empty();
+    if blank && prev_blank {
+      surplus += 1;
+    }
+    prev_blank = blank;
+  }
+  surplus
+}
+
 #[test]
 fn the_date_token_refuses_rather_than_passing_through() {
   let cfg = config(&["rust"]);
