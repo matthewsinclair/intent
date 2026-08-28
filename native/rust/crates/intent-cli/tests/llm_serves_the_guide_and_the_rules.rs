@@ -56,6 +56,7 @@ fn with_rules(dir: &Path, body: &str) {
   std::fs::write(dir.join("usage-rules.md"), body).expect("write the rules file");
 }
 
+/// Covers AC-00.1 as AT-00.1.
 #[test]
 fn bare_llm_and_llm_guide_serve_the_same_document() {
   let dir = project();
@@ -77,6 +78,7 @@ fn bare_llm_and_llm_guide_serve_the_same_document() {
   );
 }
 
+/// Covers AC-00.3 as AT-00.3, with the refusal arm below.
 #[test]
 fn usage_rules_prints_the_projects_own_file_verbatim() {
   let dir = project();
@@ -94,6 +96,7 @@ fn usage_rules_prints_the_projects_own_file_verbatim() {
   assert!(err.is_empty(), "nothing belongs on stderr here: {err}");
 }
 
+/// Covers AC-00.3 as AT-00.3, with the present-file arm above.
 #[test]
 fn usage_rules_refuses_plainly_when_the_file_is_absent() {
   let dir = project();
@@ -138,6 +141,7 @@ fn usage_rules_refuses_plainly_when_the_file_is_absent() {
 /// **The four subjects are asserted individually rather than by length.** A
 /// byte count would pass on a section that grew while saying nothing, which is
 /// the only failure mode prose has that code does not.
+/// Covers AC-00.2 as AT-00.2.
 #[test]
 fn the_workflow_section_is_written_and_covers_what_it_promises() {
   let dir = project();

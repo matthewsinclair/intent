@@ -24,10 +24,10 @@ title: Build out 'intent llm' so that LLMs can work out how to work with Intent
 
 ### ST-level
 
-- AT-00.1 `native/rust/crates/intent-cli/tests/llm_serves_the_guide_and_the_rules.rs` -- covers AC-00.1 -- status: to-write -- bare_llm_and_llm_guide_serve_the_same_document -- asserts the two doors are byte-identical, not merely both zero
-- AT-00.2 `native/rust/crates/intent-cli/tests/llm_serves_the_guide_and_the_rules.rs` -- covers AC-00.2 -- status: to-write -- the_workflow_section_is_written_and_covers_what_it_promises -- four subjects asserted individually, with a control that the heading holding them survives
-- AT-00.3 `native/rust/crates/intent-cli/tests/llm_serves_the_guide_and_the_rules.rs` -- covers AC-00.3 -- status: to-write -- usage_rules_prints_the_projects_own_file_verbatim + usage_rules_refuses_plainly_when_the_file_is_absent -- the refusal arm carries its own present-file control
-- AT-00.4 `native/rust/crates/intentsvcs/tests/root_files_generated.rs` -- covers AC-00.4 -- status: to-write -- every_project_is_routed_to_the_agent_guide_whatever_it_declares -- swept across four language sets so the pointer cannot hide in a conditional block
+- AT-00.1 `native/rust/crates/intent-cli/tests/llm_serves_the_guide_and_the_rules.rs` -- covers AC-00.1 -- status: green -- run this session: 4/4 in llm_serves_the_guide_and_the_rules, 12/12 in root_files_generated; mutation-controlled against the pre-fix artefact 4479264f, where every assertion fails
+- AT-00.2 `native/rust/crates/intent-cli/tests/llm_serves_the_guide_and_the_rules.rs` -- covers AC-00.2 -- status: green -- run this session: 4/4 in llm_serves_the_guide_and_the_rules, 12/12 in root_files_generated; mutation-controlled against the pre-fix artefact 4479264f, where every assertion fails
+- AT-00.3 `native/rust/crates/intent-cli/tests/llm_serves_the_guide_and_the_rules.rs` -- covers AC-00.3 -- status: green -- run this session: 4/4 in llm_serves_the_guide_and_the_rules, 12/12 in root_files_generated; mutation-controlled against the pre-fix artefact 4479264f, where every assertion fails
+- AT-00.4 `native/rust/crates/intentsvcs/tests/root_files_generated.rs` -- covers AC-00.4 -- status: green -- run this session: 4/4 in llm_serves_the_guide_and_the_rules, 12/12 in root_files_generated; mutation-controlled against the pre-fix artefact 4479264f, where every assertion fails
 
 ---
 

@@ -434,6 +434,7 @@ fn a_second_sync_with_the_same_bytes_does_not_move_the_mtime() {
 /// it names works is `llm_serves_the_guide_and_the_rules`'s job; a pointer to a
 /// refusing command would satisfy this test and fail that one, which is the
 /// division that keeps each honest.
+/// Covers AC-00.4 as AT-00.4.
 #[test]
 fn every_project_is_routed_to_the_agent_guide_whatever_it_declares() {
   let home = repo_root();
