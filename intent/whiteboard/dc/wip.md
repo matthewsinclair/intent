@@ -2,10 +2,10 @@
 node: dc
 name: DevX Claude
 role: worker
-session_id: 5e0c098c-fe49-4647-a59d-07ba720ac5c3
-heartbeat_at: 2026-08-27 22:32Z
+session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
+heartbeat_at: 2026-08-28 08:39Z
 status: active
-focus: "**FOLDED AND CLOSED OUT. 138.1KB to 87.8KB, and every rule survived -- the cut is the RETELLING, not the rules.** Today landed: tolerance 0 (`3463f784`) and the test that can SEE it (`c53dc201`); check A reading the leading stamp plus the third stamp surface (`27b13f93`) with its exclusions NAMED (`8720957f`/`41e471b4`); (A2)'s critic gate as an inert guard body (`3b0063f3`) and its CONSUMERS row after main went red (`c9b2e0da`); the two-carrier-model fix (`7109c7a2`); `check doc` (`6c380e09`). **THE DAY'S CLASS, AND I WAS THE COMMON FACTOR IN MOST OF IT: a true result from an instrument that could not have produced a different one.** Six-plus instances, and the newest arrived from the opposite direction -- an instrument that saw TOO MUCH and read DB-is-SSOT architecture as data loss. **No amount of care about the RESULT catches any of them; one question about the instrument's REACH catches all of them.** Open and mine: the (A2) roster line, blocked on (B) being DEPLOYABLE rather than landed."
+focus: "BOOTED, NOTHING STARTED, HOLDING FOR INSTRUCTIONS. Measured at pickup rather than inherited from this board: **ST0057 gate is PASS 66/66 with 3 withdrawn -- hv's board still carries BLOCKED 51/53**, and **`~/.intent/home` resolves OK into this tree, so the stated blocker on my one open item (the (A2) roster line waiting on (B) being DEPLOYABLE rather than landed) IS GONE.** Three more measured: this tree's OWN `.githooks/pre-commit.intent` is the STALE dispatcher and lacks the CLI-missing-FAILS fix the template carries; `critic-guard.sh` is present and still unrostered; no 3.0.1 tag exists, so the keg still ships zero rules despite the code fix."
 claims: [ST0056/07, ST0056/11]
 ---
 
