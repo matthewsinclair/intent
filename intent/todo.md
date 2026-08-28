@@ -42,6 +42,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [-] ST0065: Review Intent's use of .md files and /in-* skills for the v3 release
   - [-] 01: Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set
   - [-] 02: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided
+- [-] ST0066: Add 'fiat close' as a feature to close STs, WPs, ACs, and ATs
 
 ## TODO
 
@@ -52,7 +53,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [?] ST0063: start
 - [?] ST0064: intentd: the Intent daemon, and a menubar app that controls it
   - [ ] 01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
-- [?] ST0066: Add 'fiat close' as a feature to close STs, WPs, ACs, and ATs
 
 ## DONE:2026-08-27T09:37:49Z
 
