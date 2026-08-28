@@ -1,17 +1,19 @@
 ---
-verblock: "28 Aug 2026:v1.25: vc - the bounce: four rulings discharged, option 1 landed, the day folded"
+verblock: "28 Aug 2026:v1.26: vc - split landed, three threads primed, builders assigned"
 intent_version: 3.0.0
 ---
 
 # Work In Progress
 
-**Current as at `dcb425f1`, 2026-08-28. This heading names a COMMIT, not a date** -- a wip file is read as current and is only ever true of a tree.
+**Current as at `d68f0395`, 2026-08-28. This heading names a COMMIT, not a date** -- a wip file is read as current and is only ever true of a tree.
 
 ## Where the project is
 
 **v3.0.0 is shipped, tagged, and Intent is SELF-HOSTED on it. THE PORT IS CLOSED: all seventeen estates are on v3.** Conflab, the last, was hoisted on 2026-08-28 -- migration commit `b02b93c4`, prose carry `7652c9b4`, verified by five nodes across three estates against a pre-hop census (st 123 / wp 531 / ac 133 / at 141, all matched), a whole-tree manifest (deleted 0, every bucketed file byte-identical), and a two-arm guard control on its live hook (a stamp without `Z` refused, with `Z` committed). `Intentv2` stays on 2.19.0 by hv's standing rule; it is the tool tree, not a project. Full record: `intent/whiteboard/vc/cutover-runbook.md`.
 
 **THE POST-HOIST RULINGS ARE DISCHARGED (hv, 2026-08-28 13:26Z, recorded `wb(hv)` at `3d5a710e`):** AC-00.8 amended to the ruled behaviour (`1098ac0f`); the `Superseded -> Cancelled` status mapping landed (`4479264f`, hv's D3 option 1 -- the `Deferred` question and the structural `status_legacy` fix are deliberately separate and sequenced); the two Conflab WP-02 fiat-closes routed to conflab-vc on hv's word. cc's 0110 renderer fix has its first slice in (`f02fb55f`); **both fixes are source-only until the next pair rebuild.**
+
+**THREE THREADS PRIMED ON hv's FIVE-ITEM DIRECTIVE (`e28ff02d`), work queued behind the hoist tail:** ST0066 (fiat close -- human-only force-close with the why on the record), ST0067 (`intent llm` -- the LLM's discovery surface, hv: asap), ST0065 (root-and-branch review of the canon .md set + the /in-* skills, two WPs, Boris Cherny transcript vendored at `_sources/`).
 
     intent ac status ST0057   -> 66/66 satisfied, 3 withdrawn -- PASS
     intent ac status ST0056   -> 64/133 satisfied, 2 withdrawn -- BLOCKED
@@ -47,11 +49,11 @@ hv ruled **both (A2) and (B)**, (A2) first, then re-ruled that **(A2)'s body lan
 
 ## Open, by owner
 
-**hv:** the Lamplight hop-2 re-run; whether `publish_home` should refuse a temp root; the vacuous-gate remedy in `doctor`; **the `Deferred` ruling** (option 2 of the 0100 menu, deliberately separate from the shipped mapping -- vc holds the context and puts it when hv wants it); the standing-directives LIVE/SPENT split (vc's draft awaiting hv's approval); the parked devbin set (info barrier, `issues` verbs SSOT, vendor spread -- hv: _"a devbin problem that I will fix with devbin next"_).
+**hv:** the Lamplight hop-2 re-run (SEQUENCED BEHIND 0111 -- the re-run repairs through `sync --to-store`, which 0111 proves blind to the repair); whether `publish_home` should refuse a temp root; the vacuous-gate remedy in `doctor`; **Laksa's `SUPERSEDED` THREAD status** (cc's flag: the identical vocabulary gap in `thread_status`, on the arm that BLOCKS rather than carries, and by cc's census the single finding blocking that estate's migration -- widening it is an hv ruling because it unblocks a migration as a side effect); ic's Phase 4 instruments placement (node scratch vs project apparatus -- the three census tools died with the session, designs survive in ic's history); the parked devbin set (info barrier, `issues` verbs SSOT, vendor spread -- hv: _"a devbin problem that I will fix with devbin next"_).
 
-**dc:** the (A2) roster line, string agreed, blocked on (B) being deployable; issues 0106 + 0109.
+**dc:** ASSIGNED (hv 13:51Z): the message-mechanism family -- 0106, 0109, 0112, 0113 (four defects, one class: the message is not the mechanism). Standing: the (A2) roster line, string agreed, blocked on (B) being deployable.
 
-**cc:** 0110's closure (first slice `f02fb55f`; the oscillation is dead only when apply and prettier agree on the same bytes, verified through both writers); the pair rebuild that delivers `4479264f` + `f02fb55f`; 0103's 28-vs-71 split when hv turns to it; the sequenced structural status fix (0100 option 3 -- model design proposed to hv BEFORE building, hv's 12:49Z direction); the bootstrap guard that makes the `$HOME`-write class unreachable at authoring time.
+**cc:** ASSIGNED (hv 13:51Z): finish 0110 (built at `f02fb55f`, closure = converged through both writers) + the pair rebuild delivering `4479264f` + `f02fb55f`, then **0111** (high; gates the Lamplight re-run). `Deferred` is RULED wait-for-structural (13:51Z) -- no interim mapping; the sequenced structural fix (0100 option 3) still routes its model design to hv before building. Standing: 0103's 28-vs-71 split when hv turns to it; the bootstrap guard for the `$HOME`-write class.
 
 **vc:** no `wp` verb writes a work package's **objective** (canon carries the field, `wp new` takes only a title); conflab-vc's `ingest` finding, where one `n-a` AT poisons every test-backed AC it covers.
 

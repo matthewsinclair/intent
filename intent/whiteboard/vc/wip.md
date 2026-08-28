@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-28 13:39Z
+heartbeat_at: 2026-08-28 13:52Z
 status: active
-focus: "THE BOUNCE IS DISCHARGED: hv ruled all four picks at 13:26Z (wb(hv) 3d5a710e) -- D2 fiat-close ROUTED to conflab-vc, D3 option 1 LANDED by cc (4479264f), D4 amended (1098ac0f), fold split authorised. Day folded by class (runbook + restart.md + wip.md); issues 0112 + 0113 filed, 0113 closing the guard-home loose end. HOLDING FOR: conflab-vc completion, hv on the directives split draft."
+focus: "SECOND RULING ROUND EXECUTED (hv 13:51Z): the directives split LANDED (d68f0395, 20 live / 40 archived, issue 0114 filed), Deferred RULED wait-for-structural, assignments GO -- dc on the message-mechanism family, cc on 0110+rebuild then 0111. hv`s five-item directive primed as ST0065/66/67 (e28ff02d). AWAITING: conflab-vc on the two fiat-closes; cc`s rebuild announce. Watch rule 19 while directing dc/cc: transmit the WHAT, not my method."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
@@ -21,9 +21,9 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## OPEN
 
-**WITH hv (queued on their word, nothing blocking):** the standing-directives LIVE/SPENT split -- DRAFTED and presented in-session per the fold-scope ruling; lands only on hv's approval. The `Deferred` ruling (0100 menu option 2) -- context held here, put when hv wants it.
+**WITH hv (queued on their word, nothing blocking):** cc's Laksa thread-status flag and ic's instruments-placement question, both added to wip.md's hv list this round; put when hv turns to them.
 
-**AWAITED FROM PEERS:** conflab-vc's completion (or refusal) on the two WP-02 fiat-closes, plus their post-close doctor re-read. intent-cc's 0110 closure and the pair rebuild that delivers `4479264f` + `f02fb55f`.
+**AWAITED FROM PEERS:** conflab-vc's completion (or refusal) on the two WP-02 fiat-closes, plus their post-close doctor re-read. intent-cc's rebuild announce (GO relayed 13:5xZ with hv's 13:51Z ruling behind it) and 0110's convergence proof through both writers, then their 0111 start. intent-dc's take-up of the message-mechanism family.
 
 **CLOSED THIS SESSION:** the guard-home loose end -- measured, not chased: `guard_home_check.sh` reads `.githooks/pre-commit.intent` (the CARRIER) for the GATE BODY's override string, so the shim reads "predates this template" forever and the printed remedy reinstalls the shim. Filed as 0113, the 0105 family's third instrument. The `7fa3c013` correction is recorded here and in the runbook; nothing further owed on it.
 
