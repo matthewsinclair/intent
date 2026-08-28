@@ -1068,7 +1068,59 @@ pub enum GateState {
   Current,
 }
 
-pub fn gate_state(carrier: Option<&str>, chain: Option<&str>, template: Option<&str>) -> GateState {
+/// Which of the two carrier shapes a carrier is.
+///
+/// **THE ARCHITECTURE GREW A SECOND CARRIER AND THE CHECKS DID NOT** (issue
+/// 0105). `canon::install_carrier` writes `hooks/pre-commit-shim.sh`; the older
+/// monolithic carrier is a copy of `hooks/pre-commit.sh`. They differ in kind,
+/// not in generation: **a shim is a LOCATOR** -- it resolves `~/.intent/home`
+/// and execs the gate, and the gate is what reaches the guard runner.
+///
+/// **THE DISCRIMINATOR IS MEASURED AND TWO-SIDED**, on the shipped templates
+/// 2026-08-28: `--where` is 2 in the shim and 0 in the gate body;
+/// `pre-commit-guards.sh` is 0 in the shim and 6 in the gate body. Disjoint in
+/// both directions, which is what makes this a discriminator rather than a
+/// heuristic that happens to fire.
+///
+/// **MATCHED, NOT RE-AUTHORED**: `carrier_is_shim` in `bin/.devbin/cmd/hooks`
+/// asks the same question the same way and is the authority for it. The two
+/// cannot share a body across languages, so they share a spelling and say so --
+/// the convention this codebase already uses for the gate remedy wording.
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum CarrierShape {
+  /// Carries the guards itself; must name the runner to run anything.
+  Monolithic,
+  /// Locates the gate and execs it; names no guard content BY DESIGN.
+  Shim,
+}
+
+pub fn carrier_shape(carrier: &str) -> CarrierShape {
+  if carrier.contains("--where") {
+    CarrierShape::Shim
+  } else {
+    CarrierShape::Monolithic
+  }
+}
+
+/// The two templates a carrier can be a copy of.
+///
+/// **A STRUCT RATHER THAN TWO MORE `Option<&str>` ARGUMENTS.** Adjacent
+/// same-typed parameters transpose silently, and the failure they would produce
+/// here -- every shim estate compared against the gate body -- is exactly the
+/// bug this change exists to remove.
+#[derive(Debug, Default, Clone, Copy)]
+pub struct GateTemplates<'a> {
+  /// `lib/templates/hooks/pre-commit.sh` in the resolved install.
+  pub gate: Option<&'a str>,
+  /// `lib/templates/hooks/pre-commit-shim.sh` in the resolved install.
+  pub shim: Option<&'a str>,
+}
+
+pub fn gate_state(
+  carrier: Option<&str>,
+  chain: Option<&str>,
+  templates: GateTemplates<'_>,
+) -> GateState {
   let Some(carrier) = carrier else {
     // **THE DISCRIMINATOR IS WHETHER ANYTHING REFERENCES THE CARRIER**, not
     // whether it exists. Two absent files are an estate that opted out; a chain
@@ -1080,12 +1132,29 @@ pub fn gate_state(carrier: Option<&str>, chain: Option<&str>, template: Option<&
       GateState::NotInstalled
     };
   };
-  // **THE MARKER IS THE GUARD RUNNER THE CARRIER MUST REACH**, not a version
-  // string and not a banner. A carrier can carry every comment the template has
-  // and still run nothing; what makes guards execute is this path.
-  if !carrier.contains("pre-commit-guards.sh") {
-    return GateState::CarrierRunsNoGuards;
-  }
+  // **THE QUESTION IS ASKED OF THE RIGHT SHAPE, AND WHICH TEMPLATE IT IS A COPY
+  // OF FOLLOWS FROM THE SAME ANSWER.** Both halves were wrong for a shim (0105)
+  // and fixing either alone leaves the estate red anyway: the runner test failed
+  // it as the Baize state, and the comparison then failed it against a template
+  // it is not a copy of.
+  let template = match carrier_shape(carrier) {
+    // **THE MARKER IS THE GUARD RUNNER THE CARRIER MUST REACH**, not a version
+    // string and not a banner. A monolithic carrier can carry every comment the
+    // template has and still run nothing; what makes guards execute is this path.
+    CarrierShape::Monolithic => {
+      if !carrier.contains("pre-commit-guards.sh") {
+        return GateState::CarrierRunsNoGuards;
+      }
+      templates.gate
+    }
+    // A shim names no runner BY CONSTRUCTION, so the runner test cannot be
+    // applied to it -- it would fail every correctly-installed v3 estate, which
+    // is what it did. **WHAT A SHIM CAN BE BROKEN IN IS ITS POINTER**, and that
+    // is not decidable from text: it needs the filesystem, so it is not this
+    // function's to answer and is deliberately not guessed at here. `int hooks`
+    // asks it by running the carrier with `--where`.
+    CarrierShape::Shim => templates.shim,
+  };
   let Some(template) = template else {
     return GateState::NoResolvableInstall;
   };
@@ -1200,11 +1269,25 @@ fn hook_findings(project: &Project) -> Vec<Finding> {
 
   let carrier = std::fs::read_to_string(&carrier_path).ok();
   let chain = std::fs::read_to_string(&chain_path).ok();
-  let template = crate::install::home()
-    .ok()
-    .and_then(|home| std::fs::read_to_string(home.join("lib/templates/hooks/pre-commit.sh")).ok());
+  // **BOTH TEMPLATES ARE READ, because which one is the comparand is a property
+  // of the carrier and is decided inside `gate_state`.** Reading only the gate
+  // body is the second half of 0105: `install_carrier` writes the SHIM to this
+  // path, so `template != carrier` was permanently true for a shim estate and it
+  // reported `BehindTheTemplate` forever.
+  let home = crate::install::home().ok();
+  let read_template = |name: &str| {
+    home
+      .as_ref()
+      .and_then(|h| std::fs::read_to_string(h.join("lib/templates/hooks").join(name)).ok())
+  };
+  let gate_template = read_template("pre-commit.sh");
+  let shim_template = read_template("pre-commit-shim.sh");
+  let templates = GateTemplates {
+    gate: gate_template.as_deref(),
+    shim: shim_template.as_deref(),
+  };
 
-  match gate_state(carrier.as_deref(), chain.as_deref(), template.as_deref()) {
+  match gate_state(carrier.as_deref(), chain.as_deref(), templates) {
     GateState::NotInstalled | GateState::Current => Vec::new(),
     GateState::ChainCallsAMissingCarrier => vec![Finding::new(
       shown(&chain_path),

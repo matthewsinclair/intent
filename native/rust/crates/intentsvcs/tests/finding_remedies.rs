@@ -192,6 +192,62 @@ fn names_operation(remedy: &str, needle: &str) -> bool {
   false
 }
 
+/// **A DISPOSITION CLASS CANNOT NAME A SUBJECT** (issue 0106).
+///
+/// `Advisory` is not a kind of artefact; it is a kind of DISPOSITION -- reported
+/// and not counted -- and its members have nothing in common but that. It held
+/// "the ROW is well-formed and resolves. Rewrite it in the v3 GRAMMAR when the
+/// THREAD is next touched", which is the remedy for one member (a legacy AT
+/// reference) promoted to the class. The hook-carrier advisory is also in this
+/// class, and a hook carrier is not a row, is not a thread, is not touched, and
+/// has no grammar -- so `doctor --verbose` printed prose about acceptance-test
+/// rows on a subject that has none.
+///
+/// **THE STRING WAS NEVER WRONG; IT WAS IN THE WRONG SCOPE.** What is
+/// per-instance goes in the detail -- the rule the `UnhonourableSetting` comment
+/// already states -- and the AT advisory's own detail already ended "worth
+/// rewriting in the v3 grammar next time the thread is touched", so demoting it
+/// lost nothing and removed a second home.
+///
+/// The control is IN the test: the withdrawn string is asserted to fail the same
+/// check that the live one passes. Without it this arm would keep passing if
+/// someone replaced the matcher with one that matches nothing.
+#[test]
+fn the_advisory_remedy_names_no_subject_because_its_members_share_none() {
+  const WITHDRAWN: &str = "nothing is owed now: the row is well-formed and resolves. Rewrite it in the v3 grammar when the thread is next touched; a closed thread carries it as it is";
+  const SUBJECT_WORDS: &[(&str, &str)] = &[
+    ("row", "a hook carrier is not a row"),
+    (
+      "thread",
+      "a hook carrier is not a thread and is never `touched`",
+    ),
+    (
+      "grammar",
+      "a hook carrier has no grammar to be rewritten in",
+    ),
+  ];
+
+  let live = FindingClass::Advisory.remedy();
+  let mut caught_in_withdrawn = 0;
+  for (needle, why) in SUBJECT_WORDS {
+    assert!(
+      !names_operation(live, needle),
+      "the `advisory` remedy names `{needle}` -- {why}, and it is in this class too.\n  remedy was: {live}"
+    );
+    if names_operation(WITHDRAWN, needle) {
+      caught_in_withdrawn += 1;
+    }
+  }
+  assert_eq!(
+    caught_in_withdrawn,
+    SUBJECT_WORDS.len(),
+    "THE CONTROL FAILED, so the assertions above prove nothing: the withdrawn \
+     string is the exact text this test exists to reject, and the matcher must \
+     catch every one of its subject words. If this fires, fix the matcher before \
+     trusting the arm above it"
+  );
+}
+
 /// **The boundary matcher itself, driven both ways.** Loosening a check is how
 /// a check stops checking, so the loosening gets its own proof: the words that
 /// caused the false positive must pass, and every real spelling of the command

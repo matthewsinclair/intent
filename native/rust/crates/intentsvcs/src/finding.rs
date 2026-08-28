@@ -418,10 +418,26 @@ impl FindingClass {
       ),
       // Outside the verdict altogether: a state, not an obligation. It sorts last
       // so the totals line ends with what nobody has to act on.
+      // **A PER-CLASS STRING CANNOT NAME A SUBJECT, AND THIS ONE DID** (issue
+      // 0106). It read "the ROW is well-formed and resolves. Rewrite it in the
+      // v3 GRAMMAR when the THREAD is next touched" -- which is the remedy for
+      // a legacy AT reference, and `Advisory` is not that class. It is the
+      // class of everything reported and not counted, and the hook-carrier
+      // advisory is also in it: a hook carrier is not a row, is not a thread,
+      // is not touched, and has no grammar.
+      //
+      // It was never a WRONG STRING; it was one subject's remedy promoted to a
+      // class shared by two. **AND NOTHING WAS LOST BY DEMOTING IT**, because
+      // the AT advisory's own DETAIL already ends "worth rewriting in the v3
+      // grammar next time the thread is touched" -- so the sentence had two
+      // homes, and the per-class one was the copy that could not stay true as
+      // the class grew members. Same rule the `UnhonourableSetting` comment
+      // states a few lines up: what is per-instance goes in the detail, and
+      // this string carries only what is true of the class.
       Self::Advisory => (
         11,
         "advisory",
-        "nothing is owed now: the row is well-formed and resolves. Rewrite it in the v3 grammar when the thread is next touched; a closed thread carries it as it is",
+        "nothing is owed now: this is reported for visibility and is not counted in the verdict. The detail above is the whole finding -- it names the subject and says what, if anything, is worth doing when that artefact is next touched",
       ),
     }
   }

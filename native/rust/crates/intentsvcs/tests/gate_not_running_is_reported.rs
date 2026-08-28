@@ -90,7 +90,7 @@
 
 mod common;
 
-use intentsvcs::doctor::{self, GateState, gate_state};
+use intentsvcs::doctor::{self, CarrierShape, GateState, GateTemplates, carrier_shape, gate_state};
 use intentsvcs::finding::FindingClass;
 
 /// A carrier that would actually run guards.
@@ -100,16 +100,30 @@ const WIRED: &str =
 /// The Baize carrier: every appearance of a hook, running nothing.
 const UNWIRED: &str = "#!/usr/bin/env bash\n# Intent critic gate\necho 'pre-commit'\n";
 
+/// The SHIM carrier: a locator. It names no guard runner, by design -- it
+/// resolves `~/.intent/home` and execs the gate, and the gate reaches the runner.
+const SHIM: &str = "#!/usr/bin/env bash\n# resolve the install and exec its gate\nif [ \"$1\" = --where ]; then\n  cat ~/.intent/home\nfi\n";
+
+/// Most arms are about a MONOLITHIC carrier, so they name one template and this
+/// says which. Written as a helper rather than repeated inline so that adding a
+/// third carrier shape breaks the arms that must be revisited.
+fn gate_only(t: &str) -> GateTemplates<'_> {
+  GateTemplates {
+    gate: Some(t),
+    shim: None,
+  }
+}
+
 #[test]
 fn no_carrier_and_nothing_calling_one_is_a_choice_rather_than_a_fault() {
   assert_eq!(
-    gate_state(None, Some("#!/bin/sh\nexec prettier\n"), Some(WIRED)),
+    gate_state(None, Some("#!/bin/sh\nexec prettier\n"), gate_only(WIRED)),
     GateState::NotInstalled,
     "a project that never installed the gate must not be reported for it, or every \
      non-adopting estate is faulted for a decision it made"
   );
   assert_eq!(
-    gate_state(None, None, Some(WIRED)),
+    gate_state(None, None, gate_only(WIRED)),
     GateState::NotInstalled,
     "and neither is a project with no chain at all"
   );
@@ -121,7 +135,7 @@ fn an_absent_carrier_that_something_calls_is_broken() {
     gate_state(
       None,
       Some("#!/bin/sh\n. \"$(git rev-parse --git-path hooks)/pre-commit.intent\"\n"),
-      Some(WIRED)
+      gate_only(WIRED)
     ),
     GateState::ChainCallsAMissingCarrier,
     "a chain calling a carrier that is not there is an estate that believes it is \
@@ -133,7 +147,7 @@ fn an_absent_carrier_that_something_calls_is_broken() {
 #[test]
 fn a_carrier_that_names_no_guard_runner_is_the_baize_state() {
   assert_eq!(
-    gate_state(Some(UNWIRED), None, Some(WIRED)),
+    gate_state(Some(UNWIRED), None, gate_only(WIRED)),
     GateState::CarrierRunsNoGuards,
     "a carrier can carry every comment the template has and still execute nothing; \
      what makes guards run is the runner path, so that is what is looked for"
@@ -143,7 +157,7 @@ fn a_carrier_that_names_no_guard_runner_is_the_baize_state() {
 #[test]
 fn guards_read_from_an_install_that_cannot_be_resolved_do_not_run() {
   assert_eq!(
-    gate_state(Some(WIRED), None, None),
+    gate_state(Some(WIRED), None, GateTemplates::default()),
     GateState::NoResolvableInstall,
     "the roster is read LIVE out of the install, so a carrier that cannot find one \
      runs and finds no guards -- which reports nothing, exactly like passing"
@@ -154,7 +168,7 @@ fn guards_read_from_an_install_that_cannot_be_resolved_do_not_run() {
 fn a_carrier_older_than_its_template_is_reported_and_not_counted() {
   let older = format!("{WIRED}# and one more line the template has since grown\n");
   assert_eq!(
-    gate_state(Some(WIRED), None, Some(&older)),
+    gate_state(Some(WIRED), None, gate_only(&older)),
     GateState::BehindTheTemplate {
       carrier: WIRED.len(),
       template: older.len()
@@ -162,7 +176,7 @@ fn a_carrier_older_than_its_template_is_reported_and_not_counted() {
     "the carrier is a copy taken at install time and nothing re-copies it"
   );
   assert_eq!(
-    gate_state(Some(WIRED), None, Some(WIRED)),
+    gate_state(Some(WIRED), None, gate_only(WIRED)),
     GateState::Current,
     "and a carrier that matches its template is not reported at all -- without this \
      arm the one above passes under a check that reports every estate always"
@@ -185,12 +199,137 @@ fn a_carrier_the_same_size_as_the_template_but_not_the_same_bytes_is_behind_it()
     "the fixture must be same-length, or this test is the ordinary case"
   );
   assert_eq!(
-    gate_state(Some(&carrier), None, Some(&template)),
+    gate_state(Some(&carrier), None, gate_only(&template)),
     GateState::BehindTheTemplate {
       carrier: carrier.len(),
       template: template.len()
     },
     "same size, different guards: a length comparison calls this current"
+  );
+}
+
+// ---------------------------------------------------------------------------
+// THE SECOND CARRIER SHAPE (issue 0105)
+//
+// `canon::install_carrier` writes a SHIM, and both halves of this check assumed
+// the monolithic carrier: the runner test failed a shim as the Baize state, and
+// the comparison then measured it against a template it is not a copy of.
+// FIXING EITHER ALONE LEAVES THE ESTATE RED, which is why both are driven here.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn the_two_carrier_shapes_are_told_apart_in_both_directions() {
+  assert_eq!(
+    carrier_shape(SHIM),
+    CarrierShape::Shim,
+    "a carrier that answers --where is a locator"
+  );
+  assert_eq!(
+    carrier_shape(WIRED),
+    CarrierShape::Monolithic,
+    "and one that names the runner carries the guards itself"
+  );
+  // **THE DISCRIMINATOR MUST BE TWO-SIDED OR IT IS A HEURISTIC.** Measured on
+  // the shipped templates 2026-08-28: `--where` 2 in the shim and 0 in the gate
+  // body; `pre-commit-guards.sh` 0 in the shim and 6 in the gate body. The
+  // fixtures above are disjoint the same way, so neither assertion could pass
+  // by accident of a marker present in both.
+  assert!(!SHIM.contains("pre-commit-guards.sh"));
+  assert!(!WIRED.contains("--where"));
+}
+
+#[test]
+fn a_shim_carrier_is_not_the_baize_state() {
+  assert_eq!(
+    gate_state(
+      Some(SHIM),
+      None,
+      GateTemplates {
+        gate: Some(WIRED),
+        shim: Some(SHIM),
+      }
+    ),
+    GateState::Current,
+    "a shim names no guard runner BY CONSTRUCTION, so testing it for one reports \
+     every correctly-installed v3 estate as running nothing -- an ACTIONABLE red \
+     on the estates that just did what they were asked"
+  );
+}
+
+#[test]
+fn a_shim_is_compared_against_the_shim_template_and_not_the_gate_body() {
+  // The state before the fix, and the reason fixing only the runner test was
+  // not enough: the comparand was the GATE BODY, which a shim can never equal,
+  // so `BehindTheTemplate` was permanently true for every shim estate.
+  assert_eq!(
+    gate_state(
+      Some(SHIM),
+      None,
+      GateTemplates {
+        gate: Some(WIRED),
+        shim: Some(SHIM),
+      }
+    ),
+    GateState::Current,
+    "the carrier IS the current shim; comparing it to the gate body reports it \
+     behind a template it is not a copy of, forever"
+  );
+  let newer = format!("{SHIM}# and one line the shim template has since grown\n");
+  assert_eq!(
+    gate_state(
+      Some(SHIM),
+      None,
+      GateTemplates {
+        gate: Some(SHIM),
+        shim: Some(&newer),
+      }
+    ),
+    GateState::BehindTheTemplate {
+      carrier: SHIM.len(),
+      template: newer.len()
+    },
+    "and a genuinely stale shim is still reported -- without this arm the one \
+     above passes under a check that has simply stopped looking at shims. NOTE \
+     the gate template here is deliberately set to bytes that WOULD match the \
+     carrier: if the comparand were still the gate body this arm would read \
+     Current, so it fails on the wrong-comparand bug specifically"
+  );
+}
+
+#[test]
+fn a_shim_with_no_resolvable_shim_template_is_not_silently_current() {
+  assert_eq!(
+    gate_state(
+      Some(SHIM),
+      None,
+      GateTemplates {
+        gate: Some(WIRED),
+        shim: None,
+      }
+    ),
+    GateState::NoResolvableInstall,
+    "an install that resolves the gate body but not the shim template cannot say \
+     whether the shim is current, and must not answer Current by default -- the \
+     gate template being present is not evidence about the shim"
+  );
+}
+
+#[test]
+fn a_monolithic_carrier_still_has_to_name_its_runner() {
+  assert_eq!(
+    gate_state(
+      Some(UNWIRED),
+      None,
+      GateTemplates {
+        gate: Some(WIRED),
+        shim: Some(SHIM),
+      }
+    ),
+    GateState::CarrierRunsNoGuards,
+    "THE BAIZE ARM MUST SURVIVE THE FIX. Relaxing the runner test for shims is \
+     only correct if it is still applied to carriers that are not shims; \
+     otherwise this change trades a false red for the false green the check was \
+     written to prevent"
   );
 }
 
