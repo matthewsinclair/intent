@@ -3,9 +3,10 @@
   "number": 112,
   "slug": "view-skew-check-still-prints-no-gate-runs-thread",
   "title": "view_skew_check still prints 'no gate runs thread_view_skew' one section above the gate running it",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-08-28",
+  "closed": "2026-08-28",
   "reporter": "Matthew Sinclair",
   "body": "`view_skew_check.sh:253-254` prints, on any commit carrying thread views: \"Their check is thread_view_skew_check.sh and no gate runs it. This is a GAP, not a clean result: nothing here has looked at those files.\"\n\n**The claim was true when written and expired 2026-08-27**, when `thread_view_skew_check.sh` was ADMITTED to the gate (runner_roster_check.sh:139, dc's admission row). Since then every commit that touches a thread view prints \"no gate runs it\" a few lines ABOVE the gated sibling's own output examining all 288 views -- measured live at `1098ac0f` (the AC-00.8 amendment commit), where \"This is a GAP ... nothing here has looked at those files\" and \"thread-view-skew: 288 generated view(s) match the model\" appear in one gate run.\n\n**Why it matters beyond untidiness:** the message's whole function is to stop a committer reading skew's silence as a green (\"worth more than a green\" -- dc, 2026-08-27, who correctly ran the sibling BY HAND on its instruction). That function is now inverted: it instructs readers to distrust a property the gate has just verified, and the reader who obeys it re-runs by hand a check that already ran. A claim that outlives its basis, in an instrument's own output -- same family as 0106 (a remedy that is not its mechanism).\n\n**Fix is a reword, not a mechanism change:** the NOT-CHECKED framing for THIS tool remains correct (view_skew_check.sh's checkable population really is the one surface/ triple -- its own roster row says so); the sentence naming the sibling as un-gated is the only false part. Either point at the gated sibling (\"their check is thread_view_skew_check.sh, gated in this same run\") or drop the GAP paragraph and let the roster be the authority. Owner: whoever next edits the parity tool (cc built the sibling, dc rostered it), per the roster row's own convention for its other stale premise.\n"
 }
