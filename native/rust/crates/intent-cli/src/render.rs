@@ -1259,10 +1259,21 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       let st = thread_arg(a, "stid")?;
       let id = arg(a, "acid")?;
       let text = arg(a, "text")?;
+      // **`opt` CANNOT ANSWER "DID THE CALLER SAY IT".** The table declares
+      // `--kind`'s default, so clap materialises `non-test` into the matches
+      // whether or not anyone typed it -- which is what the comment below
+      // originally recorded, and it is a LIMIT of this door rather than a
+      // choice it made. The first cut of the disclosure below asked
+      // `opt(a, "kind").is_none()` and therefore never fired once: the warning
+      // was unreachable, and only the control case in the drive showed it.
+      // `value_source` is the question actually being asked.
+      let kind_given = a.value_source("kind") == Some(clap::parser::ValueSource::CommandLine);
       let kind = match opt(a, "kind").as_deref() {
         Some("test") => AcKind::Test,
         // The table declares the default, so an absent flag and an explicit
-        // `non-test` are the same answer here rather than two paths.
+        // `non-test` are the same VALUE here rather than two paths -- but they
+        // are no longer the same EVENT: the disclosure below needs to know
+        // whether the caller said it, so the read is kept.
         None | Some("non-test") => AcKind::NonTest,
         Some(other) => {
           return Err(Failure::Error(format!(
@@ -1270,10 +1281,61 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
           )));
         }
       };
+
+      // **WHAT THIS PUT IS ABOUT TO OVERWRITE, READ BEFORE IT IS GONE (issue
+      // 0119).** Re-running `ac new` on an existing id is a full replace: ic
+      // ratified the shape as an idempotent PUT to the entity address, and a
+      // PUT writes the WHOLE representation by definition. The trap is not the
+      // PUT -- it is that this door FABRICATES the half the caller omitted, so
+      // repairing one sentence of a test-backed criterion silently rewrote its
+      // kind to the default and its state from computed to unsatisfied. The
+      // gate then passed over fewer criteria than anyone thought.
+      //
+      // **Measured on a fixture, 2026-08-28:** created `--kind test`, then
+      // re-run with `--text` alone; `kind` became `non-test`, `state` became
+      // `unsatisfied`, and BOTH runs printed `created`.
+      //
+      // **This DISCLOSES rather than refusing or merging, deliberately.** Both
+      // fixes the issue proposes -- refuse without `--replace`, or preserve
+      // unsupplied fields -- contradict the ratified PUT, which the issue does
+      // not cite. Disclosure is the repair that fits inside the ruling, so the
+      // semantics question goes to the ratification pile rather than being
+      // settled here by whoever happened to pick the issue up.
+      let mut f = open()?;
+      let prior_kind = f
+        .st_show(&st)
+        .ok()
+        .and_then(|t| t.criteria.iter().find(|c| c.id == id))
+        .map(|c| c.kind);
+
+      let outcome = f.ac_new(&st, &id, &text, kind).map_err(fail)?;
+
+      if let Some(was) = prior_kind
+        && !kind_given
+        && was != kind
+      {
+        eprintln!(
+          "warning: `--kind` was not given, so this replace wrote the default over the stored value for {id}: kind was `test` and is now `non-test`"
+        );
+        eprintln!(
+          "  a criterion's state is DERIVED from its kind, so its satisfaction stopped being computed from covering green tests and is now plainly unsatisfied"
+        );
+        eprintln!(
+          "  remedy: re-run with `--kind test` -- `ac new` is a PUT, so it writes the whole criterion and an omitted flag is a VALUE, not a silence"
+        );
+      }
+
+      // **`created` was printed for a replace, which is the half of 0119 that
+      // hid the other half.** A caller who saw `created` had no reason to look
+      // for the collateral above.
       reported(
-        &open()?.ac_new(&st, &id, &text, kind).map_err(fail)?,
+        &outcome,
         &id,
-        "created",
+        if prior_kind.is_some() {
+          "replaced"
+        } else {
+          "created"
+        },
       );
       Ok(())
     }
