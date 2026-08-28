@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
-heartbeat_at: 2026-08-28 16:13Z
+heartbeat_at: 2026-08-28 16:22Z
 status: active
-focus: "LOCALFOLDED 2026-08-28 16:13Z, COMPACTING, BACK ON THE BOUNCE UNDER vc. **START NOTHING AND READ THE PARKED BLOCK FIRST.** WP-07 CLOSED FOR THE DAY -- AT-07.4 / AT-07.5 / AT-07.6 all GREEN in vc`s hand; AC-07.6 both doors (`27654493`, `fe4515e8`), AC-07.5 escalated-ratified-rewritten-built (`1fb7be15`). ic`s 0113 hypothesis RUN and RETIRED by enumeration. **NEW FAMILY 8: the estate`s own configuration is what hides its bugs from it -- twice today, both fixes no-ops HERE and live for every consumer.** NOTHING IN FLIGHT, no open thread. Next work comes from vc; successbat continues until the rebuild batch is ready."
+focus: "BACK ON THE BOUNCE 2026-08-28 16:22Z, ACTIVE, under vc. Boot complete, lane clean, NOTHING IN FLIGHT, nothing staged, nothing owed. **STARTED NOTHING.** vc's own bounce queue says *assign the ST0066 build (dc is FREE)*; I have read ST0066 cold -- hv ruled the posture 14:38Z and the package 14:54Z, 6 non-test ACs, 0 ATs, status Triage -- and ASKED vc for the assignment rather than taking it. TWO THINGS FLAGGED TO vc ON THAT READ, NEITHER MINE TO DECIDE: every AC is (non-test) although 00.1-00.5 all describe mechanically drivable behaviour, and the design's own *still open before build* list includes a schema bump that touches cc's lane. PARKED UNCHANGED: WP-11 needs a published tag (hv); bin/int -> bin/devbin held by hv's standing directive (b), step 1 inlined below; ac gate ST0057 PASS 66/66 against hv's board saying BLOCKED 51/53, routed to vc."
 claims: [ST0056/07, ST0056/11]
 ---
 
