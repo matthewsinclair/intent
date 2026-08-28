@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 7a90ae04-61f6-4b2f-9de7-dd81eac9bb11
-heartbeat_at: 2026-08-28 13:13Z
+heartbeat_at: 2026-08-28 13:36Z
 status: active
-focus: "**HOP CLOSED, NOTHING IN FLIGHT, NOTHING TO BUILD.** Conflab is on v3 with ZERO authored-content loss; Phase 4 passed; issues 0100-0103 at `ab4837f0`. **(B) reached its first estate and BITES** -- conflab-ic's arm 1 refused with check B named, arm 2 committed through the shim. **Rule 2 is LIFTED** and ordinary build ceremony returns: announce before and after by PROPERTIES, never a bare `cargo build --release`, never into the shared target from a dirty `native/rust`. **MINE WHEN hv TURNS TO IT: 0103, the `wp list` 28-vs-71 split** -- 216 rows against 531 store objects, rc=0 with ZERO rows on 71 bucketed threads, REACH not loss. **The day's class was my own instruments and my own attribution, six times, none of which failed loudly.**"
+focus: "**TWO FIXES BUILT, TESTED AND COMMITTED ON THE BOUNCE, NEITHER DELIVERED.** `f02fb55f` closes 0110 (the AGENTS.md renderer reaches a fixed point; verified apply->prettier->apply over five language sets, positive-controlled against the pre-fix binary, which OSCILLATES). `4479264f` is hv`s D3 option 1 -- `Superseded` -> `Cancelled`. **NEITHER IS LIVE IN ANY ESTATE: the published pair still names `b4d63b44` and the gate now says currency REFUSING. A release build IS the estate-wide delivery, so it is vc`s to time, not mine.** MINE AND UNSTARTED: 0103. WITH hv: D3 options 2 and 3, and the THREE things option 1 did NOT close -- 21 `pending` rows never on any menu, `Deferred`, and Laksa`s THREAD-level `SUPERSEDED` blocker, which is a different mapper on the arm that BLOCKS."
 claims: [ST0056/06, ST0056/10, ST0057/00]
 ---
 
@@ -15,11 +15,20 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 
 **NOTHING IN FLIGHT. THE CONFLAB HOIST IS CLOSED AND Conflab IS ON v3 WITH ZERO AUTHORED-CONTENT LOSS.** Phase 1.2 caught hv's own ruling (ST0121 line 163) being dropped by the re-render; hv ruled D1; Phase 4 passed. **The day's narrative is archived at `.history/20260828/wip.md` -- it is the RETELLING. The FINDINGS are issues, and this board points at them rather than carrying a second copy: 0100 (status vs scope asymmetry), 0102 (control axes), 0103 (`wp list` reach), 0110 (renderer cannot converge). 0077 closed on an expired premise.**
 
-**OPEN AND MINE, NEITHER STARTED:**
+**BUILT ON THE BOUNCE, BOTH GREEN, BOTH COMMITTED, NEITHER DELIVERED:**
 
-- **0103, the `wp list` 28-vs-71 split** -- 216 rows against 531 store objects, rc=0 with ZERO rows on 71 bucketed threads, 28 others correct, split unexplained. **REACH, not loss.** Pre-existing v3 verb behaviour, reproduced on Intent's own dehydrated threads. **hv's when they turn to it.**
-- **D3 on 0100 is WITH hv via vc, PROPOSED NOT BUILT.** hv sanctioned a model fix ahead of any client repair. My menu, in cost order: **(1) `Superseded` -> `Cancelled`, NO model change** -- the enum has four variants and `wp_status` already reaches Cancelled; **(2) `Deferred` may not be a defect at all** and needs its own ruling, since deferred work genuinely has not started; **(3) the structural fix mirroring scope** (`status: Option<WpStatus>` + `status_legacy`), whose real cost is that `status` is REQUIRED where `scope` was born optional. **The option named first -- `status_legacy` beside a required status -- does NOT answer hv, because status still reads `not-started`.**
-- **0110's fix is mine (the renderer).** Prettier-stable spacing from renderer or template, **never a prettier exception**.
+- **`f02fb55f` -- 0110, the renderer.** A `[[#lang]]` marker sits between two blank lines -- one outside the block, one inside -- and removing the marker line puts them side by side. **It fires when a block is KEPT, not only when one is dropped, and the kept case is the larger term**, so the surplus GROWS with the language count: 3 / 6 / 8 / 12 / 15 for `[]` / `[rust]` / `[elixir]` / this project's five / all five. **The 12 is hv's own `+12 blank lines` from D1, reached from an independent route and confirmed a third way as a byte count** (6689 -> 6677). The template cannot be arranged out of it: markdown wants one blank between elements and how many survive is decided at render time, so no static arrangement is right for every subset. **Blast radius is ONE generated file** -- `_AGENTS.md` carries all 21 markers, the other four templates carry zero. Verified apply->prettier->apply on five sets, all CONVERGED, second apply reports `unchanged:`; **the probe is positive-controlled against the pre-fix binary, which OSCILLATES back to its first sha** -- so a uniform verdict is evidence about the subject and not about the instrument.
+- **`4479264f` -- hv's D3 option 1** (13:26Z, "1 NOW, 2 SEPARATELY, 3 SEQUENCED"): `Superseded` -> `Cancelled`, one arm, no model change. **The accepted cost is named at the site: the source spelling stops being recoverable**, because a mapped value emits no finding where an unmappable one did. Option 3 is what fixes that.
+
+**NOT DELIVERED, AND THAT IS THE STANDING QUESTION FOR vc.** The published pair still names `b4d63b44`; the pre-commit gate now reports `currency REFUSING`. **A release build IS the estate-wide delivery, instantly, to seventeen estates** -- so it is vc's to time. Everything above was verified on `target/debug`, which the published symlinks do not point at.
+
+**THREE THINGS OPTION 1 DID NOT CLOSE, AND A GREEN BESIDE IT WILL IMPLY OTHERWISE:**
+
+- **21 of the 23 rows say `pending`** (19 `pending` + 2 `Pending`). **Never on any menu**, so still defaulting with a finding. After option 1, **22 of 23 still default.**
+- **`Deferred` is option 2 and unruled.** Both are now asserted as _still defaulting AND still reporting_ by a test, so the boundary is a mechanism rather than a comment.
+- **Laksa's THREAD-level `SUPERSEDED` IS NOT CLEARED BY THIS.** `thread_status` has the identical gap, and by `legacy_vocabulary.rs`'s own census that value is the single finding blocking Laksa's whole migration. **Different population, different arm: an unreadable THREAD status BLOCKS where a work-package one CARRIES**, so widening it would unblock a migration as a side effect of a ruling about work packages. hv's.
+
+- **0103, the `wp list` 28-vs-71 split** -- 216 rows against 531 store objects, rc=0 with ZERO rows on 71 bucketed threads. **REACH, not loss.** Pre-existing v3 verb behaviour. **hv's when they turn to it. Unstarted.**
 
 **RULE 2 IS LIFTED.** Ordinary build ceremony returns: announce before and after **by properties**, never a bare `cargo build --release`, never into the shared target from a dirty `native/rust`. **A build IS the delivery, estate-wide, instantly.**
 
