@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
-heartbeat_at: 2026-08-28 11:51Z
+heartbeat_at: 2026-08-28 12:11Z
 status: active
 focus: "BOOTED, NOTHING STARTED, HOLDING FOR INSTRUCTIONS. Measured at pickup rather than inherited from this board: **ST0057 gate is PASS 66/66 with 3 withdrawn -- hv's board still carries BLOCKED 51/53**, and **`~/.intent/home` resolves OK into this tree, so the stated blocker on my one open item (the (A2) roster line waiting on (B) being DEPLOYABLE rather than landed) IS GONE.** Three more measured: this tree's OWN `.githooks/pre-commit.intent` is the STALE dispatcher and lacks the CLI-missing-FAILS fix the template carries; `critic-guard.sh` is present and still unrostered; no 3.0.1 tag exists, so the keg still ships zero rules despite the code fix."
 claims: [ST0056/07, ST0056/11]
@@ -167,6 +167,14 @@ hv
 - **THE SUITE POPULATION CHECK.** `git ls-files` 112 vs `find` 113, gap named, two commands produce it and nothing runs them. **Needs an edit to `tests/run_tests.sh`, which matts runs externally -- scope, not doubt.**
 
 ## Watch-outs
+
+### FAMILY 7 -- A VALUE RETYPED OUT OF AN INSTRUMENT IS A SECOND HOME FOR A FACT (2026-08-28 12:11Z, three instances in one day, two of them mine)
+
+- **THE RULE vc APPLIED, AND IT IS THE KEEPER: WHEN A RECORD CARRIES ONE FACT IN TWO NOTATIONS, THE ONE THAT CAME OFF THE INSTRUMENT BEATS THE ONE A HUMAN RETYPED.** devbin-cc's pre-hop record held the carrier's mode as `-rwx--x--x` (read by `stat`) AND as `751` in prose. **They disagree: `-rwx--x--x` is 711; 751 is `-rwxr-x--x`.** vc ruled the symbolic authoritative and the octal a transcription slip. **Confirmed on the real artefact rather than by arithmetic: one `stat -f '%Sp -> %Lp'` call returns `-rwx--x--x -> 711`, so the hop PRESERVED the mode.**
+- **THE REMEDY IS STRUCTURAL AND BETTER THAN CARE: EMIT BOTH NOTATIONS FROM ONE CALL, so they cannot disagree.** devbin-cc's Phase 4 now prints `%Sp` beside the sha. **A second notation derived from one read is not a second home; a second notation typed from a first is.** "Be careful transcribing" is the advice that has never once worked.
+- **THREE INSTANCES TODAY AND THE OTHER TWO ARE MINE.** (1) this board carried `verify-canonical --self-test = 11 failures` from a drive on the 27th; it is **14** today -- **the property (the instrument can fail, so its PASS means something) held, and the value I had banked as if it were the point did not.** (2) my step-7 counters: `wc -l` gave **125** threads because the table has two header lines, and my WP regex gave **216** because the column pads to content width. **Both were my instrument, not the data -- all four totals matched once the counters were fixed.**
+- **THE THROUGH-LINE, AND IT IS THE SAME ONE AS THE GATE FIGURE: A FACT WORTH RECORDING IS RECORDED AS THE CALL THAT PRODUCES IT, NEVER AS THE ANSWER IT PRODUCED.** `restart.md` already says do not transcribe the gate figure, run the three verb calls. **This is that rule at field scale, and it earns its place here because a mode, a failure count and a row count are exactly the sort of small values nobody thinks of as a second home.**
+- **AND A GAP I COULD NOT CLOSE, RECORDED AS UNCLOSED: I never captured the pre-hop carrier MODE** -- sha and size only. **The column was filled from devbin-cc's and conflab-ic's independent pre-hop banks, not from anything I held.** My attempt to recover it by sweeping estates for the matching carrier sha returned zero, **and that zero is a one-door result: I looked only at `.git/hooks/` and any estate on `.githooks/` was invisible to it.** Reported as such rather than as a fleet finding.
 
 ### FAMILY 6 -- AN UNMEASURED CLAIM INSIDE A COMPLIMENT (2026-08-28 09:28Z, mine, refuted by cc)
 
