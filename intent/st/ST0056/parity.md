@@ -421,3 +421,18 @@ error: this project declares Intent v3.0.0-dev, and this is Intent v2.19.0
 **BOTH HALVES RUN ON ONE TREE OR IT IS NOT A COMPARISON.** Measured on separate trees, a disagreement is ambiguous between "v3 regressed" and "the contract moved", and no amount of care separates them afterwards. The `46/114` figure quoted for three days was pinned at `bcbd02cd` while five of five components -- `legacy.rs`, `contract.rs`, `store.rs`, `model.rs`, `facade.rs` -- and `acceptance.md` itself had all moved under it.
 
 **TIMING IS NOT PART OF THIS MEASUREMENT.** Machine load moves it by more than an order of magnitude and it proves nothing about parity. Record it if convenient; never publish a speedup from a run whose load was not controlled.
+
+## `agents sync` deviations -- ratified 2026-08-28 (vc, on dc's driven comparison)
+
+**The drive:** sequential, one tree, per this file's own both-halves rule -- v2 2.19.0 (`~/Devel/prj/Intentv2` install) `init` -> `st new` -> v2 `agents sync` captured -> `intent upgrade` -> v3 `agents sync` captured -> `diff`. 183 lines v2, 161 v3, 46 removed / 24 added, eleven deviation classes, ZERO previously ratified. **Byte-parity against v2 is dead IN PRINCIPLE on (e) and (f) alone, before any deviation is even weighed.**
+
+**RATIFIED (a)-(j); (k) is a DEFECT, not a deviation:**
+
+- **(a)** v3 replaces v2's ~33-item skills/subagents enumeration with two commands and its reason inline -- a snapshot goes stale the moment anything is installed and nothing regenerates the file to notice.
+- **(b)** v3 adds the `intent llm guide` paragraph.
+- **(c)** v3 adds `## Rules of the Road` (the four agnostic principles with rule ids).
+- **(d)** the `worker-bee` reference is dropped -- pruned from canon in ST0034.
+- **(e)** the footer stamps no date. v2's dated footer differs from itself across days, so no durable assertion can be byte-equality against it (rootfiles.rs's stated refusal; D42 from the other side).
+- **(f)** the project name renders from CONFIG, never the directory. v2 rendered the directory name (`par` for a project whose config says `parity`); byte-parity would score v3's correctness as failure and enshrine a v2 bug as contract. Measured against the config key, not inferred.
+- **(g)-(j)** one cosmetic class: the article fix, `### Testing` -> `### Test commands`, the dropped shell-indentation line, the doc-line swap (migration doc out, `usage-rules.md` in).
+- **(k) NOT RATIFIED -- DEFECT:** v3 emits `### Test commands` followed by NOTHING where v2 emitted `_No automated tests configured yet._` / `_No build step required._`. An empty section reads as broken output. Confirmed template-not-ST0037: the fixture declares `languages: []`, both binaries saw the same empty set. **The structural-invariant test drives this red before it is fixed.**
