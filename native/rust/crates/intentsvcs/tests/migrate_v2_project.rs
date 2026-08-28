@@ -312,3 +312,32 @@ fn a_clean_estate_converges_its_gitignore_by_path_and_not_by_glob() {
      wants tracked: {ignored:?}"
   );
 }
+
+/// **LIMB 6: the formatter exclusion is converged** (AC-07.6).
+///
+/// The criterion says `intent init` **and migration** converge it, and until
+/// this arm existed only the init door was driven -- so the migration half was
+/// a call site somebody had read rather than a door anybody had opened.
+///
+/// **The negative is half the limb, for limb 5's reason one level over.** A
+/// `.prettierignore` of `*` satisfies every positive assertion here and is a
+/// tool silently switching off a consumer's formatter across their whole
+/// repository. Intent excludes what IT generates and nothing else.
+#[test]
+fn a_clean_estate_converges_its_formatter_exclusion_by_pattern_and_not_by_star() {
+  let fx = converted();
+  let excluded = fx.read(".prettierignore");
+  for pattern in fx.project().generated_view_patterns() {
+    assert!(
+      excluded.lines().any(|l| l.trim() == pattern),
+      "a generated view is left to the formatter after a migration -- `{pattern}` is not \
+       excluded, so the renderer is not its only writer: {excluded:?}"
+    );
+  }
+  assert!(
+    !excluded.lines().any(|l| l.trim() == "*"),
+    "the exclusion is a pattern set, never `*` -- excluding everything would satisfy the \
+     assertion above while disabling the consumer's formatter on prose Intent never wrote: \
+     {excluded:?}"
+  );
+}
