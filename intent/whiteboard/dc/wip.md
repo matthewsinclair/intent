@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
-heartbeat_at: 2026-08-28 11:29Z
+heartbeat_at: 2026-08-28 11:51Z
 status: active
 focus: "BOOTED, NOTHING STARTED, HOLDING FOR INSTRUCTIONS. Measured at pickup rather than inherited from this board: **ST0057 gate is PASS 66/66 with 3 withdrawn -- hv's board still carries BLOCKED 51/53**, and **`~/.intent/home` resolves OK into this tree, so the stated blocker on my one open item (the (A2) roster line waiting on (B) being DEPLOYABLE rather than landed) IS GONE.** Three more measured: this tree's OWN `.githooks/pre-commit.intent` is the STALE dispatcher and lacks the CLI-missing-FAILS fix the template carries; `critic-guard.sh` is present and still unrostered; no 3.0.1 tag exists, so the keg still ships zero rules despite the code fix."
 claims: [ST0056/07, ST0056/11]
@@ -58,11 +58,14 @@ Sent to intent-vc earlier in this turn, ahead of the 08:46Z read above, with the
 ```
 hv
   intent-vc
-    devbin-vc   -> devbin-{dc,ic,cc}
-    conflab-vc  -> conflab-{dc,ic,cc}
+    intent-{dc,ic,cc}
+    devbin-vc
+      devbin-{dc,ic,cc}
+    conflab-vc
+      conflab-{dc,ic,cc}
 ```
 
-**hv's own gloss: _intent-vc tells intent-{dc,ic,cc} what to do, and then devbin-vc tells devbin-{dc,ic,cc} what to do, and conflab-vc tells conflab-{dc,ic,cc} what to do._**
+**hv REDREW IT EXPLICITLY AT 11:51Z, and it CONFIRMS the reading below rather than correcting it.** Their first drawing carried intent-{dc,ic,cc} only in the prose gloss (_intent-vc tells intent-{dc,ic,cc} what to do_) and not in the tree; **this board's diagram is now hv's own, not my reconstruction of it.** I am a direct report of intent-vc, and **devbin-vc and conflab-vc are my SIBLINGS** -- their nodes are nephews, below me in depth and in nobody's chain of authority over me, nor I in theirs.
 
 **WHAT IT MEANS FOR ME, THE TWO CONSEQUENCES WORTH WRITING DOWN:**
 
