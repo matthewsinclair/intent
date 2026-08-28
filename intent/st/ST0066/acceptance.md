@@ -13,7 +13,20 @@ title: Add 'fiat close' as a feature to close STs, WPs, ACs, and ATs
 
 ## Acceptance Criteria
 
+### ST-level
+
+- AC-00.1 (non-test) `intent fc <target> --because "<text>"` exists and fiat-closes any of the four kinds (ST, WP, AC, AT); invoked without `--because` it refuses on stderr with a nonzero exit and writes nothing. -- satisfied: no
+- AC-00.2 (non-test) The fiat record lives IN THE MODEL on the closed entity -- by, date, because, and invoker evidence (tty-or-not, timestamp, environment fingerprint) -- and survives the store-to-extract-to-store round-trip byte-faithfully. -- satisfied: no
+- AC-00.3 (non-test) FC on an ST or WP fiat-closes its open children, and every cascaded child carries an inherited-fiat marker naming the ancestor FC it descends from; no cascaded child renders as ordinarily closed. -- satisfied: no
+- AC-00.4 (non-test) The close gate counts a fiat-closed requirement as closed -- unblocking is FC's purpose -- and every gate and status render distinguishes fiat-closed from ordinarily-satisfied in the same line that counts it. -- satisfied: no
+- AC-00.5 (non-test) doctor renders a fiat-closed row distinctly wherever it reports one, and never proposes a remedy that would convert a fiat close into an ordinary one. -- satisfied: no
+- AC-00.6 (non-test) The LLM-side prohibition ships in the rules library and the relevant skills, so an LLM's own loaded contract forbids invoking `fc`; the rule's Detection section states plainly what is mechanically checkable about an FC invocation and what is not -- enforcement is detection plus attribution, never a claimed impossibility. -- satisfied: no
+
 ## Acceptance Tests
+
+### ST-level
+
+_(no tests in this group)_
 
 ---
 

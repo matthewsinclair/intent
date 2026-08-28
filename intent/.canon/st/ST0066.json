@@ -8,5 +8,55 @@
   "objective": "Add 'fiat close' (FC): a way for the HUMAN to force-close an AC, an AT, a WP, or a whole ST -- easy to invoke, and it MUST carry an explanation of why the fiat close was executed. Where that explanation is recorded is part of the design. The LLM must NEVER be able to fiat-close anything; how that is enforced is an open design question and part of this thread's conversation.",
   "context": "hv, 2026-08-28, verbatim intent: \"by default, an LLM will over-cook a lot of ACs and ATs and sometimes, rather than just yak-shaving ourselves into a singularity, we need a way to cut and run. I don't think the LLM should ever be able to fiat close (FC) something, so not sure how to _enforce_ that, but it's worth adding to the conversation.\"\n\nThe live motivating case is the same day's ruling: hv fiat-closed Conflab's ST0121/WP-02 and ST0124/WP-02 (an unverifiable panel-survival acceptance half) and the mechanism available was `wp done` plus a hand-written 'accepted unverified on hv's word' note with the provenance carried in prose. FC formalises exactly that: the close, the reason, the authority, and the record, as one verb instead of a convention. Design questions on the table: (1) verb surface (one `fc` verb over st/wp/ac/at vs a `--fiat` flag on the existing close verbs); (2) where the reason lives (the canon model carries it; a Finding-like record vs a field on the row); (3) enforcement that the actor is human -- candidates include a /dev/tty confirmation like the release path (`int build release` reads its confirm from /dev/tty; this estate never passes --no-confirm from a tool-driven session), which is a mechanism the estate already trusts for human-only actions; (4) how doctor and the ac gate report a fiat-closed row (visibly distinct from satisfied, never silently identical).\n\nEnforcement datapoint, same day (conflab-vc, holding the first live FC for hv's in-session word): `Bash(intent wp:*)` is ALLOWLISTED in Conflab's harness, so `wp done` runs with no prompt -- there is no mechanical check on the verb at all, and any FC built on the existing close verbs inherits every such allowlist. So enforcement cannot live at the harness/permission level; it must live in the tool itself (the /dev/tty candidate above, or equivalent), because a rule that only holds when something else would have caught it anyway is not a rule.",
   "body": "## Design -- enforcement posture ruled by hv, 2026-08-28 14:38Z, from options authored by vc\n\n**Premise, put plainly and accepted with the ruling:** the LLM shares hv's uid and shell -- conflab-vc measured harness allowlists being bypassed -- so hard prevention of an LLM fiat-close is not achievable on this machine. Enforcement is DETECTION + ATTRIBUTION, not prevention.\n\n**Ruled posture (menu: visible + attributed -- CHOSEN | above + tty gate | interactive nonce challenge | secret token):**\n\n1. `--because <text>` is mandatory -- an FC without a reason does not execute.\n2. The record carries invoker evidence: tty-or-not at invocation, timestamp, environment fingerprint.\n3. doctor and every rendered view show a fiat-closed row DISTINCTLY, forever -- a fiat-closed AC/AT/WP/ST never renders as an ordinarily satisfied one.\n4. The LLM-side prohibition lands in the rules/skills contract, so an LLM invoking FC violates its own loaded rules and is critic-refusable.\n\n**Detail ruled by hv, 2026-08-28 14:54Z, from a package menu (chosen: one verb, in-model, cascades | declined: flags-on-existing-verbs + ledger; terminal-entities-only):**\n\n1. **One verb:** `intent fc <target> --because \"<text>\"`, addressing all four kinds (ST, WP, AC, AT); refuses without `--because`.\n2. **The record lives IN THE MODEL, on the closed entity:** `{by, date, because, invoker evidence (tty-or-not, timestamp, env fingerprint)}` -- it travels through every sync and every view because it is part of the entity, not beside it.\n3. **Cascade:** FC on an ST or WP fiat-closes its open children, and every cascaded child carries an inherited-fiat marker naming the ancestor FC it descends from -- nothing in the tree ever renders as ordinarily closed.\n4. **Gate semantics:** a fiat-closed requirement COUNTS as closed (that is FC's purpose -- unblocking the gate) and renders distinctly wherever it appears.\n\nDeclined alternatives recorded so an option never on the menu is distinguishable from one refused: `--fiat` flags on the existing close verbs with a separate fiat ledger (an FC'd AC is not \"satisfied\", and a ledger is a second home for state the model should carry); FC on terminal entities only with no cascade (cleanest per-entity semantics, defeats the cut-and-run use case on a whole over-cooked ST).\n\n**Still open before build:** the exact model field shapes and their extract schema (schema bump needed); how `doctor` words a fiat row; whether 0116's partial-coverage case gets a distinct rendering when the FC'd AC was half-covered. ACs to be minted from this design; builder assigned by vc when a lane frees. The motivating case stands as above (D2, `wp done` plus hand-written provenance was the only mechanism).",
-  "preamble": ""
+  "preamble": "",
+  "criteria": [
+    {
+      "id": "AC-00.1",
+      "text": "`intent fc <target> --because \"<text>\"` exists and fiat-closes any of the four kinds (ST, WP, AC, AT); invoked without `--because` it refuses on stderr with a nonzero exit and writes nothing.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-00.2",
+      "text": "The fiat record lives IN THE MODEL on the closed entity -- by, date, because, and invoker evidence (tty-or-not, timestamp, environment fingerprint) -- and survives the store-to-extract-to-store round-trip byte-faithfully.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-00.3",
+      "text": "FC on an ST or WP fiat-closes its open children, and every cascaded child carries an inherited-fiat marker naming the ancestor FC it descends from; no cascaded child renders as ordinarily closed.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-00.4",
+      "text": "The close gate counts a fiat-closed requirement as closed -- unblocking is FC's purpose -- and every gate and status render distinguishes fiat-closed from ordinarily-satisfied in the same line that counts it.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-00.5",
+      "text": "doctor renders a fiat-closed row distinctly wherever it reports one, and never proposes a remedy that would convert a fiat close into an ordinary one.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-00.6",
+      "text": "The LLM-side prohibition ships in the rules library and the relevant skills, so an LLM's own loaded contract forbids invoking `fc`; the rule's Detection section states plainly what is mechanically checkable about an FC invocation and what is not -- enforcement is detection plus attribution, never a claimed impossibility.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    }
+  ]
 }
