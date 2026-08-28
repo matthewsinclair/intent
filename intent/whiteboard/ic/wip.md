@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-28 16:30Z
+heartbeat_at: 2026-08-28 16:39Z
 status: active
-focus: "PRIME SWEEP DELIVERED (2ab7c2e0, catalogue section 8): five findings, three MISGUIDED. THE ONE THAT MOVES OTHER PEOPLE: templates reach projects by TWO paths -- _CLAUDE.md is include_str!'d so my fix is SOURCE-ONLY until cc's rebuild, the prime template is read from disk so that one is LIVE. 'Eleven sites landed' is true of the source and per-file for delivery. NOW ON: the retirement-mechanics DRAFT (in-start + in-next + _wip.md), draft only, to vc before anything is deleted. THEN the AGENTS.md costed proposal."
+focus: "TWO OF THREE BOUNCE ITEMS DELIVERED. Prime sweep (2ab7c2e0, catalogue section 8, five findings). Retirement-mechanics DRAFT (2719f4c8) -- and the governing finding is that SYNC NEVER PRUNES A VANISHED CANON SOURCE and upgrade IS that sync, so a canon-only delete strands the skill on every machine while it keeps loading into sessions. Draft only, nothing executed; the uninstall step needs the human, not a peer. NOW ON: the AGENTS.md costed proposal, design-first, nothing edited."
 claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -13,17 +13,18 @@ claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/1
 
 ## DOING
 
-**RETIREMENT-MECHANICS DRAFT -- STARTING NOW.** `in-start`, `in-next`, `_wip.md` template. Draft only; it goes to vc before anything is deleted. Installed copies exist fleet-wide, so this is a LIFECYCLE operation, not a delete. My draft lands FIRST and cc's `init.rs` disposition for `_wip.md` follows from it.
+**AGENTS.md COSTED PROPOSAL -- STARTING NOW.** Design-first, nothing edited, to vc then hv. hv's direction: the injected set carries everything an agent must have and AGENTS.md becomes the honest cross-tool mirror. **Four-rules inversion is in scope.** The load-bearing question is that a mirror needs a generator or it drifts, and vc named the prior art: `intent agents sync` IS the generator, dc's `agents_sync_parity` is the structural-invariant test, and `parity.md`'s ratified-deviations list is the model for a mirror contract naming its permitted divergences. **Cost against that shape.**
 
-**ST0065 REWRITE LEG -- AND THE CLAIM NEEDED CORRECTING.** The 11 doc/skill MODULES.md sites, `in-finish` step 4 and `usage-rules`' two claims are all landed **in source** and re-grep-verified. **They are NOT all delivered.** `lib/templates/llm/_CLAUDE.md` is `include_str!`'d into the binary -- the shipped binary carries the OLD bytes, zero occurrences of my new wording, and a fresh `intent init` emitted the old row in front of me. That fix rides cc's rebuild batch. **So the rewrite leg needs THREE delivery actions, not one rebuild** -- a binary rebuild for the embedded templates, nothing for the read-from-disk one, and a skills sync for the four skills. `lib/templates/prime/operational-knowledge.md` is NOT embedded, so that one is live now. **Skills are a THIRD path, and I measured it rather than asserting it:** skill bodies get zero hits in the binary (control: an embedded string gets one), so they are read from disk and installed into `~/.claude/skills/` by `intent claude skills sync`. **All four skills I edited DIVERGE from their installed copies; two I did not edit are IDENTICAL** -- so the comparison discriminates and the divergence is exactly my edits. **This session is running the PRE-EDIT skills.** I have not synced: that writes outside the repo and the project is deliberately holding delivery for cc's batch, so it is vc's to sequence, not mine to take.
+**MEASURED EVIDENCE ALREADY IN HAND, from the prime sweep rather than argued:** a fresh `intent init` writes **no AGENTS.md at all** -- it appears only after `intent agents sync` -- while the fresh CLAUDE.md points at it FOUR times, including the Rules-of-the-Road pointer that deliberately does NOT restate the four principles on Highlander grounds. **So in a fresh project the four cross-language principles are readable nowhere.** That is the inversion, on a real init.
 
-**PRIME SWEEP DELIVERED** at catalogue section 8 (`2ab7c2e0`). Worst finding: the payload teaches two flags the shipped binary refuses, and the bats test covering one of them drives the **v2** binary where it works -- green, and structurally unable to see v3's refusal.
+## DELIVERED THIS SESSION
 
-**Both catalogues are the ruling record and stay live** -- `intent/st/ST0065/_catalogue-wp01.md` and `_catalogue-wp02.md`. They carry their own instrument errors inside them, which is why they can be trusted about anything else.
+- **Prime-payload sweep** (`2ab7c2e0`), catalogue section 8. Five findings, three MISGUIDED. Worst: the payload teaches two flags the shipped binary refuses, and the bats test covering one drives the **v2** binary where it works -- green, and structurally unable to see v3's refusal.
+- **Retirement-mechanics draft** (`2719f4c8`). Sequenced so no intermediate state dangles; the delete is step 3 of 4, not the operation. `_wip.md` measured as the INVERSE shape and explicitly decoupled -- that is cc's answer.
+- **The delivery correction**, which was my own claim to fix: three paths, not one. Embedded templates need the rebuild; the prime template is live; the four edited skills need a sync and **this session is still running the pre-edit copies**.
 
 ## TODO
 
-- **RETIREMENT MECHANICS -- DRAFT ONLY, then to vc before anything is deleted.** `in-start`, `in-next`, `_wip.md` template. **Installed copies exist fleet-wide, so a canon-skill retirement is a LIFECYCLE operation, not a delete.** My draft lands FIRST and cc's `init.rs` disposition for `_wip.md` follows from it (vc holds cc off).
 - **AGENTS.md COSTED PROPOSAL -- design-first, nothing edited, to vc then hv.** hv's direction: the injected set carries everything an agent must have, AGENTS.md becomes the honest cross-tool mirror. **Four-rules inversion is in scope.** The load-bearing question is that a mirror needs a generator or it drifts. Prior art vc named: `intent agents sync` IS the generator, dc built `agents_sync_parity` TODAY (structural-invariant, property-not-roster, two-sided control), and `parity.md`'s ratified-deviations list is the working model for a mirror contract that names its permitted divergences. **Cost against that shape.**
 - **DEFERRED DELIBERATELY, not omitted:** `in-start:23` is a MODULES.md site inside a skill hv retired -- it resolves with the retirement, and I will not edit a line in a file I am drafting the deletion of.
 
