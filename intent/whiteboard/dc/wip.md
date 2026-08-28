@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
-heartbeat_at: 2026-08-28 08:39Z
+heartbeat_at: 2026-08-28 08:46Z
 status: active
 focus: "BOOTED, NOTHING STARTED, HOLDING FOR INSTRUCTIONS. Measured at pickup rather than inherited from this board: **ST0057 gate is PASS 66/66 with 3 withdrawn -- hv's board still carries BLOCKED 51/53**, and **`~/.intent/home` resolves OK into this tree, so the stated blocker on my one open item (the (A2) roster line waiting on (B) being DEPLOYABLE rather than landed) IS GONE.** Three more measured: this tree's OWN `.githooks/pre-commit.intent` is the STALE dispatcher and lacks the CLI-missing-FAILS fix the template carries; `critic-guard.sh` is present and still unrostered; no 3.0.1 tag exists, so the keg still ships zero rules despite the code fix."
 claims: [ST0056/07, ST0056/11]
@@ -38,6 +38,28 @@ claims: [ST0056/07, ST0056/11]
 - **A DEVBIN COMMAND RESOLVES ITS PROJECT FROM SOMETHING OTHER THAN YOUR CWD -- BUT THE v3 BINARY RESOLVES FROM CWD.** Both are true and confusing them cost a live incident today.
 
 ## DOING
+
+### CONFLAB ONTO v3 IS THE ESTATE'S FIRST JOB. hv SAID IT FIRST-HAND IN MY SESSION. RECORDED 2026-08-28 08:46Z.
+
+**THE STAMP IS WHEN I WROTE THIS, NOT WHEN hv SPOKE.** I did not read a clock at the moment the directive arrived, so I do not have that time and am not inventing a close-enough one -- a corrected-looking fake is worse than an admitted gap. hv's message landed earlier in this same turn; the ordering that can be proved is this file's commit.
+
+**hv's words, quoted rather than summarised, because hv's word in one session and hv's word in another are different artefacts:** _"the very first job today, across the entire estate, is to get Conflab onto Intent v3. Everyone (that means the Claude Code sessions: intent-*, devbin-*, and conflab-\*) is going to be dedicated to hoisting ../Conflab onto Intent v3. This should have happened days ago ... intent-vc is going to coordinate the work. The rest of the Claudes are going to follow instructions."_
+
+**MY ROLE IS FOLLOWER, NOT PLANNER. intent-vc COORDINATES AND I TAKE INSTRUCTIONS FROM THEM.** Everything on this board below this block is PARKED, including the (A2) roster line whose blocker I discharged this morning. **Parked is not dropped: nothing has been withdrawn and no claim has moved.**
+
+**THE ONE FINDING THAT MUST SURVIVE A COMPACT, because acting on it wrong is silent and estate-wide: CONFLAB'S LIVE HOOK DOOR IS `.git/hooks/` AND `core.hooksPath` IS UNSET.** v3's canon apply writes the gate shim and the chain block into `.githooks/` -- confirmed off Intent's own dry run, not assumed. **So an apply installs a correct gate into a directory git does not execute, while `.git/hooks/pre-commit` keeps running the old v2 carrier.** Hooks present, none of them the ones running, the apply reports success, and **nothing anywhere reports the gap** -- the same shape as restart.md's item 0, inverted. `core.hooksPath` must be set as part of the port or the door move must be explicit in vc's runbook. **`.git/hooks/` is untracked as well, so whatever sits there today survives no clone.**
+
+**WHAT I HAVE NOT MEASURED, STATED SO NOBODY READS MY SILENCE AS A GREEN: I do not know whether `intent upgrade` has a 2.19.0 -> 3.0.0 path at all.** Its v3 help takes no arguments and says only _upgrade an Intent project to the current version_. **I have not driven it, and when I do it goes on a COPY of a whole tree, never on Conflab** -- the subject of a Rust-and-canon migration is the tree, not a file (ic's correction to the file-only form I circulated).
+
+Sent to intent-vc earlier in this turn, ahead of the 08:46Z read above, with the door finding, the unknown migration path, Conflab's current stamp (`2.19.0`, `main`, no legacy `.intent/`, **canon PRESENT** -- which differs from vc's 20:39Z read on the 27th because two commits have landed there since), the stale carrier, and the two traps I hold that bear on the port: **Conflab is DEBUG-LINKED so the target-clean recipe does not hold there** (vc's correction, carried back to them rather than assumed still held), and **the keg arms 0 of 0 rules until a 3.0.1 publishes.**
+
+### PARKED BELOW THIS LINE -- this morning's boot findings, held not dropped
+
+- **`ac gate ST0057` returns PASS 66/66, 3 withdrawn.** hv's board still carries `BLOCKED -- 51/53`. Routed to vc as the pen-holder; not mine to edit.
+- **AT-07.4's STATED REASON FOR RED HAS EXPIRED.** It was set red 2026-08-19 because arm (b), THE REFUSAL, was uncovered. It is covered now -- `critic_arming_census.bats` arm 12 refuses with exit 3, **arm 13 is the present-tool half that makes 12 a test**, arm 14 checks v2 and v3 agree. **Driven this morning: 19/19.** **vc set it red adjudicating my own refusal to set it, so vc flips it, not me.**
+- **THIS TREE'S OWN `.githooks/pre-commit.intent` IS THE STALE DISPATCHER** and lacks the CLI-missing-FAILS asymmetry the template carries. **The remedy `int hooks` prints is NOT surgical: `intent claude upgrade --apply` also rewrites CLAUDE.md, AGENTS.md, .claude/settings.json and the chain block** -- cc's lane and hv's, in a tree that gates canon currency. Dry-run measured, not assumed. **I am not running a canon rewrite to fix a hook.**
+- **WP-11 CANNOT MOVE WITHOUT A PUBLISHED TAG.** AT-11.1 / 11.2 / 11.4 are all `n/a` pending one, and publish stops with hv by my own 2026-08-26 decision.
+- **AC-07.6 (`view_single_writer.rs`, to-write) IS THE BEST AVAILABLE dc BUILD UNIT when Conflab releases us**, and its trap is in the criterion's own words: _in a consumer repo as well as this one_. **A test that proves it only here is the blind instrument again.** It dirties `native/rust`, which holds the shared release build hostage for four nodes, so it wants an announce first or a private CARGO_TARGET_DIR.
 
 - **NOTHING IN FLIGHT. Lane clean, main green, nothing staged, nothing parked that matters.** Everything below LANDED today; the detail is in the commit messages and is not restated here.
   - `08836393` clippy let-chain -- `022c7eef` skew-check REFUSES instead of failing open -- `6c380e09` `check doc` reports without gating
