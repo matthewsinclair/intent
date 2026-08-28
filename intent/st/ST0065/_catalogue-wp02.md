@@ -2,7 +2,7 @@
 
 **Read-and-catalogue leg. NOTHING HAS BEEN EDITED.** Verdicts are recommendations to hv, per vc's assignment (14:32Z). Same vocabulary as WP-01: **keep** / **correct** / **retire** / **MISGUIDED**.
 
-**COVERAGE, STATED HONESTLY.** 25 skills. A mechanical sweep covers all 25 (verb resolution, load path, cross-references, duplication). A close read covers 11 -- the 8 auto-loaded into this session plus `in-start`, `in-next` and `in-tca-init`. **The remaining 14 have been swept, not read**, and no verdict below is offered on a skill I have only swept.
+**COVERAGE, STATED HONESTLY.** 25 skills. A mechanical sweep covers all 25 (verb resolution, load path, cross-references, duplication). A close read covers 12 -- the 8 auto-loaded into this session plus `in-start`, `in-next`, `in-tca-init` and `in-finish`. **The remaining 13 have been swept, not read**, and no verdict below is offered on a skill I have only swept.
 
 ---
 
