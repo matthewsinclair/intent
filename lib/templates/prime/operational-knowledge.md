@@ -29,9 +29,9 @@
 
 ### Session Workflow
 
-1. Start: run `/in-start` to orient
+1. Start: run `/in-session` -- the entry point, enforced by the `UserPromptSubmit` gate. Run it again after every `/compact` or context reset.
 2. Plan: run `/in-plan` before writing code
-3. Code: follow rules, check MODULES.md, use DECISION_TREE.md
+3. Code: follow the rules; search for an existing owner before adding one
 4. Finish: run `/in-finish` to capture state
 
 ### Conventions
@@ -39,5 +39,4 @@
 - No Claude attribution in commits (no Co-Authored-By, no AI signatures)
 - All markdown tables must be column-aligned
 - Steel thread docs updated BEFORE coding begins
-- Check MODULES.md before creating any new module
-- Register new modules in MODULES.md FIRST, then create the file
+- Search for an existing owner before creating any new module. Where the project keeps an `intent/llm/MODULES.md` registry, search it with `intent modules find <name>` and register the row before creating the file. `intent init` does not create a registry, so most projects have none and that is normal.
