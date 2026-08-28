@@ -51,6 +51,10 @@ Top three are 59% of it. Against Cherny's rule for the one file he discusses -- 
 
 ## 2. `intent/llm/MODULES.md` -- the retirement reached the file and not the instruction. **MISGUIDED**
 
+> **WORK ORDER FOR ISSUE 0122: THIS LIST, NOT THE ISSUE BODY.** 0122's body names `module_check_hook.json` as a site to fix. **It is not one -- the hook is guarded and correct** (see the 17/3 split below). The issue is left standing unpatched on vc's ruling (15:40Z) because `issues` has no post-creation write path, and the standing mis-scope is cited live as evidence in the write-path menu to hv. **Anyone acting on 0122 takes the corrected list from this document.** When the edit verb is built, 0122's scope correction is its first drive.
+>
+> **AND THE LOOP IS OPEN AT THE ISSUE END.** This document points at 0122; 0122 cannot point back, because nothing can write to it. **That is structurally the same defect as finding 1** -- AGENTS.md and `intent llm guide` each pointing at a document that never arrives -- and it means a reader who lands on 0122 alone gets the superseded scope with nothing indicating so. vc carries that as a coordination guarantee at assignment time; **it is not a mechanical one, and the gap is the point of the evidence.**
+
 **What it is:** the Highlander registry. `init.rs` retired it on 2026-08-24 -- `NotByInit("a hand-maintained index of a tree the store already indexes")` -- with the reason stated in the source comment: _"an instruction nobody can follow."_
 
 **Driven, not inferred.** A fresh `intent init` in a scratch dir: **`intent/llm/MODULES.md` ABSENT**, and that same fresh project's generated **`CLAUDE.md:21` still says "Highlander registry; check before creating new modules."**
