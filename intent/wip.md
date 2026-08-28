@@ -1,15 +1,17 @@
 ---
-verblock: "28 Aug 2026:v1.24: vc - Conflab is on v3; the port is closed; the day it took"
+verblock: "28 Aug 2026:v1.25: vc - the bounce: four rulings discharged, option 1 landed, the day folded"
 intent_version: 3.0.0
 ---
 
 # Work In Progress
 
-**Current as at `013bc484`, 2026-08-28. This heading names a COMMIT, not a date** -- a wip file is read as current and is only ever true of a tree.
+**Current as at `dcb425f1`, 2026-08-28. This heading names a COMMIT, not a date** -- a wip file is read as current and is only ever true of a tree.
 
 ## Where the project is
 
 **v3.0.0 is shipped, tagged, and Intent is SELF-HOSTED on it. THE PORT IS CLOSED: all seventeen estates are on v3.** Conflab, the last, was hoisted on 2026-08-28 -- migration commit `b02b93c4`, prose carry `7652c9b4`, verified by five nodes across three estates against a pre-hop census (st 123 / wp 531 / ac 133 / at 141, all matched), a whole-tree manifest (deleted 0, every bucketed file byte-identical), and a two-arm guard control on its live hook (a stamp without `Z` refused, with `Z` committed). `Intentv2` stays on 2.19.0 by hv's standing rule; it is the tool tree, not a project. Full record: `intent/whiteboard/vc/cutover-runbook.md`.
+
+**THE POST-HOIST RULINGS ARE DISCHARGED (hv, 2026-08-28 13:26Z, recorded `wb(hv)` at `3d5a710e`):** AC-00.8 amended to the ruled behaviour (`1098ac0f`); the `Superseded -> Cancelled` status mapping landed (`4479264f`, hv's D3 option 1 -- the `Deferred` question and the structural `status_legacy` fix are deliberately separate and sequenced); the two Conflab WP-02 fiat-closes routed to conflab-vc on hv's word. cc's 0110 renderer fix has its first slice in (`f02fb55f`); **both fixes are source-only until the next pair rebuild.**
 
     intent ac status ST0057   -> 66/66 satisfied, 3 withdrawn -- PASS
     intent ac status ST0056   -> 64/133 satisfied, 2 withdrawn -- BLOCKED
@@ -27,7 +29,7 @@ intent_version: 3.0.0
 
 **A rebuild deletes both binaries for ~60s**, during which every estate on this machine has no `intent` and every gate fails open, so one node rebuilds and announces it by properties.
 
-## What tonight's rollout delivered
+## What the 2026-08-27 rollout delivered
 
 hv's instruction was _"coordinate dc, ic and cc to roll out the fixes"_. Landed: the v3 porter's **two** citation defects (`e935734d`, `eff618e8`); the clock guard's tolerance 0 and its third stamp surface (`3463f784`, `27b13f93`); AC-11.6 with the estate's first pty harness (`102af78f`); AC-14.7 as one transaction (`05222011`); the `sync --to-disk` remedy **and its false premise** (`04bc607f`); `--severity` enforcement (`8174de80`); `doctor`'s commit-gate check (`3805f359`); the doc-link gate (`6c380e09`); (A2)'s critic-guard body **landed inert** (`3b0063f3`); (B)'s carrier install and its can-it-RUN report (`f8a78e05`, `22a75509`); `--dehydrate` retired (`d395a5b5`); and `st list` showing the title (`b4d63b44`).
 
@@ -45,13 +47,15 @@ hv ruled **both (A2) and (B)**, (A2) first, then re-ruled that **(A2)'s body lan
 
 ## Open, by owner
 
-**hv:** the Lamplight hop-2 re-run; whether `publish_home` should refuse a temp root; the vacuous-gate remedy in `doctor`; **and the post-hoist list from 2026-08-28** -- Intent's own carrier (still the Aug-21 copy; the shim install here is one `intent claude upgrade --apply`), ST0121/WP-02 and ST0124/WP-02 recorded WIP with a passing gate, the 23 WP statuses silently defaulted to `not-started` (issue 0100), ST0056 AC-00.8 saying `settings.json` unchanged while the hop rewrites it, the whiteboard protocol having no information barrier (devbin-vc + devbin-cc, jointly), the `issues` verbs disagreeing on which source of truth they read, the devbin vendor being on three source commits fleet-wide.
+**hv:** the Lamplight hop-2 re-run; whether `publish_home` should refuse a temp root; the vacuous-gate remedy in `doctor`; **the `Deferred` ruling** (option 2 of the 0100 menu, deliberately separate from the shipped mapping -- vc holds the context and puts it when hv wants it); the standing-directives LIVE/SPENT split (vc's draft awaiting hv's approval); the parked devbin set (info barrier, `issues` verbs SSOT, vendor spread -- hv: _"a devbin problem that I will fix with devbin next"_).
 
-**dc:** the (A2) roster line, string agreed, blocked on (B) being deployable.
+**dc:** the (A2) roster line, string agreed, blocked on (B) being deployable; issues 0106 + 0109.
 
-**cc:** the bootstrap guard that makes the `$HOME`-write class unreachable at authoring time.
+**cc:** 0110's closure (first slice `f02fb55f`; the oscillation is dead only when apply and prettier agree on the same bytes, verified through both writers); the pair rebuild that delivers `4479264f` + `f02fb55f`; 0103's 28-vs-71 split when hv turns to it; the sequenced structural status fix (0100 option 3 -- model design proposed to hv BEFORE building, hv's 12:49Z direction); the bootstrap guard that makes the `$HOME`-write class unreachable at authoring time.
 
-**vc:** the runbook's Learned section for the 28th is a stub and wants the day's findings folded by class; no `wp` verb writes a work package's **objective** (canon carries the field, `wp new` takes only a title); conflab-vc's `ingest` finding, where one `n-a` AT poisons every test-backed AC it covers.
+**vc:** no `wp` verb writes a work package's **objective** (canon carries the field, `wp new` takes only a title); conflab-vc's `ingest` finding, where one `n-a` AT poisons every test-backed AC it covers.
+
+**conflab-vc:** the two WP-02 fiat-closes (ruled, routed 2026-08-28, completion owed back to intent-vc); the 50 dateless completed threads (hv: _"leave that to conflab"_).
 
 ## The Lamplight re-run criterion, because an aggregate would certify a broken fix
 

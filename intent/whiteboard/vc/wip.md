@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-28 13:14Z
+heartbeat_at: 2026-08-28 13:39Z
 status: active
-focus: "LOCALFOLDED FOR THE COMPACT. Conflab is on v3 (hop b02b93c4, carry 7652c9b4, guard proof 2b770740), verified five-nodes-three-estates; Intent runs the live shim gate; issues 0100-0110 filed. ON THE BOUNCE: hv`s three picks -- D2 (fiat-close the two WP-02s vs live sitting), D3 (Superseded->Cancelled now / Deferred separately / structural fix sequenced), D4 (amend AC-00.8) -- then the EOD globalfold by class. Board body archived to .history/20260828/."
+focus: "THE BOUNCE IS DISCHARGED: hv ruled all four picks at 13:26Z (wb(hv) 3d5a710e) -- D2 fiat-close ROUTED to conflab-vc, D3 option 1 LANDED by cc (4479264f), D4 amended (1098ac0f), fold split authorised. Day folded by class (runbook + restart.md + wip.md); issues 0112 + 0113 filed, 0113 closing the guard-home loose end. HOLDING FOR: conflab-vc completion, hv on the directives split draft."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
@@ -15,25 +15,19 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## DOING
 
-**NOTHING IN FLIGHT. THE CONFLAB HOIST IS DONE AND VERIFIED; holding for hv's three picks on the bounce.** Today, under hv's authority chain (hv -> intent-vc -> {intent-_, devbin-vc -> devbin-_, conflab-vc -> conflab-*}): Conflab hoisted to v3 -- migration `b02b93c4` (170 files, one commit, through its own gate), prose carry `7652c9b4` (four `acceptance.v2.md` byte-identical to the rollback blobs at `cd09d711`), guard proof `2b770740` (arm 1 REFUSED a Z-less stamp naming check B; arm 2 committed a real read). Verified by five nodes / three estates: census 123/531/133/141 matched exactly; whole-tree manifest deleted 0, every bucketed file byte-identical; zero authored loss after the carry; nothing written outside the project; doctor restored (1414 files from 0); second upgrade idempotent; binary `1dd65db8` unchanged end to end. **Method that made it safe: a FULL rsync copy incl. `.git/` rehearsed the whole hop first under a seeded decoy HOME, and its changed-path set was the real hop's STOP condition (matched, 39 vs 40, the delta being the now-ignored `events.jsonl`).**
+**NOTHING IN FLIGHT. THE BOUNCE IS DISCHARGED AND THE DAY IS FOLDED.** hv ruled all four picks first-hand at 13:26Z, recorded with menus at `3d5a710e`: **D2** fiat-close ST0121/WP-02 + ST0124/WP-02 -- routed to conflab-vc as a NAMED relay (their session consent theirs to obtain), completion owed back. **D3** option 1 landed by intent-cc at `4479264f` (`Superseded -> Cancelled`; the `Deferred` question and the structural fix stay separate by ruling). **D4** AC-00.8 amended at `1098ac0f` -- edited in the extract, `--to-store` (watched for 0111's agree-shape; it wrote), `--to-disk`, extract delta exactly one line. **Fold**: runbook 2026-08-28 folded by class; restart.md carries the day's three live notes plus one EXPIRED hazard (skills-sync, measured dead both legs); wip.md's Open-by-owner reset to the post-rulings state.
 
-**ALSO EXECUTED ON hv's WORD:** `steel_threads.md` regenerated (doctor 0 on Intent, `7d57fa9c`); the shim carrier installed on Intent's own tree (`intent claude upgrade --apply`; carrier now byte-identical to the template, `--where` OK; commits pass through the live gate). **CORRECTION FORWARD: `7fa3c013` is an EMPTY commit whose message claims content** -- the carrier is gitignored, and prettier collapsed the renderer's 12 blank AGENTS.md lines inside the commit window (the oscillation is now issue 0110, reproduced by cc in isolation).
-
-**ISSUES FILED TODAY: 0100-0106, 0109, 0110** (0107/0108 closed into 0105); 0077 closed on expired premise, 0100's premise corrected by its author.
+**The hoist record stands one section down in this file's history and in the runbook: `b02b93c4` + `7652c9b4` + `2b770740`, five nodes / three estates, census exact, zero authored loss, binary `1dd65db8` end to end.**
 
 ## OPEN
 
-**WITH hv, ON THE BOUNCE -- the three picks:**
+**WITH hv (queued on their word, nothing blocking):** the standing-directives LIVE/SPENT split -- DRAFTED and presented in-session per the fold-scope ruling; lands only on hv's approval. The `Deferred` ruling (0100 menu option 2) -- context held here, put when hv wants it.
 
-1. **D2 -- ST0121/WP-02 + ST0124/WP-02:** fiat-close on hv's word (the record's own mechanism; the panel-survival half named as accepted unverified) or live sitting first. Either clears doctor's 2 disagreements on Conflab.
-2. **D3 -- the 23 defaulted WP statuses (0100):** cc's costed menu: (1) `Superseded -> Cancelled`, no model change, ships today; (2) `Deferred` may legitimately be NotStarted -- separate ruling; (3) the structural `status: Option<WpStatus>` + `status_legacy` mirror -- the real fix, its own window. Rec: 1 now, 2 separately, 3 sequenced. hv already ruled the DIRECTION first-hand: "fix Intent first, then repair client projects."
-3. **D4 -- ST0056 AC-00.8** says settings.json unchanged; hop 3 rewrites it by ruled design. Rec: amend the criterion to the ruled behaviour.
+**AWAITED FROM PEERS:** conflab-vc's completion (or refusal) on the two WP-02 fiat-closes, plus their post-close doctor re-read. intent-cc's 0110 closure and the pair rebuild that delivers `4479264f` + `f02fb55f`.
 
-**BANKED LOOSE END (ic, first commit through the shim):** the guard-home arm printed on ic's first commit through the new shim: _"this machine's installed copy does NOT carry the override; it predates this template. Run: intent claude upgrade --apply"_ -- AFTER I had run exactly that verb here. It names a machine-level artefact my apply did not reach (not this repo's carrier, which is byte-identical to the template); measure which artefact guard_home_check.sh reads before running any install verb.**
+**CLOSED THIS SESSION:** the guard-home loose end -- measured, not chased: `guard_home_check.sh` reads `.githooks/pre-commit.intent` (the CARRIER) for the GATE BODY's override string, so the shim reads "predates this template" forever and the printed remedy reinstalls the shim. Filed as 0113, the 0105 family's third instrument. The `7fa3c013` correction is recorded here and in the runbook; nothing further owed on it.
 
-**MINE, AFTER THE PICKS:** the EOD globalfold by class (the runbook's 2026-08-28 Learned section is a stub written flat; restart.md wants the day's new traps; hv's standing directives are still 58 entries and the LIVE/SPENT split is still hv's to authorise). The `7fa3c013` correction is recorded here and in the runbook; nothing further owed on it.
-
-**STANDING (pre-hoist, unchanged):** the Lamplight re-run criterion -- exactly 74 = 12 + 30 + 32 to zero, never the aggregate 62; `publish_home` refusing a temp root (cc asked hv at source); the vacuous doctor gate remedy; `wp new` writes no objective; hv's parked D6 set (info barrier, issues-verbs SSOT, devbin vendor spread -- "a devbin problem that I will fix with devbin next").
+**STANDING (pre-hoist, unchanged):** the Lamplight re-run criterion -- exactly 74 = 12 + 30 + 32 to zero, never the aggregate 62; `publish_home` refusing a temp root (cc asked hv at source); the vacuous doctor gate remedy; `wp new` writes no objective; hv's parked devbin set (info barrier, issues-verbs SSOT, vendor spread -- "a devbin problem that I will fix with devbin next").
 
 ## Watch-outs
 
