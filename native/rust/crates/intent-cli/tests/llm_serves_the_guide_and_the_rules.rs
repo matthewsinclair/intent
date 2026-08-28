@@ -178,3 +178,64 @@ fn the_workflow_section_is_written_and_covers_what_it_promises() {
     "the phrases are present but the section that holds them is not"
   );
 }
+
+/// **The guide must not promise a capability this build does not have.**
+///
+/// Covers AC-00.2 as AT-00.2, alongside the coverage arm above.
+///
+/// This exists because the same wrong claim was made twice by the same author
+/// within an hour: that `intent ingest --from-md` carries markdown into the
+/// store. It does not. `Facade::ingest_from_md` takes `&Project`, returns a
+/// `legacy::Scan`, and reaches no store -- it reports that an estate parses
+/// (issue 0097). The first telling went into a peer message and was retracted;
+/// **the second was already compiled into the shipped guide, and the retraction
+/// did not reach it.**
+///
+/// That is the gap this arm closes. A correction made in conversation does not
+/// propagate to an artefact, and prose stating a capability is a claim about
+/// behaviour with nothing checking it -- which is exactly what
+/// `guide_refs_check.sh` says about command NAMES, one level up at the level of
+/// what those commands DO.
+///
+/// **Asserted as the absence of a promise rather than the presence of a
+/// phrase**, so a rewording that keeps the honesty passes and one that quietly
+/// restores the claim does not.
+#[test]
+fn the_guide_does_not_claim_markdown_reaches_the_store() {
+  let dir = project();
+  let (guide, _, code) = run(dir.path(), &["llm", "guide"]);
+  assert_eq!(code, 0, "the guide renders");
+
+  // **SCOPED TO THE AUTHORED HALF, and the reason is a finding in itself.**
+  // The generated half carries `intent ingest`'s own `help` string from the
+  // dispatch table -- "Ingest markdown into the store through the API gate (the
+  // recovery path, and the v2 migrator)" -- which makes this exact false claim
+  // at the surface-declaration level. **That string is where the author's error
+  // came from: the verb advertises the capability it does not have.** It is the
+  // table's to correct and a ratified-surface decision, so this arm must not
+  // fail on it, and must not tempt anyone to hand-edit a generated line to go
+  // green. Reported rather than swallowed.
+  let authored = guide
+    .split_once("## Workflows, methodology and conventions")
+    .expect("the authored half is present")
+    .1;
+
+  for claim in [
+    "only path from markdown into the store",
+    "path from markdown into the store",
+    "markdown into the store",
+  ] {
+    assert!(
+      !authored.contains(claim),
+      "the authored prose promises markdown reaches the store ({claim:?}), and no such route is built"
+    );
+  }
+
+  // **THE CONTROL.** Three absences are satisfied by a guide that stopped
+  // discussing the subject at all, which would lose the warning rather than
+  // correct it. The honest statement must actually be present.
+  assert!(
+    authored.contains("Authored markdown has NO path into the store in this build"),
+    "the section must SAY there is no route, not merely avoid claiming one"
+  );
+}

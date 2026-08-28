@@ -383,7 +383,7 @@ The reference above says what every command IS. It cannot say which you run in w
 
 ### The unit of work is a steel thread, and it is written before it is built
 
-**A steel thread is one end-to-end slice of intent: something the project means to become true.** `intent st new` opens one, `intent st start` puts it in flight, `intent st done` closes it, and `intent st list` shows where everything stands.
+**A steel thread is one end-to-end slice of intent: something the project means to become true.** `intent st new` opens one, `intent st start` puts it in flight, `intent st done` closes it. **`intent st list` shows the threads IN PROGRESS, not all of them** -- reach for `--status all` when a thread you know exists does not appear.
 
 **Describe the thread before writing code for it.** A thread documented afterwards records what was built; the model exists to record what was INTENDED, so that what was built has something to be judged against. Those are only the same document when nothing was learned on the way.
 
@@ -419,9 +419,9 @@ Change state through the verbs -- `st`, `wp`, `ac`, `at`, `issues` -- and let th
 
 **Naming both flags chooses neither, and is refused.** They are opposite directions over the same two endpoints, so running both just makes whichever went last authoritative by accident of ordering.
 
-**`--to-store` replaces the WHOLE store**, including durable history that cannot be rebuilt from the files. Do not reach for it to repair one object: **a remedy whose blast radius exceeds the fault it repairs is not a remedy.**
+**Bare `--to-store`, with no thread named, replaces the WHOLE store**, including durable history that cannot be rebuilt from the files. **Naming threads scopes it**: only those are taken from the extract and every other thread keeps the store's value. Repairing one object with the bare form is how **a remedy whose blast radius exceeds the fault it repairs** gets reached for.
 
-Authored markdown is a third route. `intent sync` reads the JSON extract and opens no markdown at all; **`intent ingest --from-md` is the only path from markdown into the store**, and it serves as both the recovery path and the migrator for a project arriving from Intent v2.
+**Authored markdown has NO path into the store in this build**, and that is worth knowing BEFORE planning a repair around one. `intent sync` reads the JSON extract and opens no markdown at all. `intent ingest --from-md` does read markdown, including a v2 estate's, and reports what it found -- it tells you an estate PARSES, and it writes nothing.
 
 ### Gate semantics: an exit code is a verdict about a particular thing
 
