@@ -505,12 +505,23 @@ fn an_unbuilt_leaf_does_not_send_the_reader_to_an_empty_help() {
       .arg(&family.name)
       .output()
       .expect("run the v3 binary");
-    let text = format!(
-      "{}{}",
-      String::from_utf8_lossy(&out.stdout),
-      String::from_utf8_lossy(&out.stderr)
-    );
-    if !text.contains("is a known command that is not implemented yet") {
+    // **A REFUSAL IS AN EXIT CODE AND A LINE ON STDERR, NOT A FORM OF WORDS.**
+    // This used to detect one by scanning stdout AND stderr for the refusal
+    // sentence, which held only while no shipped command ever PRINTED that
+    // sentence. `intent llm` now serves the agent guide, and the guide
+    // documents the exit-code contract -- quoting `is a known command that is
+    // not implemented yet` verbatim to explain what a 2 means. So a verb that
+    // answers correctly on stdout at exit 0 was read as having refused, and the
+    // test failed against the document whose whole job is to quote the tool's
+    // messages.
+    //
+    // Detecting behaviour by its wording is safe exactly until something
+    // describes the behaviour. The guide is the one output guaranteed to
+    // describe all of it, so this site had to move to the property itself.
+    let text = String::from_utf8_lossy(&out.stderr).into_owned();
+    let refused = out.status.code() == Some(2)
+      && text.contains("is a known command that is not implemented yet");
+    if !refused {
       continue;
     }
 

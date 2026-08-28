@@ -4181,12 +4181,71 @@ fn or_unknown(value: &str) -> &str {
 /// newline, and adding a second is a diff in anything that captures it.
 fn llm(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
-    Some(("guide", _)) => {
+    // **ONE ARM, NOT TWO ARMS WITH THE SAME BODY (AC-00.1).** Bare `intent llm`
+    // and `intent llm guide` serve the same document, and the cheapest spelling
+    // of that -- a second arm that also calls `guide::render` -- is the shape
+    // that drifts the moment one door grows a flag the other does not. The
+    // guide is this build's single answer to "what does it ship", so a second
+    // producer of it *inside the verb whose whole job is that answer* would be
+    // the Highlander violation with the shortest fuse in the tree.
+    //
+    // Bare `llm` used to reach `unwired`, which exits 2 -- "this build cannot
+    // answer at all". It always could: `llm guide` was answering the same
+    // question one word away.
+    Some(("guide", _)) | None => {
       print!("{}", crate::guide::render(&dispatch::table())?);
       Ok(())
     }
+    Some(("usage_rules", _)) => llm_usage_rules(),
     Some((verb, _)) => unwired("llm", verb),
-    None => unwired("llm", ""),
+  }
+}
+
+/// `intent llm usage_rules` -- v2 parity: the project's root `usage-rules.md`,
+/// verbatim, on stdout (AC-00.3).
+///
+/// **Read from the PROJECT ROOT, never rendered from the template, because this
+/// file is user-owned.** `canon::seed` writes it only when it is absent and
+/// never syncs it afterwards, so the project's copy is the only one that
+/// answers what an operator is actually asking. Rendering the template instead
+/// would print rules the project may have deliberately edited away from -- and
+/// it would do it silently, which is the failure mode that matters: a wrong
+/// answer here is indistinguishable from a right one without opening the file.
+///
+/// **The remedy names `claude upgrade --apply` because that is the verb MEASURED
+/// to seed it, and the first draft of this message named `intent init`, which
+/// does not.** A bare `intent init` writes `CLAUDE.md` and `intent/` and no root
+/// rules file; `--lang` refuses in this build (`lang init` is unwired), and
+/// `agents sync` writes only `AGENTS.md`. A remedy is a claim about behaviour
+/// like any other, and this one was written from the seeder's intent rather than
+/// from a drive -- which would have sent an operator to a command that returns 0
+/// and changes nothing.
+///
+/// **Absence is `Error` (exit 1), not `Unavailable` (exit 2).** This build can
+/// answer the question; this project has no file to answer it with. Exit 2 tells
+/// a consumer written against v2 that the tool is unavailable and invites it to
+/// fail open -- exactly backwards for a missing rules file, where the safe
+/// reading is "no rules were stated", not "assume they passed".
+fn llm_usage_rules() -> Result<(), Failure> {
+  let (project, _) = context()?;
+  let path = project.root().join("usage-rules.md");
+  match std::fs::read_to_string(&path) {
+    // `print!`, not `println!` -- the file ends with whatever it ends with, and
+    // adding a newline is a diff in anything that captures this.
+    Ok(text) => {
+      print!("{text}");
+      Ok(())
+    }
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => Err(Failure::Error(
+      "error: this project has no `usage-rules.md` at its root\n  remedy: `intent claude upgrade --apply` seeds it when absent -- it is user-owned after that, so nothing regenerates it"
+        .to_string(),
+    )),
+    // **A read that failed for any OTHER reason is not an absence.** Reporting
+    // a permission error as "no such file" would send the operator to `init`,
+    // which would then refuse to overwrite the file they cannot read.
+    Err(e) => Err(Failure::Error(format!(
+      "error: cannot read `usage-rules.md`: {e}"
+    ))),
   }
 }
 
