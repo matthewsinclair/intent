@@ -185,11 +185,40 @@ fn reporter() -> Option<String> {
     .filter(|v| !v.is_empty())
 }
 
-/// v2's status synonyms, normalised (`bin/intent_helpers:canonical_status`).
+/// v2's status synonyms, normalised (`bin/intent_helpers:canonical_status`),
+/// plus the sixth state v2 has no spelling for.
 ///
 /// Case-insensitive, and both spellings of every state are accepted because
 /// v2 accepts both -- `wip` and `in progress` are the same filter, and an
 /// operator who learned one of them must not get an empty table for using it.
+///
+/// # `triage` is the ratified addition, and this row DECLARED it before it
+/// worked
+///
+/// The dispatch table's own `status_vocabulary` note has said it since the
+/// machines were ratified: *this flag is the only place a user types a status
+/// name; v3 must accept the six states of Machine 1 ... `triage` is the
+/// addition -- v2 accepts five and has no spelling for it.* The
+/// implementation accepted five, so the five threads at `Triage` were
+/// reachable by `--status all` and by nothing else, and the remedy below
+/// enumerated a vocabulary the model does not match. Declared-versus-
+/// implemented, which is the gap AC-04.6 exists to find -- and it survived
+/// because `declared_values_are_enforced.rs` walks `values` ARRAYS and this
+/// row carries none.
+///
+/// **Issue 0121's disclosure is what made it a defect rather than a gap.** The
+/// note names the scope by [`ThreadStatus::display`], so every word it prints
+/// has to be a word this function takes; before `triage` landed, five of six
+/// round-tripped and the sixth was refused by the very line offering to help.
+/// `a_narrowed_render_names_its_scope` drives that property over the whole
+/// enum rather than over an example.
+///
+/// **`tbc` STILL RESOLVES TO `NotStarted`, and that is the trap this row
+/// documents at length.** In v2, `TBC` is not a state at all -- it is a display
+/// abbreviation of `Not Started` (`bin/intent_st:120`), spelled out in v2's own
+/// usage text. Reading it as `Triage` would give a familiar token a second
+/// meaning in the filter, which is one of the two places a v2 user reads
+/// fastest and checks least.
 fn status_filter(spec: &str) -> Result<Option<Vec<ThreadStatus>>, String> {
   use ThreadStatus as S;
   if spec.eq_ignore_ascii_case("all") {
@@ -199,6 +228,7 @@ fn status_filter(spec: &str) -> Result<Option<Vec<ThreadStatus>>, String> {
   for raw in spec.split(',') {
     let name = raw.trim().to_ascii_lowercase();
     let status = match name.as_str() {
+      "triage" => S::Triage,
       "wip" | "in progress" => S::Wip,
       "tbc" | "not started" => S::NotStarted,
       "completed" | "done" => S::Completed,
@@ -207,7 +237,7 @@ fn status_filter(spec: &str) -> Result<Option<Vec<ThreadStatus>>, String> {
       "" => continue,
       other => {
         return Err(format!(
-          "error: `{other}` is not a steel thread status\n  remedy: use one of wip, tbc, completed, cancelled, hold -- or `all`"
+          "error: `{other}` is not a steel thread status\n  remedy: use one of triage, wip, tbc, completed, cancelled, hold -- or `all`"
         ));
       }
     };

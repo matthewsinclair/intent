@@ -32,6 +32,18 @@
 //! validated as an argument to the RENDERER, so a verb that returns before
 //! rendering accepts a format it refuses when it has rows. Four slots were
 //! found doing that on 2026-08-27. This arm holds the ordering.
+//!
+//! # The disclosure made a SECOND defect a defect
+//!
+//! The note names its scope with `ThreadStatus::display`, which binds two
+//! vocabularies into one contract: a scope line an operator cannot type back is
+//! a signpost pointing at a door that is not there. Driven over the whole enum,
+//! five of six round-tripped -- `--status triage` was refused, by the very line
+//! offering to help, though `st list`'s surface row has required all six since
+//! the machines were ratified. `every_status_the_scope_note_can_print_is_one_the_filter_accepts`
+//! now holds it, and takes its roster from `ThreadStatus::ALL` rather than from
+//! a list typed here: a hand-typed five would have passed on the day the sixth
+//! was unreachable, which is precisely how the gap survived.
 
 use std::path::Path;
 use std::process::Command;
@@ -202,5 +214,106 @@ fn markdown_carries_the_disclosure_too() {
   assert!(
     md.contains("showing 1 of 2 threads"),
     "and the scope travels with the file: {md:?}"
+  );
+}
+
+/// **EVERY WORD THE DISCLOSURE CAN PRINT IS A WORD THE FILTER ACCEPTS.**
+///
+/// The note names its scope with [`ThreadStatus::display`], so the two
+/// vocabularies are one contract: a scope line an operator cannot type back is
+/// a signpost pointing at a door that is not there. Measured 2026-08-28, before
+/// the fix: five of the six round-tripped and `Triage` was refused -- by the
+/// very line offering to help -- so the five threads at `Triage` in this estate
+/// were reachable by `--status all` and by nothing else.
+///
+/// **The row DECLARED the six before the code accepted them.** `st list`'s
+/// `status_vocabulary` note has said since the machines were ratified that this
+/// flag is the only place a user types a status name and that v3 must accept
+/// all six. `declared_values_are_enforced.rs` could not see the gap: it walks
+/// `values` ARRAYS and this row carries none.
+///
+/// **The roster comes from `ThreadStatus::ALL`, never from a list typed here.**
+/// A hand-typed five would have passed on the day the sixth was unreachable,
+/// which is exactly how this defect survived; a seventh state added tomorrow
+/// puts itself under this assertion without anyone remembering to.
+#[test]
+fn every_status_the_scope_note_can_print_is_one_the_filter_accepts() {
+  use intentsvcs::model::ThreadStatus;
+
+  let dir = project();
+  let root = dir.path();
+  run(root, &["st", "new", "a thread"]);
+
+  // NON-VACUITY: the roster must be the whole enum, not an accident of one
+  // variant. A drive over an empty or single-element list would pass here and
+  // prove nothing.
+  assert!(
+    ThreadStatus::ALL.len() >= 6,
+    "the roster shrank -- this drive is only worth its green over the whole enum"
+  );
+
+  for status in ThreadStatus::ALL {
+    let typed = status.display();
+    let (out, code) = run(root, &["st", "list", "--status", typed, "--width", "120"]);
+    assert_eq!(
+      code, 0,
+      "the disclosure prints `{typed}` as a scope, so `--status {typed}` must \
+       be a thing an operator can type: {out}"
+    );
+    assert!(
+      !out.contains("is not a steel thread status"),
+      "`{typed}` round-trips through the filter, or the note is advertising a \
+       vocabulary the flag does not have: {out}"
+    );
+  }
+
+  // **THE CONTROL.** The drive above must be able to see a refusal, or its six
+  // greens say nothing about whether the assertion is wired to anything.
+  let (bogus, code) = run(root, &["st", "list", "--status", "notastatus"]);
+  assert_ne!(code, 0, "an unknown status is still refused: {bogus}");
+  assert!(
+    bogus.contains("is not a steel thread status"),
+    "and the refusal is the one the loop above is watching for: {bogus}"
+  );
+  assert!(
+    bogus.contains("triage"),
+    "the remedy enumerates the ratified six, not the five v2 had: {bogus}"
+  );
+}
+
+/// **`tbc` KEEPS MEANING `Not Started`, and this is the trap the surface row
+/// documents at length.** In v2, `TBC` is not a state -- it is a display
+/// abbreviation of `Not Started`, spelled out in v2's own usage text. Reading
+/// it as the newly-reachable `Triage` would give a familiar token a second
+/// meaning in the filter, which is one of the two places a v2 user reads
+/// fastest and checks least.
+#[test]
+fn tbc_still_resolves_to_not_started_and_never_to_triage() {
+  let dir = project();
+  let root = dir.path();
+  run(root, &["st", "new", "fresh"]); // enters at Triage
+
+  let (tbc, code) = run(root, &["st", "list", "--status", "tbc", "--width", "120"]);
+  assert_eq!(code, 0, "{tbc}");
+  assert!(
+    !tbc.contains("ST0001"),
+    "`tbc` must not reach a thread at Triage -- v2's abbreviation names \
+     Not Started: {tbc}"
+  );
+  assert!(
+    tbc.contains("no thread matches status `Not Started`"),
+    "and it says which state it looked for: {tbc}"
+  );
+
+  // The control: the thread IS there, and the state that names it finds it.
+  let (triage, code) = run(
+    root,
+    &["st", "list", "--status", "triage", "--width", "120"],
+  );
+  assert_eq!(code, 0, "{triage}");
+  assert!(
+    triage.contains("ST0001"),
+    "the fixture really is at Triage, so the absence asserted above is a \
+     decision the filter made rather than a thread that was never there: {triage}"
   );
 }

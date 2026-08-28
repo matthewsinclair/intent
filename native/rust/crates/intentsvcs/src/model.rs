@@ -708,6 +708,30 @@ impl ThreadStatus {
     matches!(self, Self::Completed | Self::Cancelled)
   }
 
+  /// The six states, in the ratified order of Machine 1.
+  ///
+  /// **Declared so a caller can take the population instead of an example of
+  /// it**, which is the shape of a defect this estate met three times in one
+  /// day: a test naming a member of a set the project is still moving goes
+  /// stale by being RIGHT, and nothing about it reads as wrong. The round-trip
+  /// property over `--status` -- every word the filter's own scope note prints
+  /// is a word the filter accepts -- is only worth asserting over the whole
+  /// enum; over five hand-typed variants it would have passed on the day the
+  /// sixth was unreachable.
+  ///
+  /// Ordered like [`TShirt::ALL`] and for the same reason: it is read as a
+  /// list a human sees. `Triage` leads because it precedes `NotStarted` in the
+  /// machine, which is also what the dispatch table's `render_order` note asks
+  /// of any surface that lays the states out.
+  pub const ALL: [ThreadStatus; 6] = [
+    Self::Triage,
+    Self::NotStarted,
+    Self::Wip,
+    Self::Hold,
+    Self::Completed,
+    Self::Cancelled,
+  ];
+
   pub fn display(self) -> &'static str {
     match self {
       Self::Triage => "Triage",
