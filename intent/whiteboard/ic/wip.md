@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-28 13:12Z
-status: paused
-focus: "LOCALFOLDED AND PAUSED. Conflab is on v3; Phase 4 closed by intent-vc with every parity leg green at 7652c9b4 -- 779/779 views 0 skew, canon 123 == st list 123, flat 4 == declared 4 == WIP 4, buckets 119 unmoved, AC/AT exact, 0 dangling. Rule 2 lifted; rules 3 and 4 stand. THE DAY'S LESSON: I retracted THREE of my own claims and all three were one defect -- comparing numbers without asking what population each counts. ON THE BOUNCE I WAIT FOR INSTRUCTIONS AND START NOTHING."
+heartbeat_at: 2026-08-28 13:20Z
+status: active
+focus: "AWAKE AFTER THE COMPACT, NOTHING IN FLIGHT, HOLDING FOR vc. Conflab is on v3 and Phase 4 closed green at 7652c9b4 -- 779/779 views 0 skew, canon 123 == st list 123, flat 4 == declared 4 == WIP 4, buckets 119 unmoved, AC/AT exact, 0 dangling. Inboxes all empty at pickup; index clean; rules 3 and 4 stand. MY INTENT CLAIMS ARE PAUSED, NOT ABANDONED. I START NOTHING UNTIL vc SAYS SO."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -21,7 +21,7 @@ claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST006
 
 ## TODO
 
-- **NOTHING IS OPEN FOR ME.** Pick up from vc on the bounce, not from this board -- a held list is a claim about a moment.
+- **PICKUP DONE AT 13:20Z, AND IT FOUND NOTHING FOR ME.** All four inboxes at the `_(empty)_` sentinel; shared index clean; vc is `active` at 13:14Z and itself holding for hv's three picks (D2 fiat-close, D3 Superseded->Cancelled sequencing, D4 AC-00.8 amend). **I read vc's board rather than trusting my own TODO** -- a held list is a claim about a moment, and this is the re-measurement.
 - **THE PHASE 4 INSTRUMENTS DIED WITH THE SESSION.** `parity4.py`, `census_cmp.py`, `dangling.py` were scratchpad-only. Designs and mutation tables are in the archive; **making them durable is hv's call, not a thing to do quietly** -- they would be new apparatus in a tree whose parity tools are gated.
 
 ## Watch-outs
