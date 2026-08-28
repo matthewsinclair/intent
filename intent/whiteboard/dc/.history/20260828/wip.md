@@ -120,3 +120,39 @@ be edited. Records: 69ea2657, a12147c1, 6945356e, 0120e8a5, 92570169, e9e71246.
 - (2026-08-25) **hv RULED, UNPROMPTED AND VERBATIM: the `(C)` line is NOT required and never was.** _"This isn't a problem, has never been a problem, and is not something that I suggested we go looking for. The only constraint is that I DO NOT WANT ANY CLAUDE EXHAUST IN MY COMMITS. EVER. The end."_ **Killed a three-node sweep in one line:** vc's 10 missing-`(C)` commits, cc's 3, hv's own 2 -- **not findings**, retracted rather than carried as closed. cc's structural claim that the two lines are one block keeps its refutation (`(C)`-absent-and-trailer-present is a population of ZERO) but **loses its consequence**, and my 12-of-12 counter-datapoint went with it. **The proposed guard is therefore ONE-DIRECTIONAL: absent-trailer only.**
 - (2026-08-25) **hv's SCOPE FINDING, AND IT IS ABOUT US RATHER THAN ABOUT THE COMMITS:** _not something that I suggested we go looking for._ I raised the Claude exhaust; the `(C)` sweep grew out of it across three nodes with measurements, mutual corrections, a withdrawn hypothesis and a remedy recommendation, **and nobody asked for any of it.** Each of us measured carefully. **CAREFUL MEASUREMENT OF AN UNASKED QUESTION STILL COSTS A DAY.**
 - (2026-08-25) **THE EXHAUST ITSELF IS A TIGHT DISJUNCTION AND ONLY hv CAN CLOSE IT** (mine, adopted by vc to hv in my words). `includeCoAuthoredBy: false` is set, `attribution.commit` is byte-identical to the injected instruction's first line -- **but NO settings key anywhere holds the `Claude-Session` string**, global or project. **So EITHER that key gates the generated line despite its name and manual omission expires, OR nothing in configuration gates it, the omission is PERMANENT, and every fleet project inherits it.** No third branch survives; I exhausted the settings locations. **The deciding check: one commit from a session STARTED AFTER the change, then `grep -c '^Claude-Session:'`.** Neither vc nor I can run it from a session predating it. **90 carriers, 0 `Co-Authored-By`, first on main `55fc4a50` 2026-08-24.**
+
+---
+
+## AFTERNOON FOLD 2 -- 2026-08-28 15:35Z onward. WP-07's AC/AT set closed under vc's direction.
+
+**AC-07.6 (`27654493` + `fe4515e8`), AC-07.5 (`1fb7be15`), AT-07.4 / AT-07.5 / AT-07.6 all green in vc's hand. ic's 0113 hypothesis run and retired. Nothing in flight at the fold.**
+
+### AC-07.6 -- the formatter exclusion, both doors
+
+`intent init` wrote NO formatter exclusion and the migration converger was never called from init. Measured on a fresh consumer project: `*emphasis*` -> `_emphasis_` in `steel_threads.md`, **a file whose own last line tells the operator not to edit it and whose tool then reports them for it.** Positive-controlled: `grep -rln prettierignore` matched exactly one file in the whole Rust tree, so the pattern could match and found nothing in `init.rs` or any template.
+
+- `converge_formatter_exclusion()` beside `converge_gitignore()`, ONE home, called from the migration's `finish` closure and from `init::init`.
+- **PATTERNS NOT PATHS.** `render_all` yields the views that exist NOW; a converger fed from it writes an empty file on a fresh project and grows it per thread -- **a second writer of generated content, arriving to fix a second-writer bug.** Roster is `Project::generated_view_patterns`, against the view-path methods it must track; four of five derived from the method that makes the real path, the fifth hand-assembled because `wp_info_view` formats `{seq:02}`.
+- **RED-FIRST: 2 of 5 arms red before, 5 of 5 after, CONTROL PASSES IN BOTH STATES.**
+- **MY COST ESTIMATE DEFERRED THE MIGRATION ARM AND WAS AN ASSERTION ABOUT A FILE I HAD NOT OPENED.** I told vc it "needs a v2 estate fixture that does not exist yet". `migrate_v2_project.rs` already built one, already called `Facade::upgrade`, and already carried LIMB 5 asserting the gitignore convergence -- the exact template. 29 lines. **vc had sequenced the work on my figure.**
+- **AT-07.6 SAT AT `to-write` WHILE ITS TEST EXISTED**, which cc's arm caught. The tool's own note is the argument: **`to-write` is exempt from L2 and L3**, so the row was wrong in the PERMISSIVE direction and escaping two lint levels.
+
+### AC-07.5 -- the row was unsatisfiable, not unsatisfied
+
+Driven per parity.md's own procedure, sequentially on one tree: v2 2.19.0 `agents sync` captured -> `intent upgrade` -> v3 `agents sync` captured -> diff. **Eleven deviation classes, ZERO ratified.** Escalated rather than absorbed; vc ratified (a)-(j) and named (k) a defect.
+
+- **TWO FACTS KILL BYTE-PARITY INDEPENDENT OF ANY DEVIATION.** v2 stamps a DATE, so its output differs from itself across days. And **v2 renders the DIRECTORY name where the config disagrees** -- `par` for a project whose config says `parity` -- so byte-equality would score v3's correctness as failure and enshrine a v2 bug as contract.
+- **(k) WAS WIDER THAN FILED AND THAT INVERTED THE FIX.** Filed on `languages: []`, which `[[#nolang]]` already covers. But the template carries blocks for a SUBSET of the 7 packs: `[shell]` left `### Building` bare, `[author]` left both. **4 of 7.** And a per-language placeholder renders `no tests configured` NEXT TO `mix test` for a project declaring both -- **worse output than the bare heading it replaced.** So the rule went where the answer is knowable: a post-pass in `rootfiles::substitute`, roster-free.
+- **MY FIRST SCANNER FALSE-POSITIVED AND IT IS THE KEEPER.** It asked for prose before the next heading of ANY level and flagged `## Development Environment`, a parent whose next line is its own subsection. **Satisfying it would have demanded filler under every parent heading in the document.**
+- **NOT v2's WORDING, DELIBERATELY.** v2 wrote `_No build step required._`, which asserts a fact the tool cannot know.
+
+### ic's 0113 hypothesis -- run, does not reproduce
+
+51 files swept across `tests/`, parity tools, `bin/.devbin`, `native/rust/crates/*/src`. **ONE flag, and it is PROSE** -- `runner_roster_check.sh:137`, a roster note DESCRIBING `guard_home_check.sh`, carrier hit and gate-marker hit on the SAME LINE. **Scanning prose makes describing the defect indistinguishable from committing it**, which is why `whiteboard-header-guard.sh` never reads prose. Net zero; the family really is closed at 0105 / 0109 / 0113.
+
+- **THE DISCRIMINATOR WAS DRIVEN TWO-SIDED ON PLANTED FIXTURES BEFORE USE, because the whole output of the sweep is a NEGATIVE** -- an instrument that has only ever said "nothing" cannot be told from one that can say nothing else.
+- The shim is not an uncovered blind spot either: `pre_commit_shim.bats` carries 10 arms including both `--where` directions.
+
+### The relay garble, owned by vc
+
+cc's arm printed _the file EXISTS while the row says to-write_. It reached me as _cites `view_single_writer.rs` UNTRACKED in the tree_ -- **the opposite claim**, and I spent four commands proving my commit had carried the file. vc owned both halves: cc's message carried "untracked" verbatim and vc added the "check your commit carried the file" framing. **vc's lesson, minted: relay the instrument's OUTPUT, never a characterisation of it.**
