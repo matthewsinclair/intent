@@ -174,10 +174,18 @@ fn the_scope_vocabulary_folds_the_same_separators() {
 /// **THE NEGATIVE CONTROL, and without it every test above passes against a
 /// normaliser that strips every character it does not like.** A token that is
 /// genuinely outside the vocabulary must still be outside it after folding.
+///
+/// **THE EXAMPLE WAS `Super_Seded` AND IT STOPPED BEING AN EXAMPLE ON
+/// 2026-08-28**, when hv's D3 ruling put `superseded` INTO the work-package
+/// vocabulary. This test reads the THREAD vocabulary, so it kept passing and
+/// nothing reported that its chosen token was now inside a sibling vocabulary
+/// -- and the day the thread vocabulary is widened the same way, this control
+/// stops controlling with a green beside it. The token must be outside every
+/// vocabulary, not merely outside the one under test.
 #[test]
 fn folding_separators_does_not_admit_a_value_that_is_not_in_the_vocabulary() {
   let fixture = Fixture::new();
-  estate(&fixture, &thread_at("Super_Seded"), "status: Done\n");
+  estate(&fixture, &thread_at("Quo_Kka"), "status: Done\n");
   let scan = scan(&fixture);
 
   assert!(
@@ -185,9 +193,83 @@ fn folding_separators_does_not_admit_a_value_that_is_not_in_the_vocabulary() {
       .residue
       .iter()
       .any(|f| f.class == FindingClass::UnknownStatus),
-    "`Super_Seded` folds to `superseded`, which is still not a v2 status: {:?}",
+    "`Quo_Kka` folds to `quokka`, which is not a v2 status in any vocabulary: {:?}",
     scan.residue
   );
+}
+
+/// Issue 0100 / hv's D3 ruling of 2026-08-28 13:26Z, option 1 of three:
+/// **a `Superseded` work package reads as CANCELLED, because `NotStarted` said
+/// the opposite of what v2 recorded.**
+///
+/// Measured on the Conflab hop: of 23 work-package rows carrying a status
+/// outside the vocabulary, one says `Superseded` and one says `Deferred`. The
+/// remaining 21 say `pending`.
+#[test]
+fn a_superseded_work_package_is_cancelled_rather_than_not_started() {
+  for spelling in ["Superseded", "SUPERSEDED", "super_seded", "Super Seded"] {
+    let fixture = Fixture::new();
+    estate(
+      &fixture,
+      &thread_at("Completed"),
+      &format!("status: {spelling}\n"),
+    );
+    let scan = scan(&fixture);
+
+    assert_eq!(
+      scan.threads[0].wps[0].status,
+      WpStatus::Cancelled,
+      "work-package status {spelling:?} did not read as Cancelled"
+    );
+    assert!(
+      !scan
+        .residue
+        .iter()
+        .chain(scan.carried.iter())
+        .any(|f| f.class == FindingClass::UnknownStatus),
+      "{spelling:?} is now IN the vocabulary, so it is not a finding: {:?} {:?}",
+      scan.residue,
+      scan.carried
+    );
+  }
+}
+
+/// **THE BOUNDARY OF THAT RULING, AS A MECHANISM RATHER THAN A COMMENT.**
+///
+/// hv ruled option 1 only. Whether `Deferred` legitimately maps to
+/// `NotStarted` is its own ruling and has not been given, and `pending` -- 21
+/// of the 23 rows, the largest bucket by far -- was never on the menu at all.
+/// **An option never offered cannot be told apart from one declined**, so this
+/// asserts that neither has been quietly widened along with `Superseded`: both
+/// still default AND still say so.
+#[test]
+fn deferred_and_pending_still_default_and_still_report_it() {
+  for spelling in ["Deferred", "pending", "Pending"] {
+    let fixture = Fixture::new();
+    estate(
+      &fixture,
+      &thread_at("Completed"),
+      &format!("status: {spelling}\n"),
+    );
+    let scan = scan(&fixture);
+
+    assert_eq!(
+      scan.threads[0].wps[0].status,
+      WpStatus::NotStarted,
+      "work-package status {spelling:?} was mapped without a ruling"
+    );
+    let quoted = format!("{spelling:?}");
+    assert!(
+      scan
+        .residue
+        .iter()
+        .chain(scan.carried.iter())
+        .any(|f| f.class == FindingClass::UnknownStatus && f.detail.contains(&quoted)),
+      "{spelling:?} defaulted with nothing recording what v2 actually said: {:?} {:?}",
+      scan.residue,
+      scan.carried
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------

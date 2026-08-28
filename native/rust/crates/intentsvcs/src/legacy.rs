@@ -954,6 +954,30 @@ fn wp_status(raw: &str) -> Option<WpStatus> {
     "done" | "complete" | "completed" => Some(WpStatus::Done),
     // Both spellings: v2 estates were hand-authored and the corpus carries each.
     "cancelled" | "canceled" => Some(WpStatus::Cancelled),
+    // **`Superseded` IS TERMINAL, AND `NotStarted` SAID THE OPPOSITE OF WHAT
+    // v2 RECORDED.** hv's D3 ruling, 2026-08-28 13:26Z, option 1 of three:
+    // this arm now, whether `Deferred` legitimately maps to `NotStarted`
+    // separately, and the structural `status_legacy` mirror sequenced into its
+    // own window. Measured on the Conflab hop (issue 0100): of 23 work-package
+    // rows carrying a status outside this vocabulary, ONE says `Superseded`
+    // (`ST0051/WP-03`), and a superseded work package is not one that has not
+    // been started -- the substitution was wrong rather than merely lossy.
+    //
+    // **THE ACCEPTED COST, NAMED HERE RATHER THAN DISCOVERED LATER: the source
+    // spelling stops being recoverable.** As an unmappable value it produced an
+    // `UnknownStatus` finding that at least recorded what v2 said; as a mapped
+    // one it produces none, and the row reads `cancelled` with nothing to say
+    // it read `Superseded`. That is what option 3 exists to fix. `Cancelled` is
+    // the nearest of the four variants and is the one hv chose over waiting.
+    //
+    // **THE THREAD TWIN IS DELIBERATELY NOT CHANGED WITH IT.** `thread_status`
+    // above has the same gap, and `SUPERSEDED` is a live THREAD status in
+    // Laksa -- the single finding blocking that estate's migration (the census
+    // in `legacy_vocabulary.rs`). It is a different population on a different
+    // arm: an unreadable thread status BLOCKS, where a work-package one
+    // carries. Widening it here would unblock a migration by side effect of a
+    // ruling about work packages, so it stays hv's to rule on.
+    "superseded" => Some(WpStatus::Cancelled),
     _ => None,
   }
 }
