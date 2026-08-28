@@ -468,6 +468,23 @@ pub enum FacadeError {
     field: String,
     why: String,
   },
+  /// A value the CALLER STATED that the model cannot record.
+  ///
+  /// **Distinct from [`FacadeError::FieldNotWritable`], and the difference is
+  /// which of the two things the operator has to change.** `FieldNotWritable`
+  /// says *this field is not yours to set, go to the door that owns it*; this
+  /// says *the field is yours and that value is not one of its values* -- so a
+  /// remedy pointing at another door is actively wrong here.
+  ///
+  /// Driven before this existed: `st done --date 14/02/2026` refused
+  /// correctly, then told the operator to `PUT json to a caller-assigned id`,
+  /// which is nothing they can do about a slash.
+  #[error("`{field}` was given `{given}`, which this field cannot record: {why}")]
+  ValueNotRecordable {
+    field: String,
+    given: String,
+    why: String,
+  },
   #[error("no steel thread {id} in this project")]
   NoSuchThread { id: String },
   #[error("steel thread {id} already exists")]
@@ -836,6 +853,11 @@ impl crate::remedy::Remedy for FacadeError {
       Self::WriteNotAddressable { .. } => {
         "`PUT` json to a caller-assigned id (an AC or an AT); everything else is a \
          `POST` to the collection address"
+          .to_string()
+      }
+      Self::ValueNotRecordable { .. } => {
+        "restate the value in the form the message names -- the verb and the field are right, \
+         and nothing was written"
           .to_string()
       }
       Self::FieldNotWritable { .. } => {
@@ -3624,6 +3646,7 @@ impl Facade {
       "st.triage",
       None,
       ListEdit::AsDeclared,
+      None,
     )
   }
 
@@ -3634,6 +3657,7 @@ impl Facade {
       "st.start",
       None,
       ListEdit::AsDeclared,
+      None,
     )
   }
 
@@ -3650,6 +3674,7 @@ impl Facade {
       "st.hold",
       Some(reason),
       ListEdit::AsDeclared,
+      None,
     )
   }
 
@@ -3677,6 +3702,7 @@ impl Facade {
       // asks for.
       Some(""),
       ListEdit::AsDeclared,
+      None,
     )
   }
 
@@ -3685,7 +3711,7 @@ impl Facade {
   /// Close a thread. The gate is a DECLARED guard and is run by the shared
   /// setter, after the self-loop test -- see [`Facade::check_gate`].
   pub fn st_done(&mut self, id: &str) -> Result<Outcome, FacadeError> {
-    self.st_done_listing(id, ListEdit::AsDeclared)
+    self.st_done_listing(id, ListEdit::AsDeclared, None)
   }
 
   /// `st done --keep`: close the thread and LEAVE its `.intentfiles` entry, so
@@ -3698,8 +3724,13 @@ impl Facade {
   /// content is `ListEdit::AsDeclared`, in exactly the files a peer is most
   /// likely to be holding. **The delegation is one line and there is one
   /// implementation**, so this is a second door and never a second answer.
-  pub fn st_done_listing(&mut self, id: &str, list: ListEdit) -> Result<Outcome, FacadeError> {
-    self.set_thread_status(id, ThreadStatus::Completed, "st.done", None, list)
+  pub fn st_done_listing(
+    &mut self,
+    id: &str,
+    list: ListEdit,
+    on: Option<&str>,
+  ) -> Result<Outcome, FacadeError> {
+    self.set_thread_status(id, ThreadStatus::Completed, "st.done", None, list, on)
   }
 
   /// Reopen a completed thread.
@@ -3716,6 +3747,7 @@ impl Facade {
       "st.reopen",
       Some(reason),
       ListEdit::AsDeclared,
+      None,
     )
   }
 
@@ -3731,11 +3763,12 @@ impl Facade {
       "st.reinstate",
       Some(reason),
       ListEdit::AsDeclared,
+      None,
     )
   }
 
   pub fn st_cancel(&mut self, id: &str, reason: &str) -> Result<Outcome, FacadeError> {
-    self.st_cancel_listing(id, reason, ListEdit::AsDeclared)
+    self.st_cancel_listing(id, reason, ListEdit::AsDeclared, None)
   }
 
   /// `st cancel --keep`: cancel the thread and LEAVE its `.intentfiles` entry,
@@ -3752,16 +3785,51 @@ impl Facade {
   /// you still need to READ the files** -- and a cancelled thread is at least
   /// as likely to be one you are still mining for what it decided. Both verbs
   /// remove the entry, so both take the same override under the same word.
+  /// **`on` THREADED RATHER THAN GIVEN A THIRD DOOR, AND THE PRECEDENT ABOVE
+  /// IS WHY THAT NEEDS SAYING.** `st_cancel`'s note chose a wrapper over a
+  /// parameter because threading it would have rewritten thirteen call sites
+  /// across seven test files that four sessions edit concurrently. **That
+  /// reasoning is about BREADTH, not about parameters** -- measured here, the
+  /// two `_listing` doors have twelve call sites in THREE files, eight of them
+  /// in one test file and the rest being this definition and the CLI. A third
+  /// door for a second optional knob would have been the cost the precedent
+  /// was avoiding, paid to avoid a diff it was not describing.
   pub fn st_cancel_listing(
     &mut self,
     id: &str,
     reason: &str,
     list: ListEdit,
+    on: Option<&str>,
   ) -> Result<Outcome, FacadeError> {
-    self.set_thread_status(id, ThreadStatus::Cancelled, "st.cancel", Some(reason), list)
+    self.set_thread_status(
+      id,
+      ThreadStatus::Cancelled,
+      "st.cancel",
+      Some(reason),
+      list,
+      on,
+    )
   }
 
   /// `list` is [`ListEdit::AsDeclared`] for every caller but `st done --keep`.
+  /// The wording for a [`crate::model::DateError`].
+  ///
+  /// **Here rather than on the type, mirroring `IdError` and `render.rs`'s
+  /// `id_refusal`.** The model states what is wrong; a caller says it in the
+  /// terms of the field it was asked about, and a second caller with a different
+  /// field would need different words for the same fact.
+  fn date_refusal(e: crate::model::DateError) -> String {
+    match e {
+      crate::model::DateError::NotADate => {
+        "this field records ISO 8601 `YYYY-MM-DD`, with no time component".to_string()
+      }
+      crate::model::DateError::NoSuchMonth { named } => {
+        format!("it names month {named}, and there are twelve")
+      }
+      crate::model::DateError::NotADay => "that is not a day in the calendar".to_string(),
+    }
+  }
+
   fn set_thread_status(
     &mut self,
     id: &str,
@@ -3769,6 +3837,7 @@ impl Facade {
     op: &'static str,
     reason: Option<&str>,
     list: ListEdit,
+    on: Option<&str>,
   ) -> Result<Outcome, FacadeError> {
     let from = self.st_show(id)?.status;
 
@@ -3828,9 +3897,44 @@ impl Facade {
     // `Some("")` is "completed, and the database says when" -- the third state
     // the CREATE door recognises. `None` stays null; a date already recorded is
     // carried. The facade never holds a time in any of the three.
+    // **`Some("")` IS STILL "the database says when", AND A STATED DATE RIDES
+    // THE SAME FIELD.** The store writes
+    // `COALESCE(NULLIF(?7, ''), strftime('%Y-%m-%d', 'now'))`, so a non-empty
+    // value is recorded as given and only the empty one reaches the clock --
+    // which is why `--date` needs no second clock and no new column. The
+    // facade still holds no time in any of the three states.
+    //
+    // **Validated HERE rather than at the door, because every door owes it.**
+    // A malformed date reaching canon is unrecoverable by inspection: the field
+    // has no time component, so `2026-02-30` reads as data rather than as an
+    // error for as long as it sits there.
     thread.completed = match status {
-      ThreadStatus::Completed | ThreadStatus::Cancelled => Some(String::new()),
-      _ => None,
+      ThreadStatus::Completed | ThreadStatus::Cancelled => Some(match on {
+        Some(stated) => {
+          crate::model::parse_domain_date(stated).map_err(|e| FacadeError::ValueNotRecordable {
+            field: "completed".to_string(),
+            given: stated.to_string(),
+            why: Self::date_refusal(e),
+          })?
+        }
+        None => String::new(),
+      }),
+      // **A NON-TERMINAL MOVE WITH A DATE IS A MISTAKE WORTH NAMING.** Silently
+      // dropping it would let `st start --date` read as accepted and change
+      // nothing, which is the shape of every silent default in this estate.
+      _ => {
+        if let Some(stated) = on {
+          return Err(FacadeError::ValueNotRecordable {
+            field: "completed".to_string(),
+            given: stated.to_string(),
+            why: format!(
+              "a move to {} records no completion date",
+              crate::model::enum_str(&status)
+            ),
+          });
+        }
+        None
+      }
     };
     self.apply(
       op,

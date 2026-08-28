@@ -826,8 +826,16 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       } else {
         ListEdit::AsDeclared
       };
+      // **`--date` IS THE ONLY WAY TO RECORD A COMPLETION THAT ALREADY
+      // HAPPENED** (hv, 2026-08-28). Without it the sole open CLI path stamped
+      // TODAY, so an estate closing threads finished in February recorded them
+      // all as finished the day it migrated. Read through `opt`, which returns
+      // the typed value or nothing -- this row declares no default, so there is
+      // no default to mistake for a choice.
       reported(
-        &open()?.st_done_listing(&id, list).map_err(fail)?,
+        &open()?
+          .st_done_listing(&id, list, opt(a, "date").as_deref())
+          .map_err(fail)?,
         &id,
         "done",
       );
@@ -851,9 +859,12 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       } else {
         ListEdit::AsDeclared
       };
+      // Both closing verbs take it, for the same reason `--keep` is on both:
+      // two identical acts with the override on one of them is a surface that
+      // has to be memorised rather than understood.
       reported(
         &open()?
-          .st_cancel_listing(&id, &reason, list)
+          .st_cancel_listing(&id, &reason, list, opt(a, "date").as_deref())
           .map_err(fail)?,
         &id,
         "cancelled",

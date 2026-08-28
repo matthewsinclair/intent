@@ -123,6 +123,11 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // read face already or the entity could not be rendered at all. Nothing
     // authored is lost behind it.
     | FacadeError::FieldNotWritable { .. }
+    // A value the caller DID supply, refused for what it says rather than for
+    // being absent. `st done --date 2026-02-30` names the field and the value
+    // it was given, so nothing authored is hidden behind it -- the operator is
+    // holding the string this refusal is about.
+    | FacadeError::ValueNotRecordable { .. }
     // A wrapped realisation failure. It reports that making files exist did not
     // work, not that a value was left out -- no authored prose behind it.
     | FacadeError::Realise(_) => None,

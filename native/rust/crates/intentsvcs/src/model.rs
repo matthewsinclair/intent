@@ -1500,3 +1500,61 @@ impl IssueSeverity {
     }
   }
 }
+
+/// A domain date the CALLER stated, checked against the one format the model
+/// records (`Thread.completed`, `Thread.created`: ISO 8601 `YYYY-MM-DD`).
+///
+/// **This is not a clock and does not break the one-clock rule.** `one_clock`
+/// bans asking what time it is -- every needle it scans is a `::now`. Reading a
+/// date a human typed is data arriving through the door, the same category as
+/// `sync.rs` converting a file's recorded `mtime`.
+///
+/// **The calendar check is the point, not the shape check.** `2026-02-30`
+/// matches `YYYY-MM-DD` perfectly and is not a day; storing it would put a
+/// value in canon that no reader can turn back into a date, and the field has
+/// no time component to make the error obvious later. `time::Date` already owns
+/// the calendar, so this asks it rather than counting days per month here --
+/// leap years being exactly the arithmetic a hand-rolled version gets wrong in
+/// the year nobody tests.
+///
+/// **A COMPLETION DATE IS A CALENDAR FACT IN THE AUTHOR'S LOCAL DAY, NOT A UTC
+/// INSTANT** (conflab-vc, 2026-08-28). Recovering 64 completion dates from git
+/// scored 64/64 read as local and 63/64 forced to UTC -- the miss was committed
+/// at 23:57 +0100, which is the NEXT day in UTC and the author's own calendar
+/// disagreed. That is why this takes the date the caller states and converts
+/// nothing: a zone conversion here would be the whiteboard's stamp discipline
+/// applied one domain over, where it is wrong.
+/// What is wrong with a stated date, as a FACT rather than as wording.
+///
+/// **Mirrors [`IdError`], deliberately: the model holds what is true and the
+/// door holds how it is said.** `IdError` carries no prose and `render.rs`
+/// renders it, because the same wrong spelling needs different words at
+/// different doors. A date is the same shape of thing.
+///
+/// It also satisfies `IN-RS-CODE-004`, which the critic raised against the
+/// first cut of this function: **a library must not use `String` as its error
+/// type**, because a caller can then only re-print it, never branch on it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DateError {
+  /// Not the shape this field records at all.
+  NotADate,
+  /// Well-shaped, and names a month outside the twelve.
+  NoSuchMonth { named: u8 },
+  /// Well-shaped and well-monthed, and still not a day: `2026-02-30`.
+  NotADay,
+}
+
+pub fn parse_domain_date(raw: &str) -> Result<String, DateError> {
+  let raw = raw.trim();
+  let bytes = raw.as_bytes();
+  if raw.len() != 10 || bytes[4] != b'-' || bytes[7] != b'-' {
+    return Err(DateError::NotADate);
+  }
+  let year: i32 = raw[0..4].parse().map_err(|_| DateError::NotADate)?;
+  let month: u8 = raw[5..7].parse().map_err(|_| DateError::NotADate)?;
+  let day: u8 = raw[8..10].parse().map_err(|_| DateError::NotADate)?;
+  let named = time::Month::try_from(month).map_err(|_| DateError::NoSuchMonth { named: month })?;
+  time::Date::from_calendar_date(year, named, day)
+    .map(|_| raw.to_string())
+    .map_err(|_| DateError::NotADay)
+}

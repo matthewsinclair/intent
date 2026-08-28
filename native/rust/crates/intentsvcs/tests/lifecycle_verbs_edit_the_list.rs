@@ -246,7 +246,7 @@ fn st_done_keep_leaves_it() {
   let before = manifest_text(&fx);
 
   facade
-    .st_done_listing("ST0056", ListEdit::Suppressed)
+    .st_done_listing("ST0056", ListEdit::Suppressed, None)
     .expect("done");
   assert_eq!(
     facade.st_show("ST0056").unwrap().status,
@@ -298,6 +298,7 @@ fn cancel_keep_leaves_it_too() {
       "ST0056",
       "overtaken, but I still need the notes",
       ListEdit::Suppressed,
+      None,
     )
     .expect("cancel");
 
@@ -324,14 +325,14 @@ fn both_closing_verbs_treat_keep_the_same_way() {
     let done = {
       let fx = fixture();
       fx.facade()
-        .st_done_listing("ST0056", suppressed)
+        .st_done_listing("ST0056", suppressed, None)
         .expect("done");
       declared(&fx).declares("ST0056")
     };
     let cancelled = {
       let fx = fixture();
       fx.facade()
-        .st_cancel_listing("ST0056", "overtaken", suppressed)
+        .st_cancel_listing("ST0056", "overtaken", suppressed, None)
         .expect("cancel");
       declared(&fx).declares("ST0056")
     };
@@ -522,7 +523,7 @@ fn reinstate_touches_nothing_which_is_the_one_case_a_status_keyed_table_gets_wro
   let fx = fixture();
   let mut facade = fx.facade();
   facade
-    .st_cancel_listing("ST0056", "superseded", ListEdit::Suppressed)
+    .st_cancel_listing("ST0056", "superseded", ListEdit::Suppressed, None)
     .expect("cancel --keep");
   assert!(
     declared(&fx).declares("ST0056"),
@@ -701,7 +702,7 @@ fn keep_closes_without_a_note_because_nothing_is_being_dehydrated() {
   let fx = fixture();
   let mut facade = fx.facade();
   let outcome = facade
-    .st_done_listing("ST0056", ListEdit::Suppressed)
+    .st_done_listing("ST0056", ListEdit::Suppressed, None)
     .expect("done");
 
   assert!(outcome.notes().is_empty(), "got {outcome:?}");
@@ -739,7 +740,7 @@ fn a_verb_that_removes_nothing_carries_no_note() {
   let fx = fixture();
   let mut facade = fx.facade();
   facade
-    .st_cancel_listing("ST0056", "superseded", ListEdit::Suppressed)
+    .st_cancel_listing("ST0056", "superseded", ListEdit::Suppressed, None)
     .expect("cancel --keep");
   let outcome = facade
     .st_reinstate("ST0056", "the successor was withdrawn")
@@ -954,7 +955,7 @@ fn keep_stays_silent_even_when_there_are_uncommitted_bytes_to_warn_about() {
 
   let mut facade = fx.facade();
   let outcome = facade
-    .st_done_listing("ST0056", ListEdit::Suppressed)
+    .st_done_listing("ST0056", ListEdit::Suppressed, None)
     .expect("done");
 
   assert!(

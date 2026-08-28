@@ -20,7 +20,7 @@
 mod common;
 
 use common::{Fixture, sample_thread};
-use intentsvcs::facade::FacadeError;
+use intentsvcs::facade::{FacadeError, ListEdit};
 use intentsvcs::model::AtStatus;
 use intentsvcs::organize::Mode;
 use intentsvcs::remedy::Remedy;
@@ -76,6 +76,25 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       })
       .expect_err("an event has no file form"),
   ));
+  // **PROVOKED, AND IT NEEDS NOTHING BROKEN EITHER: a date the caller typed.**
+  // `--date` is the only way to record a completion that already happened, so
+  // the value arrives from a human and the model has to refuse the ones that
+  // are not days. `2026-02-30` is the case worth pinning rather than a
+  // malformed string: it matches `YYYY-MM-DD` exactly, so a shape check alone
+  // admits it and canon ends up holding a date no reader can turn back into
+  // one.
+  out.push((
+    "a stated date that is not a day",
+    facade
+      .st_cancel_listing(
+        "ST0056",
+        "overtaken",
+        ListEdit::AsDeclared,
+        Some("2026-02-30"),
+      )
+      .expect_err("the thirtieth of February is not a day"),
+  ));
+
   // **PROVOKED RATHER THAN EXEMPTED, FOR THE REASON THE EVENT CASE ABOVE
   // GIVES: it needs no broken world, only an ordinary call.** A thread's
   // `status` is owned by a ratified state machine, so the narrow setter sends
@@ -501,6 +520,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NotEditable { .. } => "NotEditable",
     FacadeError::NoSuchEditable { .. } => "NoSuchEditable",
     FacadeError::FieldNotWritable { .. } => "FieldNotWritable",
+    FacadeError::ValueNotRecordable { .. } => "ValueNotRecordable",
   }
 }
 
@@ -511,6 +531,7 @@ fn variant(err: &FacadeError) -> &'static str {
 /// look like oversights -- an exemption that is announced, never inferred
 /// (ST0048's rule).
 const ALL_VARIANTS: &[&str] = &[
+  "ValueNotRecordable",
   "NotHydratable",
   "NoManifestToUnlistFrom",
   "DehydrationRefused",

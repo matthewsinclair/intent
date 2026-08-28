@@ -483,6 +483,16 @@
               "help": "Close the thread but leave its entry in .intentfiles, so its files stay on disk",
               "disposition": "keep",
               "disposition_basis": "**hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list. **`st done` now REMOVES the entry, and this opts out. THE OPT-OUT POLARITY IS DEFENSIBLE HERE AND WOULD NOT BE ON `organize`, WHICH IS THE COMPARISON THAT HAD TO BE MADE.** ic ruled `organize` previews by default because safety-by-opt-in fails the operator who does not know to ask. That argument does not carry here for one reason: **the data-loss case is closed by a CONSTRAINT rather than by the operator remembering a flag.** AC requires `st done` to run the unsynced-attachment check first and REFUSE BY NAME when the artefact holds on-disk bytes the store has never seen (`Facade::sync_uncommitted`, cc's AC-03.5). A check is a claim about a reachable state; that refusal removes the state. What `--keep` opts out of is the removal of REPRODUCIBLE files, which the store can rewrite -- so the flag governs convenience, not loss."
+            },
+            {
+              "spellings": [
+                "--date"
+              ],
+              "type": "string",
+              "value": "<YYYY-MM-DD>",
+              "help": "Record this completion date instead of today",
+              "disposition": "keep",
+              "disposition_basis": "hv, 2026-08-28, on issue 0118's fifth limb. The closing verbs stamped TODAY and took no override, so the only open CLI path recorded threads finished in February as finished on the day the estate migrated -- 50 of Conflab's 51 remaining doctor findings. A COMPLETION DATE IS A CALENDAR FACT IN THE AUTHOR'S LOCAL DAY, NOT A UTC INSTANT (conflab-vc): recovering 64 dates from git scored 64/64 read as local and 63/64 forced to UTC, the miss committed 23:57 +0100. So the flag takes the date the caller states and converts nothing. It is on BOTH closing verbs on the same ground as `--keep` (hv, 2026-08-20): two identical acts with the override on one of them is a surface to be memorised rather than understood."
             }
           ],
           "v2": "bin/intent_st:446-535",
@@ -557,6 +567,16 @@
               "help": "Cancel the thread but leave its entry in .intentfiles, so its files stay on disk",
               "disposition": "keep",
               "disposition_basis": "**hv RULED THE ASYMMETRY OUT, 2026-08-20, ON ic's QUESTION.** AC-05.2 named `st done --keep` and said nothing about `st cancel`, so the surface shipped with the opt-out on one closing verb and not the other. ic asked whether that was deliberate and guessed it was -- reasoning that cancelling is the stronger statement and an operator is less likely to want the files. **hv ruled the opposite: the asymmetry is not wanted.** The guess was worth recording because it was plausible and wrong: **`--keep` is not about how sure you are that the work is over, it is about whether you still need to READ the files** -- and a cancelled thread is at least as likely to be one you are still mining for what it decided. `st done` and `st cancel` both REMOVE the entry, so both need the same override, and a flag on one of two identical acts is a surface that has to be memorised rather than understood. **Same flag, same word, same meaning: suppress this op's declared edit to the list, and never the close itself.**"
+            },
+            {
+              "spellings": [
+                "--date"
+              ],
+              "type": "string",
+              "value": "<YYYY-MM-DD>",
+              "help": "Record this completion date instead of today",
+              "disposition": "keep",
+              "disposition_basis": "hv, 2026-08-28, on issue 0118's fifth limb. The closing verbs stamped TODAY and took no override, so the only open CLI path recorded threads finished in February as finished on the day the estate migrated -- 50 of Conflab's 51 remaining doctor findings. A COMPLETION DATE IS A CALENDAR FACT IN THE AUTHOR'S LOCAL DAY, NOT A UTC INSTANT (conflab-vc): recovering 64 dates from git scored 64/64 read as local and 63/64 forced to UTC, the miss committed 23:57 +0100. So the flag takes the date the caller states and converts nothing. It is on BOTH closing verbs on the same ground as `--keep` (hv, 2026-08-20): two identical acts with the override on one of them is a surface to be memorised rather than understood."
             }
           ],
           "v2": "bin/intent_st:536-598",
