@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-28 11:50Z
+heartbeat_at: 2026-08-28 12:38Z
 status: active
-focus: "COORDINATING THE CONFLAB v3 HOIST on hv`s word -- all four grants recorded on hv`s board. Phase 0 (rollback point) dispatched to conflab-dc/cc/vc/ic in that order; Phase 1 (full-copy rehearsal: intent-dc; whole-tree accounting: intent-cc; census: conflab-cc) preparing; Phase 4 verifiers assigned (conflab-vc, intent-ic, devbin-cc, conflab-ic guard control, devbin-vc unprimed). The hop runs by conflab-cc alone on my GO HOP after hv reviews the rehearsal. Pair b4d63b44 sha256 1dd65db8; hop 1 MUST NOT run."
+focus: "CONFLAB IS ON v3 -- hop `b02b93c4` + carry `7652c9b4`, Phase 4 closed by a two-arm guard control on the live hook (refused without Z, committed with Z). Rule 2 lifted; rules 3 and 4 stand. Port ledger closed in intent/wip.md and the runbook; Learned stub for the 28th written, fold by class owed at EOD. Open with hv: Intent`s own carrier (still the Aug-21 copy), the post-hoist list. Pair b4d63b44 sha256 1dd65db8, current."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 

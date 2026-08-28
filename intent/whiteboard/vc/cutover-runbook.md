@@ -133,24 +133,37 @@ Chained to `pre-commit.intent` via chain-block markers, **EXACTLY ONCE**. Region
 
 **I selected on the bullets' OPENING CLAIMS rather than by reading all 212 in full.** An opener is the bullet's claim, so the selection is defensible -- **but a durable fact carried under a narrative headline would have been missed, and I cannot say none was.** The archive is the safety: nothing is lost, only demoted.
 
-## PORT LEDGER -- CLOSED EXCEPT CONFLAB (re-derived from the estates, 2026-08-27)
+## PORT LEDGER -- CLOSED (Conflab landed 2026-08-28; re-derived from the estates)
 
 **THE PREVIOUS LEDGER WAS STALE AND SAID SO ABOUT THE WRONG THINGS.** It listed **Lamplight and Intent as `NOT STARTED`** -- both are on `3.0.0` and Intent is self-hosted on it -- and gave **Conflab's blocker as a `legacy.rs:1844` byte-index panic**, which was fixed. **A ledger of remaining work that names finished work as remaining is worse than no ledger**, because the reader plans against it. Same class as `intent/restart.md`'s expired routing hazard, in the document that says what is left.
 
 **GROUND TRUTH, read from every `intent/.config/config.json` on this machine rather than from any record:**
 
 ```
-on 3.0.0   Anvil Baize Cdsync Courses Devbin Intent Laksa Lamplight
-           MicroGPTEx Molt Molt-flynn Molt-matts Prolix Riffle Utilz   (15)
-on 2.19.0  Conflab   -- the one estate left
-           Intentv2  -- FROZEN by hv's standing rule; correct, leave it
+on 3.0.0   Anvil Baize Cdsync Conflab Courses Devbin Intent Laksa Lamplight
+           MicroGPTEx Molt Molt-flynn Molt-matts Prolix Riffle Utilz   (16 -- every project)
+on 2.19.0  Intentv2  -- FROZEN by hv's standing rule; correct, leave it. It is the tool tree, not a project.
 ```
 
-**CONFLAB IS THE WHOLE OF THE REMAINING PORT, AND ITS BLOCKER IS NOT A TOOL DEFECT.** `intent ingest` refuses: **7 blocking residue rows, 44 carried**, all seven in `intent/st/ST0121/acceptance.md` -- one AT row with no `status` field, three with no `covers` clause at all, and three criteria carrying `evidence` without opening `(non-test)`. **The tool is behaving correctly and the source needs repair.** hv's call, and complicated by the remedy naming v2 tooling Conflab does not have installed.
+**CONFLAB LANDED 2026-08-28 12:38Z: `b02b93c4` (hop 2 + hop 3, one commit, 170 files) and `7652c9b4` (HAND-FINISHED: the four live threads' pre-hop `acceptance.md` carried as `acceptance.v2.md` attachments from the rollback sha `cd09d711`, plus a `.prettierignore` fence for `*.v2.*`).** conflab-cc's seven residue rows were repaired at Conflab `40cc789d` the night before; ingest read 0 blocking / 44 carried, and the 44 reconciled to the row post-hop (23 unknown-status + 7 unknown-scope + 14 field-not-recorded). Method, in order: Phase 0 clean rollback point; a FULL rsync copy including `.git/` run through the whole hop under a seeded decoy `HOME` (intent-dc), which found the two things the real run then hand-finished; census from the markdown (conflab-cc); whole-tree sha256 before/after plus a prose-loss probe with sentinels (intent-cc); the real hop by conflab-cc under conflab-vc's pen with the rehearsal's changed-path set as the STOP condition (it matched, 39 vs 40, the difference being the now-ignored `events.jsonl`); Phase 4 by every node read-only, and the one instrument that separates reached from biting -- conflab-ic's two-arm guard control on the live hook. **What the hop cannot fix and what the day filed: Intent issues 0100-0106.**
 
 **AND ONE LIVE HAZARD SPECIFIC TO CONFLAB BEING ON 2.19.0: hop 1 rewrites all 25 shared `~/.claude/skills` with v2's versions and reports `0 updated` at rc 0.** Anyone running a v2 `upgrade` there clobbers the fleet's skills silently.
 
 **WHAT THE PORT COST, KEPT BECAUSE IT IS THE ONLY PLACE IT IS RECORDED:** the migration dropped AT and AC rows per-thread rather than wholesale; the re-conversion was a tested script rather than a hand pass; three classes of lost citation across 19 rows fleet-wide; and `arca_cli`'s three PROSE `covers` clauses, which the v3 id gate cannot resolve, were repaired in the SOURCE because no reader fix reaches them.
+
+## 2026-08-28, THE CONFLAB HOIST -- LEARNED, WITH ATTRIBUTION (stub; fold by class at EOD)
+
+- **THE REHEARSAL IS THE INSTRUMENT, AND ONLY A FULL COPY INCLUDING `.git/` TESTS THE HOOK DOOR** (intent-dc). A clone has no hooks, so it reports a clean install into an empty door and could not have reported anything else. The copy found both things the real hop had to hand-finish: `events.jsonl` unignored (0101) and the re-render dropping 147 lines of authored `acceptance.md` prose in the four WIP threads, including hv's own AT-03.1 retirement record.
+- **`canon::hooks_dir` IS DOOR-AWARE** (`git rev-parse --git-path hooks`): on Conflab, `core.hooksPath` unset means `.git/hooks/`, and hop 3 replaced the 5090-byte v2 carrier in place with the 7332-byte shim. dc's alarm that apply writes `.githooks/` was Intent's own topology read as the function's fixed behaviour -- withdrawn by dc.
+- **A CONSTANT METRIC GUARDS NOTHING** (conflab-dc, via conflab-vc). "0 guard terms in the carrier" was cited pre-hop as evidence guards were absent and would have read 0 post-hop too -- the carrier is a locator, the roster is a layer down. Conflab's wip.md:37 prediction sat unfalsifiable for weeks under it. `guards: 4 ran` proves reach, never bite; only a refused commit proves bite.
+- **doctor HAS THREE SHIM-BLINDNESSES, ONE FAMILY: a reporter reads the carrier and expects the gate body's properties** (0105 + 0106; `doctor.rs:1086` tests the carrier for a marker the shim never names; `:1203-1205` compares it to the gate template while canon installs the shim; `:1065`'s own doc comment states the assumption the check violates). Every shim estate reads RED on the one command everyone runs, and a partial fix leaves it red.
+- **TWO INSTRUMENTS AGREEING WAS THE TRAP TWICE** (intent-ic, intent-cc): a true premise ("names no guard runner") plus a stale pre-hop reading corroborated each other into "executes nothing", and it recruited the two nodes with the most standing to measure it. `--where` takes one second.
+- **A CONTROL VALIDATES THE AXIS IT TESTS AND IS SILENT ABOUT THE ONE NEXT DOOR** (conflab-cc, then intent-cc, then conflab-vc, each in their own instrument within an hour): the prose probe's sentinels proved present-vs-absent and said nothing about normalisation symmetry -- 53 false losses; the WP counter's positive control passed on the thread whose column width it was tuned to. Filed as 0102.
+- **A VALUE RETYPED OUT OF AN INSTRUMENT IS A SECOND HOME FOR THE FACT; A SECOND NOTATION DERIVED FROM ONE CALL IS NOT** (intent-dc): `751` beside `-rwx--x--x`, `11` failures beside a self-test that says 14, a 9/9 in a HIGH issue's table where three counters say 6/4. Print both notations from one read.
+- **THE SHARED INDEX, AGAIN**: intent-dc's evidence fold to 0105 rode into a peer's commit titled "correct the gate row" (`1104d7e8`) -- nothing lost, a commit claiming content its message never describes, recorded forward in `1d1e0f4f`. `add && commit --only && reset` is the standing form; the reset is what keeps the index honest under a staging hook (intent-ic measured it).
+- **THE AUTHORITY CHAIN TRANSMITS THE METHOD IT IS MEANT TO FENCE** (devbin-vc + devbin-cc, jointly): a node that must direct another's unit cannot be blind to it; pre-registration bounds only what was predicted; the whiteboard has no information barrier and every mechanism it has is a broadcast. Held for hv as a protocol question, not built.
+- **A RELAYED AUTHORISATION IS NOT ONE, AND IT COST TWO HOURS** (all four conflab nodes, correctly): each session needed hv's yes in its own terminal; the chain stalled on that, not on work, until hv routed Phase 0 through conflab-vc. The rule held under exactly the pressure it was written for -- the first relay today that would have STARTED something irreversible.
+- **vc's OWN**: a cost put to hv ("Conflab is debug-linked") was dc's finding from the previous morning, expired within the day and carried; corrected on hv's board in place. "Only that view changes" announced a `--to-disk` whose reach is the whole extract (intent-ic). A Phase 4 spec ("expect 123 in all three places") would have read every dehydrated thread as data loss (intent-ic). A "cold clippy, minutes" warning was inverted -- no `.rs` is staged by a hop, the gate returns early (intent-dc).
 
 ## 2026-08-27, THE HANDOVER MORNING -- FOLDED TO WHAT IS NOT RECORDED ELSEWHERE
 
