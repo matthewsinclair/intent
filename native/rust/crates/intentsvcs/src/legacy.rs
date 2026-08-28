@@ -917,6 +917,28 @@ fn thread_status(raw: &str) -> Option<ThreadStatus> {
     "notstarted" | "tbc" | "tobecommenced" => Some(ThreadStatus::NotStarted),
     "completed" | "complete" | "done" => Some(ThreadStatus::Completed),
     "cancelled" | "canceled" => Some(ThreadStatus::Cancelled),
+    // **THE THREAD TWIN OF THE WORK-PACKAGE ARM ABOVE, AND IT IS THE ARM THAT
+    // WAS ACTUALLY BLOCKING AN ESTATE.** hv's ruling, 2026-08-28 14:54Z,
+    // relayed by vc: a v2 thread recorded `Superseded` is terminal, and
+    // `Cancelled` is the nearest of the variants v3 has.
+    //
+    // **The two arms differ in COST, which is why this one waited for its own
+    // ruling.** An unmappable WORK PACKAGE status carries -- the row converts
+    // and records a finding. An unmappable THREAD status calls `out.block`, so
+    // `Superseded` did not degrade Laksa's migration, it REFUSED it: the
+    // estate could not convert at all while any thread carried the token. The
+    // work-package arm landed first (`4479264f`) with the thread arm
+    // deliberately untouched, because a status that blocks is not a status to
+    // map on a builder's judgement.
+    //
+    // **THE ACCEPTED COST IS THE SAME ONE, AND IS NAMED HERE RATHER THAN
+    // DISCOVERED LATER: the source spelling stops being recoverable.** As an
+    // unmappable value it produced an `UnknownStatus` finding that at least
+    // recorded what v2 said; as a mapped one it produces none, and the thread
+    // reads `cancelled` with nothing anywhere to say it read `Superseded`.
+    // That is what the structural `status_legacy` mirror exists to fix, and it
+    // is sequenced into its own window rather than smuggled in here.
+    "superseded" => Some(ThreadStatus::Cancelled),
     "onhold" | "hold" => Some(ThreadStatus::Hold),
     _ => None,
   }

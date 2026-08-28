@@ -54,8 +54,13 @@
 //! working trees, 2026-08-17, 715 threads). **ABSENT: zero** -- every fleet
 //! thread carries a `status:` line, so the rewording corrects no live estate
 //! and is not claimed to. **UNREADABLE: two** -- `SUPERSEDED` in Laksa and
-//! `DESCOPED` in Lamplight, and Laksa's is the single finding that blocks its
-//! whole migration today.
+//! `DESCOPED` in Lamplight.
+//!
+//! **`SUPERSEDED` STOPPED BEING ONE OF THEM ON 2026-08-28**, when hv ruled it
+//! terminal and it entered the thread vocabulary; the sentence here used to say
+//! Laksa's was the single finding blocking its whole migration, and that is no
+//! longer true. **`DESCOPED` has had no ruling and still blocks**, which is
+//! what the control below holds: the vocabulary was widened, not opened.
 //!
 //! **So the arm being reworded is the one nobody can reach, and the arm that IS
 //! reached is what makes the pair worth having.** Both land on the same
@@ -368,4 +373,66 @@ fn an_unclassifiable_thread_does_not_carry_the_rows_underneath_it() {
       scan.carried
     );
   }
+}
+
+/// **A `Superseded` THREAD converts as cancelled instead of refusing the
+/// estate.** hv's ruling, 2026-08-28 14:54Z, relayed by vc -- the thread twin
+/// of the work-package arm landed earlier the same day.
+///
+/// **The two arms were never the same size, which is why they were ruled
+/// separately.** An unmappable WORK PACKAGE status carries: the row converts
+/// and a finding records what v2 said. An unmappable THREAD status calls
+/// `out.block`, so Laksa's single `SUPERSEDED` did not degrade its migration,
+/// it REFUSED it -- the estate could not convert at all.
+///
+/// The `blocking` assertion is the whole point of the arm. Asserting only that
+/// the status resolves to `Cancelled` would pass on a build that mapped the
+/// token AND still blocked, which is the state that leaves the estate exactly
+/// where it was.
+#[test]
+fn a_superseded_thread_is_cancelled_rather_than_refusing_the_estate() {
+  let fixture = Fixture::new();
+  estate(&fixture, &thread_at("SUPERSEDED"), "status: Done\n");
+  let scan = scan(&fixture);
+
+  assert!(
+    !scan
+      .residue
+      .iter()
+      .any(|f| f.class == FindingClass::UnknownStatus),
+    "`SUPERSEDED` is in the thread vocabulary now, so it must raise no unknown-status finding: {:?}",
+    scan.residue
+  );
+  assert_eq!(
+    scan.threads.len(),
+    1,
+    "the estate must convert at all -- this arm BLOCKS, so a wrong answer here is zero threads"
+  );
+  assert_eq!(
+    scan.threads[0].status,
+    ThreadStatus::Cancelled,
+    "hv ruled `Superseded` terminal, and `Cancelled` is the nearest variant v3 has"
+  );
+}
+
+/// **The control for the arm above: the vocabulary was WIDENED, not opened.**
+///
+/// Without this, `a_superseded_thread_is_cancelled_rather_than_refusing_the_estate`
+/// passes on a build that stopped blocking on ANY unreadable thread status --
+/// which would convert Lamplight's `DESCOPED` silently, as something nobody
+/// ruled on, and is the exact failure the blocking arm exists to prevent.
+#[test]
+fn a_thread_status_nobody_ruled_on_still_refuses_the_estate() {
+  let fixture = Fixture::new();
+  estate(&fixture, &thread_at("DESCOPED"), "status: Done\n");
+  let scan = scan(&fixture);
+
+  assert!(
+    scan
+      .residue
+      .iter()
+      .any(|f| f.class == FindingClass::UnknownStatus),
+    "`DESCOPED` has had no ruling, so it must still block rather than be guessed at: {:?}",
+    scan.residue
+  );
 }
