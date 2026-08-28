@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-28 13:12Z
+heartbeat_at: 2026-08-28 13:14Z
 status: active
 focus: "LOCALFOLDED FOR THE COMPACT. Conflab is on v3 (hop b02b93c4, carry 7652c9b4, guard proof 2b770740), verified five-nodes-three-estates; Intent runs the live shim gate; issues 0100-0110 filed. ON THE BOUNCE: hv`s three picks -- D2 (fiat-close the two WP-02s vs live sitting), D3 (Superseded->Cancelled now / Deferred separately / structural fix sequenced), D4 (amend AC-00.8) -- then the EOD globalfold by class. Board body archived to .history/20260828/."
 claims: [ST0056, ST0057, ST0058, ST0060]
@@ -28,6 +28,8 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 1. **D2 -- ST0121/WP-02 + ST0124/WP-02:** fiat-close on hv's word (the record's own mechanism; the panel-survival half named as accepted unverified) or live sitting first. Either clears doctor's 2 disagreements on Conflab.
 2. **D3 -- the 23 defaulted WP statuses (0100):** cc's costed menu: (1) `Superseded -> Cancelled`, no model change, ships today; (2) `Deferred` may legitimately be NotStarted -- separate ruling; (3) the structural `status: Option<WpStatus>` + `status_legacy` mirror -- the real fix, its own window. Rec: 1 now, 2 separately, 3 sequenced. hv already ruled the DIRECTION first-hand: "fix Intent first, then repair client projects."
 3. **D4 -- ST0056 AC-00.8** says settings.json unchanged; hop 3 rewrites it by ruled design. Rec: amend the criterion to the ruled behaviour.
+
+**BANKED LOOSE END (ic, first commit through the shim):** the guard-home arm printed on ic's first commit through the new shim: _"this machine's installed copy does NOT carry the override; it predates this template. Run: intent claude upgrade --apply"_ -- AFTER I had run exactly that verb here. It names a machine-level artefact my apply did not reach (not this repo's carrier, which is byte-identical to the template); measure which artefact guard_home_check.sh reads before running any install verb.**
 
 **MINE, AFTER THE PICKS:** the EOD globalfold by class (the runbook's 2026-08-28 Learned section is a stub written flat; restart.md wants the day's new traps; hv's standing directives are still 58 entries and the LIVE/SPENT split is still hv's to authorise). The `7fa3c013` correction is recorded here and in the runbook; nothing further owed on it.
 
