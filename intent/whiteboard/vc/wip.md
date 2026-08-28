@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-28 12:49Z
+heartbeat_at: 2026-08-28 13:12Z
 status: active
-focus: "CONFLAB IS ON v3 -- hop `b02b93c4` + carry `7652c9b4`, Phase 4 closed by a two-arm guard control on the live hook (refused without Z, committed with Z). Rule 2 lifted; rules 3 and 4 stand. Port ledger closed in intent/wip.md and the runbook; Learned stub for the 28th written, fold by class owed at EOD. Open with hv: Intent`s own carrier (still the Aug-21 copy), the post-hoist list. Pair b4d63b44 sha256 1dd65db8, current."
+focus: "LOCALFOLDED FOR THE COMPACT. Conflab is on v3 (hop b02b93c4, carry 7652c9b4, guard proof 2b770740), verified five-nodes-three-estates; Intent runs the live shim gate; issues 0100-0110 filed. ON THE BOUNCE: hv`s three picks -- D2 (fiat-close the two WP-02s vs live sitting), D3 (Superseded->Cancelled now / Deferred separately / structural fix sequenced), D4 (amend AC-00.8) -- then the EOD globalfold by class. Board body archived to .history/20260828/."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
@@ -15,32 +15,23 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 
 ## DOING
 
-**NOTHING IN FLIGHT. hv's ROLLOUT IS DELIVERED AND SIX OF THEIR RULINGS ARE EXECUTED.** Pair `d395a5b5`, CURRENT by property, verified green **at the commit it names** rather than at HEAD (ic: 1374 passed, 0 failed). Two build windows, 54s and 69s, one node building, peers told before and after by properties.
+**NOTHING IN FLIGHT. THE CONFLAB HOIST IS DONE AND VERIFIED; holding for hv's three picks on the bounce.** Today, under hv's authority chain (hv -> intent-vc -> {intent-_, devbin-vc -> devbin-_, conflab-vc -> conflab-*}): Conflab hoisted to v3 -- migration `b02b93c4` (170 files, one commit, through its own gate), prose carry `7652c9b4` (four `acceptance.v2.md` byte-identical to the rollback blobs at `cd09d711`), guard proof `2b770740` (arm 1 REFUSED a Z-less stamp naming check B; arm 2 committed a real read). Verified by five nodes / three estates: census 123/531/133/141 matched exactly; whole-tree manifest deleted 0, every bucketed file byte-identical; zero authored loss after the carry; nothing written outside the project; doctor restored (1414 files from 0); second upgrade idempotent; binary `1dd65db8` unchanged end to end. **Method that made it safe: a FULL rsync copy incl. `.git/` rehearsed the whole hop first under a seeded decoy HOME, and its changed-path set was the real hop's STOP condition (matched, 39 vs 40, the delta being the now-ignored `events.jsonl`).**
 
-**THE HEADLINE IS STILL A NEGATIVE: the sweep hv reserved does not exist.** No v3 code path wrote `pre-commit.intent`; (B) built that capability into `apply` (`f8a78e05` + `22a75509`), ratified by hv as the right shape. **devbin-vc's framing is what made the menu decidable: the guard BODIES move with no ceremony available, the CARRIER cannot move at all, and both halves are one asymmetry.**
+**ALSO EXECUTED ON hv's WORD:** `steel_threads.md` regenerated (doctor 0 on Intent, `7d57fa9c`); the shim carrier installed on Intent's own tree (`intent claude upgrade --apply`; carrier now byte-identical to the template, `--where` OK; commits pass through the live gate). **CORRECTION FORWARD: `7fa3c013` is an EMPTY commit whose message claims content** -- the carrier is gitignored, and prettier collapsed the renderer's 12 blank AGENTS.md lines inside the commit window (the oscillation is now issue 0110, reproduced by cc in isolation).
 
-**LANDED TONIGHT:** porter's BOTH citation defects (`e935734d` + `eff618e8`), tolerance 0 (`3463f784`), the third stamp surface (`27b13f93`), AC-11.6 with a pty harness the estate never had (`102af78f`), AC-14.7 as one transaction (`05222011`), the `--to-disk` remedy AND its false premise (`04bc607f`), `--severity` enforcement (`8174de80`), doctor's gate check (`3805f359` + `41c3e3f1`), the doc gate (`6c380e09`), (A2)'s body **inert** (`3b0063f3`), the schema faces (`51c9721e`, `3df927f4`).
-
-**MY OWN ERRORS ARE ON THIS BOARD WITH THE DELIVERIES, because the count matters more than any one:** a tolerance ruling I had told devbin-vc I would not make, which they escalated correctly; two Laksa claims damaged in relay; a peer's narrow green restated as a claim about the tree; a denominator from the wrong arm **while correcting an error of that kind**; a hypothesis built on a failure message that named a cause it could not observe; a positive control that failed twice; a generosity that retired a finding before it was understood; a stale "hv is AFK" repeated to five estates; a hold I ruled without giving it any mechanism; **and a relay to cc that widened a measurement's scope AND its timing at once.**
+**ISSUES FILED TODAY: 0100-0106, 0109, 0110** (0107/0108 closed into 0105); 0077 closed on expired premise, 0100's premise corrected by its author.
 
 ## OPEN
 
-**WAITING ON A NODE, NOT ON hv:**
+**WITH hv, ON THE BOUNCE -- the three picks:**
 
-1. **`main` IS RED** -- dc's `3b0063f3` trips `every_shipped_consumer_is_declared` (`hooks/critic-guard.sh -> intent critic, not declared in CONSUMERS`). **One line, dc's, and it blocks the next rebuild rather than anything live.** The delivered pair is unaffected.
-2. **cc's BOOTSTRAP GUARD** -- ic proved an ordinary `cargo test` of the crate pair WROTE `$HOME/.intent/home`; cc fixed the writer at `9c2ba9ed` and is making the class unreachable at authoring time. **hv repointed the pointer; verified `state: OK` rc=0 with a negative control.**
-3. **THE (A2) ROSTER LINE** -- string agreed (`rule violations in staged code are UNCHECKED`), waits on (B) reaching estates so the critic does not run twice. **dc announces to the fleet BEFORE committing it; that is part of hv's ruling, not dc's intention.**
-4. **`st list` SHOWS THE TITLE** -- hv's ruling, and it is the SMALL version after they overruled my spec. **The title is the SSOT; the slug is a derived, URI-friendly rendering of it, not stored data.** Step 1 tonight is one render change: today `slug` is the table's ONLY descriptive column, which is why ST0001-ST0021 render blank and the other 43 read as truncated noise. Step 2 is a `--slug` option that GENERATES from the title. **No backfill, no stored slugs, no migration.** The 43 existing stored slugs are now vestigial -- flagged, deliberately not ripped out tonight.
+1. **D2 -- ST0121/WP-02 + ST0124/WP-02:** fiat-close on hv's word (the record's own mechanism; the panel-survival half named as accepted unverified) or live sitting first. Either clears doctor's 2 disagreements on Conflab.
+2. **D3 -- the 23 defaulted WP statuses (0100):** cc's costed menu: (1) `Superseded -> Cancelled`, no model change, ships today; (2) `Deferred` may legitimately be NotStarted -- separate ruling; (3) the structural `status: Option<WpStatus>` + `status_legacy` mirror -- the real fix, its own window. Rec: 1 now, 2 separately, 3 sequenced. hv already ruled the DIRECTION first-hand: "fix Intent first, then repair client projects."
+3. **D4 -- ST0056 AC-00.8** says settings.json unchanged; hop 3 rewrites it by ruled design. Rec: amend the criterion to the ruled behaviour.
 
-**WITH hv:**
+**MINE, AFTER THE PICKS:** the EOD globalfold by class (the runbook's 2026-08-28 Learned section is a stub written flat; restart.md wants the day's new traps; hv's standing directives are still 58 entries and the LIVE/SPENT split is still hv's to authorise). The `7fa3c013` correction is recorded here and in the runbook; nothing further owed on it.
 
-5. **THE LAMPLIGHT RE-RUN.** Criterion now arithmetically complete: **12 + 30 + 32 = 74 is the WHOLE broken population** -- so **exactly those 74 to zero, split three ways, never the 62.** hv saw it live and said wait, which is a LIVE non-release rather than a stale one.
-6. **CONFLAB'S SEVEN ST0121 RESIDUE ROWS** -- `intent ingest` refused the migration. Repairing them is hv's, complicated by the remedy naming v2 tooling not installed there.
-7. **`publish_home` REFUSING A TEMP ROOT** -- cc is asking hv at source. Cost: `install.rs`'s fixture arms publish temp roots legitimately.
-8. **THE VACUOUS GATE** -- a `doctor` remedy offering two exits without discriminating them. **An empty contract is refused outright, so the hole is thin-but-nonempty.** Intent shows 0 findings, so nothing here to mis-remedy.
-9. **`wp new` writes canon and no file; `wp done` leaves an existing file untouched** -- two representations, one writer. And `project.json` is TWO different files across estates, not one question.
-
-**THE DAY'S FINDINGS AND THEIR ATTRIBUTION LIVE IN `cutover-runbook.md`. It is 337KB and is the next thing to fold; this board is not its index.**
+**STANDING (pre-hoist, unchanged):** the Lamplight re-run criterion -- exactly 74 = 12 + 30 + 32 to zero, never the aggregate 62; `publish_home` refusing a temp root (cc asked hv at source); the vacuous doctor gate remedy; `wp new` writes no objective; hv's parked D6 set (info barrier, issues-verbs SSOT, devbin vendor spread -- "a devbin problem that I will fix with devbin next").
 
 ## Watch-outs
 
@@ -76,6 +67,16 @@ claims: [ST0056, ST0057, ST0058, ST0060]
 **13. CANON IS THE SSOT FOR ROWS, NOT FOR PROSE.** The store's refusal is the oracle. **The tail after a verdict token is OPAQUE.** "Not on disk" is not "not in canon", and only one is a defect. **`sync --to-disk` writes the STORE OVER the extract, so a hand edit to canon is silently reverted by the very command run to publish it** -- edit the extract, `sync --to-store`, then `--to-disk`.
 
 **14. READING THE WRITE-UP OF A CLASS IS NOT PROTECTION FROM IT. THE REMEDY IS NEVER CARE.** Every rule above was written by someone who then committed its instance, several of them me, several the same day.
+
+**15. A CONSTANT METRIC GUARDS NOTHING.** "0 guard terms in the carrier" read 0 before the fix and after it -- the carrier is a locator; the roster is a layer down. A prediction watched by a metric that cannot move is unfalsifiable, and it sat for weeks looking guarded. Corollary, both directions in one day: **`guards: N ran` proves REACH, never BITE; only a refused commit proves bite** -- and a control validates the axis it tests while staying silent about the one next door (three instruments, one hour, three nodes).
+
+**16. TWO SOURCES AGREEING IS NOT CORROBORATION WHEN ONE IS STALE OR BLIND.** A true premise ("names no guard runner") plus a pre-hop reading of a file replaced an hour earlier corroborated each other into "executes nothing" -- and recruited the two nodes with the most standing to know better. The agreement was the trap; `--where` took one second.
+
+**17. A SECOND NOTATION TYPED FROM A FIRST IS A SECOND HOME FOR THE FACT; A SECOND NOTATION DERIVED FROM ONE READ IS NOT** (intent-dc). 751 beside -rwx--x--x, 11 beside a self-test that says 14, 9/9 in a HIGH issue where three counters say 6/4. Print both notations from one call; never retype.
+
+**18. THE RENDERER AND THE FORMATTER ARE TWO WRITERS OF ONE FILE, AND A VERB BETWEEN THEM CANNOT CONVERGE** (0110). Canon emits spacing prettier rejects: apply 6211 -> prettier 6208 -> apply 6211, forever; `written:` stops meaning anything for that file, a clean state is unobservable, and a commit in the window nets EMPTY while its message claims content (`7fa3c013`). The fix is the renderer, never a formatter exception -- an exception trades a loud defect for a quiet one.
+
+**19. AN AUTHORITY CHAIN TRANSMITS THE METHOD IT WAS BUILT TO FENCE** (devbin-vc + devbin-cc, jointly, held for hv). A node that must direct another's unit cannot be blind to it; pickup instructs peers to read the very header blocks that carry method; pre-registration bounds only what was predicted -- and not fully even that (a confirmed prediction is where nobody re-reads the reasoning). Every mechanism the whiteboard has is a broadcast.
 
 ## Decisions
 
