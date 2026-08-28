@@ -55,7 +55,23 @@ Top three are 59% of it. Against Cherny's rule for the one file he discusses -- 
 
 **Driven, not inferred.** A fresh `intent init` in a scratch dir: **`intent/llm/MODULES.md` ABSENT**, and that same fresh project's generated **`CLAUDE.md:21` still says "Highlander registry; check before creating new modules."**
 
-**Four documents still issue the instruction; three ship to every project:**
+**TWENTY mentions across TWELVE files still issue the instruction.** This count was wrong in the first version of this catalogue -- I grepped `llm/MODULES.md`, which is path-qualified, and **most references are the bare `MODULES.md`**, so I reported four when there were twenty. Positive-controlled after correction: the old pattern returns 0 on a bare mention, the new one returns 1. **The same failure class as the rest of this document -- a pattern fitted to one surface form -- committed while cataloguing it.**
+
+| File                                                  | mentions |
+| ----------------------------------------------------- | -------- |
+| `in-plan` SKILL.md                                    | 4        |
+| `lib/templates/prime/operational-knowledge.md`        | 3        |
+| `lib/templates/llm/_DECISION_TREE.md`                 | 3        |
+| `in-standards` SKILL.md                               | 2        |
+| `_CLAUDE.md`, `_AGENTS.md`, `_ARCHETYPES.md`          | 1 each   |
+| `lib/templates/hooks/module_check_hook.json`          | 1        |
+| `lib/templates/archetypes/elixir/service.ex.eex`      | 1        |
+| `lib/templates/archetypes/elixir/ash_resource.ex.eex` | 1        |
+| `in-start` SKILL.md, `in-review` SKILL.md             | 1 each   |
+
+**It reaches the generated CODE.** `_ARCHETYPES.md` states that its templates "include 'Check MODULES.md' reminders" -- literally true, and it means **every module generated from an archetype carries a comment pointing at a registry `init` refuses to create.**
+
+The four highest-reach sites remain:
 
 | Site                                                  | Reaches                                 |
 | ----------------------------------------------------- | --------------------------------------- |

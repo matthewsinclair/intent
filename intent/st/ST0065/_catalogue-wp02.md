@@ -25,7 +25,7 @@
 
 **Why it is a defect and not merely redundant.** The canon mandates one session entry point: `CLAUDE.md` says _"Run `/in-session` immediately after session start and after every `/compact` or context reset"_, and the `UserPromptSubmit` gate enforces it by blocking the first prompt. `in-start` is a **second, unenforced, competing** answer to the same question, and nothing chains to it.
 
-**It also carries stale content the retirement did not reach.** Its step 2 -- "Read project rules: `CLAUDE.md`, `intent/llm/MODULES.md`, `intent/llm/DECISION_TREE.md`" -- is **verbatim `in-standards` step 1**, including the retired MODULES.md. That makes it instruction site #5 for a file `init` refuses to create (WP-01 finding 2).
+**It also carries stale content the retirement did not reach.** Its step 2 -- "Read project rules: `CLAUDE.md`, `intent/llm/MODULES.md`, `intent/llm/DECISION_TREE.md`" -- is **verbatim `in-standards` step 1**, including the retired MODULES.md. That makes it one of twenty instruction sites for a file `init` refuses to create (WP-01 finding 2).
 
 **Verdict: RETIRE.** Its orientation content is either already in `/in-session` (which reads languages, loads skills, releases the gate, chains whiteboard pickup) or is the model's default behaviour. Two session-start skills is a Highlander violation in the workflow the project most wants to be deterministic.
 
@@ -59,7 +59,9 @@ WP-01 finding 2 counted documentation sites. The sweep found the class extends f
 
 **Both clauses are false on a project created seconds earlier by `intent init`.** The canon stopped laying it down on 2026-08-24 (`NotByInit`, "a hand-maintained index of a tree the store already indexes"), and the project predates nothing -- `intent upgrade` will not create it either, for the same reason. The remedy routes an operator to a command that cannot help, and it names the canon as the authority for a behaviour the canon deliberately ended.
 
-**Verdict: CORRECT.** One remedy string, plus the five instruction sites. The verbs' rc=1 is not a defect -- **noting that explicitly so nobody "fixes" it.**
+**COUNT CORRECTED.** The table above lists the sites I found with a path-qualified grep (`llm/MODULES.md`). Re-measured with the bare pattern: **20 mentions across 12 files**, including 4 in `in-plan`, 3 in `lib/templates/prime/operational-knowledge.md`, 1 in `in-review`, and **1 each in two Elixir archetype templates -- so generated modules carry the reminder too.** See WP-01 finding 2 for the full table and for the note on how the first count went wrong.
+
+**Verdict: CORRECT.** One remedy string, plus twenty instruction sites. The verbs' rc=1 is not a defect -- **noting that explicitly so nobody "fixes" it.**
 
 ---
 
