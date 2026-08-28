@@ -6,6 +6,8 @@ This is the primary tool-agnostic config file for AI coding agents working on th
 
 Intent -- an Intent project. See `CLAUDE.md` for the Claude-specific overlay.
 
+**Run `intent llm guide` before you start.** It prints the agent guide for the exact build you are standing on: every command this build ships, what each one is for, whether it reads or mutates, and whether it can be undone. It is generated from the tool rather than maintained by hand, so it cannot describe a command that is not there or omit one that is -- which is the failure a written command reference has whenever the tool moves and the document does not.
+
 ## Development Environment
 
 ### Prerequisites

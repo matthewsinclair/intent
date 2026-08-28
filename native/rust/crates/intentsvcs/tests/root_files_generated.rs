@@ -418,3 +418,48 @@ fn a_second_sync_with_the_same_bytes_does_not_move_the_mtime() {
      above proves nothing"
   );
 }
+
+/// **ST0067 AC-00.4: the LLM discovery loop was open at both ends.**
+///
+/// The agent guide's tail told the reader to read `AGENTS.md`, and `AGENTS.md`
+/// named no way to reach the guide -- so an arriving agent that started at
+/// either document could not find the other. This closes the AGENTS.md end.
+///
+/// **Asserted over EVERY language set, because the pointer must not live inside
+/// a conditional block.** A `[[#lang]]` section carrying it would route Rust
+/// projects to the guide and leave an Elixir project with nothing, and the two
+/// renders would both look correct read on their own.
+///
+/// **This is a check on the TEMPLATE, not on the guide.** Whether the command
+/// it names works is `llm_serves_the_guide_and_the_rules`'s job; a pointer to a
+/// refusing command would satisfy this test and fail that one, which is the
+/// division that keeps each honest.
+#[test]
+fn every_project_is_routed_to_the_agent_guide_whatever_it_declares() {
+  let home = repo_root();
+
+  for languages in [
+    &[][..],
+    &["rust"][..],
+    &["elixir"][..],
+    &["shell", "author"][..],
+  ] {
+    let text = rootfiles::render(&home, "AGENTS.md", &config(languages), &ctx())
+      .unwrap_or_else(|e| panic!("{languages:?} renders: {e:?}"));
+
+    assert!(
+      text.contains("intent llm guide"),
+      "a project declaring {languages:?} was given no route to the agent guide"
+    );
+  }
+
+  // **THE CONTROL: the pointer must not be a lucky substring of something
+  // else.** Without this the arms above pass on a template that merely
+  // mentions the words somewhere, rather than telling the reader to run it.
+  let rendered = rootfiles::render(&home, "AGENTS.md", &config(&["rust"]), &ctx())
+    .expect("the rust project renders");
+  assert!(
+    rendered.contains("Run `intent llm guide`"),
+    "the route must be an instruction to run the command, not an incidental mention"
+  );
+}
