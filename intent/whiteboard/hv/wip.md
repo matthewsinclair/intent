@@ -11,6 +11,19 @@ claims: []
 
 # Hypervisor (hv)
 
+### 2026-08-28 09:09Z -- THE CONFLAB HOIST: hv's DIRECTIVE AND FOUR GRANTS, first-hand in vc's session
+
+_*hv's words, verbatim, given to every intent-*, devbin-* and conflab-* session this morning:_* _"Ok, the very first job today, across the entire estate is to get Conflab onto Intent v3. Everyone (that means the Claude Code sessions: intent-*, devbin-*, and conflab-\*) is going to be dedicated to hoisting ../Conflab onto Intent v3. This should have happened *days* ago. But whatever, it's happening now. intent-vc is going to coordinate the work. The rest of the Claudes are going to follow instructions."_
+
+**vc put four questions with the plan; hv answered each first-hand, in vc's session:**
+
+1. Commit authority on Conflab `main` today -- ~5 pre-flight commits plus ONE migration commit, NO push -- **"Granted"**.
+2. Scope is hop 2 (`intent upgrade`) + hop 3 (`claude upgrade --apply` x2) + verify + commit; bucket carry (WP-13), dehydration and collapse are NOT today and return as a separate menu -- **"Ok"**.
+3. Rollback (`git checkout . && git clean -fd && rm -rf intent/.cache`, to the recorded pre-hop sha) runs on vc's word with hv informed at once -- **"Yep"**. The menu offered hv's word as the alternative; hv took vc's.
+4. Conflab's `.claude/settings.json`, `CLAUDE.md`, `AGENTS.md` are rewritten to canon; content outside the user markers is hand-carried and written up HAND-FINISHED -- **"Hell, yes."** Then **"Go"**.
+
+**Standing for the day, vc's rules under this grant, not hv's word:** Conflab read-only except the node named for a step; nobody builds in the Intent tree and a build VOIDS the pre-flight rather than delaying it; every commit is `git add <paths> && git commit --only <paths> && git reset -q -- <paths>` (intent-ic measured the staging hook leaving a stale index entry without the reset); hop 1 (v2 `upgrade`) MUST NOT run -- Conflab is at the 2.19.0 floor and hop 1 rewrites the fleet's shared skills at rc 0.
+
 ### 2026-08-25 22:50Z -- two rulings, first-hand in vc's session
 
 **Both menus recorded in full. An option never on the menu cannot be told apart from one declined.**

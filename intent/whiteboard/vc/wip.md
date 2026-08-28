@@ -2,10 +2,10 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: 699601ed-7e13-4808-bb6c-e6a79d27c56e
-heartbeat_at: 2026-08-27 22:45Z
+session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
+heartbeat_at: 2026-08-28 09:09Z
 status: active
-focus: "EOD, HOLDING, START NOTHING. All four nodes folded and clean; pair `d395a5b5` current-but-8-inputs-stale and a rebuild is owed with a green check I could not get once ic and dc had compacted. Globalfold done: runbook 337KB to 41.6KB, and it caught two documents asserting finished work as pending -- restart.md`s top hazard and the port ledger. hv`s standing directives (70KB, 58 entries, mostly spent) are NOT folded: they are hv`s word and the LIVE/SPENT split is theirs to authorise."
+focus: "COORDINATING THE CONFLAB v3 HOIST on hv`s word -- all four grants recorded on hv`s board. Phase 0 (rollback point) dispatched to conflab-dc/cc/vc/ic in that order; Phase 1 (full-copy rehearsal: intent-dc; whole-tree accounting: intent-cc; census: conflab-cc) preparing; Phase 4 verifiers assigned (conflab-vc, intent-ic, devbin-cc, conflab-ic guard control, devbin-vc unprimed). The hop runs by conflab-cc alone on my GO HOP after hv reviews the rehearsal. Pair b4d63b44 sha256 1dd65db8; hop 1 MUST NOT run."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
