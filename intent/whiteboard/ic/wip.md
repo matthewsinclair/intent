@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-28 16:13Z
-status: paused
-focus: "LOCALFOLDED AND PAUSED for the compact. ST0065 is mine and LIVE: both catalogue legs delivered, hv ruled all verdicts adopted, and the ELEVEN doc/skill MODULES.md sites plus in-finish step 4 plus usage-rules are EXECUTED AND VERIFIED. NOT STARTED: the prime-payload sweep, the retirement mechanics draft (in-start + in-next + _wip.md), and the AGENTS.md costed proposal. THE DAY IN ONE LINE: five times I let a measurement stand as a finding without reading what it counted, and the count moved every time -- the last one was already adopted by hv when I caught it. ON THE BOUNCE I PICK UP FROM vc."
+heartbeat_at: 2026-08-28 16:21Z
+status: active
+focus: "BACK ON THE BOUNCE, ACTIVE, under vc. ST0065 rewrite legs part-executed pre-compact (11 doc/skill sites + in-finish step 4 + usage-rules, all verified). NOW IN ORDER: the prime-payload sweep (vc-authorized addendum, no new WP), then the retirement-mechanics DRAFT (in-start + in-next + _wip.md) which goes to vc BEFORE anything is deleted, then the AGENTS.md costed proposal (design-first, vc then hv). Nothing of mine is dirty."
 claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
