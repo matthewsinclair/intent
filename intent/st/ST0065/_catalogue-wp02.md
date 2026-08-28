@@ -2,7 +2,7 @@
 
 **Read-and-catalogue leg. NOTHING HAS BEEN EDITED.** Verdicts are recommendations to hv, per vc's assignment (14:32Z). Same vocabulary as WP-01: **keep** / **correct** / **retire** / **MISGUIDED**.
 
-**COVERAGE, STATED HONESTLY.** 25 skills. A mechanical sweep covers all 25 (verb resolution, load path, cross-references, duplication). A close read covers 12 -- the 8 auto-loaded into this session plus `in-start`, `in-next`, `in-tca-init` and `in-finish`. **The remaining 13 have been swept, not read**, and no verdict below is offered on a skill I have only swept.
+**COVERAGE, STATED HONESTLY.** 25 skills. A mechanical sweep covers all 25 (verb resolution, load path, chain integrity, script presence, cross-references, duplication). A close read covers 18 -- the 8 auto-loaded into this session plus `in-start`, `in-next`, `in-finish`, `in-plan`, `in-verify`, `in-debug`, `in-review`, `in-tca-init`, `in-autopsy` and `in-cost-analysis`. **The remaining 7 have been swept, not read** (`in-ash-ecto-essentials`, `in-detrope`, `in-phoenix-liveview`, and four of the five TCA skills), and no verdict below is offered on a skill I have only swept.
 
 ---
 
@@ -85,11 +85,37 @@ WP-01 finding 2 counted documentation sites. The sweep found the class extends f
 
 ---
 
+## 3c. `in-plan` is the densest MODULES.md site in the corpus. **CORRECT**
+
+**Four mentions -- more than any other file**, and they are load-bearing rather than incidental: step 2 _"check MODULES.md first"_ and _"register in MODULES.md first"_; step 5 _"Highlander Rule: No duplicated code paths. Check MODULES.md."_; and a Red Flags row answering _"I already know the codebase"_ with _"Check MODULES.md anyway. Memory drifts."_
+
+**The skill whose entire job is to be followed before any code is written is the densest site of the one instruction that cannot be followed.** On a fresh v3 project all four route to a file `init` refuses to create.
+
+**A second, smaller thing in the same skill.** Step 5 opens _"These rules apply to ALL languages (Elixir, Rust, Swift, Lua)"_, but step 4's list of skills to load offers only `/in-essentials` and four Elixir ones. A Rust or shell project following step 4 loads nothing for its own language -- which is correct, because no such essentials skill exists, but the skill does not say so and the adjacent sentence implies otherwise.
+
+**Verdict: CORRECT.** Both are text fixes, and `in-plan`'s plan-quality standards (no placeholders, specific file paths, small steps, verification per step) are good and should survive untouched.
+
+---
+
+## 3d. The workflow core is current and healthy. **KEEP, all four**
+
+Recorded because a review that only lists defects misrepresents the set.
+
+- **`in-verify`** -- the strongest skill in the corpus. Fresh evidence per claim, verification in the current message ("context compaction may have removed prior evidence"), and fully current with v3: red-first ATs via `intent at red` / `green`, the close-gate, and the enforced AT citation grammar.
+- **`in-finish`** -- see 3b. Current throughout; one instruction to fix.
+- **`in-debug`** -- four phases plus the 3-Strike Rule ("three failed fixes usually means you are solving the wrong problem"). Language-agnostic, nothing stale.
+- **`in-review`** -- current with the v3 language model: reads the `languages` array, dispatches per-language critics, handles prose disciplines and polyglot subtrees, honours `.intent_critic.yml`. Carries one MODULES.md mention in its agnostic checklist (part of the class above).
+
+---
+
 ## 4. Verified negative -- do not re-find these
 
 - **Every `intent` verb the skills instruct exists.** 30 distinct invocations extracted across all 25 SKILL.md files; all 30 resolve, top-level and subcommand, checked via `--help` rather than by driving mutating verbs. **The instrument was positive-controlled** -- an injected `intent frobnicate` fires it -- because a clean sweep from an untested checker is worth nothing.
 - **The TCA family is intact and costs no session budget.** 5 skills / 34747 bytes, all on-demand; `intent/docs/total-codebase-audit.md` (60008 bytes) present; all three scripts present. Live documented feature, not orphaned. **KEEP.**
 - **`Red Flags` tables in 15 of 25 skills** are a house convention, not duplication. No verdict.
+- **Every `chains_to` target resolves**, and every script and data file the skills reference is present. The TCA family chains as a coherent pipeline: `init -> audit -> synthesize -> remediate -> finish -> in-finish`.
+- **`in-cost-analysis` does NOT contradict the T-shirt-sizing rule.** It emits hours and rates, and `CLAUDE.md:77` bans clock-time estimates -- but that rule governs **sizing project work** (ST/WP scope), while this skill does **retrospective valuation of an existing codebase**. Different activities. **Recorded so the next reviewer does not file it**, because it looks like a conflict and is not one.
+- **`in-autopsy`'s Elixir dependency is disclosed.** Its implementation is `autopsy.exs` and would not run in a non-Elixir project; the skill says so at line 145 (_"requires Elixir to be installed"_). Handled, not a defect.
 
 ---
 
