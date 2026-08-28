@@ -1,9 +1,9 @@
 ---
 st_id: ST0067
 title: Build out 'intent llm' so that LLMs can work out how to work with Intent
-status: WIP
+status: Completed
 created: 2026-08-28
-completed:
+completed: 2026-08-28
 ---
 
 # ST0067: Build out 'intent llm' so that LLMs can work out how to work with Intent
