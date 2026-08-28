@@ -20,10 +20,10 @@ Primary source material is vendored in this thread at `_sources/`: the transcrip
 
 ## Work Packages
 
-| WP    | Title                                                                                                 | Size | Status      |
-| ----- | ----------------------------------------------------------------------------------------------------- | ---- | ----------- |
-| WP-01 | Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set                      | S    | WIP         |
-| WP-02 | Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided | S    | Not Started |
+| WP    | Title                                                                                                 | Size | Status |
+| ----- | ----------------------------------------------------------------------------------------------------- | ---- | ------ |
+| WP-01 | Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set                      | S    | WIP    |
+| WP-02 | Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided | S    | WIP    |
 
 ## Acceptance
 
