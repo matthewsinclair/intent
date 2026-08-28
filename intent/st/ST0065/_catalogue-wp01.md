@@ -169,7 +169,98 @@ The four highest-reach sites remain:
 | 5   | `_wip.md` -- placeholder skeleton + chat-era LLM section        | **RETIRE / MISGUIDED**                   |
 | 6   | `_RULES.md`, `_ARCHITECTURE.md`                                 | **KEEP**                                 |
 | 7   | `_ARCHETYPES.md`, `_DEPENDENCY_GRAPH.md`                        | keep as-is (latent, correctly unshipped) |
+| 8.1 | prime payload -- documents two flags the shipped binary refuses | **MISGUIDED**                            |
+| 8.2 | prime payload -- skills roster contradicts its own workflow     | **CORRECT**                              |
+| 8.3 | prime generator -- unconditional checklist re-issues MODULES.md | **MISGUIDED**                            |
+| 8.4 | prime generator -- `## Rules` extraction is silent dead code    | **MISGUIDED**                            |
+| 8.5 | two templates, two delivery paths (embedded vs read-from-disk)  | not a doc defect                         |
 
 **One theme runs through 1, 2 and 3, and it is the same defect three times: a canon document names a file or a rule, and the mechanism that would deliver it does not exist or was retired underneath it.** The canon describes a system that is one revision ahead of, or behind, the one that runs.
 
-**WP-02 (the 25 `/in-*` skills) is not started.** Note that `in-standards` is implicated in findings 2 and 3 and `in-whiteboard` is 30 KB of the 87 KB total, so WP-02 will carry the larger share of the context budget.
+**WP-02 (the 25 `/in-*` skills) is DELIVERED** at `_catalogue-wp02.md`, and the budget prediction held: `in-whiteboard` alone is 30 KB of the 87 KB, and `in-standards` was implicated in findings 2 and 3 as expected. **Section 8 below is a later addendum** -- the `intent claude prime` payload, authorised by vc as in-passing, no new WP.
+
+---
+
+## 8. ADDENDUM -- the `intent claude prime` payload. **MISGUIDED**
+
+vc authorised this as an in-passing addendum to WP-01, no new WP. It is here because it is the **third injected surface and nobody had audited it**: WP-01 costed what a session loads from canon and WP-02 costed the skills, and neither of them is what `intent claude prime` writes.
+
+### What the payload actually is
+
+Not one file, which is the first thing worth recording. `intent claude prime` is a **bash plugin** -- `intent/plugins/claude/bin/intent_claude_prime`, 253 lines -- and `prime` appears nowhere in the Rust crates. Its `build_memory()` assembles `MEMORY.md` from **seven sources**: the bundled template `lib/templates/prime/operational-knowledge.md`, `CLAUDE.md`'s `## Rules` section, `MODULES.md`, `DECISION_TREE.md`, `ARCHETYPES.md`, `intent/.config/learnings.md`, and a **hardcoded session checklist**. The output is written to `~/.claude/projects/<dashed-path>/memory/MEMORY.md`, which Claude Code auto-loads into **every conversation**.
+
+**So an error here is injected everywhere, permanently, without anyone invoking anything.** That is the reason this addendum ranks MISGUIDED rather than stale.
+
+### Instrument, and its control
+
+The template was swept **exhaustively rather than by hand**: all 43 backticked spans extracted mechanically, then each classified and driven. Hand-listing is the census that misses one, which is the day's class and also the stated design reason behind `flag_reachability.rs`.
+
+Both instruments were positive-controlled **two-sided before use**, not after: known-good verb `rc=0`, known-bad verb `rc=1`, known-bad flag on a good verb `rc=1`; known-good skill found, known-absent skill not found. A green from an instrument that has not been seen to fire is not evidence.
+
+### 8.1 The payload teaches two flags the shipped binary refuses. **MISGUIDED**
+
+`operational-knowledge.md:12` reads ``- `intent claude prime [--refresh] [--dry-run]` -- refresh this memory file``.
+
+Measured against the shipped v3 binary: **both return `rc=1`, `error: unexpected argument found`.** The verb itself resolves; the flags do not exist on it.
+
+This is not drift that someone forgot to ratify. `surface/dispatch-table.json` declares `claude prime` with **`"flags": []`**, disposition `keep` -- **dropping the three flags was the ratified v3 decision**, so the payload is the half that is out of step.
+
+**Why nothing caught it, and this is the load-bearing part.** `tests/unit/claude_prime.bats:22` asserts exactly this flag: _"claude prime --dry-run previews MEMORY.md without writing"_. It drives `run_intent`, which resolves `INTENT_BIN` to `bin/intent` -- **the v2 bash binary, where the flag genuinely works (`rc=0`)**. The test is green and **structurally cannot observe v3's refusal**. And `flag_reachability.rs` (AC-06.8) tests the _opposite_ direction -- every flag the surface DECLARES is READ -- so declared-but-inert is covered and **implemented-but-undeclared is not tested by anything**.
+
+A test passing about a binary nobody runs is the same class as a green from an uncontrolled instrument.
+
+### 8.2 The payload's skills roster contradicts its own workflow, four lines later. **CORRECT**
+
+Lines 18 and 21 list `/in-start` and `/in-next` -- **both retired by hv's 2026-08-28 ruling** -- and the roster **omits `/in-session` entirely**. Line 32 then names `/in-session` as step 1, _"the entry point, enforced by the `UserPromptSubmit` gate"_.
+
+So one 43-line file advertises a skill roster whose first entry is retired, and asserts the correct entry point four lines below without listing it. **My own partial edit at `ba3c3ec1` is half of this**: I corrected the workflow half and left the roster. Recorded rather than quietly repaired, because the deferral is deliberate -- **it resolves with the retirement-mechanics draft**, and I will not edit lines in files I am drafting the deletion of.
+
+### 8.3 The generator re-issues the retired instruction the template no longer carries. **MISGUIDED**
+
+`build_memory()` ends with an **unconditional** echo block -- no guard, no `[ -f ]` -- emitting:
+
+```
+- CLAUDE.md
+- intent/llm/MODULES.md
+- intent/llm/DECISION_TREE.md
+- intent/wip.md
+- intent/restart.md (if exists)
+```
+
+Measured on a real `intent init` in a clean directory: **`MODULES.md` ABSENT, `DECISION_TREE.md` PRESENT.** So the `MODULES.md` line is wrong today for every fresh project, and the `DECISION_TREE.md` line **becomes wrong the moment cc lands hv's gating ruling** -- it is correct now only because that ruling has not been executed yet.
+
+**This is finding 2's class exactly, one layer down.** The retirement reached the template because that is where the audit was aimed, and **the generator kept emitting the instruction underneath it**. A retirement retires its instructions, and a generator is an instruction.
+
+### 8.4 The "Project Rules" section is dead code, and it fails silently. **MISGUIDED**
+
+`build_memory()` extracts project rules with `sed -n '/^## Rules$/,/^## /{...}'` from `CLAUDE.md`.
+
+**No shipped `CLAUDE.md` has a `## Rules` heading.** The template's heading is `## Rules of the road`, and `/^## Rules$/` is anchored, so it cannot match.
+
+Measured, with a two-sided control: the script's exact sed yields **0 bytes** against both `lib/templates/llm/_CLAUDE.md` and this project's `CLAUDE.md`; the **same sed shape** aimed at `## Rules of the road` -- the heading that does exist -- yields **501 bytes**. The instrument works; the heading it names does not exist.
+
+The result is swallowed by `if [ -n "$rules" ]`: **no error, no warning, no empty section**. The payload promises project rules and delivers none, in silence. `IN-AG-NO-SILENT-001` in spirit.
+
+**Checked as a population, not assumed:** this is the _only_ extraction in the script naming a literal heading. The other four (`MODULES`, `DECISION_TREE`, `ARCHETYPES`, learnings) match generically and are sound.
+
+### 8.5 Two templates, two delivery paths -- and "landed" means different things. **NOT A DOC DEFECT**
+
+Recorded because it changes what today's ST0065 rewrite leg actually delivered, and because assuming one path would have been an overgeneralisation from one estate.
+
+Templates do **not** all reach a project the same way:
+
+- `lib/templates/llm/_CLAUDE.md` is **`include_str!`'d into the binary**. The shipped binary carries the **old** bytes and **zero** occurrences of my new wording, and a fresh `intent init` emitted the old file-map row. **That fix is source-only until the rebuild.**
+- `lib/templates/prime/operational-knowledge.md` is **not embedded** -- the bash plugin `cat`s it from disk at runtime. **That fix is live now.**
+
+So the ST0065 edits land per-file, not as a set, and the embedded half rides cc's rebuild batch. **"Eleven sites landed and verified" is true of the source; it is true of delivery only for the files that are not compiled in.**
+
+### 8.6 Verified negative -- do not re-find these
+
+- **All 22 verbs** named in the payload resolve against the shipped v3 binary (`st`/`wp` x5 each, `claude skills` x4, `claude subagents` x3, `plugin list`, `doctor`, `modules find`, `init`). Only the two flags in 8.1 fail.
+- **Every skill named exists on disk.** Existence is not currency -- `in-start` and `in-next` are retired by ruling and still present, pending the retirement draft.
+- `show_help()`'s _"Source files (all optional, skipped if missing)"_ is **accurate**; each of those five reads is genuinely `[ -f ]`-guarded. It is the hardcoded checklist in 8.3, not the documented source list, that is unconditional.
+- `compute_memory_path()` is correct: the dashed-path transform matches the real memory path in use.
+- The issue-0025 comment at the top (`resolve_project_root` before any read) is sound and load-bearing; leave it.
+- Line 42's conditional MODULES.md wording (landed `ba3c3ec1`) is correct as written.
+
+**Adjacent, and NOT mine:** the dispatch table records `"v2": "bin/intent claude arm"` for `claude prime`, and declares stdout as _"the primed memory content"_ while the implementation writes a file and prompts. Both are surface-declaration questions for the surface owner, not payload defects. Noted, not ruled on.
