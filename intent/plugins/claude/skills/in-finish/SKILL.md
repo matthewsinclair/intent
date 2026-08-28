@@ -51,10 +51,11 @@ Update `intent/restart.md` with:
 - Any decisions made or deferred
 - Pointers to relevant files and STs
 
-Rewrite `.claude/restart.md` with:
+`.claude/restart.md` is the ENTRY POINT and holds NO STATE. It says where to start and points at the two files above; it does not carry WIP, TODO, focus, or a summary of current work. Leave it alone unless the entry procedure itself changed.
 
-- WIP/TODO focus for Claude Code startup
-- Concise pointers to current work
+**This is a rule with a history.** These three files were three copies of one narrative, each opening with a banner declaring it superseded the others -- which is the tell that nobody was deleting, only prepending. They were folded back into one on 2026-08-24. **State written here is how that rebuilds**, because the same content then has three homes and three values, and nothing reports the divergence.
+
+**If you find yourself writing a supersedes banner, delete what it supersedes instead.**
 
 ### 5. File quality checks
 

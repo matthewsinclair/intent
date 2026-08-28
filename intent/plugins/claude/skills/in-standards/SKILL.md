@@ -10,9 +10,12 @@ Load coding discipline into context. Invoke at the start of coding or after any 
 
 ### 1. Re-read project rules
 
-- `CLAUDE.md` (project rules)
-- `intent/llm/MODULES.md` (module registry)
-- `intent/llm/DECISION_TREE.md` (code placement)
+- `CLAUDE.md` (project rules) -- always present.
+
+Two more are OPTIONAL and `intent init` creates neither. Read them only if the project has them; their absence is the normal case and is not a gap to fix:
+
+- `intent/llm/MODULES.md` (module registry) -- where a project keeps one, **search it, never read it**: `intent modules find <name>`. A mature registry runs to hundreds of kilobytes, so "check it first" is not an instruction anyone can follow by reading.
+- `intent/llm/DECISION_TREE.md` (code placement) -- laid down by `intent lang init elixir`, and Elixir/Phoenix-specific.
 
 ### 2. Load the agnostic rule pack
 
@@ -53,7 +56,7 @@ The agnostic rules are universal; the language-specific application lives in the
 
 | Rationalisation                                 | Reality                                                                       |
 | ----------------------------------------------- | ----------------------------------------------------------------------------- |
-| "This helper is only used once, it's OK."       | Check MODULES.md. Someone else may already own it.                            |
+| "This helper is only used once, it's OK."       | Search for an existing owner first; someone else may already have it.         |
 | "The coordinator needs this logic inline."      | See IN-AG-THIN-COORD-001. If it's not parse/call/render, extract it.          |
 | "Pattern matching is overkill here."            | See IN-AG-PFIC-001. Pattern matching is the default tool.                     |
 | "Rescuing and returning :ok is easier."         | See IN-AG-NO-SILENT-001. Easier now; invisible in prod.                       |

@@ -49,7 +49,7 @@ A mixed project (multiple entries in `languages`) dispatches to each critic whos
 
 Confirm no concretised-by rule is violated at the agnostic level:
 
-- [ ] `IN-AG-HIGHLANDER-001` — no duplicated code paths (check MODULES.md)
+- [ ] `IN-AG-HIGHLANDER-001` — no duplicated code paths (search for an existing owner; `intent modules find <name>` where the project keeps a registry)
 - [ ] `IN-AG-THIN-COORD-001` — coordinators parse → call → render
 - [ ] `IN-AG-PFIC-001` — pattern-match, pipe, tagged-tuple, compose idioms in play
 - [ ] `IN-AG-NO-SILENT-001` — no rescue-and-swallow, no discarded fallible results

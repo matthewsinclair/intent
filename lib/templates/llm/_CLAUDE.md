@@ -18,7 +18,7 @@ When `.claude/settings.json` is installed -- the default, declined by `intent up
 
 - `AGENTS.md` -- primary tool-agnostic contract. Read first.
 - `usage-rules.md` -- terse DO / NEVER rules (Elixir convention; honoured by `mix usage_rules.sync`).
-- `intent/llm/MODULES.md` -- Highlander registry; check before creating new modules.
+- `intent/llm/MODULES.md` -- OPTIONAL Highlander registry. `intent init` does not create one; a project that wants it creates the file and keeps it. Where it exists, search it with `intent modules find <name>` rather than reading it -- a mature registry is too large to read.
 - `intent/llm/DECISION_TREE.md` -- code-placement flow chart.
 - `intent/` -- steel threads (`st/`), project docs (`docs/`), work tracking (`wip.md`, `restart.md`).
 - `intent/.config/` -- configuration and metadata.

@@ -23,8 +23,8 @@ ALWAYS create or update steel thread and work package docs BEFORE coding:
 Present the workplan with:
 
 - What will be built or changed
-- Which files will be modified (check MODULES.md first)
-- What new modules are needed (register in MODULES.md first)
+- Which files will be modified -- search for an existing owner before adding a new one
+- What new modules are needed. Where the project keeps a `intent/llm/MODULES.md` registry, find the owner with `intent modules find <name>` and register the new row before creating the file. Most projects have no registry: `intent init` does not create one, and its absence is normal.
 - Expected test approach
 
 ### 3. Plan quality standards
@@ -43,17 +43,17 @@ Every plan must meet these standards before presenting to the user:
 
 Load the appropriate enforcement skills for the work:
 
-- `/in-essentials` -- always
-- `/in-elixir-essentials` -- for Elixir code
-- `/in-ash-ecto-essentials` -- for Ash/Ecto code
-- `/in-phoenix-liveview` -- for LiveView code
-- `/in-elixir-testing` -- for test code
+- `/in-essentials` and `/in-standards` -- always
+- `/in-elixir-essentials`, `/in-elixir-testing`, `/in-ash-ecto-essentials`, `/in-phoenix-liveview` -- Elixir, tests, Ash/Ecto, LiveView
+- `/in-author-essentials`, `/in-content-essentials` -- prose and web content
+
+**Elixir, `author` and `content` are the only disciplines with an essentials skill.** Rust, Swift, Lua and shell get their rules from the rule library instead -- `intent claude rules list --lang <lang>`, `intent claude rules show <id>` -- applied on demand by the matching `critic-<lang>`. **There is nothing to load for them here, and that is not an omission.**
 
 ### 5. Enforce project rules
 
-These rules apply to ALL languages (Elixir, Rust, Swift, Lua):
+These rules apply to ALL languages (Elixir, Rust, Swift, Lua, shell):
 
-- **Highlander Rule**: No duplicated code paths. Check MODULES.md.
+- **Highlander Rule**: No duplicated code paths. Search for an existing owner before adding one.
 - **Thin Coordinators**: Controllers, LiveViews, CLI commands are thin. Business logic in services.
 - **PFIC**: Pure-Functional Idiomatic Code. Prefer pure functions, tagged tuples, pattern matching.
 
@@ -74,4 +74,4 @@ After planning is approved, consider:
 | "This is simple, no plan needed"      | Simple tasks grow. The plan takes 2 minutes.          |
 | "I'll figure it out as I go"          | Ad-hoc coding produces ad-hoc results.                |
 | "The user wants speed, skip planning" | Plans prevent rework. Rework is slower than planning. |
-| "I already know the codebase"         | Check MODULES.md anyway. Memory drifts.               |
+| "I already know the codebase"         | Search anyway. Memory drifts.                         |
