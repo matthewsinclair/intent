@@ -3,32 +3,31 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-28 14:07Z
+heartbeat_at: 2026-08-28 14:00Z
 status: active
-focus: "LOCALFOLDED FOR THE COMPACT (2nd of the day). The hoist tail is CLOSED: D2 done on Conflab (39ad847c, 2->0 from output), pair delivers 4479264f fleet-wide. ON THE BOUNCE: THE SUCCESSBAT QUEUE in OPEN, top-down -- ST0067 first (hv: asap), then ST0065's two WPs, ST0066 design, the 0111 re-premise on lamplight-vc`s falsifier, and hv`s decision stack. Full day record: wip.md v1.27+, runbook, wb(hv)."
+focus: "SECOND RULING ROUND EXECUTED (hv 13:51Z): the directives split LANDED (d68f0395, 20 live / 40 archived, issue 0114 filed), Deferred RULED wait-for-structural, assignments GO -- dc on the message-mechanism family, cc on 0110+rebuild then 0111. hv`s five-item directive primed as ST0065/66/67 (e28ff02d). AWAITING: conflab-vc on the two fiat-closes; cc`s rebuild announce. Watch rule 19 while directing dc/cc: transmit the WHAT, not my method."
 claims: [ST0056, ST0057, ST0058, ST0060]
 ---
 
 # Validation Claude (vc)
 
-**PROJECT-WIDE RULES LIVE IN `intent/restart.md`. THE DAY'S FINDINGS LIVE IN `cutover-runbook.md` UNDER LEARNED AND IN wb(hv).** Neither is repeated here.
+**PROJECT-WIDE RULES LIVE IN `intent/restart.md`. THE DAY'S FINDINGS, WITH ATTRIBUTION, LIVE IN `cutover-runbook.md` UNDER LEARNED.** Neither is repeated here -- a rule in two homes drifts in both, and this board is the one that gets folded.
 
 ## DOING
 
-**NOTHING IN FLIGHT. THE DAY TO HERE, AS SHAS:** hoist `b02b93c4`+`7652c9b4`+`2b770740` (Conflab on v3, verified); four bounce rulings `3d5a710e`; AC-00.8 `1098ac0f`; fold `3cb8f62f`; three threads primed `e28ff02d`; split landed `d68f0395` (one entry pulled back at `4ddc7c14` -- the archive keeps the mistake, appended); D2 closed Conflab `39ad847c`; pair rebuilt to `4479264f`; issues filed today 0100-0106, 0109-0114, 0116 (0115 cc's). Body archived at `.history/20260828/wip-fold-1405Z.md`.
+**NOTHING IN FLIGHT. THE BOUNCE IS DISCHARGED AND THE DAY IS FOLDED.** hv ruled all four picks first-hand at 13:26Z, recorded with menus at `3d5a710e`: **D2** fiat-close ST0121/WP-02 + ST0124/WP-02 -- routed to conflab-vc as a NAMED relay (their session consent theirs to obtain), completion owed back. **D3** option 1 landed by intent-cc at `4479264f` (`Superseded -> Cancelled`; the `Deferred` question and the structural fix stay separate by ruling). **D4** AC-00.8 amended at `1098ac0f` -- edited in the extract, `--to-store` (watched for 0111's agree-shape; it wrote), `--to-disk`, extract delta exactly one line. **Fold**: runbook 2026-08-28 folded by class; restart.md carries the day's three live notes plus one EXPIRED hazard (skills-sync, measured dead both legs); wip.md's Open-by-owner reset to the post-rulings state.
+
+**The hoist record stands one section down in this file's history and in the runbook: `b02b93c4` + `7652c9b4` + `2b770740`, five nodes / three estates, census exact, zero authored loss, binary `1dd65db8` end to end.**
 
 ## OPEN
 
-**THE SUCCESSBAT QUEUE (hv's word at the fold: "hit this queue with a successbat on the bounce"):**
+**WITH hv (queued on their word, nothing blocking):** cc's Laksa thread-status flag and ic's instruments-placement question, both added to wip.md's hv list this round; put when hv turns to them.
 
-1. **ST0067 -- `intent llm`** (hv: asap). Design what the surface serves + build; prefer projecting from the tool's own registries over prose that drifts; AC-00.9 binds its output. Assign on the bounce -- cc is the natural builder once 0111 settles; the design conversation is mine to put to hv.
-2. _*ST0065 -- WP-01 (.md canon review) + WP-02 (/in-* skills audit)._* The Cherny transcript+companion at `_sources/` is the reference. ic is holding and free -- natural first assignee for the read-and-catalogue legs. Known debts to fold in: skill-sync SKILL.md-only checksum; renderer $N-stripping; 0110's report-mode sibling 0115.
-3. **ST0066 -- fiat close design.** The conversation with hv: enforcement in the VERB (harness allowlists bypass, conflab-vc's datapoint; /dev/tty candidate); where the reason lives; how doctor/gate render a fiat-closed row distinctly; 0116 (partial coverage) is the adjacent model gap.
-4. **0111 re-premise** -- awaiting lamplight-vc's falsifier (is ST0300's extract citation truncated?). cc fixes the surviving message contradiction meanwhile (my word, given). If cc's account holds, the REAL Lamplight gate is the markdown-to-store route (0097 family, bigger) -- costed menu to hv before anyone builds.
-5. **hv's decision stack, put as menus when hv turns to it:** Laksa's SUPERSEDED thread status (cc's census: the single finding blocking that estate; widening is hv's -- side-effect unblock); mechanical window refusal (dc's build-window item, evidence attached on wb(hv)); ic's instruments placement (node scratch vs project apparatus); publish_home refusing a temp root; the vacuous doctor gate remedy.
-6. **Peer tracking, no action owed:** dc mid-family (0105/0106/0109/0112/0113; ROOT= divergence flag relayed); conflab-vc sequencing their 50+1 residue (hv's D5); ic holding.
+**AWAITED FROM PEERS:** intent-cc on 0111 (started on hv's sequencing; gates the Lamplight re-run). intent-dc's message-mechanism family (mid-flight on disk: guard_home_check, view_skew_check, cmd/hooks -- ic's ROOT= divergence flag relayed to them). DONE THIS ROUND: conflab-vc's two fiat-closes (39ad847c, 2->0 from output); cc's rebuild (pair names 4479264f, both fixes live fleet-wide).
 
-**STANDING (unchanged):** the Lamplight re-run criterion -- exactly 74 = 12+30+32 to zero, never the aggregate 62 (now gated by queue item 4's outcome); `wp new` writes no objective; hv's devbin set (hv does devbin themselves).
+**CLOSED THIS SESSION:** the guard-home loose end -- measured, not chased: `guard_home_check.sh` reads `.githooks/pre-commit.intent` (the CARRIER) for the GATE BODY's override string, so the shim reads "predates this template" forever and the printed remedy reinstalls the shim. Filed as 0113, the 0105 family's third instrument. The `7fa3c013` correction is recorded here and in the runbook; nothing further owed on it.
+
+**STANDING (pre-hoist, unchanged):** the Lamplight re-run criterion -- exactly 74 = 12 + 30 + 32 to zero, never the aggregate 62; `publish_home` refusing a temp root (cc asked hv at source); the vacuous doctor gate remedy; `wp new` writes no objective; hv's parked devbin set (info barrier, issues-verbs SSOT, vendor spread -- "a devbin problem that I will fix with devbin next").
 
 ## Watch-outs
 
