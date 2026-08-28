@@ -69,6 +69,14 @@ Top three are 59% of it. Against Cherny's rule for the one file he discusses -- 
 | `lib/templates/archetypes/elixir/ash_resource.ex.eex` | 1        |
 | `in-start` SKILL.md, `in-review` SKILL.md             | 1 each   |
 
+**THE 20 SPLIT 17/3 ONCE READ RATHER THAN COUNTED, AND dc's 0113 SWEEP IS WHY I CHECKED.** Their run turned up a false positive where the hit was _prose describing_ a guard rather than the guard itself. Applied to my own figure, three of the twenty do not survive:
+
+- **`module_check_hook.json:9` DOES NOT MISFIRE.** Its command is guarded -- `if [ -f intent/llm/MODULES.md ] && ...` -- so on a project without the registry it short-circuits and says nothing. When the file _does_ exist, `intent modules check` works. **It is correct as written**, and I had it listed as a site that routes operators into the defect.
+- **`_ARCHETYPES.md:26` is a DESCRIPTION, not an instruction** -- _"Templates include 'Check MODULES.md' reminders"_ is documentation of what the archetype templates contain. Counting it is the same error as scanning prose for the defect it describes.
+- **`_AGENTS.md:264` is a file-map row**, not an imperative. It asserts the file exists rather than telling anyone to read it -- still wrong on a fresh project, but a different defect.
+
+**So: 17 imperative instructions that a fresh project actually meets, one false existence claim, and two that are fine.** The 17 is the number to act on.
+
 **It reaches the generated CODE.** `_ARCHETYPES.md` states that its templates "include 'Check MODULES.md' reminders" -- literally true, and it means **every module generated from an archetype carries a comment pointing at a registry `init` refuses to create.**
 
 The four highest-reach sites remain:

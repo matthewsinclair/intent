@@ -45,13 +45,13 @@
 
 WP-01 finding 2 counted documentation sites. The sweep found the class extends further:
 
-| Site                                           | Kind                                                          |
-| ---------------------------------------------- | ------------------------------------------------------------- |
-| `_CLAUDE.md`, `_AGENTS.md`                     | canon templates (WP-01)                                       |
-| `in-standards` SKILL.md x2                     | auto-loaded skill (WP-01)                                     |
-| `in-start` SKILL.md                            | on-demand skill (**new**, finding 1)                          |
-| `lib/templates/hooks/module_check_hook.json`   | **a hook** telling the operator to run `intent modules check` |
-| `intent modules check` / `intent modules find` | **the CLI itself**                                            |
+| Site                                             | Kind                                                                          |
+| ------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `_CLAUDE.md`, `_AGENTS.md`                       | canon templates (WP-01)                                                       |
+| `in-standards` SKILL.md x2                       | auto-loaded skill (WP-01)                                                     |
+| `in-start` SKILL.md                              | on-demand skill (**new**, finding 1)                                          |
+| ~~`lib/templates/hooks/module_check_hook.json`~~ | **WITHDRAWN -- the hook is guarded and cannot misfire** (see WP-01 finding 2) |
+| `intent modules check` / `intent modules find`   | **the CLI itself**                                                            |
 
 **Driven on the fresh-init fixture.** Both verbs fail correctly and loudly -- **true rc=1**, verified by capturing to a file rather than reading a pipeline's exit code. **That behaviour is right and should be kept.** What is wrong is the remedy they print:
 
@@ -63,7 +63,7 @@ WP-01 finding 2 counted documentation sites. The sweep found the class extends f
 
 **FILED AS ISSUE 0122** on vc's ask (14:57Z) -- a live CLI defect independent of this thread, so the catalogue cites it rather than carrying it alone. The issue body leads with **FIX THE STRING, NOT THE EXIT CODE** and scopes itself to the two CLI strings plus the hook message that routes into them; the twenty documentation sites stay here, as ST0065's to catalogue and hv's to rule on.
 
-**Verdict: CORRECT.** One remedy string (0122), plus twenty instruction sites. The verbs' rc=1 is not a defect -- **noting that explicitly, here and in the issue, so nobody "fixes" the wrong half.**
+**Verdict: CORRECT.** One remedy string (0122), plus **seventeen** imperative instruction sites -- the twenty-count included one guarded hook, one prose description and one file-map row, all withdrawn on a read (WP-01 finding 2). The verbs' rc=1 is not a defect -- **noting that explicitly, here and in the issue, so nobody "fixes" the wrong half.**
 
 ---
 
