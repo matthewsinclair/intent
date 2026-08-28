@@ -180,6 +180,63 @@ fn converge_gitignore(project: &Project) -> Result<(), std::io::Error> {
   std::fs::write(&path, next)
 }
 
+/// Ensure the project's formatter leaves generated views alone (AC-07.6).
+///
+/// **A GENERATED VIEW HAS ONE WRITER AND IT IS THE RENDERER** (D02 applied to
+/// writers rather than to content, hv's ruling 2026-08-19). A markdown
+/// formatter run from a pre-commit hook is a second writer, and a silent one:
+/// it rewrites markup the author wrote -- `*emphasis*` becomes `_emphasis_` --
+/// the skew check then compares canon to the committed view and reports drift
+/// on a file nobody edited, regenerating restores the renderer's bytes, and the
+/// next commit rewrites them again. Forever, with every pass looking like a
+/// legitimate repair. Measured in this estate before the exclusion existed: 7
+/// diverged rows, and three consecutive commits reporting "1 file changed"
+/// because at stage time the view matched HEAD again.
+///
+/// **THIS EXISTS BECAUSE THE ESTATE FIXED ITSELF BY HAND AND THEREBY STOPPED
+/// BEING ABLE TO SEE THE BUG.** Intent's own `.prettierignore` is 40 lines
+/// somebody sat down and wrote, so this repository has been immune since
+/// 2026-08-19 while every consumer stayed exposed -- and from inside, the two
+/// are indistinguishable. That is the whole content of AC-07.6's closing
+/// clause, *in a consumer repo as well as this one*.
+///
+/// **ADDITIVE, NEVER AUTHORITATIVE.** `.prettierignore` is the operator's file.
+/// Missing patterns are appended and everything already there is left alone, so
+/// a consumer who has tuned theirs keeps it and a second run changes nothing.
+/// Intent excludes what IT generates and has no business switching off a
+/// consumer's formatter anywhere else -- which is why this writes five patterns
+/// and never `*`.
+///
+/// The patterns come from [`Project::generated_view_patterns`], beside the
+/// methods that produce the real paths, so this function holds no roster of its
+/// own to drift.
+pub(crate) fn converge_formatter_exclusion(project: &Project) -> Result<(), std::io::Error> {
+  let path = project.root().join(".prettierignore");
+  let current = std::fs::read_to_string(&path).unwrap_or_default();
+  let missing: Vec<String> = project
+    .generated_view_patterns()
+    .into_iter()
+    .filter(|pattern| !current.lines().any(|l| l.trim() == pattern))
+    .collect();
+  if missing.is_empty() {
+    return Ok(());
+  }
+  let mut next = current;
+  if !next.is_empty() && !next.ends_with('\n') {
+    next.push('\n');
+  }
+  next.push_str(
+    "\n# Generated views have ONE writer, and it is the renderer. A formatter\n\
+     # editing these rewrites markup the author wrote, and `intent doctor` then\n\
+     # reports the drift as a hand-edit on a file nobody touched.\n",
+  );
+  for pattern in missing {
+    next.push_str(&pattern);
+    next.push('\n');
+  }
+  std::fs::write(&path, next)
+}
+
 /// Write `intent_version` into `config.json`. **THE LAST ACT OF THE
 /// MIGRATION** -- see [`Facade::upgrade`] for the three reasons.
 ///
@@ -1525,6 +1582,10 @@ impl Facade {
       store.rebuild(&threads, &issues)?;
       converge_gitignore(project).map_err(|cause| FacadeError::MigrationHalted {
         step: "adding the store to .gitignore",
+        cause,
+      })?;
+      converge_formatter_exclusion(project).map_err(|cause| FacadeError::MigrationHalted {
+        step: "keeping the formatter off generated views",
         cause,
       })?;
       declare_default_if_absent(project, &threads).map_err(|cause| {

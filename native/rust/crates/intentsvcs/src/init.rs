@@ -309,6 +309,21 @@ pub fn init(
   write(&manifest, &crate::intentfiles::default_declaration(&[]))?;
   written.push(manifest);
 
+  // **THE SECOND OF AC-07.6'S TWO DOORS.** The migration converges this for a
+  // v2 estate coming across; without it here, a project BORN on v3 is the one
+  // shape that never gets it. The two doors call one function on purpose --
+  // `.gitignore` has had exactly this asymmetry (converged on migrate, absent
+  // on init) and it is a filed gap rather than a design.
+  //
+  // Runs after every write above, so the roster it converges describes a
+  // project that fully exists. A `Project` that will not open one line after
+  // `init` wrote its config is a real failure and is surfaced, never skipped.
+  let project = crate::project::Project::open(root)
+    .map_err(|cause| InitError::Io(root.to_path_buf(), std::io::Error::other(cause)))?;
+  crate::facade::converge_formatter_exclusion(&project)
+    .map_err(|cause| InitError::Io(root.join(".prettierignore"), cause))?;
+  written.push(root.join(".prettierignore"));
+
   written.sort();
 
   Ok(Initialised {

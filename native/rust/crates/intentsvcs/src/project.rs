@@ -1012,6 +1012,43 @@ impl Project {
     self.thread_dir(id).join("acceptance.md")
   }
 
+  /// The generated views as formatter-ignore GLOBS, relative to the project
+  /// root -- what [`crate::facade::converge_formatter_exclusion`] writes into a
+  /// consumer's `.prettierignore` (AC-07.6).
+  ///
+  /// **THIS SITS HERE, TOUCHING THE VIEW-PATH METHODS, ON PURPOSE.** A roster
+  /// kept anywhere else is one somebody must remember to extend on the day they
+  /// add a view, which is the day they are thinking about something else --
+  /// `openness.rs` makes the argument for enumerating tables from the DDL and
+  /// `generated_views_are_not_formatted.rs` makes it for this exact set.
+  ///
+  /// **PATTERNS, NOT PATHS, AND THE DIFFERENCE IS LOAD-BEARING.**
+  /// [`crate::views::render_all`] yields the views that exist NOW. A converger
+  /// fed from it would write an empty file on a fresh project and then have to
+  /// grow it per thread -- which is a second writer of generated content,
+  /// arriving to fix a second-writer bug. The file therefore holds a small
+  /// fixed pattern set, the tests check concrete paths, and **prettier's own
+  /// resolution is the oracle that joins the two**, so neither side has to
+  /// model the other.
+  ///
+  /// **FOUR OF THE FIVE ARE DERIVED FROM THE METHOD THAT PRODUCES THE REAL
+  /// PATH**, with `*` standing in for the thread id, so a view whose path moves
+  /// takes its pattern with it and cannot drift silently. The work-package one
+  /// is assembled by hand because [`Self::wp_info_view`] formats its sequence
+  /// as `{seq:02}` and no wildcard can pass through that -- stated rather than
+  /// hidden, because it is the one line here that a path change could leave
+  /// behind.
+  pub fn generated_view_patterns(&self) -> Vec<String> {
+    let rel = |p: PathBuf| self.relative(&p);
+    vec![
+      rel(self.steel_threads_view()),
+      rel(self.todo_view()),
+      rel(self.info_view("*")),
+      rel(self.acceptance_view("*")),
+      rel(self.thread_dir("*").join("WP").join("*").join("info.md")),
+    ]
+  }
+
   /// Every file under a thread's directory, sorted, each as a path RELATIVE to
   /// that directory -- the address [`Attachment::path`] carries.
   ///
