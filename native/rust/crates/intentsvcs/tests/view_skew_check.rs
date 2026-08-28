@@ -144,9 +144,10 @@ fn a_title_change_skews_exactly_the_views_that_carry_the_title() {
     vec![
       "intent/st/ST0056/acceptance.md",
       "intent/st/ST0056/info.md",
+      "intent/st/steel_threads.md",
       "intent/todo.md",
     ],
-    "steel_threads.md indexes by slug and status and carries no title column, so a title change must NOT skew it"
+    "the index carries the thread title as its descriptive column, so a title change skews it along with the thread's own views -- and nothing else"
   );
 }
 
