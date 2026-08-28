@@ -129,7 +129,74 @@ pub fn template_path(home: &Path, name: &str) -> PathBuf {
 /// never substituted and never has to be substitutable.
 pub fn substitute(template: &str, cfg: &Config, ctx: &RenderContext<'_>) -> Result<String, Fault> {
   let kept = resolve_blocks(template, &cfg.languages)?;
-  expand_tokens(&kept, cfg, ctx)
+  let expanded = expand_tokens(&kept, cfg, ctx)?;
+  Ok(fill_empty_sections(&expanded))
+}
+
+/// The line a section gets when nothing rendered into it.
+///
+/// **DELIBERATELY NOT v2's WORDING.** v2 wrote `_No build step required._`,
+/// which asserts a fact about the project that the tool cannot know -- a
+/// shell-only project may well have a build, it simply has no block in the
+/// template. This says only what is true: the section is empty for the
+/// languages this project declares.
+const EMPTY_SECTION: &str = "_Not configured for this project._";
+
+/// Give every heading that rendered to nothing a placeholder line (AC-07.5).
+///
+/// **A BARE HEADING READS AS BROKEN OUTPUT**, and v2 said something in the same
+/// place. v3 dropped it, which is the one class of the eleven measured on
+/// 2026-08-28 that was ratified a DEFECT rather than a deviation.
+///
+/// **THIS IS A PROPERTY OF THE OUTPUT AND NOT A ROSTER IN THE TEMPLATE, and the
+/// per-language alternative is not merely more work -- it is WRONG.** Blocks
+/// exist for a subset of languages: `### Building` has no `shell` block, and
+/// neither section has `author`, `content` or `lua`, so 4 of the 7 packs
+/// `intent lang list` offers leave a section bare. Adding `[[#lang author]] no
+/// tests configured` alongside the existing arms would then render THAT LINE
+/// NEXT TO `mix test` for a project declaring both elixir and author -- a
+/// placeholder contradicting the content beside it. `[[#nolang]]` cannot help
+/// either: it fires only when NO language is declared, and the measured cases
+/// all declare one.
+///
+/// So the rule is applied where the answer is actually known: after expansion,
+/// when a section either has content or does not. It needs no list, and a
+/// language pack added tomorrow is covered without anyone remembering.
+///
+/// **A PARENT WHOSE CONTENT IS A SUBSECTION IS NOT EMPTY.** The first version
+/// of the test's scanner missed that and reported `## Development Environment`,
+/// whose next line is its own first subheading -- filling those would demand
+/// filler under every parent heading in the document.
+fn fill_empty_sections(text: &str) -> String {
+  let level = |l: &str| l.len() - l.trim_start_matches('#').len();
+  let lines: Vec<&str> = text.lines().collect();
+  let mut out: Vec<String> = Vec::with_capacity(lines.len());
+  for (i, line) in lines.iter().enumerate() {
+    out.push((*line).to_string());
+    if !line.starts_with('#') {
+      continue;
+    }
+    let mut satisfied = false;
+    for next in &lines[i + 1..] {
+      if next.starts_with('#') {
+        satisfied = level(next) > level(line);
+        break;
+      }
+      if !next.trim().is_empty() {
+        satisfied = true;
+        break;
+      }
+    }
+    if !satisfied {
+      out.push(String::new());
+      out.push(EMPTY_SECTION.to_string());
+    }
+  }
+  let mut joined = out.join("\n");
+  if text.ends_with('\n') {
+    joined.push('\n');
+  }
+  joined
 }
 
 /// Render one root file by name.
