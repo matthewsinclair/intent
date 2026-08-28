@@ -87,6 +87,7 @@ vendor           any     -           -          Devbin    @builtin | Compare the
 doctor           any     -           -          Devbin    @builtin | Check this install and report what is wrong with it
 new              any     -           -          Devbin    @builtin | Scaffold a new project command, ready to run
 devbin           any     -           -          Devbin    @builtin | About devbin itself: the framework's help, not this project's
+shell-init       any     -           -          Devbin    @builtin | Emit the shell function that finds the nearest bin/devbin
 check.compile    elixir  mix         COMPILE    -         mix compile --warnings-as-errors --force | Compile with warnings as errors
 check.format     any     generic     FORMAT     -         @builtin | Formatting is up to date, in every declared language
 check.deps       elixir  generic     DEPS       -         mix deps.unlock --check-unused | No unused dependencies

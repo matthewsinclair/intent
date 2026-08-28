@@ -210,8 +210,27 @@ EOF
 $states
 EOF
 
+  # WHAT THE MANIFEST SAID BEFORE THIS RUN, captured here because after the
+  # write there is nothing left to compare against. manifest_write rewrites the
+  # header unconditionally, so a run that moves NO vendored byte can still
+  # change this tree: `source_commit` advances on its own whenever the source
+  # has moved past what was vendored.
+  #
+  # THE DEFECT THIS CLOSES, measured across the fleet on 2026-08-27. On exactly
+  # that run the summary printed `Already up to date.` while leaving the tree
+  # MODIFIED -- correct behaviour reported as no behaviour, and the single file
+  # it changed is the one that records where this runtime came from. A clean
+  # tree came back dirty under a message saying nothing had happened, which is
+  # the shape this project refuses everywhere else.
+  manifest_was=""
+  [ -f "$(manifest_path "$dstroot")" ] &&
+    manifest_was="$(cat "$(manifest_path "$dstroot")" 2>/dev/null || true)"
+  prev_commit="$(manifest_source_commit "$dstroot" 2>/dev/null || true)"
+
   manifest_write "$dstroot" "$srcroot" "$version" "$preserved" ||
     die "failed to write the manifest"
+
+  manifest_now="$(cat "$(manifest_path "$dstroot")" 2>/dev/null || true)"
 
   # An empty report is indistinguishable from a run that did nothing because it
   # broke. Every path above prints only when it changed something, so the
@@ -219,7 +238,19 @@ EOF
   printf '\n%d added, %d updated, %d unchanged, %d removed, %d skipped\n' \
     "$added" "$updated" "$unchanged" "$removed" "$skipped"
   if [ "$((added + updated + removed + converged))" -eq 0 ] && [ "$skipped" -eq 0 ]; then
-    printf 'Already up to date.\n'
+    if [ "$manifest_now" = "$manifest_was" ]; then
+      printf 'Already up to date.\n'
+    else
+      # NOTHING RAN AND THE TREE STILL CHANGED. Say which file and which way,
+      # because the caller is about to find a modified working tree and the
+      # summary above accounts for none of it.
+      now_commit="$(manifest_source_commit "$dstroot" 2>/dev/null || true)"
+      printf 'Runtime already up to date -- but the PROVENANCE moved, so %s changed.\n' \
+        "$DEVBIN_MANIFEST_REL"
+      printf '  was recording: %s\n' "${prev_commit:-unrecorded}"
+      printf '  now records:   %s\n' "${now_commit:-unrecorded}"
+      printf 'No vendored file differs; this tree simply now names where it came from.\n'
+    fi
   fi
   if [ "$converged" -gt 0 ]; then
     printf '\n%d file(s) you had edited now match the source and are tracked again.\n' "$converged"

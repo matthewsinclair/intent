@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+#
+# shell-init -- emit the shell function that finds the nearest bin/devbin.
+#
+# WHY THIS IS A COMMAND AND NOT A README SNIPPET. It was a snippet: prose in
+# README.md and again in usage-rules.md, with no code, no test and no doctor
+# coverage. hv installed it on 2026-08-27 and it carried two defects, one of
+# which made it run a DIFFERENT project's launcher and report success. Within
+# an hour of a third copy existing the three had already diverged, because the
+# landed copy was fixed and the README's was not.
+#
+# A COPY-PASTE SNIPPET HAS NO INSTALL STEP, NO VERSION AND NO WAY TO REACH
+# ANYONE WHO ALREADY PASTED IT. That is the whole argument: not that three
+# copies is untidy, but that a defect found in one of them cannot travel to the
+# others. Emitting it from the tool gives it a single source, a test, and a
+# route to everyone on the next re-vendor.
+#
+# THE WALKER IS COMPATIBLE WITH THE DISPATCHER'S CWD GUARD BY CONSTRUCTION, and
+# that is worth stating rather than leaving to be rediscovered. The guard
+# refuses when the caller's directory is outside the devbin's own project; the
+# WALK only ever invokes a devbin found at or ABOVE $PWD, so the cwd is inside
+# that project every time. The two mechanisms agree without either knowing
+# about the other.
+#
+# THE `DEVBIN_SOURCE` FALLBACK DELIBERATELY BREAKS THAT INVARIANT, and the
+# guard is what makes that safe rather than a hole. The walk cannot bootstrap:
+# it locates devbin THROUGH a project that already has one, so a project
+# without one gets a correct report of the wrong thing (hv, 2026-08-28, trying
+# to install into a fresh directory). The fallback runs a devbin that is NOT
+# above $PWD -- which is exactly the case the guard exists to catch.
+#
+# So it hands whatever was typed straight to that devbin and lets the guard
+# decide. `install` and `shell-init` are exempt and run; everything else is
+# refused with exit 4 naming the tree it would have acted on. THE FALLBACK
+# MUST NOT REIMPLEMENT THE EXEMPTION LIST: a second copy would drift the first
+# time an exemption changes, and the copy in the emitted function is the one
+# nobody would think to update.
+
+set -uo pipefail
+
+# shellcheck source=../helpers
+. "$DEVBIN_LIB/helpers"
+
+_shell_init_usage() {
+  cat <<USAGE
+usage: $DEVBIN_INVOKE shell-init <zsh>
+
+  Emit a shell function that walks up from \$PWD to the nearest bin/devbin and
+  runs it. Nothing is vendored and nothing is configured.
+
+  Add to your shell rc:
+
+    eval "\$($DEVBIN_INVOKE shell-init zsh)"
+
+  The emitted function is named dvb.
+
+  BOOTSTRAPPING A PROJECT THAT HAS NO DEVBIN YET. The walk finds devbin through
+  a project that already has one, so it cannot install into one that does not.
+  Set DEVBIN_SOURCE to a devbin checkout -- either the project root or the
+  launcher itself -- and dvb falls back to it when the walk finds nothing:
+
+    export DEVBIN_SOURCE=~/Devel/prj/Devbin
+    cd ~/some/new/project && dvb install
+
+  The fallback runs whatever you typed against that devbin and lets its cwd
+  guard rule on it: install and shell-init are exempt, everything else is
+  refused by name rather than acting on the wrong tree.
+USAGE
+}
+
+# _shell_init_zsh -- the one true body.
+#
+# TWO DEFECTS ARE FIXED HERE RELATIVE TO THE SNIPPET THIS REPLACES, both found
+# by molt-vc against a landed copy and both reproduced before this was written:
+#
+#   1. The loop tested `-x` alone, so a bin/devbin that EXISTS and is not
+#      executable was stepped over and the walk continued INTO THE PARENT --
+#      silently running another project's launcher at rc 0. Measured: standing
+#      in inner/ with inner/bin/devbin at mode 644, the README body printed
+#      "OUTER launcher ran" and returned 0. It now stops at the first bin/devbin
+#      it FINDS and returns 126, the conventional "found but not executable",
+#      which sits beside the existing 127 without overlapping it.
+#
+#   2. `${^tried}` collapsed every candidate onto one space-separated line.
+#      `${^tried[@]}` prints one per line. The control that missed it is the
+#      lesson: with ONE element the two forms are byte-identical, so a negative
+#      control run from a depth-1 directory cannot see the difference at any
+#      level of care -- correct, and insufficient.
+_shell_init_zsh() {
+  # The emitted comment must not begin `# devbin: `. tests/unit/help.bats greps
+  # lib/cmd for that prefix to hold down D23 -- a handler must not restate the
+  # summary its catalogue row owns -- and the grep cannot tell a header from a
+  # line inside a heredoc. Rewording the OUTPUT is cheaper than widening a check
+  # that is catching a real class.
+  cat <<'BODY'
+# devbin shell shortcut -- runs the nearest bin/devbin, walking up from $PWD.
+# Emitted by `bin/devbin shell-init zsh` -- do not edit; re-run it instead.
+dvb() {
+  local d=$PWD tried=()
+  while [[ $d != / ]]; do
+    tried+=("$d/bin/devbin")
+    if [[ -x $d/bin/devbin ]]; then
+      "$d/bin/devbin" "$@"
+      return $?
+    elif [[ -f $d/bin/devbin ]]; then
+      print -u2 "dvb: $d/bin/devbin exists but is not executable -- chmod +x it."
+      return 126
+    fi
+    d=${d:h}
+  done
+  # The bootstrap fallback. Reached only when the walk found nothing at all,
+  # so it can never shadow a project's own launcher.
+  if [[ -n ${DEVBIN_SOURCE:-} ]]; then
+    local src=$DEVBIN_SOURCE
+    # Accept a project root or the launcher itself: a reader reaches for
+    # whichever matches how they think about it, and a variable that silently
+    # accepts only one is a trap that reports as an absence.
+    [[ -d $src ]] && src=$src/bin/devbin
+    if [[ -x $src ]]; then
+      "$src" "$@"
+      return $?
+    elif [[ -f $src ]]; then
+      print -u2 "dvb: DEVBIN_SOURCE names $src, which is not executable -- chmod +x it."
+      return 126
+    fi
+    # A MISCONFIGURATION MUST NOT BE REPORTED AS AN ABSENCE. Falling through to
+    # the walk's "Looked in:" listing would answer a question the caller did not
+    # ask and hide the one they got wrong.
+    print -u2 "dvb: DEVBIN_SOURCE is set to '$DEVBIN_SOURCE' but $src is not there."
+    return 127
+  fi
+  print -u2 "dvb: no bin/devbin found from $PWD upward. Looked in:"
+  print -u2 -l "  ${^tried[@]}"
+  print -u2 "dvb: to bootstrap a project that has no devbin yet, set DEVBIN_SOURCE to a devbin checkout."
+  return 127
+}
+BODY
+}
+
+cmd_shell_init() {
+  case "${1:-}" in
+    zsh) _shell_init_zsh ;;
+    "" | -h | --help)
+      _shell_init_usage
+      [ -n "${1:-}" ] || return 2
+      ;;
+    *)
+      # Named, not guessed at: an unknown shell gets the list rather than a
+      # zsh body that would be wrong in it.
+      die "shell-init: no body for '$1'. Shells with one: zsh"
+      ;;
+  esac
+}
+
+cmd_shell_init "$@"

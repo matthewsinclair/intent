@@ -59,6 +59,69 @@ else
 fi
 export BIN_DIR PROJECT_ROOT DEVBIN_DIR DEVBIN_LIB
 
+# ---- THE TREE A RUN IS ABOUT IS THE TREE YOU ARE STANDING IN ---------------
+#
+# PROJECT_ROOT above is derived ENTIRELY from this script's own location and
+# never from the caller's directory. That is right for finding the runtime and
+# catastrophic as an answer to "which project is this run about": a devbin
+# reached through PATH, or through any link outside its own tree, runs against
+# ITS OWN project from wherever you happen to be standing -- and every command
+# then cds to that root (lib/resolve, lib/gatecmd).
+#
+# MEASURED 2026-08-27, and the help listing was the harmless half. Standing in
+# a project with no devbin installed, a bare `devbin` resolved through PATH to
+# a DIFFERENT estate's launcher and printed that estate's catalogue at rc 0.
+# The same resolution puts `clean --force` -- which walks PROJECT_ROOT with
+# `find` -- on a tree the caller never named and cannot see in the output.
+#
+# `install` IS THE ONE EXEMPTION, and it is exempt by definition rather than by
+# concession: its target is `--into <dir>`, defaulting to the CURRENT
+# directory, so acting outside its own tree is the entire job. Every other
+# command writes to or reports on PROJECT_ROOT -- `upgrade` and `vendor`
+# included, whose `--from` names a SOURCE and not a target. Reading that `--from`
+# as a target is what first sized this guard at four exemptions, so it is
+# written down here rather than left to be re-derived.
+#
+# NO ENVIRONMENT VARIABLE TURNS THIS OFF. A flag that disables a safety check is
+# a flag anything can set, and the suite is fixed by standing in the project
+# (tests/lib/test_helper.bash: devbin_run) rather than by an escape hatch.
+case "${1:-}" in
+  # TWO EXEMPTIONS, BOTH BY DEFINITION RATHER THAN BY CONCESSION.
+  #   install     -- its target is `--into <dir>`, defaulting to the CURRENT
+  #                  directory, so acting outside its own tree IS the job.
+  #   shell-init  -- emits a static shell function to stdout. It reads nothing
+  #                  from PROJECT_ROOT and writes nothing, and it is run from a
+  #                  shell rc where the cwd is $HOME by definition.
+  # Everything else writes to or reports on PROJECT_ROOT, `upgrade` and `vendor`
+  # included -- their `--from` names a SOURCE, not a target.
+  install | shell-init) _devbin_wrong_tree_check=no ;;
+  *) _devbin_wrong_tree_check=yes ;;
+esac
+if [ "$_devbin_wrong_tree_check" = yes ]; then
+  _devbin_cwd="$(pwd -P 2>/dev/null || pwd)"
+  case "$_devbin_cwd" in
+    "$PROJECT_ROOT" | "$PROJECT_ROOT"/*) ;;
+    *)
+      {
+        printf 'devbin: refusing to run -- this is not your current project.\n\n'
+        printf '  you are standing in:  %s\n' "$_devbin_cwd"
+        printf '  this devbin belongs to: %s\n' "$PROJECT_ROOT"
+        printf '  it was reached as:      %s\n\n' "$0"
+        printf 'Every command would act on %s, not on where you are.\n' "$PROJECT_ROOT"
+        printf 'Run that project'"'"'s own bin/devbin, or cd into it first.\n'
+      } >&2
+      # 4, NOT 2. This dispatcher already exits 2 for an unknown command and 3
+      # elsewhere, and 18 assertions in the suite turn on that 2 -- so a guard
+      # sharing it would let a test asserting a usage refusal be satisfied by a
+      # WRONG-TREE refusal instead. Different refusals need different codes or
+      # the green stops naming its own cause.
+      exit 4
+      ;;
+  esac
+  unset _devbin_cwd
+fi
+unset _devbin_wrong_tree_check
+
 # shellcheck source=lib/helpers
 . "$DEVBIN_LIB/helpers"
 # shellcheck source=lib/config

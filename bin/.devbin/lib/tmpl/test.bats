@@ -25,6 +25,14 @@ setup() {
   # to take it (design D10), so bin/devbin is the name always present.
   DEVBIN="$DEVBIN_HOME/{{DEVBIN}}"
   [ -x "$DEVBIN" ] || DEVBIN="$DEVBIN_HOME/bin/devbin"
+  # STAND IN THE PROJECT. The dispatcher refuses to run when the caller's
+  # directory is outside its own project -- a devbin reached from elsewhere acts
+  # on ITS OWN tree from wherever you are, which is how a bare `devbin` in an
+  # unrelated directory printed another estate's catalogue at rc 0. DEVBIN_HOME
+  # is that root by construction: the walk above stops at the directory holding
+  # bin/devbin. Without this the scaffold ships tests that fail out of the box,
+  # which is the state this stub's own comment above was written about.
+  cd "$DEVBIN_HOME" || return 1
 }
 
 @test "{{NAME}} resolves and is offered in help" {
