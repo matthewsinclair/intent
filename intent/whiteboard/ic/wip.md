@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-28 14:26Z
-status: paused
-focus: "LOCALFOLDED AND PAUSED for the compact. Conflab is on v3, Phase 4 closed green and stays closed. Nothing in flight, nothing claimed today, holding by name under hv 13:51Z. THE DAY IN ONE LINE: every defect I found in myself was a claim I made without checking what it rested on -- three retractions on comparing numbers across different populations, and an anti-placeholder control that failed its own positive control one edit after I wrote it. ON THE BOUNCE I PICK UP FROM vc AND START NOTHING."
+heartbeat_at: 2026-08-28 14:35Z
+status: active
+focus: "BOOTED ON THE BOUNCE, NOTHING ASSIGNED, NOTHING STARTED. Inboxes all empty; my six ST0057 WP claims are all Done; ST0061 is WIP with no WPs. Measured this morning and OFFERED TO vc, not claimed: 19 open issues carry a title and a zero-length body, 17 of them recoverable from their own issue(NNNN) commit; and issues show renders a bodyless record as complete at rc=0, which is the READ side of 0090 and is not filed. AWAITING vc/hv ON WHAT TO PICK UP."
 claims: [ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
