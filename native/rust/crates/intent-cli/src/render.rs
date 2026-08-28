@@ -392,8 +392,25 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
       // earlier" is one line earlier -- so it is recorded here rather than
       // quietly resolved by inventing surface.
       let overwrite = f.sync_overwrite(&scope).map_err(fail)?;
-      if overwrite.is_empty() {
-        eprintln!("note: the store and the extract agree; this restore overwrites nothing");
+      // **THE VERDICT IS SCOPED TO WHAT WAS EXAMINED, AND IT USED TO CLAIM MORE
+      // THAN THAT.** `sync_overwrite` walks the threads the STORE already
+      // holds and asks whether each still matches the extract. A thread present
+      // in the extract and absent from the store is never reached -- it is an
+      // ADD, not an overwrite -- so `the store and the extract agree` was false
+      // in exactly the case where the extract carries something new.
+      //
+      // Measured on a clean v3 fixture, 2026-08-28: plant a `ST0002.json` the
+      // store has never seen, run this verb, and it prints agreement, reports
+      // `2 thread(s)`, and `st show ST0002` then answers from the store at
+      // rc=0. **The thread arrived under a message saying nothing would
+      // change.** Detecting the ADD is a widening of the warning surface on a
+      // destructive verb and is NOT done here; what is done is that the
+      // sentence now says what was actually checked.
+      let nothing_overwritten = overwrite.is_empty();
+      if nothing_overwritten {
+        eprintln!(
+          "note: no thread the store already holds differs on disk, so this restore overwrites nothing (a thread the extract has and the store does not is an ADD and is not examined here)"
+        );
       } else {
         eprintln!("warning: replacing the store from the extract OVERWRITES:");
         for line in &overwrite {
@@ -430,7 +447,32 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
         }
       }
       let count = f.sync_from_disk(&scope).map_err(fail)?;
-      println!("ok: store replaced from the extract, {count} thread(s)");
+      // **THE TWO LINES USED TO CONTRADICT EACH OTHER AND ONE OF THEM WAS
+      // READ.** `overwrites nothing` followed immediately by `store replaced
+      // from the extract` reads as the replacement having materially happened;
+      // an operator checking whether a repair ran was told both answers, and
+      // the second is the one that looks like a result. Reproduced on a clean
+      // fixture while confirming issue 0111's remainder.
+      //
+      // The count still prints in both branches: it is how many threads this
+      // run wrote, which is a true and useful number either way. What changes
+      // is that the verb no longer calls an unchanged store `replaced`.
+      //
+      // **AND THE SOURCE IS NAMED, because the count was read as a claim about
+      // FILES.** Lamplight ran this on `ST0300`, saw `1 thread(s)`, and took it
+      // for the thread having been processed from its own directory. That
+      // thread has no v3 realised form at all -- `intent/st/ST0300/` does not
+      // exist, it is not in `.intentfiles`, and its authored `acceptance.md`
+      // sits in a v2 status bucket canon has never seen. The count was true
+      // about the canon extract and false about everything the reader thought
+      // it meant. Saying `canon extract` costs one word and closes that.
+      if nothing_overwritten {
+        println!(
+          "ok: store rewritten from the canon extract, {count} thread(s); nothing the store already held was overwritten"
+        );
+      } else {
+        println!("ok: store replaced from the canon extract, {count} thread(s)");
+      }
       Ok(())
     }
     (false, false) => {
