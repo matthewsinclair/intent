@@ -3,15 +3,38 @@ node: cc
 name: Control Claude
 role: control
 session_id: 7a90ae04-61f6-4b2f-9de7-dd81eac9bb11
-heartbeat_at: 2026-08-28 16:15Z
+heartbeat_at: 2026-08-28 16:44Z
 status: active
-focus: "**FOLDED FOR THE COMPACT; STATUS STAYS ACTIVE. On the bounce: `0121` IS THE NEXT ITEM AND IT IS THE LAST OF THE REBUILD BATCH.** vc banked the batch as date-flag + st-repair-retire + `0121`; the first two are IN (`bd5894df`, `abcb90f7`), so when `0121` lands **I CALL THE BATCH READY AND ANNOUNCE BY PROPERTIES**, and vc puts the rebuild GO to hv. **DO NOT CALL IT EARLY** -- Conflab has waited hours and one more XS beats a second fleet-wide window for a UX fix. DELIVERED, SOURCE-ONLY UNTIL THAT REBUILD: ST0067 closed (`da4c9cbd`, gate re-driven not taken); `0119` closed by DISCLOSURE (`f3d15891`) because both fixes its body proposes overturn ic`s ratified PUT; Laksa`s thread mapping (`f6613495`); two reds on main, both mine (`1c6feb3f`, `9a505686`); my own Highlander violation (`38e98942`). **THE DAY`S CLASS: a correction made in conversation does not reach an artefact; and a test that hardcodes a member of a population the project is draining goes stale by BEING RIGHT -- the cure is to take the example from the population`s own declaration.** THEN, none started: the write-path package, the two sync filings, the hydrate hypothesis, ST0065`s four -- `_DECISION_TREE.md` wholly mine, `_wip.md` HELD for ic`s retirement-mechanics draft."
+focus: "**THE REBUILD BATCH IS READY AND I HAVE CALLED IT. All three items are in: `--date` (`bd5894df`), `st repair` retire (`abcb90f7`), `0121` (`15749aea`) -- plus `8177b53e`, which 0121`s own disclosure exposed. **EVERYTHING IS SOURCE-ONLY; the delivered pair still names `4479264f` and the gate says so on every commit. THE REBUILD GO IS vc`s TO PUT TO hv AND MINE TO ASK FOR, NEVER TO RUN.** THEN, none started: the write-path package, the two sync filings, the hydrate hypothesis, ST0065`s four -- `_DECISION_TREE.md` wholly mine, `_wip.md` HELD for ic`s retirement-mechanics draft. **TWO FINDINGS PARKED FOR A RULING, NOT FOR EFFORT: `issues list` is the second holdout of the disclosure convention at 49 of 101, and `--status a,b` advertises an ordering it does not do.** **THE DAY`S CLASS STANDS: a correction made in conversation does not reach an artefact; and a test that hardcodes a member of a population the project is draining goes stale by BEING RIGHT -- the cure is to take the example from the population`s own declaration, which is what `ThreadStatus::ALL` now is.**"
 claims: [ST0056/06, ST0056/10, ST0057/00]
 ---
 
 # Control Claude (cc)
 
 ## DOING
+
+**THE REBUILD BATCH IS READY. CALLED 2026-08-28 16:44Z, ANNOUNCED TO vc BY PROPERTIES RE-MEASURED IN THAT TURN RATHER THAN QUOTED FROM THIS BOARD.** Three items, all in: `--date` on the closing verbs (`bd5894df`), `st repair` retired (`abcb90f7`), `0121` (`15749aea`). **`8177b53e` RIDES WITH IT AND WAS NOT IN vc's DEFINITION** -- 0121's own disclosure exposed it, and I judged a ratified declaration the implementation was missing worth the same window rather than a second one. It is a separate commit precisely so it can be pulled without touching the batch.
+
+**`0121` -- A NARROWED `st list` NAMES ITS SCOPE, ITS DENOMINATOR AND HOW TO WIDEN.** Seven properties, each driven against the debug binary at 16:44Z:
+
+- an EMPTY ESTATE still prints v2's header and says nothing about filters -- `0 of 0` would blame a filter for a table empty under any filter at all;
+- a filter that empties a NON-empty store makes the disclosure the whole output -- `st list: no thread matches status \`On Hold\`, of 2 in this store`;
+- a narrowed non-empty render carries `showing 1 of 2 threads, status \`WIP\``;
+- the UNNARROWED path is silent, and `st list --status all` stays byte-identical to `st sync`'s dry run;
+- the `--format json` refusal fires with ZERO rows, because the format is resolved BEFORE any empty short-circuit;
+- markdown carries it too, since a persisted narrowed table outlives the command line that scoped it;
+- and every one of the six `ThreadStatus::display` words round-trips through `--status`.
+
+**IT IS NOT A NEW CONVENTION AND THAT IS THE PART WORTH KEEPING.** `events` already carries all three arms, and its own comment states the rule better than I would have: _a count of what was printed reported as a count of what exists is this estate's most-repeated defect_. `critic` says it of the rules it was ASKED for; `search` says an empty result over an unindexed store is not an absence. **So the convention had three instances and two holdouts, and the work was to stop inventing one.**
+
+**FOUND WHILE FIXING IT, AND IT IS THE BETTER FINDING: `format_roster_is_honoured`'s FIXTURE WAS VACUOUS FOR `st list` FROM THE DAY IT WAS WRITTEN.** That file exists to stop exactly this -- its header says a `--format` drive over an empty result set proves nothing -- and it seeded a thread that `st new` enters at `Triage` while driving the bare form, which narrows to WIP. **The vacuity rendered as a header-and-separator rather than as a sentence, so the file's own non-empty control could not see it.** The disclosure made it visible and the control fired the same hour. Repaired by selecting the content (`--status all`), never by relaxing the control.
+
+**`8177b53e` -- `--status triage`, AND THE ROW HAD DECLARED IT ALL ALONG.** `st list`'s `status_vocabulary` note has required the six states of Machine 1 since the machines were ratified. The implementation accepted five, so this estate's 5 `Triage` threads were reachable by `--status all` and nothing else, and the refusal's own remedy enumerated a vocabulary the model does not match. **It survived because `declared_values_are_enforced` walks `values` ARRAYS and this row carries none** -- the same blind spot the pipe-string rosters had. `tbc` still resolves to `NotStarted`, asserted with a control proving the fixture really is at `Triage`.
+
+**TWO FINDINGS PARKED FOR A RULING, NOT FOR EFFORT. NEITHER IS MINE TO DECIDE AND BOTH ARE MEASURED:**
+
+- **`issues list` IS THE SECOND HOLDOUT: 49 of 101, disclosed nowhere** (`--kind` defaults to `open`; `--kind all` returns 101, `--kind closed` 52). Same class, same day, and the fix is the same shape. **It is `keep`/`as-observed` and its empty case is v2's own string (`no {kind} issues`), so changing it is a disposition move like the one `st list` just made** -- which needed hv's ruling and a declared `target.rulings`. Not done off my own reading of a general rule.
+- **`--status a,b` ADVERTISES AN ORDERING IT DOES NOT DO.** The flag's help says _a comma-separated list rendered in the order given_; `--status hold,wip` and `--status wip,hold` are byte-identical, both in store order. Declared-versus-implemented, and **the fix could go either way** -- implement the ordering (a behaviour change for anyone passing two) or correct the help (a table edit). Guessing which is exactly the move that produces a remedy nobody ruled.
 
 **FOLDED FOR THE COMPACT. The afternoon's narrative is archived verbatim at `.history/20260828/wip.md`; what follows points at the issues and commits that own each finding rather than carrying a second copy of it.**
 
