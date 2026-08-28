@@ -1,6 +1,8 @@
 # DRAFT -- retirement mechanics: `in-start`, `in-next`, `_wip.md`
 
-**DRAFT ONLY. NOTHING HERE HAS BEEN EXECUTED.** Written 2026-08-28 16:35Z by ic, for vc, under hv's 2026-08-28 ruling that `in-next` retires and hv's adoption of the WP-01/WP-02 verdicts. **No file has been deleted, no skill uninstalled, no template changed.** This document exists so the retirement is sequenced by someone other than the person who proposed it.
+**FOR hv; vc routes. DRAFT ONLY -- NOTHING HERE HAS BEEN EXECUTED.** Written 2026-08-28 16:35Z by ic, for vc, under hv's 2026-08-28 ruling that `in-next` retires and hv's adoption of the WP-01/WP-02 verdicts. **No file has been deleted, no skill uninstalled, no template changed.** This document exists so the retirement is sequenced by someone other than the person who proposed it.
+
+**Every step below carries a size, and where a cost is UNMEASURED the step says so.** Whole job: **S** -- six one-line edits, one CLI call, two directory deletions, one verification. **The size is small and the ordering is the entire content of this document**, which is why it is a draft rather than a commit.
 
 ## 0. The finding that governs everything below
 
@@ -49,16 +51,18 @@ Enumerated by grep over live surfaces only -- skills, templates, docs, `bin`, cr
 
 **Six need action; two die with their own file.** The deferred `in-start:23` MODULES.md site from the WP-01 catalogue resolves here exactly as recorded -- it dies with the file, which is why I declined to edit it.
 
-**Note what is NOT on this list:** `lib/templates/llm/_usage-rules.md` is clean. Only Intent's own root `usage-rules.md` carries those rows, so **the fleet template needs no change** and no downstream project inherits the dangle.
+**Note what is NOT on this list:** `lib/templates/llm/_usage-rules.md` is clean. Only Intent's own root `usage-rules.md` carries those rows, so **the fleet template needs no change** and no NEW project inherits the dangle.
+
+**But sites 7 and 8 have a reach limit hv should know about, and I found it after first writing this section.** `usage-rules.md` is **seeded once and never synced** -- `canon.rs:316`, _"USER-OWNED FILES ARE SEEDED, NEVER SYNCED"_. So editing the root file fixes **this repository only**. Any existing fleet member whose `usage-rules.md` carries those rows keeps them **permanently**, because no central path will ever rewrite that file. **This is not a reason to delay the retirement** -- the rows name a skill that no longer exists, which is a stale pointer rather than a live hazard -- but _"the references are fixed"_ would be false if said without this qualification. Measured on this repo, whose own `usage-rules.md` still carries an unrelated wording my template fix corrected days ago and which will never arrive.
 
 ## 3. Proposed order
 
 Sequenced so that **no intermediate state has a live pointer to a missing target**, and so the destructive step is last.
 
-1. **Edit the six live references** (sites 1, 2, 5, 6, 7, 8). After this step the two skills are unreferenced but still present and still working -- a safe resting state that can sit indefinitely.
-2. **`intent claude skills uninstall in-start in-next`** -- prunes the installed copies and the manifest entries. Removes exactly the recorded `SKILL.md` from each, leaves anything an operator dropped in, prunes the emptied dirs.
-3. **Delete `intent/plugins/claude/skills/in-start/` and `in-next/` from canon.**
-4. **Verify:** canon count and installed count agree and are both 23; a `sync` reports no `SourceMissing`; the reference grep returns zero live hits with the control still returning 94 for `in-session`.
+1. **Edit the six live references** (sites 1, 2, 5, 6, 7, 8). **XS** -- six single-line edits across four files, no logic. After this step the two skills are unreferenced but still present and still working -- **a safe resting state that can sit indefinitely**, which is what makes step 1 separable from the rest.
+2. **`intent claude skills uninstall in-start in-next`** -- prunes the installed copies and the manifest entries. Removes exactly the recorded `SKILL.md` from each, leaves anything an operator dropped in, prunes the emptied dirs. **XS to run, and it is the only irreversible step.** _UNMEASURED: nothing -- the file list is declared in the manifest and I read it._
+3. **Delete `intent/plugins/claude/skills/in-start/` and `in-next/` from canon.** **XS**, two directory removals, recoverable from git.
+4. **Verify:** canon count and installed count agree and are both 23; a `sync` reports no `SourceMissing`; the reference grep returns zero live hits with the control still returning 94 for `in-session`. **XS**, and the control is the half that matters -- a zero from a grep that has not been seen to fire is not a verification.
 
 **Steps 2 and 3 are order-free** because uninstall does not read canon -- but doing 2 first means no step ever leaves an orphan, which is worth more than the flexibility.
 
