@@ -1266,8 +1266,15 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       // choice it made. The first cut of the disclosure below asked
       // `opt(a, "kind").is_none()` and therefore never fired once: the warning
       // was unreachable, and only the control case in the drive showed it.
-      // `value_source` is the question actually being asked.
-      let kind_given = a.value_source("kind") == Some(clap::parser::ValueSource::CommandLine);
+      //
+      // **`opt_explicit`, not a second call to `value_source`.** That helper
+      // already exists for this exact question, and it guards a hazard worth
+      // not rediscovering: `value_source` PANICS on an id the verb does not
+      // declare, where `opt` returns `None`, so asking `opt` first makes the
+      // second call safe by construction. This arm DOES declare `--kind`, so
+      // a raw call would not panic today -- which is exactly how a second
+      // implementation of an already-solved problem survives a review.
+      let kind_given = opt_explicit(a, "kind").is_some();
       let kind = match opt(a, "kind").as_deref() {
         Some("test") => AcKind::Test,
         // The table declares the default, so an absent flag and an explicit
