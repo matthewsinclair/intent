@@ -3,9 +3,10 @@
   "number": 127,
   "slug": "v2-ingest-can-drop-the-note-field-entirely-leavi",
   "title": "v2 ingest can drop the note FIELD entirely, leaving only a legacy.raw stub -- and a length delta reports the stub as a surviving short statement",
-  "status": "open",
+  "status": "closed",
   "severity": "high",
   "created": "2026-08-28",
+  "closed": "2026-08-29",
   "reporter": "Matthew Sinclair",
   "body": "**Reported upstream by conflab-vc on hv's explicit instruction; full evidence in Conflab issue `0011` (HIGH). One of four filed separately: `0124`, `0125`, `0126` (this), `0127`.**\n\n**MEASURED ON CONFLAB:** ST0121/AT-02.5 comes out of the ingest with `has_note: false` -- **no note field at all**, only a `legacy.raw` stub. A length-delta instrument reads its 434 -> 93 as a surviving short statement. **There is no statement.** The row does not carry a truncated note; it carries none.\n\nThat distinction is the whole finding. `0124` is a row that lost part of its prose and still reads complete. This is a row that lost the FIELD, and any instrument that measures \"how much text survived\" reports a number for it as though something did.\n\n**A CORRECTION CARRIED FORWARD FROM THE REPORTERS, because it would otherwise be repeated into the fix:** conflab-ic first characterised this stub as *\"an elided fragment opening on an ellipsis\"*. **It is not.** `...::` is AUTHORED SHORTHAND for an elided path prefix, with 7 occurrences across the authored v2 files including AT-02.2, AT-02.3 and AT-02.4. **The ellipsis is the author's own and is not evidence of anything.** The defect is the absent note field. Do not chase the ellipsis.\n\n**NOT CLAIMED:** this class has not been swept either. One instance, found while reading for something else.\n"
 }
