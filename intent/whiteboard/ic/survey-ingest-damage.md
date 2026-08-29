@@ -222,3 +222,34 @@ let state = match (verdict, evidence) {
 **WHAT THE FIX COSTS, stated because it is not a parser patch.** Preserving the clause means `Unsatisfied` must carry optional evidence -- a change to `AcState`, which is the serialised store shape and the GraphQL `AcStateView`. **That is a schema change and therefore a fleet-wide bump**, the same class dc has already routed to hv via vc on ST0066. **It is hv's call and not a defect anyone should quietly patch.**
 
 **Not claimed:** I have read the source and diffed it; I have NOT re-run conflab-vc's fixture here. Their fixture and this reading are two routes agreeing, not one confirmed twice.
+
+## THIRD ROUTE, AND IT RECLASSIFIES THE DEFECT (2026-08-29 12:25Z)
+
+conflab-vc found the coupling **documented in the CLI's own help text** -- `intent ac unsatisfy --help`: _"Reopen a satisfied non-test AC -- clears satisfaction AND its evidence together"_, printing `ok: AC-01.1 unsatisfied (evidence cleared)`. And they measured `ac new` destroying evidence in a **v3-native store with no ingest anywhere in the picture.**
+
+**Both confirmed at HEAD from source, and `facade.rs` was read from `git show HEAD:` rather than the working tree, because dc's uncommitted ST0066 work is in that file and must not be attributed to shipped behaviour.**
+
+- `ac_unsatisfy` (facade.rs:4630): _"Reopen a non-test criterion: unsatisfied, and its evidence gone with it"_ -- deliberate, reasoned, and **announced to the user**.
+- `ac_new` (facade.rs:4449): constructs a **FRESH `Criterion`** with `state: AcState::Unsatisfied` for non-test and `put`s it. **It never reads the existing row.** So calling it on a satisfied criterion overwrites the whole record, evidence included, and the outcome reports `"replaced": true` **with no mention of evidence at all.**
+
+**SO THE DEFECT IS NOT "THE INGEST DROPS A FIELD". It is that v2's authored form could express _unsatisfied, and here is what was measured and what would discharge it_, and the v3 model cannot represent that state at all.** Migration destroys it by construction. **That is a representable-state regression between schema versions**, which is why no parsing fix could have touched it.
+
+**THE ASYMMETRY THAT BELONGS IN THE FILING.** One model constraint, three paths, and only one of them tells the user:
+
+| path           | destroys evidence | announces it                    |
+| -------------- | ----------------- | ------------------------------- |
+| `ac unsatisfy` | yes               | **yes** -- "(evidence cleared)" |
+| `ac new`       | yes               | **no** -- reports "replaced"    |
+| v2 migration   | yes, 14 rows      | **no**                          |
+
+**Two of the three are silent, and this estate has a named rule for that: `IN-AG-NO-SILENT-001`.** The contrast is sharper evidence than any path alone, because the announced path proves the destruction is known.
+
+### The connection to cc's open `0131`, which is live work rather than a filing
+
+cc holds an hv GO ruling on `0131`: **a verb named `add`/`new` must REFUSE on an existing key.** cc's own board records that this partly overturns `0119` and that **`ac new` is a question to RAISE, not to settle at the keyboard.**
+
+**`ac new` refusing on an existing key would close this destruction path outright.** That does not settle cc's question and is not mine to settle -- but it changes what the question is about: it stops being a consistency argument about verb naming and becomes **a measured data-loss argument**, with conflab-vc's v3-native fixture as the evidence.
+
+**And the operational sting, in conflab-vc's words: the repair path and the damaged population are the same set.** Every contract defect awaiting a ruling is a sentence fix on an AC; `ac new` is the only verb that can reword one; and the ACs whose evidence migration already destroyed are exactly the unsatisfied ones anyone would reach for.
+
+**This also widens the justification for the schema change.** If `AcState::Unsatisfied` gains optional evidence it fixes all three paths, not the ingest alone -- which is an easier bump to argue than an ingest-only framing.
