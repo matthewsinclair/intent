@@ -128,3 +128,29 @@ conflab-vc reported their class (i) rising 2856 -> 3422 chars after conflab-ic c
 The 371 lost characters are the single confounded `ST0056/AC-00.10` row.
 
 **And a correction from conflab-ic that belongs in any repair plan: LOSSLESS IS NOT INTACT.** Five of the rotated rows now open mid-sentence on a pronoun whose antecedent sits after it. Every character survives and the row says nothing. **Repairability is a claim about the source, not about whether the row currently reads.**
+
+## THE CORRECTION THAT MATTERS MOST, AND IT DEVALUES THIS LEG'S HEADLINE (2026-08-29 12:14Z)
+
+**Intent is the corpus the ingest parser was FITTED TO. Its zero is the least informative result in the fleet, not a representative one.**
+
+conflab-vc refuted the alternative I was carrying -- that Intent's `-- evidence:`/`-- satisfied:` grammar might never reach a destructive path. **Measured on Conflab: 28 authored AC rows carry an evidence clause, ALL 28 use that same grammar, ZERO use `-- status:`, and 15 of the 28 were damaged.** So the grammar demonstrably reaches a destructive path and grammar immunity is dead.
+
+They named three surviving explanations for Intent's zero: a different parser version, a different call site, or genuinely clean. **It is none of those. It is that Intent was the development corpus.**
+
+- `legacy.rs` was created **2026-08-16**, and its creation commit is titled _"Intent's own estate parses with zero blocking residue"_. Its body: _"**Measured on this repository**: 56 threads, 140 work packages, 280 criteria, 227 acceptance tests, 0 BLOCKING residue"_, and _"TWO DEFECTS OF MY OWN, both found by **running it against the real estate** rather than by reading the spec"_.
+- Intent's hop is **2026-08-19**, three days later.
+- **Every fix to the acceptance-parsing path is dated 2026-08-26/27** -- a week AFTER Intent's hop -- and they carry `fix(laksa)` / `fix(port)` / `cc(migration)` subjects. They are repairs for defects that only appeared once the parser met estates it had NOT been fitted to.
+
+**So Intent ran the earliest, least-fixed parser and came out clean, because Intent's rows are the rows it was debugged against.** A parser tuned until one estate parses cleanly will parse that estate cleanly. The zero is real and it is very nearly guaranteed.
+
+**CONSEQUENCES FOR THE FLEET SURVEY, and they are the reason this is at the bottom of the file rather than in a footnote:**
+
+1. **Intent must NOT be used as the fleet baseline or as a control estate.** A detector calibrated so that Intent scores clean has been calibrated on the training set.
+2. **This leg's zero is not evidence that the fleet is largely clean.** It is evidence about the one estate that cannot be evidence.
+3. **The informative estates are the ones migrated AFTER 2026-08-19 and BEFORE the 08-26/27 fixes** -- they ran a parser fitted to a corpus that was not theirs, with the defects still in it. That window is where the damage should concentrate, and identifying which estates fall in it is now the highest-value next measurement, ahead of sweeping all sixteen.
+
+**This is my own board's standing watch-out arriving in my own survey: MEASURE WHAT THE DOCUMENT SHIPS TO, NOT WHAT YOU ARE STANDING IN -- the estate's own configuration hides its bugs from it.** I measured the estate I am standing in and it is the one estate whose result was pre-determined.
+
+### Correction to the sha256 claim, at conflab-vc's request and it is the defensible form
+
+Earlier this file treats their byte-identical check as validating the history-recovery method. **It validates ONE INSTANCE of it.** On Conflab the preserved copy and the parser's input are the same artefact; on any other estate the copy was made by a different hand at a different moment, so nothing carries over. **One validated instance, not a validated method.**
