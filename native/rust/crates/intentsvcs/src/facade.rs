@@ -2376,6 +2376,32 @@ impl Facade {
     };
     let id = id.to_string();
 
+    // **STEP ZERO: RESOLVE. An id naming no thread is not realised, and this
+    // runs before the pin because the pin is a WRITE to a TRACKED file.**
+    // `intent st edit ST9997 design` appended `STEELTHREAD:ST9997` to
+    // `.intentfiles` and then refused, so a typo entered a shared file to be
+    // committed by whoever committed that path next, under their authorship,
+    // in a commit about something else (`intent#0144`).
+    //
+    // **IT SITS HERE RATHER THAN IN `edit` BECAUSE THE DIRECT DOOR IS THE
+    // WORSE HALF.** `intent st hydrate ST9997` planted the same line and
+    // exited **0**, printing `hydrated -- listed in intent/.intentfiles` about
+    // a thread that does not exist; `edit` at least refused afterwards.
+    // Measured on both doors before choosing, because a guarded door usually
+    // has an unguarded twin one command away -- and guarding `edit` alone
+    // would have left the silent one open while looking complete.
+    //
+    // **AND IT IS WHAT MAKES A TYPO DIAGNOSABLE.** Neither door could say the
+    // id was unknown: `edit` answered `is not a file this artefact carries`
+    // for an authored file and `is generated from the model` for a view, both
+    // describing a FILE in a thread that was never there. `NoSuchThread` names
+    // the thing the operator actually got wrong.
+    //
+    // Artefact is steel thread today, which is why `st_show` is the resolver;
+    // a second artefact kind would need its own arm here rather than falling
+    // through to this one.
+    self.st_show(&id)?;
+
     // STEP ONE: PIN. First, and unconditionally, because it is the step the
     // obvious ordering skips.
     let path = self.project.intentfiles_path();
@@ -3582,6 +3608,23 @@ impl Facade {
     // consults no disk and no store, so nothing was ever gained by deciding it
     // late. A non-artefact address falls through deliberately -- `hydrate`
     // owns that refusal and makes it before its own first write.
+    // **THE ID OUTRANKS THE FILENAME, AND BOTH CHECKS ARE PURE READS SO PUTTING
+    // THE ID FIRST COSTS NOTHING.** Without this the filename check answered
+    // first and described a file inside a thread that was never there: `st edit
+    // ST9997 info` said `info.md is generated from the model` and `st edit
+    // ST9997 design` said `is not a file this artefact carries`. **The file
+    // argument decided which wrong story the operator got, and neither could
+    // say the id was unknown** -- so a typo was the one fault this verb could
+    // not diagnose (`intent#0144`).
+    //
+    // `hydrate` resolves again below and that is deliberate rather than
+    // redundant: it is a public door in its own right, and a rule that only
+    // holds when you arrive through `edit` is not a rule. The resolution lives
+    // once, in `st_show`; this is a second CALLER, not a second answer.
+    if let Some((_, id)) = address.entity.artefact() {
+      self.st_show(id)?;
+    }
+
     if let Some((_, id)) = address.entity.artefact()
       && let crate::project::EditDisposition::Refuse { author_with } =
         Project::edit_disposition(&rel)

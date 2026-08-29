@@ -2,10 +2,10 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 7a90ae04-61f6-4b2f-9de7-dd81eac9bb11
-heartbeat_at: 2026-08-29 17:58Z
+session_id: 36e848ae-6146-4a05-ab2e-11a34dfe2a90
+heartbeat_at: 2026-08-29 18:40Z
 status: active
-focus: "**EOD. hv RULED `info.md` ROUND-TRIPS** -- `st edit` opens it, `sync --to-store` reads Objective and Context back. NOT STARTED: `native/rust` is held at 0 dirty for vc`s hv-ordered rebuild, and I asked vc to sequence it. Landed today: `st edit` TTY-aware (`8aa83dd6`), the 16-page reference (`228bc900`) regenerated at HEAD (`561cba55`)."
+focus: "BOOTED, HOLDING ON hv. **THE HOLD IN MY LAST FOCUS LINE WAS ALREADY STALE WHEN I WROTE IT** -- vc`s rebuild landed at `f4a2271f` and ic recorded the window closing 17:31Z, 27 minutes before my 17:58Z fold said the tree was still held. Measured at boot: pair CURRENT (`git diff --name-only f4a2271f..HEAD -- native/rust surface` empty, both halves name f4a2271f), tree 0 dirty, index empty. NEXT: hv`s info.md round-trip -- and the reader I named as nearly-existing is a MIGRATION parser whose reuse is three private fns, not the four-part build I first costed."
 claims: [ST0056/06, ST0056/10, ST0057/00]
 ---
 

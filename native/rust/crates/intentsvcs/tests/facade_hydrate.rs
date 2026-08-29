@@ -325,3 +325,78 @@ fn every_address_form_is_hydratable_or_refused_by_name() {
     "the refused set is declared, so a form moving between buckets is visible"
   );
 }
+
+// ---------------------------------------------------------------------------
+// AN ID THAT NAMES NOTHING -- intent#0144
+// ---------------------------------------------------------------------------
+
+#[test]
+fn an_unknown_id_refuses_before_the_pin_and_leaves_the_manifest_byte_identical() {
+  // **THE MANIFEST IS TRACKED, WHICH IS WHY THIS IS NOT A COSMETIC REFUSAL.**
+  // The pin ran first and unconditionally, so `intent st edit ST9997 design`
+  // appended `STEELTHREAD:ST9997` to a file under version control and THEN
+  // refused. On a shared checkout the line was committed by whoever committed
+  // that path next, under their authorship, in a commit about something else.
+  let fx = fixture();
+  let before = manifest_of(&fx);
+
+  let mut facade = fx.facade();
+  let err = facade
+    .hydrate(&at(Entity::Thread {
+      id: "ST9997".to_string(),
+    }))
+    .expect_err("an id that names no thread is not realised");
+  assert!(
+    matches!(&err, FacadeError::NoSuchThread { id } if id == "ST9997"),
+    "an unknown id must be refused AS unknown rather than as a missing file: {err:?}"
+  );
+
+  assert_eq!(
+    manifest_of(&fx),
+    before,
+    "the refusal must write nothing at all to the tracked manifest"
+  );
+  assert!(
+    !is_pinned(&fx, "ST9997"),
+    "a thread that does not exist must not be pinned"
+  );
+
+  // **THE CONTROL LIVES IN THIS TEST, BECAUSE A BYTE-IDENTICAL ASSERTION PASSES
+  // FOR FREE IF THE INSTRUMENT CANNOT MOVE.** Without it the assertions above
+  // prove only that nothing in this test writes manifests, which would stay
+  // true if the pin were deleted outright.
+  let mut facade = fx.facade();
+  facade
+    .hydrate(&at(Entity::Thread {
+      id: "ST0001".to_string(),
+    }))
+    .expect("a thread that exists still hydrates");
+  assert!(
+    is_pinned(&fx, "ST0001"),
+    "control: a real id must still pin, or this file is measuring nothing"
+  );
+  assert_ne!(
+    manifest_of(&fx),
+    before,
+    "control: the manifest must be writable in this fixture"
+  );
+}
+
+#[test]
+fn the_direct_door_refuses_rather_than_reporting_success() {
+  // **THE DOOR `intent st hydrate` REACHES WAS THE WORSE HALF AND IT IS WHY THE
+  // RESOLVE SITS IN `hydrate` RATHER THAN IN `edit`.** `st edit` at least
+  // refused after planting the line; `st hydrate ST9997` planted it and
+  // returned **Ok**, so the CLI printed `hydrated -- listed in
+  // intent/.intentfiles` about a thread that does not exist. A guard on `edit`
+  // alone would have left this open while looking complete.
+  let fx = fixture();
+  let mut facade = fx.facade();
+  let result = facade.hydrate(&at(Entity::Thread {
+    id: "ST9996".to_string(),
+  }));
+  assert!(
+    result.is_err(),
+    "an Ok here is a success report about a thread that does not exist"
+  );
+}

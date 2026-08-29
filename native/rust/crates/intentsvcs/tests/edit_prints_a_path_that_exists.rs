@@ -253,6 +253,45 @@ fn the_filename_refusal_writes_nothing_at_all() {
 // THE DENOMINATOR
 // ---------------------------------------------------------------------------
 
+/// **A TYPO IS REPORTED AS A TYPO -- `intent#0144`'s second half.**
+///
+/// Neither answer the verb used to give named the thing the operator actually
+/// got wrong. An authored file got `is not a file this artefact carries` and a
+/// view got `is generated from the model`, both describing a FILE inside a
+/// thread that was never there -- so the one diagnosis that would have helped
+/// was the one diagnosis unavailable. **The file argument decided which wrong
+/// story you got**, which is why both are asserted here rather than one.
+#[test]
+fn an_unknown_id_is_reported_as_unknown_whichever_file_is_asked_for() {
+  for file in ["design", "impl", "tasks", "info", "acceptance"] {
+    let fx = fixture();
+    let mut facade = fx.facade();
+    let err = facade
+      .edit(
+        &at(Entity::Thread {
+          id: "ST9997".to_string(),
+        }),
+        file,
+      )
+      .expect_err("ST9997 names no thread");
+
+    assert!(
+      matches!(&err, FacadeError::NoSuchThread { id } if id == "ST9997"),
+      "`{file}` on an unknown id must name the ID as the fault, not a file \
+       inside a thread that does not exist: {err:?}"
+    );
+
+    // **THE TRACKED FILE IS THE POINT, NOT THE MESSAGE.** The authored three
+    // realised first and refused afterwards, leaving `STEELTHREAD:ST9997`
+    // behind in version control for a peer to commit under their own name.
+    let manifest = fx.read("intent/.intentfiles");
+    assert!(
+      !intentsvcs::intentfiles::realised_from(&manifest).declares("ST9997"),
+      "`{file}` pinned a thread that does not exist into a TRACKED file:\n{manifest}"
+    );
+  }
+}
+
 /// **EVERY FORM THE VERB DISPATCHES ON IS EDITED OR REFUSED BY NAME.**
 #[test]
 fn every_address_form_is_edited_or_refused_by_name() {
