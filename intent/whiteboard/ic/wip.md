@@ -29,6 +29,20 @@ claims: [ST0065, ST0061]
 
 **I DID NOT REBUILD AND DID NOT ASK ANYONE TO.** The shared-artefact guard correctly refuses a release build while `native/rust` is dirty, and it is dirty with cc's and dc's live work. **Reporting a refusal is not routing around it.**
 
+## THE CANON NARRATIVE AND THE README HAVE HAD **ZERO** v3 CONVERGENCE
+
+**Not partial. Zero -- and `AC-12.2` names them first.** Instrument positive-controlled before I believed it, because a zero from a grep is exactly what I got wrong yesterday.
+
+- **`intent/docs/working-with-llms.md`** (55272 bytes, last touched `861fa66c` 2026-08-25): control `Intent` -> 34, control `zzqqxx` -> 0. **`v3` -> 0. `3.0.0` -> 0. `v2` -> 15. `database`/`the store`/`SSOT` -> 0.**
+- **`README.md`** (17207 bytes, same commit): control 40 / 0. **`v3` 0, `database` 0, `SQLite` 0, `brew` 0** -- its ONLY version reference is a link to the v2.9.0 -> v2.10.0 migration guide.
+- **CHANGELOG is the outlier the GOOD way:** a written `[3.0.0]` entry dated 2026-08-26 whose opening line states DB-as-SSOT correctly. **The release note knows; the narrative does not.**
+
+**THE TWELVE THAT ACTUALLY REMAIN ON ST0056** (the gate's 66 mixes stored-unsatisfied with test-backed-not-yet-green): `AC-00.5` brew on a clean machine, `AC-00.6` prune `bin/` at the cut, `AC-06.3` deviation register complete, `AC-10.6` rollback exercised on the canary, `AC-11.1` tap formula, `AC-11.4` checksum matches downloaded bytes, `AC-12.2`, `AC-12.3`, `AC-12.4` tag/release/formula, `AC-13.9` T3+T4 staged, `AC-14.10`, `AC-14.12`.
+
+**THREE ARE INTERFACE-SHAPED AND OFFERED TO vc: `AC-12.2`, `AC-12.3`, `AC-14.10`.** All three are backed by `n-a` ATs -- non-test criteria closed by NAMED EVIDENCE at review, so **the evidence quality IS the deliverable**.
+
+**NOT STARTED, AND ONE OF THEM SHOULD PROBABLY WAIT: `AC-14.10` is entangled with `AC-14.12`**, which rules the file-based `claude ws` family must GO. **Updating `/in-whiteboard` to document a file protocol scheduled for deletion is work against the grain** -- if `ws` goes DB-based the skill should follow the new mechanism rather than be written twice. That ordering is vc's or hv's, not mine to guess.
+
 ## THE WIP GATE SWEEP, AND THE HOLE IN MY OWN THREAD
 
 **ST0057 PASS 66/66 (3 withdrawn) | ST0061 PASS 7/7 | ST0056 BLOCKED 67/133 | ST0058 BLOCKED 2/6 | ST0066 BLOCKED 0/6 | ST0065 EMPTY CONTRACT.** Two threads pass their own gate and are still WIP.
