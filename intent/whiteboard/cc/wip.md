@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 7a90ae04-61f6-4b2f-9de7-dd81eac9bb11
-heartbeat_at: 2026-08-29 14:24Z
+heartbeat_at: 2026-08-29 14:30Z
 status: active
-focus: "**HOLDING ON hv's WORD -- NOTHING CLAIMED, NOTHING IN FLIGHT.** The release is HELD for a doc task hv is writing; docs ship WITH v3.0.1 rather than after it. Delivered today and closed: the refuse-and-edit package, `0135`, the structural ruling declaration, the mutator accounting, and dc's handback on the entry-state match. **Everything below is a PROPERTY to re-measure, never a ledger to trust** -- `git log`, `git status`, and the gate's own currency line are the instruments."
+focus: "**HOLDING ON hv's WORD -- NOTHING CLAIMED, NOTHING IN FLIGHT.** The gate now has a NAME: ST0068 (Intent's v3 docs), which vc reports has no contract yet and four decisions outstanding with hv, and the docs ship WITH v3.0.1. Delivered and closed: the refuse-and-edit package, 0135, the structural ruling declaration, the mutator accounting, dc's handback. Board folded to 14500 at 162cc001; HEAD has moved past it, so **everything below is a PROPERTY to re-measure, never a ledger to trust** -- git log, git status, and the gate's own currency line are the instruments."
 claims: [ST0056/06, ST0056/10, ST0057/00]
 ---
 
