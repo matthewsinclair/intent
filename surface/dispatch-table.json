@@ -2841,7 +2841,7 @@
         },
         {
           "path": "at green",
-          "help": "Set an AT green (reachable only from red)",
+          "help": "Set an AT green",
           "args": [
             {
               "name": "stid",

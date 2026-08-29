@@ -1259,7 +1259,7 @@ Acceptance tests: the small red-to-green tests that prove ACs
 | `at`                          | <command>     | --                                                                                                  | Acceptance test commands                                                          | keep        |
 | `at list`                     | <stid>        | --                                                                                                  | List ATs (id, reference, status)                                                  | keep        |
 | `at lint`                     | <stid>        | --fix                                                                                               | Check AT rows against the grammar (--fix migrates what is mechanical)             | keep        |
-| `at green` (alias `at done`)  | <stid> <atid> | --note <text>                                                                                       | Set an AT green (reachable only from red)                                         | keep        |
+| `at green` (alias `at done`)  | <stid> <atid> | --note <text>                                                                                       | Set an AT green                                                                   | keep        |
 | `at red` (alias `at notdone`) | <stid> <atid> | --note <text>                                                                                       | Set an AT red                                                                     | keep        |
 | `at na`                       | <stid> <atid> | --note <text>                                                                                       | Set a non-test AT to n/a (the doc / eyeball / gate status)                        | keep        |
 | `at new`                      | <stid> <atid> | --covers <acid> ..., --file <path>, --prose <text>, --kind <kind>, --status <status>, --note <text> | Create an acceptance test (caller-assigned id; refuses an id that is taken)       | new-surface |
@@ -1333,7 +1333,7 @@ Check AT rows against the grammar (--fix migrates what is mechanical)
 
 ### `at green`
 
-Set an AT green (reachable only from red)
+Set an AT green
 
 - **v2:** bin/intent_acceptance:1368-1377 (the `at` dispatch arm)
 - **Arguments:**
