@@ -127,6 +127,6 @@ When you want the gate rather than the listing:
 - **[Concepts](concepts/)** — the model underneath: what a thread is, how criteria reach their state, and why the store rather than the files is the source of truth.
 - **[Command reference](reference/)** — the full surface.
 - `intent todo` — a flat DOING / TODO / DONE view across every thread and work package, generated from their real status.
-- `intent doctor` — when something is not behaving and you want to know whether it is you or the install.
+- `intent doctor` — findings about **this project**: a stale backup, a thread whose status disagrees with its own gate, a store that has drifted from committed canon. It does not inspect your installation.
 
 **One thing worth doing early.** If you use a coding agent, run `intent agents sync` after any significant change to a thread. It regenerates the agent contract from the project's actual state, which is the entire point — the file the agent reads cannot drift from the project, because it is not maintained by hand.

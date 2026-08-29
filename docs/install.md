@@ -32,10 +32,12 @@ The binaries land in `native/rust/target/release/`. **Building is not the whole 
 
 ```
   $ intent --version
-  $ intent doctor
+  $ intent claude rules list
 ```
 
-`intent doctor` checks the things that are wrong most often — whether `INTENT_HOME` resolves, whether the support tree is present and complete, and whether the project you are standing in is one this binary can read.
+**`intent claude rules list` is the install check, and it is a direct test rather than a proxy.** It reads the rule library out of the install root, so it fails on exactly the packaging fault that is worth catching — a binary that runs and a support tree that is not there. If it lists rules, the largest support tree is present and reachable.
+
+**`intent doctor` is a different tool and it will not tell you this.** It reports on the _project_ you are standing in — backup staleness, a thread whose recorded status disagrees with its own gate, a store that has drifted from committed canon. Useful, and it inspects none of the install. Run it once you have a project; it is not an installation check.
 
 ## What the install has to contain
 
@@ -60,7 +62,7 @@ On a Homebrew install these root at `$KEG/libexec`, which is what `INTENT_HOME` 
   $KEG/libexec/intent/plugins/claude/bin/intent_claude_cwi
 ```
 
-If a command fails with an error naming a path rather than an argument, this table is where to look first. `intent doctor` reports the same thing without you having to.
+If a command fails with an error naming a path rather than an argument, this table is where to look first. **Nothing in the tool audits this table for you** — the closest thing is running one command per row and seeing whether it works.
 
 ## Known defects in the published v3.0.0 build
 
