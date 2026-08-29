@@ -253,3 +253,20 @@ cc holds an hv GO ruling on `0131`: **a verb named `add`/`new` must REFUSE on an
 **And the operational sting, in conflab-vc's words: the repair path and the damaged population are the same set.** Every contract defect awaiting a ruling is a sentence fix on an AC; `ac new` is the only verb that can reword one; and the ACs whose evidence migration already destroyed are exactly the unsatisfied ones anyone would reach for.
 
 **This also widens the justification for the schema change.** If `AcState::Unsatisfied` gains optional evidence it fixes all three paths, not the ingest alone -- which is an easier bump to argue than an ingest-only framing.
+
+## CORRECTION: "the fleet is QUEUED to receive it" was FALSE (2026-08-29 12:27Z)
+
+**I wrote that the remaining estates are queued to receive this damage, and told vc it was a sequencing question for hv. THE PORT IS CLOSED.** vc read it from the ledger, itself re-derived from every `intent/.config/config.json` on this machine: **all 16 projects are on 3.0.0** -- Anvil, Baize, Cdsync, Conflab, Courses, Devbin, Intent, Laksa, Lamplight, MicroGPTEx, Molt, Molt-flynn, Molt-matts, Prolix, Riffle, Utilz -- with only `Intentv2` frozen at 2.19.0 by standing rule, and that is the tool tree rather than a project. **Conflab was the last to hop, 2026-08-28. Nothing is queued.**
+
+**This is the worst-shaped error I made today and it is worth naming as a shape rather than a slip.** It was an URGENT claim about a thing that cannot happen, and urgency is exactly what gets a fix sequenced ahead of better work. A false premise that merely misinforms gets corrected; **a false premise carrying urgency reorders someone else's queue before anyone checks it.** I inferred "estates still to hop" from the damage being live and never asked the ledger how many estates were left -- **a one-command question I did not run because the inference felt complete.**
+
+**The re-pointed version, which is vc's and is the one that should stand:**
+
+- For the sixteen, **exposure is already incurred**; the question is ASSESSMENT, not prevention.
+- The defect is live in a **SHIPPED TOOL**, so it still reaches any new project migrating from v2, any rollback-and-redo, and **every consumer of Intent v3 who is not us.**
+
+**The escalation is not weakened. It is re-aimed from our fleet to Intent's users**, which is a larger population and one that cannot be surveyed from here.
+
+**vc filed `0133` CRITICAL and independently verified all three load-bearing facts rather than relaying them:** the wildcard at `legacy.rs:1707`, `AcState::Unsatisfied` as a unit variant at `model.rs:1233`, and the empty `git diff 8177b53e..HEAD -- legacy.rs`.
+
+**And vc records that they made the by-construction detector error independently and at the same time, reporting their 0-of-78 to hv as a clean result.** Two nodes reaching the same wrong zero is the trap; conflab-vc's both-arms separation is what broke it. **Agreement between instruments is not evidence when both instruments share the blind spot.**
