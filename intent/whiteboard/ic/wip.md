@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 17:58Z
+heartbeat_at: 2026-08-29 18:00Z
 status: paused
-focus: "EOD 1757Z. **AC-12.2 + AC-12.3 DONE AND SATISFIED IN CANON BY vc, who swept independently rather than accepting my report.** Nothing claimed, nothing blocked, nothing owed. On the bounce: no assignment -- ask vc. **Holding `intent` invocations until vc says the rebuilt pair is current.**"
+focus: "EOD 1757Z. **AC-12.2 + AC-12.3 DONE AND SATISFIED IN CANON BY vc, who swept independently rather than accepting my report.** Nothing claimed, nothing blocked, nothing owed. **ON THE BOUNCE: ASSIGNMENT 2 -- surface-review cc's refuse-and-edit package. vc CONFIRMED it is still mine and still owed; their spot check is not a surface review.** `intent` is free -- window closed 17:31Z."
 claims: []
 ---
 
@@ -15,15 +15,19 @@ claims: []
 
 **Nothing. Both criteria closed.** `AC-12.2` (working-with-llms.md, README, CHANGELOG) and `AC-12.3` (`docs/releases/3.0.1/RELEASE_NOTES.md`), satisfied in canon at `6cdbbc5f` **by vc's independent sweep, not by my report.**
 
-**ON THE BOUNCE: ASK vc FOR THE NEXT UNIT.** Do not infer one. **Assignment 2 (surface-review cc's refuse-and-edit package) was unparked and I never got to it** -- raise it rather than assume it lapsed.
+**ON THE BOUNCE: ASSIGNMENT 2, AND vc CONFIRMED IT RATHER THAN LEAVING ME TO INFER IT.** Surface-review cc's `ac new` / `at new` refuse-and-edit package. **vc's own words: their check was a SPOT CHECK, not a surface review** -- presence and framing verified, **nothing covering the refusal's boundaries, the `at new` side, or whether the two doors agree.** cc built it, so cc is the least independent reviewer available, which is why it is mine.
 
-**`intent` INVOCATIONS ARE HELD** until vc confirms the rebuilt pair is current. During their window there is no shared binary at all, so anything driven at it **fails rather than answers** -- which is the good failure, but do not meet it unwarned. **Source and git plumbing work throughout and are how I verified `st edit` during the window.**
+**`intent` IS FREE AGAIN -- the rebuild window closed 17:31Z**, pair current at `f4a2271f`, both halves naming the same revision. **I held for half an hour after it closed** because vc announced the opening and not the closing; they filed that against themselves. **The general shape: an announced state needs an announced end, or the holder waits forever and the waiting is invisible to everyone including them.**
+
+**STILL OWED AND NOT ASKED FOR TONIGHT:** re-verify the release notes and CHANGELOG against the fresh binary. **The pass worth doing is anything that turns on BEHAVIOUR rather than on the register** -- my own limit, applied to my own documents.
 
 ## THE FOUR THAT COST ME TODAY
 
 **1. A CLAIM WHOSE _BASIS_ IS WITHDRAWN READS EXACTLY LIKE ONE THAT STILL HOLDS.** I was handed "3.0.1 does not fix `ac new`" and carried it on my own board twice. It was true when given; hv's "fold everything into 3.0.1" removed the constraint under it. **No symptom, and the entry looked settled -- settled is what makes a thing stop being checked.**
 
 **2. A RULING AND A LANDED CHANGE ARE INDISTINGUISHABLE IN A MESSAGE.** Two of four surface changes I was handed did not exist (`issues edit` absent from register, source AND `--help`; `st edit` still the path-printer). **Fix: a surface claim travels with what makes it checkable.** **AND THE FIX HAS A LIMIT I FOUND THE HARD WAY** -- "it is in the register" covers a NEW verb and **cannot cover a BEHAVIOUR CHANGE to an existing one.** `st edit` was an unchanged register row before and after `8aa83dd6` while what it does changed completely. **The register answers _does this exist_, not _does it still do what the last doc said_.** For that class the check is the source or the test.
+
+**AND IT HAS ALREADY NEAR-MISSED IN A REAL GENERATED PAGE** (vc, tonight): the reference is emitted from the register at a revision, so **a behaviour change to an existing verb moves NOTHING the generator can see -- the pages regenerate identically and read as current.** cc's `intent-st.md` described `st edit` without the two flags, and **only the revision stamp made it visible.** The stamp is doing work the content cannot.
 
 **3. FIXING THE INSTANCE IS NOT FIXING THE CLASS.** The `intent doctor` claim: **vc swept and found three; I reasoned about the document in front of me and fixed one of two.** My README kept the false sentence while my release notes had the correction. **The sweep is the check, not the care.**
 
