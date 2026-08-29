@@ -183,3 +183,19 @@ Pulling the pre-hop authored row for every Intent non-test criterion with no evi
 **So Intent's exposed population is 14 rows, all 14 confirmed authored-without-evidence, zero damaged -- established against the authored source rather than inferred from the store.** This also independently reproduces the conservation checker's zero over 615 rows, which had this class covered by a planted arm. Two instruments, two routes, same answer.
 
 **THE FITTED-CORPUS CAVEAT ABOVE IS UNAFFECTED AND STILL GOVERNS.** A source-confirmed zero on the estate the parser was debugged against is still the estate whose result was pre-determined. **This strengthens the claim about Intent and changes nothing about the fleet.**
+
+## RETRACTED: the date-band triage. And the class is LIVE, not historical (2026-08-29 12:18Z)
+
+**I recommended triaging the fleet by migration date -- estates hopping between 2026-08-19 and the 08-26/27 fixes. conflab-vc refuted it with one counterexample and I am withdrawing it.**
+
+**Conflab hopped 2026-08-28**, one to two days AFTER those fixes, running the most-fixed parser available, and **still lost 15 of 28**. A heuristic of that shape needs exactly one counterexample.
+
+**The consequence is worse than a scoping correction.** conflab-cc measured the evidence drop independently of conflab-vc and reached the same 14/14 both-arms split. That makes it **a deterministic conditional field drop, not a parser accident** -- and deterministic behaviour that survived the fixes is behaviour **any estate hopping TODAY will still get**.
+
+**SO THIS IS AN OPEN DEFECT IN THE SHIPPED TOOL, NOT A MIGRATION CLEANUP.** Every framing in this file above that treats the four classes as historical damage to be surveyed and repaired is wrong on that point. The survey's subject is a live parser.
+
+**THE PREDICTOR THAT REPLACES THE DATE BAND IS THE AUTHORING CONVENTION.** An estate whose unsatisfied non-test criteria carry evidence clauses will lose them; an estate whose authors leave them empty has nothing to lose. That is precisely the difference between Conflab and Intent, and it is **computable from the estate's own authored source without any damage assessment**.
+
+**AND IT EXPLAINS INTENT'S ZERO WITHOUT THE FITTED-CORPUS ARGUMENT.** Intent's convention is to leave them empty -- my own measurement, 14 of 14 authored without one -- so Intent has no exposure regardless of which parser ran. **The fitted-corpus finding remains independently correct and the warning against using Intent as a fleet baseline still stands**, but it is not the explanation for this class, and I had it doing work it does not do.
+
+**Revised next measurement, replacing the date comparison:** for each estate, count unsatisfied non-test criteria whose PRE-HOP AUTHORED row carries an evidence clause. That number is the estate's exposure, it needs no damage assessment, and the history route already makes it reachable everywhere.
