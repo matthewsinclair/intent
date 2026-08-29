@@ -1,470 +1,98 @@
-# Intent: Build Software with AI by Capturing WHY Code Exists
+# Intent
 
-[![Intent Tests](https://github.com/matthewsinclair/intent/actions/workflows/tests.yml/badge.svg)](https://github.com/matthewsinclair/intent/actions/workflows/tests.yml)
+**Intent captures why your code exists, in the repository, in a form your team and your coding agents can both read.**
 
-Intent helps you build better software by capturing the "why" behind your code. When you document intentions, both your team and AI assistants understand not just what the code does, but why it exists.
-
-## 🚀 See Intent in Action
-
-Instead of giving your AI assistant vague instructions:
-
-```bash
-# ❌ Without Intent:
-"Build a cache system for our API"
-# AI builds generic cache, misses critical requirements
-```
-
-Capture your actual intention:
-
-```bash
-# ✅ With Intent:
-$ intent st new "Implement rate-limited cache for API protection"
-# Document: Need cache because API limits to 100 req/min
-# Document: Must handle Black Friday traffic spikes (10K req/s)
-# AI builds appropriate solution with rate limiting and burst handling
-```
-
-**Result**: Your AI assistant understands the constraints and builds the right solution first time.
-
-## 💡 Why This Matters
-
-### For Solo Developers
-
-**Problem**: Your AI assistant forgets context between sessions  
-**Solution**: Intent preserves your project's "why" so AI always understands your goals
-
-### For Teams
-
-**Problem**: New members waste weeks doing "code archaeology"  
-**Solution**: Every feature has a Steel Thread documenting why it exists
-
-### For Future You
-
-**Problem**: "Why did I write this weird code 6 months ago?"  
-**Solution**: Your past self documented the API limits that forced that approach
-
-## 🎯 What is a Steel Thread?
-
-A **Steel Thread** is a self-contained feature with documented intentions. Think of it as a container that holds:
-
-- **WHY** you're building something (the intention)
-- **WHAT** you're building (the design)
-- **HOW** you're building it (the tasks)
-
-Example structure:
+Your code says what it does and version control says when it changed. Neither says what you were trying to achieve, what you ruled out, or what breaks if someone changes it. Intent gives that reasoning a place to live that ages with the code instead of away from it.
 
 ```
-ST0042: Authentication System/
-├── info.md          # Why we need auth, what type, constraints
-├── design.md        # JWT vs sessions decision, security model
-├── impl.md          # Technical implementation details
-└── tasks.md         # Implementation tasks and tracking
+  $ brew install matthewsinclair/tap/intent
 ```
 
-## 🤖 Intent + LLM in Action
+Full documentation is in [`docs/`](./docs/). If you are new, start at [the documentation index](./docs/index.md); if you are moving a v2 project across, start at [Migrating from v2](./docs/migrating-from-v2.md).
 
-### Example 1: Context Persistence
+## What it is
 
-```markdown
-# ❌ Without Intent (every new session):
+A single CLI, written in Rust, that manages a small set of durable objects inside your repository.
 
-You: "Help me optimize the user service"
-LLM: "What does the user service do? What are the constraints?"
-[You spend 10 minutes explaining...]
+A **steel thread** is one intention followed end to end. It breaks into **work packages**, and it states **acceptance criteria** — the conditions that decide whether the intention was met. Each criterion is backed by an **acceptance test**, so whether a thread is satisfied is computed rather than asserted.
 
-# ✅ With Intent:
+Around that sits the machinery that makes it survive contact with a real project: a store that is the single source of truth, generated views so nothing is maintained twice, a rule library your coding agents can be held to, per-language critics that check work against those rules, and commit-time gates that refuse changes contradicting what the project said it was doing.
 
-You: "I'm working on ST0042" [paste steel thread]
-LLM: "I see you're using JWT tokens with 15-min expiry for stateless auth.
-Given your multi-device requirement, here's a refresh token strategy..."
-```
+## Why it exists
 
-### Example 2: Discovering Hidden Knowledge
+**Comments rot because nothing checks them.** They sit beside the code, they are not tested, and the first person to change the code under a stale comment usually leaves it there.
 
-```bash
-# Months later, you wonder: "Can I simplify this cache?"
-$ intent st show ST0015
-# Reveals: "Cache exists because API rate limits to 100 req/min"
-# Now you know why it's "complex" - it's handling burst traffic!
-```
+**Design documents rot because nothing links them.** They are correct on the day they are written, and nothing notices when they stop being true.
 
-### Example 3: Focused AI Assistance
+**And a coding agent cannot reconstruct any of it.** It reads what the code does and builds confidently on assumptions you would have rejected in one sentence — because the sentence was never written anywhere it could read. Handing an agent more context each session does not fix that; the context has to come from something that cannot silently drift.
 
-```markdown
-# Steel threads keep AI focused:
-
-- Clear boundaries (one feature, not entire codebase)
-- Explicit constraints documented ("must handle 10K req/s")
-- Design decisions captured ("chose Redis over Memcached because...")
-- Result: AI suggestions align with YOUR architecture
-```
-
-## 🤖 Claude Code Integration
-
-Intent integrates with [Claude Code](https://claude.ai/code) through sub-agents, skills, and automated enforcement to supercharge AI collaboration:
-
-```bash
-# Initialize subagent configuration (one-time setup)
-$ intent claude subagents init
-
-# Install the Intent subagent
-$ intent claude subagents install intent
-
-# Now Claude automatically understands:
-# ✓ Steel thread methodology
-# ✓ All Intent commands
-# ✓ Your project structure
-# ✓ Best practices
-```
-
-**The difference is dramatic:**
-
-Without Intent agent:
+## A first steel thread
 
 ```
-You: "Help me add caching"
-Claude: "What's your project structure? What caching do you need?"
-[10 minutes explaining Intent, constraints, etc.]
+  $ intent init
+  $ intent st new "Add user authentication"
+  created: ST0001
 ```
 
-With Intent agent:
+Then record why it exists and what would make it done:
 
 ```
-You: "Help me add caching"
-Claude: "I'll create a steel thread for caching:
-
-         intent st new 'Implement caching layer'
-
-         Let's document the intent first - what are you caching?
-         Is this for API rate limits or performance? What's your
-         expected traffic pattern? I'll help structure this properly."
+  $ intent st edit ST0001
+  $ intent ac new ST0001 AC-01.1 --text "Sessions survive a server restart"
+  $ intent st show ST0001
 ```
 
-Claude becomes an Intent-fluent development partner from day one.
+The reasoning is now a tracked object rather than a paragraph in a chat log, and `intent ac gate ST0001` will tell you whether the thread is satisfied instead of asking you to remember.
 
-## 🚀 Quick Start
+[Getting started](./docs/getting-started.md) follows this through to a satisfied thread on a real project.
 
-### Installation
+## Commands
 
-```bash
-# Clone the repository
-git clone https://github.com/matthewsinclair/intent.git
-cd intent
+**The command reference is generated from the dispatch register at a named revision** — see [`docs/reference/`](./docs/reference/). It is generated rather than hand-written because a command list typed into prose beside the register is a copy of a measured mapping, and it drifts from it silently.
 
-# Add Intent to your PATH
-export PATH="$PATH:$(pwd)/bin"
+For the surface of a build you actually have in front of you, ask that build: `intent --help`, and `intent <command> --help`.
 
-# Verify installation
-intent --version
+> **`intent help` was retired in v3.** It refuses with a message saying so. Use `intent --help`.
 
-# See available commands
-intent help
-
-# Install Claude Code subagent (if using Claude)
-intent claude subagents install intent
-```
-
-### 🏆 5-Minute Win: Your First Steel Thread
-
-```bash
-# 1. Create a steel thread with clear intention
-$ intent st new "Add user authentication"
-Created: ST0001
-
-# 2. Document WHY you need auth (this is the magic!)
-$ intent st edit ST0001
-# Add: "Need auth because customer data must be protected"
-# Add: "Using JWT because we have multiple microservices"
-# Add: "Must support SSO for enterprise clients"
-
-# 3. Share with your AI assistant
-$ intent st show ST0001 | pbcopy
-# Now paste into Claude, ChatGPT, etc.
-# The AI immediately understands your constraints!
-```
-
-### 📋 See what's in flight
-
-```bash
-# A flat DOING / TODO / DONE view of every steel thread, projected from real
-# status -- it can't drift, because the checkboxes are derived, not stored.
-$ intent todo
-## DOING
-- [-] ST0007: rate-limited cache
-  - [x] 01: token bucket
-  - [-] 02: eviction policy
-## TODO
-- [ ] ST0009: SSO for enterprise
-## DONE:2026-07-02T00:00:00Z
-- [x] ST0006: audit logging
-
-# Close work through the view (wraps `intent st/wp done`, so the acceptance
-# close-gate still applies); export the whole board for other tools with --json.
-$ intent todo done ST0007/02
-$ intent todo --json | jq '.doing'
-```
-
-## 📚 Documentation
-
-### Getting Started
-
-- **[Working with LLMs in Intent](./intent/docs/working-with-llms.md)** - The canonical narrative on Intent's LLM-facing surface (three-file architecture, hooks, skills, critics, extensions). Start here.
-- **`intent help`** - Command reference. Run from any Intent project for the full command list, or `intent help <cmd>` for per-command detail.
-- **[v2.9.0 → v2.10.0 Migration Guide](./intent/docs/migration-v2.10.0.md)** - Upgrade path including the `.intent/` → `intent/.config/` directory move and recovery from interrupted migrations
-
-### Understanding Intent
-
-- **[Technical Product Design](./intent/eng/tpd/technical_product_design.md)** - The complete vision and architecture of Intent
-- **[Blog Series](./docs/blog/)** - In-depth exploration of Intent concepts:
-  - [Motivation for Intent](./docs/blog/0000-motivation-for-intent.md) - Why intention matters in software
-  - [Introduction to Intent](./docs/blog/0001-introduction-to-intent.md) - What Intent is and how it works
-  - [The Steel Thread Methodology](./docs/blog/0002-the-steel-thread-methodology.md) - Deep dive into steel threads
-  - [Intent Capture in Software Development](./docs/blog/0003-intent-capture-in-software-development.md) - Practical techniques
-  - [LLM Collaboration with Intent](./docs/blog/0004-llm-collaboration-with-intent.md) - Enhancing AI assistance
-  - [Getting Started with Intent](./docs/blog/0005-getting-started-with-intent.md) - Practical implementation guide
-  - [Next Steps and Future Work](./docs/blog/0006-next-steps-and-future-work.md) - Roadmap and vision
-
-### Project Management
-
-- **[Work in Progress (WIP)](./intent/wip.md)** - Current tasks and daily focus
-- **[Steel Threads Index](./intent/st/steel_threads.md)** - All steel threads and their status
-
-### Development
-
-- **[CLAUDE.md](./CLAUDE.md)** - AI assistant instructions and project conventions
-- **[Architecture Overview](./intent/eng/tpd/3_architecture.md)** - System design and components
-- **[Detailed Design](./intent/eng/tpd/4_detailed_design.md)** - Implementation details
-- **[Testing Guide](./tests/)** - Test suites and integration tests
-
-### For LLM Collaboration
-
-- **[Working with LLMs](./intent/docs/working-with-llms.md)** - Canonical narrative for Intent's LLM-facing surface: the three-file architecture (AGENTS.md / CLAUDE.md / usage-rules.md), session hooks, critic cadence, skills and `/in-session` auto-load, Socrates vs Diogenes FAQ, troubleshooting
-- **[Rules guide](./intent/docs/rules.md)** - Schema, authoring, and validation of the rule library
-- **[Critics guide](./intent/docs/critics.md)** - Contract, modes, and report format for critic subagents
-- **[Writing extensions](./intent/docs/writing-extensions.md)** - Authoring guide for extensions at `~/.intent/ext/`
-
-## 🛠️ Core Commands
-
-### Steel Thread Management
-
-```bash
-intent st new <title>          # Create a new steel thread
-intent st list                 # List all steel threads
-intent st show <ST####>        # Show details of a specific thread
-intent st edit <ST####>        # Edit a steel thread
-intent st sync                 # Synchronise the steel thread index
-```
-
-### Work Package Management
-
-```bash
-intent wp new <STID> "Title"   # Create a new work package in a steel thread
-intent wp list <STID>          # List work packages for a steel thread
-intent wp start <STID/NN>      # Mark a work package as WIP
-intent wp done <STID/NN>       # Mark a work package as Done
-intent wp show <STID/NN>       # Show work package details
-```
-
-Specifiers accept bare numbers: `intent wp new 5 "Title"` is equivalent to `intent wp new ST0005 "Title"`. WP numbers auto-assign (01-99) and titles can contain special characters (`/`, `&`, `\`) safely.
-
-### AGENTS.md Management
-
-```bash
-intent agents init                   # Initialize AGENTS.md for the project
-intent agents generate               # Generate/regenerate AGENTS.md
-intent agents sync                   # Update AGENTS.md with latest project state
-intent agents validate               # Validate AGENTS.md against specification
-```
-
-### Claude Subagent Management
-
-```bash
-intent claude subagents list         # Show available and installed subagents
-intent claude subagents install <name>  # Install a subagent to Claude Code
-intent claude subagents install --all   # Install all available subagents
-intent claude subagents status       # Check subagent health and integrity
-intent claude subagents sync         # Update subagents with latest versions
-intent claude subagents show <name>  # Display detailed subagent information
-```
-
-### Claude Skills Management
-
-```bash
-intent claude skills list            # Show available and installed skills
-intent claude skills install <name>  # Install a skill to .claude/skills/
-intent claude skills install --all   # Install all available skills
-intent claude skills sync            # Update installed skills with latest versions
-intent claude skills uninstall <name>  # Remove Intent-managed skills
-intent claude skills show <name>     # Display skill content and status
-```
-
-### LLM Guidance Upgrade
-
-```bash
-intent claude upgrade                # Diagnose LLM guidance files (dry-run)
-intent claude upgrade --apply        # Apply upgrade changes
-intent claude upgrade --project-dir DIR  # Target external project
-```
-
-### Code Quality
-
-```bash
-intent critic <lang> --files <path>  # Headless rule-library critic
-intent critic <lang> --staged        # Pre-commit gate form
-```
-
-### Learnings
-
-```bash
-intent learn "description"           # Record a footgun (default)
-intent learn --category worked "..."  # Record what worked
-intent learn --list                  # List all learnings
-```
-
-### ST Zero Retrofit
-
-```bash
-intent st zero install               # Audit and install missing ST0000 deliverables
-intent st zero install --audit-only  # Gap analysis only (no changes)
-intent st zero install --dry-run     # Show what would change
-intent st zero install --deliverable D3  # Target a single deliverable
-```
-
-### Greenfield Bootstrap
-
-```bash
-intent init "Project" --with-st0000  # Init project + install all ST0000 deliverables
-```
-
-### Module Guardrails
-
-```bash
-intent modules check                 # Compare registry vs filesystem
-intent modules check --register      # Interactive registration
-intent modules find "auth"           # Search the module registry
-```
-
-### Plugin Discovery
-
-```bash
-intent plugin                        # List all plugins and commands
-intent plugin show claude            # Show details for a plugin
-```
-
-## 🏗️ Project Structure
+## Repository layout
 
 ```
 .
-├── AGENTS.md         # Tool-agnostic LLM config (auto-generated; project root)
-├── CLAUDE.md         # Claude Code-specific overlay
-├── usage-rules.md    # Prescriptive DO / NEVER contract
-├── bin/              # Intent command-line tools
-├── docs/             # Documentation and blog posts
-├── intent/           # Project artifacts (when using Intent)
-│   ├── .config/      # Per-project config + metadata (config.json, version)
-│   ├── st/           # Steel threads
-│   ├── eng/          # Engineering documentation
-│   │   └── tpd/      # Technical Product Design
-│   ├── docs/         # Internal canon (working-with-llms.md, critics.md, rules.md)
-│   ├── llm/          # LLM enforcement (MODULES.md, RULES.md, ARCHITECTURE.md, DECISION_TREE.md)
-│   ├── plugins/      # Plugin architecture
-│   │   ├── agents/   # AGENTS.md plugin (inc. templates)
-│   │   └── claude/   # Claude Code integration
-│   │       ├── subagents/  # Subagent definitions
-│   │       └── skills/     # Skill definitions
-│   └── wip.md        # Current work
-├── lib/              # Templates and libraries
-│   ├── templates/    # LLM, archetype, Credo, hook templates
-│   └── help/         # Help files for all commands
-└── tests/            # Test suites
+├── AGENTS.md          # Tool-agnostic LLM config (generated by `intent agents sync`)
+├── CLAUDE.md          # Claude Code-specific overlay
+├── usage-rules.md     # Prescriptive DO / NEVER contract
+├── native/rust/       # The v3 CLI, daemon and services -- the tool itself
+├── bin/               # The v2 Bash line, retained while v3 finishes its port
+├── docs/              # Public documentation (docs/v2/ is the frozen v2 archive)
+├── surface/           # The dispatch register the command reference is generated from
+├── lib/templates/     # Single source for all generated content
+└── intent/            # This project's own Intent artefacts
+    ├── .canon/        # The store: threads and issues as canon
+    ├── .config/       # Per-project config and metadata
+    ├── st/            # Steel threads (info.md and acceptance.md are generated views)
+    ├── docs/          # Internal authoring canon
+    ├── llm/           # Module registry and code-placement flowchart
+    └── plugins/       # Rules, skills and subagents
 ```
 
-## 🤝 Contributing
+**Intent is built with Intent**, so `intent/` here is both the tool's own working record and a worked example of what the tool produces.
 
-We welcome contributions! The best way to contribute is to:
+**Note on `intent/st/`:** `info.md` and `acceptance.md` are rendered from the store and say so in their own first lines. Edit them through the CLI; a hand-edit is discarded by the next sync and nothing fails at the moment you make it. `design.md`, `impl.md` and `tasks.md` are yours to write.
 
-1. Create a steel thread for your contribution
-2. Document your intent and approach
-3. Submit a PR referencing your steel thread
+## Working with coding agents
 
-See our [contribution workflow](./docs/blog/0006-next-steps-and-future-work.md#contributing-to-intent) for details.
+Intent's LLM-facing surface — the three root config files, the session hooks, the skills, the subagents, the rule library and the per-language critics — is explained end to end in [`intent/docs/working-with-llms.md`](./intent/docs/working-with-llms.md). That is the canonical narrative, and it is where the reasoning behind the layout lives.
 
-## 🎗️ Real-World Examples
+## Contributing
 
-### Building a REST API with Intent
+Create a steel thread for the change, record what you are trying to achieve and what would make it done, and reference it in the pull request. The acceptance gate applies to contributions the same way it applies to everything else.
 
-```bash
-# Capture the real requirements
-$ intent st new "Build REST API for mobile app"
-# Document: "Must support offline-first sync"
-# Document: "10K daily active users expected"
-# Document: "Must work on 3G connections"
+## Getting help
 
-# Result: Your API design includes sync strategies, caching, and compression
-```
+- [Documentation](./docs/index.md) — install, getting started, concepts, command reference, migration
+- [`intent doctor`](./docs/install.md#verifying-an-install) — checks whether your install and the project you are standing in are readable by this binary
+- [GitHub Issues](https://github.com/matthewsinclair/intent/issues) — bug reports
 
-### Refactoring Legacy Code
+## License
 
-```bash
-$ intent st new "Refactor payment processing"
-# Document: "Current system fails under Black Friday load"
-# Document: "PCI compliance required by Q2"
-# Document: "Cannot break existing integrations"
-
-# AI understands constraints and suggests appropriate patterns
-```
-
-### Starting a New Project
-
-```bash
-$ intent st new "Project inception: E-commerce platform"
-# Document: "Target: Small businesses with <100 products"
-# Document: "Must integrate with Shopify/WooCommerce"
-# Document: "Budget: 3 developers, 6 months"
-
-# Every future decision references these constraints
-```
-
-## ❓ FAQ
-
-### How is this different from code comments?
-
-**Comments** explain what code does. **Intent** captures why the code exists, what problems it solves, and what constraints shaped it. This context is what AI assistants need to give good suggestions.
-
-### Do I need to use all features?
-
-No! Start with just steel threads to capture intentions. Add Claude subagents for AI integration, and skills for specialized workflows. Intent grows with your needs.
-
-### How does this help with AI coding?
-
-AI assistants are great at writing code but terrible at understanding your specific context. Intent provides that context in a structured way that AIs can understand and use.
-
-### Is this just more documentation to maintain?
-
-Unlike traditional docs that go stale, Intent documentation drives your development. When you update a steel thread, you're planning work, not writing about completed work.
-
-## 📖 Philosophy
-
-> "Great software isn't just about what it does – it's about why it exists."
-
-Intent transforms software development from a purely technical exercise into a practice that values and preserves human intention. By capturing the "why" alongside the "what", we create software that is not just functional, but truly understood.
-
-## 🚦 Getting Help
-
-- **Quick Start**: Run `intent help` for command overview
-- **Canon narrative**: [Working with LLMs in Intent](./intent/docs/working-with-llms.md) explains the system end-to-end
-- **Examples**: Check the [blog series](./docs/blog/) for real-world usage
-- **Issues**: Report bugs on [GitHub Issues](https://github.com/matthewsinclair/intent/issues)
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
-
----
-
-**Start capturing intention today. Your future self (and team) will thank you.**
-
-```bash
-# Begin your Intent journey
-$ intent st new "My first steel thread"
-```
+MIT. See [LICENSE.md](./LICENSE.md).
