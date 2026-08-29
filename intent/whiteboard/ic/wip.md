@@ -3,73 +3,55 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 16:39Z
-status: active
-focus: "**AC-12.2 AND AC-12.3 ARE BOTH COMPLETE** -- narrative, README, CHANGELOG, and the v3.0.1 release notes, all committed. **Left unsatisfied in canon deliberately: ST0056 is vc's claim and they have the evidence.** Two of vc's four surface changes are rulings not code and are deliberately absent from both documents."
-claims: [ST0065, ST0061]
+heartbeat_at: 2026-08-29 17:58Z
+status: paused
+focus: "EOD 1757Z. **AC-12.2 + AC-12.3 DONE AND SATISFIED IN CANON BY vc, who swept independently rather than accepting my report.** Nothing claimed, nothing blocked, nothing owed. On the bounce: no assignment -- ask vc. **Holding `intent` invocations until vc says the rebuilt pair is current.**"
+claims: []
 ---
 
 # Interface Claude (ic)
 
-## DOING -- AC-12.2 AND AC-12.3 BOTH COMPLETE
+## DOING
 
-**`AC-12.2`** `ead0399f` + `39303df4` working-with-llms.md | `76a98089` + `f3769b87` README.md | `884950f9` + `c8df89c8` CHANGELOG.md
-**`AC-12.3`** `25157b2c` `docs/releases/3.0.1/RELEASE_NOTES.md`
+**Nothing. Both criteria closed.** `AC-12.2` (working-with-llms.md, README, CHANGELOG) and `AC-12.3` (`docs/releases/3.0.1/RELEASE_NOTES.md`), satisfied in canon at `6cdbbc5f` **by vc's independent sweep, not by my report.**
 
-**NOT SATISFIED IN CANON BY ME.** ST0056 is **vc's claim**; I have handed them the evidence and left the sequencing where it belongs. `intent doctor` already reports a status-gate disagreement on that thread, which is a second reason not to write into it uninvited.
+**ON THE BOUNCE: ASK vc FOR THE NEXT UNIT.** Do not infer one. **Assignment 2 (surface-review cc's refuse-and-edit package) was unparked and I never got to it** -- raise it rather than assume it lapsed.
 
-### WHAT I LEFT OUT OF BOTH DOCUMENTS, DELIBERATELY
+**`intent` INVOCATIONS ARE HELD** until vc confirms the rebuilt pair is current. During their window there is no shared binary at all, so anything driven at it **fails rather than answers** -- which is the good failure, but do not meet it unwarned. **Source and git plumbing work throughout and are how I verified `st edit` during the window.**
 
-**vc handed me FOUR surface changes; TWO are rulings, not code.** `issues edit` is absent from the register, from `intent-cli/src`, and from `intent issues --help` -- **three independent surfaces, all negative.** `st edit` is still the path-printer (`Usage: intent st edit <ID> [FILE]`, no `--editor`, no `--path`). `ac edit` and `at edit` both verify. **Documenting the other two would put verbs in a release note that the release does not contain** -- the exact defect the README was just fixed for. The notes carry a provenance paragraph saying so, and the structure takes them when they land.
+## THE FOUR THAT COST ME TODAY
 
-**A RULING MADE THIS HOUR AND A CHANGE LANDED THIS HOUR READ IDENTICALLY IN A MESSAGE.** That has now cost me twice today: vc's retired fact (which vc caught) and this. **Not avoidable by care at the sending end** -- the fix is that a surface claim travels with what makes it checkable, which for a verb is just "it is in the register".
+**1. A CLAIM WHOSE _BASIS_ IS WITHDRAWN READS EXACTLY LIKE ONE THAT STILL HOLDS.** I was handed "3.0.1 does not fix `ac new`" and carried it on my own board twice. It was true when given; hv's "fold everything into 3.0.1" removed the constraint under it. **No symptom, and the entry looked settled -- settled is what makes a thing stop being checked.**
 
-### THREE CLAIMS I INHERITED AND ONE I SHIPPED
+**2. A RULING AND A LANDED CHANGE ARE INDISTINGUISHABLE IN A MESSAGE.** Two of four surface changes I was handed did not exist (`issues edit` absent from register, source AND `--help`; `st edit` still the path-printer). **Fix: a surface claim travels with what makes it checkable.** **AND THE FIX HAS A LIMIT I FOUND THE HARD WAY** -- "it is in the register" covers a NEW verb and **cannot cover a BEHAVIOUR CHANGE to an existing one.** `st edit` was an unchanged register row before and after `8aa83dd6` while what it does changed completely. **The register answers _does this exist_, not _does it still do what the last doc said_.** For that class the check is the source or the test.
 
-**`intent doctor` does NOT check the support tree.** I took that from vc's `install.md` into my own upgrade instructions **before** checking it -- so it had already propagated once. No rules-or-skills check exists in `doctor.rs`; its finding kinds are `criterion`, `pre-commit`, `rev-parse`, `unchanged`, `nonsense`. **The direct test is `intent claude rules list`**, which reads the library out of the install and so fails on the actual fault rather than proxying for it. Reported to vc, not edited.
+**3. FIXING THE INSTANCE IS NOT FIXING THE CLASS.** The `intent doctor` claim: **vc swept and found three; I reasoned about the document in front of me and fixed one of two.** My README kept the false sentence while my release notes had the correction. **The sweep is the check, not the care.**
 
-**I SHIPPED A BREW LINE THAT WOULD INSTALL NOTHING.** `matthewsinclair/tap/intent`; that repo does not exist (`gh` verified, nonsense control fails identically). Correct is **`matthewsinclair/intent/intent`** -- `bin/.devbin/cmd/macos:194` rules the fully-qualified form deliberately. **I did not derive a wrong answer; I applied the correct GENERAL convention (`user/tap/formula`) to a project that deliberately does not follow it.** Three of us wrote three different wrong spellings of a rule already written down in the file that publishes the formula. **And I was the one who had just told vc their two pages disagreed on that same command.**
-
-## HOW I FOUND THE HOLD WAS STALE -- THE KEEPER
-
-**I measured before folding instead of banking "holding" as my state.** hv's ruling had been made and acted on **for over an hour**; cc's package had landed; **my vc inbox's newest entry was still the previous day.** vc's own words: _a node doing the right thing on a channel nobody was reading_ -- the same failure that produced **two design systems**, written independently by cc and vc on separate hv briefs, in the tool whose founding rule is that there is only one.
-
-**A HOLD WHOSE CONDITION HAS ALREADY BEEN MET IS NOT A HOLD, IT IS A NODE SITTING STILL.** And **a stale claim of OWNERSHIP is the same defect as a stale measurement** -- I offered to delete AC-12.2 from my board rather than carry it unexamined, which is what made the question answerable.
-
-**ST0068 was UNCLAIMED with an EMPTY CONTRACT while two real docs commits landed against it.** vc is claiming it and drafting the contract. **A thread that gates a release cannot itself be ungated.**
-
-## OTHER STATE
-
-- **ST0065 has ZERO ACs too.** Batched to hv with the costed proposal (**Option 2, TESTED DUPLICATION**: the 575-byte index in both `_CLAUDE.md` and `_AGENTS.md` via `claude upgrade --apply`, plus a byte-identity arm; **a test, not a generator -- the engine has no include form**; limit: **`usage-rules.md` cannot join**, seeded-once/user-owned).
-- **TWO THREADS PASS THEIR OWN GATE AND SIT WIP** -- ST0057 66/66, ST0061 7/7. vc sequences.
-- **`0141` FILED** -- self-loop on a payload-carrying enum. **Guarded on the four ratified machines** (`machine_table_check.sh` catches it BY ACCIDENT), **unguarded on `AcceptanceTest.status` and `WorkPackage.scope`.** Watch `AcceptanceTest.status`: safe today **only because the enum carries no payload**, and an `n-a` reason or a red's failure text is exactly what someone will add.
-- **PROBE FIXED (`d3dbeafa`, `48c3af2a`)** -- 9/30 before, 30/30 after. Lamplight ran it **12/12, reported BY BLOB SHA**, reproduced their hand partition exactly.
-
-## THE FLEET
-
-**80 exposed. TWO estates now have VERIFIED loss:** Conflab **14 confirmed**; Lamplight **1 of 25** (`ST0358`, evidence ABSENT), **24 unswept and deliberately not assumed.** Baize **28**, Laksa **10**, Prolix **3** remain **PREDICTED-UNCONFIRMED, in those words.** **The confirmed pair is hv's argument for the release, not mine.**
+**4. I DID NOT DERIVE A WRONG ANSWER -- I APPLIED A CORRECT GENERAL CONVENTION.** `user/tap/formula` is the shape everyone has seen; this project is `matthewsinclair/intent/intent` and says so in the file that publishes the formula. **Three of us wrote three different wrong spellings of a rule already written down.** A rule living where no author of the affected text would look is not three carelessnesses.
 
 ## Watch-outs
 
-**REPORT THE REASONING AT THE RESOLUTION YOU ACTUALLY MEASURED IT** (dc's). **It is not that we wrote things down -- it is that we wrote down the parts that could be WRONG.** vc's inversion: **five corrections in an afternoon is not evidence the estate is well-checked, it is evidence that EXPOSED REASONING GETS CHECKED** -- the corrections are **a biased sample of the errors**, so **the safest-looking entries on any board are the ones nothing has ever tested.**
+**POSITIVE-CONTROL THE INSTRUMENT, AND A CONTROL THAT PASSES UNDER THE BROKEN INSTRUMENT IS DECORATION.** My emoji test returned a clean `0` and its control **failed** -- the zero was blind. Working instrument: 28 at HEAD, 0 after. **Same shape as the register limit above: an instrument answering confidently where it structurally cannot see.**
 
-**LUCK WEARING THE SHAPE OF JUDGEMENT.** I withdrew the date classifier because the BANNER was insufficient; Lamplight later showed the date form fails too, for a reason I never found. **Right outcome from an argument that did not reach the real defect** -- the counter-shape to a true result from a blind instrument, and nothing polices it.
+**A FALSE SENTENCE PROPAGATES BY BEING BELIEVED, AND EVERY HOP LOOKS BETTER SOURCED** (vc's). Their doctor claim reached my release notes before I checked it. **The docs failure mode that code does not have.** And **a wrong claim of your OWN is the most trusted source you have**, because you know where it came from -- vc wrote it once then leaned on it twice as a premise.
 
-**DEAD CODE THAT STILL MAKES A CLAIM IS A FALSE CLAIM.** `port` was computed, threaded through `classify()`, and printing a warning implying it classified -- all three false, nothing changed underneath them.
+**LATEST COMMIT AND INTRODUCING COMMIT ANSWER DIFFERENT QUESTIONS.** `git log -1 -- <path>` says _has this changed since the tag_; `--diff-filter=A ... | tail -1` says _did it ship in the tag_. I used the first for the second and got a different answer for one of four items.
 
-**BORN STALE IS NOT "A CLAIM OUTLIVING ITS BASIS."** `90988faf` carried a false header AND its refutation twenty lines below. What caught it: **cc wrote a precondition on the sentence they were relying on.**
+**THE GENERATED-VIEW BANNER IS EVIDENCE IN ONE DIRECTION ONLY.** Presence means generated; **absence does not mean authored** -- one WP `info.md` carries none while 38 siblings do. `intent doctor` is the check. **Hand over the check, not the table.**
 
-**COMMIT DATE IS NOT CONTENT DATE WHEN RENAMES ARE IN PLAY** (`18000b4cf`: 3723 files, all R100). **A BINARY GUARD ON A CONTINUOUS QUANTITY IS THE WRONG SHAPE.** **BISECT ASSUMES DETERMINISM** -- repetition is the instrument. **`--only` SEPARATES FILES, NOT FACTS.** **AN INVARIANT NOBODY HAS WRITTEN THE DECLARATION TO BREAK IS UNEXERCISED, NOT ENFORCED.** **A ZERO YOU CANNOT TRUST MUST NOT EXIT 0.**
+**REPORT, DO NOT EDIT, ANOTHER NODE'S FILE -- AND DO NOT WRITE INTO A THREAD THEY CLAIM.** I left AC-12.2/12.3 unsatisfied for vc even though I did the work; `doctor` was already reporting a status-gate disagreement on ST0056, which was a second reason.
 
-**A STAMP TYPED BY FEEL IS FABRICATION AND THE MESSAGE CHANNEL HAS NO GUARD** (`0099`). **Cite the commit, never invent a better-looking minute.**
+**AN INDEX LOCK MEANS A PEER IS MID-COMMIT. NEVER DELETE IT** -- wait in a bounded loop. **`--only` SEPARATES FILES, NOT FACTS** and drops a peer's staged sibling.
 
-**`git show HEAD:` for source; `--only` takes the WORKTREE. CAPTURE AN EXIT CODE TO A FILE. zsh: an unquoted `--include=*.rs` ABORTS the command. `cd` PERSISTS between Bash calls.** **A SCRIPT THAT ABORTS MID-WAY WRITES NOTHING AND THE LINES BELOW IT STILL PRINT SUCCESS.**
+**A HOLD WHOSE CONDITION HAS ALREADY BEEN MET IS NOT A HOLD, IT IS A NODE SITTING STILL.** Measure before folding; do not bank "holding" as state.
+
+**A STAMP TYPED BY FEEL IS FABRICATION AND THE MESSAGE CHANNEL HAS NO GUARD** (`0099`). Cite the commit, never invent a better-looking minute. **zsh: an unquoted `--include=*.rs` ABORTS the command. A SCRIPT THAT ABORTS MID-WAY WRITES NOTHING AND THE LINES BELOW IT STILL PRINT SUCCESS.**
 
 ## Decisions
 
-- **(hv) FOUR ST0068 DECISIONS RULED:** `docs/` is the v3 set, `docs/v2/` the frozen archive, **`intent/docs/` stays INTERNAL CANON**, v2 blog canonicals **preserved pointing at their old locations** (the one-way half; `docs/v2/README.md` records why, so nobody "fixes" them).
-- **(hv) v3.0.1 IS THE NEXT RELEASE ACT; DOCS PRECEDE THE CUT AND SHIP WITH IT; warn the fleet by PROPERTY (does the build carry `04cf6f18`) not by version.**
-- **(vc) `ac new`'s DESTRUCTION IS RULED OUT OF THE 3.0.1 CUT** -- the docs are where the hazard gets stated instead.
-- **(ic) EXPOSURE IS NOT DAMAGE, AND A PREDICTOR IS NOT A CONFIRMATION.** Say **predicted-unconfirmed**.
-- **(ic) TESTED DUPLICATION BEATS SINGLE-SOURCING** -- the engine has no include form.
+- **(hv) v3.0.1 IS THE NEXT RELEASE ACT; DOCS PRECEDE THE CUT AND SHIP WITH IT.** Scope: ST0056 and its feeders. **The cut is downstream of `8aebe2ce` by construction**, which is what makes "3.0.1 fixes `ac new`" true.
+- **(hv) `intent/docs/` STAYS INTERNAL CANON**; `docs/` is the v3 set, `docs/v2/` the frozen archive, v2 blog canonicals preserved at their old locations.
+- **(hv) The number stays `3.0.1`** over vc's `3.1.0` recommendation, cost stated. **The notes do not editorialise about it.**
+- **(ic) THE README VOICE CALL WAS MINE: no emoji.** Not the site rule applied by fiat -- vc was right to refuse that -- the same judgement for the README's own reason.
+- **(ic) A DOCUMENT WRITTEN AHEAD OF ITS SUBJECT CARRIES A PROVENANCE PARAGRAPH** naming what it was verified against and stating that ruled-but-unlanded items are deliberately absent. **It then needs no rewrite when they land** -- proved when `st edit` landed and the paragraph stayed true.
 - **(all) Fold archives are `wip-fold-HHMMZ.md`**, append-only. **(vc) `add + commit --only + reset` is NEW files only.**
