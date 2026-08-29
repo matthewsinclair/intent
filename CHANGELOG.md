@@ -61,7 +61,9 @@ Intent is rewritten as a native binary, and the model underneath it changes: **a
 
 - **`intent st_zero` becomes `intent st bootstrap`.** The underscore spelling was the only one of its kind on the surface and it is gone rather than aliased -- a rename facility built for a population of one reads as foresight and ships as unused surface.
 
-## [2.19.1] - in progress
+## [2.19.1] - never released; this work shipped in 3.0.0
+
+**There is no `v2.19.1` tag and there will not be one.** This work was staged against the v2 shell line and was overtaken by the rewrite. Every item below was checked present in the `v3.0.0` tag (`80d8b2ca`) by its introducing commit rather than assumed from one of them. It is kept under the version it was written for, because the detail describes the v2 line and folding it into the 3.0.0 entry would misattribute it as rewrite work.
 
 ### Added
 
