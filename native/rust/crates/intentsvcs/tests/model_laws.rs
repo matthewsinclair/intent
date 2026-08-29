@@ -3,9 +3,9 @@
 //! name, never dropped (design.md D05).
 
 use intentsvcs::model::{
-  AcKind, AcState, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Attachment, Criterion, Issue,
-  IssueStatus, Legacy, Related, THREAD_SCHEMA, TShirt, Thread, ThreadStatus, WorkPackage, WpStatus,
-  to_canonical_json,
+  AcKind, AcState, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Attachment, Criterion,
+  FiatRecord, Invoker, Issue, IssueStatus, Legacy, Related, THREAD_SCHEMA, TShirt, Thread,
+  ThreadStatus, WorkPackage, WpStatus, to_canonical_json,
 };
 use proptest::prelude::*;
 
@@ -62,6 +62,21 @@ fn at_status() -> impl Strategy<Value = AtStatus> {
 /// `Unsatisfied` are separate arms deliberately: they are the two entry states,
 /// they mean different things (nothing is stored, versus authored-and-not-yet),
 /// and a generator that produced only one would round-trip the other never.
+///
+/// **THE SENTENCE ABOVE WAS TRUE WHEN IT WAS WRITTEN AND A LATER COMMIT MADE IT
+/// FALSE IN SILENCE, WHICH IS THE REASON THIS PARAGRAPH EXISTS.** `AcState`
+/// gained a sixth variant, `Fiat`, and this generator was not extended. Nothing
+/// failed: `prop_oneof!` is a list, not a match, so **a missing variant is not a
+/// compile error here the way it is on `AcState::name` and
+/// `AcState::permitted_for`**, both of which are deliberately exhaustive for
+/// exactly this reason. The whole-thread round-trip law therefore never once
+/// generated a fiat criterion, while the doc comment above it went on promising
+/// that it did.
+///
+/// **A generator carrying an exhaustiveness claim is worse than one that looks
+/// partial**, because the claim is what a later reader trusts INSTEAD of
+/// checking the list. Rather than leave that as a note, the claim is made
+/// mechanical directly below by [`every_ac_state_variant_has_a_generator_arm`].
 fn ac_state() -> impl Strategy<Value = AcState> {
   prop_oneof![
     Just(AcState::Computed),
@@ -74,7 +89,73 @@ fn ac_state() -> impl Strategy<Value = AcState> {
     }),
     ("[a-z ]{1,30}", proptest::option::of("[a-z]{2,8}"))
       .prop_map(|(reason, by)| AcState::Withdrawn { reason, by }),
+    // `inherited_from` is generated BOTH WAYS on purpose: it is the only thing
+    // distinguishing a cascaded close from one judged individually, and it is
+    // `skip_serializing_if`, so the absent case and the present case take
+    // different paths through serde and only one of them would be exercised by
+    // a fixed value. `at` is fixed for the same reason `completed` is below --
+    // a stamp is a label here, and generating it would vary the one field whose
+    // variation proves nothing.
+    (
+      "[a-z ]{1,40}",
+      "[a-z]{2,8}",
+      any::<bool>(),
+      "[a-z0-9/]{3,16}",
+      proptest::option::of("ST[0-9]{4}"),
+    )
+      .prop_map(|(because, by, tty, env, inherited_from)| {
+        AcState::Fiat(FiatRecord {
+          because,
+          by,
+          at: "2026-08-28T18:30:00.000Z".to_string(),
+          invoker: Invoker { tty, env },
+          inherited_from,
+        })
+      }),
   ]
+}
+
+/// **THE COMPILE-TIME HALF OF THE CLAIM ABOVE. It is never called, and that is
+/// the point.**
+///
+/// `prop_oneof!` takes a LIST, so omitting a variant from `ac_state` narrows the
+/// generator in silence -- which is exactly how the whole-thread round-trip law
+/// came to promise it covered every recorded state while never generating a
+/// fiat one. This match has no wildcard, so **a seventh variant on `AcState`
+/// stops this file compiling**, and it stops it eight lines from the generator
+/// that has to grow the arm.
+///
+/// **WHEN IT FIRES IS THE WHOLE VALUE, AND IT WAS MEASURED RATHER THAN ASSUMED.**
+/// Injecting a seventh variant produces FIVE errors first, all in `src`
+/// (`contract.rs`, `graphql.rs`, `views.rs`, and `AcState::name` /
+/// `AcState::permitted_for`), and the lib failing means this file is never
+/// compiled at all. So the author fixes those five, the lib goes green, **and
+/// that is the moment they believe they are done** -- which is precisely what
+/// happened when `Fiat` landed and this generator did not grow an arm. This
+/// canary fires on the NEXT build after that belief forms, in the file that has
+/// to change.
+///
+/// **AND TWO SIBLINGS DO NOT FIRE AT ALL, WHICH IS THE REASON NOT TO TRUST THE
+/// COMPILER HERE.** `AcState::in_scope` is a `matches!` and `AcState::evidence`
+/// ends in `_ => None`, so a seventh variant is silently out of scope and
+/// silently evidence-free. Neither appears in those five errors.
+///
+/// **WHAT THIS DOES NOT DO, stated because a guard oversold is worse than no
+/// guard.** It forces the author to LOOK; it cannot force them to extend
+/// `ac_state`. Someone can satisfy the compiler by adding a bare arm here and
+/// leaving the generator untouched, and nothing would catch that. So this
+/// converts a silent narrowing into a prompt at the right place -- it is not a
+/// proof that coverage is complete, and it should never be cited as one.
+#[allow(dead_code)]
+fn every_ac_state_variant_has_a_generator_arm(state: &AcState) {
+  match state {
+    AcState::Computed => (),
+    AcState::Unsatisfied => (),
+    AcState::Satisfied { .. } => (),
+    AcState::Descoped { .. } => (),
+    AcState::Withdrawn { .. } => (),
+    AcState::Fiat(..) => (),
+  }
 }
 
 prop_compose! {
