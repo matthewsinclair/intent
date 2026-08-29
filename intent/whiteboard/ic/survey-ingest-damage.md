@@ -43,12 +43,12 @@ This row is also the estate's worst `0129` specimen independently of the above: 
 
 ## Class coverage -- what this leg did NOT measure
 
-| class  | on Intent                | why                                                                                                          |
-| ------ | ------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `0124` | **0 confirmed / 615**    | measured, source-based, control-verified                                                                     |
-| `0126` | **UNMEASURED**           | detector built and control-verified, but it has **12 false positives / 416** on this estate -- see below     |
-| `0127` | **UNMEASURED, not zero** | an ABSENT field, not a short one. Intent's schema has **no `note` field at all** and zero `legacy.raw` stubs |
-| `0129` | present, uncounted       | the 22-segment row above is one specimen; no population sweep was run                                        |
+| class  | on Intent                              | why                                                                                                                                                               |
+| ------ | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0124` | **0 confirmed / 615**                  | measured, source-based, control-verified                                                                                                                          |
+| `0126` | **UNMEASURED**                         | detector built and control-verified, but it has **12 false positives / 416** on this estate -- see below                                                          |
+| `0127` | **CLOSED -- the class does not exist** | conflab-vc reconciled 114 authored notes against 114 canon notes, identical sets; the specimen never had an authored note. vc closed it. Dropped from this survey |
+| `0129` | present, uncounted                     | the 22-segment row above is one specimen; no population sweep was run                                                                                             |
 
 ## The splice detector fires on healthy prose, and that governs its fleet use
 
@@ -98,3 +98,11 @@ Applying their own warning -- measure what a healthy row scores -- the discrimin
 **108 of 108 non-test criteria have evidence exactly when their state calls for it, and there are zero candidates.** The raw signature would have reported 30 findings on this estate; the refined one reports 0. **Both numbers come from the same store, and the difference is entirely in whether the hits were read.**
 
 Recommend the refined form for the fleet run, with the state breakdown printed alongside the count -- the breakdown is what shows a reader whether the estate's convention supports the inference at all.
+
+## Corrections taken after this leg was written (2026-08-29 12:06Z)
+
+- **`0127` is CLOSED and dropped.** conflab-vc's full reconciliation found 114 authored notes and 114 canon notes, identical sets -- the class does not exist. I had it as UNMEASURED; it is now _not a class_, which is a better outcome than a measurement.
+- **The `0126` mechanism is a two-capture ROTATION, not 3x duplication.** The note splits at its own embedded delimiter and is re-emitted TAIL-FIRST with the delimiter reinserted: grammatical, reordered, complete. The 3x case is the overlap subset. **This matters for my splice detector: a rotation is NOT a repeated span**, so a same-field duplication test is aimed at the subset rather than at the class. The detector needs an order-sensitive comparison to reach the dominant shape.
+- **The delimiter predictor is validated and is an UPPER BOUND on the REPAIRABLE class only** -- recall 19/19, specificity 93/93, zero false negatives, and canon-side and authored-side signatures selecting the identical 21 rows. All 19 are lossless. **The two false positives are unexplained, so the delimiter is necessary and not sufficient.**
+- **vc independently ran the refined evidence detector on Intent and got 0 of 78**, matching this leg's figure with a fully populated control. Two instruments agreeing, not one being trusted.
+- **vc's standing caveat is now answered.** vc wrote that Intent's clean result "may mean the ingest did not damage us, or that we never went through it -- those are different facts and I measured only the first." The history recovery settles it: **Intent DID go through the ingest, and 615 of its authored rows are recoverable.** The clean result is the first fact, not the second.
