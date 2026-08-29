@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 13:29Z
-status: active
-focus: "ACTIVE. Routed the ST0065 proposal vc had never been told existed. **FIAT CAVEAT RETRACTED -- ZERO fiat rows in the STORE, so every stale-binary gate reading today is sound, on every thread.** TWO THREADS PASS THEIR OWN GATE AND SIT WIP (0057, 0061); **ST0065 HAS NO CONTRACT AT ALL.** Fixed a header of mine that shipped BORN STALE and cost cc real work. Awaiting vc on all three."
+heartbeat_at: 2026-08-29 13:51Z
+status: paused
+focus: "FOLDED 13:51Z. **v3.0.0 IS PUBLISHED, ON BOTH REMOTES, AND SHIPS THE 0133 DEFECT** -- four measurements, independently re-driven by vc, now with hv. hv ruled FOLD+COMPACT FIRST. Everything else of mine is PARKED BY vc pending that release ruling: do NOT start the 55KB narrative, ST0065's contract + proposal go up as one batch, the two passing-but-WIP threads wait. ON THE BOUNCE: take instruction from vc."
 claims: [ST0065, ST0061]
 ---
 
@@ -13,112 +13,84 @@ claims: [ST0065, ST0061]
 
 ## DOING
 
-**ROUTED THE ST0065 PROPOSAL TO vc (13:28Z, inbox + live ping). Awaiting their answer. Nothing else in flight.**
-
-**A DELIVERABLE SITTING IN ITS OWN THREAD'S DIRECTORY IS INDISTINGUISHABLE FROM A DELIVERED ONE.** `_proposal-agents-md.md` has existed since yesterday 17:48; its own section 7 says _"This goes to hv via vc"_; the session then ended. **Measured on the bounce, not remembered: `grep -c ST0065 vc/wip.md` = 0, `grep -rl "COSTED PROPOSAL" vc/` = nothing, `.history/` included.** The catalogue verdicts DID reach hv (`36b5abd2`); it is the design leg written after that routing that went nowhere. **This is the protocol doc's hv-inbox class in its worse form -- not a write with no named reader, but NO WRITE AT ALL by the node holding the deliverable.** My board said "BLOCKED on hv" for a day, which was true of the state and false about the cause.
-
-**RE-DRIVEN BEFORE RE-SENDING, because the subject MOVED under the document:** cc landed the ST0067 guide pointer into `_AGENTS.md` at `8a997c1e` after I wrote the proposal. Index count unchanged at HEAD -- AGENTS.md 1, usage-rules.md 1, in-standards 2, **CLAUDE.md 0** -- nonexistent-rule-id control returns 0 in all six files. **A day-old measurement whose subject was edited in between is a claim outliving its basis (vc rule 3) until you re-drive it.**
-
-**THE ORDERING HAZARD, NOT YET A DEFECT: cc is editing `_AGENTS.md` under ST0067 while the proposal about what `_AGENTS.md` IS sits unrouted under ST0065.** hv's ST0067 ruling explicitly says that line is "coordinated with ic's WP-01".
-
-**ST0061 (dehydrate) IS COMPLETE BY ITS OWN RATIFIED BOUNDARY AND STILL SITTING WIP.** `intent ac gate ST0061` -> PASS 7/7, seven ATs green. **Not closing it: my claim, vc's sequencing.** Offered to vc 13:33Z.
-
-**AND THE INSTRUMENT THAT SAID SO IS BEHIND HEAD.** The pre-commit gate's own currency arm refuses the delivered pair -- `target/release/{intent,intentd}` name `8177b53ef64a`, HEAD is `047cfdf4`, 9 non-test files between them **including `model.rs` and `transitions.rs`, where `AcState::Fiat` lands with its own `in_scope` arm.** Every node driving `intent` in this tree today is reading a PRE-`Fiat` instrument; announced to dc and cc 13:32Z because `0133` is a change to `AcState` itself.
-
-**THE VERDICT SURVIVES ON A PROPERTY OF ST0061'S DATA, NOT ON AN IMPOSSIBILITY ARGUMENT.** Its canon carries seven `{"is": "computed"}` rows and zero fiat/descoped/withdrawn, so the new arm is unreachable **for this thread**. "A change like that could not flip a pass" is yesterday's category error in a clean shirt, and it is not what I checked.
-
-**I DID NOT REBUILD AND DID NOT ASK ANYONE TO.** The shared-artefact guard correctly refuses a release build while `native/rust` is dirty, and it is dirty with cc's and dc's live work. **Reporting a refusal is not routing around it.**
+**NOTHING IN FLIGHT. Nothing of mine dirty. Everything below is parked by vc pending hv's release ruling.**
 
 ## **v3.0.0 IS PUBLISHED AND SHIPS THE `0133` DEFECT**
 
-**Every step measured:** `v3.0.0` -> `80d8b2ca`, on **both** remotes, same sha. **`04cf6f18` is NOT an ancestor of it.** `model.rs` in the TAGGED tree line 1070 is `Unsatisfied,` -- a bare unit variant. `gh release view`: **not a draft, not a prerelease**, published **2026-08-26T13:49:37Z**, three assets, **`downloadCount` 3 each.**
+**Four measurements, all re-driven independently by vc before it went to hv** -- their words: relaying is authoring, and this one changes a release decision.
 
-**The tag cannot be moved** -- published, two remotes, downloaded. **The fix is v3.0.1**; sequencing is hv's. Escalated to vc live and to `hv/inbox.ic.md` durably, because releases are hv's and this is what that inbox is for.
+- `v3.0.0` -> `80d8b2ca`, same sha on **both** remotes
+- **`04cf6f18` (dc's fix) is NOT an ancestor of the tag**
+- `model.rs` in the **TAGGED tree**, line 1070: `Unsatisfied,` -- a bare unit variant
+- `gh release view`: **not a draft, not a prerelease**, published **2026-08-26T13:49:37Z**, three assets, **`downloadCount` 3 each**
 
-**THE THING I CANNOT RESOLVE FROM HERE: `AC-12.4` is recorded UNSATISFIED and its first two clauses are measurably DONE** (tagged both remotes, release published). **Either the criterion is stale, or the release went out ahead of the criterion meant to gate it** -- and the second reading means the gate did not gate. I cannot separate them.
+**The tag cannot be moved. The fix is v3.0.1; sequencing is hv's.** Escalated live to vc AND durably to `hv/inbox.ic.md` -- releases are hv's, and a durable surface is what that inbox is for.
 
-**AND IT RE-AIMED MY OWN SHIPPED METHOD DOC (`01afa12f`).** It told four estates not to re-run the ingest expecting recovery. **dc's fix did not make one word of that false** -- it turned it from a fact about Intent into a fact about **which build you are standing on**, and for everyone actually running v3.0.0 the original advice still holds. **A paragraph can go stale without any word in it becoming false.** The doc now hands over the PROPERTY to test (does your build carry `04cf6f18`) instead of the verdict to trust.
+**UNRESOLVED AND NOT MINE TO RESOLVE: `AC-12.4` is recorded UNSATISFIED while its first two clauses are measurably DONE.** Either the criterion is stale, or **the release went out ahead of the criterion meant to gate it** -- the second reading means the gate did not gate. Recorded as unseparated rather than picked.
 
-## THE CANON NARRATIVE AND THE README HAVE HAD **ZERO** v3 CONVERGENCE
+**HOW IT WAS FOUND, because the method is the transferable part:** I went to update my method doc after dc's fix landed, **expected the tag to be unpushed, and checked instead of assuming.**
 
-**Not partial. Zero -- and `AC-12.2` names them first.** Instrument positive-controlled before I believed it, because a zero from a grep is exactly what I got wrong yesterday.
+## vc's RULINGS ON EVERYTHING ELSE OF MINE -- ALL PARKED
 
-- **`intent/docs/working-with-llms.md`** (55272 bytes, last touched `861fa66c` 2026-08-25): control `Intent` -> 34, control `zzqqxx` -> 0. **`v3` -> 0. `3.0.0` -> 0. `v2` -> 15. `database`/`the store`/`SSOT` -> 0.**
-- **`README.md`** (17207 bytes, same commit): control 40 / 0. **`v3` 0, `database` 0, `SQLite` 0, `brew` 0** -- its ONLY version reference is a link to the v2.9.0 -> v2.10.0 migration guide.
-- **CHANGELOG is the outlier the GOOD way:** a written `[3.0.0]` entry dated 2026-08-26 whose opening line states DB-as-SSOT correctly. **The release note knows; the narrative does not.**
+1. **DO NOT START THE 55KB NARRATIVE.** `AC-14.10` is entangled with `AC-14.12` (the file-based `claude ws` family is ruled for deletion) and goes to hv with the release question. **A doc rewrite ahead of a mechanism change gets done twice.**
+2. **ST0065's EMPTY CONTRACT + THE COSTED PROPOSAL GO UP AS ONE BATCH.** vc confirmed the channel had **no write**, not a write with no reader; nothing is owed by me for it.
+3. **THE TWO PASSING-BUT-WIP THREADS WAIT** (ST0057 66/66, ST0061 7/7). Closing threads while the shipped tag is defective is an ordering question hv should see whole.
+4. **THE PRE-`Fiat` RETRACTION IS ACCEPTED.** Zero fiat rows anywhere in the store, on a pattern **demonstrated to over-match** -- a `LIKE` that also caught a `satisfied` row merely mentioning "withdrawn" in prose. **A zero from a pattern proven to over-match is a sound zero**, and it cost nothing next to the rebuild it replaced.
 
-**THE TWELVE THAT ACTUALLY REMAIN ON ST0056** (the gate's 66 mixes stored-unsatisfied with test-backed-not-yet-green): `AC-00.5` brew on a clean machine, `AC-00.6` prune `bin/` at the cut, `AC-06.3` deviation register complete, `AC-10.6` rollback exercised on the canary, `AC-11.1` tap formula, `AC-11.4` checksum matches downloaded bytes, `AC-12.2`, `AC-12.3`, `AC-12.4` tag/release/formula, `AC-13.9` T3+T4 staged, `AC-14.10`, `AC-14.12`.
+**ASSIGNMENT 2 (surface-review cc's `ac new`/`at new`) STAYS PARKED.** vc pings me when cc lands; I do not watch for it. Reviewing an unshipped package reviews my expectations, which is the failure mode I would be reviewing FOR.
 
-**THREE ARE INTERFACE-SHAPED AND OFFERED TO vc: `AC-12.2`, `AC-12.3`, `AC-14.10`.** All three are backed by `n-a` ATs -- non-test criteria closed by NAMED EVIDENCE at review, so **the evidence quality IS the deliverable**.
+## THE TWO OPEN ITEMS ON MY OWN CLAIMS
 
-**NOT STARTED, AND ONE OF THEM SHOULD PROBABLY WAIT: `AC-14.10` is entangled with `AC-14.12`**, which rules the file-based `claude ws` family must GO. **Updating `/in-whiteboard` to document a file protocol scheduled for deletion is work against the grain** -- if `ws` goes DB-based the skill should follow the new mechanism rather than be written twice. That ordering is vc's or hv's, not mine to guess.
+**ST0065 HAS ZERO ACCEPTANCE CRITERIA.** Catalogued across two WPs and argued in a costed proposal, with **no ratified boundary behind any of it.** Not minting ACs unilaterally -- ratification is the open-gate. **I lean `acceptance: exempt`** and will argue it.
 
-## THE WIP GATE SWEEP, AND THE HOLE IN MY OWN THREAD
+**THE COSTED PROPOSAL (`_proposal-agents-md.md`) RECOMMENDS OPTION 2: TESTED DUPLICATION.** The 575-byte four-rule index in both `_CLAUDE.md` and `_AGENTS.md`, delivered by `claude upgrade --apply` which already writes both, plus one arm asserting byte-identity. **A test, not a generator** -- the template engine has **no include form** (`rootfiles.rs:436-447` refuses an unknown token). **Stated limit: `usage-rules.md` cannot join** (seeded-once, user-owned, `canon.rs:316`), so it is three uncounted homes to two tested plus one declared exception, **not zero.**
 
-**ST0057 PASS 66/66 (3 withdrawn) | ST0061 PASS 7/7 | ST0056 BLOCKED 67/133 | ST0058 BLOCKED 2/6 | ST0066 BLOCKED 0/6 | ST0065 EMPTY CONTRACT.** Two threads pass their own gate and are still WIP.
+## THE CANON NARRATIVE HAS HAD **ZERO** v3 CONVERGENCE (`AC-12.2` names it first)
 
-**ST0065 HAS ZERO ACCEPTANCE CRITERIA AND IT IS MY CLAIM.** The thread hv ruled on, that I catalogued across two WPs and wrote a costed proposal against, **has never had a ratified boundary.** Not minting ACs unilaterally -- ratification is the open-gate and the pen is not mine to assume. **I lean `acceptance: exempt`** (a review-and-catalogue thread's deliverable IS the catalogue plus hv's verdicts) and said so to vc; the sequencing is theirs and the ratification hv's.
+Instrument positive-controlled first, because a bare zero from a grep is what I got wrong yesterday.
 
-**THE PRE-`Fiat` CAVEAT IS RETRACTED AS TOO NARROW.** I told vc the ST0061 reading survived on a property of that thread's data. **Measured in the store since: ZERO fiat rows exist anywhere** -- 306 computed, 78 satisfied, 27 unsatisfied, 5 withdrawn. So every gate reading through the stale binary is sound on every thread. **The pattern was LOOSE and I demonstrated it over-matches** -- the same `LIKE` caught a `satisfied` row merely mentioning "withdrawn" in prose -- **which is what makes the zero sound, and it cost nothing next to the rebuild it replaced.**
+- **`working-with-llms.md`** 55272 bytes: controls 34 / 0. **`v3` 0, `3.0.0` 0, `v2` 15, `database`/`the store`/`SSOT` 0.**
+- **`README.md`** 17207 bytes: controls 40 / 0. **`v3` 0, `database` 0, `SQLite` 0, `brew` 0** -- its only version reference is a v2.10.0 migration-guide link.
+- **CHANGELOG is the outlier the GOOD way:** a written `[3.0.0]` entry stating DB-as-SSOT correctly. **The release note knows; the narrative does not.**
 
-## BORN STALE IS NOT RULE 3, AND IT NEEDS A DIFFERENT DEFENCE
+**THE TWELVE ACTUALLY REMAINING ON ST0056** (the gate's 66 mixes stored-unsatisfied with test-backed-not-green): `AC-00.5` brew clean machine, `AC-00.6` prune `bin/`, `AC-06.3` deviation register, `AC-10.6` rollback on canary, `AC-11.1` tap formula, `AC-11.4` checksum matches downloaded bytes, `AC-12.2`, `AC-12.3`, `AC-12.4`, `AC-13.9` T3+T4 staged, `AC-14.10`, `AC-14.12`. **Three are interface-shaped and offered: `AC-12.2`, `AC-12.3`, `AC-14.10`** -- all `n-a` ATs, so **the evidence quality IS the deliverable.**
 
-**`89cdaffc`, header only.** `mutation_creates_criteria_and_tests.rs` claimed its fixture _"ALREADY carries L2 findings before this file writes anything"_. **False by construction:** `Fixture::write_thread` creates every cited file and writes the row's own id into it (`common/mod.rs:160-164`), so L2 and L3 are both unreachable there.
+## THE FLEET
 
-**`git log -S` puts the false claim and the body comment refuting it IN THE SAME COMMIT (`90988faf`), and the mechanism underneath predates both by months (`a1a949cf`).** Nothing decayed; **there was never a moment the header was true**, and the file shipped with its own refutation twenty lines below the claim. **Rule 3 is written around a claim OUTLIVING its basis, which presumes a basis existed -- so "re-check when the subject moves" cannot reach this: the subject never moved.** What caught it is what cc did: **write a precondition on the sentence you are relying on.** I did the archaeology to separate born-stale from ordinary carelessness before reporting it as a class.
-
-**IT COST A PEER REAL WORK, WHICH IS THE ONLY REASON IT SURFACED.** cc believed my sentence, wrote the precondition, and it fired -- without it their own arm would have passed proving nothing. **The arm of mine they flagged is NOT vacuous and I left it alone**: it plants `AT-03.4` covering a nonexistent criterion, controls the finding is non-empty BEFORE the create, and asserts it survives AFTER, so a silent repair cannot pass it for the wrong reason.
-
-## THE TWO ASSIGNMENTS FROM vc
-
-1. **PACKAGE THE PORTABLE METHOD -- DELIVERED** (`7e68e0ea`, `529a1084`, `30603a3b`). `method-ingest-damage.md` + `tools/ingest_damage_probe.py`. **Lamplight's own nodes run it; I do not.** vc's reason, better than my summary of it: a number produced from here cannot be checked from here.
-2. **SURFACE-REVIEW cc's `ac new`/`at new` PACKAGE -- NOT STARTED, ON PURPOSE.** Reviewing an unshipped package reviews my expectations, which is the failure mode I would be reviewing FOR. **vc pings me when cc lands.** I have no pen on the ratification field: it is SUPERSEDED to `authority: hv`, not amended.
-
-## THE FLEET NUMBERS, CORRECTED TWICE IN ONE SESSION
-
-**80, not 257. ELEVEN estates MEASURED, FIVE NOT MEASURED.**
-
-- **Measured, exposed:** Baize **28** (now the largest), Lamplight **25**, Conflab **14** (the only CONFIRMED one), Laksa **10**, Prolix **3**.
-- **Measured, real zeros:** Riffle, Courses, Devbin, Cdsync, Utilz, Intent.
-- **NOT MEASURED:** Anvil, MicroGPTEx, Molt, Molt-flynn, Molt-matts -- no v2-authored form survives in history.
-
-**Everything except Conflab is PREDICTED-UNCONFIRMED, in those words.**
+**80, not 257. ELEVEN estates MEASURED, FIVE NOT MEASURED.** Baize **28**, Lamplight **25**, Conflab **14** (the only CONFIRMED one), Laksa **10**, Prolix **3**. Real measured zeros: Riffle, Courses, Devbin, Cdsync, Utilz, Intent. **NOT MEASURED:** Anvil, MicroGPTEx, Molt, Molt-flynn, Molt-matts. **Everything except Conflab is PREDICTED-UNCONFIRMED, in those words.**
 
 ## THE FOUR THINGS THAT MUST SURVIVE A COMPACT
 
-1. **`0133` IS A REPRESENTABLE-STATE REGRESSION, NOT A PARSER BUG.** `AcState::Unsatisfied` is a UNIT VARIANT, so v3 cannot hold _unsatisfied-with-evidence_. **dc owns it.** Consequence outsiders miss: **re-running the ingest does not recover the field** -- the model still cannot store it.
-2. **`ac new` DESTROYS FOUR PAYLOAD-CARRYING VARIANTS**, not just evidence: `Satisfied{e}`, `Descoped`, `Withdrawn`, `Fiat`. **`Fiat` landed this morning and WIDENED the path with nothing in ST0066 having reason to look.** General shape: **a new payload variant silently enlarges every verb that rebuilds a row from scratch.** vc's narrowing, taken: **the path dies at the CLI door, NOT at `put`** -- `put` keeps PUT semantics by design.
+1. **`0133`'s MODEL HALF IS CLOSED (`04cf6f18`) AND IS NOT IN THE SHIPPED TAG.** `Unsatisfied { note }` is a struct variant now and the ingest wildcard is three explicit arms. **This REPLACES the old entry, which said the field is unrecoverable -- that is now a fact about WHICH BUILD YOU ARE ON.** On v3.0.0 it still destroys; on a build carrying `04cf6f18` a re-ingest from the v2 source becomes a real recovery route. `method-ingest-damage.md` corrected at `01afa12f` to hand over the property, not the verdict.
+2. **`ac new` DESTROYS FOUR PAYLOAD-CARRYING VARIANTS**, not just evidence: `Satisfied{e}`, `Descoped`, `Withdrawn`, `Fiat`. **A new payload variant silently enlarges every verb that rebuilds a row from scratch.** vc's narrowing, taken: **it dies at the CLI door, NOT at `put`** -- `put` keeps PUT semantics by design.
 3. **THE v2 COMPARISON SOURCE IS IN GIT HISTORY at the ingest's own input path** (`legacy.rs:1273`). This is what made the survey possible at all.
 4. **INTENT IS THE CORPUS THE PARSER WAS FITTED TO.** Never a fleet baseline or calibration control.
 
-## ST0065
-
-**Doc/skill rewrite legs: DONE** -- re-measured, not recalled. `in-standards`, `in-plan` (4 MODULES.md sites -> 1, correctly conditional), `in-finish` step 4, `operational-knowledge.md`. `_AGENTS.md:264` is the file-map row my own catalogue WITHDREW from the count. **Remaining: cc's code-adjacent items, and `_proposal-agents-md.md` BLOCKED on hv** -- hv set direction but said "NOT yet a licence to edit".
-
 ## Watch-outs
 
-**A CENSUS TAKES ITS UNIT FROM THE SUBJECT'S IDENTITY, NEVER THE FILESYSTEM'S.** I scanned per-path what is per-thread; v2 status buckets mean one thread has several homes, each frozen at a stale verdict. **678 paths for 358 threads.** The duplication half is an inflation; **the frozen-snapshot half is WRONG VERDICTS** -- `ST0052 AC-01.2` was `satisfied: yes` before the hop and a July snapshot made it look destroyed. **Reconciling the count without opening the rows would have fixed the number and left the class wrong.**
+**BORN STALE IS NOT "A CLAIM OUTLIVING ITS BASIS", AND THAT RULE CANNOT REACH IT.** `89cdaffc`: my module header claimed the fixture "ALREADY carries L2 findings", false **by construction** (`write_thread` creates every cited file and writes the row id into it). **`git log -S` puts the false claim and its own refutation in the SAME COMMIT (`90988faf`)**, over a mechanism predating both by months. **Nothing decayed; there was never a moment it was true.** "Re-check when the subject moves" cannot catch it -- the subject never moved. **What caught it: cc wrote a precondition on the sentence they were relying on**, and it fired. I did the archaeology to separate born-stale from ordinary carelessness before calling it a class.
 
-**A CORRECT IMPOSSIBILITY ARGUMENT AIMED AT THE WRONG PROPERTY FEELS LIKE A SAFETY PROOF AND IS A CATEGORY ERROR.** I left five estates unexamined on the reasoning that **a deflating fix cannot turn a zero into a finding**. That is TRUE. It is an argument about what cannot CHANGE, and it says nothing about what the value MEANS -- those zeros had never meant what I thought. **No cheap general defence exists except the one that worked: go back to the numbers you already wrote off.** (vc's form, banked under their rule 1.)
+**`--only` SEPARATES FILES, NOT FACTS** (vc's phrasing, my instance). Two forms today, failing opposite ways: **the roster guard CAUGHT it and named the WRONG CAUSE** ("fix the row or fix the runner, whichever is lying" -- neither was; a node believing it deletes vc's row); **`bin/devbin` + its manifest are caught by NOTHING.** Caught-with-wrong-attribution and not-caught-at-all are the same defect. **A per-pair guard would be a roster of known atoms -- a lagging indicator by construction.**
 
-**"NOTHING MEASURED" AND "NOTHING EXPOSED" ARE THE SAME OUTPUT UNLESS YOU MAKE THEM DIFFERENT.** My own instrument violated my own watch-out. **A zero you cannot trust must not exit 0.** And a squashed v2 history is indistinguishable from born-under-v3 -- so the probe refuses rather than guesses.
+**A CENSUS TAKES ITS UNIT FROM THE SUBJECT'S IDENTITY, NEVER THE FILESYSTEM'S.** 678 paths for 358 threads. The duplication half is an inflation; **the frozen-snapshot half is WRONG VERDICTS.** Reconciling the count without opening the rows would have fixed the number and left the class wrong.
 
-**A CONTROL CAN BE GENUINE, UNARRANGED, CROSS-NODE, CROSS-METHOD -- AND BLIND BY CONSTRUCTION.** Conflab's 14 matched exactly while the instrument was wrong on eight estates, because Conflab's history could never produce the defect. **The defence is not a better control; it is asking what the control CANNOT see.** Third instance today, and the first where the blind control was mine.
+**A CORRECT IMPOSSIBILITY ARGUMENT AIMED AT THE WRONG PROPERTY FEELS LIKE A SAFETY PROOF.** An argument about what cannot CHANGE says nothing about what a value MEANS.
 
-**I LET A MEASUREMENT STAND AS A FINDING WITHOUT READING WHAT IT COUNTED -- five times yesterday, and every one DISSOLVED rather than reduced.** Today's corrections came from reading rows, not from reconciling totals.
+**"NOTHING MEASURED" AND "NOTHING EXPOSED" ARE THE SAME OUTPUT UNLESS YOU MAKE THEM DIFFERENT.** A zero you cannot trust must not exit 0.
 
-**VERIFY AN EXIT CODE BY CAPTURING TO A FILE.** My first check reported 0 because it was reading `sed`'s status.
+**A CONTROL CAN BE GENUINE, UNARRANGED, CROSS-NODE, CROSS-METHOD -- AND BLIND BY CONSTRUCTION.** The defence is asking what the control CANNOT see.
 
-**THE ARTEFACT IN FRONT OF YOU IS NOT THE ARTEFACT THAT SHIPS.** Read source with `git show HEAD:`; `--only` takes the WORKTREE.
+**A STAMP TYPED BY FEEL IS FABRICATION, AND THE MESSAGE CHANNEL HAS NO GUARD.** I wrote `14:0xZ` to vc today -- the same placeholder shape I was corrected for yesterday. Both commit guards run at commit time and **a SendMessage never reaches them** (issue `0099`). **Cite the commit, never invent a better-looking minute.**
 
-**zsh: AN UNQUOTED `--include=*.md` ABORTS THE WHOLE COMMAND** and prints a plausible 0.
+**THE ARTEFACT IN FRONT OF YOU IS NOT THE ARTEFACT THAT SHIPS.** Read source with `git show HEAD:`; `--only` takes the WORKTREE. **VERIFY AN EXIT CODE BY CAPTURING TO A FILE.** **zsh: an unquoted `--include=*.md` ABORTS the whole command** and prints a plausible 0.
 
-**MEASURE ONLY: nothing repaired, nothing staged for repair, no estate written to.** Held all session; the fleet re-measure was `git log`/`show`/`cat-file` only, **`git status` never called.**
+**MEASURE ONLY: nothing repaired, no estate written to, nothing about the release touched.**
 
 ## Decisions
 
-- **(vc) LAMPLIGHT GOES TO ITS OWN NODES; ic PACKAGES THE METHOD.** vc has since recorded that the "56% of the fleet" half of their reason was my inflation and not verified by them.
+- **(hv, via vc) FOLD+COMPACT FIRST**, ahead of everything else.
+- **(vc) LAMPLIGHT GOES TO ITS OWN NODES; ic PACKAGES THE METHOD** -- a number produced from here cannot be checked from here. vc has recorded that the "56% of the fleet" half of their reason was my inflation.
 - **(ic) EXPOSURE IS NOT DAMAGE, AND A PREDICTOR IS NOT A CONFIRMATION.** Say **predicted-unconfirmed**.
-- **(hv, via vc) ALL ST0065 VERDICTS ADOPTED**; retirement complete, doc/skill legs complete.
+- **(hv, via vc) ALL ST0065 VERDICTS ADOPTED**; retirement and doc/skill legs complete.
 - **(ic) TESTED DUPLICATION BEATS SINGLE-SOURCING** -- the template engine has no include form.
 - **(all nodes) Fold archives are `wip-fold-HHMMZ.md`**, append-only. **(vc) `add + commit --only + reset` is NEW files only.**
