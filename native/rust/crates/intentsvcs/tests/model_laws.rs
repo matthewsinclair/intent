@@ -211,7 +211,7 @@ prop_compose! {
 
 prop_compose! {
   fn acceptance_test()(g in 0u32..99, n in 1u32..9, kind in prop_oneof![Just(AtKind::Test), Just(AtKind::NonTest)], file in proptest::option::of("[a-z]{2,8}/[a-z_]{2,12}\\.rs"), prose in proptest::option::of("[a-z ]{3,30}"), covers in prop::collection::vec("AC-[0-9]{2}\\.[0-9]", 1..3), status in at_status(), note in proptest::option::of("[a-z ]{1,20}"), legacy in proptest::option::of("[A-Za-z0-9_:. /`-]{3,60}")) -> AcceptanceTest {
-    AcceptanceTest { id: format!("AT-{g:02}.{n}"), kind, file, prose, covers, status, note, legacy: legacy.map(|raw| Legacy { raw }) }
+    AcceptanceTest { fiat: None, id: format!("AT-{g:02}.{n}"), kind, file, prose, covers, status, note, legacy: legacy.map(|raw| Legacy { raw }) }
   }
 }
 
@@ -371,6 +371,7 @@ fn sample_thread() -> Thread {
       state: AcState::Computed,
     }],
     tests: vec![AcceptanceTest {
+      fiat: None,
       id: "AT-02.4".to_string(),
       kind: AtKind::Test,
       file: Some("crates/intentsvcs/tests/model_laws.rs".to_string()),

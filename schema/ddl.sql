@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.0
--- SCHEMA_DDL_VER: 11
+-- SCHEMA_DDL_VER: 12
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -169,6 +169,11 @@ CREATE TABLE IF NOT EXISTS tests (
   note TEXT,
   legacy TEXT,
   written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  -- The AT's fiat record, as serde JSON, or NULL. **LAST ON PURPOSE: `ALTER
+  -- TABLE ... ADD COLUMN` appends, so a store migrated up rung 15 gets it here
+  -- and a store created fresh from this DDL has to agree, or the two shapes
+  -- differ by column order for the rest of their lives.**
+  fiat TEXT,
   PRIMARY KEY (thread_id, id)
 );
 -- `created` is AUTHORED -- v2 users write it by hand in frontmatter, so it is a

@@ -1061,6 +1061,11 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
       let to: AtStatus = parse(edge.to);
       let outcome = match edge.verb {
         "at.set" => facade.at_set(ST, "AT-03.1", to, None).expect("at set"),
+        // The reason is supplied because the edge DECLARES `ReasonRecorded`;
+        // the refusal without one is the UNMET walk's job, not this one's.
+        "at.fc" => facade
+          .at_fc(ST, "AT-03.1", "hv closed it on authority", "hv")
+          .expect("at fc"),
         other => panic!("no arm drives {other} on AcceptanceTest.status"),
       };
       assert_movement(entity, field, edge, from, outcome);
@@ -1147,6 +1152,9 @@ fn apply_ac_verb(facade: &mut intentsvcs::facade::Facade, verb: &str) -> Outcome
       .expect("withdraw"),
     "ac.rescope" => facade.ac_rescope(ST, AC).expect("rescope"),
     "ac.reinstate" => facade.ac_reinstate(ST, AC).expect("reinstate"),
+    "ac.fc" => facade
+      .ac_fc(ST, AC, "hv closed it on authority", "hv")
+      .expect("fc"),
     other => panic!("no arm drives {other} on a criterion"),
   }
 }
@@ -1422,16 +1430,29 @@ const RATIFIED_CRITERION: &[RatifiedEdge] = &[
   // Reinstating already means bringing a requirement closed-without-being-met
   // back into play, and a fiat close is closed-without-being-met by definition.
   //
-  // **THIS TRANSCRIPTION IS AHEAD OF ITS SOURCE AND THAT IS RECORDED HERE
-  // RATHER THAN LEFT TO BE DISCOVERED.** These two rows are the second witness
-  // to `data-model.md`'s Machine 3, whose table still lists eight edges; the
-  // ruling is hv's and the doc is another thread's surface, so recording it
-  // there is routed rather than taken. **Until it lands, the two witnesses
-  // disagree and NOTHING DETECTS IT** -- this check reads only the list below,
-  // so the divergence is invisible to the very mechanism built to catch
-  // divergence. Named here because a note in the artefact outlives a message.
+  // **THE TRANSCRIPTION WAS AHEAD OF ITS SOURCE AND IS NOT ANY MORE.** This
+  // note used to say `data-model.md`'s Machine 3 still listed eight edges, that
+  // the two witnesses therefore disagreed, and that **nothing detected it** --
+  // this check reads only the list below, so the divergence was invisible to
+  // the very mechanism built to catch divergence. Recording the ruling in the
+  // doc was routed rather than taken, and it has since landed: the table now
+  // carries both exits and both entries, and `machine_table_check.sh` compares
+  // them. The note is rewritten rather than deleted because the mechanism it
+  // describes is still real -- **this list is a hand transcription and the
+  // check cannot see a disagreement with the document it transcribes.**
   ("ac.reinstate", &["fiat"], "unsatisfied", &[]),
   ("ac.reinstate", &["fiat"], "computed", &[]),
+  // **THE ENTRY EDGES, landing with the verb** (`fc`, ic's surface ruling; the
+  // machine's op token is `ac.fc`). From the two OPEN states only: `satisfied`
+  // is deliberately absent, because a fiat close is how an UNMET requirement is
+  // closed and offering it on a met one would let a close-on-authority
+  // overwrite a close-on-evidence.
+  (
+    "ac.fc",
+    &["computed", "unsatisfied"],
+    "fiat",
+    &[Guard::ReasonRecorded],
+  ),
 ];
 
 /// The ratified work-package machine, same discipline.
@@ -1817,6 +1838,18 @@ const UNMET: &[(&str, Guard, Unmet, &str)] = &[
     "the reason lives INSIDE `Withdrawn`, so a blank one is the only way to ask for the state without it",
   ),
   (
+    "ac.fc",
+    Guard::ReasonRecorded,
+    Unmet::BlankJustification,
+    "the reason lives INSIDE `Fiat`, exactly as it does inside `Withdrawn`, so a blank `because` is the only way to ask for the state without one -- and it is the case AC-00.1 names: invoked without a reason, `fc` refuses and writes nothing",
+  ),
+  (
+    "at.fc",
+    Guard::ReasonRecorded,
+    Unmet::BlankJustification,
+    "the AT's record is a FIELD beside its status, not a payload inside it, so a blank `--because` is the whole of the unmet case -- and the refusal must be the reason guard rather than the transition check, which is why the fixture sits at `to-write`, a declared from-state",
+  ),
+  (
     "ac.satisfy",
     Guard::EvidenceRecorded,
     Unmet::BlankJustification,
@@ -2018,17 +2051,32 @@ fn attempt(
       fx.write_thread(&sample_thread("ST0057"));
       fx.facade()
     }
+    "AcceptanceTest" => {
+      fx.write_thread(&thread_with(|t| {
+        t.tests[0].status = parse(from);
+        perturb(t, unmet);
+      }));
+      fx.facade()
+    }
     other => panic!("no fixture for {other}"),
   };
   let seq = 3;
   const AC: &str = "AC-03.2";
   match verb {
+    // **THE JUSTIFICATION IS THE `because`, AND THAT IS WHAT MAKES THE BLANK
+    // PROBE REACH THIS GUARD.** An AT's fiat record sits BESIDE its status
+    // rather than inside it, so unlike `ac.fc` there is no state payload to
+    // leave empty -- the argument is the only channel, and a blank one is
+    // exactly the AC-00.1 case: invoked without a reason, `fc` refuses and
+    // writes nothing.
+    "at.fc" => facade.at_fc(ST, "AT-03.1", justification, "hv"),
     "ac.satisfy" => facade.ac_satisfy(ST, AC, justification),
     "ac.unsatisfy" => facade.ac_unsatisfy(ST, AC),
     "ac.descope" => facade.ac_descope(ST, AC, target(unmet), Some("hv"), Some("moved")),
     "ac.withdraw" => facade.ac_withdraw(ST, AC, justification, Some("hv")),
     "ac.rescope" => facade.ac_rescope(ST, AC),
     "ac.reinstate" => facade.ac_reinstate(ST, AC),
+    "ac.fc" => facade.ac_fc(ST, AC, justification, "hv"),
     "st.triage" => facade.st_triage(ST),
     "st.start" => facade.st_start(ST),
     "st.resume" => facade.st_resume(ST),

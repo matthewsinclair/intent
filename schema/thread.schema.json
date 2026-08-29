@@ -176,6 +176,17 @@
           },
           "type": "array"
         },
+        "fiat": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FiatRecord"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The fiat close, present exactly when [`status`] is [`AtStatus::Fiat`].\n\n**Absent and empty are the same fact, so only one is representable** --\nthe field is skipped when there is nothing to record, and every AT written\nbefore this existed serialises to the bytes it always did. That is what\nmakes the addition free under hv's DO-NOT-BUMP ruling rather than a\nrewrite of every extract.\n\n[`status`]: AcceptanceTest::status"
+        },
         "file": {
           "description": "Test kind: the repo-relative test file (the 0017 reference rules --\nat least one `/`, no `:`).",
           "type": [
@@ -246,6 +257,11 @@
         {
           "const": "n-a",
           "description": "Non-test rows only -- the doc / eyeball / gate status. `n-a` is not\ngreen; satisfaction lives on the AC's own line.",
+          "type": "string"
+        },
+        {
+          "const": "fiat",
+          "description": "Closed on human authority against the evidence. See\n[`AcceptanceTest::fiat`] for who, when and why.",
           "type": "string"
         }
       ]
@@ -365,6 +381,42 @@
         "text",
         "kind",
         "state"
+      ],
+      "type": "object"
+    },
+    "FiatRecord": {
+      "additionalProperties": false,
+      "description": "**A close made on human authority, against the evidence.**\n\nEvery other close in Intent asserts that something was done; this one\nrecords that someone with authority decided it need not be.\n\n**THIS RECORD IS NOT THE HISTORY, AND THE DOC HERE SAID IT WAS UNTIL\n2026-08-29.** It read _kept forever and never cleared by a later\ntransition_, and that was already false when it was written: reinstating a\ncriterion sets its state to `AcState::entry(kind)`, so the record is\ndiscarded structurally -- there is nowhere in the entry states for it to go.\nhv settled the ground on 2026-08-29 in ruling the fiat exit: _renders\ndistinctly forever_ is a claim about RENDERING, not about irreversibility,\nand **the history is the event log, not this field**.\n\nIt matters more than an ordinary stale comment because this type derives\n`JsonSchema` and `SimpleObject`, so a `///` here is published verbatim into\nthe committed JSON Schema and SDL faces -- the sentence was reaching API\nconsumers as a durability guarantee the model does not offer.\n\nSo: the record lives exactly as long as the fiat close does, which is\n**unlike [`Thread::status_reason`]** only in belonging to a close rather\nthan to a status.\n\nEnforcement of who may invoke it is DETECTION AND ATTRIBUTION, never\nprevention: on a machine where the tool and its operator share a uid there\nis no boundary to enforce, so the record is built to be permanent and\nlegible instead of unforgeable.",
+      "properties": {
+        "at": {
+          "description": "RFC 3339 UTC, as the event envelope stamps it.",
+          "type": "string"
+        },
+        "because": {
+          "description": "Why the close was made. A fiat close without one does not execute.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "by": {
+          "description": "Who recorded it.",
+          "type": "string"
+        },
+        "inherited_from": {
+          "description": "Set on a row closed by CASCADE, naming the ancestor whose fiat close\nreached it. **Its presence is what stops a cascaded row reading as an\nordinary one**, so it is recorded rather than derived from the tree.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "invoker": {
+          "$ref": "#/$defs/Invoker"
+        }
+      },
+      "required": [
+        "because",
+        "by",
+        "at",
+        "invoker"
       ],
       "type": "object"
     },
@@ -636,5 +688,5 @@
   "title": "Thread",
   "type": "object",
   "x-intent-ver": "3.0.0",
-  "x-schema-json-ver": 13
+  "x-schema-json-ver": 14
 }

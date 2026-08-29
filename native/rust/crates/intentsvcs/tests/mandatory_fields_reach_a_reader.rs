@@ -90,6 +90,12 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::ComputedSatisfaction { .. }
     | FacadeError::NotOffScope { .. }
     | FacadeError::NotSatisfied { .. }
+    // **CARRIES a field rather than DEMANDING one, and the distinction is what
+    // this denominator is about.** It reports that a requirement is already
+    // fiat-closed and quotes the standing `because` so the operator can see the
+    // judgement they are about to replace -- but the caller left nothing out.
+    // Supplying more would not make the call succeed; reinstating first would.
+    | FacadeError::AlreadyFiatClosed { .. }
     | FacadeError::OffScope { .. }
     | FacadeError::WrongOffScopeState { .. }
     | FacadeError::BadQuery { .. }

@@ -1122,12 +1122,64 @@ pub struct Invoker {
   pub env: String,
 }
 
+impl Invoker {
+  /// Collect the invocation's own evidence, at the moment of the close.
+  ///
+  /// **No caller supplies any of this and no caller may override it**, which is
+  /// the whole reason the record is worth keeping: a field the party being
+  /// described can set is not evidence about them.
+  ///
+  /// **NEITHER FIELD READS AN ENVIRONMENT VARIABLE, and that is a CONSTRAINT
+  /// rather than a coincidence.** AC-11.3 holds the shipped surface to exactly
+  /// one environment read, and it is guarded -- so the obvious spellings of
+  /// "which environment did this come from" (`$USER`, `$HOSTNAME`, `$TERM`) are
+  /// all closed to this function. `OS` and `ARCH` are compile-time constants
+  /// and `is_terminal` is a syscall on a handle, so both stay inside the
+  /// invariant. **The identity of the human belongs to `FiatRecord.by`, which
+  /// the caller resolves from the config file that is its one home** -- this
+  /// struct describes the INVOCATION, never the person.
+  ///
+  /// `stdin` rather than `stdout` for the terminal test: the question is
+  /// whether a human was positioned to type the close, and a piped or
+  /// redirected stdout is routine for a human at a terminal while a piped stdin
+  /// is not. It narrows the population, it does not identify the actor -- an
+  /// automated caller can allocate a tty and a human's close inside a script
+  /// has none.
+  pub fn collected() -> Self {
+    Self {
+      tty: std::io::IsTerminal::is_terminal(&std::io::stdin()),
+      // **`darwin/arm64` appears in the fixtures and is NOT what this
+      // produces**: `std::env::consts::OS` is `macos` and `ARCH` is `aarch64`.
+      // The fixtures are illustrative hand-written values, so they are not a
+      // contract, and inventing a mapping to make the code agree with them
+      // would be building the citation rather than the record.
+      env: format!("{}/{}", std::env::consts::OS, std::env::consts::ARCH),
+    }
+  }
+}
+
 /// **A close made on human authority, against the evidence.**
 ///
 /// Every other close in Intent asserts that something was done; this one
-/// records that someone with authority decided it need not be. It is therefore
-/// kept forever and never cleared by a later transition -- unlike
-/// [`Thread::status_reason`], which belongs to the status it explains.
+/// records that someone with authority decided it need not be.
+///
+/// **THIS RECORD IS NOT THE HISTORY, AND THE DOC HERE SAID IT WAS UNTIL
+/// 2026-08-29.** It read _kept forever and never cleared by a later
+/// transition_, and that was already false when it was written: reinstating a
+/// criterion sets its state to `AcState::entry(kind)`, so the record is
+/// discarded structurally -- there is nowhere in the entry states for it to go.
+/// hv settled the ground on 2026-08-29 in ruling the fiat exit: _renders
+/// distinctly forever_ is a claim about RENDERING, not about irreversibility,
+/// and **the history is the event log, not this field**.
+///
+/// It matters more than an ordinary stale comment because this type derives
+/// `JsonSchema` and `SimpleObject`, so a `///` here is published verbatim into
+/// the committed JSON Schema and SDL faces -- the sentence was reaching API
+/// consumers as a durability guarantee the model does not offer.
+///
+/// So: the record lives exactly as long as the fiat close does, which is
+/// **unlike [`Thread::status_reason`]** only in belonging to a close rather
+/// than to a status.
 ///
 /// Enforcement of who may invoke it is DETECTION AND ATTRIBUTION, never
 /// prevention: on a machine where the tool and its operator share a uid there
@@ -1191,6 +1243,53 @@ pub struct FiatRecord {
 ///
 /// The marker leads with `FIAT-CLOSED` in the same shape `DESCOPED` and
 /// `WITHDRAWN` already use, so a reader who knows those needs nothing new.
+/// **THE LIST-SURFACE FORM OF A FIAT CLOSE, AND hv's "ONE REQUIRED COMPOSER"
+/// (ruling of 2026-08-28).**
+///
+/// # Why a composer is REQUIRED here and was not for the AC kind
+///
+/// `AcState::Fiat` carries its record INSIDE the variant, so a renderer cannot
+/// reach the state without meeting the record -- and issue 0137 shows how thin
+/// that protection is (a `_` arm swallowed it and rendered `satisfied: no`).
+/// **Every other kind is strictly worse off**: `AtStatus`, `ThreadStatus` and
+/// `WpStatus` are unit-only, `Copy`, async-graphql `Enum`s, so the record sits
+/// BESIDE the status on its own field and **nothing structural makes a renderer
+/// look at it.** `t.status.display()` compiles, reads correctly, and silently
+/// drops the entire close.
+///
+/// That is the gap hv's ruling names: fiat beside the status is the cheaper
+/// shape ONLY IF one composer carries the visibility the type no longer can.
+/// A render site that calls this cannot lose the record; one that does not is
+/// the defect, and the census in
+/// `tests/fiat_close_is_visible_on_every_surface.rs` is what finds it.
+///
+/// # Not a second spelling of [`fiat_marker`]
+///
+/// Two forms exist deliberately and the census records why: a generated view
+/// composes [`fiat_marker`]'s ` -- FIAT-CLOSED: ...` onto an authored line,
+/// while a list surface has a status COLUMN whose vocabulary is
+/// `<state>: <why>`, set by the `descoped-to:` and `withdrawn:` arms beside it.
+/// **The property hv requires is that the close is visible, not that one string
+/// is used everywhere** -- so these are one composer per vocabulary rather than
+/// one per call site, which is the count that was actually wrong before.
+///
+/// `status` is passed in rather than derived because the four machines spell
+/// their fiat state differently and this function has no business knowing which
+/// one it is rendering.
+pub fn fiat_status(status: &str, record: Option<&FiatRecord>) -> String {
+  let Some(record) = record else {
+    return status.to_string();
+  };
+  match &record.inherited_from {
+    // **The cascade marker leads**, for the reason [`fiat_marker`] gives: a
+    // reader must not miss that this row was never individually judged, and a
+    // marker after the reason reads as a footnote to a decision nobody made
+    // about it.
+    Some(ancestor) => format!("{status} by cascade from {ancestor}: {}", record.because),
+    None => format!("{status}: {}", record.because),
+  }
+}
+
 pub fn fiat_marker(record: &FiatRecord) -> String {
   let mut out = String::from(" -- FIAT-CLOSED");
   if let Some(ancestor) = &record.inherited_from {
@@ -1471,6 +1570,17 @@ pub struct AcceptanceTest {
   /// Covered AC ids; at least one.
   pub covers: Vec<String>,
   pub status: AtStatus,
+  /// The fiat close, present exactly when [`status`] is [`AtStatus::Fiat`].
+  ///
+  /// **Absent and empty are the same fact, so only one is representable** --
+  /// the field is skipped when there is nothing to record, and every AT written
+  /// before this existed serialises to the bytes it always did. That is what
+  /// makes the addition free under hv's DO-NOT-BUMP ruling rather than a
+  /// rewrite of every extract.
+  ///
+  /// [`status`]: AcceptanceTest::status
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub fiat: Option<FiatRecord>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub note: Option<String>,
   /// Present on rows carried from a v2 estate under the closed-thread carry
@@ -1524,6 +1634,23 @@ pub enum AtStatus {
   /// green; satisfaction lives on the AC's own line.
   #[serde(rename = "n-a")]
   Na,
+  // **A UNIT VARIANT, AND THE RECORD LIVES BESIDE IT ON [`AcceptanceTest::fiat`]
+  // RATHER THAN INSIDE IT.** `AcState::Fiat` carries its `FiatRecord` in the
+  // variant; this enum cannot, and the reason is mechanical rather than a
+  // preference: `AtStatus` derives `Copy` and async-graphql `Enum`, and a
+  // payload breaks both. Splitting the state from its evidence is the cost, and
+  // it is paid back by the invariant that holds the two in agreement in both
+  // directions -- a `Fiat` status with no record, and a record on a row that is
+  // not `Fiat`, are each a defect the model can express and the invariant
+  // refuses.
+  //
+  // Deliberately a `//`: the reasoning is for a maintainer, and a `///` here is
+  // lifted verbatim into the committed JSON Schema and SDL faces -- the trap
+  // recorded three variants above, which was broken within hours of being
+  // written down.
+  /// Closed on human authority against the evidence. See
+  /// [`AcceptanceTest::fiat`] for who, when and why.
+  Fiat,
 }
 
 impl AtStatus {
@@ -1550,6 +1677,10 @@ impl AtStatus {
       Self::Red => "red",
       Self::Green => "green",
       Self::Na => "n/a",
+      // Reads as its own thing rather than as a flavour of green, which is
+      // AC-00.3's *never renders as ordinarily closed* at the one place every
+      // human-facing AT status goes through.
+      Self::Fiat => "fiat-closed",
     }
   }
 }

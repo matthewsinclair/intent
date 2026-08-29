@@ -877,6 +877,14 @@ fn test_line(t: &AcceptanceTest) -> String {
     t.covers.join(", "),
     t.status.display()
   ));
+  // **THE AT KIND NEEDS THIS LINE AND THE AC KIND DOES NOT**, which is the
+  // whole cost of hv's beside-the-status shape: `AcState::Fiat` cannot be
+  // matched without meeting its record, while `t.status` is a `Copy` unit enum
+  // whose `display()` reads perfectly well while dropping the close entirely.
+  // Same composer as the criterion line above, so the two kinds cannot drift.
+  if let Some(record) = &t.fiat {
+    line.push_str(&crate::model::fiat_marker(record));
+  }
   if let Some(note) = &t.note {
     line.push_str(&format!(" -- {note}"));
   }

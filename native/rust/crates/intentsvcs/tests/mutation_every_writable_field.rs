@@ -70,7 +70,7 @@ mod common;
 use common::{Fixture, sample_thread};
 use intentsvcs::address::{Address, parse};
 use intentsvcs::facade::Facade;
-use intentsvcs::model::{AcceptanceTest, AtKind, AtStatus, Legacy, Thread};
+use intentsvcs::model::{AcceptanceTest, AtKind, AtStatus, FiatRecord, Invoker, Legacy, Thread};
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
 
@@ -95,6 +95,7 @@ fn no_named_verb_sets() -> Vec<(&'static str, Option<&'static str>)> {
     ("prose", None),
     ("covers", None),
     ("status", Some("at_set")),
+    ("fiat", Some("at_fc")),
     ("note", None),
     ("legacy", None),
   ]
@@ -111,12 +112,29 @@ fn no_named_verb_sets() -> Vec<(&'static str, Option<&'static str>)> {
 /// denominator** (cc's ruling), and the estate is then not free to change it.
 fn fully_populated_row() -> AcceptanceTest {
   AcceptanceTest {
+    fiat: Some(FiatRecord {
+      because: "the panel-survival half is unobservable by unit test".to_string(),
+      by: "hv".to_string(),
+      at: "2026-08-28T18:30:00.000Z".to_string(),
+      invoker: Invoker {
+        tty: true,
+        env: "darwin/arm64".to_string(),
+      },
+      inherited_from: Some("ST0001".to_string()),
+    }),
     id: "AT-03.1".to_string(),
     kind: AtKind::Test,
     file: Some("crates/intentsvcs/tests/ingest_refusal.rs".to_string()),
     prose: Some("what was read, on a row that also cites a file".to_string()),
     covers: vec!["AC-03.1".to_string()],
-    status: AtStatus::Green,
+    // **`Fiat`, AND IT IS NOT INTERCHANGEABLE WITH `Green` HERE.**
+    // `AcceptanceTest::fiat` is documented -- and published into both faces --
+    // as *present exactly when status is `Fiat`*, so a row carrying a record
+    // while reading `green` is not a fuller fixture, it is an illegal one.
+    // **This is the first field on this model whose population is CORRELATED
+    // with another's**, which is why "every field present" needed a second
+    // sentence rather than one more line.
+    status: AtStatus::Fiat,
     note: Some("the note this criterion keeps calling the burning case".to_string()),
     legacy: Some(Legacy {
       raw: "AT-03.1 -- carried from a v2 estate".to_string(),
@@ -143,6 +161,18 @@ fn a_different_legal_value() -> Vec<(&'static str, Value)> {
     ("prose", json!("re-read, and this is what it said")),
     ("covers", json!(["AC-09.9"])),
     ("status", json!("red")),
+    // A DIFFERENT legal record, not a cleared one: `null` would measure
+    // whether the field can be emptied, and every other row here measures
+    // whether it can be MOVED.
+    (
+      "fiat",
+      json!({
+        "because": "a second close, recorded through the mutation surface",
+        "by": "vc",
+        "at": "2026-08-29T01:02:03.000Z",
+        "invoker": { "tty": false, "env": "linux/x86_64" },
+      }),
+    ),
     ("note", json!("set through the mutation surface")),
     ("legacy", json!({ "raw": "a different v2 reference" })),
   ]
@@ -260,7 +290,7 @@ fn both_lists_cover_every_field_the_model_serialises() {
     .collect();
   assert_eq!(
     actual.len(),
-    8,
+    9,
     "precondition: the row must serialise EVERY field, or both checks below \n       \
      are measuring a serde skip: {actual:?}"
   );
@@ -342,18 +372,40 @@ fn the_unsettable_field_set_is_measured_by_driving_the_surface() {
     }
   }
 
+  // **ASSERTED ON THE FIELD NAME, NOT ON THE REFUSAL SENTENCE.** Pinning the
+  // prose would make this a change-detector on wording; the property is that
+  // the door is shut, and the remedy's exact phrasing is free to improve.
+  let refused: Vec<&str> = unsettable
+    .iter()
+    .map(|entry| {
+      entry
+        .split_whitespace()
+        .next()
+        .expect("a refusal entry leads with the field it is about")
+    })
+    .collect();
+
   assert_eq!(
-    unsettable,
-    Vec::<String>::new(),
-    "these fields of an ACCEPTANCE TEST cannot be set through the mutation \
-     surface.\n\n  \
-     An empty list here is NOT AC-08.5 met: it is one entity measured through \
-     one door.\n  \
-     The criterion's own burning cases are elsewhere -- ST0011's `completed` \
-     is a THREAD\n  \
-     field, an attachment's canon record has no setter narrower than a thread, \
-     and no\n  \
-     CLI verb creates an AC or an AT at all."
+    refused,
+    vec!["fiat"],
+    "exactly one field of an ACCEPTANCE TEST is unsettable through the mutation \
+     surface, and it is\n  \
+     DELIBERATE (hv's D7, 2026-08-29): the fiat record is reachable only through \
+     `fc`.\n\n  \
+     **THE LIST WAS EMPTY UNTIL D7 AND ITS EMPTINESS WAS NEVER AC-08.5 MET** -- \
+     it is one\n  \
+     entity measured through one door. The criterion`s own burning cases are \
+     elsewhere:\n  \
+     ST0011`s `completed` is a THREAD field, an attachment`s canon record has no \
+     setter\n  \
+     narrower than a thread, and no CLI verb creates an AC or an AT at all.\n\n  \
+     **A SECOND NAME APPEARING HERE IS A FINDING, NOT A PASS.** Every other field \
+     on this\n  \
+     row is writable through `put`, which is what makes this a measurement rather \
+     than a\n  \
+     restatement of policy -- so a new refusal means a door closed somewhere \
+     nobody\n  \
+     declared it: {unsettable:?}"
   );
 }
 
@@ -2199,11 +2251,12 @@ fn true_fields(model: &str) -> Vec<&'static str> {
         prose: _,
         covers: _,
         status: _,
+        fiat: _,
         note: _,
         legacy: _,
       } = fully_populated_row();
       vec![
-        "id", "kind", "file", "prose", "covers", "status", "note", "legacy",
+        "id", "kind", "file", "prose", "covers", "status", "fiat", "note", "legacy",
       ]
     }
     "Attachment" => {

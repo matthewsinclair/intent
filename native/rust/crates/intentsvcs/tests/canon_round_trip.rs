@@ -45,6 +45,7 @@ fn maximal_thread(id: &str) -> Thread {
   t.completed = Some("2026-08-15".to_string());
   t.acceptance = Some(AcceptanceMode::Exempt);
   t.tests = vec![AcceptanceTest {
+    fiat: None,
     id: "AT-03.8".to_string(),
     kind: AtKind::Test,
     file: Some("crates/intentsvcs/tests/canon_round_trip.rs".to_string()),

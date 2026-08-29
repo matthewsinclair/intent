@@ -688,6 +688,7 @@ mod tests {
 
   fn at(id: &str, covers: &str, status: AtStatus) -> AcceptanceTest {
     AcceptanceTest {
+      fiat: None,
       id: id.to_string(),
       kind: AtKind::Test,
       file: Some("a/b.rs".to_string()),

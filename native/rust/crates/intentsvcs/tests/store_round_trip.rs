@@ -105,6 +105,7 @@ fn every_ac_scope_variant_survives_with_its_payload() {
 fn a_legacy_carried_test_keeps_its_raw_reference() {
   let mut thread = sample_thread("ST0056");
   thread.tests.push(AcceptanceTest {
+    fiat: None,
     id: "AT-99.1".to_string(),
     kind: AtKind::Test,
     file: None,

@@ -85,6 +85,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
       },
     ],
     tests: vec![AcceptanceTest {
+      fiat: None,
       id: "AT-02.3".to_string(),
       kind: AtKind::Test,
       file: Some("crates/intentsvcs/tests/store_rebuild.rs".to_string()),

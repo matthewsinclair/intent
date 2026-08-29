@@ -252,6 +252,11 @@ CREATE TABLE IF NOT EXISTS tests (
   note TEXT,
   legacy TEXT,
   written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  -- The AT's fiat record, as serde JSON, or NULL. **LAST ON PURPOSE: `ALTER
+  -- TABLE ... ADD COLUMN` appends, so a store migrated up rung 15 gets it here
+  -- and a store created fresh from this DDL has to agree, or the two shapes
+  -- differ by column order for the rest of their lives.**
+  fiat TEXT,
   PRIMARY KEY (thread_id, id)
 );
 -- `created` is AUTHORED -- v2 users write it by hand in frontmatter, so it is a
@@ -450,7 +455,7 @@ CREATE TABLE IF NOT EXISTS project (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 14;
+pub const SCHEMA_VERSION: i32 = 15;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -952,7 +957,58 @@ const MIGRATIONS: &[(i32, &str)] = &[(
    );
    INSERT OR IGNORE INTO project (id, todo_watermark)
      SELECT 1, substr(MAX(ts), 1, 19) || 'Z' FROM event_log WHERE op = 'todo.flush';",
-)];
+  ),
+  (
+    15,
+    // 14 -> 15: ST0066. `tests` gains a home for the AT's fiat record.
+    //
+    // **A COLUMN RATHER THAN ZERO DDL, AND THE RULING'S PREMISE IS WHY THE
+    // DIFFERENCE IS EASY TO MISS.** hv's 2026-08-28 ruling records that ATs
+    // cost zero DDL, measured on `tests.status` being unconstrained TEXT with
+    // no CHECK -- correct, and it is a measurement about the STATUS VALUE.
+    // `fiat` is a separate FIELD, forced there because `AtStatus` derives
+    // `Copy` and async-graphql `Enum` and so cannot carry a payload the way
+    // `AcState::Fiat` does. A criterion's record rides inside `criteria.state`;
+    // an AT's had nowhere to live.
+    //
+    // **A REBUILD RATHER THAN AN `ALTER TABLE ADD COLUMN`, AND THE TEST THAT
+    // FORCED IT IS THE ONE WORTH READING.** The obvious form is
+    // `ALTER TABLE tests ADD COLUMN fiat TEXT`, it is additive and nullable, and
+    // it would have been the FIRST rung on this ladder that is not a rebuild.
+    // `a_store_stamped_by_an_earlier_draft_of_a_rung_is_walked_forward_not_refused`
+    // reds it with `duplicate column name: fiat`, because that fixture builds
+    // its store from the CURRENT `DDL` -- which already carries the column --
+    // and then stamps an older version onto it. Every sibling rung survives that
+    // fixture by recreating the table outright rather than depending on what the
+    // old one had.
+    //
+    // **The load-bearing detail is that the `SELECT` never names `fiat`.** That
+    // is what makes one statement correct against both worlds: a real store at
+    // 14 has no such column to carry, and the test's store has one whose
+    // contents are irrelevant because nothing has been able to write it yet.
+    // `written_at` is not carried for the same reason its siblings do not carry
+    // it -- a record timestamp is per-machine and re-stamped by a rebuild by
+    // design.
+    "CREATE TABLE tests_v15 (
+       thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+       id TEXT NOT NULL,
+       kind TEXT NOT NULL,
+       file TEXT,
+       prose TEXT,
+       covers TEXT NOT NULL,
+       status TEXT NOT NULL,
+       note TEXT,
+       legacy TEXT,
+       written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       fiat TEXT,
+       PRIMARY KEY (thread_id, id)
+     );
+     INSERT INTO tests_v15 (thread_id, id, kind, file, prose, covers, status, note, legacy)
+       SELECT thread_id, id, kind, file, prose, covers, status, note, legacy FROM tests;
+     DROP TABLE tests;
+     ALTER TABLE tests_v15 RENAME TO tests;",
+  ),
+];
 
 /// Which of the two write acts is happening (D42).
 ///
@@ -1249,6 +1305,24 @@ pub struct IssueDates {
 pub struct StoredDates {
   pub threads: Vec<ThreadDates>,
   pub issues: Vec<IssueDates>,
+  /// The stamp the database put on THIS mutation's event.
+  ///
+  /// **The third arm, and the doc above predicted it.** `issues` was the second
+  /// entity to carry a domain date and the channel only had room for the first;
+  /// a fiat close is the third case, and it is not an entity date at all -- it
+  /// is a value nested inside a criterion's state, which no column can fill.
+  ///
+  /// [`Store::write_event`] has always RETURNED the stamp it wrote, precisely
+  /// because "the caller has no other way to learn it and must never compute
+  /// it". `commit_mutation` discarded that return for as long as nothing needed
+  /// it. Carrying it here is what lets `FiatRecord.at` obey D42 by the same
+  /// mechanism `threads.created` does, rather than by a clock read in Rust.
+  ///
+  /// **One stamp per mutation is the CORRECT semantics for a cascade, not a
+  /// simplification of it.** A fiat close that reaches an ancestor and its
+  /// children is one act at one instant recorded by one event, so every row it
+  /// closes sharing that event's time is what actually happened.
+  pub event_ts: String,
 }
 
 pub struct Mutation<'a> {
@@ -1668,7 +1742,7 @@ impl Store {
     }
     for at in &t.tests {
       tx.execute(
-        "INSERT INTO tests (thread_id, id, kind, file, prose, covers, status, note, legacy) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+        "INSERT INTO tests (thread_id, id, kind, file, prose, covers, status, note, legacy, fiat) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
         params![
           t.id,
           at.id,
@@ -1679,6 +1753,7 @@ impl Store {
           enum_str(&at.status),
           at.note,
           at.legacy.as_ref().map(|l| l.raw.clone()),
+          at.fiat.as_ref().map(serde_json::to_string).transpose()?,
         ],
       )?;
     }
@@ -1846,7 +1921,7 @@ impl Store {
     Self::write_doc_sections(&tx, change.sections)?;
     // The mutation's own event: the DB stamps it inside the same
     // transaction as the rows it describes (D42).
-    Self::write_event(&tx, change.envelope, Stamp::ByTheDatabase)?;
+    let event_ts = Self::write_event(&tx, change.envelope, Stamp::ByTheDatabase)?;
     // **AND THE PROJECT STATE, IN THIS TRANSACTION, WHICH IS THE WHOLE OF
     // AC-14.7.** The clock is the database's, read inside the statement, so
     // this keeps D42 for the same reason the envelope does: a time read in Rust
@@ -1863,7 +1938,7 @@ impl Store {
       )?;
     }
     tx.commit()?;
-    Ok(dates)
+    Ok(StoredDates { event_ts, ..dates })
   }
 
   /// Rebuild the whole store from canon -- the DISK -> DB sync direction.
@@ -2135,7 +2210,7 @@ impl Store {
 
   fn tests_of(&self, thread: &str) -> Result<Vec<AcceptanceTest>, StoreError> {
     let mut stmt = self.conn.prepare(
-      "SELECT id, kind, file, prose, covers, status, note, legacy FROM tests WHERE thread_id = ?1 ORDER BY rowid",
+      "SELECT id, kind, file, prose, covers, status, note, legacy, fiat FROM tests WHERE thread_id = ?1 ORDER BY rowid",
     )?;
     let raw = stmt
       .query_map(params![thread], |row| {
@@ -2148,23 +2223,27 @@ impl Store {
           row.get::<_, String>(5)?,
           row.get::<_, Option<String>>(6)?,
           row.get::<_, Option<String>>(7)?,
+          row.get::<_, Option<String>>(8)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
     raw
       .into_iter()
-      .map(|(id, kind, file, prose, covers, status, note, legacy)| {
-        Ok(AcceptanceTest {
-          id,
-          kind: enum_from(&kind)?,
-          file,
-          prose,
-          covers: serde_json::from_str(&covers)?,
-          status: enum_from(&status)?,
-          note,
-          legacy: legacy.map(|raw| Legacy { raw }),
-        })
-      })
+      .map(
+        |(id, kind, file, prose, covers, status, note, legacy, fiat)| {
+          Ok(AcceptanceTest {
+            id,
+            kind: enum_from(&kind)?,
+            file,
+            prose,
+            covers: serde_json::from_str(&covers)?,
+            status: enum_from(&status)?,
+            fiat: fiat.map(|raw| serde_json::from_str(&raw)).transpose()?,
+            note,
+            legacy: legacy.map(|raw| Legacy { raw }),
+          })
+        },
+      )
       .collect()
   }
 

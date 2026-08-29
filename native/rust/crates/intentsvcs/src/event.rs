@@ -105,6 +105,8 @@ use serde::{Deserialize, Serialize};
 pub const KNOWN_OPS: &[&str] = &[
   "ac.descope",
   "ac.edit",
+  "ac.fc",
+  "at.fc",
   "ac.put",
   "ac.reinstate",
   "ac.rescope",

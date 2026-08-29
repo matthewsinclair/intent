@@ -285,6 +285,25 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     "gate blocked",
     facade.st_done("ST0056").expect_err("gate blocks"),
   ));
+  // **The fiat close's own refusal, provoked rather than declared elsewhere.**
+  // AC-03.1 is test-backed and back at `computed` by the reinstate above, which
+  // is one of the two states `ac.fc` is declared from -- so the first close
+  // succeeds and the second is refused for a reason the machine guarantees:
+  // `fiat` is not a from-state. **The route is chosen from the DECLARED machine
+  // rather than from what is refused today**, which is the property issue 0053
+  // cost this file three times.
+  facade
+    .ac_fc("ST0056", "AC-03.1", "hv closed it on authority", "hv")
+    .expect("the first close lands");
+  out.push((
+    "already fiat-closed",
+    facade
+      .ac_fc("ST0056", "AC-03.1", "and again", "hv")
+      .expect_err("a requirement closed on authority cannot be closed again"),
+  ));
+  facade
+    .ac_reinstate("ST0056", "AC-03.1")
+    .expect("put it back where the rest of this fixture expects it");
   // **Six of the refusals below were reachable and asserted nowhere in this
   // file**, measured at `c1e630cf` -- so the module doc's "the whole variant
   // set rather than sampled" was already false before today's two variants
@@ -522,6 +541,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::ComputedSatisfaction { .. } => "ComputedSatisfaction",
     FacadeError::NotOffScope { .. } => "NotOffScope",
     FacadeError::NotSatisfied { .. } => "NotSatisfied",
+    FacadeError::AlreadyFiatClosed { .. } => "AlreadyFiatClosed",
     FacadeError::OffScope { .. } => "OffScope",
     FacadeError::WrongOffScopeState { .. } => "WrongOffScopeState",
     FacadeError::BadQuery { .. } => "BadQuery",
@@ -591,6 +611,7 @@ const ALL_VARIANTS: &[&str] = &[
   "ComputedSatisfaction",
   "NotOffScope",
   "NotSatisfied",
+  "AlreadyFiatClosed",
   "OffScope",
   "WrongOffScopeState",
   "BadQuery",

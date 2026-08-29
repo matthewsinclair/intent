@@ -215,7 +215,11 @@ fn every_enum_reaches_the_sdl_with_all_its_variants() {
   // package can be CANCELLED, which is the thing this tripwire exists to make
   // someone look at -- checked in `schema/schema.graphql`, not assumed.
   assert_eq!(count("WpStatus"), 4, "WpStatus variants");
-  assert_eq!(count("AtStatus"), 4, "AtStatus variants");
+  // 4 -> 5 on 2026-08-29: `Fiat` (ST0066). The wire contract now says an
+  // acceptance test can be FIAT-closed -- closed on human authority against the
+  // evidence rather than by passing -- which is exactly the thing this tripwire
+  // exists to make someone look at. Checked in `schema/schema.graphql`.
+  assert_eq!(count("AtStatus"), 5, "AtStatus variants");
   assert_eq!(count("AcKind"), 2, "AcKind variants");
   assert_eq!(count("AtKind"), 2, "AtKind variants");
   assert_eq!(count("IssueStatus"), 2, "IssueStatus variants");

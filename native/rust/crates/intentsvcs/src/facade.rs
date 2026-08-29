@@ -562,6 +562,33 @@ pub enum FacadeError {
   },
   #[error("{ac} is not satisfied, so there is nothing to unsatisfy")]
   NotSatisfied { ac: String },
+  /// A fiat close met a requirement that already carries one.
+  ///
+  /// **Not `OffScope`, and the distinction is vocabulary rather than
+  /// tidiness.** A fiat-closed criterion has not left scope -- it is in scope
+  /// and closed on authority -- so answering it with a refusal whose remedy
+  /// talks about "a requirement nobody is working on" would describe a
+  /// different act. `OffScope`'s remedy is hardcoded to the descope/withdraw
+  /// story and would have been wrong here in exactly the way a reused error
+  /// usually is: right shape, wrong sentence.
+  ///
+  /// **It carries the STANDING reason**, because the operator is about to
+  /// replace one human judgement with another and the one already on the
+  /// record is the thing they need to see before they do.
+  //
+  // **`undo` IS A FIELD BECAUSE THE REMEDY WAS HARDCODED TO ONE KIND.** This
+  // variant was minted for criteria and its remedy named `ac reinstate`
+  // literally; ST0066's AT kind reaches the same state by a different door and
+  // leaves it by another one again. Hardcoding a second sentence beside the
+  // first is the failure the doc above describes -- right shape, wrong sentence
+  // -- so the caller supplies the way out and the sentence stays single.
+  #[error("{subject} is already fiat-closed: {because}")]
+  AlreadyFiatClosed {
+    subject: String,
+    because: String,
+    /// The full command that reverses it, ready to run.
+    undo: String,
+  },
   #[error("{ac} is {state}, so it cannot be {verb}")]
   OffScope {
     ac: String,
@@ -1016,6 +1043,11 @@ impl crate::remedy::Remedy for FacadeError {
       }
       Self::NotSatisfied { .. } => {
         "run `intent ac list <thread>` to see which criteria carry evidence -- only a non-test criterion that was satisfied can be unsatisfied".to_string()
+      }
+      Self::AlreadyFiatClosed { undo, .. } => {
+        format!(
+          "run `{undo}` first if you mean to close it again for a different reason -- a fiat close is reversible and the record of the first one stays in the event log, so reinstating does not erase that it happened"
+        )
       }
       Self::OffScope { undo, ac, verb, .. } => {
         format!("run `intent ac {undo} <thread> {ac}` first if you mean to {verb} it -- recording evidence for a requirement nobody is working on is the bookkeeping descope replaced")
@@ -1832,6 +1864,38 @@ impl Facade {
           state: match &c.state {
             AcState::Descoped { to, .. } => format!("descoped-to: {to}"),
             AcState::Withdrawn { reason, .. } => format!("withdrawn: {reason}"),
+            // **ISSUE 0137, AND IT WAS A WILDCARD SWALLOWING A STATE THAT HAS
+            // TWO EXPLICIT NEIGHBOURS.** `Fiat` fell into the `_` arm below and
+            // rendered `satisfied: no` -- indistinguishable from an ordinary
+            // open criterion, which is the one outcome hv's ruling exists to
+            // prevent: a fiat-closed row must never read as an ordinarily
+            // judged one, in either direction.
+            //
+            // **It was demoted rather than escalated on a census showing ZERO
+            // fiat rows store-wide, watched with the census as its trigger.
+            // The trigger fired the moment `fc` could write one.** A defect
+            // whose only defence is that nothing can reach the state stops
+            // being defended by the change that reaches it.
+            //
+            // **The spelling is this line's vocabulary, not `fiat_marker`'s,
+            // and that is the ruling rather than a shortcut.** It now has ONE
+            // HOME -- `model::fiat_status`, hv's required composer -- shared
+            // with the AT kind, whose record sits beside its status and so has
+            // nothing structural forcing a renderer to look at it at all.
+            // `fiat_marker` composes the
+            // GENERATED VIEW's form; the census in
+            // `fiat_close_is_visible_on_every_surface.rs` records that "one
+            // composer" is the goal for surfaces that render a marker, and that
+            // the property actually held is the weaker true one -- a surface
+            // reporting a fiat-closed criterion must make the close visible, by
+            // whatever spelling suits it. This line's vocabulary is
+            // `<state>: <why>`, set by the two arms above it.
+            //
+            // **The cascade marker leads**, for the reason `fiat_marker` gives:
+            // a reader must not miss that this row was never individually
+            // judged, and a marker after the reason reads as a footnote to a
+            // decision nobody made about it.
+            AcState::Fiat(record) => crate::model::fiat_status("fiat-closed", Some(record)),
             _ => format!(
               "satisfied: {}",
               if contract::resolve(thread, c) == contract::Resolved::Satisfied {
@@ -4207,6 +4271,11 @@ impl Facade {
     match state {
       AcState::Satisfied { evidence } => Some(evidence),
       AcState::Withdrawn { reason, .. } => Some(reason),
+      // **`--because` is enforced HERE and nowhere else**, through the same
+      // `Guard::ReasonRecorded` the machine declares for `ac.withdraw`. A
+      // second check written beside `ac_fc` would be a second home for the
+      // requirement `FiatRecord.because`'s `length(min = 1)` already states.
+      AcState::Fiat(record) => Some(&record.because),
       _ => None,
     }
   }
@@ -4712,6 +4781,10 @@ impl Facade {
       prose,
       covers,
       status,
+      // `None` for the same reason `legacy` is, one line down: a row created
+      // here has no past. A fiat close is an act performed ON an existing AT,
+      // and `at.fc` is the only thing that writes this field.
+      fiat: None,
       note,
       // **`None` because this row is NEW, which is now a fact rather than an
       // assumption.** `legacy` marks a reference carried whole from a v2 estate
@@ -5107,6 +5180,86 @@ impl Facade {
     )
   }
 
+  /// **Close a criterion on human authority, against the evidence** -- the
+  /// entry door to `AcState::Fiat`, and the one place in this facade that
+  /// records a close nobody claims was earned.
+  ///
+  /// **`at` GOES IN EMPTY AND COMES BACK FILLED** (D42), exactly as `st new`'s
+  /// `created` does. Nothing here knows what time it is: the database stamps
+  /// the event inside the INSERT and [`Facade::apply_with_state`] patches the
+  /// value that landed back into the record before the extract is rendered.
+  /// Reading a process clock here is the defect hv ruled out on 2026-08-15 --
+  /// it would make the log's ordering an accident of which machine ran the
+  /// command.
+  ///
+  /// **`inherited_from` is `None` at this door because this door is the
+  /// individual judgement.** A cascaded close is a different act and carries
+  /// the ancestor that reached it; that is what stops a cascaded row reading as
+  /// one somebody actually looked at.
+  ///
+  /// **The empty-`because` refusal is NOT written here.** It is the machine's
+  /// `Guard::ReasonRecorded`, read through [`Self::justification`], so the
+  /// guard, the schema's `length(min = 1)` and this verb cannot drift apart --
+  /// there is only one of them.
+  pub fn ac_fc(
+    &mut self,
+    st: &str,
+    ac: &str,
+    because: &str,
+    by: &str,
+  ) -> Result<Outcome, FacadeError> {
+    // **`refuse_if_off_scope` IS DELIBERATELY NOT CALLED HERE, AND THE REASON
+    // IS RECORDED BECAUSE THE OMISSION LOOKS LIKE ONE.** Every sibling that
+    // writes about satisfaction calls it, so a fiat close on a `withdrawn`
+    // criterion answering with a bare legal-transition list is a real
+    // inconsistency -- it just cannot be fixed from here. `OffScope`'s remedy
+    // hardcodes the evidence story ("recording evidence for a requirement
+    // nobody is working on is the bookkeeping descope replaced"), which is a
+    // sentence about `ac satisfy` and false about this verb, and its `{verb}`
+    // slot wants an infinitive that "fiat-closed" is not.
+    //
+    // **Measured, not predicted: wiring it produced `if you mean to
+    // fiat-closed it` followed by a paragraph about evidence** -- worse output
+    // than the raw refusal it replaced. The remedy's wording is the surface's
+    // to own, so the gap is reported to ic rather than patched here with a
+    // second nearly-identical error. Right shape, wrong sentence, which is the
+    // usual way a reused error fails.
+    self
+      .set_ac_state(
+        st,
+        ac,
+        AcState::Fiat(crate::model::FiatRecord {
+          because: because.to_string(),
+          by: by.to_string(),
+          at: String::new(),
+          invoker: crate::model::Invoker::collected(),
+          inherited_from: None,
+        }),
+        "ac.fc",
+        json!({"because": because, "by": by}),
+      )
+      // **MAPPED AFTER THE SETTER, NEVER CHECKED BEFORE IT** -- issues 0051 and
+      // 0053, whose mechanism was a hand-written from-state `match` placed
+      // ahead of `set_ac_state`, making the shared self-loop arm unreachable
+      // for that verb. `ac_reinstate` carries the same shape for the same
+      // reason. With `descoped` and `withdrawn` handled above and the machine
+      // declaring `ac.fc` from the two open states, an `IllegalTransition`
+      // surviving to here means the criterion is already fiat-closed or already
+      // satisfied, and only the first has an undo to name.
+      .map_err(
+        |cause| match (cause, &self.criterion(st, ac).map(|c| c.state.clone())) {
+          (FacadeError::IllegalTransition { .. }, Ok(AcState::Fiat(record))) => {
+            FacadeError::AlreadyFiatClosed {
+              subject: ac.to_string(),
+              because: record.because.clone(),
+              undo: format!("intent ac reinstate <thread> {ac}"),
+            }
+          }
+          (other, _) => other,
+        },
+      )
+  }
+
   /// Undo a WITHDRAWAL: back in scope, and back to whatever "in scope" MEANS
   /// for this criterion's kind.
   ///
@@ -5326,6 +5479,23 @@ impl Facade {
     {
       let row = find_test_mut(&mut next, st, at)?;
       row.status = status;
+      // **THE RECORD LIVES EXACTLY AS LONG AS THE CLOSE DOES, SO MOVING OFF
+      // `Fiat` DISCARDS IT.** Two published `///`s already promise this --
+      // `AcceptanceTest::fiat` says *present exactly when status is Fiat* and
+      // `FiatRecord` says the record lives exactly as long as the fiat close --
+      // and both are lifted verbatim into the committed JSON Schema and SDL, so
+      // leaving the record behind published a guarantee the model did not keep.
+      //
+      // **The AC half gets this for free and the AT half cannot.** `AcState`
+      // carries the record INSIDE its `Fiat` variant, so `ac_reinstate` discards
+      // it structurally -- there is nowhere in the entry states to put it. The
+      // record sits BESIDE the status here (forced: `AtStatus` derives `Copy`
+      // and async-graphql `Enum`), so nothing structural drops it and the
+      // discard has to be written. hv's exit ruling of 2026-08-29 settles which
+      // way it goes: **the history is the event log, not this field.**
+      if status != AtStatus::Fiat {
+        row.fiat = None;
+      }
       if let Some(text) = note.as_ref() {
         row.note = Some(text.clone());
       }
@@ -5343,6 +5513,107 @@ impl Facade {
         // `from == to`, so the envelope must say what DID change or it
         // reintroduces exactly that reading.
         json!({"from": crate::model::enum_str(&from), "to": crate::model::enum_str(&status), "note": note.is_some()}),
+        next,
+      )
+      .map(|()| Outcome::Moved)
+  }
+
+  /// **Close an acceptance test on human authority, against the evidence** --
+  /// the AT-side door onto a fiat close, and the mirror of [`Facade::ac_fc`].
+  ///
+  /// **THE STATE AND ITS EVIDENCE ARE TWO FIELDS HERE AND ONE FIELD FOR A
+  /// CRITERION**, so this verb writes both and the invariant holds them
+  /// together. `AcState::Fiat` carries its `FiatRecord`; `AtStatus` derives
+  /// `Copy` and async-graphql `Enum` and cannot, so the record lives on
+  /// [`AcceptanceTest::fiat`]. A `Fiat` status with no record, or a record on a
+  /// row that is not `Fiat`, are both representable and both defects.
+  ///
+  /// **`at` GOES IN EMPTY AND COMES BACK FILLED** (D42), exactly as `ac_fc`'s
+  /// does. Nothing here knows what time it is: the database stamps the event
+  /// inside the INSERT and [`Facade::apply_with_state`] patches the value that
+  /// landed back into the record before the extract is rendered.
+  ///
+  /// **THE MACHINE IS CONSULTED BEFORE THE REASON, AND THE ORDER IS THE POINT.**
+  /// `at_set` beside this reads no declaration at all -- its edges carry
+  /// `from: &[]`, so there was never a from-state to check. This verb has one,
+  /// and it goes through [`Self::check_transition`] rather than a hand-written
+  /// `match`: issues 0051 and 0053 are four instances of a hand-rolled
+  /// from-state check placed ahead of the shared setter, each making the common
+  /// arm unreachable for one verb. The refusal for an already-closed row is
+  /// therefore MAPPED from what the declaration said, never decided here.
+  pub fn at_fc(
+    &mut self,
+    st: &str,
+    at: &str,
+    because: &str,
+    by: &str,
+  ) -> Result<Outcome, FacadeError> {
+    // Scoped so the immutable borrow ends before `self.canon` is cloned; both
+    // values are owned copies of what the refusal below needs.
+    let (from, standing) = {
+      let row = self
+        .st_show(st)?
+        .tests
+        .iter()
+        .find(|t| t.id == at)
+        .ok_or_else(|| FacadeError::NoSuchTest {
+          st: st.to_string(),
+          at: at.to_string(),
+        })?;
+      (row.status, row.fiat.as_ref().map(|r| r.because.clone()))
+    };
+
+    Self::check_transition(
+      "AcceptanceTest",
+      "status",
+      "at.fc",
+      &crate::model::enum_str(&from),
+      at,
+    )
+    .map_err(|cause| match (cause, standing) {
+      // **The standing reason is what the operator needs before replacing one
+      // human judgement with another**, which is why it is carried rather than
+      // summarised. `undo` names `at red` rather than a reinstate verb because
+      // an AT leaves `fiat` through the ordinary setter -- the asymmetry with
+      // `ac reinstate` is recorded on the machine's own edge list.
+      (FacadeError::IllegalTransition { .. }, Some(because)) => FacadeError::AlreadyFiatClosed {
+        subject: at.to_string(),
+        because,
+        undo: format!("intent at red <thread> {at}"),
+      },
+      (other, _) => other,
+    })?;
+
+    // **NOT AN `unwrap`, AND NOT UNREACHABLE.** `check_reason` returns `None`
+    // when the verb declares no `ReasonRecorded` guard. `at.fc` declares one
+    // today, so the `None` arm is what happens if that declaration is ever
+    // dropped from the table -- and the consequence would be a `FiatRecord`
+    // stored with an empty `because`, which `length(min = 1)` forbids in the
+    // file and nothing would forbid in the store. Refusing is the honest answer
+    // to a table and a verb that disagree.
+    let because = Self::check_reason("AcceptanceTest", "status", "at.fc", Some(because))?
+      .ok_or(FacadeError::ReasonRequired { verb: "at.fc" })?;
+
+    let mut next = self.canon.clone();
+    {
+      let row = find_test_mut(&mut next, st, at)?;
+      row.status = AtStatus::Fiat;
+      row.fiat = Some(crate::model::FiatRecord {
+        because: because.clone(),
+        by: by.to_string(),
+        at: String::new(),
+        invoker: crate::model::Invoker::collected(),
+        inherited_from: None,
+      });
+    }
+    self
+      .apply(
+        "at.fc",
+        Subject {
+          kind: "at".to_string(),
+          id: format!("{st}/{at}"),
+        },
+        json!({"because": because, "by": by}),
         next,
       )
       .map(|()| Outcome::Moved)
@@ -5571,10 +5842,45 @@ impl Facade {
                 state: "unchanged".to_string(),
               });
             }
+            // **hv's D7 (2026-08-29): THE RECORD IS REACHABLE ONLY THROUGH `fc`.**
+            //
+            // **CHANGED, not PRESENT, and the difference is load-bearing.**
+            // `put` is a whole-row write, so a caller doing an ordinary
+            // read-modify-write on an already fiat-closed row sends the record
+            // back untouched -- refusing `Some` outright would make such a row
+            // unputtable, and its `note` could never be edited again. `id` is
+            // guarded exactly this way one refusal above.
+            //
+            // **AND IT HAS TO LIVE HERE RATHER THAN IN THE `Unsettable`
+            // ROSTER.** That roster is read by `set` and by the form layer's
+            // editability; `put` consults neither and writes the whole row.
+            // The first draft of this ruling went into the roster, the suite
+            // stayed green, and the green was the tell -- a refusal that moves
+            // nothing has not been added.
+            if existing.fiat != row.fiat {
+              return Err(FacadeError::WriteNotAddressable {
+                url: address.to_url(),
+                why: "the fiat record is evidence about a person and `put` cannot author it: \
+             use `intent fc <target> --because \"<why>\"`, which records who closed it, \
+             when, and the invocation's own evidence that no caller supplies"
+                  .to_string(),
+              });
+            }
             *existing = row;
             Outcome::Moved
           }
           None => {
+            // A row cannot ARRIVE fiat-closed: there is no prior close for this
+            // to be the unchanged record of.
+            if row.fiat.is_some() {
+              return Err(FacadeError::WriteNotAddressable {
+                url: address.to_url(),
+                why: "the fiat record is evidence about a person and `put` cannot author it: \
+             use `intent fc <target> --because \"<why>\"`, which records who closed it, \
+             when, and the invocation's own evidence that no caller supplies"
+                  .to_string(),
+              });
+            }
             holder.tests.push(row);
             holder.tests.sort_by(|a, b| a.id.cmp(&b.id));
             Outcome::Moved
@@ -5606,6 +5912,12 @@ impl Facade {
         }
         let mut next = self.canon.clone();
         let holder = find_thread_mut(&mut next, thread)?;
+        // **THE SAME RULING REACHES THE CRITERION KIND BY A DIFFERENT ROUTE.**
+        // The AC record lives INSIDE `AcState::Fiat` rather than beside the
+        // state, so there is no `fiat` field here to compare -- the guard is on
+        // the state's variant instead. Same property, same remedy, and the two
+        // shapes are why hv's ruling had to be applied twice rather than once.
+        let fiat_in = |c: &Criterion| matches!(c.state, AcState::Fiat(_));
         let outcome = match holder.criteria.iter_mut().find(|c| &c.id == ac) {
           Some(existing) => {
             if *existing == row {
@@ -5613,10 +5925,29 @@ impl Facade {
                 state: "unchanged".to_string(),
               });
             }
+            if fiat_in(&row) != fiat_in(existing) || (fiat_in(&row) && existing.state != row.state)
+            {
+              return Err(FacadeError::WriteNotAddressable {
+                url: address.to_url(),
+                why: "the fiat record is evidence about a person and `put` cannot author it: \
+             use `intent fc <target> --because \"<why>\"`, which records who closed it, \
+             when, and the invocation's own evidence that no caller supplies"
+                  .to_string(),
+              });
+            }
             *existing = row;
             Outcome::Moved
           }
           None => {
+            if fiat_in(&row) {
+              return Err(FacadeError::WriteNotAddressable {
+                url: address.to_url(),
+                why: "the fiat record is evidence about a person and `put` cannot author it: \
+             use `intent fc <target> --because \"<why>\"`, which records who closed it, \
+             when, and the invocation's own evidence that no caller supplies"
+                  .to_string(),
+              });
+            }
             holder.criteria.push(row);
             holder.criteria.sort_by(|a, b| a.id.cmp(&b.id));
             Outcome::Moved
@@ -6801,6 +7132,46 @@ impl Facade {
       issue.closed = stamped.closed;
     }
 
+    // **THE THIRD SEAM, AND IT IS NOT AN ENTITY DATE** -- `FiatRecord.at` is
+    // nested inside a criterion's state, so no column fills it and the two
+    // loops above have no shape that fits. The value still comes back from the
+    // write: `write_event` returns the stamp the DB assigned, which
+    // `commit_mutation` now carries in `StoredDates::event_ts`.
+    //
+    // **EMPTY IS THE SELECTOR, and that is what makes this safe to run over
+    // every criterion on every mutation.** `ac_fc` is the only door that
+    // constructs a `FiatRecord` with an empty `at`; a fiat close already
+    // carrying a stamp is either a row this mutation did not touch or one
+    // ingested from canon, and re-stamping either would rewrite when it
+    // happened to the moment of an unrelated write. That is the same
+    // distinction `Stamp::CarriedFromTheExtract` exists to draw one layer down.
+    //
+    // Rendering the extract before this point would write `""` into the one
+    // field neither truth nor its projection can recompute -- the exact failure
+    // the threads and issues loops were built to prevent.
+    //
+    // **AND THE AT's RECORD SITS BESIDE ITS STATUS RATHER THAN INSIDE IT**, so
+    // it is a second walk rather than a wider pattern. `AtStatus` derives `Copy`
+    // and async-graphql `Enum` and cannot carry a payload; the selector is the
+    // same empty `at`, for the same reason, with the same safety over rows this
+    // mutation never touched.
+    for thread in &mut next.threads {
+      for criterion in &mut thread.criteria {
+        if let AcState::Fiat(record) = &mut criterion.state {
+          if record.at.is_empty() {
+            record.at = dates.event_ts.clone();
+          }
+        }
+      }
+      for test in &mut thread.tests {
+        if let Some(record) = test.fiat.as_mut() {
+          if record.at.is_empty() {
+            record.at = dates.event_ts.clone();
+          }
+        }
+      }
+    }
+
     // The SAME projection both sync directions use, so a mutation and a
     // resync cannot render the tree differently.
     let changed_threads: Vec<&Thread> = next
@@ -7376,7 +7747,29 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
     },
     AddrEntity::At { .. } => match field {
       "id" => Some(Unsettable::Identity),
-      "status" => Some(Unsettable::Machine("intent at green|red|na")),
+      // `fc` joins the route list because it genuinely moves this field now.
+      // A remedy that omits a real route is incomplete in the same way one
+      // that names an unreal route is wrong -- and the arms above list every
+      // verb, not a representative sample.
+      "status" => Some(Unsettable::Machine(
+        "intent at green|red|na, or intent fc <thread> <AT-id> --because",
+      )),
+      // **hv's D7 (2026-08-29): THE RECORD IS REACHABLE ONLY THROUGH `fc`.**
+      //
+      // `put` writes the whole row, so without this the record could be
+      // FABRICATED -- written with any `because`, any `by`, any `at`, and an
+      // `invoker` the party being described chose -- with none of `at_fc`'s
+      // guards: no transition check, no reason requirement, no service-collected
+      // evidence.
+      //
+      // **Why this field and not the ordinary "put can write anything" case:
+      // the fiat record is evidence about a PERSON, and no other field on this
+      // row is.** ST0066's ruled posture is DETECTION AND ATTRIBUTION rather
+      // than prevention -- on a machine where the tool and its operator share a
+      // uid there is no boundary to enforce -- so a door that lets the record be
+      // authored without the guard holes the only half of that posture that
+      // works.
+      "fiat" => Some(Unsettable::Machine("intent fc <thread> <AT-id> --because")),
       _ => None,
     },
     // **EVERY ISSUE FIELD WAS UNSETTABLE AND UNREPORTED UNTIL NOW.** `Issue`

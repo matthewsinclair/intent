@@ -56,6 +56,7 @@ fn clean_thread(id: &str) -> Thread {
       state: AcState::Computed,
     }],
     tests: vec![AcceptanceTest {
+      fiat: None,
       id: "AT-01.1".to_string(),
       kind: AtKind::Test,
       file: Some("tests/clean.rs".to_string()),

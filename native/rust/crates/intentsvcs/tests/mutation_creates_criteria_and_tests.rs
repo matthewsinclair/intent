@@ -353,6 +353,7 @@ fn at_new_refuses_the_repeat_and_leaves_one_row() {
 #[test]
 fn at_new_reaches_what_a_canon_hand_edit_reaches() {
   let minted = AcceptanceTest {
+    fiat: None,
     id: NEW_AT.to_string(),
     kind: AtKind::Test,
     file: None,
@@ -530,6 +531,7 @@ fn at_new_does_not_refuse_on_a_finding_that_is_not_about_this_row() {
   // contract, which is an L4 finding by construction and cannot stop being one.
   let mut thread = sample_thread("ST0001");
   thread.tests.push(AcceptanceTest {
+    fiat: None,
     id: "AT-03.4".to_string(),
     kind: AtKind::Test,
     file: None,

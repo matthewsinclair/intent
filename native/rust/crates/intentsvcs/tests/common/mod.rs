@@ -435,6 +435,7 @@ pub fn sample_thread(id: &str) -> Thread {
     ],
     tests: vec![
       AcceptanceTest {
+        fiat: None,
         id: "AT-03.1".to_string(),
         kind: AtKind::Test,
         file: Some("crates/intentsvcs/tests/ingest_refusal.rs".to_string()),
@@ -445,6 +446,7 @@ pub fn sample_thread(id: &str) -> Thread {
         legacy: None,
       },
       AcceptanceTest {
+        fiat: None,
         id: "AT-03.2".to_string(),
         kind: AtKind::NonTest,
         file: None,
@@ -455,6 +457,7 @@ pub fn sample_thread(id: &str) -> Thread {
         legacy: None,
       },
       AcceptanceTest {
+        fiat: None,
         id: "AT-03.7".to_string(),
         kind: AtKind::Test,
         file: None,

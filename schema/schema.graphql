@@ -1,5 +1,5 @@
 # INTENT_VER: 3.0.0
-# SCHEMA_SDL_VER: 11
+# SCHEMA_SDL_VER: 12
 
 enum AcKind {
   TEST
@@ -107,6 +107,18 @@ type AcceptanceTest {
   """
   covers: [String!]!
   status: AtStatus!
+  """
+  The fiat close, present exactly when [`status`] is [`AtStatus::Fiat`].
+  
+  **Absent and empty are the same fact, so only one is representable** --
+  the field is skipped when there is nothing to record, and every AT written
+  before this existed serialises to the bytes it always did. That is what
+  makes the addition free under hv's DO-NOT-BUMP ruling rather than a
+  rewrite of every extract.
+  
+  [`status`]: AcceptanceTest::status
+  """
+  fiat: FiatRecord
   note: String
   """
   Present on rows carried from a v2 estate under the closed-thread carry
@@ -134,6 +146,11 @@ enum AtStatus {
   green; satisfaction lives on the AC's own line.
   """
   NA
+  """
+  Closed on human authority against the evidence. See
+  [`AcceptanceTest::fiat`] for who, when and why.
+  """
+  FIAT
 }
 
 """
@@ -204,6 +221,57 @@ type Criterion {
   The recorded AC state, flattened -- see [`AcStateView`].
   """
   state: AcStateView!
+}
+
+"""
+**A close made on human authority, against the evidence.**
+
+Every other close in Intent asserts that something was done; this one
+records that someone with authority decided it need not be.
+
+**THIS RECORD IS NOT THE HISTORY, AND THE DOC HERE SAID IT WAS UNTIL
+2026-08-29.** It read _kept forever and never cleared by a later
+transition_, and that was already false when it was written: reinstating a
+criterion sets its state to `AcState::entry(kind)`, so the record is
+discarded structurally -- there is nowhere in the entry states for it to go.
+hv settled the ground on 2026-08-29 in ruling the fiat exit: _renders
+distinctly forever_ is a claim about RENDERING, not about irreversibility,
+and **the history is the event log, not this field**.
+
+It matters more than an ordinary stale comment because this type derives
+`JsonSchema` and `SimpleObject`, so a `///` here is published verbatim into
+the committed JSON Schema and SDL faces -- the sentence was reaching API
+consumers as a durability guarantee the model does not offer.
+
+So: the record lives exactly as long as the fiat close does, which is
+**unlike [`Thread::status_reason`]** only in belonging to a close rather
+than to a status.
+
+Enforcement of who may invoke it is DETECTION AND ATTRIBUTION, never
+prevention: on a machine where the tool and its operator share a uid there
+is no boundary to enforce, so the record is built to be permanent and
+legible instead of unforgeable.
+"""
+type FiatRecord {
+  """
+  Why the close was made. A fiat close without one does not execute.
+  """
+  because: String!
+  """
+  Who recorded it.
+  """
+  by: String!
+  """
+  RFC 3339 UTC, as the event envelope stamps it.
+  """
+  at: String!
+  invoker: Invoker!
+  """
+  Set on a row closed by CASCADE, naming the ancestor whose fiat close
+  reached it. **Its presence is what stops a cascaded row reading as an
+  ordinary one**, so it is recorded rather than derived from the tree.
+  """
+  inheritedFrom: String
 }
 
 """

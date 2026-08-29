@@ -70,6 +70,7 @@ fn ac(id: &str, kind: AcKind, state: AcState) -> Criterion {
 
 fn at(id: &str, covers: &str, status: AtStatus) -> AcceptanceTest {
   AcceptanceTest {
+    fiat: None,
     id: id.to_string(),
     kind: AtKind::Test,
     file: Some("crates/x/tests/y.rs".to_string()),

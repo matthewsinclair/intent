@@ -28,16 +28,28 @@
 //! | generated views | yes                | composes `fiat_marker`               |
 //! | close gate      | yes                | its own tally, `N fiat-closed`       |
 //! | `doctor`        | n/a                | reports inconsistencies, not states  |
-//! | **`ac list`**   | **NO**             | **issue 0137**                       |
+//! | **`ac list`**   | **yes**            | its own `fiat-closed: <why>` form     |
 //!
-//! **`ac list` IS NOT COVERED HERE AND THAT IS NOT AN OVERSIGHT.** It renders a
-//! fiat-closed criterion as `satisfied: no`, byte-identical to an ordinary open
-//! row -- measured through the facade, filed as 0137. No arm is written for it
-//! because the two available fixes differ in the SPELLING a shipped surface
-//! uses, which is hv's decision; and an arm asserting today's output would be a
-//! change-detector that blocks the fix rather than a guard that wants it. **The
-//! honest state is a census that covers three of four and says which one it does
-//! not.**
+//! **`ac list` WAS THE UNCOVERED FOURTH AND IS NOW COVERED -- 0137 IS CLOSED
+//! (dc, 2026-08-29).** It rendered a fiat-closed criterion as `satisfied: no`,
+//! byte-identical to an ordinary open row, because `Fiat` fell into a wildcard
+//! arm sitting beside EXPLICIT arms for `Descoped` and `Withdrawn`.
+//!
+//! **It was demoted rather than escalated on a census showing zero fiat rows
+//! store-wide, watched with that census as its trigger condition. The trigger
+//! fired the moment `fc` could write one** -- a defect whose only defence is
+//! that nothing can reach the state stops being defended by the change that
+//! reaches it, and the change that reaches it is the one that must therefore
+//! carry the fix.
+//!
+//! **THE ARM ASSERTS THE PROPERTY, NOT THE BYTES, WHICH IS WHY IT CAN EXIST
+//! NOW.** The earlier version of this note declined to write one because the
+//! two candidate fixes differed in SPELLING, and an arm pinning today's output
+//! would be a change-detector blocking the fix rather than a guard wanting it.
+//! That objection is answered by testing what the ruling actually requires --
+//! the row is distinguishable from an ordinary open one and carries its reason
+//! -- so any spelling ic ratifies passes and only a regression to
+//! indistinguishability fails.
 //!
 //! # A finding worth carrying: "nowhere else" is already false, benignly
 //!
@@ -199,5 +211,66 @@ fn the_gate_says_nothing_about_a_fiat_close_when_there_is_none() {
     !out.contains("fiat-closed"),
     "the gate reported a fiat close on a thread that has none, so the arm above proves nothing: \
      {out}"
+  );
+}
+
+/// The fourth surface, and the property rather than the spelling.
+///
+/// **THE CONTROL IS THE OTHER HALF OF THE ASSERTION, NOT DECORATION.** "The
+/// fiat row renders differently" is satisfiable by a renderer that mangles
+/// every row, so an ordinary open criterion is rendered in the same call and
+/// required to be untouched. Without it this arm would pass against a change
+/// that broke `ac list` completely.
+#[test]
+fn ac_list_does_not_render_a_fiat_close_as_an_ordinary_open_row() {
+  let fx = Fixture::new();
+  let mut facade = fx.facade_on_disk();
+  fx.write_thread(&sample_thread("ST0056"));
+  facade
+    .sync_from_disk(&intentsvcs::sync::Scope::All)
+    .expect("ingest");
+
+  // AC-03.1 is test-backed and `Computed` -- one of the two states `ac.fc` is
+  // declared from. AC-03.2 is left alone as the control.
+  let open_before = facade
+    .ac_list("ST0056")
+    .expect("list")
+    .into_iter()
+    .find(|r| r.id == "AC-03.1")
+    .expect("the criterion")
+    .state;
+
+  facade
+    .ac_fc("ST0056", "AC-03.1", BECAUSE, "hv")
+    .expect("fc");
+
+  let rows = facade.ac_list("ST0056").expect("list");
+  let closed = rows
+    .iter()
+    .find(|r| r.id == "AC-03.1")
+    .expect("the closed criterion");
+
+  assert_ne!(
+    closed.state, open_before,
+    "**ISSUE 0137**: a fiat-closed criterion rendered exactly as it did when it was open, so \
+     nothing about this line tells a reader a human closed it against the evidence"
+  );
+  assert!(
+    closed.state.contains(BECAUSE),
+    "the reason is the whole record -- a line saying a close happened without saying why sends \
+     the reader to another verb to learn the one thing that matters. Got: {}",
+    closed.state
+  );
+
+  // THE CONTROL.
+  let untouched = rows
+    .iter()
+    .find(|r| r.id == "AC-03.2")
+    .expect("the control criterion");
+  assert!(
+    untouched.state.starts_with("satisfied:"),
+    "a criterion nobody closed must render exactly as it always did, or the arm above passes \
+     against a renderer that mangles every row. Got: {}",
+    untouched.state
   );
 }

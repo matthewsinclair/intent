@@ -264,25 +264,29 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
   // three faces (an optional field on a modelled type), and one face again for
   // a field deliberately kept out of the published contracts.
   let pinned: &[(&str, u32, u64)] = &[
-    // The `project` singleton landed, carrying the DONE cutoff as state
-    // (WP-14, hv 2026-08-26). 10 -> 11. **ONLY THIS FACE MOVES**: it is a
-    // store table with no modelled type behind it, so it reaches neither
-    // published contract -- which is the same one-face result this
-    // instrument gave the last time a table arrived without a type.
-    ("SCHEMA_DDL_VER", 11, 0xab06_00f4_6c0d_8993),
-    // AcState gained FIAT, carrying a FiatRecord (ST0066, hv 2026-08-28): the
-    // wire contract now says a criterion can be closed on human authority with
-    // the requirement unmet. 9 -> 10.
-    ("SCHEMA_SDL_VER", 11, 0x1a09_ed43_9003_807b),
-    // Same change on the JSON face. 11 -> 12.
+    // **THE AT KIND OF FIAT CLOSE LANDED (ST0066), AND IT IS THE FIRST CHANGE
+    // TO MOVE ALL THREE FACES AT ONCE.** 11 -> 12. The two entries before this
+    // one are a one-face result and a two-face result, so the three-of-three
+    // reading is the shape this instrument had not yet produced -- and it is
+    // the one that says a change is both PERSISTED and PUBLISHED.
     //
-    // **THE DDL PIN ABOVE DELIBERATELY DOES NOT MOVE, AND THAT IS A MEASURED
-    // RESULT RATHER THAN AN OMISSION.** `criteria.state` is one TEXT column
-    // holding the whole recorded state as its serde JSON, so a new variant
-    // needs no column, no constraint and no row rewrite -- this instrument
-    // reported SDL and JSON and stayed silent on DDL, which is the two-of-three
-    // result the three-version scheme exists to make visible.
-    ("SCHEMA_JSON_VER", 13, 0x6338_d028_7555_21be),
+    // DDL moves because `AcceptanceTest.fiat` needed a real column. **That is
+    // the half hv's DO-NOT-BUMP ruling did not cover, and the divergence is
+    // instructive rather than a contradiction**: the ruling measured
+    // `tests.status` being unconstrained TEXT, which is a claim about the
+    // status VALUE, and it holds -- `fiat-closed` costs no DDL. The record is a
+    // separate FIELD, forced there because `AtStatus` derives `Copy` and
+    // async-graphql `Enum` and so cannot carry a payload the way `AcState`
+    // does. A ruling's premise can be correctly measured and still not cover
+    // what gets built.
+    ("SCHEMA_DDL_VER", 12, 0x4585_00bc_bede_7c4a),
+    // SDL and JSON move together, as they did for the AC kind: `AtStatus`
+    // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
+    // beside it, so the wire contract now says an acceptance test can be closed
+    // on human authority against the evidence.
+    ("SCHEMA_SDL_VER", 12, 0x9d69_bb16_d3cb_00a9),
+    // Same change on the JSON face. 13 -> 14.
+    ("SCHEMA_JSON_VER", 14, 0xb48b_21ed_ac4c_19bb),
   ];
 
   let mut moved = Vec::new();

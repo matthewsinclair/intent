@@ -1998,6 +1998,11 @@ fn acceptance_test(row: &str) -> Result<ParsedTest, RowRejection> {
     prose: non_test.then(|| subject.trim_start_matches("(non-test)").trim().to_string()),
     covers,
     status,
+    // **ALWAYS `None`, and it is a statement about v2 rather than a default.**
+    // Fiat close is v3 surface (ST0066); no v2 estate can carry one, so there
+    // is nothing to migrate and nothing to guess. If a v2 row ever appears to
+    // hold one, that is a defect to read, not a value to carry.
+    fiat: None,
     // **KEYED TO THE AC IT QUALIFIES, never appended bare** (vc's ruling, and
     // the requirement is forced by a real row rather than added defensively).
     // `ST0009/AT-09.3` covers TWO criteria and only one carries a qualifier --

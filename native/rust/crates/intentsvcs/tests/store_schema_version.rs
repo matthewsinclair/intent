@@ -245,8 +245,8 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // every upgraded project's egest at once. So the rung creates and stops, and
   // `Store::last_ingest` returning `None` carries "no evidence either way"
   // rather than either invented answer.
-  const PINNED_SCHEMA_HASH: u64 = 0x0ee5_6340_9cad_d063;
-  const PINNED_FOR_VERSION: i32 = 14;
+  const PINNED_SCHEMA_HASH: u64 = 0xd580_ada1_ab1c_c090;
+  const PINNED_FOR_VERSION: i32 = 15;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,
