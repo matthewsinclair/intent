@@ -843,6 +843,43 @@ fn cases() -> Vec<Case> {
     ),
     // -- at. AT-03.1 is seeded GREEN, so `at green` on it would be the free
     //    green this file exists to refuse; every row drives a real transition.
+    // **THE EDIT VERBS ARE DRIVEN HERE RATHER THAN EXCUSED INTO
+    // `COVERED_ELSEWHERE`, AND THAT IS THE POINT OF THEM.** `ac new` and
+    // `at new` sit in that list because a CREATE's falsifier is a reachability
+    // differential this file's whole-row diff cannot express. An EDIT is the
+    // opposite case: "moves only what changed" IS its claim, so the machinery
+    // this file is built around is the right instrument and not a compromise.
+    //
+    // They arrived unbucketed rather than misbucketed -- `8aebe2ce` added two
+    // shipped mutators to the surface and this arm went red naming both, which
+    // is the accounting working. dc measured it on an untouched main before
+    // reporting it, so the finding came with its own attribution.
+    (
+      "ac edit",
+      NOOP,
+      |fx| {
+        fx.facade()
+          .ac_edit("ST0001", "AC-03.2", "a reworded criterion")
+          .expect("ac edit");
+      },
+      true,
+    ),
+    (
+      "at edit",
+      NOOP,
+      |fx| {
+        fx.facade()
+          .at_edit(
+            "ST0001",
+            "AT-03.1",
+            None,
+            None,
+            Some(vec!["AC-03.2".to_string()]),
+          )
+          .expect("at edit");
+      },
+      true,
+    ),
     (
       "at red",
       NOOP,
