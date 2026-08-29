@@ -287,3 +287,41 @@ conflab-vc found that making `ac new` refuse on an existing key would remove the
 **I have sent cc BOTH halves and said so**: the data-loss argument for refusing, and the unwritability argument against refusing alone. I sent the first half an hour earlier, so delivering the correction was mine to do -- **a question that only ever received one half would get answered on half the evidence.** I proposed no answer either time; it is cc's ruling and cc's scope.
 
 One scoping note offered to them as consequence rather than recommendation: **an edit verb touching TEXT ONLY is the first path that goes nowhere near `AcState`**, so it sidesteps the schema bump for the common case and need not wait on the `Unsatisfied`-gains-optional-evidence question queued for hv.
+
+## FLEET EXPOSURE SCAN (2026-08-29 12:32Z) -- `tools/fleet_exposure.py`
+
+**EXPOSURE IS NOT DAMAGE.** An exposed row is one whose PRE-HOP AUTHORED form carries an evidence clause AND `satisfied: no` -- the shape `AcState::Unsatisfied` cannot hold. It needs no comparison of outcomes, only each estate's own authored source recovered at the path the ingest read.
+
+**READ-ONLY BY CONSTRUCTION:** `git log`, `git show`, `git cat-file` only. **`git status` is never called** -- it refreshes the index and every one of these estates has a live session attached.
+
+| estate                                                 | exposed | template | **REAL** |
+| ------------------------------------------------------ | ------- | -------- | -------- |
+| Lamplight                                              | 248     | 103      | **145**  |
+| Baize                                                  | 50      | 7        | **43**   |
+| Laksa                                                  | 41      | 18       | **23**   |
+| Conflab                                                | 14      | 0        | **14**   |
+| Riffle                                                 | 14      | 2        | **12**   |
+| Courses                                                | 10      | 0        | **10**   |
+| Devbin                                                 | 7       | 0        | **7**    |
+| Prolix                                                 | 4       | 1        | **3**    |
+| Cdsync                                                 | 5       | 5        | **0**    |
+| Anvil, MicroGPTEx, Molt, Molt-flynn, Molt-matts, Utilz | 0       | -        | **0**    |
+| **Intent**                                             | 0       | 0        | **0**    |
+
+**FLEET TOTAL: 257 real exposed rows, and 136 counted rows discarded as TEMPLATE SCAFFOLD** -- `[named evidence]`, `[a doc / eyeball / gate criterion]`. **Cdsync's entire count was scaffold: 5 of 5.** Reporting 393 would have been the day's class again; the filter exists because I read the rows.
+
+### THE CONTROL: Conflab predicts 14, and conflab-vc MEASURED 14
+
+**My predictor, run from Intent against Conflab's git history, returns exactly the 14 rows conflab-vc independently measured as having lost their evidence clause entirely.** Different method, different repository, different node, same number. **That is the strongest control this instrument can get and it was not arranged** -- Conflab is simply the one estate with byte-verified ground truth.
+
+### Everything except Conflab is PREDICTED-UNCONFIRMED, in those words
+
+The predictor reads the newest v2-authored blob, which may predate an estate's actual hop, and a row's state can move between. **For the other eight estates these are rows that WOULD lose evidence, not rows confirmed to have lost it.** Confirming any of them needs that estate's canon compared against its own authored source -- the method this file establishes, run per estate.
+
+**LAMPLIGHT IS 56% OF THE FLEET'S EXPOSURE AND HAS ITS OWN LIVE NODES.** It is the estate to look at first and it is not ours to survey; routing that is vc's call.
+
+### One hole, two verbs -- cc measured the `at` half
+
+cc reports `at_set` (facade.rs:4923) carries `status` and `note` **only**, so `file`, `prose`, `covers` and `kind` have no update path -- and `at new`'s own header documents that a create-on-existing-id "did not merely fail to set a note, it ATE one that was there", six ST0061 notes destroyed by one re-cite. **The verb built for the job is the lossy one and the safe route -- a canon edit plus `sync --to-store` -- is undocumented.** Same shape as `ac`, so it is one hole across two verbs rather than an `ac` special case.
+
+cc shipped the half of `0131` that is safe (`issues add`, `st new` -- both ALLOCATE their keys, so a refusal just takes the next number) and **deliberately did not touch `ac new`**, which takes a caller-assigned key. That distinction is what let them ship without pre-empting hv's ruling.
