@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: 7a90ae04-61f6-4b2f-9de7-dd81eac9bb11
-heartbeat_at: 2026-08-29 11:47Z
+heartbeat_at: 2026-08-29 11:52Z
 status: active
 focus: "**FOLDED HARD FOR A COMPACT. TWO hv GO RULINGS ARE MY NEXT WORK AND NEITHER IS STARTED -- see DOING.** `0125`: converge ALL FOUR register checks onto one read-the-index helper (S). `0131`: a verb named add/new must REFUSE on an existing key, one ruling across the mutation surface -- and it PARTLY OVERTURNS `0119`, so `ac new` is a question to RAISE, never to settle in the implementation. The rebuild shipped my `0121` + triage vocabulary; the pair is `8177b53e` and `currency ok`. Nothing in flight, index clean."
 claims: [ST0056/06, ST0056/10, ST0057/00]
