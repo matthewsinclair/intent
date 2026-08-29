@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b1060b1c-548a-4974-810e-73691ac00c67
-heartbeat_at: 2026-08-29 19:16Z
+heartbeat_at: 2026-08-29 19:14Z
 status: paused
-focus: "EOD 2026-08-29, PAUSED. Globalfold landed: wip.md is DOING and TODO only, restart.md carries the two new classes. Push gate green and the fmt/clippy arms are OUT of prepush -- CI owns them. Pair rebuilt and verified as a SET at 30a2dd81. 0144 closed the UNKNOWN-ID half only; the known-thread refusal STILL writes, measured 1652 -> 1671 bytes. ON THE BOUNCE: ST0068 AC-02.1 + AC-02.3 are mine and are the two nobody else can do; ST0065 and WP-07 want hv."
+focus: "THE PUSH GATE IS GREEN AT `f0098c7b` -- hv was blocked and is not any more. fmt was always clean; 113 clippy findings were LINTS promoted by `-D warnings`, not compile errors. The 113 was not the population: compilation aborts per crate, so three more sat behind the abort and only a run WITHOUT `-D warnings` counted them all. Refuted my own no-toolchain-pin hypothesis rather than confirming it. The fmt+clippy arms are OUT of prepush on hv's ruling -- CI ran the identical commands all along. ON THE BOUNCE: the store model-inconsistency doctor reports, ST0065 to hv live, ST0068 AC-02.1/02.3."
 claims: [ST0056, ST0057, ST0058, ST0060, ST0066, ST0068]
 ---
 
@@ -15,7 +15,21 @@ claims: [ST0056, ST0057, ST0058, ST0060, ST0066, ST0068]
 
 ## DOING
 
-**NOTHING IN FLIGHT. PAUSED AT EOD.** Today's reasoning is in the COMMIT MESSAGES and in Watch-outs, and is not restated here. Pre-fold board verbatim at `.history/20260829/wip-fold-1915Z.md`.
+**THE PUSH GATE IS GREEN AND THE LINT ARMS ARE OUT OF IT (`f0098c7b`, 7 files).** hv could not push; measured, not characterised: rustfmt CLEAN (positive-controlled), code COMPILED (clippy without `-D warnings` rc=0), 113 lints promoted to errors. **106 `result_large_err` from ONE cause** -- `FacadeError::Organize` carrying `PreconditionsUnmet`'s `Verdict` + threads past 128 bytes -- deferred with scoped allows on hv's ruling, boxing sequenced after the tag in 0136's shape. **Controlled BOTH ways: an extra `-D` still returns rc=101, and force-warning the lint back on still surfaces 110, so it is suppressed rather than absent.**
+
+**THE KEEPER IS THAT 113 WAS NOT THE POPULATION.** Compilation aborts PER CRATE, so the first run counted only what it REACHED; three more findings sat behind the abort in integration-test crates and surfaced one at a time as each fix let the build get further. **The complete count only came from a run WITHOUT `-D warnings`, where a warning does not stop the build. The instrument that ENDS the count is not the instrument that TAKES it.**
+
+**AND I REFUTED MY OWN HYPOTHESIS RATHER THAN CONFIRMING IT.** The no-toolchain-pin flag was mine, and it was the obvious cause. It is wrong: one rust in the Cellar (1.98.0, installed 2026-08-23) and the last green push was 2026-08-26, so the toolchain PREDATES the green. This incident is not evidence for a pin and I will not let it be cited as such.
+
+**cc RULED store.rs AND THE RULING BEAT MY FRAMING.** I read an orphaned doc block as documenting a DELETED function and offered delete-and-quote-in-the-commit. cc: the SUBJECT MOVED, to `ProjectStateEdit::SetTodoWatermark`. Reuniting it with the variant keeps the reasoning at an ADDRESS; a commit message keeps the bytes and loses the address. **Clippy's own machine-applicable fix would have merged it into `set_todo_watermark` -- a function that TAKES a mark -- making its doc assert the INVERSE of D42.** An auto-fix that writes a false document is why `--fix` did not get run blind.
+
+**MINE AGAINST ME: I wrote an apostrophe inside a single-quoted bash `printf` in the gate itself.** Hard syntax error, caught by `bash -n`. I read my own edit instead of driving it, one turn after telling hv that a `tail`-shaped instrument cannot distinguish quiet from discarded.
+
+**DEP SURVEY DONE, READ-ONLY.** Nine direct workspace deps, 245 packages locked. **Two declarations are load-bearing and get re-checked after, not assumed:** `jsonschema` at `default-features = false` (defaults pull reqwest + TLS and a network-reachable `$ref` resolver) and `clap` with `features = ["string"]` (the surface is built from runtime table data). **No `.tool-versions` -- this project declares no toolchain pin**, so the build takes whatever `rustc` is on PATH (1.98.0) and a dep refresh is less reproducible than it looks. Flagged to hv, not a blocker.
+
+**ST0068 IS 4/9 AND THE DOC SET IS VERIFIED END TO END.** AC-01.1, AC-02.2, AC-02.4, AC-04.1 satisfied, each positive-controlled. 126 verbs across 27 pages agree with the register and the tag; 61 links, 0 broken; no basename collides with an agent-instruction file. **Remaining: AC-02.1 walkthrough, AC-02.3 defect coverage, AC-03.1/03.2 (Laksa's build and its decisions reaching their agent), AC-04.2 (same tag as v3.0.1).**
+
+**LAKSA IS BUILDING.** Kickoff sent to laksa-{cc,vc} on hv's instruction. laksa-cc and laksa-ic build; laksa-vc validates. **§1 was rewritten after their review: the prefix list is CURATED and now says so, the selection rule is written down, and the counts are withdrawn as unreproducible against a corpus two sessions are committing into.**
 
 ## OPEN
 
