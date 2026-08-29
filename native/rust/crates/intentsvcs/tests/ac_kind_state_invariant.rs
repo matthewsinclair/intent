@@ -43,7 +43,7 @@ use serde_json::Value;
 fn samples() -> Vec<AcState> {
   vec![
     AcState::Computed,
-    AcState::Unsatisfied,
+    AcState::Unsatisfied { note: None },
     AcState::Satisfied {
       evidence: "the render itself".to_string(),
     },
@@ -198,7 +198,7 @@ fn the_three_nonsense_pairs_are_refused_and_the_refusal_names_the_value() {
         evidence: "hand-authored".to_string(),
       },
     ),
-    (AcKind::Test, AcState::Unsatisfied),
+    (AcKind::Test, AcState::Unsatisfied { note: None }),
     (AcKind::NonTest, AcState::Computed),
   ];
 

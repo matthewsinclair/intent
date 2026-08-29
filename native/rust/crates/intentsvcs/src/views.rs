@@ -540,7 +540,7 @@ fn criterion_line(thread: &Thread, c: &Criterion) -> String {
     line.push_str(&format!(" -- evidence: {evidence}"));
   }
   match &c.state {
-    AcState::Computed | AcState::Unsatisfied | AcState::Satisfied { .. } => {
+    AcState::Computed | AcState::Unsatisfied { .. } | AcState::Satisfied { .. } => {
       if c.kind == crate::model::AcKind::NonTest {
         line.push_str(&format!(
           " -- satisfied: {}",

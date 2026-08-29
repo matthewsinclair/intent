@@ -169,7 +169,7 @@ fn a_duplicate_criterion_id_within_a_thread_is_found() {
   // behind would fail this test at a gate that has nothing to do with
   // duplicate ids.
   dup.kind = AcKind::NonTest;
-  dup.state = AcState::Unsatisfied;
+  dup.state = AcState::Unsatisfied { note: None };
   thread.criteria.push(dup);
   seed(&fx, &thread);
 
@@ -430,7 +430,7 @@ fn doctor_runs_on_a_project_that_cannot_be_opened() {
   let mut thread = clean_thread("ST0001");
   let mut dup = thread.criteria[0].clone();
   dup.kind = AcKind::NonTest;
-  dup.state = AcState::Unsatisfied;
+  dup.state = AcState::Unsatisfied { note: None };
   thread.criteria.push(dup);
   seed(&fx, &thread);
 

@@ -1704,9 +1704,34 @@ fn criterion(row: &str) -> Result<Criterion, RowRejection> {
       (None, None) => None,
     };
 
+    // **THE WILDCARD THAT USED TO CLOSE THIS MATCH DESTROYED TEXT, AND IT IS
+    // THE SECOND CATCH-ALL IN THIS FUNCTION TO DO SO.** The one above absorbed
+    // an unrecognised verdict; this one absorbed the ROW'S PROSE. `(false,
+    // Some(e))` -- a criterion standing unsatisfied with a note saying what was
+    // measured or what is blocking -- matched `_` and landed on a state with
+    // nowhere to put `e`.
+    //
+    // **No parsing fix could ever have reached it.** `AcState::Unsatisfied` was
+    // a UNIT variant, so the text was not dropped by a faulty branch: it was
+    // unrepresentable, and the migration destroyed it BY CONSTRUCTION while
+    // exiting 0. That is why it is written here as three explicit arms rather
+    // than two and a wildcard -- **each of the three now says what happens to
+    // the prose**, and a fourth case cannot be added without someone deciding.
     let state = match (verdict, evidence) {
       (true, Some(e)) => AcState::Satisfied { evidence: e },
-      _ => AcState::Unsatisfied,
+      // The case the unit variant could not hold. `e` here is the composite
+      // built above from the v2 `evidence:` and `note:` fields, fused exactly as
+      // the satisfied arm fuses them -- one ingest, one rule about whether that
+      // pair is one fact or two.
+      (false, note @ Some(_)) => AcState::Unsatisfied { note },
+      // **`satisfied: yes` with nothing behind it, and the note stays EMPTY on
+      // purpose.** The rule stated above -- evidence is never invented -- is not
+      // satisfied by moving the invention to a different field. Writing "v2
+      // claimed satisfied with no evidence" here would put a sentence nobody
+      // authored into a field a reader cannot distinguish from one somebody did.
+      (true, None) => AcState::Unsatisfied { note: None },
+      // A row that made no claim and left no prose.
+      (false, None) => AcState::Unsatisfied { note: None },
     };
     (AcKind::NonTest, state)
   } else {

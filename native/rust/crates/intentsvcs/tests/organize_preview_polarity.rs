@@ -246,7 +246,11 @@ fn a_preview_reports_the_refusal_rather_than_counting_it_as_a_removal() {
   let (doomed, p) = one_removal(
     &fx,
     declaring_thread(&[
-      ("AC-00.3", AcKind::NonTest, AcState::Unsatisfied),
+      (
+        "AC-00.3",
+        AcKind::NonTest,
+        AcState::Unsatisfied { note: None },
+      ),
       (
         "AC-00.4",
         AcKind::NonTest,
@@ -299,7 +303,7 @@ fn the_blocked_count_is_files_and_not_refusals() {
   let mut threads = vec![declaring_thread(&[(
     "AC-00.3",
     AcKind::NonTest,
-    AcState::Unsatisfied,
+    AcState::Unsatisfied { note: None },
   )])];
   threads.extend(undeclared.iter().map(|id| sample_thread(id)));
 

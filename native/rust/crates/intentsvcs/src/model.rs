@@ -1230,7 +1230,31 @@ pub enum AcState {
   Computed,
   /// Non-test and in scope, not yet satisfied. The entry state for an authored
   /// criterion.
-  Unsatisfied,
+  ///
+  /// **`note` is what was measured, what is blocking, or what would discharge
+  /// the criterion -- and it is deliberately NOT called `evidence` (hv,
+  /// 2026-08-29).** `evidence` means proof that a criterion was MET, and it
+  /// means that on `Satisfied` and nowhere else. A single name covering both
+  /// would hand an API consumer proof on one row and a working note on the next
+  /// under one key, which is the "one stored value, two meanings" shape the
+  /// 2026-08-15 collapse of `satisfied: Option<bool>` + `scope` removed. The
+  /// separation is the ruling; the name is not load-bearing beyond saying what
+  /// the thing is.
+  ///
+  /// **Why the field exists at all: v2 could record _unsatisfied, and here is
+  /// what was measured_, and this type could not.** A unit variant makes that
+  /// unrepresentable, so migrating an estate DESTROYED the text by construction
+  /// rather than by any parsing fault -- no ingest fix could have reached it,
+  /// because there was nowhere for the value to land.
+  ///
+  /// **Absent and empty are the same fact and only one of them is
+  /// representable.** The field is skipped entirely when there is nothing to
+  /// record, so a criterion with no note serialises to exactly the bytes it
+  /// always did and canon written before this field existed is unchanged by it.
+  Unsatisfied {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    note: Option<String>,
+  },
   /// Non-test and satisfied, carrying the evidence that settled it.
   //
   // **The evidence must be NON-EMPTY, and `String` does not say that.** The
@@ -1303,7 +1327,7 @@ impl AcState {
   pub fn name(&self) -> &'static str {
     match self {
       Self::Computed => "computed",
-      Self::Unsatisfied => "unsatisfied",
+      Self::Unsatisfied { .. } => "unsatisfied",
       Self::Satisfied { .. } => "satisfied",
       Self::Descoped { .. } => "descoped",
       Self::Withdrawn { .. } => "withdrawn",
@@ -1320,7 +1344,7 @@ impl AcState {
   pub fn entry(kind: AcKind) -> Self {
     match kind {
       AcKind::Test => Self::Computed,
-      AcKind::NonTest => Self::Unsatisfied,
+      AcKind::NonTest => Self::Unsatisfied { note: None },
     }
   }
 
@@ -1343,7 +1367,7 @@ impl AcState {
       Self::Computed => kind == AcKind::Test,
       // A recorded satisfaction, which is double truth on a test-backed
       // criterion: its satisfaction is computed and cannot also be asserted.
-      Self::Unsatisfied | Self::Satisfied { .. } => kind == AcKind::NonTest,
+      Self::Unsatisfied { .. } | Self::Satisfied { .. } => kind == AcKind::NonTest,
       // Decisions about the REQUIREMENT rather than about its satisfaction, so
       // both kinds hold them and both must store them -- an AT status cannot
       // recompute a scope decision (vc, 2026-08-15).
@@ -1364,14 +1388,36 @@ impl AcState {
     // that never owed the work.
     matches!(
       self,
-      Self::Computed | Self::Unsatisfied | Self::Satisfied { .. } | Self::Fiat(..)
+      Self::Computed | Self::Unsatisfied { .. } | Self::Satisfied { .. } | Self::Fiat(..)
     )
   }
 
   /// The evidence, when there is any to have.
+  ///
+  /// **This deliberately does NOT return an unsatisfied criterion's note.**
+  /// `evidence` means proof that the criterion was met; a note on an unsatisfied
+  /// one is the opposite claim, and returning it here would let every existing
+  /// caller -- which asked for proof -- render a reason as though it were one.
+  /// Read that with [`AcState::note`].
   pub fn evidence(&self) -> Option<&str> {
     match self {
       Self::Satisfied { evidence } => Some(evidence),
+      _ => None,
+    }
+  }
+
+  /// The working note on an unsatisfied criterion: what was measured, what is
+  /// blocking, or what would discharge it.
+  ///
+  /// The counterpart to [`AcState::evidence`] and deliberately a separate
+  /// reader, so that a caller has to say which of the two questions it is
+  /// asking. Every other state answers `None`, and that is a fact about the
+  /// state rather than a default: a satisfied criterion records proof, not a
+  /// note, and a descoped or withdrawn one records a decision with its own
+  /// reason field.
+  pub fn note(&self) -> Option<&str> {
+    match self {
+      Self::Unsatisfied { note } => note.as_deref(),
       _ => None,
     }
   }

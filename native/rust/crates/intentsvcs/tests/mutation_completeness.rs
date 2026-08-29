@@ -1180,7 +1180,7 @@ fn parse<T: serde::de::DeserializeOwned>(name: &str) -> T {
 fn state_named(name: &str) -> AcState {
   match name {
     "computed" => AcState::Computed,
-    "unsatisfied" => AcState::Unsatisfied,
+    "unsatisfied" => AcState::Unsatisfied { note: None },
     "satisfied" => AcState::Satisfied {
       evidence: "the render itself".to_string(),
     },
@@ -1958,7 +1958,7 @@ fn perturb(thread: &mut Thread, unmet: Option<Unmet>) {
       // could block as an AT CONTRACT FINDING instead -- a refusal with the right
       // variant and the wrong cause, which is the failure this column exists to
       // rule out.
-      thread.criteria[1].state = AcState::Unsatisfied;
+      thread.criteria[1].state = AcState::Unsatisfied { note: None };
     }
     Some(Unmet::TestBackedCriterion) => {
       // Both fields together, because the pairing is enforced in the schema face:

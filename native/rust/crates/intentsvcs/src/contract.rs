@@ -152,7 +152,7 @@ pub fn resolve(thread: &Thread, criterion: &Criterion) -> Resolved {
     // `Computed` recorded on a non-test criterion is the mirror inconsistency,
     // reported by `doctor` and treated here as the honest answer: nothing
     // computes satisfaction for an authored criterion, so it has none.
-    AcState::Unsatisfied | AcState::Computed => Resolved::Unsatisfied,
+    AcState::Unsatisfied { .. } | AcState::Computed => Resolved::Unsatisfied,
   }
 }
 

@@ -121,7 +121,7 @@ fn a_parenthetical_after_yes_does_not_downgrade_the_criterion() {
 
   let downgraded: Vec<&str> = non_test
     .iter()
-    .filter(|c| matches!(c.state, AcState::Unsatisfied))
+    .filter(|c| matches!(c.state, AcState::Unsatisfied { .. }))
     .map(|c| c.id.as_str())
     .collect();
   assert!(
@@ -252,7 +252,7 @@ fn a_row_with_no_satisfied_field_is_carried_unsatisfied() {
 
   let ac = &scan.threads[0].criteria[0];
   assert!(
-    matches!(ac.state, AcState::Unsatisfied),
+    matches!(ac.state, AcState::Unsatisfied { .. }),
     "a claim nobody made reads as unsatisfied: {:?}",
     ac.state
   );
@@ -291,7 +291,10 @@ fn n_a_is_known_vocabulary_and_is_not_refused() {
     "`n/a` is v2 vocabulary, not a malformed value -- refusing it drops a row that used to land"
   );
   assert!(
-    matches!(scan.threads[0].criteria[0].state, AcState::Unsatisfied),
+    matches!(
+      scan.threads[0].criteria[0].state,
+      AcState::Unsatisfied { .. }
+    ),
     "and it reads exactly as it did before the fix: {:?}",
     scan.threads[0].criteria[0].state
   );
@@ -480,5 +483,97 @@ fn a_note_wrapped_in_markdown_emphasis_is_still_refused() {
     scan.threads[0].criteria.is_empty(),
     "the emphasis wrapper is a SECOND defect with a different cause; if this row now ingests, \
      somebody widened the verdict vocabulary and this boundary needs re-ruling, not deleting"
+  );
+}
+
+// ---------------------------------------------------------------------------
+// **THE UNSATISFIED ROW'S PROSE WAS DESTROYED BY CONSTRUCTION, AND NO PARSING
+// FIX COULD HAVE REACHED IT.**
+//
+// Everything above this line is about a verdict being read wrongly. These arms
+// are about a verdict read CORRECTLY whose accompanying text had nowhere to
+// land: `AcState::Unsatisfied` was a unit variant, so `(false, Some(evidence))`
+// fell into a wildcard and the string was dropped. v2 could record "unsatisfied,
+// and here is what was measured"; v3 could not represent it, so the migration
+// destroyed it while exiting 0 and reporting nothing.
+//
+// The distinction matters for how anyone hunts the next one: the earlier defect
+// is found by reading the parser, this one only by asking what the TYPE can
+// hold. A test over the parser would have passed.
+// ---------------------------------------------------------------------------
+
+/// The regression, in the shape the estate actually writes: a row carrying both
+/// a v2 `evidence:` field and a parenthetical note, standing unsatisfied.
+#[test]
+fn an_unsatisfied_row_keeps_the_text_that_says_why() {
+  let fixture = Fixture::new();
+  v2_estate(
+    &fixture,
+    "## Acceptance Criteria\n\n- AC-01.1 (non-test) The panel has not sat -- evidence: measured 14 of 20 rows on 2026-08-01 -- satisfied: no (blocked on the panel)\n",
+  );
+  let scan = scan(&fixture);
+
+  let ac = &scan.threads[0].criteria[0];
+  let AcState::Unsatisfied { note } = &ac.state else {
+    panic!(
+      "the row stands unsatisfied, so it must read unsatisfied: {:?}",
+      ac.state
+    );
+  };
+  assert_eq!(
+    note.as_deref(),
+    Some("measured 14 of 20 rows on 2026-08-01 (blocked on the panel)"),
+    "the text saying what was measured and what is blocking did not survive the \
+     migration -- this is the whole defect, and before the variant could hold it \
+     the value was dropped with nothing reporting the loss"
+  );
+}
+
+/// The positive control for the arm above. Without it, `Some(..)` could be
+/// satisfied by any string the migration happened to put there, and an
+/// assertion that accepts anything non-empty proves nothing about carriage.
+#[test]
+fn the_note_is_the_rows_own_text_and_not_something_synthesised() {
+  let fixture = Fixture::new();
+  v2_estate(
+    &fixture,
+    "## Acceptance Criteria\n\n- AC-01.1 (non-test) A different row -- satisfied: no (a completely different sentence)\n",
+  );
+  let scan = scan(&fixture);
+
+  let AcState::Unsatisfied { note } = &scan.threads[0].criteria[0].state else {
+    panic!("expected unsatisfied");
+  };
+  assert_eq!(
+    note.as_deref(),
+    Some("a completely different sentence"),
+    "a different row produced a different note, which is what makes the arm \
+     above a test of carriage rather than of presence"
+  );
+}
+
+/// **`satisfied: yes` with nothing behind it still arrives with an EMPTY note,
+/// and that is the rule holding rather than a gap.**
+///
+/// Evidence is never invented -- and the widened variant creates a new way to
+/// break that rule, because a field now exists that a well-meaning migration
+/// could fill with "v2 claimed satisfied without evidence". A sentence nobody
+/// authored is indistinguishable from one somebody did, forever after.
+#[test]
+fn a_satisfaction_with_no_evidence_arrives_unsatisfied_with_no_note() {
+  let fixture = Fixture::new();
+  v2_estate(
+    &fixture,
+    "## Acceptance Criteria\n\n- AC-01.1 (non-test) Claimed but unwarranted -- satisfied: yes\n",
+  );
+  let scan = scan(&fixture);
+
+  let AcState::Unsatisfied { note } = &scan.threads[0].criteria[0].state else {
+    panic!("a satisfaction with no evidence is downgraded, as it always was");
+  };
+  assert_eq!(
+    note.as_deref(),
+    None,
+    "the migration synthesised a note for a row whose author wrote none"
   );
 }

@@ -4582,7 +4582,7 @@ impl Facade {
       kind,
       state: match kind {
         AcKind::Test => AcState::Computed,
-        AcKind::NonTest => AcState::Unsatisfied,
+        AcKind::NonTest => AcState::Unsatisfied { note: None },
       },
     };
     let body = serde_json::to_string(&row).map_err(|e| FacadeError::WriteNotAddressable {
@@ -4987,7 +4987,13 @@ impl Facade {
       return Err(FacadeError::ComputedSatisfaction { ac: ac.to_string() });
     }
     self
-      .set_ac_state(st, ac, AcState::Unsatisfied, "ac.unsatisfy", json!({}))
+      .set_ac_state(
+        st,
+        ac,
+        AcState::Unsatisfied { note: None },
+        "ac.unsatisfy",
+        json!({}),
+      )
       .map_err(|cause| match cause {
         FacadeError::IllegalTransition { .. } => FacadeError::NotSatisfied { ac: ac.to_string() },
         other => other,

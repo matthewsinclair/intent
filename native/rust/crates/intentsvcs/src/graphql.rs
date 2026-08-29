@@ -83,7 +83,17 @@ pub enum AcStateName {
 pub struct AcStateView {
   pub state: AcStateName,
   /// Satisfied only: the named evidence.
+  ///
+  /// **Still satisfied-only after unsatisfied criteria gained prose of their
+  /// own, and that is a ruling rather than an oversight (hv, 2026-08-29).** A
+  /// note on an unsatisfied criterion is not proof that it was met, so it is
+  /// published as [`AcStateView::note`] and never folded in here. A consumer
+  /// reading `evidence` is asking whether the criterion was satisfied and gets
+  /// an answer to that question only.
   pub evidence: Option<String>,
+  /// Unsatisfied only: what was measured, what is blocking, or what would
+  /// discharge the criterion.
+  pub note: Option<String>,
   /// Descoped only: the thread the requirement moved to.
   pub to: Option<String>,
   /// Descoped or withdrawn: who ruled.
@@ -111,6 +121,7 @@ impl From<&AcState> for AcStateView {
     let base = Self {
       state: AcStateName::Computed,
       evidence: None,
+      note: None,
       to: None,
       by: None,
       reason: None,
@@ -121,8 +132,9 @@ impl From<&AcState> for AcStateView {
     };
     match state {
       AcState::Computed => base,
-      AcState::Unsatisfied => Self {
+      AcState::Unsatisfied { note } => Self {
         state: AcStateName::Unsatisfied,
+        note: note.clone(),
         ..base
       },
       AcState::Satisfied { evidence } => Self {

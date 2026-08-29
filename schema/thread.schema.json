@@ -26,11 +26,17 @@
         },
         {
           "additionalProperties": false,
-          "description": "Non-test and in scope, not yet satisfied. The entry state for an authored\ncriterion.",
+          "description": "Non-test and in scope, not yet satisfied. The entry state for an authored\ncriterion.\n\n**`note` is what was measured, what is blocking, or what would discharge\nthe criterion -- and it is deliberately NOT called `evidence` (hv,\n2026-08-29).** `evidence` means proof that a criterion was MET, and it\nmeans that on `Satisfied` and nowhere else. A single name covering both\nwould hand an API consumer proof on one row and a working note on the next\nunder one key, which is the \"one stored value, two meanings\" shape the\n2026-08-15 collapse of `satisfied: Option<bool>` + `scope` removed. The\nseparation is the ruling; the name is not load-bearing beyond saying what\nthe thing is.\n\n**Why the field exists at all: v2 could record _unsatisfied, and here is\nwhat was measured_, and this type could not.** A unit variant makes that\nunrepresentable, so migrating an estate DESTROYED the text by construction\nrather than by any parsing fault -- no ingest fix could have reached it,\nbecause there was nowhere for the value to land.\n\n**Absent and empty are the same fact and only one of them is\nrepresentable.** The field is skipped entirely when there is nothing to\nrecord, so a criterion with no note serialises to exactly the bytes it\nalways did and canon written before this field existed is unchanged by it.",
           "properties": {
             "is": {
               "const": "unsatisfied",
               "type": "string"
+            },
+            "note": {
+              "type": [
+                "string",
+                "null"
+              ]
             }
           },
           "required": [
@@ -630,5 +636,5 @@
   "title": "Thread",
   "type": "object",
   "x-intent-ver": "3.0.0",
-  "x-schema-json-ver": 12
+  "x-schema-json-ver": 13
 }

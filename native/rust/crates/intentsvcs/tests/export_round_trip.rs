@@ -131,7 +131,7 @@ fn adversarial_thread(id: &str) -> Thread {
       id: format!("AC-99.{}", i + 1),
       text: (*hazard).to_string(),
       kind: AcKind::NonTest,
-      state: AcState::Unsatisfied,
+      state: AcState::Unsatisfied { note: None },
     });
   }
   thread

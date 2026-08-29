@@ -237,7 +237,7 @@ fn the_ac_scope_projection_carries_exactly_the_serde_form() {
 
   let cases = vec![
     AcState::Computed,
-    AcState::Unsatisfied,
+    AcState::Unsatisfied { note: None },
     AcState::Satisfied {
       evidence: "the render itself".into(),
     },

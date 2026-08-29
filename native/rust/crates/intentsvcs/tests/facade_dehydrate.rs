@@ -375,7 +375,11 @@ fn a_declared_but_unmet_precondition_refuses_and_names_it() {
         evidence: "met, and it must not be reported as unmet".to_string(),
       },
     ),
-    ("AC-00.9", AcKind::NonTest, AcState::Unsatisfied),
+    (
+      "AC-00.9",
+      AcKind::NonTest,
+      AcState::Unsatisfied { note: None },
+    ),
   ]));
   fx.write_file("intent/.intentfiles", MANIFEST);
   let mut f = fx.facade();

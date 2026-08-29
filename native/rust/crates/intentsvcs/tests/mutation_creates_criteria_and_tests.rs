@@ -257,7 +257,7 @@ fn ac_new_honours_the_kind_state_invariant() {
     "a test-backed criterion starts `computed` -- its satisfaction is DERIVED, so any other start claims a measurement nothing ran"
   );
   assert!(
-    matches!(state_of(&facade, "AC-09.2"), AcState::Unsatisfied),
+    matches!(state_of(&facade, "AC-09.2"), AcState::Unsatisfied { .. }),
     "a non-test criterion starts `unsatisfied` -- `computed` would claim a derivation with nothing to derive from"
   );
 }

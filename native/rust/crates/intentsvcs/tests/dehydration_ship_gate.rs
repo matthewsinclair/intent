@@ -107,9 +107,21 @@ fn the_declaration_is_ordered_as_written() {
   // list that reorders itself between runs cannot tell a new failure from a
   // shuffled one.
   let v = preconditions::check(&canon_of(vec![declaring_thread(&[
-    ("AC-07.1", AcKind::NonTest, AcState::Unsatisfied),
-    ("AC-00.2", AcKind::NonTest, AcState::Unsatisfied),
-    ("AC-03.4", AcKind::NonTest, AcState::Unsatisfied),
+    (
+      "AC-07.1",
+      AcKind::NonTest,
+      AcState::Unsatisfied { note: None },
+    ),
+    (
+      "AC-00.2",
+      AcKind::NonTest,
+      AcState::Unsatisfied { note: None },
+    ),
+    (
+      "AC-03.4",
+      AcKind::NonTest,
+      AcState::Unsatisfied { note: None },
+    ),
   ])]));
   assert_eq!(ids(v.declared()), vec!["AC-07.1", "AC-00.2", "AC-03.4"]);
   let unmet: Vec<&str> = v.unmet().iter().map(|(id, _)| id.as_str()).collect();
@@ -124,9 +136,21 @@ fn the_declaration_is_ordered_as_written() {
 fn every_unmet_precondition_is_named_not_just_the_first() {
   let v = preconditions::check(&canon_of(vec![declaring_thread(&[
     ("AC-00.2", AcKind::NonTest, met("landed")),
-    ("AC-00.3", AcKind::NonTest, AcState::Unsatisfied),
-    ("AC-00.4", AcKind::NonTest, AcState::Unsatisfied),
-    ("AC-06.1", AcKind::NonTest, AcState::Unsatisfied),
+    (
+      "AC-00.3",
+      AcKind::NonTest,
+      AcState::Unsatisfied { note: None },
+    ),
+    (
+      "AC-00.4",
+      AcKind::NonTest,
+      AcState::Unsatisfied { note: None },
+    ),
+    (
+      "AC-06.1",
+      AcKind::NonTest,
+      AcState::Unsatisfied { note: None },
+    ),
   ])]));
   let rendered = v.to_string();
   for id in ["AC-00.3", "AC-00.4", "AC-06.1"] {
@@ -146,7 +170,11 @@ fn the_denominator_is_printed_on_both_answers() {
   // A gate that prints its counts only when it refuses cannot be told, on a
   // quiet run, from a gate that checked nothing.
   let refusing = preconditions::check(&canon_of(vec![declaring_thread(&[
-    ("AC-00.3", AcKind::NonTest, AcState::Unsatisfied),
+    (
+      "AC-00.3",
+      AcKind::NonTest,
+      AcState::Unsatisfied { note: None },
+    ),
     ("AC-00.4", AcKind::NonTest, met("landed")),
   ])]));
   let permitting = preconditions::check(&canon_of(vec![declaring_thread(&[
@@ -290,7 +318,7 @@ fn the_declaration_is_found_by_its_delimiter_not_by_an_address() {
     id: "AC-04.7".to_string(),
     text,
     kind: AcKind::NonTest,
-    state: AcState::Unsatisfied,
+    state: AcState::Unsatisfied { note: None },
   });
   let v = preconditions::check(&canon_of(vec![thread]));
   assert!(
@@ -493,7 +521,11 @@ fn no_file_is_removed_while_a_precondition_is_unmet() {
   let (doomed, p) = one_removal(
     &fx,
     declaring_thread(&[
-      ("AC-00.3", AcKind::NonTest, AcState::Unsatisfied),
+      (
+        "AC-00.3",
+        AcKind::NonTest,
+        AcState::Unsatisfied { note: None },
+      ),
       ("AC-00.4", AcKind::NonTest, met("landed")),
     ]),
   );
@@ -556,7 +588,11 @@ fn one_refusal_covers_the_run_rather_than_one_per_file() {
   let fx = Fixture::new();
   let project = fx.project();
   let canon = canon_of(vec![
-    declaring_thread(&[("AC-00.3", AcKind::NonTest, AcState::Unsatisfied)]),
+    declaring_thread(&[(
+      "AC-00.3",
+      AcKind::NonTest,
+      AcState::Unsatisfied { note: None },
+    )]),
     sample_thread("ST0002"),
     sample_thread("ST0003"),
   ]);
@@ -610,7 +646,7 @@ fn a_plan_with_no_removals_does_not_report_the_ship_gate() {
   let canon = canon_of(vec![declaring_thread(&[(
     "AC-00.3",
     AcKind::NonTest,
-    AcState::Unsatisfied,
+    AcState::Unsatisfied { note: None },
   )])]);
   let realised =
     intentfiles::realised_for_action("STEELTHREAD:ST0057\n\n# BEGIN INTENT\n# END INTENT\n")

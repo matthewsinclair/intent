@@ -80,7 +80,13 @@ fn at_status() -> impl Strategy<Value = AtStatus> {
 fn ac_state() -> impl Strategy<Value = AcState> {
   prop_oneof![
     Just(AcState::Computed),
-    Just(AcState::Unsatisfied),
+    // **Generated BOTH ways deliberately.** `Just(AcState::Unsatisfied)` would
+    // pin the empty case forever -- and an unsatisfied criterion CARRYING a note
+    // is the exact state this variant was widened to make representable, so the
+    // round-trip law would have gone green over the one thing being fixed. The
+    // note is also `skip_serializing_if`, so present and absent take different
+    // paths through serde and only one of them would ever be exercised.
+    proptest::option::of("[a-z ,.]{3,40}").prop_map(|note| AcState::Unsatisfied { note }),
     "[a-z/. ]{3,30}".prop_map(|evidence| AcState::Satisfied { evidence }),
     (0u32..9999, proptest::option::of("[a-z]{2,8}")).prop_map(|(n, by)| AcState::Descoped {
       to: format!("ST{n:04}"),
@@ -150,7 +156,7 @@ fn ac_state() -> impl Strategy<Value = AcState> {
 fn every_ac_state_variant_has_a_generator_arm(state: &AcState) {
   match state {
     AcState::Computed => (),
-    AcState::Unsatisfied => (),
+    AcState::Unsatisfied { .. } => (),
     AcState::Satisfied { .. } => (),
     AcState::Descoped { .. } => (),
     AcState::Withdrawn { .. } => (),

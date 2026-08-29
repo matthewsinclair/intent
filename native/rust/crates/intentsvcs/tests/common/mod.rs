@@ -519,7 +519,7 @@ pub fn declaring_thread(entries: &[(&str, AcKind, AcState)]) -> Thread {
       "No dehydration path removes any file while any declared precondition is unmet. Mentioned outside the block for the scanner to trip on: AC-99.9. {block}"
     ),
     kind: AcKind::NonTest,
-    state: AcState::Unsatisfied,
+    state: AcState::Unsatisfied { note: None },
   }];
   for (id, kind, state) in entries {
     criteria.push(Criterion {

@@ -92,7 +92,7 @@ fn thread_with_every_payload_state() -> Thread {
     id: "AC-03.3".to_string(),
     text: "a non-test criterion nobody has settled yet".to_string(),
     kind: AcKind::NonTest,
-    state: AcState::Unsatisfied,
+    state: AcState::Unsatisfied { note: None },
   });
   t
 }
@@ -176,7 +176,7 @@ fn a_genuinely_free_id_is_still_created() {
   assert_eq!(criterion(&facade, "AC-03.5").text, "a new requirement");
   assert!(matches!(
     criterion(&facade, "AC-03.5").state,
-    AcState::Unsatisfied
+    AcState::Unsatisfied { note: None }
   ));
 }
 
@@ -519,7 +519,7 @@ fn put_still_replaces_and_that_is_the_hole_this_leaves() {
     id: "AC-03.2".to_string(),
     text: "written straight at the address".to_string(),
     kind: AcKind::NonTest,
-    state: AcState::Unsatisfied,
+    state: AcState::Unsatisfied { note: None },
   };
   facade
     .put(
@@ -536,7 +536,10 @@ fn put_still_replaces_and_that_is_the_hole_this_leaves() {
     .expect("an addressed PUT replaces, which is its contract");
 
   assert!(
-    matches!(criterion(&facade, "AC-03.2").state, AcState::Unsatisfied),
+    matches!(
+      criterion(&facade, "AC-03.2").state,
+      AcState::Unsatisfied { note: None }
+    ),
     "the addressed PUT stopped replacing. That may well be right -- but it is a change to the \
      HTTP and GraphQL faces' contract, and it is not what hv ruled on 2026-08-28, which was about \
      verbs named `add` and `new`."

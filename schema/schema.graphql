@@ -1,5 +1,5 @@
 # INTENT_VER: 3.0.0
-# SCHEMA_SDL_VER: 10
+# SCHEMA_SDL_VER: 11
 
 enum AcKind {
   TEST
@@ -33,8 +33,20 @@ type AcStateView {
   state: AcStateName!
   """
   Satisfied only: the named evidence.
+  
+  **Still satisfied-only after unsatisfied criteria gained prose of their
+  own, and that is a ruling rather than an oversight (hv, 2026-08-29).** A
+  note on an unsatisfied criterion is not proof that it was met, so it is
+  published as [`AcStateView::note`] and never folded in here. A consumer
+  reading `evidence` is asking whether the criterion was satisfied and gets
+  an answer to that question only.
   """
   evidence: String
+  """
+  Unsatisfied only: what was measured, what is blocking, or what would
+  discharge the criterion.
+  """
+  note: String
   """
   Descoped only: the thread the requirement moved to.
   """

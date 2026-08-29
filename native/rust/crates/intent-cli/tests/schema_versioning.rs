@@ -273,7 +273,7 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // AcState gained FIAT, carrying a FiatRecord (ST0066, hv 2026-08-28): the
     // wire contract now says a criterion can be closed on human authority with
     // the requirement unmet. 9 -> 10.
-    ("SCHEMA_SDL_VER", 10, 0x9cc6_a9ab_0cf7_30f6),
+    ("SCHEMA_SDL_VER", 11, 0x1a09_ed43_9003_807b),
     // Same change on the JSON face. 11 -> 12.
     //
     // **THE DDL PIN ABOVE DELIBERATELY DOES NOT MOVE, AND THAT IS A MEASURED
@@ -282,7 +282,7 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // needs no column, no constraint and no row rewrite -- this instrument
     // reported SDL and JSON and stayed silent on DDL, which is the two-of-three
     // result the three-version scheme exists to make visible.
-    ("SCHEMA_JSON_VER", 12, 0xe2be_443f_cbce_37b6),
+    ("SCHEMA_JSON_VER", 13, 0x6338_d028_7555_21be),
   ];
 
   let mut moved = Vec::new();

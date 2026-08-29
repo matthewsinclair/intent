@@ -39,7 +39,7 @@
 //! reading the evidence supports.
 //!
 //! **The 21 rows carrying no evidence are the other half of the same argument.**
-//! Widening them into the non-test branch lands them on `AcState::Unsatisfied`
+//! Widening them into the non-test branch lands them on `AcState::Unsatisfied { note: None }`
 //! -- trading a silent DROP for a silent FAILURE, which is not a fix.
 //!
 //! # Why arm 1 and arm 2 are one commit
@@ -189,7 +189,7 @@ fn a_descoped_row_is_neither_green_nor_a_failure() {
     .into_iter()
     .filter(|id| {
       criterion(&scan, id)
-        .map(|c| matches!(c.state, AcState::Computed | AcState::Unsatisfied))
+        .map(|c| matches!(c.state, AcState::Computed | AcState::Unsatisfied { .. }))
         .unwrap_or(true)
     })
     .collect();
@@ -236,7 +236,7 @@ fn a_bare_n_a_with_no_record_stays_unsatisfied() {
 
   let ac = criterion(&scan, "AC-90.2").expect("AC-90.2 reaches canon");
   assert!(
-    matches!(ac.state, AcState::Unsatisfied),
+    matches!(ac.state, AcState::Unsatisfied { .. }),
     "a bare `n/a` names no destination and no reason, so `Descoped`/`Withdrawn` would be MINTED \
      from nothing -- the offence this fix exists to stop: {:?}",
     ac.state
