@@ -610,10 +610,41 @@ fn resync_inner(project: &Project, store: &mut Store, scope: &Scope) -> Result<C
   }
 
   let canon = read(project)?;
-  let canon = match scope.named() {
+  let mut canon = match scope.named() {
     None => canon,
     Some(named) => compose_scoped(store, canon, named)?,
   };
+
+  // **AFTER THE SCOPE NARROWS, NEVER BEFORE.** A scoped run carries only the
+  // named threads, and reading every thread's cover would let a hand-edit on
+  // an unrelated thread refuse a sync that was never going to touch it. The
+  // refusal must be reachable only from the work actually being carried.
+  // **ONLY COVERS THAT ACTUALLY CHANGED ON DISK.** See
+  // `carry_info_round_trip`: comparing a render against a view cannot tell a
+  // HAND-EDIT from a STALE VIEW, and the file index is the only thing here
+  // that can.
+  //
+  // **`Changed` ALONE IS NOT ENOUGH, AND THAT COST A SECOND FALSE REFUSAL.**
+  // `sync::scan` marks a file `Changed` when its bytes differ from the last
+  // indexed state **OR THE FILE IS NEW**, and a file with no baseline is not
+  // one anybody edited -- there is nothing it could have drifted from. On a
+  // project with no index yet, that reading refused `intent sync --to-store`
+  // outright (`cli_end_to_end`), naming authored sections the operator had
+  // never opened. **A cover is only read back when it was in the PREVIOUS
+  // index AND its bytes have moved since**, which is the only form of the
+  // question that means "a human changed this".
+  let baseline: std::collections::HashSet<&str> =
+    previous.iter().map(|e| e.path.as_str()).collect();
+  let touched: std::collections::HashSet<&str> = entries
+    .iter()
+    .filter(|e| e.state == FileState::Changed && baseline.contains(e.path.as_str()))
+    .map(|e| e.path.as_str())
+    .collect();
+  let findings = carry_info_round_trip(project, &mut canon, &touched);
+  if !findings.is_empty() {
+    return Err(Refusal::new(findings).into());
+  }
+
   store.rebuild(&canon.threads, &canon.issues)?;
   store.replace_doc_sections(&canon.sections)?;
   carry_project_state(project, store)?;
@@ -644,6 +675,127 @@ fn resync_inner(project: &Project, store: &mut Store, scope: &Scope) -> Result<C
   // protect. The check lives in `doctor` as `EventLogAbsent` instead, which is
   // what the criterion's own word REPORTED asks for.
   Ok(canon)
+}
+
+/// Read each thread's `info.md` back into the canon before it reaches the store.
+///
+/// **hv RULED THIS ON 2026-08-29**, first-hand, after driving `intent st edit
+/// 68` and meeting the generated-view refusal: _I want to edit the ST and then
+/// I want a sync to know that's been edited and update the db._
+///
+/// # This is additive, and two measurements say so rather than one argument
+///
+/// `objective` and `context` are ALREADY model fields, and nothing read them
+/// back before this -- they flowed model-to-view and no further. **So there is
+/// no existing round-trip to regress**, and this is not the prose-damage class
+/// of issues 0124, 0126, 0127, 0129 and 0133 unless it is built as one.
+///
+/// # Out-of-scope edits REFUSE, and the store is not touched
+///
+/// hv chose refuse-and-name over carry-and-warn. Carrying the two sections and
+/// discarding the rest would be a silent loss on the one path we have just
+/// opened an editor onto -- `IN-AG-NO-SILENT-001` -- and the operator who
+/// loses the work is not the operator who runs the sync. Returning findings
+/// here means `resync_inner` refuses before `store.rebuild`, so a refused sync
+/// leaves BOTH homes exactly as they were.
+///
+/// # A STALE VIEW IS NOT A HAND-EDIT, AND THE BYTES CANNOT TELL YOU WHICH
+///
+/// **This is the defect the suite caught before it shipped, and it was fatal
+/// rather than cosmetic.** The comparison is `render(canon)` against
+/// `view-on-disk`, and those differ in two completely different situations:
+/// the operator edited the view, or **the MODEL moved and the view has not
+/// been re-rendered yet.** They are byte-for-byte indistinguishable.
+///
+/// The second is the common case -- every canon change makes every view stale
+/// until `--to-disk` runs -- so refusing on it would have refused
+/// `sync --to-store` on essentially every estate in the fleet. `sync_scope.rs`
+/// hit it immediately by retitling a thread in canon and syncing: two threads
+/// refused, naming a region nobody had opened.
+///
+/// **The file index is the only thing here that can separate them**, and
+/// `resync_inner` already has it: a cover whose bytes are `FileState::Clean`
+/// has not been touched since the last ingest, so it carries nothing no matter
+/// how far the model has moved past it.
+///
+/// **AND A COVER WITH NO BASELINE IS NOT AN EDITED ONE.** `Changed` also means
+/// *new*, so on a project whose index has never been written every cover reads
+/// as edited and the comparison runs against a view that may predate the canon
+/// beside it. That refused a plain `sync --to-store` on a fresh project. The
+/// read-back therefore requires a cover to have been in the PREVIOUS index AND
+/// to have moved -- the only form of the question that means a human changed
+/// it. **The cost is stated rather than hidden: the first sync on a project
+/// establishes the baseline and carries nothing, and edits are carried from
+/// then on.**
+///
+/// # An absent cover is not an error
+///
+/// A thread whose view has never been realised has nothing to carry, and
+/// `--to-store` is precisely the verb someone runs on a fresh clone. Absence
+/// is a state; unreadability is an error, and `read_to_string` is asked to
+/// tell them apart rather than being allowed to collapse both into a skip.
+fn carry_info_round_trip(
+  project: &Project,
+  canon: &mut Canon,
+  touched: &std::collections::HashSet<&str>,
+) -> Vec<Finding> {
+  let ctx = crate::views::RenderContext {
+    version: crate::faces::INTENT_VER,
+    todo_watermark: None,
+  };
+  let mut findings = Vec::new();
+
+  for thread in &mut canon.threads {
+    let path = project.info_view(&thread.id);
+    let rel = project.relative(&path);
+
+    // **A COVER NOBODY TOUCHED HAS NOTHING TO CARRY, HOWEVER STALE IT IS.**
+    // This is the whole reason the file index is consulted rather than the
+    // bytes alone -- see the note on this function.
+    if !touched.contains(rel.as_str()) {
+      continue;
+    }
+    let disk = match std::fs::read_to_string(&path) {
+      Ok(text) => text,
+      // **ABSENCE IS A STATE; UNREADABILITY IS AN ERROR.** A `let Ok(..) else`
+      // here would report a permission fault as "nothing to carry" and lose an
+      // operator's edit while saying nothing at all.
+      Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
+      Err(e) => {
+        findings.push(Finding::new(
+          &rel,
+          FindingClass::ViewSkew,
+          format!("the cover could not be read, so any edit in it cannot be carried: {e}"),
+        ));
+        continue;
+      }
+    };
+
+    match crate::views::info_read_back(thread, &ctx, &disk) {
+      Ok(carried) => {
+        thread.objective = carried.objective;
+        thread.context = carried.context;
+      }
+      Err(sections) => {
+        for section in sections {
+          findings.push(Finding::new(
+            &rel,
+            FindingClass::ViewSkew,
+            format!(
+              "{section} was edited by hand and does not round-trip -- only {} are read back, so move the text into one of those or discard it",
+              crate::views::INFO_ROUND_TRIP_SECTIONS
+                .iter()
+                .map(|s| format!("`## {s}`"))
+                .collect::<Vec<_>>()
+                .join(" and ")
+            ),
+          ));
+        }
+      }
+    }
+  }
+
+  findings
 }
 
 /// Refresh the file index, and refuse if any file in scope is unparsed.

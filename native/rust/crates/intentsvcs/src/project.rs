@@ -943,7 +943,7 @@ impl Project {
     // the work package's. A file called `info.md` three levels down under a
     // parity directory is neither, and matching on the bare name would take
     // an author's file and call it ours.
-    if depth == 1 && (name == "info.md" || name == "acceptance.md") {
+    if is_thread_info(rel) || (depth == 1 && name == "acceptance.md") {
       return ThreadFile::GeneratedView;
     }
     if depth == 3 && name == "info.md" && rel.starts_with("WP") {
@@ -1380,10 +1380,39 @@ pub fn relative(root: &Path, path: &Path) -> String {
 /// directory holds 13 files at depth 1 and **only two are generated views**.
 /// The other eleven are attachments, authored on disk, and `edit` hands those
 /// over without hesitation.
+/// Is this a THREAD's `info.md` -- the depth-1 cover, not a work package's?
+///
+/// **ONE HOME FOR THE DEPTH-1 RULE.** [`Project::classify`] and
+/// [`Project::edit_disposition`] both need it and they need it to AGREE: the
+/// first says this file is a generated view, the second says this particular
+/// generated view round-trips. Two copies of `depth == 1 && name == "info.md"`
+/// would be two answers to one question -- the defect AC-02.5 names -- and
+/// they would diverge on the day a view MOVES, not the day one is added.
+///
+/// A work package's `WP/<NN>/info.md` is deliberately NOT this. It renders
+/// through `wp_info` with its own field set, and hv's ruling of 2026-08-29 was
+/// about the thread cover; extending it downward is a separate decision
+/// carrying its own allow-list, not a free consequence of this one.
+fn is_thread_info(rel: &Path) -> bool {
+  rel.components().count() == 1 && rel.file_name().and_then(|n| n.to_str()) == Some("info.md")
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EditDisposition {
   /// The file on disk IS the authoring surface. Hand over the path.
   Open,
+  /// Generated, but some sections ROUND-TRIP: open it, and `sync --to-store`
+  /// reads those sections back into the model.
+  ///
+  /// **A THIRD STATE, BECAUSE TWO COULD NOT SAY THIS.** `Open` promises the
+  /// file on disk IS the authoring surface, which is false here -- everything
+  /// outside `round_trips` is regenerated. `Refuse` was what `info.md` got
+  /// until hv ruled on 2026-08-29, and it sent the operator to verbs that
+  /// cannot write `objective` or `context` at all. **Both were wrong in
+  /// different directions, and a boolean cannot hold a partial authority.**
+  OpenRoundTrip {
+    round_trips: &'static [&'static str],
+  },
   /// Generated from the model. Refuse, and say what authors it.
   Refuse { author_with: &'static str },
 }
@@ -1397,6 +1426,15 @@ impl Project {
   /// somebody adds a view.
   pub fn edit_disposition(rel: &Path) -> EditDisposition {
     match Project::classify(rel) {
+      // **hv RULED THE THREAD COVER OPEN ON 2026-08-29**, first-hand, after
+      // driving `intent st edit 68` and meeting the refusal: _I want to edit
+      // the ST and then I want a sync to know that's been edited and update
+      // the db._ The refusal was correct about the FILE and wrong about the
+      // operator's need -- its remedy said author it with `intent st`, and not
+      // one of the seventeen `intent st` verbs writes `objective` or `context`.
+      ThreadFile::GeneratedView if is_thread_info(rel) => EditDisposition::OpenRoundTrip {
+        round_trips: crate::views::INFO_ROUND_TRIP_SECTIONS,
+      },
       ThreadFile::GeneratedView => {
         let name = rel.file_name().and_then(|n| n.to_str()).unwrap_or_default();
         EditDisposition::Refuse {
@@ -1441,18 +1479,45 @@ mod tests {
   /// hv's ruling (2026-08-19): `intent edit` refuses a generated view and
   /// names the authoring surface instead. Detection is not prevention -- the
   /// skew check catches a hand-edited view AFTER the work is gone.
+  ///
+  /// **NARROWED BY hv ON 2026-08-29, AND THE THREAD COVER IS NOW THE
+  /// EXCEPTION.** hv drove `intent st edit 68`, met this refusal, and ruled
+  /// that `info.md` round-trips its authored sections. **The 2026-08-19 ruling
+  /// is not reversed** -- `acceptance.md`, a WP's cover and canon still refuse,
+  /// and the cover is still generated for every byte outside its allow-list.
+  /// What changed is that a refusal whose remedy named `intent st` was sending
+  /// the operator to seventeen verbs none of which writes `objective` or
+  /// `context`, so the remedy was a dead end rather than a redirection.
   #[test]
   fn edit_refuses_generated_views_and_opens_authored_files() {
-    // The two generated views at a thread's root, and a WP's cover.
-    for (view, expect_verb) in [("info.md", "intent st"), ("acceptance.md", "intent ac")] {
-      match Project::edit_disposition(Path::new(view)) {
-        EditDisposition::Refuse { author_with } => assert!(
-          author_with.contains(expect_verb),
-          "{view} must name the verb that authors it, said `{author_with}`"
-        ),
-        EditDisposition::Open => panic!("{view} is GENERATED and must be refused"),
-      }
+    match Project::edit_disposition(Path::new("acceptance.md")) {
+      EditDisposition::Refuse { author_with } => assert!(
+        author_with.contains("intent ac"),
+        "acceptance.md must name the verb that authors it, said `{author_with}`"
+      ),
+      other => panic!("acceptance.md is GENERATED and must be refused, got {other:?}"),
     }
+
+    // **The thread cover opens, and it opens into a PARTIAL authority.** The
+    // disposition carries the allow-list rather than a bare yes, because the
+    // caller has to be able to say which sections survive -- `Open` would
+    // promise the whole file is authored, which is exactly the false promise
+    // that loses an edit to `## Scope`.
+    match Project::edit_disposition(Path::new("info.md")) {
+      EditDisposition::OpenRoundTrip { round_trips } => {
+        assert_eq!(round_trips, crate::views::INFO_ROUND_TRIP_SECTIONS);
+        assert!(
+          !round_trips.is_empty(),
+          "an empty allow-list would open the file and carry nothing"
+        );
+      }
+      other => panic!("hv ruled the thread cover open on 2026-08-29, got {other:?}"),
+    }
+
+    // **A WORK PACKAGE'S COVER IS NOT THE THREAD'S AND STILL REFUSES.** This
+    // is the arm that would go quiet if `is_thread_info` ever stopped checking
+    // depth -- both files are called `info.md`, and only the depth tells them
+    // apart.
     assert!(matches!(
       Project::edit_disposition(&PathBuf::from("WP").join("01").join("info.md")),
       EditDisposition::Refuse { .. }

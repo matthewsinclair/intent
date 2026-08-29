@@ -154,23 +154,39 @@ fn a_file_the_artefact_does_not_carry_is_refused_and_says_what_is_there() {
 /// thread need different verbs, and "this is generated" sends both to the same
 /// dead end. The two destinations are asserted to DIFFER, which is the half a
 /// single generic refusal would still pass.
+///
+/// **NARROWED 2026-08-29: `info` NO LONGER REFUSES, AND THAT IS hv's RULING
+/// RATHER THAN A WEAKENED TEST.** This arm used to drive `info` and
+/// `acceptance` and assert their destinations differed. hv drove `intent st
+/// edit 68`, met the `info` refusal, and ruled the thread cover round-trips --
+/// **because that refusal's own remedy was a dead end: it said author it with
+/// `intent st`, and not one of the seventeen `intent st` verbs writes
+/// `objective` or `context`.** The differ-by-surface property did not go away
+/// with the subject; it moved down to `Project::edit_disposition`'s own unit
+/// test, which compares all three destinations without needing a facade.
 #[test]
-fn a_generated_view_is_refused_and_names_a_different_surface_for_each() {
-  let mut said = Vec::new();
-  for view in ["info", "acceptance"] {
-    let fx = fixture();
-    let mut facade = fx.facade();
-    let err = facade.edit(&thread(), view).expect_err("refused");
-    match err {
-      FacadeError::NotEditable { author_with, .. } => said.push(author_with),
-      other => panic!("`{view}` must be NotEditable, got: {other:?}"),
-    }
+fn a_generated_view_is_refused_and_names_the_surface_that_authors_it() {
+  let fx = fixture();
+  let mut facade = fx.facade();
+  match facade
+    .edit(&thread(), "acceptance")
+    .expect_err("acceptance is generated")
+  {
+    FacadeError::NotEditable { author_with, .. } => assert!(
+      author_with.contains("intent ac"),
+      "the refusal must name the verb that authors criteria, said `{author_with}`"
+    ),
+    other => panic!("`acceptance` must be NotEditable, got: {other:?}"),
   }
-  assert_ne!(
-    said[0], said[1],
-    "`info.md` and `acceptance.md` are authored by DIFFERENT verbs, and one \
-     message for both is the dead end the ruling exists to avoid: {said:?}"
-  );
+
+  // **THE OTHER HALF OF THE SAME RULING, ASSERTED HERE SO THE PAIR CANNOT
+  // DRIFT APART.** A change that made `info` refuse again would leave the arm
+  // above green and this one red, which is the point: the two are one ruling.
+  let fx = fixture();
+  let mut facade = fx.facade();
+  facade
+    .edit(&thread(), "info")
+    .expect("hv ruled the thread cover open on 2026-08-29");
 }
 
 /// **AND THE REFUSAL WRITES NOTHING TO THE PATH IT REFUSED.** A refusal that
@@ -231,9 +247,21 @@ fn the_filename_refusal_writes_nothing_at_all() {
   std::fs::remove_dir_all(&dir).ok();
   std::fs::write(fx.path("intent/.intentfiles"), MANIFEST).unwrap();
 
+  // **THE SUBJECT MOVED WITH hv's RULING AND THE DEFECT DID NOT.** This arm
+  // drove `info` because `info` was the register's default AND a name this
+  // verb refused. hv ruled the cover open on 2026-08-29, so `info` is not a
+  // refusal at all any more; `acceptance` is the generated view that still is,
+  // and the defect being guarded -- a refusal whose EXIT CODE and EFFECT
+  // disagree -- is a property of the refusal, not of which view triggered it.
+  //
+  // **`design` WAS TRIED HERE FIRST AND IS THE WRONG SUBJECT, WHICH IS WORTH
+  // A LINE BECAUSE IT LOOKS RIGHT.** It is an authored attachment: `hydrate`
+  // REALISES it and `edit` returns its path at rc=0. Reaching for it as "a
+  // file that is not realised" confuses a file the artefact does not CARRY
+  // with one that is merely not on disk yet, and the fixture carries it.
   facade
-    .edit(&thread(), "info")
-    .expect_err("`info` is refused");
+    .edit(&thread(), "acceptance")
+    .expect_err("`acceptance` is a generated view and is refused");
 
   assert!(
     !dir.exists(),
