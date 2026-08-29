@@ -91,42 +91,34 @@ def canon_ids(repo):
   return None, "no canon directory (looked for %s)" % " and ".join(CANON_DIRS)
 
 # ---------------------------------------------------------------------------
-# THE PORT COMMIT, AND WHY IT IS TIME AND NOT A BANNER.
+# WHY THIS PROBE ATTEMPTS NO DATE-BASED v2/v3 PARTITION AT ALL.
 #
 # Lamplight's finding 1 came with a mechanism: earliest commit time per
-# acceptance path, compared against the port commit. I built something else --
-# "is the thread's oldest acceptance blob a GENERATED VIEW" -- reasoning that it
-# needed no repo-wide constant. **IT IS WRONG, AND THE REAL ESTATE SAID SO.**
+# acceptance path against the port commit. I built a banner test instead, drove
+# it on Intent, and it put 44 of 67 threads in "residue" -- ST0001's acceptance
+# file is created BY the v3 hoist and carries no banner because the early
+# renderer emitted none. The banner is SUFFICIENT and NOT NECESSARY.
 #
-# Driven against Intent it put 44 of 67 threads in `residue`. Checking one
-# rather than shipping the number: `intent/st/ST0001/acceptance.md` is FIRST
-# CREATED by the hoist commit `0ec2ac79` -- "Intent is now self-hosted on
-# Intent3" -- so it is v3-created beyond doubt, and it carries no banner
-# because the early v3 renderer did not emit one. **A detector keyed on a
-# string the subject did not always emit reports the subject absent.** The
-# banner is a fact about the RENDERER'S VERSION, not about when a thread was
-# born.
+# I then tried the date form and it fails too, for two independent reasons:
 #
-# So: the port is located by the arrival of `.canon/`, which is a v3 concept
-# and cannot predate the hop, and a thread whose acceptance file first appears
-# at or after it was created under v3. Where the marker is absent the probe
-# SAYS the classification could not run rather than defaulting every thread to
-# one side. Lamplight's mechanism, arrived at the long way round.
+#   1. THE HOP IS NOT AN INSTANT. Measured on Intent: the hoist wrote acceptance
+#      files ~25h BEFORE the first `.canon` record, so `.canon` arrival is not
+#      the port moment it looks like.
+#
+#   2. **COMMIT DATE IS NOT CONTENT DATE WHEN RENAMES ARE IN PLAY** (Lamplight,
+#      2026-08-29, and it nearly cost them their own number). 8 of their 25 rows
+#      read as POST-port blobs and their script printed "the 25 needs revising".
+#      The cause: hv's `18000b4cf` is a PURE RENAME -- 3723 files, 0 insertions,
+#      0 deletions, every move R100 -- so the blob is byte-identical PRE-port
+#      text wearing a POST-port commit date. **Any date-based partition reads
+#      moved-but-unchanged content as newly written.** Their finding resolved
+#      benign; the mechanism does not.
+#
+# So there is no port marker here and no date comparison. Unrecovered threads go
+# to ONE `UNCLASSIFIED` bucket naming both causes. **Lamplight's 152+197+9=358
+# stands as what ESTATE KNOWLEDGE can do and this instrument cannot. Do not
+# build toward it.**
 # ---------------------------------------------------------------------------
-
-CANON_GLOBS = ("*/.canon/st/*.json", ".canon/st/*.json")
-
-def port_time(repo):
-  """Commit time of the earliest `.canon/` record, or None if never ported."""
-  best = None
-  for g in CANON_GLOBS:
-    rc, out = git(repo, "log", "--all", "--topo-order", "--reverse", "--format=%ct", "--", g)
-    for line in out.split():
-      ts = int(line)
-      if best is None or ts < best:
-        best = ts
-      break
-  return best
 
 def oldest_blob(repo, paths):
   """The genuinely oldest commit touching any of this thread's paths.
@@ -146,7 +138,7 @@ def oldest_blob(repo, paths):
         return c, p, ts
   return None
 
-def classify(repo, paths, port, cap=25):
+def classify(repo, paths, cap=25):
   """Put ONE thread in exactly one bucket: recovered | v3_created | residue.
 
   **PER-PATH IS THE WRONG UNIT AND IT SILENTLY INFLATES.** v2 kept threads in
@@ -223,14 +215,13 @@ def scan(repo):
     for k, _ in not_a_thread:
       del by_thread[k]
 
-  port = port_time(repo)
   r = {"exposed": [], "immune": 0, "no_ev": 0, "scaffold": [],
        "recovered": 0, "v3_created": 0, "residue": [],
        "seen": len(by_thread), "oracle": oracle, "ids": ids,
-       "not_a_thread": not_a_thread, "port": port}
+       "not_a_thread": not_a_thread}
 
   for key in sorted(by_thread):
-    kind, p, t = classify(repo, by_thread[key], port)
+    kind, p, t = classify(repo, by_thread[key])
     if kind == "v3_created":
       r["v3_created"] += 1
       continue
@@ -290,10 +281,6 @@ def report(r):
       for k, p in r["not_a_thread"][:8]:
         print("     %-12s %s" % (k, p))
   print("")
-  if r["port"] is None:
-    print("  !! PORT MARKER ABSENT: no `.canon/` record anywhere in history.")
-    print("     Cannot tell a v3-created thread from unreadable residue, so")
-    print("     nothing is classified as v3-created and residue is an UPPER bound.")
   print("  v2-authored form recovered  : %d   <- the measured population" % r["recovered"])
   print("  banner-marked v3 view       : %d   <- nothing to lose, accounted for" % r["v3_created"])
   print("  UNCLASSIFIED                : %d   <- see the caveat below" % len(r["residue"]))
@@ -500,9 +487,11 @@ if __name__ == "__main__":
     print("    NECESSARY, and a thread without one may be either:")
     print("      (a) born under v3 before the banner existed -> nothing to lose")
     print("      (b) v2-authored in a form this probe cannot read -> UNMEASURED")
-    print("    Timestamps do not settle it either: measured on Intent, the hoist")
-    print("    wrote acceptance files ~25h BEFORE the first .canon record, so")
-    print("    `.canon` arrival is not the port instant it looks like.")
+    print("    Timestamps do not settle it either, for TWO reasons: the hoist")
+    print("    wrote acceptance files ~25h BEFORE the first .canon record, and")
+    print("    a PURE RENAME gives byte-identical pre-port text a post-port")
+    print("    commit date (Lamplight; hv's 18000b4cf, 3723 files, all R100).")
+    print("    COMMIT DATE IS NOT CONTENT DATE.")
     print("    **SETTLE THESE BY HAND AGAINST YOUR OWN HISTORY.** Lamplight did")
     print("    exactly that -- 197 v3-created, 9 genuine residue, 152 recovered,")
     print("    summing to 358 -- and estate knowledge is what made it possible.")
