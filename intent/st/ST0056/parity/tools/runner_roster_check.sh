@@ -308,9 +308,44 @@ add() { findings="${findings}  $1
 # site means a literal filename comparison.
 has() { grep -qxF -- "$1" <<<"$2"; }
 
+# IS THE MISSING HALF STAGED RATHER THAN ABSENT? (discriminator: cc, 2026-08-29)
+#
+# `PRESENT` above is `git ls-files`, which reads whatever index it is handed.
+# **Under a `git commit --only <paths>` hook that index is a TEMPORARY one
+# holding HEAD plus the named paths** -- so a tool that is staged in the real
+# index, but not named on that commit line, is simply absent from the tree being
+# judged. The roster row (read from the WORKTREE) survives; the file vanishes;
+# and the check correctly reports a severed two-file fact about a tree that
+# exists only because somebody committed by path.
+#
+# **THE DETECTION WAS RIGHT AND THE ATTRIBUTION WAS WRONG, AND THE ATTRIBUTION
+# IS THE ACTIONABLE HALF.** The old wording -- "the roster has outlived the
+# instrument", "fix the row or fix the runner, whichever is lying" -- sends a
+# reader to DELETE the roster row to get moving, which lands a real defect to
+# clear a false one, in a file its author is mid-change on. Measured 2026-08-29:
+# this refused two nodes' unrelated commits and both correctly declined both to
+# touch the row and to reach for `--no-verify`. It cost them an hour between
+# them and it will fire again on the next instrument anyone adds, because the
+# triggering sequence is ordinary: stage the tool, edit the roster, and let any
+# peer commit anything at all in between.
+#
+# **IT STILL GATES, AND THAT IS NOT A COMPROMISE.** The commit genuinely severs
+# the pair; letting it through would land a roster row naming a file the commit
+# does not carry. Only the sentence changes.
+#
+# `GIT_INDEX_FILE` is unset in a SUBSHELL so the ambient index is asked and the
+# caller's environment is untouched -- every other read in this file must keep
+# judging the tree being committed.
+in_flight() {
+  ( unset GIT_INDEX_FILE
+    git -C "$ROOT" ls-files -- 'intent/st/*/parity/tools/*.sh' 2>/dev/null \
+      | sed 's|.*/||' | grep -qxF -- "$1" )
+}
+
 # ---------------------------------------------------------------------------
 # A. Every tool on disk is rostered, and every rostered tool is on disk.
 # ---------------------------------------------------------------------------
+inflight=0
 while IFS= read -r t; do
   [ -n "$t" ] || continue
   has "$t" "$ROSTERED" || add "$t exists in a parity tools directory and has NO roster row -- declare it gated, manual or not-an-instrument, with a reason"
@@ -320,7 +355,14 @@ EOF
 
 while IFS= read -r t; do
   [ -n "$t" ] || continue
-  has "$t" "$PRESENT" || add "$t has a roster row and NO file -- the roster has outlived the instrument"
+  if has "$t" "$PRESENT"; then
+    continue
+  elif in_flight "$t"; then
+    inflight=1
+    add "$t has a roster row and its file is STAGED but not in the tree being committed -- the two halves are IN FLIGHT, not severed. DO NOT DELETE THE ROW. Land the tool and its roster row in ONE commit: \`git commit --only\` builds HEAD plus the named paths, so a path-scoped commit by ANY node drops a staged sibling it did not name. If the tool is not yours, its author is mid-landing -- wait."
+  else
+    add "$t has a roster row and NO file anywhere -- absent from the tree being committed AND unstaged. The roster has outlived the instrument."
+  fi
 done <<EOF
 $ROSTERED
 EOF
@@ -448,8 +490,12 @@ if [ -n "$findings" ]; then
   printf 'roster: %s parity file(s) in this commit; %s gated, %s manual, %s not-an-instrument; the roster and the runner DISAGREE\n' \
     "$total" "$gated_n" "$manual_n" "$notinstr_n"
   printf '%s' "$findings"
-  printf '  the roster is in %s -- fix the row or fix the runner, whichever is lying.\n' \
-    "intent/st/ST0056/parity/tools/runner_roster_check.sh"
+  if [ "$inflight" -eq 1 ]; then
+    printf '  AT LEAST ONE FINDING ABOVE IS AN IN-FLIGHT PAIR, NOT A LIE. Nothing needs correcting in the roster: a tool and its row are landing together and a path-scoped commit split them. Wait, or land the pair.\n'
+  else
+    printf '  the roster is in %s -- fix the row or fix the runner, whichever is lying.\n' \
+      "intent/st/ST0056/parity/tools/runner_roster_check.sh"
+  fi
   exit 1
 fi
 
