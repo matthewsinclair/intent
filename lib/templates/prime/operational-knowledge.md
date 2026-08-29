@@ -15,10 +15,9 @@
 
 ### Skills (invoke via /skill-name)
 
-- `/in-start` -- session orientation (read-only, no coding)
+- `/in-session` -- session bootstrap; the entry point, enforced by the `UserPromptSubmit` gate
 - `/in-plan` -- planning kickoff (document before coding)
 - `/in-standards` -- load coding discipline into context
-- `/in-next` -- identify next work unit
 - `/in-finish` -- end-of-session wrap-up (docs only, no code)
 - `/in-essentials` -- Intent workflow rules (always active)
 - `/in-elixir-essentials` -- Elixir coding rules

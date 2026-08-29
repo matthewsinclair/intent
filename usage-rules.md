@@ -180,8 +180,6 @@ All skills install to `~/.claude/skills/<name>/SKILL.md` and auto-load into ever
 | `/in-session`             | Session bootstrap — loads language-appropriate skills after /compact |
 | `/in-essentials`          | Intent workflow rules (CLI discipline, tracking hygiene)             |
 | `/in-standards`           | Agnostic coding discipline (Highlander, PFIC, Thin Coordinator)      |
-| `/in-start`               | Start a new steel thread from an idea                                |
-| `/in-next`                | Pick the next WP/task by scanning wip.md and open STs                |
 | `/in-plan`                | Produce a plan before touching code                                  |
 | `/in-review`              | Two-stage review — general reviewer + language-specific critic       |
 | `/in-verify`              | Verification gate before declaring a task done                       |

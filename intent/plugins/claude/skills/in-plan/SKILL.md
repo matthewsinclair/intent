@@ -1,6 +1,6 @@
 ---
 description: "Planning kickoff: show workplan, invoke coding skills, enforce rules before coding"
-chains_to: ["in-next"]
+chains_to: []
 ---
 
 # Planning Kickoff
@@ -63,9 +63,9 @@ Present the plan and wait for approval before proceeding. Do not start coding un
 
 ## Skill Chain
 
-After planning is approved, consider:
+After planning is approved, pick the first work unit from the plan:
 
-- `/in-next` -- pick the first work unit from the plan
+- `intent todo` -- the flat DOING / TODO / DONE view, generated from real ST/WP status. Reach for it to see where things stand and to drive next steps.
 
 ## Red Flags
 
