@@ -3,44 +3,39 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 15:47Z
+heartbeat_at: 2026-08-29 16:01Z
 status: active
-focus: "**AC-12.2 + AC-12.3 ARE RUNNING.** Four files vc did not touch (working-with-llms.md, README, CHANGELOG) + the 3.0.1 release notes. **ON THE CRITICAL PATH: hv is holding the release so the docs ship WITH it.** The README voice call is MINE and vc deliberately did not make it."
+focus: "**AC-12.2 IS LANDED -- narrative, README, CHANGELOG all converged and committed.** AC-12.3 (3.0.1 release notes) + the 3.0.1 CHANGELOG entry are BLOCKED on ONE question asked twice and not yet answered: **is 3.0.1 cut from HEAD, or from before `8aebe2ce`?** Release-note fact 1 moved under me -- `ac new` REFUSES at HEAD now."
 claims: [ST0065, ST0061]
 ---
 
 # Interface Claude (ic)
 
-## DOING -- RUNNING NOW
+## DOING -- AC-12.2 LANDED, AC-12.3 BLOCKED ON ONE QUESTION
 
-**THE HOLD IS OVER. hv ruled the four ST0068 decisions at `7a2f205f`; vc confirmed my unit unmoved and unoverlapping.**
+### `AC-12.2` -- THREE FILES DONE
 
-### `AC-12.2` -- four files, NONE of which vc touched
+`ead0399f` + `39303df4` working-with-llms.md | `76a98089` README.md | `884950f9` CHANGELOG.md
 
-`intent/docs/working-with-llms.md` (the canon narrative, 55KB) | `README.md` | `CHANGELOG.md`
+**The narrative's gap was MISGUIDED, not stale** -- it said nothing about the store, so a reader following it hand-edits `acceptance.md` and loses it silently. Added the v3 preamble with the generated-vs-authored split **measured**, handing over the PROPERTY (read the banner in the file in front of you) not the table. **The banner is evidence in ONE direction:** `ST0056/WP/15/info.md` has none while all 38 siblings do; `intent doctor` is the check. **D1-D11 NOT re-verified and the stamp says so.**
 
-**hv ruled `intent/docs/` STAYS INTERNAL CANON and the public set links across to it** -- so the narrative is mine **by that ruling, not by default.** README and CHANGELOG are root files, also mine.
+**I CORRECTED MY OWN TABLE AN HOUR LATER.** I called `.canon` "the record"; the store is `intent/.cache/intent.db` and `.canon` is the **committed extract**. Telling a reader the JSON is the record invites the same silent loss one layer up. **The CHANGELOG's 3.0.0 entry had it right all along.**
 
-**THE MEASUREMENT THAT DEFINES THE JOB** (controls run first -- 34 and 40 hits on a certain word, 0 on nonsense): `working-with-llms.md` has **`v3` 0, `3.0.0` 0, `v2` 15, `database`/`store`/`SSOT` 0.** README the same, its only version reference a v2.10.0 migration-guide link. **CHANGELOG already carries a correct `[3.0.0]` entry** -- the release note knows, the narrative does not.
+**README was FALSE IN THE FIRST FIVE MINUTES:** clone-and-PATH hands them the v2 line, which refuses a v3 tree; `intent help` **refuses in the build on PATH.** **It now carries NO command list** and points at the generated reference -- drift removed structurally, not by care. **My own draft failed my own check** (`--non-test`; the flag is `--kind`).
 
-### `AC-12.3` -- the 3.0.1 RELEASE NOTES
+**VOICE CALL MADE, IT WAS MINE:** emoji go. 28 -> 0. **Not the site rule applied by fiat** (vc was right to refuse that) -- the same judgement for the README's own reason.
 
-**hv holding the release for the doc task is what made this satisfiable at all** -- it was self-contradictory while the docs shipped afterwards.
+### `AC-12.3` + the 3.0.1 CHANGELOG entry -- BLOCKED ON ONE QUESTION
 
-### THE README VOICE CALL IS MINE AND vc DELIBERATELY DID NOT MAKE IT
+**IS 3.0.1 CUT FROM HEAD, OR FROM BEFORE `8aebe2ce`?** Asked vc twice; not answered yet.
 
-README is **emoji-led with v2-framed examples**. The new site design system **forbids emoji as interface**; house rules forbid vanity metrics. **Those are SITE and PROSE rules, not README rules, and vc refused to extend them by fiat.** But a README in one voice and a site in another is **a convergence failure inside `AC-12.2`'s own word.** My call to make, not to inherit.
+**RELEASE-NOTE FACT 1 MOVED UNDER ME AND I CAUGHT IT BY MEASURING.** "3.0.1 does not fix `ac new`" was measured **before cc's package landed**. At HEAD `ac_new` returns `CriterionExists` (`facade.rs:4574`) and its remedy names `intent ac edit` (`:942`). `8aebe2ce`, 13:31Z, **NOT an ancestor of `80d8b2ca`**. The shipped-tool half still stands; the 3.0.1 half is now conditional. **Writing it either way without the answer puts a false sentence in the one document where that is least recoverable.**
 
-### WHAT THE RELEASE NOTES MUST CARRY (vc's, and each is a measured fact)
+**The other three facts re-verified and hold:** keg ships no rule library (`0112b8c1` not an ancestor); `st repair` in `shipped` at the tag (117) and gone at HEAD (118), read off BOTH dispatch tables; 0133's framing unaffected.
 
-1. **`ac new` on an existing id DESTROYS in the shipped tool and there is no `ac edit`. 3.0.1 does NOT fix it** -- ruled out of the cut. **So the docs are where that hazard gets stated.**
-2. **THE CORRECTION TO `0133`'s FRAMING.** Its body still says "ingest damage" and "parser" when it is a **representable-state regression**, and **`0090` means the body cannot be rewritten.** The release notes are fresh, so the correct framing lands there.
-3. **THE PUBLISHED v3.0.0 KEG SHIPS NO RULE LIBRARY AND NO SKILLS.** `0112b8c1` is in HEAD and **NOT an ancestor of `80d8b2ca`**. So **`brew install intent` then `intent claude rules list` FAILS today**, and any doc teaching that sequence against the published build is wrong.
-4. **`st repair` SHIPPED IN v3.0.0 AND IS RETIRED AT HEAD** -- the tag declares 117 commands including it, HEAD declares 118 with it retired. **The only removal in that direction.** It works in the release people are on and vanishes at the next one.
+### REPORTED TO vc, NOT EDITED -- their file
 
-### ASSIGNMENT 2 -- UNPARKED
-
-**cc's `ac new` / `at new` refuse-and-edit package is DELIVERED.** Surface-review it. **The ping was vc's message, not a future one.**
+**`docs/index.md` says `brew install intent`; `docs/install.md` says `brew install matthewsinclair/tap/intent`.** The bare form resolves against homebrew-core, not the tap. **Two pages written in the same hour disagree on the first command every reader types.**
 
 ## HOW I FOUND THE HOLD WAS STALE -- THE KEEPER
 
