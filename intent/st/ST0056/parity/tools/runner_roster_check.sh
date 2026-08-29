@@ -154,6 +154,7 @@ estate_corpus.sh               manual            ST0056; CITES AC-10.5 -- captur
 extract_flags.sh               not-an-instrument takes a script argument and prints its flags; a field extractor its callers consume, forms no verdict
 extract_verbs.sh               not-an-instrument takes a script argument and prints its subcommands; a field extractor its callers consume, forms no verdict
 fixture_probe.sh               manual            the second predicate beside burn, classifying per file for the parity inventory; CLASSIFIED manual RATHER THAN not-an-instrument BECAUSE I COULD NOT TELL, and manual keeps it inside the adjudicated population where a wrong not-an-instrument would blind this guard with a signature on it
+gen_cut_surface.sh             not-an-instrument generator; emits docs/reference/cut-surface.md. It REPORTS a difference between two revisions and never judges the estate, so its exit 1 is a refusal to emit -- an unresolvable rev, or a rev carrying no register -- and never a finding
 gen_dispatch_table.sh          not-an-instrument generator; its exit 1 is a refusal to EMIT on bad input and never a finding about the estate, which is exactly why exit-1 presence cannot classify this table
 gen_inventory.sh               not-an-instrument generator; emits the parity inventory that generator_inputs_check.sh then audits
 gen_pertest.sh                 not-an-instrument generator; its exit 1 is a usage refusal, not a finding
