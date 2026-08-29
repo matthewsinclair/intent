@@ -113,24 +113,28 @@ Near-monochrome ground and ink, one accent, and the semantic set from §1. Lift 
 
 **Define every colour on bare `:root` first and redefine only what changes inside the media query.** A token whose only definition lives in a media block vanishes in the other mode. Redefine the same tokens again under `:root[data-theme="dark"]` if a toggle is built, so the toggle wins in both directions.
 
-### Why the accent is steel and not red
+### OPEN DECISION A — the accent, and whether it can be red at all
 
-The editorial direction this document was briefed under has an obvious accent: **rubrication**, the red ink a scribe used to mark the parts of a manuscript that told you how to read it. That is a good description of what Intent does to a codebase, and it was the first proposal.
+**This is not settled and it must not be settled by whoever holds the pen on this document.** The `--accent` values above are a placeholder so the spec is buildable; they are one of the two candidates, not a ruling.
 
-**It is refused on measured grounds rather than taste.** `--error` is red, inherited from the tool. Measured in CIELAB, ΔE76:
+**The decision.** Is the site's accent **steel `#35618f`** or **rust `#A03E1E`**?
 
-| Accent          | Hue    | ΔE vs `error:` | ΔE vs `warning:` |
+**Why it is decidable rather than a preference.** The editorial direction has an obvious accent — **rubrication**, the red ink a scribe used to mark the parts of a manuscript that told you how to read it. That is a good description of what Intent does to a codebase. But `--error` is already red, inherited from the tool (§1). Measured in CIELAB, ΔE76:
+
+| Candidate       | Hue    | ΔE vs `error:` | ΔE vs `warning:` |
 | --------------- | ------ | -------------- | ---------------- |
 | rust `#A03E1E`  | 45.1°  | **13.8**       | 30.8             |
 | steel `#35618f` | 269.6° | 77.1           | 81.2             |
 
-**Rust sits 14 degrees of hue from the `error:` red, at a ΔE of 13.8 — the bottom of the distinguishable band, and that band is calibrated on large swatches.** A link inline in prose and an `error:` line in a terminal block are both small text, where discrimination is worse still. Rust against `warning:` is fine; it is the error token specifically that it lands on.
+Rust sits 14 degrees of hue from the `error:` red at ΔE 13.8 — the bottom of the distinguishable band, and that band is calibrated on large swatches. **A link inline in prose and an `error:` line in a terminal block are both small text, where discrimination is worse still.** Rust against `warning:` is fine; it is the error token specifically that it lands on.
 
-**So the real constraint is not which accent, it is whether the accent can be red at all.** If it is, then either `error:` moves off red — which breaks the inheritance principle in §1, since a terminal renders errors red and the entire point is that the palette is not ours to choose — or the accent is not red. Both cannot hold. **The semantic palette is a fact about the tool and the accent is a preference about the site; where they collide, the fact wins.**
+**The constraint it must respect.** §1 is the founding principle: the semantic palette is inherited from the tool's output vocabulary and is not ours to choose. A terminal renders errors red.
 
-**A note on the instrument, because it nearly went the other way.** WCAG contrast ratio was tried first and returned rust-vs-error at 1.09 and steel-vs-error at 1.11 — near-identical, which would have condemned both accents equally. That reading is false on its face: a dark blue and a dark red do not look alike. **WCAG contrast is a lightness metric and is structurally blind to hue, which is the only axis this question is about.** It was caught because both candidates happened to be in the same comparison table -- **the control was a by-product of the format, not a precaution somebody took.** That is the more useful version of the lesson: measure the case you are not arguing for as a habit, because you will not notice you needed it until it contradicts you. Measuring only the colour under suspicion would have produced a confident wrong answer with nothing to catch it.
+**What breaks if it goes the other way.** If the accent is rust, then **either `error:` moves off red — which kills the inheritance principle and with it the whole coherence argument — or the two collide on the page.** Both cannot hold. So the real question is not which accent; it is **whether the accent can be red at all**, and answering that settles the hue as a consequence.
 
-The rubric idea survives as a component (§6.5) rather than as a hue.
+**A note on the instrument, because it nearly went the other way.** WCAG contrast ratio was tried first and returned rust-vs-error at 1.09 and steel-vs-error at 1.11 — near-identical, which would have condemned both accents equally. That reading is false on its face: a dark blue and a dark red do not look alike. **WCAG contrast is a lightness metric and is structurally blind to hue, which is the only axis this question is about.** It was caught because both candidates happened to sit in the same comparison table — **the control was a by-product of the format, not a precaution anybody took.** That is the more useful form of the lesson: measure the case you are not arguing for as a habit, because you will not notice you needed it until it contradicts you.
+
+**If the accent moves, `--note` moves with it.** See Decision F.
 
 ## 4. Typography
 
@@ -347,21 +351,75 @@ The site inherits Intent's house style, which is enforced in this repository. Th
 - **Say the thing, then stop.** Front-load every section: the point in the heading, the argument in the first sentence, the qualification after. A reader scanning only the headings should get the whole case.
 - **Claims are checkable or they are cut.** No "10x", no "revolutionary", no "seamless".
 
-## 11. Open questions
+## 11. Open decisions
 
-Genuinely open. **Do not read a guess into them.**
+**These go to the design agent at Laksa, not to hv in a workstream session** (hv's ruling, 2026-08-29). **Nothing here has been quietly settled by whoever held the pen**, and if you find something in this document that reads as decided but appears below, the section above is a placeholder and this is the authority.
 
-1. **`--note` is the least certain semantic colour.** It is a neutral blue-grey in both modes deliberately — `note:` is the lowest-emphasis prefix and must not compete with the accent, which is also blue. Check it against `--accent` and `--ink-muted` side by side on a real page; if it reads as either, it is doing no work and should become a weight or a mark rather than a colour.
-2. **Search.** _(docs shell)_ Self-containment forbids a hosted index. A build-time static index is possible; so is no search at all with good navigation. A real trade, and hv's or Laksa's call.
-3. **The wordmark.** There is no logo in the repository and none has been invented. Mono-set `intent` in lowercase is the obvious placeholder and may be the right answer permanently.
-4. **Versioned docs.** v2 is frozen under `docs/v2/` with canonicals deliberately pointing at their old locations (hv ruled this 2026-08-29). Whether v3 docs get a version switcher, and what it does to those canonicals, is unresolved and touches live SEO.
-5. **Syntax highlighting theme.** If build-time highlighting is used, its palette must be **derived from these tokens rather than imported**, or the site will have two colour systems.
-6. **The theme toggle.** Respecting `prefers-color-scheme` alone is defensible. Both palettes are specified either way.
-7. **The thread figure's composition.** §6.6 specifies its content, its tokens and its text alternative. How it is drawn is a drawing decision and belongs to whoever draws it.
+**A flag that says "open" is not the same as one that says what would close it.** Each decision below carries three things: the decision itself, the constraint it must respect, and what breaks if it goes the other way. A decision presented without those gets resolved on taste, which is the same ambiguity in a tidier format.
+
+### A. The accent, and whether it can be red at all
+
+Specified in full at §3. **Steel `#35618f` vs rust `#A03E1E`.** The constraint is §1's inheritance principle; the consequence of choosing rust is that either `error:` leaves red or the two collide at ΔE 13.8. **Resolve the red question and the hue follows.** The token values in §3 are a placeholder.
+
+### B. Search
+
+**Decision.** Build-time static index, or no search at all with strong navigation?
+
+**Constraint.** §9's zero-off-origin rule forbids a hosted search index. That is not negotiable — it is the same rule that forbids third-party fonts and analytics.
+
+**What breaks either way.** A build-time index adds bytes to a page budget already carrying webfonts (§9), and it has to be regenerated whenever the docs change or it lies. No search at all puts the entire burden on navigation, which is survivable for a one-page site and gets steadily worse if the docs are ever hosted. **This decision is cheap now and expensive after the docs land**, so it wants deciding before the docs shell exists rather than after.
+
+### C. The wordmark
+
+**Decision.** Is there a mark, and what is it?
+
+**Constraint.** There is no logo in the repository and none has been invented. Mono-set `intent` in lowercase is the obvious placeholder.
+
+**What breaks either way.** The placeholder may simply be right permanently — a tool whose voice is "no banners, no unicode decoration" is not obviously improved by a glyph. A drawn mark then has to earn its place against §8's forbidden-affordance list, which rules out most of what a mark is usually for.
+
+### D. Versioned docs, and the canonicals
+
+**Decision.** Does the v3 documentation get a version switcher, and what happens to the `docs/v2/` canonicals?
+
+**Constraint, and this one is not purely a design question.** v2 is frozen under `docs/v2/` with its canonical URLs **deliberately still pointing at the old `docs/blog/` locations** — hv ruled that on 2026-08-29 to preserve a year of inbound links and their search ranking. The archive is intentionally not authoritative for its own content, and `docs/v2/README.md` records why so nobody "repairs" it.
+
+**What breaks if it goes the other way.** A switcher that rewrites those canonicals to match their new paths discards every inbound link and whatever ranking those posts have. **That is not recoverable once reindexed.** A design agent should be told this rather than left to discover it, because the tidy answer is the destructive one.
+
+### E. Syntax highlighting theme
+
+**Decision.** If build-time highlighting is used, is its palette derived from the tokens in §3 or imported?
+
+**Constraint.** §6.3 already rules out client-side highlighting — that is JavaScript the page does not need plus a flash of unstyled code for everyone. This decision is only about the palette.
+
+**What breaks if it goes the other way.** An imported theme gives the site **two colour systems**, one of which knows nothing about the semantic vocabulary in §1. The first time a highlighted keyword lands near an `error:` line, the page is saying two things with colour.
+
+### F. The `--note` token
+
+**Decision.** Does `note:` stay a colour, or become a weight or a mark?
+
+**Constraint.** `note:` is the lowest-emphasis prefix in §1 and must not compete with the accent — which, under the steel placeholder, is also blue.
+
+**What breaks if it goes the other way.** Check it against `--accent` and `--ink-muted` side by side on a real page. **If it reads as either of them it is doing no work**, and a colour that carries no distinction is worse than no colour because it implies one. **This decision is downstream of Decision A** — if the accent moves off blue, `--note` may be fine exactly as it is.
+
+### G. The thread figure's composition
+
+**Decision.** How is §6.6 actually drawn?
+
+**Constraint.** §6.6 specifies its content, its tokens, its text alternative, and that it is inline SVG rather than an image, a library or a screenshot.
+
+**What breaks if it goes the other way.** Nothing structural — this is a genuine drawing decision and belongs to whoever draws it. It is listed so it is visibly a decision rather than an omission.
+
+### H. The theme toggle
+
+**Decision.** Is there one, or does the site respect `prefers-color-scheme` alone?
+
+**Constraint.** Both palettes are fully specified in §3 either way, and §8 forbids a toggle that animates the whole page.
+
+**What breaks if it goes the other way.** A toggle needs the `[data-theme]` selectors in §3 wired in both directions, and it is JavaScript — permitted under §9 only as progressive enhancement, so the page must be correct with it off.
 
 ## 12. What this document is not
 
-**It is not ratified and no page has been built against it.** Every claim is a design intention rather than a measurement — with the single exception of the prefix table in §1, measured at `HEAD` on 2026-08-29, which is the one thing here that is a fact about the tool rather than a proposal about the site.
+**It is not ratified, no page has been built against it, and eight of its decisions are open (§11).** Every claim is a design intention rather than a measurement — with the single exception of the prefix table in §1, measured at `HEAD` on 2026-08-29, which is the one thing here that is a fact about the tool rather than a proposal about the site.
 
 ---
 

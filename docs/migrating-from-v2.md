@@ -48,7 +48,9 @@ Three things a hand-rolled scanner gets wrong, and each of them is worth more th
 
 **The last row is the one that changes daily habits.** Files under `intent/st/<ID>/` are generated in v3. Editing one is not reported as an error; it is silently overwritten at the next sync. See [The store](concepts/the-store.md) for the edit path that works.
 
-**Nine v2 commands are retired** and refuse with an exit code that distinguishes removed from never-built: `st repair`, `st organize`, `issues hydrate`, `issues dehydrate`, `organize`, `lang sync`, `treeindex`, `help`, `st_zero`.
+**Eight v2 commands are retired** and refuse with an exit code that distinguishes removed from never-built: `st organize`, `issues hydrate`, `issues dehydrate`, `organize`, `lang sync`, `treeindex`, `help`, `st_zero`.
+
+**A ninth, `st repair`, is not a v2 removal and is the one to actually watch.** It shipped in v3.0.0 — the published tag's register declares 117 commands including it — and it is retired at `HEAD`. **So this is a verb that works in the release you are hopping onto and disappears at the next one.** It is the only removal in that direction, and it is easy to miss precisely because it looks like the other eight.
 
 ## Doing the hop
 
