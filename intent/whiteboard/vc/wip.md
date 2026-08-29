@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: b1060b1c-548a-4974-810e-73691ac00c67
-heartbeat_at: 2026-08-29 18:38Z
+heartbeat_at: 2026-08-29 18:59Z
 status: active
-focus: "EOD 2026-08-29. Everything committed; pair current and verified as a SET at f4a2271f. Globalfold done -- wip.md is DOING and TODO only, restart.md owns the delivery contract. ON THE BOUNCE: 0144 (st edit registers an unknown id in tracked .intentfiles, and the FILE ARGUMENT decides which paths do it); the bare-issue-number citation in our shipped gate output, which reaches every consumer estate; and hv on 0143, the Guard-column vocabulary and the parked stack. ST0068 4/9, ST0056 69/133."
+focus: "THE PUSH GATE IS GREEN AT `f0098c7b` -- hv was blocked and is not any more. fmt was always clean; 113 clippy findings were LINTS promoted by `-D warnings`, not compile errors. The 113 was not the population: compilation aborts per crate, so three more sat behind the abort and only a run WITHOUT `-D warnings` counted them all. Refuted my own no-toolchain-pin hypothesis rather than confirming it. The fmt+clippy arms are OUT of prepush on hv's ruling -- CI ran the identical commands all along. ON THE BOUNCE: the store model-inconsistency doctor reports, ST0065 to hv live, ST0068 AC-02.1/02.3."
 claims: [ST0056, ST0057, ST0058, ST0060, ST0066, ST0068]
 ---
 
@@ -15,7 +15,15 @@ claims: [ST0056, ST0057, ST0058, ST0060, ST0066, ST0068]
 
 ## DOING
 
-**WAITING ON cc, THEN THE REBUILD IS MINE.** hv ordered a full clean via devbin, a rust crate dep update, and a fresh rebuild. **The guard correctly refuses while `native/rust` is dirty and the dirt is cc's four `st edit` paths.** cc lands, tells me, and does NOT rebuild -- one operation on a clean tree, after the dep update. **Announce before and after: `~/.local/bin/intent` symlinks into that path and dc and ic both read it, and during the window there is no shared binary at all.** Verify by mtime AND string content AND `--version` losing its `dirty-` prefix -- never by `done.`
+**THE PUSH GATE IS GREEN AND THE LINT ARMS ARE OUT OF IT (`f0098c7b`, 7 files).** hv could not push; measured, not characterised: rustfmt CLEAN (positive-controlled), code COMPILED (clippy without `-D warnings` rc=0), 113 lints promoted to errors. **106 `result_large_err` from ONE cause** -- `FacadeError::Organize` carrying `PreconditionsUnmet`'s `Verdict` + threads past 128 bytes -- deferred with scoped allows on hv's ruling, boxing sequenced after the tag in 0136's shape. **Controlled BOTH ways: an extra `-D` still returns rc=101, and force-warning the lint back on still surfaces 110, so it is suppressed rather than absent.**
+
+**THE KEEPER IS THAT 113 WAS NOT THE POPULATION.** Compilation aborts PER CRATE, so the first run counted only what it REACHED; three more findings sat behind the abort in integration-test crates and surfaced one at a time as each fix let the build get further. **The complete count only came from a run WITHOUT `-D warnings`, where a warning does not stop the build. The instrument that ENDS the count is not the instrument that TAKES it.**
+
+**AND I REFUTED MY OWN HYPOTHESIS RATHER THAN CONFIRMING IT.** The no-toolchain-pin flag was mine, and it was the obvious cause. It is wrong: one rust in the Cellar (1.98.0, installed 2026-08-23) and the last green push was 2026-08-26, so the toolchain PREDATES the green. This incident is not evidence for a pin and I will not let it be cited as such.
+
+**cc RULED store.rs AND THE RULING BEAT MY FRAMING.** I read an orphaned doc block as documenting a DELETED function and offered delete-and-quote-in-the-commit. cc: the SUBJECT MOVED, to `ProjectStateEdit::SetTodoWatermark`. Reuniting it with the variant keeps the reasoning at an ADDRESS; a commit message keeps the bytes and loses the address. **Clippy's own machine-applicable fix would have merged it into `set_todo_watermark` -- a function that TAKES a mark -- making its doc assert the INVERSE of D42.** An auto-fix that writes a false document is why `--fix` did not get run blind.
+
+**MINE AGAINST ME: I wrote an apostrophe inside a single-quoted bash `printf` in the gate itself.** Hard syntax error, caught by `bash -n`. I read my own edit instead of driving it, one turn after telling hv that a `tail`-shaped instrument cannot distinguish quiet from discarded.
 
 **DEP SURVEY DONE, READ-ONLY.** Nine direct workspace deps, 245 packages locked. **Two declarations are load-bearing and get re-checked after, not assumed:** `jsonschema` at `default-features = false` (defaults pull reqwest + TLS and a network-reachable `$ref` resolver) and `clap` with `features = ["string"]` (the surface is built from runtime table data). **No `.tool-versions` -- this project declares no toolchain pin**, so the build takes whatever `rustc` is on PATH (1.98.0) and a dep refresh is less reproducible than it looks. Flagged to hv, not a blocker.
 
