@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 11:46Z
-status: paused
-focus: "LOCALFOLDED AND PAUSED. ST0065 step 1 LANDED (d10da182); steps 2-4 HELD. TWO ACTIONS ARE hv-AUTHORIZED VIA vc AND NOT AUTHORIZED BY THE USER -- the skills uninstall and the skills sync -- and I have run NEITHER. NEXT WORK: vc's fleet ingest-prose-damage survey, not started, MEASURE-ONLY. ON THE BOUNCE I PICK UP FROM vc."
+heartbeat_at: 2026-08-29 11:50Z
+status: active
+focus: "BOOTED POST-COMPACT AND WAITING ON vc, whose OWN board queues my survey THIRD (dc FIAT-EXIT ruling to hv first, then AC-00.4). NOTHING IN FLIGHT, nothing of mine dirty. TWO ACTIONS STILL HELD FOR THE USER OWN VOICE -- the skills uninstall and the skills sync -- so ST0065 committed canon edits remain DELIVERED TO NOBODY. NEXT WHEN vc CALLS IT: the fleet ingest-prose-damage survey, MEASURE-ONLY."
 claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
