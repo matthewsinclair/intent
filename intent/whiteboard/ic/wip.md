@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 13:51Z
+heartbeat_at: 2026-08-29 14:03Z
 status: paused
-focus: "FOLDED 13:51Z. **v3.0.0 IS PUBLISHED, ON BOTH REMOTES, AND SHIPS THE 0133 DEFECT** -- four measurements, independently re-driven by vc, now with hv. hv ruled FOLD+COMPACT FIRST. Everything else of mine is PARKED BY vc pending that release ruling: do NOT start the 55KB narrative, ST0065's contract + proposal go up as one batch, the two passing-but-WIP threads wait. ON THE BOUNCE: take instruction from vc."
+focus: "FOLDED 13:51Z, RE-BANKED 2026-08-29 14:03Z. **hv RULED: v3.0.1 IS THE NEXT RELEASE ACT, THE FLEET IS WARNED NOW, AND I TAKE AC-12.2 + AC-12.3.** hv then MOVED IT -- docs go out WITH v3.0.1, so my unit is ON THE CRITICAL PATH, not downstream. **DO NOT BEGIN THE NARRATIVE: hv is writing the instructions and their shape may not be the one vc and I scoped.** AC-12.4 is the WORSE reading, confirmed. Lamplight returned 25 blind against predicted 25 and handed back TWO DEFECTS IN MY PROBE. ON THE BOUNCE: hold for hv via vc."
 claims: [ST0065, ST0061]
 ---
 
@@ -29,6 +29,37 @@ claims: [ST0065, ST0061]
 **UNRESOLVED AND NOT MINE TO RESOLVE: `AC-12.4` is recorded UNSATISFIED while its first two clauses are measurably DONE.** Either the criterion is stale, or **the release went out ahead of the criterion meant to gate it** -- the second reading means the gate did not gate. Recorded as unseparated rather than picked.
 
 **HOW IT WAS FOUND, because the method is the transferable part:** I went to update my method doc after dc's fix landed, **expected the tag to be unpushed, and checked instead of assuming.**
+
+## hv's RULINGS (14:00Z, first-hand in vc's session) -- AND MY UNIT MOVED ONTO THE CRITICAL PATH
+
+1. **v3.0.1 IS THE NEXT RELEASE ACT.**
+2. **WARN THE FLEET NOW, remedy or not, naming the PROPERTY to test (does the build carry `04cf6f18`) rather than a version to trust.** hv chose my method doc's own form; **`01afa12f` is the shape the warning goes out in.**
+3. **I TAKE `AC-12.2` + `AC-12.3`. `AC-14.10` IS PARKED** on exactly the reasoning I gave -- documenting a file protocol `AC-14.12` rules for deletion is work done twice.
+
+**AND THEN hv MOVED IT: THE DOCUMENTATION COMES BEFORE THE RELEASE, and the new docs ship WITH v3.0.1.** The release is HELD. **My unit is no longer downstream of the release -- it is the thing gating it.**
+
+**DO NOT BEGIN THE NARRATIVE.** hv is writing the instructions; **their shape may not be the one vc and I scoped.** vc routes them the moment they land.
+
+**WHAT THIS DOES TO `AC-12.3`, which I had flagged as unsatisfiable by construction if the docs waited:** hv's sequencing **removes the contradiction rather than working around it** -- the docs now precede the cut, which is what "release docs written BEFORE the cut" always said.
+
+## `AC-12.4` IS THE WORSE READING, CONFIRMED
+
+I gave two readings and said I could not separate them from where I stood. **vc measured the clause I could not reach: the tap formula is LIVE and pins `version "3.0.0"`.** So **all three clauses are measurably done -- tagged both remotes, release published, formula live -- and the criterion is STILL recorded UNSATISFIED.**
+
+**It is not that only formula-live remained. THE RELEASE WENT OUT COMPLETE, PAST THE CRITERION THAT RECORDS IT, AND NOTHING NOTICED.**
+
+**And it makes the defect worse than "the tarball is downloadable": `brew install intent` HANDS YOU THE DESTROYING BUILD.**
+
+## LAMPLIGHT: 25 BLIND AGAINST PREDICTED 25 -- THE FIRST CONTROL THIS ESTIMATE HAS EVER HAD
+
+Exact, independent route, **no number in hand.** **The first control on this fleet estimate that was NOT blind by construction** -- unlike Conflab, whose agreement was perfect and worthless for the axis that was actually wrong.
+
+### AND THEY HANDED BACK TWO DEFECTS IN MY SHIPPED PROBE (credited to Lamplight, not paraphrased)
+
+1. **THE EXIT-3 GUARD IS BINARY AND CANNOT SEE A _PARTIAL_ NON-MEASUREMENT.** It fires only at `files == 0`, so **at 152/358 it exits 0 and prints a confident figure with 206 threads unaccounted for.** They did the split by hand -- 197 v3-created, 9 genuine residue, **152+197+9 = 358, complete.** **The probe ALREADY HOLDS THE DATA to do it** (earliest commit time per acceptance path vs the port commit). **This is my own doctrine surviving one level down: the unit is PER-THREAD, not per-estate** -- I built the refusal at estate granularity and the subject is threads.
+2. **`*/acceptance.md` IS NOT A THREAD PREDICATE.** It caught `design/system/handoff/intent/st/ST0334/acceptance.md` and `_inbox/` paths, **and `thread_key` extracted a PLAUSIBLE id from both** -- 9 non-threads, 5 with no canon record. **Cross-checking the key against the store settles it.**
+
+**NOT YET FIXED, AND FLAGGED TO vc AS POSSIBLY NEEDING TO JUMP THE HOLD:** Baize (28), Laksa (10) and Prolix (3) have not reported, so **an estate running this instrument today can still get a confident, incomplete figure.** Not self-authorising past hv's sequencing; vc decides.
 
 ## vc's RULINGS ON EVERYTHING ELSE OF MINE -- ALL PARKED
 
