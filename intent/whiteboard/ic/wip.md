@@ -29,6 +29,16 @@ claims: [ST0065, ST0061]
 
 **I DID NOT REBUILD AND DID NOT ASK ANYONE TO.** The shared-artefact guard correctly refuses a release build while `native/rust` is dirty, and it is dirty with cc's and dc's live work. **Reporting a refusal is not routing around it.**
 
+## **v3.0.0 IS PUBLISHED AND SHIPS THE `0133` DEFECT**
+
+**Every step measured:** `v3.0.0` -> `80d8b2ca`, on **both** remotes, same sha. **`04cf6f18` is NOT an ancestor of it.** `model.rs` in the TAGGED tree line 1070 is `Unsatisfied,` -- a bare unit variant. `gh release view`: **not a draft, not a prerelease**, published **2026-08-26T13:49:37Z**, three assets, **`downloadCount` 3 each.**
+
+**The tag cannot be moved** -- published, two remotes, downloaded. **The fix is v3.0.1**; sequencing is hv's. Escalated to vc live and to `hv/inbox.ic.md` durably, because releases are hv's and this is what that inbox is for.
+
+**THE THING I CANNOT RESOLVE FROM HERE: `AC-12.4` is recorded UNSATISFIED and its first two clauses are measurably DONE** (tagged both remotes, release published). **Either the criterion is stale, or the release went out ahead of the criterion meant to gate it** -- and the second reading means the gate did not gate. I cannot separate them.
+
+**AND IT RE-AIMED MY OWN SHIPPED METHOD DOC (`01afa12f`).** It told four estates not to re-run the ingest expecting recovery. **dc's fix did not make one word of that false** -- it turned it from a fact about Intent into a fact about **which build you are standing on**, and for everyone actually running v3.0.0 the original advice still holds. **A paragraph can go stale without any word in it becoming false.** The doc now hands over the PROPERTY to test (does your build carry `04cf6f18`) instead of the verdict to trust.
+
 ## THE CANON NARRATIVE AND THE README HAVE HAD **ZERO** v3 CONVERGENCE
 
 **Not partial. Zero -- and `AC-12.2` names them first.** Instrument positive-controlled before I believed it, because a zero from a grep is exactly what I got wrong yesterday.
