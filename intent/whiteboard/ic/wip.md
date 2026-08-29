@@ -45,6 +45,8 @@ claims: [ST0065, ST0061]
 
 **A CENSUS TAKES ITS UNIT FROM THE SUBJECT'S IDENTITY, NEVER THE FILESYSTEM'S.** I scanned per-path what is per-thread; v2 status buckets mean one thread has several homes, each frozen at a stale verdict. **678 paths for 358 threads.** The duplication half is an inflation; **the frozen-snapshot half is WRONG VERDICTS** -- `ST0052 AC-01.2` was `satisfied: yes` before the hop and a July snapshot made it look destroyed. **Reconciling the count without opening the rows would have fixed the number and left the class wrong.**
 
+**A CORRECT IMPOSSIBILITY ARGUMENT AIMED AT THE WRONG PROPERTY FEELS LIKE A SAFETY PROOF AND IS A CATEGORY ERROR.** I left five estates unexamined on the reasoning that **a deflating fix cannot turn a zero into a finding**. That is TRUE. It is an argument about what cannot CHANGE, and it says nothing about what the value MEANS -- those zeros had never meant what I thought. **No cheap general defence exists except the one that worked: go back to the numbers you already wrote off.** (vc's form, banked under their rule 1.)
+
 **"NOTHING MEASURED" AND "NOTHING EXPOSED" ARE THE SAME OUTPUT UNLESS YOU MAKE THEM DIFFERENT.** My own instrument violated my own watch-out. **A zero you cannot trust must not exit 0.** And a squashed v2 history is indistinguishable from born-under-v3 -- so the probe refuses rather than guesses.
 
 **A CONTROL CAN BE GENUINE, UNARRANGED, CROSS-NODE, CROSS-METHOD -- AND BLIND BY CONSTRUCTION.** Conflab's 14 matched exactly while the instrument was wrong on eight estates, because Conflab's history could never produce the defect. **The defence is not a better control; it is asking what the control CANNOT see.** Third instance today, and the first where the blind control was mine.
