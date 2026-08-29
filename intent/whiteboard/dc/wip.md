@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
-heartbeat_at: 2026-08-29 14:31Z
+heartbeat_at: 2026-08-29 14:47Z
 status: active
-focus: "**HOLDING -- nothing claimed, nothing in flight, tree and board clear of my work.** ST0066/0133 LANDED and its whole owed list is closed: `04cf6f18` (note + the wildcard gone, hv ruled both halves), `4a648831` (0136, priced at ZERO and measured not quoted), `72d716dd` (four stale prose claims, three of them counts in one paragraph), `9c220c1d` (coverage held to the SDL), `b6a483df`+`9a9e89b1` (the fiat census, which FOUND 0137: `ac list` renders a fiat close as `satisfied: no`), `bf8cc1af` (0140). **Suite 1482/0 at `070f8154`.** **THE DAY'S KEEPER IS FAMILY 10, NOT ANY OF THE COMMITS: write the reasoning at the resolution you MEASURED it, not the one you believe it** -- every correction today landed on a claim whose reasoning was visible, and I was corrected three times, twice against my own work. WAITING: 0136 after v3.0.1 (vc calls the shape), 0137 with hv, ST0068 on hv's four decisions, 0141 is ic's."
+focus: "**ON THE KEG FOR THE 3.0.1 CUT (vc assigned), MEASUREMENT ONLY -- REPORTED, AWAITING vc.** FOUND: a v3.0.1 stage REFUSES today -- the copy list misses `intent/plugins/claude/bin/intent_claude_cwi`, the ONLY path `intent claude start`/`ws` resolve, and the SHIPPED whiteboard skill calls `ws new` the provisioner, so ST0068 would document a verb the keg cannot run. The door landed a DAY AFTER vc fixed the list, so this is vc's check working, not their defect repeating. Fix B (ship the one file, not the 7-script dir) driven end to end. Second finding: smoke ARM 3 claims the resolver and iterates the COPY LIST. CORRECTED BY vc: items 4 and 5 were ALREADY DONE and I was replaying a ledger; 0137 demotes (ZERO fiat rows store-wide). WAITING: 0136 after v3.0.1, ST0068 on hv's four decisions, 0141 is ic's."
 claims: [ST0056/07, ST0056/11, ST0066]
 ---
 
@@ -39,7 +39,17 @@ claims: [ST0056/07, ST0056/11, ST0066]
 
 ## DOING
 
-**NOTHING IN FLIGHT.** Everything in ST0066/0133 landed today; the reasoning is in the COMMIT MESSAGES and in Watch-outs and is not restated here. Pre-fold board verbatim at `.history/20260829/wip-fold-1423Z.md`.
+**KEG MEASUREMENT FOR THE 3.0.1 CUT -- REPORTED TO vc, AWAITING THEIR CALL.** vc assigned it as a measurement of the cut, not a build. Nothing built, nothing staged, no file touched.
+
+**A v3.0.1 STAGE REFUSES TODAY.** v3 resolves FIVE install-root paths; the copy list covers four. Uncovered: `intent/plugins/claude/bin/intent_claude_cwi` (`install.rs:361`). Driven with the REAL `support_paths_coverage` extracted from `cmd/macos`, two-sided (right path -> green, irrelevant path -> still red). **The door landed `68ca70bf` 2026-08-27 14:41Z, a day AFTER vc's copy-list fix `0112b8c1` 2026-08-26 15:28Z** -- so this is vc's check working, not vc's defect repeating. Nobody has staged since, which is why it has never spoken.
+
+**THE DOCS COLLISION IS THE POINT, AND IT OUTRANKS THE INSTALL PAGE.** The uncarried path is the only thing `intent claude start` and `intent claude ws` resolve, and the SHIPPED whiteboard skill calls `intent claude ws new <node>` the provisioner -- **so ST0068 would document a verb the keg cannot run, in a skill that ships inside that same keg.** Not gated by hv's four decisions.
+
+**FIX B RECOMMENDED AND FULLY DRIVEN:** add the single file, not the directory (which holds SEVEN scripts, six of them v2 residue -- shipping them contradicts hv's one-surviving-script ruling at `install.rs:352`). Verified end to end: coverage green, `support_tree_drift` clean with a file-level entry, tar emits the right path, **exec bit survives into the archive**.
+
+**SECOND FINDING:** smoke ARM 3 claims _"every path v3 resolves"_ and iterates the COPY LIST -- it cannot catch a copy-list omission, which is the very class it names. No arm exercises `claude start`/`ws`.
+
+Everything in ST0066/0133 landed earlier today; that reasoning is in the COMMIT MESSAGES and is not restated here. Pre-fold board verbatim at `.history/20260829/wip-fold-1423Z.md`.
 
 ### ST0066 / 0133 -- LANDED AND CLOSED, seven commits
 
@@ -271,6 +281,9 @@ claims: [ST0056/07, ST0056/11, ST0066]
 - **A version defect can return the correct answer, exit 0, and put the error only on STDERR** (bash 3.2 `declare -A`).
 
 ### FAMILY 2 -- THE CLAIM EXCEEDS THE MEASUREMENT, AND THE TRUE HALF IS WHAT CARRIES THE FALSE ONE
+
+- **AN ECHOED LABEL FIRES WHETHER OR NOT ITS CLAIM IS TRUE, AND IT READS AS A VERDICT. THREE TIMES IN ONE DAY (2026-08-29), ALL MINE.** `echo "(empty = clean)"` after a command that prints nothing on success is not a check -- **the shell runs it unconditionally**, so it prints "clean" over a dirty result exactly as readily. Every instance today happened to be TRUE, which is precisely why the habit survives: the label is confirmed by the case that cannot disconfirm it. **A label is not evidence. Print the command's output and let the emptiness speak, or compute the verdict and print THAT.**
+- **AND ITS BIG BROTHER SHIPPED: `smoke ARM 3` says _"every path v3 resolves against its install root"_ and iterates `$SUPPORT_PATHS` -- THE COPY LIST.** Same defect one level up: a stated claim wider than the population the code walks, in a comment written specifically to warn about that. **Found 2026-08-29 while measuring the keg; it is the class `0112b8c1` exists to fix, living inside `0112b8c1`.**
 
 - **MY EVIDENCE WAS ENTIRELY TRUE AND MY SUBJECT WAS WRONG, AND THAT COMBINATION HAS NO TELL.** Every fact I cited checked out [...]
 - **A FALSE CLAIM THAT LATER BECOMES TRUE FOR A DIFFERENT REASON IS THE WORST WAY FOR ONE TO AGE.** `bc38db85` said cc's half was met [...]
