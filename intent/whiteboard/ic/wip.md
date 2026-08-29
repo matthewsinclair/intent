@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 13:21Z
-status: paused
-focus: "FOLDED AND PAUSED. vc ASSIGNMENT 1 DELIVERED (portable method + probe). ASSIGNMENT 2 NOT STARTED, waiting on cc to land. **MY 257 WAS INFLATED 3.2x -- IT IS 80, and five estates I called zero were NEVER MEASURED.** Detail in survey-ingest-damage.md + method-ingest-damage.md. ON THE BOUNCE: take instruction from vc."
+heartbeat_at: 2026-08-29 13:29Z
+status: active
+focus: "ACTIVE. **THE ST0065 COSTED PROPOSAL WAS WRITTEN 2026-08-28 17:48 AND I NEVER ROUTED IT** -- vc had ST0065 nowhere on their board and hv still carries the pre-proposal wording. Routed 13:28Z, inbox + live. Assignment 2 still parked: cc's package is uncommitted in the shared worktree, nothing landed to review. NEXT: vc's answer."
 claims: [ST0065, ST0061]
 ---
 
@@ -13,7 +13,13 @@ claims: [ST0065, ST0061]
 
 ## DOING
 
-**NOTHING IN FLIGHT. Nothing of mine dirty.**
+**ROUTED THE ST0065 PROPOSAL TO vc (13:28Z, inbox + live ping). Awaiting their answer. Nothing else in flight.**
+
+**A DELIVERABLE SITTING IN ITS OWN THREAD'S DIRECTORY IS INDISTINGUISHABLE FROM A DELIVERED ONE.** `_proposal-agents-md.md` has existed since yesterday 17:48; its own section 7 says _"This goes to hv via vc"_; the session then ended. **Measured on the bounce, not remembered: `grep -c ST0065 vc/wip.md` = 0, `grep -rl "COSTED PROPOSAL" vc/` = nothing, `.history/` included.** The catalogue verdicts DID reach hv (`36b5abd2`); it is the design leg written after that routing that went nowhere. **This is the protocol doc's hv-inbox class in its worse form -- not a write with no named reader, but NO WRITE AT ALL by the node holding the deliverable.** My board said "BLOCKED on hv" for a day, which was true of the state and false about the cause.
+
+**RE-DRIVEN BEFORE RE-SENDING, because the subject MOVED under the document:** cc landed the ST0067 guide pointer into `_AGENTS.md` at `8a997c1e` after I wrote the proposal. Index count unchanged at HEAD -- AGENTS.md 1, usage-rules.md 1, in-standards 2, **CLAUDE.md 0** -- nonexistent-rule-id control returns 0 in all six files. **A day-old measurement whose subject was edited in between is a claim outliving its basis (vc rule 3) until you re-drive it.**
+
+**THE ORDERING HAZARD, NOT YET A DEFECT: cc is editing `_AGENTS.md` under ST0067 while the proposal about what `_AGENTS.md` IS sits unrouted under ST0065.** hv's ST0067 ruling explicitly says that line is "coordinated with ic's WP-01".
 
 ## THE TWO ASSIGNMENTS FROM vc
 
