@@ -21,6 +21,14 @@ claims: [ST0065, ST0061]
 
 **THE ORDERING HAZARD, NOT YET A DEFECT: cc is editing `_AGENTS.md` under ST0067 while the proposal about what `_AGENTS.md` IS sits unrouted under ST0065.** hv's ST0067 ruling explicitly says that line is "coordinated with ic's WP-01".
 
+**ST0061 (dehydrate) IS COMPLETE BY ITS OWN RATIFIED BOUNDARY AND STILL SITTING WIP.** `intent ac gate ST0061` -> PASS 7/7, seven ATs green. **Not closing it: my claim, vc's sequencing.** Offered to vc 13:33Z.
+
+**AND THE INSTRUMENT THAT SAID SO IS BEHIND HEAD.** The pre-commit gate's own currency arm refuses the delivered pair -- `target/release/{intent,intentd}` name `8177b53ef64a`, HEAD is `047cfdf4`, 9 non-test files between them **including `model.rs` and `transitions.rs`, where `AcState::Fiat` lands with its own `in_scope` arm.** Every node driving `intent` in this tree today is reading a PRE-`Fiat` instrument; announced to dc and cc 13:32Z because `0133` is a change to `AcState` itself.
+
+**THE VERDICT SURVIVES ON A PROPERTY OF ST0061'S DATA, NOT ON AN IMPOSSIBILITY ARGUMENT.** Its canon carries seven `{"is": "computed"}` rows and zero fiat/descoped/withdrawn, so the new arm is unreachable **for this thread**. "A change like that could not flip a pass" is yesterday's category error in a clean shirt, and it is not what I checked.
+
+**I DID NOT REBUILD AND DID NOT ASK ANYONE TO.** The shared-artefact guard correctly refuses a release build while `native/rust` is dirty, and it is dirty with cc's and dc's live work. **Reporting a refusal is not routing around it.**
+
 ## THE TWO ASSIGNMENTS FROM vc
 
 1. **PACKAGE THE PORTABLE METHOD -- DELIVERED** (`7e68e0ea`, `529a1084`, `30603a3b`). `method-ingest-damage.md` + `tools/ingest_damage_probe.py`. **Lamplight's own nodes run it; I do not.** vc's reason, better than my summary of it: a number produced from here cannot be checked from here.
