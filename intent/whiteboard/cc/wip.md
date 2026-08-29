@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 7a90ae04-61f6-4b2f-9de7-dd81eac9bb11
-heartbeat_at: 2026-08-29 14:30Z
+heartbeat_at: 2026-08-29 15:23Z
 status: active
-focus: "**HOLDING ON hv's WORD -- NOTHING CLAIMED, NOTHING IN FLIGHT.** The gate now has a NAME: ST0068 (Intent's v3 docs), which vc reports has no contract yet and four decisions outstanding with hv, and the docs ship WITH v3.0.1. Delivered and closed: the refuse-and-edit package, 0135, the structural ruling declaration, the mutator accounting, dc's handback. Board folded to 14500 at 162cc001; HEAD has moved past it, so **everything below is a PROPERTY to re-measure, never a ledger to trust** -- git log, git status, and the gate's own currency line are the instruments."
+focus: "**DELIVERED: the cut-surface generator ('f9fcc44b'), its artefact (vc committed it at '6afd9d89'), the design system (folded into vc's 'docs/design/design-system.md'), and the 0142 population.** HOLDING on two questions with hv: does the ac/at package ride into 3.0.1, and do I BUILD the editor verbs now or was that settling the shape. Laksa kickoff is held for vc's explicit send -- the palette is contested until hv's design agent rules, and a kickoff against a moving spec burns Laksa's work not ours."
 claims: [ST0056/06, ST0056/10, ST0057/00]
 ---
 
@@ -13,11 +13,16 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 
 ## DOING
 
-**NOTHING. HOLDING FOR INSTRUCTIONS.** Today's work is closed and its narrative is archived at `.history/20260829/wip-fold-1338Z.md` and `wip-fold-1423Z.md`. Commits are the record; do not re-derive them from here.
+**NOTHING IN FLIGHT. HOLDING ON TWO ANSWERS FROM hv.** Today's earlier narrative is archived at `.history/20260829/wip-fold-1338Z.md` and `wip-fold-1423Z.md`. Commits are the record; do not re-derive them from here.
+
+**THE TWO OPEN QUESTIONS, BOTH hv's, NEITHER MINE TO ASSUME:**
+
+1. **Does the `ac`/`at` package ride into 3.0.1?** hv put the editor verbs (`issues edit`, `st edit` launching) INTO 3.0.1, overriding vc's sequencing. vc had ruled the ac/at package out to 3.1.0 because a new verb is a `y` not a `z` -- **and once 3.0.1 carries `issues edit`, that rule no longer separates them.** If the package stays out, 3.0.1 ships a new `issues edit` beside a refusal telling the operator to run `ac edit`, which will not exist. **I supplied a wrong premise to hv's ruling** (my option text said the cut already contained the `ac new` fix; vc corrected that it is for 0133 plus the keg) and told them so.
+2. **Build the editor verbs now, or was that settling the shape?** Design is agreed and hv confirmed TTY-aware on the same verb. Not started.
 
 **THE ONE DESIGN LINE A FRESH SESSION MUST NOT RE-DERIVE: THE REFUSAL IS AT THE CREATE DOOR AND `put` IS UNTOUCHED.** hv ruled on verbs named `add`/`new`; replace-at-an-address is the HTTP and GraphQL faces' contract. **So what died is the FABRICATING path, not the replacing one**, and an arm asserts the survivor BY VALUE so a later reversal meets a red test rather than inferring intent from prose.
 
-**PUBLISHED v3.0.0 (tag `80d8b2ca`) CARRIES NONE OF IT** -- measured with a positive control, because my first attempt returned a zero from a `bad substitution`. `ac edit`/`at edit` ABSENT from the shipped table, no refusal in the shipped facade, and 0133 and 0137 both live in it. **Docs written against `main` would describe verbs the release does not have.** hv's doc task shipping with 3.0.1 is what makes that safe.
+**THE EDITOR DESIGN, SO IT IS NOT RE-DERIVED:** `e` is a SHELL ALIAS and no process can exec it -- detect `emacsclient`/`emacs`. The alias detaches (`nohup ... &`), which loses the edit for `issues edit`, because **an issue has no realised form** (hv, 2026-08-20) and its body must round-trip through a temp file -- so the editor MUST block. `st edit` already exists and PRINTS A PATH (AC-05.3); its stdout is load-bearing (`$EDITOR "$(intent edit ST0001 design)"`), so launching is TTY-gated, not a contract change.
 
 ## TODO
 
