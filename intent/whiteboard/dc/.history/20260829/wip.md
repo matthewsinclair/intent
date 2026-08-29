@@ -71,3 +71,54 @@ My reading carried in my own terms -- _renders distinctly forever_ is a claim ab
 ### The question I raised and did not settle
 
 **If `ac unsatisfy` keeps clearing evidence, the only way to reach `unsatisfied`-with-evidence is authored canon -- NO VERB can produce the state the model now admits.** That is orphan-shaped in exactly the sense `transitions.rs` polices, so it is not only semantic: it decides whether the fix leaves a hole the machine must declare. The case the other way is real too -- evidence justifying a revoked satisfaction leaves a claim standing behind its own retraction. Ruling, not implementation detail.
+
+---
+
+## AFTERNOON II -- 0133 BUILT, NOT LANDED. Branch `dc/0133-unsatisfied-note`
+
+**The generator fix landed on main at `14879fc5`. 0133 itself is COMPLETE and sits on a branch because `facade.rs` is held by cc mid-edit.**
+
+### The generator fix -- a hole in my OWN landed fiat work
+
+`model_laws.rs`'s `ac_state()` feeds `criterion() -> thread() -> thread_round_trips` and had ZERO `Fiat`. So `b7a3e771` landed the sixth variant with the estate's GENERAL round-trip law never generating it. **Its doc read "Every recorded AC state, including both in-scope ones" -- true when written, my commit made it false, nothing failed.** `prop_oneof!` is a LIST, not a match.
+
+**Driven to both verdicts rather than accepted on a green:** `thread_round_trips` passed before AND after, so its green cannot tell the two apart. A temporary probe asserting zero fiat reported **342/2000, `inherited_from` present in 177 and absent in 165** -- the `skip_serializing_if` field exercised both ways.
+
+**The comment is not the fix,** so `every_ac_state_variant_has_a_generator_arm` is a never-called exhaustive match. **Its firing point was MEASURED:** a seventh variant produces FIVE errors first, all in `src`, and the lib failing means the test file is never compiled -- so the author fixes those five, the lib goes green, **and that is the moment they believe they are done.** Exactly what happened with `Fiat`. Verified live by deleting the canary's own arm: E0004 at `model_laws.rs`.
+
+**Two siblings do NOT fire and are named in the doc:** `in_scope` is a `matches!` and `evidence` ends in `_ => None`.
+
+### 0133 as hv ruled it, both halves
+
+- **`Unsatisfied` gets its OWN payload, `note`, NOT `evidence`.** Evidence means proof a criterion was MET, on `Satisfied` and nowhere else.
+- **`ac unsatisfy` KEEPS CLEARING** -- and ruling 1 is what makes ruling 2 cheap: nothing to orphan, because the note is a different field from the one the verb clears.
+- **vc's measurement that moved ruling 1:** the `evidence` at `legacy.rs:1707` is a COMPOSITE of the v2 evidence AND note fields, so on an unsatisfied row the destroyed text is predominantly the NOTE. Naming it `evidence` would have been a naming lie in a PUBLISHED face.
+- **My answer to the ingest question: FUSE, do not split** -- the satisfied path already fuses identically, and splitting only one path would make two ingest paths disagree with nothing detecting it. vc accepted it over their own flag.
+
+### THE STRICTNESS ARM FOUND A SHIPPED DEFECT BEFORE THE TYPE MOVED
+
+```
+computed    (unit):    ACCEPTED -- unknown field swallowed
+unsatisfied (unit):    ACCEPTED -- unknown field swallowed
+satisfied/descoped/withdrawn/fiat: REFUSED (correct)
+```
+
+**`deny_unknown_fields` is a property of the variant's SHAPE, not of the enum.** The two that swallow are the two ENTRY states. **The widening closes `unsatisfied` as a side effect -- and a fix nothing names is invisible the day someone reverts it**, which is why the arm stays in the file permanently. `computed` stays open; filed separately, NOT bundled. **vc measured Intent's own exposure: 416 `AcState` objects, 333 unit variants, ZERO stray keys -- and Intent is the estate LEAST likely to carry it.** The fleet is unmeasured and a row accepted today starts REFUSING after the widening.
+
+### The mechanical edit that compiled perfectly and destroyed prose
+
+A context-aware bulk rename across the tests hit **three DOC COMMENTS**, and one became self-refuting: _"`AcState::Unsatisfied { note: None }` and `AcState::Unsatisfied { note: None }` are different syntax for the same value."_ **The compiler cannot see it and no test covers it.** Same family as vc's find that `b7a3e771` falsified three prose claims in three files -- arriving from a third direction: **a mechanical rename falsifies the prose that describes the OLD shape.**
+
+### How the suite was actually measured
+
+**Diffed against its own baseline in the same worktree.** Baseline 1434 passing / 20 failing; mine 1436 / 23. The three were the faces guard, expected. After re-pinning: **`comm` of the failing-name sets shows my change introduces ZERO new failures.** The ~20 red CLI tests are environmental and fail identically at baseline. **A raw pass/fail count would have said "23 failures" and been useless.**
+
+### Faces, measured not assumed
+
+`thread.schema.json` and `schema.graphql` MOVED; `issue`/`event` moved only because they carry the JSON version; **`ddl.sql` did not move at all.** JSON 12->13, SDL 10->11, **DDL left at 11 as a measured result.** Hashes re-pinned from the guard's own reported values.
+
+### Why a worktree, and what it cost
+
+`facade.rs` carries cc's 102 uncommitted insertions and calls a method that exists in neither the tree nor HEAD -- **cc mid-edit, not a defect, and not mine to touch.** All of 0133 was built and driven in a detached worktree. **The worktree has its OWN index**, which is what made it safe: cc staged a file into the SHARED index during this session and my worktree commits could not sweep it.
+
+**The commit gate is ABSENT in a fresh worktree** (`.githooks/pre-commit.intent` is gitignored, so no clone receives it) -- copied it in rather than bypassing. It then **refused for the right reason**: no release binary, so every generated thread view would go UNCHECKED and exit 0 would report that as a pass.
