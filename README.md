@@ -90,7 +90,7 @@ Create a steel thread for the change, record what you are trying to achieve and 
 ## Getting help
 
 - [Documentation](./docs/index.md) — install, getting started, concepts, command reference, migration
-- [`intent doctor`](./docs/install.md#verifying-an-install) — checks whether your install and the project you are standing in are readable by this binary
+- [`intent doctor`](./docs/install.md#verifying-an-install) — findings about the **project** you are standing in. It does not inspect the installation; `intent claude rules list` is the check that the support tree arrived
 - [GitHub Issues](https://github.com/matthewsinclair/intent/issues) — bug reports
 
 ## License
