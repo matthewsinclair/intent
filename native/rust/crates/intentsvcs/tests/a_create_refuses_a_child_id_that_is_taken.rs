@@ -174,6 +174,22 @@ fn a_genuinely_free_id_is_still_created() {
     .expect("a free id is created");
 
   assert_eq!(criterion(&facade, "AC-03.5").text, "a new requirement");
+  // **`{ note: None }` RATHER THAN `{ .. }`, AND THE TIGHTNESS IS THE ASSERTION
+  // RATHER THAN AN ACCIDENT OF WHEN THIS WAS WRITTEN.** dc raised it when 0133
+  // widened the variant: both forms compile and both pass, so nothing
+  // mechanical would have flagged the looser port -- no compiler error, no red
+  // arm, just an assertion that quietly stopped asking as much.
+  //
+  // The tight form stays because **this file is about FABRICATION** -- `ac_new`
+  // building a row from `(text, kind)` and inventing the half the caller did
+  // not supply. A note appearing on a criterion nobody wrote one for is exactly
+  // that defect in the field 0133 just added, so `None` is the property under
+  // test and not a detail of the current entry state. It is the criterion-side
+  // twin of `a_genuinely_new_row_carries_no_note_from_anywhere`, which asserts
+  // the same thing about an AT.
+  //
+  // Loosen it only to mean "unsatisfied, whatever the note" -- and that is a
+  // different claim, which would need a reason.
   assert!(matches!(
     criterion(&facade, "AC-03.5").state,
     AcState::Unsatisfied { note: None }
