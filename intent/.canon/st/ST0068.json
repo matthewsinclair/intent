@@ -1,0 +1,169 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0068",
+  "title": "Update Intent's docs for v3",
+  "slug": "update-intent-s-docs-for-v3",
+  "status": "wip",
+  "created": "2026-08-29",
+  "objective": "Replace Intent's documentation, which describes v2 and has not been updated in a long time, with a complete end-to-end set for v3 as shipped -- and ship it WITH v3.0.1 rather than after it. Three deliverables: the v2 material archived as a historical record rather than updated; a new public documentation set covering install, concepts, the command surface and migration; and a standalone one-page site at intent.laksa.io that links to the Homebrew install and the repository.",
+  "context": "**The release is held for this thread, which makes the ordering a constraint rather than a preference.** hv ruled that the v3 docs go out with v3.0.1 and not afterwards. That ruling is what makes ST0056's AC-12.3 -- release docs written BEFORE the cut so the tag carries them -- satisfiable at all; it was self-contradictory while the docs were going to follow the release.\n\n**Documentation must be written against the CUT, never against `main`, and this is the deciding constraint on the whole thread.** The published v3.0.0 tag `80d8b2ca` carries none of the `ac`/`at` edit work, so a page written from the register at `main` would document `ac edit` and `at edit` -- verbs no installed tool has -- and would describe `ac new` as refusing when the shipped one destructively replaces. The command reference is therefore GENERATED against a named revision rather than written by hand, because a hand-typed list beside the register is a transcribed copy of a measured mapping and drifts from it.\n\n**The published build has measured defects the docs must state rather than hide.** The v3.0.0 keg ships no rule library and no skills (`0112b8c1` is not an ancestor of the tag). `ac new` on an existing id destroys the row and there is no edit verb to reach for, and that is ruled OUT of 3.0.1 -- so the documentation is the mitigation, and the hazard is documented in the release it is live in. Criteria authored unsatisfied-with-evidence lost their evidence silently on ingest. And `st repair` shipped in v3.0.0 and is retired at HEAD, so it works in the release people are on and vanishes at the next.\n\n**hv's four rulings, 2026-08-29.** `docs/` becomes the v3 set and `docs/v2/` the frozen archive; the editorial direction was chosen from three; `intent/docs/` stays internal authoring canon with the public set linking across; and the v2 blog canonicals are PRESERVED pointing at their old locations. **The canonicals are the one-way half** -- rewriting them to match their new paths is the tidy answer and discards a year of inbound links unrecoverably, which is recorded in `docs/v2/README.md` so nobody repairs it.\n\n**Design decisions are NOT resolved in this thread.** hv ruled that they go to the design agent at Laksa. This thread's obligation is that every one of them arrives visibly unresolved, carrying the decision, the constraint it must respect, and what breaks if it goes the other way -- a flag that says 'open' without saying what would close it gets resolved on taste.\n\n**Two design systems were written independently on separate hv briefs before either author knew the other existed.** Consolidated into one. Recorded here because it is the founding-rule violation this tool exists to prevent, it took parallel briefing and a single turn, and neither author did anything wrong.\n\n**Site implementation is out of scope for this thread.** `../Sites/intent` is built by laksa-{vc,cc} from the design system; this thread owns the specification and the content, not the build.",
+  "body": "",
+  "preamble": "",
+  "criteria": [
+    {
+      "id": "AC-01.1",
+      "text": "The v2 blog and release notes live under docs/v2/ as a frozen record, their canonical URLs still name their old locations, and the archive states why they deliberately do not match their paths",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "docs/ carries an end-to-end set a new user can go from nothing to a satisfied thread with: install, getting started, concepts, command reference, migration",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-02.2",
+      "text": "No page documents a verb, flag or behaviour absent from the release that page describes -- measured against the cut, never against main",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-02.3",
+      "text": "Every defect in the published build that a reader can hit is stated in the docs rather than omitted, including the ones not fixed in the cut",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-02.4",
+      "text": "The command reference is generated from the register against a named revision, and its output carries that revision",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "The site design system specifies one page Laksa can build without asking a question this thread could have answered",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-03.2",
+      "text": "Every unresolved design decision reaches the Laksa design agent carrying the decision, the constraint it must respect, and what breaks if it goes the other way",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-04.1",
+      "text": "intent/docs/ is unchanged in role, and every cross-link from the public set into it resolves",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-04.2",
+      "text": "The doc set is in the same tag as v3.0.1, not a later one",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "non-test",
+      "prose": "Read docs/v2/README.md and grep the moved posts' canonical: fields against their pre-move values",
+      "covers": [
+        "AC-01.1"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "non-test",
+      "prose": "Follow docs/getting-started.md end to end on a fresh project and reach a satisfied criterion",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-02.2",
+      "kind": "non-test",
+      "prose": "Diff every verb named in docs/ against the cut-surface artefact for the release the docs describe",
+      "covers": [
+        "AC-02.2"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-02.3",
+      "kind": "non-test",
+      "prose": "Read install.md and migrating-from-v2.md against the measured defect list for the published build",
+      "covers": [
+        "AC-02.3"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-02.4",
+      "kind": "non-test",
+      "prose": "Read the reference output's provenance header for the revision it names",
+      "covers": [
+        "AC-02.4"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-03.1",
+      "kind": "non-test",
+      "prose": "Laksa builds the page and reports whether it had to invent an answer",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-03.2",
+      "kind": "non-test",
+      "prose": "Read the design system's decision register: each entry carries decision, constraint, consequence",
+      "covers": [
+        "AC-03.2"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-04.1",
+      "kind": "non-test",
+      "prose": "Resolve every link from docs/ into intent/docs/",
+      "covers": [
+        "AC-04.1"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-04.2",
+      "kind": "non-test",
+      "prose": "git tag --contains on the doc commits against the v3.0.1 tag",
+      "covers": [
+        "AC-04.2"
+      ],
+      "status": "to-write"
+    }
+  ]
+}

@@ -3,10 +3,10 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-29 14:41Z
+heartbeat_at: 2026-08-29 15:13Z
 status: active
-focus: "ST0068 STILL GATES v3.0.1 and hv`s four decisions are STILL OPEN -- nothing doc-side has moved. dc booted and is assigned the KEG install-path truth, measured from `0112b8c1`s copy list without a build: the published v3.0.0 keg ships NO rule library and NO skills, a SECOND measured defect on the artefact brew is serving, and the first one the doc set walks into. Zero fiat rows in the store (416, control withdrawn=5) demotes 0137 off the critical path and makes ST0057s 66/66 currency-proof. ic`s ST0065 costed proposal surfaced to hv after a day unrouted."
-claims: [ST0056, ST0057, ST0058, ST0060, ST0066]
+focus: "ST0068 NOW HAS A CONTRACT AND I HOLD IT -- 9 criteria, 9 tests, gate BLOCKED 0/9 instead of refusing on zero. ic was right that docs were landing into an unclaimed thread with no contract while I said for hours that a thread gating a release cannot itself be ungated. docs/ set is in (index, install, getting-started, concepts x3, migrating, reference frame); docs/v2/ frozen with canonicals deliberately unmoved. Design system consolidated from cc`s and mine -- two homes from parallel briefing -- and its 8 decisions now arrive OPEN per hv, each with constraint and consequence, for the Laksa design agent."
+claims: [ST0056, ST0057, ST0058, ST0060, ST0066, ST0068]
 ---
 
 # Validation Claude (vc)
