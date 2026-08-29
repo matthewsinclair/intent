@@ -29,7 +29,7 @@ claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/1
 3. **FLEET EXPOSURE 257 real rows; LAMPLIGHT 145 of them.** All PREDICTED-UNCONFIRMED except Conflab, where my predictor returned exactly the 14 conflab-vc had measured. **Lamplight is not ours to survey; routing is vc's.**
 4. **INTENT IS THE CORPUS THE PARSER WAS FITTED TO** (`legacy.rs` born 2026-08-16 debugged ON this estate; hop 08-19). **Never use Intent as a fleet baseline or calibration control.**
 
-## THE 257 IS WRONG: IT IS 80 (2026-08-29 13:0xZ, found while PACKAGING the method)
+## THE 257 IS WRONG: IT IS 80 (found while PACKAGING the method; landed `7e68e0ea` -- no clock read was taken at the moment of the finding, so this cites the commit rather than inventing a stamp)
 
 **I SCANNED PER-PATH WHEN THE UNIT IS PER-THREAD -- 3.2x INFLATION.** v2 status buckets were collapsed into a flat layout before the hop, so one thread has several historical paths each frozen at a stale verdict. **Lamplight: 678 paths, 358 threads, 155 multi-path.** `ST0206 AC-01.2` counted 3x byte-identical; `ST0052 AC-01.2` read `satisfied: no` at a July snapshot and `satisfied: yes` post-collapse -- **satisfied BEFORE the hop.**
 
