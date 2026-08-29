@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 14:14Z
+heartbeat_at: 2026-08-29 14:18Z
 status: paused
 focus: "**PROBE FIXED AND LANDED (`d3dbeafa`) -- vc authorised it to jump the hold.** 9/30 all-pass before, **30/30 after**. Three fixes: the %ct coin-flip control (vc), and Lamplight's two. **AND A CLASSIFIER I BUILT, DROVE AND WITHDREW rather than shipped.** Everything else PARKED: no narrative until hv instructs. **v3.0.0 SHIPS THE 0133 DEFECT, with hv.** ON THE BOUNCE: hold for hv via vc."
 claims: [ST0065, ST0061]
@@ -29,6 +29,34 @@ claims: [ST0065, ST0061]
 **UNRESOLVED AND NOT MINE TO RESOLVE: `AC-12.4` is recorded UNSATISFIED while its first two clauses are measurably DONE.** Either the criterion is stale, or **the release went out ahead of the criterion meant to gate it** -- the second reading means the gate did not gate. Recorded as unseparated rather than picked.
 
 **HOW IT WAS FOUND, because the method is the transferable part:** I went to update my method doc after dc's fix landed, **expected the tag to be unpushed, and checked instead of assuming.**
+
+## dc's NEAR-MISS IS REFUTED BY AN ABSENCE, AND THE VOCABULARY TO REMOVE IT IS TWO MACHINES AWAY
+
+**dc answered my question and volunteered a REFUTED hypothesis beside the true answer** -- the only reason I could second-witness it at all. **A clean verdict with no reasoning attached gives a reviewer nothing to check.**
+
+**NARROW ANSWER: `Unsatisfied { note: Some(..) }` IS WRITABLE BY EXACTLY ONE SITE -- `legacy.rs:1726`, the v2 ingest.** `AcState::entry` and `ac_unsatisfy` both write `note: None`. **Writable only by migration, published on both faces, authorable by no verb.** dc's measurement, unfiled (they are held).
+
+**dc's NEAR-MISS:** `set_ac_state` short-circuits on `*current == state`, **payload-inclusive**. Pre-0133 `Unsatisfied == Unsatisfied` always, so `ac unsatisfy` on an already-unsatisfied row was a guaranteed no-op; post-0133 they differ, so on the page their own widening turns a safe no-op into **a write erasing the note the change existed to rescue.** They tested it: the machine refuses first, note survives byte-for-byte.
+
+**WHAT I ADDED -- IT UPGRADES THEIR VERDICT: `facade.rs:5182-5192`, AT the short-circuit, dated to hv's 2026-08-17 ruling, says same-state-different-payload DELIBERATELY falls through to the machine and is refused there, explicitly so the ruling "does not open a reported-success-with-no-effect path".** Their exact hazard, anticipated at the site, **eleven days before the widening that would have exercised it.** Clean by a declared invariant, not by luck.
+
+**AND THE THIN PART, WHICH IS THE ACTIONABLE HALF: THAT INVARIANT IS NOT ENFORCED.** It is a property of what the AC machine happens to declare today. Whole table driven: **zero self-loops, every AC from-list explicitly populated.** But **`transitions.rs:174` is `from.is_empty() || from.contains(&value)` -- AN EMPTY FROM-LIST IS A WILDCARD ACCEPTING EVERY STATE** -- and `at.set` and `wp.rescope` both use `&[]` **two machines away in the same file.** They are harmless only because their enums carry **no payload**. **Declare one AC edge with `&[]`, or with a from-set containing its own `to`, and the fall-through becomes the live erasing write.**
+
+**The codebase already MODELS self-loops** -- `transitions.rs:179`, `leaves()` = `accepts(value) && self.to != value`. **So there is a law that every state can be LEFT, and NOTHING in `transitions.rs` refusing a SELF-LOOP ON A PAYLOAD-CARRYING ENUM** -- the one that erases rather than no-ops.
+
+**vc NARROWED THIS AND DROVE IT RATHER THAN ASSERTING IT -- HALF IS ALREADY GUARDED, AND NOT BY `transitions.rs`.** They planted my exact hazard (`ac.reinstate` `&["fiat"]` -> `&[]`) and `machine_table_check.sh` **reds at exit 1, gated**: it expands an empty from-list to `(any)`, which matches no ratified row **by construction**, and the SAME property catches a self-loop for free because any `(from, to, verb)` absent from the ratified table is CODE-ONLY. **Neither shape is declarable on `Thread.status`, `WorkPackage.status`, `Criterion.state` or `Issue.status` without a refused commit** -- the guard hv ruled this morning, doing work nobody built it for.
+
+**WHERE IT IS GENUINELY UNGUARDED IS THE PAIR I NAMED WITHOUT KNOWING WHY: `AcceptanceTest.status` and `WorkPackage.scope`** -- the two `Disposition::State` fields `data-model.md` DELIBERATELY does not table. **Both use `&[]` today**, and vc's instrument asserts they are declared-untabled and then **measures nothing about them, by design.** So the residual risk is exact: **the day either enum gains a payload, the wildcard becomes the erasing write, and nothing looks.** `AcceptanceTest.status` is the live candidate -- `to-write | red | green | n-a`, whose semantics `data-model.md` itself calls "the most operational subtlety and the least written down".
+
+**THE FRAMING SURVIVES THE NARROWING; ONLY THE BLAST RADIUS CHANGED.** What moved is **which declarations are now expensive to write** -- not whether an unexercised invariant counts as enforced.
+
+**THE CLASS (dc's, one limb mine): a widening that changes an enum's equality changes EVERY `==` on it, including ones written long before the field existed.** The limb: **the danger is the widening PLUS a self-loop, and only one of those is currently anybody's job to notice. AN INVARIANT THAT HOLDS BECAUSE NOBODY HAS YET WRITTEN THE DECLARATION THAT BREAKS IT IS NOT ENFORCED -- IT IS UNEXERCISED.**
+
+**Nothing filed. Both nodes held. Routed to vc so it survives whichever session ends first.**
+
+## hv HAS CREATED ST0068 "Update Intent's docs for v3"
+
+**My `AC-12.2` + `AC-12.3` unit has a home. STILL HOLDING** -- no narrative until hv's instructions reach me through vc.
 
 ## THE PROBE IS FIXED AND LANDED (`d3dbeafa`) -- vc RULED IT JUMPS THE HOLD
 
