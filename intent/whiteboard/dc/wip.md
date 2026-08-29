@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
-heartbeat_at: 2026-08-29 14:47Z
+heartbeat_at: 2026-08-29 14:58Z
 status: active
-focus: "**ON THE KEG FOR THE 3.0.1 CUT (vc assigned), MEASUREMENT ONLY -- REPORTED, AWAITING vc.** FOUND: a v3.0.1 stage REFUSES today -- the copy list misses `intent/plugins/claude/bin/intent_claude_cwi`, the ONLY path `intent claude start`/`ws` resolve, and the SHIPPED whiteboard skill calls `ws new` the provisioner, so ST0068 would document a verb the keg cannot run. The door landed a DAY AFTER vc fixed the list, so this is vc's check working, not their defect repeating. Fix B (ship the one file, not the 7-script dir) driven end to end. Second finding: smoke ARM 3 claims the resolver and iterates the COPY LIST. CORRECTED BY vc: items 4 and 5 were ALREADY DONE and I was replaying a ledger; 0137 demotes (ZERO fiat rows store-wide). WAITING: 0136 after v3.0.1, ST0068 on hv's four decisions, 0141 is ic's."
+focus: "**KEG FIX B LANDED `74fc0a8c` -- nothing outstanding on it, holding for vc's next.** Shipped the cwi door at FILE level (its dir holds six v2 scripts hv ruled out of the cut), so `intent claude start`/`ws` are no longer dark in the keg -- and the skill naming `ws new` as the provisioner ships in that same keg. **Fixed smoke ARM 3 as a defect: it claimed the resolver and iterated the COPY LIST**, reporting 4/4 green on a keg missing the door -- driven on a fixture, not argued. Population is now `resolved_install_paths`, one home two consumers. **Third instance of the shape found in my own fix:** the bats fixture built a DIRECTORY where the list named a file, 21 arms green throughout. **STILL OWED: no arm exercises `claude start`/`ws`; present is the strongest claim B earns and I did not write an arm I cannot drive.** Sent vc the verb-to-path table for `docs/install.md`; hv has answered all four ST0068 decisions and `docs/` is the v3 set."
 claims: [ST0056/07, ST0056/11, ST0066]
 ---
 
@@ -39,7 +39,7 @@ claims: [ST0056/07, ST0056/11, ST0066]
 
 ## DOING
 
-**KEG MEASUREMENT FOR THE 3.0.1 CUT -- REPORTED TO vc, AWAITING THEIR CALL.** vc assigned it as a measurement of the cut, not a build. Nothing built, nothing staged, no file touched.
+**KEG FIX B LANDED `74fc0a8c` ON vc's WORD -- guards green, macos bats 21/21. NOTHING OUTSTANDING ON IT.** vc assigned it as a measurement of the cut, not a build. Nothing built, nothing staged, no file touched.
 
 **A v3.0.1 STAGE REFUSES TODAY.** v3 resolves FIVE install-root paths; the copy list covers four. Uncovered: `intent/plugins/claude/bin/intent_claude_cwi` (`install.rs:361`). Driven with the REAL `support_paths_coverage` extracted from `cmd/macos`, two-sided (right path -> green, irrelevant path -> still red). **The door landed `68ca70bf` 2026-08-27 14:41Z, a day AFTER vc's copy-list fix `0112b8c1` 2026-08-26 15:28Z** -- so this is vc's check working, not vc's defect repeating. Nobody has staged since, which is why it has never spoken.
 
@@ -47,7 +47,11 @@ claims: [ST0056/07, ST0056/11, ST0066]
 
 **FIX B RECOMMENDED AND FULLY DRIVEN:** add the single file, not the directory (which holds SEVEN scripts, six of them v2 residue -- shipping them contradicts hv's one-surviving-script ruling at `install.rs:352`). Verified end to end: coverage green, `support_tree_drift` clean with a file-level entry, tar emits the right path, **exec bit survives into the archive**.
 
-**SECOND FINDING:** smoke ARM 3 claims _"every path v3 resolves"_ and iterates the COPY LIST -- it cannot catch a copy-list omission, which is the very class it names. No arm exercises `claude start`/`ws`.
+**SECOND FINDING, FIXED IN THE SAME COMMIT AT vc's REQUEST (they wanted it a defect, not a note).** ARM 3 claimed "every path v3 resolves" and iterated the COPY LIST, so its population was the list whose omissions it existed to catch. **I took the STRONGER option, not the one vc leaned to** -- they would rather it claim less; I made the population real via `resolved_install_paths` (ONE home, TWO consumers). **Driven on a fixture keg with the door missing: old shape 4/4 ok and PASSES, new shape fails by name.**
+
+**THIRD INSTANCE OF THE SHAPE, FOUND BY DRIVING MY OWN FIX.** The bats fixture derives its trees from `$SUPPORT_PATHS` but assumed every entry was a DIRECTORY -- `mkdir -p` turns a file entry into a directory, **all 21 arms stay green**, and the drift arms never exercise a file at all. The fixture agreed with the list and stopped agreeing with the tree. **21 green proved nothing about whether my fix took effect; a positive control did.**
+
+**STILL OWED AND DELIBERATELY NOT WRITTEN: no arm exercises `claude start`/`ws`.** ARM 4 proves the rule library ARMS; there is no equivalent for this door, so **"present" is the strongest claim B earns.** Writing an arm I cannot drive without a keg, in a file whose ethos is driven-not-reasoned, would be worse than the named gap. vc sequences it.
 
 Everything in ST0066/0133 landed earlier today; that reasoning is in the COMMIT MESSAGES and is not restated here. Pre-fold board verbatim at `.history/20260829/wip-fold-1423Z.md`.
 
