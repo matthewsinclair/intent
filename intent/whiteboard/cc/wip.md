@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 7a90ae04-61f6-4b2f-9de7-dd81eac9bb11
-heartbeat_at: 2026-08-29 15:23Z
+heartbeat_at: 2026-08-29 16:17Z
 status: active
-focus: "**DELIVERED: the cut-surface generator ('f9fcc44b'), its artefact (vc committed it at '6afd9d89'), the design system (folded into vc's 'docs/design/design-system.md'), and the 0142 population.** HOLDING on two questions with hv: does the ac/at package ride into 3.0.1, and do I BUILD the editor verbs now or was that settling the shape. Laksa kickoff is held for vc's explicit send -- the palette is contested until hv's design agent rules, and a kickoff against a moving spec burns Laksa's work not ours."
+focus: "**LANDED `228bc900`: the per-family command reference, 16 generated pages -- vc confirms it meets the last named condition on the Laksa kickoff, and the send is theirs.** Pair rebuilt to `b2077ba2`, currency 0 behind, so the local delivered-binary hazard is closed. HOLDING for hv. Next queued and ruled: `st edit` TTY-aware with `--editor` / `--path`."
 claims: [ST0056/06, ST0056/10, ST0057/00]
 ---
 
@@ -13,16 +13,17 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 
 ## DOING
 
-**NOTHING IN FLIGHT. HOLDING ON TWO ANSWERS FROM hv.** Today's earlier narrative is archived at `.history/20260829/wip-fold-1338Z.md` and `wip-fold-1423Z.md`. Commits are the record; do not re-derive them from here.
+**NOTHING IN FLIGHT. HOLDING FOR hv.** The two questions this section carried are both RULED and the answers are on hv's board, not here. Commits are the record.
 
-**THE TWO OPEN QUESTIONS, BOTH hv's, NEITHER MINE TO ASSUME:**
+**QUEUED, RULED, MINE TO BUILD: `st edit` IS TTY-AWARE WITH OVERRIDES BOTH WAYS.** Launch when stdout is a terminal, print the path when piped, `--editor` forces the launch and `--path` forces the path. **The regression it owes is an acceptance test, not a note:** `$EDITOR "$(intent st edit ST0001 info)"` must still return the path, because `docs/getting-started.md` says so. The editor design itself is unchanged and is recorded below so it is not re-derived.
 
-1. **Does the `ac`/`at` package ride into 3.0.1?** hv put the editor verbs (`issues edit`, `st edit` launching) INTO 3.0.1, overriding vc's sequencing. vc had ruled the ac/at package out to 3.1.0 because a new verb is a `y` not a `z` -- **and once 3.0.1 carries `issues edit`, that rule no longer separates them.** If the package stays out, 3.0.1 ships a new `issues edit` beside a refusal telling the operator to run `ac edit`, which will not exist. **I supplied a wrong premise to hv's ruling** (my option text said the cut already contained the `ac new` fix; vc corrected that it is for 0133 plus the keg) and told them so.
-2. **Build the editor verbs now, or was that settling the shape?** Design is agreed and hv confirmed TTY-aware on the same verb. Not started.
+**QUEUED, vc's BY AUTHORSHIP AND OFFERED TO ME: `runner_roster_check.sh`'s SEVERED-INSTRUMENT DISCRIMINATOR USES `git ls-files`, WHICH CANNOT SEE AN UNTRACKED FILE.** So the branch built to protect an in-flight instrument prints the SEVERED verdict for a brand-new one, which is untracked by definition until its first `git add` -- and the remedy line then sends the reader to repair a row that is correct. Three outcomes want three messages: tracked-and-present, present-but-untracked (stage it), absent (severed). It blocked every commit in the repo for a stretch today.
+
+**QUEUED, SMALL: ST0064 NAMES `Geodica/_tools` IN THREE PLACES** and that tree moved to `/Users/matts/Devel/prj/Gtools` (_tools-cc, who correctly did not touch this tree). Nothing executes those references. The finding underneath it is worth more than the rename and is hv's call, not mine: **a project with a concurrent test suite inside a cloud-sync provider loses files silently** -- 117 tracked files truncated to zero in one atomic event, twice, exactly the four directories a 32-way `File.cp_r!` was reading. Whether `intent doctor` should warn on a sync-provider path is an open question nobody has filed.
 
 **THE ONE DESIGN LINE A FRESH SESSION MUST NOT RE-DERIVE: THE REFUSAL IS AT THE CREATE DOOR AND `put` IS UNTOUCHED.** hv ruled on verbs named `add`/`new`; replace-at-an-address is the HTTP and GraphQL faces' contract. **So what died is the FABRICATING path, not the replacing one**, and an arm asserts the survivor BY VALUE so a later reversal meets a red test rather than inferring intent from prose.
 
-**THE EDITOR DESIGN, SO IT IS NOT RE-DERIVED:** `e` is a SHELL ALIAS and no process can exec it -- detect `emacsclient`/`emacs`. The alias detaches (`nohup ... &`), which loses the edit for `issues edit`, because **an issue has no realised form** (hv, 2026-08-20) and its body must round-trip through a temp file -- so the editor MUST block. `st edit` already exists and PRINTS A PATH (AC-05.3); its stdout is load-bearing (`$EDITOR "$(intent edit ST0001 design)"`), so launching is TTY-gated, not a contract change.
+**THE EDITOR DESIGN, SO IT IS NOT RE-DERIVED:** `e` is a SHELL ALIAS and no process can exec it -- detect `emacsclient`/`emacs`. The alias detaches (`nohup ... &`), which loses the edit for `issues edit`, because **an issue has no realised form** (hv, 2026-08-20) and its body must round-trip through a temp file -- so the editor MUST block. `st edit` already exists and PRINTS A PATH (AC-05.3); its stdout is load-bearing, so launching is TTY-gated, not a contract change.
 
 ## TODO
 
@@ -93,6 +94,12 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 **25. THE FOLD IS ITSELF AN INSTRUMENT AND IT HAS FAILED IN THIS BOARD.** It has left one class in two sections, dropped a ruled GO, and duplicated numbering. **Archive VERBATIM first, under `wip-fold-HHMMZ.md`** -- a bare name invites the next same-day fold to overwrite it. **UPDATE classes, never append instances beside them**; when a fold only trims narrative it is not aggressive, it is tidy.
 
 **26. A WEAKENING WITH NO SYMPTOM IS THE HARDEST THING TO CATCH AND THE EASIEST TO WAVE THROUGH** (dc, 2026-08-29). When a type widens, the loose port and the tight one both compile and both pass -- no compiler error, no red arm, just an assertion that stopped asking as much. **Nothing mechanical flags it, so the REASON for a tight match belongs in the file, next to the match.**
+
+**27. A GENERATED ARTEFACT CAN WRITE INTO THE AGENT-INSTRUCTION CHANNEL, AND NOTHING ANNOUNCES IT.** `docs/reference/claude.md` IS `CLAUDE.md` on a case-insensitive filesystem, and Claude Code discovers agent instructions by BASENAME -- so a docs generator silently became a writer of project instructions, found only because it loaded into my own context. **A class, not an instance:** `agents.md`/`AGENTS.md` and `modules.md`/`MODULES.md` were harmless by luck. **Prefix the whole output space rather than special-casing the member that bit**, because the next reserved basename is invented by a consumer you have never met.
+
+**28. A PRIVATE INDEX COMMITS PAST A PEER'S STAGED FILE -- AND LEAVES THE SHARED INDEX HOLDING A REVERSION.** `GIT_INDEX_FILE` + `read-tree HEAD` + add-only-mine is the one write that cannot sweep a peer, and the gate honours it. **But afterwards the shared index still holds the PRE-commit state for your paths, which against the new HEAD reads as staged DELETIONS of everything you just added** -- a bare `git commit` by the next node undoes the lot and looks ordinary. `git reset HEAD -- <your paths>` on the shared index is the second half and is not optional. **Verify it with `env -u GIT_INDEX_FILE`; an EMPTY `GIT_INDEX_FILE=` is not unset and makes git report the whole tree as staged.**
+
+**29. PRESENCE OF THE VARIANT IS NOT PRESENCE OF THE SUBJECT.** I asked whether a stale binary's blind spot applied, found the state NAMES it involved present in canon, and corrected a correct record into a wrong one. The gap was a PAYLOAD FIELD inside one variant plus a variant with no door to it -- **a census keyed on the state name cannot see either, so its hit meant nothing.** Key on the unit the defect actually lives in, and positive-control the scan on a state that DOES carry the payload, or a zero proves only that the detector cannot fire.
 
 **ENVIRONMENT -- PROPERTIES, BECAUSE THIS SECTION CARRIED A STALE VALUE UNTIL 2026-08-29 14:23Z.** It read _"the delivered pair is `8177b53e` ... and the gate reports `currency ok`"_; 13 non-test files under `native/rust` had moved since that marker and the gate was REFUSING. **A pin dies at a bump somebody else schedules.** So: bare `intent` resolves through the `~/.local/bin/intent` SYMLINK into `native/rust/target/release/`, never via `.envrc`, and **that symlink passes through no currency check at all** -- the commit gate is the only place a stale delivered pair is reported. Read the pair off the gate's own currency line or `bin/devbin cli`; **pin by the HASH, never the marker** (three distinct binaries carried one marker in a day). `find` is bfs, not GNU find. The Bash tool's shell is zsh: unquoted `$var` does NOT word-split, an unmatched glob ABORTS the command, `"$VAR:path"` is a bad substitution whose empty output greps to a convincing zero, and cwd persists between calls.
 
