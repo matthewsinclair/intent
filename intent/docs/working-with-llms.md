@@ -14,18 +14,21 @@ Two things changed underneath it, and both change what you should **do**.
 
 ### 1. The store is the source of truth, and some of the markdown is a generated view
 
-In v2, the markdown files under `intent/st/` were the record. In v3 they are not. The record is JSON canon under `intent/.canon/`, and a subset of the markdown is **rendered from it**:
+In v2, the markdown files under `intent/st/` were the record. In v3 they are not, and there are three layers rather than two:
 
-| Path                                 | What it is       | Safe to hand-edit? |
-| ------------------------------------ | ---------------- | ------------------ |
-| `intent/.canon/st/<ST>.json`         | the record       | no — use the CLI   |
-| `intent/st/<ST>/info.md`             | a generated view | **no**             |
-| `intent/st/<ST>/acceptance.md`       | a generated view | **no**             |
-| `intent/st/<ST>/WP/<NN>/info.md`     | a generated view | **no**             |
-| `intent/st/<ST>/design.md`           | authored prose   | yes                |
-| `intent/st/<ST>/impl.md`             | authored prose   | yes                |
-| `intent/st/<ST>/tasks.md`            | authored prose   | yes                |
-| anything else you add under a thread | authored prose   | yes                |
+| Path                                 | What it is                                                                   | Safe to hand-edit? |
+| ------------------------------------ | ---------------------------------------------------------------------------- | ------------------ |
+| `intent/.cache/intent.db`            | the store — the source of truth, per-machine, gitignored, never travels      | no — use the CLI   |
+| `intent/.canon/st/<ST>.json`         | the committed extract of the store; what your collaborators actually receive | no — use the CLI   |
+| `intent/st/<ST>/info.md`             | a generated view                                                             | **no**             |
+| `intent/st/<ST>/acceptance.md`       | a generated view                                                             | **no**             |
+| `intent/st/<ST>/WP/<NN>/info.md`     | a generated view                                                             | **no**             |
+| `intent/st/<ST>/design.md`           | authored prose                                                               | yes                |
+| `intent/st/<ST>/impl.md`             | authored prose                                                               | yes                |
+| `intent/st/<ST>/tasks.md`            | authored prose                                                               | yes                |
+| anything else you add under a thread | authored prose                                                               | yes                |
+
+`intent sync --to-disk` writes the store outward and `intent sync --to-store` reads the committed extract back in, so the extract is a projection in both directions rather than a second home for the data.
 
 **A hand-edit to a generated view is discarded by the next sync, and nothing fails at the moment you make it.** This is the single most expensive mistake available in a v3 project, it is available to LLMs and humans equally, and it costs exactly one round of work each time.
 
