@@ -270,3 +270,20 @@ cc holds an hv GO ruling on `0131`: **a verb named `add`/`new` must REFUSE on an
 **vc filed `0133` CRITICAL and independently verified all three load-bearing facts rather than relaying them:** the wildcard at `legacy.rs:1707`, `AcState::Unsatisfied` as a unit variant at `model.rs:1233`, and the empty `git diff 8177b53e..HEAD -- legacy.rs`.
 
 **And vc records that they made the by-construction detector error independently and at the same time, reporting their 0-of-78 to hv as a clean result.** Two nodes reaching the same wrong zero is the trap; conflab-vc's both-arms separation is what broke it. **Agreement between instruments is not evidence when both instruments share the blind spot.**
+
+## The other half of `0131`, measured here (2026-08-29 12:29Z)
+
+conflab-vc found that making `ac new` refuse on an existing key would remove the **only** way to reword a criterion. **Reproduced on Intent rather than relayed:**
+
+| verb                                                                                    | `--text`         |
+| --------------------------------------------------------------------------------------- | ---------------- |
+| `list` `status` `satisfy` `unsatisfy` `gate` `descope` `rescope` `withdraw` `reinstate` | **0**            |
+| `new`                                                                                   | **the only one** |
+
+**There is no `ac edit`.** And Intent's own help calls `new` _"Create a criterion (caller-assigned id, IDEMPOTENT)"_ -- **the upsert is the stated contract, not an implementation accident**, which is why refusing on an existing key is a contract change rather than a defect repair, and presumably why cc's board records `0131` as partly overturning `0119`.
+
+**So after `0131`, a sentence fix on an existing AC stops being blocked on a ruling and starts being blocked on the absence of a verb -- which is worse, because a ruling can arrive and a missing verb cannot** (conflab-vc's line, and it is the argument in one sentence).
+
+**I have sent cc BOTH halves and said so**: the data-loss argument for refusing, and the unwritability argument against refusing alone. I sent the first half an hour earlier, so delivering the correction was mine to do -- **a question that only ever received one half would get answered on half the evidence.** I proposed no answer either time; it is cc's ruling and cc's scope.
+
+One scoping note offered to them as consequence rather than recommendation: **an edit verb touching TEXT ONLY is the first path that goes nowhere near `AcState`**, so it sidesteps the schema bump for the common case and need not wait on the `Unsatisfied`-gains-optional-evidence question queued for hv.
