@@ -993,6 +993,39 @@ pub enum StoreError {
     "migrating the runtime store left {violations} row(s) referencing a parent that is not there"
   )]
   MigrationLeftDanglingRows { violations: i64 },
+  /// **A CREATE LANDED ON A KEY THAT ALREADY EXISTS** (issue 0131, hv ruled
+  /// 2026-08-28: a verb named `add`/`new` must FAIL on an existing key rather
+  /// than replace it).
+  ///
+  /// This is a REFUSAL, not a crash. It is raised from the UNIQUE constraint
+  /// itself rather than from a preceding `SELECT`, so there is no window
+  /// between the check and the write for a second writer to enter -- which is
+  /// the whole defect: two nodes filed concurrently, both were told
+  /// `created: ...0126.json`, and one filing reached neither the store nor the
+  /// extract with nothing saying so.
+  #[error("{kind} {key} already exists, and a create must not replace it")]
+  CreateHitAnExistingKey { kind: EntityKind, key: String },
+}
+
+/// Which estate a key belongs to.
+///
+/// **An enum rather than a string, because the facade MATCHES on it** to lift
+/// this refusal into its own per-entity vocabulary (`ThreadExists`,
+/// `IssueExists`) -- and a string would make a typo there a silent fall-through
+/// to the generic arm.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EntityKind {
+  Thread,
+  Issue,
+}
+
+impl std::fmt::Display for EntityKind {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.write_str(match self {
+      Self::Thread => "thread",
+      Self::Issue => "issue",
+    })
+  }
 }
 
 impl crate::remedy::Remedy for StoreError {
@@ -1008,6 +1041,12 @@ impl crate::remedy::Remedy for StoreError {
     match self {
       Self::SchemaMismatch { found, expected } if found > expected => format!(
         "this store was written by a NEWER intent than the one you are running -- upgrade intent rather than migrating the store down; it holds version {found} and this build speaks {expected}"
+      ),
+      Self::CreateHitAnExistingKey { kind, key } => format!(
+        "nothing was written and nothing was replaced. If you meant to CREATE, re-run and take the \
+         next free key. If you meant to CHANGE {kind} {key}, use the verb that changes it -- a \
+         create that silently overwrote would have destroyed the record already there, which is \
+         what this refuses"
       ),
       Self::SchemaMismatch { .. } => {
         "run `intent doctor` -- it names the store's version against this build's, and reports whether a migration for it has shipped".to_string()
@@ -1217,6 +1256,15 @@ pub struct Mutation<'a> {
   pub issues: &'a [&'a Issue],
   pub removed_threads: &'a [String],
   pub removed_issues: &'a [u32],
+  /// The entities this mutation brings into EXISTENCE, as opposed to changes
+  /// it makes to entities that already have rows.
+  ///
+  /// Diffed by the caller against the canon it loaded, never declared by the
+  /// verb -- see [`Door`]. Anything named here is written through
+  /// [`Door::Create`], so the DATABASE decides, inside this transaction,
+  /// whether the key was really free (issue 0131).
+  pub created_threads: &'a [String],
+  pub created_issues: &'a [u32],
   pub sections: &'a [DocSection],
   pub envelope: &'a Envelope,
   /// Project-level state this mutation also sets, inside the same transaction.
@@ -1229,6 +1277,45 @@ pub struct Mutation<'a> {
   /// there left a `todo.flush` in the log that no cutoff reflected, and
   /// AC-14.2 had deliberately removed the fallback that would have hidden it.
   pub project_state: ProjectStateEdit,
+}
+
+/// Whether a write is a CREATE or a CHANGE.
+///
+/// **NOT A READER OF THE OP STRING**, for exactly the reason [`ProjectStateEdit`]
+/// is not: the op vocabulary already has two consumers that fail in opposite
+/// directions, and inferring the door from `op.ends_with(".add")` would be a
+/// third table to forget a member in. `intent st new` and `intent issues add`
+/// are not the only ways a row comes into existence.
+///
+/// It is DIFFED against the canon the facade loaded -- an entity `next` holds
+/// and the loaded canon does not is a create -- which is the same rule
+/// `apply_with_state` already uses to decide what gets WRITTEN, and it is
+/// chosen there over a caller-supplied list for a stated reason: a declaration
+/// can name the wrong id, and comparing cannot forget.
+///
+/// **THE STALE-READ CASE RESOLVES THE RIGHT WAY, AND THAT IS THE POINT.** If
+/// the loaded canon is out of date and the key was taken since, the diff still
+/// says `Create`, the constraint still fires, and the caller gets a refusal --
+/// which is the correct answer to "I thought this number was free". The
+/// alternative reading of a stale canon is the defect itself.
+///
+/// The distinction is not cosmetic -- it selects the SQL. `Change` upserts,
+/// because `issues close` clones canon, edits one field and writes the whole
+/// row back. `Create` uses a plain INSERT, so a key that already exists raises
+/// the UNIQUE constraint and the write is refused.
+///
+/// **WHY THE CONSTRAINT AND NOT A PRECEDING `SELECT`.** A check-then-write has
+/// a window, and a window is the defect: issue 0131 records two nodes filing
+/// concurrently, both told `created: ...0126.json`, one filing gone with
+/// nothing reporting it. The constraint is evaluated by the database as part of
+/// the insert, so there is no gap for a second writer to arrive in.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Door {
+  /// This write brings the row into existence. An existing key REFUSES.
+  Create,
+  /// This write changes a row that already exists (or restores one from the
+  /// extract). Upserts.
+  Change,
 }
 
 /// Project-level state a mutation carries alongside its rows.
@@ -1435,6 +1522,7 @@ impl Store {
     tx: &rusqlite::Transaction<'_>,
     t: &Thread,
     stamp: Stamp,
+    door: Door,
   ) -> Result<(String, Option<String>), StoreError> {
     tx.execute("DELETE FROM tests WHERE thread_id = ?1", params![t.id])?;
     tx.execute("DELETE FROM criteria WHERE thread_id = ?1", params![t.id])?;
@@ -1467,10 +1555,15 @@ impl Store {
       }
       Stamp::CarriedFromTheExtract => "?6, ?7",
     };
-    let stored = tx.query_row(
-      &format!(
-        "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10, ?11, ?12)
-         ON CONFLICT (id) DO UPDATE SET
+    // **THE CONFLICT CLAUSE IS THE WHOLE OF THE DOOR** (issue 0131, hv ruled
+    // 2026-08-28). `Change` upserts, because every ordinary verb clones canon,
+    // edits a field and writes the whole row back. `Create` omits the clause,
+    // so an id that already exists raises the UNIQUE constraint and the
+    // transaction is refused rather than quietly overwriting all twelve columns
+    // of a thread somebody else is holding.
+    let on_conflict = match door {
+      Door::Change => {
+        "ON CONFLICT (id) DO UPDATE SET
            title = excluded.title,
            slug = excluded.slug,
            status = excluded.status,
@@ -1482,7 +1575,14 @@ impl Store {
            context = excluded.context,
            body = excluded.body,
            preamble = excluded.preamble,
-           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')"
+      }
+      Door::Create => "",
+    };
+    let stored = tx.query_row(
+      &format!(
+        "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10, ?11, ?12)
+         {on_conflict}
          RETURNING created, completed"
       ),
       params![
@@ -1500,7 +1600,22 @@ impl Store {
         t.preamble,
       ],
       |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
-    )?;
+    );
+    // Translated here rather than left to surface as `sqlite: UNIQUE constraint
+    // failed: threads.id`, which names a table and a column to somebody who
+    // typed `intent st new`. Surfacing a failure the caller cannot act on is
+    // IN-AG-NO-SILENT half-done.
+    let stored = stored.map_err(|e| match &e {
+      rusqlite::Error::SqliteFailure(f, _)
+        if f.code == rusqlite::ErrorCode::ConstraintViolation && door == Door::Create =>
+      {
+        StoreError::CreateHitAnExistingKey {
+          kind: EntityKind::Thread,
+          key: t.id.clone(),
+        }
+      }
+      _ => StoreError::from(e),
+    })?;
     for (seq, r) in t.related.iter().enumerate() {
       tx.execute(
         "INSERT INTO related (thread_id, seq, id, note) VALUES (?1, ?2, ?3, ?4)",
@@ -1584,6 +1699,7 @@ impl Store {
     tx: &rusqlite::Transaction<'_>,
     i: &Issue,
     stamp: Stamp,
+    door: Door,
   ) -> Result<(String, Option<String>), StoreError> {
     let dates = match stamp {
       Stamp::ByTheDatabase => {
@@ -1602,10 +1718,17 @@ impl Store {
     // `?6` / `?7` by number: inserting a placeholder ahead of them silently
     // renumbers what those two fragments bind to, and the result is a store
     // whose dates are somebody else's column with no error anywhere.
-    let stored = tx.query_row(
-      &format!(
-        "INSERT INTO issues (number, slug, title, status, severity, created, closed, reporter, body) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9)
-       ON CONFLICT (number) DO UPDATE SET
+    // **THE CONFLICT CLAUSE IS THE WHOLE OF THE DOOR** (issue 0131). `Change`
+    // keeps the upsert; `Create` omits it, so an existing number raises the
+    // UNIQUE constraint and this transaction is refused rather than silently
+    // rewriting every field of somebody else s issue.
+    //
+    // Built by `format!` alongside `{dates}` rather than as two statements: one
+    // column list, one params list, one home. Two spellings of this insert is
+    // how the columns come to disagree.
+    let on_conflict = match door {
+      Door::Change => {
+        "ON CONFLICT (number) DO UPDATE SET
          slug = excluded.slug,
          title = excluded.title,
          status = excluded.status,
@@ -1614,12 +1737,35 @@ impl Store {
          closed = excluded.closed,
          reporter = excluded.reporter,
          body = excluded.body,
-         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')"
+      }
+      Door::Create => "",
+    };
+    let stored = tx.query_row(
+      &format!(
+        "INSERT INTO issues (number, slug, title, status, severity, created, closed, reporter, body) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9)
+       {on_conflict}
        RETURNING created, closed"
       ),
       params![i.number, i.slug, i.title, enum_str(&i.status), i.severity, i.created, i.closed, i.reporter, i.body],
       |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
-    )?;
+    );
+    // **The constraint is translated HERE, not left to surface as `sqlite:
+    // UNIQUE constraint failed: issues.number`.** That string names a table and
+    // a column to somebody who typed `intent issues add`, and IN-AG-NO-SILENT
+    // is about surfacing failures in terms the caller can act on -- a raw
+    // driver error is surfaced and still unactionable.
+    let stored = stored.map_err(|e| match &e {
+      rusqlite::Error::SqliteFailure(f, _)
+        if f.code == rusqlite::ErrorCode::ConstraintViolation && door == Door::Create =>
+      {
+        StoreError::CreateHitAnExistingKey {
+          kind: EntityKind::Issue,
+          key: format!("{:04}", i.number),
+        }
+      }
+      _ => StoreError::from(e),
+    })?;
     Ok(stored)
   }
 
@@ -1656,7 +1802,14 @@ impl Store {
     for t in change.threads {
       // The CREATE door: this write is the thing happening, so the database
       // stamps it.
-      let (created, completed) = Self::write_thread(&tx, t, Stamp::ByTheDatabase)?;
+      // An id the caller DIFFED as new goes through the create door, where an
+      // existing key refuses. Everything else is a change and upserts.
+      let door = if change.created_threads.iter().any(|id| id == &t.id) {
+        Door::Create
+      } else {
+        Door::Change
+      };
+      let (created, completed) = Self::write_thread(&tx, t, Stamp::ByTheDatabase, door)?;
       dates.threads.push(ThreadDates {
         id: t.id.clone(),
         created,
@@ -1666,7 +1819,15 @@ impl Store {
     for i in change.issues {
       // The same door, for the same reason. `issues add` hands in an empty
       // `created` and `issues close` an empty `closed`; both come back filled.
-      let (created, closed) = Self::write_issue(&tx, i, Stamp::ByTheDatabase)?;
+      // A number the caller DECLARED new goes through the create door, where an
+      // existing key refuses. Everything else -- `issues close`, a migration
+      // top-up -- is a change and upserts as it always did.
+      let door = if change.created_issues.contains(&i.number) {
+        Door::Create
+      } else {
+        Door::Change
+      };
+      let (created, closed) = Self::write_issue(&tx, i, Stamp::ByTheDatabase, door)?;
       dates.issues.push(IssueDates {
         number: i.number,
         created,
@@ -1707,7 +1868,10 @@ impl Store {
     for t in threads {
       // The RESTORE door: these dates were recorded before, and rebuilding a
       // store is not the project happening again.
-      Self::write_thread(&tx, t, Stamp::CarriedFromTheExtract)?;
+      // `rebuild` REPLACES the estate wholesale, so every row here is a change
+      // by construction -- see the issues arm below for why the create door
+      // would refuse every re-sync there is.
+      Self::write_thread(&tx, t, Stamp::CarriedFromTheExtract, Door::Change)?;
     }
     for i in issues {
       // The RESTORE door, same as the threads above. **v2 users AUTHOR an
@@ -1715,7 +1879,11 @@ impl Store {
       // overwrite a fact about the world with a fact about this rebuild -- and
       // `rm intent.db` is not an operation (D36) precisely because a rebuild
       // must not change what the estate says.
-      Self::write_issue(&tx, i, Stamp::CarriedFromTheExtract)?;
+      // `rebuild` is the disk -> db reload and REPLACES the estate wholesale, so
+      // every row here is a change by construction. Sending these through the
+      // create door would refuse every re-sync of an issue that already exists,
+      // which is every re-sync there is.
+      Self::write_issue(&tx, i, Stamp::CarriedFromTheExtract, Door::Change)?;
     }
     tx.commit()?;
     Ok(())

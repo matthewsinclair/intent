@@ -65,6 +65,10 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     FacadeError::WriteNotAddressable { .. }
     | FacadeError::NoSuchThread { .. }
     | FacadeError::ThreadExists { .. }
+    // Both halves of issue 0131's refusal. They report that a KEY is taken, so
+    // there is no field the caller failed to supply -- the remedy is a
+    // different key, not a fuller call.
+    | FacadeError::IssueExists { .. }
     | FacadeError::NoSuchWorkPackage { .. }
     | FacadeError::NoSuchCriterion { .. }
     | FacadeError::NoSuchTest { .. }

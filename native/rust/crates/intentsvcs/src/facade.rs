@@ -759,6 +759,21 @@ pub enum FacadeError {
   /// and nobody wants more of.
   #[error("`{path}` is not a file this artefact carries")]
   NoSuchEditable { path: String, present: Vec<String> },
+  /// **A CREATE LANDED ON AN ISSUE NUMBER THAT ALREADY EXISTS** (issue 0131,
+  /// hv ruled 2026-08-28: a verb named `add`/`new` must FAIL on an existing key
+  /// rather than replace it).
+  ///
+  /// The sibling of [`Self::ThreadExists`], and per-entity for the same reason
+  /// the whole of this vocabulary is: `intent issues add` and `intent st new`
+  /// send their operator to different places.
+  ///
+  /// Neither travels as [`Self::Store`], which renders "could not update the
+  /// runtime store" and drops its source. **An operator meeting a refusal has
+  /// to be able to tell "the key is taken" from "the database broke"** -- the
+  /// first is answered by taking the next key, the second by looking at the
+  /// machine, and one message for both tells them to guess.
+  #[error("issue {number:04} already exists, and a create must not replace it")]
+  IssueExists { number: u32 },
   #[error("could not update the runtime store")]
   Store(#[from] StoreError),
   #[error("could not read the committed canon")]
@@ -995,6 +1010,12 @@ impl crate::remedy::Remedy for FacadeError {
       // this variant now asks rather than answers -- the store knows which of
       // its failures happened and this does not.
       Self::NotEditable { author_with, .. } => format!("author it with {author_with}"),
+      Self::IssueExists { number } => format!(
+        "nothing was written and issue {number:04} still holds what it held. Re-run `intent \
+         issues add` to take the next free number, or `intent issues show {number:04}` to see \
+         what is already there -- a create that overwrote would have destroyed that record \
+         silently, which is what this refuses"
+      ),
       Self::NoSuchEditable { present, .. } => {
         format!("this artefact carries: {}", present.join(", "))
       }
@@ -3589,10 +3610,21 @@ impl Facade {
   /// `apply` by the manifest is a change to the core write path, not to this
   /// verb.
   pub fn st_new_listing(&mut self, title: &str, list: ListEdit) -> Result<String, FacadeError> {
+    // **THE PRE-CHECK THAT USED TO BE HERE COULD NOT FIRE, AND IT IS GONE**
+    // (issue 0131). It asked whether `self.canon` already held the id that
+    // `next_thread_id()` had just computed as `max() + 1` over that same canon
+    // -- false by construction, on every call, for the whole life of the verb.
+    // `error_remedies.rs` had already recorded the symptom without the cause,
+    // exempting `ThreadExists` from its drive as "needs a colliding id, which
+    // `st new` allocates around".
+    //
+    // The condition it was reaching for is real and it is what the ruling is
+    // about: a SECOND facade, opened before this one wrote, computes the same
+    // id. No check against an in-memory canon can see that, because the canon
+    // is the stale read. `ThreadExists` is now raised where the collision is
+    // actually detectable -- by the UNIQUE constraint, inside the transaction
+    // -- and is reachable for the first time.
     let id = self.next_thread_id();
-    if self.canon.threads.iter().any(|t| t.id == id) {
-      return Err(FacadeError::ThreadExists { id });
-    }
     let thread = Thread {
       // A thread created here has no files beside it yet; the walk that finds
       // them runs at ingest, not at creation.
@@ -4884,7 +4916,7 @@ impl Facade {
     // into scope, so the audit trail recorded a chain of moves with no decision
     // between them. The ratified machine declares `ac.descope` only from the
     // in-scope states, and now so does the code.
-    Self::check_transition("Criterion", "state", op, state_name(current), ac)?;
+    Self::check_transition("Criterion", "state", op, current.name(), ac)?;
     Self::check_ac_guards(op, ac, &state)?;
     let mut next = self.canon.clone();
     let c = find_criterion_mut(&mut next, st, ac)?;
@@ -6352,6 +6384,36 @@ impl Facade {
       .iter()
       .filter(|i| changed_issue_numbers.contains(&i.number))
       .collect();
+
+    // **WHICH OF THOSE ARE CREATES** (issue 0131, hv ruled 2026-08-28: a verb
+    // named `add`/`new` must FAIL on an existing key rather than replace it).
+    //
+    // Diffed here rather than declared by the verb, for the reason stated at
+    // the top of this function about the write set: a declaration can name the
+    // wrong id and comparing cannot forget. It also means every create verb is
+    // covered at once, present and future, rather than the ones that remembered
+    // to opt in -- which is how `issues add` and `at new` came to have the same
+    // defect and one fix between them.
+    //
+    // **A STALE `self.canon` RESOLVES THE RIGHT WAY, AND THAT IS THE WHOLE
+    // FIX.** If the number was taken since this facade loaded, the diff still
+    // says create, the UNIQUE constraint still fires inside the transaction,
+    // and the caller is REFUSED. Before this, `next_issue_number()` read a
+    // stale max, the landing was `ON CONFLICT DO UPDATE SET ... body =
+    // excluded.body`, and the second writer was told `created:` while the first
+    // writer s issue was overwritten -- measured 2026-08-28, two nodes, one
+    // surviving filing, nothing reporting the loss.
+    let created_threads: Vec<String> = changed_threads
+      .iter()
+      .filter(|t| !self.canon.threads.iter().any(|c| c.id == t.id))
+      .map(|t| t.id.clone())
+      .collect();
+    let created_issues: Vec<u32> = changed_issues
+      .iter()
+      .filter(|i| !self.canon.issues.iter().any(|c| c.number == i.number))
+      .map(|i| i.number)
+      .collect();
+
     let dates = self
       .store
       .commit_mutation(crate::store::Mutation {
@@ -6359,11 +6421,26 @@ impl Facade {
         issues: &changed_issues,
         removed_threads: &removed_threads,
         removed_issues: &removed_issues,
+        created_threads: &created_threads,
+        created_issues: &created_issues,
         sections: &sections,
         envelope: &envelope,
         project_state,
       })
-      .map_err(FacadeError::Store)?;
+      // **The refusal is LIFTED rather than wrapped.** `FacadeError::Store`
+      // renders "could not update the runtime store" and drops its source, so
+      // travelling as one would turn "issue 0126 already exists" into a
+      // sentence the operator cannot act on -- the same class as the raw
+      // `UNIQUE constraint failed` the store already translates away.
+      .map_err(|e| match e {
+        crate::store::StoreError::CreateHitAnExistingKey { kind, key } => match kind {
+          crate::store::EntityKind::Thread => FacadeError::ThreadExists { id: key },
+          crate::store::EntityKind::Issue => FacadeError::IssueExists {
+            number: key.parse().unwrap_or_default(),
+          },
+        },
+        other => FacadeError::Store(other),
+      })?;
     drop(changed_threads);
     drop(changed_issues);
 
@@ -6532,17 +6609,6 @@ impl Facade {
       .max()
       .unwrap_or(0);
     crate::model::thread_id(highest + 1)
-  }
-}
-
-/// The recorded state's name, for a refusal that says which one it already is.
-fn state_name(state: &AcState) -> &'static str {
-  match state {
-    AcState::Computed => "computed",
-    AcState::Unsatisfied => "unsatisfied",
-    AcState::Satisfied { .. } => "satisfied",
-    AcState::Descoped { .. } => "descoped",
-    AcState::Withdrawn { .. } => "withdrawn",
   }
 }
 

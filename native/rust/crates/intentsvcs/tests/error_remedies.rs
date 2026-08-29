@@ -478,6 +478,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::WriteNotAddressable { .. } => "WriteNotAddressable",
     FacadeError::NoSuchThread { .. } => "NoSuchThread",
     FacadeError::ThreadExists { .. } => "ThreadExists",
+    FacadeError::IssueExists { .. } => "IssueExists",
     FacadeError::NoSuchWorkPackage { .. } => "NoSuchWorkPackage",
     FacadeError::NoSuchCriterion { .. } => "NoSuchCriterion",
     FacadeError::NoSuchTest { .. } => "NoSuchTest",
@@ -543,6 +544,7 @@ const ALL_VARIANTS: &[&str] = &[
   "ManifestMalformed",
   "NoSuchThread",
   "ThreadExists",
+  "IssueExists",
   "NoSuchWorkPackage",
   "NoSuchCriterion",
   "NoSuchTest",
@@ -599,9 +601,19 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   "Store",           // a damaged SQLite file
   "Ingest",          // schema-invalid canon -- `ingest_refusal.rs`
   "Unmigrated",      // an older store -- `unmigrated_project.rs`
-  "ThreadExists",    // needs a colliding id, which `st new` allocates around
-  "BadQuery",        // FTS5 syntax -- `facade_search.rs` territory
-  "NoSuchFace",      // `intent schema <name>` with an unknown face
+  // **BOTH HALVES OF ISSUE 0131's REFUSAL, AND `ThreadExists` HAS MOVED HERE
+  // FROM BEING UNREACHABLE.** Its old exemption read "needs a colliding id,
+  // which `st new` allocates around", which was true of the pre-check it was
+  // raised from -- a test against the same canon `next_thread_id()` had just
+  // read, false by construction. Since 0131 the collision is detected by the
+  // UNIQUE constraint inside the write, so BOTH are reachable, and both are
+  // provoked in `a_create_refuses_a_key_that_is_taken.rs` by opening two
+  // facades on one on-disk store before either writes. Not provoked HERE
+  // because that needs two facades and a shared store rather than a bad call.
+  "ThreadExists",
+  "IssueExists",
+  "BadQuery",   // FTS5 syntax -- `facade_search.rs` territory
+  "NoSuchFace", // `intent schema <name>` with an unknown face
   // Needs a projection that LIES -- a format claiming to round-trip and
   // dropping data. Only `export::project_with` can be handed one, and
   // `export_round_trip.rs` does exactly that; a call through the facade cannot
