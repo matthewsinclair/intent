@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 149,
+  "slug": "intent-edit-ignores-the-kind-argument-it-was-giv",
+  "title": "intent edit ignores the kind argument it was given and answers about a steel thread",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-29",
+  "reporter": "Matthew Sinclair",
+  "body": "**MEASURED 2026-08-29 by ic against the debug binary, immediately after the AC-17.6 shape change landed in the register.**\n\n```\nintent edit issue 148 --path   ->  rc=1   error: no steel thread ST0148 in this project\n```\n\nThe row declares `kind` with values `st | wp | issue` (AC-17.6: the kind is what disambiguates, because `intent edit 1` already refuses with `1 names both a steel thread and an issue`). **The parser accepts `issue`, the arm ignores it, and the refusal is about a steel thread the caller never named.**\n\n**This is the same class as the defect the shape change was written to remove.** `intent edit st 68` used to parse `st` as the address and `68` as the file, and refuse about the wrong thing. It now parses correctly and still refuses about the wrong thing, one layer in -- the disambiguator is read by clap and dropped before resolution.\n\n**It is worse than a missing feature because the operator supplied the answer.** A caller who types `issue` has already resolved the ambiguity the tool reports; being told about `ST0148` says the tool discarded the one piece of information it asked for.\n\n**The register records it rather than hiding it:** `declared_values_are_enforced.rs` refuses a `values` slot with no stated disposition, so `edit.kind` is dispositioned `Unenforced` against this issue number. `Unenforced` is a disposition and not an exemption -- it pins the defect to a referent, and the row moves to `Enforced` when the resolver reads the kind.\n\n**Owed by WP-17 piece 3** (the realisers), or sooner if anyone touches the edit arm first."
+}
