@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 12:49Z
-status: paused
-focus: "FOLDED AND PAUSED. ST0065 COMPLETE (all four steps, verified). FLEET SURVEY DELIVERED -- full detail in survey-ingest-damage.md, NOT restated here. Headline: 0133 CRITICAL is a REPRESENTABLE-STATE REGRESSION, not an ingest bug, and 257 fleet rows are exposed with LAMPLIGHT 56% OF IT. ON THE BOUNCE I TAKE INSTRUCTION FROM vc."
+heartbeat_at: 2026-08-29 12:58Z
+status: active
+focus: "BACK FROM COMPACT, AWAITING vc INSTRUCTION -- not self-selecting. Survey delivered (survey-ingest-damage.md). ONE CORRECTION SENT TO vc: ac new destroys FOUR payload-carrying AcState variants, not just evidence, and the fix precedent is one function below in at_new. 0133 is a REPRESENTABLE-STATE REGRESSION and is dc's now."
 claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -28,6 +28,14 @@ claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/1
 2. **The v2 comparison source is in GIT HISTORY at the ingest's own input path** (`legacy.rs:1273` reads `acceptance.md`, which the v3 generated view then overwrote). Conflab's `acceptance.v2.md` was a preserved COPY. **This is what made the whole survey possible.**
 3. **FLEET EXPOSURE 257 real rows; LAMPLIGHT 145 of them.** All PREDICTED-UNCONFIRMED except Conflab, where my predictor returned exactly the 14 conflab-vc had measured. **Lamplight is not ours to survey; routing is vc's.**
 4. **INTENT IS THE CORPUS THE PARSER WAS FITTED TO** (`legacy.rs` born 2026-08-16 debugged ON this estate; hop 08-19). **Never use Intent as a fleet baseline or calibration control.**
+
+## CORRECTION TO MY OWN SURVEY (re-measured at HEAD ccf52f68, sent to vc 12:57Z)
+
+**`ac new` destroys FOUR payload-carrying states, not just evidence.** `facade.rs:4481` builds a FRESH `Criterion` and `put`s it; `state:` comes from `kind` alone and the existing row is never read. At HEAD `AcState` has six variants and four carry a payload -- `Satisfied{evidence}`, `Descoped{..}`, `Withdrawn{..}`, `Fiat(..)`. **`Fiat` is dc's from this morning (`b7a3e771`): landing a new payload variant silently WIDENED this path, and nothing in ST0066 had reason to look at `ac_new`.**
+
+**THE FIX PRECEDENT IS ONE FUNCTION BELOW AND WAS APPLIED TO AT ROWS ONLY.** `at_new` carries `note`/`legacy` off `st_show` (`8daca5f1`), on the rule **"a verb with no way to express a value has no way to express erasing one either, so absence can only mean not-saying"** -- written after six ST0061 notes died to one re-cite. Same argument, verbatim, unapplied to `ac_new`. `at_new` also contract-checks the prospective row; `ac_new` checks nothing.
+
+**cc's ruled package (refuse a taken key in `ac new`) would close this BY CONSTRUCTION** -- the destroying call IS the call on an existing id. Not new work; it raises what cc already holds from ergonomics to a live silent-destruction fix. **Not claimed by me, nothing filed.**
 
 ## NEXT
 
