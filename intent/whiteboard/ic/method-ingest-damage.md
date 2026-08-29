@@ -6,7 +6,9 @@
 
 `AcState::Unsatisfied` is a **unit variant**: it carries no payload. A criterion authored `satisfied: no` **with an evidence clause** therefore has nowhere to put that clause once ingested. `legacy.rs:1707` matches `(true, Some(e)) => Satisfied{e}` and sends everything else to a wildcard `_ => Unsatisfied`, so `(false, Some(evidence))` is destroyed **silently**.
 
-**This is a REPRESENTABLE-STATE REGRESSION in the model, not a parser bug.** v2 could author "not satisfied, and here is what we have so far"; v3 cannot hold it. That distinction matters for your triage: **a parser fix would be retroactive, a model fix is not.** Re-running the ingest does not recover a field the model still cannot store.
+**This is a REPRESENTABLE-STATE REGRESSION in the model, not a parser bug.** v2 could author "not satisfied, and here is what we have so far"; **v3.0.0 cannot hold it.** That distinction matters for your triage: **a parser fix would be retroactive, a model fix is not.**
+
+**CHECK YOUR TOOL RATHER THAN TRUSTING THIS SENTENCE.** As shipped in **v3.0.0** (tag `80d8b2ca`, published 2026-08-26) `AcState::Unsatisfied` is a **unit variant** and the field is unrepresentable, so a re-run destroys it again. **The fix landed in Intent's source on 2026-08-29 (`04cf6f18`) -- `Unsatisfied { note }` plus three explicit ingest arms replacing the wildcard -- and `04cf6f18` is NOT an ancestor of the v3.0.0 tag.** So the recovery route below depends on which build you are standing on, and the answer changes the moment a release carrying that commit ships. **Ask your binary, not this document.**
 
 ## What the probe counts
 
@@ -70,4 +72,11 @@ Eight arms on planted ground truth: a **positive** that must fire on a known-dam
 
 ## If you find exposure
 
-**Exposure is not a repair order.** Confirm against your own canon first; the fix is a model change (optional evidence on the unsatisfied state) plus the `legacy.rs:1707` half, and that work is tracked as issue `0133` on Intent. **Do not re-run the ingest expecting recovery** -- the model still cannot represent the state, so a re-run destroys it again. Your authored source in git history is the recovery route.
+**Exposure is not a repair order.** Confirm against your own canon first. The fix is a model change (optional note on the unsatisfied state) plus the `legacy.rs:1707` half, tracked as issue `0133` on Intent and **landed in source at `04cf6f18` on 2026-08-29**.
+
+**THE RECOVERY ROUTE IS CONDITIONAL, AND THE CONDITION IS THE WHOLE OF IT:**
+
+- **On a build that PREDATES `04cf6f18` -- which includes the published v3.0.0 -- do NOT re-run the ingest expecting recovery.** The model cannot represent the state, so a re-run destroys it again. Your authored source in git history is the only recovery route.
+- **On a build that CARRIES `04cf6f18`, a re-ingest from your v2 source becomes a real recovery route**, because the state is now representable and the wildcard that swallowed `(false, Some(e))` is gone.
+
+**This paragraph previously stated the first bullet unconditionally, and it was true when written.** It stopped being the whole truth the day the model changed, without a word of it becoming false -- **which is why it now hands you the PROPERTY to check rather than the verdict to trust.** A method document that reports a value goes stale silently; one that names the commit you can test for does not.
