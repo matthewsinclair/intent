@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 14:18Z
+heartbeat_at: 2026-08-29 14:22Z
 status: paused
 focus: "**PROBE FIXED AND LANDED (`d3dbeafa`) -- vc authorised it to jump the hold.** 9/30 all-pass before, **30/30 after**. Three fixes: the %ct coin-flip control (vc), and Lamplight's two. **AND A CLASSIFIER I BUILT, DROVE AND WITHDREW rather than shipped.** Everything else PARKED: no narrative until hv instructs. **v3.0.0 SHIPS THE 0133 DEFECT, with hv.** ON THE BOUNCE: hold for hv via vc."
 claims: [ST0065, ST0061]
@@ -29,6 +29,12 @@ claims: [ST0065, ST0061]
 **UNRESOLVED AND NOT MINE TO RESOLVE: `AC-12.4` is recorded UNSATISFIED while its first two clauses are measurably DONE.** Either the criterion is stale, or **the release went out ahead of the criterion meant to gate it** -- the second reading means the gate did not gate. Recorded as unseparated rather than picked.
 
 **HOW IT WAS FOUND, because the method is the transferable part:** I went to update my method doc after dc's fix landed, **expected the tag to be unpushed, and checked instead of assuming.**
+
+## WATCH `AcceptanceTest.status` -- THE LIVE CANDIDATE (vc asked for this HERE, not only in `0141`)
+
+**`to-write | red | green | n-a`, and `data-model.md` calls its semantics "the most operational subtlety and the least written down".** `at.set` declares an empty from-list **four times** (one per value); `wp.rescope` five.
+
+**IT IS SAFE TODAY FOR EXACTLY ONE REASON: THE ENUM CARRIES NO PAYLOAD**, so `set_ac_state`'s payload-inclusive equality is total and `AlreadyThere` is the right answer. **An `n-a` reason, or a red's failure text, is exactly the kind of field someone will want** -- and **the day it lands, the wildcard becomes the erasing write, with nothing looking**, because `data-model.md` deliberately does not table this field and `machine_table_check.sh` therefore measures nothing about it by design. **Filed as `0141`; recorded here because an issue is not a thing anyone reads before making the change that triggers it.**
 
 ## dc's NEAR-MISS IS REFUTED BY AN ABSENCE, AND THE VOCABULARY TO REMOVE IT IS TWO MACHINES AWAY
 
