@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 14:03Z
+heartbeat_at: 2026-08-29 14:14Z
 status: paused
-focus: "FOLDED 13:51Z, RE-BANKED 2026-08-29 14:03Z. **hv RULED: v3.0.1 IS THE NEXT RELEASE ACT, THE FLEET IS WARNED NOW, AND I TAKE AC-12.2 + AC-12.3.** hv then MOVED IT -- docs go out WITH v3.0.1, so my unit is ON THE CRITICAL PATH, not downstream. **DO NOT BEGIN THE NARRATIVE: hv is writing the instructions and their shape may not be the one vc and I scoped.** AC-12.4 is the WORSE reading, confirmed. Lamplight returned 25 blind against predicted 25 and handed back TWO DEFECTS IN MY PROBE. ON THE BOUNCE: hold for hv via vc."
+focus: "**PROBE FIXED AND LANDED (`d3dbeafa`) -- vc authorised it to jump the hold.** 9/30 all-pass before, **30/30 after**. Three fixes: the %ct coin-flip control (vc), and Lamplight's two. **AND A CLASSIFIER I BUILT, DROVE AND WITHDREW rather than shipped.** Everything else PARKED: no narrative until hv instructs. **v3.0.0 SHIPS THE 0133 DEFECT, with hv.** ON THE BOUNCE: hold for hv via vc."
 claims: [ST0065, ST0061]
 ---
 
@@ -29,6 +29,32 @@ claims: [ST0065, ST0061]
 **UNRESOLVED AND NOT MINE TO RESOLVE: `AC-12.4` is recorded UNSATISFIED while its first two clauses are measurably DONE.** Either the criterion is stale, or **the release went out ahead of the criterion meant to gate it** -- the second reading means the gate did not gate. Recorded as unseparated rather than picked.
 
 **HOW IT WAS FOUND, because the method is the transferable part:** I went to update my method doc after dc's fix landed, **expected the tag to be unpushed, and checked instead of assuming.**
+
+## THE PROBE IS FIXED AND LANDED (`d3dbeafa`) -- vc RULED IT JUMPS THE HOLD
+
+**vc's sequencing, and the reason is the keeper: the hold is on the RELEASE and the NARRATIVE, not a freeze on the estate.** A probe is a whiteboard instrument, not a release artefact. **The deciding argument was that the harm is LIVE rather than pending.** vc also **declined my cheap alternative on principle** -- I offered "tell the three estates not to run it yet" and they refused it as **a social mitigation where a mechanical one is available** (their rule 20). A warning protects only the estates you remember to warn, and expires the moment someone runs the tool unwarned.
+
+**MEASURED BEFORE AND AFTER, 30 RUNS EACH: the committed blob is 9 all-pass / 21 FAILURE. The new one is 30 of 30.** vc's 4-of-12 and my 9-of-30 are the same 30%, sampled independently.
+
+**1. THE CONTROL WAS A COIN FLIP AND HAD BEEN SINCE I WROTE IT (vc's find).** `%ct` is **whole seconds**; the old code sorted `(%ct, sha, path)` descending, so same-second commits fell through to comparing **SHA strings**. Every failing arm was a moved-thread arm, every stable one a flat filter. **I found the tie independently ~20 min earlier and found it the WEAK way** -- one failure while editing, traced, fixed. **vc ran it N times and discovered it had been flaky ALL ALONG**, including every run I had cited as evidence the probe discriminates.
+
+**vc's BISECT NOTE IS THE TRANSFERABLE HALF: four refs each showed 8/8 on ONE SAMPLE, and they nearly filed "no regression, all refs clean".** **Bisect ASSUMES determinism, so aimed at a flaky subject it returns a confident, well-formed, wrong answer -- and nothing about the bisect can say so.** Repetition was the right instrument.
+
+**FIX: ordering comes from `git log --all --topo-order`, not a sort** -- deterministic, no ties. The fixture **plants explicit dates** (v2 era -> bucket collapse -> hop) instead of committing in a burst, so it also models the timeline it claims to.
+
+**2. LAMPLIGHT'S FINDING 1 -- the exit-3 guard was BINARY**, firing only at zero recovered, so 152/358 exited 0 with 206 threads unaccounted. **Accounting is now per-thread, the partition is ASSERTED not assumed, and the exit code is GRADED because the quantity is** (3 not-measured, 4 measured-but-incomplete).
+
+**3. LAMPLIGHT'S FINDING 2 -- `*/acceptance.md` is a filename glob, not a thread predicate.** Now cross-checked against the estate's own canon; **where no canon exists the check SAYS SO rather than passing everything.** On Intent it excluded `lib/templates/prj/st/ST####/acceptance.md`, and **mutating the check off leaks that row straight into `EXPOSED`.**
+
+### AND A CLASSIFIER I BUILT, DROVE, AND WITHDREW RATHER THAN SHIPPED
+
+I split unrecovered threads by whether their oldest blob carried the `GENERATED VIEW` banner. **Driven on Intent it put 44 of 67 threads in "residue". I opened ONE instead of reporting it:** `ST0001`'s acceptance file is created **BY the v3 hoist** (`0ec2ac79`) and carries no banner because the early renderer emitted none. **Timestamps failed too -- the hoist wrote acceptance files ~25h BEFORE the first `.canon` record**, so canon arrival is not the port instant it looks like.
+
+**UNDERNEATH BOTH, AND IT IS THE WIDER CRACK: v3's GENERATED `acceptance.md` USES THE SAME `-- satisfied:` SYNTAX AS v2 AUTHORED.** So the banner is **SUFFICIENT and NOT NECESSARY** and I have no reliable discriminator. Split withdrawn to one `UNCLASSIFIED` bucket naming both causes.
+
+**THE CONSEQUENCE I FLAGGED TO vc RATHER THAN LEAVING IMPLICIT: if v3-generated files can satisfy my v2-authored test, the `recovered` population on ANY estate may be contaminated, and the exposure figure is computed over it.** Intent reads 0 exposed so nothing is wrong here; **I do not know that for Baize, Laksa or Prolix.** Not a reason to hold the fixed probe -- exit 4 makes it visible where the old build printed one confident number -- but **a reason not to call any estate measured on the strength of a green.**
+
+**vc HAS WITHDRAWN THE WARRANT FOR LAMPLIGHT'S 25, NOT THE NUMBER** -- it rested on a single 8/8 from a control now known to pass ~30% of the time. Re-run N times requested.
 
 ## hv's RULINGS (14:00Z, first-hand in vc's session) -- AND MY UNIT MOVED ONTO THE CRITICAL PATH
 
