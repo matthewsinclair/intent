@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-29 15:46Z
+heartbeat_at: 2026-08-29 16:30Z
 status: active
-focus: "THREE hv RULINGS: st edit is TTY-AWARE WITH `--editor`/`--path` OVERRIDES (superseding BOTH earlier answers); the release scope is ST0056+feeders at 84 open, BOUNDED, with ST0060/ST0046/ST0064 out; and the number STAYS 3.0.1 with the four-new-verbs cost stated and taken -- I recommended 3.1.0, hv declined, I do not raise it again. MY MENU CAUSED THE st edit COLLAPSE: I put four options to hv and none was the TTY form hv had ALREADY chosen in cc`s session, on a false premise cc corrected. Reference is ONE generated page sectioned by family, not 27."
+focus: "LAKSA KICKOFF SENT to laksa-{cc,vc} on hv`s direct instruction, both named conditions met. ST0068 is 4/9 -- AC-01.1, AC-02.2, AC-02.4, AC-04.1 all satisfied with positive-controlled evidence. 0142`s register half is landed (`at green` help no longer asserts an unenforced guard) after cc found I had done the docs half and left the half I named as most important. REMAINING: AC-02.1 (end-to-end walkthrough), AC-02.3 (defect coverage), AC-03.1/03.2 (Laksa`s build and the decisions reaching their agent), AC-04.2 (same tag as v3.0.1, which gates on 84 open criteria)."
 claims: [ST0056, ST0057, ST0058, ST0060, ST0066, ST0068]
 ---
 
