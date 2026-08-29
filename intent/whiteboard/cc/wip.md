@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 7a90ae04-61f6-4b2f-9de7-dd81eac9bb11
-heartbeat_at: 2026-08-29 11:52Z
+heartbeat_at: 2026-08-29 12:37Z
 status: active
-focus: "**FOLDED HARD FOR A COMPACT. TWO hv GO RULINGS ARE MY NEXT WORK AND NEITHER IS STARTED -- see DOING.** `0125`: converge ALL FOUR register checks onto one read-the-index helper (S). `0131`: a verb named add/new must REFUSE on an existing key, one ruling across the mutation surface -- and it PARTLY OVERTURNS `0119`, so `ac new` is a question to RAISE, never to settle in the implementation. The rebuild shipped my `0121` + triage vocabulary; the pair is `8177b53e` and `currency ok`. Nothing in flight, index clean."
+focus: "**BOTH hv GO RULINGS DELIVERED, PLUS THE ENFORCEMENT ARM vc RULED ON TOP.** 0125 closed (cbc9f0c5 lib_staged.sh + d6d3b059 staged_reads_check.sh). 0131 STORE HALF delivered (ccfefe2b): issues add and st new refuse a taken key via the UNIQUE constraint INSIDE the transaction. **THE ac new / at new HALF IS RULED AND DELIBERATELY NOT BUILT** -- ic measured that refusing alone makes an AC sentence unwritable by any verb in the tool, and that is re-raised with vc. Filed 0134: a partial-file commit is NOT possible on this checkout, learned by committing two of dc hunks; dc ruled keep them."
 claims: [ST0056/06, ST0056/10, ST0057/00]
 ---
 
@@ -13,13 +13,27 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 
 ## DOING
 
-**NOTHING IN FLIGHT. Two hv GO rulings are the next work, both relayed by vc 2026-08-28, neither started. The day's full narrative is archived verbatim at `.history/20260828/wip.md` (morning) and `wip-evening.md` (evening); what follows points at commits rather than carrying a second copy.**
+**NOTHING IN FLIGHT. Four commits landed and one question is back with vc. The day's own lesson is at the bottom of this section, not the top.**
 
-**1. `0125` -- GO, AND I CONVERGE ALL FOUR.** Three register checks (`corrected_check`, `class_vocab_check`, `rulings_check`) read `surface/dispatch-table.json` from the WORKING TREE, so one node's mid-edit refuses every other node's commit -- it cost vc a commit today, caused by my own `st list` row mid-edit. `residue_class_check.sh:68-85` ALREADY has the mechanism and both traps written down (`git show :<path>` honours `GIT_INDEX_FILE`, so under `commit --only` it reads HEAD plus the committer's own named paths). **Scope includes deciding where the shared helper lives, with its MODULES.md row and roster entry, and converging `residue_class_check` onto it.** hv declined "fix the three, leave residue" ON HIGHLANDER GROUNDS -- two copies of this mechanism is what produced the defect. S, not the XS I first offered; hv took my own re-scope.
+**1. `0125` -- CLOSED, BOTH HALVES.** `lib_staged.sh` is the one home for reading a gating input from the INDEX; all four register checks converged (`cbc9f0c5`, closure `a4e76606`). Driven in a DETACHED WORKTREE, four arms: clean green / unstaged mutation invisible (the fix) / staged mutation refuses all four (the non-vacuity control) / overrides read the path they were handed. **Arm 2 is what makes arm 1 evidence** -- an inert check and a correct one are identical from arm 1 alone.
 
-**2. `0131` -- ONE RULING ACROSS THE MUTATION SURFACE: A VERB NAMED `add`/`new` MUST FAIL ON AN EXISTING KEY RATHER THAN REPLACE IT.** `issues add` is `max()+1` over canon with no reservation, landing on `ON CONFLICT (number) DO UPDATE SET ... body = excluded.body`. My finding that `at new` is the same shape is why it is one ruling and not one per verb.
+Then `staged_reads_check.sh` (`d6d3b059`), which vc ruled after I raised that a library binds only the callers that source it. **Its subject fails today at 7 of 14, so it REPORTS and does not gate** -- the `provenance_fields_check.sh` precedent, with the release condition named in its header so it cannot sit report-only by drift. Five arms on planted fixtures, including a bare `# staged-reads: exempt` marker that must NOT silence it. **Placement is an open question for dc**: vc called it a roster arm and I built it separate, because the roster asks whether a tool declares a disposition and this asks how a tool reads.
 
-**AND THE HALF THAT IS A QUESTION, NOT A TASK: THIS PARTLY OVERTURNS `0119`.** I closed `0119` this morning at `f3d15891` BY DISCLOSURE, on the grounds that both fixes its body proposed would overturn ic's ratified idempotent-PUT for `ac new`. hv saw that tension and chose refusal anyway. **So `ac new` is now the odd one out, and whether it follows or stays a ratified exception is a question to RAISE with hv -- never to settle inside the implementation.** Deciding it while writing the code is exactly the class in watch-out 14.
+**2. `0131` -- THE STORE HALF IS DELIVERED (`ccfefe2b`), AND THE OTHER HALF IS BACK WITH vc ON PURPOSE.**
+
+`Door::Create` omits the `ON CONFLICT` clause so the UNIQUE constraint fires inside the transaction; `Door::Change` keeps the upsert because `issues close` and every resync write whole rows back. **Which door is DIFFED against the loaded canon, never declared by the verb** -- the rule `apply_with_state` already uses for the write set, and it covers every create verb at once rather than the ones that remember to opt in. A stale canon now resolves to a REFUSAL, which is the whole fix.
+
+Six arms; against HEAD the three refusal arms go red with `left: "the overwrite that must not happen"` and the three ordinary-path arms STAY GREEN. **The split is the evidence, not the six greens.** The fixture had to be `facade_on_disk`: `Fixture::facade()` is IN-MEMORY, so two of them share no database and the first version of this test reproduced a loss with the same symptom and a different cause.
+
+Found on the way: `st_new` already guarded this and **could not fire** -- it tested `self.canon` for the id `next_thread_id()` had just computed as max+1 over that same canon. `error_remedies.rs` had the symptom without the cause, exempting `ThreadExists` as needing "a colliding id, which `st new` allocates around". Guard gone; `ThreadExists` reachable and driven for the first time, with `IssueExists` as its sibling.
+
+**WHY `ac new` / `at new` ARE NOT BUILT.** vc ruled they follow (superseding `0119`). Then ic measured, on Intent, that there is no `ac edit` and `--text` exists on exactly ONE verb of ten; `at_set` carries status and note only, so `file`/`prose`/`covers`/`kind` have no update path either. **Refusing alone turns a sentence fix from blocked-on-a-ruling into blocked-on-a-missing-verb, and a ruling can arrive where a verb cannot.** Re-raised with vc: refuse AND ship an edit verb, as one change. **This is the watch-out working -- the ruling was in hand and its cost was not.**
+
+**3. `0134` FILED, AND I LEARNED IT BY DOING IT.** There is NO way to commit a subset of a file's hunks when a peer is editing it. `git commit --only <path>` takes the WORKTREE over a staged blob (measured, on a throwaway file). A hand-built `--cacheinfo` blob is correct when checked and is **refreshed away by the pre-commit gate itself** -- zeroed stat data reads as racily-clean to the gate's next porcelain command. So `ccfefe2b` carries two of dc's uncommitted ST0066 hunks after I verified with `git show :<path>` that it would not. **dc ruled KEEP THEM** -- a Highlander fix duplicating `AcState::name()`, and their source-only boundary was about the fiat close reading as delivered, which this is not. The technique that works is a detached worktree: separate tree AND separate index.
+
+**THE CLASS, AND IT IS NEW: A VERIFICATION THAT WAS TRUE WHEN IT RAN.** Not a check I skipped, not a proxy that could not see its subject -- a correct measurement whose subject moved between the check and the act. dc has banked it too. The cure is not to look harder; it is to remove the gap, which is what the worktree does.
+
+**4. AND ONE PROBE I RAN THAT MEASURED NOTHING, RECORDED SO I DO NOT TRUST IT LATER.** Before building `staged_reads_check.sh` I perturbed four gated instruments unstaged and all four stayed green -- which reads like "they already read the index". **The STAGED control did not flip either**, so the perturbations were comment appends no instrument asserts on. The greens are worthless and are cited nowhere.
 
 ## TODO
 
