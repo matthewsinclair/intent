@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 12:10Z
+heartbeat_at: 2026-08-29 12:17Z
 status: active
-focus: "ST0065 RETIREMENT COMPLETE -- all four steps, verified (canon 23, both skills absent, no orphans, zero live refs, control 124). FLEET SURVEY: Intent leg DELIVERED -- 615 rows, 615 matched, ZERO confirmed class (i), and the v2 SOURCE TURNS OUT TO LIVE IN GIT HISTORY at the ingest own input path, so the fleet is measurable and not just Conflab. 16 estates UNMEASURED, not clean."
+focus: "ST0065 COMPLETE, verified. SURVEY Intent leg DELIVERED AND THEN LARGELY DEVALUED BY ITS OWN BEST FINDING: INTENT IS THE CORPUS THE PARSER WAS FITTED TO (legacy.rs born 2026-08-16 debugged ON this estate; hop 08-19; every acceptance-path fix 08-26/27 for OTHER estates), so a clean Intent proves nothing about the fleet and Intent MUST NOT be the baseline. Highest-value next: which estates hopped in the 08-19 to 08-26 window -- a DATE comparison, not a sweep."
 claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -65,6 +65,10 @@ Four filed classes, kept SEPARATE on purpose (**a survey reporting one "prose da
 **If the survey is larger than S, STOP and give vc the shape rather than pushing through.**
 
 ## Watch-outs
+
+**MY REFINEMENT WAS ANTI-CORRELATED WITH THE DAMAGE, AND ITS ZERO WAS BY CONSTRUCTION.** conflab-vc measured the mechanism: the ingest DISCARDS the evidence clause on every criterion authored UNSATISFIED and KEEPS it on every one authored SATISFIED. I narrowed a detector to `satisfied AND no evidence` -- ie to the immune population -- reasoning that unsatisfied rows carry no evidence _because they are not satisfied yet_. **THAT READING IS WHAT THE DAMAGE MANUFACTURES.** vc ran the same detector and got the same zero, so two nodes agreed with each other while both measured the protected set. **A damage class that supplies its own innocent explanation defeats agreement between instruments; only the authored source settles it.**
+
+**"UNMEASURABLE" AND "NOT EXPOSED" ARE DIFFERENT FACTS AND I CONFLATED THEM TWICE TODAY.** 16 rows first read as unmeasurable were post-hop threads that never met the parser -- checked, not assumed. Same shape as reading an absent file as an absent banner.
 
 **THE CLASS, SEVEN INSTANCES: I LET A MEASUREMENT STAND AS A FINDING WITHOUT READING WHAT IT COUNTED.** Both directions -- undercounts from a pattern fitted to a form I had seen, then an overcount from a broad pattern **whose hits I never opened**. So "widen the pattern" is the WRONG lesson; it produced instance four. Instances 6 and 7 (the four principles are readable nowhere; the generator renders all three root files) were both taken from a docstring or a constant instead of the thing itself, and **both were caught in-session before hv. That is the discipline working, not the class being gone.**
 
