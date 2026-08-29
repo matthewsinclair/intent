@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 11:50Z
+heartbeat_at: 2026-08-29 12:10Z
 status: active
-focus: "BOOTED POST-COMPACT AND WAITING ON vc, whose OWN board queues my survey THIRD (dc FIAT-EXIT ruling to hv first, then AC-00.4). NOTHING IN FLIGHT, nothing of mine dirty. TWO ACTIONS STILL HELD FOR THE USER OWN VOICE -- the skills uninstall and the skills sync -- so ST0065 committed canon edits remain DELIVERED TO NOBODY. NEXT WHEN vc CALLS IT: the fleet ingest-prose-damage survey, MEASURE-ONLY."
+focus: "ST0065 RETIREMENT COMPLETE -- all four steps, verified (canon 23, both skills absent, no orphans, zero live refs, control 124). FLEET SURVEY: Intent leg DELIVERED -- 615 rows, 615 matched, ZERO confirmed class (i), and the v2 SOURCE TURNS OUT TO LIVE IN GIT HISTORY at the ingest own input path, so the fleet is measurable and not just Conflab. 16 estates UNMEASURED, not clean."
 claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -15,18 +15,31 @@ claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/1
 
 **NOTHING IN FLIGHT.** ST0065's three legs are delivered and its step 1 is committed. Next work is vc's survey, below.
 
-## HELD -- needs THE USER, not a peer and not hv-via-vc
+## RESOLVED -- the two held writes, and how
 
-**Both are authorized on hv's board and I have run NEITHER, deliberately.**
+**hv RAN BOTH THEMSELVES** (menu: hv runs them here, sync first -- CHOSEN). The authorisation chain was DISSOLVED rather than lengthened, which was the point of the hold. Nothing was executed by me and nothing needed to be.
 
-- **`intent claude skills uninstall in-start in-next`** (retirement step 2) -- authorized at `b17048d3`, menu recorded with declined options.
-- **`intent claude skills sync`** -- authorized in the same class, and without it today's canon edits reach nobody including our own sessions.
+**vc's sequencing catch, which my draft got wrong:** `sync` INSTALLS FROM CANON, so a sync AFTER the uninstall reinstalls both. hv ran **sync first, then uninstall**. My draft called steps 2 and 3 order-free because uninstall does not read canon -- true, and not the whole picture once a sync joins the sequence. **The draft is now wrong on disk and should say so.**
 
-**WHY THEY ARE STILL HELD.** Both write OUTSIDE the repo into `~/.claude/skills/` and `~/.intent/`. I put the uninstall to the user directly; **the harness reported that no genuine user input had been received and that the answer must not be treated as consent.** hv's board is maintained BY vc, and the protocol's own words are that an hv attribution written by vc is _unverifiable by construction_ -- the same sentence the parity gate prints about `authority: hv` with no record. **So the chain is well-formed and still not the user's own voice.** A peer cannot supply that and neither can a board.
+**vc corrected the cost figure DOWNWARD and told me unprompted:** the delivery gap was ONE skill, not four -- three were already settled and my `in-standards` repair had already landed at `818d27a8`. So "every session is loading the pre-edit skill" was false when vc relayed it to hv. **A relay carries the measurement's TIMING as well as its scope.** My hold was still right, for the reason it was made and not for the cost.
 
-**Consequence to state plainly rather than let someone infer:** ST0065's canon edits are committed and **delivered to nobody**. Any session reading `in-standards` today still gets the retired MODULES.md imperative.
+## DELIVERED -- fleet survey, INTENT LEG (report: `survey-ingest-damage.md`, tools in `tools/`)
 
-## NEXT -- vc's assignment: FLEET INGEST PROSE DAMAGE SURVEY (not started)
+**THE REACH FINDING: the v2 comparison source is in GIT HISTORY on any git-tracked estate.** `legacy.rs:1273` reads `dir.join("acceptance.md")` -- the ingest's OWN input path, which the v3 generated view then overwrote. Conflab's `acceptance.v2.md` was a hand-preserved COPY, not the parser's input. **Measured on ONE estate; it fails wherever pre-hop history was squashed and that is checked NOWHERE.**
+
+**INTENT: 615 authored rows, 615 matched, ZERO confirmed class (i).** Measured against canon **AS INGESTED** at the hop (`16048f82`). **The same check against TODAY's canon returns 112, 98 of them in ST0057, which returns 0 at the hop** -- eleven days of authoring reading as damage. **An instrument pointed at the current store measures the AUTHORS, not the ingest.**
+
+**UNRESOLVED, attributed to nothing:** `ST0056/AC-00.10`, authored 7182 chars, canon-at-hop 15215. NOT the splice -- longest repeated span at a 100-char floor is none. ST0056 was under edit across the hop boundary, so it is **CONFOUNDED** and reported as such.
+
+**`0127` IS CLOSED** -- conflab-vc reconciled 114 authored notes against 114 canon notes. The class does not exist. **`0126` is a two-capture ROTATION, not 3x duplication**, so my same-field duplication test is aimed at the OVERLAP SUBSET rather than the class.
+
+**16 estates UNMEASURED -- not clean.** Next in value order: confirm the recovery method on a SECOND estate (the whole reach claim rests on one layout); give the splice detector its structural discriminators before any fleet run.
+
+## STILL OPEN -- residue from the retirement, needs an out-of-repo write
+
+`~/.claude/skills/in-start/` and `in-next/` are **empty directories** left by the uninstall. The tool's own listing is correct (both absent, no orphans), but a presence check on the directory reads them as installed -- **my own count was fooled by exactly that before I looked inside.** Removing them writes outside the repo, so it is flagged, not done.
+
+## SUPERSEDED -- vc's assignment as originally briefed
 
 **MEASURE ONLY. REPAIR NOTHING.** No markdown-to-store route (`0097`), no issue edit verb (`0090`) -- a repair today is a hand edit the next sync reverts, and it **consumes the evidence**. Read-only across estates; announce before touching a shared tree; do not disturb a live checkout.
 
