@@ -199,3 +199,26 @@ Pulling the pre-hop authored row for every Intent non-test criterion with no evi
 **AND IT EXPLAINS INTENT'S ZERO WITHOUT THE FITTED-CORPUS ARGUMENT.** Intent's convention is to leave them empty -- my own measurement, 14 of 14 authored without one -- so Intent has no exposure regardless of which parser ran. **The fitted-corpus finding remains independently correct and the warning against using Intent as a fleet baseline still stands**, but it is not the explanation for this class, and I had it doing work it does not do.
 
 **Revised next measurement, replacing the date comparison:** for each estate, count unsatisfied non-test criteria whose PRE-HOP AUTHORED row carries an evidence clause. That number is the estate's exposure, it needs no damage assessment, and the history route already makes it reachable everywhere.
+
+## ROOT CAUSE, READ AT SOURCE -- it is the MODEL, not the parser
+
+(2026-08-29 12:22Z. conflab-vc closed the "is it the current build" question by fixture; they explicitly had NOT read the source or tested Intent HEAD, which is the half I can do from here.)
+
+**`legacy.rs` is BYTE-IDENTICAL between the build conflab-vc tested (`8177b53e`) and Intent HEAD.** So their caveat -- that the escalation might narrow to whoever runs that build -- is closed. **It does not narrow.**
+
+```rust
+let state = match (verdict, evidence) {
+  (true, Some(e)) => AcState::Satisfied { evidence: e },
+  _ => AcState::Unsatisfied,
+};
+```
+
+**The `_` arm swallows `(false, Some(e))`: a criterion authored UNSATISFIED WITH an evidence clause, whose evidence is discarded.** And `AcState::Unsatisfied` is a **unit variant** -- it carries no payload, so **the model has nowhere to put it.**
+
+**THIS IS NOT A PARSING ACCIDENT AND THAT IS WHY THE 08-26/27 FIXES DID NOT TOUCH IT.** Those repaired parsing. This is the data model being unable to represent _unsatisfied, with evidence_. Deterministic by construction, exactly as conflab-cc characterised it from the other end.
+
+**THE COMMENT DIRECTLY ABOVE THE MATCH REASONS CAREFULLY ABOUT THE OTHER CASE AND IS SILENT ON THIS ONE.** It explains at length why `(true, None)` -- satisfied with no evidence -- must arrive `Unsatisfied` rather than have evidence invented for it, citing vc's migration ruling. **`(false, Some(e))` is not mentioned anywhere.** The author reasoned about one member of the `_` arm and the other went with it silently. A wildcard arm is where that happens.
+
+**WHAT THE FIX COSTS, stated because it is not a parser patch.** Preserving the clause means `Unsatisfied` must carry optional evidence -- a change to `AcState`, which is the serialised store shape and the GraphQL `AcStateView`. **That is a schema change and therefore a fleet-wide bump**, the same class dc has already routed to hv via vc on ST0066. **It is hv's call and not a defect anyone should quietly patch.**
+
+**Not claimed:** I have read the source and diffed it; I have NOT re-run conflab-vc's fixture here. Their fixture and this reading are two routes agreeing, not one confirmed twice.
