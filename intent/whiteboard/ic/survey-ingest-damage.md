@@ -325,3 +325,40 @@ The predictor reads the newest v2-authored blob, which may predate an estate's a
 cc reports `at_set` (facade.rs:4923) carries `status` and `note` **only**, so `file`, `prose`, `covers` and `kind` have no update path -- and `at new`'s own header documents that a create-on-existing-id "did not merely fail to set a note, it ATE one that was there", six ST0061 notes destroyed by one re-cite. **The verb built for the job is the lossy one and the safe route -- a canon edit plus `sync --to-store` -- is undocumented.** Same shape as `ac`, so it is one hole across two verbs rather than an `ac` special case.
 
 cc shipped the half of `0131` that is safe (`issues add`, `st new` -- both ALLOCATE their keys, so a refusal just takes the next number) and **deliberately did not touch `ac new`**, which takes a caller-assigned key. That distinction is what let them ship without pre-empting hv's ruling.
+
+## THE 257 IS WRONG. IT IS 80. (2026-08-29 13:13Z) -- found while PACKAGING the method, not while using it
+
+**MY PREDICTOR SCANNED PER-PATH WHEN THE UNIT IS PER-THREAD, AND IT INFLATED THE FLEET AGGREGATE BY 3.2x.**
+
+v2 kept threads in status-bucket directories and estates collapsed those into a flat layout before hopping, so **one thread has several historical paths, each frozen at whatever verdict it held when it left that bucket.** `acceptance_paths()` walked `*/acceptance.md` and treated every path as a separate subject. **Lamplight: 678 historical paths for 358 threads, 155 of them carrying 2-3 paths each.**
+
+Two shapes, and I read rows of both rather than trusting the delta:
+
+- **Duplication.** `ST0206 AC-01.2` is BYTE-IDENTICAL at three paths and was counted three times.
+- **A WRONG VERDICT, which is worse.** `ST0052 AC-01.2` on Intent reads `satisfied: no` at its July `NOT-STARTED/` snapshot and `satisfied: yes` at the post-collapse blob. **It was satisfied before the hop.**
+
+| estate      | reported | corrected |
+| ----------- | -------- | --------- |
+| Lamplight   | 145      | **25**    |
+| Baize       | 43       | **28**    |
+| Laksa       | 23       | **10**    |
+| **Conflab** | 14       | **14**    |
+| Riffle      | 12       | **0**     |
+| Courses     | 10       | **0**     |
+| Devbin      | 7        | **0**     |
+| Prolix      | 3        | **3**     |
+| **TOTAL**   | **257**  | **80**    |
+
+**Riffle, Courses and Devbin were entirely artifact -- 29 rows to zero. Baize is now the largest estate, not Lamplight.**
+
+### THE CONFLAB CONTROL PASSED IN FULL WHILE THE INSTRUMENT WAS WRONG ON EIGHT ESTATES
+
+**Conflab is unchanged at 14** -- its history did not produce stale bucket snapshots, so the defect never touched the one estate with independent ground truth. **The control was genuine, unarranged, and blind to the axis that was broken.** I offered it as this survey's strongest evidence and it could not have caught this.
+
+**Third instance today of the class, and the first where the blind control was MINE:** a sample that cannot exhibit the failure; a detector anti-correlated with its damage; and now a control whose estate lacked the very history that triggers the defect. **Being real does not make a control less blind.**
+
+### The fix, and its own control
+
+The probe groups by thread id and takes the newest v2-authored blob **across every path the thread ever had**. `tools/ingest_damage_probe.py --self-test` now carries an arm that **plants a status-bucket collapse** -- stale path `satisfied: no`, current path `satisfied: yes` -- and fails if the stale one leaks. **Every arm was driven to both verdicts by breaking the detector three ways** (scaffold filter off, view banner ignored, per-path grouping restored); each break turns its matching arm red at exit 1.
+
+**Corrected figures remain PREDICTED-UNCONFIRMED. The correction removed an inflation; it confirmed nothing.**

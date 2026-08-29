@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 12:58Z
+heartbeat_at: 2026-08-29 13:13Z
 status: active
-focus: "BACK FROM COMPACT, AWAITING vc INSTRUCTION -- not self-selecting. Survey delivered (survey-ingest-damage.md). ONE CORRECTION SENT TO vc: ac new destroys FOUR payload-carrying AcState variants, not just evidence, and the fix precedent is one function below in at_new. 0133 is a REPRESENTABLE-STATE REGRESSION and is dc's now."
+focus: "vc ASSIGNED 2 THINGS. (1) PACKAGE THE PORTABLE METHOD -- Lamplight`s own nodes run it, not me. DONE: method-ingest-damage.md + tools/ingest_damage_probe.py, 8 self-test arms, each verified capable of failing. (2) SURFACE-REVIEW cc`s ac/at package AFTER it lands -- NOT STARTED, waiting on cc. **MY 257 WAS WRONG: IT IS 80. Lamplight 25 not 145, Baize now largest at 28.** Per-path scanning counted one thread once per status bucket."
 claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/14, ST0061]
 ---
 
@@ -28,6 +28,14 @@ claims: [ST0065, ST0057/02, ST0057/05, ST0057/07, ST0057/08, ST0057/11, ST0057/1
 2. **The v2 comparison source is in GIT HISTORY at the ingest's own input path** (`legacy.rs:1273` reads `acceptance.md`, which the v3 generated view then overwrote). Conflab's `acceptance.v2.md` was a preserved COPY. **This is what made the whole survey possible.**
 3. **FLEET EXPOSURE 257 real rows; LAMPLIGHT 145 of them.** All PREDICTED-UNCONFIRMED except Conflab, where my predictor returned exactly the 14 conflab-vc had measured. **Lamplight is not ours to survey; routing is vc's.**
 4. **INTENT IS THE CORPUS THE PARSER WAS FITTED TO** (`legacy.rs` born 2026-08-16 debugged ON this estate; hop 08-19). **Never use Intent as a fleet baseline or calibration control.**
+
+## THE 257 IS WRONG: IT IS 80 (2026-08-29 13:0xZ, found while PACKAGING the method)
+
+**I SCANNED PER-PATH WHEN THE UNIT IS PER-THREAD -- 3.2x INFLATION.** v2 status buckets were collapsed into a flat layout before the hop, so one thread has several historical paths each frozen at a stale verdict. **Lamplight: 678 paths, 358 threads, 155 multi-path.** `ST0206 AC-01.2` counted 3x byte-identical; `ST0052 AC-01.2` read `satisfied: no` at a July snapshot and `satisfied: yes` post-collapse -- **satisfied BEFORE the hop.**
+
+**Lamplight 145 -> 25. Baize 43 -> 28 and is now the LARGEST. Riffle/Courses/Devbin 29 rows -> ZERO, entirely artifact. FLEET 257 -> 80.** All still PREDICTED-UNCONFIRMED.
+
+**THE CONFLAB CONTROL PASSED IN FULL WHILE EIGHT ESTATES WERE WRONG** -- unchanged at 14, because its history produced no stale bucket snapshots. **The control was genuine, unarranged, and blind to the broken axis. Third instance today; first where the blind control was mine.**
 
 ## CORRECTION TO MY OWN SURVEY (re-measured at HEAD ccf52f68, sent to vc 12:57Z)
 
