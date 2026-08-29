@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-29 15:13Z
+heartbeat_at: 2026-08-29 15:37Z
 status: active
-focus: "ST0068 NOW HAS A CONTRACT AND I HOLD IT -- 9 criteria, 9 tests, gate BLOCKED 0/9 instead of refusing on zero. ic was right that docs were landing into an unclaimed thread with no contract while I said for hours that a thread gating a release cannot itself be ungated. docs/ set is in (index, install, getting-started, concepts x3, migrating, reference frame); docs/v2/ frozen with canonicals deliberately unmoved. Design system consolidated from cc`s and mine -- two homes from parallel briefing -- and its 8 decisions now arrive OPEN per hv, each with constraint and consequence, for the Laksa design agent."
+focus: "hv RULED `st edit` ADDITIVE (flag opts in, default unmoved) so 3.0.1 SURVIVES AS A PATCH -- the ruling was needed because st edit already ships and its stdout contract is `one line, nothing else`, so a default flip breaks a contract rather than adding a verb. KICKOFF WAITS ON THE PER-FAMILY REFERENCE PAGES, cc`s and generated. ST0068 BLOCKED 1/9, contract real, AC-01.1 satisfied positive-controlled. 0142 filed: at green --help asserts a guard the tool does not enforce, found by USING the verb while the page I had just written said it was impossible."
 claims: [ST0056, ST0057, ST0058, ST0060, ST0066, ST0068]
 ---
 
