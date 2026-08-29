@@ -1157,9 +1157,28 @@ pub struct FiatRecord {
   pub inherited_from: Option<String>,
 }
 
-/// **THE ONE RENDERING OF A FIAT CLOSE.** Every surface that shows a
-/// fiat-closed row -- generated views, `ac list`, the close gate, `doctor` --
-/// composes its marker here and nowhere else.
+/// **THE ONE RENDERING OF A FIAT CLOSE -- ASPIRED TO, AND NOT YET TRUE.**
+///
+/// This doc used to state flatly that every surface showing a fiat-closed row
+/// -- generated views, `ac list`, the close gate, `doctor` -- composes its
+/// marker here and nowhere else. **Measured 2026-08-29, that was wrong in three
+/// places, and the sentence had been read many times without anyone checking
+/// it.** The census now lives in
+/// `tests/fiat_close_is_visible_on_every_surface.rs`; what it found:
+///
+/// - **generated views** compose this marker. The one caller.
+/// - **the close gate** reports a COUNT (`N fiat-closed`) and has no marker to
+///   compose. Correct, and not this function.
+/// - **`doctor`** reports inconsistencies rather than states, so it renders no
+///   marker at all.
+/// - **`ac list` RENDERS A FIAT CLOSE AS `satisfied: no`** -- indistinguishable
+///   from an ordinary open row. **Issue 0137.** This is the case the ruling
+///   exists to prevent and it is live.
+///
+/// So the property the census actually holds is the weaker, true one: **a
+/// surface reporting a fiat-closed criterion must make the close visible**, by
+/// whatever spelling suits it. "One composer" remains the goal for the surfaces
+/// that render a marker; it is not a description of today.
 ///
 /// hv's ruling (2026-08-28) put the fiat record BESIDE the status rather than
 /// inside it, which leaves the ratified lifecycle machine untouched and buys
