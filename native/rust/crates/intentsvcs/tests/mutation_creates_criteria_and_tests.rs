@@ -45,16 +45,34 @@
 //! and the surface cannot makes the bytes differ, which is the only shape that
 //! catches it.
 //!
-//! # A note on the fixture, because it is doing real work here
+//! # A note on the fixture, because it supplies NOTHING and that is the point
 //!
-//! `sample_thread` carries `AT-03.1` as `green` citing
-//! `crates/intentsvcs/tests/ingest_refusal.rs`, a path that does not exist
-//! inside a temp fixture. **The fixture therefore ALREADY carries L2 findings
-//! before this file writes anything**, which is what makes
-//! `at_new_does_not_refuse_on_a_finding_that_is_not_about_this_row` a real
-//! test rather than a hypothetical: without the narrowing, no create would
-//! ever succeed on this thread, and a verb that refuses on somebody else's
-//! defect is one nobody can use.
+//! **`sample_thread` carries NO findings, and it cannot.** `Fixture::write_thread`
+//! walks `thread.tests` and CREATES every cited file, writing the row's own id
+//! into it (`common/mod.rs:160-164`) -- so L2 (cited file absent) and L3 (file
+//! does not name the row) are both unreachable on this fixture BY CONSTRUCTION.
+//! `AT-03.1` citing `ingest_refusal.rs` gets that file made inside the temp dir.
+//!
+//! **THIS PARAGRAPH USED TO SAY THE OPPOSITE, AND THE CORRECTION IS THE USEFUL
+//! PART.** It claimed the fixture "already carries L2 findings before this file
+//! writes anything". That was false when written, and `90988faf` -- the commit
+//! that wrote this header -- is the SAME commit carrying the body comment at
+//! `at_new_does_not_refuse_on_a_finding_that_is_not_about_this_row` that records
+//! the control firing with `findings: []`. The file shipped stating a premise
+//! its own test refuted twenty lines below. **Born stale is not a claim that
+//! decayed: nothing changed underneath it, and there was never a moment the
+//! header was true.** `write_thread`'s file-creating loop predates it by months
+//! (`a1a949cf`).
+//!
+//! **It cost a reader exactly what a false premise costs.** cc read this
+//! paragraph while landing `0131`, wrote a precondition on the sentence, and the
+//! precondition fired -- rediscovering from scratch what the body already said.
+//! Without their precondition their own arm would have passed proving nothing.
+//!
+//! So the inherited finding this file needs is **PLANTED, not borrowed**, and
+//! the narrowing argument is unchanged and still right: without it no create
+//! would ever succeed on a thread carrying somebody else's defect, and a verb
+//! that refuses on somebody else's defect is one nobody can use.
 
 mod common;
 
