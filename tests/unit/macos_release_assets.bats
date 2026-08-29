@@ -65,8 +65,25 @@ build_support_fixture() {
   # the copy list itself had just been fixed for. Empty dirs are enough: the
   # drift check compares `find -type f`, so a directory with no files in it
   # contributes nothing to either side.
-  local _p
-  for _p in $SUPPORT_PATHS; do mkdir -p "$ROOT/$_p"; done
+  #
+  # AND THE SHAPE IS DERIVED TOO, NOT ASSUMED TO BE A DIRECTORY. The list may name
+  # a FILE: `intent/plugins/claude/bin/intent_claude_cwi` is one, entered at file
+  # level on 2026-08-29 because its directory holds six v2 scripts that must not
+  # ship. `mkdir -p` on a file entry silently builds a DIRECTORY of that name --
+  # which passes every arm here, since an empty directory contributes nothing to
+  # `find -type f`, while meaning the drift arms never exercise a file entry at
+  # all. That is the same shape as the defect above it, one turn quieter: the
+  # fixture agrees with the list and stops agreeing with the tree. Shape is read
+  # from the same tree the list is read from, so it cannot drift in either respect.
+  local _p _src="${INTENT_HOME:-${MACOS%/bin/.devbin/cmd/macos}}"
+  for _p in $SUPPORT_PATHS; do
+    if [ -f "$_src/$_p" ]; then
+      mkdir -p "$ROOT/$(dirname "$_p")"
+      printf '#!/usr/bin/env bash\n' >"$ROOT/$_p"
+    else
+      mkdir -p "$ROOT/$_p"
+    fi
+  done
   mkdir -p "$ROOT/lib/templates/hooks" "$ROOT/lib/templates/.claude/scripts" "$STAGE_DIR"
   printf '#!/usr/bin/env bash\n' >"$ROOT/lib/templates/hooks/whiteboard-clock-guard.sh"
   printf '#!/usr/bin/env bash\n' >"$ROOT/lib/templates/hooks/pre-commit.sh"

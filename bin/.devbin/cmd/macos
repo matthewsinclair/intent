@@ -131,7 +131,33 @@ SUPPORT_ASSET="intent-support.tar.gz"
 #
 # A RECORDED VERIFICATION MUST NAME ITS POPULATION, or the next reader inherits
 # the confidence without the scope.
-SUPPORT_PATHS="lib/templates intent/plugins/claude/rules intent/plugins/claude/skills"
+# THE FOURTH ENTRY IS A FILE, NOT A TREE, AND THAT IS THE WHOLE POINT.
+# `intent/plugins/claude/bin/` holds SEVEN scripts; `intent_claude_cwi` is the
+# only one v3 resolves (`intentsvcs/src/install.rs:361`), and hv ruled it the ONE
+# plugin script surviving the cut -- recorded at `install.rs:352`. Shipping the
+# DIRECTORY would satisfy this check just as well and carry six v2 scripts nothing
+# executes, which is precisely the residue fail-forward exists to refuse. Adjacency
+# is not a reason to ship something.
+#
+# HOW IT WENT MISSING, BECAUSE THE ANSWER CHANGES WHAT THE FIX MEANS. It was not
+# missed when this list was corrected on 2026-08-26 (`0112b8c1`). The cwi door
+# landed the NEXT DAY, `68ca70bf` 2026-08-27 14:41Z, and the copy list did not
+# follow it. `support_paths_coverage` caught it on the first stage attempt after
+# that -- **so this entry is the check WORKING, not the check having failed.** A
+# list that must be updated by hand when a resolver is added will go stale again;
+# what makes that survivable is that the coverage arm reads the consumer, so the
+# staleness is refused at stage rather than shipped.
+#
+# WHAT IT DARKENS WHEN ABSENT: `intent claude start <ws>` and `intent claude ws
+# <verb>` -- the MAAC whiteboard launcher and provisioner, both `disposition: keep`.
+# The Whiteboard Protocol skill SHIPS IN THIS SAME KEG and names `intent claude ws
+# new` as the provisioner, so a keg without this file contradicts its own
+# documentation on disk.
+#
+# It needs no formula `chmod`: the archive preserves 0755 through `tar`, and the
+# `chmod` in the formula exists only for the two BINARIES, which GitHub serves as
+# bare 644 files. Verified in the archive, not assumed.
+SUPPORT_PATHS="lib/templates intent/plugins/claude/rules intent/plugins/claude/skills intent/plugins/claude/bin/intent_claude_cwi"
 
 # THE WRAPPER DIRECTORY, AND IT EXISTS BECAUSE HOMEBREW UNPACKS WITH A HEURISTIC.
 #
@@ -366,18 +392,42 @@ INSTALL_BINARY_PATHS="bin"
 # literal that is a parent of an ENTRY exists because its children ship, so
 # `plugins.rs`'s `intent/plugins` needs nothing of its own. A new sibling tree
 # is neither, which is exactly the case this exists to catch.
+# resolved_install_paths -- every path v3 resolves against its install root,
+# read out of the RESOLVERS. One line per path, sorted, no duplicates.
+#
+# THE ONE HOME FOR THAT QUESTION, AND IT HAS TWO CONSUMERS ON PURPOSE:
+# `support_paths_coverage` (does the copy list carry them) and smoke ARM 3 (does
+# the built keg contain them). Before 2026-08-29 ARM 3 asked its question of
+# `$SUPPORT_PATHS` instead -- the copy list -- so it audited the artefact against
+# the very list whose omissions it existed to catch, and would have reported all
+# green on a keg missing a tree. That is the SECOND instance in this file of a
+# check whose stated claim is wider than its population; the first is the one
+# recorded at SUPPORT_PATHS above. Deriving both from here is what stops there
+# being a third.
+#
+# THE WHOLE CHAIN, NOT THE FIRST LINK. `plugins.rs` writes
+# `install.join("intent").join("plugins")`, and a pattern that stops at the
+# first `.join(...)` reads that as `intent` -- which is covered by any entry
+# under `intent/`, so a chained NEW tree would pass while its first segment
+# carried it. Found by driving the positive control, not by reading.
+#
+# POPULATION, NAMED, BECAUSE NAMING IT IS THE WHOLE LESSON OF THE DEFECT: `src/`
+# only. A `tests/` join builds a FIXTURE install root -- `skills_sync.rs` mkdirs
+# two of these paths in a tempdir -- so a fixture path is not a shipping
+# requirement, and reading tests here would refuse a release over a temp dir.
+resolved_install_paths() {
+  local src="$ROOT/native/rust/crates"
+  [ -d "$src" ] || return 0
+  find "$src" -path '*/src/*' -name '*.rs' -exec \
+    grep -hoE '(install|install_root|home)(\.join\("[^"]+"\))+' {} + 2>/dev/null |
+    sed -E -e 's/^(install|install_root|home)//' -e 's/\.join\("/\//g' \
+           -e 's/"\)//g' -e 's#^/##' | sort -u
+}
+
 support_paths_coverage() {
   local src="$ROOT/native/rust/crates" lit entry covered out=""
   [ -d "$src" ] || { printf '       < no rust source at %s\n' "$src"; return 0; }
-  # THE WHOLE CHAIN, NOT THE FIRST LINK. `plugins.rs` writes
-  # `install.join("intent").join("plugins")`, and a pattern that stops at the
-  # first `.join(...)` reads that as `intent` -- which is covered by any entry
-  # under `intent/`, so a chained NEW tree would pass while its first segment
-  # carried it. Found by driving the positive control below, not by reading.
-  for lit in $(find "$src" -path '*/src/*' -name '*.rs' -exec \
-      grep -hoE '(install|install_root|home)(\.join\("[^"]+"\))+' {} + 2>/dev/null |
-      sed -E -e 's/^(install|install_root|home)//' -e 's/\.join\("/\//g' \
-             -e 's/"\)//g' -e 's#^/##' | sort -u); do
+  for lit in $(resolved_install_paths); do
     covered=""
     for entry in $SUPPORT_PATHS $INSTALL_BINARY_PATHS; do
       case "$lit/" in "$entry"/*) covered=y ;; esac
@@ -1813,8 +1863,23 @@ cmd_smoke() {
   # ARM 3 -- THE CLASS, NOT THE INSTANCE (vc's ruling). Every path v3 resolves
   # against its install root must be present in the keg. Asserting only the
   # tree we happen to have just fixed is how the SECOND missing tree ships.
+  #
+  # AND UNTIL 2026-08-29 IT DID NOT DO THAT. It iterated `$SUPPORT_PATHS` -- THE
+  # COPY LIST -- so its population was the very thing its claim was supposed to
+  # audit. A path the copy list omits is absent from the keg AND absent from the
+  # loop, so the arm reports every entry green and passes: measured against the
+  # list as it stood that morning it would have said 4/4 while the keg was
+  # missing `intent_claude_cwi` and `intent claude ws` was dark. The comment
+  # above was already correct; the code under it was asserting something
+  # narrower and nothing said so. Population now comes from the resolvers via
+  # `resolved_install_paths`, which makes the arm's stated claim true.
+  #
+  # DELIBERATE, AND NOT A BUG TO FIX LATER: the resolver list is read from the
+  # SOURCE TREE at smoke time, not from the keg's own binary. Smoking an OLD keg
+  # against current source therefore reports the paths that keg lacks, which is
+  # the correct verdict about that keg rather than a false alarm about it.
   step "every install-root path v3 resolves is present in the keg"
-  for p in $SUPPORT_PATHS $INSTALL_BINARY_PATHS; do
+  for p in $(resolved_install_paths) $INSTALL_BINARY_PATHS; do
     if [ -e "$libexec/$p" ]; then
       smoke_ok "$p"
     else
