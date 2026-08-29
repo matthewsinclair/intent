@@ -43,6 +43,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 01: Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set
   - [-] 02: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided
 - [-] ST0066: Add 'fiat close' as a feature to close STs, WPs, ACs, and ATs
+- [-] ST0068: Update Intent's docs for v3
 
 ## TODO
 

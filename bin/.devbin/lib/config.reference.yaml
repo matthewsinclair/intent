@@ -149,7 +149,7 @@ project:
 #   X.Y.Z     exactly
 #
 # Omit it and any runtime satisfies the project. Note that `^` on a 0.x version
-# admits 0.2.0 for a declared ^0.1.0, which is NOT what semver's own text says:
+# admits 0.5.0 for a declared ^0.4.0, which is NOT what semver's own text says:
 # pre-1.0 devbin makes no stability promise either way, and the strict reading
 # pins every project to a patch series and makes `devbin upgrade` a lie.
 devbin_version: "^1.0.0"

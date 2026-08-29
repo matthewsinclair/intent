@@ -104,7 +104,15 @@ if [ "$_devbin_wrong_tree_check" = yes ]; then
     *)
       {
         printf 'devbin: refusing to run -- this is not your current project.\n\n'
-        printf '  you are standing in:  %s\n' "$_devbin_cwd"
+        # THE ARGUMENT IS NAMED FIRST, AND IT IS NOT DECORATION (issue 0039).
+        # This guard runs BEFORE command resolution, so it cannot know whether
+        # what it was given is a command at all -- and it was telling callers
+        # their LOCATION was wrong when their VERB was. hv typed `init`, which
+        # devbin does not have, and got a refusal about paths. Echoing the word
+        # back lets the reader spot their own typo without this guard needing to
+        # resolve it, which is the whole reason it can run this early.
+        printf '  you asked for:          %s\n' "${1:-(no command)}"
+        printf '  you are standing in:    %s\n' "$_devbin_cwd"
         printf '  this devbin belongs to: %s\n' "$PROJECT_ROOT"
         printf '  it was reached as:      %s\n\n' "$0"
         printf 'Every command would act on %s, not on where you are.\n' "$PROJECT_ROOT"

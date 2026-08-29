@@ -38,7 +38,11 @@
 
 set -uo pipefail
 
-# shellcheck source=../helpers
+# Root-relative, as every other source directive in this tree is. `../helpers`
+# is correct relative to THIS FILE and wrong relative to the shell gate, which
+# runs shellcheck from PROJECT_ROOT -- so it resolved outside the repository and
+# left `check lint` red on a clean tree.
+# shellcheck source=lib/helpers
 . "$DEVBIN_LIB/helpers"
 
 _shell_init_usage() {

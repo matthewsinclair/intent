@@ -657,9 +657,11 @@ devbin_runtime_version() { devbin_version_of "${PROJECT_ROOT:-.}"; }
 #   >=X.Y.Z  at least X.Y.Z, any major
 #   X.Y.Z    exactly
 #
-# A caret on 0.x is treated the way semver's own text does NOT -- ^0.1.0 admits
-# 0.2.0 here. Pre-1.0 devbin has no stability promise to encode either way, and
-# the alternative pins every project to a patch series and makes `upgrade` a lie.
+# A caret on 0.x is treated the way semver's own text does NOT -- ^0.4.0 admits
+# 0.5.0 here. (The example deliberately names a version devbin is not: an
+# example that happens to equal the current VERSION reads as a claim about it.)
+# Pre-1.0 devbin has no stability promise to encode either way, and the
+# alternative pins every project to a patch series and makes `upgrade` a lie.
 version_satisfies() {
   local v="$1" c="${2:-}" vmaj vmin vpat cmaj cmin cpat op="^" n
   # No constraint declared is satisfied by anything. Written the other way round

@@ -3,8 +3,8 @@
 # Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.
 # devbin_version: 0.1.0
 # source: /Users/matts/Devel/prj/Devbin
-# source_commit: 96fb408fdce1a6ca4b5190fc3c743fe1fec55ac7
-cc463668cabdf8d6bb1a2128d422b30e526fc9f0232e5612bcb9788a3868d35e  bin/devbin
+# source_commit: 91ed866978d9f2c2c481bfd93914e2848a030148
+3df2281c08b70be617476ba640379495ec2ec7b747177e8e185722521d98a8a4  bin/devbin
 af07aaa3262ffcd9c8e1711f415178cfc19470eccb1c787bb020bbf12fa41471  bin/.devbin/lib/builtins
 a6cfe990da0bfa862ad0fd34e167d72f81320d8c28ec9bb75f61e63ad26c0bf0  bin/.devbin/lib/cmd/check
 2ded37c2ca5c1afd6dfe70044f4b59c9d0ef1fdf83ff4aa5653d0576e92743eb  bin/.devbin/lib/cmd/clean
@@ -18,17 +18,17 @@ ddef9a6e98a8f9c1fe41edac7d3c7a8d2c940fc7a5ccde683d6458fec32fb76f  bin/.devbin/li
 37831edf4f91002c12dab2362ec58d68ff6aa792f15a7b07761c3e7c8db88092  bin/.devbin/lib/cmd/new
 b81f9f2bd800d2f96ab2fae8d0c73d5b031ec002944f2b94f330555d431fff11  bin/.devbin/lib/cmd/repl
 04d813aeffb61e529be578c591310722d2956e9b230e77ab946ad8509534f125  bin/.devbin/lib/cmd/server
-d1df65ccc26c6d4f3919e7ca820dde9939d945f7f8bd02d661f700de328b660e  bin/.devbin/lib/cmd/shell-init
+9005f7b592a289fcaf7bcf643b9b35e3529594e3564a25e5a5c6c9cb829c7bde  bin/.devbin/lib/cmd/shell-init
 0f9a4209be96a2f7d7242a6c653718df523517ec6c40aa3f56240d7cf07c148f  bin/.devbin/lib/cmd/test
 3b3b1b9290745095a033875c96a0eeec2fbc8e6f6ce5349b7e0e9166d0808a42  bin/.devbin/lib/cmd/upgrade
 fce7604c006a1a241bfe3232a9bf1bbfc0fcaa5b3dc5de60ae046e464fc75040  bin/.devbin/lib/cmd/vendor
 8a7255217343c1a65bdb28121faad97a80c2f134be6844f80f29753ad50529e7  bin/.devbin/lib/cmd/version
 63ab8b9278e29b863a4c4b1875d1e14a5bdb4b4503334efc85ae88bbfc2b2c81  bin/.devbin/lib/config
-7feee14d1191695291ee3ff4de450935dfcc484f465eda328312deb0ac74990c  bin/.devbin/lib/config.reference.yaml
+6f1ef1301961a916b32d03f56c7af7c0fccd93b5defec611bda06b85eeaa1456  bin/.devbin/lib/config.reference.yaml
 e5f8ab391a060d7bfdda2ab75d679971c5832a694e9c5c94fbed23c3ac83594a  bin/.devbin/lib/gatecmd
 ae7c1d3693f4480e4fd029dbb6e0181c45ebc067ba3c3a3b6beefffdaf49b717  bin/.devbin/lib/help
 d80019f1a7619dd17ae7589bfd40b1652fe6b0d115964207acbb3c1c57edb317  bin/.devbin/lib/helpers
-8c963c8689747d61d31c4402be0241908df4b7948a3fa07e7fe7842541399a1b  bin/.devbin/lib/install
+40f88bb01353364ef803ac5218d62911899cec6201cf2e473b17fd61ac0c0bce  bin/.devbin/lib/install
 2e5280b3c4dca1880b3d42f0ce2d9758c20ec8003caeafba60a6527f2553a096  bin/.devbin/lib/resolve
 320aa98086f0a193bbdb3a679a1220e3162db5b3521b1ed832c3e1b69a221496  bin/.devbin/lib/runlog
 07624871763af4b267337c4ba0a175dcb2b4456cd6f0031e708e6864e6314513  bin/.devbin/lib/tmpl/handler
