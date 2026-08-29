@@ -65,49 +65,14 @@
 //! back plausibly wrong would have been written down.
 
 use std::io::Write as _;
+mod common;
+
 use std::path::Path;
 use std::process::{Command, Output, Stdio};
 
 // ---------------------------------------------------------------------------
 // THE HARNESS
 // ---------------------------------------------------------------------------
-
-/// A connected pseudo-terminal pair, as owned files.
-///
-/// **THE MASTER MUST OUTLIVE THE CHILD.** Dropping it closes the terminal's
-/// other end, and the child then reads EOF -- or takes a hangup -- in the
-/// middle of the confirm. Every caller keeps it in scope for the whole run,
-/// which is why this returns it rather than writing the answer itself.
-fn pty_pair() -> (std::fs::File, std::fs::File) {
-  use std::os::fd::FromRawFd;
-  let mut master: libc::c_int = 0;
-  let mut slave: libc::c_int = 0;
-  // SAFETY: both out-parameters are valid for writes, and the three null
-  // pointers are documented as "use the defaults" for termios, winsize and the
-  // returned slave name.
-  let rc = unsafe {
-    libc::openpty(
-      &mut master,
-      &mut slave,
-      std::ptr::null_mut(),
-      std::ptr::null_mut(),
-      std::ptr::null_mut(),
-    )
-  };
-  assert_eq!(
-    rc,
-    0,
-    "openpty failed, so this test can say nothing about the arm it exists for: {}",
-    std::io::Error::last_os_error()
-  );
-  // SAFETY: openpty returned 0, so both descriptors are open and owned by us.
-  unsafe {
-    (
-      std::fs::File::from_raw_fd(master),
-      std::fs::File::from_raw_fd(slave),
-    )
-  }
-}
 
 /// Run the binary with a terminal on stdin, having already typed `answer`.
 ///
@@ -117,7 +82,7 @@ fn pty_pair() -> (std::fs::File, std::fs::File) {
 /// stdout to avoid deadlocking against the prompt, and a thread is a second
 /// thing that can go wrong in a harness whose whole job is to be trustworthy.
 fn intent_on_a_tty(dir: &Path, args: &[&str], answer: &str) -> Output {
-  let (mut master, slave) = pty_pair();
+  let (mut master, slave) = common::pty_pair();
   master
     .write_all(answer.as_bytes())
     .expect("type the answer into the terminal");

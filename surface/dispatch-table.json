@@ -994,7 +994,26 @@
               "note": "NO `all` -- unlike `show`. Asymmetry is deliberate and correct: there is no single path for `all`."
             }
           ],
-          "flags": [],
+          "flags": [
+            {
+              "spellings": [
+                "--editor"
+              ],
+              "type": "bool",
+              "help": "Open the file in $VISUAL or $EDITOR, whatever stdout is",
+              "disposition": "keep",
+              "disposition_basis": "hv, 2026-08-29, selecting the TTY form WITH explicit overrides from three options, and superseding two earlier rulings on the same question. The bare TTY form makes behaviour depend on an invisible property of the environment, so a wrapper, a CI job or an editor plugin gets a different result with nothing in the command saying why. This is the explicit spelling of the launch branch."
+            },
+            {
+              "spellings": [
+                "--path"
+              ],
+              "type": "bool",
+              "help": "Print the path and open nothing, whatever stdout is",
+              "disposition": "keep",
+              "disposition_basis": "hv, 2026-08-29, the other half of the same ruling. Explicit spelling of the print branch, so a caller needing determinism can say which it wants rather than depending on what stdout happens to be."
+            }
+          ],
           "v2": "bin/intent_st:1101-1144",
           "observed": {
             "exit": [
@@ -1012,8 +1031,11 @@
             "notes": "Pure emit-path: it never launches an editor and never creates the file. The name is a historical misnomer the docs already work around (`$EDITOR \"$(intent st edit ST0001 acceptance)\"`). The thread DIRECTORY must exist; the file need not."
           },
           "target": {
-            "state": "as-observed",
-            "note": "**CORRECTED 2026-08-22 (vc, under hv's pen; reported by ic).** Declared `read` while `Facade::edit` calls `hydrate` -- so it realised the thread's views and appended `STEELTHREAD:<id>` to the TRACKED `.intentfiles`. The help said `Print the absolute path to a steel thread file`, which no operator reads as `and realise the thread`. **A true declaration with false help is half a fix**: the declaration is what the MCP surface and the readers trust, the help is what the human trusts. Both changed, with the ordering fix that stops the FILENAME-only refusal writing before it refuses."
+            "state": "deviate",
+            "note": "**CORRECTED 2026-08-22 (vc, under hv's pen; reported by ic).** Declared `read` while `Facade::edit` calls `hydrate` -- so it realised the thread's views and appended `STEELTHREAD:<id>` to the TRACKED `.intentfiles`. The help said `Print the absolute path to a steel thread file`, which no operator reads as `and realise the thread`. **A true declaration with false help is half a fix**: the declaration is what the MCP surface and the readers trust, the help is what the human trusts. Both changed, with the ordering fix that stops the FILENAME-only refusal writing before it refuses.",
+            "behaviour": "**TTY-AWARE, WITH AN EXPLICIT SPELLING FOR EACH BRANCH.** v3 opens the file in $VISUAL or $EDITOR when stdout is a terminal, and prints the path when stdout is a pipe or a file. `--editor` forces the open and `--path` forces the print, whatever stdout is; the two together are refused. **THE v2 CONTRACT IS PRESERVED WHERE IT IS ACTUALLY USED**: `$EDITOR \"$(intent st edit ST0001 info)\"` is in `docs/getting-started.md`, and command substitution makes stdout a PIPE, so that invocation still receives the path and is covered by a test. The name stops being a misnomer on a terminal and keeps its documented behaviour everywhere a script can see.",
+            "ratification": "hv, 2026-08-29, live in vc's session, hv's own selection from three options -- SUPERSEDING two earlier rulings on this question. **The first two were a coordination defect rather than hv changing their mind**: hv chose the TTY form in cc's session, vc then put four options to hv of which NONE was that form, and the result was reported as a ruling. The cause was a false premise -- that a default launch necessarily breaks the documented output contract, which is true of launch-by-default and false of the TTY form. vc returned it to hv with the omission named rather than quietly adding a fifth option.",
+            "why_deviate_and_not_corrected": "`corrected` is a v2 behaviour that is simply WRONG and is fixed; `deviate` is a design consequence of v3. v2's pure emit-path was not a defect -- it was a deliberate, documented, working contract, and the register's own note calls the NAME a historical misnomer the docs work around, not the behaviour a bug. So this is a design change with hv's ratification on the row, which is what `deviate` requires, and it is NOT ratified by class membership."
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
@@ -7911,7 +7933,26 @@
           "note": "NO `all` -- there is no single path for it. Carried unchanged from `st edit`, which this verb absorbs."
         }
       ],
-      "flags": [],
+      "flags": [
+        {
+          "spellings": [
+            "--editor"
+          ],
+          "type": "bool",
+          "help": "Open the file in $VISUAL or $EDITOR, whatever stdout is",
+          "disposition": "keep",
+          "disposition_basis": "hv, 2026-08-29, selecting the TTY form WITH explicit overrides from three options, and superseding two earlier rulings on the same question. The bare TTY form makes behaviour depend on an invisible property of the environment, so a wrapper, a CI job or an editor plugin gets a different result with nothing in the command saying why. This is the explicit spelling of the launch branch."
+        },
+        {
+          "spellings": [
+            "--path"
+          ],
+          "type": "bool",
+          "help": "Print the path and open nothing, whatever stdout is",
+          "disposition": "keep",
+          "disposition_basis": "hv, 2026-08-29, the other half of the same ruling. Explicit spelling of the print branch, so a caller needing determinism can say which it wants rather than depending on what stdout happens to be."
+        }
+      ],
       "v2": "new-surface",
       "basis": "AC-05.1 / AC-05.3. **`st edit` printed a path and left the operator to find out whether it was there** -- v2's own note says the thread DIRECTORY must exist and the file need not. Under the disk model an artefact may legitimately have no realised form at all, so the same command on a dehydrated thread names a path to nothing. **This verb hydrates first, so the path it prints EXISTS**, and `st edit` becomes a delegate rather than a second implementation: AC-05.3 is explicit that path-printing has ONE home.",
       "owner_wp": "WP-05",
@@ -8102,7 +8143,7 @@
     {
       "disposition": "keep",
       "target_state": "as-observed",
-      "n": 51,
+      "n": 50,
       "gloss": "The v2 command survives and v3 reproduces what v2 did. The default, and the largest class by a wide margin."
     },
     {
@@ -8132,7 +8173,7 @@
     {
       "disposition": "keep",
       "target_state": "deviate",
-      "n": 1,
+      "n": 2,
       "gloss": "The command survives with a deliberate behaviour change. `upgrade` is the only member (vc, 2026-08-16, citing D09) and it is the row that proves the two fields answer different questions -- it survives AND it behaves differently, and no single field can say both."
     },
     {

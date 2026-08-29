@@ -76,7 +76,7 @@ use testkit::workspace_root;
 /// **AND THE ABSENT CASE IS NOT A FAILURE.** Unlike `HOME`, whose absence
 /// means per-user state cannot exist at all, an unset `USER` just means the
 /// author is unknown -- `bootstrap` records the config without it and says so.
-const ALLOWED: &[&str] = &["COLUMNS", "HOME", "USER"];
+const ALLOWED: &[&str] = &["COLUMNS", "EDITOR", "HOME", "USER", "VISUAL"];
 
 /// A variable that may be read, but in exactly ONE file.
 ///
@@ -100,6 +100,22 @@ const ALLOWED: &[&str] = &["COLUMNS", "HOME", "USER"];
 const CONFINED: &[(&str, &str)] = &[
   ("HOME", "crates/intentsvcs/src/userstate.rs"),
   ("USER", "crates/intentsvcs/src/userstate.rs"),
+  // **`VISUAL` AND `EDITOR` FOLLOW FROM hv's RULING OF 2026-08-29, WHICH IS
+  // THAT `st edit` OPENS THE FILE ON A TERMINAL.** They are not a separable
+  // decision: there is no way to know which editor to open without asking the
+  // operator's environment, and the ruling's own text names `$EDITOR`. Recorded
+  // here rather than added quietly, which is what this file's failure message
+  // demands, and RAISED with hv and vc rather than inferred in silence -- if
+  // the ruling is read as not reaching this, the row comes out and `--editor`
+  // takes an explicit argument instead.
+  //
+  // **CONFINED FOR THE REASON `HOME` IS, AND THAT REASON IS THE NARROWER ONE.**
+  // The question hv settled is whether THIS VERB may open an editor, not
+  // whether any file may consult the environment -- and a bare `ALLOWED` row
+  // answers the second. One file wide keeps a second reader failing exactly
+  // the way an unapproved variable does.
+  ("VISUAL", "crates/intent-cli/src/render.rs"),
+  ("EDITOR", "crates/intent-cli/src/render.rs"),
 ];
 
 /// Every `.rs` under every crate's `src/`, discovered by walking.

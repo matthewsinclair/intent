@@ -776,7 +776,163 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
   let address = address::promote(&argument).map_err(|e| Failure::Error(e.render()))?;
   let mut facade = open()?;
   let path = facade.edit(&address, &file).map_err(fail)?;
-  println!("{}", path.display());
+
+  if opens_an_editor(m)? {
+    launch_editor(&path)
+  } else {
+    println!("{}", path.display());
+    Ok(())
+  }
+}
+
+/// Does this run OPEN the file, or PRINT its path?
+///
+/// **hv, 2026-08-29, from three options and superseding two earlier rulings:
+/// TTY-aware, with an explicit spelling for each branch.** Open on a terminal,
+/// print into a pipe, and `--editor` / `--path` override in either direction.
+///
+/// **THE OVERRIDES ARE THE ADDITION AND THEY EXIST FOR A STATED COST.** A bare
+/// TTY test makes behaviour depend on an invisible property of the environment,
+/// so a wrapper, a CI job or an editor plugin gets a different result with
+/// nothing in the command saying why. Both branches now have a spelling a
+/// caller can write down.
+///
+/// **THE DEFAULT BRANCH IS WHAT PRESERVES v2's CONTRACT, NOT A COMPROMISE OF
+/// IT.** `$EDITOR "$(intent st edit ST0001 info)"` is in
+/// `docs/getting-started.md`, and command substitution makes stdout a PIPE --
+/// so the documented invocation takes the print branch and is unaffected. The
+/// premise that a default launch must break that contract is true of
+/// launch-by-default and false of this, which is the whole reason this shape
+/// exists rather than a `--editor`-only one.
+///
+/// **STDOUT, NOT STDIN.** The question is where the PATH would have gone. A
+/// run with a terminal on stdin and a pipe on stdout is a script capturing the
+/// answer, and it must still receive one.
+fn opens_an_editor(m: &ArgMatches) -> Result<bool, Failure> {
+  let editor = flag(m, "editor");
+  let path = flag(m, "path");
+
+  // **REFUSED RATHER THAN RANKED.** Picking a winner here would make one of the
+  // two flags silently inert, and which one is inert is exactly the thing a
+  // caller reaching for an explicit spelling is trying not to guess about.
+  if editor && path {
+    return Err(Failure::Error(
+      concat!(
+        "error: `--editor` and `--path` ask for opposite things\n",
+        "  remedy: name one of them, or neither and let stdout decide",
+      )
+      .to_string(),
+    ));
+  }
+  if editor {
+    return Ok(true);
+  }
+  if path {
+    return Ok(false);
+  }
+  Ok(std::io::IsTerminal::is_terminal(&std::io::stdout()))
+}
+
+/// Open a resolved path in the operator's editor, and wait for it.
+///
+/// **NO FALLBACK CHAIN, AND THAT IS THE No Silent Errors RULE AT A SPOT WHERE A
+/// GUESS WOULD LOOK LIKE HELPFULNESS.** Falling back to `vi` when `$EDITOR` is
+/// unset opens something the operator did not name, in a program many people
+/// cannot exit, over a file it is now their job to notice was changed. It
+/// refuses and names the way out.
+///
+/// **A SHELL ALIAS IS NOT EXECUTABLE BY ANY PROCESS, AND THE REFUSAL SAYS SO.**
+/// `EDITOR=e` is a common shape and `Command::new("e")` fails with a bare
+/// not-found, which reads as a broken install rather than as the one thing it
+/// is. The operator is told what kind of name is required.
+///
+/// **IT BLOCKS.** A terminal editor shares this terminal and there is nothing
+/// to return to until it exits; a windowing editor that forks returns at once
+/// on its own. Detaching would be a choice made on behalf of the first case,
+/// wrongly.
+fn launch_editor(path: &Path) -> Result<(), Failure> {
+  // `$VISUAL` before `$EDITOR` is the long-standing convention and it is
+  // load-bearing rather than decorative: `$EDITOR` is the line editor for a
+  // dumb terminal and `$VISUAL` the full-screen one, and a caller who set both
+  // set them meaning it. Empty is treated as unset, because `EDITOR=` in a
+  // profile is how people turn one off.
+  // **TWO LITERAL READS RATHER THAN A LOOP OVER A LIST, AND THE AUDIT IS THE
+  // REASON.** `no_intent_home.rs` asserts what the shipped surface may read
+  // from the environment -- AC-11.3, a brew-installed binary meeting a machine
+  // with no clone -- and it cannot tell WHICH variable a computed name reads,
+  // so it refuses a computed one outright. That is the correct conservative
+  // answer for an audit and it caught this function: the first version looped
+  // over `["VISUAL", "EDITOR"]`, which is tidier and unauditable. Two named
+  // reads say exactly what they read, to the guard and to a human.
+  let visual = std::env::var("VISUAL")
+    .ok()
+    .filter(|value| !value.trim().is_empty());
+  let editor = std::env::var("EDITOR")
+    .ok()
+    .filter(|value| !value.trim().is_empty());
+  let (var, spelling) = match (visual, editor) {
+    (Some(value), _) => ("VISUAL", value),
+    (None, Some(value)) => ("EDITOR", value),
+    (None, None) => {
+      return Err(Failure::Error(
+        concat!(
+          "error: no editor to open with -- neither $VISUAL nor $EDITOR is set\n",
+          "  remedy: set $EDITOR, or re-run with `--path` to print the path instead",
+        )
+        .to_string(),
+      ));
+    }
+  };
+
+  // **SPLIT ON WHITESPACE, BECAUSE `EDITOR` CARRIES ARGUMENTS IN PRACTICE** --
+  // `code -w`, `emacsclient -nw`, `subl -n -w` are all ordinary values, and
+  // passing the whole string as a program name fails not-found on every one of
+  // them. The cost is stated rather than hidden: an editor whose PATH contains
+  // a space cannot be named this way, and the refusal below at least names the
+  // program it actually tried.
+  let mut words = spelling.split_whitespace();
+  let program = words
+    .next()
+    .expect("a non-blank value has at least one word");
+  let arguments: Vec<&str> = words.collect();
+
+  let status = std::process::Command::new(program)
+    .args(&arguments)
+    .arg(path)
+    .status()
+    .map_err(|e| {
+      Failure::Error(format!(
+        concat!(
+          "error: cannot run `{program}`, named by ${var} -- {cause}\n",
+          "  remedy: ${var} must name a program a process can execute. A shell alias or ",
+          "function is not one, since only your shell can see it -- name what it resolves ",
+          "to. Or re-run with `--path` to print the path instead",
+        ),
+        program = program,
+        var = var,
+        cause = e
+      ))
+    })?;
+
+  // **A NON-ZERO EDITOR IS REPORTED, NOT SWALLOWED.** Several editors use the
+  // exit code to say the edit was abandoned, and a caller that chained on this
+  // command would otherwise proceed as though it had been made.
+  if !status.success() {
+    let code = status
+      .code()
+      .map(|c| c.to_string())
+      .unwrap_or_else(|| "a signal".to_string());
+    return Err(Failure::Error(format!(
+      concat!(
+        "error: `{program}` exited with {code}\n",
+        "  remedy: the file is at {path}; nothing here changed it, so re-open it or edit it ",
+        "directly",
+      ),
+      program = program,
+      code = code,
+      path = path.display()
+    )));
+  }
   Ok(())
 }
 
