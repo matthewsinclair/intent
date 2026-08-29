@@ -5,7 +5,7 @@
 Your code says what it does and version control says when it changed. Neither says what you were trying to achieve, what you ruled out, or what breaks if someone changes it. Intent gives that reasoning a place to live that ages with the code instead of away from it.
 
 ```
-  $ brew install matthewsinclair/tap/intent
+  $ brew install matthewsinclair/intent/intent
 ```
 
 Full documentation is in [`docs/`](./docs/). If you are new, start at [the documentation index](./docs/index.md); if you are moving a v2 project across, start at [Migrating from v2](./docs/migrating-from-v2.md).
