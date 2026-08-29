@@ -85,7 +85,6 @@ ROOT="$(git -C "$HERE" rev-parse --show-toplevel)"
 REV="HEAD"
 BASELINE="v3.0.0"
 OUT=""
-TABLE_PATH="surface/dispatch-table.json"
 ROSTER="native/rust/crates/intentsvcs/tests/error_remedies.rs"
 
 usage() {
@@ -111,34 +110,15 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-# Resolve a revision to a full sha, REFUSING rather than defaulting. A rev that
-# does not resolve must not fall through to the working tree: that would emit a
-# confident artefact about a revision nobody named, which is the shape of every
-# fabricated zero on this board.
-resolve() {
-  local rev="$1" sha
-  if ! sha="$(git -C "$ROOT" rev-parse --verify --quiet "${rev}^{commit}")"; then
-    echo "error: \`${rev}\` does not resolve to a commit in $ROOT" >&2
-    return 1
-  fi
-  printf '%s\n' "$sha"
-}
-
-# Extract the register AT a revision. Braces around the variable are not style:
-# unbraced, zsh reads `$rev:s...` as a history modifier and `git show` receives a
-# mangled ref, producing an EMPTY stream that `grep -c` reports as 0 -- a
-# fabricated zero indistinguishable from a real absence. Measured on this board.
-table_at() {
-  local sha="$1" dest="$2"
-  if ! git -C "$ROOT" show "${sha}:${TABLE_PATH}" > "$dest" 2>/dev/null; then
-    echo "error: ${TABLE_PATH} does not exist at ${sha}" >&2
-    return 1
-  fi
-  if [ ! -s "$dest" ]; then
-    echo "error: ${TABLE_PATH} at ${sha} is empty" >&2
-    return 1
-  fi
-}
+# `resolve` and `table_at` USED TO LIVE HERE and are now in `lib_surface.sh`,
+# because the second caller arrived: `gen_reference.sh` needs the same two, and
+# both carry traps that were paid for once -- a rev that must refuse rather than
+# fall through to the working tree, and the braced expansion that stops zsh
+# reading `$sha:s...` as a history modifier and handing back a fabricated zero.
+# Two copies would be two homes for a mechanism whose entire value is refusing
+# correctly, and the second copy is where the next drift starts.
+resolve() { surface_resolve_rev "$1"; }
+table_at() { surface_table_at "$1" "$2"; }
 
 shipped_at() {
   local table="$1" out

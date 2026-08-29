@@ -130,3 +130,60 @@ surface_not_probed() {
 # referring to the old spelling gets an empty string and an obvious break, which
 # is better than silently inheriting a list that is short by one.
 SURFACE_NOT_PROBED="$(surface_not_probed 2>/dev/null)"
+
+# ==========================================================================
+# READING THE REGISTER AT A REVISION
+# ==========================================================================
+#
+# **THE REGISTER IN YOUR WORKING TREE DESCRIBES THE TIP, AND DOCS ARE WRITTEN
+# FOR A RELEASE.** Measured 2026-08-29: `ac edit` and `at edit` sit in
+# `populations.shipped` at HEAD and in no published tag, so an artefact built
+# from the working copy describes verbs the shipped tool does not have.
+# `DISPATCH_TABLE` is the seam that fixes it -- every function above reads
+# whatever it names -- and these two functions are how a caller aims it at a
+# commit instead of at the tip.
+#
+# THEY LIVE HERE BECAUSE THE SECOND CALLER ARRIVED. `gen_cut_surface.sh` grew
+# them inline; `gen_reference.sh` needs the same two, and both carry a trap that
+# was paid for once and must not be re-learned. A copy in each generator would
+# be two homes for a mechanism whose whole value is that it refuses correctly.
+
+SURFACE_TABLE_PATH="${SURFACE_TABLE_PATH:-surface/dispatch-table.json}"
+
+# Resolve a revision to a full sha, REFUSING rather than defaulting.
+#
+# A rev that does not resolve must never fall through to the working tree: that
+# emits a confident artefact about a revision nobody named, which is the shape
+# of every fabricated zero on this board.
+surface_resolve_rev() {
+  local rev="$1" root sha
+  root="$(git rev-parse --show-toplevel 2>/dev/null)" || root="."
+  if ! sha="$(git -C "$root" rev-parse --verify --quiet "${rev}^{commit}")"; then
+    echo "error: \`${rev}\` does not resolve to a commit in $root" >&2
+    return 1
+  fi
+  printf '%s\n' "$sha"
+}
+
+# Extract the register AT a revision, into a destination file.
+#
+# **BRACES AROUND THE VARIABLE ARE NOT STYLE.** Unbraced, zsh reads `$sha:s...`
+# as a history modifier, `git show` receives a mangled ref, and the result is an
+# EMPTY stream that every downstream `grep -c` and `wc -l` reports as 0 -- a
+# fabricated zero indistinguishable from a real absence. Measured on this board.
+#
+# The empty check below is the second half of the same guard: `git show` can
+# succeed on a path that exists and is empty, and an empty table produces a
+# complete, uniform, entirely fictional surface rather than an error.
+surface_table_at() {
+  local sha="$1" dest="$2" root
+  root="$(git rev-parse --show-toplevel 2>/dev/null)" || root="."
+  if ! git -C "$root" show "${sha}:${SURFACE_TABLE_PATH}" > "$dest" 2>/dev/null; then
+    echo "error: ${SURFACE_TABLE_PATH} does not exist at ${sha}" >&2
+    return 1
+  fi
+  if [ ! -s "$dest" ]; then
+    echo "error: ${SURFACE_TABLE_PATH} at ${sha} is empty" >&2
+    return 1
+  fi
+}
