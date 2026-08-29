@@ -20,9 +20,9 @@ title: Update Intent's docs for v3
 ### Group 02
 
 - AC-02.1 (non-test) docs/ carries an end-to-end set a new user can go from nothing to a satisfied thread with: install, getting started, concepts, command reference, migration -- satisfied: no
-- AC-02.2 (non-test) No page documents a verb, flag or behaviour absent from the release that page describes -- measured against the cut, never against main -- satisfied: no
+- AC-02.2 (non-test) No page documents a verb, flag or behaviour absent from the release that page describes -- measured against the cut, never against main -- evidence: vc 2026-08-29: 126 distinct verbs named across 27 pages checked against the register and the v3.0.0 tag register. No verb is named on a non-reference page that is retired or absent from the release; the reference pages mark ac edit and at edit 'no -- newer than the release'. Checker positive-controlled on three probes (st frobnicate UNKNOWN, st repair RETIRED, st new shipped) and two of its own artefacts were found and fixed first: it filtered reference pages by basename so docs/reference/intent-st.md read as prose, and it treated 'critic rust' (verb + argument) as a subcommand. -- satisfied: yes
 - AC-02.3 (non-test) Every defect in the published build that a reader can hit is stated in the docs rather than omitted, including the ones not fixed in the cut -- satisfied: no
-- AC-02.4 (non-test) The command reference is generated from the register against a named revision, and its output carries that revision -- satisfied: no
+- AC-02.4 (non-test) The command reference is generated from the register against a named revision, and its output carries that revision -- evidence: vc 2026-08-29: docs/reference/ is emitted by intent/st/ST0056/parity/tools/gen_reference.sh, not hand-written. Every page carries a provenance header naming the generator, the generation time, the revision it describes (97c65c3e) and the baseline it compares against (80d8b2ca = v3.0.0). Verified: my own hand-typed family table in the earlier index was short by exactly 12 shipping commands, which is the defect the generator removes and the document now says so. -- satisfied: yes
 
 ### Group 03
 
@@ -43,9 +43,9 @@ title: Update Intent's docs for v3
 ### Group 02
 
 - AT-02.1 (non-test) Follow docs/getting-started.md end to end on a fresh project and reach a satisfied criterion -- covers AC-02.1 -- status: to-write
-- AT-02.2 (non-test) Diff every verb named in docs/ against the cut-surface artefact for the release the docs describe -- covers AC-02.2 -- status: to-write
+- AT-02.2 (non-test) Diff every verb named in docs/ against the cut-surface artefact for the release the docs describe -- covers AC-02.2 -- status: green -- Driven by vc, 2026-08-29, after fixing two artefacts in the checker itself.
 - AT-02.3 (non-test) Read install.md and migrating-from-v2.md against the measured defect list for the published build -- covers AC-02.3 -- status: to-write
-- AT-02.4 (non-test) Read the reference output's provenance header for the revision it names -- covers AC-02.4 -- status: to-write
+- AT-02.4 (non-test) Read the reference output's provenance header for the revision it names -- covers AC-02.4 -- status: green -- Provenance header read on index.md and intent-st.md; names generator, revision and baseline.
 
 ### Group 03
 
