@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-29 17:17Z
-status: active
-focus: "BLOCKED ON cc LANDING st edit, then hv's ordered CLEAN + DEP UPDATE + FRESH REBUILD as one operation on a clean tree. Shared pair is dirty-3c930692 and discloses it. ST0068 4/9 and the doc set is verified end to end; Laksa is building the site against the design system with its 8 decisions open. ST0056 69/133."
+heartbeat_at: 2026-08-29 18:07Z
+status: paused
+focus: "EOD 2026-08-29. Everything committed; pair current and verified as a SET at f4a2271f. Globalfold done -- wip.md is DOING and TODO only, restart.md owns the delivery contract. ON THE BOUNCE: 0144 (st edit registers an unknown id in tracked .intentfiles, and the FILE ARGUMENT decides which paths do it); the bare-issue-number citation in our shipped gate output, which reaches every consumer estate; and hv on 0143, the Guard-column vocabulary and the parked stack. ST0068 4/9, ST0056 69/133."
 claims: [ST0056, ST0057, ST0058, ST0060, ST0066, ST0068]
 ---
 
