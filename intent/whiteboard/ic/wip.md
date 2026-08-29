@@ -3,39 +3,32 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 16:01Z
+heartbeat_at: 2026-08-29 16:39Z
 status: active
-focus: "**AC-12.2 IS LANDED -- narrative, README, CHANGELOG all converged and committed.** AC-12.3 (3.0.1 release notes) + the 3.0.1 CHANGELOG entry are BLOCKED on ONE question asked twice and not yet answered: **is 3.0.1 cut from HEAD, or from before `8aebe2ce`?** Release-note fact 1 moved under me -- `ac new` REFUSES at HEAD now."
+focus: "**AC-12.2 AND AC-12.3 ARE BOTH COMPLETE** -- narrative, README, CHANGELOG, and the v3.0.1 release notes, all committed. **Left unsatisfied in canon deliberately: ST0056 is vc's claim and they have the evidence.** Two of vc's four surface changes are rulings not code and are deliberately absent from both documents."
 claims: [ST0065, ST0061]
 ---
 
 # Interface Claude (ic)
 
-## DOING -- AC-12.2 LANDED, AC-12.3 BLOCKED ON ONE QUESTION
+## DOING -- AC-12.2 AND AC-12.3 BOTH COMPLETE
 
-### `AC-12.2` -- THREE FILES DONE
+**`AC-12.2`** `ead0399f` + `39303df4` working-with-llms.md | `76a98089` + `f3769b87` README.md | `884950f9` + `c8df89c8` CHANGELOG.md
+**`AC-12.3`** `25157b2c` `docs/releases/3.0.1/RELEASE_NOTES.md`
 
-`ead0399f` + `39303df4` working-with-llms.md | `76a98089` README.md | `884950f9` CHANGELOG.md
+**NOT SATISFIED IN CANON BY ME.** ST0056 is **vc's claim**; I have handed them the evidence and left the sequencing where it belongs. `intent doctor` already reports a status-gate disagreement on that thread, which is a second reason not to write into it uninvited.
 
-**The narrative's gap was MISGUIDED, not stale** -- it said nothing about the store, so a reader following it hand-edits `acceptance.md` and loses it silently. Added the v3 preamble with the generated-vs-authored split **measured**, handing over the PROPERTY (read the banner in the file in front of you) not the table. **The banner is evidence in ONE direction:** `ST0056/WP/15/info.md` has none while all 38 siblings do; `intent doctor` is the check. **D1-D11 NOT re-verified and the stamp says so.**
+### WHAT I LEFT OUT OF BOTH DOCUMENTS, DELIBERATELY
 
-**I CORRECTED MY OWN TABLE AN HOUR LATER.** I called `.canon` "the record"; the store is `intent/.cache/intent.db` and `.canon` is the **committed extract**. Telling a reader the JSON is the record invites the same silent loss one layer up. **The CHANGELOG's 3.0.0 entry had it right all along.**
+**vc handed me FOUR surface changes; TWO are rulings, not code.** `issues edit` is absent from the register, from `intent-cli/src`, and from `intent issues --help` -- **three independent surfaces, all negative.** `st edit` is still the path-printer (`Usage: intent st edit <ID> [FILE]`, no `--editor`, no `--path`). `ac edit` and `at edit` both verify. **Documenting the other two would put verbs in a release note that the release does not contain** -- the exact defect the README was just fixed for. The notes carry a provenance paragraph saying so, and the structure takes them when they land.
 
-**README was FALSE IN THE FIRST FIVE MINUTES:** clone-and-PATH hands them the v2 line, which refuses a v3 tree; `intent help` **refuses in the build on PATH.** **It now carries NO command list** and points at the generated reference -- drift removed structurally, not by care. **My own draft failed my own check** (`--non-test`; the flag is `--kind`).
+**A RULING MADE THIS HOUR AND A CHANGE LANDED THIS HOUR READ IDENTICALLY IN A MESSAGE.** That has now cost me twice today: vc's retired fact (which vc caught) and this. **Not avoidable by care at the sending end** -- the fix is that a surface claim travels with what makes it checkable, which for a verb is just "it is in the register".
 
-**VOICE CALL MADE, IT WAS MINE:** emoji go. 28 -> 0. **Not the site rule applied by fiat** (vc was right to refuse that) -- the same judgement for the README's own reason.
+### THREE CLAIMS I INHERITED AND ONE I SHIPPED
 
-### `AC-12.3` + the 3.0.1 CHANGELOG entry -- BLOCKED ON ONE QUESTION
+**`intent doctor` does NOT check the support tree.** I took that from vc's `install.md` into my own upgrade instructions **before** checking it -- so it had already propagated once. No rules-or-skills check exists in `doctor.rs`; its finding kinds are `criterion`, `pre-commit`, `rev-parse`, `unchanged`, `nonsense`. **The direct test is `intent claude rules list`**, which reads the library out of the install and so fails on the actual fault rather than proxying for it. Reported to vc, not edited.
 
-**IS 3.0.1 CUT FROM HEAD, OR FROM BEFORE `8aebe2ce`?** Asked vc twice; not answered yet.
-
-**RELEASE-NOTE FACT 1 MOVED UNDER ME AND I CAUGHT IT BY MEASURING.** "3.0.1 does not fix `ac new`" was measured **before cc's package landed**. At HEAD `ac_new` returns `CriterionExists` (`facade.rs:4574`) and its remedy names `intent ac edit` (`:942`). `8aebe2ce`, 13:31Z, **NOT an ancestor of `80d8b2ca`**. The shipped-tool half still stands; the 3.0.1 half is now conditional. **Writing it either way without the answer puts a false sentence in the one document where that is least recoverable.**
-
-**The other three facts re-verified and hold:** keg ships no rule library (`0112b8c1` not an ancestor); `st repair` in `shipped` at the tag (117) and gone at HEAD (118), read off BOTH dispatch tables; 0133's framing unaffected.
-
-### REPORTED TO vc, NOT EDITED -- their file
-
-**`docs/index.md` says `brew install intent`; `docs/install.md` says `brew install matthewsinclair/tap/intent`.** The bare form resolves against homebrew-core, not the tap. **Two pages written in the same hour disagree on the first command every reader types.**
+**I SHIPPED A BREW LINE THAT WOULD INSTALL NOTHING.** `matthewsinclair/tap/intent`; that repo does not exist (`gh` verified, nonsense control fails identically). Correct is **`matthewsinclair/intent/intent`** -- `bin/.devbin/cmd/macos:194` rules the fully-qualified form deliberately. **I did not derive a wrong answer; I applied the correct GENERAL convention (`user/tap/formula`) to a project that deliberately does not follow it.** Three of us wrote three different wrong spellings of a rule already written down in the file that publishes the formula. **And I was the one who had just told vc their two pages disagreed on that same command.**
 
 ## HOW I FOUND THE HOLD WAS STALE -- THE KEEPER
 
