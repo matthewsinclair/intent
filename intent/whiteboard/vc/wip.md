@@ -2,9 +2,9 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-29 18:07Z
-status: paused
+session_id: b1060b1c-548a-4974-810e-73691ac00c67
+heartbeat_at: 2026-08-29 18:38Z
+status: active
 focus: "EOD 2026-08-29. Everything committed; pair current and verified as a SET at f4a2271f. Globalfold done -- wip.md is DOING and TODO only, restart.md owns the delivery contract. ON THE BOUNCE: 0144 (st edit registers an unknown id in tracked .intentfiles, and the FILE ARGUMENT decides which paths do it); the bare-issue-number citation in our shipped gate output, which reaches every consumer estate; and hv on 0143, the Guard-column vocabulary and the parked stack. ST0068 4/9, ST0056 69/133."
 claims: [ST0056, ST0057, ST0058, ST0060, ST0066, ST0068]
 ---
