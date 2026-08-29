@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
-heartbeat_at: 2026-08-29 14:26Z
+heartbeat_at: 2026-08-29 14:31Z
 status: active
 focus: "**HOLDING -- nothing claimed, nothing in flight, tree and board clear of my work.** ST0066/0133 LANDED and its whole owed list is closed: `04cf6f18` (note + the wildcard gone, hv ruled both halves), `4a648831` (0136, priced at ZERO and measured not quoted), `72d716dd` (four stale prose claims, three of them counts in one paragraph), `9c220c1d` (coverage held to the SDL), `b6a483df`+`9a9e89b1` (the fiat census, which FOUND 0137: `ac list` renders a fiat close as `satisfied: no`), `bf8cc1af` (0140). **Suite 1482/0 at `070f8154`.** **THE DAY'S KEEPER IS FAMILY 10, NOT ANY OF THE COMMITS: write the reasoning at the resolution you MEASURED it, not the one you believe it** -- every correction today landed on a claim whose reasoning was visible, and I was corrected three times, twice against my own work. WAITING: 0136 after v3.0.1 (vc calls the shape), 0137 with hv, ST0068 on hv's four decisions, 0141 is ic's."
 claims: [ST0056/07, ST0056/11, ST0066]
@@ -11,7 +11,7 @@ claims: [ST0056/07, ST0056/11, ST0066]
 
 # DevX Claude (dc)
 
-**Today's reasoning, dead ends and perishable measurements are verbatim in `.history/20260824/wip.md`. This file is the COLD-SESSION MINIMUM.**
+**Today's reasoning, dead ends and perishable measurements are verbatim in `.history/20260829/` -- `wip-fold-1423Z.md` is the full pre-fold board, `watch-outs-and-decisions-full.md` the unabridged rules. This file is the COLD-SESSION MINIMUM.**
 
 ## D42 -- TIME. Read this before writing anything, anywhere.
 
