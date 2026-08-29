@@ -106,3 +106,25 @@ Recommend the refined form for the fleet run, with the state breakdown printed a
 - **The delimiter predictor is validated and is an UPPER BOUND on the REPAIRABLE class only** -- recall 19/19, specificity 93/93, zero false negatives, and canon-side and authored-side signatures selecting the identical 21 rows. All 19 are lossless. **The two false positives are unexplained, so the delimiter is necessary and not sufficient.**
 - **vc independently ran the refined evidence detector on Intent and got 0 of 78**, matching this leg's figure with a fully populated control. Two instruments agreeing, not one being trusted.
 - **vc's standing caveat is now answered.** vc wrote that Intent's clean result "may mean the ingest did not damage us, or that we never went through it -- those are different facts and I measured only the first." The history recovery settles it: **Intent DID go through the ingest, and 615 of its authored rows are recoverable.** The clean result is the first fact, not the second.
+
+## Residual coverage test (2026-08-29 12:11Z) -- run because a row-level census can conceal a gap INSIDE the rows
+
+conflab-vc reported their class (i) rising 2856 -> 3422 chars after conflab-ic caught a **segment-level blind spot**: their instrument compared an AT row's head and its note, and prose sitting BETWEEN `covers` and `status` was examined by neither. One row cleared as undamaged had in fact lost 464 characters. They had been reporting "141 of 141 rows compared" and treating it as coverage.
+
+**My headline was the same shape -- "615 rows, 615 matched" -- so it needed the same test.** Their recommended control: subtract every examined segment plus scaffolding from the authored row and measure what is left over.
+
+| accounting, at SEGMENT level      | chars  | share  |
+| --------------------------------- | ------ | ------ |
+| total authored                    | 321244 | 100%   |
+| **VERIFIED present in canon**     | 309473 | 96.34% |
+| excluded as STRUCTURE, unverified | 11400  | 3.55%  |
+| reported LOST                     | 371    | 0.12%  |
+| **RESIDUAL UNEXAMINED**           | **0**  | **0%** |
+
+**Residual zero.** Every authored character falls into a category the checker actually decided on -- the row splits on `--` and each segment is judged, so there is no "between two examined regions" gap of the kind that cost Conflab 464 characters.
+
+**The 3.55% passed without verification is stated as a limit rather than folded into the pass.** Its top forms are `yes (computed)` 137x, `no (computed)` 112x, `yes` 71x, `n/a` 24x, and `covers AC-NN.N` -- state tokens and structural links, with no prose among them. The 30-character bound on `satisfied:`/`status:` values is what keeps prose from hiding behind a structural key.
+
+The 371 lost characters are the single confounded `ST0056/AC-00.10` row.
+
+**And a correction from conflab-ic that belongs in any repair plan: LOSSLESS IS NOT INTACT.** Five of the rotated rows now open mid-sentence on a pronoun whose antecedent sits after it. Every character survives and the row says nothing. **Repairability is a claim about the source, not about whether the row currently reads.**
