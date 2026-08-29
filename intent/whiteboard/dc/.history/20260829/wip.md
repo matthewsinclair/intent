@@ -37,3 +37,37 @@
 - **`D42` in a `///` on a modelled type**, twenty minutes after reading the rule that says `///` is published into the JSON Schema and the SDL. Caught by `no_pm_state_in_output`.
 - **`ST0066` in a shipped STRING LITERAL** in my orphan reason. Caught by that test's sibling, which reads literals rather than doc comments. **Third PM-state leak of the day, second in an hour.**
 - **`rc=0` from the rules validator was `head`'s status through a pipe.** Re-measured bare: **rc=2**. My board's own top trap, and reporting it would have been a second false defect filed against cc's code on the same mechanism.
+
+---
+
+## AFTERNOON -- 2026-08-29 12:00Z onward: the increment LANDED
+
+**`b7a3e771` -- 1454 passing, ZERO failing, `--no-fail-fast`.** 16 files. The AC half of ST0066 complete: `FiatRecord`/`Invoker`, `AcState::Fiat`, gate arithmetic, view render, GraphQL projection, `fiat_marker`, `Invoker.tty` classified with both arms driven, `fiat` an orphan, faces regenerated and hashes re-pinned.
+
+### hv ruled the exit: TWO EDGES ON `ac.reinstate`, no new verb
+
+My reading carried in my own terms -- _renders distinctly forever_ is a claim about RENDERING, not irreversibility, and the estate's own sentence settles it: **the HISTORY is the event log, not this field.** The terminal option was declined **on the cost I identified**: a terminal value in a `State` field is what `no_state_can_be_entered_and_not_left` exists to refuse, so taking it would have meant weakening a guard protecting every other machine in the estate. vc: _your correction of my framing is what made this ruleable in one pass._
+
+### The guard defect landing it exposed
+
+`the_transition_table_transcribes_the_ratified_machines_edge_for_edge` looked edges up by `(verb, to)` -- **unique BY ACCIDENT until `ac.reinstate` gained a second source.** It then returned the first match and compared a ratified edge against a DIFFERENT declared one: reporting a divergence that did not exist while silently not checking the edge it was looking at. Key widened to `(verb, to, from)`. **`IN-AG-RED-CONTROL-001`'s class exactly -- a property holding because another mechanism happened to make its key unique.**
+
+### The second-witness gap, routed not taken
+
+`data-model.md`'s Machine 3 lists EIGHT edges; my transcription declares ten. They are deliberately **second witnesses to each other** and hv's ruling is in only one. `data-model.md` is ST0056 canon and vc's surface, so I did not edit it -- **and until it catches up the two disagree and NOTHING DETECTS IT**, because the check reads only the transcription. Named in the artefact beside the new rows, because a note in the code outlives a message.
+
+### cc committed two of my hunks by accident, and the mechanism corrects my board
+
+`ccfefe2b` carried my `state_name` deletion and its call-site rename. **I told cc to KEEP them**: they are the Highlander fix, they deliver no behaviour, and my boundary was about an unshipped fiat close reading as delivered. Verified rather than assumed -- `git diff -- facade.rs` is empty, so cc committed exactly what I had.
+
+**THE MECHANISM IS THE KEEPER AND IT CORRECTS MY OWN WATCH-OUTS.** My board carries `git commit --only <paths>` as the safe move. True for what it claims -- it stops a bare commit sweeping a peer's whole file. **It does NOT commit a SUBSET OF HUNKS: it takes the worktree version of the path, wholesale.** cc measured that first, then built a blob with `git update-index --cacheinfo`, verified it correct, and **the pre-commit hook refreshed the index from the working tree and replaced it** -- a `--cacheinfo` entry carries zeroed stat data, so the next porcelain command reads it as racily-clean and re-reads the file. **The verification was correct when it ran and stopped being true before the commit landed.** The technique that works is committing from a DETACHED WORKTREE, where disk IS the version you want.
+
+### `0133` folded in by hv
+
+**Not an ingest defect -- a REPRESENTABLE-STATE REGRESSION.** v2 could express _unsatisfied, and here is what was measured_; `AcState::Unsatisfied` is a UNIT VARIANT, so v3 cannot represent it and migration destroys it BY CONSTRUCTION. No parsing fix could ever have reached it. Scope: `Unsatisfied` gains optional evidence, and `legacy.rs:1707`'s wildcard populates it. **NOT mine: `ac new`, which is cc's.**
+
+**Checked rather than asserted that my shape does not foreclose it:** every site is a one-line widening, and the GraphQL projection needs NOTHING because `AcStateView.evidence` already exists. **Two coverage gaps handed over rather than discovered late:** the projection test and the sample table both enumerate cases BY HAND, so an `Unsatisfied` gaining evidence passes both while never exercising the field.
+
+### The question I raised and did not settle
+
+**If `ac unsatisfy` keeps clearing evidence, the only way to reach `unsatisfied`-with-evidence is authored canon -- NO VERB can produce the state the model now admits.** That is orphan-shaped in exactly the sense `transitions.rs` polices, so it is not only semantic: it decides whether the fix leaves a hole the machine must declare. The case the other way is real too -- evidence justifying a revoked satisfaction leaves a claim standing behind its own retraction. Ruling, not implementation detail.
