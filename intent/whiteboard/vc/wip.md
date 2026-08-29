@@ -2,75 +2,60 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: b1060b1c-548a-4974-810e-73691ac00c67
-heartbeat_at: 2026-08-29 19:16Z
-status: paused
-focus: "EOD 2026-08-29, PAUSED. Globalfold landed: wip.md is DOING and TODO only, restart.md carries the two new classes. Push gate green and the fmt/clippy arms are OUT of prepush -- CI owns them. Pair rebuilt and verified as a SET at 30a2dd81. 0144 closed the UNKNOWN-ID half only; the known-thread refusal STILL writes, measured 1652 -> 1671 bytes. ON THE BOUNCE: ST0068 AC-02.1 + AC-02.3 are mine and are the two nobody else can do; ST0065 and WP-07 want hv."
-claims: [ST0056, ST0057, ST0058, ST0060, ST0066, ST0068]
+session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
+heartbeat_at: 2026-08-29 23:51Z
+status: active
+focus: "hv AFK, vc HAS THE PEN for specification, adjudication and review; cc/dc/ic build. `0148` LANDED at cd1bf7d7. hv ruled all seven decisions, every recommendation taken, recorded on hv's board with menus and provenance. Suite is ONE red and it is the ruled Machine 5 trigger."
+claims: [ST0056, ST0057, ST0058, ST0060, ST0064, ST0066, ST0068]
 ---
 
 # Validation Claude (vc)
 
-**PROJECT-WIDE RULES IN `intent/restart.md`.** Pre-fold body verbatim at `.history/20260829/wip-fold-1716Z.md` (46KB); everything dropped here is there.
+**PROJECT-WIDE RULES IN `intent/restart.md`.** Pre-fold body at `.history/20260829/wip-fold-2350Z.md`; six folds today are all in that directory.
 
 ## DOING
 
-**NOTHING IN FLIGHT. PAUSED AT EOD.** Today's reasoning is in the COMMIT MESSAGES and in Watch-outs, and is not restated here. Pre-fold board verbatim at `.history/20260829/wip-fold-1915Z.md`.
+**THE PEN, while hv is AFK.** vc specifies, adjudicates and reviews; cc, dc and ic make it work. A workstream with a question posts it with options; anything vc and the asker cannot resolve waits for hv.
+
+**COMMIT SEQUENCE IN FLIGHT -- three nodes, two entangled files, ordered so nobody signs anyone else's name.** `intentsvcs/src/lib.rs` declares `pub mod form` (ic) and `pub mod daemon` (cc) and NEITHER source is committed, so it can only land when both exist. `intent-cli/src/render.rs` carries five added functions across three owners. **Order: ic commits `form.rs` alone -> dc takes `render.rs` whole with their ST0066 body -> cc commits `lib.rs` + `daemon.rs` + `userstate.rs` + `cli_routing.rs`.** Each names the other's content explicitly.
 
 ## OPEN
 
-1. **FOR hv -- 0143: was dropping `--skip-settings` deliberate?** v2 had it on `intent claude upgrade`; v3 has `--apply` and `--force` only, so a project that wants Intent without Claude Code lifecycle hooks cannot say so. **Under fail-forward, removing a flag is legitimate when it is a decision** -- nothing found records this as anything but a port-time omission. Doc half fixed and propagated.
-2. **FOR hv -- THE RATIFIED GUARD COLUMN IS NOT A VOCABULARY, SO AXIS C CANNOT GATE.** Instrument landed `7a366c2d`; entry states and edges gate exactly. Machine 3's Guard cells hold effects and landing rules rather than preconditions -- 28 agree, 3 disagree, **6 UNMEASURED of 37**. The code is right and the column describes something else. **Giving it a controlled vocabulary is an edit to a ratified table, so hv's.** S either way; on the price list, not up for a ruling alone.
-3. **THREE `st edit` DEFECTS, ROUTED TO cc, MINE TO TRACK.** The refusal on a generated view is CORRECT -- **the defect is that the register's DEFAULT for a path-printer is the one file it must refuse**. The refusal's remedy names `intent st` and **no `intent st` verb writes `objective` or `context`** (controlled: `title` is mentioned by four). And **`st edit ST9999 <file>` never reports an unknown thread** -- two different wrong stories depending on the file argument. **The third is the one to fix first.**
-4. **0136's ~44-site `AcState::Computed` change lands after v3.0.1**; one-commit-or-split is mine at the cut and I lean split.
-5. **hv's parked stack**, unchanged: mechanical window refusal; instruments placement; publish_home temp root; vacuous doctor remedy; the ratified-surface pile; Conflab's 4 contract-prose edits; Lamplight md-to-store; Laksa's DESCOPED token; cc's `issues list` holdout and `--status a,b` ordering; ST0066 minutia 3 (free text in `because` versus a structured field).
-6. **STANDING FACTS.** `AcState::in_scope()` has NO CALLERS. Empty dirs survive at `~/.claude/skills/in-start/` and `in-next/` -- a directory-presence check reads them as installed; needs an out-of-repo write. **Zero `fiat` rows exist anywhere and no verb reaches the state** (`ac fc` unbuilt, declared an orphan), which is why 0137 is watched rather than escalated.
+1. **OWED BY ME, in order:** the `AC-00.4` rewrite hv assigned (`hv/wip.md` -- AC-00.4 would otherwise pass VACUOUSLY for the WP kind); **`ST0064`'s criteria, which is zero today** and whose one WP is scoped `S` against a 2,470-line Geodica reference (size comes from ic's read, never a second guess); the **`fork`/`SOCK_CLOEXEC` false positive into `AC-08.3`** (cc measured 1 in 300 with a sibling thread spawning children, 0 in 2000 without); the four missing `data-model.md` property tables (`Attachment`, `Legacy`, `Related`, `Envelope`); **ST0068 AC-02.1 and AC-02.3**; and **WP-15**, the 26-skill triage.
+2. **SUITE STATE, MEASURED AT `cd1bf7d7`:** `cargo test -p intentsvcs` rc=101, **one failure**: `a_machine_ratified_in_prose_is_actually_trivial`, `left: 2 right: 1`. **That is the Machine 5 trigger firing exactly as hv ruled it should**, not a regression. The two attachment-drift reds cleared with `0148`.
+3. **FOR hv WHEN BACK, and nothing is blocked on them:** the parked stack -- `0143`'s `--skip-settings`, ST0065's three questions. Everything else hv had open is ruled.
+4. **A SENTENCE THAT IS FALSE WHICHEVER WAY IT IS READ.** `userstate.rs` says _the whole of Intent's per-user state is one directory an operator can inspect or delete_, meaning `~/.intent/`; D19 puts the daemon's logs and plist under `~/.local/share/intent/`. D19 wins (a numbered decision outranks a module's habit) and **the sentence still has to be fixed, because it misleads whoever writes the plist either way.**
 
 ## Watch-outs
 
-**Mechanisms only. The incidents are in the fold archives.**
+**Mechanisms only. Incidents are in the fold archives.**
 
-1. **A true result from an instrument that could not have answered differently.** The dominant class. Positive-control the instrument, not the subject.
-2. **Relaying is authoring.** A number you pass on is a number you asserted.
-3. **A claim outlives its basis and nothing announces it.** A fact whose basis was withdrawn reads exactly like one that still holds.
-4. **An option set distorts by what it prices and by what it binds.**
-5. **Mechanism beats a note.**
-6. **An instrument's defects must fail toward alarm, and a permanent alarm is the same defect.**
-7. **The message is not the mechanism, and a remedy is not its description.**
-8. **Warning a peer about a trap consumes them as an independent witness to it.** Blind by default; offer the number, never impose it.
-9. **Audit before cleanup; convert before sweep; ingest before prune.**
-10. **Shared checkout.** Never remove a peer's `index.lock`; never `cp` a shared source aside to mutate; only a detached worktree sees a broken published tree.
-11. **"Held" is a property of a file that is not where an accident can reach it.**
-12. **A test-isolation guard is scoped to the ambients it names; every unnamed ambient is unguarded by construction.**
-13. **Canon is the SSOT for rows, not for prose.**
-14. **Reading the write-up of a class is not protection from it. The remedy is never care.**
-15. **A constant metric guards nothing.**
-16. **Two sources agreeing is not corroboration when one is stale or blind** -- and the worse form is both blind in the same direction.
-17. **A second notation typed from a first is a second home for the fact; one derived from a single read is not.**
-18. **The renderer and the formatter are two writers of one file, and a verb between them cannot converge.**
-19. **An authority chain transmits the method it was built to fence.**
-20. **A warning about a closing window is a scheduling signal, and it recruits peers into racing the window.**
-21. **A fold archive named plain `wip.md` invites the next same-day fold to overwrite it.** Always `wip-fold-HHMMZ.md`.
-22. **Relay the instrument's OUTPUT, never a characterisation of it.**
-23. **For a TRACKED file, `git commit --only <paths>` with NO `git add` and NO reset.** `add` plus a scoped commit for NEW files -- and **`--only` on a DIRECTORY stages new files under it**, which is how a peer's untracked work gets swept into your commit.
-24. **A repo-local gate arm that reads the working tree makes one node's mid-edit everyone's refusal.**
-25. **An identifier a tool allocates is read from the tool's output, never predicted** -- and in a shared checkout the allocation can move under you.
-26. **Two artefacts declared as second witnesses are a witness pair only if both are watched, and the unwatched half is usually the authority.**
-27. **A census takes its unit from the subject's identity, never from the filesystem's.** Per-thread, never per-path.
-28. **An aliased `json_extract` in `GROUP BY` returns a silently wrong grouping** -- and it was right on the first sample. Use `GROUP BY 1`. General form: when the grouping key is an expression, the alias is a display name and which one the engine uses is not something the query says out loud.
-29. **A menu that omits an option already chosen elsewhere manufactures a contradiction in the principal.** Ask what the other sessions have already been asked BEFORE writing options. A longer menu is not the defence -- mine failed because a false premise made the winning option unthinkable, not unlisted.
-30. **`script -q` cannot allocate a pty from these sessions** (stdin is a socket), so every `[ -t 1 ]` probe returns NOT-TTY including the control. **The working instrument is an in-process pty allocator.** General form: when an instrument depends on a property of the SESSION rather than of the subject, its result is about the session.
-31. **An artefact that arrives later defeats a check that ran once, even when somebody remembered.** Measured: `CLAUDE.md` at init, `AGENTS.md` at first `agents sync`, `.gitignore` at `upgrade` -- three arrival times, so a subject can be created, checked, PASS, and then grow the file nobody re-checks.
-32. **A claim about a TOOL's output is not a different category from a claim about its subject.** I endorsed a peer's characterisation of build output and prescribed a fix for a defect that did not exist; the banner was there all along. Their cause was sharper: they piped through `tail -4` and reported the tool had said nothing. **A `tail` cannot distinguish "the tool was quiet" from "I discarded what it said".**
+1. **A TRUE RESULT FROM AN INSTRUMENT THAT COULD NOT HAVE ANSWERED DIFFERENTLY.** The dominant class all day. Positive-control the INSTRUMENT, not the subject.
+2. **A GATE THAT REPORTS ON A COMMIT CANNOT BE EXERCISED BY A WORKING TREE, AND THREE INSTRUMENTS DEFAULT THE WRONG WAY.** `machine_table_check` and `canon_commit_check` both read INDEX-else-HEAD; run bare they compare HEAD to HEAD and print a pass. **I nearly cleared dc's blocker on one such green.** `--staged` is the flag that makes the canon check answer about your commit; `DOC=`/`RS=` overrides make the machine check read the worktree without touching the shared index. **The safe-looking bare form silently answers about the wrong tree.**
+3. **A BLOCKED COMMIT STILL RUNS THE FORMATTERS, SO A REFUSED COMMIT IS NOT IDEMPOTENT.** `0148`'s first attempt was refused; the formatters then rewrote `tui-design.md` AFTER the sync had recorded its bytes, and the retry failed for a DIFFERENT reason than the first attempt. **Re-sync before retrying a refused commit.** The formatter is a second writer between sync and commit and a refusal is one of the moments it writes.
+4. **PROSE WRITTEN INTO A RENDERED VIEW IS DESTROYED SILENTLY BY THE NEXT SYNC.** I hand-wrote WP-17's objective into `WP/17/info.md`, whose own footer says it is rendered from the model; `sync --to-store` re-rendered it from an empty canon field and the prose was gone with nothing reporting a loss. **The ruled path is the EXTRACT.** Executed by the node that minted the criterion warning about it.
+5. **A CLAIM OUTLIVES ITS BASIS AND NOTHING ANNOUNCES IT.** Fifth firing today across four nodes, including one where the stale half was an observation about a peer rather than by them. **True when measured, false when sent, with nothing in the wording saying which.**
+6. **RELAYING IS AUTHORING, AND `fn fc` PROVES IT.** I told dc to name "cc's fc arm"; it is dc's, `fn fc(` appears zero times in HEAD, and **three nodes independently converged on the same wrong owner.** That is not carelessness three times -- it is a property of a file nobody can see whole. cc is the only one who measured rather than recalled.
+7. **A RULE FAILS IN THE ARTEFACT THAT STATES IT.** Eight instances. The sharpest is dc's `fully_populated_row()`, whose doc comment names the exact trap for two earlier fields and which caught the next field added.
+8. **A CRITERION THAT RESTATES ITS SOURCE INSTEAD OF CITING IT ROTS SILENTLY.** Four today, all mine, each caught by the node building against it: a count (`AC-08.10`), line numbers 62 lines stale (`AC-17.10`), a precis that lost a case (`AC-08.3`), a transport a later ruling moved (`AC-00.3`). **All four are now derived or cited.**
+9. **A PATTERN THAT MATCHES A SUBSTRING OF A DIFFERENT WORD.** `grep -c arity` returned 241; **134 were the word `parity`.** Structural walk gave 126. Same family as `^\s*AC-` against a stream printing `ac: AC-17.7`.
+10. **`$?` AFTER A PIPE IS THE LAST STAGE'S.** Fourth firing, mine.
+11. **A TWO-WAY COMPARISON CANNOT ATTRIBUTE A DIFFERENCE; THE FIX IS A THIRD INPUT.** canon-vs-worktree cannot say who moved. canon-vs-worktree-vs-HEAD identified my stale `design.md` and dc's swept `data-model.md` in one pass.
+12. **A CAPABILITY THAT WORKS AND IS UNLABELLED IS INDISTINGUISHABLE FROM ONE THAT DOES NOT EXIST.** `target/debug/intent` answered all evening while four nodes recorded the CLI as dead.
+13. **THE ONE ACT EVERYBODY BELIEVES IS READ-ONLY MUTATES SHARED DURABLE STATE.** `cargo test` opens the live root and runs the migration ladder. **And _no downgrade_ is not _unrecoverable_: the remedy is forward and it took 58 seconds.** The severity was blast radius, never data.
+14. **A SYNC WELDS A PEER'S FILE INTO YOUR COMMIT.** Canon NAMES the bytes it sweeps and `canon_commit_check` gates on it, so a peer's unfinished work becomes your blocker. **And the order is not a preference: sync FIRST, commit together -- committing first and syncing after leaves THAT commit divergent forever, because the criterion is a property of every commit rather than of HEAD.**
+15. **A HUNK-SCOPED COMMIT EXISTS AND NOBODY KNOWS IT.** `git add` is file-scoped and `--only` is path-scoped, but a commit need not come from the worktree: replay your edits onto HEAD's version, `git hash-object -w`, commit that blob from a private index, and verify by grepping the result for the peers' symbols. cc built it and dropped it. **Ordering is better when the queue moves; this is for when it does not.**
+16. **DESIGN AGAINST THE LARGEST REAL SUBJECT.** The strawman found ten defects on ST0056 that were invisible on ST0058.
 
 ## Decisions
 
 **LIVE ONLY -- superseded decisions are deleted, never struck through.**
 
-- **Announce a write to a SHARED file to everyone; announce a write to a CLAIM to the claim-holder. Canon is the first, not the second.** Claims predict who cares, not who is blocked.
-- **Rule 13 canon edit path:** edit the extract, `intent sync --to-store <ID>` scoped, then `--to-disk <ID>`, then commit file and canon TOGETHER. **Sync reads the WORKTREE**, so committing first leaves that commit permanently divergent.
-- **A surface claim travels with the thing that makes it checkable** (ic). For a verb that is "it is in the register" -- a ruling made this hour and a change landed this hour read identically in a message.
-- **Docs are written against the CUT, never against `main`**, and the reference is GENERATED against a named revision.
-- **Design decisions go to the Laksa design agent, not settled here** (hv). Each must carry the decision, the constraint it must respect, and what breaks if it goes the other way -- a flag saying only "open" hands the same ambiguity on in a tidier format.
-- **Em dash in prose pages; `--` in generated reference pages**, because those render CLI text a reader copies.
-- **v3.0.1 stays 3.0.1** with the four-new-verbs cost stated and taken by hv. I recommended 3.1.0, hv declined, I do not raise it again.
+- **hv RULED SEVEN on 2026-08-29 23:38Z and every vc recommendation was taken.** Fiat edges guarded `ReasonRecorded`, `### Machine 5`, a closed Guard vocabulary; `AC-08.9` ratified and `AC-08.10` reworded to derive its count; ST0064 narrowed to the menubar app with WP-08 building the daemon; the fiat record's accepted-unverified half is a STRUCTURED field; `AC-00.3` cites D56 rather than naming a transport; **the daemon binds `127.0.0.1:0` and publishes its address, so no port literal exists**; `Facade::put` refuses to write `fiat` fields. **Full menus and provenance on `hv/wip.md`, not here.**
+- **`D56`: `intentd` emits JSON ONLY and every renderer is generic.** The deciding argument is ST0064's SwiftUI menubar app, which cannot consume HTML. Recorded in `design.md` and `tui-design.md` 10a.
+- **Conflab is the daemon template; Geodica is its simplified second iteration.** `conflabd` is 54k lines of Rust with a 10.3k-line mgmt plane on loopback TCP. **Its authn/authz does NOT transfer** -- that exists to bridge a browser app to cloud `conflabc`, and there is no `intentc`. **What does not drop out with the cloud: a loopback TCP port is reachable by every process on the machine, so the HTTP half carries one auto-generated token and the socket half carries none.**
+- **`intent browse` SHIPS.** `ST0058 AC-00.6` refuses a flag and its twin DISAGREEING about whether a capability exists, not both existing.
+- **ic's register questions resolve with ZERO new fields:** `invariants` already houses cross-row rules; `AC-00.6` generalises to _every spelling of one capability agrees about whether it exists_, covering the sub-row `fc` split; `arity` already exists on `args` with `0..1` in its closed vocabulary and needs extending to `flags`.
+- **Announce a write to a SHARED file to everyone; announce a write to a CLAIM to the claim-holder.**
+- **An opening announcement states the PROPERTY that ends it, not a promise to send a second message.**
+- **Docs are written against the CUT, never against `main`.** Em dash in prose pages; `--` in generated reference pages.

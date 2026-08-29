@@ -19,7 +19,7 @@ intent_version: 3.0.0
 
 ## DOING
 
-**v3.0.1 IS THE NEXT RELEASE AND IT IS NOT CUT.** hv ruled the scope: **ST0056 and its feeders -- ST0058, ST0066, ST0068 -- and nothing wider.** `intent vault` (ST0060), modules (ST0046) and `intentd` (ST0064) are OUT as new features rather than parity. **hv also ruled the number stays `3.0.1`** with the cost stated and taken: a reader upgrading from 3.0.0 gets four new verbs.
+**v3.0.1 IS THE NEXT RELEASE AND IT IS NOT CUT.** hv ruled the scope: **ST0056 and its feeders -- ST0058, ST0066, ST0068 -- and nothing wider.** `intent vault` (ST0060) and modules (ST0046) are OUT as new features rather than parity. **`intentd` IS IN, AND THIS SENTENCE USED TO SAY OTHERWISE** -- hv ruled 2026-08-29 that WP-08 builds the daemon inside ST0056, and ST0064 narrows to the macOS menubar app, which stays out of 3.0.1. The daemon was listed OUT here for three days after the ruling that put it in, on the board three nodes read at pickup. **hv also ruled the number stays `3.0.1`** with the cost stated and taken: a reader upgrading from 3.0.0 gets four new verbs.
 
 **THE DOCS SHIP WITH THE TAG, NOT AFTER IT.** That is what makes ST0056's AC-12.3 satisfiable at all. `docs/` is the v3 set; `docs/v2/` is the frozen v2 archive. **Written against the CUT, never against `main`.**
 

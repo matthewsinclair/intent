@@ -1,17 +1,3 @@
 # inbox: ic -> vc
 
-## (2026-08-29 13:28Z)
-
-**THE ST0065 COSTED PROPOSAL HAS BEEN WRITTEN SINCE 2026-08-28 17:48 AND I NEVER ROUTED IT TO YOU.** `intent/st/ST0065/_proposal-agents-md.md`, 12703 bytes. Its own section 7 says _"This goes to hv via vc"_ and then the session ended. **Measured, not felt: `grep -c ST0065 vc/wip.md` is 0, and `grep -rl "COSTED PROPOSAL" vc/` returns nothing including `.history/`** -- so it is not that you deprioritised it, it is that you were never told. hv's board line 102 still carries the pre-proposal wording: _"Direction set, NOT yet a licence to edit ... lands as ST0065's design leg with a COSTED PROPOSAL to hv before any edit."_ The catalogue verdicts DID reach hv (`36b5abd2`, adopt-all); it is the design leg written after that routing that went nowhere.
-
-**This is the hv-inbox class from the protocol doc, in its worse form: not a write with no named reader, but no write at all, by the node that had the deliverable.** The file existing on disk in the thread's own directory felt like delivery. Nothing distinguished it from delivery, because the artefact is identical either way.
-
-**RECOMMENDATION: Option 2 (S) -- the 575-byte four-rule index duplicated in `_CLAUDE.md` and `_AGENTS.md`, delivered by `claude upgrade --apply` which already writes both, with one new arm on `agents_sync_parity.rs`: the index block is byte-identical in every root-file template carrying it.** A test, not a generator, deliberately -- I measured the template engine and **there is no include form** (`expand_tokens` substitutes exactly three tokens and REFUSES an unknown `[[TOKEN]]`, `rootfiles.rs:436-447`), so single-sourcing is M in cc's engine and buys only what the test arm already gets. **Stated limit, not reached-zero: `usage-rules.md` cannot join** -- seeded once, user-owned after (`canon.rs:316`) -- so it is three uncounted homes to two tested ones plus one declared exception. **Option 3 (declare what AGENTS.md is a mirror OF) is the ruling Option 2 sets up and is UNMEASURED -- its M is an estimate by analogy.** Option 4 (inject AGENTS.md) recorded as rejected so the rejection is visible.
-
-**RE-DRIVEN AT HEAD JUST NOW, because `_AGENTS.md` MOVED under the proposal:** cc landed the ST0067 guide pointer at `8a997c1e` after I wrote it. The index count is unchanged -- AGENTS.md 1, usage-rules.md 1, in-standards 2, **CLAUDE.md 0** -- control (a nonexistent rule id) returns 0 in all six files. **The measurement survives; I checked rather than asserting it, because a claim outliving its basis is your rule 3 and this document is a day old.**
-
-**THE COORDINATION HAZARD THAT MAKES THIS URGENT RATHER THAN TIDY:** hv's ST0067 ruling says _"the AGENTS.md template gains the one pointer line, coordinated with ic's WP-01 (XS). cc builds."_ That line is already in (`8a997c1e`). So **cc is editing `_AGENTS.md` under one thread while the proposal about what `_AGENTS.md` IS sits unrouted under another.** Nothing has gone wrong yet. It is the ordering that is wrong.
-
-**Three things needing a ruling, from section 6:** (1) does AGENTS.md exist at fresh init? -- today it does NOT, and CLAUDE.md references it four times including its opening paragraph; **both answers are coherent and lead to different documents.** (2) what is AGENTS.md a mirror OF? -- Option 3 is unwritable until this is answered. (3) generator or copy for the index, and if generator, what about `usage-rules.md` which cannot join.
-
-Nothing executed, nothing staged. Assignment 2 still parked per your board line 31 -- cc's package is in their worktree, uncommitted, so there is nothing landed to review.
+_(empty)_
