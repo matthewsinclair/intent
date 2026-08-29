@@ -4,10 +4,48 @@ This document is Intent's canonical explanation of its LLM-facing configuration 
 
 If `usage-rules.md` is the DO / NEVER contract and `AGENTS.md` is the auto-generated project index, this doc is the living reference that explains the system — how the pieces fit together, what decisions shaped them, and how to configure or extend them.
 
-The doc is deliberately opinionated: the canon is already decided, and the decisions are recorded below as `D1`–`D11` for cross-reference against `intent/st/COMPLETED/ST0035/design.md`.
+The doc is deliberately opinionated: the canon is already decided, and the decisions are recorded below as `D1`–`D11` for cross-reference against ST0035's record, which is canon at `intent/.canon/st/ST0035.json`. (The v2-era `intent/st/COMPLETED/ST0035/design.md` is not in the working tree: the status-bucket directories were collapsed into the flat thread layout at `1af21f4e`, and the file is readable in history at `1af21f4e^`.)
+
+## Read this first: what v3 changed underneath this document
+
+**This document was authored for Intent v2 and last reconciled at v2.11.11. Intent v3 is a full rewrite in Rust.** Most of what follows still holds, and that is deliberate rather than lucky: the LLM-facing canon described here — the three root files, the session hooks, the skills, the subagents, the rule library, the critics — was carried across the rewrite as a contract. The parts that describe _what an LLM reads and what fires when_ are still the parts to read.
+
+Two things changed underneath it, and both change what you should **do**.
+
+### 1. The store is the source of truth, and some of the markdown is a generated view
+
+In v2, the markdown files under `intent/st/` were the record. In v3 they are not. The record is JSON canon under `intent/.canon/`, and a subset of the markdown is **rendered from it**:
+
+| Path                                 | What it is       | Safe to hand-edit? |
+| ------------------------------------ | ---------------- | ------------------ |
+| `intent/.canon/st/<ST>.json`         | the record       | no — use the CLI   |
+| `intent/st/<ST>/info.md`             | a generated view | **no**             |
+| `intent/st/<ST>/acceptance.md`       | a generated view | **no**             |
+| `intent/st/<ST>/WP/<NN>/info.md`     | a generated view | **no**             |
+| `intent/st/<ST>/design.md`           | authored prose   | yes                |
+| `intent/st/<ST>/impl.md`             | authored prose   | yes                |
+| `intent/st/<ST>/tasks.md`            | authored prose   | yes                |
+| anything else you add under a thread | authored prose   | yes                |
+
+**A hand-edit to a generated view is discarded by the next sync, and nothing fails at the moment you make it.** This is the single most expensive mistake available in a v3 project, it is available to LLMs and humans equally, and it costs exactly one round of work each time.
+
+**Do not learn this table.** A generated view says so in its own body — it opens with a banner naming itself as generated and telling you the edit will be discarded. Read the top of the file you are about to change; that is a property of the file in front of you, where the table above is a claim about a layout that can move.
+
+**And read the banner as evidence in one direction only.** Its presence means generated. Its _absence_ does not reliably mean authored: at the time of writing this repository contains a work-package `info.md` with no banner while every one of its siblings carries one. `intent doctor` reports hand-edit skew, and it is the check — not the absence of a banner, and not this paragraph.
+
+Write through the CLI instead: `intent st edit`, `intent ac new` / `ac edit`, `intent at new` / `at edit`, `intent wp new`. Those write the record, and the views follow.
+
+### 2. The tool is a Rust binary, not a Bash program
+
+Command names and behaviour below were written against `bin/intent`. The v3 surface is close but not identical, and it is generated rather than described by hand — see `docs/reference/cut-surface.md`, which states the revision it describes in its own header. **Where this document names a command and the reference disagrees, the reference wins**, because it is measured from the dispatch table and this document is prose.
+
+### What is not reconciled
+
+**The `D1`–`D11` decision records below are v2-era statements of why the canon looks the way it does, and they were not re-verified line by line against v3 for this pass.** They are load-bearing as rationale and should be read as history that is mostly still true, rather than as a v3 specification. The same caution applies to specific version numbers in the Troubleshooting section: they name the release a given defect was fixed in, and those releases are v2.
 
 ## Table of contents
 
+- Read this first: what v3 changed underneath this document
 - Overview
 - The three-file architecture
 - D1–D11 — the canon decisions
@@ -20,6 +58,7 @@ The doc is deliberately opinionated: the canon is already decided, and the decis
 - Socrates vs Diogenes FAQ
 - For Elixir projects: usage_rules interop
 - Troubleshooting
+- Upgrade notes
 - See also
 
 ## Overview
@@ -97,7 +136,7 @@ If you're unsure where a piece of information belongs, follow the decision flow:
 - The decision flow for where new code should go? → `DECISION_TREE.md`.
 - Narrative, rationale, or FAQ content? → `intent/docs/<topic>.md` (here or a topic-specific doc).
 
-The decisions recorded in `intent/st/COMPLETED/ST0035/design.md` define Intent's current LLM canon. D1 through D11 below restate them in living-doc form — what the state is now, with enough context to understand it.
+The decisions recorded in ST0035 define Intent's current LLM canon. D1 through D11 below restate them in living-doc form — what the state is now, with enough context to understand it.
 
 ## D1. AGENTS.md is the primary LLM config file
 
@@ -180,7 +219,7 @@ Deprecated artefacts are deleted now. Migrations actively prune. Examples from v
 
 - `intent/llm/AGENTS.md` → deleted. Root `AGENTS.md` is the only location.
 - `lib/templates/llm/_llm_preamble.md` → deleted.
-- ST0010 (MCP exploration) and ST0015 (Enhanced ST templates) → cancelled, moved to `intent/st/CANCELLED/`, annotated with deprecation one-liners.
+- ST0010 (MCP exploration) and ST0015 (Enhanced ST templates) → cancelled, annotated with deprecation one-liners. (They were moved to a `intent/st/CANCELLED/` bucket at the time; v3 has no status-bucket directories, and cancellation is a state on the thread's record.)
 
 Why: Intent's stated posture is fail-forward. Backwards-compat shims accumulate, decay, and hide bugs. Users who need legacy behaviour pin to an older Intent version.
 
@@ -430,7 +469,7 @@ Multi-app codebases usually have a shared platform layer that no ST claim cleanl
 
 ### Reference
 
-The live reference implementation runs in the Lamplight project, at its own `intent/whiteboard/`. The original 2.0 design rationale and deliberate-deferrals (no hook-based enforcement, no `decisions.md` event log, no `intent/.config/whiteboard.json`) live in `intent/st/COMPLETED/ST0040/`; the 3.0 per-node rewrite is `intent/st/COMPLETED/ST0045/`.
+The live reference implementation runs in the Lamplight project, at its own `intent/whiteboard/`. The original 2.0 design rationale and deliberate-deferrals (no hook-based enforcement, no `decisions.md` event log, no `intent/.config/whiteboard.json`) live in ST0040's record (`intent/.canon/st/ST0040.json`); the 3.0 per-node rewrite is ST0045 (`intent/.canon/st/ST0045.json`).
 
 ## Extensions at ~/.intent/ext/
 
@@ -627,9 +666,13 @@ Symptom: a skill you edited locally now shows a checksum mismatch when `intent c
 
 This mirrors the upgrade-doesn't-clobber contract. If the edit is intentional, either move it into an extension (`~/.intent/ext/<name>/skills/<slug>/`) so it shadows canon cleanly, or accept that `sync` will revert it on next run. Mid-fleet drift on canon skills creates more problems than it solves.
 
-## v2.10.0 upgrade note
+## Upgrade notes
 
-Intent v2.10.0 bundles this LLM canon (ST0035) with the directory relocation `.intent/` → `intent/.config/` (ST0036). The relocation is the breaking change in the version; the canon work is additive. Migration is automatic on `intent upgrade` and atomic. If you script against `.intent/` paths in CI, editor plugins, or ad-hoc `jq` invocations, you need to flip those references. Full guide: `intent/docs/migration-v2.10.0.md` (includes the recovery procedure for interrupted upgrades).
+**Coming from v2, the migration path is `docs/migrating-from-v2.md` in the public set.** That is the live guide and it describes the rewrite; this section carries only the LLM-canon-specific notes, which are the ones this document is responsible for.
+
+**The canon files survive the v2 to v3 upgrade.** `AGENTS.md`, `CLAUDE.md` and `usage-rules.md` keep their roles, their layering, and their hand-edited-versus-generated split. A project whose LLM config was correct under v2.11 does not need it rebuilt for v3.
+
+**Older, and still true for anyone arriving from below v2.10.0:** v2.10.0 bundled this LLM canon (ST0035) with the directory relocation `.intent/` to `intent/.config/` (ST0036). The relocation is the breaking change in that version; the canon work is additive. If you script against `.intent/` paths in CI, editor plugins, or ad-hoc `jq` invocations, those references need flipping. Full guide: `intent/docs/migration-v2.10.0.md`, which includes the recovery procedure for an interrupted upgrade.
 
 ## See also
 
@@ -641,8 +684,9 @@ Intent v2.10.0 bundles this LLM canon (ST0035) with the directory relocation `.i
 - `intent/docs/migration-v2.10.0.md` — v2.9.0 → v2.10.0 migration guide.
 - `intent/llm/MODULES.md` — Highlander module registry.
 - `intent/llm/DECISION_TREE.md` — code-placement flowchart.
-- `intent/st/COMPLETED/ST0035/design.md` — the decision log that drove this canon.
+- `intent/.canon/st/ST0035.json` — the decision log that drove this canon, as canon. The pre-v3 `design.md` is in history at `1af21f4e^`.
+- `docs/reference/cut-surface.md` — the generated command register, which names the revision it describes.
 
 ---
 
-_Document stamp: authored for ST0035/WP-03, 2026-04-24; reconciled against as-built canon for v2.11.11 (ST0042/WP-08). Significant canon changes should update both this doc and `intent/st/<ST>/design.md`._
+_Document stamp: authored for ST0035/WP-03, 2026-04-24; reconciled against as-built canon for v2.11.11 (ST0042/WP-08); v3 preamble and reference repair for ST0056/AC-12.2, 2026-08-29, which converged the framing and the dangling pointers and deliberately did NOT re-verify D1-D11 line by line. Significant canon changes should update both this doc and the thread's record._
