@@ -15,7 +15,7 @@ title: Update Intent's docs for v3
 
 ### Group 01
 
-- AC-01.1 (non-test) The v2 blog and release notes live under docs/v2/ as a frozen record, their canonical URLs still name their old locations, and the archive states why they deliberately do not match their paths -- satisfied: no
+- AC-01.1 (non-test) The v2 blog and release notes live under docs/v2/ as a frozen record, their canonical URLs still name their old locations, and the archive states why they deliberately do not match their paths -- evidence: vc 2026-08-29: all 7 moved posts' canonical: fields still name .../docs/blog/<file>, driven per-file with a positive control that a rewritten canonical IS caught (planted /docs/v2/blog/ in a temp copy, flagged). docs/v2/README.md states why they deliberately do not match their paths. -- satisfied: yes
 
 ### Group 02
 
@@ -31,14 +31,14 @@ title: Update Intent's docs for v3
 
 ### Group 04
 
-- AC-04.1 (non-test) intent/docs/ is unchanged in role, and every cross-link from the public set into it resolves -- satisfied: no
+- AC-04.1 (non-test) intent/docs/ is unchanged in role, and every cross-link from the public set into it resolves -- evidence: vc 2026-08-29: intent/docs/ unchanged in role -- no file moved, added or removed; six cross-links from the public set now resolve into it (working-with-llms, rules, critics, pre-commit-hook, creating-custom-agents, writing-extensions) from the new docs/working-with-agents.md. Full docs/ sweep: 30 relative links across 12 files, 0 broken, checker two-sided controlled. The criterion was VACUOUS before this -- the public set mentioned intent/docs/ and linked into it nowhere, so the second clause was true of an empty set. -- satisfied: yes
 - AC-04.2 (non-test) The doc set is in the same tag as v3.0.1, not a later one -- satisfied: no
 
 ## Acceptance Tests
 
 ### Group 01
 
-- AT-01.1 (non-test) Read docs/v2/README.md and grep the moved posts' canonical: fields against their pre-move values -- covers AC-01.1 -- status: to-write
+- AT-01.1 (non-test) Read docs/v2/README.md and grep the moved posts' canonical: fields against their pre-move values -- covers AC-01.1 -- status: green -- Driven by vc, 2026-08-29. Positive-controlled: the check was shown to flag a planted rewrite before its pass was accepted.
 
 ### Group 02
 
@@ -54,7 +54,7 @@ title: Update Intent's docs for v3
 
 ### Group 04
 
-- AT-04.1 (non-test) Resolve every link from docs/ into intent/docs/ -- covers AC-04.1 -- status: to-write
+- AT-04.1 (non-test) Resolve every link from docs/ into intent/docs/ -- covers AC-04.1 -- status: green -- Driven by vc, 2026-08-29. The check was vacuous until the links existed; six were added rather than the empty set being reported as a pass.
 - AT-04.2 (non-test) git tag --contains on the doc commits against the v3.0.1 tag -- covers AC-04.2 -- status: to-write
 
 ---

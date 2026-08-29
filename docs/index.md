@@ -12,13 +12,14 @@ Intent gives it a place to live that ages with the code instead of away from it.
 
 ## Start here
 
-| If you want to                               | Read                                      |
-| -------------------------------------------- | ----------------------------------------- |
-| Get it installed                             | [Installation](install.md)                |
-| See it work on a real project                | [Getting started](getting-started.md)     |
-| Understand the model before you commit to it | [Concepts](concepts/)                     |
-| Move a v2 project to v3                      | [Migrating from v2](migrating-from-v2.md) |
-| Look up a command                            | [Command reference](reference/)           |
+| If you want to                               | Read                                                 |
+| -------------------------------------------- | ---------------------------------------------------- |
+| Get it installed                             | [Installation](install.md)                           |
+| See it work on a real project                | [Getting started](getting-started.md)                |
+| Understand the model before you commit to it | [Concepts](concepts/)                                |
+| Wire it into your coding agent               | [Working with coding agents](working-with-agents.md) |
+| Move a v2 project to v3                      | [Migrating from v2](migrating-from-v2.md)            |
+| Look up a command                            | [Command reference](reference/)                      |
 
 ## What it actually is
 

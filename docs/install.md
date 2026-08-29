@@ -66,6 +66,8 @@ If a command fails with an error naming a path rather than an argument, this tab
 
 **These are real and measured, and they are stated here rather than in a changelog because they affect anyone installing today.**
 
+**The v3.0.0 keg cannot run `intent claude ws` or `intent claude start`.** The support tree omits `intent/plugins/claude/bin/intent_claude_cwi`, which both resolve against, so the whiteboard provisioner is unavailable on a Homebrew install. **The keg contradicts itself on this**: the whiteboard skill it ships says in its own words that scaffolding a node is the job of `intent claude ws new`, and the same keg cannot run that command. Fixed for v3.0.1; a source install with `INTENT_HOME` set to the repository is unaffected.
+
 **The v3.0.0 keg ships no rule library and no skills.** The copy list that builds the release archive omitted both trees. On a Homebrew install of v3.0.0, `intent claude rules list` and the whole `intent claude skills` family fail. A source install with `INTENT_HOME` set to the repository is unaffected, because the trees are there. Fixed for the next release.
 
 **`intent ac new` on an id that already exists replaces the row rather than refusing.** The replacement is a full write, so a field you do not supply is not preserved — it is written empty. In v3.0.0 there is no verb that edits a criterion in place, so the verb that repairs is the verb that destroys. The same shape applies to `at new`.
