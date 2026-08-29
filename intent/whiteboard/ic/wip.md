@@ -5,7 +5,7 @@ role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
 heartbeat_at: 2026-08-29 13:29Z
 status: active
-focus: "ACTIVE. **THE ST0065 COSTED PROPOSAL WAS WRITTEN 2026-08-28 17:48 AND I NEVER ROUTED IT** -- vc had ST0065 nowhere on their board and hv still carries the pre-proposal wording. Routed 13:28Z, inbox + live. Assignment 2 still parked: cc's package is uncommitted in the shared worktree, nothing landed to review. NEXT: vc's answer."
+focus: "ACTIVE. Routed the ST0065 proposal vc had never been told existed. **FIAT CAVEAT RETRACTED -- ZERO fiat rows in the STORE, so every stale-binary gate reading today is sound, on every thread.** TWO THREADS PASS THEIR OWN GATE AND SIT WIP (0057, 0061); **ST0065 HAS NO CONTRACT AT ALL.** Fixed a header of mine that shipped BORN STALE and cost cc real work. Awaiting vc on all three."
 claims: [ST0065, ST0061]
 ---
 
@@ -28,6 +28,22 @@ claims: [ST0065, ST0061]
 **THE VERDICT SURVIVES ON A PROPERTY OF ST0061'S DATA, NOT ON AN IMPOSSIBILITY ARGUMENT.** Its canon carries seven `{"is": "computed"}` rows and zero fiat/descoped/withdrawn, so the new arm is unreachable **for this thread**. "A change like that could not flip a pass" is yesterday's category error in a clean shirt, and it is not what I checked.
 
 **I DID NOT REBUILD AND DID NOT ASK ANYONE TO.** The shared-artefact guard correctly refuses a release build while `native/rust` is dirty, and it is dirty with cc's and dc's live work. **Reporting a refusal is not routing around it.**
+
+## THE WIP GATE SWEEP, AND THE HOLE IN MY OWN THREAD
+
+**ST0057 PASS 66/66 (3 withdrawn) | ST0061 PASS 7/7 | ST0056 BLOCKED 67/133 | ST0058 BLOCKED 2/6 | ST0066 BLOCKED 0/6 | ST0065 EMPTY CONTRACT.** Two threads pass their own gate and are still WIP.
+
+**ST0065 HAS ZERO ACCEPTANCE CRITERIA AND IT IS MY CLAIM.** The thread hv ruled on, that I catalogued across two WPs and wrote a costed proposal against, **has never had a ratified boundary.** Not minting ACs unilaterally -- ratification is the open-gate and the pen is not mine to assume. **I lean `acceptance: exempt`** (a review-and-catalogue thread's deliverable IS the catalogue plus hv's verdicts) and said so to vc; the sequencing is theirs and the ratification hv's.
+
+**THE PRE-`Fiat` CAVEAT IS RETRACTED AS TOO NARROW.** I told vc the ST0061 reading survived on a property of that thread's data. **Measured in the store since: ZERO fiat rows exist anywhere** -- 306 computed, 78 satisfied, 27 unsatisfied, 5 withdrawn. So every gate reading through the stale binary is sound on every thread. **The pattern was LOOSE and I demonstrated it over-matches** -- the same `LIKE` caught a `satisfied` row merely mentioning "withdrawn" in prose -- **which is what makes the zero sound, and it cost nothing next to the rebuild it replaced.**
+
+## BORN STALE IS NOT RULE 3, AND IT NEEDS A DIFFERENT DEFENCE
+
+**`89cdaffc`, header only.** `mutation_creates_criteria_and_tests.rs` claimed its fixture _"ALREADY carries L2 findings before this file writes anything"_. **False by construction:** `Fixture::write_thread` creates every cited file and writes the row's own id into it (`common/mod.rs:160-164`), so L2 and L3 are both unreachable there.
+
+**`git log -S` puts the false claim and the body comment refuting it IN THE SAME COMMIT (`90988faf`), and the mechanism underneath predates both by months (`a1a949cf`).** Nothing decayed; **there was never a moment the header was true**, and the file shipped with its own refutation twenty lines below the claim. **Rule 3 is written around a claim OUTLIVING its basis, which presumes a basis existed -- so "re-check when the subject moves" cannot reach this: the subject never moved.** What caught it is what cc did: **write a precondition on the sentence you are relying on.** I did the archaeology to separate born-stale from ordinary carelessness before reporting it as a class.
+
+**IT COST A PEER REAL WORK, WHICH IS THE ONLY REASON IT SURFACED.** cc believed my sentence, wrote the precondition, and it fired -- without it their own arm would have passed proving nothing. **The arm of mine they flagged is NOT vacuous and I left it alone**: it plants `AT-03.4` covering a nonexistent criterion, controls the finding is non-empty BEFORE the create, and asserts it survives AFTER, so a silent repair cannot pass it for the wrong reason.
 
 ## THE TWO ASSIGNMENTS FROM vc
 
