@@ -74,6 +74,12 @@
 //! would ever succeed on a thread carrying somebody else's defect, and a verb
 //! that refuses on somebody else's defect is one nobody can use.
 
+// An integration test is its OWN CRATE, so the crate-level allow in
+// `intentsvcs/src/lib.rs` does not reach here and has to be restated. The
+// REASON is not restated with it: it lives at that one site, and a second copy
+// would be a second home for it -- read it there.
+#![allow(clippy::result_large_err)]
+
 mod common;
 
 use common::{Fixture, sample_thread};

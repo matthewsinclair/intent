@@ -1331,6 +1331,15 @@ pub enum ProjectStateEdit {
   /// The ordinary case: rows and an event, nothing project-level.
   Unchanged,
   /// Set the DONE cutoff to the moment this transaction commits.
+  ///
+  /// **THE DATABASE STAMPS IT (D42), so no clock is read in this process** --
+  /// the same rule the event log's `ts` DEFAULT follows, for the same reason.
+  ///
+  /// Second resolution rather than the log's milliseconds, because this value
+  /// is compared against `Thread.completed`, which is a DATE, and is read and
+  /// retyped by people. **It is not derived from the flush EVENT**: deriving it
+  /// would put a cutoff back in the log, which is the one thing this table
+  /// exists to stop.
   SetTodoWatermark,
 }
 
@@ -2516,17 +2525,6 @@ impl Store {
       None => Ok(None),
     }
   }
-
-  /// Advance the DONE cutoff to NOW and return what was written.
-  ///
-  /// **THE DATABASE STAMPS IT (D42), so no clock is read in this process** --
-  /// the same rule the event log's `ts` DEFAULT follows, for the same reason.
-  ///
-  /// Second resolution rather than the log's milliseconds, because this value
-  /// is compared against `Thread.completed`, which is a DATE, and is read and
-  /// retyped by people. **It is not derived from the flush EVENT**: deriving it
-  /// would put a cutoff back in the log, which is the one thing this table
-  /// exists to stop.
 
   /// Record the DONE cutoff.
   ///

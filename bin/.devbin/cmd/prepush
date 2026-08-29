@@ -293,49 +293,31 @@ for b in "$workspace"/target/debug/*; do
 done
 [ "$built" -gt 0 ] || die "the clone built but produced no runnable binary"
 
-# THE TWO CHECKS THAT EXISTED WITH NOTHING DISPATCHING THEM, AND THEY COST TWO
-# CI REDS IN ONE DAY (dc, 2026-08-20).
+# THE FORMAT AND LINT ARMS WERE REMOVED FROM THIS GATE ON 2026-08-29 (hv's
+# ruling, executed by vc). They were `cargo fmt --all --check` and `cargo clippy
+# --workspace --all-targets -- -D warnings`, added 2026-08-20 after two CI reds
+# in one day.
 #
-# `int check format` and `int check clippy` are both DECLARED in
-# `bin/.devbin/config.yaml` and neither had a trigger. Nineteen `rustfmt`
-# divergences accumulated across four days because nobody pushed, and a needless
-# borrow reached HEAD because no local gate ran clippy. **A check nothing
-# dispatches is indistinguishable from a check that passes** -- the same
-# sentence this file's own `--list-guards` doctrine is built on.
+# THEY WERE NOT WRONG, THEY WERE A SECOND HOME. `.github/workflows/rust.yml:67`
+# and `:69` run the IDENTICAL two commands, on macos AND ubuntu, on every push
+# to main and on every PR. CI is the authority and always was; this pair only
+# moved the same verdict earlier, on one machine, at one operator's expense.
 #
-# **THE OBSTACLE THAT KEPT THEM UNBUILT WAS REAL AND IT DOES NOT APPLY HERE.**
-# Both are workspace-wide, so in the SHARED checkout they would refuse on a
-# peer's half-finished file -- four nodes write to this tree, and a gate that
-# fails on somebody else's work is one that gets bypassed the first afternoon.
-# **This clone is the one workspace in the estate with a single writer.** It is
-# a `git clone --local` of the pushed revision: nobody's uncommitted work is in
-# it, and it is exactly the tree CI compiles.
+# WHAT DECIDED IT WAS THE CADENCE, NOT THE COST. The removed comment argued that
+# a push gate is "the right moment, not merely a safe one" -- which is true when
+# pushes are frequent, and this estate's are 925 commits apart. Over a window
+# that long the arm stops being early warning and becomes a wall: hv met it
+# holding 113 accumulated findings at the moment they wanted to publish, the
+# most expensive moment it could have picked. CI would have returned the same
+# verdict minutes later and cost nobody a session.
 #
-# AND IT IS THE RIGHT MOMENT, NOT MERELY A SAFE ONE. Both failures were
-# discovered on `upstream`, at push time, by CI. The gate that catches them is a
-# push gate; running them per-commit would pay the cost on every commit to catch
-# a fault that can only escape on a push.
-#
-# COST, MEASURED AT `c4aba380` ON ONE MACHINE AND STATED WITH ITS CONDITIONS
-# BECAUSE IT IS LOAD-DEPENDENT: `fmt --check` is 0.42s and compiles nothing;
-# `clippy --all-targets` is 15.4s ON TOP OF a build that had just completed --
-# it re-checks the test targets `--bins` does not build. The same build measured
-# 41s under concurrent load from other nodes and 18s idle, so these are not
-# constants and a figure quoted without its conditions would be the third wrong
-# number this estate has had from that habit.
-#
-# FORMAT BEFORE CLIPPY, DELIBERATELY: formatting cannot be affected by lints and
-# is nearly free, so the cheap refusal comes first and an operator with both
-# faults is not made to wait 15s to learn about the 0.4s one.
-step "prepush: format and lints over the clone (workspace-wide is safe here -- one writer)"
-if ! ( cd "$workspace" && cargo fmt --all --check ) ; then
-  die "the pushed repository is not formatted -- run \`rustfmt --edition 2024 <your files>\` on the paths you touched (never \`cargo fmt --all\` in the shared tree: it would rewrite a peer's uncommitted work)"
-fi
-printf '    ok: rustfmt is clean over the pushed revision\n'
-if ! ( cd "$workspace" && cargo clippy --workspace --all-targets -- -D warnings ) ; then
-  die "clippy refuses the pushed repository -- fix the lints above, or justify them with a scoped #[allow] naming the reason"
-fi
-printf '    ok: clippy is clean under -D warnings over the pushed revision\n'
+# DO NOT RE-ADD THEM WITHOUT RE-ANSWERING THE CADENCE QUESTION. If pushes become
+# frequent, and a red `upstream/main` starts costing something -- which it will
+# once 3.0.0 publishes for real and upstream is the delivery path rather than
+# the dev tree -- a local arm earns its keep again. Until then the check has a
+# dispatcher in CI, so this is NOT a return of the 2026-08-20 defect these arms
+# were built to fix: a check nothing dispatches. One that something else
+# dispatches is a different thing, and the distinction is the whole ruling.
 
-printf 'prepush: the repository you are about to push clones, builds, runs (%s binaries), and is format- and lint-clean.\n' "$built"
+printf 'prepush: the repository you are about to push clones, builds, and runs (%s binaries). Format and lints belong to CI (.github/workflows/rust.yml).\n' "$built"
 exit 0

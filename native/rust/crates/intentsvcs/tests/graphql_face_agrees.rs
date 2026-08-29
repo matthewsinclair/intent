@@ -342,7 +342,6 @@ fn every_declared_ac_state_name_has_a_projection_case() {
 #[test]
 fn the_ac_scope_projection_carries_exactly_the_serde_form() {
   use intentsvcs::graphql::AcStateView;
-  use intentsvcs::model::AcState;
 
   for scope in projection_cases() {
     let json = serde_json::to_value(&scope).expect("AcState serialises");

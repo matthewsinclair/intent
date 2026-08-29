@@ -521,14 +521,14 @@ mod tests {
   fn the_install_is_found_by_walking_up_from_the_executable() {
     let dir = tmp("walk");
     let root = dir.path();
-    install_at(&root);
+    install_at(root);
     let exe = root.join("native/rust/target/debug/intent");
     std::fs::create_dir_all(exe.parent().unwrap()).unwrap();
     std::fs::write(&exe, b"").unwrap();
 
     assert_eq!(
       resolve(&exe).unwrap(),
-      canonical(&root),
+      canonical(root),
       "the debug binary sits four levels below the install root and must still find it"
     );
   }
@@ -540,12 +540,12 @@ mod tests {
   fn a_binary_beside_the_marker_resolves_to_its_own_directory() {
     let dir = tmp("beside");
     let root = dir.path();
-    install_at(&root);
+    install_at(root);
     let exe = root.join("bin/intent");
     std::fs::create_dir_all(exe.parent().unwrap()).unwrap();
     std::fs::write(&exe, b"").unwrap();
 
-    assert_eq!(resolve(&exe).unwrap(), canonical(&root));
+    assert_eq!(resolve(&exe).unwrap(), canonical(root));
   }
 
   /// **The signature is the control**, and it is stated as a test so the reason
@@ -562,7 +562,7 @@ mod tests {
   fn the_install_is_a_function_of_the_executable_and_of_nothing_else() {
     let dir = tmp("sole-input");
     let root = dir.path();
-    install_at(&root);
+    install_at(root);
     let exe = root.join("bin/intent");
     std::fs::create_dir_all(exe.parent().unwrap()).unwrap();
     std::fs::write(&exe, b"").unwrap();
@@ -573,7 +573,7 @@ mod tests {
     let first = resolve(&exe).unwrap();
     let second = resolve(&exe).unwrap();
     assert_eq!(first, second);
-    assert_eq!(first, canonical(&root));
+    assert_eq!(first, canonical(root));
   }
 
   /// No install anywhere above: an error that names the executable it walked

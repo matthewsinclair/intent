@@ -21,6 +21,25 @@
 //! beside the decisions and acquired their authority; it was never a
 //! constraint anyone asked for.
 
+// **`FacadeError` IS LARGE BY CONSTRUCTION, AND THE LINT IS RIGHT ABOUT THE
+// FACT WHILE BEING WRONG ABOUT THE PRIORITY.** Its largest variant is
+// `Organize(#[from] OrganizeError)`, whose `PreconditionsUnmet` carries a
+// `Verdict` plus the threads it names -- because a refusal that cannot say
+// WHICH preconditions are unmet, on WHICH threads, is exactly the collapse
+// `error_remedies.rs` exists to refuse. Shrinking the error by dropping what
+// makes it actionable would trade a real property for a size.
+//
+// So this is a DEFERRAL, not a dismissal: boxing is the correct fix and it is
+// sequenced after the v3.0.1 tag rather than taken mid-cut, on hv's ruling and
+// in the same shape as 0136. `PreconditionsUnmet` is 14 sites across 5 files;
+// the wider `Verdict` ripple is UNMEASURED, because that name is overloaded in
+// this workspace and a count by analogy would be a number nobody drove.
+//
+// Scoped to this crate and named here rather than silenced at the gate, which
+// is what `bin/.devbin/cmd/prepush` asked for when it said to justify a lint
+// with a scoped allow naming the reason.
+#![allow(clippy::result_large_err)]
+
 pub mod address;
 pub mod backup;
 pub mod bootstrap;
