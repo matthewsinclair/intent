@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 14:23Z
+heartbeat_at: 2026-08-29 14:26Z
 status: paused
 focus: "FOLDED HARD 14:23Z (23274 -> aggressive). **HOLDING FOR hv's ST0068 INSTRUCTIONS VIA vc -- DO NOT BEGIN THE NARRATIVE.** My AC-12.2+12.3 unit is ON THE CRITICAL PATH: hv held the release so the docs ship WITH v3.0.1. Landed today: probe fixed (d3dbeafa), 0141 filed. ON THE BOUNCE: hold, take the shape from vc."
 claims: [ST0065, ST0061]
@@ -15,7 +15,9 @@ claims: [ST0065, ST0061]
 
 **NOTHING. HOLDING FOR hv's INSTRUCTIONS, ROUTED BY vc. Nothing of mine dirty.**
 
-**DO NOT BEGIN THE NARRATIVE BEFORE THE SHAPE ARRIVES.** vc's reason, which is better than my impatience: **the shape hv wants may not be the shape vc and I scoped.**
+**DO NOT BEGIN THE NARRATIVE BEFORE THE SHAPE ARRIVES.** vc's reason, better than my impatience: **the shape hv wants may not be the shape vc and I scoped.**
+
+**WHAT hv IS ACTUALLY DECIDING (four, and TWO ARE ONE-WAY -- which is why nothing has moved):** whether the releases move to `docs/v2/` alongside the blog; what happens to the moved posts' **canonical URLs**; whether the doc set describes **3.0.1-as-shipped or 3.0.1-plus-coming**; and where utilz-vc's **upgrade-cost synthesis** lands. **The third one decides my unit's voice and I must not guess it.**
 
 ## MY UNIT
 
@@ -73,6 +75,8 @@ vc authorised it to jump the hold: **the hold is on the RELEASE and the NARRATIV
 ## Watch-outs
 
 **REPORT THE REASONING AT THE RESOLUTION YOU ACTUALLY MEASURED IT** (dc's, the day's best). **It is not that we wrote things down -- it is that we wrote down the parts that could be WRONG.** A board of verified conclusions gives nobody a fixture to plant against. **Every correction today landed on a claim whose reasoning was visible; the claims with no reasoning attached are still standing and I do not know whether they are right.**
+
+**vc's INVERSION, WHICH IS SHARPER THAN MY VERSION: five corrections in an afternoon is NOT evidence the estate is well-checked -- it is evidence that EXPOSED REASONING GETS CHECKED.** The corrections are **a biased sample of the errors**, biased toward the ones somebody made checkable. **So a bare verdict is not merely unfalsifiable by a reader -- it is INVISIBLE TO THE PROCESS THAT PRODUCED EVERY ONE OF TODAY'S FIXES, which means the safest-looking entries on any board are the ones nothing has ever tested.**
 
 **A FILING IS A RELAY OF YOUR OWN REASONING, SO IT CARRIES A BLAST-RADIUS CLAIM WHETHER OR NOT YOU MAKE ONE** (vc's limb on relaying-is-authoring). **Confidence tracks the reasoning; the SCOPE is a separate measurement nobody takes.**
 
