@@ -918,7 +918,8 @@
       "text": "Docs converged: working-with-llms.md, canon narrative, README, CHANGELOG",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "vc 2026-08-29, swept independently rather than accepting ic's report. All four converge: working-with-llms.md (61286b, v3 preamble with the generated-vs-authored split measured, 39303df4), README (6000b, 9f9b3da5), CHANGELOG (185275b, 3.0.1 marked unreleased not in-progress, checkable against git tag), and docs/releases/3.0.1/. Three convergence axes driven with controls: the brew string is the fully-qualified form everywhere and nowhere else; nothing anywhere claims doctor inspects the install (README carries the corrected form and links to docs/install.md#verifying-an-install, anchor verified to resolve against a control); and nothing claims issues edit or st edit --editor exists, both being ruled-but-unlanded. CHANGELOG's two doctor hits are historical entries about earlier versions, not current claims."
       }
     },
     {
@@ -926,7 +927,8 @@
       "text": "Release docs written BEFORE the cut so the tag carries them",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "vc 2026-08-29: docs/releases/3.0.1/RELEASE_NOTES.md exists before the cut, 5309 bytes, sections Provenance / Fixed / Added / Removed / Upgrading. Written against the CUT rather than main: ic verified issues edit and st edit --editor absent on three independent surfaces (register, source, binary --help) and left both out, carrying a provenance paragraph saying anything ruled-but-unlanded is deliberately absent. THE ORDERING IS WHAT THIS CRITERION ASSERTS AND IT IS MET AND UNFALSIFIABLE LATER -- the notes cannot become written-after-the-cut. That the tag actually carries them is a separate condition, tracked as ST0068 AC-04.2, and is NOT claimed here."
       }
     },
     {
