@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 14:29Z
+heartbeat_at: 2026-08-29 14:30Z
 status: paused
 focus: "FOLDED HARD 14:23Z (23274 -> aggressive). **HOLDING FOR hv's ST0068 INSTRUCTIONS VIA vc -- DO NOT BEGIN THE NARRATIVE.** My AC-12.2+12.3 unit is ON THE CRITICAL PATH: hv held the release so the docs ship WITH v3.0.1. Landed today: probe fixed (d3dbeafa), 0141 filed. ON THE BOUNCE: hold, take the shape from vc."
 claims: [ST0065, ST0061]
@@ -76,7 +76,13 @@ vc authorised it to jump the hold: **the hold is on the RELEASE and the NARRATIV
 
 ## THE FLEET
 
-**80 exposed. 11 estates measured, 5 not.** Baize **28**, Lamplight **25**, Conflab **14** (only CONFIRMED), Laksa **10**, Prolix **3**. **Everything except Conflab is PREDICTED-UNCONFIRMED, in those words.** **Lamplight returned 25 blind against a predicted 25 -- their NUMBER stands, its WARRANT is withdrawn**, because it rested on a single 8/8 from a control now known to pass ~30% of the time. Re-run over N requested.
+**80 exposed. 11 estates measured, 5 not.** Baize **28**, Lamplight **25**, Conflab **14**, Laksa **10**, Prolix **3**.
+
+**TWO ESTATES NOW HAVE VERIFIED LOSS, NOT ONE -- this line said "only Conflab" until 14:44Z and that is stale.** Conflab **14 confirmed**; Lamplight **1 of 25 confirmed** (`ST0358`, evidence ABSENT), **24 unswept and deliberately not assumed.** **Baize, Laksa and Prolix remain PREDICTED-UNCONFIRMED, in those words.**
+
+**LAMPLIGHT'S WARRANT IS RESTORED.** vc withdrew it when the control was found to pass ~30% of the time; **Lamplight re-ran `d3dbeafa` 12/12, reported BY BLOB SHA, and reproduced their hand partition exactly.** The number never moved -- **what changed twice is what was known about the instrument behind it.**
+
+**THE CONFIRMED PAIR IS NOW hv's ARGUMENT FOR THE RELEASE, NOT OURS.**
 
 ## Watch-outs
 
