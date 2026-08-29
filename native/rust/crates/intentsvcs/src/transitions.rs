@@ -559,8 +559,11 @@ pub const FIELDS: &[Field] = &[
       // land together rather than one at a time: the entry edge ALONE would
       // make `fiat` a trap state, which `no_state_can_be_entered_and_not_left`
       // exists to refuse, so an orphan is the honest interim rather than a
-      // half-built machine. Waiting on the ruling for whether a fiat close is
-      // reversible.
+      // half-built machine. Reversibility is SETTLED and settled ABOVE: the two
+      // `ac.reinstate` edges out of `fiat` are in this same table, back to both
+      // entry states. This comment used to say the ruling was still awaited --
+      // written in the very commit that added those edges, so it was refuted by
+      // its own diff and stayed that way because nothing compiles a comment.
       orphans: &[(
         "fiat",
         "the close-on-human-authority state is modelled and its verb is not built, so no service \

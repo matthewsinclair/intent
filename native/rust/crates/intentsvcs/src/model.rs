@@ -357,8 +357,14 @@ pub fn normalise_id(raw: &str) -> Result<(IdKind, u32), IdError> {
 }
 
 /// Render any model enum as its canonical wire string via serde -- the one
-/// naming authority. Panics only if serialisation itself fails, which for
-/// these unit enums cannot happen.
+/// naming authority.
+///
+/// **Panics on any value that does not serialise to a bare string**, which is
+/// every enum carrying a payload variant -- `AcState` among them, whose name is
+/// answered by [`AcState::name`] instead. This is NOT a "cannot happen" panic,
+/// which is what this doc claimed while `AcState` was already a counter-example:
+/// it is reachable by calling this on the wrong type, and the message names the
+/// value it was handed.
 pub fn enum_str<T: Serialize>(value: &T) -> String {
   match serde_json::to_value(value) {
     Ok(serde_json::Value::String(s)) => s,
@@ -1309,9 +1315,9 @@ pub enum AcState {
 impl AcState {
   /// The state's NAME, without its payload.
   ///
-  /// **`enum_str` cannot answer this**: three variants carry payloads, so serde
-  /// renders them as objects and `enum_str` panics on a non-string. That is why
-  /// the only copy of these five words lived in a test helper
+  /// **`enum_str` cannot answer this**: every variant except `Computed` carries
+  /// a payload, so serde renders those as objects and `enum_str` panics on a
+  /// non-string. That is why the only copy of these names lived in a test helper
   /// (`mutation_completeness.rs::state_name_of`) -- a vocabulary owned by a test
   /// and unavailable to production, which is the direction this reverses. The
   /// helper now delegates here.
@@ -1322,8 +1328,15 @@ impl AcState {
   /// no-op message needs the second and would read as a rendering fault with the
   /// first.
   ///
-  /// Exhaustive on purpose, for the reason [`AcState::permitted_for`] is: a sixth
+  /// Exhaustive on purpose, for the reason [`AcState::permitted_for`] is: a NEW
   /// variant should not compile until someone names it.
+  ///
+  /// **The counts that used to be in this doc are gone deliberately.** It said
+  /// "three variants carry payloads", "these five words" and "a sixth variant";
+  /// by the time anyone read it again the true numbers were five, six and
+  /// seventh. Three wrong numbers in one paragraph, none of which failed
+  /// anything -- prose is the one place in this file the compiler does not
+  /// reach, so a count written here is a fact with no guard behind it.
   pub fn name(&self) -> &'static str {
     match self {
       Self::Computed => "computed",
