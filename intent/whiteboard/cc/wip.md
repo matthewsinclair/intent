@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: 7a90ae04-61f6-4b2f-9de7-dd81eac9bb11
-heartbeat_at: 2026-08-29 12:51Z
+heartbeat_at: 2026-08-29 13:33Z
 status: active
-focus: "**FOLDED FOR A COMPACT. NOTHING IN FLIGHT; ONE RULED PACKAGE IS NEXT AND ITS SCOPE IS ALREADY WITH vc.** Delivered today: 0125 closed at BOTH halves (cbc9f0c5 lib_staged.sh, d6d3b059 staged_reads_check.sh) and 0131 STORE half (ccfefe2b) -- issues add / st new refuse a taken key via the UNIQUE constraint INSIDE the transaction. **NEXT, RULED MINE BY vc: refuse in ac new / at new AND ship the edit verbs, as ONE change** -- either half alone leaves an estate stuck. Filed 0134: a partial-file commit is impossible on this checkout."
+focus: "**DELIVERED `8aebe2ce`: the refuse-and-edit package, as ONE change.** `ac new` / `at new` refuse a taken child id; `ac edit --text` and `at edit --file|--prose|--covers` ship beside them, because refusing alone left an AC sentence unwritable by any verb. Mutation-proved in a DETACHED WORKTREE -- four mutations, eight arms red, so the controls bite rather than decorate. Two mitigations RETIRED as unreachable (the 0119 disclosure, `at_new`'s note carry). Limit filed as `0135` on vc's word. **NEXT: nothing claimed -- back to vc.**"
 claims: [ST0056/06, ST0056/10, ST0057/00]
 ---
 
@@ -13,20 +13,15 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 
 ## DOING
 
-**NOTHING IN FLIGHT.** Today's four commits are `cbc9f0c5` / `a4e76606` (0125), `ccfefe2b` (0131 store half), `decd82e6` (0134), `d6d3b059` (the enforcement check). The day's narrative is archived verbatim at `.history/20260829/wip-midday.md`; what follows is what a fresh session needs and nothing else.
+**NOTHING IN FLIGHT. `8aebe2ce` DELIVERED THE PACKAGE vc RULED MINE, AND `0135` RECORDS THE LIMIT IT DOES NOT CLOSE.**
 
-**NEXT, AND IT IS RULED MINE (vc, on hv's word): `ac new` / `at new` REFUSE, AND THE EDIT VERBS SHIP, AS ONE CHANGE.** Either half alone leaves an estate stuck -- refusing without an edit path removes the only way to reword an AC; an edit verb without the refusal leaves the silent destruction live.
+**WHAT SHIPPED, AS ONE COMMIT BECAUSE EITHER HALF ALONE STRANDS AN ESTATE.** `ac new` / `at new` refuse an id the thread already has; `ac edit <ST> <AC> --text` and `at edit <ST> <AT> --file|--prose|--covers` ship beside them. Suites: intentsvcs 1065, intent-cli 355, both green. The one red in the tree is dc's UNTRACKED `unsatisfied_note_serde.rs`, red-first for a payload the model does not carry yet.
 
-The scope is already stated to vc, so a disagreement arrives as an interrupt rather than as a surprise in a commit:
+**THE DESIGN LINE WORTH KEEPING: THE REFUSAL IS AT THE CREATE DOOR AND `put` IS UNTOUCHED.** `ac_new` / `at_new` are built ON `Facade::put` at the entity address, so there were two places to put the check and they are not equivalent. hv ruled on verbs named `add`/`new`; an addressed PUT replacing is the contract of the HTTP and GraphQL faces and `ac.put` is its declared op. **So what dies is the FABRICATING path, not the replacing one** -- and `put_still_replaces_and_that_is_the_hole_this_leaves` drives the survivor BY VALUE, because "closed by construction" in a commit message is what stops the next reader looking (vc required exactly this narrowing).
 
-- **The refusal is a FACADE check, not the `ccfefe2b` store mechanism.** Criteria and tests are CHILD rows and `write_thread` replaces the child set wholesale, so there is no per-child UNIQUE constraint for a `Door::Create` to fire. **Unlike `st_new`'s dead guard this one CAN fire**, because the id is caller-assigned rather than computed as max+1 over the same canon being checked.
-- **Known limit, stated not discovered:** two facades opened before either writes can still both add `AC-01.1`; the second thread write wins. Closing that needs the thread write to be conditional and is NOT in this change.
-- **`ac edit <ST> <AC> --text`** -- ic measured the gap: no `ac edit`, and `--text` on one verb of ten.
-- **`at edit <ST> <AT> --file | --prose | --covers`** -- the RE-CITE case, which is what destroyed six ST0061 notes.
-- **`kind` STAYS UNWRITABLE on both, deliberately.** Changing test/non-test moves satisfaction and the contract graph -- a state change wearing an edit verb's clothes, and it belongs in a ruling rather than a flag added while building something else. **So a kind change is still stuck after this lands**; that is a smaller wall than the one ic measured and it is still a wall.
-- **The surface is the collision risk.** The clap spine is BUILT from `surface/dispatch-table.json` (`dispatch_ssot.rs` proves it both ways), so two `new_surface` rows plus a regenerated `.md` are part of it -- and four nodes edit that file. **Author the commit from a DETACHED WORKTREE** (watch-out 9): `--only` cannot protect a peer's mid-edit row.
+**TWO MITIGATIONS RETIRED, NOT WEAKENED.** The 0119 disclosure in `render.rs` and `at_new`'s note/legacy carry both existed ONLY for the replace path; the refusal makes them unreachable. Leaving either would be worse than dead code -- it reads as live protection against a hazard that is gone. The preservation moved to `at edit`, where it is the verb's purpose rather than a patch over the wrong door.
 
-**WHY THIS WAS RE-RAISED RATHER THAN BUILT WHEN FIRST RULED.** vc ruled `ac new` follows; ic then measured that refusing ALONE makes an AC sentence unwritable by any verb in the tool. **A ruling can arrive where a missing verb cannot.** hv took the re-raise. The watch-out that fired was 14 -- the ruling was in hand and its cost was not.
+**MY OWN DEFECT, CAUGHT BEFORE THE COMMIT AND WORTH THE LINE.** My first cut gave `at_edit` the contract check `at_new` was born with -- refuse ANY finding naming the row. **That would have made the repair the verb exists for impossible**: a row whose test file was deleted already carries an L2 finding, so every field on it becomes uneditable exactly when someone needs to fix it. The rule is now "you may not make this row worse", and it needs no door parameter -- a create's before-set is empty because the id is already refused. **One predicate, both doors.**
 
 ## TODO
 
