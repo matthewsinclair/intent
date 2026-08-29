@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - unreleased
+
+**The cut is held until the v3 parity work closes**, so this entry describes a release that exists in the tree and not yet in a tag. Full detail, including what an upgrade does and does not recover: `docs/releases/3.0.1/RELEASE_NOTES.md`.
+
+### Fixed
+
+- **A Homebrew install of v3.0.0 has no rule library and no skills.** The formula's copy list did not match what the binary resolves at runtime, so the keg was missing `intent/plugins/claude/rules/` and `intent/plugins/claude/skills/`. The failure is per-command rather than global, which is why it shipped: everything else works, and only `intent claude rules`, `intent critic <lang>` and the skills verbs fail. The copy list is now checked against its consumer rather than maintained beside it.
+
+- **`intent ac new` on an id that already existed destroyed the row and reported success**, and there was no edit verb to reach for instead. It now refuses, names the id, and points at `intent ac edit`. The ordinary way to hit it was to retype a criterion you meant to reword, so the row destroyed was the one being handled carefully. `intent at new` carried the same shape and is refused the same way.
+
+- **A criterion authored unsatisfied lost its evidence clause on migration, by construction, while exiting 0.** `AcState::Unsatisfied` was a unit variant with nowhere to put the text, so a wildcard arm routed the case to a state that could not represent it. **No parsing fix could have reached it.** The state now carries the note and the match is three explicit arms rather than two and a catch-all, so a fourth case cannot be added without someone deciding what happens to the prose. Recorded first as ingest damage, which is the wrong class: a migration artefact is surveyed and repaired once, where an unrepresentable state destroys the same data on every hop.
+
+### Added
+
+- **`intent ac edit`** — change a criterion's text without touching its satisfaction. Its absence is what made the destructive create reachable.
+- **`intent at edit`** — re-cite a test's file or coverage while keeping the status and note a re-create would have reset.
+
+### Removed
+
+- **`intent st repair`.** It shipped in v3.0.0 and is retired here — the one command in this release that works in the version people are on and does not exist in the next. A script calling it fails rather than doing something different.
+
 ## [3.0.0] - 2026-08-26
 
 Intent is rewritten as a native binary, and the model underneath it changes: **a project's data lives in a database, the committed files are a projection of it, and the markdown you read is generated.** Everything below follows from that one change. Migration is one command, it refuses rather than guesses, and a v2 tool and a v3 tool each refuse the other's projects so that a half-migrated estate cannot be quietly corrupted.
