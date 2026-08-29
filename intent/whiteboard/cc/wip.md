@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-29 22:24Z
-status: paused
-focus: "PAUSED at localfold. ITEM 1 LANDED `180fb4a3` -- `info.md` round-trips `## Objective`/`## Context`, `intent edit ST0058` opens, workspace 1519/0. THE KEEPER IS CLASS 24: a comparison between a DERIVED artefact and its SOURCE cannot tell EDITED from STALE, which cost two fatal designs each caught by a broader ring than the last. ON THE BOUNCE: HOLD for vc. Queue is vc`s dole-out, top of TODO."
+heartbeat_at: 2026-08-29 22:31Z
+status: active
+focus: "ON THE BOUNCE after localfold+compact; board and all four inboxes cold-read, HOLDING for vc as hv directed. Item 1 landed `180fb4a3` and my six files are clean at HEAD. MY LANE HAS TWO OTHER WRITERS: dc ST0066 Fiat cascade and the ic surface-retired door, both uncommitted under `native/**`, and the next ST0056 commit is a JOINT act -- read the ic board DOING before touching git. ITEM 2 IS STILL PARKED, MEASURED NOT ASSUMED: `surface/dispatch-table.json` (REPO ROOT, there is no crate prefix and I guessed one wrong) is still dirty."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 ---
 
@@ -13,7 +13,11 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 
 ## DOING
 
-**Nothing in flight. Item 1 landed at `180fb4a3`** -- 6 files, private-index write, no peer swept, workspace 210 binaries / 1519 passed / 0 failed. **The commit message carries the reasoning; do not re-derive it from here.**
+**HOLDING for vc sequencing. Nothing of mine in flight; item 1 landed at `180fb4a3`** -- 6 files, private-index write, no peer swept. **The commit message carries the reasoning; do not re-derive it from here.**
+
+**MY LANE HAS TWO OTHER WRITERS RIGHT NOW AND THE NEXT ST0056 COMMIT IS A JOINT ACT.** `native/**` carries uncommitted work that is NOT mine -- dc's ST0066 Fiat cascade (`facade`, `transitions`, `store`, `model`, `render`, the fiat tests) and ic's `surface retired` door (`spine.rs`, plus the `ac.fc` row in `event.rs`). **My LANE decision says `native/**` is mine and that is now false in practice**; class 8 governs, not the lane line. Attribute by CONTENT before touching anything -- I attributed these by diffing, not by assuming.
+
+**ic HAS INDEPENDENTLY LANDED MY ITEM-2 FINDING AS A CODE COMMENT.** `spine.rs` now documents that `table.retired()` selects on `!is_shipped()`, that `organize` has two rows, and that publishing the unfiltered list would delete a working verb from a caller. **Two nodes reached the same defect from opposite ends; the register arm is still owed, and it is now the only half not written down.**
 
 ## TODO
 
@@ -22,8 +26,8 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 - **[2] THE REGISTER'S `shipped` DERIVATION -- S, BLOCKS ic, PARKED ON FILE OWNERSHIP.** `Entry::is_shipped()` (`dispatch.rs:583`) is `disposition != retire && target.state != retire` and **asks nothing about existence**, so a `keep`-dispositioned unbuilt verb ships by construction; 14 rows refuse. **Not fixable in the register: I profiled the 14 against the other 104 and they are declaratively INDISTINGUISHABLE** (`(keep, as-observed)` covers 7 refusers AND 43 workers). vc ruled BOTH obvious branches out -- `measured_at` is a pinned v2-surface claim that must never advance, and `is_shipped()` fails OPEN deliberately (the only thing stopping a hand-edit shipping a retired command). **Built-ness is a property of the (register, binary) PAIR, so it lives in neither half: a committed GATE ARM drives every shipped ROW against the binary and refuses on `not implemented yet`.**
   - **KEY ON ROWS, NOT PATHS** -- `organize` is three rows and sits in `shipped` AND `retired`; a path-keyed arm lets whichever row it reaches decide.
   - **DRIVE FROM THE ROW'S OWN `args[0]`** (vc's rule): a family declaring a required subcommand is driven with one of its declared values, a leaf is driven bare. **Bare `daemon` is rc=1 from CLAP**, so a bare probe classifies a refuser as BUILT -- my 26-count error, third firing.
-  - **TWO FREE ARMS AUTHORISED BY vc:** `shipped n retired` is EMPTY, and `declared` has no duplicates. Today the arithmetic conserves (118+9=127) **only because `declared` double-counts `organize`** -- 127 entries, 126 distinct, two errors cancelling.
-  - **My two `not_probed` edits are with ic, credited** (`mcp`'s reason false in the present tense; `daemon` -> `probeable`, 114->115).
+  - **TWO FREE ARMS AUTHORISED BY vc:** `shipped n retired` is EMPTY, and `declared` has no duplicates. **BOTH WOULD FIRE TODAY -- re-measured on the bounce, and the table has MOVED by two rows since I profiled it, so this is not the reading I banked.** `organize` is still in both populations and still double-counted in `declared`, and the sum still conserves for exactly that reason: two errors cancelling. **Do not carry the counts; run the probe.**
+  - **My two `not_probed` edits are with ic, credited** (`mcp`'s reason false in the present tense; `daemon` moved to `probeable`). **`probeable` has grown well past the figure I handed over -- ic has been editing; read it off the file, never off this board.**
 - **[3] WP-08 `intentd` + THE WEB VIEW -- XL.** Architecture is RULED, do not re-open: `intentsvcs` owns the surface; CLI and daemon never touch disk or DB; **`intentd` is a CLIENT exactly as the CLI is**; D32 requires one implementation both reach; AC-08.2 requires identical results. **So the web view is an `intentsvcs` surface with two skins.** Keep `daemon start|stop|status|run`, do NOT add `-B|--background` (AC-00.6, binds the cut). `intentd` is 49 lines in `main.rs` / 69 across the crate; greenfield, no HTTP dep in the workspace. **Say early if it exceeds XL once the socket layer is read.**
 - **[4] WP-13 project search -- XL.** 9 criteria, Not Started.
 - **[5-7] FILLERS, S EACH.** `intent#0145` (the known-thread refusal still pins `.intentfiles`, and its remedy renders `this artefact carries: ` with nothing after the colon -- ONE class, on hv's parked stack with the vacuous-`doctor`-remedy item). **`VIEW_NAMES` two-readers Highlander** -- `address.rs:357/394` vs `Project::classify`'s own inline list, in my module, invisible to every gate. **`canon-commit` gates on ADDS**, so a commit that REMOVES attachments is outside its reach.
@@ -70,7 +74,7 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 
 **12. THE POPULATION YOU MEASURED IS NOT THE ONE YOU MEANT, AND NOTHING NAMES IT.** `cargo check -p X` builds no test target; `--test X` excludes lib tests; a narrowing flag never narrows the CLAIM. **A TERMINATION CONDITION IS A FILTER NOBODY DECLARED** -- `cargo test` ABORTS after a failing target, so two runs reported 38 and 140 binaries and I compared them as one population. **Capture ONE run and analyse the capture; never compare across runs.** `clippy -D warnings` aborts per crate, so the truer count came from the LESS strict run. **AND THE INDEX IS A DIFFERENT CORPUS FROM THE WORKTREE.**
 
-**13. A ONE-SIDED COMPARISON DISCARDS THE EVIDENCE THAT THE INSTRUMENT IS WRONG**, and a conservation check whose two sides share a source is an IDENTITY, not a measurement. **`shipped`+`retired`=`declared` conserves perfectly while `organize` sits in both, because `declared` double-counts it. Diff member-by-member, never by count** -- the register's own `why` block says exactly this and was itself validated by count.
+**13. A ONE-SIDED COMPARISON DISCARDS THE EVIDENCE THAT THE INSTRUMENT IS WRONG**, and a conservation check whose two sides share a source is an IDENTITY, not a measurement. **`shipped`+`retired`=`declared` conserved perfectly while `organize` sat in both, because `declared` double-counted it -- and it still does, re-measured after the table grew by two rows. Diff member-by-member, never by count** -- the register's own `why` block says exactly this and was itself validated by count.
 
 **14. A FINDING THAT ARGUES ITS WAY INTO THE ROW YOU ARE CLOSING IS A REAL DEFECT LAUNDERED THROUGH A GREEN.** The pull is strongest exactly when the finding is good. **Corollary for tests: when a ruling changes behaviour, RE-AIM the arm at what still holds; never delete the coverage to make your own change pass.**
 
