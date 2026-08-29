@@ -495,6 +495,50 @@ pub enum FacadeError {
   NoSuchCriterion { st: String, ac: String },
   #[error("no acceptance test {at} in {st}")]
   NoSuchTest { st: String, at: String },
+  /// **A CREATE LANDED ON A CRITERION ID THAT ALREADY EXISTS** (hv,
+  /// 2026-08-28: a verb named `add`/`new` must FAIL on an existing key rather
+  /// than replace it). The third member of the family with
+  /// [`Self::ThreadExists`] and [`Self::IssueExists`], per-entity for the same
+  /// reason they are -- the operator's next move differs, and this one sends
+  /// them to `intent ac edit`.
+  ///
+  /// **UNLIKE ITS TWO SIBLINGS THIS IS RAISED IN THE FACADE RATHER THAN LIFTED
+  /// FROM A STORE REFUSAL, AND THAT IS FORCED RATHER THAN PREFERRED.** A thread
+  /// and an issue are rows with a UNIQUE key, so `store::Door::Create` can hand
+  /// the collision to SQLite INSIDE the transaction, which is what makes that
+  /// refusal hold against a facade whose canon is stale. A criterion is a CHILD
+  /// row and `write_thread` replaces the child set wholesale, so there is no
+  /// per-child constraint for a create door to fire on: the check has to be
+  /// made against loaded canon before the write, and it inherits that read's
+  /// staleness. **The window this leaves open is stated on [`Facade::ac_new`]
+  /// and filed, not discovered later.**
+  #[error("{st} already has criterion {ac}, and a create must not replace it")]
+  CriterionExists { st: String, ac: String },
+  /// The AT-side sibling of [`Self::CriterionExists`], carrying the same
+  /// mechanism and the same window. Separate because the remedy names a
+  /// different verb, and because what a replace destroyed here was measured:
+  /// six ST0061 notes, eaten by a re-cite through `at new`.
+  #[error("{st} already has acceptance test {at}, and a create must not replace it")]
+  TestExists { st: String, at: String },
+  /// **AN EDIT THAT NAMED NOTHING TO EDIT.**
+  ///
+  /// Its own small class, and not a member of the `*Required` family beside it:
+  /// those name ONE field a call left out, and this one says that none of
+  /// several was given when at least one had to be. Collapsing it into
+  /// `ReasonRequired`'s shape would force it to pick a field to blame, which
+  /// is a guess about what the caller meant.
+  ///
+  /// **It exists because the alternative is a silent success.** An edit with no
+  /// field named would otherwise return "unchanged" at exit 0 to a caller who
+  /// believes they changed something -- IN-AG-NO-SILENT-001, reached through a
+  /// door that reports no error at all.
+  #[error("nothing was named to change on {subject}")]
+  NothingToChange {
+    subject: String,
+    /// The fields this door can move, so the refusal answers the question it
+    /// raises rather than sending the caller to `--help`.
+    offered: Vec<String>,
+  },
   #[error("{scope} is not ready to close -- {verdict}")]
   GateBlocked { scope: String, verdict: String },
   #[error(
@@ -895,6 +939,18 @@ impl crate::remedy::Remedy for FacadeError {
       Self::NoSuchTest { st, .. } => {
         format!("run `intent at list {st}` to see the tests in its contract")
       }
+      Self::CriterionExists { st, ac } => format!(
+        "nothing was written and {ac} still holds the text, kind and state it held. To reword \
+         it, `intent ac edit {st} {ac} --text \"...\"` -- which changes the sentence and leaves \
+         its satisfaction alone, where a create would have reset both. To add a new one, \
+         `intent ac list {st}` shows which ids are taken"
+      ),
+      Self::TestExists { st, at } => format!(
+        "nothing was written and {at} still holds its file, coverage, status and note. To \
+         re-cite it, `intent at edit {st} {at} --file <path>` -- which keeps the note that a \
+         create would have eaten. To add a new one, `intent at list {st}` shows which ids are \
+         taken"
+      ),
       Self::GateBlocked { .. } => {
         "satisfy or formally descope the remaining criteria, then close again".to_string()
       }
@@ -1015,6 +1071,10 @@ impl crate::remedy::Remedy for FacadeError {
          issues add` to take the next free number, or `intent issues show {number:04}` to see \
          what is already there -- a create that overwrote would have destroyed that record \
          silently, which is what this refuses"
+      ),
+      Self::NothingToChange { offered, .. } => format!(
+        "name at least one of {} -- nothing was written, so nothing needs undoing",
+        offered.join(", ")
       ),
       Self::NoSuchEditable { present, .. } => {
         format!("this artefact carries: {}", present.join(", "))
@@ -4466,10 +4526,35 @@ impl Facade {
   /// owns exactly what `put` cannot know -- what an EMPTY criterion of each
   /// kind is -- and nothing else.
   ///
-  /// **THE ID ORIGIN IS CALLER-ASSIGNED (WP-08), so the shape is an idempotent
-  /// `PUT` to the entity address and never a `POST` to the collection.** You
-  /// cannot `POST` here: the caller already knows the id, and a server-assigned
-  /// one would make `AC-08.6` unaddressable before the write.
+  /// **THE ID ORIGIN IS CALLER-ASSIGNED (WP-08), so the address is the entity's
+  /// and never the collection's.** You cannot `POST` here: the caller already
+  /// knows the id, and a server-assigned one would make `AC-08.6`
+  /// unaddressable before the write.
+  ///
+  /// **AND IT IS NO LONGER IDEMPOTENT, WHICH REVERSES HALF OF ITS OWN
+  /// RATIFICATION** (hv, 2026-08-28: a verb named `add`/`new` must FAIL on an
+  /// existing key rather than replace it; ic ratified the idempotent reading on
+  /// 2026-08-26 and a later first-hand ruling from hv supersedes it). **The
+  /// caller-assigned half of that ratification is untouched and still correct**
+  /// -- what changed is what a second call does, not where the id comes from.
+  ///
+  /// **THE REFUSAL IS HERE AND NOT IN [`Facade::put`], AND THE TWO DOORS ARE
+  /// DELIBERATELY DIFFERENT.** `put` at an entity address is a `PUT`: replacing
+  /// what is there is its contract, it is the shape the HTTP and GraphQL faces
+  /// expose, and `ac.put` is a declared op. This is a CREATE door, and a create
+  /// that replaces is the defect hv ruled on. Putting the check inside `put`
+  /// would close this door by breaking the other one.
+  ///
+  /// **THE WINDOW THIS DOES NOT CLOSE, STATED RATHER THAN LEFT TO BE FOUND.**
+  /// The check reads `self.canon`, which was loaded when the facade opened, so
+  /// two facades opened before either writes can both find `AC-01.1` free and
+  /// both write it -- and because a thread's children are replaced wholesale,
+  /// the second write wins with no constraint to stop it. `store::Door::Create`
+  /// cannot help: there is no per-child UNIQUE key for it to fire on. Closing
+  /// it needs the THREAD write to be conditional on the row set it was derived
+  /// from, which is a larger change than this one and is filed rather than
+  /// attempted here. **What this does close is the whole single-writer
+  /// population, which is every operator at a terminal.**
   ///
   /// The state is DERIVED FROM THE KIND rather than taken as an argument,
   /// because the two are not independent: a test-backed criterion in scope
@@ -4485,6 +4570,12 @@ impl Facade {
     text: &str,
     kind: AcKind,
   ) -> Result<Outcome, FacadeError> {
+    if self.st_show(st)?.criteria.iter().any(|c| c.id == ac) {
+      return Err(FacadeError::CriterionExists {
+        st: st.to_string(),
+        ac: ac.to_string(),
+      });
+    }
     let row = Criterion {
       id: ac.to_string(),
       text: text.to_string(),
@@ -4548,29 +4639,28 @@ impl Facade {
     status: AtStatus,
     note: Option<String>,
   ) -> Result<Outcome, FacadeError> {
-    // **A CREATE ON AN EXISTING ID IS A FULL REPLACEMENT, SO EVERY FIELD THIS
-    // VERB DOES NOT SET IS A FIELD IT DESTROYS.** `note` and `legacy` are the
-    // two, and both were being written as `None` and then applied over the
-    // stored row -- so `at new` on a row that already existed did not merely
-    // fail to set a note, it ATE one that was there.
+    // **THE REFUSAL, AND IT RETIRES A MITIGATION RATHER THAN JOINING IT.** This
+    // verb used to READ the stored row and carry its `note` and `legacy`
+    // forward, because a create on an existing id was a full replacement and
+    // every field the verb did not set was a field it destroyed -- measured on
+    // this repository as six ST0061 notes eaten by a single re-cite and
+    // recovered from a git blob.
     //
-    // **AND THE SAFE PATH WAS THE UNDOCUMENTED ONE, WHICH IS WHAT MADE IT A
-    // TRAP RATHER THAN A WALL.** A re-cite done as a canon edit plus
-    // `intent sync --to-store` carries `file` and keeps `note`; the verb built
-    // for the job was the one that lost it. Measured on this repository: six
-    // ST0061 notes destroyed by a single re-cite and recovered from a git blob.
-    //
-    // Carried rather than defaulted. When `--note` lands it overrides this;
-    // ABSENCE of a note argument can only mean "not saying", never "clear it",
-    // because a verb with no way to express a value has no way to express
-    // erasing one either.
-    let carried = self
-      .st_show(st)?
-      .tests
-      .iter()
-      .find(|t| t.id == at)
-      .map(|t| (t.note.clone(), t.legacy.clone()))
-      .unwrap_or((None, None));
+    // **That carry is now unreachable and is gone.** hv ruled that a create
+    // must fail on an existing key, so there is no stored row here to carry
+    // anything from; leaving the read in would be dead code that reads as live
+    // protection. **The preservation moved to [`Facade::at_edit`], where it is
+    // the verb's whole purpose rather than a patch over the wrong door** -- and
+    // that is the half that matters, because the trap was never the replacement
+    // on its own. It was that the safe route (a canon edit plus
+    // `sync --to-store`) was the undocumented one and the verb built for the
+    // job was the one that lost the note.
+    if self.st_show(st)?.tests.iter().any(|t| t.id == at) {
+      return Err(FacadeError::TestExists {
+        st: st.to_string(),
+        at: at.to_string(),
+      });
+    }
 
     let row = AcceptanceTest {
       id: at.to_string(),
@@ -4579,46 +4669,17 @@ impl Facade {
       prose,
       covers,
       status,
-      // An explicit `--note` OVERRIDES what was carried; absence carries. The
-      // asymmetry is the point: a verb with no way to express a value has no
-      // way to express erasing one, so silence can only mean "not saying".
-      note: note.or(carried.0),
-      legacy: carried.1,
+      note,
+      // **`None` because this row is NEW, which is now a fact rather than an
+      // assumption.** `legacy` marks a reference carried whole from a v2 estate
+      // under the closed-thread carry policy; a row created here has no v2
+      // ancestor to carry. It used to be carried from the stored row for the
+      // same reason `note` was -- to survive a replace -- and the refusal above
+      // means there is no stored row to reach.
+      legacy: None,
     };
 
-    // The prospective thread: what canon WOULD hold if this write landed. The
-    // contract is asked about that, so a refusal costs nothing and a pass is a
-    // statement about the row being created rather than about the one before it.
-    let mut prospective = self.st_show(st)?.clone();
-    match prospective.tests.iter_mut().find(|t| t.id == row.id) {
-      Some(existing) => *existing = row.clone(),
-      None => prospective.tests.push(row.clone()),
-    }
-    prospective.tests.sort_by(|a, b| a.id.cmp(&b.id));
-    let report = contract::contract_report(
-      &prospective,
-      None,
-      &contract::RepoFiles(self.project.root()),
-    );
-    // NARROWED TO THE ROW BEING WRITTEN, and the narrowing is the point rather
-    // than politeness: a thread carrying a pre-existing finding elsewhere would
-    // otherwise make every create on it impossible, and a verb that refuses on
-    // somebody else's defect is one nobody can use. Inherited breakage is
-    // `at lint`'s to report, not this verb's to block on.
-    let mine: Vec<&String> = report.findings.iter().filter(|f| f.contains(at)).collect();
-    if !mine.is_empty() {
-      return Err(FacadeError::WriteNotAddressable {
-        url: format!("intent:///threads/{st}/at/{at}"),
-        why: format!(
-          "the row would not satisfy the acceptance-test contract: {}",
-          mine
-            .iter()
-            .map(|f| f.as_str())
-            .collect::<Vec<_>>()
-            .join("; ")
-        ),
-      });
-    }
+    self.refuse_unless_the_row_holds_the_contract(st, &row)?;
 
     let body = serde_json::to_string(&row).map_err(|e| FacadeError::WriteNotAddressable {
       url: format!("intent:///threads/{st}/at/{at}"),
@@ -4635,6 +4696,226 @@ impl Facade {
       },
       &body,
     )
+  }
+
+  /// **DOES THIS ROW INTRODUCE AN ACCEPTANCE-CONTRACT FINDING THAT IS NOT
+  /// THERE ALREADY?**
+  ///
+  /// The check `at_new` was born with, extracted the moment `at_edit` needed
+  /// the same question asked -- one home rather than two, because a copy would
+  /// drift toward whichever door was exercised more and show up as a row one
+  /// verb accepts and the other refuses.
+  ///
+  /// **IT ASKS ABOUT THE PROSPECTIVE THREAD -- what canon WOULD hold if this
+  /// write landed** -- so a refusal costs nothing and a pass is a statement
+  /// about the row being written rather than about the one before it. Writing
+  /// first and linting after would leave the bad row in canon on refusal, which
+  /// is the shape `issues hydrate` was retired for: a durable claim left behind
+  /// by a call that reported failure.
+  ///
+  /// The grammar is `at lint`'s, not a second copy of it: L2 refuses a row
+  /// citing a file that does not exist, L3 a file that does not carry the row's
+  /// literal id, L4 a `covers` naming no criterion, L5 a non-test AT covering a
+  /// test-backed criterion. `to-write` is exempt from L2/L3 by the contract's
+  /// own rule -- a row whose test is not written yet cites a file that is
+  /// SUPPOSED not to exist.
+  ///
+  /// # It compares BEFORE against AFTER, and the create door is why that is one
+  /// rule rather than two
+  ///
+  /// `at_new` refused any finding naming the row, which is right for a create
+  /// and **would have made `at_edit` unable to perform the repair it exists
+  /// for.** A row whose test file has been deleted already carries an L2
+  /// finding; under a refuse-any rule, every field on that row becomes
+  /// uneditable at exactly the moment someone needs to fix it -- the "a verb
+  /// that refuses on somebody else's defect is one nobody can use" problem, one
+  /// row down and pointed at the row's own inherited breakage.
+  ///
+  /// So the rule is **you may not make this row worse**, and it needs no door
+  /// parameter: a create's before-set is empty by construction, because
+  /// [`FacadeError::TestExists`] has already refused the call if the id is
+  /// taken. The create keeps the behaviour it had, the edit gets the one it
+  /// needs, and there is one predicate to reason about.
+  ///
+  /// **What this gives up, stated rather than discovered:** an edit may leave a
+  /// row still carrying a finding it arrived with. That is deliberate -- the
+  /// alternative is refusing a partial repair, and `at lint` is the door that
+  /// reports inherited breakage.
+  fn refuse_unless_the_row_holds_the_contract(
+    &self,
+    st: &str,
+    row: &AcceptanceTest,
+  ) -> Result<(), FacadeError> {
+    let current = self.st_show(st)?.clone();
+    let mut prospective = current.clone();
+    match prospective.tests.iter_mut().find(|t| t.id == row.id) {
+      Some(existing) => *existing = row.clone(),
+      None => prospective.tests.push(row.clone()),
+    }
+    prospective.tests.sort_by(|a, b| a.id.cmp(&b.id));
+
+    // NARROWED TO THE ROW BEING WRITTEN, and the narrowing is the point rather
+    // than politeness: a thread carrying a finding about a DIFFERENT row would
+    // otherwise make every write on it impossible.
+    let about_this_row = |t: &Thread| -> Vec<String> {
+      contract::contract_report(t, None, &contract::RepoFiles(self.project.root()))
+        .findings
+        .into_iter()
+        .filter(|f| f.contains(&row.id))
+        .collect()
+    };
+    let before = about_this_row(&current);
+    let introduced: Vec<String> = about_this_row(&prospective)
+      .into_iter()
+      .filter(|f| !before.contains(f))
+      .collect();
+
+    if !introduced.is_empty() {
+      return Err(FacadeError::WriteNotAddressable {
+        url: format!("intent:///threads/{st}/at/{}", row.id),
+        why: format!(
+          "the row would not satisfy the acceptance-test contract: {}",
+          introduced.join("; ")
+        ),
+      });
+    }
+    Ok(())
+  }
+
+  /// **REWORD A CRITERION, AND CHANGE NOTHING ELSE ABOUT IT.**
+  ///
+  /// The other half of hv's 2026-08-28 ruling, and it ships in the same change
+  /// as the refusal rather than after it. **Refusing a create on an existing id
+  /// without this verb would leave an AC sentence unwritable by any door in the
+  /// tool** -- `ac` had nine subcommands and not one of them could touch the
+  /// text -- so the two halves are one change or the estate is stranded. ic
+  /// measured that gap; hv took the re-raise.
+  ///
+  /// **`text` IS THE WHOLE SURFACE, AND `kind` IS DELIBERATELY ABSENT.**
+  /// Changing a criterion between test-backed and non-test moves where its
+  /// satisfaction comes from -- computed from covering green ATs, or stored
+  /// with evidence -- so it edits the contract graph, not a sentence. That is a
+  /// state change wearing an edit verb's clothes, and it belongs in a ruling
+  /// rather than in a flag added while building something else. **So a kind
+  /// change is still stuck after this lands**, and the transition table already
+  /// says so: `Criterion.kind` is `Unbuilt`, owed, and named.
+  ///
+  /// **THE STATE IS UNTOUCHED, WHICH IS THE PROPERTY THAT MAKES THIS A REPAIR
+  /// RATHER THAN A SECOND WAY TO LOSE WORK.** `ac new` on an existing row reset
+  /// the state to the kind's entry value, so repairing one sentence of a
+  /// satisfied criterion silently discarded its evidence. This reaches one
+  /// field and cannot reach that one.
+  pub fn ac_edit(&mut self, st: &str, ac: &str, text: &str) -> Result<Outcome, FacadeError> {
+    // `criterion` raises `NoSuchCriterion`, which is the refusal an edit owes:
+    // an edit that CREATED on a missing id would be the create door wearing the
+    // other name, and both doors would then be able to make a row.
+    if self.criterion(st, ac)?.text == text {
+      return Ok(Outcome::AlreadyThere {
+        state: "unchanged".to_string(),
+      });
+    }
+    let mut next = self.canon.clone();
+    find_criterion_mut(&mut next, st, ac)?.text = text.to_string();
+    self
+      .apply(
+        "ac.edit",
+        Subject {
+          kind: "ac".to_string(),
+          id: format!("{st}/{ac}"),
+        },
+        json!({ "text": text }),
+        next,
+      )
+      .map(|()| Outcome::Moved)
+  }
+
+  /// **RE-CITE AN ACCEPTANCE TEST: CHANGE WHAT YOU NAME, KEEP WHAT YOU DO
+  /// NOT.**
+  ///
+  /// **THIS IS THE VERB THE SIX ST0061 NOTES NEEDED.** A re-cite through
+  /// `at new` was a full replacement, so moving a test to its new file ate the
+  /// row's `note` in the same call -- and the safe route was a hand-edit of
+  /// canon plus `sync --to-store`, ie the undocumented one. The verb built for
+  /// the job was the one that lost the work. Here absence is silence: a field
+  /// nobody named is a field nobody changed.
+  ///
+  /// **`status` AND `kind` ARE ABSENT, EACH FOR ITS OWN REASON.** `status` has
+  /// a door already -- `at green` / `at red` / `at na`, which is a declared
+  /// state machine with an envelope per movement -- and a second way to write
+  /// it would be a divergent copy of a transition. `kind` is absent for the
+  /// same reason as [`Facade::ac_edit`]'s: it moves the contract graph.
+  ///
+  /// **THE CONTRACT IS RE-ASKED ON THE PROSPECTIVE ROW**, so a re-cite to a
+  /// file that does not exist, or to one not carrying the row's id, is refused
+  /// with nothing written -- the same grammar a create is held to, through the
+  /// same one check.
+  pub fn at_edit(
+    &mut self,
+    st: &str,
+    at: &str,
+    file: Option<String>,
+    prose: Option<String>,
+    covers: Option<Vec<String>>,
+  ) -> Result<Outcome, FacadeError> {
+    // **REFUSED RATHER THAN TREATED AS A NO-OP, AND IT IS REFUSED HERE RATHER
+    // THAN IN THE RENDERER.** `at edit ST0001 AT-01.1` with no field named is a
+    // caller who believes they changed something; answering `unchanged` at exit
+    // 0 tells them they succeeded. The check lives at the facade because the
+    // facade is the contract -- a library caller passing three `None`s makes
+    // the identical mistake, and a renderer-side guard would protect only the
+    // operators who came through the CLI.
+    if file.is_none() && prose.is_none() && covers.is_none() {
+      return Err(FacadeError::NothingToChange {
+        subject: format!("{st} {at}"),
+        offered: vec![
+          "--file".to_string(),
+          "--prose".to_string(),
+          "--covers".to_string(),
+        ],
+      });
+    }
+
+    let existing = self
+      .st_show(st)?
+      .tests
+      .iter()
+      .find(|t| t.id == at)
+      .ok_or_else(|| FacadeError::NoSuchTest {
+        st: st.to_string(),
+        at: at.to_string(),
+      })?;
+
+    // The prospective row: the stored one with the named fields moved over it.
+    // **Every field not named is READ OFF THE STORED ROW rather than defaulted**
+    // -- which is the whole difference between this verb and the create it
+    // replaces, and the reason `note` and `legacy` need no special handling.
+    let row = AcceptanceTest {
+      file: file.or_else(|| existing.file.clone()),
+      prose: prose.or_else(|| existing.prose.clone()),
+      covers: covers.unwrap_or_else(|| existing.covers.clone()),
+      ..existing.clone()
+    };
+    if &row == existing {
+      return Ok(Outcome::AlreadyThere {
+        state: "unchanged".to_string(),
+      });
+    }
+
+    self.refuse_unless_the_row_holds_the_contract(st, &row)?;
+
+    let mut next = self.canon.clone();
+    *find_test_mut(&mut next, st, at)? = row;
+    self
+      .apply(
+        "at.edit",
+        Subject {
+          kind: "at".to_string(),
+          id: format!("{st}/{at}"),
+        },
+        json!({ "via": "edit" }),
+        next,
+      )
+      .map(|()| Outcome::Moved)
   }
 
   pub fn ac_satisfy(&mut self, st: &str, ac: &str, evidence: &str) -> Result<Outcome, FacadeError> {

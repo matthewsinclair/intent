@@ -1381,28 +1381,12 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       let st = thread_arg(a, "stid")?;
       let id = arg(a, "acid")?;
       let text = arg(a, "text")?;
-      // **`opt` CANNOT ANSWER "DID THE CALLER SAY IT".** The table declares
-      // `--kind`'s default, so clap materialises `non-test` into the matches
-      // whether or not anyone typed it -- which is what the comment below
-      // originally recorded, and it is a LIMIT of this door rather than a
-      // choice it made. The first cut of the disclosure below asked
-      // `opt(a, "kind").is_none()` and therefore never fired once: the warning
-      // was unreachable, and only the control case in the drive showed it.
-      //
-      // **`opt_explicit`, not a second call to `value_source`.** That helper
-      // already exists for this exact question, and it guards a hazard worth
-      // not rediscovering: `value_source` PANICS on an id the verb does not
-      // declare, where `opt` returns `None`, so asking `opt` first makes the
-      // second call safe by construction. This arm DOES declare `--kind`, so
-      // a raw call would not panic today -- which is exactly how a second
-      // implementation of an already-solved problem survives a review.
-      let kind_given = opt_explicit(a, "kind").is_some();
       let kind = match opt(a, "kind").as_deref() {
         Some("test") => AcKind::Test,
         // The table declares the default, so an absent flag and an explicit
-        // `non-test` are the same VALUE here rather than two paths -- but they
-        // are no longer the same EVENT: the disclosure below needs to know
-        // whether the caller said it, so the read is kept.
+        // `non-test` are the same VALUE and the same EVENT here. They were once
+        // two events: a disclosure needed to know whether the caller had said
+        // it, and that disclosure is gone -- see below.
         None | Some("non-test") => AcKind::NonTest,
         Some(other) => {
           return Err(Failure::Error(format!(
@@ -1411,60 +1395,45 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
         }
       };
 
-      // **WHAT THIS PUT IS ABOUT TO OVERWRITE, READ BEFORE IT IS GONE (issue
-      // 0119).** Re-running `ac new` on an existing id is a full replace: ic
-      // ratified the shape as an idempotent PUT to the entity address, and a
-      // PUT writes the WHOLE representation by definition. The trap is not the
-      // PUT -- it is that this door FABRICATES the half the caller omitted, so
-      // repairing one sentence of a test-backed criterion silently rewrote its
-      // kind to the default and its state from computed to unsatisfied. The
-      // gate then passed over fewer criteria than anyone thought.
+      // **THE 0119 DISCLOSURE STOOD HERE AND IS GONE, BECAUSE THE THING IT
+      // DISCLOSED CAN NO LONGER HAPPEN.** It read the stored criterion before
+      // the write and warned when a replace had rewritten its `kind` to the
+      // default -- silently resetting a test-backed criterion to `non-test` and
+      // its state from computed to unsatisfied, with both runs printing
+      // `created`.
       //
-      // **Measured on a fixture, 2026-08-28:** created `--kind test`, then
-      // re-run with `--text` alone; `kind` became `non-test`, `state` became
-      // `unsatisfied`, and BOTH runs printed `created`.
+      // Its own comment recorded WHY it was a disclosure rather than a fix:
+      // both repairs the issue proposed -- refuse, or preserve unsupplied
+      // fields -- "contradict the ratified PUT", so it took the repair that fit
+      // inside the ruling and sent the semantics question to the ratification
+      // pile rather than settling it by whoever picked the issue up. **That was
+      // the right call and the pile has now answered it**: hv ruled 2026-08-28
+      // that a create must refuse an existing key, which removes the constraint
+      // the disclosure was shaped around.
       //
-      // **This DISCLOSES rather than refusing or merging, deliberately.** Both
-      // fixes the issue proposes -- refuse without `--replace`, or preserve
-      // unsupplied fields -- contradict the ratified PUT, which the issue does
-      // not cite. Disclosure is the repair that fits inside the ruling, so the
-      // semantics question goes to the ratification pile rather than being
-      // settled here by whoever happened to pick the issue up.
-      let mut f = open()?;
-      let prior_kind = f
-        .st_show(&st)
-        .ok()
-        .and_then(|t| t.criteria.iter().find(|c| c.id == id))
-        .map(|c| c.kind);
-
-      let outcome = f.ac_new(&st, &id, &text, kind).map_err(fail)?;
-
-      if let Some(was) = prior_kind
-        && !kind_given
-        && was != kind
-      {
-        eprintln!(
-          "warning: `--kind` was not given, so this replace wrote the default over the stored value for {id}: kind was `test` and is now `non-test`"
-        );
-        eprintln!(
-          "  a criterion's state is DERIVED from its kind, so its satisfaction stopped being computed from covering green tests and is now plainly unsatisfied"
-        );
-        eprintln!(
-          "  remedy: re-run with `--kind test` -- `ac new` is a PUT, so it writes the whole criterion and an omitted flag is a VALUE, not a silence"
-        );
-      }
-
-      // **`created` was printed for a replace, which is the half of 0119 that
-      // hid the other half.** A caller who saw `created` had no reason to look
-      // for the collateral above.
+      // So `ac new` refuses, the replace path is unreachable, and the warning
+      // with it. **Leaving it would be worse than dead code -- it would read as
+      // live protection against a hazard that no longer exists**, and the next
+      // reader would infer the replace still happens. The repair it named lives
+      // in `ac edit`, which changes the sentence and cannot touch the kind.
       reported(
-        &outcome,
+        &open()?.ac_new(&st, &id, &text, kind).map_err(fail)?,
         &id,
-        if prior_kind.is_some() {
-          "replaced"
-        } else {
-          "created"
-        },
+        "created",
+      );
+      Ok(())
+    }
+    // **THE OTHER HALF OF hv's RULING, AND IT SHIPS IN THE SAME CHANGE.**
+    // Refusing a create on an existing id without this arm would leave an AC
+    // sentence unwritable by any door in the tool.
+    Some(("edit", a)) => {
+      let st = thread_arg(a, "stid")?;
+      let id = arg(a, "acid")?;
+      let text = arg(a, "text")?;
+      reported(
+        &open()?.ac_edit(&st, &id, &text).map_err(fail)?,
+        &id,
+        "reworded",
       );
       Ok(())
     }
@@ -1712,6 +1681,32 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
           .map_err(fail)?,
         &id,
         "created",
+      );
+      Ok(())
+    }
+    // **THE RE-CITE DOOR, AND IT IS WHY THE REFUSAL BESIDE IT IS SAFE TO SHIP.**
+    // Moving a test to its new file through `at new` was a full replacement and
+    // ate the row's `note` in the same call -- six ST0061 notes, recovered from
+    // a git blob. Here a field nobody names is a field nobody changes.
+    //
+    // `--status` is absent because `at green` / `at red` / `at na` already own
+    // it as a declared state machine, and `--kind` because changing it moves
+    // the contract graph rather than a citation.
+    Some(("edit", a)) => {
+      let st = thread_arg(a, "stid")?;
+      let id = arg(a, "atid")?;
+      // **`None` when the flag is absent, and that is the whole contract of
+      // this arm.** An empty `Vec` would be indistinguishable from `--covers`
+      // given no values, and the facade reads absence as "not saying" -- so
+      // collapsing the two here would silently clear a row's coverage.
+      let covers: Option<Vec<String>> =
+        a.get_many::<String>("covers").map(|v| v.cloned().collect());
+      reported(
+        &open()?
+          .at_edit(&st, &id, opt(a, "file"), opt(a, "prose"), covers)
+          .map_err(fail)?,
+        &id,
+        "re-cited",
       );
       Ok(())
     }

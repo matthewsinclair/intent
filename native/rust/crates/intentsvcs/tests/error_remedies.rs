@@ -21,7 +21,7 @@ mod common;
 
 use common::{Fixture, sample_thread};
 use intentsvcs::facade::{FacadeError, ListEdit};
-use intentsvcs::model::AtStatus;
+use intentsvcs::model::{AcKind, AtKind, AtStatus};
 use intentsvcs::organize::Mode;
 use intentsvcs::remedy::Remedy;
 
@@ -178,6 +178,39 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     facade
       .ac_satisfy("ST0056", "AC-03.1", "x")
       .expect_err("test-backed"),
+  ));
+  // **THE CHILD-ROW HALVES OF ISSUE 0131's REFUSAL, AND THEY ARE PROVOKED HERE
+  // RATHER THAN EXEMPTED, WHICH IS THE DIFFERENCE FROM THEIR TWO SIBLINGS.**
+  // `ThreadExists` and `IssueExists` need two facades over one on-disk store,
+  // because the collision is detected by a UNIQUE constraint inside the write.
+  // A criterion and a test are CHILD rows with no such constraint, so the check
+  // is made against loaded canon and one bad call reaches it.
+  out.push((
+    "criterion id already taken",
+    facade
+      .ac_new("ST0056", "AC-03.2", "a reworded sentence", AcKind::NonTest)
+      .expect_err("a create must not replace"),
+  ));
+  out.push((
+    "acceptance test id already taken",
+    facade
+      .at_new(
+        "ST0056",
+        "AT-03.1",
+        AtKind::Test,
+        None,
+        None,
+        vec!["AC-03.1".to_string()],
+        AtStatus::ToWrite,
+        None,
+      )
+      .expect_err("a create must not replace"),
+  ));
+  out.push((
+    "an edit naming no field",
+    facade
+      .at_edit("ST0056", "AT-03.1", None, None, None)
+      .expect_err("an edit with nothing to change is refused, not reported unchanged"),
   ));
   // The two export refusals a bad ARGUMENT can reach. Provoked here rather
   // than declared elsewhere because that is the point of this file: they are
@@ -479,6 +512,9 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NoSuchThread { .. } => "NoSuchThread",
     FacadeError::ThreadExists { .. } => "ThreadExists",
     FacadeError::IssueExists { .. } => "IssueExists",
+    FacadeError::CriterionExists { .. } => "CriterionExists",
+    FacadeError::TestExists { .. } => "TestExists",
+    FacadeError::NothingToChange { .. } => "NothingToChange",
     FacadeError::NoSuchWorkPackage { .. } => "NoSuchWorkPackage",
     FacadeError::NoSuchCriterion { .. } => "NoSuchCriterion",
     FacadeError::NoSuchTest { .. } => "NoSuchTest",
@@ -545,6 +581,9 @@ const ALL_VARIANTS: &[&str] = &[
   "NoSuchThread",
   "ThreadExists",
   "IssueExists",
+  "CriterionExists",
+  "TestExists",
+  "NothingToChange",
   "NoSuchWorkPackage",
   "NoSuchCriterion",
   "NoSuchTest",

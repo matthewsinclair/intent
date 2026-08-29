@@ -2552,7 +2552,7 @@
         },
         {
           "path": "ac new",
-          "help": "Create a criterion (caller-assigned id, idempotent)",
+          "help": "Create a criterion (caller-assigned id; refuses an id that is taken)",
           "args": [
             {
               "name": "stid",
@@ -2592,14 +2592,55 @@
           "target": {
             "state": "new-surface",
             "spelling": "",
-            "ratification": "ic, 2026-08-26, on hv's ruling over issue 0088 -- hv minted AC-08.6 over three cheaper remedies, so the thread stops being closed until the verb exists. WP-08's own enumerated-gap table named `Criterion create` as MISSING and no criterion covered it: AC-08.5 covers every writable FIELD, and CREATION IS NOT A FIELD, so the thread's gate PASSed at 51/51 over a stated deliverable. Driven 2026-08-25: `ac --help` listed nine subcommands and `at --help` five, and NOT ONE OF THE FOURTEEN CREATED ANYTHING -- every arm is a transition on a row that already exists. The route until now was a hand-edit of `.canon/st/<ID>.json` plus `sync --to-store`, WHICH IS HOW AC-08.6 ITSELF REACHED CANON. Per WP-08 the id origin is CALLER-ASSIGNED, so the shape is an idempotent PUT to the entity address rather than a POST to the collection. Spelled `new` to match `st new` and `wp new` rather than adding a fifth house word for create; `issues add` is the existing odd one out and is already filed. Builder ic; COVER TAKEN BY vc, who drives the falsifiers independently at HEAD -- ic must not be both builder and verifier on a row blocking ST0057's gate, which is hv's own AC-08.5 precedent on this same WP."
+            "ratification": "ic, 2026-08-26, on hv's ruling over issue 0088 -- hv minted AC-08.6 over three cheaper remedies, so the thread stops being closed until the verb exists. WP-08's own enumerated-gap table named `Criterion create` as MISSING and no criterion covered it: AC-08.5 covers every writable FIELD, and CREATION IS NOT A FIELD, so the thread's gate PASSed at 51/51 over a stated deliverable. Driven 2026-08-25: `ac --help` listed nine subcommands and `at --help` five, and NOT ONE OF THE FOURTEEN CREATED ANYTHING -- every arm is a transition on a row that already exists. The route until now was a hand-edit of `.canon/st/<ID>.json` plus `sync --to-store`, WHICH IS HOW AC-08.6 ITSELF REACHED CANON. Per WP-08 the id origin is CALLER-ASSIGNED, so the shape is an idempotent PUT to the entity address rather than a POST to the collection. Spelled `new` to match `st new` and `wp new` rather than adding a fifth house word for create; `issues add` is the existing odd one out and is already filed. Builder ic; COVER TAKEN BY vc, who drives the falsifiers independently at HEAD -- ic must not be both builder and verifier on a row blocking ST0057's gate, which is hv's own AC-08.5 precedent on this same WP.",
+            "supersession": "**SUPERSEDED IN PART, 2026-08-29, AND THE SUPERSESSION IS RECORDED HERE RATHER THAN LEFT AS A DIVERGENCE BETWEEN THIS ROW AND THE BINARY.** hv ruled 2026-08-28 that a verb named `add`/`new` must FAIL on an existing key rather than replace it (issue 0131). A later first-hand ruling from hv on the same subject supersedes a ratification, so `ac new` is no longer idempotent: a second call on the same id refuses, writes nothing, and names `ac edit`. **The CALLER-ASSIGNED half of ic's ratification below is untouched and still correct** -- what moved is what a second call does, not where the id comes from, so the `POST`-to-a-collection reasoning still holds. The row is amended rather than left declaring `idempotent` over a binary that refuses, which is the `fileindex` shape hv already ruled on: when the table and the binary disagree, the table was the wrong half. **The refusal is at THIS door only** -- `Facade::put` at the entity address is still a PUT, because replace-at-an-address is the contract of the HTTP and GraphQL faces and `ac.put` is its declared op. Amended by cc; ic offered the pen on their own line first. **`recoverability` READ `idempotent` ON BOTH CREATE ROWS AND NOW READS `reversible`, WHICH IS WHAT ITS THREE SIBLINGS ALREADY SAID.** `st new`, `wp new` and `issues add` are all `reversible`; `ac new` and `at new` were the two that claimed idempotence, and hv's refusal ruling makes that claim false rather than merely unfashionable. A first attempt at this amendment minted a fourth value, `refuses-on-collision`, for a closed domain of three -- caught by `recoverability_values` and its enforcement arm in `dispatch.rs`, which is the instrument working. **Refusing on a taken key is not a recoverability class**: it is what the verb does on collision, which the supersession note above is the right home for. The field answers one question -- can this be undone -- and creating a criterion is undone the way creating a thread is.",
+            "authority": "hv, 2026-08-28, issue 0131 -- supersedes the IDEMPOTENCE half of the ratification below. The ratification text is ic's and is left in their name; what moved is the authority over this row's create semantics, not the reasoning about caller-assigned ids."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "idempotent",
+          "recoverability": "reversible",
           "owner_wp": "ST0057 WP-08",
           "acceptance": "ST0057 AC-08.6"
+        },
+        {
+          "path": "ac edit",
+          "help": "Reword a criterion, leaving its kind and its satisfaction alone",
+          "args": [
+            {
+              "name": "stid",
+              "type": "st-id",
+              "arity": "1"
+            },
+            {
+              "name": "acid",
+              "type": "ac-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": [
+                "--text"
+              ],
+              "type": "string",
+              "help": "The new criterion text",
+              "value": "<text>",
+              "required": true,
+              "disposition": "keep"
+            }
+          ],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "note": "**SHIPS IN THE SAME CHANGE AS THE REFUSAL ON `ac new`, AND THAT IS THE WHOLE DESIGN.** Refusing a create on an existing id without this verb would leave an AC sentence unwritable by any door in the tool: `ac` had nine subcommands and every one of them is a transition on state, not an edit of text. ic measured that gap after the refusal was first ruled; hv took the re-raise and ruled the two halves as one change. Either half alone strands an estate.",
+            "consequence": "Refuses an id the thread does not have (`NoSuchCriterion`) -- an edit that CREATED on a missing id would be the create door wearing the other name. Reports `already: unchanged` at exit 0 when the text is byte-identical, which is a real no-op rather than a silent one. **`--kind` IS DELIBERATELY ABSENT**: changing a criterion between test-backed and non-test moves where its satisfaction comes from -- computed over covering green ATs, or stored with evidence -- so it edits the contract graph rather than a sentence, and `Criterion.kind` is still declared `Unbuilt` in the transition table. A KIND CHANGE REMAINS STUCK AFTER THIS LANDS; that is a narrower wall than the one ic measured and it is still a wall.",
+            "ratification": "cc, 2026-08-29, on hv's 2026-08-28 ruling over issue 0131, sequenced to cc by vc. **NO ACCEPTANCE ROW IS CLAIMED HERE, DELIBERATELY.** `ac new` and `at new` carry AC-08.6 / AC-08.7; these two verbs were ruled by hv into an existing package rather than minted with a criterion, and the builder writing their own acceptance criterion for their own build is the shape hv's AC-08.5 precedent exists to prevent. The contract row is OWED and is vc's to place."
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         }
       ],
       "bats_coverage": {
@@ -3016,7 +3057,7 @@
         },
         {
           "path": "at new",
-          "help": "Create an acceptance test (caller-assigned id, idempotent)",
+          "help": "Create an acceptance test (caller-assigned id; refuses an id that is taken)",
           "args": [
             {
               "name": "stid",
@@ -3094,14 +3135,72 @@
           "target": {
             "state": "new-surface",
             "spelling": "",
-            "ratification": "ic, 2026-08-26, on the same hv ruling. Recorded separately from `ac new` rather than folded into it because an AT row carries `file`, `covers` and `status`, so its create has a validity question a criterion's does not. THE CREATED ROW IS HELD TO THE GRAMMAR `at lint` ENFORCES ON EVERY OTHER ROW -- AC-08.7 names bypassing it as a falsifier. L2 (cites a file that does not exist), L3 (the file does not carry the literal id), L4 (`covers` names no criterion) and L5 (a non-test AT covering a test-backed criterion) are checked on the PROSPECTIVE thread BEFORE the write, so a refusal leaves nothing behind -- writing first and linting after is the shape `issues hydrate` was retired for. The check is narrowed to the row being written: a thread carrying a pre-existing finding elsewhere would otherwise make every create on it impossible, and inherited breakage is `at lint`'s to report. `to-write` stays exempt from L2/L3 by the contract's own rule rather than by an exception here. Builder ic; cover taken by vc."
+            "ratification": "ic, 2026-08-26, on the same hv ruling. Recorded separately from `ac new` rather than folded into it because an AT row carries `file`, `covers` and `status`, so its create has a validity question a criterion's does not. THE CREATED ROW IS HELD TO THE GRAMMAR `at lint` ENFORCES ON EVERY OTHER ROW -- AC-08.7 names bypassing it as a falsifier. L2 (cites a file that does not exist), L3 (the file does not carry the literal id), L4 (`covers` names no criterion) and L5 (a non-test AT covering a test-backed criterion) are checked on the PROSPECTIVE thread BEFORE the write, so a refusal leaves nothing behind -- writing first and linting after is the shape `issues hydrate` was retired for. The check is narrowed to the row being written: a thread carrying a pre-existing finding elsewhere would otherwise make every create on it impossible, and inherited breakage is `at lint`'s to report. `to-write` stays exempt from L2/L3 by the contract's own rule rather than by an exception here. Builder ic; cover taken by vc.",
+            "supersession": "**SUPERSEDED IN PART, 2026-08-29, ON THE SAME hv RULING AND FOR THE SAME REASON AS `ac new`'s.** hv ruled 2026-08-28 that a verb named `add`/`new` must FAIL on an existing key rather than replace it (issue 0131), so this verb is no longer idempotent: a second call on the same id refuses, writes nothing, and names `at edit`. **The whole L2-L5 ratification below is untouched and now runs through one shared check** that `at edit` is held to as well, so a re-cite meets the same grammar a create does. **AND ONE MITIGATION IS RETIRED BY THIS, NOT WEAKENED:** the verb used to READ the stored row and carry its `note` and `legacy` forward, because a create on an existing id destroyed every field it did not set -- six ST0061 notes, measured. With the refusal there is no stored row to carry from, so the carry is unreachable and gone rather than left as dead code reading as live protection; the preservation is now `at edit`'s whole purpose.",
+            "authority": "hv, 2026-08-28, issue 0131 -- supersedes the IDEMPOTENCE half of the ratification below. The ratification text is ic's and is left in their name; what moved is the authority over this row's create semantics, not the reasoning about caller-assigned ids."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "idempotent",
+          "recoverability": "reversible",
           "owner_wp": "ST0057 WP-08",
           "acceptance": "ST0057 AC-08.7"
+        },
+        {
+          "path": "at edit",
+          "help": "Re-cite an acceptance test; a field you do not name is a field it does not change",
+          "args": [
+            {
+              "name": "stid",
+              "type": "st-id",
+              "arity": "1"
+            },
+            {
+              "name": "atid",
+              "type": "at-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": [
+                "--file"
+              ],
+              "type": "string",
+              "help": "The repo-relative test file",
+              "value": "<path>",
+              "disposition": "keep"
+            },
+            {
+              "spellings": [
+                "--prose"
+              ],
+              "type": "string",
+              "help": "What was read or eyeballed (non-test rows)",
+              "value": "<text>",
+              "disposition": "keep"
+            },
+            {
+              "spellings": [
+                "--covers"
+              ],
+              "type": "string",
+              "help": "The AC id(s) this test covers, replacing the current set",
+              "value": "<ac-id> ...",
+              "disposition": "keep"
+            }
+          ],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "note": "**THE RE-CITE DOOR, AND THE MEASURED LOSS THAT ARGUES FOR IT.** `at new` on an existing id was a full replacement, so moving a test to its new file ate the row's `note` in the same call -- six ST0061 notes destroyed by a single re-cite on this repository and recovered from a git blob. The safe route was a hand-edit of canon plus `sync --to-store`, ie the undocumented one; the verb built for the job was the one that lost the work. Here absence is silence: a field nobody names is a field nobody changes, so `note` and `legacy` survive by construction rather than by a carry that had to be remembered.",
+            "consequence": "Refuses an id the thread does not have (`NoSuchTest`), and refuses a call that names NO field (`NothingToChange`) rather than reporting `unchanged` at exit 0 to a caller who believes they changed something. The prospective row is held to the same L2-L5 grammar `at lint` enforces and `at new` is held to, through the same one check -- so a re-cite to a file that does not exist, or to one not carrying the row's literal id, is refused with nothing written. **`--status` and `--kind` ARE DELIBERATELY ABSENT**: `at green` / `at red` / `at na` already own status as a declared state machine with an envelope per movement, and a second writer would be a divergent copy of a transition; `kind` moves the contract graph for the same reason `ac edit`'s does.",
+            "ratification": "cc, 2026-08-29, on hv's 2026-08-28 ruling over issue 0131, sequenced to cc by vc. **NO ACCEPTANCE ROW IS CLAIMED HERE, DELIBERATELY.** `ac new` and `at new` carry AC-08.6 / AC-08.7; these two verbs were ruled by hv into an existing package rather than minted with a criterion, and the builder writing their own acceptance criterion for their own build is the shape hv's AC-08.5 precedent exists to prevent. The contract row is OWED and is vc's to place."
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible"
         }
       ],
       "bats_coverage": {
@@ -7983,7 +8082,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 30,
+      "n": 32,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -8207,6 +8306,7 @@
       "ac withdraw",
       "ac reinstate",
       "ac new",
+      "ac edit",
       "at",
       "at list",
       "at lint",
@@ -8214,6 +8314,7 @@
       "at red",
       "at na",
       "at new",
+      "at edit",
       "issues",
       "issues list",
       "issues add",
@@ -8332,6 +8433,7 @@
       "ac withdraw",
       "ac reinstate",
       "ac new",
+      "ac edit",
       "at",
       "at list",
       "at lint",
@@ -8339,6 +8441,7 @@
       "at red",
       "at na",
       "at new",
+      "at edit",
       "issues",
       "issues list",
       "issues add",
@@ -8461,6 +8564,7 @@
       "ac withdraw",
       "ac reinstate",
       "ac new",
+      "ac edit",
       "at",
       "at list",
       "at lint",
@@ -8468,6 +8572,7 @@
       "at red",
       "at na",
       "at new",
+      "at edit",
       "issues",
       "issues list",
       "issues add",

@@ -60,6 +60,7 @@ mod common;
 
 use common::{Fixture, sample_thread};
 use intentsvcs::contract;
+use intentsvcs::facade::FacadeError;
 use intentsvcs::model::{AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion};
 
 const NEW_AC: &str = "AC-09.1";
@@ -105,15 +106,24 @@ fn ac_new_creates_a_criterion_that_did_not_exist() {
   assert_eq!(row.text, "a criterion minted through the surface");
 }
 
-/// **Idempotent under repeat -- the criterion's second falsifier, and the
-/// assertion is on the COUNT.**
+/// **THE REPEAT IS REFUSED -- the criterion's second falsifier, INVERTED BY A
+/// LATER RULING, and the count assertion is kept because it still bites.**
 ///
-/// `Outcome` is deliberately not pinned here. A build that returned `Moved`
-/// twice would be reporting oddly but would still be correct about the estate;
-/// a build that produced two rows has corrupted canon. Only the second is the
-/// falsifier, so only the second is asserted.
+/// This test read `ac_new_is_idempotent_under_repeat` and asserted that a
+/// second create was accepted. **hv ruled on 2026-08-28 (issue 0131) that a
+/// verb named `add`/`new` must FAIL on an existing key rather than replace it**,
+/// which supersedes the idempotent reading ic ratified on 2026-08-26 -- a later
+/// first-hand ruling from hv on the same subject wins. So the falsifier is
+/// turned over rather than deleted: what was "the repeat is accepted" is now
+/// "the repeat is refused, and the stored row is untouched".
+///
+/// **The COUNT assertion survives the inversion unchanged, and that is the
+/// reason to keep this test rather than to write a new one.** Under
+/// idempotence it caught a repeat that duplicated the row; under refusal it
+/// catches a refusal that appended one anyway. The same arithmetic falsifies
+/// both contracts, which is what a good falsifier looks like.
 #[test]
-fn ac_new_is_idempotent_under_repeat() {
+fn ac_new_refuses_the_repeat_and_leaves_one_row() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0001"));
   let mut facade = fx.facade();
@@ -121,9 +131,23 @@ fn ac_new_is_idempotent_under_repeat() {
   facade
     .ac_new("ST0001", NEW_AC, "minted once", AcKind::Test)
     .expect("creates");
-  facade
-    .ac_new("ST0001", NEW_AC, "minted once", AcKind::Test)
-    .expect("the repeat is accepted rather than refused");
+  let err = facade
+    .ac_new("ST0001", NEW_AC, "minted twice", AcKind::Test)
+    .expect_err("the repeat is refused rather than accepted");
+  assert!(
+    matches!(&err, FacadeError::CriterionExists { ac, .. } if ac == NEW_AC),
+    "the refusal must name the taken key: {err}"
+  );
+  assert_eq!(
+    facade.canon().threads[0]
+      .criteria
+      .iter()
+      .find(|c| c.id == NEW_AC)
+      .expect("still there")
+      .text,
+    "minted once",
+    "the refused repeat rewrote the row it refused to create"
+  );
 
   let n = facade.canon().threads[0]
     .criteria
@@ -132,7 +156,7 @@ fn ac_new_is_idempotent_under_repeat() {
     .count();
   assert_eq!(
     n, 1,
-    "the repeat duplicated the row instead of being a no-op"
+    "the refused repeat appended a second row instead of writing nothing"
   );
 }
 
@@ -262,10 +286,10 @@ fn at_new_creates_an_acceptance_test_that_did_not_exist() {
   assert_eq!(row.status, AtStatus::ToWrite);
 }
 
-/// Idempotent under repeat, asserted on the count, for the same reason as the
-/// criterion side.
+/// Refused under repeat, asserted on the count, inverted by the same hv ruling
+/// and for the same reason as the criterion side.
 #[test]
-fn at_new_is_idempotent_under_repeat() {
+fn at_new_refuses_the_repeat_and_leaves_one_row() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0001"));
   let mut facade = fx.facade();
@@ -284,7 +308,11 @@ fn at_new_is_idempotent_under_repeat() {
   };
 
   drive(&mut facade).expect("creates");
-  drive(&mut facade).expect("the repeat is accepted");
+  let err = drive(&mut facade).expect_err("the repeat is refused rather than accepted");
+  assert!(
+    matches!(&err, FacadeError::TestExists { at, .. } if at == NEW_AT),
+    "the refusal must name the taken key: {err}"
+  );
 
   let n = facade.canon().threads[0]
     .tests
@@ -293,7 +321,7 @@ fn at_new_is_idempotent_under_repeat() {
     .count();
   assert_eq!(
     n, 1,
-    "the repeat duplicated the row instead of being a no-op"
+    "the refused repeat appended a second row instead of writing nothing"
   );
 }
 

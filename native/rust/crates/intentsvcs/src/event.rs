@@ -61,13 +61,20 @@ use serde::{Deserialize, Serialize};
 ///
 /// # The corpus this was sized against, so a later reader does not re-derive it
 ///
-/// Measured 2026-08-27. **43 ops over 11 families HERE** -- ac at attachment
-/// disk issue issues st text thread todo wp -- against a live estate store
-/// holding 21 distinct ops in 425 events, and 22 distinct across the 15 stores
-/// on that machine, which fall in 8 families. **The two family counts are
-/// different questions and were nearly written down as one:** 8 is how many
-/// families have ever been WRITTEN on that machine, 11 is how many this binary
-/// can write. A vocabulary is always at least as wide as its use, and quoting
+/// Measured 2026-08-27. **11 families HERE** -- ac at attachment disk issue
+/// issues st text thread todo wp -- against a live estate store holding 21
+/// distinct ops in 425 events, and 22 distinct across the 15 stores on that
+/// machine, which fall in 8 families. **The two family counts are different
+/// questions and were nearly written down as one:** 8 is how many families have
+/// ever been WRITTEN on that machine, 11 is how many this binary can write.
+///
+/// **THE OP COUNT USED TO BE WRITTEN HERE AND IS NOT ANY MORE, BECAUSE IT WAS A
+/// SECOND HOME FOR SOMETHING THE LIST BELOW ALREADY SAYS.** The prose read "43
+/// ops" in two places and the test header in a third; `ac.edit` and `at.edit`
+/// landed on 2026-08-29 and all three went stale in one commit, silently,
+/// because nothing compares a sentence to a list. The FAMILY count is kept
+/// because it is the comparison being made and does not move when an op is
+/// added to a family that exists. `KNOWN_OPS.len()` is the op count. A vocabulary is always at least as wide as its use, and quoting
 /// the corpus figure for the code would have understated the roster by three
 /// families that simply have not been exercised.
 ///
@@ -88,7 +95,7 @@ use serde::{Deserialize, Serialize};
 /// It is worth carrying into hv's open question rather than filed as trivia:
 /// **a vocabulary with an irregular member is a vocabulary whose shape cannot
 /// be assumed by whatever parses it.** Any future type has to hold `init`
-/// alongside 43 dotted names, or the shape rule is wrong on its first row.
+/// alongside the dotted names, or the shape rule is wrong on its first row.
 ///
 /// The population is bounded and was enumerated by DOOR rather than by pattern
 /// after that: there are exactly four `Envelope::minted` call sites in this
@@ -97,6 +104,7 @@ use serde::{Deserialize, Serialize};
 /// four and nothing else.
 pub const KNOWN_OPS: &[&str] = &[
   "ac.descope",
+  "ac.edit",
   "ac.put",
   "ac.reinstate",
   "ac.rescope",
@@ -104,6 +112,7 @@ pub const KNOWN_OPS: &[&str] = &[
   "ac.set",
   "ac.unsatisfy",
   "ac.withdraw",
+  "at.edit",
   "at.put",
   "at.set",
   "attachment.put",

@@ -69,6 +69,20 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // there is no field the caller failed to supply -- the remedy is a
     // different key, not a fuller call.
     | FacadeError::IssueExists { .. }
+    // The child-row halves of the same ruling, and the same reasoning: they
+    // report that a KEY is taken, so there is no field the caller failed to
+    // supply -- the remedy is `ac edit` / `at edit`, not a fuller create.
+    | FacadeError::CriterionExists { .. }
+    | FacadeError::TestExists { .. }
+    // **NAMES SEVERAL FIELDS AND DEMANDS NO PARTICULAR ONE, WHICH IS WHY IT IS
+    // HERE RATHER THAN ABOVE.** `ReasonRequired` and its two siblings each name
+    // ONE field a call left out, and this file exists to prove that field
+    // reaches a reader. `NothingToChange` says at least one of `--file`,
+    // `--prose` and `--covers` had to be given; picking one of the three to
+    // report would be a guess about what the caller meant, so there is no
+    // authored value to carry. The roster it CAN offer is in its remedy, which
+    // `error_remedies.rs` drives by value.
+    | FacadeError::NothingToChange { .. }
     | FacadeError::NoSuchWorkPackage { .. }
     | FacadeError::NoSuchCriterion { .. }
     | FacadeError::NoSuchTest { .. }

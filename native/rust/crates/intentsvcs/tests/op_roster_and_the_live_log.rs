@@ -58,7 +58,10 @@
 //!
 //! # A note on two family counts that are not the same number
 //!
-//! The roster is 43 ops in 11 families; the corpus vc measured is 22 ops in 8.
+//! The roster spans 11 families; the corpus vc measured is 22 ops in 8. **The
+//! op count is deliberately not restated here** -- it was, in three places
+//! across two files, and two new ops made all three wrong in one commit with
+//! nothing to notice. `KNOWN_OPS` is the count.
 //! **Neither is wrong and they answer different questions** -- how many families
 //! this build CAN write, against how many have ever BEEN written on one machine.
 //! A vocabulary is always at least as wide as its use. The corpus figure was
