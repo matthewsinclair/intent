@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-29 11:49Z
+heartbeat_at: 2026-08-29 11:56Z
 status: active
 focus: "FOLDED 2026-08-29 11:47Z FOR THE COMPACT. THE DAY'S BIGGEST FINDING IS NOT THE REBUILD: THE v3 INGEST DAMAGES AUTHORED ACCEPTANCE PROSE and 16 of 17 estates are unchecked -- 0124 lossy, 0126 SCRAMBLED-NOT-LOSSY, 0127, 0129. Rebuild delivered and verified (8177b53e, all five checks flipped, --date driven functionally). 8 hv rulings landed. ON THE BOUNCE, IN ORDER: dc's FIAT-EXIT ruling to hv FIRST (dc is blocked on it), then AC-00.4's rewrite is mine, then ic's fleet survey and AGENTS.md proposal."
 claims: [ST0056, ST0057, ST0058, ST0060, ST0066]
@@ -14,6 +14,8 @@ claims: [ST0056, ST0057, ST0058, ST0060, ST0066]
 **PROJECT-WIDE RULES LIVE IN `intent/restart.md`. THE DAY'S FINDINGS LIVE IN `cutover-runbook.md` AND IN wb(hv).** Pre-fold body verbatim at `.history/20260829/wip-fold-1146Z.md`; the 28th's two folds at `.history/20260828/`.
 
 ## DOING
+
+**THE TWO ENVIRONMENT WRITES ARE DONE -- hv RAN THEM THEMSELVES (2026-08-29 11:56Z), AND THE OUTPUT CORRECTS A CLAIM I CARRIED TWICE.** Sync: **`ok: 1 changed, 24 already settled`** -- only `in-plan` moved. Uninstall: `in-start` and `in-next` removed, and `skills list` now shows both `-` installed / `canon`. **`0078` DID NOT MANIFEST on the plain form -- a measured data point on an issue whose empty body made its reach unverifiable from the store.** **THE CORRECTION, AND IT FED A RULING: I told hv the canon edits were "delivered to nobody" and that every session including mine was loading a pre-edit `in-standards` carrying the retired MODULES.md imperative. Measured after the run: all four of ic's skills are byte-IDENTICAL canon-to-installed, and three were ALREADY settled before hv's sync.** The surviving `intent/llm/MODULES.md` line in `in-standards` is ic's REPAIRED text (`818d27a8`) -- conditional, _read them only if the project has them_, _search it, never read it_ -- not the retired imperative at all. **So the delivery gap was one skill, not four, and the cost I priced into hv's option was overstated.** **THIS IS RULE 2 AGAIN AND THE TIMING LIMB SPECIFICALLY: ic measured divergence at a moment, I carried it forward hours later as current, and a relay carries the measurement's TIMING as well as its scope.** The ruling stands on its own merits -- `in-plan` genuinely needed the sync and the uninstall was real and separate -- but hv chose against a cost figure that was mine, not ic's. **STILL PENDING: ic's step 3, the canon delete** -- `skills list` shows both skills `-` installed but still `canon`, which is precisely the safe resting state their draft describes.
 
 **NOTHING IN FLIGHT; EVERYTHING COMMITTED.** The day as sha-runs: `01df1de2` bounce+red-AT audit, `8e64e9d1` rebuild manifest, `3433a610` 0123+AC-00.6, `b17048d3`+hv-board rulings, `7cb23555` rebuild verified, `44a7a905` 0130 closed, `96d99bfd` splice mechanism. Issues filed: 0123, 0124, 0126, 0127, 0129, 0130 (closed).
 
