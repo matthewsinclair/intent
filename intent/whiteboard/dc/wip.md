@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
-heartbeat_at: 2026-08-29 14:20Z
+heartbeat_at: 2026-08-29 14:26Z
 status: active
-focus: "**0133 IS ON MAIN (`04cf6f18`), and everything it owed is closed.** hv ruled both halves: `Unsatisfied` carries its OWN payload `note`, NOT `evidence`; `ac unsatisfy` KEEPS CLEARING. **THE REBASE IS THE LESSON: it reported NO CONFLICT and the compiler then produced four E0533s** in a file cc wrote while 0133 sat on a branch -- a clean merge is not a compiling tree, and the ports went in at `{ note: None }` NOT `{ .. }`, because the weaker port compiles, passes, and silently spends a peer's assertion strength. **0136 FILED AND PRICED: `deny_unknown_fields` is a property of the variant SHAPE, and `Computed` is the last unit variant, so it still accepts unknown keys.** The price is ZERO -- bytes identical, canon accepted, schema identical -- so it is my implementation detail, and my first comparison reported a FALSE difference it manufactured from its own type names. **Delivered binary emits JSON_VER=11/SDL_VER=9 against a repo at 13/11: two generations stale, worse than ic reported.** **THE COMPOSER CENSUS IS BUILT AND IT FOUND A LIVE DEFECT: `ac list` renders a fiat close as `satisfied: no`, filed 0137** -- a `_ =>` swallowing a CLOSED state, the same wildcard family as the one 0133 removed this morning, third sighting today. **vc RULED KEEP ALL FOUR: their redirect predates my commits by a minute and I said so that way round rather than the convenient way.** 0140 filed on vc's word -- the note is published, writable only by migration, authorable by NO verb, so representable is not reachable. **I HYPOTHESISED A SERIOUS DEFECT AGAINST MY OWN LANDED COMMIT AND DROVE IT FALSE**: whole-value equality in `set_ac_state` really does change meaning under 0133, but the transition machine refuses the edge first. HOLDING: 0136 lands after v3.0.1; hv's ST0068 doc instructions are coming; nothing claimed."
+focus: "**HOLDING -- nothing claimed, nothing in flight, tree and board clear of my work.** ST0066/0133 LANDED and its whole owed list is closed: `04cf6f18` (note + the wildcard gone, hv ruled both halves), `4a648831` (0136, priced at ZERO and measured not quoted), `72d716dd` (four stale prose claims, three of them counts in one paragraph), `9c220c1d` (coverage held to the SDL), `b6a483df`+`9a9e89b1` (the fiat census, which FOUND 0137: `ac list` renders a fiat close as `satisfied: no`), `bf8cc1af` (0140). **Suite 1482/0 at `070f8154`.** **THE DAY'S KEEPER IS FAMILY 10, NOT ANY OF THE COMMITS: write the reasoning at the resolution you MEASURED it, not the one you believe it** -- every correction today landed on a claim whose reasoning was visible, and I was corrected three times, twice against my own work. WAITING: 0136 after v3.0.1 (vc calls the shape), 0137 with hv, ST0068 on hv's four decisions, 0141 is ic's."
 claims: [ST0056/07, ST0056/11, ST0066]
 ---
 
@@ -17,11 +17,11 @@ claims: [ST0056/07, ST0056/11, ST0066]
 
 - **You never ask what time it is** -- not the OS, not `date`, not the filesystem, **and not the database either.** The stamp is applied BY the write.
 - **THE RULE IS ABOUT SIGNATURES, NOT VALUES. NO cli or intentsvcs function TAKES a time; they may RETURN times.**
-- **A board stamp is a label, not data** -- read it from `date -u` and PASTE, **per stamp, never per session.** The ordering that cannot be fabricated is the **commit**.
-- **`stat` PRINTS LOCAL. `git log` PRINTS LOCAL.** Convert at the SOURCE and keep the local value beside it, or a reader appends a `Z` and lands an hour out. I did exactly that today and vc caught it.
+- **A board stamp is a label, not data** -- read it from `date -u` and PASTE, **per stamp, never per session.** [...]
+- **`stat` PRINTS LOCAL. `git log` PRINTS LOCAL.** Convert at the SOURCE and keep the local value beside it [...]
 
-- **CORRECTED, BY MY OWN EXPERIMENT: `cargo test` DOES NOT WRITE `~/.intent/home`. THE WRITER IS CLOSED (cc `9c2ba9ed`) AND MY CAUSAL CLAIM WAS A SPURIOUS CORRELATION.** I reported watching the pointer go from a deleted worktree to healthy seven seconds after running the suite. **vc pointed out hv had repointed it BY HAND with an `echo` in the same window** -- a third party writing the same file between my before-state and my after-state. Re-ran ic's experiment across the crate pair under a decoy `HOME`: **nothing under `.intent` at all, only cargo's own cache.** And `9c2ba9ed` was already an ancestor of HEAD at 22:50, so my run could not have written it. **The shim still resolves through that pointer, so a stale value still means every commit in that estate refuses -- but it is not republished by testing, and (B) is not blocked the way I said.**
-  - **THE SHAPE IS THE ONE I SPENT THE DAY CORRECTING IN OTHERS: before-state, my action, after-state, with an unmeasured third party in between.** laksa-cc did it twice tonight attributing peer writes to their own commands, and I relayed their retraction hours before making the same claim. **An alternative explanation adjacent to the evidence, in the sentence rather than in the command.**
+- **CORRECTED, BY MY OWN EXPERIMENT: `cargo test` DOES NOT WRITE `~/.intent/home`. THE WRITER IS CLOSED (cc `9c2ba9ed`) AND MY CAUSAL CLAIM WAS A SPURIOUS CORRELATION.** I reported watching the pointer go from a deleted worktree to healthy seven seconds after running the suite [...]
+  - **THE SHAPE IS THE ONE I SPENT THE DAY CORRECTING IN OTHERS: before-state, my action, after-state, with an unmeasured third party in between.** [...]
 
 ## The truth model -- canon, held not restated
 
@@ -29,58 +29,31 @@ claims: [ST0056/07, ST0056/11, ST0066]
 
 ## The environment
 
-- **`intent` ON PATH IS v3.0.0 AND RESOLVES INTO THIS TREE. `intent3` IS NOT ON PATH AT ALL.** Measured 2026-08-27: both `~/.local/bin/intent` and `~/bin/intent` are symlinks to `Intent/native/rust/target/release/intent`, repointed **26 Aug 23:53**, and `intent info` reports `INTENT_HOME: /Users/matts/Devel/prj/Intent`. **THIS ENTRY PREVIOUSLY SAID THE OPPOSITE IN BOTH DIRECTIONS** -- v2.19.0 routing to the frozen `Intentv2`, with v3 present under the distinct name `intent3` -- and it was stale for a day and a half while I read it every session. **IT WAS NOT CAUGHT BY USING IT; IT WAS CAUGHT BY MEASURING SOMETHING ELSE.** A board line stating an environment fact has no natural corrective, because the environment does not argue back. Consequence worth holding: every estate whose hook shells out to `intent critic` now gets the **v3** binary.
-- **`intent3` NOW REFUSES A BINARY THAT CANNOT BE SHOWN TO DESCRIBE THIS TREE** (hv ruled 2026-08-24). Matrix and reasoning: `bin/.devbin/cmd/shared/currency.lib`, one home. **It keys on DECIDABILITY, never on dirt.**
-- **THE GATE FIGURE IS COMPUTED BY THREE VERB CALLS AND IS NEVER TRANSCRIBED** -- `intent ac status ST0057`, `intent ac status ST0056/03`, `intent ac gate ST0057`. It lived in THREE homes at THREE values on 2026-08-24, one document disagreeing with itself twice. **Do not put the number on this board; put the calls.**
-- **hv's FREEZE SCOPE (2026-08-24): Intentv2 is FROZEN FOR FEATURES and LIVE FOR SHIPPED-SURFACE DEFECTS.** A v3-only defect is a v3-only fix; a shipped-surface one lands in BOTH trees.
-- **THE INDEX IS SHARED IN THIS CHECKOUT.** `git add` puts your file where a peer's bare `git commit` sweeps it. Always `git commit --only <paths>` -- **but the refusal is a property of naming a FILE, not of `--only`, and I had it as unconditional.** Driven both arms: `--only <untracked FILE>` exits 1 with `pathspec did not match any file(s) known to git`; **`--only <DIRECTORY>` exits 0, commits the tracked edits and leaves the untracked file behind in silence** (ic). **The success output enumerates what it TOOK, so the omitted file has no line to be missing from** -- this board's own absence rule, arriving at a commit instead of a grep. **`git status --porcelain -- <paths>` after every commit; `??` is the entire signal.** My own `6096e14c` used the directory form and was clean, which was luck rather than care.
+- **`intent` ON PATH IS v3.0.0 AND RESOLVES INTO THIS TREE. `intent3` IS NOT ON PATH AT ALL.** Measured 2026-08-27: both `~/.local/bin/intent` and `~/bin/intent` are symlinks to `Intent/native/rust/target/release/intent` [...]
+- **`intent3` NOW REFUSES A BINARY THAT CANNOT BE SHOWN TO DESCRIBE THIS TREE** (hv ruled 2026-08-24) [...]
+- **THE GATE FIGURE IS COMPUTED BY THREE VERB CALLS AND IS NEVER TRANSCRIBED** -- `intent ac status ST0057` [...]
+- **hv's FREEZE SCOPE (2026-08-24): Intentv2 is FROZEN FOR FEATURES and LIVE FOR SHIPPED-SURFACE DEFECTS.** A v3-only defect is a v3-only fix [...]
+- **THE INDEX IS SHARED IN THIS CHECKOUT.** `git add` puts your file where a peer's bare `git commit` sweeps it [...]
 - **`int hooks` ANSWERS ABOUT THE TREE THE `int` SCRIPT LIVES IN, NOT YOUR CWD.** To ask about another clone, run ITS `bin/int`.
 - **A DEVBIN COMMAND RESOLVES ITS PROJECT FROM SOMETHING OTHER THAN YOUR CWD -- BUT THE v3 BINARY RESOLVES FROM CWD.** Both are true and confusing them cost a live incident today.
 
 ## DOING
 
-**NOTHING IN FLIGHT. 0133 landed and its whole owed list is closed.** Days verbatim in `.history/20260828/` and `.history/20260829/`; NOT restated here.
+**NOTHING IN FLIGHT.** Everything in ST0066/0133 landed today; the reasoning is in the COMMIT MESSAGES and in Watch-outs and is not restated here. Pre-fold board verbatim at `.history/20260829/wip-fold-1423Z.md`.
 
-### ST0066 -- `intent fc`. AC half `b7a3e771`. **0133 LANDED `04cf6f18`; docs `72d716dd`; coverage `9c220c1d`; issue 0136 `4a648831`**
+### ST0066 / 0133 -- LANDED AND CLOSED, seven commits
 
-- **hv RULED BOTH HALVES 2026-08-29.** `Unsatisfied` gets its OWN payload, `note`, **NOT `evidence`** -- evidence means proof a criterion was MET, on `Satisfied` and nowhere else. And **`ac unsatisfy` KEEPS CLEARING**. Ruling 1 made ruling 2 cheap: **nothing to orphan**, because the note is a different field from the one the verb clears.
-- **A CLEAN REBASE IS NOT A COMPILING TREE, AND THIS IS THE FOURTH SHAPE OF THE SAME FAMILY.** cc's `8aebe2ce` shipped `a_create_refuses_a_child_id_that_is_taken.rs` while 0133 sat on a branch; it builds the OLD shape in four places. Git reported no conflict; the compiler produced four E0533s. **Code written on main during a branch's life references the old shape and the merge cannot see it.**
-- **THE PORT IS THE PART WORTH KEEPING, NOT THE BREAK.** Those four could go to `{ .. }` and everything compiles and passes. **The unit variant FULLY constrained the value, so `{ .. }` is the port that looks mechanical and quietly weakens a peer's assertion** -- one of them guarding the HTTP/GraphQL PUT contract by cc's own comment. Ported at `{ note: None }`, same strength cc wrote. **A widening must not spend a peer's test strength to buy its own convenience, and nothing mechanical flags the weaker port.**
-- **0136 FILED BY ME AND PRICED BEFORE ESCALATION (vc's instruction, and it corrected me).** `deny_unknown_fields` is a property of the variant's SHAPE, not of the enum. Census measured post-0133: `computed` (unit) does NOT refuse; the four structs and the newtype `fiat` all do. **`unsatisfied` was closed as a SIDE EFFECT of the widening -- nobody decided to fix strictness, so it could regress the same way.**
-- **THE PRICE IS ZERO AND THAT IS MEASURED, NOT QUOTED.** `Computed {}` vs `Computed`: bytes identical (`{"is":"computed"}`), existing canon accepted by both, unknown field refused only by the proposed shape, generated JSON Schema identical. **So nothing published moves -- no face bump, no canon rewrite -- and it is my implementation detail rather than hv's ruling.**
-- **MY OWN PRICING INSTRUMENT LIED FIRST, AND IT IS THE SAME FAMILY AS EVERYTHING ELSE HERE.** The schema comparison reported a difference that did not exist: the two mirror types must have different names to coexist, so `title` differed for a reason having nothing to do with the change. **An instrument manufacturing its own finding.** Fixed by excluding `title` and adding a third enum with a real extra field as the positive control that the comparison can still see a genuine difference.
-- **COVERAGE: ONE OF THE TWO GAPS DID NOT EXIST, AND I FOUND THAT BY KILLING IT RATHER THAN READING THE COMMENT THAT SAID SO.** `ac_kind_state_invariant.rs` claims its hand-written samples list is safe because `every_declared_state_has_a_sample` discovers the roster from the schema. Dropping `Unsatisfied` fails that arm BY NAME. **The claim is true; nothing added.**
-- **THE REAL GAP WAS `graphql_face_agrees.rs`: dropping `Unsatisfied` from the projection cases left ALL THREE tests green.** `count("AcStateName")` next door does not close it and looks like it should -- it compares the SDL to a literal and never looks at what the file exercises. Cases now live in `projection_cases()`, one home, and the new arm DISCOVERS the roster from the published SDL both directions. Driven red: names `["UNSATISFIED"]` while the other three stay green.
-- **THE STRICTNESS ARM NOW SAYS WHAT IT GUARDS** (vc: otherwise the next reader deletes it as a duplicate of serde behaviour they assume is automatic). It records that it is NOT automatic, cites 0136, and says `unsatisfied` gained the protection by side effect.
-- **FOUR STALE PROSE CLAIMS OF MINE, FIXED (`72d716dd`) -- THREE OF THEM COUNTS IN ONE PARAGRAPH.** `AcState::name`'s doc said "three variants carry payloads", "these five words", "a sixth variant"; measured today: five, six, seventh. **It went stale twice and read perfectly well both times.** Replaced by the PROPERTY, with a line saying why the numbers are gone so nobody helpfully restores them. `enum_str`'s doc claimed a panic that "cannot happen" while `AcState` was already a counter-example. `transitions.rs` said the reversibility ruling was awaited two lines below the edges implementing it -- **refuted by its own diff on the day it landed.**
-- **THE COMPOSER CENSUS IS BUILT (`b6a483df`) AND BUILDING IT FOUND A LIVE DEFECT (`0137`).** `fiat_marker`'s doc had been ASSERTING that "one composer" was enforced by a census over the render sites. **There was no census.** Corrected in `52d21945` to the measured position.
-- **`intent ac list` RENDERS A FIAT-CLOSED CRITERION AS `satisfied: no`** -- byte-identical to an ordinary open row, measured through the facade. `ac_list` matches `Descoped` and `Withdrawn` explicitly and sends everything else to a `_ =>`. **`Fiat` is a CLOSED state falling into the OPEN-state wildcard -- the same family as the `legacy.rs` wildcard 0133 removed this morning.** `contract::resolve` is not at fault and gets it right; the loss is downstream, in the rendering.
-- **NOT PATCHED, AND NOT FROM CAUTION.** `fiat_marker` returns a view-shaped string; `ac list`'s state field holds a short colon form beside `descoped-to:` and `withdrawn:`. Either the composer grows a second short form or `ac list` gets its own `fiat-closed:` and the "nowhere else" claim narrows. **A vocabulary decision on a shipped surface is hv's**, and 0137 states both options rather than smuggling one in.
-- **THE CENSUS HOLDS THE PROPERTY, NOT THE MECHANISM** (vc's arm-11 point). "Every surface calls `fiat_marker`" is a mechanism the gate legitimately does not follow -- it reports a COUNT and has no marker to compose. The property held: **a surface reporting a fiat-closed criterion must make the close visible, by whatever spelling suits it.**
-- **EVERY ARM KILLED, AND THE KEY MUTATION IS NOT HYPOTHETICAL: making the view render `satisfied: no` instead of composing the marker fails two arms, and that is EXACTLY what `ac list` does today.** So the census provably catches the live defect. Folding the gate's fiat count away fails the gate arm and only that one; both controls stayed green under both mutations, which is what makes them controls.
-- **IT COVERS THREE OF FOUR SURFACES AND SAYS SO IN ITS OWN HEADER.** No `ac list` arm: an arm asserting today's output would be a **change-detector that BLOCKS the fix** rather than a guard that wants it. A census silently scoped to what already passes is decoration; one that names the surface it does not cover is not.
-- **"COMPOSED HERE AND NOWHERE ELSE" WAS ALREADY FALSE IN TWO HARMLESS PLACES** (the gate's tally, `preconditions`' refusal reason). Harmless, and the reason it matters: **a claim wrong in a benign way is how the harmful case stays invisible -- nobody re-reads a sentence they have already accepted.**
-- **ALSO UNBUILT: `ac.fc` itself, the cascade, doctor.** `fiat` is still a declared ORPHAN because no verb reaches it. **AC-00.4 is being REWRITTEN by vc -- do not build to its letter.**
+- **`04cf6f18`** 0133: `Unsatisfied` carries its OWN payload `note` (NOT `evidence`); `legacy.rs`'s wildcard replaced by three explicit arms. **hv ruled both halves 2026-08-29**; `ac unsatisfy` KEEPS CLEARING and the separate field is why that is free.
+- **`4a648831`** 0136: `deny_unknown_fields` is a property of the variant's SHAPE, not the enum. `computed` (the last unit variant) still swallows unknown keys. **Priced at ZERO and measured, not quoted.**
+- **`72d716dd`** four stale prose claims of mine, three of them counts in one paragraph. **`9c220c1d`** the GraphQL projection list held to the SDL; the strictness arm says what it guards.
+- **`b6a483df`** the fiat census + **`9a9e89b1`** 0137 + **`52d21945`** the composer doc corrected. **`bf8cc1af`** 0140.
+- **SUITE: 1482 passed, 0 failed** at `070f8154`. Everything after is issue JSON and board prose.
 
-### WIDENING AN ENUM CHANGES EVERY `==` ON IT -- the near-miss, kept because the reasoning was sound and the conclusion false
+### HELD -- NOT MINE TO START
 
-- **I HYPOTHESISED A SERIOUS DEFECT AGAINST MY OWN LANDED 0133 AND REFUTED IT BY DRIVING IT.** `set_ac_state` short-circuits on `*current == state`, over the WHOLE value. Before 0133 `Unsatisfied == Unsatisfied` always, so `ac unsatisfy` on an already-unsatisfied row was a GUARANTEED no-op. After 0133 `Unsatisfied { note: Some(x) } != Unsatisfied { note: None }` -- **on the page, my own widening converts a safe no-op into a write that erases the note it existed to rescue, and reports it as a movement.**
-- **IT DOES NOT HAPPEN.** Built the row, called the verb, read the state back: `ac_unsatisfy` on an already-unsatisfied row is refused by the TRANSITION MACHINE first (`Err(NotSatisfied)`), so the equality is never reached. `NOTE SURVIVED ==> true`. **I would have filed a serious and wrong defect against my own commit.**
-- **I CALLED THAT LUCK AND IT IS NOT. ic SECOND-WITNESSED AND CORRECTED ME, AND I VERIFIED IT MYSELF.** `facade.rs:5181-5192`, at the short-circuit, carries hv's 2026-08-17 ruling in a comment that anticipates this exact hazard: _"Same state with a DIFFERENT payload deliberately falls through to the machine below, where it is refused because no verb targeting a state is declared from that same state ... so this ruling does not open a reported-success-with-no-effect path."_ **Written ELEVEN DAYS before the widening that would have exercised it.** Clean by a declared invariant, not by accident.
-- **`transitions.rs:174` IS `self.from.is_empty() || self.from.contains(&value)`, SO AN EMPTY FROM-LIST IS A WILDCARD ACCEPTING EVERY STATE** -- ic's find, verified here. The vocabulary is already idiomatic: `wp.rescope` declares `&[]` five times and `at.set` four, harmlessly, because those enums carry no payload.
-- **AND THEN I SAID "NOTHING CHECKS EITHER", WHICH IS FALSE. SECOND CORRECTION TO THIS SAME BULLET IN ONE AFTERNOON.** vc PLANTED the exact shape -- `ac.reinstate` from `&["fiat"]` changed to `&[]` -- and `machine_table_check.sh` REDS AT EXIT 1, GATED. **Verified here independently rather than taken on report:** line 314 is `if (nf == 0) print ... "(any)" ...`, so an empty from-list expands to `(any)`, which matches no ratified row BY CONSTRUCTION; and the self-loop form falls out of the same property free, since any `(from, to, verb)` absent from the ratified table is CODE-ONLY. Line 104: it reads the INDEX, never the working tree.
-- **SO `Criterion.state` -- THE ENUM I WIDENED -- IS MACHINE 3 AND IS COVERED.** Neither shape is declarable on `Thread.status`, `WorkPackage.status`, `Criterion.state` or `Issue.status` without a refused commit. **hv's machine-table guard, ruled this morning, doing work nobody built it for.**
-- **THE REAL GAP IS EXACTLY TWO FIELDS: `AcceptanceTest.status` AND `WorkPackage.scope`** -- the `Disposition::State` fields `data-model.md` deliberately does not table. Both use `&[]` today, and vc's instrument asserts they are declared-untabled and then measures nothing about them, BY DESIGN. `AcceptanceTest.status` is the live candidate. **ic is filing it on that footing; I declined it twice and it stays theirs.**
-- **THE DAY'S SHAPE, AND IT IS NOT A COMPLIMENT TO ANYONE: three nodes, three partial results.** I drove the behaviour and STOPPED -- right verdict, incomplete reason. ic read the wildcard and GENERALISED past what they had measured -- real hazard, wrong blast radius. vc drove BOTH and narrowed it to two fields. **The only reason the third result is right is that the first two were written down where someone else could check them.** Had ic filed on my message plus their own reading, it would have been a general enforcement gap that is three-quarters already closed: correct reasoning, stale by twenty minutes, confidently wrong in the direction that wastes someone's time.
-- **THE LESSON STILL OUTLIVES THE RELIEF: a widening changes every `==` on the type, including comparisons written long before the field existed.** Second time in one afternoon that driving-rather-than-reasoning caught me against myself; the schema instrument manufacturing its own `title` difference was the first. **And reporting the REFUTED version alongside the true one is the only reason ic could check it at all** -- a clean verdict with no reasoning attached gives a witness nothing to work with.
-- **`0140` FILED ON vc's WORD** (they removed their own ambiguity: "nothing new" meant no new BUILD units, never no filing). Only `legacy.rs:1726` can produce a note; zero `note: Some` elsewhere in `src`. Published on both faces, written only by migration, authorable and editable by NO verb. **0133 made the state representable; representable is not reachable.**
-- **vc RULED KEEP ALL FOUR CENSUS COMMITS.** Their redirect is stamped 14:00Z and my commits ran 14:01-14:07Z, so **the instruction existed before four of my commits did** -- I reported it that way round rather than "it arrived after I finished", both accurate and only one honest about ordering. The redirect was aimed at new BUILD units and at 0136 in a live tree; the census is neither, and it found a live shipped-surface defect BEFORE the cut.
-
-### THE DELIVERED BINARY IS TWO SCHEMA GENERATIONS STALE -- MEASURED BY PROPERTY, NOT BY LABEL
-
-- **`intent schema --versions` is the currency probe that works; the version string is NOT.** The delivered `native/rust/target/release/intent` reports `SCHEMA_JSON_VER=11`, `SCHEMA_SDL_VER=9`; the repo's committed faces are **13** and **11**. ic reported it predates `Fiat`; it is worse than that, and it was already a generation behind before 0133 landed.
-- **A BINARY'S EMBEDDED COMMIT HASH IS NOT A CURRENCY CHECK.** My own worktree build reported a hash that was not its HEAD while its CODE was current -- cargo had recompiled the source and the embedded string was stale. **Ask the binary for a property that the change moves, never for its label.**
-- **I DID NOT REBUILD THE SHARED ARTEFACT AND IT IS NOT MINE TO.** `native/rust` is clean so the guard would permit it; ic left the sequencing with vc and so do I. **The door being open is not the same as it being my door.** I filed 0136 through a binary I built in my OWN worktree (private target dir) and confirmed the write touched only `0136.json`.
+- **0136 lands AFTER v3.0.1; vc calls one-commit-or-split at the cut** (leaning split, on my own evidence that a mechanical pass over this symbol corrupted three doc comments).
+- **0137 is with hv** -- a vocabulary decision on a shipped surface, stated as two options rather than one smuggled in. **v3.0.0 is published and carries the defect.**
+- **ST0068 (docs for v3) waits on hv's four decisions; vc routes.** **0141 is ic's** -- they found the wildcard and the scoping is theirs; I declined it twice.
 
 ### PARKED -- LIVE, HELD, NOT MINE TO CLOSE
 
@@ -92,156 +65,167 @@ claims: [ST0056/07, ST0056/11, ST0066]
 
 ### HELD BY A RULING, AND THE PATCH BELOW DIES WITH THE SESSION IF IT IS ONLY IN scratchpad
 
-- **hv's STANDING DIRECTIVE (b): THE FIVE-STEP `bin/int` -> `bin/devbin` RENAME GOES AFTER THE SWEEP.** Nothing is deleted and no intermediate state is broken -- hv ratified `bin/int` as the optional shortcut, so both names work throughout. **Step 1 is behaviour-neutral (`bin/int` IS a symlink to `bin/devbin`) and I am still not landing it, because the hold is hv's and "it is harmless" is my judgement rather than their ruling.**
-- **STEP 1 INLINED HERE BECAUSE `scratchpad/` DOES NOT SURVIVE THE SESSION.** It applied cleanly at close-out. One file, `intent/st/ST0056/parity/tools/runner_roster_check.sh`: `DISPATCH="$ROOT/bin/int"` becomes `DISPATCH="$ROOT/bin/devbin"`, above it the comment that is the actual content --
+- **hv's STANDING DIRECTIVE (b): THE FIVE-STEP `bin/int` -> `bin/devbin` RENAME GOES AFTER THE SWEEP.** Nothing is deleted and no intermediate state is broken -- hv ratified `bin/int` as the optional shortcut [...]
+- **STEP 1 INLINED HERE BECAUSE `scratchpad/` DOES NOT SURVIVE THE SESSION.** It applied cleanly at close-out [...]
 
   > THE DISPATCHER IS ADDRESSED BY ITS OFFICIAL NAME, `bin/devbin`, AND NEVER BY A PER-PROJECT SHORTCUT. hv ratified the convention 2026-08-27: the shim in a project is always `bin/devbin`; a project MAY add a 2-3 character symlink (`bin/int` here) for humans; **tools and process always use the official name.** This file is tooling, so it takes the official one. `bin/int` keeps working for people.
 
-- **RETIRED FROM THIS SECTION: `decisions-surface.patch` and `whiteboard-clock-guard.BUILT.sh`.** Both landed (`27b13f93` and follow-ups), so the scratchpad copies are now redundant rather than at risk.
+- **RETIRED FROM THIS SECTION: `decisions-surface.patch` and `whiteboard-clock-guard.BUILT.sh`.** Both landed (`27b13f93` and follow-ups) [...]
 
 ### LIVE, MINE, UNSTARTED
 
-- **THE KEG SHIPS NO RULE LIBRARY AND NO SKILLS. THE CODE FIX IS DONE (`0112b8c1`) AND IT IS NOW NAMED IN vc's 3.0.1 CUT LIST, SO THE SHIPPING HAS A DATE.** `SUPPORT_PATHS` carries the rules and skills trees; `support_paths_coverage` refuses at `stage` if v3 resolves an install-root path the tarball would not carry; `int macos smoke` is driven RED against the live keg and GREEN against a fixture at `total: 6 rule(s)`. **UNTIL THE RE-CUT PUBLISHES, THE ESTATE'S KEG STILL ARMS 0 OF 0 ON EVERY LANGUAGE** -- the fix and the shipping are different things and only the second one reaches a user. Cause found by devbin/vc as a PACKAGING gap, located to `:116` by vc, resolver enumerated by me.
+- **THE KEG SHIPS NO RULE LIBRARY AND NO SKILLS. THE CODE FIX IS DONE (`0112b8c1`) AND IT IS NOW NAMED IN vc's 3.0.1 CUT LIST, SO THE SHIPPING HAS A DATE.** [...]
 
 - **FLEET WORK IS LIVE AND HALTED BY hv (2026-08-26 11:53Z, relayed devbin-cc -> vc). MY FOUR ARE DIRTY AND UNCOMMITTED -- see DOING for the exact table. hv LIFTS IT, NOT vc.**
-- **FLEET WORK UNDER vc's RUNBOOK IS THE TOP ITEM AND hv AUTHORISED vc TO DIRECT IT.** `intent/whiteboard/vc/cutover-runbook.md`, plus `verify-canonical.sh` (self-test re-driven by me after vc's fix: **11 failures, threshold 11**). **THE CUTOVER IS 16 PROJECTS IN TWO SHAPES, NOT 9** -- Form B projects wire `session-context` and `require-in-session` but NOT `session-finish`, so the third hook is missing fleet-wide. **`Intentv2` IS NOT A MEMBER AND MUST NEVER BE MIGRATED** (hv ruled it unprompted; the tool warns unprompted too).
+- **FLEET WORK UNDER vc's RUNBOOK IS THE TOP ITEM AND hv AUTHORISED vc TO DIRECT IT.** `intent/whiteboard/vc/cutover-runbook.md` [...]
 
-- **WP-07's `cwi` PORT IS DONE (`1ad284b3`) AND IT DOES NOT DISCHARGE `AC-14.12` -- WRITTEN HERE SO NO LATER READER COLLAPSES THEM.** WP-14 retires the VERBS (served from the store per `AC-14.7`); WP-07 retired the `bin/` COUPLING. Two different things, two different closing conditions, and hv's ruling gave the `claude ws` family an expiry the gate enforces (`97cc09ca`).
+- **WP-07's `cwi` PORT IS DONE (`1ad284b3`) AND IT DOES NOT DISCHARGE `AC-14.12` -- WRITTEN HERE SO NO LATER READER COLLAPSES THEM.** WP-14 retires the VERBS (served from the store per `AC-14.7`) [...]
 
-- **THE `bin/` COUPLING HAS AN EDGE NO SWEEP FOR `source` CAN SEE, AND IT NOW LIVES IN CANON RATHER THAN ON THIS BOARD.** `intent/plugins/claude/lib/claude_plugin_helpers.sh:84` CALLS `ext_root_dir()`, defined only at `bin/intent_helpers:367`, and never sources it -- so the file is coupled to the tree `AC-12.1` prunes while every sweep spelled _sources `bin/intent_helpers`_ reports it CLEAN. Post-cut it fails at **`unknown`, rc=0**, with `command not found` on STDERR only, because `plugin_root_tag:85` short-circuits an empty `ext_base` deliberately. **Full two-sided drive, both arms, and the widened class (2) are in `AC-12.1`'s text (`434dded6`) -- read it there.** **REPORTED, NOT BUILT:** shipped plugin canon inside the cut scope, and vc runs the order.
+- **THE `bin/` COUPLING HAS AN EDGE NO SWEEP FOR `source` CAN SEE, AND IT NOW LIVES IN CANON RATHER THAN ON THIS BOARD.** `intent/plugins/claude/lib/claude_plugin_helpers.sh:84` CALLS `ext_root_dir()` [...]
 
-- **THE hv QUEUE: FIVE LIVE, NONE BUILT, ALL TOUCHING INSTRUMENTS THAT GATE OR DESCRIBE THE BUILD.** (1) **roster symmetry** -- `runner_roster_check.sh` reads PRESENT from the COMMIT and ROSTERED from the WORKTREE; four occurrences 2026-08-25, the fourth PREDICTED from the write-up before it happened. (2) **the staging-dir build** -- build into staging, verify, move into place: closes ic's absent-window and vc's concurrency gap with no lock, so no stale-lock failure after a SIGPIPE; **measured at 252 real refusals during one 66-second rebuild.** (3) **`verify_pair` compares the binary against HEAD when the binary's subject is `native/rust`** (ic, confirmed on my own build, which redded because a peer's canon commit landed during my 54-second compile) -- the remedy it implies is a rebuild that races the same board traffic. (4) **D42 amended** -- the rule is NO CALLER AUTHORS A STAMP; the signature test is one sufficient condition, never the definition, and a generic setter reaching `created` evades the proxy while producing the forbidden behaviour. (5) **arm 7 asserts ORDER and nothing asserts LATENCY** (vc's framing, sharpened onto my own arm): cargo WAITS on a locked target rather than failing, so a verdict taken at T can be followed by an unbounded block -- mechanism in Watch-outs, not restated here. **RETIRED FROM THIS QUEUE: the marker's scope blind spot, shipped as `d6ddb874` and now held by arm 6c.** Routed, not reached into.
-- **THE ROSTER SYMMETRY FIX -- FOUND BY ME, QUEUED FOR hv, AND EXPLICITLY NOT MINE TO BUILD AT SPEED.** Read ROSTERED from the COMMIT as PRESENT already is. **It gates every commit in the estate and I caused two estate-wide blocks the day I found it**; vc endorsed the hold in those terms. It is the same conversation as the roster-charter ruling already with hv, because both are about WHAT POPULATION the roster is entitled to read.
+- **THE hv QUEUE: FIVE LIVE, NONE BUILT, ALL TOUCHING INSTRUMENTS THAT GATE OR DESCRIBE THE BUILD.** (1) **roster symmetry** -- `runner_roster_check.sh` reads PRESENT from the COMMIT and ROSTERED from the WORKTREE [...]
+- **THE ROSTER SYMMETRY FIX -- FOUND BY ME, QUEUED FOR hv, AND EXPLICITLY NOT MINE TO BUILD AT SPEED.** Read ROSTERED from the COMMIT as PRESENT already is [...]
 
-- **`cmd/macos` provenance writer** so `provenance_fields_check.sh` (AT-11.7) has a green to reach. **STILL DECLINED ON SCOPE** -- WP-11 is RELEASE and hv asked for local usability. **TRAP: `codesign --force` REWRITES THE BINARY IN PLACE**, so nothing may hash until `verify_notarised` passes; and `cmd/macos:1294` parses `commit:` with a `sed` -- ADD fields, never rename that one.
-- **THE ATTRIBUTION GUARD -- RULED IN BY hv IN vc's SESSION, AND I AM HOLDING FOR hv's WORD IN MINE.** One arm, gates, assert `^Claude-Session:` ABSENT, nothing about `(C)`. **Three conditions, none optional:** (1) key on the COMMIT, never the `wb|board|localfold` subject convention -- 29 of 90 carriers were topic-prefixed real work (ic); (2) ANCHOR it -- the bare string matches a message that merely DISCUSSES the trailer, and it matched two of ours (ic); (3) **a positive control the guard actually FAILS -- mine, and it is the one that makes it an instrument** (see Family 1). **ic's fourth, found by hitting it: the success condition is a `grep -c` INVERSION -- `grep -c` exits 1 when the count is ZERO, which is the PASSING case, so `grep -c ... && ok` blocks every clean commit. COMPARE THE NUMBER, NEVER THE EXIT STATUS.**
-- **NEW, AND IT IS MINE BECAUSE I FOUND IT IN MY OWN FILE: NOTHING VERIFIES THAT A ROSTER ROW DESCRIBES WHAT ITS RUNNER DOES.** `runner_roster_check.sh` verifies row-to-file EXISTENCE in both directions and is structurally blind to the row's CLAIM. cc asked that a mechanism, if one is built, be mine. **No mechanism proposed yet, and naming it is not building it.** **AND vc HAS PUT A GATE IN FRONT OF BUILDING IT, WHICH I AM RECORDING BECAUSE IT WOULD OTHERWISE DIE WITH THIS SESSION: DO NOT BUILD BEFORE hv HAS RULED WHETHER A DESCRIPTION IS IN THE ROSTER CHARTER AT ALL.** vc framing: this is a guard whose POPULATION IS FILES where the CLAIM IS BEHAVIOURS, and **widening a guard contract silently is how a roster becomes the mechanism.** So the next step is a ruling, never a checker.
+- **`cmd/macos` provenance writer** so `provenance_fields_check.sh` (AT-11.7) has a green to reach [...]
+- **THE ATTRIBUTION GUARD -- RULED IN BY hv IN vc's SESSION, AND I AM HOLDING FOR hv's WORD IN MINE.** One arm [...]
+- **NEW, AND IT IS MINE BECAUSE I FOUND IT IN MY OWN FILE: NOTHING VERIFIES THAT A ROSTER ROW DESCRIBES WHAT ITS RUNNER DOES.** `runner_roster_check.sh` verifies row-to-file EXISTENCE in both directions and is structurally blind to the row's CLAIM.
 
 ### ROUTED, MEASURED, NOT MINE TO TAKE
 
-- **WITHDRAWN: "MAIN IS RED ON `cli_end_to_end`" IS FALSE. THE WORKTREE WAS RED AND IT IS cc MID-EDIT.** Caught by vc. I ran the suite in a five-node shared checkout and reported it as a property of HEAD. **`git log` names COMMITS; the thing that broke my run was never in the commit history** -- cc has 7 paths STAGED in the shared index right now, including `render.rs` renaming the `st list` column `Slug` -> `Title` with `cli_end_to_end.rs` only half-updated to match. **Three of my four failures are `st list` table tests. That is the whole explanation and it needed no bisect.**
-  - **A SUITE RUN IN A SHARED TREE MEASURES THE TREE, NOT HEAD -- and my instinct to check the test file's commit history was correct, careful, and aimed at the wrong object.** Same distinction as `git status` naming paths rather than authors, one level over. **My hedges are what made it cost nothing: I called it a lead not an accusation and said I had not bisected, so cc was told not to chase it before they had seen the red themselves.**
-  - **AND `git diff` LOOKED CLEAN WHILE THE TREE WAS DIRTY, because cc's edits are STAGED** -- the first status column, not the second. A check for uncommitted work that reads only the unstaged diff reports a clean tree over seven staged paths.
+- **WITHDRAWN: "MAIN IS RED ON `cli_end_to_end`" IS FALSE. THE WORKTREE WAS RED AND IT IS cc MID-EDIT.** Caught by vc [...]
+  - **A SUITE RUN IN A SHARED TREE MEASURES THE TREE, NOT HEAD -- and my instinct to check the test file's commit history was correct, careful, and aimed at the wrong object.** [...]
+  - **AND `git diff` LOOKED CLEAN WHILE THE TREE WAS DIRTY, because cc's edits are STAGED** -- the first status column [...]
 
-- **ISSUE `0086` (HIGH, ic's find, QUEUED NOT ASSIGNED): `intent --help` rc=0 while `intent help` rc=2 `retired`, with a remedy claiming no replacement exists.** **Its general defect is this board's own class from a third direction: an ABSENT `spelling` field is RENDERED as a confident negative, and a passing test REQUIRES it to be** -- absence-as-meaning, forbidden by the preamble of the very file it lives in. Not mine unless assigned.
+- **ISSUE `0086` (HIGH, ic's find, QUEUED NOT ASSIGNED): `intent --help` rc=0 while `intent help` rc=2 `retired`, with a remedy claiming no replacement exists.** [...]
 
-- **`VIEW_NAMES` (`address.rs:357`) CLAIMS A COUPLING THAT IS NOT IN THE CODE -- ANSWERED, FILED AS ISSUE `0087` (low, vc, `4f9ce518`), NOT MINE TO FIX.** Its doc says `Project::classify` _is the single answer_; `classify` keeps its own inline list and never reads it. **No harm driven and none claimed** -- they may be legitimately different populations, in which case the DOC is the defect. **The row survives only because the sentence is un-greppable and reads as an architecture guarantee.**
-- **ISSUE `0085` -- THE ADVISORY HOOK FIRES ON EVERY WRITE REGARDLESS OF FINDINGS.** `[ -z "$findings" ]` can never fire: both binaries always put `critic:` header lines and an `ok:` line on STDOUT, the stream the hook captures. **Violates `session-finish.sh:46` -- _a hook that fires identically every time carries no signal_ -- three files from where that sentence is written.** v2 does it identically, so **INHERITED: a `corrected`-class contract decision in `AC-07.3(a)`'s shape, with the contract and not with me.** Opt-in twice. **OPEN QUESTION I DELIBERATELY DID NOT DRIVE (23:16Z, holding): `0085`'s premise rests on what the hook's FLAGGED invocation emits -- `--files <f> --severity-min warning --format text` -- and my drive used plain `--files` only.** vc verified independently and it is their filed issue, so re-driving it unasked is scope creep. **One command if anyone wants it, and worth knowing the premise has not been driven at the flags the hook actually passes.**
+- **`VIEW_NAMES` (`address.rs:357`) CLAIMS A COUPLING THAT IS NOT IN THE CODE -- ANSWERED, FILED AS ISSUE `0087` (low, vc, `4f9ce518`), NOT MINE TO FIX.** [...]
+- **ISSUE `0085` -- THE ADVISORY HOOK FIRES ON EVERY WRITE REGARDLESS OF FINDINGS.** `[ -z "$findings" ]` can never fire: both binaries always put `critic:` header lines and an `ok:` line on STDOUT [...]
 
-- **THE FROZEN-`$INTENT_HOME` MECHANISM: THE DETECTOR HALF IS CLOSED, THE ROUTING IS NOT.** vc landed the ref fix and the CI arm (`a38e884b`, `18ccfbbc`), measured in CI's own log rather than in simulation. **vc states plainly that their reason for `not discharged` expired but the ROUTING did not, and a guard cleared by a peer saying the ruling happened is not a guard.** It sits with hv. **What the guard should ASSERT under the freeze scope is still the unsettled half.**
-- **THE SUITE POPULATION CHECK.** `git ls-files` 112 vs `find` 113, gap named, two commands produce it and nothing runs them. **Needs an edit to `tests/run_tests.sh`, which matts runs externally -- scope, not doubt.**
+- **THE FROZEN-`$INTENT_HOME` MECHANISM: THE DETECTOR HALF IS CLOSED, THE ROUTING IS NOT.** vc landed the ref fix and the CI arm (`a38e884b` [...]
+- **THE SUITE POPULATION CHECK.** `git ls-files` 112 vs `find` 113, gap named, two commands produce it and nothing runs them [...]
 
 ## Watch-outs
 
-**TEN STANDING FAMILIES. Every rule is still here; the NARRATIVE around each was cut at the 2026-08-29 fold and is verbatim in `.history/20260829/watch-outs-and-decisions-full.md`. `[...]` marks a trimmed body, never a dropped rule.**
+**ELEVEN STANDING FAMILIES. Every rule is still here; the NARRATIVE around each was cut at the 2026-08-29 fold and is verbatim in `.history/20260829/watch-outs-and-decisions-full.md`. `[...]` marks a trimmed body, never a dropped rule.**
 
 **Standing means NOT ARCHIVED. It does not mean NOT REWRITTEN -- I read it as the second for weeks, and that is why this board reached 105KB while a peer's was 5KB.**
 
-- **AND THE SAME SHAPE IN A FOLD, 2026-08-29: I CUT A SECTION AND LOST THREE LIVE ITEMS WITH IT.** An aggressive fold replaced `## DOING` wholesale, and the PARKED block lived INSIDE it -- so `AT-07.4` and `WP-11`, both live and both held for a peer to close, went out with the archived content. [...]
+- **AND THE SAME SHAPE IN A FOLD, 2026-08-29: I CUT A SECTION AND LOST THREE LIVE ITEMS WITH IT.** An aggressive fold replaced `## DOING` wholesale [...]
+
+### FAMILY 10 -- HOW TO REPORT (2026-08-29; mine, sharpened by ic, and vc RETIRED THEIR OWN ENTRY in favour of it)
+
+**WRITE THE REASONING AT THE RESOLUTION YOU MEASURED IT, NOT AT THE RESOLUTION YOU BELIEVE IT.** A board of verified conclusions gives the next node nothing to plant a fixture against.
+
+- **Send the REFUTED version alongside the true one.** The zero-resolution case of the rule above: a clean verdict with no reasoning attached is unfalsifiable by a reader. [...]
+- **Stopping early is a LIMIT; publishing the stopping point as a confident GENERAL claim is a CHOICE.** I made it twice on one bullet; ic came within 20 minutes of filing a gap three-quarters already closed. **Same error, different surface area.** [...]
+- **Every correction on 2026-08-29 landed on a claim whose reasoning was VISIBLE** (ic). The claims with no reasoning attached are still standing, and nobody knows whether that is because they are right. [...]
+- **Refusing a flattering explanation of your own error is rarer than finding the error** (vc, on my declining ic's generous account of me). [...]
+- **VERIFY A PEER'S CORRECTION YOURSELF BEFORE ACCEPTING IT, INCLUDING WHEN IT MAKES YOUR OWN CLAIM FALSE.** Twice on 2026-08-29: ic's `facade.rs:5181` find and vc's `machine_table_check.sh:314` gate. **That is the direction nobody audits.** [...]
+- **A WIDENING CHANGES EVERY `==` ON THE TYPE**, including comparisons written long before the field existed. Refuted against my own 0133 by DRIVING it, not reasoning about it. [...]
 
 ### FAMILY 9 -- A PARTIAL SWEEP REPORTS IN THE SHAPE OF A COMPLETE ONE (2026-08-29, mine, three instances in one build)
 
-- **`cargo test` STOPS AT THE FIRST FAILING TEST BINARY.** Every count I gave vc during the ST0066 build came from a halted run reported as a total. [...]
-- **THIS IS THE HONEST-AND-BLIND CLASS ARRIVING THROUGH THE TOOL I TRUST MOST.** I spent the day demanding positive controls for greps and getting them right, then read a test RUNNER's summary as a population without once asking whether it had walked the whole thing. [...]
-- **THE GENERAL FORM: an instrument that STOPS EARLY is not the same failure as one that CANNOT VARY (Family 1), and it does not respond to the same control.** [...]
+- **`cargo test` STOPS AT THE FIRST FAILING TEST BINARY.** Every count I gave vc during the ST0066 build came from a halted run reported as a total.
+- **THIS IS THE HONEST-AND-BLIND CLASS ARRIVING THROUGH THE TOOL I TRUST MOST.** I spent the day demanding positive controls for greps and getting them right [...]
+- **THE GENERAL FORM: an instrument that STOPS EARLY is not the same failure as one that CANNOT VARY (Family 1), and it does not respond to the same control.**
 - **TREAT EVERY `N passing` I HAVE REPORTED AS A LOWER BOUND RATHER THAN A COUNT** unless the run carried `--no-fail-fast`.
 
 ### FAMILY 8 -- THE ESTATE'S OWN CONFIGURATION IS WHAT HIDES ITS BUGS FROM IT (2026-08-28, twice in one day, both mine)
 
-**A fix applied by hand HERE removes the symptom and removes the ability to see the class.** Both instances were found only because a criterion said _in a consumer repo as well as this one_, and both fixes are BYTE-LEVEL NO-OPS in this tree.
+**A fix applied by hand HERE removes the symptom and removes the ability to see the class.** Both instances were found only because a criterion said _in a consumer repo as well as this one_ [...]
 
-- **`.prettierignore`** is 40 hand-written lines somebody sat down and wrote, so this repo has been immune since 2026-08-19 while every consumer stayed exposed. `intent init` laid down no exclusion at all.
-- **`AGENTS.md` sections** render non-empty here because this project declares five languages that fill them. A project declaring only `shell` gets a bare `### Building`; one declaring only `author` gets two bare sections. **4 of the 7 packs.**
+- **`.prettierignore`** is 40 hand-written lines somebody sat down and wrote, so this repo has been immune since 2026-08-19 while every consumer stayed exposed [...]
+- **`AGENTS.md` sections** render non-empty here because this project declares five languages that fill them [...]
 
-**THE TELL IS A FIX THAT LIVES IN THE TREE RATHER THAN IN THE TOOL.** From inside, _immune_ and _unaffected_ are indistinguishable -- there is no local symptom to notice and no instrument that fires. **So the question to ask of any hand-applied repair is: what lays this down for someone who does not have us?** `.gitignore` is the next instance already: `converge_gitignore` runs on migrate and NOT on init, so a project BORN on v3 never gets its store ignored. Reported, banked under hv's 3.0.1 scope, four lines beside the AC-07.6 fix.
+**THE TELL IS A FIX THAT LIVES IN THE TREE RATHER THAN IN THE TOOL.** From inside, _immune_ and _unaffected_ are indistinguishable -- there is no local symptom to notice and no instrument that fires [...]
 
 ### FAMILY 7 -- A VALUE RETYPED OUT OF AN INSTRUMENT IS A SECOND HOME FOR A FACT (2026-08-28 12:11Z, three instances in one day, two of them mine)
 
-- **THE RULE vc APPLIED, AND IT IS THE KEEPER: WHEN A RECORD CARRIES ONE FACT IN TWO NOTATIONS, THE ONE THAT CAME OFF THE INSTRUMENT BEATS THE ONE A HUMAN RETYPED.** devbin-cc's pre-hop record held the carrier's mode as `-rwx--x--x` (read by `stat`) AND as `751` in prose. [...]
-- **THE REMEDY IS STRUCTURAL AND BETTER THAN CARE: EMIT BOTH NOTATIONS FROM ONE CALL, so they cannot disagree.** devbin-cc's Phase 4 now prints `%Sp` beside the sha. **A second notation derived from one read is not a second home; a second notation typed from a first is.** [...]
+- **THE RULE vc APPLIED, AND IT IS THE KEEPER: WHEN A RECORD CARRIES ONE FACT IN TWO NOTATIONS, THE ONE THAT CAME OFF THE INSTRUMENT BEATS THE ONE A HUMAN RETYPED.** [...]
+- **THE REMEDY IS STRUCTURAL AND BETTER THAN CARE: EMIT BOTH NOTATIONS FROM ONE CALL, so they cannot disagree.** devbin-cc's Phase 4 now prints `%Sp` beside the sha [...]
 - **THREE INSTANCES TODAY AND THE OTHER TWO ARE MINE.** [...]
-- **THE THROUGH-LINE, AND IT IS THE SAME ONE AS THE GATE FIGURE: A FACT WORTH RECORDING IS RECORDED AS THE CALL THAT PRODUCES IT, NEVER AS THE ANSWER IT PRODUCED.** `restart.md` already says do not transcribe the gate figure, run the three verb calls. [...]
-- **AND A GAP I COULD NOT CLOSE, RECORDED AS UNCLOSED: I never captured the pre-hop carrier MODE** -- sha and size only. **The column was filled from devbin-cc's and conflab-ic's independent pre-hop banks, not from anything I held.** [...]
+- **THE THROUGH-LINE, AND IT IS THE SAME ONE AS THE GATE FIGURE: A FACT WORTH RECORDING IS RECORDED AS THE CALL THAT PRODUCES IT, NEVER AS THE ANSWER IT PRODUCED.** [...]
+- **AND A GAP I COULD NOT CLOSE, RECORDED AS UNCLOSED: I never captured the pre-hop carrier MODE** -- sha and size only [...]
 
 ### FAMILY 6 -- AN UNMEASURED CLAIM INSIDE A COMPLIMENT (2026-08-28 09:28Z, mine, refuted by cc)
 
-- **I TOLD cc THEIR FIX WAS BETTER THAN THEY CLAIMED, AND THE REASON I GAVE WAS FALSE.** I said v1's `find | wc -l` and v2's NUL count differed such that a newline-in-path could inflate BOTH the file count and the row count together and pass. [...]
-- **THE DELIVERY VEHICLE IS THE CLASS, NOT THE ERROR.** The claim sat inside a compliment, in a message where every other claim was driven. [...]
-- **THE HONEST FORM OF WHAT I WAS REACHING FOR, and it favours cc: THE REDUNDANCY THEY LOST COULD NOT HAVE BEEN KEPT.** v1's second arm existed only because its counter was dishonest, and **on a `-print0` list the NUL count is the only correct counter there is.** [...]
-- **cc's FREEZE RULE, THEIRS AND BETTER THAN THE GROUND I OFFERED: ONCE A BASELINE IS TAKEN, THE INSTRUMENT IS FROZEN.** I argued stability against churn. [...]
+- **I TOLD cc THEIR FIX WAS BETTER THAN THEY CLAIMED, AND THE REASON I GAVE WAS FALSE.** I said v1's `find | wc -l` and v2's NUL count differed such that a newline-in-path could inflate BOTH the file count and the row count together and pass.
+- **THE DELIVERY VEHICLE IS THE CLASS, NOT THE ERROR.** The claim sat inside a compliment [...]
+- **THE HONEST FORM OF WHAT I WAS REACHING FOR, and it favours cc: THE REDUNDANCY THEY LOST COULD NOT HAVE BEEN KEPT.** v1's second arm existed only because its counter was dishonest [...]
+- **cc's FREEZE RULE, THEIRS AND BETTER THAN THE GROUND I OFFERED: ONCE A BASELINE IS TAKEN, THE INSTRUMENT IS FROZEN.** [...]
 
 ### FAMILY 0 -- THE SHARED CHECKOUT AND THE BLIND INSTRUMENT (2026-08-27, all measured, most of them on me)
 
 - **`$?` AFTER A PIPELINE IS THE LAST STAGE'S STATUS, AND IT HIT FOUR NODES IN ONE EVENING WITH NO CROSS-TALK.** [...]
 - **"INERT" IS DIMENSION-SPECIFIC AND THE DIMENSION YOU MEAN MAY NOT BE THE ONE THAT MATTERS.** [...]
-- **DETECTION IS NOT DISCRIMINATION: A GREEN THAT IS INVARIANT UNDER THE THING IT CERTIFIES.** After landing tolerance 0, `whiteboard_clock_guard.bats` returned 14/14 -- and the suite HAS a positive control that fires.
+- **DETECTION IS NOT DISCRIMINATION: A GREEN THAT IS INVARIANT UNDER THE THING IT CERTIFIES.** After landing tolerance 0 [...]
 - **THE DAY'S CLASS, FOUR INSTANCES, FOUR NODES, ONE DAY -- AND IT SUBSUMES THE THREE ABOVE.** [...]
-- **THE COMMIT IS THE ROLLOUT FOR ANYTHING READ LIVE OUT OF `INTENT_HOME`, SO THERE IS NO WINDOW IN WHICH TO ANNOUNCE FIRST.** Tolerance 0 was in force in fifteen estates the instant `3463f784` landed -- no sweep, no upgrade, no gap. [...]
+- **THE COMMIT IS THE ROLLOUT FOR ANYTHING READ LIVE OUT OF `INTENT_HOME`, SO THERE IS NO WINDOW IN WHICH TO ANNOUNCE FIRST.** Tolerance 0 was in force in fifteen estates the instant `3463f784` landed -- no sweep [...]
 - **DRIVING AN INSTRUMENT TELLS YOU ABOUT THE WORKTREE AT THIS INSTANT, NEVER ABOUT THE RUN YOU ARE INVESTIGATING.** [...]
-- **A TRUE GREEN FROM A BLIND INSTRUMENT IS WORSE THAN A FALSE ONE, BECAUSE IT GETS CITED.** My estate figure "0 of 5 hooks carry the arm" grepped `pre-commit`, which **carries the gate in no estate** -- that grep could not have returned anything else under any state of the world.
-- **THE PARITY APPARATUS HAS FOUR ROOT CONTRACTS, TWO MUTUALLY INVERSE.** 7 honour `ROOT=`; 6 resolve unconditionally from the script's own location; **2 derive from CWD's git toplevel, where `cd` works and `ROOT=` is IGNORED**; 2 take a positional.
-- **A CENSUS CANNOT REPORT THAT IT MEASURED THE WRONG PREDICATE.** My estate audit counted STRINGS (`102` in Laksa) and was structurally blind to the **7 sites that EXECUTE**, which is what turned it into a red suite.
-- **PROBE-BY-EXECUTION IS SAFE ONLY IF THE WRITE TARGET IS REDIRECTED AND THE REDIRECT IS HONOURED -- AND NOTHING VERIFIES THE SECOND HALF.** Three of my gated instruments execute (`$BIN doctor`; generators under `OUT="$tmp"`; `$DISPATCH precommit --list-guards`).
-- **A RESTORE MUST RESTORE EVERY INPUT THE CONSUMER KEYS ON, AND THE CONSUMER DECIDES WHAT THOSE ARE (ic).** A metadata-preserving restore puts bytes back with the ORIGINAL mtime; cargo keys on mtime, so the next run links the MUTATED artefact while `git diff` says clean.
-- **ADDITIONS MAY LEAD, REMOVALS MUST TRAIL (laksa-cc).** Laksa's suite went red at HEAD with nothing in `lib/` changed, because a removal landed ahead of its references.
+- **A TRUE GREEN FROM A BLIND INSTRUMENT IS WORSE THAN A FALSE ONE, BECAUSE IT GETS CITED.** My estate figure "0 of 5 hooks carry the arm" grepped `pre-commit` [...]
+- **THE PARITY APPARATUS HAS FOUR ROOT CONTRACTS, TWO MUTUALLY INVERSE.** 7 honour `ROOT=` [...]
+- **A CENSUS CANNOT REPORT THAT IT MEASURED THE WRONG PREDICATE.** My estate audit counted STRINGS (`102` in Laksa) and was structurally blind to the **7 sites that EXECUTE** [...]
+- **PROBE-BY-EXECUTION IS SAFE ONLY IF THE WRITE TARGET IS REDIRECTED AND THE REDIRECT IS HONOURED -- AND NOTHING VERIFIES THE SECOND HALF.** Three of my gated instruments execute (`$BIN doctor` [...]
+- **A RESTORE MUST RESTORE EVERY INPUT THE CONSUMER KEYS ON, AND THE CONSUMER DECIDES WHAT THOSE ARE (ic).** A metadata-preserving restore puts bytes back with the ORIGINAL mtime [...]
+- **ADDITIONS MAY LEAD, REMOVALS MUST TRAIL (laksa-cc).** Laksa's suite went red at HEAD with nothing in `lib/` changed [...]
 - **AN ANOMALY THAT SURVIVES A GOOD CORRECTION IS NOT NOISE -- IT IS THE PART OF THE SUBJECT THE CORRECTION DID NOT REACH.** cc's correction of my stale-hook claim was better measured than mine and right about the repair.
-- **CONTENTION MANUFACTURES STAGED-AND-STRANDED.** The index was locked continuously for ~15 minutes; `git add` succeeds and the commit then loses the race, so files sit staged in the shared index for as long as the queue lasts.
-- **THE AUTHORITATIVE STATEMENT WAS IN THE FILE, ON MY SCREEN, AND A BELIEF ABOUT THE SEAM OUTLIVED IT.** I told devbin-vc that Intent repointing `bin/int` would be undone by devbin on the next re-vendor, because `bin/.devbin/cmd/hooks` emits it 14 times.
+- **CONTENTION MANUFACTURES STAGED-AND-STRANDED.** The index was locked continuously for ~15 minutes [...]
+- **THE AUTHORITATIVE STATEMENT WAS IN THE FILE, ON MY SCREEN, AND A BELIEF ABOUT THE SEAM OUTLIVED IT.** I told devbin-vc that Intent repointing `bin/int` would be undone by devbin on the next re-vendor [...]
 - **AN OVERRIDABLE-LOOKING KNOB THAT IS NOT OVERRIDABLE REPORTS A PASS ABOUT THE WRONG SUBJECT.** [...]
-- **THE THIRD FACE OF THE SAME FAMILY, AND IT COST THE MOST BECAUSE IT LOOKED THE BEST: A CORRECT INSTRUMENT, CORRECTLY DRIVEN, POINTED AT THE WRONG SUBJECT.** I drove `lib/templates/hooks/pre-commit.sh` two-sided and reported `rc=1` as a fact about estates.
+- **THE THIRD FACE OF THE SAME FAMILY, AND IT COST THE MOST BECAUSE IT LOOKED THE BEST: A CORRECT INSTRUMENT, CORRECTLY DRIVEN, POINTED AT THE WRONG SUBJECT.** [...]
 - **NEVER MUTATE THE LIVE SUBJECT. COPY IT, MUTATE THE COPY, RUN THE COPY, DELETE THE COPY -- SO THERE IS NO RESTORE TO GET WRONG.** [...]
 - **A FLAG NAMED FOR SCOPE CAN DECIDE SEVERITY, AND GUESSING WHICH COSTS THE WHOLE ESTATE.** `thread_view_skew_check.sh --changed <paths>` does NOT narrow what is CHECKED -- all 288 views are examined either way and the cost is identical.
-- **FIVE CROSS-PROJECT CONSTANTS WERE PROPOSED TODAY AND ALL FIVE FAILED ON MEASUREMENT -- AND THEY ARE NOT PROPERTIES OF CARGO, THEY ARE PROPERTIES OF HOW A TREE HAS BEEN BUILT OVER TIME.** (1) phantom-contamination of a duplication metric: Conflab 46%, Intent 11%.
-- **CARRIED FROM vc 2026-08-27, NOT MEASURED BY ME, AND RECORDED BECAUSE vc BELIEVED MY BOARD ALREADY HELD THESE AND IT DID NOT.** Attribution matters here: these are vc's findings and I am the second carrier, not a witness. [...]
-- **NEVER DELETE A TREE SOMETHING ON `PATH` RESOLVES THROUGH, AND CHECK BEFORE, NOT AFTER. THIS IS STEP 0 OF ANY BUILD-CACHE CLEANUP.** [...]
-- **WHEN THE FAILURE IS "MY BOUND WAS TOO SMALL", A BIGGER BOUND REPRODUCES THE CLASS WITH A DIFFERENT CONSTANT -- THE FIX IS NO BOUND, PLUS A PRUNE FOR SPEED.** I went `-maxdepth 4` (found 7), widened to 6 (found 11), verified at 7 and **declared ALL COVERED.
-- **INDEPENDENT DERIVATION IS NOT CORROBORATION WHEN THE INSTRUMENTS SHARE A SHAPE (vc's, 2026-08-27, and it is the sharpest thing either of us said).** [...]
-- **VERIFY THE THING THAT DEPENDS ON THE CHANGE, NOT ONLY THE THING BEING CHANGED (one entry, both ends, agreed with vc).** Mine: I checked `target/release` was intact and never asked what depended on `target/debug` -- which is how the Conflab recipe went out.
+- **FIVE CROSS-PROJECT CONSTANTS WERE PROPOSED TODAY AND ALL FIVE FAILED ON MEASUREMENT -- AND THEY ARE NOT PROPERTIES OF CARGO, THEY ARE PROPERTIES OF HOW A TREE HAS BEEN BUILT OVER TIME.** [...]
+- **CARRIED FROM vc 2026-08-27, NOT MEASURED BY ME, AND RECORDED BECAUSE vc BELIEVED MY BOARD ALREADY HELD THESE AND IT DID NOT.** Attribution matters here: these are vc's findings and I am the second carrier [...]
+- **NEVER DELETE A TREE SOMETHING ON `PATH` RESOLVES THROUGH, AND CHECK BEFORE, NOT AFTER. THIS IS STEP 0 OF ANY BUILD-CACHE CLEANUP.**
+- **WHEN THE FAILURE IS "MY BOUND WAS TOO SMALL", A BIGGER BOUND REPRODUCES THE CLASS WITH A DIFFERENT CONSTANT -- THE FIX IS NO BOUND, PLUS A PRUNE FOR SPEED.** [...]
+- **INDEPENDENT DERIVATION IS NOT CORROBORATION WHEN THE INSTRUMENTS SHARE A SHAPE (vc's, 2026-08-27, and it is the sharpest thing either of us said).**
+- **VERIFY THE THING THAT DEPENDS ON THE CHANGE, NOT ONLY THE THING BEING CHANGED (one entry, both ends, agreed with vc).** [...]
 - **ENUMERATE TARGET DIRS FROM THE FILESYSTEM, NEVER FROM THE LAYOUT YOU EXPECT -- AND `.worktrees/` IS THE ONE EVERY SWEEP MISSES.** My estate sweep used `find -maxdepth 4 -name Cargo.toml` and returned SEVEN.
-- **THE GUARD'S OWN REFUSAL REMEDY BUILDS AN UNBOUNDED CACHE NOBODY COLLECTS, AND IT IS INVISIBLE TO EVERY `target/debug` MEASUREMENT.** `releasebuild.lib:189` tells a refused caller `CARGO_TARGET_DIR=<dir> int build $verb`; each node pointed it at `target/<node>/`.
+- **THE GUARD'S OWN REFUSAL REMEDY BUILDS AN UNBOUNDED CACHE NOBODY COLLECTS, AND IT IS INVISIBLE TO EVERY `target/debug` MEASUREMENT.** `releasebuild.lib:189` tells a refused caller `CARGO_TARGET_DIR=<dir> int build $verb` [...]
 - **THE BUILD-CACHE SWEEP METHOD, WHICH IS THE PART THAT TRANSFERS WHEN NONE OF THE NUMBERS DO.** [...]
 - **A ZERO AFTER A DELETE MUST BE CHASED, NOT REPORTED.** `bin/int cli ac list ST0056` returned zero rows straight after my sweep.
 - **A COMMENT IS NOT INERT IN SHELL: A LINE OPENING `# shellcheck` IS A DIRECTIVE, AND A MALFORMED ONE MAKES THE LINTER STOP RATHER THAN CONTINUE.** [...]
 - **A SURVIVING FILE THAT STILL DEPENDS ON `bin/` FAILS OPEN AFTER THE CUT, AT rc 0, WITH STDOUT THAT CAN BE BYTE-IDENTICAL TO THE CORRECT ANSWER.** [...]
 - **THE CLASS I WAS THE COMMON FACTOR IN THREE TIMES IN ONE DAY (2026-08-27): A TRUE ANSWER TO A NARROWER POPULATION THAN THE QUESTION.** (1) `grep 'INTENT_ROOT/bin/'` -> 2 of 7 coupled files.
-- **A WRONG-BUT-ADJACENT CORRECTION FROM A PEER IS A SIGNAL TO WIDEN THE CHECK, NOT TO WIN THE POINT (2026-08-27, vc).** vc reported `Lamplight/pdf_extractor` unmarked.
-- **A DEFENSIVE BRANCH WRITTEN TO STOP ONE FAILURE BECOMES THE THING THAT HIDES AN ABSENCE, AND THIS IS THE TRANSFERABLE HALF OF 2026-08-27's FINDING -- BETTER THAN THE BUG IT CAME FROM.** [...]
-- **THE BLIND GREP THAT RETURNS A TRUE NUMBER FOR A NARROWER QUESTION THAN THE ONE ASKED (vc's framing, banked 2026-08-27 in vc's terms because mine were worse).** Sweeping the plugin family for its `bin/` coupling, `grep 'INTENT_ROOT/bin/'` returned **TWO files and read as a complete answer**.
+- **A WRONG-BUT-ADJACENT CORRECTION FROM A PEER IS A SIGNAL TO WIDEN THE CHECK, NOT TO WIN THE POINT (2026-08-27, vc).** [...]
+- **A DEFENSIVE BRANCH WRITTEN TO STOP ONE FAILURE BECOMES THE THING THAT HIDES AN ABSENCE, AND THIS IS THE TRANSFERABLE HALF OF 2026-08-27's FINDING -- BETTER THAN THE BUG IT CAME FROM.**
+- **THE BLIND GREP THAT RETURNS A TRUE NUMBER FOR A NARROWER QUESTION THAN THE ONE ASKED (vc's framing, banked 2026-08-27 in vc's terms because mine were worse).** [...]
 - **`.prettierignore` IS GITIGNORE SYNTAX, WHERE A SINGLE `*` DOES NOT CROSS A `/`, AND A FENCE VERIFIED ONLY BY A GREEN IS NOT VERIFIED.** The obvious narrow list fences less than it looks like.
 - **A FENCE VERIFIED ONLY BY A GREEN IS NOT VERIFIED.** [...]
-- **A LOG LINE IS NOT A HEAD MOVE, AND ON A FIVE-NODE BRANCH THE NEWEST COMMIT IS USUALLY NOT YOURS.** On the bounce I read `git log --oneline -1`, saw ic's sha where I had left my own, and was one step from reporting a reset of a shared HEAD.
-- **A PIN IS RETIRED BY A SCHEMA BUMP, AND IT FAILS ONLY ON THE WRITE PATH.** `pair-f7240814` spoke store schema 13; ic's WP-14 took the store to 14 at `9bd6b0a3`.
-- **QUOTE CHARACTER IS NOT A PROSE/COMMAND BOUNDARY IN SHELL, AND I NEARLY INSTITUTIONALISED THAT IT WAS.** I had a fix queued that stripped backticked AND double-quoted spans as prose. [...]
+- **A LOG LINE IS NOT A HEAD MOVE, AND ON A FIVE-NODE BRANCH THE NEWEST COMMIT IS USUALLY NOT YOURS.** On the bounce I read `git log --oneline -1` [...]
+- **A PIN IS RETIRED BY A SCHEMA BUMP, AND IT FAILS ONLY ON THE WRITE PATH.** `pair-f7240814` spoke store schema 13 [...]
+- **QUOTE CHARACTER IS NOT A PROSE/COMMAND BOUNDARY IN SHELL, AND I NEARLY INSTITUTIONALISED THAT IT WAS.** I had a fix queued that stripped backticked AND double-quoted spans as prose.
 - **ONE COMMIT IS NOT ONE MOMENT, AND THE GATE READS THE WORKTREE.** This board already said _both sides move in one commit_ and that is insufficient.
-- **A TIME THAT CAME OUT OF A TOOL CARRIES WHATEVER ZONE THAT TOOL CHOSE, AND APPENDING `Z` IS AN ASSERTION, NOT A FORMAT.** `stat -f '%Sm'` prints LOCAL.
+- **A TIME THAT CAME OUT OF A TOOL CARRIES WHATEVER ZONE THAT TOOL CHOSE, AND APPENDING `Z` IS AN ASSERTION, NOT A FORMAT.** [...]
 - **A GREEN THAT CANNOT TELL WHAT IT NAMES FROM SOMETHING ELSE PRODUCING THE SAME GREEN.** [...]
 - **`ac new` IS AN IDEMPOTENT PUT, NOT AN INSERT, AND IT REWRITES `state` FROM `--kind` WHOSE DEFAULT IS `non-test`.** Amending a `kind: test` criterion without passing `--kind test` silently flips it and breaks its AT's coverage.
-- **AND `at new` IS THE SAME CLASS ONE NOTCH WORSE: IT HARDCODES `note: None` AND `legacy: None`, SO THERE IS NO CORRECT INVOCATION AT ALL.** `ac new` rebuilt `state` from `--kind` -- dangerous, but a flag existed to get it right, and reading the source first is what saved me.
-- **AND I THEN OVERCLAIMED IT INTO A BLOCKER, WHICH IS THE WORSE HALF AND IS MINE ALONE.** From _no verb writes `note`_ -- true -- I reported to vc, cc and ic that the work **could not be done** and that there was _no sequence of today's verbs_.
-- **THE GENERAL FORM, AND IT IS THE DAY'S CLASS ARRIVING IN MY OWN WORK RATHER THAN IN SOMEONE ELSE'S: A TRUE ANSWER ABOUT THE MECHANISM YOU SEARCHED, PUBLISHED AS AN ANSWER ABOUT WHETHER THE THING CAN BE DONE.** [...]
+- **AND `at new` IS THE SAME CLASS ONE NOTCH WORSE: IT HARDCODES `note: None` AND `legacy: None`, SO THERE IS NO CORRECT INVOCATION AT ALL.** [...]
+- **AND I THEN OVERCLAIMED IT INTO A BLOCKER, WHICH IS THE WORSE HALF AND IS MINE ALONE.** From _no verb writes `note`_ -- true -- I reported to vc [...]
+- **THE GENERAL FORM, AND IT IS THE DAY'S CLASS ARRIVING IN MY OWN WORK RATHER THAN IN SOMEONE ELSE'S: A TRUE ANSWER ABOUT THE MECHANISM YOU SEARCHED, PUBLISHED AS AN ANSWER ABOUT WHETHER THE THING CAN BE DONE.**
 - **AND IT ARRIVED FIVE TIMES IN ONE SESSION, ALL IN INSTRUMENTS I BUILT, SO IT IS NOT A LAPSE -- IT IS MY DEFAULT SHAPE.** [...]
-- **THE CHEAPEST CORRECTIVE, DERIVED FROM ALL FIVE: WHEN THE SUBJECT REPORTS ON ITSELF, READ ITS REPORT BEFORE BUILDING A SECOND OPINION.** The critic prints its own census; `git` prints what it committed; `shellcheck` prints which check fired.
-- **A FIELD IS ONLY DEAD IF SOMETHING SAYS SO, AND THAT CHECK IS WHAT SEPARATES A DATA-LOSS BUG FROM A DELIBERATE SUNSET.** Before reporting the above I tested the opposite hypothesis: `note` might be a migration-only field being retired, in which case nulling it is BY DESIGN.
+- **THE CHEAPEST CORRECTIVE, DERIVED FROM ALL FIVE: WHEN THE SUBJECT REPORTS ON ITSELF, READ ITS REPORT BEFORE BUILDING A SECOND OPINION.** The critic prints its own census [...]
+- **A FIELD IS ONLY DEAD IF SOMETHING SAYS SO, AND THAT CHECK IS WHAT SEPARATES A DATA-LOSS BUG FROM A DELIBERATE SUNSET.** Before reporting the above I tested the opposite hypothesis: `note` might be a migration-only field being retired [...]
 
 ### FAMILY 5 -- THE GATE THAT DID NOT RUN, AND THE VERB THE NAME SENDS YOU TO
 
-**ic's class, consolidated 2026-08-26 from five instances and grown to ten: A CONSTRAINT NAMES THE ACTION A HUMAN PICTURES WHILE THE GATE DOWNSTREAM READS A STATE.** Its sharpest corollary, which cost a blocked lane today: **a check that did not run is indistinguishable from one that passed** -- and the unguarded path is repeatedly the one the name sends you to. **hv's fix list lives here.**
+**ic's class, consolidated 2026-08-26 from five instances and grown to ten: A CONSTRAINT NAMES THE ACTION A HUMAN PICTURES WHILE THE GATE DOWNSTREAM READS A STATE.** Its sharpest corollary [...]
 
 - **THE TWO STAMP INSTRUMENTS ARE INTERCHANGEABLE FOR PROVENANCE AND NOT FOR VIABILITY, AND THE VIABILITY HALF HAS NO ENTRY ANYWHERE ELSE.** [...]
-- **ARM 7 ASSERTS ORDER AND NOTHING ASSERTS LATENCY, WHICH IS TRUE, INSUFFICIENT, AND LOOKS SUFFICIENT.** It proves the dirt verdict is taken before the first cargo invocation. [...]
+- **ARM 7 ASSERTS ORDER AND NOTHING ASSERTS LATENCY, WHICH IS TRUE, INSUFFICIENT, AND LOOKS SUFFICIENT.** It proves the dirt verdict is taken before the first cargo invocation.
 - **A GATE WHOSE SUBJECT IS A FILE FIVE WRITERS SHARE HAS A BLAST RADIUS NONE OF ITS ARMS DESCRIBE.** [...]
-- **SYNC CANON FIRST -- IT READS THE WORKTREE -- THEN COMMIT THE FILE AND ITS CANON TOGETHER, AND THE OBVIOUS ORDER IS THE WRONG ONE.** `canon_commit_check.sh` blocks a commit whose canon names bytes it does not carry, because canon stores an attachment's FULL TEXT rather than a hash. [...]
-- **A CENSUS THAT EXAMINES ONE OF FIVE AND REPORTS GREEN IS THE FALSE GREEN THE GUARD EXISTS TO REFUSE.** Arm 10's first draft printed `(1 examined)` against a tree carrying five, and PASSED -- so the count is printed and is the first thing to read. [...]
+- **SYNC CANON FIRST -- IT READS THE WORKTREE -- THEN COMMIT THE FILE AND ITS CANON TOGETHER, AND THE OBVIOUS ORDER IS THE WRONG ONE.** [...]
+- **A CENSUS THAT EXAMINES ONE OF FIVE AND REPORTS GREEN IS THE FALSE GREEN THE GUARD EXISTS TO REFUSE.** Arm 10's first draft printed `(1 examined)` against a tree carrying five [...]
 
 - **A `bin/`-ONLY PUSH IS LINTED BY NOTHING IN CI, AND THE BOOT FILE'S STATED BACKSTOP FOR IT IS FALSE.** [...]
-- **WHEN CLIPPY IS WIRED INTO THE RELEASE VERB, THE GATE IS THE FLAG, NOT A WARNING COUNT.** The verb runs zero clippy today (ic, confirmed). [...]
-- **THE RELEASE VERB NEVER TESTS THE TREE IT TAGS.** `preflight()` holds every gate and runs ONCE at `:482`; every mutation -- version stamp `:499`, `agents sync` `:663`, `claude upgrade --apply` `:690` -- happens after it; `:770` tags. [...]
+- **WHEN CLIPPY IS WIRED INTO THE RELEASE VERB, THE GATE IS THE FLAG, NOT A WARNING COUNT.** The verb runs zero clippy today (ic [...]
+- **THE RELEASE VERB NEVER TESTS THE TREE IT TAGS.** `preflight()` holds every gate and runs ONCE at `:482` [...]
 
 ### FAMILY 1 -- THE INSTRUMENT THAT CANNOT VARY WITH ITS SUBJECT
 
 **THE HEAD, ARRIVED AT 2026-08-25 AFTER SIX INSTANCES IN ONE EVENING AND PAID FOR MANY TIMES SINCE: AN INSTRUMENT THAT RETURNS THE SAME ANSWER WHATEVER THE SUBJECT DOES HAS MEASURED NOTHING, AND ITS OUTPUT IS INDISTINGUISHABLE FROM A REAL RESULT.**
 
-**THE TEST: RUN IT WHERE THE ANSWER SHOULD DIFFER, OR YOU HAVE NOT TESTED IT AT ALL.** Not _check your instrument_, which is unactionable. **Drive the case that MUST come back different.** Corollary paid for 2026-08-26: **a control that exercises only the arm that FIRES says nothing about the arm that must FALL SILENT**, and the silent arm is usually the whole value.
+**THE TEST: RUN IT WHERE THE ANSWER SHOULD DIFFER, OR YOU HAVE NOT TESTED IT AT ALL.** Not _check your instrument_, which is unactionable [...]
 
 **THE REASONING TRAPS, ONE LINE EACH. Each was a separate incident; the narratives are in `.history/` and in git.**
 
@@ -255,7 +239,7 @@ claims: [ST0056/07, ST0056/11, ST0066]
 - **An assertion placed AFTER the write it guards tests the writer, not the subject -- and it cannot fail.**
 - **Two readings of one source is one instrument counted twice** (cc).
 - **A measurement taken before your own write is stale by construction.**
-- **Line-index surgery must be bottom-up WITHIN a block, not only across sections** -- an insert above a later delete shifts it, and **every pre-mutation assert still passes, because it ran before the shift.** [...]
+- **Line-index surgery must be bottom-up WITHIN a block, not only across sections** -- an insert above a later delete shifts it [...]
 - **A grep cannot tell a statement from a sentence ABOUT a statement** (vc, `0076`) -- which is why arm 6c and arm 7 strip comments.
 - **A window boundary reported as an ORIGIN** (ic) -- `--grep` over _the last N commits_ returns a boundary, not a first occurrence.
 - **A range with no pin names a distance from a moving point; a pin with no range names bytes with no consequence** (ic).
@@ -269,13 +253,13 @@ claims: [ST0056/07, ST0056/11, ST0066]
 
 **THE OPERATIONAL TRAPS -- these are the ones that return a plausible wrong answer rather than an error.**
 
-- **NEVER `$?` AFTER A PIPE.** `cargo test` needs `--no-fail-fast`. **`grep -c` exits 1 on zero**, so `grep -c ... && ok` inverts, and `|| echo 0` fires too and yields `0\n0`. **Compare the NUMBER, never the exit status.**
-- **The Bash tool's shell is ZSH:** unquoted `$var` does NOT word-split (a `for` over one runs once and looks finished), an **unmatched glob ABORTS the whole command**, and an apostrophe inside a single-quoted `perl -e` runs nothing.
+- **NEVER `$?` AFTER A PIPE.** `cargo test` needs `--no-fail-fast`. **`grep -c` exits 1 on zero**, so `grep -c [...]
+- **The Bash tool's shell is ZSH:** unquoted `$var` does NOT word-split (a `for` over one runs once and looks finished) [...]
 - **`2>/dev/null` converts a broken probe into a clean answer.**
 - **A backtick inside a quoted grep pattern is a command substitution.**
 - **`find` walks into `target/` and dies at the timeout, returning a partial answer that reads as complete.** Scope to `native/rust/crates`.
 - **`find` here is bfs, not GNU find** -- `-newermt` is REFUSED and prints 0 at exit 0 under `2>/dev/null`.
-- **A `sed -i` that matches nothing is a no-op, and a no-op `sed` exits 0** -- a write that did not happen reports success. **The address is half the match**, and a bare line number is a second silent predicate that decays the moment a line is inserted above it.
+- **A `sed -i` that matches nothing is a no-op, and a no-op `sed` exits 0** -- a write that did not happen reports success [...]
 - **`bash -n` is wrong in BOTH directions and neither is visible from its output** (half vc's).
 - **`--help` IS NOT A PROBE** -- under INV-07 it exits 0 whether or not the command is built.
 - **`intent info | head -1` is the PRODUCT BANNER, identical from every cwd BY DESIGN.** I nearly withdrew a correct fix over it.
@@ -283,138 +267,138 @@ claims: [ST0056/07, ST0056/11, ST0066]
 - **`find`-based populations describe the WORKING TREE, never the commit** (ic, `run_tests.sh:89`).
 - **`grep -n` on a SINGLE file emits `<line>:<text>` with no filename**, so a `cut -d: -f3-` copied from a multi-file call eats the text.
 - **A truncated line preview answers about the line's PREFIX, not the line** -- on this board's prose-length lines that is almost always the wrong question.
-- **`ps | grep '[g]it commit'` is not a probe for a running git in this estate** -- it matches a peer LLM session whose prompt quotes the command. [...]
+- **`ps | grep '[g]it commit'` is not a probe for a running git in this estate** -- it matches a peer LLM session whose prompt quotes the command.
 - **A version defect can return the correct answer, exit 0, and put the error only on STDERR** (bash 3.2 `declare -A`).
 
 ### FAMILY 2 -- THE CLAIM EXCEEDS THE MEASUREMENT, AND THE TRUE HALF IS WHAT CARRIES THE FALSE ONE
 
-- **MY EVIDENCE WAS ENTIRELY TRUE AND MY SUBJECT WAS WRONG, AND THAT COMBINATION HAS NO TELL.** Every fact I cited checked out; the thing they were facts ABOUT was not the thing under discussion. **A reader verifying the evidence confirms it and learns nothing about the error.** [...]
-- **A FALSE CLAIM THAT LATER BECOMES TRUE FOR A DIFFERENT REASON IS THE WORST WAY FOR ONE TO AGE.** `bc38db85` said cc's half was met; it was wrong when written and true an hour later, for `1583d1ad`. **There is then nothing left to correct and no trace it was ever wrong.** [...]
-- **A SCOPE RULING SILENTLY NARROWS YOUR SEARCH POPULATION, AND NOTHING ANNOUNCES WHEN THE RULING EXPIRES.** I told hv the install artefact DID NOT EXIST. [...]
+- **MY EVIDENCE WAS ENTIRELY TRUE AND MY SUBJECT WAS WRONG, AND THAT COMBINATION HAS NO TELL.** Every fact I cited checked out [...]
+- **A FALSE CLAIM THAT LATER BECOMES TRUE FOR A DIFFERENT REASON IS THE WORST WAY FOR ONE TO AGE.** `bc38db85` said cc's half was met [...]
+- **A SCOPE RULING SILENTLY NARROWS YOUR SEARCH POPULATION, AND NOTHING ANNOUNCES WHEN THE RULING EXPIRES.** I told hv the install artefact DID NOT EXIST.
 
 - **NOTHING CONNECTS A DECISION TO THE CONDITION IT WAS MADE UNDER, AND A DEFECT'S DISAPPEARANCE ANNOUNCES ITSELF TO NOBODY.** [...]
 
-**A CONFIDENT UNMEASURED NUMBER IN A _RATIONALE_ IS LOAD-BEARING IN A WAY ONE IN A _REPORT_ IS NOT -- A REPORT GETS CHECKED, A RATIONALE GETS HONOURED** (vc's formulation). All three of my shipped defects are instances.
+**A CONFIDENT UNMEASURED NUMBER IN A _RATIONALE_ IS LOAD-BEARING IN A WAY ONE IN A _REPORT_ IS NOT -- A REPORT GETS CHECKED, A RATIONALE GETS HONOURED**
 
-**AND ITS INHERITED FORM, PAID FOR 2026-08-26 AND WORSE THAN THE SELF-INFLICTED ONE: A PEER'S MEASUREMENT ARRIVES WITH A CAUSE ATTACHED, AND THE CAUSE IS THE PART NOBODY MEASURED.** vc's _167 tracked views rewritten_ was real. _By read verbs_ was the attribution, and it was the load-bearing half. I put the whole sentence into this board as established fact and built a release-note recommendation on it. **Worse, I then read my OWN result through the borrowed premise instead of testing it.** My fixture ran the PAIR and never once ran the 3.0.0 keg, so I held exactly zero evidence about the keg -- and I wrote vc the sentence _YOU MEASURED THE SHIPPED KEG; THE PAIR DOES NOT DO IT_, which asserts a CONTRAST whose other half I had not measured. The half that was mine (_the pair does not rewrite on read_) was sound and helped kill the claim. The half that made it a finding was borrowed. **A measurement handed to you is evidence; the cause attached to it is a hypothesis wearing the measurement's authority, and quoting the number is what launders the second into the first.** Restate a peer's figure with its cause marked as theirs and unverified, or measure the cause yourself before it becomes a premise in your own file.
+**AND ITS INHERITED FORM, PAID FOR 2026-08-26 AND WORSE THAN THE SELF-INFLICTED ONE: A PEER'S MEASUREMENT ARRIVES WITH A CAUSE ATTACHED, AND THE CAUSE IS THE PART NOBODY MEASURED.**
 
-- **`bin/intent3` claimed a coherence check would be "a MULTI-SECOND gate on every command".** Driven: **~85ms end-to-end**, against a component sum measured separately at ~110ms. **The two do not reconcile and I have not resolved them; neither is within two orders of magnitude of the claim.** [...]
-- **`cmd/hosting` claimed "in a throwaway clone a mutator harms nothing".** Never driven. Every verb ran from the LIVE tree's cwd and it emptied the durable store.
-- **`currency.lib` PRINTED A FLOOR AS A DISTANCE** -- the overclaim in the error message of the file written to refuse overclaims, **and the fix for it added an arm nothing drove** (ic). **A fix that adds an arm adds a thing to drive.**
-- **A WARNING IS NOT DISCHARGED BY BEING TRUE -- IT IS DISCHARGED WHEN THE REMEDY IT INVITES IS ALSO CHECKED** (ic, against themselves).
-- **MY TELL vs cc's, AND THEY ARE MIRRORS:** I publish the claim the measurement INVITES (wrong at the READING); cc drives the measurement and publishes a stronger claim about what it measured (wrong at the WRITING). **Both rest on a real number, which is why neither gets challenged.**
-- **A ROW CARRYING ONE TRUE SENTENCE AND ONE FALSE ONE IS HARDER TO CATCH THAN A WHOLLY WRONG ROW, BECAUSE THE TRUE HALF IS WHAT A READER CHECKS FIRST AND IT HOLDS** (cc, on my false roster row).
+- **`bin/intent3` claimed a coherence check would be "a MULTI-SECOND gate on every command".** Driven: **~85ms end-to-end** [...]
+- **`cmd/hosting` claimed "in a throwaway clone a mutator harms nothing".** Never driven [...]
+- **`currency.lib` PRINTED A FLOOR AS A DISTANCE** -- the overclaim in the error message of the file written to refuse overclaims [...]
+- **A WARNING IS NOT DISCHARGED BY BEING TRUE -- IT IS DISCHARGED WHEN THE REMEDY IT INVITES IS ALSO CHECKED** (ic [...]
+- **MY TELL vs cc's, AND THEY ARE MIRRORS:** I publish the claim the measurement INVITES (wrong at the READING) [...]
+- **A ROW CARRYING ONE TRUE SENTENCE AND ONE FALSE ONE IS HARDER TO CATCH THAN A WHOLLY WRONG ROW, BECAUSE THE TRUE HALF IS WHAT A READER CHECKS FIRST AND IT HOLDS** [...]
 - **`checked against the schema` VERSUS `checked against a grep of the source` IS THE WHOLE DISTANCE, AND NEITHER OF US COULD SEE IT IN OUR OWN SENTENCE AT THE TIME OF WRITING.**
-- **A STABLE CONCLUSION ACROSS THREE WRONG POPULATIONS IS NOT CORROBORATION -- IT IS THE POPULATION NOT BEING LOAD-BEARING FOR THAT CONCLUSION** (cc, on vc's withdrawal).
-- **A HAND-MAINTAINED SET THAT NOTHING CHECKS IS THE ROSTER PROBLEM,** and I built one while explaining it. **Manifest plus a drift check, and a path in NEITHER the manifest nor a declared-exclusions list is an ERROR rather than a judgement call** (vc).
-- **UNCHECKED IS NOT EMPTY, AND ONLY THE OUTPUT CAN CARRY THAT DISTINCTION.** An instrument that measures a narrow scope and reports in the vocabulary of the general category produces a **true sentence and a false belief**, so nothing it can check is wrong. [...]
-- **A RULE IS HONOURED BY WHOEVER LEARNED IT AND DOES NOT PROPAGATE BY HAVING BEEN STATED.** `precommit` has 14 guard arms at three strengths; **7 assert a repository finding on ANY non-zero exit.** [...]
-- **A SUPERSEDES NOTE APPENDED BELOW WHAT IT SUPERSEDES LEAVES THE DEAD CLAIM AS THE HEADLINE.** `acceptance.md:199` still OPENS with the green arm vc amended away, with the correction far below it. [...]
+- **A STABLE CONCLUSION ACROSS THREE WRONG POPULATIONS IS NOT CORROBORATION -- IT IS THE POPULATION NOT BEING LOAD-BEARING FOR THAT CONCLUSION** (cc [...]
+- **A HAND-MAINTAINED SET THAT NOTHING CHECKS IS THE ROSTER PROBLEM,** and I built one while explaining it [...]
+- **UNCHECKED IS NOT EMPTY, AND ONLY THE OUTPUT CAN CARRY THAT DISTINCTION.** An instrument that measures a narrow scope and reports in the vocabulary of the general category produces a **true sentence and a false belief** [...]
+- **A RULE IS HONOURED BY WHOEVER LEARNED IT AND DOES NOT PROPAGATE BY HAVING BEEN STATED.** `precommit` has 14 guard arms at three strengths [...]
+- **A SUPERSEDES NOTE APPENDED BELOW WHAT IT SUPERSEDES LEAVES THE DEAD CLAIM AS THE HEADLINE.** `acceptance.md:199` still OPENS with the green arm vc amended away [...]
 - **A GUARD CAN HAND OUT A REMEDY THAT CAUSES THE DEFECT ANOTHER GUARD EXISTS TO PREVENT, AND NEITHER CAN SEE IT.** [...]
-- **A WRONG LINE NUMBER IS ONLY A TRAP IF FOLLOWING IT CAN REACH A GREEN.** vc warned the 3.2 error at `:216` would lead a fixer to gut the exemplar. Built it: the error MARCHES to `:225` and stays there. **Misleading, not trapping -- and the marching is what tells you to stop chasing and look up.**
+- **A WRONG LINE NUMBER IS ONLY A TRAP IF FOLLOWING IT CAN REACH A GREEN.** vc warned the 3.2 error at `:216` would lead a fixer to gut the exemplar [...]
 
-- **A CORRECT MEASUREMENT DESCRIBED IN THE WRONG TERMS TRAVELS AS THE WRONG RULE, AND THE OBSERVATION BEING TRUE IS WHAT STOPS ANYONE CHECKING.** Twice in a day, both mine. [...]
+- **A CORRECT MEASUREMENT DESCRIBED IN THE WRONG TERMS TRAVELS AS THE WRONG RULE, AND THE OBSERVATION BEING TRUE IS WHAT STOPS ANYONE CHECKING.** Twice in a day [...]
 
-- **A NUMBER WHOSE SUBJECT IS NOT ON THE LINE CANNOT BE CHECKED BY THE NEXT READER.** vc's board carried `Gate still PASS at 67 of 67`; **no thread gate is 67** (64/134, 51/53, 2/6). It was `ST0057` 51/51 **plus** `ST0056/03` 16/16 -- **two thread gates summed, with nothing on the line saying so.** [...]
+- **A NUMBER WHOSE SUBJECT IS NOT ON THE LINE CANNOT BE CHECKED BY THE NEXT READER.** vc's board carried `Gate still PASS at 67 of 67` [...]
 - **A SUPERSEDES BANNER LEAVES TWO VALUES IN ONE HOME, AND THE TRUE HALF IS WHAT MAKES THE FALSE HALF READABLE.** [...]
 
-- **A `git status` IS PERISHABLE IN EXACTLY THE WAY A TIMESTAMP IS, AND MINE WAS STALE AT BIRTH RATHER THAN EXPIRED.** I told vc _none of the dirty files are mine, my paths are clean_ while quoting the BOOT-TIME status -- having edited my own board two calls earlier. [...]
+- **A `git status` IS PERISHABLE IN EXACTLY THE WAY A TIMESTAMP IS, AND MINE WAS STALE AT BIRTH RATHER THAN EXPIRED.** I told vc _none of the dirty files are mine [...]
 
 ### FAMILY 3 -- ROUTING, RELAY AND ATTRIBUTION
 
-- **THE OFFER IS THE MOMENT TO CHECK, NOT THE SEND.** Once two messages are in flight the only tools left are racing and deduping, and only one works. Three instances, one mechanism.
+- **THE OFFER IS THE MOMENT TO CHECK, NOT THE SEND.** Once two messages are in flight the only tools left are racing and deduping [...]
 - **A FORWARDING OBLIGATION DISCHARGED BUT NOT CANCELLED MANUFACTURES FALSE CORROBORATION** -- it arrives TWICE wearing TWO authorships and **the second announces itself as agreement. Tell the RECIPIENT to expect one copy; the recipient can dedupe, the relay can only be beaten.**
-- **VOLUNTEERING A RELAY _IS_ CREATING THE OBLIGATION, AND THE COORDINATOR HABIT IS TO VOLUNTEER** (vc). A rule only the receiver can apply arrives one step too late.
-- **NAME WHICH _HALF_ YOU ARE ATTRIBUTING** (vc, wholly theirs). An incident and its generalisation are separable and usually have different authors. **Nobody audits an attribution.**
-- **A PEER TELLING YOU WHAT ONLY THE SOURCE CAN SETTLE IS TELLING YOU WHAT _THEY READ_** (ic). Fold instructions, quoted rows, relayed rulings alike.
-- **A RULING DELIVERED AS A SELECTION AMONG OPTIONS YOU AUTHORED IS ONE WHOSE WORDING IS YOURS AND WILL BE QUOTED AS THEIRS. RECORD THE OPTIONS, NOT THE OUTCOME**, in an inbox where it survives the session.
-- **A CORRECT ANSWER ABANDONED ON A PEER'S SAY-SO IS WORSE THAN THE PEER'S WRONG ANSWER, AND IT IS THE HALF YOU CONTROL.** I had the attribution start date right at 2026-08-24. vc said 08-21. [...]
-- **I REFUSED TWO RELAYED AUTHORISATIONS TODAY AND BOTH REFUSALS WERE UPHELD.** vc relayed hv's ruling that the attribution guard was mine to build; hv had ruled it in **vc's** session answering **vc's** question, and hv has me holding in mine. [...]
-- **THE INVERSE ALSO HELD: I RELAYED AN hv RULING TO vc AND FLAGGED IT AS A RELAY, AND TOLD THEM TO CONFIRM IT AT THE SOURCE. THEY DID, AND IT HELD.** Quote the ruling VERBATIM rather than characterising it -- a ruling paraphrased in your words gets quoted back as theirs.
+- **VOLUNTEERING A RELAY _IS_ CREATING THE OBLIGATION, AND THE COORDINATOR HABIT IS TO VOLUNTEER** (vc) [...]
+- **NAME WHICH _HALF_ YOU ARE ATTRIBUTING** (vc, wholly theirs). An incident and its generalisation are separable and usually have different authors [...]
+- **A PEER TELLING YOU WHAT ONLY THE SOURCE CAN SETTLE IS TELLING YOU WHAT _THEY READ_** (ic) [...]
+- **A RULING DELIVERED AS A SELECTION AMONG OPTIONS YOU AUTHORED IS ONE WHOSE WORDING IS YOURS AND WILL BE QUOTED AS THEIRS. RECORD THE OPTIONS, NOT THE OUTCOME**
+- **A CORRECT ANSWER ABANDONED ON A PEER'S SAY-SO IS WORSE THAN THE PEER'S WRONG ANSWER, AND IT IS THE HALF YOU CONTROL.** I had the attribution start date right at 2026-08-24 [...]
+- **I REFUSED TWO RELAYED AUTHORISATIONS TODAY AND BOTH REFUSALS WERE UPHELD.** vc relayed hv's ruling that the attribution guard was mine to build [...]
+- **THE INVERSE ALSO HELD: I RELAYED AN hv RULING TO vc AND FLAGGED IT AS A RELAY, AND TOLD THEM TO CONFIRM IT AT THE SOURCE. THEY DID, AND IT HELD.**
 - **THE BLOCKED PARTY TELLS THE BLOCKER, NOT THE SEQUENCER.**
-- **A PROOF ONLY ITS AUTHOR CAN REPRODUCE IS NOT YET A PROOF THE ESTATE HOLDS** (ic). Survives the soundness being conceded. **Script the repro.**
-- **A PEER'S READY-MADE COMMAND IS NOT AN APPROVAL, AND CONVENIENCE IS WHAT MAKES IT SLIP.** Distinct from a relayed approval: the peer claims no authority and is simply being helpful, so there is nothing to challenge and nothing that reads as a demand. [...]
+- **A PROOF ONLY ITS AUTHOR CAN REPRODUCE IS NOT YET A PROOF THE ESTATE HOLDS** (ic). Survives the soundness being conceded [...]
+- **A PEER'S READY-MADE COMMAND IS NOT AN APPROVAL, AND CONVENIENCE IS WHAT MAKES IT SLIP.** Distinct from a relayed approval: the peer claims no authority and is simply being helpful [...]
 
 ### FAMILY 4 -- THE SHARED CHECKOUT
 
-- **`git add` THEN `git commit --only` IS NOT ATOMIC ACROSS THE INDEX LOCK, AND THE SECOND ERROR MASKS THE FIRST.** Landing this very fold, five nodes folded at once on hv's instruction and ic's `git commit` held `.git/index.lock` through its whole pre-commit gate. [...]
+- **`git add` THEN `git commit --only` IS NOT ATOMIC ACROSS THE INDEX LOCK, AND THE SECOND ERROR MASKS THE FIRST.** Landing this very fold [...]
 
-- **`MM` IS A CLAIM ABOUT THE INDEX'S CACHED STAT, NOT ABOUT CONTENT, AND UNDER LOCK CONTENTION IT SAYS `staged` ABOUT A FILE WITH NOTHING STAGED.** My board commit collided with a peer's git process (`fatal: Unable to create '.git/index.lock'`) and the commit's own post-commit cleanup never ran. [...]
+- **`MM` IS A CLAIM ABOUT THE INDEX'S CACHED STAT, NOT ABOUT CONTENT, AND UNDER LOCK CONTENTION IT SAYS `staged` ABOUT A FILE WITH NOTHING STAGED.** My board commit collided with a peer's git process (`fatal: Unable to create '.git/index.lock'`) and the commit's own post-commit cleanup never ran.
 
-- **`git commit --only <paths>` IS NOT A NICER SPELLING OF CHECKING THE INDEX FIRST -- IT IS THE ONLY FORM THAT IS ATOMIC WITH RESPECT TO PEERS.** Reading `git diff --cached --name-only` **measures a MOMENT, and the commit happens at a different one.** [...]
-- **THERE IS NO SUCH THING AS A WORK-IN-PROGRESS EDIT TO A GATED GUARD IN A SHARED CHECKOUT.** The pre-commit gate runs the **WORKTREE** copy, so every intermediate save is instantly live for four other nodes. [...]
+- **`git commit --only <paths>` IS NOT A NICER SPELLING OF CHECKING THE INDEX FIRST -- IT IS THE ONLY FORM THAT IS ATOMIC WITH RESPECT TO PEERS.** Reading `git diff --cached --name-only` **measures a MOMENT, and the commit happens at a different one.**
+- **THERE IS NO SUCH THING AS A WORK-IN-PROGRESS EDIT TO A GATED GUARD IN A SHARED CHECKOUT.** The pre-commit gate runs the **WORKTREE** copy [...]
 
-- **`awk ... > tmp && mv tmp file` DROPS THE MODE, SILENTLY, AND EVERY CHECK I OWN IS BLIND TO IT.** I used it three times, chmod'd two by reflex, and left `bin/.devbin/cmd/precommit` at 644 -- **every `git commit` in the repo failed until ic drove it to the cause.** [...]
-- **THE REMEDY FOR A SHARED-INDEX HAZARD CAN BE THE NEXT OUTAGE, AND BOTH MOVES WERE INDIVIDUALLY RIGHT.** vc flagged five staged files as a loaded gun; I agreed and unstaged; **unstaging left a live roster row naming an untracked file and refused every node's commit.** [...]
+- **`awk ... > tmp && mv tmp file` DROPS THE MODE, SILENTLY, AND EVERY CHECK I OWN IS BLIND TO IT.** I used it three times [...]
+- **THE REMEDY FOR A SHARED-INDEX HAZARD CAN BE THE NEXT OUTAGE, AND BOTH MOVES WERE INDIVIDUALLY RIGHT.** vc flagged five staged files as a loaded gun [...]
 - **PROVE AN UNBLOCK WITH A REAL COMMIT, NEVER BY ASSERTING IT.** I asserted twice and was wrong twice in twenty minutes. [...]
 
-- **FOUR WRITERS, ONE TREE, ONE INDEX.** Peers' dirty files are in every `git status` you read. **Name yours; `--only` is PATH-scoped, never hunk-scoped.** Peers commit concurrently -- **wait a lock out, never clear it.**
-- **AN UNCOMMITTED EDIT WAS ERASED HERE WITH NO REFLOG TRACE AND hv RULED IT ACCEPTED RATHER THAN INVESTIGATED.** Live and undiagnosed BY DECISION. **A protective copy OUTSIDE the tree costs nothing; staging is NOT the remedy, because the index is shared.**
-- **A FIGURE ABOUT HEAD BELONGS IN THE SINGLE-WRITER CLONE** (`int suite`, `int hosting`). A figure about the WORKING TREE must be defended by attribution instead.
+- **FOUR WRITERS, ONE TREE, ONE INDEX.** Peers' dirty files are in every `git status` you read [...]
+- **AN UNCOMMITTED EDIT WAS ERASED HERE WITH NO REFLOG TRACE AND hv RULED IT ACCEPTED RATHER THAN INVESTIGATED.** Live and undiagnosed BY DECISION [...]
+- **A FIGURE ABOUT HEAD BELONGS IN THE SINGLE-WRITER CLONE** (`int suite`, `int hosting`) [...]
 - **`bin/` IS dc's LANE** (hv). `bin/.devbin/cmd/**` is Intent's own; **`bin/devbin` and `bin/.devbin/lib/**` are VENDORED and not this repo's to edit.**
-- **A MONIKER NAMES WHERE A SESSION LIVES, NEVER WHERE ITS BYTES LAND.** `devbin/vc` works in `~/Devel/prj/Devbin` and its fleet sweep writes into **eleven checkouts including this one**. Five paths here went dirty mid-commit with no announcement, and **nothing on the wire marks the crossing.** [...]
-- **`--only` IS WHAT MADE THAT A QUESTION RATHER THAN AN INCIDENT** (devbin/vc's words, and they are right). A bare `git add -A` sweeps a fleet vendor into your commit **silently**, and neither party learns until the log reads strangely.
-- **THE FORMATTER IS A SECOND WRITER BETWEEN THE SYNC AND THE COMMIT, AND IT FIRED AGAIN TONIGHT.** It realigned a table I had just synced, so canon named bytes the file no longer held and the gate refused at `ADDS 1`. **Order: write, LET THE FORMATTER SETTLE, sync, commit.** [...]
-- **THE SUBJECT CAN MOVE BETWEEN YOUR TWO READS, AND THE SECOND READ LOOKS LIKE AN ANSWER.** `git diff --numstat` reported changes to an issue's canon; `git diff` seconds later printed nothing. **Not a broken instrument -- a peer committed in between.** [...]
-- **COMMITTED IS SELF-DESCRIBING; HELD IS NOT** (mine, adopted into devbin's sweep procedure at their `c6c30f9`). A committed change carries an author, a message and a log entry. [...]
+- **A MONIKER NAMES WHERE A SESSION LIVES, NEVER WHERE ITS BYTES LAND.** `devbin/vc` works in `~/Devel/prj/Devbin` and its fleet sweep writes into **eleven checkouts including this one** [...]
+- **`--only` IS WHAT MADE THAT A QUESTION RATHER THAN AN INCIDENT** (devbin/vc's words, and they are right) [...]
+- **THE FORMATTER IS A SECOND WRITER BETWEEN THE SYNC AND THE COMMIT, AND IT FIRED AGAIN TONIGHT.** It realigned a table I had just synced [...]
+- **THE SUBJECT CAN MOVE BETWEEN YOUR TWO READS, AND THE SECOND READ LOOKS LIKE AN ANSWER.** `git diff --numstat` reported changes to an issue's canon [...]
+- **COMMITTED IS SELF-DESCRIBING; HELD IS NOT** (mine, adopted into devbin's sweep procedure at their `c6c30f9`) [...]
 - **A FILTER OVER A COMMAND'S OUTPUT MUST BE ABLE TO EXPRESS ITS FAILURE, NOT ONLY ITS SUCCESS.** [...]
 
 - **A SCRATCH DIRECTORY INSIDE A GUARDED TREE IS INDISTINGUISHABLE FROM IN-FLIGHT SOURCE TO EVERY GUARD WE OWN.** [...]
-- **THE ISOLATION YOU REACH FOR TO AVOID DISTURBING A PEER'S BUILD IS EXACTLY WHAT INVALIDATES YOUR RESULT -- TWO NODES, ONE DAY, ONE INSTRUMENT DEFECT.** ic manufactured 13 false failures in the morning and cc 2 in the afternoon, both from a `CARGO_TARGET_DIR` in scratch. [...]
+- **THE ISOLATION YOU REACH FOR TO AVOID DISTURBING A PEER'S BUILD IS EXACTLY WHAT INVALIDATES YOUR RESULT -- TWO NODES, ONE DAY, ONE INSTRUMENT DEFECT.** [...]
 
 ## Decisions
 
-- **2026-08-29 -- CORRECT YOUR OWN ESCALATION BEFORE IT REACHES THE PRINCIPAL, ESPECIALLY WHEN THE ERROR MADE YOUR ASK LOOK BIGGER.** I escalated the fiat exit as "hv ruled one verb and the invariant demands a second". [...]
-- **2026-08-29 -- WHEN AN INSTRUCTION ASKS FOR SOMETHING AN INVARIANT FORBIDS, MEASURE IT AND SAY SO; DO NOT BUILD THE HALF THAT PASSES TODAY.** vc asked me to shape the entry edge so the exit could follow. It cannot: entry alone makes a trap state. [...]
-- **2026-08-29 -- READING THE WRITE-UP OF A CLASS IS NOT PROTECTION FROM IT.** I noted the `///`-is-published rule, then shipped `D42` into a published doc twenty minutes later, then shipped a thread id into a shipped string literal an hour after that. [...]
+- **2026-08-29 -- CORRECT YOUR OWN ESCALATION BEFORE IT REACHES THE PRINCIPAL, ESPECIALLY WHEN THE ERROR MADE YOUR ASK LOOK BIGGER.** I escalated the fiat exit as "hv ruled one verb and the invariant demands a second".
+- **2026-08-29 -- WHEN AN INSTRUCTION ASKS FOR SOMETHING AN INVARIANT FORBIDS, MEASURE IT AND SAY SO; DO NOT BUILD THE HALF THAT PASSES TODAY.** [...]
+- **2026-08-29 -- READING THE WRITE-UP OF A CLASS IS NOT PROTECTION FROM IT.** I noted the `///`-is-published rule [...]
 
-- **2026-08-28 -- A DEFECT'S FILED WIDTH IS NOT ITS REAL WIDTH, AND THE OBVIOUS FIX FOR THE FILED WIDTH CAN BE WRONG RATHER THAN MERELY SHORT.** `(k)` was filed on `languages: []`, for which the renderer ALREADY had `[[#nolang]]` -- so "two template blocks" looked like the whole job. [...]
+- **2026-08-28 -- A DEFECT'S FILED WIDTH IS NOT ITS REAL WIDTH, AND THE OBVIOUS FIX FOR THE FILED WIDTH CAN BE WRONG RATHER THAN MERELY SHORT.** `(k)` was filed on `languages: []` [...]
 
 - **2026-08-28 -- A COST ESTIMATE IS A CLAIM AND IS OWED THE SAME MEASUREMENT AS ANY OTHER.** I told vc the AC-07.6 migration arm "needs a v2 estate fixture that does not exist yet" **without opening the file.** [...]
 
-- **2026-08-28 -- A PARITY TOOL UNDER `intent/st/ST0056/parity/tools/` IS AN INLINE CANON ATTACHMENT, AND EDITING ONE HAS A COMMIT ORDER THE OBVIOUS SEQUENCE GETS WRONG.** [...]
-- **2026-08-28 -- NOT EVERY NEW TEST ARM SHOULD FAIL THE CONTROL, AND CLAIMING OTHERWISE WOULD BE THE FLATTERING LIE.** Driving the pre-fix code red 4 of 5 new arms; the fifth asserts the OLD check survives the change, so it must pass under both. [...]
+- **2026-08-28 -- A PARITY TOOL UNDER `intent/st/ST0056/parity/tools/` IS AN INLINE CANON ATTACHMENT, AND EDITING ONE HAS A COMMIT ORDER THE OBVIOUS SEQUENCE GETS WRONG.**
+- **2026-08-28 -- NOT EVERY NEW TEST ARM SHOULD FAIL THE CONTROL, AND CLAIMING OTHERWISE WOULD BE THE FLATTERING LIE.** Driving the pre-fix code red 4 of 5 new arms [...]
 - **2026-08-28 -- ZSH BIT THREE TIMES IN ONE SESSION AND EVERY ONE WAS ALREADY WRITTEN DOWN.** [...]
-- **2026-08-28 -- ~~I CHECKED WHOSE THE RED WAS BEFORE REPORTING IT~~ STRUCK. I banked my own error as the day's lesson learned; cc refuted it and I verified the refutation myself.** Full arc archived; records `0120e8a5`, `92570169`, `e9e71246`. **Two classes survive it and both are the keepers:**
-  - **EXONERATION AND ATTRIBUTION ARE TWO CLAIMS AND I MEASURED ONE.** "My diff does not render the subject" establishes it is NOT MINE and says nothing about whose it is. [...]
-  - **AN EXPECTATION WHOSE PREMISE A LANDED DECISION RETIRED, WITH NOTHING CONNECTING THE DECISION TO THE EXPECTATION.** Three costumes: cc's `Super_Seded` control (stale GREEN), my `view_skew_check` arm (stale RED for a day), `dispatch_ssot`'s bootstrap probe. [...]
+- **2026-08-28 -- ~~I CHECKED WHOSE THE RED WAS BEFORE REPORTING IT~~ STRUCK. I banked my own error as the day's lesson learned; cc refuted it and I verified the refutation myself.** [...]
+  - **EXONERATION AND ATTRIBUTION ARE TWO CLAIMS AND I MEASURED ONE.** "My diff does not render the subject" establishes it is NOT MINE and says nothing about whose it is.
+  - **AN EXPECTATION WHOSE PREMISE A LANDED DECISION RETIRED, WITH NOTHING CONNECTING THE DECISION TO THE EXPECTATION.** Three costumes: cc's `Super_Seded` control (stale GREEN) [...]
 
-- (2026-08-28) **vc CORRECTED MY ROLLBACK FINDING AT THE RIGHT LEVEL AND IT GENERALISES: THE CARRIER IS DERIVED FROM A TRACKED TEMPLATE, SO THE GENERATOR IS WHAT YOU PRESERVE AND THE OUTPUT NEVER WAS.** I reported the gitignored carrier as having no rollback. [...]
-- (2026-08-28) **I FILED THREE ISSUES WITHOUT RUNNING `intent issues list`. ONE WAS A DUPLICATE OF AN OPEN ISSUE; ONE WAS REFUTED BY MY OWN COMMIT OF THE DAY BEFORE, RECORDED IN THIS BOARD'S OWN DOING.** cc's reading is the keeper: **the board is a place I WRITE rather than a place I READ.** [...]
-- (2026-08-28) **A TRUE POSITIVE DISCARDED AS FALSE COSTS AS MUCH AS A FALSE ONE BELIEVED.** `int hooks` called this tree's carrier STALE and was RIGHT; I filed the REMEDY's blast radius as a defect in the DETECTION. The carrier stayed stale six more hours. [...]
-- (2026-08-28) **THE REHEARSAL'S VALUE WAS IN THE THREE INSTRUMENTS I CHECKED, NOT IN THE STEPS I RAN.** A clone would have been blind to the hook-door question by construction; cc's manifest would have written into my decoy; vc's cold-clippy warning was inverted. [...]
+- (2026-08-28) **vc CORRECTED MY ROLLBACK FINDING AT THE RIGHT LEVEL AND IT GENERALISES: THE CARRIER IS DERIVED FROM A TRACKED TEMPLATE, SO THE GENERATOR IS WHAT YOU PRESERVE AND THE OUTPUT NEVER WAS.** [...]
+- (2026-08-28) **I FILED THREE ISSUES WITHOUT RUNNING `intent issues list`. ONE WAS A DUPLICATE OF AN OPEN ISSUE; ONE WAS REFUTED BY MY OWN COMMIT OF THE DAY BEFORE, RECORDED IN THIS BOARD'S OWN DOING.** [...]
+- (2026-08-28) **A TRUE POSITIVE DISCARDED AS FALSE COSTS AS MUCH AS A FALSE ONE BELIEVED.** `int hooks` called this tree's carrier STALE and was RIGHT [...]
+- (2026-08-28) **THE REHEARSAL'S VALUE WAS IN THE THREE INSTRUMENTS I CHECKED, NOT IN THE STEPS I RAN.** A clone would have been blind to the hook-door question by construction [...]
 
 - (2026-08-27) **hv AUTHORISED BOTH DISK SWEEPS DIRECTLY, AND THE SECOND ONE REVERSED A RULE I HAD WRITTEN MYSELF.** [...]
 
-- (2026-08-27) **AC-12.1's CLASS (2) WIDENED IN THE STORE RATHER THAN ARGUED ON A BOARD, ON vc's RULING: _record it against the criterion now, build nothing._** The criterion as written could be discharged green while its subject stayed broken, **and a criterion that can be satisfied while its subje** [...]
+- (2026-08-27) **AC-12.1's CLASS (2) WIDENED IN THE STORE RATHER THAN ARGUED ON A BOARD, ON vc's RULING: _record it against the criterion now, build nothing._** [...]
 
-- (2026-08-27) **hv CHOSE TEST-TARGET CONSOLIDATION FROM A MENU I AUTHORED, ON A DIAGNOSIS I LATER CORRECTED.** I had the 167 test targets as the CAUSE of the blowup; the cause is **builds retained x size per build**, and consolidation addresses one term of the second factor. [...]
+- (2026-08-27) **hv CHOSE TEST-TARGET CONSOLIDATION FROM A MENU I AUTHORED, ON A DIAGNOSIS I LATER CORRECTED.** I had the 167 test targets as the CAUSE of the blowup [...]
 
-- (2026-08-26) **VERIFY RESOLUTION, NEVER ENUMERATE POSITIONS.** `use` repoints what it owns and then measures what actually answers `intent`, dying if it is not the flavour asked for. **That catches PATH 19, and any position nobody has found yet, WITHOUT NEEDING TO KNOW IT EXISTS.** [...]
-- (2026-08-26) **`use` LIVES IN `cmd/local`, ON HIGHLANDER GROUNDS, AND I TOOK IT BACK FROM cc TO PUT IT THERE.** hv assigned it to both of us in separate sessions. [...]
-- (2026-08-26) **CHECKING WHICH BINARY RESOLVES AND CHECKING WHETHER THE DOOR OPENS ARE DIFFERENT PROPOSITIONS** (cc, and it is the thing my design was missing). [...]
-- (2026-08-26) **`publish` STOPS WITH hv.** hv authorised vc to direct my work on other projects, and I take that as covering fleet work and NOT a public push to a tap. **Stated by me rather than waited for.**
+- (2026-08-26) **VERIFY RESOLUTION, NEVER ENUMERATE POSITIONS.** `use` repoints what it owns and then measures what actually answers `intent` [...]
+- (2026-08-26) **`use` LIVES IN `cmd/local`, ON HIGHLANDER GROUNDS, AND I TOOK IT BACK FROM cc TO PUT IT THERE.** hv assigned it to both of us in separate sessions.
+- (2026-08-26) **CHECKING WHICH BINARY RESOLVES AND CHECKING WHETHER THE DOOR OPENS ARE DIFFERENT PROPOSITIONS** (cc [...]
+- (2026-08-26) **`publish` STOPS WITH hv.** hv authorised vc to direct my work on other projects [...]
 
-- (2026-08-25) **D42 AMENDED BY ME, AGAINST MYSELF: THE RULE IS THAT NO CALLER AUTHORS A STAMP.** The signature test -- _no function TAKES a time_ -- is one sufficient condition and was never the definition. [...]
-- (2026-08-25) **AT-11.6's TWO REAL DEFECTS WERE BOTH FOUND BY LIVE INCIDENTS, NOT BY REVIEW OR MUTATION.** It shipped with nine arms and four mutations. [...]
-- (2026-08-25) **`--only` IS THE ONLY COMMIT FORM ATOMIC WITH RESPECT TO PEERS.** Reading `git diff --cached` first measures a MOMENT; the commit happens at another. I read exactly three files and committed four. **The pathspec is the control; the reading never was.**
-- (2026-08-25) **vc HAS hv's PEN AND hv SAID SO IN MY OWN SESSION**, which is what makes it different from the two relayed authorisations I refused yesterday. [...]
-- (2026-08-25) **vc's OPENING ASSIGNMENT WAS WRONG AND THE CONTRACT CAUGHT IT.** `claude ws` was routed to me as WP-07 work off ic's surface probe; **it is WP-14's (`AC-14.10`), and `AC-14.7` says every `/in-whiteboard` verb is served by `intent wb` FROM THE STORE.** [...]
-- (2026-08-25) **AC-07.2 INVESTIGATED AND DELIBERATELY NOT STARTED.** Writing `hook_compat.rs` dirties `native/rust`, which is the exact subtree four nodes are waiting to see clean and the only route back to a current shared binary. **My own guard's predicate, applied to my own next task.** [...]
-- (2026-08-25) **A TEST'S POPULATION IS NEVER READ FROM THE THING UNDER TEST.** `hook_compat.rs` assembles its hook roster from the shipped scripts and `settings.json` and never from `install::HOOKS`. [...]
-- (2026-08-25) **I DID NOT WIDEN A PEER'S GUARD TO CLOSE MY OWN FINDING.** `every_declared_hook_ships_as_a_script` is one-sided and lives in cc's module. My file covers that direction from the SURFACE, so the class closes either way. [...]
-- (2026-08-25) **THE PRECONDITION I WROTE AGAINST MYSELF ON 2026-08-25 EXPIRED AND I CHECKED RATHER THAN INHERITED IT.** _Do not start AC-07.2 while `native/rust` must go clean_ was correct while four nodes were waiting on a clean subtree to close the gate. [...]
-- (2026-08-25) **A `dirty-` BINARY MAY READ CANON AND MAY NEVER WRITE IT (vc's rule, and it binds me).** Reading is safe because **the STORE is the subject and is independent of the build**; writing or certifying a criterion is not, because the write is performed by the code that is mid-edit. [...]
-- (2026-08-25) **A CLOSED LIST IS SAFE WHEN IT DECLARES WHY THE THINGS **NOT** IN IT ARE NOT IN IT.** This is the sweep's durable output and it makes the class checkable by READING. [...]
-- (2026-08-25) **THE INVERSE OF THE `session-finish` CLASS, AND IT IS WORTH NAMING BECAUSE I WENT LOOKING FOR THE WRONG ONE.** session-finish was _canon says the name exists and the door refuses it_. [...]
+- (2026-08-25) **D42 AMENDED BY ME, AGAINST MYSELF: THE RULE IS THAT NO CALLER AUTHORS A STAMP.** The signature test -- _no function TAKES a time_ -- is one sufficient condition and was never the definition.
+- (2026-08-25) **AT-11.6's TWO REAL DEFECTS WERE BOTH FOUND BY LIVE INCIDENTS, NOT BY REVIEW OR MUTATION.** It shipped with nine arms and four mutations.
+- (2026-08-25) **`--only` IS THE ONLY COMMIT FORM ATOMIC WITH RESPECT TO PEERS.** Reading `git diff --cached` first measures a MOMENT [...]
+- (2026-08-25) **vc HAS hv's PEN AND hv SAID SO IN MY OWN SESSION**, which is what makes it different from the two relayed authorisations I refused yesterday.
+- (2026-08-25) **vc's OPENING ASSIGNMENT WAS WRONG AND THE CONTRACT CAUGHT IT.** `claude ws` was routed to me as WP-07 work off ic's surface probe [...]
+- (2026-08-25) **AC-07.2 INVESTIGATED AND DELIBERATELY NOT STARTED.** Writing `hook_compat.rs` dirties `native/rust` [...]
+- (2026-08-25) **A TEST'S POPULATION IS NEVER READ FROM THE THING UNDER TEST.** `hook_compat.rs` assembles its hook roster from the shipped scripts and `settings.json` and never from `install::HOOKS`.
+- (2026-08-25) **I DID NOT WIDEN A PEER'S GUARD TO CLOSE MY OWN FINDING.** `every_declared_hook_ships_as_a_script` is one-sided and lives in cc's module [...]
+- (2026-08-25) **THE PRECONDITION I WROTE AGAINST MYSELF ON 2026-08-25 EXPIRED AND I CHECKED RATHER THAN INHERITED IT.** _Do not start AC-07.2 while `native/rust` must go clean_ was correct while four nodes were waiting on a clean subtree to close the gate.
+- (2026-08-25) **A `dirty-` BINARY MAY READ CANON AND MAY NEVER WRITE IT (vc's rule, and it binds me).** Reading is safe because **the STORE is the subject and is independent of the build** [...]
+- (2026-08-25) **A CLOSED LIST IS SAFE WHEN IT DECLARES WHY THE THINGS **NOT** IN IT ARE NOT IN IT.** This is the sweep's durable output and it makes the class checkable by READING.
+- (2026-08-25) **THE INVERSE OF THE `session-finish` CLASS, AND IT IS WORTH NAMING BECAUSE I WENT LOOKING FOR THE WRONG ONE.** session-finish was _canon says the name exists and the door refuses it_.
 
-- **RETIRED TO `.history/20260828/wip.md`: the five-entry `(C)`-exhaust block (2026-08-25).** hv closed the subject in one line -- _"I DO NOT WANT ANY CLAUDE EXHAUST IN MY COMMITS. EVER."_ -- and the guard it implies is already specified in TODO with its four conditions. [...]
+- **RETIRED TO `.history/20260828/wip.md`: the five-entry `(C)`-exhaust block (2026-08-25).** hv closed the subject in one line -- _"I DO NOT WANT ANY CLAUDE EXHAUST IN MY COMMITS [...]
 
-- (2026-08-25) **vc AS CONTRACT STEWARD AMENDED AC-11.6 UPWARD ON MY ROUTING, AND MY PROPOSAL CARRIED AS WRITTEN** (`f68d397c`). **Their green arm was the cause of the row being unbuildable and they said so.** [...]
-- (2026-08-25) **THE ROUTE FAILURE ON AT-11.6 IS MINE AND IT IS THE BETTER EXHIBIT.** I wrote _routes to vc_ in the same paragraph as the conflict, **on a board that archives at the fold, and then did not route it.** Four days invisible. [...]
-- (2026-08-25) **hv RULED: fix both trees LOCALLY, commit, and DO NOT PUSH v2.** _"The checked out v2 branch is only being used locally here by projects on this machine ... [...]
-- (2026-08-25) **hv CHOSE THE ROUTE-LEVEL DECLARATION over a per-file exception list.** Branch not taken: an entry per fix, which the guard's own text forbids and which would be FALSE of every file it named -- not PENDING (the v2 landing is done) and not V3-ONLY (v2 received it).
-- (2026-08-25) **THE ENFORCEMENT LOSS IS A COST OF hv's NO-PUSH RULING, NOT OF THE ENGINEERING, AND NOBODY PRICED IT WHEN THE DECISION WAS MADE** (vc's framing). Routed to hv rather than absorbed in a test file. [...]
-- (2026-08-25) **A PEER'S FULLER QUOTE OF A RULING IS STILL THE PEER.** vc supplied the clause they had dropped -- the one authorising the commit -- and told me not to treat their reading as my authorisation. **I held for hv's word in my own session and vc was right that I should.**
+- (2026-08-25) **vc AS CONTRACT STEWARD AMENDED AC-11.6 UPWARD ON MY ROUTING, AND MY PROPOSAL CARRIED AS WRITTEN** (`f68d397c`) [...]
+- (2026-08-25) **THE ROUTE FAILURE ON AT-11.6 IS MINE AND IT IS THE BETTER EXHIBIT.** I wrote _routes to vc_ in the same paragraph as the conflict [...]
+- (2026-08-25) **hv RULED: fix both trees LOCALLY, commit, and DO NOT PUSH v2.** _"The checked out v2 branch is only being used locally here by projects on this machine ...
+- (2026-08-25) **hv CHOSE THE ROUTE-LEVEL DECLARATION over a per-file exception list.** Branch not taken: an entry per fix [...]
+- (2026-08-25) **THE ENFORCEMENT LOSS IS A COST OF hv's NO-PUSH RULING, NOT OF THE ENGINEERING, AND NOBODY PRICED IT WHEN THE DECISION WAS MADE** [...]
+- (2026-08-25) **A PEER'S FULLER QUOTE OF A RULING IS STILL THE PEER.** vc supplied the clause they had dropped -- the one authorising the commit -- and told me not to treat their reading as my authorisation [...]
 
-**Decisions dated 2026-08-24 and earlier are archived at `.history/20260828/decisions-pre-0825.md`** -- their subjects shipped (the v2 freeze scope, `intent3`'s refusal, the `v2-maintenance` deletion, the two-mechanism convergence). **Retired because each named its condition and the condition died.**
+**Decisions dated 2026-08-24 and earlier are archived at `.history/20260828/decisions-pre-0825.md`** -- their subjects shipped (the v2 freeze scope [...]
