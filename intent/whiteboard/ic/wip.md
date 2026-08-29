@@ -3,118 +3,85 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 14:30Z
-status: paused
-focus: "FOLDED HARD 14:23Z (23274 -> aggressive). **HOLDING FOR hv's ST0068 INSTRUCTIONS VIA vc -- DO NOT BEGIN THE NARRATIVE.** My AC-12.2+12.3 unit is ON THE CRITICAL PATH: hv held the release so the docs ship WITH v3.0.1. Landed today: probe fixed (d3dbeafa), 0141 filed. ON THE BOUNCE: hold, take the shape from vc."
+heartbeat_at: 2026-08-29 15:47Z
+status: active
+focus: "**AC-12.2 + AC-12.3 ARE RUNNING.** Four files vc did not touch (working-with-llms.md, README, CHANGELOG) + the 3.0.1 release notes. **ON THE CRITICAL PATH: hv is holding the release so the docs ship WITH it.** The README voice call is MINE and vc deliberately did not make it."
 claims: [ST0065, ST0061]
 ---
 
 # Interface Claude (ic)
 
-## DOING
+## DOING -- RUNNING NOW
 
-**NOTHING. HOLDING FOR hv's INSTRUCTIONS, ROUTED BY vc. Nothing of mine dirty.**
+**THE HOLD IS OVER. hv ruled the four ST0068 decisions at `7a2f205f`; vc confirmed my unit unmoved and unoverlapping.**
 
-**DO NOT BEGIN THE NARRATIVE BEFORE THE SHAPE ARRIVES.** vc's reason, better than my impatience: **the shape hv wants may not be the shape vc and I scoped.**
+### `AC-12.2` -- four files, NONE of which vc touched
 
-**WHAT hv IS ACTUALLY DECIDING (four, and TWO ARE ONE-WAY -- which is why nothing has moved):** whether the releases move to `docs/v2/` alongside the blog; what happens to the moved posts' **canonical URLs**; whether the doc set describes **3.0.1-as-shipped or 3.0.1-plus-coming**; and where utilz-vc's **upgrade-cost synthesis** lands. **The third one decides my unit's voice and I must not guess it.**
+`intent/docs/working-with-llms.md` (the canon narrative, 55KB) | `README.md` | `CHANGELOG.md`
 
-## MY UNIT
+**hv ruled `intent/docs/` STAYS INTERNAL CANON and the public set links across to it** -- so the narrative is mine **by that ruling, not by default.** README and CHANGELOG are root files, also mine.
 
-**`AC-12.2` + `AC-12.3` (ST0056), homed in the new `ST0068` "Update Intent's docs for v3".** Both are `n-a` ATs -- **non-test criteria closed by NAMED EVIDENCE at review, so the evidence quality IS the deliverable.**
+**THE MEASUREMENT THAT DEFINES THE JOB** (controls run first -- 34 and 40 hits on a certain word, 0 on nonsense): `working-with-llms.md` has **`v3` 0, `3.0.0` 0, `v2` 15, `database`/`store`/`SSOT` 0.** README the same, its only version reference a v2.10.0 migration-guide link. **CHANGELOG already carries a correct `[3.0.0]` entry** -- the release note knows, the narrative does not.
 
-**hv MOVED IT ONTO THE CRITICAL PATH: the documentation comes BEFORE the release and ships WITH v3.0.1.** The release is HELD. **That also DISSOLVED the contradiction I had flagged** -- `AC-12.3` says "release docs written BEFORE the cut", which holding the docs would have made unsatisfiable by construction.
+### `AC-12.3` -- the 3.0.1 RELEASE NOTES
 
-**`AC-14.10` IS PARKED on `AC-14.12`**, which rules the file-based `claude ws` family for deletion. **Documenting a protocol scheduled for deletion is work done twice.**
+**hv holding the release for the doc task is what made this satisfiable at all** -- it was self-contradictory while the docs shipped afterwards.
 
-**THE MEASUREMENT BEHIND THE UNIT: `working-with-llms.md` (55KB) has `v3` 0, `3.0.0` 0, `v2` 15, `database`/`store`/`SSOT` 0. README the same.** Controls first (34 and 40 on a certain word, 0 on nonsense). **CHANGELOG already carries a correct `[3.0.0]` entry -- the release note knows and the narrative does not.**
+### THE README VOICE CALL IS MINE AND vc DELIBERATELY DID NOT MAKE IT
 
-## v3.0.0 IS PUBLISHED AND SHIPS THE `0133` DEFECT -- WITH hv, RULED
+README is **emoji-led with v2-framed examples**. The new site design system **forbids emoji as interface**; house rules forbid vanity metrics. **Those are SITE and PROSE rules, not README rules, and vc refused to extend them by fiat.** But a README in one voice and a site in another is **a convergence failure inside `AC-12.2`'s own word.** My call to make, not to inherit.
 
-`v3.0.0` -> `80d8b2ca`, both remotes; **`04cf6f18` NOT an ancestor**; tagged tree line 1070 is `Unsatisfied,`, a unit variant; release **not a draft, not a prerelease**, published 2026-08-26, assets downloaded. **vc re-drove all four independently, and measured the clause I could not: the tap formula is LIVE and pins `3.0.0`, so `brew install intent` HANDS YOU THE DESTROYING BUILD.**
+### WHAT THE RELEASE NOTES MUST CARRY (vc's, and each is a measured fact)
 
-**`AC-12.4` is the WORSE reading: all three clauses measurably DONE and the criterion still recorded UNSATISFIED. The release went out complete, past the criterion that records it, and nothing noticed.**
+1. **`ac new` on an existing id DESTROYS in the shipped tool and there is no `ac edit`. 3.0.1 does NOT fix it** -- ruled out of the cut. **So the docs are where that hazard gets stated.**
+2. **THE CORRECTION TO `0133`'s FRAMING.** Its body still says "ingest damage" and "parser" when it is a **representable-state regression**, and **`0090` means the body cannot be rewritten.** The release notes are fresh, so the correct framing lands there.
+3. **THE PUBLISHED v3.0.0 KEG SHIPS NO RULE LIBRARY AND NO SKILLS.** `0112b8c1` is in HEAD and **NOT an ancestor of `80d8b2ca`**. So **`brew install intent` then `intent claude rules list` FAILS today**, and any doc teaching that sequence against the published build is wrong.
+4. **`st repair` SHIPPED IN v3.0.0 AND IS RETIRED AT HEAD** -- the tag declares 117 commands including it, HEAD declares 118 with it retired. **The only removal in that direction.** It works in the release people are on and vanishes at the next one.
 
-**hv RULED: v3.0.1 is the next release act; warn the fleet NOW naming the PROPERTY to test (does the build carry `04cf6f18`) rather than a version to trust** -- my `01afa12f` method-doc correction is the shape the warning goes out in.
+### ASSIGNMENT 2 -- UNPARKED
 
-## THE PROBE IS FIXED (`d3dbeafa`) -- 9/30 BEFORE, 30/30 AFTER
+**cc's `ac new` / `at new` refuse-and-edit package is DELIVERED.** Surface-review it. **The ping was vc's message, not a future one.**
 
-vc authorised it to jump the hold: **the hold is on the RELEASE and the NARRATIVE, not a freeze on the estate**, and **the harm was LIVE rather than pending.** vc **declined my cheap alternative on principle** -- warning three estates is **a social mitigation where a mechanical one was available.**
+## HOW I FOUND THE HOLD WAS STALE -- THE KEEPER
 
-1. **THE CONTROL WAS A COIN FLIP AND HAD BEEN SINCE I WROTE IT.** `%ct` is whole seconds; the old sort fell through to comparing **SHA strings**. Fixed with `git log --all --topo-order` (removes the tie rather than breaking it better) and **explicit fixture dates** so it models the timeline it claims to. **I found it the WEAK way** -- one failure while editing -- and would have shipped a fix for a bug I thought I had just introduced. **vc ran it N times and found it had been flaky all along**, including every run I cited as evidence the probe discriminates.
-2. **LAMPLIGHT-1: the exit-3 guard was BINARY**, firing only at zero, so 152/358 exited 0 with 206 threads unaccounted. Now **per-thread, partition ASSERTED, exit code GRADED** (3 not-measured, 4 incomplete).
-3. **LAMPLIGHT-2: `*/acceptance.md` is a filename glob, not a thread predicate.** Cross-checked against the estate's own canon; **absent oracle SAYS SO.** Mutating it off leaks a non-thread row straight into `EXPOSED`.
+**I measured before folding instead of banking "holding" as my state.** hv's ruling had been made and acted on **for over an hour**; cc's package had landed; **my vc inbox's newest entry was still the previous day.** vc's own words: _a node doing the right thing on a channel nobody was reading_ -- the same failure that produced **two design systems**, written independently by cc and vc on separate hv briefs, in the tool whose founding rule is that there is only one.
 
-**AND A CLASSIFIER I BUILT, DROVE AND WITHDREW.** The banner split put 44 of 67 Intent threads in "residue" -- a large, publishable number. **I opened ONE instead: `ST0001`'s acceptance file is created BY the v3 hoist and carries no banner because the early renderer emitted none.** Timestamps failed too (**the hoist wrote acceptance files ~25h BEFORE the first `.canon` record**). Underneath both: **v3's GENERATED `acceptance.md` uses the SAME `-- satisfied:` syntax as v2 authored**, so the banner is **SUFFICIENT, NOT NECESSARY.** Withdrawn to one `UNCLASSIFIED` bucket naming both causes.
+**A HOLD WHOSE CONDITION HAS ALREADY BEEN MET IS NOT A HOLD, IT IS A NODE SITTING STILL.** And **a stale claim of OWNERSHIP is the same defect as a stale measurement** -- I offered to delete AC-12.2 from my board rather than carry it unexamined, which is what made the question answerable.
 
-**LAMPLIGHT ON `d3dbeafa`: 12/12 all-pass, measurement 25, reported BY BLOB SHA. The new output reproduces their HAND partition exactly**, names the same five non-threads, and buckets their leftover 4 as UNCLASSIFIED. Their words: **an honest bucket beats a confident one.**
+**ST0068 was UNCLAIMED with an EMPTY CONTRACT while two real docs commits landed against it.** vc is claiming it and drafting the contract. **A thread that gates a release cannot itself be ungated.**
 
-**AND THEY HAVE ONE ROW CONFIRMED, NOT PREDICTED -- `ST0358`, evidence field ABSENT rather than truncated**, exactly as modelled. **1 of 25; they have NOT swept the other 24 and are waiting on hv rather than assuming.** First confirmation outside Conflab.
+## OTHER STATE
 
-**COMMIT DATE IS NOT CONTENT DATE WHEN RENAMES ARE IN PLAY** (Lamplight, and it nearly cost them their number). 8 of their 25 read as post-port; **hv's `18000b4cf` is a PURE RENAME -- 3723 files, 0 insertions, 0 deletions, every move R100 -- so the blob is byte-identical PRE-port text wearing a POST-port commit date.** **Any date-based partition reads moved-but-unchanged content as newly written.** It does not reach my probe (the date comparison was already withdrawn) -- **but `port` was still threaded through `classify()` and still printing a warning implying it classified. Removed at `48c3af2a`: dead code that still makes a claim is a false claim.**
-
-**THE CRACK THAT FOLLOWS, FLAGGED NOT BURIED: if v3-generated files satisfy the v2-authored test, `recovered` may be CONTAMINATED on any estate and the exposure figure is computed over it.** Intent reads 0 exposed -- **a fact about Intent, not evidence about Baize, Laksa or Prolix.** **No estate is called measured on the strength of a green.**
-
-## `0141` FILED -- AND WHAT ALMOST WENT IN INSTEAD
-
-**`set_ac_state`'s short-circuit is payload-inclusive**, so a **self-loop on a payload-carrying enum** turns a safe no-op into a **silent overwrite reported as a movement**.
-
-**Guarded on the FOUR ratified machines** -- vc planted the hazard and `machine_table_check.sh` reds at exit 1, expanding an empty from-list to `(any)` which matches no ratified row **by construction**, catching self-loops by the same property. **A guard built for transcription drift closes it BY ACCIDENT.**
-
-**UNGUARDED on `AcceptanceTest.status` and `WorkPackage.scope`** -- the two `Disposition::State` fields `data-model.md` deliberately does not table.
-
-**WATCH `AcceptanceTest.status`: `to-write | red | green | n-a`, whose semantics `data-model.md` calls "the most operational subtlety and the least written down".** Safe today for **one reason only: the enum carries no payload.** **An `n-a` reason or a red's failure text is exactly what someone will add** -- and the wildcard becomes the erasing write the day it lands. **Here on the board because an issue is not a thing anyone reads before making the change that triggers it.**
-
-**HAD I FILED TWENTY MINUTES EARLIER I WOULD HAVE CLAIMED A GENERAL GAP THAT IS THREE-QUARTERS CLOSED. Right reasoning, real hazard, WRONG BLAST RADIUS, and confident.**
-
-## PARKED / WAITING
-
-- **ST0065 has ZERO ACCEPTANCE CRITERIA** -- catalogued in two WPs and argued in a costed proposal with **no ratified boundary behind any of it.** I lean **`acceptance: exempt`**. Batched to hv with the proposal.
-- **THE COSTED PROPOSAL recommends OPTION 2, TESTED DUPLICATION**: the 575-byte index in both `_CLAUDE.md` and `_AGENTS.md` via `claude upgrade --apply`, plus one byte-identity arm. **A test, not a generator -- the template engine has NO include form.** Limit stated: **`usage-rules.md` cannot join** (seeded-once, user-owned), so three homes -> two tested + one declared exception, **not zero**.
-- **TWO THREADS PASS THEIR OWN GATE AND SIT WIP** -- ST0057 66/66, ST0061 7/7. vc sequences after hv rules the release.
-- **ASSIGNMENT 2** (surface-review cc's `ac new`/`at new`) -- **vc pings me; I do not watch.**
+- **ST0065 has ZERO ACs too.** Batched to hv with the costed proposal (**Option 2, TESTED DUPLICATION**: the 575-byte index in both `_CLAUDE.md` and `_AGENTS.md` via `claude upgrade --apply`, plus a byte-identity arm; **a test, not a generator -- the engine has no include form**; limit: **`usage-rules.md` cannot join**, seeded-once/user-owned).
+- **TWO THREADS PASS THEIR OWN GATE AND SIT WIP** -- ST0057 66/66, ST0061 7/7. vc sequences.
+- **`0141` FILED** -- self-loop on a payload-carrying enum. **Guarded on the four ratified machines** (`machine_table_check.sh` catches it BY ACCIDENT), **unguarded on `AcceptanceTest.status` and `WorkPackage.scope`.** Watch `AcceptanceTest.status`: safe today **only because the enum carries no payload**, and an `n-a` reason or a red's failure text is exactly what someone will add.
+- **PROBE FIXED (`d3dbeafa`, `48c3af2a`)** -- 9/30 before, 30/30 after. Lamplight ran it **12/12, reported BY BLOB SHA**, reproduced their hand partition exactly.
 
 ## THE FLEET
 
-**80 exposed. 11 estates measured, 5 not.** Baize **28**, Lamplight **25**, Conflab **14**, Laksa **10**, Prolix **3**.
-
-**TWO ESTATES NOW HAVE VERIFIED LOSS, NOT ONE -- this line said "only Conflab" until 14:44Z and that is stale.** Conflab **14 confirmed**; Lamplight **1 of 25 confirmed** (`ST0358`, evidence ABSENT), **24 unswept and deliberately not assumed.** **Baize, Laksa and Prolix remain PREDICTED-UNCONFIRMED, in those words.**
-
-**LAMPLIGHT'S WARRANT IS RESTORED.** vc withdrew it when the control was found to pass ~30% of the time; **Lamplight re-ran `d3dbeafa` 12/12, reported BY BLOB SHA, and reproduced their hand partition exactly.** The number never moved -- **what changed twice is what was known about the instrument behind it.**
-
-**THE CONFIRMED PAIR IS NOW hv's ARGUMENT FOR THE RELEASE, NOT OURS.**
+**80 exposed. TWO estates now have VERIFIED loss:** Conflab **14 confirmed**; Lamplight **1 of 25** (`ST0358`, evidence ABSENT), **24 unswept and deliberately not assumed.** Baize **28**, Laksa **10**, Prolix **3** remain **PREDICTED-UNCONFIRMED, in those words.** **The confirmed pair is hv's argument for the release, not mine.**
 
 ## Watch-outs
 
-**REPORT THE REASONING AT THE RESOLUTION YOU ACTUALLY MEASURED IT** (dc's, the day's best). **It is not that we wrote things down -- it is that we wrote down the parts that could be WRONG.** A board of verified conclusions gives nobody a fixture to plant against. **Every correction today landed on a claim whose reasoning was visible; the claims with no reasoning attached are still standing and I do not know whether they are right.**
+**REPORT THE REASONING AT THE RESOLUTION YOU ACTUALLY MEASURED IT** (dc's). **It is not that we wrote things down -- it is that we wrote down the parts that could be WRONG.** vc's inversion: **five corrections in an afternoon is not evidence the estate is well-checked, it is evidence that EXPOSED REASONING GETS CHECKED** -- the corrections are **a biased sample of the errors**, so **the safest-looking entries on any board are the ones nothing has ever tested.**
 
-**vc's INVERSION, WHICH IS SHARPER THAN MY VERSION: five corrections in an afternoon is NOT evidence the estate is well-checked -- it is evidence that EXPOSED REASONING GETS CHECKED.** The corrections are **a biased sample of the errors**, biased toward the ones somebody made checkable. **So a bare verdict is not merely unfalsifiable by a reader -- it is INVISIBLE TO THE PROCESS THAT PRODUCED EVERY ONE OF TODAY'S FIXES, which means the safest-looking entries on any board are the ones nothing has ever tested.**
+**LUCK WEARING THE SHAPE OF JUDGEMENT.** I withdrew the date classifier because the BANNER was insufficient; Lamplight later showed the date form fails too, for a reason I never found. **Right outcome from an argument that did not reach the real defect** -- the counter-shape to a true result from a blind instrument, and nothing polices it.
 
-**A FILING IS A RELAY OF YOUR OWN REASONING, SO IT CARRIES A BLAST-RADIUS CLAIM WHETHER OR NOT YOU MAKE ONE** (vc's limb on relaying-is-authoring). **Confidence tracks the reasoning; the SCOPE is a separate measurement nobody takes.**
+**DEAD CODE THAT STILL MAKES A CLAIM IS A FALSE CLAIM.** `port` was computed, threaded through `classify()`, and printing a warning implying it classified -- all three false, nothing changed underneath them.
 
-**BORN STALE IS NOT "A CLAIM OUTLIVING ITS BASIS" AND THAT RULE CANNOT REACH IT.** `90988faf` carried a false header AND its own refutation twenty lines below, over a mechanism predating both. **There was never a moment it was true**, so "re-check when the subject moves" cannot catch it. What did: **cc wrote a precondition on the sentence they were relying on.**
+**BORN STALE IS NOT "A CLAIM OUTLIVING ITS BASIS."** `90988faf` carried a false header AND its refutation twenty lines below. What caught it: **cc wrote a precondition on the sentence they were relying on.**
 
-**A BINARY GUARD ON A CONTINUOUS QUANTITY IS THE WRONG SHAPE, NOT A SMALLER RIGHT ONE**, and it fails where the answer looks most confident.
+**COMMIT DATE IS NOT CONTENT DATE WHEN RENAMES ARE IN PLAY** (`18000b4cf`: 3723 files, all R100). **A BINARY GUARD ON A CONTINUOUS QUANTITY IS THE WRONG SHAPE.** **BISECT ASSUMES DETERMINISM** -- repetition is the instrument. **`--only` SEPARATES FILES, NOT FACTS.** **AN INVARIANT NOBODY HAS WRITTEN THE DECLARATION TO BREAK IS UNEXERCISED, NOT ENFORCED.** **A ZERO YOU CANNOT TRUST MUST NOT EXIT 0.**
 
-**BISECT ASSUMES DETERMINISM**, so aimed at a flaky subject it returns a confident, well-formed, wrong answer, and nothing about the bisect can say so. **Repetition is the instrument.**
+**A STAMP TYPED BY FEEL IS FABRICATION AND THE MESSAGE CHANNEL HAS NO GUARD** (`0099`). **Cite the commit, never invent a better-looking minute.**
 
-**`--only` SEPARATES FILES, NOT FACTS.** Two forms: the roster guard **caught it and named the WRONG CAUSE**; `bin/devbin`'s pair is caught by **nothing**. Same defect.
-
-**AN INVARIANT THAT HOLDS BECAUSE NOBODY HAS WRITTEN THE DECLARATION THAT BREAKS IT IS UNEXERCISED, NOT ENFORCED.**
-
-**A CENSUS TAKES ITS UNIT FROM THE SUBJECT'S IDENTITY, NEVER THE FILESYSTEM'S.** **A CORRECT IMPOSSIBILITY ARGUMENT AIMED AT THE WRONG PROPERTY** says nothing about what a value MEANS. **A CONTROL CAN BE GENUINE, CROSS-NODE AND BLIND BY CONSTRUCTION** -- ask what it CANNOT see. **A ZERO YOU CANNOT TRUST MUST NOT EXIT 0.**
-
-**A STAMP TYPED BY FEEL IS FABRICATION AND THE MESSAGE CHANNEL HAS NO GUARD** (issue `0099`). I wrote `14:0xZ` today. **Cite the commit, never invent a better-looking minute.**
-
-**`git show HEAD:` for source; `--only` takes the WORKTREE. VERIFY AN EXIT CODE BY CAPTURING TO A FILE. zsh: an unquoted `--include=*.rs` ABORTS the command** -- hit live today. **`cd` PERSISTS between Bash calls**; a wrong cwd is how a commit silently names nothing.
-
-**MEASURE ONLY: nothing repaired, no estate written to, NOTHING about the release touched.**
+**`git show HEAD:` for source; `--only` takes the WORKTREE. CAPTURE AN EXIT CODE TO A FILE. zsh: an unquoted `--include=*.rs` ABORTS the command. `cd` PERSISTS between Bash calls.** **A SCRIPT THAT ABORTS MID-WAY WRITES NOTHING AND THE LINES BELOW IT STILL PRINT SUCCESS.**
 
 ## Decisions
 
-- **(hv) v3.0.1 IS THE NEXT RELEASE ACT; docs precede the cut and ship with it; warn the fleet by PROPERTY not version.**
-- **(vc) THE HOLD IS ON THE RELEASE AND THE NARRATIVE, NOT A FREEZE ON THE ESTATE** -- and **filing was never blocked**, only new BUILD units.
-- **(vc) LAMPLIGHT GOES TO ITS OWN NODES; ic PACKAGES THE METHOD** -- a number produced from here cannot be checked from here.
+- **(hv) FOUR ST0068 DECISIONS RULED:** `docs/` is the v3 set, `docs/v2/` the frozen archive, **`intent/docs/` stays INTERNAL CANON**, v2 blog canonicals **preserved pointing at their old locations** (the one-way half; `docs/v2/README.md` records why, so nobody "fixes" them).
+- **(hv) v3.0.1 IS THE NEXT RELEASE ACT; DOCS PRECEDE THE CUT AND SHIP WITH IT; warn the fleet by PROPERTY (does the build carry `04cf6f18`) not by version.**
+- **(vc) `ac new`'s DESTRUCTION IS RULED OUT OF THE 3.0.1 CUT** -- the docs are where the hazard gets stated instead.
 - **(ic) EXPOSURE IS NOT DAMAGE, AND A PREDICTOR IS NOT A CONFIRMATION.** Say **predicted-unconfirmed**.
-- **(ic) TESTED DUPLICATION BEATS SINGLE-SOURCING** -- the template engine has no include form.
+- **(ic) TESTED DUPLICATION BEATS SINGLE-SOURCING** -- the engine has no include form.
 - **(all) Fold archives are `wip-fold-HHMMZ.md`**, append-only. **(vc) `add + commit --only + reset` is NEW files only.**
