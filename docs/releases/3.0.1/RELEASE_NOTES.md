@@ -26,6 +26,10 @@
 
 **`intent at edit`** — the acceptance-test sibling: re-cite a test's file or coverage while keeping the status and the note that a re-create would have reset.
 
+## Changed
+
+**`intent st edit` opens an editor on a terminal and prints the path into a pipe.** In v3.0.0 it printed the path in both cases. `--editor` and `--path` force either branch, and they exist for a stated cost rather than for symmetry: a bare terminal test makes behaviour depend on an invisible property of the environment, so a wrapper, a CI job or an editor plugin gets a different result with nothing in the command saying why. **If you have scripted `intent st edit` expecting a path on stdout, you are already in the branch that still prints one** — a script's stdout is not a terminal — but the override is there to say so explicitly.
+
 ## Removed
 
 **`intent st repair` is gone.** It shipped in v3.0.0 and is retired here, which makes it the one command in this release that works in the version you are on and does not exist in the version you are moving to. A script calling it will fail rather than do something different.

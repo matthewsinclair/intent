@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`intent ac edit`** — change a criterion's text without touching its satisfaction. Its absence is what made the destructive create reachable.
 - **`intent at edit`** — re-cite a test's file or coverage while keeping the status and note a re-create would have reset.
 
+### Changed
+
+- **`intent st edit` opens an editor on a terminal and prints the path into a pipe.** In v3.0.0 it printed the path in both cases. `--editor` and `--path` force either branch. They exist for a stated cost rather than for symmetry: a bare terminal test makes behaviour depend on an invisible property of the environment, so a wrapper, a CI job or an editor plugin gets a different result with nothing in the command saying why. A script expecting a path on stdout is already in the branch that still prints one.
+
 ### Removed
 
 - **`intent st repair`.** It shipped in v3.0.0 and is retired here — the one command in this release that works in the version people are on and does not exist in the next. A script calling it fails rather than doing something different.
