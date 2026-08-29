@@ -41,14 +41,36 @@
 //! would then disagree for a reason that has nothing to do with conformance,
 //! and the failure would read as a real one.
 //!
-//! **THE FILE LIVES HERE AND `AT-08.2` SAYS `intentd/tests/`.** That is a
-//! deliberate, declared deviation, not drift: `env!("CARGO_BIN_EXE_intent")`
-//! is only defined for tests in the crate that DECLARES that binary, and
+//! **TWO AT ROWS DECLARE THIS ONE FILE, AT TWO DIFFERENT PATHS.** `AT-00.7`
+//! cites `intent-cli/tests/dual_path_conformance.rs` -- this path -- and its
+//! note describes exactly this test: *in-process vs intentd, identical results
+//! across the verb surface; lands with WP-08*. `AT-08.2` cites
+//! `intentd/tests/dual_path_conformance.rs` for the same job under `AC-08.2`.
+//! One test, two rows, two homes, and neither row mentions the other.
+//!
+//! I picked this path for an independent reason -- `env!("CARGO_BIN_EXE_intent")`
+//! is defined only for tests in the crate that DECLARES that binary, and
 //! locating a sibling binary by walking the target directory is the fragile
-//! spelling this estate avoids everywhere else. Both of today's routes are
-//! CLI-side, so this is where they can both be reached. The row is canon and
-//! re-pointing it is vc's pen; raised with vc rather than silently left
-//! mismatched.
+//! spelling this estate avoids everywhere else -- and only the commit gate's
+//! stale-row arm revealed that canon had already named it. **That is the gate
+//! finding a duplicate I would otherwise have reported as my own deviation.**
+//! Reconciling the two rows is canon and therefore vc's pen; raised there
+//! rather than silently satisfying one and leaving the other dangling.
+//!
+//! **WHAT THIS HARNESS CANNOT SEE, DECLARED BECAUSE A SILENT LIMIT IS WORSE
+//! THAN A NAMED ONE.** The population is the shipped ROWS, each driven at its
+//! own path with no further arguments, so a defect living BELOW a row is
+//! outside its reach. ic found one the same evening: `intent fc <thread>
+//! AC-nn.n` reaches the implementation and refuses properly, while `intent fc
+//! <thread> AT-nn.n` falls through to a catch-all and answers `fc is a known
+//! command that is not implemented yet` -- the unwired marker emitted for a
+//! verb the build DOES provide, with a remedy (*nothing in this build provides
+//! it*) that is simply false. Reproduced here independently. This file drives
+//! `fc` bare, both routes refuse identically for the missing arguments, and
+//! the branch divergence is one argument deeper than anything it looks at.
+//! **The unit the defect lives in is smaller than the unit this harness is
+//! keyed on**, which is the same shape as a census keyed on a state name
+//! missing a payload field inside one variant.
 
 use std::path::Path;
 use std::process::Command;
