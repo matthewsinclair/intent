@@ -230,12 +230,13 @@ fn every_enum_reaches_the_sdl_with_all_its_variants() {
   assert_eq!(count("AcStateName"), 6, "AcStateName variants");
 }
 
-#[test]
-fn the_ac_scope_projection_carries_exactly_the_serde_form() {
-  use intentsvcs::graphql::AcStateView;
+/// Every value the projection arm exercises, in ONE home so that
+/// `every_declared_ac_state_name_has_a_projection_case` can hold this list to
+/// the published SDL. Inlined in the test body until 2026-08-29, where nothing
+/// could reach it to check what it covered.
+fn projection_cases() -> Vec<intentsvcs::model::AcState> {
   use intentsvcs::model::AcState;
-
-  let cases = vec![
+  vec![
     AcState::Computed,
     AcState::Unsatisfied { note: None },
     AcState::Satisfied {
@@ -283,9 +284,67 @@ fn the_ac_scope_projection_carries_exactly_the_serde_form() {
       },
       inherited_from: Some("ST0066".into()),
     }),
-  ];
+  ]
+}
 
-  for scope in cases {
+#[test]
+fn every_declared_ac_state_name_has_a_projection_case() {
+  use intentsvcs::graphql::AcStateView;
+
+  // **THE HOLE THIS CLOSES WAS MEASURED, NOT IMAGINED.** Deleting
+  // `AcState::Unsatisfied` from `projection_cases` left all three tests in this
+  // file GREEN (2026-08-29). A hand-written list can silently stop covering a
+  // variant -- the same failure that left `model_laws`'s generator with no
+  // `Fiat` arm while its own doc claimed every recorded state.
+  //
+  // **`count("AcStateName")` next door does NOT close it**, and that is worth
+  // saying because it looks like it should: it compares the SDL to a literal
+  // and never looks at what this file exercises. A variant can reach the SDL,
+  // bump that count, be dutifully updated there, and still have no case here.
+  //
+  // The roster is DISCOVERED from the published face rather than typed, which
+  // is the pattern `ac_kind_state_invariant.rs` already proves out -- and that
+  // one was killed from both sides before being trusted, so this is a
+  // mechanism with a track record rather than a new idea.
+  let blocks = sdl_blocks(&face("schema.graphql"));
+  let declared = members_of(&blocks, "enum", "AcStateName");
+
+  let covered: std::collections::BTreeSet<String> = projection_cases()
+    .iter()
+    .map(|s| format!("{:?}", AcStateView::from(s).state).to_uppercase())
+    .collect();
+
+  let missing: Vec<&str> = declared
+    .iter()
+    .map(String::as_str)
+    .filter(|d| !covered.contains(*d))
+    .collect();
+
+  assert!(
+    missing.is_empty(),
+    "the SDL declares {missing:?} and the projection arm has no case for it, so the flattening \
+     of that state to `AcStateView` is published and unexercised -- add a value to \
+     `projection_cases` (both shapes, if one of its fields is optional)"
+  );
+
+  // The other direction: a case for a name the SDL does not declare would mean
+  // this list and the published face disagree about the vocabulary.
+  let undeclared: Vec<&String> = covered
+    .iter()
+    .filter(|c| !declared.iter().any(|d| d == *c))
+    .collect();
+  assert!(
+    undeclared.is_empty(),
+    "the projection arm exercises {undeclared:?}, which the SDL does not declare"
+  );
+}
+
+#[test]
+fn the_ac_scope_projection_carries_exactly_the_serde_form() {
+  use intentsvcs::graphql::AcStateView;
+  use intentsvcs::model::AcState;
+
+  for scope in projection_cases() {
     let json = serde_json::to_value(&scope).expect("AcState serialises");
     let obj = json
       .as_object()

@@ -74,15 +74,26 @@ fn the_byte_comparison_can_actually_fail() {
 
 #[test]
 fn an_unknown_field_is_refused_inside_an_unsatisfied_state() {
-  // `deny_unknown_fields` is what makes hand-authored canon safe to trust.
-  // Whether it survives a unit variant becoming a struct variant is a question
-  // about serde rather than about this code, and the failure is silent in both
-  // directions: nothing fails to compile and no round-trip breaks.
+  // **DO NOT DELETE THIS AS A DUPLICATE OF SERDE'S OWN BEHAVIOUR. IT IS NOT
+  // ONE, AND THAT IS MEASURED.** `deny_unknown_fields` on the enum does NOT
+  // give every variant the property: it is a function of the variant's SHAPE.
+  // `AcState::Computed`, the one remaining unit variant, accepts unknown keys
+  // today and always has -- issue 0136. So this arm is checking the thing that
+  // is actually in question, not restating an attribute.
+  //
+  // It matters here specifically because `unsatisfied` CHANGED SHAPE: it was a
+  // unit variant, and 0133 made it a struct variant. It gained this protection
+  // as a side effect of that widening rather than by anyone deciding it should
+  // have it -- which means it can lose it the same way, and nothing else in the
+  // estate would notice. The failure is silent in both directions: nothing
+  // fails to compile and no round-trip breaks.
   let refused = serde_json::from_str::<AcState>(r#"{"is":"unsatisfied","smuggled":"value"}"#);
   assert!(
     refused.is_err(),
-    "an unknown field was ACCEPTED inside an unsatisfied state -- canon carrying \
-     a typo would now be ingested in silence"
+    "an unknown field was ACCEPTED inside an unsatisfied state. `deny_unknown_fields` is a \
+     property of the VARIANT'S SHAPE, not of the enum (issue 0136), so this is what a \
+     unit-variant regression looks like from the outside -- and canon carrying a typo would \
+     now be ingested in silence, unrecoverably, because nothing records a dropped key"
   );
 }
 
