@@ -37,7 +37,7 @@ Stretch goals are parked as their own 3.x steel threads: TUI dashboard, the agen
 | WP-05 | CLI in-process mode and BATS conformance harness                            | L    | WIP         |
 | WP-06 | CLI parity long tail                                                        | XL   | WIP         |
 | WP-07 | Canon and claude subsystem                                                  | L    | WIP         |
-| WP-08 | intentd daemon                                                              | XL   | Not Started |
+| WP-08 | intentd daemon                                                              | XXL  | Not Started |
 | WP-09 | MCP server and agent guide                                                  | L    | Not Started |
 | WP-10 | Migration and fleet ingest harness                                          | XL   | WIP         |
 | WP-11 | Distribution: cargo-dist, Homebrew, signing                                 | M    | WIP         |
@@ -46,6 +46,7 @@ Stretch goals are parked as their own 3.x steel threads: TUI dashboard, the agen
 | WP-14 | Coordination model: whiteboard and inboxes in the store, with a bounded API | L    | Not Started |
 | WP-15 | Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill     | L    | Not Started |
 | WP-16 | Contract drift: a shipped field with no model row is refused                | S    | Not Started |
+| WP-17 | Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs   | XL   | Not Started |
 
 ## Acceptance
 

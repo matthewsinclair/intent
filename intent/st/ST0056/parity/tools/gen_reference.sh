@@ -482,7 +482,7 @@ HDR
         printf -- '- **Newer than `%s`, so not in an installed copy of it:** %s\n' "$BASELINE" "$added"
       fi
       if [ -n "$removed" ]; then
-        printf -- '- **In `%s` and removed since, so a script that calls it will stop working:** %s\n' "$BASELINE" "$removed"
+        printf -- '- **Declared in `%s` and retired since.** This is a diff of the two registers, `shipped` against `shipped`, and that population counts rows that are declared and not retired -- it does NOT establish that any of these was ever BUILT. A row can be declared, never implemented, and counted here, which is exactly what happened to `st repair`. So do not read this as "these used to work": check before assuming a script calling one of them ever succeeded. %s\n' "$BASELINE" "$removed"
       fi
       if [ -z "$added" ] && [ -z "$removed" ]; then
         printf 'The surface at `%s` is identical to `%s`.\n' "$REV" "$BASELINE"

@@ -1,7 +1,7 @@
 ---
 wp_id: WP-08
 title: intentd daemon
-scope: XL
+scope: XXL
 status: Not Started
 ---
 

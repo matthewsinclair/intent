@@ -549,26 +549,60 @@ pub const FIELDS: &[Field] = &[
         // have meant weakening a guard protecting every other machine here.
         Edge::direct("ac.reinstate", &["fiat"], "unsatisfied"),
         Edge::direct("ac.reinstate", &["fiat"], "computed"),
+        // **THE ENTRY EDGE, AND IT LANDS HERE WITH THE VERB RATHER THAN
+        // BEFORE IT** -- which is what `data-model.md` said would happen and
+        // what the orphan below existed to hold open. The exits landed first
+        // on purpose: an entry edge alone would have made `fiat` a trap state,
+        // the one shape `no_state_can_be_entered_and_not_left` refuses.
+        //
+        // **FROM THE TWO OPEN STATES ONLY, and the omissions are the ruling
+        // rather than an oversight.** `satisfied` is absent because a fiat
+        // close is how an UNMET requirement is closed -- offering it on a met
+        // one would let a close-on-authority overwrite a close-on-evidence,
+        // destroying the evidence to record that it was not needed. `descoped`
+        // and `withdrawn` are absent because they are off scope, and
+        // `refuse_if_off_scope` already names their undo.
+        //
+        // **`ReasonRecorded` is the SAME guard `ac.withdraw` declares**, so
+        // `--because` is enforced by the machine that already enforces
+        // `--reason` and not by a second check written beside it. That
+        // agreement is by construction: `Facade::justification` reads
+        // `FiatRecord.because`, so the guard and `length(min = 1)` on the
+        // field are two expressions of one requirement rather than two
+        // requirements that must be kept in step.
+        Edge::guarded(
+          "ac.fc",
+          &["computed", "unsatisfied"],
+          "fiat",
+          &[Guard::ReasonRecorded],
+        ),
       ],
       // **The `satisfied: false` orphan is GONE, by construction rather than by
       // a decision.** The old table recorded it with evidence: nothing produced
       // it, no verb wrote it, and `views.rs` rendered `None` and `Some(false)`
       // identically -- three representable values for two meanings. One enum
       // has no such value to be orphaned.
-      // The fiat close was modelled before its verb was built. Its two edges
-      // land together rather than one at a time: the entry edge ALONE would
-      // make `fiat` a trap state, which `no_state_can_be_entered_and_not_left`
-      // exists to refuse, so an orphan is the honest interim rather than a
-      // half-built machine. Reversibility is SETTLED and settled ABOVE: the two
-      // `ac.reinstate` edges out of `fiat` are in this same table, back to both
-      // entry states. This comment used to say the ruling was still awaited --
-      // written in the very commit that added those edges, so it was refuted by
-      // its own diff and stayed that way because nothing compiles a comment.
-      orphans: &[(
-        "fiat",
-        "the close-on-human-authority state is modelled and its verb is not built, so no service \
-         call reaches it yet",
-      )],
+      // **The fiat close is no longer an orphan, and this paragraph is
+      // REWRITTEN rather than left standing beside a table it stopped
+      // describing.** It read "modelled before its verb was built ... an
+      // orphan is the honest interim", which was true for one day and is now
+      // false; the verb is built and the entry edge is declared above.
+      //
+      // **Rewriting it is the whole point.** The previous version of this
+      // comment recorded its own defect -- it said the reversibility ruling was
+      // still awaited, was written in the very commit that added the edges
+      // settling it, and so was refuted by its own diff and survived because
+      // nothing compiles a comment. **That is the shortest-lived form of a
+      // record outliving its premise: false at the moment of writing, by the
+      // same change that wrote it.** Leaving today's version stale would repeat
+      // it in the commit closing it, which is the one place the mistake is
+      // unmissable.
+      // **THE FIAT ORPHAN IS RETIRED BECAUSE `ac.fc` REACHES THE STATE, not
+      // because anyone decided it should stop being reported.** It was the
+      // honest interim while the state was modelled and its verb was not; the
+      // verb is built, so the interim is over and the entry edge above is what
+      // ended it.
+      orphans: &[],
     },
   },
   Field {
@@ -613,7 +647,36 @@ pub const FIELDS: &[Field] = &[
         Edge::direct("at.set", &[], "red"),
         Edge::direct("at.set", &[], "green"),
         Edge::direct("at.set", &[], "n-a"),
+        // **THE FROM-SET MIRRORS MACHINE 3's TWO OPEN STATES AND IS dc's
+        // READING, NOT A RULING.** hv settled that ATs get a variant
+        // (2026-08-28 18:09Z) and settled nothing about which states it is
+        // reachable from. `to-write` and `red` are the two where the test does
+        // not pass, which is the only situation a fiat close is FOR -- the
+        // motivating case was an AT unobservable by unit test, which sits at
+        // `to-write`. `green` is the satisfied analogue and fiat-closing it
+        // would assert human authority against evidence that already agrees;
+        // `n-a` is not a pending state. Narrow deliberately: widening a
+        // from-set later is additive, and a fiat close reachable from a passing
+        // row is not recoverable by a later narrowing once estates carry them.
+        Edge::guarded(
+          "at.fc",
+          &["to-write", "red"],
+          "fiat",
+          &[Guard::ReasonRecorded],
+        ),
       ],
+      // **`fiat` IS NOT A TRAP AND GAINS NO EXIT VERB OF ITS OWN.** `at.set`
+      // declares `from: &[]`, which `Edge::accepts` reads as any state, so all
+      // four ordinary values are already exits from it and
+      // `no_state_can_be_entered_and_not_left` is satisfied without a new verb.
+      //
+      // **That exit is UNGUARDED, where Machine 3's is not** -- an AC leaves
+      // `fiat` through `ac.reinstate` under `Guard::ReasonRecorded` (hv,
+      // 2026-08-29). So an AT fiat close is undoable by a bare `at set green`
+      // and an AC's is not. Recorded as an asymmetry for hv rather than closed
+      // by inventing a guard here: adding one to `at.set` would put a
+      // precondition on the ordinary path that four existing edges do not have,
+      // which is a bigger change than the one it fixes.
       orphans: &[],
     },
   },
