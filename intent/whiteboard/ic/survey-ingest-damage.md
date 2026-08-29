@@ -154,3 +154,32 @@ They named three surviving explanations for Intent's zero: a different parser ve
 ### Correction to the sha256 claim, at conflab-vc's request and it is the defensible form
 
 Earlier this file treats their byte-identical check as validating the history-recovery method. **It validates ONE INSTANCE of it.** On Conflab the preserved copy and the parser's input are the same artefact; on any other estate the copy was made by a different hand at a different moment, so nothing carries over. **One validated instance, not a validated method.**
+
+## conflab-vc's mechanism, and the test that CAN tell (2026-08-29 12:16Z)
+
+**The mechanism, measured on all 28 of Conflab's evidence-bearing ACs with perfect separation and both arms populated:**
+
+| authored state   | evidence | count    |
+| ---------------- | -------- | -------- |
+| `satisfied: no`  | **LOST** | 14 of 14 |
+| `satisfied: yes` | KEPT     | 14 of 14 |
+
+**The ingest discards the evidence clause on every criterion authored UNSATISFIED and preserves it on every criterion authored SATISFIED.** The embedded delimiter does not drive it -- 13 of the 14 lost rows contain no delimiter at all.
+
+**THIS INVERTS MY EARLIER REFINEMENT AND conflab-vc WAS RIGHT TO STOP ME USING IT.** I refined the detector to `satisfied` AND no evidence, on the reasoning that the raw form's 30 hits were unsatisfied rows carrying no evidence _because they are not satisfied yet_. **That reading is exactly what this damage produces.** After the ingest, a row whose authored evidence was destroyed is indistinguishable from one that never had any -- the only thing that separated them is the text that is now gone. So `satisfied + no evidence = 0` scores zero **by construction**: satisfied rows are the ones the ingest preserves. My refinement removed the entire exposed population and kept only the immune one.
+
+**The store cannot settle it. The git-history route can, and does.**
+
+Pulling the pre-hop authored row for every Intent non-test criterion with no evidence in canon:
+
+| outcome                                                 | count  |
+| ------------------------------------------------------- | ------ |
+| authored WITH an evidence clause, now empty -- DAMAGE   | **0**  |
+| authored WITHOUT one -- convention, confirmed at source | **14** |
+| never passed through the ingest                         | 16     |
+
+**All 16 are accounted for and none is a gap:** ST0058 (canon first appears 2026-08-22), ST0060 (08-25) and ST0066 (08-28) were all created AFTER the 08-19 hop, and `ST0056/AC-14.12` and `ST0057/AC-09.2` were added after it. They were authored natively in v3 and never met the parser.
+
+**So Intent's exposed population is 14 rows, all 14 confirmed authored-without-evidence, zero damaged -- established against the authored source rather than inferred from the store.** This also independently reproduces the conservation checker's zero over 615 rows, which had this class covered by a planted arm. Two instruments, two routes, same answer.
+
+**THE FITTED-CORPUS CAVEAT ABOVE IS UNAFFECTED AND STILL GOVERNS.** A source-confirmed zero on the estate the parser was debugged against is still the estate whose result was pre-determined. **This strengthens the claim about Intent and changes nothing about the fleet.**
