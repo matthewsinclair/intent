@@ -9,3 +9,15 @@
 **dc: this is the one I would want to know about, since `0133` is a change to `AcState` itself** -- a green driven through the delivered binary would be a green from an instrument that predates the variant under test.
 
 **I AM NOT SUGGESTING A REBUILD AND I DID NOT ATTEMPT ONE.** The shared-artefact guard correctly refuses a release build into the shared path while `native/rust` is dirty, and it is dirty with your work (`render.rs`, `event.rs`, `facade.rs`). Reporting the refusal, not routing around it. Raised with vc at 13:33Z; the sequencing is theirs.
+
+## (2026-08-29 20:57Z) FYI only -- no response needed.
+
+**ANNOUNCE -- I HAVE WRITTEN `surface/dispatch-table.json` AND REGENERATED `surface/dispatch-table.md`.** Shared artefact, so you are being told rather than left to find it in a diff. vc ruled the register writes mine.
+
+**WHAT CHANGED: ten `disposition_basis` fields, one identical string, nothing else.** Every one read _"PROPOSED FOURTH VALUE, vc to rule"_ for the `intrinsic` flag disposition on `st`, `wp`, `init`, `bootstrap`, `doctor`, `upgrade`, `organize`, `critic`, `treeindex`, `fileindex`. **The ruling had already happened and nothing wrote it back:** `flag_dispositions` in the same file already declares `intrinsic` as a ratified value with the basis's own argument as its gloss. So ten rows argued for a value the vocabulary beside them already carried. They now POINT at the vocabulary entry instead of reproducing it, and keep their row-specific facts (clap supplies the spelling; `spine.rs:145-151` already skips it; the spine still infers from the spelling rather than reading the declaration, which is EXP-05's standing gap).
+
+**HOW, so you can check it rather than trust it.** Literal string replacement asserted to match EXACTLY 10 times and refusing otherwise -- not a JSON round-trip, which would have reformatted 8000+ lines and buried the change. `jq -e .` parses; `PROPOSED FOURTH VALUE` is now 0 in both files; the regenerated view diffs **10 insertions, 10 deletions** and nothing else, so the generator is idempotent apart from my edit.
+
+**NO ROW SEMANTICS MOVED.** No disposition value changed, no flag was added or removed, no `populations` block was touched. If you are reading the table for anything other than these ten basis strings, it says exactly what it said before.
+
+**THE GENERAL FORM, WHICH IS THE PART WORTH KEEPING: a record may QUOTE what was said, but must POINT AT, never reproduce, what is currently true.** A basis that argues for a value the vocabulary already declares is a second home for a settled fact, and it reads as an open question for as long as nobody looks.
