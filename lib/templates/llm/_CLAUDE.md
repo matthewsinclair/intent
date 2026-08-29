@@ -12,7 +12,7 @@ Claude Code persists cross-session memories at `~/.claude/projects/<project-dir>
 
 ## Session hooks
 
-When `.claude/settings.json` is installed -- the default, declined by `intent upgrade --skip-settings` -- it wires Claude Code lifecycle hooks: `SessionStart` (inject project context + `/in-session` reminder), `UserPromptSubmit` (strict gate -- block first prompt until `/in-session` runs), `Stop` (remind `/in-finish` at wrap-up). Each dispatches through `intent claude hook <name>`; the hook BODIES are served from the Intent install (`$INTENT_HOME/lib/templates/.claude/scripts/`), not from this project, so a hook fix reaches every project on the next `intent upgrade` without touching `.git/hooks/`. Full architecture: `intent/docs/working-with-llms.md#session-hook-architecture` at the Intent install.
+`.claude/settings.json` is written by `intent claude upgrade --apply` -- **not** by `intent upgrade`, and not by default. **There is currently no flag to decline it**: v2's `intent claude upgrade --skip-settings` was not carried into v3, whose flags on that verb are `--apply` and `--force`. When the file is installed it wires Claude Code lifecycle hooks: `SessionStart` (inject project context + `/in-session` reminder), `UserPromptSubmit` (strict gate -- block first prompt until `/in-session` runs), `Stop` (remind `/in-finish` at wrap-up). Each dispatches through `intent claude hook <name>`; the hook BODIES are served from the Intent install (`$INTENT_HOME/lib/templates/.claude/scripts/`), not from this project, so a hook fix reaches every project on the next `intent upgrade` without touching `.git/hooks/`. Full architecture: `intent/docs/working-with-llms.md#session-hook-architecture` at the Intent install.
 
 ## File map
 
