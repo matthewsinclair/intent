@@ -40,10 +40,16 @@ A steel thread is one intention. Name the outcome, not the task.
 Then write down why. This is the part that matters and the part everything else hangs off:
 
 ```
-  $ $EDITOR "$(intent st edit ST0001 info)"
+  $ $EDITOR intent/.canon/st/ST0001.json
+  $ intent sync --to-store ST0001
+  $ intent sync --to-disk  ST0001
 ```
 
-Fill in the objective and the context. **Be specific about constraints and about what you ruled out** — that is the information nobody can reconstruct later, and it is what an agent reading this file will act on. "Cache because the upstream API limits us to 100 req/min, and we see 10K req/s at peak" tells a reader something. "Add caching" does not.
+**You edit the canon extract, not `info.md`.** `info.md` is a generated view — `intent st edit ST0001 info` refuses to hand you its path for exactly that reason, and it is right to. Fill in the `objective` and `context` fields in the JSON, sync them into the store, then render the view back out.
+
+**There is no verb for this yet, and the refusal you get if you try says there is.** It names `intent st` as the place to author thread fields; no `intent st` verb writes `objective` or `context`. The canon route above is the working one.
+
+**`intent st edit` does work for the authored files** — `design`, `impl` and `tasks` are yours, not generated, so it prints their paths and `$EDITOR "$(intent st edit ST0001 design)"` behaves as you would expect. **Be specific about constraints and about what you ruled out** — that is the information nobody can reconstruct later, and it is what an agent reading this file will act on. "Cache because the upstream API limits us to 100 req/min, and we see 10K req/s at peak" tells a reader something. "Add caching" does not.
 
 Start it when you begin work:
 
