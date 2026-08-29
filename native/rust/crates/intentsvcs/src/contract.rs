@@ -50,6 +50,10 @@ pub enum Resolved {
   Unsatisfied,
   Descoped,
   Withdrawn,
+  /// Closed on human authority with the requirement unmet. Counts as closed --
+  /// unblocking is what a fiat close is FOR -- and is reported separately from
+  /// `Satisfied` everywhere it is counted.
+  Fiat,
 }
 
 /// `AC-03.1` -> `03`.
@@ -118,6 +122,18 @@ pub fn resolve(thread: &Thread, criterion: &Criterion) -> Resolved {
   match &criterion.state {
     AcState::Descoped { .. } => Resolved::Descoped,
     AcState::Withdrawn { .. } => Resolved::Withdrawn,
+    // **ABOVE THE KIND GUARD, AND THE ORDER IS LOAD-BEARING RATHER THAN
+    // STYLISTIC.** The guard below resolves a test-backed criterion from its
+    // ATs and ignores the recorded state, so a `Fiat` arm placed after it would
+    // be unreachable for exactly the rows most likely to carry one -- an
+    // over-cooked test-backed criterion is what a fiat close exists to escape.
+    // The failure would have been silent: the arm compiles, every existing test
+    // passes, and the only symptom is a fiat close that does nothing.
+    //
+    // It belongs here on the merits too. Same sentence as its two neighbours
+    // above: a fiat-closed criterion is not asked whether it is satisfied,
+    // because the question no longer applies.
+    AcState::Fiat(..) => Resolved::Fiat,
     // **In scope, and the KIND decides which question is being asked -- not the
     // recorded state.** Matching on the state alone would have been the
     // natural way to write this and it would have reintroduced the exact
@@ -451,12 +467,14 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   let mut satisfied = 0;
   let mut descoped = 0;
   let mut withdrawn = 0;
+  let mut fiat = 0;
   let mut unsatisfied: Vec<&str> = Vec::new();
   for c in &in_scope {
     match resolve(thread, c) {
       Resolved::Descoped => descoped += 1,
       Resolved::Withdrawn => withdrawn += 1,
       Resolved::Satisfied => satisfied += 1,
+      Resolved::Fiat => fiat += 1,
       Resolved::Unsatisfied => unsatisfied.push(&c.id),
     }
   }
@@ -475,8 +493,20 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   // only two where `ac status` trails the verdict after the detail. See
   // [`Detail`].
   let suffix = offscope_suffix(descoped, withdrawn);
-  let tally = Detail::Tally(format!("{satisfied}/{active} satisfied{suffix}"));
-  if satisfied == active {
+  // **COUNTED AND DISTINGUISHED IN ONE LINE**, which is what the ruling asks
+  // for: a fiat close unblocks the gate, and the line that counts it says so in
+  // the same breath. `fiat` is NOT folded into `satisfied` for the reason
+  // `offscope_suffix` gives about its own two states -- a thread that fiat-closed
+  // half its contract has to look like one.
+  let fiat_suffix = if fiat > 0 {
+    format!(", {fiat} fiat-closed")
+  } else {
+    String::new()
+  };
+  let tally = Detail::Tally(format!(
+    "{satisfied}/{active} satisfied{fiat_suffix}{suffix}"
+  ));
+  if satisfied + fiat == active {
     Verdict::Pass { detail: tally }
   } else {
     Verdict::Blocked {

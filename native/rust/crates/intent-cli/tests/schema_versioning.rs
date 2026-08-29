@@ -270,11 +270,19 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // published contract -- which is the same one-face result this
     // instrument gave the last time a table arrived without a type.
     ("SCHEMA_DDL_VER", 11, 0xab06_00f4_6c0d_8993),
-    // WpStatus gained CANCELLED (hv, 2026-08-21): the wire contract now says a
-    // work package can be cancelled. 8 -> 9.
-    ("SCHEMA_SDL_VER", 9, 0x5cbe_ac39_294e_da8d),
-    // Same change on the JSON face. 10 -> 11.
-    ("SCHEMA_JSON_VER", 11, 0xb59f_57d8_9f6c_fbd6),
+    // AcState gained FIAT, carrying a FiatRecord (ST0066, hv 2026-08-28): the
+    // wire contract now says a criterion can be closed on human authority with
+    // the requirement unmet. 9 -> 10.
+    ("SCHEMA_SDL_VER", 10, 0x9cc6_a9ab_0cf7_30f6),
+    // Same change on the JSON face. 11 -> 12.
+    //
+    // **THE DDL PIN ABOVE DELIBERATELY DOES NOT MOVE, AND THAT IS A MEASURED
+    // RESULT RATHER THAN AN OMISSION.** `criteria.state` is one TEXT column
+    // holding the whole recorded state as its serde JSON, so a new variant
+    // needs no column, no constraint and no row rewrite -- this instrument
+    // reported SDL and JSON and stayed silent on DDL, which is the two-of-three
+    // result the three-version scheme exists to make visible.
+    ("SCHEMA_JSON_VER", 12, 0xe2be_443f_cbce_37b6),
   ];
 
   let mut moved = Vec::new();

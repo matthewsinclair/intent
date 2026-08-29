@@ -576,6 +576,7 @@ fn criterion_line(thread: &Thread, c: &Criterion) -> String {
         line.push_str(&format!(" (by {by})"));
       }
     }
+    AcState::Fiat(record) => line.push_str(&crate::model::fiat_marker(record)),
   }
   line.push('\n');
   line

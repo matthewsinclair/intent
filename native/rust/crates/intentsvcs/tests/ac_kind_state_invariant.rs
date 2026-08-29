@@ -56,6 +56,21 @@ fn samples() -> Vec<AcState> {
       reason: "the premise did not reproduce".to_string(),
       by: None,
     },
+    // Legal on BOTH kinds, like the two states above it and for the same
+    // reason: it records a decision about the requirement rather than about
+    // its satisfaction. An over-cooked TEST-backed criterion is the case hv
+    // described wanting to escape, so a fiat state barred from `test` would
+    // miss the population the verb exists for.
+    AcState::Fiat(intentsvcs::model::FiatRecord {
+      because: "the half it asserts is unobservable by unit test".to_string(),
+      by: "hv".to_string(),
+      at: "2026-08-28T18:30:00.000Z".to_string(),
+      invoker: intentsvcs::model::Invoker {
+        tty: true,
+        env: "darwin/arm64".to_string(),
+      },
+      inherited_from: None,
+    }),
   ]
 }
 
@@ -152,7 +167,14 @@ fn the_schema_and_the_model_agree_on_every_pair() {
     }
   }
 
-  assert_eq!(checked, 10, "the product was not walked");
+  // 2 kinds x 6 states. Left as a literal rather than computed from
+  // `samples().len()`: deriving it from the same source the loop walks would
+  // make the assertion agree with any sample set including an empty one, and
+  // this estate uses a hand-kept count as a deliberate tripwire elsewhere for
+  // the same reason (`SCHEMA_VER_KEYS.len()`, "this count is the thing that
+  // notices"). The independent witness is the sibling test, which reads the
+  // declared states out of the SCHEMA rather than out of this file.
+  assert_eq!(checked, 12, "the product was not walked");
   assert!(
     disagreements.is_empty(),
     "the schema face and `AcState::permitted_for` disagree:\n  {}\n\

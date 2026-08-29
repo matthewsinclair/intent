@@ -88,6 +88,17 @@ pub enum Unmet {
   Unsatisfied,
   Descoped,
   Withdrawn,
+  /// Closed on human authority with the requirement unmet.
+  ///
+  /// **A fiat close unblocks the CLOSE gate and deliberately does not unblock
+  /// this one**, because the two gates ask different questions. The close gate
+  /// asks whether a contract may be signed off, and a fiat close is an
+  /// authority to sign it off. A precondition asks whether the work another
+  /// criterion DEPENDS ON was actually done, and a fiat close is the standing
+  /// record that it was not -- so reporting it as met would hide a waived
+  /// dependency behind a green, which is the shape `Descoped` is already
+  /// refused for one line above.
+  Fiat,
   /// Declared, and no criterion by that id exists. **Unmet, not skipped:** a
   /// declared id that resolves to nothing is exactly how a list quietly
   /// shrinks, and skipping it would make checked disagree with declared while
@@ -101,6 +112,7 @@ impl fmt::Display for Unmet {
       Self::Unsatisfied => "not satisfied",
       Self::Descoped => "descoped -- dropped, which is not met",
       Self::Withdrawn => "withdrawn -- dropped, which is not met",
+      Self::Fiat => "fiat-closed -- closed unmet on human authority, which is not met",
       Self::NoSuchCriterion => "declared, but no such criterion exists",
     };
     f.write_str(s)
@@ -309,6 +321,7 @@ pub fn check(canon: &Canon) -> Verdict {
       Some(Resolved::Unsatisfied) => unmet.push((id.clone(), Unmet::Unsatisfied)),
       Some(Resolved::Descoped) => unmet.push((id.clone(), Unmet::Descoped)),
       Some(Resolved::Withdrawn) => unmet.push((id.clone(), Unmet::Withdrawn)),
+      Some(Resolved::Fiat) => unmet.push((id.clone(), Unmet::Fiat)),
       None => unmet.push((id.clone(), Unmet::NoSuchCriterion)),
     }
   }

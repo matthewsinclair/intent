@@ -530,13 +530,60 @@ pub const FIELDS: &[Field] = &[
         Edge::direct("ac.rescope", &["descoped"], "computed"),
         Edge::direct("ac.reinstate", &["withdrawn"], "unsatisfied"),
         Edge::direct("ac.reinstate", &["withdrawn"], "computed"),
+        // **The fiat exit, and it is the SAME verb rather than a new one**
+        // (hv, 2026-08-29). Reinstating already means bringing a requirement
+        // that was closed-without-being-met back into play, landing on
+        // `AcState::entry(kind)`; a fiat close is closed-without-being-met by
+        // definition, so it is the same operation on the same axis.
+        //
+        // **This is what makes "renders distinctly forever" and reversibility
+        // compatible rather than opposed.** Forever is a claim about RENDERING
+        // -- a row that IS fiat-closed never reads as ordinarily satisfied --
+        // and the permanent record of the close living in the event log, which
+        // is where this estate keeps history. Reopening a row hv closed by
+        // mistake does not erase that the fiat happened.
+        //
+        // The alternative was a terminal `fiat`, declined on its cost: a
+        // terminal value in a `State` field is exactly what
+        // `no_state_can_be_entered_and_not_left` refuses, so taking it would
+        // have meant weakening a guard protecting every other machine here.
+        Edge::direct("ac.reinstate", &["fiat"], "unsatisfied"),
+        Edge::direct("ac.reinstate", &["fiat"], "computed"),
       ],
       // **The `satisfied: false` orphan is GONE, by construction rather than by
       // a decision.** The old table recorded it with evidence: nothing produced
       // it, no verb wrote it, and `views.rs` rendered `None` and `Some(false)`
       // identically -- three representable values for two meanings. One enum
       // has no such value to be orphaned.
-      orphans: &[],
+      // The fiat close was modelled before its verb was built. Its two edges
+      // land together rather than one at a time: the entry edge ALONE would
+      // make `fiat` a trap state, which `no_state_can_be_entered_and_not_left`
+      // exists to refuse, so an orphan is the honest interim rather than a
+      // half-built machine. Waiting on the ruling for whether a fiat close is
+      // reversible.
+      orphans: &[(
+        "fiat",
+        "the close-on-human-authority state is modelled and its verb is not built, so no service \
+         call reaches it yet",
+      )],
+    },
+  },
+  Field {
+    entity: "Invoker",
+    field: "tty",
+    // Part of the fiat record, which the service writes ONCE at the moment of
+    // the close and nothing afterwards revises. That is the point of the field
+    // rather than a gap in the build: a mutable record of who invoked something
+    // is not evidence about the invocation, so `Unbuilt` would be the wrong
+    // filing -- it would report a verb as owed when the absence of one is the
+    // design.
+    disposition: Disposition::Immutable {
+      note: "whether a terminal was attached when a fiat close was recorded. Written once by the service as evidence about the invocation, and moved by nothing afterwards",
+      // `Authored` rather than `Inert`, and this declaration is MEASURED rather
+      // than argued: hand-written canon can carry a fiat state, and a fiat state
+      // carries its invoker, so canon can put either value here.
+      entry: Entry::Authored,
+      ruled: "hv 2026-08-28",
     },
   },
   Field {

@@ -222,7 +222,12 @@ fn every_enum_reaches_the_sdl_with_all_its_variants() {
   assert_eq!(count("Tshirt"), 6, "TShirt variants");
   assert_eq!(count("AcceptanceMode"), 1, "AcceptanceMode variants");
   // The projection's own discriminant, one per AcState variant.
-  assert_eq!(count("AcStateName"), 5, "AcStateName variants");
+  // 5 -> 6 on 2026-08-28: `Fiat` (ST0066). The wire contract now says a
+  // criterion can be closed on human authority with the requirement unmet --
+  // which is exactly the kind of vocabulary change this tripwire exists to put
+  // in front of someone, since a consumer switching on this enum now has a case
+  // it has never seen and which does NOT mean satisfied.
+  assert_eq!(count("AcStateName"), 6, "AcStateName variants");
 }
 
 #[test]
@@ -254,6 +259,30 @@ fn the_ac_scope_projection_carries_exactly_the_serde_form() {
       reason: "not doing it".into(),
       by: None,
     },
+    // Both fiat shapes, because `inherited_from` is the one field that
+    // distinguishes a row hv judged from a row a cascade reached, and a
+    // projection that dropped it would make the two identical on this face
+    // while the serde form still told them apart.
+    AcState::Fiat(intentsvcs::model::FiatRecord {
+      because: "the half it asserts is unobservable".into(),
+      by: "hv".into(),
+      at: "2026-08-28T18:30:00.000Z".into(),
+      invoker: intentsvcs::model::Invoker {
+        tty: true,
+        env: "darwin/arm64".into(),
+      },
+      inherited_from: None,
+    }),
+    AcState::Fiat(intentsvcs::model::FiatRecord {
+      because: "the parent was cut".into(),
+      by: "hv".into(),
+      at: "2026-08-28T18:30:00.000Z".into(),
+      invoker: intentsvcs::model::Invoker {
+        tty: false,
+        env: "darwin/arm64".into(),
+      },
+      inherited_from: Some("ST0066".into()),
+    }),
   ];
 
   for scope in cases {
@@ -288,6 +317,18 @@ fn the_ac_scope_projection_carries_exactly_the_serde_form() {
     if view.reason.is_some() {
       view_keys.push("reason");
     }
+    if view.because.is_some() {
+      view_keys.push("because");
+    }
+    if view.at.is_some() {
+      view_keys.push("at");
+    }
+    if view.invoker.is_some() {
+      view_keys.push("invoker");
+    }
+    if view.inherited_from.is_some() {
+      view_keys.push("inherited_from");
+    }
     view_keys.sort_unstable();
 
     assert_eq!(
@@ -296,13 +337,30 @@ fn the_ac_scope_projection_carries_exactly_the_serde_form() {
     );
 
     // And the values themselves, not just their presence.
+    //
+    // **`invoker` is compared as a VALUE and not through `as_str`**, because it
+    // is the first nested object any AcState field carries: `as_str` returns
+    // `None` for it on BOTH sides, so a string-only comparison would agree
+    // whatever the projection did with it. That is a control that cannot fail,
+    // which is worse here than no control at all.
     for key in &serde_keys {
+      if *key == "invoker" {
+        assert_eq!(
+          obj.get(*key),
+          serde_json::to_value(&view.invoker).ok().as_ref(),
+          "AcState field invoker differs between faces"
+        );
+        continue;
+      }
       let serde_val = obj.get(*key).and_then(Value::as_str);
       let view_val = match *key {
         "evidence" => view.evidence.as_deref(),
         "to" => view.to.as_deref(),
         "by" => view.by.as_deref(),
         "reason" => view.reason.as_deref(),
+        "because" => view.because.as_deref(),
+        "at" => view.at.as_deref(),
+        "inherited_from" => view.inherited_from.as_deref(),
         other => panic!("unexpected AcState field {other} -- the projection needs updating"),
       };
       assert_eq!(

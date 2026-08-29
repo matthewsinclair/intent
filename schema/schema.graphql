@@ -1,5 +1,5 @@
 # INTENT_VER: 3.0.0
-# SCHEMA_SDL_VER: 9
+# SCHEMA_SDL_VER: 10
 
 enum AcKind {
   TEST
@@ -21,6 +21,7 @@ enum AcStateName {
   SATISFIED
   DESCOPED
   WITHDRAWN
+  FIAT
 }
 
 """
@@ -46,6 +47,28 @@ type AcStateView {
   Descoped or withdrawn: why.
   """
   reason: String
+  """
+  Fiat only: why the close was made against the evidence.
+  
+  Deliberately NOT folded into [`AcStateView::reason`]: this view is the
+  serde form flattened, and the serde form spells it `because`. Two names
+  for one field would make the two representations disagree, which is the
+  one property this type promises.
+  """
+  because: String
+  """
+  Fiat only: when the close was recorded, RFC 3339 UTC.
+  """
+  at: String
+  """
+  Fiat only: evidence about the invocation.
+  """
+  invoker: Invoker
+  """
+  Fiat only, and only on a CASCADED row: the ancestor whose fiat close
+  reached it.
+  """
+  inheritedFrom: String
 }
 
 enum AcceptanceMode {
@@ -169,6 +192,27 @@ type Criterion {
   The recorded AC state, flattened -- see [`AcStateView`].
   """
   state: AcStateView!
+}
+
+"""
+Evidence about the invocation that recorded a fiat close.
+
+Collected by the service at the moment of the close; no caller supplies any
+of it.
+"""
+type Invoker {
+  """
+  Whether a terminal was attached to the invocation.
+  
+  **Narrows the population; it does not identify the actor.** An automated
+  caller can allocate a tty and a human's own close inside a script or an
+  ssh pipe has none, so this is evidence to weigh rather than a verdict.
+  """
+  tty: Boolean!
+  """
+  The environment the close was recorded from.
+  """
+  env: String!
 }
 
 """

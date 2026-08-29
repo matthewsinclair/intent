@@ -1059,13 +1059,13 @@ impl WpStatus {
   {
     "if": { "properties": { "kind": { "const": "test" } }, "required": ["kind"] },
     "then": { "properties": { "state": { "properties": {
-      "is": { "enum": ["computed", "descoped", "withdrawn"] }
+      "is": { "enum": ["computed", "descoped", "withdrawn", "fiat"] }
     } } } }
   },
   {
     "if": { "properties": { "kind": { "const": "non-test" } }, "required": ["kind"] },
     "then": { "properties": { "state": { "properties": {
-      "is": { "enum": ["unsatisfied", "satisfied", "descoped", "withdrawn"] }
+      "is": { "enum": ["unsatisfied", "satisfied", "descoped", "withdrawn", "fiat"] }
     } } } }
   }
 ]))]
@@ -1091,6 +1091,100 @@ pub struct Criterion {
 pub enum AcKind {
   Test,
   NonTest,
+}
+
+/// Evidence about the invocation that recorded a fiat close.
+///
+// The rule this obeys is the estate's standing one that no caller authors a
+// stamp: a field a caller can supply is a field a caller can supply falsely,
+// and the whole value of this record is that it was not written by the party it
+// describes. The decision reference stays in this plain comment -- a `///` here
+// is lifted into the published faces, where Intent's own decision numbering
+// means nothing to the consumer reading it.
+/// Collected by the service at the moment of the close; no caller supplies any
+/// of it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
+#[serde(deny_unknown_fields)]
+pub struct Invoker {
+  /// Whether a terminal was attached to the invocation.
+  ///
+  /// **Narrows the population; it does not identify the actor.** An automated
+  /// caller can allocate a tty and a human's own close inside a script or an
+  /// ssh pipe has none, so this is evidence to weigh rather than a verdict.
+  pub tty: bool,
+  /// The environment the close was recorded from.
+  pub env: String,
+}
+
+/// **A close made on human authority, against the evidence.**
+///
+/// Every other close in Intent asserts that something was done; this one
+/// records that someone with authority decided it need not be. It is therefore
+/// kept forever and never cleared by a later transition -- unlike
+/// [`Thread::status_reason`], which belongs to the status it explains.
+///
+/// Enforcement of who may invoke it is DETECTION AND ATTRIBUTION, never
+/// prevention: on a machine where the tool and its operator share a uid there
+/// is no boundary to enforce, so the record is built to be permanent and
+/// legible instead of unforgeable.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, SimpleObject)]
+#[serde(deny_unknown_fields)]
+pub struct FiatRecord {
+  // Non-empty for the reason `AcState::Satisfied`'s evidence is, and enforced
+  // at the same three points: `minLength` refuses the FILE, a guard refuses the
+  // API call, and `doctor` reports an estate already carrying one. A required
+  // `String` makes the field mandatory, not the reason present -- `String::new()`
+  // builds it -- and that gap is how an empty evidence once reached the close
+  // gate (ic, 2026-08-15).
+  /// Why the close was made. A fiat close without one does not execute.
+  #[schemars(length(min = 1))]
+  pub because: String,
+  /// Who recorded it.
+  pub by: String,
+  /// RFC 3339 UTC, as the event envelope stamps it.
+  pub at: String,
+  pub invoker: Invoker,
+  /// Set on a row closed by CASCADE, naming the ancestor whose fiat close
+  /// reached it. **Its presence is what stops a cascaded row reading as an
+  /// ordinary one**, so it is recorded rather than derived from the tree.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub inherited_from: Option<String>,
+}
+
+/// **THE ONE RENDERING OF A FIAT CLOSE.** Every surface that shows a
+/// fiat-closed row -- generated views, `ac list`, the close gate, `doctor` --
+/// composes its marker here and nowhere else.
+///
+/// hv's ruling (2026-08-28) put the fiat record BESIDE the status rather than
+/// inside it, which leaves the ratified lifecycle machine untouched and buys
+/// the property back through this function: a row can only render as ordinarily
+/// closed if a caller goes around this. **So "one composer" is the acceptance
+/// condition of that ruling, not a tidiness preference**, and it is enforced by
+/// a census over the render sites rather than by everyone remembering -- a
+/// convention every caller must recall is the weak form the ruling was chosen
+/// to avoid.
+///
+/// The marker leads with `FIAT-CLOSED` in the same shape `DESCOPED` and
+/// `WITHDRAWN` already use, so a reader who knows those needs nothing new.
+pub fn fiat_marker(record: &FiatRecord) -> String {
+  let mut out = String::from(" -- FIAT-CLOSED");
+  if let Some(ancestor) = &record.inherited_from {
+    // **The cascade marker comes FIRST**, because it is the part a reader must
+    // not miss: this row was not individually judged, and a marker buried after
+    // the reason reads as a footnote to a decision that was never made about it.
+    out.push_str(&format!(" (by cascade from {ancestor})"));
+  }
+  out.push_str(&format!(": {}", record.because));
+  out.push_str(&format!(" (by {}", record.by));
+  if !record.invoker.tty {
+    // Recorded in the visible line rather than only in the model. It is
+    // evidence, never a verdict -- an automated caller can hold a tty and a
+    // human's own close in a script has none -- but a reader deciding how much
+    // weight to give a close should not have to query for it.
+    out.push_str(", no tty");
+  }
+  out.push_str(&format!(", {})", record.at));
+  out
 }
 
 /// **What a criterion RECORDS.** One enum, replacing the `satisfied:
@@ -1177,6 +1271,15 @@ pub enum AcState {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     by: Option<String>,
   },
+  /// **Closed on human authority with the requirement unmet** (hv,
+  /// 2026-08-28). Distinct from `Satisfied` because nothing was satisfied, and
+  /// distinct from `Descoped`/`Withdrawn` because the requirement was neither
+  /// moved nor dropped -- it still stands, and it was closed anyway.
+  ///
+  /// **Applies to BOTH kinds**, on the same footing as its two neighbours: it
+  /// is a decision about the requirement, not about its satisfaction, so no AT
+  /// status can recompute it.
+  Fiat(FiatRecord),
 }
 
 impl AcState {
@@ -1204,6 +1307,7 @@ impl AcState {
       Self::Satisfied { .. } => "satisfied",
       Self::Descoped { .. } => "descoped",
       Self::Withdrawn { .. } => "withdrawn",
+      Self::Fiat(..) => "fiat",
     }
   }
 
@@ -1244,14 +1348,23 @@ impl AcState {
       // both kinds hold them and both must store them -- an AT status cannot
       // recompute a scope decision (vc, 2026-08-15).
       Self::Descoped { .. } | Self::Withdrawn { .. } => true,
+      // A fiat close is a third decision of that same family, so it lands here
+      // rather than beside the satisfaction states: hv can close an over-cooked
+      // test-backed criterion exactly as readily as an authored one.
+      Self::Fiat(..) => true,
     }
   }
 
   /// Whether the requirement is still being asked for.
   pub fn in_scope(&self) -> bool {
+    // **`Fiat` is IN SCOPE and that is not a technicality.** Descoped and
+    // withdrawn requirements stopped being asked for; a fiat-closed one is
+    // still asked for and was closed unmet, so folding it in with them would
+    // shrink the denominator and make a thread that cut and ran look like one
+    // that never owed the work.
     matches!(
       self,
-      Self::Computed | Self::Unsatisfied | Self::Satisfied { .. }
+      Self::Computed | Self::Unsatisfied | Self::Satisfied { .. } | Self::Fiat(..)
     )
   }
 

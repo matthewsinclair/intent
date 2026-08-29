@@ -110,6 +110,47 @@
             "reason"
           ],
           "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "description": "**Closed on human authority with the requirement unmet** (hv,\n2026-08-28). Distinct from `Satisfied` because nothing was satisfied, and\ndistinct from `Descoped`/`Withdrawn` because the requirement was neither\nmoved nor dropped -- it still stands, and it was closed anyway.\n\n**Applies to BOTH kinds**, on the same footing as its two neighbours: it\nis a decision about the requirement, not about its satisfaction, so no AT\nstatus can recompute it.",
+          "properties": {
+            "at": {
+              "description": "RFC 3339 UTC, as the event envelope stamps it.",
+              "type": "string"
+            },
+            "because": {
+              "description": "Why the close was made. A fiat close without one does not execute.",
+              "minLength": 1,
+              "type": "string"
+            },
+            "by": {
+              "description": "Who recorded it.",
+              "type": "string"
+            },
+            "inherited_from": {
+              "description": "Set on a row closed by CASCADE, naming the ancestor whose fiat close\nreached it. **Its presence is what stops a cascaded row reading as an\nordinary one**, so it is recorded rather than derived from the tree.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "invoker": {
+              "$ref": "#/$defs/Invoker"
+            },
+            "is": {
+              "const": "fiat",
+              "type": "string"
+            }
+          },
+          "required": [
+            "is",
+            "because",
+            "by",
+            "at",
+            "invoker"
+          ],
+          "type": "object"
         }
       ]
     },
@@ -258,7 +299,8 @@
                     "enum": [
                       "computed",
                       "descoped",
-                      "withdrawn"
+                      "withdrawn",
+                      "fiat"
                     ]
                   }
                 }
@@ -286,7 +328,8 @@
                       "unsatisfied",
                       "satisfied",
                       "descoped",
-                      "withdrawn"
+                      "withdrawn",
+                      "fiat"
                     ]
                   }
                 }
@@ -316,6 +359,25 @@
         "text",
         "kind",
         "state"
+      ],
+      "type": "object"
+    },
+    "Invoker": {
+      "additionalProperties": false,
+      "description": "Evidence about the invocation that recorded a fiat close.\n\nCollected by the service at the moment of the close; no caller supplies any\nof it.",
+      "properties": {
+        "env": {
+          "description": "The environment the close was recorded from.",
+          "type": "string"
+        },
+        "tty": {
+          "description": "Whether a terminal was attached to the invocation.\n\n**Narrows the population; it does not identify the actor.** An automated\ncaller can allocate a tty and a human's own close inside a script or an\nssh pipe has none, so this is evidence to weigh rather than a verdict.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "tty",
+        "env"
       ],
       "type": "object"
     },
@@ -568,5 +630,5 @@
   "title": "Thread",
   "type": "object",
   "x-intent-ver": "3.0.0",
-  "x-schema-json-ver": 11
+  "x-schema-json-ver": 12
 }

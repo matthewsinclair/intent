@@ -318,11 +318,12 @@ fn the_ruled_field_is_gone_and_the_collapsed_one_is_walked() {
     vec![
       "computed".to_string(),
       "descoped".to_string(),
+      "fiat".to_string(),
       "satisfied".to_string(),
       "unsatisfied".to_string(),
       "withdrawn".to_string()
     ],
-    "all five recorded states reach the walk, including BOTH entry values -- `computed` for a test-backed criterion and `unsatisfied` for an authored one"
+    "all six recorded states reach the walk, including BOTH entry values -- `computed` for a test-backed criterion and `unsatisfied` for an authored one"
   );
 }
 
@@ -508,6 +509,14 @@ fn no_service_call_can_set_an_edgeless_field() {
       // the match. A dead arm in a hand-written enumeration reads as coverage,
       // which is the same thing a short enumeration does.
       ("Criterion", "kind") | ("AcceptanceTest", "kind") => false,
+      // No service call constructs a fiat record today, so nothing can set the
+      // tty flag inside one. **This arm is written knowing it will change**:
+      // when `fc` lands it will CREATE the record carrying this value, and the
+      // measurement becomes the same one `("Thread", "acceptance")` describes
+      // above -- created carrying it, and no verb moves it afterwards. That is
+      // a change of measurement rather than of ruling, and the disposition
+      // stays `Immutable` either way.
+      ("Invoker", "tty") => false,
       other => panic!(
         "{other:?} is edgeless and no arm decides whether a service call can set it -- inertness is measured, never assumed"
       ),
@@ -611,6 +620,46 @@ fn an_edgeless_fields_entry_path_is_measured_not_declared() {
           .map(|t| t.kind)
           .collect();
         kinds.contains(&AtKind::Test) && kinds.contains(&AtKind::NonTest)
+      }
+      // Driven, not inspected: authored canon carrying a fiat state carries the
+      // invoker inside it, so BOTH bool values have to survive the trip for the
+      // `Authored` declaration to be true. Written with the two criteria
+      // disagreeing, because a fixture that sets one value round-trips
+      // vacuously -- it would pass on a reader that hardcoded either bool.
+      ("Invoker", "tty") => {
+        let fx = Fixture::new();
+        let mut thread = sample_thread("ST0001");
+        let record = |tty: bool| {
+          AcState::Fiat(intentsvcs::model::FiatRecord {
+            because: "cut and run".to_string(),
+            by: "hv".to_string(),
+            at: "2026-08-28T18:30:00.000Z".to_string(),
+            invoker: intentsvcs::model::Invoker {
+              tty,
+              env: "darwin/arm64".to_string(),
+            },
+            inherited_from: None,
+          })
+        };
+        assert!(
+          thread.criteria.len() >= 2,
+          "the fixture must carry two criteria for the two tty values to disagree"
+        );
+        thread.criteria[0].state = record(true);
+        thread.criteria[1].state = record(false);
+        fx.write_thread(&thread);
+        let read = fx.facade();
+        let flags: Vec<bool> = read
+          .st_show("ST0001")
+          .expect("thread")
+          .criteria
+          .iter()
+          .filter_map(|c| match &c.state {
+            AcState::Fiat(r) => Some(r.invoker.tty),
+            _ => None,
+          })
+          .collect();
+        flags.contains(&true) && flags.contains(&false)
       }
       // **`("Issue", "status")` had an arm here and it had been DEAD since
       // Machine 4 landed**, along with a comment reading "v3 ships the read
@@ -1144,6 +1193,16 @@ fn state_named(name: &str) -> AcState {
       reason: "the premise did not reproduce".to_string(),
       by: None,
     },
+    "fiat" => AcState::Fiat(intentsvcs::model::FiatRecord {
+      because: "the half it asserts is unobservable by unit test".to_string(),
+      by: "hv".to_string(),
+      at: "2026-08-29T11:00:00.000Z".to_string(),
+      invoker: intentsvcs::model::Invoker {
+        tty: true,
+        env: "darwin/arm64".to_string(),
+      },
+      inherited_from: None,
+    }),
     other => panic!("no such AC state: {other}"),
   }
 }
@@ -1353,6 +1412,20 @@ const RATIFIED_CRITERION: &[RatifiedEdge] = &[
   ("ac.rescope", &["descoped"], "computed", &[]),
   ("ac.reinstate", &["withdrawn"], "unsatisfied", &[]),
   ("ac.reinstate", &["withdrawn"], "computed", &[]),
+  // **The fiat exit, ruled by hv 2026-08-29: the SAME verb, not a new one.**
+  // Reinstating already means bringing a requirement closed-without-being-met
+  // back into play, and a fiat close is closed-without-being-met by definition.
+  //
+  // **THIS TRANSCRIPTION IS AHEAD OF ITS SOURCE AND THAT IS RECORDED HERE
+  // RATHER THAN LEFT TO BE DISCOVERED.** These two rows are the second witness
+  // to `data-model.md`'s Machine 3, whose table still lists eight edges; the
+  // ruling is hv's and the doc is another thread's surface, so recording it
+  // there is routed rather than taken. **Until it lands, the two witnesses
+  // disagree and NOTHING DETECTS IT** -- this check reads only the list below,
+  // so the divergence is invisible to the very mechanism built to catch
+  // divergence. Named here because a note in the artefact outlives a message.
+  ("ac.reinstate", &["fiat"], "unsatisfied", &[]),
+  ("ac.reinstate", &["fiat"], "computed", &[]),
 ];
 
 /// The ratified work-package machine, same discipline.
@@ -1596,17 +1669,26 @@ fn the_transition_table_transcribes_the_ratified_machines_edge_for_edge() {
       ratified.len()
     );
     for (verb, from, to, guard) in ratified.iter() {
+      // **THE KEY IS (verb, to, FROM), AND IT USED TO BE (verb, to) BY
+      // ACCIDENT RATHER THAN BY DESIGN.** No two ratified edges shared a verb
+      // and a target until `ac.reinstate` gained a second source, so the
+      // two-part lookup was unique for reasons nothing here asserted. The
+      // moment it was not, `find` returned the FIRST match and the `from`
+      // assertion below compared a ratified edge against a different declared
+      // one -- reporting a divergence that did not exist while silently not
+      // checking the edge it was actually looking at.
+      //
+      // A property holding because another mechanism happened to make its key
+      // unique is the class `IN-AG-RED-CONTROL-001` names: enforcement
+      // inherited from an accident expires silently when the accident does.
+      // Matching on all three makes existence the check that `from` used to be,
+      // and the guard assertion below stays the part a success path never sees.
       let found = implemented
         .iter()
-        .find(|e| e.verb == *verb && e.to == *to)
+        .find(|e| e.verb == *verb && e.to == *to && e.from == *from)
         .unwrap_or_else(|| {
-          panic!("{entity}.{field}: the ratified machine has `{verb}` -> `{to}` and the code declares no such edge")
+          panic!("{entity}.{field}: the ratified machine has `{verb}` from {from:?} -> `{to}` and the code declares no such edge")
         });
-      assert_eq!(
-        found.from, *from,
-        "{entity}.{field}: `{verb}` is ratified from {from:?} and declared from {:?}",
-        found.from
-      );
       assert_eq!(
         found.guard, *guard,
         "{entity}.{field}: `{verb}` is ratified with {guard:?} and declared with {:?} -- a guard is the half a success-path test never sees",

@@ -73,6 +73,7 @@ pub enum AcStateName {
   Satisfied,
   Descoped,
   Withdrawn,
+  Fiat,
 }
 
 /// [`AcState`] flattened to `state` + the union of its variants' fields, which
@@ -89,6 +90,20 @@ pub struct AcStateView {
   pub by: Option<String>,
   /// Descoped or withdrawn: why.
   pub reason: Option<String>,
+  /// Fiat only: why the close was made against the evidence.
+  ///
+  /// Deliberately NOT folded into [`AcStateView::reason`]: this view is the
+  /// serde form flattened, and the serde form spells it `because`. Two names
+  /// for one field would make the two representations disagree, which is the
+  /// one property this type promises.
+  pub because: Option<String>,
+  /// Fiat only: when the close was recorded, RFC 3339 UTC.
+  pub at: Option<String>,
+  /// Fiat only: evidence about the invocation.
+  pub invoker: Option<crate::model::Invoker>,
+  /// Fiat only, and only on a CASCADED row: the ancestor whose fiat close
+  /// reached it.
+  pub inherited_from: Option<String>,
 }
 
 impl From<&AcState> for AcStateView {
@@ -99,6 +114,10 @@ impl From<&AcState> for AcStateView {
       to: None,
       by: None,
       reason: None,
+      because: None,
+      at: None,
+      invoker: None,
+      inherited_from: None,
     };
     match state {
       AcState::Computed => base,
@@ -122,6 +141,15 @@ impl From<&AcState> for AcStateView {
         state: AcStateName::Withdrawn,
         by: by.clone(),
         reason: Some(reason.clone()),
+        ..base
+      },
+      AcState::Fiat(record) => Self {
+        state: AcStateName::Fiat,
+        by: Some(record.by.clone()),
+        because: Some(record.because.clone()),
+        at: Some(record.at.clone()),
+        invoker: Some(record.invoker.clone()),
+        inherited_from: record.inherited_from.clone(),
         ..base
       },
     }
