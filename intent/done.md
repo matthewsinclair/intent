@@ -1,11 +1,31 @@
 ---
-verblock: "14 Aug 2026:v0.21: vc - v2.19.0 SHIPPED (tag 071c612, both remotes + GitHub release)"
-intent_version: 2.18.0
+verblock: "29 Aug 2026:v0.22: vc - the v3 era enters the ledger: 3.0.0 shipped, the port closed, the doc set landed"
+intent_version: 3.0.0
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-08-29 — the v3 documentation set, the site specification, and four defects in the shipped build
+
+- **`docs/` is now the v3 documentation set and `docs/v2/` is the frozen v2 archive.** Index, install, getting started, concepts (steel threads, criteria and tests, the store), working with coding agents, migrating from v2, and a command reference GENERATED from the register against a named revision rather than hand-written. **Written against the CUT, never against `main`** — the published tag carries none of the `ac`/`at` edit work, so a page written from the register at `main` would document verbs no installed tool has.
+- **The v2 blog and release notes moved under `docs/v2/` with their canonical URLs deliberately unchanged**, on hv's ruling, to preserve a year of inbound links. `docs/v2/README.md` records why they do not match their paths, because the tidy repair is the destructive one and is not recoverable once reindexed.
+- **`docs/design/design-system.md` specifies the `intent.laksa.io` site and Laksa is building from it.** Consolidated from two independent drafts written on separate hv briefs before either author knew the other existed — the founding-rule violation this tool exists to prevent, produced by parallel briefing in a single turn. Its semantic palette is inherited from the CLI's own prefix vocabulary rather than chosen; its eight open design decisions go to the Laksa design agent, each carrying its constraint and what breaks if it goes the other way.
+- **Four defects measured in the published v3.0.0 build and stated in the docs rather than hidden**: the keg ships no rule library and no skills; it cannot run `intent claude ws` or `intent claude start`, so the keg contradicts a skill it ships; `ac new` on an existing id destroys the row; and `st repair` shipped in the tag and is retired at HEAD, so it works in the release people are on and vanishes at the next.
+- **Issues filed:** `0142` (`at green --help` asserts a guard the tool does not enforce; the register's own three fields disagree), `0143` (no v3 equivalent of `--skip-settings`, so a project cannot decline Claude Code lifecycle hooks), `0144` (`st edit` on an unknown id registers it in the tracked `.intentfiles`, and the file argument decides which paths do it).
+- **The shipped `CLAUDE.md` template carried three false claims in one sentence** about how `.claude/settings.json` is installed and how to decline it — in a generated file no project could repair locally. Found from outside the estate by laksa-vc. Corrected in the template and propagated.
+- **The delivered binary pair was rebuilt clean after a dep refresh**, and was found SPLIT rather than merely dirty: a dirty `intent` beside a clean `intentd` built from a tree 67 commits older. Both halves now name the same commit, which is the property — every check that reads only `intent` passes on a split pair.
+
+## 2026-08-28 — the port is CLOSED: all seventeen estates are on v3
+
+- **Conflab was the last, hoisted 2026-08-28**, verified by five nodes across three estates against a pre-hop census, a whole-tree manifest, and a two-arm guard control on its live hook. Full record: `intent/whiteboard/vc/cutover-runbook.md` and `intent/st/ST0058/design.md`.
+- **`~/Devel/prj/Intentv2` was never migrated and never will be.** It carries a config so every census finds it and it looks like the ideal canary; it is the v2 CLI the fleet ran. **A census that finds projects by config presence cannot tell a consumer from the tool.**
+
+## 2026-08-26 — v3.0.0 SHIPPED: tag `80d8b2ca`, both remotes, GitHub release, Homebrew formula live
+
+- **The full Rust rewrite.** The database is the source of truth, canon extracts at `intent/.canon/` are what git reviews, and the Markdown under `intent/st/` is a generated projection. Intent is self-hosted on it.
+- **Installed as `brew install matthewsinclair/intent/intent`** — fully qualified deliberately, because the short form works only while homebrew-core stays empty of that name.
 
 ## 2026-08-14 — v2.19.0 SHIPPED (issues 0009-0023); tag `071c612`, both remotes + GitHub release
 
