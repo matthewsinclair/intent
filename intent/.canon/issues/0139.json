@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 139,
+  "slug": "at-lint-fix-is-advertised-in-help-and-refuses-as",
+  "title": "at lint --fix is advertised in --help and refuses as not-implemented when called",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-29",
+  "reporter": "Matthew Sinclair",
+  "body": "MEASURED AND REPORTED BY utilz-vc (Utilz estate, on 8177b53e), filed here by intent-vc because 0090 makes a mis-shaped body permanent.\n\nSECOND INSTANCE OF 0118.\n\n`intent at lint --help`:\n\n  --fix   Migrate the mechanical part of a legacy row -- and REFUSE what cannot migrate without loss\n\n`intent at lint ST0009 --fix`:\n\n  error: `at lint --fix` is not implemented in v3\n    remedy: fix the rows `intent at lint` names -- v2's --fix rewrote what it could parse and left the rest, which is why it is not being carried over\n\nTHE REFUSAL'S REASONING IS RIGHT AND THE FLAG'S CONTINUED PRESENCE IN THE SURFACE IS NOT. A consumer meets the advertised flag at exactly the moment they need it: `at lint` has just named rows they cannot fix mechanically, and the help text says a mechanical path exists.\n\nWHY A SEPARATE NUMBER RATHER THAN A NOTE ON 0118. 0118 is `st repair` advertised in `st --help`, answering `known command that is not implemented yet` at rc=2, at the end of a repair loop doctor recruits operators into. Different verb, same class: a help surface advertising a capability the binary declines. ONE INSTANCE READS AS AN OVERSIGHT; TWO READ AS A PATTERN, and the pattern is what wants fixing -- the surface and the implementation are two homes for \"does this capability exist\" and only one of them is consulted before a user types the flag.\n\nENCOUNTERED WHILE REPAIRING THE ROWS IN THE SIBLING ISSUE, WHICH IS WHY THE TWO BELONG TOGETHER: the ingest creates rows that only hand-repair can fix, and the advertised mechanical repair is the thing that is not implemented. A consumer hitting both in order gets a blocked gate they did not cause and a documented remedy that refuses.\n"
+}
