@@ -10,25 +10,41 @@
 
 ## 1. The founding principle: the site renders like the tool
 
-**The semantic palette is inherited from the CLI's output contract, not chosen.** Intent v3 emits one vocabulary of line prefixes. These are measured counts across `intent-cli/src` at `HEAD`, 2026-08-29:
+**The semantic palette is taken from the CLI's own output vocabulary rather than invented for the site.** Intent v3 emits line prefixes, all lowercase, all colon-terminated, no banners and no unicode decoration.
 
-| Prefix     | Uses | What it means                                    |
-| ---------- | ---- | ------------------------------------------------ |
-| `error:`   | 88   | The operation did not happen                     |
-| `ok:`      | 25   | The operation happened                           |
-| `created:` | 10   | A new artefact exists                            |
-| `warning:` | 9    | It happened, and something about it needs saying |
-| `note:`    | 7    | Context the operator wants and did not ask for   |
-| `residue:` | 1    | State left behind that nothing owns              |
-| `done:`    | 1    | A sequence finished                              |
+| Prefix     | What it means                                    |
+| ---------- | ------------------------------------------------ |
+| `error:`   | The operation did not happen                     |
+| `warning:` | It happened, and something about it needs saying |
+| `ok:`      | The operation happened                           |
+| `created:` | A new artefact exists                            |
+| `residue:` | State left behind that nothing owns              |
+| `note:`    | Context the operator wants and did not ask for   |
+| `done:`    | A sequence finished                              |
 
-All lowercase, all colon-terminated, no banners, no unicode decoration.
+**That vocabulary is the site's semantic colour system.** A callout is not a "tip" or an "info box" -- it is a `note:`, and it is styled as one. Where the page shows a failure the tool prints as `error:`, it renders in the colour the terminal uses. A reader who has used the tool for ten minutes already knows what the colours mean.
 
-**That vocabulary is the site's semantic colour system.** A callout is not a "tip" or an "info box" — it is a `note:`, and it is styled as one. Where the page shows a failure the tool prints as `error:`, it renders in the colour the terminal uses.
+### This list is CURATED, and an earlier draft of this section implied it was not
 
-**This is the coherence argument and it is the reason nobody has to defend a palette on taste.** A reader who has used the tool for ten minutes already knows what the colours mean.
+**The seven rows above are a selection, not the output of a count**, and saying otherwise was the defect in the first version of this document. Two Laksa nodes re-derived it independently and both found the same thing: the corpus contains prefixes that outrank listed ones by frequency and are absent here -- `critic:` and `doctor:` both sit above or beside `note:`, along with `events:`, `status:`, `removed:`, `lint:` and a long tail.
 
-**It is also the one fact in this document.** Everything below is a design intention. The prefix table is a measurement of the tool; nothing else here has been built or measured.
+**The selection rule, stated now because it was applied and never written down:** a row is here if it describes **what happened to the operation**. It is excluded if it names **who is speaking** (`critic:`, `doctor:`, `gate:`, `ac:` -- these label the reporting command, not an outcome) or if it is a **field label inside a report** (`status:`, `reason:`, `severity:`, `scope:`). Prefixes that are outcomes but belong to one verb's report rather than the general vocabulary -- `written:`, `unchanged:`, `preserved:` from `intent claude upgrade` -- are excluded on the same ground and are the least comfortable exclusions in the set.
+
+**A choice was made, so the coherence argument is weaker than "we did not choose the palette" and is still the argument.** What the site inherits is a vocabulary the tool already speaks, filtered by a rule stated above; what it does not do is invent severity levels the tool has no word for. **If Decision A is reopened, this is part of it** -- the question is not only whether the accent can be red, but which prefixes carry semantic weight at all.
+
+### The counts are a derivation over a corpus that moves, so they are not published here
+
+An earlier version of this table carried per-prefix counts. **They are removed, because three independent measurements of the same corpus disagreed within one hour** -- `error:` read 88, then 92, then 92 again -- not because anyone measured wrongly, but because the corpus is `native/rust/crates/intent-cli/src` and two sessions are committing into it. **A count without a commit beside it describes a tree that no longer exists.**
+
+Re-derive it if you need it, and pin it:
+
+```
+  $ git rev-parse --short HEAD
+  $ grep -rhoE '"[a-z][a-z_-]*: ' native/rust/crates/intent-cli/src --include='*.rs' \
+      | sed 's/^"//; s/: $//' | sort | uniq -c | sort -rn
+```
+
+**The path is the full one deliberately.** An earlier draft cited the corpus as `intent-cli/src`, which is not a directory anyone can change into, and both reviewers had to guess candidate paths before they could check the table at all. **A corpus you cannot `cd` to is one nobody re-runs, which is how a table stops being reproducible without anyone editing it.**
 
 ## 2. References, and what to take from each
 
@@ -419,7 +435,7 @@ Specified in full at §3. **Steel `#35618f` vs rust `#A03E1E`.** The constraint 
 
 ## 12. What this document is not
 
-**It is not ratified, no page has been built against it, and eight of its decisions are open (§11).** Every claim is a design intention rather than a measurement — with the single exception of the prefix table in §1, measured at `HEAD` on 2026-08-29, which is the one thing here that is a fact about the tool rather than a proposal about the site.
+**It is not ratified, no page has been built against it, and eight of its decisions are open (§11).** Every claim is a design intention rather than a measurement — with the single exception of §1's prefix list, which names words the tool really emits -- though **the selection among them is a choice, stated as one in §1, and the counts an earlier draft carried are withdrawn as unreproducible against a moving corpus.**
 
 ---
 
