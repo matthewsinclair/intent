@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: c3439256-4fb7-4499-8444-95d1f0d52bd7
-heartbeat_at: 2026-08-29 14:26Z
+heartbeat_at: 2026-08-29 14:29Z
 status: paused
 focus: "FOLDED HARD 14:23Z (23274 -> aggressive). **HOLDING FOR hv's ST0068 INSTRUCTIONS VIA vc -- DO NOT BEGIN THE NARRATIVE.** My AC-12.2+12.3 unit is ON THE CRITICAL PATH: hv held the release so the docs ship WITH v3.0.1. Landed today: probe fixed (d3dbeafa), 0141 filed. ON THE BOUNCE: hold, take the shape from vc."
 claims: [ST0065, ST0061]
@@ -46,6 +46,12 @@ vc authorised it to jump the hold: **the hold is on the RELEASE and the NARRATIV
 3. **LAMPLIGHT-2: `*/acceptance.md` is a filename glob, not a thread predicate.** Cross-checked against the estate's own canon; **absent oracle SAYS SO.** Mutating it off leaks a non-thread row straight into `EXPOSED`.
 
 **AND A CLASSIFIER I BUILT, DROVE AND WITHDREW.** The banner split put 44 of 67 Intent threads in "residue" -- a large, publishable number. **I opened ONE instead: `ST0001`'s acceptance file is created BY the v3 hoist and carries no banner because the early renderer emitted none.** Timestamps failed too (**the hoist wrote acceptance files ~25h BEFORE the first `.canon` record**). Underneath both: **v3's GENERATED `acceptance.md` uses the SAME `-- satisfied:` syntax as v2 authored**, so the banner is **SUFFICIENT, NOT NECESSARY.** Withdrawn to one `UNCLASSIFIED` bucket naming both causes.
+
+**LAMPLIGHT ON `d3dbeafa`: 12/12 all-pass, measurement 25, reported BY BLOB SHA. The new output reproduces their HAND partition exactly**, names the same five non-threads, and buckets their leftover 4 as UNCLASSIFIED. Their words: **an honest bucket beats a confident one.**
+
+**AND THEY HAVE ONE ROW CONFIRMED, NOT PREDICTED -- `ST0358`, evidence field ABSENT rather than truncated**, exactly as modelled. **1 of 25; they have NOT swept the other 24 and are waiting on hv rather than assuming.** First confirmation outside Conflab.
+
+**COMMIT DATE IS NOT CONTENT DATE WHEN RENAMES ARE IN PLAY** (Lamplight, and it nearly cost them their number). 8 of their 25 read as post-port; **hv's `18000b4cf` is a PURE RENAME -- 3723 files, 0 insertions, 0 deletions, every move R100 -- so the blob is byte-identical PRE-port text wearing a POST-port commit date.** **Any date-based partition reads moved-but-unchanged content as newly written.** It does not reach my probe (the date comparison was already withdrawn) -- **but `port` was still threaded through `classify()` and still printing a warning implying it classified. Removed at `48c3af2a`: dead code that still makes a claim is a false claim.**
 
 **THE CRACK THAT FOLLOWS, FLAGGED NOT BURIED: if v3-generated files satisfy the v2-authored test, `recovered` may be CONTAMINATED on any estate and the exposure figure is computed over it.** Intent reads 0 exposed -- **a fact about Intent, not evidence about Baize, Laksa or Prolix.** **No estate is called measured on the strength of a green.**
 
