@@ -5,7 +5,7 @@ Intent is a single binary plus a support tree. The support tree is not optional 
 ## Homebrew (macOS)
 
 ```
-  $ brew install matthewsinclair/tap/intent
+  $ brew install matthewsinclair/intent/intent
   $ intent --version
 ```
 

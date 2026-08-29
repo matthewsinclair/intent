@@ -7,7 +7,7 @@ Your code says what it does. Version control says when it changed and who change
 Intent gives it a place to live that ages with the code instead of away from it.
 
 ```
-  $ brew install intent
+  $ brew install matthewsinclair/intent/intent
 ```
 
 ## Start here

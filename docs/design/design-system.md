@@ -278,7 +278,7 @@ The site is a single scroll. The copy below is a **draft to design against**, re
 >
 > Your code says what it does. It does not say what you were trying to achieve, what you ruled out, or what breaks if someone changes it. Intent gives that a place to live — in the repository, next to the code, in a form both your team and your coding agents can read.
 >
-> `brew install intent`
+> `brew install matthewsinclair/intent/intent`
 
 **3. One real terminal capture proving the claim**, above the fold. This is esbuild's move: the proof is immediate, and it is a capture rather than an adjective.
 
@@ -308,7 +308,7 @@ The site is a single scroll. The copy below is a **draft to design against**, re
 
 **8. Footer.** Docs, GitHub, changelog, licence, author. Mono, `--ink-muted`, on a hairline.
 
-**What the home page does not have**: a hero image, a logo wall, testimonials, a metrics counter, a newsletter capture, a comparison table against named competitors, or any call to action that is not "install it" or "read the docs". **One primary action, and it is `brew install intent`.**
+**What the home page does not have**: a hero image, a logo wall, testimonials, a metrics counter, a newsletter capture, a comparison table against named competitors, or any call to action that is not "install it" or "read the docs". **One primary action, and it is `brew install matthewsinclair/intent/intent`.**
 
 ## 8. Forbidden affordances
 
