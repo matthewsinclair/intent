@@ -68,7 +68,9 @@ If a command fails with an error naming a path rather than an argument, this tab
 
 **The v3.0.0 keg ships no rule library and no skills.** The copy list that builds the release archive omitted both trees. On a Homebrew install of v3.0.0, `intent claude rules list` and the whole `intent claude skills` family fail. A source install with `INTENT_HOME` set to the repository is unaffected, because the trees are there. Fixed for the next release.
 
-**`intent ac new` on an id that already exists replaces the row rather than refusing.** The replacement is a full write, so a field you do not supply is not preserved — it is written empty. If you are correcting a criterion's text in v3.0.0 there is no verb that edits in place, and the create verb will silently discard the rest of the row. **Until the next release, treat `ac new` as create-only and check `ac list` before re-running it on an id you are unsure about.** The same shape applies to `at new`.
+**`intent ac new` on an id that already exists replaces the row rather than refusing.** The replacement is a full write, so a field you do not supply is not preserved — it is written empty. In v3.0.0 there is no verb that edits a criterion in place, so the verb that repairs is the verb that destroys. The same shape applies to `at new`.
+
+**v3.0.1 closes this and the remedy is to upgrade.** `ac new` now refuses a taken id and names `ac edit` in the refusal, and `ac edit` and `at edit` exist to do the thing you meant. **If you are on v3.0.0 and cannot upgrade yet, treat `ac new` as create-only and read `ac list` before re-running it on an id you are unsure about.**
 
 **Criteria authored as unsatisfied-with-evidence lost their evidence when a v2 project was ingested.** In v3.0.0 the unsatisfied state carries no payload, so a v2 row reading `satisfied: no` _with_ an evidence clause had nowhere to put the clause and it was dropped without a warning. [Migrating from v2](migrating-from-v2.md) covers how to tell whether your project is affected and what recovery looks like.
 
