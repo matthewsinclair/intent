@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 9a5d1291-d17f-4a5c-9ab8-b62dca8c2674
-heartbeat_at: 2026-08-29 14:30Z
+heartbeat_at: 2026-08-29 14:41Z
 status: active
-focus: "ST0068 (Update Intent`s docs for v3) IS hv`s DOC TASK AND IT GATES v3.0.1 -- plan delivered, four decisions outstanding (do releases move to docs/v2 too; canonical URLs on the moved blog; as-shipped vs as-coming; where utilz-vc`s upgrade-cost synthesis lands). ST0068 HAS NO CONTRACT YET and a thread that gates a release cannot itself be ungated. All three workers HOLDING with clean lanes. THE DECIDING CONSTRAINT: validation must run against the 3.0.1 CUT, not main -- published 80d8b2ca carries none of the ac/at work, so docs written against main describe verbs the shipped tool lacks."
+focus: "ST0068 STILL GATES v3.0.1 and hv`s four decisions are STILL OPEN -- nothing doc-side has moved. dc booted and is assigned the KEG install-path truth, measured from `0112b8c1`s copy list without a build: the published v3.0.0 keg ships NO rule library and NO skills, a SECOND measured defect on the artefact brew is serving, and the first one the doc set walks into. Zero fiat rows in the store (416, control withdrawn=5) demotes 0137 off the critical path and makes ST0057s 66/66 currency-proof. ic`s ST0065 costed proposal surfaced to hv after a day unrouted."
 claims: [ST0056, ST0057, ST0058, ST0060, ST0066]
 ---
 
@@ -45,6 +45,8 @@ claims: [ST0056, ST0057, ST0058, ST0060, ST0066]
 **STANDING:** Lamplight 74 = 12+30+32 to zero, never the aggregate 62; `wp new` writes no objective; hv's devbin set. **`AcState::in_scope()` has NO CALLERS.** **Empty dirs survive at `~/.claude/skills/in-start/` and `in-next/`** -- the tool's listing is right, but a directory-presence check reads them as installed; needs an out-of-repo write.
 
 ## Watch-outs
+
+**28. AN ALIASED `json_extract` IN `GROUP BY` RETURNS A SILENTLY WRONG GROUPING, AND IT WAS RIGHT ON MY FIRST SAMPLE** (vc, 2026-08-29 14:41Z, against my own instrument). `SELECT json_extract(state,'$.is') AS kind, COUNT(*) FROM criteria GROUP BY kind` gave `computed|308, satisfied|108` -- **two buckets covering all 416 rows, erasing `unsatisfied` and `withdrawn` entirely.** `GROUP BY 1` on the identical query gives the true `306 / 78 / 27 / 5`. No error, no warning, plausible totals. **THE PART THAT MAKES IT A WATCH-OUT RATHER THAN A NOTE: the same broken form returned the CORRECT answer on the ST0057 sample I ran first** (`computed|66, withdrawn|3`), so had I stopped at the sample I would have banked a right answer and never learned the instrument was broken. **A sample that happens to agree does not certify the instrument; only a case where the two forms MUST differ does.** Use `GROUP BY 1` -- and the general limb is the one to keep: **when a query's grouping key is an expression, the alias is a display name, not the key, and which one the engine uses is not something the query says out loud.**
 
 **27. A CENSUS TAKES ITS UNIT FROM THE SUBJECT'S IDENTITY, NEVER FROM THE FILESYSTEM'S** (ic, against their own predictor). Scanning per-path what is per-thread inflates by however many homes the subject has ever had -- **678 paths for 358 threads; the fleet aggregate I carried to hv wrong by 3.2x, 257 against 80.** **AND IT IS NOT MERELY DOUBLE-COUNTING, WHICH WOULD HAVE BEEN THE HARMLESS HALF:** each stale path holds a FROZEN SNAPSHOT, so `ST0052 AC-01.2` reads `satisfied: no` at a July bucket and `yes` post-collapse -- **wrong verdicts, not duplicates.** **THE CONTROL COULD NOT HAVE CAUGHT IT AND ITS PROVENANCE WAS PERFECT:** Conflab is unchanged at 14 because its history produced no bucket snapshots, so the one estate with an independent measurement is the one the defect never touched -- unarranged, cross-node, cross-method, genuine, and blind. **The defence is not a better control; it is asking what the control CANNOT see.**
 
