@@ -29,10 +29,27 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../../.." && pwd)"
-# Whether each path was GIVEN to us, recorded here because two lines below
-# both are set and the distinction is gone. An explicit override is a
-# deliberate act and keeps reading the path it was handed; a default is read
-# from the index (see `stage_copy`).
+
+# **BOTH SIDES ARE READ FROM THE INDEX, NEVER FROM THE WORKING TREE**, and the
+# mechanism now lives in `lib_staged.sh` rather than in this file. It was born
+# here on 2026-08-17 and was copied nowhere, so three sibling checks kept
+# reading `surface/dispatch-table.json` off disk and reproduced the same defect
+# eleven days later. hv ruled the convergence on Highlander grounds (issue
+# 0125) and declined leaving this one carrying its own copy: two homes for this
+# mechanism is what produced the second episode.
+#
+# The header of `lib_staged.sh` carries the full argument, the four episodes,
+# and the reach limit. What matters here is unchanged: a class constructed AND
+# STAGED is in the commit s index and is still caught on the day it arrives.
+# What stops being caught is a keystroke in someone else s editor.
+STAGED_ROOT="$ROOT"
+# shellcheck source=lib_staged.sh
+. "$(dirname "${BASH_SOURCE[0]}")/lib_staged.sh"
+trap staged_cleanup EXIT
+
+# Whether each path was GIVEN to us, captured BEFORE the default is applied
+# because one line later both are set and the distinction is gone. An explicit
+# override is a deliberate act and keeps reading the path it was handed.
 CONTRACT_GIVEN="${CONTRACT:+yes}"
 SCANNER_GIVEN="${SCANNER:+yes}"
 CONTRACT="${CONTRACT:-$ROOT/intent/st/ST0056/migration.md}"
@@ -45,50 +62,16 @@ for f in "$CONTRACT" "$SCANNER"; do
   fi
 done
 
-# **BOTH SIDES ARE READ FROM THE INDEX, NEVER FROM THE WORKING TREE.**
+# `|| exit 2` is load-bearing: `staged_copy` refuses by exiting the SUBSHELL, so
+# without it this continues with an empty path. See `lib_staged.sh`.
 #
-# This gates commits, and it read two paths off disk until 2026-08-17. Four
-# sessions work one checkout, so a peer's HALF-WRITTEN `legacy.rs` -- a
-# constructor typed but its class not yet declared -- froze every node's
-# commits on work they had never touched. Measured: cc mid-edit emitting
-# `malformed-json` blocked ic's whiteboard commit, and the diagnosis cost
-# longer than the fix.
-#
-# **This is the SECOND instrument in this directory with the defect and the
-# first one was fixed two hours earlier** (`runner_roster_check.sh`, found by
-# dc). The rule was in hand and was applied to the tool in front of me rather
-# than to the class -- which is the same failure dc recorded against their own
-# patch and vc against their prose arms, three times in one afternoon.
-#
-# The purpose is unchanged and the timing is unchanged: a class constructed AND
-# STAGED is in the commit's index, so it is still caught on the day it arrives,
-# which is the only day anybody can say whether it blocks or carries. What
-# stops being caught is a keystroke in someone else's editor.
-#
-# `git show :<path>` honours `GIT_INDEX_FILE`, and git hands a hook a temporary
-# index during a partial commit, so under `--only` this reads HEAD plus the
-# committer's own named paths.
-#
-# An explicit `CONTRACT=` / `SCANNER=` override is a deliberate act by someone
-# running this by hand, so it keeps reading the path it was given.
-stage_copy() {
-  local given="$1" path="$2" rel tmp
-  [[ -n "$given" ]] && return 0   # explicit override: read what was asked for
-  rel="${path#"$ROOT"/}"
-  tmp="$(mktemp)"
-  if ! git -C "$ROOT" show ":$rel" >"$tmp" 2>/dev/null; then
-    rm -f "$tmp"
-    echo "error: $rel is not in the index -- this check judges the commit, so a file the commit does not carry cannot be read" >&2
-    exit 2
-  fi
-  printf '%s' "$tmp"
-}
-
-CONTRACT_SRC="$(stage_copy "$CONTRACT_GIVEN" "$CONTRACT")" || exit 2
-SCANNER_SRC="$(stage_copy "$SCANNER_GIVEN" "$SCANNER")" || exit 2
-[[ -n "$CONTRACT_SRC" ]] && CONTRACT="$CONTRACT_SRC"
-[[ -n "$SCANNER_SRC" ]] && SCANNER="$SCANNER_SRC"
-trap 'rm -f "$CONTRACT_SRC" "$SCANNER_SRC"' EXIT
+# The old form assigned into `_SRC` variables and then did
+# `[[ -n "$CONTRACT_SRC" ]] && CONTRACT="$CONTRACT_SRC"` -- which under the
+# `set -e` this file sets would have EXITED 1, silently, on the override path
+# where the test is false. Nobody met it because nobody drove the overrides
+# after the index change landed. The converged form has no such branch.
+CONTRACT="$(staged_copy "$CONTRACT_GIVEN" "$CONTRACT")" || exit 2
+SCANNER="$(staged_copy "$SCANNER_GIVEN" "$SCANNER")" || exit 2
 
 # Declared: the kebab-case class names in the residue table's first column.
 # The table is the rows between the header and the blank line that ends it.

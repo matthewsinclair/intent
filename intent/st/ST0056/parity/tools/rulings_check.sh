@@ -97,7 +97,32 @@ ST_DIR="${ST_DIR:-$(cd "$PARITY_DIR/.." && pwd)}"
 # migration proved only on today's data is proved on the one input guaranteed to
 # be green.  These exist so the mutation cases below can run at all.
 REPO_ROOT="${REPO_ROOT:-$(cd "$ST_DIR/../../.." && pwd)}"
+# **THE GATING INPUTS ARE READ FROM THE INDEX, NEVER FROM THE WORKING TREE.**
+#
+# This runs from the pre-commit gate, and four sessions work one checkout, so
+# reading `surface/dispatch-table.json` off disk means judging whatever every
+# other node happens to have half-typed. Measured 2026-08-28: cc s mid-edit
+# `st list` row refused vc s commit, on a file vc had never touched (issue
+# 0125). `residue_class_check.sh` had already carried the cure since
+# 2026-08-17 and nothing brought it here.
+#
+# hv ruled the convergence rather than three separate patches, on Highlander
+# grounds. The mechanism, the four episodes behind it and its reach limit are
+# in `lib_staged.sh`.
+# shellcheck source=lib_staged.sh
+. "$HERE/lib_staged.sh"
+trap staged_cleanup EXIT
+
+TABLE_GIVEN="${TABLE:+yes}"
 TABLE="${TABLE:-$REPO_ROOT/surface/dispatch-table.json}"
+# **NOT STAGED, AND THE LIMIT IS REAL RATHER THAN AN OVERSIGHT.** These two are
+# DIRECTORY SCANS, and `git show :<dir>` does not exist -- so the issue estate
+# below is still read from the working tree and a peer s mid-work issue file is
+# still visible to this check. It matters less than the table did (the question
+# asked of them is whether a cited issue number RESOLVES, not what it says), and
+# it is not nothing. A directory population needs `git ls-files`, a different
+# mechanism; inventing one unasked inside the convergence that exists to stop
+# there being two would be the joke telling itself.
 ISSUES_DIR="${ISSUES_DIR:-$REPO_ROOT/intent/issues}"
 ISSUES_CANON="${ISSUES_CANON:-$REPO_ROOT/intent/.canon/issues}"
 
@@ -105,6 +130,12 @@ die() { echo "error: $1" >&2; exit 2; }
 
 [ -f "$TABLE" ] || die "no dispatch table at $TABLE"
 command -v jq >/dev/null 2>&1 || die "jq is required"
+
+# `|| exit 2` is load-bearing rather than defensive noise: `staged_copy` refuses
+# by exiting, and it runs in a command substitution, so that exit ends the
+# SUBSHELL. This file does not set `-e`, so without the `|| exit 2` a refusal
+# becomes a read of `""` and a confident green over nothing.
+TABLE="$(staged_copy "$TABLE_GIVEN" "$TABLE")" || exit 2
 
 # THE AUTHORED VOCABULARIES.  Both are closed sets, and a value outside either is
 # NON-CONFORMING rather than ignored -- a checker that skips what it does not
