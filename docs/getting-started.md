@@ -91,7 +91,7 @@ A test starts at `to-write`. When it exists and fails it is `red`; when it passe
   $ intent at green ST0001 AT-01.1 --note "passes at 8k entries under 64MB"
 ```
 
-**Green is reachable only from red, and that is deliberate.** A test that goes straight from `to-write` to `green` was never observed failing, so nothing has demonstrated it can fail — which is the difference between a test and a decoration.
+**Go through `red` first, even though nothing forces you to.** A test that goes straight from `to-write` to `green` was never observed failing, so nothing has demonstrated it can fail — which is the difference between a test and a decoration. **`at green`'s own help says "reachable only from red"; that describes v2, and v3 does not enforce it.** See [Criteria and tests](concepts/criteria-and-tests.md).
 
 **Not everything is testable by a test, and Intent does not pretend otherwise.** A criterion satisfied by a document, a review or an eyeball is `--kind non-test`, and its acceptance test cites what was read rather than a file:
 

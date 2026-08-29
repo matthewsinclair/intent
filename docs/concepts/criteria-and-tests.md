@@ -75,7 +75,9 @@ A criterion with nothing behind it is a promise. An acceptance test is what make
 | `green`    | Exists and passes           |
 | `n-a`      | Deliberately not applicable |
 
-**Green is reachable only from red.** A test that goes straight from `to-write` to `green` has never been observed failing, so nothing has demonstrated it can fail — which is the difference between a test and a decoration. Intent will not let you skip that step.
+**Take a test through `red` before `green`, and know that the tool does not make you.** A test that goes straight from `to-write` to `green` has never been observed failing, so nothing has demonstrated it can fail — which is the difference between a test and a decoration.
+
+**v2 enforced this and v3 does not.** `at green` accepts any status from any status, and the guard is recorded as owed rather than dropped. **The command's own help text still says "reachable only from red", which is v2's contract and not this tool's** — so if you read that and assumed it was checked, the tool told you so and was wrong. It is a discipline you keep, not one you are held to.
 
 A `non-test` acceptance test cites what was read rather than a file:
 
