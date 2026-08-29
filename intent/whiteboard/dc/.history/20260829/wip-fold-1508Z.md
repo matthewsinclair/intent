@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: ff2a3ea4-b800-4f7e-8bcd-8dd01154cb5f
-heartbeat_at: 2026-08-29 15:09Z
+heartbeat_at: 2026-08-29 14:58Z
 status: active
-focus: "**FOLDED 1508Z AND HOLDING FOR INSTRUCTIONS -- nothing claimed, nothing in flight, lane clean.** Landed today: ST0066/0133 (seven commits, suite 1482/0) and KEG FIX B `74fc0a8c` on vc's word -- the cwi door ships at FILE level so `intent claude start`/`ws` are no longer dark, and smoke ARM 3 stopped auditing the artefact against the copy list it exists to check. **THE KEEPER IS NOT THE FIX: three instances of one shape in one file, the third found by driving my own repair -- the bats fixture built a DIRECTORY where the list named a file, 21 arms green throughout, and only a positive control showed my change had taken effect.** Nothing is mine and unblocked: 0136 and the cut are vc's, 0137 demoted to a watch list (ZERO fiat rows store-wide), the owed `claude start`/`ws` smoke arm needs a keg, WP-11 needs a tag, the fleet halt is hv's. Stage blockers now: coverage GREEN, no support-tree dirt, only peers' in-flight ST0068 work."
+focus: "**KEG FIX B LANDED `74fc0a8c` -- nothing outstanding on it, holding for vc's next.** Shipped the cwi door at FILE level (its dir holds six v2 scripts hv ruled out of the cut), so `intent claude start`/`ws` are no longer dark in the keg -- and the skill naming `ws new` as the provisioner ships in that same keg. **Fixed smoke ARM 3 as a defect: it claimed the resolver and iterated the COPY LIST**, reporting 4/4 green on a keg missing the door -- driven on a fixture, not argued. Population is now `resolved_install_paths`, one home two consumers. **Third instance of the shape found in my own fix:** the bats fixture built a DIRECTORY where the list named a file, 21 arms green throughout. **STILL OWED: no arm exercises `claude start`/`ws`; present is the strongest claim B earns and I did not write an arm I cannot drive.** Sent vc the verb-to-path table for `docs/install.md`; hv has answered all four ST0068 decisions and `docs/` is the v3 set."
 claims: [ST0056/07, ST0056/11, ST0066]
 ---
 
@@ -39,26 +39,41 @@ claims: [ST0056/07, ST0056/11, ST0066]
 
 ## DOING
 
-**NOTHING IN FLIGHT. NOTHING CLAIMED. LANE CLEAN.** Today's reasoning is in the COMMIT MESSAGES and in Watch-outs, and is not restated here. Pre-fold board verbatim at `.history/20260829/wip-fold-1508Z.md`.
+**KEG FIX B LANDED `74fc0a8c` ON vc's WORD -- guards green, macos bats 21/21. NOTHING OUTSTANDING ON IT.** vc assigned it as a measurement of the cut, not a build. Nothing built, nothing staged, no file touched.
 
-### LANDED TODAY -- ST0066/0133, then the keg
+**A v3.0.1 STAGE REFUSES TODAY.** v3 resolves FIVE install-root paths; the copy list covers four. Uncovered: `intent/plugins/claude/bin/intent_claude_cwi` (`install.rs:361`). Driven with the REAL `support_paths_coverage` extracted from `cmd/macos`, two-sided (right path -> green, irrelevant path -> still red). **The door landed `68ca70bf` 2026-08-27 14:41Z, a day AFTER vc's copy-list fix `0112b8c1` 2026-08-26 15:28Z** -- so this is vc's check working, not vc's defect repeating. Nobody has staged since, which is why it has never spoken.
 
-- **ST0066 / 0133**, seven commits ending `bf8cc1af`; suite 1482/0 at `070f8154`. `Unsatisfied` carries its own `note`, the destroying wildcard is gone, and the fiat census FOUND 0137.
-- **KEG FIX B `74fc0a8c`** (vc's word): `SUPPORT_PATHS` gains `intent/plugins/claude/bin/intent_claude_cwi` at FILE level, so `intent claude start`/`ws` are no longer dark in the keg. Same commit fixed **smoke ARM 3**, which claimed the resolver and iterated the COPY LIST -- 4/4 green on a keg missing the door, driven on a fixture. Population is now `resolved_install_paths`, one home two consumers.
-- **THE KEEPER IS NOT THE FIX.** Three instances of one shape in one file, the third found by driving my own repair: the bats fixture derived its trees from the copy list and assumed every entry was a DIRECTORY, so a file entry became a directory, **all 21 arms stayed green**, and the drift arms exercised no file at all. **21 green proved nothing about whether my change took effect; a positive control did.**
+**THE DOCS COLLISION IS THE POINT, AND IT OUTRANKS THE INSTALL PAGE.** The uncarried path is the only thing `intent claude start` and `intent claude ws` resolve, and the SHIPPED whiteboard skill calls `intent claude ws new <node>` the provisioner -- **so ST0068 would document a verb the keg cannot run, in a skill that ships inside that same keg.** Not gated by hv's four decisions.
+
+**FIX B RECOMMENDED AND FULLY DRIVEN:** add the single file, not the directory (which holds SEVEN scripts, six of them v2 residue -- shipping them contradicts hv's one-surviving-script ruling at `install.rs:352`). Verified end to end: coverage green, `support_tree_drift` clean with a file-level entry, tar emits the right path, **exec bit survives into the archive**.
+
+**SECOND FINDING, FIXED IN THE SAME COMMIT AT vc's REQUEST (they wanted it a defect, not a note).** ARM 3 claimed "every path v3 resolves" and iterated the COPY LIST, so its population was the list whose omissions it existed to catch. **I took the STRONGER option, not the one vc leaned to** -- they would rather it claim less; I made the population real via `resolved_install_paths` (ONE home, TWO consumers). **Driven on a fixture keg with the door missing: old shape 4/4 ok and PASSES, new shape fails by name.**
+
+**THIRD INSTANCE OF THE SHAPE, FOUND BY DRIVING MY OWN FIX.** The bats fixture derives its trees from `$SUPPORT_PATHS` but assumed every entry was a DIRECTORY -- `mkdir -p` turns a file entry into a directory, **all 21 arms stay green**, and the drift arms never exercise a file at all. The fixture agreed with the list and stopped agreeing with the tree. **21 green proved nothing about whether my fix took effect; a positive control did.**
+
+**STILL OWED AND DELIBERATELY NOT WRITTEN: no arm exercises `claude start`/`ws`.** ARM 4 proves the rule library ARMS; there is no equivalent for this door, so **"present" is the strongest claim B earns.** Writing an arm I cannot drive without a keg, in a file whose ethos is driven-not-reasoned, would be worse than the named gap. vc sequences it.
+
+Everything in ST0066/0133 landed earlier today; that reasoning is in the COMMIT MESSAGES and is not restated here. Pre-fold board verbatim at `.history/20260829/wip-fold-1423Z.md`.
+
+### ST0066 / 0133 -- LANDED AND CLOSED, seven commits
+
+- **`04cf6f18`** 0133: `Unsatisfied` carries its OWN payload `note` (NOT `evidence`); `legacy.rs`'s wildcard replaced by three explicit arms. **hv ruled both halves 2026-08-29**; `ac unsatisfy` KEEPS CLEARING and the separate field is why that is free.
+- **`4a648831`** 0136: `deny_unknown_fields` is a property of the variant's SHAPE, not the enum. `computed` (the last unit variant) still swallows unknown keys. **Priced at ZERO and measured, not quoted.**
+- **`72d716dd`** four stale prose claims of mine, three of them counts in one paragraph. **`9c220c1d`** the GraphQL projection list held to the SDL; the strictness arm says what it guards.
+- **`b6a483df`** the fiat census + **`9a9e89b1`** 0137 + **`52d21945`** the composer doc corrected. **`bf8cc1af`** 0140.
+- **SUITE: 1482 passed, 0 failed** at `070f8154`. Everything after is issue JSON and board prose.
 
 ### HELD -- NOT MINE TO START
 
-- **0136 lands AFTER v3.0.1; vc calls one-commit-or-split at the cut** (we both lean split).
-- **0137 DEMOTED by vc, not escalated:** ZERO fiat rows store-wide (416 rows, positive control `withdrawn`=5), so `ac list` mis-rendering a fiat close exercises no live data. **On the watch list with the census as its trigger -- re-run the census before relying on it.**
-- **OWED AND DELIBERATELY UNWRITTEN: no smoke arm exercises `claude start`/`ws`.** ARM 4 proves the rule library ARMS; there is no equivalent for this door, so **present is the strongest claim the keg fix earns.** Needs a keg. vc sequences it.
-- **0141 is ic's.** ST0068 is vc's; hv has answered all four decisions and `docs/` is the v3 set, `docs/v2/` frozen.
+- **0136 lands AFTER v3.0.1; vc calls one-commit-or-split at the cut** (leaning split, on my own evidence that a mechanical pass over this symbol corrupted three doc comments).
+- **0137 is with hv** -- a vocabulary decision on a shipped surface, stated as two options rather than one smuggled in. **v3.0.0 is published and carries the defect.**
+- **ST0068 (docs for v3) waits on hv's four decisions; vc routes.** **0141 is ic's** -- they found the wildcard and the scoping is theirs; I declined it twice.
 
 ### PARKED -- LIVE, HELD, NOT MINE TO CLOSE
 
-- **WP-11 CANNOT MOVE WITHOUT A PUBLISHED TAG.** AT-11.1/11.2/11.4 are `n/a` pending one; publish stops with hv.
-- **FLEET WORK IS HALTED BY hv (2026-08-26 11:53Z) AND hv LIFTS IT, NOT vc.** My four are dirty and uncommitted.
-- **RETIRED FROM THIS SECTION 2026-08-29, both by vc's measurement, both were me replaying a ledger:** `ac gate ST0057` (hv's board already reads PASS 66/66) and `AT-07.4` (already green, flipped 2026-08-28). **A handover outlives its subject -- re-measure, never replay.**
+- **`ac gate ST0057` returns PASS 66/66, 3 withdrawn; hv's board still says `BLOCKED -- 51/53`.** Routed to vc as pen-holder. `0123` independently reported the same 66/66, so the case that hv's line is stale is stronger -- **and it says nothing about where 51/53 came from**, which I am not claiming to explain.
+- **AT-07.4's STATED REASON FOR RED HAS EXPIRED.** Set red 2026-08-19 because arm (b), THE REFUSAL, was uncovered; it is covered now -- `critic_arming_census.bats` arm 12 refuses at exit 3, **arm 13 is the present-tool half that makes 12 a test**, arm 14 checks v2 and v3 agree, driven 19/19. **vc set it red adjudicating my own refusal to set it, so vc flips it, not me.**
+- **WP-11 CANNOT MOVE WITHOUT A PUBLISHED TAG.** AT-11.1 / 11.2 / 11.4 are all `n/a` pending one, and publish stops with hv by my own 2026-08-26 decision.
 
 ## TODO
 
@@ -253,7 +268,7 @@ claims: [ST0056/07, ST0056/11, ST0066]
 **THE OPERATIONAL TRAPS -- these are the ones that return a plausible wrong answer rather than an error.**
 
 - **NEVER `$?` AFTER A PIPE.** `cargo test` needs `--no-fail-fast`. **`grep -c` exits 1 on zero**, so `grep -c [...]
-- **The Bash tool's shell is ZSH AND IT BIT TWICE ON 2026-08-29 IN THE SAME PIECE OF WORK, BOTH TIMES INSIDE A CONTROL:** unquoted `$var` does NOT word-split, so `for p in $LIST` runs ONCE over the whole string and `git status -- $LIST` asks about one absurd path. **Both printed something that looked like a result** -- one `FAIL` line naming three trees at once, and a `warning: could not open directory` I labelled as clean. **The script under test is BASH, so the behaviour I was demonstrating could not reproduce in the shell I demonstrated it in.** Cure: run any splitting demo under `bash -c`, and never trust an unquoted list expansion here. Also standing: an unmatched glob ABORTS the command, and an apostrophe inside a single-quoted `perl -e` runs nothing at all.
+- **The Bash tool's shell is ZSH:** unquoted `$var` does NOT word-split (a `for` over one runs once and looks finished) [...]
 - **`2>/dev/null` converts a broken probe into a clean answer.**
 - **A backtick inside a quoted grep pattern is a command substitution.**
 - **`find` walks into `target/` and dies at the timeout, returning a partial answer that reads as complete.** Scope to `native/rust/crates`.
@@ -271,7 +286,7 @@ claims: [ST0056/07, ST0056/11, ST0066]
 
 ### FAMILY 2 -- THE CLAIM EXCEEDS THE MEASUREMENT, AND THE TRUE HALF IS WHAT CARRIES THE FALSE ONE
 
-- **AN ECHOED LABEL FIRES WHETHER OR NOT ITS CLAIM IS TRUE, AND IT READS AS A VERDICT. FOUR TIMES ON 2026-08-29, ALL MINE, AND THE FOURTH LANDED DIRECTLY UNDER A `warning:` LINE.** `echo "(empty = clean)"` after a command that prints nothing on success is not a check -- **the shell runs it unconditionally**, so it prints "clean" over a failure exactly as readily. The first three were TRUE, which is why the habit survived to produce a false one. **A label is not evidence. Print the command's output and let the emptiness speak, or compute the verdict and print THAT.**
+- **AN ECHOED LABEL FIRES WHETHER OR NOT ITS CLAIM IS TRUE, AND IT READS AS A VERDICT. THREE TIMES IN ONE DAY (2026-08-29), ALL MINE.** `echo "(empty = clean)"` after a command that prints nothing on success is not a check -- **the shell runs it unconditionally**, so it prints "clean" over a dirty result exactly as readily. Every instance today happened to be TRUE, which is precisely why the habit survives: the label is confirmed by the case that cannot disconfirm it. **A label is not evidence. Print the command's output and let the emptiness speak, or compute the verdict and print THAT.**
 - **AND ITS BIG BROTHER SHIPPED: `smoke ARM 3` says _"every path v3 resolves against its install root"_ and iterates `$SUPPORT_PATHS` -- THE COPY LIST.** Same defect one level up: a stated claim wider than the population the code walks, in a comment written specifically to warn about that. **Found 2026-08-29 while measuring the keg; it is the class `0112b8c1` exists to fix, living inside `0112b8c1`.**
 
 - **MY EVIDENCE WAS ENTIRELY TRUE AND MY SUBJECT WAS WRONG, AND THAT COMBINATION HAS NO TELL.** Every fact I cited checked out [...]
