@@ -120,7 +120,7 @@ def scan(repo):
         scaffold.append((p, s_[:90]))            # never an authored claim
       else:
         exposed.append((p, s_[:90]))             # THE DESTROYABLE SHAPE
-  return files, exposed, immune, no_ev, scaffold
+  return files, exposed, immune, no_ev, scaffold, len(by_thread)
 
 # ---------------------------------------------------------------- self-test
 
@@ -181,7 +181,7 @@ def self_test():
     subprocess.run(["git", "-C", d, "add", "-A"], check=True)
     subprocess.run(["git", "-C", d, "commit", "-qm", "collapse buckets"], check=True)
 
-    files, exposed, immune, no_ev, scaffold = scan(d)
+    files, exposed, immune, no_ev, scaffold, seen = scan(d)
     arms = [
       ("POSITIVE  fires on a known-damaged row",      len(exposed) == 1,  "%d exposed" % len(exposed)),
       ("POSITIVE  names the RIGHT row",               len(exposed) == 1 and "AC-01.1" in exposed[0][1], exposed[0][1][:46] if exposed else "-"),
@@ -209,10 +209,32 @@ if __name__ == "__main__":
   repo = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else ".")
   if not os.path.isdir(os.path.join(repo, ".git")):
     print("not a git repository: %s" % repo); sys.exit(2)
-  files, exposed, immune, no_ev, scaffold = scan(repo)
+  files, exposed, immune, no_ev, scaffold, seen = scan(repo)
   print("estate: %s" % repo)
-  print("v2-authored acceptance files found: %d" % files)
+  print("threads with an acceptance file in history: %d" % seen)
+  print("threads with a V2-AUTHORED form recovered   : %d" % files)
   print("")
+
+  # **A ZERO YOU CANNOT TRUST MUST NOT EXIT 0.**
+  # "Nothing was measured" and "nothing is exposed" print the same headline
+  # and mean opposite things. Separating them is the whole point: an estate
+  # whose v2 history was squashed, or which was born under v3, has NO v2
+  # source to compare against -- and a confident 0 there is the
+  # zero-by-construction shape this method exists to refuse.
+  if files == 0:
+    if seen == 0:
+      print("NOT MEASURED: no acceptance file appears anywhere in this history.")
+      print("  This estate has no acceptance contract to lose. Nothing to say.")
+    else:
+      print("NOT MEASURED: %d thread(s) have an acceptance file, but NO v2-authored" % seen)
+      print("  form survives in history -- every blob carries the v3 GENERATED VIEW")
+      print("  banner. Two very different causes look identical here:")
+      print("    (a) the estate was BORN under v3        -> genuinely nothing to lose")
+      print("    (b) its v2 history was squashed/imported -> UNMEASURABLE FROM GIT")
+      print("  **DO NOT REPORT THIS AS ZERO EXPOSURE.** Check whether this estate")
+      print("  ever ran v2 before drawing either conclusion.")
+    sys.exit(3)
+
   print("  EXPOSED (destroyable shape) : %d   <- PREDICTED-UNCONFIRMED" % len(exposed))
   print("  immune  (satisfied+evidence): %d" % immune)
   print("  no evidence clause          : %d" % no_ev)

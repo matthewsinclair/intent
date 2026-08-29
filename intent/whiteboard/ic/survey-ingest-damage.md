@@ -362,3 +362,15 @@ Two shapes, and I read rows of both rather than trusting the delta:
 The probe groups by thread id and takes the newest v2-authored blob **across every path the thread ever had**. `tools/ingest_damage_probe.py --self-test` now carries an arm that **plants a status-bucket collapse** -- stale path `satisfied: no`, current path `satisfied: yes` -- and fails if the stale one leaks. **Every arm was driven to both verdicts by breaking the detector three ways** (scaffold filter off, view banner ignored, per-path grouping restored); each break turns its matching arm red at exit 1.
 
 **Corrected figures remain PREDICTED-UNCONFIRMED. The correction removed an inflation; it confirmed nothing.**
+
+## "0 EXPOSED" AND "NOT MEASURED" WERE THE SAME OUTPUT (2026-08-29 13:20Z)
+
+**FIVE OF SIXTEEN ESTATES WERE NEVER MEASURED AND I REPORTED THEM AS ZERO.** Anvil, MicroGPTEx, Molt, Molt-flynn and Molt-matts have acceptance files whose every blob carries the v3 GENERATED VIEW banner: **no v2-authored form survives, so there was no subject to compare against.** Anvil's `ST0001` has two commits, both views -- born under v3.
+
+**The probe printed `EXPOSED: 0` for those exactly as it did for Utilz, which really was measured clean (2 v2-authored threads, 0 exposed).** Same headline, opposite meanings.
+
+**The dangerous half is the case I cannot distinguish:** an estate whose v2 history was SQUASHED looks identical to one born under v3, and would report a confident zero while being wholly unmeasured. The probe now reports both counts, **refuses to print an exposure figure when no v2 form was recovered, and exits 3** -- verified by capturing the exit to a file, not by reading a pipeline's status.
+
+**The fleet total is unchanged at 80. What changes is the denominator: 11 estates measured, 5 not measured.** "The rest are zero" was wrong for five of them.
+
+**This is my own watch-out -- "unmeasurable and not exposed are different facts" -- violated by my own instrument, and found only because I re-ran the six estates I had already written off as zero.**

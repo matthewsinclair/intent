@@ -39,6 +39,17 @@ Measured on one estate: **678 historical paths for 358 threads; 155 threads carr
 
 **Corrected, this took our fleet aggregate from 257 to 80, and one estate from 145 to 25. Three estates dropped to zero entirely.** The probe now groups by thread id and takes the newest v2-authored blob **across every path that thread ever had**.
 
+## A ZERO YOU CANNOT TRUST MUST NOT EXIT 0
+
+**"Nothing was measured" and "nothing is exposed" print the same headline and mean opposite things.** The probe reports both counts -- threads with an acceptance file, and threads whose **v2-authored** form was recovered -- and when the second is zero it **refuses to report an exposure figure at all** and exits **3**.
+
+That case has two causes which look identical from git and are not the same fact:
+
+- **(a) the estate was BORN under v3** -- every blob carries the generated-view banner because there was never a v2 form. Genuinely nothing to lose.
+- **(b) its v2 history was squashed or imported** -- the v2 form existed and is gone. **UNMEASURABLE FROM GIT**, and a confident zero here is exactly the zero-by-construction shape this method exists to refuse.
+
+**The probe cannot tell (a) from (b) and does not pretend to.** It says so and makes you check whether the estate ever ran v2. **Measured across our fleet: 5 of 16 estates fall in this class**, and all five had been reported as "0 exposure" before the distinction existed.
+
 ## Drive the controls before you trust any number, including zero
 
 ```
