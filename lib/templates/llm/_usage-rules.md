@@ -90,7 +90,7 @@ Full contract: `intent/docs/critics.md` at the Intent install.
 - Never bypass the pre-commit hook with `--no-verify` on shared branches without an explicit justification in the commit message. **Find the hook git actually runs with `git rev-parse --git-path hooks`** -- it is `.git/hooks` by default, and somewhere else entirely when `core.hooksPath` is set, which a self-hosted or multi-worktree project may do.
 - Never create steel thread or work package directories manually — use `intent st new` and `intent wp new`.
 - Never manually edit `status:` fields in info.md frontmatter — use `intent st start | done | cancel` and `intent wp start | done`.
-- Never use leading zeros for ST or WP specifiers (`ST0035` or `35`, never `0035`) — leading zeros parse as octal in bash.
+- Never use leading zeros for ST or WP specifiers: write `35`, never `0035` — leading zeros parse as octal in bash.
 - Never manually wrap lines in markdown files — let the renderer handle it.
 
 <!-- Add project-specific NEVER DOs here. -->

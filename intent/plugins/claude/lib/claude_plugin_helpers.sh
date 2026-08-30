@@ -77,7 +77,7 @@ plugin_root_tag() {
     echo "canon"
     return 0
   fi
-  # ext_root_dir comes from bin/intent_helpers (Highlander, ST0042/WP-05).
+  # ext_root_dir comes from bin/intent_helpers -- one home, imported here.
   # Empty (ext discovery disabled) would collapse the case pattern to /*
   # and swallow every absolute path -- short-circuit it.
   local ext_base
@@ -278,7 +278,13 @@ plugin_install() {
   if [ "$install_all" = true ]; then
     local available
     available=$(plugin_get_available_names)
-    items_to_install=($available)
+    # Word-splitting here is INTENDED -- the callback's contract (line 20) is
+    # space-separated names -- but `items_to_install=($available)` also ran
+    # PATHNAME EXPANSION, so a plugin name carrying a glob character expanded
+    # against the filesystem instead of naming itself. `read -ra` splits on IFS
+    # and never globs. `|| true` because `read` reports EOF-without-delimiter as
+    # non-zero, which is the normal case for a here-string.
+    read -ra items_to_install <<< "$available" || true
   fi
 
   local installed_count=0

@@ -63,7 +63,7 @@ intent/whiteboard/
       YYYYMMDD/             # the node's archived DONE work + handled inbox entries
 ```
 
-Scaffolding a node is the deterministic job of `intent claude ws new <node>` (the provisioner -- ST0047), not a hand ritual: it creates `<node>/`, `<node>/.history/.gitkeep` (git does not track an empty directory), the node's `wip.md`, and an `_(empty)_` inbox in **both** directions with every existing peer (`<node>/inbox.<peer>.md` + `<peer>/inbox.<node>.md`). The `intent claude ws` family (`new` / `list` / `archive` / `hygiene`) plus `intent claude start <node>` (launch a session bound to a node) own this mechanical lifecycle; this skill owns the judgement ops below. Both honour the one on-disk format described here.
+Scaffolding a node is the deterministic job of `intent claude ws new <node>` (the provisioner), not a hand ritual: it creates `<node>/`, `<node>/.history/.gitkeep` (git does not track an empty directory), the node's `wip.md`, and an `_(empty)_` inbox in **both** directions with every existing peer (`<node>/inbox.<peer>.md` + `<peer>/inbox.<node>.md`). The `intent claude ws` family (`new` / `list` / `archive` / `hygiene`) plus `intent claude start <node>` (launch a session bound to a node) own this mechanical lifecycle; this skill owns the judgement ops below. Both honour the one on-disk format described here.
 
 Single-writer rule:
 

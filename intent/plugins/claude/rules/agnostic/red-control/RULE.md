@@ -85,7 +85,7 @@ grep -rnE 'pgrep -f' scripts/ bin/ tests/
 bats tests/unit/ | tail -6 && echo "suite green"
 
 # a grep for absence with no evidence the pattern could ever match here
-intent st show ST0001 | grep -c SENTINEL     # prints 0 -- st show prints four lines and no AC text
+intent st show ST0000 | grep -c SENTINEL     # prints 0 -- st show prints four lines and no AC text
 
 # a liveness check that matches itself
 while pgrep -f 'bats tests/unit' >/dev/null; do sleep 5; done   # never exits: this loop IS a match

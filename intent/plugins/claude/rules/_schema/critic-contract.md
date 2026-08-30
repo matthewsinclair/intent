@@ -49,7 +49,7 @@ Each Critic supports two modes, selected by the first word of the invocation pro
 
 If the first word of the prompt is not one of the above verbs, the Critic defaults to `review` mode and includes a note in the report ("defaulted to review; specify 'test-check' for test-mode").
 
-Why one subagent per language with modes instead of two per language: rule-loading machinery is shared across modes; invocation is cleaner; severity filtering and report format stay uniform. Rejected alternative documented in `intent/st/ST0034/design.md` D5.
+Why one subagent per language with modes instead of two per language: rule-loading machinery is shared across modes; invocation is cleaner; severity filtering and report format stay uniform.
 
 ## Rule loading order
 

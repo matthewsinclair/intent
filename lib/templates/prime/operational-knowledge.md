@@ -6,7 +6,7 @@
 - `intent st start <id>` / `intent st done <id>` -- status transitions
 - `intent wp new <STID> "Title"` / `intent wp list <STID>` / `intent wp show <STID/NN>` -- work packages
 - `intent wp start <STID/NN>` / `intent wp done <STID/NN>` -- WP status transitions
-- Specifiers accept bare numbers: `5` = `ST0005`, `5/01` = `ST0005/WP/01`
+- Specifiers accept bare numbers: a bare `5` names the steel thread whose id ends `0005`, and `5/01` names its work package `01`
 - `intent claude skills list` / `install` / `sync` / `show` -- skill management
 - `intent claude subagents list` / `install` / `sync` -- subagent management
 - `intent claude prime [--refresh] [--dry-run]` -- refresh this memory file

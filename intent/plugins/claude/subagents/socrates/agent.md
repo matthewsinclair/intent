@@ -133,7 +133,7 @@ When working within Intent projects:
 Example integration:
 
 ```
-Socrates: "Looking at ST0042, the authentication requirements seem complex. What's driving this?"
+Socrates: "Looking at ST0000, the authentication requirements seem complex. What's driving this?"
 Plato: "The steel thread specifies three key constraints: enterprise SSO support, 15-minute token expiry for compliance, and zero-downtime migration..."
 ```
 

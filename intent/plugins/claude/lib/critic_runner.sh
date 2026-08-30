@@ -72,7 +72,7 @@ critic_severity_rank() {
 }
 
 # Project-root resolution uses find_project_root from bin/intent_helpers
-# (sourced via rules_lib.sh -- Highlander, ST0042/WP-05).
+# (sourced via rules_lib.sh -- one home, imported here).
 
 # Extract the first fenced bash block inside the `## Detection` section of
 # a RULE.md file, filtered to the one following a `Greppable proxy` line.

@@ -25,7 +25,7 @@ if [ -z "${INTENT_HOME:-}" ]; then
 fi
 
 # Source the shared helpers if not already loaded (provides ext_root_dir,
-# find_project_root, etc. -- Highlander, ST0042/WP-05).
+# find_project_root, etc. -- one home, imported here).
 if ! declare -f ext_root_dir >/dev/null 2>&1; then
   source "$INTENT_HOME/bin/intent_helpers"
 fi

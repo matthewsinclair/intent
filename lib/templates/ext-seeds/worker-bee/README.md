@@ -12,7 +12,7 @@ This directory is a **seed**, not a runtime extension. It is the source-of-truth
 
 ## Why worker-bee is an ext, not canon
 
-Worker-Bee Driven Design is domain-specific scaffolding for Elixir applications. It is not part of Intent's core machinery. ST0034 extracted it from canon to prove that the `~/.intent/ext/` extension mechanism can host a real, non-trivial subagent end-to-end. If worker-bee can live here, any user-authored extension can.
+Worker-Bee Driven Design is domain-specific scaffolding for Elixir applications. It is not part of Intent's core machinery. It was extracted from canon to prove that the `~/.intent/ext/` extension mechanism can host a real, non-trivial subagent end-to-end. If worker-bee can live here, any user-authored extension can.
 
 ## Structure
 

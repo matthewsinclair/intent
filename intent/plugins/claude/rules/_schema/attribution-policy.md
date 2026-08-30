@@ -52,7 +52,7 @@ Any case where Intent reproduces or adapts upstream content at paragraph scale o
 - RULE.md body: prefaced with the full MIT notice inline (not just a link).
 - The portion that's derived is clearly marked.
 
-**Intent does not currently produce any Tier 3 rules.** The reference-and-recommend design (see `intent/st/ST0034/design.md` D4) is explicitly to avoid Tier 3: Intent rewrites in its own voice, never copies upstream prose.
+**Intent does not currently produce any Tier 3 rules.** The reference-and-recommend design (see the reference-and-recommend design note) is explicitly to avoid Tier 3: Intent rewrites in its own voice, never copies upstream prose.
 
 If a future rule crosses into Tier 3, add the full MIT notice to its RULE.md and update this policy with the rule ID.
 

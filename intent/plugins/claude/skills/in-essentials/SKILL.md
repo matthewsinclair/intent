@@ -14,14 +14,14 @@ NEVER manually create directories under `intent/st/`. NEVER manually edit `statu
 
 ```bash
 # BAD — manual creation
-mkdir -p intent/st/ST0005
-echo "status: active" > intent/st/ST0005/info.md
+mkdir -p intent/st/ST0000
+echo "status: active" > intent/st/ST0000/info.md
 
 # GOOD — use the CLI
 intent st new "My steel thread"
 intent st list
-intent st show ST0005
-intent st edit ST0005
+intent st show ST0000
+intent st edit ST0000
 ```
 
 ### 2. Use `intent agents sync` to update AGENTS.md
@@ -77,14 +77,14 @@ NEVER manually create directories under `intent/st/STXXXX/WP/`. Use the CLI.
 
 ```bash
 # BAD -- manual creation
-mkdir -p intent/st/ST0005/WP/01
-echo "status: WIP" > intent/st/ST0005/WP/01/info.md
+mkdir -p intent/st/ST0000/WP/01
+echo "status: WIP" > intent/st/ST0000/WP/01/info.md
 
 # GOOD -- use the CLI
-intent wp new ST0005 "Implement core logic"
-intent wp list ST0005
-intent wp start ST0005/01
-intent wp done ST0005/01
+intent wp new ST0000 "Implement core logic"
+intent wp list ST0000
+intent wp start ST0000/01
+intent wp done ST0000/01
 ```
 
 ### 7. Use `intent todo` for the flat work view

@@ -69,7 +69,7 @@ Per `../_schema/attribution-policy.md`:
 
 None in v2.9.0.
 
-The reference-and-recommend integration design (see `intent/st/ST0034/design.md` D4) explicitly avoids Tier 3 by rewriting upstream content in Intent's voice. If a future rule crosses into Tier 3, add a row here and inline the full MIT notice above into that rule's `RULE.md` body.
+The reference-and-recommend integration design (see the reference-and-recommend design note) explicitly avoids Tier 3 by rewriting upstream content in Intent's voice. If a future rule crosses into Tier 3, add a row here and inline the full MIT notice above into that rule's `RULE.md` body.
 
 | Intent rule | Upstream slug | What was copied | MIT notice location |
 | ----------- | ------------- | --------------- | ------------------- |
