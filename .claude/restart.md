@@ -8,7 +8,7 @@
 
    **NOTHING TRIGGERS THIS AUTOMATICALLY AND NOTHING CAN.** Git runs nothing on clone, deliberately, and a hook cannot report that hooks are off because it would not run either. **It applies to BOTH checkouts** -- this one and `~/Devel/prj/Intentv2`. What limits the damage is that CI catches the CONSEQUENCE when nothing catches the cause: unwired hooks mean unformatted code, and `cargo fmt --check` runs on every push.
 
-1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the prompt gate, chains `/in-whiteboard pickup`. Board: `hv`, `cc`, `dc`, `ic`, `vc`. Declared languages: elixir, author, content, rust, shell. Solo unless launched as a node via `intent claude start <ws>`.
+1. **Invoke `/in-session`.** Loads `/in-essentials` + `/in-standards`, releases the prompt gate, chains `/in-whiteboard pickup`. Board: `hv`, `cc`, `dc`, `ic`, `vc`. Declared languages: elixir, author, content, rust, shell, swift. Solo unless launched as a node via `intent claude start <ws>`.
 
 2. **Read `intent/wip.md`, then `intent/restart.md`.**
 
