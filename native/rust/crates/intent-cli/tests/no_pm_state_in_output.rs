@@ -889,9 +889,58 @@ fn collect_text_files(dir: &Path, out: &mut Vec<(PathBuf, String)>) {
   }
 }
 
+/// Files whose whole subject is the SHAPE of an acceptance record, where a
+/// `WP-01` or an `AC-01.1` is the format being taught rather than a pointer.
+///
+/// **THE EXEMPTION IS PROVEN, NOT ASSERTED** -- see
+/// [`the_template_exemption_covers_only_real_templates`]. It is also NARROW: it
+/// reaches thread-relative ids only, so a resolving `STnnnn` in one of these
+/// files still fires. That matters because the template DID carry one
+/// (`Exemption (ST0048)`) and an exemption keyed to the file rather than to the
+/// id class would have swallowed it.
+const FORMAT_TEMPLATES: [&str; 2] = [
+  "lib/templates/prj/st/ST####/acceptance.md",
+  "intent/plugins/claude/skills/in-tca-synthesize/SKILL.md",
+];
+
+/// A marker that a file is teaching a shape: a `{placeholder}`, a run of `X`
+/// standing for a count, or a `####` path segment that no thread id can match.
+fn looks_like_a_template(path: &str, text: &str) -> bool {
+  path.contains("####") || text.contains("| {") || text.contains("{name}")
+}
+
+/// **THE EXEMPTION CAN ONLY EVER COVER A TEMPLATE, AND ONLY EVER A
+/// THREAD-RELATIVE ID.** Both halves are checked here rather than trusted at
+/// the call site, so adding a path to `FORMAT_TEMPLATES` that is not a template,
+/// or one that later grows a real citation, fails loudly instead of quietly
+/// widening the hole.
+#[test]
+fn the_template_exemption_covers_only_real_templates() {
+  let real = real_thread_ids();
+  let root = repo_root();
+  for rel in FORMAT_TEMPLATES {
+    let path = root.join(rel);
+    let text = std::fs::read_to_string(&path)
+      .unwrap_or_else(|_| panic!("`{rel}` is exempted and must exist"));
+    assert!(
+      looks_like_a_template(rel, &text),
+      "`{rel}` is exempted as a format template and carries no template marker"
+    );
+    let resolving: Vec<String> = pm_identifiers(&text, Decisions::Ambiguous)
+      .into_iter()
+      .filter(|id| id.starts_with("ST") && real.contains(id))
+      .collect();
+    assert!(
+      resolving.is_empty(),
+      "`{rel}` is exempted for its PLACEHOLDERS and carries a real citation: {resolving:?}"
+    );
+  }
+}
+
 /// The citations in one payload file: identifiers that point into Intent's own
 /// tracker rather than teaching a consumer a shape.
-fn citations_in(text: &str, real: &BTreeSet<String>) -> Vec<String> {
+fn citations_in_at(path: &str, text: &str, real: &BTreeSet<String>) -> Vec<String> {
+  let exempt = FORMAT_TEMPLATES.contains(&path);
   pm_identifiers(text, Decisions::Ambiguous)
     .into_iter()
     .filter(|id| {
@@ -900,8 +949,9 @@ fn citations_in(text: &str, real: &BTreeSet<String>) -> Vec<String> {
         real.contains(id)
       } else {
         // `WP-nn`, `AC-n.n`, `AT-n.n` -- no thread context, so nothing to
-        // resolve against and nothing it can be but a citation.
-        true
+        // resolve against and nothing it can be but a citation, EXCEPT in a
+        // file whose subject is the shape of an acceptance record.
+        !exempt
       }
     })
     .collect()
@@ -948,19 +998,19 @@ fn the_referent_filter_separates_a_placeholder_from_a_citation() {
   let roster: BTreeSet<String> = ["ST0056".to_string()].into_iter().collect();
 
   assert!(
-    citations_in("intent st show ST4242", &roster).is_empty(),
+    citations_in_at("", "intent st show ST4242", &roster).is_empty(),
     "an id absent from the roster names no thread, so it teaches syntax"
   );
   assert!(
-    citations_in("\"${CANON_DIR}/st/ST9999.json\"", &roster).is_empty(),
+    citations_in_at("", "\"${CANON_DIR}/st/ST9999.json\"", &roster).is_empty(),
     "`ST9999` is a deliberate probe for a path that does not exist"
   );
   assert!(
-    citations_in("see ST0000 for the retrofit", &roster).is_empty(),
+    citations_in_at("", "see ST0000 for the retrofit", &roster).is_empty(),
     "`ST0000` is the READER's own thread and is blessed above"
   );
   assert_eq!(
-    citations_in("# COVERS ST0056 AC-10.13 / AT-10.13.", &roster),
+    citations_in_at("", "# COVERS ST0056 AC-10.13 / AT-10.13.", &roster),
     vec!["ST0056", "AC-10.13", "AT-10.13"],
     "a rostered thread id and two thread-relative ids are all citations"
   );
@@ -1042,7 +1092,12 @@ fn no_installed_payload_file_cites_intents_own_tracker() {
   let mut offenders: Vec<(String, Vec<String>)> = Vec::new();
   let mut total = 0usize;
   for (path, text) in &payload {
-    let cites = citations_in(text, &real);
+    let rel_for_scan = path
+      .strip_prefix(&root)
+      .unwrap_or(path)
+      .display()
+      .to_string();
+    let cites = citations_in_at(&rel_for_scan, text, &real);
     if !cites.is_empty() {
       total += cites.len();
       let rel = path

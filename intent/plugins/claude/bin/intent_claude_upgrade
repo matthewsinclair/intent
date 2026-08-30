@@ -31,7 +31,7 @@ SUBAGENTS_SOURCE="$INTENT_ROOT/intent/plugins/claude/subagents"
 # specific template directory.
 TEMPLATES_SOURCE=""
 
-# Canon template paths (ST0035 / v2.10.0). Each artefact ships through the
+# Canon template paths (since v2.10.0). Each artefact ships through the
 # --apply path; probes in Phase 1 enqueue installs when the target is absent
 # or diverges from the canon template.
 CANON_SETTINGS_SRC="$INTENT_ROOT/lib/templates/.claude/settings.json"
@@ -250,7 +250,7 @@ add_warning() {
 }
 
 # ============================================================
-# Canon-install helpers (ST0035/WP-11)
+# Canon-install helpers
 # ============================================================
 #
 # These helpers are invoked in Phase 3 (--apply). Each returns 0 on success
@@ -481,7 +481,7 @@ canon_chain_block_present() {
 # Emit the chain block (with markers) to stdout. Used by canon_insert_chain_block
 # both for first insertion and for the empty-file fallback.
 #
-# THE BLOCK REFUSES A GATE IT CANNOT RUN (ST0057 AC-01.5). It was `if [ -x ]`
+# THE BLOCK REFUSES A GATE IT CANNOT RUN. It was `if [ -x ]`
 # with no else, and the silence WAS the defect: a fresh clone wired by
 # `int hooks --install` gets `core.hooksPath` but NOT `pre-commit.intent`, which
 # is gitignored on purpose because it is canon the installer writes. Two
@@ -685,7 +685,7 @@ if [ -f "$PROJECT_DIR/intent/.config/config.json" ]; then
   if [ "$current_version" = "$TARGET_VERSION" ]; then
     echo -e "  intent_version:     ${GREEN}$current_version (current)${NC}"
   else
-    # Version display only -- intent_upgrade is the sole stamper (ST0043); the
+    # Version display only -- intent_upgrade is the sole stamper; the
     # canon engine no longer bumps the version.
     echo -e "  intent_version:     ${YELLOW}$current_version (run 'intent upgrade' to bump)${NC}"
   fi
@@ -704,7 +704,7 @@ fi
 echo ""
 echo "Checking LLM guidance files..."
 
-# AGENTS.md (canonical location: project root, since v2.10.0 -- see ST0035/WP08).
+# AGENTS.md (canonical location: project root, since v2.10.0).
 if [ -f "$PROJECT_DIR/AGENTS.md" ]; then
   local_version=$(grep -oE 'intent_version: [0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?' "$PROJECT_DIR/AGENTS.md" 2>/dev/null | head -1 | cut -d' ' -f2)
   if [ -z "$local_version" ]; then
@@ -845,7 +845,7 @@ for skill_dir in "$HOME/.claude/skills"/in-*/; do
 done
 
 # ============================================================
-# Canon artefact probes (ST0035/WP-11)
+# Canon artefact probes
 # ============================================================
 
 echo ""
@@ -1029,7 +1029,7 @@ else
 fi
 
 # Legacy intent/llm/AGENTS.md -- delete if present (canon moved to root in
-# v2.10.0; most projects already caught up via WP-10).
+# v2.10.0; most projects already caught up).
 if [ -f "$PROJECT_DIR/intent/llm/AGENTS.md" ] || [ -L "$PROJECT_DIR/intent/llm/AGENTS.md" ]; then
   canon_print "intent/llm/AGENTS.md" "${YELLOW}LEGACY (will delete)${NC}"
   add_action "DELETE_LEGACY_AGENTS"

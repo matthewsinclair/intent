@@ -27,7 +27,7 @@ title: "[Title] -- acceptance contract"
 >
 > The reference is the test FILE, backticked, repo-relative, with at least one `/` and no `:` -- not a test name, not a bare filename, not a selector. Name the test by putting the AT's own id INSIDE the test (`describe "AT-03.2 / AC-03.2: ..."`), which is checkable from both ends and survives rewording; a cited name is not. Coverage ids are comma-separated with nothing fused to them (no `and`, no trailing `:`, no possessive). Any trailing note is introduced by a spaced `--` separator, exactly as in the two shapes above, and is never parsed. `intent at lint <ID> --fix` migrates the mechanical part of a legacy contract.
 >
-> Exemption (ST0048): the close-gate is fail-by-default -- a unit with an empty or missing contract is refused. A unit that is deliberately AC-free (eg a pure content / authorial task) declares `acceptance: exempt` in the frontmatter above; the gate then passes and announces the exemption. Omit it (the default) and the contract is enforced. Never inferred from emptiness; always declared.
+> Exemption: the close-gate is fail-by-default -- a unit with an empty or missing contract is refused. A unit that is deliberately AC-free (eg a pure content / authorial task) declares `acceptance: exempt` in the frontmatter above; the gate then passes and announces the exemption. Omit it (the default) and the contract is enforced. Never inferred from emptiness; always declared.
 
 ## Acceptance Criteria
 
