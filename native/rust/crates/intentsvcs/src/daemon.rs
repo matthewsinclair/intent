@@ -384,6 +384,15 @@ pub fn route(candidates: &[Endpoint]) -> Route {
 /// delete a file a LIVE daemon owns.
 #[derive(Debug, Error)]
 pub enum DaemonError {
+  /// The lock is held but its pid has not been written yet, or is not a pid.
+  ///
+  /// **THE WINDOW vc NAMED, REPORTED RATHER THAN GUESSED AT** (2026-08-30).
+  /// Between a daemon acquiring the lock and writing its pid, a reader sees a
+  /// held lock and an empty file. **Guessing here delivers a signal to
+  /// somebody else's process**, and a short read is the worst case of all: `12`
+  /// out of `12345` is a perfectly valid pid belonging to a stranger.
+  #[error("a daemon holds the lock at `{path}` but has not published a usable pid: {found:?}")]
+  UnpublishedPid { path: PathBuf, found: String },
   /// The file was read and its content is not an address.
   #[error("the daemon address at `{path}` is not an address: {found:?}")]
   MalformedAddress { path: PathBuf, found: String },
@@ -451,6 +460,7 @@ pub enum DaemonError {
 impl crate::remedy::Remedy for DaemonError {
   fn remedy(&self) -> String {
     match self {
+      DaemonError::UnpublishedPid { .. } => "a daemon is running and is still starting up, so it cannot be signalled by pid yet. Ask it to stop over its socket instead -- `intent daemon stop` does this first -- or wait a moment and try again. Do NOT delete the lock file: it belongs to a live process.".to_string(),
       DaemonError::MalformedAddress { .. } => "this file is written by intentd when it starts and holds one loopback address, eg `127.0.0.1:54321`. If no daemon is running, deleting it is safe and this command will run in-process; if one is running, restart it so it republishes its address.".to_string(),
       // DELIBERATELY DOES NOT SAY "DELETE IT". The content was never read, so
       // nothing here knows whether a live daemon owns this file -- and under a
@@ -722,12 +732,24 @@ pub struct Bound {
   path: PathBuf,
   /// The lock whose HOLDING means "a daemon is running here" (`AC-08.12`).
   ///
-  /// **HELD FOR THIS DAEMON'S WHOLE LIFE AND NEVER CONSULTED AGAIN.** Its value
-  /// is that the kernel releases it on process death by ANY means, `SIGKILL`
-  /// included -- so it cannot go stale the way a pid file or a socket file
-  /// does, and it cannot report a live-but-busy daemon as absent the way a
-  /// liveness probe does. Underscore-prefixed because nothing reads it: the
-  /// FIELD existing is the mechanism.
+  /// **HELD FOR THIS DAEMON'S WHOLE LIFE.** Its value is that the kernel
+  /// releases it on process death by ANY means, `SIGKILL` included -- so it
+  /// cannot go stale the way a pid file or a socket file does, and it cannot
+  /// report a live-but-busy daemon as absent the way a liveness probe does.
+  ///
+  /// **ITS CONTENT IS THIS PROCESS'S PID, AND THAT SUPERSEDES THE CLAIM THAT
+  /// THE CONTENT IS IRRELEVANT** (vc, 2026-08-30). It was irrelevant, and a
+  /// design change made it load-bearing: `intent daemon stop` falls back to
+  /// `SIGTERM` when the daemon will not answer its socket, and signalling needs
+  /// a pid. Writing it here rather than into a second file keeps ONE artefact
+  /// answering *is a daemon running* and *which process is it*.
+  ///
+  /// **THE PID IS ONLY EVER READ BY SOMEONE WHO FOUND THE LOCK HELD, WHICH IS
+  /// WHAT MAKES IT SAFE WHERE A PID FILE IS NOT.** A stale pid file is
+  /// dangerous because the pid may have been recycled onto a stranger; here the
+  /// content is consulted only when the kernel says the lock is currently held.
+  /// **The truncate-then-write order below is a REQUIREMENT rather than tidying**
+  /// -- see [`Bound::bind_socket_under`].
   _lock: std::fs::File,
   /// `(dev, ino)` of the socket THIS process created.
   ///
@@ -735,6 +757,46 @@ pub struct Bound {
   /// unlink on drop a compare-and-delete rather than a delete, so a daemon that
   /// was evicted cannot take its evictor's socket down on the way out.
   identity: (u64, u64),
+}
+
+/// The pid of the daemon running under `root`, if one is running.
+///
+/// **`Ok(None)` MEANS NO DAEMON, AND IT IS ESTABLISHED BY TAKING THE LOCK
+/// RATHER THAN BY READING ANYTHING.** If this process can acquire the lock then
+/// nobody else holds it, which is the same guarantee the daemon's own bind
+/// rests on -- so the answer comes from the kernel rather than from a file's
+/// contents or a probe's opinion.
+///
+/// **THE PID IS ONLY READ WHEN THE LOCK IS HELD BY SOMEONE ELSE.** That is the
+/// whole reason this is safe where a pid file is not: a stale pid file may name
+/// a stranger the kernel has since recycled, and the only way to know it does
+/// not is to establish that its writer is still alive first.
+///
+/// **AN EMPTY OR UNPARSEABLE READ IS REFUSED, NEVER ROUNDED DOWN TO `None`.**
+/// Returning `None` there would say *no daemon is running* about a machine
+/// where one demonstrably is, and the caller would go on to start a second.
+pub fn running_pid_under(root: &std::path::Path) -> Result<Option<u32>, DaemonError> {
+  let path = crate::userstate::daemon_lock_under(root);
+  let lock = match std::fs::File::options().read(true).open(&path) {
+    Ok(lock) => lock,
+    // No lock file at all: no daemon has ever run here. Absence is a state.
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+    Err(source) => {
+      return Err(DaemonError::Unpublishable { path, source });
+    }
+  };
+  match lock.try_lock() {
+    // We took it, so nobody held it. Dropping `lock` releases it on return.
+    Ok(()) => Ok(None),
+    Err(std::fs::TryLockError::WouldBlock) => {
+      let found = std::fs::read_to_string(&path).unwrap_or_default();
+      match found.trim().parse::<u32>() {
+        Ok(pid) => Ok(Some(pid)),
+        Err(_) => Err(DaemonError::UnpublishedPid { path, found }),
+      }
+    }
+    Err(std::fs::TryLockError::Error(source)) => Err(DaemonError::Unpublishable { path, source }),
+  }
 }
 
 impl Bound {
@@ -755,7 +817,13 @@ impl Bound {
     let lock_path = crate::userstate::daemon_lock_under(root);
     let lock = std::fs::File::options()
       .create(true)
-      .append(true)
+      .read(true)
+      // **`write` RATHER THAN `append`, BECAUSE THE PID REPLACES ITS
+      // PREDECESSOR RATHER THAN JOINING IT.** In append mode `set_len(0)` still
+      // leaves writes going to the end, so a lock file re-used across restarts
+      // would accumulate pids and a reader would parse the first daemon that
+      // ever ran.
+      .write(true)
       .open(&lock_path)
       .map_err(|source| DaemonError::Unpublishable {
         path: lock_path.clone(),
@@ -772,6 +840,27 @@ impl Bound {
         });
       }
       Ok(()) => {}
+    }
+
+    // **TRUNCATE UNDER THE LOCK, THEN WRITE, AND THE ORDER IS A REQUIREMENT**
+    // (vc, 2026-08-30). Holding the lock proves A WRITER is alive; it does not
+    // prove the pid in the file is. Daemon A dies, the kernel releases, this
+    // process acquires -- and until the line below runs, a reader sees a held
+    // lock and A's pid, which is the recycled-stranger case the lock exists to
+    // remove. **Truncating first makes that window show an EMPTY file rather
+    // than a stale pid**, and an empty read is refusable where a plausible one
+    // is not.
+    {
+      use std::io::Write;
+      let mut lock = &lock;
+      lock
+        .set_len(0)
+        .and_then(|()| write!(lock, "{}", std::process::id()))
+        .and_then(|()| lock.flush())
+        .map_err(|source| DaemonError::Unpublishable {
+          path: lock_path.clone(),
+          source,
+        })?;
     }
 
     if path.exists() {
