@@ -42,9 +42,25 @@ fn top_level() -> Vec<String> {
   names
 }
 
+/// Run the shipped binary under a FIXTURE `HOME`, never the operator's.
+///
+/// **THIS FILE PICKS ITS VERBS FROM THE DISPATCH TABLE AT RUN TIME, SO ITS
+/// REACH IS WHATEVER THE TABLE HOLDS THE DAY IT RUNS.** Today every invocation
+/// here carries `--help` or is an unparseable prefix, so nothing touches user
+/// state -- and that is a fact about today's table, not a property of this
+/// file. **A verb implemented next week is a verb this file will drive**, which
+/// is how `dispatch_ssot` came to publish this machine's install pointer to a
+/// scratch worktree that was then deleted (2026-08-27, `9c2ba9ed`).
+///
+/// **IT WAS MISSING FROM THE FIRST BUILD AND `table_driven_tests_fixture_their_home`
+/// CAUGHT IT -- ON THE FIRST FULL-SUITE RUN AFTER THIS FILE LANDED, WHICH WAS A
+/// DAY LATER.** The guard worked from the moment the file existed; what did not
+/// happen was anybody running it. **A guard that works and a loop nobody runs
+/// are indistinguishable from a green** (vc, 2026-08-30).
 fn run(argv: &[&str]) -> (i32, String, String) {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(argv)
+    .env("HOME", testkit::fixture_home())
     .output()
     .expect("the intent binary runs");
   (

@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-30 14:40Z
-status: paused
-focus: "THE CLIENT ROUTES AND THE DEFAULT IS WRONG. `st list` reaches the daemon over the wire (`8962f351`) -- and hv has since ruled that routing must be OPT-IN, not the default: intentd is for CROSS-PROJECT work, local commands should just use intentsvcs. INVERTING IT IS THE FIRST JOB ON THE BOUNCE. Also today: the intent-cli suite could not complete AT ALL and nothing said so; `intentd --help` started a daemon on the real HOME."
+heartbeat_at: 2026-08-30 14:58Z
+status: active
+focus: "ROUTING IS OPT-IN AND IT IS GREEN. hv reversed the default; a daemon being up no longer changes what a local command does, and `--daemon` is the whole trigger. The inversion cost the declared-servable set its witness and the replacement is stronger. OPEN WITH vc: the sync carve-out is now the ONLY place a daemon presence changes a local command, and design.md:22 now contradicts the build."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 ---
 
@@ -13,17 +13,19 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 
 ## DOING
 
-**hv HAS REVERSED THE ROUTING DEFAULT AND THAT IS THE FIRST JOB ON THE BOUNCE.** `design.md:22` says the CLI MUST route to an answering daemon; hv's ruling (2026-08-30) is that **`intentd` is for CROSS-PROJECT work -- reading an ST in another project on this machine -- and a local command should just use `intentsvcs` in-process.** Routing becomes the exception, something like `intent --daemon ...`. vc flagged that line to hv this morning and declined to edit it under the pen; this is hv answering.
+**THE ROUTING DEFAULT IS INVERTED AND IT IS GREEN.** hv's ruling of 2026-08-30 -- _it should just use intentsvcs when run locally ... intentd is for cross-project work ... whilst it is possible for the intent cli to use the daemon, that shouldn't be the default_ -- is built. **A daemon being up no longer changes what any local command does.** Routing is opt-in behind a global `--daemon` (hv's own spelling), `SERVED_BY_DAEMON` is now a CAPABILITY list rather than a routing policy, and `routing_is_opt_in.rs` replaces `daemon_fallback.rs` because that file's subject stopped existing.
 
-**NOTHING BUILT TODAY IS WASTED AND THE INVERSION IS SMALL.** The wire, the dispatch counter, the registry, the renderer split and `served()` all stand -- **only the TRIGGER moves.** `AC-08.2`'s claim survives unchanged: a `--daemon` run and a local run must still return identical results, which is the whole point of one renderer over one row type. `ROUTED` stops meaning "verbs that route by default" and starts meaning "ops the daemon can serve", same data, different consumer.
+**NOTHING BUILT YESTERDAY WAS WASTED AND ONLY THE TRIGGER MOVED**, exactly as forecast: the wire, the dispatch counter, the registry, the renderer split and `served()` all stand. What changed is one predicate -- from _a daemon is answering_ to _the caller said `--daemon`_.
 
-**AND TODAY GAVE THE ARGUMENT FOR IT, LIVE.** An accidental daemon under the real `$HOME` had every session's store verbs refusing at rc=2 for three minutes. **Under hv's model an accidental daemon breaks nothing**, because a daemon being up would not change what a local command does. That is a bigger property than the latency.
+**THE INVERSION MINTED A HOLE THAT THE OLD DEFAULT GOT FOR FREE, AND CLOSING IT IS THE BEST THING IN THIS CHANGE.** Under mandatory routing, a path declared servable whose renderer arm forgot to call `served()` showed up as a zero delta on the daemon's dispatch counter. With the default local, that harness never asks a daemon anything, so the declaration lost its witness. `every_servable_path_asked_with_daemon_actually_leaves_this_process` is the replacement and it is COMPLETE over the declared set: against a probe-only fixture an invocation that really left the process cannot succeed, so rc=0 is the tell.
 
-**THE ONE SHARP EDGE TO RAISE BEFORE BUILDING IT:** if a daemon is legitimately WATCHING project A (`AC-08.5`) while I run `intent sync` in project A locally, that IS two sync engines -- the case `design.md:22`'s parenthetical was actually written about. **So the `sync`/`ingest` carve-out gets MORE important under opt-in routing, not less**, and it is the one place hv's model needs a ruling rather than an inversion.
+**AND `--daemon` IS `global`, SO IT PARSES ON ~130 COMMANDS AND A HANDFUL HAVE ANYWHERE TO SEND IT.** A flag accepted and ignored is worse than one refused, because the exit code agrees with the caller -- so the refusal is applied ONCE in `run()`, over the path the parser resolved, and a new verb inherits it by existing. The path comes from the MATCHES rather than argv, so prefix inference composes: `intent --daemon st l` is refused or served identically to `intent --daemon st list`.
 
-**WP-08 IS 5 OF 12 AND THE DAEMON IS REAL.** It serves N projects, keeps them apart, survives a root moving out from under it, answers the probe on both transports, and now counts what it dispatches. `AC-08.2` is NOT claimed: `st list` routes, but the criterion is dual-path conformance across the surface and `Route::Daemon` is unbuilt -- deliberately, because hv's reversal changes what that route means.
+**THE SYNC CARVE-OUT IS KEPT DELIBERATELY AND IT IS NOW THE ONLY PLACE A DAEMON'S PRESENCE CHANGES A LOCAL COMMAND. THAT NEEDS vc, AND IT IS THE ONE OPEN THING IN THIS BLOCK.** hv's reversal is about ROUTING; mutual exclusion is a different question, and `design.md:22`'s parenthetical is literally true of this family -- a daemon watching a project (`AC-08.5`) while `intent sync` runs in it really would watch and ingest twice. **The predicate is WIDER than the hazard**: it fires on any answering daemon, not on one watching THIS project. Narrowing it is a ruling, not an inversion, and refusing preserves while running does not -- so it stays as vc ruled it until vc says otherwise.
 
-**`AT-08.9` AND THE ARGUMENT REFUSAL ARE IN.** The exec witness (pid survives, image changes, and no child -- driven against a `spawn` mutant) and `intentd` refusing an argv it does not understand.
+**`design.md:22` NOW SAYS THE OPPOSITE OF THE SHIPPED BUILD AND THAT IS WORSE THAN IT WAS THIS MORNING.** Until today the line and the code agreed; a reader could take either. Sent to vc: correcting a ratified design line is vc's or hv's hand, never mine, and a design line disagreeing with the binary is the many-homes defect in its most authoritative home.
+
+**WP-08 IS 5 OF 12 AND THE DAEMON IS REAL.** It serves N projects, keeps them apart, survives a root moving out from under it, answers the probe on both transports, and counts what it dispatches. `AC-08.2` is not claimed yet: the criterion is dual-path conformance across the surface, and `Route::Daemon` in the harness now means _driven with `--daemon` against a real daemon_, which is next.
 
 ## TODO
 

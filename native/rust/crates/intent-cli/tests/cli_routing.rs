@@ -709,22 +709,27 @@ fn the_shipped_cli_routes_on_a_live_socket_and_not_otherwise() {
 
   let (_endpoint, responder) = live_unix(home.path());
   let routed = run();
-  // **THE ARM THE RULING ADDED, MEASURED IN THE SAME WINDOW AS THE ONE IT
-  // CHANGED.** A shared verb falls through while the very same socket is
-  // answering -- so the two outcomes are attributable to the VERB rather than
-  // to the daemon having come and gone between runs.
-  // **THE VERB IS CHECKED AGAINST THE SHIPPED DECLARATION, NOT CHOSEN AND
-  // TRUSTED.** This drove `st list` until `st list` began routing, at which
-  // point the arm stopped testing fallthrough and started testing the routed
-  // path against a socket that answers only the probe -- failing for a reason
-  // that read like a defect in the ruling rather than like a stale fixture.
-  let unrouted = ["issues", "list"];
-  assert!(
-    !intent_cli::render::routed_paths().contains(&unrouted.join(" ").as_str()),
-    "`{}` now routes, so this arm is no longer measuring fallthrough",
-    unrouted.join(" ")
-  );
-  let fell_through = run_verb(&unrouted);
+  // **THE SECOND ARM, MEASURED IN THE SAME WINDOW AS THE FIRST**, so the two
+  // outcomes are attributable to the VERB rather than to the daemon having come
+  // and gone between runs.
+  //
+  // **IT DRIVES A SERVABLE VERB DELIBERATELY, AND THAT IS WHAT MAKES IT SHARP
+  // UNDER hv's REVERSAL** (2026-08-30). Routing is opt-in: a plain invocation
+  // answers in this process even when the daemon could have answered it and is
+  // sitting right there. **A verb no daemon could serve would prove nothing
+  // here** -- it has nowhere else to go, so running locally is the only thing it
+  // could have done. This one had somewhere to go and did not take it.
+  //
+  // **THE VERB IS DERIVED FROM THE SHIPPED DECLARATION, NEVER TYPED IN.** The
+  // arm that preceded this drove `st list` until `st list` became servable, at
+  // which point it stopped measuring what its name claimed -- and it read as a
+  // defect in the ruling rather than as a stale fixture.
+  let servable = intent_cli::render::daemon_servable_paths();
+  let strongest = servable
+    .first()
+    .expect("this build declares no daemon-servable verb, so this arm asserts nothing");
+  let servable_argv: Vec<&str> = strongest.split(' ').collect();
+  let fell_through = run_verb(&servable_argv);
   drop(responder);
   fs::remove_file(&socket).expect("remove the fixture socket");
 
@@ -732,12 +737,12 @@ fn the_shipped_cli_routes_on_a_live_socket_and_not_otherwise() {
 
   assert_eq!(
     fell_through.0, 0,
-    "a verb outside the sync family refused while a daemon answered. The store serialises writes, so refusing protects against nothing and costs the operator everything: {}",
+    "`intent {strongest}` did not answer in this process while a daemon was answering. Routing is opt-in (hv, 2026-08-30): a daemon being up must not change what a local command does, and this verb is one the daemon COULD have served -- which is why it is the one driven here: {}",
     fell_through.1
   );
   assert!(
     !fell_through.1.contains("intentd is answering"),
-    "the routing refusal reached a verb it no longer governs: {}",
+    "the sync-family refusal reached a verb it does not govern: {}",
     fell_through.1
   );
 

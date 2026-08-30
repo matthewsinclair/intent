@@ -290,7 +290,41 @@ pub fn build(table: &Table) -> Command {
     // of 27 commands is a DEFECT, not a contract).
     .subcommand_required(false)
     .arg_required_else_help(false)
-    .disable_help_subcommand(true);
+    .disable_help_subcommand(true)
+    // **ROUTING TO THE DAEMON IS OPT-IN, AND THIS FLAG IS THE WHOLE TRIGGER**
+    // (hv, 2026-08-30). The build shipped for half a day with routing as the
+    // DEFAULT -- a verb the daemon could serve went over the wire whenever a
+    // daemon happened to be answering -- and hv reversed it: *it should just
+    // use intentsvcs when run locally ... intentd is for cross-project work,
+    // like looking at a ST in another project on the same machine. So, whilst
+    // it is possible for the intent cli to use the daemon, that shouldn't be
+    // the default.*
+    //
+    // **THE PROPERTY THIS BUYS IS BIGGER THAN THE LATENCY, AND THE SAME DAY
+    // PAID FOR IT.** An `intentd --help` typed while diagnosing something else
+    // started a real daemon under the developer's own `$HOME`, and every
+    // session on the machine had its store verbs refused for three minutes.
+    // **Under opt-in routing an accidental daemon changes nothing**, because a
+    // daemon being up no longer changes what a local command does.
+    //
+    // **THE SPELLING IS hv's OWN** (`intent --daemon ...`, verbatim), which is
+    // why it is here rather than routed as a naming question. It is `global`
+    // so `intent --daemon st list` and `intent st list --daemon` are the same
+    // invocation -- a flag that worked in only one position would be a trap
+    // whose only symptom is being silently ignored.
+    //
+    // **NOT IN THE DISPATCH TABLE, AND THAT IS A GAP RATHER THAN A DESIGN.**
+    // The table describes families, entries and their flags; it has no row
+    // shape for a root-level global, so this is the second home for one piece
+    // of surface. It is recorded here rather than left to be discovered, and
+    // the fix is a table shape, not a comment.
+    .arg(
+      Arg::new("daemon")
+        .long("daemon")
+        .global(true)
+        .action(ArgAction::SetTrue)
+        .help("ask a running intentd instead of this process"),
+    );
 
   for family in &table.families {
     let Some(family_entry) = family.entries.iter().find(|e| e.verb().is_none()) else {

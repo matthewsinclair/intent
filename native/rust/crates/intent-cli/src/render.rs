@@ -36,6 +36,18 @@ fn fail(e: FacadeError) -> Failure {
 
 /// Dispatch one parsed invocation.
 pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
+  // **THE `--daemon` GUARD IS HERE BECAUSE HERE IS THE ONLY PLACE THAT SEES
+  // EVERY INVOCATION AND KNOWS WHAT WAS ASKED.** The flag is `global`, so it
+  // parses on all ~130 commands while a handful have anywhere to send it; an
+  // arm-by-arm check would leave the rest accepting it and doing the opposite,
+  // at exit 0. See [`refuse_unservable`].
+  if via_daemon(matches) {
+    let path = invoked_path(matches);
+    if daemon_op_for(&path).is_none() {
+      return Err(refuse_unservable(&path));
+    }
+  }
+
   match matches.subcommand() {
     Some(("st", m)) => st(m),
     Some(("wp", m)) => wp(m),
@@ -115,53 +127,128 @@ enum StoreNeed {
   Exclusive,
 }
 
-/// The verb paths this build can route to a daemon, and the op each becomes.
+/// The verb paths a daemon can answer, and the op each becomes.
 ///
-/// **ONE DECLARATION WITH TWO CONSUMERS, WHICH IS WHAT MAKES `AC-08.2`
-/// MEASURABLE** (vc's ruling, 2026-08-30). [`served`] consults it to decide
-/// whether to route; the dual-path harness reads it to form its per-verb
-/// expectation about the daemon's dispatch counter. **Declared at the client,
-/// observed at the server -- two genuinely different facts, which is what makes
-/// the comparison a test rather than a tautology.**
+/// **THIS IS A CAPABILITY LIST, NOT A ROUTING POLICY, AND IT USED TO BE BOTH**
+/// (hv's reversal, 2026-08-30). While routing was the default, membership here
+/// decided both *can the daemon answer this* and *will this invocation ask it*,
+/// so the two questions had one answer and no name for the difference. Routing
+/// is now opt-in behind `--daemon`, and this says only the first: which paths
+/// `--daemon` can address at all.
 ///
-/// **A HAND-WRITTEN LIST OF SERVED VERBS IN THE HARNESS WOULD BE A THIRD HOME
+/// **ONE DECLARATION WITH THREE CONSUMERS, WHICH IS WHAT MAKES `AC-08.2`
+/// MEASURABLE.** [`served`] consults it to find the op; [`crate::spine`]'s
+/// caller-side guard consults it to refuse `--daemon` on a verb no daemon can
+/// answer; the conformance and fallback harnesses read it to form their
+/// expectations. **Declared at the client, observed at the server -- two
+/// genuinely different facts, which is what makes the comparison a test rather
+/// than a tautology.**
+///
+/// **A HAND-WRITTEN LIST OF SERVED VERBS IN A HARNESS WOULD BE A FOURTH HOME
 /// AND IT WOULD DRIFT**, and it is the one way to build this that turns the
 /// harness back into the thing it exists to catch: a route that agrees with
 /// in-process because it never left the process.
 ///
 /// **DATA RATHER THAN A `match`, BECAUSE THE SET HAS TO BE ENUMERABLE.** A
-/// function that can only answer about a path it is GIVEN cannot tell the
-/// harness which paths to ask about, and a harness that supplied its own list
-/// is the third home again.
-const ROUTED: &[(&str, Op)] = &[("st list", Op::ThreadList)];
+/// function that can only answer about a path it is GIVEN cannot tell a caller
+/// which paths to ask about, and a caller that supplied its own list is the
+/// fourth home again.
+const SERVED_BY_DAEMON: &[(&str, Op)] = &[("st list", Op::ThreadList)];
 
-/// The op a verb path routes to, if this build routes it at all.
+/// The op a verb path becomes at the daemon, if a daemon can answer it at all.
 pub fn daemon_op_for(path: &str) -> Option<Op> {
-  ROUTED
+  SERVED_BY_DAEMON
     .iter()
-    .find(|(routed, _)| *routed == path)
+    .find(|(served, _)| *served == path)
     .map(|(_, op)| op.clone())
 }
 
-/// Every verb path this build routes. Read by the conformance harness.
-pub fn routed_paths() -> Vec<&'static str> {
-  ROUTED.iter().map(|(path, _)| *path).collect()
+/// Every verb path a daemon can answer. Read by the harnesses and by the
+/// caller-side `--daemon` guard.
+pub fn daemon_servable_paths() -> Vec<&'static str> {
+  SERVED_BY_DAEMON.iter().map(|(path, _)| *path).collect()
 }
 
-/// Answer a question the daemon can serve, from wherever it can be answered.
+/// The full verb path the parser resolved, as `SERVED_BY_DAEMON` spells it.
 ///
-/// **ONE DECISION POINT FOR DAEMON-OR-HERE, MIRRORING [`engine`]'s ONE DOOR AND
-/// FOR THE SAME REASON.** The rule is a property of the invocation rather than
-/// of any verb, so a second site would not weaken it -- it would delete it for
-/// whatever went through that site, silently and only on machines running a
-/// daemon.
+/// **DERIVED FROM THE MATCHES, NEVER FROM `argv`.** Prefix inference means
+/// `intent --daemon st l` and `intent --daemon st list` are one command, and a
+/// guard reading the raw tokens would refuse the first and pass the second --
+/// a feature disagreeing with itself one character at a time.
+fn invoked_path(matches: &ArgMatches) -> String {
+  let mut parts: Vec<&str> = Vec::new();
+  let mut level = matches;
+  while let Some((name, sub)) = level.subcommand() {
+    parts.push(name);
+    level = sub;
+  }
+  parts.join(" ")
+}
+
+/// Did this invocation ask to go through a daemon?
 ///
-/// **A VERB THIS BUILD CANNOT ROUTE FALLS THROUGH RATHER THAN REFUSING**, which
-/// is vc's `AC-08.2` ruling: the store serialises writes, so refusing protects
-/// against nothing, and each op the daemon learns moves a verb from here to
-/// routed with nothing broken in between. The `sync` and `ingest` family is the
-/// exception and is handled at [`engine`], where the prohibition is literally
-/// true.
+/// **THE FLAG IS `global`, SO THIS READS THE SAME ANSWER FROM ANY LEVEL'S
+/// MATCHES.** `intent --daemon st list` and `intent st list --daemon` are one
+/// invocation, which is what stops the flag from being position-sensitive in a
+/// way whose only symptom is being ignored.
+fn via_daemon(a: &ArgMatches) -> bool {
+  a.get_flag("daemon")
+}
+
+/// Refuse `--daemon` when nothing can carry it, naming what can.
+///
+/// **A FLAG ACCEPTED AND IGNORED IS WORSE THAN ONE REFUSED, BECAUSE THE EXIT
+/// CODE AGREES WITH THE CALLER.** `--daemon` is global, so it parses on every
+/// command on the surface while only a handful have anywhere to send it -- and
+/// without this, `intent --daemon doctor` would run locally, print a normal
+/// answer and exit 0, having silently done the opposite of what was asked.
+///
+/// **IT IS APPLIED ONCE, IN [`run`], OVER THE PATH THE PARSER ACTUALLY
+/// RESOLVED**, rather than at each arm: an arm-by-arm check is a rule every
+/// future verb has to remember, and the ones that forget are exactly the ones
+/// nobody notices. Here a new verb inherits the refusal by existing.
+fn refuse_unservable(path: &str) -> Failure {
+  let servable = daemon_servable_paths();
+  if path.is_empty() {
+    return Failure::Unavailable(
+      "error: `--daemon` asks intentd to answer a command and names none\n  remedy: put a command after it, as in `intent --daemon st list`".to_string(),
+    );
+  }
+  let offered = match servable.is_empty() {
+    true => "no verb can be served by a daemon in this build yet".to_string(),
+    false => format!(
+      "`intent --daemon {}`",
+      servable.join("`, `intent --daemon ")
+    ),
+  };
+  Failure::Unavailable(format!(
+    "error: `--daemon` asks intentd to answer `{path}`, and no daemon can answer that verb\n  remedy: run `intent {path}` without `--daemon` to answer it in this process. What a daemon can answer today: {offered}"
+  ))
+}
+
+/// Answer a question from wherever this invocation asked it to be answered.
+///
+/// **IN-PROCESS IS THE DEFAULT AND A RUNNING DAEMON DOES NOT CHANGE IT** (hv,
+/// 2026-08-30). *It should just use intentsvcs when run locally ... intentd is
+/// for cross-project work, like looking at a ST in another project on the same
+/// machine. So, whilst it is possible for the intent cli to use the daemon,
+/// that shouldn't be the default.* The wire, the ops, the registry and the
+/// renderer split are all unchanged by that reversal -- **only the trigger
+/// moved**, from *a daemon is answering* to *the caller said `--daemon`*.
+///
+/// **WHAT IT BUYS IS THAT AN ACCIDENTAL DAEMON IS HARMLESS.** Under the old
+/// default, anything that started a daemon changed every session's behaviour at
+/// once; that is not a hypothetical, it happened on this machine the morning
+/// this was written. Under this one a stray daemon is a process nobody is
+/// talking to.
+///
+/// **`--daemon` WITH NOTHING TO TALK TO REFUSES RATHER THAN FALLING BACK, AND
+/// THIS IS THE ONE PLACE THE OLD RULING INVERTS.** While routing was the
+/// default, falling through to in-process was right: the caller had not asked
+/// for the daemon, so running locally answered their actual question. Now they
+/// have asked, and a silent local answer would be a different question answered
+/// with the same exit code. **The fallthrough was never about tolerance; it was
+/// about not punishing a caller for something they did not ask for.**
 ///
 /// **A DAEMON THAT ANSWERED THE PROBE AND THEN FAILED IS `Unavailable`, NOT
 /// `Error`.** The operator's project is fine; the thing in their hand could not
@@ -169,34 +256,45 @@ pub fn routed_paths() -> Vec<&'static str> {
 /// their work.
 fn served<T>(
   path: &str,
+  a: &ArgMatches,
   from_daemon: impl FnOnce(Response) -> Result<T, Failure>,
   locally: impl FnOnce(Facade) -> Result<T, Failure>,
 ) -> Result<T, Failure> {
   let (project, ctx) = context()?;
 
-  if let Some(op) = daemon_op_for(path) {
-    let candidates = daemon::candidates().map_err(|e| Failure::Error(e.render()))?;
-    if let daemon::Route::Daemon(endpoint) = daemon::route(&candidates) {
-      let request = Request {
-        root: project.root().to_path_buf(),
-        op,
-      };
-      return match wire::ask(&endpoint, &request) {
-        // A refusal FROM the daemon is about the project, so it is rendered as
-        // one -- not dressed up as the client being unable to ask.
-        Ok(Response::Error { message, remedy }) => Err(Failure::Error(format!(
-          "error: {message}\n  remedy: {remedy}"
-        ))),
-        Ok(response) => from_daemon(response),
-        Err(e) => Err(Failure::Unavailable(format!(
-          "error: {e}\n  remedy: {}",
-          e.remedy()
-        ))),
-      };
-    }
+  if !via_daemon(a) {
+    return locally(engine(project, ctx, StoreNeed::Shared)?);
   }
 
-  locally(engine(project, ctx, StoreNeed::Shared)?)
+  // `run` has already refused a `--daemon` path that is not in the list, so
+  // reaching here with no op means an arm called `served` under a path spelling
+  // the declaration does not carry -- which is a build defect, not an operator
+  // one, and it says so rather than quietly running locally.
+  let op = daemon_op_for(path).ok_or_else(|| refuse_unservable(path))?;
+
+  let candidates = daemon::candidates().map_err(|e| Failure::Error(e.render()))?;
+  let daemon::Route::Daemon(endpoint) = daemon::route(&candidates) else {
+    return Err(Failure::Unavailable(format!(
+      "error: `--daemon` asks intentd to answer `{path}` and no daemon is answering\n  remedy: start one with `intent daemon start`, or run `intent {path}` without `--daemon` to answer it in this process"
+    )));
+  };
+
+  let request = Request {
+    root: project.root().to_path_buf(),
+    op,
+  };
+  match wire::ask(&endpoint, &request) {
+    // A refusal FROM the daemon is about the project, so it is rendered as
+    // one -- not dressed up as the client being unable to ask.
+    Ok(Response::Error { message, remedy }) => Err(Failure::Error(format!(
+      "error: {message}\n  remedy: {remedy}"
+    ))),
+    Ok(response) => from_daemon(response),
+    Err(e) => Err(Failure::Unavailable(format!(
+      "error: {e}\n  remedy: {}",
+      e.remedy()
+    ))),
+  }
 }
 
 /// The door for a verb the store can serialise alongside a daemon.
@@ -1571,6 +1669,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // zero -- so the omission is RED by name rather than invisible.
       let table = served(
         "st list",
+        a,
         |response| match response {
           Response::Threads { threads } => st_table_from(&threads, a),
           other => Err(Failure::Error(format!(
