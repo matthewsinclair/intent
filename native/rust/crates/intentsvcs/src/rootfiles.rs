@@ -446,3 +446,96 @@ fn value<'a>(name: &str, cfg: &'a Config, ctx: &RenderContext<'a>) -> Option<&'a
     _ => None,
   }
 }
+
+/// The four sections every well-formed `AGENTS.md` carries.
+///
+/// **A WELL-FORMEDNESS CHECK, NOT A CURRENCY CHECK, AND THE SECTION LIST IS
+/// HARD-CODED FOR THAT REASON.** Deriving the required set from the template
+/// would be the arrangement this estate normally prefers -- and here it would
+/// be wrong: every project whose `AGENTS.md` predates a template change would
+/// start reporting findings, turning *is this file well formed* into *is this
+/// file current*. `sync` answers currency. These four are a FLOOR, carried
+/// from v2 where they were warnings rather than errors, and all four are
+/// present in what v3 generates today.
+pub const AGENTS_SECTION_FLOOR: [&str; 4] = [
+  "Project Overview",
+  "Development Environment",
+  "Build and Test Commands",
+  "Code Style",
+];
+
+/// What `agents validate` found the file ON DISK to be, before any content
+/// question is asked. The four states are mutually exclusive and the first
+/// three end the check -- a section census over a file that is not a regular
+/// file would be a claim about bytes nobody can read back.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AgentsFileState {
+  /// No `AGENTS.md` at the project root. The one ERROR a missing file earns.
+  Missing,
+  /// A symlink -- the legacy canon layout. A WARNING: the content may be
+  /// fine, but `agents sync` writes real files and this one predates it.
+  Symlink,
+  /// Present and not a regular file. An error: nothing here can be validated.
+  NotRegular,
+  /// A regular file; the section census below applies.
+  Regular,
+}
+
+/// The `agents validate` result: file state plus the section census.
+///
+/// **STRUCTURE, NOT PROSE** -- each face (terminal, MCP) renders its own voice
+/// from this, and the error/warning arithmetic lives here so the two faces
+/// cannot count differently.
+#[derive(Debug, Clone)]
+pub struct AgentsValidation {
+  pub state: AgentsFileState,
+  /// One row per [`AGENTS_SECTION_FLOOR`] entry: the section and whether the
+  /// file carries it. Empty unless `state` is `Regular`.
+  pub sections: Vec<(&'static str, bool)>,
+}
+
+impl AgentsValidation {
+  /// Missing or non-regular is an error; nothing else is.
+  pub fn errors(&self) -> usize {
+    match self.state {
+      AgentsFileState::Missing | AgentsFileState::NotRegular => 1,
+      AgentsFileState::Symlink | AgentsFileState::Regular => 0,
+    }
+  }
+
+  /// A symlink is one warning; every absent floor section is another.
+  pub fn warnings(&self) -> usize {
+    let absent = self.sections.iter().filter(|(_, present)| !present).count();
+    match self.state {
+      AgentsFileState::Symlink => 1 + absent,
+      _ => absent,
+    }
+  }
+}
+
+/// Check the project's `AGENTS.md` for well-formedness.
+///
+/// A regular file that cannot be read is censused over empty content -- every
+/// floor section reports absent -- rather than raised: the file's EXISTENCE
+/// was already established, and this check's contract is warnings about
+/// content, not I/O forensics. (v2 behaved the same way.)
+pub fn validate(root: &Path) -> AgentsValidation {
+  let path = root.join("AGENTS.md");
+  let state = match std::fs::symlink_metadata(&path) {
+    Err(_) => AgentsFileState::Missing,
+    Ok(m) if m.file_type().is_symlink() => AgentsFileState::Symlink,
+    Ok(m) if !m.is_file() => AgentsFileState::NotRegular,
+    Ok(_) => AgentsFileState::Regular,
+  };
+  let sections = match state {
+    AgentsFileState::Regular => {
+      let body = std::fs::read_to_string(&path).unwrap_or_default();
+      AGENTS_SECTION_FLOOR
+        .iter()
+        .map(|section| (*section, body.contains(&format!("## {section}"))))
+        .collect()
+    }
+    _ => Vec::new(),
+  };
+  AgentsValidation { state, sections }
+}

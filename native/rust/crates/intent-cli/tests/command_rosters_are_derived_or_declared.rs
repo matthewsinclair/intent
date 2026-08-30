@@ -65,6 +65,23 @@ enum Why {
   CheckedBy(&'static str),
 }
 
+/// The one reason all 52 of `mcp.rs`'s path literals share -- the serving
+/// match's SERVED roster and arms (vc's (a)-now ruling, 2026-08-30).
+///
+/// **CHECKED, NOT MERELY TOLERATED**: `mcp::tests::the_roster_and_the_tool_\
+/// population_agree_both_ways` holds the roster against the table-generated
+/// tool population in BOTH directions, and `mcp::tests::every_roster_path_\
+/// reaches_an_arm` drives each path to an arm through a real in-memory facade
+/// -- so the list cannot drift from the table, which is exactly the property
+/// this guard exists to demand of a hand-kept list. The match itself goes when
+/// the MCP tier routes through `dispatch(op)`, the 3.x destination
+/// (`mcp.rs`'s header LIMIT).
+const MCP_SERVING_MATCH: &str = "the MCP serving match: SERVED + arms, held against the \
+   table-generated tool population both directions by \
+   `mcp::tests::the_roster_and_the_tool_population_agree_both_ways` and driven by \
+   `mcp::tests::every_roster_path_reaches_an_arm`; the match discharges when the tier routes \
+   through `dispatch(op)`, the 3.x destination";
+
 /// Every (file, exact command-path literal) this estate declares, and why.
 ///
 /// **BOTH DIRECTIONS ARE ASSERTED.** An undeclared hit is a new hand-kept
@@ -79,11 +96,12 @@ enum Why {
 /// A declaration keyed on (file, path) cannot tell two sites apart, so it must
 /// account for every one of them or it is silently excusing a site nobody
 /// examined. That is the same defect this file exists to catch, one level up.
-const DECLARED: &[(&str, &str, Why)] = &[(
-  "intent-cli/src/render.rs",
-  "st list",
-  Why::Discharges(
-    "TWO SITES SPELL IT AND THEY DISCHARGE TOGETHER. (1) `SERVED_BY_DAEMON`, the roster; (2) the \
+const DECLARED: &[(&str, &str, Why)] = &[
+  (
+    "intent-cli/src/render.rs",
+    "st list",
+    Why::Discharges(
+      "TWO SITES SPELL IT AND THEY DISCHARGE TOGETHER. (1) `SERVED_BY_DAEMON`, the roster; (2) the \
      `served(\"st list\", ..)` CALL SITE, where the path is spelled so the router can resolve it \
      -- its own note says a site that forgets to route falls through with a zero delta, so \
      spelling it there is what makes the omission red by name rather than invisible. \
@@ -95,8 +113,269 @@ const DECLARED: &[(&str, &str, Why)] = &[(
      surface` -- COULD NEVER BECOME TRUE: `version`, `info`, `init` and the `lang` verbs need no \
      store, so they will never be daemon-served. An exception whose condition is unmeetable \
      reads like the kind that cannot rot and behaves like the kind that does.",
+    ),
   ),
-)];
+  (
+    "intent-cli/src/mcp.rs",
+    "st new",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st start",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st done",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st cancel",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st triage",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st hold",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st resume",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st reopen",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st reinstate",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st hydrate",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st dehydrate",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st list",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st show",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st edit",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "st sync",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wp new",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wp start",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wp done",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wp reopen",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wp cancel",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wp reinstate",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wp unstart",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wp rescope",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wp list",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "wp show",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "ac list",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "ac status",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "ac satisfy",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "ac unsatisfy",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "ac gate",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "ac descope",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "ac rescope",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "ac withdraw",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "ac reinstate",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "ac new",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "ac edit",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "at list",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "at lint",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "at green",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "at red",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "at na",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "at new",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "at edit",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "issues list",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "issues add",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "issues show",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "issues close",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "issues open",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "todo list",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "todo update",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "agents generate",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
+    "agents validate",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+];
 
 /// The four `const`s a per-`const` sweep surfaced on 2026-08-30, classified by
 /// hand because the automated population above does not reach single-token

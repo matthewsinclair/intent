@@ -2414,7 +2414,7 @@ Emit generated AGENTS.md content to stdout
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** idempotent
-- **facade:** project
+- **facade:** agents_generate
 
 ### `agents sync`
 
@@ -2446,7 +2446,7 @@ Validate AGENTS.md shape and required sections
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
-- **facade:** project
+- **facade:** agents_validate
 
 ### `agents template`
 
@@ -3905,11 +3905,15 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
     - **measured before the ruling:** ic measured v3 rather than relaying it: `intent organize --help` answered `Usage: intent organize` with `-h` alone. **It had inherited v2's ACTING polarity and dropped v2's preview** -- and its own one-line help advertises `remove what is not` in the same sentence, so the destructive half was advertised and unobservable at once, with no way to learn what it would delete except by letting it. Against a real estate that was 544 planned removals.
     - **counter argument recorded unsupported:** `organize` is meant to be routine and idempotent, so a required flag trains reflexive typing. The usual answer -- a settled estate plans EMPTY, so the flag is only typed when there is something to do -- **does not hold on this estate today**, where 544 removals sit planned behind the AC-00.1 ship gate. It will hold once the preconditions land. ic recorded it as UNSUPPORTED rather than dismissing it, and offered to re-open on argument; dc did not take that up, because the three grounds above are about the day the gate opens and the reflex argument is about every other day.
   - `--default` (bool) -- Write .intentfiles from status when it is absent: one STEELTHREAD line per WIP thread
+    - narrowed off MCP as terminal-channel: --default is a different operation (declaration regeneration) whose write half is gated on a terminal confirmation via --force; the MCP tool serves reconciliation only
     - **disposition:** keep
     - **disposition basis:** **hv, 2026-08-26, first-hand: `--default` never removes a file -- _"Correct. Unless it is used with --force, which does remove files, after a confirm."_** ST0057 AC-11.1 through AC-11.4 are this flag's contract, and ST0057 WP-11 owns it. **IT EXISTS BECAUSE ABSENT IS NOT EMPTY.** An absent `.intentfiles` means nobody has said, so everything is realised; an empty one declares that NOTHING is, and `organize --apply` against that would remove the estate. So the file must never come into existence as a side effect, and the operator needs one spelling that writes the declaration a project should have: one `STEELTHREAD:<ID>` line per thread that is not Completed and not Cancelled. **THE SAME FUNCTION SERVES `init`, THE MIGRATION AND `upgrade` (AC-11.3), which is a criterion rather than a tidiness: three callers deriving _the open set_ separately is three chances to disagree about what open means, and the one that drifts is the one nobody runs.** `intentfiles::default_declaration` is that function. **Bare `--default` is NON-DESTRUCTIVE in every case**: absent, it writes; present, it changes not one byte, reports how many lines it declares, and names `--force`.
+    - **exposed on mcp:** false
   - `--force` (bool) -- With --default, regenerate an existing .intentfiles from status. Refuses without a tty; asks for confirmation on one
+    - narrowed off MCP as terminal-channel: it qualifies --default and its whole meaning is the terminal confirmation step
     - **disposition:** keep
     - **disposition basis:** **ST0057 AC-11.2, and the tty is the mechanism rather than a courtesy: `--force` without a tty writes nothing and exits non-zero; `--force` answered `y` on a tty regenerates the file from status.** Ratified before hv's 2026-08-26 ruling and unchanged by it -- hv's _after a confirm_ lands on this row exactly. **THERE IS NO `--yes` AND NO ENVIRONMENT OVERRIDE, DELIBERATELY.** A flag-driven force without a tty WRITES, which would make AC-11.2 unmeasurable: the criterion's whole content is that the absence of a human IS the refusal, so an escape hatch does not weaken the gate a little, it removes the only thing the gate measures. **The consequence is accepted and named: no tool-driven caller can run the destructive arm** -- not the migration, not `upgrade`, not a fleet sweep. Those callers want bare `--default`, which writes a declaration and removes nothing, so nothing legitimate is blocked. **Precedent rather than invention: `int build release` already reads its confirmation from `/dev/tty`, and this estate never passes `--no-confirm` from a tool session.** With `--default` this is the destructive arm and the only one (AC-11.6).
+    - **exposed on mcp:** false
 - **MCP:** exposed as an agent tool -- **mutates**
 - **MCP classification grounded in:** **RULED BY ic 2026-08-30 UNDER AC-05.1, ON THIS ROW'S OWN INVITATION.** The field was carried as `uncertain` with the surface owner named rather than settled by whoever wired the entry, and it was escalated to hv, who handed it back rather than ruling it. **THE RULE THIS TABLE ENCODES IS UNDOABILITY, NOT BLAST RADIUS: MCP withholds a mutation the surface cannot UNDO.** Every removal `organize` makes is gated on the store reproducing the bytes byte for byte, so re-declaring in `.intentfiles` and re-running restores exactly what was removed. It is undoable, so it ships exposed. **THE BLAST-RADIUS ARGUMENT IS PRESERVED BECAUSE IT IS GOOD AND IT STILL LOSES.** The row's author made it first -- this is the only shipped verb that REMOVES committed files, and an agent's mistake here is an absent file rather than a bad edit -- and recorded being overridden instead of resolving it silently, which is the only reason the ruling was available to make at all. It is rejected on its own terms: the same argument would withhold `sync --to-store`, whose own row states that a wrong invocation can overwrite this machine's store from a stale extract, and which ships EXPOSED (verified against the table, not relayed from the prose). Carving an exception for one row against a rule that already decided a harder case the other way is how a vocabulary stops meaning anything. **THE `uncertain` BLOCK IS RETIRED RATHER THAN EMPTIED**, because the generator refuses an `uncertain: []` on the ground that it reads as confidence to one reader and as an unfinished edit to another; and `why_uncertain` renders only INSIDE that branch, so keeping it here would have left a key nothing reads. Its substance is above.
 
@@ -3948,7 +3952,9 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
   - `--limit` `<n>` (string)
     - **disposition:** keep
   - `--format` `<fmt>` (string)
+    - narrowed off MCP as terminal-channel: it selects table-vs-json terminal rendering, and the MCP tool always answers structured JSON
     - **disposition:** keep
+    - **exposed on mcp:** false
 - **MCP:** exposed as an agent tool -- read-only
 
 ### `fc`

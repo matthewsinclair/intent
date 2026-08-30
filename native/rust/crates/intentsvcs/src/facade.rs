@@ -926,6 +926,16 @@ pub enum FacadeError {
     "this would replace the authored body of {subject} with nothing -- {had} byte(s) on disk, none in what is being written"
   )]
   WriteWouldEmptyAnAuthoredBody { subject: String, had: usize },
+  /// The Intent install could not be located, so a template-reading verb has
+  /// nothing to read. Added for [`Facade::agents_generate`] -- a facade gap
+  /// closed on vc's 2026-08-30 ruling (c) -- and a NEW variant rather than a
+  /// widened one, because every existing arm names a subject that is not this.
+  #[error("cannot locate the Intent install")]
+  Install(#[from] crate::install::InstallError),
+  /// A root-file template could not be read or expanded. Same provenance as
+  /// [`Self::Install`], same add-don't-widen rule.
+  #[error("could not render the root file")]
+  RootFile(#[from] crate::rootfiles::RootFileError),
 }
 
 impl crate::remedy::Remedy for FacadeError {
@@ -1147,6 +1157,8 @@ impl crate::remedy::Remedy for FacadeError {
       // a comment asserted what the code did not do, and the first two were
       // other people's.
       Self::Intentfiles(cause) => cause.remedy(),
+      Self::Install(cause) => cause.remedy(),
+      Self::RootFile(cause) => cause.remedy(),
       // **THE REMEDY THIS REPLACES STATED hv's RULE BACKWARDS, AND IT WAS THE
       // FIRST MESSAGE A NEW v3 PROJECT SHOWED ANYBODY** (AC-04.7 arm (c)). It
       // read *"an absent manifest declares nothing, so `organize` would read
@@ -1983,6 +1995,38 @@ impl Facade {
   /// that distinction, and it cannot be derived from the result itself.
   pub fn prose_sections_indexed(&self) -> Result<usize, FacadeError> {
     self.store.doc_section_count().map_err(FacadeError::Store)
+  }
+
+  /// `intent agents generate` -- render `AGENTS.md` from current project
+  /// state, writing nothing. A facade GAP closed by a method (vc ruling (c),
+  /// 2026-08-30): the renderer composed `install::home` + `rootfiles::render`
+  /// inline, so the CLI face owned an operation every other face would have
+  /// had to re-compose.
+  ///
+  /// **NOT [`Self::render_ctx`], AND THE DIFFERENCE IS A STORE READ.** Nothing
+  /// on this path renders `todo.md`, so there is no watermark to carry and
+  /// asking the store for one would be a read with no reader.
+  pub fn agents_generate(&self) -> Result<String, FacadeError> {
+    let home = crate::install::home()?;
+    let ctx = RenderContext {
+      version: &self.ctx.version,
+      todo_watermark: None,
+    };
+    Ok(crate::rootfiles::render(
+      &home,
+      "AGENTS.md",
+      self.project.config(),
+      &ctx,
+    )?)
+  }
+
+  /// `intent agents validate` -- the well-formedness census over the file on
+  /// disk. Infallible by design: "the file is missing" is a RESULT here, not
+  /// an error, because the verb exists precisely to answer that question.
+  /// The check body lives in [`crate::rootfiles::validate`] -- validating
+  /// generated content is a services concern (vc ruling (c), 2026-08-30).
+  pub fn agents_validate(&self) -> crate::rootfiles::AgentsValidation {
+    crate::rootfiles::validate(self.project.root())
   }
 
   /// Re-read committed canon and rebuild the store from it -- `intent sync`.

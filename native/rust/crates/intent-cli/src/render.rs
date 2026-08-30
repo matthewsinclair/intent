@@ -628,7 +628,7 @@ fn reporter() -> Option<String> {
 /// usage text. Reading it as `Triage` would give a familiar token a second
 /// meaning in the filter, which is one of the two places a v2 user reads
 /// fastest and checks least.
-fn status_filter(spec: &str) -> Result<Option<Vec<ThreadStatus>>, String> {
+pub(crate) fn status_filter(spec: &str) -> Result<Option<Vec<ThreadStatus>>, String> {
   use ThreadStatus as S;
   if spec.eq_ignore_ascii_case("all") {
     return Ok(None);
@@ -1353,7 +1353,7 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
 /// it: its rows come from `arg_values(table, "edit", "file")`, the same source
 /// that check validates against, asserted by
 /// `every_file_the_edit_surface_offers_is_a_row_on_the_entity`.
-fn artefact_path(
+pub(crate) fn artefact_path(
   facade: &mut Facade,
   address: &intentsvcs::address::Address,
   file: &str,
@@ -3733,6 +3733,26 @@ fn render_organize_report(
 /// the projection without this would have traded an unread file for an
 /// unreadable table -- no `events` verb existed in either binary, so the file
 /// was the only reader-facing surface the log had.
+/// The history page's wire shape -- ONE builder for `events --format json`
+/// and the MCP tool. The three counts stay distinct for the reason `EventPage`
+/// carries them distinctly: shown, matched and total legitimately differ.
+pub(crate) fn events_json(page: &intentsvcs::facade::EventPage) -> serde_json::Value {
+  let rows: Vec<serde_json::Value> = page
+    .rows
+    .iter()
+    .map(|e| {
+      serde_json::json!({
+        "id": e.id, "ts": e.ts, "op": e.op,
+        "subject": { "kind": e.subject.kind, "id": e.subject.id },
+        "payload": e.payload,
+      })
+    })
+    .collect();
+  serde_json::json!({
+    "shown": page.rows.len(), "matched": page.matched, "total": page.total, "events": rows,
+  })
+}
+
 fn events(m: &ArgMatches) -> Result<(), Failure> {
   let (project, ctx) = context()?;
   let facade = engine(project, ctx, StoreNeed::Shared)?;
@@ -3765,23 +3785,9 @@ fn events(m: &ArgMatches) -> Result<(), Failure> {
   let page = facade.events(&filter).map_err(fail)?;
 
   if m.get_one::<String>("format").is_some_and(|f| f == "json") {
-    let rows: Vec<serde_json::Value> = page
-      .rows
-      .iter()
-      .map(|e| {
-        serde_json::json!({
-          "id": e.id, "ts": e.ts, "op": e.op,
-          "subject": { "kind": e.subject.kind, "id": e.subject.id },
-          "payload": e.payload,
-        })
-      })
-      .collect();
     println!(
       "{}",
-      serde_json::to_string_pretty(&serde_json::json!({
-        "shown": page.rows.len(), "matched": page.matched, "total": page.total, "events": rows,
-      }))
-      .unwrap_or_default()
+      serde_json::to_string_pretty(&events_json(&page)).unwrap_or_default()
     );
     return Ok(());
   }
@@ -4723,7 +4729,7 @@ fn print_versions(only: Option<&str>) {
 }
 
 /// `ST0000` or `ST0000/03`.
-fn scope_of(target: &str) -> (String, Scope) {
+pub(crate) fn scope_of(target: &str) -> (String, Scope) {
   match target.split_once('/') {
     Some((st, wp)) => match wp.parse::<u32>() {
       Ok(seq) => (st.to_string(), Scope::WorkPackage(seq)),
@@ -4762,7 +4768,7 @@ fn wp_target(a: &ArgMatches) -> Result<(String, u32), Failure> {
 /// bare parse error blames the spelling without saying what the spellings are,
 /// which spends the reader's next move on guessing; and a hand-written list of
 /// six would be a seventh copy of the vocabulary going stale in a string.
-fn t_shirt(raw: &str) -> Result<TShirt, Failure> {
+pub(crate) fn t_shirt(raw: &str) -> Result<TShirt, Failure> {
   TShirt::parse(raw).ok_or_else(|| {
     Failure::Error(format!(
       "error: `{raw}` is not a T-shirt size\n  remedy: one of: {}",
@@ -7163,7 +7169,7 @@ fn thread_arg(m: &ArgMatches, name: &str) -> Result<String, Failure> {
 /// `ST0056`, `56`, `s56` -- and the `<thread>/<NN>` composite the scoped verbs
 /// take, whose thread half is normalised and whose tail is passed through
 /// UNTOUCHED because a work-package number is not this function's to interpret.
-fn thread_spec(raw: &str) -> Result<String, Failure> {
+pub(crate) fn thread_spec(raw: &str) -> Result<String, Failure> {
   let (head, tail) = match raw.split_once('/') {
     Some((h, t)) => (h, Some(t)),
     None => (raw, None),
@@ -7496,15 +7502,11 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
       // precisely when the project will not open. Found by dc's
       // `unmigrated_surface` sweep, which is the row that exists for this.
       let f = open()?;
-      let home = intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
-      let ctx = views::RenderContext {
-        version: env!("CARGO_PKG_VERSION"),
-        // Nothing on this path renders `todo.md`, so there is no watermark to
-        // carry and asking the store for one would be a read with no reader.
-        todo_watermark: None,
-      };
-      let content = intentsvcs::rootfiles::render(&home, "AGENTS.md", f.project().config(), &ctx)
-        .map_err(|e| Failure::Error(e.render()))?;
+      // The composition (install home + rootfiles render, watermark-free
+      // context) moved into `Facade::agents_generate` when the MCP tier gave
+      // this operation a second face -- a facade gap closed on vc's ruling (c)
+      // (2026-08-30). One body, two doors.
+      let content = f.agents_generate().map_err(fail)?;
       // `print!`, not `println!` -- the template ends with its own newline and
       // a second one would put the generated file one byte away from what the
       // generator produced, which is exactly the comparison AC-00.4 exists for.
@@ -7573,54 +7575,37 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
       println!("ok: AGENTS.md created at project root.");
       Ok(())
     }
-    // **A WELL-FORMEDNESS CHECK, NOT A CURRENCY CHECK, AND THE SECTION LIST IS
-    // HARD-CODED FOR THAT REASON.** Deriving the required set from the template
-    // would be the arrangement this estate normally prefers -- and here it would
-    // be wrong: every project whose `AGENTS.md` predates a template change would
-    // start reporting findings, turning *is this file well formed* into *is this
-    // file current*. `sync` answers currency. These four are a FLOOR, carried
-    // from v2 where they were warnings rather than errors, and all four are
-    // present in what v3 generates today.
+    // A well-formedness check, not a currency check -- the section FLOOR and
+    // the reasoning for hard-coding it moved to `rootfiles::AGENTS_SECTION_FLOOR`
+    // with the check itself.
     Some(("validate", _)) => {
       let f = open()?;
-      let path = f.project().root().join("AGENTS.md");
       println!("Validating AGENTS.md...");
-      let mut errors = 0usize;
-      let mut warnings = 0usize;
-      let meta = std::fs::symlink_metadata(&path);
-      match meta {
-        Err(_) => {
-          println!("error: AGENTS.md not found at project root");
-          errors += 1;
-        }
-        Ok(m) if m.file_type().is_symlink() => {
-          println!(
-            "warn: AGENTS.md is a symlink (legacy canon). Run `intent agents sync` to replace with a real file."
-          );
-          warnings += 1;
-        }
-        Ok(m) if !m.is_file() => {
-          println!("error: AGENTS.md exists but is not a regular file");
-          errors += 1;
-        }
-        Ok(_) => {
+      // The CHECK lives in `rootfiles::validate` (vc ruling (c), 2026-08-30:
+      // validating generated content is a services concern) and the VOICE
+      // lives here -- each face renders the same census in its own register,
+      // and the error/warning arithmetic is the report's so they cannot
+      // count differently.
+      let report = f.agents_validate();
+      use intentsvcs::rootfiles::AgentsFileState as S;
+      match report.state {
+        S::Missing => println!("error: AGENTS.md not found at project root"),
+        S::Symlink => println!(
+          "warn: AGENTS.md is a symlink (legacy canon). Run `intent agents sync` to replace with a real file."
+        ),
+        S::NotRegular => println!("error: AGENTS.md exists but is not a regular file"),
+        S::Regular => {
           println!("ok: AGENTS.md found at project root (regular file)");
-          let body = std::fs::read_to_string(&path).unwrap_or_default();
-          for section in [
-            "Project Overview",
-            "Development Environment",
-            "Build and Test Commands",
-            "Code Style",
-          ] {
-            if body.contains(&format!("## {section}")) {
+          for (section, present) in &report.sections {
+            if *present {
               println!("ok: has section: {section}");
             } else {
               println!("warn: missing recommended section: {section}");
-              warnings += 1;
             }
           }
         }
       }
+      let (errors, warnings) = (report.errors(), report.warnings());
       println!();
       if errors == 0 && warnings == 0 {
         println!("ok: AGENTS.md validation passed");
@@ -8032,7 +8017,15 @@ fn enum_flag(a: &ArgMatches, path: &str, spelling: &str) -> Result<String, Failu
 /// second wire shape beside it would be a second home for the same fact and
 /// they would drift the first time a field is added.
 fn render_doctor_json(report: &intentsvcs::doctor::Report) {
-  let doc = serde_json::json!({
+  // `{:#}` is `Value`'s own pretty Display, so there is no `Result` to unwrap
+  // and no branch that could print nothing on a serialisation error.
+  println!("{:#}", doctor_json(report));
+}
+
+/// `doctor`'s wire shape -- ONE builder for the `--format json` face and the
+/// MCP tool, so the two cannot disagree about keys.
+pub(crate) fn doctor_json(report: &intentsvcs::doctor::Report) -> serde_json::Value {
+  serde_json::json!({
     "healthy": report.is_healthy(),
     "findings": report.findings,
     // **THE COVERAGE DENOMINATOR TRAVELS WITH THE VERDICT.** A machine reader
@@ -8048,10 +8041,7 @@ fn render_doctor_json(report: &intentsvcs::doctor::Report) {
     // in full and never truncated, which is the rule the text face states in
     // those words: appearing inside a counted group is fine, vanishing is not.
     "unattached": report.unattached,
-  });
-  // `{:#}` is `Value`'s own pretty Display, so there is no `Result` to unwrap
-  // and no branch that could print nothing on a serialisation error.
-  println!("{doc:#}");
+  })
 }
 
 fn render_critic_json(report: &intentsvcs::critic::Report) {

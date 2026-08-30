@@ -447,6 +447,10 @@ pub fn arity_bounds(arity: &str) -> Option<(usize, Option<usize>)> {
   }
 }
 
+fn flag_exposed_default() -> bool {
+  true
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Flag {
   #[serde(default)]
@@ -486,6 +490,25 @@ pub struct Flag {
   /// The value used when the flag is absent.
   #[serde(default)]
   pub default: Option<String>,
+  /// Whether WP-09's MCP tool tier publishes this flag as a tool parameter.
+  ///
+  /// **Defaults TRUE, unlike [`Entry::exposed_on_mcp`], and the asymmetry is
+  /// load-bearing.** cc objected that the two keys sharing a name and
+  /// differing in default invites misreading; the answer is that they do not
+  /// share a failure mode. The row-level key REFUSES to load on absence, so no
+  /// default of any polarity exists there to be wrong. This key can only TRIM
+  /// parameters off a tool the row has already exposed -- it can never add a
+  /// tool, never widen a surface -- so the absent-key meaning that matches
+  /// what the table's ~106 undeclared flags already do is "published". A
+  /// default of `false` would demand an annotation on every one of them to
+  /// keep today's surface, and a missed row would silently withhold a working
+  /// parameter. vc confirmed after measuring both sites (2026-08-30).
+  ///
+  /// `false` marks a flag whose channel is the terminal (widths, pagers,
+  /// formats), or whose MCP arm refuses it honestly -- never a defect; a
+  /// defect gets filed, not hidden (vc's hide-classify discipline).
+  #[serde(default = "flag_exposed_default")]
+  pub exposed_on_mcp: bool,
   // `accepts` is deliberately NOT here, and that is a decision rather than an
   // omission. The four rows carrying it are PROSE, in four different shapes --
   // "eg `--lang elixir` or `--lang elixir,rust,shell`", "footgun (default),

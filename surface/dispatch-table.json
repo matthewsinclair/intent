@@ -5105,7 +5105,7 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
           "recoverability": "idempotent",
-          "facade": "project"
+          "facade": "agents_generate"
         },
         {
           "path": "agents sync",
@@ -5173,7 +5173,7 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "read",
-          "facade": "project"
+          "facade": "agents_validate"
         },
         {
           "path": "agents template",
@@ -8085,7 +8085,9 @@
           "type": "bool",
           "help": "Write .intentfiles from status when it is absent: one STEELTHREAD line per WIP thread",
           "disposition": "keep",
-          "disposition_basis": "**hv, 2026-08-26, first-hand: `--default` never removes a file -- _\"Correct. Unless it is used with --force, which does remove files, after a confirm.\"_** ST0057 AC-11.1 through AC-11.4 are this flag's contract, and ST0057 WP-11 owns it. **IT EXISTS BECAUSE ABSENT IS NOT EMPTY.** An absent `.intentfiles` means nobody has said, so everything is realised; an empty one declares that NOTHING is, and `organize --apply` against that would remove the estate. So the file must never come into existence as a side effect, and the operator needs one spelling that writes the declaration a project should have: one `STEELTHREAD:<ID>` line per thread that is not Completed and not Cancelled. **THE SAME FUNCTION SERVES `init`, THE MIGRATION AND `upgrade` (AC-11.3), which is a criterion rather than a tidiness: three callers deriving _the open set_ separately is three chances to disagree about what open means, and the one that drifts is the one nobody runs.** `intentfiles::default_declaration` is that function. **Bare `--default` is NON-DESTRUCTIVE in every case**: absent, it writes; present, it changes not one byte, reports how many lines it declares, and names `--force`."
+          "disposition_basis": "**hv, 2026-08-26, first-hand: `--default` never removes a file -- _\"Correct. Unless it is used with --force, which does remove files, after a confirm.\"_** ST0057 AC-11.1 through AC-11.4 are this flag's contract, and ST0057 WP-11 owns it. **IT EXISTS BECAUSE ABSENT IS NOT EMPTY.** An absent `.intentfiles` means nobody has said, so everything is realised; an empty one declares that NOTHING is, and `organize --apply` against that would remove the estate. So the file must never come into existence as a side effect, and the operator needs one spelling that writes the declaration a project should have: one `STEELTHREAD:<ID>` line per thread that is not Completed and not Cancelled. **THE SAME FUNCTION SERVES `init`, THE MIGRATION AND `upgrade` (AC-11.3), which is a criterion rather than a tidiness: three callers deriving _the open set_ separately is three chances to disagree about what open means, and the one that drifts is the one nobody runs.** `intentfiles::default_declaration` is that function. **Bare `--default` is NON-DESTRUCTIVE in every case**: absent, it writes; present, it changes not one byte, reports how many lines it declares, and names `--force`.",
+          "exposed_on_mcp": false,
+          "note": "narrowed off MCP as terminal-channel: --default is a different operation (declaration regeneration) whose write half is gated on a terminal confirmation via --force; the MCP tool serves reconciliation only"
         },
         {
           "spellings": [
@@ -8094,7 +8096,9 @@
           "type": "bool",
           "help": "With --default, regenerate an existing .intentfiles from status. Refuses without a tty; asks for confirmation on one",
           "disposition": "keep",
-          "disposition_basis": "**ST0057 AC-11.2, and the tty is the mechanism rather than a courtesy: `--force` without a tty writes nothing and exits non-zero; `--force` answered `y` on a tty regenerates the file from status.** Ratified before hv's 2026-08-26 ruling and unchanged by it -- hv's _after a confirm_ lands on this row exactly. **THERE IS NO `--yes` AND NO ENVIRONMENT OVERRIDE, DELIBERATELY.** A flag-driven force without a tty WRITES, which would make AC-11.2 unmeasurable: the criterion's whole content is that the absence of a human IS the refusal, so an escape hatch does not weaken the gate a little, it removes the only thing the gate measures. **The consequence is accepted and named: no tool-driven caller can run the destructive arm** -- not the migration, not `upgrade`, not a fleet sweep. Those callers want bare `--default`, which writes a declaration and removes nothing, so nothing legitimate is blocked. **Precedent rather than invention: `int build release` already reads its confirmation from `/dev/tty`, and this estate never passes `--no-confirm` from a tool session.** With `--default` this is the destructive arm and the only one (AC-11.6)."
+          "disposition_basis": "**ST0057 AC-11.2, and the tty is the mechanism rather than a courtesy: `--force` without a tty writes nothing and exits non-zero; `--force` answered `y` on a tty regenerates the file from status.** Ratified before hv's 2026-08-26 ruling and unchanged by it -- hv's _after a confirm_ lands on this row exactly. **THERE IS NO `--yes` AND NO ENVIRONMENT OVERRIDE, DELIBERATELY.** A flag-driven force without a tty WRITES, which would make AC-11.2 unmeasurable: the criterion's whole content is that the absence of a human IS the refusal, so an escape hatch does not weaken the gate a little, it removes the only thing the gate measures. **The consequence is accepted and named: no tool-driven caller can run the destructive arm** -- not the migration, not `upgrade`, not a fleet sweep. Those callers want bare `--default`, which writes a declaration and removes nothing, so nothing legitimate is blocked. **Precedent rather than invention: `int build release` already reads its confirmation from `/dev/tty`, and this estate never passes `--no-confirm` from a tool session.** With `--default` this is the destructive arm and the only one (AC-11.6).",
+          "exposed_on_mcp": false,
+          "note": "narrowed off MCP as terminal-channel: it qualifies --default and its whole meaning is the terminal confirmation step"
         }
       ],
       "v2": "new-surface",
@@ -8234,7 +8238,9 @@
           ],
           "type": "string",
           "value": "<fmt>",
-          "disposition": "keep"
+          "disposition": "keep",
+          "exposed_on_mcp": false,
+          "note": "narrowed off MCP as terminal-channel: it selects table-vs-json terminal rendering, and the MCP tool always answers structured JSON"
         }
       ],
       "v2": "new-surface",
