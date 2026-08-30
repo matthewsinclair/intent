@@ -1,4 +1,4 @@
-//! Focus order over a declared form: `AC-17.5`.
+//! Focus order over a declared form: `AT-17.5` covering `AC-17.5`.
 //!
 //! **THIS MODULE CARRIES NO ORDERING OF ITS OWN, AND THAT IS THE WHOLE
 //! DESIGN.** `form::Form::fields` already says of itself that it IS the tab

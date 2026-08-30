@@ -2929,11 +2929,12 @@
     {
       "id": "AT-17.2",
       "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/form_declares_layout_not_the_field_set.rs",
       "covers": [
         "AC-17.2"
       ],
-      "status": "to-write",
-      "note": "Minted 2026-08-29 by vc with WP-17 at hv request."
+      "status": "green",
+      "note": "8 passed, 0 failed, 1 ignored at 08de236d with native/rust and surface both clean, run by ic. The ignored row is show_the_writable_population, a declared derivation aid rather than an assertion. Both halves of AC-17.2 are driven from a REFUSAL rather than asserted off a green declaration: forward, a form naming a property the face does not carry is refused at load, which fires the day a model field is renamed; converse, a writable property appearing on no form is NAMED, asserted as an EQUALITY against a declared expectation so that adding a writable field fails this file. The converse is the half that rots, because nothing about a form merely missing a row looks wrong."
     },
     {
       "id": "AT-17.3",
@@ -2947,20 +2948,22 @@
     {
       "id": "AT-17.4",
       "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/form_declares_layout_not_the_field_set.rs",
       "covers": [
         "AC-17.4"
       ],
-      "status": "to-write",
-      "note": "Minted 2026-08-29 by vc with WP-17 at hv request."
+      "status": "green",
+      "note": "8 passed, 0 failed, 1 ignored at 08de236d with native/rust and surface both clean, run by ic. Same file as AT-17.2 by design rather than by convenience: both criteria are load-time REFUSALS over one declaration, and splitting them would put two greps on one loader. The widget vocabulary is asserted as the five the criterion names, and an_unknown_widget_is_refused_by_name drives a planted widget outside that set, so the refusal is measured rather than inferred from a declaration that happens to be valid."
     },
     {
       "id": "AT-17.5",
       "kind": "test",
+      "file": "native/rust/crates/intent-cli/src/tui/focus.rs",
       "covers": [
         "AC-17.5"
       ],
-      "status": "to-write",
-      "note": "Minted 2026-08-29 by vc with WP-17 at hv request."
+      "status": "green",
+      "note": "19/19 green at 08de236d with native/rust and surface both clean, run by ic. vc independently verified 7/7 on the focus module alone and walked every clause of AC-17.5 against a named test rather than against a commit title. FIRST AT IN THIS THREAD TO CITE A src/ PATH, deliberately and ruled by vc: IN-RS-TEST-001 places unit tests in a colocated cfg(test) module, so an AT that could not cite one would leave the register unable to name the estate own idiom. Two properties here exceed what the criterion asked for: the vacuity control names the exact mode a walk over zero forms would pass, and the non-editable-row clause reasons about the mistake that would make the walk agree with itself."
     },
     {
       "id": "AT-17.6",
