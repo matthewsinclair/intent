@@ -17,6 +17,28 @@ time.workspace = true
 intentsvcs = { path = "../intentsvcs" }
 terminal_size = "0.4.4"
 crossterm = "0.29.0"
+# **THE REALISER'S PRINTER, AND IT IS PINNED TO THE CROSSTERM ALREADY HERE.**
+# `ratatui` renders the flat aligned column AC-17.11 specifies; it does NOT
+# compute that column. Layout is a pure function in `tui::layout` that emits the
+# exact strings and their positions, and this crate only puts them on a surface
+# -- so the alignment property is asserted on data, and the buffer is checked
+# against it rather than being a second opinion about it.
+# `default-features = false` plus `crossterm_0_29` is the load-bearing part:
+# ratatui's default `crossterm` feature pulls its OWN crossterm, and two
+# crossterms in one graph make `tui::terminal`'s borrow-and-return types
+# incompatible with the backend that is supposed to draw through them -- a
+# Highlander violation the compiler reports as an unrelated type error.
+# It enters now rather than earlier because nothing drew until now: `mode`,
+# `terminal` and `focus` are all provable without a terminal, and landing them
+# first kept a dependency out of a lockfile three other nodes build against
+# until the day it earned its place.
+ratatui = { version = "0.30.2", default-features = false, features = [
+  "crossterm_0_29",
+  "std",
+  "all-widgets",
+  "layout-cache",
+  "underline-color",
+] }
 
 [lib]
 name = "intent_cli"
