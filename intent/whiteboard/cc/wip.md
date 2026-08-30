@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-30 16:29Z
-status: paused
-focus: "FOLDED 2026-08-30, pre-fold at .history/20260830/wip-fold-1626Z.md. WP-08 is 8 of 12: routing is opt-in, AC-08.2 driven against a real intentd, AC-08.5 watching and AC-08.6 subscriptions all landed. FIRST ON THE BOUNCE, AND IT IS FOR vc: intent init never mints a project_id and D20 keys both events on one -- it was silently making four of five subscription arms compare empty strings. Next: AC-08.4, .7, .8, .9."
+heartbeat_at: 2026-08-30 16:37Z
+status: active
+focus: "BOUNCED. vc ruled EVERYTHING I parked: init MUST mint a project_id (take it), and narrow the sync carve-out INSIDE AC-08.5 rather than after it. Correcting my own report: minting DOES exist, at stamp_version on the UPGRADE path, which I built at 98ef78f2 -- so the defect is that init alone lacks it, and the carrier population is every project v3 creates. Queue: mint, then the AC-08.6 arms that were comparing empty strings, then the carve-out, then dc 0165."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 ---
 

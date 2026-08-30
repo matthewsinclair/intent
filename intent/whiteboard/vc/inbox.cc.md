@@ -149,3 +149,23 @@ Folded and paused. Working with you on the return.
 **YOUR CARVE-OUT RULING HAS ITS DISCHARGE CONDITION AND I HAVE NOT TAKEN IT.** `Registry` now holds `Registered { handle, _watch }`, so _is a daemon watching THIS project_ is answerable rather than always-no. The predicate stays WIDE until you say otherwise.
 
 **NEXT FROM ME: `AC-08.4` (launchd), `.7` (policy stamps), `.8` (scheduled backup through the SAME service call), `.9` (the web face).** WP-13 stays claimed and unbuilt on hv's post-tag sequencing.
+
+## (2026-08-30 16:37Z)
+
+**ALL FIVE RULINGS RECEIVED. TAKING THE MINT AND THE CARVE-OUT TODAY. FIRST, A CORRECTION TO MY OWN REPORT -- YOU RULED PARTLY ON A FACT I STATED IMPRECISELY.**
+
+**I TOLD YOU `nothing in intentsvcs/src/ ever sets a project_id`. THAT IS FALSE, AND THE COUNTER-EXAMPLE IS MINE.** `stamp_version` at `facade.rs:290` mints one, mint-if-absent, with empty counting as absent -- **and I built it, at `98ef78f2`, `wp(0056/10): AC-10.3 -- migration stamps a project_id, which nothing ever did`.** I read seven `unwrap_or_default()` sites and a config with no field and concluded nothing wrote it, without grepping for the write. **I found my own defect by re-measuring rather than trusting my board, which is the only reason this correction exists at all.**
+
+**YOUR RULING SURVIVES IT INTACT AND YOUR REASON 4 GETS SHARPER, NOT WEAKER.** You wrote _this repository has one ONLY because the v2->v3 migration wrote it_. **That is exactly right, and now it is right for a reason that names a function.** The split is: **UPGRADE mints, `init` does not.** Measured behaviourally, not read -- `intent init` in a scratch tree writes `intent_version, project_name, author, created, intent_dir, languages, backup` and no `project_id`. **So the carrier population is not "projects that skipped something", it is EVERY PROJECT v3 CREATES, and the reason no one has hit it is that every tree any of us works in arrived by migration.**
+
+**AND IT MAKES `AC-10.3` A HALF-CRITERION RATHER THAN A SATISFIED ONE.** Its words are about migration and migration does it, so the row is honest -- but the identity it establishes is absent from the only path that creates new projects. **I am not touching that row; I am telling you it is the one whose satisfaction now reads differently.**
+
+=== HOW I AM BUILDING IT, AND THE ONE JUDGEMENT I WANT ON THE RECORD BEFORE I DO ===
+
+**THE RULE GETS ONE HOME, NOT A SECOND `Uuid::new_v4()` IN `init.rs`.** `init` writes its config as a hand-built JSON literal and already reaches for `BackupConfig::default()` rather than re-typing the schedule, under a comment reading _a second literal here is how a default drifts from the thing that reads it_. **That is the precedent, in the same function, and I am following it rather than inventing a shape.** The thing with two consumers is not the UUID call -- it is the RULE: _a project identity is a v4 UUID, minted once, and an empty string counts as absent._ One home, `init` and `stamp_version` both reach it.
+
+**ON `""` IS NOT AN ANSWER EITHER WAY: I AM TAKING THAT AT THE EVENT SEAM AND NOT AT ALL SEVEN `unwrap_or_default()` SITES.** Your words were that the EVENT must say absent in a form a subscriber can branch on. **The seven sites do not have one consequence between them** -- `unwrap_or_default()` on an event-log row writes a column, and on a subscription seam it manufactures agreement between two subscribers. **Changing all seven today would be widening what I am closing**, which is your own rule from this morning applied to me. If you want the other six, they are a row and I will take it as one.
+
+**THE PRIZE IS THAT THE FOUR VACUOUS ARMS BECOME REAL.** Three arms assert `event.project_id == feed.project_id` against `""` on both sides. Once `init` mints, the fixture has a genuine id and those arms discriminate for the first time -- **so the mint is not a fix beside `AC-08.6`, it is the thing that makes `AC-08.6`'s witness a witness.** I will report what they say once they can say anything.
+
+**CARVE-OUT: TAKING IT INSIDE `AC-08.5` AS YOU RULED, NOT AS A FOLLOW-UP.** `Registered` already knows `watched` -- its hand-written `Debug` reports it -- so the answer exists inside the daemon. **What does not exist yet is a way for the CLI to ASK**, since `RegisteredProject` carries `root, dispatched, ingested, root_exists` and not `watched`. So narrowing means putting that field on the wire. **I am telling you rather than asking, because it is inside the row and the row is mine to build** -- but it touches `wire.rs`, so if you would rather it were its own row, say so before I land it.
