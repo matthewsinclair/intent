@@ -974,3 +974,23 @@ dc is building the `agents` pair regardless -- a half-wired family is worse than
 **cc IS BUILDING THE FIX** -- a per-route exclusion keyed on the property, counted and asserted so the set cannot grow silently. It stops new ones; it does not clear these four.
 
 **FIFTH ITEM ON THIS QUEUE.** The other four are unchanged: `design.md:22`'s refuted parenthetical, `tui-design.md` section 9's plural path, `shipped_surface_drift`'s declaration kind, and whether `ext` is in the 3.0.1 cut -- that last one is the only thing between ST0058 and 5/6.
+
+## (2026-08-30 13:59Z)
+
+**A DECISION ABOUT WHAT 3.0.1 CONTAINS, AND IT IS THE SECOND HALF OF THE `ext` QUESTION -- SO I AM PUTTING THEM TOGETHER RATHER THAN SENDING TWO.**
+
+**YOU RULED ON 2026-08-26 THAT A v3 `help` SURFACE IS IN THE CUT:** `<cmd> help` renders man-style `.md` on the WHY/WHAT while `<cmd> --help` keeps the params/HOW. **That ruling has never had a home in the SSOT.** It lives in one `spelling_note` on the `help` row of `surface/dispatch-table.json`, written by ic the same day. `new_surface` holds fourteen rows and **none of them is `help`** -- so nothing has been chasing it, and nothing could have been.
+
+**THE SHAPE IS NOT OPEN AND I HAVE RULED IT: PER-NODE, because your own ruling is per-node by construction.** A root-only `help` leaves every subcommand carrying exactly the flag-versus-twin asymmetry the criterion is about. That is vc's to rule and it is ruled.
+
+**WHAT IS OPEN IS CUT MEMBERSHIP, WHICH IS YOURS. THREE OPTIONS AND I RECOMMEND THE SECOND.**
+
+1. **BUILD IT IN 3.0.1.** M/L, a docs-rendering surface, on a day where the instruction is to ship.
+2. **DESCOPE `AC-00.6` TO A LATER TAG** and declare `help` in `new_surface` so the ruling finally has a home and a gate. Cheap, honest, and it stops the ruling being invisible whichever way you go.
+3. **RULE THE PAIR OUT OF SCOPE**, which withdraws your 2026-08-26 ruling rather than deferring it.
+
+**`AC-00.6` CANNOT CLOSE ANY OTHER WAY, WHICH IS THE FACT THAT FORCES THE DECISION.** Its falsifier is _any capability reachable by a flag and refused by its subcommand twin_, and **a better-worded refusal is still a refusal.** dc drove a census over the BUILT binary at every node: exactly two twin pairs exist in the whole surface -- `--version`/`version`, both rc=0 and agreeing, and `--help`/`help`, rc=0 against rc=2 retired. **One live falsifier, and it is the surface you already ruled on.**
+
+**A WITHDRAWAL YOU SHOULD SEE, BECAUSE IT WAS MINE.** I authorised a one-field write to the `help` row at 13:37Z declaring `--help` as its replacement. **It was wrong and dc caught it before ic made it.** Your ruling says the two are DIFFERENT surfaces, so that write would have replaced an honest-but-stale value with a claim you had already contradicted. dc had reported the row carried no replacement key; I verified by listing the entry's top-level keys and agreed. **The field is nested. Both of us checked the level that has no such key.** A verification that shares the defect it verifies turns one node's mistake into a two-node consensus, which is what carried it as far as an authorisation. Nothing landed.
+
+**SIXTH ITEM ON THIS QUEUE.** Unchanged above it: the four hung processes needing your hand, `design.md:22`'s refuted parenthetical, `tui-design.md` section 9's plural path, `shipped_surface_drift`'s declaration kind, and `ext`.
