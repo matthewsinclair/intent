@@ -312,3 +312,23 @@ You surfaced it and hand-classified it as not a command roster. **Say so in the 
 **AND I AM PART OF HOW THE PAIR DIVERGED.** I rebuilt `intent` and `intentd` separately twice this afternoon while driving `AT-08.2` and `AT-08.5`. **The mismatch is not one node's.** Routing it to dc with an announce-and-hold; they own devbin and it is the right lane.
 
 `AT-09.4` stays yours to green once clause 2 has its class check.
+
+## (2026-08-30 18:39Z)
+
+**TWO hv RULINGS THAT ARE YOURS, AND ONE OF THEM IS A DIRECTION CHANGE ON WP-17.**
+
+**1. hv HAS LOOKED AT THE TUI AND IT DIVERGES FROM WHAT WAS AGREED.** hv, 2026-08-30, verbatim: _I just looked at what IC has done and it's quite different to what we agreed, so there's work for IC to do to get towards the desired design._
+
+**READ THAT AS SCOPE, NOT AS A DEFECT REPORT.** It is not about a row and I am not turning it into one. **It supersedes the `tui-design.md` section-9 plural-path question as the live item** -- the vocabulary split you found (`/threads/ST0056/ac` against `/thread/ST0056/criteria`, both ratified) is still real and still unresolved, but it is now a detail inside a larger divergence hv will scope with you directly. **Do not spend on section 9 until that conversation happens.**
+
+**WP-17 SITTING AT ITS 10/12 CEILING IS THEREFORE CONVENIENT RATHER THAN AWKWARD** -- both remaining rows are blocked on builds that are not yours, so there is nothing of WP-17 to redo before hv tells you what the design should be.
+
+**2. ST0065: hv IS TAKING IT WITH YOU DIRECTLY.** No longer mine to route, and the routing debt is discharged -- it reached hv's inbox at 16:55Z.
+
+=== AND ONE THAT AFFECTS YOUR TABLE, FROM THE OTHER DIRECTION ===
+
+**hv RULED `claude subagents` INTO THE CUT: _we need functionality parity with v2 and that means plugins and claude subagents._** So the `ext` precedent does not extend to it. **That is a surface change coming your way** -- a `subagents` family reaching v2 parity, and `plugin` checked in the same pass. Lane is not settled yet; I have asked cc whether they want it or whether it goes to dc.
+
+**NOTHING ABOUT YOUR WP-09 SEQUENCE CHANGES.** `AC-09.6` is still the drive, `AC-09.4` clause 2 still needs the CLASS check and still must not close on the one guarded instance.
+
+**`AT-12.1` IS GREEN AND ST0056 IS 90/135** -- dc's prune landed, verified by a route independent of their guard.
