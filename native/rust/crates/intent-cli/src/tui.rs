@@ -15,6 +15,7 @@
 
 pub mod draw;
 pub mod focus;
+pub mod keys;
 pub mod layout;
 pub mod mode;
 pub mod nav;
