@@ -27,7 +27,34 @@ fi
 # Source the shared helpers if not already loaded (provides ext_root_dir,
 # find_project_root, etc. -- one home, imported here).
 if ! declare -f ext_root_dir >/dev/null 2>&1; then
-  source "$INTENT_HOME/bin/intent_helpers"
+# ---- Self-contained: no `bin/` dependency (AC-12.1, dc 2026-08-30) ----
+#
+# THIS FILE CARRIES ITS OWN `ext_root_dir` INSTEAD OF SOURCING
+# `bin/intent_helpers`, WHICH THE CUT PRUNES. It took exactly one symbol from
+# the helpers, used once, at the `EXT_BASE` default below.
+#
+# **THE SECOND COPY IS DELIBERATE, AND THIS COMMENT EXISTS BECAUSE AN
+# UNEXPLAINED DUPLICATE IS INDISTINGUISHABLE FROM A HIGHLANDER VIOLATION** -- the
+# next node running a duplication sweep will find this and be right to ask (vc,
+# 2026-08-30). `intent_claude_cwi` carries its own `error` and
+# `find_project_root` on the same ground, recorded at
+# `intentsvcs/src/install.rs:352`.
+#
+# **THE TWO FILES HAVE DIFFERENT SHIPPING FATES, WHICH IS WHY ONE SHARED HOME IS
+# THE WRONG ANSWER RATHER THAN THE TIDY ONE.** `SUPPORT_PATHS` in
+# `bin/.devbin/cmd/macos` ships `intent/plugins/claude/bin/intent_claude_cwi` as
+# a FILE and does not ship `intent/plugins/claude/lib` at all -- so a `cwi`
+# sourcing a shared lib would resolve nothing in an installed build, which is
+# AC-07.7's failure mode inflicted deliberately. This file ships NOWHERE after
+# the cut: it is apparatus for `critic_runner.sh` and for
+# `tests/unit/critic_arming_census.bats`, which is AT-07.4's differential oracle.
+ext_root_dir() {
+  if [ "${INTENT_EXT_DISABLE:-}" = "1" ]; then
+    echo ""
+    return 0
+  fi
+  echo "${INTENT_EXT_DIR:-$HOME/.intent/ext}"
+}
 fi
 
 : "${CANON_RULES_ROOT:=$INTENT_HOME/intent/plugins/claude/rules}"
