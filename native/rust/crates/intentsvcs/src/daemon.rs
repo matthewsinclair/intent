@@ -67,7 +67,7 @@
 
 use std::fmt;
 use std::io::{Read, Write};
-use std::net::{SocketAddr, TcpStream};
+use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
 
@@ -301,11 +301,29 @@ pub fn route(candidates: &[Endpoint]) -> Route {
 pub enum DaemonError {
   #[error("the daemon address at `{path}` is not an address: {found:?}")]
   UnreadableAddress { path: PathBuf, found: String },
+  /// The daemon bound a port and could not tell anyone where.
+  ///
+  /// **A HARD FAILURE FOR THE DAEMON, NOT A DEGRADED MODE.** A listener nobody
+  /// can find is worse than no listener: every client routes in-process, the
+  /// daemon serves nothing, and the only symptom is work silently not going
+  /// where the operator arranged for it to go.
+  #[error("could not publish the daemon address to `{path}`: {source}")]
+  Unpublishable {
+    path: PathBuf,
+    #[source]
+    source: std::io::Error,
+  },
 }
 
 impl crate::remedy::Remedy for DaemonError {
   fn remedy(&self) -> String {
-    "this file is written by intentd when it starts and holds one loopback address, eg `127.0.0.1:54321`. If no daemon is running, deleting it is safe and this command will run in-process; if one is running, restart it so it republishes its address.".to_string()
+    match self {
+      DaemonError::UnreadableAddress { .. } => "this file is written by intentd when it starts and holds one loopback address, eg `127.0.0.1:54321`. If no daemon is running, deleting it is safe and this command will run in-process; if one is running, restart it so it republishes its address.".to_string(),
+      DaemonError::Unpublishable { path, .. } => format!(
+        "intentd bound a port and could not record it, so no client could have found it. Check that `{}` is writable -- it is created by intentd under your own per-user state directory.",
+        path.parent().map(|p| p.display().to_string()).unwrap_or_else(|| "its directory".to_string())
+      ),
+    }
   }
 }
 
@@ -359,4 +377,132 @@ pub fn candidates_under(root: &std::path::Path) -> Result<Vec<Endpoint>, DaemonE
     }
   }
   Ok(found)
+}
+
+/// A published daemon address, removed when this value is dropped.
+///
+/// **THE WRITE SIDE OF hv's D6, AND THE READER ([`candidates`]) ALREADY
+/// EXISTED WITHOUT IT.** The daemon binds `127.0.0.1:0`, takes whatever port
+/// the kernel gives it, and publishes that -- so no port constant exists
+/// anywhere to mint, hardcode or let go stale. The question canon leaves
+/// unwritten (`tui-design.md` has `http://127.0.0.1:<port>/` with the port
+/// literally blank) never has to be answered by anyone.
+///
+/// **BINDING AND PUBLISHING ARE ONE CALL SO THAT PUBLISHING AN ADDRESS NOBODY
+/// IS LISTENING ON IS UNEXPRESSIBLE.** A `publish(addr)` taking any
+/// `SocketAddr` would let a caller advertise a port it never bound, which is
+/// the stale-address failure created deliberately rather than by a crash. Same
+/// reasoning as [`Route`] having no `Both` arm: the invariant is held by the
+/// type rather than by everyone's discipline.
+///
+/// **REMOVED ON `Drop`, INCLUDING ON PANIC AND ON `?`, AND THAT IS THE WHOLE
+/// REASON IT IS A GUARD RATHER THAN A WRITE PLUS A TIDY-UP.** A published
+/// address is a CLAIM THAT A DAEMON IS ALIVE, so it must not outlive the
+/// process that made it. Cleanup written at the end of a run is dead code
+/// until the day something returns early, and on that day it does not run.
+///
+/// **THIS FILE IS A PUBLICATION, NOT A MUTEX, AND MUST NOT BE ALLOWED TO
+/// BECOME ONE** (vc, 2026-08-30). It says where a daemon is; it does not say
+/// only one may exist. If single-daemon is a requirement it needs its own
+/// mechanism and its own criterion -- **"two daemons would fight over the
+/// address file" must never become the de facto reason there is only one**,
+/// because that is a safety property resting on a side effect. Same fictional
+/// guarantee `AC-08.11` nearly acquired before the store measurement showed
+/// the store already serialises writes.
+///
+/// **A HARD KILL STILL LEAVES A STALE FILE, AND THAT IS DESIGNED FOR RATHER
+/// THAN DEFENDED AGAINST.** `SIGKILL` runs no destructor, so this guard
+/// narrows the window and cannot close it -- which is exactly why `AC-08.3`'s
+/// probe refuses to trust a published address and demands a round trip
+/// instead. The two halves are built against each other on purpose: this one
+/// tries to be tidy, and the reader assumes it failed.
+#[derive(Debug)]
+pub struct Published {
+  path: PathBuf,
+  addr: SocketAddr,
+}
+
+impl Published {
+  /// Bind a loopback listener on an OS-chosen port and publish where it landed.
+  ///
+  /// The listener is returned rather than kept: this type owns the FILE, and
+  /// the daemon owns the socket. Dropping the listener without dropping this
+  /// would leave the address published, which is the state
+  /// [`Endpoint::answers`] exists to survive.
+  pub fn bind_loopback_under(root: &std::path::Path) -> Result<(TcpListener, Self), DaemonError> {
+    let path = crate::userstate::daemon_address_file_under(root);
+    let listener = TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, 0)).map_err(|source| {
+      DaemonError::Unpublishable {
+        path: path.clone(),
+        source,
+      }
+    })?;
+    let addr = listener
+      .local_addr()
+      .map_err(|source| DaemonError::Unpublishable {
+        path: path.clone(),
+        source,
+      })?;
+    Self::write_atomically(&path, &addr)?;
+    Ok((listener, Published { path, addr }))
+  }
+
+  /// The address this guard published.
+  ///
+  /// Answered from the field rather than by re-reading the file: the file is
+  /// not this value's source of truth. Another daemon may have replaced it, and
+  /// this method answers what THIS process published.
+  pub fn endpoint(&self) -> Endpoint {
+    Endpoint::Tcp(self.addr)
+  }
+
+  /// Write, then rename over the target.
+  ///
+  /// **A READER MUST NEVER SEE HALF AN ADDRESS.** `candidates_under` REFUSES an
+  /// address it cannot parse rather than dropping it -- correctly, since a
+  /// dropped candidate routes in-process while a daemon holds the store -- so a
+  /// torn write would turn every concurrent command into a hard error. `rename`
+  /// within one directory is atomic, so a reader sees the old address or the
+  /// new one and never a prefix of either.
+  fn write_atomically(path: &std::path::Path, addr: &SocketAddr) -> Result<(), DaemonError> {
+    let fail = |source| DaemonError::Unpublishable {
+      path: path.to_path_buf(),
+      source,
+    };
+    if let Some(parent) = path.parent() {
+      std::fs::create_dir_all(parent).map_err(fail)?;
+    }
+    // The pid keeps two daemons racing to publish from colliding on the
+    // temporary, which would otherwise be the one unsynchronised write here.
+    let staging = path.with_extension(format!("tmp-{}", std::process::id()));
+    std::fs::write(&staging, format!("{addr}\n")).map_err(fail)?;
+    std::fs::rename(&staging, path).map_err(fail)
+  }
+}
+
+impl Drop for Published {
+  /// **A FAILED REMOVAL IS DELIBERATELY SILENT.** This runs on the way out,
+  /// often while unwinding, and there is no caller left to tell. The state it
+  /// leaves -- a stale address file -- is one the routing rule already handles,
+  /// so the honest thing is to leave the reader's guarantee to do its job
+  /// rather than to panic inside a destructor.
+  /// **COMPARE AND DELETE, NEVER DELETE** (vc, 2026-08-30, caught before this
+  /// was built rather than after). An unconditional remove deletes whatever is
+  /// there, including SOMEBODY ELSE'S claim: daemon A publishes; daemon B
+  /// starts, binds a different port and atomically replaces the file; A exits
+  /// and its destructor removes **B's** address, leaving a live daemon nobody
+  /// can find and every client routing in-process. **That is the inverse of the
+  /// failure this guard exists for, and the worse direction** -- a stale file is
+  /// a false positive the probe already refuses, while a missing file is a
+  /// false negative no probe can correct, because there is nothing left to
+  /// probe. The read-compare-unlink is itself not atomic, and that residual is
+  /// accepted: a small window rather than a structural inversion, and closing
+  /// it needs a lock this file must not become.
+  fn drop(&mut self) {
+    if let Ok(text) = std::fs::read_to_string(&self.path) {
+      if text.trim() == self.addr.to_string() {
+        let _ = std::fs::remove_file(&self.path);
+      }
+    }
+  }
 }
