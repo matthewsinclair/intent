@@ -15,7 +15,7 @@
 #   intent claude ws archive <wsid> retire a workstream, keep .history/
 #   intent claude ws hygiene [<ws>] mechanical whiteboard lint + tidy
 #
-# Promoted from the Baize prototype (ST0047). Operates on the whiteboard of the
+# Promoted from the Baize prototype. Operates on the whiteboard of the
 # CURRENT project (find_project_root), so the one command serves every project.
 #
 # Test/automation seams (env):
@@ -28,9 +28,9 @@
 PLUGIN_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INTENT_ROOT="$(cd "$PLUGIN_BIN/../../../.." && pwd)"
 : "${INTENT_HOME:=$INTENT_ROOT}"
-# ---- Self-contained: no `bin/` dependency (AC-12.1 class 2) ----
-# This file is the ONE plugin script that survives the v3 cut (hv's ruling,
-# with AC-14.12 as the expiry), so it carries its own two primitives instead
+# ---- Self-contained: no `bin/` dependency ----
+# This file is the ONE plugin script that survives the v3 cut, so it carries
+# its own two primitives instead
 # of sourcing `bin/intent_helpers`, which the cut prunes. Behaviour is
 # unchanged. The ONE textual difference from the originals is SC2155
 # (`local x; x=$(...)`): copying them verbatim regressed this file from a clean
