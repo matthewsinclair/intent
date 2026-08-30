@@ -465,10 +465,90 @@ mod tests {
   /// missing**, asserted over the enumerated population rather than sampled.
   ///
   /// The population is `shipped_entries`, which is deliberately NOT
-  /// `families[].entries[]` -- that is 104 of 112 rows, and the other 8 are
-  /// the top-level `new_surface` array. A check written against the families
-  /// alone would pass while the guide omitted `search`, `schema` and `intent
-  /// llm guide` itself.
+  /// `families[].entries[]`: the top-level `new_surface` array carries rows
+  /// too, and a check written against the families alone would pass while the
+  /// guide omitted `search` and `schema`.
+  ///
+  /// **THE COUNTS THAT USED TO BE HERE ARE GONE ON PURPOSE, AND SO IS ONE OF
+  /// THE EXAMPLES.** This paragraph read `104 of 112 rows, and the other 8`
+  /// against a table that is now 121 and 13, and it cited `intent llm guide`
+  /// as a row a families-only check would miss when `llm guide` is IN a
+  /// family. **Because all of it was prose, nothing could fire** -- vc found
+  /// the stale figure in four separate homes on 2026-08-30, and the wrong
+  /// example turned up only when the claim was finally asserted.
+  ///
+  /// **A correct warning carrying a stale figure is worse than no warning**,
+  /// because the figure is the part an author acts on: follow the old numbers
+  /// and you take the families plus eight, miss five, and the check still
+  /// passes. `the_families_alone_are_not_the_population` below now asserts
+  /// the STRUCTURE this paragraph describes, so the claim has a witness
+  /// instead of a number.
+  /// The witness for the warning above. **A population claim written only in
+  /// prose has no way to fail**, which is how four homes went on saying 112
+  /// while the table grew to 134, and how an example stayed in the text after
+  /// the row it named moved into a family.
+  ///
+  /// Asserted as a RELATIONSHIP and by NAME rather than as counts, so it
+  /// survives the table growing. The disjointness check is the general half:
+  /// it cannot rot by example the way the cited paths can.
+  #[test]
+  fn the_families_alone_are_not_the_population() {
+    let table = dispatch::table();
+    assert!(
+      !table.new_surface.is_empty(),
+      "`new_surface` is empty, so the warning above describes a distinction that no longer exists and the population is just the families"
+    );
+
+    let in_families: Vec<&str> = table
+      .families
+      .iter()
+      .flat_map(|f| f.entries.iter())
+      .map(|e| e.path.as_str())
+      .collect();
+    let in_new: Vec<&str> = table.new_surface.iter().map(|e| e.path.as_str()).collect();
+
+    // **DECLARED, NOT FILTERED**, for the reason the mode machine's Esc
+    // exemption is declared: a predicate excluding `organize` would also pass
+    // for a path that started overlapping by accident, because the known
+    // defect and the new one look identical to a filter. Asserted by EQUALITY,
+    // so a SECOND overlap fails here even while this one stands.
+    const KNOWN_OVERLAP: &[(&str, &str)] = &[(
+      "organize",
+      "TWO ROWS FOR ONE PATH THAT CONTRADICT EACH OTHER ON A SHIPPING DECISION, awaiting an hv \
+       ruling. The family row is `disposition: retire`, ratified by hv 2026-08-14 (`organize` both \
+       faces planned vestigial by construction) with `exposed_on_mcp: false`. The `new_surface` row \
+       is `disposition: new-surface` with `exposed_on_mcp: TRUE`. `intent organize` ships and works \
+       today, so reality matches the new-surface row -- but which row wins is decided by TABLE \
+       ORDER inside `shipped_entries`, and the winner is the one that offers a retired command to \
+       the agent surface. Not resolved here because retiring a command and exposing it to agents \
+       are both hv's calls, and deleting either row would settle one by hand.",
+    )];
+
+    let overlap: Vec<&str> = in_new
+      .iter()
+      .filter(|p| in_families.contains(p))
+      .copied()
+      .collect();
+    let declared: Vec<&str> = KNOWN_OVERLAP.iter().map(|(p, _)| *p).collect();
+    assert_eq!(
+      overlap, declared,
+      "the set of paths in BOTH `new_surface` and a family changed. An overlap double-counts every \
+       census over the table and lets TABLE ORDER decide which row's `exposed_on_mcp` an agent \
+       sees. Add it to `KNOWN_OVERLAP` with its reason, or -- better -- resolve it"
+    );
+    assert!(
+      KNOWN_OVERLAP.iter().all(|(_, why)| !why.trim().is_empty()),
+      "a declared overlap with no stated reason is indistinguishable from one nobody could fix"
+    );
+
+    for path in ["search", "schema"] {
+      assert!(
+        in_new.contains(&path),
+        "the warning above cites `{path}` as a row a families-only check would miss, and it is not in `new_surface`. Either it moved into a family, in which case the warning needs rewording, or the path changed"
+      );
+    }
+  }
+
   #[test]
   fn every_shipped_command_appears() {
     let table = dispatch::table();

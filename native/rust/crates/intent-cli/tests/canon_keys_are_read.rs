@@ -21,8 +21,8 @@
 //! documented a decision in it. **But that exemption is also exactly how five
 //! fields were lost**, because it makes an unread CONTRACT key indistinguishable
 //! from an unread NOTE, and nothing mechanical separates them: not count
-//! (`read_or_mutate` is 112 rows and gates agent safety; `observed` is 93 rows
-//! and is a measurement), not type (both are strings).
+//! (`read_or_mutate` gates agent safety, `observed` is a measurement, and they
+//! sit on comparable numbers of rows), not type (both are strings).
 //!
 //! So the split is AUTHORED, by the person who knows which is which. ic
 //! declared it in `key_classes` (`fd961437`), scoped to `Entry`, `Flag` and

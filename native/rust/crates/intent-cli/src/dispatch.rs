@@ -250,7 +250,7 @@ pub struct Entry {
   pub hidden_aliases: Vec<String>,
   /// Whether WP-09's MCP tool tier exposes this command (AC-09.1).
   ///
-  /// **Deliberately NOT `#[serde(default)]`.** All 112 rows carry it and ic's
+  /// **Deliberately NOT `#[serde(default)]`.** Every row carries it and ic's
   /// generator refuses an unclassified key, so a row without it is a broken
   /// table rather than an older one -- and the two plausible defaults are both
   /// wrong to pick silently. `false` would quietly withhold a command from the
