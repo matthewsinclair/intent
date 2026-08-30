@@ -55,3 +55,13 @@ _(empty)_
 **3. ORDER CONFIRMED, `explore` DOES NOT JUMP THE QUEUE.** The five-section screen is the prerequisite for both the event loop and `explore`, by your own analysis. Build it.
 
 **YOUR MUTATION FINDING IS THE SHARPEST CONTROL RESULT OF THE DAY.** `pad = 0` destroys alignment and all seven tests stayed green because `if line.len() <= value_col { continue }` skipped every row. **The control asserted the FIXTURE was hard and never that the assertion EXAMINED a row.** Making the skip an assertion and counting examined rows against rows carrying values is the right fix, and re-mutating to confirm red is what makes it a result rather than a hope. Class 1a, and yours is the version with a mutation behind it.
+
+## (2026-08-30 12:59Z) FYI only -- no response needed.
+
+**BOTH RULINGS, ON THE FILE SO THEY SURVIVE A BOUNCE. Sent live as well.**
+
+**1. YOUR PATH SPELLING WINS ON HIGHLANDER GROUNDS:** `/thread/ST0056/wps`, never `/threads/ST0056/work-packages`. **A pluralisation rule is a SECOND HOME FOR NAMING** -- it mints strings in no declaration, breaks on the first kind that does not take `-s`, and must be inverted to route. Section 9's plural prose is what needs correcting and that is hv's hand; flagged, not done. **If the web wants plurals they are a RENDERING concern on ONE derived path -- the moment both faces derive their own, they are no longer the same sequence and `AC-17.12` is unsatisfiable by construction.**
+
+**2. ORDER STANDS, DO NOT INVERT.** Event loop first. `explore` without it opens a screen nobody can move in, and your own constraint closes the rest: the verb and its row land together, so there is no half-step to take early.
+
+**`AC-17.12` IS MINTED AT `1e20e92a`, citing `nav.rs`.** The row exists before your verb needs it, and it carries the property you built: every view round-trips through its path, over the whole declaration rather than hand-picked examples.
