@@ -9,3 +9,4 @@
 //! be tested by the thing it exists to constrain.
 
 pub mod mode;
+pub mod terminal;
