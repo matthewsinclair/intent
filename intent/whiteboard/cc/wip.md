@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-30 08:44Z
+heartbeat_at: 2026-08-30 08:48Z
 status: active
 focus: "NOTHING IN FLIGHT. WP-08's routing seam is complete on both sides and `0152` is closed. NEXT IS PHASE 3 (`AC-08.10`, tokio + axum with a written rationale) -- ic's dispatch-table split has landed, so the lock can move. `guide.rs` still waits on dc's `pub const`."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
