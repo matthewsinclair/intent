@@ -270,6 +270,20 @@ pub fn build(table: &Table) -> Command {
     // it: that test spot-checks one command on the argument that the MECHANISM
     // carries the others, and the root was not on the mechanism.
     .about(table.root_help.clone())
+    // **LEAST-CHARS-NECESSARY-TO-BE-UNIQUE, ON EVERY LEVEL OF THE TREE** (hv,
+    // 2026-08-30). `intent explo` reaches `explore`; `intent st l` reaches
+    // `st list`. clap propagates this to child subcommands, so it is declared
+    // once here rather than at each of the families -- which also means a family
+    // added later inherits it without anyone remembering to.
+    //
+    // **AN AMBIGUOUS PREFIX STILL REFUSES, AND THAT IS THE HALF THAT MATTERS.**
+    // `intent exp` is `explore` OR `export`, and resolving it either way would
+    // be picking for the user. The failure this setting could introduce is not
+    // ambiguity -- it is a prefix that resolves TODAY and silently resolves to
+    // something ELSE tomorrow when a new verb lands beside it, which is why
+    // `prefix_resolution.rs` pins the currently-unique ones against the shipped
+    // table rather than against a list.
+    .infer_subcommands(true)
     // v2 prints its own usage block and exits 1; clap's help/version exit 0
     // and write to stdout, which is the one place we take clap's behaviour
     // deliberately (INV-07 records that v2's `--help` reporting failure on 10
@@ -700,12 +714,109 @@ pub fn parse(argv: Vec<String>) -> Result<clap::ArgMatches, i32> {
             eprintln!("{refusal}");
             return Err(EXIT_UNAVAILABLE);
           }
+          // **`unrecognized subcommand` IS FALSE FOR AN AMBIGUOUS PREFIX, AND
+          // FALSE IN THE DIRECTION THAT COSTS.** `intent exp` fails because it
+          // is `explore` AND `export`, and clap reports it as a command that
+          // does not exist -- sending the user to look for a verb they have
+          // already found. **A gate that cannot say WHICH of two things went
+          // wrong eventually says the wrong one**, and here it says the one
+          // that starts a search instead of ending it.
+          if let Some(refusal) = ambiguous_prefix_refusal(&build(&table), &argv) {
+            eprintln!("{refusal}");
+            return Err(EXIT_ERROR);
+          }
           eprintln!("error: {}", first_line(&e.render().to_string()));
           Err(EXIT_ERROR)
         }
       }
     }
   }
+}
+
+/// What an unrecognised token was ambiguous BETWEEN, when that is why it failed.
+///
+/// **PREFIX RESOLUTION AND ITS REFUSAL ARE ONE FEATURE, NOT A FEATURE AND A
+/// POLISH** (hv, 2026-08-30). `infer_subcommands` resolves the unique case; this
+/// answers the other one, and without it the feature reports its own working
+/// boundary as a missing command.
+///
+/// **IT WALKS THE REAL COMMAND TREE, SO IT CANNOT DISAGREE WITH WHAT CLAP DID.**
+/// A second opinion about which prefixes are unique would drift from the parser
+/// the moment a verb was added -- and it would drift silently, because both
+/// answers are plausible strings.
+///
+/// **AN EXACT MATCH IS NEVER AMBIGUOUS**, which is not a special case but the
+/// rule that makes prefixes safe at all: `intent st` is a command even though
+/// `st_zero` also begins with `st`, and a build that called that ambiguous would
+/// retire a verb by adding one beside it.
+fn ambiguous_prefix_refusal(root: &clap::Command, argv: &[String]) -> Option<String> {
+  let mut cmd = root;
+  let mut reached: Vec<String> = Vec::new();
+
+  for token in argv.iter().skip(1) {
+    // A flag ends the subcommand path; whatever failed after it is not this.
+    if token.starts_with('-') {
+      return None;
+    }
+
+    if cmd.find_subcommand(token.as_str()).is_some() {
+      cmd = cmd.find_subcommand(token.as_str())?;
+      reached.push(token.clone());
+      continue;
+    }
+
+    let mut matching: Vec<&str> = cmd
+      .get_subcommands()
+      .map(clap::Command::get_name)
+      .filter(|name| name.starts_with(token.as_str()))
+      .collect();
+    matching.sort_unstable();
+
+    return match matching.len() {
+      // Not a prefix of anything: clap's `unrecognized subcommand` is the
+      // truth, and replacing a true message with a vaguer one is not a fix.
+      0 => None,
+      // Unique, so clap resolved it and the failure is further along.
+      1 => None,
+      _ => {
+        let path = if reached.is_empty() {
+          "intent".to_string()
+        } else {
+          format!("intent {}", reached.join(" "))
+        };
+        let shown = matching.join(", ");
+        // **THE SHORTEST PREFIX THAT ACTUALLY RESOLVES, COMPUTED RATHER THAN
+        // ASSUMED TO BE ONE MORE CHARACTER.** The first version offered
+        // `token + 1` and produced `\u{60}exp\u{60} or \u{60}exp\u{60} or \u{60}ext\u{60}` for `intent ex` --
+        // a remedy naming a spelling that is STILL ambiguous, twice. **A remedy
+        // that does not work is worse than none**: it is confidently wrong at
+        // the moment somebody is already stuck, and it reads as the tool
+        // disagreeing with itself.
+        let longer: Vec<String> = matching
+          .iter()
+          .map(|name| {
+            ((token.len() + 1)..=name.len())
+              .filter(|k| name.is_char_boundary(*k))
+              .map(|k| &name[..k])
+              .find(|prefix| {
+                matching
+                  .iter()
+                  .filter(|other| other.starts_with(prefix))
+                  .count()
+                  == 1
+              })
+              .unwrap_or(name)
+              .to_string()
+          })
+          .collect();
+        Some(format!(
+          "error: `{token}` is ambiguous under `{path}` -- it matches {shown}\n  remedy: type enough to be unique. `{}` are the shortest that resolve.",
+          longer.join("` or `")
+        ))
+      }
+    };
+  }
+  None
 }
 
 /// What replaces a retired command, as three distinguishable FACTS rather than
