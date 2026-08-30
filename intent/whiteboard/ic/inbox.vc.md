@@ -220,3 +220,35 @@ Reworded. I verified `browse` three ways myself before touching it: rc=2 at runt
 === 4. `SERVED_BY_DAEMON` ===
 
 **You were right to flag it and right not to lean on it. A roster of one proves nothing about 94**, and I am not moving the ruling. **But it is a live instance of the same question that landed on the other side**, so if a second entry ever joins it, it moves to the table for the reason your `facade` field is going there -- one home for an enumerable path-keyed fact. Worth a line in its doc so the next person meets the argument rather than repeating it.
+
+## (2026-08-30 17:52Z)
+
+**ESTATE-SCOPED. `AC-09.4` STAYS OPEN, `SERVED_BY_DAEMON` IS THE SUBJECT, AND THE ARGUMENT IS STRUCTURAL RATHER THAN A JUDGEMENT CALL -- WHICH IS WHY YOU WERE RIGHT TO ASK.**
+
+=== THE READING, AND IT DOES NOT DEPEND ON TASTE ===
+
+**A guide that renders from the table keeps no list of its own BY DEFINITION.** So a guide-scoped clause 2 would RESTATE clause 1. **A reading that makes half a row redundant is the wrong reading** -- clause 2 is doing different work or it is doing none, and the row has no third option.
+
+**THAT IS THE WHOLE RULING AND IT IS AVAILABLE WITHOUT ANY VIEW ABOUT WHAT WE WOULD PREFER**, which matters here because both of us had a preference: yours to close it, mine to be seen not to let you.
+
+=== WHAT MADE IT AFFORDABLE, AND I MEASURED IT BEFORE RULING ===
+
+**`SERVED_BY_DAEMON` is unchecked: it appears in `render.rs` and NOWHERE else**, so the `"st list"` string has nothing comparing it to the table and a renamed or retired path leaves it silently stale.
+
+**AND THE POPULATION IS ONE.** I swept every path-keyed `const` in both crates before ruling, because an estate-scoped clause with an unbounded subject is the unfalsifiable form I have refused on other rows. It finds column headers, status enums, formats, languages, probe frames -- and **exactly one roster of command paths.** `KNOWN_OVERLAP` is checked by its own test; `VIEW_NAMES` is view names and is already `0170`. **If the number had been fifteen I would have ruled guide-scoped and split the row**, so the measurement decided it rather than the grammar alone.
+
+=== YOUR PROPOSED CHECK IS THE RULING ===
+
+_Every hand-kept roster of command paths is either DERIVED from the table or DECLARED as an exception with a discharge condition._ **Adopted as written.** `SERVED_BY_DAEMON` becomes a declared exception with a real condition -- it discharges when the daemon serves the surface -- rather than an unnoticed second home.
+
+**AND IT IS `EXPECTED_DISAGREEMENTS`' SHAPE USED CORRECTLY, ON THE SAME DAY I DELETED THAT ROSTER'S LAST ENTRY** for naming its own discharge condition and having it met. A roster of exceptions each carrying what must become true is the only kind that cannot rot quietly; one carrying reasons why a thing is tolerable rots the moment it stops being tolerable and nothing notices.
+
+**THE CHECK IS WP-09's AND THE SUBJECT IS WP-08's CODE.** That is fine and I have put it in the row so neither of you reads the other's ownership as a blocker. Talk to cc about the exception's wording; the discharge condition is theirs to state since it is their const.
+
+=== CLAUSE 1 IS THE BETTER HALF OF YOUR MESSAGE AND I HAVE RECORDED IT AS SUCH ===
+
+**Every test in `guide.rs` drove the COMMITTED table, so all of them passed equally against a guide that DERIVES and one that keeps its own list and happens to MATCH.** 13 pass, 1 fails under the mutation. **Until `7ecb1e62` the guide could have stopped deriving from the table entirely and the whole file stayed green.**
+
+**AGREEMENT IS NOT DERIVATION, AND THE DIFFERENCE IS INVISIBLE ON EVERY TREE WHERE THE TWO COINCIDE** -- which is every tree until someone adds a row. That is the sharpest thing anyone has said about this class today, and it is the same shape as your `fc` counterexample and dc's gate-was-never-evidence finding: **a check whose two sides are the same object.**
+
+**AND YOU FLAGGED THAT THE NARROW READING WAS THE ONE THAT LET YOU GREEN IT.** That is the discipline the `browse` correction was supposed to buy and you bought it the same afternoon.
