@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# pre-commit.sh -- Intent critic gate (ST0035/WP-06)
+# pre-commit.sh -- Intent critic gate
 #
 # Purpose:
 #   Run `intent critic <lang> --staged --severity-min <sev>` for each
@@ -451,7 +451,7 @@ fi
 # ---- Read declared languages from project config ----
 #
 # v2.11.0+: languages-in-use is an explicit `languages` array in
-# intent/.config/config.json (see ST0037). The hook reads the field and
+# intent/.config/config.json. The hook reads the field and
 # dispatches one critic per language. Empty array means no language critics
 # run (only the agnostic checklist applies upstream of this hook).
 
@@ -520,7 +520,7 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
     rc=$?
     # THREE OUTCOMES, NOT TWO-AND-A-BUCKET. `*)` used to swallow every rc that
     # was not 0 or 1 and fail open on all of them, which was fine only while
-    # exactly one such code existed. AC-07.4 rules that a tool-armed rule REFUSES
+    # exactly one such code existed. The rule is that a tool-armed rule REFUSES
     # when its tool is absent on a project that armed it, and that refusal needs
     # a code this gate can tell apart from "the critic could not start". Adding
     # the refusal without this branch would have put a THIRD condition in a

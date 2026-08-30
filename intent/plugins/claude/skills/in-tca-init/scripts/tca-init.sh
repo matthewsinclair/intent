@@ -21,7 +21,7 @@ usage() {
   echo "Usage: tca-init.sh --tca-dir PATH --wp-count N --project NAME"
   echo ""
   echo "Options:"
-  echo "  --tca-dir PATH    TCA steel thread directory (e.g., intent/st/ST0055)"
+  echo "  --tca-dir PATH    TCA steel thread directory (eg intent/st/ST0000)"
   echo "  --wp-count N     Number of work packages to create (including synthesis)"
   echo "  --project NAME   Project name for templates"
   echo "  -h, --help       Show this help"
@@ -178,5 +178,5 @@ done
 
 echo ""
 echo "ok: created $WP_COUNT work packages in $WP_DIR"
-echo "    WP/01-$(printf '%02d' $((WP_COUNT - 1))): component audit WPs"
-echo "    WP/$(printf '%02d' $WP_COUNT): synthesis WP"
+echo "    WP/01-$(printf '%02d' "$((WP_COUNT - 1))"): component audit WPs"
+echo "    WP/$(printf '%02d' "$WP_COUNT"): synthesis WP"

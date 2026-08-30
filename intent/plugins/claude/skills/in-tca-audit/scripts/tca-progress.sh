@@ -18,7 +18,7 @@ usage() {
   echo "Usage: tca-progress.sh --tca-dir PATH"
   echo ""
   echo "Options:"
-  echo "  --tca-dir PATH    TCA steel thread directory (e.g., intent/st/ST0055)"
+  echo "  --tca-dir PATH    TCA steel thread directory (eg intent/st/ST0000)"
   echo "  -h, --help       Show this help"
   exit 0
 }

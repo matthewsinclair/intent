@@ -2,7 +2,7 @@
 # canon-ignore-guard.sh -- refuse a commit that adds an ignore rule reaching
 # `intent/.canon/`.
 #
-# ST0057 AT-01.5, covering AC-01.5. **AC-01.2 checks the STATE, by cloning. This refuses the
+# **A COMPANION CHECK VERIFIES THE STATE, by cloning. This refuses the
 # EDIT, and the gap between those two moments is where the class lives.**
 #
 # WHY THE HAZARD IS STRUCTURAL AND NOT HYPOTHETICAL. Every other `intent/.<x>/`
@@ -20,8 +20,8 @@
 # hand-rolled matcher would disagree with git exactly where it matters. It asks
 # `git check-ignore -v`, which is git's own matcher, and then reads back the
 # `<source>:<line>:<pattern>` it reports. **The question is what git DOES, not
-# what a rule appears to say** -- the same reason AC-01.2 clones instead of
-# reading `.gitignore`.
+# what a rule appears to say** -- the same reason the companion check clones
+# instead of reading `.gitignore`.
 #
 # ATTRIBUTION IS THE OTHER HALF, AND IT IS WHAT KEEPS THIS KEEPABLE. Only rules
 # on lines THIS COMMIT ADDS can block. Inherited breakage is reported and never
@@ -30,7 +30,7 @@
 # unable to commit the fix.
 #
 # PROBED AT BOTH REAL AND FUTURE PATHS. A rule that matches nothing on disk
-# today but would swallow tomorrow's `ST0058.json` is the same defect one day
+# today but would swallow tomorrow's newly created thread file is the same defect one day
 # later, and the estate that suffers it is the one that never notices a new
 # thread stopped travelling. So the probe set carries synthetic paths that do
 # not exist, which `check-ignore` is happy to answer for.

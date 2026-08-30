@@ -1,5 +1,5 @@
 #!/bin/bash
-# critic_runner.sh -- Intent headless critic runner primitives (ST0035/WP-05)
+# critic_runner.sh -- Intent headless critic runner primitives
 #
 # Responsibility:
 #   Load language-specific rules from canon + extensions, extract each
@@ -185,7 +185,7 @@ critic_load_rule_paths() {
 #   COULD answer this rule.
 #     armed       a greppable block with a runnable line, or a named tool
 #     declared    an explicit "No greppable proxy is authoritative for this rule"
-#     unrunnable  a block whose every line the runner must refuse (ST0039)
+#     unrunnable  a block whose every line the runner must refuse
 #     undeclared  none of the above -- nobody has decided
 #
 #   DISPOSITION -- a property of THIS INVOCATION. Whether it actually asked.
@@ -433,7 +433,7 @@ critic_apply_rule() {
   # must match at least one for the rule to fire. Rules without applies_to
   # are universal (current behaviour preserved). Globs use suffix anchoring
   # so umbrella layouts (apps/<app>/lib/..., apps/<app>/test/...) match
-  # rules declared as `lib/**/*.ex` / `test/**/*_test.exs` (ST0038).
+  # rules declared as `lib/**/*.ex` / `test/**/*_test.exs`.
   if ! critic_rule_applies_to_file "$rule_path" "$file"; then
     return 0
   fi

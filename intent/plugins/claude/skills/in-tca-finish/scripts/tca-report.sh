@@ -22,7 +22,7 @@ usage() {
   echo "Usage: tca-report.sh --tca-dir PATH [-o FILE] [--check-only]"
   echo ""
   echo "Options:"
-  echo "  --tca-dir PATH    TCA steel thread directory (e.g., intent/st/ST0055)"
+  echo "  --tca-dir PATH    TCA steel thread directory (eg intent/st/ST0000)"
   echo "  -o FILE          Output file (default: stdout)"
   echo "  --check-only     Run pre-flight guards only, no report generation"
   echo "  -h, --help       Show this help"
@@ -76,7 +76,7 @@ fi
 
 # ---- Check-only mode: pre-flight guards for premature close-out ----
 #
-# These guards exist to prevent the Lamplight ST0121 premature-close-out incident
+# These guards exist to prevent a premature-close-out incident seen in the field
 # (commits 75706c18 to 98616a0c, 2026-04-08) from recurring. They run only in
 # --check-only mode because in normal report-generation mode the feedback report
 # does not exist yet (that is what the script is about to write). See section 0.0

@@ -4,7 +4,6 @@
 # append-only path. Arithmetic on a diff; it needs no knowledge of what the
 # operation intended.
 #
-# COVERS ST0056 AC-10.13 / AT-10.13.
 #
 # WHY A GUARD RATHER THAN CARE. Writing where you meant to append is a
 # one-character difference with no visible symptom, and every human-facing

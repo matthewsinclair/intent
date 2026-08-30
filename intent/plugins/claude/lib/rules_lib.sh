@@ -3,7 +3,7 @@
 #
 # Consumers:
 #   - intent/plugins/claude/bin/intent_claude_rules  (list, show, validate, index)
-#   - intent/plugins/claude/lib/critic_runner.sh     (headless critic runner; ST0035/WP-05)
+#   - intent/plugins/claude/lib/critic_runner.sh     (headless critic runner)
 #
 # Exports:
 #   Functions: enumerate_canon_rule_files, enumerate_ext_rule_files,

@@ -9,7 +9,7 @@
 #
 # Status:
 #   SHIPS with the canonical `.claude/` template but is NOT referenced by
-#   the default `settings.json` stanza (ST0035 decision #4 -- off by default).
+#   the default `settings.json` stanza -- off by default.
 #
 # Opt in:
 #   1. Set `post_tool_use_advisory: true` in `.intent_critic.yml`.
@@ -68,7 +68,7 @@ esac
 
 command -v intent >/dev/null 2>&1 || exit 0
 
-# `intent critic` lands in ST0035/WP05. If the subcommand isn't present
+# `intent critic` may not be present in every build. If the subcommand isn't present
 # yet, the `|| true` swallows failure and `[ -z "$findings" ]` exits.
 findings="$(intent critic "$lang" --files "$file_path" --severity-min warning --format text 2>/dev/null || true)"
 [ -z "$findings" ] && exit 0
