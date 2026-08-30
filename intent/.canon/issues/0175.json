@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 175,
+  "slug": "agents-family-root-answers-rc-2-not-implemented",
+  "title": "agents family-root answers rc=2 'not implemented yet' while agents sync and agents validate answer 0",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-30",
+  "reporter": "Matthew Sinclair",
+  "body": "Driven by dc 2026-08-30 during the plugin.json census, handed to ic as surface owner. `intent agents` (bare) falls to the family's unwired arm and reports 'known command that is not implemented yet' at rc=2, while its own verbs `agents sync` and `agents validate` both answer 0 -- a working family whose root disclaims the family. The root arm should render the family help (the same shape other families' bare invocations take) rather than the unwired phrase. Surface fix in render.rs's agents dispatch; the dispatch-table row for bare `agents` should agree with whatever the root is ruled to do."
+}
