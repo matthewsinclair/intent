@@ -39,6 +39,12 @@
           "editable": true
         },
         {
+          "name": "fiat",
+          "label": "fiat close",
+          "widget": "button",
+          "editable": false
+        },
+        {
           "name": "status_reason",
           "label": "reason",
           "widget": "text",
@@ -126,6 +132,12 @@
           "label": "status",
           "widget": "select",
           "editable": true
+        },
+        {
+          "name": "fiat",
+          "label": "fiat close",
+          "widget": "button",
+          "editable": false
         },
         {
           "name": "status_reason",

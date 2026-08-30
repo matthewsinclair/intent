@@ -235,7 +235,7 @@ fn the_only_changeable_properties_off_a_form_are_the_three_ruled_out() {
 /// **Driven over all three kinds, and `wp` is the one that matters.**
 /// `WorkPackage` is not a schema root -- it lives at `$defs/WorkPackage`
 /// inside `thread.schema.json` -- and an earlier loader resolved it to that
-/// FILE, handing a work-package form the THREAD's eighteen fields. Six of
+/// FILE, handing a work-package form the THREAD's nineteen fields. Six of
 /// `WorkPackage`'s nine share a name with a `Thread` property, so nothing
 /// refused. **A test over `thread` alone cannot see that.**
 #[test]
@@ -243,11 +243,18 @@ fn every_property_of_every_face_is_accounted_for() {
   let loaded = Loaded::load().expect("loads");
   let expected: &[(&str, usize, &[&str])] = &[
     (
+      // 18 -> 19: `fiat` arrived with ST0066's fiat close (dc, `d4526c1b`).
+      // **THIS IS THE ARM THAT CAUGHT IT**, and it caught it the way it was
+      // built to: the converse half of AC-17.2 fires the day a field is ADDED,
+      // and nothing about a form merely missing a row looks wrong.
       "thread",
-      18,
+      19,
       &["body (NarrowSetter)", "preamble (NarrowSetter)"],
     ),
-    ("wp", 9, &["scope_legacy (NarrowSetter)"]),
+    // 9 -> 10: `fiat` landed on WorkPackage in the same commit as the
+    // Thread one, so both faces moved together and both are re-read here
+    // rather than bumped.
+    ("wp", 10, &["scope_legacy (NarrowSetter)"]),
     ("issue", 10, &[]),
   ];
 
