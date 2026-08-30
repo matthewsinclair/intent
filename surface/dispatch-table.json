@@ -8146,11 +8146,14 @@
       "flags": [
         {
           "spellings": [
-            "--json"
+            "--format"
           ],
-          "type": "bool",
-          "help": "Emit the roster as JSON -- the form a caller branches on",
-          "disposition": "keep"
+          "type": "enum",
+          "help": "Output format",
+          "disposition": "keep",
+          "value": "terminal|json",
+          "default": "terminal",
+          "disposition_basis": "**`--format`, NOT `--json`, ON hv's 2026-08-21 SPELLING RULING** -- `--format` where the verb has formats other than json, and `--json` kept ONLY as a v2 parity alias because a parity contract is not a backwards-compatibility shim. **`surface` is new surface with no v2 ancestor**, so there was no alias to inherit and `--json` here was a second spelling MINTED rather than kept. **Filed against itself: ic authored this row and the deviation, found it while authoring `daemon status` under the same ruling, and raised it rather than quietly correcting it** -- the point of raising a deviation is to have it ruled and recorded, and vc ruled it on 2026-08-30. Four rows carried `--json`; the other three (`issues show`, `todo`, `todo list`) each have v2 parity to point at. This one did not, and it also carried NO `disposition_basis` at all, which is the half that let it sit unexamined: a spelling with no recorded ground is a spelling nobody can check against the ruling."
         }
       ],
       "v2": "new-surface",

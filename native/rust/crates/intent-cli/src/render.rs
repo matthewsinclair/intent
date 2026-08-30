@@ -736,7 +736,16 @@ fn surface_retired(m: &ArgMatches) -> Result<(), Failure> {
   let table = dispatch::table();
   let roster = crate::spine::retired_and_unreachable(&table);
 
-  if m.get_flag("json") {
+  // **`--format json`, NOT `--json`** -- hv's 2026-08-21 spelling ruling, applied
+  // to this row by vc on 2026-08-30. `surface` is new surface with no v2
+  // ancestor, so `--json` here was a second spelling MINTED rather than a parity
+  // alias kept.
+  //
+  // **THE READ HAD TO MOVE WITH THE DECLARATION, NOT AFTER IT.** `get_flag`
+  // PANICS on anything but a `SetTrue` arg, so the moment the row stopped
+  // declaring a bool this line would have been a startup crash on the one verb
+  // it serves -- the loud twin of the swallow `given` was written to remove.
+  if m.get_one::<String>("format").is_some_and(|f| f == "json") {
     let rows: Vec<String> = roster
       .iter()
       .map(|(e, _)| {

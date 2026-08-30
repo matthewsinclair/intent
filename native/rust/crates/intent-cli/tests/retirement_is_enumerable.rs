@@ -133,7 +133,7 @@ const UNWIRED_MARKER: &str = "is a known command that is not implemented yet";
 fn published_roster() -> Vec<String> {
   let dir = tempfile::tempdir().expect("tempdir");
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
-    .args(["surface", "retired", "--json"])
+    .args(["surface", "retired", "--format", "json"])
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
     .output()
