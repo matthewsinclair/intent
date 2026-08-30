@@ -350,6 +350,13 @@ fn invariant_every_shipped_verb_answers_identically_down_every_route() {
      the table is the corpus and an empty corpus passes for free"
   );
 
+  // **THIS ASSERTION MUST STAY ABOVE THE DRIVE LOOP AND THE ORDER IS
+  // LOAD-BEARING, NOT STYLISTIC.** Below the loop it would be checking the
+  // hazard list only AFTER driving the row the list exists to keep out -- so a
+  // renamed row would hang forever and this check would never be reached. **A
+  // guard that hangs while proving it can detect hangs** is worse than no
+  // guard, because the symptom is identical to the defect. Driven: renaming the
+  // entry fails in 0.01s naming the row, and does not hang.
   // **EVERY DECLARED HAZARD MUST HAVE MATCHED A REAL ROW, AND THIS IS THE ARM
   // THAT MATTERS.** A hazard list is a filter aimed at the corpus, so it has the
   // failure every filter has: rename `daemon run` and the entry matches nothing,
