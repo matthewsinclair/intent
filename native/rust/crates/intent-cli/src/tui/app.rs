@@ -41,6 +41,11 @@ use super::keys;
 use super::layout::Row;
 use super::mode::{self, Mode};
 use super::nav::{Stack, View};
+use super::omnibox::{Entry, Go, Omnibox};
+
+/// How many matches the omnibox offers at once. Eight: enough to show a
+/// collision, few enough that the dropdown never eats the body.
+pub const MATCH_CAP: usize = 8;
 
 /// What the loop should do next.
 ///
@@ -53,8 +58,16 @@ use super::nav::{Stack, View};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Step {
   Continue,
-  /// The operator left the root. **`tui-design.md` §3: at the root, ESC QUITS.**
+  /// The operator asked to leave: `:q` from the omnibox, or the realiser's
+  /// own `Ctrl-C`. **`tui-design.md` §3: quitting is an act, never an
+  /// accident** -- no key reaches this by walking.
   Quit,
+  /// A spelling the omnibox could not match: hand it to the address resolver.
+  ///
+  /// **A `Step` BECAUSE PRESENCE IS A FACT ONLY THE STORE KNOWS.** `nav::land`
+  /// needs a presence probe, the app has no facade on purpose, and guessing
+  /// here would navigate to entities that do not exist.
+  Land(String),
   /// `AC-17.10`: hand this field to `$VISUAL`/`$EDITOR`.
   Hand(Handoff),
   /// `AC-17.8`: open one realised artefact of this entity, or refuse it.
@@ -107,6 +120,11 @@ pub struct App {
   /// whether the save landed, was declined, or was refused by the store. A
   /// silent return is indistinguishable from a silent failure.
   pub notice: String,
+  /// The rest state's input: buffer and pick. See [`super::omnibox`].
+  pub omnibox: Omnibox,
+  /// Every addressable entity, for the omnibox's matcher. Handed in by the
+  /// run loop at startup, because the app deliberately holds no facade.
+  pub index: Vec<Entry>,
 }
 
 impl App {
@@ -123,6 +141,8 @@ impl App {
       wants_detail: false,
       detail_focus: None,
       notice: String::new(),
+      omnibox: Omnibox::default(),
+      index: Vec::new(),
     }
   }
 
@@ -214,17 +234,88 @@ impl App {
   pub fn on_key(&mut self, key: KeyEvent, rows: &[Row]) -> Step {
     // **`Tab` IS A PANE GUARD AND NOT A MODE TRIGGER**, which [`super::keys`]
     // declares by refusing it one. It is answered here, ahead of the machine,
-    // because the machine has nothing to say about it -- and only from the rest
-    // state, because in FIELD and COMMAND the key belongs to the text being
-    // typed and in EMBED it belongs to the child.
-    if self.mode == mode::REST && matches!(key.code, KeyCode::Tab | KeyCode::BackTab) {
+    // because the machine has nothing to say about it -- and only from NAV,
+    // because in OMNIBOX and FIELD the keyboard belongs to a buffer and in
+    // EMBED it belongs to the child.
+    if self.mode == Mode::Nav && matches!(key.code, KeyCode::Tab | KeyCode::BackTab) {
       self.cross_panes(rows);
       return Step::Continue;
     }
     // Not a key we bind. **Nothing happens -- not a self-loop, nothing.**
-    let Some(trigger) = keys::trigger(self.mode, key) else {
+    let Some(mut trigger) = keys::trigger(self.mode, key) else {
       return Step::Continue;
     };
+    // **THE OMNIBOX'S `/` GUARD, THE PANE GUARD'S SIBLING** (`tui-design.md`
+    // §3): mid-address, `/` is a character -- `st/ST0056` is a legal spelling
+    // -- so the menu key fires only on an empty buffer. The keymap cannot see
+    // the buffer, so it offers `/` and this reroutes it.
+    if self.mode == Mode::Omnibox && trigger == "/" && !self.omnibox.is_empty() {
+      trigger = "Typing";
+    }
+
+    // The omnibox's own triggers, resolved before the generic tail because
+    // each needs the keystroke or the match list, which the machine never sees.
+    if self.mode == Mode::Omnibox {
+      match trigger {
+        "Typing" => {
+          match key.code {
+            KeyCode::Char(c) => self.omnibox.type_char(c),
+            KeyCode::Backspace => self.omnibox.erase(),
+            _ => {}
+          }
+          return Step::Continue;
+        }
+        "Move" => {
+          let n = self.match_count();
+          self.omnibox.pick_move(key.code == KeyCode::Down, n);
+          return Step::Continue;
+        }
+        "Enter" => {
+          let m = super::omnibox::matches(&self.index, &self.omnibox.buffer, MATCH_CAP);
+          let go = self.omnibox.go(&self.index, &m);
+          // The machine's edge: Enter leaves the input for NAV, whatever the
+          // buffer meant. Quit is the one exception and it is not a mode.
+          self.mode = Mode::Nav;
+          return match go {
+            Go::Nothing => Step::Continue,
+            Go::Quit => Step::Quit,
+            Go::UnknownCommand(c) => {
+              self.notice = format!("unknown command `:{c}` -- `:q` quits");
+              Step::Continue
+            }
+            Go::Pick(view) => {
+              self.omnibox.buffer.clear();
+              self.push(view);
+              Step::Continue
+            }
+            Go::Spelling(s) => Step::Land(s),
+          };
+        }
+        _ => {}
+      }
+    }
+
+    // NAV's seeds: `:` and any printable land in the omnibox CARRYING their
+    // character -- the you-just-start-typing affordance. The machine already
+    // declares both edges; what it cannot carry is the keystroke.
+    if self.mode == Mode::Nav {
+      match trigger {
+        ":" => {
+          self.omnibox.seed(':');
+          self.mode = Mode::Omnibox;
+          return Step::Continue;
+        }
+        "Typing" => {
+          if let KeyCode::Char(c) = key.code {
+            self.omnibox.seed(c);
+          }
+          self.mode = Mode::Omnibox;
+          return Step::Continue;
+        }
+        _ => {}
+      }
+    }
+
     // The machine says nothing about this trigger from this mode. Same rule --
     // and `arm` says nothing for an ambiguity no row kind resolves, which is
     // the same answer for the same reason.
@@ -236,11 +327,23 @@ impl App {
       return Step::Continue;
     };
 
+    // **DESCENT IS THE DOOR'S, AND THE DOOR IS DECLARED ON THE ROW** --
+    // `tui-design.md` §6: *a row's door is DECLARED on the row, not inferred
+    // from its kind*. Enter resolving to NAV means the row claims descent; a
+    // door-less button descends nowhere, visibly, rather than guessing.
+    if self.mode == Mode::Nav && trigger == "Enter" && next == Mode::Nav {
+      match self.focused_row(rows).and_then(|r| r.door.clone()) {
+        Some(view) => self.push(view),
+        None => self.notice = "this row opens nothing yet".to_string(),
+      }
+      return Step::Continue;
+    }
+
     // **THE HANDOFF LEAVES AS A REQUEST AND CHANGES NOTHING ELSE.** It needs a
     // field to write back to, so it can only be asked for on an ITEM view; a
     // prose row cannot occur anywhere else, and a realiser that guessed an
     // address here would write to whatever it guessed.
-    if next == Mode::Embed && self.mode == mode::REST {
+    if next == Mode::Embed && self.mode == Mode::Nav {
       let (Some(View::Item { kind, id }), Some(row)) = (
         Some(self.stack.current().clone()).filter(|v| matches!(v, View::Item { .. })),
         self.focused_row(rows),
@@ -264,27 +367,19 @@ impl App {
       };
     }
 
-    // **POPPING THE VIEW STACK IS NORMAL'S JOB AND ONLY NORMAL'S.** Esc from a
-    // mode means *leave the mode*; Esc in the rest state means *leave the
-    // view*, and at the root that is the quit. Reading the trigger rather than
-    // the resulting mode matters because both are self-loops on NORMAL: Esc and
-    // Move land in the same place and mean entirely different things.
-    if self.mode == mode::REST && matches!(trigger, "Esc" | "Back") {
-      let left = self.stack.pop();
-      self.scroll = 0;
-      if !left {
-        // `Back` at the root is a no-op; `Esc` at the root quits. The design
-        // gives the two different jobs at exactly this one point.
-        return if trigger == "Esc" {
-          Step::Quit
-        } else {
-          Step::Continue
-        };
+    // **POPPING THE VIEW STACK IS `Back`'s JOB AND ONLY `Back`'s** since the
+    // omnibox machine: Esc means *the other home mode* now, so Backspace is
+    // the one key that walks up the model. At the root it is a no-op rather
+    // than a quit -- `tui-design.md` §3 retired the accident.
+    if self.mode == Mode::Nav && trigger == "Back" {
+      if self.stack.pop() {
+        self.scroll = 0;
       }
+      return Step::Continue;
     }
 
     // **DIRECTION IS THE APP'S BUSINESS AND THE MACHINE'S IGNORANCE IS
-    // DELIBERATE.** `EDGES` says NORMAL + Move stays in NORMAL, and that is all
+    // DELIBERATE.** `EDGES` says NAV + Move stays in NAV, and that is all
     // it should say: up and down are the same MODE transition and different
     // motions, so folding direction into the trigger vocabulary would put four
     // near-identical self-loops in a table whose whole value is being readable
@@ -312,6 +407,11 @@ impl App {
 
     self.mode = next;
     Step::Continue
+  }
+
+  /// How many entries the current buffer matches, for the pick's bounds.
+  pub fn match_count(&self) -> usize {
+    super::omnibox::matches(&self.index, &self.omnibox.buffer, MATCH_CAP).len()
   }
 
   /// Point the cursor at a view of `n` rows.
@@ -348,7 +448,7 @@ impl App {
   /// The child that owned the terminal has gone.
   ///
   /// **THE MACHINE SAYS WHERE THIS LANDS, NOT THIS FUNCTION.** `EMBED +
-  /// ChildExit -> NORMAL` is a declared edge with the note *read the file
+  /// ChildExit -> NAV` is a declared edge with the note *read the file
   /// back*; spelling `self.mode = Mode::Normal` here would be a second copy of
   /// a transition the table already owns.
   pub fn child_exited(&mut self) {
@@ -407,11 +507,13 @@ mod tests {
     assert_eq!(from_every_mode(3)[0].stack.depth(), 4);
   }
 
-  /// **THE PROPERTY THAT MAKES A MODAL UI SAFE TO BE LOST IN**, and the one an
-  /// operator actually cares about: from anywhere, holding Esc gets you out.
-  /// Bounded, so a state that never terminates fails instead of hanging.
+  /// **THE PROPERTY THAT MAKES A MODAL UI SAFE TO BE LOST IN**, restated for
+  /// the omnibox machine: from anywhere, one Esc lands in a HOME mode and
+  /// further presses stay inside the pair -- **and no number of them ever
+  /// quits**, because `tui-design.md` §3 retired the accident. The walk is
+  /// bounded and driven from every mode at several depths.
   #[test]
-  fn repeated_esc_terminates_from_every_mode_that_owns_its_escape() {
+  fn repeated_esc_reaches_home_and_never_quits() {
     // **THE EXEMPTION IS READ FROM THE MACHINE, NEVER RETYPED HERE.** EMBED is
     // exempt because a child process owns the keyboard, and that fact is
     // already declared once in `mode::ESC_NOT_OURS`. A second copy here would
@@ -440,19 +542,26 @@ mod tests {
           }
           continue;
         }
-        let mut presses = 0;
         let budget = Mode::ALL.len() + depth + 4;
-        loop {
-          assert!(
-            presses < budget,
-            "held Esc {presses} times from {started_in:?} at depth {depth} and never quit; the \
-             machine or the stack is absorbing escapes"
+        for press in 0..budget {
+          assert_eq!(
+            app.on_key(esc(), &[]),
+            Step::Continue,
+            "Esc press {press} from {started_in:?} at depth {depth} quit -- quitting is an act, \
+             never an accident"
           );
-          presses += 1;
-          if app.on_key(esc(), &[]) == Step::Quit {
-            break;
-          }
+          assert!(
+            press == 0 || mode::HOME.contains(&app.mode),
+            "Esc press {press} from {started_in:?} left home for {:?} -- one press lands home \
+             and the rest stay there",
+            app.mode
+          );
         }
+        assert!(
+          mode::HOME.contains(&app.mode),
+          "the walk from {started_in:?} ended outside home in {:?}",
+          app.mode
+        );
         walked += 1;
       }
     }
@@ -511,37 +620,45 @@ mod tests {
     );
   }
 
-  /// Quit is reachable only from the root. Anywhere deeper, Esc unwinds one
-  /// level and the session continues -- otherwise a nested view would drop the
-  /// operator out of the tool.
+  /// **QUIT IS `:q`, TYPED, AND NOTHING ELSE THE APP SEES** -- `Ctrl-C` is
+  /// the realiser's own intercept and never reaches `on_key`. Driven at depth
+  /// so the act works from anywhere, not only at a root the operator may not
+  /// be standing on.
   #[test]
-  fn quit_happens_at_the_root_and_never_above_it() {
-    let mut app = App::explore();
-    for i in 0..3 {
-      app.push(View::Collection {
-        kind: format!("k{i}"),
-      });
-    }
-    while !app.stack.at_root() {
+  fn quit_is_the_typed_act_and_works_from_any_depth() {
+    for depth in [0usize, 3] {
+      let mut app = App::explore();
+      for i in 0..depth {
+        app.push(View::Collection {
+          kind: format!("k{i}"),
+        });
+      }
+      // From NAV: `:` seeds the omnibox, `q` joins it, Enter quits.
+      app.mode = Mode::Nav;
+      assert_eq!(app.on_key(key(KeyCode::Char(':')), &[]), Step::Continue);
+      assert_eq!(app.mode, Mode::Omnibox, "`:` did not reach the omnibox");
+      assert_eq!(app.on_key(key(KeyCode::Char('q')), &[]), Step::Continue);
       assert_eq!(
-        app.on_key(esc(), &[]),
-        Step::Continue,
-        "quit fired at depth {}",
-        app.stack.depth()
+        app.on_key(key(KeyCode::Enter), &[]),
+        Step::Quit,
+        ":q at depth {depth} did not quit"
       );
     }
-    assert_eq!(
-      app.on_key(esc(), &[]),
-      Step::Quit,
-      "at the root, Esc must quit"
-    );
+    // And `:q!`, the discard spelling, is the same act.
+    let mut app = App::explore();
+    for c in ":q!".chars() {
+      assert_eq!(app.on_key(key(KeyCode::Char(c)), &[]), Step::Continue);
+    }
+    assert_eq!(app.on_key(key(KeyCode::Enter), &[]), Step::Quit);
   }
 
-  /// `Back` and `Esc` are the same motion everywhere except the root, where the
-  /// design gives them different jobs: Backspace pops history, Esc quits.
+  /// **`Back` IS THE ONE KEY THAT WALKS UP THE MODEL** since the omnibox
+  /// machine -- Esc means *the other home mode* now -- and at the root it is
+  /// a no-op, never a quit.
   #[test]
-  fn back_pops_like_esc_but_does_not_quit_at_the_root() {
+  fn back_pops_the_view_and_does_not_quit_at_the_root() {
     let mut app = App::explore();
+    app.mode = Mode::Nav;
     app.push(View::Collection {
       kind: "thread".into(),
     });
@@ -560,6 +677,7 @@ mod tests {
   #[test]
   fn scroll_resets_when_the_view_changes_in_either_direction() {
     let mut app = App::explore();
+    app.mode = Mode::Nav;
     app.scroll = 17;
     app.push(View::Collection {
       kind: "thread".into(),
@@ -569,7 +687,7 @@ mod tests {
       "descending kept a scroll position from the view above"
     );
     app.scroll = 9;
-    app.on_key(esc(), &[]);
+    app.on_key(key(KeyCode::Backspace), &[]);
     assert_eq!(
       app.scroll, 0,
       "popping kept a scroll position from the view below"
@@ -583,6 +701,7 @@ mod tests {
   #[test]
   fn the_arrows_move_the_cursor_in_opposite_directions_and_wrap() {
     let mut app = App::explore();
+    app.mode = Mode::Nav;
     app.point_at(3);
     assert_eq!(app.focus.map(Focus::index), Some(0));
     app.on_key(key(KeyCode::Down), &[]);
@@ -639,23 +758,22 @@ mod tests {
     let mut e = App::explore();
     let mut i = App::at_item("thread", "ST0056");
     assert_eq!(e.mode, i.mode);
-    assert_eq!(e.on_key(key(KeyCode::Char(':')), &[]), Step::Continue);
-    assert_eq!(i.on_key(key(KeyCode::Char(':')), &[]), Step::Continue);
-    assert_eq!(e.mode, Mode::Command);
+    assert_eq!(e.on_key(esc(), &[]), Step::Continue);
+    assert_eq!(i.on_key(esc(), &[]), Step::Continue);
+    assert_eq!(e.mode, Mode::Nav);
     assert_eq!(
       i.mode, e.mode,
       "the same key reached a different mode from a different root"
     );
-    assert_eq!(e.on_key(esc(), &[]), Step::Continue);
-    assert_eq!(i.on_key(esc(), &[]), Step::Continue);
-    assert_eq!(e.mode, mode::REST);
+    assert_eq!(e.on_key(key(KeyCode::Char(':')), &[]), Step::Continue);
+    assert_eq!(i.on_key(key(KeyCode::Char(':')), &[]), Step::Continue);
+    assert_eq!(e.mode, mode::REST, "`:` seeds the omnibox from NAV");
     assert_eq!(i.mode, mode::REST);
     assert_eq!(
-      e.on_key(esc(), &[]),
-      Step::Quit,
-      "explore quits from its root"
+      e.omnibox.buffer, ":",
+      "the seed carries its character into the buffer"
     );
-    assert_eq!(i.on_key(esc(), &[]), Step::Quit, "edit quits from its root");
+    assert_eq!(i.omnibox.buffer, ":");
   }
 
   /// The rows an ITEM view shows: a label that is NOT the field name on the row
@@ -672,6 +790,8 @@ mod tests {
 
   fn on_item() -> App {
     let mut app = App::at_item("thread", "ST0056");
+    // The tests here exercise NAV's Enter; the app opens in the omnibox.
+    app.mode = Mode::Nav;
     app.point_at(item_rows().len());
     app
   }
@@ -739,6 +859,7 @@ mod tests {
     // invariant, and the walk says nothing at all while burning a core. Point
     // at the real length and address the row directly.
     let mut app = App::at_item("thread", "ST0056");
+    app.mode = Mode::Nav;
     app.point_at(rows.len());
     app.focus = app.focus.and_then(|f| f.at(last));
     assert_eq!(
@@ -769,12 +890,14 @@ mod tests {
     );
   }
 
-  /// **AND EVERY OTHER ROW EDITS IN PLACE.** The same keystroke, one row over.
-  /// `AC-17.4`: `prose` is the handoff and the rest of the vocabulary is not.
+  /// **AND EVERY EDITABLE ROW EDITS IN PLACE.** The same keystroke, one row
+  /// over. `AC-17.4`: `prose` is the handoff -- and `button` is the DESCENT
+  /// since the omnibox machine claimed it for NAV, so both are asserted by
+  /// their own tests and skipped here.
   #[test]
   fn enter_on_any_other_row_edits_in_place_rather_than_handing_off() {
     for (at, row) in item_rows().iter().enumerate() {
-      if row.kind == "prose" {
+      if row.kind == "prose" || row.kind == "button" {
         continue;
       }
       let mut app = on_item();
@@ -793,6 +916,44 @@ mod tests {
         row.kind
       );
     }
+  }
+
+  /// **A DOORED BUTTON DESCENDS, AND A DOOR-LESS ONE SAYS SO** -- the fix for
+  /// the strawman's worst defect (hv drove it, 2026-08-30): Enter on `thread`
+  /// flipped modes and navigated nowhere. The door is DECLARED on the row
+  /// (`tui-design.md` §6), so descent is asserted against the declaration and
+  /// a row nobody doored reports itself instead of guessing.
+  #[test]
+  fn enter_on_a_button_descends_through_its_declared_door_or_says_it_has_none() {
+    let doored = vec![Row::new("thread", "", "button").opening(View::Collection {
+      kind: "thread".into(),
+    })];
+    let mut app = App::explore();
+    app.mode = Mode::Nav;
+    app.point_at(doored.len());
+    assert_eq!(app.on_key(key(KeyCode::Enter), &doored), Step::Continue);
+    assert_eq!(
+      app.stack.current(),
+      &View::Collection {
+        kind: "thread".into()
+      },
+      "Enter on a doored button did not descend through its door"
+    );
+    assert_eq!(app.mode, Mode::Nav, "descent stays in NAV");
+
+    let doorless = vec![Row::new("wps", "17", "button")];
+    let mut app = App::explore();
+    app.mode = Mode::Nav;
+    app.point_at(doorless.len());
+    assert_eq!(app.on_key(key(KeyCode::Enter), &doorless), Step::Continue);
+    assert!(
+      app.stack.at_root(),
+      "a door-less button descended into something nobody declared"
+    );
+    assert!(
+      !app.notice.is_empty(),
+      "a door-less button must SAY it opens nothing rather than silently doing nothing"
+    );
   }
 
   /// **A HANDOFF NEEDS AN ADDRESS, SO IT CANNOT BE ASKED FOR WHERE THERE IS
@@ -814,6 +975,7 @@ mod tests {
       },
     ] {
       let mut app = App::explore();
+      app.mode = Mode::Nav;
       app.stack = Stack::rooted_at(view.clone());
       app.point_at(rows.len());
       assert_eq!(
@@ -821,14 +983,16 @@ mod tests {
         Step::Continue,
         "{view:?} produced a handoff with no field to write back to"
       );
-      assert_eq!(app.mode, mode::REST, "{view:?} left the mode moved");
+      assert_eq!(app.mode, Mode::Nav, "{view:?} left the mode moved");
     }
   }
 
   /// **THE CHILD EXITING LANDS WHERE THE MACHINE SAYS**, not where this
-  /// function says. `EMBED + ChildExit -> NORMAL` is a declared edge.
+  /// function says. `EMBED + ChildExit -> NAV` is a declared edge: the
+  /// operator comes back to the form they were on, cursor intact, not to the
+  /// omnibox -- the field they just edited is what they want to see.
   #[test]
-  fn the_child_exiting_returns_to_the_rest_state_by_the_declared_edge() {
+  fn the_child_exiting_lands_in_nav_by_the_declared_edge() {
     let mut app = on_item();
     app.mode = Mode::Embed;
     app.child_exited();
@@ -837,7 +1001,11 @@ mod tests {
       mode::step(Mode::Embed, "ChildExit").expect("the machine declares this edge"),
       "the realiser and the machine disagree about where a child exit lands"
     );
-    assert_eq!(app.mode, mode::REST);
+    assert_eq!(app.mode, Mode::Nav);
+    assert!(
+      mode::HOME.contains(&app.mode),
+      "a child exit must land somewhere fully operable"
+    );
   }
 
   /// **RE-READING THE SAME VIEW KEEPS THE CURSOR; CHANGING VIEW RESETS IT.**
@@ -897,6 +1065,8 @@ mod tests {
 
   fn on_rows(n: usize) -> App {
     let mut app = App::explore();
+    // These tests exercise NAV's panes and arrows; the app opens in the omnibox.
+    app.mode = Mode::Nav;
     app.point_at(n);
     app
   }

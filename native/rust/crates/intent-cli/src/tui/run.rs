@@ -23,7 +23,7 @@
 
 use std::io;
 
-use crossterm::event::{self, Event};
+use crossterm::event::{self, Event, KeyCode};
 use ratatui::Terminal;
 use ratatui::backend::CrosstermBackend;
 
@@ -47,6 +47,29 @@ use super::views;
 /// composition above stays drivable with no store at all**.
 pub trait Source: edit::Model {
   fn rows(&mut self, view: &View) -> Vec<Row>;
+
+  /// Resolve an operator's spelling to a view, or say why not.
+  ///
+  /// **ON THE SOURCE BECAUSE PRESENCE IS A FACT ONLY THE STORE KNOWS** --
+  /// `nav::land` needs a presence probe and the app deliberately has no
+  /// facade. The default refuses, which is the honest answer for a test
+  /// source that never claimed to resolve anything.
+  ///
+  /// [`Refused`] rather than a bare string, and rather than a new enum: the
+  /// one consumer is the info row, which is exactly what `Refused` already
+  /// means on this surface -- a refusal whose content is its sentence, with
+  /// the refusing module's own words carried whole (`AC-06.12`'s resolver
+  /// writes them; a variant enum here would be a second author).
+  fn locate(&mut self, spelling: &str) -> Result<View, Refused> {
+    Err(Refused::new(format!(
+      "`{spelling}` resolves nothing -- this source has no resolver"
+    )))
+  }
+
+  /// Every addressable entity, for the omnibox. Default: none, honestly.
+  fn index(&mut self) -> Vec<super::omnibox::Entry> {
+    Vec::new()
+  }
 }
 
 /// A [`Session`] wrapped so its child runs with the terminal given back.
@@ -163,12 +186,15 @@ fn pane_hint(app: &App, rows: &[Row]) -> Option<String> {
 /// menu in MENU, the child's name in EMBED.
 fn command_row(app: &App) -> String {
   match app.mode {
-    super::mode::Mode::Command => ":".to_string(),
     super::mode::Mode::Menu => {
       "Go: [<-]  Back  Threads  Issues  Packages  Criteria  [X]".to_string()
     }
     super::mode::Mode::Embed => "editor running -- returns when the child exits".to_string(),
-    _ => "cmd: (none)".to_string(),
+    // **THE OMNIBOX LINE IS ALWAYS THERE** -- it is the rest state's whole
+    // point (`tui-design.md` §3): in OMNIBOX it carries the caret; in NAV it
+    // stands dim and empty-handed, one keystroke from filling.
+    super::mode::Mode::Omnibox => format!("\u{276f} {}\u{258f}", app.omnibox.buffer),
+    _ => format!("\u{276f} {}", app.omnibox.buffer),
   }
 }
 
@@ -215,6 +241,7 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
 
   let mut rows = source.rows(app.stack.current());
   app.point_at(rows.len());
+  app.index = source.index();
 
   loop {
     let area = term.size()?;
@@ -228,10 +255,31 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
     if key.kind != event::KeyEventKind::Press {
       continue;
     }
+    // **QUITTING IS AN ACT, NEVER AN ACCIDENT** (`tui-design.md` §3): Ctrl-C
+    // from anywhere, `:q` from the omnibox, and no key reaches quit by
+    // walking. Answered ahead of the machine the way `Tab` is, because QUIT
+    // is not a mode and an edge for it would put one in the graph.
+    if key.code == KeyCode::Char('c')
+      && key
+        .modifiers
+        .contains(crossterm::event::KeyModifiers::CONTROL)
+    {
+      break;
+    }
     let was = app.stack.current().clone();
     match app.on_key(key, &rows) {
       Step::Quit => break,
       Step::Continue => {}
+      // **THE SPELLING LANDS THROUGH THE ONE RESOLVER** (`AC-06.12` -- `56`,
+      // `ST0056`, `st56` all name one thread). Failure reaches the info row
+      // in the resolver's own words, never a guess about what was meant.
+      Step::Land(spelling) => match source.locate(&spelling) {
+        Ok(view) => {
+          app.omnibox.buffer.clear();
+          app.push(view);
+        }
+        Err(why) => app.notice = why.to_string(),
+      },
       // **`AC-17.8`: THE ARTEFACT IS OPENED IN PLACE, AND A GENERATED VIEW IS
       // REFUSED BY NAME.** No scratch file and no read-back -- the editor
       // writes the artefact directly, so there are no bytes of the operator's
@@ -445,7 +493,7 @@ mod tests {
   #[test]
   fn the_command_row_says_something_different_in_every_mode_that_uses_it() {
     let mut seen: Vec<String> = Vec::new();
-    for mode in [Mode::Normal, Mode::Command, Mode::Menu, Mode::Embed] {
+    for mode in [Mode::Omnibox, Mode::Nav, Mode::Menu, Mode::Embed] {
       let mut app = App::explore();
       app.mode = mode;
       let line = screen_for(&app, &[], 80).command;

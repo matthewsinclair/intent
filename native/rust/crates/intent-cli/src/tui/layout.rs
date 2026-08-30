@@ -142,6 +142,14 @@ pub struct Row {
   /// markup in one place and parsing it in the other is two encodings of one
   /// fact.
   pub detail: Option<Vec<Row>>,
+  /// Where Enter on this row descends, if anywhere.
+  ///
+  /// **DECLARED ON THE ROW, NEVER INFERRED FROM ITS KIND** -- `tui-design.md`
+  /// §6, in those words: working out where `documents` goes from the fact
+  /// that it looks like a pane is the same guess-from-shape that made
+  /// `intent edit st 68` misparse. The builders that know the model set it;
+  /// a door-less `button` visibly opens nothing rather than guessing.
+  pub door: Option<super::nav::View>,
 }
 
 impl Row {
@@ -154,6 +162,7 @@ impl Row {
       value: value.into(),
       kind: kind.into(),
       detail: None,
+      door: None,
     }
   }
 
@@ -170,6 +179,7 @@ impl Row {
       value: value.into(),
       kind: kind.into(),
       detail: None,
+      door: None,
     }
   }
 
@@ -184,6 +194,12 @@ impl Row {
   /// **EMPTY DETAIL IS NOT DETAIL.** A `Some(vec![])` would open a pane with
   /// nothing in it, delimited by a rule separating nothing from nothing --
   /// which section 2 allows nowhere.
+  /// Declare where Enter on this row descends.
+  pub fn opening(mut self, view: super::nav::View) -> Self {
+    self.door = Some(view);
+    self
+  }
+
   pub fn has_detail(&self) -> bool {
     self.detail.as_ref().is_some_and(|d| !d.is_empty())
   }

@@ -22,15 +22,26 @@
 //!
 //! # What is deliberately NOT here
 //!
-//! **`Tab` produces no trigger.** *Pane focus is a GUARD on NORMAL's edges, not
-//! a sixth mode* -- it changes where Move and Enter land and not what the keys
+//! **`Tab` produces no trigger.** *Pane focus is a GUARD on NAV's edges, not a
+//! sixth mode* -- it changes where Move and Enter land and not what the keys
 //! mean, so it is the app's state and not the machine's.
 //!
-//! **`Enter` from NORMAL is ambiguous by design and stays that way here.** The
-//! machine declares two edges -- to FIELD for editable rows, to EMBED for prose
-//! rows -- and `tui-design.md` §3 guards it on the ROW, which this module
-//! cannot see. Resolving it here would put the row-kind rule in the keymap,
-//! where the next reader would not look for it.
+//! **`Enter` from NAV is ambiguous by design and stays that way here.** The
+//! machine declares three edges -- descend for door rows, FIELD for editable
+//! rows, EMBED for prose rows -- and `tui-design.md` §3 guards the triple on
+//! the ROW, which this module cannot see. Resolving it here would put the
+//! row-kind rule in the keymap, where the next reader would not look for it.
+//!
+//! **`Ctrl-C` produces no trigger either.** Quitting is an act of the SHELL
+//! the realiser answers before the machine is consulted, the way `Tab` is --
+//! `tui-design.md` §3: *quitting is now an act, never an accident*, and an
+//! edge for it would put QUIT in the graph as a mode.
+//!
+//! **NAV has no single-letter bindings, and that is a design cost the design
+//! pays on purpose** (`tui-design.md` §4): a printable in NAV SEEDS the
+//! omnibox, which is the Claude Code affordance -- you never select the input
+//! before typing, the input is where unclaimed keystrokes go. A letter that
+//! did something in NAV would be a letter the omnibox never receives.
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
@@ -56,8 +67,6 @@ pub const NOT_FROM_A_KEY: &[(&str, &str)] = &[(
 /// self-loop for it** -- that is the same trap [`super::mode::step`] documents,
 /// one layer out.
 pub fn trigger(mode: Mode, key: KeyEvent) -> Option<&'static str> {
-  // `tui-design.md` §4: `:` and `/` go straight from NORMAL, with no Esc-first
-  // step, and `/` is the MENU key rather than a second command prefix.
   // **EMBED SWALLOWS EVERYTHING, INCLUDING Esc, AND IT IS FIRST FOR THAT
   // REASON.** `mode::ESC_NOT_OURS` declares EMBED the one mode whose escape is
   // not ours: a child process owns the terminal while it runs, so Esc reaches
@@ -78,20 +87,33 @@ pub fn trigger(mode: Mode, key: KeyEvent) -> Option<&'static str> {
     // that reads as built and no operator can take.
     (Mode::Menu, KeyCode::Char('g')) if ctrl => Some("Cancel"),
     (_, KeyCode::Esc) => Some("Esc"),
-    (Mode::Normal, KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right) => Some("Move"),
-    (Mode::Menu, KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right) => Some("Move"),
     (_, KeyCode::Enter) => Some("Enter"),
-    (Mode::Normal, KeyCode::Char(':')) => Some(":"),
-    (Mode::Normal, KeyCode::Char('/')) => Some("/"),
-    (Mode::Normal, KeyCode::Backspace) => Some("Back"),
+    // **THE OMNIBOX'S ARROWS PICK AMONG MATCHES, so only the vertical pair is
+    // bound** -- Left and Right are reserved against a cursor the buffer does
+    // not yet have, and binding them to `Move` today would teach operators a
+    // meaning tomorrow's cursor contradicts.
+    (Mode::Omnibox, KeyCode::Up | KeyCode::Down) => Some("Move"),
+    // `/` is the MENU key ONLY on an empty buffer -- `st/ST0056` is a legal
+    // address (`tui-design.md` §3). The guard is the app's, the way the pane
+    // guard is: this map cannot see the buffer, so it offers the trigger and
+    // the app reroutes a mid-address `/` to `Typing`.
+    (Mode::Omnibox, KeyCode::Char('/')) => Some("/"),
+    (Mode::Omnibox, KeyCode::Char(_) | KeyCode::Backspace) => Some("Typing"),
+    (Mode::Nav, KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right) => Some("Move"),
+    (Mode::Nav, KeyCode::Char(':')) => Some(":"),
+    (Mode::Nav, KeyCode::Char('/')) => Some("/"),
+    (Mode::Nav, KeyCode::Backspace) => Some("Back"),
+    // A printable in NAV seeds the omnibox -- the machine's `NAV + Typing ->
+    // OMNIBOX` edge. The seed character itself is the app's to carry across.
+    (Mode::Nav, KeyCode::Char(_)) => Some("Typing"),
+    (Mode::Menu, KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right) => Some("Move"),
     (Mode::Menu, KeyCode::Backspace) => Some("Back"),
     // A menu accelerator. Found by POSITION in the label rather than assumed to
     // be the first character, which is the menu's own rule -- but which letter
     // is live is the menu's business, so any character offers itself here and
     // the menu refuses the ones it does not bind.
     (Mode::Menu, KeyCode::Char(_)) => Some("Hotkey"),
-    // Text goes to whatever is collecting it. EMBED forwards to the child.
-    (Mode::Field | Mode::Command, KeyCode::Char(_) | KeyCode::Backspace) => Some("Typing"),
+    (Mode::Field, KeyCode::Char(_) | KeyCode::Backspace) => Some("Typing"),
     _ => None,
   }
 }
@@ -236,9 +258,9 @@ mod tests {
   }
 
   /// **ESC IS TOTAL, WHICH IS `AC-17.9`'s HALF THAT LIVES IN THE KEYMAP.** The
-  /// mode machine proves Esc walks toward the rest state; this proves the key
-  /// actually reaches the machine from every mode. Both are needed: an Esc edge
-  /// nothing presses is not an escape.
+  /// mode machine proves Esc lands in a home mode; this proves the key
+  /// actually reaches the machine from every mode. Both are needed: an Esc
+  /// edge nothing presses is not an escape.
   #[test]
   fn esc_reaches_the_machine_from_every_mode_that_owns_its_escape() {
     let exempt: BTreeSet<&str> = super::super::mode::ESC_NOT_OURS
@@ -274,7 +296,7 @@ mod tests {
     );
   }
 
-  /// Pane focus is a guard on NORMAL's edges, not a sixth mode -- so `Tab` must
+  /// Pane focus is a guard on NAV's edges, not a sixth mode -- so `Tab` must
   /// not reach the machine at all.
   #[test]
   fn tab_is_not_a_mode_trigger_anywhere_the_tui_owns_the_keyboard() {
@@ -303,28 +325,44 @@ mod tests {
     );
   }
 
-  /// Typing must reach the collector in every mode that collects, and must not
-  /// in NORMAL, where a bare letter is a command rather than text.
+  /// Typing must reach the collector in every mode that collects -- and in
+  /// NAV, where nothing collects, **a printable is the SEED**: it emits
+  /// `Typing` and the machine routes it to the omnibox, which is hv's
+  /// you-just-start-typing affordance rather than a swallowed key. MENU is
+  /// the one mode where a bare letter means something else (an accelerator),
+  /// so it is asserted as the exception by name.
   #[test]
-  fn typing_reaches_the_collectors_and_not_the_rest_state() {
+  fn typing_reaches_the_collectors_and_seeds_the_omnibox_from_nav() {
     let a = KeyEvent::new(KeyCode::Char('a'), KeyModifiers::NONE);
-    for mode in [Mode::Field, Mode::Command, Mode::Embed] {
+    for mode in [Mode::Field, Mode::Embed, Mode::Omnibox] {
       assert_eq!(
         trigger(mode, a),
         Some("Typing"),
         "{mode:?} must collect text"
       );
     }
-    assert_ne!(
-      trigger(Mode::Normal, a),
+    assert_eq!(
+      trigger(Mode::Nav, a),
       Some("Typing"),
-      "a bare letter in NORMAL must not be swallowed as text"
+      "a printable in NAV must seed the omnibox, not vanish"
+    );
+    assert_eq!(
+      super::super::mode::step(Mode::Nav, "Typing"),
+      Some(Mode::Omnibox),
+      "the NAV seed must LAND in the omnibox -- Typing that self-looped in NAV would swallow \
+       the character with no input on screen to show it"
+    );
+    assert_eq!(
+      trigger(Mode::Menu, a),
+      Some("Hotkey"),
+      "a letter in MENU is an accelerator, the one deliberate exception to the seed rule"
     );
   }
 
   /// **THE WHOLE KEYMAP, DRIVEN THROUGH THE MACHINE.** A trigger being declared
   /// somewhere is weaker than the machine answering it FROM THE MODE THE KEY
-  /// WAS PRESSED IN: `Typing` is declared, but not by any edge out of NORMAL.
+  /// WAS PRESSED IN: `Typing` is declared, but a mode could emit it with no
+  /// edge of its own to answer it.
   #[test]
   fn every_key_the_map_binds_moves_the_machine_from_the_mode_it_was_pressed_in() {
     let mut moved = 0usize;

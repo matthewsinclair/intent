@@ -55,56 +55,66 @@ Three sections, named by hv, separated by two rules. **There are no borders anyw
 
 **Declared as a table; the controller reads it.** This is the estate's own idiom — `transitions.rs` declares edge tables and a machine check holds the code to them — applied to the controller, because a controller finagled into life by trial and error has no table anyone can review.
 
-| from    | trigger                     | to                        | notes                                 |
-| ------- | --------------------------- | ------------------------- | ------------------------------------- |
-| NORMAL  | Move                        | NORMAL                    | in the focused pane                   |
-| NORMAL  | Enter                       | FIELD                     | editable text/select rows             |
-| NORMAL  | Enter                       | EMBED                     | prose rows -> `$EDITOR`               |
-| NORMAL  | `:`                         | COMMAND                   |                                       |
-| NORMAL  | `/`                         | MENU                      |                                       |
-| NORMAL  | Back                        | NORMAL                    | pop the view stack                    |
-| NORMAL  | Esc                         | NORMAL                    | pops a view; **at the root it QUITS** |
-| FIELD   | Typing                      | FIELD                     |                                       |
-| FIELD   | Enter                       | NORMAL                    | commit                                |
-| FIELD   | Esc                         | NORMAL                    | discard                               |
-| COMMAND | Typing / Enter / Esc        | COMMAND / NORMAL / NORMAL |                                       |
-| MENU    | Hotkey / Move               | MENU                      | select or drill in                    |
-| MENU    | Enter / Back / Cancel / Esc | NORMAL                    |                                       |
-| EMBED   | Typing                      | EMBED                     | forwarded to the child                |
-| EMBED   | ChildExit                   | NORMAL                    | read the file back                    |
+**Revised by hv 2026-08-30 (in conversation, superseding the NORMAL-rest machine below at the same provenance strength — driven, then ruled).** hv's frame, verbatim: _an omnibox style input that autonavigates to entity by its address_ ... _the omnibox is the starting point, but pressing ESC or / takes you into those other modes._ So: **OMNIBOX is the rest state** — the input is where a session opens, where addresses are typed, and where `:` commands live (COMMAND is gone; the omnibox absorbed it, because a `:` line beside an always-present input is two prompts for one keyboard). NORMAL is renamed **NAV**, hv's own word for it.
+
+| from    | trigger   | to      | notes                             |
+| ------- | --------- | ------- | --------------------------------- |
+| OMNIBOX | Typing    | OMNIBOX | the address buffer                |
+| OMNIBOX | Move      | OMNIBOX | pick among matches                |
+| OMNIBOX | Enter     | NAV     | go — address, pick or `:` command |
+| OMNIBOX | Esc       | NAV     | leave the input as it is          |
+| OMNIBOX | `/`       | MENU    | empty buffer only                 |
+| NAV     | Move      | NAV     | in the focused pane               |
+| NAV     | Enter     | NAV     | descend — rows with a door        |
+| NAV     | Enter     | FIELD   | editable rows                     |
+| NAV     | Enter     | EMBED   | prose rows -> `$EDITOR`           |
+| NAV     | Back      | NAV     | pop the view stack                |
+| NAV     | Esc       | OMNIBOX | home to the input                 |
+| NAV     | `:`       | OMNIBOX | seed the buffer with `:`          |
+| NAV     | Typing    | OMNIBOX | a printable seeds the buffer      |
+| NAV     | `/`       | MENU    |                                   |
+| MENU    | Hotkey    | MENU    | select or drill in                |
+| MENU    | Move      | MENU    | select or drill in                |
+| MENU    | Enter     | NAV     |                                   |
+| MENU    | Back      | NAV     |                                   |
+| MENU    | Cancel    | NAV     |                                   |
+| MENU    | Esc       | NAV     |                                   |
+| FIELD   | Typing    | FIELD   |                                   |
+| FIELD   | Enter     | NAV     | commit                            |
+| FIELD   | Esc       | NAV     | discard                           |
+| EMBED   | Typing    | EMBED   | forwarded to the child            |
+| EMBED   | ChildExit | NAV     | read the file back                |
 
 **Two invariants, asserted at startup and checkable headlessly:**
 
 - **Every mode is leavable.** A mode you can enter and not leave is the trap `no_state_can_be_entered_and_not_left` already refuses for entities.
-- **Every mode is reachable from NORMAL.** An unreachable mode is dead code that reads as a feature.
+- **Every mode is reachable from OMNIBOX.** An unreachable mode is dead code that reads as a feature.
 
-**NORMAL is the rest state and ESC always walks toward it** — repeated ESC therefore always terminates, which is the property that makes a modal UI safe to be lost in. Save protection is the only thing allowed to stop it, and it names its own escape: `unsaved edits -- :w to write, :q! to discard`.
+**ESC LANDS IN A HOME MODE IN ONE PRESS AND NEVER QUITS.** Home is the pair {OMNIBOX, NAV} — the omnibox is home for the keyboard, NAV is home for the cursor, and Esc toggles between them. This retires the ratified _at the root it QUITS_ deliberately: **quitting is now an act, never an accident** — `Ctrl-C` from anywhere, `:q` from the omnibox. The modern agent idiom (Claude Code's own Esc never quits) is exactly this shape, and it keeps what the old invariant was for: an operator who does not know where they are presses Esc and lands somewhere fully operable, every time. Save protection still names its own escape: `unsaved edits -- :w to write, :q! to discard`.
 
-**Naming:** NORMAL rather than TRAVERSE — it is vi's word for exactly this state, and vi coherence is the stated goal.
+**The `NAV + Enter` triple is the one guarded ambiguity**, resolved by the ROW and never by table order: a row with a door descends, an editable row edits in place, a prose row hands off. The door arm is this revision's fix for the strawman's worst defect — Enter on a `button` row used to reach FIELD, so the one navigation verb on screen navigated nowhere, which is what hv drove into on 2026-08-30.
 
-**Pane focus (list / detail) is a GUARD on NORMAL's edges, not a sixth mode.** It changes where Move and Enter land; it does not change what the keys mean.
+**Pane focus (list / detail) is a GUARD on NAV's edges, not a sixth mode.** It changes where Move and Enter land; it does not change what the keys mean. The omnibox's empty-buffer condition on `/` is the same species of guard: mid-address, `/` is a character (`st/ST0056` is a legal spelling), so the menu key fires only when there is nothing it could be part of.
 
 ## 4. Keys
 
-| key         | does                                                             |
-| ----------- | ---------------------------------------------------------------- |
-| arrows      | move within the focused pane                                     |
-| `Tab`       | switch panes (list ⟷ detail)                                     |
-| `C-w`       | same, **only under the vi keymap**                               |
-| `⏎`         | descend one level: row → detail → editor                         |
-| `e`         | straight to the editor from either pane                          |
-| `:`         | command line                                                     |
-| `/`         | menu                                                             |
-| `Backspace` | pop the view stack                                               |
-| `ESC`       | leave the current mode; in NORMAL pop the view; at the root quit |
+| key         | in OMNIBOX                        | in NAV                                |
+| ----------- | --------------------------------- | ------------------------------------- |
+| printable   | the buffer                        | seeds the omnibox with that character |
+| `⏎`         | go: address, pick, or `:` command | descend / edit / hand off, by the row |
+| arrows      | `↑↓` pick among matches           | move within the focused pane          |
+| `Tab`       | —                                 | switch panes (list ⟷ detail)          |
+| `Backspace` | delete                            | pop the view stack                    |
+| `ESC`       | to NAV, buffer kept               | to OMNIBOX                            |
+| `:`         | (a character)                     | to OMNIBOX, seeded with `:`           |
+| `/`         | MENU when the buffer is empty     | MENU                                  |
+| `Ctrl-C`    | quit                              | quit                                  |
 
-**`/` is the MENU key**, which is the real Lotus 1-2-3 binding. It is therefore **not also a command prefix**: there is ONE typed vocabulary reached with `:`, and one menu. An earlier design had `/commands` for app scope and `:commands` for buffer scope; it was superseded because two prefixes plus a menu is three doors onto one surface.
+**Typing anywhere in NAV lands in the omnibox** — the Claude Code affordance: you never select an input before typing, the input is simply where unclaimed keystrokes go. The cost is stated: NAV has no single-letter bindings (`e`-to-edit and `hjkl` died for this), because a letter that does something in NAV is a letter the omnibox never receives. Enter on the row already edits; arrows already move.
 
-**`:` and `/` go straight from NORMAL.** There is no ESC-first step.
+**`/` is the MENU key**, the real Lotus 1-2-3 binding, guarded in the omnibox by the empty buffer since `st/ST0056` is a legal address. There is ONE typed vocabulary and it lives in the omnibox; `:` survives only as a seed character for it, so `:w` and `:q` keep their vi muscle memory without a COMMAND mode to host them.
 
-**`C-w` is vi-keymap-only on purpose.** Most macOS terminals take it (close tab), so an unconditional binding fights the host for users who never asked for it; and under the emacs keymap `C-w` is kill-region, which is a different promise.
-
-**`⏎` and the menu hotkey go through ONE dispatcher.** They were separate blocks with duplicated logic, which is how two paths to one entry drift into two behaviours.
+**`C-w` is retired with the vi field keymap** (hv, 2026-08-30: _we're handing the text off to a dedicated editor, not trying to recreate it inside_). In-place editing keeps ONE keymap — readline defaults — and everything longer goes to `$EDITOR`.
 
 ## 5. Menus — Lotus 1-2-3
 

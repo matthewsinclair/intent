@@ -78,7 +78,11 @@ pub fn entity_rows(loaded: &Loaded) -> Vec<Row> {
   loaded
     .forms()
     .iter()
-    .map(|f| Row::new(f.entity.clone(), String::new(), "button"))
+    .map(|f| {
+      Row::new(f.entity.clone(), String::new(), "button").opening(View::Collection {
+        kind: f.entity.clone(),
+      })
+    })
     .collect()
 }
 

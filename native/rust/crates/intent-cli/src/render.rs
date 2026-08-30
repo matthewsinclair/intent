@@ -3052,6 +3052,41 @@ impl tui::run::Source for Live {
   fn rows(&mut self, view: &intentsvcs::nav::View) -> Vec<tui::layout::Row> {
     rows_for(&self.facade, &self.declaration, &self.table, view)
   }
+
+  /// The one resolver, presence-probed against this store (`AC-06.12`).
+  fn locate(&mut self, spelling: &str) -> Result<intentsvcs::nav::View, tui::edit::Refused> {
+    match nav::land(spelling, |v| present(&self.facade, v)) {
+      nav::Landing::At(view) => Ok(view),
+      nav::Landing::Root(why) => {
+        let remedy = intentsvcs::remedy::Remedy::remedy(&why);
+        Err(tui::edit::Refused::new(format!("{why} -- {remedy}")))
+      }
+    }
+  }
+
+  /// Every addressable entity, id-first so the omnibox's id-weighted scorer
+  /// is working over the same shape the operator types.
+  fn index(&mut self) -> Vec<tui::omnibox::Entry> {
+    use tui::omnibox::Entry;
+    let mut out: Vec<Entry> = self
+      .facade
+      .st_list()
+      .into_iter()
+      .map(|t| Entry {
+        kind: "thread".into(),
+        id: t.id.clone(),
+        title: t.title.clone(),
+        status: intentsvcs::form::field(&serde_json::json!({ "status": t.status }), "status"),
+      })
+      .collect();
+    out.extend(self.facade.issue_list().into_iter().map(|i| Entry {
+      kind: "issue".into(),
+      id: format!("{:04}", i.number),
+      title: i.title.clone(),
+      status: intentsvcs::form::field(&serde_json::json!({ "status": i.status }), "status"),
+    }));
+    out
+  }
 }
 
 impl tui::edit::Model for Live {
@@ -3167,12 +3202,23 @@ fn rows_for(
     View::Collection { kind } if kind == "thread" => facade
       .st_list()
       .into_iter()
-      .map(|t| Row::new(t.id.clone(), t.title.clone(), "button"))
+      .map(|t| {
+        Row::new(t.id.clone(), t.title.clone(), "button").opening(View::Item {
+          kind: "thread".into(),
+          id: t.id.clone(),
+        })
+      })
       .collect(),
     View::Collection { kind } if kind == "issue" => facade
       .issue_list()
       .into_iter()
-      .map(|i| Row::new(format!("{:04}", i.number), i.title.clone(), "button"))
+      .map(|i| {
+        let id = format!("{:04}", i.number);
+        Row::new(id.clone(), i.title.clone(), "button").opening(View::Item {
+          kind: "issue".into(),
+          id,
+        })
+      })
       .collect(),
     View::Item { kind, id } => {
       let Some(form) = declaration.form(kind) else {
@@ -3184,6 +3230,19 @@ fn rows_for(
       // would say the entity has no fields, which is a different and false
       // claim.
       let mut rows = tui::views::rows_for(form, &entity.unwrap_or(serde_json::Value::Null));
+      // **THE DOORS COME FROM THE DECLARATION, NOT FROM ROW SHAPE** --
+      // `nav::descents` is the shared contract both faces walk (`AC-17.12`),
+      // so the row that renders `wps` descends exactly where the browser's
+      // URL for it goes, and a row no descent claims opens nothing.
+      for d in intentsvcs::nav::descents(declaration, kind) {
+        if let Some(row) = rows.iter_mut().find(|r| r.name == d.field) {
+          row.door = Some(View::Children {
+            kind: kind.clone(),
+            id: id.clone(),
+            field: d.field.clone(),
+          });
+        }
+      }
       rows.extend(artefact_rows(table, kind));
       rows
     }
