@@ -19,7 +19,7 @@ mod common;
 use common::{PROJECT_ID, sample_issue, sample_thread};
 use intentsvcs::event::Envelope;
 use intentsvcs::export::{
-  self, Bundle, DEFAULT_FORMAT, ExportRefusal, FORMATS, Format, Projection,
+  self, Bundle, DEFAULT_FORMAT, ExportRefusal, FORMATS, Format, Projected, Projection,
 };
 use intentsvcs::model::{AcKind, AcState, Criterion, Issue, Thread};
 
@@ -169,23 +169,42 @@ fn bundle() -> Bundle {
   )
 }
 
-/// **The anti-vacuity check, and it comes first because the two tests after it
-/// are conditional on it.**
+/// **The anti-vacuity check, and it comes first because the tests after it are
+/// conditional on it.**
 ///
 /// Each of those walks the roster and asserts something about the rows of one
 /// kind. An empty roster, or one with no rows of a given kind, makes the
 /// corresponding test pass having examined nothing -- and it would keep its
 /// name, which is the form of green this project keeps catching.
+///
+/// **IT COUNTED TWO KINDS WHILE THE TYPE CARRIED THREE, AND ITS NAME SAID SO**
+/// (cc, 2026-08-30). `Projection::Realises` was ruled in by hv on 2026-08-20 --
+/// `export --format md` delegates to the realisation rather than emitting a
+/// second markdown document -- and this arm, whose entire job is refusing to
+/// assert over an empty set, is the last place anyone would look for a
+/// population that had stopped covering its own type. **It passed, under a name
+/// telling the reader both kinds were accounted for.** This file's own subject,
+/// arriving in its guard: a partition that stops covering its population.
+///
+/// **SO THE COUNT IS AN EXHAUSTIVE `match` AND NOT `matches!`.** A fourth
+/// variant on `Projection` now fails to COMPILE here rather than falling
+/// silently out of every bucket. `export.rs`'s `emitting_names` carries exactly
+/// this reasoning in its own comment and got it right for the source; **the
+/// test did not inherit it, and nothing connected the two.**
 #[test]
-fn the_roster_carries_both_kinds_so_neither_arm_is_asserted_over_an_empty_set() {
-  let round_trips = FORMATS
-    .iter()
-    .filter(|f| matches!(f.projection, Projection::RoundTrips { .. }))
-    .count();
-  let lossy = FORMATS
-    .iter()
-    .filter(|f| matches!(f.projection, Projection::Lossy { .. }))
-    .count();
+fn the_roster_carries_every_kind_so_no_arm_is_asserted_over_an_empty_set() {
+  let mut round_trips = 0usize;
+  let mut lossy = 0usize;
+  let mut realises = 0usize;
+  for format in FORMATS {
+    // **EXHAUSTIVE ON PURPOSE, and this line is the guard.** See the note
+    // above: it makes a new variant a build failure rather than a silent gap.
+    match &format.projection {
+      Projection::RoundTrips { .. } => round_trips += 1,
+      Projection::Lossy { .. } => lossy += 1,
+      Projection::Realises { .. } => realises += 1,
+    }
+  }
   assert!(
     round_trips > 0,
     "AC-06.6's first arm needs at least one format that round-trips"
@@ -194,6 +213,12 @@ fn the_roster_carries_both_kinds_so_neither_arm_is_asserted_over_an_empty_set() 
     lossy > 0,
     "AC-06.6's second arm needs at least one format that is refused by name; with none, \
      `a_format_that_cannot_carry_the_canon_back_...` examines nothing and still passes"
+  );
+  assert!(
+    realises > 0,
+    "hv's 2026-08-20 ruling put a THIRD disposition in this roster -- a format whose artefact \
+     is a directory tree rather than a document -- and with none present \
+     `a_format_whose_artefact_is_a_tree_...` examines nothing and still passes"
   );
   // Names are the operator's handle on a format and the refusal lists them, so
   // two rows answering to one name would make a refusal ambiguous and a lookup
@@ -509,5 +534,128 @@ fn the_default_format_is_in_the_roster_and_is_one_that_round_trips() {
   assert!(
     matches!(format.projection, Projection::RoundTrips { .. }),
     "the bare `intent export` must not default to a format that refuses"
+  );
+}
+
+/// **THE THIRD DISPOSITION: AN ARTEFACT THAT IS A TREE IS AN INSTRUCTION, NOT A
+/// DOCUMENT** (hv, 2026-08-20).
+///
+/// Read flatly, AC-06.6's disjunction -- *round-trips, or is refused by name* --
+/// makes `md` a contradiction: it does neither. It does neither because **it is
+/// not in this criterion's population.** AC-06.6 governs INTERCHANGE
+/// projections, canon into another MACHINE format, which is D03's mechanism and
+/// the reason v3 can refuse YAML canon without refusing YAML users. The text
+/// realisation is a human fallback: no import path, and `classify` never sees
+/// what it writes.
+///
+/// **"OUTSIDE THE POPULATION" MUST NOT QUIETLY BECOME "UNCHECKED", WHICH IS
+/// WHAT IT WAS UNTIL THIS ARM.** Being exempt from the round-trip rule is not
+/// being exempt from having a contract, so the third thing that must be true is
+/// asserted here: the exporter neither emits a document for it nor refuses it.
+#[test]
+fn a_format_whose_artefact_is_a_tree_is_an_instruction_rather_than_a_document() {
+  let bundle = bundle();
+  let mut seen = 0usize;
+
+  for format in FORMATS {
+    let Projection::Realises {
+      destination,
+      no_read_because,
+    } = &format.projection
+    else {
+      continue;
+    };
+    seen += 1;
+    let name = format.name;
+
+    assert_eq!(
+      export::project_with(&bundle, format),
+      Ok(Projected::Realise),
+      "{name}: a realising format must come back as the instruction to realise. A `Document` \
+       would mean a directory tree was flattened onto stdout, destroying the file boundaries \
+       that ARE its structure; a refusal would mean the roster declined a format hv ruled in"
+    );
+
+    // **The destination IS the answer for this variant**, because there is no
+    // returned artefact for an operator to look at.
+    assert!(
+      !destination.trim().is_empty(),
+      "{name}: a realising format returns no artefact, so an empty destination leaves the \
+       operator with nothing naming where their estate was written"
+    );
+    // **AC-06.2 FORBIDS a read route, so its absence is a GUARANTEE and has to
+    // be stated rather than merely observed.** An unexplained absence reads
+    // exactly like a reader nobody has built yet.
+    assert!(
+      !no_read_because.trim().is_empty(),
+      "{name}: the absence of a read route is a guarantee under AC-06.2, not an omission, and \
+       an unstated guarantee is indistinguishable from an unbuilt reader"
+    );
+
+    // It PRODUCES an artefact, so it belongs in the list the `Unknown` refusal
+    // offers; it is not refused, so it must never appear in the other. Both
+    // directions, because `emitting_names` filters on two variants and dropping
+    // one is the silent half of adding a third.
+    assert!(
+      export::emitting_names().contains(&name),
+      "{name}: it produces an artefact and `emitting_names` omits it, so the remedy offered for \
+       an unknown format has stopped naming a format that works"
+    );
+    assert!(
+      !export::refused_names().contains(&name),
+      "{name}: it is not refused, so listing it among the recognised-and-declined would tell an \
+       operator not to reach for something that works"
+    );
+  }
+
+  assert!(
+    seen > 0,
+    "no realising format was examined, so this arm asserted nothing -- the population arm \
+     beside it should have failed first"
+  );
+}
+
+/// **DRIVEN TO BOTH VERDICTS, BECAUSE AN ARM THAT ONLY EVER MEETS `md` CANNOT
+/// TELL A DISPOSITION FROM A NAME.**
+///
+/// Every realising row in the roster passes the arm above, which is
+/// indistinguishable from a call that answers `Realise` for everything. So a
+/// realising format **the roster does not contain** is put through the same
+/// call and required to reach the same answer, and a round-tripping one is
+/// required to reach a different one.
+///
+/// `project_with` exists to be driven this way -- its own doc says it is split
+/// out so the verifier can be exercised by a format the roster does not carry.
+#[test]
+fn the_realise_instruction_follows_the_disposition_and_not_the_format_name() {
+  let bundle = bundle();
+
+  let invented = Format {
+    name: "not-in-the-roster",
+    help: "a realising format the roster has never carried",
+    projection: Projection::Realises {
+      destination: "somewhere/else/",
+      no_read_because: "invented for this test and deliberately never given a reader",
+    },
+  };
+  assert_eq!(
+    export::project_with(&bundle, &invented),
+    Ok(Projected::Realise),
+    "the instruction is keyed on the DISPOSITION, so a realising format the roster has never \
+     carried must reach it too -- otherwise the arm above is matching on the name `md`"
+  );
+
+  // **The negative half, and without it `Realise` could be what this call
+  // always says.** A prohibition proves nothing until the predicate is shown
+  // saying no.
+  let round_tripping = FORMATS
+    .iter()
+    .find(|f| matches!(f.projection, Projection::RoundTrips { .. }))
+    .expect("the population arm requires at least one");
+  assert_ne!(
+    export::project_with(&bundle, round_tripping),
+    Ok(Projected::Realise),
+    "a round-tripping format came back as the instruction to realise, so this call cannot \
+     separate the two dispositions and the arm above proves nothing"
   );
 }
