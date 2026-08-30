@@ -147,6 +147,50 @@ async fn main() -> ExitCode {
     return ExitCode::SUCCESS;
   }
 
+  // **AN ARGUMENT THIS BINARY DOES NOT UNDERSTAND MUST NOT START A DAEMON, AND
+  // THIS COST A LIVE INCIDENT ON THE DEVELOPER'S OWN MACHINE.**
+  //
+  // Before this, `intentd` inspected argv for `--version` and then served
+  // REGARDLESS of what else was there. So `intentd --help` -- which is what
+  // anybody types first, and what a peer typed while diagnosing something
+  // unrelated -- started a real daemon under the real `$HOME`. It bound, it
+  // published, and for three minutes every session on the machine had its store
+  // verbs refused at rc=2 by a daemon nobody meant to start.
+  //
+  // **THE FIXTURES WERE GUARDED AND THE FRONT DOOR WAS NOT.** Every test in this
+  // estate goes to some trouble to give the daemon an isolated `HOME`, precisely
+  // because a daemon on the real one takes four sessions down together -- and
+  // the thing that actually did it was a person typing `--help`. **A guard on
+  // the path you expected the danger to arrive by is not a guard on the danger.**
+  //
+  // Serving is what this binary does with NO arguments, so anything else is a
+  // request it cannot honour, and starting anyway is answering a question that
+  // was not asked.
+  let unknown: Vec<String> = std::env::args().skip(1).collect();
+  if !unknown.is_empty() {
+    let wants_help = unknown.iter().any(|a| a == "--help" || a == "-h");
+    if wants_help {
+      println!("intentd -- the Intent daemon. Serves this machine's open projects.");
+      println!();
+      println!("Usage: intentd            serve until signalled (SIGTERM, SIGINT)");
+      println!("       intentd --version  print the version and exit");
+      println!("       intentd --help     print this and exit");
+      println!();
+      println!(
+        "It takes no other arguments and no subcommands. `intent daemon run` execs this binary."
+      );
+      return ExitCode::SUCCESS;
+    }
+    eprintln!(
+      "error: intentd takes no arguments and was given {}",
+      unknown.join(" ")
+    );
+    eprintln!(
+      "  remedy: run `intentd` with nothing after it to serve, or `intentd --help`. It is deliberate that an unrecognised argument does NOT fall through to serving: starting a daemon on this machine's real HOME makes every session's store verbs refuse, and that is not a thing to do by accident."
+    );
+    return ExitCode::FAILURE;
+  }
+
   let root = match userstate::home() {
     Ok(root) => root,
     Err(e) => return refuse(StartupError::NoUserState(e)),
