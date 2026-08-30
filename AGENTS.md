@@ -14,6 +14,7 @@ Intent -- an Intent project. See `CLAUDE.md` for the Claude-specific overlay.
 
 - Elixir / Erlang / OTP (see `mix.exs` for version)
 - Rust toolchain (see `Cargo.toml` for edition)
+- Swift toolchain (see `Package.swift` for the tools version)
 - Bash or Zsh (see the project's own docs for the target version)
 - Bats testing framework
 
@@ -32,6 +33,10 @@ mix compile
 cargo build
 ```
 
+```bash
+swift build
+```
+
 ## Build and Test Commands
 
 ### Test commands
@@ -42,6 +47,10 @@ mix test
 
 ```bash
 cargo test
+```
+
+```bash
+swift test
 ```
 
 ```bash
@@ -58,6 +67,10 @@ mix compile
 cargo build
 ```
 
+```bash
+swift build
+```
+
 ### Validation
 
 ```bash
@@ -69,6 +82,7 @@ intent st list      # list steel threads
 
 - Follow Elixir conventions enforced by `mix format`.
 - Follow Rust conventions enforced by `cargo fmt`.
+- Follow Swift conventions enforced by `swift format`.
 - Shell scripts: 2-space indentation, POSIX-compliant where practical.
 - Markdown: no manual line wrapping; verblock frontmatter on persistent docs.
 - See `usage-rules.md` for the terse "DO / NEVER" contract.
