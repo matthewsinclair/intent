@@ -810,3 +810,263 @@ mod tests {
     "the truncation must not swallow the shipped code above the test module"
   );
 }
+
+// ---------------------------------------------------------------------------
+// AT-00.17 -- the third surface: files Intent WRITES INTO other repositories
+// ---------------------------------------------------------------------------
+//
+// `AC-00.9` was EXTENDED on 2026-08-20 by hv, direct, on seeing thread ids in
+// code again, and the extension is what this module covers. Everything above
+// this line tests OUTPUT -- what the shipped binaries emit. **That is the
+// narrower of the two readings and the payload fell through the difference.**
+//
+// A template copied by `st new`, a hook installed into `.git/hooks/`, a skill
+// installed into `.claude/`, and the rule library served to a consumer's agent
+// are none of them binary output, and none of them are comments a consumer
+// never sees. They are the opposite: artefacts whose whole purpose is to be
+// read inside somebody else's project.
+//
+// **THE DISCRIMINATOR IS REFERENT, NOT SHAPE**, which is the same method the
+// `ST0000`-versus-`ST0056` trap is closed on above rather than a second
+// invention. `intent st show ST0042` teaches syntax and costs a consumer
+// nothing -- `ST0042` names no thread in this estate, so it is a placeholder
+// that happens to be four digits. `ST0035` names a real one, and a reader who
+// follows it arrives at a tracker they cannot open.
+//
+// Thread-relative ids are stricter and the reason is that they are strictly
+// less resolvable: a consumer meeting `AC-07.4` in an installed hook has no
+// thread to resolve it against, so there is no referent test to apply and the
+// id cannot be anything but a citation.
+
+use std::collections::BTreeSet;
+
+/// Every steel-thread id that names a REAL thread in this estate.
+///
+/// Read from the canon extract's filenames rather than from a list written
+/// here, because a list would be a second home for the thread roster and would
+/// go stale in exactly the direction that matters: a NEW thread cited in
+/// payload would stop being detected on the day it was created.
+fn real_thread_ids() -> BTreeSet<String> {
+  let dir = repo_root().join("intent/.canon/st");
+  let mut ids = BTreeSet::new();
+  for entry in std::fs::read_dir(&dir).expect("intent/.canon/st is readable") {
+    let path = entry.expect("a readable dir entry").path();
+    if path.extension().and_then(|e| e.to_str()) == Some("json") {
+      if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+        ids.insert(stem.to_string());
+      }
+    }
+  }
+  ids
+}
+
+/// Every file Intent installs into somebody else's repository.
+///
+/// `lib/templates/` is what `intent init` and the canon engine lay down;
+/// `intent/plugins/claude/` is the skills, subagents and rule library served to
+/// a consumer's agent. Both are payload by definition -- nothing here is read
+/// only inside this repo.
+fn installed_payload() -> Vec<(PathBuf, String)> {
+  let root = repo_root();
+  let mut out = Vec::new();
+  for sub in ["lib/templates", "intent/plugins/claude"] {
+    collect_text_files(&root.join(sub), &mut out);
+  }
+  out
+}
+
+fn collect_text_files(dir: &Path, out: &mut Vec<(PathBuf, String)>) {
+  let Ok(entries) = std::fs::read_dir(dir) else {
+    return;
+  };
+  for entry in entries.flatten() {
+    let path = entry.path();
+    if path.is_dir() {
+      collect_text_files(&path, out);
+    } else if let Ok(text) = std::fs::read_to_string(&path) {
+      out.push((path, text));
+    }
+  }
+}
+
+/// The citations in one payload file: identifiers that point into Intent's own
+/// tracker rather than teaching a consumer a shape.
+fn citations_in(text: &str, real: &BTreeSet<String>) -> Vec<String> {
+  pm_identifiers(text, Decisions::Ambiguous)
+    .into_iter()
+    .filter(|id| {
+      if id.starts_with("ST") {
+        // Referent: a four-digit thread id is a citation only if it resolves.
+        real.contains(id)
+      } else {
+        // `WP-nn`, `AC-n.n`, `AT-n.n` -- no thread context, so nothing to
+        // resolve against and nothing it can be but a citation.
+        true
+      }
+    })
+    .collect()
+}
+
+/// **THE POSITIVE CONTROL FOR THE CORPUS.** Every assertion below iterates the
+/// payload, so an empty payload passes all of them for free -- a moved
+/// directory, a renamed root, a `read_dir` that silently returns nothing.
+#[test]
+fn the_installed_payload_is_a_real_corpus_and_the_thread_roster_resolves() {
+  let payload = installed_payload();
+  assert!(
+    payload.len() > 100,
+    "installed payload came back as {} file(s); every citation assertion below \
+     would then iterate almost nothing and pass for free",
+    payload.len()
+  );
+  let real = real_thread_ids();
+  assert!(
+    real.len() > 20,
+    "the thread roster came back as {} id(s), so the referent filter would \
+     classify real citations as placeholders and report a clean payload",
+    real.len()
+  );
+  assert!(
+    real.contains("ST0056"),
+    "the roster must contain this thread, or the referent test is reading the \
+     wrong directory"
+  );
+}
+
+/// **THE DISCRIMINATOR IS DRIVEN IN BOTH DIRECTIONS**, because a filter that
+/// flagged everything would satisfy the leak assertion trivially and report a
+/// defect it had not measured.
+///
+/// Driven against a SYNTHETIC roster rather than the live one, so this tests
+/// the filter and not the estate. The first cut used the live roster and
+/// asserted `ST0042` was a placeholder -- **which failed, because `ST0042` is a
+/// real thread here.** That was the right failure and it is why the two
+/// concerns are now separate tests: a control whose verdict moves when somebody
+/// creates a thread is measuring the wrong thing.
+#[test]
+fn the_referent_filter_separates_a_placeholder_from_a_citation() {
+  let roster: BTreeSet<String> = ["ST0056".to_string()].into_iter().collect();
+
+  assert!(
+    citations_in("intent st show ST4242", &roster).is_empty(),
+    "an id absent from the roster names no thread, so it teaches syntax"
+  );
+  assert!(
+    citations_in("\"${CANON_DIR}/st/ST9999.json\"", &roster).is_empty(),
+    "`ST9999` is a deliberate probe for a path that does not exist"
+  );
+  assert!(
+    citations_in("see ST0000 for the retrofit", &roster).is_empty(),
+    "`ST0000` is the READER's own thread and is blessed above"
+  );
+  assert_eq!(
+    citations_in("# COVERS ST0056 AC-10.13 / AT-10.13.", &roster),
+    vec!["ST0056", "AC-10.13", "AT-10.13"],
+    "a rostered thread id and two thread-relative ids are all citations"
+  );
+}
+
+/// **THE ESTATE'S OWN WORKED-EXAMPLE IDS RESOLVE TO REAL THREADS, AND THAT IS
+/// THE FINDING RATHER THAN A FIXTURE DETAIL.**
+///
+/// `AC-00.9`'s text argues that `intent st show ST0042` "teaches syntax and
+/// costs a consumer nothing -- the id is a placeholder that happens to be four
+/// digits". **Measured 2026-08-30: it is not a placeholder.** `ST0042`,
+/// `ST0005` and `ST0001` are all real threads in this estate, so every shipped
+/// worked example built on them points a consumer at a tracker they cannot
+/// open, by the criterion's own definition of a citation.
+///
+/// `READERS_OWN` is the resolution and the file already says so: `ST0000` is
+/// the only id guaranteed to resolve to something the reader can actually look
+/// at. This test pins the collision so a worked example cannot quietly go back
+/// to a four-digit id that happens to be free today and is taken next month.
+#[test]
+fn the_worked_example_ids_in_shipped_payload_are_not_placeholders() {
+  let real = real_thread_ids();
+  for id in ["ST0042", "ST0005", "ST0001"] {
+    assert!(
+      real.contains(id),
+      "`{id}` was expected to resolve here -- if it no longer does, the payload \
+       finding this test records has changed and wants re-measuring, not deleting"
+    );
+  }
+  assert!(
+    !real.contains(READERS_OWN),
+    "`{READERS_OWN}` must NOT be a thread in this estate, or the one id blessed \
+     as the reader's own would itself be a citation into our tracker"
+  );
+}
+
+/// **NO FILE INTENT INSTALLS INTO ANOTHER REPOSITORY CITES INTENT'S OWN
+/// TRACKER.** This is `AC-00.9`'s third surface and it is the one hv extended
+/// the row to reach.
+///
+/// **THIS ROW IS RED AND THE REDNESS IS THE POINT.** The payload carries live
+/// citations today; the criterion is unsatisfied and this test says so in the
+/// one place a reader will look, instead of the measurement living in the
+/// criterion's prose where it decays unwatched. It was 80 references across 25
+/// files when hv extended the row on 2026-08-20 and it is larger now, which is
+/// what an unwatched surface does.
+///
+/// **THE POPULATION IS PARKED AND THE INSTRUMENT IS NOT, which is the same
+/// shape `AT-06.8` was parked in and for the same reason.** Measured 2026-08-30
+/// by vc: **93 citations across 27 of 228 installed payload files.** Three
+/// nodes are editing this payload concurrently -- dc owns the hooks, ic the
+/// skills surface -- so a baseline frozen mid-landing would red the workspace
+/// for four nodes on a number that was never stable.
+///
+/// **WHAT IS PARKED IS THE CORPUS, NOT THE CHECK.** The two controls above run
+/// and gate now: the corpus positive control, and the both-directions
+/// discrimination. `#[ignore]` rather than a relaxed assertion is deliberate --
+/// relaxing a gate at the moment it stops covering anything converts a refusal
+/// into a silent pass, and a ratchet pinned at 93 would pin the defect.
+/// `#[ignore]` says NOT RUN, in every test run, where a reader sees it.
+///
+/// **EXPIRY, NAMED SO IT CANNOT BECOME PERMANENT: remove `#[ignore]` when the
+/// payload citations are cleared.** They are mechanical -- provenance comments
+/// in installed hooks (`# COVERS ST0056 AC-10.13`), and worked examples built
+/// on `ST0042` / `ST0005` / `ST0001`, all three of which resolve here. The
+/// resolution for the second class is already named in this file: `READERS_OWN`
+/// is the only id guaranteed to resolve to something the reader can look at.
+///
+/// **AT-00.17 IS THEREFORE RED AND MUST NOT BE MOVED ON THE STRENGTH OF THIS
+/// COMMIT.** The instrument exists and is driven in both directions; the
+/// criterion is unmet until this arm runs.
+#[ignore = "AT-00.17: population parked with a named expiry; the instrument runs and the corpus does not gate yet"]
+#[test]
+fn no_installed_payload_file_cites_intents_own_tracker() {
+  let real = real_thread_ids();
+  let payload = installed_payload();
+  let root = repo_root();
+
+  let mut offenders: Vec<(String, Vec<String>)> = Vec::new();
+  let mut total = 0usize;
+  for (path, text) in &payload {
+    let cites = citations_in(text, &real);
+    if !cites.is_empty() {
+      total += cites.len();
+      let rel = path
+        .strip_prefix(&root)
+        .unwrap_or(path)
+        .display()
+        .to_string();
+      offenders.push((rel, cites));
+    }
+  }
+  offenders.sort();
+
+  let report: String = offenders
+    .iter()
+    .map(|(p, c)| format!("\n  {p} -- {}", c.join(", ")))
+    .collect();
+
+  assert!(
+    offenders.is_empty(),
+    "AT-00.17: {} citation(s) into Intent's own tracker across {} of {} \
+     installed payload file(s). A consumer reading these arrives at a tracker \
+     they cannot open.{report}",
+    total,
+    offenders.len(),
+    payload.len()
+  );
+}
