@@ -1321,6 +1321,18 @@ pub enum Note {
   /// its files in line for the next `organize` to remove. The strings are the
   /// paths, ready to print.
   UnsyncedAttachments(Vec<String>),
+  /// This fiat close was the ONLY test covering the named criteria, which
+  /// therefore stay unsatisfied with nothing left that could satisfy them.
+  ///
+  /// **THE VERB WAS SEMANTICALLY CORRECT AND SILENT, AND SILENCE WAS THE
+  /// DEFECT** (issue 0158). `at fc` records that one test is abandoned; it is
+  /// deliberately NOT a satisfaction, because an AC may have several covering
+  /// tests and closing one on authority must not close the criterion a level
+  /// above where anyone reads it. But when it was the LAST cover, the operator
+  /// had moved the only thing that could ever answer the criterion and every
+  /// observable surface reported rc=0 and no change. A verb can be correct
+  /// about what it did and wrong about what it said.
+  FiatClosedSoleCover(Vec<String>),
   /// **THE QUESTION COULD NOT BE ASKED** -- no repository, or git did not run.
   ///
   /// Carried as its own variant rather than as an empty list, because "nothing
@@ -5829,6 +5841,14 @@ impl Facade {
         inherited_event: None,
       });
     }
+    // Computed from `next` -- the estate as this close leaves it -- and BEFORE
+    // the apply, because `next` is moved into it.
+    let sole = next
+      .threads
+      .iter()
+      .find(|t| t.id == st)
+      .map(|t| crate::contract::solely_covered_by(t, at))
+      .unwrap_or_default();
     self
       .apply(
         "at.fc",
@@ -5839,7 +5859,15 @@ impl Facade {
         json!({"because": because, "by": by}),
         next,
       )
-      .map(|()| Outcome::Moved)
+      .map(|()| {
+        if sole.is_empty() {
+          Outcome::Moved
+        } else {
+          Outcome::MovedWith {
+            notes: vec![Note::FiatClosedSoleCover(sole)],
+          }
+        }
+      })
   }
 
   /// **Write by address** -- `PUT` an entity's json form (AC-08.3, AC-08.4).

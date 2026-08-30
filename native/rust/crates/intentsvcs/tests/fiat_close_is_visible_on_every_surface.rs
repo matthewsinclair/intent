@@ -81,6 +81,7 @@ mod common;
 
 use common::{Fixture, ctx, sample_thread};
 use intentsvcs::contract::{Scope, Verdict};
+use intentsvcs::facade::Note;
 use intentsvcs::finding::FindingClass;
 use intentsvcs::ingest::Canon;
 use intentsvcs::model::{AcKind, AcState, Criterion, FiatRecord, Invoker, Thread, WpStatus};
@@ -384,5 +385,125 @@ fn doctor_does_not_report_a_fiat_closed_scope_as_a_satisfied_one() {
     !by_fiat.contains("every criterion in its scope is satisfied"),
     "a criterion closed on authority against the evidence was never satisfied, \
      and this is the sentence that said it was: {by_fiat}"
+  );
+}
+
+// ---------------------------------------------------------------------------
+// A fiat-closed TEST -- the surface that reports a criterion's REASON
+// ---------------------------------------------------------------------------
+
+/// A test-backed criterion covered by `n` acceptance tests, the first of which
+/// is the one under test.
+fn test_backed(ats: usize, fiat_first: bool) -> Thread {
+  let mut t = sample_thread("ST0001");
+  t.criteria.clear();
+  t.tests.clear();
+  t.wps.truncate(1);
+  t.criteria.push(Criterion {
+    id: "AC-00.1".to_string(),
+    text: "a test-backed requirement".to_string(),
+    kind: AcKind::Test,
+    state: AcState::Computed,
+  });
+  for n in 1..=ats {
+    t.tests.push(intentsvcs::model::AcceptanceTest {
+      id: format!("AT-00.{n}"),
+      kind: intentsvcs::model::AtKind::Test,
+      file: Some("tests/x.rs".to_string()),
+      covers: vec!["AC-00.1".to_string()],
+      status: intentsvcs::model::AtStatus::Red,
+      note: None,
+      prose: None,
+      legacy: None,
+      fiat: (n == 1 && fiat_first).then(|| match fiat(None) {
+        AcState::Fiat(r) => r,
+        _ => unreachable!("`fiat` builds a Fiat state"),
+      }),
+    });
+  }
+  t
+}
+
+/// **`NOT GREEN` WAS HIDING TWO OPPOSITE STATES AND THE GATE SAID THE SAME
+/// THING ABOUT BOTH.** A test a human ruled will never be written and one
+/// nobody has got to yet are opposite facts -- a decision taken against work
+/// outstanding -- and `AtStatus` put a fiat close BESIDE the status, so every
+/// consumer read them identically. Issue 0158.
+///
+/// **THE SATISFIED COUNT MUST NOT MOVE**, which is the other half of the row and
+/// the easier one to get wrong: a fiat close on ONE covering test is not a
+/// satisfaction of the criterion above it, or the ruling would be recorded a
+/// level below where anyone reads it. What moves is the REASON, in the line that
+/// does the counting.
+#[test]
+fn a_criterion_blocked_by_a_fiat_closed_test_says_so_where_it_is_counted() {
+  let ruled = tally(test_backed(1, true));
+  let merely_red = tally(test_backed(1, false));
+
+  assert_ne!(
+    ruled, merely_red,
+    "a cover ruled on and a cover nobody has written must not render identically \
+     -- that sameness IS 0158"
+  );
+  assert!(
+    ruled.contains("blocked by a fiat-closed test"),
+    "the gate must name the reason in the line that counts the row: {ruled}"
+  );
+  assert!(
+    !merely_red.contains("fiat"),
+    "an ordinary red cover must claim nothing about a fiat close: {merely_red}"
+  );
+  assert!(
+    ruled.contains("0/1 satisfied"),
+    "the SATISFIED count must not move -- a fiat close on a covering test is not \
+     a satisfaction of the criterion above it: {ruled}"
+  );
+}
+
+/// **THE VERB WAS CORRECT AND SILENT, AND SILENCE WAS THE DEFECT.** Closing the
+/// last test covering a criterion left nothing that could ever answer it, and
+/// every observable surface reported rc=0 and no change.
+///
+/// Paired against a criterion with a second cover, where there IS something left
+/// and the note would be false.
+#[test]
+fn at_fc_says_when_it_closed_the_last_thing_that_could_satisfy_a_criterion() {
+  let sole = {
+    let fx = Fixture::new();
+    let mut facade = fx.facade_on_disk();
+    fx.write_thread(&test_backed(1, false));
+    facade
+      .sync_from_disk(&intentsvcs::sync::Scope::All)
+      .expect("ingest");
+    facade
+      .at_fc("ST0001", "AT-00.1", "this test will not be written", "hv")
+      .expect("at fc")
+  };
+  let notes = sole.notes();
+  assert!(
+    notes
+      .iter()
+      .any(|n| matches!(n, Note::FiatClosedSoleCover(acs) if acs == &["AC-00.1".to_string()])),
+    "closing the ONLY cover must say which criterion now has nothing left: {notes:?}"
+  );
+
+  let one_of_two = {
+    let fx = Fixture::new();
+    let mut facade = fx.facade_on_disk();
+    fx.write_thread(&test_backed(2, false));
+    facade
+      .sync_from_disk(&intentsvcs::sync::Scope::All)
+      .expect("ingest");
+    facade
+      .at_fc("ST0001", "AT-00.1", "this test will not be written", "hv")
+      .expect("at fc")
+  };
+  assert!(
+    !one_of_two
+      .notes()
+      .iter()
+      .any(|n| matches!(n, Note::FiatClosedSoleCover(_))),
+    "with a second cover the criterion still has something that could satisfy it, \
+     and a warning that fires anyway is one an operator learns to ignore"
   );
 }

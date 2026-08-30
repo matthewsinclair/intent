@@ -4959,6 +4959,22 @@ fn reported(outcome: &Outcome, subject: &str, moved: &str) {
       Note::UnsyncedUnknown => eprintln!(
         "note: the index could not be read, so whether this thread's attachments carry uncommitted bytes is UNKNOWN"
       ),
+      Note::FiatClosedSoleCover(acs) => {
+        eprintln!(
+          "warning: {subject} was the ONLY test covering {}, which stay(s) unsatisfied with nothing left that could satisfy them:",
+          if acs.len() == 1 {
+            "1 criterion"
+          } else {
+            "criteria"
+          }
+        );
+        for ac in acs {
+          eprintln!("  {ac}");
+        }
+        eprintln!(
+          "  remedy: a fiat close on a TEST records that this test is abandoned, and deliberately does not satisfy the criterion above it -- a criterion may have several covering tests, and closing one on authority must not close the row a level up. If the REQUIREMENT is what is not worth meeting, `intent fc <ST> <AC> --because ...` is the door that says so; otherwise the criterion needs another test."
+        );
+      }
     }
   }
   match outcome.already() {

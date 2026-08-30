@@ -97,13 +97,77 @@ pub fn group_of(id: &str) -> String {
 /// never green, so it can never satisfy it". The gate now behaves the way that
 /// lint already says it will, so the two agree instead of the lint warning about a
 /// consequence the gate did not have.
-pub fn satisfied_by_tests(thread: &Thread, ac_id: &str) -> bool {
+/// What an AC's covering tests answer, for a test-backed criterion.
+///
+/// **`FiatClosed` EXISTS BECAUSE `NOT GREEN` WAS HIDING TWO OPPOSITE STATES.**
+/// `AtStatus` is `ToWrite | Red | Green | Na` and a fiat close sits BESIDE it,
+/// so a test a human ruled will never be written was byte-identical, to every
+/// consumer, to one nobody has got to yet. Those are opposite facts: one is
+/// work outstanding, the other is a decision already taken. Issue 0158.
+///
+/// **IT IS NOT A SATISFACTION AND MUST NEVER BECOME ONE** (vc, 2026-08-30). An
+/// AC may be covered by several tests, so *this test is abandoned* is not *the
+/// criterion is closed on authority* -- and if a fiat close on ONE test
+/// satisfied a criterion, the ruling would be recorded a level below where
+/// anyone reads it. `ac fc` is the door for the second statement.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Cover {
+  /// No test covers this criterion at all.
+  Uncovered,
+  /// Every covering test is green.
+  Green,
+  /// Not every covering test is green, and at least one was closed on human
+  /// authority rather than left unwritten.
+  FiatClosed,
+  /// Not every covering test is green, and none of them was ruled on.
+  Open,
+}
+
+/// The ONE walk of a criterion's covering set. Everything that asks about
+/// cover asks here, so a second question cannot grow a second answer.
+pub fn cover(thread: &Thread, ac_id: &str) -> Cover {
   let covering: Vec<&crate::model::AcceptanceTest> = thread
     .tests
     .iter()
     .filter(|t| t.covers.iter().any(|c| c == ac_id))
     .collect();
-  !covering.is_empty() && covering.iter().all(|t| t.status == AtStatus::Green)
+  if covering.is_empty() {
+    return Cover::Uncovered;
+  }
+  if covering.iter().all(|t| t.status == AtStatus::Green) {
+    return Cover::Green;
+  }
+  if covering.iter().any(|t| t.fiat.is_some()) {
+    return Cover::FiatClosed;
+  }
+  Cover::Open
+}
+
+/// The test-backed criteria this AT is the ONLY cover for.
+///
+/// **Lives beside [`cover`] because it is the same walk asked from the other
+/// end**, and a covering-set question answered in a second file is how two
+/// answers start disagreeing. `at fc` uses it to say, at close time, that
+/// nothing else can now carry the criterion -- which is the difference between
+/// a verb that recorded a decision and one that looked like it did nothing.
+pub fn solely_covered_by(thread: &Thread, at_id: &str) -> Vec<String> {
+  thread
+    .criteria
+    .iter()
+    .filter(|c| c.kind == crate::model::AcKind::Test)
+    .filter(|c| {
+      let mut covering = thread
+        .tests
+        .iter()
+        .filter(|t| t.covers.iter().any(|x| x == &c.id));
+      matches!((covering.next(), covering.next()), (Some(t), None) if t.id == at_id)
+    })
+    .map(|c| c.id.clone())
+    .collect()
+}
+
+pub fn satisfied_by_tests(thread: &Thread, ac_id: &str) -> bool {
+  matches!(cover(thread, ac_id), Cover::Green)
 }
 
 /// Resolve one AC's recorded state into the state the gate acts on.
@@ -483,6 +547,7 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   let mut descoped = 0;
   let mut withdrawn = 0;
   let mut fiat = 0;
+  let mut fiat_cover = 0;
   let mut unsatisfied: Vec<&str> = Vec::new();
   for c in &in_scope {
     match resolve(thread, c) {
@@ -490,7 +555,17 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
       Resolved::Withdrawn => withdrawn += 1,
       Resolved::Satisfied => satisfied += 1,
       Resolved::Fiat => fiat += 1,
-      Resolved::Unsatisfied => unsatisfied.push(&c.id),
+      Resolved::Unsatisfied => {
+        // **THE REASON IS COUNTED HERE BECAUSE THIS IS WHERE THE ROW IS
+        // COUNTED.** The criterion stays unsatisfied -- a fiat close on one
+        // covering test is not a satisfaction -- but the gate stops reporting
+        // *nobody has written this* over a test a human ruled will never be
+        // written. Issue 0158.
+        if c.kind == crate::model::AcKind::Test && cover(thread, &c.id) == Cover::FiatClosed {
+          fiat_cover += 1;
+        }
+        unsatisfied.push(&c.id);
+      }
     }
   }
   let active = total - descoped - withdrawn;
@@ -518,8 +593,18 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
   } else {
     String::new()
   };
+  // **A BLOCKED ROW WHOSE COVER WAS RULED ON READS DIFFERENTLY FROM ONE NOBODY
+  // HAS REACHED**, and until 0158 the gate said the same thing about both. This
+  // does NOT move the satisfied count and must not: the rows are still
+  // unsatisfied and still named in `unsatisfied`. It reports WHY, in the line
+  // that does the counting rather than in a footnote beside it.
+  let cover_suffix = if fiat_cover > 0 {
+    format!(", {fiat_cover} blocked by a fiat-closed test")
+  } else {
+    String::new()
+  };
   let tally = Detail::Tally(format!(
-    "{satisfied}/{active} satisfied{fiat_suffix}{suffix}"
+    "{satisfied}/{active} satisfied{fiat_suffix}{cover_suffix}{suffix}"
   ));
   if satisfied + fiat == active {
     Verdict::Pass {
