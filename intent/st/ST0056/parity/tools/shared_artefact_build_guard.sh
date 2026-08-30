@@ -280,13 +280,35 @@ while read -r rel; do
   [ -n "$rel" ] || continue
   # Only paths that climb OUT of native/rust are this arm's business; anything
   # resolving inside it is already covered by the marker's own scope.
-  case "$rel" in
-    */surface/*) covered_by=":(top)surface" ;;
-    *) covered_by="" ;;
-  esac
+  # **THE COVERAGE TEST READS THE DECLARED SCOPES; IT USED TO READ A `case`
+  # THAT ONLY KNEW `surface`** (cc, 2026-08-30, on the first embed that was not
+  # one). The arm's own failure message says *the declared scope does NOT cover
+  # them*, and the arm could not answer that question: a hardcoded
+  # `*/surface/*) covered_by=":(top)surface"` mapped exactly one directory, so
+  # every other outside-the-tree embed was uncovered BY CONSTRUCTION and adding
+  # its directory to `SHARED_TARGET_DIRT_SCOPES` changed nothing.
+  #
+  # **THAT IS A THIRD HOME FOR A RULE THE COMMENT ABOVE SAYS IS DECLARED IN
+  # ONE PLACE.** The declaration lived in the list, the mapping lived here, and
+  # only the second one decided the verdict -- so widening the list looked
+  # correct, read correctly, and did nothing.
+  #
+  # An embed climbing out of `native/rust` lands at the repository root, so
+  # stripping the `../` prefix yields the repo-relative path, and a scope
+  # covers it when it is a path prefix of it. **The residual, stated rather
+  # than hidden: this assumes the climb reaches the root and not some directory
+  # between.** Every embed in the tree does, and one that did not would be
+  # reported as UNCOVERED, which is the safe direction.
+  climbed="$rel"
+  while case "$climbed" in ../*) true ;; *) false ;; esac; do
+    climbed="${climbed#../}"
+  done
   hit=0
   for sc in "${SHARED_TARGET_DIRT_SCOPES[@]}"; do
-    [ -n "$covered_by" ] && [ "$sc" = "$covered_by" ] && hit=1
+    scope_path="${sc#:(top)}"
+    case "$climbed" in
+      "$scope_path"/*) hit=1 ;;
+    esac
   done
   [ "$hit" -eq 1 ] || uncovered="$uncovered $rel"
 done <<EOF
