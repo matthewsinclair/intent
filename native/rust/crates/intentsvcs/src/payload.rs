@@ -1,9 +1,30 @@
-//! `intent claude skills` -- the skills Intent installs into Claude Code.
+//! The payloads the `claude` plugin installs into Claude Code.
 //!
-//! AC-07.3. v2's implementation is `intent/plugins/claude/bin/intent_claude_skills`
-//! over the shared `claude_plugin_helpers.sh`; this is the port, and it is a
-//! port with three ruled corrections rather than a transcription. Each one is
-//! named at the code that carries it.
+//! **THE PLUGIN IS THE UNIT, NOT THE PAYLOAD KIND** (hv, 2026-08-30). `claude`
+//! is an Intent plugin; `skills/` and `subagents/` are two things it ships, and
+//! keeping an operator's Claude Code config matching Intent's canon is ONE
+//! concern. This module was `skills.rs` and served one kind; it now serves both
+//! through [`Kind`], which is the whole of the difference between them.
+//!
+//! **THE GENERALISATION COST FOUR METHODS AND CHANGED NO BEHAVIOUR.** Every
+//! type here -- [`Entry`], [`Manifest`], [`Outcome`], [`Step`], [`Report`] --
+//! already mentioned nothing about skills; only the canon path, the marker
+//! filename, the target directory and the tree-versus-file shape ever did.
+//! `skills_sync.rs` passed 25/25 across the change, which is the claim that
+//! matters: the kind that already worked was not touched to make room.
+//!
+//! **AND IT IS ONE HOME BECAUSE THE ALTERNATIVE WAS TWO.** v3 had this module
+//! and no subagents at all; the obvious way to close that gap was a second
+//! module carrying a second copy of the manifest, the checksums and the
+//! lifecycle. Two homes agree on the day they are written
+//! (`IN-AG-HIGHLANDER-001`), and at a tag nobody has room for the second fix.
+//!
+//! AC-07.3. v2's implementation was `intent_claude_skills` and
+//! `intent_claude_subagents` over a shared `claude_plugin_helpers.sh`. **v2's
+//! decomposition is not why this one looks as it does** -- hv's ruling is that
+//! parity here is FUNCTIONAL, so what v2 did internally is not a constraint on
+//! v3, and the three ruled corrections below are corrections to BEHAVIOUR. Each
+//! one is named at the code that carries it.
 //!
 //! **ROOTS COME FROM THE INSTALL, NEVER THE ENVIRONMENT** -- AC-11.3, and the
 //! precedent `rules.rs` set for the same reason. The assets are VERSIONED, so a
@@ -98,11 +119,123 @@ pub const SCOPE_TREE: &str = "tree";
 /// recorded only in a message is a decision that has to be made twice.
 pub const MANIFEST_RELATIVE: &str = "skills/installed-skills.v3.json";
 
+/// A payload the `claude` plugin ships and installs into Claude Code.
+///
+/// **THE PLUGIN IS THE UNIT, NOT THE PAYLOAD KIND** (hv, 2026-08-30). `claude`
+/// is an Intent plugin; `skills/` and `subagents/` are two things it ships, and
+/// keeping an operator's Claude Code config matching Intent's canon is ONE
+/// concern rather than two. v2 gave each kind its own command family -- five
+/// verbs and seven -- over a shared 582-line helper, and v3 inherited the first
+/// family and never built the second.
+///
+/// **EVERY DIFFERENCE BETWEEN THE KINDS IS IN THIS ENUM, AND THERE ARE ONLY
+/// FOUR OF THEM.** Where the canon lives, what marks a directory as a real unit,
+/// where installed copies land, and whether a unit installs as a tree or as a
+/// single file. Everything else in this module -- the manifest, the checksums,
+/// the install / sync / uninstall lifecycle, the whole `Outcome` vocabulary --
+/// never needed to know, which is why it reads unchanged from when it served
+/// one kind.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Kind {
+  Skills,
+  Agents,
+}
+
+impl Kind {
+  /// The directory under `intent/plugins/claude/` holding this kind's canon.
+  ///
+  /// **`subagents` ON DISK, `agents` IN CLAUDE CODE, AND THE MISMATCH IS NOT
+  /// OURS TO TIDY.** Intent has always called them subagents; Claude Code reads
+  /// `~/.claude/agents/`. Renaming either side to match the other would break
+  /// somebody's tree for a consistency nobody asked for.
+  pub fn canon_subdir(self) -> &'static str {
+    match self {
+      Self::Skills => "skills",
+      Self::Agents => "subagents",
+    }
+  }
+
+  /// The file that must exist inside a canon directory for it to BE a unit.
+  ///
+  /// A directory without one is not a malformed unit, it is not a unit -- the
+  /// distinction this module already draws for skills, kept for both.
+  pub fn marker(self) -> &'static str {
+    match self {
+      Self::Skills => "SKILL.md",
+      Self::Agents => "agent.md",
+    }
+  }
+
+  /// Where installed units land under the operator's `~/.claude/`.
+  pub fn target_subdir(self) -> &'static str {
+    match self {
+      Self::Skills => "skills",
+      Self::Agents => "agents",
+    }
+  }
+
+  /// This kind's manifest, relative to the operator's `~/.intent/`.
+  pub fn manifest_relative(self) -> &'static str {
+    match self {
+      Self::Skills => MANIFEST_RELATIVE,
+      Self::Agents => "subagents/installed-subagents.v3.json",
+    }
+  }
+
+  /// Whether a unit installs as a whole directory or as one renamed file.
+  ///
+  /// **THE ONE STRUCTURAL DIFFERENCE, AND IT IS ASYMMETRIC.** A skill is a
+  /// directory that lands as a directory. A subagent is a directory containing
+  /// `agent.md` (plus a `metadata.json` Claude Code never reads) that lands as
+  /// the single file `<name>.md`. So a subagent's SOURCE shape and TARGET shape
+  /// differ, which a skill's never do.
+  pub fn shape(self) -> Shape {
+    match self {
+      Self::Skills => Shape::Tree,
+      Self::Agents => Shape::SingleFile,
+    }
+  }
+
+  /// The `checksum_scope` token a manifest of this kind declares.
+  pub fn scope_token(self) -> &'static str {
+    match self {
+      Self::Skills => SCOPE_TREE,
+      Self::Agents => SCOPE_FILE,
+    }
+  }
+}
+
+/// How a unit's bytes move from canon to the operator's config.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Shape {
+  /// Every file under the unit's directory, at the same relative paths.
+  Tree,
+  /// The unit's marker file alone, renamed to `<name>.md`.
+  SingleFile,
+}
+
+/// The `checksum_scope` a single-file payload writes.
+///
+/// **IT IS A DIFFERENT TOKEN BECAUSE IT COVERS A DIFFERENT THING, AND HASHING
+/// THE WHOLE CANON DIRECTORY WOULD HAVE BEEN WRONG RATHER THAN MERELY WIDER.**
+/// A subagent's canon directory holds `metadata.json` beside `agent.md`, and
+/// only `agent.md` is installed. A tree hash would report an update as due
+/// whenever the metadata moved, having changed nothing a consumer can see --
+/// a checksum whose subject is not what it is being used to decide about.
+/// **The rule for both kinds is the same one: hash what this payload
+/// INSTALLS**, which for a tree is the tree and here is one file.
+pub const SCOPE_FILE: &str = "file";
+
 /// What a manifest's recorded `checksum` values cover.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Scope {
-  /// The whole skill directory: every file's path and content.
+  /// The whole unit directory: every file's path and content.
   Tree,
+  /// The single file this unit installs.
+  ///
+  /// See [`SCOPE_FILE`] for why a single-file payload does not simply reuse
+  /// [`Scope::Tree`] over its canon directory.
+  File,
   /// The manifest declares no scope this build understands.
   ///
   /// **AN UNDECLARED SCOPE MAKES EVERY `checksum` ABSENT, NOT STALE.** It is
@@ -154,10 +287,10 @@ pub struct Manifest {
 
 impl Manifest {
   /// An empty manifest in this build's schema.
-  pub fn empty() -> Self {
+  pub fn empty(kind: Kind) -> Self {
     Self {
       version: MANIFEST_VERSION.to_string(),
-      checksum_scope: Some(SCOPE_TREE.to_string()),
+      checksum_scope: Some(kind.scope_token().to_string()),
       installed: Vec::new(),
     }
   }
@@ -173,6 +306,7 @@ impl Manifest {
   pub fn scope(&self) -> Scope {
     match self.checksum_scope.as_deref() {
       Some(SCOPE_TREE) => Scope::Tree,
+      Some(SCOPE_FILE) => Scope::File,
       _ => Scope::Undeclared,
     }
   }
@@ -193,14 +327,14 @@ impl Manifest {
 }
 
 #[derive(Debug, Error)]
-pub enum SkillsError {
+pub enum PayloadError {
   #[error("cannot read or write {path}: {source}")]
   Io {
     path: PathBuf,
     #[source]
     source: std::io::Error,
   },
-  #[error("the installed-skills manifest at {path} is not readable as JSON: {source}")]
+  #[error("the payload manifest at {path} is not readable as JSON: {source}")]
   Manifest {
     path: PathBuf,
     #[source]
@@ -228,7 +362,7 @@ pub enum SkillsError {
   },
 }
 
-impl crate::remedy::Remedy for SkillsError {
+impl crate::remedy::Remedy for PayloadError {
   fn remedy(&self) -> String {
     match self {
       Self::Io { path, .. } => format!(
@@ -398,7 +532,8 @@ pub struct Report {
 /// Every path is supplied. See the module note on why that is a contract rather
 /// than a convenience.
 #[derive(Debug, Clone)]
-pub struct Skills {
+pub struct Payload {
+  kind: Kind,
   canon: PathBuf,
   /// The extension base (`~/.intent/ext`), when extensions are in play.
   ///
@@ -413,14 +548,28 @@ pub struct Skills {
   manifest: PathBuf,
 }
 
-impl Skills {
-  pub fn new(install: &Path, ext: Option<PathBuf>, target: PathBuf, manifest: PathBuf) -> Self {
+impl Payload {
+  pub fn new(
+    kind: Kind,
+    install: &Path,
+    ext: Option<PathBuf>,
+    target: PathBuf,
+    manifest: PathBuf,
+  ) -> Self {
     Self {
-      canon: install.join("intent/plugins/claude/skills"),
+      kind,
+      canon: install
+        .join("intent/plugins/claude")
+        .join(kind.canon_subdir()),
       ext,
       target,
       manifest,
     }
+  }
+
+  /// Which payload this instance manages.
+  pub fn kind(&self) -> Kind {
+    self.kind
   }
 
   /// The source roots, in precedence order: extensions first, then canon.
@@ -431,7 +580,7 @@ impl Skills {
   /// -- one name yields one directory to copy -- so order is precedence, and an
   /// operator's own skill must override the shipped one or extensions cannot
   /// customise anything.
-  fn roots(&self) -> Result<Vec<(Provenance, PathBuf)>, SkillsError> {
+  fn roots(&self) -> Result<Vec<(Provenance, PathBuf)>, PayloadError> {
     let mut roots = Vec::new();
     for (name, dir) in self.ext_packs()? {
       roots.push((Provenance::Ext(name), dir));
@@ -445,7 +594,7 @@ impl Skills {
   /// Dotfiles and `_`-prefixed directories are skipped, matching both v2 and
   /// `rules::Library`: the first is the operator's own hidden state, the second
   /// is the reservation the canon roots use for non-content directories.
-  fn ext_packs(&self) -> Result<Vec<(String, PathBuf)>, SkillsError> {
+  fn ext_packs(&self) -> Result<Vec<(String, PathBuf)>, PayloadError> {
     let Some(base) = &self.ext else {
       return Ok(Vec::new());
     };
@@ -458,7 +607,7 @@ impl Skills {
       if name.starts_with('.') || name.starts_with('_') {
         continue;
       }
-      let dir = entry.path().join("skills");
+      let dir = entry.path().join(self.kind.canon_subdir());
       if dir.is_dir() {
         packs.push((name, dir));
       }
@@ -471,12 +620,12 @@ impl Skills {
   ///
   /// A skill is a directory containing `SKILL.md`; a directory without one is
   /// not a skill, which is v2's test too.
-  pub fn origins(&self, name: &str) -> Result<Vec<Origin>, SkillsError> {
+  pub fn origins(&self, name: &str) -> Result<Vec<Origin>, PayloadError> {
     check_name(name)?;
     let mut found = Vec::new();
     for (provenance, root) in self.roots()? {
       let dir = root.join(name);
-      if dir.join("SKILL.md").is_file() {
+      if dir.join(self.kind.marker()).is_file() {
         found.push(Origin {
           name: name.to_string(),
           dir,
@@ -488,7 +637,7 @@ impl Skills {
   }
 
   /// The winning source for `name`, if any.
-  pub fn resolve(&self, name: &str) -> Result<Option<Origin>, SkillsError> {
+  pub fn resolve(&self, name: &str) -> Result<Option<Origin>, PayloadError> {
     Ok(self.origins(name)?.into_iter().next())
   }
 
@@ -497,7 +646,7 @@ impl Skills {
   /// **SORTED, because `read_dir` is not.** A command whose output depends on
   /// filesystem iteration order produces a different answer on every machine,
   /// which is the class `corpus_machine_independence` exists to catch.
-  pub fn available(&self) -> Result<Vec<Origin>, SkillsError> {
+  pub fn available(&self) -> Result<Vec<Origin>, PayloadError> {
     let mut names = BTreeSet::new();
     for (_, root) in self.roots()? {
       if !root.is_dir() {
@@ -508,7 +657,7 @@ impl Skills {
         if check_name(&name).is_err() {
           continue;
         }
-        if entry.path().join("SKILL.md").is_file() {
+        if entry.path().join(self.kind.marker()).is_file() {
           names.insert(name);
         }
       }
@@ -522,13 +671,74 @@ impl Skills {
     Ok(out)
   }
 
-  /// Where a named skill is installed.
+  /// Where a named unit is installed: a directory for a tree, a file otherwise.
   fn installed_dir(&self, name: &str) -> PathBuf {
-    self.target.join(name)
+    match self.kind.shape() {
+      Shape::Tree => self.target.join(name),
+      Shape::SingleFile => self.target.join(format!("{name}.md")),
+    }
+  }
+
+  /// The installed file whose mtime IS this unit's `installed_at`.
+  ///
+  /// **A PATH, NOT A CLOCK.** The module note says why: `installed_at` is a
+  /// property the filesystem recorded when this command wrote the file, which
+  /// is what keeps it inside D42. This function only says WHICH file, and the
+  /// two kinds answer differently because a tree's marker is inside it and a
+  /// single file is its own.
+  fn installed_marker(&self, name: &str) -> PathBuf {
+    match self.kind.shape() {
+      Shape::Tree => self.installed_dir(name).join(self.kind.marker()),
+      Shape::SingleFile => self.installed_dir(name),
+    }
   }
 
   pub fn is_installed(&self, name: &str) -> bool {
-    self.installed_dir(name).join("SKILL.md").is_file()
+    self.installed_marker(name).is_file()
+  }
+
+  /// The checksum of what a canon unit would INSTALL, in this kind's scope.
+  ///
+  /// See [`SCOPE_FILE`]: for a single-file payload this is the marker alone and
+  /// deliberately not the canon directory, because the directory carries files
+  /// that never reach the operator and would report updates that change nothing.
+  fn unit_checksum(&self, dir: &Path) -> Result<String, PayloadError> {
+    match self.kind.shape() {
+      Shape::Tree => tree_checksum(dir),
+      Shape::SingleFile => file_checksum(&dir.join(self.kind.marker())),
+    }
+  }
+
+  /// The checksum of an INSTALLED unit, in this kind's scope.
+  ///
+  /// Separate from [`Payload::unit_checksum`] because the two shapes diverge on
+  /// exactly this axis: a tree installs at the same shape it is stored, and a
+  /// single file does not, so "the installed bytes" is a different path
+  /// expression from "the canon bytes" for one kind and the same for the other.
+  /// The paths this unit occupies under the target, as the manifest records
+  /// them: relative to the target root, `/`-separated.
+  ///
+  /// **THE MANIFEST DESCRIBES WHAT AN OPERATOR WOULD FIND, NOT WHAT CANON
+  /// HOLDS**, which is only a distinction for the shape that renames on the way
+  /// in. Recording a subagent's `agent.md` would name a file that is not there
+  /// under a name no other verb uses.
+  fn installed_files(&self, name: &str) -> Result<Vec<String>, PayloadError> {
+    match self.kind.shape() {
+      Shape::Tree => Ok(
+        relative_files(&self.installed_dir(name))?
+          .iter()
+          .map(|p| display(p))
+          .collect(),
+      ),
+      Shape::SingleFile => Ok(vec![format!("{name}.md")]),
+    }
+  }
+
+  fn installed_checksum(&self, name: &str) -> Result<String, PayloadError> {
+    match self.kind.shape() {
+      Shape::Tree => tree_checksum(&self.installed_dir(name)),
+      Shape::SingleFile => file_checksum(&self.installed_dir(name)),
+    }
   }
 
   /// Every skill installed on disk, whatever this build's manifest knows.
@@ -538,17 +748,29 @@ impl Skills {
   /// there. Where they disagree is precisely where the interesting cases live
   /// -- a skill installed by v2, or by hand -- so a reader that trusted the
   /// manifest for this question could never see one.
-  pub fn installed(&self) -> Result<Vec<String>, SkillsError> {
+  pub fn installed(&self) -> Result<Vec<String>, PayloadError> {
     let mut out = Vec::new();
     if !self.target.is_dir() {
       return Ok(out);
     }
     for entry in read_dir(&self.target)? {
-      let name = entry.file_name().to_string_lossy().to_string();
+      let raw = entry.file_name().to_string_lossy().to_string();
+      // **THE NAME IS RECOVERED FROM THE PATH, AND ONLY ONE KIND HAS TO UNDO A
+      // RENAME TO GET IT.** A skill's directory is named for the skill; a
+      // subagent's file is `<name>.md`, so the `.md` this tool appended on the
+      // way in comes off on the way out. A scan that skipped that step would
+      // report every agent under a name no verb accepts.
+      let name = match self.kind.shape() {
+        Shape::Tree => raw,
+        Shape::SingleFile => match raw.strip_suffix(".md") {
+          Some(stem) => stem.to_string(),
+          None => continue,
+        },
+      };
       if check_name(&name).is_err() {
         continue;
       }
-      if entry.path().join("SKILL.md").is_file() {
+      if self.is_installed(&name) {
         out.push(name);
       }
     }
@@ -563,34 +785,34 @@ impl Skills {
   /// that exists and cannot be parsed is a broken install, and treating it as
   /// empty would silently re-install every skill and overwrite whatever the
   /// operator had.
-  pub fn manifest(&self) -> Result<Manifest, SkillsError> {
+  pub fn manifest(&self) -> Result<Manifest, PayloadError> {
     if !self.manifest.is_file() {
-      return Ok(Manifest::empty());
+      return Ok(Manifest::empty(self.kind));
     }
-    let text = std::fs::read_to_string(&self.manifest).map_err(|source| SkillsError::Io {
+    let text = std::fs::read_to_string(&self.manifest).map_err(|source| PayloadError::Io {
       path: self.manifest.clone(),
       source,
     })?;
-    serde_json::from_str(&text).map_err(|source| SkillsError::Manifest {
+    serde_json::from_str(&text).map_err(|source| PayloadError::Manifest {
       path: self.manifest.clone(),
       source,
     })
   }
 
-  fn write_manifest(&self, manifest: &Manifest) -> Result<(), SkillsError> {
+  fn write_manifest(&self, manifest: &Manifest) -> Result<(), PayloadError> {
     if let Some(parent) = self.manifest.parent() {
-      std::fs::create_dir_all(parent).map_err(|source| SkillsError::Io {
+      std::fs::create_dir_all(parent).map_err(|source| PayloadError::Io {
         path: parent.to_path_buf(),
         source,
       })?;
     }
     let mut text =
-      serde_json::to_string_pretty(manifest).map_err(|source| SkillsError::Manifest {
+      serde_json::to_string_pretty(manifest).map_err(|source| PayloadError::Manifest {
         path: self.manifest.clone(),
         source,
       })?;
     text.push('\n');
-    std::fs::write(&self.manifest, text).map_err(|source| SkillsError::Io {
+    std::fs::write(&self.manifest, text).map_err(|source| PayloadError::Io {
       path: self.manifest.clone(),
       source,
     })
@@ -600,13 +822,13 @@ impl Skills {
   ///
   /// `force` governs only the already-installed case; it is not a licence to
   /// ignore anything else.
-  pub fn install(&self, names: &[String], force: bool) -> Result<Report, SkillsError> {
+  pub fn install(&self, names: &[String], force: bool) -> Result<Report, PayloadError> {
     let mut manifest = self.manifest()?;
     let mut steps = Vec::new();
     for name in names {
       let origins = match self.origins(name) {
         Ok(o) => o,
-        Err(e @ SkillsError::BadName { .. }) => return Err(e),
+        Err(e @ PayloadError::BadName { .. }) => return Err(e),
         Err(e) => return Err(e),
       };
       let shadowed = shadow(&origins);
@@ -631,11 +853,10 @@ impl Skills {
       // MEASURE.** `install --force` over an existing tree is the other door
       // to the destruction `sync --force` reaches, and it had no report at all.
       let discarded = if already {
-        let installed = self.target.join(name);
-        let sum = tree_checksum(&installed)?;
+        let sum = self.installed_checksum(name)?;
         // Identical to source: the copy destroys nothing, so naming a discard
         // would teach the operator to ignore the line that matters.
-        (sum != tree_checksum(&origin.dir)?).then_some(sum)
+        (sum != self.unit_checksum(&origin.dir)?).then_some(sum)
       } else {
         None
       };
@@ -673,7 +894,7 @@ impl Skills {
   /// The comparison is v2's three-way -- source against the manifest's record,
   /// and the installed tree against the same record -- with the two corrections
   /// named on [`Outcome::Conflicted`] and [`Outcome::Undecidable`].
-  pub fn sync(&self, force: bool) -> Result<Report, SkillsError> {
+  pub fn sync(&self, force: bool) -> Result<Report, PayloadError> {
     let mut manifest = self.manifest()?;
     let scope = manifest.scope();
     // **THE UNION, NOT THE MANIFEST.** A skill present on disk that this build
@@ -696,10 +917,14 @@ impl Skills {
         continue;
       };
 
-      let source_sum = tree_checksum(&origin.dir)?;
-      let installed = self.installed_dir(&name);
-      let target_sum = if installed.is_dir() {
-        Some(tree_checksum(&installed)?)
+      let source_sum = self.unit_checksum(&origin.dir)?;
+      // **`is_installed`, NOT `is_dir`.** The old test asked whether the
+      // target path was a DIRECTORY, which is true of an installed skill and
+      // false of every installed subagent -- so a single-file payload would
+      // have measured `None` for every row and reported an install as due,
+      // forever, over files that were already correct.
+      let target_sum = if self.is_installed(&name) {
+        Some(self.installed_checksum(&name)?)
       } else {
         None
       };
@@ -709,7 +934,13 @@ impl Skills {
       // this question, and carrying it as a value would invite exactly the
       // comparison that is meaningless.
       let old = match scope {
-        Scope::Tree => manifest.find(&name).map(|e| e.checksum.clone()),
+        // **BOTH DECLARED SCOPES ANSWER, AND THE ARM IS NOT A WILDCARD.** A
+        // manifest whose scope matches THIS payload's kind has a usable
+        // baseline; `Undeclared` is the only value that does not. Written as
+        // two named arms rather than `_ =>` so that a third scope added later
+        // has to be taught rather than inherited silently -- the failure this
+        // module's own ruling 3 is about.
+        Scope::Tree | Scope::File => manifest.find(&name).map(|e| e.checksum.clone()),
         Scope::Undeclared => None,
       };
 
@@ -767,16 +998,13 @@ impl Skills {
             // distinction to discard: the installed tree and the source agree
             // exactly, so recording it loses nothing and gives the next sync a
             // baseline to work from instead of refusing forever.
-            let installed_at = mtime_rfc3339(&installed.join("SKILL.md"))?;
+            let installed_at = mtime_rfc3339(&self.installed_marker(&name))?;
             manifest.upsert(Entry {
               name: name.clone(),
               source_path: origin.dir.display().to_string(),
               installed_at,
               checksum: source_sum.clone(),
-              files: relative_files(&installed)?
-                .iter()
-                .map(|p| display(p))
-                .collect(),
+              files: self.installed_files(&name)?,
             });
             Outcome::UpToDate
           } else if force {
@@ -843,7 +1071,7 @@ impl Skills {
   /// whole directory, which destroys an operator's own file dropped inside it.
   /// A rule that holds in one verb and not its sibling is not a rule, and this
   /// direction can never lose data.
-  pub fn uninstall(&self, names: &[String]) -> Result<Report, SkillsError> {
+  pub fn uninstall(&self, names: &[String]) -> Result<Report, PayloadError> {
     let mut manifest = self.manifest()?;
     let mut steps = Vec::new();
     for name in names {
@@ -862,6 +1090,32 @@ impl Skills {
         .find(name)
         .map(|e| e.files.iter().cloned().collect())
         .unwrap_or_default();
+
+      // **THE SINGLE-FILE SHAPE REMOVES A FILE AND NEVER WALKS A DIRECTORY**,
+      // and it keeps the remove-only-what-we-recorded rule rather than being
+      // excused from it. That rule matters MORE here, not less: every kind's
+      // units share one directory, so an unrecorded `<name>.md` is either the
+      // operator's own agent or one v2 installed -- and this machine's own
+      // `~/.claude/agents/` held eight of the latter and no v3 manifest at all
+      // when this was written. Removing it because the name matched would
+      // delete a file this build never wrote.
+      if self.kind.shape() == Shape::SingleFile {
+        let shown = format!("{name}.md");
+        let (removed, left) = if recorded.contains(&shown) {
+          remove_file(&dir)?;
+          (vec![shown], Vec::new())
+        } else {
+          (Vec::new(), vec![shown])
+        };
+        manifest.remove(name);
+        steps.push(Step {
+          name: name.clone(),
+          outcome: Outcome::Removed { removed, left },
+          shadowed: None,
+        });
+        continue;
+      }
+
       let present = relative_files(&dir)?;
       let mut removed = Vec::new();
       let mut left = Vec::new();
@@ -903,8 +1157,43 @@ impl Skills {
     &self,
     origin: &Origin,
     prior: Option<&Entry>,
-  ) -> Result<(Entry, Vec<String>), SkillsError> {
+  ) -> Result<(Entry, Vec<String>), PayloadError> {
     let dest = self.installed_dir(&origin.name);
+
+    // **THE SINGLE-FILE SHAPE RETURNS EARLY RATHER THAN THREADING BRANCHES
+    // THROUGH THE TREE WALK.** Everything below this point -- the prune of
+    // recorded-but-no-longer-sourced files, the empty-directory sweep -- is
+    // about a unit that OWNS a directory. A subagent owns one file inside a
+    // directory full of other people's agents, so a prune there would be a
+    // tool reaching outside what it installed. There is nothing to prune: the
+    // written set is always exactly one path, so nothing recorded can fail to
+    // be re-written.
+    if self.kind.shape() == Shape::SingleFile {
+      let from = origin.dir.join(self.kind.marker());
+      if let Some(parent) = dest.parent() {
+        std::fs::create_dir_all(parent).map_err(|source| PayloadError::Io {
+          path: parent.to_path_buf(),
+          source,
+        })?;
+      }
+      std::fs::copy(&from, &dest).map_err(|source| PayloadError::Io {
+        path: dest.clone(),
+        source,
+      })?;
+      let checksum = self.unit_checksum(&origin.dir)?;
+      let installed_at = mtime_rfc3339(&dest)?;
+      return Ok((
+        Entry {
+          name: origin.name.clone(),
+          source_path: origin.dir.display().to_string(),
+          installed_at,
+          checksum,
+          files: self.installed_files(&origin.name)?,
+        },
+        Vec::new(),
+      ));
+    }
+
     let sources = relative_files(&origin.dir)?;
     let written: BTreeSet<String> = sources.iter().map(|p| display(p)).collect();
 
@@ -912,12 +1201,12 @@ impl Skills {
       let from = origin.dir.join(rel);
       let to = dest.join(rel);
       if let Some(parent) = to.parent() {
-        std::fs::create_dir_all(parent).map_err(|source| SkillsError::Io {
+        std::fs::create_dir_all(parent).map_err(|source| PayloadError::Io {
           path: parent.to_path_buf(),
           source,
         })?;
       }
-      std::fs::copy(&from, &to).map_err(|source| SkillsError::Io {
+      std::fs::copy(&from, &to).map_err(|source| PayloadError::Io {
         path: to.clone(),
         source,
       })?;
@@ -938,8 +1227,8 @@ impl Skills {
     }
     prune_empty_dirs(&dest)?;
 
-    let checksum = tree_checksum(&origin.dir)?;
-    let installed_at = mtime_rfc3339(&dest.join("SKILL.md"))?;
+    let checksum = self.unit_checksum(&origin.dir)?;
+    let installed_at = mtime_rfc3339(&dest.join(self.kind.marker()))?;
     Ok((
       Entry {
         name: origin.name.clone(),
@@ -963,8 +1252,8 @@ fn shadow(origins: &[Origin]) -> Option<Provenance> {
 }
 
 /// **A SKILL NAME IS A SINGLE DIRECTORY NAME AND NOTHING ELSE.** See
-/// [`SkillsError::BadName`] for why this is a boundary rather than a nicety.
-fn check_name(name: &str) -> Result<(), SkillsError> {
+/// [`PayloadError::BadName`] for why this is a boundary rather than a nicety.
+fn check_name(name: &str) -> Result<(), PayloadError> {
   let ok = !name.is_empty()
     && name
       .chars()
@@ -972,7 +1261,7 @@ fn check_name(name: &str) -> Result<(), SkillsError> {
   if ok {
     Ok(())
   } else {
-    Err(SkillsError::BadName {
+    Err(PayloadError::BadName {
       name: name.to_string(),
     })
   }
@@ -984,11 +1273,11 @@ fn check_name(name: &str) -> Result<(), SkillsError> {
 /// content; following a link out of the tree would copy something the source
 /// root does not own, and it is the shape that turns an install into an
 /// arbitrary read of the operator's disk.
-fn relative_files(dir: &Path) -> Result<Vec<PathBuf>, SkillsError> {
-  fn walk(root: &Path, dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), SkillsError> {
+fn relative_files(dir: &Path) -> Result<Vec<PathBuf>, PayloadError> {
+  fn walk(root: &Path, dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), PayloadError> {
     for entry in read_dir(dir)? {
       let path = entry.path();
-      let meta = std::fs::symlink_metadata(&path).map_err(|source| SkillsError::Io {
+      let meta = std::fs::symlink_metadata(&path).map_err(|source| PayloadError::Io {
         path: path.clone(),
         source,
       })?;
@@ -1018,10 +1307,25 @@ fn relative_files(dir: &Path) -> Result<Vec<PathBuf>, SkillsError> {
 /// **PATHS ARE HASHED, NOT ONLY CONTENTS**, so renaming a file inside a skill
 /// changes the checksum. A content-only digest reports a rename as no change,
 /// which is the same blind spot one axis over.
-fn tree_checksum(dir: &Path) -> Result<String, SkillsError> {
+/// The SHA-256 of ONE file's contents.
+///
+/// **NO PATH IS HASHED HERE, AND THAT IS THE DIFFERENCE FROM
+/// [`tree_checksum`] RATHER THAN AN OMISSION.** A tree hashes paths because a
+/// rename inside it is a real change to the unit. A single-file unit has one
+/// path, and this tool chose it -- `<name>.md` -- so hashing it would add a
+/// constant and answer the same question more slowly.
+fn file_checksum(path: &Path) -> Result<String, PayloadError> {
+  let bytes = std::fs::read(path).map_err(|source| PayloadError::Io {
+    path: path.to_path_buf(),
+    source,
+  })?;
+  Ok(format!("{:x}", Sha256::digest(&bytes)))
+}
+
+fn tree_checksum(dir: &Path) -> Result<String, PayloadError> {
   let mut hasher = Sha256::new();
   for rel in relative_files(dir)? {
-    let bytes = std::fs::read(dir.join(&rel)).map_err(|source| SkillsError::Io {
+    let bytes = std::fs::read(dir.join(&rel)).map_err(|source| PayloadError::Io {
       path: dir.join(&rel),
       source,
     })?;
@@ -1050,31 +1354,31 @@ fn display(rel: &Path) -> String {
 ///
 /// See the module note: this is not a clock reading. `sync.rs:391` does the
 /// same conversion for the same reason.
-fn mtime_rfc3339(path: &Path) -> Result<String, SkillsError> {
-  let meta = std::fs::metadata(path).map_err(|source| SkillsError::Mtime {
+fn mtime_rfc3339(path: &Path) -> Result<String, PayloadError> {
+  let meta = std::fs::metadata(path).map_err(|source| PayloadError::Mtime {
     path: path.to_path_buf(),
     source,
   })?;
-  let modified = meta.modified().map_err(|source| SkillsError::Mtime {
+  let modified = meta.modified().map_err(|source| PayloadError::Mtime {
     path: path.to_path_buf(),
     source,
   })?;
   OffsetDateTime::from(modified)
     .format(&Rfc3339)
-    .map_err(|source| SkillsError::Time {
+    .map_err(|source| PayloadError::Time {
       path: path.to_path_buf(),
       source,
     })
 }
 
-fn read_dir(dir: &Path) -> Result<Vec<std::fs::DirEntry>, SkillsError> {
-  let entries = std::fs::read_dir(dir).map_err(|source| SkillsError::Io {
+fn read_dir(dir: &Path) -> Result<Vec<std::fs::DirEntry>, PayloadError> {
+  let entries = std::fs::read_dir(dir).map_err(|source| PayloadError::Io {
     path: dir.to_path_buf(),
     source,
   })?;
   let mut out = Vec::new();
   for entry in entries {
-    out.push(entry.map_err(|source| SkillsError::Io {
+    out.push(entry.map_err(|source| PayloadError::Io {
       path: dir.to_path_buf(),
       source,
     })?);
@@ -1082,8 +1386,8 @@ fn read_dir(dir: &Path) -> Result<Vec<std::fs::DirEntry>, SkillsError> {
   Ok(out)
 }
 
-fn remove_file(path: &Path) -> Result<(), SkillsError> {
-  std::fs::remove_file(path).map_err(|source| SkillsError::Io {
+fn remove_file(path: &Path) -> Result<(), PayloadError> {
+  std::fs::remove_file(path).map_err(|source| PayloadError::Io {
     path: path.to_path_buf(),
     source,
   })
@@ -1095,8 +1399,8 @@ fn remove_file(path: &Path) -> Result<(), SkillsError> {
 /// artefact of a file that no longer exists. `remove_dir` is used rather than
 /// `remove_dir_all` deliberately: it refuses a non-empty directory, so this can
 /// never reach a file it was not entitled to.
-fn prune_empty_dirs(root: &Path) -> Result<(), SkillsError> {
-  fn walk(root: &Path, dir: &Path) -> Result<(), SkillsError> {
+fn prune_empty_dirs(root: &Path) -> Result<(), PayloadError> {
+  fn walk(root: &Path, dir: &Path) -> Result<(), PayloadError> {
     if !dir.is_dir() {
       return Ok(());
     }

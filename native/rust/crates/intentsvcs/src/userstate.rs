@@ -354,9 +354,11 @@ pub fn claude_dir() -> Result<PathBuf, UserStateError> {
 
 /// Where v3 records what IT installed.
 ///
-/// See [`crate::skills::MANIFEST_RELATIVE`] for why this is not v2's file.
-pub fn skills_manifest() -> Result<PathBuf, UserStateError> {
-  Ok(intent_dir()?.join(crate::skills::MANIFEST_RELATIVE))
+/// See [`crate::payload::Kind::manifest_relative`] for why this is not v2's
+/// file -- and note it is now one answer PER KIND, so the separation has to
+/// hold for each of them rather than once.
+pub fn payload_manifest(kind: crate::payload::Kind) -> Result<PathBuf, UserStateError> {
+  Ok(intent_dir()?.join(kind.manifest_relative()))
 }
 
 /// Where installed skills land, which is Claude Code's layout and not ours.
@@ -366,8 +368,8 @@ pub fn skills_manifest() -> Result<PathBuf, UserStateError> {
 /// separating is what stops the mutual clobber -- each tool now compares
 /// against its own record of what it wrote, rather than against a number the
 /// other one computed by a different function.
-pub fn skills_target() -> Result<PathBuf, UserStateError> {
-  Ok(claude_dir()?.join("skills"))
+pub fn payload_target(kind: crate::payload::Kind) -> Result<PathBuf, UserStateError> {
+  Ok(claude_dir()?.join(kind.target_subdir()))
 }
 
 /// The extension base, when extensions are wired.
@@ -402,8 +404,10 @@ mod tests {
     for path in [
       intent_dir().unwrap(),
       claude_dir().unwrap(),
-      skills_manifest().unwrap(),
-      skills_target().unwrap(),
+      payload_manifest(crate::payload::Kind::Skills).unwrap(),
+      payload_target(crate::payload::Kind::Skills).unwrap(),
+      payload_manifest(crate::payload::Kind::Agents).unwrap(),
+      payload_target(crate::payload::Kind::Agents).unwrap(),
       daemon_state_dir().unwrap(),
       daemon_socket().unwrap(),
       daemon_address_file().unwrap(),
@@ -420,13 +424,49 @@ mod tests {
   /// **THE MANIFEST PATH IS THE CLASS RULING'S ONE MECHANICAL CHECK.** If this
   /// ever equals v2's file, the two tools resume overwriting each other
   /// forever while both report success.
+  /// **AND IT NOW COVERS EVERY KIND, BECAUSE THE SECOND ONE INHERITS THE
+  /// HAZARD WITHOUT INHERITING THE CHECK.** v2 wrote a subagents manifest of
+  /// its own, so a v3 path that collided with it would resume the same mutual
+  /// clobber one payload over -- and a check written when there was one kind
+  /// tests the kind it was written for, forever, however many arrive later.
   #[test]
-  fn the_skills_manifest_is_not_v2s() {
-    let Ok(path) = skills_manifest() else {
+  fn no_kinds_manifest_is_v2s() {
+    for (kind, v2_path) in [
+      (crate::payload::Kind::Skills, "skills/installed-skills.json"),
+      (
+        crate::payload::Kind::Agents,
+        "subagents/installed-agents.json",
+      ),
+    ] {
+      let Ok(path) = payload_manifest(kind) else {
+        return;
+      };
+      assert!(
+        !path.ends_with(v2_path),
+        "{kind:?} writes v2's manifest path, which resumes the mutual clobber"
+      );
+      assert!(path.starts_with(intent_dir().unwrap()));
+    }
+  }
+
+  /// **TWO KINDS MUST NOT SHARE A MANIFEST OR A TARGET.** Nothing structural
+  /// stops `manifest_relative` returning one string for both -- they are hand
+  /// written per arm -- and if they did, installing a skill would silently
+  /// evict every recorded subagent from the file they shared.
+  #[test]
+  fn the_kinds_do_not_collide_with_each_other() {
+    use crate::payload::Kind;
+    let (Ok(sm), Ok(am)) = (
+      payload_manifest(Kind::Skills),
+      payload_manifest(Kind::Agents),
+    ) else {
       return;
     };
-    assert!(!path.ends_with("skills/installed-skills.json"));
-    assert!(path.starts_with(intent_dir().unwrap()));
+    assert_ne!(sm, am, "both kinds write the same manifest file");
+    let (Ok(st), Ok(at)) = (payload_target(Kind::Skills), payload_target(Kind::Agents)) else {
+      return;
+    };
+    assert_ne!(st, at, "both kinds install into the same directory");
   }
 
   /// Extensions stay unwired until the two variables they need are ruled on.

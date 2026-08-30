@@ -2,7 +2,7 @@
 //!
 //! **THIS FILE IS THE AT-07.3 SUBJECT AND IT IS NOT AT THE PATH THE ROW CITES.**
 //! The row names `intent-cli/tests/skills_sync.rs`; the behaviour lives in
-//! `intentsvcs::skills`, and the CLI arm is held behind the AC-11.3 `$HOME`
+//! `intentsvcs::payload`, and the CLI arm is held behind the AC-11.3 `$HOME`
 //! ruling so there is nothing in `intent-cli` to drive. Writing a CLI test
 //! against an unwired command would be **building the citation rather than the
 //! check** -- dc's refusal on AT-07.4, adjudicated and upheld by vc, in this
@@ -15,7 +15,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use intentsvcs::skills::{Baseline, MANIFEST_RELATIVE, Outcome, Scope, Skills};
+use intentsvcs::payload::{Baseline, Kind, MANIFEST_RELATIVE, Outcome, Payload, Scope};
 
 /// A disposable estate: an install tree, a Claude target, a manifest path.
 struct Fixture {
@@ -41,8 +41,9 @@ impl Fixture {
     }
   }
 
-  fn skills(&self) -> Skills {
-    Skills::new(
+  fn skills(&self) -> Payload {
+    Payload::new(
+      Kind::Skills,
       &self.install,
       None,
       self.target.clone(),
@@ -50,8 +51,9 @@ impl Fixture {
     )
   }
 
-  fn with_ext(&self, ext: &Path) -> Skills {
-    Skills::new(
+  fn with_ext(&self, ext: &Path) -> Payload {
+    Payload::new(
+      Kind::Skills,
       &self.install,
       Some(ext.to_path_buf()),
       self.target.clone(),
@@ -100,7 +102,7 @@ fn read(path: &Path) -> String {
   fs::read_to_string(path).unwrap()
 }
 
-fn outcome(steps: &[intentsvcs::skills::Step], name: &str) -> Outcome {
+fn outcome(steps: &[intentsvcs::payload::Step], name: &str) -> Outcome {
   steps
     .iter()
     .find(|s| s.name == name)

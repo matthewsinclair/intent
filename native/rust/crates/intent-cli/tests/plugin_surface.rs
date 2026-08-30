@@ -88,13 +88,7 @@ fn show_reports_the_manifest_and_where_it_was_found() {
   );
   let printed = stdout(&out);
 
-  for expected in [
-    "Plugin: claude",
-    "Version:",
-    "Description:",
-    "Location:",
-    "Commands (",
-  ] {
+  for expected in ["Plugin: claude", "Version:", "Description:", "Location:"] {
     assert!(
       printed.contains(expected),
       "`plugin show` lost {expected:?}:\n{printed}"
@@ -103,6 +97,28 @@ fn show_reports_the_manifest_and_where_it_was_found() {
   assert!(
     printed.contains("intent/plugins/claude"),
     "the location must name where the manifest was actually read from:\n{printed}"
+  );
+
+  // **`Commands (` WAS ASSERTED HERE AND IS DELIBERATELY GONE** (hv,
+  // 2026-08-30). It required a COUNT LINE, which a manifest declaring nothing
+  // cannot print -- and the shipped manifests now declare nothing, because a
+  // hand-written command list in a plugin directory is a third home for a
+  // surface the binary is built from, and it had rotted: three of the eight
+  // entries across both manifests were false when they were removed.
+  //
+  // **THE ARM IS REPLACED RATHER THAN DROPPED.** What it was really protecting
+  // is that this command does not go silent about commands, and that property
+  // survives the ruling in a different form -- the reader is sent to the home
+  // that IS true instead of being handed a list that is not.
+  assert!(
+    printed.contains("Commands"),
+    "`plugin show` must still say something about commands, even when the \
+     manifest declares none:\n{printed}"
+  );
+  assert!(
+    printed.contains("intent --help"),
+    "with no declared commands the reader must be pointed at the real surface, \
+     not left with an empty heading:\n{printed}"
   );
 }
 

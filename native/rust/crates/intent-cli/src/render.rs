@@ -4795,12 +4795,29 @@ fn plugin_show(m: &ArgMatches) -> Result<(), Failure> {
   println!("  Description: {}", p.description);
   println!("  Location:    {}", p.root.display());
   println!();
-  println!("Commands ({}):", p.commands.len());
-  println!();
-  for c in &p.commands {
-    println!("  {}", c.syntax);
-    println!("    {}", c.description);
+  // **A PLUGIN NAMES ITSELF; IT DOES NOT NAME THE SURFACE** (hv, 2026-08-30).
+  // The manifests carried hand-written command lists and `Commands (7):` was
+  // this renderer printing one of them. Measured before they came out: of the
+  // eight entries across both shipped manifests, three were false, each in a
+  // different way -- one unwired, one absent from the binary entirely, one
+  // whose family root refused while its verbs answered. **A list that restates
+  // a surface it cannot read can only ever drift from it**, so the field is
+  // gone and this prints a pointer at the home that is actually true.
+  //
+  // The block still renders when a manifest declares commands, because a
+  // third-party plugin may legitimately contribute verbs this binary knows
+  // nothing about -- and for those the manifest is the only source there is.
+  if p.commands.is_empty() {
+    println!("Commands: see `intent --help` -- the command surface is the");
+    println!("binary's, and a plugin manifest does not restate it.");
+  } else {
+    println!("Commands ({}):", p.commands.len());
     println!();
+    for c in &p.commands {
+      println!("  {}", c.syntax);
+      println!("    {}", c.description);
+      println!();
+    }
   }
   // **v2's closing line is NOT ported, and dropping it is the point.** It reads
   // `Run 'intent help <name>' for full command documentation.` -- and `intent
@@ -6593,15 +6610,16 @@ enum SkillVerb {
 /// `$HOME` is reached through [`intentsvcs::userstate`], which is the single
 /// file permitted to read it (hv, 2026-08-22). Extensions stay `None` on the
 /// held ruling; see that module for the named consequence.
-fn skills_lib() -> Result<intentsvcs::skills::Skills, Failure> {
+fn payload_lib(kind: intentsvcs::payload::Kind) -> Result<intentsvcs::payload::Payload, Failure> {
   use intentsvcs::userstate;
   let install = intentsvcs::install::home()
     .map_err(|e| Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy())))?;
-  let target = userstate::skills_target()
+  let target = userstate::payload_target(kind)
     .map_err(|e| Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy())))?;
-  let manifest = userstate::skills_manifest()
+  let manifest = userstate::payload_manifest(kind)
     .map_err(|e| Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy())))?;
-  Ok(intentsvcs::skills::Skills::new(
+  Ok(intentsvcs::payload::Payload::new(
+    kind,
     &install,
     userstate::ext_base(),
     target,
@@ -6615,7 +6633,7 @@ fn skill_names(a: &ArgMatches) -> Vec<String> {
     .unwrap_or_default()
 }
 
-fn skills_fail(e: intentsvcs::skills::SkillsError) -> Failure {
+fn payload_fail(e: intentsvcs::payload::PayloadError) -> Failure {
   Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy()))
 }
 
@@ -6623,8 +6641,8 @@ fn skills_fail(e: intentsvcs::skills::SkillsError) -> Failure {
 /// thing about the same objects (IN-AG-HIGHLANDER-001). Three copies of the
 /// tally would agree the day they were written.
 fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
-  use intentsvcs::skills::Outcome;
-  let lib = skills_lib()?;
+  use intentsvcs::payload::Outcome;
+  let lib = payload_lib(intentsvcs::payload::Kind::Skills)?;
   let names = skill_names(a);
   // **`--force` NOW REACHES THIS SURFACE**, declared on the `claude skills` row
   // and read here. It was wired as a hard `false` until 2026-08-23, which left
@@ -6654,7 +6672,7 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
     SkillVerb::Sync => lib.sync(force),
     SkillVerb::Uninstall => lib.uninstall(&names),
   }
-  .map_err(skills_fail)?;
+  .map_err(payload_fail)?;
 
   if report.steps.is_empty() {
     println!("ok: nothing installed by this build yet");
@@ -6712,8 +6730,8 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
         // exactly what (d) rules unknowable, and an operator would go looking
         // for an edit they may never have made.
         let provenance = match baseline {
-          intentsvcs::skills::Baseline::Recorded => "your local changes",
-          intentsvcs::skills::Baseline::Absent => {
+          intentsvcs::payload::Baseline::Recorded => "your local changes",
+          intentsvcs::payload::Baseline::Absent => {
             "content this build had no record of writing, so whether it was your edit or an upstream change is NOT KNOWN"
           }
         };
@@ -6785,8 +6803,8 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
 }
 
 fn skills_list(a: &ArgMatches) -> Result<(), Failure> {
-  let lib = skills_lib()?;
-  let available = lib.available().map_err(skills_fail)?;
+  let lib = payload_lib(intentsvcs::payload::Kind::Skills)?;
+  let available = lib.available().map_err(payload_fail)?;
   let verbose = given(a, "v");
 
   if available.is_empty() {
@@ -6815,13 +6833,13 @@ fn skills_list(a: &ArgMatches) -> Result<(), Failure> {
 }
 
 fn skills_show(a: &ArgMatches) -> Result<(), Failure> {
-  let lib = skills_lib()?;
+  let lib = payload_lib(intentsvcs::payload::Kind::Skills)?;
   let Some(name) = skill_names(a).into_iter().next() else {
     return Err(Failure::Error(
       "error: name a skill to show\n  remedy: `intent claude skills list` prints what this install carries".to_string(),
     ));
   };
-  let Some(origin) = lib.resolve(&name).map_err(skills_fail)? else {
+  let Some(origin) = lib.resolve(&name).map_err(payload_fail)? else {
     return Err(Failure::Error(format!(
       "error: no skill named `{name}` in this install\n  remedy: `intent claude skills list` prints what there is"
     )));

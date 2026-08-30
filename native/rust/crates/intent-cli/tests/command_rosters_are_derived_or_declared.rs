@@ -288,3 +288,101 @@ fn the_hand_swept_classifications_name_real_files_and_carry_reasons() {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// The hand-maintained list this file's own scan could not see
+// ---------------------------------------------------------------------------
+//
+// **CLAUSE 2 IS A CLAIM ABOUT THE ESTATE, AND THE ESTATE INCLUDES SHIPPED JSON
+// PAYLOAD.** Everything above scans Rust string literals, so a hand-maintained
+// command list living in a `plugin.json` was outside its population from the
+// day it was written -- not missed, unreachable. `intent/plugins/claude/
+// plugin.json` carried seven entries and `intent plugin show claude` printed
+// them.
+//
+// **AND IT HAD ROTTED EXACTLY THE WAY THIS FILE'S HEADER PREDICTS: not by being
+// wrong, by being separate.** Measured 2026-08-30 by invoking all eight entries
+// across both shipped manifests, three failed and each in a different way --
+// `claude prime` answering `2` unwired (its v2 script was pruned that
+// afternoon), `audit` answering `1` with `unrecognized subcommand` because the
+// binary has no such command at all, and `agents` answering `2` at the family
+// root while `agents sync` and `agents validate` both answer `0`. Not one of
+// the three acts that caused those was an act that would have updated a JSON
+// file in a plugin directory.
+//
+// **hv RULED THE LIST OUT RATHER THAN CORRECTED** (2026-08-30): `plugin.json`
+// stops carrying commands. The surface has a home -- `surface/dispatch-table
+// .json`, which the binary is BUILT from -- and a plugin manifest restating it
+// is a third copy that can only ever drift from a source it does not read.
+
+/// Every shipped plugin manifest, as `plugins::discover` would find them.
+fn shipped_plugin_manifests() -> Vec<(String, serde_json::Value)> {
+  let root = testkit::repo_root().join("intent/plugins");
+  let mut out = Vec::new();
+  for entry in std::fs::read_dir(&root).expect("intent/plugins is readable") {
+    let dir = entry.expect("a readable dir entry").path();
+    let manifest = dir.join("plugin.json");
+    if !manifest.is_file() {
+      continue;
+    }
+    let text = std::fs::read_to_string(&manifest).expect("a readable plugin manifest");
+    let value: serde_json::Value = serde_json::from_str(&text).expect("a plugin manifest is JSON");
+    out.push((
+      dir.file_name().unwrap().to_string_lossy().to_string(),
+      value,
+    ));
+  }
+  out
+}
+
+/// **NOT VACUOUS, AND THAT IS WHY IT IS PHRASED THIS WAY.** The obvious form --
+/// *every command a manifest declares is answered by the binary* -- passes over
+/// an empty list, so it would go quiet the moment the lists came out and stay
+/// quiet if one grew back small and wrong. This one reads real files and fails
+/// on regrowth.
+#[test]
+fn no_shipped_plugin_manifest_hand_maintains_a_command_list() {
+  let manifests = shipped_plugin_manifests();
+  assert!(
+    manifests.len() >= 2,
+    "only {} plugin manifest(s) found -- the population is empty or the path \
+     moved, and a green here would mean nothing",
+    manifests.len()
+  );
+
+  let offenders: Vec<String> = manifests
+    .iter()
+    .filter_map(|(name, v)| {
+      let n = v.get("commands")?.as_array()?.len();
+      (n > 0).then(|| format!("{name}: declares {n} command(s)"))
+    })
+    .collect();
+
+  assert!(
+    offenders.is_empty(),
+    "a plugin manifest hand-maintains a command list, which is a third home for \
+     the surface and can only drift from `surface/dispatch-table.json`:\n  {}\n\
+     the plugin's identity -- name, version, description -- is its own to state; \
+     what commands the binary answers is not.",
+    offenders.join("\n  ")
+  );
+}
+
+/// The manifests still say who they are. Removing the command list must not
+/// have emptied the file of the thing `intent plugin show` exists to print.
+#[test]
+fn a_plugin_manifest_still_declares_its_own_identity() {
+  for (dir, v) in shipped_plugin_manifests() {
+    for field in ["name", "version", "description"] {
+      let present = v
+        .get(field)
+        .and_then(|f| f.as_str())
+        .is_some_and(|s| !s.trim().is_empty());
+      assert!(
+        present,
+        "{dir}/plugin.json has no usable `{field}` -- a plugin that cannot name \
+         itself is worse than one that over-declares its commands"
+      );
+    }
+  }
+}
