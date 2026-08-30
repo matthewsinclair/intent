@@ -47,9 +47,17 @@
 #   `values`. An argument with an enumerable domain the table does NOT declare
 #   as `values` is invisible here, and that is the same blindness the row it
 #   guards was written about.
-# * IT DRIVES THE LIVE PROJECT, so every row whose values mutate is declared
-#   UNDRIVABLE with its reason rather than driven. Undrivable is a bucket, not
-#   a skip: a skipped row is indistinguishable from a clean one.
+# * IT DRIVES A THROWAWAY FIXTURE, never the live project. The first version
+#   drove the real one and HYDRATED ST0001 into `.intentfiles` on every run --
+#   a check that mutates tracked project state is a defect in the check, and it
+#   was found by reading `git status` after a clean run rather than by any arm.
+#   The fixture gets its own HOME too, because half the population writes there.
+# * A ROW THE FIXTURE CANNOT DRIVE IS DECLARED UNDRIVABLE WITH ITS REASON, never
+#   skipped: a skipped row is indistinguishable from a clean one.
+# * BOTH PROBES FAILING IDENTICALLY IS NOT A DISCARD. If the legal value does not
+#   SUCCEED, the pair agrees because the verb never ran, and reporting that as an
+#   argument thrown away would be a finding manufactured by the harness. The
+#   discriminator requires the declared value to work.
 # * A ROW BEHIND `unwired()` IS SATISFIED BY THE REFUSAL ITSELF -- nothing is
 #   claimed there, so it needs no skip list. It becomes a candidate the moment
 #   its family is wired, which is why the denominator is printed every run.
@@ -67,6 +75,16 @@ die() { printf 'inert-arg: %s\n' "$*" >&2; exit 2; }
 
 [ -x "$BIN" ] || die "no binary to drive at $BIN -- cannot measure, and a clean report over nothing would be worse than this refusal"
 command -v python3 >/dev/null 2>&1 || die "python3 is required to read the dispatch table"
+
+# --- the fixture: its own project AND its own HOME ------------------------
+FIX="$(mktemp -d)"
+export HOME="$FIX/home"; mkdir -p "$HOME"
+mkdir -p "$FIX/proj"
+cleanup() { rm -rf "$FIX"; }
+trap cleanup EXIT
+( cd "$FIX/proj" && "$BIN" init fixture >/dev/null 2>&1 && "$BIN" st new "probe subject" >/dev/null 2>&1 ) \
+  || die "could not build a fixture project -- refusing rather than falling back to the live one, which is the defect this replaced"
+[ -d "$FIX/proj/intent" ] || die "the fixture has no intent/ directory; nothing here would measure the right thing"
 
 TABLE="$ROOT/surface/dispatch-table.json"
 [ -f "$TABLE" ] || die "no dispatch table at $TABLE"
@@ -93,11 +111,7 @@ FINDINGS=""
 # than skipped, per the roster construction this thread already uses twice.
 undrivable_reason() {
   case "$1" in
-    "wp rescope")      echo "every declared value WRITES a work package size" ;;
-    "claude subagents") echo "init/install/sync/uninstall write \$HOME and the project" ;;
-    "claude skills")   echo "install/sync/uninstall write \$HOME and the project" ;;
-    "claude")          echo "dispatches to the two families above" ;;
-    "claude ws")       echo "new/archive create and move whiteboard directories" ;;
+    "claude")          echo "a bare dispatch row: its values ARE the sub-families, each rostered here in its own right" ;;
     *) echo "" ;;
   esac
 }
@@ -107,10 +121,14 @@ undrivable_reason() {
 invoke_with() { # $1 = path, $2 = value
   case "$1" in
     "st show")          printf 'st\nshow\nST0001\n%s\n' "$2" ;;
-    "st edit")          printf 'st\nedit\nST0001\n%s\n' "$2" ;;
     "agents template")  printf 'agents\ntemplate\n%s\n' "$2" ;;
     "claude rules")     printf 'claude\nrules\n%s\n' "$2" ;;
     "critic")           printf 'critic\n%s\n' "$2" ;;
+    "st edit")          printf 'st\nedit\nST0001\n%s\n' "$2" ;;
+    "wp rescope")       printf 'wp\nrescope\nST0001/01\n%s\n' "$2" ;;
+    "claude subagents") printf 'claude\nsubagents\n%s\n' "$2" ;;
+    "claude skills")    printf 'claude\nskills\n%s\n' "$2" ;;
+    "claude ws")        printf 'claude\nws\n%s\n' "$2" ;;
     *) return 1 ;;
   esac
 }
@@ -122,7 +140,7 @@ probe() { # reads argv on stdin, one per line; prints "rc|outhash|errhash|unwire
   while IFS= read -r line; do argv+=("$line"); done
   local out err rc mark
   err="$(mktemp)"
-  out="$("$BIN" "${argv[@]}" 2>"$err")"; rc=$?
+  out="$(cd "$FIX/proj" && "$BIN" "${argv[@]}" 2>"$err")"; rc=$?
   mark=no; grep -qF "$UNWIRED_PHRASE" "$err" && mark=yes
   printf '%s|%s|%s|%s' "$rc" \
     "$(printf '%s' "$out" | shasum -a 256 | cut -c1-16)" \
@@ -162,6 +180,15 @@ while IFS=$'\t' read -r path arg n first; do
   if [ "${a##*|}" = "yes" ] || [ "${b##*|}" = "yes" ]; then
     UNWIRED=$((UNWIRED + 1))
     printf '  UNWIRED     %-20s arg=%-10s -- refuses; becomes a candidate when its family is wired\n' "$path" "$arg"
+    continue
+  fi
+
+  # BOTH PROBES FAILING IDENTICALLY IS THE VERB NOT RUNNING, NOT AN ARGUMENT
+  # THROWN AWAY. Without this the harness manufactures findings: any verb the
+  # fixture cannot satisfy agrees with itself and reads as a discard.
+  if [ "$a" = "$b" ] && [ "${a%%|*}" != "0" ]; then
+    UNDRIVABLE=$((UNDRIVABLE + 1))
+    printf '  UNDRIVABLE  %-20s arg=%-10s -- the declared value does not SUCCEED here (rc=%s), so agreement says nothing\n' "$path" "$arg" "${a%%|*}"
     continue
   fi
 
