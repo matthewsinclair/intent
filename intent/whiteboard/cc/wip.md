@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-30 21:45Z
+heartbeat_at: 2026-08-30 22:04Z
 status: active
-focus: "BOUNCED 2026-08-30 21:45Z. My fold sent me at the wrong work: it named WP-13 as my only unbuilt claim, and all nine of WP-13's ACs are DESCOPED TO ST0069. Real queue is WP-06 five open + WP-10 four open. THREE of those are blocked on conditions that have already expired (AT-06.8's arm runs, AT-10.5's migrate.rs exists, AC-06.6's mechanism is fully built). Building AT-06.6 export_roundtrip.rs first; findings sent to vc, rows are vc's to move."
+focus: "AT-06.6 (49d8b24e) and SERVED_BY_DAEMON membership (4a3ca7a9) landed; AT-10.8 egest_estate.rs built, 4 arms green + 1 parked. AC-10.8s SECOND HALF IS UNBUILT: sync --to-disk prints a count and names no residue, which is vcs AC-10.5 finding one verb over -- design call routed to vc (which output carries it). Next: AT-10.12 migrator_determinism.rs, ISOLATED FIXTURE ONLY."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -13,14 +13,14 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 ## DOING
 
-**AT-06.6 -- `export_roundtrip.rs`.** The only thing missing for AC-06.6: `Projection::Realises { destination, no_read_because }`, `Facade::realise()` at `facade.rs:3380` and the by-name refusal all exist and are driven. The test does not.
+**NOTHING IN FLIGHT.** AT-10.8 is built and landed. **AC-10.8 stays RED on its second half and that is the honest state**: the criterion wants the out-of-model set named in the output, `sync --to-disk` prints `ok: extract written for {n} thread(s)`, and the arm for it is `#[ignore]`d with its expiry rather than relaxed. **Waiting on vc for WHICH output carries the naming** -- I recommended `doctor`/`export` over the egest, held loosely, because the set is a property of the MODEL and a constant restated every run is where suppression starts.
 
 ## TODO
 
-- **AT-10.8 `egest_estate.rs`** -- delete the estate, egest, diff; **the out-of-model set must be NAMED in the output**, and a test that only compares what egest emitted proves nothing.
-- **AT-10.12 `migrator_determinism.rs`** -- **ISOLATED FIXTURE, NEVER THE LIVE TREE.** This is the verb that zeroed the estate's event log and I have stated I will not run it here again for any reason, including verifying my own fix. Positive control is the measured divergence itself.
-- **AT-10.5 `fleet_corpus_ingest.rs`** -- its named blocker (`migrate.rs` does not exist) EXPIRED on 2026-08-27. Corpus, denominator and join already landed and self-verified. Asked vc whether to pull it forward.
-- **AT-06.11 `remedies_are_reachable.rs`** -- walk the emitted REMEDY STRINGS, never the declared verbs; a test asserting every declared verb exists passes trivially. Held red by design once written.
+- **AT-10.12 `migrator_determinism.rs`** -- migrate a fixture, migrate again, require identical canon bytes, AND separately require the output to match canon from the same binary. **The two are different assertions and the second is the one that failed.** **ISOLATED FIXTURE, NEVER THE LIVE TREE** -- this is the verb that zeroed the estate's event log and I have stated I will not run it here again for any reason, including verifying my own fix.
+- **AT-10.5 `fleet_corpus_ingest.rs`** -- its named blocker (`migrate.rs` absent) EXPIRED 2026-08-27. **But vc's second argument still stands and is the load-bearing one: AC-10.5 asks the MIGRATION to name its residue and the migration does not.** Same shape as AC-10.8's second half. Asked vc whether to pull it forward.
+- **AT-06.11 `remedies_are_reachable.rs`** -- walk the emitted REMEDY STRINGS, never the declared verbs. Held red by design once written.
+- **AC-06.8** -- reported to vc, not mine to fix: `INHERITED_UNREAD` has four live entries, three of them `st bootstrap` flags on a verb that refuses at rc=2. ic owns the file.
 - **A `bin/devbin build all` is owed** before anyone can browse the web face from the delivered binary.
 
 ## Watch-outs
