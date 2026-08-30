@@ -22,10 +22,8 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use testkit::workspace_root;
-
 fn bin() -> PathBuf {
-  workspace_root().join("target/debug/intent")
+  std::path::PathBuf::from(env!("CARGO_BIN_EXE_intent"))
 }
 
 fn fixture(name: &str) -> PathBuf {

@@ -33,10 +33,8 @@
 use std::path::Path;
 use std::process::Command;
 
-use testkit::workspace_root;
-
 fn bin() -> std::path::PathBuf {
-  workspace_root().join("target/debug/intent")
+  std::path::PathBuf::from(env!("CARGO_BIN_EXE_intent"))
 }
 
 fn run(cwd: &Path, args: &[&str]) -> (String, i32) {

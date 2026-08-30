@@ -27,10 +27,8 @@
 use std::path::Path;
 use std::process::Command;
 
-use testkit::workspace_root;
-
 fn bin() -> std::path::PathBuf {
-  workspace_root().join("target/debug/intent")
+  std::path::PathBuf::from(env!("CARGO_BIN_EXE_intent"))
 }
 
 /// A project with a thread, a work package and an issue in it.
