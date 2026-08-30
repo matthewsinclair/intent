@@ -195,6 +195,28 @@ impl Registry {
     Response::Registry { projects: listed }
   }
 
+  /// Every open project's handle, for work that addresses all of them.
+  ///
+  /// **THE LOCK IS RELEASED BEFORE THE CALLER USES WHAT IT GOT, WHICH IS WHY
+  /// THIS RETURNS HANDLES RATHER THAN TAKING A CLOSURE.** The backup sweep
+  /// sends to every store thread, and a send can wait on a full queue; doing
+  /// that with this lock held would block FIRST CONTACT for every other
+  /// project behind a timer -- an operator's first command to a new project
+  /// hanging because an unrelated one is mid-backup.
+  ///
+  /// **AN `Arc` IS THE RIGHT THING TO HAND OUT AND A `&` IS NOT**: the sweep
+  /// holds these across `await` points, and a borrow would tie the whole task
+  /// to the map's lifetime.
+  pub async fn handles(&self) -> Vec<Arc<ProjectHandle>> {
+    self
+      .projects
+      .lock()
+      .await
+      .values()
+      .map(|registered| Arc::clone(&registered.handle))
+      .collect()
+  }
+
   /// A live feed for a project, opening it if this is first contact.
   ///
   /// **IT GOES THROUGH `handle_for` RATHER THAN AROUND IT**, so a subscription

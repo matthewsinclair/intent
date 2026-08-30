@@ -1283,6 +1283,32 @@ pub struct SnapshotRecord {
   pub taken_at: String,
 }
 
+/// Failed backup attempts since the newest good snapshot.
+///
+/// **A COUNT AND THE NEWEST REASON, WHICH IS WHAT A REPORT NEEDS AND ALL OF
+/// IT.** The count says whether this is a blip or a pattern; the newest detail
+/// says what to fix. Every failure's detail would be a log, and `intent backup
+/// --list` is already the place that prints one.
+///
+/// **`attempts: 0` IS A VALUE, NOT AN ABSENCE.** *Nothing has failed since the
+/// last good backup* is a real and useful answer -- it is what a healthy store
+/// says -- so this is not an `Option`. The distinction this subsystem's surface
+/// notes draw at `keys.4.note` is between a setting that is unset and one set
+/// to zero; here zero was measured.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FailedAttempts {
+  /// How many attempts have failed since the newest good snapshot -- or ever,
+  /// if there has never been a good one.
+  pub attempts: u32,
+  /// What the newest of those failures recorded, if it recorded anything.
+  ///
+  /// `None` when there are no failures, and ALSO when the newest failure
+  /// stored no detail. **Those are the same to a reporter** -- both mean
+  /// there is no reason to print -- which is why they are not distinguished
+  /// here; `attempts` already carries whether any failure happened.
+  pub newest_detail: Option<String>,
+}
+
 /// How a load from canon ended (AC-03.13).
 ///
 /// Named rather than a `bool` for the reason [`Stamp`] and [`SnapshotOutcome`]
@@ -2694,6 +2720,55 @@ impl Store {
          FROM snapshots WHERE outcome = 'ok'",
       [],
       |row| row.get::<_, Option<f64>>(0),
+    )?)
+  }
+
+  /// Backup attempts that FAILED since the newest good snapshot.
+  ///
+  /// **THE COMPANION TO [`Store::hours_since_last_good_snapshot`], AND IT
+  /// EXISTS BECAUSE THAT ONE ANSWERS THE SYMPTOM AND THIS ONE ANSWERS THE
+  /// CAUSE.** Staleness says *your newest restorable snapshot is 168h old*,
+  /// which is true of a store nothing has tried to back up and equally true of
+  /// one that has tried and failed every hour for a week -- **and those call
+  /// for opposite actions.** The first says the mechanism is not running; the
+  /// second says it is running and something is stopping it, and only the
+  /// second has a `detail` naming what.
+  ///
+  /// **SINCE THE NEWEST GOOD ONE, NOT EVER, BECAUSE FAILURES THAT WERE
+  /// FOLLOWED BY A SUCCESS ARE HISTORY.** A store backed up successfully an
+  /// hour ago is healthy whatever happened last March, and a lifetime count
+  /// would make every estate that ever had a bad day permanently report one.
+  ///
+  /// **A STORE THAT HAS NEVER SUCCEEDED COUNTS ALL OF THEM.** `coalesce(..,
+  /// '')` sorts before every real stamp, so *since the last good snapshot* and
+  /// *since the beginning* are one expression rather than a branch -- which is
+  /// what keeps the never-succeeded case, the one that most needs reporting,
+  /// off a path of its own.
+  ///
+  /// **`attempted` ROWS ARE NOT COUNTED AND THAT IS A STATED LIMIT.** A row
+  /// left open is a process that died between [`Store::begin_snapshot`] and
+  /// [`Store::finish_snapshot`] -- **or a backup running right now**, and
+  /// telling those apart needs to know how long it has been open, which is a
+  /// clock read this estate does not make (D42). Counting them would report a
+  /// healthy in-flight backup as a failure.
+  pub fn failures_since_last_good_snapshot(&self) -> Result<FailedAttempts, StoreError> {
+    Ok(self.conn.query_row(
+      "WITH last_good(at) AS (
+         SELECT coalesce(max(taken_at), '') FROM snapshots WHERE outcome = 'ok'
+       )
+       SELECT
+         (SELECT count(*) FROM snapshots, last_good
+            WHERE outcome = 'failed' AND taken_at > last_good.at),
+         (SELECT detail FROM snapshots, last_good
+            WHERE outcome = 'failed' AND taken_at > last_good.at
+            ORDER BY taken_at DESC, id DESC LIMIT 1)",
+      [],
+      |row| {
+        Ok(FailedAttempts {
+          attempts: row.get::<_, i64>(0)? as u32,
+          newest_detail: row.get::<_, Option<String>>(1)?,
+        })
+      },
     )?)
   }
 

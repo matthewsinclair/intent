@@ -166,6 +166,22 @@ pub enum FindingClass {
   /// silently never started. It is the two-sided construction: two recorded
   /// values compared to each other rather than an error waited for.
   BackupStale,
+  /// The backup mechanism is running and its attempts are failing.
+  ///
+  /// **THE OTHER HALF OF THE BACKUP RULE, AND [`FindingClass::BackupStale`]
+  /// SAYS SO IN ITS OWN NOTE: _the half that a failure report cannot cover._**
+  /// This is the failure report. The two are separate classes because they
+  /// call for opposite actions -- stale says the mechanism is not running, and
+  /// this says it is running and something is stopping it -- and because only
+  /// this one has a recorded reason to show.
+  ///
+  /// **IT FIRES INDEPENDENTLY OF STALENESS, WHICH IS THE POINT.** A store
+  /// backed up successfully an hour ago and failing every attempt since is not
+  /// stale by any reading, and is on its way to being so with the evidence
+  /// already on disk. Waiting for the staleness threshold to report it would
+  /// mean the one instrument that can see the cause stays silent until the
+  /// symptom arrives.
+  BackupFailing,
   /// This machine holds event history the repository does not carry.
   ///
   /// **Two artefacts disagreeing, and it took two narrowings to get here.** The
@@ -413,6 +429,18 @@ impl FindingClass {
         8,
         "backup-stale",
         "run `intent backup` -- and if a schedule was supposed to be doing this, it is not running",
+      ),
+      // **Rank 8 beside `BackupStale`, and the two can BOTH fire**, which is
+      // the state a store failing for longer than its period is actually in.
+      // The remedies are deliberately opposite in one respect: that one says
+      // run the verb, and this one says do not -- an attempt that just failed
+      // for a recorded reason will fail again the same way, and a remedy that
+      // sends an operator to re-run it converts a true finding into a second
+      // failure they now believe they caused.
+      Self::BackupFailing => (
+        8,
+        "backup-failing",
+        "the backup mechanism IS running and its attempts are failing -- the detail above carries what the newest one recorded, and `intent backup --list` carries the rest. Fix what the detail names; re-running `intent backup` will fail the same way and tells you nothing new",
       ),
       Self::EventLogAbsent => (
         9,

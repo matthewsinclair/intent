@@ -75,6 +75,20 @@ enum Work {
   },
   /// The watcher saw the project's tree change (`AC-08.5`).
   Ingest,
+  /// The backup sweep came round and this project should decide (`AC-08.8`).
+  ///
+  /// **IT IS *CONSIDER*, NOT *DO*, AND THE DIFFERENCE IS WHERE THE DECISION
+  /// LIVES.** The sweeper knows only that some time has passed; whether a
+  /// backup is due is a question about this project's configured period and
+  /// the age of its newest good snapshot, and BOTH of those are readable only
+  /// here. A sweeper that decided would have to open the store to find out,
+  /// which is the second engine this whole module exists to prevent.
+  ///
+  /// **LIKE [`Work::Ingest`] IT IS AN INTERNAL DOOR AND NOT A WIRE `Op`.** No
+  /// client asks for it, so putting it on the wire would publish a verb whose
+  /// only caller is in this process -- and it must not move
+  /// [`ProjectHandle::dispatched`], which counts what CLIENTS routed here.
+  Backup,
 }
 
 /// A handle to one project's store.
@@ -195,6 +209,31 @@ impl ProjectHandle {
         }
       };
 
+      // **PER-PROJECT STATE FOR A PER-PROJECT REPORT, AND IT LIVES EXACTLY AS
+      // LONG AS THE PROJECT DOES.** A project whose `backup.schedule` cannot be
+      // read is reconsidered on every sweep and would otherwise say so on every
+      // sweep -- 288 identical lines a day, which is how the one log line that
+      // matters becomes unfindable. Saying it once per store thread is the
+      // whole of what an operator needs, and the lifetime is right by
+      // construction: a project reopened is a project reported about again.
+      let mut said_it_cannot_be_scheduled = false;
+
+      // **A PROJECT THAT OPENS CONSIDERS A BACKUP, WHICH IS WHAT MAKES A
+      // RESTART HARMLESS** (`AC-08.8`). The sweep alone would leave a daemon
+      // restarted at login up to one sweep behind on every project it holds,
+      // and a machine rebooted more often than the sweep interval would never
+      // reach one -- the same permanently-one-boot-away failure that
+      // `backup::due` reading the STORE rather than a timer exists to remove,
+      // arriving one layer out.
+      //
+      // **AFTER THE READY SIGNAL, DELIBERATELY**: the caller is already
+      // unblocked, so a snapshot cannot delay the OPEN. It does sit in front of
+      // the first queued op, which is a real cost and a small one -- a
+      // `VACUUM INTO` on a project store, once per project per period, against
+      // the alternative of a daemon that holds a project and has not backed it
+      // up.
+      consider_backup(&mut facade, &thread_root, &mut said_it_cannot_be_scheduled);
+
       // `blocking_recv` is correct HERE and would be a defect anywhere else in
       // this crate: this is not a runtime worker, it is a thread whose entire
       // job is to block.
@@ -229,6 +268,9 @@ impl ProjectHandle {
             // still a trigger that fired. Counting only successes would make
             // a self-triggering loop over unreadable files invisible.
             thread_ingested.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+          }
+          Work::Backup => {
+            consider_backup(&mut facade, &thread_root, &mut said_it_cannot_be_scheduled);
           }
         }
       }
@@ -365,6 +407,30 @@ impl ProjectHandle {
       )
     })
   }
+
+  /// Ask this project whether a scheduled backup is due, and take one if it is.
+  ///
+  /// **`async` WHERE [`ProjectHandle::ingest`] IS BLOCKING, AND THE SPLIT IS
+  /// ABOUT THE CALLER RATHER THAN THE WORK.** The watcher owns its own thread,
+  /// so blocking there costs nothing this runtime cares about; the backup sweep
+  /// is a tokio task, and a `blocking_send` from one would park a runtime worker
+  /// on a full queue -- the exact defect this module's whole arrangement exists
+  /// to avoid, arrived at through the mechanism added to be careful.
+  ///
+  /// **IT DOES NOT WAIT FOR THE OUTCOME AND HAS NOTHING TO RETURN.** There is
+  /// nobody to answer: the sweep is a timer. The store thread reports what
+  /// happened where a daemon reports things, and what an OPERATOR meets is
+  /// `intent doctor`, which reads the same rows the backup wrote.
+  ///
+  /// **A CLOSED CHANNEL IS SILENT HERE, DELIBERATELY, AND IT IS NOT A SWALLOWED
+  /// ERROR.** A store thread ends only on a panic, which has already printed;
+  /// the sweep re-sends every five minutes, so a second message per project per
+  /// sweep would turn one panic into a permanent stream. The state is reported
+  /// where it is actionable -- the project stops being backed up, and `doctor`
+  /// says the store is stale.
+  pub async fn consider_backup(&self) {
+    let _ = self.tx.send(Work::Backup).await;
+  }
 }
 
 /// Re-read the project from disk, on the store thread.
@@ -389,6 +455,75 @@ fn ingest(facade: &mut Facade, root: &Path) {
       e.render(),
       e.remedy()
     );
+  }
+}
+
+/// Take a scheduled backup if this project is due one, on the store thread.
+///
+/// **THE SAME CALL `intent backup` MAKES, WHICH IS D32 APPLIED TO A SECOND
+/// TRIGGER NOBODY TYPED** -- the argument [`ingest`] above makes for sync,
+/// made for backups, which is `AC-08.8`. The retention policy, the period and
+/// the never-taken rule all live in `intentsvcs::backup`; this file holds none
+/// of them and must not, or the scheduled path and the typed path become two
+/// implementations that agree today.
+///
+/// **THE OUTCOME IS PRINTED BECAUSE THERE IS NOBODY TO RETURN IT TO**
+/// (`IN-AG-NO-SILENT-001`). A success is one line a day on a daily schedule and
+/// it is worth having: the alternative is a daemon that says nothing whether it
+/// is working or not.
+///
+/// **AND A FAILURE IS ALREADY RECORDED IN THE STORE BEFORE THIS PRINTS IT.**
+/// `backup::take` writes the failed attempt with its reason, so what an
+/// operator meets is `intent doctor` reading those rows -- the log line is the
+/// convenience and the row is the record. That ordering is the criterion's
+/// *never only in a log nobody reads*, and it is the reason this function can
+/// print without that being the whole of its reporting.
+fn consider_backup(facade: &mut Facade, root: &Path, said_it_cannot_be_scheduled: &mut bool) {
+  match intentsvcs::backup::due(facade.project(), facade.store()) {
+    Ok(intentsvcs::backup::Due::Now) => {
+      match intentsvcs::backup::cycle(facade.project(), facade.store()) {
+        Ok(ran) => {
+          let project = facade.project();
+          println!(
+            "intentd: backed up `{}` to {}{}",
+            root.display(),
+            project.relative(&ran.written),
+            match ran.removed.len() {
+              0 => String::new(),
+              n => format!(" ({n} expired snapshot(s) removed)"),
+            }
+          );
+        }
+        Err(e) => eprintln!(
+          "intentd: the scheduled backup of `{}` failed: {}\n  remedy: {}",
+          root.display(),
+          e,
+          e.remedy()
+        ),
+      }
+    }
+    Ok(intentsvcs::backup::Due::NotYet) => {}
+    // **SAID ONCE, NOT ONCE A SWEEP.** See the flag's declaration on the store
+    // thread; and `doctor` is what an operator actually meets, which reports
+    // the same setting from the same config with the remedy attached.
+    Ok(intentsvcs::backup::Due::Unschedulable(value)) => {
+      if !*said_it_cannot_be_scheduled {
+        *said_it_cannot_be_scheduled = true;
+        eprintln!(
+          "intentd: `{}` is NOT being backed up: backup.schedule is {value:?}, which is not one of hourly, daily, weekly\n  remedy: correct backup.schedule in the project's config.json. `intent doctor` reports this too, with the estate's other findings.",
+          root.display()
+        );
+      }
+    }
+    // The store could not be asked whether a backup was due. Reported rather
+    // than retried silently: the sweep comes round again, and a reader of this
+    // log needs to know the decision was not made rather than made as `no`.
+    Err(e) => eprintln!(
+      "intentd: could not tell whether `{}` is due a backup: {}\n  remedy: {}",
+      root.display(),
+      e,
+      e.remedy()
+    ),
   }
 }
 

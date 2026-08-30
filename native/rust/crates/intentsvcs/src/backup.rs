@@ -93,43 +93,52 @@ pub struct Retention {
 }
 
 impl Default for Retention {
+  /// **THE RATIFIED DEFAULTS, WHICH IS NOT WHAT THIS SAID** (cc, 2026-08-30).
+  /// `monthly` was 6 against `dispatch-table.md`'s `keys.4.default: 12`, and
+  /// because nothing could read a configured value the hardcoded number WAS
+  /// the policy -- an estate keeping half the monthly history its own surface
+  /// promised, with no setting able to say otherwise.
   fn default() -> Self {
+    let declared = crate::project::RetainConfig::default();
     Self {
-      daily: 7,
-      weekly: 4,
-      monthly: 6,
+      daily: declared.daily,
+      weekly: declared.weekly,
+      monthly: declared.monthly,
     }
   }
 }
 
 impl Retention {
-  /// Read from `intent/.config/config.json`, falling back per key.
+  /// Read from the project's `backup.retain` block.
   ///
-  /// **A malformed or missing value falls back to the default rather than to
-  /// zero**, and the direction matters: zero means "keep nothing", so a typo in
-  /// a config key would silently delete every snapshot on the next prune. The
-  /// safe failure for a retention setting is to keep too much.
+  /// **IT READ `Config::extra` UNTIL 2026-08-30 AND COULD NOT WORK.** `backup`
+  /// is a NAMED field on `Config`, and serde's `flatten` gives `extra` only the
+  /// keys no named field claimed -- so from the moment `backup` was typed for
+  /// `schedule`'s sake, the whole block stopped arriving in `extra` and this
+  /// returned its hardcoded default for every project that has ever run.
+  /// **Measured before the fix: `extra` empty, retention `7/4/6`, against a
+  /// config file declaring otherwise on the same line.**
+  ///
+  /// **AND THE KEYS IT LOOKED FOR WERE NEVER THE RATIFIED ONES.** It read
+  /// `keep_daily`, `keep_weekly` and `keep_monthly` flat under `backup`; the
+  /// surface names `backup.retain.daily`, `.weekly` and `.monthly`, and says
+  /// in the ratification that key names are ic's to name and cc's to implement
+  /// against. **So the read had two independent reasons to find nothing**, and
+  /// each of them alone would have been enough -- which is why no test caught
+  /// it: every one of them passed its own `Retention` in by hand.
+  ///
+  /// **ABSENT IS THE DEFAULT AND ZERO IS A CHOICE** (`keys.4.note`). That
+  /// distinction now lives in the serde defaults on
+  /// [`crate::project::RetainConfig`], one per field, rather than in a closure
+  /// here -- and a value of the wrong TYPE is refused when the config is read
+  /// rather than silently becoming the default, which is the same direction
+  /// `config set` takes on an uncoercible value.
   pub fn from_project(project: &Project) -> Self {
-    let default = Self::default();
-    let Some(table) = project
-      .config()
-      .extra
-      .get("backup")
-      .and_then(|v| v.as_object())
-    else {
-      return default;
-    };
-    let read = |key: &str, fallback: u32| {
-      table
-        .get(key)
-        .and_then(serde_json::Value::as_u64)
-        .and_then(|n| u32::try_from(n).ok())
-        .unwrap_or(fallback)
-    };
+    let retain = project.config().backup.retain;
     Self {
-      daily: read("keep_daily", default.daily),
-      weekly: read("keep_weekly", default.weekly),
-      monthly: read("keep_monthly", default.monthly),
+      daily: retain.daily,
+      weekly: retain.weekly,
+      monthly: retain.monthly,
     }
   }
 }
@@ -271,4 +280,131 @@ pub fn prune(
     removed.push(path);
   }
   Ok(removed)
+}
+
+/// What one backup cycle did.
+///
+/// **A RETURN VALUE RATHER THAN PRINTED OUTPUT, BECAUSE IT HAS TWO CALLERS AND
+/// ONLY ONE OF THEM HAS A TERMINAL.** The CLI renders these lines for whoever
+/// typed the verb; the daemon has nobody to render to and needs the same facts
+/// to log them. A `cycle` that printed would have forced the daemon to build a
+/// second implementation to get a value back, which is the exact split this
+/// criterion exists to close.
+#[derive(Debug)]
+pub struct Cycle {
+  /// The snapshot that was written.
+  pub written: PathBuf,
+  /// Snapshots retention removed, in the order they were removed.
+  pub removed: Vec<PathBuf>,
+}
+
+/// Take a snapshot and prune to the retention window -- **the whole backup
+/// cycle, as ONE function, which is the whole of `AC-08.8`.**
+///
+/// **WHAT THIS REPLACED IS THE REASON IT EXISTS.** Until this landed the cycle
+/// was not a function at all: `intent backup` composed [`take`],
+/// [`Retention::from_project`] and [`prune`] inline in the CLI's render layer,
+/// so the *policy* -- that a backup is followed by a prune, against the
+/// retention this project declares -- lived in a renderer. A daemon scheduling
+/// a backup would have had nothing to call and would have composed the same
+/// three itself: **not two processes racing, but two implementations that agree
+/// today**, which is the failure the criterion names in those words.
+///
+/// **THE PRUNE IS PART OF THE CYCLE RATHER THAN A SEPARATE CHORE, AND THE
+/// ASYMMETRY IS WHY.** A caller that took and did not prune leaves the window
+/// growing without bound and nothing reports it, because retention has no
+/// staleness check the way freshness does; a caller that pruned and did not
+/// take is a no-op on a healthy store. So the composition is what has to be
+/// single-homed, not the halves.
+///
+/// **THE RETENTION IS READ HERE, FROM THE PROJECT, AND IS NOT A PARAMETER.**
+/// [`prune`] takes one because the tests need to drive the buckets directly;
+/// this does not, because a scheduled cycle and a typed one applying different
+/// retention is precisely the drift the row forbids -- and a parameter is a
+/// standing invitation to supply a different one.
+///
+/// Fails the way [`take`] and [`prune`] fail: a failed snapshot is recorded as
+/// failed before the error is returned, so the store carries the evidence even
+/// when the caller is a daemon nobody is watching.
+pub fn cycle(project: &Project, store: &Store) -> Result<Cycle, BackupError> {
+  let written = take(project, store)?;
+  let removed = prune(project, store, Retention::from_project(project))?;
+  Ok(Cycle { written, removed })
+}
+
+/// Whether a scheduled backup should run now.
+///
+/// **THE DECISION LIVES HERE AND NOT IN THE DAEMON, SO THAT `intentd` HOLDS NO
+/// BACKUP POLICY AT ALL** (`IN-AG-THIN-COORD-001`). The daemon's whole part is
+/// to ask this on a sweep and call [`cycle`] when the answer is [`Due::Now`];
+/// every rule about periods, never-taken stores and unreadable settings is in
+/// this file beside the rest of D35.
+///
+/// **NOTHING HERE READS A CLOCK, AND IT IS THE STORE THAT MAKES THAT POSSIBLE**
+/// (D42). [`crate::store::Store::hours_since_last_good_snapshot`] returns an
+/// INTERVAL computed by SQLite against its own stamps -- so this compares two
+/// numbers and there is no moment at which this process knows what the time is.
+/// A scheduler that remembered when it last ran would need one, and would also
+/// forget across a restart.
+///
+/// **DERIVED FROM THE STORE RATHER THAN FROM AN IN-MEMORY TIMER, WHICH IS WHAT
+/// MAKES A RESTART HARMLESS.** A daemon that started a fresh interval on boot
+/// would, on a machine rebooted daily, never reach a daily period -- the
+/// backup would be permanently one boot away. Asking the store how old the
+/// newest good snapshot is gives the same answer to a daemon that has run for
+/// a month and to one that started ten seconds ago.
+///
+/// **ONLY GOOD SNAPSHOTS COUNT, WHICH THE STORE ALREADY ENFORCES**: a run of
+/// failures does not defer the next attempt, because a failed backup is not a
+/// backup and a schedule that failed hourly for a week must keep trying.
+pub fn due(project: &Project, store: &Store) -> Result<Due, BackupError> {
+  let every = match schedule(project) {
+    Schedule::Hours(hours) => f64::from(hours),
+    // **NOT A FALLBACK TO THE DEFAULT, DELIBERATELY.** Backing up on a period
+    // the operator did not choose, while their actual setting sits in the file
+    // looking honoured, is the failure [`schedule`] was rewritten to remove.
+    // Refusing to schedule is visible; a silent 24 hours is not.
+    Schedule::Unrecognised(value) => return Ok(Due::Unschedulable(value)),
+  };
+
+  match store
+    .hours_since_last_good_snapshot()
+    .map_err(BackupError::Record)?
+  {
+    // **NEVER TAKEN IS DUE, NOT UNKNOWN.** A store with no restorable snapshot
+    // is the state the schedule exists to leave, and treating the absence as
+    // "no basis to decide" would make a project that has never been backed up
+    // the one project that never gets backed up.
+    None => Ok(Due::Now),
+    Some(hours) if hours >= every => Ok(Due::Now),
+    Some(_) => Ok(Due::NotYet),
+  }
+}
+
+/// The answer [`due`] gives.
+///
+/// **`Unschedulable` IS A THIRD STATE RATHER THAN A `NotYet`, BECAUSE THE TWO
+/// CALL FOR OPPOSITE ACTIONS.** *Not yet* resolves itself by waiting; *no
+/// period could be read* resolves only when somebody edits the config, and
+/// collapsing them would mean a project silently never backed up looked
+/// exactly like one backed up an hour ago.
+///
+/// **IT CARRIES THE VALUE THAT WAS ACTUALLY WRITTEN**, for the reason
+/// [`Schedule::Unrecognised`] does: whatever reports this has to be able to
+/// name the setting the operator typed, or the report is *something is wrong
+/// with your config* and the operator goes looking.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Due {
+  /// The period has elapsed, or no snapshot has ever been taken.
+  Now,
+  /// The newest good snapshot is younger than the configured period.
+  ///
+  /// **CARRIES NO NUMBERS, AND THAT IS TO KEEP AN INTERVAL FROM BECOMING A
+  /// TIME.** A caller given "3.5 hours ago" would be one subtraction away from
+  /// a timestamp, and D42's whole shape is that this estate never holds one it
+  /// did not get from a record.
+  NotYet,
+  /// `backup.schedule` is outside the closed vocabulary, so no period exists
+  /// to schedule against. Carries the value as written.
+  Unschedulable(String),
 }

@@ -250,6 +250,8 @@ async fn serve_under(root: &Path) -> Result<(), StartupError> {
 
   let stop = Arc::new(tokio::sync::Notify::new());
 
+  tokio::spawn(sweep_backups(Arc::clone(&registry)));
+
   loop {
     tokio::select! {
       accepted = unix.accept() => match accepted {
@@ -313,6 +315,59 @@ async fn accept_failed(transport: &str, e: io::Error) {
 /// client opens a fresh connection to probe and never reuses it, so answering
 /// and closing is what its caller expects; a request connection stays open so a
 /// client can ask more than one question without paying for a connect each time.
+/// How often the backup sweep comes round.
+///
+/// **A FLOOR ON LATENESS, NOT A PERIOD** (`AC-08.8`). Nothing about a backup's
+/// schedule is decided here: this is only how often each project is ASKED, and
+/// the answer comes from `intentsvcs::backup::due` reading that project's own
+/// configured period against the age of its newest good snapshot. So the
+/// number's whole meaning is *how late a due backup can be*, and against the
+/// finest schedule the vocabulary offers -- hourly -- five minutes is under a
+/// tenth of a period.
+///
+/// **IT IS NOT SMALLER BECAUSE A SWEEP IS NOT FREE AND NOT LARGER BECAUSE
+/// LATENESS COMPOUNDS.** Each round sends one message to every open project's
+/// store thread, and each costs one indexed query; the cost is trivial and it
+/// is paid whether or not anything is due, which is the argument against one
+/// second. Against one hour, an hourly schedule would drift by up to an hour,
+/// which is a second period.
+const BACKUP_SWEEP: std::time::Duration = std::time::Duration::from_secs(300);
+
+/// Ask every open project whether it is due a backup (`AC-08.8`).
+///
+/// **ONE SWEEP FOR THE DAEMON RATHER THAN A TIMER PER PROJECT, AND THE REASON
+/// IS A LIFETIME THAT WOULD LIE.** A per-project timer would naturally be held
+/// beside `Registered.watch`, where it would LOOK like the watch and behave
+/// oppositely: dropping a `Watch` stops its thread, and dropping a
+/// `JoinHandle` does not stop its task. A project removed from the registry
+/// would go on backing itself up, from a handle nothing holds -- and the field
+/// would read, to anybody maintaining it, as though that had been handled.
+///
+/// **AND THE SWEEP PICKS UP PROJECTS REGISTERED AFTER IT STARTED, FOR FREE.**
+/// It re-reads the registry every round rather than capturing a list, so a
+/// project opened on first contact five minutes ago is considered on the next
+/// pass with nothing to wire.
+///
+/// **IT ENDS WHEN THE PROCESS DOES AND NEEDS NO SHUTDOWN PATH.** The accept
+/// loop breaking drops the runtime, which drops this task mid-sleep; there is
+/// no in-flight state a stop could protect, because the decision and the work
+/// both happen on the store thread rather than here.
+async fn sweep_backups(registry: Arc<Registry>) {
+  let mut sweep = tokio::time::interval(BACKUP_SWEEP);
+  // **A MISSED TICK IS SKIPPED, NEVER MADE UP.** The default behaviour bursts
+  // to catch up after the runtime has been busy, which for this task would
+  // mean several sweeps back to back -- and since the due decision is read
+  // from the store each time, every one after the first would answer `NotYet`.
+  // Work with no effect, at the moment the machine is already loaded.
+  sweep.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+  loop {
+    sweep.tick().await;
+    for handle in registry.handles().await {
+      handle.consider_backup().await;
+    }
+  }
+}
+
 async fn answer<S>(stream: S, registry: Arc<Registry>, stop: Arc<tokio::sync::Notify>)
 where
   S: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin,

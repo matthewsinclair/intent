@@ -119,6 +119,19 @@ pub struct BackupConfig {
   /// through [`crate::backup::schedule`], which is what enforces that.
   #[serde(default = "default_backup_schedule")]
   pub schedule: String,
+  /// The `backup.retain` tiers (D35, `dispatch-table.md` `keys.2`-`keys.4`).
+  ///
+  /// **TYPED HERE BECAUSE IT WAS BEING READ OUT OF `Config::extra` AND COULD
+  /// NOT BE** (cc, 2026-08-30). `BackupConfig` is a named field, so serde's
+  /// flatten hands `extra` only the keys no named field claimed -- and the
+  /// moment `backup` became a named field for `schedule`'s sake, the whole
+  /// block stopped reaching `extra` and [`crate::backup::Retention::from_project`]
+  /// began returning its hardcoded default for every project in the estate.
+  /// **The fix for one half of this block silently broke the other half**, and
+  /// nothing failed, because the values it fell back to were the ones the
+  /// tests asserted.
+  #[serde(default)]
+  pub retain: RetainConfig,
 }
 
 fn default_backup_schedule() -> String {
@@ -129,6 +142,65 @@ impl Default for BackupConfig {
   fn default() -> Self {
     Self {
       schedule: default_backup_schedule(),
+      retain: RetainConfig::default(),
+    }
+  }
+}
+
+/// How many snapshots to keep in each retention tier.
+///
+/// **THE KEY NAMES ARE ic's, NOT MINE, AND THAT IS THE WHOLE POINT OF THE
+/// ROW.** `dispatch-table.md` says it in the ratification: *Key names are
+/// SURFACE, so ic names them and cc implements against these; cc was told not
+/// to invent them.* The first implementation read `keep_daily`, `keep_weekly`
+/// and `keep_monthly` at the top of the `backup` object -- **invented names at
+/// an invented nesting**, which is the `backup.every_hours` defect the
+/// schedule key was rewritten to remove, in the same file, three times over
+/// and never noticed because the names appeared nowhere except on the lines
+/// that read them.
+///
+/// **ABSENT IS THE DEFAULT AND ZERO IS A CHOICE**, which is `keys.4.note` and
+/// is the reason each field carries its own `default` rather than the struct
+/// being read as all-or-nothing: *absence and zero must not be the same value
+/// in a retention policy, because one of them deletes backups.*
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RetainConfig {
+  /// `keys.2`, default 7.
+  #[serde(default = "default_retain_daily")]
+  pub daily: u32,
+  /// `keys.3`, default 4. A snapshot enters this tier by being the newest of
+  /// its ISO week.
+  #[serde(default = "default_retain_weekly")]
+  pub weekly: u32,
+  /// `keys.4`, default 12. A snapshot enters this tier by being the newest of
+  /// its calendar month.
+  ///
+  /// **12 IS THE RATIFIED DEFAULT AND THE CODE HELD 6.** Nothing had ever read
+  /// a config value here, so the hardcoded fallback WAS the policy -- an
+  /// estate keeping half the monthly history its own surface promised, with no
+  /// way to say otherwise.
+  #[serde(default = "default_retain_monthly")]
+  pub monthly: u32,
+}
+
+fn default_retain_daily() -> u32 {
+  7
+}
+
+fn default_retain_weekly() -> u32 {
+  4
+}
+
+fn default_retain_monthly() -> u32 {
+  12
+}
+
+impl Default for RetainConfig {
+  fn default() -> Self {
+    Self {
+      daily: default_retain_daily(),
+      weekly: default_retain_weekly(),
+      monthly: default_retain_monthly(),
     }
   }
 }

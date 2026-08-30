@@ -7322,13 +7322,22 @@ fn backup(m: &ArgMatches) -> Result<(), Failure> {
     return Ok(());
   }
 
-  let written = intentsvcs::backup::take(&project, facade.store()).map_err(|e| e.render())?;
-  println!("created: {}", project.relative(&written));
-
-  let retention = intentsvcs::backup::Retention::from_project(&project);
-  let removed =
-    intentsvcs::backup::prune(&project, facade.store(), retention).map_err(|e| e.render())?;
-  for path in &removed {
+  // **ONE SERVICE CALL, AND THE DAEMON'S SCHEDULE MAKES THE SAME ONE**
+  // (`AC-08.8`). This composed `take`, `Retention::from_project` and `prune`
+  // inline until 2026-08-30, which put the POLICY -- that a backup is followed
+  // by a prune against this project's declared retention -- inside a renderer,
+  // where a scheduler could not reach it and would have rebuilt it.
+  //
+  // **`created:` NOW PRINTS AFTER THE PRUNE RATHER THAN BEFORE IT**, so a
+  // cycle whose prune fails no longer names the snapshot it wrote. That is a
+  // real loss on a rare path and it is bounded: the snapshot is recorded `ok`
+  // with its path, `--list` shows it, `doctor` will not call the store stale,
+  // and `BackupError::Prune`'s own remedy says the backup succeeded. Printing
+  // from inside the cycle to keep the order would have given the function a
+  // terminal, which is the thing that stopped the daemon reusing it.
+  let ran = intentsvcs::backup::cycle(&project, facade.store()).map_err(|e| e.render())?;
+  println!("created: {}", project.relative(&ran.written));
+  for path in &ran.removed {
     println!("removed: {}", project.relative(path));
   }
   Ok(())

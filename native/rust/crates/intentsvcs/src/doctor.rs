@@ -599,6 +599,41 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
         FindingClass::ModelInconsistent,
       );
     }
+
+    // **Kind and status must agree, and this is the AT-side mirror of the
+    // `Criterion` check below -- with ONE of its three enforcement points, not
+    // three.** There the facade refuses the transition, the schema face refuses
+    // the file, and doctor reports an estate that already carries one. Here
+    // only the last exists, so this is not the backstop it is over there: it is
+    // the whole of it, and it reports rather than prevents.
+    //
+    // **The DECISION is `AtStatus::permitted_for`, not this match**, for the
+    // reason the `Criterion` arm records: a match that decides needs a `_` arm,
+    // and a `_` arm goes quiet about the sixth variant nobody taught it.
+    //
+    // **WHAT MAKES THE OTHER TWO POINTS A TABLE AMENDMENT RATHER THAN MORE
+    // CODE.** `at_set` writes any status onto any row and asks nothing about
+    // kind, so the API is the door the nine rows came through -- and shutting
+    // it means declaring a guard on Machine 5's four `at.set` edges, which hv
+    // ratified on 2026-08-29 carrying `--` in every Guard cell. Enforcing it in
+    // the verb body without the declaration is the shape `data-model.md`
+    // already names and rejects. Landing the face clause first is worse still:
+    // it would refuse a file the API can still write.
+    if !test.status.permitted_for(test.kind) {
+      let complaint = match (test.kind, test.status) {
+        (AtKind::NonTest, AtStatus::ToWrite | AtStatus::Red | AtStatus::Green) =>
+          "is `(non-test)` and carries a test result, which claims an outcome nothing ran -- a doc, eyeball or gate row records `n/a` and its satisfaction lives on the criterion's own line".to_string(),
+        (AtKind::Test, AtStatus::Na) =>
+          "is test-backed and records `n/a`, which is the doc / eyeball status -- a test row either has a result or is still `to-write`".to_string(),
+        (kind, status) => format!(
+          "records a status its kind cannot hold: {status:?} on a {kind:?} row"
+        ),
+      };
+      add(
+        format!("{} {complaint}", test.id),
+        FindingClass::ModelInconsistent,
+      );
+    }
   }
 
   // A criterion whose group names a work package that does not exist. Group
@@ -1365,9 +1400,19 @@ fn backup_findings(project: &Project, store: &crate::store::Store) -> Vec<Findin
       findings.push(Finding::new(
         where_.clone(),
         FindingClass::SchemaInvalid,
+        // **THE SENTENCE GREW WHEN THE DAEMON GAINED A SCHEDULER**
+        // (`AC-08.8`). Until then the only consequence of an unreadable
+        // period was that this check could not judge an age, which is a
+        // statement about the INSTRUMENT. Now it is also the reason no backup
+        // is being taken, which is a statement about the ESTATE -- and
+        // `backup::due` returns `Unschedulable` rather than falling back to
+        // the default precisely so that stays true. Reporting only the
+        // instrument's difficulty would leave the operator with the
+        // impression that the mechanism runs and cannot be assessed.
         format!(
           "backup.schedule is {value:?}, which is not one of hourly, daily, weekly \
-           -- the newest snapshot's age cannot be judged until it is corrected"
+           -- no scheduled backup is being taken, and the newest snapshot's age \
+           cannot be judged, until it is corrected"
         ),
       ));
       None
@@ -1402,6 +1447,44 @@ fn backup_findings(project: &Project, store: &crate::store::Store) -> Vec<Findin
         ));
       }
     }
+  }
+
+  // **THE CAUSE, REPORTED BESIDE THE SYMPTOM AND NOT INSTEAD OF IT**
+  // (`AC-08.8`: a backup that failed is reported where an operator will meet
+  // it, never only in a log nobody reads). Every failed attempt has been
+  // recorded since D35 landed, and until now the ONLY place it surfaced was
+  // `intent backup --list` -- which is the history command, reached by
+  // somebody who already suspects. `doctor` is the health command, reached by
+  // somebody who does not.
+  //
+  // **A FAILING QUERY SKIPS THIS FINDING AND NOTHING ELSE.** The staleness
+  // finding above is already formed and is not the reader's to lose because a
+  // second query failed.
+  if let Ok(failed) = store.failures_since_last_good_snapshot()
+    && failed.attempts > 0
+  {
+    let attempts = failed.attempts;
+    // **THE COUNT IS PHRASED AS ONE-OR-MANY BECAUSE THE TWO MEAN DIFFERENT
+    // THINGS.** A single failure is an incident; a run of them is the
+    // mechanism being broken, and "1 attempts" would report the first as
+    // though the instrument could not tell.
+    let how_many = if attempts == 1 {
+      "the newest backup attempt failed".to_string()
+    } else {
+      format!("the newest {attempts} backup attempts have all failed")
+    };
+    findings.push(Finding::new(
+      project.relative(&crate::backup::snapshot_dir(project)),
+      FindingClass::BackupFailing,
+      match failed.newest_detail {
+        Some(detail) => format!("{how_many}: {detail}"),
+        // **NOT SILENCE, AND NOT A GUESS.** An attempt recorded as failed with
+        // no detail is a real failure whose reason was not captured; saying so
+        // is worth more than omitting the finding, because the operator can
+        // still see that the mechanism is not working.
+        None => format!("{how_many}, recording no reason"),
+      },
+    ));
   }
 
   findings
