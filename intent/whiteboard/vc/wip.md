@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-30 00:31Z
+heartbeat_at: 2026-08-30 00:39Z
 status: active
-focus: "hv AFK with the pen to vc, and hv has added a STANDING REVIEW JOB: Highlander, Thin Coordinator and PFIC in the Rust, front of mind on every workstream review. Four rulings issued tonight (formatters stop writing; both probe cases; arity authoritative and DERIVED; ratatui+crossterm in intent-cli only). First Rust finding landed: two writers of `num_args` in one function in `spine.rs`."
+focus: "Criteria queue CLEAR and EIGHT RULINGS ISSUED while hv is AFK. ST0064 is nine criteria and rescoped L on ic's Geodica pricing; AC-08.3 split into client + AC-08.11 daemon on cc's finding that vc had put a daemon obligation in a client row. hv's standing Rust review job has paid twice: the `num_args` duplicate and the `.ok()` swallow family at four sites. Gate open on both arms; suite green."
 claims: [ST0056, ST0057, ST0058, ST0060, ST0064, ST0066, ST0068]
 ---
 
@@ -65,6 +65,10 @@ claims: [ST0056, ST0057, ST0058, ST0060, ST0064, ST0066, ST0068]
 26. **IN A SHARED STORE, `sync --to-disk` WRITES EVERY NODE'S UNCOMMITTED EDITS TO CANON, SO WHOEVER COMMITS NEXT SIGNS FOR ALL OF THEM.** `ac edit` writes the STORE; canon is the extract; any node's sync flushes the lot. **vc's criteria work landed in three other nodes' commits tonight** -- hv's `0f41dce1`, dc's `213be93f`, and hv's earlier sweep -- under messages that do not mention it. Nothing is lost and provenance is: `rulings_check` gates on ratification records, and criteria are arriving under commit messages about something else.
 
 27. **A CIRCULAR ANCHOR IS WORSE THAN THE DANGLE IT REPLACES: A DANGLE IS VISIBLE AND A CIRCLE CERTIFIES ITSELF** (dc, 2026-08-30, on vc's grep-before-you-anchor condition). Re-anchoring four dangling ruling records, the first word-perfect match for one of them was `surface/dispatch-table.md` -- **the GENERATED RENDERING of that same record.** It resolves, `rulings_check` goes green, and a reader landing there finds the citation rather than the ruling. **dc would have taken it, because it was word-perfect**, and the condition that stopped it was requiring the target be READ rather than matched. **The general form: a provenance check that only asks whether a reference resolves cannot tell a source from an echo of itself.**
+
+28. **OUR VERIFICATION PRACTICE POISONS THE SHARED TREE, AND THE BLAME IS MISROUTED TO A THIRD PARTY** (cc, 2026-08-30). `env!("CARGO_MANIFEST_DIR")` is baked at COMPILE time, so a build run from a detached worktree against the shared target dir leaves rlibs walking from a directory that is later deleted -- four test binaries then failed reporting a `[workspace]` defect in a `Cargo.toml` untouched since Aug 26. **Detached-worktree verification is what dc, ic, cc and vc all reach for to measure main honestly.** **RULED: a detached worktree gets its own `CARGO_TARGET_DIR`** -- the same principle as the shared-artefact guard's arm 8, applied to a verification build. cc read the stale path out of the binary with `strings` rather than inferring it, and that four binaries carried a `wt-` path and were exactly the four failing is the two-sided evidence.
+29. **BETWEEN THE STORE WRITE AND THE EXTRACT WRITE, THE ESTATE DISAGREES WITH ITSELF AND THE RED IS TRUE.** `ac edit` writes the STORE; canon is the EXTRACT; `sync --to-disk` closes the gap. cc's sweep caught `attachment_drift_detected` red at 00:30Z against vc's in-flight `ST0056` sync and it was green minutes later with nothing changed. **In a four-node checkout with one store, that window opens whenever anyone edits a criterion**, and nothing in the failure says it is transient.
+30. **AN ENUMERATOR THAT COUNTS TEST CODE AS SOURCE OVERCOUNTS BY AN ORDER OF MAGNITUDE, AND vc's DID IT TWICE IN ONE MEASUREMENT.** A panic census read **197** in `intentsvcs/src`; stripping `#[cfg(test)]` blocks gave **21**; and 14 of those 21 were STILL test code the stripper missed, in one file. **The true signal was 2 / ~7 / 0 and the first number was 100x the last.** Reported here rather than to anyone, because the honest conclusion is that the Rust is clean on this axis and vc nearly filed a finding built on its own instrument -- one turn after telling ic that three enumerators gave three answers.
 
 ## Decisions
 
