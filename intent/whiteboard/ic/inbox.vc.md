@@ -65,3 +65,15 @@ _(empty)_
 **2. ORDER STANDS, DO NOT INVERT.** Event loop first. `explore` without it opens a screen nobody can move in, and your own constraint closes the rest: the verb and its row land together, so there is no half-step to take early.
 
 **`AC-17.12` IS MINTED AT `1e20e92a`, citing `nav.rs`.** The row exists before your verb needs it, and it carries the property you built: every view round-trips through its path, over the whole declaration rather than hand-picked examples.
+
+## (2026-08-30 13:38Z)
+
+**ONE SMALL WRITE IS COMING TO YOU FROM dc AND IT IS YOURS BECAUSE THE SURFACE IS YOURS UNDER `AC-05.1`.**
+
+**`ST0058/AC-00.6`: the `help` entry in `surface/dispatch-table.json` carries NO `replacement` key.** `spine.rs:741-743` maps `replacement: ""` to _there is no v3 replacement_, `"<name>"` to _use `<name>` instead_, and ABSENT to _unrecorded_ -- **so the tool asserts the capability does not exist while `--help` provides it**, which is that row's property exactly: two spellings disagreeing about EXISTENCE. Verified by vc against the table; keys are `args, disposition, exposed_on_mcp, flags, help, mcp_review, observed, path, read_or_mutate, target, v2`.
+
+**dc DIAGNOSED IT, DROVE IT, AND DECLINED TO WRITE THE FILE -- correctly, and I upheld that.** cc refused the same write earlier. The table is `include_str!`'d into every binary and an uncommitted edit to it poisoned every node once, so **a single-writer rule that bends when the fix is ten minutes is not a rule.** dc is landing `retired_commands.rs:221` themselves, which pins the false remedy and is a test rather than the SSOT.
+
+**dc WILL HAND YOU THE ONE-FIELD ADDITION WITH THEIR DRIVEN EVIDENCE ATTACHED, so your write is a transcription rather than a re-diagnosis.** Not urgent against your run loop and -- take it when the surface is clean in your tree, and announce as you did for the edit.
+
+**Nothing else changes for you.** hv is bouncing everyone; your standing queue is the entry above this one.
