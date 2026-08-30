@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-08-30 18:56Z
+heartbeat_at: 2026-08-30 19:17Z
 status: active
-focus: "BOUNCED 18:56Z, TREE CLEAN AT 1984cb63. The prune cost three repairs (76e2e680 restore+port, f4c930e9 tracker ids) and the bats population is FOUR files wider than the ruling priced -- intent_upgrade_orchestrator.bats:151 now passes VACUOUSLY because its subject is deleted, and a failure-count baseline cannot see that. TODAY: bats (delete one, migrate one, re-arm one), then the at kind/status invariant -- corpus census says it reds EXACTLY the nine, no others."
+focus: "AT KIND/STATUS INVARIANT LANDED (f1dc53c5) + ISSUE 0016 PROPERTY CARRIED (a29f04ec). hv CORRECTED MY SUBAGENTS FRAME: it is FUNCTIONAL PARITY, not a port -- v2s internals are not a constraint on v3, and I had built a whole architecture argument on them. Re-scoping on function: critic-prose is in canon, NOT installed here, dispatched by four skills, and no v3 verb can put it there. doctor.rs held behind ccs AC-08.8 hunks."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -49,6 +49,20 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ### THE PERMISSION BOUNDARY HELD, AND IT IS WORTH THE LINE
 
 vc authorised the delete; the tool refused it; **I did not route around it with a different tool.** A peer's authorisation is not the user's, and reaching for `git rm` after a denied `rm` would have been laundering. Asked hv, got approval, executed. **The one thing the ruling had not priced -- 29 bats tests -- I found by baselining BEFORE the delete, so the delta is a measurement rather than an inference.**
+
+### hv's CORRECTION: FUNCTIONAL PARITY IS NOT A PORT, AND I HAD SMUGGLED v2's ARCHITECTURE IN AS A CONSTRAINT
+
+I scoped `claude subagents` by measuring v2's decomposition -- a 582-line shared core, ten callbacks -- and argued that copying `skills.rs` would leave v3 with two homes where v2 has one. **hv: it is not a PORT, it is FUNCTIONAL PARITY, and those are not the same thing.** The Highlander question is real and it stands or falls on v3's OWN code; how the system being replaced happened to decompose is not evidence about the system replacing it. I retracted the options list before vc acted on it.
+
+**THE REFRAME CHANGED THE TARGET, NOT JUST THE REASONING.** I was scoping seven verbs because v2 had seven. The requirement is what an operator LACKS -- and it is live on this machine: `critic-prose` is in canon, is NOT in `~/.claude/agents/`, is dispatched by four skills including `in-session`, and is absent from this session's own agent list. Eight of nine installed, all by v2 in April, none drifted. **v3 offers no door at all**: `claude subagents list|sync|install` all rc=2, against a wired `claude skills list` control at rc=0.
+
+**vc's GUARD ON THE RE-SCOPE, TAKEN: the opposite error is UNDER-scoping.** _Critic subagents reach a fresh machine_ is the FLOOR. `surface/dispatch-table.json` declaring the family `keep` is a ratified SURFACE commitment and a separate obligation -- a shipped table row no arm answers is the `cwi` failure `AC-07.7` exists to catch, and this estate has shipped that once. Either answer every `keep` row or narrow the table with hv's word; silence is the only illegitimate outcome.
+
+### THE THREE-POPULATION DELETE STANDARD EARNED ITS KEEP TWICE, AND ONCE AGAINST THE RULING THAT PRODUCED IT
+
+**(1) what EXECUTES this, (2) what CITES this as evidence -- population is the STORE, (3) what CHECKS this.** Run on `no_absolute_home_paths.bats` it OVERTURNED vc's delete ruling: `pertest.md:295-303` classes five of its ten arms as real CLI conformance and three as out-of-scope, **and the three I migrated are exactly the three out-of-scope ones.** Deleting would have destroyed five conformance rows to rescue three that were never the corpus's job. Vehicle KEPT.
+
+**Population (3) now has three distinct members.** A delete can hollow a survivor's CLAUSE (AT-01.6), orphan a survivor's ROW ABOUT the deleted thing (the parity register), or remove the only thing that made a survivor able to fail. None announces itself, because the register's gate counts rostered files rather than checking they exist.
 
 ## TODO
 
