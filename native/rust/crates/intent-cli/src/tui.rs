@@ -17,4 +17,5 @@ pub mod draw;
 pub mod focus;
 pub mod layout;
 pub mod mode;
+pub mod nav;
 pub mod terminal;
