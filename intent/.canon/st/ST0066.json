@@ -15,7 +15,8 @@
       "text": "`intent fc <target> --because \"<text>\"` exists and fiat-closes any of the four kinds (ST, WP, AC, AT); invoked without `--because` it refuses on stderr with a nonzero exit and writes nothing.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "driven 2026-08-30 (dc) on a tree-hash instrument positive-controlled BOTH ways first -- a pure read leaves it unmoved, a real write moves it. REFUSAL ARM: no --because refuses at rc=1 writing nothing, for all four kinds, via clap; --because \"\" and \"   \" refuse at rc=1 writing nothing via THE MODEL (`st.fc` requires a reason and was given none), which is the arm that proves the tool and not the parser -- clap is satisfied by an empty string. SUCCESS ARM: rc=0 on a FRESH FIXTURE PER KIND because fc on an ST cascades and closes the rest -- ST (gate BLOCKED 0/2 -> PASS 0/2 satisfied, 2 fiat-closed), WP (-> BLOCKED 0/2, 1 fiat-closed, correctly scoped to its own AC), AC, AT. ST and WP driven from `wip`: fc lands where done lands, so triage/not-started are pre-work states with no close to make -- a first drive from the fixture's default states refused, and that was the fixture, not the verb."
       }
     },
     {
@@ -47,7 +48,8 @@
       "text": "doctor renders a fiat-closed row distinctly wherever it reports one, and never proposes a remedy that would convert a fiat close into an ordinary one.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "driven 2026-08-30 (dc), both halves, after a vacuity check run BEFORE any build found the row had a live subject and was FAILING. FIRST HALF: doctor rendered a fiat-closed scope byte-identically to an ordinarily satisfied one (diff clean, same fixture shape, one state apart) while the close gate distinguished the same two states in its own tally -- so the distinction was computed and doctor was the surface not asking. Fixed at 8541c59c by carrying the fiat count on Verdict::Pass beside the detail, the arrangement `unsatisfied` already uses; Verdict is not a serialised face so no schema moved. SECOND HALF: the shared remedy said \"either satisfy them or take them out of scope\", which over a fiat row is the conversion this row forbids; remedy is per-CLASS so it was split to FindingClass::StatusGateDisagreementOverFiat at c9c48440. The new remedy was itself DRIVEN, not written -- its first version named `wp done`, which is refused from Not Started, the very state the finding fires on; corrected, and following it exactly clears the finding while `ac list` still reads fiat-closed. REACH: the status-gate path is the only one of doctor's 21 finding classes whose finding is a claim about a row's CLOSURE; the other 20 were enumerated and none reports closure state. Census arm compares class AND prose, driven red on the pre-fix branch."
       }
     },
     {
