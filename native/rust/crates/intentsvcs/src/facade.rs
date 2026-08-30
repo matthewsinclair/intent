@@ -7563,7 +7563,30 @@ impl Facade {
     // and async-graphql `Enum` and cannot carry a payload; the selector is the
     // same empty `at`, for the same reason, with the same safety over rows this
     // mutation never touched.
+    //
+    // **THIS LOOP FILLS THE RENDER; `Store::stamp_fiat` FILLS THE WRITE, AND
+    // BEFORE 0159 ONLY THIS ONE EXISTED.** That is why the extract carried the
+    // time and durable truth carried a blank: the patch ran after the rows were
+    // already serialised, so the store kept the empty string and the next `sync
+    // --to-disk` put it back over the good value. The two now agree because the
+    // stamp exists before either consumes it, not because one copies the other.
+    //
+    // **AND IT WALKS ALL FOUR KINDS NOW.** Criteria and tests were the only two
+    // reached, so a thread or package closed on authority rendered with no time
+    // at all -- the two kinds a cascade STARTS from.
     for thread in &mut next.threads {
+      if let Some(record) = thread.fiat.as_mut() {
+        if record.at.is_empty() {
+          record.at = dates.event_ts.clone();
+        }
+      }
+      for wp in &mut thread.wps {
+        if let Some(record) = wp.fiat.as_mut() {
+          if record.at.is_empty() {
+            record.at = dates.event_ts.clone();
+          }
+        }
+      }
       for criterion in &mut thread.criteria {
         if let AcState::Fiat(record) = &mut criterion.state {
           if record.at.is_empty() {

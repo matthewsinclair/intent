@@ -195,3 +195,93 @@ fn a_second_close_refuses_and_names_the_undo() {
     again.remedy()
   );
 }
+
+/// **THE ARM THAT WAS MISSING, AND ITS ABSENCE IS WHY 0159 SHIPPED.**
+///
+/// Every other arm in this file reads the state back through the SAME
+/// in-process facade that just patched it. All of them are therefore blind to
+/// PERSISTENCE by construction -- and this file's own module doc claims to be
+/// two-sided, which was true of the in-memory value and silent about the row on
+/// disk. Measured 2026-08-30: the store held `""` for every kind while the
+/// extract held the correct stamp, so the only correct copy lived in the
+/// DERIVED artefact and the next `sync --to-disk` put the blank back over it.
+/// D01 inverted, in the one field neither truth nor its projection can
+/// recompute.
+///
+/// **A ROUND-TRIP ARM CANNOT REPLACE THIS AND THAT IS THE TRAP.** Empty
+/// round-trips to empty, so a round trip is byte-faithful on a record whose
+/// stamp has already been destroyed -- it passes hardest exactly when the value
+/// is gone. The only question that discriminates is what the STORE holds, read
+/// through `load_canon`, which is the door `sync --to-disk` reads through.
+///
+/// **DRIVEN FROM AN ST CLOSE so one act produces all four kinds**: the thread's
+/// own record, and via the cascade the work packages, criteria and tests. Two of
+/// those -- `thread.fiat` and `wp.fiat` -- were never stamped anywhere at all,
+/// on any surface, because the caller-side walk reached only criteria and tests.
+#[test]
+fn the_store_and_not_only_the_extract_carries_the_stamp() {
+  let (_fx, mut facade) = loaded();
+  facade
+    .st_fc(ST, "hv closed the thread on authority", "hv")
+    .expect("st fc");
+
+  let events = facade.store().events().expect("events");
+  let ts = &events
+    .iter()
+    .find(|e| e.op == "st.fc")
+    .expect("the close wrote its event")
+    .ts;
+
+  // THE DURABLE READ. Not `st_show`, which serves the in-memory canon this
+  // mutation just patched -- that is the read every other arm here makes, and
+  // it is the one that cannot see the defect.
+  let (threads, _) = facade.store().load_canon().expect("read the store back");
+  let thread = threads.iter().find(|t| t.id == ST).expect("thread");
+
+  let mut seen: Vec<(String, String)> = Vec::new();
+  if let Some(r) = &thread.fiat {
+    seen.push(("thread".to_string(), r.at.clone()));
+  }
+  for w in &thread.wps {
+    if let Some(r) = &w.fiat {
+      seen.push((format!("WP-{:02}", w.seq), r.at.clone()));
+    }
+  }
+  for c in &thread.criteria {
+    if let AcState::Fiat(r) = &c.state {
+      seen.push((c.id.clone(), r.at.clone()));
+    }
+  }
+  for x in &thread.tests {
+    if let Some(r) = &x.fiat {
+      seen.push((x.id.clone(), r.at.clone()));
+    }
+  }
+
+  // **THE POPULATION IS ASSERTED BEFORE THE PROPERTY IS**, or an arm that found
+  // no records at all would pass by vacancy -- which is the same shape as the
+  // blindness this test exists to close.
+  assert!(
+    seen.len() >= 2,
+    "an ST close must reach its own record AND its cascade, or this arm is \
+     asserting a property over an empty set: {seen:?}"
+  );
+  assert!(
+    thread.fiat.is_some(),
+    "the thread's OWN record must be in the store -- it is one of the two kinds \
+     that carried no stamp on any surface before 0159"
+  );
+  for (what, at) in &seen {
+    assert!(
+      !at.is_empty(),
+      "`{what}` is fiat-closed in the store with an EMPTY `at`. The extract may \
+       still look right; the next `sync --to-disk` will copy this blank over it, \
+       and nothing can recompute the value: {seen:?}"
+    );
+    assert_eq!(
+      at, ts,
+      "`{what}`'s persisted stamp must BE the database's stamp on this \
+       mutation's event, not a separately-produced value that resembles one"
+    );
+  }
+}

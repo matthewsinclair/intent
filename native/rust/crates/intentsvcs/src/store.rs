@@ -2009,6 +2009,57 @@ impl Store {
   /// hands in an empty `created`; SQLite fills it as part of the INSERT and the
   /// value comes back here, so the caller learns the date from the write instead
   /// of reading a clock and predicting it.
+  /// Fill every empty [`crate::model::FiatRecord::at`] on this thread with the
+  /// stamp the database just wrote, returning `None` when there is nothing to
+  /// fill.
+  ///
+  /// **EMPTY IS THE SELECTOR, which is what makes this safe to run over every
+  /// entity on every mutation.** A fiat close arriving with a stamp is either a
+  /// row this mutation did not touch or one ingested from canon, and re-stamping
+  /// either would rewrite when it happened to the moment of an unrelated write.
+  /// Same distinction `Stamp::CarriedFromTheExtract` draws for entity dates.
+  ///
+  /// **ALL FOUR KINDS, and two of them had never been reached at all.** The
+  /// caller-side loop this replaces walked criteria and tests only, so a thread
+  /// or work package closed on human authority carried no record of WHEN on any
+  /// surface, ever -- and those are the two kinds a cascade starts from.
+  fn stamp_fiat(t: &crate::model::Thread, event_ts: &str) -> Option<crate::model::Thread> {
+    let empty = |r: &Option<crate::model::FiatRecord>| r.as_ref().is_some_and(|r| r.at.is_empty());
+    let wants = empty(&t.fiat)
+      || t.wps.iter().any(|w| empty(&w.fiat))
+      || t.tests.iter().any(|x| empty(&x.fiat))
+      || t
+        .criteria
+        .iter()
+        .any(|c| matches!(&c.state, crate::model::AcState::Fiat(r) if r.at.is_empty()));
+    if !wants {
+      return None;
+    }
+    let mut t = t.clone();
+    let fill = |r: &mut Option<crate::model::FiatRecord>| {
+      if let Some(r) = r.as_mut() {
+        if r.at.is_empty() {
+          r.at = event_ts.to_string();
+        }
+      }
+    };
+    fill(&mut t.fiat);
+    for w in &mut t.wps {
+      fill(&mut w.fiat);
+    }
+    for x in &mut t.tests {
+      fill(&mut x.fiat);
+    }
+    for c in &mut t.criteria {
+      if let crate::model::AcState::Fiat(r) = &mut c.state {
+        if r.at.is_empty() {
+          r.at = event_ts.to_string();
+        }
+      }
+    }
+    Some(t)
+  }
+
   pub fn commit_mutation(&mut self, change: Mutation<'_>) -> Result<StoredDates, StoreError> {
     let tx = self.conn.transaction()?;
     for id in change.removed_threads {
@@ -2022,8 +2073,42 @@ impl Store {
     for number in change.removed_issues {
       tx.execute("DELETE FROM issues WHERE number = ?1", params![number])?;
     }
+    // The mutation's own event: the DB stamps it inside the same
+    // transaction as the rows it describes (D42).
+    // **THE FIRST ENVELOPE'S STAMP IS THE MUTATION'S, and the rest share the
+    // transaction rather than a separate reading.** `StoredDates.event_ts` is
+    // what the caller reports for the act it invoked, which is the first one;
+    // a cascade's children are the same act reaching further, so a second clock
+    // read for them would be a different time for one decision.
+    //
+    // **WRITTEN BEFORE THE ROWS RATHER THAN AFTER, AND THE ORDER IS NOW
+    // LOAD-BEARING.** `FiatRecord.at` is nested inside a criterion's state
+    // rather than sitting in a column, so no `DEFAULT` can fill it and the only
+    // way the row can carry the database's stamp is for the stamp to EXIST
+    // before the row is serialised. It did not: the event was written last, the
+    // caller patched its in-memory copy afterwards, and the store kept the empty
+    // string the writer handed in -- so the extract carried the time and durable
+    // truth carried a blank, until the next `sync --to-disk` put the blank back
+    // over the extract. Issue 0159.
+    //
+    // Ordering INSIDE a transaction is invisible outside it, so nothing about
+    // D42 or "the same transaction as the rows it describes" changes here.
+    // `event_log` carries no foreign key to `threads`, so an event may precede
+    // the row it names.
+    let mut event_ts = String::new();
+    for (i, envelope) in change.envelopes.iter().enumerate() {
+      let ts = Self::write_event(&tx, envelope, Stamp::ByTheDatabase)?;
+      if i == 0 {
+        event_ts = ts;
+      }
+    }
     let mut dates = StoredDates::default();
     for t in change.threads {
+      // **THE STAMP GOES IN BEFORE THE BYTES DO.** Only a thread actually
+      // carrying an unstamped fiat close is cloned, so the ordinary mutation
+      // pays nothing for this.
+      let stamped = Self::stamp_fiat(t, &event_ts);
+      let t = stamped.as_ref().unwrap_or(t);
       // The CREATE door: this write is the thing happening, so the database
       // stamps it.
       // An id the caller DIFFED as new goes through the create door, where an
@@ -2059,20 +2144,6 @@ impl Store {
       });
     }
     Self::write_doc_sections(&tx, change.sections)?;
-    // The mutation's own event: the DB stamps it inside the same
-    // transaction as the rows it describes (D42).
-    // **THE FIRST ENVELOPE'S STAMP IS THE MUTATION'S, and the rest share the
-    // transaction rather than a separate reading.** `StoredDates.event_ts` is
-    // what the caller reports for the act it invoked, which is the first one;
-    // a cascade's children are the same act reaching further, so a second clock
-    // read for them would be a different time for one decision.
-    let mut event_ts = String::new();
-    for (i, envelope) in change.envelopes.iter().enumerate() {
-      let ts = Self::write_event(&tx, envelope, Stamp::ByTheDatabase)?;
-      if i == 0 {
-        event_ts = ts;
-      }
-    }
     // **AND THE PROJECT STATE, IN THIS TRANSACTION, WHICH IS THE WHOLE OF
     // AC-14.7.** The clock is the database's, read inside the statement, so
     // this keeps D42 for the same reason the envelope does: a time read in Rust
