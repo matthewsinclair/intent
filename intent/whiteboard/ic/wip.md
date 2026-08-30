@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-30 13:36Z
+heartbeat_at: 2026-08-30 14:24Z
 status: active
-focus: "WP-17 piece 3 IS DRAWING AND `intent explore` SHIPS. Ten tui modules; the shared derivation and the shared path contract both moved down into intentsvcs on vc's rulings; AC-17.9's always-visible half is proven. NEXT: AC-17.10's editor handoff, the list+detail split, AC-17.8. vc holds the pen."
+focus: "AC-17.10 IS BUILT: the prose handoff, with the editor as authority on the return AND the model as authority on the departure -- the second half is a defect the criterion does not name. AT-17.10 stays to-write on ONE clause vc must rule. Four more ATs went green because their evidence already existed. NEXT: the list+detail split, then AC-17.8."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -15,25 +15,25 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## DOING
 
-**RE-MEASURE EVERY FIGURE BELOW AT PICKUP. Four nodes write this tree and a number here is spent the moment one does.** Last figure with a HEAD behind it: `cargo test -p intent-cli --lib` 101 passed / 0 failed at `325ca3a6`. **A full `--tests` run was still COMPILING when I folded** (background id `bm10l3uul`) -- **it has no verdict, so do not quote one.**
+**RE-MEASURE EVERY FIGURE BELOW AT PICKUP. Four nodes write this tree and a number here is spent the moment one does.** Last figures with a HEAD behind them, all at `3a6eda25`: `cargo test -p intent-cli --lib` **124 passed / 0 failed** (101 at `325ca3a6`); `intentsvcs --test the_editor_gets_the_model_bytes` 4 passed; `--test dep_graph_guard` 2 passed. **`ac status` 82/134 satisfied, BLOCKED.** No full `--tests` run has a verdict this session.
 
-**NOTHING OF MINE IS UNCOMMITTED.** Today, in order: `4c5a37b1` (AT-17.2/.4/.5 green -- three criteria satisfied and unrecorded), `238edd7e` (the `organize` retraction + exposure ruled TRUE under AC-05.1), `009299a4` (`in-essentials` names `IN-AG-FIAT-001`, unblocking dc's ST0066 AC-00.6), `62b4745f` (ratatui, one crossterm verified), `840511cc` + `aafd1e04` (AC-17.11), `d25cff06` + `9949a040` (nav, then its contract moved down), `a1f44db5` (keymap), `64fbb72f` + `5109a3b8` (event loop, cursor), `57c14860` + `cc2d8d2e` (row derivation, then moved down), `dbe5a5c2` (AC-17.9's other half), `325ca3a6` (`intent explore`).
+**NOTHING OF MINE IS UNCOMMITTED.** Since the fold: `4cb6600f` (AT-17.3/.7/.9/.11 green -- four criteria whose evidence already existed), `354e2136` (`AC-17.10`, the prose handoff), `b003ea0b` (the lockfile `354e2136` should have carried).
 
-**`intent explore` SHIPS.** Bare verb, no address, rooted at the entity kinds; `intent edit <kind> <id>` roots at the item. **Same stack, different bottom** -- that is the whole of it. Refuses on a pipe with rc=1 and a remedy rather than hanging.
+**`AC-17.10` IS BUILT AND `AT-17.10` IS CITED, NOT GREEN.** One clause -- _"and the existing realise-then-open path"_ -- reads two ways for a FIELD, because `facade.edit` realises a DOCUMENT and `prose` is declared on `objective`/`context`/`body`/`preamble`, which have no file. **My reading is that clause 2 is satisfied vacuously and design §7 puts artefact editing in its own subsection; the ruling is vc's and it is with them live and on the file.**
 
-**MY `render.rs` HANDLER LANDED UNDER SOMEBODY ELSE'S COMMIT MESSAGE.** `c75a5b1a` (ST0058, `agents init and validate`) carries `fn explore`. The code is correct and present; only its provenance is wrong, and history on a shared main is not mine to rewrite. **Third instance of `0157`'s class today** -- cc's commit reverted my board at 11:34Z, cc repaired it, and now my bytes went the other way. **The index is shared and has no diagnostic.**
+**THE TWO DEFECTS BUILDING IT FOUND, both shipped fixed.** (1) **THE CRITERION WARNS ABOUT THE RETURN AND THE DEPARTURE IS BROKEN THE SAME WAY:** `Triple::value` is `one_line`-collapsed, so handing it to `$EDITOR` deletes every paragraph break on the first save -- the round trip is faithful and the bytes were already wrong. `intentsvcs::form::raw` is the shared fix, placed by asking which crate the OTHER consumers live in first. (2) **`NORMAL + Enter` WAS RESOLVED BY TABLE ORDER**, so Enter on a prose row opened an in-place edit of a 673-byte objective inside a one-line value column. `mode::BY_ROW_KIND` + `mode::arm` resolve it by ROW, default arm BY EXCLUSION.
 
-**WITH hv, NOT WITH ME: nothing open.** Both of this morning's items came back ruled -- the `sync --to-store` permission was lifted at the source (store writes work: `at edit`, `at green` and `sync --to-disk` all ran), and `organize` was handed back to me under AC-05.1 and ruled TRUE.
+**`0157` HAS NOW HIT FOUR TIMES IN ONE DAY, three of them in this direction.** My `AT-17.10` citation landed in peer commit `121ea719`. **The structural fact, which is new: a register write's disk effect lands in two files the writer never names** (`intent/.canon/st/*.json` and the generated view), so the window between `intent at edit` and your own commit is open BY CONSTRUCTION for every node. `git commit --only` protects the discipline of whoever uses it and nothing else.
 
 ## TODO
 
-1. **`AC-17.10` -- the editor handoff.** `launch_editor` by SYMBOL, no second resolver. **The RETURN is the dangerous half:** re-read the artefact and treat the editor as its authority BEFORE painting anything derived from it. `terminal.rs` holds the drop-guard-plus-panic-hook clause and `run.rs` installs the hook before the borrow. Design §7 carries the measured first-paint times and the soft-wrap flags; **never hard-wrap the model** -- that was reversible for only 439 of 444 real criteria.
-2. **The list+detail split.** BODY splits where the selected row CARRIES detail -- **triggered by the row, never by a hardcoded list of view kinds**, which is the half that gets forgotten. List and detail share ONE markdown renderer.
-3. **`AC-17.8`** -- reach every authored artefact and refuse a generated view BY NAMING IT. The authored/generated split is READ from the model, never hard-coded.
-4. **`AC-17.6`'s reword** -- vc is performing it; sentence sent. **The row stays UNSATISFIED**: the verbs shipping is not the criterion, and `AT-17.6` is still to-write.
-5. **WP-09 -- start at `AT-09.4`.** `intent llm` already derives from the table, so the WP's first honest act is the AT, not new code. **No longer gated on `organize`.**
-6. **ST0064 (L)**, WP-16 (S), `0142`'s structural half, **ST0065** (WIP, two WIP work packages, ZERO acceptance criteria).
-7. **Owed and unclaimed:** `rustfmt::skip` is used in ZERO places and that is load-bearing -- belongs in `AGENTS.md` or the Rust pack.
+1. **The list+detail split.** BODY splits where the selected row CARRIES detail -- **triggered by the row, never by a hardcoded list of view kinds**, which is the half that gets forgotten. List and detail share ONE markdown renderer.
+2. **`AC-17.8`** -- reach every authored artefact and refuse a generated view BY NAMING IT. The authored/generated split is READ from the model, never hard-coded.
+3. **`AC-17.6`'s reword** -- vc is performing it; sentence sent. **The row stays UNSATISFIED**: the verbs shipping is not the criterion, and `AT-17.6` is still to-write.
+4. **WP-09 -- start at `AT-09.4`.** `intent llm` already derives from the table, so the WP's first honest act is the AT, not new code. **No longer gated on `organize`.**
+5. **ST0064 (L)**, WP-16 (S), `0142`'s structural half, **ST0065** (WIP, two WIP work packages, ZERO acceptance criteria).
+6. **Owed and unclaimed:** `rustfmt::skip` is used in ZERO places and that is load-bearing -- belongs in `AGENTS.md` or the Rust pack. **`AC-17.10`'s soft-wrap flags** (design §7) -- the CORRECTNESS half holds because nothing transforms in either direction; the comfort half means widening the ONE shared launcher for one caller, which is a decision about `render.rs`. **EMBED's pty** is its own build; what shipped is full-pane.
+7. **Not mine, but somebody's:** `IN-RS-CODE-004`'s mechanical proxy is a grep that cannot tell a doc comment from a signature, so it refused the comment EXPLAINING the fix it had just demanded. Same class as the whiteboard header guard's rule that scanning prose makes reporting the defect an offence.
 
 ## Watch-outs -- mechanisms only
 
