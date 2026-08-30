@@ -171,6 +171,36 @@ enum StoreNeed {
 /// function that can only answer about a path it is GIVEN cannot tell a caller
 /// which paths to ask about, and a caller that supplied its own list is the
 /// fourth home again.
+///
+/// **WHY `st list` IS THE ONLY MEMBER, WHICH EVERYTHING ABOVE LEFT UNSAID**
+/// (vc, 2026-08-30, applying dc's `HOOKS` discriminator: *a closed list is safe
+/// when it declares why the things not in it are not in it*). Twenty-four lines
+/// said what this list is FOR and none said what it EXCLUDES, so a reader
+/// learned the roster was authoritative and could not learn whether one entry
+/// was the intended state or an unfinished one.
+///
+/// **THE MEMBERSHIP RULE: a path belongs here when its answer is an existing
+/// project-scoped, request-response [`Op`].** That is one path today because
+/// [`Op`] has exactly one such variant, and the other three are excluded by
+/// what they ARE rather than by not having been done yet -- `Registry` is
+/// deliberately not scoped to one project, `Subscribe` changes the
+/// connection's MODE and answers once before streaming, and `Shutdown` acts on
+/// the daemon rather than answering a question about the estate. **So this is
+/// the COMPLETE set under today's vocabulary, not a floor someone stopped at.**
+///
+/// **IT GROWS WHEN `Op` GAINS A PROJECT-SCOPED REQUEST-RESPONSE VARIANT, AND
+/// NOT BEFORE** -- adding a path here without one has nothing to map it to.
+/// The 3.x destination is a general `dispatch(op)`, at which point this roster
+/// becomes a projection of the dispatch table rather than a second home, which
+/// is the discharge condition recorded on the drift guard below.
+///
+/// **AND THE EXCLUSIONS REFUSE LOUDLY, WHICH IS WHY THIS IS A DECLARATION AND
+/// NOT A HAZARD.** `run()` guards `--daemon` at the one place that sees every
+/// invocation and refuses any path with no op, so an unserved verb cannot
+/// quietly answer in-process. **That is the whole difference from the `HOOKS`
+/// class this note is modelled on: `HOOKS` declared why it was CLOSED and never
+/// what it EXCLUDED, and its exclusion was SILENT.** A silent exclusion hides a
+/// missing member; a loud one cannot.
 const SERVED_BY_DAEMON: &[(&str, Op)] = &[("st list", Op::ThreadList)];
 
 /// The op a verb path becomes at the daemon, if a daemon can answer it at all.
