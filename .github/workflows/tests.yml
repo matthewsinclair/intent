@@ -103,10 +103,17 @@ jobs:
 
     - name: Configure git identity
       run: |
-        # WP-15's intent_claude_upgrade.bats NORMALIZE_GITIGNORE scenarios
-        # call `git commit` in scratch repos to establish a baseline. Stock
-        # CI runners have no global git user.email/user.name; without
-        # these, git commit fails with exit 128.
+        # Ten bats files call `git commit` in scratch repos to establish a
+        # baseline. Stock CI runners have no global git user.email/user.name;
+        # without these, git commit fails with exit 128.
+        #
+        # THIS NAMED ONE FILE AND THAT FILE IS NOW DELETED (2026-08-30). It
+        # read "WP-15's intent_claude_upgrade.bats NORMALIZE_GITIGNORE
+        # scenarios", which was true and was never the whole population -- so
+        # a reader checking whether this step was still needed would have
+        # followed it to nothing and had to re-derive the answer. The step
+        # SURVIVES its stated reason by nine files; naming the population
+        # rather than one member is what makes it survive the next delete too.
         git config --global user.email "ci@intent.local"
         git config --global user.name "Intent CI"
 

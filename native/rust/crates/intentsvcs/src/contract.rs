@@ -155,6 +155,27 @@ pub fn solely_covered_by(thread: &Thread, at_id: &str) -> Vec<String> {
     .criteria
     .iter()
     .filter(|c| c.kind == crate::model::AcKind::Test)
+    // **SCOPE FIRST, THE SAME SENTENCE [`resolve`] CARRIES THREE LINES BELOW
+    // THIS FUNCTION: a descoped, withdrawn or fiat-closed criterion is not
+    // asked whether it is satisfied, because the question no longer applies.**
+    // This filter was absent and the rule was already written down directly
+    // underneath, which is the shape that makes it worth a comment rather than
+    // a silent fix.
+    //
+    // The symptom is a REMEDY THAT DOES NOT APPLY, not a wrong count. Found
+    // 2026-08-30 fiat-closing ST0043/AT-01.8, whose AC-01.6 had been WITHDRAWN
+    // minutes earlier: the note said the criterion `stays unsatisfied with
+    // nothing left that could satisfy them` and advised finding another test
+    // for a requirement that had been taken out of scope on hv's ruling. The
+    // gate was right the whole time -- `ac status` read `7/7 satisfied, 1
+    // withdrawn -- PASS` -- so nothing downstream was wrong and only the
+    // advice was, which is why it could sit here unnoticed.
+    .filter(|c| {
+      matches!(
+        resolve(thread, c),
+        Resolved::Satisfied | Resolved::Unsatisfied
+      )
+    })
     .filter(|c| {
       let mut covering = thread
         .tests

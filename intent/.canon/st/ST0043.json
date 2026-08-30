@@ -168,8 +168,17 @@
       "covers": [
         "AC-01.6"
       ],
-      "status": "green",
-      "note": "test: sed edits are portable and the version handling is anchored"
+      "status": "fiat",
+      "fiat": {
+        "because": "RETIRED ON hv's RULING OF 2026-08-30, routed by vc: delete tests/unit/intent_claude_upgrade.bats and retire this row with it. Fiat rather than a kind move, which is vc's find -- AtStatus::permitted_for makes Fiat legal for BOTH kinds because it is a decision about the ROW rather than about its result, so retirement needs no test-to-non-test transition and no table amendment. NOTHING WAS GIVEN UP, WHICH IS THE PART A LATER READER WANTS. This row's subject, the canon engine intent/plugins/claude/bin/intent_claude_upgrade, went at 125f601d, and AC-01.6 -- which this row covers -- is withdrawn for that reason. The row's green was already empty before any delete: its test reads 'if grep -nE (sed -i, BSD form) $canon; then fail; fi', grep on an absent file errors, the if is false, the fail branch is unreachable. Of that file's 27 tests, 25 failed loudly on the missing script and 2 passed vacuously; this was one of the 2. So there was no coverage to lose -- the claim had stopped being one long before it was retired. The citation is deliberately KEPT rather than cleared: it records what this row was covered by, and the file's absence is stated here rather than implied by a blank field.",
+        "by": "matts",
+        "at": "2026-08-30T20:41:37.118Z",
+        "invoker": {
+          "tty": false,
+          "env": "macos/aarch64"
+        }
+      },
+      "note": "RED BEFORE RETIREMENT, AND IT IS THE TRUE STATE RATHER THAN A STEP TOWARDS ONE. This row was green and the green was VACUOUS: its test body is 'if grep -nE \"sed -i (two single quotes)\" $canon; then fail; fi' against a canon engine deleted at 125f601d. grep on an absent file errors, the if is false, and the fail branch is unreachable -- so the assertion could not be reached and the row could not go red however broken its subject was. Measured on the whole file: 27 tests, 25 failing loudly on the missing script, 2 passing this way, and this row is one of the 2. A row whose assertion cannot be reached is not honestly green."
     }
   ],
   "attachments": [
