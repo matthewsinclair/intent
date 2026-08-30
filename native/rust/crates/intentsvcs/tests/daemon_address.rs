@@ -14,6 +14,7 @@
 //! hard kill from an outage.
 
 use std::net::SocketAddr;
+use std::os::unix::fs::MetadataExt;
 use std::path::Path;
 
 use intentsvcs::daemon::{self, Endpoint, Published, Route};
@@ -178,5 +179,45 @@ fn an_address_left_by_a_hard_kill_still_routes_as_absent() {
     daemon::route(&candidates),
     Route::InProcess,
     "a published address whose owner is gone routed as a daemon. This is AC-08.3's whole subject, reached through the writer rather than through a fixture"
+  );
+}
+
+/// The publication REPLACES the file rather than rewriting it in place.
+///
+/// **THIS WITNESSES THE MECHANISM, NOT THE OUTCOME, AND THAT IS THE ONLY THING
+/// AVAILABLE TO WITNESS** (vc, 2026-08-30). Atomicity here belongs to
+/// `rename(2)`, not to our code: a reader CANNOT observe a torn write because
+/// the syscall forbids it, so no concurrency fixture would ever fail -- not
+/// today, and not after somebody replaced the temp-and-rename with a direct
+/// truncating open, which is the regression that would silently remove the
+/// property. A race window too small to hit reliably is not a test.
+///
+/// **THE INODE IS THE DISCRIMINATOR AND IT IS EXACT.** `rename` swings the
+/// directory entry at a different file, so the path's inode CHANGES; a
+/// truncating write opens the existing file and keeps it. One number separates
+/// the two implementations, deterministically, with no timing anywhere.
+#[test]
+fn republishing_swings_the_file_rather_than_rewriting_it() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+
+  let (_first_listener, first) = Published::bind_loopback_under(root).expect("bind a");
+  let before = std::fs::metadata(address_file(root))
+    .expect("published")
+    .ino();
+
+  let (_second_listener, second) = Published::bind_loopback_under(root).expect("bind b");
+  let after = std::fs::metadata(address_file(root))
+    .expect("republished")
+    .ino();
+
+  assert_ne!(
+    first.endpoint(),
+    second.endpoint(),
+    "the fixture needs two DIFFERENT addresses, or the republish it is measuring is a no-op"
+  );
+  assert_ne!(
+    before, after,
+    "the address file kept its inode across a republish, so it was rewritten IN PLACE rather than renamed over. Atomicity here is rename(2)'s and nothing else's -- a reader can now see a half-written address, and AC-08.3's parser REFUSES one, so every concurrent command becomes a hard error"
   );
 }
