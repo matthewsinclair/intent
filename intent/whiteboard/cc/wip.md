@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-30 09:18Z
+heartbeat_at: 2026-08-30 09:20Z
 status: active
 focus: "NOTHING IN FLIGHT. WP-08's routing seam is complete on both sides and `0152` is closed. NEXT IS PHASE 3 (`AC-08.10`, tokio + axum with a written rationale) -- ic's dispatch-table split has landed, so the lock can move. `guide.rs` still waits on dc's `pub const`."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
@@ -89,7 +89,7 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 
 **26. TWO RULES GOVERNING ONE DECISION -- ONE STRUCTURAL, ONE PURPOSIVE -- ARE CONSISTENT ONLY UNDER AN ASSUMPTION NEITHER STATES.** The tell is not drift between copies; it is that obeying one BREAKS the other, which is why it reads as a judgment call and is not one. vc's ground: **an obligation to READ is destroyed by volume long before it is destroyed by refusal.**
 
-**27. EVERY TIMESTAMP IS READ FROM `date -u` IN THE SAME CALL THAT WRITES IT.** `git log` prints LOCAL. I have fabricated stamps three ways: wrong zone, typed-from-the-last-one, and one minute ahead of a clock I had just read. **A placeholder shaped like a stamp is worse than an admitted gap.**
+**27. EVERY TIMESTAMP IS READ FROM `date -u` IN THE SAME CALL THAT WRITES IT.** `git log` prints LOCAL. I have fabricated stamps three ways: wrong zone, typed-from-the-last-one, and one minute ahead of a clock I had just read. **A placeholder shaped like a stamp is worse than an admitted gap.** **AND THE FABRICATION CONCENTRATES WHERE THE GUARD IS ABSENT, WHICH IS NOT A COINCIDENCE.** Board stamps are clean because clock-guard check A refuses a future value at commit time and because the read and the write are one call. **MESSAGES SIT UNDER NO GUARD (issue `0099`)** -- and that is exactly where I produced FOUR fabrications in one hour on 2026-08-30, three of them in the future, each also asserting _clock read this turn_, so the provenance claim was false as well as the value. Seven more on 2026-08-26. **A fourth way to fabricate: typing the stamp forward from the last real read, which drifts by however long the turn felt and looks perfect.** The rule is not _use UTC_; it is that `date -u` output must be in THIS TURN'S TOOL OUTPUT before the value goes anywhere -- and the unguarded channel is the one that needs the discipline most, because nothing else will catch it.
 
 **28. A GENERATED ARTEFACT CAN WRITE INTO THE AGENT-INSTRUCTION CHANNEL, AND NOTHING ANNOUNCES IT.** `docs/reference/claude.md` IS `CLAUDE.md` on a case-insensitive filesystem. **Prefix the whole output space rather than special-casing the member that bit.**
 
