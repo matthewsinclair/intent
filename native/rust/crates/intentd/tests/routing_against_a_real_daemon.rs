@@ -23,16 +23,32 @@
 
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
-use std::time::{Duration, Instant};
+use std::sync::atomic::{AtomicU32, Ordering};
+use std::time::Duration;
 
 use intentsvcs::daemon::{self, Route};
 
-/// How long the daemon gets to bind before the test gives up on it.
+/// How many times the daemon is asked before the test gives up on it.
 ///
 /// Bounded because an unbounded wait on a child that never binds is a hung
 /// build naming no test, which is strictly worse than a failure: the instrument
 /// gives NO answer, and no-answer is indistinguishable from still-working.
-const STARTUP_BUDGET: Duration = Duration::from_secs(10);
+///
+/// **A COUNT RATHER THAN A DEADLINE, AND IT IS THE BETTER EXPRESSION OF THE
+/// PROPERTY RATHER THAN A WAY ROUND D42.** The first draft measured elapsed
+/// wall time with `Instant::now`, which the workspace's clock guard refused --
+/// correctly by its own text, since it admits no clock reads at all, and dc
+/// found it failing the whole `intentsvcs` suite. The guard could have been
+/// taught that a wait is not a record stamp. It did not need to be: what this
+/// loop actually requires is that it TERMINATES, and a retry count says that
+/// without asking anything about the time. It is also strictly more robust --
+/// a machine that suspends mid-test blows a wall-clock budget while a count is
+/// unaffected.
+const STARTUP_ATTEMPTS: u32 = 500;
+
+/// How long to pause between attempts. `sleep` yields the thread; it reads no
+/// clock and answers no question about the time.
+const ATTEMPT_PAUSE: Duration = Duration::from_millis(20);
 
 /// A running `intentd`, killed when this value is dropped.
 ///
@@ -56,10 +72,13 @@ impl RunningDaemon {
     // which leaves too little room to rely on. `/tmp` is short, present on
     // every platform this runs on, and the daemon reported this exact refusal
     // the first time it was started under a long directory.
+    // The counter, not a clock: uniqueness within this process is all that is
+    // needed, and `std::process::id` separates it from any other run.
+    static NEXT: AtomicU32 = AtomicU32::new(0);
     let home = PathBuf::from("/tmp").join(format!(
       "intentd-at083-{}-{}",
       std::process::id(),
-      Instant::now().elapsed().as_nanos()
+      NEXT.fetch_add(1, Ordering::Relaxed)
     ));
     std::fs::create_dir_all(&home).expect("create an isolated HOME");
 
@@ -82,15 +101,14 @@ impl RunningDaemon {
   /// either too short on a loaded machine -- a flake that reads as a routing
   /// defect -- or too long on every other run.
   fn wait_until_answering(&self) {
-    let deadline = Instant::now() + STARTUP_BUDGET;
-    while Instant::now() < deadline {
+    for _ in 0..STARTUP_ATTEMPTS {
       if matches!(self.route(), Route::Daemon(_)) {
         return;
       }
-      std::thread::sleep(Duration::from_millis(20));
+      std::thread::sleep(ATTEMPT_PAUSE);
     }
     panic!(
-      "intentd did not answer within {STARTUP_BUDGET:?} under HOME={}. The daemon either failed to bind or is not answering the probe on its accept path",
+      "intentd did not answer in {STARTUP_ATTEMPTS} attempts under HOME={}. The daemon either failed to bind or is not answering the probe on its accept path",
       self.home.display()
     );
   }
@@ -119,12 +137,11 @@ impl Drop for RunningDaemon {
 fn stop_and_settle(daemon: &mut RunningDaemon) {
   let _ = daemon.child.kill();
   let _ = daemon.child.wait();
-  let deadline = Instant::now() + STARTUP_BUDGET;
-  while Instant::now() < deadline {
+  for _ in 0..STARTUP_ATTEMPTS {
     if matches!(daemon.route(), Route::InProcess) {
       return;
     }
-    std::thread::sleep(Duration::from_millis(20));
+    std::thread::sleep(ATTEMPT_PAUSE);
   }
   panic!("the address still routed to a daemon after the process was killed and reaped");
 }
