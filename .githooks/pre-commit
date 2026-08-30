@@ -179,11 +179,21 @@ if [ "${#RS_FILES[@]}" -gt 0 ]; then
   # measurement failure and is reported as one; a diff on stdout with a clean
   # stderr is a formatting failure. **A gate that cannot say "I could not
   # check" will eventually say something false instead.**
+  # **A LEAKED PROBE IS NOT A STRAY TEMP FILE HERE, AND THAT IS WHY THIS TRAP
+  # EXISTS** (dc, 2026-08-30, who found one). It lands beside the original, so
+  # under `tests/` it matches `tests/*.rs` and cargo compiles and RUNS it as a
+  # test target of its own; and arm 2 of the shared-artefact guard refuses a
+  # release build on any untracked file under `native/rust`, so a leaked probe
+  # silently blocks the delivery path. The per-iteration `rm` covers the
+  # passing and refusing paths; this covers the interrupted one.
+  RS_PROBES=""
+  trap 'for p in $RS_PROBES; do rm -f "$p" "$p.err"; done' EXIT INT TERM
   RS_CFG=$(git ls-files '*rustfmt.toml' | head -1)
   RS_BAD=""
   RS_UNMEASURED=""
   for f in "${RS_FILES[@]}"; do
     probe="$(dirname "$f")/.staged-check-$$.rs"
+    RS_PROBES="$RS_PROBES $probe"
     if git show ":$f" > "$probe" 2>/dev/null; then
       # **`if`, NOT `rs_err=$(...)`. Under `set -e` a failing command
       # substitution aborts the script before the next line runs**, so the
