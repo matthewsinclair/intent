@@ -532,7 +532,25 @@ impl Drop for Published {
 /// this one refuses to evict, and compares IDENTITY rather than content on the
 /// way out, because a socket file has no content to compare.
 ///
-/// **THE DAEMON USES THE CLIENT'S OWN ROUTING RULE TO DECIDE.** A crash leaves
+/// **THE START DECISION IS A LOCK, NOT A PROBE** (`AC-08.12`). **The same
+/// predicate is sound for routing and unsound for eviction, and the difference
+/// is the COST of being wrong rather than the accuracy of the answer.** A
+/// routing false negative is one redundant in-process run. An eviction false
+/// negative leaves a live daemon holding a listener on an unlinked inode,
+/// reachable by no path, serving nobody, silently -- and `SIGSTOP`, a suspended
+/// VM or merely a loaded machine defeat any probe. **A lock has neither
+/// failure**: the kernel releases it on death by any means, so a crash cannot
+/// leave it held and a slow daemon cannot be mistaken for a dead one. It
+/// DOMINATES both alternatives rather than trading between them -- refusing
+/// whenever the path exists makes one crash permanent, and probing evicts the
+/// living.
+///
+/// **WHERE THE LOCK'S GUARANTEE DOES NOT HOLD, THE PROBE STILL GUARDS THE
+/// DESTRUCTIVE HALF.** `flock` is unreliable over NFS, so an answering socket
+/// is never unlinked whatever the lock said.
+///
+/// The superseded reasoning, kept because it is right about the half it
+/// covers: **THE DAEMON USES THE CLIENT'S OWN ROUTING RULE TO DECIDE.** A crash leaves
 /// the socket file behind -- `AC-08.3` case 1, the case the whole probe exists
 /// for -- and that stale file would otherwise block every restart forever,
 /// which is a worse outage than the one it came from. So before binding, an
@@ -545,6 +563,15 @@ impl Drop for Published {
 #[derive(Debug)]
 pub struct Bound {
   path: PathBuf,
+  /// The lock whose HOLDING means "a daemon is running here" (`AC-08.12`).
+  ///
+  /// **HELD FOR THIS DAEMON'S WHOLE LIFE AND NEVER CONSULTED AGAIN.** Its value
+  /// is that the kernel releases it on process death by ANY means, `SIGKILL`
+  /// included -- so it cannot go stale the way a pid file or a socket file
+  /// does, and it cannot report a live-but-busy daemon as absent the way a
+  /// liveness probe does. Underscore-prefixed because nothing reads it: the
+  /// FIELD existing is the mechanism.
+  _lock: std::fs::File,
   /// `(dev, ino)` of the socket THIS process created.
   ///
   /// The analogue of [`Published`]'s content comparison: it is what makes the
@@ -564,12 +591,45 @@ impl Bound {
     if let Some(parent) = path.parent() {
       std::fs::create_dir_all(parent).map_err(fail)?;
     }
+    // **THE LOCK DECIDES, NOT THE PROBE** (`AC-08.12`, vc 2026-08-30). The
+    // first build of this asked `Endpoint::answers` whether to evict, which is
+    // the CLIENT's routing predicate -- sound there and unsound here, because
+    // the two decisions have opposite blast radii.
+    let lock_path = crate::userstate::daemon_lock_under(root);
+    let lock = std::fs::File::options()
+      .create(true)
+      .append(true)
+      .open(&lock_path)
+      .map_err(|source| DaemonError::Unpublishable {
+        path: lock_path.clone(),
+        source,
+      })?;
+    match lock.try_lock() {
+      Err(std::fs::TryLockError::WouldBlock) => {
+        return Err(DaemonError::AlreadyRunning { path });
+      }
+      Err(std::fs::TryLockError::Error(source)) => {
+        return Err(DaemonError::Unpublishable {
+          path: lock_path,
+          source,
+        });
+      }
+      Ok(()) => {}
+    }
+
     if path.exists() {
+      // **DEFENCE WHERE THE LOCK'S GUARANTEE DOES NOT HOLD, NOT A SECOND
+      // OPINION.** `flock` is unreliable over NFS and a network home directory
+      // is not impossible, so two daemons could both believe they hold it. The
+      // probe cannot make that correct; it does make the DESTRUCTIVE half
+      // safer, because an endpoint that is ANSWERING is never unlinked whatever
+      // the lock said. Where the lock works this branch is unreachable, which
+      // is the point.
       if Endpoint::Unix(path.clone()).answers() {
         return Err(DaemonError::AlreadyRunning { path });
       }
-      // Silent, so it is a corpse rather than a peer. Removing it is what
-      // stops one crash from making every future start impossible.
+      // Unlocked AND silent, so it is a corpse rather than a peer. Removing it
+      // is what stops one crash from making every future start impossible.
       std::fs::remove_file(&path).map_err(fail)?;
     }
     let listener = UnixListener::bind(&path).map_err(fail)?;
@@ -578,6 +638,7 @@ impl Bound {
       listener,
       Bound {
         path,
+        _lock: lock,
         identity: (meta.dev(), meta.ino()),
       },
     ))

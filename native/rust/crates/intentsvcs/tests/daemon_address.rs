@@ -330,23 +330,80 @@ fn a_live_daemon_is_refused_rather_than_evicted() {
   }
 }
 
-/// Compare-and-unlink, by identity rather than by content.
+/// **THE CASE THE PROBE GOT WRONG, AND THE REASON `AC-08.12` EXISTS.**
+///
+/// The first daemon holds the lock and is NOT answering -- `SIGSTOP`, a
+/// suspended VM, or merely a loaded machine. A liveness probe reads that as a
+/// corpse and evicts it, leaving it holding a listener on an unlinked inode,
+/// reachable by no path, serving nobody, silently. The lock does not care
+/// whether it is answering, only whether it is alive.
 #[test]
-fn an_evicted_daemon_does_not_unlink_its_successors_socket() {
+fn a_second_daemon_is_refused_even_when_the_first_is_not_answering() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let (_listener, first) = Bound::bind_socket_under(dir.path()).expect("bind the first daemon");
+  assert!(
+    !first.endpoint().answers(),
+    "this fixture needs a daemon that is NOT answering, or it tests the same thing as the live case"
+  );
+
+  match Bound::bind_socket_under(dir.path()) {
+    Err(DaemonError::AlreadyRunning { .. }) => {}
+    Err(other) => panic!("expected AlreadyRunning, got: {other}"),
+    Ok(_) => panic!(
+      "a silent-but-LIVE daemon was evicted. This is the eviction false negative: the probe cannot tell a busy daemon from a dead one, and here being wrong is destructive"
+    ),
+  }
+}
+
+/// The other half, and the pair is what makes the lock better than either
+/// alternative: refusing on existence would make this impossible.
+#[test]
+fn a_departed_daemon_blocks_nothing() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let (first_listener, first) = Bound::bind_socket_under(dir.path()).expect("bind first");
+  drop(first);
+  drop(first_listener);
+
+  let (_l, second) = Bound::bind_socket_under(dir.path())
+    .expect("a departed daemon must not block the next start -- the lock is released on death");
+  assert_eq!(
+    second.endpoint(),
+    Endpoint::Unix(userstate::daemon_socket_under(dir.path()))
+  );
+}
+
+/// Compare-and-unlink, by identity rather than by content.
+///
+/// **CONSTRUCTED DIRECTLY, BECAUSE THE LOCK NOW MAKES THE NATURAL ROUTE
+/// IMPOSSIBLE.** This guard exists for the case where the lock's guarantee does
+/// not hold -- `flock` over NFS -- so a second daemon cannot be used to set it
+/// up: it would be refused, which is the whole point of `AC-08.12`. The socket
+/// is therefore replaced underneath the first daemon by hand, exactly as an
+/// evictor would leave it, and the assertion is that the departing daemon does
+/// not take its successor's socket down with it.
+#[test]
+fn a_daemon_whose_socket_was_replaced_does_not_unlink_the_replacement() {
   let dir = tempfile::tempdir().expect("tempdir");
   let socket = userstate::daemon_socket_under(dir.path());
 
-  // The first never accepts, so it reads as a corpse and is evicted.
   let (first_listener, first) = Bound::bind_socket_under(dir.path()).expect("bind first");
-  let (_second_listener, second) = Bound::bind_socket_under(dir.path()).expect("evict the corpse");
-  assert!(socket.exists());
+
+  // What an evictor leaves behind: the path now names a DIFFERENT inode.
+  std::fs::remove_file(&socket).expect("unlink the first socket");
+  let successor = UnixListener::bind(&socket).expect("the successor binds the same path");
+  let successor_ino = std::fs::metadata(&socket).expect("successor socket").ino();
 
   drop(first);
   drop(first_listener);
 
   assert!(
     socket.exists(),
-    "the evicted daemon unlinked its SUCCESSOR's socket on the way out, leaving a live daemon unreachable -- the false negative no probe can correct"
+    "the departing daemon unlinked its SUCCESSOR's socket, leaving a live daemon unreachable -- the false negative no probe can correct"
   );
-  assert_eq!(second.endpoint(), Endpoint::Unix(socket));
+  assert_eq!(
+    std::fs::metadata(&socket).expect("still there").ino(),
+    successor_ino,
+    "the socket at this path is no longer the successor's"
+  );
+  drop(successor);
 }
