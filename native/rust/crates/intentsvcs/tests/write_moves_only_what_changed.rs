@@ -553,6 +553,56 @@ const MUTATE_BUT_WRITES_NOTHING: &[(&str, &str)] = &[
 /// not established this", and its membership is the exact work-list for adding
 /// the field to the table.**
 ///
+/// **SHIPPED, MUTATING, AND NOT CALLABLE BY ANY HARNESS THIS ESTATE HAS -- so
+/// the writes are unreachable rather than unproven.**
+///
+/// Minted 2026-08-30 on vc's ruling, its own key by the same rule that split
+/// every other: *a key named for one reason cannot hold members admitted for
+/// another.* `UNPROVEN` means **we have not established what this writes**;
+/// these verbs cannot be driven at all, and the difference is a fact about the
+/// HARNESS rather than a gap in the work.
+///
+/// # The refusal is NOT the evidence -- the unreachability is
+///
+/// **Say this in these words, because the obvious proof is the wrong one.**
+/// `intent explore` in a pipe exits 1 with *needs a terminal, and stdout is not
+/// one*, and it is tempting to file that refusal as the measurement. It is
+/// not: it is a measurement over an ARM THAT CANNOT EXHIBIT THE PROPERTY. The
+/// verb's writes happen behind an interactive keystroke loop, so driving the
+/// non-interactive arm and observing an unchanged estate proves only that the
+/// arm which never writes did not write. The evidence for membership is that
+/// **no harness here can reach the writing path at all**, which is why the
+/// bucket is named for the unreachability and not for the refusal.
+///
+/// # A member LEAVES when the write becomes reachable -- and this is required
+///
+/// **`UNPROVEN` grew to 32 because it had no exit**, and a bucket with no
+/// discharge condition is a parking bay that reads as a category. Two things
+/// would move a member out, both concrete: **a pty-capable harness** that can
+/// drive the interactive loop and assert the estate around a keystroke, or **a
+/// non-interactive flag** on the verb that reaches the same write -- which is
+/// how `edit` is driveable at all, since `--editor` and `--path` force the
+/// non-interactive path. The asymmetry with `edit` is exactly what makes this a
+/// category rather than a dodge: `explore` ships no such flag BY RULING, so the
+/// unreachability is a CONSEQUENCE of a design decision rather than an
+/// accident.
+///
+/// # hv's address override does NOT dissolve this
+///
+/// Recorded before anyone asks. `intent explore [address]` (hv, 2026-08-30)
+/// gives the verb an argument, and an argument is a thing a harness can pass --
+/// so it looks like the door this bucket was waiting for. **It is not.** The
+/// address selects WHERE THE EXPLORER OPENS; the mutating path is still behind
+/// the terminal and still behind a keystroke. The reason survives the override
+/// intact, and the discharge condition above is unchanged by it.
+const NOT_CALLABLE_WITHOUT_A_TERMINAL: &[(&str, &str)] = &[(
+  "explore",
+  "the TUI writes through the facade on Enter, and every route to that Enter needs a terminal this \
+   estate cannot give it. Classified `mutate` and `reversible` correctly -- see the row's own \
+   `recoverability_anomaly`, which withholds it from MCP on the same ground: what it reaches is a \
+   HUMAN face on THIS machine.",
+)];
+
 /// The test PRINTS its size and REFUSES TO GROW IT, so the debt is visible and
 /// shrinking rather than silent.
 const UNPROVEN: &[&str] = &[
@@ -1006,6 +1056,10 @@ fn every_shipped_mutator_is_accounted_for() {
   let out_of_estate: Vec<&str> = OUT_OF_ESTATE.iter().map(|(v, _)| *v).collect();
   let unwired: Vec<&str> = DECLARED_BUT_UNWIRED.iter().map(|(v, _)| *v).collect();
   let writes_nothing: Vec<&str> = MUTATE_BUT_WRITES_NOTHING.iter().map(|(v, _)| *v).collect();
+  let no_terminal: Vec<&str> = NOT_CALLABLE_WITHOUT_A_TERMINAL
+    .iter()
+    .map(|(v, _)| *v)
+    .collect();
 
   // **EVERY FIGURE IS AN INTERSECTION WITH `shipped`, AND THE LINE STATES ITS
   // OWN ARITHMETIC** (vc, 2026-08-20, who caught the old form contradicting the
@@ -1029,12 +1083,13 @@ fn every_shipped_mutator_is_accounted_for() {
       .filter(|v| bucket.contains(&v.as_str()))
       .count()
   };
-  let (d, e, o, u, w, n) = (
+  let (d, e, o, u, w, t9, n) = (
     tally(&driven),
     tally(&elsewhere),
     tally(&out_of_estate),
     tally(&unwired),
     tally(&writes_nothing),
+    tally(&no_terminal),
     tally(UNPROVEN),
   );
   let unbucketed: Vec<&str> = shipped
@@ -1046,6 +1101,7 @@ fn every_shipped_mutator_is_accounted_for() {
         &out_of_estate,
         &unwired,
         &writes_nothing,
+        &no_terminal,
         &UNPROVEN.to_vec(),
       ]
       .iter()
@@ -1057,9 +1113,10 @@ fn every_shipped_mutator_is_accounted_for() {
   println!(
     "verb coverage, derived from surface/dispatch-table.json:\n  \
      {} shipped mutator(s) = {d} driven here + {e} covered elsewhere + {o} out of estate \
-     + {u} declared-but-unwired + {w} classified-mutate-but-writes-nothing + {n} UNPROVEN = {}{}",
+     + {u} declared-but-unwired + {w} classified-mutate-but-writes-nothing \
+     + {t9} not-callable-without-a-terminal + {n} UNPROVEN = {}{}",
     shipped.len(),
-    d + e + o + u + w + n,
+    d + e + o + u + w + t9 + n,
     if unbucketed.is_empty() {
       String::new()
     } else {
@@ -1118,6 +1175,10 @@ fn every_shipped_mutator_is_accounted_for() {
         (
           "classified-mutate-but-writes-nothing",
           writes_nothing.contains(&verb.as_str()),
+        ),
+        (
+          "not-callable-without-a-terminal",
+          no_terminal.contains(&verb.as_str()),
         ),
         ("UNPROVEN", UNPROVEN.contains(&verb.as_str())),
       ]

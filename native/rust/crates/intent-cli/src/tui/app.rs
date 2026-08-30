@@ -99,10 +99,13 @@ pub struct App {
 }
 
 impl App {
-  /// `intent explore` -- rooted at the entity kinds.
-  pub fn explore() -> Self {
+  /// An app rooted at `bottom`. **THE ONE CONSTRUCTOR, because the root is the
+  /// only thing that differs between the entry points** -- `Stack::rooted_at`
+  /// already says exactly that about the stack, and a third spelled-out copy of
+  /// these seven fields arrived the day `explore` learned to take an address.
+  pub fn rooted_at(bottom: View) -> Self {
     Self {
-      stack: Stack::explore(),
+      stack: Stack::rooted_at(bottom),
       mode: mode::REST,
       scroll: 0,
       focus: None,
@@ -112,17 +115,29 @@ impl App {
     }
   }
 
+  /// The reason this app opened where it did, for the info row.
+  ///
+  /// **`intent explore <address>` that could not land opens at the root AND
+  /// SAYS WHY** (hv's fallback, ruled 2026-08-30; vc ruled that *opens at the
+  /// root* contrasts with REFUSING rather than with TELLING). The notice
+  /// clears on the first view change, so it survives exactly as long as the
+  /// operator is looking at the place they did not ask for.
+  pub fn saying(mut self, why: impl Into<String>) -> Self {
+    self.notice = why.into();
+    self
+  }
+
+  /// `intent explore` -- rooted at the entity kinds.
+  pub fn explore() -> Self {
+    Self::rooted_at(View::Entities)
+  }
+
   /// `intent edit <kind> <id>` -- rooted at one item.
   pub fn at_item(kind: impl Into<String>, id: impl Into<String>) -> Self {
-    Self {
-      stack: Stack::at_item(kind, id),
-      mode: mode::REST,
-      scroll: 0,
-      focus: None,
-      wants_detail: false,
-      detail_focus: None,
-      notice: String::new(),
-    }
+    Self::rooted_at(View::Item {
+      kind: kind.into(),
+      id: id.into(),
+    })
   }
 
   /// The row under the cursor, if there is one.

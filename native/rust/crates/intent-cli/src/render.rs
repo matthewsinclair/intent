@@ -21,6 +21,7 @@ use intentsvcs::facade::{
 use intentsvcs::model::{
   self, AcKind, AtKind, AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str,
 };
+use intentsvcs::nav;
 use intentsvcs::output::{Format, Output};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
@@ -57,7 +58,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("schema", m)) => schema(m),
     Some(("doctor", m)) => doctor(m),
     Some(("organize", m)) => organize(m),
-    Some(("explore", _)) => explore(),
+    Some(("explore", m)) => explore(m.get_one::<String>("address").map(String::as_str)),
     Some(("upgrade", _)) => upgrade(),
     Some(("bootstrap", m)) => bootstrap(m),
     Some(("init", m)) => init(m),
@@ -2806,7 +2807,7 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
 /// terminal waits for keystrokes nobody can send, which is a hang wearing the
 /// costume of a slow command. `tui-design.md` §9 already makes the tty the
 /// discriminator for `intent edit`; this is the same rule at the same door.
-fn explore() -> Result<(), Failure> {
+fn explore(address: Option<&str>) -> Result<(), Failure> {
   use std::io::IsTerminal;
   if !std::io::stdout().is_terminal() {
     return Err(Failure::Error(
@@ -2836,9 +2837,50 @@ fn explore() -> Result<(), Failure> {
       )
     })
   });
-  let mut app = tui::app::App::explore();
+  // **THE ADDRESS IS RESOLVED BEFORE THE TERMINAL IS TAKEN**, so a spelling
+  // this tool cannot read is reported on the info row of a screen the operator
+  // can read, rather than behind a raw-mode switch.
+  let mut app = match address {
+    None => tui::app::App::explore(),
+    Some(spelling) => match nav::land(spelling, |v| present(&live.facade, v)) {
+      nav::Landing::At(view) => tui::app::App::rooted_at(view),
+      // **ROOT PLUS THE REASON.** hv ruled the fallback; vc ruled that *opens
+      // at the root* contrasts with REFUSING rather than with TELLING. A
+      // browser that silently opens somewhere other than you asked is the
+      // answers-confidently-from-partial-evidence class this rewrite exists to
+      // remove -- the operator would take the entity list for the thing they
+      // named.
+      nav::Landing::Root(why) => {
+        let remedy = intentsvcs::remedy::Remedy::remedy(&why);
+        tui::app::App::explore().saying(format!("{why} -- {remedy}"))
+      }
+    },
+  };
   tui::run::run(&mut app, &mut live, session)
     .map_err(|e| Failure::Error(format!("error: the terminal would not co-operate: {e}")))
+}
+
+/// Is there anything at `view`?
+///
+/// **THE PRESENCE HALF OF `nav::land`, AND IT IS THE FACE'S TO ANSWER.**
+/// `address::promote` is purely syntactic and never reads the store, so
+/// `ST9999` resolves perfectly -- and `rows_for` deliberately renders a form
+/// that will not load with its field names intact, so an absent thread and an
+/// empty one paint the same screen. Without this the deep link would land on
+/// that screen and the operator would read a missing entity as an empty one.
+///
+/// A COLLECTION always exists; it is the ITEM under it that may not. A child
+/// view is present exactly when its parent item is -- an empty descent is a
+/// real answer, and `rows_for` already distinguishes an empty level from an
+/// unbuilt one.
+fn present(facade: &Facade, view: &intentsvcs::nav::View) -> bool {
+  use intentsvcs::nav::View;
+  match view {
+    View::Entities | View::Collection { .. } => true,
+    View::Item { kind, id } | View::Children { kind, id, .. } => {
+      entity_json(facade, kind, id).is_some()
+    }
+  }
 }
 
 /// The store, as the TUI's loop sees it: rows out, one field in.
@@ -2972,18 +3014,6 @@ fn rows_for(
     _ => Vec::new(),
   }
 }
-
-/// The descents this realiser builds rows for.
-///
-/// **DECLARED SO THE GAP IS A LIST RATHER THAN A DISCOVERY.**
-/// `intentsvcs::nav::descents` derives FIVE descents on a thread from the
-/// schema, and until now this function built one of them -- so four levels were
-/// reachable, entered, and rendered blank. `AC-17.7` says every level is
-/// reachable AND leavable; a level you can enter that shows nothing is
-/// reachable in the sense that fails the operator. The test below holds this
-/// list against the declaration, so the next descent added to the schema is a
-/// red test rather than an empty screen.
-const BUILT_DESCENTS: &[&str] = &["wps", "criteria", "tests", "attachments", "related"];
 
 /// The rows of one thread's child collection, and what each opens into.
 ///
@@ -7439,6 +7469,33 @@ fn render_critic_json(report: &intentsvcs::critic::Report) {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  /// The descents this realiser builds rows for.
+  ///
+  /// **DECLARED SO THE GAP IS A LIST RATHER THAN A DISCOVERY.**
+  /// `intentsvcs::nav::descents` derives FIVE descents on a thread from the
+  /// schema, and until now this function built one of them -- so four levels were
+  /// reachable, entered, and rendered blank. `AC-17.7` says every level is
+  /// reachable AND leavable; a level you can enter that shows nothing is
+  /// reachable in the sense that fails the operator. The test below holds this
+  /// list against the declaration, so the next descent added to the schema is a
+  /// red test rather than an empty screen.
+  ///
+  /// **DECLARED INSIDE THE TEST MODULE, AND THE TEST-ONLY ATTRIBUTE ON IT AT
+  /// MODULE SCOPE WAS A REAL DEFECT RATHER THAN A STYLE CHOICE.** It is a
+  /// declaration held against `descents`, not a value `children_of` consults, so
+  /// it does not belong in the shipped binary -- but the obvious way to say that
+  /// adds a SECOND test-cfg attribute to the file, and `no_pm_state_in_output.rs`
+  /// truncates
+  /// every shipped source at the FIRST one in order to exempt Intent's own test
+  /// fixtures. A second marker two thirds of the way up dropped 4,400 lines of
+  /// real source out of that scan; the file asserts `count() <= 1` for exactly
+  /// this reason and named the cause on the first run. **The attribute is
+  /// ordinary Rust and a load-bearing DELIMITER in this repository, and nothing
+  /// at the point of use says so.** Its spelling is deliberately not written out
+  /// above: the scan counts raw substrings, so a comment naming the token counts
+  /// as the token, and the note explaining the trap sprang it a second time.
+  const BUILT_DESCENTS: &[&str] = &["wps", "criteria", "tests", "attachments", "related"];
 
   /// **The MECHANISM half of the unwired claim, split from the ROSTER half.**
   ///

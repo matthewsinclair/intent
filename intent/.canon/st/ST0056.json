@@ -3035,7 +3035,7 @@
     {
       "id": "AT-17.12",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/src/tui/nav.rs",
+      "file": "native/rust/crates/intentsvcs/tests/explore_lands_where_the_address_names.rs",
       "covers": [
         "AC-17.12"
       ],
