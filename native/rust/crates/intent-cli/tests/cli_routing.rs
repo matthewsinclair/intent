@@ -10,6 +10,15 @@
 //! asserts the file is still there, and only then asks for the route.
 //!
 //! **PRODUCTION HANDS THE RULE ONE CANDIDATE; THIS FILE HANDS IT MIXED LISTS.**
+//! **THE POSITIVE CASE IS NOT IN THIS FILE, AND THAT IS WHERE TO LOOK NEXT.**
+//! Every "live daemon" here is a constructed fixture, which is right for the
+//! phantoms -- the inherited-descriptor race is 1-in-300 and cannot be summoned
+//! -- and was WRONG for the good case: this suite was green at 11-of-11 while
+//! every live fixture in it was a bare listener, which IS the phantom. A real
+//! `intentd` drives the happy path once in
+//! `crates/intentd/tests/routing_against_a_real_daemon.rs`, and that file is
+//! what closed `AT-08.3`.
+//!
 //! `daemon::route` folds over candidates and its body names no transport, so a
 //! third one is a variant rather than an edit -- but a list that is only ever
 //! driven with a single element cannot exhibit a body that stopped being
