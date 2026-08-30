@@ -918,8 +918,19 @@ const FORMAT_TEMPLATES: [&str; 2] = [
 /// register demands, in exactly the files it demands them in, and moves on its
 /// own when a citation moves.
 fn register_ids_for(rel: &str) -> BTreeSet<String> {
-  let canon = repo_root().join("intent/.canon/st/ST0056.json");
-  let text = std::fs::read_to_string(&canon).expect("ST0056 canon is readable");
+  // EVERY thread's canon, not this one's. The first cut read `ST0056.json`
+  // alone and immediately lost `AT-01.5`, which is ST0057's citation of a
+  // shipped guard -- so the narrow version exempted nothing in that file and
+  // the sweep stripped a load-bearing marker. A citation can come from any
+  // thread; the file being cited has no idea which.
+  let dir = repo_root().join("intent/.canon/st");
+  let mut text = String::new();
+  for entry in std::fs::read_dir(&dir).expect("intent/.canon/st is readable") {
+    let path = entry.expect("a readable dir entry").path();
+    if path.extension().and_then(|e| e.to_str()) == Some("json") {
+      text.push_str(&std::fs::read_to_string(&path).expect("a readable canon file"));
+    }
+  }
   let mut out = BTreeSet::new();
   // The extract is JSON; the citation and the id sit on the same test record,
   // so a line-oriented scan over the rendered rows is enough and needs no

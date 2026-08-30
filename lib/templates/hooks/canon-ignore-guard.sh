@@ -2,6 +2,9 @@
 # canon-ignore-guard.sh -- refuse a commit that adds an ignore rule reaching
 # `intent/.canon/`.
 #
+# Witness for AT-01.5. The register requires a cited file to name the row
+# that cites it, so this id is structural rather than a pointer into a tracker.
+#
 # **A COMPANION CHECK VERIFIES THE STATE, by cloning. This refuses the
 # EDIT, and the gap between those two moments is where the class lives.**
 #
