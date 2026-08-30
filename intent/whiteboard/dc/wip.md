@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-08-30 11:51Z
+heartbeat_at: 2026-08-30 12:29Z
 status: active
-focus: "BOUNCED AND PICKED UP. vc queue items 1-3 + the D7 witness are landed at `07d49a2e`; item 4, ST0066 evidence, is the live remainder. REORDERED ON PICKUP: cc records `guide.rs` BLOCKED on me defining `pub const UNWIRED_PHRASE` in `render.rs`, so a stopped peer goes first at XS. Then AC-00.5 vacuity check BEFORE any build -- `finding.rs` has 21 classes and zero fiat path, and `StatusGateDisagreement`'s remedy says satisfy-or-descope, which is the conversion AC-00.5 forbids. Then AC-00.1 to 00.4 driven evidence. Thread stays 0/6."
+focus: "ST0066 IS 4/6, OFF ZERO HONESTLY -- AC-00.1/00.2/00.3/00.5 satisfied on driven evidence, and TWO of them were RED when driven. `0159` is the session's find and it is fixed: FiatRecord.at was empty in the STORE for every kind and never stamped at all for ST/WP, so the only correct copy lived in the DERIVED extract and the next sync copied the blank back over it -- D01 inverted. AC-00.4 is blocked on `0158` (a fiat-closed AT is byte-identical to a red one, so the AT kind is UNMEASURED not passing); AC-00.6 waits on ic. NEXT: nothing of mine is blocked."
 claims: [ST0056/07, ST0056/11, ST0056/14, ST0066]
 ---
 
@@ -71,6 +71,9 @@ claims: [ST0056/07, ST0056/11, ST0056/14, ST0066]
 - **W8 -- HOW TO REPORT.** Write reasoning at the resolution you MEASURED it, never at the one it suggests. **Verify a peer's correction yourself, including when it makes your own claim false.** A peer's quote of a ruling is still the peer. **Retract a finding the moment its basis fails, even one you were thanked for** -- and say which claims rested on what, because a negative and a sighting do not feel different at the time.
 
 ## Decisions
+
+- **THREE INSTRUMENTS CAN BE GREEN FOR THREE DIFFERENT REASONS AND NONE OF THEM LOOKING AT THE DURABLE VALUE** (`0159`, and vc took it onto their board over their own four instances of the class). `FiatRecord.at` was correct in the extract and EMPTY in the store, so the next `sync --to-disk` copied the blank over the good value -- **the only correct copy lived in the artefact DERIVED from truth, which is D01 inverted.** **Each instrument was blind for its OWN reason, which is why review would never have caught it:** the stamping test reads back through the SAME in-process facade that just patched the value, so it is blind to persistence BY CONSTRUCTION while its module doc calls itself two-sided; the round-trip test is satisfied by empty-to-empty, **so it passes hardest exactly when the value is gone**; and no render displays the field, so no view arm covers it. **THE FIX IS AN EARLIER STAMP, NOT A MOVED RENDER** -- the envelope write goes above the entity writes so the DB's stamp EXISTS before the row is serialised. The old comment guarded the RENDER and left the WRITE, which is not the same as having weighed both. **AND THE WITNESS IS THE POINT: a new arm must re-read the STORE, and with the stamp suppressed FIVE of six arms still pass.** That is the blindness measured rather than described.
+- **A VERB CAN BE SEMANTICALLY CORRECT AND STILL BE A SILENT FAILURE, BECAUSE CORRECTNESS IS ABOUT WHAT IT DID AND SILENCE IS ABOUT WHAT IT SAID** (vc's naming, on my `at fc` find; `0158`). I nearly talked myself out of the finding because reading (a) -- that `at fc` is a RECORDING surface and propagating would be laundering with extra steps -- is defensible and turned out to be right. **Reading (a) being right and the verb being broken were never in tension.**
 
 - **THE STORE-MIGRATION GUARD LANDS AFTER THE CUT. PROVENANCE: hv, 2026-08-30 11:51Z, FIRST-HAND IN THIS dc SESSION, hv's own selection from four options dc authored.** Menu: **(A) extend the guard after the cut -- CHOSEN**; (B) extend it now, declined -- an estate-wide test refactor inside a cut vc had just reported as too wide, plus a commit freeze on nine files across three lanes; (C) fix the two proven members now and defer the guard, declined -- **instance-shaped fix under a class-shaped problem, which is W10 done knowingly**; (D) file it and do nothing, declined. **THE GROUND FOR WAITING IS THAT IT IS A DEV-TREE HAZARD WITH NO SHIPPED CONSEQUENCE**, not that it is small.
 
