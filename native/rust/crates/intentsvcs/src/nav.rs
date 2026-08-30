@@ -152,25 +152,22 @@ pub fn descents(loaded: &Loaded, kind: &str) -> Vec<Descent> {
 
 /// The published face one entity kind resolves against, as a POINTER.
 ///
-/// **`wp` IS A DEFINITION, NOT A ROOT**, and the fragment is load-bearing:
-/// [`crate::form`] says the same thing about the same pointer. Naming the bare
-/// file here would look at `thread`'s properties while claiming to look at a
-/// work package's -- and it would go UNNOTICED, because today the wp form's
-/// only `button` row (`fiat`) misses at both levels, so the right answer comes
-/// out of the wrong lookup. The first descent added to the wp form would read
-/// the wrong schema in silence.
-fn face_pointer(kind: &str) -> Option<&'static str> {
-  match kind {
-    "thread" => Some("thread.schema.json"),
-    "wp" => Some("thread.schema.json#/$defs/WorkPackage"),
-    "issue" => Some("issue.schema.json"),
-    _ => None,
-  }
-}
-
 /// The parsed schema face for `kind`, resolved through its fragment.
+///
+/// **THE POINTER COMES FROM [`crate::form::face_for`], WHICH IS NOW ITS ONLY
+/// HOME.** This module carried its own `face_pointer` with byte-identical
+/// arms until 2026-08-30, and the comment on it named the other copy without
+/// removing it -- *`crate::form` says the same thing about the same pointer.*
+///
+/// **`wp` IS A DEFINITION, NOT A ROOT**, and the fragment is load-bearing:
+/// naming the bare file would look at `thread`'s properties while claiming to
+/// look at a work package's, and it would go UNNOTICED, because today the wp
+/// form's only `button` row (`fiat`) misses at both levels, so the right answer
+/// comes out of the wrong lookup. The first descent added to the wp form would
+/// read the wrong schema in silence. That reasoning is why the mapping is worth
+/// one home rather than two agreeing ones.
 pub fn face_json(kind: &str) -> Option<serde_json::Value> {
-  let pointer = face_pointer(kind)?;
+  let pointer = crate::form::face_for(kind)?;
   let (file, fragment) = match pointer.split_once('#') {
     Some((f, frag)) => (f, Some(frag)),
     None => (pointer, None),

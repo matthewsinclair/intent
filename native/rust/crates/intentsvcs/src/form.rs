@@ -405,7 +405,33 @@ pub fn face_reach(entity: &str) -> Option<Vec<(String, Reach)>> {
 ///
 /// **`wp` is a definition, not a root.** See [`face_properties`] for what
 /// naming it by bare filename did and why it was invisible.
-fn face_for(entity: &str) -> Option<&'static str> {
+///
+/// **THE ONE HOME, AND IT WAS TWO UNTIL 2026-08-30.** [`crate::nav`] carried a
+/// byte-identical `face_pointer` -- same three arms, same pointers, different
+/// function name -- and its own doc comment said *`crate::form` says the same
+/// thing about the same pointer*, so the duplication was seen and recorded
+/// rather than removed.
+///
+/// **The two copies fail in opposite directions and only one of them is
+/// loud.** A kind added here and not there loads its form, appears in
+/// [`crate::nav::kinds`], and then declares NO DESCENTS, because `face_json`
+/// cannot resolve a pointer it has never heard of -- a pane that opens and is
+/// simply empty, which is the reachable-and-blank shape `AC-17.7` exists to
+/// remove. A kind added there and not here has no form at all and so has
+/// nothing to go wrong. **So the silent direction is the one a new entity kind
+/// takes**, and the next two entity kinds -- `Criterion` and `AcceptanceTest`
+/// -- were about to take it.
+///
+/// **DO NOT ADD A `nav`-SIDE TEST THAT EVERY KIND RESOLVES A FACE. ONE WAS
+/// WRITTEN AND DELETED THE SAME HOUR, BECAUSE IT CANNOT FAIL.** [`Loaded`]
+/// refuses at load with `NoSuchFace`, naming the entity, and it refuses on
+/// BOTH halves: an entity with no arm here, and an arm whose pointer resolves
+/// to a definition carrying no `properties` -- driven by mutating this map
+/// twice, and each time the fixture's own `expect` fired before any nav
+/// assertion was reached. **The guard already exists, one layer down, and it
+/// says more than the test would.** A `None` from this function cannot reach
+/// [`crate::nav::kinds`], because that list is derived from forms that loaded.
+pub(crate) fn face_for(entity: &str) -> Option<&'static str> {
   match entity {
     "thread" => Some("thread.schema.json"),
     "wp" => Some("thread.schema.json#/$defs/WorkPackage"),
