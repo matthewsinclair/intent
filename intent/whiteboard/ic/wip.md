@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-30 14:24Z
+heartbeat_at: 2026-08-30 14:48Z
 status: active
-focus: "AC-17.10 IS BUILT: the prose handoff, with the editor as authority on the return AND the model as authority on the departure -- the second half is a defect the criterion does not name. AT-17.10 stays to-write on ONE clause vc must rule. Four more ATs went green because their evidence already existed. NEXT: the list+detail split, then AC-17.8."
+focus: "AC-17.10 IS BUILT and the list+detail split is geometry, panes and rows. All FIVE thread descents render -- four of them were reachable, entered and BLANK. Two rulings sit with vc: AC-17.10 clause 2, and where AC-17.8 meets a generated view at all."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -15,19 +15,17 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## DOING
 
-**RE-MEASURE EVERY FIGURE BELOW AT PICKUP. Four nodes write this tree and a number here is spent the moment one does.** Last figures with a HEAD behind them, all at `3a6eda25`: `cargo test -p intent-cli --lib` **124 passed / 0 failed** (101 at `325ca3a6`); `intentsvcs --test the_editor_gets_the_model_bytes` 4 passed; `--test dep_graph_guard` 2 passed. **`ac status` 82/134 satisfied, BLOCKED.** No full `--tests` run has a verdict this session.
+**RE-MEASURE EVERY FIGURE BELOW AT PICKUP. Four nodes write this tree and a number here is spent the moment one does.** The run STARTED with my paths at `4152681a` and **I cannot show HEAD was still there when it finished** -- a peer landed `4c04bcb5` around it, which is the second time today I have pinned a figure to a commit I did not read in the same breath. `cargo test -p intent-cli --lib` **142 passed / 0 failed**; the FULL `cargo test -p intent-cli` **494 passed / 1 failed**, and **the one failure is cc's, not mine** -- `prefix_resolution.rs` from `d0cf4ad1` drives verbs off the dispatch table without `.env("HOME", testkit::fixture_home())`, which is a test writing to the operator's REAL home. Reported to cc live; their file, not mine to edit.
 
-**NOTHING OF MINE IS UNCOMMITTED.** Since the fold: `4cb6600f` (AT-17.3/.7/.9/.11 green -- four criteria whose evidence already existed), `354e2136` (`AC-17.10`, the prose handoff), `b003ea0b` (the lockfile `354e2136` should have carried).
+**NOTHING OF MINE IS UNCOMMITTED.** Today, since the fold: `4cb6600f` (AT-17.3/.7/.9/.11 -- four criteria whose evidence already existed), `354e2136` (`AC-17.10`), `b003ea0b` (the lockfile that should have travelled with it), `8e3a2724` (board + escalation), `e25760af` (the split's geometry), `cbf4e216` (Tab crossing the panes), `4152681a` (all five thread descents).
 
-**`AC-17.10` IS BUILT AND `AT-17.10` IS CITED, NOT GREEN.** One clause -- _"and the existing realise-then-open path"_ -- reads two ways for a FIELD, because `facade.edit` realises a DOCUMENT and `prose` is declared on `objective`/`context`/`body`/`preamble`, which have no file. **My reading is that clause 2 is satisfied vacuously and design §7 puts artefact editing in its own subsection; the ruling is vc's and it is with them live and on the file.**
+**TWO RULINGS SIT WITH vc AND BOTH ARE ON THE FILE AS WELL AS LIVE.** (1) `AC-17.10` clause 2 -- _"and the existing realise-then-open path"_ -- reads two ways for a FIELD, so `AT-17.10` is CITED and stays `to-write`. (2) **`AC-17.8`'s REFUSAL HAS NO DOOR:** measured on ST0056, 301 attachments and not one generated view among them, so _refuses a generated view by naming it_ is a behaviour nothing can reach. **Same class as the `Cancel` edge no key could produce.** Three options sent with a recommendation (A: the documents pane lists them read-only, vocabulary from the table and disposition from `Project::edit_disposition`).
 
-**THE TWO DEFECTS BUILDING IT FOUND, both shipped fixed.** (1) **THE CRITERION WARNS ABOUT THE RETURN AND THE DEPARTURE IS BROKEN THE SAME WAY:** `Triple::value` is `one_line`-collapsed, so handing it to `$EDITOR` deletes every paragraph break on the first save -- the round trip is faithful and the bytes were already wrong. `intentsvcs::form::raw` is the shared fix, placed by asking which crate the OTHER consumers live in first. (2) **`NORMAL + Enter` WAS RESOLVED BY TABLE ORDER**, so Enter on a prose row opened an in-place edit of a 673-byte objective inside a one-line value column. `mode::BY_ROW_KIND` + `mode::arm` resolve it by ROW, default arm BY EXCLUSION.
-
-**`0157` HAS NOW HIT FOUR TIMES IN ONE DAY, three of them in this direction.** My `AT-17.10` citation landed in peer commit `121ea719`. **The structural fact, which is new: a register write's disk effect lands in two files the writer never names** (`intent/.canon/st/*.json` and the generated view), so the window between `intent at edit` and your own commit is open BY CONSTRUCTION for every node. `git commit --only` protects the discipline of whoever uses it and nothing else.
+**THE READ HALF OF `AC-17.8` NEEDS NOTHING FROM ME.** `Project::edit_disposition(rel)` IS the authored/generated split the criterion demands -- `Open` / `OpenRoundTrip { round_trips }` / `Refuse { author_with }`, derived from `Project::classify` rather than from a filename list, with hv's 2026-08-29 thread-cover ruling already in it.
 
 ## TODO
 
-1. **The list+detail split.** BODY splits where the selected row CARRIES detail -- **triggered by the row, never by a hardcoded list of view kinds**, which is the half that gets forgotten. List and detail share ONE markdown renderer.
+1. **The list+detail split -- GEOMETRY, PANES AND ROWS ARE DONE; the MARKDOWN RENDERER is not.** §6 wants one renderer for both panes and §2's mockup WRAPS a long detail value with its continuation indented to the value column. **That does not break `AC-17.11`** -- the guarantee is column alignment and an aligned continuation keeps it -- but it is the same criterion-versus-mockup shape vc ruled on for `AC-17.11`, so confirm before building. Styling (bold, code, em) needs `plan` to emit spans rather than `String`s, and every alignment assertion is on `String`s.
 2. **`AC-17.8`** -- reach every authored artefact and refuse a generated view BY NAMING IT. The authored/generated split is READ from the model, never hard-coded.
 3. **`AC-17.6`'s reword** -- vc is performing it; sentence sent. **The row stays UNSATISFIED**: the verbs shipping is not the criterion, and `AT-17.6` is still to-write.
 4. **WP-09 -- start at `AT-09.4`.** `intent llm` already derives from the table, so the WP's first honest act is the AT, not new code. **No longer gated on `organize`.**
