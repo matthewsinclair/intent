@@ -133,15 +133,28 @@ run_hook_inner() {
   assert_output_contains "not inside an Intent project"
 }
 
-@test "hook fails open when the intent CLI is not on PATH" {
+@test "hook REFUSES when the intent CLI is not on PATH inside an Intent project" {
+  # **A GATE THAT CANNOT RUN, IN A PROJECT THAT DECLARED IT, IS A FAILURE AND
+  # NEVER A SKIP** -- hv, 2026-08-27, landed at `4d9e70c2`. The measurement and
+  # the argument live on `pre_commit_hook.bats`'s arm of the same name and are
+  # deliberately not restated here; so does the both-conditions control (a
+  # non-Intent repo with no CLI still skips), which is what makes the reorder
+  # safe and is the only place that case is covered.
+  #
+  # **THIS FILE WAS THE SECOND WITNESS AND THE RULING REACHED ONLY THE FIRST.**
+  # `4d9e70c2` moved `pre_commit_hook.bats` and never touched this one, so a
+  # single contract was asserted in two places and only one of them moved. The
+  # suite then carried a red for three days whose message was a correct
+  # description of behaviour that had been deliberately retired -- the most
+  # expensive kind of red, because it reads as a regression and is not one.
   local repo="$TEST_TEMP_DIR/no-cli-repo"
   mkdir -p "$repo/intent/.config"
   printf '{"languages":["shell"]}\n' > "$repo/intent/.config/config.json"
   git -C "$repo" init -q
   # Restrict PATH to core utils only -- no intent anywhere.
   run bash -c "cd '$repo' && PATH='/usr/bin:/bin' bash '$HOOK'"
-  [ "$status" -eq 0 ]
-  assert_output_contains "'intent' CLI not on PATH"
+  [ "$status" -eq 1 ]
+  assert_output_contains "'intent' CLI is not runnable, and this IS an Intent project"
 }
 
 @test "hook blocks the commit when a critic reports findings" {

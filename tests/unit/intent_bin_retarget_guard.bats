@@ -34,6 +34,23 @@ load "../lib/test_helper.bash"
 #   intent_bin_retarget_guard.bats -- this file; it contains the needle as data.
 ALLOWLIST_RE='tests/unit/(no_template_fallback|intent_bin_retarget_guard)\.bats'
 
+# **A LINE-LEVEL EXEMPTION, NOT A FILE ONE, AND THE DIFFERENCE IS THE WHOLE
+# REASON IT IS SEPARATE FROM `ALLOWLIST_RE` ABOVE.**
+#
+# This guard exists so a test cannot silently measure whatever `intent` is on
+# PATH instead of the dispatcher under test. A line that resolves ANOTHER
+# INSTALL BY NAME is not that mistake -- it is the opposite, a test being
+# explicit about which of two binaries it means. `critic_arming_census` compares
+# v2's and v3's exit codes for the same invocation, which it cannot do through
+# `$INTENT_BIN` because `$INTENT_BIN` is precisely the one binary it already has.
+#
+# **ALLOWLISTING THE FILE WOULD HAVE BEEN THE CHEAPER FIX AND THE WRONG ONE**:
+# it would retire the guard over every OTHER line in a 300-line file, including
+# ones nobody has written yet. The exemption is keyed on `INTENT_V2_CHECKOUT`,
+# the variable that makes the other install explicit, so a bare `bin/intent`
+# anywhere in that same file still reds.
+OTHER_INSTALL_RE='INTENT_V2_CHECKOUT'
+
 # Emit "file:line:text" for every non-comment .bats line naming the dispatcher
 # path directly, minus the allowlist. Printing the offenders (not just counting)
 # is what makes a failure actionable.
@@ -41,6 +58,7 @@ offending_sites() {
   grep -rnE '/bin/intent([^_[:alnum:]]|$)' "${INTENT_PROJECT_ROOT}/tests" --include='*.bats' 2>/dev/null |
     grep -vE '^[^:]+:[0-9]+:[[:space:]]*#' |
     grep -vE "$ALLOWLIST_RE" |
+    grep -vE "$OTHER_INSTALL_RE" |
     sed "s|^${INTENT_PROJECT_ROOT}/||"
 }
 
