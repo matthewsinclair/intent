@@ -4,7 +4,7 @@
   "measured_at": "9ec1656",
   "measured_on": "2026-08-14",
   "measured_by": "ic",
-  "status": "All 27 v2 families authored + 13 new-surface entries, plus 1 NEW-SURFACE FAMILY (`daemon`, 4 verbs). **`families` now holds one member that is not a v2 family, and the count is stated in two parts rather than merged**: the section is the SPINE's unit -- `spine::build` iterates it and a family's leaves are its child rows -- and it was only ever coincidentally also the v2 inventory. `daemon` needed to be there because a `new_surface` row carries subcommands as a bare `values` list, which has no per-verb help, no per-verb flags, and one `recoverability` for four verbs whose answers differ (vc's ruling 2026-08-30). Keeping the v2 figure separate is deliberate: it is a claim about the PORT and must not silently absorb new surface. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
+  "status": "All 27 v2 families authored + 14 new-surface entries, plus 1 NEW-SURFACE FAMILY (`daemon`, 4 verbs). **`families` now holds one member that is not a v2 family, and the count is stated in two parts rather than merged**: the section is the SPINE's unit -- `spine::build` iterates it and a family's leaves are its child rows -- and it was only ever coincidentally also the v2 inventory. `daemon` needed to be there because a `new_surface` row carries subcommands as a bare `values` list, which has no per-verb help, no per-verb flags, and one `recoverability` for four verbs whose answers differ (vc's ruling 2026-08-30). Keeping the v2 figure separate is deliberate: it is a claim about the PORT and must not silently absorb new surface. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
   "target_states": [
     {
       "state": "as-observed",
@@ -8310,6 +8310,28 @@
       "read_or_mutate": "mutate",
       "recoverability": "idempotent",
       "recoverability_anomaly": "**WITHHELD FROM MCP FOR THE SAME REASON AS ITS TWIN, AND THE TWO MUST AGREE ON THIS TOO.** What it opens is a URL on THIS machine, which is not merely unhelpful to a remote caller but misleading. `edit` records the same exclusion on the same ground; INV-09 is what stops the two rows drifting apart on it."
+    },
+    {
+      "path": "explore",
+      "help": "Open the TUI at the top level and navigate the whole model",
+      "args": [],
+      "v2": "new-surface",
+      "basis": "hv, 2026-08-30, first-hand: _`intent explore` fires up the intent TUI at the top level ... when I do things like `intent st edit 56` I'm deep linking into an entity in the db, but I just wanted to explore it from the top._ **THE NAME IS `explore` AND NOT `browse` ON THE DESIGN'S OWN GROUNDS RATHER THAN TASTE**: `browse <kind> <id>` already ships meaning _open in the BROWSER_, and one word carrying two meanings on one surface is the defect `tui-design.md` section 5 records for `Up`/`Down` and section 4 for `/`-as-both-menu-and-prefix. **IT TAKES NO ADDRESS, RULED BY vc 2026-08-30 ON ic's RECOMMENDATION.** Deep linking is `edit`'s job and section 9 has ruled its whole shape; an optional `[kind] [id]` here would put two spellings on one entry and reopen the three-doors-onto-one-surface problem that killed `/commands` beside `:commands`. Bare `explore` means _open the tool_; `edit st 56` means _open this thing_. **`explore` IS NOT A SECOND SUBSYSTEM -- it is the same view stack with a different BOTTOM**, rooted at the entity kinds rather than at one item, which is why the whole addition is a verb rather than a realiser.",
+      "owner_wp": "WP-17",
+      "acceptance": "ST0056 AC-17.12 (minted by vc 2026-08-30)",
+      "target": {
+        "state": "new-surface"
+      },
+      "disposition": "new-surface",
+      "exposed_on_mcp": false,
+      "read_or_mutate": "mutate",
+      "recoverability": "reversible",
+      "flags": [],
+      "mcp_review": {
+        "grounded_in": "Withheld because the channel cannot carry it, not because the mutation is unsafe -- the full argument and its precedent are in `recoverability_anomaly`, which is the field the generator reads and therefore the one home for it. What still mutates, since the row takes no arguments and ships no flags: the TUI writes through the facade on `Enter`, and the surface it offers is the form declaration rather than this command line.",
+        "note": "The browser twin of this reach is `edit --browser` / `browse`, which is also `exposed_on_mcp: false`. Both are HUMAN faces onto the same model; the agent's door onto that model is the daemon's JSON face (AC-08.9), not either realiser."
+      },
+      "recoverability_anomaly": "**WITHHELD FROM MCP WHILE BEING REVERSIBLE, AND THE GROUND IS THAT IT IS NOT CALLABLE RATHER THAN THAT IT IS DANGEROUS.** The withhold list is derived from `recoverability` because MCP should not expose a mutation the surface cannot undo -- and this one it can: every edit `explore` makes goes through `intentsvcs` like any other client and is reversible by the same doors. **It is withheld because an interactive TUI blocks on keystrokes and needs a terminal, so an agent calling it receives a request that never returns.** That is a fact about the CHANNEL, not about the risk. **IT IS THE THIRD ROW ON THIS EXACT GROUND AND THE PRECEDENT IS WHY IT IS RECORDED RATHER THAN ARGUED**: `edit` and `browse` are both reversible, both withheld, and both on the ground that what they reach is a HUMAN face on THIS machine -- a path or a URL that exists here and nowhere else. `explore` is the third face in that set and the agent's door onto the same model is the daemon's JSON face (AC-08.9), not any of the three. **Recorded rather than resolved by relabelling: calling it `one-way` would make a derived number come out and would be false**, which is the move the `daemon` head row was making while one row stood for four verbs. Same day, ic ruled `organize` EXPOSED under AC-05.1 on the converse reasoning -- blast radius is not the rule, undoability is -- so bending undoability here to cover a channel problem would have contradicted a ruling made hours earlier."
     }
   ],
   "provenance": {
@@ -8446,7 +8468,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 39,
+      "n": 40,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -8760,7 +8782,8 @@
       "events",
       "fc",
       "surface",
-      "browse"
+      "browse",
+      "explore"
     ],
     "shipped": [
       "st",
@@ -8887,7 +8910,8 @@
       "events",
       "fc",
       "surface",
-      "browse"
+      "browse",
+      "explore"
     ],
     "retired": [
       "st repair",
@@ -9022,7 +9046,8 @@
       "events",
       "fc",
       "surface",
-      "browse"
+      "browse",
+      "explore"
     ],
     "self_loop": [
       "ac descope",
