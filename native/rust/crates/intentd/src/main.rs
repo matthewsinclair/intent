@@ -40,6 +40,7 @@ use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 mod registry;
 mod store;
 mod watch;
+mod web;
 
 use registry::Registry;
 
@@ -221,6 +222,16 @@ fn refuse(e: StartupError) -> ExitCode {
 /// early, and on that day it does not run.
 async fn serve_under(root: &Path) -> Result<(), StartupError> {
   let (unix, bound) = Bound::bind_socket_under(root).map_err(StartupError::Address)?;
+
+  // **THE TOKEN IS MINTED BEFORE THE PORT IS PUBLISHED, AND THE ORDER IS D6's
+  // ARGUMENT RATHER THAN TIDINESS** (vc's condition, 2026-08-30). Publishing an
+  // address whose token is not yet readable advertises an endpoint nobody can
+  // legitimately use -- the same bad state `Published` makes unexpressible for
+  // the address itself, arriving one file later. `?` here means a daemon that
+  // cannot write its secret does not come up: the alternative is a published
+  // port whose only protection failed silently.
+  let token = Arc::new(intentsvcs::daemon::Token::mint_under(root).map_err(StartupError::Address)?);
+
   let (tcp, published) = Published::bind_loopback_under(root).map_err(StartupError::Address)?;
 
   unix.set_nonblocking(true).map_err(StartupError::Runtime)?;
@@ -252,6 +263,30 @@ async fn serve_under(root: &Path) -> Result<(), StartupError> {
 
   tokio::spawn(sweep_backups(Arc::clone(&registry)));
 
+  // **ONE PUBLISHED PORT SERVING BOTH PROTOCOLS** (`AC-08.9`, vc's ruling
+  // 2026-08-30). The HTTP half is a `Router` fed by a channel rather than a
+  // second listener, because the alternative readings both lose: giving the
+  // port to HTTP alone strands the TCP entry's whole purpose -- `candidates`
+  // puts unix FIRST and appends TCP, so it is the socket's UNDERSTUDY, reached
+  // exactly when the socket is what is broken -- and a second published port
+  // reintroduces *which port* one level up, which D6's bind-and-publish exists
+  // to make unaskable.
+  let (http_tx, http_rx) = tokio::sync::mpsc::channel::<tokio::net::TcpStream>(HTTP_BACKLOG);
+  {
+    let face = web::Face {
+      registry: Arc::clone(&registry),
+      token: Arc::clone(&token),
+    };
+    let here = published.endpoint();
+    tokio::spawn(async move {
+      if let Err(e) = axum::serve(web::HandedOver::new(http_rx, here), web::router(face)).await {
+        eprintln!(
+          "intentd: the HTTP face stopped answering: {e}\n  remedy: framed clients on this port and the unix socket are unaffected. Restart the daemon to bring the web face back."
+        );
+      }
+    });
+  }
+
   loop {
     tokio::select! {
       accepted = unix.accept() => match accepted {
@@ -259,7 +294,20 @@ async fn serve_under(root: &Path) -> Result<(), StartupError> {
         Err(e) => accept_failed("unix", e).await,
       },
       accepted = tcp.accept() => match accepted {
-        Ok((stream, _)) => { tokio::spawn(answer(stream, Arc::clone(&registry), Arc::clone(&stop))); }
+        // **SORTED IN ITS OWN TASK, NEVER IN THIS ARM.** Deciding which protocol
+        // a connection speaks means reading a byte from it, and a client that
+        // connects and sends nothing would hold this loop -- so every other
+        // project's first contact, the unix socket and the shutdown arms would
+        // all wait on one silent socket. That is a whole-daemon stall reachable
+        // by `nc` and a newline nobody types.
+        Ok((stream, _)) => {
+          tokio::spawn(sort_by_first_byte(
+            stream,
+            Arc::clone(&registry),
+            Arc::clone(&stop),
+            http_tx.clone(),
+          ));
+        }
         Err(e) => accept_failed("loopback", e).await,
       },
       reason = shutdown() => {
@@ -366,6 +414,67 @@ async fn sweep_backups(registry: Arc<Registry>) {
       handle.consider_backup().await;
     }
   }
+}
+
+/// How many sorted HTTP connections may wait for the web face.
+///
+/// **A BOUND, BECAUSE AN UNBOUNDED CHANNEL TURNS A SLOW PAGE INTO MEMORY
+/// GROWTH.** The sorting tasks are what fill it and they are cheap to keep
+/// waiting: a full channel parks one connection's task, not the accept loop,
+/// so the back-pressure lands on the client that caused it.
+const HTTP_BACKLOG: usize = 64;
+
+/// How long a freshly accepted TCP client has to say what it is.
+///
+/// **A CONNECTION THAT SAYS NOTHING IS DROPPED RATHER THAN SORTED**, because
+/// there is nothing to sort it by. It is an ordinary condition -- a port
+/// scanner, a health check, a dropped connection -- so it costs a task and a
+/// timeout and produces no log line, exactly as the framed reader already
+/// treats a silent caller.
+const SORT_DEADLINE: std::time::Duration = std::time::Duration::from_secs(5);
+
+/// Send this connection to the protocol it is speaking (`AC-08.9`).
+///
+/// **THE DISCRIMINATOR IS BYTE 0 AND IT IS EXACT RATHER THAN A HEURISTIC.**
+/// `wire::frame` is `serde_json::to_vec` plus a newline, so **every framed
+/// request on this port begins with `{`** -- the liveness probe included, since
+/// `PROBE_FRAME` is `{"intent_probe":1}`. **Every HTTP request begins with a
+/// method token**, which is ASCII letters, and a browser cannot reach the other
+/// branch because `fetch` cannot help sending a method first. One byte, no
+/// lookahead, no ambiguity in either direction.
+///
+/// **IT EXTENDS A RECOGNISER RATHER THAN INTRODUCING THE IDEA.** This listener
+/// already reads content before deciding what to do with it: `is_probe_frame`
+/// has always branched on the bytes that arrived.
+///
+/// **`peek` RATHER THAN `read`, WHICH IS WHY THE FRAME BRANCH IS UNTOUCHED.**
+/// The kernel keeps the byte, so `answer` receives a stream that has had
+/// nothing taken from it and needs no way to be handed a prefix back. A `read`
+/// here would have made every framed path carry a pushback buffer for a
+/// decision it does not participate in.
+async fn sort_by_first_byte(
+  stream: tokio::net::TcpStream,
+  registry: Arc<Registry>,
+  stop: Arc<tokio::sync::Notify>,
+  http: tokio::sync::mpsc::Sender<tokio::net::TcpStream>,
+) {
+  let mut first = [0u8; 1];
+  let peeked = tokio::time::timeout(SORT_DEADLINE, stream.peek(&mut first)).await;
+  match peeked {
+    Ok(Ok(1)) => {}
+    // Silent, closed, or slower than the deadline. No reply and no log line.
+    _ => return,
+  }
+
+  if first[0] == b'{' {
+    answer(stream, registry, stop).await;
+    return;
+  }
+
+  // **A FULL CHANNEL WAITS RATHER THAN DROPS.** The web face being busy is a
+  // reason for this request to be slow, not a reason for it to fail -- and the
+  // wait is this task's, which is why the sort happens off the accept loop.
+  let _ = http.send(stream).await;
 }
 
 async fn answer<S>(stream: S, registry: Arc<Registry>, stop: Arc<tokio::sync::Notify>)

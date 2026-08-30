@@ -608,7 +608,7 @@ impl Published {
   /// [`Endpoint::answers`] exists to survive.
   pub fn bind_loopback_under(root: &std::path::Path) -> Result<(TcpListener, Self), DaemonError> {
     let path = crate::userstate::daemon_address_file_under(root);
-    let listener = TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, 0)).map_err(|source| {
+    let listener = Self::preferred_or_any().map_err(|source| {
       // Reporting this as `Unpublishable { path: <the address file> }` named a
       // file the failure had not reached and could not explain.
       DaemonError::Unbindable {
@@ -625,6 +625,43 @@ impl Published {
       })?;
     Self::write_atomically(&path, &addr)?;
     Ok((listener, Published { path, addr }))
+  }
+
+  /// The port `intentd` asks for first: `1N73N7`, in the dynamic range.
+  ///
+  /// **A PREFERENCE, NEVER A PROMISE, AND THE DISTINCTION IS D6 INTACT RATHER
+  /// THAN BENT.** hv's rule is that the daemon publishes what it BOUND and no
+  /// reader assumes a port -- and that survives here exactly because the bind
+  /// can fail over to `0`. What changes is only which port is *asked for*
+  /// first, so an operator who wants to type a URL usually can, and nothing
+  /// anywhere is entitled to expect this number.
+  ///
+  /// **`INTENT` DOES NOT FIT IN A PORT AND THE HONEST ANSWER WAS TO STOP
+  /// TRYING.** The text is 48 bits and a port is 16, so any encoding of the
+  /// whole word is a lossy choice dressed as a derivation -- `IN` -> `0x494E`
+  /// -> 18766 encodes two letters and silently drops four. `1N73N7` is the
+  /// numeric skeleton of the word rather than an encoding of it, which is a
+  /// claim it can actually keep.
+  ///
+  /// **AND IT SITS IN THE PRIVATE/DYNAMIC RANGE (49152-65535) DELIBERATELY.**
+  /// That range is reserved for exactly this -- ephemeral and unregistered use
+  /// -- so the number collides with no assignment and squats on nobody's
+  /// service. A memorable port in the registered range would be a squat with a
+  /// mnemonic.
+  const PREFERRED: u16 = 51737;
+
+  /// Bind the preferred port, or any port the kernel offers.
+  ///
+  /// **THE FALLBACK IS WHAT KEEPS THE PREFERENCE FROM BECOMING A DEPENDENCY.**
+  /// A fixed port that refused when taken would make a second daemon, a stale
+  /// socket or an unrelated program holding 51737 into a daemon that will not
+  /// start -- trading a guarantee nobody needed for an outage. Asking and
+  /// accepting the answer costs one extra `bind` on the rare path and leaves
+  /// the published address the only thing any reader consults, which is the
+  /// invariant.
+  fn preferred_or_any() -> std::io::Result<TcpListener> {
+    TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, Self::PREFERRED))
+      .or_else(|_| TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, 0)))
   }
 
   /// The address this guard published.
@@ -681,6 +718,120 @@ impl Drop for Published {
   fn drop(&mut self) {
     if let Ok(text) = std::fs::read_to_string(&self.path) {
       if text.trim() == self.addr.to_string() {
+        let _ = std::fs::remove_file(&self.path);
+      }
+    }
+  }
+}
+
+/// The HTTP face's shared secret, removed when this value is dropped.
+///
+/// **THE SOCKET AND THE PORT HAVE DIFFERENT AUTHZ STORIES AND THIS IS THE
+/// PORT'S** (D56, and the workspace manifest records the split beside `axum`).
+/// **Loopback is not a permission boundary.** Every process running as any user
+/// on this machine can connect to `127.0.0.1`, and so can any page the
+/// operator's browser happens to be showing. The unix socket needs no such
+/// check because the filesystem already made it -- so giving both transports
+/// the same treatment gives the socket a check it does not need, or the port
+/// none at all, and only one of those is a hole.
+///
+/// **A `Uuid` v4 RATHER THAN A NEW DEPENDENCY, AND IT IS THE RIGHT PRIMITIVE
+/// RATHER THAN THE CONVENIENT ONE.** It is 122 bits from the platform CSPRNG,
+/// which is what a bearer token needs; `ulid`, the other id crate already in
+/// the graph, is time-ordered by construction and would leak when the daemon
+/// started while being guessable from a neighbouring value. The mint is
+/// [`crate::project::mint_project_id`]'s generator and not its function --
+/// **a project identity and a secret must never be one call**, or a token
+/// rotation silently renames a project.
+///
+/// **MINTED AND WRITTEN IN ONE CALL, FOR [`Published`]'s REASON.** A
+/// `publish(token)` taking any string would let a caller advertise a secret it
+/// does not require, and the failure is the worst available direction: a file
+/// on disk saying the port is protected while the port accepts anything.
+///
+/// **0600, AND THE MODE IS THE WHOLE MECHANISM RATHER THAN HYGIENE.** The file
+/// IS the authorisation: anything that can read it can drive the daemon. A
+/// world-readable token would make the check theatre -- present, checked,
+/// passed by everyone -- which is worse than no check, because the port would
+/// then look guarded to anyone reading the code.
+#[derive(Debug)]
+pub struct Token {
+  path: PathBuf,
+  secret: String,
+}
+
+impl Token {
+  /// Mint a secret for this run and publish it where a client can read it.
+  pub fn mint_under(root: &std::path::Path) -> Result<Self, DaemonError> {
+    let path = crate::userstate::daemon_token_file_under(root);
+    let secret = uuid::Uuid::new_v4().to_string();
+    let fail = |source| DaemonError::Unpublishable {
+      path: path.clone(),
+      source,
+    };
+    if let Some(parent) = path.parent() {
+      std::fs::create_dir_all(parent).map_err(fail)?;
+    }
+    // **STAGED WITH THE MODE ALREADY SET, NEVER WRITTEN THEN CHMODDED.** A
+    // create-then-restrict leaves a window in which the secret is on disk and
+    // world-readable, and the window is exactly as long as the scheduler
+    // decides. The pid in the staging name is [`Published::write_atomically`]'s
+    // guard against two daemons colliding on one temporary.
+    let staging = path.with_extension(format!("tmp-{}", std::process::id()));
+    {
+      use std::io::Write;
+      use std::os::unix::fs::OpenOptionsExt;
+      let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .mode(0o600)
+        .open(&staging)
+        .map_err(fail)?;
+      writeln!(file, "{secret}").map_err(fail)?;
+      file.flush().map_err(fail)?;
+    }
+    std::fs::rename(&staging, &path).map_err(fail)?;
+    Ok(Token { path, secret })
+  }
+
+  /// The secret this guard minted.
+  pub fn secret(&self) -> &str {
+    &self.secret
+  }
+
+  /// Whether a presented value is this run's secret.
+  ///
+  /// **THE COMPARISON IS HERE SO THAT NO CALLER HOLDS THE SECRET TO COMPARE
+  /// IT.** A handler doing `presented == token.secret()` is a second site that
+  /// must remember to be careful, and the carelessness is silent. It is also
+  /// where a constant-time compare would go if this ever guarded something
+  /// reachable off this machine; over loopback, against a value an attacker
+  /// can already read if they can read the file, timing is not the exposure.
+  pub fn admits(&self, presented: &str) -> bool {
+    presented == self.secret
+  }
+
+  /// Read the secret a running daemon published, for a client that needs it.
+  pub fn read_under(root: &std::path::Path) -> Result<String, DaemonError> {
+    let path = crate::userstate::daemon_token_file_under(root);
+    std::fs::read_to_string(&path)
+      .map(|text| text.trim().to_string())
+      .map_err(|source| DaemonError::Unpublishable { path, source })
+  }
+}
+
+impl Drop for Token {
+  /// **COMPARE AND DELETE, NEVER DELETE**, which is [`Published`]'s rule and
+  /// bites harder here: removing a second daemon's token leaves it running,
+  /// findable, and refusing every HTTP request with no file to explain why.
+  ///
+  /// A failed removal is silent for [`Published`]'s reason -- this runs while
+  /// unwinding and there is nobody left to tell. The residue is a stale secret
+  /// for a port nothing is listening on, which authorises nothing.
+  fn drop(&mut self) {
+    if let Ok(text) = std::fs::read_to_string(&self.path) {
+      if text.trim() == self.secret {
         let _ = std::fs::remove_file(&self.path);
       }
     }

@@ -203,6 +203,33 @@ pub fn daemon_address_file_under(root: &std::path::Path) -> PathBuf {
   daemon_state_dir_under(root).join("intentd.addr")
 }
 
+/// `~/.local/share/intent/intentd.token` -- the secret the HTTP face requires
+/// and the socket face does not (D56).
+///
+/// **THE TWO TRANSPORTS HAVE DIFFERENT AUTHZ STORIES AND THIS FILE IS THE
+/// SECOND ONE.** The workspace manifest records the split beside `axum`:
+/// filesystem permissions are the socket's authz, and the HTTP half carries
+/// one auto-generated token. **Loopback is not a permission boundary** -- every
+/// local process reaches `127.0.0.1`, and so does any page the operator's
+/// browser happens to be showing -- so the port needs a check the socket does
+/// not, and treating them uniformly gives the socket a check it does not need
+/// or the port none at all.
+///
+/// **IT LIVES BESIDE THE ADDRESS FILE BECAUSE IT HAS THE ADDRESS FILE'S
+/// LIFETIME.** Both are written by a starting daemon, both are meaningless
+/// when it stops, and both are read by a client asking *where do I connect and
+/// what do I say*. A token under [`global_config`] would be operator
+/// configuration, which it is not: nobody authors it and deleting it costs
+/// nothing but a restart.
+pub fn daemon_token_file() -> Result<PathBuf, UserStateError> {
+  Ok(daemon_token_file_under(&home()?))
+}
+
+/// [`daemon_token_file`]'s layout, against any root.
+pub fn daemon_token_file_under(root: &std::path::Path) -> PathBuf {
+  daemon_state_dir_under(root).join("intentd.token")
+}
+
 /// The file whose LOCK means "a daemon is running here" (`AC-08.12`).
 ///
 /// **A SEPARATE FILE FROM THE SOCKET, AND THE SEPARATION IS THE MECHANISM.**

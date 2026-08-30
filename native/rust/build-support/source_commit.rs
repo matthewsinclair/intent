@@ -159,7 +159,19 @@ use std::process::Command;
 /// scope CONTAINS this one. Equality satisfies containment; **do not tighten
 /// that arm to equality**, because the containment form is what permitted this
 /// widening in the first place.
-const DIRT_SCOPE: &[&str] = &[":(top)native/rust", ":(top)surface"];
+/// **`docs/design/` IS HERE BECAUSE `intentd` EMBEDS THE LOGO FROM IT**
+/// (`web.rs`, `AC-08.9`). The web face's shell serves the project's mark with
+/// `include_str!("../../../../../docs/design/intent-logo.svg")`, so that file
+/// is a compile-time INPUT to the shared binary while sitting outside
+/// `native/rust` -- and a build made while it was mid-edit would have been
+/// approved by the guard and baked in. **The widening was anticipated by the
+/// paragraph above rather than improvised**: arm 6b measured the gap, named
+/// the path, and pointed at this list as the thing at fault.
+///
+/// **THE ALTERNATIVE WAS A SECOND COPY OF THE LOGO UNDER `native/rust` AND IT
+/// IS THE WRONG FIX** (vc's ruling, 2026-08-30). One mark, one home; a copy is
+/// a thing to update when the mark changes, and a stale logo still renders.
+const DIRT_SCOPE: &[&str] = &[":(top)native/rust", ":(top)surface", ":(top)docs/design"];
 
 fn git(args: &[&str]) -> Option<String> {
   let out = Command::new("git").args(args).output().ok()?;
