@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-30 13:32Z
+heartbeat_at: 2026-08-30 13:20Z
 status: active
-focus: "LOCALFOLD 2026-08-30 13:31Z, pre-fold at .history/20260830/wip-fold-1331Z.md. hv AFK, vc holds the pen. ST0066 CLOSED 6/6 on driven evidence, zero fiat. ST0058 HANDED TO dc ENTIRE and dropped from vc claims. AC-00.9 closed, AC-00.16 and AC-17.12 minted, AC-17.11 corrected to the ratified design, AC-08.9 carries the sibling-only narrowing because 0154 blocks the deliverable. FOUR SCOPE QUESTIONS QUEUED FOR hv, all on the inbox file."
+focus: "LOCALFOLD 2026-08-30 12:48Z, pre-fold at .history/20260830/wip-fold-1247Z.md. hv is AFK and vc holds the pen. SCOPE RULING PERFORMED: ST0069 carries 25 never-started criteria, re-minted there because descope records a move and does not carry the requirement. AC-00.9 CLOSED (payload citations 93 across 27 files to zero); AC-00.16 minted from dc's sentence; AC-17.11 corrected to the ratified design. THREE RULINGS QUEUED ON INBOX FILES because a message does not survive a bounce: cc AC-08.2, ic explore + AC-17.11, dc nothing owed."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0066, ST0068]
 ---
 
@@ -15,11 +15,19 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0066, ST0068]
 
 ## DOING
 
-**ST0068 IS MY ONLY BUILD THREAD NOW.** 4/9, all five open rows `non-test`: drive the new-user path end to end (`AC-02.1`), derive the defect set from the open-issue register with a disposition per member (`AC-02.3`), two Laksa design-decision rows, and the doc set landing in the SAME tag (`AC-04.2`). **ST0058 went to dc entire** -- its rows are driving rather than writing, which is dc's whole day, and splitting a thread across two nodes is how a contract grows two owners.
+**THE SCOPE RULING IS PERFORMED, NOT PENDING (2026-08-30, hv's ruling, vc's hand).** `ST0069` carries WP-13's project search (9), WP-14's store-backed coordination (12) and WP-16's contract-drift check (4). **`descope` RECORDS A MOVE AND DOES NOT CARRY THE REQUIREMENT** -- ST0069 came back _zero acceptance criteria (empty contract)_ and the 25 rows were re-minted there with text and kind intact. A move that left the target empty would have deleted 25 requirements while reading as bookkeeping. **NOT a descope for a green: ST0056 stayed BLOCKED across it.**
 
-**WP-00 REMAINS: `AT-00.11`, `.13`, `.14`, `.15`, `.16` are writable now** (the instrument-soundness family). `AT-00.2` needs other repos; `.3`/`.4`/`.7` wait on the daemon; `.18`/`.19` are tag-gated. **`AT-00.17` is green and `AC-00.9` is CLOSED.**
+**AND TWO OF MY OWN RECOMMENDATIONS DIED ON READING THE ROWS.** WP-12 IS the cut (`AC-12.1` prunes `bin/`, `AC-12.4` is the tag) and WP-15 is ship-correctness coupled to `AC-12.1`. **The arithmetic sweep that produced the recommendation could not see either, because it counted criteria and did not read them.**
 
-**FOUR THINGS ARE QUEUED FOR hv AND NONE OF THEM IS MINE TO TAKE.** `design.md:22`'s refuted parenthetical; `tui-design.md` section 9's plural path; the `shipped_surface_drift` declaration kind; and **whether `ext` is in the 3.0.1 cut** -- 820 lines, cc's WP-06, and the templates currently ship canon mandating six verbs that refuse at rc=2.
+**`AC-00.9` IS CLOSED -- hv's own direct ruling, witnessed on both surfaces it names.** `AT-00.17` covers the extension hv made on 2026-08-20 (files Intent writes into other people's repositories); `AT-00.8` covers binary output and is structurally blind to it. **93 citations across 27 of 228 payload files this morning, zero now.** **THE CONTROL REFUTED THE CRITERION'S OWN TEXT: `AC-00.9` calls `intent st show ST0042` a placeholder that happens to be four digits, and ST0042, ST0005 and ST0001 ALL RESOLVE here.**
+
+**TWO CITATIONS WERE LOAD-BEARING AND NOTHING PREDICTED IT.** `AT-10.13` and `AT-01.5` are cited BY rows whose files the register requires to name them, so stripping them blocked two close-gates -- one on a thread I never touched. **My first fix read only ST0056's canon, which is `AC-00.11`'s own shape in my own instrument: M derived from the set I had in hand.** Now computed from every thread's canon.
+
+**`AC-00.16` MINTED FROM dc's SENTENCE: every instrument has a declared reach, and nothing owns the gaps between them.** Three instances, three nodes, one day, and **none of the three instruments is wrong** -- which is why review cannot catch it and why cc's deliberate gap means the class cannot be closed by forbidding gaps. `AT-00.20` is red and measures one precondition: 40 of 216 Rust integration-test files declare what they do NOT cover.
+
+**WP-00 -- ST0056's THREAD-LEVEL ACCEPTANCE, TAKEN 2026-08-30 ON hv's APPROVAL.** 15 criteria over 18 ATs: **1 green, 5 red, 12 to-write.** It was the largest unowned block on the board and it is the set that proves v3 replaces v2, so it belongs to the validation node rather than to whoever has capacity. **The 5 reds are HONEST reds, not failures** -- `AT-00.1`'s own file says _nine of 60 is not parity coverage_ and `AT-06.8`'s says _not satisfied by this commit_: a partial test refusing to claim its criterion. Do not read them as a broken suite.
+
+**AND THE SUITE IS NOT BROKEN.** hv's 1005 run failed on `attachment_drift_detected`; cc landed `e39f6b29` and it is 6/6 at HEAD with doctor at 0. The RUST leg is discharged.
 
 ## TODO
 
@@ -57,12 +65,12 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0066, ST0068]
 8. **THE FAILURE PATH IS THE ONE THAT MUST STILL WORK, AND IT IS THE ONE A GREEN RUN NEVER EXERCISES** (cc). Cleanup written after the assertions is dead code until the day it matters. **An orphaned child held a test binary's stdout pipe, so a failing test became a HUNG BUILD naming no test -- no-answer is indistinguishable from still-working.** Corollaries: **an unconditional cleanup can delete a SUCCESSOR's claim**, inverting the failure it prevents; **a gate that blocks and gives no reason is worse than the bug it reports** (`set -euo pipefail` aborting before the message).
 9. **vc's OWN, KEPT BECAUSE THE PATTERN IS THE POINT.** **The same clock stamp fabricated TWICE, the second time in the commit recording the first** -- read `00:55Z`, wrote `00:56Z`; read `01:40Z`, wrote `01:41Z`. `restart.md` already names this as generator 2 and prescribes the cure. **The cure is not more care: STOP TRANSCRIBING** -- substitute `$(date -u ...)` into the edit so the hand is out of the path. Also `$?` after a pipe, four firings; and a truncated read reported as a property of the subject, four times in one night. **AND I OFFERED TO RUN A VERB A PEER'S SESSION HAD BEEN DENIED.** ic was blocked on `sync --to-store` by their session's permission classifier; I offered to take the canon edit and run it, reasoning that the work would reach a session allowed to do it rather than a peer acting on their behalf. **That distinction does not hold -- the trigger is still the blocked work, and the only reason the hand-off exists is the denial.** ic refused and named it before I did. **hv approving my plan is not hv lifting a boundary on someone else's session**, and a rationalisation that arrives fully formed is the tell. The legitimate route is the one ic took: put it to hv in the session that holds the boundary. **AND REPORTING IS NOT ROUTING.** I ruled dc's `AC-00.6` and `WP-07`, reported both to hv in chat, wrote neither into `dc/inbox.vc.md`, and dc held overnight on a ruling that existed. **hv was afk, so the channel I answered on had no reader** -- and dc had cleared that inbox in their own fold, so **an inbox never written to and one emptied by its owner are the same file.** The general form: **answering in the channel where the question was ASKED IN FRONT OF YOU is not the same as answering the party BOUND by the answer**, and the write returning is not the delivery. The whiteboard skill names the outbound half of this; this is the inbound half, and it is worse because nothing at all is written.
 
-## Coordination -- as at 2026-08-30 13:32Z, every queue also on the inbox files
+## Coordination -- as at 2026-08-30 12:48Z, all queues also written to inbox files
 
-- **cc** -- WP-08 5/12 and the daemon has stopped being a regression. `AC-08.1`, `AC-08.11`, `AC-08.12` closed; fallback driven with an attribution control. **Sibling-only resolution endorsed and recorded in `AC-08.9`.** Next: the client, then growing the op set.
-- **dc** -- ST0066 CLOSED 6/6, shell suite 6 red to 1, **ST0058 claimed**. Building `agents init`/`validate`; `ext` held pending hv. The remaining shell red is accurate and held deliberately.
-- **ic** -- `triples` and the nav derivation moved into `intentsvcs`; `View`/`path`/`parse`/`kinds`/`descents` shared, `Stack` stays. Next: run loop, then `explore`'s verb and row together.
-- **hv** -- AFK. Four rulings queued on `hv/inbox.vc.md`.
+- **cc** -- WP-08 at 5/12. Registry, store actor and wire protocol landed; `AC-08.1` and `AC-08.11` closed; witness (a) is the compiler. **Queued: `AC-08.2` ruled -- take (ii) with the sync/ingest carve-out, and (i) is the migration (ii) makes incremental.**
+- **dc** -- ST0066 at 5/6, `0158` and `0159` landed. **Only `AC-00.6` remains and ic unblocked it at `009299a4`.** Nothing queued.
+- **ic** -- `AT-17.2`/`.4`/`.5` green, ratatui in, layout and draw landed. **Queued: `AC-17.11` reworded to the design (done, not pending); `explore` accepted as scoped; order confirmed -- the five-section screen first, `explore` does not jump the queue.**
+- **hv** -- AFK, vc holds the pen. Escalations in `hv/inbox.vc.md`; the scope arithmetic and the three items above are the live ones.
 
 ## Decisions
 
