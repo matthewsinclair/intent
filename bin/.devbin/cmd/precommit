@@ -87,6 +87,7 @@ G_SHAREDBUILD='shared build: a rebuild into the SHARED artefact path is refused 
 G_SKEWTHREAD="thread views: a generated thread view this commit touches still matches the model"
 G_MACHINE="ratified machines: transitions.rs implements data-model.md exactly (entry states and every expanded from-to-verb edge)"
 G_DECLKIND="declared kind: every AT row whose cited artefact EXISTS cites the kind of thing the row declared"
+G_ABSENTAT="absent citation: every AT row claiming a VERDICT (green or red) cites an artefact that is actually there"
 
 # THE WHITEBOARD HEADER GUARD IS NO LONGER LISTED HERE, and the precondition
 # this file wrote for its own removal has been met. It read: "WHEN THIS BLOCK
@@ -122,6 +123,7 @@ if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t%s\n' "$G_SKEWTHREAD" "intent/st/ST0056/parity/tools/thread_view_skew_check.sh"
   printf '%s\t%s\n' "$G_MACHINE" "intent/st/ST0056/parity/tools/machine_table_check.sh"
   printf '%s\t%s\n' "$G_DECLKIND" "intent/st/ST0056/parity/tools/declared_kind_check.sh"
+  printf '%s\t%s\n' "$G_ABSENTAT" "intent/st/ST0056/parity/tools/absent_at_check.sh"
   exit 0
 fi
 
@@ -394,6 +396,20 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   if ! bash "$TOOLS/declared_kind_check.sh"; then
     rc=1
     failed="${failed}  declared_kind_check.sh -- a row cites an artefact that is not the KIND the row declared (exit 1), or the citation set could not be read at all (exit 2). Repoint the row at what actually satisfies it, or build the kind the row declared. A green here is about agreement AT THE DECLARED PATH and says nothing about an orphaned artefact at a path no row cites.
+"
+  fi
+
+  # The mirror of stale_at_check.sh, and the direction nothing watched. That one
+  # catches a to-write row whose cited test EXISTS; this catches a green or red
+  # row whose cited file is ABSENT. A green row is what `ac status` and the close
+  # gate COUNT, so a green citing nothing is a claim with no referent being
+  # tallied as a claim with one -- and it is invisible to inspection, because a
+  # green row looks like every other green row. WHOLE-SET for the same reason as
+  # its two neighbours above.
+  step "$G_ABSENTAT"
+  if ! bash "$TOOLS/absent_at_check.sh"; then
+    rc=1
+    failed="${failed}  absent_at_check.sh -- a green or red AT row cites a file that is not there (exit 1), or the citation set could not be read at all (exit 2). A row whose subject is gone is RETIRED, not left green: withdraw the AC it covers and move the row to a non-test n/a with the reason in its prose. This gate says the file is THERE and never that its assertions can still fail -- present-and-hollow is outside its reach, and is the case that produced it.
 "
   fi
 

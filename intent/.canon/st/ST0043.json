@@ -64,7 +64,9 @@
       "text": "The BSD-only `sed -i ''` is gone (Linux upgrades work) and the CLAUDE.md version handling is anchored (historical dates are not rewritten). Canon engine is `intent/plugins/claude/bin/intent_claude_upgrade`.",
       "kind": "test",
       "state": {
-        "is": "computed"
+        "is": "withdrawn",
+        "reason": "THE SUBJECT IS GONE, AND THE GREEN THAT COVERED IT WAS ALREADY EMPTY BEFORE ANYTHING WAS DELETED. This criterion names its engine in its own text -- 'Canon engine is intent/plugins/claude/bin/intent_claude_upgrade' -- and that file was deleted at 125f601d. The property it asserts, that the BSD-only sed -i '' is gone so Linux upgrades work, has no canon engine left to be true or false about. MEASURED RATHER THAN ASSUMED, on the day of the withdrawal: its witness tests/unit/intent_claude_upgrade.bats ran 27 tests -- 25 failing loudly on the missing script, and 2 PASSING VACUOUSLY. One of the two vacuous passers is AT-01.8, the row that covers this criterion: its body is 'if grep -nE \"sed -i ''\" $canon; then fail; fi', and grep on an absent file errors, so the if is false and fail is unreachable. The row was green because the subject was gone, not despite it. WITHDRAWN AND NOT SATISFIED, deliberately. The portability property was never proved against v3; its subject was removed. v3 installs canon from Rust and runs no sed at all, so this class cannot recur in the same form -- but that is a different engine meeting a different criterion, not this one being met. Recording it as satisfied would mint a green for work nobody did. NOT DESCOPED EITHER: there is no thread this moves to, because there is no surviving artefact for it to be about.",
+        "by": "hv via vc, 2026-08-30"
       }
     },
     {
@@ -162,6 +164,7 @@
       "id": "AT-01.8",
       "kind": "test",
       "file": "tests/unit/intent_claude_upgrade.bats",
+      "prose": "RETIREMENT ATTEMPTED 2026-08-30 AND BLOCKED ON A DECLARED-UNBUILT TRANSITION -- this row is deliberately still green and its note is the record of why. AC-01.6 is WITHDRAWN (its canon engine intent/plugins/claude/bin/intent_claude_upgrade went at 125f601d), and hv ruled this row retired with it and the cited bats file deleted. The retirement cannot be executed: the shape the estate uses for a retired row is AT-03.12 -- non-test, n/a, no file, reason in prose -- and NO VERB CAN PRODUCE IT. at edit takes file, prose and covers; kind rides through untouched, and facade.rs says that is deliberate, that a kind change moves the contract graph, that it belongs in a ruling rather than a flag added while building something else, and that Criterion.kind is Unbuilt, owed and named in the transition table. at na moves status without moving kind, which lands the row at test + n/a -- a state AtStatus::permitted_for forbids and doctor reports as model-inconsistent. So DELETING THE CITED FILE WOULD FORCE THIS ROW INTO A STATE THE MODEL CANNOT EXPRESS: green over a missing file, or test + n/a. The file therefore stays until the kind transition is ruled. THE GREEN IS STILL VACUOUS AND THAT IS THE POINT: this row's test reads if grep -nE (sed -i quote-quote) $canon; then fail; fi, and grep on the absent engine errors, so the fail branch is unreachable. Of that file 27 tests, 25 fail loudly on the missing script and 2 pass this way; this is one of the 2. absent_at_check.sh, landed alongside, would NOT catch it -- the file is present the whole time it is hollow, which is that guard stated limit.",
       "covers": [
         "AC-01.6"
       ],
