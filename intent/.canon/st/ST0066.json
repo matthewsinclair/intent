@@ -24,7 +24,8 @@
       "text": "The fiat record lives IN THE MODEL on the closed entity -- by, date, because, and invoker evidence (tty-or-not, timestamp, environment fingerprint) -- and survives the store-to-extract-to-store round-trip byte-faithfully.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "driven 2026-08-30 (dc) AFTER the fix this row's own drive produced. The row was RED and the finding is 0159: `FiatRecord.at` is nested in a criterion's state rather than a column, no DEFAULT could fill it, and the event was written LAST -- so the store persisted \"\" while the extract held the real stamp, and the next `sync --to-disk` copied the blank back over it. D01 inverted in the one field neither truth nor its projection can recompute; `thread.fiat` and `wp.fiat` were never stamped anywhere at all. Fixed at a8984f0d by writing the envelope BEFORE the entity rows so the database's stamp exists before serialisation, plus `Store::stamp_fiat` over all four kinds. NOW DRIVEN: store `thread.fiat.at` == `wp.fiat.at` == every cascaded criterion's `at` == the `st.fc`/`wp.fc` event's own `ts`, read back through a FRESH PROCESS and through `Store::load_canon`; and the store-to-extract-to-store round trip is byte-faithful with the stamp NON-EMPTY on both sides (`diff` clean over jq -S). The witness re-reads the STORE rather than the in-process facade, because a round-trip arm passes hardest exactly when the value is gone -- empty round-trips to empty. Driven RED with the stamp suppressed: five of six arms in that file still passed and only the durable-read one failed."
       }
     },
     {
@@ -32,7 +33,8 @@
       "text": "FC on an ST or WP fiat-closes its open children, and every cascaded child carries an inherited-fiat marker naming the ancestor FC it descends from; no cascaded child renders as ordinarily closed.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "driven 2026-08-30 (dc), model AND render, on a fresh fixture. `fc ST0001` from `wip` cascaded to every open child: gate BLOCKED 0/2 -> PASS 0/2 satisfied, 2 fiat-closed. MODEL: each cascaded child carries `inherited_from: ST0001` and a shared `inherited_event` ULID (01M19A1NBMPKPCW95J6GV1MWVZ) naming the one act, while the ancestor's OWN record carries `inherited_from: null` -- so an individual judgement and a cascaded one are distinguishable by query, not by reading the prose. A WP-level close cascades only into its own scope (`inherited_from: ST0001/01` on AC-01.1, ST-level AC-00.1 untouched). RENDER, which is the half a model check does not reach: the generated acceptance view reads `AC-00.1 (non-test) ST-level criterion -- FIAT-CLOSED (by cascade from ST0001): <reason> (by matts, no tty, 2026-08-30T12:24:27.252Z)`, and the AT row likewise carries `status: fiat-closed -- FIAT-CLOSED (by cascade from ...)`. `grep -c 'satisfied: yes'` over that view is 0: NO cascaded child renders as ordinarily closed."
       }
     },
     {
