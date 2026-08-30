@@ -1289,6 +1289,69 @@ mod tests {
     );
   }
 
+  /// **`AC-09.1` STATES THIS IN ITS OWN WORDS -- *a row declaring neither is
+  /// REFUSED* -- AND UNTIL NOW THE ONLY THING ENFORCING IT WAS AN ATTRIBUTE
+  /// THAT IS NOT THERE.**
+  ///
+  /// [`Entry::exposed_on_mcp`] and [`Entry::read_or_mutate`] carry no
+  /// `#[serde(default)]`, and the doc comments beside them say that is
+  /// deliberate. **A claim about an ABSENCE is invisible to review.** The
+  /// natural way to lose it is someone meeting a parse failure on a hand-added
+  /// row and adding `default` to make it go away: a missing `exposed_on_mcp`
+  /// then silently becomes `false`, withholding a command from the agent
+  /// surface, and a missing `read_or_mutate` becomes `""`, which is the
+  /// absence-as-meaning this pair was minted to remove. **Every other test in
+  /// this crate keeps passing while that happens**, which is what makes it
+  /// worth a test rather than a comment.
+  ///
+  /// This is the mirror of the class `canon_keys_are_read.rs` opens with, and
+  /// the two are not the same check. That file asks whether anyone READS a
+  /// declared key, because a JSON file cannot say whether anyone is listening.
+  /// This asks whether the type still REFUSES an absent one, because an
+  /// attribute list cannot say what it does not contain.
+  ///
+  /// Driven one field at a time. Dropping both at once passes on EITHER
+  /// refusal and proves neither.
+  #[test]
+  fn a_row_that_declares_neither_mcp_field_does_not_load() {
+    let doc: serde_json::Value = serde_json::from_str(TABLE).expect("the committed table is JSON");
+    assert!(
+      serde_json::from_value::<Table>(doc.clone()).is_ok(),
+      "the committed table loads, or every case below passes for the wrong reason"
+    );
+
+    fn without(doc: &serde_json::Value, key: &str) -> serde_json::Value {
+      let mut doc = doc.clone();
+      let entry = doc
+        .get_mut("families")
+        .and_then(|f| f.get_mut(0))
+        .and_then(|f| f.get_mut("entries"))
+        .and_then(|e| e.get_mut(0))
+        .and_then(serde_json::Value::as_object_mut)
+        .expect("the table has at least one family entry");
+      assert!(
+        entry.remove(key).is_some(),
+        "the fixture must actually remove `{key}`, or the case is vacuous"
+      );
+      doc
+    }
+
+    for key in ["exposed_on_mcp", "read_or_mutate"] {
+      let err = serde_json::from_value::<Table>(without(&doc, key)).expect_err(
+        "a row declaring neither field is refused -- if this loads, the field grew a \
+         `#[serde(default)]` and an unclassified row now has a silent answer",
+      );
+      let err = err.to_string();
+      // Both halves, because `contains(key)` alone would hold for an error
+      // about the field's VALUE and report a type change as this property.
+      assert!(
+        err.contains("missing field") && err.contains(key),
+        "the refusal must say WHICH field is absent, since that is the whole \
+         reason it refuses rather than defaulting: {err}"
+      );
+    }
+  }
+
   /// The proof for [`Arg::required`] and [`Arg::repeated`], co-located with
   /// the predicates rather than left in a commit message.
   ///
