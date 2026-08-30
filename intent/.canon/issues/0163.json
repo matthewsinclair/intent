@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 163,
+  "slug": "intent-daemon-start-stop-are-declared-in-help-an",
+  "title": "intent daemon start/stop are declared in --help and unwired",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-30",
+  "reporter": "Matthew Sinclair",
+  "body": "**`intent daemon start` AND `intent daemon stop` ARE DECLARED IN THE SURFACE AND UNWIRED.** Measured 2026-08-30 by vc on both binaries.\n\n`intent daemon --help` lists four verbs: `start`, `stop`, `status`, `run`. `render.rs:4607` dispatches two:\n\n```\nSome((\"run\", _))    => daemon_run(),\nSome((\"status\", _)) => daemon_status(),\nSome((verb, _))     => unwired(\"daemon\", verb),\n```\n\nSo `start` and `stop` reach `unwired` at HEAD. **And on the binary a person actually types -- the delivered pair at `0751c42b` -- the entire family refuses: `intent daemon status` returns rc=2, `daemon` is a known command that is not implemented yet.**\n\n**THIS IS `AC-00.3`'s DEFECT CLASS ON THE PRIORITY FEATURE.** That row names the harm as *a switched project's canon instructs every agent to call verbs that refuse*; here it is the command's own `--help` making the promise, which is worse, because `--help` is the one source a user is entitled to treat as authoritative about the binary in front of them.\n\n**IT HAS A LIVE CONSEQUENCE TODAY, NOT A HYPOTHETICAL ONE.** Seven orphaned `intentd` processes were alive on this machine and hv reasonably asked why `intent daemon stop` did not end them. Two independent reasons: the verb is unwired, **and** even wired it could not reach them -- they hold isolated `HOME`s with sockets under `/tmp/execwitness-home-*` and `target/test-home/<pid>`, so the CLI looks at the machine-level address and correctly reports `no intentd is answering`. Ending them by pid was the only route.\n\n**THAT SECOND HALF IS WORTH KEEPING SEPARATELY: a lifecycle verb scoped to the machine-level address cannot reach a daemon started under a fixture HOME, and the test suite starts those routinely.** Whatever wires `stop` should say what it can and cannot reach, or the next person reads `no intentd is answering` beside a `ps` listing showing seven and concludes the tool is lying.\n"
+}

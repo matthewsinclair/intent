@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 162,
+  "slug": "intentd-help-starts-a-daemon-instead-of-printing",
+  "title": "intentd --help starts a daemon instead of printing help",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-30",
+  "reporter": "Matthew Sinclair",
+  "body": "**`intentd --help` DOES NOT PRINT HELP. IT STARTS A DAEMON.** Found 2026-08-30 by vc, by running it -- the process count went from 5 to 7 and the command never returned.\n\n`crates/intentd/src/main.rs` inspects exactly one argument across 387 lines: `if std::env::args().any(|arg| arg == \"--version\" || arg == \"-V\")`. Every other argument, `--help` and `-h` included, falls through to the daemon start path.\n\n**TWO DISTINCT HARMS, AND THE SECOND IS THE ONE THAT COSTS.**\n\n1. A help flag that has a side effect. The universal safe probe -- *ask the thing what it does* -- is the one invocation that makes it do something.\n2. **IT IS AN ORPHAN FACTORY INDEPENDENT OF THE HARNESS ONE.** The `dual_path_conformance` hang (fixed at `41fac5fc`) accumulated one `intentd` per suite attempt. This accumulates one per person who asks `intentd` what its verbs are, and the daemon it leaves runs under whatever `HOME` the asker had -- **which for a human at a terminal is the REAL one**, not an isolated fixture. Every orphan measured on 2026-08-30 happened to be isolated because they all came from tests. That is a property of the source, not of the defect.\n\n**REMEDY:** `--help` and `-h` print the usage and exit 0, beside the `--version` arm that already exists. `intentd` legitimately takes no subcommands -- the CLI owns the lifecycle, per the conflabd pattern in `render.rs:4605` -- so the help text is short and saying so is the point.\n\n**RELATED BUT SEPARATE:** `intent daemon start` and `intent daemon stop` are declared in the clap surface and unwired (issue filed separately). Together they mean a person meeting a running `intentd` has no verb that stops it and no verb that describes it.\n"
+}

@@ -49,6 +49,16 @@
 #   - **ARM C reaches the of-N grammar** (`N of M` with N > M, and a negative
 #     stated remainder) because AT-00.13 names that case as a required positive
 #     control and arms A and B both need a `+` to see anything at all.
+#   - **IT CANNOT TELL A PARTITION MEASURED AGAINST A POPULATION FROM ONE
+#     DERIVED FROM ITS PARTS, AND ONLY THE FIRST IS WORTH STATING** (dc,
+#     2026-08-30, against this tool). Arm B nominated `rulings_check.sh`, whose
+#     `declared` figure is computed as the sum of its buckets -- so stating that
+#     sum and refusing on it would have redded NOTHING, ever. **A dead guard,
+#     nominated by the instrument built to catch dead guards.** What can fail
+#     there is the buckets against the rows actually READ, which is a different
+#     check and one this tool cannot ask for. So a finding here is a CANDIDATE:
+#     it says a partition is unstated, never that stating it would be worth
+#     anything.
 #   - It reads OUTPUT, never source. An instrument whose partition is computed
 #     correctly and printed under a confusing label passes.
 #
