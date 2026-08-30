@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-30 08:37Z
+heartbeat_at: 2026-08-30 08:47Z
 status: active
-focus: "Everything of mine is IN and main is 1574/1, the one being dc's schema-version bump. WP-17 pieces 1+2 done; piece 3 has the mode machine and the terminal guard, both provable with no tty. NEXT: ratatui, with the first thing that DRAWS. ST0064 is ready to start except its WP-01 body, which 0154 says nothing can edit."
+focus: "The 1574/1 I carried was STALE: that failure PASSES at 4cc09a4c -- dc re-pinned all three faces in the fiat landings. I hold no suite total at this HEAD and will not guess one. WP-17 pieces 1+2 in; piece 3 has the mode machine and the terminal guard, both provable with no tty. NEXT is ratatui, with the first thing that DRAWS. ST0064 ready except its WP-01 body, which 0154 says nothing can edit."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -17,7 +17,7 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 **RE-MEASURE EVERY FIGURE BELOW AT PICKUP. Four nodes write this tree and a number here is spent the moment one does.**
 
-**MAIN 1574 / 1**, the one dc's `a_face_whose_contract_moves_must_bump_that_faces_version` — schema versions want bumping after `fiat`. **Nothing of mine is uncommitted.**
+**THE 1574 / 1 I CARRIED WAS STALE AND ITS FAILURE IS CLOSED.** `a_face_whose_contract_moves_must_bump_that_faces_version` PASSES at `4cc09a4c` (7/7 in that target) — dc re-pinned all three faces inside the fiat landings, so dc's zero-failing read was right and mine was a number taken at a HEAD I could no longer name. **I have not run the whole suite at this HEAD, so I hold no total** — and a total is the figure most worth not guessing. **Nothing of mine is uncommitted.**
 
 **WP-17 PIECE 3 HAS ITS TWO DEPENDENCY-FREE HALVES.** `tui/mode.rs` is the declared mode graph (6 invariants); `tui/terminal.rs` is the terminal borrow-and-return (5), `Drop` PLUS a panic hook because the hook runs BEFORE the message prints and `Drop` cannot. All 11 mutation-proven. **Both provable with no tty, which is the point: the realiser is what they check, so they must not depend on it.** `crossterm` is in; **`ratatui` is deliberately NOT, until something draws.**
 
