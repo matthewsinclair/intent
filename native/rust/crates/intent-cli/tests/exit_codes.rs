@@ -592,6 +592,53 @@ fn the_guides_exit_code_claims_are_what_the_binary_does() {
     "the guide says 1 is the command running and answering no"
   );
 
+  // **THE TWO SITES THAT SAID `2` WHILE THIS DOCUMENT SAID `1`.** From dc's
+  // rc=2 census, 2026-08-30: 21 grep hits are 18 construction sites are EIGHT
+  // classes, not the two the sentence above used to name. Six of those are
+  // undeclared but consistent -- they really are *this build cannot answer*.
+  // **These two CONTRADICTED the bullets either side of it**, and they are
+  // asserted here rather than beside `init` and `events` because what made them
+  // wrong is this guide, not those verbs.
+  //
+  // **A REFUSAL WEARING A `2` IS A REFUSAL A FAIL-OPEN CONSUMER IS CONTRACTED
+  // TO IGNORE.** The gate's entire basis for failing open on 2 is that a 2
+  // never carries a verdict; neither site is gate-run today, so nothing was
+  // broken -- what was damaged is the property the gate leans on.
+  //
+  // Each is asserted twice. The code alone does not discriminate: `1` is also
+  // what a missing project, an unreadable store or an unknown flag produces, so
+  // a test pinning only the number would hold most comfortably in the case
+  // where the fixture had failed to become a project at all.
+  let already = probe_project();
+  let again = run_in(already.path(), &["init", "probe"]);
+  assert_eq!(
+    again.status.code(),
+    Some(1),
+    "`init` on an existing project is a REFUSAL -- its own remedy says `init` refuses rather \
+     than merging -- and this guide says a refusal is 1.\nstderr: {}",
+    String::from_utf8_lossy(&again.stderr)
+  );
+  assert!(
+    String::from_utf8_lossy(&again.stderr).contains("already an Intent project"),
+    "the 1 must be the refusal itself and not some other failure on the way to it: {}",
+    String::from_utf8_lossy(&again.stderr)
+  );
+
+  let bad_limit = run(&["events", "--limit", "banana"]);
+  assert_eq!(
+    bad_limit.status.code(),
+    Some(1),
+    "`--limit banana` is a usage error, and the bullet below names usage errors specifically \
+     as 1 rather than clap's 2.\nstderr: {}",
+    String::from_utf8_lossy(&bad_limit.stderr)
+  );
+  assert!(
+    String::from_utf8_lossy(&bad_limit.stderr).contains("is not a count"),
+    "the 1 must come from the parse refusal, not from a missing project or an unreachable \
+     store: {}",
+    String::from_utf8_lossy(&bad_limit.stderr)
+  );
+
   // **THE GUARD HERE USED TO BE ITS OWN INVERSE, AND THE FLIP IS THE POINT.**
   // It read `!facts.contains("critic")`, on the ground that *`critic` is not
   // implemented here, so every sentence the guide spends on its codes describes

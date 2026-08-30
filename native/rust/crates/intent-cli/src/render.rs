@@ -3624,7 +3624,19 @@ fn events(m: &ArgMatches) -> Result<(), Failure> {
       .get_one::<String>("limit")
       .map(|n| {
         n.parse::<usize>().map_err(|_| {
-          Failure::Unavailable(format!(
+          // **`Error` (1), NOT `Unavailable` (2), AND THE GUIDE IS WHAT SAYS
+          // SO.** `guide.rs`'s surface-wide facts read *a usage error -- an
+          // unknown flag, a missing argument -- exits `1`, not clap's default
+          // of 2*, and a `--limit` that will not parse is a usage error by that
+          // sentence's own examples. It was a `2` until 2026-08-30 (dc's rc=2
+          // census), which made the tool claim it could not ANSWER when it had
+          // answered perfectly well and the invocation was wrong.
+          //
+          // **The cost is not cosmetic: the shipped pre-commit gate FAILS OPEN
+          // on 2**, on the ground that a check which could not run must not
+          // block a commit it never examined. A refusal wearing a `2` is a
+          // refusal a fail-open consumer is contracted to ignore.
+          Failure::Error(format!(
             "error: `{n}` is not a count\n  remedy: --limit takes a whole number, eg --limit 20"
           ))
         })
@@ -4273,8 +4285,26 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
   // out for AC-11.3, and the borrow that was right for the `String` before it
   // survived the type change. **The compiler accepts both, so only clippy sees
   // it** -- and no local dispatcher runs clippy, which is how it reached HEAD.
-  let made = intentsvcs::init::init(&cwd, &name, author, env!("CARGO_PKG_VERSION"))
-    .map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
+  // **ONE VARIANT OF `InitError` IS A REFUSAL AND THE REST ARE THE TOOL BEING
+  // UNABLE TO ACT, SO THEY DO NOT SHARE AN EXIT CODE.** This was a blanket
+  // `Unavailable` until 2026-08-30 (dc's rc=2 census), which gave
+  // `AlreadyAProject` a `2` -- while its own remedy says *`init` REFUSES rather
+  // than merging*, and `guide.rs` says a refusal is a `1`.
+  //
+  // **The tell was in the message the whole time**: a sentence containing the
+  // word REFUSES, carrying the code that means *no answer was reached*. The
+  // other three really are `2`s -- a template with no declared destination is a
+  // build defect, and an IO or store failure is the environment -- so splitting
+  // by variant is what makes both halves true rather than moving the error one
+  // number to the left.
+  let made =
+    intentsvcs::init::init(&cwd, &name, author, env!("CARGO_PKG_VERSION")).map_err(|e| {
+      let message = format!("error: {e}");
+      match e {
+        intentsvcs::init::InitError::AlreadyAProject(_) => Failure::Error(message),
+        _ => Failure::Unavailable(message),
+      }
+    })?;
 
   println!("created: {} at {}", made.project_name, made.root.display());
   // **ONLY SAID WHEN IT IS TRUE.** An unconditional "author is unset" line
