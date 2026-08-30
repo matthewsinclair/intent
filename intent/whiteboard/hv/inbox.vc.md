@@ -931,3 +931,23 @@ I had those as two unrelated findings. **They are one property of the delivery m
 **ONE THING TO HAVE IN WRITING BEFORE ANYONE COMPARES THE KEG TO THE TREE: six of the seven scripts in `plugins/claude/bin/` are deliberately NOT shipped.** v3 resolves exactly one (`install.rs:361`), you ruled it the one surviving the cut (`install.rs:352`), and shipping the directory would carry six v2 scripts nothing executes. **A reader will see six absences that are all correct**, which is exactly the shape someone helpful fixes at 2am.
 
 **WORK ASSIGNMENT, RECORDED BECAUSE IT MOVES A THREAD BETWEEN NODES: vc has handed ST0058 ENTIRE to dc** and dropped it from vc's claims. All four remaining rows are `non-test` and the work is DRIVING rather than writing, which is dc's whole day; `AC-00.1` reuses machinery they built this afternoon, and `AC-00.5` you already ruled on 2026-08-25. **vc keeps ST0068**, whose rows are authorial and adjudicative. dc had run out of work that was not tag-gated, and ST0058 binds the cut under your option (A).
+
+## (2026-08-30 13:26Z)
+
+**A FOURTH SCOPE QUESTION, AND THIS ONE SHIPS A BROKEN PROMISE INTO EVERY CONSUMER PROJECT TODAY.**
+
+**SIX VERBS THE CANON MANDATES REFUSE AT rc=2**, driven by dc past clap in a disposable v3 fixture: `agents init`, `agents validate`, `ext list`, `ext new`, `ext show`, `ext validate`. All six are `disposition=keep` in the register. `agents sync` and `agents generate` work, **which is why this stayed invisible -- the most-mandated verbs of the family are fine.** vc verified the set independently.
+
+**AND IT IS NOT CONFINED TO THIS TREE: `intent ext` IS MANDATED IN `lib/templates/llm/_AGENTS.md` AND `_usage-rules.md`.** Those are the TEMPLATES, so **every project `intent init` touches receives canon instructing its agents to call a verb that refuses.** `agents init`/`validate` are in `_usage-rules.md`, same story. This is `AC-00.3`'s exact defect and we are the ones shipping it.
+
+**THE QUESTION: IS `ext` IN THE 3.0.1 CUT?** `bin/intent_ext` is **820 lines** -- the whole user-extension system, and v2 parity rather than a new feature, so it belongs to WP-06, which is **cc's**.
+
+**vc HAS NOT ASSIGNED IT, AND THE THREE REASONS ARE THE RULING:** it is cc's WP and dc rightly declined to take six verbs off it unasked; **cc is on the daemon, which is your stated priority in your own words**, so handing them an 820-line shell port today trades the priority for the long tail; and 820 lines entering a cut is the same decision vc escalated this morning for WP-13/14/16 rather than taking.
+
+**`AC-00.3` CAN CLOSE FROM EITHER SIDE AND THE ROW'S OWN TEXT POINTS AT THE CANON SIDE.** It names the defect as _a switched project's canon instructs every agent to call verbs that refuse_ -- not as a missing verb. **So if `ext` is OUT, the fix is that CANON STOPS MANDATING IT**: a template edit in dc's lane that closes the row without porting a line.
+
+**vc's RECOMMENDATION: `ext` OUT of 3.0.1, canon corrected to stop promising it.** The templates are shipping a promise the binary refuses, and the cheapest honest fix is to stop making the promise. **If you rule it IN, it is cc's WP-06 and `AC-00.3` waits on the daemon finishing first.**
+
+dc is building the `agents` pair regardless -- a half-wired family is worse than an absent one -- and has both sides of the `ext` answer prepared so the row closes fast whichever way you rule.
+
+**ONE THING FROM THE SAME DRIVE THAT STRENGTHENS `AC-00.5`: `intent init` in an existing project returns rc=2, a FIFTH meaning** beside the four that row documents. Its text ends _ASSUME THE LIST OF MEANINGS IS STILL SHORT_, and the count grew the first time somebody drove a verb the earlier census had no reason to include.
