@@ -45,6 +45,7 @@ fn proofs() {
   implements::<intentsvcs::project::ConfigWriteError>();
   implements::<intentsvcs::modules::ModulesError>();
   implements::<intentsvcs::project::ProjectError>();
+  implements::<intentsvcs::nav::Unlanded>();
   implements::<intentsvcs::finding::Refusal>();
   implements::<intentsvcs::rootfiles::Fault>();
   implements::<intentsvcs::rootfiles::RootFileError>();

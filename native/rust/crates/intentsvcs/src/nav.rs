@@ -44,6 +44,7 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::address::Entity;
 use crate::form::Loaded;
 
 /// One level of the ladder `AC-17.7` names: entity-kind, collection, item,
@@ -196,4 +197,225 @@ fn array_item_ref(schema: &serde_json::Value, field: &str) -> Option<String> {
   }
   let r = prop.get("items")?.get("$ref")?.as_str()?;
   Some(r.rsplit('/').next()?.to_string())
+}
+
+/// Where `intent explore [address]` opens, and WHY it opened there.
+///
+/// **hv, 2026-08-30, overriding vc's no-address ruling of the same day:** *I
+/// see no reason why `intent expl[ore] ...` couldn't take an `intent://...`
+/// URL scheme URI or even an ID that it tries to match to something if it can,
+/// and if it can't it just opens at the root.*
+///
+/// # It lives here because the WEB FACE needs the same answer
+///
+/// A URL bar and a jump-to box resolve exactly this, and `intentd` cannot
+/// reach `intent-cli`. Putting it in the face would mean the two faces resolve
+/// an operator's spelling by two derivations -- which is the same defect
+/// `AC-17.12` forbids one level down, where the two faces must not derive
+/// their own path segments.
+///
+/// # The fallback ANNOUNCES itself, and that is not a widening of the ruling
+///
+/// hv said *it just opens at the root*, which contrasts with REFUSING rather
+/// than with TELLING (vc, ruled). A browser that silently opens somewhere
+/// other than you asked is the answer-confidently-from-partial-evidence class
+/// this rewrite exists to remove, so [`Landing::Root`] carries the reason and
+/// the face puts it on the info row.
+///
+/// **This is also why `explore` and `edit` diverge on a miss and neither is
+/// wrong**: `intent edit ST9999` must REFUSE, because it was asked to act on a
+/// specific thing; `intent explore ST9999` opens at the root, because it was
+/// asked to open the explorer.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Landing {
+  /// The address named a view this surface can show, and the entity is there.
+  At(View),
+  /// The root, plus the reason it is not where the operator asked for.
+  Root(Unlanded),
+}
+
+/// Why an address did not become a view.
+///
+/// # Three shapes over five input cases, and the split is deliberate
+///
+/// The five cases an operator can produce are: it resolves and is present
+/// ([`Landing::At`]); it resolves and is ABSENT; it is a real address whose
+/// form has no view; it names TWO things; it names nothing. **The last two
+/// share a variant because [`crate::address`] already tells them apart IN
+/// WORDS**, and its author wrote those words carefully -- re-deriving the
+/// distinction here would be a second, worse copy of a message that already
+/// exists, exactly as re-wording the editor launcher's error would be.
+///
+/// **`Absent` is the one that is easy to miss and it is the reason this type
+/// takes a presence test at all.** [`crate::address::promote`] is purely
+/// SYNTACTIC: it never reads the store, so `ST9999` resolves perfectly. A
+/// landing computed from the grammar alone would open the thread form with
+/// every value blank -- and `render` deliberately renders a form that cannot
+/// load *with its field names intact*, because an empty screen would falsely
+/// claim the entity has no fields. The consequence is that a thread which does
+/// not exist and a thread which exists and is empty PAINT THE SAME SCREEN.
+/// That is reachable-and-blank reading as data, and no test over well-formed
+/// present ids can see it.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum Unlanded {
+  /// The address parser refused, IN ITS OWN WORDS.
+  ///
+  /// **It carries the parser's REMEDY as well as its message, because the
+  /// parser wrote both** and passing on only the diagnosis would drop the half
+  /// that tells the operator what to type instead.
+  #[error("{why}")]
+  Unreadable {
+    input: String,
+    why: String,
+    remedy: String,
+  },
+  /// A real, well-formed address for a form this surface has no view for.
+  ///
+  /// **Not the same fact as naming nothing, and telling an operator that
+  /// `intent:///nodes/vc` named nothing would be FALSE** -- it sends them
+  /// hunting for a thing they already have, which is the shape of a gate that
+  /// starts a search instead of ending one.
+  #[error("`{input}` is a real address, and this surface has no view for a {form}")]
+  NoView { input: String, form: String },
+  /// A real address, a view this surface can show, and nothing there.
+  #[error("`{input}` is well formed, and this project has no such {kind}")]
+  Absent {
+    input: String,
+    kind: String,
+    view: View,
+  },
+}
+
+/// The view an entity address opens, or `None` where this surface has none.
+///
+/// # A total match, not a lookup table
+///
+/// Six of thirteen [`Entity`] forms have views. The seven that do not are
+/// listed by name rather than falling through a wildcard, so **a fourteenth
+/// form does not compile until someone decides which it is** -- the same
+/// discipline [`Entity::form`] states for its own arm set, applied to a second
+/// question about the same enum.
+///
+/// # This function is a TRANSLATION, and it is the only place the two
+/// vocabularies meet
+///
+/// **The address grammar and the view ladder disagree, both deliberately.** An
+/// address says `/threads/ST0056/wp` and `/threads/ST0056/ac`, because D57-8
+/// gives collections REST-shaped plural addresses. A view path says
+/// `/thread/ST0056/wps` and `/thread/ST0056/criteria`, because `AC-17.12` ruled
+/// that every view segment is a name the FORM DECLARATION already carries and
+/// nothing is pluralised. Neither is wrong and neither derives the other --
+/// nothing declares that `ac` and `criteria` are one concept.
+///
+/// So the reconciliation has to be authored, and the danger is that a second
+/// one gets authored somewhere else. **This is the one home**, and
+/// `every_child_view_this_maps_to_is_a_descent_the_declaration_carries` holds
+/// its output against the declaration so the two cannot drift in silence.
+fn view_for(entity: &Entity) -> Option<View> {
+  let item = |kind: &str, id: &str| View::Item {
+    kind: kind.to_string(),
+    id: id.to_string(),
+  };
+  let children = |thread: &str, field: &str| View::Children {
+    kind: "thread".to_string(),
+    id: thread.to_string(),
+    field: field.to_string(),
+  };
+  match entity {
+    Entity::Threads => Some(View::Collection {
+      kind: "thread".to_string(),
+    }),
+    Entity::Issues => Some(View::Collection {
+      kind: "issue".to_string(),
+    }),
+    Entity::Thread { id } => Some(item("thread", id)),
+    Entity::Issue { id } => Some(item("issue", id)),
+    Entity::WpCollection { thread } => Some(children(thread, "wps")),
+    Entity::AcCollection { thread } => Some(children(thread, "criteria")),
+    // **`wp` IS A DECLARED KIND WHOSE ITEM VIEW NOTHING REACHES.** No
+    // navigation push produces `View::Item { kind: "wp" }` and the realiser
+    // answers `None` for it, so landing there would paint a form whose every
+    // value is blank -- for every work package, not just a missing one. Its
+    // COLLECTION renders, which is why the arm above is `Some`.
+    Entity::Wp { .. }
+    // A criterion, a test and an attachment are ROWS INSIDE a collection this
+    // surface renders, not items with views of their own.
+    | Entity::Ac { .. }
+    | Entity::At { .. }
+    | Entity::Attachment { .. }
+    // The whiteboard and the event log are addressable and are not in the form
+    // declaration at all.
+    | Entity::Node { .. }
+    | Entity::NodeInbox { .. }
+    | Entity::Event { .. } => None,
+  }
+}
+
+/// Resolve an operator's spelling to a [`Landing`].
+///
+/// # One call, and nothing new resolves anything
+///
+/// [`crate::address::promote`] tests for the `intent://` scheme itself and
+/// delegates to [`crate::address::parse`], else asks
+/// [`crate::model::normalise_id`]. So both spellings hv named reach the
+/// estate's ONE existing door and this function dispatches between nothing.
+///
+/// **A `/thread/ST0056` path spelling was considered and refused**:
+/// [`View::parse`] validates nothing -- `/banana` parses as a collection -- so
+/// accepting it would need fresh validation against [`kinds`], and that fresh
+/// validation would be the second resolver the no-address ruling was right to
+/// fear.
+///
+/// # Presence is INJECTED
+///
+/// `present` keeps this module free of the facade, the same way the TUI's
+/// editor launcher is passed in as a closure rather than resolved where it is
+/// used. Both faces then share one presence rule instead of writing two.
+pub fn land(input: &str, present: impl Fn(&View) -> bool) -> Landing {
+  let address = match crate::address::promote(input) {
+    Ok(a) => a,
+    Err(why) => {
+      return Landing::Root(Unlanded::Unreadable {
+        input: input.to_string(),
+        why: why.to_string(),
+        remedy: crate::remedy::Remedy::remedy(&why),
+      });
+    }
+  };
+  let Some(view) = view_for(&address.entity) else {
+    return Landing::Root(Unlanded::NoView {
+      input: input.to_string(),
+      form: address.entity.form().to_string(),
+    });
+  };
+  if present(&view) {
+    Landing::At(view)
+  } else {
+    Landing::Root(Unlanded::Absent {
+      input: input.to_string(),
+      kind: address.entity.form().to_string(),
+      view,
+    })
+  }
+}
+
+/// **THE REMEDY SAYS WHAT TO TYPE INSTEAD, AND FOR A REFUSED SPELLING IT IS THE
+/// PARSER'S OWN.** `explore` is the forgiving door -- it opens at the root
+/// rather than refusing -- so the remedy is the only part of the exchange that
+/// moves the operator forward, and re-writing one that already exists would be
+/// a second, worse copy.
+impl crate::remedy::Remedy for Unlanded {
+  fn remedy(&self) -> String {
+    match self {
+      Unlanded::Unreadable { remedy, .. } => remedy.clone(),
+      Unlanded::NoView { form, .. } => format!(
+        "the explorer opens threads and issues; a {form} is addressable but has no view yet, so \
+         reach it with `intent edit` or `intent browse`"
+      ),
+      Unlanded::Absent { kind, .. } => match kind.as_str() {
+        "issue" => "list what is there with `intent issue list`".into(),
+        _ => "list what is there with `intent st list`".into(),
+      },
+    }
+  }
 }
