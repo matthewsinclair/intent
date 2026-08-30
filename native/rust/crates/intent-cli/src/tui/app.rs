@@ -1,4 +1,4 @@
-//! The event loop's state, with no terminal in it.
+//! The event loop state, with no terminal in it: `AT-17.9` in part, covering the ESC half of `AC-17.9`.
 //!
 //! **THE LOOP IS A PURE FUNCTION OF (STATE, KEY) AND THAT IS THE WHOLE POINT.**
 //! Everything a realiser usually hides inside `while let Ok(event) = read()`

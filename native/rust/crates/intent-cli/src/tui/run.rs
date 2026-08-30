@@ -6,7 +6,7 @@
 //! terminal has no decisions left in it. `run` reads events and paints; it
 //! chooses nothing.
 //!
-//! # `AC-17.9`'s other half lives here
+//! # `AT-17.9` covers `AC-17.9`, and its other half lives here
 //!
 //! *The current mode is always visible, and Esc always reaches nav mode from
 //! anywhere.* The Esc half is proved twice already -- [`super::mode`] proves it

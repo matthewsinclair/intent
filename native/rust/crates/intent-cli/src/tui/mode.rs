@@ -1,4 +1,4 @@
-//! The TUI's mode machine, DECLARED rather than implemented.
+//! The TUI mode machine, DECLARED rather than implemented: `AT-17.9` in part, covering the ESC half of `AC-17.9`.
 //!
 //! **A CONTROLLER WRITTEN AS `match` ARMS IS A GRAPH NOBODY CAN SEE.** The
 //! edges exist, but only as control flow, so "can this mode be left" and "is

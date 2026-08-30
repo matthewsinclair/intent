@@ -1,4 +1,4 @@
-//! The TUI's view stack. The VIEWS themselves live in [`intentsvcs::nav`].
+//! The TUI view stack: `AT-17.7`, covering `AC-17.7` with [`intentsvcs::nav`], where the VIEWS themselves live.
 //!
 //! **THE SPLIT IS CONTRACT VERSUS STATE** (vc, 2026-08-30). [`View`], its path
 //! round trip, and the derivation of entity kinds and descents are the SHARED

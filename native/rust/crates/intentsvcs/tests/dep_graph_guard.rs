@@ -1,4 +1,4 @@
-//! AT-00.5 / AT-02.5 / AC-02.5: the rusqlite Highlander (design.md D06).
+//! AT-00.5 / AT-02.5 / AT-17.3 / AC-02.5: the rusqlite Highlander (design.md D06).
 //!
 //! `rusqlite` is consumed by intentsvcs and NOWHERE else -- the dependency
 //! graph is the enforcement of "nothing touches the DB except intentsvcs".

@@ -3024,11 +3024,12 @@
     {
       "id": "AT-17.11",
       "kind": "test",
+      "file": "native/rust/crates/intent-cli/src/tui/layout.rs",
       "covers": [
         "AC-17.11"
       ],
-      "status": "to-write",
-      "note": "Minted 2026-08-29 by vc on hv UX direction: borderless, aligned columns, prose hands off to $EDITOR."
+      "status": "green",
+      "note": "Alignment is asserted over every shipped form AND over a fixture whose longest name and longest value both exceed the viewport, counting examined rows so the loop cannot pass by inspecting none. Clipping is visible, never wraps, and never cuts a multi-byte character. The five sections and two rules are checked BY POSITION in layout.rs and again on the painted buffer in draw.rs. 101 passed at 87123458."
     },
     {
       "id": "AT-17.12",
@@ -3052,11 +3053,12 @@
     {
       "id": "AT-17.3",
       "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/dep_graph_guard.rs",
       "covers": [
         "AC-17.3"
       ],
-      "status": "to-write",
-      "note": "Minted 2026-08-29 by vc with WP-17 at hv request."
+      "status": "green",
+      "note": "Asserted against the SAME check AC-02.5 uses rather than beside it, as the criterion instructs: rusqlite appears in exactly one crate manifest, so a realiser holding it fails by construction. Neither intent-cli nor intentd declares it, and every TUI row reaches the store through the intentsvcs facade. 2 passed at 87123458."
     },
     {
       "id": "AT-17.4",
@@ -3090,11 +3092,12 @@
     {
       "id": "AT-17.7",
       "kind": "test",
+      "file": "native/rust/crates/intent-cli/src/tui/nav.rs",
       "covers": [
         "AC-17.7"
       ],
-      "status": "to-write",
-      "note": "Minted 2026-08-29 by vc on hv expanded WP-17 spec."
+      "status": "green",
+      "note": "Reachable AND leavable is walked over every view the real declaration can produce, in both directions and from every depth, rather than spot-checked: no_level_can_be_entered_and_not_left and a_stack_of_any_depth_unwinds_to_its_root_and_stops_there. The DERIVATION half is held in intentsvcs/tests/nav_is_the_shared_path_contract.rs, and views.rs holds one row per declared kind at the root. 101 passed at 87123458."
     },
     {
       "id": "AT-17.8",
@@ -3108,11 +3111,12 @@
     {
       "id": "AT-17.9",
       "kind": "test",
+      "file": "native/rust/crates/intent-cli/src/tui/run.rs",
       "covers": [
         "AC-17.9"
       ],
-      "status": "to-write",
-      "note": "Minted 2026-08-29 by vc on hv expanded WP-17 spec."
+      "status": "green",
+      "note": "Both halves. Always-visible is asserted on the COMPOSED lines over every mode at every viewport the chrome survives, plus a narrow case proving the mode survives clipping because it is first on the row. ESC-is-total is mode.rs (walks toward the rest state from every mode that owns it, with only EMBED exempt and the exemption checking its own premise) and app.rs (holding ESC gets you out). The in-flight edit disposition is stated on the edge itself as discard, and the whole table is checked against the ratified design. 101 passed at 87123458."
     }
   ],
   "attachments": [
