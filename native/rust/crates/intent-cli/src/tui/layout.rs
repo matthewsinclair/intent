@@ -1,18 +1,43 @@
-//! The flat aligned column: `AT-17.11` covering `AC-17.11`.
+//! The screen: `AT-17.11` covering `AC-17.11`, against `tui-design.md` §2.
 //!
 //! **THIS MODULE COMPUTES THE PICTURE AND DRAWS NOTHING**, which is the whole
 //! reason it can be asserted at all. `AC-17.11` says the alignment IS the
 //! design, so it is asserted rather than eyeballed -- and a property asserted
 //! against a rendered terminal buffer is a property asserted against whatever
-//! the renderer happened to do. Here the plan is DATA: every line is a string
-//! this module produced, at a width it was handed, and [`super::draw`] is a
+//! the renderer happened to do. Here the screen is DATA: every line is a string
+//! this module produced, at a size it was handed, and [`super::draw`] is a
 //! printer with no opinions. The buffer test one level up then checks that the
 //! printer did not lie, which is a different question and a much smaller one.
 //!
 //! **IT CARRIES NO `ratatui`**, for the reason [`super::mode`],
 //! [`super::terminal`] and [`super::focus`] carry no terminal: the realiser is
-//! what these invariants CHECK. A layout that could only be exercised through
-//! the widget library would be tested by the thing it exists to constrain.
+//! what these invariants CHECK.
+//!
+//! # Five sections, two rules, and where that came from
+//!
+//! `AC-17.11` originally said *one modeline at the foot above a single rule*.
+//! `tui-design.md` §2 -- ratified with hv on 2026-08-29, a day later, by
+//! driving a strawman against real ST0056 data -- says **three sections
+//! separated by two rules**, with the foot carrying a STATUS row, a COMMAND row
+//! and an INFO row rather than one modeline. **vc ruled the design wins and
+//! reworded the criterion**: a criterion that contradicts a ratified design is
+//! the criterion being stale. This module follows the design.
+//!
+//! The five sections, and what each is for:
+//!
+//! - **APP** -- the entity's id and name. When nested it carries the view trail
+//!   and the key that leaves. *A way back that is wired and unlabelled is a way
+//!   back nobody finds* -- a real strawman defect, where `Backspace` worked and
+//!   nothing on screen said so.
+//! - **BODY** -- the flat `{name, value, type}` column ([`Plan`]).
+//! - **STATUS** -- mode, field, kind, editability, row position, pane hint.
+//! - **COMMAND** -- the command in play, the `:` line while composing, the menu
+//!   in MENU, the child's name in EMBED.
+//! - **INFO** -- help for whatever is under the cursor, changing per row.
+//!
+//! **THE CHROME SITS AT FIXED VIEWPORT POSITIONS, NEVER AT THE END OF THE
+//! CONTENT.** A screen laid out top-down puts the status row wherever the rows
+//! happened to stop, which is the one place an operator cannot learn to look.
 //!
 //! # The two columns, and why the name column is capped
 //!
@@ -22,24 +47,28 @@
 //! than the terminal would leave zero columns for values, and "names align in
 //! one column and values align in another" would be vacuously true of a screen
 //! with no values on it. So the name column is capped at whatever leaves
-//! [`MIN_VALUE_COLS`] for values, and names truncate too.
+//! [`MIN_VALUE_COLS`] for values, and names clip too.
 //!
-//! # Truncated visibly, never wrapped
+//! **The gutter is COMPUTED FROM THE ROW SET, never pinned.** The strawman
+//! pinned it at 13 and real data collided on the first render.
+//!
+//! # Clipped visibly, never wrapped
 //!
 //! A wrapped value breaks the one guarantee the layout makes, because the
 //! second line's text would start at column zero where a NAME belongs. So
 //! [`plan`] emits exactly one line per row -- asserted, not intended -- and an
-//! over-long value loses its tail to [`TRUNCATED`] rather than its shape to a
+//! over-long value loses its tail to [`CLIPPED`] rather than its shape to a
 //! second row.
 //!
-//! **TRUNCATION COUNTS CHARACTERS, NEVER BYTES.** This estate has already paid
-//! for the other choice once, in a list renderer that cut multi-byte characters
-//! in half. `AC-17.11`'s own subject makes it likely rather than theoretical:
-//! criterion prose is the longest value in the model and it is full of typography.
+//! **CLIPPING HAPPENS HERE, AT RENDER, AND NEVER IN THE MODEL.** A value
+//! truncated into the model is truncated for every width forever.
+//!
+//! **IT COUNTS CHARACTERS, NEVER BYTES.** This estate has already paid for the
+//! other choice once. `AC-17.11`'s own subject makes it likely rather than
+//! theoretical: criterion prose is the longest value in the model and it is
+//! full of typography.
 
-/// Columns between the name column and the value column. Two rather than one
-/// so a name truncated to its full width still reads as separate from the value
-/// beside it, and rather than three because the gap is dead space on every row.
+/// Columns between the name column and the value column.
 pub const GAP: usize = 2;
 
 /// The value column never shrinks below this, however long the longest name.
@@ -47,21 +76,36 @@ pub const GAP: usize = 2;
 /// than false, which is the failure this constant exists to prevent.
 pub const MIN_VALUE_COLS: usize = 8;
 
-/// Marks a value that lost its tail. ASCII and one column wide: this estate
-/// bans decorative non-ASCII, and a multi-column marker would have to be
-/// measured before it could be subtracted, which is the bug it would be
-/// guarding against.
-pub const TRUNCATED: char = '>';
+/// Marks a value that lost its tail.
+pub const CLIPPED: char = '\u{2026}';
+
+/// The rule. `tui-design.md` §2 specifies unicode box-drawing, and these two
+/// rules are the only chrome on the screen -- there are no borders anywhere.
+pub const RULE: char = '\u{2500}';
+
+/// Lines above the body: the APP row and the rule under it.
+pub const HEAD: usize = 2;
+
+/// Lines below the body: the rule, then STATUS, COMMAND and INFO.
+pub const FOOT: usize = 4;
+
+/// Every line the screen spends on chrome rather than on rows.
+pub const CHROME: usize = HEAD + FOOT;
+
+/// Stands in for "a rule goes here" while the degraded screen is assembled, so
+/// the priority order reads as a list of sections rather than as arithmetic.
+/// Never rendered: [`Screen::compose`] replaces it with a rule of the right
+/// width. A sentinel no value can collide with, because a section's text is
+/// operator-facing prose and this is not.
+const RULE_MARK: &str = "\u{0}rule";
 
 /// One line of the form: what `AC-17.11` calls `{title, value, type}`.
 ///
-/// **`kind` IS CARRIED AND NOT PRINTED, AND THAT IS A READING OF THE CRITERION
-/// RATHER THAN AN OMISSION.** The row model is the three the criterion names;
-/// the FORMATTING guarantee it states is two aligned columns, and it forbids
-/// decoration in the same sentence. A third printed column would be a third
-/// alignment promise the criterion never made. `kind` drives behaviour instead
-/// -- which rows hand off to `$EDITOR`, which descend -- and that is where the
-/// realiser reads it.
+/// **`kind` IS CARRIED AND NOT PRINTED AS A THIRD COLUMN.** The row model is
+/// the three the criterion names; the FORMATTING guarantee is two aligned
+/// columns, and a third printed column would be a third alignment promise
+/// nothing made. `kind` drives behaviour -- which rows hand off to `$EDITOR`,
+/// which descend -- and the STATUS row is where the operator reads it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Row {
   pub title: String,
@@ -79,7 +123,7 @@ impl Row {
   }
 }
 
-/// A rendered form: one string per row, plus the foot.
+/// The BODY: one rendered string per row, and the columns they share.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Plan {
   /// Where every name starts. Zero, always -- named rather than assumed so the
@@ -91,10 +135,6 @@ pub struct Plan {
   pub width: usize,
   /// Exactly one line per input row, in input order.
   pub rows: Vec<String>,
-  /// The single rule, directly above the modeline.
-  pub rule: String,
-  /// The modeline: the bottom line of the screen.
-  pub modeline: String,
 }
 
 impl Plan {
@@ -103,7 +143,7 @@ impl Plan {
   /// **THE WINDOW IS A LAYOUT QUESTION AND THE SCROLL POSITION IS NOT.** Where
   /// the operator has scrolled to is application state that changes on a
   /// keystroke; which rows that position makes visible is arithmetic, and
-  /// arithmetic is the thing worth asserting. Out-of-range `first` yields an
+  /// arithmetic is the thing worth asserting. An out-of-range `first` yields an
   /// empty window rather than panicking, because a form that shrinks under a
   /// held scroll position is an ordinary event and not a bug.
   pub fn visible(&self, first: usize, height: usize) -> &[String] {
@@ -111,16 +151,86 @@ impl Plan {
     let end = start.saturating_add(height).min(self.rows.len());
     &self.rows[start..end]
   }
+}
 
-  /// Every line the plan puts on screen, top to bottom. The rule and the
-  /// modeline are the last two, in that order.
-  pub fn lines(&self) -> Vec<&str> {
-    self
-      .rows
-      .iter()
-      .map(String::as_str)
-      .chain([self.rule.as_str(), self.modeline.as_str()])
-      .collect()
+/// The whole screen: five sections, composed at a fixed size.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Screen {
+  pub app: String,
+  pub body: Plan,
+  pub status: String,
+  pub command: String,
+  pub info: String,
+}
+
+impl Screen {
+  /// How many body rows fit at `height`. Zero when the chrome alone does not
+  /// fit, which is a small terminal rather than an error.
+  pub fn body_height(height: usize) -> usize {
+    height.saturating_sub(CHROME)
+  }
+
+  /// Compose exactly `height` lines, scrolled so body row `first` is at the top
+  /// of the body.
+  ///
+  /// **EVERY LINE IS PLACED BY POSITION, NOT BY APPENDING**, which is what
+  /// makes the chrome's location a property of the viewport rather than of the
+  /// content. Padding rows are empty strings, so nothing is painted over them.
+  pub fn compose(&self, first: usize, height: usize) -> Vec<String> {
+    let w = self.body.width;
+    if height == 0 {
+      return Vec::new();
+    }
+    // **A VIEWPORT TOO SHORT FOR THE CHROME DEGRADES IN A DECLARED ORDER**,
+    // and the order is the point: body rows go first, then the APP row, and
+    // the foot is kept longest. Mode and the command line are what an operator
+    // needs to get OUT of a pane that has been dragged shut; rows they cannot
+    // read are not.
+    //
+    // **THE SECOND RULE GOES WITH THE BODY IT DELIMITED.** A rule separating
+    // nothing from nothing is decoration, and the design allows none -- so the
+    // degraded screen carries ONE rule, under the APP row, for as long as the
+    // APP row survives.
+    if height < CHROME {
+      let degraded = [
+        self.app.as_str(),
+        RULE_MARK,
+        self.status.as_str(),
+        self.command.as_str(),
+        self.info.as_str(),
+      ];
+      return degraded
+        .iter()
+        .rev()
+        .take(height)
+        .rev()
+        .map(|s| {
+          if *s == RULE_MARK {
+            std::iter::repeat_n(RULE, w).collect()
+          } else {
+            clip(s, w)
+          }
+        })
+        .collect();
+    }
+
+    let body_h = height - CHROME;
+    let rule: String = std::iter::repeat_n(RULE, w).collect();
+    let mut out = Vec::with_capacity(height);
+    out.push(clip(&self.app, w));
+    out.push(rule.clone());
+    let rows = self.body.visible(first, body_h);
+    for r in rows {
+      out.push(r.clone());
+    }
+    for _ in rows.len()..body_h {
+      out.push(String::new());
+    }
+    out.push(rule);
+    out.push(clip(&self.status, w));
+    out.push(clip(&self.command, w));
+    out.push(clip(&self.info, w));
+    out
   }
 }
 
@@ -135,15 +245,12 @@ fn clip(s: &str, w: usize) -> String {
     return s.to_string();
   }
   let mut out: String = s.chars().take(w - 1).collect();
-  out.push(TRUNCATED);
+  out.push(CLIPPED);
   out
 }
 
-/// Lay `rows` out at `width`, with `mode` on the modeline.
-///
-/// The returned [`Plan`] holds one line per row and never a line wider than
-/// `width`.
-pub fn plan(rows: &[Row], width: usize, mode: &str) -> Plan {
+/// Lay `rows` out at `width` into the BODY column.
+pub fn plan(rows: &[Row], width: usize) -> Plan {
   let longest = rows
     .iter()
     .map(|r| r.title.chars().count())
@@ -181,8 +288,6 @@ pub fn plan(rows: &[Row], width: usize, mode: &str) -> Plan {
     value_col,
     width,
     rows: lines,
-    rule: "-".repeat(width),
-    modeline: clip(mode, width),
   }
 }
 
@@ -191,21 +296,18 @@ mod tests {
   use super::*;
   use intentsvcs::form::Loaded;
 
-  /// A name and a value that both exceed the viewport the tests use.
+  /// **THIS FIXTURE IS THE CRITERION'S OWN POSITIVE CONTROL**, which is why the
+  /// width is a named constant with a test behind it: `AC-17.11` measures the
+  /// property over a form whose longest name AND longest value both exceed the
+  /// viewport, and `the_fixture_is_the_hard_case_the_criterion_names` asserts
+  /// that it does.
   ///
-  /// **THIS FIXTURE IS THE CRITERION'S OWN POSITIVE CONTROL**, which is why it
-  /// is a named constant rather than an inline literal: `AC-17.11` says the
-  /// property is measured over a form whose longest name AND longest value both
-  /// exceed the viewport, and `the_fixture_is_the_hard_case_the_criterion_names`
-  /// below asserts that it does. Shrink the fixture and that test goes red
-  /// before the alignment tests go quietly vacuous.
-  /// **30 RATHER THAN 40, AND THE CONTROL BELOW IS WHY.** The first version of
-  /// this fixture used 40 against a longest name of 34, so the name did NOT
-  /// exceed the viewport, the name column never hit its cap, and every
-  /// alignment assertion here was quietly measuring the easy case. The control
-  /// caught it on its first run. At 30 both the longest name (34) and the
-  /// longest value (76) exceed the viewport, and the value column lands exactly
-  /// on `MIN_VALUE_COLS`, which is the boundary the cap exists to hold.
+  /// **30 RATHER THAN 40, AND A FAILING RUN IS WHY.** The first version used 40
+  /// against a longest name of 34, so the name did NOT exceed the viewport, the
+  /// name column never hit its cap, and every alignment assertion was quietly
+  /// measuring the easy case. At 30 both the longest name (34) and the longest
+  /// value (76) exceed it, and the value column lands exactly on
+  /// [`MIN_VALUE_COLS`], which is the boundary the cap exists to hold.
   const NARROW: usize = 30;
 
   fn hard_rows() -> Vec<Row> {
@@ -221,6 +323,16 @@ mod tests {
     ]
   }
 
+  fn screen() -> Screen {
+    Screen {
+      app: "ST0056   Add a Rust-based CLI".into(),
+      body: plan(&hard_rows(), NARROW),
+      status: "NORMAL   title   text   1/4".into(),
+      command: "cmd: (none)".into(),
+      info: "What this thread is called.".into(),
+    }
+  }
+
   #[test]
   fn the_fixture_is_the_hard_case_the_criterion_names() {
     let rows = hard_rows();
@@ -234,7 +346,7 @@ mod tests {
     assert!(
       longest_value > NARROW,
       "the fixture's longest value is {longest_value} at a viewport of {NARROW}, so nothing here \
-       exercises truncation"
+       exercises clipping"
     );
   }
 
@@ -244,7 +356,7 @@ mod tests {
   #[test]
   fn every_name_starts_at_one_column_and_every_value_at_another() {
     let rows = hard_rows();
-    let p = plan(&rows, NARROW, "NORMAL");
+    let p = plan(&rows, NARROW);
     let mut examined = 0usize;
     for (i, (row, line)) in rows.iter().zip(p.rows.iter()).enumerate() {
       let chars: Vec<char> = line.chars().collect();
@@ -260,12 +372,12 @@ mod tests {
         );
         continue;
       }
-      // **A ROW WITH A VALUE MUST REACH THE VALUE COLUMN. This is an
-      // ASSERTION and was once a `continue`**, which made the whole test
-      // vacuous: a layout that put values immediately after each name produced
-      // lines too short to reach `value_col`, every row was skipped, and the
-      // check passed green over nothing. Measured -- mutating the padding to
-      // zero left all seven tests passing.
+      // **A ROW WITH A VALUE MUST REACH THE VALUE COLUMN. This is an ASSERTION
+      // and was once a `continue`**, which made the whole test vacuous: a
+      // layout that put values immediately after each name produced lines too
+      // short to reach `value_col`, every row was skipped, and the check passed
+      // green over nothing. Measured -- mutating the padding to zero left all
+      // seven tests passing.
       assert!(
         chars.len() > p.value_col,
         "row {i} carries a value but its line is {} columns, which does not reach the value \
@@ -308,80 +420,144 @@ mod tests {
   }
 
   #[test]
-  fn a_value_that_does_not_fit_is_cut_and_marked_rather_than_wrapped() {
+  fn a_value_that_does_not_fit_is_clipped_and_marked_rather_than_wrapped() {
     let rows = hard_rows();
-    let p = plan(&rows, NARROW, "NORMAL");
+    let p = plan(&rows, NARROW);
     assert_eq!(
       p.rows.len(),
       rows.len(),
       "the layout emitted a different number of lines than it was given rows, which is what \
        wrapping looks like from the outside"
     );
-    let long = &p.rows[2];
     assert!(
-      long.ends_with(TRUNCATED),
-      "a value too long for its column must say so; it ended {long:?}"
+      p.rows[2].ends_with(CLIPPED),
+      "a value too long for its column must say so; it ended {:?}",
+      p.rows[2]
     );
   }
 
-  #[test]
-  fn no_line_is_ever_wider_than_the_viewport() {
-    for width in [0usize, 1, 2, 9, 12, NARROW, 200] {
-      let p = plan(
-        &hard_rows(),
-        width,
-        "NORMAL: a modeline longer than some of these widths",
-      );
-      for line in p.lines() {
-        assert!(
-          line.chars().count() <= width,
-          "at width {width} a line was {} columns: {line:?}",
-          line.chars().count()
-        );
-      }
-    }
-  }
-
-  /// The estate has cut a multi-byte character in half before. Driven on a
-  /// planted value rather than on the real forms, because whether the corpus
-  /// happens to contain one today is not something this property should depend
-  /// on.
+  /// The estate has cut a multi-byte character in half before.
   #[test]
   fn a_cut_never_lands_inside_a_multi_byte_character() {
-    let value = "\u{2014}\u{2014}\u{2014}\u{2014}\u{2014}\u{2014}\u{2014}\u{2014}\u{2014}\u{2014}";
+    let value = "\u{2014}".repeat(10);
     let rows = vec![Row::new("f", value, "text")];
     for width in 4..14 {
-      let p = plan(&rows, width, "M");
-      // Reaching this at all means no slice panicked mid-character.
+      let p = plan(&rows, width);
       let line = &p.rows[0];
       assert!(line.is_char_boundary(line.len()));
       assert!(line.chars().count() <= width);
     }
   }
 
+  /// **THE SHAPE `tui-design.md` §2 SPECIFIES**, asserted by position because
+  /// that is the whole claim: the chrome is where the viewport says, not where
+  /// the content stopped.
   #[test]
-  fn the_foot_is_one_rule_and_one_modeline_with_the_modeline_last() {
-    let p = plan(&hard_rows(), NARROW, "NORMAL");
-    let lines = p.lines();
-    assert_eq!(
-      lines.len(),
-      p.rows.len() + 2,
-      "the foot is exactly two lines"
-    );
-    assert_eq!(
-      lines[lines.len() - 2],
-      "-".repeat(NARROW),
-      "the rule is one unbroken line directly above the modeline"
-    );
-    assert_eq!(
-      lines[lines.len() - 1],
-      "NORMAL",
-      "the modeline is the bottom line"
-    );
+  fn the_screen_is_five_sections_separated_by_two_rules() {
+    let s = screen();
+    let rule: String = std::iter::repeat_n(RULE, NARROW).collect();
+    for height in [CHROME, CHROME + 1, 12, 40] {
+      let lines = s.compose(0, height);
+      assert_eq!(
+        lines.len(),
+        height,
+        "compose must fill exactly the height it was given"
+      );
+      assert_eq!(
+        lines[0],
+        clip(&s.app, NARROW),
+        "the APP row is the first line"
+      );
+      assert_eq!(lines[1], rule, "a rule sits directly under the APP row");
+      assert_eq!(
+        lines[height - 4],
+        rule,
+        "a rule sits directly above the foot"
+      );
+      assert_eq!(
+        lines[height - 3],
+        s.status,
+        "STATUS is the third line from the bottom"
+      );
+      assert_eq!(
+        lines[height - 2],
+        s.command,
+        "COMMAND is the second from the bottom"
+      );
+      assert_eq!(lines[height - 1], s.info, "INFO is the last line");
+      assert_eq!(
+        lines.iter().filter(|l| **l == rule).count(),
+        2,
+        "exactly two rules, which are the only chrome on the screen"
+      );
+    }
+  }
+
+  /// The chrome does not move when the content does. A form of one row in a
+  /// twenty-line terminal finds its status row where a form of four hundred does.
+  #[test]
+  fn the_chrome_holds_its_position_whatever_the_content_does() {
+    let short = Screen {
+      body: plan(&hard_rows()[..1], NARROW),
+      ..screen()
+    };
+    let long_rows: Vec<Row> = (0..400)
+      .map(|i| Row::new(format!("row{i}"), format!("value {i}"), "text"))
+      .collect();
+    let long = Screen {
+      body: plan(&long_rows, NARROW),
+      ..screen()
+    };
+    let a = short.compose(0, 20);
+    let b = long.compose(0, 20);
+    for i in [0, 1, 16, 17, 18, 19] {
+      assert_eq!(
+        a[i], b[i],
+        "chrome line {i} moved when the row count changed"
+      );
+    }
+    assert_ne!(a[2], b[2], "the body did not change when the rows did");
+  }
+
+  #[test]
+  fn no_line_is_ever_wider_than_the_viewport() {
+    for width in [0usize, 1, 2, 9, 12, NARROW, 200] {
+      let s = Screen {
+        body: plan(&hard_rows(), width),
+        ..screen()
+      };
+      for height in [0usize, 1, 3, CHROME, 20] {
+        for line in s.compose(0, height) {
+          assert!(
+            line.chars().count() <= width,
+            "at {width}x{height} a line was {} columns: {line:?}",
+            line.chars().count()
+          );
+        }
+      }
+    }
+  }
+
+  /// **A PANE DRAGGED SHUT MUST NOT PANIC, AND MUST SHOW THE WAY OUT.** With
+  /// less room than the chrome needs, the foot survives and the rows go: mode
+  /// and the command line are what an operator needs to leave, and rows they
+  /// cannot read are not.
+  #[test]
+  fn a_viewport_too_short_for_the_chrome_keeps_the_foot() {
+    let s = screen();
     assert!(
-      !p.rows.iter().any(|l| l.contains("---")),
-      "a rule appeared among the rows; `AC-17.11` allows exactly one"
+      s.compose(0, 0).is_empty(),
+      "a zero-height viewport composes nothing"
     );
+    for height in 1..CHROME {
+      let lines = s.compose(0, height);
+      assert_eq!(lines.len(), height);
+      assert_eq!(
+        *lines.last().unwrap(),
+        s.info,
+        "the INFO row survives to the last line"
+      );
+    }
   }
 
   /// **THE PROPERTY OVER THE REAL CORPUS, not only over a fixture built to
@@ -394,6 +570,7 @@ mod tests {
       !loaded.forms().is_empty(),
       "no forms to lay out, so this test asserts nothing"
     );
+    let mut checked = 0usize;
     for form in loaded.forms() {
       let rows: Vec<Row> = form
         .fields
@@ -401,18 +578,25 @@ mod tests {
         .map(|f| Row::new(f.label.clone(), format!("<{}>", f.name), f.widget.clone()))
         .collect();
       assert!(!rows.is_empty(), "a shipped form declares no fields");
-      let p = plan(&rows, NARROW, "NORMAL");
+      let p = plan(&rows, NARROW);
       assert_eq!(p.rows.len(), rows.len());
       for line in &p.rows {
         let chars: Vec<char> = line.chars().collect();
-        if chars.len() > p.value_col {
-          assert!(
-            chars[p.value_col] != ' ',
-            "a shipped form's value does not start at column {}: {line:?}",
-            p.value_col
-          );
-        }
+        assert!(
+          chars.len() > p.value_col,
+          "a shipped form's row does not reach the value column: {line:?}"
+        );
+        assert!(
+          chars[p.value_col] != ' ',
+          "a shipped form's value does not start at column {}: {line:?}",
+          p.value_col
+        );
+        checked += 1;
       }
     }
+    assert!(
+      checked > 0,
+      "no shipped row was examined, so this test asserted nothing"
+    );
   }
 }
