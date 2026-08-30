@@ -11,6 +11,7 @@ use std::path::Path;
 
 use crate::dispatch;
 use crate::spine::Failure;
+use crate::tui;
 use intentsvcs::address;
 use intentsvcs::contract::Scope;
 use intentsvcs::daemon;
@@ -43,6 +44,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("schema", m)) => schema(m),
     Some(("doctor", m)) => doctor(m),
     Some(("organize", m)) => organize(m),
+    Some(("explore", _)) => explore(),
     Some(("upgrade", _)) => upgrade(),
     Some(("bootstrap", m)) => bootstrap(m),
     Some(("init", m)) => init(m),
@@ -82,9 +84,53 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
 /// INV-03, the project-context gate: a command that needs a project says so
 /// when there is not one, rather than half-working. The marker is the config
 /// file's presence, never an environment variable (issue 0025).
+/// What this invocation needs from the store while a daemon holds it.
+///
+/// **ONE PREDICATE, DELIBERATELY, BECAUSE IT MAY HAVE TO REVERSE** (vc's
+/// ruling, 2026-08-30). If hv reads `design.md:22`'s parenthetical as an
+/// absolute prohibition rather than as the justification vc reads it as, then
+/// [`StoreNeed::Shared`] becomes a refusal too -- and that is a one-line change
+/// here rather than an audit of sixty-seven call sites.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum StoreNeed {
+  /// A read, or a bounded change the store itself serialises.
+  ///
+  /// **THESE FALL THROUGH TO IN-PROCESS WHILE A DAEMON IS UP.** The line
+  /// `design.md:22` gives for routing is *never two sync engines live at once*
+  /// -- and that parenthetical is the rule's JUSTIFICATION, which this estate's
+  /// own measurement refuted: the store serialises writes, a second writer is
+  /// refused cleanly at rc=1, readers never block, and a whole sync is one
+  /// transaction. **Refusing to work is not a safety measure when the thing it
+  /// protects against cannot happen**, and rc=2 is strictly worse for the
+  /// operator than the real residual, which is duplicated ingest work.
+  Shared,
+  /// The sync engine or the ingest walk, where the parenthetical is literally
+  /// true.
+  ///
+  /// **THE CARVE-OUT IS NARROW BECAUSE THE PROHIBITION IS NARROW.** Two of
+  /// these really would both watch and both ingest, which is the case the line
+  /// was written about. They refuse while a daemon holds the store, until they
+  /// can route to it.
+  Exclusive,
+}
+
+/// The door for a verb the store can serialise alongside a daemon.
 fn open() -> Result<Facade, Failure> {
+  open_for(StoreNeed::Shared)
+}
+
+/// The door for the sync and ingest family.
+///
+/// Spelled differently at the CALL SITE on purpose: the requirement is a
+/// property of these verbs, so it is visible where they are rather than
+/// inferred from a list somewhere else.
+fn open_exclusive() -> Result<Facade, Failure> {
+  open_for(StoreNeed::Exclusive)
+}
+
+fn open_for(need: StoreNeed) -> Result<Facade, Failure> {
   let (project, ctx) = context()?;
-  engine(project, ctx)
+  engine(project, ctx, need)
 }
 
 /// The ONE door to the in-process engine, and the place the routing rule
@@ -111,20 +157,38 @@ fn open() -> Result<Facade, Failure> {
 /// that is not implemented yet* would be false twice over: the verb is built
 /// and the store is reachable -- by something else. A gate arm keyed on that
 /// marker would read every store verb on a daemon machine as an unbuilt one.
-fn engine(project: Project, ctx: FacadeContext) -> Result<Facade, Failure> {
+fn engine(project: Project, ctx: FacadeContext, need: StoreNeed) -> Result<Facade, Failure> {
   // A candidate list that cannot be COMPUTED is refused rather than shortened:
   // a shorter list runs in-process, which is the one outcome this rule exists
   // to prevent. See `daemon::DaemonError`.
   let candidates = daemon::candidates().map_err(|e| Failure::Error(e.render()))?;
   match daemon::route(&candidates) {
-    daemon::Route::InProcess => Facade::open(project, ctx).map_err(fail),
+    daemon::Route::InProcess => {}
+    // **FALLING THROUGH IS NOT IGNORING THE DAEMON** (vc, 2026-08-30). A verb
+    // this build cannot route yet runs in-process, at a cost `AC-08.11` states
+    // as the residual: duplicated work and last-writer-wins about which ingest
+    // lands. Neither is corruption. Each op the daemon learns moves a verb from
+    // here to routed, and nothing is broken in between.
+    daemon::Route::Daemon(_) if need == StoreNeed::Shared => {}
     // Exit 2 -- `Unavailable` -- because this build genuinely cannot answer,
     // rather than having run and returned no. The operator's work is fine; the
     // tool in their hand is the part that is missing.
-    daemon::Route::Daemon(endpoint) => Err(Failure::Unavailable(format!(
-      "error: intentd is answering at {endpoint} and owns this project's store, and this build has no client to route through it\n  remedy: stop the daemon process and run again. Opening the store here while the daemon holds it would put two writers on one database, which is the single thing this rule exists to prevent"
-    ))),
+    daemon::Route::Daemon(endpoint) => {
+      return Err(Failure::Unavailable(format!(
+        "error: intentd is answering at {endpoint} and owns this project's store, and `sync` and `ingest` are the two families that would genuinely run twice against it\n  remedy: stop the daemon process and run again. Unlike every other verb, these two drive the sync engine and the ingest walk, so a second one really would watch and ingest alongside the daemon"
+      )));
+    }
   }
+
+  // **STILL EXACTLY ONE `Facade::open` IN THIS CRATE, AND THAT IS NOT A
+  // COINCIDENCE OF LAYOUT.** The first build of vc's fallback ruling put a
+  // second `Facade::open` in the new arm, which `cli_routing`'s one-door test
+  // refused -- correctly, even though both sites were inside this function.
+  // **The tempting repair was to weaken the test to "every site is inside
+  // `fn engine`", which is a real property and a weaker one.** Restructuring so
+  // the match decides only WHETHER to refuse keeps the guard exactly as strong
+  // as it was, and reads better besides.
+  Facade::open(project, ctx).map_err(fail)
 }
 
 /// Locate the project and assemble the ambient context, WITHOUT loading canon
@@ -523,13 +587,13 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
         .into(),
     ),
     (true, false) => {
-      let mut f = open()?;
+      let mut f = open_exclusive()?;
       let count = f.sync_to_disk(&scope).map_err(fail)?;
       println!("ok: extract written for {count} thread(s)");
       Ok(())
     }
     (false, true) => {
-      let mut f = open()?;
+      let mut f = open_exclusive()?;
       // **Stated BEFORE, never reported after.** The facade computes this
       // against the store rather than trusting a timestamp, and the whole
       // reason it is a separate call is that a summary afterwards is a receipt
@@ -2385,7 +2449,7 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
     )));
   }
 
-  let mut facade = engine(project.clone(), ctx)?;
+  let mut facade = engine(project.clone(), ctx, StoreNeed::Shared)?;
 
   if force {
     // Asked BEFORE the write and answered by a human, so the report below is
@@ -2485,6 +2549,97 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
   render_organize_report(&project, &report, false)
 }
 
+/// `intent explore` -- the TUI, rooted at the entity kinds.
+///
+/// **THE WHOLE VERB IS A ROOT AND A DATA SOURCE.** `explore` is not a second
+/// realiser: it is the same view stack `intent edit <kind> <id>` opens, entered
+/// one level higher (`AC-17.12`, and `AC-17.7` already described the ladder with
+/// `entities` as its first rung). Everything it draws is proved without a
+/// terminal in `tui::` -- this function chooses a root, hands over a way to read
+/// rows, and gets out of the way.
+///
+/// **IT REFUSES ON A PIPE RATHER THAN HANGING.** A TUI whose stdout is not a
+/// terminal waits for keystrokes nobody can send, which is a hang wearing the
+/// costume of a slow command. `tui-design.md` §9 already makes the tty the
+/// discriminator for `intent edit`; this is the same rule at the same door.
+fn explore() -> Result<(), Failure> {
+  use std::io::IsTerminal;
+  if !std::io::stdout().is_terminal() {
+    return Err(Failure::Error(
+      "error: `intent explore` needs a terminal, and stdout is not one.\n  remedy: run it in a \
+       terminal, or use `intent st list` and `intent edit <kind> <id> --path` for a pipe"
+        .to_string(),
+    ));
+  }
+  let facade = open()?;
+  let declaration = intentsvcs::form::Loaded::load()
+    .map_err(|e| Failure::Error(format!("error: the form declaration would not load: {e}")))?;
+  let mut app = tui::app::App::explore();
+  tui::run::run(&mut app, |view| rows_for(&facade, &declaration, view))
+    .map_err(|e| Failure::Error(format!("error: the terminal would not co-operate: {e}")))
+}
+
+/// Read the rows one view shows.
+///
+/// **EVERY ARM GOES THROUGH THE FACADE AND NONE TOUCHES SQLite** (`AC-17.3`):
+/// the TUI is a client exactly as the CLI and `intentd` are. A view this does
+/// not know renders EMPTY rather than panicking -- `AC-17.7` puts a view that
+/// cannot load on an error row, and a half-built realiser reaching a level it
+/// has not wired yet is the same case, one step earlier.
+fn rows_for(
+  facade: &Facade,
+  declaration: &intentsvcs::form::Loaded,
+  view: &intentsvcs::nav::View,
+) -> Vec<tui::layout::Row> {
+  use intentsvcs::nav::View;
+  use tui::layout::Row;
+  match view {
+    View::Entities => tui::views::entity_rows(declaration),
+    View::Collection { kind } if kind == "thread" => facade
+      .st_list()
+      .into_iter()
+      .map(|t| Row::new(t.id.clone(), t.title.clone(), "button"))
+      .collect(),
+    View::Collection { kind } if kind == "issue" => facade
+      .issue_list()
+      .into_iter()
+      .map(|i| Row::new(format!("{:04}", i.number), i.title.clone(), "button"))
+      .collect(),
+    View::Item { kind, id } => {
+      let Some(form) = declaration.form(kind) else {
+        return Vec::new();
+      };
+      let entity = match kind.as_str() {
+        "thread" => facade
+          .st_show(id)
+          .ok()
+          .and_then(|t| serde_json::to_value(t).ok()),
+        "issue" => id
+          .parse::<u32>()
+          .ok()
+          .and_then(|n| facade.issue_show(n).ok())
+          .and_then(|i| serde_json::to_value(i).ok()),
+        _ => None,
+      };
+      // **A VIEW THAT CANNOT LOAD STILL RENDERS ITS FIELD NAMES**, because the
+      // form is declared and the values are what is missing. An empty screen
+      // would say the entity has no fields, which is a different and false
+      // claim.
+      tui::views::rows_for(form, &entity.unwrap_or(serde_json::Value::Null))
+    }
+    View::Children { kind, id, field } if kind == "thread" && field == "wps" => facade
+      .wp_list(id)
+      .map(|wps| {
+        wps
+          .iter()
+          .map(|w| Row::new(format!("WP-{:02}", w.seq), w.title.clone(), "button"))
+          .collect()
+      })
+      .unwrap_or_default(),
+    _ => Vec::new(),
+  }
+}
+
 fn organize(m: &ArgMatches) -> Result<(), Failure> {
   // **`--default` IS A DIFFERENT OPERATION, NOT A MODE OF THIS ONE.** It writes
   // the declaration; reconciliation reads it. Folding them into one pass would
@@ -2517,7 +2672,7 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
   };
   let previewing = mode == intentsvcs::organize::Mode::Preview;
   let (project, ctx) = context()?;
-  let mut facade = engine(project.clone(), ctx)?;
+  let mut facade = engine(project.clone(), ctx, StoreNeed::Shared)?;
   let report = facade.organize(mode).map_err(fail)?;
   render_organize_report(&project, &report, previewing)
 }
@@ -2764,7 +2919,7 @@ fn render_organize_report(
 /// was the only reader-facing surface the log had.
 fn events(m: &ArgMatches) -> Result<(), Failure> {
   let (project, ctx) = context()?;
-  let facade = engine(project, ctx)?;
+  let facade = engine(project, ctx, StoreNeed::Shared)?;
   let filter = EventFilter {
     op: m.get_one::<String>("op").cloned(),
     subject: m.get_one::<String>("subject").cloned(),
@@ -2893,7 +3048,7 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // over there. It costs nothing today, because no build produces a daemon to
   // route to; it is the daemon's own work package that makes it reachable, and
   // it belongs to whoever lands the client.
-  let opened = engine(project.clone(), ctx.clone()).ok();
+  let opened = engine(project.clone(), ctx.clone(), StoreNeed::Shared).ok();
 
   // **WHAT THIS RUN RESOLVED, WHICH IS v2's `--verbose` AND NOT A NEW IDEA.**
   // v2 emits `INTENT_HOME=...` and `Found at ...` under the flag
@@ -4310,7 +4465,7 @@ fn resolve_intentd() -> Result<std::path::PathBuf, Failure> {
   let candidates = intentd_candidates();
   if candidates.is_empty() {
     return Err(Failure::Error(format!(
-      "error: no `intentd` was found on PATH or beside this binary\n  remedy: intent {want} expects an `intentd` of the same version. Install the matching daemon, or run this from a build tree where it sits beside `intent`."
+      "error: no `intentd` was found beside this `intent` binary\n  remedy: intent {want} runs the `intentd` installed alongside it, and only that one -- searching $PATH would let a different build answer. Install the matching daemon, or run this from a build tree where `intentd` sits beside `intent`."
     )));
   }
   let mut rejected = Vec::new();
@@ -4327,23 +4482,32 @@ fn resolve_intentd() -> Result<std::path::PathBuf, Failure> {
   )))
 }
 
-/// `intentd` candidates, PATH first and then this binary's own directory.
+/// `intentd` candidates: this binary's own directory, and nothing else.
+///
+/// **THE SIBLING ONLY, WHICH IS A NARROWING OF WP-08's *PATH-THEN-SIBLING*
+/// WORDING AND IS BETTER ON BOTH GROUNDS.** The first build searched `$PATH`
+/// first, and `no_intent_home.rs` refused it: the shipped surface reads exactly
+/// one environment variable (`$HOME`), because a brew-installed binary meets
+/// machines with no developer environment, and a new read needs an hv ruling
+/// and a row in that test's `ALLOWED` rather than a quiet addition. The guard
+/// was right and it caught a read that had been on main since the daemon
+/// landed.
+///
+/// **AND THE NARROWING IS NOT A CONCESSION TO THE GUARD.** In every real
+/// installation the pair are already siblings -- `/opt/homebrew/bin`,
+/// `~/.cargo/bin`, `target/release` all put `intent` and `intentd` in one
+/// directory. What `$PATH` added was a way to find a DIFFERENT `intentd`, which
+/// is exactly the failure `exec` created and the version check below exists to
+/// catch. **Removing the search removes the failure mode instead of checking
+/// for it**, which is the same move as binding-and-publishing in one call.
+///
+/// The version check stays regardless: a sibling can still be stale, from a
+/// build where only one of the two was rebuilt.
 fn intentd_candidates() -> Vec<std::path::PathBuf> {
   let mut found: Vec<std::path::PathBuf> = Vec::new();
-  if let Some(path) = std::env::var_os("PATH") {
-    for dir in std::env::split_paths(&path) {
-      let candidate = dir.join("intentd");
-      if candidate.is_file() && !found.contains(&candidate) {
-        found.push(candidate);
-      }
-    }
-  }
-  // The sibling is last and is not a fallback for a WRONG version -- every
-  // candidate is version-checked, so ordering decides only which correct one
-  // is used.
   if let Ok(exe) = std::env::current_exe() {
     if let Some(candidate) = exe.parent().map(|dir| dir.join("intentd")) {
-      if candidate.is_file() && !found.contains(&candidate) {
+      if candidate.is_file() {
         found.push(candidate);
       }
     }
@@ -4533,7 +4697,7 @@ fn info_project(cwd: Option<&std::path::Path>) {
         project_id: config.project_id.clone().unwrap_or_default(),
         version: env!("CARGO_PKG_VERSION").to_string(),
       };
-      match engine(project, ctx) {
+      match engine(project, ctx, StoreNeed::Shared) {
         Ok(facade) => {
           let threads = facade.st_list();
           let count = |want: ThreadStatus| threads.iter().filter(|t| t.status == want).count();
@@ -6231,6 +6395,101 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
       .map_err(|e| Failure::Error(e.render()))?;
       println!("ok: AGENTS.md updated at project root.");
       Ok(())
+    }
+    // **`init` REFUSES OVER AN EXISTING FILE RATHER THAN OVERWRITING, and the
+    // register declares the exit code as 1.** That is deliberately NOT `init`'s
+    // own rc=2: this is a verb declining a job, not a build unable to answer.
+    // The register carries no `--force` and none is invented here -- v2 had one
+    // and the v3 surface dropped it, which makes `sync` the only path that
+    // rewrites a file somebody may have edited.
+    Some(("init", _)) => {
+      let f = open()?;
+      let path = f.project().root().join("AGENTS.md");
+      if path.exists() {
+        return Err(Failure::Error(format!(
+          "error: AGENTS.md already exists at {}\n  remedy: `intent agents sync` rewrites it from the current project state; `init` refuses rather than discarding a file it did not write",
+          path.display()
+        )));
+      }
+      let home = intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
+      let ctx = views::RenderContext {
+        version: env!("CARGO_PKG_VERSION"),
+        todo_watermark: None,
+      };
+      println!("Initializing AGENTS.md for Intent project...");
+      // The SAME writer `sync` uses. A second write path for a file with one
+      // canonical form is how the two start disagreeing about trailing bytes.
+      intentsvcs::rootfiles::sync(
+        f.project().root(),
+        &home,
+        "AGENTS.md",
+        f.project().config(),
+        &ctx,
+      )
+      .map_err(|e| Failure::Error(e.render()))?;
+      println!("ok: AGENTS.md created at project root.");
+      Ok(())
+    }
+    // **A WELL-FORMEDNESS CHECK, NOT A CURRENCY CHECK, AND THE SECTION LIST IS
+    // HARD-CODED FOR THAT REASON.** Deriving the required set from the template
+    // would be the arrangement this estate normally prefers -- and here it would
+    // be wrong: every project whose `AGENTS.md` predates a template change would
+    // start reporting findings, turning *is this file well formed* into *is this
+    // file current*. `sync` answers currency. These four are a FLOOR, carried
+    // from v2 where they were warnings rather than errors, and all four are
+    // present in what v3 generates today.
+    Some(("validate", _)) => {
+      let f = open()?;
+      let path = f.project().root().join("AGENTS.md");
+      println!("Validating AGENTS.md...");
+      let mut errors = 0usize;
+      let mut warnings = 0usize;
+      let meta = std::fs::symlink_metadata(&path);
+      match meta {
+        Err(_) => {
+          println!("error: AGENTS.md not found at project root");
+          errors += 1;
+        }
+        Ok(m) if m.file_type().is_symlink() => {
+          println!(
+            "warn: AGENTS.md is a symlink (legacy canon). Run `intent agents sync` to replace with a real file."
+          );
+          warnings += 1;
+        }
+        Ok(m) if !m.is_file() => {
+          println!("error: AGENTS.md exists but is not a regular file");
+          errors += 1;
+        }
+        Ok(_) => {
+          println!("ok: AGENTS.md found at project root (regular file)");
+          let body = std::fs::read_to_string(&path).unwrap_or_default();
+          for section in [
+            "Project Overview",
+            "Development Environment",
+            "Build and Test Commands",
+            "Code Style",
+          ] {
+            if body.contains(&format!("## {section}")) {
+              println!("ok: has section: {section}");
+            } else {
+              println!("warn: missing recommended section: {section}");
+              warnings += 1;
+            }
+          }
+        }
+      }
+      println!();
+      if errors == 0 && warnings == 0 {
+        println!("ok: AGENTS.md validation passed");
+        Ok(())
+      } else if errors == 0 {
+        println!("ok: AGENTS.md is valid with {warnings} warning(s)");
+        Ok(())
+      } else {
+        Err(Failure::Error(format!(
+          "error: AGENTS.md validation failed with {errors} error(s) and {warnings} warning(s)"
+        )))
+      }
     }
     Some((verb, _)) => unwired("agents", verb),
     None => unwired("agents", ""),

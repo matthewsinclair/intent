@@ -271,3 +271,104 @@ fn the_footer_is_stable_across_runs() {
      reading the world rather than the model"
   );
 }
+
+// ---------------------------------------------------------------------------
+// `agents init` and `agents validate` -- ST0058 AC-00.3
+// ---------------------------------------------------------------------------
+
+/// A corpus project with NO `AGENTS.md` yet, which `synced()` cannot give.
+fn unsynced() -> tempfile::TempDir {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let (out, rc) = run(dir.path(), &["init", PROJECT_NAME]);
+  assert_eq!(rc, 0, "init a corpus project: {out}");
+  dir
+}
+
+/// **THE HALF-WIRED FAMILY WAS WORSE THAN AN ABSENT ONE.** `agents sync` and
+/// `agents generate` answered while `init` and `validate` returned `is a known
+/// command that is not implemented yet`, so a reader who found two of four verbs
+/// behaving reasonably concluded the family worked. Both are mandated in
+/// `usage-rules.md`, which ships to every project `intent init` touches.
+///
+/// The exits are the REGISTER's, not invented here: `0 when created`, `1 when
+/// already exists`.
+#[test]
+fn agents_init_creates_and_then_refuses_rather_than_overwriting() {
+  let dir = unsynced();
+  let root = dir.path();
+  let path = root.join("AGENTS.md");
+  assert!(!path.exists(), "the fixture must start without one");
+
+  let (out, rc) = run(root, &["agents", "init"]);
+  assert_eq!(rc, 0, "init creates at rc=0: {out}");
+  assert!(path.exists(), "init must actually write the file: {out}");
+
+  // **THE REFUSAL MUST LEAVE THE FILE ALONE, and that is the arm worth having.**
+  // A verb that refuses and still writes is the failure this contract exists to
+  // prevent, and the exit code alone cannot see it -- so the bytes are compared
+  // across the refusal rather than the message being trusted.
+  std::fs::write(&path, "EDITED BY HAND\n").expect("plant an edit");
+  let (out, rc) = run(root, &["agents", "init"]);
+  assert_eq!(rc, 1, "a second init refuses at rc=1: {out}");
+  assert_eq!(
+    std::fs::read_to_string(&path).expect("read back"),
+    "EDITED BY HAND\n",
+    "the refusal discarded a file it did not write: {out}"
+  );
+  assert!(
+    out.contains("agents sync"),
+    "the refusal must name the verb that DOES rewrite it, or the operator's \
+     only route is to delete the file: {out}"
+  );
+}
+
+/// `0 when valid`, `1 when findings` -- the register's exits again.
+///
+/// **THE SECTION SET IS A FLOOR AND NOT A MIRROR OF THE TEMPLATE**, which is
+/// why this asserts four named sections where `no_section_is_a_bare_heading`
+/// above deliberately asserts a property instead. Those two arms answer
+/// different questions: that one asks whether the GENERATOR produced a sane
+/// document, this one asks whether a file on disk still meets a minimum. Deriving
+/// this set from the template would turn well-formedness into currency and make
+/// every project whose file predates a template change start reporting findings
+/// -- and `sync` is the verb that answers currency.
+#[test]
+fn agents_validate_separates_absent_from_symlinked_from_well_formed() {
+  let dir = unsynced();
+  let root = dir.path();
+
+  let (out, rc) = run(root, &["agents", "validate"]);
+  assert_eq!(rc, 1, "absent is a finding: {out}");
+  assert!(out.contains("not found"), "and it says which: {out}");
+
+  let (out, rc) = run(root, &["agents", "init"]);
+  assert_eq!(rc, 0, "init: {out}");
+  let (out, rc) = run(root, &["agents", "validate"]);
+  assert_eq!(rc, 0, "a freshly generated file validates: {out}");
+  for section in [
+    "Project Overview",
+    "Development Environment",
+    "Build and Test Commands",
+    "Code Style",
+  ] {
+    assert!(
+      out.contains(&format!("ok: has section: {section}")),
+      "the floor section `{section}` must be reported present, or this arm is \
+       passing without looking: {out}"
+    );
+  }
+
+  // **A SYMLINK WARNS AND DOES NOT FAIL, carried from v2 deliberately.** Legacy
+  // canon put `AGENTS.md` at the root as a link to `intent/llm/AGENTS.md`, and a
+  // project in that shape is out of date rather than broken -- failing it would
+  // make the remedy (`sync`) unreachable behind a red gate in exactly the
+  // projects that need it.
+  let path = root.join("AGENTS.md");
+  std::fs::remove_file(&path).expect("remove the real file");
+  std::fs::create_dir_all(root.join("intent/llm")).expect("legacy dir");
+  std::fs::write(root.join("intent/llm/AGENTS.md"), "# legacy\n").expect("legacy file");
+  std::os::unix::fs::symlink("intent/llm/AGENTS.md", &path).expect("symlink");
+  let (out, rc) = run(root, &["agents", "validate"]);
+  assert_eq!(rc, 0, "a symlink is a warning, never a failure: {out}");
+  assert!(out.contains("symlink"), "and it names the shape: {out}");
+}
