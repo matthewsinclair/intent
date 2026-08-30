@@ -26,7 +26,7 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 3. **dc's three surface items, mine, accepted 2026-08-30:** (a) the `claude` family narrowing rows in dispatch-table when dc's payload layer lands (skills + subagents -> one lifecycle, `--kind`); (b) plugin.json was a THIRD command-surface home, now stripped -- the table rows are mine to author; (c) **`agents` family-root answers rc=2 while `agents sync`/`validate` answer 0 -- real defect, FILE AS AN ISSUE on the bounce** (not yet filed).
 4. **MODULES.md uncommitted**, carrying dc's web.rs row + my omnibox row -- the first committer takes both.
 5. **AT-09.4 clause 2** held: class check, must not close on the one guarded instance; a deferral to hv if the common/mod.rs move fights.
-6. Blocked on others: `AC-17.1` (web realiser), `AC-17.6` (`browse` unwired). Owed small: `AC-17.10` soft-wrap flags, EMBED's pty, WP-16, `0142`'s structural half, ST0064 parked.
+6. **`AC-17.1` UNBLOCKED by cc's web.rs (2026-08-30): `POST /op` answers the socket's own dispatch, token at `~/.local/share/intent/intentd.token` 0600, `Op::Shutdown` refused over HTTP.** The browser-side realiser is mine, after the TUI slices. Still blocked on others: `AC-17.6` (`browse` unwired). Owed small: `AC-17.10` soft-wrap flags, EMBED's pty, WP-16, `0142`'s structural half, ST0064 parked.
 
 ## Watch-outs -- mechanisms only
 
