@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-30 19:45Z
+heartbeat_at: 2026-08-30 19:27Z
 status: active
-focus: "LOCALFOLD 2026-08-30 19:44Z, pre-fold at .history/20260830/wip-fold-1944Z.md. ST0056 91/135 (AC-08.8 closed, 19/19 driven by me). ALL FOUR hv ITEMS RULED: bin/ delete IN the cut, AT-01.8 retires explicitly, backup NARROWS, TUI was already go-ahead. AC-00.6 reword is IN THE STORE and its extract cannot commit until two peers land unrelated files."
+focus: "ST0056 91/135 -- AC-08.8 CLOSED at 99d5d8d1, 19/19 driven by me in a DETACHED WORKTREE because the shared tree could not build. All three peers ruled and unblocked. OPEN WITH hv: the bin/ prune (AC-00.6 vs AC-12.1), AT-01.8 on a completed thread, intentd backup population, WP-09 collision (ic sizes the TUI M severable to S)."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
@@ -17,46 +17,48 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ### THE CUT, AND THE FIGURES BELOW ROT -- RUN THE VERBS
 
-`intent ac status <ST>` per thread; `intent doctor`. **The cut is ST0056 + ST0058 + ST0066 + ST0068.** ST0057 and ST0066 are PASS and out of the working set. **WP-13 (search) is post-tag; ST0060, ST0046, ST0064 are OUT.**
+`intent ac status <ST>` per thread; `intent doctor`. **The cut is ST0056 + ST0058 + ST0066 + ST0068 (hv scope).** ST0066 is PASS and out of the working set. ST0057 is PASS.
 
-**THE OPEN ROWS SPLIT vc 17 / cc 14 / ic 8 / dc 6 -- I HOLD THE LARGEST BLOCK AND IT IS THE GATE GROUP, SO ST0056 CANNOT CLOSE BEFORE MY ROWS DO.** By shape: 36 test-kind (29 AT `to-write`, 8 red, 1 mixed), 9 non-test awaiting an authored `ac satisfy`. **Re-derive this split rather than trusting it -- every board is honest about its OWN claims and no board is a view of the complement.**
+**WHAT IS NOT IN THE CUT, SO NOBODY BUILDS IT: WP-13 (search, XL) is post-tag** on hv's sequencing. ST0060 (vault), ST0046 (modules), ST0064 (menubar) are OUT.
 
-### WP-00 IS MINE AND SEVERAL OF ITS ROWS ARE AGGREGATE GATES
+**EVERY WORK PACKAGE IS NOW OWNED. The 8 unowned rows of the morning are gone:** dc took WP-04, WP-05 and WP-12 (the release itself), vc took WP-15. **That hole was invisible because every board is honest about its OWN claims and no board is a view of the complement** -- worth re-running against any new thread.
 
-**`AC-00.1` (BATS conformance), `.3` (intentd ships), `.4` (MCP ships), `.7` (dual-path), `.8` (migration) CLOSE ON PEERS' BUILDS.** I cannot close them by working harder. **WRITE THEIR ATs NOW, RED, so the day each becomes drivable is a RUN and not an authoring job** -- otherwise they all arrive at once at the tag with me as the bottleneck. This is not on the TODO below and it should lead it.
+### WP-00 IS MINE AND IT IS THE GATE GROUP
 
-**`AT-00.7` IS GREEN** (driven 2026-08-30; the row was STALE not undriven). `AC-00.7` still open on `AT-00.5` (rusqlite Highlander), red and held deliberately at partial coverage.
+**STILL WRITABLE: `AT-00.15`** (instrument currency, `AC-00.14`) -- the criterion's own ruling is the design constraint: **the test for currency is a CONTENT test, never a chronological one, and measured-at and asserted-about are two fields.** The live positive control is dc's INTENT_BIN finding.
 
-**`AC-00.6` IS REWORDED IN THE STORE AND THE EXTRACT IS NOT COMMITTED** -- `canon_commit_check` refuses it because my `ac edit` regenerated canon from the WORKTREE and hashed two peers' uncommitted files (cc's `shared_artefact_build_guard.sh`, ic's `tui-design.md`). **The ruling is not lost: the STORE is SSOT and carries it.** Commit the extract WITH those files once they land -- the guard's own order is sync-canon-first-then-commit-together.
+**`AT-00.11` IS BLOCKED AND THE BLOCK IS A RESULT, NOT A PAUSE -- issue `0160`.** `of_n_closes_over_examined.sh` must NOT be written until a confirmed-defective instrument exists.
 
-**STILL WRITABLE: `AT-00.15`** (instrument currency, `AC-00.14`) -- **the test for currency is a CONTENT test, never a chronological one, and measured-at and asserted-about are two fields.** **`AT-00.11` IS BLOCKED AS A RESULT, NOT A PAUSE (`0160`).** **`AT-00.2` needs other repos; `.3`/`.4` wait on cc's routing client; `.18`/`.19` are tag-gated.**
+**`AT-00.7` IS STALE ON THE GATE'S OWN LIST** -- the file exists while the row says to-write. It is mine, and the same advisory that stood on `AT-08.3` applies: **presence is not greenness.** Drive it before moving it.
+
+**`AT-00.2` needs other repos; `.3`/`.4` wait on cc's routing client; `.18`/`.19` are tag-gated.**
 
 ### WP-15 (SKILLS TRIAGE) -- TWO ARMS DRIVEN, TWO TO GO
 
-**`AC-15.4` and `AC-15.2`'s verb arm are clean and the zero is believable**, because the instrument was positive-controlled on planted retired verbs after its first version returned clean on both the real catalogue AND the fixture. **LEFT: `AC-15.1`'s triage table (one row per skill, KEEP/UPDATE/RETIRE, denominator in the output) and `AC-15.3`, which is entangled with dc's subagents build.**
+**`AC-15.4` and `AC-15.2`'s verb arm are clean and the zero is believable**, because the instrument was positive-controlled on planted retired verbs after its first version returned clean on both the real catalogue AND the fixture. **23 skills, 8 `chains_to` targets resolve, 22 `/in-*` citations resolve.** Two real findings fixed: an invented rule id (`IN-EX-CODE-007`) in the line forbidding invented rule ids, and a `~/.intent/ext/` layout v3 reads nowhere.
+
+**LEFT: `AC-15.1`'s triage table (one row per skill, KEEP/UPDATE/RETIRE, denominator in the output) and `AC-15.3` (retirements carried out through `intent claude skills`, asserted by driving a consumer install).** `AC-15.3` is entangled with hv's `claude subagents` ruling -- do not spend on it until that lands.
 
 ## TODO
 
-1. **The aggregate-gate ATs** -- `AC-00.1`/`.3`/`.4`/`.8`, authored red now.
-2. **`AT-00.15`** -- instrument currency.
-3. **Commit the `AC-00.6` extract** once cc and ic land their two files.
-4. **WP-15's remaining two arms** -- `AC-15.1`, `AC-15.3`.
-5. **ST0068**, 4/9. `AC-02.3` is the only row drivable without leaving the repo.
-6. **`intent/st/ST0056/parity/register.md` -- 39 ROWS CLAIM WORK THAT IS DONE.** Every one says _Needs per-test rows before WP-05 relies on it_ and **all 39 have them in `pertest.md`; zero are genuinely pending.** The file is GENERATED (`tools/gen_register.sh`, header says do not hand-edit) **so regenerating REPRODUCES the stale note** -- the generator's template is the fix, and a regenerating artefact that cannot self-correct is worse than a hand-written stale one because refreshing it looks like fixing it.
-7. **`0136`'s ~44-site `AcState::Computed` change** -- after the tag.
-8. **`intent/wip.md`** -- check before the tag, hv reads it on restart.
+1. **`AT-00.15`** -- instrument currency.
+2. **WP-15's remaining two arms** -- `AC-15.1`, `AC-15.3`.
+3. **ST0068**, 4/9. `AC-02.3` is the only row drivable without leaving the repo. **dc is building the `at` kind invariant and will move the nine ST0068 rows with `at na`** -- authorised, do not duplicate.
+4. **`AT-00.20` stays red** with its release condition named.
+5. **`0136`'s ~44-site `AcState::Computed` change** -- after the tag.
+6. **`intent/wip.md`** -- de-transcribed once today; check it again before the tag, hv reads it on restart.
 
-## hv items: ALL FOUR RULED 2026-08-30
+## hv items: RULED, AND THE OPEN ONE IS ic's TO BUILD
 
-**1. `AC-00.6` -- THE v2 SHELL DELETE IS IN THE CUT.** Reworded: the subject is **26 files / 12,415 lines** (`bin/intent` + 25 `bin/intent_*`), NOT the `bin/` directory -- `bin/int`, `bin/devbin`, `bin/.devbin/` are **57 files / ~18,300 lines of v3's OWN build and delivery system** and must survive. **Blocked on four call sites in `bin/.devbin/cmd/build.d/release`, which sources `bin/intent_helpers` and makes three abort-on-failure calls to `$PROJECT_ROOT/bin/intent`.** dc ports then deletes. The fourth site's `--skip-settings` has no v3 equivalent; **ruled safe because dc's `no_pm_state_in_output.rs` drives that settings.json is byte-identical to its template.**
+**ALL SIX OF THE MORNING'S ITEMS ARE NOW RULED.** `ext` OUT (canon corrected, `95f469d7`), `help` IN at root (`a9f03ab7`, closing **`ST0058`/`AC-00.6`** + issue `0086` -- **the thread qualifier is load-bearing: `ST0056`/`AC-00.6` is the `bin/` prune and is OPEN**), orphaned `intentd` (hv kills by hand, cc owns a reaping arm), `shipped_surface_drift` expired, `design.md:22` corrected.
 
-**2. `AT-01.8` / `AC-01.6` -- DELETE AND RETIRE EXPLICITLY**, with `AT-01.6`/`AC-01.4` examined in the same pass. dc's option (3), hv's pen. **The estate invariant this protects: 272 green-or-red cited rows ALL name artefacts that exist; 52 name absent ones and every one is `to-write`.**
+**1. `claude subagents` -- RULED IN. BUILD IT.** hv, 2026-08-30, verbatim: _we need functionality parity with v2 and that means plugins and claude subagents._ **So the `ext` precedent does NOT extend to it** -- `ext` was ruled out because nothing consumes it; subagents have a live consumer and v2 parity is the bar. **Mirror the working `claude skills` family; `fn claude`'s arms are `hook`, `rules`, `skills`, `upgrade`, `start`, `ws` and there is no `subagents` arm.** **AND CHECK `plugin` IN THE SAME PASS** -- hv named _plugins AND claude subagents_, and `plugin list` answering rc=0 is not the same claim as the family being at v2 parity. **Nothing in v3 writes `.claude/agents/`**, so a fresh machine has no critic subagents at all; ours are here because v2 installed them in April.
 
-**3. THE BACKUP POPULATION NARROWS.** `AC-08.8` stands as amended; persisted registry filed post-tag at `0172`.
+**2. `tui-design.md` -- hv HAS LOOKED AND ic's BUILD DIVERGES FROM WHAT WAS AGREED.** hv, 2026-08-30: _I just looked at what IC has done and it's quite different to what we agreed, so there's work for IC to do to get towards the desired design._ **This supersedes the section-9 plural-path question as the live item** -- the vocabulary split (`/threads/ST0056/ac` against `/thread/ST0056/criteria`) is still real and still ratified twice, but it is now a detail inside a larger divergence hv will scope with ic.
 
-**4. THE TUI WAS NEVER A COLLISION TO RULE -- hv AND ic SPIKED A NEW DESIGN AND hv GAVE THE GO-AHEAD BEFORE I RAISED IT.** My _trim to (a)+(d)_ recommendation was void when I made it. **CONSEQUENCE hv HOLDS KNOWINGLY: `AC-00.3` and `AC-00.4` are WP-00 gate rows that close on WP-09, so they move with the TUI.** `AC-09.6` also waits on dc's `claude subagents`, so there is a dependency stall in WP-09 that the TUI time is spending rather than wasting.
+**3. ST0065 -- hv TAKES IT DIRECTLY WITH ic.** No longer vc's to route. The routing debt is discharged: the proposal reached hv's inbox at 16:55Z after sitting unrouted since 2026-08-28.
 
-**COMING, NOT YET A QUESTION:** the MCP scope number, once ic's walker finishes. First partition: 49 one-door, 14 zero-door, 11 multi-door, 20 unresolved of 94.
+**COMING, NOT YET A QUESTION:** an MCP scope call. **The 94 `exposed_on_mcp` rows were declared before anyone checked buildability.** If ic's read finds many needing facade work, a smaller honest tool list is a better tag than a larger one with holes. Bring hv the number, not the question.
 
 ## Standing directives from hv
 
@@ -96,8 +98,8 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 - **(2026-08-30) `backup.enabled` IS LIVE, AND THE CONFLICT WAS A HOMONYM.** cc could not resolve `keys.0` (ratified: gates the DAEMON's schedule, deliberately not `intent backup`) against hv 2026-08-26 _"I don't want it turned off"_. **`backup.rs:154` names its own subject one line above: there is deliberately no setting that silences a STALE BACKUP.** Two switches; both sentences carry _turn off_ and _backup_. **The combination is the design: with `enabled: false` the sweep stops AND doctor keeps reporting staleness** -- a preference you can express and a consequence you cannot hide. Same shape as my `self_loop` error: the phrase matched, the subject did not, and checking cost one file read.
 - **(2026-08-30) MCP: A PARENT ROW IS A NAMESPACE, NOT A VERB -- NARROW IT.** The only tool a parent could offer is one asking _which leaf?_, which is a menu, and the tiered typed tools exist so an agent need not navigate one. **AND NO-STORE ROWS GET NO EXEMPTION CLASS:** a row reaching no project state is not exempt from the facade boundary, it is a candidate for `AC-09.6`'s NARROWING arm. The test is _does this tell an agent something about THE PROJECT_ -- `version` no, `schema` and `lang list` yes. **An it-does-not-need-a-facade-method class would be a softer rule beside the first, and the softer rule is where everything ends up.**
 
-- **(2026-08-30) A TEST GOING RED BECAUSE A FIX LANDED IS THE NOTIFICATION WORKING, NOT A REGRESSION.** Three instances that day, all written to fail when they stopped being about anything -- the opposite of the usual failure, where a test passes on after its subject has gone. **Prefer this shape when writing a roster or a premise.**
-- **(2026-08-30) A CITATION'S AUTHORITY COMES FROM ITS MEMBERSHIP RULE, NEVER FROM ITS NAME.** I replaced cc's valid behavioural argument about `daemon start` with a citation to `populations.self_loop` -- a name that matched the property, bound to the RATIFIED MACHINES -- and told them _mine you can check_. ic built on it and reverted it at `caa61e9c`. **cc was right, for the right reason, first. Checkable-and-wrong-subject is not better than a sound argument, and it is more persuasive, which is what makes it dangerous.**
+- **(2026-08-30) A TEST GOING RED BECAUSE A FIX LANDED IS THE NOTIFICATION WORKING, NOT A REGRESSION.** Three today: `plugin_surface` caught its own premise moving, `twin_spellings_agree` caught an exception outliving its grant, cc's `init` witnesses caught four arms comparing defaults to each other. **All three were written to fail when they stopped being about anything**, which is the opposite of the usual failure where a test passes on after its subject has gone. **Prefer this shape when writing a roster or a premise.**
+- **(2026-08-30) A CITATION'S AUTHORITY COMES FROM ITS MEMBERSHIP RULE, NEVER FROM ITS NAME -- AND vc LEARNED THIS BY REPLACING A VALID REASON WITH AN INVALID CITATION AND CALLING IT AN UPGRADE.** cc argued `daemon start` should exit 0 on an already-running daemon from `systemctl`'s behaviour -- **aimed at exactly the property in question.** vc "improved" it by citing `populations.self_loop`, a declared set of 30, and told cc _mine you can check_. **`populations.self_loop` is bound to the RATIFIED MACHINES -- its members are rows whose verb is an edge in one of the four state machines -- and the daemon pair moves no entity through any machine.** The name matched the property; the membership rule was about something else. **The CONCLUSION was never wrong: cc was right, for the right reason, first.** ic built on the citation, it went red on main, and ic reverted it at `caa61e9c`. **Checkable-and-wrong-subject is not better than a sound argument, and it is more persuasive, which is what makes it dangerous.**
 - **(2026-08-30) MCP TOOLS CALL THE FACADE, NEVER THE CLI DISPATCH ARM**, and the generator's completeness check is against the facade. **One method per exposed row; where none exists, ADD one rather than compose in the tier** -- composing makes MCP a second home for logic the CLI already carries.
 - **(2026-08-30) A CRITERION THAT COULD FORCE SCOPE IS WRITTEN AS AGREEMENT, NOT COVERAGE.** `AC-09.6` says _exposed implies servable_, so it closes by building OR by narrowing, and which one happens becomes a visible decision rather than a default.
 
