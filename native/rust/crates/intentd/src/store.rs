@@ -53,9 +53,28 @@ use tokio::sync::{mpsc, oneshot};
 const QUEUE_DEPTH: usize = 64;
 
 /// One unit of work for a project's store thread.
-struct Job {
-  op: Op,
-  reply: oneshot::Sender<Response>,
+///
+/// **TWO ARMS BECAUSE THERE ARE TWO ORIGINS, AND CONFLATING THEM WOULD BREAK
+/// THE ONE DISCRIMINATOR `AC-08.2` RESTS ON.** A client request is counted,
+/// answered and attributable; a watcher-driven ingest has no client, nobody to
+/// answer, and must NOT move [`ProjectHandle::dispatched`] -- that counter says
+/// *how many ops a CLIENT routed here*, and a background ingest landing inside
+/// a harness's before-and-after bracket would report `+2` for a single verb and
+/// make the conformance test flake against a mechanism it does not know about.
+///
+/// **THE SEPARATION IS STRUCTURAL RATHER THAN A BRANCH.** The count lives in
+/// [`ProjectHandle::call`], which is the client door; the watcher reaches
+/// [`ProjectHandle::ingest`], which is a different door and cannot increment
+/// anything. A `skip if this was internal` branch inside one shared path is
+/// exactly where such an exemption goes quietly wrong.
+enum Work {
+  /// A client asked something and is waiting for the answer.
+  Client {
+    op: Op,
+    reply: oneshot::Sender<Response>,
+  },
+  /// The watcher saw the project's tree change (`AC-08.5`).
+  Ingest,
 }
 
 /// A handle to one project's store.
@@ -72,7 +91,7 @@ struct Job {
 /// `#[derive]` is not one.
 #[derive(Debug)]
 pub struct ProjectHandle {
-  tx: mpsc::Sender<Job>,
+  tx: mpsc::Sender<Work>,
   root: PathBuf,
   /// Ops this handle has dispatched to its store.
   ///
@@ -90,6 +109,17 @@ pub struct ProjectHandle {
   /// `intentsvcs::wire::UNCOUNTED`, which declares that set so the harness can
   /// form an expectation from it rather than from a list of its own.
   dispatched: std::sync::atomic::AtomicU64,
+  /// Ingests this project's tree has driven (`AC-08.5`).
+  ///
+  /// **INCREMENTED WHERE THE WORK IS DONE, NOT WHERE IT IS REQUESTED, AND THAT
+  /// IS THE OPPOSITE CHOICE FROM [`ProjectHandle::dispatched`].** The two
+  /// counters answer different questions, so they are counted at different
+  /// points on purpose. `dispatched` answers *did a client route here*, which
+  /// is true the moment the request is sent and stays true if the store then
+  /// fails. This one answers *how many times did the tree actually get
+  /// re-read*, which is a claim about work performed -- and counting it at the
+  /// send would make a full queue look like completed ingests.
+  ingested: std::sync::Arc<std::sync::atomic::AtomicU64>,
 }
 
 impl ProjectHandle {
@@ -102,9 +132,16 @@ impl ProjectHandle {
   /// facade, which also means the failure path returns a `Response` a client
   /// can be told rather than an error only a log would see.
   pub async fn open(root: PathBuf) -> Result<ProjectHandle, Response> {
-    let (tx, mut rx) = mpsc::channel::<Job>(QUEUE_DEPTH);
+    let (tx, mut rx) = mpsc::channel::<Work>(QUEUE_DEPTH);
     let (ready_tx, ready_rx) = oneshot::channel::<Result<(), Response>>();
     let thread_root = root.clone();
+    // **SHARED WITH THE STORE THREAD BECAUSE THAT IS WHERE THE WORK HAPPENS.**
+    // The handle reports the count and the thread increments it, so the two
+    // must be the same cell -- a counter on the handle alone could only be
+    // incremented at the send, which is the meaning this one deliberately does
+    // not have.
+    let ingested = std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0));
+    let thread_ingested = std::sync::Arc::clone(&ingested);
 
     std::thread::spawn(move || {
       let mut facade = match open_facade(&thread_root) {
@@ -126,12 +163,26 @@ impl ProjectHandle {
       // `blocking_recv` is correct HERE and would be a defect anywhere else in
       // this crate: this is not a runtime worker, it is a thread whose entire
       // job is to block.
-      while let Some(job) = rx.blocking_recv() {
-        let response = serve(&mut facade, job.op);
-        // A dropped receiver means the client disconnected mid-request. The
-        // work is already done and there is nobody to tell, which is a state
-        // rather than a fault.
-        let _ = job.reply.send(response);
+      while let Some(work) = rx.blocking_recv() {
+        match work {
+          Work::Client { op, reply } => {
+            let response = serve(&mut facade, op);
+            // A dropped receiver means the client disconnected mid-request.
+            // The work is already done and there is nobody to tell, which is a
+            // state rather than a fault.
+            let _ = reply.send(response);
+          }
+          Work::Ingest => {
+            ingest(&mut facade, &thread_root);
+            // **AFTER THE WORK, AND AFTER IT EVEN WHEN IT FAILED.** The
+            // question this answers is *how many times did the watcher make
+            // this store re-read the tree*, which is what `AC-08.5`'s
+            // debounce and scope claims are about -- and a failed ingest was
+            // still a trigger that fired. Counting only successes would make
+            // a self-triggering loop over unreadable files invisible.
+            thread_ingested.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+          }
+        }
       }
     });
 
@@ -140,6 +191,7 @@ impl ProjectHandle {
         tx,
         root,
         dispatched: std::sync::atomic::AtomicU64::new(0),
+        ingested,
       }),
       Ok(Err(refusal)) => Err(refusal),
       // The thread ended without answering: it panicked. Report it as a
@@ -160,6 +212,11 @@ impl ProjectHandle {
     self.dispatched.load(std::sync::atomic::Ordering::Relaxed)
   }
 
+  /// How many times this project's tree has been re-read after a change.
+  pub fn ingested(&self) -> u64 {
+    self.ingested.load(std::sync::atomic::Ordering::Relaxed)
+  }
+
   /// Ask the store, without occupying a worker while it answers.
   pub async fn call(&self, op: Op) -> Response {
     // Counted BEFORE the send, so a request the store never answers still
@@ -171,7 +228,7 @@ impl ProjectHandle {
     let (reply_tx, reply_rx) = oneshot::channel();
     if self
       .tx
-      .send(Job {
+      .send(Work::Client {
         op,
         reply: reply_tx,
       })
@@ -196,6 +253,62 @@ impl ProjectHandle {
         "the request was accepted and the store thread ended before answering. Restart the daemon; the log names the panic.",
       ),
     }
+  }
+
+  /// Ask the store to re-read the project from disk (`AC-08.5`).
+  ///
+  /// **SYNCHRONOUS, BECAUSE ITS ONLY CALLER IS NOT ON THE RUNTIME.** The
+  /// debouncer owns its own thread, so `blocking_send` is correct here for the
+  /// same reason `blocking_recv` is correct on the store thread and would be a
+  /// defect anywhere else in this crate: neither is a runtime worker.
+  ///
+  /// **IT DOES NOT TOUCH [`ProjectHandle::dispatched`], AND THAT IS THE POINT
+  /// OF ITS BEING A SEPARATE DOOR.** See [`Work`].
+  ///
+  /// **BLOCKING RATHER THAN DROPPING WHEN THE QUEUE IS FULL.** A duplicate
+  /// ingest costs a scan and writes nothing, because the sync is driven by
+  /// content hashes; a DROPPED one leaves the store behind the disk until
+  /// somebody happens to edit again. The wait delays the next batch for this
+  /// project and nothing else.
+  /// **THE REFUSAL IS A `Response`, NOT A `String`** (`IN-RS-CODE-004`, caught
+  /// by the pre-commit critic). It is the same shape every other fallible entry
+  /// in this crate returns, so the message and the remedy stay two fields
+  /// rather than one string a caller has to take apart to report.
+  pub fn ingest(&self) -> Result<(), Response> {
+    self.tx.blocking_send(Work::Ingest).map_err(|_| {
+      Response::error(
+        format!(
+          "the store for `{}` is no longer running, so external edits are not being ingested",
+          self.root.display()
+        ),
+        "the project's store thread has ended, which it does only on a panic. Restart the daemon.",
+      )
+    })
+  }
+}
+
+/// Re-read the project from disk, on the store thread.
+///
+/// **THE SAME CALL `intent sync --to-store` MAKES, WHICH IS D32 APPLIED TO A
+/// TRIGGER NOBODY TYPED.** A daemon with its own ingest path would be a second
+/// sync engine in the literal sense the design warns about -- not two processes
+/// racing, but two implementations that agree today.
+///
+/// **A FAILURE IS PRINTED BECAUSE THERE IS NOBODY TO RETURN IT TO, AND SILENCE
+/// IS THE ONE THING IT MUST NOT BE** (`IN-AG-NO-SILENT-001`). An ingest that
+/// failed quietly leaves a daemon that looks healthy and a store that is
+/// behind the disk, and the operator's first symptom is a stale answer to an
+/// unrelated question. `AC-08.4` names where daemon logs live; until that
+/// lands this is stderr, which is where `intent daemon run` puts it in front
+/// of whoever started it.
+fn ingest(facade: &mut Facade, root: &Path) {
+  if let Err(e) = facade.sync_from_disk(&intentsvcs::sync::Scope::All) {
+    eprintln!(
+      "intentd: ingesting `{}` after an external edit failed: {}\n  remedy: {}",
+      root.display(),
+      e.render(),
+      e.remedy()
+    );
   }
 }
 

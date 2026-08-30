@@ -28,6 +28,43 @@ use intentsvcs::wire::{RegisteredProject, Response};
 use tokio::sync::Mutex;
 
 use crate::store::ProjectHandle;
+use crate::watch::{self, Watch};
+
+/// One opened project: the door to its store, and the watch on its tree.
+///
+/// **THE WATCH IS HELD HERE BECAUSE ITS LIFETIME IS THE REGISTRATION'S.**
+/// Dropping a `Watch` stops the watcher thread, so keeping it beside the handle
+/// makes *this project is served* and *this project is watched* one fact rather
+/// than two that can disagree. The alternative -- a second map keyed on the
+/// same roots -- is two homes for one lifetime, and the failure is silent in
+/// the worse direction: a project still served and no longer watched looks
+/// completely healthy and ingests nothing.
+struct Registered {
+  handle: Arc<ProjectHandle>,
+  /// `None` when the watch could not be started.
+  ///
+  /// **A PROJECT THAT CANNOT BE WATCHED IS STILL SERVED, DELIBERATELY.**
+  /// Refusing to open it would turn a degraded feature into a total outage for
+  /// that project -- and watching is an ENHANCEMENT to a store that is correct
+  /// without it, since `intent sync --to-store` does the same work on demand.
+  /// The failure is printed when it happens rather than swallowed.
+  _watch: Option<Watch>,
+}
+
+/// **HAND-WRITTEN RATHER THAN DERIVED, AND IT REPORTS THE THING WORTH KNOWING.**
+/// `Watch` wraps a `Debouncer`, which is not `Debug`, so the derive was never
+/// available -- and the useful answer is not the watcher's internals but
+/// WHETHER THIS PROJECT IS BEING WATCHED AT ALL, which is precisely the state a
+/// failed `watch::start` leaves behind and the one an operator debugging *why
+/// did my edit not ingest* needs to see.
+impl std::fmt::Debug for Registered {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.debug_struct("Registered")
+      .field("dispatched", &self.handle.dispatched())
+      .field("watched", &self._watch.is_some())
+      .finish()
+  }
+}
 
 /// Every project this daemon has opened, by canonical root.
 ///
@@ -38,7 +75,7 @@ use crate::store::ProjectHandle;
 /// store arrangement exists to avoid.
 #[derive(Debug, Default)]
 pub struct Registry {
-  projects: Mutex<HashMap<PathBuf, Arc<ProjectHandle>>>,
+  projects: Mutex<HashMap<PathBuf, Registered>>,
 }
 
 impl Registry {
@@ -65,10 +102,50 @@ impl Registry {
     // entirely.
     let mut projects = self.projects.lock().await;
     if let Some(existing) = projects.get(&canonical) {
-      return Ok(Arc::clone(existing));
+      return Ok(Arc::clone(&existing.handle));
     }
     let handle = Arc::new(ProjectHandle::open(canonical.clone()).await?);
-    projects.insert(canonical, Arc::clone(&handle));
+
+    // **THE WATCH STARTS WHEN THE PROJECT OPENS, WHICH IS THE SAME ANSWER THIS
+    // REGISTRY ALREADY GIVES TO EVERY OTHER LIFECYCLE QUESTION.** There is no
+    // `register` verb because registration is a side effect of being used; a
+    // separate `watch` verb would reintroduce exactly the two-states-and-a-way-
+    // to-be-in-the-wrong-one this type was shaped to avoid. A project the
+    // daemon is answering for is a project the daemon is watching.
+    let watching = match watch::start(&canonical, Arc::clone(&handle)) {
+      Ok(watching) => Some(watching),
+      // Reported, never swallowed: the project is served and its external
+      // edits will not be ingested, and only this line says so.
+      // **THE REFUSAL IS RENDERED, NOT RE-WORDED.** `watch::start` returns a
+      // `Response` carrying its own message and remedy, so printing them is the
+      // whole job -- and a second sentence composed here would be a second
+      // opinion about a failure this module did not diagnose.
+      Err(Response::Error { message, remedy }) => {
+        eprintln!(
+          "intentd: `{}` is being SERVED and NOT WATCHED: {message}\n  remedy: {remedy}",
+          canonical.display()
+        );
+        None
+      }
+      // `watch::start` only ever refuses. An `Ok`-shaped response here would be
+      // a routing fault inside this crate, and it says so rather than being
+      // silently treated as success.
+      Err(other) => {
+        eprintln!(
+          "intentd: the watcher for `{}` answered a refusal with {other:?}\n  remedy: this is a fault in intentd rather than in the project. The project is served and not watched.",
+          canonical.display()
+        );
+        None
+      }
+    };
+
+    projects.insert(
+      canonical,
+      Registered {
+        handle: Arc::clone(&handle),
+        _watch: watching,
+      },
+    );
     Ok(handle)
   }
 
@@ -77,9 +154,10 @@ impl Registry {
     let projects = self.projects.lock().await;
     let mut listed: Vec<RegisteredProject> = projects
       .iter()
-      .map(|(root, handle)| RegisteredProject {
+      .map(|(root, registered)| RegisteredProject {
         root: root.clone(),
-        dispatched: handle.dispatched(),
+        dispatched: registered.handle.dispatched(),
+        ingested: registered.handle.ingested(),
         // Asked at REPORT time rather than remembered from registration: the
         // whole point of the field is to notice a change that happened after
         // the daemon last looked.

@@ -38,6 +38,7 @@ use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 
 mod registry;
 mod store;
+mod watch;
 
 use registry::Registry;
 

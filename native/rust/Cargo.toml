@@ -70,8 +70,13 @@ ulid = "1"
 uuid = { version = "1", features = ["v4"] }
 
 # ==========================================================================
-# WP-08's TWO STACK FIRSTS (AC-08.10). BOTH ARE CONSUMED BY `intentd` ALONE.
+# WP-08's STACK FIRSTS (AC-08.10). ALL ARE CONSUMED BY `intentd` ALONE.
 # ==========================================================================
+#
+# **THE HEADING SAID `TWO` UNTIL 2026-08-30, AND THEN A THIRD ARRIVED.** That
+# is the class this very block lectures about forty lines down -- *nothing in
+# this file pins a count it could compute* -- committed by the heading over the
+# argument. The count is however many declarations sit under this banner.
 #
 # **THIS WORKSPACE HAD NO ASYNC RUNTIME AND NO SERVER BEFORE THESE TWO.** Do
 # not take that from this comment -- it is the kind of claim that is true when
@@ -120,6 +125,47 @@ tokio = { version = "1", features = ["full"] }
 # pins `axum = "0.8"`, and matching it means its `mgmt/` module is a worked
 # example against the same API rather than an approximate one.
 axum = "0.8"
+
+# The filesystem watcher `AC-08.5` needs: *debounced gitignore-aware watching
+# drives ingest on external edits*. **THE WORKSPACE HAD NO WATCHER BEFORE THIS
+# -- re-measure rather than believe the sentence**, with the same
+# `grep -c '^name = "<crate>"$' Cargo.lock` the two above name, against
+# `notify` and `notify-debouncer-full`.
+#
+# **DEBOUNCED RATHER THAN RAW `notify`, WHICH design.md:83 REQUIRES AND WHICH
+# IS NOT A PREFERENCE.** One editor save is a BURST -- a write, an attribute
+# change, sometimes a chmod -- and an ingest is one whole transaction over the
+# project's scanned corpus. Acting on raw events would run a full ingest per
+# event, so saving one file ingests the estate three or four times, and under a
+# formatter or a `git checkout` it does so hundreds of times while the tree is
+# still moving underneath it. Debouncing is what makes the trigger correspond
+# to *somebody finished editing* rather than to *the kernel noticed something*.
+#
+# **`-full` RATHER THAN `-mini`, AND THE REASON IS THE COMMONEST EDITOR
+# BEHAVIOUR ON THIS ESTATE.** Full tracks file identity, so a write-to-temp-
+# and-rename -- what vim and every atomic-save editor actually does -- arrives
+# as a RENAME. Under `-mini` the same save arrives as a delete followed by a
+# create, so a watcher that believes what it is told sees a file disappear
+# every time somebody saves it. The difference costs one small crate and
+# removes a class of wrong answer rather than a class of noise.
+#
+# **THE `ignore` HALF OF design.md:83 ADDS NOTHING HERE, DELIBERATELY.**
+# Gitignore-awareness is SCOPE, scope belongs to the sync engine, and
+# `intentsvcs::sync::Scanned` is the one predicate both the walk and the
+# watcher ask -- so `intentd` reaches the ignore rules through `intentsvcs`,
+# which already pins `ignore` above with its own argument. **A second statement
+# of scope inside the daemon would drift in the direction that loops**: the
+# store lives at `intent/.cache/intent.db`, INSIDE the watched tree, and every
+# ingest writes it.
+#
+# **DEFAULT FEATURES, WHICH IS `macos_fsevent` HERE.** The alternative backend,
+# `macos_kqueue`, needs one file descriptor per watched file; a project tree
+# exhausts the per-process limit, and that failure arrives as events silently
+# stopping rather than as an error.
+#
+# **D06 SURVIVES**: a watcher reaches no store. It reports paths, and the
+# ingest it triggers goes through the facade like everything else in `intentd`.
+notify-debouncer-full = "0.7"
 time = { version = "0.3", features = ["formatting", "macros"] }
 # Content hashing for the sync engine's file index. AC-03.3 requires detecting
 # a same-size same-mtime rewrite, which stat cannot see by construction, so the

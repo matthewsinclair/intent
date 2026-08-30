@@ -180,19 +180,115 @@ fn io_err(path: &Path, source: io::Error) -> SyncError {
 /// every file is [`FileState::Changed`] because nothing has been ingested yet.
 /// Output is ordered by path, so two scans of one tree are comparable without
 /// the caller sorting.
+/// Which paths a sync would READ, as a predicate rather than as a walk.
+///
+/// **ONE DEFINITION OF SCOPE WITH TWO CONSUMERS, AND THE SECOND ONE IS WHY THIS
+/// EXISTS.** [`scan`] answers the question by walking, which is what a sync
+/// needs. `intentd`'s watcher (`AC-08.5`) has to answer it about a path
+/// somebody else just changed, and it cannot walk the tree to find out -- so
+/// without this it would carry its own opinion about scope, and the two would
+/// drift the first time either moved. **A watcher whose idea of scope differs
+/// from the sync engine's either ingests nothing when it should or loops
+/// forever when it should not.**
+///
+/// **THE LOOP IS NOT HYPOTHETICAL AND IT IS THE SHARPEST ARGUMENT FOR THE
+/// `gitignore-aware` HALF OF `AC-08.5`.** The store lives at
+/// `intent/.cache/intent.db`, INSIDE the tree a watcher watches, and every
+/// ingest writes it. A watcher that triggered on any change under `intent/`
+/// would trigger on the write its own ingest just made, forever, on an idle
+/// machine. `.cache` is in [`SKIPPED_DIRS`] and the whole directory is
+/// gitignored, so honouring scope is what stops it -- and honouring scope means
+/// honouring THIS scope, not a similar one.
+pub struct Scanned {
+  /// **THE ROOT IS HELD RATHER THAN PASSED TO [`Scanned::includes`], SO A
+  /// CALLER CANNOT ASK ABOUT ONE PROJECT WITH ANOTHER PROJECT'S SCOPE.** The
+  /// ignore set is derived from a specific root; answering a question about a
+  /// different one would be confidently wrong rather than refused, and the
+  /// daemon serves N projects at once, which is exactly where two roots are in
+  /// scope in one process.
+  root: PathBuf,
+  ignored: Ignored,
+}
+
+impl Scanned {
+  /// Build the predicate for a project root.
+  ///
+  /// **NOT CHEAP, AND CALLED ONCE PER BATCH RATHER THAN ONCE PER PATH.**
+  /// [`Ignored::for_root`] runs two walks; the note on that function records
+  /// why the domain is narrow and what it cost when it was not.
+  pub fn for_root(root: &Path) -> Scanned {
+    Scanned {
+      root: root.to_path_buf(),
+      ignored: Ignored::for_root(root),
+    }
+  }
+
+  /// Would the walk descend into this directory?
+  fn descends(&self, dir: &Path) -> bool {
+    let name = dir
+      .file_name()
+      .map(|n| n.to_string_lossy().into_owned())
+      .unwrap_or_default();
+    !self.ignored.contains(dir) && !SKIPPED_DIRS.contains(&name.as_str())
+  }
+
+  /// Would the walk keep this file?
+  fn keeps(&self, file: &Path) -> bool {
+    !self.ignored.contains(file)
+  }
+
+  /// Would a sync read this path?
+  ///
+  /// **THE ANCESTORS ARE CHECKED, NOT JUST THE FILE, BECAUSE THE WALK PRUNES AT
+  /// DIRECTORIES.** An ignored or skipped directory removes its whole subtree,
+  /// so a file inside `intent/.cache/` is out of scope while the file itself
+  /// carries no ignore rule of its own. Asking only about the leaf would report
+  /// the database as in scope, which is precisely the feedback loop above.
+  pub fn includes(&self, path: &Path) -> bool {
+    if !self.keeps(path) {
+      return false;
+    }
+    let intent_dir = self.root.join("intent");
+    if let Ok(rest) = path.strip_prefix(&intent_dir) {
+      // Every directory between `intent/` and the file must be one the walk
+      // would have descended into.
+      let mut at = intent_dir.clone();
+      let mut components: Vec<_> = rest.components().collect();
+      components.pop();
+      for component in components {
+        at = at.join(component);
+        if !self.descends(&at) {
+          return false;
+        }
+      }
+      return true;
+    }
+    // Otherwise the only in-scope paths are the root files, by name, at the
+    // root itself -- the same set and the same place `scan` looks.
+    ROOT_FILES
+      .iter()
+      .any(|name| path == self.root.join(name).as_path())
+  }
+}
+
 pub fn scan(root: &Path, previous: &[FileEntry]) -> Result<Vec<FileEntry>, SyncError> {
-  let ignored = Ignored::for_root(root);
+  // **THE WALK AND THE PREDICATE ASK THE SAME OBJECT, WHICH IS THE WHOLE POINT
+  // OF [`Scanned`].** Leaving this function with its own `ignored.contains` and
+  // `SKIPPED_DIRS` checks would have made the predicate a SECOND statement of
+  // scope that happened to agree today -- and a watcher built on a second
+  // statement of scope drifts silently in the direction that loops.
+  let scope = Scanned::for_root(root);
 
   let mut paths = Vec::new();
   for name in ROOT_FILES {
     let candidate = root.join(name);
-    if candidate.is_file() && !ignored.contains(&candidate) {
+    if candidate.is_file() && scope.keeps(&candidate) {
       paths.push(candidate);
     }
   }
   let intent_dir = root.join("intent");
   if intent_dir.is_dir() {
-    walk(&intent_dir, &ignored, &mut paths)?;
+    walk(&intent_dir, &scope, &mut paths)?;
   }
   paths.sort();
 
@@ -343,7 +439,7 @@ impl Ignored {
 /// Depth-first, name-ordered walk. Ordering is explicit because `read_dir`
 /// order is filesystem-dependent, and an index whose row order varies by
 /// machine cannot be compared across them.
-fn walk(dir: &Path, ignored: &Ignored, out: &mut Vec<PathBuf>) -> Result<(), SyncError> {
+fn walk(dir: &Path, scope: &Scanned, out: &mut Vec<PathBuf>) -> Result<(), SyncError> {
   let mut children: Vec<PathBuf> = std::fs::read_dir(dir)
     .map_err(|e| io_err(dir, e))?
     .collect::<Result<Vec<_>, _>>()
@@ -354,19 +450,12 @@ fn walk(dir: &Path, ignored: &Ignored, out: &mut Vec<PathBuf>) -> Result<(), Syn
   children.sort();
 
   for child in children {
-    let name = child
-      .file_name()
-      .map(|n| n.to_string_lossy().into_owned())
-      .unwrap_or_default();
-    if ignored.contains(&child) {
-      continue;
-    }
     if child.is_dir() {
-      if SKIPPED_DIRS.contains(&name.as_str()) {
+      if !scope.descends(&child) {
         continue;
       }
-      walk(&child, ignored, out)?;
-    } else if child.is_file() {
+      walk(&child, scope, out)?;
+    } else if child.is_file() && scope.keeps(&child) {
       out.push(child);
     }
   }

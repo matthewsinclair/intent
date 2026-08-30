@@ -273,3 +273,89 @@ fn each_finding_is_reported_exactly_once() {
     "three unreadable files, three residue lines -- got:\n{rendered}"
   );
 }
+
+/// **`AC-08.5`'s SCOPE HALF: THE PREDICATE AND THE WALK CANNOT DISAGREE.**
+///
+/// `intentd`'s watcher has to decide whether a path somebody else just changed
+/// is one a sync would read, and it cannot walk the tree to find out. So
+/// `sync::Scanned` answers that question, and `sync::scan` was rewritten to ask
+/// the same object -- because **a watcher carrying its own idea of scope drifts
+/// in the direction that loops.**
+///
+/// **THE LOOP IS THE REASON `AC-08.5` SAYS `gitignore-aware` AT ALL.** The store
+/// lives at `intent/.cache/intent.db`, INSIDE the watched tree, and every ingest
+/// writes it. A watcher that triggered on any change under `intent/` would
+/// trigger on the write its own ingest just made, forever, on an idle machine.
+///
+/// **ONE ARM COMPARES THE TWO AND THE OTHER IS THE ONE THAT MATTERS.** Asking
+/// only "is everything the scan returns also `includes`?" is a comparison whose
+/// two sides now share a source, which is an identity rather than a
+/// measurement. The load-bearing arm is the opposite direction -- paths the scan
+/// NEVER SEES must be excluded -- because the scan is silent about them by
+/// construction and so cannot be the reference for them.
+#[test]
+fn the_scope_predicate_and_the_walk_cannot_disagree() {
+  let p = Project::new().with_git("*.log\n");
+  p.thread("ST0001");
+  p.write("AGENTS.md", b"# agents\n");
+  // Out of scope, one per mechanism, so a single rule going missing is visible.
+  p.write("intent/.cache/intent.db", b"SQLite format 3\x00"); // SKIPPED_DIRS
+  p.write("intent/.backup/db-2026-08-30.sqlite", b"snapshot"); // SKIPPED_DIRS
+  p.write("intent/noise.log", b"ignored by .gitignore\n"); // gitignore
+  p.write("native/rust/src/main.rs", b"fn main() {}\n"); // outside the scope
+
+  let scope = intentsvcs::sync::Scanned::for_root(p.root());
+
+  let scanned: Vec<std::path::PathBuf> = intentsvcs::sync::scan(p.root(), &[])
+    .expect("scan")
+    .into_iter()
+    .map(|e| p.root().join(e.path))
+    .collect();
+  assert!(
+    scanned.len() >= 2,
+    "the fixture scanned {} path(s), which is too few for either direction to mean anything: {scanned:?}",
+    scanned.len()
+  );
+
+  let disagreed: Vec<&std::path::PathBuf> = scanned
+    .iter()
+    .filter(|path| !scope.includes(path))
+    .collect();
+  assert!(
+    disagreed.is_empty(),
+    "the walk read these and the predicate excludes them, so the watcher would ignore edits the sync engine acts on: {disagreed:?}"
+  );
+
+  // **THE ARM THE SCAN CANNOT SUPPLY.** Each of these exists on disk and is
+  // out of scope for a DIFFERENT reason; asserting them by name is what makes
+  // this a test of the predicate rather than of its agreement with a walk that
+  // never looked.
+  let out_of_scope = [
+    "intent/.cache/intent.db",
+    "intent/.backup/db-2026-08-30.sqlite",
+    "intent/noise.log",
+    "native/rust/src/main.rs",
+  ];
+  for rel in out_of_scope {
+    let path = p.root().join(rel);
+    assert!(
+      path.exists(),
+      "the fixture does not have `{rel}` on disk, so excluding it proves nothing"
+    );
+    assert!(
+      !scope.includes(&path),
+      "`{rel}` is out of the sync's scope and the predicate includes it. For `intent/.cache/intent.db` this is not a tidiness matter: the ingest WRITES that file, so a watcher acting on it re-triggers itself forever"
+    );
+  }
+
+  // And the positive control for the predicate itself: a real in-scope path
+  // must be included, or every exclusion above holds for the wrong reason.
+  assert!(
+    scope.includes(&p.root().join("intent/.canon/st/ST0001.json")),
+    "the predicate excludes a canon thread file, so it is not answering the question it claims to"
+  );
+  assert!(
+    scope.includes(&p.root().join("AGENTS.md")),
+    "the predicate excludes a ROOT_FILES member"
+  );
+}

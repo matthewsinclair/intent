@@ -33,6 +33,7 @@ path = "src/main.rs"
 intentsvcs = { path = "../intentsvcs" }
 tokio.workspace = true
 axum.workspace = true
+notify-debouncer-full.workspace = true
 
 [dev-dependencies]
 # **THE SAME DEPENDENCY AS ABOVE, DECLARED TWICE BECAUSE A CRATE'S INTEGRATION

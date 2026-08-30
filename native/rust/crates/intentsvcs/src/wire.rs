@@ -169,6 +169,26 @@ pub struct RegisteredProject {
   /// one layer down, arriving through the mechanism built to avoid it. See
   /// [`UNCOUNTED`].
   pub dispatched: u64,
+  /// How many times this daemon has re-read this project from disk because its
+  /// tree changed (`AC-08.5`).
+  ///
+  /// **A SECOND COUNTER RATHER THAN A WIDER FIRST ONE, BECAUSE THEY ANSWER
+  /// DIFFERENT QUESTIONS AND ONE OF THEM IS LOAD-BEARING ELSEWHERE.**
+  /// [`RegisteredProject::dispatched`] is `AC-08.2`'s discriminator -- *did the
+  /// CLIENT route?* -- and a watcher-driven ingest landing inside a harness's
+  /// before-and-after bracket would report `+2` for a single verb and make that
+  /// test flake against a mechanism it knows nothing about. Merging them would
+  /// have been one field and two meanings.
+  ///
+  /// **AND WITHOUT IT `AC-08.5` HAS NO OBSERVABLE FOR ITS OWN ADJECTIVES.**
+  /// *Debounced* means a burst of writes produces FEWER ingests than writes,
+  /// and *gitignore-aware* means a change to an ignored path produces NONE --
+  /// both are claims about how many times something happened, and neither can
+  /// be seen from the store's contents. **The self-triggering loop is the
+  /// sharpest case**: an ingest writes `intent/.cache/intent.db`, inside the
+  /// watched tree, so a watcher that ignored scope would ingest forever on an
+  /// idle machine -- and the store's ANSWERS would be correct throughout.
+  pub ingested: u64,
 }
 
 /// What the daemon answers.
