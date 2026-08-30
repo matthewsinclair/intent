@@ -3,9 +3,10 @@
   "number": 86,
   "slug": "intent-help-is-retired-while-help-answers-one-ca",
   "title": "intent help is retired while --help answers: one capability present by one spelling and absent by the other, and a test REQUIRES the false remedy that says it has no replacement",
-  "status": "open",
+  "status": "closed",
   "severity": "high",
   "created": "2026-08-25",
+  "closed": "2026-08-30",
   "reporter": "Matthew Sinclair",
   "body": ""
 }

@@ -1016,3 +1016,34 @@ I described it as _hv's `help` ruling has no home in the SSOT_. **dc measured th
 **NO NEW DECISION. This strengthens option 2 in my previous entry** -- declaring `help` in `new_surface` stops being tidiness and becomes the first use of an affordance the table has never had.
 
 **AND THE MEASUREMENT CAUGHT ITSELF ON A WARNING IT WAS READING AT THE TIME.** `arg_values_note` in that same table records cc's 2026-08-17 finding -- three enumerators, three values, a set of five, none of them careless -- and states the lesson as **a population reported by an enumerator is the enumerator's subject, not the population.** dc read that note while classifying it and made its exact error one file over. **Fourth instance of that class today across four nodes**, mine included, and in every case the corrective was a prediction written BEFORE the run rather than any amount of care.
+
+## (2026-08-30 16:46Z)
+
+**ONE RULING NEEDED, AND ONE CLASS THAT HAS NOW BEEN MEASURED TWICE TODAY BY TWO NODES INDEPENDENTLY.**
+
+=== 1. `ext` IS DONE, AND APPLYING YOUR RULING FOUND THAT `ext` WAS NOT ALONE ===
+
+Canon side landed at `95f469d7`: `intent ext` is gone from `AGENTS.md`, `usage-rules.md` and both `lib/templates/llm/` sources. **I removed the whole Extensions sections rather than the verb lines**, because deleting the bash block alone deletes the part that fails LOUDLY -- a verb that refuses and says so -- and keeps the prose that fails silently (_user extensions contribute subagents, skills, or rule packs_), which is false in v3: **nothing reads `~/.intent/ext/`, and the estate's own source says so in three places.** Same argument you already ruled once today on `shipped_surface_drift`.
+
+**RE-DRIVING `AC-00.3` PROPERLY SHOWED THE ROW HAS BEEN COUNTING A LIST INSTEAD OF THE CANON.** It said `ext` was the last one. **Five canon-named verbs still refuse:** `claude rules index`, `claude rules validate`, `claude subagents list|show|status`. All three previous re-drives ran the same five verbs fixed at the FIRST drive and never re-derived the population from canon -- **so no honest re-drive could have found a sixth.** Fixed: the instrument now extracts the verbs from the shipped canon and runs what it extracts.
+
+=== 2. THE RULING I NEED: `claude subagents`, AND IT IS NOT A REPEAT OF `ext` ===
+
+**`ext` was easy because nothing consumes it. `subagents` has a live consumer.** `CLAUDE.md` documents critic dispatch as `Task(subagent_type="critic-<lang>")`, and that needs `critic-*.md` files installed. **Nothing in v3 writes `.claude/agents/`.** The whole `claude subagents` family is unwired -- `fn claude`'s arms are `hook`, `rules`, `skills`, `upgrade`, `start`, `ws`.
+
+**THE GATE PATH IS FINE** -- `intent critic --staged` is wired and is what pre-commit uses. **What is missing is the installer for the interactive dispatch path.** On this machine the eight subagents exist at `~/.claude/agents/` because v2 put them there in April.
+
+**THREE OPTIONS:** (a) wire `claude subagents` by mirroring the working `claude skills` family -- they are siblings with near-identical shape; (b) remove the instruction as you did for `ext`, and accept that a fresh v3 machine has no critic subagents and the documented dispatch does not work; (c) tag with it open and fix after. **My recommendation is (a) and I do not think it is close** -- (b) retires a documented workflow rather than a dead one, and `skills` next door proves the shape. But it is scope on the critical path and it is yours.
+
+=== 3. THE CLASS, AND IT IS THE ONE I WOULD WANT WATCHED BETWEEN NOW AND THE TAG ===
+
+**v3 IS ONLY EVER RUN IN TREES AND ON MACHINES THAT v2 POPULATED, SO AN UNBUILT HALF IS INVISIBLE IN THE ONLY ENVIRONMENT ANYONE TESTS IN.** Two nodes hit it independently today without either knowing:
+
+- **cc:** `intent init` never mints a `project_id`; UPGRADE does. Every tree the five of us work in arrived by migration, so it has one. **The carrier population is every project v3 creates.** It was silently making four of five subscription arms compare `""` to `""`.
+- **vc:** nothing in v3 installs subagents. Ours are here because v2 installed them.
+
+**BOTH WOULD HAVE BEEN FOUND BY ONE TEST NOBODY HAS: take a machine and a directory that have never seen v2, run `intent init`, and try to work.** That is WP-12's job and WP-12 was the unowned one. dc has it now. **I am not proposing new scope -- I am saying the cutover row should be a FRESH-ENVIRONMENT test and not a release checklist**, because every defect of this class is invisible to all four of us by construction.
+
+=== STATE ===
+
+ST0056 86/134. ST0058 3/6, `AC-00.3` now blocked on the ruling above. `AC-00.6` (`help`) is next from me and needs no ruling -- you gave it: root-only. ic unblocked on `AC-17.12`; cc took the mint and the carve-out; dc holds WP-04/05/12.

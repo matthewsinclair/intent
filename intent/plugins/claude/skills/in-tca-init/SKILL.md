@@ -47,9 +47,9 @@ intent claude rules list --lang agnostic
 
 Customize with the user via `.intent_critic.yml` at the audited project root, **not** by inventing a new rule numbering:
 
-- Disable rules that don't apply: `disabled: [IN-EX-CODE-007]` (with a `# reason:` comment per rule).
+- Disable rules that don't apply: `disabled: [IN-EX-TEST-003]` (with a `# reason:` comment per rule) -- a real id, because an invented one in an example is indistinguishable from a citation and this is the line that says not to invent rule numbering.
 - Set the body threshold: `severity_min: warning` (default) or `style` to see everything.
-- Project-specific rules belong in a user extension at `~/.intent/ext/<project>-rules/rules/<lang>/<category>/<slug>/RULE.md`. See `intent/docs/writing-extensions.md`.
+- **Project-specific rules have no v3 home yet, so the audit set is the canon rules minus the `disabled:` list.** The `~/.intent/ext/` extension mechanism this line used to point at is v2's: v3 reads that directory nowhere, and hv ruled `ext` out of the 3.0.0 cut on 2026-08-30 rather than porting it. Naming a layout the tool does not read is the same defect as naming a verb that refuses -- correct-looking prose pointing at nothing.
 
 The rule set for the audit is the canonical IN-\* IDs minus anything in the project's `.intent_critic.yml` `disabled:` list, plus any extension rules. Critics enforce this set automatically — no per-audit prompt template required.
 
