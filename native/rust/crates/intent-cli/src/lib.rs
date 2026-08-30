@@ -12,6 +12,7 @@
 
 pub mod dispatch;
 pub mod guide;
+pub mod mcp;
 pub mod render;
 pub mod spine;
 pub mod tui;

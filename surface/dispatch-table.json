@@ -2660,7 +2660,7 @@
               ],
               "type": "enum",
               "help": "Test-backed or not",
-              "value": "<kind>",
+              "value": "test|non-test",
               "accepts": "test | non-test",
               "default": "non-test",
               "disposition": "keep"
@@ -3204,7 +3204,7 @@
               ],
               "type": "enum",
               "help": "Test-backed or not",
-              "value": "<kind>",
+              "value": "test|non-test",
               "accepts": "test | non-test",
               "default": "test",
               "disposition": "keep"
@@ -3215,7 +3215,7 @@
               ],
               "type": "enum",
               "help": "Initial status",
-              "value": "<status>",
+              "value": "to-write|red|green|n-a",
               "accepts": "to-write | red | green | n-a",
               "default": "to-write",
               "disposition": "keep"

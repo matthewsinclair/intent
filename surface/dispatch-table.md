@@ -996,7 +996,7 @@ Acceptance criteria: the ratified completeness boundary of a unit
 | `ac rescope`   | <stid> <acid> | --                                       | Undo a descope: back in scope, unsatisfied                                      | keep        |
 | `ac withdraw`  | <stid> <acid> | --reason <text>, --by <who>              | Withdraw an AC outright, with its reason on the record (non-blocking)           | keep        |
 | `ac reinstate` | <stid> <acid> | --                                       | Undo a withdrawal: back in scope, unsatisfied                                   | keep        |
-| `ac new`       | <stid> <acid> | --text <text>, --kind <kind>             | Create a criterion (caller-assigned id; refuses an id that is taken)            | new-surface |
+| `ac new`       | <stid> <acid> | --text <text>, --kind test/non-test      | Create a criterion (caller-assigned id; refuses an id that is taken)            | new-surface |
 | `ac edit`      | <stid> <acid> | --text <text>                            | Reword a criterion, leaving its kind and its satisfaction alone                 | new-surface |
 
 ### `ac`
@@ -1260,7 +1260,7 @@ Create a criterion (caller-assigned id; refuses an id that is taken)
   - `--text` `<text>` (string) -- The criterion text
     - **required:** true
     - **disposition:** keep
-  - `--kind` `<kind>` (enum) -- Test-backed or not
+  - `--kind` `test|non-test` (enum) -- Test-backed or not
     - Accepts: test | non-test
     - **default:** non-test
     - **disposition:** keep
@@ -1316,16 +1316,16 @@ Acceptance tests: the small red-to-green tests that prove ACs
 - The AT row has an enforced grammar (issue 0017) with exactly two shapes and nothing else parsing. The reference is the test FILE -- backticked, repo-relative, at least one `/`, no `:`. A test is named by putting the AT id INSIDE the test, which is checkable from both ends and survives rewording; a cited test NAME is not.
 - `n-a` is a status for non-test rows ONLY and is NOT green: satisfaction for such a row lives on the AC's own line. v3 reifies this as `AtStatus::Na` with the serde rename `n-a` (native/rust/crates/intentsvcs/src/model.rs).
 
-| command                       | args          | flags                                                                                           | help                                                                              | disposition |
-| ----------------------------- | ------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------- |
-| `at`                          | <command>     | --                                                                                              | Acceptance test commands                                                          | keep        |
-| `at list`                     | <stid>        | --                                                                                              | List ATs (id, reference, status)                                                  | keep        |
-| `at lint`                     | <stid>        | --fix                                                                                           | Check AT rows against the grammar (--fix migrates what is mechanical)             | keep        |
-| `at green` (alias `at done`)  | <stid> <atid> | --note <text>                                                                                   | Set an AT green                                                                   | keep        |
-| `at red` (alias `at notdone`) | <stid> <atid> | --note <text>                                                                                   | Set an AT red                                                                     | keep        |
-| `at na`                       | <stid> <atid> | --note <text>                                                                                   | Set a non-test AT to n/a (the doc / eyeball / gate status)                        | keep        |
-| `at new`                      | <stid> <atid> | --covers <acid>, --file <path>, --prose <text>, --kind <kind>, --status <status>, --note <text> | Create an acceptance test (caller-assigned id; refuses an id that is taken)       | new-surface |
-| `at edit`                     | <stid> <atid> | --file <path>, --prose <text>, --covers <ac-id>                                                 | Re-cite an acceptance test; a field you do not name is a field it does not change | new-surface |
+| command                       | args          | flags                                                                                                                | help                                                                              | disposition |
+| ----------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------- |
+| `at`                          | <command>     | --                                                                                                                   | Acceptance test commands                                                          | keep        |
+| `at list`                     | <stid>        | --                                                                                                                   | List ATs (id, reference, status)                                                  | keep        |
+| `at lint`                     | <stid>        | --fix                                                                                                                | Check AT rows against the grammar (--fix migrates what is mechanical)             | keep        |
+| `at green` (alias `at done`)  | <stid> <atid> | --note <text>                                                                                                        | Set an AT green                                                                   | keep        |
+| `at red` (alias `at notdone`) | <stid> <atid> | --note <text>                                                                                                        | Set an AT red                                                                     | keep        |
+| `at na`                       | <stid> <atid> | --note <text>                                                                                                        | Set a non-test AT to n/a (the doc / eyeball / gate status)                        | keep        |
+| `at new`                      | <stid> <atid> | --covers <acid>, --file <path>, --prose <text>, --kind test/non-test, --status to-write/red/green/n-a, --note <text> | Create an acceptance test (caller-assigned id; refuses an id that is taken)       | new-surface |
+| `at edit`                     | <stid> <atid> | --file <path>, --prose <text>, --covers <ac-id>                                                                      | Re-cite an acceptance test; a field you do not name is a field it does not change | new-surface |
 
 ### `at`
 
@@ -1497,11 +1497,11 @@ Create an acceptance test (caller-assigned id; refuses an id that is taken)
     - **disposition:** keep
   - `--prose` `<text>` (string) -- What a non-test row asserts instead of a file
     - **disposition:** keep
-  - `--kind` `<kind>` (enum) -- Test-backed or not
+  - `--kind` `test|non-test` (enum) -- Test-backed or not
     - Accepts: test | non-test
     - **default:** test
     - **disposition:** keep
-  - `--status` `<status>` (enum) -- Initial status
+  - `--status` `to-write|red|green|n-a` (enum) -- Initial status
     - Accepts: to-write | red | green | n-a
     - **default:** to-write
     - **disposition:** keep

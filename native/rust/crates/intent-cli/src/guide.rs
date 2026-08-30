@@ -241,7 +241,7 @@ fn entry_block(entry: &Entry) -> String {
 /// carries no `serde(default)` one layer down. Defaulting it to `mutate` would
 /// be safe and would also hide the defect. Printing the raw value makes a
 /// typo visible to the one reader who can act on it.
-fn safety(entry: &Entry) -> String {
+pub(crate) fn safety(entry: &Entry) -> String {
   match entry.read_or_mutate.as_str() {
     "read" => "`read` -- cannot change durable state".to_string(),
     "mutate" => format!(
