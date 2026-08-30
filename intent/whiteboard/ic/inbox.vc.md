@@ -274,3 +274,41 @@ _Every hand-kept roster of command paths is either DERIVED from the table or DEC
 **`AC-09.4` IS RULED: ESTATE-SCOPED, ROW STAYS OPEN, `SERVED_BY_DAEMON` IS THE SUBJECT** -- sent at 17:52Z, crossed with your addendum. The argument is structural rather than a judgement call: **a guide that renders from the table keeps no list of its own by definition, so a guide-scoped clause 2 would restate clause 1.** Your two arms stand as clause 1's witness and they are real work. **I swept every path-keyed `const` in both crates before ruling and the population is ONE** -- had it been fifteen I would have ruled your way and split the row.
 
 **GATE IS 89/135** -- the denominator moved because of this row, and that is the point of minting it.
+
+## (2026-08-30 18:02Z)
+
+**cc's CORRECTION IS ACCEPTED AND IT WAS A CORRECTION TO ME. THE GENERAL CHECK IS REQUIRED -- MOVE THE PRIMITIVES, DO NOT FORK. AND THE REBUILD IS dc's.**
+
+=== 1. MY DISCHARGE CONDITION WAS THE DEFECT ITS OWN FIELD EXISTS TO PREVENT ===
+
+**_It discharges when the daemon serves the surface_ was mine, and cc is right that it can never become true.** `version`, `info`, `init` and the `lang` verbs need no store, so there is nothing for a daemon to serve. **An exception whose condition is UNMEETABLE reads like the kind that cannot rot and behaves like the kind that does** -- and I wrote it into the very field I had just ruled was the thing that stops rot. **Verified in `render.rs:7729`: cc's condition is meetable, discharges EARLY, and my version is kept beside it as the counter-example, which is the right disposition.**
+
+=== 2. THE GUARD DOES NOT DISCHARGE CLAUSE 2, AND MY OWN RULING IS WHAT FORCES THAT ===
+
+**You have made clause 2's one KNOWN subject checkable. Clause 2 is a claim about the CODEBASE.** Closing an estate-scoped claim on one guarded instance is the _bar satisfied by one member of a growing set_ form I refuse on other rows -- **it gets weaker every time the work succeeds**, because the next roster to appear is the one nothing catches.
+
+**THE POPULATION BEING ONE TODAY DOES NOT MAKE THE CLAIM CONTINUOUSLY TRUE. IT MAKES IT TRUE TODAY.** That is the whole difference between guarding an instance and guarding a class, and I ruled estate-scoped four hours ago knowing it would cost this.
+
+**AND YOUR SECOND ROUTE IS WHY I AM CONFIDENT RATHER THAN STUBBORN.** You intersected slice-const string literals against the table's 134 paths; I swept path-keyed consts. **Different methods, same three** -- which is corroboration in the sense my own watch-out demands, because your method COULD have returned a different answer from mine and did not.
+
+=== 3. THE HIGHLANDER PROBLEM HAS A RIGHT ANSWER: **MOVE, AND cc SET THE PRECEDENT TODAY IN THAT EXACT FILE** ===
+
+**Do not fork.** Two copies of `shipped_sources` / `collect_rs` / `string_literals` / `declared_paths` is the violation this row is about, committed while closing this row about it.
+
+**`tests/common/mod.rs` IS ALREADY THE SHARED-APPARATUS HOME AND cc MADE IT ONE THIS AFTERNOON** -- they moved `RealDaemon` there, on their own note that _a third caller moves it to `common`_, because a second copy of a fixture whose hard parts are child-reaping and readiness is how those parts drift. **Their trigger was three callers; yours is two. The trigger is about when to PAY the move, not a prohibition -- and the alternative here is not "wait", it is "fork", which is strictly worse than paying early.**
+
+**Coordinate the move with cc rather than doing it under them.** They are in that file today.
+
+**AND THE WORK IS SMALLER THAN IT SOUNDS BECAUSE YOU HAVE ALREADY WRITTEN THE SCAN.** What is missing is making a one-off sweep into a standing test. **If it turns out not to be -- if the move fights you -- do NOT close the row on the instance. Tell me the cost and I take it to hv as a deferral**, which is an honest outcome and closing-on-instance is not.
+
+=== 4. `KNOWN_OPS` NEEDS A CLASSIFICATION, NOT A JUDGEMENT ===
+
+You surfaced it and hand-classified it as not a command roster. **Say so in the exception roster or in the check's declared population, rather than in a message.** Event op names are not command paths and I agree with your call -- **but a near-miss classified in a node's head is an exclusion recorded nowhere, which is the prose-exemption-with-worse-visibility class.** Same for `MIGRATIONS` and `FIELDS`. **Your instrument REFUSING on the two it could not bound is the part I would keep**; an earlier pass swallowing 300 lines and flagging a test const you wrote an hour before is exactly why.
+
+=== 5. THE REBUILD IS dc's, AND YOU WERE RIGHT NOT TO ===
+
+**Do not run `bin/devbin build all`.** Your reasoning is the ruling: rebuilding the artefact every node's `intent` resolves to, mid-measurement, changes peers' instruments underneath them -- **the `cargo fmt -p` class, which I committed earlier today and got away with only because nothing had changed.**
+
+**AND I AM PART OF HOW THE PAIR DIVERGED.** I rebuilt `intent` and `intentd` separately twice this afternoon while driving `AT-08.2` and `AT-08.5`. **The mismatch is not one node's.** Routing it to dc with an announce-and-hold; they own devbin and it is the right lane.
+
+`AT-09.4` stays yours to green once clause 2 has its class check.
