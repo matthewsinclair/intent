@@ -99,15 +99,19 @@ pub const EDGES: &[Edge] = &[
   Edge::new(Mode::Normal, "/", Mode::Menu, ""),
   Edge::new(Mode::Normal, "Back", Mode::Normal, "pop the view stack"),
   Edge::new(Mode::Normal, "Esc", Mode::Normal, "at the root it QUITS"),
+  Edge::new(Mode::Field, "Typing", Mode::Field, ""),
   Edge::new(Mode::Field, "Enter", Mode::Normal, "commit"),
   Edge::new(Mode::Field, "Esc", Mode::Normal, "discard"),
   Edge::new(Mode::Command, "Typing", Mode::Command, ""),
   Edge::new(Mode::Command, "Enter", Mode::Normal, ""),
   Edge::new(Mode::Command, "Esc", Mode::Normal, ""),
+  Edge::new(Mode::Menu, "Hotkey", Mode::Menu, "select or drill in"),
+  Edge::new(Mode::Menu, "Move", Mode::Menu, "select or drill in"),
   Edge::new(Mode::Menu, "Enter", Mode::Normal, ""),
   Edge::new(Mode::Menu, "Back", Mode::Normal, ""),
   Edge::new(Mode::Menu, "Cancel", Mode::Normal, ""),
   Edge::new(Mode::Menu, "Esc", Mode::Normal, ""),
+  Edge::new(Mode::Embed, "Typing", Mode::Embed, "forwarded to the child"),
   Edge::new(Mode::Embed, "ChildExit", Mode::Normal, "read the file back"),
 ];
 
@@ -271,15 +275,147 @@ mod tests {
     );
   }
 
+  /// The ratified table, PARSED out of `tui-design.md` section 3.
+  ///
+  /// Split rule: a cell combining inputs with ` / ` becomes one row per input,
+  /// and the target cell either names one target for all of them or one per
+  /// input. **Split on ` / ` WITH ITS SPACES, because two of the triggers ARE
+  /// punctuation** -- `` `/` `` is the menu key -- and splitting on the bare
+  /// character would turn that row into two empty ones and quietly SHRINK the
+  /// expected set, which is the direction that fails silently.
+  fn parse_ratified(text: &str) -> BTreeSet<(String, String, String)> {
+    let lines: Vec<&str> = text.lines().collect();
+    let start = lines
+      .iter()
+      .position(|l| l.starts_with("## 3. The mode machine"))
+      .expect(
+        "`tui-design.md` has no section 3 -- the transcription's authority was renamed or moved",
+      );
+    let end = lines[start + 1..]
+      .iter()
+      .position(|l| l.starts_with("## "))
+      .map(|i| start + 1 + i)
+      .unwrap_or(lines.len());
+
+    let mut out = BTreeSet::new();
+    for line in &lines[start..end] {
+      let line = line.trim();
+      if !line.starts_with('|') {
+        continue;
+      }
+      let cells: Vec<String> = line
+        .trim_matches('|')
+        .split('|')
+        .map(|c| c.trim().to_string())
+        .collect();
+      if cells.len() < 3 {
+        continue;
+      }
+      let (from, trigger, to) = (&cells[0], &cells[1], &cells[2]);
+      if from.eq_ignore_ascii_case("from") || from.starts_with('-') {
+        continue;
+      }
+      let strip = |s: &str| s.trim().trim_matches('`').to_string();
+      let triggers: Vec<String> = trigger.split(" / ").map(strip).collect();
+      let mut targets: Vec<String> = to.split(" / ").map(strip).collect();
+      if targets.len() == 1 {
+        targets = vec![targets[0].clone(); triggers.len()];
+      }
+      assert_eq!(
+        triggers.len(),
+        targets.len(),
+        "row `{from} | {trigger} | {to}` pairs {} inputs with {} targets and the split rule cannot match them",
+        triggers.len(),
+        targets.len()
+      );
+      for (t, d) in triggers.into_iter().zip(targets) {
+        out.insert((from.clone(), t, d));
+      }
+    }
+    out
+  }
+
   /// The transcription is only worth having if it matches the ratified table.
-  /// Counted here so a row deleted from this file without being deleted from
-  /// `tui-design.md` fails rather than quietly narrowing the machine.
+  ///
+  /// **THIS TEST USED TO PIN A NUMBER I HAD COUNTED BY HAND -- 17 -- AGAINST A
+  /// DESIGN THAT RATIFIES 21.** Four self-loops (`FIELD` typing, `MENU` hotkey,
+  /// `MENU` move, `EMBED` typing) never made it out of section 3, and the pin
+  /// was taken from the NARROWED table rather than from the document, so the
+  /// check agreed with the drift and its own message asserted the design agreed
+  /// too. Its doc comment said it existed to catch exactly that. **A test over
+  /// two authored values can only fire after somebody writes the second one.**
+  ///
+  /// So the expected set is now DERIVED from the document, and compared as
+  /// TRIPLES rather than counted -- which also catches a row transcribed to the
+  /// wrong target, something a length never could.
   #[test]
   fn the_transcription_carries_every_row_the_design_ratifies() {
+    let path = testkit::repo_root().join("intent/st/ST0056/tui-design.md");
+    let text =
+      std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    let ratified = parse_ratified(&text);
+    assert!(
+      !ratified.is_empty(),
+      "parsed zero rows out of `tui-design.md` section 3. A parser that finds its section and reads nothing agrees with ANY transcription, which is the shape of a green for free"
+    );
+
+    let transcribed: BTreeSet<(String, String, String)> = EDGES
+      .iter()
+      .map(|e| {
+        (
+          e.from.name().to_string(),
+          e.on.to_string(),
+          e.to.name().to_string(),
+        )
+      })
+      .collect();
+
+    let missing: Vec<&(String, String, String)> = ratified.difference(&transcribed).collect();
+    let extra: Vec<&(String, String, String)> = transcribed.difference(&ratified).collect();
+    assert!(
+      missing.is_empty() && extra.is_empty(),
+      "the transcription and `tui-design.md` section 3 disagree.\n  ratified, NOT transcribed -- a ruling that never reached the code: {missing:?}\n  transcribed, NOT ratified -- a ruling that never reached the table it was ratified in: {extra:?}"
+    );
+  }
+
+  /// **THE PARSER IS DRIVEN ON A PLANTED TABLE, because a parser checked only
+  /// against a corpus it already matches is green for free** -- the class this
+  /// estate keeps meeting, and the one that let the count above stand.
+  ///
+  /// The plant exercises all three shapes at once: a trigger that IS a slash,
+  /// a combined trigger against ONE target, and a combined trigger against one
+  /// target EACH. It also puts a `## 4.` after the table, so a parser that ran
+  /// past its section would over-read and fail here.
+  #[test]
+  fn the_parse_is_driven_on_a_planted_table_rather_than_only_the_real_one() {
+    let planted = r#"## 3. The mode machine
+
+| from    | trigger              | to                    | notes |
+| ------- | -------------------- | --------------------- | ----- |
+| NORMAL  | `/`                  | MENU                  |       |
+| MENU    | Hotkey / Move        | MENU                  | both  |
+| COMMAND | Typing / Enter / Esc | COMMAND / NORMAL / NORMAL |   |
+
+## 4. Keys
+
+| NOTAROW | Move | NOWHERE | should not be read |
+"#;
+    let got = parse_ratified(planted);
+    let want: BTreeSet<(String, String, String)> = [
+      ("NORMAL", "/", "MENU"),
+      ("MENU", "Hotkey", "MENU"),
+      ("MENU", "Move", "MENU"),
+      ("COMMAND", "Typing", "COMMAND"),
+      ("COMMAND", "Enter", "NORMAL"),
+      ("COMMAND", "Esc", "NORMAL"),
+    ]
+    .iter()
+    .map(|(f, o, t)| (f.to_string(), o.to_string(), t.to_string()))
+    .collect();
+
     assert_eq!(
-      EDGES.len(),
-      17,
-      "tui-design.md section 3 ratifies 17 edges once its combined rows are split one-per-input. Changing this number means the design moved or the transcription did, and which one is the question to answer before editing it"
+      got, want,
+      "the split rule must survive a slash-as-trigger, a shared target, a per-input target, and a table in the NEXT section"
     );
   }
 }
