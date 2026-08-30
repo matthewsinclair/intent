@@ -203,6 +203,24 @@ pub fn daemon_address_file_under(root: &std::path::Path) -> PathBuf {
   daemon_state_dir_under(root).join("intentd.addr")
 }
 
+/// The file whose LOCK means "a daemon is running here" (`AC-08.12`).
+///
+/// **A SEPARATE FILE FROM THE SOCKET, AND THE SEPARATION IS THE MECHANISM.**
+/// The lock has to survive being asked about while the socket is being
+/// unlinked and rebound, and a lock on the socket itself would vanish with it.
+/// It is also the one file here whose CONTENT is irrelevant -- what carries the
+/// meaning is the kernel's lock on the open descriptor, which is released on
+/// process death by any means including `SIGKILL`. That is the whole reason it
+/// exists rather than a pid file: **a pid file goes stale and a lock cannot.**
+pub fn daemon_lock_under(root: &std::path::Path) -> PathBuf {
+  daemon_state_dir_under(root).join("intentd.lock")
+}
+
+/// [`daemon_lock_under`] against the operator's own home.
+pub fn daemon_lock() -> Result<PathBuf, UserStateError> {
+  Ok(daemon_lock_under(&home()?))
+}
+
 /// The operator's login name, when the environment names one.
 ///
 /// **`$USER` IS GRANTED FOR `bootstrap` AND CONFINED HERE** -- hv, 2026-08-27,
@@ -297,6 +315,7 @@ mod tests {
       daemon_state_dir().unwrap(),
       daemon_socket().unwrap(),
       daemon_address_file().unwrap(),
+      daemon_lock().unwrap(),
     ] {
       assert!(
         path.starts_with(&h),
