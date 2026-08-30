@@ -160,22 +160,64 @@ while IFS= read -r -d '' f; do
   [ -n "$f" ] && RS_FILES+=("$f")
 done < <(git diff --cached --name-only --diff-filter=ACM -z -- '*.rs' || true)
 if [ "${#RS_FILES[@]}" -gt 0 ]; then
-  # Explicit config, so the probe's LOCATION cannot change the verdict.
+  # **THE PROBE SITS BESIDE THE ORIGINAL, AND THAT IS LOAD-BEARING RATHER THAN
+  # TIDY** (dc, 2026-08-30, measured with a positive control after this arm
+  # blocked three nodes). A lone `.rs` file in a scratch directory has no
+  # sibling `common.rs`, so rustfmt cannot resolve `mod common;`, fails, and
+  # exits non-zero -- which an arm reading only the exit code reports as
+  # "not formatted". Every integration test in this workspace declares a module,
+  # so the arm refused seven correctly-formatted files and printed a remedy that
+  # runs clean and changes nothing: the operator formats, retries, and is
+  # refused identically. Beside the original, module resolution is the file's
+  # own. **The Elixir arm above already did this, for the same reason, and I
+  # applied it to one arm and not the other.**
+  #
+  # **AND THE EXIT CODE ALONE CANNOT TELL "UNFORMATTED" FROM "COULD NOT
+  # MEASURE", WHICH IS THE DEFECT UNDERNEATH THE DEFECT.** rustfmt exits
+  # non-zero for both, and reporting the second as the first sends someone to
+  # fix a file that is already correct. So a probe that writes to STDERR is a
+  # measurement failure and is reported as one; a diff on stdout with a clean
+  # stderr is a formatting failure. **A gate that cannot say "I could not
+  # check" will eventually say something false instead.**
   RS_CFG=$(git ls-files '*rustfmt.toml' | head -1)
   RS_BAD=""
+  RS_UNMEASURED=""
   for f in "${RS_FILES[@]}"; do
-    probe_dir=$(mktemp -d)
-    probe="$probe_dir/probe.rs"
+    probe="$(dirname "$f")/.staged-check-$$.rs"
     if git show ":$f" > "$probe" 2>/dev/null; then
-      if [ -n "$RS_CFG" ]; then
-        rustfmt --check --edition 2024 --config-path "$RS_CFG" "$probe" >/dev/null 2>&1 \
-          || RS_BAD="$RS_BAD $f"
+      # **`if`, NOT `rs_err=$(...)`. Under `set -e` a failing command
+      # substitution aborts the script before the next line runs**, so the
+      # earlier form refused with rc=1 and printed NOTHING -- a gate that
+      # blocks a commit and says nothing at all, which is worse than the bug
+      # it was added to report. Caught by driving the refusal path, which the
+      # pass path could never have shown.
+      rs_errfile="$probe.err"
+      if rustfmt --check --edition 2024 ${RS_CFG:+--config-path "$RS_CFG"} "$probe" \
+          >/dev/null 2>"$rs_errfile"; then
+        rs_rc=0
       else
-        rustfmt --check --edition 2024 "$probe" >/dev/null 2>&1 || RS_BAD="$RS_BAD $f"
+        rs_rc=1
+      fi
+      rs_err=$(cat "$rs_errfile" 2>/dev/null || true)
+      rm -f "$rs_errfile"
+      if [ -n "$rs_err" ]; then
+        RS_UNMEASURED="$RS_UNMEASURED $f"
+      elif [ "$rs_rc" -ne 0 ]; then
+        RS_BAD="$RS_BAD $f"
       fi
     fi
-    rm -rf "$probe_dir"
+    rm -f "$probe"
   done
+
+  if [ -n "$RS_UNMEASURED" ]; then
+    echo "pre-commit: rust formatting COULD NOT BE CHECKED -- REFUSED, and nothing was rewritten." >&2
+    echo "pre-commit:   this is NOT a claim that these files are unformatted; rustfmt could not read them:" >&2
+    printf 'pre-commit:     %s\n' $RS_UNMEASURED >&2
+    echo "pre-commit:   last error: $rs_err" >&2
+    echo "pre-commit:   this is a gate defect, not your code. Report it rather than reformatting." >&2
+    exit 1
+  fi
+
   if [ -n "$RS_BAD" ]; then
     formatter_refused "rust" "rustfmt --edition 2024 <the files listed above>" "$RS_BAD"
   fi
