@@ -6368,12 +6368,9 @@
             "note": "A SECOND PROJECTION OF ONE FILE, which is exactly what vc's 2026-08-15 no-split ruling calls for: `intent llm` projects differently rather than reading a different file. `llm usage_rules` stays the human-facing DO/NEVER projection and keeps its name, which `--symlink` and the Elixir `usage_rules.sync` habit both depend on; this is the agent projection, and it carries what a human projection has no reason to -- the generated command reference, the `exposed_on_mcp` and `read_or_mutate` constraints ahead of each description, and the exit-code contract once for the surface rather than per row."
           },
           "disposition": "new-surface",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "read",
-          "mcp_review": {
-            "counterintuitive": "Exposing to an agent the guide that tells an agent what it may call looks circular and is the opposite: it is the only row on this surface whose whole content is the answer to `what am I allowed to do`, so withholding it is what would be strange. It is also the safest kind of row here -- it renders to stdout and writes nothing, which is why it is `read` where its sibling `llm usage_rules` is `mutate` (that one carries `--symlink`).",
-            "grounded_in": "AC-09.4 plus this family's own `family_notes`; no v2 antecedent, so there is nothing measured to ground it in and this row says so rather than implying a measurement"
-          }
+          "mcp_narrowed": "NARROWED off MCP (vc ruling, 2026-08-30, AC-09.6 read): the MCP tool list IS this guide's answer -- _what can I do_ -- in the shape MCP defines, and for an MCP client the tool list is authoritative BY CONSTRUCTION. Exposing the guide gives an agent two differently-shaped answers to one question: a Highlander violation at the surface rather than in code, and the second home goes stale the instant a tool is added or withheld. The CLI surface keeps the row; this flag is about MCP only."
         }
       ],
       "bats_coverage": {
@@ -8346,11 +8343,9 @@
         ]
       },
       "disposition": "new-surface",
-      "exposed_on_mcp": true,
-      "mcp_review": {
-        "note": "A READ with no durable effect, so the derivation from `recoverability` withholds nothing. It is also the verb an agent most plausibly needs: `does the command my script names still exist` is exactly the question an agent hits when maintaining someone else's automation."
-      },
-      "read_or_mutate": "read"
+      "exposed_on_mcp": false,
+      "read_or_mutate": "read",
+      "mcp_narrowed": "NARROWED off MCP (vc ruling, 2026-08-30, AC-09.6 read): the same two-homes argument as `llm guide`, in the past tense and worse -- the only subcommand is `retired`, and an agent's correct experience of a retired verb is that the tool is NOT OFFERED. A tool enumerating retired verbs invites an agent to reason about surface it cannot call: actively misleading to the consumer the tier exists for."
     },
     {
       "path": "browse",
@@ -8644,20 +8639,21 @@
         "hidden_aliases_basis",
         "input_selector_gap",
         "kind",
+        "mcp_narrowed",
         "mcp_review",
         "name_reclaimed",
         "not_backup",
         "not_export",
         "note",
         "observed",
+        "one_home",
         "read_or_mutate_correction",
+        "recoverability_absent",
         "recoverability_anomaly",
+        "root_only",
         "side_effect_ruled",
         "truth_model_correction",
-        "v2",
-        "one_home",
-        "recoverability_absent",
-        "root_only"
+        "v2"
       ]
     },
     "flag": {

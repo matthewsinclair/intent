@@ -2952,9 +2952,8 @@ Render the agent guide: the command reference generated from this table, plus th
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: DECLARED BY ic 2026-08-15, ratification OUTSTANDING. AC-09.4 says `intent llm` renders the agent guide and the `llm` family's own notes say it is regenerated from this table at WP-09 -- and no entry declared the command. The family knew; the surface did not. Declared now rather than at WP-09 because `guide_refs_check.sh` and the eventual `llm_guide_gen.rs` both need a command to test against, and an AC whose subject has no row cannot be tested at all.
 - **Note:** A SECOND PROJECTION OF ONE FILE, which is exactly what vc's 2026-08-15 no-split ruling calls for: `intent llm` projects differently rather than reading a different file. `llm usage_rules` stays the human-facing DO/NEVER projection and keeps its name, which `--symlink` and the Elixir `usage_rules.sync` habit both depend on; this is the agent projection, and it carries what a human projection has no reason to -- the generated command reference, the `exposed_on_mcp` and `read_or_mutate` constraints ahead of each description, and the exit-code contract once for the surface rather than per row.
-- **MCP:** exposed as an agent tool -- read-only
-- **Wants review -- the classification disagrees with the verb name:** Exposing to an agent the guide that tells an agent what it may call looks circular and is the opposite: it is the only row on this surface whose whole content is the answer to `what am I allowed to do`, so withholding it is what would be strange. It is also the safest kind of row here -- it renders to stdout and writes nothing, which is why it is `read` where its sibling `llm usage_rules` is `mutate` (that one carries `--symlink`).
-- **MCP classification grounded in:** AC-09.4 plus this family's own `family_notes`; no v2 antecedent, so there is nothing measured to ground it in and this row says so rather than implying a measurement
+- **MCP:** not exposed -- read-only
+- **mcp narrowed:** NARROWED off MCP (vc ruling, 2026-08-30, AC-09.6 read): the MCP tool list IS this guide's answer -- _what can I do_ -- in the shape MCP defines, and for an MCP client the tool list is authoritative BY CONSTRUCTION. Exposing the guide gives an agent two differently-shaped answers to one question: a Highlander violation at the surface rather than in code, and the second home goes stale the instant a tool is added or withheld. The CLI surface keeps the row; this flag is about MCP only.
 
 ## Family: `learn`
 
@@ -3963,6 +3962,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **v2:** new-surface
 - **acceptance:** ST0058 AC-00.5
 - **disposition:** new-surface
+- **mcp narrowed:** NARROWED off MCP (vc ruling, 2026-08-30, AC-09.6 read): the same two-homes argument as `llm guide`, in the past tense and worse -- the only subcommand is `retired`, and an agent's correct experience of a retired verb is that the tool is NOT OFFERED. A tool enumerating retired verbs invites an agent to reason about surface it cannot call: actively misleading to the consumer the tier exists for.
 - **Flags:**
   - `--format` `terminal|json` (enum) -- Output format
     - **disposition:** keep
@@ -3980,8 +3980,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
   - `1.authority`: hv
   - `1.date`: 2026-08-29
   - `1.record`: intent/whiteboard/ic/.history/20260829/wip-fold-2353Z.md
-- **MCP:** exposed as an agent tool -- read-only
-- **MCP note:** A READ with no durable effect, so the derivation from `recoverability` withholds nothing. It is also the verb an agent most plausibly needs: `does the command my script names still exist` is exactly the question an agent hits when maintaining someone else's automation.
+- **MCP:** not exposed -- read-only
 
 ### `browse`
 
