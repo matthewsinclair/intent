@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-30 01:45Z
+heartbeat_at: 2026-08-30 01:46Z
 status: active
 focus: "Criteria queue CLEAR and EIGHT RULINGS ISSUED while hv is AFK. ST0064 is nine criteria and rescoped L on ic's Geodica pricing; AC-08.3 split into client + AC-08.11 daemon on cc's finding that vc had put a daemon obligation in a client row. hv's standing Rust review job has paid twice: the `num_args` duplicate and the `.ok()` swallow family at four sites. Gate open on both arms; suite green."
 claims: [ST0056, ST0057, ST0058, ST0060, ST0064, ST0066, ST0068]
@@ -118,6 +118,10 @@ claims: [ST0056, ST0057, ST0058, ST0060, ST0064, ST0066, ST0068]
 
 67. **WHERE A PROPERTY IS ENFORCED BY A DEFAULT, THE OUTCOME HOLDS UNDER ANY IMPLEMENTATION THAT STILL EQUALS IT -- SO WITNESS THE CALL, NOT THE WAIT.** `0152`'s explicit `busy_timeout(5000)` cannot be tested by timing: the setting is per-connection and unpersisted, and a timed wait cannot distinguish OUR 5000 from rusqlite's, so **the test would pass with the line deleted.** cc drafted it, named it in the doc comment, then found it could not exist -- **a false green in the commit whose subject is an invisible default.** The witness is structural: assert the call. **The plausible deletion is not malice -- it is a reader observing correctly that the line sets the default and concluding it is redundant**, which is invisible today and only surfaces on an upstream bump, with nothing connecting the two. **Same ruling as `rename`, with a default in place of a syscall.**
 68. **A DISCLOSED ONE-SIDED MEASUREMENT IS WORTH MORE THAN A COMPLETED ONE THAT QUIETLY REUSES AN OLD HALF.** cc could not re-drive the contended before/after because a fresh debug build panics at startup on ic's in-flight dispatch table, **and said so rather than presenting the earlier measurement as the after.** That disclosure is what makes their other numbers readable.
+
+69. **CHANGING A PUBLISHED FIELD'S MEANING WITHOUT CHANGING ITS SHAPE IS THE WORST VERSION OF THAT CHANGE: EVERY CONSUMER KEEPS PARSING AND THE CORRECT ONES BECOME SILENTLY WRONG.** vc ruled `inherited_from` should carry the ancestor EVENT id; it is `Option<String>`, published into `thread.schema.json` and `schema.graphql`, with a `///` saying it names the ancestor ENTITY. **dc refused it and was right** -- the published-`///`-is-a-contract family arriving as an UPGRADE rather than a bug, so nothing breaks and therefore nothing reports. **The new capability gets a NEW field; the published one does not move.** And the two answer different questions, with the entity one the commoner: _everything closed by ST0056's close_ is cheap on an entity id and needs a log join on an event id. **vc named the rarer case and treated it as the whole requirement.**
+70. **A FIELD WHOSE NAME IS WRONG IN A WAY THAT WORKS IS WORSE THAN ONE THAT IS OBVIOUSLY WRONG.** `inherited_at` for a ULID: in this estate `_at` means a TIME (`heartbeat_at`, `measured_at`), and **a ULID is lexically sortable by time, so it would behave plausibly for a while before anyone tried to parse it.** Ruled `inherited_event`.
+71. **A DECISION THAT REACHES A QUESTION IT WAS NOT ABOUT IS THE STRONGEST EVIDENCE FOR IT** (dc, on the event-count ruling). _Was this child considered and skipped_ is derivable from the ratified from-sets against the child's state at the time -- **and its state at the time is recoverable ONLY because B writes an event for every state change.** So B is what makes the skip derivable and A would have left it genuinely unanswerable. **Neither of us had that argument when the ruling was made.**
 
 ## Decisions
 
