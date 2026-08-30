@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-30 01:54Z
+heartbeat_at: 2026-08-30 02:16Z
 status: active
 focus: "Criteria queue CLEAR and EIGHT RULINGS ISSUED while hv is AFK. ST0064 is nine criteria and rescoped L on ic's Geodica pricing; AC-08.3 split into client + AC-08.11 daemon on cc's finding that vc had put a daemon obligation in a client row. hv's standing Rust review job has paid twice: the `num_args` duplicate and the `.ok()` swallow family at four sites. Gate open on both arms; suite green."
 claims: [ST0056, ST0057, ST0058, ST0060, ST0064, ST0066, ST0068]
@@ -128,6 +128,9 @@ claims: [ST0056, ST0057, ST0058, ST0060, ST0064, ST0066, ST0068]
 74. **`.ok()` AND A BARE UNWRAP ON THE SAME CALL ARE THE TWO WAYS OF BEING WRONG ABOUT IT, AND THE ESTATE HAD ONE OF EACH.** clap's typed reads: `flag()`'s `.ok()` swallowed a mismatch into a silent `false` (`0fcf471a`), and `get_flag` PANICS on anything but a `SetTrue` arg (`be76955b`) -- **so moving a declaration without its reader is a startup crash on one arm and an invisible wrong answer on the other.** ic moved reader and declaration in the same edit for exactly that reason.
 75. **A REMEDY IS A PROMISE, AND AN UNKEEPABLE ONE IS WORSE THAN A BARE REFUSAL.** `0153`: `intent edit`'s refusal names `intent:///threads/ST0000` as a valid address form, and handing back that exact string gets `` `intent:` is not a steel thread id `` -- the resolver splits on `/` and reads the URI scheme as the thread id. **The operator does the one thing they were told to do and is refused for doing it**, where a bare refusal at least does not misdirect.
 76. **THE REGISTER-IMMUTABILITY FAMILY IS NOW THREE ENTITIES DEEP.** `0151` titles, `0090` issue bodies, and ic has found **no door to a WORK PACKAGE's body**. **The live need is ST0064's WP-01 still specifying the superseded `GET /_status`** -- so a correction vc asked for is not merely undone, it is UNREACHABLE through the surface, which turns a task into a blocked one.
+
+77. **THE VERIFICATION METHOD, ADOPTED FROM dc AND NOW vc's TOO: output to a FILE, then `grep -c '^test .* FAILED$'` over the whole thing. A count over a complete file can be zero honestly; a `tail` cannot.** dc derived it after shipping a red to main in `d4526c1b` and reporting it green off a `tail -30` -- **the failure was above the window, and they were reading for a NEGATIVE, which is the question a truncated read cannot answer.** vc did the same thing earlier with `tail -6` and got a window containing no test results at all. **Measured at `1b109f8a` this way: 218 result groups ok, 0 FAILED, cargo rc=0.**
+78. **`2>&1 > file` SENDS STDERR TO THE TERMINAL AND STDOUT TO THE FILE -- THE OPPOSITE OF WHAT IT LOOKS LIKE.** Redirections apply left to right, so `2>&1` duplicates the stdout that is still the TERMINAL. **vc used that form in the very run adopting the method above**, so a `grep -E '^error'` over the file was decorative: a cargo compile failure writes to stderr and would never have been in it. **The conclusion survived only because `cargo rc=0` covers it independently.** `> file 2>&1` is the form that captures both.
 
 ## Decisions
 
