@@ -176,6 +176,26 @@ drive() {  # $1 = absolute script path; prints what it wrote to stderr
   ( cd "$FIX/install" && bash "$1" </dev/null ) 2>&1 >/dev/null
 }
 
+# The CONTROL's drive, which is NOT the surviving arm's drive, and the split is
+# a finding this instrument made about itself.
+#
+# The surviving arm drives a CORRECT invocation and requires silence. Reusing
+# that for the control assumes the correct path reaches the carried symbol, and
+# for `intent_claude_hook` it does not: no-args prints usage and returns without
+# ever calling `error`, so deleting `error` changed nothing and the control
+# reported -- rightly -- that its green meant nothing. cwi hid this, because its
+# usage path calls `find_project_root` and the control fired by luck.
+#
+# So the control also drives a REFUSAL path, which is where a reporting
+# primitive is actually reached. Both are safe: a bogus argument to any of these
+# is a refusal, never an action.
+drive_control() {  # $1 = absolute script path; stderr from either invocation
+  {
+    ( cd "$FIX/install" && bash "$1" </dev/null ) 2>&1 >/dev/null
+    ( cd "$FIX/install" && bash "$1" __no_such_verb__ </dev/null ) 2>&1 >/dev/null
+  }
+}
+
 for f in "${POP[@]}"; do
   case "$f" in
     intent/plugins/claude/bin/*) ;;
@@ -217,7 +237,7 @@ for f in "${POP[@]}"; do
       "$pre" > "$pre.new" && mv "$pre.new" "$pre"
   done
   cmp -s "$target" "$pre" && die "the pre-port form of $f is identical to the ported form -- the control edits nothing"
-  err="$(drive "$pre")"
+  err="$(drive_control "$pre")"
   CONTROLLED=$((CONTROLLED + 1))
   if [ -z "$err" ]; then
     note "CONTROL      $f pre-port form (minus ${carried[*]}) is SILENT with bin/ absent -- this arm cannot fail, so its green means nothing"
