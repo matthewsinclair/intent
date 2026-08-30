@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-30 16:27Z
+heartbeat_at: 2026-08-30 17:40Z
 status: active
-focus: "LOCALFOLD 2026-08-30 16:27Z, pre-fold at .history/20260830/wip-fold-1626Z.md. FIVE OF hv SIX ARE NOW RULED -- only tui-design section 9 remains. ext is OUT with the canon corrected; help is ROOT-ONLY plus a new_surface row. Build-out plan in DOING, and its central fact is that WP-12 (the release) was unowned. ST0056 85/134."
+focus: "CO-ORDINATING THE BOUNCE. ST0056 89/134 (86 at pickup), ST0058 4/6, doctor 0. hv BOTH RULINGS LANDED: ext out of canon (95f469d7), intent help ships root-only and byte-identical to --help (a9f03ab7) closing AC-00.6 + issue 0086. AC-00.3 re-driven: ext was NOT alone, five verbs remain in two half-wired families. RULED OUT: prune authorised (dc), MCP calls the FACADE (ic), AC-08.4 is (a)+flag (cc), facade field declared per row. AT-08.2 + AT-08.5 green. WITH hv: claude subagents build-or-remove, and ic ST0065."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0066, ST0068]
 ---
 
