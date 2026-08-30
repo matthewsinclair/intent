@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-30 18:31Z
+heartbeat_at: 2026-08-30 19:00Z
 status: active
-focus: "LOCALFOLD 2026-08-30 18:31Z, pre-fold at .history/20260830/wip-fold-1831Z.md. BOTH hv RULINGS SHIPPED: ext out of canon, intent help root-only and byte-identical to --help. ST0056 89/135, ST0058 4/6, doctor 0. WITH hv: claude subagents build-or-remove, ic's ST0065, and an MCP scope call once ic has their number."
+focus: "BOUNCE PICKUP. ST0056 90/135, doctor 0. THE OPEN 45 SPLIT vc 17 / cc 14 / ic 8 / dc 6 -- WP-00 is the largest block and it is the gate group. LEAD FINDING: ST0056/AC-00.6 (delete bin/, 28 scripts) and AC-12.1 (nothing EXECUTES or EMITS a bin/ path) open with the same first clause; only 12.1 closed, and three boards cite 12.1 as the prune. hv scope call."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
@@ -50,7 +50,7 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ## hv items: RULED, AND THE OPEN ONE IS ic's TO BUILD
 
-**ALL SIX OF THE MORNING'S ITEMS ARE NOW RULED.** `ext` OUT (canon corrected, `95f469d7`), `help` IN at root (`a9f03ab7`, closing `AC-00.6` + issue `0086`), orphaned `intentd` (hv kills by hand, cc owns a reaping arm), `shipped_surface_drift` expired, `design.md:22` corrected.
+**ALL SIX OF THE MORNING'S ITEMS ARE NOW RULED.** `ext` OUT (canon corrected, `95f469d7`), `help` IN at root (`a9f03ab7`, closing **`ST0058`/`AC-00.6`** + issue `0086` -- **the thread qualifier is load-bearing: `ST0056`/`AC-00.6` is the `bin/` prune and is OPEN**), orphaned `intentd` (hv kills by hand, cc owns a reaping arm), `shipped_surface_drift` expired, `design.md:22` corrected.
 
 **1. `claude subagents` -- RULED IN. BUILD IT.** hv, 2026-08-30, verbatim: _we need functionality parity with v2 and that means plugins and claude subagents._ **So the `ext` precedent does NOT extend to it** -- `ext` was ruled out because nothing consumes it; subagents have a live consumer and v2 parity is the bar. **Mirror the working `claude skills` family; `fn claude`'s arms are `hook`, `rules`, `skills`, `upgrade`, `start`, `ws` and there is no `subagents` arm.** **AND CHECK `plugin` IN THE SAME PASS** -- hv named _plugins AND claude subagents_, and `plugin list` answering rc=0 is not the same claim as the family being at v2 parity. **Nothing in v3 writes `.claude/agents/`**, so a fresh machine has no critic subagents at all; ours are here because v2 installed them in April.
 
