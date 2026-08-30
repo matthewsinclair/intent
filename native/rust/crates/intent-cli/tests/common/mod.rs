@@ -159,6 +159,7 @@ pub struct RealDaemon {
 
 impl RealDaemon {
   pub fn start() -> RealDaemon {
+    refuse_a_stale_sibling_daemon();
     // **AN ISOLATED `HOME`, AND THIS IS THE ONE LINE THAT MUST NOT BE WRONG.**
     // A daemon started under the real `$HOME` answers every peer session's
     // liveness probe at once and holds the `sync`/`ingest` family off the
@@ -593,4 +594,98 @@ pub fn string_literals(code: &str) -> Vec<String> {
     i += 1;
   }
   out
+}
+
+/// **REFUSE A SIBLING `intentd` OLDER THAN THE SOURCE IT IS SUPPOSED TO BE.**
+///
+/// **THE MEASURED EPISODE (ic, 2026-08-30, found by hitting it).**
+/// `a_project_with_backups_turned_off_is_opened_and_not_backed_up` went red on
+/// a clean HEAD -- the daemon opened a backups-off project and swept it anyway.
+/// It read as a defect in `backup.enabled`, a key that had landed hours
+/// earlier, in a lane that was not ic's. **It was a binary.** `strings |
+/// grep -c 'backup.enabled = false'` gives 1 for a daemon built after
+/// `42402762` and 0 for the one that target dir was holding.
+///
+/// **WHY NOTHING CAUGHT IT, AND BOTH EXISTING PROTECTIONS MISS BY DESIGN.**
+/// `render.rs`'s `intentd_candidates` resolves the daemon as
+/// `current_exe().parent().join("intentd")` -- a SIBLING -- and `cargo test -p
+/// intent-cli` builds THIS package's binaries, never another package's, so the
+/// sibling is whatever an earlier build left. [`wait_until_it_answers_a_real_op`]
+/// panics when no daemon answers, which covers ABSENT and refusing. The
+/// version check covers a CROSS-version mismatch, and both binaries say
+/// `3.0.0`. **Same version, different build, nothing to compare** -- so a stale
+/// daemon starts cleanly and returns a confident wrong answer.
+///
+/// **THAT IS STRICTLY WORSE THAN A CRASH, WHICH IS WHY THIS EXISTS.** An absent
+/// daemon fails loudly and blames nothing. A stale one attributes its own
+/// staleness to whoever owns the key under test, and sends them to read correct
+/// code looking for a defect that is not there.
+///
+/// **IT REFUSES AND NEVER REBUILDS.** A harness that quietly ran `cargo build`
+/// would hide the class from the node that needs to learn its binary was
+/// stale -- the same reasoning the clock guard uses for printing the right
+/// stamp rather than writing it.
+///
+/// **THE COMPARISON IS AGAINST SOURCE MTIME, WHICH IS WHAT `stale` MEANS
+/// HERE.** Comparing against the sibling `intent` would be quieter and wrong:
+/// cargo does not relink an unchanged binary, so both would be old together and
+/// the check would pass on exactly the tree it is meant to refuse. An absent
+/// sibling is left alone -- that case already has a better message one call
+/// down, and duplicating it here would give one failure two homes.
+fn refuse_a_stale_sibling_daemon() {
+  let intent = Path::new(env!("CARGO_BIN_EXE_intent"));
+  let Some(sibling) = intent.parent().map(|dir| dir.join("intentd")) else {
+    return;
+  };
+  let Ok(built) = std::fs::metadata(&sibling).and_then(|m| m.modified()) else {
+    // Absent, or unreadable: `wait_until_it_answers_a_real_op` says it better.
+    return;
+  };
+
+  let root = testkit::workspace_root();
+  let mut newest = std::time::UNIX_EPOCH;
+  let mut newest_path = std::path::PathBuf::new();
+  for crate_name in ["intentd", "intentsvcs"] {
+    newest_source(
+      &root.join("crates").join(crate_name).join("src"),
+      &mut newest,
+      &mut newest_path,
+    );
+  }
+
+  assert!(
+    built >= newest,
+    "the sibling `intentd` this test would spawn is OLDER than the code it is supposed to be \
+     running, so it will answer confidently with behaviour that is no longer in the tree -- and \
+     the failure will look like a defect in whatever key the test is about.\n\n  \
+     daemon:  {}\n  newer:   {}\n\n  \
+     `cargo test -p intent-cli` builds this package's binaries and NOT another package's, and \
+     the daemon is resolved as a sibling of the `intent` cargo just built.\n  \
+     fix: cargo build -p intentd",
+    sibling.display(),
+    newest_path.display()
+  );
+}
+
+/// The newest modification time under `dir`, and the file carrying it.
+fn newest_source(
+  dir: &Path,
+  newest: &mut std::time::SystemTime,
+  newest_path: &mut std::path::PathBuf,
+) {
+  let Ok(entries) = std::fs::read_dir(dir) else {
+    return;
+  };
+  for entry in entries.flatten() {
+    let path = entry.path();
+    if path.is_dir() {
+      newest_source(&path, newest, newest_path);
+    } else if path.extension().is_some_and(|e| e == "rs")
+      && let Ok(at) = entry.metadata().and_then(|m| m.modified())
+      && at > *newest
+    {
+      *newest = at;
+      *newest_path = path;
+    }
+  }
 }

@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-30 22:04Z
+heartbeat_at: 2026-08-30 22:28Z
 status: active
-focus: "AT-06.6 (49d8b24e) and SERVED_BY_DAEMON membership (4a3ca7a9) landed; AT-10.8 egest_estate.rs built, 4 arms green + 1 parked. AC-10.8s SECOND HALF IS UNBUILT: sync --to-disk prints a count and names no residue, which is vcs AC-10.5 finding one verb over -- design call routed to vc (which output carries it). Next: AT-10.12 migrator_determinism.rs, ISOLATED FIXTURE ONLY."
+focus: "AT-06.6 (49d8b24e), SERVED_BY_DAEMON membership (4a3ca7a9), AT-10.8 (ccbb4afd) landed. ics RED backup test was a STALE SIBLING intentd, not my key -- RealDaemon now refuses one. AC-10.8s naming half stays unbuilt pending vcs design call. Next: AT-10.12 migrator_determinism.rs, ISOLATED FIXTURE ONLY."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -24,6 +24,12 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 - **A `bin/devbin build all` is owed** before anyone can browse the web face from the delivered binary.
 
 ## Watch-outs
+
+**A STALE SIBLING BINARY REPORTS ITSELF AS A DEFECT IN SOMEONE ELSE'S KEY, AND IT DID.** ic hit `a_project_with_backups_turned_off_...` RED on a clean HEAD and it was neither their code nor my key: the daemon was built before `42402762`. **Measured in the binaries, never the source** -- `strings | grep -c 'backup.enabled = false'` gives 1 for a gated daemon and 0 for `target/debug/intentd`. `render.rs:5620` resolves the daemon as `current_exe().parent().join("intentd")`, and **`cargo test -p intent-cli` builds this package's binaries and not another package's**, so the sibling is whatever an earlier build left.
+
+**BOTH EXISTING PROTECTIONS MISS IT BY DESIGN, IN OPPOSITE DIRECTIONS.** The `wait_until_it_answers` panic covers ABSENT; the version check covers a CROSS-version mismatch and both binaries say `3.0.0`. **Same version, different build, nothing to compare.** `RealDaemon::start` now refuses a sibling older than the newest `intentd`/`intentsvcs` source, and REFUSES rather than rebuilding -- a harness that quietly builds hides the class from the node whose binary was stale.
+
+**AND IT IS THE RESIDUAL LIMIT I WROTE INTO `the_binary_under_test_is_the_one_cargo_built.rs` YESTERDAY, FIRED WITHIN A DAY.** That header says the guard proves the SPELLING and not that a spawn reached the intended inode. **Writing a limit down does not close it**, and the person who hit it was not the person who recorded it.
 
 **MY BOARD'S NEXT-ITEM WAS STALE IN THE DIRECTION THAT COSTS A SESSION.** It sent me to ask hv about WP-13; WP-13 was descoped to ST0069 and there was nothing to ask. **A fold records what you were thinking, and what you were thinking is the first thing to go out of date.** Re-drive the register at pickup before believing your own handover.
 
