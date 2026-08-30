@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-30 11:23Z
+heartbeat_at: 2026-08-30 12:43Z
 status: active
-focus: "LOCALFOLD 2026-08-30 11:21Z, pre-fold at .history/20260830/wip-fold-1121Z.md. Four of today's instances consolidated into ONE named shape, class 1a: the proxy you can see stands in for the subject you cannot. New Coordination section carries all three nodes' queues, which are also written into their inbox files because hv is bouncing everyone. WP-00 is mine: 12 ATs to write."
+focus: "hv RULED THE SCOPE AND IT IS PERFORMED: ST0069 minted, 25 never-started criteria moved whole (WP-13 search, WP-14 store-backed coordination, WP-16 contract drift), rows RE-MINTED on the target because descope records a move and does not carry the requirement. WP-12 and WP-15 STAY -- reading the rows changed my own recommendation. AC-00.9 CLOSED: AT-00.17 written and green, payload citations 93 across 27 files to ZERO. AC-00.16 minted from dc's sentence. hv is AFK and vc holds the pen."
 claims: [ST0056, ST0057, ST0058, ST0060, ST0064, ST0066, ST0068]
 ---
 
@@ -14,6 +14,16 @@ claims: [ST0056, ST0057, ST0058, ST0060, ST0064, ST0066, ST0068]
 **PROJECT-WIDE RULES IN `intent/restart.md`.** Pre-fold body verbatim at `.history/20260830/wip-fold-0844Z.md` (42727 bytes); 2026-08-29's seven folds are in `.history/20260829/`.
 
 ## DOING
+
+**THE SCOPE RULING IS PERFORMED, NOT PENDING (2026-08-30, hv's ruling, vc's hand).** `ST0069` carries WP-13's project search (9), WP-14's store-backed coordination (12) and WP-16's contract-drift check (4). **`descope` RECORDS A MOVE AND DOES NOT CARRY THE REQUIREMENT** -- ST0069 came back _zero acceptance criteria (empty contract)_ and the 25 rows were re-minted there with text and kind intact. A move that left the target empty would have deleted 25 requirements while reading as bookkeeping. **NOT a descope for a green: ST0056 stayed BLOCKED across it.**
+
+**AND TWO OF MY OWN RECOMMENDATIONS DIED ON READING THE ROWS.** WP-12 IS the cut (`AC-12.1` prunes `bin/`, `AC-12.4` is the tag) and WP-15 is ship-correctness coupled to `AC-12.1`. **The arithmetic sweep that produced the recommendation could not see either, because it counted criteria and did not read them.**
+
+**`AC-00.9` IS CLOSED -- hv's own direct ruling, witnessed on both surfaces it names.** `AT-00.17` covers the extension hv made on 2026-08-20 (files Intent writes into other people's repositories); `AT-00.8` covers binary output and is structurally blind to it. **93 citations across 27 of 228 payload files this morning, zero now.** **THE CONTROL REFUTED THE CRITERION'S OWN TEXT: `AC-00.9` calls `intent st show ST0042` a placeholder that happens to be four digits, and ST0042, ST0005 and ST0001 ALL RESOLVE here.**
+
+**TWO CITATIONS WERE LOAD-BEARING AND NOTHING PREDICTED IT.** `AT-10.13` and `AT-01.5` are cited BY rows whose files the register requires to name them, so stripping them blocked two close-gates -- one on a thread I never touched. **My first fix read only ST0056's canon, which is `AC-00.11`'s own shape in my own instrument: M derived from the set I had in hand.** Now computed from every thread's canon.
+
+**`AC-00.16` MINTED FROM dc's SENTENCE: every instrument has a declared reach, and nothing owns the gaps between them.** Three instances, three nodes, one day, and **none of the three instruments is wrong** -- which is why review cannot catch it and why cc's deliberate gap means the class cannot be closed by forbidding gaps. `AT-00.20` is red and measures one precondition: 40 of 216 Rust integration-test files declare what they do NOT cover.
 
 **WP-00 -- ST0056's THREAD-LEVEL ACCEPTANCE, TAKEN 2026-08-30 ON hv's APPROVAL.** 15 criteria over 18 ATs: **1 green, 5 red, 12 to-write.** It was the largest unowned block on the board and it is the set that proves v3 replaces v2, so it belongs to the validation node rather than to whoever has capacity. **The 5 reds are HONEST reds, not failures** -- `AT-00.1`'s own file says _nine of 60 is not parity coverage_ and `AT-06.8`'s says _not satisfied by this commit_: a partial test refusing to claim its criterion. Do not read them as a broken suite.
 
