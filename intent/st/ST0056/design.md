@@ -78,7 +78,7 @@ Generated views are committed, with a `doctor`/CI skew check (regenerate, requir
 
 - **One intentd per machine, N projects**: a project registry (canonicalised root paths, registered on first contact), per-project DBs opened by the daemon, every operation bound to a project context at connection time. Moved/deleted roots surface in `doctor`, not crashes.
 - Unix-socket GraphQL (thin skin over the facade); a separate **mgmt plane** (status, shutdown, reload, registry ops -- the conflabd `mgmt/` split) for `intent daemon status/stop`.
-- **CLI owns the lifecycle via launchd** (conflabd pattern): LaunchAgent plist under `~/Library/LaunchAgents/`, logs under `~/.local/share/intent/`, binary resolution PATH-first-then-sibling-of-current-exe. PID file with observable (never silent) cleanup. GIT_HASH baked into the version string.
+- **CLI owns the lifecycle via launchd** (conflabd pattern): LaunchAgent plist under `~/Library/LaunchAgents/`, logs under `~/.local/share/intent/`, binary resolution SIBLING-OF-CURRENT-EXE ONLY -- narrowed from PATH-first 2026-08-30 (cc's finding, ruled by vc): the `$PATH` read broke `AC-11.3`'s guard, since the shipped surface reads exactly one environment variable so a brew-installed binary meets machines with no developer environment. PID file with observable (never silent) cleanup. GIT_HASH baked into the version string.
 - **Policy-stamp self-healing**: generated local artefacts carry a version marker; on boot, missing/stale -> regenerate. Old installs heal without a migration.
 - Watching: `notify-debouncer-full` + the `ignore` crate (debounced, gitignore-aware), never raw notify events.
 - Minimal subscriptions in 3.0.0 (project/file changed) -- the seam the TUI and bus consume in 3.x.
@@ -222,7 +222,7 @@ This is the same rule as D35's containment note living in the design where the r
 WP-01 closures (2026-08-14, post-ratification):
 
 - D18 **Two shipped binaries** -- `intent` and `intentd` -- from one workspace, one brew formula. `brew services` wants a real daemon binary; conflab/conflabd is the working precedent; cargo-dist handles multi-bin formulae.
-- D19 **launchd label `com.matthewsinclair.intentd`** (reverse-domain, the conflab `space.conflab.daemon` pattern); plist at `~/Library/LaunchAgents/`, logs at `~/.local/share/intent/`, binary resolution PATH-first-then-sibling.
+- D19 **launchd label `com.matthewsinclair.intentd`** (reverse-domain, the conflab `space.conflab.daemon` pattern); plist at `~/Library/LaunchAgents/`, logs at `~/.local/share/intent/`, binary resolution SIBLING-ONLY (narrowed from PATH-first 2026-08-30; the `$PATH` read broke `AC-11.3`'s one-environment-variable guard). Nothing else in D19 moved: the label, the plist location and the log location stand as ratified.
 - D20 **3.0.0 subscriptions are exactly two**: `projectChanged(project_id)` and `fileChanged(project_id, path)`. Nothing more ships until a consumer (TUI/bus) exists to need it.
 - D21 [VOID] **`intent/.cache/` is gitignored whole-dir**; the DB lives at `intent/.cache/intent.db` (+ WAL/SHM siblings at runtime). ~~The treeindex cache location is unchanged until WP-06 ports the command; if it moves under `.cache/`, that is its own register entry.~~ **Second sentence STRUCK 2026-08-15 by D31**: it assumed treeindex would be ported and hv has ruled it retired. D21's decision -- the gitignored directory and the DB's location -- is unaffected, and AC-01.4, whose `.cache`-layout evidence rests on that decision, does not reopen.
 

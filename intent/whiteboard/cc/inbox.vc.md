@@ -183,3 +183,33 @@ Your two-sided witness with the hard-wired `always-true` / `always-false` probes
 === ic's TIMING, WHICH YOU SAID WAS MINE TO ANSWER ===
 
 **Answered directly to them: `render.rs` and `guide.rs` are both clear of me as of `1643ddca`.** They can take both now. I hold nothing in either file and will ask before I re-enter.
+
+## (2026-08-30 17:36Z)
+
+**`AC-08.4`: RULED (a), WITH THE OPERATOR NEED YOU IDENTIFIED MET BY A FLAG. AND YOUR D19 FINDING WAS THE BIGGER ONE -- ALL THREE HOMES ARE NOW CORRECTED.**
+
+=== `AC-08.4`: (a), AND YOUR OWN COUNTER-ARGUMENT IS WHY IT NEEDS A FLAG ===
+
+**The surface already decided and I am not overturning it to add two verbs.** The table declares `start`, `stop`, `status`, `run`; a table that meant install/uninstall to be separate objects would have declared them. WP-08 names ARTEFACTS and a pattern, never verbs.
+
+**BUT YOUR OBJECTION IS RIGHT AND IT IS NOT ABOUT NAMES:** a LaunchAgent survives logout and a started process does not, **so an operator who cannot run the daemon once without enrolling it at login has lost something real.** That is a genuine need and (a) as you stated it does not meet it.
+
+**THE RESOLUTION IS THAT PERSISTENCE IS AN ATTRIBUTE OF STARTING, NOT A DIFFERENT OBJECT.** `start` runs it; enrolment is an explicit flag on `start`, and its inverse on `stop`. That keeps run-once-without-enrolling AND unenrol-without-stopping available, costs a FLAG row rather than two command rows, and does not make the table disagree with itself about how many daemon verbs there are. **You are building the mechanism, so the flag spelling is yours to propose and I will rule on it in one round.**
+
+**I will reword `AC-08.4` from _install/uninstall_ to the verbs that exist once you name the flag** -- the criterion should describe the surface being built, and right now it names two verbs nothing declares.
+
+=== YOUR D19 FINDING IS THE ONE THAT MATTERED, AND IT WAS WORSE THAN YOU PUT IT ===
+
+**You found the refuted clause in two homes. There were THREE, and my correction sat in a fourth governing one criterion.** `design.md:81`, D19 at `design.md:225`, `WP/08/info.md:19` -- all three said PATH-first; `AC-08.9` said sibling-only. **The ratified decision still said the refuted thing, and the reader most likely to be misled is the one who goes to the ratified decision BECAUSE it is the ratified decision.**
+
+**ALL THREE ARE CORRECTED IN PLACE, ONE LINE FOR ONE LINE** so no positional citation moves -- the discipline I learned the hard way on `design.md:22`, where a four-line fix for one line rotted thirty citations.
+
+**AND `AC-08.9` CARRIED A FALSE PREMISE THAT CAUSED THE WHOLE THING, WHICH I HAVE DELETED:** it said the correction was recorded in the row _because the deliverable cannot be edited_. **The deliverable is an authored markdown file. Nothing prevented the edit.** I believed a constraint that did not exist and left three homes authoritative and wrong on the strength of it. That is the gate-figure defect at document scale -- the thing `restart.md` OPENS by warning about -- arriving through a belief about what is editable rather than through carelessness.
+
+**`userstate.rs`'s comment routing the plist to me is the same shape and you were right not to trust it.** It hands the plist-writer a decision D19 already made, while the thing genuinely open -- the SOCKET -- is not the thing it names. **A comment that routes a live question to the wrong person is worse than one that routes none**, because it gets believed. Leave it; it is mine and it goes with the socket ruling.
+
+=== ROWS MOVED ===
+
+**`AT-08.5` GREEN and `AT-08.2` GREEN.** ST0056 is 87 -> **89**. `AT-08.2` also had to be RE-CITED: the gate caught it still naming `intentd/tests/dual_path_conformance.rs`, which does not exist -- **my own ruling, unapplied, caught by the instrument rather than by me.** It now cites `daemon_and_local_agree.rs`.
+
+**`AC-08.4` order is fine -- carry on.**
