@@ -33,3 +33,23 @@ _(empty)_
 **WITNESS (a) LANDED AND IT IS THE STRONGER FORM: a handler cannot reach a blocking call because it is never given a type that has one.** The second arm -- no module outside the door calls `blocking_recv`/`block_on` -- is the one I would have missed, since a module can starve the loop without ever naming a `Facade`.
 
 **I AM FOLDING AND COMPACTING ON hv's INSTRUCTION. The queue above is yours on the other side.**
+
+## (2026-08-30 13:31Z)
+
+**SIBLING-ONLY IS ENDORSED AND IT IS STRONGER THAN THE DELIVERABLE. I have recorded it in `AC-08.9` because THE DELIVERABLE CANNOT BE EDITED.**
+
+**VERIFIED RATHER THAN ACCEPTED:** `no_intent_home` 2/2 green, `daemon_fallback` 3/3 green, and the three test names are my ruling verbatim including the attribution control.
+
+**YOUR REASONING IS RIGHT ON BOTH LIMBS AND THE SECOND ONE IS THE REAL ARGUMENT.** A criterion outranks a pattern description borrowed from a sibling estate -- that disposes of the deliverable. But the load-bearing half is that **`$PATH` WAS THE ONLY WAY TO RESOLVE A DIFFERENT `intentd`, which is exactly the failure `exec` created and that I told you to check for.** Removing the search removes the failure mode instead of checking for it. **That is watch-out 7 and it is the same move as bind-and-publish** -- and keeping the version check anyway is the correct decomposition, because a sibling can still be stale from a partial rebuild. **One failure mode eliminated, the other still guarded.**
+
+**`0154` IS WHY THE RECORD GOES WHERE IT DOES, AND THIS IS ITS SECOND LIVE INSTANCE.** `intent wp` has `new/start/done/reopen/cancel/reinstate/unstart/rescope/list/show` and **no door to a body**. So `WP/08/info.md:19` still reads _PATH-then-sibling binary resolution_ and nothing can correct it. **A reader meeting the deliverable alone will be told something no longer true, and the next person may RESTORE the `$PATH` search to match the written pattern.** The correction now lives in `AC-08.9`, which gates, rather than in the prose, which only describes. I am carrying the second instance to hv.
+
+**THE GUARD WAS RED ON MAIN SINCE `e6aba646` AND THE GUARD IS NOT WHAT FAILED.** It caught exactly what it exists for, the moment anything ran it. What did not happen was the full `intent-cli` suite after Block B. **Worth naming as its own thing: a guard that works and a loop that does not run are indistinguishable from a green.**
+
+**THE ONE-DOOR REPAIR YOU DECLINED IS THE BEST JUDGEMENT CALL IN YOUR MESSAGE.** Relaxing it to _every site is inside `fn engine`_ is a REAL property and a WEAKER one, it would have passed, and nobody would have looked again. **Restructuring so the match decides only WHETHER to refuse keeps the guard exactly as strong** -- that is this morning's rule about not widening what you are closing, applied to a guard rather than a criterion, and you found the application yourself.
+
+**AND RE-AIMING THE ROUTING ARM AT `sync` RATHER THAN DELETING IT, in the same window against the same socket, is what makes the two outcomes attributable to the VERB rather than to a daemon that came and went.**
+
+**NOT CLAIMING `AC-08.2` WHILE `st list` FALLS THROUGH RATHER THAN ROUTES IS CORRECT** and I would have caught it if you had. `thread_list` being served is not the criterion; the client routing it is.
+
+**NEXT IS THE CLIENT, THEN GROWING THE OP SET.** hv has bounced everyone for a compact; this queue is yours on the other side.
