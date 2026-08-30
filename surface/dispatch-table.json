@@ -863,7 +863,8 @@
               "type": "integer",
               "value": "<n>",
               "help": "Render at a fixed column width; 0 or absent means terminal width",
-              "disposition": "keep"
+              "disposition": "keep",
+              "exposed_on_mcp": false
             },
             {
               "spellings": [
@@ -872,7 +873,8 @@
               "type": "bool",
               "help": "Emit canonical GFM instead of terminal rendering",
               "note": "UNDOCUMENTED in v2's usage() block; consumed by `st sync --write`. Real surface, so it is in the table.",
-              "disposition": "keep"
+              "disposition": "keep",
+              "exposed_on_mcp": false
             },
             {
               "spellings": [
@@ -883,7 +885,8 @@
               "default": "terminal",
               "help": "Output format",
               "disposition": "keep",
-              "disposition_basis": "Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2. **CORRECTED 2026-08-27 (cc, ruled by vc): the roster said `terminal|md|json` and this verb REFUSES json.** `table_out` returns the `no json projection` refusal because `Output::table` yields `None` for JSON -- a list-of-lists is not the object anyone means, and a verb with a real projection branches before it (`todo`, `issues show`). So the code is doing what it was designed to do and the DECLARATION was the wrong half. It is display-only -- `flag.value` reaches clap as `value_name` and nothing parses it -- which is exactly why it drifted: `--help` advertised a value the verb rejects and no instrument compared the two. Widen it again when a projection is built."
+              "disposition_basis": "Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2. **CORRECTED 2026-08-27 (cc, ruled by vc): the roster said `terminal|md|json` and this verb REFUSES json.** `table_out` returns the `no json projection` refusal because `Output::table` yields `None` for JSON -- a list-of-lists is not the object anyone means, and a verb with a real projection branches before it (`todo`, `issues show`). So the code is doing what it was designed to do and the DECLARATION was the wrong half. It is display-only -- `flag.value` reaches clap as `value_name` and nothing parses it -- which is exactly why it drifted: `--help` advertised a value the verb rejects and no instrument compared the two. Widen it again when a projection is built.",
+              "exposed_on_mcp": false
             },
             {
               "spellings": [
@@ -892,7 +895,8 @@
               "type": "bool",
               "help": "Show the slug, derived from the title, instead of the title",
               "disposition": "keep",
-              "disposition_basis": "NEW SURFACE (there is no `new` flag disposition; `keep` is the declared value for a flag that ships and is read by the renderer, as `--format` on this same verb also does). NEW SURFACE, ruled by hv 2026-08-27 first-hand in cc's session: \"the title is the SSOT ... the slug is just a way to show the title in an escaped URI friendly way\", and \"'st list' we get the title, by default. If needed 'st list --slug' prints the slug instead of the title\". THE SLUG IS DERIVED AT RENDER TIME FROM THE TITLE and is never read from the stored `slug` column -- storing it would be the second piece of data hv's ruling exists to remove, and it is absent on 21 of the 64 threads. THE ST ID REMAINS THE UNIQUE IDENTIFIER; the slug NEVER resolves. It exists so a listing is legible where a bare id is opaque, which is why nothing enforces slug uniqueness and why the 48-character cap is a display choice rather than an address hazard. It would become one the moment a slug resolved, and that is the tripwire for anyone widening this later. Supersedes an earlier and larger spec (backfill all 64, enforce uniqueness, add a setter, resolve by unique prefix) which hv withdrew as overcooked."
+              "disposition_basis": "NEW SURFACE (there is no `new` flag disposition; `keep` is the declared value for a flag that ships and is read by the renderer, as `--format` on this same verb also does). NEW SURFACE, ruled by hv 2026-08-27 first-hand in cc's session: \"the title is the SSOT ... the slug is just a way to show the title in an escaped URI friendly way\", and \"'st list' we get the title, by default. If needed 'st list --slug' prints the slug instead of the title\". THE SLUG IS DERIVED AT RENDER TIME FROM THE TITLE and is never read from the stored `slug` column -- storing it would be the second piece of data hv's ruling exists to remove, and it is absent on 21 of the 64 threads. THE ST ID REMAINS THE UNIQUE IDENTIFIER; the slug NEVER resolves. It exists so a listing is legible where a bare id is opaque, which is why nothing enforces slug uniqueness and why the 48-character cap is a display choice rather than an address hazard. It would become one the moment a slug resolved, and that is the tripwire for anyone widening this later. Supersedes an earlier and larger spec (backfill all 64, enforce uniqueness, add a setter, resolve by unique prefix) which hv withdrew as overcooked.",
+              "exposed_on_mcp": false
             }
           ],
           "v2": "bin/intent_st:717-1043",
@@ -1037,7 +1041,8 @@
               "type": "bool",
               "help": "Open the file in $VISUAL or $EDITOR, whatever stdout is",
               "disposition": "keep",
-              "disposition_basis": "hv, 2026-08-29, selecting the TTY form WITH explicit overrides from three options, and superseding two earlier rulings on the same question. The bare TTY form makes behaviour depend on an invisible property of the environment, so a wrapper, a CI job or an editor plugin gets a different result with nothing in the command saying why. This is the explicit spelling of the launch branch."
+              "disposition_basis": "hv, 2026-08-29, selecting the TTY form WITH explicit overrides from three options, and superseding two earlier rulings on the same question. The bare TTY form makes behaviour depend on an invisible property of the environment, so a wrapper, a CI job or an editor plugin gets a different result with nothing in the command saying why. This is the explicit spelling of the launch branch.",
+              "exposed_on_mcp": false
             },
             {
               "spellings": [
@@ -1046,7 +1051,8 @@
               "type": "bool",
               "help": "Print the path and open nothing, whatever stdout is",
               "disposition": "keep",
-              "disposition_basis": "hv, 2026-08-29, the other half of the same ruling. Explicit spelling of the print branch, so a caller needing determinism can say which it wants rather than depending on what stdout happens to be."
+              "disposition_basis": "hv, 2026-08-29, the other half of the same ruling. Explicit spelling of the print branch, so a caller needing determinism can say which it wants rather than depending on what stdout happens to be.",
+              "exposed_on_mcp": false
             }
           ],
           "v2": "bin/intent_st:1101-1144",
@@ -1152,7 +1158,8 @@
               "type": "integer",
               "value": "<n>",
               "help": "Render at a fixed column width",
-              "disposition": "keep"
+              "disposition": "keep",
+              "exposed_on_mcp": false
             },
             {
               "spellings": [
@@ -1163,7 +1170,8 @@
               "default": "terminal",
               "help": "Output format",
               "disposition": "keep",
-              "disposition_basis": "Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2. **CORRECTED 2026-08-27 (cc, ruled by vc): the roster said `terminal|md|json` and this verb REFUSES json.** `table_out` returns the `no json projection` refusal because `Output::table` yields `None` for JSON -- a list-of-lists is not the object anyone means, and a verb with a real projection branches before it (`todo`, `issues show`). So the code is doing what it was designed to do and the DECLARATION was the wrong half. It is display-only -- `flag.value` reaches clap as `value_name` and nothing parses it -- which is exactly why it drifted: `--help` advertised a value the verb rejects and no instrument compared the two. Widen it again when a projection is built."
+              "disposition_basis": "Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2. **CORRECTED 2026-08-27 (cc, ruled by vc): the roster said `terminal|md|json` and this verb REFUSES json.** `table_out` returns the `no json projection` refusal because `Output::table` yields `None` for JSON -- a list-of-lists is not the object anyone means, and a verb with a real projection branches before it (`todo`, `issues show`). So the code is doing what it was designed to do and the DECLARATION was the wrong half. It is display-only -- `flag.value` reaches clap as `value_name` and nothing parses it -- which is exactly why it drifted: `--help` advertised a value the verb rejects and no instrument compared the two. Widen it again when a projection is built.",
+              "exposed_on_mcp": false
             }
           ],
           "v2": "bin/intent_st:1145-1211",
@@ -1833,7 +1841,8 @@
               "value": "<n>",
               "help": "Render at a fixed column width; 0 or absent means terminal width",
               "disposition": "keep",
-              "disposition_basis": "Unified output surface (hv, 2026-08-25). `--width` shipped on `st list` and `st sync` only, so `issues list` and `wp list` read the terminal width and could not be told a different one. One concern, one spelling, on every table verb. `0` means the default, which is `st list --width`'s own declared contract and not a new convenience."
+              "disposition_basis": "Unified output surface (hv, 2026-08-25). `--width` shipped on `st list` and `st sync` only, so `issues list` and `wp list` read the terminal width and could not be told a different one. One concern, one spelling, on every table verb. `0` means the default, which is `st list --width`'s own declared contract and not a new convenience.",
+              "exposed_on_mcp": false
             },
             {
               "spellings": [
@@ -1844,7 +1853,8 @@
               "default": "terminal",
               "help": "Output format",
               "disposition": "keep",
-              "disposition_basis": "Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2. **CORRECTED 2026-08-27 (cc, ruled by vc): the roster said `terminal|md|json` and this verb REFUSES json.** `table_out` returns the `no json projection` refusal because `Output::table` yields `None` for JSON -- a list-of-lists is not the object anyone means, and a verb with a real projection branches before it (`todo`, `issues show`). So the code is doing what it was designed to do and the DECLARATION was the wrong half. It is display-only -- `flag.value` reaches clap as `value_name` and nothing parses it -- which is exactly why it drifted: `--help` advertised a value the verb rejects and no instrument compared the two. Widen it again when a projection is built."
+              "disposition_basis": "Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2. **CORRECTED 2026-08-27 (cc, ruled by vc): the roster said `terminal|md|json` and this verb REFUSES json.** `table_out` returns the `no json projection` refusal because `Output::table` yields `None` for JSON -- a list-of-lists is not the object anyone means, and a verb with a real projection branches before it (`todo`, `issues show`). So the code is doing what it was designed to do and the DECLARATION was the wrong half. It is display-only -- `flag.value` reaches clap as `value_name` and nothing parses it -- which is exactly why it drifted: `--help` advertised a value the verb rejects and no instrument compared the two. Widen it again when a projection is built.",
+              "exposed_on_mcp": false
             }
           ],
           "v2": "bin/intent_wp:218",
@@ -2880,7 +2890,9 @@
               ],
               "type": "bool",
               "help": "Migrate the mechanical part of a legacy row -- and REFUSE what cannot migrate without loss",
-              "disposition": "keep"
+              "disposition": "keep",
+              "exposed_on_mcp": false,
+              "note": "narrowed off MCP because the CLI arm itself refuses it as not implemented in v3 -- a tool must not advertise a parameter whose only answer is a refusal to exist"
             }
           ],
           "v2": "bin/intent_acceptance:1368-1377 (the `at` dispatch arm)",
@@ -3428,7 +3440,8 @@
               "value": "<n>",
               "help": "Render at a fixed column width; 0 or absent means terminal width",
               "disposition": "keep",
-              "disposition_basis": "Unified output surface (hv, 2026-08-25). `--width` shipped on `st list` and `st sync` only, so `issues list` and `wp list` read the terminal width and could not be told a different one. One concern, one spelling, on every table verb. `0` means the default, which is `st list --width`'s own declared contract and not a new convenience."
+              "disposition_basis": "Unified output surface (hv, 2026-08-25). `--width` shipped on `st list` and `st sync` only, so `issues list` and `wp list` read the terminal width and could not be told a different one. One concern, one spelling, on every table verb. `0` means the default, which is `st list --width`'s own declared contract and not a new convenience.",
+              "exposed_on_mcp": false
             },
             {
               "spellings": [
@@ -3439,7 +3452,8 @@
               "default": "terminal",
               "help": "Output format",
               "disposition": "keep",
-              "disposition_basis": "Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2. **CORRECTED 2026-08-27 (cc, ruled by vc): the roster said `terminal|md|json` and this verb REFUSES json.** `table_out` returns the `no json projection` refusal because `Output::table` yields `None` for JSON -- a list-of-lists is not the object anyone means, and a verb with a real projection branches before it (`todo`, `issues show`). So the code is doing what it was designed to do and the DECLARATION was the wrong half. It is display-only -- `flag.value` reaches clap as `value_name` and nothing parses it -- which is exactly why it drifted: `--help` advertised a value the verb rejects and no instrument compared the two. Widen it again when a projection is built."
+              "disposition_basis": "Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2. **CORRECTED 2026-08-27 (cc, ruled by vc): the roster said `terminal|md|json` and this verb REFUSES json.** `table_out` returns the `no json projection` refusal because `Output::table` yields `None` for JSON -- a list-of-lists is not the object anyone means, and a verb with a real projection branches before it (`todo`, `issues show`). So the code is doing what it was designed to do and the DECLARATION was the wrong half. It is display-only -- `flag.value` reaches clap as `value_name` and nothing parses it -- which is exactly why it drifted: `--help` advertised a value the verb rejects and no instrument compared the two. Widen it again when a projection is built.",
+              "exposed_on_mcp": false
             }
           ],
           "v2": "bin/intent_issues:310, buckets at :207-209",
@@ -3512,7 +3526,9 @@
               "help": "Read the issue's prose from a file",
               "value": "<file>",
               "disposition": "keep",
-              "disposition_basis": "Same ruling as `--body` above, which carries the full basis. Separate spelling because prose long enough to want a file is the common case for an issue, and shell-quoting a multi-line body inline is where authors give up and edit the file instead -- the route this door replaces. An unreadable file REFUSES and never silently becomes an empty body."
+              "disposition_basis": "Same ruling as `--body` above, which carries the full basis. Separate spelling because prose long enough to want a file is the common case for an issue, and shell-quoting a multi-line body inline is where authors give up and edit the file instead -- the route this door replaces. An unreadable file REFUSES and never silently becomes an empty body.",
+              "exposed_on_mcp": false,
+              "note": "narrowed off MCP because it names a local file for the CLI to read -- an MCP agent reads its own files and passes body"
             }
           ],
           "v2": "bin/intent_issues:311",
@@ -3578,7 +3594,8 @@
               ],
               "type": "bool",
               "help": "Emit as JSON instead of prose",
-              "disposition": "keep"
+              "disposition": "keep",
+              "exposed_on_mcp": false
             },
             {
               "spellings": [
@@ -3589,7 +3606,8 @@
               "default": "terminal",
               "help": "Output format",
               "disposition": "keep",
-              "disposition_basis": "Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2."
+              "disposition_basis": "Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2.",
+              "exposed_on_mcp": false
             }
           ],
           "v2": "bin/intent_issues:312",
@@ -3846,7 +3864,8 @@
               ],
               "type": "bool",
               "help": "Emit the DOING/TODO/DONE view as JSON on stdout",
-              "disposition": "keep"
+              "disposition": "keep",
+              "exposed_on_mcp": false
             },
             {
               "spellings": [
@@ -3857,7 +3876,8 @@
               "default": "terminal",
               "help": "Output format",
               "disposition": "keep",
-              "disposition_basis": "Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2."
+              "disposition_basis": "Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2.",
+              "exposed_on_mcp": false
             }
           ],
           "v2": "bin/intent_todo:384 (dispatch arms sit at zero indent here, which is what defeated one static enumerator)",
@@ -3928,7 +3948,8 @@
               ],
               "type": "bool",
               "help": "Emit the DOING/TODO/DONE view as JSON on stdout",
-              "disposition": "keep"
+              "disposition": "keep",
+              "exposed_on_mcp": false
             },
             {
               "spellings": [
@@ -3939,7 +3960,8 @@
               "default": "terminal",
               "help": "Output format",
               "disposition": "keep",
-              "disposition_basis": "Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2."
+              "disposition_basis": "Unified output surface (hv, 2026-08-25). The shape of output was spelled four ways across eleven flags -- `--width`, `--markdown`, `--json`, `--format` -- so an operator could not learn it once and `issues list` was width-aware while `wp list` was not, for no reason anybody had decided. HONOURS hv's 2026-08-21 SPELLING RULING: `--format` where the verb has formats other than json, which under one output layer is every verb here. `--json` and `--markdown` are KEPT as aliases because both are v2 parity obligations -- a parity contract is not a backwards-compatibility shim, so Intent's fail-forward rule does not reach them. A conflicting pair REFUSES rather than picking a winner: a silent precedence would make the surface unlearnable in the one case where the caller has already shown they believe two things. Clap is deliberately not the enforcer here either -- an unknown value is refused in the renderer at exit 1, never at exit 2.",
+              "exposed_on_mcp": false
             }
           ],
           "v2": "bin/intent_todo:384 -- the `list)` arm; `COMMAND=\"${1:-list}\"` at :380 makes it the default",
@@ -4240,12 +4262,12 @@
             ]
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "read",
           "mcp_review": {
             "grounded_in": "bin/intent_info -- no write primitive in the file"
           },
-          "facade": "st_list"
+          "mcp_narrowed": "vc, 2026-08-30: the row's help promises the process overview and project status, and its CLI arm COMPOSES that answer (install home, version, running executable, project block) -- the recorded facade `st_list` was armscan's biggest READ, not a serving door. A tool whose description misdescribes its answer is worse for an agent than an absent one; an agent cannot detect the mismatch and will reason from a thread list as if it were the overview. Re-expose only with a door that serves the composed answer."
         }
       ],
       "bats_coverage": {
@@ -4690,7 +4712,8 @@
               "type": "bool",
               "help": "Show detailed information",
               "disposition": "keep",
-              "disposition_basis": "hv RULED IT SHIPS, D55, 2026-08-20, closing a question cc asked twice. vc had measured it implemented in v2 and undecided for v3; the verbosity cluster is now decided and this half is BUILT rather than merely decided -- a `keep` on an unbuilt flag is the table/build disagreement `surface:` exists to report."
+              "disposition_basis": "hv RULED IT SHIPS, D55, 2026-08-20, closing a question cc asked twice. vc had measured it implemented in v2 and undecided for v3; the verbosity cluster is now decided and this half is BUILT rather than merely decided -- a `keep` on an unbuilt flag is the table/build disagreement `surface:` exists to report.",
+              "exposed_on_mcp": false
             },
             {
               "spellings": [
@@ -4700,7 +4723,8 @@
               "type": "bool",
               "help": "Only show errors and warnings",
               "disposition": "keep",
-              "disposition_basis": "hv RULED IT SHIPS, D55, 2026-08-20, closing a question cc asked twice. vc had measured it implemented in v2 and undecided for v3; the verbosity cluster is now decided and this half is BUILT rather than merely decided -- a `keep` on an unbuilt flag is the table/build disagreement `surface:` exists to report."
+              "disposition_basis": "hv RULED IT SHIPS, D55, 2026-08-20, closing a question cc asked twice. vc had measured it implemented in v2 and undecided for v3; the verbosity cluster is now decided and this half is BUILT rather than merely decided -- a `keep` on an unbuilt flag is the table/build disagreement `surface:` exists to report.",
+              "exposed_on_mcp": false
             },
             {
               "spellings": [
@@ -4711,7 +4735,8 @@
               "value": "text|json",
               "default": "text",
               "disposition": "keep",
-              "disposition_basis": "NEW IN v3, NO v2 ANTECEDENT, and the request is recorded in the code by the node that hit the need rather than inferred here: `render.rs` says the unattached list stays inline until `doctor` has a machine face to carry it, `which needs a surface row and is not mine to add`. This is that row. SPELLING RULED BY hv 2026-08-21 on a criterion that is not a headcount: `--format` where the verb has formats OTHER than json, `--json` where it does not. The declared surface was 3-3 (`--json` on `issues show`/`todo`/`todo list`; `--format` on `critic`/`export`/`events`), so counting instances could not decide it -- the two spellings encode different ARITIES, which is why the tie was a mis-cut population rather than a close question. CLAP IS DELIBERATELY NOT THE ENFORCER: an unknown value is refused in the renderer at exit 1, never by a `value_parser` at exit 2, because 2 is INV-04 USAGE and the pre-commit gate fails OPEN on it."
+              "disposition_basis": "NEW IN v3, NO v2 ANTECEDENT, and the request is recorded in the code by the node that hit the need rather than inferred here: `render.rs` says the unattached list stays inline until `doctor` has a machine face to carry it, `which needs a surface row and is not mine to add`. This is that row. SPELLING RULED BY hv 2026-08-21 on a criterion that is not a headcount: `--format` where the verb has formats OTHER than json, `--json` where it does not. The declared surface was 3-3 (`--json` on `issues show`/`todo`/`todo list`; `--format` on `critic`/`export`/`events`), so counting instances could not decide it -- the two spellings encode different ARITIES, which is why the tie was a mis-cut population rather than a close question. CLAP IS DELIBERATELY NOT THE ENFORCER: an unknown value is refused in the renderer at exit 1, never by a `value_parser` at exit 2, because 2 is INV-04 USAGE and the pre-commit gate fails OPEN on it.",
+              "exposed_on_mcp": false
             },
             {
               "spellings": [
@@ -4774,7 +4799,7 @@
             "grounded_in": "v3: `Facade::doctor(project, ctx, store: Option<&Store>)` ACCEPTS a store and never creates one, so a generate-on-absent write is impossible at the type level (vc's structural proof, stronger than either argument that preceded it); `doctor_changes_nothing_it_looks_at` asserts the reported file is not rewritten and that a second run reports identically. v2: bin/intent_doctor:66 (`-f|--fix`), :216 and :308 both `mv` real files.",
             "superseded": "A JUDGEMENT IS NOT OVERTURNED WHEN THE THING IT JUDGED STOPS EXISTING -- IT IS SUPERSEDED, AND NOBODY PROPAGATED THE SUPERSESSION (vc, ruling 2026-08-16). The prior note read `--fix moves the global config and the project config aside; the diagnosis is the default; the entry is still a mutation`. Every word of that is STILL TRUE OF ITS SUBJECT. Its subject was withdrawn: `--fix` is `disposition: retire` for v3. Kept here rather than deleted, because the failure was never the reasoning -- it was that a defended row is harder to correct than an undefended one, which is a property of the DEFENCE and not of the row. Found rendering the agent guide, which prints `read_or_mutate` as the FIRST fact per command: a wrong `mutate` on the diagnostic tells every reader that running `doctor` might change their project, discouraging the one command you most want run freely when something is already wrong. `todo` is the negative case that makes the rule sharp rather than the counter-example that muddies it -- it is correctly `mutate`, because bare `intent todo` inherits `list`'s generate-on-absent write. Same shape, write removed at the type level."
           },
-          "facade": "store"
+          "facade": "doctor"
         }
       ],
       "bats_coverage": {
@@ -8661,6 +8686,7 @@
         "arity",
         "default",
         "disposition",
+        "exposed_on_mcp",
         "help",
         "required",
         "spellings",
