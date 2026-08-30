@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-08-30 18:33Z
+heartbeat_at: 2026-08-30 18:41Z
 status: active
-focus: "FOLDED 18:33Z, pre-fold at .history/20260830/wip-fold-1833Z.md. THE PRUNE LANDED (125f601d): six v2 plugin scripts and claude_plugin_helpers.sh gone, rules_lib.sh carries its own ext_root_dir, and cutover_guard.bash goes 14 findings to 0 WITH ITS CONTROL STILL STANDING. AT-12.1 has driven evidence for green and the move is vc s. ST0056 89/135. FALLOUT NAMED NOT FIXED: 29 bats tests red, both files testing subjects this prune deleted."
+focus: "BOUNCE-READY 18:41Z, TREE CLEAN, nothing of mine uncommitted. THE PRUNE LANDED (125f601d) and AT-12.1 is GREEN with AC-12.1 CLOSED -- vc verified by a route independent of my guard. 0165 CLOSED WHOLE (295c08eb), both homes one commit, guard two-sided. ST0056 90/135. ON THE BOUNCE: delete intent_claude_upgrade.bats whole, then MIGRATE no_absolute_home_paths into no_pm_state_in_output.rs -- prune the v2 VEHICLE, carry the PROPERTY."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -52,9 +52,9 @@ vc authorised the delete; the tool refused it; **I did not route around it with 
 
 ## TODO
 
-- **`AT-12.1` HAS DRIVEN EVIDENCE FOR GREEN AND THE MOVE IS vc's.** The guard passes on the real tree with a non-vacuous control. I hold WP-12, which is exactly the shape where a node scores its own row.
-- **THE BATS FALLOUT IS NAMED AND NOT REPAIRED, DELIBERATELY.** `intent_claude_upgrade.bats` 27/27 -> 25 failing; `no_absolute_home_paths.bats` 7/7 -> 4 failing. **The first file's whole subject is gone and follows the `shipped_surface_drift` precedent; the second keeps three passing arms over a wider subject and needs surgery, not deletion.** vc's call, and it was not in the ruling that authorised the prune.
-- **`0165`'s RENDER HALF, STILL QUEUED BEHIND vc's `render.rs` HUNKS.** `finding.rs` + the guard arm are UNCOMMITTED in my tree -- two-sided (planting an overwrite fails it, restoring passes). Re-apply from `scratchpad/dc_0165_render.patch` when the file clears.
+- **`AT-12.1` IS GREEN AND `AC-12.1` IS CLOSED (vc, 18:3xZ).** They verified by a route independent of my guard rather than re-running my script -- `plugins/claude/bin/` holds `cwi` alone, `lib/` holds two files, and no `bin/intent` source or exec edge survives. **The anti-vacuity point is in the row's note, because it is why the green means anything.**
+- **THE BATS RULING CHANGED WHEN vc MEASURED: ONE DELETION AND ONE MIGRATION, NOT TWO SURGERIES.** `intent_claude_upgrade.bats` DELETE WHOLE -- its subject is the deleted script and **NINE v3 files already cover `claude upgrade`**, so nothing is lost. **`no_absolute_home_paths.bats` DO NOT delete and DO NOT patch:** vc measured v3 coverage of _no absolute `$HOME` in a generated artefact_ and found **ZERO**, and v3 needs it MORE -- it generates a LaunchAgent plist, canon extracts, 301 views and `.claude/settings.json`. **PRUNE THE v2 VEHICLE, CARRY THE PROPERTY**, into `no_pm_state_in_output.rs`, the v3 family that caught cc writing an AC id into a user's plist today. **Deleting a property v3 has no other coverage for is prune-as-loss.** Leave it failing with its migration target named -- a red test whose reason is recorded is a better artefact than a deleted one.
+- **`0165` IS CLOSED WHOLE (`295c08eb`, `3829006e`).** Both homes in one commit as the issue required; `render.rs` had been clear since `a9f03ab7` and **I held it for hours against a state that had ended** -- D-PROXY arriving a third way, a stale premise about a peer's working copy.
 - **THE `at` KIND/STATUS INVARIANT AND THE NINE ST0068 ROWS -- vc says mine.** The pairing is enforced NOWHERE (`AtStatus::Na` is a doc comment); the AC side has three enforcement points. Building it reds those nine, one `at na` pass fixes them.
 - **THE DELIVERED PAIR IS SPLIT AND THE REBUILD IS ANNOUNCE-AND-HOLD, NEVER UNILATERAL.** `intent` and `intentd` are from different trees. **Rebuilding the artefact every node resolves to, mid-measurement, changes peers' instruments underneath them** -- same class as a workspace format across a package three people are in. **AND THE GAP IS MINE IF I WANT IT: the shared-artefact guard refuses a build from a DIRTY tree, which is a different question from whether the two halves came from the SAME tree.** A currency check on the pair at delivery would have caught this at the first divergence rather than at a commit hours later.
 - **`AC-04.6`: the `kind` transition is APPROVED as I stated it** -- free wherever the source state carries no satisfaction, refusing wherever it would move one. `ac edit`'s help line moves with it.

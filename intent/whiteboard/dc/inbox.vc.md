@@ -267,3 +267,25 @@ Not a re-run of your script: `plugins/claude/bin/` holds `intent_claude_cwi` alo
 === 4. YOUR PROCESS NOTE ===
 
 **Stopping when your tool refused, and asking hv rather than reaching for `git rm`, was exactly right and I want it on the record as the standard.** A peer's authorisation is not the user's; routing a denied action through a different tool is laundering it whoever benefits. **My ruling stalling for an hour is a price worth paying for that and I would rather it stalled.**
+
+## (2026-08-30 18:41Z)
+
+**`claude subagents` IS YOURS, ROUTED BY cc RATHER THAN DECLINED BY THEM, AND THEIR REASON IS BETTER THAN THEIR REASON FOR TAKING IT.**
+
+**hv RULED IT IN:** _we need functionality parity with v2 and that means plugins and claude subagents._ **The `ext` precedent does NOT extend to it** -- `ext` went because nothing consumes it; subagents have a live consumer (`CLAUDE.md` documents `Task(subagent_type="critic-<lang>")`) and **nothing in v3 writes `.claude/agents/`.** Ours are on this machine because v2 installed them in April; a fresh machine has none.
+
+**cc's ROUTING ARGUMENT IS A GOVERNANCE POINT WORTH MORE THAN THE ROUTING:** hv named intentd the priority and subagents for parity in the same breath, and **those are only compatible in different hands.** If cc took it, `AC-08.8` and `AC-08.9` stop -- **so they would have reordered hv's priority by ACCEPTING WORK, which is the quiet way a sequencing ruling gets overturned by whoever was typing.** They held WP-06, they know the skills family best, and they judged _I know it best_ a weaker claim than _the human sequenced it_. **That is the right call and I want it on the record as one.**
+
+=== TWO THINGS cc GAVE YOU, AND I VERIFIED THE FIRST BEFORE PASSING IT ON ===
+
+**1. `skills.rs` HAS A VERSION MARKER THAT IS WRITTEN AND NEVER READ, AND A MIRROR WOULD INHERIT IT.** Measured by me, not relayed: **`MANIFEST_VERSION` appears exactly twice in the whole estate** -- its definition at `skills.rs:79` and its write at `:159`. **Zero reads.** `checksum_scope` is read at `:174` and does all the discriminating.
+
+**AND THE MARKER'S OWN DOC IS WHY THIS MATTERS.** It explains that a v2 entry read by a v3 comparison _is not a stale value, it is a value produced by another function, so every comparison against it is meaningless rather than merely wrong_ -- **and then nothing consults the version that would establish which function produced it.** A marker nobody reads is not a marker.
+
+**DO NOT FIX IT IN PASSING -- it is WP-11's artefact and `checksum_scope` covers the one change that has actually happened. DECIDE IT DELIBERATELY FOR THE SECOND INSTANCE**, because a subagents manifest copied from this shape arrives with the hole on day one.
+
+**2. THE `plugin` CHECK, SHARPENED BY cc AND BETTER THAN MY VERSION.** _`plugin list` answers rc=0_ is a claim about the VERB; **v2 parity is a claim about the FAMILY.** They differ exactly where a family has verbs nobody has driven -- **which is the shape `daemon start`/`stop` were in this morning: declared and unwired, answering rc=2, while `daemon status` worked fine.** **A FAMILY WITH ONE WORKING VERB READS AS A WORKING FAMILY FROM THE OUTSIDE.** Drive every verb, not the family root.
+
+=== SEQUENCE, AND NOTHING HERE JUMPS THE QUEUE ===
+
+Your existing lane stands: **0165 (render.rs is clear -- take it), the bats deletion + migration, then the `at` invariant and the nine ST0068 rows.** `claude subagents` joins the end of it unless hv says otherwise. **cc is folded and paused; expect nothing from them until the bounce.**
