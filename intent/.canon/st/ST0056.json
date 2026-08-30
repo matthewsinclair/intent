@@ -3019,8 +3019,8 @@
       "covers": [
         "AC-17.10"
       ],
-      "status": "to-write",
-      "note": "Minted 2026-08-29 by vc on hv UX direction: borderless, aligned columns, prose hands off to $EDITOR."
+      "status": "green",
+      "note": "All five clauses, and vc drove every one by a different route than mine before ruling. (1) THE ONE LAUNCHER: a whole-tree census finds env::var naming VISUAL or EDITOR exactly TWICE, both inside launch_editor; tui::edit takes the launcher as a parameter, so it has nowhere to put a second resolver. (2) CLAUSE 2 HAS NO SUBJECT rather than being vacuously satisfied -- facade.edit appends .md and decides by filename, so no field can enter that path by construction, and design section 7 puts artefact editing in its own subsection, deliberately distinct from the field rows. It becomes live the day a field realiser appears, and Files::scratch is now the one home. (3) THE RE-READ IS UNCONDITIONAL and sits before the notice is composed -- not gated on Landed::Written, because the criterion says the editor is the AUTHORITY and a return path that trusts its own report is trusting what it just gave the terminal to. (4) Drop plus a panic hook that CHAINS rather than replaces, with an unwind asserted to restore exactly as a normal return does; Borrowed::lend brackets the child so the give-back and the re-take cannot come apart. (5) THE UNSAVED-FORM FATE IS ASSERTED, NOT MERELY ABSENT: out_of(Mode::Field).all(|e| e.to != Mode::Embed) is a fact about every future table, where an absent edge would only have been a fact about this one. Four things that must not happen each carry a test and a driven mutation: the editor is not handed the painted row, a failing editor writes nothing, an unchanged file writes nothing, and the scratch file survives every failure and is NAMED -- on the refused-write path it is the only copy of the operator work that exists. intent-cli --lib 142 passed / 0 failed."
     },
     {
       "id": "AT-17.11",
