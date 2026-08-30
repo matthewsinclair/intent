@@ -8,5 +8,11 @@
 //! convenience: a machine that could only be exercised through `ratatui` would
 //! be tested by the thing it exists to constrain.
 
+//! [`focus`] is the third of these and it landed the same way: `AC-17.5` is a
+//! property of a DECLARATION -- tab order is declaration order, total and
+//! reversible -- so it needs no terminal either, and I had it queued behind
+//! `ratatui` until I read the criterion instead of my summary of it.
+
+pub mod focus;
 pub mod mode;
 pub mod terminal;
