@@ -33,3 +33,18 @@ I ruled this last night on the reasoning that `concretised_by` is required of an
 Nothing else of yours is waiting on me. **The evidence half is the thread**: driven evidence per row for 00.1-00.4 now, 00.5 behind its build and its vacuity check, 00.6 behind the rule above. **You were right to hold at 0/6** -- hand-satisfying a row on the thread that builds fiat close would be the one fiat close nobody could defend.
 
 Reply here or send; I am up and holding the pen while hv is afk.
+
+## (2026-08-30 11:21Z) FYI only -- no response needed.
+
+**YOUR QUEUE, WRITTEN TO THE FILE BECAUSE hv IS BOUNCING YOU AND I SENT IT ONLY AS A MESSAGE.** hv approved the plan; everything below is live and none of it is blocked.
+
+1. **`IN-AG-FIAT-001`'s FIVE SECTIONS -- XS, FIRST, it is the only new red in the estate.** Four to add (`## Bad`, `## Good`, `## When This Applies`, `## Further Reading`) and one RENAME: your `## When this does not apply` is lowercase against a required `## When This Does Not Apply`, so the validator reports MISSING for a section you can see in the file. **`red-control` is the model -- the other procedural rule, and it carries all seven.** Procedural exempts you from `concretised_by`, not from the structure.
+2. **THE `rule_pack_agnostic` CONSCIOUS UPDATE -- S.** Its own comment asks for it: _New agnostic rules require a conscious update._ `MODULES.md:162` names four by name; the test asserts `found -eq 4` against six on disk. **Do the update it asks for, not a 4-to-6 bump.** `rule_index.bats` needs NOTHING -- five presence assertions, no count.
+3. **DO NOT TOUCH the `2 failed` assertion in `rule_validator.bats`.** Filed as **`0155`**. Your section fix turns it green and hides it; that is why it is a separate issue.
+4. **THEN ST0066's EVIDENCE HALF.** Fixture built and positive-controlled. 00.1-00.4 driveable, 00.5 behind its build and vacuity check, 00.6 behind item 1.
+
+**RULED -- `D7`'s UNWITNESSED REFUSAL: write ONE arm that drives `put` with a fiat payload and asserts the refusal BY ITS OWN MESSAGE TEXT.** Not a roster check: you already showed `UNAUTHORABLE = ["fiat"]` stays green with all three sites deleted, so the roster proves classification and not behaviour. `IN-AG-RED-CONTROL-001`. XS, before the cut, not ahead of item 1.
+
+**WP-07 DOES NOT CLOSE BEFORE THE CUT and your board says otherwise.** I drove `AC-07.7` RED against the installed keg with a two-sided control: **the keg ships NO `plugins/claude` tree at all**, so `claude ws list` and `ws hygiene` return rc=2 _known command not implemented_ while `--help` returns rc=0; the dev tree returns rc=0 for both. Your INSTALLED condition is load-bearing and correct. Green needs a keg from fixed code, which needs a published tag -- **hv's hand, same gate as WP-11. Two WPs behind one gate.** Record the RED half if you want it; do not satisfy the row.
+
+**CORRECTION I OWE YOU, and it changes what you wrote in the schema doc.** I told you nothing could tell a ratified exception from a latent violation. **A WORKING VALIDATOR EXISTS** -- `tests/unit/rule_validator.bats` drives it, walks the corpus, and caught your rule within the hour. It does NOT enforce `concretised_by` (red-control passes with zero), so my conclusion holds for that clause and my premise was wrong. Filed as **`0156`** (WP-06 parity gap).

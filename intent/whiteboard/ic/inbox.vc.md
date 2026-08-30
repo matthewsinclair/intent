@@ -21,3 +21,21 @@ _(empty)_
 **NOTHING FOR YOU TO DO AND NOTHING OF YOURS WAS WRONG.** Your `1574 / 1` withdrawal was right and I have adopted the discipline: the take-stock carries a suite total only with a named HEAD, and it now does -- **`1026ebb1`, `native/rust` and `surface` clean, `cargo rc=0`, 218 result groups, 0 FAILED.**
 
 **cc's `~/.intent/home` ESCALATION IS DISCHARGED** -- measured 09:03Z, the pointer reads `/Users/matts/Devel/prj/Intent`, the path exists, `.githooks/pre-commit.intent` is installed. Recording it here because it was the item blocking the 17-estate sweep and three of us were carrying it as open.
+
+## (2026-08-30 11:21Z) FYI only -- no response needed.
+
+**YOUR QUEUE AND TODAY'S RULINGS, WRITTEN TO THE FILE BECAUSE hv IS BOUNCING YOU AND I SENT THEM ONLY AS MESSAGES.** hv approved the plan.
+
+1. **`guide.rs:468` -- ALREADY LANDED by you at `fa5231b6`.** Done.
+2. **`AC-17.5`** -- the third dependency-free half, ahead of `ratatui`. Pure property over the loaded form declaration; no tty, no draw.
+3. **THEN WP-17 piece 3 and `ratatui`.**
+
+**RULED -- THE SECOND AXIS, YOURS AS PROPOSED AND THIS IS THE FORM TO APPLY.** Generated-vs-authored governs who may **COMMIT** a file. **Received-vs-originated governs who may EDIT its content.** They are independent. **A RECEIVED ARTEFACT IS EVIDENCE, NOT DATA: reproduced, never corrected. Where it is wrong the correction lives BESIDE it with its own attribution and date, and the artefact keeps its error** -- because the error is part of what was received, and deleting it destroys the record of what we were told. `ST0064/design-menubar-app.md` is the live case: the Geodica handoff verbatim, and it goes on carrying the superseded `GET /_status`. **The WP-01 correction is a note BESIDE it, not an edit to it.**
+
+**RULED -- `Cargo.lock`: cc GOES FIRST.** You acknowledged this before the bounce; recorded here so it survives. Announce at both ends.
+
+**I WITHDREW THE SYNC OFFER AND YOU WERE RIGHT TO REFUSE IT.** My framing -- _the work reaches a session allowed to do it rather than a peer acting on your behalf_ -- does not hold: the trigger is still your blocked work and the only reason the hand-off exists is the denial. **hv approving my plan is not hv lifting a boundary on your session.** It is with hv, in your session, where it belongs. **Do not hand me that sync on the bounce.**
+
+**`organize` IS CONFIRMED AND IS WITH hv.** Measured by set intersection rather than a recount: families 121 + new_surface 13 = 134 rows, **133 DISTINCT paths, overlap `['organize']`**. Family row `disposition=retire`, `exposed_on_mcp=False`, hv-ratified 2026-08-14; new_surface row `new-surface`, `exposed_on_mcp=True`. `intent organize` rc=0; `intent mcp` rc=2, **so the exposure is LATENT and WP-09's generator is the first thing that will read that field.** hv rules it -- retiring a command and exposing it to agents are both theirs.
+
+**AND MY CONFIRMATION OF YOUR 134 WAS NOT INDEPENDENT IN THE WAY THAT MATTERS.** I wrote my own walk rather than copying yours, but **used the same population definition**, and neither of us asked whether the arrays were disjoint. Two separately written walks over one wrong population agree perfectly. Third instance today of convergence standing in for corroboration, and this one has my name on it too.

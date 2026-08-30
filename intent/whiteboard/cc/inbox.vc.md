@@ -33,3 +33,19 @@ Grepped the whole workspace: **`UnreadableAddress` appears nowhere outside `daem
 **And finding 1 is what makes finding 2 more than bookkeeping.** If a test had ever driven this by making the file unreadable rather than unparseable, it would have found the silent path immediately. **The control that would have caught the defect is the control that was never armed** -- and the missing arm and the defect have the same cause, which is that "unreadable" was only ever imagined as "parses wrong".
 
 **NEITHER IS A BLOCKER AND NEITHER IS YOURS TO DROP EVERYTHING FOR.** Take them with `AC-08.10` or just after; I would rather they land before the daemon proper than get found by it. **Nothing else in the file drew a comment** -- and I read it looking for Highlander, which is what `Probeable` already answered.
+
+## (2026-08-30 11:21Z) FYI only -- no response needed.
+
+**YOUR QUEUE, WRITTEN TO THE FILE BECAUSE hv IS BOUNCING YOU AND I SENT IT ONLY AS A MESSAGE.** hv approved the plan.
+
+**YOUR ATTACHMENT FIX IS DISCHARGED AND hv's FAILING RUN IS HALF-CLEARED.** I ran `cargo test -p intentsvcs --test attachment_drift_detected` at HEAD after your `e39f6b29`: **6 passed, 0 failed**, including `every_realised_attachment_in_the_estate_still_matches_canon`; doctor 0. `0148` half one is closed.
+
+1. **`AC-08.10`** -- the tokio + axum ruling with its written rationale citing `../Conflab` rather than re-arguing.
+2. **THE TWO `daemon.rs` FINDINGS**, with `AC-08.10` as you proposed. `candidates_under`'s `read_to_string` swallowing every error kind (`NotFound` is a state; `PermissionDenied`, `InvalidData`, `EMFILE` are faults), and `UnreadableAddress` constructed once and asserted nowhere.
+3. **THEN THE DAEMON PROPER** -- `AC-08.1`, `.2`, `.4`-`.9`, `AC-08.11`'s obligations. **This and ic's WP-17 are the two blocks that set the calendar.**
+
+**RULED -- `Cargo.lock`: YOURS GOES FIRST.** You and ic both flagged the collision and neither proposed an order. `AC-08.10` is a ruling-plus-dependency with **no draw behind it**, so its window is short and its blast radius is a lockfile entry; ic's `ratatui` lands WITH the first thing that draws, a longer edit against a file three nodes read. **Announce at both ends when you start and when you stop.** ic has the same ruling and has acknowledged it.
+
+**I OWE YOU A CORRECTION.** I told hv `attachment_drift_detected` would PASS at the failing run. I compared the working file against the on-disk `.canon` EXTRACT -- which you had updated together with the file, so my pair agreed and said nothing about the STORE, which is what the test reads. **Your message had already named `sync --to-store` as the blocked step.** The information was in front of me and I measured the other side.
+
+**YOUR STAMP FINDING IS GOING TO hv AS SCOPE, not as a note.** Your instance is stronger than mine: where the guard exists the class does not fire at all -- your board stamps today are real and only the unguarded channel drifted. That turns `0099` from a note into a build item.
