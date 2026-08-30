@@ -97,33 +97,48 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
 /// INV-03, the project-context gate: a command that needs a project says so
 /// when there is not one, rather than half-working. The marker is the config
 /// file's presence, never an environment variable (issue 0025).
-/// What this invocation needs from the store while a daemon holds it.
+/// Whether this verb may run while a daemon holds the same store.
 ///
-/// **ONE PREDICATE, DELIBERATELY, BECAUSE IT MAY HAVE TO REVERSE** (vc's
-/// ruling, 2026-08-30). If hv reads `design.md:22`'s parenthetical as an
-/// absolute prohibition rather than as the justification vc reads it as, then
-/// [`StoreNeed::Shared`] becomes a refusal too -- and that is a one-line change
-/// here rather than an audit of sixty-seven call sites.
+/// **THIS IS MUTUAL EXCLUSION, NOT ROUTING, AND SINCE hv's REVERSAL IT IS THE
+/// ONLY PLACE A DAEMON'S PRESENCE CHANGES WHAT A LOCAL COMMAND DOES.** Routing
+/// is opt-in (`design.md` D-line 22, corrected 2026-08-30): a plain invocation
+/// answers in this process whether or not a daemon is up. **So this predicate
+/// used to be one refusal among many on a daemon machine and is now the only
+/// one**, which makes it more load-bearing than it was, not less.
+///
+/// **ONE PREDICATE, DELIBERATELY, BECAUSE IT IS STILL THE THING MOST LIKELY TO
+/// MOVE.** vc's reason for that held while hv's ruling was pending and holds
+/// for a different reason now: narrowing it to *a daemon WATCHING this project*
+/// is a one-line change here rather than an audit of sixty-seven call sites.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum StoreNeed {
   /// A read, or a bounded change the store itself serialises.
   ///
-  /// **THESE FALL THROUGH TO IN-PROCESS WHILE A DAEMON IS UP.** The line
-  /// `design.md:22` gives for routing is *never two sync engines live at once*
-  /// -- and that parenthetical is the rule's JUSTIFICATION, which this estate's
-  /// own measurement refuted: the store serialises writes, a second writer is
+  /// **THESE RUN IN THIS PROCESS WHATEVER ELSE IS ALIVE.** The justification
+  /// `design.md` once gave for refusing them -- *never two sync engines live at
+  /// once* -- was refuted on its own terms by this estate's measurement, BEFORE
+  /// the default ever moved: the store serialises writes, a second writer is
   /// refused cleanly at rc=1, readers never block, and a whole sync is one
-  /// transaction. **Refusing to work is not a safety measure when the thing it
-  /// protects against cannot happen**, and rc=2 is strictly worse for the
-  /// operator than the real residual, which is duplicated ingest work.
+  /// transaction, so two engines cannot half-apply anything. **Refusing to work
+  /// is not a safety measure when the thing it protects against cannot happen**,
+  /// and rc=2 is strictly worse for the operator than the real residual, which
+  /// is duplicated ingest work.
   Shared,
-  /// The sync engine or the ingest walk, where the parenthetical is literally
-  /// true.
+  /// The sync engine or the ingest walk, where the refuted parenthetical is
+  /// nonetheless literally true.
   ///
   /// **THE CARVE-OUT IS NARROW BECAUSE THE PROHIBITION IS NARROW.** Two of
   /// these really would both watch and both ingest, which is the case the line
-  /// was written about. They refuse while a daemon holds the store, until they
-  /// can route to it.
+  /// was written about -- and under opt-in routing that case is the NORMAL one
+  /// rather than the failure one, since a daemon watching project A while an
+  /// operator syncs project A locally is two engines by design (`AC-08.5`).
+  ///
+  /// **THE PREDICATE IS WIDER THAN THE HAZARD AND THAT IS OPEN WITH vc.** It
+  /// fires on any answering daemon, not on one watching THIS project. The right
+  /// question is answerable -- the daemon has a registry and `AC-08.5` will have
+  /// a watch set -- and until that exists the honest answer is always *no*.
+  /// **Narrowing it is a ruling rather than an inversion, because refusing
+  /// preserves and running does not.**
   Exclusive,
 }
 
@@ -316,23 +331,28 @@ fn open_for(need: StoreNeed) -> Result<Facade, Failure> {
   engine(project, ctx, need)
 }
 
-/// The ONE door to the in-process engine, and the place the routing rule
+/// The ONE door to the in-process engine, and the place the exclusion rule
 /// (AC-08.3) is applied.
 ///
 /// **EVERY `Facade::open` IN THIS CRATE IS THIS ONE, AND
 /// `cli_routing::the_in_process_engine_has_exactly_one_door` HOLDS IT THERE.**
-/// The rule being enforced is *never two sync engines live at once*, which is
-/// a property of the whole invocation rather than of any one verb -- so a
-/// second construction site would not weaken the rule, it would delete it for
-/// whatever went through that site, silently and only on machines running a
-/// daemon. **The guarded door with an unguarded twin one call away is the
-/// commonest way a rule like this is lost**, and the twin here is spelled the
-/// same as the door, which is why the check is mechanical rather than a
-/// convention.
+///
+/// **THE REASON IS NOT *never two sync engines live at once*, AND SAYING SO IS
+/// WHAT KEEPS THE GUARD ALIVE.** That sentence was this door's stated reason
+/// until 2026-08-30 and it is refuted: the store serialises writes, so a second
+/// engine cannot corrupt anything. **A guard defended by a reason that turns out
+/// to be false is the guard somebody later deletes, correctly and destructively.**
+/// What one door actually buys is that the decision is a property of the whole
+/// INVOCATION rather than of any one verb -- so a second construction site would
+/// not weaken it, it would delete it for whatever went through that site,
+/// silently and only on machines running a daemon. **The guarded door with an
+/// unguarded twin one call away is the commonest way a rule like this is lost**,
+/// and the twin here is spelled the same as the door, which is why the check is
+/// mechanical rather than a convention.
 ///
 /// **IT IS NOT AT THE TOP OF [`run`], THOUGH THAT WOULD BE ONE DOOR TOO.**
 /// `version`, `info`, `init` and the `lang` verbs need no store at all, and
-/// routing them would make `intent version` refuse on a machine whose daemon
+/// gating them would make `intent version` refuse on a machine whose daemon
 /// happens to be up. The rule is about the STORE, so it belongs where the
 /// store is reached.
 ///

@@ -50,6 +50,16 @@
 //! field does not, and no generator will ever check it.**
 
 use crate::dispatch::{self, Arg, Entry, Flag, Table};
+// **THE PHRASE IS IMPORTED, NEVER RE-TYPED, AND THE DISCRIMINATOR IS WHAT THIS
+// FILE IS ABOUT.** `exit_codes.rs` holds its own literal because the phrase is
+// that file's SUBJECT -- a witness importing the value it asserts states that
+// the emitter equals itself. Here the phrase is INCIDENTAL: this file is about
+// the guide, and it cites what the emitter says. So a copy here is a second
+// home that drifts silently, and the import makes drift impossible rather than
+// catchable. (dc's `pub const` landed at `ca744f1d`; its doc comment already
+// said this import existed, and it did not -- so `render.rs` read finished
+// while this file was still typing the literal out.)
+use crate::render::UNWIRED_PHRASE;
 use crate::spine::Failure;
 
 /// Render the guide.
@@ -139,7 +149,7 @@ fn surface_wide(table: &Table) -> Result<String, Failure> {
     "\
 ## Facts about the whole surface
 
-- **{}** ({}). `0` is success. `1` means the command RAN and the answer is no -- a refused verb, a blocked gate, a usage error. **`2` means this build cannot answer the question at all**, and it has two causes: a command that is declared but not implemented yet, which says `is a known command that is not implemented yet` on stderr; and `intent critic` rejecting an invocation it cannot act on, such as a language it does not know. Both mean the TOOL is unavailable rather than that your code is bad, which is why the shipped pre-commit gate fails open on `2`. **Never read `2` as a verdict about your code, and never read `1` as a broken run.**
+- **{}** ({}). `0` is success. `1` means the command RAN and the answer is no -- a refused verb, a blocked gate, a usage error. **`2` means this build cannot answer the question at all**, and it has two causes: a command that is declared but not implemented yet, which says `{UNWIRED_PHRASE}` on stderr; and `intent critic` rejecting an invocation it cannot act on, such as a language it does not know. Both mean the TOOL is unavailable rather than that your code is bad, which is why the shipped pre-commit gate fails open on `2`. **Never read `2` as a verdict about your code, and never read `1` as a broken run.**
 - **{}** ({}). Results go to stdout; failures go to stderr with a lowercase `error: ` prefix. Nothing is banner-wrapped.
 - **{}** ({}). A usage error -- an unknown flag, a missing argument -- exits `1`, not clap's default of 2.
 - **{}** ({}). A command that needs to be inside an Intent project says so plainly when it is not, rather than half-working.

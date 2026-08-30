@@ -13,12 +13,32 @@
 //!
 //! ## The rule
 //!
-//! design.md D-line 22, quoted rather than restated (design.md is the live
-//! text; this is a record of what it said):
+//! design.md D-line 22, quoted rather than restated. **EVERY QUOTE BELOW
+//! CARRIES THE DATE IT WAS TRUE, AND THE FIRST VERSION OF THIS BLOCK DID NOT --
+//! WHICH IS WHY IT WENT ON READING AS CURRENT AFTER IT STOPPED BEING SO.** It
+//! said *design.md is the live text; this is a record of what it said*, which is
+//! exactly the right practice and names no date, so a record is indistinguishable
+//! from a copy by inspection. **A record of what a live text said needs the date
+//! it said it** (vc, 2026-08-30).
+//!
+//! As of **2026-08-30**:
+//!
+//! > CLI routing rule: ROUTING IS OPT-IN. A local command uses `intentsvcs`
+//! > in-process; `intent --daemon ...` is the exception that reaches `intentd`.
+//!
+//! Until **2026-08-30** it said the opposite, and both halves were wrong:
 //!
 //! > if the intentd socket exists and answers, the CLI MUST route to it (never
 //! > two sync engines live at once); when absent, it executes in-process
 //! > against the same facade.
+//!
+//! **NOTHING IN THIS MODULE CHANGED WHEN THAT REVERSED, AND THAT IS THE
+//! INTERESTING PART.** This is the PREDICATE -- *exists and answers* -- and the
+//! reversal moved only the number of callers, not the question. A `--daemon`
+//! run asks exactly the same thing about exactly the same two failure cases.
+//! **The parenthetical was refuted separately and earlier: routing is not a
+//! corruption guard**, because the store serialises writes and a whole sync is
+//! one transaction.
 //!
 //! **`EXISTS AND ANSWERS`, AND THE SECOND HALF IS THE WHOLE POINT.** A unix
 //! socket file OUTLIVES the process that bound it -- kill the daemon and the
