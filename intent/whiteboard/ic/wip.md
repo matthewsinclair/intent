@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-30 00:59Z
+heartbeat_at: 2026-08-30 01:52Z
 status: active
-focus: "Pieces 1 and 2 done. Piece 3 has its two dependency-free halves in: the mode machine (1331fcdf) and the terminal borrow-and-return (ebedff7f), eleven invariants between them and every one mutation-proven. `crossterm` is in (+18 crates, announced first); `ratatui` follows with the first thing that DRAWS. Next is the event loop, and after it the editor handoff where AC-17.10 lives."
+focus: "The daemon FAMILY SPLIT is authored, green and BLOCKED at the gate on vc's uncommitted acceptance.md -- `sync --to-store` has no unit narrower than a thread, so landing it would ingest their bytes. Asked rather than swept. Landed tonight: flag() deleted at 24 sites (0fcf471a), the ellipsis derived (84d51e0b), surface --format (be76955b), and 0153 filed."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -55,6 +55,11 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 14. **A HELPER THAT READS A DECLARED THING THROUGH A TYPE ASSUMPTION RETURNS A PLAUSIBLE FALSE WHEN THE ASSUMPTION BREAKS, AND `.ok()` IS WHERE IT HAPPENS.** `fn flag` reads every match as `try_get_one::<bool>().ok()`; clap stores a `bool` for `SetTrue` and ONLY that, so a flag declared WITH A VALUE is a type mismatch, the `.ok()` discards it, and the flag reads as ABSENT -- given, parsed, invisible. `intent edit ... --editor` printed the path while `intent st edit ... --editor` opened an editor. **The fallback was a reasonable thing for the command to do, so it read as a design decision.** Agreement and correctness look identical from outside.
 15. **THE COMMIT GATE READS THE INDEX, SO A STAGED INTERMEDIATE BLOCKS EVERY NODE.** dc's half-moved `data-model.md` against an unmoved `transitions.rs` refused MY unrelated commit, correctly. **Measure whether it is yours before asking anyone to move**: the same guard against a clean worktree carrying only my files returned rc=0. And **never reach for `--no-verify`** -- the guard was right.
 16. **A WORKTREE IS A MUTABLE SHARED RESOURCE AND ITS STATE IS NOT WHAT YOU LAST SET IT TO.** `git checkout --detach` ABORTS on a dirty file and prints `Aborting` -- I read the compile error below it and not the refusal above it, and measured the wrong commit. A baseline taken at one HEAD is void for a comparison at another. **Every measurement now asserts HEAD, cleanliness, and the presence of what it needs BEFORE it measures**, and a binary is asserted to carry the change before it is driven.
+
+17. **`sync --to-store` HAS NO UNIT NARROWER THAN A THREAD, SO A CANON SYNC IS A SUITE-WIDE WRITE OF WHATEVER IS DIRTY.** Editing one tracked attachment (`gen_dispatch_table.sh`) put my commit behind a canon sync that would have ingested vc's uncommitted `acceptance.md`. **Nothing would be lost and that is not the point** -- the bytes move under someone else's name. Ask; do not sweep. And **never `--no-verify`**: it takes the clock and header guards with it.
+18. **THE DISPATCH TABLE IS COMPILED IN, WHICH MAKES IT THE WORST FILE IN THE REPO TO BE MID-EDIT IN.** A malformed one is not a bug a user could hit, it is a binary that will not start, for every node building from the shared worktree. `values: null` -> `invalid type: null, expected a sequence` at `dispatch.rs:680`, before any work. **I wrote that null because `jq` prints `null` for an ABSENT key and I read the print as the value.** Absent and null are different declarations and one of them panics.
+19. **A GREP FOR A CALL SITE CANNOT FIND ONE THAT TAKES A VARIABLE.** Deleting `flag()`: vc's grep found 3, a second found 12, mine found 17, **the compiler found 24** -- `flag(m, other)` matches no literal pattern and never could. Four enumerators, four answers, each short of the next. **Assert the END STATE, never a count**, and let the build enumerate when it can.
+20. **REMOVING A SWALLOW MEANS FINDING OUT WHAT IT WAS SWALLOWING, AND THERE IS NO WAY TO FIND OUT EXCEPT TO REMOVE IT.** `flag()`'s `.ok()` was hiding a type mismatch AND a legitimate case -- `value_source` PANICS on an id a subcommand does not declare, and `--force` is declared on some `claude skills` verbs and not others. My first `given()` crashed 47 tests. **The warning was three thousand lines up in the same file and I QUOTED IT into the new exemption while shipping its violation.** Reading a warning and applying it are different acts.
 
 ## Decisions
 
