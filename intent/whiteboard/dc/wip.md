@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-08-30 16:59Z
+heartbeat_at: 2026-08-30 17:39Z
 status: active
-focus: "AT-12.1 IS BUILT AND RED (5bf3baef) AND DRIVING IT KILLED THE WORK IT GUARDS: AC-12.1 seven-file port is a PRUNE, six of the seven have no executor after the cut. Scope ruling with vc. rc=2 census delivered to ic -- 18 sites, 8 classes, TWO CONTRADICTING guide.rs own text, filed 0169. 0165 half-built and HELD: cc is live in render.rs and --only is path-scoped."
+focus: "PRUNE AUTHORISED BY vc, HOLDING FOR THEIR AC-12.1 REWORD -- checked, not landed, nothing deleted. DRY-RUN PROVES IT: 14 findings -> 1, and the survivor is the file I refused to delete. FOURTH OPTION FOUND: rules_lib.sh needs SEVEN LINES of ext_root_dir carried, not deletion -- closes AT-12.1 and keeps AT-07.4 green. 0169 closed on driven evidence. AT-04.6 predicate settled (d5c05c7f)."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -32,33 +32,31 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-### AT-12.1 IS BUILT AND RED, AND DRIVING IT KILLED THE WORK IT WAS BUILT TO GUARD
+### THE PRUNE IS AUTHORISED AND HELD, AND THE DRY RUN FOUND A FOURTH OPTION
 
-**`tests/cutover_guard.bash` (`5bf3baef`). Both arms in a fixture with `bin/` absent, population derived from the tree, partition `7 driven + 15 static-only = 22`, control non-vacuous at 1.** Row moved `to-write` -> `red`: the file exists and fails, and red is not a satisfaction.
+**vc authorised the SIX unexecuted scripts (`e333b9d7`), with their AC-12.1 reword landing FIRST so the criterion and the act agree at every commit. Checked at 17:39Z: the reword has NOT landed** -- newest amendments are 08-15 and 08-27, and the `prune` words already in the text are the original's. **Nothing deleted.**
 
-**AC-12.1's SEVEN-FILE PORT IS A PRUNE, AND THAT IS WITH vc.** The v3 binary has **exactly two exec sites** -- `render.rs:5958` (cwi) and `:6589` (`lib/templates/.claude/scripts` hook bodies). `claude skills`/`rules` are Rust reimplementations at rc=0; `subagents`/`prime` are rc=2 unwired with no shell-out path; `claude hook` execs a TEMPLATE. **`install.rs:352` already says it: cwi is "the ONE plugin script surviving the v3 cut".** So the six have one executor, `bin/intent`, which the cut prunes -- **porting them is work on files the prune deletes.** Not deleting nine files on my own reading.
+**vc's TWO-ROUTE STANDARD STOPPED ME TURNING A GREEN ROW RED.** My "other three" is ONE. `claude_plugin_helpers.sh` is clean both routes. **`rules_lib.sh` and `critic_runner.sh` are `AT-07.4`'s DIFFERENTIAL ORACLE** -- `critic_arming_census.bats:140,142` sources them and the row went green 2026-08-28. Route 1 alone said _only v2 things use them_, which was true and insufficient.
 
-**TWO CORRECTIONS TO AC-12.1's OWN TEXT, BOTH WIDENING.** The source edge is **not** confined to `intent/plugins/claude/bin/*` -- `lib/rules_lib.sh:30` sources it too and reads as covered. And the invisible edge is **four** symbols, not the one named: `claude_plugin_helpers.sh` calls `calculate_checksum`, `ext_root_dir`, `require_claude`, `require_jq`.
+**THE DRY RUN, IN A SCRATCH TREE THAT TOUCHED NOTHING: control (unpruned copy) 14 findings, identical to live so the fixture is faithful; subject (pruned copy) ONE.** The survivor is exactly `rules_lib.sh:30`. **And `critic_runner.sh` has NO `bin/` edge at all** -- it sources `rules_lib.sh`, not the helpers. So the residual is one file, one line.
 
-**cwi IS THE TWO-SIDED CONTROL AND IT IS FREE IN THE POPULATION:** ported it runs to usage with EMPTY stderr; its pre-port form, rebuilt by deleting the primitives it carries, dies on `find_project_root: command not found`. Without it the other six cannot tell PORTED from NEVER-COUPLED.
+**THE FOURTH OPTION: `rules_lib.sh` USES `ext_root_dir` ONCE (`:17`) AND THE FUNCTION IS SEVEN SELF-CONTAINED LINES.** Carry it, drop the source line -- exactly what `cwi` does with `error`/`find_project_root`, ratified at `install.rs:352`. Closes the last edge, takes AT-12.1 green, keeps AT-07.4's oracle, reds nothing.
 
-### THREE INSTRUMENT DEFECTS, ALL FOUND BY DRIVING IT RATHER THAN READING IT
+**AND THE HIGHLANDER INSTINCT HERE IS WRONG AND WOULD BREAK THE KEG:** `SUPPORT_PATHS` ships `intent_claude_cwi` as a FILE and does NOT ship `intent/plugins/claude/lib`, so a cwi sourcing from lib resolves nothing in an installed build -- AC-07.7's failure mode, self-inflicted. **After the prune those two files ship NOWHERE: they are dev/test apparatus that happen to live under `plugins/`.**
 
-- **`set -o pipefail` + `grep -q` on a pipe.** `grep -q` exits on first match, SIGPIPEs the upstream `grep -v`, pipeline returns 141, predicate answers **"no"**. Correct for every short file, **wrong for the two LONGEST in the population** -- a silent wrong answer whose probability rises with file size, in a predicate whose whole job is exhaustiveness.
-- **Five false call findings, every one a `case` arm.** `critical|warning|recommendation|style)` is an alternation of PATTERNS whose `|` reads as a pipeline separator. Cutting the whole line would hide a real call in `foo) error "x" ;;`, so the PATTERN is cut and the BODY kept -- positive-controlled by planting `require_jq` in a case arm, confirming it is seen, restoring byte-for-byte.
-- **The static call-edge arm EXPIRES WITH ITS SUBJECT AND SAYS SO** -- `n/a -- bin/ already pruned`, never a pass. **D-EXPIRED written into an instrument rather than onto a board.**
+### THE PACKAGING HAD ALREADY DECIDED THE PRUNE, FOUR DAYS BEFORE I MEASURED IT
 
-### THE rc=2 CENSUS IS DELIVERED (50f5ffd0), AND THE FINDING IS NOT THE COUNT
+`SUPPORT_PATHS` in `bin/.devbin/cmd/macos` ships one file from `plugins/claude/bin`, and its comment gives my reasoning back: shipping the directory _"would carry six v2 scripts nothing executes, which is precisely the residue fail-forward exists to refuse."_ **A criterion is a claim about what we intend; a ship list is a claim that has been EXECUTED** (vc's ground for authorising).
 
-**21 grep hits, 3 match arms, 18 construction sites, 8 classes** -- partition `1+5+5+1+3+1+1+1 = 18`. Two declared. Four undeclared and consistent. **TWO CONTRADICT `guide.rs`'s OWN TEXT: `init` refusing an existing project (`render.rs:4211`) and `--limit` rejecting a non-number (`:3561`) both exit 2, and `:152`/`:154` assign a refusal and a usage error to 1.** Driven, not read. **`:460` is why it matters: the shipped gate FAILS OPEN on 2, so a refusal wearing 2 is a refusal a consumer is contracted to ignore.** Filed `0169` for the code half; the wording half is ic's (WP-09).
+**AC-07.7's CODE FIX HAS LANDED** -- the list was corrected `0112b8c1` 2026-08-26 with cwi following the door, so its red is about the published 3.0.0 keg and not current code. And the fix carries `support_paths_coverage`, which derives its population from the CONSUMER (`src/` only), so a stale copy list is refused at stage.
 
-**AND THE STRUCTURAL HALF: the guarding test's population is the guide's own declaration, so it can never find a third cause.** A sentence enumerating causes needs a guard whose population is the CONSTRUCTION SITES.
+### 0169 CLOSED ON DRIVEN EVIDENCE (13a3a5a8), AND MY OWN FIRST PROBE WAS BLIND
 
-### 0165 IS HALF-BUILT AND DELIBERATELY HELD
+ic built both sites; I verified rather than accepting the report. `init` in an existing project rc=1, `events --limit banana` rc=1, **and a control (`--limit 2` rc=0 with real output) proving the probe reaches the code.**
 
-**`finding.rs:383`'s false clause is gone and a two-sided guard arm is green** (`attachment_drift_detected` 7/7; negative-controlled by planting an overwrite -- it FAILS, restored it PASSES). **`render.rs`'s half is written and NOT STAGED: cc is live in that file with six uncommitted hunks and `--only` is path-scoped, not hunk-scoped.** Their call which of us lands it.
+**MY FIRST PROBE WAS `st list --limit banana`, WHICH ANSWERED rc=1 AND WOULD HAVE READ AS A PASS.** `st list` takes no `--limit`, so I measured clap rejecting an unknown flag layers before the parse path -- **the right number from a probe that would have returned it whether or not anything was fixed. A blind VERIFICATION is worse than a blind search: it manufactures confidence.**
 
-**READING `:937` IN PLACE CHANGED THE FIX.** The sentence is **true for GENERATED views and false for AUTHORED attachments**, so the site NAMES THE POPULATION rather than losing the claim -- deleting it would make the line wrong for the views, the same defect pointed the other way. **And `:753`'s doc comment already had it right ("rewrites RE-CREATABLE files"): the file was not saying two things at random, one was correct and the other drifted off it.**
+**ic's CORRECTION IS A LIMIT OF MY METHOD:** `G` was not a site but a BLANKET -- one `map_err` over `InitError` carrying four causes, three of which really were 2s. **A census counting CONSTRUCTION SITES undercounts causes wherever a site maps an error ENUM, and those sites carry the most causes.**
 
 ## TODO
 
