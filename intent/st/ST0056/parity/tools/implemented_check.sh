@@ -105,11 +105,27 @@ else
 fi
 
 # --- rows excluded BY NAME, printed every run ---------------------------------
-# Four rows ship and are deliberately not probed: `daemon` and `mcp` never
-# return (the timeout would classify a working server as a hang), and `claude
-# upgrade` and `claude start` write outside the sandbox by design -- the first
-# installs into the user's real `~/.claude`. Naming them is the whole point: a
-# cap that is not printed reads as coverage.
+# Some rows ship and are deliberately not probed. Naming them is the whole
+# point: a cap that is not printed reads as coverage. The members and THE
+# REASON EACH ONE IS EXEMPT both live in `.populations.not_probed` in
+# `surface/dispatch-table.json`, and this block deliberately restates neither --
+# the count and the membership are printed from that home on every run.
+#
+# THIS COMMENT USED TO RESTATE THEM AND EVERY CLAUSE OF IT ROTTED (vc,
+# 2026-08-30). It said FOUR rows when there were three; it named `daemon`, which
+# has since moved to the answered-by-their-verbs bucket; and it gave `mcp` the
+# reason `never returns -- the timeout would classify a working server as a
+# hang`, which cc MEASURED FALSE on 2026-08-29 and corrected IN THE POPULATION
+# HOME: `intent mcp` refuses at rc=2 with the marker string this very script
+# greps for, in milliseconds. The exemption still stands, but as a precaution
+# about the BUILT state -- sound only in that tense.
+#
+# **THE BLOCK ABOVE ALREADY FIXED THE LIST'S SECOND HOME AND LEFT THE REASONS'
+# SECOND HOME STANDING**, which is why a correct fix, correctly recorded in the
+# single home, still left the refuted sentence sitting in the file a reader
+# opens first. A correction that reaches one home leaves every other home
+# authoritative and wrong, and the reader most likely to be misled is the one
+# who comes HERE because this is where the probing is done.
 #
 # THE LIST IS NO LONGER HERE, AND THAT IS THE FIX RATHER THAN A TIDY-UP. This
 # block used to declare its own copy, and the comment it carried said "One home
