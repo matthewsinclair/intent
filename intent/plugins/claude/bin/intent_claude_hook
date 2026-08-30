@@ -24,7 +24,7 @@
 # both for free and makes it impossible for a future edit here to swallow either.
 
 : "${INTENT_HOME:=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)}"
-# ---- Self-contained: no `bin/` dependency (AC-12.1, dc 2026-08-30) ----
+# ---- Self-contained: no `bin/` dependency (2026-08-30) ----
 #
 # **THIS FILE WAS PRUNED AND RESTORED WITHIN THE HOUR, AND THE REASON IS THE
 # RECORD WORTH KEEPING.** It looked unexecuted: v3 serves `claude hook` from
@@ -32,8 +32,8 @@
 # the exec-site census, the resolver census and `SUPPORT_PATHS` all agreed it
 # was residue. All three were right and all three asked the same question.
 #
-# **IT IS THE ORACLE FOR A GREEN ROW.** `AT-07.2`
-# (`native/rust/crates/intent-cli/tests/hook_compat.rs`) byte-compares v2's door
+# **IT IS THE ORACLE FOR A PASSING TEST.**
+# `native/rust/crates/intent-cli/tests/hook_compat.rs` byte-compares v2's door
 # against v3's for every shipped hook, and v2's door is `bin/intent claude hook`
 # -> THIS FILE. Deleting it did not break v3; it removed the thing v3 is
 # compared AGAINST, and the test failed with `Plugin command not found`.

@@ -27,7 +27,7 @@ fi
 # Source the shared helpers if not already loaded (provides ext_root_dir,
 # find_project_root, etc. -- one home, imported here).
 if ! declare -f ext_root_dir >/dev/null 2>&1; then
-# ---- Self-contained: no `bin/` dependency (AC-12.1, dc 2026-08-30) ----
+# ---- Self-contained: no `bin/` dependency (2026-08-30) ----
 #
 # THIS FILE CARRIES ITS OWN `ext_root_dir` INSTEAD OF SOURCING
 # `bin/intent_helpers`, WHICH THE CUT PRUNES. It took exactly one symbol from
@@ -45,9 +45,9 @@ if ! declare -f ext_root_dir >/dev/null 2>&1; then
 # `bin/.devbin/cmd/macos` ships `intent/plugins/claude/bin/intent_claude_cwi` as
 # a FILE and does not ship `intent/plugins/claude/lib` at all -- so a `cwi`
 # sourcing a shared lib would resolve nothing in an installed build, which is
-# AC-07.7's failure mode inflicted deliberately. This file ships NOWHERE after
+# the installed-build failure mode inflicted deliberately. This file ships NOWHERE after
 # the cut: it is apparatus for `critic_runner.sh` and for
-# `tests/unit/critic_arming_census.bats`, which is AT-07.4's differential oracle.
+# `tests/unit/critic_arming_census.bats`, which is a differential oracle for it.
 ext_root_dir() {
   if [ "${INTENT_EXT_DISABLE:-}" = "1" ]; then
     echo ""
