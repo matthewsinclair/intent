@@ -50,13 +50,30 @@ fi
 # deliberately staged bytes, and `cargo fmt --check` already runs in CI, so the
 # local rewrite was a convenience with a correctness hazard attached.
 #
-# **THE CHECK READS THE WORKTREE FILE, NOT THE STAGED BLOB, AND THAT IS FORCED
-# RATHER THAN CHOSEN.** `rustfmt --check` reading from stdin RETURNS 0 ON
-# UNFORMATTED INPUT -- measured, not assumed -- so a staged-blob check would
-# have produced a rust arm that could never refuse anything. Consequence worth
-# knowing: for a file that is staged and then modified again, these arms judge
-# the worktree copy, which is the same thing the write-mode formatters did
-# before them, so no behaviour here is newly imprecise.
+# **THE CHECK READS THE STAGED BLOB, NOT THE WORKTREE, AND THAT IS THE WHOLE
+# POINT RATHER THAN A REFINEMENT.** Under the old write-mode regime the
+# formatter read the worktree, wrote it and re-staged, so index and worktree
+# CONVERGED and reading either asked the same question. Refusing instead
+# deliberately stops that convergence -- so from here a refusal computed from
+# the worktree would be computed from bytes the commit may not contain. The
+# case where they differ is exactly the HUNK-SCOPED COMMIT, which is the
+# technique this whole ruling exists to protect: a node staging a hand-crafted
+# blob would be refused for a worktree it is not committing, or passed on a
+# staged blob nobody checked. (vc, 2026-08-30.)
+#
+# **`rustfmt --check` RETURNS 0 ON UNFORMATTED INPUT WHEN IT READS STDIN** --
+# measured, not assumed. `--check` is not broken; it is ignored on stdin. So
+# the staged bytes go to a temporary FILE, never down a pipe. An arm built on
+# the pipe could never have refused anything, and its green would have been
+# indistinguishable from a working one.
+#
+# **AND A TEMPORARY FILE IS CHECKED AGAINST WHATEVER CONFIG ITS LOCATION
+# RESOLVES TO, WHICH IS THE TRAP THAT NEARLY LANDED HERE.** A scratch directory
+# has no `rustfmt.toml`, so rustfmt applies its own 4-space default and refuses
+# correct 2-space code. Passing `--config-path` explicitly makes the probe's
+# location irrelevant, which is better than choosing a lucky location; prettier
+# gets the same guarantee from `--stdin-filepath`, which resolves config as
+# though the content were at that path.
 formatter_refused() {
   echo "pre-commit: $1 is not formatted -- REFUSED, and NOTHING WAS REWRITTEN." >&2
   echo "pre-commit:   your staged bytes are exactly as you staged them." >&2
@@ -70,7 +87,15 @@ formatter_refused() {
 # Check staged Markdown with prettier
 MD_FILES=$(git diff --cached --name-only --diff-filter=ACM -- '*.md' || true)
 if [ -n "$MD_FILES" ]; then
-  MD_BAD=$(echo "$MD_FILES" | xargs prettier --list-different 2>/dev/null || true)
+  # `--stdin-filepath` resolves .prettierrc and .prettierignore as though the
+  # bytes were at that path, so the staged blob is judged under the same config
+  # as the real file, with no temporary anywhere.
+  MD_BAD=""
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    git show ":$f" 2>/dev/null | prettier --stdin-filepath "$f" --check >/dev/null 2>&1 \
+      || MD_BAD="$MD_BAD $f"
+  done <<< "$MD_FILES"
   if [ -n "$MD_BAD" ]; then
     formatter_refused "markdown" "prettier --write <the files listed above>" "$MD_BAD"
   fi
@@ -79,8 +104,17 @@ fi
 # Check staged Elixir with mix format
 EX_FILES=$(git diff --cached --name-only --diff-filter=ACM -- '*.ex' '*.exs' || true)
 if [ -n "$EX_FILES" ]; then
-  if ! mix format --check-formatted $EX_FILES >/dev/null 2>&1; then
-    formatter_refused "elixir" "mix format <the files listed above>" "$EX_FILES"
+  EX_BAD=""
+  for f in $EX_FILES; do
+    # Beside the original, so `.formatter.exs` resolution is the file's own.
+    probe="$(dirname "$f")/.staged-check-$$.$(basename "$f")"
+    if git show ":$f" > "$probe" 2>/dev/null; then
+      mix format --check-formatted "$probe" >/dev/null 2>&1 || EX_BAD="$EX_BAD $f"
+    fi
+    rm -f "$probe"
+  done
+  if [ -n "$EX_BAD" ]; then
+    formatter_refused "elixir" "mix format <the files listed above>" "$EX_BAD"
   fi
 fi
 
@@ -126,9 +160,21 @@ while IFS= read -r -d '' f; do
   [ -n "$f" ] && RS_FILES+=("$f")
 done < <(git diff --cached --name-only --diff-filter=ACM -z -- '*.rs' || true)
 if [ "${#RS_FILES[@]}" -gt 0 ]; then
+  # Explicit config, so the probe's LOCATION cannot change the verdict.
+  RS_CFG=$(git ls-files '*rustfmt.toml' | head -1)
   RS_BAD=""
   for f in "${RS_FILES[@]}"; do
-    rustfmt --check --edition 2024 "$f" >/dev/null 2>&1 || RS_BAD="$RS_BAD $f"
+    probe_dir=$(mktemp -d)
+    probe="$probe_dir/probe.rs"
+    if git show ":$f" > "$probe" 2>/dev/null; then
+      if [ -n "$RS_CFG" ]; then
+        rustfmt --check --edition 2024 --config-path "$RS_CFG" "$probe" >/dev/null 2>&1 \
+          || RS_BAD="$RS_BAD $f"
+      else
+        rustfmt --check --edition 2024 "$probe" >/dev/null 2>&1 || RS_BAD="$RS_BAD $f"
+      fi
+    fi
+    rm -rf "$probe_dir"
   done
   if [ -n "$RS_BAD" ]; then
     formatter_refused "rust" "rustfmt --edition 2024 <the files listed above>" "$RS_BAD"
