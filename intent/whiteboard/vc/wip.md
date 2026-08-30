@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-30 14:40Z
+heartbeat_at: 2026-08-30 15:12Z
 status: active
-focus: "LOCALFOLD 2026-08-30 14:40Z, pre-fold at .history/20260830/wip-fold-1439Z.md. AC-00.15 and AC-00.12 CLOSED today, AT-00.12 green; ST0056 78 -> 84. AT-00.11 BLOCKED on a positive control that does not exist at the revision AC-00.11 names (issue 0160). SIX ITEMS WITH hv, item 1 ruled. Watch-outs folded 9 -> 8."
+focus: "THE v3.0.1 BUILD-OUT PLAN IS IN DOING AND ITS CENTRAL FACT IS AN OWNERSHIP HOLE: 8 of ST0056 open 49 sit in work packages NO node claims, and one of them is WP-12, the release itself. ST0056 85/134. Today: AC-00.15 + AC-00.12 closed, AT-00.14 built and RED on a real finding (0167), design.md:22 reversed on hv ruling, AC-17.10 clause 2 ruled for ic."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0066, ST0068]
 ---
 
@@ -15,27 +15,82 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0066, ST0068]
 
 ## DOING
 
-**WP-00 IS 27% OF THE REMAINING RELEASE GATE AND IT IS ENTIRELY MINE.** Of ST0056's 50 open rows, 13 are WP-00. That settles priority without needing hv, and `AC-00.10` says why out loud: WP-00 sits in the gate group because every other row's verdict depends on it.
+### THE v3.0.1 BUILD-OUT PLAN, AS AT 2026-08-30 15:12Z -- MEASURED, NOT RECALLED
 
-**CLOSED TODAY: `AC-00.15`** (`declared_kind_check.sh`, GATED, admitted to the runner) **and `AC-00.12`** (`partition_closes_check.sh`, manual). **`AT-00.12` green** -- it was red on ONE finding and the finding was vc's own roster row transcribing the census's DERIVED figures into prose.
+**THE CUT IS ST0056 + ST0058 + ST0066 + ST0068 (hv scope). Run the verbs; the figures below are a snapshot and rot.** `intent ac status <ST>` for each.
 
-**`AT-00.11` IS BLOCKED AND THE BLOCK IS A RESULT, NOT A PAUSE -- issue `0160`.** AC-00.11 records the `canon_commit_check.sh` of-N defect as live at `c51f10d5`. Driven, not read: a worktree at `c51f10d5` with `ROOT` pointed at a worktree of `121ea719` printed `EXAMINED 301 of 511`; the tool at HEAD, same tree, printed the same. Three more pre-fix candidates, no reproduction. **`of_n_closes_over_examined.sh` must NOT be written until a confirmed-defective instrument exists**, because this row's own rule is that a clean sweep is worth nothing without one -- and building it now yields exactly that, with a rig that looks finished.
+| thread | state                                              | who      |
+| ------ | -------------------------------------------------- | -------- |
+| ST0056 | **85/134 BLOCKED, 49 open**                        | all four |
+| ST0057 | PASS 66/66                                         | done     |
+| ST0058 | 3/6 BLOCKED -- **all three open rows are with hv** | dc       |
+| ST0066 | PASS 6/6                                           | done     |
+| ST0068 | 4/9 BLOCKED                                        | vc       |
 
-**STILL WRITABLE IN WP-00:** `AT-00.14` (vocabulary adequacy, AC-00.13) and `AT-00.15` (instrument currency, AC-00.14). `AT-00.2` needs other repos; `.3`/`.4`/`.7` wait on cc's routing client; `.18`/`.19` are tag-gated.
+**THE 49 OPEN ST0056 ROWS BY OWNER, AND THE HOLE IS THE FINDING.**
+
+| WP  | open | owner      | what                                                                        |
+| --- | ---- | ---------- | --------------------------------------------------------------------------- |
+| 00  | 13   | vc         | the gate group -- every other row's verdict depends on it (`AC-00.10`)      |
+| 04  | 1    | **NOBODY** | intentsvcs facade: core command families (XL, WIP)                          |
+| 05  | 1    | **NOBODY** | CLI in-process mode and BATS conformance harness (L, WIP)                   |
+| 06  | 5    | cc         |                                                                             |
+| 07  | 1    | dc         |                                                                             |
+| 08  | 7    | cc         | **intentd -- hv named it a priority**                                       |
+| 09  | 5    | ic         |                                                                             |
+| 10  | 4    | cc         |                                                                             |
+| 11  | 2    | dc         |                                                                             |
+| 12  | 2    | **NOBODY** | **Cutover and v3.0.0 release (L, NOT STARTED)**                             |
+| 15  | 4    | **NOBODY** | Skills catalogue triage: KEEP / UPDATE / RETIRE every Intent2-era skill (L) |
+| 17  | 4    | ic         | the TUI                                                                     |
+
+**8 OF 49 OPEN ROWS SIT IN WORK PACKAGES NO NODE CLAIMS, AND ONE OF THEM IS THE RELEASE ITSELF.** WP-12 is _Cutover and v3.0.0 release_, Not Started, unclaimed. **Nobody owns shipping.** This is not a scheduling problem that resolves as the other lanes drain -- an unowned work package is not going to be finished by whoever finishes first, and the four claimed lanes are each full. It was invisible because every node's board is honest about its OWN claims and no board is a view of the complement.
+
+**PROPOSED ASSIGNMENT (vc, and hv can overrule any line).** Sized by measured capacity rather than by title: dc has 3 rows of their own and their whole other thread is parked with hv, so dc has the most room.
+
+- **WP-04 `AC-04.6` and WP-05 `AC-05.7` -> dc.** `AC-04.6` is hv's standing 1-1 file-form/lossless-round-trip requirement, which is store-and-sync shaped; `AC-05.7` is the BATS conformance harness, which is dc's language.
+- **WP-12 (2 rows) -> dc, SEQUENCED LAST.** DevX owns `scripts/release`. It cannot start until the gate closes, but it must be OWNED now, because the failure mode of an unowned release WP is discovering it on tag day.
+- **WP-15 (4 rows) -> vc.** Skills triage is KEEP/UPDATE/RETIRE judgement over Intent2-era content, which is this node's job, and it is the one unowned lane that needs no code.
+
+**SEQUENCE, AND THE CRITICAL PATH IS cc.**
+
+1. **cc -- WP-08 (7).** hv: _intentd is one of those priorities._ `AC-08.2` with `Route::Daemon` meaning driven with `--daemon` against a real intentd, then the `.4`-`.9` block. Longest pole; everything downstream of a shipped daemon waits on it.
+2. **ic -- WP-17 (4) then WP-09 (5).** `AC-17.8` is ruled (option A); `AC-17.1`, `.6`, `.12` after. WP-09 starts at the generator, not the register -- ic measured both declared fields TOTAL at 134/134.
+3. **dc -- WP-07, WP-11, then the two adopted rows.** Nothing of dc's is blocked on dc.
+4. **vc -- WP-00 (13), the four unruled hv items, and adjudication as it arrives.**
+5. **WP-12 LAST.**
+
+**WHAT IS NOT IN THE CUT, SO NOBODY BUILDS IT: WP-13 (search, XL) is post-tag.** hv: _once that is done, we can do tree-sitter and full search._ ST0060 (vault), ST0046 (modules) and ST0064 (menubar) are OUT.
+
+**THE THREE hv-BLOCKED ST0058 ROWS ARE THE OTHER HOLD, AND THEY ARE MINE TO SURFACE, NOT dc's TO WAIT ON.** `AC-00.3` (`ext` in the cut), `AC-00.6` (a v3 `help` surface, and the schema affordance for _ruled and not yet built_), `AC-00.1` (tag-gated by its own text).
+
+### WP-00 IS 27% OF THE REMAINING GATE AND IT IS ENTIRELY MINE
+
+**CLOSED: `AC-00.15`** (`declared_kind_check.sh`, gated) **and `AC-00.12`** (`partition_closes_check.sh`, manual). **`AT-00.12` green.**
+
+**`AT-00.14` BUILT AND RED ON A REAL FINDING (`0167`).** `vocab_adequacy_check.sh`, manual, 0.12s. `AC-00.13` says adequacy is not checkable, so it finds ONE signature: a declared machine-read state contradicted by the authored prose beside it. Live returns exactly 1 -- `INV-03` declares `state: ratified` while its own prose says `hv ratification outstanding`. **It survived `1e0a4722`, the migration that WAS the fix for this class.**
+
+**`AT-00.11` IS BLOCKED AND THE BLOCK IS A RESULT, NOT A PAUSE -- issue `0160`.** AC-00.11 records the `canon_commit_check.sh` of-N defect as live at `c51f10d5`; driven at four revisions, none reproduces. **`of_n_closes_over_examined.sh` must NOT be written until a confirmed-defective instrument exists.**
+
+**STILL WRITABLE IN WP-00:** `AT-00.15` (instrument currency, `AC-00.14`). `AT-00.2` needs other repos; `.3`/`.4`/`.7` wait on cc's routing client; `.18`/`.19` are tag-gated.
 
 ## TODO
 
-1. **`AT-00.14` and `AT-00.15`** -- the two remaining writable instrument-soundness rows. `vocab_adequacy_check.sh` cannot check adequacy (the criterion's own point); the falsifiable adjacent property is that every controlled vocabulary declares a RESIDUAL for the state it cannot express.
-2. **ST0068**, my build thread, 4/9. `AC-02.3` is the only row drivable without leaving the repo: derive the defect set from the open-issue register with a disposition and count per member. `AC-04.2` is tag-ordering; `AC-03.1`/`.2` are Laksa handoffs; `AC-02.1` needs a machine that has never seen this repo.
-3. **`AT-00.20` stays red** with its release condition named: promote `instrument_reach_census.sh` from `manual` to `gated` when something owns the union.
-4. **`0136`'s ~44-site `AcState::Computed` change** -- after the tag.
-5. **Rebuild `intent/wip.md`** -- stale, and it is the file hv reads on restart. At the next fold, not mid-flight.
+1. **`AT-00.15`** -- instrument currency. The criterion's own ruling is the design constraint: the test for currency is a CONTENT test, never a chronological one, and measured-at and asserted-about are two fields.
+2. **WP-15 (4 rows)** -- adopted above.
+3. **ST0068**, 4/9. `AC-02.3` is the only row drivable without leaving the repo.
+4. **The four unruled hv items** -- `ext`, `help`, `shipped_surface_drift`'s declaration kind, `tui-design.md` section 9's plural path.
+5. **`AT-00.20` stays red** with its release condition named.
+6. **`0136`'s ~44-site `AcState::Computed` change** -- after the tag.
+7. **Rebuild `intent/wip.md`** -- stale, and hv reads it on restart.
 
-### Six items with hv, one ruled
+### hv items: one ruled, one answered by hv, four open
 
-**1. THE ORPHANED `intentd` PROCESSES -- RULED.** hv kills the existing ones by hand; **cc owns a reaping arm in the fixture**. Kill permission deliberately NOT widened: it was cc being unable to kill, and having to report it, that surfaced the hang mechanism and ic's dead suite.
+**1. THE ORPHANED `intentd` PROCESSES -- RULED.** hv kills them by hand; cc owns a reaping arm. Kill permission deliberately NOT widened.
 
-**2-6, UNRULED:** `ext` in the 3.0.1 cut; `help` in the cut (plus the schema affordance for _ruled and not yet built_); `shipped_surface_drift`'s declaration kind; `design.md:22`'s refuted parenthetical; `tui-design.md` section 9's plural path. All on `hv/inbox.vc.md` with context, options and a recommendation each.
+**5. `design.md:22` -- ANSWERED BY hv AND APPLIED (`edd4458b`).** Routing is opt-in; the line said the opposite and both halves were wrong. Corroborated first-hand from hv's own board (2026-08-21) as well as cc's relay.
+
+**2, 3, 4, 6 UNRULED:** `ext` in the cut; `help` in the cut; `shipped_surface_drift`'s declaration kind; `tui-design.md` section 9's plural path.
 
 ## Standing directives from hv
 
