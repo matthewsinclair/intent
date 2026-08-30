@@ -103,11 +103,61 @@ const PROBE_DEADLINE: Duration = Duration::from_millis(250);
 /// rules the daemon's output contract JSON, so the probe is a JSON object; it
 /// is newline-terminated because a reader has to know the request ended, and a
 /// newline is the least framing that achieves that without minting a
-/// length-prefix format here. **Nothing about the RESPONSE is specified**, on
-/// purpose -- see [`completes_a_round_trip`]. Naming a reply shape would put
-/// half a wire protocol in the routing seam, where the daemon that has to
-/// honour it does not yet exist.
+/// length-prefix format here.
+///
+/// **THIS DOC USED TO DECLINE TO NAME A REPLY SHAPE, AND ITS REASON EXPIRED
+/// RATHER THAN BEING WRONG.** It said naming one *would put half a wire
+/// protocol in the routing seam, where the daemon that has to honour it does
+/// not yet exist* -- true while nothing could answer. The daemon lands in this
+/// work package, so the question is no longer whether to name a reply but
+/// WHERE, and the answer is here: **a probe is a request and a response, and a
+/// pair split across two crates is two homes for one agreement.** The frame
+/// would live in the seam and the answer in `intentd`, each meaningless alone,
+/// which is how a predicate this subtle drifts.
+///
+/// It stays PRIVATE and the daemon reaches [`is_probe_frame`] instead. The
+/// daemon needs the RECOGNITION, not the literal, and a test asserting what
+/// goes on the wire should carry its own copy rather than import the value it
+/// is checking.
 const PROBE_FRAME: &[u8] = b"{\"intent_probe\":1}\n";
+
+/// The daemon's answer to a probe.
+///
+/// **IT CARRIES NO DATA, AND THE EMPTINESS IS THE DESIGN.** [`Endpoint::answers`]
+/// requires one byte and parses nothing, deliberately -- so anything put in
+/// here would be a field no client reads, which is a promise with no check
+/// behind it. A version, a pid or a project count would all look useful and all
+/// rot silently. **When the daemon has something to say it says it in a
+/// response to a real request, where somebody is reading.**
+///
+/// JSON and newline-terminated because D56 rules the daemon emits JSON only,
+/// over the socket AND over HTTP, and the probe is not an exception to that
+/// just because its content is empty.
+pub const PROBE_REPLY: &[u8] = b"{\"intent_probe\":\"ack\"}\n";
+
+/// Is this the probe frame, so the daemon can answer it before dispatching?
+///
+/// **THE DAEMON MUST NOT RE-SPELL THE FRAME TO RECOGNISE IT.** Both ends have
+/// to agree on these bytes exactly, and two spellings of one agreement is the
+/// failure this seam is least able to survive: a daemon that stopped
+/// recognising the probe would answer nothing, every client would route
+/// in-process, and two sync engines would land on one store with nothing
+/// reporting a fault. So the comparison lives with the frame.
+///
+/// Trailing whitespace is ignored on both sides because a line-oriented reader
+/// usually strips the newline before it asks, and refusing on that would make
+/// the recogniser depend on how the caller framed its read rather than on what
+/// arrived.
+pub fn is_probe_frame(bytes: &[u8]) -> bool {
+  fn without_trailing_space(b: &[u8]) -> &[u8] {
+    let end = b
+      .iter()
+      .rposition(|c| !c.is_ascii_whitespace())
+      .map_or(0, |i| i + 1);
+    &b[..end]
+  }
+  without_trailing_space(bytes) == without_trailing_space(PROBE_FRAME)
+}
 
 /// A connected stream the probe can drive, whatever it is connected over.
 ///

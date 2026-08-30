@@ -33,3 +33,13 @@ tempfile.workspace = true
 # the watermark write fails -- and there is no honest way to do that through
 # the public API, because the public API is what is under test.
 rusqlite.workspace = true
+# **TEST-ONLY, AND IT ADDS NO THIRD-PARTY CODE:** `libc` is already in this
+# workspace's lock via the dependency graph, so this makes an existing compile
+# unit reachable rather than pulling one in -- the same ground the workspace
+# states for `regex`, and the same ground `intent-cli` states for its own
+# test-only `libc`. It is needed because `AC-08.11`'s second obligation is a
+# DESCRIPTOR FLAG: whether a listener is close-on-exec is not observable
+# through any std API, and the only alternative witness -- forking a child and
+# watching what it inherits -- measures the outcome rather than the property,
+# so it would pass on an unloaded machine with the flag gone.
+libc = "0.2"
