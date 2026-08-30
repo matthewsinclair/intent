@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-30 11:23Z
+heartbeat_at: 2026-08-30 11:34Z
 status: active
 focus: "Doc-sync sweep done and landed. mode.rs was four edges short of its design and the test meant to catch that pinned my own hand-count; guide.rs carried a stale population in prose and asserting it found organize declared TWICE with contradictory shipping decisions. AC-17.5 landed ahead of ratatui. NEXT: WP-17 piece 3 -- cc has released the Cargo.lock window. Two items need hv: the sync permission block and the organize ruling."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
