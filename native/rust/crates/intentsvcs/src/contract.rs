@@ -216,6 +216,20 @@ impl References for AllResolve {
 pub enum Verdict {
   Pass {
     detail: Detail,
+    /// How many in-scope criteria passed BY FIAT rather than by being met.
+    ///
+    /// **Held beside the detail for the reason `unsatisfied` is, and it is the
+    /// same reason twice: two surfaces want the same arithmetic and only one
+    /// wants it as prose.** The gate renders `N fiat-closed` into its tally;
+    /// `doctor` needs the NUMBER, to avoid telling an operator that every
+    /// criterion in a scope is *satisfied* when one of them was closed on
+    /// authority against the evidence. Recovering it by splitting the tally
+    /// string back apart would be a parser of our own format, failing silently
+    /// the day the format moves.
+    ///
+    /// **Zero on the WP-lenient rollup**, which has no in-scope criteria to
+    /// have closed by any means.
+    fiat: usize,
   },
   Exempt {
     detail: Detail,
@@ -339,7 +353,7 @@ impl Verdict {
 
   fn detail(&self) -> &Detail {
     match self {
-      Self::Pass { detail } | Self::Exempt { detail } | Self::Blocked { detail, .. } => detail,
+      Self::Pass { detail, .. } | Self::Exempt { detail } | Self::Blocked { detail, .. } => detail,
     }
   }
 
@@ -456,6 +470,7 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
     // The WP-lenient rollup (ST0044): a WP with no ACs of its own rolls up to
     // the thread's contract. Announced, never inferred -- same rule as EXEMPT.
     return Verdict::Pass {
+      fiat: 0,
       detail: Detail::Diagnosis(format!(
         "no ACs in scope; rolls up to the {} contract ({thread_total} AC(s))",
         thread.id
@@ -507,7 +522,10 @@ pub fn gate(thread: &Thread, scope: Scope, refs: &dyn References) -> Verdict {
     "{satisfied}/{active} satisfied{fiat_suffix}{suffix}"
   ));
   if satisfied + fiat == active {
-    Verdict::Pass { detail: tally }
+    Verdict::Pass {
+      detail: tally,
+      fiat,
+    }
   } else {
     Verdict::Blocked {
       detail: tally,

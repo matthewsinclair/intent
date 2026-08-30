@@ -27,8 +27,24 @@
 //! | --------------- | ------------------ | ------------------------------------ |
 //! | generated views | yes                | composes `fiat_marker`               |
 //! | close gate      | yes                | its own tally, `N fiat-closed`       |
-//! | `doctor`        | n/a                | reports inconsistencies, not states  |
+//! | `doctor`        | yes                | names the fiat count in the finding   |
 //! | **`ac list`**   | **yes**            | its own `fiat-closed: <why>` form     |
+//!
+//! **`doctor` WAS THE FIFTH AND ITS EXCUSE WAS THE INTERESTING ONE (dc,
+//! 2026-08-30).** The row above read `n/a -- reports inconsistencies, not
+//! states`, which is true of the CLASS and false of the arm that matters:
+//! `status-gate-disagreement` reports that a gate PASSES, and that is a claim
+//! about the states underneath it. Driven, a WP whose single criterion was
+//! `fc`'d and one whose single criterion was satisfied by evidence produced
+//! **byte-identical** findings, while the close gate distinguished them in its
+//! own tally -- so the distinction was already computed and this surface was
+//! the only one not asking for it.
+//!
+//! **The excuse is the defect this file exists to catch, one level up.** Every
+//! other row of the table is backed by an arm; that one was backed by a
+//! sentence, and a sentence is what the file's own opening says the compiler
+//! does not read. **A surface excused from a census on a plausible premise is
+//! indistinguishable from one that passed it.**
 //!
 //! **`ac list` WAS THE UNCOVERED FOURTH AND IS NOW COVERED -- 0137 IS CLOSED
 //! (dc, 2026-08-29).** It rendered a fiat-closed criterion as `satisfied: no`,
@@ -65,8 +81,9 @@ mod common;
 
 use common::{Fixture, ctx, sample_thread};
 use intentsvcs::contract::{Scope, Verdict};
+use intentsvcs::finding::FindingClass;
 use intentsvcs::ingest::Canon;
-use intentsvcs::model::{AcKind, AcState, Criterion, FiatRecord, Invoker, Thread};
+use intentsvcs::model::{AcKind, AcState, Criterion, FiatRecord, Invoker, Thread, WpStatus};
 use intentsvcs::views;
 
 const BECAUSE: &str = "the panel-survival half is unobservable by unit test";
@@ -119,7 +136,7 @@ fn tally(thread: Thread) -> String {
   fx.write_thread(&thread);
   let verdict = fx.facade().gate("ST0001", Scope::Thread).expect("gate");
   match verdict {
-    Verdict::Pass { detail } | Verdict::Exempt { detail } => format!("{detail:?}"),
+    Verdict::Pass { detail, .. } | Verdict::Exempt { detail } => format!("{detail:?}"),
     Verdict::Blocked { detail, .. } => format!("{detail:?}"),
   }
 }
@@ -273,5 +290,81 @@ fn ac_list_does_not_render_a_fiat_close_as_an_ordinary_open_row() {
     "a criterion nobody closed must render exactly as it always did, or the arm above passes \
      against a renderer that mangles every row. Got: {}",
     untouched.state
+  );
+}
+
+// ---------------------------------------------------------------------------
+// `doctor` -- the surface that reports a VERDICT and so reports the states
+// under it
+// ---------------------------------------------------------------------------
+
+/// A thread whose WP-01 is `Not Started` and whose only WP-scoped criterion is
+/// in the state under test. The close gate therefore PASSES, which is what puts
+/// `doctor`'s status-versus-gate arm on the hook.
+fn wp_scoped(state: AcState) -> Thread {
+  let mut t = sample_thread("ST0001");
+  t.criteria.clear();
+  t.tests.clear();
+  t.wps.truncate(1);
+  t.wps[0].seq = 1;
+  t.wps[0].status = WpStatus::NotStarted;
+  t.criteria.push(Criterion {
+    id: "AC-01.1".to_string(),
+    text: "a requirement closed on authority with the work unmet".to_string(),
+    kind: AcKind::NonTest,
+    state,
+  });
+  t
+}
+
+/// Every `status-gate-disagreement` detail, joined. Empty when the arm is silent.
+fn doctor_line(thread: Thread) -> String {
+  let fx = Fixture::new();
+  fx.write_thread(&thread);
+  let project = fx.project();
+  let canon = intentsvcs::ingest::read(&project).expect("fixture canon reads");
+  intentsvcs::views::write_all(&project, &canon, &ctx()).expect("write views");
+  intentsvcs::doctor::diagnose(&project, &ctx(), None)
+    .findings
+    .iter()
+    .filter(|f| f.class == FindingClass::StatusGateDisagreement)
+    .map(|f| f.detail.clone())
+    .collect::<Vec<_>>()
+    .join("\n")
+}
+
+/// **THE CONTROL IS THE WHOLE TEST, because the failure this catches is a
+/// SAMENESS and not an absence.** Before the fix both calls returned the same
+/// string, so an arm asserting only that the fiat case mentions a work package
+/// would have passed on the broken build. What has to hold is that the two
+/// states, driven through one path, come out DIFFERENT -- and then that the
+/// difference is the right one.
+#[test]
+fn doctor_does_not_report_a_fiat_closed_scope_as_a_satisfied_one() {
+  let by_fiat = doctor_line(wp_scoped(fiat(None)));
+  let by_evidence = doctor_line(wp_scoped(AcState::Satisfied {
+    evidence: "driven end to end".to_string(),
+  }));
+
+  assert!(
+    !by_fiat.is_empty() && !by_evidence.is_empty(),
+    "both fixtures must REACH the arm, or this test is comparing two silences \
+     and would pass on a `doctor` that had no opinion at all -- fiat: {by_fiat:?}, \
+     evidence: {by_evidence:?}"
+  );
+  assert_ne!(
+    by_fiat, by_evidence,
+    "a fiat-closed scope and a satisfied one rendered identically, which is the \
+     defect: the gate already counts them apart and this surface did not ask"
+  );
+  assert!(
+    by_fiat.contains("FIAT-CLOSED"),
+    "the fiat case must say so in the line that reports the verdict, not beside \
+     it: {by_fiat}"
+  );
+  assert!(
+    !by_fiat.contains("every criterion in its scope is satisfied"),
+    "a criterion closed on authority against the evidence was never satisfied, \
+     and this is the sentence that said it was: {by_fiat}"
   );
 }

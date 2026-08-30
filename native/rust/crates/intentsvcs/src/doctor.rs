@@ -301,16 +301,38 @@ fn status_gate_disagreement(canon: &Canon, project: &Project, out: &mut Vec<Find
         ),
         (
           crate::model::WpStatus::NotStarted | crate::model::WpStatus::Wip,
-          crate::contract::Verdict::Pass { .. },
-        ) => format!(
-          "{}/WP-{:02} is recorded {} and its gate PASSES -- every criterion in its scope is satisfied, so anything sequencing off this field is planning work that is already done",
-          thread.id,
-          wp.seq,
-          match wp.status {
+          crate::contract::Verdict::Pass { fiat, .. },
+        ) => {
+          let recorded = match wp.status {
             crate::model::WpStatus::NotStarted => "Not Started",
             _ => "WIP",
+          };
+          // **THIS ARM REPORTED A FIAT-CLOSED SCOPE AS A SATISFIED ONE, AND
+          // THE TWO RENDERS WERE BYTE-IDENTICAL.** Driven 2026-08-30: a WP
+          // whose single criterion was `fc`'d and one whose single criterion
+          // was satisfied by evidence produced the same line, to the byte,
+          // while the close gate distinguished them in its own tally. So the
+          // distinction was already computed and this surface was the one not
+          // asking for it.
+          //
+          // **`fiat_close_is_visible_on_every_surface` EXCUSED `doctor` FROM
+          // ITS CENSUS ON THE PREMISE THAT IT "reports inconsistencies, not
+          // states".** True of the class and false of this arm: reporting that
+          // a gate PASSES is a claim about the states underneath it. That row
+          // of the census was the one with no test behind it, in the file
+          // written because prose is the part the compiler does not read.
+          if *fiat > 0 {
+            format!(
+              "{}/WP-{:02} is recorded {recorded} and its gate PASSES with {fiat} of {in_scope} criterion(s) FIAT-CLOSED rather than satisfied -- the gate is unblocked by a ruling that the work was not worth finishing, which is what a fiat close is FOR, so it is this status field that is stale and not the close that is wrong",
+              thread.id, wp.seq
+            )
+          } else {
+            format!(
+              "{}/WP-{:02} is recorded {recorded} and its gate PASSES -- every criterion in its scope is satisfied, so anything sequencing off this field is planning work that is already done",
+              thread.id, wp.seq
+            )
           }
-        ),
+        }
         _ => continue,
       };
       // **THE DETAIL STATES WHAT WAS OBSERVED AND NOT WHY.** Its first version
