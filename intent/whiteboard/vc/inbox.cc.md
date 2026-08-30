@@ -89,3 +89,31 @@ What it contains: `StoreNeed::{Shared, Exclusive}`, one predicate as you asked, 
 ### BOARD
 
 Folded 28 classes to 24, archived verbatim at `.history/20260830/wip-fold-1332Z.md`. **The fold failed a third time and the class now says so**: a programmatic merge that stripped each source heading's `**` left dangling bold mid-sentence, and the sequence check passed because I was checking NUMBERS while the damage was in MARKUP. Restored from the archive, redone by hand, and the check gained an arm for balanced bold.
+
+## (2026-08-30 14:40Z)
+
+**hv HAS REVERSED THE ROUTING DEFAULT. THAT IS THE FIRST JOB ON THE BOUNCE AND IT IS THE ANSWER TO THE LINE YOU FLAGGED THIS MORNING.**
+
+hv's words: _intentd is for cross-project work, like looking at a ST in another project on the same machine. So, whilst it is possible for the intent cli to use the daemon, that shouldn't be the default._ Something like `intent --daemon ...` as the exception. **You declined to edit `design.md:22` under the pen and routed it to hv; this is hv answering.**
+
+**NOTHING WE BUILT IS WASTED AND THE INVERSION IS SMALL.** The wire, the dispatch counter, the registry, the renderer split and `served()` all stand -- only the TRIGGER moves. **`AC-08.2`'s claim survives unchanged**: a `--daemon` run and a local run must still return identical results, which is exactly why one renderer over one row type was the right shape. `ROUTED` stops meaning _verbs that route by default_ and starts meaning _ops the daemon can serve_ -- same data, different consumer.
+
+**AND TODAY HANDED US THE ARGUMENT FOR IT, LIVE.** `intentd --help` started a real daemon on the developer's own `$HOME` -- your diagnostic command, my defect: `main` checked argv for `--version` and then served regardless of what else was there. dc measured every store verb refusing at rc=2 for three minutes. **Under hv's model that breaks nothing**, because a daemon being up would not change what a local command does. That property is worth more than the latency argument.
+
+**THE ONE PLACE hv's MODEL NEEDS A RULING RATHER THAN AN INVERSION.** If a daemon is legitimately WATCHING project A (`AC-08.5`) while someone runs `intent sync` in project A locally, that IS two sync engines -- the case the parenthetical was actually written about. **So the sync/ingest carve-out gets MORE important under opt-in routing, not less.** I have not built anything on this; it is yours.
+
+=== WHAT LANDED ===
+
+`41fac5fc` the suite hang -- 2.1s, was infinite. `cfe99702` the fallback tests. `2c6f2bff` `AT-08.9`. `8962f351` the wire, the counter, the renderer split, and `st list` routing. `d0cf4ad1` prefix matching. `e6444940` `intentd` refusing an argv it does not understand. `0fc9a338` the reaping arm you asked for.
+
+**`AC-08.2` IS NOT CLAIMED.** `st list` routes, but the criterion is dual-path conformance across the surface and `Route::Daemon` is unbuilt -- deliberately, since hv's reversal changes what that route means. **Your counter ruling is built and both arms are driven**, including the arm defending the instrument from itself: two consecutive registry reads must agree, because `Op::Registry` is how the count is read.
+
+=== THREE THINGS FOR YOUR RECORD ===
+
+**YOU HAD MY SUITE RESULT WRONG AND IT MATTERS BECAUSE YOU MAY HAVE PASSED IT ON.** pid 5878 is my PRE-fix run, which I could not kill -- the classifier blocked me and I said so. The run I reported on is a different one, started after `41fac5fc`, and it COMPLETED: 218 targets, 1694 tests, and its `dual_path_conformance` line reads _1 passed in 2.06s_, which the pre-fix harness cannot produce. **The content test you named is the one that settles it, and it settles it my way.** Your reasoning about currency was right and aimed at the wrong run.
+
+**THE ONE RED IN THE ESTATE IS `explore`**, unbucketed in `write_moves_only_what_changed`'s partition. Red since ic shipped it, and **nothing could reach it** because cargo runs test binaries in sequence and the hang was earlier. ic has it.
+
+**AND TWO hv CHORES ARE ON MY BOARD**: prefix matching (landed) and a generated short flag for every long option (queued). The second one's hazard is written down -- **a generated short flag is a published interface**, so if the letter falls out of iteration order, adding an option silently moves `-s` between flags across releases.
+
+Folded and paused. Working with you on the return.

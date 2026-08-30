@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-30 14:40Z
-status: paused
-focus: "THE CLIENT ROUTES AND THE DEFAULT IS WRONG. `st list` reaches the daemon over the wire (`8962f351`) -- and hv has since ruled that routing must be OPT-IN, not the default: intentd is for CROSS-PROJECT work, local commands should just use intentsvcs. INVERTING IT IS THE FIRST JOB ON THE BOUNCE. Also today: the intent-cli suite could not complete AT ALL and nothing said so; `intentd --help` started a daemon on the real HOME."
+heartbeat_at: 2026-08-30 13:45Z
+status: active
+focus: "THE DAEMON HAS STOPPED BEING A REGRESSION. vc ruled `AC-08.2`: a verb intentd cannot serve FALLS THROUGH to in-process; `sync`/`ingest` still refuse, because that is where `never two sync engines` is literally true. WP-08 is 5 of 12 -- `AC-08.1`, `.3`, `.10`, `.11`, `.12` in. NEXT: grow the op set, each one moving a verb from fallback to served."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 ---
 
@@ -13,17 +13,11 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 
 ## DOING
 
-**hv HAS REVERSED THE ROUTING DEFAULT AND THAT IS THE FIRST JOB ON THE BOUNCE.** `design.md:22` says the CLI MUST route to an answering daemon; hv's ruling (2026-08-30) is that **`intentd` is for CROSS-PROJECT work -- reading an ST in another project on this machine -- and a local command should just use `intentsvcs` in-process.** Routing becomes the exception, something like `intent --daemon ...`. vc flagged that line to hv this morning and declined to edit it under the pen; this is hv answering.
+**PHASE 4 IS THE PACKAGE (vc, 2026-08-30). BLOCKS A AND B ARE IN; THE DAEMON EXISTS AND SERVES ONLY THE PROBE.** `AT-08.10` closed the half of `AC-08.10` nothing checked; Block A gave the probe its reply and a witness for `FD_CLOEXEC` -- **which std already set, measured rather than assumed, so the deliverable there was a witness and not code**; Block B made `intentd` a daemon. **THE HONEST STATE IS THAT A RUNNING DAEMON IS CURRENTLY A REGRESSION**: `open_routed` refuses a store verb at rc=2 rather than serving it, which is correct and is why the registry plus the domain API is one block and is next.
 
-**NOTHING BUILT TODAY IS WASTED AND THE INVERSION IS SMALL.** The wire, the dispatch counter, the registry, the renderer split and `served()` all stand -- **only the TRIGGER moves.** `AC-08.2`'s claim survives unchanged: a `--daemon` run and a local run must still return identical results, which is the whole point of one renderer over one row type. `ROUTED` stops meaning "verbs that route by default" and starts meaning "ops the daemon can serve", same data, different consumer.
+**AN EARLIER FOCUS LINE MISREPORTED A ROW AS CLOSED.** It read _`AC-08.10` at `8fee4f48`_, which is true of the DEPENDENCY EDIT and false of the CRITERION: `ac list` gives `AC-08.10 satisfied: no`, computed from `AT-08.10 to-write`. vc caught it because the GATE disagreed with my board, not because the sentence read wrong -- **a commit sha names bytes and says nothing about a criterion**, which is my own commit-sha class one level up. Both `daemon.rs` findings ARE closed at `e60bc8fb`. The session's incidents are archived at `.history/20260830/wip-fold-1124Z.md`; what survives here is the classes.
 
-**AND TODAY GAVE THE ARGUMENT FOR IT, LIVE.** An accidental daemon under the real `$HOME` had every session's store verbs refusing at rc=2 for three minutes. **Under hv's model an accidental daemon breaks nothing**, because a daemon being up would not change what a local command does. That is a bigger property than the latency.
-
-**THE ONE SHARP EDGE TO RAISE BEFORE BUILDING IT:** if a daemon is legitimately WATCHING project A (`AC-08.5`) while I run `intent sync` in project A locally, that IS two sync engines -- the case `design.md:22`'s parenthetical was actually written about. **So the `sync`/`ingest` carve-out gets MORE important under opt-in routing, not less**, and it is the one place hv's model needs a ruling rather than an inversion.
-
-**WP-08 IS 5 OF 12 AND THE DAEMON IS REAL.** It serves N projects, keeps them apart, survives a root moving out from under it, answers the probe on both transports, and now counts what it dispatches. `AC-08.2` is NOT claimed: `st list` routes, but the criterion is dual-path conformance across the surface and `Route::Daemon` is unbuilt -- deliberately, because hv's reversal changes what that route means.
-
-**`AT-08.9` AND THE ARGUMENT REFUSAL ARE IN.** The exec witness (pid survives, image changes, and no child -- driven against a `spawn` mutant) and `intentd` refusing an argv it does not understand.
+**WP-08 NOW HAS ITS SEAM, ITS STACK AND ITS ERROR VOCABULARY, AND NO DAEMON.** The probe is a bounded round trip (`AC-08.3`); `Published` and `Bound` are the write side, so an address or socket nobody is listening on is unexpressible; `AC-08.12` makes the START decision a kernel lock rather than a liveness probe; `candidates_under` now distinguishes ABSENT from UNREADABLE, which it did not when the seam was declared complete. **The writer and the probe are designed against each other on purpose** -- the writer tries never to leave a corpse, the reader assumes it did, and `SIGKILL` runs no destructor.
 
 ## TODO
 
