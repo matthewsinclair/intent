@@ -126,6 +126,13 @@ pub fn screen_for(app: &App, rows: &[Row], width: usize) -> Screen {
     status: status_row(app, rows),
     command: command_row(app),
     info: info_row(app, rows),
+    mode: app.mode,
+    // The overlay follows the LIST cursor only: the detail pane keeps its own
+    // focus and its own (future) treatment.
+    selected: matches!(app.pane(rows), super::app::Pane::List)
+      .then(|| app.focus.map(|f| f.index()))
+      .flatten(),
+    noticed: !app.notice.is_empty(),
   }
 }
 

@@ -205,21 +205,6 @@ impl Row {
   }
 }
 
-/// Push one pane's lines, padded to the height it was given.
-///
-/// **THE PADDING IS WHAT HOLDS THE CHROME IN PLACE.** A pane that pushed only
-/// the rows it had would move every line below it whenever the row set was
-/// short, so the rules and the foot would walk up the screen as the operator
-/// navigated.
-fn pane(out: &mut Vec<String>, rows: &[String], height: usize) {
-  for r in rows {
-    out.push(r.clone());
-  }
-  for _ in rows.len()..height {
-    out.push(String::new());
-  }
-}
-
 /// How the BODY divides between the list and the detail pane.
 ///
 /// **THE DETAIL PANE TAKES WHAT IT NEEDS AND NEVER MORE THAN HALF.** A fixed
@@ -253,6 +238,61 @@ pub fn labelled_rule(width: usize) -> String {
   out
 }
 
+/// What a run of characters IS, for the printer to colour.
+///
+/// **ROLES, NOT COLOURS, AND THE SPLIT IS THE MODULE TREE'S OWN**: this module
+/// computes the picture and [`super::draw`] owns the palette, so a theme
+/// change is a draw edit and an information change is a layout edit. hv's
+/// ask (2026-08-30) was *a bit of colour and a small bit of flare* aimed at
+/// one defect -- *the state changes between modes are not obvious* -- so the
+/// vocabulary is deliberately small and the mode chip is the headline.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Role {
+  /// Rules and structural furniture. Dim.
+  Chrome,
+  /// A field NAME. Dim -- the design brightens VALUES, not labels.
+  Name,
+  /// An editable value. Bright default.
+  Value,
+  /// A door: an id, an entity row, something Enter descends into.
+  Door,
+  /// A read-only or generated value.
+  Muted,
+  /// Semantic status: fine.
+  Ok,
+  /// Semantic status: in flight / attention.
+  Warn,
+  /// Semantic status: wrong.
+  Error,
+  /// The cursor row.
+  Selected,
+  /// The mode chip -- coloured PER MODE by the printer.
+  ModeChip(super::mode::Mode),
+  /// The omnibox line while the omnibox has the keyboard.
+  OmniActive,
+  /// The APP row's identity.
+  Title,
+}
+
+/// The spans of one composed line: `(start, end, role)` in CHARACTERS,
+/// non-overlapping except that a later span paints OVER an earlier one --
+/// which is how the selection overlays a row without the row builders
+/// knowing about cursors.
+pub type Ink = Vec<(usize, usize, Role)>;
+
+/// Which semantic role a rendered VALUE carries, judged from its display
+/// form. **Display forms are the model's own vocabulary** (`form::field`
+/// renders them), so the words matched here are the words the store shows;
+/// an unknown word is simply a value, never a guess.
+fn semantic(value: &str) -> Option<Role> {
+  match value {
+    "done" | "ok" | "green" | "satisfied" | "closed" => Some(Role::Ok),
+    "wip" | "open" | "pending" | "triage" | "hold" => Some(Role::Warn),
+    "red" | "blocked" | "cancelled" | "withdrawn" => Some(Role::Error),
+    _ => None,
+  }
+}
+
 /// The BODY: one rendered string per row, and the columns they share.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Plan {
@@ -265,6 +305,9 @@ pub struct Plan {
   pub width: usize,
   /// Exactly one line per input row, in input order.
   pub rows: Vec<String>,
+  /// One [`Ink`] per line, same order -- computed in the same walk that
+  /// builds the line, so the spans cannot describe text nobody rendered.
+  pub inks: Vec<Ink>,
 }
 
 impl Plan {
@@ -301,6 +344,13 @@ pub struct Screen {
   pub status: String,
   pub command: String,
   pub info: String,
+  /// The live mode, for the chip's per-mode colour and the omnibox line's
+  /// active/inactive brightness.
+  pub mode: super::mode::Mode,
+  /// The cursor's body-row index (list pane), for the selection overlay.
+  pub selected: Option<usize>,
+  /// The info line is a NOTICE -- something happened -- rather than help.
+  pub noticed: bool,
 }
 
 impl Screen {
@@ -317,6 +367,17 @@ impl Screen {
   /// makes the chrome's location a property of the viewport rather than of the
   /// content. Padding rows are empty strings, so nothing is painted over them.
   pub fn compose(&self, first: usize, height: usize) -> Vec<String> {
+    self
+      .painted(first, height)
+      .into_iter()
+      .map(|(line, _)| line)
+      .collect()
+  }
+
+  /// [`Screen::compose`] with each line's [`Ink`]: THE one walk -- `compose`
+  /// derives from this, so the coloured picture and the plain one cannot
+  /// disagree about what is on a line.
+  pub fn painted(&self, first: usize, height: usize) -> Vec<(String, Ink)> {
     let w = self.body.width;
     if height == 0 {
       return Vec::new();
@@ -346,18 +407,24 @@ impl Screen {
         .rev()
         .map(|s| {
           if *s == RULE_MARK {
-            std::iter::repeat_n(RULE, w).collect()
+            let line: String = std::iter::repeat_n(RULE, w).collect();
+            let n = line.chars().count();
+            (line, vec![(0, n, Role::Chrome)])
           } else {
-            clip(s, w)
+            (clip(s, w), Ink::new())
           }
         })
         .collect();
     }
 
     let rule: String = std::iter::repeat_n(RULE, w).collect();
-    let mut out = Vec::with_capacity(height);
-    out.push(clip(&self.app, w));
-    out.push(rule.clone());
+    let rule_ink: Ink = vec![(0, rule.chars().count(), Role::Chrome)];
+    let whole = |line: &str, role: Role| -> Ink { vec![(0, line.chars().count(), role)] };
+    let mut out: Vec<(String, Ink)> = Vec::with_capacity(height);
+    let app = clip(&self.app, w);
+    let app_ink = whole(&app, Role::Title);
+    out.push((app, app_ink));
+    out.push((rule.clone(), rule_ink.clone()));
 
     // **THE SPLIT IS THE LAST THING TO SURVIVE A SHRINKING VIEWPORT, NOT THE
     // FIRST.** A detail pane needs the labelled rule AND at least one line
@@ -375,22 +442,62 @@ impl Screen {
       _ => None,
     };
 
+    // **THE SELECTION IS AN OVERLAY, PUSHED LAST**, so the row builders know
+    // nothing about cursors and the printer resolves overlap by order.
+    let body_rows =
+      |out: &mut Vec<(String, Ink)>, plan: &Plan, from: usize, h: usize, sel: bool| {
+        let lines = plan.visible(from, h);
+        for (i, line) in lines.iter().enumerate() {
+          let mut ink = plan.inks.get(from + i).cloned().unwrap_or_default();
+          if sel && self.selected == Some(from + i) {
+            ink.push((0, line.chars().count(), Role::Selected));
+          }
+          out.push((line.clone(), ink));
+        }
+        for _ in lines.len()..h {
+          out.push((String::new(), Ink::new()));
+        }
+      };
+
     match split {
       Some((list_h, detail_h, detail)) => {
-        pane(&mut out, self.body.visible(first, list_h), list_h);
-        out.push(labelled_rule(w));
-        pane(&mut out, detail.visible(0, detail_h), detail_h);
+        body_rows(&mut out, &self.body, first, list_h, true);
+        let labelled = labelled_rule(w);
+        let ink = whole(&labelled, Role::Chrome);
+        out.push((labelled, ink));
+        body_rows(&mut out, detail, 0, detail_h, false);
       }
       None => {
         let body_h = height - CHROME;
-        pane(&mut out, self.body.visible(first, body_h), body_h);
+        body_rows(&mut out, &self.body, first, body_h, true);
       }
     }
 
-    out.push(rule);
-    out.push(clip(&self.status, w));
-    out.push(clip(&self.command, w));
-    out.push(clip(&self.info, w));
+    out.push((rule, rule_ink));
+    // The mode chip leads the status row and is coloured PER MODE -- hv's
+    // "the state changes between modes are not obvious", answered where the
+    // state is written.
+    let status = clip(&self.status, w);
+    let chip = self.mode.name().chars().count().min(status.chars().count());
+    let mut status_ink: Ink = vec![(0, chip, Role::ModeChip(self.mode))];
+    status_ink.push((chip, status.chars().count(), Role::Muted));
+    out.push((status, status_ink));
+    let command = clip(&self.command, w);
+    let command_role = if self.mode == super::mode::Mode::Omnibox {
+      Role::OmniActive
+    } else {
+      Role::Muted
+    };
+    let command_ink = whole(&command, command_role);
+    out.push((command, command_ink));
+    let info = clip(&self.info, w);
+    let info_role = if self.noticed {
+      Role::Warn
+    } else {
+      Role::Muted
+    };
+    let info_ink = whole(&info, info_role);
+    out.push((info, info_ink));
     out
   }
 }
@@ -427,28 +534,49 @@ pub fn plan(rows: &[Row], width: usize) -> Plan {
   };
   let value_width = width.saturating_sub(value_col);
 
-  let lines = rows
-    .iter()
-    .map(|r| {
-      let name = clip(&r.title, name_width);
-      let pad = name_width - name.chars().count();
-      let value = clip(&r.value, value_width);
-      // Trailing space is decoration; the line ends where its content does.
-      let mut line = String::with_capacity(width);
-      line.push_str(&name);
-      if !value.is_empty() {
-        line.extend(std::iter::repeat_n(' ', pad + GAP));
-        line.push_str(&value);
-      }
-      line
-    })
-    .collect();
+  let mut lines = Vec::with_capacity(rows.len());
+  let mut inks = Vec::with_capacity(rows.len());
+  for r in rows {
+    let name = clip(&r.title, name_width);
+    let pad = name_width - name.chars().count();
+    let value = clip(&r.value, value_width);
+    // Trailing space is decoration; the line ends where its content does.
+    let mut line = String::with_capacity(width);
+    let mut ink: Ink = Vec::with_capacity(2);
+    if !name.is_empty() {
+      // A row that IS a door -- an entity in a collection, an entity kind --
+      // wears the door colour on its NAME, which is the column that carries
+      // its identity; a field row's name is a label and stays dim.
+      let name_role = if r.door.is_some() {
+        Role::Door
+      } else {
+        Role::Name
+      };
+      ink.push((0, name.chars().count(), name_role));
+    }
+    line.push_str(&name);
+    if !value.is_empty() {
+      line.extend(std::iter::repeat_n(' ', pad + GAP));
+      let start = line.chars().count();
+      line.push_str(&value);
+      let role = semantic(&value).unwrap_or(match r.kind.as_str() {
+        "artefact" => Role::Muted,
+        "button" if r.door.is_none() => Role::Muted,
+        "button" => Role::Value,
+        _ => Role::Value,
+      });
+      ink.push((start, line.chars().count(), role));
+    }
+    lines.push(line);
+    inks.push(ink);
+  }
 
   Plan {
     name_col: 0,
     value_col,
     width,
     rows: lines,
+    inks,
   }
 }
 
@@ -489,9 +617,12 @@ mod tests {
       detail: None,
       app: "ST0056   Add a Rust-based CLI".into(),
       body: plan(&hard_rows(), NARROW),
-      status: "NORMAL   title   text   1/4".into(),
-      command: "cmd: (none)".into(),
+      status: "NAV   title   text   1/4".into(),
+      command: "\u{276f}".into(),
       info: "What this thread is called.".into(),
+      mode: super::super::mode::Mode::Nav,
+      selected: None,
+      noticed: false,
     }
   }
 
@@ -957,11 +1088,8 @@ mod tests {
     for width in [8usize, NARROW, 100] {
       let s = Screen {
         detail: Some(plan(&detail_rows(), width)),
-        app: screen().app,
         body: plan(&hard_rows(), width),
-        status: screen().status,
-        command: screen().command,
-        info: screen().info,
+        ..screen()
       };
       for (i, line) in s.compose(0, 24).iter().enumerate() {
         assert!(
@@ -971,5 +1099,122 @@ mod tests {
         );
       }
     }
+  }
+  /// **THE COLOUR LAYER'S CONTRACT, PINNED WHERE THE SPANS ARE MADE.** Roles,
+  /// not colours -- the palette is draw's -- so what this asserts is the
+  /// INFORMATION: the mode chip leads the status line and names the live
+  /// mode, the omnibox line brightens exactly when the omnibox holds the
+  /// keyboard, the selection overlays the cursor row and only that row, and
+  /// a status value wears its semantic role. hv's ask, 2026-08-30: *the
+  /// state changes between modes are not obvious. Maybe a bit of colour?*
+  #[test]
+  fn the_mode_chip_and_omnibox_line_change_ink_with_the_mode() {
+    use super::super::mode::Mode;
+    for mode in [Mode::Omnibox, Mode::Nav, Mode::Menu] {
+      let mut sc = screen();
+      sc.mode = mode;
+      sc.status = format!("{}   title", mode.name());
+      let painted = sc.painted(0, 24);
+      let (status, status_ink) = &painted[painted.len() - 3];
+      assert_eq!(
+        status_ink.first(),
+        Some(&(0, mode.name().chars().count(), Role::ModeChip(mode))),
+        "the status line must LEAD with a chip naming {mode:?}: {status:?} {status_ink:?}"
+      );
+      let (_, command_ink) = &painted[painted.len() - 2];
+      let want = if mode == Mode::Omnibox {
+        Role::OmniActive
+      } else {
+        Role::Muted
+      };
+      assert_eq!(
+        command_ink.first().map(|&(_, _, r)| r),
+        Some(want),
+        "the omnibox line must read {want:?} in {mode:?} -- brightness IS the focus signal"
+      );
+    }
+  }
+
+  #[test]
+  fn the_selection_overlays_the_cursor_row_and_only_that_row() {
+    let mut sc = screen();
+    sc.selected = Some(1);
+    let painted = sc.painted(0, 24);
+    let body_first = 2; // app row + rule
+    for (i, (line, ink)) in painted.iter().enumerate() {
+      let selected_here = ink
+        .iter()
+        .any(|&(s, e, r)| r == Role::Selected && s == 0 && e == line.chars().count());
+      assert_eq!(
+        selected_here,
+        i == body_first + 1,
+        "Selected must cover exactly the cursor row (line {i}): {line:?} {ink:?}"
+      );
+    }
+    // And it is pushed LAST, so the printer paints it over the row's own ink.
+    let (_, ink) = &painted[body_first + 1];
+    assert_eq!(
+      ink.last().map(|&(_, _, r)| r),
+      Some(Role::Selected),
+      "the overlay must be the LAST span or the row's own colours win"
+    );
+  }
+
+  #[test]
+  fn a_status_value_wears_its_semantic_role_and_a_door_wears_the_doors() {
+    let rows = vec![
+      Row::new("status", "wip", "select"),
+      Row::new("state", "done", "select"),
+      Row::new("verdict", "blocked", "select"),
+      Row::new("ST0056", "Add a Rust-based CLI", "button").opening(super::super::nav::View::Item {
+        kind: "thread".into(),
+        id: "ST0056".into(),
+      }),
+    ];
+    let p = plan(&rows, 60);
+    let role_of_value = |i: usize| {
+      p.inks[i]
+        .iter()
+        .find(|&&(s, _, _)| s >= p.value_col)
+        .map(|&(_, _, r)| r)
+    };
+    assert_eq!(role_of_value(0), Some(Role::Warn), "wip is in-flight");
+    assert_eq!(role_of_value(1), Some(Role::Ok), "done is fine");
+    assert_eq!(role_of_value(2), Some(Role::Error), "blocked is wrong");
+    assert_eq!(
+      p.inks[3].first().map(|&(_, _, r)| r),
+      Some(Role::Door),
+      "a doored row's NAME is the door -- its identity column, not its value"
+    );
+    assert_eq!(
+      p.inks[0].first().map(|&(_, _, r)| r),
+      Some(Role::Name),
+      "a field row's name is a label and stays dim"
+    );
+  }
+
+  /// Every span indexes characters its line actually has -- the contract the
+  /// printer leans on, asserted across a whole composed screen including the
+  /// clipped hard-case rows.
+  #[test]
+  fn every_span_stays_inside_its_line() {
+    let mut sc = screen();
+    sc.selected = Some(0);
+    sc.detail = Some(plan(&detail_rows(), NARROW));
+    let mut spans = 0usize;
+    for (line, ink) in sc.painted(0, 24) {
+      let n = line.chars().count();
+      for &(start, end, role) in &ink {
+        assert!(
+          start <= end && end <= n,
+          "span ({start},{end},{role:?}) exceeds a {n}-char line: {line:?}"
+        );
+        spans += 1;
+      }
+    }
+    assert!(
+      spans > 8,
+      "almost nothing was painted, so this asserted almost nothing"
+    );
   }
 }

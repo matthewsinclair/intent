@@ -24,22 +24,72 @@
 
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
-use ratatui::style::Style;
+use ratatui::style::{Color, Modifier, Style};
 
-use super::layout::Screen;
+use super::layout::{Role, Screen};
+use super::mode::Mode;
+
+/// The palette: one place, role in, style out.
+///
+/// **ROLES COME FROM LAYOUT AND COLOURS LIVE HERE**, so a theme is a draw
+/// edit and the information is a layout edit. The vocabulary follows
+/// `docs/design/design-system.md`'s semantic set -- ok/warn/error from the
+/// CLI's own prefix vocabulary, one accent, chrome dim -- translated to the
+/// sixteen-colour terminal space so it renders everywhere.
+///
+/// **THE MODE CHIP IS THE HEADLINE** (hv, 2026-08-30: *the state changes
+/// between modes are not obvious*): each mode gets its own colour, reversed,
+/// so the chip reads as a lamp rather than a word.
+fn style(role: Role) -> Style {
+  let d = Style::default();
+  match role {
+    Role::Chrome | Role::Name | Role::Muted => d.fg(Color::DarkGray),
+    Role::Value => d,
+    Role::Door => d.fg(Color::Cyan),
+    Role::Ok => d.fg(Color::Green),
+    Role::Warn => d.fg(Color::Yellow),
+    Role::Error => d.fg(Color::Red),
+    Role::Selected => d.add_modifier(Modifier::REVERSED),
+    Role::Title => d.add_modifier(Modifier::BOLD),
+    Role::OmniActive => d.fg(Color::Cyan).add_modifier(Modifier::BOLD),
+    Role::ModeChip(mode) => {
+      let fg = match mode {
+        Mode::Omnibox => Color::Cyan,
+        Mode::Nav => Color::Green,
+        Mode::Menu => Color::Magenta,
+        Mode::Field => Color::Yellow,
+        Mode::Embed => Color::Red,
+      };
+      d.fg(fg).add_modifier(Modifier::REVERSED | Modifier::BOLD)
+    }
+  }
+}
 
 /// Paint `screen` into `area`, scrolled so body row `first` is at the top of
 /// the body.
+///
+/// Base line first, then each span over it IN ORDER -- a later span wins an
+/// overlap, which is how the selection overlays a row's own colours.
 pub fn render(screen: &Screen, first: usize, area: Rect, buf: &mut Buffer) {
   if area.height == 0 || area.width == 0 {
     return;
   }
-  for (i, line) in screen
-    .compose(first, area.height as usize)
+  for (i, (line, ink)) in screen
+    .painted(first, area.height as usize)
     .iter()
     .enumerate()
   {
-    buf.set_string(area.x, area.y + i as u16, line, Style::default());
+    let y = area.y + i as u16;
+    buf.set_string(area.x, y, line, Style::default());
+    let chars: Vec<char> = line.chars().collect();
+    for &(start, end, role) in ink {
+      let end = end.min(chars.len());
+      if start >= end {
+        continue;
+      }
+      let segment: String = chars[start..end].iter().collect();
+      buf.set_string(area.x + start as u16, y, &segment, style(role));
+    }
   }
 }
 
@@ -71,9 +121,12 @@ mod tests {
       detail: None,
       app: "ST0056   Add a Rust-based CLI".into(),
       body: plan(&rows(), W as usize),
-      status: "NORMAL   title   text   1/4".into(),
-      command: "cmd: (none)".into(),
+      status: "NAV   title   text   1/4".into(),
+      command: "\u{276f}".into(),
       info: "What this thread is called.".into(),
+      mode: crate::tui::mode::Mode::Nav,
+      selected: None,
+      noticed: false,
     }
   }
 
@@ -259,5 +312,59 @@ mod tests {
         "the INFO row must survive to the last line at height {h}"
       );
     }
+  }
+  /// **THE PRINTER PAINTS THE ROLES IT WAS GIVEN** -- one cell per claim,
+  /// read back through a real ratatui buffer, because a palette that never
+  /// reaches a cell is a colour scheme in prose. The three headline claims:
+  /// the mode chip is reversed and mode-coloured, a `wip` value is yellow,
+  /// and dim chrome is actually dim.
+  #[test]
+  fn painted_roles_reach_the_cells() {
+    use ratatui::style::{Color, Modifier};
+    let mut sc = Screen {
+      body: layout::plan(&[Row::new("status", "wip", "select")], W as usize),
+      ..screen()
+    };
+    sc.mode = crate::tui::mode::Mode::Nav;
+    sc.status = "NAV   status".into();
+    let mut term = Terminal::new(TestBackend::new(W, H)).expect("TestBackend must build");
+    term
+      .draw(|f| {
+        let area = f.area();
+        render(&sc, 0, area, f.buffer_mut());
+      })
+      .expect("a draw into an in-memory backend cannot fail");
+    let buf = term.backend().buffer().clone();
+
+    // The chip: row H-3, column 0 -- NAV in Nav's green, reversed.
+    let chip = &buf[(0, H - 3)];
+    assert_eq!(chip.symbol(), "N");
+    assert_eq!(
+      chip.style().fg,
+      Some(Color::Green),
+      "the chip must wear the mode's colour"
+    );
+    assert!(
+      chip.style().add_modifier.contains(Modifier::REVERSED),
+      "the chip must be reversed -- a lamp, not a word"
+    );
+
+    // The wip value: row 2 (app, rule, first body row), at the value column.
+    let vx = sc.body.value_col as u16;
+    let wip = &buf[(vx, 2)];
+    assert_eq!(
+      wip.symbol(),
+      "w",
+      "the fixture moved; this cell is not the value"
+    );
+    assert_eq!(
+      wip.style().fg,
+      Some(Color::Yellow),
+      "wip must read as in-flight"
+    );
+
+    // The rule under the app row is chrome, and chrome is dim.
+    let rule = &buf[(0, 1)];
+    assert_eq!(rule.style().fg, Some(Color::DarkGray), "chrome must be dim");
   }
 }
