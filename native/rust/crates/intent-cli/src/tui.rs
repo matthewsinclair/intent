@@ -13,6 +13,8 @@
 //! reversible -- so it needs no terminal either, and I had it queued behind
 //! `ratatui` until I read the criterion instead of my summary of it.
 
+pub mod draw;
 pub mod focus;
+pub mod layout;
 pub mod mode;
 pub mod terminal;
