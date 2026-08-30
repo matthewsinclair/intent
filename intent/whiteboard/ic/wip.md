@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-30 00:44Z
+heartbeat_at: 2026-08-30 00:52Z
 status: active
-focus: "WP-17 pieces 1 and 2 are DONE and on main; vc ruled both my questions (arity authoritative, ratatui+crossterm in intent-cli only) and both are implemented or authorised. Main is 1545/0. NOW: piece 3, mode machine FIRST because it needs no dependency -- the Cargo.lock move is deferred until the realiser actually needs it, and announced before it happens."
+focus: "Pieces 1 and 2 done; piece 3 STARTED -- the mode machine landed at 1331fcdf with six mutation-proven invariants and NO new dependency. The `Cargo.lock` move for ratatui+crossterm is RULED and HELD: the shared tree does not build (dc mid-flight on `fiat`), and a lockfile move on top of that makes two breakages into one. Announced to cc and dc; I go when the tree builds."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -29,7 +29,8 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## TODO
 
-1. **WP-17 piece 3 -- the TUI realiser. BLOCKED ON vc, DELIBERATELY.** `ratatui` and friends move `Cargo.lock`, which three nodes build against, and the workspace declares NO TUI dependency today (measured: no `ratatui`/`crossterm`/`portable-pty`/`tui-term`/`termion` anywhere). That is a specification call while hv is AFK, so it goes to vc with options rather than being announced. Mode machine as a DECLARED TABLE with two invariants checked headlessly (every mode leavable, every mode reachable from NORMAL) -- `transitions.rs`'s own idiom. Editor handoff through the EXISTING `launch_editor` + `$VISUAL` resolver; the RETURN re-reads the artefact before painting anything derived from it (`AC-17.10`); terminal restored on every exit path including panic.
+1. **WP-17 piece 3 -- the realiser. THE MODE MACHINE IS DONE** (`1331fcdf`): declared table, six invariants, all six mutation-proven, no `ratatui` and no `crossterm`. **The dependency move is RULED (vc: ratatui + crossterm, `intent-cli` only) and HELD** -- `cargo build` is red on `contract.rs` missing dc's in-flight `fiat` field, and moving `Cargo.lock` on top of that makes two unrelated breakages one unattributable build error. cc and dc are told; announce again in the moment before touching it. Then: editor handoff through the EXISTING `launch_editor` + `$VISUAL` resolver, **the RETURN re-reads the artefact before painting anything derived from it** (`AC-17.10`), terminal restored on every exit path including panic -- and cc's `Drop`-guard finding is the one that matters there, because cleanup written after the assertions never runs on the day it is needed.
+
 2. **ST0064 -- the macOS menubar app.** Reference to adopt as-is: `~/Devel/prj/Gtools/native/macos/Geodica`, 2,470 lines of Swift; **structure is the deliverable, not the code**. **LIFECYCLE SHELLS OUT** (starting a daemon that is not running cannot be a request TO that daemon; `AC-00.3`) and **STATE COMES OVER THE WIRE**. **THE PORT IS GONE, NOT CHOSEN** -- the daemon binds `127.0.0.1:0` and writes its address into its state dir. **No port literal in the app.** `URLSession`-over-TCP is Geodica's 127-line service against `NWEndpoint.unix` needing no token but hand-rolled HTTP framing; vc wants that priced from the Geodica code with a WP size. ST0064 has zero criteria and a scope of `S` that will not survive contact. Control plane + console only in v1. Logo is `docs/design/intent-logo.*`. **`intent lang init swift` before the first `.swift` file or the app ships outside the critic gate.**
 3. **WP-16 (S)** -- `data-model.md` against the schema, both directions. **`lib_staged.sh` ALREADY IS the committed-read mechanism** (`git show :<path>`); `machine_table_check.sh` already parses this document's tables. Source them; do not grow a second. **dc is editing both right now** -- coordinate before touching.
 4. **WP-09 (L)** -- `AC-09.4` first. `AC-09.1` needs every row to declare `exposed_on_mcp` and `read_or_mutate`.
