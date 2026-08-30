@@ -1449,6 +1449,7 @@ Create an acceptance test (caller-assigned id; refuses an id that is taken)
   - `atid` (at-id, arity `1`)
 - **Flags:**
   - `--covers` `<acid> ...` (string) -- The criterion id(s) this test covers
+    - **arity:** 1..n
     - **required:** true
     - **disposition:** keep
   - `--file` `<path>` (string) -- The test file this row cites
@@ -1497,6 +1498,7 @@ Re-cite an acceptance test; a field you do not name is a field it does not chang
   - `--prose` `<text>` (string) -- What was read or eyeballed (non-test rows)
     - **disposition:** keep
   - `--covers` `<ac-id> ...` (string) -- The AC id(s) this test covers, replacing the current set
+    - **arity:** 1..n
     - **disposition:** keep
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: cc, 2026-08-29, on hv's 2026-08-28 ruling over issue 0131, sequenced to cc by vc. **NO ACCEPTANCE ROW IS CLAIMED HERE, DELIBERATELY.** `ac new` and `at new` carry AC-08.6 / AC-08.7; these two verbs were ruled by hv into an existing package rather than minted with a criterion, and the builder writing their own acceptance criterion for their own build is the shape hv's AC-08.5 precedent exists to prevent. The contract row is OWED and is vc's to place.
@@ -2650,6 +2652,7 @@ Run Intent rule-library critics against source files
 - **Flags:**
   - `--files` `<path> ...` (string) -- Explicit file list
     - default: scan nothing unless --staged
+    - **arity:** 1..n
     - **disposition:** keep
   - `--staged` (bool) -- Scan files in the git staging area (pre-commit mode)
     - **disposition:** keep

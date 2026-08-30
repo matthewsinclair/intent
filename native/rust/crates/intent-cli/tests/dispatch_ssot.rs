@@ -611,7 +611,12 @@ fn a_flags_declared_placeholder_and_requiredness_reach_the_surface() {
         // version of this check** -- it stripped delimiters from both ends
         // blindly and asked for `<path> ...>`, which is the same class of
         // mistake as the defect under test.
-        let repeated = value.trim_end().ends_with("...");
+        // **THE `...` IS A RENDERING AND `arity` IS THE FACT.** Reading the
+        // ellipsis back out of the placeholder would make this test the second
+        // reader of a thing the register now states once -- the same duplication
+        // whose deletion from spine.rs this file is here to check.
+        let bounds = dispatch::arity_bounds(&flag.arity);
+        let repeated = matches!(bounds, Some((_, None)));
         let head = value.trim().trim_end_matches("...").trim();
         let inner = head
           .trim_start_matches(['<', '['])
@@ -629,7 +634,7 @@ fn a_flags_declared_placeholder_and_requiredness_reach_the_surface() {
         // `--editor [<program>]` and this would still fail -- which is the
         // difference between reading the same table and restating the same
         // code.
-        let optional_value = matches!(dispatch::arity_bounds(&flag.arity), Some((0, _)));
+        let optional_value = matches!(bounds, Some((0, _)));
         let want = if optional_value {
           format!("{long}[=<{inner}>]")
         } else {

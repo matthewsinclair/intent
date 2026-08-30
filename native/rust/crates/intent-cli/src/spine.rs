@@ -589,18 +589,22 @@ fn flags(mut cmd: Command, entry: &Entry) -> Command {
     if let Some(value) = &flag.value
       && flag.kind != "bool"
     {
-      let (name, repeated) = placeholder(value);
+      // **THE `...` IS STRIPPED AND READ NO FURTHER.** It is a rendering, and
+      // the fact it used to carry -- this flag takes a list -- is `arity`,
+      // below. Passing the whole string through as a name is what produced
+      // `--files <<path> ...>`, the double-bracket rendering this strip exists
+      // to prevent.
+      //
+      // **THIS FUNCTION WROTE `num_args` TWICE, THIRTY LINES APART** (vc, under
+      // hv's standing Highlander review): once from the `...` in this string
+      // and once from `arity_bounds`. It was benign only while the two carriers
+      // had disjoint populations, and the ruling that makes `arity`
+      // authoritative ends that -- the three rows carrying `...` now declare
+      // `arity: "1..n"`, so both writers would have covered them. **The fix is
+      // the DELETION, not a test that the two agree**: a test would make the
+      // second writer permanent and merely require it to be right.
+      let (name, _) = placeholder(value);
       a = a.value_name(name.to_string());
-      // **`...` in the table is a statement about ARITY, not decoration**, and
-      // it is the only shape here that is. `--files <path> ...` means a list,
-      // so the row is wired to `num_args`, and clap then renders the ellipsis
-      // itself. Passing the whole string through as a name instead is what
-      // produced `--files <<path> ...>` -- the double-bracket rendering this
-      // strip exists to prevent, showing up on the one row that was not a plain
-      // `<name>`.
-      if repeated {
-        a = a.num_args(1..);
-      }
     }
     // **A DECLARED ARITY REACHES clap, AND ON A FLAG THAT MEANS `=`.** The
     // register says `--editor` takes `0..1` values -- `intent edit st ST0001
