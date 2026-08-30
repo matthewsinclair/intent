@@ -260,6 +260,7 @@ Create a new steel thread
   - `0.record`: 2aec5f62
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** st_new
 
 ### `st start`
 
@@ -285,6 +286,7 @@ Mark a steel thread as in progress
   - `0.record`: bc5f5960
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** st_start
 
 ### `st done`
 
@@ -320,6 +322,7 @@ Mark a steel thread as complete
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
 - **side effect ruled:** **hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list. **THIS VERB NOW DELETES FILES AND NEVER DID BEFORE, WHICH CHANGES ITS CHARACTER RATHER THAN ITS BEHAVIOUR.** A status verb that removes a directory is a different kind of command, and the table has to say so or the MCP surface offers an agent a file-removing tool labelled as a status change. **`read_or_mutate` was already `mutate` and does not move -- which is exactly why it is the wrong field to carry this**: it answers _does durable state change_, and that was already yes. `recoverability` is the field that moves. **It is `reversible`, not `one-way`, on the `organize` row's own reasoning: the removal is gated on the store reproducing the bytes, so `st reopen` and a re-run restore what was removed.** The loss this verb CAN cause -- an unsynced attachment edit -- is refused by name rather than made reversible, which is the stronger of the two.
+- **facade:** st_done_listing
 
 ### `st cancel`
 
@@ -355,6 +358,7 @@ Mark a steel thread as cancelled, with a reason
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
 - **side effect ruled:** **hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list. **THIS VERB NOW DELETES FILES AND NEVER DID BEFORE, WHICH CHANGES ITS CHARACTER RATHER THAN ITS BEHAVIOUR.** A status verb that removes a directory is a different kind of command, and the table has to say so or the MCP surface offers an agent a file-removing tool labelled as a status change. **`read_or_mutate` was already `mutate` and does not move -- which is exactly why it is the wrong field to carry this**: it answers _does durable state change_, and that was already yes. `recoverability` is the field that moves. **It is `reversible`, not `one-way`, on the `organize` row's own reasoning: the removal is gated on the store reproducing the bytes, so `st reopen` and a re-run restore what was removed.** The loss this verb CAN cause -- an unsynced attachment edit -- is refused by name rather than made reversible, which is the stronger of the two.
+- **facade:** st_cancel_listing
 
 ### `st triage`
 
@@ -369,6 +373,7 @@ Move a triaged thread out of Triage into NotStarted
 - **no op:** `ok: <ID> already Not Started`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic). **`st.triage` is declared only FROM `triage`, so this row's self-loop is the only way to reach the verb at all** -- no other state has an edge into it, which the refusal from `wip` says in as many words. Sharing the `Not Started` display with `st reinstate` is a display fact, not a state fact: the two are distinct machine states that render alike.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** st_triage
 
 ### `st hold`
 
@@ -386,6 +391,7 @@ Put a thread on hold, with a reason
 - **no op:** `ok: <ID> already On Hold`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic). **It self-loops at 0 WITHOUT the `--reason` the verb otherwise requires**, which is the ruled ordering visible from the outside: the self-loop test runs ahead of `check_reason`, so asking for a state the thread already holds is not a decision and needs no justification. `st cancel` measures the same way.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** st_hold
 
 ### `st resume`
 
@@ -400,6 +406,7 @@ Take a thread off hold and back into Wip
 - **no op:** `ok: <ID> already WIP`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** st_resume
 
 ### `st reopen`
 
@@ -417,6 +424,7 @@ Reopen a completed thread back into Wip, with a reason
 - **no op:** `ok: <ID> already WIP`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** st_reopen
 
 ### `st reinstate`
 
@@ -434,6 +442,7 @@ Reinstate a cancelled thread into NotStarted, with a reason
 - **no op:** `ok: <ID> already Not Started`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic). Shares the `Not Started` display with `st triage` and is a different machine state underneath.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** st_reinstate
 
 ### `st hydrate`
 
@@ -449,6 +458,7 @@ Add a steel thread to .intentfiles and write its files
 - **owner wp:** ST0057 WP-02
 - **recoverability:** idempotent
 - **note:** **PAIRED WITH `dehydrate` AND SHIPPING AHEAD OF IT, DELIBERATELY (ic + dc, 2026-08-19).** `hydrate` is wired to a mechanism that exists -- `Facade::hydrate` takes an `Address` and `Entity::artefact()` already refuses the forms that have no file. Declaring both together would put a verb into `--help`, the agent guide and the MCP tool list ahead of the code that honours it, which is the table-leads-the-reader ordering used in the wrong direction: for `--apply` the behaviour existed and only the surface lagged.
+- **facade:** hydrate
 
 ### `st dehydrate`
 
@@ -464,6 +474,7 @@ Remove a steel thread from .intentfiles and delete its files
 - **owner wp:** ST0057 WP-02
 - **recoverability:** reversible
 - **note:** **THIS VERB REMOVES FILES AND IS STILL `reversible`, WHICH IS THE SAME CALL THE `organize` ROW MAKES AND FOR THE SAME REASON.** The removal is gated on the store reproducing the bytes, so re-listing the id and re-running restores exactly what was removed. `one-way` is for a loss the surface cannot undo; this is not one.
+- **facade:** dehydrate
 
 ### `st list`
 
@@ -508,6 +519,7 @@ List steel threads (default: in progress only)
 - **render order:** bin/intent_st:941 pins the display order as a five-element list -- `WIP TBC HOLD COMPLETED CANCELLED`. Six states means this list grows, and `Triage` belongs BEFORE the `Not Started` slot because it precedes it in the machine. Named here because it is a surface fact hiding in an array literal, and a new state that renders in the wrong place looks like a sorting bug rather than a missing decision.
 - **MCP:** exposed as an agent tool -- read-only
 - **MCP classification grounded in:** bin/intent_st:717-1043 -- no write primitive in the arm
+- **facade:** st_list
 
 ### `st show`
 
@@ -528,6 +540,7 @@ Show details of a specific steel thread
 - **Note:** `info.md` and `acceptance.md` become GENERATED VIEWS in v3 (D02/D04). `show` reads the view, so its output is unchanged in kind -- but the view's bytes are v3's to define, and every BATS test asserting v2's exact info.md bytes retires under the ratified file-layout class. **CORRECTED 2026-08-17: THE BINARY READS NO VIEW, AND THIS NOTE SAYING IT DOES IS A FOURTH INSTANCE OF THE NOTE-TRUE-WHILE-THE-BINARY-WAS-NOT PAIR (found by cc, filed at `4a0c905c` as issue 0055 before the tracker was cleared).** `st show` never reads its `file` positional at all: it reads `id` and prints a four-line synthesised summary, so `intent st show ST0001 design` and `intent st show ST0001 nonsense` produce identical output at exit 0, where v2 cats `design.md`. **It is a `keep` row reporting success for a request it discarded** -- worse in kind than 0052, whose unreachable field meant nothing happened, because this one says something did. Three of this row's four declared exit codes are unreachable. The fix is a WP-05 surface call and is deliberately NOT taken here: both readings are in 0055.
 - **MCP:** exposed as an agent tool -- read-only
 - **MCP classification grounded in:** bin/intent_st:1044-1100 -- no write primitive in the arm
+- **facade:** st_show
 
 ### `st edit`
 
@@ -558,6 +571,7 @@ Print the path to a steel thread file, realising the thread if it is not on disk
 - **Wants review -- the classification disagrees with the verb name:** `edit` is the most obviously-mutating verb name in the table and the command writes nothing -- it is a path resolver, and the entry beside this one already said so in `observed.notes` ("never launches an editor and never creates the file", called a historical misnomer). I still had to read bin/intent_st:1125-1141 to stop classifying it as a mutation, which is the argument for declaring the field: the correct fact was ALREADY WRITTEN DOWN one bullet away and the verb name still won. It also inverts the exposure reading -- an $EDITOR launch could not be an MCP tool at all, since it would block on stdio, while a path resolver is one of the safest things here.
 - **MCP classification grounded in:** bin/intent_st:1125-1141 -- 'Pure emit-path ... No touch, no editor'; it prints the absolute path and returns
 - **recoverability:** idempotent
+- **facade:** edit
 
 ### `st attach`
 
@@ -604,6 +618,7 @@ Synchronize steel_threads.md with individual ST files
 - **Note:** In v3 `steel_threads.md` is a generated view and the resync is part of the transactional write path (AC-04.1), not a subprocess. The COMMAND survives for explicit regeneration; the implicit call has no v3 analogue because it cannot fall out of date.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** idempotent
+- **facade:** sync_to_disk
 
 ### `st repair`
 
@@ -768,6 +783,7 @@ Create a new work package
 - **scope ruling:** **hv RULED 2026-08-17: NO FLAG. `wp rescope` IS THE ENTRANCE AS WELL AS THE EXIT** -- issue 0052, closed at commit `8e5ef648`. Permanently, not provisionally. **The hardcoded `S` was never the defect and must not be 'fixed' to `absent`.** v2's template seeds `scope: Small`, so any other default is a parity break hiding in a value rather than in an output. What was indefensible was that nobody could override it: **a default nobody can override is a VERDICT; a default with an exit is a STARTING VALUE.** Same `S`, different meaning, no change to the code -- the exit is what changed its status (vc's framing, adopted). **And the self-loop distinction now has the user it was missing.** `wp_rescope` treating a same-size rescope as a movement only where a `scope_legacy` carry is present (`facade.rs:1443-1456`) is, with `rescope` as the sole entrance, the mechanism by which a migrated carry gets ADJUDICATED BY A HUMAN rather than having a size coerced onto it. That capability is what the unwired verb was denying. **Recorded here because it was ABSENT, not stale.** vc verified while closing 0052 that neither this row nor `wp rescope` carried an `open_question`, which is true and is a different question from the one that matters: a scan for a claim that has GONE WRONG is structurally blind to a claim that was never made. `wp rescope`'s openness was in prose inside its `note` and this row said nothing at all -- so the field-scoped scan found nothing on both, for two opposite reasons. That is the INV-06/INV-07 direction again (the decision was made and the register never moved), and it is why `corrected_check.sh` runs both directions. **No `ratified_in` on this row, deliberately: it is `as-observed` and ratifies no deviation.** `ratified_in` names where a row's DEVIATION was ratified, and putting a workflow ruling in it would dilute the one field two sibling checks read for a single meaning. The provenance (authority, date, commit) is inline above, which is where a reader of this ruling looks.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** wp_new
 
 ### `wp start`
 
@@ -791,6 +807,7 @@ Mark a work package as WIP
   - `0.record`: 9361c68a
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** wp_start
 
 ### `wp done`
 
@@ -820,6 +837,7 @@ Mark a work package as Done
 - **MCP:** exposed as an agent tool -- **mutates**
 - **MCP note:** Pairs with `ac gate` below and is the reason the field is DECLARED, not derived: `wp done` consults the same gate `ac gate` runs, and then WRITES. The two do not share a spelling, so no naming rule separates them.
 - **recoverability:** reversible
+- **facade:** wp_done
 
 ### `wp reopen`
 
@@ -837,6 +855,7 @@ Reopen a done work package back into Wip, with a reason
 - **no op:** `ok: <ID>/NN already WIP`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** wp_reopen
 
 ### `wp cancel`
 
@@ -854,6 +873,7 @@ Mark a work package as cancelled, with a reason
 - **no op:** `ok: <ID>/NN already cancelled`, exit 0 -- the ruled voice, same as `wp unstart`. A no-op is reported and never refused: re-cancelling an already-cancelled unit changes nothing and is not an error.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** wp_cancel
 
 ### `wp reinstate`
 
@@ -871,6 +891,7 @@ Reinstate a cancelled work package into NotStarted, with a reason
 - **no op:** `ok: <ID>/NN already Not Started`, exit 0 -- the ruled voice, same as `wp unstart`. A no-op is reported and never refused: re-cancelling an already-cancelled unit changes nothing and is not an error.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** wp_reinstate
 
 ### `wp unstart`
 
@@ -885,6 +906,7 @@ Return a started work package to NotStarted
 - **no op:** `ok: <ID>/NN already Not Started`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** wp_unstart
 
 ### `wp rescope`
 
@@ -900,6 +922,7 @@ Change a work package's T-shirt size
 - **no op:** **WIRED at `4a0c905c`, and MEASURED -- the declaration this row made before the arm existed is confirmed exactly.** It is the only no-op in the population not decidable from the two states alone, and the discrimination holds in the binary. On a settled package, `intent wp rescope ST0001/01 M` against a package already at `M` prints `ok: ST0001/01 already M` at exit 0 -- the self-loop. On a package carrying `scope_legacy: {raw: "Smallish"}`, `intent wp rescope ST0001/02 S` prints `ok: ST0001/02 rescoped to S` at exit 0 -- **a MOVEMENT, with the same to** -- and only the NEXT call prints `ok: ST0001/02 already S`. **Same specifier, same size, two different answers, and both are right -- but NOT for the reason first written here (cc, 2026-08-17, measured).** The original rationale said a carry sits beside a recorded size and the same from and same to is therefore a movement. **In a valid model that state cannot exist**: settled is `(size, no carry)`, carried is `(none, carry)`, absent is neither, and in the carried case `from` renders as `"<raw> (legacy)"` or the empty string -- **never equal to a size, so the same-state case never arises.** The two inputs are jointly reachable only in a fourth combination that `doctor` reports as residue. **The clause is right as the REPAIR path, which is a better reason than the one it had**: `wp rescope L` on a package that records `L` AND carries `Medium-Large` clears the carry and reports a movement, and **without it no verb in the tool could clear that residue.** cc built the contradictory state by hand and drove it, rather than reasoning about it (`facade.rs:1443-1456`). A row recording only `ok: <ST/NN> already <size>` would have been wrong about half the cases and would have looked complete. **And the size argument refuses with the six named** -- `error: `Huge` is not a T-shirt size`, remedy `one of: XS, S, M, L, XL, XXL`, exit 1 -- which is what `arg_values_note` asked for, since `values` on a non-subcommand slot constrains nothing at the spine and the enum has to be parsed in the arm.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** wp_rescope
 
 ### `wp list`
 
@@ -928,6 +951,7 @@ List work packages for a steel thread
   - The arity message is `error: Usage: intent wp list <STID>` -- `error()` used to print a usage line, so the `error:` prefix and the `Usage:` voice collide in one string. Voice nit, not a wrong answer. NOTE: an earlier report that this path answers `error: Unknown command 'wp list'` was a zsh harness artefact (unquoted parameters are not word-split, so the dispatcher received one argument literally named `wp list`); it does NOT reproduce with separated arguments and is not a v2 defect.
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
+- **facade:** wp_list
 
 ### `wp show`
 
@@ -945,6 +969,7 @@ Show work package info.md
 - **Target:** `as-observed`
 - **Note:** WP info.md becomes a generated view in v3 (D02/D04); the command reads the view, so its output is unchanged in kind. **THAT SENTENCE WAS TRUE OF THE NOTE AND FALSE OF THE BINARY, and it is the reason to keep the correction visible here rather than to quietly amend it.** v2 implements `wp show` by catting `info.md` (`bin/intent_wp:263`), and `views.rs` writes that file's status line with `display()`, so v2 printed `status: WIP`. v3 printed `status: wip` -- `enum_str`, not `display()` -- until cc corrected it at `d0f345b5`. **A test was pinning the divergence as expected output**: `cli_end_to_end.rs` asserted `contains("status: wip")` while measuring something else entirely (that a reopen had moved the package), and captured the wrong spelling on the way. **So the estate simultaneously held a CORRECT statement of the requirement, in this note, and an INCORRECT assertion of it, in a test -- about one command, at one time -- and the assertion is the one with teeth, because it runs on every commit while a note is read once at authoring.** Nothing anywhere compares a row's prose to the test that covers it (vc, 2026-08-17). Found because cc's witness reads state back from the tool rather than from a literal, so `st show` said `WIP` and `wp show` said `wip` in the same run. The row was right and the code was not; the row is now right and so is the code.
 - **MCP:** exposed as an agent tool -- read-only
+- **facade:** wp_show
 
 ## Family: `ac`
 
@@ -1016,6 +1041,7 @@ List ACs + covering AT + satisfied state
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
+- **facade:** ac_list
 
 ### `ac status`
 
@@ -1033,6 +1059,7 @@ Report N/M satisfied + verdict (PASS/BLOCKED)
 - **Observed notes:** Issue 0004 item 4 queried this verb's exit code; the premise did not reproduce, and it is parked awaiting a close ruling rather than work.
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
+- **facade:** gate
 
 ### `ac satisfy`
 
@@ -1058,6 +1085,7 @@ Satisfy a non-test AC by named evidence
 - **voice ruling:** **BUG, not a deviation: restore ` by evidence`.** v2 prints `ok: <AC> satisfied by evidence` and v3 prints `ok: <AC> satisfied`. The phrase names WHY the criterion is satisfied, and under v3's model that distinction became STRUCTURAL rather than decorative -- `AcState::Satisfied` carries evidence that must not be empty, and a test-backed criterion is `Computed` with nothing stored. **So the words are more load-bearing in v3 than they were in v2**, and dropping them is the one change that cannot be argued as tidying.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** ac_satisfy
 
 ### `ac unsatisfy`
 
@@ -1075,6 +1103,7 @@ Reopen a satisfied non-test AC -- clears satisfaction AND its evidence together
 - **no op:** `ok: <AC> already unsatisfied`, exit 0 -- **SHIPPED at `d0f345b5`, and this row's EXIT LIST changed with it**: the already-unsatisfied case was exit 1 until that commit. Measured 2026-08-17 by driving the verb twice through the real binary (ic). It carried a hand-written `if !matches!(state, Satisfied {..})` ahead of delegating, so the shared setter's self-loop test was unreachable for this verb -- 0051's mechanism, and the refusal is now mapped from the declared machine rather than hand-run ahead of it (`facade.rs:1658-1690`). **Its two neighbours twenty lines down were not fixed: see issue 0053.**
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** ac_unsatisfy
 
 ### `ac gate`
 
@@ -1104,6 +1133,7 @@ Close-gate: exit non-zero + BLOCKED if unsatisfied
 - **MCP:** exposed as an agent tool -- read-only
 - **Wants review -- the classification disagrees with the verb name:** `gate` reads as an enforcement action that stamps a verdict somewhere. It computes and reports; the write lives in the caller (`st done` / `wp done`). vc's own example of why derivation-from-name dies.
 - **MCP classification grounded in:** bin/intent_acceptance:973 (cmd_ac_gate) -- no write primitive in the body
+- **facade:** gate
 
 ### `ac descope`
 
@@ -1132,6 +1162,7 @@ Record that an AC moved to another thread (non-blocking)
 - **no op:** `ok: <AC> already descoped`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic). **A deliberate deviation from v2, which refuses at 1, and it DROPS the target the movement line carries**: the movement prints where the criterion went, the no-op prints only that it is descoped. That follows the ruled form `ok: <subject> already <state>` -- `descoped-to ST0002` is not a state -- but it means the no-op answers a strictly smaller question than the movement it stands in for. **One of the two arms 0050's line-oriented enumeration could not see**, because the facade call breaks across lines here.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** ac_descope
 
 ### `ac rescope`
 
@@ -1159,6 +1190,7 @@ Undo a descope: back in scope, unsatisfied
   - `0.record`: 49db5aec
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** ac_rescope
 
 ### `ac withdraw`
 
@@ -1186,6 +1218,7 @@ Withdraw an AC outright, with its reason on the record (non-blocking)
 - **no op:** `ok: <AC> already withdrawn`, exit 0 -- **SHIPPED at `d0f345b5`** in the ruled voice, a deliberate deviation from v2's refusal. Measured 2026-08-17 by driving the verb twice through the real binary (ic). **The other arm 0050's enumeration could not see**, for the same reason as `ac descope`: the facade call breaks across lines.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** ac_withdraw
 
 ### `ac reinstate`
 
@@ -1213,6 +1246,7 @@ Undo a withdrawal: back in scope, unsatisfied
   - `0.record`: 49db5aec
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** ac_reinstate
 
 ### `ac new`
 
@@ -1247,6 +1281,7 @@ Create a criterion (caller-assigned id; refuses an id that is taken)
 - **recoverability:** reversible
 - **owner wp:** ST0057 WP-08
 - **acceptance:** ST0057 AC-08.6
+- **facade:** ac_new
 
 ### `ac edit`
 
@@ -1266,6 +1301,7 @@ Reword a criterion, leaving its kind and its satisfaction alone
 - **consequence:** Refuses an id the thread does not have (`NoSuchCriterion`) -- an edit that CREATED on a missing id would be the create door wearing the other name. Reports `already: unchanged` at exit 0 when the text is byte-identical, which is a real no-op rather than a silent one. **`--kind` IS DELIBERATELY ABSENT**: changing a criterion between test-backed and non-test moves where its satisfaction comes from -- computed over covering green ATs, or stored with evidence -- so it edits the contract graph rather than a sentence, and `Criterion.kind` is still declared `Unbuilt` in the transition table. A KIND CHANGE REMAINS STUCK AFTER THIS LANDS; that is a narrower wall than the one ic measured and it is still a wall.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** ac_edit
 
 ## Family: `at`
 
@@ -1332,6 +1368,7 @@ List ATs (id, reference, status)
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
+- **facade:** at_list
 
 ### `at lint`
 
@@ -1356,6 +1393,7 @@ Check AT rows against the grammar (--fix migrates what is mechanical)
 - **Wants review -- the classification disagrees with the verb name:** `lint` is the canonical read-only verb and `intent at lint --fix` migrates rows in place. Classified by the whole entry, not by its default invocation.
 - **MCP classification grounded in:** bin/intent_acceptance:1266 (`--fix) fix=1`), at_lint_fix / at_fix_line
 - **recoverability:** idempotent
+- **facade:** at_lint
 
 ### `at green`
 
@@ -1389,6 +1427,7 @@ Set an AT green
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** one-way
 - **recoverability anomaly:** ONE-WAY BY MEASURED BEHAVIOUR, NOT BY DESIGN -- issue 0033. `intent at red|green|na` DESTROYS the row's authored note, so the round trip moves the status back and does NOT restore the prior state. vc measured it on themselves with the issue in working memory: AT-03.12 went from 1,560 bytes to 106, losing 1,447 characters of authored contract, and `intent at lint` reported `ok -- 112 rows conform` immediately afterwards. **The transition graph multiplies it: `to-write -> green` is refused and green is reachable only from `red`, so recording a passing test costs TWO rewrites.** 14,253 characters stand at risk across 34 rows. **Classified against SHIPPED BEHAVIOUR on vc's ruling** -- a field describing what a command is SUPPOSED to do is the `doctor` failure, where the declaration outlived its subject in silence. This row becomes `reversible` when 0033 is fixed, and that is the field tracking reality rather than drifting from it.
+- **facade:** at_set
 
 ### `at red`
 
@@ -1413,6 +1452,7 @@ Set an AT red
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** one-way
 - **recoverability anomaly:** ONE-WAY BY MEASURED BEHAVIOUR, NOT BY DESIGN -- issue 0033. `intent at red|green|na` DESTROYS the row's authored note, so the round trip moves the status back and does NOT restore the prior state. vc measured it on themselves with the issue in working memory: AT-03.12 went from 1,560 bytes to 106, losing 1,447 characters of authored contract, and `intent at lint` reported `ok -- 112 rows conform` immediately afterwards. **The transition graph multiplies it: `to-write -> green` is refused and green is reachable only from `red`, so recording a passing test costs TWO rewrites.** 14,253 characters stand at risk across 34 rows. **Classified against SHIPPED BEHAVIOUR on vc's ruling** -- a field describing what a command is SUPPOSED to do is the `doctor` failure, where the declaration outlived its subject in silence. This row becomes `reversible` when 0033 is fixed, and that is the field tracking reality rather than drifting from it.
+- **facade:** at_set
 
 ### `at na`
 
@@ -1438,6 +1478,7 @@ Set a non-test AT to n/a (the doc / eyeball / gate status)
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** one-way
 - **recoverability anomaly:** ONE-WAY BY MEASURED BEHAVIOUR, NOT BY DESIGN -- issue 0033. `intent at red|green|na` DESTROYS the row's authored note, so the round trip moves the status back and does NOT restore the prior state. vc measured it on themselves with the issue in working memory: AT-03.12 went from 1,560 bytes to 106, losing 1,447 characters of authored contract, and `intent at lint` reported `ok -- 112 rows conform` immediately afterwards. **The transition graph multiplies it: `to-write -> green` is refused and green is reachable only from `red`, so recording a passing test costs TWO rewrites.** 14,253 characters stand at risk across 34 rows. **Classified against SHIPPED BEHAVIOUR on vc's ruling** -- a field describing what a command is SUPPOSED to do is the `doctor` failure, where the declaration outlived its subject in silence. This row becomes `reversible` when 0033 is fixed, and that is the field tracking reality rather than drifting from it.
+- **facade:** at_set
 
 ### `at new`
 
@@ -1483,6 +1524,7 @@ Create an acceptance test (caller-assigned id; refuses an id that is taken)
 - **recoverability:** reversible
 - **owner wp:** ST0057 WP-08
 - **acceptance:** ST0057 AC-08.7
+- **facade:** at_new
 
 ### `at edit`
 
@@ -1506,6 +1548,7 @@ Re-cite an acceptance test; a field you do not name is a field it does not chang
 - **consequence:** Refuses an id the thread does not have (`NoSuchTest`), and refuses a call that names NO field (`NothingToChange`) rather than reporting `unchanged` at exit 0 to a caller who believes they changed something. The prospective row is held to the same L2-L5 grammar `at lint` enforces and `at new` is held to, through the same one check -- so a re-cite to a file that does not exist, or to one not carrying the row's literal id, is refused with nothing written. **`--status` and `--kind` ARE DELIBERATELY ABSENT**: `at green` / `at red` / `at na` already own status as a declared state machine with an envelope per movement, and a second writer would be a divergent copy of a transition; `kind` moves the contract graph for the same reason `ac edit`'s does.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** at_edit
 
 ## Family: `issues`
 
@@ -1580,6 +1623,7 @@ List issues (default: open)
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
+- **facade:** issue_list
 
 ### `issues add`
 
@@ -1614,6 +1658,7 @@ Add a new issue, print its ID:TITLE
   - `0.record`: data-model.md:258
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** issue_add
 
 ### `issues show`
 
@@ -1638,6 +1683,7 @@ Show one issue (optionally as JSON)
 - **Target:** `as-observed`
 - **Open question for hv:** The v2-spells-it-three-ways / v3-has-one-`NoSuchIssue` deviation is recorded ONCE, on `issues close`. This row carries the condition and not a second copy of the reasoning.
 - **MCP:** exposed as an agent tool -- read-only
+- **facade:** issue_show
 
 ### `issues close`
 
@@ -1660,6 +1706,7 @@ Mark an issue done: OPEN -> CLOSED
 - **no op:** `ok: issue <NNNN> already CLOSED`, exit 0 -- **SHIPPED at `b504d91b`, and this pair is the only place in the table where the v2 spelling and the ruled v3 voice coincide**, which is why hv's ruling cites it. `render.rs:1739-1741` (`fn already`). Measured 2026-08-17 by driving the verb twice through the real binary (ic).
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** issue_close
 
 ### `issues open`
 
@@ -1682,6 +1729,7 @@ Reopen an issue: CLOSED -> OPEN
 - **no op:** `ok: issue <NNNN> already OPEN`, exit 0 -- **SHIPPED at `b504d91b`, and this pair is the only place in the table where the v2 spelling and the ruled v3 voice coincide**, which is why hv's ruling cites it. `render.rs:1739-1741` (`fn already`). Measured 2026-08-17 by driving the verb twice through the real binary (ic).
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
+- **facade:** issue_open
 
 ### `issues hydrate`
 
@@ -1773,6 +1821,7 @@ Show intent/todo.md (generates it if absent)
 - **Wants review -- the classification disagrees with the verb name:** Bare `intent todo` is the default read of the whole tool and it inherits `list`'s generate-on-absent write.
 - **MCP classification grounded in:** bin/intent_todo:380 (`COMMAND="${1:-list}"`) -- bare `todo` IS `todo list`
 - **recoverability:** idempotent
+- **facade:** todo_buckets
 
 ### `todo list`
 
@@ -1797,6 +1846,7 @@ Show intent/todo.md (generates it if absent)
 - **Wants review -- the classification disagrees with the verb name:** `list` is THE read verb of this table and this one writes a file the first time it is called. It is also the worst shape for a bug: it reads on every run after the first, so the mutation is invisible in testing and appears on a fresh clone.
 - **MCP classification grounded in:** bin/intent_todo:384-393 -- the else branch calls generate(), which does `mv "$tmp" "$TODO_FILE"` at :246
 - **recoverability:** idempotent
+- **facade:** todo_buckets
 
 ### `todo update`
 
@@ -1814,6 +1864,7 @@ Regenerate intent/todo.md from current status
 - **Note:** In v3 this is a view regeneration on the WP-03 renderer, and the skew check (AC-03.4) makes a stale todo.md detectable rather than merely refreshable.
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** idempotent
+- **facade:** todo_update
 
 ### `todo done`
 
@@ -1917,6 +1968,7 @@ Show the Intent process overview and project status
   - `0.record`: parity.md
 - **MCP:** exposed as an agent tool -- read-only
 - **MCP classification grounded in:** bin/intent_info -- no write primitive in the file
+- **facade:** st_list
 
 ## Family: `config`
 
@@ -2179,6 +2231,7 @@ Diagnose common Intent configuration issues
 - **MCP:** exposed as an agent tool -- read-only
 - **Wants review -- the classification disagrees with the verb name:** `doctor` is a diagnostic in every other tool that ships one, and v3's IS one -- this row is `read`. It was `mutate` until 2026-08-16, on reasoning that was correct about a command that no longer exists.
 - **MCP classification grounded in:** v3: `Facade::doctor(project, ctx, store: Option<&Store>)` ACCEPTS a store and never creates one, so a generate-on-absent write is impossible at the type level (vc's structural proof, stronger than either argument that preceded it); `doctor_changes_nothing_it_looks_at` asserts the reported file is not rewritten and that a second run reports identically. v2: bin/intent_doctor:66 (`-f|--fix`), :216 and :308 both `mv` real files.
+- **facade:** store
 
 ## Family: `upgrade`
 
@@ -2336,6 +2389,7 @@ Emit generated AGENTS.md content to stdout
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** idempotent
+- **facade:** project
 
 ### `agents sync`
 
@@ -2367,6 +2421,7 @@ Validate AGENTS.md shape and required sections
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
+- **facade:** project
 
 ### `agents template`
 
@@ -3709,6 +3764,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **v2:** new-surface
 - **acceptance:** AC-06.4 (added by vc, 2026-08-14, on the finding that all 62 ACs had zero coverage of search)
 - **disposition:** new-surface
+- **facade:** search
 - **MCP:** exposed as an agent tool -- read-only
 
 ### `sync`
@@ -3753,6 +3809,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **truth model correction:** 2026-08-15, ic. The help read `Project the canon into another format`, which named the DISK side as the canon and so read as one on-disk format converting to another. Under hv's ratified model the store is the truth and this command is the OPENNESS half of it -- hv, verbatim: 'I can get my data out of the db and use it somewhere else LOSSLESSLY.' The `usable without Intent` clause is in the help deliberately: AC-02.6 requires the file form to be usable without this tool, and a promise a user cannot read is a promise nobody can hold us to. This is the surface half of AC-02.6; vc owns whether the contract wants it cited on this row.
 - **disposition:** new-surface
 - **read or mutate correction:** CORRECTED 2026-08-16 (ic). Was `mutate`. Found by cc while building the renderer and deferred here rather than resolved there, because the table is ic's -- `render.rs:1215` states the case in full. **The old defence was reasoned about a command that does not exist as declared**: it justified `mutate` by working-tree clobbering, which requires an output path this row has never carried. Sound reasoning, wrong subject. Two independent routes agree on `read`, which is why this is a correction rather than a preference: (1) the definition quantifies over EVERY flag, and the only flag selects a format rather than a destination; (2) `schema` is structurally the same command -- one flag, a face printed to stdout, zero destinations -- and is declared `read`, so counting shell redirection as mutation would make `schema` a mutation too and leave the table disagreeing with itself about one shape. **The MUTATE lean does not preserve the old value.** The lean governs UNCERTAINTY -- it is the tie-break when the answer is genuinely unclear -- and nothing is unclear once the flag set is read; treating a lean as a floor would make the field unfalsifiable in one direction. The cost of leaving it wrong is the failure the agent guide exists to prevent: an agent reading `mutate` treats `intent export` as capable of clobbering its working tree, and either avoids the command or copies files defensively before calling it. That is a capability the tool does not have and a workaround built against a phantom.
+- **facade:** export
 - **Flags:**
   - `--format` `<fmt>` (string)
     - **disposition:** keep
@@ -3816,6 +3873,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **hidden aliases:**
   - organise
 - **hidden aliases basis:** **hv, 2026-08-19: _we need to handle 'organise' and 'organize' but only ever show the 'z' version to keep things simple._** ACCEPTED, NEVER RENDERED -- registered with clap's `alias` rather than `visible_alias`. **A second list rather than a flag on `aliases`, because the two carry opposite reasons**: `aliases` is visible on the ground that v2 DOCUMENTS those spellings (`done|notdone`) so hiding one would be a way of not shipping it; a courtesy spelling rendered anywhere becomes a second documented name, which is the outcome this ruling exists to prevent. **THE TELL IS BUILT IN: if `organise` ever appears in any output, something is echoing the user's spelling back instead of naming the verb** -- the same class as the seventh reclaim site, where a message answered FOR a word rather than naming it. **And the same word now carries two dispositions by family: `organise` is a live hidden alias at the top level while `st organise` stays RETIRED**, which holds because `retired_refusal` walks the built surface token by token -- `st`'s subcommand `organise` is not built, so the retirement still fires there.
+- **facade:** organize
 - **Flags:**
   - `--apply` (bool) -- Perform the reconciliation. Without it, organize previews and touches nothing
     - **disposition:** keep
@@ -3857,6 +3915,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **v2:** new-surface
 - **not export:** SEE `export`, which is the INTERCHANGE: a whole lossless bundle for another machine or another tool. This is a READ -- filtered, ordered, for a person answering `what happened here`. The two overlap on content and not on purpose, and a person choosing between them is not reading them side by side.
 - **disposition:** new-surface
+- **facade:** events
 - **Flags:**
   - `--op` `<op>` (string)
     - **disposition:** keep

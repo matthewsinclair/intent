@@ -433,7 +433,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "st_new"
         },
         {
           "path": "st start",
@@ -484,7 +485,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "st_start"
         },
         {
           "path": "st done",
@@ -559,7 +561,8 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
           "recoverability": "reversible",
-          "side_effect_ruled": "**hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list. **THIS VERB NOW DELETES FILES AND NEVER DID BEFORE, WHICH CHANGES ITS CHARACTER RATHER THAN ITS BEHAVIOUR.** A status verb that removes a directory is a different kind of command, and the table has to say so or the MCP surface offers an agent a file-removing tool labelled as a status change. **`read_or_mutate` was already `mutate` and does not move -- which is exactly why it is the wrong field to carry this**: it answers _does durable state change_, and that was already yes. `recoverability` is the field that moves. **It is `reversible`, not `one-way`, on the `organize` row's own reasoning: the removal is gated on the store reproducing the bytes, so `st reopen` and a re-run restore what was removed.** The loss this verb CAN cause -- an unsynced attachment edit -- is refused by name rather than made reversible, which is the stronger of the two."
+          "side_effect_ruled": "**hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list. **THIS VERB NOW DELETES FILES AND NEVER DID BEFORE, WHICH CHANGES ITS CHARACTER RATHER THAN ITS BEHAVIOUR.** A status verb that removes a directory is a different kind of command, and the table has to say so or the MCP surface offers an agent a file-removing tool labelled as a status change. **`read_or_mutate` was already `mutate` and does not move -- which is exactly why it is the wrong field to carry this**: it answers _does durable state change_, and that was already yes. `recoverability` is the field that moves. **It is `reversible`, not `one-way`, on the `organize` row's own reasoning: the removal is gated on the store reproducing the bytes, so `st reopen` and a re-run restore what was removed.** The loss this verb CAN cause -- an unsynced attachment edit -- is refused by name rather than made reversible, which is the stronger of the two.",
+          "facade": "st_done_listing"
         },
         {
           "path": "st cancel",
@@ -637,7 +640,8 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
           "recoverability": "reversible",
-          "side_effect_ruled": "**hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list. **THIS VERB NOW DELETES FILES AND NEVER DID BEFORE, WHICH CHANGES ITS CHARACTER RATHER THAN ITS BEHAVIOUR.** A status verb that removes a directory is a different kind of command, and the table has to say so or the MCP surface offers an agent a file-removing tool labelled as a status change. **`read_or_mutate` was already `mutate` and does not move -- which is exactly why it is the wrong field to carry this**: it answers _does durable state change_, and that was already yes. `recoverability` is the field that moves. **It is `reversible`, not `one-way`, on the `organize` row's own reasoning: the removal is gated on the store reproducing the bytes, so `st reopen` and a re-run restore what was removed.** The loss this verb CAN cause -- an unsynced attachment edit -- is refused by name rather than made reversible, which is the stronger of the two."
+          "side_effect_ruled": "**hv, 2026-08-19 (`d2b63bc3`, corrected at `8f9ba24a`): `.intentfiles` is DURABLE STATE -- the record of which database artefacts also have a realised form on disk.** Realisation is driven from it; COMMANDS CHANGE IT; `organize` realises it. **_Authored_ was vc's word and hv corrected it: it reads as _never touched by an intent command_, and the opposite is the design.** What changed from the two-region model is only that NOTHING RECOMPUTES the file -- no derivation from status overwrites what is there, which is why the protected region became unnecessary: **a write is a change to state, never a regeneration of it.** `organize` reads the list, writes what is listed and absent, removes what is present and unlisted. These verbs are the manual override over that list. **THIS VERB NOW DELETES FILES AND NEVER DID BEFORE, WHICH CHANGES ITS CHARACTER RATHER THAN ITS BEHAVIOUR.** A status verb that removes a directory is a different kind of command, and the table has to say so or the MCP surface offers an agent a file-removing tool labelled as a status change. **`read_or_mutate` was already `mutate` and does not move -- which is exactly why it is the wrong field to carry this**: it answers _does durable state change_, and that was already yes. `recoverability` is the field that moves. **It is `reversible`, not `one-way`, on the `organize` row's own reasoning: the removal is gated on the store reproducing the bytes, so `st reopen` and a re-run restore what was removed.** The loss this verb CAN cause -- an unsynced attachment edit -- is refused by name rather than made reversible, which is the stronger of the two.",
+          "facade": "st_cancel_listing"
         },
         {
           "path": "st triage",
@@ -660,7 +664,8 @@
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "st_triage"
         },
         {
           "path": "st hold",
@@ -693,7 +698,8 @@
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "st_hold"
         },
         {
           "path": "st resume",
@@ -716,7 +722,8 @@
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "st_resume"
         },
         {
           "path": "st reopen",
@@ -749,7 +756,8 @@
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "st_reopen"
         },
         {
           "path": "st reinstate",
@@ -782,7 +790,8 @@
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "st_reinstate"
         },
         {
           "path": "st hydrate",
@@ -805,7 +814,8 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
           "recoverability": "idempotent",
-          "note": "**PAIRED WITH `dehydrate` AND SHIPPING AHEAD OF IT, DELIBERATELY (ic + dc, 2026-08-19).** `hydrate` is wired to a mechanism that exists -- `Facade::hydrate` takes an `Address` and `Entity::artefact()` already refuses the forms that have no file. Declaring both together would put a verb into `--help`, the agent guide and the MCP tool list ahead of the code that honours it, which is the table-leads-the-reader ordering used in the wrong direction: for `--apply` the behaviour existed and only the surface lagged."
+          "note": "**PAIRED WITH `dehydrate` AND SHIPPING AHEAD OF IT, DELIBERATELY (ic + dc, 2026-08-19).** `hydrate` is wired to a mechanism that exists -- `Facade::hydrate` takes an `Address` and `Entity::artefact()` already refuses the forms that have no file. Declaring both together would put a verb into `--help`, the agent guide and the MCP tool list ahead of the code that honours it, which is the table-leads-the-reader ordering used in the wrong direction: for `--apply` the behaviour existed and only the surface lagged.",
+          "facade": "hydrate"
         },
         {
           "path": "st dehydrate",
@@ -828,7 +838,8 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
           "recoverability": "reversible",
-          "note": "**THIS VERB REMOVES FILES AND IS STILL `reversible`, WHICH IS THE SAME CALL THE `organize` ROW MAKES AND FOR THE SAME REASON.** The removal is gated on the store reproducing the bytes, so re-listing the id and re-running restores exactly what was removed. `one-way` is for a loss the surface cannot undo; this is not one."
+          "note": "**THIS VERB REMOVES FILES AND IS STILL `reversible`, WHICH IS THE SAME CALL THE `organize` ROW MAKES AND FOR THE SAME REASON.** The removal is gated on the store reproducing the bytes, so re-listing the id and re-running restores exactly what was removed. `one-way` is for a loss the surface cannot undo; this is not one.",
+          "facade": "dehydrate"
         },
         {
           "path": "st list",
@@ -931,7 +942,8 @@
           "read_or_mutate": "read",
           "mcp_review": {
             "grounded_in": "bin/intent_st:717-1043 -- no write primitive in the arm"
-          }
+          },
+          "facade": "st_list"
         },
         {
           "path": "st show",
@@ -990,7 +1002,8 @@
           "read_or_mutate": "read",
           "mcp_review": {
             "grounded_in": "bin/intent_st:1044-1100 -- no write primitive in the arm"
-          }
+          },
+          "facade": "st_show"
         },
         {
           "path": "st edit",
@@ -1066,7 +1079,8 @@
             "counterintuitive": "`edit` is the most obviously-mutating verb name in the table and the command writes nothing -- it is a path resolver, and the entry beside this one already said so in `observed.notes` (\"never launches an editor and never creates the file\", called a historical misnomer). I still had to read bin/intent_st:1125-1141 to stop classifying it as a mutation, which is the argument for declaring the field: the correct fact was ALREADY WRITTEN DOWN one bullet away and the verb name still won. It also inverts the exposure reading -- an $EDITOR launch could not be an MCP tool at all, since it would block on stdio, while a path resolver is one of the safest things here.",
             "grounded_in": "bin/intent_st:1125-1141 -- 'Pure emit-path ... No touch, no editor'; it prints the absolute path and returns"
           },
-          "recoverability": "idempotent"
+          "recoverability": "idempotent",
+          "facade": "edit"
         },
         {
           "path": "st attach",
@@ -1175,7 +1189,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "idempotent"
+          "recoverability": "idempotent",
+          "facade": "sync_to_disk"
         },
         {
           "path": "st repair",
@@ -1513,7 +1528,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "wp_new"
         },
         {
           "path": "wp start",
@@ -1566,7 +1582,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "wp_start"
         },
         {
           "path": "wp done",
@@ -1631,7 +1648,8 @@
           "mcp_review": {
             "note": "Pairs with `ac gate` below and is the reason the field is DECLARED, not derived: `wp done` consults the same gate `ac gate` runs, and then WRITES. The two do not share a spelling, so no naming rule separates them."
           },
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "wp_done"
         },
         {
           "path": "wp reopen",
@@ -1664,7 +1682,8 @@
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "wp_reopen"
         },
         {
           "path": "wp cancel",
@@ -1697,7 +1716,8 @@
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "wp_cancel"
         },
         {
           "path": "wp reinstate",
@@ -1730,7 +1750,8 @@
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "wp_reinstate"
         },
         {
           "path": "wp unstart",
@@ -1753,7 +1774,8 @@
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "wp_unstart"
         },
         {
           "path": "wp rescope",
@@ -1789,7 +1811,8 @@
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "wp_rescope"
         },
         {
           "path": "wp list",
@@ -1863,7 +1886,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "read"
+          "read_or_mutate": "read",
+          "facade": "wp_list"
         },
         {
           "path": "wp show",
@@ -1905,7 +1929,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "read"
+          "read_or_mutate": "read",
+          "facade": "wp_show"
         }
       ],
       "bats_coverage": {
@@ -2033,7 +2058,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "read"
+          "read_or_mutate": "read",
+          "facade": "ac_list"
         },
         {
           "path": "ac status",
@@ -2075,7 +2101,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "read"
+          "read_or_mutate": "read",
+          "facade": "gate"
         },
         {
           "path": "ac satisfy",
@@ -2154,7 +2181,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "ac_satisfy"
         },
         {
           "path": "ac unsatisfy",
@@ -2184,7 +2212,8 @@
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "ac_unsatisfy"
         },
         {
           "path": "ac gate",
@@ -2244,7 +2273,8 @@
           "mcp_review": {
             "counterintuitive": "`gate` reads as an enforcement action that stamps a verdict somewhere. It computes and reports; the write lives in the caller (`st done` / `wp done`). vc's own example of why derivation-from-name dies.",
             "grounded_in": "bin/intent_acceptance:973 (cmd_ac_gate) -- no write primitive in the body"
-          }
+          },
+          "facade": "gate"
         },
         {
           "path": "ac descope",
@@ -2339,7 +2369,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "ac_descope"
         },
         {
           "path": "ac rescope",
@@ -2422,7 +2453,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "ac_rescope"
         },
         {
           "path": "ac withdraw",
@@ -2509,7 +2541,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "ac_withdraw"
         },
         {
           "path": "ac reinstate",
@@ -2592,7 +2625,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "ac_reinstate"
         },
         {
           "path": "ac new",
@@ -2658,7 +2692,8 @@
           "read_or_mutate": "mutate",
           "recoverability": "reversible",
           "owner_wp": "ST0057 WP-08",
-          "acceptance": "ST0057 AC-08.6"
+          "acceptance": "ST0057 AC-08.6",
+          "facade": "ac_new"
         },
         {
           "path": "ac edit",
@@ -2697,7 +2732,8 @@
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "ac_edit"
         }
       ],
       "bats_coverage": {
@@ -2824,7 +2860,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "read"
+          "read_or_mutate": "read",
+          "facade": "at_list"
         },
         {
           "path": "at lint",
@@ -2881,7 +2918,8 @@
             "counterintuitive": "`lint` is the canonical read-only verb and `intent at lint --fix` migrates rows in place. Classified by the whole entry, not by its default invocation.",
             "grounded_in": "bin/intent_acceptance:1266 (`--fix) fix=1`), at_lint_fix / at_fix_line"
           },
-          "recoverability": "idempotent"
+          "recoverability": "idempotent",
+          "facade": "at_lint"
         },
         {
           "path": "at green",
@@ -2961,7 +2999,8 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
           "recoverability": "one-way",
-          "recoverability_anomaly": "ONE-WAY BY MEASURED BEHAVIOUR, NOT BY DESIGN -- issue 0033. `intent at red|green|na` DESTROYS the row's authored note, so the round trip moves the status back and does NOT restore the prior state. vc measured it on themselves with the issue in working memory: AT-03.12 went from 1,560 bytes to 106, losing 1,447 characters of authored contract, and `intent at lint` reported `ok -- 112 rows conform` immediately afterwards. **The transition graph multiplies it: `to-write -> green` is refused and green is reachable only from `red`, so recording a passing test costs TWO rewrites.** 14,253 characters stand at risk across 34 rows. **Classified against SHIPPED BEHAVIOUR on vc's ruling** -- a field describing what a command is SUPPOSED to do is the `doctor` failure, where the declaration outlived its subject in silence. This row becomes `reversible` when 0033 is fixed, and that is the field tracking reality rather than drifting from it."
+          "recoverability_anomaly": "ONE-WAY BY MEASURED BEHAVIOUR, NOT BY DESIGN -- issue 0033. `intent at red|green|na` DESTROYS the row's authored note, so the round trip moves the status back and does NOT restore the prior state. vc measured it on themselves with the issue in working memory: AT-03.12 went from 1,560 bytes to 106, losing 1,447 characters of authored contract, and `intent at lint` reported `ok -- 112 rows conform` immediately afterwards. **The transition graph multiplies it: `to-write -> green` is refused and green is reachable only from `red`, so recording a passing test costs TWO rewrites.** 14,253 characters stand at risk across 34 rows. **Classified against SHIPPED BEHAVIOUR on vc's ruling** -- a field describing what a command is SUPPOSED to do is the `doctor` failure, where the declaration outlived its subject in silence. This row becomes `reversible` when 0033 is fixed, and that is the field tracking reality rather than drifting from it.",
+          "facade": "at_set"
         },
         {
           "path": "at red",
@@ -3036,7 +3075,8 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
           "recoverability": "one-way",
-          "recoverability_anomaly": "ONE-WAY BY MEASURED BEHAVIOUR, NOT BY DESIGN -- issue 0033. `intent at red|green|na` DESTROYS the row's authored note, so the round trip moves the status back and does NOT restore the prior state. vc measured it on themselves with the issue in working memory: AT-03.12 went from 1,560 bytes to 106, losing 1,447 characters of authored contract, and `intent at lint` reported `ok -- 112 rows conform` immediately afterwards. **The transition graph multiplies it: `to-write -> green` is refused and green is reachable only from `red`, so recording a passing test costs TWO rewrites.** 14,253 characters stand at risk across 34 rows. **Classified against SHIPPED BEHAVIOUR on vc's ruling** -- a field describing what a command is SUPPOSED to do is the `doctor` failure, where the declaration outlived its subject in silence. This row becomes `reversible` when 0033 is fixed, and that is the field tracking reality rather than drifting from it."
+          "recoverability_anomaly": "ONE-WAY BY MEASURED BEHAVIOUR, NOT BY DESIGN -- issue 0033. `intent at red|green|na` DESTROYS the row's authored note, so the round trip moves the status back and does NOT restore the prior state. vc measured it on themselves with the issue in working memory: AT-03.12 went from 1,560 bytes to 106, losing 1,447 characters of authored contract, and `intent at lint` reported `ok -- 112 rows conform` immediately afterwards. **The transition graph multiplies it: `to-write -> green` is refused and green is reachable only from `red`, so recording a passing test costs TWO rewrites.** 14,253 characters stand at risk across 34 rows. **Classified against SHIPPED BEHAVIOUR on vc's ruling** -- a field describing what a command is SUPPOSED to do is the `doctor` failure, where the declaration outlived its subject in silence. This row becomes `reversible` when 0033 is fixed, and that is the field tracking reality rather than drifting from it.",
+          "facade": "at_set"
         },
         {
           "path": "at na",
@@ -3110,7 +3150,8 @@
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
           "recoverability": "one-way",
-          "recoverability_anomaly": "ONE-WAY BY MEASURED BEHAVIOUR, NOT BY DESIGN -- issue 0033. `intent at red|green|na` DESTROYS the row's authored note, so the round trip moves the status back and does NOT restore the prior state. vc measured it on themselves with the issue in working memory: AT-03.12 went from 1,560 bytes to 106, losing 1,447 characters of authored contract, and `intent at lint` reported `ok -- 112 rows conform` immediately afterwards. **The transition graph multiplies it: `to-write -> green` is refused and green is reachable only from `red`, so recording a passing test costs TWO rewrites.** 14,253 characters stand at risk across 34 rows. **Classified against SHIPPED BEHAVIOUR on vc's ruling** -- a field describing what a command is SUPPOSED to do is the `doctor` failure, where the declaration outlived its subject in silence. This row becomes `reversible` when 0033 is fixed, and that is the field tracking reality rather than drifting from it."
+          "recoverability_anomaly": "ONE-WAY BY MEASURED BEHAVIOUR, NOT BY DESIGN -- issue 0033. `intent at red|green|na` DESTROYS the row's authored note, so the round trip moves the status back and does NOT restore the prior state. vc measured it on themselves with the issue in working memory: AT-03.12 went from 1,560 bytes to 106, losing 1,447 characters of authored contract, and `intent at lint` reported `ok -- 112 rows conform` immediately afterwards. **The transition graph multiplies it: `to-write -> green` is refused and green is reachable only from `red`, so recording a passing test costs TWO rewrites.** 14,253 characters stand at risk across 34 rows. **Classified against SHIPPED BEHAVIOUR on vc's ruling** -- a field describing what a command is SUPPOSED to do is the `doctor` failure, where the declaration outlived its subject in silence. This row becomes `reversible` when 0033 is fixed, and that is the field tracking reality rather than drifting from it.",
+          "facade": "at_set"
         },
         {
           "path": "at new",
@@ -3215,7 +3256,8 @@
           "read_or_mutate": "mutate",
           "recoverability": "reversible",
           "owner_wp": "ST0057 WP-08",
-          "acceptance": "ST0057 AC-08.7"
+          "acceptance": "ST0057 AC-08.7",
+          "facade": "at_new"
         },
         {
           "path": "at edit",
@@ -3272,7 +3314,8 @@
           "disposition": "new-surface",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "at_edit"
         }
       ],
       "bats_coverage": {
@@ -3427,7 +3470,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "read"
+          "read_or_mutate": "read",
+          "facade": "issue_list"
         },
         {
           "path": "issues add",
@@ -3514,7 +3558,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "issue_add"
         },
         {
           "path": "issues show",
@@ -3576,7 +3621,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "read"
+          "read_or_mutate": "read",
+          "facade": "issue_show"
         },
         {
           "path": "issues close",
@@ -3638,7 +3684,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "issue_close"
         },
         {
           "path": "issues open",
@@ -3706,7 +3753,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "facade": "issue_open"
         },
         {
           "path": "issues hydrate",
@@ -3866,7 +3914,8 @@
             "counterintuitive": "Bare `intent todo` is the default read of the whole tool and it inherits `list`'s generate-on-absent write.",
             "grounded_in": "bin/intent_todo:380 (`COMMAND=\"${1:-list}\"`) -- bare `todo` IS `todo list`"
           },
-          "recoverability": "idempotent"
+          "recoverability": "idempotent",
+          "facade": "todo_buckets"
         },
         {
           "path": "todo list",
@@ -3923,7 +3972,8 @@
             "counterintuitive": "`list` is THE read verb of this table and this one writes a file the first time it is called. It is also the worst shape for a bug: it reads on every run after the first, so the mutation is invisible in testing and appears on a fresh clone.",
             "grounded_in": "bin/intent_todo:384-393 -- the else branch calls generate(), which does `mv \"$tmp\" \"$TODO_FILE\"` at :246"
           },
-          "recoverability": "idempotent"
+          "recoverability": "idempotent",
+          "facade": "todo_buckets"
         },
         {
           "path": "todo update",
@@ -3959,7 +4009,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "idempotent"
+          "recoverability": "idempotent",
+          "facade": "todo_update"
         },
         {
           "path": "todo done",
@@ -4193,7 +4244,8 @@
           "read_or_mutate": "read",
           "mcp_review": {
             "grounded_in": "bin/intent_info -- no write primitive in the file"
-          }
+          },
+          "facade": "st_list"
         }
       ],
       "bats_coverage": {
@@ -4721,7 +4773,8 @@
             "counterintuitive": "`doctor` is a diagnostic in every other tool that ships one, and v3's IS one -- this row is `read`. It was `mutate` until 2026-08-16, on reasoning that was correct about a command that no longer exists.",
             "grounded_in": "v3: `Facade::doctor(project, ctx, store: Option<&Store>)` ACCEPTS a store and never creates one, so a generate-on-absent write is impossible at the type level (vc's structural proof, stronger than either argument that preceded it); `doctor_changes_nothing_it_looks_at` asserts the reported file is not rewritten and that a second run reports identically. v2: bin/intent_doctor:66 (`-f|--fix`), :216 and :308 both `mv` real files.",
             "superseded": "A JUDGEMENT IS NOT OVERTURNED WHEN THE THING IT JUDGED STOPS EXISTING -- IT IS SUPERSEDED, AND NOBODY PROPAGATED THE SUPERSESSION (vc, ruling 2026-08-16). The prior note read `--fix moves the global config and the project config aside; the diagnosis is the default; the entry is still a mutation`. Every word of that is STILL TRUE OF ITS SUBJECT. Its subject was withdrawn: `--fix` is `disposition: retire` for v3. Kept here rather than deleted, because the failure was never the reasoning -- it was that a defended row is harder to correct than an undefended one, which is a property of the DEFENCE and not of the row. Found rendering the agent guide, which prints `read_or_mutate` as the FIRST fact per command: a wrong `mutate` on the diagnostic tells every reader that running `doctor` might change their project, discouraging the one command you most want run freely when something is already wrong. `todo` is the negative case that makes the rule sharp rather than the counter-example that muddies it -- it is correctly `mutate`, because bare `intent todo` inherits `list`'s generate-on-absent write. Same shape, write removed at the type level."
-          }
+          },
+          "facade": "store"
         }
       ],
       "bats_coverage": {
@@ -5026,7 +5079,8 @@
           "disposition": "keep",
           "exposed_on_mcp": true,
           "read_or_mutate": "mutate",
-          "recoverability": "idempotent"
+          "recoverability": "idempotent",
+          "facade": "project"
         },
         {
           "path": "agents sync",
@@ -5093,7 +5147,8 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "read"
+          "read_or_mutate": "read",
+          "facade": "project"
         },
         {
           "path": "agents template",
@@ -7762,7 +7817,8 @@
       "disposition": "new-surface",
       "exposed_on_mcp": true,
       "read_or_mutate": "read",
-      "flags": []
+      "flags": [],
+      "facade": "search"
     },
     {
       "path": "sync",
@@ -7881,7 +7937,8 @@
         "counterintuitive": "`export` sounds like it produces a FILE and it does not -- it writes the document to STDOUT, so `intent export > estate.json` is the SHELL creating the file, not the command. Under this table's own definition the row is a `read`: `read` means no invocation of the entry, UNDER ANY FLAG, changes durable state, and this entry declares exactly one flag (`--format`, which chooses a projection) and zero arguments. Quantifying over the flag set is the whole test, and there is one flag to quantify over.",
         "grounded_in": "This row's own `flags` and `args`, plus `render.rs`'s `export()`, which calls the facade and `print!`s the result."
       },
-      "read_or_mutate_correction": "CORRECTED 2026-08-16 (ic). Was `mutate`. Found by cc while building the renderer and deferred here rather than resolved there, because the table is ic's -- `render.rs:1215` states the case in full. **The old defence was reasoned about a command that does not exist as declared**: it justified `mutate` by working-tree clobbering, which requires an output path this row has never carried. Sound reasoning, wrong subject. Two independent routes agree on `read`, which is why this is a correction rather than a preference: (1) the definition quantifies over EVERY flag, and the only flag selects a format rather than a destination; (2) `schema` is structurally the same command -- one flag, a face printed to stdout, zero destinations -- and is declared `read`, so counting shell redirection as mutation would make `schema` a mutation too and leave the table disagreeing with itself about one shape. **The MUTATE lean does not preserve the old value.** The lean governs UNCERTAINTY -- it is the tie-break when the answer is genuinely unclear -- and nothing is unclear once the flag set is read; treating a lean as a floor would make the field unfalsifiable in one direction. The cost of leaving it wrong is the failure the agent guide exists to prevent: an agent reading `mutate` treats `intent export` as capable of clobbering its working tree, and either avoids the command or copies files defensively before calling it. That is a capability the tool does not have and a workaround built against a phantom."
+      "read_or_mutate_correction": "CORRECTED 2026-08-16 (ic). Was `mutate`. Found by cc while building the renderer and deferred here rather than resolved there, because the table is ic's -- `render.rs:1215` states the case in full. **The old defence was reasoned about a command that does not exist as declared**: it justified `mutate` by working-tree clobbering, which requires an output path this row has never carried. Sound reasoning, wrong subject. Two independent routes agree on `read`, which is why this is a correction rather than a preference: (1) the definition quantifies over EVERY flag, and the only flag selects a format rather than a destination; (2) `schema` is structurally the same command -- one flag, a face printed to stdout, zero destinations -- and is declared `read`, so counting shell redirection as mutation would make `schema` a mutation too and leave the table disagreeing with itself about one shape. **The MUTATE lean does not preserve the old value.** The lean governs UNCERTAINTY -- it is the tie-break when the answer is genuinely unclear -- and nothing is unclear once the flag set is read; treating a lean as a floor would make the field unfalsifiable in one direction. The cost of leaving it wrong is the failure the agent guide exists to prevent: an agent reading `mutate` treats `intent export` as capable of clobbering its working tree, and either avoids the command or copies files defensively before calling it. That is a capability the tool does not have and a workaround built against a phantom.",
+      "facade": "export"
     },
     {
       "path": "ingest",
@@ -8037,7 +8094,8 @@
       "hidden_aliases": [
         "organise"
       ],
-      "hidden_aliases_basis": "**hv, 2026-08-19: _we need to handle 'organise' and 'organize' but only ever show the 'z' version to keep things simple._** ACCEPTED, NEVER RENDERED -- registered with clap's `alias` rather than `visible_alias`. **A second list rather than a flag on `aliases`, because the two carry opposite reasons**: `aliases` is visible on the ground that v2 DOCUMENTS those spellings (`done|notdone`) so hiding one would be a way of not shipping it; a courtesy spelling rendered anywhere becomes a second documented name, which is the outcome this ruling exists to prevent. **THE TELL IS BUILT IN: if `organise` ever appears in any output, something is echoing the user's spelling back instead of naming the verb** -- the same class as the seventh reclaim site, where a message answered FOR a word rather than naming it. **And the same word now carries two dispositions by family: `organise` is a live hidden alias at the top level while `st organise` stays RETIRED**, which holds because `retired_refusal` walks the built surface token by token -- `st`'s subcommand `organise` is not built, so the retirement still fires there."
+      "hidden_aliases_basis": "**hv, 2026-08-19: _we need to handle 'organise' and 'organize' but only ever show the 'z' version to keep things simple._** ACCEPTED, NEVER RENDERED -- registered with clap's `alias` rather than `visible_alias`. **A second list rather than a flag on `aliases`, because the two carry opposite reasons**: `aliases` is visible on the ground that v2 DOCUMENTS those spellings (`done|notdone`) so hiding one would be a way of not shipping it; a courtesy spelling rendered anywhere becomes a second documented name, which is the outcome this ruling exists to prevent. **THE TELL IS BUILT IN: if `organise` ever appears in any output, something is echoing the user's spelling back instead of naming the verb** -- the same class as the seventh reclaim site, where a message answered FOR a word rather than naming it. **And the same word now carries two dispositions by family: `organise` is a live hidden alias at the top level while `st organise` stays RETIRED**, which holds because `retired_refusal` walks the built surface token by token -- `st`'s subcommand `organise` is not built, so the retirement still fires there.",
+      "facade": "organize"
     },
     {
       "path": "edit",
@@ -8166,7 +8224,8 @@
       },
       "disposition": "new-surface",
       "exposed_on_mcp": true,
-      "read_or_mutate": "read"
+      "read_or_mutate": "read",
+      "facade": "events"
     },
     {
       "path": "fc",
@@ -8568,7 +8627,8 @@
         "read_or_mutate",
         "recoverability",
         "target",
-        "twin_of"
+        "twin_of",
+        "facade"
       ],
       "note": [
         "acceptance",

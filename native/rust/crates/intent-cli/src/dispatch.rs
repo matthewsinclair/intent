@@ -298,6 +298,15 @@ pub struct Entry {
   /// row is missing it. serde can only say that something was.
   #[serde(default)]
   pub recoverability: Option<String>,
+  /// The one `Facade` method that serves this row on the MCP surface --
+  /// declared by the AC-09.6 read (2026-08-30) for every exposed row with a
+  /// clean single door, AHEAD of the WP-09 generator that consumes it, which
+  /// is the same order `exposed_on_mcp` itself arrived in. `None` on a row
+  /// still being decided: a facade gap, a namespace, an unwired row, or a
+  /// narrow -- the read's report at
+  /// `intent/st/ST0056/parity/ac-09_6-mcp-facade-read.md` classifies each.
+  #[serde(default)]
+  pub facade: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -1127,6 +1136,7 @@ mod tests {
       exposed_on_mcp: false,
       read_or_mutate: "read".to_string(),
       recoverability: None,
+      facade: None,
     };
     assert_eq!(st.family(), "st");
     assert_eq!(st.verb(), Some("new"));
@@ -1174,6 +1184,7 @@ mod tests {
       exposed_on_mcp: false,
       read_or_mutate: "read".to_string(),
       recoverability: None,
+      facade: None,
     };
 
     assert!(
