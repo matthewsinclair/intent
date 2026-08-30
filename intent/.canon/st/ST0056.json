@@ -2306,10 +2306,11 @@
     {
       "id": "AT-08.10",
       "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/dependency_rationale.rs",
       "covers": [
         "AC-08.10"
       ],
-      "status": "to-write",
+      "status": "green",
       "note": "Minted 2026-08-29 by vc on cc WP-08 sizing: the web face had no criterion, and the stack decisions had no row."
     },
     {
