@@ -1091,3 +1091,71 @@ I have already ruled the part that is mine: `daemon status` grows a per-project 
 === STATE ===
 
 **ST0056 90/135, ST0057 66/66 PASS, ST0058 4/6, ST0066 6/6 PASS, ST0068 4/9, doctor 0.** The 45 open ST0056 rows split **vc 17 / cc 14 / ic 8 / dc 6** -- WP-00 is the largest single block and it is the gate group, so ST0056 cannot close before my rows do. **Every work package is owned.**
+
+## (2026-08-30 20:18Z)
+
+**ONE DECISION FOR YOU, AND IT IS ONE WORD. THE REST IS A REPORT.**
+
+=== THE ASK: RATIFY `INV-03`, OR DECLINE IT (issue `0167`) ===
+
+**CONTEXT.** `surface/dispatch-table.json`'s `INV-03` (the project-context gate) declares `state: ratified` in its machine-read half, while its own authored prose one line away says _vc-ruled 2026-08-15 on ic's finding. **hv ratification outstanding, NOT blocking, one word to reverse.**_ The authored vocabulary is `{ratified, provisional}` and **neither value is true**: `provisional` overstates the doubt because vc HAS ruled, and `ratified` claims something that has not happened.
+
+**WHY IT REACHES YOU RATHER THAN SITTING IN AN ISSUE.** It is the **only** finding `vocab_adequacy_check.sh` returns across the live estate, and `AT-00.14` / `AC-00.13` is RED because of it. The row's own note names the two things that close it: **`INV-03` gaining a vocabulary that can hold _ruled by vc, hv ratification outstanding, not blocking_, OR hv ratifying it outright**, which dissolves the instance without touching the vocabulary. **Re-anchoring the enum to agree with the prose is the one fix that must not be made** -- that is the criterion's own corollary, and it would be editing the evidence rather than the state.
+
+**OPTIONS.**
+
+1. **RATIFY IT.** One word. `AT-00.14` goes green, `AC-00.13` closes, a WP-00 gate row comes off the board and the vocabulary is untouched.
+2. **DECLINE / NOT YET.** Equally fine and not a worse answer. The vocabulary then gains a third state for _ruled-but-unratified_, which is a real improvement to the model, and `AT-00.14` closes on that instead.
+3. **Leave it.** The row stays red, honestly, and it is one of the WP-00 rows the tag waits on.
+
+**MY RECOMMENDATION IS 1 IF YOU AGREE WITH THE RULING AND 2 IF YOU HAVE NOT LOOKED AT IT.** The ruling is vc's from 2026-08-15 on ic's finding and it is recorded; if you would rather not ratify something you have not read, option 2 costs a small model change and is the honest answer. **What I am not doing is ratifying it myself -- it says `authority: vc` already and a second vc signature is not what the field is asking for.**
+
+=== REPORT, NO ACTION NEEDED ===
+
+**ST0056 91 -> 93/135, AND NEITHER CLOSE NEEDED NEW CODE.** `AT-05.7` and `AT-08.6` were both STALE at `to-write` -- the tests existed and had never been driven. **`stale_at_check.sh` is gated into pre-commit and had been printing both on every commit any of us made, for days, and four nodes read past it.** The detection was never the problem. **This is the whiteboard protocol's own hv-inbox defect -- a write surface with no named reader -- arriving inside a gate**, and it is invisible precisely because a report that is always printed and never false is indistinguishable from one nobody reads. A gated instrument needs a named reader exactly as this inbox does.
+
+**THREE CLAIMS IN MY OWN FOLD BLOCK WERE WRONG WITHIN THIRTY MINUTES OF THE BOUNCE.** WP-08 is 9/12 not 12/12; the held canon extract was blocked by cc's file alone, not cc's and ic's; and `AC-00.6`'s reword was already committed, not held. **None was wrong when the work happened -- each was written hours later, at the fold, from recall rather than from a verb.** The fold is the one place I summarise instead of measuring and it is the section peers read first. Corrected, with the mechanism recorded rather than the three instances.
+
+**AC-00.3 (`intentd` ships) NOW HAS A NAMED SHORTFALL RATHER THAN A PLACEHOLDER**, and one half of it may be news: **`intent daemon` offers `start|stop|status|run` and no `install`/`uninstall`, so the CLI-owned launchd arm is absent (`AC-08.4`, cc's next work); and `graphql.rs` builds a `Schema` whose ONLY use in the whole estate is rendering its own SDL text.** Nothing in `intentd` references it. **So GraphQL ships as a schema FACE and no GraphQL query is executable anywhere in the product** -- while D56 ratifies _one output contract, GraphQL/JSON over the socket AND over HTTP_, and `web.rs` cites D56 and then serves `/op`, which is the JSON op protocol. The JSON half is real and shipping. **The GraphQL half is a name on a decision and an SDL artefact.** Not raising it as a question yet -- it is cc's WP-08 and `AC-00.3` is my gate row -- but you sequenced intentd as the priority and this is the gap between what that row promises and what the binary does.
+
+**`intent mcp` is DECLARED and refuses at rc=2.** `AC-00.4` is honestly open and measurable today.
+
+Filed `0173`: `stale_at_check.sh` walks `intent/st/*/acceptance.md`, so eleven live threads carrying 111 AT rows are absent from its numerator AND from its announced skip line, which names one thread and reads as complete. Post-tag, no cost to the cut.
+
+## (2026-08-30 20:40Z)
+
+**A SECOND DECISION, AND IT IS NOT URGENT -- I AM RAISING IT BECAUSE THE CODE NAMES YOUR PEN, NOT BECAUSE ANYTHING IS BLOCKED.** Your retirement ruling is now executable without it.
+
+=== FIRST, THE UNBLOCK: YOUR DELETE-AND-RETIRE RULING NEEDS NOTHING BUILT ===
+
+dc reported your `AT-01.8` retirement as unexecutable -- retiring a row appeared to need a `kind` transition the model declares Unbuilt. **That was true of the route being attempted and false of the requirement.** `AtStatus::permitted_for` puts **`Fiat` on BOTH kinds**, with its own comment saying why: _a decision about the ROW rather than about its result ... hv can close an unwritten test exactly as readily as an uninspected document._ So retirement does not need the row to become `non-test`; it needs the row to stop claiming a result, and `fiat` is the state for that. `at red` then `intent fc --because ...` then the delete, one commit, all shipped verbs. Routed to dc.
+
+=== THE ASK: MACHINE 5's TABLE, AND THE CODE SAYS IT IS YOURS ===
+
+**CONTEXT.** `AtStatus::permitted_for` decides which AT statuses are legal for which AT kind -- `to-write`/`red`/`green` are test-only, `n-a` is non-test-only, `fiat` is both. **It exists as a function that nothing calls on the way in.** Machine 5's four `at.set` edges declare `--` in every Guard cell, so the invariant is stated and unenforced, and `machine_table_check.sh` gates every commit by comparing that Guard column against the code -- **which means adding the enforcement without amending the table REDS the gate for everyone.** dc measured this rather than recalled it.
+
+**WHY IT REACHES YOU RATHER THAN ME.** `model.rs:1790`, three lines above the function: _Machine 5 was ratified by hv on 2026-08-29 and its four `at.set` edges declare no guard, so the remaining two points are one table amendment and **it is hv's pen, not this file's.**_ dc told me the pen was mine and I nearly took it; the code disagrees and the code is where the ratification is recorded.
+
+**WHAT THE AMENDMENT WOULD SAY** (dc's proposal, with one correction of mine):
+
+    | From    | To         | Verb        | Guard                                 |
+    | `(any)` | `to-write` | `at.set`    | kind is test                          |
+    | `(any)` | `red`      | `at.set`    | kind is test                          |
+    | `(any)` | `green`    | `at.set`    | kind is test                          |
+    | `(any)` | `n-a`      | `at.set`    | kind is non-test                      |
+    | `(any)` | `n-a`      | `at.recast` | kind becomes non-test; prose required |
+    | `(any)` | `to-write` | `at.recast` | kind becomes test                     |
+
+**MY CORRECTION TO dc's VERSION:** their last row read _file required_. It must not -- **`to-write` means precisely that no runnable artefact exists yet** (15 of the estate's 77 to-write rows carry no citation), so requiring a file makes the only legal landing state unreachable. The file arrives afterwards via `at edit --file`.
+
+**AND THE VERB IS `at.recast`, NOT A `--kind` FLAG. I RULED THE FLAG AND dc's SHAPE ARGUMENT BEAT IT.** `data-model.md:754`: _flipping `kind` alone is schema-invalid, so a kind conversion is one act moving two fields, which is a transition of the PAIR._ A bare `--kind non-test` on a green row lands `{non-test, green}`, which the schema refuses -- and there is no legal two-step, because both intermediates are illegal. One call moving both fields, the shape `at_fc` already has.
+
+**OPTIONS.**
+
+1. **DEFER TO POST-TAG (my recommendation).** Nothing is blocked: your retirement ruling has the fiat route, and the only work wanting `at.recast` is nine ST0068 rows that are not tag-blocking. **The invariant being unenforced is a real hole and it has been open the whole thread** -- one more week does not change its character, and a table amendment during a tag window is exactly the kind of change that arrives with no room for its own second fix.
+2. **RATIFY THE TABLE NOW.** dc has it costed and would take it. Buys the nine ST0068 rows and closes the unenforced-invariant hole.
+3. **RATIFY THE GUARDS, DEFER `at.recast`.** The first four rows only. Closes the hole without minting a verb. **This is the half I would take if you want one thing rather than none** -- the guards are enforcement of a rule already ratified; the recast verb is new surface.
+
+=== AND ONE THING THAT IS NOT A DECISION BUT YOU SHOULD SEE IT ===
+
+**WP-08 IS 12/12 AND ST0056 IS 96/135, UP FROM 91 AT THE FOLD, AND NOT ONE OF THE FIVE CLOSES WAS NEW CODE.** Two rows were stale at `to-write` with a pre-commit-gated instrument reporting them for days; three cited `intentd/tests/` when the tests live in `intent-cli/tests/`, because **a package's integration tests build that package's binaries and not another's** -- so those rows named a place the test could not exist. A sweep of all 337 cited rows for the same shape found exactly one more, and it is mine (`AT-00.3`). **The daemon was built and working the whole time; the register did not know.**
