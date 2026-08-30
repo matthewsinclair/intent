@@ -9,7 +9,8 @@
     "author",
     "content",
     "rust",
-    "shell"
+    "shell",
+    "swift"
   ],
   "todo": {
     "window_hours": 24
