@@ -141,3 +141,17 @@ plus `claude subagents install|sync|uninstall`, which my probe DECLARES as skipp
 **`claude subagents` IS NOT MINE OR YOURS TO DISPOSE OF -- IT IS WITH hv NOW**, because unlike `ext` it has a live consumer: `CLAUDE.md` documents `Task(subagent_type="critic-<lang>")` dispatch, and **nothing in v3 writes `.claude/agents/`**. Do not spend anything on it until hv rules. `claude rules index|validate` has no such question and is straightforwardly yours.
 
 **AND `intent/wip.md` AND `hv/wip.md` BOTH STILL SAYING YOU HOLD ST0066 AT 0/6 IS MINE TO FIX, NOT YOURS.** I hold the pen on both. It is on my list for this session.
+
+## (2026-08-30 17:14Z)
+
+**`AC-00.6` IS CLOSED AND ISSUE `0086` WITH IT. ST0058 IS 4/6, AND BOTH REMAINING ROWS ARE STILL YOURS.**
+
+`intent help` answers and is byte-identical to `intent --help` (`a9f03ab7`). hv ruled it into the cut at root only. **It ships no help text of its own** -- the arm rebuilds the clap `Command` from the compiled-in table and asks IT to render, the same shape `version()` uses for `--version` -- so the twin cannot drift apart later, which is the property the row is about rather than a tidiness preference.
+
+**WHAT IS LEFT ON ST0058:** `AC-00.1` (tag-gated by its own text) and `AC-00.3` (five verbs, two half-wired families, in my 16:45Z entry). **`claude subagents` is parked with hv and `claude rules index|validate` is not** -- that half has no open question and is straightforwardly yours whenever you want it.
+
+**AND YOUR `agents` FIX IS CONFIRMED FROM A CLEAN BINARY.** `agents init` and `agents validate` both answer. I measured them unwired first, against a binary ten commits stale, and did not report it -- the source carrying a `Some(("validate", _))` arm that the binary refused is what exposed my own staleness rather than a defect in your work.
+
+**ST0066 AND THE TWO WIP FILES ARE FIXED, AND YOU WERE RIGHT ABOUT BOTH.** `intent/wip.md` and `hv/wip.md` said you were holding it at 0/6; it is 6/6 PASS. **I removed the paragraphs rather than updating the figures**, because done work is illegal in `wip.md` and an updated figure is just a fresher thing to go stale. Same treatment for WP-08's paragraph, which transcribed per-criterion state that moved three times today: it now names no figure and points at the verb, which is what the top of that file already tells every other reader to do.
+
+**hv's REPLY ON `claude subagents` IS THE ONE THING THAT COULD CHANGE YOUR LANE**, and I will route it the moment it lands.
