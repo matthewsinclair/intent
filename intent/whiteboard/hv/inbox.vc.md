@@ -901,3 +901,21 @@ I had those as two unrelated findings. **They are one property of the delivery m
 **2. `tui-design.md` SECTION 9 SHOWS A PLURAL PATH IN PROSE (`/threads/ST0058`) AND ic HAS BUILT SINGULAR (`/thread/ST0056/wps`).** vc ruled ic's spelling correct on Highlander grounds: **a pluralisation rule is a second home for naming** -- it mints strings appearing in no declaration, breaks on the first kind not taking `-s`, and must be inverted to route. **The prose is what wants correcting.** If the web face needs plurals for display, that is a rendering concern layered on ONE derived path; two derivations break the property that the TUI stack and the web URL are the same sequence.
 
 **AND ONE THING vc DID THAT YOU SHOULD SEE: `AC-17.11` WAS A CRITERION vc AUTHORED, AND vc HAS CORRECTED IT AGAINST `tui-design.md`, WHICH YOU RATIFIED A DAY LATER.** The row said _one modeline above a single rule_; the design specifies five sections and two rules. **ic built to the row and was right to** -- they had read section 3 and the row is what the register offered them, **which is the hazard itself: a stale criterion is indistinguishable from a current one at the point of use.** Third instance of that class after `AC-12.4` and `AC-17.6`, and the first where a row contradicts a RATIFIED artefact rather than citing a moved surface.
+
+## (2026-08-30 13:16Z)
+
+**A THIRD ITEM FOR YOUR HAND, AND THIS ONE IS A CONSEQUENCE OF vc's OWN WORK RATHER THAN A DOC CORRECTION.**
+
+**TODAY'S `AC-00.9` PAYLOAD SWEEP DIVERGED ~10 FILES FROM THE FROZEN v2 CHECKOUT, AND `shipped_surface_drift` IS CORRECTLY RED ABOUT IT.** Verified against `~/Devel/prj/Intentv2`: `in-essentials/SKILL.md`, `subagents/intent/agent.md`, `critic_runner.sh`, `intent_claude_cwi` and others I edited.
+
+**THE GUARD HAS NOT EXPIRED AND vc HAS RULED AGAINST RETIRING IT.** Its own header says the property is NOT _the two trees agree_ -- it is **EITHER IN BOTH TREES OR DECLARED**, with your 2026-08-24 freeze scoped as _frozen for FEATURES, live for SHIPPED-SURFACE DEFECTS_. So divergence was never the failure condition; UNDECLARED divergence is, and the guard is doing its job.
+
+**THE QUESTION THAT IS YOURS: IS AN `AC-00.9` PAYLOAD CITATION A SHIPPED-SURFACE DEFECT OR A v3 FEATURE?** It decides whether ~93 prose edits back-port into the frozen tree.
+
+**AND THE SHARP EDGE IS NOT THE ONE I EXPECTED, WHICH IS WHY I AM NOT DECIDING IT.** **v2.19.0 is the line real users are on.** A consumer reading `# COVERS ST0056 AC-10.13` in an installed hook is suffering the exact harm your _NEVER EVER_ ruling names -- **TODAY, on v2**, while on v3 it is still hypothetical because v3 has not shipped. That argues DEFECT and back-port. Against it: ~93 prose edits into a frozen tree mid-cut is real churn and real risk for zero functional gain, and v2 is EOL-bound.
+
+**vc's RECOMMENDATION: declare them DEFECT-kind with a NAMED CONDITION** -- back-port at v2's next maintenance release, or never if v2 reaches EOL without one. That uses the guard's own mechanism, states the kind honestly rather than the convenient one, and forces no churn during the cut. **dc has been told explicitly NOT to declare them feature-kind to make the red go away**: the guard's header says only one of those two lists should ever shrink to zero, and mislabelling to quiet an instrument is how that stops being true.
+
+**The red is accurate and dc is holding it until you rule.**
+
+**AND ONE DEFECT OF MINE THAT REACHED THE SHIPPED SURFACE, REPORTED BECAUSE IT DID.** My IN-SH-CODE-001 fix to `claude_plugin_helpers.sh` broke `claude subagents install --all` -- it installed ONE of nine for fifty minutes until dc found it. The globbing half was right; the reading half used a here-string that reads one line, and the subagents callback emits newline-separated names while the skills callback emits space-separated. **Two implementations of one contract, disagreeing, and the permissive splitter I replaced had been absorbing the disagreement invisibly.** dc fixed it and corrected the CONTRACT to what both actually emit. Nothing shipped; it was caught inside the same session.
