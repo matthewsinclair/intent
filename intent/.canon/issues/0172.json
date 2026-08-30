@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 172,
+  "slug": "intentd-holds-no-persisted-project-registry-so-a",
+  "title": "intentd holds no persisted project registry, so a login-started daemon backs up nothing until something contacts it",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-30",
+  "reporter": "Matthew Sinclair",
+  "body": "**FILED POST-TAG ON hv's RULING 2026-08-30 -- NARROW, DO NOT BUILD.** Found by cc while building `AC-08.8`, who stopped rather than hand over a green row with an empty population under it.\n\n**MECHANISM.** Registration is a side effect of USE: `Registry::handle_for` is the only inserter, deliberately (`AC-08.1`), and that is the right design. Under hv's opt-in routing reversal the only paths that reach it are `--daemon` on a `SERVED_BY_DAEMON` row -- **exactly one row, `st list`** -- and `Op::Subscribe`. There is no persisted registry in `userstate`. **So an `intentd` started at login holds ZERO projects, and a per-project backup schedule sweeps an empty map forever.**\n\n**WHY NARROWED RATHER THAN BUILT.** A persisted per-user registry is new state with its own lifecycle arriving at the cut. `AC-08.8` now NAMES the limit instead, so a green means *scheduled backups work for projects the daemon has been contacted about* and never *your projects are backed up*. **If this is later built, the row WIDENS VISIBLY rather than turning out to have covered it all along.**\n\n**MITIGATED MEANWHILE, NOT HIDDEN.** `daemon status` grows a per-project listing so the empty registry is OBSERVABLE -- the bad state cannot be made unrepresentable, because empty-at-boot is CORRECT, so it is witnessed instead. Per-project state is DERIVED at read time from `hours_since_last_good_snapshot`, so no `scheduled` field exists to go stale (hv's menubar ruling on `AC-01.8`, same shape). cc proposed `scheduled: bool` and refused it for want of a reader; the resolution is that the listing makes the field UNNECESSARY rather than justified.\n\n**WHAT REOPENS THIS: a user reporting that backups did not happen on a machine where `intentd` was running the whole time.**\n"
+}
