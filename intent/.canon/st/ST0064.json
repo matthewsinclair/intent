@@ -20,6 +20,72 @@
       "preamble": ""
     }
   ],
+  "criteria": [
+    {
+      "id": "AC-01.1",
+      "text": "**THE APP HOLDS NO PRODUCT LOGIC: EVERY CONTROL IS A VERB IT SHELLS OUT TO, AND NOTHING IN SWIFT KNOWS A LOG FORMAT, A PIDFILE LAYOUT OR A CONFIG SCHEMA.** hv set this as the whole shape of the app on 2026-08-26 and it is the row every other row on this thread leans on: start, stop, restart and doctor are `intent` / `intentd` invocations, and every fact displayed comes from the daemon or the CLI rather than from a Swift-side derivation. **The check is by ABSENCE and it is mechanical**: the Swift sources contain no parser for a log line, no path assembled toward a pidfile, and no key read out of a config file. **The daemon is the authority on the daemon** -- an app that computes any of the three has taken a second home for a value `intentd` already owns, and the two will disagree at exactly the moment the app exists to be trusted.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "**THE APP'S HEALTH PREDICATE AND THE CLI'S ROUTING PREDICATE ARE ONE PREDICATE, NOT TWO THAT AGREE.** `AC-08.3` rules how a client decides the daemon is live: a completed request-response round-trip under a bounded deadline, never a presence test and never a bare `connect()`. **The app asks the same question and MUST reach the same answer through the same code path** -- the CLI verb, not a Swift reimplementation of the probe. **Two homes for `is intentd running` is the defect this estate has now recorded at three scales**, and this is its worst instance, because the disagreement is SILENT AND INVERTED: the menubar shows a green dot while the CLI routes every verb in-process, and the operator is looking at the one surface built to tell them otherwise.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "**THE APP TALKS GRAPHQL/JSON TO `intentd` AND NOTHING ELSE, PER `D56`, AND THE `GET /_status` IN THIS WP'S BODY IS SUPERSEDED BY THIS ROW.** hv, 2026-08-29: *the macOS app (Swift) and the cli (rust) need to talk GraphQL to intentd (rust)*; `D56` gives the daemon ONE output contract, GraphQL/JSON over the socket and over HTTP, and the deciding argument for that reversal was this very app -- a SwiftUI menubar cannot consume HTML. **The body of WP-01 still names `GET /_status` returning JSON**, carried in verbatim from the Geodica handoff on 2026-08-26, three days before the ruling that removed it. **It is named here rather than quietly dropped, because a superseded design that stays legible in the artefact gets built from**: the handoff is the drop-in example and a reader following it lands on the endpoint that no longer exists. **Status is a query like every other query**, and `stopped` is derived from that query failing rather than reported by a lighter endpoint that would be a second home for the same fact and could answer while the real surface cannot.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-01.4",
+      "text": "**THE TAIL-ORPHAN TRAP IS VERIFIED BEFORE ANY CONSOLE IS BUILT ON IT, AGAINST SIGTERM, SIGINT AND SIGKILL SEPARATELY.** Geodica's handoff names this first and the ordering is the point: if the log verb is a pipeline behind a runtime, it takes its own process group down when its stdin closes, and a console built on top of that leaks a `tail` per open-and-close. **Checked by driving the app open and shut several times and then reading `ps`**, not by reasoning about the pipeline. **The three signals are checked SEPARATELY because they do not share a path**: a handler that cleans up on SIGTERM and SIGINT proves nothing about SIGKILL, which cannot be handled at all, so the orphan must be prevented by process-group construction rather than by a shutdown hook. **A leaked tail is invisible to the operator and unbounded in count** -- the failure is that the machine gets slower over a week and nothing ever points at the menubar.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-01.5",
+      "text": "**THE `intent://` HANDLER RESOLVES THROUGH ST0057 WP-07'S READ RESOLUTION AND IS NEVER A SECOND RESOLVER.** The URL scheme is a CLIENT of the addressing rules, so the app parses no address itself: it hands the URL to the resolver and opens what comes back via `intent edit`. **An address that resolves in the CLI and not in the app, or to a different entity, is a failure of this row and not a difference of opinion** -- and the `0149` defect is the standing reminder of how that decays, where `intent edit issue 148` parsed the kind correctly, discarded it, and refused about a steel thread the caller never named. **A resolver reached from two places drifts at whichever one is edited second**, which is a property of the arrangement rather than of anyone's care.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-01.6",
+      "text": "**THE APP DISTINGUISHES THE SAME THREE ENDPOINT STATES THE ROUTING RULE DOES -- LIVE, STALE, ABSENT -- AND NEVER RENDERS `RUNNING` FOR AN ENDPOINT THAT CONNECTS WITHOUT ANSWERING.** `AC-08.3` names both false positives and this row inherits both: **a dead daemon leaves its socket file behind**, and **an inherited listening descriptor accepts connections nothing will ever answer** (no atomic `SOCK_CLOEXEC` on macOS; measured by cc 2026-08-29 at 1 in 300 with a sibling thread spawning children, 0 in 2000 without). **The app is where these are most damaging, because it is the surface an operator consults INSTEAD of measuring**, so a green dot is trusted in a way a CLI exit code is not. **Both states are constructed in the check, never waited for** -- a suite that passes because a 1-in-300 race did not fire has measured nothing.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-01.7",
+      "text": "**THE BUILD, RUN, TEST AND INSTALL PIPELINE IS A DEVBIN VERB RATHER THAN A SEQUENCE ANYONE REMEMBERS**, and the shipped artefact is signed and notarised per `D38` on the `int macos sign|notarize|verify` path that `AC-11.1` already established. **`D38` requires both, unconditionally**, and the app is the first artefact on this estate where the operator meets Gatekeeper directly: an unnotarised menubar app does not fail loudly, it fails as a dialog the user cannot get past, on a machine the developer does not own. **The verb is the deliverable, not the invocation it wraps** -- the same argument that put `int macos ...` ahead of cargo-dist, which signs only and does not notarise at all.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    },
+    {
+      "id": "AC-01.8",
+      "text": "**THE ICON IS INTENT'S TURTLE (`docs/design/intent-logo.*`) AND ITS STATE SEMANTICS ARE DERIVED FROM THE HEALTH PREDICATE, NEVER STORED ALONGSIDE IT.** hv named the asset and the reason on 2026-08-26 -- *slow and steady wins the race* -- and the substantive half of this row is the second clause: the menubar glyph is a RENDERING of the one predicate in `AC-01.2`, computed at paint time, with no cached `lastKnownState` that can outlive what produced it. **A status cached beside the thing it describes is the gate-figure defect in miniature**: two homes, one value, and the stale one is the one on screen.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    }
+  ],
   "attachments": [
     {
       "path": "design-menubar-app.md",
