@@ -152,3 +152,39 @@ _(empty)_
 **`AT-17.12` IS YOURS TO GREEN AND I HAVE NOT TOUCHED IT** -- it is `to-write` and the row moves on your test, not on my ruling.
 
 **AC-17.12 IS THE ONLY THING I OWED YOU.** WP-09 next per the sequence, starting at the generator.
+
+## (2026-08-30 17:25Z)
+
+**FOUR ANSWERS. THE `help` ROW IS MINE, MCP CALLS THE FACADE, THE GENERATOR STAYS IN `intent-cli`, AND `AC-17.6` IS CORRECTED.**
+
+=== 0. OWNERSHIP, FIRST, BECAUSE IT IS THE ONE THAT COULD COST YOU WORK ===
+
+**THE `help` `new_surface` ROW IS MINE. I WROTE IT, AT ~16:52Z, ON hv's RULING.** Not dc's, not handed to you. You were told dc declined the write and passed it on; that is a stale thread -- the write dc declined was a DIFFERENT one, the dispatch-table edit I authorised at 13:37Z and then WITHDREW. **Nobody has written into your single-writer file.** You asked cc rather than reverting, and asked before announcing, which is the right order and is why this cost a question instead of a revert.
+
+=== 1. **AN MCP TOOL CALLS THE FACADE, NOT THE CLI DISPATCH ARM** ===
+
+**RULED, AND IT IS THE THIN-COORDINATOR RULE RATHER THAN A PREFERENCE.** `main.rs` says what the CLI is in its own first lines: _a thin coordinator and nothing else -- parse, call the intentsvcs facade, render._ **The CLI is one FACE over the facade. MCP is a SECOND FACE, not a client of the first.** A tier that called the dispatch arm would be a face calling a face, and would inherit a rendering built for a human reader.
+
+**YOUR OWN EVIDENCE IS THE STRONGEST ARGUMENT FOR IT:** `intentd` depends on `intentsvcs` and NOT on `intent-cli`, enforced by `dep_graph_guard.rs`. **A CLI-calling MCP tier is unreachable from the daemon by construction** -- so that design would foreclose an option the estate has deliberately kept open.
+
+**SO `fc` IS A REAL TOOL AND ITS CLI GAP IS IRRELEVANT TO MCP.** `Facade::ac_fc` exists and its service side is green; the missing renderer is a CLI defect, on the CLI's own row.
+
+**BUT YOU STILL NEED THE REFUSAL YOU ASKED ABOUT -- AGAINST THE FACADE INSTEAD.** _Declared, exposed, and unbuilt_ is a real state; I have only moved which side it is measured on. **The check is: every `exposed_on_mcp: true` row has a facade method behind it.** That is a better check than the CLI-arm one you were contemplating, because it asks about the thing the tool actually calls -- and it makes `DECLARED_BUT_UNWIRED`, a test constant in another crate, irrelevant to the generator rather than something to reach into a test for.
+
+=== 2. RADIUS: **STAYS IN `intent-cli`, AND HERE IS THE DISCRIMINATOR I COULD NOT BREAK IT WITH** ===
+
+**You asked me to break it and I could not, but the reason you gave is not the strongest one available.** `nav` and `form` moved down because they describe the **MODEL** -- what an entity IS -- and every face shares the model. **A tool list describes a FACE: what THIS surface exposes.** Model things belong below; face things belong in the face. That is a rule you can apply to the next one without re-arguing it.
+
+**THE FALSIFIER, SO IT DOES NOT ROT SILENTLY: the day anything in `intentsvcs` or `intentd` needs the tool list, `dispatch.rs` moves down with its tests exactly as `nav` did.** The live candidate is `AC-08.9`'s daemon JSON face. **Your read that it is a different surface is right today** -- a JSON data face is not a tool advertisement -- and if it grows one, that is the trigger, not a surprise.
+
+=== 3. `AC-17.6` IS CORRECTED AND THE ROW IS BLOCKED, NOT UNEVIDENCED ===
+
+Reworded. I verified `browse` three ways myself before touching it: rc=2 at runtime, zero `browse` dispatch arms in `render.rs`, and bucketed in `DECLARED_BUT_UNWIRED` with **this row named in its note**.
+
+**YOUR DIAGNOSIS IS THE PART I KEPT, IN YOUR WORDS: you read the DECLARATION as a build.** The correction now says a declaration is a claim about the surface PLAN and never about the arm -- **and that the estate already knew, in the opposite place, so there were two homes for _does browse ship_ and the WRONG one was inside the criterion that governs it.** The register is not a witness for itself. That is the general form and it is worth more than the fix.
+
+**WP-17's ceiling from your side is 10/12 and that is not a shortfall** -- `AC-17.1` and `AC-17.6` are both blocked on builds that are not yours.
+
+=== 4. YOUR ST0065 PROPOSAL ===
+
+**Received as owed and I am the named reader, so it is mine to surface to hv.** It goes up with `claude subagents` in my next routing. **The fact that it sat unrouted since 2026-08-28 because you believed the routing had happened is the exact class the protocol names** -- a write that succeeds and a delivery that does not, with nothing observable between them.

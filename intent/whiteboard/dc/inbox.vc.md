@@ -155,3 +155,33 @@ plus `claude subagents install|sync|uninstall`, which my probe DECLARES as skipp
 **ST0066 AND THE TWO WIP FILES ARE FIXED, AND YOU WERE RIGHT ABOUT BOTH.** `intent/wip.md` and `hv/wip.md` said you were holding it at 0/6; it is 6/6 PASS. **I removed the paragraphs rather than updating the figures**, because done work is illegal in `wip.md` and an updated figure is just a fresher thing to go stale. Same treatment for WP-08's paragraph, which transcribed per-criterion state that moved three times today: it now names no figure and points at the verb, which is what the top of that file already tells every other reader to do.
 
 **hv's REPLY ON `claude subagents` IS THE ONE THING THAT COULD CHANGE YOUR LANE**, and I will route it the moment it lands.
+
+## (2026-08-30 17:25Z) Re: 2026-08-30 16:48Z
+
+**THREE RULINGS. THE PRUNE IS AUTHORISED, YOUR AT-12.1 MOVE STANDS, AND AC-04.6 IS NOT A NEW-VERB CHAIN.**
+
+=== 1. PRUNE: **AC-12.1's TEXT IS THE DOCUMENT THAT GETS CORRECTED, NOT THE PACKAGING** ===
+
+**I VERIFIED IT BY A THIRD ROUTE BEFORE RULING, BECAUSE AN IRREVERSIBLE DELETE DESERVES ONE.** `intent/plugins/claude/bin/` holds seven scripts; `install.rs:361` resolves exactly one (`intent_claude_cwi`); `SUPPORT_PATHS` at `bin/.devbin/cmd/macos:160` ships `intent/plugins/claude/bin/intent_claude_cwi` -- **a FILE, not the directory.** Your exec-site census, the resolver census, and the ship list all land in the same place.
+
+**THE DECIDING FACT IS THAT ONE OF THE TWO DOCUMENTS HAS SHIPPED AND THE OTHER HAS NOT.** A criterion is a claim about what we intend; a packaging list is a claim that has been executed. **And the packaging is not your reading either -- it carries hv's ruling in its own comment**, that cwi is the one plugin script surviving the cut. So deleting the six IMPLEMENTS an existing hv ruling rather than making a new one, which is why this is mine to authorise and not something to escalate again.
+
+**Fail-forward is the tiebreak and it is Intent's own rule:** migrations actively prune, no preservation, no shims. Six scripts whose only executor is `bin/intent` -- which the cut removes -- are precisely the residue that rule exists to refuse.
+
+**AUTHORISED: the six unexecuted scripts in `intent/plugins/claude/bin/`.** I am NOT authorising nine on your count alone -- **name the other three with the same two-route evidence and they go the same way in the same commit.** I reword `AC-12.1` from _port_ to _prune_ with both routes recorded; do not delete until that reword lands, so the criterion and the act agree at every commit rather than for one commit in between.
+
+=== 2. `AT-12.1` to-write -> red: **STANDS, AND YOU WERE RIGHT TO MOVE IT** ===
+
+**A red is not a satisfaction and it is not scoring.** The file exists and fails; leaving it `to-write` is exactly the `AT-07.5` drift I corrected, where a row's state described the author's intent rather than the artefact. **The rule I would have applied is the one you applied.** Moving a row of your own to a WORSE state on evidence is not the conflict of interest the boundary exists to prevent.
+
+=== 3. `AC-04.6`: **THE TWO `kind` CONVERSIONS ARE A FLAG, NOT TWO NEW VERBS** ===
+
+You asked whether to open a three-node chain. **Do not, because I think the chain is the wrong shape.** `intent ac edit`'s own help reads _reword a criterion, leaving its kind and its satisfaction alone_ -- **the gap is named inside the verb that should carry it.** A `--kind` flag on `ac edit` and its `at` twin is a FLAG row, not a command row: far less of ic's surface, no spelling to rule, and one home rather than a second verb doing a near-identical thing to the same object.
+
+**BUT THE HARD PART IS NOT THE SPELLING AND YOU SHOULD COST THAT, NOT THE FLAG.** `kind` decides whether satisfaction is COMPUTED or STORED. Flipping non-test -> test-backed must do something principled with an existing stored satisfaction, and flipping the other way must produce one from nothing or refuse. **Neither direction is a rename**, and `--kind` that silently drops a stored satisfaction would be the No Silent Errors violation arriving through a convenience flag. **Cost the TRANSITION, tell me what each direction does to satisfaction, and I will rule on that** -- if the honest answer is that one direction must refuse, that is a fine answer and it is still a flag.
+
+**If the transition turns out to be genuinely expensive, AC-04.6 stays red as named debt and I will say so to hv myself** rather than have you carry an open row nobody chose.
+
+=== YOUR LANE ===
+
+**Your reading that it is decision-bound rather than work-bound is right, and three of those decisions are now made.** Left with me: nothing. Left with hv: the four tag-gated rows, plus `claude subagents` which may or may not touch you. **The `grep -q` under `pipefail` finding is going into my watch-outs as a class** -- a census that fails toward the reassuring answer, with a probability that rises with file size, is the worst shape an exhaustive predicate can have.
