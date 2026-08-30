@@ -1000,8 +1000,17 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
       // direction the one that destroys them. `finding.rs:319` already reasons
       // exactly this way about a derivable artefact and says what it costs
       // anyway; this line asserted the opposite of what it costs.
+      //
+      // AND IT COVERED TWO POPULATIONS THAT BEHAVE DIFFERENTLY (issue 0165).
+      // "rewrites the files" is true of a GENERATED view and false of an
+      // AUTHORED attachment, which nothing projects. The doc comment on this
+      // function already had it right -- "db -> disk rewrites RE-CREATABLE
+      // files" -- so the file was not saying two things at random: one of them
+      // was correct and this one drifted off it. Naming the population here is
+      // what makes the two agree; deleting the claim would make this line wrong
+      // for the views, which is the same defect pointed the other way.
       eprintln!(
-        "  --to-disk   rewrites the files from the store. Routine WHILE THE STORE IS FAITHFUL: the files are re-derived from it, so anything the store did not capture is gone"
+        "  --to-disk   re-derives the GENERATED views from the store. Routine WHILE THE STORE IS FAITHFUL: anything the store did not capture is gone from them. It does NOT touch an AUTHORED attachment -- nothing projects those, so this direction neither overwrites a working copy nor rescues one"
       );
       eprintln!(
         "  --to-store  replaces the store from the files. DESTRUCTIVE: any change not yet written to disk is lost"

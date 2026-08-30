@@ -377,10 +377,22 @@ impl FindingClass {
       // remedy is currently permitted to name the command that keeps it. Hence
       // the copy-aside instruction, which reaches the same safety without a
       // command at all.
+      //
+      // THIS REMEDY USED TO END BY SAYING `--to-disk` "writes the store's
+      // version over the file, discarding the working copy you just saved". It
+      // does not: `projection` carries no attachment path and `views.rs` emits
+      // no attachment file, so that direction cannot touch this file at all.
+      // Driven 2026-08-30 with the store holding the old text and the working
+      // file holding new edits -- after `sync --to-disk` both were still
+      // modified, which a write-back could not have left. Issue 0165. The
+      // backup advice stays because it is good practice; what went is the false
+      // mechanism, because A REMEDY THAT OVERSTATES A DESTRUCTIVE STEP TEACHES
+      // DISTRUST OF THE ONES THAT DO NOT, and the cost lands on the remedy that
+      // is telling the truth.
       Self::AttachmentDrift => (
         6,
         "attachment-drift",
-        "copy the working file somewhere outside the project FIRST -- nothing can re-derive either side, so this is the only step that cannot lose anything. Then compare it against what the store holds and decide which one you meant; `intent sync --to-disk <ID>` writes the store's version over the file, discarding the working copy you just saved",
+        "copy the working file somewhere outside the project FIRST -- nothing can re-derive either side, so this is the only step that cannot lose anything. Then compare it against what the store holds and decide which one you meant, and put the text you meant where you want it BY HAND: an attachment is AUTHORED, so no sync direction rewrites it for you -- `--to-disk` re-derives the generated views and leaves this file exactly as it stands",
       ),
       Self::ModelInconsistent => (
         7,

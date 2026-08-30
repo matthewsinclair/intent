@@ -263,3 +263,59 @@ fn every_realised_attachment_in_the_estate_still_matches_canon() {
       .join("\n  ")
   );
 }
+
+/// **`sync --to-disk` NEITHER OVERWRITES AN AUTHORED ATTACHMENT NOR RESCUES ONE
+/// -- issue 0165, and this arm is the guard the fix did not otherwise have.**
+///
+/// The `attachment-drift` remedy used to end by telling the operator that
+/// `intent sync --to-disk <ID>` "writes the store's version over the file,
+/// discarding the working copy you just saved". It does not: `projection`
+/// carries no attachment path and `views.rs` emits no attachment file, so that
+/// direction cannot reach this file at all. The false clause is gone, and
+/// nothing in the tree pinned it -- which is why it survived long enough to be
+/// found by an accident rather than by a test.
+///
+/// **THIS IS THE HALF OF A PAIR AND THE OTHER HALF IS ALREADY GREEN.**
+/// `sync_direction::the_routine_direction_rewrites_the_stale_files_from_truth`
+/// asserts that `--to-disk` DOES rewrite a stale generated view. Together they
+/// say what the corrected prose says: the direction re-derives what is
+/// re-creatable and leaves what is authored alone. Either arm alone would let
+/// one population's behaviour be told about the other, which is the defect 0165
+/// records rather than a hypothetical.
+///
+/// The assertion is on BYTES, not on the drift report. A test that only checked
+/// that drift is still reported would pass for an implementation that rewrote
+/// the file and then reported the rewrite.
+#[test]
+fn the_routine_direction_leaves_an_authored_attachment_exactly_as_the_author_left_it() {
+  const EDITED: &str = "# Reference\n\nEdited in the working copy, and the store never saw it.\n";
+  let fx = seeded();
+  let realised = fx.path(&format!("intent/st/{ID}/{REL}"));
+  std::fs::write(&realised, EDITED).expect("edit the working copy");
+
+  // The store still holds ORIGINAL and the disk holds EDITED -- stated as an
+  // assertion rather than assumed, because every claim below is about the gap
+  // between them and a fixture that closed it silently would pass for free.
+  assert_eq!(
+    drift(&fx).len(),
+    1,
+    "the fixture did not diverge, so this arm would pass without exercising anything"
+  );
+
+  fx.facade()
+    .sync_to_disk(&intentsvcs::sync::Scope::All)
+    .expect("db -> disk");
+
+  assert_eq!(
+    std::fs::read_to_string(&realised).expect("read the working copy back"),
+    EDITED,
+    "`--to-disk` overwrote an AUTHORED attachment with the store's version -- the remedy that \
+     claimed exactly this was corrected under issue 0165 on the ground that it does not happen"
+  );
+  assert_eq!(
+    drift(&fx).len(),
+    1,
+    "the divergence stopped being reported after a sync that did not resolve it, which would hide \
+     the edit rather than repair it"
+  );
+}
