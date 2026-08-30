@@ -514,14 +514,21 @@ mod tests {
     // so a SECOND overlap fails here even while this one stands.
     const KNOWN_OVERLAP: &[(&str, &str)] = &[(
       "organize",
-      "TWO ROWS FOR ONE PATH THAT CONTRADICT EACH OTHER ON A SHIPPING DECISION, awaiting an hv \
-       ruling. The family row is `disposition: retire`, ratified by hv 2026-08-14 (`organize` both \
-       faces planned vestigial by construction) with `exposed_on_mcp: false`. The `new_surface` row \
-       is `disposition: new-surface` with `exposed_on_mcp: TRUE`. `intent organize` ships and works \
-       today, so reality matches the new-surface row -- but which row wins is decided by TABLE \
-       ORDER inside `shipped_entries`, and the winner is the one that offers a retired command to \
-       the agent surface. Not resolved here because retiring a command and exposing it to agents \
-       are both hv's calls, and deleting either row would settle one by hand.",
+      "ONE WORD, TWO DIFFERENT PROGRAMS -- NOT ONE PROGRAM DECLARED TWICE, AND NOT A DEFECT. hv \
+       ruled the reclamation on 2026-08-19 and the ruling is recorded in the `new_surface` row's \
+       own `name_reclaimed` field: the v2 face stays retired and the two share nothing but the \
+       word. The family row is `bin/intent_organize`, which moved ST directories into status \
+       folders (`--dry-run`), retired 2026-08-14. The `new_surface` row is a different program \
+       that hydrates and dehydrates artefacts against `.intentfiles` (`--apply`, `--default`, \
+       `--force`). Both declarations are correct as written. **NOTHING IS LATENT: `is_shipped()` \
+       is `disposition != retire && target.state != retire`, the family row is `retire` on BOTH, \
+       so `shipped_entries` filters it out and `entry(table, \"organize\")` has exactly one \
+       candidate to find.** Table order decides nothing here. The entry stays because this check \
+       counts PATHS and a path-keyed census still double-counts -- so it is a permanent declared \
+       fact, not a parked defect. RECORDED BY ic 2026-08-30, after escalating it to hv as a \
+       contradiction that did not exist: an intersection on `path` can only find a shared path, so \
+       it could not have told these two apart, and the field that settled it was sitting in the \
+       row.",
     )];
 
     let overlap: Vec<&str> = in_new
@@ -533,8 +540,11 @@ mod tests {
     assert_eq!(
       overlap, declared,
       "the set of paths in BOTH `new_surface` and a family changed. An overlap double-counts every \
-       census over the table and lets TABLE ORDER decide which row's `exposed_on_mcp` an agent \
-       sees. Add it to `KNOWN_OVERLAP` with its reason, or -- better -- resolve it"
+       census over the table, and where BOTH rows are shipped it also lets TABLE ORDER decide \
+       which one `entry()` finds, because that is a `.find()` over `shipped_entries` and it takes \
+       the first silently. Add it to `KNOWN_OVERLAP` with its reason -- stating whether the two \
+       rows are one program or two, which is the distinction a path intersection cannot make -- \
+       or, better, resolve it"
     );
     assert!(
       KNOWN_OVERLAP.iter().all(|(_, why)| !why.trim().is_empty()),
