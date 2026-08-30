@@ -1475,6 +1475,14 @@
       }
     },
     {
+      "id": "AC-17.12",
+      "text": "**`intent explore` OPENS THE TUI AT THE TOP OF THE MODEL, AND IT IS THE SAME VIEW STACK ENTERED AT A DIFFERENT DEPTH RATHER THAN A SECOND SURFACE.** (hv requirement 2026-08-30, added while AFK; scoped by ic, minted by vc.) `explore` enters at ENTITIES; `intent edit <kind> <id>` enters the same stack at ITEM. Same keys, same menu, same descents -- **so a second navigation model is unrepresentable rather than merely discouraged.** **THE VERB IS `explore` AND NOT `browse` ON THE DESIGN'S OWN GROUNDS, NOT ON TASTE: `intent browse <kind> <id>` already ships meaning OPEN IN THE BROWSER**, and one word carrying two meanings is the exact defect `tui-design.md` section 5 records for `Up`/`Down` and section 4 for `/`-as-menu-and-prefix. **`explore` TAKES NO ADDRESS.** Deep-linking is `edit`'s job and section 9 has ruled its shape; an optional `[kind] [id]` here reopens three-doors-onto-one-surface. **THE CHECKABLE PROPERTY, WHICH IS THE REASON THIS IS A CRITERION AND NOT A TICKET: THE TUI'S VIEW STACK AND THE WEB'S URL PATH ARE THE SAME SEQUENCE, BOTH DERIVED FROM THE SAME SCHEMA RELATIONS, SO NEITHER RENDERER INVENTS A LEVEL.** `[entities]` and `/`; `[entities, thread]` and `/thread`; `[entities, thread, ST0056]` and `/thread/ST0056`. **That is `AC-17.1` one level up -- 17.1 diffs the MODEL after an edit, this diffs the NAVIGATION -- and it is what gives `--browser` an exact meaning at any depth.** Asserted by round-tripping EVERY view the real declaration can produce through its path, never over hand-picked examples. **AND EVERY PATH SEGMENT IS A NAME THE DECLARATION ALREADY CARRIES** (ic's finding, ruled by vc 2026-08-30): `/thread/ST0056/wps`, never `/threads/ST0056/work-packages`. **A pluralisation rule is a SECOND HOME FOR NAMING** -- it mints strings that appear in no declaration, it breaks on the first kind that does not take `-s`, and it must be inverted to route. Section 9 shows a plural in prose and **the prose is what needs correcting, which is hv's hand and is flagged rather than done.** If the web face wants plurals for display, that is a rendering concern layered on ONE derived path, never a second derivation -- **because the moment the two faces derive their own, they are no longer the same sequence and this criterion is unsatisfiable by construction.**",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
       "id": "AC-17.2",
       "text": "**THE DSL DECLARES LAYOUT AND WIDGET, NEVER THE FIELD SET.** Every field in a form declaration resolves to a property of the entity schema face, and a field naming a property that does not exist is REFUSED by name at load. **A hand-authored list of fields is a second home for what `schema/*.json` already declares, and it goes stale exactly the way `populations.shipped` did** -- so the form carries order, label, widget and editability, and takes existence and type from the schema. Held to the converse too: an editable property appearing in NO form is named in the output rather than silently unreachable.",
       "kind": "test",
@@ -3021,6 +3029,15 @@
       ],
       "status": "to-write",
       "note": "Minted 2026-08-29 by vc on hv UX direction: borderless, aligned columns, prose hands off to $EDITOR."
+    },
+    {
+      "id": "AT-17.12",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/src/tui/nav.rs",
+      "covers": [
+        "AC-17.12"
+      ],
+      "status": "to-write"
     },
     {
       "id": "AT-17.2",
