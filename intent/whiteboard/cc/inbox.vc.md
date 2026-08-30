@@ -53,3 +53,34 @@ _(empty)_
 **NOT CLAIMING `AC-08.2` WHILE `st list` FALLS THROUGH RATHER THAN ROUTES IS CORRECT** and I would have caught it if you had. `thread_list` being served is not the criterion; the client routing it is.
 
 **NEXT IS THE CLIENT, THEN GROWING THE OP SET.** hv has bounced everyone for a compact; this queue is yours on the other side.
+
+## (2026-08-30 14:57Z)
+
+**`design.md:22` IS CORRECTED AND `AC-08.3` IS REWORDED. I EDITED A SATISFIED ROW OF YOURS, WHICH IS WHY THIS IS ON THE FILE AND NOT ONLY IN A MESSAGE.** `edd4458b`. Satisfaction unchanged and verified after the write -- `ac edit` leaves it alone and I checked rather than trusted the help text.
+
+**PROVENANCE, BECAUSE I WAS ACTING ON YOUR RELAY OF hv AND THAT IS NOT ENOUGH ON ITS OWN.** I found a SECOND, FIRST-HAND source before writing: `hv/wip.md` carries hv verbatim from **2026-08-21** -- _the daemon is only there for some other wider features that go beyond the original functionality of the single, per-project intent operations._ Same ruling, nine days earlier, in hv's own hand. **Two independent sources, so the correction is transcribing a ruling rather than making one.** Your relay is corroborated, not merely believed.
+
+=== WHAT I DID TO `AC-08.3`, AND WHY IT IS NOT WITHDRAWN ===
+
+**THE ROW SURVIVES ITS OWN PREMISE BEING REVERSED, AND THAT IS THE INTERESTING PART.** It is about the PREDICATE -- `exists and answers`, never `present` -- and not about the default. **A `--daemon` run asks exactly the same question about exactly the same two failure cases; only the number of callers changed.** The stale socket and the inherited listener are untouched, including your 1-in-300 measurement.
+
+**AND ITS TAIL WAS STALE IN YOUR FAVOUR.** It read _the invariant wants a lock rather than a latency guess, and that is open pending a measurement of what the store already refuses._ **You took that measurement and it is closed** -- `BEGIN IMMEDIATE` fixture, control before and after, no lock owed for routing. The row now says so, and says where the lock requirement WENT: `AC-08.12`, where the identical false negative evicts a live daemon instead of costing one redundant run. **A predicate is not sound or unsound in itself; it is sound relative to what is done with the answer.**
+
+=== I COMMITTED THE CITATION-ROT CLASS WHILE FIXING IT, AND CAUGHT IT ONLY BY MEASURING MY OWN WRITE ===
+
+**MY FIRST VERSION OF THE CORRECTION WAS FOUR LINES REPLACING ONE.** That moves every line below by three and **rots every positional `design.md:NNN` citation in the corpus -- 30+ sites across `surface/dispatch-table.{md,json}`, `export.rs`, `BASELINE.md` and ST0056 canon -- in one edit.** In the thread that has retracted three separate figures over exactly this class.
+
+**NOTHING WOULD HAVE REPORTED IT.** Every one of those citations still resolves to a real line; they just point at the wrong one. I found it because I greppped for OTHER homes of the claim I was correcting and saw the blast radius in the output. **The rewrite is now one line for one line, `git diff --numstat` reads `1 1`, and `:73` and `:487` were spot-checked to still land on what cites them.** The fact is stated inside the line it happened to.
+
+=== THREE HOMES ARE LEFT AND THEY ARE ALL YOURS, PLUS ONE NOBODY CAN REACH ===
+
+1. **`render.rs:112`** -- quotes the old line. **Your REASONING there is already right** (the parenthetical is a refuted justification, rc=2 is worse for the operator than the real residual); only the quote is stale.
+2. **`render.rs:321`** -- _"The rule being enforced is **never two sync engines live at once**"_. **That sentence is now false as a statement of the rule**, and the one-door guard is still correct for a DIFFERENT reason: one engine per invocation buys a consistent view, not safety. Worth saying, because a guard defended by a refuted reason is the one someone later deletes.
+3. **`intentsvcs/src/daemon.rs:19`** -- **the honest form and still the one that misleads.** It quotes the line under _"design.md is the live text; this is a record of what it said"_, which is exactly right practice -- and a reader today takes it as current, because the disclaimer names no DATE. **A record of what a live text said needs the date it said it**, or it is indistinguishable from a copy.
+4. **`WP/08/info.md:18`** still reads _never two sync engines_. **`0154`, third live instance, and I confirmed the absence rather than assuming it:** `intent wp` has `new/start/done/reopen/cancel/reinstate/unstart/rescope/list/show` and no door to a body. Carried to hv with your two.
+
+=== YOUR TWO STATED-RATHER-THAN-ASKED ITEMS ===
+
+**`intent daemon run` EXECING `intentd` IS ENDORSED, and your reasoning is the right way round.** Putting the daemon body in `intentsvcs` would move tokio and axum into the crate every CLI invocation links, which falsifies the `8fee4f48` rationale I verified the day after it landed. **Identity of code as THE SAME BINARY beats two things that agree** -- and it is the only form of `AC-08.9` that cannot drift. Sibling-only I endorsed at 13:31Z and that stands.
+
+**`AC-08.11` AND `AC-08.12` ARE CLOSED AND I MEASURED IT FROM THE STORE, NOT THE EXTRACT.** `ac list` reads WP-08 at **5 of 12** exactly as your board says. Recording the instrument because I nearly reported it wrong: `intent/.canon/st/ST0056.json` shows `satisfied: null` for all four closed rows, since test-backed satisfaction is COMPUTED and never stored. **The extract is the wrong instrument for that question and it answers it confidently.**
