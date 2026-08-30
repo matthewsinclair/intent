@@ -780,6 +780,36 @@ fn surface_retired(m: &ArgMatches) -> Result<(), Failure> {
   Ok(())
 }
 
+/// The invariant half of the unwired refusal, so the emitter below and the
+/// GENERATED GUIDE cannot drift apart.
+///
+/// **NO WITNESS MAY READ THIS.** A test asserting the refusal keeps its own
+/// literal: an asserting copy that imports the value it asserts has stopped
+/// testing, and would go green on any wording at all. That includes
+/// `a_wired_verb_dispatched_the_same_way_does_not_reach_unwired` further down
+/// THIS FILE, which has the const in scope and deliberately does not use it.
+/// The discriminator is whether the marker is the SUBJECT of the reader
+/// (keep the literal) or INCIDENTAL to it (import) -- Highlander governs
+/// implementations, not witnesses.
+///
+/// **THE GUIDE IS ALREADY WITNESSED, SO THIS IS A HIGHLANDER FIX AND NOT A
+/// MISSING GUARD -- measured 2026-08-30, and the distinction changes what you
+/// may conclude from it.** `exit_codes.rs`'s
+/// `the_guides_exit_code_claims_are_what_the_binary_does` renders `llm guide`
+/// and asserts, against its own literal, that the phrase appears BOTH in this
+/// emitter's stderr and in the guide text -- so a wording change here goes red
+/// today, and that test has already demonstrated it is live, when wiring `st
+/// dehydrate` on 2026-08-26 stole its unwired exemplar and turned both arms
+/// red at once. **What this const removes is the SECOND DECLARATION, not the
+/// blindness**: `guide.rs` imports it rather than re-typing it, and the drift
+/// stops being POSSIBLE rather than merely being caught afterwards.
+///
+/// **The const is the INVARIANT SUBSTRING, not the message**, because the
+/// message interpolates the command path and a per-family remedy. Declaring it
+/// beside an emitter that kept its own literal would have added a home rather
+/// than closing one -- and would have looked closed, which is worse.
+pub const UNWIRED_PHRASE: &str = "is a known command that is not implemented yet";
+
 fn unwired(family: &str, verb: &str) -> Result<(), Failure> {
   let path = if verb.is_empty() {
     family.to_string()
@@ -809,7 +839,7 @@ fn unwired(family: &str, verb: &str) -> Result<(), Failure> {
   // The gate's fail-open branch for `2+` was correct all along and simply
   // never reached. Nothing in the hook changes; the number does.
   Err(Failure::Unavailable(format!(
-    "error: `{path}` is a known command that is not implemented yet\n  remedy: {remedy}"
+    "error: `{path}` {UNWIRED_PHRASE}\n  remedy: {remedy}"
   )))
 }
 
@@ -6570,6 +6600,33 @@ mod tests {
     assert!(
       !message.contains("for the verbs that are"),
       "and must NOT get the other branch's remedy, which would send an operator to a --help that does not exist: {message}"
+    );
+  }
+
+  /// **THE ONE READER `UNWIRED_PHRASE` IS ALLOWED, AND IT RE-TYPES THE VALUE
+  /// RATHER THAN IMPORTING IT.**
+  ///
+  /// `mod tests` opens with `use super::*`, so every witness in this file has
+  /// the const in scope and could quietly start asserting against it. That
+  /// would RETIRE them: an assertion that imports the value it asserts moves
+  /// with the value, and passes on any wording at all, including garbage.
+  ///
+  /// **So the rule on the const is enforced here rather than requested in a doc
+  /// comment.** This is the inverse shape -- it reads the const in order to
+  /// hold it against a literal typed out independently, which is the only
+  /// arrangement in which a comparison carries information. A wording change is
+  /// then a deliberate two-file edit and never an accident, which is what the
+  /// phrase being a PUBLISHED contract calls for: it is rendered into user
+  /// documentation by `guide.rs`, it is the string the shipped pre-commit
+  /// gate's fail-open branch is written against, and it is re-typed in ten test
+  /// files that each go red on their own.
+  #[test]
+  fn the_unwired_phrase_is_pinned_and_this_test_re_types_it_on_purpose() {
+    assert_eq!(
+      UNWIRED_PHRASE, "is a known command that is not implemented yet",
+      "the unwired marker is a published contract, not an implementation detail. \
+       If you meant to change it, change this literal too -- and expect the other \
+       witnesses to go red, which is them working rather than them breaking."
     );
   }
 
