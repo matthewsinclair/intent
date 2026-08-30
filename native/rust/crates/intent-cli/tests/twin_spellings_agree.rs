@@ -30,7 +30,44 @@
 //! widening a sentence. **The unit a defect lives in can be smaller than the
 //! unit an instrument is keyed on**, and saying so is worth more than a green.
 
+//!
+//! # TWO POPULATIONS, AND THE SECOND EXISTS BECAUSE THE FIRST CANNOT SEE THE
+//! ROW'S OWN LIVE FALSIFIER
+//!
+//! `every_declared_twin_exists_and_agrees` walks rows that DECLARE `twin_of`.
+//! Measured 2026-08-30, that population is **one row** -- `browse`, twinned to
+//! `edit --browser` -- and it is filtered from `shipped_entries`, so a retired
+//! row is outside it twice over.
+//!
+//! **`--help` / `help` is invisible to it on both counts, and that pair is
+//! `AC-00.6`'s live falsifier**: `intent --help` answers rc=0 while `intent
+//! help` refuses rc=2 as retired, in one binary, with the failing spelling the
+//! one a person types first. `help` is retired, so it is not in
+//! `shipped_entries`; and it declares no `twin_of`, so it would be filtered out
+//! even if it were.
+//!
+//! **THE GENERAL FORM IS THE PART WORTH KEEPING: A DECLARATION-DRIVEN
+//! INSTRUMENT'S POPULATION IS CHOSEN BY THE SAME JUDGEMENT THAT WOULD HAVE
+//! PREVENTED THE DEFECT.** Nobody wrote `twin_of: "--help"` on the `help` row
+//! for precisely the reason nobody noticed the disagreement -- they did not
+//! think of `--help` as `help`'s twin. So a declared population can only hold
+//! disagreements somebody already suspected, which is the set needing an
+//! instrument least. **This is not the empty-set vacuity this estate greps
+//! for** -- the set is non-empty and the guard against emptiness is already
+//! below. It is narrower and worse: a population that excludes the defect by
+//! construction.
+//!
+//! So `every_twin_the_surface_actually_has_agrees` DERIVES its population from
+//! the built surface. At every node it asks whether a long flag's token is also
+//! a command name this binary KNOWS AND REFUSES.
+//!
+//! **THIS FILE DOES NOT CLOSE `AC-00.6` AND MUST NOT BE READ AS DOING SO.** The
+//! row closes when `intent help` answers. The derived arm measures whether the
+//! estate's account of the disagreement is honest and current: a NEW
+//! disagreement goes red, and so does a FIXED one still carried as expected.
+
 use intent_cli::dispatch;
+use intent_cli::spine;
 
 /// Every `twin_of` names a real capability, and the two spellings agree on
 /// everything a caller could observe about whether it exists.
@@ -150,4 +187,122 @@ fn flag_arity_speaks_the_registers_own_vocabulary() {
       VOCABULARY.join(", ")
     );
   }
+}
+
+/// **THE DISAGREEMENTS THIS BUILD IS KNOWN TO CARRY, EACH WITH THE DECISION IT
+/// IS WAITING ON.**
+///
+/// A pair reaches this roster only when the binary KNOWS the subcommand
+/// spelling and REFUSES it while the flag spelling answers. A flag whose token
+/// simply names nothing is not a member: `--format` with no `format`
+/// subcommand is one spelling of one capability, not two spellings disagreeing
+/// about whether it exists.
+///
+/// **THE ROSTER IS TWO-SIDED BY CONSTRUCTION, AND THAT IS THE ONLY THING THAT
+/// MAKES IT A ROSTER RATHER THAN A COMMENT WITH A TEST'S SYNTAX.** An entry
+/// whose disagreement has been FIXED goes red here exactly as loudly as an
+/// undeclared one. Otherwise an exception outlives the decision that granted
+/// it, which is the failure this estate has already recorded once against a
+/// guard exempting itself in prose.
+const EXPECTED_DISAGREEMENTS: [(&str, &str); 1] = [(
+  "help",
+  "`intent --help` answers rc=0 while `intent help` refuses rc=2 as retired -- intent#0086, OPEN. \
+   hv ruled a v3 `help` surface into the cut on 2026-08-26: `<cmd> help` renders man-style `.md` \
+   on the WHY/WHAT while `<cmd> --help` keeps the params/HOW. They are DIFFERENT surfaces, so \
+   naming `--help` as the replacement would record a claim hv has already contradicted -- and the \
+   row closes when `intent help` ANSWERS, not when its refusal is better worded. Cut membership \
+   is hv's.",
+)];
+
+/// Every twin pair the BUILT SURFACE actually has, rather than every twin pair
+/// a row remembered to declare.
+///
+/// See this file's header for why the declared population cannot reach the one
+/// disagreement `AC-00.6` was re-driven on.
+#[test]
+fn every_twin_the_surface_actually_has_agrees() {
+  use std::collections::BTreeSet;
+
+  let table = dispatch::table();
+
+  // **`build()` IS LOAD-BEARING AND NOT TIDINESS.** clap synthesises `--help`
+  // and `--version` when a command is finalised, so an unfinalised surface has
+  // no `help` flag at all -- and this arm would then measure a population with
+  // its own subject removed, which is the exact defect the header describes
+  // one level up. Positive control: the agreeing set below must be non-empty,
+  // and its only member is the synthesised `--version` / `version` pair.
+  let mut cli = spine::build(&table);
+  cli.build();
+
+  // Every spelling this build knows and refuses, keyed the way a caller types
+  // it. `retired_and_unreachable` is the one definition of "retired" -- it
+  // filters the declared roster by what the BUILT surface actually answers, so
+  // a name reclaimed by a new program (`organize`) is correctly absent here.
+  let refused: BTreeSet<String> = spine::retired_and_unreachable(&table)
+    .into_iter()
+    .flat_map(|(_, gone)| gone.into_iter().map(|spelling| spelling.join(" ")))
+    .collect();
+
+  let mut agreeing: Vec<String> = Vec::new();
+  let mut disagreeing: Vec<(String, String)> = Vec::new();
+
+  let mut queue = vec![(&cli, Vec::<String>::new())];
+  while let Some((node, path)) = queue.pop() {
+    for arg in node.get_arguments() {
+      let Some(long) = arg.get_long() else { continue };
+      let typed = path
+        .iter()
+        .cloned()
+        .chain(std::iter::once(long.to_string()))
+        .collect::<Vec<String>>()
+        .join(" ");
+      if node.find_subcommand(long).is_some() {
+        agreeing.push(typed);
+      } else if refused.contains(&typed) {
+        let flag_spelling = match path.is_empty() {
+          true => format!("--{long}"),
+          false => format!("{} --{long}", path.join(" ")),
+        };
+        disagreeing.push((long.to_string(), flag_spelling));
+      }
+    }
+    for sub in node.get_subcommands() {
+      let mut next = path.clone();
+      next.push(sub.get_name().to_string());
+      queue.push((sub, next));
+    }
+  }
+
+  assert!(
+    !agreeing.is_empty(),
+    "no token in the built surface is spelled BOTH as a flag and as a subcommand, so this arm \
+     measured an empty set and would pass against any binary. `--version` / `version` is the \
+     pair that must be here -- if clap stopped synthesising it, or `build()` above stopped \
+     being called, this arm's subject is gone and its green means nothing"
+  );
+
+  let found: BTreeSet<&str> = disagreeing
+    .iter()
+    .map(|(token, _)| token.as_str())
+    .collect();
+  let expected: BTreeSet<&str> = EXPECTED_DISAGREEMENTS.iter().map(|(t, _)| *t).collect();
+
+  let undeclared: Vec<&&str> = found.difference(&expected).collect();
+  assert!(
+    undeclared.is_empty(),
+    "a capability answers by its flag spelling and is REFUSED by its subcommand twin, and \
+     nothing in this estate says so: {undeclared:?}. This is `INV-09` / `ST0058 AC-00.6` -- \
+     the failing spelling is the one a person types first. Either fix the disagreement or add \
+     it to `EXPECTED_DISAGREEMENTS` with the decision it waits on. Full set found: {disagreeing:?}"
+  );
+
+  let stale: Vec<&&str> = expected.difference(&found).collect();
+  assert!(
+    stale.is_empty(),
+    "`EXPECTED_DISAGREEMENTS` names {stale:?}, and the built surface no longer disagrees about \
+     it. **This is the direction a roster usually fails silently in**: the exception outlives \
+     the decision that granted it and goes on excusing a defect that is gone, while reading \
+     like diligence. Delete the entry -- and if it was `help`, `ST0058 AC-00.6` may now be \
+     satisfiable, which is the whole reason this arm inverts"
+  );
 }

@@ -1397,16 +1397,23 @@ fn the_thread_fixture_serialises_every_field_and_the_three_roles_partition_it() 
   // count still adds up afterwards. Collateral is the loosest role here, and
   // filing an unauthorable field there would assert that a `put` could clear it.
   //
-  // **WHAT THIS ROSTER PROVES AND WHAT IT DOES NOT, STATED SO THE GAP IS VISIBLE
-  // RATHER THAN ASSUMED CLOSED.** It proves `fiat` is CLASSIFIED -- that no
-  // serialised field slipped through unnamed. It does NOT drive `put` with a
-  // fiat payload and assert the refusal, and no test in either crate does:
-  // searched 2026-08-30 for the refusal's own message text across every test
-  // file, zero hits. So the three refusal sites in `Facade::put` could be
-  // deleted and this roster would stay green, because `fiat` would still
-  // serialise and still be classified. **The guard is implemented and
-  // unwitnessed**, which is this estate's own rule firing here -- a restriction
-  // whose witness cannot go red has not been witnessed, only described.
+  // **WHAT THIS ROSTER PROVES AND WHAT IT DOES NOT.** It proves `fiat` is
+  // CLASSIFIED -- that no serialised field slipped through unnamed. It does NOT
+  // drive `put` with a fiat payload, so the three refusal sites in
+  // `Facade::put` could be deleted and this roster would stay green: `fiat`
+  // would still serialise and still be named. **The behaviour is witnessed by
+  // `put_refuses_to_author_a_fiat_record`, below in this file**, which matches
+  // the refusal's own message text so that its green means D7 rather than
+  // meaning `serde`.
+  //
+  // **UNTIL `07d49a2e` THIS PARAGRAPH SAID NO SUCH TEST EXISTED IN EITHER
+  // CRATE, AND IT WENT ON SAYING SO AFTER THE TEST LANDED 1500 LINES BELOW IT
+  // IN THIS FILE.** A note describing a live gap is read as a live gap by the
+  // next author, who here was the author of the note -- so a stale one does not
+  // merely misinform, it re-commissions work already done. **A pointer to the
+  // closer is not immune** -- rename that arm and this paragraph is wrong the
+  // other way -- but it fails toward "go and look" instead of toward "go and
+  // build".
   const UNAUTHORABLE: [&str; 1] = ["fiat"];
 
   let classified: BTreeSet<&str> = REQUIRED
