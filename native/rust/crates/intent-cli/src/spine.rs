@@ -682,6 +682,93 @@ pub fn parse(argv: Vec<String>) -> Result<clap::ArgMatches, i32> {
   }
 }
 
+/// What replaces a retired command, as three distinguishable FACTS rather than
+/// as a sentence.
+///
+/// **`retired_refusal` and `surface retired` both need this and they render it
+/// differently -- a refusal speaks a remedy line, a roster prints a column --
+/// so the shared thing is the fact and not the prose.** Returning a string here
+/// would force one door to parse the other door's wording, which is the
+/// divergent-copy shape wearing a helper's clothes.
+///
+/// The three arms are three different facts and collapsing any two of them is a
+/// defect this estate has already shipped once: under `#[serde(default)]` on a
+/// bare `String`, `None` and `Some("")` were the same value, and the binary
+/// rendered an absent key as the confident negative _there is no v3
+/// replacement -- remove it from any script that calls it_. An operator was
+/// told to strip a command out of their automation on the strength of a key
+/// nobody had written.
+pub enum Replacement<'a> {
+  /// The row names where the capability went.
+  Named(&'a str),
+  /// The row declares that nothing replaces this. Only this arm earns the
+  /// instruction to delete the call.
+  DeclaredNone,
+  /// Nobody has written the key. NOT the same as `DeclaredNone`.
+  Unrecorded,
+}
+
+/// Read a retired row's replacement. See [`Replacement`] for why it is not a
+/// string.
+pub fn replacement(entry: &Entry) -> Replacement<'_> {
+  match entry.target.spelling.as_deref() {
+    Some("") => Replacement::DeclaredNone,
+    Some(named) => Replacement::Named(named),
+    None => Replacement::Unrecorded,
+  }
+}
+
+/// Every retired row this build does not ALSO ship under the same spelling,
+/// with the spellings that are genuinely gone.
+///
+/// **THIS IS THE ONE DEFINITION OF "retired", AND EVERY DOOR ONTO IT READS
+/// THIS FUNCTION.** `retired_refusal` matches an argv against it to answer one
+/// caller; an enumeration verb publishes it so a caller can branch on
+/// MEMBERSHIP rather than on an exit code, which is what ST0058 AC-00.5 asks
+/// for. Two doors are fine. Two answers to "is this retired" are the
+/// divergent-copy shape, in the artefact whose whole job is to stop v3
+/// re-deriving its own surface description.
+///
+/// **`table.retired()` ALONE IS NOT THAT ANSWER, AND PUBLISHING IT WOULD BE
+/// WORSE THAN PUBLISHING NOTHING.** It selects on `!is_shipped()`, which reads
+/// two declared fields and asks nothing about the built surface. `organize` has
+/// TWO rows -- one under `families` dispositioned `retire`, one under
+/// `new_surface` -- so it is in `populations.shipped` AND
+/// `populations.retired`, it satisfies `!is_shipped()` on the first row, and it
+/// RUNS. A caller branching on the unfiltered list deletes a working verb from
+/// their automation, which is the exact harm `retired_refusal`'s own comment
+/// records being measured: a shipped verb telling an operator who mistyped a
+/// flag that the command does not exist and to remove it from their scripts.
+///
+/// So the reachability filter is not a refinement of the roster. It is the
+/// half that makes the roster true, and it belongs to both doors or to
+/// neither.
+pub fn retired_and_unreachable(table: &Table) -> Vec<(&Entry, Vec<Vec<&str>>)> {
+  let surface = build(table);
+  let reachable = |spelling: &[&str]| {
+    let mut node = &surface;
+    for token in spelling {
+      match node.find_subcommand(*token) {
+        Some(next) => node = next,
+        None => return false,
+      }
+    }
+    true
+  };
+  table
+    .retired()
+    .into_iter()
+    .filter_map(|e| {
+      let gone: Vec<Vec<&str>> = e
+        .spellings()
+        .into_iter()
+        .filter(|spelling| !reachable(spelling))
+        .collect();
+      (!gone.is_empty()).then_some((e, gone))
+    })
+    .collect()
+}
+
 /// A v2 command this build retired, named as such, or `None`.
 ///
 /// **Consulted only AFTER clap has failed, and that ordering is the safety
@@ -725,23 +812,14 @@ fn retired_refusal(table: &dispatch::Table, argv: &[String]) -> Option<String> {
   // about, rebuilt inside the guard against it. Walking the spelling token by
   // token is what keeps `st organize` retired while `organize` is live: `st` is
   // reachable, `organize` UNDER it is not, and only the whole path answers.
-  let surface = build(table);
-  let reachable = |spelling: &[&str]| {
-    let mut node = &surface;
-    for token in spelling {
-      match node.find_subcommand(*token) {
-        Some(next) => node = next,
-        None => return false,
-      }
-    }
-    true
-  };
-  let (entry, typed) = table.retired().into_iter().find_map(|e| {
-    e.spellings()
-      .into_iter()
-      .find(|spelling| given.starts_with(spelling.as_slice()) && !reachable(spelling))
-      .map(|spelling| (e, spelling.join(" ")))
-  })?;
+  let (entry, typed) = retired_and_unreachable(table)
+    .into_iter()
+    .find_map(|(e, gone)| {
+      gone
+        .into_iter()
+        .find(|spelling| given.starts_with(spelling.as_slice()))
+        .map(|spelling| (e, spelling.join(" ")))
+    })?;
   // **AN ABSENT FIELD IS REFUSED, NEVER RENDERED, AND THE THREE ARMS ARE THREE
   // DIFFERENT FACTS.** `Some(s)` names where the capability went. `Some("")` is
   // a DECLARED "nothing replaces this", and only that earns the instruction to
@@ -754,10 +832,10 @@ fn retired_refusal(table: &dispatch::Table, argv: &[String]) -> Option<String> {
   // holds every retired row's key present -- but it says what it knows rather
   // than asserting the stronger claim, because an unreachable arm that lies is
   // still the lie that ships if the table drifts.
-  let remedy = match entry.target.spelling.as_deref() {
-    Some("") => "there is no v3 replacement -- remove it from any script that calls it".to_string(),
-    Some(replacement) => format!("use `{replacement}` instead"),
-    None => "no v3 replacement is recorded for this command -- check the release notes before removing it from a script".to_string(),
+  let remedy = match replacement(entry) {
+    Replacement::DeclaredNone => "there is no v3 replacement -- remove it from any script that calls it".to_string(),
+    Replacement::Named(named) => format!("use `{named}` instead"),
+    Replacement::Unrecorded => "no v3 replacement is recorded for this command -- check the release notes before removing it from a script".to_string(),
   };
   Some(format!(
     "error: `intent {typed}` was retired in Intent v3 and is not a command in this build\n  remedy: {remedy}"
@@ -805,6 +883,53 @@ fn first_line(rendered: &str) -> String {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  /// **A ROSTER OF RETIRED COMMANDS MUST NOT NAME ONE THAT RUNS, AND
+  /// `table.retired()` DOES.** This is the property ST0058 AC-00.5 turns on:
+  /// the criterion asks for retirement to be ENUMERABLE so a caller can branch
+  /// on membership instead of on an exit code, and a caller branching on the
+  /// unfiltered roster would delete a working verb from their automation.
+  ///
+  /// `organize` is the case, and it is not hypothetical: it has two rows -- one
+  /// under `families` dispositioned `retire`, one under `new_surface` -- so it
+  /// is in `populations.shipped` AND `populations.retired` at once, satisfies
+  /// `!is_shipped()` on the first row, and dispatches.
+  ///
+  /// **BOTH ARMS ARE LOAD-BEARING AND THEY FAIL FOR DIFFERENT REASONS.** The
+  /// first says the naive roster really does carry the trap, so this test is
+  /// not asserting a hazard that has already been designed away somewhere else.
+  /// The second says the filter removes it. Dropping either leaves a test that
+  /// passes against a roster with no filter at all.
+  #[test]
+  fn the_enumerable_roster_excludes_a_retired_name_this_build_reclaimed() {
+    let table = dispatch::table();
+
+    let naive: Vec<&str> = table.retired().iter().map(|e| e.path.as_str()).collect();
+    assert!(
+      naive.contains(&"organize"),
+      "`table.retired()` no longer carries `organize`, so this test is measuring nothing. Either \
+       the table changed or the trap moved: read the row before deleting the arm. naive roster: {naive:?}"
+    );
+
+    let enumerable: Vec<&str> = retired_and_unreachable(&table)
+      .iter()
+      .map(|(e, _)| e.path.as_str())
+      .collect();
+    assert!(
+      !enumerable.contains(&"organize"),
+      "`organize` is reachable in the built surface and this roster publishes it as retired. A \
+       caller branching on membership would remove a working command from their scripts. \
+       enumerable roster: {enumerable:?}"
+    );
+
+    // A filter that removed everything would satisfy the arm above and be
+    // useless, so the roster must still name the commands that really are gone.
+    assert!(
+      enumerable.contains(&"treeindex"),
+      "the enumerable roster dropped `treeindex`, which IS retired and unreachable -- the filter \
+       is removing more than the reclaimed names. enumerable roster: {enumerable:?}"
+    );
+  }
 
   /// **The built surface's subcommand requirement IS the table's declared
   /// arity, for every family, measured rather than reasoned.**
