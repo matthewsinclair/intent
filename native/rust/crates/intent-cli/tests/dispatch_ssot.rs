@@ -616,7 +616,25 @@ fn a_flags_declared_placeholder_and_requiredness_reach_the_surface() {
         let inner = head
           .trim_start_matches(['<', '['])
           .trim_end_matches(['>', ']']);
-        let want = format!("{long} <{inner}>{}", if repeated { "..." } else { "" });
+        // **AN OPTIONAL VALUE RENDERS DIFFERENTLY, AND THE ARITY IS WHAT SAYS
+        // SO.** A flag whose arity admits zero values is reachable only through
+        // `=` -- `edit` has three positionals, so `--editor vim` cannot be told
+        // from a positional -- and clap renders that as `--editor[=<program>]`.
+        // The shape above assumed every valued flag renders `--long <v>`, which
+        // was true of every row until one declared `0..1`: the assumption was
+        // never written down, it was the format string.
+        //
+        // Derived from the DECLARATION, not from the builder. If spine.rs took
+        // the arity and forgot `require_equals`, clap would render
+        // `--editor [<program>]` and this would still fail -- which is the
+        // difference between reading the same table and restating the same
+        // code.
+        let optional_value = matches!(dispatch::arity_bounds(&flag.arity), Some((0, _)));
+        let want = if optional_value {
+          format!("{long}[=<{inner}>]")
+        } else {
+          format!("{long} <{inner}>{}", if repeated { "..." } else { "" })
+        };
         if block.contains(&want) {
           placeholders += 1;
         } else {

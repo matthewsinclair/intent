@@ -440,3 +440,100 @@ fn a_failing_editor_is_reported_rather_than_swallowed() {
     "the refusal must name the editor and its code: {stderr:?}"
   );
 }
+
+/// **AN OPTIONAL VALUE IS ONLY DECIDABLE THROUGH `=`, WHICH IS WHY THE
+/// REGISTER DECLARES AN ARITY HERE AND NOT A BOOLEAN.**
+///
+/// `edit` has three positionals, so a bare `--editor vim` gives clap nothing to
+/// decide with: `vim` is equally the program and the next positional. The row
+/// declares `arity: "0..1"`, spine.rs turns that into `num_args(0..=1)` PLUS
+/// `require_equals`, and the surface renders `--editor[=<program>]`.
+///
+/// **The rendering is checked in `dispatch_ssot`; this is the behaviour, and
+/// they are not the same claim.** A help string can agree with the table while
+/// the parser does something else -- so each arm below drives an outcome an
+/// operator would notice, and the three are chosen because each fails
+/// differently if the arity is dropped:
+///
+/// - `--editor=<program>` must run THAT program, with `$VISUAL` and `$EDITOR`
+///   removed. Without `num_args`, clap refuses the `=` form outright.
+/// - bare `--editor` must fall back to `$EDITOR`. Without the `0` minimum, clap
+///   refuses it as a missing value -- which is exactly what the surface promised
+///   before this landed, `--editor <program>` with no way to omit it.
+/// - `--editor notafile` must leave `notafile` in the FILE slot and refuse it BY
+///   NAME. This is the arm that says `require_equals` is doing the work: without
+///   it clap takes `notafile` as the program and launches it, and the operator's
+///   file argument silently becomes an editor.
+#[test]
+fn an_optional_editor_value_is_reached_through_equals_and_a_bare_word_stays_a_positional() {
+  let dir = seeded();
+  let named = dir.path().join("named.log");
+  let recorder = fake_editor(dir.path(), &named);
+
+  // `--editor=<program>` runs the NAMED program. Both env vars are removed by
+  // `intent()`, so nothing else could have launched it.
+  let out = intent(
+    dir.path(),
+    &[
+      "edit",
+      "st",
+      "ST0001",
+      "design",
+      &format!("--editor={recorder}"),
+    ],
+  );
+  assert!(
+    out.status.success(),
+    "`--editor=<program>` was refused: {}",
+    String::from_utf8_lossy(&out.stderr)
+  );
+  assert_eq!(
+    std::fs::read_to_string(&named)
+      .expect("the named program was never launched")
+      .trim(),
+    expected(dir.path()),
+    "the named program ran but was handed something other than the resolved path"
+  );
+
+  // Bare `--editor` resolves `$EDITOR`. A separate log, so this arm cannot pass
+  // on the previous arm's evidence.
+  let fallback = dir.path().join("fallback.log");
+  let resolved = fake_editor(dir.path(), &fallback);
+  let out = Command::new(env!("CARGO_BIN_EXE_intent"))
+    .args(["edit", "st", "ST0001", "design", "--editor"])
+    .current_dir(dir.path())
+    .env("HOME", testkit::fixture_home())
+    .env_remove("VISUAL")
+    .env("EDITOR", &resolved)
+    .stdin(Stdio::null())
+    .output()
+    .expect("run the v3 binary");
+  assert!(
+    out.status.success(),
+    "a bare `--editor` was refused, so the arity's zero is not reaching clap: {}",
+    String::from_utf8_lossy(&out.stderr)
+  );
+  assert_eq!(
+    std::fs::read_to_string(&fallback)
+      .expect("`$EDITOR` was never launched by a bare `--editor`")
+      .trim(),
+    expected(dir.path())
+  );
+
+  // A bare word after `--editor` is the FILE, and it is refused BY NAME.
+  let out = intent(
+    dir.path(),
+    &["edit", "st", "ST0001", "--editor", "notafile"],
+  );
+  assert!(
+    !out.status.success(),
+    "`--editor notafile` succeeded, so `notafile` was swallowed as the program \
+     rather than left in the file slot"
+  );
+  let stderr = String::from_utf8_lossy(&out.stderr);
+  assert!(
+    stderr.contains("notafile") && stderr.contains("design"),
+    "the refusal must name the word it rejected and the files it will accept, so \
+     the operator can see their file argument was read as a file. got: {stderr}"
+  );
+}

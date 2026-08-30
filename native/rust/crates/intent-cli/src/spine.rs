@@ -602,6 +602,31 @@ fn flags(mut cmd: Command, entry: &Entry) -> Command {
         a = a.num_args(1..);
       }
     }
+    // **A DECLARED ARITY REACHES clap, AND ON A FLAG THAT MEANS `=`.** The
+    // register says `--editor` takes `0..1` values -- `intent edit st ST0001
+    // --editor` uses `$VISUAL`, `--editor=vim` names one. Read as a plain
+    // optional value it is AMBIGUOUS rather than merely loose: `edit` has three
+    // positionals, so `--editor vim` gives clap no way to know whether `vim` is
+    // the program or the next positional, and it will take it as the program
+    // and then refuse the row for a missing argument. `require_equals` is what
+    // makes the optional value decidable, so it is not a stylistic preference
+    // about `=` -- it is the half without which the arity cannot be honoured at
+    // all.
+    //
+    // Applied only where the table declares an arity, so the 100-odd flags that
+    // declare none keep `ArgAction::Set`'s exactly-one and this changes nothing
+    // for them.
+    if let Some((min, max)) = dispatch::arity_bounds(&flag.arity)
+      && flag.kind != "bool"
+    {
+      a = match max {
+        Some(max) => a.num_args(min..=max),
+        None => a.num_args(min..),
+      };
+      if min == 0 {
+        a = a.require_equals(true);
+      }
+    }
     // **Declared requiredness reaches the parser**, so the usage line stops
     // presenting a required flag as optional. It is belt-and-braces rather than
     // the only thing standing there: the facade guards the same values and

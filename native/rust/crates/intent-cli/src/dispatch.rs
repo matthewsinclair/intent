@@ -371,7 +371,7 @@ impl Arg {
   /// held by a peer and a behaviour change split across two commits is worse
   /// than a divergence that is written down.
   pub fn required(&self) -> bool {
-    self.arity == "1" || self.arity == "1..n"
+    matches!(arity_bounds(&self.arity), Some((min, _)) if min >= 1)
   }
 
   /// Whether the slot takes more than one value.
@@ -387,7 +387,38 @@ impl Arg {
   /// commit message cannot answer "has this ever refused anything" without a
   /// `git log --follow` nobody runs before trusting a green.
   pub fn repeated(&self) -> bool {
-    self.arity.contains('+') || self.arity.contains('*') || self.arity.ends_with('n')
+    matches!(arity_bounds(&self.arity), Some((_, None)))
+  }
+}
+
+/// The register's arity vocabulary, read as `(minimum, maximum)` values --
+/// `None` for a maximum that is open, `None` for the whole answer when the
+/// spelling is not one the register declares.
+///
+/// **THE VOCABULARY HAS ONE READER.** It had two, both on `Arg`, matching the
+/// same four spellings independently: `required()` tested for a leading `1`
+/// and `repeated()` for a trailing `n`, and each was a separate chance to
+/// disagree with the table. Now that `Flag` declares `arity` too there would
+/// have been three, and the third would have been in another file.
+///
+/// **The `+` and `*` arms are gone, and they were the ORIGINAL defect rather
+/// than defensive breadth.** `repeated()` shipped testing for those two alone,
+/// which read the table's own `0..n` as a single value; `ends_with('n')` was
+/// added over the top rather than instead. Neither spelling occurs, and
+/// [`tests::an_arity_is_read_the_same_way_by_every_reader`] is what makes
+/// removing them safe rather than merely tidy: its closure check refuses any
+/// spelling these four arms were never driven over, so a fifth cannot arrive
+/// unnoticed and be silently read as non-repeating. That check now censuses
+/// flags as well as args -- adding `arity` to `Flag` widened the corpus it
+/// guards, and a guard keyed on half its corpus passes for free on the other
+/// half.
+pub fn arity_bounds(arity: &str) -> Option<(usize, Option<usize>)> {
+  match arity {
+    "1" => Some((1, Some(1))),
+    "0..1" => Some((0, Some(1))),
+    "0..n" => Some((0, None)),
+    "1..n" => Some((1, None)),
+    _ => None,
   }
 }
 
@@ -1283,8 +1314,12 @@ mod tests {
 
     let declared: std::collections::BTreeSet<String> = shipped_entries(&table())
       .iter()
-      .flat_map(|e| e.args.iter())
-      .map(|a| a.arity.clone())
+      .flat_map(|e| {
+        e.args
+          .iter()
+          .map(|a| a.arity.clone())
+          .chain(e.flags.iter().map(|f| f.arity.clone()))
+      })
       .filter(|a| !a.is_empty())
       .collect();
     let covered: std::collections::BTreeSet<String> = ["1", "0..1", "0..n", "1..n"]

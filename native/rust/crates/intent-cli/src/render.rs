@@ -889,7 +889,7 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
   let path = facade.edit(&address, &file).map_err(fail)?;
 
   if opens_an_editor(m)? {
-    launch_editor(&path)
+    launch_editor(&path, named_editor(m).as_deref())
   } else {
     println!("{}", path.display());
     Ok(())
@@ -959,8 +959,11 @@ daemon serves and will not start one on your behalf",
 /// run with a terminal on stdin and a pipe on stdout is a script capturing the
 /// answer, and it must still receive one.
 fn opens_an_editor(m: &ArgMatches) -> Result<bool, Failure> {
-  let editor = flag(m, "editor");
-  let path = flag(m, "path");
+  // **`given`, NOT `flag`.** `--editor` carries a value on this row, so the
+  // bool read that serves the kept spelling answers `false` here however the
+  // operator spells it. See [`given`].
+  let editor = given(m, "editor");
+  let path = given(m, "path");
 
   // **REFUSED RATHER THAN RANKED.** Picking a winner here would make one of the
   // two flags silently inert, and which one is inert is exactly the thing a
@@ -1000,7 +1003,7 @@ fn opens_an_editor(m: &ArgMatches) -> Result<bool, Failure> {
 /// to return to until it exits; a windowing editor that forks returns at once
 /// on its own. Detaching would be a choice made on behalf of the first case,
 /// wrongly.
-fn launch_editor(path: &Path) -> Result<(), Failure> {
+fn launch_editor(path: &Path, named: Option<&str>) -> Result<(), Failure> {
   // `$VISUAL` before `$EDITOR` is the long-standing convention and it is
   // load-bearing rather than decorative: `$EDITOR` is the line editor for a
   // dumb terminal and `$VISUAL` the full-screen one, and a caller who set both
@@ -1020,10 +1023,16 @@ fn launch_editor(path: &Path) -> Result<(), Failure> {
   let editor = std::env::var("EDITOR")
     .ok()
     .filter(|value| !value.trim().is_empty());
-  let (var, spelling) = match (visual, editor) {
-    (Some(value), _) => ("VISUAL", value),
-    (None, Some(value)) => ("EDITOR", value),
-    (None, None) => {
+  // **THE FLAG BEATS THE ENVIRONMENT BECAUSE IT IS THE MORE SPECIFIC ANSWER TO
+  // THE SAME QUESTION**, and it is the only reason the row declares an arity
+  // rather than a boolean: `--editor=<program>` exists to open THIS file in
+  // THAT program once, without a caller having to export a variable around a
+  // single command and put it back.
+  let (var, spelling) = match (named, visual, editor) {
+    (Some(value), _, _) => ("`--editor=`", value.to_string()),
+    (None, Some(value), _) => ("$VISUAL", value),
+    (None, None, Some(value)) => ("$EDITOR", value),
+    (None, None, None) => {
       return Err(Failure::Error(
         concat!(
           "error: no editor to open with -- neither $VISUAL nor $EDITOR is set\n",
@@ -1053,8 +1062,8 @@ fn launch_editor(path: &Path) -> Result<(), Failure> {
     .map_err(|e| {
       Failure::Error(format!(
         concat!(
-          "error: cannot run `{program}`, named by ${var} -- {cause}\n",
-          "  remedy: ${var} must name a program a process can execute. A shell alias or ",
+          "error: cannot run `{program}`, named by {var} -- {cause}\n",
+          "  remedy: {var} must name a program a process can execute. A shell alias or ",
           "function is not one, since only your shell can see it -- name what it resolves ",
           "to. Or re-run with `--path` to print the path instead",
         ),
@@ -5827,6 +5836,42 @@ fn opt(m: &ArgMatches, name: &str) -> Option<String> {
 /// reasoning as [`opt`].
 fn flag(m: &ArgMatches, name: &str) -> bool {
   m.try_get_one::<bool>(name).ok().flatten().copied() == Some(true)
+}
+
+/// Was this flag GIVEN on the command line, whatever it carries?
+///
+/// **[`flag`] ANSWERS A NARROWER QUESTION THAN ITS NAME, AND ANSWERS `false`
+/// TO EVERY OTHER ONE.** It reads the match as a `bool`, which is what clap
+/// stores for `ArgAction::SetTrue` and only that. A flag declared with a value
+/// stores a `String`, so `try_get_one::<bool>` is a TYPE MISMATCH, `.ok()`
+/// discards it, and the flag reads as ABSENT -- present on the command line,
+/// parsed by clap, invisible to the arm.
+///
+/// That is how `intent edit st ST0001 design --editor` printed the path
+/// instead of opening an editor while `intent st edit ST0001 design --editor`
+/// opened one: the same spelling is `bool` on the kept row and a valued flag
+/// on the new one, so the same helper answered correctly for one and silently
+/// wrongly for the other. **The `.ok()` is the whole defect** -- a swallowed
+/// mismatch is indistinguishable from an honest `false`, which is the No
+/// Silent Errors rule at a helper small enough that nobody reads it twice.
+///
+/// `ValueSource::CommandLine` is the question both callers actually have, and
+/// it is asked the same way of either action: a `SetTrue` flag left off
+/// carries `DefaultValue`, so this is not merely `contains_id`.
+fn given(m: &ArgMatches, name: &str) -> bool {
+  matches!(
+    m.value_source(name),
+    Some(clap::parser::ValueSource::CommandLine)
+  )
+}
+
+/// The program `--editor=<program>` named, if it named one.
+fn named_editor(m: &ArgMatches) -> Option<String> {
+  m.try_get_one::<String>("editor")
+    .ok()
+    .flatten()
+    .map(|value| value.trim().to_string())
+    .filter(|value| !value.is_empty())
 }
 
 /// `intent backup` takes a snapshot; `--list` reports what exists.
