@@ -67,14 +67,38 @@ setup() {
   # form matches a roster ENTRY and not a mention in prose: this file is heavily
   # commented and several guards are discussed by name in it, so a bare
   # substring test would pass on a guard that had been described and removed.
-  local g name missing=""
+  local g name missing="" wrongly=""
   for g in "$HOOKS_DIR"/*-guard.sh; do
     [ -f "$g" ] || continue
     name="$(basename "$g")"
+    # **A GUARD MAY DECLARE ITSELF DELIBERATELY ABSENT, AND THE CHECK THEN
+    # INVERTS RATHER THAN LAPSING.** `critic-guard.sh` landed inert on purpose:
+    # every installed carrier still contains the whole critic gate, so rostering
+    # it today would run the critic twice in fifteen estates and print every
+    # finding twice -- the permanently-noisy-aggregate failure, where the real
+    # finding hides inside its own duplicate. The roster line is hv's to time.
+    #
+    # **THE EXCLUSION IS READ FROM THE GUARD RATHER THAN LISTED HERE**, so a
+    # second guard landing inert tomorrow is covered without anyone remembering
+    # to edit this file -- the arrangement `RECORD_TIMESTAMPS` already uses.
+    # An allowlist here would be a second home for a decision the guard states.
+    if grep -qF 'ROSTER: DELIBERATELY-ABSENT' "$g"; then
+      # The converse, and it is the half that keeps the marker honest: a guard
+      # claiming to be absent must actually BE absent, so the marker cannot
+      # outlive the decision and quietly exempt a live guard.
+      ! grep -qF "|${name}|" "$RUNNER" || wrongly="${wrongly} ${name}"
+      continue
+    fi
     grep -qF "|${name}|" "$RUNNER" || missing="${missing} ${name}"
   done
   if [ -n "$missing" ]; then
     echo "shipped but named in no roster entry:${missing}"
+    echo "roster it, or declare the absence in the guard body with 'ROSTER: DELIBERATELY-ABSENT' and the reason"
+    return 1
+  fi
+  if [ -n "$wrongly" ]; then
+    echo "declares ROSTER: DELIBERATELY-ABSENT but IS rostered:${wrongly}"
+    echo "the guard is live -- remove the marker in the same edit that rostered it"
     return 1
   fi
 }

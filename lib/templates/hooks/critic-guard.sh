@@ -3,6 +3,16 @@
 # critic-guard.sh -- the Intent critic gate, as a GUARD BODY rather than as part
 # of the carrier. (A2), ruled by hv 2026-08-27 in vc's session.
 #
+# ROSTER: DELIBERATELY-ABSENT
+#
+# The line above is MACHINE-READABLE and `guard_dispatch.bats` reads it, because
+# an exclusion recorded only in prose is one no instrument can tell from an
+# oversight -- which is exactly what the roster test was reporting about this
+# file for three days. It is checked in BOTH directions: a guard carrying this
+# marker must NOT appear in the roster, and one without it must. So the day hv
+# times the roster line, this marker has to come out in the same edit or the
+# test reds -- the declaration cannot outlive the decision it describes.
+#
 # THIS FILE IS NOT ROSTERED YET AND THAT IS DELIBERATE, NOT AN OVERSIGHT.
 # `pre-commit-guards.sh` does not name it, so nothing runs it and landing it
 # changes no behaviour in any estate. The reason is measured: every installed
