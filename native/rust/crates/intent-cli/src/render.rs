@@ -4726,10 +4726,45 @@ fn fc(m: &ArgMatches) -> Result<(), Failure> {
       );
       Ok(())
     }
-    // The thread and work-package kinds are ruled and unbuilt -- see the doc
-    // above. Named separately from the arms that ARE wired so that the day a
-    // shape is built, the arm that gains it is obvious.
-    _ => unwired("fc", ""),
+    // **NO CHILD MEANS THE TARGET ITSELF, AND WHICH KIND IT IS COMES FROM
+    // `scope_of` RATHER THAN FROM A SECOND READING HERE.** `ST0056` is a thread
+    // and `ST0056/03` is a work package, which is the same distinction `ac gate`
+    // and `wp_target` already make; parsing the slash again in this arm would be
+    // a second place for the answer to differ.
+    //
+    // **THIS IS WHY THE VERB IS TOP-LEVEL AND NOT `st fc` / `wp fc`** (ic's
+    // surface ruling, 2026-08-29): one address grammar reaches all four kinds,
+    // and a family-rooted verb could not reach an ST's ATs at all.
+    None => {
+      let target = thread_arg(m, "target")?;
+      match scope_of(&target) {
+        (st, Scope::Thread) => {
+          reported(
+            &open()?.st_fc(&st, &because, by).map_err(fail)?,
+            &st,
+            "fiat-closed",
+          );
+          Ok(())
+        }
+        (st, Scope::WorkPackage(seq)) => {
+          let label = format!("{st}/{seq:02}");
+          reported(
+            &open()?.wp_fc(&st, seq, &because, by).map_err(fail)?,
+            &label,
+            "fiat-closed",
+          );
+          Ok(())
+        }
+      }
+    }
+    // A child that is neither an AC nor an AT: the id grammar is the only thing
+    // that says which kind a fiat close is FOR, so an unrecognised one is
+    // refused by name rather than routed to a kind it does not belong to.
+    Some(id) => Err(Failure::Error(format!(
+      "error: `{id}` is not an acceptance criterion or an acceptance test\n  \
+       remedy: name it as `AC-<NN>.<n>` or `AT-<NN>.<n>`, or omit it to \
+       fiat-close the target itself"
+    ))),
   }
 }
 

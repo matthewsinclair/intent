@@ -343,6 +343,17 @@ fn started(root: &Path) {
   assert_eq!(code, 0, "prep st start failed: {err}");
 }
 
+/// `ST0001` into `wip`, for the same reason [`started`] exists one function up.
+///
+/// **`st.fc` is declared from `wip` and from nowhere else**, so a fiat-close case
+/// on a fresh `triage` thread would measure the state machine refusing and prove
+/// nothing about the verb. A separate thread from [`started`]'s because the two
+/// cases run against the same fixture and a close is not something to share.
+fn started_first(root: &Path) {
+  let (_, err, code) = run(&["st", "start", "ST0001"], root);
+  assert_eq!(code, 0, "prep st start ST0001 failed: {err}");
+}
+
 /// Make the thread index stale so `st sync --write` has something to do.
 /// **Scribbled rather than deleted**: a deleted file comes back as `created`
 /// and never enters the moved/changed comparison, so the case would assert the
@@ -433,11 +444,26 @@ fn cases() -> Vec<Case> {
     },
     Case {
       verb: "fc",
-      args: &["fc", "ST0056", "--because", "hv closed it on authority"],
-      prep: NOOP,
-      expect: Expect::WritesNothing(2),
-      must_say: Some(UNWIRED_PHRASE),
-      why: "rc=2, `is a known command that is not implemented yet` -- the row landed on the surface (ic, 2026-08-29) ahead of the arm that serves it, which is the ordering this bucket exists to hold. **The service side EXISTS** -- `Facade::ac_fc` is built and green -- so the gap is the renderer arm alone, and this case is what turns red on the day it is wired. `--because` is supplied deliberately: without it clap refuses at rc=1 before dispatch is reached, which would make this case pass for the wrong reason and prove nothing about the unwired arm",
+      args: &[
+        "fc",
+        "ST0001",
+        "--because",
+        "closed on hv's word: unobservable by unit test",
+      ],
+      prep: started_first,
+      expect: Expect::Writes,
+      must_say: None,
+      why: "**IT IS WIRED NOW, AND THIS CASE IS THE ONE THAT SAID IT WOULD TURN RED ON THE DAY IT WAS.** \
+            It read `rc=2, is a known command that is not implemented yet` from 2026-08-29, when the row \
+            landed on the surface ahead of the arm serving it, and its own `why` said *this case is what \
+            turns red on the day it is wired*. It did, and this is the successor rather than a repair: a \
+            tripwire that has fired is spent, and replacing it with a weaker assertion -- that the verb \
+            refuses cleanly on a thread that does not exist -- would keep the row and lose the subject. \
+            **Now it drives a REAL fiat close and asserts the estate moved**, which is the thing the \
+            bucket is for. `prep` starts the thread because `st.fc` is declared from `wip` alone, so \
+            without it this would measure the machine refusing. `--because` is still supplied \
+            deliberately: clap refuses at rc=1 before dispatch without it, which would pass for the \
+            wrong reason",
     },
     Case {
       verb: "st repair",

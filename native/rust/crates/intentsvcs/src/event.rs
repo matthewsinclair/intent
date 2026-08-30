@@ -206,6 +206,47 @@ pub struct Subject {
   pub id: String,
 }
 
+/// The next event id, MONOTONIC within a millisecond.
+///
+/// **`Ulid::new()` IS NOT ENOUGH, AND A CASCADE IS WHAT PROVED IT.** A ULID's
+/// first 48 bits are the millisecond and the remaining 80 are random, so two
+/// minted in the same millisecond sort by their RANDOM half -- in any order.
+/// The whole of a fiat cascade is minted inside one transaction, so measured on
+/// a real close (2026-08-30): five events, one timestamp, and `at.fc` sorting
+/// BEFORE the `st.fc` that caused it. **A child ahead of its ancestor in a log
+/// whose ids are documented as lexically sortable.**
+///
+/// That matters exactly as much as the ruling it undermines: one-event-per-entity
+/// was chosen so a consumer replaying the log rebuilds the estate, and a replay
+/// that meets `at.fc` first is applying a cascade before the close that
+/// justifies it. **`inherited_event` recovers the GROUPING and cannot recover
+/// the ORDER.**
+///
+/// A shared generator makes ids monotonic within a millisecond, so insertion
+/// order and lexical order agree. **Applied to every event rather than to
+/// cascades**, because the property the `event_log` row claims -- *lexically
+/// sortable* -- is claimed for all of them, and a fix scoped to the one caller
+/// that noticed would leave the claim false everywhere else.
+///
+/// **Falls back to a fresh random ULID rather than failing**: `generate` can
+/// refuse only when the random half has been exhausted inside a single
+/// millisecond, and a monotonic id is a nicety where an id at all is not.
+fn next_id() -> String {
+  use std::sync::Mutex;
+  static GEN: Mutex<Option<ulid::Generator>> = Mutex::new(None);
+  let mut guard = match GEN.lock() {
+    Ok(g) => g,
+    // A poisoned lock means another thread panicked mid-mint; an id is still
+    // owed, and refusing here would turn someone else's panic into ours.
+    Err(poisoned) => poisoned.into_inner(),
+  };
+  let generator = guard.get_or_insert_with(ulid::Generator::new);
+  match generator.generate() {
+    Ok(id) => id.to_string(),
+    Err(_) => ulid::Ulid::new().to_string(),
+  }
+}
+
 impl Envelope {
   /// Mint an envelope that has NOT been written yet, and therefore has NO
   /// time.
@@ -235,7 +276,7 @@ impl Envelope {
   ) -> Self {
     let ts = String::new();
     Self {
-      id: ulid::Ulid::new().to_string(),
+      id: next_id(),
       ts,
       principal: principal.to_string(),
       project_id: project_id.to_string(),
