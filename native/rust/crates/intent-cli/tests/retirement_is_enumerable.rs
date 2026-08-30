@@ -106,13 +106,27 @@ fn run_saying(path: &str) -> (i32, String) {
 /// The stderr marker of a verb the surface declares and this build does not
 /// implement.
 ///
-/// **THIS IS THE STRING'S THIRD HOME AND THE DEBT IS REAL.** It is built inline
-/// at `render.rs:767` and copied again into `flag_reachability.rs`; the right
-/// fix is one `pub const` in `render.rs` that all three read. Not taken here on
-/// purpose: that edit widens into a file carrying another node's live work
-/// while the estate's delivered binary is refusing, and a refactor of a shared
-/// source is the wrong thing to spend that moment on. Named rather than
-/// silently added.
+/// **THIS IS NOT DEBT AND MUST NOT BE CONSOLIDATED. THIS NOTE SAID THE
+/// OPPOSITE UNTIL 2026-08-30 AND WAS WRONG** (vc ruling, on cc stopping the
+/// refactor this note asked for). It read: *the right fix is one `pub const` in
+/// `render.rs` that all three read* -- which would make every assertion say the
+/// emitter equals itself, true under every wording including a wrong one. **A
+/// test that imports the value it asserts has stopped testing.**
+///
+/// **HIGHLANDER GOVERNS IMPLEMENTATIONS, NOT WITNESSES.** `render.rs` EMITS the
+/// marker, so that copy is the product and is authoritative in the only sense
+/// that matters; the copies in the test files are independent witnesses, and
+/// their independence is what makes a wording change red somewhere. The
+/// no-authoritative-copy rule governs the ASSERTING copies among themselves and
+/// was never a claim about the emitter.
+///
+/// **THE DISCRIMINATOR, WHICH IS WHAT THIS NOTE LACKED: IS THE MARKER THE
+/// SUBJECT OF THE FILE, OR INCIDENTAL TO IT?** Subject means witness -- carry
+/// your own literal, never import. Incidental means import. Two committed notes
+/// contradicted each other for weeks because neither stated that, and both were
+/// right about their own category; an unstated discriminator is worse than a
+/// plain disagreement, because a node arriving cold does whatever the first
+/// file it opens says. Here the marker is the SUBJECT.
 const UNWIRED_MARKER: &str = "is a known command that is not implemented yet";
 
 /// The roster as a CALLER reads it: off stdout, as JSON, parsed.
