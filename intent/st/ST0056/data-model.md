@@ -197,6 +197,18 @@ No verblock: git is the history of structured files. Authored prose files keep t
 3. **Non-UTF-8 is REFUSED BY NAME with a remedy**, never stored as a blob and never skipped. `sync` already does this (`unknown-file-shape -- not valid UTF-8`) and it is the correct posture.
 4. **Attachments feed `doc_sections` so `search` finds them.** That index is derived and rebuildable; the attachment record is the authority.
 
+##### `attachment` (inside thread.json)
+
+| Field  | Type    | Notes                                                                                                                   |
+| ------ | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| path   | string  | relative to the THREAD's own directory, eg `reference.md` -- never to the project                                       |
+| text   | string? | the content when it is TEXT, byte for byte. **Absent means OPAQUE, and that absence is the ONLY marker of which it is** |
+| bytes  | u64     | the content's length                                                                                                    |
+| sha256 | string  | of the content; derived with `bytes` at construction, never set by a caller                                             |
+| blob   | bytes?  | `#[serde(skip)]` -- the opaque body in memory, never in the extract                                                     |
+
+**Why `text` is OPTIONAL rather than paired with an `opaque: true`:** a second field asserting what the first already shows is a way for the two to disagree -- the same argument `Attachment::new` makes about `bytes` and `sha256`. A reader asks whether the text is here, and there is nothing else to consult and nothing to contradict. **The absence is unambiguous rather than merely convenient:** every attachment written before the field became optional carries a `text`, so no existing artefact reads as opaque by omission, and `Some(s)` serialises exactly as the old `String` did -- the canon files do not move a byte.
+
 **What this discharges.** It is the precondition for hv's disk-optional model, and the gate is already built and does not need writing: `conservation_check.sh` asks whether every authored section has a destination and whether the bytes that arrive are the bytes that left.
 
 **THE PHRASING THAT STOOD HERE UNTIL 2026-08-18 WAS "when `LOST-PROSE` and `UNACCOUNTED` reach zero, disk is safe to make optional", AND IT WOULD HAVE AUTHORISED DELETING 192 FILES HOLDING 748 AUTHORED SECTIONS WHILE PRINTING A ZERO.** ic drove both counters to zero on an unconserved estate in the morning and found them pinned above zero on a conserved one at night; the same day, `LOST-PROSE` reached zero legitimately and **that is when the shorthand became lethal, because it is TRUE and it means something narrower than it reads.** `LOST-PROSE 0` means _every section that HAS a destination reached it_. It says nothing about sections with no destination, and **those are exactly the population disk-optional deletes.**
@@ -214,6 +226,13 @@ Ruling (vc, 2026-08-14; ADOPTED under hv standing authorisation): the three fiel
 - `objective` is already a field the tool has an opinion about -- the 0010 empty-objective warning -- which is the signature of a modelled field rather than free prose. The warning stays **computed from emptiness, never stored**, on the same double-truth grounds as `satisfied`.
 - `context` and `related` follow it into the model because splitting one cover across a modelled half and an authored half rebuilds the mixed file one level down.
 - The alternative -- a new authored `context.md` -- was rejected on reversal cost, not on taste. A field-add reverses by moving two fields; a sixth default doc changes the template set, `intent st new`, the migrator and every consumer's mental model.
+
+##### `related` (inside thread.json, the `related` array)
+
+| Field | Type    | Notes                                                      |
+| ----- | ------- | ---------------------------------------------------------- |
+| id    | string  | the related thread's natural id, eg `ST0000`               |
+| note  | string? | absent where v2's Related Steel Threads block carried none |
 
 Named cost, accepted deliberately: multi-paragraph markdown lives inside a JSON string field. It is tool-written and authored via mutation, which is what D02 asks for, and prose bodies are still stored verbatim and never reflowed.
 
@@ -321,9 +340,15 @@ The ratified enum flattens both axes into four mutually-exclusive values, which 
 
 Required by the hv carry ruling in `migration.md`: CLOSED threads convert lossless-by-carrying, so a legacy-grammar AT row must land in the model whole, with nothing guessed, dropped or reformatted.
 
-```
-legacy: { raw: string }   -- absent on every row authored under the v2.19 grammar
-```
+##### `legacy` (carried beside a typed field the enum cannot express)
+
+| Field | Type   | Notes                                                        |
+| ----- | ------ | ------------------------------------------------------------ |
+| raw   | string | the verbatim v2 reference, exactly as it appeared on the row |
+
+Absent on every row authored under the v2.19 grammar.
+
+**AND THE CARRIER IS THE INTENDED PATTERN, APPLIED ON ONE AXIS ONLY -- which is why this is a table and not a sentence.** `WorkPackage::scope` is `Option<TShirt>` and absent exactly when `scope_legacy` holds something the enum cannot say, so scope PRESERVES what it could not parse. **Its sibling `status` on the same row silently picks a default instead** (open issue: _Unmappable WP status defaults in silence while unmappable scope is carried_). Stated here so the next reader meets the asymmetry as a KNOWN GAP rather than reading it as a design, which is the difference between a defect somebody will fix and a convention somebody will copy.
 
 `raw` is the **verbatim v2 row text**, byte-for-byte as it appeared, carried and never parsed. When `legacy` is present, `file` may be absent -- a `::name` citation or a multi-file list has no single repo-relative path, and inventing one is precisely the destruction the 0017 refusal was about.
 
@@ -395,7 +420,22 @@ Merging them would admit members under a key named for another reason, and a mar
 
 ### event_log (DB-only, append-only; D15)
 
-Envelope: `{id: ulid, ts: rfc3339, principal, project_id, op, subject: {type, id}, payload}`. Written by every mutation (WP-02). **Corrected 2026-08-15**: the previous text said DB-only state must be losable and that the event log is explicitly NOT durable truth. Both are false under the reversed D01. **The DB is the durable SSOT, so the event log in it is durable truth like everything else there.** hv has ruled it a file form -- **`events.jsonl`, append-only** -- as a secondary artefact, alongside an `intent events` surface for query/extract/ingest/egest and a READ-ONLY `intent db sql`. Read-only is the boundary that matters: write-SQL would be a second door into the SSOT, and the typed API being the only door is the whole reason the DB's contents conform by construction.
+Written by every mutation (WP-02).
+
+| Field      | Type   | Notes                                                              |
+| ---------- | ------ | ------------------------------------------------------------------ |
+| id         | ulid   | lexically sortable, globally unique                                |
+| ts         | string | RFC 3339 UTC, MILLISECOND precision: `YYYY-MM-DDTHH:MM:SS.sssZ`    |
+| principal  | string | who performed the operation                                        |
+| project_id | string | stamped at migration (D15); never changes                          |
+| op         | string | the FACADE operation, eg `st.done` -- **not** a CLI invocation     |
+| subject    | object | `{kind, id}` -- kind eg `thread`, `wp`, `issue`; id eg `ST0000/02` |
+| payload    | json   | operation-specific detail, **opaque to the log**                   |
+
+**`op` is the FACADE operation and never the CLI spelling**, which is the same distinction Machine 5 records one section down: `at.set` is one op reached by three commands, and `fc` is one command reaching four ops. A log keyed on invocations would be a log of what people typed rather than of what the store did.
+
+**`ts` IS ABSENT ON A MINTED-BUT-UNWRITTEN ENVELOPE, AND THAT IS D42 IN THE ONE PLACE IT IS EASIEST TO BREAK.** `Envelope::minted` deliberately produces an envelope with NO time, because the clock belongs to the WRITE -- a log entry is the last thing anyone would think to withhold a timestamp from, and it is exactly where a caller-supplied time would become unfalsifiable history. The number of `minted` call sites is deliberately not written here; it is a thing to derive, not to keep a second copy of.
+**Corrected 2026-08-15**: the previous text said DB-only state must be losable and that the event log is explicitly NOT durable truth. Both are false under the reversed D01. **The DB is the durable SSOT, so the event log in it is durable truth like everything else there.** hv has ruled it a file form -- **`events.jsonl`, append-only** -- as a secondary artefact, alongside an `intent events` surface for query/extract/ingest/egest and a READ-ONLY `intent db sql`. Read-only is the boundary that matters: write-SQL would be a second door into the SSOT, and the typed API being the only door is the whole reason the DB's contents conform by construction.
 
 ### file_index (DB-only -- the sync engine's git-style index)
 
