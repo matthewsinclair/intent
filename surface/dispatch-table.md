@@ -3482,8 +3482,8 @@ Manage the machine-level intentd
 | command         | args      | flags                  | help                                                             | disposition |
 | --------------- | --------- | ---------------------- | ---------------------------------------------------------------- | ----------- |
 | `daemon`        | <command> | --                     | Manage the machine-level intentd                                 | new-surface |
-| `daemon start`  | --        | --                     | Start intentd for this machine                                   | new-surface |
-| `daemon stop`   | --        | --                     | Stop the running intentd                                         | new-surface |
+| `daemon start`  | --        | --at-login             | Start intentd for this machine                                   | new-surface |
+| `daemon stop`   | --        | --at-login             | Stop the running intentd                                         | new-surface |
 | `daemon status` | --        | --format terminal/json | Report whether intentd is running, and the address it answers on | new-surface |
 | `daemon run`    | --        | --                     | Run intentd in the foreground, without daemonising               | new-surface |
 
@@ -3505,11 +3505,15 @@ Manage the machine-level intentd
 Start intentd for this machine
 
 - **v2:** new-surface
+- **Flags:**
+  - `--at-login` (bool) -- Also enrol the daemon to start at login (start) / unenrol it (stop)
+    - **disposition:** keep
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
+- **no op:** `ok: intentd is already running (pid <n>)`, exit 0. **MEASURED 2026-08-30 by driving the verb twice through the real binary** -- `target/debug/intent`, not the delivered pair, which predates the arm. **THIS ROW'S `basis` CLAIMED A REFUSAL UNTIL THE SAME DAY** and the self-loop is what replaced it (`a402625f`): the behavioural fact now lives in this field and in `populations.self_loop`, where the generator refuses a disagreement, instead of in prose nothing enforces.
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** Machine-level process control -- the canonical example behind the whole exposure field, and the row that makes `lean closed` the right default rather than a nicety.
-- **basis:** design.md:73-74, D07/D08/D19. **REFUSES when a daemon is already running rather than evicting one** -- AC-08.12, landed `6b32b71d`, a kernel file lock rather than a liveness probe. So a second invocation is a clean refusal, not a takeover.
+- **basis:** design.md:73-74, D07/D08/D19. **DOES NOT EVICT A RUNNING DAEMON** -- `AC-08.12`, landed `6b32b71d`: a kernel file lock decides, not a liveness probe. **THIS ROW SAID _REFUSES_ UNTIL 2026-08-30 AND THAT HAD STOPPED BEING TRUE** (`a402625f`): a second invocation now succeeds and names the running pid. **THE HALF THAT SURVIVED IS THE INTERESTING ONE, WHICH IS EXACTLY WHAT MADE THE STALE HALF DANGEROUS** -- a reader checking whether it evicts finds that it does not, and has no reason to doubt the clause beside it. A wholly wrong statement gets caught; a half-true one gets believed (cc, 2026-08-30, who found it by reading the row while asking for something else). **THE SELF-LOOP BEHAVIOUR IS NOT DESCRIBED HERE ON PURPOSE: it lives in `populations.self_loop`, which `gen_dispatch_table.sh` refuses on disagreement in both directions.** Where a structured field exists for a claim, prose stating the same claim is a second home and goes; `basis` carries provenance, not behaviour that rots silently (vc's ruling, 2026-08-30, made on this row).
 - **recoverability:** reversible
 - **recoverability anomaly:** REVERSIBLE AND WITHHELD ANYWAY, AND THE WITHHOLD REASON IS NOT IRREVERSIBILITY. The MCP withhold list is derived from `recoverability` because the usual ground for keeping a mutation off the tool tier is that the surface cannot undo it -- and these three ARE undoable, each by a sibling. They are withheld because they are MACHINE-LEVEL PROCESS CONTROL, which is this family's own stated ground and the canonical example behind the exposure field existing at all. **The head row carried `one-way` while it was ONE ROW STANDING FOR FOUR VERBS, which is a label bent to make a derived number come out** (cc's words). A representation that must state something false for a mechanism to produce the right answer is the mechanism's defect, not the row's -- and the generator refusing the bent label rather than accepting it is that working. Splitting the family is what made each verb's real recoverability statable.
 
@@ -3518,8 +3522,12 @@ Start intentd for this machine
 Stop the running intentd
 
 - **v2:** new-surface
+- **Flags:**
+  - `--at-login` (bool) -- Also enrol the daemon to start at login (start) / unenrol it (stop)
+    - **disposition:** keep
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
+- **no op:** `ok: no intentd is running`, exit 0. **MEASURED 2026-08-30 by driving `stop` against a stopped daemon through the real binary.** Symmetric since it was wired, and `stopping_when_nothing_runs_is_success` already asserted it -- so this notation records what a test had and the register did not. **THE DAEMON IS MACHINE-SCOPED, NOT PROJECT-SCOPED** (`~/.local/share/intent/intentd.sock`), so driving these two is not isolated by running them in a throwaway project; the measurement above left nothing running, verified by `daemon status`.
 - **MCP:** not exposed -- **mutates**
 - **MCP note:** Machine-level process control. See `daemon start`.
 - **basis:** design.md:73-74, D07/D08/D19. The undo of `daemon start`, which is why neither is one-way.

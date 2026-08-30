@@ -7636,11 +7636,21 @@
           "path": "daemon start",
           "help": "Start intentd for this machine",
           "args": [],
-          "flags": [],
+          "flags": [
+            {
+              "spellings": [
+                "--at-login"
+              ],
+              "type": "bool",
+              "help": "Also enrol the daemon to start at login (start) / unenrol it (stop)",
+              "disposition": "keep"
+            }
+          ],
           "v2": "new-surface",
-          "basis": "design.md:73-74, D07/D08/D19. **REFUSES when a daemon is already running rather than evicting one** -- AC-08.12, landed `6b32b71d`, a kernel file lock rather than a liveness probe. So a second invocation is a clean refusal, not a takeover.",
+          "basis": "design.md:73-74, D07/D08/D19. **DOES NOT EVICT A RUNNING DAEMON** -- `AC-08.12`, landed `6b32b71d`: a kernel file lock decides, not a liveness probe. **THIS ROW SAID _REFUSES_ UNTIL 2026-08-30 AND THAT HAD STOPPED BEING TRUE** (`a402625f`): a second invocation now succeeds and names the running pid. **THE HALF THAT SURVIVED IS THE INTERESTING ONE, WHICH IS EXACTLY WHAT MADE THE STALE HALF DANGEROUS** -- a reader checking whether it evicts finds that it does not, and has no reason to doubt the clause beside it. A wholly wrong statement gets caught; a half-true one gets believed (cc, 2026-08-30, who found it by reading the row while asking for something else). **THE SELF-LOOP BEHAVIOUR IS NOT DESCRIBED HERE ON PURPOSE: it lives in `populations.self_loop`, which `gen_dispatch_table.sh` refuses on disagreement in both directions.** Where a structured field exists for a claim, prose stating the same claim is a second home and goes; `basis` carries provenance, not behaviour that rots silently (vc's ruling, 2026-08-30, made on this row).",
           "target": {
-            "state": "new-surface"
+            "state": "new-surface",
+            "no_op": "`ok: intentd is already running (pid <n>)`, exit 0. **MEASURED 2026-08-30 by driving the verb twice through the real binary** -- `target/debug/intent`, not the delivered pair, which predates the arm. **THIS ROW'S `basis` CLAIMED A REFUSAL UNTIL THE SAME DAY** and the self-loop is what replaced it (`a402625f`): the behavioural fact now lives in this field and in `populations.self_loop`, where the generator refuses a disagreement, instead of in prose nothing enforces."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": false,
@@ -7655,11 +7665,21 @@
           "path": "daemon stop",
           "help": "Stop the running intentd",
           "args": [],
-          "flags": [],
+          "flags": [
+            {
+              "spellings": [
+                "--at-login"
+              ],
+              "type": "bool",
+              "help": "Also enrol the daemon to start at login (start) / unenrol it (stop)",
+              "disposition": "keep"
+            }
+          ],
           "v2": "new-surface",
           "basis": "design.md:73-74, D07/D08/D19. The undo of `daemon start`, which is why neither is one-way.",
           "target": {
-            "state": "new-surface"
+            "state": "new-surface",
+            "no_op": "`ok: no intentd is running`, exit 0. **MEASURED 2026-08-30 by driving `stop` against a stopped daemon through the real binary.** Symmetric since it was wired, and `stopping_when_nothing_runs_is_success` already asserted it -- so this notation records what a test had and the register did not. **THE DAEMON IS MACHINE-SCOPED, NOT PROJECT-SCOPED** (`~/.local/share/intent/intentd.sock`), so driving these two is not isolated by running them in a throwaway project; the measurement above left nothing running, verified by `daemon status`."
           },
           "disposition": "new-surface",
           "exposed_on_mcp": false,
@@ -9092,6 +9112,9 @@
       "at green",
       "at na",
       "at red",
+      "daemon start",
+      "daemon stop",
+      "fc",
       "issues close",
       "issues open",
       "st cancel",
@@ -9105,14 +9128,13 @@
       "todo done",
       "todo notdone",
       "todo toggle",
-      "wp done",
-      "wp reopen",
       "wp cancel",
+      "wp done",
       "wp reinstate",
+      "wp reopen",
       "wp rescope",
       "wp start",
-      "wp unstart",
-      "fc"
+      "wp unstart"
     ]
   },
   "no_op_note": "**`no_op` STATES WHAT A VERB PRINTS WHEN IT IS ASKED FOR THE STATE THE ENTITY IS ALREADY IN**, and it exists because nothing else in this register could say it. Issue 0050: hv's self-loop ruling gave the facade `Outcome::AlreadyThere`, nineteen `render.rs` arms discard it and print the movement message anyway, and two read it -- so `intent todo done ST0001` answers `was already done` while `intent st done ST0001`, the call it DELEGATES to, answers `done`. The table declared help, flags and exit codes and had no notation for that difference, so no parity tool could hold the renderer to anything. **TWO FIELDS, NOT ONE, BECAUSE THE TABLE ALREADY SPLITS THAT WAY.** `observed.no_op` is v2's behaviour and `target.no_op` is v3's. A single field would record the answer and lose the question, which is the one thing a parity register must not do -- and `observed` is NOT empty here: v2 has two no-op arms, `ok: issue <ID> already CLOSED` (bin/intent_issues:282) and `skipped: <ID> already in progress` (bin/intent_st:635), in DIFFERENT prefixes. **Everything else v2 does on a no-op is a repeated write that happens to land on the same value**, which is a materially different thing from a no-op and is why each such row says so rather than saying `ok`. **WHERE THE v2 HALF IS ABSENT, IT IS ABSENT UNAMBIGUOUSLY.** `observed` exists on a row exactly when `target.state` is not `new-surface` -- true across all 26 rows of the population and mechanical, not a convention -- so a missing `observed.no_op` already means `v2 had no such command` and needs no sentinel of its own. The requirement is therefore: `target.no_op` on every row of the population, `observed.no_op` on every row of it that has an `observed` block. **THREE SHAPES, AND THE THIRD IS THE POINT** (cc's argument, adopted): absent must never mean both `no self-loop is possible here` and `nobody has looked`. So a row in `populations.self_loop` always carries the key, and a value beginning `unexamined` is a declaration of ignorance rather than the silence that reads like coverage. `new-surface` says v2 had no antecedent, so there is nothing to be faithful to. **EVERY `target` VALUE DESCRIBES HEAD, AND EVERY ONE OF THEM IS NOW MEASURED RATHER THAN READ.** The ruled voice is `ok: <subject> already <state>` (vc, 2026-08-17, over the participle `was already <verb>`, on the grounds that a no-op reports a PRESENT condition and that the participle only coincides with the state when verb and state share a word -- `st hold` breaks it immediately). **It SHIPPED at `d0f345b5`**, so the rows cite that commit instead of the ruling. **Both halves of every row were obtained by driving the verb TWICE through a real binary** -- v3 from a release build of a `git archive` EXTRACT, v2.19.0 through the `intent` on PATH -- because the day's repeated lesson is that reading a source file answers a question adjacent to the one being asked. That method is not decoration: it is the only reason three of these rows are right. **`ac rescope` and `ac reinstate` were handed over as `ok: <AC> already unsatisfied | already computed` and in fact REFUSE at exit 1** (issue 0053) -- the announced value was reasoned correctly from `AcState::entry(kind)`, which is what the success arm passes the setter, and the self-loop never reaches that arm. **`todo notdone` and `todo toggle` have no reachable self-loop at all**, refusing unconditionally before any state is read, which is a third shape the `unexamined` sentinel could not have expressed. **And `at na` prints a state token, `n-a`, that appears in no canon file** -- v2 writes `n/a` in the row grammar and prints it back. None of the three is visible from the source of the verb alone, and all three would have entered the register as clean `ok:` lines had the values been transcribed. **The extract is not ceremony and the first attempt at this needed it.** The initial build was taken from a working tree that `git status` reported clean, and it was; a peer then began editing `render.rs` in the same shared checkout and something rebuilt the binary at a path this measurement was still reading. **Both binaries carry the same name, the same size to the eye, and no record of which tree they came from** -- the only thing that separated them was an mtime 31 seconds apart, which proves order and not content. Every value here was therefore re-driven against a binary built from `git archive HEAD`, whose `native/` is bit-identical to `b7e60fc5` (`git diff --stat b7e60fc5..HEAD -- native/ surface/` is empty), and all 27 reproduced unchanged. **The rule this leaves: in a shared checkout a clean `git status` licenses a build, not a measurement taken later against its output.**",
