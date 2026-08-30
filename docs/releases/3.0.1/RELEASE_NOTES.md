@@ -32,7 +32,11 @@
 
 ## Removed
 
-**`intent st repair` is gone.** It shipped in v3.0.0 and is retired here, which makes it the one command in this release that works in the version you are on and does not exist in the version you are moving to. A script calling it will fail rather than do something different.
+**Nothing that worked in v3.0.0 is removed here.** If you have a working script, this release does not break it.
+
+**`intent st repair` is now declared retired, and it never ran.** In v3.0.0 it was a declared command with no implementation: invoking it answered `intent st repair is a known command that is not implemented yet`. It now answers `intent st repair was retired in Intent v3 and is not a command in this build`. **The message changed and the capability did not, because there was none.** A script calling it failed before this release and fails after it.
+
+**An earlier draft of this section said the opposite** -- that `st repair` shipped in v3.0.0 and that this was the one command in the release that works in the version you are on. That was wrong, and it is worth saying how, because the same mistake is available to anyone reading our register. The register's `shipped` population is derived as everything declared minus everything retired; `st repair` was declared and not retired, so it was counted. **`shipped` answers whether a row is declared and live, not whether the command was ever built** -- and nothing in the count says which question it answered.
 
 ## Upgrading
 

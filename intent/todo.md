@@ -21,6 +21,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API
   - [ ] 15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
   - [ ] 16: Contract drift: a shipped field with no model row is refused
+  - [ ] 17: Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs
 - [-] ST0057: Disk as a sparse projection of the store
   - [x] 01: Canon relocation to intent/.canon/
   - [x] 02: .intentfiles: the manifest and its refusing grammar

@@ -432,6 +432,14 @@ fn cases() -> Vec<Case> {
       why: "rc=2, `is a known command that is not implemented yet` -- declared on the surface, implemented by nothing",
     },
     Case {
+      verb: "fc",
+      args: &["fc", "ST0056", "--because", "hv closed it on authority"],
+      prep: NOOP,
+      expect: Expect::WritesNothing(2),
+      must_say: Some(UNWIRED_PHRASE),
+      why: "rc=2, `is a known command that is not implemented yet` -- the row landed on the surface (ic, 2026-08-29) ahead of the arm that serves it, which is the ordering this bucket exists to hold. **The service side EXISTS** -- `Facade::ac_fc` is built and green -- so the gap is the renderer arm alone, and this case is what turns red on the day it is wired. `--because` is supplied deliberately: without it clap refuses at rc=1 before dispatch is reached, which would make this case pass for the wrong reason and prove nothing about the unwired arm",
+    },
+    Case {
       verb: "st repair",
       args: &["st", "repair"],
       prep: NOOP,

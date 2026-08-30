@@ -429,6 +429,14 @@ const COVERED_ELSEWHERE: &[(&str, &str)] = &[
 /// for `fn at_new` passed while `put` created both rows thirty lines away.
 const DECLARED_BUT_UNWIRED: &[(&str, &str)] = &[
   (
+    "browse",
+    "intent-cli/tests/twin_spellings_agree.rs holds it to its twin; the verb itself answers `rc=2`, `is a known command that is not implemented yet`. **DECLARED AHEAD OF ITS ARM ON PURPOSE, AND AC-17.6 REQUIRES THAT ORDER IN AS MANY WORDS** -- the shape change to `edit` is a surface decision that belongs to the interface owner, so the register row is authored before either realiser is built. **IT IS ALSO HALF OF INV-09, WHICH IS WHY IT CANNOT SIMPLY BE OMITTED UNTIL PIECE 3**: `intent browse <kind> <id>` IS `intent edit <kind> <id> --browser`, and a capability present by one spelling and absent by the other is exactly what `ST0058 AC-00.6` refuses. The flag half is wired today (`fn browsed` refuses, naming `intent daemon start`); the verb half is not, and this row records the gap rather than hiding it. Re-buckets the day the realiser lands, which is what this roster is for.",
+  ),
+  (
+    "fc",
+    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- `rc=2`, `is a known command that is not implemented yet`, projected estate byte-identical. **DECLARED AHEAD OF ITS ARM ON PURPOSE, WHICH IS THE ONE ORDERING THIS BUCKET IS FOR**: ic authored the row so the service side could be built against a fixed shape rather than a guessed one, and the row generates a real clap subcommand today. The SERVICE side is built and green (`Facade::ac_fc`, `fiat_close_is_stamped_by_the_database.rs`), so what is missing is the renderer arm alone -- and the driven case goes RED the day it lands, which is what forces the re-bucket rather than leaving a live mutator in an excuse list. Driven WITH `--because`, because clap refuses its absence at rc=1 before dispatch, and a case passing on that refusal would prove nothing about the unwired arm.",
+  ),
+  (
     "st bootstrap",
     "intent-cli/tests/cli_write_moves_only_what_changed.rs -- `rc=2`, `is a known command that is not implemented yet`, and the projected estate byte-identical. Driven at the CLI because it reaches no `intentsvcs` path to drive.",
   ),

@@ -13,6 +13,7 @@ use crate::dispatch;
 use crate::spine::Failure;
 use intentsvcs::address;
 use intentsvcs::contract::Scope;
+use intentsvcs::daemon;
 use intentsvcs::facade::{
   EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, Note, Outcome,
 };
@@ -62,6 +63,8 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("critic", m)) => critic(m),
     Some(("edit", m)) => edited(m),
     Some(("events", m)) => events(m),
+    Some(("fc", m)) => fc(m),
+    Some(("surface", m)) => surface(m),
     Some((family, _)) => unwired(family, ""),
     None => {
       println!(
@@ -80,7 +83,47 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
 /// file's presence, never an environment variable (issue 0025).
 fn open() -> Result<Facade, Failure> {
   let (project, ctx) = context()?;
-  Facade::open(project, ctx).map_err(fail)
+  engine(project, ctx)
+}
+
+/// The ONE door to the in-process engine, and the place the routing rule
+/// (AC-08.3) is applied.
+///
+/// **EVERY `Facade::open` IN THIS CRATE IS THIS ONE, AND
+/// `cli_routing::the_in_process_engine_has_exactly_one_door` HOLDS IT THERE.**
+/// The rule being enforced is *never two sync engines live at once*, which is
+/// a property of the whole invocation rather than of any one verb -- so a
+/// second construction site would not weaken the rule, it would delete it for
+/// whatever went through that site, silently and only on machines running a
+/// daemon. **The guarded door with an unguarded twin one call away is the
+/// commonest way a rule like this is lost**, and the twin here is spelled the
+/// same as the door, which is why the check is mechanical rather than a
+/// convention.
+///
+/// **IT IS NOT AT THE TOP OF [`run`], THOUGH THAT WOULD BE ONE DOOR TOO.**
+/// `version`, `info`, `init` and the `lang` verbs need no store at all, and
+/// routing them would make `intent version` refuse on a machine whose daemon
+/// happens to be up. The rule is about the STORE, so it belongs where the
+/// store is reached.
+///
+/// **THE REFUSAL IS DELIBERATELY NOT THE UNWIRED MARKER.** *A known command
+/// that is not implemented yet* would be false twice over: the verb is built
+/// and the store is reachable -- by something else. A gate arm keyed on that
+/// marker would read every store verb on a daemon machine as an unbuilt one.
+fn engine(project: Project, ctx: FacadeContext) -> Result<Facade, Failure> {
+  // A candidate list that cannot be COMPUTED is refused rather than shortened:
+  // a shorter list runs in-process, which is the one outcome this rule exists
+  // to prevent. See `daemon::DaemonError`.
+  let candidates = daemon::candidates().map_err(|e| Failure::Error(e.render()))?;
+  match daemon::route(&candidates) {
+    daemon::Route::InProcess => Facade::open(project, ctx).map_err(fail),
+    // Exit 2 -- `Unavailable` -- because this build genuinely cannot answer,
+    // rather than having run and returned no. The operator's work is fine; the
+    // tool in their hand is the part that is missing.
+    daemon::Route::Daemon(endpoint) => Err(Failure::Unavailable(format!(
+      "error: intentd is answering at {endpoint} and owns this project's store, and this build has no client to route through it\n  remedy: stop the daemon process and run again. Opening the store here while the daemon holds it would put two writers on one database, which is the single thing this rule exists to prevent"
+    ))),
+  }
 }
 
 /// Locate the project and assemble the ambient context, WITHOUT loading canon
@@ -88,7 +131,7 @@ fn open() -> Result<Facade, Failure> {
 ///
 /// Split out from [`open`] because `doctor` needs exactly this much and no
 /// more: it has to run on a project that cannot be opened, since that is when
-/// someone reaches for it. Every other verb goes on to [`Facade::open`].
+/// someone reaches for it. Every other verb goes on through [`engine`].
 fn context() -> Result<(Project, FacadeContext), Failure> {
   let cwd = std::env::current_dir()
     .map_err(|e| format!("error: cannot read the working directory: {e}"))?;
@@ -673,6 +716,66 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
 /// The family/leaf question is asked of the TABLE rather than of a list kept
 /// here, so a family that gains or loses its verbs moves between the two forms
 /// on its own -- ic's nine is a measurement of today, not a roster to maintain.
+/// `intent surface` -- queries about this build`s own command surface.
+fn surface(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    Some(("retired", sm)) => surface_retired(sm),
+    _ => unwired("surface", ""),
+  }
+}
+
+/// `intent surface retired` -- the enumerable retirement roster (ST0058 AC-00.5).
+///
+/// **A caller branches on MEMBERSHIP here rather than on an exit code**, which
+/// is what the criterion asks for: `rc=2` is answered by a retired command and
+/// by a declared-but-unbuilt one alike, and no exit code has ever separated
+/// them. This verb exists so the question is answerable out of band, and it
+/// must therefore NEVER encode membership in its own exit code -- doing so
+/// would reinstate the contradiction it was minted to resolve.
+///
+/// **The roster is `retired_and_unreachable`, not `table.retired()`**, and the
+/// difference is not a refinement. `table.retired()` names `organize`, which
+/// this build ships and runs; publishing it would tell a caller to delete a
+/// working verb from their automation. See that function for the measurement.
+fn surface_retired(m: &ArgMatches) -> Result<(), Failure> {
+  let table = dispatch::table();
+  let roster = crate::spine::retired_and_unreachable(&table);
+
+  if m.get_flag("json") {
+    let rows: Vec<String> = roster
+      .iter()
+      .map(|(e, _)| {
+        let replacement = match crate::spine::replacement(e) {
+          crate::spine::Replacement::Named(named) => format!("\"{named}\""),
+          // **The two absences stay distinguishable across the wire.** `null`
+          // is nobody having said; `""` is the row declaring that nothing
+          // replaces this. A caller that cannot tell them apart is back to the
+          // defect that had the binary telling operators to strip commands out
+          // of their scripts on the strength of an unwritten key.
+          crate::spine::Replacement::DeclaredNone => "\"\"".to_string(),
+          crate::spine::Replacement::Unrecorded => "null".to_string(),
+        };
+        format!(
+          "  {{\"path\": \"{}\", \"replacement\": {replacement}}}",
+          e.path
+        )
+      })
+      .collect();
+    println!("[\n{}\n]", rows.join(",\n"));
+    return Ok(());
+  }
+
+  for (entry, _) in &roster {
+    let note = match crate::spine::replacement(entry) {
+      crate::spine::Replacement::Named(named) => format!("use `{named}` instead"),
+      crate::spine::Replacement::DeclaredNone => "no v3 replacement".to_string(),
+      crate::spine::Replacement::Unrecorded => "no v3 replacement is recorded".to_string(),
+    };
+    println!("{:<18} {note}", entry.path);
+  }
+  Ok(())
+}
+
 fn unwired(family: &str, verb: &str) -> Result<(), Failure> {
   let path = if verb.is_empty() {
     family.to_string()
@@ -773,6 +876,14 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
     )));
   }
 
+  // **`--browser` LEAVES BEFORE ANY FILE IS RESOLVED, BECAUSE IT DOES NOT OPEN
+  // ONE.** The TUI and the browser edit the MODEL; only `--editor` opens a
+  // file. Mixing the two is what makes the current argument shape misparse, so
+  // the branch that does not want a path must not walk the code that finds one.
+  if flag(m, "browser") {
+    return browsed(m);
+  }
+
   let address = address::promote(&argument).map_err(|e| Failure::Error(e.render()))?;
   let mut facade = open()?;
   let path = facade.edit(&address, &file).map_err(fail)?;
@@ -783,6 +894,45 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
     println!("{}", path.display());
     Ok(())
   }
+}
+
+/// `--browser`: open the ENTITY in a browser served by `intentd`.
+///
+/// **IT REFUSES WHEN THE DAEMON IS NOT RUNNING, NAMING `intent daemon start`,
+/// AND THAT REFUSAL IS THE SPECIFIED BEHAVIOUR RATHER THAN A STUB.**
+/// `tui-design.md` §9 rules it explicitly: the verb does not spawn a process
+/// the operator did not ask for. No daemon runs today, so this path is
+/// complete for every case that currently exists -- and when WP-08's daemon
+/// lands, this arm ASKS it instead of assuming, which is cc's edge to own
+/// rather than mine to guess at.
+///
+/// **INV-10 lives here in its pairwise form.** The four output modes -- the
+/// terminal's default, `--editor`, `--browser`, `--path` -- are mutually
+/// exclusive, and the register carries the rule because no single flag can
+/// state it. Two of them together is not a precedence question: it is a
+/// caller reaching for an explicit spelling precisely so they do not have to
+/// guess which one wins, and answering with a guess defeats the reach.
+fn browsed(m: &ArgMatches) -> Result<(), Failure> {
+  // `--editor` takes an optional value and `--path` does not, so presence is
+  // asked two ways. Both go through the file's own accessors rather than a
+  // third spelling of the same question.
+  for other in ["editor", "path"] {
+    if flag(m, other) || opt(m, other).is_some() {
+      return Err(Failure::Error(format!(
+        "error: `--browser` and `--{other}` ask for opposite things\n  \
+         remedy: name one of them, or neither and let stdout decide"
+      )));
+    }
+  }
+
+  Err(Failure::Error(
+    concat!(
+      "error: `--browser` needs a running daemon and none is running\n",
+      "  remedy: run `intent daemon start`, then try again -- this verb opens a page the \
+daemon serves and will not start one on your behalf",
+    )
+    .to_string(),
+  ))
 }
 
 /// Does this run OPEN the file, or PRINT its path?
@@ -1875,7 +2025,11 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
         println!(
           "{}  {}  covers {}",
           t.id,
-          t.status.display(),
+          // hv's required composer. `display()` alone renders a fiat-closed row
+          // as the bare token with its reason, its author and its cascade
+          // marker silently dropped -- the AT kind's record sits BESIDE the
+          // status, so nothing here would fail to compile.
+          intentsvcs::model::fiat_status(t.status.display(), t.fiat.as_ref()),
           t.covers.join(", ")
         );
       }
@@ -2187,7 +2341,7 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
     )));
   }
 
-  let mut facade = Facade::open(project.clone(), ctx).map_err(fail)?;
+  let mut facade = engine(project.clone(), ctx)?;
 
   if force {
     // Asked BEFORE the write and answered by a human, so the report below is
@@ -2319,7 +2473,7 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
   };
   let previewing = mode == intentsvcs::organize::Mode::Preview;
   let (project, ctx) = context()?;
-  let mut facade = Facade::open(project.clone(), ctx).map_err(fail)?;
+  let mut facade = engine(project.clone(), ctx)?;
   let report = facade.organize(mode).map_err(fail)?;
   render_organize_report(&project, &report, previewing)
 }
@@ -2566,7 +2720,7 @@ fn render_organize_report(
 /// was the only reader-facing surface the log had.
 fn events(m: &ArgMatches) -> Result<(), Failure> {
   let (project, ctx) = context()?;
-  let facade = Facade::open(project, ctx).map_err(fail)?;
+  let facade = engine(project, ctx)?;
   let filter = EventFilter {
     op: m.get_one::<String>("op").cloned(),
     subject: m.get_one::<String>("subject").cloned(),
@@ -2687,7 +2841,15 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // question is simply not asked. Reporting "no backup" because the store
   // could not be read would be a confident wrong answer at the moment a user
   // is least able to check it.
-  let opened = Facade::open(project.clone(), ctx.clone()).ok();
+  //
+  // **THE `.ok()` NOW SWALLOWS A ROUTING REFUSAL TOO, AND THAT IS DEBT RATHER
+  // THAN A DECISION.** A live daemon reads here as "no store", which is the
+  // absence-versus-unreadability confusion in the one command a user runs when
+  // things have stopped working -- and the honest report is that the store is
+  // over there. It costs nothing today, because no build produces a daemon to
+  // route to; it is the daemon's own work package that makes it reachable, and
+  // it belongs to whoever lands the client.
+  let opened = engine(project.clone(), ctx.clone()).ok();
 
   // **WHAT THIS RUN RESOLVED, WHICH IS v2's `--verbose` AND NOT A NEW IDEA.**
   // v2 emits `INTENT_HOME=...` and `Found at ...` under the flag
@@ -4197,7 +4359,7 @@ fn info_project(cwd: Option<&std::path::Path>) {
         project_id: config.project_id.clone().unwrap_or_default(),
         version: env!("CARGO_PKG_VERSION").to_string(),
       };
-      match Facade::open(project, ctx) {
+      match engine(project, ctx) {
         Ok(facade) => {
           let threads = facade.st_list();
           let count = |want: ThreadStatus| threads.iter().filter(|t| t.status == want).count();
@@ -4218,10 +4380,12 @@ fn info_project(cwd: Option<&std::path::Path>) {
           println!("  Cancelled:       {}", count(ThreadStatus::Cancelled));
         }
         Err(e) => {
-          // `fail` yields a `Failure` now, and this site wants the TEXT --
-          // taken from the same renderer `fail` uses rather than from a second
-          // formatting of the error.
-          println!("  unavailable: {}", e.render());
+          // This site wants the TEXT, and takes it from the failure rather
+          // than re-formatting the cause: `fail` builds the string with
+          // `FacadeError::render`, so the in-process wording is unchanged, and
+          // the routed case gets its own sentence for free instead of being
+          // reported as a store that would not open.
+          println!("  unavailable: {}", e.message().unwrap_or_default());
         }
       }
     }
@@ -4461,6 +4625,101 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
 /// `moved` is the movement phrase. `issues` passes `-> CLOSED`, which composes
 /// into v2's two lines exactly: `ok: issue 0021 -> CLOSED` and `ok: issue 0021
 /// already CLOSED`.
+/// **Fiat-close a requirement on human authority** -- one verb over four kinds,
+/// with the kind DERIVED FROM THE TARGET and never declared.
+///
+/// # Why there is no `--kind` flag
+///
+/// The address already carries the kind, so a flag would be a second home for
+/// it -- and clap materialises a flag with a default whether or not anyone
+/// typed it, which is how `ac new`'s `--kind` default came to overwrite a
+/// stored value (issue 0119, `f3d15891`). One argument matching `ST\d+` is a
+/// thread, one containing `/` is a work package, and a second positional
+/// beginning `AC-` or `AT-` names a criterion or a test. ic's ruling,
+/// 2026-08-29: the two address forms the surface already has, and **no third
+/// grammar invented for this verb alone.**
+///
+/// # Why two of the four kinds refuse today
+///
+/// hv ruled all four kinds in scope (2026-08-28 14:54Z) and `ST0066/info.md:43`
+/// records what is still open: *the exact model field shapes and their extract
+/// schema*. `AcState` already carried payload variants, so the criterion side
+/// was buildable the day the exit edges landed; `ThreadStatus`, `WpStatus` and
+/// `AtStatus` are unit-only, `Copy`, and async-graphql `Enum`s, so their shape
+/// is a live decision rather than a transcription.
+///
+/// **THE AT KIND IS NO LONGER ONE OF THEM (dc, 2026-08-29).** hv ruled the
+/// shape on 2026-08-28: `AtStatus` gains a UNIT `Fiat` variant and the record
+/// sits BESIDE it on `AcceptanceTest.fiat`, because a payload variant breaks
+/// both `Copy` and the async-graphql `Enum` derive. **`fiat in the status` is
+/// the option hv DECLINED**, so `ThreadStatus` and `WpStatus` are not waiting
+/// on the same answer this arm just received -- they are waiting on the
+/// opposite one, and their status VALUE does not move at all.
+///
+/// **Wiring this arm is what makes the AT kind reachable rather than merely
+/// representable**, and the gap was real for a whole build: `at_fc`, the
+/// `at.fc` edge, the column and the schema rung all existed while
+/// `intent fc <st> AT-nn.n` answered `not implemented yet` at rc=2 -- a verb
+/// this build DOES provide, telling a caller it does not. ic measured both
+/// doors one child prefix apart (`AC-` rc=1, `AT-` rc=2) and named it: that is
+/// a FALSE instance of rc=2's meaning rather than a fifth meaning.
+///
+/// **They refuse through [`unwired`] rather than through a bespoke message**,
+/// so the refusal is the one the estate's instruments already read: `rc=2`,
+/// `is a known command that is not implemented yet`. A hand-written "not built
+/// yet" sentence here would be a fourth spelling of a fact three instruments
+/// already parse, and the shipped gate fails open on `2` for exactly this case.
+fn fc(m: &ArgMatches) -> Result<(), Failure> {
+  // **THE BINDING THAT WAS HERE CONTRADICTED THE COMMENT BELOW IT AND I
+  // MISATTRIBUTED IT TWICE.** `let target = arg(m, "target")?;` sat unused --
+  // both wired arms resolve the thread through `thread_arg(m, "target")` -- so
+  // it was a second requiredness check in the one arm whose own comment says
+  // requiredness is CLAP's and is not re-checked here. Removed rather than
+  // underscore-prefixed: the argument against it is the paragraph below, not
+  // the compiler warning.
+  let child = opt(m, "child");
+  // **REQUIREDNESS IS CLAP'S, ASSERTED FROM THE ROW, AND IS NOT RE-CHECKED
+  // HERE.** `ac withdraw`'s arm records why: it used to re-check with `arg(..)?`
+  // and that looked like the careful choice, while the identical hole in
+  // `satisfy` read as an oversight rather than as a missing guard -- two arms
+  // hand-implementing a rule that belongs in one place.
+  let because = opt(m, "because").unwrap_or_default();
+
+  // **THE AUTHOR COMES FROM THE CONFIG FILE, NEVER FROM `$USER`.** AC-11.3
+  // holds the shipped surface to exactly one environment read and guards it;
+  // `bootstrap` performs that read once at developer-environment setup and this
+  // reads what it recorded, so the identity has one home. A fiat close on a
+  // machine that never bootstrapped is still attributable to the invocation
+  // through `FiatRecord.invoker`, which the service collects.
+  let by = intentsvcs::bootstrap::recorded_author();
+  let by = by.as_deref().unwrap_or("unknown");
+
+  match child {
+    Some(id) if id.starts_with("AC-") => {
+      let st = thread_arg(m, "target")?;
+      reported(
+        &open()?.ac_fc(&st, &id, &because, by).map_err(fail)?,
+        &id,
+        "fiat-closed",
+      );
+      Ok(())
+    }
+    Some(id) if id.starts_with("AT-") => {
+      let st = thread_arg(m, "target")?;
+      reported(
+        &open()?.at_fc(&st, &id, &because, by).map_err(fail)?,
+        &id,
+        "fiat-closed",
+      );
+      Ok(())
+    }
+    // The thread and work-package kinds are ruled and unbuilt -- see the doc
+    // above. Named separately from the arms that ARE wired so that the day a
+    // shape is built, the arm that gains it is obvious.
+    _ => unwired("fc", ""),
+  }
+}
+
 fn reported(outcome: &Outcome, subject: &str, moved: &str) {
   // **THE NOTES ARE PRINTED HERE, AND THAT PLACEMENT IS WHAT MAKES THEM
   // UNDROPPABLE.** Adding an `Outcome` variant would not have forced the

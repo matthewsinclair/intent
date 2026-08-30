@@ -241,6 +241,15 @@ fn not_probed() -> BTreeSet<String> {
 /// dangerous as the project succeeds**, which is the wrong direction for a
 /// harness to age against a work programme whose whole content is wiring
 /// families.
+/// The value handed to every required argument of a probed row.
+///
+/// **It has to satisfy clap and be incapable of RESOLVING**, because the rows
+/// this probe drives include writers. A thread id that cannot exist does both:
+/// it is a well-formed value for the argument kinds the table declares, and it
+/// names no thread, no address and no subcommand, so the command it completes
+/// refuses on its own terms rather than performing the act.
+const PROBE_SENTINEL: &str = "ST9999";
+
 fn unwired_families() -> BTreeSet<String> {
   let dir = tempfile::tempdir().expect("tempdir");
   let table = dispatch::table();
@@ -359,8 +368,54 @@ fn unwired_families() -> BTreeSet<String> {
     // Same sandbox, same reason as the families loop above -- and this loop is
     // the one the doc calls the widening, so it must not be the half that
     // inherits the hazard.
-    let output = Command::new(env!("CARGO_BIN_EXE_intent"))
-      .arg(&entry.path)
+    //
+    // **THE PROBE IS CONSTRUCTED FROM THE ROW'S OWN DECLARED VALUES, NOT
+    // DRIVEN BARE, AND THAT IS vc's `args[0]` RULE IN ITS THIRD INSTANCE.**
+    // Driving bare asks a question a row with required arguments cannot
+    // answer: clap refuses for the missing argument BEFORE dispatch, with a
+    // message carrying no unwired marker, **so an unwired row reads as WIRED
+    // and its flags then fail the gate below.** `fc` is where it was caught
+    // (dc, 2026-08-29); `daemon` was the same rule with a required subcommand
+    // and `at green` the same rule with an unread guard.
+    //
+    // **AND THE ARGUMENTS MUST NOT LET THE COMMAND SUCCEED, WHICH IS A HARDER
+    // CONSTRAINT THAN SATISFYING CLAP.** Rows here WRITE -- `fc` performs a
+    // fiat close and `edit` realises artefacts -- and this file already ruled
+    // on that class: *a probe whose question has a side effect is not a
+    // probe*, the `bootstrap` incident, where asking whether a command was
+    // wired published into the operator's real `~/.intent`. So every supplied
+    // value is [`PROBE_SENTINEL`], which resolves to nothing for any argument
+    // kind the table declares: not a thread, not an address, not a
+    // subcommand.
+    //
+    // **DRIVEN TWO-SIDED BEFORE LANDING, on all four probeable rows carrying
+    // required arguments.** `search`, `daemon` and `edit` return the SAME
+    // verdict bare and sentinel-supplied -- so the change alters no existing
+    // conclusion -- while `fc` moves from `reads-as-WIRED` (rc=1, clap) to
+    // `UNWIRED` (rc=2, the marker), which is the one verdict that was wrong.
+    // A probe answering "wired" for every row is indistinguishable from a
+    // working one until something is genuinely unwired, and `fc` is the only
+    // unwired row available to prove it against.
+    let mut probe = Command::new(env!("CARGO_BIN_EXE_intent"));
+    probe.arg(&entry.path);
+    for arg in &entry.args {
+      // Requiredness for a POSITIONAL is the arity, not a boolean -- the table
+      // spells it `1` / `1..n` for required and `0..1` / `0..n` for optional.
+      // Reading a `required` field here would be reading one that does not
+      // exist on `Arg`, which is the field-shaped half of the same mistake
+      // this comment is about.
+      if arg.arity.starts_with('1') {
+        probe.arg(PROBE_SENTINEL);
+      }
+    }
+    for flag in &entry.flags {
+      if flag.required {
+        if let Some(spelling) = flag.spellings.first() {
+          probe.arg(spelling).arg(PROBE_SENTINEL);
+        }
+      }
+    }
+    let output = probe
       .current_dir(dir.path())
       .env("HOME", dir.path())
       .output()
@@ -734,7 +789,11 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
   // "gated on the wired ones" being read as "gated on all of them".
   if !deferred.is_empty() {
     println!(
-      "flag-reachability: {} flag(s) NOT GATED -- their family is unwired, so no arm could read them yet:",
+      // **"their family" STOPPED BEING TRUE THE DAY A LEAF JOINED THIS LIST.**
+      // `fc` is a `new_surface` row and has no family; the sentence was written
+      // when only the families loop could contribute. Corrected here rather
+      // than left, because this line is the one a reader carries away.
+      "flag-reachability: {} flag(s) NOT GATED -- their family or leaf is unwired, so no arm could read them yet:",
       deferred.len()
     );
     for line in &deferred {

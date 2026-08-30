@@ -76,6 +76,21 @@ struct Slot {
   arg: &'static str,
   /// The positionals that come BEFORE the declared slot.
   lead: &'static [&'static str],
+  /// The positionals that come AFTER it.
+  ///
+  /// **ADDED FOR `edit.kind`, THE FIRST SLOT WITH A REQUIRED TRAILING
+  /// POSITIONAL** (ic, 2026-08-29). Until AC-17.6 reshaped `edit` to `<KIND>
+  /// <ID> [FILE]`, every declared slot in this table was the LAST positional
+  /// of its row, so `lead` alone built a complete argv and the harness never
+  /// had to say so. **`intent edit <bad-kind>` refuses at exit 1 for a missing
+  /// `<ID>` -- a refusal about arity, not about the vocabulary** -- so the
+  /// probe never reaches the value it came to test and every disposition would
+  /// have been measured against the wrong refusal.
+  ///
+  /// The instrument's shape was a silent assumption about the corpus, and it
+  /// held right up until the corpus changed. Symmetric with `lead` on purpose:
+  /// a slot is surrounded, not prefixed.
+  trail: &'static [&'static str],
   disposition: Disposition,
 }
 
@@ -86,6 +101,7 @@ const DECLARED: &[Slot] = &[
     path: "st show",
     arg: "file",
     lead: &["ST0001"],
+    trail: &[],
     // Issue 0055: the arm never reads the slot at all, so a correct value and an
     // incorrect one produce the same output. Three of the row's four declared
     // exit codes are unreachable, and `st show ST0001 design` prints the info
@@ -119,24 +135,66 @@ const DECLARED: &[Slot] = &[
     path: "st edit",
     arg: "file",
     lead: &["ST0001"],
+    trail: &[],
     disposition: Disposition::Enforced,
   },
   Slot {
+    // **THE LEAD MOVED WITH THE ROW, AND THE OLD ONE STAYED GREEN WHILE
+    // MEASURING A DIFFERENT REFUSAL** (ic, 2026-08-29, on their own change).
+    // `edit` became `<KIND> <ID> [FILE]` for AC-17.6, so `intent edit ST0001
+    // nonsense` now reads `ST0001` as the KIND and `nonsense` as the ID, and
+    // answers `nonsense is not a steel thread id` -- an exit-1 refusal that
+    // names a permitted set, which is what this arm asserts, about a question
+    // nobody asked. **A probe's lead is part of the probe**: repoint the
+    // positionals and the same assertion silently starts checking a different
+    // thing. The correct lead answers `nonsense is not a file this verb can
+    // open -- name one of info, design, impl, tasks, acceptance`.
     path: "edit",
     arg: "file",
-    lead: &["ST0001"],
+    lead: &["st", "ST0001"],
+    trail: &[],
     disposition: Disposition::Enforced,
+  },
+  Slot {
+    // **DECLARED AND DROPPED, WHICH IS WHY IT IS `Unenforced` AND NOT
+    // `Enforced`** (issue 0149). `intent edit issue 148 --path` answers `no
+    // steel thread ST0148 in this project`: the parser takes `issue`, the arm
+    // ignores it, and the refusal is about an entity the caller never named.
+    //
+    // AC-17.6's whole argument for the slot is that `intent edit 1` already
+    // refuses with `1 names both a steel thread and an issue` -- so the kind
+    // resolves an ambiguity the tool ALREADY reports. **A caller who types
+    // `issue` has supplied that answer, and being told about `ST0148` says the
+    // tool discarded the one thing it asked for.** It moves to `Enforced` when
+    // the resolver reads the kind, which WP-17 piece 3 owes.
+    path: "edit",
+    arg: "kind",
+    lead: &[],
+    trail: &["ST0001"],
+    disposition: Disposition::Unenforced("0149"),
+  },
+  Slot {
+    // The twin (INV-09). Unbuilt today -- `intent browse st ST0056` answers
+    // rc=2 -- so there is nothing to hand a bad value to yet, and this reds
+    // when the verb is wired.
+    path: "browse",
+    arg: "kind",
+    lead: &[],
+    trail: &["ST0001"],
+    disposition: Disposition::Unwired,
   },
   Slot {
     path: "wp rescope",
     arg: "size",
     lead: &["ST0001/01"],
+    trail: &[],
     disposition: Disposition::Enforced,
   },
   Slot {
     path: "critic",
     arg: "lang",
     lead: &[],
+    trail: &[],
     disposition: Disposition::Unwired,
   },
   Slot {
@@ -148,6 +206,7 @@ const DECLARED: &[Slot] = &[
     path: "config",
     arg: "<unnamed>",
     lead: &[],
+    trail: &[],
     disposition: Disposition::Planned { via: "config" },
   },
 ];
@@ -325,6 +384,7 @@ fn each_disposition_is_what_the_binary_actually_does() {
     let mut argv: Vec<&str> = slot.path.split(' ').collect();
     argv.extend_from_slice(slot.lead);
     argv.push(&bad);
+    argv.extend_from_slice(slot.trail);
     let (code, text) = drive(dir.path(), &argv);
 
     match slot.disposition {

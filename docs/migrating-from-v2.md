@@ -50,7 +50,9 @@ Three things a hand-rolled scanner gets wrong, and each of them is worth more th
 
 **Eight v2 commands are retired** and refuse with an exit code that distinguishes removed from never-built: `st organize`, `issues hydrate`, `issues dehydrate`, `organize`, `lang sync`, `treeindex`, `help`, `st_zero`.
 
-**A ninth, `st repair`, is not a v2 removal and is the one to actually watch.** It shipped in v3.0.0 — the published tag's register declares 117 commands including it — and it is retired at `HEAD`. **So this is a verb that works in the release you are hopping onto and disappears at the next one.** It is the only removal in that direction, and it is easy to miss precisely because it looks like the other eight.
+**A ninth, `st repair`, is declared retired at `HEAD` and was never built in v3.0.0 either.** In the published tag it answered `is a known command that is not implemented yet`; it now answers `was retired in Intent v3`. **Nothing you can run changes across the hop** -- only the message you get for running something that never worked.
+
+**This paragraph previously said `st repair` works in the release you are hopping onto, and cited the register for it: `the published tag's register declares 117 commands including it`.** The citation was accurate and the conclusion was not. **That register's `shipped` population is derived as everything declared minus everything retired, so a command that was declared, never implemented, and not marked retired is counted in it.** It answers *is this row declared and live*, never *was this command ever built*, and the count itself does not say which. If you are deriving anything from our register, that is the distinction to hold.
 
 ## Doing the hop
 

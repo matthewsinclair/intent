@@ -30,7 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- **`intent st repair`.** It shipped in v3.0.0 and is retired here — the one command in this release that works in the version people are on and does not exist in the next. A script calling it fails rather than doing something different.
+- **Nothing that worked in v3.0.0 is removed.**
+- **`intent st repair` is now declared retired, and it never ran.** In v3.0.0 it answered `is a known command that is not implemented yet`; it now answers `was retired in Intent v3`. The message changed and the capability did not, because there was none. A script calling it failed before and fails after. **A previous entry claimed it shipped and worked in v3.0.0** -- that was read off the register's `shipped` population, which counts declared-and-not-retired rows and cannot see whether a command was built.
 
 ## [3.0.0] - 2026-08-26
 

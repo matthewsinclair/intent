@@ -187,6 +187,37 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     "modules" => Some("prints its own usage; it reads neither the install nor a project"),
     "lang list" => Some("lists a compile-time language registry; it never reads a project"),
     "lang show" => Some("describes a compile-time language registry; it never reads a project"),
+    // **THE UNMIGRATED PROJECT IS THIS VERB'S PRIMARY CASE, NOT AN EDGE OF
+    // IT.** Ground 1 holds mechanically -- `surface retired` publishes
+    // `spine::retired_and_unreachable()` over the dispatch table compiled into
+    // this binary, opening no project and touching no facade, the same class
+    // as `schema` and `llm guide`. **That is the weaker half of the reason.**
+    //
+    // hv ruled retirement ENUMERABLE rather than an exit code (2026-08-25) so
+    // that a caller who typed a retired v2 command could find out what replaced
+    // it. **The population that types `intent st repair` and meets a refusal is
+    // overwhelmingly standing in a project nobody has migrated yet**, so
+    // refusing the roster here would withhold the answer from precisely the
+    // readers it was minted for. That is the argument `llm guide` and `claude
+    // rules` already carry, and this is a third member of that class rather
+    // than a new one.
+    //
+    // **THE SWEEP'S OWN FAILURE MESSAGE WAS THE PROOF.** Before this entry the
+    // panic read `SUCCEEDED (exit 0) over an estate it cannot see -- st repair
+    // no v3 replacement / st organize no v3 replacement`: the guard reporting
+    // the verb answering its own question, as a defect.
+    //
+    // **THIS ROW IS FAMILY-WIDE BY CONSTRUCTION AND HAS NO EXACT-PATH FORM,
+    // WHICH IS WHY THE SAFEGUARD IS A TEST AND NOT A CAUTION.** The table
+    // models the surface as ONE row whose first arg is a subcommand slot --
+    // the `daemon` pattern -- so `entry.path` and `entry.path.split(' ').next()`
+    // are both `surface` and the sweep's `llm` carve-out has nothing to carve.
+    // A second leaf that DOES open a project would inherit this exemption in
+    // silence; `the_surface_exemption_states_the_precondition_it_rests_on`
+    // fails the day that becomes possible, and a comment would not have.
+    // (dc raised the hazard against ic's row, 2026-08-29; ic owns this list and
+    // ruled the exemption.)
+    "surface" => Some("publishes the compiled-in retirement roster; it never reads a project"),
     // **GROUND 2, AND THE ONLY MEMBER OF IT.** `critic` READS the project --
     // `languages` out of `intent/.config/config.json`, the threshold out of
     // `.intent_critic.yml` -- so it fails every test the entries above pass.
@@ -395,5 +426,37 @@ fn the_refusal_is_a_failure_on_stderr_not_output_on_stdout() {
     stderr.contains("ST0001"),
     "and it names the work it cannot see, which is what distinguishes this \
      from an empty project: {stderr}"
+  );
+}
+
+/// The `surface` exemption is family-wide because the table gives it no other
+/// form, and that is honest only while the family has ONE leaf.
+///
+/// **A caution in a comment does not fail; this does.** The day a second verb
+/// lands under `surface`, this names the exemption that would otherwise have
+/// covered it in silence -- while the sweep next door went on reporting a pass.
+/// The population it guards is the compiled-in table, so it needs no fixture
+/// and cannot go stale against one.
+#[test]
+fn the_surface_exemption_states_the_precondition_it_rests_on() {
+  let table = dispatch::table();
+  let entry = dispatch::shipped_entries(&table)
+    .into_iter()
+    .find(|e| e.path == "surface")
+    .expect("the table declares a shipped `surface` row for the exemption to rest on");
+  let leaves: Vec<&str> = entry
+    .args
+    .iter()
+    .filter(|a| a.kind == "subcommand")
+    .flat_map(|a| a.values.iter().map(String::as_str))
+    .collect();
+  assert_eq!(
+    leaves,
+    ["retired"],
+    "`surface` is exempt from the unmigrated refusal as a FAMILY -- the row's path and its family \
+     are the same string, so the entry has no exact-path form and covers every leaf. That is \
+     honest only while `retired` is the only one, and it no longer is: {leaves:?}. Split the \
+     entry: exempt each leaf on its own stated ground, and let a leaf that opens a project keep \
+     refusing."
   );
 }

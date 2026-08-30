@@ -58,13 +58,39 @@ use intentsvcs::transitions;
 
 /// Verbs whose CLI spelling is not `verb.replace('.', " ")`, and why.
 ///
-/// **`at.set` is the only fan-out in the table.** One machine verb reaches
-/// three rows, because v2 spelled the AT statuses as separate commands and the
-/// rows are parity-bound to that: there is no `intent at set`. A machine verb
-/// with no row at all would be issue 0052 -- `wp.rescope` was exactly that
-/// until its row landed -- so this list must never be used to excuse an absent
-/// row. Every entry here names rows that EXIST.
-const FANS_OUT: &[(&str, &[&str])] = &[("at.set", &["at green", "at red", "at na"])];
+/// **`at.set` FANS OUT; THE FIAT-CLOSE EDGES RENAME -- one table, two reasons,
+/// and the second one arrived with the fiat close.** One machine verb reaching three
+/// rows is the fan-out case: v2 spelled the AT statuses as separate commands
+/// and the rows are parity-bound to that, so there is no `intent at set`. One
+/// machine verb reaching ONE differently-named row is the other, and the
+/// default derivation (`verb.replace('.', " ")`) cannot express it.
+///
+/// **A FIAT-CLOSE EDGE IS SPELLED `fc` AT THE SURFACE, TOP-LEVEL, WHATEVER
+/// MACHINE IT SITS ON, and that is a ruling rather than a shortening** (ic,
+/// 2026-08-29). `AC-00.3` makes a fiat close
+/// cross-family by construction -- closing an ST fiat-closes its open children,
+/// which are WPs, criteria and tests -- so a family-rooted `ac fc` could not
+/// reach them, and a family verb writing into two other families is the thing
+/// family roots exist to prevent. **Each MACHINE keeps its own token** --
+/// `ac.fc` names an edge on `Criterion.state`, `at.fc` one on
+/// `AcceptanceTest.status` -- because the token records which machine moved.
+/// Only the path is shared, and it is shared because there is one command.
+///
+/// **THE ENTRIES ARRIVE ONE PER MACHINE AS ITS EDGE LANDS, AND THAT IS NOT A
+/// LIST GOING STALE.** Each names an edge that exists today. A machine whose
+/// `Fiat` variant is still mid-cascade has no edge for this file to map, and
+/// writing its row ahead of the code would be a claim about something nobody
+/// has built -- the defect this directory keeps finding, in the one file whose
+/// job is to catch it.
+///
+/// A machine verb with no row at all would be issue 0052 -- `wp.rescope` was
+/// exactly that until its row landed -- so this list must never be used to
+/// excuse an absent row. Every entry here names rows that EXIST.
+const FANS_OUT: &[(&str, &[&str])] = &[
+  ("at.set", &["at green", "at red", "at na"]),
+  ("ac.fc", &["fc"]),
+  ("at.fc", &["fc"]),
+];
 
 /// Rows that belong in the population without owning a machine verb.
 ///

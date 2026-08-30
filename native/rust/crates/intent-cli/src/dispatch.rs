@@ -169,6 +169,21 @@ pub struct Entry {
   /// three when the vocabulary had five, and nothing could tell.
   #[serde(default)]
   pub disposition: String,
+  /// The other spelling of this row's capability, eg `edit --browser`.
+  ///
+  /// **INV-09: every spelling of one capability agrees about whether it
+  /// exists.** `ST0058 AC-00.6` states that narrowly, for a flag and its
+  /// subcommand twin, after `intent3 --version` returned rc=0 while `intent3
+  /// version` returned the unwired marker. A twin that is present by one
+  /// spelling and absent by the other is the defect; two spellings that AGREE
+  /// are what the criterion asks for.
+  ///
+  /// **This field is a `declaration` in `key_classes`, so it is read rather
+  /// than admired** -- `twin_spellings_agree.rs` walks it. A relation the
+  /// register states and nothing checks is exactly the stale-canon shape the
+  /// register's own orphan-invariant refusal exists to prevent.
+  #[serde(default)]
+  pub twin_of: String,
   /// The work package that owes this command, eg `WP-06`. Carried on
   /// `new_surface` rows; empty on ported ones, whose owner is WP-06 by default.
   ///
@@ -398,6 +413,17 @@ pub struct Flag {
   /// <evidence>` where the table says `<ref>`.
   #[serde(default)]
   pub value: Option<String>,
+  /// How many values the flag takes, in the register's OWN vocabulary:
+  /// `1`, `0..1`, `0..n`, `1..n`. Empty means the flag takes no value.
+  ///
+  /// **EXTENDED FROM `args` RATHER THAN MINTED** (vc, 2026-08-29). 125 args
+  /// declare `arity` and 29 of them declare `0..1`, which is exactly
+  /// `--editor[=program]`: the concept, the name and the value were all
+  /// already in the register and had simply been given to one position and not
+  /// the other. **An optional-value flag needs `=`** -- followed by a
+  /// positional it is ambiguous to clap, and `edit` has three.
+  #[serde(default)]
+  pub arity: String,
   /// Whether the flag must be supplied.
   #[serde(default)]
   pub required: bool,
@@ -1023,6 +1049,9 @@ mod tests {
       // property and inventing an alias would put a spelling into a test that
       // no table declares.
       hidden_aliases: Vec::new(),
+      // Same reasoning one field over (INV-09). A twin is a RELATION, and
+      // naming one here would assert a partner row these fixtures do not have.
+      twin_of: String::new(),
       path: "st new".to_string(),
       help: String::new(),
       args: vec![],
@@ -1069,6 +1098,7 @@ mod tests {
     };
     let with = |arg: Arg| Entry {
       hidden_aliases: Vec::new(),
+      twin_of: String::new(),
       path: "todo".to_string(),
       help: String::new(),
       args: vec![arg],

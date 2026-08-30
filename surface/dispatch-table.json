@@ -4,7 +4,7 @@
   "measured_at": "9ec1656",
   "measured_on": "2026-08-14",
   "measured_by": "ic",
-  "status": "All 27 v2 families authored + 11 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
+  "status": "All 27 v2 families authored + 14 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
   "target_states": [
     {
       "state": "as-observed",
@@ -251,6 +251,28 @@
           }
         ]
       }
+    },
+    {
+      "id": "INV-09",
+      "title": "Every spelling of one capability agrees about whether it exists",
+      "rule": "**THE GENERAL FORM OF `ST0058 AC-00.6`, WHICH STATES IT NARROWLY.** That criterion reads _a flag and its subcommand twin agree about whether the capability exists_, and was driven off `intent3 --version` returning rc=0 while `intent3 version` returned the unwired marker. **Two ROWS are two spellings (`browse` and `edit --browser`). TWO ARGUMENT SHAPES OF ONE ROW ARE ALSO TWO SPELLINGS**, and that second reading is what the narrow wording misses. **The witness is `fc`, and it is worse than a disagreement -- it is a FALSE STATEMENT**: `intent fc <thread> AC-nn.n` reaches the arm and refuses on the unknown thread at rc=1, while `intent fc <thread> AT-nn.n` answers `fc is a known command that is not implemented yet` with the remedy `nothing in this build provides it`, **for a verb this build provides**. Every other member of the twelve-file marker set is a duplicated TRUE sentence; this is the true sentence emitted where it is false. **A row whose probe answer varies by argument shape declares `varies` and names the axis, and refuses to answer as a boolean** -- a boolean that is genuinely both is not under-specified, it is being asked of the wrong unit, and a `partially_wired` value would encode the confusion rather than resolve it (cc, 2026-08-29).",
+      "v2": "not-applicable -- v2 had no twin spellings and no unwired marker",
+      "target": {
+        "state": "new-surface",
+        "ratification": "vc, 2026-08-29, generalising ST0058 AC-00.6 on ic's `fc` witness and cc's unit argument",
+        "held_by": "`twin_of` names the partner row; a probe result of `varies` names the axis it varies on"
+      }
+    },
+    {
+      "id": "INV-10",
+      "title": "`edit`'s four output modes are mutually exclusive and the default is the terminal's",
+      "rule": "**TTY -> TUI, PIPE -> PATH, with three explicit overrides that are mutually exclusive with each other and with the default**: `--editor[=program]`, `--browser`, `--path`. `--editor --path` is already refused and `--browser` joins that set. **`--path` MUST SURVIVE AND IT IS A DOCUMENTED OUTPUT CONTRACT, NOT A CONVENIENCE**: `docs/getting-started.md` carries `$EDITOR \"$(intent st edit ST0001 design)\"` under test, and command substitution makes stdout a pipe, so that invocation keeps receiving a path. **The bare TTY form alone was rejected by hv (2026-08-29) because it makes behaviour depend on an invisible property of the environment** -- a wrapper, a CI job or an editor plugin gets a different result with nothing in the command saying why. **The register is where the exclusion lives because no single flag can state it**, which is what makes it an invariant rather than a field.",
+      "v2": "not-applicable -- `st edit` had one output and no modes",
+      "target": {
+        "state": "new-surface",
+        "ratification": "hv, 2026-08-29, selecting the TTY form WITH explicit overrides from three options",
+        "held_by": "the four modes are refused pairwise; `--path` is a documented output contract under test in docs/getting-started.md"
+      }
     }
   ],
   "families": [
@@ -287,7 +309,7 @@
               "help": "Print the usage block",
               "note": "`help` is a bare word arm, not a flag; grouped here because the three spellings share one arm (bin/intent_st:1614)",
               "disposition": "intrinsic",
-              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
+              "disposition_basis": "`intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_st:1614-1616, 1618-1621",
@@ -1383,7 +1405,7 @@
               "help": "Print the usage block",
               "note": "bare-word arm plus the two flag spellings",
               "disposition": "intrinsic",
-              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
+              "disposition_basis": "`intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_wp:287 (`*)` arm) + the arity check above it",
@@ -4422,7 +4444,7 @@
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
-              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
+              "disposition_basis": "`intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_init",
@@ -4527,7 +4549,7 @@
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
-              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
+              "disposition_basis": "`intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_bootstrap",
@@ -4645,7 +4667,7 @@
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
-              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
+              "disposition_basis": "`intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_doctor",
@@ -4731,7 +4753,7 @@
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
-              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
+              "disposition_basis": "`intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_upgrade",
@@ -4818,7 +4840,7 @@
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
-              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
+              "disposition_basis": "`intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_organize",
@@ -5804,7 +5826,7 @@
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
-              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
+              "disposition_basis": "`intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_critic",
@@ -7052,7 +7074,7 @@
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
-              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
+              "disposition_basis": "`intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_treeindex",
@@ -7237,7 +7259,7 @@
               "type": "bool",
               "help": "Print the usage block",
               "disposition": "intrinsic",
-              "disposition_basis": "PROPOSED FOURTH VALUE, vc to rule. clap supplies help itself and `spine.rs:145-151` ALREADY skips these spellings, so the flag ships and the renderer is not expected to read it -- which `keep` (ships AND must be read) and `retire` (never reaches clap) both state falsely. The spine currently gets this right by matching on the spelling, which is exactly the inference-from-name that EXP-05 exists to replace with a declaration."
+              "disposition_basis": "`intrinsic` is a ratified value in this table's own `flag_dispositions` vocabulary; read the gloss there rather than reproducing it here. Row-specific: clap supplies these spellings and `spine.rs:145-151` already skips them. The spine gets this right by matching on the spelling, which is the inference-from-name that EXP-05 exists to replace with a declaration."
             }
           ],
           "v2": "bin/intent_fileindex",
@@ -7913,10 +7935,21 @@
       "help": "Print the path to open for an artefact, realising it first so the path exists",
       "args": [
         {
-          "name": "address",
+          "name": "kind",
+          "type": "enum",
+          "arity": "1",
+          "values": [
+            "st",
+            "wp",
+            "issue"
+          ],
+          "note": "**THE KIND RESOLVES AN AMBIGUITY THE TOOL ALREADY REPORTS, rather than being new syntax for its own sake.** Measured 2026-08-29: `intent edit 1` refuses with `1 names both a steel thread and an issue`. AC-17.6."
+        },
+        {
+          "name": "id",
           "type": "address-or-id",
           "arity": "1",
-          "note": "A bare artefact id is promoted; a full `intent://` URL is parsed as written. `address::promote` is the one door, so a typo is a USAGE error naming both forms and never a not-found."
+          "note": "An operator's spelling resolves to the id -- `56`, `ST0056`, `st56`, `ST56` all name one thread (AC-06.12). `address::promote` stays the one door, so a typo is a USAGE error naming both forms and never a not-found."
         },
         {
           "name": "file",
@@ -7930,7 +7963,7 @@
             "tasks",
             "acceptance"
           ],
-          "note": "NO `all` -- there is no single path for it. Carried unchanged from `st edit`, which this verb absorbs."
+          "note": "**SURVIVES THE SHAPE CHANGE, AND IT IS WHAT `--path` AND `--editor` OPERATE ON.** NO `all` -- there is no single path for it. The TUI and the browser edit the MODEL and never a file, so this argument is meaningful only under the two file-shaped modes; under the other two it is the artefact the pane would open. Carried unchanged from `st edit`, which this verb absorbs."
         }
       ],
       "flags": [
@@ -7938,10 +7971,12 @@
           "spellings": [
             "--editor"
           ],
-          "type": "bool",
-          "help": "Open the file in $VISUAL or $EDITOR, whatever stdout is",
+          "type": "enum",
+          "help": "Open the file in $VISUAL or $EDITOR, or in the named program, whatever stdout is",
           "disposition": "keep",
-          "disposition_basis": "hv, 2026-08-29, selecting the TTY form WITH explicit overrides from three options, and superseding two earlier rulings on the same question. The bare TTY form makes behaviour depend on an invisible property of the environment, so a wrapper, a CI job or an editor plugin gets a different result with nothing in the command saying why. This is the explicit spelling of the launch branch."
+          "disposition_basis": "hv, 2026-08-29, selecting the TTY form WITH explicit overrides from three options, and superseding two earlier rulings on the same question. The bare TTY form makes behaviour depend on an invisible property of the environment, so a wrapper, a CI job or an editor plugin gets a different result with nothing in the command saying why. This is the explicit spelling of the launch branch. **THE VALUE IS OPTIONAL AND NEEDS `=`.** `--editor=code` names a program; bare `--editor` takes the resolved default. An optional-value flag followed by a positional is ambiguous to clap, and this row has three positionals. **`arity` is the register's OWN field, extended to a second position rather than minted**: it carries `0..1` on 29 of the 125 args that declare it, which is exactly this shape, and giving `flags` the same field is Highlander in its cheapest form (vc, 2026-08-29).",
+          "arity": "0..1",
+          "value": "<program>"
         },
         {
           "spellings": [
@@ -7950,7 +7985,16 @@
           "type": "bool",
           "help": "Print the path and open nothing, whatever stdout is",
           "disposition": "keep",
-          "disposition_basis": "hv, 2026-08-29, the other half of the same ruling. Explicit spelling of the print branch, so a caller needing determinism can say which it wants rather than depending on what stdout happens to be."
+          "disposition_basis": "hv, 2026-08-29, the other half of the same ruling. Explicit spelling of the print branch, so a caller needing determinism can say which it wants rather than depending on what stdout happens to be. **INV-10 carries the exclusion and the output contract**: `docs/getting-started.md` has `$EDITOR \"$(intent st edit ST0001 design)\"` under test, and command substitution makes stdout a pipe, so that invocation keeps receiving a path whatever the terminal branch becomes."
+        },
+        {
+          "spellings": [
+            "--browser"
+          ],
+          "type": "bool",
+          "help": "Open the entity in the browser, served by intentd",
+          "disposition": "keep",
+          "disposition_basis": "**hv's opening ask names both doors** -- _the end game here is that can either: `intent edit st 68`, or browse to something like `intent browse st 68`_. **The URL addresses the ENTITY, not a filename** (`http://127.0.0.1:<port>/threads/ST0058?mode=edit`): the TUI and browser edit the model, and only `--editor` opens a file -- mixing the two is what makes the current argument shape misparse. **localhost HTTP rather than a custom `intent://` scheme**: a scheme needs per-platform OS registration, buys nothing, and adds a URL-handler surface anything on the machine can invoke. **It REFUSES when the daemon is not running, naming `intent daemon start`**, rather than spawning a process the operator did not ask for."
         }
       ],
       "v2": "new-surface",
@@ -7964,7 +8008,8 @@
       "exposed_on_mcp": false,
       "read_or_mutate": "mutate",
       "recoverability": "idempotent",
-      "recoverability_anomaly": "**WITHHELD FROM MCP WHILE BEING RECOVERABLE, AND THE GROUND IS THE RETURN VALUE RATHER THAN THE RISK.** The withhold list is derived from `recoverability` because MCP should not expose a mutation the surface cannot undo -- and this one it can: `edit` delegates to `Facade::hydrate`, idempotent in both of its steps, and adds only a read on top. **It is withheld anyway because what it RETURNS is an absolute filesystem path on this machine**, which is not merely unhelpful to a remote caller but actively misleading: a path that exists here and nowhere else, handed to something with no way to open it. The rule the list encodes is about safety and this exclusion is about meaning, so the number is left disagreeing and the reason recorded rather than the label adjusted to make it come out."
+      "recoverability_anomaly": "**WITHHELD FROM MCP WHILE BEING RECOVERABLE, AND THE GROUND IS THE RETURN VALUE RATHER THAN THE RISK.** The withhold list is derived from `recoverability` because MCP should not expose a mutation the surface cannot undo -- and this one it can: `edit` delegates to `Facade::hydrate`, idempotent in both of its steps, and adds only a read on top. **It is withheld anyway because what it RETURNS is an absolute filesystem path on this machine**, which is not merely unhelpful to a remote caller but actively misleading: a path that exists here and nowhere else, handed to something with no way to open it. The rule the list encodes is about safety and this exclusion is about meaning, so the number is left disagreeing and the reason recorded rather than the label adjusted to make it come out.",
+      "arg_shape_change": "**`edit <ADDRESS> [FILE]` BECOMES `edit <KIND> <ID> [FILE]`, AND THE OLD SHAPE MISPARSES RATHER THAN REFUSING.** `intent edit st 68` today reads `st` as the address and `68` as the file, so it refuses about the wrong thing -- which is the guess-from-shape this row exists to remove. **The terminal branch becoming the TUI is a behaviour change for every interactive user**, taken deliberately under hv's no-3.1.0 ruling: all v3 pain lands under one rubric. The register row is authored BEFORE either realiser is built (AC-17.6), so the surface decision is recorded rather than emerging from whichever realiser landed first. **THE FOUR OUTPUT MODES ARE GOVERNED BY INV-10**, which is where the mutual exclusion lives because no single flag can state it."
     },
     {
       "path": "events",
@@ -8013,6 +8058,164 @@
       "disposition": "new-surface",
       "exposed_on_mcp": true,
       "read_or_mutate": "read"
+    },
+    {
+      "path": "fc",
+      "help": "Fiat-close a requirement on authority, recording why -- `--because` is required and its absence refuses",
+      "args": [
+        {
+          "name": "target",
+          "type": "st-id|wp-spec",
+          "arity": "1",
+          "note": "The thread or work package, spelled with the EXISTING address forms -- `ST0001` or `ST0001/01`, `parse_wp_specifier`'s grammar. No new address form is minted for this verb: a third spelling existing for one verb would be the only place in the tool a caller addresses an entity that way."
+        },
+        {
+          "name": "child",
+          "type": "ac-id|at-id",
+          "arity": "0..1",
+          "note": "Present to close a criterion or an acceptance test, as `ac satisfy` and `at edit` already spell it. ABSENT means the target itself, and AC-00.3 cascade then reaches its open children. **THE TWO CHILD KINDS ARE NOT EQUALLY WIRED, AND THE MARKER THIS ROW ANSWERS WITH IS WRONG ABOUT ITS OWN SUBJECT.** Measured 2026-08-29 by ic against the debug binary, with the safe probe this row already prescribes: `fc ST9999 AC-99.9 --because <text>` reaches the arm and refuses on the unknown thread, so the AC door is WIRED; `fc ST9999 AT-99.9 --because <text>` answers `fc` is a known command that is not implemented yet, so the AT door is NOT. **The exit codes are the sharpest statement of it: rc=1 through the AC door, rc=2 through the AT door, from ONE invocation shape differing in one child prefix.** rc=2 is this tool `known command, not implemented` -- so the register now carries a row where that code is returned by a command that IS implemented, which is a FALSE instance of the meaning rather than a fifth meaning, and it is the first one measured. dc reported the cause -- the CLI arm still routes `AT-` to unwired while `Facade::at_fc` exists behind it. **The defect worth recording is not the gap but the SENTENCE: the marker names the COMMAND, and this command IS implemented.** A caller is told nothing in this build provides `fc` by a build that provides `fc`. The unwired marker has no vocabulary for a wired verb with an unwired BRANCH, and `probeable` has no vocabulary for a row that is both -- so a probe reading this row through the AC door and a probe reading it through the AT door disagree, and neither is lying. This is a member of the marker population cc is consolidating (12 files, six constants under five names) and it is the first member whose defect is the marker being WRONG rather than the marker being COPIED."
+        }
+      ],
+      "flags": [
+        {
+          "spellings": [
+            "--because"
+          ],
+          "type": "string",
+          "help": "Why this is being closed on authority rather than met -- REQUIRED",
+          "value": "<text>",
+          "required": true,
+          "disposition": "keep"
+        }
+      ],
+      "v2": "new-surface",
+      "basis": "ST0066 AC-00.1, which names this path literally: `intent fc <target> --because \"<text>\"` fiat-closes any of the four kinds. Top-level rather than per-family because AC-00.3 makes the act CROSS-FAMILY -- an FC on an ST reaches its criteria and tests -- and a family-rooted verb writing into two other families is what family roots exist to prevent.",
+      "owner_wp": "ST0066",
+      "acceptance": "ST0066 AC-00.1 (the verb and its refusal), AC-00.3 (the cascade), AC-00.4 (renders distinguishably wherever counted)",
+      "target": {
+        "state": "new-surface",
+        "no_op": "DECLARED BY ic, NOT YET DRIVEN -- dc to confirm against the machine before this row is trusted. `Fiat` is not among the from-states (`computed` and `unsatisfied` only), so a second `fc` on an already-fiat-closed requirement REFUSES at exit 1 and names `ac reinstate` as the exit. Written from dc's stated machine rather than from the binary, and flagged as such: a declaration that has not been driven is a requirement, not a record.",
+        "kind_is_derived": "The kind is read from the TARGET and is never declared. One argument matching `ST\\d+` is a thread; one containing `/` is a work package; two arguments with an `AC-` second is a criterion, `AT-` a test. There is deliberately NO `--kind` flag: it would be a second home for a fact the address already carries, and that class has already cost this estate a row -- `ac new`'s `--kind` DEFAULT overwrote a stored value because clap materialises a default whether or not the caller typed it (issue 0119).",
+        "bare_form": "**BARE `intent fc` REFUSES AT rc=1, AND rc=1 IS CORRECT -- DO NOT MAKE IT 2.** Measured by dc against a build carrying this row: `error: the following required arguments were not provided: --because <text>, <TARGET>`. A missing required argument is a USAGE error, which is rc=1 by INV-02; rc=2 means `known command, not implemented`, which is a different fact. The property ic asked for -- bare must refuse rather than dispatch to help -- HOLDS, and it holds by clap's required-args refusal rather than by the surface's own arm. That is fine and it stays true after the arm is wired.",
+        "refusal_has_no_structural_home": "The `--because` refusal is stated in `help` because the register has nowhere else to put it. That is issue 0142's structural half, and this row is a NEW member of the population it describes -- 4 of 118 shipped rows assert a precondition in help, one of them (`at green`) measured FALSE, and the detector that found them is a regex over six English words that this row's phrasing would also evade. Recorded here so the membership is declared rather than discovered later.",
+        "rulings": [
+          {
+            "state": "ratified",
+            "authority": "hv",
+            "date": "2026-08-29",
+            "record": "ST0066 AC-00.1"
+          },
+          {
+            "state": "ratified",
+            "authority": "ic",
+            "date": "2026-08-29",
+            "record": "surface shape: top-level path, existing address forms, kind derived from the target, bare form refuses -- ruled on dc's request before they wired the surface"
+          }
+        ],
+        "probe_consequence": "**THIS ROW CANNOT BE PROBED FOR WIRING BY DRIVING IT BARE, PERMANENTLY AND BY DESIGN, AND IT IS THE FIRST ROW OF THAT SHAPE.** `flag_reachability.rs`'s `unwired_families()` drives each probeable `new_surface[]` row BARE (`:345-362`) and asks whether the output contains `is a known command that is not implemented yet`. For a row with a required argument clap refuses FIRST, with a message that does not contain that marker, so the probe reads an unwired row as WIRED and the flag gate then fires on `--because`. **The population and the deferral path are both fine** -- `unwired_families()` walks `families` at `:249` AND `new_surface` at `:345`, and the deferral keys a `new_surface` row by its own path. **What is blind is the INVOCATION.** The fix is the rule vc drew from cc's bare-`daemon` finding the same day -- construct the probe from the row's OWN declaration rather than driving a bare form -- and for a WRITER the invocation must also be one that cannot succeed, because this same file already ruled that a probe whose question has a side effect is not a probe (the `bootstrap` incident). `intent fc ST9999 --because <probe>` satisfies clap, reaches the arm, and answers either the unwired marker or an unknown-thread refusal -- both safe, both distinguishable from each other.",
+        "from_states": "**`computed` AND `unsatisfied` ONLY, AND `satisfied` IS EXCLUDED FOR A REASON THE REFUSAL MUST STATE** (dc reasoning, adopted here so the omission is explicable rather than arbitrary). A fiat close is how an UNMET requirement is closed on authority. Allowing it on a MET one would let a close-on-authority overwrite a close-on-evidence -- destroying the evidence in order to record that none was needed, which is the exact inversion of what the verb is for. `descoped` and `withdrawn` are excluded too, on the different ground that they are already out of scope: there is nothing to close. **THAT SENTENCE DESCRIBES THE CRITERION MACHINE AND THIS ROW REACHES FOUR MACHINES, SO IT IS A PARTIAL ANSWER SHAPED LIKE A WHOLE ONE.** The ACCEPTANCE-TEST machine entry states are `to-write` and `red` (dc, 2026-08-29, edge built and declared from those two only) -- a DIFFERENT pair naming the same idea, because a test that has not been written and a test that fails are its two unmet states the way `computed` and `unsatisfied` are a criterion two. **The token stays per-machine on purpose** -- one token for four machines is the collapse `FANS_OUT` was renamed to avoid. ST and WP have NO entry states here at all: hv ruled 2026-08-28 that neither gets a status variant and `fiat` sits BESIDE a status that stays `completed`/`done`, so the cascade reaches their CHILDREN and never moves the parent status.",
+        "off_scope_voice": "**ic's WORDING, DECLARED AND NOT DRIVEN -- dc to wire and confirm.** Today `fc` on a `withdrawn` or `descoped` criterion answers with the bare machine refusal, where every sibling that writes about satisfaction answers with `OffScope` naming the undo. dc attempted the obvious wiring and REVERTED it, correctly: `OffScope`'s remedy hardcodes the `ac satisfy` story, so reusing it produced `if you mean to fiat-closed it` followed by a paragraph about recording evidence -- right shape, wrong sentence, and worse than the bare refusal it replaced. The sentences this row asks for, one per state: WITHDRAWN -- `error: AC-03.1 is withdrawn, so there is nothing in scope to close` / `remedy: run `intent ac reinstate <thread> AC-03.1` to bring it back into scope first. A fiat close records that an IN-SCOPE requirement was closed on authority; a withdrawn one is already out of scope, so closing it would assert something about the contract that is not true`. DESCOPED -- the same sentence with `descoped` and `intent ac rescope`. **The two differ only in the state and the undo verb, which is the whole reason they must not share one hardcoded remedy** -- that is how `ac rescope` came to be answered about `reinstate` twice (issue 0053)."
+      },
+      "disposition": "new-surface",
+      "exposed_on_mcp": true,
+      "mcp_review": {
+        "uncertain": [
+          "exposed_on_mcp"
+        ],
+        "why_uncertain": "**EXPOSED, FOLLOWING THIS TABLE'S OWN DERIVATION, AND THE GROUND UNDERNEATH IT IS OPEN FOR hv.** ic first authored this row `false`: ST0066 AC-00.6 requires the LLM-side contract to FORBID invoking `fc`, so putting the one forbidden verb on the machine face hands it to the agent forbidden to use it. `gen_dispatch_table.sh` REFUSED that row, and correctly -- withholding here is DERIVED from `recoverability` (the face withholds a mutation the surface cannot undo) and `fc` is `reversible`, so withholding it asserts a ground this table does not carry. **`recoverability_anomaly` was the offered escape and ic declined it:** that key is named for recoverability, and admitting a member for a different reason is the defect this estate hit three times on 2026-08-29 alone -- `not_probed`'s `nonreturning` predecessor losing `claude upgrade` to its own name, `FANS_OUT` carrying fan-out and rename under one meaning, and this. **A key named for one reason cannot hold members admitted for another.** **AC-00.6's own text leans the same way as the derivation:** enforcement is `detection plus attribution, never a claimed impossibility`, and withholding a tool the agent can still reach by shelling out claims an impossibility it does not have. What withholding removes is the ACCIDENT, not the capability. **THE QUESTION FOR hv IS NARROWER THAN THIS ROW: does the machine face need a SECOND withholding ground -- `withheld because the loaded contract forbids it` -- distinct from irreversibility?** If yes, it is a vocabulary addition rather than a label change, and `fc` is its first member. Until then this row follows the rule that exists rather than the one ic would have written."
+      },
+      "read_or_mutate": "mutate",
+      "recoverability": "reversible"
+    },
+    {
+      "path": "surface",
+      "help": "Query this build's command surface",
+      "args": [
+        {
+          "name": "subcommand",
+          "type": "subcommand",
+          "arity": "1",
+          "values": [
+            "retired"
+          ]
+        }
+      ],
+      "flags": [
+        {
+          "spellings": [
+            "--json"
+          ],
+          "type": "bool",
+          "help": "Emit the roster as JSON -- the form a caller branches on",
+          "disposition": "keep"
+        }
+      ],
+      "v2": "new-surface",
+      "basis": "ST0058 AC-00.5. hv ruled 2026-08-25 that retirement is answered OUT OF BAND rather than by a new exit code: `spine.rs` keeps its exit-code decision untouched and a caller branches on MEMBERSHIP in an enumerable roster. hv ruled the SPELLING 2026-08-29, choosing a `surface` root over a bare `retired` leaf and over nesting under `llm` -- `surface/` is already this estate's word for the register, and it gives later surface queries a namespace. The cost was stated and taken: a 14th top-level family holding one leaf today.",
+      "owner_wp": "ST0058",
+      "acceptance": "ST0058 AC-00.5",
+      "target": {
+        "state": "new-surface",
+        "roster_definition": "**`surface retired` PUBLISHES `spine::retired_and_unreachable()`, WHICH IS THE SAME PREDICATE THE EXEC PATH CALLS -- not a second implementation of it.** Two doors onto one roster is the design; two answers to `is this retired` is the divergent-copy shape, in the artefact whose whole job is to stop v3 re-deriving its own surface description. **`table.retired()` ALONE IS NOT THE ROSTER and publishing it would be worse than publishing nothing:** it selects on `!is_shipped()`, which reads two declared fields and asks nothing of the built surface, so it names `organize` -- which has two rows, sits in `populations.shipped` AND `populations.retired`, and RUNS at rc=0. A caller branching on that list removes a working verb from their automation, which is the exact harm `retired_refusal`'s own comment records being measured. Mutation-proved in a detached worktree: dropping the reachability filter reds `the_enumerable_roster_excludes_a_retired_name_this_build_reclaimed` on the `organize` arm specifically.",
+        "why_not_an_exit_code": "The row this serves previously demanded that retired and unbuilt be distinguishable BY EXIT CODE, and `spine.rs:128-131` accepts the opposite in writing. Both positions were coherent and they contradicted. hv ruled that NEITHER gives: the exit-code decision stands and the question is answered by a list. **So this verb must never acquire an exit code that encodes membership** -- that would reinstate the contradiction it was minted to resolve.",
+        "bare_form": "Bare `intent surface` refuses at rc=1 (clap, subcommand required), as `daemon` does. **It therefore inherits the probe hazard recorded on the `fc` row:** an unwired-ness probe that drives this row BARE reads clap's refusal rather than the arm, so it cannot tell unwired from wired. The probe must construct the invocation from this row's own declared `values`, per vc's rule from cc's bare-`daemon` finding.",
+        "rulings": [
+          {
+            "state": "ratified",
+            "authority": "hv",
+            "date": "2026-08-25",
+            "record": "ST0058 AC-00.5 -- enumerable rather than a new exit code"
+          },
+          {
+            "state": "ratified",
+            "authority": "hv",
+            "date": "2026-08-29",
+            "record": "spelling: `surface` root chosen over bare `retired` and over `llm retired`, cost of a 14th family stated and taken"
+          }
+        ]
+      },
+      "disposition": "new-surface",
+      "exposed_on_mcp": true,
+      "mcp_review": {
+        "note": "A READ with no durable effect, so the derivation from `recoverability` withholds nothing. It is also the verb an agent most plausibly needs: `does the command my script names still exist` is exactly the question an agent hits when maintaining someone else's automation."
+      },
+      "read_or_mutate": "read"
+    },
+    {
+      "path": "browse",
+      "help": "Open an entity in the browser -- the subcommand spelling of `edit --browser`",
+      "args": [
+        {
+          "name": "kind",
+          "type": "enum",
+          "arity": "1",
+          "values": [
+            "st",
+            "wp",
+            "issue"
+          ],
+          "note": "**THE KIND RESOLVES AN AMBIGUITY THE TOOL ALREADY REPORTS, rather than being new syntax for its own sake.** Measured 2026-08-29: `intent edit 1` refuses with `1 names both a steel thread and an issue`. AC-17.6."
+        },
+        {
+          "name": "id",
+          "type": "address-or-id",
+          "arity": "1",
+          "note": "An operator's spelling resolves to the id -- `56`, `ST0056`, `st56`, `ST56` all name one thread (AC-06.12). `address::promote` stays the one door, so a typo is a USAGE error naming both forms and never a not-found."
+        }
+      ],
+      "flags": [],
+      "v2": "new-surface",
+      "basis": "AC-17.6, which names both verbs, and hv's opening ask, which asked for both by name. **THIS ROW EXISTS BECAUSE `ST0058 AC-00.6` REFUSES DISAGREEMENT, NOT DUPLICATION** -- it was driven off `intent3 --version` answering rc=0 while `intent3 version` answered the unwired marker, and two spellings that AGREE are what it asks for. An earlier reading in `tui-design.md` section 9 turned _must agree_ into _must not both exist_ and deleted this verb on the strength of it; the bullet is gone rather than struck through (vc, 2026-08-29, on ic's finding).",
+      "owner_wp": "WP-17",
+      "twin_of": "edit --browser",
+      "target": {
+        "state": "new-surface"
+      },
+      "disposition": "new-surface",
+      "exposed_on_mcp": false,
+      "read_or_mutate": "mutate",
+      "recoverability": "idempotent",
+      "recoverability_anomaly": "**WITHHELD FROM MCP FOR THE SAME REASON AS ITS TWIN, AND THE TWO MUST AGREE ON THIS TOO.** What it opens is a URL on THIS machine, which is not merely unhelpful to a remote caller but misleading. `edit` records the same exclusion on the same ground; INV-09 is what stops the two rows drifting apart on it."
     }
   ],
   "provenance": {
@@ -8149,7 +8352,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 32,
+      "n": 35,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -8203,10 +8406,12 @@
         "path",
         "read_or_mutate",
         "recoverability",
-        "target"
+        "target",
+        "twin_of"
       ],
       "note": [
         "acceptance",
+        "arg_shape_change",
         "basis",
         "boundary_open_to_vc",
         "boundary_ruled",
@@ -8233,6 +8438,7 @@
     },
     "flag": {
       "declaration": [
+        "arity",
         "default",
         "disposition",
         "help",
@@ -8314,12 +8520,8 @@
     "why": "THE FOUR POPULATIONS, ENUMERATED, so no consumer has to re-derive one. `.families[].entries[]` reads like the command surface and is not it, in BOTH directions at once: too narrow, because it omits the 8 top-level `new_surface[]` rows and all 8 ship; too wide, because it includes the 5 rows dispositioned `retire`, which the binary does not contain. 104 against 112 against 107, three apart with opposite signs, so no count-based sanity check flinches -- which is how the same wrong population was hand-written five times in one week. **The fix is not vigilance and it is not a shared library either: a sourced library closes the class only for callers that source it, and nothing makes them.** `lib_surface.sh` was built as the one home and then sat beside `implemented_check.sh`'s own list and four inline walks in `surface_check.sh`, none of which sourced it, so it added a home rather than removing three. This block is the one home; the library reads it, and `gen_dispatch_table.sh` refuses when it disagrees with the corpus. The redundancy is deliberate -- `retired` is `declared` minus `shipped` and `probeable` is `shipped` minus `not_probed` -- because a consumer that has to subtract is a consumer that is computing. `Entry::is_shipped()` in the binary is NOT replaced by a lookup: it fails OPEN across two fields and is the only thing stopping a single hand-edit from shipping a retired command, and a list is edited by people who believe they are editing data. It stays a predicate and a Rust test binds it to `shipped`. Order is table order. **`not_probed` CARRIES ITS OWN REASONS BECAUSE ITS PREDECESSOR LOST A MEMBER TO ITS NAME** (vc, 2026-08-17, on their own `SURFACE_NONRETURNING`): the four are excluded for TWO different reasons -- two never return, two write outside the sandbox -- and `claude upgrade`, which returns perfectly well and installs into the operator's real `~/.claude`, fell out of a list whose name was only ever entitled to define one of the two. `claude start` survived only because it satisfies both readings, so the surviving two-word row made the list look complete. A key named for one reason cannot hold members admitted for another, and the correction is not a better name but a member that states its own grounds. **AND THE CRITERION IS NARROWER THAN `writes outside the sandbox`, WHICH IS THE GUARD AGAINST THIS LIST GOING SHORT A SECOND TIME** (vc, 2026-08-17, who checked their own fix by CORRESPONDENCE rather than reading it -- all four populations diffed member-by-member, not by count, because counts pass on a block with the right arithmetic and the wrong rows). Two SIBLINGS write destructively to the operator's real home -- `plugin_remove_target` is `rm -rf \"$HOME/.claude/skills/$1\"` at `intent/plugins/claude/bin/intent_claude_skills:73` and `rm -f \"$HOME/.claude/agents/$1.md\"` at `intent_claude_subagents:79` -- and BOTH are correctly probeable, because bare `claude skills` and bare `claude subagents` dispatch to help (`\"\"|help|-h|--help)` at :406 and :733 respectively) so the probe never reaches the destructive verb. `intent_claude_upgrade` has no such arm: it is a LEAF, and bare RUNS it. **So the criterion is `writes outside the sandbox WHEN INVOKED BARE, because bare is how the probe invokes`** -- and a criterion stated more broadly than the one actually applied is precisely what let a member fall out of this list last time. If a row ever gains a bare side effect, or a leaf is added under a name that reads like a family, the list goes short again in silence. Verified at HEAD by ic before recording. **THIRD ARRAY, AND IT IS EMPTY TODAY (ic, 2026-08-22): `families_outstanding` is a top-level array alongside `families` and `new_surface`.** A union of the other two is correct ONLY while this one has zero members, and nothing announces the day it does not -- a walk that is right by accident reads exactly like a walk that is right by construction. **Consult this block; do not union the arrays you happen to know about.**",
     "not_probed": [
       {
-        "path": "daemon",
-        "why": "never returns -- serves until killed, so any timeout classifies a working server as a hang"
-      },
-      {
         "path": "mcp",
-        "why": "never returns -- serves until killed, same as `daemon`"
+        "why": "UNBUILT, not serving -- `mcp` refuses at rc=2 `is a known command that is not implemented yet`, measured with a timeout. The previous reason (`never returns -- serves until killed`) ASSERTED THE PROPERTY UNDER TEST, which is what kept it unmeasured. The exemption stands as a precaution about the BUILT state, and is sound only in that tense (cc, 2026-08-29)."
       },
       {
         "path": "claude upgrade",
@@ -8457,7 +8659,10 @@
       "mcp",
       "organize",
       "edit",
-      "events"
+      "events",
+      "fc",
+      "surface",
+      "browse"
     ],
     "shipped": [
       "st",
@@ -8577,7 +8782,10 @@
       "mcp",
       "organize",
       "edit",
-      "events"
+      "events",
+      "fc",
+      "surface",
+      "browse"
     ],
     "retired": [
       "st repair",
@@ -8702,9 +8910,13 @@
       "export",
       "ingest",
       "backup",
+      "daemon",
       "organize",
       "edit",
-      "events"
+      "events",
+      "fc",
+      "surface",
+      "browse"
     ],
     "self_loop": [
       "ac descope",
@@ -8735,7 +8947,8 @@
       "wp reinstate",
       "wp rescope",
       "wp start",
-      "wp unstart"
+      "wp unstart",
+      "fc"
     ]
   },
   "no_op_note": "**`no_op` STATES WHAT A VERB PRINTS WHEN IT IS ASKED FOR THE STATE THE ENTITY IS ALREADY IN**, and it exists because nothing else in this register could say it. Issue 0050: hv's self-loop ruling gave the facade `Outcome::AlreadyThere`, nineteen `render.rs` arms discard it and print the movement message anyway, and two read it -- so `intent todo done ST0001` answers `was already done` while `intent st done ST0001`, the call it DELEGATES to, answers `done`. The table declared help, flags and exit codes and had no notation for that difference, so no parity tool could hold the renderer to anything. **TWO FIELDS, NOT ONE, BECAUSE THE TABLE ALREADY SPLITS THAT WAY.** `observed.no_op` is v2's behaviour and `target.no_op` is v3's. A single field would record the answer and lose the question, which is the one thing a parity register must not do -- and `observed` is NOT empty here: v2 has two no-op arms, `ok: issue <ID> already CLOSED` (bin/intent_issues:282) and `skipped: <ID> already in progress` (bin/intent_st:635), in DIFFERENT prefixes. **Everything else v2 does on a no-op is a repeated write that happens to land on the same value**, which is a materially different thing from a no-op and is why each such row says so rather than saying `ok`. **WHERE THE v2 HALF IS ABSENT, IT IS ABSENT UNAMBIGUOUSLY.** `observed` exists on a row exactly when `target.state` is not `new-surface` -- true across all 26 rows of the population and mechanical, not a convention -- so a missing `observed.no_op` already means `v2 had no such command` and needs no sentinel of its own. The requirement is therefore: `target.no_op` on every row of the population, `observed.no_op` on every row of it that has an `observed` block. **THREE SHAPES, AND THE THIRD IS THE POINT** (cc's argument, adopted): absent must never mean both `no self-loop is possible here` and `nobody has looked`. So a row in `populations.self_loop` always carries the key, and a value beginning `unexamined` is a declaration of ignorance rather than the silence that reads like coverage. `new-surface` says v2 had no antecedent, so there is nothing to be faithful to. **EVERY `target` VALUE DESCRIBES HEAD, AND EVERY ONE OF THEM IS NOW MEASURED RATHER THAN READ.** The ruled voice is `ok: <subject> already <state>` (vc, 2026-08-17, over the participle `was already <verb>`, on the grounds that a no-op reports a PRESENT condition and that the participle only coincides with the state when verb and state share a word -- `st hold` breaks it immediately). **It SHIPPED at `d0f345b5`**, so the rows cite that commit instead of the ruling. **Both halves of every row were obtained by driving the verb TWICE through a real binary** -- v3 from a release build of a `git archive` EXTRACT, v2.19.0 through the `intent` on PATH -- because the day's repeated lesson is that reading a source file answers a question adjacent to the one being asked. That method is not decoration: it is the only reason three of these rows are right. **`ac rescope` and `ac reinstate` were handed over as `ok: <AC> already unsatisfied | already computed` and in fact REFUSE at exit 1** (issue 0053) -- the announced value was reasoned correctly from `AcState::entry(kind)`, which is what the success arm passes the setter, and the self-loop never reaches that arm. **`todo notdone` and `todo toggle` have no reachable self-loop at all**, refusing unconditionally before any state is read, which is a third shape the `unexamined` sentinel could not have expressed. **And `at na` prints a state token, `n-a`, that appears in no canon file** -- v2 writes `n/a` in the row grammar and prints it back. None of the three is visible from the source of the verb alone, and all three would have entered the register as clean `ok:` lines had the values been transcribed. **The extract is not ceremony and the first attempt at this needed it.** The initial build was taken from a working tree that `git status` reported clean, and it was; a peer then began editing `render.rs` in the same shared checkout and something rebuilt the binary at a path this measurement was still reading. **Both binaries carry the same name, the same size to the eye, and no record of which tree they came from** -- the only thing that separated them was an mtime 31 seconds apart, which proves order and not content. Every value here was therefore re-driven against a binary built from `git archive HEAD`, whose `native/` is bit-identical to `b7e60fc5` (`git diff --stat b7e60fc5..HEAD -- native/ surface/` is empty), and all 27 reproduced unchanged. **The rule this leaves: in a shared checkout a clean `git status` licenses a build, not a measurement taken later against its output.**",
