@@ -37,7 +37,7 @@ use std::time::Duration;
 use notify_debouncer_full::notify::RecursiveMode;
 use notify_debouncer_full::{DebounceEventResult, Debouncer, RecommendedCache, new_debouncer};
 
-use intentsvcs::wire::Response;
+use intentsvcs::wire::{Event, Response};
 
 use crate::store::ProjectHandle;
 
@@ -155,12 +155,29 @@ fn on_batch(root: &Path, handle: &Arc<ProjectHandle>, result: DebounceEventResul
   };
 
   let scope = intentsvcs::sync::Scanned::for_root(root);
-  let touched = events
+  let changed: Vec<&std::path::PathBuf> = events
     .iter()
     .flat_map(|event| event.paths.iter())
-    .any(|path| scope.includes(path));
-  if !touched {
+    .filter(|path| scope.includes(path))
+    .collect();
+  if changed.is_empty() {
     return;
+  }
+
+  // **`fileChanged` IS EMITTED HERE BECAUSE HERE IS THE ONLY PLACE THAT KNOWS
+  // WHICH FILES** (`D20`, `AC-08.6`). It says the DISK moved; the store thread
+  // emits `projectChanged` after the re-read, which says the MODEL moved. They
+  // are published in that order for the same reason they are two events: a
+  // subscriber mirroring files acts on the first, and one redrawing from the
+  // store must not act until the second.
+  //
+  // **A SEND WITH NO SUBSCRIBERS IS AN `Err` AND IS NOT A FAILURE.** It is the
+  // ordinary case for a daemon nobody has subscribed to.
+  for path in &changed {
+    let _ = handle.publish(Event::FileChanged {
+      project_id: handle.project_id().to_string(),
+      path: (*path).clone(),
+    });
   }
 
   // **A DUPLICATE INGEST IS HARMLESS AND A MISSED ONE IS NOT, WHICH IS WHY THIS

@@ -148,7 +148,7 @@ pub fn out_of(mode: Mode) -> impl Iterator<Item = &'static Edge> {
 /// MULTI-LINE WIDGET -- it is a HANDOFF to the external editor*. A widget added
 /// to the DSL that also wants the editor is then an edit somebody has to make
 /// here, in the open, rather than a branch appearing in a realiser.
-pub const BY_ROW_KIND: &[(&str, Mode)] = &[("prose", Mode::Embed)];
+pub const BY_ROW_KIND: &[(&str, Mode)] = &[("prose", Mode::Embed), ("artefact", Mode::Embed)];
 
 /// Every edge `on` offers from `mode`.
 ///
@@ -521,6 +521,14 @@ mod tests {
   /// **EVERY AMBIGUITY THE TABLE DECLARES IS RESOLVABLE.** An arm added to the
   /// design without a row kind claiming it would make [`arm`] return `None` for
   /// every row -- a key that is declared, bound, reachable, and does nothing.
+  ///
+  /// **THE CLAIMED SET IS DEDUPLICATED, AND IT HAS TO BE.** The count is of
+  /// ARMS, not of entries: [`BY_ROW_KIND`] is many-to-one and legitimately so,
+  /// because `prose` and `artefact` both mean *hand the terminal to `$EDITOR`*
+  /// and differ only in what is handed over -- which is [`super::app::Step`]'s
+  /// business, not the machine's. Counting entries was indistinguishable from
+  /// counting arms while exactly one entry existed, and it reported the second
+  /// one as having eaten the default arm.
   #[test]
   fn every_ambiguity_the_table_declares_can_be_resolved_from_some_row_kind() {
     let mut examined = 0usize;
@@ -531,11 +539,13 @@ mod tests {
           continue;
         }
         examined += 1;
-        let claimed: Vec<Mode> = BY_ROW_KIND
+        let mut claimed: Vec<Mode> = BY_ROW_KIND
           .iter()
           .filter(|(_, m)| edges.iter().any(|e| e.to == *m))
           .map(|(_, m)| *m)
           .collect();
+        claimed.sort_by_key(|m| m.name());
+        claimed.dedup();
         assert_eq!(
           edges.len() - claimed.len(),
           1,

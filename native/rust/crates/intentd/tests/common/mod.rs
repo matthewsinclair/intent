@@ -71,6 +71,39 @@ pub fn project(name: &str) -> PathBuf {
   // IDENTICAL listings, so a registry that served one store to everybody would
   // have passed a test written to catch exactly that. The title is what makes
   // the two answers distinguishable at all.
+  // **THE FIXTURE MINTS A `project_id` BECAUSE `intent init` DOES NOT, AND THAT
+  // IS A REPORTED GAP RATHER THAN A FIXTURE CONVENIENCE.** D15 ratifies
+  // `project_id` as a cloud seam and D20 keys both subscription events on it --
+  // and `intentsvcs::init::init` writes a config with no such field, so every
+  // project created today carries `None`. Seven call sites reach it through
+  // `unwrap_or_default()`, which turns the absence into an empty string rather
+  // than an error.
+  //
+  // **WITHOUT THIS LINE FOUR SUBSCRIPTION ARMS COMPARE `""` TO `""` AND PASS.**
+  // That is the vacuous-assertion shape exactly: the daemon would emit events
+  // naming no project, two projects' events would be indistinguishable, and
+  // every test asserting the id would agree. Raised with vc, who owns whether
+  // `init` should mint one; the fixture states the property the tests need
+  // rather than papering over its absence.
+  // **A TEXT SPLICE RATHER THAN A JSON ROUND TRIP, BECAUSE `serde_json` IS NOT
+  // A DEPENDENCY OF THIS CRATE AND ADDING ONE FOR A FIXTURE IS THE WRONG
+  // TRADE.** The anchor is asserted, so a change to the initialiser's output
+  // fails here loudly instead of silently leaving the id unset -- which is the
+  // failure this whole block exists to prevent.
+  let config_path = root.join("intent/.config/config.json");
+  let text = std::fs::read_to_string(&config_path).expect("the initialiser wrote a config");
+  let anchor = "\"intent_dir\": \"intent\"";
+  assert!(
+    text.contains(anchor),
+    "the initialiser's config no longer contains `{anchor}`, so this fixture cannot set a project_id and every event-identity assertion downstream would compare empty strings: {text}"
+  );
+  let id = format!("test-{name}-{}", std::process::id());
+  std::fs::write(
+    &config_path,
+    text.replace(anchor, &format!("\"project_id\": \"{id}\",\n  {anchor}")),
+  )
+  .expect("write the config back");
+
   let project = intentsvcs::project::Project::open(&root).expect("the project just created");
   let ctx = intentsvcs::facade::FacadeContext {
     principal: "test".to_string(),

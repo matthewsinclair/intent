@@ -232,6 +232,33 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
     match app.on_key(key, &rows) {
       Step::Quit => break,
       Step::Continue => {}
+      // **`AC-17.8`: THE ARTEFACT IS OPENED IN PLACE, AND A GENERATED VIEW IS
+      // REFUSED BY NAME.** No scratch file and no read-back -- the editor
+      // writes the artefact directly, so there are no bytes of the operator's
+      // held anywhere that a failure could strand. The re-read afterwards is
+      // still unconditional, for `AC-17.10`'s reason: the editor is the
+      // authority on what happened and its own report is not evidence.
+      Step::Open { kind, id, name } => {
+        match source.artefact(&kind, &id, &name) {
+          Err(why) => app.notice = why.to_string(),
+          Ok(path) => {
+            let lent = borrowed.lend(|| session.launch(&path));
+            app.notice = match lent {
+              Ok(Ok(())) => format!("{name} closed"),
+              Ok(Err(why)) => why.to_string(),
+              Err(e) => format!("the terminal would not come back: {e}"),
+            };
+          }
+        }
+        app.child_exited();
+        rows = source.rows(app.stack.current());
+        app.refocus(rows.len());
+        if borrowed.outstanding().is_empty() {
+          return Err(io::Error::other(
+            "the terminal was lent to the editor and could not be taken back",
+          ));
+        }
+      }
       Step::Hand(hand) => {
         let mut lending = Lending {
           inner: &mut session,

@@ -1216,7 +1216,7 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
 
   let address = address::promote(&argument).map_err(|e| Failure::Error(e.render()))?;
   let mut facade = open()?;
-  let path = facade.edit(&address, &file).map_err(fail)?;
+  let path = artefact_path(&mut facade, &address, &file).map_err(fail)?;
 
   if opens_an_editor(m)? {
     launch_editor(&path, named_editor(m).as_deref())
@@ -1224,6 +1224,35 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
     println!("{}", path.display());
     Ok(())
   }
+}
+
+/// **THE ONE DOOR FROM (ENTITY, FILE NAME) TO A PATH ON DISK.** `AC-05.3`.
+///
+/// A pass-through, and it earns its name rather than its body. `AC-05.3` says
+/// `intent edit` and `intent st edit` are ONE implementation, and
+/// `the_renderer_calls_the_edit_door_exactly_once` enforces it by COUNTING CALL
+/// SITES -- because two implementations that agree today pass every behavioural
+/// test there is, so the only thing that can go red when a second appears is
+/// the count.
+///
+/// **The TUI's artefact rows (`AC-17.8`) made this file a second caller**, and
+/// the guard caught it on the first run. Routing both through here keeps the
+/// count at one and makes the shared question findable, which is what the
+/// criterion is actually about: `Facade::edit` applies
+/// `Project::edit_disposition`, refuses a generated view before writing
+/// anything, and names what authors it.
+///
+/// **The file-vocabulary check deliberately stays in `edit`**, because it
+/// produces a USAGE refusal naming the permitted set and the TUI cannot reach
+/// it: its rows come from `arg_values(table, "edit", "file")`, the same source
+/// that check validates against, asserted by
+/// `every_file_the_edit_surface_offers_is_a_row_on_the_entity`.
+fn artefact_path(
+  facade: &mut Facade,
+  address: &intentsvcs::address::Address,
+  file: &str,
+) -> Result<std::path::PathBuf, intentsvcs::facade::FacadeError> {
+  facade.edit(address, file)
 }
 
 /// `--browser`: open the ENTITY in a browser served by `intentd`.
@@ -2820,6 +2849,7 @@ fn explore(address: Option<&str>) -> Result<(), Failure> {
     facade: open()?,
     declaration: intentsvcs::form::Loaded::load()
       .map_err(|e| Failure::Error(format!("error: the form declaration would not load: {e}")))?,
+    table: crate::dispatch::table(),
   };
   // **THE ONE LAUNCHER, PASSED IN** (`AC-17.10`). `tui::edit` cannot read
   // `$VISUAL`, cannot fall back and cannot decide that `vi` will do, because it
@@ -2860,6 +2890,48 @@ fn explore(address: Option<&str>) -> Result<(), Failure> {
     .map_err(|e| Failure::Error(format!("error: the terminal would not co-operate: {e}")))
 }
 
+/// The artefact rows of one entity: `AC-17.8`'s reach half.
+///
+/// **NOT FORM FIELDS, AND THAT IS WHAT KEEPS `AC-17.2` INTACT.** That criterion
+/// governs the FORM DECLARATION -- every declared field must resolve to a
+/// property of the schema face -- and an artefact is a file rather than a
+/// property, so declaring these in `surface/forms.json` would be the refusal it
+/// describes. They are realiser rows with a DECLARED SOURCE, which is the
+/// distinction that matters: the objection is to a hand-authored list, not to a
+/// row whose origin can be named.
+///
+/// **NOR A NEW NAV LEVEL**, which would need a path segment no declaration
+/// carries and `AC-17.12` forbids exactly that. `tui-design.md` section 7 says
+/// *a row* opens the realised file, *deliberately distinct from the field
+/// rows* -- so they sit beside the field rows and are told apart by kind.
+///
+/// **THE VALUE COLUMN PREVIEWS THE DISPOSITION, AND THE REFUSAL STILL HAPPENS.**
+/// Showing `generated` before the keystroke is not a substitute for refusing
+/// after it: `AC-17.8` requires the refusal to NAME what authors the view, and
+/// a label the operator may not have read is not a refusal.
+fn artefact_rows(table: &crate::dispatch::Table, kind: &str) -> Vec<tui::layout::Row> {
+  use intentsvcs::project::{EditDisposition, Project};
+  if kind != "thread" {
+    return Vec::new();
+  }
+  crate::dispatch::arg_values(table, "edit", "file")
+    .into_iter()
+    .map(|file| {
+      let rel = std::path::PathBuf::from(format!("{file}.md"));
+      let says = match Project::edit_disposition(&rel) {
+        EditDisposition::Open => "authored".to_string(),
+        EditDisposition::OpenRoundTrip { round_trips } => {
+          format!("generated; {} section(s) round-trip", round_trips.len())
+        }
+        EditDisposition::Refuse { author_with } => {
+          format!("generated -- authored with {author_with}")
+        }
+      };
+      tui::layout::Row::named(file.clone(), format!("{file}.md"), says, "artefact")
+    })
+    .collect()
+}
+
 /// Is there anything at `view`?
 ///
 /// **THE PRESENCE HALF OF `nav::land`, AND IT IS THE FACE'S TO ANSWER.**
@@ -2891,15 +2963,54 @@ fn present(facade: &Facade, view: &intentsvcs::nav::View) -> bool {
 struct Live {
   facade: Facade,
   declaration: intentsvcs::form::Loaded,
+  /// **`AC-17.8`'s file vocabulary, from THE SURFACE'S OWN DECLARATION.**
+  /// `arg_values(table, "edit", "file")` rather than a roster in this file, and
+  /// rather than the attachment set -- **measured 2026-08-30, ST0056 carries
+  /// 301 attachments and not one generated view among them**, so the
+  /// attachments could never have offered the operator the thing the criterion
+  /// requires them to be refused for.
+  table: crate::dispatch::Table,
 }
 
 impl tui::run::Source for Live {
   fn rows(&mut self, view: &intentsvcs::nav::View) -> Vec<tui::layout::Row> {
-    rows_for(&self.facade, &self.declaration, view)
+    rows_for(&self.facade, &self.declaration, &self.table, view)
   }
 }
 
 impl tui::edit::Model for Live {
+  /// **`AC-17.8`: THE REALISER RESOLVES NOTHING AND CLASSIFIES NOTHING.**
+  /// `Facade::edit` is already the one door for *give me the path of this
+  /// artefact* -- it applies `Project::edit_disposition`, refuses a generated
+  /// view before it writes anything, and its refusal already names what authors
+  /// the file. A second resolution here would be the Highlander defect in the
+  /// place the criterion is explicitly about: *the authored/generated split is
+  /// READ from the model, never hard-coded in the realiser.*
+  ///
+  /// **THE REFUSAL'S OWN WORDS REACH THE OPERATOR**, for the reason the editor
+  /// launcher's do: somebody wrote that sentence carefully, in the module that
+  /// knows the fact, and a copy worded here would be a worse second home for it.
+  fn artefact(
+    &mut self,
+    _kind: &str,
+    id: &str,
+    name: &str,
+  ) -> Result<std::path::PathBuf, tui::edit::Refused> {
+    let address =
+      intentsvcs::address::promote(id).map_err(|e| tui::edit::Refused::new(e.to_string()))?;
+    artefact_path(&mut self.facade, &address, name).map_err(|e| {
+      // **THE REMEDY TRAVELS WITH THE REFUSAL, AND DROPPING IT WOULD LOSE THE
+      // USEFUL HALF.** `FacadeError::NotEditable` says the view is generated
+      // AND names what authors it -- `author it with intent ac` -- and the
+      // second half is the only part that tells the operator what to do next.
+      // Same decision as `nav::Unlanded::Unreadable` carrying the address
+      // parser's remedy: the module that knows the fact wrote both sentences,
+      // and a caller that forwards one of them has quietly re-scoped the answer.
+      let remedy = intentsvcs::remedy::Remedy::remedy(&e);
+      tui::edit::Refused::new(format!("{e} -- {remedy}"))
+    })
+  }
+
   /// **THE RAW BYTES, NOT THE ROW.** `intentsvcs::form::raw` exists precisely
   /// so this cannot reach for `Triple::value`, which is whitespace-collapsed to
   /// fit one screen line and would hand `$EDITOR` a form of the operator's
@@ -2970,6 +3081,7 @@ fn entity_json(facade: &Facade, kind: &str, id: &str) -> Option<serde_json::Valu
 fn rows_for(
   facade: &Facade,
   declaration: &intentsvcs::form::Loaded,
+  table: &crate::dispatch::Table,
   view: &intentsvcs::nav::View,
 ) -> Vec<tui::layout::Row> {
   use intentsvcs::nav::View;
@@ -2995,7 +3107,9 @@ fn rows_for(
       // form is declared and the values are what is missing. An empty screen
       // would say the entity has no fields, which is a different and false
       // claim.
-      tui::views::rows_for(form, &entity.unwrap_or(serde_json::Value::Null))
+      let mut rows = tui::views::rows_for(form, &entity.unwrap_or(serde_json::Value::Null));
+      rows.extend(artefact_rows(table, kind));
+      rows
     }
     View::Children { kind, id, field } if kind == "thread" => {
       // **A LEVEL THIS BUILD DOES NOT RENDER SAYS SO, RATHER THAN LOOKING
@@ -7469,6 +7583,140 @@ fn render_critic_json(report: &intentsvcs::critic::Report) {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  // -------------------------------------------------------------------------
+  // `AT-17.8` -- the TUI reaches every authored artefact and refuses a
+  // generated view by naming it.
+  // -------------------------------------------------------------------------
+
+  /// **THE REACH HALF, HELD AGAINST THE SURFACE'S OWN VOCABULARY IN BOTH
+  /// DIRECTIONS.** A subset check would pass on a realiser that offered one
+  /// file, and a superset check would pass on one that invented a sixth.
+  #[test]
+  fn every_file_the_edit_surface_offers_is_a_row_on_the_entity() {
+    let table = crate::dispatch::table();
+    let declared: std::collections::BTreeSet<String> =
+      crate::dispatch::arg_values(&table, "edit", "file")
+        .into_iter()
+        .collect();
+    assert!(
+      declared.len() > 1,
+      "the surface declares {} file(s) for `intent edit`, so this comparison is trivial",
+      declared.len()
+    );
+    let offered: std::collections::BTreeSet<String> = artefact_rows(&table, "thread")
+      .into_iter()
+      .map(|r| r.name)
+      .collect();
+    assert_eq!(
+      offered, declared,
+      "the artefact rows and `intent edit`'s file vocabulary have drifted"
+    );
+  }
+
+  /// **THE CONTROL FOR THE WHOLE CRITERION, AND IT IS THE CHECK THAT WAS
+  /// MISSING WHEN THIS ROW WAS FIRST DIAGNOSED.**
+  ///
+  /// `AC-17.8` requires the TUI to refuse a generated view BY NAMING IT. A
+  /// refusal can only happen if the operator can ask, so **if the offered set
+  /// contains no generated view the second clause has no subject** and every
+  /// other assertion here would pass over a surface that can never exhibit the
+  /// behaviour. That is not hypothetical: the first proposal for this row read
+  /// the ATTACHMENT set, and ST0056 carries 301 attachments with **not one
+  /// generated view among them** -- so the refusal would have been unreachable
+  /// while the row looked satisfiable.
+  #[test]
+  fn the_offered_set_contains_a_generated_view_or_the_refusal_has_no_subject() {
+    use intentsvcs::project::{EditDisposition, Project};
+    let table = crate::dispatch::table();
+    let refused: Vec<(String, &str)> = artefact_rows(&table, "thread")
+      .into_iter()
+      .filter_map(|r| {
+        let rel = std::path::PathBuf::from(format!("{}.md", r.name));
+        match Project::edit_disposition(&rel) {
+          EditDisposition::Refuse { author_with } => Some((r.name, author_with)),
+          _ => None,
+        }
+      })
+      .collect();
+    assert!(
+      !refused.is_empty(),
+      "no file the TUI offers is a generated view, so `AC-17.8`'s refusal clause cannot fire and \
+       the rest of this file proves nothing about it"
+    );
+    for (name, author_with) in &refused {
+      assert!(
+        !author_with.is_empty(),
+        "`{name}` is refused and the refusal names nothing that authors it, which is the half of \
+         `AC-17.8` that distinguishes it from simply declining"
+      );
+    }
+  }
+
+  /// **THE SPLIT IS READ FROM THE MODEL, NEVER DECIDED HERE** -- the
+  /// criterion's own words, asserted rather than trusted. Every row's value
+  /// must be derivable from `Project::edit_disposition` for that file, so
+  /// `info.md` changing disposition under the round-trip moves what the TUI
+  /// shows without this file being touched.
+  #[test]
+  fn each_artefact_row_says_what_the_model_says_and_nothing_it_decided_itself() {
+    use intentsvcs::project::{EditDisposition, Project};
+    let table = crate::dispatch::table();
+    let mut seen_each_disposition = (false, false, false);
+    for row in artefact_rows(&table, "thread") {
+      let rel = std::path::PathBuf::from(format!("{}.md", row.name));
+      match Project::edit_disposition(&rel) {
+        EditDisposition::Open => {
+          seen_each_disposition.0 = true;
+          assert_eq!(row.value, "authored", "`{}` is authored", row.name);
+        }
+        EditDisposition::OpenRoundTrip { round_trips } => {
+          seen_each_disposition.1 = true;
+          assert!(
+            row.value.contains("round-trip") && row.value.contains(&round_trips.len().to_string()),
+            "`{}` round-trips {} section(s) and the row says {:?}",
+            row.name,
+            round_trips.len(),
+            row.value
+          );
+        }
+        EditDisposition::Refuse { author_with } => {
+          seen_each_disposition.2 = true;
+          assert!(
+            row.value.contains(author_with),
+            "`{}` is generated and the row does not name what authors it: {:?}",
+            row.name,
+            row.value
+          );
+        }
+      }
+      assert_eq!(
+        row.kind, "artefact",
+        "`{}` must be told apart from a field row by KIND, because \
+         that is what `mode::arm` reads to decide where Enter goes",
+        row.name
+      );
+    }
+    assert_eq!(
+      seen_each_disposition,
+      (true, true, true),
+      "the offered set does not exercise all three dispositions, so this test is weaker than it \
+       reads: (Open, OpenRoundTrip, Refuse)"
+    );
+  }
+
+  /// An entity with no realised artefacts offers none, rather than offering a
+  /// thread's five under another kind's name.
+  #[test]
+  fn a_kind_with_no_artefacts_of_its_own_offers_no_rows() {
+    let table = crate::dispatch::table();
+    for kind in ["issue", "wp"] {
+      assert!(
+        artefact_rows(&table, kind).is_empty(),
+        "`{kind}` was offered a thread's artefact rows"
+      );
+    }
+  }
 
   /// The descents this realiser builds rows for.
   ///

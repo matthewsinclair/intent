@@ -123,6 +123,21 @@ pub struct Handoff {
 pub trait Model {
   fn read(&mut self, h: &Handoff) -> Result<String, Refused>;
   fn write(&mut self, h: &Handoff, value: &str) -> Result<(), Refused>;
+  /// The path of one realised artefact, or a refusal NAMING WHAT AUTHORS IT.
+  ///
+  /// **`AC-17.8`, and it is a SECOND PATH BY RULING RATHER THAN A HIGHLANDER
+  /// DEFECT.** `tui-design.md` section 7: *a row opens the realised file itself
+  /// -- deliberately distinct from the field rows, which edit the MODEL.* The
+  /// two operations differ in every step that matters: a field is realised to a
+  /// scratch file and read back, while an artefact already exists on disk and
+  /// the editor writes it in place. There is no scratch file to keep, nothing
+  /// to read back, and no stale-model save to guard against.
+  ///
+  /// **THE AUTHORED/GENERATED SPLIT IS READ FROM THE MODEL, NEVER DECIDED
+  /// HERE** -- the criterion's own words. `Project::edit_disposition` owns it,
+  /// so `info.md` changing disposition under the round-trip moves this
+  /// behaviour without the TUI being touched.
+  fn artefact(&mut self, kind: &str, id: &str, name: &str) -> Result<PathBuf, Refused>;
 }
 
 /// The outside world: a scratch file, and a child that owns the terminal while
@@ -207,6 +222,18 @@ mod tests {
       }
       self.stored = value.to_string();
       Ok(())
+    }
+    /// **NOT EXERCISED BY THIS MODULE'S TESTS, AND SAYING SO IS THE POINT.**
+    /// `hand_off` is the FIELD path -- scratch file, read-back, stale-model
+    /// guard -- and an artefact never enters it. `AC-17.8`'s path does not pass
+    /// through here at all; it is driven where it lives, in `run`. A fake that
+    /// answered something plausible would invite a test to be written against
+    /// this instead of against the real resolution.
+    fn artefact(&mut self, _kind: &str, _id: &str, name: &str) -> Result<PathBuf, Refused> {
+      self.log.borrow_mut().push(format!("artefact<{name}>"));
+      Err(Refused::new(
+        "this fake models the field handoff only; the artefact path is driven in `run`",
+      ))
     }
   }
 

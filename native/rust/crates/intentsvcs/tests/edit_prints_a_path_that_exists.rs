@@ -429,7 +429,18 @@ fn the_renderer_calls_the_edit_door_exactly_once() {
   )
   .expect("read the renderer");
 
-  let calls = src.matches(".edit(&address").count();
+  // **THE PATTERN COUNTS THE CALL, NOT ONE SPELLING OF ITS ARGUMENT.** It was
+  // `.edit(&address`, which is a fact about how the caller happened to name a
+  // local. When `AC-17.8` gave the TUI a second caller, the honest fix was to
+  // extract `artefact_path` so both route through one site -- and that same fix
+  // took the argument to `address` and dropped the pattern from 2 to ZERO,
+  // reporting the strengthened code as a worse violation than the duplication.
+  //
+  // **A proxy that stops matching its subject is ST0039's class**, and the
+  // repair is the one that file already prescribes: ask the question the
+  // property is about. The property is *how many places call the edit door*,
+  // and `.edit(` is that question with nothing about the caller in it.
+  let calls = src.matches(".edit(").count();
   assert_eq!(
     calls, 1,
     "AC-05.3: `intent edit` and `intent st edit` are ONE implementation. {calls} \

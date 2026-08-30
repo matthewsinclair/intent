@@ -40,8 +40,8 @@ use std::path::{Path, PathBuf};
 use intentsvcs::facade::{Facade, FacadeContext};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
-use intentsvcs::wire::{Op, Response, ThreadSummary};
-use tokio::sync::{mpsc, oneshot};
+use intentsvcs::wire::{Event, Op, Response, ThreadSummary};
+use tokio::sync::{broadcast, mpsc, oneshot};
 
 /// How many requests may be queued for one project before callers wait.
 ///
@@ -120,6 +120,23 @@ pub struct ProjectHandle {
   /// re-read*, which is a claim about work performed -- and counting it at the
   /// send would make a full queue look like completed ingests.
   ingested: std::sync::Arc<std::sync::atomic::AtomicU64>,
+  /// This project's identity, as `D20`'s events name it.
+  ///
+  /// **READ ONCE WHEN THE PROJECT OPENS, NEVER PER EVENT.** It comes off the
+  /// project's config, which the store thread has already read to build its
+  /// `FacadeContext` -- so asking again per event would be a second reader of
+  /// one value, on the hot path, for a fact that cannot change while the handle
+  /// lives.
+  project_id: String,
+  /// The live feed for this project (`AC-08.6`).
+  ///
+  /// **THE EVENT BUS SITS BESIDE THE STORE DOOR AND DOES NOT WIDEN IT.** This
+  /// module's rule is that a `Facade` never leaves the file, and a
+  /// `broadcast::Sender` is not one -- it reaches no store, blocks nothing, and
+  /// is held here for the same reason `tx` is: **both the store thread and the
+  /// watcher must publish, and a second home for the sender would be two feeds
+  /// one subscriber could only be on one of.**
+  events: broadcast::Sender<Event>,
 }
 
 impl ProjectHandle {
@@ -131,9 +148,12 @@ impl ProjectHandle {
   /// them. So the thread is started first and reports back whether it got a
   /// facade, which also means the failure path returns a `Response` a client
   /// can be told rather than an error only a log would see.
-  pub async fn open(root: PathBuf) -> Result<ProjectHandle, Response> {
+  pub async fn open(
+    root: PathBuf,
+    events: broadcast::Sender<Event>,
+  ) -> Result<ProjectHandle, Response> {
     let (tx, mut rx) = mpsc::channel::<Work>(QUEUE_DEPTH);
-    let (ready_tx, ready_rx) = oneshot::channel::<Result<(), Response>>();
+    let (ready_tx, ready_rx) = oneshot::channel::<Result<String, Response>>();
     let thread_root = root.clone();
     // **SHARED WITH THE STORE THREAD BECAUSE THAT IS WHERE THE WORK HAPPENS.**
     // The handle reports the count and the thread increments it, so the two
@@ -142,11 +162,18 @@ impl ProjectHandle {
     // not have.
     let ingested = std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0));
     let thread_ingested = std::sync::Arc::clone(&ingested);
+    let thread_events = events.clone();
 
     std::thread::spawn(move || {
+      // **THE ID IS LEARNED ON THIS THREAD AND KEPT HERE, RATHER THAN READ BACK
+      // OFF THE HANDLE.** The handle does not exist yet -- it is built from what
+      // this thread reports -- and reaching back for it per event would make the
+      // publisher depend on the thing it is publishing to.
+      let mut thread_project_id = String::new();
       let mut facade = match open_facade(&thread_root) {
-        Ok(facade) => {
-          if ready_tx.send(Ok(())).is_err() {
+        Ok((facade, project_id)) => {
+          thread_project_id = project_id.clone();
+          if ready_tx.send(Ok(project_id)).is_err() {
             // Nobody is waiting any more: the caller went away between the
             // spawn and the open. Drop the facade rather than serve a queue no
             // one will read.
@@ -174,6 +201,19 @@ impl ProjectHandle {
           }
           Work::Ingest => {
             ingest(&mut facade, &thread_root);
+            // **`projectChanged` IS EMITTED HERE AND NOWHERE ELSE, BECAUSE HERE
+            // IS THE ONLY PLACE THAT KNOWS THE RE-READ FINISHED.** The watcher
+            // knows a file moved and emits `fileChanged` for it; only the store
+            // thread knows the MODEL moved. Emitting this from the watcher
+            // would tell subscribers the project changed before it had, and a
+            // subscriber redrawing on that reads the state it already had.
+            //
+            // **A SEND WITH NO SUBSCRIBERS IS AN `Err` AND IS NOT A FAILURE.**
+            // `broadcast::Sender::send` refuses when nobody is listening, which
+            // is the ordinary case for a daemon nobody has subscribed to.
+            let _ = thread_events.send(Event::ProjectChanged {
+              project_id: thread_project_id.clone(),
+            });
             // **AFTER THE WORK, AND AFTER IT EVEN WHEN IT FAILED.** The
             // question this answers is *how many times did the watcher make
             // this store re-read the tree*, which is what `AC-08.5`'s
@@ -187,11 +227,13 @@ impl ProjectHandle {
     });
 
     match ready_rx.await {
-      Ok(Ok(())) => Ok(ProjectHandle {
+      Ok(Ok(project_id)) => Ok(ProjectHandle {
         tx,
         root,
         dispatched: std::sync::atomic::AtomicU64::new(0),
         ingested,
+        project_id,
+        events,
       }),
       Ok(Err(refusal)) => Err(refusal),
       // The thread ended without answering: it panicked. Report it as a
@@ -215,6 +257,36 @@ impl ProjectHandle {
   /// How many times this project's tree has been re-read after a change.
   pub fn ingested(&self) -> u64 {
     self.ingested.load(std::sync::atomic::Ordering::Relaxed)
+  }
+
+  /// This project's identity, as `D20`'s events name it.
+  pub fn project_id(&self) -> &str {
+    &self.project_id
+  }
+
+  /// A live feed of this project's changes (`AC-08.6`).
+  ///
+  /// **A `broadcast` RECEIVER, SO EVERY SUBSCRIBER SEES EVERY EVENT.** An mpsc
+  /// fan-out would give each event to exactly one of them, which is the
+  /// opposite of what a subscription is -- and the failure would be invisible
+  /// with one subscriber and silently wrong with two.
+  pub fn subscribe(&self) -> broadcast::Receiver<Event> {
+    self.events.subscribe()
+  }
+
+  /// Publish one event to this project's subscribers.
+  ///
+  /// **THE WATCHER PUBLISHES THROUGH THE HANDLE RATHER THAN HOLDING ITS OWN
+  /// SENDER**, so there is one feed per project and not one per publisher. A
+  /// watcher with its own channel would deliver `fileChanged` to subscribers of
+  /// a different channel from the one carrying `projectChanged`, and each half
+  /// would look correct in isolation.
+  ///
+  /// The `Err` case is *nobody is subscribed*, which is the ordinary state of a
+  /// daemon nobody has asked for a feed, so callers discard it deliberately
+  /// rather than by omission.
+  pub fn publish(&self, event: Event) -> Result<usize, broadcast::error::SendError<Event>> {
+    self.events.send(event)
   }
 
   /// Ask the store, without occupying a worker while it answers.
@@ -313,7 +385,7 @@ fn ingest(facade: &mut Facade, root: &Path) {
 }
 
 /// Open the facade for a root, turning every failure into something sayable.
-fn open_facade(root: &Path) -> Result<Facade, Response> {
+fn open_facade(root: &Path) -> Result<(Facade, String), Response> {
   let project = Project::open(root).map_err(|e| {
     Response::error(
       format!("{e}"),
@@ -323,6 +395,11 @@ fn open_facade(root: &Path) -> Result<Facade, Response> {
       ),
     )
   })?;
+  // **THE ID IS TAKEN HERE BECAUSE HERE IS WHERE THE CONFIG IS ALREADY OPEN**,
+  // and `D20`'s events name a project by id rather than by root: a root is
+  // where a project sits today and moves (`AC-08.1` exists because they do),
+  // while the id is what it is.
+  let project_id = project.config().project_id.clone().unwrap_or_default();
   let ctx = FacadeContext {
     // **THE DAEMON IS NOT THE AUTHOR AND MUST NOT CLAIM TO BE.** `principal`
     // reaches the event log, so a daemon writing "local" would attribute every
@@ -332,7 +409,9 @@ fn open_facade(root: &Path) -> Result<Facade, Response> {
     project_id: project.config().project_id.clone().unwrap_or_default(),
     version: env!("CARGO_PKG_VERSION").to_string(),
   };
-  Facade::open(project, ctx).map_err(|e| Response::error(format!("{e}"), e.remedy()))
+  let facade =
+    Facade::open(project, ctx).map_err(|e| Response::error(format!("{e}"), e.remedy()))?;
+  Ok((facade, project_id))
 }
 
 /// Serve one project-scoped operation.
@@ -361,6 +440,14 @@ fn serve(facade: &mut Facade, op: Op) -> Response {
     // gets a refusal that names the mistake rather than a panic or a wrong
     // answer -- the arm costs two lines and removes a whole class of silent
     // misrouting.
+    // **UNREACHABLE FOR THE SAME REASON AND ANSWERED FOR THE SAME REASON.**
+    // A subscription changes the CONNECTION's mode, so it is handled where
+    // connections are, before any handle is involved. Reaching here would be a
+    // routing fault, and it says so rather than answering something plausible.
+    Op::Subscribe => Response::error(
+      "a subscription changes the connection's mode and reached a project's store",
+      "this is a routing fault inside intentd. `Op::Subscribe` is handled on the connection, not by any project's store thread.",
+    ),
     Op::Registry => Response::error(
       "the registry is not a project-scoped operation and reached a project's store",
       "this is a routing fault inside intentd. The registry is answered by the daemon itself, not by any project.",

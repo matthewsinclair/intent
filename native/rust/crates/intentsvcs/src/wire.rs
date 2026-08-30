@@ -89,6 +89,16 @@ pub enum Op {
   /// than crash, and something has to be able to ask across projects for that
   /// to be visible at all.
   Registry,
+  /// Turn this connection into a live feed of the project's changes (`D20`,
+  /// `AC-08.6`).
+  ///
+  /// **IT CHANGES THE CONNECTION'S MODE, WHICH IS WHY IT IS NOT SERVED LIKE
+  /// EVERY OTHER OP.** A request connection is a sequence of question-and-
+  /// answer pairs; this one answers once, with [`Response::Subscribed`], and
+  /// then writes [`Event`] lines until one side goes away. **A client must
+  /// therefore stop asking questions on this connection** -- the daemon is no
+  /// longer reading it.
+  Subscribe,
 }
 
 /// Ops the daemon answers WITHOUT reaching a project's store, and which
@@ -106,7 +116,7 @@ pub enum Op {
 /// harness reads the registry to take its before-and-after delta, so a counting
 /// registry would move the number it is measuring -- the instrument perturbing
 /// its own subject.
-pub const UNCOUNTED: &[Op] = &[Op::Registry];
+pub const UNCOUNTED: &[Op] = &[Op::Registry, Op::Subscribe];
 
 /// One thread, as much of it as a listing needs.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -205,6 +215,16 @@ pub enum Response {
   Threads { threads: Vec<ThreadSummary> },
   /// The projects a [`Op::Registry`] found.
   Registry { projects: Vec<RegisteredProject> },
+  /// This connection is now a feed (`AC-08.6`).
+  ///
+  /// **THE SUBSCRIPTION IS ACKNOWLEDGED BEFORE ANY EVENT ARRIVES, AND THE
+  /// ACKNOWLEDGEMENT CARRIES THE `project_id`.** Without it a client cannot
+  /// distinguish *subscribed to a quiet project* from *the daemon did not
+  /// understand the request and is about to close* -- two states with identical
+  /// observable behaviour, which is silence. And every event names a project by
+  /// id rather than by path (`D20`), so a subscriber that never learned the id
+  /// would receive events it could not attribute.
+  Subscribed { project_id: String },
   /// The request was understood and could not be served.
   ///
   /// **IT CARRIES A REMEDY BECAUSE EVERY OTHER REFUSAL IN THIS ESTATE DOES.**
@@ -224,6 +244,36 @@ impl Response {
       remedy: remedy.into(),
     }
   }
+}
+
+/// What a subscriber is told (`D20`, `AC-08.6`).
+///
+/// **EXACTLY TWO VARIANTS IN 3.0.0, AND THAT IS A RATIFIED CEILING RATHER THAN
+/// A STARTING POINT.** D20: *3.0.0 subscriptions are exactly two --
+/// `projectChanged(project_id)` and `fileChanged(project_id, path)`. Nothing
+/// more ships until a consumer (TUI/bus) exists to need it.* A third variant is
+/// a decision, so `subscriptions_are_exactly_the_two_d20_names` asserts the
+/// count and adding one is a red test rather than a quiet widening.
+///
+/// **THE TWO ARE NOT REDUNDANT AND THE DIFFERENCE IS WHICH LAYER MOVED.**
+/// [`Event::FileChanged`] says the DISK moved and is emitted by the watcher,
+/// which is the thing that knows the paths. [`Event::ProjectChanged`] says the
+/// MODEL moved and is emitted by the store thread after an ingest completes,
+/// which is the only place that knows the re-read finished. A subscriber
+/// redrawing from the store wants the second; one mirroring files wants the
+/// first. **Collapsing them into one event would deliver `the model changed`
+/// before it had.**
+///
+/// **EVENTS NAME A PROJECT BY `project_id`, NEVER BY ROOT** (D20's own
+/// spelling). A root is where a project sits today and moves; the id is what it
+/// is. `AC-08.1` exists because roots move out from under this daemon.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "event", rename_all = "snake_case")]
+pub enum Event {
+  /// The project's model was re-read after its tree changed.
+  ProjectChanged { project_id: String },
+  /// One in-scope file changed on disk.
+  FileChanged { project_id: String, path: PathBuf },
 }
 
 /// Render a value as one newline-terminated JSON line.
@@ -286,6 +336,22 @@ impl crate::remedy::Remedy for UnreadableResponse {
 /// this build cannot read is a version skew, and it is reported as one rather
 /// than as a parse error the operator has to interpret.
 pub fn parse_response(line: &[u8]) -> Result<Response, UnreadableResponse> {
+  serde_json::from_slice(line.trim_ascii_end()).map_err(|source| UnreadableResponse { source })
+}
+
+/// Read one framed event from a subscription (`AC-08.6`).
+///
+/// **THE SUBSCRIBER'S HALF OF [`parse_response`], AND IT IS HERE FOR THE REASON
+/// THE FRAMING IS HERE.** A client reading a feed with its own
+/// `serde_json::from_slice` would own a second opinion about what an event line
+/// is -- the trailing newline, what an unreadable line means, whether a version
+/// skew is a parse error or a skew -- and the first consumer to hand-roll it
+/// was this estate's own test, which is exactly how a wire grows two readers.
+///
+/// It shares [`UnreadableResponse`] deliberately: a line this build cannot read
+/// on a feed means the same thing it means on a reply, and inventing a second
+/// error type would give the same version skew two remedies.
+pub fn parse_event(line: &[u8]) -> Result<Event, UnreadableResponse> {
   serde_json::from_slice(line.trim_ascii_end()).map_err(|source| UnreadableResponse { source })
 }
 

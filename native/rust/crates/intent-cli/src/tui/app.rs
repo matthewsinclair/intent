@@ -57,6 +57,17 @@ pub enum Step {
   Quit,
   /// `AC-17.10`: hand this field to `$VISUAL`/`$EDITOR`.
   Hand(Handoff),
+  /// `AC-17.8`: open one realised artefact of this entity, or refuse it.
+  ///
+  /// **Its own variant rather than a flag on [`Handoff`]**, because
+  /// `tui-design.md` section 7 makes it a different operation and not a mode of
+  /// the same one: no scratch file, no read-back, and the file the editor
+  /// receives is the artefact rather than a copy of a field.
+  Open {
+    kind: String,
+    id: String,
+    name: String,
+  },
 }
 
 /// Which pane the cursor is in.
@@ -236,13 +247,21 @@ impl App {
       ) else {
         return Step::Continue;
       };
-      let hand = Handoff {
-        kind,
-        id,
-        field: row.name.clone(),
-      };
+      let name = row.name.clone();
+      let artefact = row.kind == "artefact";
       self.mode = next;
-      return Step::Hand(hand);
+      // **THE ROW KIND DECIDES, AND IT IS THE SAME FACT `mode::arm` ALREADY
+      // USED TO GET HERE.** Both kinds claim `Embed` in `BY_ROW_KIND`; what
+      // differs is what the editor is handed, which is the design's own split.
+      return if artefact {
+        Step::Open { kind, id, name }
+      } else {
+        Step::Hand(Handoff {
+          kind,
+          id,
+          field: name,
+        })
+      };
     }
 
     // **POPPING THE VIEW STACK IS NORMAL'S JOB AND ONLY NORMAL'S.** Esc from a
@@ -691,6 +710,62 @@ mod tests {
       app.mode,
       Mode::Embed,
       "the child owns the terminal, and the mode has to say so"
+    );
+  }
+
+  /// **`AT-17.8`: ENTER ON AN ARTEFACT ROW OPENS THE FILE, NOT THE FIELD.**
+  ///
+  /// The two row kinds reach `Embed` through the SAME edge -- both claim it in
+  /// `mode::BY_ROW_KIND` -- so nothing in the mode machine distinguishes them
+  /// and the whole distinction lives here. **Without this the artefact would
+  /// take the field path**, and `hand_off` would ask the model to read a FIELD
+  /// called `design`, realise it to a scratch file, and write whatever came
+  /// back into a property that does not exist. That is a silent wrong-target
+  /// write rather than a visible failure, which is why it is asserted rather
+  /// than left to the fact that it currently works.
+  #[test]
+  fn enter_on_an_artefact_row_opens_the_file_rather_than_handing_off_a_field() {
+    let mut rows = item_rows();
+    rows.push(Row::named("design", "design.md", "authored", "artefact"));
+    let last = rows.len() - 1;
+    // **`Focus` CARRIES ITS OWN LENGTH, so pointing at a row set and then
+    // growing it leaves the cursor bounded by the OLD count.** The first
+    // version of this test walked `Focus::forward` until it reached `last` --
+    // which `on_item` had made unreachable by construction, because it points
+    // at `item_rows().len()` and the pushed row sits one past the end. It spun
+    // at 100% of a core with no timeout able to fire, and dc found it by
+    // sampling the stack rather than by any signal the test gave. **A walk with
+    // no bound is worse than an assertion that fails**: the assertion names the
+    // invariant, and the walk says nothing at all while burning a core. Point
+    // at the real length and address the row directly.
+    let mut app = App::at_item("thread", "ST0056");
+    app.point_at(rows.len());
+    app.focus = app.focus.and_then(|f| f.at(last));
+    assert_eq!(
+      app.cursor(&rows).map(|f| f.index()),
+      Some(last),
+      "the cursor could not be placed on the artefact row, so the keystroke below would be about \
+       some other row"
+    );
+    let step = app.on_key(key(KeyCode::Enter), &rows);
+    assert_eq!(
+      step,
+      Step::Open {
+        kind: "thread".to_string(),
+        id: "ST0056".to_string(),
+        name: "design".to_string(),
+      },
+      "an artefact row must open the realised file, addressed by the file's own name"
+    );
+    assert!(
+      !matches!(step, Step::Hand(_)),
+      "an artefact reaching the FIELD handoff would write the file's name into a property that \
+       does not exist"
+    );
+    assert_eq!(
+      app.mode,
+      Mode::Embed,
+      "the child owns the terminal either way"
     );
   }
 

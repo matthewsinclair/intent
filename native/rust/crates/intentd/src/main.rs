@@ -33,7 +33,7 @@ use std::time::Duration;
 use intentsvcs::daemon::{self, Bound, DaemonError, Published};
 use intentsvcs::remedy::Remedy;
 use intentsvcs::userstate;
-use intentsvcs::wire::{self, Op, Response};
+use intentsvcs::wire::{self, Event, Op, Response};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 
 mod registry;
@@ -327,7 +327,10 @@ where
       return;
     }
 
-    let response = dispatch(&registry, &mut bound, &line).await;
+    let (response, feed) = match dispatch(&registry, &mut bound, &line).await {
+      Served::Reply(response) => (response, None),
+      Served::Feed { project_id, events } => (Response::Subscribed { project_id }, Some(events)),
+    };
     // A response that cannot be serialised is a fault in the daemon, not in the
     // request, and there is no honest way to report it in a format the client
     // parses -- so the connection closes rather than sending something the
@@ -339,15 +342,74 @@ where
     if writable.write_all(&framed).await.is_err() || writable.flush().await.is_err() {
       return;
     }
+
+    // **A SUBSCRIPTION ENDS THE QUESTION-AND-ANSWER LOOP RATHER THAN JOINING
+    // IT** (`AC-08.6`). From here the daemon writes and never reads, so a
+    // client that kept asking would be talking to nobody -- which is why
+    // `Op::Subscribe` says so on the request type rather than only here.
+    if let Some(events) = feed {
+      deliver(events, &mut writable).await;
+      return;
+    }
+  }
+}
+
+/// What one request turned into.
+///
+/// **TWO SHAPES BECAUSE A SUBSCRIPTION IS NOT AN ANSWER**, and collapsing them
+/// -- returning a `Response` and having the caller sniff it for a subscribed
+/// variant -- would make the connection's MODE a property of a value's contents
+/// rather than of the routing decision that produced it.
+enum Served {
+  Reply(Response),
+  Feed {
+    project_id: String,
+    events: tokio::sync::broadcast::Receiver<Event>,
+  },
+}
+
+/// Write events to a subscriber until one side goes away (`AC-08.6`).
+///
+/// **A SUBSCRIBER THAT FELL BEHIND IS DISCONNECTED, NEVER QUIETLY SKIPPED**
+/// (`IN-AG-NO-SILENT-001`). `broadcast` reports an overrun as
+/// `RecvError::Lagged(n)` and the tempting arm is to log it and carry on --
+/// which hands the client a feed with a HOLE in it that is indistinguishable
+/// from a feed without one. **A subscription that ENDED is recoverable: the
+/// client reconnects and re-reads. One that silently skipped is not**, because
+/// nothing downstream ever learns which state it is missing.
+async fn deliver<W>(mut events: tokio::sync::broadcast::Receiver<Event>, writable: &mut W)
+where
+  W: tokio::io::AsyncWrite + Unpin,
+{
+  loop {
+    let event = match events.recv().await {
+      Ok(event) => event,
+      // The project's feed is gone: the daemon is shutting down, or the handle
+      // was dropped. Either way there is nothing further to send.
+      Err(tokio::sync::broadcast::error::RecvError::Closed) => return,
+      Err(tokio::sync::broadcast::error::RecvError::Lagged(missed)) => {
+        eprintln!(
+          "intentd: a subscriber fell {missed} event(s) behind and was disconnected\n  remedy: this is backpressure rather than a fault. The client should reconnect and re-read the project, because the feed it had is now missing events it cannot enumerate."
+        );
+        return;
+      }
+    };
+    let Ok(framed) = wire::frame(&event) else {
+      eprintln!("warning: intentd could not serialise an event and closed the subscription");
+      return;
+    };
+    if writable.write_all(&framed).await.is_err() || writable.flush().await.is_err() {
+      return;
+    }
   }
 }
 
 /// Route one request: the registry answers for itself, everything else needs a
 /// project.
-async fn dispatch(registry: &Registry, bound: &mut Option<PathBuf>, line: &[u8]) -> Response {
+async fn dispatch(registry: &Registry, bound: &mut Option<PathBuf>, line: &[u8]) -> Served {
   let request = match wire::parse_request(line) {
     Ok(request) => request,
-    Err(refusal) => return refusal,
+    Err(refusal) => return Served::Reply(refusal),
   };
 
   // **THE REGISTRY IS ANSWERED WITHOUT BINDING TO A PROJECT**, because it is a
@@ -355,7 +417,7 @@ async fn dispatch(registry: &Registry, bound: &mut Option<PathBuf>, line: &[u8])
   // the operator most likely to ask it is the one whose project stopped
   // resolving, which is exactly when binding to it would fail.
   if matches!(request.op, Op::Registry) {
-    return registry.snapshot().await;
+    return Served::Reply(registry.snapshot().await);
   }
 
   // **THE BINDING IS CHECKED BEFORE ANYTHING IS OPENED.** Canonicalising is a
@@ -365,30 +427,41 @@ async fn dispatch(registry: &Registry, bound: &mut Option<PathBuf>, line: &[u8])
   // prevent -- which is a report rather than a check.
   let canonical = match registry.canonical(&request.root) {
     Ok(canonical) => canonical,
-    Err(refusal) => return refusal,
+    Err(refusal) => return Served::Reply(refusal),
   };
 
   match bound {
     None => *bound = Some(canonical.clone()),
     Some(already) if *already != canonical => {
-      return Response::error(
+      return Served::Reply(Response::error(
         format!(
           "this connection is bound to `{}` and the request names `{}`",
           already.display(),
           canonical.display()
         ),
         "one connection serves one project. Open a second connection for the other project -- a connection that changed project mid-stream would make every answer depend on which request came first.",
-      );
+      ));
     }
     Some(_) => {}
   }
 
+  // **THE SUBSCRIPTION IS ROUTED AFTER THE BINDING CHECK AND BEFORE THE STORE**,
+  // which is exactly where it belongs: it names a project, so it binds the
+  // connection like any other request -- and it never reaches a store, so it is
+  // in `wire::UNCOUNTED` and must not go through `handle.call`, which counts.
+  if matches!(request.op, Op::Subscribe) {
+    return match registry.feed_for(&canonical).await {
+      Ok((project_id, events)) => Served::Feed { project_id, events },
+      Err(refusal) => Served::Reply(refusal),
+    };
+  }
+
   let handle = match registry.handle_for(&canonical).await {
     Ok(handle) => handle,
-    Err(refusal) => return refusal,
+    Err(refusal) => return Served::Reply(refusal),
   };
 
-  handle.call(request.op).await
+  Served::Reply(handle.call(request.op).await)
 }
 
 /// Resolve when the platform asks this process to stop.

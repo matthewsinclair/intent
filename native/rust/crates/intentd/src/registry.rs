@@ -24,11 +24,26 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use intentsvcs::wire::{RegisteredProject, Response};
-use tokio::sync::Mutex;
+use intentsvcs::wire::{Event, RegisteredProject, Response};
+use tokio::sync::{Mutex, broadcast};
 
 use crate::store::ProjectHandle;
 use crate::watch::{self, Watch};
+
+/// How many events a subscriber may fall behind before it is disconnected.
+///
+/// **BOUNDED, AND A SUBSCRIBER THAT OVERRUNS IT IS DROPPED RATHER THAN QUIETLY
+/// SKIPPED** (`IN-AG-NO-SILENT-001`). `broadcast` reports the overrun as
+/// `RecvError::Lagged(n)`, and the tempting arm is to log it and carry on --
+/// which hands the client a feed with a HOLE in it that looks exactly like a
+/// feed without one. **A subscription that ended is recoverable: the client
+/// reconnects and re-reads. A subscription that silently skipped is not**,
+/// because nothing downstream ever learns which state it is missing.
+///
+/// The size is a judgement about burst versus liveness: a `git checkout` of a
+/// large branch is the realistic burst, and a subscriber that cannot keep up
+/// with 256 events is not going to keep up with 4096 either.
+const EVENT_BACKLOG: usize = 256;
 
 /// One opened project: the door to its store, and the watch on its tree.
 ///
@@ -104,7 +119,13 @@ impl Registry {
     if let Some(existing) = projects.get(&canonical) {
       return Ok(Arc::clone(&existing.handle));
     }
-    let handle = Arc::new(ProjectHandle::open(canonical.clone()).await?);
+    // **ONE FEED PER PROJECT, CREATED HERE BECAUSE HERE IS WHERE A PROJECT
+    // BECOMES ONE.** Both publishers -- the store thread after an ingest, and
+    // the watcher on a file change -- need this sender, and so does every
+    // subscriber; creating it anywhere else would mean a second channel for one
+    // project, on which half the events would arrive.
+    let (events, _) = broadcast::channel::<Event>(EVENT_BACKLOG);
+    let handle = Arc::new(ProjectHandle::open(canonical.clone(), events).await?);
 
     // **THE WATCH STARTS WHEN THE PROJECT OPENS, WHICH IS THE SAME ANSWER THIS
     // REGISTRY ALREADY GIVES TO EVERY OTHER LIFECYCLE QUESTION.** There is no
@@ -168,6 +189,21 @@ impl Registry {
     // difference rather than a hash iteration order.
     listed.sort_by(|a, b| a.root.cmp(&b.root));
     Response::Registry { projects: listed }
+  }
+
+  /// A live feed for a project, opening it if this is first contact.
+  ///
+  /// **IT GOES THROUGH `handle_for` RATHER THAN AROUND IT**, so a subscription
+  /// registers and watches a project exactly as any other first contact does.
+  /// A subscribe path that skipped registration would give a client a feed on a
+  /// project nothing was watching -- a subscription that is correct, connected,
+  /// and permanently silent.
+  pub async fn feed_for(
+    &self,
+    root: &Path,
+  ) -> Result<(String, broadcast::Receiver<Event>), Response> {
+    let handle = self.handle_for(root).await?;
+    Ok((handle.project_id().to_string(), handle.subscribe()))
   }
 
   /// The canonical form of a root, WITHOUT opening or registering anything.
