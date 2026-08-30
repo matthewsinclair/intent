@@ -498,3 +498,88 @@ fn probe_entity(entity: &str) -> Option<AddrEntity> {
     _ => None,
   }
 }
+
+/// One resolved form row: the generic description every renderer consumes.
+///
+/// **THIS IS THE SHARED DERIVATION, AND ITS PLACEMENT IS THE POINT** (vc,
+/// 2026-08-30). `tui-design.md` §10a: the daemon resolves the form declaration
+/// server-side and emits a generic description, and *the JS renders
+/// `{label, value, widget}` triples, so does SwiftUI, so does the TUI*. It was
+/// first built in `intent-cli/src/tui/views.rs` -- one crate too high, because
+/// `intentd` depends on `intentsvcs` and NOT on the CLI, so the daemon emitter
+/// would have had to write the same walk again. **Two homes for one derivation,
+/// arriving by the door the argument was meant to shut.**
+///
+/// The line: DERIVATION -- entity + declaration -> triples -- is shared and
+/// lives here beside [`Form`]. RENDERING -- triples to terminal lines, HTML or
+/// SwiftUI views -- is per face and stays in the face. That is what makes
+/// `AC-17.1`'s agreement structural rather than coincidental: one function
+/// called from three places.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Triple {
+  pub name: String,
+  pub label: String,
+  pub widget: String,
+  pub value: String,
+  pub editable: bool,
+}
+
+/// Resolve `form` against `entity`: one triple per declared field, in
+/// declaration order.
+///
+/// **VALUES ARE READ OUT OF THE SERIALISED ENTITY, NOT OUT OF A MATCH.** A
+/// `match field { "title" => e.title, ... }` is a second home for the field set
+/// -- the thing `AC-17.2` refuses one layer up -- and it goes stale the day a
+/// property is renamed, SILENTLY, because a missing arm looks exactly like an
+/// empty value. Indexing by the declared name makes the declaration the only
+/// list, and it is already held against the schema.
+///
+/// **A FIELD THE ENTITY DOES NOT CARRY YIELDS AN EMPTY VALUE, NEVER A MISSING
+/// ROW.** Tab order is declaration order (`AC-17.5`), so a skipped row moves
+/// every row after it and the operator's muscle memory lands on the wrong
+/// field. An empty value is visible; a missing row is not.
+pub fn triples(form: &Form, entity: &Value) -> Vec<Triple> {
+  form
+    .fields
+    .iter()
+    .map(|f| Triple {
+      name: f.name.clone(),
+      label: f.label.clone(),
+      widget: f.widget.clone(),
+      value: entity.get(&f.name).map(scalar).unwrap_or_default(),
+      editable: f.editable,
+    })
+    .collect()
+}
+
+/// One JSON value as one line.
+///
+/// **A COLLECTION IS ITS SIZE, NEVER ITS CONTENTS.** ST0056 carries 297
+/// attachments; inlining them makes the form 325 rows of which 297 are files,
+/// and it breaks the TUI's alignment guarantee outright -- one aligned name
+/// column cannot serve `title` and `parity/tools/conservation_check.sh` at
+/// once. The same count is what the web face puts on its own row, which is why
+/// this lives here rather than in either renderer.
+fn scalar(v: &Value) -> String {
+  match v {
+    Value::Null => String::new(),
+    Value::Bool(b) => b.to_string(),
+    Value::Number(n) => n.to_string(),
+    Value::Array(a) => a.len().to_string(),
+    // Present-or-not. `fiat` is the live case: what matters on the row is that
+    // there IS one, and its content is a descent away.
+    Value::Object(_) => "set".to_string(),
+    Value::String(s) => one_line(s),
+  }
+}
+
+/// Collapse whitespace so a value cannot become two rows.
+///
+/// Criterion prose reaches 59,061 characters with paragraph breaks in it. Each
+/// face clips to its own width, but only after this has made the value one
+/// line -- collapsing at the renderer instead would put the reason somewhere
+/// the next reader would not look, and would have to be done identically in
+/// three places.
+fn one_line(s: &str) -> String {
+  s.split_whitespace().collect::<Vec<_>>().join(" ")
+}

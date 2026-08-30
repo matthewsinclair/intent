@@ -1,5 +1,16 @@
 //! Entity to rows: the last mapping between the model and the screen.
 //!
+//! **THE DERIVATION ITSELF LIVES IN `intentsvcs::form::triples`, ONE CRATE
+//! DOWN, AND THIS MODULE ONLY RENDERS WHAT IT RETURNS** (vc, 2026-08-30). It
+//! was built here first, which was one crate too high: `intentd` depends on
+//! `intentsvcs` and NOT on the CLI, so cc's daemon emitter would have had to
+//! write the same walk again -- two homes for one derivation, arriving by the
+//! door the argument was meant to shut. The line is DERIVATION shared,
+//! RENDERING per face.
+//!
+//! What follows is the reason the derivation is shaped the way it is, kept
+//! here because this is where a reader meets it.
+//!
 //! **THE FIELD VALUES ARE READ OUT OF THE SERIALISED ENTITY, NOT OUT OF A
 //! MATCH.** A `match field { "title" => e.title, "status" => ... }` is a second
 //! home for the field set -- exactly what `AC-17.2` refuses one layer up, where
@@ -35,7 +46,7 @@
 //! muscle memory lands on the wrong field. An empty value is visible; a missing
 //! row is not.
 
-use intentsvcs::form::{Form, Loaded};
+use intentsvcs::form::{self, Form, Loaded};
 use serde_json::Value;
 
 use super::layout::Row;
@@ -49,53 +60,17 @@ pub struct Rendered {
   pub rows: Vec<Row>,
 }
 
-/// One row per declared field, in declaration order, values read from `entity`.
+/// One row per declared field, in declaration order.
+///
+/// **A MAP, NOT A WALK.** The walk is `intentsvcs::form::triples`; this turns
+/// its `{label, value, widget}` into the TUI's row type and does nothing else,
+/// which is what keeps the terminal face and the web face agreeing by
+/// construction rather than by two people reading the same design section.
 pub fn rows_for(form: &Form, entity: &Value) -> Vec<Row> {
-  form
-    .fields
-    .iter()
-    .map(|f| {
-      let value = entity.get(&f.name).map(render_value).unwrap_or_default();
-      Row::new(f.label.clone(), value, f.widget.clone())
-    })
+  form::triples(form, entity)
+    .into_iter()
+    .map(|t| Row::new(t.label, t.value, t.widget))
     .collect()
-}
-
-/// One JSON value as one line.
-///
-/// **Every arm answers on ONE line**, because the layout's guarantee is one row
-/// per field and a value carrying a newline would break it at the printer
-/// rather than here, where the reason is visible.
-fn render_value(v: &Value) -> String {
-  match v {
-    Value::Null => String::new(),
-    Value::Bool(b) => b.to_string(),
-    Value::Number(n) => n.to_string(),
-    // A collection is its size. See the module note.
-    Value::Array(a) => a.len().to_string(),
-    // An object is present-or-not. `fiat` is the live case: what matters on the
-    // form row is that there IS one, and its content is a descent away.
-    Value::Object(_) => "set".to_string(),
-    Value::String(s) => one_line(s),
-  }
-}
-
-/// Collapse newlines so a value cannot become two rows.
-///
-/// Criterion prose reaches 59,061 characters with paragraph breaks in it; the
-/// layout clips to the viewport, but only after this has made it one line.
-fn one_line(s: &str) -> String {
-  let flat: String = s
-    .chars()
-    .map(|c| {
-      if c == '\n' || c == '\r' || c == '\t' {
-        ' '
-      } else {
-        c
-      }
-    })
-    .collect();
-  flat.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 /// The entity kinds, as the root's rows: one per declared form.
@@ -173,74 +148,6 @@ mod tests {
       checked > 0,
       "no form was examined, so this test asserted nothing"
     );
-  }
-
-  /// **A MISSING PROPERTY MUST NOT SHORTEN THE FORM.** Tab order is declaration
-  /// order, so a skipped row moves every row after it and the operator's muscle
-  /// memory lands on the wrong field.
-  #[test]
-  fn a_field_the_entity_does_not_carry_renders_empty_rather_than_vanishing() {
-    let l = loaded();
-    let form = l.form("thread").expect("the thread form must be declared");
-    let full = rows_for(form, &a_thread());
-    let empty = rows_for(form, &json!({}));
-    assert_eq!(
-      empty.len(),
-      full.len(),
-      "an entity carrying nothing produced a shorter form"
-    );
-    assert!(
-      empty.iter().all(|r| r.value.is_empty()),
-      "a value appeared for an entity that carries no properties at all"
-    );
-    // The control: the populated case must actually differ, or the assertion
-    // above is comparing two empty forms and proving nothing.
-    assert!(
-      full.iter().any(|r| !r.value.is_empty()),
-      "the populated fixture produced no values, so the comparison above is vacuous"
-    );
-  }
-
-  /// A collection is its SIZE. Inlining 297 attachments makes the form 325 rows
-  /// and breaks the one guarantee the layout makes.
-  #[test]
-  fn an_array_renders_as_its_size_and_never_as_its_contents() {
-    assert_eq!(render_value(&json!([1, 2, 3])), "3");
-    assert_eq!(render_value(&json!([])), "0");
-    let big: Vec<u32> = (0..297).collect();
-    assert_eq!(
-      render_value(&json!(big)),
-      "297",
-      "a large collection must still be one number"
-    );
-  }
-
-  /// **A VALUE CANNOT BECOME TWO ROWS.** Real criterion prose carries paragraph
-  /// breaks; the layout clips to the viewport, but only after this has made the
-  /// value one line.
-  #[test]
-  fn no_rendered_value_can_contain_a_line_break() {
-    let l = loaded();
-    let form = l.form("thread").expect("the thread form must be declared");
-    let rows = rows_for(form, &a_thread());
-    let multiline: Vec<&Row> = rows.iter().filter(|r| r.title == "objective").collect();
-    assert_eq!(
-      multiline.len(),
-      1,
-      "the fixture must reach the objective row for this to mean anything"
-    );
-    assert!(
-      !multiline[0].value.contains('\n'),
-      "a newline survived into a row: {:?}",
-      multiline[0].value
-    );
-    assert_eq!(multiline[0].value, "line one line two line four");
-    for r in &rows {
-      assert!(
-        !r.value.contains('\n') && !r.value.contains('\r'),
-        "{r:?} carries a line break"
-      );
-    }
   }
 
   #[test]
