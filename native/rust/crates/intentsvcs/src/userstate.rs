@@ -106,10 +106,101 @@ pub fn home_pointer() -> Result<PathBuf, UserStateError> {
 /// nothing should: a shared config is how two tools that can never be taught
 /// about each other come to disagree about who the operator is.
 ///
-/// It sits under [`intent_dir`] beside [`home_pointer`], so the whole of
-/// Intent's per-user state is one directory an operator can inspect or delete.
+/// It sits under [`intent_dir`] beside [`home_pointer`], so the operator's
+/// CONFIGURATION is one directory they can inspect or delete.
+///
+/// **THAT USED TO SAY "the whole of Intent's per-user state" AND THAT WAS
+/// FALSE IN BOTH READINGS** (vc, 2026-08-29). D19 puts the daemon's logs,
+/// plist and PID file under `~/.local/share/intent/`, so Intent's per-user
+/// state has always been TWO directories -- and the sentence misled whichever
+/// one you read it as naming, most expensively for whoever writes the plist.
+/// **The split is real and deliberate rather than a defect to converge:**
+/// configuration is state an operator authors and may delete, and daemon
+/// runtime state is not. See [`daemon_state_dir`]. What was wrong was a
+/// sentence claiming a unity the layout never had.
 pub fn global_config() -> Result<PathBuf, UserStateError> {
   Ok(intent_dir()?.join("config.json"))
+}
+
+/// `~/.local/share/intent/` -- where the daemon keeps its runtime state.
+///
+/// **D19's DIRECTORY RATHER THAN [`intent_dir`], AND THE SPLIT IS A CONFLICT
+/// THIS FUNCTION INHERITS RATHER THAN CREATES.** D19 puts the LaunchAgent
+/// plist under `~/Library/LaunchAgents/` and the daemon's logs under
+/// `~/.local/share/intent/`; the module note above says the whole of Intent's
+/// per-user state is one directory, meaning `~/.intent`. Both cannot be true.
+/// A numbered decision outranks a module's habit, and a socket is daemon
+/// runtime state of exactly the class D19 addressed -- so the daemon's
+/// footprint stays together, beside the logs and the PID file that D19 already
+/// placed, rather than being split across two roots by where its first
+/// consumer happened to look. **The two-homes problem is open with vc and
+/// lands on whoever writes the plist, whichever root wins.**
+///
+/// **RUNTIME STATE, NOT CONFIGURATION, AND THAT IS WHY IT IS NOT UNDER
+/// [`intent_dir`] EVEN ON THE MERITS.** `~/.intent` is described as something
+/// an operator can inspect or delete; a live socket and a PID file are things
+/// deleting which orphans a running daemon. Keeping them apart means the
+/// invitation to delete stays honest.
+pub fn daemon_state_dir() -> Result<PathBuf, UserStateError> {
+  Ok(daemon_state_dir_under(&home()?))
+}
+
+/// [`daemon_state_dir`]'s layout, against any root.
+///
+/// **THE SPLIT `install.rs` USES, AND FOR THE REASON THIS MODULE ALREADY GIVES
+/// FOR IT**: the one ambient read stays in [`home`] and the rest is a pure
+/// mapping a test can drive against a temp directory. The alternative is a
+/// test that spells the layout out for itself, which makes the test a SECOND
+/// HOME for the path -- and a second home that agrees today is exactly the one
+/// that stops agreeing without saying so.
+pub fn daemon_state_dir_under(root: &std::path::Path) -> PathBuf {
+  root.join(".local").join("share").join("intent")
+}
+
+/// `~/.local/share/intent/intentd.sock` -- the address `intentd` binds and the
+/// CLI probes.
+///
+/// **ONE HOME FOR AN ADDRESS TWO BINARIES MUST AGREE ON.** The routing rule
+/// lives in [`crate::daemon`] and takes a path; the path is named here because
+/// `$HOME` is confined to this module and nowhere else can read it. A second
+/// spelling anywhere would be a daemon listening where the CLI never looks,
+/// and the failure is silent in the worst direction -- a CLI that finds no
+/// daemon simply runs in-process, correctly, forever.
+///
+/// **THE PATH IS SHORT ON PURPOSE.** `sun_path` is 104 bytes on macOS and 108
+/// on Linux, and a unix socket address that overruns it fails at bind and
+/// connect with an error naming neither the limit nor the path. Anything
+/// deeper than this needs that limit checked rather than assumed.
+pub fn daemon_socket() -> Result<PathBuf, UserStateError> {
+  Ok(daemon_socket_under(&home()?))
+}
+
+/// [`daemon_socket`]'s layout, against any root. See [`daemon_state_dir_under`].
+pub fn daemon_socket_under(root: &std::path::Path) -> PathBuf {
+  daemon_state_dir_under(root).join("intentd.sock")
+}
+
+/// `~/.local/share/intent/intentd.addr` -- the loopback address the running
+/// daemon published for itself.
+///
+/// **THERE IS NO PORT CONSTANT ANYWHERE AND THAT IS THE RULING, NOT AN
+/// OMISSION** (hv, 2026-08-29). The daemon binds `127.0.0.1:0`, lets the kernel
+/// assign, and WRITES what it got here; every client reads it. A named default
+/// and a compile-time environment variable were both priced and lost: a literal
+/// collides eventually, and a build that needs an env var to compile is a cost
+/// this estate has no targets to justify.
+///
+/// **IT COSTS CLIENTS NOTHING BECAUSE THEY ALREADY READ THIS DIRECTORY.** The
+/// socket path is resolved from here too, so an address file is one more read
+/// in a place already being read -- which is why `--browser` can build its URL
+/// from what it found rather than from a constant it would have to keep in step.
+pub fn daemon_address_file() -> Result<PathBuf, UserStateError> {
+  Ok(daemon_address_file_under(&home()?))
+}
+
+/// [`daemon_address_file`]'s layout, against any root.
+pub fn daemon_address_file_under(root: &std::path::Path) -> PathBuf {
+  daemon_state_dir_under(root).join("intentd.addr")
 }
 
 /// The operator's login name, when the environment names one.
@@ -203,6 +294,9 @@ mod tests {
       claude_dir().unwrap(),
       skills_manifest().unwrap(),
       skills_target().unwrap(),
+      daemon_state_dir().unwrap(),
+      daemon_socket().unwrap(),
+      daemon_address_file().unwrap(),
     ] {
       assert!(
         path.starts_with(&h),
