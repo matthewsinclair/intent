@@ -547,6 +547,29 @@ done <<< "$(printf '%s\n' "$MACHINE_MAP" | awk 'NF { print $1, $2, $3 }')"
 # --- axis C report ------------------------------------------------------------
 printf '\nmachine-table: GUARD AXIS (gates): %d agree, %d disagree, %d UNMEASURED of %d rows\n' \
   "$GUARD_AGREE" "$GUARD_DISAGREE" "$GUARD_UNMEASURED" "$TOTAL_ROWS"
+
+# **THE PARTITION IS STATED AND CHECKED, AND HERE IT CAN GENUINELY FAIL.**
+# `TOTAL_ROWS` accumulates declared edges per machine at its own site; the three
+# guard counters accumulate from the per-machine cell files at another. Nothing
+# holds the two sides together, so a row landing in NEITHER bucket lowers the
+# left side and changes nothing else -- and at 46 agree the line above would
+# still read perfectly well. That is the same argument this axis already makes
+# about UNMEASURED: a cell with no verdict is printed as loudly as a finding
+# rather than defaulted to clean, and a row with no bucket deserves no less.
+#
+# vc's general form (AC-00.12): a partition that is both UNSTATED and BROKEN is
+# invisible to every instrument, because nothing separates three unrelated
+# integers from a failed partition without knowing which were meant to be parts,
+# and only the author knows that. The stated sum is the one thing that makes a
+# partition checkable by anyone but its author.
+GUARD_SUM=$((GUARD_AGREE + GUARD_DISAGREE + GUARD_UNMEASURED))
+printf '  -- partition: %d + %d + %d = %d, against %d declared rows\n' \
+  "$GUARD_AGREE" "$GUARD_DISAGREE" "$GUARD_UNMEASURED" "$GUARD_SUM" "$TOTAL_ROWS"
+if [ "$GUARD_SUM" -ne "$TOTAL_ROWS" ]; then
+  printf '  -- REFUSED: this axis accounted for %d rows and the ratified tables declare %d. The %d unaccounted row(s) were examined by nothing, which is not the same as agreeing.\n' \
+    "$GUARD_SUM" "$TOTAL_ROWS" "$((TOTAL_ROWS - GUARD_SUM))" >&2
+  exit 2
+fi
 if [ -s "$GUARD_REPORT" ]; then
   sed 's/^/  /' "$GUARD_REPORT"
   printf '  -- UNMEASURED is NOT clean, and is NOT a lesser finding than DISAGREE: the cell is outside the closed vocabulary hv ruled on 2026-08-29, so this axis has no verdict for it and the actual guard in the code is undeclared in the ratified document. The permitted cells are `--`, `reason recorded`, `ac gate pass`, `target thread exists`, `non-test` and `evidence given`, joined by `; ` for two. A cell naming an EFFECT (what happens afterwards) or a LANDING RULE (which of two rows you are reading) is neither true nor false of a transition being attempted: it belongs in prose beneath the table, where the nine such cells this column used to carry now live.\n'

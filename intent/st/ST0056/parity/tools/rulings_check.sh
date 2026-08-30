@@ -203,10 +203,18 @@ record_resolves() {
 }
 
 OK=0; BAD=0; HV=0; DANGLING=0; PROV=0; CLASS=0
+# SEEN and SKIPPED exist so the partition below can be checked against the INPUT
+# rather than against itself -- see the closure block after the summary.
+SEEN=0; SKIPPED=0
 REPORT=""; HV_IDS=""; DANGLING_REPORT=""; PROV_REPORT=""; CLASS_IDS=""
 
 while IFS=$'\t' read -r id state authority date record; do
-  [ -n "$id" ] || continue
+  SEEN=$((SEEN + 1))
+  # A row whose id is empty is malformed input, not a ruling. It is COUNTED
+  # rather than silently dropped: the old bare `continue` is exactly the shape
+  # this closure check exists to expose, and a skip nobody can see is worth less
+  # than a skip that has to be explained.
+  if [ -z "$id" ]; then SKIPPED=$((SKIPPED + 1)); continue; fi
 
   # --- schema arm: is the DECLARATION well formed? -------------------------
   bad=""
@@ -266,6 +274,25 @@ done <<< "$ROWS"
 
 printf 'ratified-in: %d ruling(s) declared; %d conform (authority + date + resolving record); %d hv without a record (legal, unverifiable by construction); %d PROVISIONAL; %d dangling; %d non-conforming.\n' \
   "$((OK + BAD + HV + DANGLING + PROV))" "$OK" "$HV" "$PROV" "$DANGLING" "$BAD"
+
+# **THE CLOSURE IS CHECKED AGAINST THE INPUT, NOT AGAINST THE PRINTED TOTAL, AND
+# THE DIFFERENCE IS THE WHOLE VALUE OF THIS BLOCK.** The `declared` figure above
+# is COMPUTED as the sum of the five parts, so stating `39 + 1 + 1 + 0 + 0 = 41`
+# and refusing when it fails would be a guard that cannot fire -- it would red
+# nothing, ever, which is the defect this estate keeps finding in other people's
+# instruments and would deserve to find in this one.
+#
+# What CAN fail is the parts against the rows actually READ. Every path through
+# the loop increments exactly one counter today; a sixth branch with a `continue`
+# and no counter would drop a ruling, and the printed total would follow the
+# parts down and agree with itself all the way. So the population is the
+# comparison, and `SKIPPED` is a declared bucket rather than a hole.
+PARTITION=$((OK + BAD + HV + DANGLING + PROV + SKIPPED))
+printf '  -- partition: %d conform + %d hv-without-record + %d provisional + %d dangling + %d non-conforming + %d malformed = %d, against %d rows read\n' \
+  "$OK" "$HV" "$PROV" "$DANGLING" "$BAD" "$SKIPPED" "$PARTITION" "$SEEN"
+if [ "$PARTITION" -ne "$SEEN" ]; then
+  die "the ruling buckets account for $PARTITION rows and $SEEN were read. $((SEEN - PARTITION)) ruling(s) fell through every branch and are reported by nothing -- the `declared` total above is the sum of the buckets, so it followed them down and cannot show this"
+fi
 
 if [ "$CLASS" -gt 0 ]; then
   printf '\n  of the conforming, %d are ratified BY CLASS -- record `parity.md`, hv 2026-08-14 (%s )\n' "$CLASS" "$CLASS_IDS"
