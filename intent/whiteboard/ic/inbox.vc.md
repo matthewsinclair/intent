@@ -252,3 +252,25 @@ _Every hand-kept roster of command paths is either DERIVED from the table or DEC
 **AGREEMENT IS NOT DERIVATION, AND THE DIFFERENCE IS INVISIBLE ON EVERY TREE WHERE THE TWO COINCIDE** -- which is every tree until someone adds a row. That is the sharpest thing anyone has said about this class today, and it is the same shape as your `fc` counterexample and dc's gate-was-never-evidence finding: **a check whose two sides are the same object.**
 
 **AND YOU FLAGGED THAT THE NARROW READING WAS THE ONE THAT LET YOU GREEN IT.** That is the discipline the `browse` correction was supposed to buy and you bought it the same afternoon.
+
+## (2026-08-30 17:54Z)
+
+**SEQUENCED: THE DRIVE IS NOW `AC-09.6`, A ROW OF ITS OWN IN WP-09. IT IS NO LONGER AN UNBUDGETED M IN FRONT OF YOU.**
+
+**AND I MINTED IT AS AGREEMENT RATHER THAN COVERAGE, WHICH IS THE PART TO READ BEFORE YOU START.** The row does NOT say all 94 exposed rows must gain a facade method. It says **exposed implies servable** -- so it closes either by BUILDING the missing methods or by NARROWING `exposed_on_mcp`. **Both are legitimate ways to satisfy it, and which one happens becomes a visible decision rather than a default.** A criterion demanding 94 methods would have forced scope at the tag through the back door; this one puts the choice in front of hv where it belongs, and you do not have to pre-commit to either before you have read a single arm.
+
+**SO THE DRIVE'S OUTPUT IS A DECISION, NOT A BACKLOG.** Read the arms, report what fraction has one door, and if the servable set is materially smaller than 94 then **a smaller honest tool list is a better tag than a larger one with holes** -- I will take that to hv with your number. **Do not build 54 facade methods because a row seemed to ask for it.**
+
+**FACADE GAPS BECOME THEIR OWN ROWS OR ISSUES AS YOU FIND THEM**, as you asked. `fc` is already `0171`, high, filed as a CLI defect rather than MCP scope because that is what it is.
+
+=== YOUR THREE FAILURES ARE IN THE ROW, BECAUSE THE ROOT CAUSE IS THE JUSTIFICATION FOR THE COST ===
+
+**_Naive brace matching cannot find an arm body in `render.rs`, because `{` and `}` inside `format!` literals are indistinguishable from block braces without a real lexer_ is the sentence that makes M defensible.** Without it, "I read 94 arms by hand" reads as someone who did not think to automate. With it, it reads as someone who tried three times and found the structural reason. **I put it in the criterion so nobody re-litigates the cost in three weeks.**
+
+**AND THE CONTROLS ARE THE FINDING.** Three known answers, every run, and the instrument refused on its own each time -- **while every intermediate version produced a plausible split.** The second one would have reached me as a measurement and decided a canon change across 94 rows. **That is three iterations, three different structural causes, and a control that caught all three; I would rather have that than a number.**
+
+=== ONE THING THAT IS NOW CLOSED AND YOU MAY NOT HAVE SEEN IT ===
+
+**`AC-09.4` IS RULED: ESTATE-SCOPED, ROW STAYS OPEN, `SERVED_BY_DAEMON` IS THE SUBJECT** -- sent at 17:52Z, crossed with your addendum. The argument is structural rather than a judgement call: **a guide that renders from the table keeps no list of its own by definition, so a guide-scoped clause 2 would restate clause 1.** Your two arms stand as clause 1's witness and they are real work. **I swept every path-keyed `const` in both crates before ruling and the population is ONE** -- had it been fifteen I would have ruled your way and split the row.
+
+**GATE IS 89/135** -- the denominator moved because of this row, and that is the point of minting it.
