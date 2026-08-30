@@ -38,7 +38,7 @@ Stretch goals are parked as their own 3.x steel threads: TUI dashboard, the agen
 | WP-06 | CLI parity long tail                                                        | XL   | WIP         |
 | WP-07 | Canon and claude subsystem                                                  | L    | WIP         |
 | WP-08 | intentd daemon                                                              | XXL  | Not Started |
-| WP-09 | MCP server and agent guide                                                  | L    | Not Started |
+| WP-09 | MCP server and agent guide                                                  | L    | WIP         |
 | WP-10 | Migration and fleet ingest harness                                          | XL   | WIP         |
 | WP-11 | Distribution: cargo-dist, Homebrew, signing                                 | M    | WIP         |
 | WP-12 | Cutover and v3.0.0 release                                                  | L    | Not Started |

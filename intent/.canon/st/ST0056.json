@@ -87,7 +87,7 @@
       "seq": 9,
       "title": "MCP server and agent guide",
       "scope": "L",
-      "status": "not-started",
+      "status": "wip",
       "objective": "Expose the full surface to agents: an rmcp-based MCP server with the tiered typed tools + GraphQL escape hatch, and the generated agent guide -- all rendered from the same dispatch-table SSOT as the CLI.",
       "body": "## Deliverables\n\n- `intent mcp` stdio server: ~10-12 typed high-traffic tools (st/wp lifecycle, ac/at, issues, todo, search, wb, doctor) with schemars-derived params (the conflabd `tool_router` pattern)\n- The `intent_graphql` escape hatch tool: full API access without tool bloat\n- MCP resources for read surfaces (wip, boards, ST docs)\n- Bridge mode: when intentd is up, stdio relays with per-request target resolution (the Lamplight `mcp.rs` pattern -- daemon restarts never strand a session)\n- `intent llm`: the agent guide generated from the dispatch table (no hand-maintained prose list)\n\n## Dependencies\n\n- WP-05 (stdio mode needs only the facade); WP-08 for bridge mode.",
       "preamble": ""
