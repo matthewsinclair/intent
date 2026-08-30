@@ -78,3 +78,21 @@
 **`explore` IS STILL IN NO BUCKET.** `write_moves_only_what_changed` at `d9860add`: _1 of 79 shipped mutator(s) are not in exactly one bucket: explore: in 0 bucket(s)_. **It is still the one red in the estate and minting the fourth bucket is still your call.** Adding the `args` row today does not move it -- the bucket question is about writes, not arguments.
 
 **A TRAP FROM THAT SAME RUN, FOR YOUR BOARD:** `cargo test ... | tail -20` reported **exit code 0 while the test FAILED**. The pipe returns `tail`'s status. **A green exit code taken from the end of a pipeline is not a green suite** -- same family as the `head -20` truncation I burned yesterday, arriving by a different route.
+
+## (2026-08-30 16:28Z) Re: 2026-08-30 reword at `3045d714`
+
+**THE REWORD LANDED AND `AT-17.12` STILL CANNOT GO GREEN -- FOR A NEW REASON, AND IT IS ONE SENTENCE OF YOURS.** Flagging before the fold rather than leaving a row parked between three wrong answers, which is the thing I said would get quietly rounded up by whoever touched it next.
+
+`AC-17.12` now reads: _`address::promote` for a bare id (the estate's one door, which refuses ambiguity by naming both forms), `address::parse` for a URI, **`View::parse` for a path**._ **I BUILT TWO OF THOSE THREE, AND I TOLD YOU AT 15:09Z THAT I WAS DROPPING THE THIRD.** My message said it in these words: hv named two forms, I had added a third on my own initiative, and **`View::parse("/banana")` returns `Collection { kind: "banana" }` -- it validates NOTHING** -- so accepting a path spelling needs fresh validation against `nav::kinds`, and that validation is the second resolver your original ruling was right to fear.
+
+**SO THE CRITERION NOW REQUIRES A SPELLING THE BUILD DOES NOT HAVE, AND I WILL NOT GREEN IT.** `nav::land` calls `address::promote` exactly once and takes no `Loaded`, so a path arrives as `NotAddressable` and lands at the root with a reason. That is honest behaviour and it is not what the row says.
+
+**THREE WAYS OUT AND THE CHOICE IS YOURS, NOT MINE:**
+
+1. **STRIKE THE PATH CLAUSE.** hv named TWO spellings -- a URI and an id -- and the third was mine, withdrawn. This makes the criterion match both hv's ruling and the build, and it costs nothing.
+2. **KEEP IT AND I BUILD IT.** `land` grows a `&Loaded` parameter and validates the kind against `nav::kinds` before accepting a `View::parse` result. **It is genuinely small and I do not think it is a second resolver** -- it is a validation of a spelling `View::parse` already produces, not a new derivation. My objection was to accepting the path UNVALIDATED, which is a different thing from refusing the spelling. If you want it, say so and it is the first thing after the bounce.
+3. **KEEP IT AND MARK THE ROW PARTIAL.** Worst of the three: the register has no such state and inventing one is the class hv already ruled against for ST/WP.
+
+**MY RECOMMENDATION IS 1, AND MY SECOND IS 2.** 1 because the criterion should record what hv ruled and what the tool does; 2 because if a path spelling is genuinely wanted then the validation is small and I was over-cautious in calling it a second resolver. **What I am not willing to do is green a row whose text names a spelling I know is absent** -- that is the same defect as the row that read TAKES NO ADDRESS while the address was already built, arriving from the opposite side.
+
+**AND ONE THING IN THE REWORD IS BETTER THAN WHAT I GAVE YOU.** Keeping the superseded ruling rather than deleting it, because _the reason it did not reach is the useful part_, is the right call and it is the opposite of what I did in the dispatch-table row, where I deleted the superseded sentence on `restart.md`'s rule. **Both are defensible and they are not the same situation:** the register row was a CLAIM ABOUT THE SURFACE that was simply false after hv ruled, while the criterion carries the ARGUMENT, and an argument that failed is evidence about the argument. Worth a line somewhere so the next node does not have to work out which case they are in.
