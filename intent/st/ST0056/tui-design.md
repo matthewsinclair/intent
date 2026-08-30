@@ -14,42 +14,35 @@ Covers steel threads, work packages and issues.
 
 ## 2. Screen layout
 
-Three sections, named by hv, separated by two rules. **There are no borders anywhere; those two rules are the only chrome.**
+Three sections, named by hv, separated by two rules. **There are no borders anywhere; those two rules are the only chrome.** _(Revised with the omnibox machine, hv 2026-08-30: the foot collapsed from three standing rows to two — the omnibox line and one mode-chipped hint line — on the minimal-chrome ruling, and the screen boots into the threads list rather than a kind lobby.)_
 
 ```
- ST0056   Add a Rust-based CLI with a local SQLite DB with bidirectional sync…   ‹ threads   ESC back
-────────────────────────────────────────────────────────────────────────────────────────────────────
+ ST0056   Add a Rust-based CLI with a local SQLite DB with bidirectional sync…   /thread/ST0056   ESC back
+──────────────────────────────────────────────────────────────────────────────────────────────────
  ▸ title        Add a Rust-based CLI with a local SQLite DB with bidirectional…
-   status       wip                                    ⏎ transitions
-   objective    673 bytes                               ⏎ $EDITOR
-   documents    297   2,318,041 bytes                   ⏎ browse
-   generated    info.md, acceptance.md -- refuse        read-only
-   work pkgs    17
-   criteria     154
-   tests        161
-──────────────────────────────────────── detail ─────────────────────────────────────────────────────
+   status       wip                                    ⏎ choose
+   objective    673 bytes                              ⏎ $EDITOR
+   documents    297   2,318,041 bytes                  ⏎ open
+   work pkgs    17                                     ⏎ open
+──────────────────────────────── detail ──────────────────────────────────────────────────────────
    kind    test
-   state   computed
-   text    **A CHECKER VERIFIES MEMBERSHIP IN A VOCABULARY** and never that the
-           vocabulary can express the states in use. …
-────────────────────────────────────────────────────────────────────────────────────────────────────
- NORMAL   objective   prose   editable   row 4/12   TAB detail
- cmd: (none)
- What this thread is for. Opens in $EDITOR.
+   text    **A CHECKER VERIFIES MEMBERSHIP IN A VOCABULARY** and never that the …
+──────────────────────────────────────────────────────────────────────────────────────────────────
+ ❯ 56▏
+ NAV  4/12  ⏎ open  ←→↑↓ move · ⌫ back · type to find
 ```
 
-- **APP ROW** — the entity's id and name, and nothing else. When nested, it also carries the view trail and the key that leaves.
-- **BODY** — a flat `{name, value, type}` column. Splits into list + detail where the selected row has detail.
-- **STATUS ROW** — as much about the thing in context as fits on one line: mode, field, kind, editability, row position, dirty flag, pane hint.
-- **COMMAND ROW** — the command in play in NORMAL; the `:` line while composing; the menu in MENU; the child's name in EMBED.
-- **INFO ROW** — help for whatever is under the cursor, right now. It changes per row.
+- **APP ROW** — the entity's id and name; when nested, the view trail and the key that leaves.
+- **BODY** — a flat `{name, value, type}` column. Splits into list + detail where the selected row has detail. **The dropdown borrows the body's last rows** while the omnibox has matches: best match nearest the input, matched letters highlighted, the pick wearing the caret.
+- **OMNIBOX ROW** — always present: caret + buffer, bright while it holds the keyboard, dim in NAV; the menu bar borrows this line in MENU.
+- **HINT ROW** — the mode chip first and unconditional, coloured per mode; then a standing notice, or what the keys do right now (position, the one verb ⏎ means on this row, the crossing where one exists).
 
 ### Layout rules
 
 - **Two aligned columns: names in one, values in another.** That alignment IS the design, so it is asserted, not eyeballed. The gutter is **computed from the row set**, never hardcoded — the first strawman pinned it at 13 and real data collided on the first render.
 - **Values are clipped at RENDER time to the terminal width**, with an ellipsis. Never truncated when the row is built: a value truncated into the model is truncated for every width forever.
 - **A value that does not fit is clipped, never wrapped into a second row** — a wrapped value breaks the one guarantee the layout makes.
-- Unicode box-drawing for the rules. Colour carries role: field names, editable values bright, read-only and generated dimmed, children distinct, actionable hints green, chrome on its own ground, menu accelerators highlighted.
+- Unicode box-drawing for the rules. **Colour is carried as ROLES computed by layout and mapped to a palette by the printer** — the mode chip per-mode (OMNIBOX cyan, NAV green, MENU magenta, FIELD yellow, EMBED red, reversed), doors cyan, field names dim, statuses semantic from the model's own display vocabulary (wip yellow, done green, blocked red), selection reversed, notices amber, matched dropdown letters bold accent.
 
 ## 3. The mode machine
 
