@@ -1197,3 +1197,38 @@ I told you `at.fc` is declared from `to-write|red` and never from green, and off
 **YOUR DELETE-AND-RETIRE RULING IS DONE** -- `bbd7e1c0`. `AT-01.8` is `test`/`fiat` with your ruling quoted in its `--because` record, the bats file is deleted, and **ST0043 reads 7/7 satisfied, 1 withdrawn -- PASS.** I re-drove the estate invariant independently: **278 green-or-red rows carry a citation and ZERO cite an absent file.**
 
 **AND THE RETIREMENT FOUND A DEFECT ON ITS WAY THROUGH**, which dc fixed in the same commit: the fiat close warned that `AC-01.6` _stays unsatisfied with nothing left that could satisfy them_ -- for a criterion you and I had withdrawn minutes earlier. `contract::solely_covered_by` filtered on kind and cover-count and never on STATE, while `resolve` three lines below carries _a descoped or withdrawn AC is not asked whether it is satisfied._ **The symptom was a remedy that did not apply, never a wrong count** -- `ac status` read PASS throughout -- so nothing downstream disagreed and only the advice was wrong.
+
+## (2026-08-30 20:56Z)
+
+**ic's AC-09.6 READ IS DONE AND IT PRODUCED 35 ROW-LEVEL QUESTIONS. THIRTY-FIVE QUESTIONS IS A READING ASSIGNMENT, NOT A DECISION LIST, SO I HAVE COLLAPSED IT TO THREE DECISIONS AND RULED THE REST.** The partition (ic's measurement, five controls asserted every run, which caught five instrument defects before it produced a number): **94 exposed rows = 52 one-door + 20 zero-door + 11 multi-door + 11 live-unwired.**
+
+=== RULED BY ME -- NO ACTION, LISTED SO YOU CAN OVERTURN ANY OF IT ===
+
+- **`llm guide` and `surface` NARROW.** `llm guide` renders the command reference; **the MCP tool list IS that answer in the shape MCP defines**, so exposing it gives an agent two differently-shaped answers to _what can I do_, and the second goes stale the moment a tool is added or withheld. `surface`'s only subcommand is `retired` -- **an agent's correct experience of a retired verb is that the tool is not offered**, so a tool enumerating them invites reasoning about surface it cannot call.
+- **NO `face:` SPELLING.** ic proposed one for rows that render compiled-in data. It is the exemption class I ruled against this morning, arriving under a better name -- _the softer rule is where everything ends up_.
+- **AND MY OWN DISCRIMINATOR WAS WRONG AND ic COULD HAVE HELD ME TO IT.** I said the test is _does this tell an agent about THE PROJECT_. `schema` renders compiled-in faces exactly like the two above, so by that test it narrows too -- and I had ruled it IN. **The real test is NEED: does an agent need this to do its work on this project?** `schema` yes, because it is the shape of the entities it is about to manipulate and getting it wrong corrupts the store. Provenance was a proxy for need and it failed on the first hard case.
+- **THE MCP CALL PATH: the tier calls the facade DIRECTLY, with a hand-written mapping GATED against the dispatch table** (`dispatch_ssot.rs`'s pattern, which the estate uses three times), **not build-time codegen** -- no `build.rs` in this workspace generates Rust, and introducing that during a tag window to avoid a match statement is new machinery paying for a smaller problem. **ic's preferred shape -- routing MCP through the daemon's `Op` dispatch -- is the better architecture and I declined it on SEQUENCING, not merits:** `Op` carries six variants and they are a daemon CONTROL protocol, so covering the exposed surface would land ~55 new variants on cc's lane ahead of your stated order. **That is reordering your priority by assigning work, which is the same act I praised cc for refusing this morning, with my name on it.** Recorded as the 3.x destination so nobody re-litigates it.
+
+=== DECISION 4: THE 11 UNWIRED ROWS -- ONE FLIP, NOT ELEVEN ===
+
+Eleven rows are `exposed_on_mcp: true` and answer _is a known command that is not implemented yet_ -- live-verified, not inferred. `agents template`, `claude prime`, `claude subagents`, `config get`/`set`, `ext` x4, `fileindex`, `learn`.
+
+**RECOMMENDATION: NARROW ALL ELEVEN NOW, one note -- _unwired at the AC-09.6 read (2026-08-30); re-expose with the arm._** ic's principle is the reason and it is worth keeping: **the flag should track the BINARY, not the roadmap.** Exposed-and-unwired is false today whatever anyone intends to build, and a narrow is a flip that the wiring commit flips back. **It is the same defect as an exemption justified by how a thing will behave once finished** -- which is the `mcp never returns` exclusion I fixed this morning, in a different field.
+
+=== DECISION 5: THE 12 FACADE GAPS -- BUILD ONE, DEFER ELEVEN ===
+
+Twelve exposed rows have no facade method: `schema`, `lang` x4, `llm usage_rules`, `modules` x2, `plugin` x2, and `todo notdone`/`todo toggle`.
+
+**RECOMMENDATION: BUILD `schema` ONLY; defer the rest past the tag.** It is the cheapest safe build -- the faces are compiled-in statics, so the method is a small read with no store touch and no failure mode worth naming -- and it is the one an agent genuinely needs.
+
+**BUT `todo notdone` AND `todo toggle` ARE NOT A GAP AND MUST NOT BE QUEUED AS ONE. THEY ARE A DEFECT: they MUTATE through helpers that never pass the facade** -- the exact boundary leak `AC-09.6` exists to catch, found by the read rather than by the criterion. ic is filing it as architecture. **Fixing a boundary leak by moving write paths mid-tag-window is risk of a different order from adding a read method**, so my recommendation is: record it, do not fix it now, and do not let it compete for the build slot.
+
+=== DECISION 6: dc's IRREVERSIBLE DELETE, WHICH THEY HAVE PUT TO YOU SEPARATELY ===
+
+**Everything reversible is done and verified by me rather than taken on report.** `8a7ed88d` ports three of the four release-script edges to my recommendation: `INTENT_BIN="$PROJECT_ROOT/native/rust/target/release/intent"`, resolved by path, `require_intent_bin` refusing on absence at each of three call sites, **and no warn-and-continue arm exists to be ignored later.** I checked for a fallback and there is none. One v2 edge remains at `:67` and it is deliberately deferred: carrying the three helper functions now would create a second copy of the stamper, which `release_sidecars.bats` says in as many words is what the shared helper prevents -- **after the prune there is exactly one copy, so the duplication would be an artefact of splitting the work rather than of the design.**
+
+**What is left is the 26 files / 12,415 lines of population A, and it is yours because it is irreversible.** dc declined to take it on my word, which is right.
+
+=== AND THE STANDING ITEM ===
+
+Three decisions were already on this board before these: **ratify `INV-03` or decline (`0167`)**, the **Machine 5 table amendment** (recommend deferring past the tag), and **which `intent` the release script invokes** -- now ANSWERED by dc building to the recommendation, so that one needs nothing from you unless you disagree with the result.
