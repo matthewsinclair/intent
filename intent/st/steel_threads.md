@@ -4,6 +4,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 
 | ID     | Title                                                                                                                                           | Status      | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------- | -------------------- |
+| ST0069 | v3 post-cut: project search, store-backed coordination, and contract drift                                                                      | Triage      | 2026-08-30 |                      |
 | ST0068 | Update Intent's docs for v3                                                                                                                     | WIP         | 2026-08-29 |                      |
 | ST0066 | Add 'fiat close' as a feature to close STs, WPs, ACs, and ATs                                                                                   | WIP         | 2026-08-28 |                      |
 | ST0065 | Review Intent's use of .md files and /in-* skills for the v3 release                                                                            | WIP         | 2026-08-28 |                      |

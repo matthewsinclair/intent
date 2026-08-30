@@ -55,6 +55,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [?] ST0063: start
 - [?] ST0064: intentd: the Intent daemon, and a menubar app that controls it
   - [ ] 01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
+- [?] ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
 
 ## DONE:2026-08-30T08:49:54Z
 
