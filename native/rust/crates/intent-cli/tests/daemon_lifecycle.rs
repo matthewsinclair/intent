@@ -1,6 +1,23 @@
 //! `AT-08.4` / `AC-08.4`: **the daemon's lifecycle works end to end** -- start,
 //! status, refuse a second, stop, stop again, with logs where D19 put them.
 //!
+//! **THIS FILE CARRIES TWO ROWS AND THE SPLIT IS BY ARM, NOT BY FILE** (vc,
+//! 2026-08-30). `AT-08.4` / `AC-08.4` is arms 1-4, the LIFECYCLE:
+//! `start_status_stop_is_a_working_lifecycle`,
+//! `a_second_start_is_idempotent_and_names_the_running_pid`,
+//! `stopping_when_nothing_runs_is_success`, `the_logs_land_where_d19_put_them`.
+//! **`AT-08.7` / `AC-08.7` is arms 5-6, POLICY-STAMP SELF-HEALING:**
+//! `a_stale_launchagent_is_regenerated_when_the_daemon_boots` and
+//! `booting_does_not_enrol_a_machine_that_never_asked`.
+//!
+//! **NAMING THE ARMS IS LOAD-BEARING RATHER THAN TIDY.** Two rows citing one
+//! file by bare filename means greening either one greens the other by
+//! inspection, and the citation stops being the criterion's own check clause.
+//! **Splitting the file would be worse:** both healing arms need the `Machine`
+//! harness below -- isolated `HOME`, `state_dir`, teardown on drop -- so a split
+//! either duplicates it or grows a two-arm `common` module. The rows share a
+//! harness and nothing else.
+//!
 //! **EVERY ARM IS DRIVEN THROUGH THE SHIPPED BINARY, BECAUSE THE CRITERION IS
 //! ABOUT THE LIFECYCLE AN OPERATOR HAS.** A test calling the library functions
 //! would exercise the same mechanisms and prove nothing about whether

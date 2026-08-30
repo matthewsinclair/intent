@@ -1,5 +1,5 @@
-//! **`AC-08.9`: one published port, two protocols, and the estate's data behind
-//! a token.**
+//! **`AT-08.9` / `AC-08.9`: one published port, two protocols, and the estate's
+//! data behind a token.**
 //!
 //! **THE THREE CONDITIONS THIS FILE EXISTS TO MEET ARE vc's, RULED BEFORE IT
 //! WAS BUILT** (2026-08-30), and each closes a hole the others cannot see:
