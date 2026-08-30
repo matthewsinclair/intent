@@ -46,3 +46,41 @@
 **PARKED, NAMED SO NOBODY REDISCOVERS THEM:** ST0058's `AC-00.1` / `AC-00.3` / `AC-00.6`, all three hv's. `AC-07.7` / `AC-11.1` / `AC-11.4` / `AC-12.4`, tag-gated and already ruled a decided shape. The store-migration guard, after the cut. `bin/.devbin`, after the carrier sweep. `spelling_notes_name_their_issue.rs`, outside the tree until ic edits `help`'s `spelling_note`.
 
 **AND ONE AGAINST MYSELF.** Measuring `AC-12.1` I ran a `head -10` grep, got no hit for `claude_plugin_helpers.sh`, and briefly had it that the named defect was already gone. **A truncated read returning a NEGATIVE -- the top entry in my own watch-outs, made inside the pickup that loads it.** The direct check caught it. Same shape twice today: I was also reporting the suite at 1 red off a partial read of a file still being written, and the complete count is 2.
+
+## (2026-08-30 16:48Z)
+
+**AT-12.1 IS BUILT AND RED AT `5bf3baef`, AND DRIVING IT KILLED THE WORK IT WAS BUILT TO GUARD. AC-12.1's SEVEN-FILE PORT IS A PRUNE, AND THAT IS A SCOPE CALL SO IT IS YOURS.**
+
+`tests/cutover_guard.bash`. Both arms in a fixture with `bin/` absent, population derived from the tree, partition `7 driven + 15 static-only = 22`, control non-vacuous at 1. Row moved `to-write` -> `red` because the file now exists and fails -- **that is recording the red half, not scoring the row**, and if you read it as a status move on a WP I hold, reverse it and I will not argue.
+
+=== 1. THE RULING I NEED: PRUNE, NOT PORT ===
+
+**AC-12.1 routes class (2) to a seven-file PORT. Driven, six of the seven have no executor after the cut, so porting them is work on files the prune deletes.** The v3 binary has **exactly two exec sites**: `render.rs:5958` (cwi) and `render.rs:6589` (`lib/templates/.claude/scripts/<name>.sh`). Neither can reach the six.
+
+    claude skills list     rc=0   Rust reimplementation (intentsvcs/src/skills.rs)
+    claude rules list      rc=0   Rust reimplementation (intentsvcs/src/rules.rs)
+    claude subagents       rc=2   unwired, and no shell-out path exists to reach
+    claude prime           rc=2   unwired, same
+    claude hook <NAME>     wired  execs a TEMPLATE, not intent_claude_hook
+    claude upgrade         wired  Rust project resolver refuses, not the script
+
+**The tree already says it in its own words** -- `intentsvcs/src/install.rs:352`: _"THIS SCRIPT IS DELIBERATELY NOT PORTED... the ONE plugin script surviving the v3 cut (AC-14.12 is the expiry)"_. So the six have one executor, `bin/intent`, and `lib/{claude_plugin_helpers.sh, rules_lib.sh, critic_runner.sh}` exist only to serve them and `bin/intent_critic`.
+
+**I AM NOT DELETING NINE FILES ON MY OWN READING.** The prune is irreversible and the criterion's text says port. What I want is the ruling, not the work.
+
+=== 2. TWO CORRECTIONS TO AC-12.1's OWN TEXT, BOTH WIDENING ===
+
+- **The source edge is NOT confined to `intent/plugins/claude/bin/*`.** `lib/rules_lib.sh:30` sources `bin/intent_helpers` too. The criterion's scope sentence names the `bin/` directory and reads as complete; a sweep obeying it leaves that file dangling. Same shape as the 2026-08-27 amendment, one level out.
+- **The invisible edge is FOUR symbols, not one.** `claude_plugin_helpers.sh` calls `calculate_checksum`, `ext_root_dir`, `require_claude` and `require_jq` and sources none of them. The criterion names only `ext_root_dir`.
+
+=== 3. WHAT THE INSTRUMENT COST, BECAUSE THREE OF ITS DEFECTS ARE CLASSES ===
+
+- **`set -o pipefail` + `grep -q` on a pipe.** The `grep -q` exits on first match, SIGPIPEs the upstream `grep -v`, pipeline returns 141, predicate answers "no". It answered correctly for every short file and wrongly for the two LONGEST in the population. **A silent wrong answer whose probability rises with file size** -- so the first run reported `intent_claude_upgrade` as a call edge when it plainly sources.
+- **Five false call findings, every one a `case` arm.** `critical|warning|recommendation|style)` is an alternation of PATTERNS whose `|` is indistinguishable from a pipeline separator. Cutting the whole arm line would hide a real call in `foo) error "x" ;;`, so the PATTERN is cut and the BODY kept -- **positive-controlled by planting `require_jq` inside a case arm, confirming it is seen, then restoring the file byte-for-byte.**
+- **THE STATIC CALL-EDGE ARM EXPIRES WITH ITS SUBJECT AND SAYS SO.** It needs `bin/intent_helpers` present to know what `bin/` alone defined. After the prune it prints `n/a -- bin/ already pruned`, **never a pass.** That is D-EXPIRED written into an instrument rather than into a board.
+
+`cwi` is the two-sided control and it is free in the population: ported it runs to usage with EMPTY stderr; its pre-port form, reconstructed by deleting the primitives it carries, dies on `find_project_root: command not found`. **Without it the other six are the only evidence and they cannot tell PORTED from NEVER-COUPLED**, which is exactly what AT-12.1 says both arms are for.
+
+=== 4. NOT BLOCKED ON YOU ===
+
+Taking `0165` whole from cc -- all four homes in one commit, and reading `:937` in place changed the fix: the sentence is **true for generated views and false for authored attachments**, so that site NAMES THE POPULATION rather than losing the claim. Then the phase split, then the rc=2 census for ic.
