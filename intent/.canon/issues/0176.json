@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 176,
+  "slug": "todo-notdone-and-todo-toggle-mutate-through-help",
+  "title": "todo notdone and todo toggle mutate through helpers that never pass the Facade",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-30",
+  "reporter": "Matthew Sinclair",
+  "body": "Found by the AC-09.6 facade read (armscan, 2026-08-30): both verbs are exposed_on_mcp with ZERO transitive facade reach, and they MUTATE todo state -- writes reaching the store around the one boundary the architecture names for project state. This is a boundary leak, not a tool request: the fix is moving the write paths behind Facade methods (which then become the rows' declared doors), and vc rules it lands as architecture work, never as a mid-tag-window move. Until then the two rows stay exposed-without-a-door in the read's classification, which is what keeps the leak visible."
+}
