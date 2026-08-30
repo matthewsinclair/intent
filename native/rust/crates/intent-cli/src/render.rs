@@ -353,12 +353,7 @@ fn st_rows(
   // registered -- took the whole command down at exit 101. Found by
   // `cli_end_to_end`, which drives both verbs; the flag itself was fine and the
   // accessor was the defect.
-  let as_slug = a
-    .try_get_one::<bool>("slug")
-    .ok()
-    .flatten()
-    .copied()
-    .unwrap_or(false);
+  let as_slug = given(a, "slug");
 
   let threads = f.st_list();
   // The denominator is read BEFORE the filter, from the same call, so the note
@@ -518,7 +513,7 @@ fn sync_scope(m: &ArgMatches) -> Result<intentsvcs::sync::Scope, Failure> {
 
 fn sync(m: &ArgMatches) -> Result<(), Failure> {
   let scope = sync_scope(m)?;
-  match (flag(m, "to-disk"), flag(m, "to-store")) {
+  match (given(m, "to-disk"), given(m, "to-store")) {
     // Both is not "do both": they are opposite directions over the same two
     // endpoints, so running them in either order makes one of them pointless
     // and the other authoritative by accident of ordering.
@@ -880,7 +875,7 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
   // ONE.** The TUI and the browser edit the MODEL; only `--editor` opens a
   // file. Mixing the two is what makes the current argument shape misparse, so
   // the branch that does not want a path must not walk the code that finds one.
-  if flag(m, "browser") {
+  if given(m, "browser") {
     return browsed(m);
   }
 
@@ -917,7 +912,7 @@ fn browsed(m: &ArgMatches) -> Result<(), Failure> {
   // asked two ways. Both go through the file's own accessors rather than a
   // third spelling of the same question.
   for other in ["editor", "path"] {
-    if flag(m, other) || opt(m, other).is_some() {
+    if given(m, other) || opt(m, other).is_some() {
       return Err(Failure::Error(format!(
         "error: `--browser` and `--{other}` ask for opposite things\n  \
          remedy: name one of them, or neither and let stdout decide"
@@ -1227,7 +1222,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // A failure part-way leaves the thread at the state it reached and says
       // so, rather than being rolled back: each step is a real transition that
       // really happened, and the log is the record of what happened.
-      if flag(a, "start") {
+      if given(a, "start") {
         f.st_triage(&id).map_err(fail)?;
         f.st_start(&id).map_err(fail)?;
       }
@@ -1247,7 +1242,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // `--keep` closes the thread and LEAVES its `.intentfiles` entry, so its
       // files stay. It also suppresses the closing note, because the note is
       // about an impending dehydration that `--keep` has just cancelled.
-      let list = if flag(a, "keep") {
+      let list = if given(a, "keep") {
         ListEdit::Suppressed
       } else {
         ListEdit::AsDeclared
@@ -1280,7 +1275,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // was on `st done` alone because AC-05.2 named only that one; two
       // identical acts with the override on one of them is a surface that has
       // to be memorised rather than understood.
-      let list = if flag(a, "keep") {
+      let list = if given(a, "keep") {
         ListEdit::Suppressed
       } else {
         ListEdit::AsDeclared
@@ -1443,7 +1438,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
     // `steel_threads.md` says it indexes every thread and was being built from
     // the WIP-only view -- so it decayed to empty at every release close.
     Some(("sync", a)) => {
-      if flag(a, "write") {
+      if given(a, "write") {
         let mut f = open()?;
         // v2's `st sync` regenerates `steel_threads.md` from the threads --
         // a projection, which under the reversed D01 is the db -> disk
@@ -2076,7 +2071,7 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("lint", a)) => {
       let st = thread_arg(a, "stid")?;
-      if a.try_get_one::<bool>("fix").ok().flatten() == Some(&true) {
+      if given(a, "fix") {
         // The 0017 `--fix` half-migrated rows: it rewrote what it could parse
         // and silently left the rest, which is worse than refusing, because a
         // lossy fixer damages what it touches and a lossy SUGGESTION damages
@@ -2327,7 +2322,7 @@ fn upgrade() -> Result<(), Failure> {
 /// is `Facade::declare_default`'s. What belongs here and nowhere else is the
 /// HUMAN -- whether one is present, and what they said.
 fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
-  let force = flag(m, "force");
+  let force = given(m, "force");
   let (project, ctx) = context()?;
   let manifest = project.relative(&project.intentfiles_path());
 
@@ -2457,14 +2452,14 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
   // decision in the same breath -- which is precisely the shape an operator
   // cannot preview, because the input to the preview would be produced by the
   // run being previewed.
-  if flag(m, "default") {
+  if given(m, "default") {
     return declared_default(m);
   }
   // **`--force` ALONE IS A USAGE ERROR AND SAYS SO.** It qualifies `--default`
   // and modifies nothing here. Accepting it silently would make
   // `organize --force` read as a forced reconciliation, which is a command this
   // build does not have and would be the most dangerous one to imply.
-  if flag(m, "force") {
+  if given(m, "force") {
     return Err(Failure::Error(
       "error: `--force` qualifies `--default` and means nothing on its own\n  remedy: `intent organize --default --force` regenerates the declaration from status, after confirming on a terminal".to_string(),
     ));
@@ -2475,7 +2470,7 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
   // `disposition_basis` for the three grounds -- the short version is that v2
   // shipped BOTH polarities for this one operation, and resolving toward
   // preview resolves it in the direction that cannot lose data.
-  let mode = if flag(m, "apply") {
+  let mode = if given(m, "apply") {
     intentsvcs::organize::Mode::Apply
   } else {
     intentsvcs::organize::Mode::Preview
@@ -3199,8 +3194,8 @@ fn todo(m: &ArgMatches) -> Result<(), Failure> {
 /// already gone from the surface by the time these arms were reached. Removing
 /// the arms first would have left declared flags with no implementation.
 fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
-  let flush = flag(a, "flush");
-  let prune = flag(a, "prune");
+  let flush = given(a, "flush");
+  let prune = given(a, "prune");
   let spec = opt(a, "specifier");
 
   match (spec, flush || prune) {
@@ -3437,8 +3432,8 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
 /// `--force`'s declared help is *"Force recreation of config even if it
 /// exists"*, and it names the CONFIG.
 fn bootstrap(m: &ArgMatches) -> Result<(), Failure> {
-  let force = flag(m, "force");
-  let quiet = flag(m, "quiet");
+  let force = given(m, "force");
+  let quiet = given(m, "quiet");
 
   let report = intentsvcs::bootstrap::run(force).map_err(|e| Failure::Error(Remedy::render(&e)))?;
 
@@ -3630,7 +3625,7 @@ fn schema(m: &ArgMatches) -> Result<(), Failure> {
   // neither arm special-cases the other, so `intent schema ddl.sql --versions`
   // is one face's versions and `intent schema --versions` is all of them. An
   // undeclared composition is how two authors arrive at two answers.
-  let versions = flag(m, "versions");
+  let versions = given(m, "versions");
   match m.try_get_one::<String>("face") {
     Ok(Some(name)) => match intentsvcs::faces::face(name) {
       Some(content) => {
@@ -5190,7 +5185,7 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
   // interactive confirmation and v3 does not prompt at all, so there is no
   // prompt to skip. Asking clap for an argument a subcommand never declared
   // PANICS, and a panic here would turn a correct absence into a crash.
-  let force = a.try_get_one::<bool>("force").ok().flatten().copied() == Some(true);
+  let force = given(a, "force");
 
   if names.is_empty() && verb != SkillVerb::Sync {
     return Err(Failure::Error(format!(
@@ -5341,7 +5336,7 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
 fn skills_list(a: &ArgMatches) -> Result<(), Failure> {
   let lib = skills_lib()?;
   let available = lib.available().map_err(skills_fail)?;
-  let verbose = a.try_get_one::<bool>("v").ok().flatten().copied() == Some(true);
+  let verbose = given(a, "v");
 
   if available.is_empty() {
     println!("no skills in this install");
@@ -5736,8 +5731,8 @@ fn output_of(m: &ArgMatches) -> Result<Output, Failure> {
   Output::resolve(
     opt_explicit(m, "format").as_deref(),
     opt(m, "width").as_deref(),
-    flag(m, "json"),
-    flag(m, "markdown"),
+    given(m, "json"),
+    given(m, "markdown"),
     terminal_width(),
   )
   .map_err(|e| Failure::Error(e.render()))
@@ -5832,12 +5827,6 @@ fn opt(m: &ArgMatches, name: &str) -> Option<String> {
   m.try_get_one::<String>(name).ok().flatten().cloned()
 }
 
-/// A boolean flag, FALSE when this subcommand does not declare it. Same
-/// reasoning as [`opt`].
-fn flag(m: &ArgMatches, name: &str) -> bool {
-  m.try_get_one::<bool>(name).ok().flatten().copied() == Some(true)
-}
-
 /// Was this flag GIVEN on the command line, whatever it carries?
 ///
 /// **[`flag`] ANSWERS A NARROWER QUESTION THAN ITS NAME, AND ANSWERS `false`
@@ -5858,7 +5847,37 @@ fn flag(m: &ArgMatches, name: &str) -> bool {
 /// `ValueSource::CommandLine` is the question both callers actually have, and
 /// it is asked the same way of either action: a `SetTrue` flag left off
 /// carries `DefaultValue`, so this is not merely `contains_id`.
+///
+/// **AN ID THIS SUBCOMMAND DOES NOT DECLARE READS AS `false`, AND THAT IS THE
+/// CONTRACT RATHER THAN A SECOND SWALLOW.** `--force` is declared on some
+/// `claude skills` verbs and not others -- `uninstall` has no prompt to skip --
+/// so a caller here legitimately asks about an id that may not exist on this
+/// row, and panicking would turn a correct absence into a crash.
+///
+/// **`init`'s `with-st0000` LOOP ASKS A DIFFERENT QUESTION AND IS DELIBERATELY
+/// NOT FOLDED IN HERE.** Its ids are declared on its own row unconditionally,
+/// so a miss there is renderer-table DRIFT and it panics by design -- which is
+/// the fix for `init --with-st0000` being silently ignored. Collapsing the two
+/// would either lose that drift check or crash `uninstall`. Two questions, and
+/// the one thing that must not happen is a helper that quietly answers both.
 fn given(m: &ArgMatches, name: &str) -> bool {
+  // **`value_source` PANICS ON AN ID THIS SUBCOMMAND DOES NOT DECLARE**, with
+  // `"json" is not an id of an argument or a group` -- so establishing that the
+  // id exists has to come first. `try_get_raw` answers exactly that and nothing
+  // else: it returns `Err` for an unknown id and `Ok` for a declared one,
+  // WITHOUT downcasting, so a valued flag is not a mismatch here the way it is
+  // for `try_get_one::<bool>`.
+  //
+  // **THE FIRST VERSION OF THIS FUNCTION OMITTED THIS AND CRASHED 47 TESTS.**
+  // The warning was already in this file, three thousand lines up, on the
+  // `--force` read: *asking clap for an argument a subcommand never declared
+  // PANICS, and a panic here would turn a correct absence into a crash.* That
+  // sentence is why `flag`'s `.ok()` existed at all -- it was swallowing a real
+  // case as well as the type mismatch, and replacing it without carrying that
+  // case is how the fix for a silent wrong answer became a loud wrong one.
+  if m.try_get_raw(name).is_err() {
+    return false;
+  }
   matches!(
     m.value_source(name),
     Some(clap::parser::ValueSource::CommandLine)
@@ -5884,7 +5903,7 @@ fn backup(m: &ArgMatches) -> Result<(), Failure> {
   let facade = open()?;
   let project = facade.project().clone();
 
-  if flag(m, "list") {
+  if given(m, "list") {
     let snapshots = facade.store().snapshots().map_err(|e| e.render())?;
     if snapshots.is_empty() {
       // Not silence: an empty list and a broken backup look identical on an
