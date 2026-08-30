@@ -611,26 +611,32 @@ States: `NotStarted` | `Wip` | `Done` | `Cancelled`. **Entry: `NotStarted`.**
 
 > **This table carried FOUR states until 2026-08-16 and the machine has had five since hv ratified `computed` on 2026-08-15.** The ratification, the reasoning and my own reversal onto cc's form are all recorded above under "The fifth state" -- **230 lines above, under a different heading, which is the whole problem.** The document was never wrong as a whole; it was wrong at the one place an implementer reads to find out what to build, with the correction filed where someone would only look if they already knew. **A superseded table beside its own correction is worse than either alone**, because agreeing with the document is no longer a test of anything. The rows below are now the ratified machine; the section above remains the reasoning for it.
 
-| From          | To            | Verb                    | Guard                                |
-| ------------- | ------------- | ----------------------- | ------------------------------------ |
-| _(none)_      | `Unsatisfied` | authored                | **non-test** criterion               |
-| _(none)_      | `Computed`    | authored                | **test-backed** criterion            |
-| `Unsatisfied` | `Satisfied`   | `ac satisfy --evidence` | **non-test AC only**; evidence given |
-| `Satisfied`   | `Unsatisfied` | `ac unsatisfy`          | clears evidence (cc built this)      |
-| `Computed`    | `Descoped`    | `ac descope --to <ID>`  | target thread exists                 |
-| `Unsatisfied` | `Descoped`    | `ac descope --to <ID>`  | target thread exists                 |
-| `Satisfied`   | `Descoped`    | `ac descope --to <ID>`  | clears evidence first                |
-| `Descoped`    | `Unsatisfied` | `ac rescope`            | **non-test** -- lands on entry state |
-| `Descoped`    | `Computed`    | `ac rescope`            | **test-backed** -- lands on entry    |
-| `Computed`    | `Withdrawn`   | `ac withdraw --reason`  | reason recorded                      |
-| `Unsatisfied` | `Withdrawn`   | `ac withdraw --reason`  | reason recorded                      |
-| `Satisfied`   | `Withdrawn`   | `ac withdraw --reason`  | clears evidence first                |
-| `Withdrawn`   | `Unsatisfied` | `ac reinstate`          | **non-test** -- lands on entry state |
-| `Withdrawn`   | `Computed`    | `ac reinstate`          | **test-backed** -- lands on entry    |
-| `Fiat`        | `Unsatisfied` | `ac reinstate`          | **non-test** -- lands on entry state |
-| `Fiat`        | `Computed`    | `ac reinstate`          | **test-backed** -- lands on entry    |
-| `Computed`    | `Fiat`        | `ac.fc`                 | reason recorded                      |
-| `Unsatisfied` | `Fiat`        | `ac.fc`                 | reason recorded                      |
+| From          | To            | Verb                    | Guard                    |
+| ------------- | ------------- | ----------------------- | ------------------------ |
+| _(none)_      | `Unsatisfied` | authored                | --                       |
+| _(none)_      | `Computed`    | authored                | --                       |
+| `Unsatisfied` | `Satisfied`   | `ac satisfy --evidence` | non-test; evidence given |
+| `Satisfied`   | `Unsatisfied` | `ac unsatisfy`          | non-test                 |
+| `Computed`    | `Descoped`    | `ac descope --to <ID>`  | target thread exists     |
+| `Unsatisfied` | `Descoped`    | `ac descope --to <ID>`  | target thread exists     |
+| `Satisfied`   | `Descoped`    | `ac descope --to <ID>`  | target thread exists     |
+| `Descoped`    | `Unsatisfied` | `ac rescope`            | --                       |
+| `Descoped`    | `Computed`    | `ac rescope`            | --                       |
+| `Computed`    | `Withdrawn`   | `ac withdraw --reason`  | reason recorded          |
+| `Unsatisfied` | `Withdrawn`   | `ac withdraw --reason`  | reason recorded          |
+| `Satisfied`   | `Withdrawn`   | `ac withdraw --reason`  | reason recorded          |
+| `Withdrawn`   | `Unsatisfied` | `ac reinstate`          | --                       |
+| `Withdrawn`   | `Computed`    | `ac reinstate`          | --                       |
+| `Fiat`        | `Unsatisfied` | `ac reinstate`          | --                       |
+| `Fiat`        | `Computed`    | `ac reinstate`          | --                       |
+| `Computed`    | `Fiat`        | `ac.fc`                 | reason recorded          |
+| `Unsatisfied` | `Fiat`        | `ac.fc`                 | reason recorded          |
+
+**THE GUARD COLUMN IS A CLOSED VOCABULARY AS OF 2026-08-30 (hv, D1), AND THAT IS WHAT LET AXIS C START GATING.** The permitted cells are exactly `--`, `reason recorded`, `ac gate pass`, `target thread exists`, `non-test` and `evidence given`, combined with `; ` where an edge carries two. `machine_table_check.sh` refuses a cell outside the set instead of reporting it, and every machine on this page is now measured on all three axes rather than two.
+
+**WHAT CAME OUT OF THE COLUMN WAS NEVER A GUARD, AND THIS TABLE HELD NINE SUCH CELLS.** A guard is a PRECONDITION -- something that must hold before the edge may be taken. `clears evidence first` is an EFFECT, which is what happens after. `**non-test** -- lands on entry state` is a LANDING RULE, which tells you which of two rows you are reading. **Neither can be true or false of a transition being attempted**, so neither could ever be checked, and mixing them into the same column is why six cells read as UNMEASURED and three as outright DISAGREE against a transcription that was correct all along.
+
+**Both facts survive, stated ONCE rather than repeated per row.** Every edge leaving `Satisfied` clears the evidence on the way out -- `ac unsatisfy`, `ac descope` and `ac withdraw` alike -- because evidence is proof that the criterion was MET, and a criterion that is no longer satisfied has none. **And every row landing on `Unsatisfied` or `Computed` out of `Descoped`, `Withdrawn` or `Fiat` lands on `AcState::entry(kind)`**, which is the entry rule this section already states above the table; the To column is what distinguishes those pairs, and the code declares no guard on any of them. Repeating either fact in eighteen rows was a second home for it, and the copy in the Guard column was the one that drifted.
 
 **`Fiat` IS THE SIXTH STATE, AND ITS TWO EXIT ROWS ARE hv's RULING OF 2026-08-29** -- put up by dc and ruled dc's way: **the exit is `ac reinstate`, the same verb, not a new one.** Reinstating already means bringing a requirement that was closed-without-being-met back into play, landing on `AcState::entry(kind)`, and a fiat close is closed-without-being-met by definition -- one operation on one axis. The alternative, a terminal `fiat`, was declined on its cost: a terminal value in a `State` field is precisely what `no_state_can_be_entered_and_not_left` refuses, so taking it would have meant weakening a guard that protects every other machine on this page. **This is also what makes "renders distinctly forever" and reversibility compatible rather than opposed** -- forever is a claim about RENDERING, and the permanent record of the close lives in the event log.
 

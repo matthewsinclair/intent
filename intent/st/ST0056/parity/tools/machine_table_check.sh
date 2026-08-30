@@ -47,28 +47,39 @@
 # SIDES TO `(from, to, verb)` TUPLES FIRST, THEN COMPARE SETS.
 #
 # ==========================================================================
-# THREE AXES, AND ONLY TWO OF THEM CAN GATE
+# THREE AXES, AND ALL THREE NOW GATE
 # ==========================================================================
 #
 #   A  ENTRY   the document's `_(none)_ -> X` rows against `initial: &[...]`
 #   B  EDGES   `(from, to, verb)` as sets, expanded on both sides
 #   C  GUARDS  the document's Guard column against `&[Guard::...]`
 #
-# **A and B are mechanical: both sides are a controlled vocabulary and the
-# normalisation is total.** They gate.
+# **A and B were always mechanical: both sides are a controlled vocabulary and
+# the normalisation is total.**
 #
-# **C IS NOT, AND SAYING SO IS THIS FILE'S SECOND FINDING.** The document's
-# Guard column is FREE PROSE, and in Machine 3 it does not hold preconditions
-# at all: `clears evidence (cc built this)` is an EFFECT, `**non-test** --
-# lands on entry state` is a LANDING RULE naming which of two rows you are
-# reading. Neither is a guard, and the code's actual guards for those rows are
-# undeclared in the document. So axis C REPORTS and never gates.
+# **C WAS NOT, AND THAT WAS THIS FILE'S SECOND FINDING. IT IS NOW FIXED RATHER
+# THAN STILL TRUE, so the finding is rewritten here instead of left standing
+# beside its own correction.** The Guard column was FREE PROSE, and in Machine 3
+# it did not hold preconditions at all: `clears evidence (cc built this)` is an
+# EFFECT, `**non-test** -- lands on entry state` is a LANDING RULE naming which
+# of two rows you are reading. Neither can be true or false of a transition
+# being attempted, so neither could ever be checked -- which is why six cells
+# read UNMEASURED and three DISAGREE against a transcription that was correct.
 #
-# **AND AN UNMAPPABLE CELL IS COUNTED SEPARATELY FROM AN AGREEING ONE, WHICH IS
-# THE POINT OF THE AXIS.** Defaulting unmappable prose to "no guard" would make
-# a genuinely missing guard read as clean -- a true green from an instrument
-# that could not have answered, which is this estate's dominant failure class.
-# `UNMEASURED` is a third verdict here, printed as loudly as a finding.
+# **hv ruled the closed vocabulary on 2026-08-29 (D1) and it landed 2026-08-30.**
+# The permitted cells are exactly `--`, `reason recorded`, `ac gate pass`,
+# `target thread exists`, `non-test` and `evidence given`, joined by `; ` where
+# an edge carries two. Effects and landing rules moved into prose beneath the
+# table, stated once each rather than repeated per row. The column went from
+# 36 agree / 3 disagree / 6 unmeasured to 45 agree of 45 rows, and an axis with
+# no unmeasurable cells left is an axis that can gate.
+#
+# **AN UNMAPPABLE CELL IS STILL COUNTED SEPARATELY FROM AN AGREEING ONE, AND
+# THAT MATTERS MORE NOW RATHER THAN LESS.** Defaulting unmappable prose to "no
+# guard" would make a genuinely missing guard read as clean -- a true green from
+# an instrument that could not have answered, which is this estate's dominant
+# failure class. `UNMEASURED` remains a distinct verdict; what changed is that
+# it now costs a refusal rather than a line of output.
 #
 # ==========================================================================
 # THE POPULATION IS DECLARED, NEVER TRAVERSED
@@ -139,6 +150,19 @@
 #   a new `Disposition::State` field         -> 1, UNDECLARED Widget.phase
 #   a `### Machine N` with no join           -> 2 (never "clean")
 #   Machine 5's heading renamed away         -> 2, "has NO `### Machine 5` section at all"
+#   a guard cell OUTSIDE the vocabulary       -> 1, UNMEASURED M3 computed|fiat|ac.fc
+#   an in-vocabulary guard that is WRONG      -> 1, DISAGREE   M3 unsatisfied|fiat|ac.fc
+#
+# **THE LAST TWO ARE THE ARMS THAT MAKE "AXIS C GATES" A FACT RATHER THAN A
+# CLAIM** (added 2026-08-30 with the gating). Both were rc=0 before the change --
+# the axis printed them and passed -- so they are the first arms in this list
+# whose VERDICT moved rather than whose output did. They are deliberately a pair:
+# C1 plants prose the vocabulary does not contain and must read UNMEASURED, C2
+# plants a legal token naming the wrong guard and must read DISAGREE. **An axis
+# that collapsed the two would report a cell it could not parse as a cell that
+# disagrees, which is the difference between "the document is wrong" and "the
+# document is unreadable here" -- opposite fixes, as with the absent-versus-
+# malformed pair above.**
 #   Machine 5's table header row broken      -> 2, "heading IS present ... MALFORMED, not missing"
 #
 # **THE LAST TWO ARE ONE PAIR AND ONLY THE PAIR PROVES ANYTHING** (added 2026-08-30
@@ -469,7 +493,7 @@ while read -r m entity fname; do
     FINDINGS=$((FINDINGS + 1))
   fi
 
-  # --- axis C: guards (reported, never gating) ---------------------------------
+  # --- axis C: guards (GATES since 2026-08-30) ---------------------------------
   awk -F'\t' -v m="$m" -v e="$entity" -v fl="$fname" -v out="$GUARD_REPORT" '
     function canon(s,   o) {
       o = ""
@@ -515,14 +539,17 @@ while read -r m entity fname; do
   GUARD_AGREE=$((GUARD_AGREE + ga))
   GUARD_DISAGREE=$((GUARD_DISAGREE + gd))
   GUARD_UNMEASURED=$((GUARD_UNMEASURED + gu))
+  # ONE finding per machine rather than one per cell, so a column that has
+  # drifted wholesale reads as one problem to fix and not as a wall of them.
+  if [ "$((gd + gu))" -gt 0 ]; then FINDINGS=$((FINDINGS + 1)); fi
 done <<< "$(printf '%s\n' "$MACHINE_MAP" | awk 'NF { print $1, $2, $3 }')"
 
 # --- axis C report ------------------------------------------------------------
-printf '\nmachine-table: GUARD AXIS (reported, never gating): %d agree, %d disagree, %d UNMEASURED of %d rows\n' \
+printf '\nmachine-table: GUARD AXIS (gates): %d agree, %d disagree, %d UNMEASURED of %d rows\n' \
   "$GUARD_AGREE" "$GUARD_DISAGREE" "$GUARD_UNMEASURED" "$TOTAL_ROWS"
 if [ -s "$GUARD_REPORT" ]; then
   sed 's/^/  /' "$GUARD_REPORT"
-  printf '  -- UNMEASURED is NOT clean: the Guard column in the document is free prose, and these cells name an EFFECT or a LANDING RULE rather than a precondition, so the axis has no verdict for them and the actual guard in the code is undeclared in the ratified document. The fix is a controlled vocabulary in the Guard column, which is a change to a ratified table and therefore hv to rule.\n'
+  printf '  -- UNMEASURED is NOT clean, and is NOT a lesser finding than DISAGREE: the cell is outside the closed vocabulary hv ruled on 2026-08-29, so this axis has no verdict for it and the actual guard in the code is undeclared in the ratified document. The permitted cells are `--`, `reason recorded`, `ac gate pass`, `target thread exists`, `non-test` and `evidence given`, joined by `; ` for two. A cell naming an EFFECT (what happens afterwards) or a LANDING RULE (which of two rows you are reading) is neither true nor false of a transition being attempted: it belongs in prose beneath the table, where the nine such cells this column used to carry now live.\n'
 fi
 
 # --- verdict ------------------------------------------------------------------
@@ -530,5 +557,5 @@ if [ "$FINDINGS" -gt 0 ]; then
   printf '\nVERDICT: %d divergence(s) between the ratified machines and their transcription.\n' "$FINDINGS"
   exit 1
 fi
-printf '\nVERDICT: the %s ratified machines and their transcription agree exactly on entry states and on every expanded (from, to, verb) edge.\n' "$N_MACHINES"
+printf '\nVERDICT: the %s ratified machines and their transcription agree exactly on entry states, on every expanded (from, to, verb) edge, and on every guard.\n' "$N_MACHINES"
 exit 0
