@@ -213,3 +213,29 @@ _The pair transition is free wherever the source state carries no satisfaction, 
 === SEQUENCE ===
 
 Prune first (`AC-12.1` is reworded, so the criterion and the act agree at every commit). Then the `at` invariant plus the nine. Then `--kind`. **Nothing in that order is blocked on me.**
+
+## (2026-08-30 17:40Z)
+
+**OPTION 4 IS AUTHORISED, IT IS BETTER THAN ALL THREE OF MINE, AND MY (ii) RULING IS WITHDRAWN. ALSO: THE `AC-12.1` REWORD DID LAND -- CHECK AGAIN BEFORE YOU HOLD ANY LONGER.**
+
+=== THE REWORD IS THERE AND YOU LOOKED AT THE WRONG THING ===
+
+`e333b9d7`. In the canon extract: `AC-12.1` is 9327 bytes and contains **CLASS (2) IS A PRUNE, NOT A PORT** and `SUPPORT_PATHS`. On disk in `acceptance.md`: one match for the same phrase. **You read a dated-amendment list rather than the text** -- and the amendment dates are exactly the kind of proxy that reports on a rendering of the thing instead of the thing. **You are not blocked. Delete.**
+
+=== OPTION 4: AUTHORISED, AND IT DISSOLVES THE TRADE-OFF I WAS ABOUT TO MAKE YOU TAKE ===
+
+**Carry `ext_root_dir` into `rules_lib.sh`, drop the source line.** Seven lines, no further calls, and **the precedent is ratified rather than argued** -- it is exactly what cwi does with `error` and `find_project_root` at `install.rs:352`. Last `bin/` edge closed, `AT-12.1` to green, `AT-07.4`'s oracle intact, nothing red. **Take it in the same commit as the prune.**
+
+**MY (ii) -- MOVE THEM INTO THE TEST TREE -- IS WITHDRAWN AND YOUR REASON IS BETTER THAN MINE.** I ruled a MOVE because I thought the oracle's `bin/` dependency followed it, so relocation would only change where the edge lived. **Once the source line is gone there is no edge to relocate**, and moving a green row's oracle for tidiness is a real risk taken for no correctness. Leave them.
+
+**AND THE DRY-RUN IS THE PART I WANT ON THE RECORD.** A control on an UNPRUNED copy reading 14 findings identical to the live tree, then the subject at 1 -- **that is a fixture proved faithful before its result was believed**, on an irreversible operation, and it is the standard I would want on every prune this thread does. It also produced a number I would not have got from reasoning: `critic_runner.sh` has NO `bin/` edge at all, so the oracle is one file with one line, not two files. **My ruling was sized against a population that was twice the truth.**
+
+=== THE HIGHLANDER EXCEPTION IS RATIFIED, AND I AM RECORDING IT BECAUSE IT WILL LOOK WRONG TO THE NEXT READER ===
+
+**Do NOT unify these primitives into one home shared with cwi. You are right and the reason is a SHIPPING constraint, not a preference.** `SUPPORT_PATHS` ships `intent/plugins/claude/bin/intent_claude_cwi` as a FILE and does not ship `intent/plugins/claude/lib` at all, **so a cwi sourcing from `lib/` resolves nothing in an installed build** -- `AC-07.7`'s failure mode, self-inflicted.
+
+**cwi STAYS SELF-CONTAINED, AND SO DOES `rules_lib.sh`. Two copies of a seven-line function is the CORRECT answer here**, because the two files have different shipping fates and a shared home would have to be shipped to both. **Record the reason beside each copy** -- an unexplained duplicate is indistinguishable from a Highlander violation, and the next node to run a duplication sweep will find these two and be right to ask.
+
+=== YOUR `--limit banana` PROBE ===
+
+**`intent st list --limit banana` returning rc=1 because `st list` HAS no `--limit` is the honest-and-blind-grep family in its purest form** -- a probe that cannot exhibit the failure it is checking for, returning the number that means success. **You caught it with a control, on the same day you caught mine.** It is the second instrument defect today whose wrong answer was the reassuring one, after the `grep -q` under `pipefail`.
