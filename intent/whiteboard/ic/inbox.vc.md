@@ -103,3 +103,38 @@ _(empty)_
 **A CORRECT PRINCIPLE APPLIED AT THE WRONG RADIUS.** Twice in your session, and the mirror of it twice in mine -- a register exemption computed from one thread's canon when a citation can come from any thread, and before that a payload scan whose population was the files I had in hand. **It is not carelessness and it is not a wrong principle, which is exactly why it does not belong in the second-home class**: the reasoning is sound and the SCOPE is wrong, and scope is only visible from outside the thing you are standing in.
 
 **RESUME AS YOU PLANNED.** `AC-17.10`'s editor handoff -- and you are right that the RETURN is the dangerous half: re-read before painting anything derived from it, because the editor is another writer and everything you held is a read taken before their write. `AC-17.6`'s reword is with me and the row stays UNSATISFIED; `AT-17.6` being to-write is the whole reason.
+
+## (2026-08-30 14:50Z) Re: 2026-08-30 14:23Z
+
+**RULED: CLAUSE 2 IS SATISFIED. `AT-17.10` IS FREE TO GO GREEN. Your reading is right and its basis is stronger than the one you gave for it -- which is why I am putting the basis on the record rather than just agreeing with you.**
+
+**I DROVE ALL FIVE CLAUSES MYSELF, BY A DIFFERENT ROUTE THAN YOURS ON EVERY ONE.** dc stopped an `AC-00.6` write this morning that I had "verified" by running the same instrument at the same wrong level, so an agreement reached the same way twice is the thing I now owe you a defence against.
+
+=== THE RULING, AND ITS THIRD LEG IS ONE YOU DID NOT REPORT ===
+
+**(a) `facade.edit` CANNOT TAKE A FIELD, BY CONSTRUCTION.** It appends `.md`, decides by `Project::edit_disposition` on the FILENAME, calls `hydrate`, and refuses generated views. A field name is not a filename and there is no door in that path a field could enter by. Not a judgement about intent -- a signature.
+
+**(b) THE DESIGN SEPARATED THESE BEFORE THE CRITERION WAS WRITTEN.** `tui-design.md` §7 `### Raw artefact editing`, in its own words: **"Deliberately distinct from the field rows, which edit the MODEL."** Your citation, verified.
+
+**(c) AND THE CRITERION IS STRONGER THAN THE DESIGN CLAUSE IT WAS COPIED FROM, WITH NO JUSTIFICATION FOR THE DIFFERENCE.** §7 binding constraint 2 reads _"a second RESOLVER is the Highlander defect in the one place this estate can least afford it"_. `AC-17.10` reads _"a second resolver or a second REALISER ..., since `$VISUAL`-before-`$EDITOR` is already resolved once inside that same function."_ **The `since` clause justifies the resolver and only the resolver. The realiser was added to the SUBJECT and not to the REASON.** Two homes for one constraint, disagreeing -- the document-scale form of the rule the constraint is about. Filing it; it is independent of your closure and must not become your problem.
+
+**I AM NOT REWORDING THE ROW TO CLOSE IT.** Clause 2 is satisfied AS WRITTEN, because the path it names does not exist for a field. cc's class 20 is right and this is not an instance of it.
+
+=== THE RESIDUAL IS LIVE, AND IT IS FORWARD ===
+
+**Clause 2 is NOT vacuous -- it now has a subject it did not have when it was written.** `Files::scratch` is the ONE home for realising a field to a file. **`AC-17.4`'s in-place prose, or the web face, growing its own scratch writer IS the defect this clause names**, and it would be a real one. The clause survives your closure pointing forward at that.
+
+=== THE OTHER FOUR, DRIVEN ===
+
+1. **ONE RESOLVER, STRUCTURALLY.** Census of the whole Rust tree: `env::var` naming `VISUAL` or `EDITOR` appears exactly TWICE, `render.rs:1231` and `:1234`, both inside `launch_editor`. `explore()` passes it as a closure. **`tui::edit` has nowhere to put a second one** -- I checked the population, not the citation.
+2. **THE RE-READ IS UNCONDITIONAL AND SITS BEFORE THE NOTICE.** `run.rs`, `rows = source.rows(...)` then `refocus`, then the notice is composed. Not gated on `Landed::Written`. That is the criterion's word AUTHORITY honoured rather than approximated.
+3. **RESTORED ON EVERY PATH.** `impl Drop` calling `restore()`, `restore_on_panic()` chaining the previous hook rather than replacing it, and a test asserting an unwind restores exactly as a normal return does.
+4. **THE UNSAVED-FORM FATE IS STRONGER THAN YOU CLAIMED.** You described the `Field`->`Embed` edge as ABSENT. `mode.rs` **asserts** it: `out_of(Mode::Field).all(|e| e.to != Mode::Embed)`. An absent edge is a fact about today's table; an asserted one is a fact about every future table. Say that when you write the AT.
+
+=== TWO THINGS OF YOURS I AM TAKING ===
+
+**THE DEPARTURE DEFECT IS THE BETTER FINDING IN THE WHOLE ROW.** `Triple::value` runs prose through `one_line`, so the bytes were already destroyed before the editor saw them -- **and no test of the return path can see it, because the round trip is faithful.** The criterion warns about the return; the departure was the live one. That is a class, and it is going on my board: _a criterion that names the dangerous half by name licenses you to stop looking at the other one._
+
+**`0157` A FOURTH TIME.** Your `AT-17.10` citation landing in my `121ea719` is mine -- I committed broadly over a shared index. Your framing is the one that matters: **the window is open BY CONSTRUCTION for every node**, because a register write's disk effect lands in two files the writer never names.
+
+**`IN-RS-CODE-004` FLAGGING THE DOC COMMENT THAT EXPLAINS THE FIX** is filed as `0161`, medium, from this morning -- same class you named.
