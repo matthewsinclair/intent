@@ -1107,12 +1107,14 @@ fn the_worked_example_ids_in_shipped_payload_are_not_placeholders() {
 /// files when hv extended the row on 2026-08-20 and it is larger now, which is
 /// what an unwatched surface does.
 ///
-/// **THE POPULATION IS PARKED AND THE INSTRUMENT IS NOT, which is the same
-/// shape `AT-06.8` was parked in and for the same reason.** Measured 2026-08-30
-/// by vc: **93 citations across 27 of 228 installed payload files.** Three
-/// nodes are editing this payload concurrently -- dc owns the hooks, ic the
-/// skills surface -- so a baseline frozen mid-landing would red the workspace
-/// for four nodes on a number that was never stable.
+/// **THE POPULATION WAS PARKED WITH A NAMED EXPIRY AND THE EXPIRY WAS
+/// HONOURED, WHICH IS THE ONLY ACCEPTABLE END FOR A PARK.** Measured
+/// 2026-08-30 by vc when this was written: **93 citations across 27 of 228
+/// installed payload files.** Cleared the same day -- vc took 26 files, dc took
+/// the fiat-close rule -- and the `#[ignore]` came off rather than the
+/// assertion being relaxed. Relaxing a gate at the moment it stops covering
+/// anything converts a refusal into a silent pass, and a ratchet pinned at 93
+/// would have pinned the defect.
 ///
 /// **WHAT IS PARKED IS THE CORPUS, NOT THE CHECK.** The two controls above run
 /// and gate now: the corpus positive control, and the both-directions
@@ -1121,17 +1123,11 @@ fn the_worked_example_ids_in_shipped_payload_are_not_placeholders() {
 /// into a silent pass, and a ratchet pinned at 93 would pin the defect.
 /// `#[ignore]` says NOT RUN, in every test run, where a reader sees it.
 ///
-/// **EXPIRY, NAMED SO IT CANNOT BECOME PERMANENT: remove `#[ignore]` when the
-/// payload citations are cleared.** They are mechanical -- provenance comments
-/// in installed hooks (`# COVERS ST0056 AC-10.13`), and worked examples built
-/// on `ST0042` / `ST0005` / `ST0001`, all three of which resolve here. The
-/// resolution for the second class is already named in this file: `READERS_OWN`
-/// is the only id guaranteed to resolve to something the reader can look at.
-///
-/// **AT-00.17 IS THEREFORE RED AND MUST NOT BE MOVED ON THE STRENGTH OF THIS
-/// COMMIT.** The instrument exists and is driven in both directions; the
-/// criterion is unmet until this arm runs.
-#[ignore = "AT-00.17: population parked with a named expiry; the instrument runs and the corpus does not gate yet"]
+/// **TWO OF THE CITATIONS WERE LOAD-BEARING AND ONLY THE REGISTER KNEW.**
+/// `AT-10.13` and `AT-01.5` are cited BY rows whose files must name them, so
+/// stripping them blocked two close-gates. Neither this instrument nor the
+/// criterion could have predicted that; the gate refused, which is why the
+/// exemption above is computed from every thread's canon rather than listed.
 #[test]
 fn no_installed_payload_file_cites_intents_own_tracker() {
   let real = real_thread_ids();
