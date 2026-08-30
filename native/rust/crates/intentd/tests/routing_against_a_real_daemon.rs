@@ -21,130 +21,10 @@
 //! verdict could come from anything at that address, and the point is that it
 //! came from this process.
 
-use std::path::PathBuf;
-use std::process::{Child, Command, Stdio};
-use std::sync::atomic::{AtomicU32, Ordering};
-use std::time::Duration;
+mod common;
 
-use intentsvcs::daemon::{self, Route};
-
-/// How many times the daemon is asked before the test gives up on it.
-///
-/// Bounded because an unbounded wait on a child that never binds is a hung
-/// build naming no test, which is strictly worse than a failure: the instrument
-/// gives NO answer, and no-answer is indistinguishable from still-working.
-///
-/// **A COUNT RATHER THAN A DEADLINE, AND IT IS THE BETTER EXPRESSION OF THE
-/// PROPERTY RATHER THAN A WAY ROUND D42.** The first draft measured elapsed
-/// wall time with `Instant::now`, which the workspace's clock guard refused --
-/// correctly by its own text, since it admits no clock reads at all, and dc
-/// found it failing the whole `intentsvcs` suite. The guard could have been
-/// taught that a wait is not a record stamp. It did not need to be: what this
-/// loop actually requires is that it TERMINATES, and a retry count says that
-/// without asking anything about the time. It is also strictly more robust --
-/// a machine that suspends mid-test blows a wall-clock budget while a count is
-/// unaffected.
-const STARTUP_ATTEMPTS: u32 = 500;
-
-/// How long to pause between attempts. `sleep` yields the thread; it reads no
-/// clock and answers no question about the time.
-const ATTEMPT_PAUSE: Duration = Duration::from_millis(20);
-
-/// A running `intentd`, killed when this value is dropped.
-///
-/// **A `Drop` GUARD RATHER THAN A KILL AFTER THE ASSERTIONS**, because a kill
-/// written after them is dead code until an assertion fires, and on that day it
-/// does not run -- leaving a daemon holding the test binary's descriptors and a
-/// `cargo` that never returns.
-///
-/// Its stdio is `null` for the same reason: a child inheriting the harness's
-/// stdout pipe keeps `cargo` waiting on a pipe nobody will close.
-struct RunningDaemon {
-  child: Child,
-  home: PathBuf,
-}
-
-impl RunningDaemon {
-  fn start() -> RunningDaemon {
-    // **NOT `tempfile`, AND NOT FOR TIDINESS.** A unix socket address is a
-    // fixed-size field, so the whole path has to fit; `$TMPDIR` on macOS is a
-    // ~50-character generated path and the daemon's own suffix is another 32,
-    // which leaves too little room to rely on. `/tmp` is short, present on
-    // every platform this runs on, and the daemon reported this exact refusal
-    // the first time it was started under a long directory.
-    // The counter, not a clock: uniqueness within this process is all that is
-    // needed, and `std::process::id` separates it from any other run.
-    static NEXT: AtomicU32 = AtomicU32::new(0);
-    let home = PathBuf::from("/tmp").join(format!(
-      "intentd-at083-{}-{}",
-      std::process::id(),
-      NEXT.fetch_add(1, Ordering::Relaxed)
-    ));
-    std::fs::create_dir_all(&home).expect("create an isolated HOME");
-
-    let child = Command::new(env!("CARGO_BIN_EXE_intentd"))
-      .env("HOME", &home)
-      .stdout(Stdio::null())
-      .stderr(Stdio::null())
-      .spawn()
-      .expect("intentd is built beside this test by cargo");
-
-    let running = RunningDaemon { child, home };
-    running.wait_until_answering();
-    running
-  }
-
-  /// Block until the shipped predicate says a daemon is there, or fail saying
-  /// so.
-  ///
-  /// **IT WAITS ON THE THING UNDER TEST, NOT ON A SLEEP.** A fixed sleep is
-  /// either too short on a loaded machine -- a flake that reads as a routing
-  /// defect -- or too long on every other run.
-  fn wait_until_answering(&self) {
-    for _ in 0..STARTUP_ATTEMPTS {
-      if matches!(self.route(), Route::Daemon(_)) {
-        return;
-      }
-      std::thread::sleep(ATTEMPT_PAUSE);
-    }
-    panic!(
-      "intentd did not answer in {STARTUP_ATTEMPTS} attempts under HOME={}. The daemon either failed to bind or is not answering the probe on its accept path",
-      self.home.display()
-    );
-  }
-
-  /// What the SHIPPED routing function decides, given this daemon's addresses.
-  ///
-  /// Deliberately `candidates_under` + `route` rather than a hand-rolled
-  /// connect: a test carrying its own probe would pass while the two real ones
-  /// disagreed, which is the whole failure this row is about.
-  fn route(&self) -> Route {
-    let candidates =
-      daemon::candidates_under(&self.home).expect("a published address must be readable");
-    daemon::route(&candidates)
-  }
-}
-
-impl Drop for RunningDaemon {
-  fn drop(&mut self) {
-    let _ = self.child.kill();
-    let _ = self.child.wait();
-    let _ = std::fs::remove_dir_all(&self.home);
-  }
-}
-
-/// Stop a daemon and wait for the address to go quiet, bounded.
-fn stop_and_settle(daemon: &mut RunningDaemon) {
-  let _ = daemon.child.kill();
-  let _ = daemon.child.wait();
-  for _ in 0..STARTUP_ATTEMPTS {
-    if matches!(daemon.route(), Route::InProcess) {
-      return;
-    }
-    std::thread::sleep(ATTEMPT_PAUSE);
-  }
-  panic!("the address still routed to a daemon after the process was killed and reaped");
-}
+use common::RunningDaemon;
+use intentsvcs::daemon::Route;
 
 #[test]
 fn a_running_intentd_is_routed_to_and_a_stopped_one_is_not() {
@@ -162,7 +42,7 @@ fn a_running_intentd_is_routed_to_and_a_stopped_one_is_not() {
   // what the kernel gave it -- so pinning one here would mint the constant the
   // design went out of its way not to have.
   assert!(
-    daemon.home.join(".local/share/intent").exists(),
+    daemon.home().join(".local/share/intent").exists(),
     "the daemon published under the isolated HOME it was given, not the operator's"
   );
 
@@ -170,7 +50,7 @@ fn a_running_intentd_is_routed_to_and_a_stopped_one_is_not() {
   // it, `Daemon` could have come from anything reachable at that address, and
   // the test would be evidence that something answered rather than that the
   // daemon did.
-  stop_and_settle(&mut daemon);
+  daemon.stop_and_settle();
   assert!(
     matches!(daemon.route(), Route::InProcess),
     "the address kept routing to a daemon after the only process that could have been serving it was killed and reaped. The positive result above cannot then be attributed to it -- endpoint was {endpoint}"

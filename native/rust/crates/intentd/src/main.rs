@@ -25,14 +25,21 @@
 //! nothing is worse than one that is honestly absent.
 
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
+use std::sync::Arc;
 use std::time::Duration;
 
 use intentsvcs::daemon::{self, Bound, DaemonError, Published};
 use intentsvcs::remedy::Remedy;
 use intentsvcs::userstate;
+use intentsvcs::wire::{self, Op, Response};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
+
+mod registry;
+mod store;
+
+use registry::Registry;
 
 // NO `SOURCE_COMMIT` CONST HERE, DELIBERATELY, AND THE ASYMMETRY WITH
 // `intent-cli` IS THE POINT RATHER THAN AN OVERSIGHT. There it is `pub` in a
@@ -65,27 +72,26 @@ static SOURCE_COMMIT_MARKER: &str = env!("INTENT_SOURCE_COMMIT_MARKER");
 
 /// How long a connection may stay silent before its task is dropped.
 ///
+/// **IT BOUNDS THE WAIT FOR EVERY LINE, NOT JUST THE FIRST.** A connection now
+/// serves many requests, so a client that connects, asks once and wanders off
+/// would hold a task forever if only the opening read were bounded.
+///
 /// **THE PROPERTY IS BOUNDEDNESS, NOT THIS NUMBER.** A connection that opens
 /// and never speaks holds a task and a descriptor, and a daemon whose task
 /// count is set by other people's abandoned sockets is one `ulimit` away from
 /// refusing the probe. Any finite value fixes that; this one is long enough
 /// that no honest client on a loaded machine meets it.
-const FIRST_LINE_DEADLINE: Duration = Duration::from_secs(5);
+const IDLE_DEADLINE: Duration = Duration::from_secs(30);
 
-/// How much of a first line will be read before giving up on it.
+/// How much of one line will be read before giving up on it.
 ///
 /// The probe frame is nineteen bytes. This bound exists so that a client which
 /// never sends a newline cannot make the daemon buffer without limit -- the
-/// read stops, the task ends, and the connection closes.
-const MAX_FIRST_LINE: u64 = 64 * 1024;
-
-/// What a caller gets for anything that is not the probe.
-///
-/// D56: JSON only, over the socket AND over HTTP. It names no work package and
-/// no criterion -- D37 keeps our own project-management state out of anything a
-/// user can see.
-const NO_REQUEST_API_YET: &[u8] =
-  b"{\"error\":\"this intentd answers the liveness probe only and serves no request API yet\"}\n";
+/// read stops, the task ends, and the connection closes. **It is reset for
+/// every line rather than spent across the connection**, because a connection
+/// serves many requests and a budget shared between them would refuse an honest
+/// client for the sin of having asked a lot of questions.
+const MAX_LINE: u64 = 64 * 1024;
 
 /// Why the daemon could not start.
 ///
@@ -176,6 +182,12 @@ async fn serve_under(root: &Path) -> Result<(), StartupError> {
   let unix = tokio::net::UnixListener::from_std(unix).map_err(StartupError::Runtime)?;
   let tcp = tokio::net::TcpListener::from_std(tcp).map_err(StartupError::Runtime)?;
 
+  // **ONE REGISTRY FOR THE PROCESS, SHARED BY EVERY CONNECTION.** A registry
+  // per connection would open a second store for every client of one project,
+  // which is the two-engines failure arrived at from inside the daemon meant to
+  // prevent it.
+  let registry = Arc::new(Registry::new());
+
   println!(
     "intentd listening on {} and {}",
     bound.endpoint(),
@@ -185,11 +197,11 @@ async fn serve_under(root: &Path) -> Result<(), StartupError> {
   loop {
     tokio::select! {
       accepted = unix.accept() => match accepted {
-        Ok((stream, _)) => { tokio::spawn(answer(stream)); }
+        Ok((stream, _)) => { tokio::spawn(answer(stream, Arc::clone(&registry))); }
         Err(e) => accept_failed("unix", e).await,
       },
       accepted = tcp.accept() => match accepted {
-        Ok((stream, _)) => { tokio::spawn(answer(stream)); }
+        Ok((stream, _)) => { tokio::spawn(answer(stream, Arc::clone(&registry))); }
         Err(e) => accept_failed("loopback", e).await,
       },
       reason = shutdown() => {
@@ -213,50 +225,125 @@ async fn accept_failed(transport: &str, e: io::Error) {
   tokio::time::sleep(Duration::from_millis(100)).await;
 }
 
-/// Answer one connection.
+/// Answer one connection: the probe, then requests, until it goes quiet.
 ///
 /// **THE PROBE IS ANSWERED BEFORE ANYTHING ELSE HAPPENS ON THIS CONNECTION, AND
 /// THE ACCEPT LOOP IS NEVER THE THING WAITING** (`AC-08.11`). Each connection
-/// gets its own task, so a slow or silent caller delays nobody: the loop above
+/// gets its own task, so a slow or silent caller delays nobody: the accept loop
 /// returns to `accept` the instant it has a stream. That ordering is what makes
 /// the client's bounded deadline sound -- a liveness answer that could queue
 /// behind request work would turn `AC-08.3` into a false NEGATIVE on a healthy
 /// daemon, and the CLI would then run in-process against a store this process
 /// owns.
 ///
-/// **THE STRONGER FORM OF THAT OBLIGATION IS STRUCTURAL AND IS NOT VISIBLE
-/// HERE, WHICH IS WHY IT IS WRITTEN DOWN.** Per-connection tasks order things
-/// WITHIN a connection; starvation happens BETWEEN them, when blocking work
-/// occupies every async worker and the accept loop is a task that never gets
-/// polled. Nothing in this function may ever call the facade directly: when the
-/// domain API lands, its store access goes through a handle that does the
-/// blocking hop internally, so a handler cannot reach a blocking call even by
-/// accident.
-async fn answer<S>(stream: S)
+/// **AND THE STRONGER FORM IS HELD BY THE TYPE THIS FUNCTION IS GIVEN.** Per-
+/// connection tasks order things WITHIN a connection; starvation happens
+/// BETWEEN them, when blocking work occupies every async worker and the accept
+/// loop is a task that never gets polled. Nothing here can cause that, because
+/// nothing here is handed anything that blocks: a [`Registry`] yields a
+/// `ProjectHandle`, which is a channel sender. The `Facade` lives on a thread
+/// the runtime does not schedule and never leaves `store.rs`.
+///
+/// **A PROBE CONNECTION IS ONE-SHOT AND A REQUEST CONNECTION IS NOT.** The
+/// client opens a fresh connection to probe and never reuses it, so answering
+/// and closing is what its caller expects; a request connection stays open so a
+/// client can ask more than one question without paying for a connect each time.
+async fn answer<S>(stream: S, registry: Arc<Registry>)
 where
   S: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin,
 {
   let (readable, mut writable) = tokio::io::split(stream);
-  let mut reader = BufReader::new(readable.take(MAX_FIRST_LINE));
-  let mut line = Vec::new();
+  let mut reader = BufReader::new(readable.take(MAX_LINE));
 
-  let read = tokio::time::timeout(FIRST_LINE_DEADLINE, reader.read_until(b'\n', &mut line)).await;
-  match read {
-    Ok(Ok(count)) if count > 0 => {}
-    // A silent, closed or over-long caller gets no reply and no log line. It is
-    // an ordinary condition -- a port scanner, a dropped connection, a probe
-    // whose client gave up -- and logging it would let anyone fill the log.
-    _ => return,
+  // **THE CONNECTION'S BINDING, WHICH IS `AC-08.1`'s *PER-CONNECTION* HALF.**
+  // It is set by the first request that names a project and never changes: a
+  // later request naming a different one is refused rather than served, because
+  // a connection that could wander between projects makes every response's
+  // subject depend on history the client cannot see.
+  let mut bound: Option<PathBuf> = None;
+
+  loop {
+    // Reset per line: the budget is against one over-long request, not against
+    // a client that asks many questions.
+    reader.get_mut().set_limit(MAX_LINE);
+    let mut line = Vec::new();
+    let read = tokio::time::timeout(IDLE_DEADLINE, reader.read_until(b'\n', &mut line)).await;
+    match read {
+      Ok(Ok(count)) if count > 0 => {}
+      // A silent, closed or over-long caller gets no reply and no log line. It
+      // is an ordinary condition -- a port scanner, a dropped connection, a
+      // client that finished -- and logging it would let anyone fill the log.
+      _ => return,
+    }
+
+    if daemon::is_probe_frame(&line) {
+      let _ = writable.write_all(daemon::PROBE_REPLY).await;
+      let _ = writable.flush().await;
+      return;
+    }
+
+    let response = dispatch(&registry, &mut bound, &line).await;
+    // A response that cannot be serialised is a fault in the daemon, not in the
+    // request, and there is no honest way to report it in a format the client
+    // parses -- so the connection closes rather than sending something the
+    // client would read as an answer.
+    let Ok(framed) = wire::frame(&response) else {
+      eprintln!("warning: intentd could not serialise a response and closed the connection");
+      return;
+    };
+    if writable.write_all(&framed).await.is_err() || writable.flush().await.is_err() {
+      return;
+    }
   }
+}
 
-  let reply = if daemon::is_probe_frame(&line) {
-    daemon::PROBE_REPLY
-  } else {
-    NO_REQUEST_API_YET
+/// Route one request: the registry answers for itself, everything else needs a
+/// project.
+async fn dispatch(registry: &Registry, bound: &mut Option<PathBuf>, line: &[u8]) -> Response {
+  let request = match wire::parse_request(line) {
+    Ok(request) => request,
+    Err(refusal) => return refusal,
   };
 
-  let _ = writable.write_all(reply).await;
-  let _ = writable.flush().await;
+  // **THE REGISTRY IS ANSWERED WITHOUT BINDING TO A PROJECT**, because it is a
+  // question ABOUT the projects rather than one for any of them -- and because
+  // the operator most likely to ask it is the one whose project stopped
+  // resolving, which is exactly when binding to it would fail.
+  if matches!(request.op, Op::Registry) {
+    return registry.snapshot().await;
+  }
+
+  // **THE BINDING IS CHECKED BEFORE ANYTHING IS OPENED.** Canonicalising is a
+  // pure question about a path; opening starts a store thread and registers a
+  // project. Asking for the handle first and comparing afterwards would refuse
+  // the request accurately, having already done the thing the refusal exists to
+  // prevent -- which is a report rather than a check.
+  let canonical = match registry.canonical(&request.root) {
+    Ok(canonical) => canonical,
+    Err(refusal) => return refusal,
+  };
+
+  match bound {
+    None => *bound = Some(canonical.clone()),
+    Some(already) if *already != canonical => {
+      return Response::error(
+        format!(
+          "this connection is bound to `{}` and the request names `{}`",
+          already.display(),
+          canonical.display()
+        ),
+        "one connection serves one project. Open a second connection for the other project -- a connection that changed project mid-stream would make every answer depend on which request came first.",
+      );
+    }
+    Some(_) => {}
+  }
+
+  let handle = match registry.handle_for(&canonical).await {
+    Ok(handle) => handle,
+    Err(refusal) => return refusal,
+  };
+
+  handle.call(request.op).await
 }
 
 /// Resolve when the platform asks this process to stop.
