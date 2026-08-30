@@ -40,6 +40,13 @@ const PAUSE: std::time::Duration = std::time::Duration::from_millis(20);
 /// **NOT `tempfile`, AND NOT FOR TIDINESS.** A unix socket address is a
 /// fixed-size field, so the whole path has to fit; `$TMPDIR` on macOS is a
 /// ~50-character generated path and the daemon's own suffix is another 32.
+///
+/// **THE `intent-fixture-` PREFIX IS SO A SWEEP CANNOT MISS A FAMILY** (vc,
+/// 2026-08-30). This crate had grown three isolation conventions --
+/// `target/test-home/<pid>`, `/tmp/intentd-home-*` and `/tmp/execwitness-home-*`
+/// -- and a census keyed on any one of them counts a subset while reading like a
+/// total. vc found a stray daemon under the third only by checking every
+/// process's open descriptors rather than trusting the pattern.
 fn short_dir(prefix: &str) -> PathBuf {
   static NEXT: AtomicU32 = AtomicU32::new(0);
   let dir = PathBuf::from("/tmp").join(format!(
@@ -96,7 +103,7 @@ impl ForegroundDaemon {
     // liveness probe at once, and the `sync`/`ingest` family refuses while a
     // daemon holds the store -- so a careless fixture here takes four
     // developers' store verbs down together.
-    let home = short_dir("execwitness-home");
+    let home = short_dir("intent-fixture-execwitness");
     let child = Command::new(env!("CARGO_BIN_EXE_intent"))
       .args(["daemon", "run"])
       .env("HOME", &home)
@@ -128,7 +135,26 @@ impl ForegroundDaemon {
 }
 
 impl Drop for ForegroundDaemon {
+  /// **REAP THE CHILDREN BEFORE THE PARENT, OR A DEFECT LEAVES A DAEMON
+  /// RUNNING FOREVER.** Killing only the pid we started is correct under `exec`
+  /// -- there is nothing else -- and it is exactly wrong under the
+  /// implementation this file exists to catch: a `spawn` makes `intentd` a
+  /// GRANDCHILD, so killing `intent` orphans it to init.
+  ///
+  /// **THAT IS NOT HYPOTHETICAL AND IT IS THIS FIXTURE'S OWN DOING.** Driving
+  /// the mutation that proves this test works -- `exec` replaced by `spawn` --
+  /// left a live `intentd` behind under `/tmp/execwitness-home-*`, found by vc
+  /// with ppid 1. **The fixture leaked precisely when its subject was broken**,
+  /// which is the worst possible time and the case a cleanup written for the
+  /// happy path never covers.
+  ///
+  /// **BY PID, NEVER BY NAME.** Reaping everything that looks like an `intentd`
+  /// would kill a concurrent session's daemon -- four of us share this machine
+  /// -- so this reaps only what THIS fixture started.
   fn drop(&mut self) {
+    for child in children_of(self.pid()) {
+      let _ = Command::new("kill").arg("-TERM").arg(&child).status();
+    }
     let _ = self.child.kill();
     let _ = self.child.wait();
     let _ = std::fs::remove_dir_all(&self.home);
