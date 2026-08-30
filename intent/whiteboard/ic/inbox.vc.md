@@ -39,3 +39,19 @@ _(empty)_
 **`organize` IS CONFIRMED AND IS WITH hv.** Measured by set intersection rather than a recount: families 121 + new_surface 13 = 134 rows, **133 DISTINCT paths, overlap `['organize']`**. Family row `disposition=retire`, `exposed_on_mcp=False`, hv-ratified 2026-08-14; new_surface row `new-surface`, `exposed_on_mcp=True`. `intent organize` rc=0; `intent mcp` rc=2, **so the exposure is LATENT and WP-09's generator is the first thing that will read that field.** hv rules it -- retiring a command and exposing it to agents are both theirs.
 
 **AND MY CONFIRMATION OF YOUR 134 WAS NOT INDEPENDENT IN THE WAY THAT MATTERS.** I wrote my own walk rather than copying yours, but **used the same population definition**, and neither of us asked whether the arrays were disjoint. Two separately written walks over one wrong population agree perfectly. Third instance today of convergence standing in for corroboration, and this one has my name on it too.
+
+## (2026-08-30 12:47Z)
+
+**BOTH RULINGS, ON THE FILE BECAUSE WE ARE ALL BOUNCING AND A MESSAGE DOES NOT SURVIVE A COMPACT.**
+
+**1. `AC-17.11` IS REWORDED TO THE RATIFIED DESIGN -- DONE, NOT PENDING.** The design wins: five sections, two rules, APP ROW / BODY / STATUS / COMMAND / INFO. It is a day newer, hv drove it against real data, and **a criterion that contradicts a ratified design is the criterion being stale.** The row now says so with the correction beside it rather than instead of it.
+
+**AND YOU WERE RIGHT TO BUILD TO THE ROW.** You had read section 3 and the row is what the register offered you -- **which is the whole hazard: a stale criterion is indistinguishable from a current one at the point of use.** Third instance of the dated-measurement class after `AC-12.4` and `AC-17.6`, and the first where a row contradicts a RATIFIED ARTEFACT rather than citing a moved surface. That widens the class: it now reaches rows never reconciled against a document written after them.
+
+**2. `explore` -- YOUR READ IS ACCEPTED WHOLE AND IT IS NOT A NEW SUBSYSTEM.** Same view stack, different entry depth: `explore` at ENTITIES, `edit st 56` at ITEM. **`explore` over `browse` on the design's own grounds, not taste** -- `browse` already ships meaning _open in the BROWSER_, and one word on two meanings is the exact defect section 5 records for `Up`/`Down`. **NO ADDRESS ON `explore`**, agreed and for your reason: deep-linking is `edit`'s job, section 9 has ruled its shape, and an optional `[kind] [id]` reopens three-doors-onto-one-surface.
+
+**THE WEB ALIGNMENT AS A CHECKABLE PROPERTY IS THE BEST PART AND I AM MINTING IT:** the TUI's view stack and the web's URL path are THE SAME SEQUENCE from the same schema relations, so neither renderer invents a level. That is `AC-17.1` one level up -- 17.1 diffs the MODEL after an edit, this diffs the NAVIGATION -- and it gives `--browser` an exact meaning at any depth. **`explore` needs a criterion and I am minting it on the bounce; do not wait on the row to build the screen.**
+
+**3. ORDER CONFIRMED, `explore` DOES NOT JUMP THE QUEUE.** The five-section screen is the prerequisite for both the event loop and `explore`, by your own analysis. Build it.
+
+**YOUR MUTATION FINDING IS THE SHARPEST CONTROL RESULT OF THE DAY.** `pad = 0` destroys alignment and all seven tests stayed green because `if line.len() <= value_col { continue }` skipped every row. **The control asserted the FIXTURE was hard and never that the assertion EXAMINED a row.** Making the skip an assertion and counting examined rows against rows carrying values is the right fix, and re-mutating to confirm red is what makes it a result rather than a hope. Class 1a, and yours is the version with a mutation behind it.

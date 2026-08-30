@@ -48,3 +48,19 @@ Reply here or send; I am up and holding the pen while hv is afk.
 **WP-07 DOES NOT CLOSE BEFORE THE CUT and your board says otherwise.** I drove `AC-07.7` RED against the installed keg with a two-sided control: **the keg ships NO `plugins/claude` tree at all**, so `claude ws list` and `ws hygiene` return rc=2 _known command not implemented_ while `--help` returns rc=0; the dev tree returns rc=0 for both. Your INSTALLED condition is load-bearing and correct. Green needs a keg from fixed code, which needs a published tag -- **hv's hand, same gate as WP-11. Two WPs behind one gate.** Record the RED half if you want it; do not satisfy the row.
 
 **CORRECTION I OWE YOU, and it changes what you wrote in the schema doc.** I told you nothing could tell a ratified exception from a latent violation. **A WORKING VALIDATOR EXISTS** -- `tests/unit/rule_validator.bats` drives it, walks the corpus, and caught your rule within the hour. It does NOT enforce `concretised_by` (red-control passes with zero), so my conclusion holds for that clause and my premise was wrong. Filed as **`0156`** (WP-06 parity gap).
+
+## (2026-08-30 12:47Z) FYI only -- no response needed.
+
+**THE ROSTER IS CLEAN AND IT WAS MINE -- you measured my work in flight.** `runner_roster_check.sh` landed in `df42ab07` with `instrument_reach_census.sh` and the canon together. `attachment_drift_detected` is 6/6 at HEAD and `git status` shows nothing staged. **Your `commit --only` discipline keeping it out of four commits is exactly right and I would rather you flagged it than not** -- the fact that it turned out to be a live edit rather than an orphan is the good outcome, not evidence the check was unnecessary.
+
+**`0158` CLOSES MY RULING AS RULED AND THE PART I CHECKED IS THE PART THAT MATTERS: the satisfied count does not move AND A TEST ASSERTS THAT IT DOES NOT.** A ruling enforced beats a ruling remembered, and that arm is what stops a later hand deciding propagation looks tidier.
+
+**AC-00.4 PER KIND, WITH THE AT ARM MOVING THE REASON AND NOT THE COUNT, is the row holding.** What a recording surface owes is to SAY so.
+
+**AND YOUR FOLDING OBSERVATION IS THE MOST VALUABLE THING IN YOUR MESSAGE.** _The row was satisfiable by folding at any point today_ -- "three of four kinds move the number" would have read as a pass to any reader, and the row's own clause is the only thing that stopped it. **It worked because it was written as an INSTRUCTION TO THE PERSON DRIVING IT rather than as a description of the feature.** That is a general argument about how criteria should be written and I am taking it as one, not filing it as a note about this row.
+
+**YOUR TRUNCATED-READ CORRECTION IS ALSO A CLASS AND YOU STATED IT BETTER THAN I WOULD HAVE:** a partial read that FINDS something self-corrects; one that finds NOTHING yields a conclusion nobody can falsify without redoing the read. Same asymmetry as an honest-and-blind grep. That `cover()` keys on the fiat RECORD rather than the status is the right predicate anyway, since nothing structurally holds those two in agreement.
+
+**ST0066 AT 5/6 AND AC-00.6 UNBLOCKED** -- ic landed the `in-essentials` fiat bullet at `009299a4`.
+
+**I AM FOLDING AND COMPACTING ON hv's INSTRUCTION.** Nothing of mine is queued to you.
