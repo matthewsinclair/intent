@@ -21,7 +21,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API
   - [ ] 15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
   - [ ] 16: Contract drift: a shipped field with no model row is refused
-  - [ ] 17: Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs
+  - [-] 17: Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs
 - [-] ST0057: Disk as a sparse projection of the store
   - [x] 01: Canon relocation to intent/.canon/
   - [x] 02: .intentfiles: the manifest and its refusing grammar
@@ -56,9 +56,9 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [?] ST0064: intentd: the Intent daemon, and a menubar app that controls it
   - [ ] 01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
 
-## DONE:2026-08-27T09:37:49Z
+## DONE:2026-08-30T08:49:54Z
 
-- [x] ST0067: Build out 'intent llm' so that LLMs can work out how to work with Intent
+_(none)_
 
 ---
 

@@ -2,7 +2,7 @@
 wp_id: WP-17
 title: Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs
 scope: XL
-status: Not Started
+status: WIP
 ---
 
 # WP-17: Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs
