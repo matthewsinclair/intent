@@ -12,3 +12,10 @@ description = "Intent v3 daemon: one per machine, N projects; socket GraphQL + m
 [[bin]]
 name = "intentd"
 path = "src/main.rs"
+
+# Rationale for both, to AC-08.10's standard, lives beside the pinned versions
+# in the workspace manifest -- one home, so a reader who changes the version
+# meets the argument for it. These two are consumed HERE and nowhere else.
+[dependencies]
+tokio.workspace = true
+axum.workspace = true

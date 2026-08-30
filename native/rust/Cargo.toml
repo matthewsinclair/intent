@@ -68,6 +68,58 @@ ulid = "1"
 # The randomness stack is NOT new: `getrandom` and `rand` are already in the
 # lock via `ulid` and `rusqlite`, so what this adds is the uuid crate itself.
 uuid = { version = "1", features = ["v4"] }
+
+# ==========================================================================
+# WP-08's TWO STACK FIRSTS (AC-08.10). BOTH ARE CONSUMED BY `intentd` ALONE.
+# ==========================================================================
+#
+# **THIS WORKSPACE HAD NO ASYNC RUNTIME AND NO SERVER BEFORE THESE TWO.** Do
+# not take that from this comment -- it is the kind of claim that is true when
+# written and silently false later. Re-measure it:
+#
+#   grep -c '^name = "<crate>"$' Cargo.lock
+#
+# against tokio, axum, hyper, actix-web, async-std, smol, tower and notify.
+# `async-graphql` was already here and pulled no runtime in, because it has
+# only ever been used SYNCHRONOUSLY, for the SDL export.
+#
+# **THE CHOICE IS CITED, NOT RE-ARGUED, WHICH AC-08.10 EXPLICITLY PERMITS.**
+# The sibling estate `../Conflab` runs exactly this pair in `conflabd`:
+# `tokio` with `full`, and `axum` on a 127.0.0.1 management plane. That code
+# is load-bearing and tested rather than a spike. Re-deriving a runtime choice
+# from first principles here would produce a worse answer with less evidence
+# behind it, and would invite a different answer in a third place.
+#
+# **D06 SURVIVES BOTH**: neither reaches the store. `intentd` still consumes
+# no SQLite driver and talks to data only through the intentsvcs facade;
+# `dep_graph_guard.rs` is what enforces that, and it is unaffected by these.
+
+# WHY `full` RATHER THAN A MINIMAL FEATURE LIST, WHICH WAS THE FIRST THING
+# CHECKED. **A narrow list would be a prediction about code that does not
+# exist yet.** The daemon is unbuilt: AC-08.1, .2 and .4-.9 are all ahead, so
+# any enumeration now is a guess about which of `net`, `signal`, `process`,
+# `fs`, `time`, `sync` and `io-util` the finished thing reaches for -- and a
+# guess wearing precision's clothes is worse than an admitted superset.
+#
+# **AND NARROWING LATER IS THE CHEAP DIRECTION, WHICH IS WHY IT WAITS.** A
+# too-narrow feature list fails at COMPILE time, loudly, naming the feature;
+# a too-wide one costs build time and nothing else. So the list can be
+# DERIVED from the finished daemon rather than predicted before it -- which is
+# the same reason nothing in this file pins a count it could compute.
+tokio = { version = "1", features = ["full"] }
+
+# The HTTP half of D56. `intentd` emits JSON only, over the socket AND over
+# HTTP; axum serves the second, and the socket half needs no HTTP framework
+# at all. **THE TWO TRANSPORTS HAVE DIFFERENT AUTHZ STORIES AND THE SEAM MUST
+# NOT ASSUME OTHERWISE** -- filesystem permissions are the socket's authz, and
+# the HTTP half carries one auto-generated token. Treating them uniformly
+# gives the socket a check it does not need, or the port none at all, and the
+# second is a hole.
+#
+# Version tracks the sibling rather than the newest release: `../Conflab`
+# pins `axum = "0.8"`, and matching it means its `mgmt/` module is a worked
+# example against the same API rather than an approximate one.
+axum = "0.8"
 time = { version = "0.3", features = ["formatting", "macros"] }
 # Content hashing for the sync engine's file index. AC-03.3 requires detecting
 # a same-size same-mtime rewrite, which stat cannot see by construction, so the
