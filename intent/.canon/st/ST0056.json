@@ -3039,7 +3039,8 @@
       "covers": [
         "AC-17.12"
       ],
-      "status": "to-write"
+      "status": "green",
+      "note": "Fifteen tests across two files, re-driven immediately before this row moved. explore_lands_where_the_address_names.rs (7) holds the landing: every one of the thirteen addressable forms either opens a view or is refused BY NAME, and the three outcomes stay distinguishable -- unreadable, real-but-no-view, and well-formed-but-absent. nav_is_the_shared_path_contract.rs (8) holds this criterion's headline property and is named here because nothing covering AC-17.12 named it, while AT-17.7 cites it for a different criterion: every view the real declaration can produce round-trips through its path, and every path segment is a name the declaration already carries, so neither face invents a level. THE CONTROL IS the_presence_test_is_actually_consulted -- a land that ignored its injected closure would pass every other assertion in the file, ST9999 included, and ST9999 was in neither vc's three outcomes nor my five and is the one that would have shipped: promote is purely syntactic, so an absent thread and an empty one paint the same screen. The third spelling, a path, is refused in land's own doc comment and the criterion now agrees with the code rather than contradicting it. 7 and 8 passed at 88b1880e."
     },
     {
       "id": "AT-17.2",
