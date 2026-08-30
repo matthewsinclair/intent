@@ -95,7 +95,7 @@
       "covers": [
         "AC-01.1"
       ],
-      "status": "green",
+      "status": "n-a",
       "note": "Driven by vc, 2026-08-29. Positive-controlled: the check was shown to flag a planted rewrite before its pass was accepted."
     },
     {
@@ -105,7 +105,7 @@
       "covers": [
         "AC-02.1"
       ],
-      "status": "to-write"
+      "status": "n-a"
     },
     {
       "id": "AT-02.2",
@@ -114,7 +114,7 @@
       "covers": [
         "AC-02.2"
       ],
-      "status": "green",
+      "status": "n-a",
       "note": "Driven by vc, 2026-08-29, after fixing two artefacts in the checker itself."
     },
     {
@@ -124,7 +124,7 @@
       "covers": [
         "AC-02.3"
       ],
-      "status": "to-write"
+      "status": "n-a"
     },
     {
       "id": "AT-02.4",
@@ -133,7 +133,7 @@
       "covers": [
         "AC-02.4"
       ],
-      "status": "green",
+      "status": "n-a",
       "note": "Provenance header read on index.md and intent-st.md; names generator, revision and baseline."
     },
     {
@@ -143,7 +143,7 @@
       "covers": [
         "AC-03.1"
       ],
-      "status": "to-write"
+      "status": "n-a"
     },
     {
       "id": "AT-03.2",
@@ -152,7 +152,7 @@
       "covers": [
         "AC-03.2"
       ],
-      "status": "to-write"
+      "status": "n-a"
     },
     {
       "id": "AT-04.1",
@@ -161,7 +161,7 @@
       "covers": [
         "AC-04.1"
       ],
-      "status": "green",
+      "status": "n-a",
       "note": "Driven by vc, 2026-08-29. The check was vacuous until the links existed; six were added rather than the empty set being reported as a pass."
     },
     {
@@ -171,7 +171,7 @@
       "covers": [
         "AC-04.2"
       ],
-      "status": "to-write"
+      "status": "n-a"
     }
   ]
 }

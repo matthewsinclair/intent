@@ -50,24 +50,24 @@ title: Update Intent's docs for v3
 
 ### Group 01
 
-- AT-01.1 (non-test) Read docs/v2/README.md and grep the moved posts' canonical: fields against their pre-move values -- covers AC-01.1 -- status: green -- Driven by vc, 2026-08-29. Positive-controlled: the check was shown to flag a planted rewrite before its pass was accepted.
+- AT-01.1 (non-test) Read docs/v2/README.md and grep the moved posts' canonical: fields against their pre-move values -- covers AC-01.1 -- status: n/a -- Driven by vc, 2026-08-29. Positive-controlled: the check was shown to flag a planted rewrite before its pass was accepted.
 
 ### Group 02
 
-- AT-02.1 (non-test) Follow docs/getting-started.md end to end on a fresh project and reach a satisfied criterion -- covers AC-02.1 -- status: to-write
-- AT-02.2 (non-test) Diff every verb named in docs/ against the cut-surface artefact for the release the docs describe -- covers AC-02.2 -- status: green -- Driven by vc, 2026-08-29, after fixing two artefacts in the checker itself.
-- AT-02.3 (non-test) Read install.md and migrating-from-v2.md against the measured defect list for the published build -- covers AC-02.3 -- status: to-write
-- AT-02.4 (non-test) Read the reference output's provenance header for the revision it names -- covers AC-02.4 -- status: green -- Provenance header read on index.md and intent-st.md; names generator, revision and baseline.
+- AT-02.1 (non-test) Follow docs/getting-started.md end to end on a fresh project and reach a satisfied criterion -- covers AC-02.1 -- status: n/a
+- AT-02.2 (non-test) Diff every verb named in docs/ against the cut-surface artefact for the release the docs describe -- covers AC-02.2 -- status: n/a -- Driven by vc, 2026-08-29, after fixing two artefacts in the checker itself.
+- AT-02.3 (non-test) Read install.md and migrating-from-v2.md against the measured defect list for the published build -- covers AC-02.3 -- status: n/a
+- AT-02.4 (non-test) Read the reference output's provenance header for the revision it names -- covers AC-02.4 -- status: n/a -- Provenance header read on index.md and intent-st.md; names generator, revision and baseline.
 
 ### Group 03
 
-- AT-03.1 (non-test) Laksa builds the page and reports whether it had to invent an answer -- covers AC-03.1 -- status: to-write
-- AT-03.2 (non-test) Read the design system's decision register: each entry carries decision, constraint, consequence -- covers AC-03.2 -- status: to-write
+- AT-03.1 (non-test) Laksa builds the page and reports whether it had to invent an answer -- covers AC-03.1 -- status: n/a
+- AT-03.2 (non-test) Read the design system's decision register: each entry carries decision, constraint, consequence -- covers AC-03.2 -- status: n/a
 
 ### Group 04
 
-- AT-04.1 (non-test) Resolve every link from docs/ into intent/docs/ -- covers AC-04.1 -- status: green -- Driven by vc, 2026-08-29. The check was vacuous until the links existed; six were added rather than the empty set being reported as a pass.
-- AT-04.2 (non-test) git tag --contains on the doc commits against the v3.0.1 tag -- covers AC-04.2 -- status: to-write
+- AT-04.1 (non-test) Resolve every link from docs/ into intent/docs/ -- covers AC-04.1 -- status: n/a -- Driven by vc, 2026-08-29. The check was vacuous until the links existed; six were added rather than the empty set being reported as a pass.
+- AT-04.2 (non-test) git tag --contains on the doc commits against the v3.0.1 tag -- covers AC-04.2 -- status: n/a
 
 ---
 

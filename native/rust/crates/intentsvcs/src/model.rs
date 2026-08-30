@@ -1759,6 +1759,58 @@ impl AtStatus {
       Self::Fiat => "fiat-closed",
     }
   }
+
+  // **THE AT-SIDE MIRROR OF [`AcState::permitted_for`], AND IT WAS A DOC
+  // COMMENT BEFORE IT WAS A FUNCTION.** `AtStatus::Na` has said *"non-test rows
+  // only"* since it was written, and nothing anywhere read that sentence:
+  // `at_set` takes any status, writes it, and asks nothing about the row's
+  // kind. A rule stated in prose beside the value it constrains, with no
+  // decision point, is a rule the estate can break without noticing -- and it
+  // did, nine times, all in one thread.
+  //
+  // **MEASURED BEFORE IT WAS WRITTEN, because a partition invented here would
+  // be a claim about the corpus.** 386 AT rows across `intent/.canon/st/*.json`:
+  // 262 test+green, 79 test+to-write, 10 test+red, 26 non-test+n-a, and then 5
+  // non-test+to-write and 4 non-test+green. So 377 of 386 rows already obey
+  // this, the 26 correct non-test rows are the positive evidence, and the nine
+  // exceptions are the population the doctor check reports. **This function
+  // DESCRIBES the estate rather than reforming it**, which is the difference
+  // between an invariant and a preference.
+  //
+  // **WHAT IT DOES NOT YET DO IS REFUSE ANYTHING**, and that is deliberate
+  // rather than unfinished. The AC side is enforced at three points -- the
+  // facade refuses the transition, the schema face refuses the file, and doctor
+  // reports an estate that already carries one. Only the third is landed here.
+  // The face clause cannot go in alone: it would make the published contract
+  // stricter than the API that writes it, so the first `at green` on a non-test
+  // row would mint a file the estate cannot re-ingest -- the round-trip failure
+  // at the clone boundary that `ac_kind_state_invariant.rs` exists to prevent,
+  // introduced by the change meant to close it. And the facade half cannot go
+  // in alone either: `Guard` is DECLARED in the ratified Machine 5 table, and a
+  // predicate enforced in a verb body with no declaration is the
+  // declaration-enforced-by-hand shape this estate deleted `Guard::GatePass`'s
+  // hand-enforcement for. Machine 5 was ratified by hv on 2026-08-29 and its
+  // four `at.set` edges declare no guard, so the remaining two points are one
+  // table amendment and it is hv's pen, not this file's.
+  pub fn permitted_for(&self, kind: AtKind) -> bool {
+    match self {
+      // The test's own result, so there must be a test to have produced it.
+      // `to-write` belongs here and not with `n-a`: it means the test is
+      // UNWRITTEN, which is a claim about a test that is going to exist.
+      Self::ToWrite | Self::Red | Self::Green => kind == AtKind::Test,
+      // The doc / eyeball / gate status. `n-a` is not green and it is not a
+      // result -- satisfaction for these rows lives on the AC's own line, which
+      // is why [`AcState`] pairs `Unsatisfied`/`Satisfied` with `NonTest` from
+      // the other end.
+      Self::Na => kind == AtKind::NonTest,
+      // A decision about the ROW rather than about its result, so both kinds
+      // hold it -- the same reasoning that puts `AcState::Fiat` on both kinds,
+      // and hv can close an unwritten test exactly as readily as an uninspected
+      // document. Zero rows in the estate carry it today, so this arm is the
+      // one below claiming anything the corpus has not yet exhibited.
+      Self::Fiat => true,
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
