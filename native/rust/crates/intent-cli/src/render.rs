@@ -2836,16 +2836,175 @@ fn rows_for(
       // claim.
       tui::views::rows_for(form, &entity.unwrap_or(serde_json::Value::Null))
     }
-    View::Children { kind, id, field } if kind == "thread" && field == "wps" => facade
-      .wp_list(id)
-      .map(|wps| {
-        wps
-          .iter()
-          .map(|w| Row::new(format!("WP-{:02}", w.seq), w.title.clone(), "button"))
-          .collect()
+    View::Children { kind, id, field } if kind == "thread" => {
+      // **A LEVEL THIS BUILD DOES NOT RENDER SAYS SO, RATHER THAN LOOKING
+      // EMPTY.** `AC-17.7` puts a view that cannot load on an error row, and an
+      // unbuilt descent is that case: without this the operator cannot tell a
+      // collection with no members from a level nobody wired, and the second
+      // one is a bug that reads as data.
+      children_of(facade, declaration, id, field).unwrap_or_else(|| {
+        vec![tui::layout::Row::new(
+          "error",
+          format!("`{field}` is a level this build does not render yet"),
+          "text",
+        )]
       })
-      .unwrap_or_default(),
+    }
     _ => Vec::new(),
+  }
+}
+
+/// The descents this realiser builds rows for.
+///
+/// **DECLARED SO THE GAP IS A LIST RATHER THAN A DISCOVERY.**
+/// `intentsvcs::nav::descents` derives FIVE descents on a thread from the
+/// schema, and until now this function built one of them -- so four levels were
+/// reachable, entered, and rendered blank. `AC-17.7` says every level is
+/// reachable AND leavable; a level you can enter that shows nothing is
+/// reachable in the sense that fails the operator. The test below holds this
+/// list against the declaration, so the next descent added to the schema is a
+/// red test rather than an empty screen.
+const BUILT_DESCENTS: &[&str] = &["wps", "criteria", "tests", "attachments", "related"];
+
+/// The rows of one thread's child collection, and what each opens into.
+///
+/// **THE DETAIL IS DERIVED WHERE A FORM EXISTS AND FOLLOWS THE DESIGN WHERE ONE
+/// DOES NOT.** A work package has a declared form, so its detail pane is that
+/// form's own triples -- the same walk the item view uses, which is what keeps
+/// the two from disagreeing about a work package. Criteria and tests have no
+/// declared form, so their detail is `tui-design.md` section 6's named set
+/// verbatim (*Criteria -- kind, state, evidence, and the full text; Tests --
+/// status, covers, file, note*). **The durable fix is a declared form for each,
+/// resolved through `#/$defs/Criterion` and `#/$defs/AcceptanceTest` exactly as
+/// `wp` resolves through `#/$defs/WorkPackage`** -- that is new authored canon
+/// and is with vc rather than taken here.
+///
+/// Every value goes through `form::field`, so a status reads the same on a
+/// detail row as on a form row and no renderer imports a model enum to ask for
+/// its display form.
+/// `None` means THIS BUILD DOES NOT RENDER THAT LEVEL; `Some(vec![])` means the
+/// collection is empty. **They are different facts and an empty `Vec` for both
+/// makes the bug indistinguishable from the data** -- the silent-partial class
+/// this thread exists to remove, arriving through a return type.
+fn children_of(
+  facade: &Facade,
+  declaration: &intentsvcs::form::Loaded,
+  id: &str,
+  field: &str,
+) -> Option<Vec<tui::layout::Row>> {
+  use intentsvcs::form::field as one_line;
+  use tui::layout::Row;
+
+  match field {
+    "wps" => Some(
+      facade
+        .wp_list(id)
+        .map(|wps| {
+          wps
+            .iter()
+            .map(|w| {
+              let row = Row::named(
+                format!("{}", w.seq),
+                format!("WP-{:02}", w.seq),
+                w.title.clone(),
+                "button",
+              );
+              match (declaration.form("wp"), serde_json::to_value(w).ok()) {
+                (Some(form), Some(entity)) => row.expanding_to(tui::views::rows_for(form, &entity)),
+                _ => row,
+              }
+            })
+            .collect()
+        })
+        .unwrap_or_default(),
+    ),
+
+    "criteria" => Some(
+      facade
+        .ac_list(id)
+        .map(|acs| {
+          acs
+            .iter()
+            .map(|ac| {
+              Row::named(ac.id.clone(), ac.id.clone(), ac.text.clone(), "button").expanding_to(
+                vec![
+                  Row::new("state", ac.state.clone(), "text"),
+                  Row::new("covered by", ac.covered_by.join(", "), "text"),
+                  Row::new("text", ac.text.clone(), "prose"),
+                ],
+              )
+            })
+            .collect()
+        })
+        .unwrap_or_default(),
+    ),
+
+    "tests" => Some(
+      facade
+        .at_list(id)
+        .map(|ats| {
+          ats
+            .iter()
+            .map(|at| {
+              let entity = serde_json::to_value(at).unwrap_or(serde_json::Value::Null);
+              let cited = at
+                .file
+                .clone()
+                .or_else(|| at.prose.clone())
+                .unwrap_or_default();
+              Row::named(at.id.clone(), at.id.clone(), cited, "button").expanding_to(vec![
+                Row::new("status", one_line(&entity, "status"), "text"),
+                Row::new("kind", one_line(&entity, "kind"), "text"),
+                Row::new("covers", at.covers.join(", "), "text"),
+                Row::new("file", at.file.clone().unwrap_or_default(), "text"),
+                Row::new("note", at.prose.clone().unwrap_or_default(), "prose"),
+              ])
+            })
+            .collect()
+        })
+        .unwrap_or_default(),
+    ),
+
+    "attachments" => Some(
+      facade
+        .st_show(id)
+        .map(|t| {
+          t.attachments
+            .iter()
+            .map(|a| {
+              let entity = serde_json::to_value(a).unwrap_or(serde_json::Value::Null);
+              Row::named(
+                a.path.clone(),
+                a.path.clone(),
+                one_line(&entity, "bytes"),
+                "button",
+              )
+            })
+            .collect()
+        })
+        .unwrap_or_default(),
+    ),
+
+    "related" => Some(
+      facade
+        .st_show(id)
+        .map(|t| {
+          t.related
+            .iter()
+            .map(|r| {
+              Row::named(
+                r.id.clone(),
+                r.id.clone(),
+                r.note.clone().unwrap_or_default(),
+                "button",
+              )
+            })
+            .collect()
+        })
+        .unwrap_or_default(),
+    ),
+
+    _ => None,
   }
 }
 
@@ -7314,6 +7473,42 @@ mod tests {
       2,
       "exit 2 is `this build cannot answer at all`; a wired verb refusing a bad argument \
        answered, and the answer was no: {message}"
+    );
+  }
+
+  /// **`AC-17.7`: EVERY LEVEL THE DECLARATION DESCENDS INTO IS A LEVEL THIS
+  /// REALISER BUILDS.** `intentsvcs::nav::descents` derives the ladder from the
+  /// schema -- five descents on a thread -- and this realiser built ONE of them
+  /// until now. The other four were reachable, entered, and blank.
+  ///
+  /// **BLANK IS THE FAILURE THAT READS AS DATA**: nothing on screen separates a
+  /// collection with no members from a level nobody wired, so the criterion's
+  /// *every level is reachable* was satisfied in the letter and failed in the
+  /// only sense an operator has. Held as SET EQUALITY in both directions -- a
+  /// descent added to the schema reddens this rather than rendering empty, and
+  /// a name left here after its descent went away is caught too.
+  #[test]
+  fn every_descent_the_declaration_names_is_a_level_this_realiser_builds() {
+    let loaded = intentsvcs::form::Loaded::load().expect("the shipped form declaration must load");
+    let mut declared: Vec<String> = intentsvcs::nav::descents(&loaded, "thread")
+      .into_iter()
+      .map(|d| d.field)
+      .collect();
+    assert!(
+      declared.len() > 1,
+      "the declaration names {} descent(s) on a thread, so this comparison is trivial",
+      declared.len()
+    );
+    declared.sort();
+
+    let mut built: Vec<String> = BUILT_DESCENTS.iter().map(|s| (*s).to_string()).collect();
+    built.sort();
+
+    assert_eq!(
+      built, declared,
+      "the schema descends into levels this realiser does not build (or names levels the schema \
+       no longer has). An unbuilt level renders as an empty collection, which is a bug wearing \
+       the costume of data."
     );
   }
 }

@@ -617,3 +617,21 @@ pub fn raw(entity: &Value, field: &str) -> Option<String> {
     _ => None,
   }
 }
+
+/// One field of an entity as ONE LINE, exactly as a row would show it.
+///
+/// **THE SAME FLATTENING [`triples`] USES, AND THAT IS THE WHOLE REASON IT IS
+/// HERE.** A face building rows for a collection with no declared form still
+/// has to agree with the ones that have: a status rendered `wip` on a thread
+/// form and `"wip"` on a criteria list is ONE value with two renderings, and
+/// the quotes are the tell that somebody reached for `to_string` on a
+/// serialised enum.
+///
+/// It also removes the reason a renderer would import a model enum to ask for
+/// its display form -- **there is exactly one answer to what this field looks
+/// like on a row, and it does not live in a face.** Empty for a field the
+/// entity does not carry, which is the same answer [`triples`] gives and for
+/// the same reason: an empty value is visible, a missing one is not.
+pub fn field(entity: &Value, name: &str) -> String {
+  entity.get(name).map(scalar).unwrap_or_default()
+}

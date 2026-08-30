@@ -129,3 +129,57 @@ fn a_field_that_is_not_text_offers_no_edit_at_all() {
      written for the first time"
   );
 }
+
+/// **ONE VALUE, ONE RENDERING.** `form::field` exists so a face building rows
+/// for a collection with no declared form still agrees with the ones that have
+/// -- a status shown `wip` on a thread form and `"wip"` on a criteria list is
+/// one value with two renderings, and the quotes are the tell that somebody
+/// reached for `to_string` on a serialised enum.
+///
+/// Asserted against `triples` over every declared field of every shipped form,
+/// so the two cannot drift.
+#[test]
+fn the_one_line_reader_agrees_with_the_row_walk_on_every_declared_field() {
+  let l = loaded();
+  let entity = serde_json::json!({
+    "title": "ST0056: a title",
+    "status": "wip",
+    "objective": AUTHORED,
+    "context": AUTHORED,
+    "wps": [1, 2, 3],
+    "fiat": { "because": "x" },
+    "seq": 7,
+    "slug": "add-a-rust-based-cli",
+  });
+  let mut examined = 0usize;
+  for f in l.forms() {
+    for t in form::triples(f, &entity) {
+      assert_eq!(
+        form::field(&entity, &t.name),
+        t.value,
+        "{}.{} reads differently through the two doors",
+        f.entity,
+        t.name
+      );
+      examined += 1;
+    }
+  }
+  assert!(
+    examined > 0,
+    "no field was examined, so this test asserted nothing"
+  );
+  assert!(
+    form::field(&entity, "status") == "wip",
+    "a serialised enum reached a row with its quotes on"
+  );
+  assert_eq!(
+    form::field(&entity, "wps"),
+    "3",
+    "a collection must read as its SIZE on a row, exactly as it does on a form"
+  );
+  assert_eq!(
+    form::field(&entity, "nothing_declares_this"),
+    "",
+    "a field the entity does not carry reads empty, which is visible; a missing row is not"
+  );
+}
