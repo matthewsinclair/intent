@@ -97,6 +97,14 @@ intent todo update       # regenerate from current ST/WP status
 intent todo --json       # machine-readable view
 ```
 
+### 8. Never invoke `intent fc` -- fiat close is the human's verb
+
+`IN-AG-FIAT-001`, severity critical. Read it with `intent claude rules show IN-AG-FIAT-001`; it is not restated here, because a second copy of a rule's content in a skill is exactly the Highlander violation the rule library exists to prevent.
+
+**Nothing stops you from running it.** You share the human's uid and their shell, so this is a contract you hold and not a wall you would hit -- and every invocation is attributable to you, permanently. Do not run it, do not put it in a script, a hook, a skill or a Makefile, and do not ask a peer to run it on your behalf.
+
+Proposing a fiat close to the human, with the reason you would give, is the correct move when a requirement genuinely is not worth finishing.
+
 ## Red Flags
 
 | Rationalization                        | Reality                                          |
