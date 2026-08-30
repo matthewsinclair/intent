@@ -63,7 +63,7 @@ struct Registered {
   /// that project -- and watching is an ENHANCEMENT to a store that is correct
   /// without it, since `intent sync --to-store` does the same work on demand.
   /// The failure is printed when it happens rather than swallowed.
-  _watch: Option<Watch>,
+  watch: Option<Watch>,
 }
 
 /// **HAND-WRITTEN RATHER THAN DERIVED, AND IT REPORTS THE THING WORTH KNOWING.**
@@ -76,7 +76,7 @@ impl std::fmt::Debug for Registered {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     f.debug_struct("Registered")
       .field("dispatched", &self.handle.dispatched())
-      .field("watched", &self._watch.is_some())
+      .field("watched", &self.watch.is_some())
       .finish()
   }
 }
@@ -164,7 +164,7 @@ impl Registry {
       canonical,
       Registered {
         handle: Arc::clone(&handle),
-        _watch: watching,
+        watch: watching,
       },
     );
     Ok(handle)
@@ -179,6 +179,10 @@ impl Registry {
         root: root.clone(),
         dispatched: registered.handle.dispatched(),
         ingested: registered.handle.ingested(),
+        // Read from the watch's PRESENCE rather than from a second flag set
+        // when it started: one fact, one home, and they cannot disagree about
+        // a project that was served after `watch::start` refused.
+        watched: registered.watch.is_some(),
         // Asked at REPORT time rather than remembered from registration: the
         // whole point of the field is to notice a change that happened after
         // the daemon last looked.

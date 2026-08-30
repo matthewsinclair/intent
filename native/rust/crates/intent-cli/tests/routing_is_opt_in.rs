@@ -45,22 +45,8 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 use intentsvcs::daemon;
 
-/// A short, unique directory: a unix socket address is a fixed-size field, so
-/// `$TMPDIR` on macOS leaves too little room for the daemon's own suffix.
-///
-/// **THE `intent-fixture-` PREFIX IS SO A SWEEP CANNOT MISS A FAMILY** (vc,
-/// 2026-08-30): a census keyed on one crate's naming convention counts a subset
-/// while reading like a total.
-fn short_dir(tag: &str) -> PathBuf {
-  static NEXT: AtomicU32 = AtomicU32::new(0);
-  let dir = PathBuf::from("/tmp").join(format!(
-    "intent-fixture-{tag}-{}-{}",
-    std::process::id(),
-    NEXT.fetch_add(1, Ordering::Relaxed)
-  ));
-  std::fs::create_dir_all(&dir).expect("create an isolated directory");
-  dir
-}
+mod common;
+use common::{RealDaemon, short_dir};
 
 /// A listener that answers the liveness probe, stopped when dropped.
 ///
@@ -418,37 +404,86 @@ fn the_daemon_flag_is_refused_on_a_verb_no_daemon_can_answer() {
 }
 
 #[test]
-fn the_sync_family_still_refuses_because_its_prohibition_is_literally_true() {
+fn the_sync_carve_out_asks_about_this_project_not_about_this_machine() {
   // **THE ONE PLACE A DAEMON'S PRESENCE STILL CHANGES WHAT A LOCAL COMMAND
   // DOES, AND IT IS KEPT DELIBERATELY RATHER THAN OVERLOOKED.** hv's reversal is
-  // about ROUTING; this is mutual exclusion, which is a different question.
-  // `design.md:22`'s parenthetical -- *never two sync engines live at once* --
-  // is literally true of this family: a daemon watching a project (`AC-08.5`)
-  // while `intent sync` runs in it really would watch and ingest twice.
+  // about ROUTING; this is mutual exclusion, which is a different question. A
+  // daemon WATCHING a project (`AC-08.5`) while `intent sync` runs in it really
+  // would watch and ingest twice.
   //
-  // **AND OPT-IN ROUTING MAKES THAT MORE IMPORTANT, NOT LESS.** Under the old
-  // default, `sync` refusing was one refusal among many on a daemon machine.
-  // Now it is the only one, so it is also the only thing standing between a
-  // watching daemon and a second engine. **The predicate is wider than the
-  // hazard** -- it fires on any answering daemon, not on one watching THIS
-  // project -- and narrowing it is a ruling for vc rather than an inversion,
-  // because refusing preserves and running does not.
-  let daemon = AnsweringDaemon::start();
-  let root = project();
+  // **BOTH SIDES, IN ONE TEST, BECAUSE THE CLAIM IS THAT THE PREDICATE
+  // DISCRIMINATES.** The refusal alone passes under a predicate hard-wired to
+  // refuse -- which is the WIDE predicate this row replaced, and it would look
+  // completely correct. The permission alone passes under one hard-wired to
+  // allow, which is the carve-out deleted. Only the pair says the answer
+  // depends on the project.
+  //
+  // **AND IT NEEDS A REAL `intentd`, WHICH IS WHY THE OLD ARM HAD TO GO RATHER
+  // THAN BE EXTENDED.** It used this file's `AnsweringDaemon`, a bare listener.
+  // A listener cannot answer `Op::Registry`, so the narrowed predicate cannot
+  // establish whether it is watching anything and refuses on the could-not-ask
+  // path -- whose remedy text happens to contain the same words the old
+  // assertion grepped for. **It went on passing, on a refusal that had nothing
+  // to do with watching.** Measured before replacing it, not assumed.
+  let daemon = RealDaemon::start();
+  let watched = project();
+  let untouched = project();
 
-  let refused = run(daemon.home(), &root, &["sync", "--to-disk"]);
+  // Registration is a side effect of being used, so the daemon learns about
+  // this project by being asked something about it -- and watching starts with
+  // registration.
+  let contacted = run(daemon.home(), &watched, &["--daemon", "st", "list"]);
+  assert_eq!(
+    contacted.status.code(),
+    Some(0),
+    "the daemon could not answer for the project it is meant to watch: {}",
+    text(&contacted)
+  );
+
+  // **ANTI-VACUITY, AND IT IS THE ARM THAT EARNS THE OTHER TWO.** A project is
+  // SERVED AND NOT WATCHED whenever `watch::start` fails, which is a real and
+  // deliberate state -- and in it the carve-out is CORRECT to allow the run.
+  // Without this check the refusal arm below could fail for a reason that is
+  // not a defect, and the permission arm could pass because nothing anywhere
+  // was ever watched.
+  assert!(
+    daemon.watching(&watched),
+    "the daemon registered this project without watching it, so neither arm below is about the carve-out"
+  );
+  assert!(
+    !daemon.watching(&untouched),
+    "the daemon is watching a project nothing ever asked it about, so the two arms are not different cases"
+  );
+
+  let refused = run(daemon.home(), &watched, &["sync", "--to-disk"]);
   let seen = text(&refused);
   assert_eq!(
     refused.status.code(),
     Some(2),
-    "sync ran alongside a daemon: {seen}"
+    "sync ran in a project the daemon is watching: {seen}"
+  );
+  assert!(
+    seen.contains("WATCHING"),
+    "the refusal must say it is about THIS project being watched, or it reads as the machine-wide refusal it replaced: {seen}"
   );
   assert!(
     seen.contains("sync") && seen.contains("ingest"),
-    "the refusal must name WHY these two are different from every other verb, or it reads as the blanket refusal it replaced: {seen}"
+    "the refusal must name WHY these two are different from every other verb: {seen}"
   );
 
-  let _ = std::fs::remove_dir_all(&root);
+  // **THE HALF THE NARROWING EXISTS FOR.** Before it, this run was refused
+  // because a daemon somewhere was alive -- a predicate answering a wider
+  // question than its rule, declining work it had no reason to decline.
+  let allowed = run(daemon.home(), &untouched, &["sync", "--to-disk"]);
+  assert_eq!(
+    allowed.status.code(),
+    Some(0),
+    "sync was refused in a project no daemon is watching, which is the wide predicate the narrowing replaced: {}",
+    text(&allowed)
+  );
+
+  let _ = std::fs::remove_dir_all(&watched);
+  let _ = std::fs::remove_dir_all(&untouched);
 }
 
 #[test]

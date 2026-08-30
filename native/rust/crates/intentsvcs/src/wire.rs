@@ -199,6 +199,27 @@ pub struct RegisteredProject {
   /// watched tree, so a watcher that ignored scope would ingest forever on an
   /// idle machine -- and the store's ANSWERS would be correct throughout.
   pub ingested: u64,
+  /// **IS THIS DAEMON WATCHING THIS PROJECT'S TREE?**
+  ///
+  /// **IT EXISTS SO THAT THE CLI'S SYNC CARVE-OUT CAN ASK THE QUESTION IT IS
+  /// ACTUALLY ABOUT.** The prohibition is that two sync engines must not both
+  /// watch and both ingest one tree -- a statement about THIS project -- and
+  /// the client could only ask *is any daemon alive?*, which is a strictly
+  /// wider question. **A predicate answering a wider question than its rule
+  /// refuses runs the rule has no reason to refuse**: `intent sync` on project
+  /// B was declined because a daemon three directories away had project A open.
+  ///
+  /// The daemon has always known: [`Registry`] holds each project's watch
+  /// beside its handle, so its lifetime is the registration's. What was missing
+  /// was any way to ASK, and a fact the answering side knows and the asking
+  /// side cannot reach is not a design boundary, it is an omission.
+  ///
+  /// **`false` HERE MEANS SERVED-AND-NOT-WATCHED, WHICH IS A REAL AND
+  /// DELIBERATE STATE** rather than a placeholder: a project whose watcher
+  /// failed to start is still served, because watching is an enhancement to a
+  /// store that is correct without it. Such a project has no second engine on
+  /// its tree, so the carve-out has nothing to refuse.
+  pub watched: bool,
 }
 
 /// What the daemon answers.

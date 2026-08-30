@@ -374,13 +374,20 @@ fn engine(project: Project, ctx: FacadeContext, need: StoreNeed) -> Result<Facad
     // lands. Neither is corruption. Each op the daemon learns moves a verb from
     // here to routed, and nothing is broken in between.
     daemon::Route::Daemon(_) if need == StoreNeed::Shared => {}
-    // Exit 2 -- `Unavailable` -- because this build genuinely cannot answer,
-    // rather than having run and returned no. The operator's work is fine; the
-    // tool in their hand is the part that is missing.
+    // **THE CARVE-OUT ASKS ABOUT THIS PROJECT, NOT ABOUT THIS MACHINE** (vc,
+    // 2026-08-30). The prohibition is that two sync engines must not both watch
+    // and both ingest ONE TREE. *Is any daemon alive?* is a strictly wider
+    // question, and a predicate answering a wider question than its rule
+    // refuses runs the rule has no reason to refuse: `intent sync` in project B
+    // declined because a daemon elsewhere had project A open. Exit 2 --
+    // `Unavailable` -- because this build genuinely cannot answer, rather than
+    // having run and returned no.
     daemon::Route::Daemon(endpoint) => {
-      return Err(Failure::Unavailable(format!(
-        "error: intentd is answering at {endpoint} and owns this project's store, and `sync` and `ingest` are the two families that would genuinely run twice against it\n  remedy: stop the daemon process and run again. Unlike every other verb, these two drive the sync engine and the ingest walk, so a second one really would watch and ingest alongside the daemon"
-      )));
+      if watching_this_project(&endpoint, project.root())? {
+        return Err(Failure::Unavailable(format!(
+          "error: intentd is answering at {endpoint} and is WATCHING this project's tree, and `sync` and `ingest` are the two families that would genuinely run twice against it\n  remedy: stop the daemon process and run again. Unlike every other verb, these two drive the sync engine and the ingest walk, so a second one really would watch and ingest alongside the daemon"
+        )));
+      }
     }
   }
 
@@ -393,6 +400,64 @@ fn engine(project: Project, ctx: FacadeContext, need: StoreNeed) -> Result<Facad
   // the match decides only WHETHER to refuse keeps the guard exactly as strong
   // as it was, and reads better besides.
   Facade::open(project, ctx).map_err(fail)
+}
+
+/// Is the daemon at `endpoint` watching the tree at `root`?
+///
+/// **THE MECHANISM OF `AC-08.5`'s NARROWING, AND THE ONLY REASON THE PREDICATE
+/// CAN BE NARROW AT ALL.** The daemon has always known -- its registry holds
+/// each project's watch beside its handle -- but `RegisteredProject` had no
+/// field for it, so the client could ask *is a daemon alive?* and nothing more
+/// specific. A fact the answering side knows and the asking side cannot reach
+/// is an omission, not a boundary.
+///
+/// **EVERY PATH THAT CANNOT ESTABLISH THE ANSWER REFUSES, AND SAYS WHICH ONE IT
+/// WAS.** The tempting arm is to treat an unanswerable question as *no daemon
+/// is watching* and carry on, which is the one outcome the carve-out exists to
+/// prevent -- and it would be reached exactly when the daemon is behaving
+/// oddly, which is when a second sync engine is least welcome
+/// (`IN-AG-NO-SILENT-001`). Guessing the other way is not available either:
+/// refusing every run because the daemon hiccupped is the wide predicate back
+/// again, so the refusal names the ask that failed rather than the project.
+///
+/// **THE ROOT IS CANONICALISED HERE BECAUSE THE DAEMON'S KEYS ARE CANONICAL.**
+/// Comparing the path the client happened to resolve against the daemon's own
+/// form would report *not watched* for a symlinked or relative root that IS
+/// being watched -- a false negative that lands on the permissive side, which
+/// is the direction that matters.
+fn watching_this_project(endpoint: &daemon::Endpoint, root: &Path) -> Result<bool, Failure> {
+  let canonical = root.canonicalize().map_err(|e| {
+    Failure::Unavailable(format!(
+      "error: intentd is answering at {endpoint}, and `{}` could not be resolved to ask whether it is being watched: {e}\n  remedy: `sync` and `ingest` must not run beside a daemon watching the same tree, and this build cannot tell whether it is. Stop the daemon and run again",
+      root.display()
+    ))
+  })?;
+  let request = Request {
+    root: root.to_path_buf(),
+    op: Op::Registry,
+  };
+  match wire::ask(endpoint, &request) {
+    Ok(Response::Registry { projects }) => Ok(projects.iter().any(|p| {
+      // **CANONICALISED ON BOTH SIDES, BECAUSE `/tmp` IS A SYMLINK ON macOS.**
+      // The daemon's keys are already canonical, so this is belt-and-braces --
+      // and it is worth it because the failure lands on the PERMISSIVE side: a
+      // comparison that misses reports *not watched*, and a second sync engine
+      // then runs beside the daemon, which is the one outcome this predicate
+      // exists to prevent. `AT-08.2`'s fixture hit exactly this and reported
+      // zero dispatches for every verb.
+      let theirs = p.root.canonicalize().unwrap_or_else(|_| p.root.clone());
+      theirs == canonical && p.watched
+    })),
+    Ok(Response::Error { message, remedy }) => Err(Failure::Unavailable(format!(
+      "error: intentd is answering at {endpoint} but refused to list its projects, so this build cannot tell whether it is watching this tree: {message}\n  remedy: {remedy}"
+    ))),
+    Ok(other) => Err(Failure::Unavailable(format!(
+      "error: intentd answered the registry with {other:?}, which is not a registry\n  remedy: this is a fault in this build rather than in the project. `sync` and `ingest` refuse rather than run beside a daemon whose state cannot be read"
+    ))),
+    Err(e) => Err(Failure::Unavailable(format!(
+      "error: intentd is answering at {endpoint} but could not be asked whether it is watching this tree: {e}\n  remedy: `sync` and `ingest` must not run beside a daemon watching the same tree. Stop the daemon and run again"
+    ))),
+  }
 }
 
 /// Locate the project and assemble the ambient context, WITHOUT loading canon
