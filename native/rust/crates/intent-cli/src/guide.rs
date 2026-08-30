@@ -332,6 +332,21 @@ fn delimit(inner: &str, arg: &Arg) -> String {
 /// The placeholder is the table's own (`<ref>`, `[dir]`), delimiters included
 /// -- they are the author showing the reader what they will see. Only 31 of
 /// the 64 shipped flags carry one, and a `bool` flag correctly has none.
+///
+/// **THE `...` IS DERIVED FROM `arity`, NEVER AUTHORED BESIDE IT** (vc, ruling
+/// on ic's finding). Three rows used to write it into `value` while `arity`
+/// said the same thing, and `spine.rs` read BOTH into `num_args` thirty lines
+/// apart -- benign only while the two carriers had disjoint populations. The
+/// case that was not benign: `arity: "1"` on a row whose value ends `...` sets
+/// `num_args(1..)` and is then overwritten with `num_args(1..=1)`, while the
+/// surface goes on rendering the ellipsis. The register says list, the parser
+/// says one, and nothing compares them.
+///
+/// **A test that the two agree was the other option and it loses**: it can only
+/// fire after somebody has written the second value, so it catches the
+/// divergence rather than preventing it. Deriving makes the second value
+/// impossible to write. Same reasoning as [`delimit`] above, which has read the
+/// ellipsis off `Arg::repeated` since it was written.
 fn flag_line(flag: &Flag) -> String {
   let spellings = flag
     .spellings
@@ -339,10 +354,14 @@ fn flag_line(flag: &Flag) -> String {
     .map(|s| format!("`{s}`"))
     .collect::<Vec<_>>()
     .join(", ");
+  let ellipsis = match crate::dispatch::arity_bounds(&flag.arity) {
+    Some((_, None)) => "...",
+    _ => "",
+  };
   let value = flag
     .value
     .as_deref()
-    .map(|v| format!(" `{v}`"))
+    .map(|v| format!(" `{v}{ellipsis}`"))
     .unwrap_or_default();
   let required = if flag.required { " **(required)**" } else { "" };
   let default = flag

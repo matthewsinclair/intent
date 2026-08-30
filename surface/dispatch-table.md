@@ -1280,16 +1280,16 @@ Acceptance tests: the small red-to-green tests that prove ACs
 - The AT row has an enforced grammar (issue 0017) with exactly two shapes and nothing else parsing. The reference is the test FILE -- backticked, repo-relative, at least one `/`, no `:`. A test is named by putting the AT id INSIDE the test, which is checkable from both ends and survives rewording; a cited test NAME is not.
 - `n-a` is a status for non-test rows ONLY and is NOT green: satisfaction for such a row lives on the AC's own line. v3 reifies this as `AtStatus::Na` with the serde rename `n-a` (native/rust/crates/intentsvcs/src/model.rs).
 
-| command                       | args          | flags                                                                                               | help                                                                              | disposition |
-| ----------------------------- | ------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------- |
-| `at`                          | <command>     | --                                                                                                  | Acceptance test commands                                                          | keep        |
-| `at list`                     | <stid>        | --                                                                                                  | List ATs (id, reference, status)                                                  | keep        |
-| `at lint`                     | <stid>        | --fix                                                                                               | Check AT rows against the grammar (--fix migrates what is mechanical)             | keep        |
-| `at green` (alias `at done`)  | <stid> <atid> | --note <text>                                                                                       | Set an AT green                                                                   | keep        |
-| `at red` (alias `at notdone`) | <stid> <atid> | --note <text>                                                                                       | Set an AT red                                                                     | keep        |
-| `at na`                       | <stid> <atid> | --note <text>                                                                                       | Set a non-test AT to n/a (the doc / eyeball / gate status)                        | keep        |
-| `at new`                      | <stid> <atid> | --covers <acid> ..., --file <path>, --prose <text>, --kind <kind>, --status <status>, --note <text> | Create an acceptance test (caller-assigned id; refuses an id that is taken)       | new-surface |
-| `at edit`                     | <stid> <atid> | --file <path>, --prose <text>, --covers <ac-id> ...                                                 | Re-cite an acceptance test; a field you do not name is a field it does not change | new-surface |
+| command                       | args          | flags                                                                                           | help                                                                              | disposition |
+| ----------------------------- | ------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------- |
+| `at`                          | <command>     | --                                                                                              | Acceptance test commands                                                          | keep        |
+| `at list`                     | <stid>        | --                                                                                              | List ATs (id, reference, status)                                                  | keep        |
+| `at lint`                     | <stid>        | --fix                                                                                           | Check AT rows against the grammar (--fix migrates what is mechanical)             | keep        |
+| `at green` (alias `at done`)  | <stid> <atid> | --note <text>                                                                                   | Set an AT green                                                                   | keep        |
+| `at red` (alias `at notdone`) | <stid> <atid> | --note <text>                                                                                   | Set an AT red                                                                     | keep        |
+| `at na`                       | <stid> <atid> | --note <text>                                                                                   | Set a non-test AT to n/a (the doc / eyeball / gate status)                        | keep        |
+| `at new`                      | <stid> <atid> | --covers <acid>, --file <path>, --prose <text>, --kind <kind>, --status <status>, --note <text> | Create an acceptance test (caller-assigned id; refuses an id that is taken)       | new-surface |
+| `at edit`                     | <stid> <atid> | --file <path>, --prose <text>, --covers <ac-id>                                                 | Re-cite an acceptance test; a field you do not name is a field it does not change | new-surface |
 
 ### `at`
 
@@ -1448,7 +1448,7 @@ Create an acceptance test (caller-assigned id; refuses an id that is taken)
   - `stid` (st-id, arity `1`)
   - `atid` (at-id, arity `1`)
 - **Flags:**
-  - `--covers` `<acid> ...` (string) -- The criterion id(s) this test covers
+  - `--covers` `<acid>` (string) -- The criterion id(s) this test covers
     - **arity:** 1..n
     - **required:** true
     - **disposition:** keep
@@ -1497,7 +1497,7 @@ Re-cite an acceptance test; a field you do not name is a field it does not chang
     - **disposition:** keep
   - `--prose` `<text>` (string) -- What was read or eyeballed (non-test rows)
     - **disposition:** keep
-  - `--covers` `<ac-id> ...` (string) -- The AC id(s) this test covers, replacing the current set
+  - `--covers` `<ac-id>` (string) -- The AC id(s) this test covers, replacing the current set
     - **arity:** 1..n
     - **disposition:** keep
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
@@ -2638,9 +2638,9 @@ Run Intent rule-library critics against source files without invoking an LLM
 - Strict-proxy contract since ST0039: the headless runner enforces ONLY rules publishing a simple `Greppable proxy`, and REFUSES non-simple proxies with a once-per-rule stderr note rather than approximating them. A critic that silently approximates a rule reports findings the rule does not actually make.
 - `author` and `content` are accepted as a clean no-op: prose critique is on-demand via the critic-prose subagent, not this runner.
 
-| command  | args   | flags                                                                                                         | help                                                 | disposition |
-| -------- | ------ | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ----------- |
-| `critic` | <lang> | --files <path> ..., --staged, --severity-min <lvl>, --format text/json, --rules <dir>, --languages, --help/-h | Run Intent rule-library critics against source files | keep        |
+| command  | args   | flags                                                                                                     | help                                                 | disposition |
+| -------- | ------ | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ----------- |
+| `critic` | <lang> | --files <path>, --staged, --severity-min <lvl>, --format text/json, --rules <dir>, --languages, --help/-h | Run Intent rule-library critics against source files | keep        |
 
 ### `critic`
 
@@ -2650,7 +2650,7 @@ Run Intent rule-library critics against source files
 - **Arguments:**
   - `lang` (enum, arity `1`) -- one of: `elixir`, `rust`, `swift`, `lua`, `shell`, `author`, `content`
 - **Flags:**
-  - `--files` `<path> ...` (string) -- Explicit file list
+  - `--files` `<path>` (string) -- Explicit file list
     - default: scan nothing unless --staged
     - **arity:** 1..n
     - **disposition:** keep

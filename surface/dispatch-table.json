@@ -3134,7 +3134,7 @@
               ],
               "type": "string",
               "help": "The criterion id(s) this test covers",
-              "value": "<acid> ...",
+              "value": "<acid>",
               "arity": "1..n",
               "required": true,
               "disposition": "keep"
@@ -3257,7 +3257,7 @@
               ],
               "type": "string",
               "help": "The AC id(s) this test covers, replacing the current set",
-              "value": "<ac-id> ...",
+              "value": "<ac-id>",
               "arity": "1..n",
               "disposition": "keep"
             }
@@ -5769,7 +5769,7 @@
               ],
               "type": "string",
               "help": "Explicit file list",
-              "value": "<path> ...",
+              "value": "<path>",
               "arity": "1..n",
               "note": "default: scan nothing unless --staged",
               "disposition": "keep"

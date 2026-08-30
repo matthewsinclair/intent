@@ -603,7 +603,7 @@ fn flags(mut cmd: Command, entry: &Entry) -> Command {
       // `arity: "1..n"`, so both writers would have covered them. **The fix is
       // the DELETION, not a test that the two agree**: a test would make the
       // second writer permanent and merely require it to be right.
-      let (name, _) = placeholder(value);
+      let name = placeholder(value);
       a = a.value_name(name.to_string());
     }
     // **A DECLARED ARITY REACHES clap, AND ON A FLAG THAT MEANS `=`.** The
@@ -662,16 +662,13 @@ fn flags(mut cmd: Command, entry: &Entry) -> Command {
 ///   the ellipsis becomes `num_args`, which is where the fact belongs.
 /// - `open|closed|all` -- no delimiters, so the whole string is the name and
 ///   clap wraps it once. The author wrote the alternation to be read as one.
-fn placeholder(value: &str) -> (&str, bool) {
-  let trimmed = value.trim();
-  let repeated = trimmed.ends_with("...");
-  let head = trimmed.trim_end_matches("...").trim();
-  let inner = head
+fn placeholder(value: &str) -> &str {
+  let head = value.trim();
+  head
     .strip_prefix('<')
     .and_then(|v| v.strip_suffix('>'))
     .or_else(|| head.strip_prefix('[').and_then(|v| v.strip_suffix(']')))
-    .unwrap_or(head);
-  (inner, repeated)
+    .unwrap_or(head)
 }
 
 /// Parse argv, applying INV-02: a usage error exits 1 in v2's voice.
@@ -1331,12 +1328,46 @@ mod tests {
     );
   }
 
+  /// **THE `...` CASE IS GONE FROM THIS TEST BECAUSE IT IS GONE FROM THE
+  /// NOTATION.** `placeholder` used to return `(name, repeated)` and the
+  /// `repeated` half was a SECOND carrier of a fact `arity` already held; vc
+  /// ruled derive over test, so the register carries no ellipsis, this returns
+  /// only the name, and `guide.rs` emits the ellipsis from `arity`. Asserting
+  /// the old split here would keep the parser alive for a notation nothing
+  /// writes.
   #[test]
-  fn a_declared_placeholder_is_split_into_a_name_and_an_arity() {
-    assert_eq!(placeholder("<text>"), ("text", false));
-    assert_eq!(placeholder("[dir]"), ("dir", false));
-    assert_eq!(placeholder("<path> ..."), ("path", true));
+  fn a_declared_placeholder_is_stripped_to_its_name() {
+    assert_eq!(placeholder("<text>"), "text");
+    assert_eq!(placeholder("[dir]"), "dir");
     // No delimiters: the alternation IS the name, and clap wraps it once.
-    assert_eq!(placeholder("open|closed|all"), ("open|closed|all", false));
+    assert_eq!(placeholder("open|closed|all"), "open|closed|all");
+  }
+
+  /// **THE HALF THAT MAKES THE DERIVATION A GUARANTEE RATHER THAN A HABIT.**
+  /// Removing the ellipsis from three rows removes today's duplicate; nothing
+  /// stops a fourth row being written with one tomorrow, and `placeholder`
+  /// would then hand clap `<path> ...` WHOLE as a value name -- the
+  /// `--files <<path> ...>` double-bracket rendering, back again, because the
+  /// strip only recognises a delimiter pair at the two ends.
+  ///
+  /// Driven over the SHIPPED table rather than a fixture, and named rather than
+  /// counted, so the row that reintroduces it says which one it is.
+  #[test]
+  fn no_flag_authors_an_ellipsis_the_arity_already_states() {
+    let table = dispatch::table();
+    let offenders: Vec<String> = dispatch::shipped_entries(&table)
+      .into_iter()
+      .flat_map(|e| e.flags.iter().map(move |f| (e, f)))
+      .filter(|(_, f)| {
+        f.value
+          .as_deref()
+          .is_some_and(|v| v.trim_end().ends_with("..."))
+      })
+      .map(|(e, f)| format!("{} {}", e.path, f.spellings.join(",")))
+      .collect();
+    assert!(
+      offenders.is_empty(),
+      "`...` in a flag's `value` is a second home for what `arity` states -- declare `arity: \"1..n\"` and let the renderers emit the ellipsis. These rows author it: {offenders:?}"
+    );
   }
 }
