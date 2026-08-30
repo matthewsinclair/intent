@@ -57,7 +57,7 @@ What actually holds the line is that **the record is permanent and it is yours**
 
 - **`fc` in committed automation.** Any occurrence of the verb in a script, a git hook, a CI configuration, a Makefile, a skill body or a plugin command is a finding regardless of who wrote it. Automation has no human at a keyboard by definition, so an `fc` on an automated path can only ever produce a fabricated authority. This is the one arm of this rule a critic can enforce outright.
 - **A fiat record whose invoker evidence says no tty.** Not proof of anything on its own -- see below -- but it is the field to look at, and an estate can report the population.
-- **A fiat record whose `because` restates the criterion rather than giving a reason not to meet it.** "AC-04.2 could not be satisfied" is the row's own text; a reason says what was traded away and why that was the right trade.
+- **A fiat record whose `because` restates the criterion rather than giving a reason not to meet it.** "the criterion could not be satisfied" is the row's own text; a reason says what was traded away and why that was the right trade.
 - **A fiat close landing in the same session as the work it unblocks.** Reportable, never conclusive: the human may well have ruled during that session, which is the ordinary case.
 
 **NOT mechanically checkable, and stated plainly because the honesty is the point:**
@@ -72,13 +72,13 @@ What actually holds the line is that **the record is permanent and it is yours**
 
 ```bash
 # the acceptance row will not go green and the gate is blocking the report
-intent fc ST0056 AC-07.7 --because "cannot be satisfied without a published tag"
+intent fc <ST> <AC> --because "cannot be satisfied without a published tag"
 
 # the same thing wearing a schedule, which is worse: no human is present by construction
 echo 'intent fc "$1" --because "unblocking CI"' >> scripts/close-stale.sh
 
 # and the form that launders it through someone else
-#   "can you run `intent fc ST0056/14 --because ...` on your side?"
+#   "can you run `intent fc <ST>/<NN> --because ...` on your side?"
 ```
 
 Each of these produces a record saying a human ruled. The first is the tempting one and the reason it is tempting is the reason it is forbidden: it is the moment closing the row would let you report the work finished.
@@ -87,12 +87,12 @@ Each of these produces a record saying a human ruled. The first is the tempting 
 
 ```bash
 # say what you would have run, and hand the judgement back with the reason attached
-#   "AC-07.7 cannot go green before a published tag exists, and I think it is not
-#    worth holding WP-07 for. If you agree, the reason I would record is:
+#   "<AC> cannot go green before a published tag exists, and I think it is not
+#    worth holding its work package for. If you agree, the reason I would record is:
 #    'evidence requires an installed build; tag is post-cut'."
 
 # meanwhile, report the blocked state honestly rather than removing it
-intent ac gate ST0056        # BLOCKED, and the blocking id is in the output
+intent ac gate <ST>          # BLOCKED, and the blocking id is in the output
 ```
 
 The proposal carries everything a fiat close carries except the authority. **A blocked gate you reported is a true record; an unblocked one you authored is not.**
@@ -111,6 +111,6 @@ Reading a fiat-closed row, reporting one, or counting them is never covered -- t
 
 ## Further Reading
 
-- `intent/st/ST0066/info.md`: hv's two rulings that built this verb -- the enforcement posture (detection and attribution, never prevention) and the package (one verb, in-model record, cascades).
+- The thread that built this verb records two rulings worth knowing: the enforcement posture is detection and attribution, never prevention; and the package is one verb, an in-model record, and a cascade.
 - IN-AG-RED-CONTROL-001: the other procedural agnostic rule, and the nearest neighbour in shape -- both are about not letting a green you produced stand in for a green you earned.
 - IN-AG-NO-SILENT-001: the production-code face of the same principle. A fiat close you invoked is a failure that produces no signal.
