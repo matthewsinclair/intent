@@ -68,6 +68,16 @@ pub enum Step {
   /// needs a presence probe, the app has no facade on purpose, and guessing
   /// here would navigate to entities that do not exist.
   Land(String),
+  /// Open an in-place edit: read this field's RAW value first.
+  ///
+  /// **THE READ GOES THROUGH THE SAME `Model::read` THE $EDITOR HANDOFF
+  /// USES** -- the display value on the row may be truncated or derived, and
+  /// an editor seeded from a rendering writes the rendering back. The loop
+  /// reads, then [`App::begin_edit`] or [`App::abort_edit`] lands the result.
+  ReadField(Handoff),
+  /// Commit an in-place edit through `Model::write` -- `facade.set`'s own
+  /// refusals reach the notice in the model's words.
+  WriteField(Handoff, String),
   /// `AC-17.10`: hand this field to `$VISUAL`/`$EDITOR`.
   Hand(Handoff),
   /// `AC-17.8`: open one realised artefact of this entity, or refuse it.
@@ -125,6 +135,15 @@ pub struct App {
   /// Every addressable entity, for the omnibox's matcher. Handed in by the
   /// run loop at startup, because the app deliberately holds no facade.
   pub index: Vec<Entry>,
+  /// The in-place edit in flight, while the mode is FIELD.
+  pub editing: Option<FieldEdit>,
+}
+
+/// One in-place edit: where it writes, and what has been typed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FieldEdit {
+  pub handoff: Handoff,
+  pub buffer: String,
 }
 
 impl App {
@@ -143,6 +162,7 @@ impl App {
       notice: String::new(),
       omnibox: Omnibox::default(),
       index: Vec::new(),
+      editing: None,
     }
   }
 
@@ -158,9 +178,10 @@ impl App {
     self
   }
 
-  /// `intent explore` -- rooted at the entity kinds.
+  /// `intent explore` -- rooted where [`Stack::explore`] roots: the threads
+  /// list. One home for the root; this constructor only borrows it.
   pub fn explore() -> Self {
-    Self::rooted_at(View::Entities)
+    Self::rooted_at(Stack::explore().current().clone())
   }
 
   /// `intent edit <kind> <id>` -- rooted at one item.
@@ -295,6 +316,40 @@ impl App {
       }
     }
 
+    // FIELD collects into the in-flight edit; commit and discard are the two
+    // declared exits and both carry their outcome with them.
+    if self.mode == Mode::Field {
+      match trigger {
+        "Typing" => {
+          if let Some(edit) = &mut self.editing {
+            match key.code {
+              KeyCode::Char(c) => edit.buffer.push(c),
+              KeyCode::Backspace => {
+                edit.buffer.pop();
+              }
+              _ => {}
+            }
+          }
+          return Step::Continue;
+        }
+        "Enter" => {
+          self.mode = Mode::Nav;
+          return match self.editing.take() {
+            Some(edit) => Step::WriteField(edit.handoff, edit.buffer),
+            None => Step::Continue,
+          };
+        }
+        "Esc" => {
+          self.mode = Mode::Nav;
+          if let Some(edit) = self.editing.take() {
+            self.notice = format!("{} unchanged -- edit discarded", edit.handoff.field);
+          }
+          return Step::Continue;
+        }
+        _ => {}
+      }
+    }
+
     // NAV's seeds: `:` and any printable land in the omnibox CARRYING their
     // character -- the you-just-start-typing affordance. The machine already
     // declares both edges; what it cannot carry is the keystroke.
@@ -337,6 +392,25 @@ impl App {
         None => self.notice = "this row opens nothing yet".to_string(),
       }
       return Step::Continue;
+    }
+
+    // **AN IN-PLACE EDIT OPENS ON THE RAW VALUE, NOT THE ROW'S RENDERING** --
+    // same reason, same door as the $EDITOR handoff: the display value may be
+    // truncated or derived, and an editor seeded from a rendering writes the
+    // rendering back. Item views only, exactly like EMBED below.
+    if next == Mode::Field && self.mode == Mode::Nav && trigger == "Enter" {
+      let (Some(View::Item { kind, id }), Some(row)) = (
+        Some(self.stack.current().clone()).filter(|v| matches!(v, View::Item { .. })),
+        self.focused_row(rows),
+      ) else {
+        return Step::Continue;
+      };
+      self.mode = Mode::Field;
+      return Step::ReadField(Handoff {
+        kind,
+        id,
+        field: row.name.clone(),
+      });
     }
 
     // **THE HANDOFF LEAVES AS A REQUEST AND CHANGES NOTHING ELSE.** It needs a
@@ -443,6 +517,24 @@ impl App {
       Some(kept) => self.focus = Some(kept),
       None => self.point_at(n),
     }
+  }
+
+  /// The loop read the field: the edit is live, seeded with the RAW value.
+  pub fn begin_edit(&mut self, handoff: Handoff, value: String) {
+    self.editing = Some(FieldEdit {
+      handoff,
+      buffer: value,
+    });
+  }
+
+  /// The read refused, so the edit never opened: back to NAV with the
+  /// refusal standing where the operator is looking. **A field that cannot
+  /// open must not present a collector**, or typing goes somewhere nothing
+  /// will ever write.
+  pub fn abort_edit(&mut self, why: String) {
+    self.editing = None;
+    self.mode = Mode::Nav;
+    self.notice = why;
   }
 
   /// The child that owned the terminal has gone.
@@ -890,10 +982,10 @@ mod tests {
     );
   }
 
-  /// **AND EVERY EDITABLE ROW EDITS IN PLACE.** The same keystroke, one row
-  /// over. `AC-17.4`: `prose` is the handoff -- and `button` is the DESCENT
-  /// since the omnibox machine claimed it for NAV, so both are asserted by
-  /// their own tests and skipped here.
+  /// **AND EVERY EDITABLE ROW EDITS IN PLACE**, opening on the RAW value the
+  /// loop reads -- never the row's rendering -- and committing through the
+  /// same write door the $EDITOR handoff uses. `AC-17.4`: `prose` is the
+  /// handoff, `button` is the descent; both have their own tests.
   #[test]
   fn enter_on_any_other_row_edits_in_place_rather_than_handing_off() {
     for (at, row) in item_rows().iter().enumerate() {
@@ -905,8 +997,12 @@ mod tests {
       let step = app.on_key(key(KeyCode::Enter), &item_rows());
       assert_eq!(
         step,
-        Step::Continue,
-        "the `{}` row handed off to an editor",
+        Step::ReadField(Handoff {
+          kind: "thread".into(),
+          id: "ST0056".into(),
+          field: row.name.clone(),
+        }),
+        "the `{}` row must ask for its RAW value, addressed by the field NAME",
         row.kind
       );
       assert_eq!(
@@ -916,6 +1012,52 @@ mod tests {
         row.kind
       );
     }
+  }
+
+  /// The whole in-place round trip, driven: the loop seeds the RAW value,
+  /// typing edits it, Enter carries the edited buffer to the write door, and
+  /// Esc discards without one -- with the mode landing in NAV either way.
+  #[test]
+  fn an_in_place_edit_commits_the_edited_buffer_and_esc_discards_it() {
+    let rows = item_rows();
+    let mut app = on_item();
+    let Step::ReadField(h) = app.on_key(key(KeyCode::Enter), &rows) else {
+      panic!("the title row did not open an edit");
+    };
+    app.begin_edit(h.clone(), "raw title".into());
+    for c in "!".chars() {
+      assert_eq!(app.on_key(key(KeyCode::Char(c)), &rows), Step::Continue);
+    }
+    assert_eq!(
+      app.on_key(key(KeyCode::Enter), &rows),
+      Step::WriteField(h.clone(), "raw title!".into()),
+      "Enter must carry the EDITED buffer to the write door"
+    );
+    assert_eq!(app.mode, Mode::Nav);
+    assert_eq!(app.editing, None, "a committed edit must not linger");
+
+    // Discard: the same entry, Esc out, nothing written.
+    let Step::ReadField(h2) = app.on_key(key(KeyCode::Enter), &rows) else {
+      panic!("re-entry did not open");
+    };
+    app.begin_edit(h2, "raw title".into());
+    assert_eq!(app.on_key(key(KeyCode::Backspace), &rows), Step::Continue);
+    assert_eq!(app.on_key(esc(), &rows), Step::Continue);
+    assert_eq!(app.mode, Mode::Nav);
+    assert_eq!(app.editing, None);
+    assert!(
+      app.notice.contains("discarded"),
+      "a discard must say so: {:?}",
+      app.notice
+    );
+
+    // And a refused read never presents a collector.
+    let Step::ReadField(_) = app.on_key(key(KeyCode::Enter), &rows) else {
+      panic!("third entry did not open");
+    };
+    app.abort_edit("error: not a text field".into());
+    assert_eq!(app.mode, Mode::Nav, "a refused read must fall back to NAV");
+    assert_eq!(app.editing, None);
   }
 
   /// **A DOORED BUTTON DESCENDS, AND A DOOR-LESS ONE SAYS SO** -- the fix for

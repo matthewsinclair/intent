@@ -163,14 +163,11 @@ Where the selected row carries detail, the BODY splits: list above, detail below
 
 ### In-place fields
 
-**Editing happens inline, in the value column, where the field is displayed** — not in a footer. The COMMAND row shows the active keymap and its bindings, never a second copy of the text.
+**Editing happens inline, in the value column, where the field is displayed** — not in a footer. `⏎` on an editable row opens the edit **seeded with the RAW value read through the same `Model::read` the `$EDITOR` handoff uses** — the display value may be truncated or derived, and an editor seeded from a rendering writes the rendering back. `⏎` commits through `Model::write` (`facade.set`, whose refusals reach the notice line in the model's own words); `ESC` discards and says so.
 
-**Keymap is emacs or vi**, resolved: `INTENT_EDIT_MODE` → `~/.inputrc` `set editing-mode` → **default emacs**.
+**ONE keymap** (hv, 2026-08-30: _we're handing the text off to a dedicated editor, not trying to recreate it inside_): characters and Backspace. The emacs/vi in-field keymaps from the earlier design are retired unbuilt — two keymaps inside one-line fields is recreating an editor inside, and the measured `INTENT_EDIT_MODE`/`~/.inputrc` resolution notes move to the prose-handoff section where the real editor is chosen.
 
-> **The shell does NOT export `set -o`, and the obvious fallback is measured wrong.** On the reference machine `set -o` reports `emacs on / vi off` and nothing in `env` carries it — a child process cannot read the shell's editing mode, only be told it. And inferring from `$EDITOR` gives `vi` there (it is `nvim`) on a shell that is in emacs mode. **If the mode must genuinely follow the shell, the shell has to export it via a one-line rc shim. That is the only honest route.**
-
-- **emacs** — `C-a C-e C-b C-f C-d C-k C-u C-w`.
-- **vi** — starts in insert; `ESC` drops to normal (`h l 0 $ i a I A x D`); `ESC` again leaves the field. **Two presses to exit is vi's own shape** and keeps ESC meaningful at each depth rather than doing two jobs at once. The caret colour distinguishes insert from normal.
+**A `select` row opens the same collector for now and the write door adjudicates** — a status typed against the machine is refused in the store's words. The picker (offering the legal transitions, as the design always intended) is the recorded next step; what ships never silently accepts an illegal state, because `facade.set` will not.
 
 ### Prose fields — the external editor
 

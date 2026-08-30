@@ -111,6 +111,29 @@ impl<S: Session, T: terminal::Screen> Session for Lending<'_, S, T> {
 /// Pure: every decision about what the operator sees is made here, where it can
 /// be asserted without a terminal.
 pub fn screen_for(app: &App, rows: &[Row], width: usize) -> Screen {
+  // **THE EDIT IS DRAWN IN THE VALUE COLUMN, WHERE THE FIELD LIVES**
+  // (`tui-design.md` section 7: inline, not in a footer). The substitution is
+  // display-only: the rows the caller owns are untouched, and the buffer
+  // replaces the value on exactly the row whose name the handoff carries.
+  let edited: Vec<Row>;
+  let rows = match (&app.editing, app.mode) {
+    (Some(edit), super::mode::Mode::Field) => {
+      edited = rows
+        .iter()
+        .map(|r| {
+          if r.name == edit.handoff.field {
+            let mut shown = r.clone();
+            shown.value = format!("{}\u{258f}", edit.buffer);
+            shown
+          } else {
+            r.clone()
+          }
+        })
+        .collect();
+      edited.as_slice()
+    }
+    _ => rows,
+  };
   Screen {
     app: app_row(app),
     body: layout::plan(rows, width),
@@ -123,9 +146,9 @@ pub fn screen_for(app: &App, rows: &[Row], width: usize) -> Screen {
       .filter(|r| r.has_detail())
       .and_then(|r| r.detail.as_ref())
       .map(|d| layout::plan(d, width)),
-    status: status_row(app, rows),
-    command: command_row(app),
-    info: info_row(app, rows),
+    omnibox: omnibox_row(app),
+    hint: hint_row(app, rows),
+    dropdown: dropdown(app),
     mode: app.mode,
     // The overlay follows the LIST cursor only: the detail pane keeps its own
     // focus and its own (future) treatment.
@@ -149,29 +172,20 @@ fn app_row(app: &App) -> String {
   }
 }
 
-/// Mode first, then as much about the row in context as fits.
-///
-/// **THE MODE IS FIRST AND UNCONDITIONAL.** Everything after it is about
-/// whatever is selected and may be absent; the mode never is, because a modal
-/// interface whose mode is not on screen is the trap `AC-17.9` names.
-fn status_row(app: &App, rows: &[Row]) -> String {
-  let mut parts = vec![app.mode.name().to_string()];
-  if let Some(f) = app.focus
-    && let Some(row) = rows.get(f.index())
-  {
-    parts.push(row.title.clone());
-    parts.push(row.kind.clone());
-    parts.push(format!("{}/{}", f.index() + 1, f.len()));
+/// The omnibox line: the caret and the buffer -- or the menu bar in MENU,
+/// which borrows the line because both are "the thing you are choosing from".
+fn omnibox_row(app: &App) -> String {
+  match app.mode {
+    super::mode::Mode::Menu => {
+      "Go: [<-]  Back  Threads  Issues  Packages  Criteria  [X]".to_string()
+    }
+    super::mode::Mode::Embed => "editor running -- returns when the child exits".to_string(),
+    // **ALWAYS THERE** -- the rest state's whole point: carrying the caret
+    // while it has the keyboard, standing dim and one keystroke away when
+    // it does not.
+    super::mode::Mode::Omnibox => format!("\u{276f} {}\u{258f}", app.omnibox.buffer),
+    _ => format!("\u{276f} {}", app.omnibox.buffer),
   }
-  // **THE PANE HINT IS ONLY THERE WHEN THERE IS A PANE TO CROSS TO.** A `TAB
-  // detail` standing on every row would be an offer the key does not honour,
-  // which teaches the operator that Tab is broken rather than that this row has
-  // no detail -- the same reason `cross_panes` does nothing rather than
-  // self-looping.
-  if let Some(hint) = pane_hint(app, rows) {
-    parts.push(hint);
-  }
-  parts.join("   ")
 }
 
 /// `TAB detail` from the list, `TAB list` from the detail pane, and nothing at
@@ -189,44 +203,91 @@ fn pane_hint(app: &App, rows: &[Row]) -> Option<String> {
   })
 }
 
-/// The command in play. `tui-design.md` §2: the `:` line while composing, the
-/// menu in MENU, the child's name in EMBED.
-fn command_row(app: &App) -> String {
-  match app.mode {
-    super::mode::Mode::Menu => {
-      "Go: [<-]  Back  Threads  Issues  Packages  Criteria  [X]".to_string()
-    }
-    super::mode::Mode::Embed => "editor running -- returns when the child exits".to_string(),
-    // **THE OMNIBOX LINE IS ALWAYS THERE** -- it is the rest state's whole
-    // point (`tui-design.md` §3): in OMNIBOX it carries the caret; in NAV it
-    // stands dim and empty-handed, one keystroke from filling.
-    super::mode::Mode::Omnibox => format!("\u{276f} {}\u{258f}", app.omnibox.buffer),
-    _ => format!("\u{276f} {}", app.omnibox.buffer),
+/// The hint line: mode chip first and unconditional (`AC-17.9` -- a modal
+/// interface whose mode is not on screen is the trap), then a notice if one
+/// is standing, else what the keys do RIGHT NOW -- position, and the one
+/// verb Enter means on this row.
+fn hint_row(app: &App, rows: &[Row]) -> String {
+  let mut parts = vec![app.mode.name().to_string()];
+  if !app.notice.is_empty() {
+    parts.push(app.notice.clone());
+    return parts.join("  ");
   }
+  match app.mode {
+    super::mode::Mode::Omnibox => {
+      parts.push("type an address or a few letters \u{b7} \u{23ce} go \u{b7} ESC nav".into());
+    }
+    super::mode::Mode::Nav => {
+      if let Some(f) = app.focus
+        && let Some(row) = rows.get(f.index())
+      {
+        parts.push(format!("{}/{}", f.index() + 1, f.len()));
+        let verb = match row.kind.as_str() {
+          "prose" => "\u{23ce} $EDITOR",
+          "artefact" => "\u{23ce} open file",
+          "button" if row.door.is_some() => "\u{23ce} open",
+          "button" => "",
+          "select" => "\u{23ce} choose",
+          _ => "\u{23ce} edit",
+        };
+        if !verb.is_empty() {
+          parts.push(verb.into());
+        }
+      }
+      parts.push(
+        "\u{2190}\u{2192}\u{2191}\u{2193} move \u{b7} \u{232b} back \u{b7} type to find".into(),
+      );
+      if let Some(hint) = pane_hint(app, rows) {
+        parts.push(hint);
+      }
+    }
+    super::mode::Mode::Menu => {
+      parts.push("letter picks \u{b7} \u{23ce} go \u{b7} ESC close".into())
+    }
+    super::mode::Mode::Field => parts.push("\u{23ce} commit \u{b7} ESC discard".into()),
+    super::mode::Mode::Embed => {}
+  }
+  parts.join("  ")
 }
 
-/// Help for whatever is under the cursor -- **unless something just happened**,
-/// which takes the row.
+/// The dropdown: one line per match, best first, the pick marked and the
+/// matched letters carrying [`Role::Match`] -- the television affordance
+/// that makes a fuzzy list legible rather than magical.
 ///
-/// **AN EDITOR HANDOFF IS THE ONE ACTION WHOSE RESULT IS INVISIBLE.** Every
-/// other keystroke changes the screen. This one gives the terminal away and
-/// comes back to a form that looks identical whether the save landed, was
-/// declined, or was refused -- so a silent return and a silent failure are the
-/// same picture, which is the shape `AC-17.10` spends its whole text on.
-fn info_row(app: &App, rows: &[Row]) -> String {
-  if !app.notice.is_empty() {
-    return app.notice.clone();
+/// **THE LINE IS THE HAYSTACK, VERBATIM, TWO COLUMNS IN** -- built from
+/// `omnibox::haystack` so `Match::positions` map by a constant offset and
+/// cannot drift from the text they highlight.
+fn dropdown(app: &App) -> Vec<(String, layout::Ink)> {
+  use super::layout::Role;
+  if app.mode != super::mode::Mode::Omnibox {
+    return Vec::new();
   }
-  let Some(row) = app.focus.and_then(|f| rows.get(f.index())) else {
-    return String::new();
-  };
-  match row.kind.as_str() {
-    "prose" => "A long value. Enter opens it in $EDITOR.".to_string(),
-    "button" => "Enter opens this in its own pane.".to_string(),
-    "select" => "A closed choice. Enter offers the legal ones.".to_string(),
-    "number" => "A number. Enter edits it in place.".to_string(),
-    _ => "Enter edits this in place.".to_string(),
-  }
+  let m = super::omnibox::matches(&app.index, &app.omnibox.buffer, super::app::MATCH_CAP);
+  let picked = app.omnibox.picked(m.len());
+  // **RENDER ORDER IS REVERSED: BEST LAST, NEAREST THE INPUT.** The input
+  // sits at the bottom, so the adjacent line is where the eye rests -- the
+  // television idiom for a bottom prompt. `Up` walking toward worse matches
+  // is then also literally up the screen.
+  m.iter()
+    .enumerate()
+    .rev()
+    .map(|(i, hit)| {
+      let entry = &app.index[hit.entry];
+      let hay = super::omnibox::haystack(entry);
+      let mark = if picked == Some(i) { "\u{276f} " } else { "  " };
+      let line = format!("{mark}{hay}");
+      let offset = 2;
+      let mut ink: layout::Ink = vec![(0, line.chars().count(), Role::Muted)];
+      ink.push((offset, offset + entry.id.chars().count(), Role::Door));
+      for &p in &hit.positions {
+        ink.push((offset + p, offset + p + 1, Role::Match));
+      }
+      if picked == Some(i) {
+        ink.push((0, line.chars().count(), Role::Selected));
+      }
+      (line, ink)
+    })
+    .collect()
 }
 
 /// Drive the TUI until the operator quits.
@@ -287,6 +348,22 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
         }
         Err(why) => app.notice = why.to_string(),
       },
+      // The edit opens on the RAW value or not at all.
+      Step::ReadField(h) => match source.read(&h) {
+        Ok(value) => app.begin_edit(h, value),
+        Err(why) => app.abort_edit(why.to_string()),
+      },
+      // **THE RE-READ IS UNCONDITIONAL** -- same rule as the handoff: the
+      // store is the authority on what the write did, and a repaint from the
+      // in-memory rows is a repaint from before it.
+      Step::WriteField(h, value) => {
+        app.notice = match source.write(&h, &value) {
+          Ok(()) => format!("{} saved", h.field),
+          Err(why) => why.to_string(),
+        };
+        rows = source.rows(app.stack.current());
+        app.refocus(rows.len());
+      }
       // **`AC-17.8`: THE ARTEFACT IS OPENED IN PLACE, AND A GENERATED VIEW IS
       // REFUSED BY NAME.** No scratch file and no read-back -- the editor
       // writes the artefact directly, so there are no bytes of the operator's
@@ -419,35 +496,34 @@ mod tests {
     }
   }
 
-  /// The status row names the row in context, and the INFO row changes with it
-  /// -- *help for whatever is under the cursor, right now*.
+  /// The hint line follows the cursor -- position, and the one verb Enter
+  /// means on THIS row -- which is the collapsed foot doing the work the
+  /// STATUS and INFO rows used to split between them.
   #[test]
-  fn the_status_and_info_rows_follow_the_cursor() {
+  fn the_hint_line_follows_the_cursor() {
     let r = rows();
     let mut app = App::explore();
+    app.mode = Mode::Nav;
     app.point_at(r.len());
     let first = screen_for(&app, &r, 60);
     assert!(
-      first.status.contains("title"),
-      "the status row does not name the selected row"
-    );
-    assert!(
-      first.status.contains("1/4"),
-      "the status row does not say where the cursor is"
+      first.hint.contains("1/4"),
+      "the hint line does not say where the cursor is: {:?}",
+      first.hint
     );
 
     app.focus = app.focus.map(super::super::focus::Focus::forward);
     app.focus = app.focus.map(super::super::focus::Focus::forward);
     let third = screen_for(&app, &r, 60);
-    assert!(third.status.contains("objective"));
-    assert!(third.status.contains("3/4"));
+    assert!(third.hint.contains("3/4"));
     assert_ne!(
-      first.info, third.info,
-      "the INFO row did not change with the cursor"
+      first.hint, third.hint,
+      "the hint line did not change with the cursor"
     );
     assert!(
-      third.info.contains("$EDITOR"),
-      "a prose row must say where Enter takes you"
+      third.hint.contains("$EDITOR"),
+      "a prose row must say where Enter takes you: {:?}",
+      third.hint
     );
   }
 
@@ -456,14 +532,16 @@ mod tests {
   #[test]
   fn an_empty_view_still_carries_its_chrome_and_its_mode() {
     let mut app = App::explore();
+    app.mode = Mode::Nav;
     app.point_at(0);
     let screen = screen_for(&app, &[], 40);
     let lines = screen.compose(0, 12);
     assert_eq!(lines.len(), 12);
     assert!(lines.iter().any(|l| l.contains(app.mode.name())));
     assert!(
-      screen.info.is_empty(),
-      "an empty view must not offer help about a row that is absent"
+      !screen.hint.contains("\u{23ce}"),
+      "an empty view must not offer a verb about a row that is absent: {:?}",
+      screen.hint
     );
   }
 
@@ -494,20 +572,23 @@ mod tests {
     );
   }
 
-  /// The command row is the one place four different modes each say something
-  /// different, so it is asserted as four distinct strings rather than as
-  /// "non-empty".
+  /// The omnibox line is the one place four different modes each say
+  /// something different, so it is asserted as four distinct strings rather
+  /// than as "non-empty".
   #[test]
-  fn the_command_row_says_something_different_in_every_mode_that_uses_it() {
+  fn the_omnibox_line_says_something_different_in_every_mode_that_uses_it() {
     let mut seen: Vec<String> = Vec::new();
     for mode in [Mode::Omnibox, Mode::Nav, Mode::Menu, Mode::Embed] {
       let mut app = App::explore();
       app.mode = mode;
-      let line = screen_for(&app, &[], 80).command;
-      assert!(!line.is_empty(), "{mode:?} puts nothing on the command row");
+      let line = screen_for(&app, &[], 80).omnibox;
+      assert!(
+        !line.is_empty(),
+        "{mode:?} puts nothing on the omnibox line"
+      );
       assert!(
         !seen.contains(&line),
-        "{mode:?} shares a command row with another mode: {line:?}"
+        "{mode:?} shares an omnibox line with another mode: {line:?}"
       );
       seen.push(line);
     }
@@ -600,36 +681,137 @@ mod tests {
   /// across that is wired and unlabelled is a way across nobody finds*, which
   /// was a real defect on the APP row one level up.
   #[test]
-  fn the_status_row_offers_the_crossing_only_where_there_is_one() {
+  fn the_hint_line_offers_the_crossing_only_where_there_is_one() {
     let rows = vec![
       Row::new("title", "ST0056", "text"),
       Row::new("status", "wip", "select").expanding_to(vec![Row::new("legal", "done", "text")]),
     ];
     let mut app = App::explore();
+    app.mode = Mode::Nav;
     app.point_at(rows.len());
 
-    let plain = screen_for(&app, &rows, 80).status;
+    let plain = screen_for(&app, &rows, 80).hint;
     assert!(
       !plain.contains("TAB"),
       "a row with no detail offered a crossing: {plain:?}"
     );
 
     app.focus = app.focus.and_then(|f| f.at(1));
-    let offered = screen_for(&app, &rows, 80).status;
+    let offered = screen_for(&app, &rows, 80).hint;
     assert!(
       offered.contains("TAB detail"),
       "a row carrying detail did not say how to reach it: {offered:?}"
     );
 
     app.wants_detail = true;
-    let inside = screen_for(&app, &rows, 80).status;
+    let inside = screen_for(&app, &rows, 80).hint;
     assert!(
       inside.contains("TAB list"),
       "the detail pane did not say how to get back: {inside:?}"
     );
     assert!(
       inside.contains(app.mode.name()),
-      "the hint displaced the mode, which is the one thing the status row must always carry"
+      "the hint displaced the mode, which is the one thing the hint line must always carry"
+    );
+  }
+  fn key(code: KeyCode) -> crossterm::event::KeyEvent {
+    crossterm::event::KeyEvent::new(code, crossterm::event::KeyModifiers::NONE)
+  }
+
+  fn esc() -> crossterm::event::KeyEvent {
+    key(KeyCode::Esc)
+  }
+
+  /// **THE DROPDOWN IS THE OMNIBOX'S HALF OF THE SCREEN CONTRACT**: typing
+  /// puts the matches above the input, best first, the pick wearing the
+  /// caret and the Selected overlay, matched letters inked [`Role::Match`],
+  /// and every line vanishing the moment the mode leaves OMNIBOX -- a
+  /// dropdown that outlives its input is a menu nobody opened.
+  #[test]
+  fn typing_in_the_omnibox_offers_matches_above_the_input_and_nav_clears_them() {
+    use super::super::layout::Role;
+    use super::super::omnibox::Entry;
+    let mut app = App::explore();
+    app.index = vec![
+      Entry {
+        id: "ST0056".into(),
+        title: "Add a Rust-based CLI".into(),
+        status: "wip".into(),
+        door: View::Item {
+          kind: "thread".into(),
+          id: "ST0056".into(),
+        },
+      },
+      Entry {
+        id: "0056".into(),
+        title: "an issue sharing digits with a thread".into(),
+        status: "open".into(),
+        door: View::Item {
+          kind: "issue".into(),
+          id: "0056".into(),
+        },
+      },
+    ];
+    for c in "56".chars() {
+      app.on_key(key(KeyCode::Char(c)), &[]);
+    }
+    let screen = screen_for(&app, &[], 80);
+    assert_eq!(
+      screen.dropdown.len(),
+      2,
+      "both carriers of `56` are offered"
+    );
+    // Best LAST -- nearest the bottom input -- and the best is `0056`, whose
+    // earlier first-hit outranks `ST0056` under the stated weights.
+    let (best, best_ink) = &screen.dropdown[1];
+    assert!(
+      best.starts_with("\u{276f} "),
+      "the pick wears the caret: {best:?}"
+    );
+    assert!(best.contains("0056"), "{best:?}");
+    assert!(
+      best_ink.iter().any(|&(_, _, r)| r == Role::Match),
+      "the matched letters are inked so the list is legible: {best_ink:?}"
+    );
+    assert!(
+      best_ink.last().map(|&(_, _, r)| r) == Some(Role::Selected),
+      "the pick is overlaid last so it wins the row's own ink"
+    );
+    assert!(
+      screen.dropdown[0].0.contains("ST0056"),
+      "the worse match sits farther from the input: {:?}",
+      screen.dropdown[0].0
+    );
+
+    // The lines reach the composed screen directly above the bottom rule.
+    let lines = screen.compose(0, 20);
+    assert!(
+      lines[20 - 4].contains("0056") && lines[20 - 5].contains("ST0056"),
+      "the dropdown must sit above the bottom rule, best match nearest the input:\n{lines:#?}"
+    );
+
+    // And Esc to NAV clears it.
+    let mut app = app;
+    app.on_key(esc(), &[]);
+    let screen = screen_for(&app, &[], 80);
+    assert!(
+      screen.dropdown.is_empty(),
+      "the dropdown outlived the omnibox"
+    );
+  }
+  /// **A NOTICE THAT NEVER REACHES THE SCREEN IS A SILENT FAILURE WEARING A
+  /// GREEN'S CLOTHES** -- driven after a pty run showed three write-path
+  /// notices vanishing. The hint line must carry a standing notice in every
+  /// mode that can stand one.
+  #[test]
+  fn a_standing_notice_reaches_the_hint_line() {
+    let mut app = App::explore();
+    app.mode = Mode::Nav;
+    app.notice = "title saved".into();
+    let hint = screen_for(&app, &[], 80).hint;
+    assert!(
+      hint.contains("title saved"),
+      "the notice did not reach the hint line: {hint:?}"
     );
   }
 }
