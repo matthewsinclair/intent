@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-30 19:47Z
-status: paused
-focus: "FOLDED 2026-08-30, pre-fold at .history/20260830/wip-fold-1947Z.md. AC-08.8 closed by vc at 99d5d8d1; AC-08.9 built and green at 41f07d45 -- intentd serves the turtle on 51737 and one port carries both protocols. HOLD: the arm-6b guard fix is worktree-only and waits on ic committing tui-design.md. Next: AT-08.4/AT-08.7 authoring, then backup.enabled."
+heartbeat_at: 2026-08-30 20:25Z
+status: active
+focus: "Guard landed 9fb602a1 (three homes, only the third load-bearing). Binary-resolution fix landed 238b7007 -- 20 arms were spawning a binary cargo did not build for them. backup.enabled is BUILT, GREEN and CONTROLLED AT BOTH LAYERS, waiting on vc's in-flight absent_at_check.sh pair. WP-08 AT column measured: four closures, one cause."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 ---
 
@@ -13,47 +13,50 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 
 ## DOING
 
-**`AC-08.9` IS BUILT AND GREEN AT `41f07d45`.** `http://127.0.0.1:51737/` answers a shell page carrying the mark; `POST /op` answers the SAME `dispatch` the socket answers. Six tests through a real `intentd`.
+**`backup.enabled` IS BUILT AND GREEN AND CANNOT COMMIT YET.** Field on `BackupConfig` defaulting true, one reader in `backup::due`, new `Due::Disabled`, six arms. **281 pass in intentsvcs+intentd.** Blocked on vc's `absent_at_check.sh` being staged-but-not-in-HEAD, which `runner_roster_check.sh` correctly reds as an in-flight pair.
 
-- **BOTH OF MY TRANSPORT READINGS WERE WRONG AND THE MEASUREMENT THAT KILLED THEM IS `candidates_under`:** unix is ALWAYS first and TCP is APPENDED, so that port is **the socket's UNDERSTUDY**, reached exactly when the socket is what is broken. Giving it to HTTP alone removes a fallback whose whole job is the failure nothing else routes around; a second published port reintroduces _which port_ one level up.
-- **BYTE 0 IS EXACT, NOT CLEVER.** Every framed request begins `{` (the probe included); every HTTP request begins with a method letter; `fetch` cannot help sending a method first. `peek` leaves the byte in the kernel, which is why the frame branch is **untouched** rather than taught to carry a pushback buffer.
-- **SORTED IN A PER-CONNECTION TASK, NEVER IN THE ACCEPT ARM.** Deciding means reading a byte, and a client that connects and says nothing would hold the whole accept loop -- a daemon-wide stall reachable by `nc` and a newline nobody types.
-- **THE SHELL IS UNGATED AND `/op` IS NOT: LOOPBACK IS NOT A PERMISSION BOUNDARY.** Any page the browser is showing can `fetch` it. The token is 0600, written BEFORE the port is published, one per run, compare-and-delete on drop.
-- **51737 IS A PREFERENCE, NEVER A PROMISE**, so D6 is intact: ask for it, fall back to a kernel port, publish what was bound. Parallel tests already exercise the fallback.
-- **HALF THIS CRITERION WAS BUILT BY ic BEFORE I NEEDED IT** -- `form::triples` and `nav::View`, landed today for a reason about a third row. Recorded rather than quietly consumed.
+- **THE THREE ARMS THAT MATTER ASSERT WHAT IT DOES NOT DO.** A gate is easy to write and easy to over-apply, and an over-applied one fails where nobody looks: `intent backup` silently declining, doctor going quiet about a year-old backup. `cycle` and doctor are both ungated, deliberately.
+- **ABSENCE-IS-ENABLED IS DRIVEN TWICE**, from a `backup` block omitting the key AND from a config with no block at all. Two different serde paths, and this estate has already shipped a version where typing one field silently emptied the reader of another in the same struct.
+- **CONTROLLED AT BOTH LAYERS.** Removing the gate in `due` reds exactly one arm and leaves eighteen green -- which is also the evidence it reaches nothing else. Making `consider_backup`'s arm fall through to `cycle` reds the end-to-end arm through a real `intentd`: **exhaustiveness makes the compiler force you to HANDLE a variant, never to handle it correctly.**
+- **THE FLAG HAD TO BE RENAMED.** `said_it_cannot_be_scheduled` was accurate for the only case that existed and would have been quietly wrong for the second; it is `said_why_it_is_not_backing_up`.
 
 ## TODO
 
-- **HOLD -- `shared_artefact_build_guard.sh` IS WORKTREE-ONLY AND CANNOT BE COMMITTED YET.** The fix is right and all 15 arms pass, so **everyone is unblocked by the worktree copy**. It is a recorded ST0056 attachment, so canon must carry its new bytes in the same commit -- and the canon extract currently also carries **ic's uncommitted `tui-design.md`**. Waits on ic landing that file. **Do not commit canon before then.**
-- **`AT-08.4` and `AT-08.7` are `to-write` and their cited paths do not exist.** My tests are real and green at `crates/intent-cli/tests/daemon_lifecycle.rs`; the rows cite `crates/intentd/tests/`. **The features are built, the AT rows are not authored, and the citation is wrong about the directory** -- because a package's integration tests can only build ITS OWN binaries, and `daemon start`/`stop`/`--at-login` are the `intent` binary. Same reason `daemon_and_local_agree.rs` lives there and says so.
-- **`backup.enabled` IS RATIFIED AND HAS ZERO READERS** -- vc ruled it LIVE and it is mine to implement. It gates the daemon sweep and NOTHING else: not `intent backup`, not doctor staleness, not `BackupFailing`. The ratified shape is three switches and one does not exist.
-- **`AC-08.9` follow-on is ic's, not mine.** The UI goes on `/op`; building it here would take WP-17's criterion.
+- **`AT-08.4` / `AT-08.7` / `AT-08.9` citations are SENT to vc and are vc's to apply.** All three re-cite to `intent-cli/tests/`. 08.4 and 08.7 will cite the SAME file, so they need arm-level naming or greening one greens the other by inspection.
 - **WP-13 (search, XL)** stays claimed and unbuilt; hv sequenced it post-tag.
+- **`AC-08.9` follow-on is ic's** and they have taken it -- `AC-17.1` moved from blocked to buildable on the `/op` door.
 
 ## Watch-outs
 
-**AN UNTRACKED FILE CAN CHANGE WHAT A SHARED GUARD SAYS ABOUT EVERY NODE, WITH NO SIGNAL TO ITS AUTHOR.** My untracked `web.rs` embedded the logo from `docs/design/`; arm 6b refused, and **the refusal landed on vc**, because the guard runs at commit and my last commit predated the file.
+**A PRIVATE `GIT_INDEX_FILE` CLOSES THE SHARED-INDEX CLASS THE BOARD HAD CALLED UNCLOSABLE, AND IT IS NOT FREE.** `read-tree HEAD`, `apply --cached` a filtered patch, `add`, commit. **`--only` gives path granularity and forces the whole file; `apply --cached` gives hunk granularity and forces the whole index; a private index gives BOTH.** Proved live: dc committed `1e19bdbb` between my reading the ambient index and my own commit, and it was a non-event.
 
-**AND WIDENING THE DECLARED HOMES DID NOT FIX IT, BECAUSE THE RULE HAD A THIRD HOME.** The list, the list's shell twin, and a hardcoded `case` inside the arm that recognised exactly one directory. **Only the third decided the verdict**, so widening the first two looked correct, read correctly, and did nothing. A guard whose own message says _the declared scope does not cover them_ could not answer that question.
+**AND IT NEEDS A HEAD PIN OR IT CONVERTS A LOUD FAILURE INTO A SILENT ONE** (vc's ruling, on ic's near-miss: they built an index from `read-tree HEAD`, two commits landed before theirs, and it would have **silently reverted both** -- the roster gate's unrelated red is the only thing that stopped it. ic's words: _luck wearing a green's clothes_). **My own two are verified clean** -- `9fb602a1` on `1e19bdbb` and `238b7007` on `4640eab9`, each diffing to only my files -- **and that was ordering luck, not design.**
 
-**THE TWO SHARED-INDEX MITIGATIONS ARE INDIVIDUALLY CORRECT AND MUTUALLY EXCLUSIVE.** `git commit --only` gives PATH granularity and forces you to take the whole file; `git apply --cached` gives HUNK granularity and forces you to commit the whole INDEX. **In a file two people are editing while a third has something staged, no move is safe on both axes, and neither party can see the other's constraint from their own side.** That is the tooling running out, not anyone's discipline. It cost three nodes' states lining up to land one hunk. **The one countermeasure with a clean record all day is a message sent first.**
+**THE PIN HAS TO BE ON BOTH SIDES OF THE GATE, AND THE RULED HALF IS THE LESS IMPORTANT ONE.** Checking HEAD before `git commit` closes the window between `read-tree` and staging, which is milliseconds. **The pre-commit gate runs between that check and git writing the commit object, and git resolves the parent AFTER the hooks** -- so a peer landing during the machine table, the 301 view comparisons and the 15-arm census gets a new HEAD as my parent while my tree is the old one. **A pre-check alone makes the technique feel safe across the window where it is least safe.** So: `base=$(git rev-parse HEAD)` before `read-tree`, refuse if HEAD moved before staging, and **after committing assert `HEAD^ == base`.** The post-verify does not prevent the reversion; it makes it LOUD -- which is the property `--only` had for free via `cannot lock ref 'HEAD'` and which a private index removes along with the contention.
 
-**THE GATE'S FORMATTER REFUSALS RE-OPEN THE WINDOW THEY ARE PROTECTING.** `prettier`, then `rustfmt`, each a separate refusal -- so _stage, refuse, format, re-stage, commit_ is four index operations where the mitigation assumes one.
+**THE CLASS HAS THREE MEMBERS AND ONE IS CLOSED.** Contention (closed by `--only`, or by a pinned private index); COHERENCE (not closeable by the committer -- a half-landed pair is incoherent however carefully you scope); and REVERSION, which neither addresses. vc measured the third: `at.set` then `sync_from_disk` 1.2s later took their green AND the file-path correction, **and the row looked untouched afterwards.** D01 says the store is SSOT and `sync_from_disk` inverts it for one call. **Announce any disk->store sync before running it.**
 
-**`cargo test -p intent-cli` DOES NOT REBUILD `intentd`.** A control that cannot fail certifies a test that cannot fail. Always `cargo build -p intentd` first.
+**ITS COST, WHICH I CAUSED AND HAD TO CLEAN: THE COMMIT MOVES HEAD WHILE THE AMBIENT INDEX KEEPS THE PRE-COMMIT ENTRIES**, so `git status` reads `MM` and **the ambient index becomes a silent REVERSION of your own commit, waiting for the next plain `git commit` by anyone.** `git reset -q HEAD -- <paths>` clears it, no worktree bytes touched. It converts a contention hazard into a staleness hazard and the second one is quieter.
 
-**A UNIX SOCKET PATH HAS A LENGTH LIMIT AND THE SCRATCHPAD EXCEEDS IT.** A fixture `HOME` under the session scratchpad fails `SUN_LEN` at 143 bytes; `RealDaemon` uses `short_dir` for exactly this.
+**AND IT DOES NOT ESCAPE THE OTHER HALF, WHICH IS THE MORE IMPORTANT FINDING.** Isolation is _do not take a peer's bytes_ and is solvable by tooling. **COHERENCE is _the tree I commit must make sense_, and a half-landed pair is incoherent however carefully I scoped my paths.** `--only` has the identical property and `runner_roster_check.sh` says so in its own text. **Only one half of the class is closable by the committer.**
 
-**A WELL-TESTED FUNCTION ON AN UNTESTED PATH.** `backup_retention.rs` drove the buckets hard and passed its own `Retention` in by hand every time -- structurally blind to whether the value ever came from config. **Good coverage of the destination is what made the missing road invisible.**
+**A GUARD'S AUTHORITY IS ITS MEMBERSHIP RULE, NEVER ITS NAME -- THIRD INSTANCE TODAY, THREE DIFFERENT ARTEFACTS.** vc's `populations.self_loop`; my arm 6b's hardcoded `case`; dc reading `table_driven_tests_fixture_their_home` as the guard over binary resolution when its rule is _does this spawn the binary at all_, for HOME fixturing. **In all three the name was a plausible description of the wrong set, and in all three the reader was careful.**
 
-**`#[serde(flatten)]` GIVES A CATCH-ALL ONLY THE KEYS NO NAMED FIELD CLAIMED.** Typing `backup` for `schedule`'s sake silently emptied `extra` for the retention reader in the same file.
+**AN UNTRACKED FILE CAN CHANGE WHAT A SHARED GUARD SAYS ABOUT EVERY NODE, WITH NO SIGNAL TO ITS AUTHOR.** My untracked `web.rs` embedded from `docs/design/`; arm 6b refused and **the refusal landed on vc**, because the guard runs at commit and my last commit predated the file.
+
+**THE BINARY ON PATH IS NOT THE BINARY YOU BUILT, IN BOTH DIRECTIONS.** `~/.local/bin/intentd` has no web face; only `target/cc/debug/intentd` does, until `bin/devbin build all`. And 20 test arms were spawning `target/debug/intent` while cargo built `target/cc/debug/intent` -- **a private target dir INSIDE `target/` converts a crash into a wrong answer.**
+
+**`cargo test -p intent-cli` DOES NOT REBUILD `intentd`.** A control that cannot fail certifies a test that cannot fail. `cargo build -p intentd` first.
+
+**A UNIX SOCKET PATH HAS A LENGTH LIMIT AND THE SCRATCHPAD EXCEEDS IT** -- `SUN_LEN` at 143 bytes. `RealDaemon` uses `short_dir` for exactly this.
+
+**rustfmt NEEDS `--edition 2024` HERE.** `--edition 2021` fails on let-chains with an error that looks like a code defect and formats nothing.
 
 ## Decisions
 
-- (2026-08-30) **One published port, both protocols, disambiguated at byte 0** -- vc's ruling on my two readings, and the understudy measurement is why both were wrong.
-- (2026-08-30) **The HTTP body is `wire::frame`'s bytes** -- no second serialiser, and `serde_json` stays out of `intentd`'s manifest.
-- (2026-08-30) **`/op` binds per REQUEST where the socket binds per CONNECTION**, and that is faithful: the rule exists so a connection cannot WANDER, and an HTTP request has no history to depend on.
-- (2026-08-30) **`Op::Shutdown` is refused over HTTP** -- a page must not be able to end the daemon on a token it read.
-- (2026-08-30) **`backup::cycle` is the one composer of a snapshot and its prune**; `take`/`prune` stay public for unit coverage, because a TEST calling both is not a second implementation.
-- (2026-08-30) **The retention keys are ic's, typed as `backup.retain.{daily,weekly,monthly}`**, monthly default corrected 6 -> 12.
-- (2026-08-30) **`daemon start` on a running daemon exits 0** -- the fact lives in `basis` with its measurement, NOT in `populations.self_loop`.
+- (2026-08-30) **`backup.enabled` gates the sweep and nothing else** -- `cycle` ungated so `intent backup` still works, doctor ungated so staleness is still reported. vc's homonym ruling.
+- (2026-08-30) **`Due::Disabled` is checked BEFORE `schedule`**, so an inert `backup.schedule` is not announced as a defect; doctor still reports it on its own path.
+- (2026-08-30) **The binary-resolution guard is a NEW file, not an arm of the HOME guard** -- a binary-resolution arm inside `..._fixture_their_home` would be a home whose name does not describe its contents.
+- (2026-08-30) **Attachments are AUTHORED and no sync direction rewrites them.** `--to-store` takes the EXTRACT, is destructive, and bare replaces the whole store: scope it to the thread.
+- (2026-08-30) **One published port, both protocols, disambiguated at byte 0**; the HTTP body is `wire::frame`'s bytes; `Op::Shutdown` refused over HTTP.
+- (2026-08-30) **51737 is a preference, never a promise** -- ask for it, fall back to a kernel port, publish what was bound.
