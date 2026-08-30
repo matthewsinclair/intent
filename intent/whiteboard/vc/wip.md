@@ -3,10 +3,10 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-30 12:50Z
+heartbeat_at: 2026-08-30 13:20Z
 status: active
 focus: "LOCALFOLD 2026-08-30 12:48Z, pre-fold at .history/20260830/wip-fold-1247Z.md. hv is AFK and vc holds the pen. SCOPE RULING PERFORMED: ST0069 carries 25 never-started criteria, re-minted there because descope records a move and does not carry the requirement. AC-00.9 CLOSED (payload citations 93 across 27 files to zero); AC-00.16 minted from dc's sentence; AC-17.11 corrected to the ratified design. THREE RULINGS QUEUED ON INBOX FILES because a message does not survive a bounce: cc AC-08.2, ic explore + AC-17.11, dc nothing owed."
-claims: [ST0056, ST0057, ST0058, ST0060, ST0064, ST0066, ST0068]
+claims: [ST0056, ST0057, ST0060, ST0064, ST0066, ST0068]
 ---
 
 # Validation Claude (vc)

@@ -919,3 +919,15 @@ I had those as two unrelated findings. **They are one property of the delivery m
 **The red is accurate and dc is holding it until you rule.**
 
 **AND ONE DEFECT OF MINE THAT REACHED THE SHIPPED SURFACE, REPORTED BECAUSE IT DID.** My IN-SH-CODE-001 fix to `claude_plugin_helpers.sh` broke `claude subagents install --all` -- it installed ONE of nine for fifty minutes until dc found it. The globbing half was right; the reading half used a here-string that reads one line, and the subagents callback emits newline-separated names while the skills callback emits space-separated. **Two implementations of one contract, disagreeing, and the permissive splitter I replaced had been absorbing the disagreement invisibly.** dc fixed it and corrected the CONTRACT to what both actually emit. Nothing shipped; it was caught inside the same session.
+
+## (2026-08-30 13:20Z) FYI only -- no response needed.
+
+**`AC-07.7` IS PRE-VERIFIED AGAINST SOURCE AND THE TAG WILL CLOSE WP-07 -- worth knowing BEFORE the cut rather than discovering it at the cut** (dc, driven without a keg).
+
+**The packaging half holds with zero uncovered.** `SUPPORT_PATHS` carries `lib/templates`, `intent/plugins/claude/rules`, `intent/plugins/claude/skills` and `intent/plugins/claude/bin/intent_claude_cwi`; `resolved_install_paths` -- **the REAL function from `bin/.devbin/cmd/macos`, not a substitute** -- yields all of them plus `intent/plugins`.
+
+**AND THE LIMIT IS STATED, WHICH IS WHAT MAKES IT USEFUL RATHER THAN REASSURING: this verifies the copy LIST covers every resolver. It does NOT verify the keg was built from this code, or that the formula installs it correctly.** Only a real keg proves those, so the necessary condition is met and the sufficient one still needs your hand.
+
+**ONE THING TO HAVE IN WRITING BEFORE ANYONE COMPARES THE KEG TO THE TREE: six of the seven scripts in `plugins/claude/bin/` are deliberately NOT shipped.** v3 resolves exactly one (`install.rs:361`), you ruled it the one surviving the cut (`install.rs:352`), and shipping the directory would carry six v2 scripts nothing executes. **A reader will see six absences that are all correct**, which is exactly the shape someone helpful fixes at 2am.
+
+**WORK ASSIGNMENT, RECORDED BECAUSE IT MOVES A THREAD BETWEEN NODES: vc has handed ST0058 ENTIRE to dc** and dropped it from vc's claims. All four remaining rows are `non-test` and the work is DRIVING rather than writing, which is dc's whole day; `AC-00.1` reuses machinery they built this afternoon, and `AC-00.5` you already ruled on 2026-08-25. **vc keeps ST0068**, whose rows are authorial and adjudicative. dc had run out of work that was not tag-gated, and ST0058 binds the cut under your option (A).
