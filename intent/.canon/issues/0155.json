@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 155,
+  "slug": "rule-validator-bats-asserts-an-absolute-corpus-w",
+  "title": "rule_validator.bats asserts an absolute corpus-wide failure count inside a test about duplicate ids",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-30",
+  "reporter": "Matthew Sinclair",
+  "body": "**`tests/unit/rule_validator.bats:82` asserts `2 failed` -- an ABSOLUTE COUNT over the whole rule corpus -- inside a test whose subject is duplicate IDs.**\n\nThe test plants two duplicate-id rules and expects the validator to report exactly two failures. It therefore passes only while every OTHER rule in the corpus validates clean, so **any unrelated real defect anywhere in the library breaks a test about duplicate IDs**, and the failure message names neither the duplicates nor the real defect.\n\n**MEASURED 2026-08-30.** `IN-AG-FIAT-001` landed missing five required sections. The duplicate-ids test went red reporting `Expected output to contain: 2 failed` and printed a per-rule listing in which the two planted duplicates are invisible and the section errors are the only visible content. The estate's shell leg went 6 failures to 7 between the `20260830-0934` and `20260830-0957` runs, and this was the only new one.\n\n**THE REPAIR THAT WOULD HIDE IT.** Adding the five sections to `IN-AG-FIAT-001` makes this test green again while changing nothing about the assertion. **That is the likely course of events and it is why this is filed separately from the rule fix** -- the next real defect in the corpus reproduces it exactly, with the same misleading name attached.\n\n**THE SHAPE:** a test that scopes its assertion to the whole corpus while scoping its NAME to two planted rows. What it should assert is a DELTA -- that the two planted ids are each named in the output -- which is invariant under unrelated failures and actually tests duplicate detection. This estate's own convention already says it: avoid brittle count assertions, test behaviour and deltas, not absolute numbers.\n\n**NOT A REGRESSION AND NOT URGENT.** The assertion has been this way since the test was written; it has simply never had an unrelated failure to expose it.\n"
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 156,
+  "slug": "rules-validate-ships-working-in-the-shell-estate",
+  "title": "rules validate ships working in the shell estate and is declared-unimplemented in v3",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-30",
+  "reporter": "Matthew Sinclair",
+  "body": "**A WORKING RULE VALIDATOR SHIPS IN THE SHELL ESTATE AND `intent claude rules validate` IS DECLARED-AND-UNIMPLEMENTED IN v3.**\n\n`tests/unit/rule_validator.bats` drives a validator that walks the whole rule corpus and prints a per-rule `ok` / `error: ...` listing. It works: on 2026-08-30 it caught `IN-AG-FIAT-001` missing five required sections, within the hour of the rule landing, naming each section.\n\nv3's equivalent refuses. Positive-controlled against a verb that certainly does not exist:\n\n    intent claude rules validate    -> rc=2  \"a known command that is not implemented yet\"\n    intent claude rules bogusverb   -> rc=1  \"unrecognized subcommand\"\n\nTwo exit codes, two messages -- so this is a PORT GAP, not an absence. **The register tracks declared-and-unimplemented as a state and that is the state this is in.**\n\n**WHAT THE SHELL VALIDATOR DOES AND DOES NOT ENFORCE, measured rather than assumed.** It enforces the required section structure. It does NOT enforce the `concretised_by` clause: `IN-AG-RED-CONTROL-001` reports `ok` carrying zero entries against a schema requiring two. So porting it as-is would carry that hole across.\n\n**WHY IT MATTERS BEYOND PARITY.** `intent/docs/rules.md` documents the validator's checks under a heading saying **\"Run before every rule commit. The validator is fast\"** -- a shipped doc instructing readers to run a v3 verb that refuses. The 2026-08-30 schema amendment added two more criteria to that list. So the doc's check-list is growing against a verb that cannot run it, and the only thing actually enforcing any of it is a bats test in the v2 tree that a consuming project never sees.\n\n**SCOPE:** WP-06, CLI parity long tail. The shell implementation is the specification; the two unenforced schema clauses (procedural rules' `applies_when`, pattern rules' `concretised_by` >= 2) are new work rather than port work and should be named separately if they are wanted.\n"
+}
