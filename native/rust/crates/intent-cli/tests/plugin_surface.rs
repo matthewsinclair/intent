@@ -6,20 +6,32 @@
 //! # The one deliberate departure, and why it is pinned here
 //!
 //! v2's `plugin show` ends with `Run 'intent help <name>' for full command
-//! documentation.` **`intent help` is RETIRED in v3** and refuses at exit 2
-//! with *there is no v3 replacement*. Porting that line faithfully would ship a
-//! remedy pointing at a verb this binary answers by refusing -- AC-06.11's
-//! class, arriving through `as-observed` FIDELITY rather than through
-//! carelessness, which is the direction nobody is watching.
+//! documentation.` Porting that line faithfully would ship a remedy pointing at
+//! a spelling this binary does not answer -- AC-06.11's class, arriving through
+//! `as-observed` FIDELITY rather than through carelessness, which is the
+//! direction nobody is watching.
 //!
-//! So the line is dropped, and `no_line_sends_the_reader_to_a_retired_verb`
-//! asserts BOTH halves: that `intent help` really does refuse, and that nothing
-//! `plugin` prints points at it. **Coupling the two is deliberate.** The reason
-//! the line was dropped is that `help` is retired; if that ever stops being
-//! true, this test fails and sends someone back to the decision. A test that
-//! only asserted the absence would keep passing after its own premise expired,
-//! which is the failure mode this thread has paid for repeatedly -- a remedy
-//! that was true when written and is caught by nobody when it stops being.
+//! # THE PREMISE MOVED ON 2026-08-30 AND THE CONCLUSION DID NOT
+//!
+//! This file used to say `intent help` is RETIRED and refuses at exit 2. **That
+//! stopped being true**: hv ruled `help` into the 3.0.0 cut and `intent help`
+//! now answers rc=0, byte-identical to `intent --help`. The coupling below did
+//! its job -- the test went red on its own PREMISE and sent someone back to the
+//! decision rather than being quietly edited green.
+//!
+//! **Re-decided, and the line STAYS DROPPED for a narrower reason than before.**
+//! hv ruled `help` in at the ROOT ONLY; the per-command `<cmd> help` shape is
+//! recorded and POST-TAG. v2's line names `intent help <name>`, which is
+//! exactly the spelling that does not exist: `intent help claude` is rc=1
+//! *unexpected argument*. So the remedy would still send the reader somewhere
+//! that fails -- the verb is no longer retired, the ARGUMENT is what is absent.
+//!
+//! The assertion below therefore moves to the premise that actually governs the
+//! decision. It is not "`help` refuses" -- that is spent -- it is "the spelling
+//! v2's line names does not work". **That premise expires the day hv's post-tag
+//! `<cmd> help` lands, and this test fails again and sends someone back here
+//! again**, which is the whole point of coupling the two halves. A test that
+//! only asserted the absence would keep passing after its own premise expired.
 
 use std::process::{Command, Output};
 
@@ -94,20 +106,36 @@ fn show_reports_the_manifest_and_where_it_was_found() {
   );
 }
 
-/// **NOTHING `plugin` PRINTS MAY SEND THE READER TO A VERB THAT REFUSES.**
+/// **NOTHING `plugin` PRINTS MAY SEND THE READER TO A SPELLING THAT FAILS.**
 ///
-/// Both halves are asserted together on purpose -- see this file's header. If
-/// `intent help` is ever un-retired, the first assertion fails and the dropped
-/// line becomes a decision to revisit rather than a silent absence.
+/// Both halves are asserted together on purpose -- see this file's header. The
+/// premise is the ARGUMENT form `intent help <name>`, which is what v2's
+/// dropped line actually names; bare `intent help` answers rc=0 since
+/// 2026-08-30 and is not what this test is about. If the per-command form ever
+/// lands, the first assertion fails and the dropped line becomes a decision to
+/// revisit rather than a silent absence.
 #[test]
-fn no_line_sends_the_reader_to_a_retired_verb() {
-  let help = run(&["help"]);
+fn no_line_sends_the_reader_to_a_spelling_that_fails() {
+  // The bare verb is asserted FIRST, as an anti-vacuity arm: if `help` were
+  // retired again the argument form would also fail, and this test would pass
+  // for a reason that has nothing to do with what it is checking.
+  let bare = run(&["help"]);
   assert_eq!(
+    bare.status.code(),
+    Some(0),
+    "anti-vacuity: bare `intent help` must ANSWER, or the argument-form check \
+     below passes for the wrong reason.\nstderr: {}",
+    String::from_utf8_lossy(&bare.stderr)
+  );
+
+  let help = run(&["help", "claude"]);
+  assert_ne!(
     help.status.code(),
-    Some(2),
-    "this test's PREMISE is that `intent help` is retired. It is not refusing any \
-     more, so the line `plugin show` deliberately drops may be portable again -- \
-     go and re-decide it rather than editing this assertion.\nstdout: {}\nstderr: {}",
+    Some(0),
+    "this test's PREMISE is that `intent help <name>` -- the spelling v2's \
+     dropped line names -- does NOT work. It answers now, so the line `plugin \
+     show` deliberately drops is portable again -- go and re-decide it rather \
+     than editing this assertion.\nstdout: {}\nstderr: {}",
     stdout(&help),
     String::from_utf8_lossy(&help.stderr)
   );
