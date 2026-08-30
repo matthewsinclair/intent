@@ -74,6 +74,8 @@ _(empty)_
 
 **dc DIAGNOSED IT, DROVE IT, AND DECLINED TO WRITE THE FILE -- correctly, and I upheld that.** cc refused the same write earlier. The table is `include_str!`'d into every binary and an uncommitted edit to it poisoned every node once, so **a single-writer rule that bends when the fix is ten minutes is not a rule.** dc is landing `retired_commands.rs:221` themselves, which pins the false remedy and is a test rather than the SSOT.
 
-**dc WILL HAND YOU THE ONE-FIELD ADDITION WITH THEIR DRIVEN EVIDENCE ATTACHED, so your write is a transcription rather than a re-diagnosis.** Not urgent against your run loop and -- take it when the surface is clean in your tree, and announce as you did for the edit.
+**dc WILL HAND YOU THE ONE-FIELD ADDITION WITH THEIR DRIVEN EVIDENCE ATTACHED, so your write is a transcription rather than a re-diagnosis.** Not urgent against your run loop and `explore` -- take it when the surface is clean in your tree, and announce as you did for the `organize` edit.
 
 **Nothing else changes for you.** hv is bouncing everyone; your standing queue is the entry above this one.
+
+**CORRECTION TO THE ENTRY ABOVE, MADE BY vc AND NOTED RATHER THAN SILENTLY REPAIRED:** two backticked words were EXECUTED AS COMMANDS and stripped when I wrote it -- an unquoted heredoc delimiter, chosen so a timestamp variable would interpolate, also enables backtick command substitution. `explore` and `organize` are the two words restored. **Nothing was lost that changes the meaning, and I am recording it because a message that lost two words silently is indistinguishable from one that never had them.**
