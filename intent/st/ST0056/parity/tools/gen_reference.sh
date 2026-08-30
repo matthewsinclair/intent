@@ -185,12 +185,25 @@ def md_prose:
 
 def cell: md_prose | gsub("\\|"; "\\|") | gsub("\n"; " ");
 
+# `arity` IS THE ONE CARRIER OF HOW MANY VALUES A SLOT TAKES. `84d51e0b` derived
+# the ellipsis in `spine.rs` and stripped the hand-written `...` out of the
+# register's `value` fields; `86644828` finished the move. Neither touched this
+# generator, so the FLAG renderer below went on emitting `.value` alone and
+# published `--covers <acid>` for a flag clap spells `<acid>...`. Nothing failed
+# -- the page simply became less true, on four flags, silently.
+#
+# So the derivation lives here ONCE and both renderers call it. A second copy is
+# exactly how the flag side came to disagree with the positional side in the
+# first place, and a copy that is merely CHECKED against this one would still be
+# two homes for one rule.
+def decorate($core):
+  if .arity == "0..1" then "[" + $core + "]"
+  elif .arity == "0..n" then "[" + $core + "...]"
+  elif .arity == "1..n" then $core + "..."
+  else $core end;
+
 def usage_arg:
-  .name as $n
-  | (if .arity == "0..1" then "[<" + $n + ">]"
-     elif .arity == "0..n" then "[<" + $n + ">...]"
-     elif .arity == "1..n" then "<" + $n + ">..."
-     else "<" + $n + ">" end);
+  decorate("<" + .name + ">");
 
 # Flags dispositioned `retire` were recorded from v2 and never reach clap, so
 # documenting them would invent surface. `intrinsic` is clap's own `--help`,
@@ -226,7 +239,7 @@ def takes:
   if .type == "bool" then "no"
   else ((.value // .accepts // .type) | tostring) as $v
     | if ($v | test("\\|")) then ([ $v | split("|")[] | bt ] | join(" or "))
-      else ($v | bt) end
+      else (decorate($v) | bt) end
   end;
 
 def flag_rows:
