@@ -1407,6 +1407,7 @@ dependencies = [
  "tempfile",
  "terminal_size",
  "testkit",
+ "thiserror 2.0.20",
  "time",
 ]
 
