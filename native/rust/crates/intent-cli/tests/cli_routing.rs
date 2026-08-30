@@ -664,18 +664,30 @@ fn route_of(candidates: &[Endpoint]) -> Route {
 ///
 /// Three runs of one command against one fixture project, differing only in
 /// whether a daemon is listening at the address the binary itself resolves.
+///
+/// **RE-AIMED 2026-08-30, NOT RELAXED, AND THE DISTINCTION IS THE WHOLE
+/// POINT.** vc ruled that a verb the daemon cannot serve FALLS THROUGH to
+/// in-process rather than refusing -- `design.md:22`'s parenthetical is the
+/// rule's justification and this estate's own measurement refuted it. So the
+/// verb this test drove, `st list`, is no longer governed by the refusal.
+///
+/// **EVERY PROPERTY IT ASSERTED STILL HAS TO HOLD SOMEWHERE, AND DELETING THE
+/// ARM THAT DISAGREED WITH MY OWN CHANGE WOULD HAVE BEEN THE DEFECT.** They now
+/// hold of `sync`, which is where the prohibition is literally true, and the
+/// fallback the ruling created gets its own assertion below rather than being
+/// left uncovered by the change that introduced it.
 #[test]
 fn the_shipped_cli_routes_on_a_live_socket_and_not_otherwise() {
   let project = project();
   let home = tempfile::tempdir().expect("tempdir");
   let socket = socket_path(home.path());
 
-  let run = || {
+  let run_verb = |argv: &[&str]| {
     // Held across the spawn: a `fork` here can leak a sibling test's listening
     // fd into the child and keep a released socket answering. See FORK_GUARD.
     let _no_forks = no_forks_here();
     let out = Command::new(env!("CARGO_BIN_EXE_intent"))
-      .args(["st", "list"])
+      .args(argv)
       .current_dir(project.path())
       .env("HOME", home.path())
       .output()
@@ -686,6 +698,8 @@ fn the_shipped_cli_routes_on_a_live_socket_and_not_otherwise() {
     )
   };
 
+  let run = || run_verb(&["sync", "--to-disk"]);
+
   let absent = run();
   assert!(
     !absent.1.contains("intentd is answering"),
@@ -695,14 +709,30 @@ fn the_shipped_cli_routes_on_a_live_socket_and_not_otherwise() {
 
   let (_endpoint, responder) = live_unix(home.path());
   let routed = run();
+  // **THE ARM THE RULING ADDED, MEASURED IN THE SAME WINDOW AS THE ONE IT
+  // CHANGED.** A shared verb falls through while the very same socket is
+  // answering -- so the two outcomes are attributable to the VERB rather than
+  // to the daemon having come and gone between runs.
+  let fell_through = run_verb(&["st", "list", "--status", "all"]);
   drop(responder);
   fs::remove_file(&socket).expect("remove the fixture socket");
 
   let after = run();
 
   assert_eq!(
+    fell_through.0, 0,
+    "a verb outside the sync family refused while a daemon answered. The store serialises writes, so refusing protects against nothing and costs the operator everything: {}",
+    fell_through.1
+  );
+  assert!(
+    !fell_through.1.contains("intentd is answering"),
+    "the routing refusal reached a verb it no longer governs: {}",
+    fell_through.1
+  );
+
+  assert_eq!(
     routed.0, 2,
-    "a live daemon owns the store and this build has no client, which is exit 2 -- the build cannot answer -- rather than a verdict about the user's project. Got {} with: {}",
+    "a live daemon owns the store and this build has no client to route `sync` through, which is exit 2 -- the build cannot answer -- rather than a verdict about the user's project. Got {} with: {}",
     routed.0, routed.1
   );
   assert!(

@@ -218,6 +218,103 @@ pub fn parse_response(line: &[u8]) -> Result<Response, UnreadableResponse> {
   serde_json::from_slice(line.trim_ascii_end()).map_err(|source| UnreadableResponse { source })
 }
 
+/// Ask a daemon one question and read its answer.
+///
+/// **THE ROUND TRIP LIVES BESIDE THE FRAMING, WHICH IS THE SAME ARGUMENT THAT
+/// PUT THE FRAMING HERE.** A caller doing its own connect-write-read would own
+/// a third opinion about the wire -- the deadline, the newline, what a closed
+/// connection means -- and the failure when those drift is a client that hangs
+/// rather than one that errors.
+///
+/// **A CLOSED CONNECTION IS A FAULT, NOT AN EMPTY ANSWER.** Reading zero bytes
+/// means the daemon accepted and went away, which is exactly what a crash looks
+/// like; treating it as "no result" would report a dead daemon as a project
+/// with nothing in it.
+pub fn ask(endpoint: &crate::daemon::Endpoint, request: &Request) -> Result<Response, AskError> {
+  use std::io::{BufRead, BufReader, Write};
+
+  let framed = frame(request).map_err(AskError::Unsendable)?;
+  let mut line = Vec::new();
+
+  match endpoint {
+    crate::daemon::Endpoint::Unix(path) => {
+      let stream = std::os::unix::net::UnixStream::connect(path).map_err(AskError::Unreachable)?;
+      stream
+        .set_read_timeout(Some(REQUEST_DEADLINE))
+        .map_err(AskError::Unreachable)?;
+      (&stream)
+        .write_all(&framed)
+        .map_err(AskError::Unreachable)?;
+      (&stream).flush().map_err(AskError::Unreachable)?;
+      BufReader::new(&stream)
+        .read_until(b'\n', &mut line)
+        .map_err(AskError::Unreachable)?;
+    }
+    crate::daemon::Endpoint::Tcp(addr) => {
+      let stream = std::net::TcpStream::connect(*addr).map_err(AskError::Unreachable)?;
+      stream
+        .set_read_timeout(Some(REQUEST_DEADLINE))
+        .map_err(AskError::Unreachable)?;
+      (&stream)
+        .write_all(&framed)
+        .map_err(AskError::Unreachable)?;
+      (&stream).flush().map_err(AskError::Unreachable)?;
+      BufReader::new(&stream)
+        .read_until(b'\n', &mut line)
+        .map_err(AskError::Unreachable)?;
+    }
+  }
+
+  if line.is_empty() {
+    return Err(AskError::ClosedWithoutAnswering);
+  }
+  parse_response(&line).map_err(AskError::Unreadable)
+}
+
+/// How long a request may take before the client gives up.
+///
+/// **MUCH LONGER THAN THE LIVENESS PROBE'S, AND THE DIFFERENCE IS THE POINT.**
+/// The probe's 250ms asks *is anything there*, where a wrong answer costs one
+/// redundant in-process run. This asks *do the work*, where giving up early
+/// abandons a request the daemon may already have committed. A read this slow
+/// means the store is genuinely busy, and waiting is the correct response to
+/// that.
+const REQUEST_DEADLINE: std::time::Duration = std::time::Duration::from_secs(120);
+
+/// Why a request to the daemon did not produce an answer.
+#[derive(Debug, Error)]
+pub enum AskError {
+  /// The request could not be serialised. A fault in this build.
+  #[error("this request could not be serialised: {0}")]
+  Unsendable(#[source] serde_json::Error),
+  /// The daemon could not be reached, or went silent mid-request.
+  #[error("intentd could not be reached: {0}")]
+  Unreachable(#[source] std::io::Error),
+  /// The daemon accepted the connection and closed it without answering.
+  #[error("intentd accepted the request and closed the connection without answering")]
+  ClosedWithoutAnswering,
+  /// The daemon answered something this build cannot read.
+  #[error("{0}")]
+  Unreadable(#[source] UnreadableResponse),
+}
+
+impl crate::remedy::Remedy for AskError {
+  fn remedy(&self) -> String {
+    match self {
+      AskError::Unsendable(_) => {
+        "this is a fault in the CLI rather than in the project or the daemon.".to_string()
+      }
+      AskError::Unreachable(_) => {
+        "the daemon answered the liveness probe a moment ago and is not answering now, so it has stopped or is no longer reachable. Run `intent daemon status`; with no daemon running, this command executes in-process.".to_string()
+      }
+      AskError::ClosedWithoutAnswering => {
+        "the daemon took the request and died before replying, which its log will name. Restart it with `intent daemon run`, and note the request may or may not have been applied -- check before retrying anything that writes.".to_string()
+      }
+      AskError::Unreadable(inner) => inner.remedy(),
+    }
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;

@@ -167,6 +167,12 @@ impl RunningDaemon {
   /// TESTABLE AT ALL.** `AC-08.1`'s per-connection binding is a property of a
   /// connection's history, so a helper that opened a fresh one per request
   /// could not express the case it exists for.
+  ///
+  /// **THIS IS THE ONE PLACE THAT DOES NOT USE THE SHIPPED CLIENT, AND THE
+  /// REASON IS THE SAME SENTENCE.** `wire::ask` is one request per connection,
+  /// which is what every real caller does; a multi-request conversation is a
+  /// shape the CLI has no use for and only this test needs. Everything else
+  /// goes through the shipped path -- see [`RunningDaemon::ask`].
   pub fn conversation(&self, requests: &[Request]) -> Vec<Response> {
     let stream = UnixStream::connect(self.socket()).expect("connect to the daemon");
     stream
@@ -192,12 +198,20 @@ impl RunningDaemon {
     answers
   }
 
-  /// Ask one request on a connection of its own.
+  /// Ask one request, THROUGH THE SHIPPED CLIENT.
+  ///
+  /// **DELIBERATELY `wire::ask` RATHER THAN THIS FILE'S OWN ROUND TRIP.** The
+  /// hand-rolled version above was written first and is a second opinion about
+  /// the wire -- the deadline, the newline, what a closed connection means --
+  /// and a fixture that carried its own client would pass while the real one
+  /// was broken. Routing the common case through the shipped code is what makes
+  /// most of these tests evidence about the client as well as the daemon.
   pub fn ask(&self, request: Request) -> Response {
-    self
-      .conversation(std::slice::from_ref(&request))
-      .pop()
-      .expect("one answer")
+    let endpoint = intentsvcs::daemon::Endpoint::Unix(self.socket());
+    match wire::ask(&endpoint, &request) {
+      Ok(response) => response,
+      Err(e) => panic!("the shipped client could not complete a round trip: {e}"),
+    }
   }
 }
 
