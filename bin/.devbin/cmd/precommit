@@ -86,6 +86,7 @@ G_GUARDHOME='guard home: a self-hosted tree runs ITS OWN guards, not the ones $I
 G_SHAREDBUILD='shared build: a rebuild into the SHARED artefact path is refused when native/rust is dirty'
 G_SKEWTHREAD="thread views: a generated thread view this commit touches still matches the model"
 G_MACHINE="ratified machines: transitions.rs implements data-model.md exactly (entry states and every expanded from-to-verb edge)"
+G_DECLKIND="declared kind: every AT row whose cited artefact EXISTS cites the kind of thing the row declared"
 
 # THE WHITEBOARD HEADER GUARD IS NO LONGER LISTED HERE, and the precondition
 # this file wrote for its own removal has been met. It read: "WHEN THIS BLOCK
@@ -120,6 +121,7 @@ if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t%s\n' "$G_SHAREDBUILD" "intent/st/ST0056/parity/tools/shared_artefact_build_guard.sh"
   printf '%s\t%s\n' "$G_SKEWTHREAD" "intent/st/ST0056/parity/tools/thread_view_skew_check.sh"
   printf '%s\t%s\n' "$G_MACHINE" "intent/st/ST0056/parity/tools/machine_table_check.sh"
+  printf '%s\t%s\n' "$G_DECLKIND" "intent/st/ST0056/parity/tools/declared_kind_check.sh"
   exit 0
 fi
 
@@ -378,6 +380,20 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   if ! bash "$TOOLS/machine_table_check.sh"; then
     rc=1
     failed="${failed}  machine_table_check.sh -- the ratified machines in intent/st/ST0056/data-model.md and their transcription in native/rust/crates/intentsvcs/src/transitions.rs disagree, or could not be compared (exit 2). Fix the side that moved: a CODE-ONLY edge means a ruling never reached the table it was ratified in.
+"
+  fi
+
+  # A row declares its artefact KIND by the path it cites, and nothing else in
+  # this gate reads that declaration. `stale_at_check.sh` catches a `to-write`
+  # row citing a file that EXISTS; it cannot catch a row whose file exists and
+  # is a library, a data producer, or a Rust file with no test in it. WHOLE-SET
+  # AND NEVER PATH-TRIGGERED, for machine_table_check.sh`s reason: the failure
+  # is a disagreement between a row and an artefact, so a path trigger would
+  # have to fire on whichever of the two the commit does not carry.
+  step "$G_DECLKIND"
+  if ! bash "$TOOLS/declared_kind_check.sh"; then
+    rc=1
+    failed="${failed}  declared_kind_check.sh -- a row cites an artefact that is not the KIND the row declared (exit 1), or the citation set could not be read at all (exit 2). Repoint the row at what actually satisfies it, or build the kind the row declared. A green here is about agreement AT THE DECLARED PATH and says nothing about an orphaned artefact at a path no row cites.
 "
   fi
 
