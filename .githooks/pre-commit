@@ -111,7 +111,7 @@ if [ -n "$EX_FILES" ]; then
     if git show ":$f" > "$probe" 2>/dev/null; then
       mix format --check-formatted "$probe" >/dev/null 2>&1 || EX_BAD="$EX_BAD $f"
     fi
-    rm -f "$probe"
+    [ -n "$probe" ] && rm -f "$probe"
   done
   if [ -n "$EX_BAD" ]; then
     formatter_refused "elixir" "mix format <the files listed above>" "$EX_BAD"
@@ -191,18 +191,44 @@ if [ "${#RS_FILES[@]}" -gt 0 ]; then
   RS_CFG=$(git ls-files '*rustfmt.toml' | head -1)
   RS_BAD=""
   RS_UNMEASURED=""
+  RS_WHY=""
   for f in "${RS_FILES[@]}"; do
-    probe="$(dirname "$f")/.staged-check-$$.rs"
-    RS_PROBES="$RS_PROBES $probe"
-    if git show ":$f" > "$probe" 2>/dev/null; then
+    # **THE PROBE IS THE LAST RESORT, NOT THE DEFAULT** (dc, 2026-08-30, on ic's
+    # find, against dc's own earlier fix in this block). Sitting beside the
+    # original fixes SIBLING resolution (`tests/common.rs` next to
+    # `tests/foo.rs`) and does NOT fix a module root whose children live in a
+    # subdirectory: rustfmt resolves `mod focus;` from the file's STEM, so
+    # `src/tui.rs` looks in `src/tui/` and a probe named `.staged-check-N.rs`
+    # looks in `src/`. No naming scheme fixes this -- the stem must equal the
+    # directory -- so the fix is to stop probing when we do not have to.
+    #
+    # **`lib.rs` SURVIVED BY LAYOUT COINCIDENCE, NOT BY CONSTRUCTION** (ic): its
+    # children are siblings in the same directory. The comment above claimed
+    # "module resolution is the file's own", which is true of the DIRECTORY and
+    # false of the NAME -- an instance-shaped fix under a class-shaped comment.
+    #
+    # When the staged blob equals the working tree -- the overwhelmingly common
+    # case, since `git add` then commit is the normal path -- the real file IS
+    # the staged content, and its own paths resolve. Probe only when they differ.
+    target=""
+    probe=""
+    if [ -f "$f" ] && git show ":$f" 2>/dev/null | cmp -s - "$f"; then
+      target="$f"
+    else
+      probe="$(dirname "$f")/.staged-check-$$.rs"
+      RS_PROBES="$RS_PROBES $probe"
+      git show ":$f" > "$probe" 2>/dev/null || probe=""
+      target="$probe"
+    fi
+    if [ -n "$target" ]; then
       # **`if`, NOT `rs_err=$(...)`. Under `set -e` a failing command
       # substitution aborts the script before the next line runs**, so the
       # earlier form refused with rc=1 and printed NOTHING -- a gate that
       # blocks a commit and says nothing at all, which is worse than the bug
       # it was added to report. Caught by driving the refusal path, which the
       # pass path could never have shown.
-      rs_errfile="$probe.err"
-      if rustfmt --check --edition 2024 ${RS_CFG:+--config-path "$RS_CFG"} "$probe" \
+      rs_errfile="${probe:-$f}.staged-check-$$.err"
+      if rustfmt --check --edition 2024 ${RS_CFG:+--config-path "$RS_CFG"} "$target" \
           >/dev/null 2>"$rs_errfile"; then
         rs_rc=0
       else
@@ -212,18 +238,26 @@ if [ "${#RS_FILES[@]}" -gt 0 ]; then
       rm -f "$rs_errfile"
       if [ -n "$rs_err" ]; then
         RS_UNMEASURED="$RS_UNMEASURED $f"
+        # **THE ERROR MUST BELONG TO THE FILE NAMED BESIDE IT.** `rs_err` is
+        # reassigned every iteration and the refusal printed it AFTER the loop,
+        # so the operator was shown the LAST file's stderr -- empty, whenever
+        # the last file passed. ic hit exactly that: the gate blocked, named the
+        # file, and handed them nothing, so they read the hook source instead.
+        RS_WHY="$RS_WHY
+  $f: $(printf '%s' "$rs_err" | head -1)"
       elif [ "$rs_rc" -ne 0 ]; then
         RS_BAD="$RS_BAD $f"
       fi
     fi
-    rm -f "$probe"
+    [ -n "$probe" ] && rm -f "$probe"
   done
 
   if [ -n "$RS_UNMEASURED" ]; then
     echo "pre-commit: rust formatting COULD NOT BE CHECKED -- REFUSED, and nothing was rewritten." >&2
     echo "pre-commit:   this is NOT a claim that these files are unformatted; rustfmt could not read them:" >&2
     printf 'pre-commit:     %s\n' $RS_UNMEASURED >&2
-    echo "pre-commit:   last error: $rs_err" >&2
+    echo "pre-commit:   what rustfmt said, per file:" >&2
+    printf 'pre-commit:   %s\n' "$RS_WHY" >&2
     echo "pre-commit:   this is a gate defect, not your code. Report it rather than reformatting." >&2
     exit 1
   fi
