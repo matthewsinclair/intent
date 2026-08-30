@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 170,
+  "slug": "address-view-names-and-project-classify-overlap",
+  "title": "address::VIEW_NAMES and Project::classify overlap with nothing asserting they agree",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-30",
+  "reporter": "Matthew Sinclair",
+  "body": "**THE DOC COMMENT AT `address.rs:370` STATES A PROPERTY, STATES THAT NOTHING ASSERTS IT, AND NAMES THE TEST THAT WOULD. That test does not exist.** Filed rather than built on vc's ruling, because a written-down-and-unbuilt check wants a reader rather than a fifth thing on one node's plate.\n\n**THE PROPERTY.** `address::VIEW_NAMES` and `Project::classify` answer different questions over different domains, and only their OVERLAP has to agree: **every name `classify` calls a `GeneratedView` must appear in `VIEW_NAMES`, or that view becomes addressable and `ViewAddressed` stops refusing it.**\n\n**WHY IT IS A REAL HAZARD RATHER THAN TIDINESS.** These are two lists of the same knowledge in two crustal layers, and they fail in OPPOSITE directions. `classify` gaining a generated view without `VIEW_NAMES` gaining its name makes a generated file ADDRESSABLE -- the refusal that stops an operator addressing a rendered artefact simply stops firing for that one name, silently, with every existing test still green. Nothing in either file points at the other except this prose.\n\n**THE GATE, IN THE COMMENT'S OWN WORDS, AND IT NEEDS NO ACCESS TO THE CONSTANT.** Walk the estate's thread files; for each one `classify` calls a `GeneratedView`, require `address::parse` to refuse its basename as a segment. **It catches a new view type only once such a file exists in the estate**, which is a real limit and strictly better than the nothing that guards it now.\n\n**THE CLASS, WHICH IS WHY THIS IS WORTH A ROW.** A declared thing nothing reads is the same defect as the value it annotates. This comment is doing the job of a test in a medium that cannot fail -- it is correct, it is well-reasoned, it names its own remedy, and it will go on being all three while the property it describes quietly stops holding. **Prose wants a pointer an instrument can find, or expect it to be re-derived.**\n\nRaised by ic 2026-08-30 while surveying WP-17's remainders; ruled file-do-not-build by vc the same day.\n"
+}
