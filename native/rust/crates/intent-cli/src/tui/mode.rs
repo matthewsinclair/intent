@@ -136,6 +136,65 @@ pub fn out_of(mode: Mode) -> impl Iterator<Item = &'static Edge> {
   EDGES.iter().filter(move |e| e.from == mode)
 }
 
+/// **THE ONE AMBIGUITY THE DESIGN GUARDS, AND WHAT RESOLVES IT.**
+///
+/// `tui-design.md` section 3 declares BOTH arms of `NORMAL + Enter` -- to FIELD
+/// for *editable rows*, to EMBED for *prose rows*. The machine is right to
+/// carry both and cannot choose between them: **which arm a keystroke takes is
+/// a fact about the ROW, and the machine has never seen a row.**
+///
+/// So the discriminator is DECLARED here, beside [`ESC_NOT_OURS`] and for the
+/// same reason. `AC-17.4` is the sentence it encodes: *`prose` IS NOT AN INLINE
+/// MULTI-LINE WIDGET -- it is a HANDOFF to the external editor*. A widget added
+/// to the DSL that also wants the editor is then an edit somebody has to make
+/// here, in the open, rather than a branch appearing in a realiser.
+pub const BY_ROW_KIND: &[(&str, Mode)] = &[("prose", Mode::Embed)];
+
+/// Every edge `on` offers from `mode`.
+///
+/// **[`step`] ANSWERS AN AMBIGUOUS PAIR WITH TABLE ORDER, WHICH IS NOT AN
+/// ANSWER** -- the machine's own test says so in as many words. A realiser that
+/// can see a row asks for all the arms and resolves them with [`arm`].
+pub fn steps(mode: Mode, on: &str) -> Vec<&'static Edge> {
+  out_of(mode).filter(|e| e.on == on).collect()
+}
+
+/// Which arm a row of kind `row_kind` takes, given every edge on offer.
+///
+/// **THE DEFAULT ARM IS DEFINED BY EXCLUSION, NEVER BY POSITION.** It is the
+/// one no row kind claims. Taking "the first edge" would make the answer depend
+/// on the order rows appear in [`EDGES`], and that order is a reading
+/// convenience following the design document -- nothing about it is a decision
+/// anyone made about behaviour.
+///
+/// `None` where the machine genuinely says nothing: no edges at all, or two
+/// unclaimed arms, which is undecidable from a row kind and must not be
+/// guessed.
+pub fn arm(edges: &[&'static Edge], row_kind: &str) -> Option<Mode> {
+  match edges {
+    [] => return None,
+    [only] => return Some(only.to),
+    _ => {}
+  }
+  let claimed_by_this_row = BY_ROW_KIND
+    .iter()
+    .find(|(kind, _)| *kind == row_kind)
+    .map(|(_, mode)| *mode);
+  if let Some(mode) = claimed_by_this_row
+    && edges.iter().any(|e| e.to == mode)
+  {
+    return Some(mode);
+  }
+  let mut unclaimed = edges
+    .iter()
+    .filter(|e| !BY_ROW_KIND.iter().any(|(_, mode)| *mode == e.to));
+  let only = unclaimed.next()?;
+  if unclaimed.next().is_some() {
+    return None;
+  }
+  Some(only.to)
+}
+
 /// The mode `on` moves to from `mode`, if the machine declares that edge.
 ///
 /// **`None` IS "THE MACHINE SAYS NOTHING", NOT "STAY PUT".** A realiser that
@@ -416,6 +475,150 @@ mod tests {
     assert_eq!(
       got, want,
       "the split rule must survive a slash-as-trigger, a shared target, a per-input target, and a table in the NEXT section"
+    );
+  }
+
+  /// **THE GUARDED AMBIGUITY IS RESOLVED BY THE ROW, AND THE PROOF IS THAT THE
+  /// ANSWER DOES NOT MOVE WHEN THE EDGES DO.** `AT-17.10` / `AC-17.10`.
+  ///
+  /// The sibling test above records that `NORMAL + Enter` leads two ways and
+  /// says table order is *not an answer a realiser can be expected to match*.
+  /// This is the other half: given both arms in EITHER order, the row kind
+  /// picks the same one. Reversing is the whole control -- an implementation
+  /// that took `edges[0]` passes every assertion below in one direction.
+  #[test]
+  fn the_guarded_ambiguity_is_resolved_by_the_row_and_never_by_table_order() {
+    let mut edges = steps(Mode::Normal, "Enter");
+    assert_eq!(
+      edges.len(),
+      2,
+      "the fixture is not the ambiguous pair, so nothing below could distinguish a row-driven \
+       answer from a positional one"
+    );
+    for pass in 0..2 {
+      assert_eq!(
+        arm(&edges, "prose"),
+        Some(Mode::Embed),
+        "pass {pass}: a prose row must reach the editor -- `AC-17.4` says prose is a HANDOFF and \
+         not an inline multi-line widget"
+      );
+      for editable in ["text", "select", "number", "button"] {
+        assert_eq!(
+          arm(&edges, editable),
+          Some(Mode::Field),
+          "pass {pass}: a `{editable}` row must edit in place"
+        );
+      }
+      assert_eq!(
+        arm(&edges, ""),
+        Some(Mode::Field),
+        "pass {pass}: with no row at all the default arm is the unclaimed one"
+      );
+      edges.reverse();
+    }
+  }
+
+  /// **EVERY AMBIGUITY THE TABLE DECLARES IS RESOLVABLE.** An arm added to the
+  /// design without a row kind claiming it would make [`arm`] return `None` for
+  /// every row -- a key that is declared, bound, reachable, and does nothing.
+  #[test]
+  fn every_ambiguity_the_table_declares_can_be_resolved_from_some_row_kind() {
+    let mut examined = 0usize;
+    for &mode in Mode::ALL {
+      for &trigger in &declared_triggers_here() {
+        let edges = steps(mode, trigger);
+        if edges.len() < 2 {
+          continue;
+        }
+        examined += 1;
+        let claimed: Vec<Mode> = BY_ROW_KIND
+          .iter()
+          .filter(|(_, m)| edges.iter().any(|e| e.to == *m))
+          .map(|(_, m)| *m)
+          .collect();
+        assert_eq!(
+          edges.len() - claimed.len(),
+          1,
+          "{} + {trigger} offers {} arms and row kinds claim {} of them; exactly one must be left \
+           unclaimed or there is no default",
+          mode.name(),
+          edges.len(),
+          claimed.len()
+        );
+      }
+    }
+    assert!(
+      examined > 0,
+      "no ambiguous pair was examined, so this test asserted nothing"
+    );
+  }
+
+  /// **TWO UNCLAIMED ARMS IS `None`, NOT A GUESS.** Driven on a planted pair
+  /// built from real edges, because the shipped table has no such case -- and a
+  /// property that only holds because the corpus cannot exhibit it is not a
+  /// property.
+  #[test]
+  fn two_unclaimed_arms_are_refused_rather_than_guessed() {
+    let planted: Vec<&'static Edge> = EDGES
+      .iter()
+      .filter(|e| e.from == Mode::Menu && (e.on == "Hotkey" || e.on == "Enter"))
+      .collect();
+    assert_eq!(
+      planted.len(),
+      2,
+      "the planted pair is not two edges, so this test is not driving the case it names"
+    );
+    assert!(
+      planted
+        .iter()
+        .all(|e| !BY_ROW_KIND.iter().any(|(_, m)| *m == e.to)),
+      "a planted arm is claimed by a row kind, so this is not the unclaimed case"
+    );
+    assert_eq!(
+      arm(&planted, "prose"),
+      None,
+      "two arms no row kind claims must say nothing rather than take the first"
+    );
+  }
+
+  /// Every trigger the table names, for the sweep above.
+  fn declared_triggers_here() -> Vec<&'static str> {
+    let mut out: Vec<&'static str> = EDGES.iter().map(|e| e.on).collect();
+    out.sort_unstable();
+    out.dedup();
+    out
+  }
+
+  /// **`AC-17.10`'s LAST CLAUSE, MADE CHECKABLE: THE FATE OF AN UNSAVED FORM AT
+  /// HANDOFF IS STATED, AND IT IS STATED STRUCTURALLY.**
+  ///
+  /// The criterion asks that it be *stated rather than discovered*. The machine
+  /// states it by having no edge at all from `FIELD` to `EMBED`: a handoff
+  /// cannot be reached from inside an in-place edit, so there is no
+  /// interleaving to define. `FIELD` leaves by `Enter` (commit) or `Esc`
+  /// (discard) and the operator is in `NORMAL` before any editor exists.
+  ///
+  /// **A PROSE HANDOFF SHARES ITS TRIGGER WITH THE IN-PLACE EDIT**, so this is
+  /// exactly the pair somebody would be tempted to wire straight through -- and
+  /// wiring it would hand `$EDITOR` a field whose in-memory buffer holds
+  /// characters the store has never seen. Asserted rather than left to the
+  /// prose above, because a note nobody can run is a note that goes stale.
+  #[test]
+  fn an_in_place_edit_cannot_reach_the_editor_without_first_committing_or_discarding() {
+    assert!(
+      out_of(Mode::Field).all(|e| e.to != Mode::Embed),
+      "FIELD leads straight to EMBED, so an operator can hand $EDITOR a buffer the store has \
+       never seen and the fate of those characters is undefined"
+    );
+    let out: Vec<(&str, Mode)> = out_of(Mode::Field).map(|e| (e.on, e.to)).collect();
+    assert!(
+      out.contains(&("Enter", Mode::Normal)) && out.contains(&("Esc", Mode::Normal)),
+      "FIELD must offer both a commit and a discard, or the fate above is unreachable rather \
+       than stated: {out:?}"
+    );
+    assert!(
+      out.iter().any(|(on, _)| *on == "Typing"),
+      "FIELD collects no text, so it is not the in-place edit this is a claim about"
     );
   }
 }

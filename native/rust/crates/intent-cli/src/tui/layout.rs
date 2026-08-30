@@ -106,16 +106,43 @@ const RULE_MARK: &str = "\u{0}rule";
 /// columns, and a third printed column would be a third alignment promise
 /// nothing made. `kind` drives behaviour -- which rows hand off to `$EDITOR`,
 /// which descend -- and the STATUS row is where the operator reads it.
+///
+/// **`name` IS THE ROW IDENTITY AND `title` IS WHAT THE OPERATOR READS.** They
+/// are the same string on most rows and they are NOT the same fact: a form row
+/// displays its LABEL (`work pkgs`) and is acted on by its declared field NAME
+/// (`wps`). Recovering the name by indexing the declaration at render time
+/// would be a second derivation of an order the first one already fixed --
+/// `AC-17.10`'s handoff needs the name to write the field back, and a row that
+/// can be acted on has to carry what identifies it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Row {
+  pub name: String,
   pub title: String,
   pub value: String,
   pub kind: String,
 }
 
 impl Row {
+  /// A row whose identity IS what it displays -- a thread id, an entity kind.
   pub fn new(title: impl Into<String>, value: impl Into<String>, kind: impl Into<String>) -> Self {
+    let title = title.into();
     Self {
+      name: title.clone(),
+      title,
+      value: value.into(),
+      kind: kind.into(),
+    }
+  }
+
+  /// A row displayed under one string and acted on under another.
+  pub fn named(
+    name: impl Into<String>,
+    title: impl Into<String>,
+    value: impl Into<String>,
+    kind: impl Into<String>,
+  ) -> Self {
+    Self {
+      name: name.into(),
       title: title.into(),
       value: value.into(),
       kind: kind.into(),

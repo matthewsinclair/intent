@@ -69,6 +69,16 @@ impl Focus {
     self.n
   }
 
+  /// The same form, with the cursor on row `at`.
+  ///
+  /// **`None` RATHER THAN A CLAMP FOR A ROW THIS FORM DOES NOT HAVE.** The
+  /// whole reason this type carries `n` is that it cannot name a row that does
+  /// not exist; a constructor that silently moved the caller to the nearest
+  /// valid row would put the one shape back that the type exists to refuse.
+  pub fn at(self, at: usize) -> Option<Self> {
+    (at < self.n).then_some(Self { at, n: self.n })
+  }
+
   /// The next row, wrapping past the end to the first.
   ///
   /// **WRAPPING IS WHAT MAKES THE ORDER TOTAL RATHER THAN MERELY LONG.**

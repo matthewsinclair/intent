@@ -69,7 +69,7 @@ pub struct Rendered {
 pub fn rows_for(form: &Form, entity: &Value) -> Vec<Row> {
   form::triples(form, entity)
     .into_iter()
-    .map(|t| Row::new(t.label, t.value, t.widget))
+    .map(|t| Row::named(t.name, t.label, t.value, t.widget))
     .collect()
 }
 

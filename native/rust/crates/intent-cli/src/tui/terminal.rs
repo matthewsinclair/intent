@@ -128,6 +128,42 @@ impl<S: Screen> Borrowed<S> {
     }
   }
 
+  /// **HAND THE TERMINAL TO A CHILD AND TAKE IT BACK.** `AC-17.10`: the prose
+  /// handoff to `$VISUAL`/`$EDITOR`.
+  ///
+  /// **THE PAIRING IS STRUCTURAL RATHER THAN REMEMBERED, FOR THE SAME REASON
+  /// [`Screen`] DECLARES ITS UNDOS PER STEP.** Written out at the call site
+  /// this is `restore()`, then a launch, then a re-take -- three statements
+  /// with the second one able to return early between the other two, which is
+  /// the shape that leaves the TUI painting into a terminal it no longer owns.
+  /// As one call there is no between.
+  ///
+  /// **THE CHILD MUST NOT START WHILE THE TERMINAL IS STILL BORROWED.** `vi` in
+  /// somebody else's raw mode and alternate screen does not merely look wrong:
+  /// it reads keys through a discipline it did not set and paints over a screen
+  /// it will not restore. So the restore happens BEFORE `f` runs, and the test
+  /// for that asserts on the ORDER rather than on the calls being present.
+  ///
+  /// **EXACTLY WHAT WAS OUTSTANDING IS WHAT COMES BACK.** Re-entering
+  /// [`Step::ORDER`] wholesale would take a step this guard never held -- which
+  /// is the same partial-borrow bug [`Borrowed::take`] already refuses, met
+  /// from the other side.
+  ///
+  /// **`Err` IS ONLY EVER ABOUT THE RE-TAKE.** Whatever `f` did is its own
+  /// business and its writes are already durable when it returns; an error here
+  /// says the TUI cannot go on, not that the edit was lost. A partial re-take
+  /// leaves this guard holding what it got, so `Drop` unwinds it.
+  pub fn lend<T>(&mut self, f: impl FnOnce() -> T) -> Result<T, io::Error> {
+    let held: Vec<Step> = self.taken.clone();
+    self.restore();
+    let out = f();
+    for &step in &held {
+      step.enter(&mut self.screen)?;
+      self.taken.push(step);
+    }
+    Ok(out)
+  }
+
   /// What is still borrowed. Empty once restored.
   pub fn outstanding(&self) -> &[Step] {
     &self.taken
@@ -206,6 +242,11 @@ mod tests {
   struct Recorder {
     log: Rc<RefCell<Vec<&'static str>>>,
     fail_on: Option<&'static str>,
+    /// How many times `fail_on` is let through before it starts failing.
+    /// **A LEND CALLS THE SAME STEP TWICE**, so a recorder that can only fail
+    /// unconditionally cannot express *the re-take is what broke* -- it would
+    /// break the first borrow instead and the test would be about `take`.
+    spare: usize,
   }
 
   impl Recorder {
@@ -213,6 +254,7 @@ mod tests {
       Self {
         log: Rc::clone(log),
         fail_on: None,
+        spare: 0,
       }
     }
 
@@ -220,12 +262,25 @@ mod tests {
       Self {
         log: Rc::clone(log),
         fail_on: Some(at),
+        spare: 0,
+      }
+    }
+
+    /// Fails at `at`, but only after letting it succeed `spare` times.
+    fn failing_after(log: &Rc<RefCell<Vec<&'static str>>>, at: &'static str, spare: usize) -> Self {
+      Self {
+        log: Rc::clone(log),
+        fail_on: Some(at),
+        spare,
       }
     }
 
     fn note(&mut self, what: &'static str) -> io::Result<()> {
       if self.fail_on == Some(what) {
-        return Err(io::Error::other(what));
+        if self.spare == 0 {
+          return Err(io::Error::other(what));
+        }
+        self.spare -= 1;
       }
       self.log.borrow_mut().push(what);
       Ok(())
@@ -370,5 +425,142 @@ mod tests {
       Step::ORDER.len() * 2,
       "every declared step must be both taken and given back -- a step present in the enum and absent from ORDER is never taken, which looks like it working"
     );
+  }
+
+  /// **`AT-17.10` / `AC-17.10`: THE CHILD RUNS WITH THE TERMINAL GIVEN BACK,
+  /// AND GETS IT RETURNED.** Asserted as ONE sequence by equality rather than
+  /// as a set of calls that all happened, because the ORDER is the whole
+  /// property: an editor started while this guard still holds raw mode reads
+  /// keys through a discipline it did not set and paints over an alternate
+  /// screen it will not restore.
+  #[test]
+  fn a_lend_gives_the_terminal_back_before_the_child_runs_and_takes_it_after() {
+    let log = log();
+    let inner = Rc::clone(&log);
+    {
+      let mut b = Borrowed::take(Recorder::new(&log)).expect("take the terminal");
+      assert_eq!(
+        b.outstanding().len(),
+        Step::ORDER.len(),
+        "the fixture holds nothing, so nothing below could be given back and this would pass on an empty guard"
+      );
+      b.lend(move || inner.borrow_mut().push("CHILD"))
+        .expect("the re-take must succeed");
+      assert_eq!(
+        b.outstanding().len(),
+        Step::ORDER.len(),
+        "the terminal was lent and never taken back -- the TUI would paint into a terminal it no longer owns"
+      );
+    }
+    assert_eq!(
+      *log.borrow(),
+      [
+        "enter_raw",
+        "enter_alternate",
+        "leave_alternate",
+        "leave_raw",
+        "CHILD",
+        "enter_raw",
+        "enter_alternate",
+        "leave_alternate",
+        "leave_raw",
+      ],
+      "the child must run between a full give-back and a full re-take, and Drop closes the second borrow"
+    );
+  }
+
+  /// **A LEND TAKES BACK EXACTLY WHAT IT HELD, NEVER [`Step::ORDER`] WHOLESALE.**
+  /// A guard owing nothing lends nothing and takes nothing -- and still runs the
+  /// child, because whether the operator gets their editor is not a question
+  /// about what this guard happens to be holding.
+  #[test]
+  fn a_lend_takes_back_exactly_what_it_held_and_not_the_declared_order() {
+    let log = log();
+    let inner = Rc::clone(&log);
+    let mut b = Borrowed::take(Recorder::new(&log)).expect("take the terminal");
+    b.restore();
+    assert!(b.outstanding().is_empty(), "the fixture must owe nothing");
+    log.borrow_mut().clear();
+    b.lend(move || inner.borrow_mut().push("CHILD"))
+      .expect("lending nothing cannot fail");
+    assert_eq!(
+      *log.borrow(),
+      ["CHILD"],
+      "a guard holding nothing re-entered a step it never took"
+    );
+    assert!(
+      b.outstanding().is_empty(),
+      "nothing was owed before the lend and nothing may be owed after it"
+    );
+  }
+
+  /// **A RE-TAKE THAT FAILS IS REPORTED, AND THE GUARD HOLDS ONLY WHAT IT GOT.**
+  /// The alternate screen is rigged to fail on its SECOND entry: the first is
+  /// the borrow itself, so an unconditionally failing recorder would be testing
+  /// [`Borrowed::take`] and not this.
+  #[test]
+  fn a_re_take_that_fails_reports_it_and_leaves_only_the_half_it_got() {
+    let log = log();
+    let inner = Rc::clone(&log);
+    {
+      let mut b = Borrowed::take(Recorder::failing_after(&log, "enter_alternate", 1))
+        .expect("the first borrow is let through");
+      let err = b
+        .lend(move || inner.borrow_mut().push("CHILD"))
+        .expect_err("the re-take was rigged to fail");
+      assert_eq!(
+        err.to_string(),
+        "enter_alternate",
+        "the caller needs the re-take failure, not something derived from it"
+      );
+      assert_eq!(
+        b.outstanding(),
+        &[Step::Raw],
+        "raw mode was re-entered and is still owed; a guard that forgot it would leave the shell raw"
+      );
+    }
+    assert_eq!(
+      *log.borrow(),
+      [
+        "enter_raw",
+        "enter_alternate",
+        "leave_alternate",
+        "leave_raw",
+        "CHILD",
+        "enter_raw",
+        "leave_raw",
+      ],
+      "Drop must unwind the half-completed re-take, and only the half it got"
+    );
+  }
+
+  /// **THE CHILD RUNS ONCE, HOWEVER THE RE-TAKE GOES.** A retry around a failing
+  /// re-take would run the operator's editor a second time over the same file,
+  /// and the second run would open what the first one wrote -- which is the
+  /// stale-model class `AC-17.10` names, reached by a route that looks like
+  /// robustness.
+  #[test]
+  fn the_child_runs_exactly_once_however_the_re_take_goes() {
+    for rig in [None, Some("enter_alternate")] {
+      let log = log();
+      let runs = Rc::new(RefCell::new(0usize));
+      let counter = Rc::clone(&runs);
+      let screen = match rig {
+        None => Recorder::new(&log),
+        Some(at) => Recorder::failing_after(&log, at, 1),
+      };
+      let mut b = Borrowed::take(screen).expect("take the terminal");
+      let outcome = b.lend(move || *counter.borrow_mut() += 1);
+      let n = *runs.borrow();
+      assert_eq!(
+        n, 1,
+        "the child ran {n} times with the re-take rigged {rig:?}"
+      );
+      assert_eq!(
+        outcome.is_ok(),
+        rig.is_none(),
+        "the verdict must follow the rig, or this loop is running one case twice"
+      );
+    }
   }
 }

@@ -583,3 +583,37 @@ fn scalar(v: &Value) -> String {
 fn one_line(s: &str) -> String {
   s.split_whitespace().collect::<Vec<_>>().join(" ")
 }
+
+/// The bytes a field HANDS TO AN EDITOR: the entity's own value, uncollapsed.
+///
+/// **THIS EXISTS BECAUSE [`Triple::value`] IS LOSSY BY DESIGN AND IS THE
+/// OBVIOUS THING TO REACH FOR.** A row is one line, so [`one_line`] collapses
+/// every run of whitespace in it -- correct on screen, and catastrophic the
+/// moment that same string is what gets written to a scratch file and handed
+/// to `$EDITOR`. **The operator opens their objective, changes one word, saves,
+/// and every paragraph break in it is gone** -- not by the editor's doing, but
+/// because the bytes it was given were already a rendering.
+///
+/// That is the destroys-authored-prose class `AC-17.10` names, arriving one
+/// step EARLIER than the criterion warns about: 17.10 guards the RETURN
+/// repainting from a stale model, and this is the DEPARTURE handing the editor
+/// a lossy render of a fresh one. Same destruction, opposite end of the trip,
+/// and no test of the return path can see it.
+///
+/// **SHARED RATHER THAN TUI-LOCAL, AND THE RADIUS IS THE POINT.** The web
+/// face's textarea needs exactly these bytes for exactly this reason, and
+/// `intentd` cannot reach into the CLI. A copy in each face is two answers to
+/// *what is the real value of this field*, which is the second home
+/// [`triples`] was moved down a crate to avoid.
+///
+/// `None` for a field the entity does not carry, and for one whose value is
+/// not text -- **an array or an object has no bytes to edit**, and returning
+/// `""` for one would offer an edit that silently replaces a collection with a
+/// string.
+pub fn raw(entity: &Value, field: &str) -> Option<String> {
+  match entity.get(field)? {
+    Value::String(s) => Some(s.clone()),
+    Value::Null => Some(String::new()),
+    _ => None,
+  }
+}

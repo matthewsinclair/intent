@@ -25,6 +25,7 @@ use intentsvcs::output::{Format, Output};
 use intentsvcs::project::Project;
 use intentsvcs::remedy::Remedy;
 use intentsvcs::views;
+use intentsvcs::wire::{self, Op, Request, Response, ThreadSummary};
 
 /// Everything a rendered failure says. The facade's own rendering already
 /// carries the message, the full cause chain and the remedy (AC-04.4), so this
@@ -112,6 +113,90 @@ enum StoreNeed {
   /// was written about. They refuse while a daemon holds the store, until they
   /// can route to it.
   Exclusive,
+}
+
+/// The verb paths this build can route to a daemon, and the op each becomes.
+///
+/// **ONE DECLARATION WITH TWO CONSUMERS, WHICH IS WHAT MAKES `AC-08.2`
+/// MEASURABLE** (vc's ruling, 2026-08-30). [`served`] consults it to decide
+/// whether to route; the dual-path harness reads it to form its per-verb
+/// expectation about the daemon's dispatch counter. **Declared at the client,
+/// observed at the server -- two genuinely different facts, which is what makes
+/// the comparison a test rather than a tautology.**
+///
+/// **A HAND-WRITTEN LIST OF SERVED VERBS IN THE HARNESS WOULD BE A THIRD HOME
+/// AND IT WOULD DRIFT**, and it is the one way to build this that turns the
+/// harness back into the thing it exists to catch: a route that agrees with
+/// in-process because it never left the process.
+///
+/// **DATA RATHER THAN A `match`, BECAUSE THE SET HAS TO BE ENUMERABLE.** A
+/// function that can only answer about a path it is GIVEN cannot tell the
+/// harness which paths to ask about, and a harness that supplied its own list
+/// is the third home again.
+const ROUTED: &[(&str, Op)] = &[("st list", Op::ThreadList)];
+
+/// The op a verb path routes to, if this build routes it at all.
+pub fn daemon_op_for(path: &str) -> Option<Op> {
+  ROUTED
+    .iter()
+    .find(|(routed, _)| *routed == path)
+    .map(|(_, op)| op.clone())
+}
+
+/// Every verb path this build routes. Read by the conformance harness.
+pub fn routed_paths() -> Vec<&'static str> {
+  ROUTED.iter().map(|(path, _)| *path).collect()
+}
+
+/// Answer a question the daemon can serve, from wherever it can be answered.
+///
+/// **ONE DECISION POINT FOR DAEMON-OR-HERE, MIRRORING [`engine`]'s ONE DOOR AND
+/// FOR THE SAME REASON.** The rule is a property of the invocation rather than
+/// of any verb, so a second site would not weaken it -- it would delete it for
+/// whatever went through that site, silently and only on machines running a
+/// daemon.
+///
+/// **A VERB THIS BUILD CANNOT ROUTE FALLS THROUGH RATHER THAN REFUSING**, which
+/// is vc's `AC-08.2` ruling: the store serialises writes, so refusing protects
+/// against nothing, and each op the daemon learns moves a verb from here to
+/// routed with nothing broken in between. The `sync` and `ingest` family is the
+/// exception and is handled at [`engine`], where the prohibition is literally
+/// true.
+///
+/// **A DAEMON THAT ANSWERED THE PROBE AND THEN FAILED IS `Unavailable`, NOT
+/// `Error`.** The operator's project is fine; the thing in their hand could not
+/// answer -- and rc=2 is what says that rather than returning a verdict about
+/// their work.
+fn served<T>(
+  path: &str,
+  from_daemon: impl FnOnce(Response) -> Result<T, Failure>,
+  locally: impl FnOnce(Facade) -> Result<T, Failure>,
+) -> Result<T, Failure> {
+  let (project, ctx) = context()?;
+
+  if let Some(op) = daemon_op_for(path) {
+    let candidates = daemon::candidates().map_err(|e| Failure::Error(e.render()))?;
+    if let daemon::Route::Daemon(endpoint) = daemon::route(&candidates) {
+      let request = Request {
+        root: project.root().to_path_buf(),
+        op,
+      };
+      return match wire::ask(&endpoint, &request) {
+        // A refusal FROM the daemon is about the project, so it is rendered as
+        // one -- not dressed up as the client being unable to ask.
+        Ok(Response::Error { message, remedy }) => Err(Failure::Error(format!(
+          "error: {message}\n  remedy: {remedy}"
+        ))),
+        Ok(response) => from_daemon(response),
+        Err(e) => Err(Failure::Unavailable(format!(
+          "error: {e}\n  remedy: {}",
+          e.remedy()
+        ))),
+      };
+    }
+  }
+
+  locally(engine(project, ctx, StoreNeed::Shared)?)
 }
 
 /// The door for a verb the store can serialise alongside a daemon.
@@ -364,18 +449,50 @@ fn status_filter(spec: &str) -> Result<Option<Vec<ThreadStatus>>, String> {
 /// `steel_threads.md` says it indexes ALL threads and was being built from the
 /// WIP-only view, so it decayed to empty at every release close.
 fn st_table(f: &Facade, a: &ArgMatches) -> Result<String, Failure> {
+  st_table_from(&summarise(f), a)
+}
+
+/// The listing table, over threads from WHEREVER THEY CAME FROM.
+///
+/// **THIS SPLIT IS D32, NOT A REFACTOR** (vc, 2026-08-30). `AC-08.2` requires
+/// the in-process and daemon paths to return IDENTICAL results, and a renderer
+/// that reaches through a `Facade` to fetch its own rows cannot be reached by
+/// the second path at all -- so identity would have to be maintained by two
+/// bodies agreeing, which is the thing the criterion exists to forbid. One
+/// renderer over one row type is the only arrangement in which "identical" is
+/// structural.
+fn st_table_from(threads: &[ThreadSummary], a: &ArgMatches) -> Result<String, Failure> {
   let wanted = match opt(a, "status") {
     Some(spec) => status_filter(&spec)?,
     // v2's default: WIP only. NOT the same as `--status all`.
     None => Some(vec![ThreadStatus::Wip]),
   };
-  st_rows(f, a, wanted)
+  st_rows(threads, a, wanted)
+}
+
+/// The wire's row type, built from the model.
+///
+/// **THE LOCAL PATH IS NARROWED TO EXACTLY WHAT THE WIRE CAN CARRY, RATHER THAN
+/// THE WIRE BEING WIDENED TO WHATEVER THE MODEL HAS.** The other direction
+/// leaves the renderer able to read a field the daemon cannot send, which is a
+/// divergence that compiles.
+fn summarise(f: &Facade) -> Vec<ThreadSummary> {
+  f.st_list()
+    .into_iter()
+    .map(|t| ThreadSummary {
+      id: t.id.clone(),
+      title: t.title.clone(),
+      status: t.status,
+      created: t.created.clone(),
+      completed: t.completed.clone(),
+    })
+    .collect()
 }
 
 /// The index scope: every thread, whatever `--status` would have said.
 /// `st sync` has no status filter in v2 -- the index is the whole estate.
 fn st_table_all(f: &Facade, a: &ArgMatches) -> Result<String, Failure> {
-  st_rows(f, a, None)
+  st_rows(&summarise(f), a, None)
 }
 
 /// **A NARROWED RENDER NAMES ITS SCOPE** (hv, 2026-08-28, on issue 0121).
@@ -407,7 +524,7 @@ fn st_table_all(f: &Facade, a: &ArgMatches) -> Result<String, Failure> {
 /// -- and with nothing narrowed there is nothing a reader could be misled
 /// about.
 fn st_rows(
-  f: &Facade,
+  threads: &[ThreadSummary],
   a: &ArgMatches,
   wanted: Option<Vec<ThreadStatus>>,
 ) -> Result<String, Failure> {
@@ -420,13 +537,12 @@ fn st_rows(
   // accessor was the defect.
   let as_slug = given(a, "slug");
 
-  let threads = f.st_list();
-  // The denominator is read BEFORE the filter, from the same call, so the note
+  // The denominator is read BEFORE the filter, from the same list, so the note
   // below cannot report a count of what was printed as a count of what exists.
   let total = threads.len();
 
   let rows: Vec<Vec<String>> = threads
-    .into_iter()
+    .iter()
     .filter(|t| wanted.as_ref().is_none_or(|w| w.contains(&t.status)))
     .map(|t| {
       vec![
@@ -1102,7 +1218,7 @@ fn opens_an_editor(m: &ArgMatches) -> Result<bool, Failure> {
 /// to return to until it exits; a windowing editor that forks returns at once
 /// on its own. Detaching would be a choice made on behalf of the first case,
 /// wrongly.
-fn launch_editor(path: &Path, named: Option<&str>) -> Result<(), Failure> {
+pub(crate) fn launch_editor(path: &Path, named: Option<&str>) -> Result<(), Failure> {
   // `$VISUAL` before `$EDITOR` is the long-standing convention and it is
   // load-bearing rather than decorative: `$EDITOR` is the line editor for a
   // dumb terminal and `$VISUAL` the full-screen one, and a caller who set both
@@ -1453,8 +1569,21 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     Some(("list", a)) => {
-      let f = open()?;
-      print!("{}", st_table(&f, a)?);
+      // **THE PATH IS SPELLED AT THE CALL SITE AND RESOLVED BY `ROUTED`.** A
+      // site that forgets to route falls through, the harness's expectation
+      // still says the op should have been dispatched, and the delta comes back
+      // zero -- so the omission is RED by name rather than invisible.
+      let table = served(
+        "st list",
+        |response| match response {
+          Response::Threads { threads } => st_table_from(&threads, a),
+          other => Err(Failure::Error(format!(
+            "error: intentd answered a thread listing with something else: {other:?}\n  remedy: this is a version skew between `intent` and `intentd`. Run `intent daemon status`; the two must be the same build."
+          ))),
+        },
+        |f| st_table_from(&summarise(&f), a),
+      )?;
+      print!("{table}");
       Ok(())
     }
     // **THE LAST GAP AC-08.5 NAMES, AND THE VERB IS DELIBERATELY NARROW.**
@@ -2571,12 +2700,107 @@ fn explore() -> Result<(), Failure> {
         .to_string(),
     ));
   }
-  let facade = open()?;
-  let declaration = intentsvcs::form::Loaded::load()
-    .map_err(|e| Failure::Error(format!("error: the form declaration would not load: {e}")))?;
+  let mut live = Live {
+    facade: open()?,
+    declaration: intentsvcs::form::Loaded::load()
+      .map_err(|e| Failure::Error(format!("error: the form declaration would not load: {e}")))?,
+  };
+  // **THE ONE LAUNCHER, PASSED IN** (`AC-17.10`). `tui::edit` cannot read
+  // `$VISUAL`, cannot fall back and cannot decide that `vi` will do, because it
+  // is handed a closure over the resolver that already exists.
+  let session = tui::edit::Files::under(tui::edit::Files::<()>::scratch_dir(), |path: &Path| {
+    launch_editor(path, None).map_err(|e| {
+      tui::edit::Refused::new(
+        // **THE LAUNCHER'S OWN WORDS REACH THE OPERATOR.** It already names the
+        // variable that chose the program, and says why a shell alias is not a
+        // thing a process can run; re-wording it here would be a second, worse
+        // copy of a message somebody wrote carefully.
+        e.message()
+          .unwrap_or("the editor could not be started")
+          .to_string(),
+      )
+    })
+  });
   let mut app = tui::app::App::explore();
-  tui::run::run(&mut app, |view| rows_for(&facade, &declaration, view))
+  tui::run::run(&mut app, &mut live, session)
     .map_err(|e| Failure::Error(format!("error: the terminal would not co-operate: {e}")))
+}
+
+/// The store, as the TUI's loop sees it: rows out, one field in.
+///
+/// **ONE OBJECT BECAUSE IT IS ONE FACADE.** Reading rows and writing a field
+/// are two mutable uses of the same store, and two closures over it would be
+/// two mutable borrows -- see `tui::run::Source`.
+struct Live {
+  facade: Facade,
+  declaration: intentsvcs::form::Loaded,
+}
+
+impl tui::run::Source for Live {
+  fn rows(&mut self, view: &intentsvcs::nav::View) -> Vec<tui::layout::Row> {
+    rows_for(&self.facade, &self.declaration, view)
+  }
+}
+
+impl tui::edit::Model for Live {
+  /// **THE RAW BYTES, NOT THE ROW.** `intentsvcs::form::raw` exists precisely
+  /// so this cannot reach for `Triple::value`, which is whitespace-collapsed to
+  /// fit one screen line and would hand `$EDITOR` a form of the operator's
+  /// prose with every paragraph break already gone.
+  fn read(&mut self, h: &tui::edit::Handoff) -> Result<String, tui::edit::Refused> {
+    let entity = entity_json(&self.facade, &h.kind, &h.id).ok_or_else(|| {
+      tui::edit::Refused::new(format!(
+        "error: {} {} would not load, so there is nothing to edit",
+        h.kind, h.id
+      ))
+    })?;
+    intentsvcs::form::raw(&entity, &h.field).ok_or_else(|| {
+      tui::edit::Refused::new(format!(
+        "error: `{}` is not a text field of {} {} -- only text fields hand off to an editor",
+        h.field, h.kind, h.id
+      ))
+    })
+  }
+
+  /// **`promote` IS THE ONE RESOLVER AND THE KIND IS NOT RE-DERIVED HERE.** A
+  /// thread id is `ST` plus four digits and an issue id is four digits: the two
+  /// are disjoint by construction, which is why that function is total over
+  /// well-formed ids and why a second inference from `h.kind` would only be a
+  /// second place to disagree.
+  fn write(&mut self, h: &tui::edit::Handoff, value: &str) -> Result<(), tui::edit::Refused> {
+    let address = address::promote(&h.id).map_err(|e| tui::edit::Refused::new(e.render()))?;
+    self
+      .facade
+      .set(
+        &address,
+        &h.field,
+        serde_json::Value::String(value.to_string()),
+      )
+      .map(|_| ())
+      .map_err(|e| tui::edit::Refused::new(e.to_string()))
+  }
+}
+
+/// One entity as JSON, by kind and id.
+///
+/// **ONE HOME, BECAUSE TWO READERS NEED IT AND THEY MUST NOT DISAGREE.** The
+/// row builder renders it and `AC-17.10`'s handoff reads a field out of it; a
+/// second walk would be a second answer to *what does this entity look like*,
+/// and the field the editor opened would not have to be the field the screen
+/// showed.
+fn entity_json(facade: &Facade, kind: &str, id: &str) -> Option<serde_json::Value> {
+  match kind {
+    "thread" => facade
+      .st_show(id)
+      .ok()
+      .and_then(|t| serde_json::to_value(t).ok()),
+    "issue" => id
+      .parse::<u32>()
+      .ok()
+      .and_then(|n| facade.issue_show(n).ok())
+      .and_then(|i| serde_json::to_value(i).ok()),
+    _ => None,
+  }
 }
 
 /// Read the rows one view shows.
@@ -2609,18 +2833,7 @@ fn rows_for(
       let Some(form) = declaration.form(kind) else {
         return Vec::new();
       };
-      let entity = match kind.as_str() {
-        "thread" => facade
-          .st_show(id)
-          .ok()
-          .and_then(|t| serde_json::to_value(t).ok()),
-        "issue" => id
-          .parse::<u32>()
-          .ok()
-          .and_then(|n| facade.issue_show(n).ok())
-          .and_then(|i| serde_json::to_value(i).ok()),
-        _ => None,
-      };
+      let entity = entity_json(facade, kind, id);
       // **A VIEW THAT CANNOT LOAD STILL RENDERS ITS FIELD NAMES**, because the
       // form is declared and the values are what is missing. An empty screen
       // would say the entity has no fields, which is a different and false

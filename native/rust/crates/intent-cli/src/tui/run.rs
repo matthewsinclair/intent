@@ -29,10 +29,59 @@ use ratatui::backend::CrosstermBackend;
 
 use super::app::{App, Step};
 use super::draw;
+use super::edit::{self, Handoff, Landed, Refused, Session};
 use super::layout::{self, Row, Screen};
 use super::nav::View;
-use super::terminal::{Borrowed, real};
+use super::terminal::{self, Borrowed, real};
 use super::views;
+
+/// Everything the loop needs from the store.
+///
+/// **ONE OBJECT RATHER THAN A `fetch` CLOSURE, AND THE BORROW CHECKER IS RIGHT
+/// ABOUT WHY.** The loop reads rows and, on a handoff, writes a field: two
+/// closures over one facade are two mutable borrows of one resource, because
+/// that is what they are. One trait with a supertrait says the same thing
+/// without lying about it.
+///
+/// The rows still arrive through a seam rather than a call, so **the whole
+/// composition above stays drivable with no store at all**.
+pub trait Source: edit::Model {
+  fn rows(&mut self, view: &View) -> Vec<Row>;
+}
+
+/// A [`Session`] wrapped so its child runs with the terminal given back.
+///
+/// **THE BRACKET LIVES HERE AND NOT IN [`edit`], BECAUSE THAT MODULE MUST NOT
+/// KNOW WHAT A TERMINAL IS.** Its whole value is that the handoff sequence is
+/// provable without one. A decorator keeps the two facts in the two places that
+/// own them: the sequence in `edit`, the borrow in `terminal`.
+struct Lending<'a, S, T: terminal::Screen> {
+  inner: S,
+  term: &'a mut Borrowed<T>,
+}
+
+impl<S: Session, T: terminal::Screen> Session for Lending<'_, S, T> {
+  fn scratch(&mut self, h: &Handoff, value: &str) -> Result<std::path::PathBuf, Refused> {
+    self.inner.scratch(h, value)
+  }
+
+  fn launch(&mut self, path: &std::path::Path) -> Result<(), Refused> {
+    // Destructured so the two fields are borrowed disjointly: the closure needs
+    // `inner` while `term` is already borrowed mutably by `lend`.
+    let Self { inner, term } = self;
+    term
+      .lend(|| inner.launch(path))
+      .map_err(|e| Refused::new(format!("error: the terminal would not come back -- {e}")))?
+  }
+
+  fn read_back(&mut self, path: &std::path::Path) -> Result<String, Refused> {
+    self.inner.read_back(path)
+  }
+
+  fn discard(&mut self, path: &std::path::Path) {
+    self.inner.discard(path);
+  }
+}
 
 /// Compose the whole screen for `app` showing `rows`, at `width`.
 ///
@@ -91,8 +140,18 @@ fn command_row(app: &App) -> String {
   }
 }
 
-/// Help for whatever is under the cursor, right now. It changes per row.
+/// Help for whatever is under the cursor -- **unless something just happened**,
+/// which takes the row.
+///
+/// **AN EDITOR HANDOFF IS THE ONE ACTION WHOSE RESULT IS INVISIBLE.** Every
+/// other keystroke changes the screen. This one gives the terminal away and
+/// comes back to a form that looks identical whether the save landed, was
+/// declined, or was refused -- so a silent return and a silent failure are the
+/// same picture, which is the shape `AC-17.10` spends its whole text on.
 fn info_row(app: &App, rows: &[Row]) -> String {
+  if !app.notice.is_empty() {
+    return app.notice.clone();
+  }
   let Some(row) = app.focus.and_then(|f| rows.get(f.index())) else {
     return String::new();
   };
@@ -117,12 +176,12 @@ fn info_row(app: &App, rows: &[Row]) -> String {
 /// facade because **this function should have no opinion about where data comes
 /// from**; that is what lets the whole composition above be driven in tests
 /// with no store at all.
-pub fn run(app: &mut App, fetch: impl Fn(&View) -> Vec<Row>) -> io::Result<()> {
+pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -> io::Result<()> {
   real::restore_on_panic();
   let mut borrowed = Borrowed::take(real::Crossterm)?;
   let mut term = Terminal::new(CrosstermBackend::new(io::stdout()))?;
 
-  let mut rows = fetch(app.stack.current());
+  let mut rows = source.rows(app.stack.current());
   app.point_at(rows.len());
 
   loop {
@@ -138,15 +197,45 @@ pub fn run(app: &mut App, fetch: impl Fn(&View) -> Vec<Row>) -> io::Result<()> {
       continue;
     }
     let was = app.stack.current().clone();
-    if app.on_key(key) == Step::Quit {
-      break;
+    match app.on_key(key, &rows) {
+      Step::Quit => break,
+      Step::Continue => {}
+      Step::Hand(hand) => {
+        let mut lending = Lending {
+          inner: &mut session,
+          term: &mut borrowed,
+        };
+        let outcome = edit::hand_off(source, &mut lending, &hand);
+        app.child_exited();
+        // **THE RE-READ IS UNCONDITIONAL, AND THAT IS THE CRITERION.** Not "if
+        // the handoff reported a write" -- `AC-17.10` says the editor is the
+        // AUTHORITY, and a return path that trusts its own report of what
+        // happened is trusting the thing it just gave the terminal away to. A
+        // cheap read is what stands between the operator and a repaint from a
+        // model the file has moved past.
+        rows = source.rows(app.stack.current());
+        app.refocus(rows.len());
+        app.notice = match outcome {
+          Ok(Landed::Written) => format!("{} saved", hand.field),
+          Ok(Landed::Unchanged) => format!("{} unchanged", hand.field),
+          Err(why) => why.to_string(),
+        };
+        // A terminal that would not come back is not survivable: the loop is
+        // about to paint into a screen it does not own.
+        if borrowed.outstanding().is_empty() {
+          return Err(io::Error::other(
+            "the terminal was lent to the editor and could not be taken back",
+          ));
+        }
+      }
     }
     // **THE VIEW CHANGED, SO THE ROWS MUST BE RE-READ BEFORE ANYTHING DERIVED
     // FROM THEM IS PAINTED.** Repainting a new view from the old rows is the
     // same class as `AC-17.10`'s stale-model save, one keystroke earlier.
     if *app.stack.current() != was {
-      rows = fetch(app.stack.current());
+      rows = source.rows(app.stack.current());
       app.point_at(rows.len());
+      app.notice.clear();
     }
   }
 

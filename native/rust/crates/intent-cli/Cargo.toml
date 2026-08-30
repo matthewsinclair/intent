@@ -15,6 +15,11 @@ serde.workspace = true
 serde_json.workspace = true
 time.workspace = true
 intentsvcs = { path = "../intentsvcs" }
+# **`IN-RS-CODE-004`, AND THE GATE WAS RIGHT.** `tui::edit`'s first shape
+# returned `Result<String, String>` -- a signature where the Ok and Err types are
+# the same, so a mistake type-checks -- and it buried the one fact a caller
+# genuinely has to ask about (is the operator's text still on disk?) inside prose.
+thiserror.workspace = true
 terminal_size = "0.4.4"
 crossterm = "0.29.0"
 # **THE REALISER'S PRINTER, AND IT IS PINNED TO THE CROSSTERM ALREADY HERE.**

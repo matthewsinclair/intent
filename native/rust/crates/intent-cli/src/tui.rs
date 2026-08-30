@@ -15,6 +15,7 @@
 
 pub mod app;
 pub mod draw;
+pub mod edit;
 pub mod focus;
 pub mod keys;
 pub mod layout;
