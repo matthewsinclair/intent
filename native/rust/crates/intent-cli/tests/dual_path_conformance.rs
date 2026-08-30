@@ -72,6 +72,7 @@
 //! keyed on**, which is the same shape as a census keyed on a state name
 //! missing a payload field inside one variant.
 
+use std::collections::BTreeSet;
 use std::path::Path;
 use std::process::Command;
 
@@ -403,8 +404,18 @@ fn invariant_every_shipped_verb_answers_identically_down_every_route() {
   // -- with the list still sitting here looking like it is doing its job.
   // Requiring each declared row to have FIRED turns that silence into a named
   // failure.
-  let declared: Vec<&str> = HAZARDS.iter().map(|(row, _)| *row).collect();
-  let fired: Vec<&str> = excluded.iter().map(|(row, _)| row.as_str()).collect();
+  // **SET, NOT SEQUENCE, AND THE ORDER-SENSITIVITY WAS A REAL COST RATHER THAN
+  // A COSMETIC ONE.** This check's stated purpose is catching a row RENAMED out
+  // from under the list; order is incidental to that and nothing reads these in
+  // order. As a `Vec` comparison it failed cc twice while they added two
+  // correct rows, purely for being listed in the order that read better rather
+  // than the table's -- **and an assertion that fails for a reason unrelated to
+  // its subject trains the reader to edit assertions**, which is the one habit
+  // this file exists to make unnecessary. cc reordered rather than touching the
+  // assertion, which was the right call in someone else's harness and is the
+  // reason this is fixed here instead.
+  let declared: BTreeSet<&str> = HAZARDS.iter().map(|(row, _)| *row).collect();
+  let fired: BTreeSet<&str> = excluded.iter().map(|(row, _)| row.as_str()).collect();
   assert_eq!(
     fired, declared,
     "declared hazardous row(s) {declared:?} but {fired:?} were found in the shipped population. \
