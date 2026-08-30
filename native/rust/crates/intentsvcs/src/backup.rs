@@ -358,6 +358,14 @@ pub fn cycle(project: &Project, store: &Store) -> Result<Cycle, BackupError> {
 /// failures does not defer the next attempt, because a failed backup is not a
 /// backup and a schedule that failed hourly for a week must keep trying.
 pub fn due(project: &Project, store: &Store) -> Result<Due, BackupError> {
+  // **THE ONE READER OF `backup.enabled`, AND IT GATES THIS DECISION ONLY.**
+  // `cycle` is deliberately NOT gated: `intent backup` is a typed instruction
+  // and a setting that made the daemon skip a project must not also refuse the
+  // operator standing in front of it. Nor is `doctor` gated -- a stale backup
+  // is still stale when you asked for it to stop being taken.
+  if !project.config().backup.enabled {
+    return Ok(Due::Disabled);
+  }
   let every = match schedule(project) {
     Schedule::Hours(hours) => f64::from(hours),
     // **NOT A FALLBACK TO THE DEFAULT, DELIBERATELY.** Backing up on a period
@@ -395,6 +403,20 @@ pub fn due(project: &Project, store: &Store) -> Result<Due, BackupError> {
 /// with your config* and the operator goes looking.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Due {
+  /// `backup.enabled` is false, so the daemon takes no scheduled snapshot.
+  ///
+  /// **CHECKED BEFORE THE SCHEDULE, SO AN INERT `backup.schedule` IS NOT
+  /// ANNOUNCED AS A DEFECT.** A project that has turned the sweep off has no
+  /// period to be wrong about, and a daemon complaining about the spelling of
+  /// a setting it is not using is noise. Nothing is hidden by the ordering:
+  /// `doctor` reads `backup.schedule` on its own and reports a value outside
+  /// the vocabulary either way.
+  ///
+  /// **AND THIS IS NOT `NotYet` WITH A DIFFERENT CAUSE.** `NotYet` means ask
+  /// again later; this means do not ask. Collapsing them would leave the
+  /// daemon unable to say WHY it is not backing up, which is the one thing an
+  /// operator wanting that answer is looking for.
+  Disabled,
   /// The period has elapsed, or no snapshot has ever been taken.
   Now,
   /// The newest good snapshot is younger than the configured period.

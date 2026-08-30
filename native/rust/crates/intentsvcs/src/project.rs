@@ -110,6 +110,26 @@ pub enum ThreadFile {
 /// supported name manufactures the failure it would be reporting.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BackupConfig {
+  /// `keys.0`, default true. Whether the DAEMON takes this project's scheduled
+  /// backups.
+  ///
+  /// **IT GATES THE SWEEP AND NOTHING ELSE, AND THAT IS THE RATIFIED SHAPE
+  /// RATHER THAN AN IMPLEMENTATION CHOICE.** `intent backup` still takes one
+  /// when it is typed, `intent doctor` still reports a stale backup, and
+  /// `BackupFailing` still fires. So this expresses *do not take them for me*
+  /// and never *do not tell me they are old*.
+  ///
+  /// **THE APPARENT CONFLICT WITH hv WAS A HOMONYM** (vc, 2026-08-30). hv said
+  /// *I don't want it turned off* on 2026-08-26, and `keys.0` says a backup can
+  /// be turned off; both sentences carry `turn off` and `backup` and they are
+  /// two different switches. There is deliberately no setting that silences a
+  /// STALE BACKUP -- **the combination is the design: a preference you can
+  /// express and a consequence you cannot hide.**
+  ///
+  /// Read it only through [`crate::backup::due`], which is the one decision
+  /// this gates.
+  #[serde(default = "default_backup_enabled")]
+  pub enabled: bool,
   /// How often a snapshot is expected. Default `daily`.
   ///
   /// **A word rather than a number, because that is ic's ratified surface**
@@ -134,6 +154,10 @@ pub struct BackupConfig {
   pub retain: RetainConfig,
 }
 
+fn default_backup_enabled() -> bool {
+  true
+}
+
 fn default_backup_schedule() -> String {
   "daily".to_string()
 }
@@ -141,6 +165,7 @@ fn default_backup_schedule() -> String {
 impl Default for BackupConfig {
   fn default() -> Self {
     Self {
+      enabled: default_backup_enabled(),
       schedule: default_backup_schedule(),
       retain: RetainConfig::default(),
     }

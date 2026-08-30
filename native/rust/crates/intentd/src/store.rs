@@ -210,13 +210,20 @@ impl ProjectHandle {
       };
 
       // **PER-PROJECT STATE FOR A PER-PROJECT REPORT, AND IT LIVES EXACTLY AS
-      // LONG AS THE PROJECT DOES.** A project whose `backup.schedule` cannot be
-      // read is reconsidered on every sweep and would otherwise say so on every
-      // sweep -- 288 identical lines a day, which is how the one log line that
-      // matters becomes unfindable. Saying it once per store thread is the
+      // LONG AS THE PROJECT DOES.** A project the daemon is not backing up is
+      // reconsidered on every sweep and would otherwise say so on every sweep
+      // -- 288 identical lines a day, which is how the one log line that
+      // matters becomes unfindable.
+      //
+      // **ONE FLAG FOR BOTH REASONS, BECAUSE THEY CANNOT BOTH BE TRUE.**
+      // `Disabled` is decided before `schedule` is read, so a project reaches
+      // at most one of these arms and the flag means *I have already said why
+      // this project is not being backed up*. That is also why its NAME had to
+      // change: `said_it_cannot_be_scheduled` was accurate for the only case
+      // that existed and would have been quietly wrong for the second. Saying it once per store thread is the
       // whole of what an operator needs, and the lifetime is right by
       // construction: a project reopened is a project reported about again.
-      let mut said_it_cannot_be_scheduled = false;
+      let mut said_why_it_is_not_backing_up = false;
 
       // **A PROJECT THAT OPENS CONSIDERS A BACKUP, WHICH IS WHAT MAKES A
       // RESTART HARMLESS** (`AC-08.8`). The sweep alone would leave a daemon
@@ -232,7 +239,11 @@ impl ProjectHandle {
       // `VACUUM INTO` on a project store, once per project per period, against
       // the alternative of a daemon that holds a project and has not backed it
       // up.
-      consider_backup(&mut facade, &thread_root, &mut said_it_cannot_be_scheduled);
+      consider_backup(
+        &mut facade,
+        &thread_root,
+        &mut said_why_it_is_not_backing_up,
+      );
 
       // `blocking_recv` is correct HERE and would be a defect anywhere else in
       // this crate: this is not a runtime worker, it is a thread whose entire
@@ -270,7 +281,11 @@ impl ProjectHandle {
             thread_ingested.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
           }
           Work::Backup => {
-            consider_backup(&mut facade, &thread_root, &mut said_it_cannot_be_scheduled);
+            consider_backup(
+              &mut facade,
+              &thread_root,
+              &mut said_why_it_is_not_backing_up,
+            );
           }
         }
       }
@@ -478,7 +493,7 @@ fn ingest(facade: &mut Facade, root: &Path) {
 /// convenience and the row is the record. That ordering is the criterion's
 /// *never only in a log nobody reads*, and it is the reason this function can
 /// print without that being the whole of its reporting.
-fn consider_backup(facade: &mut Facade, root: &Path, said_it_cannot_be_scheduled: &mut bool) {
+fn consider_backup(facade: &mut Facade, root: &Path, said_why_it_is_not_backing_up: &mut bool) {
   match intentsvcs::backup::due(facade.project(), facade.store()) {
     Ok(intentsvcs::backup::Due::Now) => {
       match intentsvcs::backup::cycle(facade.project(), facade.store()) {
@@ -503,12 +518,27 @@ fn consider_backup(facade: &mut Facade, root: &Path, said_it_cannot_be_scheduled
       }
     }
     Ok(intentsvcs::backup::Due::NotYet) => {}
+    // **ANNOUNCED, NOT SILENT, THOUGH IT IS NOT AN ERROR.** The operator asked
+    // for this, so there is no remedy to offer and none is offered. What the
+    // line buys is the answer to *why is my daemon not backing this up*
+    // WITHOUT having to go and read a config file to find out -- and the
+    // sentence deliberately says what remains true, because the setting stops
+    // the sweep and stops nothing else.
+    Ok(intentsvcs::backup::Due::Disabled) => {
+      if !*said_why_it_is_not_backing_up {
+        *said_why_it_is_not_backing_up = true;
+        println!(
+          "intentd: `{}` has backup.enabled = false, so no scheduled backup is being taken. `intent backup` still takes one when you ask, and `intent doctor` still reports a stale one.",
+          root.display()
+        );
+      }
+    }
     // **SAID ONCE, NOT ONCE A SWEEP.** See the flag's declaration on the store
     // thread; and `doctor` is what an operator actually meets, which reports
     // the same setting from the same config with the remedy attached.
     Ok(intentsvcs::backup::Due::Unschedulable(value)) => {
-      if !*said_it_cannot_be_scheduled {
-        *said_it_cannot_be_scheduled = true;
+      if !*said_why_it_is_not_backing_up {
+        *said_why_it_is_not_backing_up = true;
         eprintln!(
           "intentd: `{}` is NOT being backed up: backup.schedule is {value:?}, which is not one of hourly, daily, weekly\n  remedy: correct backup.schedule in the project's config.json. `intent doctor` reports this too, with the estate's other findings.",
           root.display()

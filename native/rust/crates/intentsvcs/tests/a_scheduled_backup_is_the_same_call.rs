@@ -401,3 +401,101 @@ fn a_zero_tier_is_honoured_and_its_siblings_keep_their_defaults() {
     "the tier set to zero is zero, and the tiers not mentioned are the defaults"
   );
 }
+
+// ---------------------------------------------------------------------------
+// `backup.enabled` (`keys.0`): it gates the SWEEP and nothing else.
+//
+// **THE RATIFIED SHAPE IS THREE SWITCHES AND THIS IS ONE OF THEM** (vc,
+// 2026-08-30). hv's *I don't want it turned off* and `keys.0`'s *a backup can
+// be turned off* are a HOMONYM -- both sentences carry `turn off` and `backup`
+// and they are different switches. There is deliberately no setting that
+// silences a stale backup, so the combination is the design: a preference you
+// can express and a consequence you cannot hide.
+//
+// **THE THREE ARMS THAT MATTER ARE THE ONES ASSERTING WHAT IT DOES NOT DO.**
+// A gate is easy to write and easy to over-apply, and an over-applied one
+// fails in the direction nobody tests: `intent backup` silently declining, or
+// `doctor` going quiet about a backup that is a year old. Those are the arms
+// that would still be green under a wrong implementation of the arm above.
+// ---------------------------------------------------------------------------
+
+/// The negative half: overdue, and refused anyway.
+#[test]
+fn an_overdue_project_with_backup_enabled_false_is_not_due() {
+  let fx = Fixture::new();
+  with_backup_block(&fx, "{ \"enabled\": false, \"schedule\": \"daily\" }");
+  let store = store_of(&fx);
+  good_snapshot_at(&fx, "2020-01-01T00:00:00.000Z");
+  assert_eq!(
+    backup::due(&fx.project(), &store).expect("due"),
+    Due::Disabled,
+    "the sweep must not take a snapshot for a project that turned it off"
+  );
+}
+
+/// **THE POSITIVE CONTROL, AND WITHOUT IT THE ARM ABOVE PASSES ON A `due` THAT
+/// REFUSES EVERYTHING.** Identical fixture, identical age, one key removed --
+/// so the only thing separating the two verdicts is the setting under test. A
+/// one-sided version is green on the day `due` is broken into always saying no,
+/// which is the failure that stops backups estate-wide.
+#[test]
+fn the_same_overdue_project_with_the_key_removed_is_due() {
+  let fx = Fixture::new();
+  with_backup_block(&fx, "{ \"schedule\": \"daily\" }");
+  let store = store_of(&fx);
+  good_snapshot_at(&fx, "2020-01-01T00:00:00.000Z");
+  assert_eq!(
+    backup::due(&fx.project(), &store).expect("due"),
+    Due::Now,
+    "absent means enabled, so the same project must be due once the key is gone"
+  );
+}
+
+/// **ABSENT IS `true`, AND THE FIELD DEFAULT IS WHAT DELIVERS IT.** The arm
+/// above proves absence from a block that names `schedule`; this proves it from
+/// a project with no `backup` block at all. Both paths reach the default
+/// through different serde machinery, and this estate has already shipped a
+/// version where typing one field silently emptied the reader of another in
+/// the same struct -- so the two are not one arm written twice.
+#[test]
+fn a_project_with_no_backup_block_is_backed_up_by_the_daemon() {
+  let fx = Fixture::new();
+  let store = store_of(&fx);
+  assert_eq!(
+    backup::due(&fx.project(), &store).expect("due"),
+    Due::Now,
+    "a config that never mentions backups must not have them switched off"
+  );
+}
+
+/// **THE SETTING STOPS THE SWEEP AND NOT THE OPERATOR.** `intent backup` is a
+/// typed instruction; a config that made the daemon skip a project must not
+/// also refuse the person standing in front of it asking for one.
+#[test]
+fn backup_enabled_false_does_not_refuse_a_typed_backup() {
+  let fx = Fixture::new();
+  with_backup_block(&fx, "{ \"enabled\": false }");
+  let store = store_of(&fx);
+  let ran = backup::cycle(&fx.project(), &store).expect("a typed backup still runs");
+  assert!(
+    ran.written.exists(),
+    "`intent backup` reaches `cycle`, which is not gated, and must still write a snapshot"
+  );
+}
+
+/// **AND IT DOES NOT SILENCE THE CONSEQUENCE.** A backup that is a year old is
+/// a year old whether or not you asked for the sweep to stop taking them, and
+/// a switch that turned off the REPORTING as well would be a setting that
+/// hides its own cost. That is the half of the homonym hv was refusing.
+#[test]
+fn backup_enabled_false_does_not_silence_a_stale_backup_in_doctor() {
+  let fx = Fixture::new();
+  with_backup_block(&fx, "{ \"enabled\": false, \"schedule\": \"daily\" }");
+  let store = store_of(&fx);
+  good_snapshot_at(&fx, "2020-01-01T00:00:00.000Z");
+  assert_eq!(
+    findings_of(&fx, &store, FindingClass::BackupStale).len(),
+    1,
+    "doctor reports staleness from the snapshot rows, and `backup.enabled` is not one of its inputs"
+  );
+}

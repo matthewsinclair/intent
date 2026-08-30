@@ -46,6 +46,24 @@ fn project() -> tempfile::TempDir {
   dir
 }
 
+/// The same project, with `backup.enabled` turned off.
+///
+/// **A SEPARATE FIXTURE RATHER THAN A PARAMETER, SO THE DEFAULT PATH KEEPS ITS
+/// OWN WITNESS.** The arms above must go on proving that a project which never
+/// mentions backups gets one; threading a flag through `project()` would make
+/// every one of them a test of the flag as well.
+fn project_with_backups_off() -> tempfile::TempDir {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let config = dir.path().join("intent").join(".config");
+  std::fs::create_dir_all(&config).expect("mkdir");
+  std::fs::write(
+    config.join("config.json"),
+    "{\n  \"intent_version\": \"3.0.0\",\n  \"project_name\": \"BackedUp\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"],\n  \"backup\": { \"enabled\": false }\n}\n",
+  )
+  .expect("write config");
+  dir
+}
+
 /// The snapshots this project holds on disk, by filename.
 ///
 /// **READ OFF THE FILESYSTEM RATHER THAN OUT OF THE STORE**, so the assertion
@@ -173,5 +191,39 @@ fn opening_a_project_twice_does_not_take_two_backups() {
     snapshots_on_disk(root).len(),
     1,
     "the second contact finds a fresh snapshot and is not due another"
+  );
+}
+
+/// **`backup.enabled = false` REACHES THE DAEMON, NOT JUST `backup::due`.**
+///
+/// The unit arms in `a_scheduled_backup_is_the_same_call.rs` prove the decision
+/// returns `Disabled`; this proves the daemon ACTS on it, which is a different
+/// claim. `consider_backup` matches on the verdict, and a match arm that fell
+/// through to `cycle` would satisfy every unit arm and still fill the project's
+/// `.backup/db/` -- the exhaustiveness the compiler enforces is about handling
+/// the variant, never about handling it correctly.
+///
+/// **PAIRED WITH `a_project_the_daemon_opens_gets_the_backup_it_is_owed`
+/// DELIBERATELY.** Identical act, identical assertion, one config key apart, and
+/// the two together are what make either one mean something: alone, this arm is
+/// green on a daemon that has stopped backing up anything at all.
+#[test]
+fn a_project_with_backups_turned_off_is_opened_and_not_backed_up() {
+  let daemon = RealDaemon::start();
+  let project = project_with_backups_off();
+  let root = project.path();
+
+  let answered = make_the_daemon_open(&daemon, root);
+
+  assert!(
+    matches!(answered, Response::Threads { .. }),
+    "the daemon must still SERVE a project whose backups are off -- the setting \
+     names the sweep, and a daemon that refused the project would be a second, \
+     much larger thing than was asked for"
+  );
+  assert_eq!(
+    snapshots_on_disk(root),
+    Vec::<String>::new(),
+    "the daemon opened this project and must have taken no snapshot for it"
   );
 }
