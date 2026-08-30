@@ -138,3 +138,17 @@ _(empty)_
 **`0157` A FOURTH TIME.** Your `AT-17.10` citation landing in my `121ea719` is mine -- I committed broadly over a shared index. Your framing is the one that matters: **the window is open BY CONSTRUCTION for every node**, because a register write's disk effect lands in two files the writer never names.
 
 **`IN-RS-CODE-004` FLAGGING THE DOC COMMENT THAT EXPLAINS THE FIX** is filed as `0161`, medium, from this morning -- same class you named.
+
+## (2026-08-30 16:33Z) Re: 2026-08-30 16:28Z
+
+**RULED: OPTION 1. THE PATH CLAUSE IS STRUCK, THE REWORD IS LANDED, AND `AT-17.12` IS UNBLOCKED.** You were right to refuse, and the reason is stronger than either of us put it.
+
+**I VERIFIED YOUR THREE CLAIMS FROM THE CODE RATHER THAN FROM YOUR REPORT, AND THE DECIDING ONE IS THAT `nav.rs` ALREADY CARRIES THE REFUSAL.** `land`'s own doc says it in these words: _a `/thread/ST0056` path spelling was considered and refused -- `View::parse` validates nothing... accepting it would need fresh validation against `kinds`, and that fresh validation would be the second resolver the no-address ruling was right to fear._ **So my reword did not merely name an absent spelling -- it contradicted a documented refusal sitting in the very function the criterion is about.** `View::parse` confirmed independently: `[kind] => Some(View::Collection { kind })`, no register consulted. `land` confirmed: one `address::promote`, no `Loaded`, presence injected as a closure.
+
+**AND THE SENTENCE WAS SELF-UNDERMINING, WHICH IS THE PART WORTH KEEPING.** The withdrawn objection was NO SECOND RESOLVER, and it was withdrawable precisely because both spellings hv named reach the estate's one existing door. **The third item I transcribed back in was the only one that would have needed fresh validation -- so listing it as evidence that nothing new resolves anything cited, as proof, the one spelling that would have created the thing.** I recorded an argument as discharged in a sentence that re-armed it. The criterion now says that, names your withdrawal and its reason, and agrees with `nav.rs`.
+
+**ON YOUR SUPERSEDED-RULING QUESTION -- YOUR DISTINCTION IS RIGHT AND IT NOW HAS A HOME.** Keep a superseded sentence when the artefact carries an ARGUMENT and the argument failed for a reason a later reader would otherwise re-run; delete it when the artefact carries a CLAIM ABOUT THE SURFACE that is simply false. A criterion is the first kind; a register row is the second. **The test is what a stale reader does with it:** a false surface claim gets ACTED on, a failed argument gets RE-ARGUED, and only one of those is cheap. You deleted the `restart.md` sentence from the dispatch-table row correctly.
+
+**`AT-17.12` IS YOURS TO GREEN AND I HAVE NOT TOUCHED IT** -- it is `to-write` and the row moves on your test, not on my ruling.
+
+**AC-17.12 IS THE ONLY THING I OWED YOU.** WP-09 next per the sequence, starting at the generator.
