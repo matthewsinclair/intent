@@ -24,9 +24,13 @@
 //! socket file OUTLIVES the process that bound it -- kill the daemon and the
 //! path is still there. A rule keyed on existence alone routes every verb at a
 //! socket nobody is listening on, which is worse than not routing at all: the
-//! in-process engine was available the entire time. So the probe is a connect,
-//! and a stale socket falls back to in-process, which is both the safe
-//! direction and the correct one.
+//! in-process engine was available the entire time.
+//!
+//! **AND A CONNECT IS NOT AN ANSWER EITHER, WHICH IS THE SAME DEFECT ONE LAYER
+//! DOWN.** A listening descriptor that leaked into a surviving child keeps the
+//! backlog open with nobody accepting, so `connect` succeeds forever against a
+//! dead owner. So the probe is a bounded round TRIP -- see
+//! [`Endpoint::answers`], which carries the mechanism and the measurement.
 //!
 //! ## Why the candidates are a LIST
 //!
@@ -40,13 +44,19 @@
 //! implements. [`route`] never names a transport. Adding one is a variant plus
 //! its [`Endpoint::answers`] arm.
 //!
-//! **[`Endpoint::Tcp`] EXISTS TODAY AND [`candidates`] PRODUCES NONE.** Both
-//! halves are deliberate. The variant is not minted here -- D56 names HTTP -- but
-//! the PORT is unresolved in canon (`tui-design.md` writes
-//! `http://127.0.0.1:<port>/` with the port literally unwritten), and choosing
-//! one here would hardcode a member of a population that has not declared
-//! itself. The test drives mixed lists so the multi-transport body is exercised
-//! rather than being a loop that has never run twice.
+//! **THERE IS NO PORT CONSTANT IN THIS FILE OR ANYWHERE ELSE, AND THAT IS
+//! hv's D6 RATHER THAN AN OMISSION.** The daemon binds `127.0.0.1:0`, takes
+//! whatever the kernel gives it, and PUBLISHES it; [`candidates`] reads that
+//! file. So the TCP candidate exists exactly when a daemon has said where it
+//! is, and the question "which port" -- unresolved in canon, where
+//! `tui-design.md` writes `http://127.0.0.1:<port>/` with the port literally
+//! unwritten -- never has to be answered by anyone. **An earlier draft of this
+//! paragraph said the TCP variant existed and `candidates` produced none, which
+//! was true when it was written and false a few hours later**; it survived the
+//! commit that falsified it, in the file whose own subject is a rule that rots
+//! when it is summarised rather than derived. The test drives mixed lists so
+//! the multi-transport body is exercised rather than being a loop that has
+//! never run twice.
 //!
 //! ## Where the path comes from
 //!
@@ -56,6 +66,7 @@
 //! drive against any temp directory it likes.
 
 use std::fmt;
+use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpStream};
 use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
@@ -63,15 +74,92 @@ use std::path::PathBuf;
 use std::time::Duration;
 use thiserror::Error;
 
-/// How long a TCP candidate gets to answer before it counts as absent.
+/// How long each step of the probe gets before the endpoint counts as absent.
 ///
-/// The daemon is a LOCAL process on a loopback address, where a connect either
-/// completes or is refused in microseconds -- this bound exists for the one
-/// case that has neither answer, a firewall rule that DROPs rather than
-/// rejects, which would otherwise hang every store-reading verb on a machine
-/// whose daemon is not even running. A unix socket needs no equivalent: it has
-/// no network stack to disappear into.
-const TCP_PROBE_TIMEOUT: Duration = Duration::from_millis(250);
+/// **APPLIED PER STEP -- CONNECT, WRITE, READ -- SO THE WORST CASE IS THREE
+/// TIMES THIS AND THAT IS DELIBERATE.** It is a bound, not a budget: on a live
+/// loopback or unix endpoint every step completes in microseconds, and on a
+/// dead one connect is REFUSED immediately rather than timing out. The
+/// deadline only bites in the two cases that have no answer at all -- a
+/// firewall rule that DROPs rather than rejects, and the inherited listener
+/// below -- where the alternative is not a slower CLI but a hung one.
+///
+/// **`AC-08.3` MAKES EXPIRY MEAN ABSENT, WHICH MOVES THE RISK RATHER THAN
+/// REMOVING IT, AND THE DIRECTION IT MOVES IN IS THE WORSE ONE.** A probe that
+/// gives up too early on a LIVE daemon routes in-process against a store that
+/// daemon owns -- two sync engines, the one thing the rule exists to forbid --
+/// whereas the false positive it replaces costs a failed request and no
+/// corruption. **So this constant is safe only while answering the probe
+/// cannot queue behind request work**, which is an obligation on the daemon
+/// and not on this value: the probe is answered on the accept path, before
+/// anything per-request. Raising the number is not the fix if that is ever
+/// violated, because no number is.
+const PROBE_DEADLINE: Duration = Duration::from_millis(250);
+
+/// What the probe sends to make an endpoint prove it is listening.
+///
+/// **THE SMALLEST THING THAT IS INSIDE D56 AND OUTSIDE THE PROTOCOL.** D56
+/// rules the daemon's output contract JSON, so the probe is a JSON object; it
+/// is newline-terminated because a reader has to know the request ended, and a
+/// newline is the least framing that achieves that without minting a
+/// length-prefix format here. **Nothing about the RESPONSE is specified**, on
+/// purpose -- see [`completes_a_round_trip`]. Naming a reply shape would put
+/// half a wire protocol in the routing seam, where the daemon that has to
+/// honour it does not yet exist.
+const PROBE_FRAME: &[u8] = b"{\"intent_probe\":1}\n";
+
+/// A connected stream the probe can drive, whatever it is connected over.
+///
+/// **THE ROUND TRIP IS WRITTEN ONCE AND BOTH TRANSPORTS DRIVE IT.** `std` gives
+/// `UnixStream` and `TcpStream` the same three methods and no common trait, so
+/// without this the liveness rule would exist twice -- and two copies of a
+/// predicate this subtle is how one of them quietly stops matching the other.
+/// The per-variant part of [`Endpoint::answers`] is then only the connect,
+/// which is the only part that genuinely differs.
+trait Probeable: Read + Write {
+  fn set_deadline(&self, budget: Duration) -> std::io::Result<()>;
+}
+
+impl Probeable for UnixStream {
+  fn set_deadline(&self, budget: Duration) -> std::io::Result<()> {
+    self.set_write_timeout(Some(budget))?;
+    self.set_read_timeout(Some(budget))
+  }
+}
+
+impl Probeable for TcpStream {
+  fn set_deadline(&self, budget: Duration) -> std::io::Result<()> {
+    self.set_write_timeout(Some(budget))?;
+    self.set_read_timeout(Some(budget))
+  }
+}
+
+/// Did something on the other end ACCEPT, read, and write back in time?
+///
+/// **ONE BYTE IS THE WHOLE TEST, AND ASKING FOR MORE WOULD BE WORSE.** The
+/// question is not what the daemon said, it is whether anything is there to
+/// say it: a phantom endpoint holds an open listen backlog with nothing behind
+/// it, so a `connect` succeeds and no byte ever arrives. Requiring a
+/// well-formed reply instead would make this seam a second home for the
+/// response format, and would fail against a daemon whose reply shape moved.
+///
+/// **`Ok(0)` IS A CLEAN EOF AND COUNTS AS ABSENT.** Something accepted and
+/// closed without answering -- a listener shutting down, or a server that
+/// rejects what it cannot parse. Either way it cannot serve this invocation,
+/// which is the only question being asked.
+fn completes_a_round_trip<S: Probeable>(mut stream: S) -> bool {
+  if stream.set_deadline(PROBE_DEADLINE).is_err() {
+    return false;
+  }
+  if stream.write_all(PROBE_FRAME).is_err() {
+    return false;
+  }
+  if stream.flush().is_err() {
+    return false;
+  }
+  let mut first = [0u8; 1];
+  matches!(stream.read(&mut first), Ok(read) if read > 0)
+}
 
 /// An address `intentd` may be listening on.
 ///
@@ -97,33 +185,56 @@ pub enum Endpoint {
 impl Endpoint {
   /// Is a daemon ANSWERING here?
   ///
-  /// **A CONNECT, NEVER A STAT.** `Path::exists` answers a different question
-  /// -- see the module note on stale sockets -- and answering it instead would
-  /// be a confident wrong answer at exactly the moment a daemon has crashed.
+  /// **A COMPLETED ROUND TRIP, NEVER A STAT AND NEVER A BARE CONNECT.** The
+  /// two weaker tests fail on two different real cases, and each one is the
+  /// same defect one layer down from the last:
   ///
-  /// **A `true` HERE IS NOT QUITE A LIVE DAEMON, AND THE GAP IS `fork`.**
-  /// macOS has no `SOCK_CLOEXEC`, so a listening socket is created by one
-  /// syscall and marked close-on-exec by a second; a `fork` landing between
-  /// them leaks the listening fd into the child, and the socket keeps
-  /// accepting until that child exits -- however long ago the daemon died.
-  /// Measured in this estate's own test process, where it made a released
-  /// socket answer 1 time in 300. **The consequence is a failed request rather
-  /// than a corrupted store**: routing to a phantom finds nothing to talk to,
-  /// and the invariant this rule exists for -- never two engines on one
-  /// database -- still holds, because the in-process engine was not started.
-  /// Worth knowing before someone reads a routing refusal as proof a daemon is
-  /// running.
+  /// - `Path::exists` is wrong because **a unix socket file OUTLIVES the
+  ///   process that bound it.** Kill the daemon and the path is still there,
+  ///   so a presence test routes every verb at an address nobody is listening
+  ///   on -- while the in-process engine that would have served the request was
+  ///   available the whole time.
+  /// - `connect().is_ok()` is wrong because **a successful connect is not an
+  ///   answer.** macOS has no `SOCK_CLOEXEC`, so a listening socket is created
+  ///   by one syscall and marked close-on-exec by a second; a `fork` landing
+  ///   between them leaks the LISTENING descriptor into the child. If that
+  ///   child outlives the daemon, the socket file is on disk and the listen
+  ///   backlog is open, so `connect` succeeds against an owner that is dead and
+  ///   **nothing ever accepts.** Measured in this estate's own test process at
+  ///   1 in 300 with a sibling thread spawning children, 0 in 2000 without.
   ///
-  /// **FALSE IS THE FAIL-SAFE ANSWER AND EVERY ERROR MAPS TO IT.** Refused,
-  /// missing, permission-denied, timed out: none of them is a daemon that can
-  /// serve a request, and the fallback is the in-process engine that was
-  /// working anyway. The opposite bias -- treating an unreadable socket as a
-  /// live daemon -- would refuse work over a file the operator cannot even
-  /// see.
+  /// So the probe writes [`PROBE_FRAME`] and requires a byte back inside
+  /// [`PROBE_DEADLINE`]. **The daemon still closes the window it can** -- set
+  /// `FD_CLOEXEC` immediately, keep child spawns off the bind path -- **and
+  /// this rule must never come to depend on that having worked**, because the
+  /// window is a race the daemon can narrow and cannot eliminate. The client is
+  /// where it is made harmless.
+  ///
+  /// **AN EXPIRED DEADLINE IS ABSENT, AND THAT IS THE DANGEROUS DIRECTION, NOT
+  /// THE SAFE ONE.** A CLI that blocks on a dead daemon is the outage the
+  /// routing rule exists to prevent, so falling through to in-process is right
+  /// -- but it is right at a cost that the earlier bare-connect form did not
+  /// carry. Getting this WRONG now means running in-process against a store a
+  /// live daemon owns, which is two sync engines; getting the old form wrong
+  /// meant a failed request and an intact store. See [`PROBE_DEADLINE`] for the
+  /// obligation that keeps the trade sound.
+  ///
+  /// **FALSE IS THE FAIL-SAFE ANSWER FOR EVERY *ERROR*, WHICH IS A NARROWER
+  /// CLAIM THAN IT WAS.** Refused, missing, permission-denied: none of them is
+  /// a daemon that can serve a request, and treating an unreadable socket as a
+  /// live daemon would refuse work over a file the operator cannot even see. A
+  /// TIMEOUT is not in that list on the same footing -- it is the one `false`
+  /// here that can be wrong about a daemon that exists.
   pub fn answers(&self) -> bool {
     match self {
-      Endpoint::Unix(path) => UnixStream::connect(path).is_ok(),
-      Endpoint::Tcp(addr) => TcpStream::connect_timeout(addr, TCP_PROBE_TIMEOUT).is_ok(),
+      Endpoint::Unix(path) => match UnixStream::connect(path) {
+        Ok(stream) => completes_a_round_trip(stream),
+        Err(_) => false,
+      },
+      Endpoint::Tcp(addr) => match TcpStream::connect_timeout(addr, PROBE_DEADLINE) {
+        Ok(stream) => completes_a_round_trip(stream),
+        Err(_) => false,
+      },
     }
   }
 }

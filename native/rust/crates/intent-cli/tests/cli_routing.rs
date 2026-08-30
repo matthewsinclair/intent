@@ -33,10 +33,15 @@
 //! structure and the stale case do not.
 
 use std::fs;
+use std::io::Write;
 use std::net::{Ipv4Addr, SocketAddr, TcpListener};
 use std::os::unix::net::UnixListener;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc;
+use std::time::Duration;
 
 use intentsvcs::daemon::{self, Endpoint, Route};
 use intentsvcs::userstate;
@@ -154,6 +159,187 @@ fn closed_port() -> SocketAddr {
   );
 }
 
+/// What a conforming endpoint sends back. Its CONTENT is deliberately not a
+/// contract -- see `daemon::completes_a_round_trip`, which requires a byte and
+/// says nothing about which byte.
+const REPLY: &[u8] = b"{\"ok\":true}\n";
+
+/// How long a responder waits between polls of its own stop flag.
+const POLL: Duration = Duration::from_millis(1);
+
+/// How long a responder waits for the probe's request before giving up on it.
+const SERVE_BUDGET: Duration = Duration::from_millis(500);
+
+/// What a fixture endpoint does with a connection it has accepted.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Behaviour {
+  /// Read the request, then answer it -- what a daemon does.
+  Answer,
+  /// Accept and close without writing: a daemon shutting down, or a server
+  /// dropping input it cannot parse. **A `read` of `Ok(0)`, which is a clean
+  /// EOF and not a timeout** -- a third phantom, reached by neither the stale
+  /// file nor the inherited descriptor.
+  AcceptAndClose,
+}
+
+/// Serve one accepted connection.
+///
+/// **THE REPLY IS CONDITIONAL ON HAVING READ THE REQUEST, WHICH IS WHAT MAKES
+/// THE PROBE'S WRITE LOAD-BEARING.** A fixture that answers whatever arrives --
+/// including nothing -- cannot tell a round trip from a bare connect that
+/// happened to be greeted, so a probe that stopped sending anything would still
+/// find every fixture live.
+fn serve_probe<S: std::io::Read + Write>(mut stream: S, mode: Behaviour) -> std::io::Result<bool> {
+  if mode == Behaviour::AcceptAndClose {
+    return Ok(true);
+  }
+  let mut request = [0u8; 64];
+  match stream.read(&mut request) {
+    Ok(read) if read > 0 => stream.write_all(REPLY).map(|()| true),
+    // A daemon does not answer a request it never received.
+    _ => Ok(true),
+  }
+}
+
+/// A listener a [`Responder`] can drive without knowing its transport.
+///
+/// The same reason `daemon::Probeable` exists one crate over: `std` gives
+/// `UnixListener` and `TcpListener` the same shape and no common trait, and two
+/// copies of an accept loop is two things that can stop agreeing.
+trait Listens: Send + Sync + 'static {
+  fn set_nonblocking(&self, on: bool) -> std::io::Result<()>;
+  /// `Ok(true)` served a connection, `Ok(false)` there was none waiting.
+  ///
+  /// **THE ACCEPTED STREAM IS PUT BACK INTO BLOCKING MODE EXPLICITLY.** POSIX
+  /// does not have it inherit `O_NONBLOCK` from the listener and some platforms
+  /// do it anyway, so a fixture that relies on either would read zero bytes and
+  /// answer a request it never got -- silently, and only on one OS.
+  fn serve_once(&self, mode: Behaviour) -> std::io::Result<bool>;
+}
+
+impl Listens for UnixListener {
+  fn set_nonblocking(&self, on: bool) -> std::io::Result<()> {
+    UnixListener::set_nonblocking(self, on)
+  }
+  fn serve_once(&self, mode: Behaviour) -> std::io::Result<bool> {
+    match self.accept() {
+      Ok((stream, _)) => {
+        stream.set_nonblocking(false)?;
+        stream.set_read_timeout(Some(SERVE_BUDGET))?;
+        serve_probe(stream, mode)
+      }
+      Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => Ok(false),
+      Err(e) => Err(e),
+    }
+  }
+}
+
+impl Listens for TcpListener {
+  fn set_nonblocking(&self, on: bool) -> std::io::Result<()> {
+    TcpListener::set_nonblocking(self, on)
+  }
+  fn serve_once(&self, mode: Behaviour) -> std::io::Result<bool> {
+    match self.accept() {
+      Ok((stream, _)) => {
+        stream.set_nonblocking(false)?;
+        stream.set_read_timeout(Some(SERVE_BUDGET))?;
+        serve_probe(stream, mode)
+      }
+      Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => Ok(false),
+      Err(e) => Err(e),
+    }
+  }
+}
+
+/// An endpoint that ACCEPTS and answers -- the only fixture that resembles a
+/// running daemon.
+///
+/// **BEFORE THIS EXISTED, EVERY "LIVE" FIXTURE IN THIS FILE WAS A BARE
+/// LISTENER, WHICH IS THE PHANTOM OF `AC-08.3` CASE 2 EXACTLY.** The suite was
+/// green, and it could not have distinguished a live daemon from an inherited
+/// listening fd, because its live fixture WAS one. Four tests flipped the
+/// moment the probe became a round trip, which is what says the change did
+/// something: a fixture that cannot exhibit the defect passes for free, and its
+/// green is indistinguishable from a real one.
+///
+/// Shuts down on drop rather than detaching: a leaked thread holding a listener
+/// is the fd-inheritance hazard FORK_GUARD exists for, so this must not create
+/// one on the way out.
+struct Responder {
+  stop: Arc<AtomicBool>,
+  thread: Option<std::thread::JoinHandle<()>>,
+}
+
+impl Responder {
+  fn spawn<L: Listens>(listener: L) -> Self {
+    Responder::spawn_as(listener, Behaviour::Answer)
+  }
+
+  fn spawn_as<L: Listens>(listener: L, mode: Behaviour) -> Self {
+    listener
+      .set_nonblocking(true)
+      .expect("a responder polls, so its listener must be non-blocking");
+    let stop = Arc::new(AtomicBool::new(false));
+    let flag = Arc::clone(&stop);
+    let thread = std::thread::spawn(move || {
+      while !flag.load(Ordering::Relaxed) {
+        // A probe that has already gone is not this fixture's problem; a
+        // responder that dies on one reset connection would fail the NEXT
+        // test's assertion, blaming the rule for a fixture that went away.
+        if !listener.serve_once(mode).unwrap_or(false) {
+          std::thread::sleep(POLL);
+        }
+      }
+    });
+    Responder {
+      stop,
+      thread: Some(thread),
+    }
+  }
+}
+
+impl Drop for Responder {
+  fn drop(&mut self) {
+    self.stop.store(true, Ordering::Relaxed);
+    if let Some(thread) = self.thread.take() {
+      let _ = thread.join();
+    }
+  }
+}
+
+/// A live unix endpoint: bound, accepting, and CHECKED to be answering.
+///
+/// The fixture verifies its own claim for the same reason [`stale_endpoint`]
+/// does -- every assertion driven off it reads a routing RESULT, so a fixture
+/// that is not live produces a failure blaming the rule.
+fn live_unix(root: &Path) -> (Endpoint, Responder) {
+  let path = socket_path(root);
+  let guard = no_forks_here();
+  let responder = Responder::spawn(UnixListener::bind(&path).expect("bind the live fixture"));
+  drop(guard);
+  let endpoint = Endpoint::Unix(path);
+  assert!(
+    endpoint.answers(),
+    "the live-socket fixture is not answering: {endpoint}. Nothing downstream of this can be read as a routing result"
+  );
+  (endpoint, responder)
+}
+
+/// A live TCP endpoint on an ephemeral loopback port.
+fn live_tcp() -> (Endpoint, Responder) {
+  let guard = no_forks_here();
+  let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("bind ephemeral");
+  let addr = listener.local_addr().expect("local_addr");
+  let responder = Responder::spawn(listener);
+  drop(guard);
+  let endpoint = Endpoint::Tcp(addr);
+  assert!(
+    endpoint.answers(),
+    "the live-TCP fixture is not answering: {endpoint}"
+  );
+  (endpoint, responder)
+}
+
 #[test]
 fn an_absent_endpoint_runs_in_process() {
   let dir = tempfile::tempdir().expect("tempdir");
@@ -166,10 +352,8 @@ fn an_absent_endpoint_runs_in_process() {
 #[test]
 fn a_live_unix_endpoint_is_routed_to() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let path = socket_path(dir.path());
-  let _listener = UnixListener::bind(&path).expect("bind the fixture socket");
+  let (endpoint, _responder) = live_unix(dir.path());
 
-  let endpoint = Endpoint::Unix(path);
   assert_eq!(route_of(&[endpoint.clone()]), Route::Daemon(endpoint));
 }
 
@@ -180,10 +364,223 @@ fn a_stale_socket_file_runs_in_process() {
   assert_eq!(route_of(&[stale_endpoint(dir.path())]), Route::InProcess);
 }
 
+/// How long a probe gets to RETURN before this suite calls it a hang.
+///
+/// Twenty times `daemon::PROBE_DEADLINE`, because the number being checked is
+/// not the deadline -- it is that a deadline exists at all. A bound tight
+/// enough to measure the constant would flake on a loaded machine and would be
+/// testing a value the rule is free to change.
+const MUST_RETURN_WITHIN: Duration = Duration::from_secs(5);
+
+/// Route a candidate list on another thread, so a probe that never returns
+/// FAILS instead of hanging the suite.
+///
+/// **A TEST THAT ASSERTS "IT DOES NOT HANG" BY TIMING A DIRECT CALL CANNOT
+/// FAIL -- IT HANGS TOO.** The one thing `AC-08.3` demands of the deadline is
+/// that expiry ends the probe, and the direct-call form is exactly the
+/// instrument that cannot observe its absence.
+fn route_within(candidates: Vec<Endpoint>) -> Route {
+  let (tx, rx) = mpsc::channel();
+  std::thread::spawn(move || {
+    let _ = tx.send(daemon::route(&candidates));
+  });
+  rx.recv_timeout(MUST_RETURN_WITHIN).unwrap_or_else(|_| {
+    panic!(
+      "the routing probe did not return within {MUST_RETURN_WITHIN:?}. A deadline that never expires is the outage the rule exists to prevent: every store verb blocks behind a daemon that is not there"
+    )
+  })
+}
+
+/// Ask ONE endpoint whether it answers, on another thread, for the same reason
+/// [`route_within`] exists: a direct call cannot fail when the answer is a hang.
+fn answers_within(endpoint: Endpoint) -> bool {
+  let (tx, rx) = mpsc::channel();
+  std::thread::spawn(move || {
+    let _ = tx.send(endpoint.answers());
+  });
+  rx.recv_timeout(MUST_RETURN_WITHIN)
+    .unwrap_or_else(|_| panic!("the liveness probe did not return within {MUST_RETURN_WITHIN:?}"))
+}
+
+/// A forked child holding every descriptor this process had open, accepting
+/// nothing.
+///
+/// **REAPED ON DROP, INCLUDING ON PANIC, AND THAT IS NOT TIDINESS.** A forked
+/// child inherits the test binary's STDOUT PIPE. If an assertion panics before
+/// the child is killed, the orphan holds the write end open forever and `cargo
+/// test` blocks reading it -- so **a failing test becomes a hung build**, with
+/// no output naming which test failed. Found by mutating the read deadline
+/// away: the probe hung, the panic fired ahead of the kill, and the mutation
+/// battery stalled instead of reporting a kill. A `Drop` guard is the only
+/// form that survives the panic path, which is exactly the path that matters.
+struct ForkedChild(libc::pid_t);
+
+impl ForkedChild {
+  fn holding_everything() -> Self {
+    // SAFETY: the child calls only `pause` and `_exit`, both async-signal-safe.
+    // Nothing else may go there -- this process is multi-threaded, so any
+    // allocation or lock in the child can deadlock against a mutex another
+    // thread held at the instant of the fork.
+    let pid = unsafe { libc::fork() };
+    assert!(
+      pid >= 0,
+      "fork failed, so AC-08.3 case 2 cannot be constructed"
+    );
+    if pid == 0 {
+      unsafe {
+        libc::pause();
+        libc::_exit(0);
+      }
+    }
+    ForkedChild(pid)
+  }
+}
+
+impl Drop for ForkedChild {
+  fn drop(&mut self) {
+    unsafe {
+      libc::kill(self.0, libc::SIGKILL);
+      libc::waitpid(self.0, std::ptr::null_mut(), 0);
+    }
+  }
+}
+
+/// `AC-08.3` CASE 2, deterministic form: bound, listening, never accepting.
+///
+/// **THE SAME OBSERVABLE AS THE INHERITED FD BELOW, WITH NONE OF THE RACE.** A
+/// client cannot tell a phantom holding a leaked listening descriptor from a
+/// listener whose owner simply never calls `accept` -- both are a socket file
+/// on disk, a `connect` that succeeds into the backlog, and a reply that never
+/// comes. So this is the case that can be asserted every run, and the fork
+/// below is the case that proves the construction faithful.
+#[test]
+fn a_listener_that_never_accepts_runs_in_process() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let path = socket_path(dir.path());
+  let guard = no_forks_here();
+  let listener = UnixListener::bind(&path).expect("bind the phantom fixture");
+  drop(guard);
+
+  let endpoint = Endpoint::Unix(path.clone());
+  assert!(
+    path.exists(),
+    "the phantom fixture has no socket file, so it is testing absence rather than a dead listener"
+  );
+
+  assert_eq!(
+    route_within(vec![endpoint]),
+    Route::InProcess,
+    "a listener that never accepts is not a daemon that can serve a request. A connect succeeded and nothing answered, which is what `exists and answers` rules out"
+  );
+  drop(listener);
+}
+
+/// `AC-08.3` CASE 2 as the criterion words it: a child holds the listening
+/// descriptor and the owner is gone.
+///
+/// **WHAT IS REPRODUCED IS THE OBSERVABLE, NOT THE RACE, AND THE DIFFERENCE IS
+/// WORTH STATING.** In the field the leak happens because macOS has no
+/// `SOCK_CLOEXEC`, so a `fork`+`exec` between `socket()` and the `FD_CLOEXEC`
+/// that follows it inherits the listener -- a 1-in-300 event this suite must
+/// never sit waiting for. Here the `fork` is deliberate and there is no
+/// `exec`, which inherits the descriptor unconditionally. **The client sees the
+/// identical thing either way**: a socket file, an open backlog, no acceptor.
+/// That is the whole population the routing rule has to survive.
+///
+/// The parent cannot die -- it is the test process -- so what dies is the
+/// listener it owns. The child then holds the socket open with its owner gone,
+/// which is the state the criterion names.
+#[test]
+fn an_inherited_listening_fd_runs_in_process() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let path = socket_path(dir.path());
+
+  let guard = no_forks_here();
+  let listener = UnixListener::bind(&path).expect("bind before the fork");
+  let _child = ForkedChild::holding_everything();
+  drop(listener);
+  drop(guard);
+
+  let alive = path.exists();
+  let endpoint = Endpoint::Unix(path);
+  let answered = answers_within(endpoint.clone());
+  let routed = route_within(vec![endpoint]);
+
+  assert!(
+    alive,
+    "the socket file did not outlive the parent's listener, so this fixture is testing absence and not an inherited descriptor"
+  );
+  assert!(
+    !answered,
+    "an endpoint whose only owner is a child that never accepts reported itself as ANSWERING. This is the false positive AC-08.3 case 2 names: a successful connect is not an answer"
+  );
+  assert_eq!(
+    routed,
+    Route::InProcess,
+    "a daemon whose listening fd leaked into a surviving child is not a daemon. Routing to it strands every store verb at an endpoint with no acceptor"
+  );
+}
+
+/// The two phantoms are INDISTINGUISHABLE, and the rule must treat them so.
+///
+/// **THIS IS WHY THE DETERMINISTIC TWIN IS ALLOWED TO STAND IN FOR THE RACE.**
+/// If a leaked descriptor and a never-accepting listener could route
+/// differently, the cheap fixture would be proving something about itself
+/// rather than about the case the criterion names. Asserting they agree is what
+/// makes the substitution honest rather than convenient.
+#[test]
+fn the_two_phantoms_route_identically() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let path = socket_path(dir.path());
+  let guard = no_forks_here();
+  let held = UnixListener::bind(&path).expect("bind the never-accepting fixture");
+  drop(guard);
+  let never_accepts = route_within(vec![Endpoint::Unix(path)]);
+  drop(held);
+
+  let forked_dir = tempfile::tempdir().expect("tempdir");
+  let forked_path = socket_path(forked_dir.path());
+  let guard = no_forks_here();
+  let listener = UnixListener::bind(&forked_path).expect("bind before the fork");
+  let _child = ForkedChild::holding_everything();
+  drop(listener);
+  drop(guard);
+  let inherited = route_within(vec![Endpoint::Unix(forked_path)]);
+
+  assert_eq!(
+    never_accepts, inherited,
+    "the two constructions of AC-08.3 case 2 routed differently, so the deterministic one is not a stand-in for the race and the criterion is only half covered"
+  );
+  assert_eq!(never_accepts, Route::InProcess);
+}
+
+/// The third phantom: something ACCEPTS and closes without answering.
+///
+/// **NEITHER OF THE CRITERION'S TWO CASES REACHES THIS, AND IT IS THE ONE THE
+/// `read` RETURN VALUE DECIDES.** A stale file fails at connect and an
+/// inherited descriptor times out; this one comes back promptly with a clean
+/// EOF -- `Ok(0)`, a success. A probe that asks whether the read ERRORED
+/// treats it as a live daemon and routes every store verb at a socket that is
+/// on its way down.
+#[test]
+fn an_endpoint_that_accepts_and_closes_runs_in_process() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let path = socket_path(dir.path());
+  let guard = no_forks_here();
+  let listener = UnixListener::bind(&path).expect("bind the closing fixture");
+  let _responder = Responder::spawn_as(listener, Behaviour::AcceptAndClose);
+  drop(guard);
+
+  assert_eq!(
+    route_within(vec![Endpoint::Unix(path)]),
+    Route::InProcess,
+    "an endpoint that accepts and closes without answering is not serving anything. `Ok(0)` from the probe read is a clean EOF, not a reply"
+  );
+}
+
 #[test]
 fn a_live_tcp_endpoint_is_routed_to() {
-  let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("bind ephemeral");
-  let endpoint = Endpoint::Tcp(listener.local_addr().expect("local_addr"));
+  let (endpoint, _responder) = live_tcp();
 
   assert_eq!(route_of(&[endpoint.clone()]), Route::Daemon(endpoint));
 }
@@ -208,30 +605,18 @@ fn no_candidates_runs_in_process() {
 fn the_first_answering_candidate_wins_and_the_body_names_no_transport() {
   let dir = tempfile::tempdir().expect("tempdir");
 
-  let unix_path = socket_path(dir.path());
-  let _unix = UnixListener::bind(&unix_path).expect("bind the fixture socket");
-  let live_unix = Endpoint::Unix(unix_path);
-
-  let tcp = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("bind ephemeral");
-  let live_tcp = Endpoint::Tcp(tcp.local_addr().expect("local_addr"));
+  // **THE FIXTURES CHECK THEMSELVES BEFORE THEY ARE USED, AND THAT IS NOT
+  // CEREMONY.** Every assertion below reads a fold's RESULT, so a fixture that
+  // is not in the state its name claims produces a failure blaming the fold --
+  // the one part that is certainly innocent. `live_unix` / `live_tcp` /
+  // `stale_endpoint` each assert their own liveness, in one place, for all
+  // their callers.
+  let (live_unix, _unix_responder) = live_unix(dir.path());
+  let (live_tcp, _tcp_responder) = live_tcp();
 
   let stale_dir = tempfile::tempdir().expect("tempdir");
   let stale_unix = stale_endpoint(stale_dir.path());
   let dead_tcp = Endpoint::Tcp(closed_port());
-
-  // **THE FIXTURES ARE CHECKED BEFORE THEY ARE USED, AND THAT IS NOT
-  // CEREMONY.** Every assertion below reads a fold's RESULT, so a fixture that
-  // is not in the state its name claims produces a failure blaming the fold --
-  // the one part that is certainly innocent. Asking each endpoint directly
-  // costs four connects and makes a broken fixture say so in its own words.
-  assert!(
-    live_unix.answers(),
-    "the live socket fixture is not answering: {live_unix}"
-  );
-  assert!(
-    live_tcp.answers(),
-    "the live TCP fixture is not answering: {live_tcp}"
-  );
 
   // A dead candidate of one transport must not stop a live one of the other
   // from being reached, in either direction.
@@ -299,9 +684,9 @@ fn the_shipped_cli_routes_on_a_live_socket_and_not_otherwise() {
     absent.1
   );
 
-  let listener = UnixListener::bind(&socket).expect("bind the fixture socket");
+  let (_endpoint, responder) = live_unix(home.path());
   let routed = run();
-  drop(listener);
+  drop(responder);
   fs::remove_file(&socket).expect("remove the fixture socket");
 
   let after = run();
