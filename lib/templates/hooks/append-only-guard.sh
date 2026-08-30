@@ -3,7 +3,8 @@
 # append-only-guard.sh -- refuse a commit that REMOVES lines from an
 # append-only path. Arithmetic on a diff; it needs no knowledge of what the
 # operation intended.
-#
+# Witness for AT-10.13. The register requires a cited file to name the row
+# that cites it, so this id is structural rather than a pointer into a tracker.
 #
 # WHY A GUARD RATHER THAN CARE. Writing where you meant to append is a
 # one-character difference with no visible symptom, and every human-facing

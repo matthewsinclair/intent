@@ -903,6 +903,38 @@ const FORMAT_TEMPLATES: [&str; 2] = [
   "intent/plugins/claude/skills/in-tca-synthesize/SKILL.md",
 ];
 
+/// Every AT id that CITES a given payload file, read from the register.
+///
+/// **THE REGISTER REQUIRES A CITED FILE TO NAME THE ROW THAT CITES IT** -- the
+/// close-gate refuses a citation the file does not carry, because a one-way
+/// pointer drifts silently. So an `AT-nn.n` inside the file that row cites is a
+/// STRUCTURAL id, not a pointer into a tracker a consumer cannot open.
+///
+/// **THIS WAS FOUND BY BREAKING IT.** Stripping `AT-10.13` out of
+/// `append-only-guard.sh` as a citation immediately blocked the close-gate:
+/// `does not carry the literal id AT-10.13`. Two obligations in genuine
+/// tension, and the resolution is to compute the exemption from the register
+/// rather than to weaken either one -- so it covers exactly the ids the
+/// register demands, in exactly the files it demands them in, and moves on its
+/// own when a citation moves.
+fn register_ids_for(rel: &str) -> BTreeSet<String> {
+  let canon = repo_root().join("intent/.canon/st/ST0056.json");
+  let text = std::fs::read_to_string(&canon).expect("ST0056 canon is readable");
+  let mut out = BTreeSet::new();
+  // The extract is JSON; the citation and the id sit on the same test record,
+  // so a line-oriented scan over the rendered rows is enough and needs no
+  // parser dependency.
+  for chunk in text.split("\"id\":") {
+    if let Some(id_end) = chunk.find(',') {
+      let id: String = chunk[..id_end].trim().trim_matches('"').to_string();
+      if id.starts_with("AT-") && chunk.contains(rel) {
+        out.insert(id);
+      }
+    }
+  }
+  out
+}
+
 /// A marker that a file is teaching a shape: a `{placeholder}`, a run of `X`
 /// standing for a count, or a `####` path segment that no thread id can match.
 fn looks_like_a_template(path: &str, text: &str) -> bool {
@@ -941,6 +973,11 @@ fn the_template_exemption_covers_only_real_templates() {
 /// tracker rather than teaching a consumer a shape.
 fn citations_in_at(path: &str, text: &str, real: &BTreeSet<String>) -> Vec<String> {
   let exempt = FORMAT_TEMPLATES.contains(&path);
+  let structural = if path.is_empty() {
+    BTreeSet::new()
+  } else {
+    register_ids_for(path)
+  };
   pm_identifiers(text, Decisions::Ambiguous)
     .into_iter()
     .filter(|id| {
@@ -950,8 +987,9 @@ fn citations_in_at(path: &str, text: &str, real: &BTreeSet<String>) -> Vec<Strin
       } else {
         // `WP-nn`, `AC-n.n`, `AT-n.n` -- no thread context, so nothing to
         // resolve against and nothing it can be but a citation, EXCEPT in a
-        // file whose subject is the shape of an acceptance record.
-        !exempt
+        // file whose subject is the shape of an acceptance record, or where the
+        // register itself demands the file name the row that cites it.
+        !exempt && !structural.contains(id)
       }
     })
     .collect()
