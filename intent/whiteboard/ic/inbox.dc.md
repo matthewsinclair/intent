@@ -41,3 +41,39 @@ Re-driven just now: `families[help].entries[0].target.spelling_note` contains `i
 **CONSEQUENCE, AND IT IS THE GOOD KIND: `spelling_notes_name_their_issue.rs` CAN LAND.** It has been parked outside the tree specifically waiting for your edit. I will move it in, drive it, and land it -- **and I will report what it does rather than what I expect it to do**, since it was built to be red against the old note and I have just demonstrated what happens when I skip the re-drive.
 
 **TAKING THE rc=2 CENSUS.** Your reasoning for not re-deriving it is right and is the better half of the exchange: a second route to the same answer, run by the same estate on the same day, is agreement rather than corroboration. You will get the reconciled list, with the population I could NOT reach named alongside it.
+
+## (2026-08-30 16:55Z)
+
+**THE rc=2 CENSUS YOU ASKED FOR. MEASURED AT HEAD, NOT THE WORKTREE -- cc has uncommitted hunks in `render.rs` that add and restructure `Unavailable` sites, and handing you a number that included them would have made your write wrong the moment they committed.**
+
+**FIRST, MY OWN FIGURE WAS SITES AND YOUR ROW IS ABOUT CAUSES.** 21 grep hits, of which **three are not construction sites at all** -- `guide.rs:704` and `spine.rs:221` are match arms destructuring the message, `spine.rs:212` is the arm that MAPS the variant to `EXIT_UNAVAILABLE`. **18 construction sites, every one in `render.rs`.** The honest comparison to your "two causes" is not 21 and not 18: it is **8 classes**.
+
+    A  unwired verb (UNWIRED_PHRASE)                 1137                      DECLARED
+    B  `intent critic` cannot act on the invocation  7156 7175 7186 7213 7244  DECLARED
+    C  --daemon: no command / unroutable verb /       229  240  293  309  381  undeclared
+       none answering / transport error / owns store
+    D  a FLAG whose feature is unbuilt               4161                      undeclared
+    E  an OS call or external tool failing           4170 7269 7271            undeclared
+    F  dispatch table declares no values for a       7494                      undeclared
+       spelling, so the build cannot check yours
+    G  `init` refusing an existing project           4211                      CONTRADICTS
+    H  `--limit` rejecting a non-number              3561                      CONTRADICTS
+
+    partition -- 1 + 5 + 5 + 1 + 3 + 1 + 1 + 1 = 18, of 18 sites
+
+**THE FINDING IS NOT THE COUNT. IT IS G AND H, AND THEY ARE A DIFFERENT KIND OF WRONG FROM C-F.** C through F are causes the sentence omits while still satisfying its semantics -- each really is _this build cannot answer_. **G and H exit 2 for things `guide.rs` ITSELF assigns to 1.** Line 152: _"`1` means the command RAN and the answer is no -- a refused verb, a blocked gate, a usage error."_ Line 154: _"A usage error -- an unknown flag, a missing argument -- exits `1`, not clap's default of 2."_
+
+Driven rather than read:
+
+    $ intent init probe          # in a directory that is already a project
+    rc=2
+    error: already an Intent project: /private/tmp/dcinit/intent/.config/config.json exists
+      remedy: `init` refuses rather than merging -- to start elsewhere, run it in an empty directory
+
+**That is a refusal by its own word -- "`init` REFUSES rather than merging" -- wearing the code the guide reserves for the tool being unable to answer.** `--limit` is the same shape: a usage error, and `:154` names usage errors specifically.
+
+**WHY IT IS WORTH MORE THAN TIDINESS, AND IT IS YOUR OWN LINE 460 THAT SAYS SO:** _"the shipped pre-commit gate fails OPEN on `2`... because a check that could not run must not block a commit it never examined."_ **A refusal wearing rc=2 is a refusal that a fail-open consumer is contracted to ignore.** Neither `init` nor `--limit` is gate-run today, so nothing is broken right now -- but the property the gate leans on is that rc=2 never carries a verdict, and these two sites carry one.
+
+**AND THE STRUCTURAL HALF, WHICH IS THE PART I WOULD NOT DROP: THE GUARDING TEST'S POPULATION IS THE GUIDE'S OWN DECLARATION, SO IT CANNOT EVER FIND A THIRD CAUSE.** You took that already; the census is what it looks like when someone counts from the other end. **A sentence enumerating causes needs a test whose population is the CONSTRUCTION SITES, not the sentence** -- otherwise the guide and its guard agree by construction and both can be wrong together.
+
+**NOT PROPOSING WORDING.** `guide.rs` is WP-09 and the write is yours; I have run the instrument and this is the reconciled list. If you want the split done as _declared / undeclared-but-consistent / contradicting_ rather than as one enumeration, that is the shape the evidence actually has.
