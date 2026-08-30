@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-30 20:41Z
+heartbeat_at: 2026-08-30 21:08Z
 status: active
-focus: "ALL FIVE OF hv's TUI RULINGS ARE BUILT AND ON MAIN: c5d66741 machine, 4640eab9 colour, 3655ab33 doc, 21b7e8f9 in-place FIELD, 61759934 dropdown+boot+chrome. hv drives it next; AC-09.6's read (with vc) is the live work underneath."
+focus: "TUI built (five commits to 61759934) and hv driving it. AC-09.6 READ DONE at 372f0bfb: 59 rows declare facade doors, decision list with vc->hv (narrows/gaps/unwired as three class decisions). MCP data tier landed 7c621bbe -- tools generated from the table, no dependency moved. Next sitting: the serving match + two-sided gate (vc's (a)-now ruling), then the rmcp server arm (announce the Cargo.lock move first)."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -21,8 +21,10 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## TODO
 
+0. **THE SERVING MATCH (next sitting, ruled):** hand-written `facade`-string -> method-call match + vc's TWO-SIDED completeness gate (a row with no arm reds, an arm with no row reds -- the estate's declared-and-gated pattern, dispatch_ssot's shape). **(b) -- routing through dispatch(op) -- is RECORDED as the 3.x destination, not refused; say so in the design note. TELL vc AT THE FIRST ARM THAT NEEDS A BRANCH** -- that is the composing-in-the-tier signal and the trigger to revisit (b) early. Then the rmcp server arm (dependency ruled Tier C, design.md:91/166; ANNOUNCE the lockfile move to cc+dc before landing it). Signature mapping is the real work: the table's arg names vs the 59 methods' parameter orders live nowhere but the match.
+
 1. **TUI: hv drives what is built; my known remainder** -- the status transitions picker (select rows currently open the text collector and `facade.set` refuses illegal states in its own words -- never silent, but the picker is the design), EMBED's pty option, `intent edit <kind> <id>` surface wiring per section 9. The pyte rig lives at `scratchpad/drive3.py` / `drive_field.py`; drive a THROWAWAY project for write tests (`scratchpad/fieldproj`), never the shared store.
-2. **AC-09.6 (on the return, with vc):** the syn instrument WORKS -- `scratchpad/armscan/`, controls `st list`->st_list [1] / `fc`->[4] / `version`->[0] / `at green`->at_set. Partition at fold: 49/94 one-door, 14 zero-door, 11 multi-door, 20 walker-unresolved. **vc's rulings, all 2026-08-30: parents are NAMESPACES -- narrow them off `exposed_on_mcp` (`claude rules` etc.); no-store rows get NO exemption class -- the per-row test is "does it tell an agent about THE PROJECT" (`version` narrows out, `schema` gets a facade method, `lang list` touches config so it was mis-classed by arm shape); NO AT -- non-test row, closes by `ac satisfy` with authored evidence naming the instrument, its controls, AND its two self-caught defects (as_str scoring on 60 arms; or-patterns 6 of 26).** `claude subagents` = known-pending falsifier: dc's reshape NARROWS it rather than wires it, so the close is a narrowing note on the row. Remaining walker holes: `Some(("list", a)) | None` top-level or-arms (mechanical), parent-granularity rows (a finding, not a hole).
+2. **AC-09.6: READ DONE (`372f0bfb`), satisfy WAITS on hv's three class decisions** (vc is briefing: 8 narrows incl. the sync pair, 12 facade gaps with `schema` as the one-if-only-one, 11 unwired as ONE narrow-now decision -- "the flag tracks the BINARY, not the roadmap"). vc RULED llm guide + surface narrowed (landed 6e92b110, reasons on rows under `mcp_narrowed`). **Owed: file the todo notdone/toggle boundary leak as an architecture issue** (mutations that never pass the facade -- vc carries it to hv as a defect, I file it). The armscan instrument: `scratchpad/armscan/`, five controls, five caught defects, all in the evidence attachment.
 3. **dc's three surface items, mine, accepted 2026-08-30:** (a) the `claude` family narrowing rows in dispatch-table when dc's payload layer lands (skills + subagents -> one lifecycle, `--kind`); (b) plugin.json was a THIRD command-surface home, now stripped -- the table rows are mine to author; (c) **`agents` family-root answers rc=2 while `agents sync`/`validate` answer 0 -- real defect, FILE AS AN ISSUE on the bounce** (not yet filed).
 4. **MODULES.md uncommitted**, carrying dc's web.rs row + my omnibox row -- the first committer takes both.
 5. **AT-09.4 clause 2** held: class check, must not close on the one guarded instance; a deferral to hv if the common/mod.rs move fights.
