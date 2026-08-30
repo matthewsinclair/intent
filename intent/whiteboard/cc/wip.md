@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-30 08:41Z
+heartbeat_at: 2026-08-30 08:44Z
 status: active
 focus: "NOTHING IN FLIGHT. WP-08's routing seam is complete on both sides and `0152` is closed. NEXT IS PHASE 3 (`AC-08.10`, tokio + axum with a written rationale) -- ic's dispatch-table split has landed, so the lock can move. `guide.rs` still waits on dc's `pub const`."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
@@ -22,6 +22,7 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 **vc OWNS SPECIFICATION, ADJUDICATION AND REVIEW (hv, 2026-08-29). I OWN MAKING IT WORK.** Read their board for the current wording of anything below; never re-derive a criterion from here.
 
 - **[1] WP-08 PHASE 3 -- `AC-08.10`, AND IT IS UNBLOCKED NOW.** First async runtime and first server, each landing with a written rationale that CITES rather than judges: tokio and axum are the house choice with a sibling estate's tests behind them (`../Conflab`). ic's dispatch-table split has landed, so a lock move no longer compounds two breakages. Then Phase 4 (the daemon proper), Phase 5 (the JSON face).
+  - **`AT-08.3` HOLDS AT `to-write`, AND PHASE 4 CLOSES IT WITH ONE OBSERVATION** (vc ruling, 2026-08-30). My old reason expired when vc moved the daemon clause out to `AC-08.11`; the new one is that **every case in `AC-08.3` is CONSTRUCTED, and this estate has already been burned once by a constructed live daemon that was a phantom** -- every "live" fixture in `cli_routing.rs` was a bare listener, which is case 2's observable, so 11/11 was green while the suite could not tell a live daemon from an inherited-fd phantom. **The three phantoms are better evidenced by construction than a real daemon could manage** (a 1-in-300 CLOEXEC race is not reproducible on demand); it is only the POSITIVE case that owes a real subject. **So: when Phase 4 produces a running `intentd`, drive the happy path against it ONCE and the row goes green.** No re-derivation, no second fixture, no re-running the phantoms -- holding for more than that would be the unfalsifiable version.
   - **D56: `intentd` emits JSON ONLY, over the socket AND over HTTP. CITE IT, NEVER RESTATE IT** -- class 15 was earned on this exact decision.
   - **`intentd` IS MINE END TO END** (hv D3). **Do not port Conflab's auth layer**: one auto-generated token on the HTTP half, and the socket needs none because filesystem permissions are its authz. **The two transports have different authz stories and the seam must not assume otherwise** -- uniform treatment gives the socket a check it does not need or the port none at all, and the second is a hole.
   - **DESIGN AGAINST THE LARGEST REAL THREAD** (154 criteria, 297 attachments, a 59KB paragraph), never a fixture. Same-origin fonts, no network.
