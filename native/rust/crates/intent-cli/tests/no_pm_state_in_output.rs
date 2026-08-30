@@ -918,3 +918,215 @@ fn no_installed_payload_file_cites_intents_own_tracker() {
     payload.len()
   );
 }
+
+// ---------------------------------------------------------------------------
+// No absolute home path in a file that functions as config
+// ---------------------------------------------------------------------------
+//
+// **CARRIED FROM `tests/unit/no_absolute_home_paths.bats` (issue 0016), WHOSE
+// VEHICLE THE v2 CUT REMOVES AND WHOSE PROPERTY v3 NEEDS MORE.** The original
+// defect: hook resolution is a RUNTIME question that was answered at WRITE
+// time, so a resolved `INTENT_HOME` froze into a tracked `.claude/settings.json`
+// -- the hooks worked on exactly one machine, and a public repository published
+// one person's home directory path. **The harm is PUBLISHING**, which is why
+// every arm below is scoped to tracked or shipped bytes.
+//
+// **THE PROPERTY LANDS HERE RATHER THAN ANYWHERE ELSE** because this file is
+// the v3 family for *what must not appear in generated output*, and vc measured
+// v3's coverage of this particular property at ZERO before ruling the
+// migration. Deleting the bats file without carrying this would have been
+// prune-as-loss.
+//
+// **SCOPE, MEASURED RATHER THAN ASSUMED, AND THE WIDER READING IS THE TRAP.**
+// The tempting population is "every generated artefact", and it is wrong: 14
+// tracked generated files carry a home path today -- 8 canon thread extracts, 6
+// issue extracts and `intent/st/ST0056/acceptance.md` -- and every one is
+// AUTHORED PROSE quoting a path as historical record, carried verbatim into
+// canon and projected into a view. A guard reporting those would fire on
+// content that is correct as it stands, which is worse than no guard. So the
+// population is what the original guard actually had: **files that FUNCTION as
+// config** -- what Intent ships to consumers, and this project's own live
+// `.claude/` stack.
+//
+// **THE LaunchAgent PLIST IS DELIBERATELY OUT OF SCOPE AND IT LOOKS LIKE IT
+// SHOULD BE IN.** It is the newest generated artefact and it is *made of*
+// absolute paths -- a plist must name the binary's absolute path or launchd
+// cannot start it. It is also written per-machine into the operator's own
+// `~/Library/LaunchAgents/` and is never tracked, so it cannot publish anything.
+// Including it would red a correct generator.
+//
+// **THREE OF THE ORIGINAL SEVEN ARMS ARE NOT HERE, AND NEITHER ABSENCE IS AN
+// OMISSION.** The hook-runner arms (stdin and exit code passed through, an
+// unknown hook refused by name) are already v3-covered in `hook_compat.rs`,
+// which asserts `error: unknown hook:` and drives `require-in-session` to both
+// exit 2 and exit 0 -- measured before dropping them, not assumed. And the
+// canon-engine substitution arm EXPIRED WITH ITS SUBJECT: it guarded an
+// `INTENT_HOME]]` substitution inside `intent/plugins/claude/bin/
+// intent_claude_upgrade`, which the cut deleted. A guard whose subject is gone
+// is the vacuous-pass shape this thread has been paying for all day, so it is
+// retired by name here rather than left to pass over nothing.
+
+/// An absolute path into a user home directory, on either platform layout.
+///
+/// A plain scan rather than a regex, and the lower-case test is what makes it
+/// one: `/Users/` alone matches the macOS root itself, which is not a leak.
+fn home_paths_in(text: &str) -> Vec<String> {
+  let mut out = Vec::new();
+  for prefix in ["/Users/", "/home/"] {
+    let mut from = 0;
+    while let Some(at) = text[from..].find(prefix) {
+      let start = from + at;
+      let rest = &text[start + prefix.len()..];
+      if rest.chars().next().is_some_and(|c| c.is_ascii_lowercase()) {
+        let end = rest
+          .find(|c: char| c.is_whitespace() || c == '"' || c == '\'')
+          .map_or(rest.len(), |i| i);
+        out.push(format!("{prefix}{}", &rest[..end]));
+      }
+      from = start + prefix.len();
+    }
+  }
+  out
+}
+
+/// The template Intent lays down in somebody else's repository.
+#[test]
+fn the_shipped_claude_template_carries_no_absolute_home_path() {
+  let dir = repo_root().join("lib/templates/.claude");
+  let mut payload = Vec::new();
+  collect_text_files(&dir, &mut payload);
+  assert!(
+    !payload.is_empty(),
+    "no shipped .claude/ template was read at {} -- the population is empty and \
+     a green here would mean nothing",
+    dir.display()
+  );
+
+  let offenders: Vec<String> = payload
+    .iter()
+    .flat_map(|(p, text)| {
+      home_paths_in(text)
+        .into_iter()
+        .map(move |hit| format!("{}: {hit}", p.display()))
+    })
+    .collect();
+  assert!(
+    offenders.is_empty(),
+    "the shipped .claude/ template carries an absolute home path, so every \
+     consumer scaffolded from it inherits one machine's layout:\n  {}",
+    offenders.join("\n  ")
+  );
+}
+
+/// This project's own tracked `.claude/` stack -- the live instance issue 0016
+/// actually reported.
+///
+/// **TRACKED, not present.** `.claude/settings.local.json` is the per-machine
+/// permission allowlist, gitignored by design, and absolute paths in it are
+/// correct rather than a leak. Publishing is the harm, so `git ls-files` is the
+/// population and the working directory is not.
+#[test]
+fn this_projects_tracked_claude_stack_carries_no_absolute_home_path() {
+  let root = repo_root();
+  let listed = Command::new("git")
+    .args(["ls-files", ".claude/"])
+    .current_dir(&root)
+    .output()
+    .expect("git ls-files runs in the repository");
+  let files: Vec<&str> = std::str::from_utf8(&listed.stdout)
+    .expect("git prints utf-8 paths here")
+    .lines()
+    .filter(|l| !l.is_empty())
+    .collect();
+  assert!(
+    !files.is_empty(),
+    "git listed no tracked .claude/ files -- the population is empty and a \
+     green here would mean nothing"
+  );
+
+  let mut offenders = Vec::new();
+  for rel in &files {
+    let Ok(text) = std::fs::read_to_string(root.join(rel)) else {
+      continue;
+    };
+    for hit in home_paths_in(&text) {
+      offenders.push(format!("{rel}: {hit}"));
+    }
+  }
+  assert!(
+    offenders.is_empty(),
+    "a tracked .claude/ file carries an absolute home path, and this repository \
+     is public:\n  {}",
+    offenders.join("\n  ")
+  );
+}
+
+/// **THE MECHANISM, NOT THE SYMPTOM.** The two arms above would both pass on a
+/// settings.json that carried a `[[INTENT_HOME]]` placeholder waiting to be
+/// substituted at write time -- which is precisely the design that produced
+/// issue 0016. Nothing in this file is per-machine, so there is nothing to
+/// substitute; the template and the live copy are byte-identical, and that is
+/// what makes the property hold by construction rather than by vigilance.
+#[test]
+fn settings_json_needs_no_substitution_and_matches_its_template() {
+  let root = repo_root();
+  let template = root.join("lib/templates/.claude/settings.json");
+  let live = root.join(".claude/settings.json");
+
+  let template_text = std::fs::read_to_string(&template).expect("the shipped settings template");
+  assert!(
+    !template_text.contains("[["),
+    "the settings template carries a substitution placeholder, which is the \
+     write-time resolution issue 0016 was about: {}",
+    template.display()
+  );
+
+  let live_text = std::fs::read_to_string(&live).expect("this project's live settings.json");
+  assert_eq!(
+    live_text, template_text,
+    "this project's .claude/settings.json has drifted from the template it is \
+     supposed to be a byte-for-byte copy of, so one of them is per-machine"
+  );
+}
+
+/// **The scan is driven to a POSITIVE before any of its zeroes are believed.**
+///
+/// Three arms above assert emptiness, and an emptiness assertion is worth
+/// exactly what its instrument is worth -- the failure this estate keeps
+/// paying for is a check that cannot fail returning the reassuring answer. So
+/// the detector is shown finding what it is for, and shown NOT firing on the
+/// two neighbours that would make it useless: the bare macOS `/Users` root,
+/// which is not a leak, and a `$HOME`-relative path, which is the fix rather
+/// than the defect.
+#[test]
+fn the_home_path_scan_fires_on_a_leak_and_not_on_its_neighbours() {
+  let planted = r#"{"command": "/Users/someone/.intent/bin/intent"}"#;
+  let hits = home_paths_in(planted);
+  assert_eq!(
+    hits,
+    vec!["/Users/someone/.intent/bin/intent".to_string()],
+    "the scan did not find a planted macOS home path, so every green above is \
+     a statement about the instrument"
+  );
+
+  let linux = "exec /home/runner/work/intent/bin/intent";
+  assert_eq!(
+    home_paths_in(linux),
+    vec!["/home/runner/work/intent/bin/intent".to_string()],
+    "the scan missed the Linux layout, which is the platform CI runs on"
+  );
+
+  for innocent in [
+    "ls /Users",
+    "cd /Users/",
+    "$HOME/.claude/settings.json",
+    "~/.intent/ext",
+    "${INTENT_HOME}/lib/templates",
+  ] {
+    assert!(
+      home_paths_in(innocent).is_empty(),
+      "the scan fired on `{innocent}`, which is portable and correct -- a guard \
+       that reports the fix as the defect gets turned off"
+    );
+  }
+}

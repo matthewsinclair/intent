@@ -1813,6 +1813,40 @@ impl AtStatus {
   }
 }
 
+// **THIS PARTITION IS ONE AXIS AND THERE IS A SECOND ONE THAT IS NOT A DEFECT.
+// IT IS RECORDED HERE BECAUSE THIS IS WHERE THE NEXT PERSON TO CENSUS IT WILL
+// ARRIVE** (vc's ruling, 2026-08-30, on a census vc ran and then withdrew).
+//
+// `permitted_for` above is (AT kind x AT status). The other axis is (AT kind x
+// COVERED CRITERION kind), and measured over all 395 covering pairs it shows 11
+// rows declaring `test` while covering a `non-test` criterion, 8 of them green.
+// **They read like a defect and they are the normal form**: a non-test
+// criterion satisfied BY HAND, citing a real test as the evidence.
+//
+// **THE TWO KINDS ANSWER DIFFERENT QUESTIONS AND THE CORRELATION IS NOT AN
+// IDENTITY.** An AT's kind answers *is there a runnable artefact*; a criterion's
+// kind answers *is satisfaction computed or stored*. They agree at 383 of 395,
+// which is exactly why treating them as one fact survives casual inspection.
+//
+// **THE WORKED EXAMPLE IS `ST0053/AT-02.2`** -- kind `test`, green, citing
+// `tests/unit/rule_pack_content.bats`, covering BOTH `AC-02.2` (test, computed)
+// AND `AC-02.3` (non-test, satisfied). One real bats file witnessing a computed
+// criterion and an authored one at once. It is the only mixed-kind cover in the
+// estate, and it is why the AT's kind cannot be DERIVED from what the row
+// covers: derivation has no answer for it that is not a loss.
+//
+// **AND THE DECISIVE HALF IS THE ROWS WHERE THE CRITERION'S EVIDENCE DOES NOT
+// NAME THE FILE.** Of the 8 green pairs, 4 have stored evidence naming the very
+// artefact their AT row cites and 4 do not. In those 4 the AT row is the ONLY
+// link between the criterion and the artefact that satisfied it, so "correcting"
+// them to `non-test` would erase the pointer -- a fix destroying the evidence it
+// was tidying.
+//
+// **THE METHOD NOTE, WHICH OUTLIVES THIS ROW: a census keys on SHAPE and a
+// defect is about MEANING, and the bridge is asking what a row's absence would
+// LOSE.** Eleven rows of the right shape were found and read as a defect before
+// anyone asked what they were carrying.
+
 // ---------------------------------------------------------------------------
 // Issue
 // ---------------------------------------------------------------------------
