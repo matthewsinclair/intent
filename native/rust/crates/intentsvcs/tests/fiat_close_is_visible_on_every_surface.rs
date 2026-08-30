@@ -327,8 +327,15 @@ fn doctor_line(thread: Thread) -> String {
   intentsvcs::doctor::diagnose(&project, &ctx(), None)
     .findings
     .iter()
-    .filter(|f| f.class == FindingClass::StatusGateDisagreement)
-    .map(|f| f.detail.clone())
+    .filter(|f| {
+      f.class == FindingClass::StatusGateDisagreement
+        || f.class == FindingClass::StatusGateDisagreementOverFiat
+    })
+    // **THE CLASS IS PART OF WHAT IS COMPARED, not just the prose.** The class
+    // is what selects the remedy, and the remedy is the half of this row that
+    // was proposing the laundering. A test reading only `detail` would go green
+    // on a build that fixed the sentence and left the advice.
+    .map(|f| format!("{:?}: {}", f.class, f.detail))
     .collect::<Vec<_>>()
     .join("\n")
 }
@@ -356,6 +363,17 @@ fn doctor_does_not_report_a_fiat_closed_scope_as_a_satisfied_one() {
     by_fiat, by_evidence,
     "a fiat-closed scope and a satisfied one rendered identically, which is the \
      defect: the gate already counts them apart and this surface did not ask"
+  );
+  assert!(
+    by_fiat.starts_with("StatusGateDisagreementOverFiat"),
+    "the fiat case must carry its OWN class, because the class is what selects \
+     the remedy and the shared one tells the operator to satisfy-or-descope a \
+     row a human already ruled on: {by_fiat}"
+  );
+  assert!(
+    by_evidence.starts_with("StatusGateDisagreement:"),
+    "the ordinary case must keep the original class, or this split has moved \
+     the population rather than divided it: {by_evidence}"
   );
   assert!(
     by_fiat.contains("FIAT-CLOSED"),

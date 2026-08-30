@@ -136,6 +136,27 @@ pub enum FindingClass {
   /// ST0056/04 was `Done` at 5 of 6 because AC-04.6 was minted after the close.
   /// **The `Done` was true when it was set and false afterwards.**
   StatusGateDisagreement,
+  /// The same disagreement, where the gate passes because part of the scope was
+  /// FIAT-CLOSED rather than met.
+  ///
+  /// **A SEPARATE CLASS BECAUSE THE REMEDY IS DIFFERENT, WHICH IS THE ONLY
+  /// GROUND THIS FILE HAS EVER SPLIT ON.** `AttachmentDrift` was split from
+  /// `ModelInconsistent` on it, and `StatusGateDisagreement` from
+  /// `ModelInconsistent` on it again: putting two different remedies behind one
+  /// word tells an operator nothing to do.
+  ///
+  /// **AND THE SHARED REMEDY WAS NOT MERELY VAGUE HERE, IT WAS WRONG.** Its
+  /// sibling says *read the blocking ids and either satisfy them or take them
+  /// out of scope*. Over a fiat-closed row that is an instruction to convert a
+  /// recorded human ruling into an ordinary close -- **laundering, proposed by
+  /// the tool, in the estate whose own `IN-AG-FIAT-001` forbids an LLM the
+  /// verb.** A remedy that is correct for one population and harmful for
+  /// another is why the populations get their own classes.
+  ///
+  /// **The status is the stale half here, never the close.** A fiat close is a
+  /// decision that was made; a `Not Started` beside it is a field nobody
+  /// updated.
+  StatusGateDisagreementOverFiat,
   /// The durable store has no recent restorable snapshot -- either none has
   /// ever succeeded, or the newest is older than the configured schedule.
   ///
@@ -370,6 +391,11 @@ impl FindingClass {
         7,
         "status-gate-disagreement",
         "the status and the gate disagree, and only you can say which one is wrong. If the work really is finished, the contract is missing something -- read the blocking ids and either satisfy them or take them out of scope. If it is not finished, `intent wp start <ST>/<NN>` says so. Do NOT reach for `wp done`: it is refused on a blocked gate, which is the same ruling as this report",
+      ),
+      Self::StatusGateDisagreementOverFiat => (
+        7,
+        "status-gate-disagreement-over-fiat",
+        "a human closed part of this scope ON AUTHORITY, so the gate passes and it is the STATUS that is stale -- `intent wp done <ST>/<NN>` records the close the gate already allows, and from `Not Started` that needs `intent wp start <ST>/<NN>` first because `wp.done` is declared only from `wip`. Do NOT satisfy the fiat-closed rows or take them out of scope to tidy this: that converts a recorded ruling into an ordinary close and erases who decided, which is the one thing a fiat close exists to preserve. If the ruling itself was wrong, reverse it deliberately with `intent ac reinstate <ST> <AC>`, which puts the row back in scope unsatisfied and leaves the reversal on the record",
       ),
       Self::BackupStale => (
         8,

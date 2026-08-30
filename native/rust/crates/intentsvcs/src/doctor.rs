@@ -294,10 +294,13 @@ fn status_gate_disagreement(canon: &Canon, project: &Project, out: &mut Vec<Find
       // closeable to `wp done`. It cannot arise after the skip above, and
       // matching it anyway would leave a live arm nothing could reach -- which
       // reads as coverage and is not.
-      let detail = match (wp.status, &verdict) {
-        (crate::model::WpStatus::Done, crate::contract::Verdict::Blocked { .. }) => format!(
-          "{}/WP-{:02} is recorded Done and its gate is BLOCKED -- it reads as finished work and would be refused if closed today",
-          thread.id, wp.seq
+      let (class, detail) = match (wp.status, &verdict) {
+        (crate::model::WpStatus::Done, crate::contract::Verdict::Blocked { .. }) => (
+          FindingClass::StatusGateDisagreement,
+          format!(
+            "{}/WP-{:02} is recorded Done and its gate is BLOCKED -- it reads as finished work and would be refused if closed today",
+            thread.id, wp.seq
+          ),
         ),
         (
           crate::model::WpStatus::NotStarted | crate::model::WpStatus::Wip,
@@ -322,14 +325,20 @@ fn status_gate_disagreement(canon: &Canon, project: &Project, out: &mut Vec<Find
           // of the census was the one with no test behind it, in the file
           // written because prose is the part the compiler does not read.
           if *fiat > 0 {
-            format!(
-              "{}/WP-{:02} is recorded {recorded} and its gate PASSES with {fiat} of {in_scope} criterion(s) FIAT-CLOSED rather than satisfied -- the gate is unblocked by a ruling that the work was not worth finishing, which is what a fiat close is FOR, so it is this status field that is stale and not the close that is wrong",
-              thread.id, wp.seq
+            (
+              FindingClass::StatusGateDisagreementOverFiat,
+              format!(
+                "{}/WP-{:02} is recorded {recorded} and its gate PASSES with {fiat} of {in_scope} criterion(s) FIAT-CLOSED rather than satisfied -- the gate is unblocked by a ruling that the work was not worth finishing, which is what a fiat close is FOR, so it is this status field that is stale and not the close that is wrong",
+                thread.id, wp.seq
+              ),
             )
           } else {
-            format!(
-              "{}/WP-{:02} is recorded {recorded} and its gate PASSES -- every criterion in its scope is satisfied, so anything sequencing off this field is planning work that is already done",
-              thread.id, wp.seq
+            (
+              FindingClass::StatusGateDisagreement,
+              format!(
+                "{}/WP-{:02} is recorded {recorded} and its gate PASSES -- every criterion in its scope is satisfied, so anything sequencing off this field is planning work that is already done",
+                thread.id, wp.seq
+              ),
             )
           }
         }
@@ -341,11 +350,7 @@ fn status_gate_disagreement(canon: &Canon, project: &Project, out: &mut Vec<Find
       // something this arm measures. A real finding is the best possible cover
       // for an invented mechanism attached to it; the remedy on the class names
       // the causes as possibilities, where a detail line reads as a reading.
-      out.push(Finding::new(
-        file.clone(),
-        FindingClass::StatusGateDisagreement,
-        detail,
-      ));
+      out.push(Finding::new(file.clone(), class, detail));
     }
   }
 }
