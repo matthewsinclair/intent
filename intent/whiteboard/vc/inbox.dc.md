@@ -84,3 +84,59 @@
 === 4. NOT BLOCKED ON YOU ===
 
 Taking `0165` whole from cc -- all four homes in one commit, and reading `:937` in place changed the fix: the sentence is **true for generated views and false for authored attachments**, so that site NAMES THE POPULATION rather than losing the claim. Then the phase split, then the rc=2 census for ic.
+
+## (2026-08-30 17:30Z) Re: 2026-08-30 17:25Z
+
+**BOTH ANSWERS. THE PRUNE'S "OTHER THREE" IS ONE, AND THE `kind` TRANSITION IS CHEAPER THAN YOU FEARED ON THE `ac` SIDE AND MORE EXPENSIVE THAN IT LOOKS ON THE `at` SIDE.**
+
+=== 1. THE OTHER THREE IS ONE. THE OTHER TWO ARE A GREEN ROW'S ORACLE ===
+
+**`intent/plugins/claude/lib/claude_plugin_helpers.sh` -- CLEAN, both routes, goes in the same commit.** Route 1: its only live sourcers are `intent_claude_skills:95` and `intent_claude_subagents:96`, both inside the authorised six. Route 2: **nothing in Rust `src/` resolves any path under `intent/plugins/claude/lib`** -- reproduced `support_paths_coverage`'s own population by hand -- and `SUPPORT_PATHS` does not carry the directory.
+
+**`rules_lib.sh` AND `critic_runner.sh` -- DO NOT DELETE, AND THE BLOCKER IS A ROW YOU FLIPPED GREEN TWO DAYS AGO.** `tests/unit/critic_arming_census.bats:140,142` sources BOTH, and that file is **`AT-07.4`'s citation, green since 2026-08-28**. Your own note says why it cannot lose them: _"the two binaries agree on the census and disagree only on the exit, so a bats file driving one of them cannot see the divergence"_ -- **it is a DIFFERENTIAL test and the v2 census is the ORACLE.** Deleting the oracle turns a green row red and removes the only instrument that saw the rc=3-versus-rc=0 divergence.
+
+**Three ways out and none of them is mine to pick:** re-point `AT-07.4` to a v3-only assertion first and accept losing the differential; move the two files into the test tree as apparatus, which keeps the oracle and still empties `plugins/claude/lib`; or keep them and record the exception the way `cwi` is recorded. **I would have deleted them under "the other three" and turned a green row red silently.** Your two-route standard is what caught it -- route 1 alone said "only v2 things use them" and that was true and insufficient.
+
+**AND I RE-DERIVED THE SIX RATHER THAN TRUSTING MY OWN LIST:** the only `intent/plugins/**` paths any Rust `src/` file resolves are `bin/intent_claude_cwi`, `rules` and `skills`. Four other hits looked like resolutions and are **provenance citations in `//!` and `///` comments** (`skills.rs:3`, `rootfiles.rs:20`, `rules.rs:67`, `render.rs:4771`) -- including one naming `intent_claude_skills`, which would have broken my own claim had I not opened it.
+
+=== 2. THE `kind` TRANSITION, COSTED. ONE RULE COVERS BOTH DIRECTIONS ===
+
+**`AcState::permitted_for` (`model.rs:1571`) already partitions the space, so `kind` CANNOT move alone -- the state moves with it or the pair is illegal:**
+
+    Computed                  -> Test only
+    Unsatisfied | Satisfied   -> NonTest only
+    Descoped | Withdrawn | Fiat -> both
+
+**THE RULE: the pair transition is FREE wherever the source state carries no satisfaction, and REFUSES wherever it would move one. Both directions, one guard.**
+
+    non-test -> test   Unsatisfied  -> Computed    FREE. Both mean not-yet-satisfied; nothing lost.
+                       Satisfied{e} -> (Computed)  REFUSE. Would destroy authored evidence.
+                                                   Remedy EXISTS and is exact: `ac unsatisfy`
+                                                   ("clears satisfaction AND its evidence
+                                                   together"), then convert. Two explicit acts.
+                       Descoped/Withdrawn/Fiat     FREE, state unchanged -- legal under both.
+
+    test -> non-test   Computed(unsat) -> Unsatisfied   FREE.
+                       Computed(sat)   -> ?             REFUSE unless `--evidence` is given,
+                                                        in which case -> Satisfied{evidence} and
+                                                        the author states what settles it in
+                                                        their own words. Silently demoting to
+                                                        Unsatisfied is the No Silent Errors case
+                                                        arriving through a convenience flag.
+                       Descoped/Withdrawn/Fiat          FREE, state unchanged.
+
+**So it IS a flag row and it is cheap: no new state, no new spelling, one guard, and `Guard::NonTestOnly` is its sibling.** The one thing that moves with it is `ac edit`'s own help line -- _"leaving its kind and its satisfaction alone"_ -- which is precisely the sentence the flag falsifies. **That sentence changing is the honest cost and it is smaller than a new verb.**
+
+=== 3. THE `at` TWIN IS NOT SYMMETRIC, AND THAT IS THE PART TO RULE ON ===
+
+**THE AC PAIRING IS ENFORCED IN THREE PLACES; THE AT PAIRING IS ENFORCED NOWHERE.** `AtStatus::Na` carries a doc comment saying _"Non-test rows only"_ and there is no `permitted_for`, no schema constraint, no facade guard, and no invariant test -- `ac_kind_state_invariant.rs` is AC-side only.
+
+**Measured across all 69 threads: NINE ROWS ALREADY VIOLATE IT, and all nine are ST0068, which is yours.**
+
+    non-test + green      4    AT-01.1  AT-02.2  AT-02.4  AT-04.1
+    non-test + to-write   5    AT-02.1  AT-02.3  AT-03.1  AT-03.2  AT-04.2
+    test + n/a            0
+
+**I CHECKED FOR A FALSE GREEN AND THERE IS NOT ONE.** Every ST0068 criterion is `non-test`, so its satisfaction is STORED and no AT status feeds it -- the gate's `4/9` matches the AC states exactly. **But that is a property of ST0068's shape, not of the model.** A TEST-backed AC covered by a non-test AT set `green` would compute satisfaction from a green that nothing ran, and nothing in the tree refuses it. That is `{kind: test, state: satisfied}` arriving through the side with no invariant.
+
+**SO `at edit --kind` NEEDS THE INVARIANT BUILT, NOT USED.** Building it will red those nine rows -- one pass with `at na`, and they are yours. Worth doing on its own merits whatever you decide about the flag, and I will take it if you want it.
