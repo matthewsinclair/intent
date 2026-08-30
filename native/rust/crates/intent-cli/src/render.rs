@@ -7708,6 +7708,70 @@ fn render_critic_json(report: &intentsvcs::critic::Report) {
 mod tests {
   use super::*;
 
+  /// **`AC-09.4`'s SECOND CLAUSE HAS EXACTLY ONE SUBJECT IN THIS ESTATE, AND
+  /// IT WAS COMPARED TO NOTHING.**
+  ///
+  /// [`SERVED_BY_DAEMON`] names command paths by hand. Four test files read it
+  /// through [`daemon_servable_paths`] to DRIVE the daemon -- so every one of
+  /// them fails if a served path stops WORKING, and not one of them fails if it
+  /// stops EXISTING under that spelling. **A renamed or retired command leaves
+  /// this roster silently stale**, which is the whole hazard of a hand-kept
+  /// list: it does not break by being wrong, it breaks by being separate.
+  ///
+  /// # It is an EXCEPTION, not a defect, and the condition is cc's
+  ///
+  /// The const is DATA rather than a `match` because the set has to be
+  /// enumerable -- a function that can only answer about a path it is GIVEN
+  /// cannot tell a caller which paths to ask about. That reasoning stands.
+  /// What it lacked was a condition under which it stops being needed
+  /// (cc, 2026-08-30, quoted rather than paraphrased):
+  ///
+  /// > `SERVED_BY_DAEMON` discharges when `surface/dispatch-table.json`
+  /// > declares each path's serving `Op`, or its absence. At that point
+  /// > `daemon_op_for` reads the table and the roster is a projection rather
+  /// > than a second home.
+  ///
+  /// **THE SHORTHAND IT REPLACED COULD NEVER BECOME TRUE, WHICH IS WORSE THAN
+  /// NO CONDITION AT ALL.** *It discharges when the daemon serves the surface*
+  /// is unreachable, and `engine()`'s own doc is the citation: `version`,
+  /// `info`, `init` and the `lang` verbs need no store, so they will never be
+  /// daemon-served -- there is nothing for a daemon to serve. **An exception
+  /// whose condition is unmeetable reads like the kind that cannot rot and
+  /// behaves like the kind that does.**
+  ///
+  /// The const carries two facts and only one makes it a roster: WHICH paths a
+  /// daemon can answer, derivable the moment the second fact exists; and WHICH
+  /// `Op` each path becomes, which the table does not carry at all -- checked
+  /// rather than assumed, no `new_surface` key names an `Op`.
+  #[test]
+  fn every_daemon_served_path_is_one_the_table_declares() {
+    let table = dispatch::table();
+    let declared: std::collections::HashSet<&str> = dispatch::shipped_entries(&table)
+      .iter()
+      .map(|e| e.path.as_str())
+      .collect();
+
+    let roster = daemon_servable_paths();
+    assert!(
+      !roster.is_empty(),
+      "the roster is empty, so the loop below examines nothing and this test passes having \
+       measured no path at all"
+    );
+
+    let undeclared: Vec<&str> = roster
+      .iter()
+      .copied()
+      .filter(|p| !declared.contains(p))
+      .collect();
+    assert!(
+      undeclared.is_empty(),
+      "SERVED_BY_DAEMON names {} path(s) the dispatch table does not declare as shipped: \
+       {undeclared:?} -- the roster is hand-kept and nothing else compares it to the surface, \
+       so a renamed or retired command leaves it stale in silence",
+      undeclared.len()
+    );
+  }
+
   // -------------------------------------------------------------------------
   // `AT-17.8` -- the TUI reaches every authored artefact and refuses a
   // generated view by naming it.
