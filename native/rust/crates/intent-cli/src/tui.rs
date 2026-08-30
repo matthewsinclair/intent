@@ -21,3 +21,4 @@ pub mod layout;
 pub mod mode;
 pub mod nav;
 pub mod terminal;
+pub mod views;
