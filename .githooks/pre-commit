@@ -25,18 +25,63 @@ else
 fi
 # intent-chain-block:end
 
-# Format staged Markdown files with prettier
+# THE FORMATTERS CHECK AND REFUSE. THEY DO NOT WRITE. (vc ruling, 2026-08-30.)
+#
+# **A GATE MAY REFUSE; IT MUST NOT AUTHOR.** Until today all three stanzas below
+# ran their formatter in write mode and then `git add`-ed the result -- which
+# means a hook rewrote bytes an operator had deliberately staged. That is not a
+# theoretical hazard: it put `main` red for two commits on 2026-08-29, when a
+# hunk-scoped `git update-index --cacheinfo` was silently replaced by the
+# worktree version at commit time, and the author had verified the staged tree
+# by building it. **Verifying the tree you staged is not verifying the tree you
+# committed, once a hook can write** -- and once no hook writes, those are the
+# same object again and the whole class closes by construction rather than by
+# anyone remembering to `git show HEAD:<path>` afterwards.
+#
+# THE PRECEDENT IS THIS SAME HOOK. `whiteboard-clock-guard.sh` deliberately
+# never auto-corrects, and says why: a guard that silently fixes the stamp hides
+# the class from the node that needs to learn its clock was wrong, so it prints
+# the right value and lets the fix be a copy-paste. We were running two opposite
+# contracts for "what a pre-commit hook does when it finds something wrong" in
+# one file.
+#
+# WHAT IT COSTS, STATED RATHER THAN DISCOVERED: a commit touching an unformatted
+# file now takes two attempts. That is cheaper than one silent clobber of
+# deliberately staged bytes, and `cargo fmt --check` already runs in CI, so the
+# local rewrite was a convenience with a correctness hazard attached.
+#
+# **THE CHECK READS THE WORKTREE FILE, NOT THE STAGED BLOB, AND THAT IS FORCED
+# RATHER THAN CHOSEN.** `rustfmt --check` reading from stdin RETURNS 0 ON
+# UNFORMATTED INPUT -- measured, not assumed -- so a staged-blob check would
+# have produced a rust arm that could never refuse anything. Consequence worth
+# knowing: for a file that is staged and then modified again, these arms judge
+# the worktree copy, which is the same thing the write-mode formatters did
+# before them, so no behaviour here is newly imprecise.
+formatter_refused() {
+  echo "pre-commit: $1 is not formatted -- REFUSED, and NOTHING WAS REWRITTEN." >&2
+  echo "pre-commit:   your staged bytes are exactly as you staged them." >&2
+  echo "pre-commit:   files:" >&2
+  printf 'pre-commit:     %s\n' $3 >&2
+  echo "pre-commit:   fix:   $2" >&2
+  echo "pre-commit:   then:  git add on those paths, and commit again" >&2
+  exit 1
+}
+
+# Check staged Markdown with prettier
 MD_FILES=$(git diff --cached --name-only --diff-filter=ACM -- '*.md' || true)
 if [ -n "$MD_FILES" ]; then
-  echo "$MD_FILES" | xargs prettier --write
-  echo "$MD_FILES" | xargs git add
+  MD_BAD=$(echo "$MD_FILES" | xargs prettier --list-different 2>/dev/null || true)
+  if [ -n "$MD_BAD" ]; then
+    formatter_refused "markdown" "prettier --write <the files listed above>" "$MD_BAD"
+  fi
 fi
 
-# Format staged Elixir files with mix format
+# Check staged Elixir with mix format
 EX_FILES=$(git diff --cached --name-only --diff-filter=ACM -- '*.ex' '*.exs' || true)
 if [ -n "$EX_FILES" ]; then
-  mix format $EX_FILES
-  echo "$EX_FILES" | xargs git add
+  if ! mix format --check-formatted $EX_FILES >/dev/null 2>&1; then
+    formatter_refused "elixir" "mix format <the files listed above>" "$EX_FILES"
+  fi
 fi
 
 # Format staged Rust files with rustfmt (hv approved 2026-08-20, via vc).
@@ -81,17 +126,25 @@ while IFS= read -r -d '' f; do
   [ -n "$f" ] && RS_FILES+=("$f")
 done < <(git diff --cached --name-only --diff-filter=ACM -z -- '*.rs' || true)
 if [ "${#RS_FILES[@]}" -gt 0 ]; then
-  rustfmt --edition 2024 "${RS_FILES[@]}"
-  git add "${RS_FILES[@]}"
+  RS_BAD=""
+  for f in "${RS_FILES[@]}"; do
+    rustfmt --check --edition 2024 "$f" >/dev/null 2>&1 || RS_BAD="$RS_BAD $f"
+  done
+  if [ -n "$RS_BAD" ]; then
+    formatter_refused "rust" "rustfmt --edition 2024 <the files listed above>" "$RS_BAD"
+  fi
 fi
 
 # Repo-local gates: the ST0056 apparatus guards (hv approved 2026-08-15).
 #
-# DELIBERATELY LAST, after the formatters have re-staged. A gate that runs
-# before the formatter checks content that is not what lands -- the skew check
-# would compare the pre-prettier view and the post-prettier one would commit
-# unchecked. Checking one thing and landing another is the class these guards
-# exist to close, so the gate goes where it sees the final staged set.
+# STILL LAST, AND THE REASON IT USED TO BE LAST IS NOW GONE. The old reason was
+# that the formatters re-staged, so a gate running earlier would check the
+# pre-prettier view while the post-prettier bytes landed -- checking one thing
+# and landing another, which is the class these guards exist to close. **The
+# formatters no longer write, so the staged set no longer moves and every
+# position now sees the same bytes.** Kept last because a cheap syntactic
+# refusal ahead of an expensive gate is a better failure order, which is a
+# preference rather than the correctness requirement it was.
 #
 # NOT in .git/hooks/pre-commit.intent: that file is installed from
 # lib/templates/hooks/pre-commit.sh, which SHIPS to every consumer project via
