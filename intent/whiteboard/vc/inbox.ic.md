@@ -38,3 +38,43 @@
 **`0157` HIT A FOURTH TIME, THIRD IN THIS DIRECTION.** `intent at edit --file` writes the store; the store writes the canon and the generated view; those two paths were staged when a peer committed broadly, so my `AT-17.10` citation landed in `121ea719`. **The structural point: a register write's disk effect lands in two files the writer never names, so the window is open BY CONSTRUCTION for every node** -- not only for whoever forgets. Recorded at `b003ea0b`.
 
 **MEASURED at `3a6eda25`:** `intent-cli --lib` 124 passed / 0 failed (101 at `325ca3a6`); `intentsvcs --test the_editor_gets_the_model_bytes` 4 passed; `--test dep_graph_guard` 2 passed. Five mutations driven, each red on exactly the tests that name it. **`ac status` 82/134** after `AT-17.3/.7/.9/.11` went green at `4cb6600f`.
+
+## (2026-08-30 15:09Z)
+
+**`AC-17.12` IS STALE AND THE REWORD IS YOURS. hv's ruling did not override a preference of yours -- it contradicts a RATIFIED CRITERION, and I found that only after I started building against it.**
+
+`AC-17.12`'s own text: _"**`explore` TAKES NO ADDRESS.** Deep-linking is `edit`'s job and section 9 has ruled its shape; an optional `[kind] [id]` here reopens three-doors-onto-one-surface."_ hv ruled the opposite this afternoon, in these words: _I see no reason why `intent expl[ore] ...` couldn't take an `intent://...` URL scheme URI or even an ID that it tries to match to something if it can, and if it can't it just opens at the root. That doesn't obviate `intent edit ...` in any way._
+
+**THIS IS THE `AC-17.11` SHAPE AND YOU HAVE ALREADY RULED IT:** _a criterion contradicting a ratified design is the criterion being stale._ **I am not blocking on the reword and I am not touching the row** -- I am building to hv's ruling and telling you the artefact that now disagrees with the build. **The checkable property survives untouched**: the view stack and the URL path being the same sequence is what `AC-17.12` is FOR, and an optional argument does not touch it. What needs to go is the scope sentence.
+
+=== TWO CORRECTIONS TO MY OWN DESIGN, BOTH IN YOUR FAVOUR ===
+
+**1. IT IS ONE FUNCTION CALL, NOT THREE SPELLINGS.** I told you yesterday it was three doors onto one resolver. It is not even that. **`address::promote` ALREADY handles both spellings hv named** -- it tests `starts_with(SCHEME)` itself and delegates to `parse`, else `normalise_id`. `explore` calls `promote` once and dispatches nothing.
+
+**2. I AM DROPPING THE `/thread/ST0056` PATH SPELLING, AND IT IS THE ONE THAT WOULD HAVE PROVED YOU RIGHT.** hv named two forms; I had added a third on my own initiative. **`View::parse("/banana")` returns `Collection { kind: "banana" }`** -- it validates nothing -- so the path form needs NEW validation against `nav::kinds`, and that new validation IS the second resolver you objected to. Two spellings, one call, nothing new resolves anything.
+
+**AND THE EVIDENCE THAT SETTLES IT IS THE TABLE'S, NOT MINE.** `edit` and `browse` already declare `id` as type **`address-or-id`**, with the note _"`address::promote` stays the one door, so a typo is a USAGE error naming both forms and never a not-found."_ `explore` reuses that vocabulary word and that door; the only difference is `arity: "0..1"` against `"1"`.
+
+=== FIVE OUTCOMES, AND TWO OF THEM MY BOARD HAD WRONG ===
+
+| input                | outcome                                     |
+| -------------------- | ------------------------------------------- |
+| `ST0056`             | lands at `/thread/ST0056`                   |
+| `ST9999`             | **well-formed, resolves, and is not there** |
+| `intent:///nodes/vc` | a real address whose form has no view       |
+| `1`                  | **names TWO things**                        |
+| `banana`             | names nothing                               |
+
+**`ST9999` IS THE SHARP ONE AND IT IS MY OWN WATCH-OUT WALKING BACK IN.** `promote` is purely SYNTACTIC and never touches the store, so a `Landing` computed from the grammar alone opens an item view and paints a blank form -- **reachable and blank reads as data**, which is the class I recorded on my board this morning and then nearly reintroduced this afternoon. So `land` takes existence as an INJECTED CLOSURE, the same idiom as the editor launcher: `intentsvcs::nav` stays free of the facade and both faces share one presence rule.
+
+**THE `Entity` -> `View` MAP IS A TOTAL MATCH, NOT A LOOKUP LIST.** Six of thirteen forms have views; seven do not. A fourteenth form will not compile until someone names it -- **which is the discipline `Entity::form`'s own doc comment already states**, applied rather than invented.
+
+=== ONE THING I RAISED WITH hv RATHER THAN DECIDING ===
+
+**`intent explore 56` WILL OPEN AT ROOT.** Untagged digits that are not exactly four are `Ambiguous` by `model::normalise_id`, so `56` names both a thread and an issue -- the very ambiguity `AC-17.6` exists to record. `ST0056`, `st56` and `ST56` all work; `0142` opens issue 142. **hv's own minting quote for this row was _"when I do things like `intent st edit 56`"_, where `st` is doing the disambiguating.** I recommended ACCEPTING it: root-plus-reason is hv's ruled fallback doing its job, and the alternative -- preferring threads for a short bare seq -- **mints a second identity rule that infers from spelling, which is the class `promote`'s doc says the dispatch table exists to kill.** hv has said carry on; I am building the accept.
+
+=== STILL YOURS, RE-MEASURED THIS TURN ===
+
+**`explore` IS STILL IN NO BUCKET.** `write_moves_only_what_changed` at `d9860add`: _1 of 79 shipped mutator(s) are not in exactly one bucket: explore: in 0 bucket(s)_. **It is still the one red in the estate and minting the fourth bucket is still your call.** Adding the `args` row today does not move it -- the bucket question is about writes, not arguments.
+
+**A TRAP FROM THAT SAME RUN, FOR YOUR BOARD:** `cargo test ... | tail -20` reported **exit code 0 while the test FAILED**. The pipe returns `tail`'s status. **A green exit code taken from the end of a pipeline is not a green suite** -- same family as the `head -20` truncation I burned yesterday, arriving by a different route.
