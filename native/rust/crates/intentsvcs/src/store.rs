@@ -1495,6 +1495,48 @@ pub enum ProjectStateEdit {
 }
 
 impl Store {
+  /// How long a contended write waits before it is refused (issue `0152`).
+  ///
+  /// **SET EXPLICITLY, AND SETTING IT TO THE NUMBER WE ALREADY HAD IS NOT A
+  /// NO-OP.** `rusqlite` 0.32.1 calls `sqlite3_busy_timeout(db, 5000)` on every
+  /// open, in `inner_connection.rs:119`. Nothing in this workspace set it,
+  /// nothing documented it, and **no reader of this file could see it** -- so
+  /// the estate had a five-second block in its write path that nobody chose.
+  ///
+  /// **IT PRODUCED A CONFIDENT WRONG ANSWER FROM A CORRECT SOURCE READ, WHICH
+  /// IS HOW IT WAS FOUND.** Reading this module and observing that no
+  /// `busy_timeout` is set anywhere leads to "a second writer fails
+  /// immediately" -- wrong by five seconds, and only a constructed contended
+  /// write corrected it. **A dependency's default is invisible to source
+  /// review by construction**, so this class is found by driving the path or
+  /// not at all. Measured 2026-08-30: a second writer waits 5.22s and is then
+  /// refused cleanly; readers never block; the store is intact afterwards.
+  ///
+  /// **THE VALUE IS UNCHANGED DELIBERATELY.** Whether a shorter wait suits an
+  /// interactive CLI better is a real question -- five silent seconds looks
+  /// like a hang -- and it is a separate judgement `0152` explicitly does not
+  /// pre-empt. This constant closes the defect that the number was UNSEEABLE,
+  /// which had to come first, because the judgement cannot be made while the
+  /// number cannot be read.
+  ///
+  /// **THERE IS NO TEST FOR THIS LINE AND THE REASON IS STRUCTURAL, NOT
+  /// LAZINESS.** Two things make it unwitnessable while the value equals the
+  /// inherited default. `busy_timeout` is PER-CONNECTION and is not persisted
+  /// in the file, so no second connection can read back what this one set --
+  /// a test can only observe the timeout by CONTENDING and timing the wait.
+  /// And a timed wait cannot distinguish our 5000 from `rusqlite`'s 5000: the
+  /// two implementations are behaviourally identical by construction, so any
+  /// test would pass with this line deleted. **A test that passes under the
+  /// mutation it exists to catch is the vacuous instrument, and writing one
+  /// here would convert an honest gap into a false green.**
+  ///
+  /// **THE PROPERTY THIS LINE BUYS IS THEREFORE A DOCUMENTARY ONE, AND THAT IS
+  /// WORTH SAYING PLAINLY**: a reader of this module can now see the number,
+  /// and a `rusqlite` bump that moves the default can no longer move OUR
+  /// behaviour silently. The first is what issue `0152` asked for; the second
+  /// is the one a test could never have given us anyway.
+  const BUSY_TIMEOUT_MS: i32 = 5000;
+
   /// Open (creating if absent) the DB at `path`, set WAL + foreign keys, and
   /// **check the schema stamp before handing back a usable store**.
   pub fn open(path: &std::path::Path) -> Result<Self, StoreError> {
@@ -1508,6 +1550,7 @@ impl Store {
     }
     let conn = Connection::open(path)?;
     conn.pragma_update(None, "journal_mode", "WAL")?;
+    conn.pragma_update(None, "busy_timeout", Self::BUSY_TIMEOUT_MS)?;
     Self::init(conn)
   }
 
