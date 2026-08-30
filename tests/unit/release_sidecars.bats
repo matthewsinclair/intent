@@ -127,13 +127,56 @@ RELEASE="${INTENT_RELEASE_SCRIPT:-${INTENT_HOME}/bin/.devbin/cmd/build.d/release
   assert_success
 }
 
-@test "the CLAUDE.md refresh skips the .claude/ stack" {
-  # Without --skip-settings the canon engine also rewrites .claude/settings.json
-  # and the hook scripts, which substitute [[INTENT_HOME]] and so differ between
-  # checkouts. They are unrelated to the release and outside the sidecar list, so
-  # they trip the dirty-tree check and abort the cut.
-  run grep -E 'claude upgrade --apply --skip-settings' "$RELEASE"
+# **`the CLAUDE.md refresh skips the .claude/ stack` WAS HERE AND ITS SUBJECT IS
+# GONE** (2026-08-30). It asserted `claude upgrade --apply --skip-settings`, and
+# v3's `claude upgrade` has no `--skip-settings`: its flags are `--apply`,
+# `--daemon` and `--force`. So the assertion could only ever fail after the port,
+# and patching it to drop the flag would leave a test asserting nothing.
+#
+# **AND THE PROPERTY IT PROTECTED IS MEASURED RATHER THAN ABANDONED.** Its worry
+# was that the canon engine rewrites `.claude/settings.json` and the hook
+# scripts, which substitute `[[INTENT_HOME]]` and so differ between checkouts,
+# tripping the dirty-tree check and aborting the cut. Driven in
+# `no_pm_state_in_output.rs` (`a29f04ec`): the shipped `.claude` stack carries no
+# absolute home path, and `settings.json` needs no substitution at all -- it is
+# byte-identical to its template. vc ruled the flag's absence a no-op on that
+# arm. **The v2 flag existed for a v2 engine that did substitute; v3's does not,
+# so there is nothing to skip.**
+#
+# Replaced by the two arms below, whose subject is what the port actually
+# introduced: which binary regenerates the canon that ships in the cut.
+
+@test "the release drives the CLI built from the tree it is releasing, not the ambient one" {
+  # **A PATH-FREE PATH IS THE WHOLE POINT.** The v2 sites named
+  # `$PROJECT_ROOT/bin/intent`, a file IN the checkout, so this script has always
+  # been deterministic about which tool it ran. A bare `intent` would work on any
+  # correctly-set-up machine and silently make the released bytes a function of
+  # the operator's shell -- and two of the three calls regenerate canon that is
+  # committed as a sidecar of the cut.
+  run grep -E '^INTENT_BIN="\$PROJECT_ROOT/native/rust/target/release/intent"$' "$RELEASE"
   assert_success
+
+  # And no call reaches the binary by name. The negative is the half that
+  # matters: the positive above passes while a bare `intent` sits three lines
+  # down.
+  run grep -nE '\(cd "\$PROJECT_ROOT" && intent ' "$RELEASE"
+  assert_failure
+}
+
+@test "an absent CLI refuses the cut rather than falling back" {
+  # A fallback that warns is a fallback that gets ignored, and it reintroduces
+  # the nondeterminism in exactly the case where it matters. This script does not
+  # build the binary, so an absent one is a sequencing error the operator must
+  # see.
+  run grep -F 'require_intent_bin() {' "$RELEASE"
+  assert_success
+
+  # Called at EACH use rather than once at the top: the three calls sit behind
+  # different flags, so a single top-level assertion would refuse runs that never
+  # touch the binary and would let two through when the first is skipped.
+  run bash -c "grep -c '^  require_intent_bin$' '$RELEASE'"
+  assert_success
+  assert_output "3"
 }
 
 # --------------------------------------------------------------------

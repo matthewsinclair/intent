@@ -69,8 +69,15 @@ get_intent_version() { cat "$PROJECT_ROOT/VERSION" 2>/dev/null || echo "0.0.0"; 
 EOF
   chmod +x bin/intent_helpers
 
-  # `bin/intent doctor` and `bin/intent agents sync` -- both no-ops in tests.
-  cat > bin/intent <<'EOF'
+  # **THE STUB MOVED WITH THE THING IT STANDS IN FOR** (2026-08-30). These calls
+  # used to run `$PROJECT_ROOT/bin/intent`, the v2 shell CLI; they now run the v3
+  # binary built from the tree being released, resolved by PATH-free path at
+  # `native/rust/target/release/intent`. `require_intent_bin` ABORTS when it is
+  # absent, so a fixture that did not plant it would fail every release test with
+  # a sequencing error rather than exercising anything -- planting it here is
+  # what keeps these tests about the release script.
+  mkdir -p native/rust/target/release
+  cat > native/rust/target/release/intent <<'EOF'
 #!/usr/bin/env bash
 case "$1" in
   doctor) exit 0 ;;
@@ -79,10 +86,15 @@ case "$1" in
       sync) : ;;
     esac
     ;;
+  claude)
+    case "$2" in
+      upgrade) : ;;
+    esac
+    ;;
 esac
 exit 0
 EOF
-  chmod +x bin/intent
+  chmod +x native/rust/target/release/intent
 
   cat > tests/run_tests.sh <<'EOF'
 #!/usr/bin/env bash

@@ -75,6 +75,34 @@ HELPERS="$PROJECT_ROOT/bin/intent_helpers"
 # clone; the release must describe the tree it is cutting, not the ambient one.
 export INTENT_HOME="$PROJECT_ROOT"
 
+# **THE `intent` THIS SCRIPT DRIVES IS THE ONE BUILT FROM THE TREE BEING
+# RELEASED, RESOLVED BY PATH AND NEVER BY `PATH` LOOKUP.**
+#
+# The v2 sites this replaced named `$PROJECT_ROOT/bin/intent` -- a file IN the
+# checkout -- so this script has always been deterministic about which tool it
+# ran, and that property is the thing most easily lost in the port. Swapping a
+# path for a bare `intent` is not a port; it is a loss of determinism smuggled
+# in as one, and it would be invisible because both spellings work on any
+# machine that is set up correctly.
+#
+# **IT MATTERS BECAUSE TWO OF THE THREE CALLS BELOW WRITE CANON INTO THE
+# RELEASE.** `agents sync` regenerates AGENTS.md and `claude upgrade --apply`
+# regenerates CLAUDE.md, both committed as sidecars of the cut. Under a `PATH`
+# lookup the released BYTES would be a function of the operator's shell.
+#
+# **AND THE FAILURE IS LIVE RATHER THAN THEORETICAL.** Measured 2026-08-30:
+# `intent --version` reported `dirty-a402625f...` while `intentd --version`
+# named no commit at all, `self_provenance_check.sh` had the pair built from
+# two DIFFERENT trees, and `~/.local/bin/intent` is a symlink straight into a
+# release directory that passes through nothing. The ambient binary is
+# precisely the one with no provenance guarantee.
+#
+# **REFUSES RATHER THAN FALLING BACK.** A fallback that warns is a fallback
+# that gets ignored, and it reintroduces the nondeterminism in exactly the case
+# where it matters. This script does not build the binary -- `intent build cli`
+# does -- so an absent one is a sequencing error the operator must see.
+INTENT_BIN="$PROJECT_ROOT/native/rust/target/release/intent"
+
 if [ -f "$HELPERS" ]; then
   # shellcheck disable=SC1090
   source "$HELPERS"
@@ -90,6 +118,17 @@ log_info() { printf 'info: %s\n' "$*"; }
 log_step() { printf '\n==> %s\n' "$*"; }
 log_dry()  { printf 'dry-run: %s\n' "$*"; }
 log_warn() { printf 'warning: %s\n' "$*" >&2; }
+
+# **ONE HOME FOR THE REFUSAL, CALLED AT EACH USE RATHER THAN ASSERTED ONCE AT
+# THE TOP.** The three calls sit behind different flags -- `--skip-tests` skips
+# the doctor entirely, and the two canon regenerations have their own branches
+# -- so a single top-level assertion would refuse a run that was never going to
+# touch the binary, and an assertion placed at only the first use would let the
+# other two through when that one is skipped.
+require_intent_bin() {
+  [ -x "$INTENT_BIN" ] && return 0
+  abort "no built CLI at $INTENT_BIN -- this script drives the binary built FROM the tree it is releasing, and does not build it. Run \`intent build cli --release\` (or \`intent build all\`) first. It is resolved by path rather than through PATH deliberately: two of the calls below regenerate canon that ships in this cut, so an ambient binary would make the released bytes a function of your shell."
+}
 
 abort() {
   printf 'error: %s\n' "$*" >&2
@@ -369,8 +408,9 @@ preflight() {
   fi
 
   # intent doctor.
+  require_intent_bin
   log_info "running intent doctor"
-  if ! (cd "$PROJECT_ROOT" && "$PROJECT_ROOT/bin/intent" doctor >/dev/null 2>&1); then
+  if ! (cd "$PROJECT_ROOT" && "$INTENT_BIN" doctor >/dev/null 2>&1); then
     abort "intent doctor reported issues -- fix before releasing"
   fi
   log_info "intent doctor clean"
@@ -660,7 +700,8 @@ else
   #
   # The status was discarded and the next line logged "AGENTS.md synced"
   # unconditionally, so the release log stated a success that had not happened.
-  if ! (cd "$PROJECT_ROOT" && "$PROJECT_ROOT/bin/intent" agents sync >/dev/null); then
+  require_intent_bin
+  if ! (cd "$PROJECT_ROOT" && "$INTENT_BIN" agents sync >/dev/null); then
     abort "intent agents sync failed -- refusing to tag a release whose AGENTS.md was not regenerated"
   fi
   log_info "AGENTS.md synced"
@@ -687,7 +728,8 @@ else
   # Same reasoning as the AGENTS.md sync above: a failure here leaves CLAUDE.md
   # carrying the previous version, the tree stays clean, and the tag ships
   # inconsistent with itself.
-  if ! (cd "$PROJECT_ROOT" && "$PROJECT_ROOT/bin/intent" claude upgrade --apply --skip-settings >/dev/null); then
+  require_intent_bin
+  if ! (cd "$PROJECT_ROOT" && "$INTENT_BIN" claude upgrade --apply >/dev/null); then
     abort "intent claude upgrade --apply failed -- refusing to tag a release whose CLAUDE.md was not refreshed"
   fi
   log_info "CLAUDE.md refreshed"
