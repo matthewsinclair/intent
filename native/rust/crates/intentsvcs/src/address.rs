@@ -352,8 +352,30 @@ impl Remedy for AddressError {
 ///
 /// **Named here rather than detected by extension**, because `.md` is also how
 /// an attachment is spelled and an attachment IS addressable. The distinction
-/// is authorship, not suffix: `Project::classify` is the single answer to what
-/// a file is, and these are the names it answers `GeneratedView` for.
+/// is authorship, not suffix.
+///
+/// **THIS LIST IS NOT DERIVED FROM `Project::classify` AND MUST NOT BE READ AS
+/// IF IT WERE.** An earlier wording here said these are "the names it answers
+/// `GeneratedView` for", which is false for FOUR of the six: `classify` only
+/// ever sees paths relative to a THREAD directory, and answers `GeneratedView`
+/// only for `info.md` (at the thread root, or under `WP/<nn>/`) and
+/// `acceptance.md` at the root. It never sees `todo.md` or `steel_threads.md`,
+/// which are project-level views sitting outside every thread directory, and it
+/// never sees the extensionless `info` / `acceptance`, which exist here because
+/// an ADDRESS SEGMENT may be spelled without a suffix. **The comment claimed a
+/// derivation the code does not have**, which is worse than no comment: a
+/// maintainer adding a generated view would have updated `classify` and
+/// believed this list followed.
+///
+/// **The two answer different questions over different domains, and only their
+/// OVERLAP has to agree**: every name `classify` calls a `GeneratedView` must
+/// appear here, or that view becomes addressable and `ViewAddressed` stops
+/// refusing it. **Nothing asserts that today.** The gate that would is an
+/// integration test needing no access to this constant -- walk the estate's
+/// thread files, and for each one `classify` calls a `GeneratedView`, require
+/// `parse` to refuse its basename as a segment. It catches a new view type only
+/// once such a file exists in the estate, which is a real limit and still
+/// strictly better than the nothing that guards it now.
 const VIEW_NAMES: &[&str] = &[
   "info.md",
   "acceptance.md",
