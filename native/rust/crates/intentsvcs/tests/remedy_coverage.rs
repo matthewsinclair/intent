@@ -39,6 +39,7 @@ fn proofs() {
   implements::<intentsvcs::facade::FacadeError>();
   implements::<intentsvcs::ingest::IngestError>();
   implements::<intentsvcs::install::InstallError>();
+  implements::<intentsvcs::launchagent::LaunchAgentError>();
   implements::<intentsvcs::event::JsonlError>();
   implements::<intentsvcs::output::OutputError>();
   implements::<intentsvcs::plugins::PluginError>();

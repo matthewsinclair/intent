@@ -221,6 +221,71 @@ pub fn daemon_lock() -> Result<PathBuf, UserStateError> {
   Ok(daemon_lock_under(&home()?))
 }
 
+/// `~/Library/LaunchAgents/com.matthewsinclair.intentd.plist` -- the enrolment.
+///
+/// **D19's LOCATION, AND IT IS THE ONE PATH HERE THAT IS NOT OURS TO CHOOSE.**
+/// Every other file in this module sits where Intent decided to put it;
+/// `launchd` only reads per-user agents from `~/Library/LaunchAgents/`, so this
+/// is a location the platform fixes and D19 records rather than selects.
+///
+/// **IT IS DELIBERATELY NOT UNDER [`daemon_state_dir`], THOUGH EVERYTHING ELSE
+/// THE DAEMON OWNS IS.** That split is D19's and it is the reason the comment
+/// on [`global_config`] once misled: Intent's per-user footprint is not one
+/// directory and never was. The plist is the ONE piece of daemon state another
+/// program owns the reading of, which is exactly why it lives where that
+/// program looks.
+pub fn launch_agent_plist() -> Result<PathBuf, UserStateError> {
+  Ok(launch_agent_plist_under(&home()?))
+}
+
+/// [`launch_agent_plist`]'s layout, against any root.
+pub fn launch_agent_plist_under(root: &std::path::Path) -> PathBuf {
+  root
+    .join("Library")
+    .join("LaunchAgents")
+    .join(format!("{LAUNCH_AGENT_LABEL}.plist"))
+}
+
+/// The reverse-domain label `launchd` knows the daemon by (D19).
+///
+/// **ONE HOME, BECAUSE THREE THINGS MUST AGREE ABOUT IT AND TWO OF THEM ARE
+/// NOT FILES.** The plist's own `Label` key, the plist's FILENAME, and every
+/// `launchctl` argument naming the job are the same string; a second spelling
+/// anywhere means `launchctl` operates on a job that does not exist and says
+/// so in a way that reads like the daemon being absent.
+pub const LAUNCH_AGENT_LABEL: &str = "com.matthewsinclair.intentd";
+
+/// Where the daemon's stdout goes (D19: logs at `~/.local/share/intent/`).
+///
+/// **NAMED HERE RATHER THAN IN THE PLIST WRITER, BECAUSE TWO PROGRAMS NEED IT
+/// AND ONLY ONE OF THEM WRITES THE PLIST.** `launchd` is told this path once,
+/// at enrolment; whoever answers *where are the logs* has to produce the same
+/// path months later without reading the plist back. A literal in the plist
+/// writer would be correct at enrolment and unavailable to every reader after.
+pub fn daemon_log_under(root: &std::path::Path) -> PathBuf {
+  daemon_state_dir_under(root).join("intentd.log")
+}
+
+/// [`daemon_log_under`] against the operator's own home.
+pub fn daemon_log() -> Result<PathBuf, UserStateError> {
+  Ok(daemon_log_under(&home()?))
+}
+
+/// Where the daemon's stderr goes.
+///
+/// **SEPARATE FROM [`daemon_log_under`] BECAUSE THE DAEMON ALREADY TREATS THEM
+/// AS SEPARATE.** `intentd` reports refusals and its served-and-not-watched
+/// notices on stderr and says nothing on stdout in normal running, so merging
+/// them would bury the only lines anybody reads under the ones nobody does.
+pub fn daemon_error_log_under(root: &std::path::Path) -> PathBuf {
+  daemon_state_dir_under(root).join("intentd.err.log")
+}
+
+/// [`daemon_error_log_under`] against the operator's own home.
+pub fn daemon_error_log() -> Result<PathBuf, UserStateError> {
+  Ok(daemon_error_log_under(&home()?))
+}
+
 /// The operator's login name, when the environment names one.
 ///
 /// **`$USER` IS GRANTED FOR `bootstrap` AND CONFINED HERE** -- hv, 2026-08-27,

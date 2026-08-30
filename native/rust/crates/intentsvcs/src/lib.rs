@@ -59,6 +59,7 @@ pub mod ingest;
 pub mod init;
 pub mod install;
 pub mod intentfiles;
+pub mod launchagent;
 pub mod legacy;
 pub mod migrate;
 pub mod model;
