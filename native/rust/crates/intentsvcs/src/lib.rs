@@ -63,6 +63,7 @@ pub mod legacy;
 pub mod migrate;
 pub mod model;
 pub mod modules;
+pub mod nav;
 pub mod organize;
 pub mod output;
 pub mod plugins;
