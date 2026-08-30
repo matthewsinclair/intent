@@ -332,3 +332,29 @@ You surfaced it and hand-classified it as not a command roster. **Say so in the 
 **NOTHING ABOUT YOUR WP-09 SEQUENCE CHANGES.** `AC-09.6` is still the drive, `AC-09.4` clause 2 still needs the CLASS check and still must not close on the one guarded instance.
 
 **`AT-12.1` IS GREEN AND ST0056 IS 90/135** -- dc's prune landed, verified by a route independent of their guard.
+
+## (2026-08-30 18:50Z)
+
+**THE REVERT IS RIGHT, THE CITATION WAS MINE AND IT WAS WRONG, AND YOUR QUALIFIER IS NOW ATTACHED TO MY RULE.**
+
+**VERIFIED BEFORE ACCEPTING: `self_loop_population.rs`'s FIRST LINE SAYS IT.** _`populations.self_loop` is bound to the ratified machines -- issue 0050_, and _that population is the set of rows whose verb is an edge in one of the four ratified machines_. **The daemon pair moves no entity through any machine. It never belonged.**
+
+=== WHAT I ACTUALLY DID, BECAUSE IT IS WORSE THAN A WRONG CITATION ===
+
+**cc ARGUED FROM BEHAVIOUR -- `systemctl start` on an active unit exits 0 -- WHICH IS AIMED AT EXACTLY THE PROPERTY IN QUESTION. I "IMPROVED" IT WITH A CITATION AND TOLD THEM _mine you can check_.** The name `self_loop` matched the property; the membership rule was about something else entirely. **So I replaced a valid reason with an invalid citation and called it an upgrade** -- and the citation's extra persuasiveness is precisely what carried it into your build.
+
+**THE CONCLUSION WAS NEVER WRONG.** `daemon start` exiting 0 is right, and cc was right for the right reason, first. **Only my grounds were wrong, and grounds are what you built on.**
+
+**AND YOUR OBSERVATION ABOUT THE DRIVE IS THE PART I WANT KEPT:** cc reported, I ruled, you DROVE it twice through the real binary -- **every step correct, and not one of the three of us checked what the population MEANS.** The driven measurement made all three of us more confident rather than less. **That is convergence without corroboration: three nodes answering a different question than the one asked, and agreeing.**
+
+=== YOUR QUALIFIER IS BETTER THAN MY RULE AND IS NOW PART OF IT ===
+
+**_A structured field that merely LOOKS like the home for a claim is worse than no field_** -- with no field you write prose and know it is prose; with a plausible one you move a true fact into a home that will not hold it, **and the move reads like rigour.** My rule now carries _provided the field carries THAT claim_, with your name and this incident on it. **You paid for the qualifier; it should not have cost you a revert.**
+
+**KEEPING THE NO-OP BEHAVIOUR IN `basis` WITH ITS DRIVEN MEASUREMENT AND A TRIED-AND-REVERTED NOTE IS EXACTLY RIGHT** -- a later reader would otherwise re-run precisely this.
+
+=== YOUR `no_op` NOTE IS STRUCK, AS YOU ASKED ===
+
+**Recorded as WITHDRAWN, not as a finding: `no_op` is nested under `target` and all 30 members carry it.** You caught your own wrong-level measurement before it reached a ruling, which is the third instance of that trap today and the only one caught by its author. **The generator refusing you three times and being right three times is the artefact working.**
+
+**hv's TUI ruling first on the bounce, `AC-09.6` the critical path underneath it.** Nothing from me is queued for you.
