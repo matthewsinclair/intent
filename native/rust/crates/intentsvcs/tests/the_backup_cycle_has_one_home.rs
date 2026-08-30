@@ -1,5 +1,5 @@
-//! **`AC-08.8`'s CHECK CLAUSE, AS A TEST: the scheduled path and the manual
-//! path are the SAME FUNCTION, not two that agree today.**
+//! AT-08.8 / AC-08.8: **THE CHECK CLAUSE, AS A TEST: the scheduled path and the
+//! manual path are the SAME FUNCTION, not two that agree today.**
 //!
 //! The criterion does not ask whether a daemon backup and a typed backup
 //! produce the same result -- **two implementations agree on the day they are

@@ -1047,3 +1047,47 @@ Canon side landed at `95f469d7`: `intent ext` is gone from `AGENTS.md`, `usage-r
 === STATE ===
 
 ST0056 86/134. ST0058 3/6, `AC-00.3` now blocked on the ruling above. `AC-00.6` (`help`) is next from me and needs no ruling -- you gave it: root-only. ic unblocked on `AC-17.12`; cc took the mint and the carve-out; dc holds WP-04/05/12.
+
+## (2026-08-30 19:06Z)
+
+**FOUR ITEMS, ALL OF WHICH MOVE THE RELEASE. THE FIRST IS THE ONE I WOULD READ IF YOU READ ONE.**
+
+=== 1. THE `bin/` PRUNE IS TWO CRITERIA AND ONLY ONE OF THEM HAS CLOSED. 28 SHELL SCRIPTS ARE STILL THERE ===
+
+`ST0056/AC-12.1` -- _"The shell implementation is pruned at the cut, **and nothing in the repo EXECUTES or EMITS a `bin/` intent script path**."_ **CLOSED, correctly.** Its real subject is the EDGES and dc drove it two-route.
+
+`ST0056/AC-00.6` -- _"The shell implementation (`bin/`) is pruned at the cut, fail-forward."_ **non-test, UNSATISFIED.** Its subject is the DELETION. `ls bin/` returns **28 scripts**.
+
+**The two rows open with a near-identical clause, and THREE BOARDS CITE AC-12.1 AS "THE `bin/` PRUNE"** -- your line 31, dc's line 94, and mine. Left alone the tag ships with 28 shell scripts and a board saying the prune landed. **This is Highlander at criterion level: two homes, one claim, drifted exactly as the rule predicts.**
+
+**YOUR CALL, AND IT IS SCOPE SO IT IS NOT MINE:** either `AC-00.6` is the real deletion and somebody deletes 28 scripts before the tag, or it is redundant with `AC-12.1` and is withdrawn. **I am not recommending either -- the sizes are genuinely different and you own what 3.0.1 contains.** What I will not do is let it close by nobody noticing.
+
+**HOW IT HID, because the mechanism outlives the instance.** My own board recorded `a9f03ab7` as "closing `AC-00.6`", unqualified. It closed **ST0058**/AC-00.6, the `--version`/`version` spelling row. Both threads have an AC-00.6 and they are unrelated. **67 of the 166 AC ids in the live cut exist in two or more threads -- 40% -- and the four boards carry 73 bare ids between them.** A bare id resolves against the reader's implied scope, **so the reader who resolves it correctly is the one who gets the wrong row.** Your own inbox entry above this one says "`AC-00.6` (`help`)" bare. Corrected on my board at `a99018b2`.
+
+=== 2. TWO GREEN ROWS ON A COMPLETED THREAD LOSE THEIR SUBJECT IF dc's PRUNE PROCEEDS. dc STOPPED AND ASKED ===
+
+`ST0043` is **completed**. `AT-01.8` (green) cites `tests/unit/intent_claude_upgrade.bats`, which dc is about to delete on my ruling, and covers `AC-01.6` (test + computed). `AT-01.6` (green) cites a clause in `intent_upgrade_orchestrator.bats` whose subject **was already deleted at `125f601d`** -- so that one is not a pending decision, it is a state at HEAD.
+
+**dc did the two-route check that saved `AT-07.4` this afternoon and route 2 caught it. I re-measured their census from the STORE rather than `.canon`: 336 cited rows; 262 green + 10 red all PRESENT; 52 absent and every one `to-write`. Zero falsifiers.** Deleting that file makes `AT-01.8` the first green row in the estate citing an absent artefact. **0 -> 1.**
+
+**dc recommends, and I second: delete the file AND explicitly retire `AT-01.8`/`AC-01.6`, reason recorded, with `AT-01.6`/`AC-01.4` examined at the same time.** The property genuinely expired with its subject -- _"no BSD `sed -i ''` in the canon engine"_ has no canon engine any more. **That is fail-forward and it is honest, but retiring satisfied evidence on work you signed off is a governance act and neither of us will take it.** Both bats files are HELD pending your word; nothing else of dc's is blocked.
+
+=== 3. `intentd` STARTED AT LOGIN BACKS UP NOTHING, AND `AC-08.8` CAN GO GREEN ANYWAY ===
+
+cc found it and stopped rather than hand me the row. Registration is a side effect of USE (`Registry::handle_for`, deliberately, `AC-08.1`); under your opt-in routing reversal the only reaching paths are `--daemon` on `SERVED_BY_DAEMON` -- **one row, `st list`** -- and `Op::Subscribe`. There is no persisted registry. **So a login-started daemon holds zero projects and a per-project backup schedule sweeps an empty map forever.**
+
+**THE QUESTION IS YOURS BECAUSE THE FIX IS NEW PER-USER STATE AT THE CUT: does a login-started `intentd` back up projects it has never been contacted about?**
+
+**MY RECOMMENDATION, EXPLICITLY A RECOMMENDATION: NARROW, DO NOT BUILD.** For 3.0.1 `AC-08.8` delivers backups for projects the daemon has been contacted about, and the persisted registry is filed post-tag. Narrowing costs nothing; building costs new state with its own lifecycle at the tag. **Either way the row must SAY the limit, and I am writing that in today** -- so a green means "scheduled backups work for registered projects", never "your projects are backed up", and if you rule the registry in later the row widens visibly instead of having silently covered it.
+
+I have already ruled the part that is mine: `daemon status` grows a per-project listing, because an empty registry is currently INVISIBLE and that is what makes it observable. State DERIVED at read time, same as your menubar ruling -- so no `scheduled` field is added.
+
+=== 4. THE SEQUENCING NUMBER YOU SHOULD HAVE BEFORE YOU SCOPE THE TUI WITH ic ===
+
+**WP-09 is the longest pole in the cut.** All six open rows are `to-write`; `AC-09.6` is an M-at-least manual read of ~94 arms on the critical path; `AC-00.3` (intentd ships) and `AC-00.4` (MCP ships) are WP-00 gate rows that close on it; you have named intentd a priority. **ic is the only node on WP-09, and the TUI rework lands on top of them.**
+
+**I AM NOT PROPOSING IT MOVE.** You assigned it and reassigning your sequencing call on my own initiative is the failure I flagged this morning. **I am giving you the collision and the number so the decision is deliberate rather than discovered.** If ic's read of the TUI scope comes back small this evaporates.
+
+=== STATE ===
+
+**ST0056 90/135, ST0057 66/66 PASS, ST0058 4/6, ST0066 6/6 PASS, ST0068 4/9, doctor 0.** The 45 open ST0056 rows split **vc 17 / cc 14 / ic 8 / dc 6** -- WP-00 is the largest single block and it is the gate group, so ST0056 cannot close before my rows do. **Every work package is owned.**
