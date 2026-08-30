@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-30 00:32Z
+heartbeat_at: 2026-08-30 00:44Z
 status: active
-focus: "WP-17 pieces 1 and 2 are ON MAIN, and the arity gap closed at d610f4d9 -- which turned up that `fn flag` reads every match as a bool, so a VALUED flag read as ABSENT. Next: ST0064 pricing (needs no ruling), then piece 3 once vc rules the TUI deps. The daemon family is declared and rc=2 unwired, so ST0064 waits on cc for anything over the wire."
+focus: "WP-17 pieces 1 and 2 are DONE and on main; vc ruled both my questions (arity authoritative, ratatui+crossterm in intent-cli only) and both are implemented or authorised. Main is 1545/0. NOW: piece 3, mode machine FIRST because it needs no dependency -- the Cargo.lock move is deferred until the realiser actually needs it, and announced before it happens."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -17,15 +17,15 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 **RE-MEASURE EVERYTHING BELOW AT PICKUP. Four nodes write this tree and every figure here is spent the moment one does.**
 
-**THE COMMIT ORDER RESOLVED, AND NOT THE WAY ANY OF US SEQUENCED IT.** `spine.rs` landed alone at `e5b2a3c8`; cc's `lib.rs` + `daemon.rs` + `userstate.rs` at `925dfe4d`; then hv's `0f41dce1` _Safety checkin prior to HV being afk_ swept everything else -- my register bundle, my form test, dc's `render.rs`, cc's `cli_routing.rs` -- in one commit. The careful ordering mattered right up until it did not. **What survives is the METHOD, not the sequence.**
+**MAIN IS 1545 PASSED / 0 FAILED** at `1bf172a6` and again with my work on top -- dc's Machine 5 closed the last red. `cargo fmt --all --check` clean.
 
-**MAIN IS 1539 PASSED / 1 FAILED AND THE RED IS dc's**: `a_machine_ratified_in_prose_is_actually_trivial` -- `AcceptanceTest.status` declares `{at.fc, at.set}` where `data-model.md` ratifies one verb. It is dc's next-up item. `cargo fmt --all --check` rc=0. The register is at FIXPOINT: `gen_dispatch_table.sh` re-rendered the committed view byte-identically from the committed canon.
+**LANDED THIS SESSION:** `e5b2a3c8` spine.rs (the two doors, plus a doc block that had re-pointed itself onto the wrong item); `d610f4d9` the arity reaching clap AND the `fn flag` blindness underneath it; `86644828` arity made the ONE carrier with the second `num_args` writer DELETED; `9d04e163` issue `0150`.
 
-**THE ARITY GAP IS THE WORK IN HAND**, and it turned out to be three things rather than one. `spine.rs` now reads `flag.arity`, and **an optional-value flag needs `require_equals`** -- `edit` has three positionals, so `--editor vim` gives clap no way to tell the program from the next positional. That is not a preference about `=`; without it the arity cannot be honoured at all.
+**vc RULED BOTH QUESTIONS I POSTED.** `arity` authoritative and derived -- done, and the three `...` rows now declare `1..n` while the ellipsis comes from `num_args`. **`ratatui` + `crossterm`, `intent-cli` ONLY** -- my recommendation, so piece 3 is authorised.
 
-**I WIDENED A CORPUS AND NOT THE GUARD KEYED ON IT.** `an_arity_is_read_the_same_way_by_every_reader` ends in a closure check that refuses any arity spelling its four arms were never driven over -- and it censused `e.args` alone. Adding `arity` to `Flag` put a second carrier under a guard that could not see it. Census now chains `e.flags`. **The vocabulary also went from two readers to one**: `Arg::required()` and `Arg::repeated()` each matched the four spellings independently, and the flag path would have been a third, in another file. Both now route through `dispatch::arity_bounds`.
+**PIECE 3 STARTS WITH THE MODE MACHINE, WHICH NEEDS NO DEPENDENCY.** A declared transition table plus the two headless invariants (every mode leavable, every mode reachable from NORMAL) is pure Rust against `transitions.rs`'s own idiom. **The `Cargo.lock` move waits until the realiser needs it and gets announced first** -- three nodes build against that file.
 
-**OPEN, FOR vc: `...` AND `arity` ARE TWO HOMES FOR ONE FACT ON A FLAG.** Three flags (`--covers` twice, `--files`) say _list_ by putting `...` in the value placeholder and declare no `arity`; `--editor` says its count in `arity` and carries no `...`. Both reach `num_args`. Nothing is wrong today and nothing stops them disagreeing tomorrow.
+**ST0064 IS PRICED AND IT IS `L`, NOT `S`.** URLSession over TCP: the networking in Geodica's `CmsService` is ~15 lines of a 127-line file and everything else is needed on either transport, while `NWEndpoint.unix` means hand-rolling HTTP/1.1 framing whose failure mode is a short read that looks like a complete body. Loopback plus one token already covers what the socket's filesystem authz would buy. **Geodica solved the port the same way we ruled it** -- `geodica url resolve` answers with the running daemon's address, never config. **The cost nobody prices without reading it: a `.app` bundle has no login-shell `PATH`**, which is what `LoginShell.swift` exists for. **Blocked on cc**: `intent daemon status` and `start` both return rc=2, the unwired marker, and `daemon status` declares no `--json` so there is no machine-readable address resolution yet.
 
 ## TODO
 
