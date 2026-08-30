@@ -291,17 +291,43 @@ pub fn route(candidates: &[Endpoint]) -> Route {
 /// start needing it because a routing probe could not resolve a directory.
 /// Why a candidate list could not be computed.
 ///
-/// **ONE VARIANT, AND IT EXISTS BECAUSE ABSENCE AND UNREADABILITY ARE
-/// DIFFERENT ANSWERS.** No address file means no TCP candidate, which is a
-/// state and not a fault. An address file that cannot be parsed means the
-/// daemon published something and this build could not read it -- and quietly
-/// dropping that candidate is the ONE failure direction this whole rule exists
-/// to prevent, because a shorter list routes in-process while a daemon holds
-/// the store. So it refuses instead.
+/// **THREE ANSWERS, NOT TWO, AND CONFLATING THE LAST TWO IS WHAT THIS TYPE
+/// EXISTS TO PREVENT.** No address file is a STATE: no TCP candidate, no
+/// fault. A file whose CONTENT is not an address is [`Self::MalformedAddress`].
+/// A file that could not be READ AT ALL is [`Self::UnreadableAddress`].
+/// Quietly dropping the candidate in either of the last two is the ONE failure
+/// direction this whole rule exists to prevent, because a shorter list routes
+/// in-process while a daemon holds the store.
+///
+/// **THE SPLIT WAS FOUND BY vc, AND THE REASON IT SURVIVED IS IN THE OLD
+/// NAMES.** One variant was called `UnreadableAddress` and handled only the
+/// UNPARSEABLE case, while the doc beside it used *unreadable* and *cannot be
+/// parsed* as though they were one thing. So the reader below matched `Ok` and
+/// dropped every `Err` -- and `NotFound` is the only `Err` that is a state.
+/// `PermissionDenied`, `InvalidData` and `EMFILE`/`ENFILE` are all faults, and
+/// the fd-pressure ones arrive exactly when a machine is busy, which is when a
+/// daemon is worth having.
+///
+/// **THE TWO REMEDIES MUST DIFFER OR THE SPLIT BUYS NOTHING.** The malformed
+/// remedy says the file is safe to delete when no daemon is running. Saying
+/// that to someone whose real problem is a descriptor limit would tell them to
+/// delete a file a LIVE daemon owns.
 #[derive(Debug, Error)]
 pub enum DaemonError {
+  /// The file was read and its content is not an address.
   #[error("the daemon address at `{path}` is not an address: {found:?}")]
-  UnreadableAddress { path: PathBuf, found: String },
+  MalformedAddress { path: PathBuf, found: String },
+  /// The file could not be read, for any reason other than not existing.
+  ///
+  /// **ABSENCE IS A STATE AND UNREADABILITY IS AN ERROR, AND A `let Ok(..)`
+  /// CANNOT TELL THEM APART.** Only `NotFound` means no daemon published an
+  /// address; every other kind means one may have, and we failed to find out.
+  #[error("could not read the daemon address at `{path}`: {source}")]
+  UnreadableAddress {
+    path: PathBuf,
+    #[source]
+    source: std::io::Error,
+  },
   /// Another daemon is already answering on the socket.
   ///
   /// **REFUSED RATHER THAN TAKEN OVER, AND THAT IS THE WHOLE POINT.** Binding a
@@ -328,7 +354,14 @@ pub enum DaemonError {
 impl crate::remedy::Remedy for DaemonError {
   fn remedy(&self) -> String {
     match self {
-      DaemonError::UnreadableAddress { .. } => "this file is written by intentd when it starts and holds one loopback address, eg `127.0.0.1:54321`. If no daemon is running, deleting it is safe and this command will run in-process; if one is running, restart it so it republishes its address.".to_string(),
+      DaemonError::MalformedAddress { .. } => "this file is written by intentd when it starts and holds one loopback address, eg `127.0.0.1:54321`. If no daemon is running, deleting it is safe and this command will run in-process; if one is running, restart it so it republishes its address.".to_string(),
+      // DELIBERATELY DOES NOT SAY "DELETE IT". The content was never read, so
+      // nothing here knows whether a live daemon owns this file -- and under a
+      // descriptor limit one almost certainly does.
+      DaemonError::UnreadableAddress { path, .. } => format!(
+        "the file exists and could not be read, so its contents are unknown and a daemon may be running. Check that `{}` is readable by you, and if this process is out of file descriptors that is the cause rather than the file. Do not delete it until you know no daemon is running.",
+        path.display()
+      ),
       DaemonError::AlreadyRunning { .. } => {
         "this machine already has an intentd serving these projects, and a second one would evict it. Stop the running daemon first if you mean to replace it.".to_string()
       }
@@ -373,20 +406,32 @@ pub fn candidates_under(root: &std::path::Path) -> Result<Vec<Endpoint>, DaemonE
   let mut found = vec![Endpoint::Unix(crate::userstate::daemon_socket_under(root))];
 
   let published = crate::userstate::daemon_address_file_under(root);
-  // `read_to_string` failing is read as absent on purpose: a file that is not
-  // there and a file this process may not read both mean "no address this
-  // build can use", and neither is the daemon telling us something we failed
-  // to understand. What follows is that case.
-  if let Ok(text) = std::fs::read_to_string(&published) {
-    let trimmed = text.trim();
-    match trimmed.parse::<SocketAddr>() {
-      Ok(addr) => found.push(Endpoint::Tcp(addr)),
-      Err(_) => {
-        return Err(DaemonError::UnreadableAddress {
-          path: published,
-          found: trimmed.chars().take(80).collect(),
-        });
+  // **ONLY `NotFound` IS ABSENCE. EVERY OTHER KIND IS A FAULT.** Matching on
+  // the kind rather than on `Ok` is the whole of vc's finding: the previous
+  // form dropped the candidate on `PermissionDenied`, `InvalidData` and
+  // `EMFILE`/`ENFILE` alike, so under descriptor pressure a live daemon's
+  // address vanished, `route` answered `InProcess`, and the CLI wrote the
+  // store while the daemon owned it. Not `metadata()` first -- that is two
+  // syscalls with a race between them, answering a different question.
+  match std::fs::read_to_string(&published) {
+    Ok(text) => {
+      let trimmed = text.trim();
+      match trimmed.parse::<SocketAddr>() {
+        Ok(addr) => found.push(Endpoint::Tcp(addr)),
+        Err(_) => {
+          return Err(DaemonError::MalformedAddress {
+            path: published,
+            found: trimmed.chars().take(80).collect(),
+          });
+        }
       }
+    }
+    Err(source) if source.kind() == std::io::ErrorKind::NotFound => {}
+    Err(source) => {
+      return Err(DaemonError::UnreadableAddress {
+        path: published,
+        source,
+      });
     }
   }
   Ok(found)

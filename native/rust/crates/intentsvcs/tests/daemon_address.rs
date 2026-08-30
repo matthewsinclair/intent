@@ -407,3 +407,119 @@ fn a_daemon_whose_socket_was_replaced_does_not_unlink_the_replacement() {
   );
   drop(successor);
 }
+
+// ==========================================================================
+// AC-08.3 / IN-AG-RED-CONTROL-001: the UNREADABLE arm, which had no test.
+//
+// **`UnreadableAddress` WAS CONSTRUCTED IN ONE PLACE AND ASSERTED IN NONE**
+// (vc, 2026-08-30). Everything above drives publish, drop, panic, hard kill,
+// republish and peer isolation -- and not one arm made the address file
+// UNREADABLE rather than UNPARSEABLE. That gap is why the reader could match
+// `Ok` and silently drop every `Err`: the control that would have caught the
+// defect is the one that was never armed, and both have the same cause --
+// unreadable was only ever imagined as parses-wrong.
+// ==========================================================================
+
+/// A file that cannot be READ refuses; it does not vanish from the candidates.
+///
+/// **A DIRECTORY IS THE FIXTURE BECAUSE IT IS UID-PROOF.** `chmod 000` proves
+/// nothing when the suite runs as root, and CI uid is not ours to promise.
+/// Reading a directory fails for every user alike, with a kind that is not
+/// `NotFound` -- which is the only distinction the reader is allowed to draw.
+///
+/// **THIS TEST FAILS AGAINST THE OLD READER, WHICH IS THE POINT.** The previous
+/// form was `if let Ok(text) = read_to_string(..)`, so this fixture took the
+/// silent branch and `candidates_under` returned `Ok` with the TCP candidate
+/// missing -- `route` then answers `InProcess` while a daemon may hold the
+/// store. That is the exact failure `UnreadableAddress` exists to prevent,
+/// reached by the one path the variant never saw.
+#[test]
+fn an_address_file_that_cannot_be_read_refuses_rather_than_dropping_the_candidate() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  let published = address_file(root);
+  std::fs::create_dir_all(&published).expect("a directory where the address file belongs");
+
+  assert!(
+    std::fs::read_to_string(&published).is_err(),
+    "the fixture must make the read FAIL, or it is testing the parse path again"
+  );
+  assert_ne!(
+    std::fs::read_to_string(&published).unwrap_err().kind(),
+    std::io::ErrorKind::NotFound,
+    "the fixture must fail with something OTHER than NotFound, which is the only kind that means absence"
+  );
+
+  match daemon::candidates_under(root) {
+    Err(daemon::DaemonError::UnreadableAddress { path, .. }) => {
+      assert_eq!(
+        path, published,
+        "the refusal must name the file it could not read"
+      );
+    }
+    other => panic!("an unreadable address file was not refused: {other:?}"),
+  }
+}
+
+/// Absence is still absence -- the negative control for the arm above.
+///
+/// Without this, the fix could have been "refuse on every `Err`", which turns
+/// the ordinary no-daemon case into a hard failure on every command. `NotFound`
+/// is the one kind that is a STATE, and this is what pins that it stays one.
+#[test]
+fn a_missing_address_file_is_a_state_and_not_a_fault() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  assert!(
+    !address_file(root).exists(),
+    "the fixture must start with nothing published"
+  );
+
+  let candidates =
+    daemon::candidates_under(root).expect("a missing address file must not be an error");
+  assert!(
+    candidates.iter().all(|e| matches!(e, Endpoint::Unix(_))),
+    "a missing address file produced a TCP candidate"
+  );
+}
+
+/// Malformed and unreadable are DIFFERENT answers with DIFFERENT remedies.
+///
+/// **THE SPLIT BUYS NOTHING IF THE REMEDIES AGREE.** The malformed remedy says
+/// deleting the file is safe when no daemon runs. Saying that to someone whose
+/// real problem is a descriptor limit tells them to delete a file a LIVE daemon
+/// owns -- so this pins that the unreadable remedy never says it.
+#[test]
+fn the_two_failures_are_distinguishable_and_their_remedies_disagree() {
+  use intentsvcs::remedy::Remedy;
+
+  let malformed = tempfile::tempdir().expect("tempdir");
+  let m_root = malformed.path();
+  std::fs::create_dir_all(address_file(m_root).parent().expect("parent")).expect("state dir");
+  std::fs::write(address_file(m_root), "not-an-address").expect("write garbage");
+
+  let unreadable = tempfile::tempdir().expect("tempdir");
+  let u_root = unreadable.path();
+  std::fs::create_dir_all(address_file(u_root)).expect("a directory where the file belongs");
+
+  let m_err = daemon::candidates_under(m_root).expect_err("garbage content must refuse");
+  let u_err = daemon::candidates_under(u_root).expect_err("an unreadable file must refuse");
+
+  assert!(
+    matches!(m_err, daemon::DaemonError::MalformedAddress { .. }),
+    "content that is not an address must be MalformedAddress, got {m_err:?}"
+  );
+  assert!(
+    matches!(u_err, daemon::DaemonError::UnreadableAddress { .. }),
+    "a file that could not be read must be UnreadableAddress, got {u_err:?}"
+  );
+
+  assert!(
+    m_err.remedy().contains("deleting it is safe"),
+    "the malformed remedy no longer offers the deletion it is safe to offer"
+  );
+  assert!(
+    !u_err.remedy().contains("deleting it is safe"),
+    "the UNREADABLE remedy offers a deletion, and nothing here has read the file to know a daemon does not own it"
+  );
+}
