@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-30 01:52Z
+heartbeat_at: 2026-08-30 02:09Z
 status: active
-focus: "The daemon FAMILY SPLIT is authored, green and BLOCKED at the gate on vc's uncommitted acceptance.md -- `sync --to-store` has no unit narrower than a thread, so landing it would ingest their bytes. Asked rather than swept. Landed tonight: flag() deleted at 24 sites (0fcf471a), the ellipsis derived (84d51e0b), surface --format (be76955b), and 0153 filed."
+focus: "Main is 1574 passed / 1 failed and the one is dc's schema-version bump. Everything of mine is IN. WP-17 pieces 1+2 done, piece 3 has the mode machine and the terminal guard; the daemon FAMILY landed with `daemon status --format`, so ST0064's address resolution has a row. Next: ratatui with the first thing that DRAWS, and ST0064's WP-01 body which is BLOCKED -- 0154."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -17,15 +17,17 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 **RE-MEASURE EVERYTHING BELOW AT PICKUP. Four nodes write this tree and every figure here is spent the moment one does.**
 
-**MAIN IS 1545 PASSED / 0 FAILED** at `1bf172a6` and again with my work on top -- dc's Machine 5 closed the last red. `cargo fmt --all --check` clean.
+**MAIN IS 1574 PASSED / 1 FAILED.** The one is dc's `a_face_whose_contract_moves_must_bump_that_faces_version` -- the schema versions need bumping after `fiat`. Nothing of mine is uncommitted.
 
-**LANDED THIS SESSION:** `e5b2a3c8` spine.rs (the two doors, plus a doc block that had re-pointed itself onto the wrong item); `d610f4d9` the arity reaching clap AND the `fn flag` blindness underneath it; `86644828` arity made the ONE carrier with the second `num_args` writer DELETED; `9d04e163` issue `0150`.
+**WP-17 PIECES 1 AND 2 ARE DONE. PIECE 3 HAS ITS TWO DEPENDENCY-FREE HALVES**: `tui/mode.rs` (`1331fcdf`, six invariants) and `tui/terminal.rs` (`ebedff7f`, five), all eleven mutation-proven, `crossterm` in and `ratatui` deliberately NOT until something draws.
 
-**vc RULED BOTH QUESTIONS I POSTED.** `arity` authoritative and derived -- done, and the three `...` rows now declare `1..n` while the ellipsis comes from `num_args`. **`ratatui` + `crossterm`, `intent-cli` ONLY** -- my recommendation, so piece 3 is authorised.
+**THE `daemon` FAMILY LANDED** (`ad046a45`) -- four verb rows plus a head, `daemon status --format terminal|json`, and `recoverability_anomaly` on start/stop/run because they are REVERSIBLE and withheld for process control. **ST0064's address resolution now has a row**; the arm is cc's.
 
-**PIECE 3 STARTS WITH THE MODE MACHINE, WHICH NEEDS NO DEPENDENCY.** A declared transition table plus the two headless invariants (every mode leavable, every mode reachable from NORMAL) is pure Rust against `transitions.rs`'s own idiom. **The `Cargo.lock` move waits until the realiser needs it and gets announced first** -- three nodes build against that file.
+**`flag()` IS GONE** (`0fcf471a`), 24 sites, `IN-AG-NO-SILENT-001`. **The ellipsis is DERIVED** (`84d51e0b`) -- the register authors no `...` anywhere. **`surface` takes `--format`** (`be76955b`), my own deviation, ruled and fixed under my name.
 
-**ST0064 IS PRICED AND IT IS `L`, NOT `S`.** URLSession over TCP: the networking in Geodica's `CmsService` is ~15 lines of a 127-line file and everything else is needed on either transport, while `NWEndpoint.unix` means hand-rolling HTTP/1.1 framing whose failure mode is a short read that looks like a complete body. Loopback plus one token already covers what the socket's filesystem authz would buy. **Geodica solved the port the same way we ruled it** -- `geodica url resolve` answers with the running daemon's address, never config. **The cost nobody prices without reading it: a `.app` bundle has no login-shell `PATH`**, which is what `LoginShell.swift` exists for. **Blocked on cc**: `intent daemon status` and `start` both return rc=2, the unwired marker, and `daemon status` declares no `--json` so there is no machine-readable address resolution yet.
+**FILED: `0153`** (`edit`'s remedy names an address form it cannot parse) and **`0154`** (no entity's authored prose is editable after creation -- the CLASS, with `0090` and `0151` as its instances).
+
+**BLOCKED AND IT IS NOT MINE TO UNBLOCK: ST0064's WP-01 body** still specifies the superseded `GET /_status`. vc assigned me the correction; `0154` is why I cannot make it.
 
 ## TODO
 
