@@ -3798,11 +3798,11 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
   - `0.state`: ratified
   - `0.authority`: hv
   - `0.date`: 2026-08-29
-  - `0.record`: ST0066 AC-00.1
+  - `0.record`: intent/st/ST0066/acceptance.md
   - `1.state`: ratified
   - `1.authority`: ic
   - `1.date`: 2026-08-29
-  - `1.record`: surface shape: top-level path, existing address forms, kind derived from the target, bare form refuses -- ruled on dc's request before they wired the surface
+  - `1.record`: intent/st/ST0056/data-model.md
 - **probe consequence:** **THIS ROW CANNOT BE PROBED FOR WIRING BY DRIVING IT BARE, PERMANENTLY AND BY DESIGN, AND IT IS THE FIRST ROW OF THAT SHAPE.** `flag_reachability.rs`'s `unwired_families()` drives each probeable `new_surface[]` row BARE (`:345-362`) and asks whether the output contains `is a known command that is not implemented yet`. For a row with a required argument clap refuses FIRST, with a message that does not contain that marker, so the probe reads an unwired row as WIRED and the flag gate then fires on `--because`. **The population and the deferral path are both fine** -- `unwired_families()` walks `families` at `:249` AND `new_surface` at `:345`, and the deferral keys a `new_surface` row by its own path. **What is blind is the INVOCATION.** The fix is the rule vc drew from cc's bare-`daemon` finding the same day -- construct the probe from the row's OWN declaration rather than driving a bare form -- and for a WRITER the invocation must also be one that cannot succeed, because this same file already ruled that a probe whose question has a side effect is not a probe (the `bootstrap` incident). `intent fc ST9999 --because <probe>` satisfies clap, reaches the arm, and answers either the unwired marker or an unknown-thread refusal -- both safe, both distinguishable from each other.
 - **from states:** **`computed` AND `unsatisfied` ONLY, AND `satisfied` IS EXCLUDED FOR A REASON THE REFUSAL MUST STATE** (dc reasoning, adopted here so the omission is explicable rather than arbitrary). A fiat close is how an UNMET requirement is closed on authority. Allowing it on a MET one would let a close-on-authority overwrite a close-on-evidence -- destroying the evidence in order to record that none was needed, which is the exact inversion of what the verb is for. `descoped` and `withdrawn` are excluded too, on the different ground that they are already out of scope: there is nothing to close. **THAT SENTENCE DESCRIBES THE CRITERION MACHINE AND THIS ROW REACHES FOUR MACHINES, SO IT IS A PARTIAL ANSWER SHAPED LIKE A WHOLE ONE.** The ACCEPTANCE-TEST machine entry states are `to-write` and `red` (dc, 2026-08-29, edge built and declared from those two only) -- a DIFFERENT pair naming the same idea, because a test that has not been written and a test that fails are its two unmet states the way `computed` and `unsatisfied` are a criterion two. **The token stays per-machine on purpose** -- one token for four machines is the collapse `FANS_OUT` was renamed to avoid. ST and WP have NO entry states here at all: hv ruled 2026-08-28 that neither gets a status variant and `fiat` sits BESIDE a status that stays `completed`/`done`, so the cascade reaches their CHILDREN and never moves the parent status.
 - **off scope voice:** **ic's WORDING, DECLARED AND NOT DRIVEN -- dc to wire and confirm.** Today `fc` on a `withdrawn` or `descoped` criterion answers with the bare machine refusal, where every sibling that writes about satisfaction answers with `OffScope` naming the undo. dc attempted the obvious wiring and REVERTED it, correctly: `OffScope`'s remedy hardcodes the `ac satisfy` story, so reusing it produced `if you mean to fiat-closed it` followed by a paragraph about recording evidence -- right shape, wrong sentence, and worse than the bare refusal it replaced. The sentences this row asks for, one per state: WITHDRAWN -- `error: AC-03.1 is withdrawn, so there is nothing in scope to close` / `remedy: run `intent ac reinstate <thread> AC-03.1` to bring it back into scope first. A fiat close records that an IN-SCOPE requirement was closed on authority; a withdrawn one is already out of scope, so closing it would assert something about the contract that is not true`. DESCOPED -- the same sentence with `descoped` and `intent ac rescope`. **The two differ only in the state and the undo verb, which is the whole reason they must not share one hardcoded remedy** -- that is how `ac rescope` came to be answered about `reinstate` twice (issue 0053).
@@ -3826,11 +3826,11 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
   - `0.state`: ratified
   - `0.authority`: hv
   - `0.date`: 2026-08-25
-  - `0.record`: ST0058 AC-00.5 -- enumerable rather than a new exit code
+  - `0.record`: intent/st/ST0058/acceptance.md
   - `1.state`: ratified
   - `1.authority`: hv
   - `1.date`: 2026-08-29
-  - `1.record`: spelling: `surface` root chosen over bare `retired` and over `llm retired`, cost of a 14th family stated and taken
+  - `1.record`: intent/whiteboard/ic/.history/20260829/wip-fold-2353Z.md
 - **MCP:** exposed as an agent tool -- read-only
 - **MCP note:** A READ with no durable effect, so the derivation from `recoverability` withholds nothing. It is also the verb an agent most plausibly needs: `does the command my script names still exist` is exactly the question an agent hits when maintaining someone else's automation.
 

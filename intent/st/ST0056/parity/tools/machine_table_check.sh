@@ -74,11 +74,15 @@
 # THE POPULATION IS DECLARED, NEVER TRAVERSED
 # ==========================================================================
 #
-# `MACHINE_MAP` names the four `(machine number, entity, field)` joins, and
-# `UNTABLED` names the two `Disposition::State` fields the document
-# deliberately does NOT table, each with the document's own reason.
+# `MACHINE_MAP` names the `(machine number, entity, field)` joins, and
+# `UNTABLED` names the `Disposition::State` fields the document deliberately
+# does NOT table, each with the document's own reason. **Neither count is
+# written in this prose**: the lists are the population, and a number beside
+# them is a second home that drifts silently toward reading as complete. The
+# ratified document carried exactly that and said FIVE state fields after
+# there were six.
 #
-# **Between them they assert the population exactly.** A new `### Machine 5`
+# **Between them they assert the population exactly.** A new `### Machine N`
 # with no join is a refusal, not a skip; a new `Disposition::State` field in
 # neither list is a FINDING, because the document implying a complete set when
 # it was not is the defect that produced the "Two more state fields exist"
@@ -96,6 +100,17 @@
 # **THIS ONE GATES.** The whole reason it exists is that the only thing
 # standing between a ruled machine change and a silently stale ratified table
 # was one peer noticing by eye. A report-only posture rebuilds that.
+#
+# **A BACKTICK STANDING IN FOR AN APOSTROPHE INSIDE A SINGLE-QUOTED `printf` IS
+# LOAD-BEARING, NOT A LEAK.** ic found the general class in Rust doc comments on
+# 2026-08-30 -- backticks doing an apostrophe's job, two of which pair and render
+# everything between them as inline code -- and it is a real defect there. dc
+# applied the same fix to the findings prose BELOW and broke this file: a shell
+# single-quoted string cannot contain an apostrophe, so `the document's` ends the
+# string and the next `(` is a syntax error 8 lines later, pointing at a line
+# nobody touched. **The rule transfers to the artefact and not to the quoting
+# context.** These strings are reworded to drop the possessive rather than
+# escaped, so neither the wart nor the hazard is left for the next reader.
 #
 # `-e` is deliberately off: this is a findings script that must reach its
 # verdict line, and a non-zero from a `grep -c` mid-count would otherwise end
@@ -122,7 +137,16 @@
 #   an `Edge::` declaration removed          -> 1, RATIFIED-ONLY hold|wip|st.resume
 #   `initial:` moved and the table not       -> 1, ENTRY DIVERGENCE both directions
 #   a new `Disposition::State` field         -> 1, UNDECLARED Widget.phase
-#   a `### Machine 5` with no join           -> 2 (never "clean")
+#   a `### Machine N` with no join           -> 2 (never "clean")
+#   Machine 5's heading renamed away         -> 2, "has NO `### Machine 5` section at all"
+#   Machine 5's table header row broken      -> 2, "heading IS present ... MALFORMED, not missing"
+#
+# **THE LAST TWO ARE ONE PAIR AND ONLY THE PAIR PROVES ANYTHING** (added 2026-08-30
+# with the split they test). Both are rc=2 and both were rc=2 before the split as
+# well -- what changed is that they now print DIFFERENT sentences naming DIFFERENT
+# fixes, and an arm that only checks the code cannot see that. vc read the old
+# shared sentence in the field and reported a peer as mid-write on a section that
+# had never been written.
 #   ONE table header row renamed             -> 2 (never 4 confident findings)
 #   EVERY table header row renamed           -> 2
 #   every `Machine N` heading renamed        -> 2
@@ -190,14 +214,20 @@ MACHINE_MAP='
 2 WorkPackage status
 3 Criterion state
 4 Issue status
+5 AcceptanceTest status
 '
 # `Disposition::State` fields the document deliberately does not table, with
 # its reason. NEVER a skip list: a row here is a claim the document makes, and
 # the document is where it has to be defended.
 UNTABLED='
 WorkPackage scope
-AcceptanceTest status
 '
+
+# COMPUTED, never transcribed: this line used to read "the four ratified
+# machines" and a fifth was ratified underneath it. A verdict that states a
+# number it did not count is the same defect the population guards above exist
+# to catch, one layer out -- and this one prints on every commit by four nodes.
+N_MACHINES="$(printf '%s\n' "$MACHINE_MAP" | awk 'NF' | wc -l | tr -d ' ')"
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/machine_table_check.XXXXXX")" || die "cannot create a working directory"
 cleanup_all() { rm -rf "$WORK"; staged_cleanup; }
@@ -400,7 +430,19 @@ while read -r m entity fname; do
   # of them pointing at the file that is not wrong. Measured on this file
   # before the guard existed: renaming Machine 1's header row produced four
   # divergences at exit 1 against a transcription that was correct.
-  [ "$nde" -gt 0 ] || die "Machine $m is joined to $entity.$fname and parsed ZERO ratified transition rows out of ${DOC#"$REPO_ROOT"/} -- its \`| From | To | Verb | Guard |\` table did not match, so the ratified side could not be read. Refusing rather than reporting every implemented edge as undeclared, which is what an empty table would produce."
+  # **AN ABSENT SECTION AND A MALFORMED ONE PRINTED THE SAME SENTENCE, and they
+  # call for opposite fixes** (vc, 2026-08-30, having misread it in the field:
+  # "its table did not match" reads as *the table is there and broken*, and vc
+  # reported a node as mid-write on a section that had never existed). The
+  # machine NUMBERS come from `MACHINE_MAP`, which is keyed to the code, so a
+  # joined machine with no `### Machine N` heading in the document is the normal
+  # shape of "the ratified table was never written" -- the one this gate exists
+  # to catch. Separating them costs one grep of an already-parsed file.
+  if awk -F'\t' -v m="$m" '$1 == "MACHINE" && $2 == m { found = 1 } END { exit !found }' "$DOC_TSV"; then
+    [ "$nde" -gt 0 ] || die "Machine $m is joined to $entity.$fname and its \`### Machine $m\` heading IS present in ${DOC#"$REPO_ROOT"/}, but ZERO ratified transition rows parsed out from under it -- the \`| From | To | Verb | Guard |\` header did not match, so the ratified side could not be read. Refusing rather than reporting every implemented edge as undeclared, which is what an empty table would produce. THE TABLE IS MALFORMED, not missing."
+  else
+    [ "$nde" -gt 0 ] || die "Machine $m is joined to $entity.$fname and ${DOC#"$REPO_ROOT"/} has NO \`### Machine $m\` section at all -- the ratified table was never written, or was written under a different number. The code declares this machine and the document does not, which is the one-way drift this check exists to catch: add the section, or remove the \`MACHINE_MAP\` join and record the field in \`UNTABLED\` with the document's reason."
+  fi
   [ "$nre" -gt 0 ] || die "Machine $m is joined to $entity.$fname and the transcription declares ZERO edges for it -- the field is missing from \`FIELDS\`, or its disposition is no longer \`Disposition::State\`. Refusing rather than reporting every ratified row as unimplemented."
 
   printf '  Machine %s -> %s.%s: %s ratified transition rows, %s expanded edges\n' "$m" "$entity" "$fname" "$nde" "$nre"
@@ -412,7 +454,7 @@ while read -r m entity fname; do
     printf '\nmachine-table: ENTRY DIVERGENCE on Machine %s (%s.%s)\n' "$m" "$entity" "$fname"
     [ -n "$a_only" ] && printf '%s\n' "$a_only" | sed 's/^/  RATIFIED-ONLY  entry state /'
     [ -n "$b_only" ] && printf '%s\n' "$b_only" | sed 's/^/  CODE-ONLY      initial value /'
-    printf '  -- the document`s `_(none)_ ->` rows and `initial: &[...]` are the same fact in two notations. One of them moved.\n'
+    printf '  -- the `_(none)_ ->` rows in the document and `initial: &[...]` in the code are the same fact in two notations. One of them moved.\n'
     FINDINGS=$((FINDINGS + 1))
   fi
 
@@ -480,7 +522,7 @@ printf '\nmachine-table: GUARD AXIS (reported, never gating): %d agree, %d disag
   "$GUARD_AGREE" "$GUARD_DISAGREE" "$GUARD_UNMEASURED" "$TOTAL_ROWS"
 if [ -s "$GUARD_REPORT" ]; then
   sed 's/^/  /' "$GUARD_REPORT"
-  printf '  -- UNMEASURED is NOT clean: the document`s Guard column is free prose, and these cells name an EFFECT or a LANDING RULE rather than a precondition, so the axis has no verdict for them and the code`s actual guard is undeclared in the ratified document. The fix is a controlled vocabulary in the Guard column, which is a change to a ratified table and therefore hv`s.\n'
+  printf '  -- UNMEASURED is NOT clean: the Guard column in the document is free prose, and these cells name an EFFECT or a LANDING RULE rather than a precondition, so the axis has no verdict for them and the actual guard in the code is undeclared in the ratified document. The fix is a controlled vocabulary in the Guard column, which is a change to a ratified table and therefore hv to rule.\n'
 fi
 
 # --- verdict ------------------------------------------------------------------
@@ -488,5 +530,5 @@ if [ "$FINDINGS" -gt 0 ]; then
   printf '\nVERDICT: %d divergence(s) between the ratified machines and their transcription.\n' "$FINDINGS"
   exit 1
 fi
-printf '\nVERDICT: the four ratified machines and their transcription agree exactly on entry states and on every expanded (from, to, verb) edge.\n'
+printf '\nVERDICT: the %s ratified machines and their transcription agree exactly on entry states and on every expanded (from, to, verb) edge.\n' "$N_MACHINES"
 exit 0

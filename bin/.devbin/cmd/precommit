@@ -384,7 +384,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   step "$G_RATIFIED"
   if ! bash "$TOOLS/rulings_check.sh"; then
     rc=1
-    failed="${failed}  rulings_check.sh -- could not measure ratification provenance (exit 2; its findings never gate)
+    failed="${failed}  rulings_check.sh -- a declared ruling is malformed or its record leads nowhere (exit 1), or provenance could not be measured at all (exit 2). BOTH BLOCK. Re-anchor a dangling record on an artefact whose content carries the ruling -- grep the target first; an anchor that resolves to the record's own rendering is circular and worse than the dangle.
 "
   fi
 

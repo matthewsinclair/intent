@@ -8103,13 +8103,13 @@
             "state": "ratified",
             "authority": "hv",
             "date": "2026-08-29",
-            "record": "ST0066 AC-00.1"
+            "record": "intent/st/ST0066/acceptance.md"
           },
           {
             "state": "ratified",
             "authority": "ic",
             "date": "2026-08-29",
-            "record": "surface shape: top-level path, existing address forms, kind derived from the target, bare form refuses -- ruled on dc's request before they wired the surface"
+            "record": "intent/st/ST0056/data-model.md"
           }
         ],
         "probe_consequence": "**THIS ROW CANNOT BE PROBED FOR WIRING BY DRIVING IT BARE, PERMANENTLY AND BY DESIGN, AND IT IS THE FIRST ROW OF THAT SHAPE.** `flag_reachability.rs`'s `unwired_families()` drives each probeable `new_surface[]` row BARE (`:345-362`) and asks whether the output contains `is a known command that is not implemented yet`. For a row with a required argument clap refuses FIRST, with a message that does not contain that marker, so the probe reads an unwired row as WIRED and the flag gate then fires on `--because`. **The population and the deferral path are both fine** -- `unwired_families()` walks `families` at `:249` AND `new_surface` at `:345`, and the deferral keys a `new_surface` row by its own path. **What is blind is the INVOCATION.** The fix is the rule vc drew from cc's bare-`daemon` finding the same day -- construct the probe from the row's OWN declaration rather than driving a bare form -- and for a WRITER the invocation must also be one that cannot succeed, because this same file already ruled that a probe whose question has a side effect is not a probe (the `bootstrap` incident). `intent fc ST9999 --because <probe>` satisfies clap, reaches the arm, and answers either the unwired marker or an unknown-thread refusal -- both safe, both distinguishable from each other.",
@@ -8164,13 +8164,13 @@
             "state": "ratified",
             "authority": "hv",
             "date": "2026-08-25",
-            "record": "ST0058 AC-00.5 -- enumerable rather than a new exit code"
+            "record": "intent/st/ST0058/acceptance.md"
           },
           {
             "state": "ratified",
             "authority": "hv",
             "date": "2026-08-29",
-            "record": "spelling: `surface` root chosen over bare `retired` and over `llm retired`, cost of a 14th family stated and taken"
+            "record": "intent/whiteboard/ic/.history/20260829/wip-fold-2353Z.md"
           }
         ]
       },

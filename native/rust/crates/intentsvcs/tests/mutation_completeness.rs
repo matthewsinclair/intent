@@ -1488,6 +1488,40 @@ const RATIFIED_ISSUE: &[RatifiedEdge] = &[
   ("issues.open", &["closed"], "open", &[]),
 ];
 
+/// The ratified acceptance-test machine -- **Machine 5** (hv, 2026-08-29, D1).
+///
+/// **This machine was ratified in PROSE until 2026-08-29 and is the only one that
+/// has ever moved between the two rosters.** It sat in
+/// `RATIFIED_WITHOUT_A_TABLE` on the stated ground that its graph was "any value,
+/// one verb, any value"; `at.fc` is a second verb with a from-set AND a guard, so
+/// the sentence became false and `a_machine_ratified_in_prose_is_actually_trivial`
+/// went red on the commit that added the verb. **That is the trigger working, not
+/// the trigger being wrong** -- it is a dormant assertion on a dormant assumption,
+/// and the whole point of writing it was that somebody would one day make the
+/// prose untrue without noticing.
+///
+/// **`at.set` declares an EMPTY from-set on all four ordinary landings, which is
+/// `from: &[]` meaning no restriction rather than an unfilled column.** The
+/// ratified table renders it `(any)`. Writing the five states out instead would
+/// transcribe a different machine -- one where a sixth value would owe five new
+/// rows.
+///
+/// **The `fiat` landing takes `ReasonRecorded` and never `GatePass`**, which is
+/// hv's D1 in one line: a fiat close is BY DEFINITION the case where the gate does
+/// not pass.
+const RATIFIED_AT: &[RatifiedEdge] = &[
+  ("at.set", &[], "to-write", &[]),
+  ("at.set", &[], "red", &[]),
+  ("at.set", &[], "green", &[]),
+  ("at.set", &[], "n-a", &[]),
+  (
+    "at.fc",
+    &["to-write", "red"],
+    "fiat",
+    &[Guard::ReasonRecorded],
+  ),
+];
+
 /// **EVERY ratified machine, in ONE array, read by all three walks** (vc's
 /// recommendation, 2026-08-17).
 ///
@@ -1508,16 +1542,22 @@ const RATIFIED: &[RatifiedMachine] = &[
   ("WorkPackage", "status", RATIFIED_WP),
   ("Criterion", "state", RATIFIED_CRITERION),
   ("Issue", "status", RATIFIED_ISSUE),
+  ("AcceptanceTest", "status", RATIFIED_AT),
 ];
 
 /// **Machines `data-model.md` ratifies IN PROSE rather than as an edge table**,
 /// with the sentence that does it.
 ///
 /// Found by binding `RATIFIED` to `transitions::FIELDS`: six State machines exist
-/// and four had transcriptions. The two missing ones are not an omission --
-/// `data-model.md` declines them a table on the record, and quoting the sentence
-/// is what makes that checkable rather than something a reader has to go and
-/// confirm.
+/// and five have transcriptions. The one missing is not an omission --
+/// `data-model.md` declines it a table on the record, and quoting the sentence is
+/// what makes that checkable rather than something a reader has to go and confirm.
+///
+/// **This list held TWO rows until 2026-08-30 and the second one left by being
+/// PROMOTED, which is the outcome it was written to produce.**
+/// `AcceptanceTest.status` is now Machine 5, transcribed in `RATIFIED_AT` above.
+/// A row leaving here is the success case; a row quietly staying while its machine
+/// grows a verb is the failure this roster exists to make impossible.
 ///
 /// **Attributed to the document, not to a node, and that is a correction.** This
 /// said "vc declines them"; every commit in this repository is authored `Matthew
@@ -1525,28 +1565,19 @@ const RATIFIED: &[RatifiedMachine] = &[
 /// repository could not confirm. A ratified sentence's authority comes from its
 /// ratification, not from who typed it.
 ///
-/// **They are held to the property the prose states instead**, by
+/// **It is held to the property the prose states instead**, by
 /// `a_machine_ratified_in_prose_is_actually_trivial` below: one verb, no
 /// from-restriction, reaching every state. A machine that grows a second verb or a
 /// guard has stopped being "any value, one verb, any value" and needs a table --
 /// and that test is what says so, rather than the machine quietly becoming
 /// non-trivial with nothing comparing it to anything.
-const RATIFIED_WITHOUT_A_TABLE: &[(&str, &str, &str)] = &[
-  (
-    "WorkPackage",
-    "scope",
-    "data-model.md: \"six T-shirt values, all six initial ... with `wp rescope` the single exit. \
+const RATIFIED_WITHOUT_A_TABLE: &[(&str, &str, &str)] = &[(
+  "WorkPackage",
+  "scope",
+  "data-model.md: \"six T-shirt values, all six initial ... with `wp rescope` the single exit. \
      The reasoning lives in the code comment; it does not need a table because the graph is 'any \
      value, one verb, any value'.\"",
-  ),
-  (
-    "AcceptanceTest",
-    "status",
-    "data-model.md: \"to-write / red / green / n-a, entry to-write, one verb `at.set` reaching all \
-     four ... The graph is trivial and the SEMANTICS are not, which is the opposite shape to \
-     scope.\"",
-  ),
-];
+)];
 
 /// Machines with NO undeclared (verb, state) pair, declared with the reason.
 ///
@@ -1560,6 +1591,34 @@ const TOTAL_MACHINES: &[(&str, &str)] = &[(
   "Issue",
   "two states and two edges, so every (verb, state) pair is either declared or the verb's own \
    target -- there is nothing undeclared left to refuse",
+)];
+
+/// **Verbs whose ratified from-set is EMPTY BY DECLARATION** -- `(any)` in the
+/// document's From column, `from: &[]` in the code -- with the reason.
+///
+/// **THE TWO FILES DISAGREED ABOUT WHAT AN EMPTY FROM-SET MEANS, and nothing could
+/// see it while no ratified machine used one.** `transitions.rs` says `Edge::accepts`
+/// reads `from: &[]` as ANY state; the walk below reads a verb's from-set as the
+/// complete list of states it is declared from, so an empty one made every state
+/// undeclared and demanded a refusal from all of them. Both readings are defensible
+/// and exactly one can be true. Machine 5 is the first ratified machine to carry
+/// such an edge, and promoting it is what forced the question -- `at.set` from
+/// `fiat` is the documented exit from `fiat`, and the walk asked it to refuse.
+///
+/// **The resolution is the code's reading, and the zero it produces is DECLARED
+/// rather than inferred** -- the discipline `TOTAL_MACHINES` above already applies
+/// one level up. A verb with no from-restriction has no undeclared (verb, state)
+/// pair, so it contributes nothing to this walk; and a contribution of nothing is
+/// indistinguishable from a verb the walk never reached unless the zero is written
+/// down. Checked in both directions below: an empty from-set not listed here fails,
+/// and a row here whose verb is not actually unrestricted fails too.
+const UNRESTRICTED_VERBS: &[(&str, &str, &str)] = &[(
+  "AcceptanceTest",
+  "at.set",
+  "data-model.md Machine 5 renders its From column `(any)`: at.set takes any status from any \
+   status, and all four ordinary landings are therefore the exits that keep `fiat` from being a \
+   trap. Enumerating the five states instead would declare a DIFFERENT machine -- one where a \
+   sixth status would owe five new rows rather than none",
 )];
 
 fn declared(entity: &str, field: &str) -> &'static [Edge] {
@@ -1634,9 +1693,12 @@ fn every_state_machine_is_ratified_by_a_table_or_by_prose_and_nothing_by_neither
 /// from-restriction, reaching every state.
 ///
 /// That is "any value, one verb, any value" stated mechanically. It is a weaker
-/// check than a transcription and it is the RIGHT weaker check: vc's reason for
-/// declining these two a table is that their graphs carry no information, so the
-/// thing to verify is precisely that claim. **The moment one grows a second verb, a
+/// check than a transcription and it is the RIGHT weaker check: the document's
+/// reason for declining a table is that the graph carries no information, so the
+/// thing to verify is precisely that claim. **Attributed to the document rather
+/// than to a node, for the reason `RATIFIED_WITHOUT_A_TABLE` states above** -- this
+/// read "vc's reason", and it is the same claim the repository cannot confirm,
+/// one paragraph down from where it was already corrected. **The moment one grows a second verb, a
 /// guard, or a from-restriction the claim is false, the machine has information in
 /// its graph again, and this says so** -- which is the trigger for writing the
 /// table rather than a thing to notice later.
@@ -2106,6 +2168,7 @@ fn attempt(
 fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
   let mut checked = 0;
   let mut per_machine: Vec<(&str, usize)> = Vec::new();
+  let mut unrestricted_seen: Vec<(&str, &str)> = Vec::new();
   for (entity, _, ratified) in RATIFIED {
     let states: Vec<&str> = ratified
       .iter()
@@ -2151,6 +2214,31 @@ fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
         .filter(|(v, _, _, _)| v == verb)
         .map(|(_, _, to, _)| *to)
         .collect();
+      // **AN EMPTY FROM-SET IS A DECLARATION, NOT AN OMISSION, AND THIS WALK MUST
+      // NOT GUESS WHICH.** See `UNRESTRICTED_VERBS`. Reading it as "declared from
+      // nothing" is what asked `at.set` to refuse from `fiat` -- the one state
+      // whose exit `at.set` IS.
+      let unrestricted = UNRESTRICTED_VERBS
+        .iter()
+        .find(|(e, v, _)| e == entity && v == verb);
+      if from.is_empty() {
+        assert!(
+          unrestricted.is_some(),
+          "{entity}: `{verb}` declares an EMPTY from-set. If that means ANY state, say so in \
+           UNRESTRICTED_VERBS with the reason and this walk will contribute nothing for it. If it \
+           means the from-set was never filled in, fill it in -- that is the `from: &[]` hole this \
+           test was written to catch, and the two are indistinguishable from here"
+        );
+        unrestricted_seen.push((*entity, *verb));
+        continue;
+      }
+      assert!(
+        unrestricted.is_none(),
+        "{entity}: `{verb}` is declared unrestricted in UNRESTRICTED_VERBS and its ratified \
+         from-set is {from:?}, not empty. The declaration is stale and is now excusing a walk it \
+         no longer describes"
+      );
+
       for state in states
         .iter()
         .filter(|s| !from.contains(*s) && !targets.contains(*s))
@@ -2220,6 +2308,18 @@ fn a_transition_the_ratified_machine_does_not_declare_is_refused() {
       per_machine.iter().any(|(name, _)| name == entity),
       "{entity} is declared total ({why}) and this walk never visited it, so the zero above is an \
        absence rather than a measurement. Counts: {per_machine:?}"
+    );
+  }
+  // The other direction, exactly as for `TOTAL_MACHINES`: a row here that no
+  // machine exercised is covering an absence rather than a declared zero -- it
+  // would go on excusing a verb that had been renamed or deleted.
+  for (entity, verb, why) in UNRESTRICTED_VERBS {
+    assert!(
+      unrestricted_seen
+        .iter()
+        .any(|(e, v)| e == entity && v == verb),
+      "{entity}.`{verb}` is declared unrestricted ({why}) and this walk never met it, so the \
+       exemption is covering an absence rather than a measurement. Seen: {unrestricted_seen:?}"
     );
   }
   assert!(

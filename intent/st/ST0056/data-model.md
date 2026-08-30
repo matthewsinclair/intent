@@ -652,14 +652,15 @@ States: `NotStarted` | `Wip` | `Done` | `Cancelled`. **Entry: `NotStarted`.**
 
 **The asymmetry that must be explicit: a TEST-BACKED AC is never `satisfy`-ed by hand.** Its state is COMPUTED from its covering ATs -- green ATs satisfy it, anything else does not. So for test-backed ACs the `Unsatisfied <-> Satisfied` edges are not verbs at all; they are consequences of the AT status changing. `ac satisfy` applies only to `(non-test)` ACs. **This means the AC machine has two variants and only one of them has a satisfy verb** -- a fact currently enforced by L5 in the linter and nowhere in the model.
 
-### Two more state fields exist and are deliberately not tabled here (recorded 2026-08-16)
+### One state field is deliberately not tabled here (recorded 2026-08-16; halved 2026-08-30)
 
-**Three machines are documented above; `transitions.rs` classifies FIVE fields as `Disposition::State`.** The other two are `WorkPackage.scope` and `AcceptanceTest.status`, and naming them stops this section reading as the complete set -- which it does not say and which a reader would reasonably assume.
+**`transitions.rs` classifies six fields as `Disposition::State`, and this page now ratifies a machine for every one of them but `WorkPackage.scope`.** That completeness is no longer something this paragraph asserts: `machine_table_check.sh` refuses any `Disposition::State` field that appears in neither its `MACHINE_MAP` nor its `UNTABLED` list, on every commit. **The sentence replaced here said FIVE, which was true when it was written and went stale the day `Issue.status` became Machine 4** -- a count kept in prose beside a checker that computes it, drifting in the direction that reads as complete.
 
 - **`WorkPackage.scope`** -- six T-shirt values, **all six `initial`** because `wp new` takes the size from the caller, with `wp rescope` the single exit. A value the caller supplies at creation has been ENTERED, so before `wp rescope` existed all six were traps and neither v2 nor v3 had the verb. The reasoning lives in the code comment; it does not need a table because the graph is "any value, one verb, any value".
-- **`AcceptanceTest.status`** -- `to-write` / `red` / `green` / `n-a`, entry `to-write`, one verb `at.set` reaching all four. **This is the machine with the most operational subtlety and the least written down**: that `to-write` means the test is UNWRITTEN while `red` means it EXISTS and fails, and that neither means "the criterion is unmet", is enforced by the linter's L2/L3 and recorded on a whiteboard, not here. The graph is trivial and the SEMANTICS are not, which is the opposite shape to `scope` and the reason it is called out rather than merely counted.
 
-**Neither is a gap in `transitions.rs`** -- both are classified, both are closed, and `mutation_completeness.rs` would refuse them if they were not. The gap was this document implying three.
+**`AcceptanceTest.status` WAS the second entry in this list and is now Machine 5** (hv, 2026-08-29). Its bullet is DELETED rather than annotated, because what justified the omission is false and not merely dated: it claimed the graph was trivial -- one verb, no from-restriction, reaching every value -- and `at.fc` is a second verb with a from-set and a guard. **What that bullet said about the SEMANTICS was always the true half, and it has moved into Machine 5 with the table.**
+
+**`WorkPackage.scope` is not a gap in `transitions.rs`** -- it is classified, it is closed, and `mutation_completeness.rs` would refuse it if it were not.
 
 ### The four `Unbuilt` fields -- RULED (hv, 2026-08-17, on vc's recommendation)
 
@@ -693,6 +694,38 @@ States: `Open` | `Closed`. **Entry: `Open`.** Declared from v2's MEASURED behavi
 **No guards, deliberately.** v2 has none, the row is `keep`, and inventing one here would be a parity break wearing a ratification. **Self-loops are accepted at exit 0 per the rule above** -- which is exactly v2's `already CLOSED` behaviour, and the reason the self-loop question had to be settled before this machine could be declared.
 
 **What this discharges.** cc's block on the three `intent issues` mutations is lifted. Three of the four owed mutations become non-mutations: two are pair transitions inside existing machines, and `Thread.acceptance` is owed nothing at all. **AC-04.6's `Unbuilt` rows are re-dispositioned accordingly rather than built as four new machines**, which is materially less surface than the row implied.
+
+### Machine 5 -- Acceptance test (`AtStatus`)
+
+States: `to-write` | `red` | `green` | `n-a` | `fiat`. **Entry: `to-write`.**
+
+**RATIFIED by hv, 2026-08-29, as half of D1.** From 2026-08-16 this machine was ratified in PROSE, listed in the section above as needing no table on the ground that its graph was _"one verb, any value -> any value"_. `at.fc` is a second verb WITH a from-set AND a guard, so the premise is false and the table is owed. **`RATIFIED_WITHOUT_A_TABLE` in `mutation_completeness.rs` is the trigger that fired, and it fired on the commit that added the verb** -- a dormant assertion checking a ratification rather than altering one, red for exactly as long as this document disagreed with the code.
+
+**THE GRAPH IS TRIVIAL AND THE SEMANTICS ARE NOT, which is what kept it out of a table.** `to-write` means the test is UNWRITTEN; `red` means it EXISTS and fails; **neither means "the criterion is unmet"**, which is the AC's own state and lives on Machine 3. That distinction is enforced by the linter's L2/L3 and, until this table, was written down on a whiteboard.
+
+| From       | To         | Verb     | Guard           |
+| ---------- | ---------- | -------- | --------------- |
+| _(none)_   | `to-write` | `at.new` | --              |
+| `(any)`    | `to-write` | `at.set` | --              |
+| `(any)`    | `red`      | `at.set` | --              |
+| `(any)`    | `green`    | `at.set` | --              |
+| `(any)`    | `n-a`      | `at.set` | --              |
+| `to-write` | `fiat`     | `at.fc`  | reason recorded |
+| `red`      | `fiat`     | `at.fc`  | reason recorded |
+
+**`(any)` IS NOT A STATE, AND THIS IS THE FIRST TABLE ON THE PAGE TO CARRY IT.** `at.set` declares `from: &[]`, which `Edge::accepts` reads as _no from-restriction_ and `machine_table_check.sh` renders as the literal `(any)`. Writing the five states out instead would declare a DIFFERENT machine -- that `at.set` is legal from exactly those five values -- and a sixth value added later would then owe five new rows rather than none.
+
+**EVERY CELL IN THE VERB COLUMN IS AN OP TOKEN AND NONE IS A CLI INVOCATION; this is the first table on the page where that is true of the whole column.** Machine 3's two `ac.fc` cells were the first such cells and the reason here is broader than a top-level verb: **`at.set` has no CLI spelling at all.** The surface offers `at green`, `at red` and `at na` -- three verbs onto one facade call, the single `at_set` call site at `render.rs:2061`. The checker normalises a Verb cell by joining its first two words with a dot, so each of those three would normalise to a token no edge declares. `at.fc` is the top-level-verb case Machine 3 already records.
+
+**AND THE SURFACE CANNOT DRIVE ONE OF THE FIVE LANDING STATES.** `at new` enters at `to-write` and nothing returns a test to it: `at edit` re-cites file, prose and coverage, and does not touch status. So `(any) -> to-write` is reachable through the typed API and through no command. **That is this page's own closure-is-measured-at-the-facade ruling with a live instance** -- the machine is closed to the API, `no_state_can_be_entered_and_not_left` is satisfied, and neither fact says an operator can walk it. Recorded rather than fixed: inventing a verb so that a table looks symmetrical is how a surface grows commands nobody asked for.
+
+**THE FROM AND TO CELLS CARRY WIRE FORMS RATHER THAN RUST VARIANT NAMES, AND ONE CELL FORCES IT.** Machines 1-3 write variant names -- `Triage`, `Unsatisfied` -- which the checker kebab-cases into the wire strings the code compares, and that works only while the two agree. Here they do not: `AtStatus::Na` carries `#[serde(rename = "n-a")]`, and kebab-casing `Na` yields `na`. The column is therefore wire form throughout, which is internally consistent and is literally the string each edge declares. **An editor "correcting" `n-a` to `Na` for consistency with the tables above will red this check** -- correctly, and confusingly, which is why it is written here rather than left for them to find.
+
+**THE FROM-SET IS `to-write` AND `red`, AND IT IS dc's READING RATHER THAN A RULING.** hv settled that ATs get a fiat variant (2026-08-28) and settled nothing about which states reach it. Those two are where the test does not pass, which is the only situation a fiat close is for -- the motivating case was an AT unobservable by unit test, which sits at `to-write`. `green` is excluded because fiat-closing a passing test asserts human authority against evidence that already agrees; `n-a` is not a pending state. **Narrow deliberately: widening a from-set later is additive, and a fiat close reachable from a passing row is not recoverable by a later narrowing once estates carry them.**
+
+**THE EXIT FROM `fiat` IS UNGUARDED HERE AND GUARDED IN MACHINE 3, and that asymmetry is recorded for hv rather than closed by inventing a guard.** `at.set` declares no from-restriction, so all four ordinary values are already exits and `fiat` is not a trap without a new verb. But an AC leaves `fiat` only through `ac reinstate` under `reason recorded`, while an AT's fiat close is undone by a bare `at green`. Putting a guard on `at.set` would add a precondition to the ordinary path that four existing edges do not have -- a bigger change than the one it fixes.
+
+**THE `fiat` / FIAT-RECORD INVARIANT IS ENFORCED BY NO TYPE, AND THIS TABLE CANNOT EXPRESS IT.** `AcState::Fiat` carries its `FiatRecord` INSIDE the variant, so on Machine 3 the state and its evidence cannot disagree -- the type holds them together and no verb can separate them. `AtStatus` derives `Copy` and async-graphql `Enum`, both of which forbid a payload, so the record sits BESIDE the status on `AcceptanceTest.fiat`. **A `fiat` status with no record, and a record on a row that is not `fiat`, are each expressible, and nothing structural refuses either.** The invariant is therefore carried by EVERY verb that touches `status`, and each one has to re-establish it: `at_fc` writes the pair together, `at_set` clears the record on any other landing, and `Facade::put` refuses to write the field at all (hv, D7). **A verb added to this machine later inherits that obligation and gets no reminder from the compiler** -- which is the most important thing on this page about Machine 5, and the reason it is stated in prose beneath the table rather than left to the rows.
 
 ### What this gives cc's `transitions.rs`
 
