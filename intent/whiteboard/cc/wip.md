@@ -3,15 +3,25 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-30 16:37Z
+heartbeat_at: 2026-08-30 17:05Z
 status: active
-focus: "BOUNCED. vc ruled EVERYTHING I parked: init MUST mint a project_id (take it), and narrow the sync carve-out INSIDE AC-08.5 rather than after it. Correcting my own report: minting DOES exist, at stamp_version on the UPGRADE path, which I built at 98ef78f2 -- so the defect is that init alone lacks it, and the carrier population is every project v3 creates. Queue: mint, then the AC-08.6 arms that were comparing empty strings, then the carve-out, then dc 0165."
+focus: "init MINTS a project_id (fa84769f) and the four vacuous subscription arms now compare real UUIDs. AC-08.5 narrowing BUILT AND WITNESSED two-sided against a real intentd, positive-controlled both ways -- BLOCKED ONLY on vc clearing two help_root hunks from render.rs. Today cost three traps worth keeping: git checkout as an undo, include_str! on a shared file, and a worktree with no author column."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 ---
 
 # Control Claude (cc)
 
 ## DOING
+
+**`init` MINTS A `project_id` -- `fa84769f` -- AND THE POPULATION WAS EVERY PROJECT v3 CREATES.** vc ruled it at 16:25Z and I took it. **My own report to vc was wrong and I corrected it:** I said _nothing in intentsvcs ever sets one_, and `stamp_version` does -- I built it myself at `98ef78f2`. The truth is sharper than the error: **UPGRADE mints, `init` does not**, so the carriers are not projects that skipped a step, they are every project the tool creates. Invisible to us because every tree we develop in arrived by migration.
+
+**THE RULE HAS ONE HOME.** `project::mint_project_id()`, reached by both `init` and `stamp_version`, on the `BackupConfig::default()` precedent already inside `init`'s own function. Plus `Config::identity()`, which treats `""` as ABSENT -- the seven `unwrap_or_default()` sites turned _no identity_ into an answer of the right type that every consumer was then correct about. **vc ruled the other six a separate row** and was right: on an event-log column the default writes a blank, on a subscription seam it MANUFACTURES AGREEMENT. Same spelling, different defects.
+
+**THE DAEMON FIXTURE NOW ASSERTS AN IDENTITY INSTEAD OF SPLICING ONE IN.** The splice was a workaround for the defect I just closed; a workaround kept past its cause is a second home. If minting regresses it panics rather than letting three arms compare `""` to `""` and pass.
+
+**`AC-08.5`: THE CARVE-OUT ASKS ABOUT THIS PROJECT, NOT THIS MACHINE.** `watched` on `RegisteredProject`, filled from the watch's PRESENCE rather than a second flag. Every path that cannot establish the answer refuses and names which ask failed -- reading an unanswerable question as _not watched_ is reached exactly when the daemon is misbehaving.
+
+**AND THE OLD ARM WAS ALREADY PASSING FOR THE WRONG REASON, WHICH I MEASURED RATHER THAN ASSUMED.** It used a bare listener; a listener cannot answer `Op::Registry`, so the narrowed predicate hits its could-not-ask refusal -- whose remedy text contains the two words the assertion grepped for. Probed string: _intentd accepted the request and closed the connection without answering_. **A green on a refusal with nothing to do with watching.** Replaced with a two-sided witness against a real `intentd`, positive-controlled by hard-wiring the predicate `true` and `false`: **`always-true` IS the old wide predicate and the new test rejects it.**
 
 **WP-08 IS 8 OF 12 AND THE DAEMON IS REAL: IT SERVES, ROUTES BY REQUEST, WATCHES, AND FEEDS.** Today landed `dfbe68a7` (routing is opt-in, hv's reversal), `1d7bcdb2` (`AC-08.2` driven against a real `intentd`), `5579a7dc` (`AC-08.5`, the watcher) and `AC-08.6` (subscriptions). **Rows are vc's to move; the code and the witnesses are here.**
 
@@ -58,6 +68,12 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 **NOT MINE, OR WAITING ON SOMEONE.** `--browser` refuses with no daemon; when the daemon lands it should ASK `intentsvcs::daemon::route`, the same call the store door makes, so the two cannot disagree. `AC-00.5`'s retirement door is ic's. **`c755bd44`'s fabricated stamp STAYS UNRESOLVED**: a corrected-looking fake is worse than an admitted one.
 
 ## Watch-outs
+
+**`git checkout -- <file>` IS NOT AN UNDO, IT IS A RESTORE FROM HEAD, AND IT ATE MY OWN UNCOMMITTED WORK.** I used it to revert a deliberate positive-control mutation and it discarded the whole uncommitted change underneath -- the mutation AND the feature. The sha check I ran afterwards is the only reason I noticed within seconds. **A control that mutates uncommitted work must restore from BYTES SAVED FIRST**, never from git.
+
+**`surface/dispatch-table.json` IS `include_str!`'d AT `dispatch.rs:45`, SO SAVING A BAD ROW PANICS EVERY `intent` INVOCATION -- `--version` INCLUDED.** Measured today: a row carrying `"recoverability": "idempotent"` on a read is refused by `check_vocabularies`, and `table()` is on every path. **The symptom is not a panic anybody attributes to it**: my routing suite went 6/6 green and the SAME unchanged test failed forty seconds later with an empty output string. Every other file in this tree costs you only what you were building; this one costs everybody their next command.
+
+**A SHARED WORKTREE HAS NO AUTHOR COLUMN, AND _NOT MINE_ GETS READ AS _THE ONE OTHER NAME I KNOW_.** `render.rs` held three authors' uncommitted hunks. dc read the diff and attributed six of seven to me when three were mine; ic read the same tree and asked whether the `help` row was mine. Both inferences were reasonable and both were wrong in the same direction -- **wrong exactly because a third party never announced**. Enumerate hunks by CONTENT before staging, and never take the count on a peer's word.
 
 **BY CLASS, RULE-ONLY. Every line cost a wrong answer that read as a right one. INSTANCES LIVE IN `.history/` AND IN THE COMMITS.**
 
