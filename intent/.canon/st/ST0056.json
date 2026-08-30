@@ -78,7 +78,7 @@
       "seq": 8,
       "title": "intentd daemon",
       "scope": "XXL",
-      "status": "not-started",
+      "status": "wip",
       "objective": "Ship the machine-level daemon: one intentd serving N registered projects over unix-socket GraphQL, with the CLI owning its lifecycle via launchd, and the dual-path conformance suite activated across the verb surface.",
       "body": "## Deliverables\n\n- Project registry: canonicalised roots registered on first contact, per-project DBs, per-connection project binding; stale roots surfaced by doctor\n- Unix-socket GraphQL as a mechanically thin skin over the facade; the mgmt plane (status/shutdown/reload/registry) split from the domain API (conflabd `mgmt/` pattern)\n- CLI routing rule enforced: socket present -> route to daemon; absent -> in-process (never two sync engines)\n- Lifecycle owned by the CLI (conflabd pattern): LaunchAgent plist, logs under `~/.local/share/intent/`, PATH-then-sibling binary resolution, PID file with observable cleanup, GIT_HASH in the version string\n- Debounced gitignore-aware watching (`notify-debouncer-full` + `ignore`) driving ingest\n- Policy-stamp self-healing for generated local artefacts\n- Minimal subscriptions (project/file changed) -- the 3.x TUI/bus seam\n- Dual-path conformance suite green across all verbs\n\n## Dependencies\n\n- WP-05 (needs the CLI + dispatch spine; runs alongside WP-06/07).",
       "preamble": ""

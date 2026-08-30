@@ -12,7 +12,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 05: CLI in-process mode and BATS conformance harness
   - [-] 06: CLI parity long tail
   - [-] 07: Canon and claude subsystem
-  - [ ] 08: intentd daemon
+  - [-] 08: intentd daemon
   - [-] 09: MCP server and agent guide
   - [-] 10: Migration and fleet ingest harness
   - [-] 11: Distribution: cargo-dist, Homebrew, signing
