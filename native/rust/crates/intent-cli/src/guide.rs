@@ -605,6 +605,89 @@ mod tests {
     );
   }
 
+  /// **`AC-09.4`'s FIRST CLAUSE IS *RENDERS FROM THE DISPATCH TABLE*, AND
+  /// NOTHING HERE WAS ASSERTING THAT -- ONLY THAT THE TWO AGREE.**
+  ///
+  /// Every other test in this file drives the COMMITTED table, so all of them
+  /// pass equally against a guide that DERIVES its command list and against
+  /// one that keeps its own and happens to match. **Agreement is not
+  /// derivation**, and the difference is invisible on a tree where the two
+  /// coincide -- which is every tree, until the day someone adds a row.
+  ///
+  /// **That is the exact defect this criterion names**, and it is not
+  /// hypothetical: `bin/intent_help` hand-maintained a list of commands behind
+  /// a skip list, and it was correct on the day it was typed. The list did not
+  /// break by being wrong; it broke by being separate.
+  ///
+  /// A row that exists in no other artefact, added to the table alone, has to
+  /// reach the output. **A hand-kept list cannot produce it by any accident.**
+  #[test]
+  fn a_row_that_exists_only_in_the_table_still_reaches_the_guide() {
+    let mut table = dispatch::table();
+    const INVENTED: &str = "zzz-probe-derivation";
+    let before = render(&table).expect("the committed table renders");
+    assert!(
+      !before.contains(INVENTED),
+      "the fixture path already appears in the guide, so its appearance below would prove nothing"
+    );
+
+    let mut row = dispatch::shipped_entries(&table)[0].clone();
+    row.path = INVENTED.to_string();
+    row.help = "a row that exists nowhere but this table".to_string();
+    table.new_surface.push(row);
+
+    let after = render(&table).expect("the amended table renders");
+    assert!(
+      after.contains(&format!("#### intent {INVENTED}\n")),
+      "a command declared ONLY in the table did not reach the guide, so its command list is not \
+       derived from the table -- which is the one thing AC-09.4's first clause asserts"
+    );
+  }
+
+  /// **`AC-09.4`'s OTHER CONTAINMENT: THE GUIDE RENDERS NOTHING THE TABLE DOES
+  /// NOT DECLARE.**
+  ///
+  /// [`every_shipped_command_appears`] gives one direction -- every shipped row
+  /// reaches the guide. On its own that is satisfied by a guide which renders
+  /// the whole table AND six commands of its own. This is the other direction,
+  /// so the two together assert SET EQUALITY rather than coverage.
+  ///
+  /// **[`no_retired_command_appears`] is not this test, and the difference is
+  /// the population.** That one closes a known way for an undeclared heading to
+  /// arrive -- a row hv killed -- and its population is the RETIRED rows. **A
+  /// heading belonging to no row at all is in neither population**, so it
+  /// passes that test and this one is where it fails.
+  #[test]
+  fn the_guide_renders_no_command_the_table_does_not_declare() {
+    let table = dispatch::table();
+    let text = guide();
+    let declared: std::collections::HashSet<&str> = dispatch::shipped_entries(&table)
+      .iter()
+      .map(|e| e.path.as_str())
+      .collect();
+
+    let headings: Vec<&str> = text
+      .lines()
+      .filter_map(|l| l.strip_prefix("#### intent "))
+      .collect();
+    assert!(
+      !headings.is_empty(),
+      "no command heading was found at all, so this test examined nothing -- the heading spelling \
+       has changed underneath it and the assertion below is vacuous"
+    );
+
+    let undeclared: Vec<&str> = headings
+      .into_iter()
+      .filter(|h| !declared.contains(*h))
+      .collect();
+    assert!(
+      undeclared.is_empty(),
+      "the guide renders {} command(s) the table does not declare as shipped: {undeclared:?} -- \
+       an agent is being told to call something with no row behind it",
+      undeclared.len()
+    );
+  }
+
   /// **The same defect wearing the opposite sign.** A retired row rendered
   /// into the guide tells an agent to call a command hv killed, and it would
   /// pass the completeness test above untouched.
