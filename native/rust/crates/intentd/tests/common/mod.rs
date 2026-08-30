@@ -198,6 +198,30 @@ impl RunningDaemon {
     answers
   }
 
+  /// Every address this daemon published, whether or not it is answering.
+  ///
+  /// Deliberately the shipped reader rather than a second opinion about where
+  /// addresses live.
+  pub fn candidates(&self) -> Vec<daemon::Endpoint> {
+    daemon::candidates_under(&self.home).expect("a published address must be readable")
+  }
+
+  /// The loopback address this daemon published, if it published one.
+  pub fn tcp(&self) -> Option<daemon::Endpoint> {
+    self
+      .candidates()
+      .into_iter()
+      .find(|e| matches!(e, daemon::Endpoint::Tcp(_)))
+  }
+
+  /// Ask one request over a NAMED endpoint, through the shipped client.
+  pub fn ask_over(&self, endpoint: &daemon::Endpoint, request: Request) -> Response {
+    match wire::ask(endpoint, &request) {
+      Ok(response) => response,
+      Err(e) => panic!("the shipped client could not complete a round trip over {endpoint}: {e}"),
+    }
+  }
+
   /// Ask one request, THROUGH THE SHIPPED CLIENT.
   ///
   /// **DELIBERATELY `wire::ask` RATHER THAN THIS FILE'S OWN ROUND TRIP.** The

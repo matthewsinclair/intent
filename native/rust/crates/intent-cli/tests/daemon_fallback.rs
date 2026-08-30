@@ -140,12 +140,32 @@ fn run(home: &Path, root: &Path, argv: &[&str]) -> Output {
     .expect("the intent binary runs")
 }
 
+/// A verb this build does NOT route, asserted from the shipped declaration.
+///
+/// **THE VERB IS CHECKED AGAINST `routed_paths()` RATHER THAN CHOSEN AND
+/// TRUSTED.** This test drove `st list` until `st list` began routing, at which
+/// point it was no longer testing fallthrough at all -- it was testing the
+/// routed path against a fixture that cannot serve, and it failed for a reason
+/// that read like a defect in the ruling. **The whole point of this file is a
+/// verb the daemon cannot serve, so the file must notice when its subject stops
+/// being one**, which it cannot do by naming a verb in a string.
+const FALLS_THROUGH: &[&str] = &["issues", "list"];
+
+fn assert_still_unrouted() {
+  let path = FALLS_THROUGH.join(" ");
+  assert!(
+    !intent_cli::render::routed_paths().contains(&path.as_str()),
+    "`{path}` is now a ROUTED verb, so this file's fallthrough tests are driving the routed path      against a fixture that answers only the probe. Pick a verb that is still unrouted -- and if      none is left, this file's subject has been fully served and it should say so rather than      quietly testing the other case"
+  );
+}
+
 #[test]
 fn a_verb_the_daemon_cannot_serve_falls_through_instead_of_refusing() {
+  assert_still_unrouted();
   let daemon = AnsweringDaemon::start();
   let root = project();
 
-  let answered = run(daemon.home(), &root, &["st", "list", "--status", "all"]);
+  let answered = run(daemon.home(), &root, FALLS_THROUGH);
   let stderr = String::from_utf8_lossy(&answered.stderr);
   assert_eq!(
     answered.status.code(),
@@ -187,14 +207,15 @@ fn with_no_daemon_both_verbs_behave_exactly_as_before() {
   // verbs rather than about routing -- and the second would be especially
   // convincing, because a `sync` that refused for its own unrelated reasons
   // would look exactly like the carve-out working.
+  assert_still_unrouted();
   let home = short_dir("fallback-nodaemon-home");
   let root = project();
 
-  let listed = run(&home, &root, &["st", "list", "--status", "all"]);
+  let listed = run(&home, &root, FALLS_THROUGH);
   assert_eq!(
     listed.status.code(),
     Some(0),
-    "st list works with no daemon"
+    "the unrouted verb works with no daemon"
   );
 
   let synced = run(&home, &root, &["sync", "--to-disk"]);
@@ -206,5 +227,44 @@ fn with_no_daemon_both_verbs_behave_exactly_as_before() {
   );
 
   let _ = std::fs::remove_dir_all(&home);
+  let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn a_routed_verb_meeting_a_daemon_that_cannot_answer_refuses_rather_than_falling_back() {
+  // **THIS IS THE ARM THE FALLTHROUGH RULING DOES NOT COVER, AND GETTING IT
+  // WRONG IS WORSE THAN REFUSING EVERYTHING.** Falling back to in-process when a
+  // ROUTED verb fails mid-request is the one case where `never two sync engines`
+  // bites for real: the daemon owns the store, may already have applied the
+  // request, and a silent local retry is a second writer arriving precisely when
+  // the first one's state is unknown.
+  //
+  // **THE FIXTURE ANSWERS THE PROBE AND NOTHING ELSE**, which is not a contrived
+  // shape -- it is what a daemon looks like while it is starting, shutting down,
+  // or running a build that does not know this op.
+  let daemon = AnsweringDaemon::start();
+  let root = project();
+
+  let routed = intent_cli::render::routed_paths();
+  let path = routed
+    .first()
+    .expect("this build routes at least one verb, or AC-08.2 has nothing to measure");
+  let argv: Vec<&str> = path.split(' ').collect();
+
+  let refused = run(daemon.home(), &root, &argv);
+  let stderr = String::from_utf8_lossy(&refused.stderr);
+
+  assert_eq!(
+    refused.status.code(),
+    Some(2),
+    "`{path}` is routed, the daemon could not answer it, and this did not exit 2. Exit 2 is `the \
+     build cannot answer` -- the operator's project is fine and the tool in their hand is the part \
+     that failed. Any other code reports a verdict about their work: {stderr}"
+  );
+  assert!(
+    !stderr.is_empty() && stderr.contains("remedy"),
+    "a refusal must say what to do about it: {stderr}"
+  );
+
   let _ = std::fs::remove_dir_all(&root);
 }

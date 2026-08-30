@@ -210,3 +210,127 @@ fn a_root_that_was_never_a_project_is_refused_with_a_remedy() {
   let _ = std::fs::remove_dir_all(&empty);
   let _ = std::fs::remove_dir_all(&alpha);
 }
+
+/// **D56 AND THE ONE-BODY CLAIM `wire::ask` MAKES ABOUT ITSELF.**
+///
+/// The client's round trip -- the deadline, the write, the newline, what a
+/// closed connection means -- is written ONCE and only the connect is behind a
+/// `match` on the transport. **That collapse replaced two copies that agreed on
+/// the day they were written**, which is the only day duplicated code ever does,
+/// and its whole justification is that the two transports can no longer drift.
+///
+/// **A JUSTIFICATION NOTHING DRIVES IS A COMMENT.** Every other test in this
+/// crate reaches the daemon over the unix socket, so before this the loopback
+/// arm of `connect` had never been executed by anything -- the transport was
+/// PROBED for liveness elsewhere and never asked a question. The two answers
+/// must be identical because they are the same store reached two ways, which is
+/// D56 stated as a test rather than as a decision.
+#[test]
+fn one_question_over_two_transports_gets_the_same_answer() {
+  let daemon = RunningDaemon::start();
+  let alpha = project("Alpha");
+
+  let over_unix = daemon.ask(ask(Op::ThreadList, &alpha));
+  let tcp = daemon
+    .tcp()
+    .expect("the daemon publishes a loopback address as well as a socket");
+  let over_tcp = daemon.ask_over(&tcp, ask(Op::ThreadList, &alpha));
+
+  assert_eq!(
+    titles(&over_unix),
+    vec!["Alpha thread".to_string()],
+    "the unix transport answered with something other than this project's content"
+  );
+  assert_eq!(
+    over_unix, over_tcp,
+    "the same question over the two published transports returned different answers. \
+     They reach one store through one client body, so a difference here is the client \
+     behaving differently by transport -- which is the drift collapsing the two round \
+     trips into one was supposed to make unrepresentable"
+  );
+
+  let _ = std::fs::remove_dir_all(&alpha);
+}
+
+/// How many ops the daemon says it has dispatched to `root`.
+fn dispatched_for(response: &Response, root: &std::path::Path) -> u64 {
+  match response {
+    Response::Registry { projects } => {
+      projects
+        .iter()
+        .find(|p| p.root == root)
+        .unwrap_or_else(|| panic!("{} is not registered: {projects:?}", root.display()))
+        .dispatched
+    }
+    other => panic!("expected a registry listing, got {other:?}"),
+  }
+}
+
+/// **THE DISCRIMINATOR `AC-08.2` RESTS ON, AND BOTH ARMS ARE THE POINT.**
+///
+/// A dual-path harness comparing in-process against daemon agrees with itself
+/// **by construction** wherever the CLI falls through -- so `both routes
+/// answered` cannot tell a working client from one that routes nothing, and it
+/// gets weaker every time the op set grows. Reading this counter around a single
+/// verb gives per-verb attribution with no per-verb wire surface.
+///
+/// **THE SECOND ARM IS THE ONE THAT CLOSES THE PARTITION.** A served op moving
+/// the count by 1 says routing happened somewhere; an UNCOUNTED op leaving it
+/// UNTOUCHED is what proves fallthrough is fallthrough rather than a silent
+/// route. Every op is in exactly one bucket and the buckets sum to the surface.
+#[test]
+fn a_dispatched_op_is_counted_and_an_uncounted_one_is_not() {
+  let daemon = RunningDaemon::start();
+  let alpha = project("Alpha");
+
+  // Open the project so it is registered, and take the baseline AFTER that --
+  // the first contact is itself a dispatch, and folding it into the delta would
+  // measure registration rather than the verb under test.
+  assert!(matches!(
+    daemon.ask(ask(Op::ThreadList, &alpha)),
+    Response::Threads { .. }
+  ));
+  let before = dispatched_for(
+    &daemon.ask(ask(Op::Registry, &alpha)),
+    &alpha.canonicalize().unwrap(),
+  );
+
+  daemon.ask(ask(Op::ThreadList, &alpha));
+  let after = dispatched_for(
+    &daemon.ask(ask(Op::Registry, &alpha)),
+    &alpha.canonicalize().unwrap(),
+  );
+
+  assert_eq!(
+    after,
+    before + 1,
+    "one dispatched op must move the count by exactly one. Any other delta means the counter is \
+     measuring something other than dispatches -- connections, or probes -- and a harness resting \
+     on it would read every fallthrough as a route"
+  );
+
+  // **THE UNCOUNTED ARM, AND IT IS ALSO THIS INSTRUMENT'S SELF-DEFENCE.**
+  // `Op::Registry` is how the count is READ, so a registry that counted would
+  // move the number it is being asked for -- the observer changing the
+  // observable. Two consecutive reads with nothing between them must agree.
+  let twice = dispatched_for(
+    &daemon.ask(ask(Op::Registry, &alpha)),
+    &alpha.canonicalize().unwrap(),
+  );
+  assert_eq!(
+    twice, after,
+    "reading the registry changed the count it reports, so every delta measured through it \
+     includes the measurement itself. `Op::Registry` is declared UNCOUNTED in intentsvcs::wire \
+     precisely so this cannot happen"
+  );
+
+  // And the declaration and the behaviour are checked against each other,
+  // rather than the test carrying its own idea of which ops are exempt.
+  assert!(
+    intentsvcs::wire::UNCOUNTED.contains(&Op::Registry),
+    "the behaviour above holds of `Op::Registry` while the shipped declaration does not name it, \
+     so a harness deriving its expectation from the declaration would expect the opposite"
+  );
+
+  let _ = std::fs::remove_dir_all(&alpha);
+}

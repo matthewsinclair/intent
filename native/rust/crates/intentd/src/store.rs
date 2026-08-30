@@ -62,10 +62,34 @@ struct Job {
 ///
 /// Cloneable and shareable: it is a channel sender, not a database handle. That
 /// difference is the whole design -- see the module note.
-#[derive(Debug, Clone)]
+/// **NOT `Clone`, AND THE COUNTER IS WHY IT MUST NOT BE.** The handle is always
+/// reached through an `Arc` -- the registry stores `Arc<ProjectHandle>` and hands
+/// out clones of THAT -- so deriving `Clone` here was never used. It is removed
+/// rather than left harmless: **a cloned handle would carry a fresh
+/// [`ProjectHandle::dispatched`] while addressing the same store**, so one
+/// project would have two independent counts and the registry would report
+/// whichever copy it happened to hold. A discriminator that can be halved by an
+/// `#[derive]` is not one.
+#[derive(Debug)]
 pub struct ProjectHandle {
   tx: mpsc::Sender<Job>,
   root: PathBuf,
+  /// Ops this handle has dispatched to its store.
+  ///
+  /// **IT LIVES ON THE HANDLE AND IS INCREMENTED INSIDE [`ProjectHandle::call`],
+  /// WHICH MAKES `counts dispatched ops and nothing else` STRUCTURAL RATHER THAN
+  /// A RULE SOMEBODY FOLLOWS.** Counting in the connection handler would have
+  /// needed a branch to skip liveness probes and the registry, and a branch is
+  /// exactly where that exemption goes quietly wrong -- **if the probe
+  /// incremented, every fallthrough would increment and the discriminator would
+  /// be vacuous**, which is the defect the counter exists to catch, arriving
+  /// through the mechanism built to avoid it.
+  ///
+  /// Nothing but a dispatched op reaches this line: probes are answered before
+  /// dispatch, and `Op::Registry` never reaches a handle at all. See
+  /// `intentsvcs::wire::UNCOUNTED`, which declares that set so the harness can
+  /// form an expectation from it rather than from a list of its own.
+  dispatched: std::sync::atomic::AtomicU64,
 }
 
 impl ProjectHandle {
@@ -112,7 +136,11 @@ impl ProjectHandle {
     });
 
     match ready_rx.await {
-      Ok(Ok(())) => Ok(ProjectHandle { tx, root }),
+      Ok(Ok(())) => Ok(ProjectHandle {
+        tx,
+        root,
+        dispatched: std::sync::atomic::AtomicU64::new(0),
+      }),
       Ok(Err(refusal)) => Err(refusal),
       // The thread ended without answering: it panicked. Report it as a
       // refusal rather than letting the caller wait on a channel nothing will
@@ -127,8 +155,19 @@ impl ProjectHandle {
     }
   }
 
+  /// How many ops have been dispatched to this store.
+  pub fn dispatched(&self) -> u64 {
+    self.dispatched.load(std::sync::atomic::Ordering::Relaxed)
+  }
+
   /// Ask the store, without occupying a worker while it answers.
   pub async fn call(&self, op: Op) -> Response {
+    // Counted BEFORE the send, so a request the store never answers still
+    // registers as having been dispatched: the harness's question is whether
+    // the CLIENT routed, and a store that then failed does not un-route it.
+    self
+      .dispatched
+      .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     let (reply_tx, reply_rx) = oneshot::channel();
     if self
       .tx
@@ -198,6 +237,8 @@ fn serve(facade: &mut Facade, op: Op) -> Response {
           id: thread.id.clone(),
           title: thread.title.clone(),
           status: thread.status,
+          created: thread.created.clone(),
+          completed: thread.completed.clone(),
         })
         .collect(),
     },

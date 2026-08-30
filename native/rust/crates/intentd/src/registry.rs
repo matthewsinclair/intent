@@ -76,9 +76,10 @@ impl Registry {
   pub async fn snapshot(&self) -> Response {
     let projects = self.projects.lock().await;
     let mut listed: Vec<RegisteredProject> = projects
-      .keys()
-      .map(|root| RegisteredProject {
+      .iter()
+      .map(|(root, handle)| RegisteredProject {
         root: root.clone(),
+        dispatched: handle.dispatched(),
         // Asked at REPORT time rather than remembered from registration: the
         // whole point of the field is to notice a change that happened after
         // the daemon last looked.

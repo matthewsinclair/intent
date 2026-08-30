@@ -448,10 +448,6 @@ fn status_filter(spec: &str) -> Result<Option<Vec<ThreadStatus>>, String> {
 /// shows WIP only, while the index covers everything -- issue 0019, because
 /// `steel_threads.md` says it indexes ALL threads and was being built from the
 /// WIP-only view, so it decayed to empty at every release close.
-fn st_table(f: &Facade, a: &ArgMatches) -> Result<String, Failure> {
-  st_table_from(&summarise(f), a)
-}
-
 /// The listing table, over threads from WHEREVER THEY CAME FROM.
 ///
 /// **THIS SPLIT IS D32, NOT A REFACTOR** (vc, 2026-08-30). `AC-08.2` requires

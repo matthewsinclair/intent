@@ -713,7 +713,18 @@ fn the_shipped_cli_routes_on_a_live_socket_and_not_otherwise() {
   // CHANGED.** A shared verb falls through while the very same socket is
   // answering -- so the two outcomes are attributable to the VERB rather than
   // to the daemon having come and gone between runs.
-  let fell_through = run_verb(&["st", "list", "--status", "all"]);
+  // **THE VERB IS CHECKED AGAINST THE SHIPPED DECLARATION, NOT CHOSEN AND
+  // TRUSTED.** This drove `st list` until `st list` began routing, at which
+  // point the arm stopped testing fallthrough and started testing the routed
+  // path against a socket that answers only the probe -- failing for a reason
+  // that read like a defect in the ruling rather than like a stale fixture.
+  let unrouted = ["issues", "list"];
+  assert!(
+    !intent_cli::render::routed_paths().contains(&unrouted.join(" ").as_str()),
+    "`{}` now routes, so this arm is no longer measuring fallthrough",
+    unrouted.join(" ")
+  );
+  let fell_through = run_verb(&unrouted);
   drop(responder);
   fs::remove_file(&socket).expect("remove the fixture socket");
 

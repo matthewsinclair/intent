@@ -91,6 +91,23 @@ pub enum Op {
   Registry,
 }
 
+/// Ops the daemon answers WITHOUT reaching a project's store, and which
+/// therefore never increment that project's dispatched-op count.
+///
+/// **DECLARED HERE RATHER THAN IMPLIED BY A BRANCH IN THE DISPATCHER** (vc's
+/// ruling, 2026-08-30). Two consumers need this fact and neither may re-derive
+/// it: `intentd` must not count these, and the conformance harness must not
+/// expect them to. **An exemption that lives only in control flow is the
+/// prose-only exclusion with worse visibility** -- no instrument can tell it
+/// from an oversight, and a future op landing on the non-counting path would
+/// leave the harness's partition quietly open.
+///
+/// **[`Op::Registry`] IS HERE FOR A REASON THE COUNTER ITSELF CREATES.** The
+/// harness reads the registry to take its before-and-after delta, so a counting
+/// registry would move the number it is measuring -- the instrument perturbing
+/// its own subject.
+pub const UNCOUNTED: &[Op] = &[Op::Registry];
+
 /// One thread, as much of it as a listing needs.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ThreadSummary {
@@ -105,6 +122,23 @@ pub struct ThreadSummary {
   /// third home with the same defect available, and the renderer at the far end
   /// would have to parse words back into a type it could have been handed.
   pub status: ThreadStatus,
+
+  /// When the thread was created.
+  ///
+  /// **CARRIED BECAUSE THE RENDERER RENDERS IT, NOT BECAUSE A LISTING MIGHT
+  /// WANT IT.** `AC-08.2` requires the in-process and daemon paths to return
+  /// IDENTICAL results over the verb surface, and `st_rows` puts this column in
+  /// the table -- **so a wire that cannot carry it makes the identity claim
+  /// unsatisfiable by construction.** The field is a consequence of the
+  /// criterion rather than a convenience (vc, 2026-08-30).
+  pub created: String,
+  /// When the thread completed, where it has.
+  ///
+  /// `Option` rather than an empty string, because the renderer's
+  /// `unwrap_or_default` is a RENDERING decision and the wire must not make it
+  /// first -- a thread completed on no date and a thread not completed would
+  /// otherwise arrive identical.
+  pub completed: Option<String>,
 }
 
 /// One project the daemon has opened.
@@ -118,6 +152,23 @@ pub struct RegisteredProject {
   /// this, and a listing that quietly dropped the missing ones would satisfy
   /// the words while hiding the thing they were written for.
   pub root_exists: bool,
+  /// How many ops this daemon has DISPATCHED to this project's store.
+  ///
+  /// **THE DISCRIMINATOR `AC-08.2` RESTS ON, AND IT COUNTS DISPATCHES -- NEVER
+  /// CONNECTIONS AND NEVER LIVENESS PROBES.** A harness comparing an
+  /// in-process route against a daemon route agrees with itself by construction
+  /// wherever the CLI falls through, so "both answered" cannot tell a working
+  /// client from one that routes nothing. Reading this before and after a single
+  /// verb gives per-verb attribution with no per-verb wire surface: a served
+  /// verb moves it by exactly 1, an unserved verb leaves it untouched, and
+  /// **the second arm is what proves fallthrough is fallthrough rather than a
+  /// silent route.**
+  ///
+  /// **IF THE PROBE INCREMENTED THIS, EVERY FALLTHROUGH WOULD INCREMENT AND THE
+  /// INSTRUMENT WOULD BE VACUOUS AGAIN** -- the exact defect it exists to catch,
+  /// one layer down, arriving through the mechanism built to avoid it. See
+  /// [`UNCOUNTED`].
+  pub dispatched: u64,
 }
 
 /// What the daemon answers.
@@ -234,42 +285,51 @@ pub fn ask(endpoint: &crate::daemon::Endpoint, request: &Request) -> Result<Resp
   use std::io::{BufRead, BufReader, Write};
 
   let framed = frame(request).map_err(AskError::Unsendable)?;
-  let mut line = Vec::new();
+  let mut stream = connect(endpoint).map_err(AskError::Unreachable)?;
+  stream.write_all(&framed).map_err(AskError::Unreachable)?;
+  stream.flush().map_err(AskError::Unreachable)?;
 
-  match endpoint {
-    crate::daemon::Endpoint::Unix(path) => {
-      let stream = std::os::unix::net::UnixStream::connect(path).map_err(AskError::Unreachable)?;
-      stream
-        .set_read_timeout(Some(REQUEST_DEADLINE))
-        .map_err(AskError::Unreachable)?;
-      (&stream)
-        .write_all(&framed)
-        .map_err(AskError::Unreachable)?;
-      (&stream).flush().map_err(AskError::Unreachable)?;
-      BufReader::new(&stream)
-        .read_until(b'\n', &mut line)
-        .map_err(AskError::Unreachable)?;
-    }
-    crate::daemon::Endpoint::Tcp(addr) => {
-      let stream = std::net::TcpStream::connect(*addr).map_err(AskError::Unreachable)?;
-      stream
-        .set_read_timeout(Some(REQUEST_DEADLINE))
-        .map_err(AskError::Unreachable)?;
-      (&stream)
-        .write_all(&framed)
-        .map_err(AskError::Unreachable)?;
-      (&stream).flush().map_err(AskError::Unreachable)?;
-      BufReader::new(&stream)
-        .read_until(b'\n', &mut line)
-        .map_err(AskError::Unreachable)?;
-    }
-  }
+  let mut line = Vec::new();
+  BufReader::new(&mut stream)
+    .read_until(b'\n', &mut line)
+    .map_err(AskError::Unreachable)?;
 
   if line.is_empty() {
     return Err(AskError::ClosedWithoutAnswering);
   }
   parse_response(&line).map_err(AskError::Unreadable)
 }
+
+/// A connected stream, whichever transport carried it.
+///
+/// **ONE ROUND TRIP RATHER THAN ONE PER TRANSPORT, WHICH IS THIS FUNCTION'S OWN
+/// DOC COMMENT APPLIED TO ITSELF.** The first build wrote the deadline, the
+/// write, the flush and the read once per [`crate::daemon::Endpoint`] variant --
+/// two opinions about the wire inside the function that exists so callers do not
+/// have one. They agreed on the day they were written, which is the only day
+/// duplicated code ever does, and the failure when they stop is a client that
+/// behaves differently depending on which transport it happened to reach.
+///
+/// **THE TRANSPORT-SPECIFIC PART IS THE CONNECT AND NOTHING ELSE**, so that is
+/// all that stays behind a `match`.
+fn connect(endpoint: &crate::daemon::Endpoint) -> Result<Box<dyn ReadWrite>, std::io::Error> {
+  match endpoint {
+    crate::daemon::Endpoint::Unix(path) => {
+      let stream = std::os::unix::net::UnixStream::connect(path)?;
+      stream.set_read_timeout(Some(REQUEST_DEADLINE))?;
+      Ok(Box::new(stream))
+    }
+    crate::daemon::Endpoint::Tcp(addr) => {
+      let stream = std::net::TcpStream::connect(*addr)?;
+      stream.set_read_timeout(Some(REQUEST_DEADLINE))?;
+      Ok(Box::new(stream))
+    }
+  }
+}
+
+/// Both halves of a connection, so one body can drive either transport.
+trait ReadWrite: std::io::Read + std::io::Write {}
+impl<T: std::io::Read + std::io::Write> ReadWrite for T {}
 
 /// How long a request may take before the client gives up.
 ///
