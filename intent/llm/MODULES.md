@@ -148,23 +148,23 @@
 
 Single source of truth for rule content. Skills reference by ID; Critic subagents enforce.
 
-| Concern                   | THE Module                                                       | Notes                                                                    |
-| ------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Schema reference          | `intent/plugins/claude/rules/_schema/rule-schema.md`             | Frontmatter fields, body sections, runnable-example contract             |
-| ID scheme                 | `intent/plugins/claude/rules/_schema/id-scheme.md`               | `IN-<LANG>-<CAT>-<NNN>`, rename discipline                               |
-| Attribution policy        | `intent/plugins/claude/rules/_schema/attribution-policy.md`      | Three tiers, `upstream_id:`, MIT notice structure                        |
-| CI limitations            | `intent/plugins/claude/rules/_schema/CI-LIMITATIONS.md`          | Runnable (Elixir) vs textual (Rust/Swift/Lua)                            |
-| Critic contract           | `intent/plugins/claude/rules/_schema/critic-contract.md`         | Input/output/rule-loading for `critic-*`                                 |
-| Index generator           | `intent/plugins/claude/rules/_schema/index-generator.md`         | Shell+jq pipeline spec; `intent claude rules index`                      |
-| Index template            | `intent/plugins/claude/rules/index.json.template`                | Target JSON shape (generated `index.json` lands alongside, WP02)         |
-| Exemplar rule             | `intent/plugins/claude/rules/elixir/test/strong-assertions/`     | Copy-from template for new rules: RULE.md + good_test.exs + bad_test.exs |
-| Attribution notice        | `intent/plugins/claude/rules/_attribution/elixir-test-critic.md` | MIT notice + pinned commit + derived-rule table                          |
-| Agnostic rule pack (WP04) | `intent/plugins/claude/rules/agnostic/`                          | Highlander, PFIC, Thin Coordinator, No Silent Errors                     |
-| Elixir rule pack (WP05)   | `intent/plugins/claude/rules/elixir/`                            | ≥15 rules across code, test, ash, phoenix, lv categories                 |
-| Rust rule pack (WP06)     | `intent/plugins/claude/rules/rust/`                              | ≥5 rules; textual-only per CI-LIMITATIONS                                |
-| Swift rule pack (WP06)    | `intent/plugins/claude/rules/swift/`                             | ≥5 rules; textual-only                                                   |
-| Lua rule pack (WP06)      | `intent/plugins/claude/rules/lua/`                               | ≥5 rules; textual-only                                                   |
-| Shell rule pack (WP12)    | `intent/plugins/claude/rules/shell/`                             | ≥5 rules (bash + zsh); dogfooded against `bin/intent*`                   |
+| Concern                   | THE Module                                                       | Notes                                                                                              |
+| ------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Schema reference          | `intent/plugins/claude/rules/_schema/rule-schema.md`             | Frontmatter fields, body sections, runnable-example contract                                       |
+| ID scheme                 | `intent/plugins/claude/rules/_schema/id-scheme.md`               | `IN-<LANG>-<CAT>-<NNN>`, rename discipline                                                         |
+| Attribution policy        | `intent/plugins/claude/rules/_schema/attribution-policy.md`      | Three tiers, `upstream_id:`, MIT notice structure                                                  |
+| CI limitations            | `intent/plugins/claude/rules/_schema/CI-LIMITATIONS.md`          | Runnable (Elixir) vs textual (Rust/Swift/Lua)                                                      |
+| Critic contract           | `intent/plugins/claude/rules/_schema/critic-contract.md`         | Input/output/rule-loading for `critic-*`                                                           |
+| Index generator           | `intent/plugins/claude/rules/_schema/index-generator.md`         | Shell+jq pipeline spec; `intent claude rules index`                                                |
+| Index template            | `intent/plugins/claude/rules/index.json.template`                | Target JSON shape (generated `index.json` lands alongside, WP02)                                   |
+| Exemplar rule             | `intent/plugins/claude/rules/elixir/test/strong-assertions/`     | Copy-from template for new rules: RULE.md + good_test.exs + bad_test.exs                           |
+| Attribution notice        | `intent/plugins/claude/rules/_attribution/elixir-test-critic.md` | MIT notice + pinned commit + derived-rule table                                                    |
+| Agnostic rule pack (WP04) | `intent/plugins/claude/rules/agnostic/`                          | Pattern: Highlander, PFIC, Thin Coordinator, No Silent Errors. Procedural: Red Control, Fiat Close |
+| Elixir rule pack (WP05)   | `intent/plugins/claude/rules/elixir/`                            | ≥15 rules across code, test, ash, phoenix, lv categories                                           |
+| Rust rule pack (WP06)     | `intent/plugins/claude/rules/rust/`                              | ≥5 rules; textual-only per CI-LIMITATIONS                                                          |
+| Swift rule pack (WP06)    | `intent/plugins/claude/rules/swift/`                             | ≥5 rules; textual-only                                                                             |
+| Lua rule pack (WP06)      | `intent/plugins/claude/rules/lua/`                               | ≥5 rules; textual-only                                                                             |
+| Shell rule pack (WP12)    | `intent/plugins/claude/rules/shell/`                             | ≥5 rules (bash + zsh); dogfooded against `bin/intent*`                                             |
 
 ## Subagents: Critic Family (v2.9.0 / WP07)
 

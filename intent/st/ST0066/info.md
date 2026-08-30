@@ -40,7 +40,15 @@ Enforcement datapoint, same day (conflab-vc, holding the first live FC for hv's 
 
 Declined alternatives recorded so an option never on the menu is distinguishable from one refused: `--fiat` flags on the existing close verbs with a separate fiat ledger (an FC'd AC is not "satisfied", and a ledger is a second home for state the model should carry); FC on terminal entities only with no cascade (cleanest per-entity semantics, defeats the cut-and-run use case on a whole over-cooked ST).
 
-**Still open before build:** the exact model field shapes and their extract schema (schema bump needed); how `doctor` words a fiat row; whether 0116's partial-coverage case gets a distinct rendering when the FC'd AC was half-covered. ACs to be minted from this design; builder assigned by vc when a lane frees. The motivating case stands as above (D2, `wp done` plus hand-written provenance was the only mechanism).
+**RESOLVED DURING BUILD, recorded rather than deleted because an open list is what a reader checks the code against.** The model field shapes and their extract schema are built: `FiatRecord { because, by, at, invoker, inherited_from, inherited_event }` at **schema 16**, with the three faces at **DDL 13 / SDL 14 / JSON 16**. The six ACs are minted from this design and the builder is dc.
+
+**STILL OPEN, AND EACH IS OPEN FOR A DIFFERENT REASON.**
+
+1. **How `doctor` words a fiat row -- UNBUILT.** `finding.rs` carries no fiat path at all today. This is `AC-00.5`'s subject, and the row has a vacuity risk of the kind `AC-00.4` was rewritten for: *wherever it reports one* passes by absence if `doctor` has no path that can report a fiat-closed entity, so establishing that such a path exists comes before building anything against it.
+2. **Whether `0116`'s partial-coverage case gets a distinct rendering when the FC'd AC was half-covered.** `0116` is OPEN and names this thread as the other side of its own gap: FC is the authority-based exit for an unverifiable half, and `0116` is about making that half VISIBLE so the exit is a choice rather than a blind green.
+3. **`D4` (minutia 3) -- HELD FOR hv, NOT RULED: does the fiat record carry the accepted-unverified half as free text in `because`, or as a STRUCTURED field?** dc leans structured; it widens the record, so it is hv's. **hv's standing instruction is that dc BUILDS AROUND IT**, and the build did: nothing in the shipped record depends on the answer, so the ruling can land later without a migration.
+
+The motivating case stands as above (D2, `wp done` plus hand-written provenance was the only mechanism).
 
 ## Acceptance
 

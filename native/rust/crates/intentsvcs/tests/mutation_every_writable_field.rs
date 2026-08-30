@@ -1396,6 +1396,17 @@ fn the_thread_fixture_serialises_every_field_and_the_three_roles_partition_it() 
   // field is quietly absorbed into whichever role is counted loosest, and the
   // count still adds up afterwards. Collateral is the loosest role here, and
   // filing an unauthorable field there would assert that a `put` could clear it.
+  //
+  // **WHAT THIS ROSTER PROVES AND WHAT IT DOES NOT, STATED SO THE GAP IS VISIBLE
+  // RATHER THAN ASSUMED CLOSED.** It proves `fiat` is CLASSIFIED -- that no
+  // serialised field slipped through unnamed. It does NOT drive `put` with a
+  // fiat payload and assert the refusal, and no test in either crate does:
+  // searched 2026-08-30 for the refusal's own message text across every test
+  // file, zero hits. So the three refusal sites in `Facade::put` could be
+  // deleted and this roster would stay green, because `fiat` would still
+  // serialise and still be classified. **The guard is implemented and
+  // unwitnessed**, which is this estate's own rule firing here -- a restriction
+  // whose witness cannot go red has not been witnessed, only described.
   const UNAUTHORABLE: [&str; 1] = ["fiat"];
 
   let classified: BTreeSet<&str> = REQUIRED
@@ -2868,6 +2879,66 @@ fn a_thread_body_that_mentions_the_field_it_changes_still_writes() {
     f.st_show("ST0001").expect("there").completed.as_deref(),
     Some("2026-08-25"),
     "and the change it DID ask for landed"
+  );
+}
+
+/// **THE WITNESS FOR hv's D7, WHICH WAS IMPLEMENTED AND UNWITNESSED FOR TWO DAYS.**
+///
+/// `Facade::put` refuses to author a `fiat` record at three sites. Nothing drove
+/// it. The roster above (`UNAUTHORABLE`) proves `fiat` is CLASSIFIED, not that
+/// the refusal happens -- **delete all three sites and that roster stays green**,
+/// because `fiat` would still serialise and still be named. Measured 2026-08-30
+/// by searching every test file in both crates for the refusal's own message
+/// text: zero hits.
+///
+/// **THIS IS `IN-AG-RED-CONTROL-001` ARRIVING FROM THE OTHER END.** The rule
+/// says a control is only a control if it can go red; the corollary this missed
+/// is that a GUARD is only a guard if something goes red when you remove it.
+///
+/// # Why it asserts the message and not merely the refusal
+///
+/// The body below injects `fiat` into JSON. **If the shape ever stops
+/// deserialising, `put` fails for that reason instead** -- and a test asserting
+/// only "this was refused" would go green on a parse error, witnessing nothing.
+/// Matching the refusal's own words is what makes the green mean D7 rather than
+/// mean `serde`.
+#[test]
+fn put_refuses_to_author_a_fiat_record() {
+  let fx = Fixture::new();
+  let t = sample_thread("ST0001");
+  fx.write_thread(&t);
+  let mut f = fx.facade();
+  let addr = parse("intent:///threads/ST0001").expect("address");
+
+  let before = f.st_show("ST0001").expect("there");
+  assert!(
+    before.fiat.is_none(),
+    "the fixture must start with NO fiat record, or this arm tests a change and not an authoring"
+  );
+
+  let mut body = thread_scalars_only(&t);
+  body.as_object_mut().expect("an object").insert(
+    "fiat".to_string(),
+    serde_json::json!({
+      "because": "authored by a caller, which is the thing D7 forbids",
+      "by": "someone",
+      "at": "2026-08-30T00:00:00Z",
+      "invoker": { "tty": false, "env": "test" }
+    }),
+  );
+
+  let err = f
+    .put(&addr, &body.to_string())
+    .expect_err("`put` must refuse to author a fiat record");
+  let why = err.to_string();
+  assert!(
+    why.contains("cannot author it"),
+    "the refusal must be D7's, not a deserialisation failure wearing its exit: {why}"
+  );
+
+  assert!(
+    f.st_show("ST0001").expect("there").fiat.is_none(),
+    "the refusal wrote the record anyway -- a refusal that mutates is the worse defect"
   );
 }
 
