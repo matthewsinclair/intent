@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-08-30 14:56Z
+heartbeat_at: 2026-08-30 16:59Z
 status: active
-focus: "BOUNCED 14:56Z. ST0066 is PASS 6/6 -- and intent/wip.md and hv/wip.md BOTH still say dc is holding it at 0/6. cc is parked on a const that landed at ca744f1d, whose own doc comment claims the guide.rs import that does not exist. AC-14.12 descoped today, so WP-14-blocks-WP-12 is no longer the live blocker and three documents still say it is. AC-12.1 is a gate row with AT-12.1 to-write and a 7-file target, all WP-07."
+focus: "AT-12.1 IS BUILT AND RED (5bf3baef) AND DRIVING IT KILLED THE WORK IT GUARDS: AC-12.1 seven-file port is a PRUNE, six of the seven have no executor after the cut. Scope ruling with vc. rc=2 census delivered to ic -- 18 sites, 8 classes, TWO CONTRADICTING guide.rs own text, filed 0169. 0165 half-built and HELD: cc is live in render.rs and --only is path-scoped."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -32,41 +32,49 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-### THE LANE IS FIVE WORK PACKAGES AND THREE OF THEM WERE UNOWNED UNTIL TODAY
+### AT-12.1 IS BUILT AND RED, AND DRIVING IT KILLED THE WORK IT WAS BUILT TO GUARD
 
-**8 of ST0056's open rows sat in work packages NO node claimed, and one was WP-12, "Cutover and v3.0.0 release". NOBODY OWNED SHIPPING.** Invisible for a structural reason worth keeping: every board is honest about its own claims and **no board is a view of the complement**, so a gap in the union is the one thing four accurate boards cannot show. Mine now: **WP-04, WP-05, WP-07, WP-11, WP-12.**
+**`tests/cutover_guard.bash` (`5bf3baef`). Both arms in a fixture with `bin/` absent, population derived from the tree, partition `7 driven + 15 static-only = 22`, control non-vacuous at 1.** Row moved `to-write` -> `red`: the file exists and fails, and red is not a satisfaction.
 
-**BOTH ROWS vc HANDED ME WERE MIS-DESCRIBED AND I PROPAGATED ONE BEFORE READING IT.** `AC-04.6` is MUTATION COMPLETENESS against the ratified machines, not lossless round-trip; `AC-05.7` is the INERT-ARGUMENT DETECTOR, not the bats harness. **vc sized from `intent ac list`, which prints ids and coverage and never the text.** Mis-described, not mis-assigned.
+**AC-12.1's SEVEN-FILE PORT IS A PRUNE, AND THAT IS WITH vc.** The v3 binary has **exactly two exec sites** -- `render.rs:5958` (cwi) and `:6589` (`lib/templates/.claude/scripts` hook bodies). `claude skills`/`rules` are Rust reimplementations at rc=0; `subagents`/`prime` are rc=2 unwired with no shell-out path; `claude hook` execs a TEMPLATE. **`install.rs:352` already says it: cwi is "the ONE plugin script surviving the v3 cut".** So the six have one executor, `bin/intent`, which the cut prunes -- **porting them is work on files the prune deletes.** Not deleting nine files on my own reading.
 
-**`AT-05.7` IS BUILT, DRIVEN, ROSTERED AND FIXED ONCE (`9a4dde06`, `9b2c7739`).** `inert_arg_check.sh`: `1 discards + 6 reads + 2 unwired + 1 undrivable = 10`. The finding is AC-05.7's own motivating instance, still live -- **`st show` accepts six declared values and a bogus one and answers byte-identically at rc=0.** Two-sided control free in the population (`st show` DISCARDS, `st edit` READS); three planted controls each rc=2, hash-verified restore. **v2 drove the LIVE project and hydrated ST0001 into `.intentfiles`; v3 drives a fixture, which TRIPLED the reach and exposed a false positive the first version could not have produced** -- both probes failing identically is the verb not running, not an argument discarded.
+**TWO CORRECTIONS TO AC-12.1's OWN TEXT, BOTH WIDENING.** The source edge is **not** confined to `intent/plugins/claude/bin/*` -- `lib/rules_lib.sh:30` sources it too and reads as covered. And the invisible edge is **four** symbols, not the one named: `claude_plugin_helpers.sh` calls `calculate_checksum`, `ext_root_dir`, `require_claude`, `require_jq`.
 
-**TWO STATUS MOVES ARE WITH vc AND NEITHER IS MINE.** `AT-05.7` (file exists, row says to-write) and `AT-04.6` (says red, **runs 22 green in 0.76s**, note says 11 tests, last read 2026-08-17). **I hold both work packages, which is exactly the shape where a node scores its own row**, and `AT-00.5` records that move producing a live false green.
+**cwi IS THE TWO-SIDED CONTROL AND IT IS FREE IN THE POPULATION:** ported it runs to usage with EMPTY stderr; its pre-port form, rebuilt by deleting the primitives it carries, dies on `find_project_root: command not found`. Without it the other six cannot tell PORTED from NEVER-COUPLED.
 
-### THE SLOW-SUITE CHORE: THREE CANDIDATE CAUSES, ALL MEASURED, AND THE LIVE ONE WAS NONE OF THEM
+### THREE INSTRUMENT DEFECTS, ALL FOUND BY DRIVING IT RATHER THAN READING IT
 
-**1. THE SHELL SUITE TIMES v2 AND FAILS v3.** `test_helper.bash:21` drives `bin/intent`. `--version` 1.4x (**the control -- bash STARTUP is not the cost**), `st list` 23x, `claude rules list` 112x, `claude rules index` 660x. 447s / 1445 tests / 112 files. **Driven against v3: 877 green / 620 red, ZERO of the 620 new.** Upper bound not a measurement -- 63 are FIXTURE SHAPE (my instrument), 107 unclassified. **Defensible floor: 199 failing on surface v3 does not have.** vc's denominator (1124 binary-driving of 1497) confirmed by my partition independently.
+- **`set -o pipefail` + `grep -q` on a pipe.** `grep -q` exits on first match, SIGPIPEs the upstream `grep -v`, pipeline returns 141, predicate answers **"no"**. Correct for every short file, **wrong for the two LONGEST in the population** -- a silent wrong answer whose probability rises with file size, in a predicate whose whole job is exhaustiveness.
+- **Five false call findings, every one a `case` arm.** `critical|warning|recommendation|style)` is an alternation of PATTERNS whose `|` reads as a pipeline separator. Cutting the whole line would hide a real call in `foo) error "x" ;;`, so the PATTERN is cut and the BODY kept -- positive-controlled by planting `require_jq` in a case arm, confirming it is seen, restoring byte-for-byte.
+- **The static call-edge arm EXPIRES WITH ITS SUBJECT AND SAYS SO** -- `n/a -- bin/ already pruned`, never a pass. **D-EXPIRED written into an instrument rather than onto a board.**
 
-**2. THE LOCK IS WHERE THE COST BECOMES VISIBLE, NOT WHERE IT IS CAUSED.** Four sessions shared one 43G `target/debug`. The per-node convention exists (`clean:313`, `releasebuild.lib:189`) and nobody used it. **cc and dc have each isolated their OWN invocations to `target/<node>` -- a per-node choice in our own shells, no shared config, no ruling implied. The fleet question is hv's.**
+### THE rc=2 CENSUS IS DELIVERED (50f5ffd0), AND THE FINDING IS NOT THE COUNT
 
-**3. THE ACTUAL CAUSE WAS A HUNG TEST, FOUND BY DISTRUSTING A PEER'S "QUIET".** Load 19.56 with **ZERO rustc**; two `intent_cli --lib` binaries pegged 100% for 5m; sampled to `tui::app::tests::enter_on_an_artefact_row_...`, `app.rs:732`. ic's, uncommitted, main clean. **ic's own diagnosis is sharper than mine: `Focus` carries its own length, the pushed row sits one past the end, so it was not a loop that might fail to converge -- it had NO terminating input at all.**
+**21 grep hits, 3 match arms, 18 construction sites, 8 classes** -- partition `1+5+5+1+3+1+1+1 = 18`. Two declared. Four undeclared and consistent. **TWO CONTRADICT `guide.rs`'s OWN TEXT: `init` refusing an existing project (`render.rs:4211`) and `--limit` rejecting a non-number (`:3561`) both exit 2, and `:152`/`:154` assign a refusal and a usage error to 1.** Driven, not read. **`:460` is why it matters: the shipped gate FAILS OPEN on 2, so a refusal wearing 2 is a refusal a consumer is contracted to ignore.** Filed `0169` for the code half; the wording half is ic's (WP-09).
+
+**AND THE STRUCTURAL HALF: the guarding test's population is the guide's own declaration, so it can never find a third cause.** A sentence enumerating causes needs a guard whose population is the CONSTRUCTION SITES.
+
+### 0165 IS HALF-BUILT AND DELIBERATELY HELD
+
+**`finding.rs:383`'s false clause is gone and a two-sided guard arm is green** (`attachment_drift_detected` 7/7; negative-controlled by planting an overwrite -- it FAILS, restored it PASSES). **`render.rs`'s half is written and NOT STAGED: cc is live in that file with six uncommitted hunks and `--only` is path-scoped, not hunk-scoped.** Their call which of us lands it.
+
+**READING `:937` IN PLACE CHANGED THE FIX.** The sentence is **true for GENERATED views and false for AUTHORED attachments**, so the site NAMES THE POPULATION rather than losing the claim -- deleting it would make the line wrong for the views, the same defect pointed the other way. **And `:753`'s doc comment already had it right ("rewrites RE-CREATABLE files"): the file was not saying two things at random, one was correct and the other drifted off it.**
 
 ## TODO
 
-- **NEXT, IN ORDER: `AT-12.1` (`tests/cutover_guard.bash`, to-write, BOTH ARMS in a fixture with `bin/` ABSENT), then `AC-12.1`'s seven-file port.** hv ruled the `bin/` prune IN. Target measured and bounded: six `intent/plugins/claude/bin/*` sourcing `bin/intent_helpers` (`prime`, `hook`, `subagents`, `rules`, `skills`, `upgrade`) plus **`claude_plugin_helpers.sh:86` calling `ext_root_dir()` without ever sourcing it** -- the invisible one my own 2026-08-27 amendment exists to name. `cwi` already ported. **14 of 38 helpers are actually called.**
-- **`AT-12.1`'s NOTE CARRIES ITS OWN TRAP AND I MUST NOT BUILD PAST IT:** it names a PROPERTY and not an instrument, _because nobody re-derives the claim once there is a tool to run_.
-- **`AT-04.6`'s PREDICATE, RULED BY vc ON THE BOUNCE: ESTABLISH WHAT COMPUTES THE MACHINE AGREEMENT BEFORE THE ROW MOVES.** The gate prints Machine 4 wired and all five agreeing -- **that is a DIFFERENT ARTEFACT scoring a DIFFERENT population**, and the row cites `mutation_completeness.rs`. A row whose citation is a Rust test cannot be discharged by a shell gate's stdout however true that stdout is. **That is the `AT-00.5` mechanism exactly: the verified predicate and the SCORING predicate were different objects.**
-- **AND THE 22-VERSUS-11 IS ITS OWN FINDING WHATEVER THE STATUS DOES.** The note says 11 tests, the file runs 22, the note was last read 2026-08-17 -- citation rot inside the row's own evidence field. **Fix it, and NOT by writing 22 in: that mints a fresh copy on a fresh decay schedule.**
-- **PUBLISH 199, NEVER 620 (vc).** 150 unwired + 49 unrecognized is _tests failing on surface v3 does not have_ -- defensible, floor, about the tool. The 63 migration refusals are MY FIXTURE SHAPE and the 107 no-such-file are unclassified. **A 620 in front of hv reads as parity debt and gets acted on as parity debt; an upper bound published as a measurement is the class this thread has retracted three figures over.**
-- **THE PHASE SPLIT IS OWED AND UNTAKEN.** Compile+link against assertion time, timed from OUTSIDE the process. Cold + steady-state incremental in my own `target/dc`. cc supplies the same independently.
-- **`0165`'s FIX, now unblocked** -- `finding.rs:383`'s false remedy AND `render.rs:698`/`:818` describing one flag two ways, in ONE commit because the issue's own reasoning says both move together or neither does.
-- **THE rc=2 CENSUS FOR ic.** `guide.rs:142` says two causes; **21 `Failure::Unavailable` construction sites**, one inside `guide.rs` itself. Sites are not causes. ic has asked for the reconciled list and will do the write.
-- **A FIFTH MEANING RIDES `rc=2`:** `intent init` in an existing project. Evidence FOR the enumerable remedy.
+- **WITH vc: THE PRUNE RULING.** Nine files, irreversible, and the criterion's text says port. Ruling wanted, not work.
+- **THE PHASE SPLIT IS OWED AND STILL UNTAKEN, AND TODAY THE BOX IS THE REASON.** Measured before starting rather than after: **load 100.11 with ONE rustc** -- SuperDuper backing up, Spotlight indexing, a file-provider sync, and somebody's `bfs` walking `/`. **Ambient macOS load contaminates a compile-vs-assert timing worse than a peer build does**, and this is the fourth distinct cause of "the suite is slow" measured in one day.
+- **`0165`'s render half**, on cc's answer.
+- **`AT-04.6`'s PREDICATE (vc): ESTABLISH WHAT COMPUTES THE MACHINE AGREEMENT BEFORE THE ROW MOVES.** The gate prints Machine 4 wired and all five agreeing -- **a DIFFERENT ARTEFACT scoring a DIFFERENT population**, and the row cites `mutation_completeness.rs`. The `AT-00.5` mechanism exactly.
+- **THE 22-VERSUS-11 IS ITS OWN FINDING WHATEVER THE STATUS DOES.** Note says 11, file runs 22, last read 2026-08-17. **Fix it, and NOT by writing 22 in: that mints a fresh copy on a fresh decay schedule.**
+- **PUBLISH 199, NEVER 620 (vc).** 150 unwired + 49 unrecognized is _tests failing on surface v3 does not have_. The 63 migration refusals are MY FIXTURE SHAPE; the 107 no-such-file are unclassified. **An upper bound published as a measurement is the class this thread has retracted three figures over.**
+- **`AT-12.1` IS UNJUDGED BY `declared-kind`** -- a real witness under no roster that tool reads, alongside `run_v2_suite.bash` and `append-only-guard.sh`. Pre-existing class, not one I minted; worth naming to vc when the roster next moves.
 
 ### With hv, not with me
 
 - **ST0058's `AC-00.1` / `AC-00.3` / `AC-00.6`** -- all three.
 - **`AC-07.7` / `AC-11.1` / `AC-11.4` / `AC-12.4`** -- tag-gated, and hv has ruled that a DECIDED shape rather than outstanding work.
-- **THE THREE ESTATE ITEMS, WHICH SHARE ONE SENTENCE (cc's): a mechanism exists, nobody adopted it, and the cost lands on whoever runs next.** `CARGO_TARGET_DIR` per node; `cargo-nextest`'s `slow-timeout`+`terminate-after` (two non-returning tests this week, and **the only symptom either emits is "the suite is slow"**); and announcing a build to the board before starting one.
+- **THE THREE ESTATE ITEMS, WHICH SHARE ONE SENTENCE (cc's): a mechanism exists, nobody adopted it, and the cost lands on whoever runs next.** `CARGO_TARGET_DIR` per node (**cc and dc both on their own now**); `cargo-nextest`'s `slow-timeout`+`terminate-after`; announcing a build to the board before starting one.
 - **The store-migration guard**, after the cut. **`bin/.devbin`**, after the carrier sweep.
 
 ## Watch-outs
