@@ -399,6 +399,33 @@ pub enum DaemonError {
     #[source]
     source: std::io::Error,
   },
+  /// A listener could not be bound at all.
+  ///
+  /// **SPLIT OUT OF [`DaemonError::Unpublishable`] ON ITS FIRST REAL RUN, AND
+  /// THE REASON IS THE ONE vc FILED AGAINST THIS FILE THIS MORNING: one variant
+  /// covering two conditions names neither fix.** `Unpublishable` was
+  /// constructed for a directory that could not be created, a lock file that
+  /// could not be opened, an address file that could not be written AND a
+  /// socket that could not be bound -- and its remedy speaks only about
+  /// writability, because that is what three of the four share.
+  ///
+  /// **THE FOURTH IS NOT ABOUT WRITABILITY AND IT IS THE ONE THAT FIRES
+  /// FIRST.** A unix socket address is a fixed-size field in `sockaddr_un`, so
+  /// a path longer than it CANNOT be bound however writable its directory is --
+  /// measured the first time this daemon was started, under a temporary
+  /// directory whose name was ordinary and long. The operator was told to check
+  /// that a perfectly writable directory was writable: a remedy that runs clean
+  /// and changes nothing, which reads as the tool being broken rather than as
+  /// the answer being wrong.
+  #[error("could not bind the daemon's {what} listener: {source}")]
+  Unbindable {
+    what: &'static str,
+    /// The address that was refused, rendered for a human. A socket path or a
+    /// loopback address, so it is text rather than a `PathBuf`.
+    at: String,
+    #[source]
+    source: std::io::Error,
+  },
 }
 
 impl crate::remedy::Remedy for DaemonError {
@@ -415,6 +442,18 @@ impl crate::remedy::Remedy for DaemonError {
       DaemonError::AlreadyRunning { .. } => {
         "this machine already has an intentd serving these projects, and a second one would evict it. Stop the running daemon first if you mean to replace it.".to_string()
       }
+      // **IT NAMES BOTH CAUSES BECAUSE BOTH ARE REACHABLE AND THEY LOOK
+      // IDENTICAL FROM HERE.** The length is printed rather than compared
+      // against a constant: the limit is a platform ABI detail that differs
+      // between macOS and Linux, and a number hardcoded here would be a second
+      // home for something the OS already reports in `source`.
+      DaemonError::Unbindable { what, at, .. } if *what == "socket" => format!(
+        "the socket could not be bound at `{at}` ({} bytes). Either its directory is not writable, or the path is too long for a unix socket address -- `sockaddr_un` holds a fixed-size path and the operating system's own message above says which. A long $HOME, or a temporary directory used as one, is the usual cause.",
+        at.len()
+      ),
+      DaemonError::Unbindable { at, .. } => format!(
+        "intentd could not bind {at}. Loopback is not reachable, or this process may not open sockets -- check that the loopback interface is up and that no sandbox forbids binding."
+      ),
       DaemonError::Unpublishable { path, .. } => format!(
         "intentd bound a port and could not record it, so no client could have found it. Check that `{}` is writable -- it is created by intentd under your own per-user state directory.",
         path.parent().map(|p| p.display().to_string()).unwrap_or_else(|| "its directory".to_string())
@@ -540,8 +579,11 @@ impl Published {
   pub fn bind_loopback_under(root: &std::path::Path) -> Result<(TcpListener, Self), DaemonError> {
     let path = crate::userstate::daemon_address_file_under(root);
     let listener = TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, 0)).map_err(|source| {
-      DaemonError::Unpublishable {
-        path: path.clone(),
+      // Reporting this as `Unpublishable { path: <the address file> }` named a
+      // file the failure had not reached and could not explain.
+      DaemonError::Unbindable {
+        what: "loopback",
+        at: "a loopback port".to_string(),
         source,
       }
     })?;
@@ -727,7 +769,11 @@ impl Bound {
       // is what stops one crash from making every future start impossible.
       std::fs::remove_file(&path).map_err(fail)?;
     }
-    let listener = UnixListener::bind(&path).map_err(fail)?;
+    let listener = UnixListener::bind(&path).map_err(|source| DaemonError::Unbindable {
+      what: "socket",
+      at: path.display().to_string(),
+      source,
+    })?;
     let meta = std::fs::metadata(&path).map_err(fail)?;
     Ok((
       listener,

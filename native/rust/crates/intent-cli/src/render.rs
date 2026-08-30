@@ -65,6 +65,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("events", m)) => events(m),
     Some(("fc", m)) => fc(m),
     Some(("surface", m)) => surface(m),
+    Some(("daemon", m)) => daemon(m),
     Some((family, _)) => unwired(family, ""),
     None => {
       println!(
@@ -4237,6 +4238,136 @@ fn modules_check() -> Result<(), Failure> {
 /// through `run`, which widens a signature every arm shares for the benefit of
 /// one, and the honest cost of asking the authority is smaller than the cost
 /// of keeping a copy near the caller.
+/// `intent daemon` -- the CLI owns the daemon's lifecycle (the conflabd
+/// pattern), and the daemon owns nothing about the CLI.
+fn daemon(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    Some(("run", _)) => daemon_run(),
+    Some(("status", _)) => daemon_status(),
+    Some((verb, _)) => unwired("daemon", verb),
+    None => unwired("daemon", ""),
+  }
+}
+
+/// Become `intentd`, in the foreground.
+///
+/// **`exec`, NOT `spawn`, AND THAT IS THE WHOLE MECHANISM.** This process is
+/// REPLACED by the daemon, so its signals, its exit status, its terminal and
+/// its stdio are the daemon's without anything forwarding them. A spawned child
+/// would need every one of those relayed, and each relay is a place for the two
+/// to disagree about what `Ctrl-C` means.
+///
+/// **THIS IS ALSO WHY `AC-08.9`'s *IDENTICAL CODE* IS FREE.** `intentd` serving
+/// while running and `intent daemon run` serving in the foreground are the same
+/// BINARY, not two code paths that agree today -- which is strictly stronger,
+/// and is why the daemon body was not put in `intentsvcs` where `tokio` and
+/// `axum` would enter every CLI invocation.
+fn daemon_run() -> Result<(), Failure> {
+  use std::os::unix::process::CommandExt;
+  let path = resolve_intentd()?;
+  // `exec` returns ONLY on failure.
+  let failed = std::process::Command::new(&path).exec();
+  Err(Failure::Error(format!(
+    "error: `{}` could not be executed: {failed}\n  remedy: the file was found and the kernel refused to run it. Check that it is executable and built for this architecture.",
+    path.display()
+  )))
+}
+
+/// Report whether a daemon is answering, using the same call the store door
+/// makes.
+///
+/// **IT ASKS `daemon::route`, NEVER THE FILESYSTEM.** A status verb that
+/// answered from a socket file's existence would tell the operator a daemon is
+/// running while every command routes in-process -- the two would disagree, and
+/// the status verb is exactly where somebody goes to find out why.
+fn daemon_status() -> Result<(), Failure> {
+  let candidates = daemon::candidates().map_err(|e| Failure::Error(e.render()))?;
+  match daemon::route(&candidates) {
+    daemon::Route::Daemon(endpoint) => println!("ok: intentd is answering at {endpoint}"),
+    daemon::Route::InProcess => {
+      println!("ok: no intentd is answering; commands run in-process")
+    }
+  }
+  Ok(())
+}
+
+/// Where `intentd` is, refusing anything that is not the binary built beside
+/// this one.
+///
+/// **THE FAILURE MODE HERE WAS CREATED BY THE `exec` DECISION AND DID NOT
+/// EXIST BEFORE IT** (vc, 2026-08-30). Making "two faces disagree"
+/// unrepresentable minted "I resolved the wrong one" in its place: an older
+/// `intentd` on `PATH`, or a stale sibling from a previous build, serves
+/// DIFFERENT code while every identity test stays green -- because both faces
+/// really are one binary, just not the one that was meant. Nothing that existed
+/// before this function would have caught it.
+///
+/// **SO A MISMATCH IS REFUSED LOUDLY AND NEVER SERVED.** The version is asked
+/// of the candidate itself rather than inferred from its path, because a path
+/// says where a file is and nothing about what is in it.
+fn resolve_intentd() -> Result<std::path::PathBuf, Failure> {
+  let want = env!("CARGO_PKG_VERSION");
+  let candidates = intentd_candidates();
+  if candidates.is_empty() {
+    return Err(Failure::Error(format!(
+      "error: no `intentd` was found on PATH or beside this binary\n  remedy: intent {want} expects an `intentd` of the same version. Install the matching daemon, or run this from a build tree where it sits beside `intent`."
+    )));
+  }
+  let mut rejected = Vec::new();
+  for candidate in &candidates {
+    match version_reported_by(candidate) {
+      Some(found) if found == want => return Ok(candidate.clone()),
+      Some(found) => rejected.push(format!("{} reports {found}", candidate.display())),
+      None => rejected.push(format!("{} did not answer --version", candidate.display())),
+    }
+  }
+  Err(Failure::Error(format!(
+    "error: every `intentd` found is a different build from this `intent` ({want})\n  {}\n  remedy: running a mismatched daemon would serve DIFFERENT code from this CLI while looking identical, so it is refused rather than used. Rebuild or reinstall so the pair match.",
+    rejected.join("\n  ")
+  )))
+}
+
+/// `intentd` candidates, PATH first and then this binary's own directory.
+fn intentd_candidates() -> Vec<std::path::PathBuf> {
+  let mut found: Vec<std::path::PathBuf> = Vec::new();
+  if let Some(path) = std::env::var_os("PATH") {
+    for dir in std::env::split_paths(&path) {
+      let candidate = dir.join("intentd");
+      if candidate.is_file() && !found.contains(&candidate) {
+        found.push(candidate);
+      }
+    }
+  }
+  // The sibling is last and is not a fallback for a WRONG version -- every
+  // candidate is version-checked, so ordering decides only which correct one
+  // is used.
+  if let Ok(exe) = std::env::current_exe() {
+    if let Some(candidate) = exe.parent().map(|dir| dir.join("intentd")) {
+      if candidate.is_file() && !found.contains(&candidate) {
+        found.push(candidate);
+      }
+    }
+  }
+  found
+}
+
+/// What this candidate says its version is, or `None` if it could not say.
+///
+/// A candidate that fails to run, exits non-zero, or prints something
+/// unparseable is REJECTED rather than assumed to match: not answering is not
+/// evidence of agreement.
+fn version_reported_by(path: &Path) -> Option<String> {
+  let output = std::process::Command::new(path)
+    .arg("--version")
+    .output()
+    .ok()?;
+  if !output.status.success() {
+    return None;
+  }
+  let text = String::from_utf8(output.stdout).ok()?;
+  text.split_whitespace().nth(1).map(str::to_string)
+}
+
 fn version() -> Result<(), Failure> {
   // `print!`, not `println!`: `render_version()` already ends in a newline, and
   // the byte-identity property is asserted against `--version`, so an added

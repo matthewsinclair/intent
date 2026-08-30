@@ -1415,6 +1415,7 @@ name = "intentd"
 version = "3.0.0"
 dependencies = [
  "axum",
+ "intentsvcs",
  "tokio",
 ]
 

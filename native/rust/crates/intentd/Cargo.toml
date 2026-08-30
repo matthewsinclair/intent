@@ -17,5 +17,29 @@ path = "src/main.rs"
 # in the workspace manifest -- one home, so a reader who changes the version
 # meets the argument for it. These two are consumed HERE and nowhere else.
 [dependencies]
+# **THE FACADE IS THE ONLY WAY THIS CRATE REACHES DATA, WHICH IS D06 STATED AS A
+# DEPENDENCY RATHER THAN AS A RULE.** The daemon serves what the CLI serves, so
+# it must call the same surface; the alternative -- a second data path with its
+# own SQLite handle -- is the exact thing the NOTE above forbids. Depending on
+# `intentsvcs` is therefore not a relaxation of D06, it is how D06 is obeyed:
+# `dep_graph_guard.rs` requires `rusqlite` to appear in one manifest and this
+# adds none.
+#
+# It also carries the routing seam. `daemon::Bound` and `daemon::Published` are
+# the bind-and-publish constructors the client's probe is designed against, and
+# `daemon::is_probe_frame` is the recogniser -- re-spelling any of the three
+# here would put the agreement in two homes, on the one predicate whose silent
+# disagreement puts two sync engines on one store.
+intentsvcs = { path = "../intentsvcs" }
 tokio.workspace = true
 axum.workspace = true
+
+[dev-dependencies]
+# **THE SAME DEPENDENCY AS ABOVE, DECLARED TWICE BECAUSE A CRATE'S INTEGRATION
+# TESTS CANNOT SEE ITS OWN `[dependencies]`.** `tests/` links against the
+# package as an external consumer would, and `intentd` has no lib for it to
+# link, so without this line the test cannot reach `daemon::route` -- the very
+# function AT-08.3 exists to drive against a real daemon. Asserting the routing
+# rule with a hand-rolled probe instead would make the test a second home for
+# the predicate, which is the one thing this seam cannot afford.
+intentsvcs = { path = "../intentsvcs" }
