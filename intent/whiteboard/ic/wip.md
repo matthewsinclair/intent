@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-30 00:52Z
+heartbeat_at: 2026-08-30 00:59Z
 status: active
-focus: "Pieces 1 and 2 done; piece 3 STARTED -- the mode machine landed at 1331fcdf with six mutation-proven invariants and NO new dependency. The `Cargo.lock` move for ratatui+crossterm is RULED and HELD: the shared tree does not build (dc mid-flight on `fiat`), and a lockfile move on top of that makes two breakages into one. Announced to cc and dc; I go when the tree builds."
+focus: "Pieces 1 and 2 done. Piece 3 has its two dependency-free halves in: the mode machine (1331fcdf) and the terminal borrow-and-return (ebedff7f), eleven invariants between them and every one mutation-proven. `crossterm` is in (+18 crates, announced first); `ratatui` follows with the first thing that DRAWS. Next is the event loop, and after it the editor handoff where AC-17.10 lives."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -29,7 +29,7 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## TODO
 
-1. **WP-17 piece 3 -- the realiser. THE MODE MACHINE IS DONE** (`1331fcdf`): declared table, six invariants, all six mutation-proven, no `ratatui` and no `crossterm`. **The dependency move is RULED (vc: ratatui + crossterm, `intent-cli` only) and HELD** -- `cargo build` is red on `contract.rs` missing dc's in-flight `fiat` field, and moving `Cargo.lock` on top of that makes two unrelated breakages one unattributable build error. cc and dc are told; announce again in the moment before touching it. Then: editor handoff through the EXISTING `launch_editor` + `$VISUAL` resolver, **the RETURN re-reads the artefact before painting anything derived from it** (`AC-17.10`), terminal restored on every exit path including panic -- and cc's `Drop`-guard finding is the one that matters there, because cleanup written after the assertions never runs on the day it is needed.
+1. **WP-17 piece 3 -- the realiser. TWO HALVES IN, BOTH DEPENDENCY-FREE BY DESIGN.** `tui/mode.rs` (`1331fcdf`) is the declared mode graph, six invariants; `tui/terminal.rs` (`ebedff7f`) is the borrow-and-return, five invariants, `Drop` PLUS a panic hook because the hook runs BEFORE the message prints and `Drop` cannot. **Both are provable with no tty**, which is the point: the realiser is what they check. **`crossterm` is in (+18 crates, 245 -> 263), announced to all three before the lockfile moved and held until the tree built.** `ratatui` goes in with the first thing that DRAWS -- a lockfile move that delivers nothing justifies itself later or not at all. **Next: the event loop** (`mode::step` is the authority; an undeclared key is `None`, never a self-loop), **then the editor handoff -- the EXISTING `launch_editor` + `$VISUAL` resolver, and the RETURN re-reads the artefact before painting anything derived from it (`AC-17.10`).**
 
 2. **ST0064 -- the macOS menubar app.** Reference to adopt as-is: `~/Devel/prj/Gtools/native/macos/Geodica`, 2,470 lines of Swift; **structure is the deliverable, not the code**. **LIFECYCLE SHELLS OUT** (starting a daemon that is not running cannot be a request TO that daemon; `AC-00.3`) and **STATE COMES OVER THE WIRE**. **THE PORT IS GONE, NOT CHOSEN** -- the daemon binds `127.0.0.1:0` and writes its address into its state dir. **No port literal in the app.** `URLSession`-over-TCP is Geodica's 127-line service against `NWEndpoint.unix` needing no token but hand-rolled HTTP framing; vc wants that priced from the Geodica code with a WP size. ST0064 has zero criteria and a scope of `S` that will not survive contact. Control plane + console only in v1. Logo is `docs/design/intent-logo.*`. **`intent lang init swift` before the first `.swift` file or the app ships outside the critic gate.**
 3. **WP-16 (S)** -- `data-model.md` against the schema, both directions. **`lib_staged.sh` ALREADY IS the committed-read mechanism** (`git show :<path>`); `machine_table_check.sh` already parses this document's tables. Source them; do not grow a second. **dc is editing both right now** -- coordinate before touching.
