@@ -1,0 +1,228 @@
+{
+  "about": "Form declarations for the TUI and web realisers (WP-17). LAYOUT ONLY: order, label, widget and editability. THE FIELD SET IS NOT DECLARED HERE -- existence and type come from the published schema face (`schema/*.json`, rendered from the model by `faces::faces`), and how a property can be changed comes from `facade::unsettable_kind`. A field naming a property the face does not carry is refused at load, by name; a property that can be changed and has no row is NAMED. Both directions, because AC-17.2 is held both ways. THE ORDER OF `fields` IS THE TAB ORDER (AC-17.5), so there is no second field carrying it.",
+  "widgets": [
+    {
+      "value": "text",
+      "gloss": "A single-line value edited in place, in the value column. The default for a scalar."
+    },
+    {
+      "value": "number",
+      "gloss": "A single-line value that must parse as a number. Distinct from `text` so the realiser can refuse a bad keystroke rather than the store refusing the commit."
+    },
+    {
+      "value": "select",
+      "gloss": "A closed choice. ON A STATUS FIELD IT OFFERS ONLY THE LEGAL TRANSITIONS FROM THE CURRENT STATE and prompts for a reason where the transition owes one -- the machine already refuses illegal moves, and a plain dropdown would offer them and discover the refusal after the keystroke."
+    },
+    {
+      "value": "button",
+      "gloss": "A row that is a DESCENT or an ACTION rather than a value -- a collection opens its own pane. ST0056 carries 297 attachments nested three deep; inlining them makes the form 325 rows of which 297 are files, and a single aligned name column cannot serve `title` and `parity/tools/conservation_check.sh` at once."
+    },
+    {
+      "value": "prose",
+      "gloss": "A LONG value, HANDED OFF TO $VISUAL/$EDITOR. NOT AN INLINE MULTI-LINE WIDGET, and that is what keeps the form a flat single-line-per-field column rather than a layout engine. Non-negotiable on real data: criterion text reaches 59,061 characters with zero line breaks (ST0057 AC-08.5) and 91 exceed 1,000."
+    }
+  ],
+  "forms": [
+    {
+      "entity": "thread",
+      "fields": [
+        {
+          "name": "title",
+          "label": "title",
+          "widget": "text",
+          "editable": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "widget": "select",
+          "editable": true
+        },
+        {
+          "name": "status_reason",
+          "label": "reason",
+          "widget": "text",
+          "editable": true
+        },
+        {
+          "name": "acceptance",
+          "label": "acceptance",
+          "widget": "select",
+          "editable": true
+        },
+        {
+          "name": "objective",
+          "label": "objective",
+          "widget": "prose",
+          "editable": true
+        },
+        {
+          "name": "context",
+          "label": "context",
+          "widget": "prose",
+          "editable": true
+        },
+        {
+          "name": "slug",
+          "label": "slug",
+          "widget": "text",
+          "editable": true
+        },
+        {
+          "name": "completed",
+          "label": "completed",
+          "widget": "text",
+          "editable": true
+        },
+        {
+          "name": "created",
+          "label": "created",
+          "widget": "text",
+          "editable": false
+        },
+        {
+          "name": "wps",
+          "label": "work pkgs",
+          "widget": "button",
+          "editable": false
+        },
+        {
+          "name": "criteria",
+          "label": "criteria",
+          "widget": "button",
+          "editable": false
+        },
+        {
+          "name": "tests",
+          "label": "tests",
+          "widget": "button",
+          "editable": false
+        },
+        {
+          "name": "attachments",
+          "label": "documents",
+          "widget": "button",
+          "editable": false
+        },
+        {
+          "name": "related",
+          "label": "related",
+          "widget": "button",
+          "editable": false
+        }
+      ]
+    },
+    {
+      "entity": "wp",
+      "fields": [
+        {
+          "name": "title",
+          "label": "title",
+          "widget": "text",
+          "editable": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "widget": "select",
+          "editable": true
+        },
+        {
+          "name": "status_reason",
+          "label": "reason",
+          "widget": "text",
+          "editable": true
+        },
+        {
+          "name": "scope",
+          "label": "scope",
+          "widget": "select",
+          "editable": true
+        },
+        {
+          "name": "objective",
+          "label": "objective",
+          "widget": "prose",
+          "editable": true
+        },
+        {
+          "name": "body",
+          "label": "body",
+          "widget": "prose",
+          "editable": true
+        },
+        {
+          "name": "preamble",
+          "label": "preamble",
+          "widget": "prose",
+          "editable": true
+        },
+        {
+          "name": "seq",
+          "label": "seq",
+          "widget": "number",
+          "editable": false
+        }
+      ]
+    },
+    {
+      "entity": "issue",
+      "fields": [
+        {
+          "name": "title",
+          "label": "title",
+          "widget": "text",
+          "editable": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "widget": "select",
+          "editable": true
+        },
+        {
+          "name": "severity",
+          "label": "severity",
+          "widget": "select",
+          "editable": true
+        },
+        {
+          "name": "reporter",
+          "label": "reporter",
+          "widget": "text",
+          "editable": true
+        },
+        {
+          "name": "slug",
+          "label": "slug",
+          "widget": "text",
+          "editable": true
+        },
+        {
+          "name": "body",
+          "label": "body",
+          "widget": "prose",
+          "editable": true
+        },
+        {
+          "name": "closed",
+          "label": "closed",
+          "widget": "text",
+          "editable": false
+        },
+        {
+          "name": "created",
+          "label": "created",
+          "widget": "text",
+          "editable": false
+        },
+        {
+          "name": "number",
+          "label": "number",
+          "widget": "number",
+          "editable": false
+        }
+      ]
+    }
+  ]
+}
