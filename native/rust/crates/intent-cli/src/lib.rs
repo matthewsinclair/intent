@@ -14,6 +14,7 @@ pub mod dispatch;
 pub mod guide;
 pub mod render;
 pub mod spine;
+pub mod tui;
 
 /// The commit this binary was built from, embedded by `build.rs` (AC-11.5).
 ///
