@@ -27,7 +27,7 @@ use crossterm::event::{self, Event};
 use ratatui::Terminal;
 use ratatui::backend::CrosstermBackend;
 
-use super::app::{App, Step};
+use super::app::{App, Pane, Step};
 use super::draw;
 use super::edit::{self, Handoff, Landed, Refused, Session};
 use super::layout::{self, Row, Screen};
@@ -133,7 +133,30 @@ fn status_row(app: &App, rows: &[Row]) -> String {
     parts.push(row.kind.clone());
     parts.push(format!("{}/{}", f.index() + 1, f.len()));
   }
+  // **THE PANE HINT IS ONLY THERE WHEN THERE IS A PANE TO CROSS TO.** A `TAB
+  // detail` standing on every row would be an offer the key does not honour,
+  // which teaches the operator that Tab is broken rather than that this row has
+  // no detail -- the same reason `cross_panes` does nothing rather than
+  // self-looping.
+  if let Some(hint) = pane_hint(app, rows) {
+    parts.push(hint);
+  }
   parts.join("   ")
+}
+
+/// `TAB detail` from the list, `TAB list` from the detail pane, and nothing at
+/// all where the row carries none.
+///
+/// *A way across that is wired and unlabelled is a way across nobody finds* --
+/// the same defect the APP row's `ESC back` exists for, one pane down.
+fn pane_hint(app: &App, rows: &[Row]) -> Option<String> {
+  if !app.focused_row(rows).is_some_and(layout::Row::has_detail) {
+    return None;
+  }
+  Some(match app.pane(rows) {
+    Pane::List => "TAB detail".to_string(),
+    Pane::Detail => "TAB list".to_string(),
+  })
 }
 
 /// The command in play. `tui-design.md` §2: the `:` line while composing, the
@@ -485,6 +508,46 @@ mod tests {
         .iter()
         .any(|l| l.contains(layout::DETAIL_LABEL.trim())),
       "the detail pane has no rule naming it"
+    );
+  }
+
+  /// **THE PANE HINT IS ON THE STATUS ROW ONLY WHERE THERE IS A PANE TO CROSS
+  /// TO, AND IT NAMES WHICH WAY THE KEY GOES.** A `TAB detail` standing on
+  /// every row is an offer the key does not honour, which teaches the operator
+  /// that Tab is broken rather than that this row has no detail; and *a way
+  /// across that is wired and unlabelled is a way across nobody finds*, which
+  /// was a real defect on the APP row one level up.
+  #[test]
+  fn the_status_row_offers_the_crossing_only_where_there_is_one() {
+    let rows = vec![
+      Row::new("title", "ST0056", "text"),
+      Row::new("status", "wip", "select").expanding_to(vec![Row::new("legal", "done", "text")]),
+    ];
+    let mut app = App::explore();
+    app.point_at(rows.len());
+
+    let plain = screen_for(&app, &rows, 80).status;
+    assert!(
+      !plain.contains("TAB"),
+      "a row with no detail offered a crossing: {plain:?}"
+    );
+
+    app.focus = app.focus.and_then(|f| f.at(1));
+    let offered = screen_for(&app, &rows, 80).status;
+    assert!(
+      offered.contains("TAB detail"),
+      "a row carrying detail did not say how to reach it: {offered:?}"
+    );
+
+    app.wants_detail = true;
+    let inside = screen_for(&app, &rows, 80).status;
+    assert!(
+      inside.contains("TAB list"),
+      "the detail pane did not say how to get back: {inside:?}"
+    );
+    assert!(
+      inside.contains(app.mode.name()),
+      "the hint displaced the mode, which is the one thing the status row must always carry"
     );
   }
 }

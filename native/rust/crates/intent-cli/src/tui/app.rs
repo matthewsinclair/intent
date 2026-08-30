@@ -59,6 +59,19 @@ pub enum Step {
   Hand(Handoff),
 }
 
+/// Which pane the cursor is in.
+///
+/// **A GUARD ON NORMAL'S EDGES, NOT A SIXTH MODE.** [`super::keys`] already
+/// says so by refusing `Tab` a trigger: crossing panes changes where `Move` and
+/// `Enter` LAND, never what the keys mean, so it is the app's state and not the
+/// machine's. A `Mode::Detail` would have to duplicate every NORMAL edge.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Pane {
+  #[default]
+  List,
+  Detail,
+}
+
 /// The realiser's whole state.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct App {
@@ -69,6 +82,11 @@ pub struct App {
   /// Which row the cursor is on. `None` for a view with no rows -- an empty
   /// form has no focus rather than a focus on nothing (`AC-17.5`).
   pub focus: Option<Focus>,
+  /// Where the operator has ASKED to be. **The pane they are actually in is
+  /// [`App::pane`], which is derived** -- see there.
+  pub wants_detail: bool,
+  /// The cursor inside the detail pane.
+  pub detail_focus: Option<Focus>,
   /// News from the last thing that happened, for the INFO row. Empty most of
   /// the time.
   ///
@@ -88,6 +106,8 @@ impl App {
       mode: mode::REST,
       scroll: 0,
       focus: None,
+      wants_detail: false,
+      detail_focus: None,
       notice: String::new(),
     }
   }
@@ -99,6 +119,8 @@ impl App {
       mode: mode::REST,
       scroll: 0,
       focus: None,
+      wants_detail: false,
+      detail_focus: None,
       notice: String::new(),
     }
   }
@@ -106,6 +128,53 @@ impl App {
   /// The row under the cursor, if there is one.
   pub fn focused_row<'r>(&self, rows: &'r [Row]) -> Option<&'r Row> {
     self.focus.and_then(|f| rows.get(f.index()))
+  }
+
+  /// The pane the cursor is in.
+  ///
+  /// **DERIVED, NEVER STORED, AND THAT IS THE WHOLE INVARIANT.** The detail
+  /// pane exists only while the selected row carries detail, so a STORED pane
+  /// would go stale the instant the cursor moved to a row without any -- and
+  /// the operator would be typing into a pane that is not on the screen, with
+  /// nothing saying so. `wants_detail` records what they ASKED for; this
+  /// answers what they GOT, and the two can only disagree in the safe
+  /// direction.
+  pub fn pane(&self, rows: &[Row]) -> Pane {
+    if self.wants_detail && self.focused_row(rows).is_some_and(Row::has_detail) {
+      Pane::Detail
+    } else {
+      Pane::List
+    }
+  }
+
+  /// The cursor of whichever pane is active.
+  pub fn cursor(&self, rows: &[Row]) -> Option<Focus> {
+    match self.pane(rows) {
+      Pane::List => self.focus,
+      Pane::Detail => self.detail_focus,
+    }
+  }
+
+  /// `Tab`: cross to the other pane, if there is one.
+  ///
+  /// **A TAB WITH NOWHERE TO GO CHANGES NOTHING** -- the same rule as an
+  /// unbound key, and for the same reason: a self-loop that silently absorbs
+  /// the keystroke teaches the operator the key does not work rather than that
+  /// this row has no detail.
+  fn cross_panes(&mut self, rows: &[Row]) {
+    let Some(detail) = self
+      .focused_row(rows)
+      .and_then(|r| r.detail.as_ref())
+      .filter(|d| !d.is_empty())
+    else {
+      return;
+    };
+    if self.wants_detail {
+      self.wants_detail = false;
+    } else {
+      self.wants_detail = true;
+      self.detail_focus = Focus::first(detail.len());
+    }
   }
 
   /// Feed one keystroke.
@@ -117,6 +186,15 @@ impl App {
   /// The machine's own test says as much in its message. Passing the rows in is
   /// what lets [`mode::arm`] answer from the declared discriminator instead.
   pub fn on_key(&mut self, key: KeyEvent, rows: &[Row]) -> Step {
+    // **`Tab` IS A PANE GUARD AND NOT A MODE TRIGGER**, which [`super::keys`]
+    // declares by refusing it one. It is answered here, ahead of the machine,
+    // because the machine has nothing to say about it -- and only from the rest
+    // state, because in FIELD and COMMAND the key belongs to the text being
+    // typed and in EMBED it belongs to the child.
+    if self.mode == mode::REST && matches!(key.code, KeyCode::Tab | KeyCode::BackTab) {
+      self.cross_panes(rows);
+      return Step::Continue;
+    }
     // Not a key we bind. **Nothing happens -- not a self-loop, nothing.**
     let Some(trigger) = keys::trigger(self.mode, key) else {
       return Step::Continue;
@@ -178,11 +256,24 @@ impl App {
     // near-identical self-loops in a table whose whole value is being readable
     // as a graph. The app has the keystroke and reads it here.
     if trigger == "Move" {
-      self.focus = match key.code {
-        KeyCode::Up | KeyCode::Left => self.focus.map(Focus::back),
-        KeyCode::Down | KeyCode::Right => self.focus.map(Focus::forward),
-        _ => self.focus,
+      let step: fn(Focus) -> Focus = match key.code {
+        KeyCode::Up | KeyCode::Left => Focus::back,
+        KeyCode::Down | KeyCode::Right => Focus::forward,
+        _ => return Step::Continue,
       };
+      // **THE ARROWS MOVE THE PANE THE CURSOR IS IN**, which is the whole
+      // meaning of section 4's *move within the focused pane*.
+      match self.pane(rows) {
+        Pane::Detail => self.detail_focus = self.detail_focus.map(step),
+        Pane::List => {
+          self.focus = self.focus.map(step);
+          // **LEAVING THE ROW LEAVES ITS PANE.** The detail belonged to the row
+          // that opened it, so carrying the request onto the next row would
+          // reopen a pane over somebody else's detail -- or over none.
+          self.wants_detail = false;
+          self.detail_focus = None;
+        }
+      }
     }
 
     self.mode = next;
@@ -198,6 +289,8 @@ impl App {
   pub fn point_at(&mut self, n: usize) {
     self.focus = Focus::first(n);
     self.scroll = 0;
+    self.wants_detail = false;
+    self.detail_focus = None;
   }
 
   /// Re-read the same view: keep the cursor where the operator left it.
@@ -694,5 +787,178 @@ mod tests {
     assert_eq!(app.focus.map(Focus::index), Some(0));
     app.refocus(0);
     assert_eq!(app.focus, None, "a view with no rows has no focus at all");
+  }
+
+  fn detailed_rows() -> Vec<Row> {
+    vec![
+      Row::named("title", "title", "ST0056", "text"),
+      Row::named("status", "status", "wip", "select").expanding_to(vec![
+        Row::new("legal", "done, cancelled", "text"),
+        Row::new("owed", "a reason", "text"),
+        Row::new("from", "wip", "text"),
+      ]),
+      Row::named("slug", "slug", "add-a-rust-based-cli", "text"),
+    ]
+  }
+
+  fn tab() -> KeyEvent {
+    key(KeyCode::Tab)
+  }
+
+  fn on_rows(n: usize) -> App {
+    let mut app = App::explore();
+    app.point_at(n);
+    app
+  }
+
+  #[test]
+  fn the_pane_fixture_has_detail_on_exactly_one_row() {
+    let with: Vec<usize> = detailed_rows()
+      .iter()
+      .enumerate()
+      .filter(|(_, r)| r.has_detail())
+      .map(|(i, _)| i)
+      .collect();
+    assert_eq!(
+      with,
+      vec![1usize],
+      "the fixture must have detail on exactly one row, or the walks below cannot show the pane \
+       following it"
+    );
+  }
+
+  /// **THE OPERATOR CAN NEVER BE IN A PANE THAT IS NOT ON THE SCREEN.** The
+  /// pane is DERIVED from the row, so a request made on a row that has detail
+  /// cannot survive onto one that has not -- asserted by walking the whole row
+  /// set with the request left standing.
+  #[test]
+  fn a_pane_request_never_survives_onto_a_row_with_no_detail() {
+    let rows = detailed_rows();
+    let mut app = on_rows(rows.len());
+    let mut in_detail = 0usize;
+    for at in 0..rows.len() {
+      app.focus = app.focus.and_then(|f| f.at(at));
+      app.wants_detail = true;
+      match app.pane(&rows) {
+        Pane::Detail => {
+          assert!(
+            rows[at].has_detail(),
+            "row {at} carries no detail and the cursor is in its detail pane"
+          );
+          in_detail += 1;
+        }
+        Pane::List => assert!(
+          !rows[at].has_detail(),
+          "row {at} carries detail and a standing request did not reach it"
+        ),
+      }
+    }
+    assert_eq!(
+      in_detail, 1,
+      "the walk found {in_detail} rows in the detail pane and the fixture has one"
+    );
+  }
+
+  /// **TAB CROSSES BOTH WAYS, AND A PANE CANNOT BE ENTERED THAT CANNOT BE
+  /// LEFT** -- `no_state_can_be_entered_and_not_left` applied to panes.
+  #[test]
+  fn tab_crosses_into_the_detail_pane_and_back_out_of_it() {
+    let rows = detailed_rows();
+    let mut app = on_rows(rows.len());
+    app.focus = app.focus.and_then(|f| f.at(1));
+    assert_eq!(app.pane(&rows), Pane::List);
+
+    assert_eq!(app.on_key(tab(), &rows), Step::Continue);
+    assert_eq!(app.pane(&rows), Pane::Detail, "Tab did not cross");
+    assert_eq!(
+      app.detail_focus.map(Focus::len),
+      Some(3),
+      "crossing did not point the cursor at the detail rows"
+    );
+
+    assert_eq!(app.on_key(tab(), &rows), Step::Continue);
+    assert_eq!(app.pane(&rows), Pane::List, "Tab could not cross back");
+  }
+
+  /// **A TAB WITH NOWHERE TO GO CHANGES NOTHING AT ALL** -- not the pane, not
+  /// the cursor, not the mode. The same rule as an unbound key: a self-loop
+  /// that absorbs the keystroke teaches the operator that Tab is broken.
+  #[test]
+  fn tab_on_a_row_with_no_detail_changes_nothing() {
+    let rows = detailed_rows();
+    for at in [0usize, 2] {
+      let mut app = on_rows(rows.len());
+      app.focus = app.focus.and_then(|f| f.at(at));
+      let before = app.clone();
+      assert_eq!(app.on_key(tab(), &rows), Step::Continue);
+      assert_eq!(app, before, "Tab on row {at} changed the app");
+    }
+  }
+
+  /// **THE ARROWS MOVE THE PANE THE CURSOR IS IN**, which is what section 4's
+  /// *move within the focused pane* means. Driven on BOTH panes, because a
+  /// realiser that always moved the list passes every list-only assertion.
+  #[test]
+  fn the_arrows_move_whichever_pane_the_cursor_is_in() {
+    let rows = detailed_rows();
+    let mut app = on_rows(rows.len());
+    app.focus = app.focus.and_then(|f| f.at(1));
+    app.on_key(tab(), &rows);
+    assert_eq!(app.pane(&rows), Pane::Detail);
+
+    let list_before = app.focus.map(Focus::index);
+    app.on_key(key(KeyCode::Down), &rows);
+    assert_eq!(
+      app.detail_focus.map(Focus::index),
+      Some(1),
+      "Down did not move the detail cursor"
+    );
+    assert_eq!(
+      app.focus.map(Focus::index),
+      list_before,
+      "Down moved the LIST cursor while the detail pane had focus"
+    );
+    assert_eq!(app.pane(&rows), Pane::Detail, "moving left the pane");
+  }
+
+  /// **LEAVING THE ROW LEAVES ITS PANE.** The detail belonged to the row that
+  /// opened it; carrying the request onto the next row would reopen a pane over
+  /// somebody else's detail.
+  #[test]
+  fn moving_the_list_cursor_closes_the_pane_the_previous_row_opened() {
+    let rows = detailed_rows();
+    let mut app = on_rows(rows.len());
+    app.focus = app.focus.and_then(|f| f.at(1));
+    app.on_key(tab(), &rows);
+    assert_eq!(app.pane(&rows), Pane::Detail);
+
+    // Back to the list first, then move: the arrow that moves the LIST is the
+    // one that has to clear the request.
+    app.on_key(tab(), &rows);
+    app.on_key(key(KeyCode::Down), &rows);
+    assert!(
+      !app.wants_detail && app.detail_focus.is_none(),
+      "the pane request outlived the row that made it"
+    );
+    assert_eq!(app.pane(&rows), Pane::List);
+  }
+
+  /// A re-read that changes the row set drops the pane with the cursor, for the
+  /// same reason it drops the cursor: the detail belonged to a row that may no
+  /// longer be there.
+  #[test]
+  fn pointing_at_a_new_row_set_closes_any_open_pane() {
+    let rows = detailed_rows();
+    let mut app = on_rows(rows.len());
+    app.focus = app.focus.and_then(|f| f.at(1));
+    app.on_key(tab(), &rows);
+    assert_eq!(app.pane(&rows), Pane::Detail);
+    app.point_at(rows.len());
+    assert_eq!(
+      app.pane(&rows),
+      Pane::List,
+      "a new row set kept the old pane"
+    );
+    assert!(app.detail_focus.is_none());
   }
 }
