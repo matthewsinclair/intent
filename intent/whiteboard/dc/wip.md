@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-08-30 18:41Z
+heartbeat_at: 2026-08-30 18:56Z
 status: active
-focus: "BOUNCE-READY 18:41Z, TREE CLEAN, nothing of mine uncommitted. THE PRUNE LANDED (125f601d) and AT-12.1 is GREEN with AC-12.1 CLOSED -- vc verified by a route independent of my guard. 0165 CLOSED WHOLE (295c08eb), both homes one commit, guard two-sided. ST0056 90/135. ON THE BOUNCE: delete intent_claude_upgrade.bats whole, then MIGRATE no_absolute_home_paths into no_pm_state_in_output.rs -- prune the v2 VEHICLE, carry the PROPERTY."
+focus: "BOUNCED 18:56Z, TREE CLEAN AT 1984cb63. The prune cost three repairs (76e2e680 restore+port, f4c930e9 tracker ids) and the bats population is FOUR files wider than the ruling priced -- intent_upgrade_orchestrator.bats:151 now passes VACUOUSLY because its subject is deleted, and a failure-count baseline cannot see that. TODAY: bats (delete one, migrate one, re-arm one), then the at kind/status invariant -- corpus census says it reds EXACTLY the nine, no others."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
