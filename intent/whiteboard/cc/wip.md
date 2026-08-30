@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-30 20:25Z
-status: active
-focus: "Guard landed 9fb602a1 (three homes, only the third load-bearing). Binary-resolution fix landed 238b7007 -- 20 arms were spawning a binary cargo did not build for them. backup.enabled is BUILT, GREEN and CONTROLLED AT BOTH LAYERS, waiting on vc's in-flight absent_at_check.sh pair. WP-08 AT column measured: four closures, one cause."
+heartbeat_at: 2026-08-30 21:32Z
+status: paused
+focus: "FOLDED 2026-08-30 21:31Z, pre-fold at .history/20260830/wip-fold-2131Z.md. WP-08 is 12/12 and backup.enabled was its last unimplemented ratified key (42402762). Nothing of mine is uncommitted and nothing is owed to me. On the bounce: WP-13 (search, XL) is the only thing I hold that is unbuilt, and hv sequenced it post-tag -- so ASK before starting it."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 ---
 
@@ -13,50 +13,53 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0056/13, ST0057/00]
 
 ## DOING
 
-**`backup.enabled` IS BUILT AND GREEN AND CANNOT COMMIT YET.** Field on `BackupConfig` defaulting true, one reader in `backup::due`, new `Due::Disabled`, six arms. **281 pass in intentsvcs+intentd.** Blocked on vc's `absent_at_check.sh` being staged-but-not-in-HEAD, which `runner_roster_check.sh` correctly reds as an in-flight pair.
-
-- **THE THREE ARMS THAT MATTER ASSERT WHAT IT DOES NOT DO.** A gate is easy to write and easy to over-apply, and an over-applied one fails where nobody looks: `intent backup` silently declining, doctor going quiet about a year-old backup. `cycle` and doctor are both ungated, deliberately.
-- **ABSENCE-IS-ENABLED IS DRIVEN TWICE**, from a `backup` block omitting the key AND from a config with no block at all. Two different serde paths, and this estate has already shipped a version where typing one field silently emptied the reader of another in the same struct.
-- **CONTROLLED AT BOTH LAYERS.** Removing the gate in `due` reds exactly one arm and leaves eighteen green -- which is also the evidence it reaches nothing else. Making `consider_backup`'s arm fall through to `cycle` reds the end-to-end arm through a real `intentd`: **exhaustiveness makes the compiler force you to HANDLE a variant, never to handle it correctly.**
-- **THE FLAG HAD TO BE RENAMED.** `said_it_cannot_be_scheduled` was accurate for the only case that existed and would have been quietly wrong for the second; it is `said_why_it_is_not_backing_up`.
+**NOTHING IN FLIGHT.** WP-08 closed 12/12 today; `backup.enabled` landed at `42402762` and was the last ratified key with no reader. My worktree is clean, no commit is parked, and no peer is waiting on me.
 
 ## TODO
 
-- **`AT-08.4` / `AT-08.7` / `AT-08.9` citations are SENT to vc and are vc's to apply.** All three re-cite to `intent-cli/tests/`. 08.4 and 08.7 will cite the SAME file, so they need arm-level naming or greening one greens the other by inspection.
-- **WP-13 (search, XL)** stays claimed and unbuilt; hv sequenced it post-tag.
-- **`AC-08.9` follow-on is ic's** and they have taken it -- `AC-17.1` moved from blocked to buildable on the `/op` door.
+- **WP-13 (search, XL) is the only claim I hold that is unbuilt, and hv sequenced it POST-TAG.** Do not start it on the bounce without asking -- taking it early would reorder a human's sequencing by the quiet route, which is a node accepting work rather than disagreeing with anyone.
+- **`AC-17.1` and the MCP tier are ic's**, and both consume doors I built (`/op`, `dispatch`). Answer questions; do not build into them.
+- **A `bin/devbin build all` is owed before anyone can browse the web face from the delivered binary.** `~/.local/bin/intentd` has no web face; only a dev-tree build does.
 
 ## Watch-outs
 
-**A PRIVATE `GIT_INDEX_FILE` CLOSES THE SHARED-INDEX CLASS THE BOARD HAD CALLED UNCLOSABLE, AND IT IS NOT FREE.** `read-tree HEAD`, `apply --cached` a filtered patch, `add`, commit. **`--only` gives path granularity and forces the whole file; `apply --cached` gives hunk granularity and forces the whole index; a private index gives BOTH.** Proved live: dc committed `1e19bdbb` between my reading the ambient index and my own commit, and it was a non-event.
+**A GUARD'S AUTHORITY IS ITS MEMBERSHIP RULE, NEVER ITS NAME. FIVE INSTANCES ON 2026-08-30 ACROSS FOUR NODES.** vc's `populations.self_loop`; my arm 6b's hardcoded `case`; dc reading `table_driven_tests_fixture_their_home` as the guard over binary resolution; dc's `facade.rs` kind rule; vc catching my arm undercount. **Every one of us was being careful, and in three of the five the CONCLUSION WAS STILL CORRECT** -- which is exactly why they survived. Before citing a rule, read what its set is defined by, not what it is called.
 
-**AND IT NEEDS A HEAD PIN OR IT CONVERTS A LOUD FAILURE INTO A SILENT ONE** (vc's ruling, on ic's near-miss: they built an index from `read-tree HEAD`, two commits landed before theirs, and it would have **silently reverted both** -- the roster gate's unrelated red is the only thing that stopped it. ic's words: _luck wearing a green's clothes_). **My own two are verified clean** -- `9fb602a1` on `1e19bdbb` and `238b7007` on `4640eab9`, each diffing to only my files -- **and that was ordering luck, not design.**
+**AND MY OWN WAS THE WORST-SHAPED: I APPLIED THE DISCIPLINE TO THE FILE I WAS ATTACKING AND NOT TO THE FILE I WAS DEFENDING.** I read all six arms of the file I was arguing against and truncated my grep at eight lines on the file I was arguing for. **An undercount that still supports your conclusion does not feel like something to re-check.**
 
-**THE PIN HAS TO BE ON BOTH SIDES OF THE GATE, AND THE RULED HALF IS THE LESS IMPORTANT ONE.** Checking HEAD before `git commit` closes the window between `read-tree` and staging, which is milliseconds. **The pre-commit gate runs between that check and git writing the commit object, and git resolves the parent AFTER the hooks** -- so a peer landing during the machine table, the 301 view comparisons and the 15-arm census gets a new HEAD as my parent while my tree is the old one. **A pre-check alone makes the technique feel safe across the window where it is least safe.** So: `base=$(git rev-parse HEAD)` before `read-tree`, refuse if HEAD moved before staging, and **after committing assert `HEAD^ == base`.** The post-verify does not prevent the reversion; it makes it LOUD -- which is the property `--only` had for free via `cannot lock ref 'HEAD'` and which a private index removes along with the contention.
+**COMMITTING IN A SHARED CHECKOUT IS THREE PROBLEMS AND ONLY ONE IS CLOSABLE BY THE COMMITTER.**
 
-**THE CLASS HAS THREE MEMBERS AND ONE IS CLOSED.** Contention (closed by `--only`, or by a pinned private index); COHERENCE (not closeable by the committer -- a half-landed pair is incoherent however carefully you scope); and REVERSION, which neither addresses. vc measured the third: `at.set` then `sync_from_disk` 1.2s later took their green AND the file-path correction, **and the row looked untouched afterwards.** D01 says the store is SSOT and `sync_from_disk` inverts it for one call. **Announce any disk->store sync before running it.**
+- **CONTENTION** -- taking a peer's bytes. Closed by a HEAD-pinned private index (below), or `--only` where whole files suffice.
+- **COHERENCE** -- the tree you commit must make sense. **NOT closeable by you**: a half-landed pair is incoherent however carefully you scope, and on 2026-08-30 one blocked EVERY node in the estate for ~20 minutes. The remedy is the guard's own: land the pair, or wait.
+- **REVERSION** -- vc's find. `at.set` then `sync_from_disk` 1.2s later took their green AND a path correction, **and the row looked untouched afterwards.** D01 makes the store SSOT and `sync_from_disk` inverts it for one call. **Announce any disk->store sync before running it.**
 
-**ITS COST, WHICH I CAUSED AND HAD TO CLEAN: THE COMMIT MOVES HEAD WHILE THE AMBIENT INDEX KEEPS THE PRE-COMMIT ENTRIES**, so `git status` reads `MM` and **the ambient index becomes a silent REVERSION of your own commit, waiting for the next plain `git commit` by anyone.** `git reset -q HEAD -- <paths>` clears it, no worktree bytes touched. It converts a contention hazard into a staleness hazard and the second one is quieter.
+**THE PINNED PRIVATE INDEX, AND IT IS ONLY SAFE PINNED ON BOTH SIDES.** `base=$(git rev-parse HEAD)`; `read-tree $base`; stage; refuse if HEAD moved; commit; **then assert `HEAD^ == base`.** Script kept at the session scratchpad; procedure is what matters.
 
-**AND IT DOES NOT ESCAPE THE OTHER HALF, WHICH IS THE MORE IMPORTANT FINDING.** Isolation is _do not take a peer's bytes_ and is solvable by tooling. **COHERENCE is _the tree I commit must make sense_, and a half-landed pair is incoherent however carefully I scoped my paths.** `--only` has the identical property and `runner_roster_check.sh` says so in its own text. **Only one half of the class is closable by the committer.**
+- **Why both sides:** git resolves the parent AFTER the hooks, so **the pre-commit gate's entire runtime sits between the pre-check and the commit object.** A pre-check alone makes it feel safe across the window where it is least safe. ic nearly lost two of vc's commits to the unpinned form.
+- **Why pin at all:** `--only` and plain `commit` lose LOUDLY on `cannot lock ref 'HEAD'`, and that noise is why no contention incident lost data. **A private index removes the contention and therefore the noise.** The post-verify buys the noise back.
+- **Its other cost:** the commit moves HEAD while the AMBIENT index keeps pre-commit entries, so **the ambient index becomes a silent reversion of your own commit** awaiting anyone's next plain commit. `git reset -q HEAD -- <paths>` in the SAME turn as the commit, not as a cleanup step.
 
-**A GUARD'S AUTHORITY IS ITS MEMBERSHIP RULE, NEVER ITS NAME -- THIRD INSTANCE TODAY, THREE DIFFERENT ARTEFACTS.** vc's `populations.self_loop`; my arm 6b's hardcoded `case`; dc reading `table_driven_tests_fixture_their_home` as the guard over binary resolution when its rule is _does this spawn the binary at all_, for HOME fixturing. **In all three the name was a plausible description of the wrong set, and in all three the reader was careful.**
+**A TRUE CLAIM CAN HAVE A SHELF LIFE SHORTER THAN THE MESSAGE CARRYING IT.** dc warned me five of my paths were staged as pending reversions; true when sent, false when it arrived, because I had already reset them. Re-measure on receipt -- and dc was right to tell me rather than fix it, because **resetting another node's index entries is the same offence as taking their bytes.**
 
-**AN UNTRACKED FILE CAN CHANGE WHAT A SHARED GUARD SAYS ABOUT EVERY NODE, WITH NO SIGNAL TO ITS AUTHOR.** My untracked `web.rs` embedded from `docs/design/`; arm 6b refused and **the refusal landed on vc**, because the guard runs at commit and my last commit predated the file.
+**AN UNTRACKED FILE CAN CHANGE WHAT A SHARED GUARD SAYS ABOUT EVERY NODE, WITH NO SIGNAL TO ITS AUTHOR.** The guard runs at commit; if your last commit predates the file, the refusal lands on whoever commits next.
 
-**THE BINARY ON PATH IS NOT THE BINARY YOU BUILT, IN BOTH DIRECTIONS.** `~/.local/bin/intentd` has no web face; only `target/cc/debug/intentd` does, until `bin/devbin build all`. And 20 test arms were spawning `target/debug/intent` while cargo built `target/cc/debug/intent` -- **a private target dir INSIDE `target/` converts a crash into a wrong answer.**
+**THE BINARY ON PATH IS NOT THE BINARY YOU BUILT, IN BOTH DIRECTIONS.** `~/.local/bin/intentd` has no web face. And test files resolving `target/debug/intent` by hand ignore `CARGO_TARGET_DIR` entirely -- **a private target dir INSIDE `target/` turns that from a crash into a wrong answer.** Guarded now by `the_binary_under_test_is_the_one_cargo_built.rs`; `env!("CARGO_BIN_EXE_intent")` is the only correct spelling.
 
 **`cargo test -p intent-cli` DOES NOT REBUILD `intentd`.** A control that cannot fail certifies a test that cannot fail. `cargo build -p intentd` first.
 
-**A UNIX SOCKET PATH HAS A LENGTH LIMIT AND THE SCRATCHPAD EXCEEDS IT** -- `SUN_LEN` at 143 bytes. `RealDaemon` uses `short_dir` for exactly this.
+**A UNIX SOCKET PATH HAS A LENGTH LIMIT AND THE SESSION SCRATCHPAD EXCEEDS IT** (`SUN_LEN`, 143 bytes). `RealDaemon` uses `short_dir` for exactly this.
 
-**rustfmt NEEDS `--edition 2024` HERE.** `--edition 2021` fails on let-chains with an error that looks like a code defect and formats nothing.
+**NEVER START `intentd` UNDER THE REAL `$HOME` WHILE PEERS ARE LIVE** -- it takes the store exclusively and refuses every peer's store verbs at once. An isolated short `HOME` costs nothing.
+
+**rustfmt NEEDS `--edition 2024` HERE.** `--edition 2021` fails on let-chains with an error that reads like a code defect and formats nothing. And format BEFORE staging: each gate refusal re-opens the index window it is protecting.
+
+**EXHAUSTIVENESS MAKES THE COMPILER FORCE YOU TO HANDLE A VARIANT, NEVER TO HANDLE IT CORRECTLY.** A match arm falling through satisfies every unit test of the decision function. Drive the effect, not the verdict.
 
 ## Decisions
 
-- (2026-08-30) **`backup.enabled` gates the sweep and nothing else** -- `cycle` ungated so `intent backup` still works, doctor ungated so staleness is still reported. vc's homonym ruling.
-- (2026-08-30) **`Due::Disabled` is checked BEFORE `schedule`**, so an inert `backup.schedule` is not announced as a defect; doctor still reports it on its own path.
-- (2026-08-30) **The binary-resolution guard is a NEW file, not an arm of the HOME guard** -- a binary-resolution arm inside `..._fixture_their_home` would be a home whose name does not describe its contents.
-- (2026-08-30) **Attachments are AUTHORED and no sync direction rewrites them.** `--to-store` takes the EXTRACT, is destructive, and bare replaces the whole store: scope it to the thread.
-- (2026-08-30) **One published port, both protocols, disambiguated at byte 0**; the HTTP body is `wire::frame`'s bytes; `Op::Shutdown` refused over HTTP.
-- (2026-08-30) **51737 is a preference, never a promise** -- ask for it, fall back to a kernel port, publish what was bound.
+- (2026-08-30) **`backup.enabled` gates the daemon sweep and NOTHING else** -- `cycle` ungated so `intent backup` still works, doctor ungated so staleness is still reported. vc's homonym ruling, quoted at the field itself.
+- (2026-08-30) **`Due::Disabled` is checked BEFORE `schedule`**, so an inert value is not announced as a defect; doctor still reports it on its own path.
+- (2026-08-30) **A new guard gets a file named for its contract**, never an arm inside one whose name describes something else.
+- (2026-08-30) **Attachments are AUTHORED; no sync direction rewrites them.** `st attach <ID> <rel> --from <file>` is the narrow disk->store door; `--to-store` is the recovery one, destructive, and bare replaces the WHOLE store -- scope it to the thread.
+- (2026-08-30) **One published port, both protocols, disambiguated at byte 0.** The HTTP body is `wire::frame`'s bytes; `Op::Shutdown` is refused over HTTP; `/op` binds per REQUEST where the socket binds per CONNECTION.
+- (2026-08-30) **51737 is a preference, never a promise** -- ask for it, fall back to a kernel port, publish what was bound. D6 intact.
