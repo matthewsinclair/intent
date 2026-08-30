@@ -110,6 +110,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicU32, Ordering};
 
+use intent_cli::dispatch;
 use intentsvcs::daemon::{self, Endpoint, Route};
 use intentsvcs::wire::{self, Op, Request, Response};
 
@@ -320,4 +321,276 @@ impl Drop for RealDaemon {
     let _ = self.child.wait();
     let _ = std::fs::remove_dir_all(&self.home);
   }
+}
+
+// ---------------------------------------------------------------------------
+// SHIPPED-SOURCE SCANNING
+//
+// **MOVED HERE FROM `no_pm_state_in_output.rs` ON 2026-08-30, AND THE MOVE IS
+// THE POINT.** `AC-09.4`'s clause 2 needs the same walk -- every hand-kept
+// roster of command paths is derived from the table or declared as an
+// exception -- and a test binary cannot import another test binary. **The
+// alternative was not to wait, it was to FORK**, which would have committed a
+// second copy of a source walk inside the commit closing the row about
+// hand-kept duplication: an artefact refuting its own message.
+//
+// cc's `RealDaemon` move above set the direction, and cc's own correction is
+// worth keeping with it: their note's trigger was TIMING, not a count.
+// `common` compiles into every test binary in this crate, so adding to it
+// rebuilds every target for every session on this machine -- and that bill is
+// identical at two callers and at three, so a rule letting the third pay and
+// making the second fork would be arbitrary.
+// ---------------------------------------------------------------------------
+
+/// Every SHIPPED command path the dispatch table declares -- from **both** of
+/// its row homes.
+///
+/// **This was wrong in two directions at once, which is why it looked right**
+/// (vc, issue 0037). It walked `families[].entries[]` and stopped, so the
+/// top-level `new_surface` array -- `search`, `sync`, `schema`, `export`,
+/// `ingest`, `backup`, `daemon`, `mcp`, eight rows with zero overlap -- was
+/// never scanned by ANY surface in this file. Their help lives in the
+/// compiled-in JSON rather than in Rust literals, so the string-literal scan
+/// does not reach them either. And it took every row regardless of
+/// disposition, so it also drove five RETIRED paths. One enumerator, too
+/// narrow and too wide.
+///
+/// **The count assertion was the reason nobody noticed.** It read
+/// `paths.len() > 20` under the message "precondition: the dispatch table
+/// declares the command surface" -- a sentence that reads as a coverage claim
+/// and is a did-the-file-parse check. It passes at 104 and it passes at 112,
+/// so it could not see a twelfth of the surface be absent. **A precondition
+/// whose message describes a stronger property than it tests is worse than no
+/// message**, because it answers the question a reader came to ask.
+///
+/// So the shape is now: read both homes, and filter on the SAME
+/// [`dispatch::Entry::is_shipped`] the spine applies when it builds the
+/// surface -- reusing that decision rather than making a second one that can
+/// drift from it. The table is read through the typed `dispatch::table()` for
+/// the same reason.
+pub fn declared_paths() -> Vec<String> {
+  let table = dispatch::table();
+  let from_families: Vec<String> = table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .filter(|e| e.is_shipped())
+    .map(|e| e.path.clone())
+    .collect();
+  let from_new_surface: Vec<String> = table
+    .new_surface
+    .iter()
+    .filter(|e| e.is_shipped())
+    .map(|e| e.path.clone())
+    .collect();
+
+  // **Each home is asserted separately, because the defect was one home
+  // returning nothing while the total still looked healthy.** A single total
+  // cannot distinguish "both homes read" from "one home read and the other is
+  // large"; these two can, and they are what actually regressed.
+  assert!(
+    !from_families.is_empty(),
+    "precondition: no shipped row was read from `families`, so the ported surface is unscanned"
+  );
+  assert!(
+    !from_new_surface.is_empty(),
+    "precondition: no shipped row was read from `new_surface`, so v3's own commands are \
+     unscanned -- this is issue 0037 exactly, and it passed for a day"
+  );
+
+  let paths: Vec<String> = from_families.into_iter().chain(from_new_surface).collect();
+
+  // And the total EQUALS what the table declares as shipped, computed by
+  // counting rather than by collecting, so going short is an error rather than
+  // a smaller number that still satisfies a `>`.
+  let shipped = table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .chain(table.new_surface.iter())
+    .filter(|e| e.is_shipped())
+    .count();
+  assert_eq!(
+    paths.len(),
+    shipped,
+    "the scan covers every shipped row the table declares, or it covers an unstated subset"
+  );
+  paths
+}
+
+/// Shipped source: the three crates that become binaries or are linked into
+/// one.
+pub fn shipped_sources() -> Vec<PathBuf> {
+  let crates = Path::new(env!("CARGO_MANIFEST_DIR"))
+    .parent()
+    .expect("crates/ above this crate")
+    .to_path_buf();
+  let mut files = Vec::new();
+  for name in ["intent-cli", "intentsvcs", "intentd"] {
+    collect_rs(&crates.join(name).join("src"), &mut files);
+  }
+  assert!(
+    files.len() > 10,
+    "precondition: the shipped crates have source, found {}",
+    files.len()
+  );
+  files.sort();
+  files
+}
+
+pub fn collect_rs(dir: &Path, out: &mut Vec<PathBuf>) {
+  let Ok(entries) = std::fs::read_dir(dir) else {
+    return;
+  };
+  for e in entries.filter_map(Result::ok) {
+    let p = e.path();
+    if p.is_dir() {
+      collect_rs(&p, out);
+    } else if p.extension().is_some_and(|x| x == "rs") {
+      out.push(p);
+    }
+  }
+}
+
+/// Every string-literal CONTENT in one Rust file, comments and the trailing
+/// test module excluded.
+///
+/// **A line-based "is there a quote on this line" test does not work here and
+/// the reason is load-bearing.** `store.rs`'s DDL is one string literal
+/// spanning two hundred lines, and its interior `--` comment lines carry no
+/// quote at all -- they are literal content that `intent schema ddl.sql` prints
+/// verbatim. A line-based scan sees no quote and skips exactly the lines that
+/// are published. So this tracks literal spans.
+///
+/// **Char literals are HANDLED rather than assumed absent, and the reason is
+/// that the assumption failed within the hour.** This first asserted that no
+/// `'"'` appeared in shipped source, on the grounds that none did. Then
+/// `faces.rs` grew a `marker()` reader whose last step is `.trim_matches('"')`
+/// -- ordinary, correct code -- and the assertion fired. **It fired rather than
+/// mis-scanning, which is the whole argument for stating an assumption instead
+/// of relying on it**, but a guard that refuses legitimate code is a guard
+/// someone deletes, so the scanner learned the construct.
+///
+/// A leading `'` is ambiguous in Rust -- `'a` is a lifetime, `'x'` is a char --
+/// so it is disambiguated by looking for the closing quote two or three bytes
+/// on. A lifetime has none and simply advances.
+///
+/// Block comments are still asserted absent, because there are none and
+/// handling nesting is real work for a construct this codebase does not use.
+pub fn string_literals(code: &str) -> Vec<String> {
+  // **THE BLOCK-COMMENT ASSERTION MOVED INTO THE WALK ON 2026-08-20, AND THE
+  // REASON IS THAT ITS DETECTION HAD STOPPED MATCHING ITS SUBJECT.**
+  //
+  // It stood here as `!code.contains("/*")` over the whole file text, which is
+  // the one place in this function that does not know whether it is inside a
+  // literal. `critic.rs` landed glob patterns -- `"test/**/*_test.exs"`,
+  // `"lib/**/*.ex"`, `"lib/*.ex"` -- and every one of them contains `/*` inside
+  // a STRING. Two of eight tests failed reporting a block comment in a file
+  // that has none.
+  //
+  // **The assumption the doc states is still true and was never the problem.**
+  // There are no block comments in shipped source, and the scanner still
+  // refuses rather than mis-scanning if one appears. What was wrong was a
+  // substring test standing in for a syntactic fact -- the same shape as
+  // ST0039's greppable proxies, where a regex that cannot see structure is
+  // asked a question only structure can answer.
+  //
+  // So the check now fires from inside the walk, at a point where `i` is known
+  // to be outside every literal, comment and raw string. It is strictly more
+  // precise: a real block comment is still caught, and correct code that merely
+  // spells `/*` is not.
+
+  // The trailing `#[cfg(test)] mod tests` is Intent's own test fixtures, which
+  // AC-00.9 exempts: they are never compiled into a shipped binary, so nothing
+  // in them can be emitted. Every shipped file has at most one, at the end --
+  // asserted, because truncating at the first would silently drop real code if
+  // that ever stopped being true.
+  assert!(
+    code.matches("#[cfg(test)]").count() <= 1,
+    "a shipped file grew a second `#[cfg(test)]`, so truncating at the first would drop shipped \
+     code from this scan"
+  );
+  let code = match code.find("#[cfg(test)]") {
+    Some(at) => &code[..at],
+    None => code,
+  };
+
+  let b = code.as_bytes();
+  let mut out = Vec::new();
+  let mut i = 0;
+  while i < b.len() {
+    // A line comment, outside any literal.
+    if b[i] == b'/' && i + 1 < b.len() && b[i + 1] == b'/' {
+      while i < b.len() && b[i] != b'\n' {
+        i += 1;
+      }
+      continue;
+    }
+    // A block comment, outside any literal -- the assertion the pre-check
+    // above used to make on raw text. Reaching here means `i` is not inside a
+    // string, a raw string, a char literal or a line comment, so this is a real
+    // `/*` and not a glob.
+    assert!(
+      !(b[i] == b'/' && i + 1 < b.len() && b[i + 1] == b'*'),
+      "a block comment appeared in shipped source at byte {i}; this scanner only skips `//` line \
+       comments, so it would read the comment's body as code. **Check it is a real block comment \
+       and not a `/*` inside a string** -- glob patterns like `lib/**/*.ex` are correct code and \
+       reach this line only if the walk above has a hole"
+    );
+    // A char literal, which may CONTAIN a quote (`'"'`) and would otherwise be
+    // read as opening a string. A lifetime (`'static`) has no closing quote in
+    // that position and falls through to the plain advance below.
+    if b[i] == b'\'' {
+      let closes_at = if b.get(i + 1) == Some(&b'\\') { 3 } else { 2 };
+      if b.get(i + closes_at) == Some(&b'\'') {
+        i += closes_at + 1;
+        continue;
+      }
+    }
+    // A raw string: `r"`, `r#"`, `r##"` ... which has no escapes, so it ends
+    // only at a quote followed by the same number of hashes.
+    if b[i] == b'r' && (i == 0 || !(b[i - 1].is_ascii_alphanumeric() || b[i - 1] == b'_')) {
+      let mut h = i + 1;
+      while h < b.len() && b[h] == b'#' {
+        h += 1;
+      }
+      if h < b.len() && b[h] == b'"' {
+        let hashes = h - (i + 1);
+        let start = h + 1;
+        let mut j = start;
+        while j < b.len() {
+          if b[j] == b'"'
+            && b[j + 1..]
+              .iter()
+              .take(hashes)
+              .filter(|c| **c == b'#')
+              .count()
+              == hashes
+          {
+            break;
+          }
+          j += 1;
+        }
+        out.push(code[start..j.min(code.len())].to_string());
+        i = (j + 1 + hashes).min(b.len());
+        continue;
+      }
+    }
+    if b[i] == b'"' {
+      let start = i + 1;
+      let mut j = start;
+      while j < b.len() {
+        match b[j] {
+          b'\\' => j += 2,
+          b'"' => break,
+          _ => j += 1,
+        }
+      }
+      out.push(code[start..j.min(code.len())].to_string());
+      i = (j + 1).min(b.len());
+      continue;
+    }
+    i += 1;
+  }
+  out
 }
