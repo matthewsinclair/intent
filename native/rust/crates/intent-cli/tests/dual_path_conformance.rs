@@ -115,8 +115,14 @@ impl Route {
       // It waits for a child to exit, so a row that never exits blocks it. An
       // `exec` in a CHILD is fine -- the child's image is not this one.
       Route::Binary => &[Hazard::NeverReturns],
-      // It runs the row in THIS process, so both properties are fatal here.
-      Route::InProcess => &[Hazard::NeverReturns, Hazard::ReplacesTheImage],
+      // It runs the row in THIS process, so all three properties are fatal
+      // here: this process must not be blocked, must not be replaced, and must
+      // not have its author's own machine acted on.
+      Route::InProcess => &[
+        Hazard::NeverReturns,
+        Hazard::ReplacesTheImage,
+        Hazard::ActsOnTheRealHome,
+      ],
     }
   }
 }
@@ -280,6 +286,28 @@ enum Hazard {
   /// it takes the test binary and every other row in this file with it, and
   /// reports nothing about why.
   ReplacesTheImage,
+  /// The row acts on AMBIENT PER-USER STATE rather than on the fixture root.
+  ///
+  /// **`via_binary` SETS `HOME` TO A FIXTURE AND `via_library` DOES NOT**, and
+  /// that asymmetry is the whole hazard. The in-process route calls
+  /// `render::run` in this process, which inherits the developer's real
+  /// environment -- so a row reaching `userstate::home()` reaches THEIR
+  /// `~/.local/share/intent/`, not a temporary one.
+  ///
+  /// **THE WORST CASE IS NOT A WRONG ANSWER, IT IS A RUNNING DAEMON.** `daemon
+  /// start` under the real `HOME` binds the socket every peer session probes
+  /// and holds the `sync`/`ingest` family off their stores -- so one test run
+  /// takes every developer on the machine down together. **It did not fire only
+  /// because `intentd` is not beside the test harness**, which is luck rather
+  /// than isolation: the row failed to resolve a binary before it got as far as
+  /// spawning one.
+  ///
+  /// **THE FIX IS THE DECLARATION, NOT A `HOME` FOR `via_library`.** Setting one
+  /// there means `std::env::set_var` in a process running other rows, which is
+  /// a global mutation with no scope -- and `via_library` exists to prove the
+  /// LIBRARY answers as the binary does, so a row whose subject is the machine
+  /// rather than the project has nothing to compare in the first place.
+  ActsOnTheRealHome,
 }
 
 /// What each row is known to do that a route may not survive.
@@ -292,10 +320,21 @@ enum Hazard {
 /// `intent-cli` suite from EVER completing, on every session on this machine,
 /// while presenting as nothing worse than a slow test. Four harness processes
 /// were found hung, across two sessions, one of them from a REBUILT binary.
-const HAZARDS: &[(&str, &[Hazard])] = &[(
-  "daemon run",
-  &[Hazard::NeverReturns, Hazard::ReplacesTheImage],
-)];
+const HAZARDS: &[(&str, &[Hazard])] = &[
+  // **BOTH ADDED WHEN THEY WERE WIRED, AND THE SECOND IS THE ONE THAT SURPRISES.**
+  // `daemon start` spawns a daemon under `$HOME`; `daemon stop` signals or
+  // shuts down whatever is running under it. Neither reads the fixture root at
+  // all -- their subject is the machine -- so in-process they would act on the
+  // developer's own. **`stop` looks harmless and is not**: driven in-process it
+  // stops the daemon a peer session is using, from inside a test that appears
+  // to be comparing exit codes.
+  ("daemon start", &[Hazard::ActsOnTheRealHome]),
+  ("daemon stop", &[Hazard::ActsOnTheRealHome]),
+  (
+    "daemon run",
+    &[Hazard::NeverReturns, Hazard::ReplacesTheImage],
+  ),
+];
 
 /// **ONE TEST FUNCTION, DELIBERATELY.**
 ///

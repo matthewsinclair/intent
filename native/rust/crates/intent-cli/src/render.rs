@@ -5125,6 +5125,8 @@ fn modules_check() -> Result<(), Failure> {
 fn daemon(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("run", _)) => daemon_run(),
+    Some(("start", _)) => daemon_start(),
+    Some(("stop", _)) => daemon_stop(),
     Some(("status", _)) => daemon_status(),
     Some((verb, _)) => unwired("daemon", verb),
     None => unwired("daemon", ""),
@@ -5162,6 +5164,187 @@ fn daemon_run() -> Result<(), Failure> {
 /// answered from a socket file's existence would tell the operator a daemon is
 /// running while every command routes in-process -- the two would disagree, and
 /// the status verb is exactly where somebody goes to find out why.
+/// Start `intentd` in the background, and wait until it is actually answering.
+///
+/// **IT WAITS RATHER THAN RETURNING ON A SUCCESSFUL SPAWN, AND THAT IS THE
+/// WHOLE DIFFERENCE BETWEEN THIS AND `run`.** A spawn succeeding means the
+/// kernel created a process; it says nothing about whether that process bound a
+/// socket or refused because one was already running. **Reporting success there
+/// would make `intent daemon start` print `ok:` and leave nothing running**,
+/// which is the failure an operator is least able to diagnose, because the
+/// command that was supposed to tell them said it worked.
+///
+/// **THE LOGS GO TO D19's LOCATION WHETHER `launchd` STARTED THE DAEMON OR THIS
+/// DID.** The plist names those paths too, so an operator answering *where are
+/// the logs* gets one answer regardless of how the daemon came up -- a start
+/// path that logged somewhere else would make the question depend on history
+/// nobody recorded.
+fn daemon_start() -> Result<(), Failure> {
+  use std::os::unix::process::CommandExt;
+
+  let home = intentsvcs::userstate::home().map_err(|e| Failure::Error(e.render()))?;
+  // **ALREADY RUNNING IS SUCCESS, NOT A FAILURE, AND THE POSTCONDITION IS WHY.**
+  // The operator asked for a running daemon and there is one. `systemctl start`
+  // on an active unit exits 0 for the same reason, and the alternative has a
+  // real cost: `intent daemon start && ...` in any script breaks on its second
+  // run, so every caller has to ask `status` first and race the answer.
+  //
+  // **IT STILL SAYS SO RATHER THAN PRETENDING IT STARTED ONE.** Silence here
+  // would be the version of this that hides a daemon nobody meant to leave
+  // running; naming the pid is what lets an operator notice.
+  if let Some(pid) = running_daemon_pid(&home)? {
+    println!("ok: intentd is already running (pid {pid})");
+    return Ok(());
+  }
+
+  let binary = resolve_intentd()?;
+  let out = intentsvcs::userstate::daemon_log_under(&home);
+  let err = intentsvcs::userstate::daemon_error_log_under(&home);
+  if let Some(parent) = out.parent() {
+    std::fs::create_dir_all(parent).map_err(|e| {
+      Failure::Error(format!(
+        "error: the daemon's log directory `{}` could not be created: {e}\n  remedy: intentd writes its logs there (D19) and will not start without it. Check that your home directory is writable.",
+        parent.display()
+      ))
+    })?;
+  }
+  let open = |path: &std::path::Path| {
+    std::fs::File::options()
+      .create(true)
+      .append(true)
+      .open(path)
+      .map_err(|e| {
+        Failure::Error(format!(
+          "error: the daemon's log `{}` could not be opened: {e}\n  remedy: intentd's output goes here (D19). Check that the file is writable, or remove it and start again.",
+          path.display()
+        ))
+      })
+  };
+
+  std::process::Command::new(&binary)
+    .stdin(std::process::Stdio::null())
+    .stdout(open(&out)?)
+    .stderr(open(&err)?)
+    // **ITS OWN PROCESS GROUP, SO A TERMINAL CANNOT TAKE IT DOWN.** Left in
+    // this one, the daemon receives the `SIGINT` a `ctrl-c` sends to the whole
+    // foreground group -- so the daemon an operator started in the morning
+    // would die when they interrupted an unrelated command in the same shell.
+    // `process_group(0)` is the detachment, and it needs no `libc`.
+    .process_group(0)
+    .spawn()
+    .map_err(|e| {
+      Failure::Error(format!(
+        "error: `{}` could not be started: {e}\n  remedy: the binary was found and the kernel refused to run it. Check that it is executable and built for this architecture.",
+        binary.display()
+      ))
+    })?;
+
+  for _ in 0..START_ATTEMPTS {
+    if let daemon::Route::Daemon(endpoint) = route_now()? {
+      println!("ok: intentd is answering at {endpoint}");
+      println!("     logs: {}", out.display());
+      return Ok(());
+    }
+    std::thread::sleep(START_PAUSE);
+  }
+  Err(Failure::Error(format!(
+    "error: intentd was started and is not answering\n  remedy: it either failed to bind or exited. Its output is in `{}` and `{}`, which is where the reason will be.",
+    out.display(),
+    err.display()
+  )))
+}
+
+/// How many times `start` and `stop` ask before giving up.
+///
+/// A count rather than a deadline: what these loops require is that they
+/// TERMINATE, which says nothing about the time.
+const START_ATTEMPTS: u32 = 400;
+const START_PAUSE: std::time::Duration = std::time::Duration::from_millis(20);
+
+/// Stop the running `intentd`: over the wire first, by signal if it will not
+/// answer.
+///
+/// **THE WIRE IS PRIMARY BECAUSE IT REMOVES A RACE, NOT BECAUSE IT IS TIDIER**
+/// (vc, 2026-08-30). Signalling needs a third party to learn a pid and then act
+/// on it, and the pid can stop being the daemon's in between. Asking has no such
+/// window: the daemon stops ITSELF, so the thing acting and the thing acted on
+/// are one process.
+///
+/// **AND THE SIGNAL IS NOT REDUNDANT, WHICH IS WHY BOTH EXIST.** A wedged
+/// daemon will not answer its own socket, and that is precisely when an
+/// operator needs it stopped. A wire-only `stop` would work in every case
+/// except the one it was reached for.
+fn daemon_stop() -> Result<(), Failure> {
+  let home = intentsvcs::userstate::home().map_err(|e| Failure::Error(e.render()))?;
+
+  if let daemon::Route::Daemon(endpoint) = route_now()? {
+    let asked = wire::ask(
+      &endpoint,
+      &Request {
+        root: std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from(".")),
+        op: Op::Shutdown,
+      },
+    );
+    if let Ok(Response::Stopping) = asked {
+      for _ in 0..START_ATTEMPTS {
+        if matches!(route_now()?, daemon::Route::InProcess) {
+          println!("ok: intentd stopped");
+          return Ok(());
+        }
+        std::thread::sleep(START_PAUSE);
+      }
+      return Err(Failure::Error(
+        "error: intentd accepted the stop and is still answering\n  remedy: it agreed to stop and has not. `intent daemon stop` again will fall back to signalling it.".to_string(),
+      ));
+    }
+    // It is there and would not be talked to. That is the wedged case the
+    // signal exists for, so fall through rather than reporting a failure.
+  }
+
+  let Some(pid) = running_daemon_pid(&home)? else {
+    println!("ok: no intentd is running");
+    return Ok(());
+  };
+
+  // **`kill(1)` RATHER THAN A `libc` DEPENDENCY, AND IT IS A STATED TRADE.**
+  // Signalling directly would put `libc` into this crate's PRODUCTION graph for
+  // one function on a fallback path, which `dep_graph_guard` walks and which
+  // would owe a rationale bigger than the call. `kill` is POSIX, ships
+  // everywhere this daemon runs, and its absence is reportable.
+  let killed = std::process::Command::new("kill")
+    .arg("-TERM")
+    .arg(pid.to_string())
+    .output()
+    .map_err(|e| {
+      Failure::Error(format!(
+        "error: intentd (pid {pid}) would not answer its socket and `kill` could not be run: {e}\n  remedy: the daemon is wedged and this build cannot signal it. Send it a TERM by hand: `kill -TERM {pid}`."
+      ))
+    })?;
+  if !killed.status.success() {
+    return Err(Failure::Error(format!(
+      "error: intentd (pid {pid}) would not answer its socket and could not be signalled: {}\n  remedy: the process may belong to another user, or may already be gone. `intent daemon status` reports whether anything is still answering.",
+      String::from_utf8_lossy(&killed.stderr).trim()
+    )));
+  }
+  println!("ok: intentd (pid {pid}) would not answer its socket and was sent SIGTERM");
+  Ok(())
+}
+
+/// The daemon's pid, rendered as a `Failure` when the lock cannot answer.
+///
+/// **THE REFUSAL IS CARRIED THROUGH RATHER THAN FLATTENED TO `None`.** A lock
+/// held over an unpublished pid means a daemon IS running, and answering "none"
+/// there would let `start` launch a second one against the same state.
+fn running_daemon_pid(home: &std::path::Path) -> Result<Option<u32>, Failure> {
+  daemon::running_pid_under(home).map_err(|e| Failure::Error(e.render()))
+}
+
+/// This machine's route, right now.
+fn route_now() -> Result<daemon::Route, Failure> {
+  let candidates = daemon::candidates().map_err(|e| Failure::Error(e.render()))?;
+  Ok(daemon::route(&candidates))
+}
+
 fn daemon_status() -> Result<(), Failure> {
   let candidates = daemon::candidates().map_err(|e| Failure::Error(e.render()))?;
   match daemon::route(&candidates) {
