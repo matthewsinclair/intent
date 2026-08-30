@@ -70,6 +70,7 @@ fn samples() -> Vec<AcState> {
         env: "darwin/arm64".to_string(),
       },
       inherited_from: None,
+      inherited_event: None,
     }),
   ]
 }

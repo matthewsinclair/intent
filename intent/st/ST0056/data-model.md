@@ -432,6 +432,8 @@ Written by every mutation (WP-02).
 | subject    | object | `{kind, id}` -- kind eg `thread`, `wp`, `issue`; id eg `ST0000/02` |
 | payload    | json   | operation-specific detail, **opaque to the log**                   |
 
+**AND A CASCADE WRITES EVENTS NAMED FOR OPS NOBODY INVOKED, WHICH IS HONEST AND READS AS WRONG.** A fiat close on a thread writes `st.fc` and then one `ac.fc` or `at.fc` per child it reached -- events no invocation of `ac fc` or `at fc` produced. That follows from `op` being the facade operation: the child's state moved through the criterion machine, so `ac.fc` is what happened to it. **It is stated here because a reader who concludes the log is lying about provenance will not check twice**, and the thing that distinguishes a cascaded event from a directly-invoked one is the `inherited_event` in its payload, not the op.
+
 **`op` is the FACADE operation and never the CLI spelling**, which is the same distinction Machine 5 records one section down: `at.set` is one op reached by three commands, and `fc` is one command reaching four ops. A log keyed on invocations would be a log of what people typed rather than of what the store did.
 
 **`ts` IS ABSENT ON A MINTED-BUT-UNWRITTEN ENVELOPE, AND THAT IS D42 IN THE ONE PLACE IT IS EASIEST TO BREAK.** `Envelope::minted` deliberately produces an envelope with NO time, because the clock belongs to the WRITE -- a log entry is the last thing anyone would think to withhold a timestamp from, and it is exactly where a caller-supplied time would become unfalsifiable history. The number of `minted` call sites is deliberately not written here; it is a thing to derive, not to keep a second copy of.
@@ -660,6 +662,18 @@ States: `NotStarted` | `Wip` | `Done` | `Cancelled`. **Entry: `NotStarted`.**
 **The Verb cell carries the OP TOKEN and not a CLI invocation**, for the reason Machine 3 records against `ac.fc`: the CLI spelling is one top-level `intent fc <target>`, whose second word is the target rather than a subcommand.
 
 **AND THIS IS THE FIELD A CASCADE WRITES INTO.** A fiat close on a thread reaches its work packages, and a cascaded record carries `inherited_from` naming the ancestor -- so a package closed in its own right and one closed because its thread was are distinguishable by query rather than by reading the reason.
+
+#### The cascade closes exactly what the machines already allow (hv 2026-08-28; the rule derived, vc 2026-08-30)
+
+**WHICH CHILDREN A CASCADE CLOSES IS NOT A POLICY AND WAS NOT RULED -- IT IS THESE TABLES READ DOWNWARD.** A child is closed if and only if its own machine declares an `fc` edge from the state it is IN. `Facade::cascade_fiat` asks `transitions::permits` and nothing else, so the from-sets keep one home and the cascade cannot drift from the tables above.
+
+**Every skip that rule produces is one that would have been argued for on its own**, which is the evidence it is derived rather than merely convenient. A `Satisfied` criterion is skipped because a fiat close is how an UNMET requirement is closed and offering it on a met one would let a close-on-authority overwrite a close-on-evidence. A `green` acceptance test is skipped for the same reason, an `n-a` one because it is not pending, a `done` or `cancelled` package because it is already closed, and `Descoped` or `Withdrawn` criteria because they are off scope entirely.
+
+**Scope needs no new rule either**: a thread close reaches everything, and a work-package close reaches its own criteria and the tests covering them, selected by the AC group exactly as `Scope::WorkPackage` already does for the gate. Tests are reached through `covers` rather than through their id, because an AT's number need not match the criterion it covers and the coverage list is the modelled relationship.
+
+**A SKIPPED CHILD WRITES NO EVENT, AND THAT IS ANSWERABLE ONLY BECAUSE OF THE EVENT-COUNT RULING.** _Was this child considered and skipped, or never in scope?_ is derivable by reading the machine against the child's state at the time -- and its state AT THE TIME is recoverable only because every state change writes its own event. **So one-event-per-entity is what makes the skip derivable, and one-event-per-cascade would have left the question genuinely unanswerable.** The derivability is a consequence of a ruling that was not about it.
+
+**THE WHOLE CASCADE IS ONE TRANSACTION.** The ancestor's envelope and every child's are committed together, because N transactions would put a window between a thread's close and its children's, and a cascade interrupted there is the state-without-an-event defect one layer along. **That is possible because `Envelope::minted` generates the ULID in Rust**, so the ancestor's event id exists before any write and the children's records can carry it -- consistent with D42 rather than an exception to it, since the ULID is an IDENTITY and the `ts` is the STAMP, and only the stamp belongs to the write.
 
 ### Machine 3 -- Acceptance criterion
 

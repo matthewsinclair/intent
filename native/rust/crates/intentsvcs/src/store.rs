@@ -1417,7 +1417,22 @@ pub struct Mutation<'a> {
   pub created_threads: &'a [String],
   pub created_issues: &'a [u32],
   pub sections: &'a [DocSection],
-  pub envelope: &'a Envelope,
+  /// The events this mutation records, written inside its own transaction.
+  ///
+  /// **A SLICE RATHER THAN ONE, BECAUSE A FIAT CASCADE MOVES SEVERAL ENTITIES IN
+  /// ONE HUMAN ACT AND EACH MOVE OWES AN EVENT** (vc's ruling, 2026-08-30). The
+  /// alternative -- one event for the whole cascade -- is not merely less
+  /// detailed: a consumer replaying the log would get a thread closed and
+  /// children sitting in states nothing in the log explains, so **replay would
+  /// produce an estate that differs from the real one.**
+  ///
+  /// **They ride in ONE transaction for the same reason the envelope and the rows
+  /// always have.** N transactions would put a window between the ancestor's
+  /// close and its children's, and a cascade interrupted there is exactly the
+  /// state-without-an-event defect one layer along.
+  ///
+  /// The FIRST is the mutation's own subject; the rest are what it reached.
+  pub envelopes: &'a [&'a Envelope],
   /// Project-level state this mutation also sets, inside the same transaction.
   ///
   /// **THE POINT IS THE WORD `also`.** AC-14.7 requires that a flush's history
@@ -2046,7 +2061,18 @@ impl Store {
     Self::write_doc_sections(&tx, change.sections)?;
     // The mutation's own event: the DB stamps it inside the same
     // transaction as the rows it describes (D42).
-    let event_ts = Self::write_event(&tx, change.envelope, Stamp::ByTheDatabase)?;
+    // **THE FIRST ENVELOPE'S STAMP IS THE MUTATION'S, and the rest share the
+    // transaction rather than a separate reading.** `StoredDates.event_ts` is
+    // what the caller reports for the act it invoked, which is the first one;
+    // a cascade's children are the same act reaching further, so a second clock
+    // read for them would be a different time for one decision.
+    let mut event_ts = String::new();
+    for (i, envelope) in change.envelopes.iter().enumerate() {
+      let ts = Self::write_event(&tx, envelope, Stamp::ByTheDatabase)?;
+      if i == 0 {
+        event_ts = ts;
+      }
+    }
     // **AND THE PROJECT STATE, IN THIS TRANSACTION, WHICH IS THE WHOLE OF
     // AC-14.7.** The clock is the database's, read inside the statement, so
     // this keeps D42 for the same reason the envelope does: a time read in Rust

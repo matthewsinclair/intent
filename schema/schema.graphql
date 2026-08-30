@@ -1,5 +1,5 @@
 # INTENT_VER: 3.0.0
-# SCHEMA_SDL_VER: 13
+# SCHEMA_SDL_VER: 14
 
 enum AcKind {
   TEST
@@ -272,6 +272,15 @@ type FiatRecord {
   ordinary one**, so it is recorded rather than derived from the tree.
   """
   inheritedFrom: String
+  """
+  The id of the event that recorded the ancestor's fiat close, when this
+  record was written by a cascade rather than by a close of its own.
+  
+  Absent on a directly-ruled close. Present with [`FiatRecord::inherited_from`],
+  which names the ancestor entity: this identifies WHICH close, so repeated
+  closes of the same ancestor stay distinguishable.
+  """
+  inheritedEvent: String
 }
 
 """

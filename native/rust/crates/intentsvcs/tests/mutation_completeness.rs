@@ -645,6 +645,7 @@ fn an_edgeless_fields_entry_path_is_measured_not_declared() {
               env: "darwin/arm64".to_string(),
             },
             inherited_from: None,
+            inherited_event: None,
           })
         };
         assert!(
@@ -1220,6 +1221,7 @@ fn state_named(name: &str) -> AcState {
         env: "darwin/arm64".to_string(),
       },
       inherited_from: None,
+      inherited_event: None,
     }),
     other => panic!("no such AC state: {other}"),
   }

@@ -108,16 +108,24 @@ fn ac_state() -> impl Strategy<Value = AcState> {
       any::<bool>(),
       "[a-z0-9/]{3,16}",
       proptest::option::of("ST[0-9]{4}"),
+      // **GENERATED BOTH WAYS, like `inherited_from` beside it and for the same
+      // reason** -- `skip_serializing_if` means absent and present are different
+      // journeys through serde. Shaped as a ULID (Crockford base32, 26 chars)
+      // because that is what `Envelope::minted` produces and a round-trip law
+      // asserting `parse(render(m)) == m` must be given a model the estate could
+      // actually have produced.
+      proptest::option::of("[0-9A-HJKMNP-TV-Z]{26}"),
     )
-      .prop_map(|(because, by, tty, env, inherited_from)| {
+      .prop_map(|(because, by, tty, env, inherited_from, inherited_event)| {
         AcState::Fiat(FiatRecord {
           because,
           by,
           at: "2026-08-28T18:30:00.000Z".to_string(),
           invoker: Invoker { tty, env },
           inherited_from,
+          inherited_event,
         })
-      }),
+      },),
   ]
 }
 
@@ -141,14 +149,18 @@ fn fiat_record() -> impl Strategy<Value = Option<FiatRecord>> {
       any::<bool>(),
       "[a-z0-9/]{3,16}",
       proptest::option::of("ST[0-9]{4}"),
+      proptest::option::of("[0-9A-HJKMNP-TV-Z]{26}"),
     )
-      .prop_map(|(because, by, tty, env, inherited_from)| FiatRecord {
-        because,
-        by,
-        at: "2026-08-29T22:10:00.000Z".to_string(),
-        invoker: Invoker { tty, env },
-        inherited_from,
-      }),
+      .prop_map(
+        |(because, by, tty, env, inherited_from, inherited_event)| FiatRecord {
+          because,
+          by,
+          at: "2026-08-29T22:10:00.000Z".to_string(),
+          invoker: Invoker { tty, env },
+          inherited_from,
+          inherited_event,
+        },
+      ),
   )
 }
 

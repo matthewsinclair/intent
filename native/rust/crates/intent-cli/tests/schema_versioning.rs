@@ -279,14 +279,14 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // async-graphql `Enum` and so cannot carry a payload the way `AcState`
     // does. A ruling's premise can be correctly measured and still not cover
     // what gets built.
-    ("SCHEMA_DDL_VER", 12, 0x4585_00bc_bede_7c4a),
+    ("SCHEMA_DDL_VER", 13, 0x7eda_3b08_294b_eece),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed
     // on human authority against the evidence.
-    ("SCHEMA_SDL_VER", 12, 0x9d69_bb16_d3cb_00a9),
+    ("SCHEMA_SDL_VER", 14, 0xd2e4_728d_bd0f_e06c),
     // Same change on the JSON face. 13 -> 14.
-    ("SCHEMA_JSON_VER", 14, 0xb48b_21ed_ac4c_19bb),
+    ("SCHEMA_JSON_VER", 16, 0xf61a_2744_b021_e63d),
   ];
 
   let mut moved = Vec::new();

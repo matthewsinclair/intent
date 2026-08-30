@@ -3974,6 +3974,7 @@ impl Facade {
       at: String::new(),
       invoker: crate::model::Invoker::collected(),
       inherited_from: None,
+      inherited_event: None,
     };
     self
       .set_thread_status_fiat(
@@ -4022,6 +4023,7 @@ impl Facade {
       at: String::new(),
       invoker: crate::model::Invoker::collected(),
       inherited_from: None,
+      inherited_event: None,
     };
     self
       .set_wp_status_fiat(
@@ -4211,7 +4213,7 @@ impl Facade {
     thread.status = status;
     // See this function's own doc: unconditional, because the record describes
     // the state being left.
-    thread.fiat = fiat;
+    thread.fiat = fiat.clone();
     // **WRITTEN ONLY WHEN THE CALLER SAID SOMETHING, WHICH MAKES CLEARING AN ACT
     // RATHER THAN A DEFAULT** (vc's ruling, 2026-08-25). It read
     // `thread.status_reason = reason.clone()` unconditionally, and `check_reason`
@@ -4283,7 +4285,13 @@ impl Facade {
         None
       }
     };
-    self.apply(
+    // **MINTED HERE RATHER THAN INSIDE `apply`, so a cascade can carry this
+    // envelope's ID into every child it closes.** `Envelope::minted` generates
+    // the ULID in Rust, so the id exists before any write and the whole cascade
+    // rides ONE transaction.
+    let envelope = Envelope::minted(
+      &self.ctx.principal,
+      &self.ctx.project_id,
       op,
       Subject {
         kind: "thread".to_string(),
@@ -4294,8 +4302,27 @@ impl Facade {
         "to": crate::model::enum_str(&status),
         "reason": reason,
       }),
-      next,
-    )?;
+    );
+    let mut envelopes = vec![envelope];
+    // **THE CASCADE IS KEYED ON THE RECORD, NOT ON THE OP, and that is the point
+    // of putting it here.** A fiat close is the only thread transition that
+    // carries one, so any verb that ever does will cascade by construction
+    // rather than by remembering to -- the same reason the CLEAR lives in this
+    // door rather than in each verb.
+    if let Some(record) = fiat.clone() {
+      let ancestor_event = envelopes[0].id.clone();
+      let ctx = self.ctx.clone();
+      let thread = find_thread_mut(&mut next, id)?;
+      envelopes.extend(Self::cascade_fiat(
+        &ctx,
+        thread,
+        None,
+        id,
+        &ancestor_event,
+        &record,
+      ));
+    }
+    self.apply_envelopes(envelopes, next, crate::store::ProjectStateEdit::Unchanged)?;
     // **AFTER `apply`, DELIBERATELY** -- see [`Facade::edit_list`] for why the
     // interrupted-between state has to be the one that degrades into `--keep`.
     self.edit_list(op, id, list)?;
@@ -4723,7 +4750,7 @@ impl Facade {
     wp.status = status;
     // Unconditional, because the record describes the state being left -- see
     // [`Facade::set_thread_status_fiat`].
-    wp.fiat = fiat;
+    wp.fiat = fiat.clone();
     // **WRITTEN ONLY WHEN THE CALLER SAID SOMETHING, WHICH MAKES CLEARING AN ACT
     // RATHER THAN A DEFAULT** (vc's ruling, 2026-08-25). It read
     // `wp.status_reason = reason.clone()` unconditionally, and `check_reason`
@@ -4753,20 +4780,44 @@ impl Facade {
       let given = given.trim();
       wp.status_reason = (!given.is_empty()).then(|| given.to_string());
     }
+    // Minted here for the reason [`Facade::set_thread_status_fiat`] gives: a
+    // cascade needs this envelope's id before its children's records exist.
+    let envelope = Envelope::minted(
+      &self.ctx.principal,
+      &self.ctx.project_id,
+      op,
+      Subject {
+        kind: "wp".to_string(),
+        id: label,
+      },
+      json!({
+        "from": crate::model::enum_str(&from),
+        "to": crate::model::enum_str(&status),
+        "reason": reason,
+      }),
+    );
+    let mut envelopes = vec![envelope];
+    // **SCOPED TO THIS PACKAGE'S OWN GROUP, so a package close does not reach a
+    // sibling's criteria.** `Some(seq)` selects the AC group exactly as
+    // [`crate::contract::Scope::WorkPackage`] does for the gate, which is why
+    // this needed no new scoping rule -- the question *which criteria belong to
+    // this package* was already answered and had one home.
+    if let Some(record) = fiat.clone() {
+      let ancestor_event = envelopes[0].id.clone();
+      let ctx = self.ctx.clone();
+      let ancestor = format!("{st}/{seq:02}");
+      let thread = find_thread_mut(&mut next, st)?;
+      envelopes.extend(Self::cascade_fiat(
+        &ctx,
+        thread,
+        Some(seq),
+        &ancestor,
+        &ancestor_event,
+        &record,
+      ));
+    }
     self
-      .apply(
-        op,
-        Subject {
-          kind: "wp".to_string(),
-          id: label,
-        },
-        json!({
-          "from": crate::model::enum_str(&from),
-          "to": crate::model::enum_str(&status),
-          "reason": reason,
-        }),
-        next,
-      )
+      .apply_envelopes(envelopes, next, crate::store::ProjectStateEdit::Unchanged)
       .map(|()| Outcome::Moved)
   }
 
@@ -5404,6 +5455,7 @@ impl Facade {
           at: String::new(),
           invoker: crate::model::Invoker::collected(),
           inherited_from: None,
+          inherited_event: None,
         }),
         "ac.fc",
         json!({"because": because, "by": by}),
@@ -5774,6 +5826,7 @@ impl Facade {
         at: String::new(),
         invoker: crate::model::Invoker::collected(),
         inherited_from: None,
+        inherited_event: None,
       });
     }
     self
@@ -7097,6 +7150,164 @@ impl Facade {
     op: &str,
     subject: Subject,
     payload: serde_json::Value,
+    next: Canon,
+    project_state: crate::store::ProjectStateEdit,
+  ) -> Result<(), FacadeError> {
+    let envelope = Envelope::minted(
+      &self.ctx.principal,
+      &self.ctx.project_id,
+      op,
+      subject,
+      payload,
+    );
+    self.apply_envelopes(vec![envelope], next, project_state)
+  }
+
+  /// Apply an ancestor's fiat close DOWNWARD, to exactly the children the
+  /// ratified machines say can take one.
+  ///
+  /// **THE RULE IS THE TABLES READ DOWNWARD, NOT A POLICY** (hv ruled the cascade
+  /// 2026-08-28; vc confirmed 2026-08-30 that this half needs no ruling because
+  /// it is derived). A child is closed iff its own machine declares an `fc` edge
+  /// from the state it is IN -- `transitions::permits` is the whole predicate,
+  /// so the from-sets have one home and this cannot drift from them.
+  ///
+  /// **Every skip it produces is one that would have been argued for separately**,
+  /// which is the evidence the derivation is right rather than merely convenient:
+  /// a `satisfied` AC is skipped because a fiat close is how an UNMET requirement
+  /// is closed and offering it on a met one would let close-on-authority
+  /// overwrite close-on-evidence; a `green` AT for the same reason; a `done` or
+  /// `cancelled` package because it is already closed; `descoped` and `withdrawn`
+  /// because they are off scope entirely.
+  ///
+  /// **A SKIPPED CHILD WRITES NO EVENT, AND THAT IS ANSWERABLE RATHER THAN LOST**
+  /// -- but only under the one-event-per-entity ruling. *Was this child considered
+  /// and skipped?* is derivable by reading the machine against the child's state
+  /// AT THE TIME, and its state at the time is recoverable only because every
+  /// state change writes its own event. **So the event-count ruling is what makes
+  /// the skip derivable, and one-event-per-cascade would have left it genuinely
+  /// unanswerable.**
+  ///
+  /// `scope` is `None` for a thread close and `Some(seq)` for a work package,
+  /// selecting the AC group the way [`crate::contract::Scope`] already does.
+  /// Returns one envelope per child MOVED, to ride the ancestor's transaction.
+  fn cascade_fiat(
+    ctx: &FacadeContext,
+    thread: &mut Thread,
+    scope: Option<u32>,
+    ancestor: &str,
+    ancestor_event: &str,
+    record: &crate::model::FiatRecord,
+  ) -> Vec<Envelope> {
+    let inherited = |extra: Option<&str>| crate::model::FiatRecord {
+      because: record.because.clone(),
+      by: record.by.clone(),
+      // D42: the write stamps it, here as everywhere.
+      at: String::new(),
+      invoker: record.invoker.clone(),
+      inherited_from: Some(extra.unwrap_or(ancestor).to_string()),
+      inherited_event: Some(ancestor_event.to_string()),
+    };
+    let group = scope.map(|seq| format!("{seq:02}"));
+    let in_scope = |id: &str| match &group {
+      // `AC-03.2` belongs to WP-03: the group is between the dash and the dot.
+      Some(g) => id
+        .split_once('-')
+        .and_then(|(_, rest)| rest.split_once('.'))
+        .is_some_and(|(prefix, _)| prefix == g),
+      None => true,
+    };
+    let thread_id = thread.id.clone();
+    let mut out = Vec::new();
+    let mut mint = |op: &str, kind: &str, id: String| {
+      out.push(Envelope::minted(
+        &ctx.principal,
+        &ctx.project_id,
+        op,
+        Subject {
+          kind: kind.to_string(),
+          id,
+        },
+        json!({
+          "because": record.because,
+          "by": record.by,
+          "inherited_from": ancestor,
+          "inherited_event": ancestor_event,
+        }),
+      ));
+    };
+
+    // Work packages, thread close only -- a package close does not reach its
+    // siblings.
+    if scope.is_none() {
+      for wp in &mut thread.wps {
+        if transitions::permits(
+          "WorkPackage",
+          "status",
+          "wp.fc",
+          &crate::model::enum_str(&wp.status),
+        ) {
+          wp.status = WpStatus::Done;
+          wp.fiat = Some(inherited(None));
+          mint("wp.fc", "wp", format!("{thread_id}/{:02}", wp.seq));
+        }
+      }
+    }
+
+    // Criteria in scope.
+    let mut closed_acs: Vec<String> = Vec::new();
+    for ac in &mut thread.criteria {
+      if in_scope(&ac.id) && transitions::permits("Criterion", "state", "ac.fc", ac.state.name()) {
+        ac.state = crate::model::AcState::Fiat(inherited(None));
+        closed_acs.push(ac.id.clone());
+        mint("ac.fc", "ac", format!("{thread_id}/{}", ac.id));
+      }
+    }
+
+    // Acceptance tests covering a criterion this cascade just closed. **Reached
+    // through `covers` rather than through the id group**, because an AT's
+    // number does not have to match the AC it covers and the coverage list is
+    // the modelled relationship.
+    for at in &mut thread.tests {
+      let covers_closed = at.covers.iter().any(|c| closed_acs.contains(c));
+      if covers_closed
+        && transitions::permits(
+          "AcceptanceTest",
+          "status",
+          "at.fc",
+          &crate::model::enum_str(&at.status),
+        )
+      {
+        at.status = AtStatus::Fiat;
+        at.fiat = Some(inherited(None));
+        mint("at.fc", "at", format!("{thread_id}/{}", at.id));
+      }
+    }
+
+    out
+  }
+
+  /// The one implementation, taking envelopes ALREADY MINTED.
+  ///
+  /// **A WRAPPER OVER ONE IMPLEMENTATION, and the reason is the fiat cascade**
+  /// (vc, 2026-08-30). A cascade writes one event per entity it moves, and every
+  /// child's record carries the ANCESTOR'S EVENT ID -- so the ancestor's envelope
+  /// must exist before the children's records are built, which it cannot if this
+  /// function mints it.
+  ///
+  /// **`Envelope::minted` generates the ULID in Rust, so the id IS knowable before
+  /// the write, and nothing here had to start returning it.** That is consistent
+  /// with D42 rather than an exception to it: the ULID is an IDENTITY and the `ts`
+  /// is the STAMP, and it is only the stamp the write applies. The id being
+  /// available up front is what makes one transaction possible for the whole
+  /// cascade; had the database assigned it, the children would have needed a
+  /// second transaction to learn it.
+  ///
+  /// The FIRST envelope is the act the caller invoked; the rest are what it
+  /// reached, and they share its transaction.
+  fn apply_envelopes(
+    &mut self,
+    envelopes: Vec<Envelope>,
     mut next: Canon,
     project_state: crate::store::ProjectStateEdit,
   ) -> Result<(), FacadeError> {
@@ -7200,13 +7411,6 @@ impl Facade {
     // the same transaction as the rows it describes. Reading a clock and
     // writing the value would hold it across a gap the write could be
     // retried or deferred inside.
-    let envelope = Envelope::minted(
-      &self.ctx.principal,
-      &self.ctx.project_id,
-      op,
-      subject,
-      payload,
-    );
     // The prose index is refreshed with the derived tables, not left behind.
     //
     // Work-package text is DERIVED FROM CANON (D28), so a mutation that
@@ -7289,7 +7493,7 @@ impl Facade {
         created_threads: &created_threads,
         created_issues: &created_issues,
         sections: &sections,
-        envelope: &envelope,
+        envelopes: &envelopes.iter().collect::<Vec<_>>(),
         project_state,
       })
       // **The refusal is LIFTED rather than wrapped.** `FacadeError::Store`

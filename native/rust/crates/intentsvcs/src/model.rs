@@ -1249,6 +1249,40 @@ pub struct FiatRecord {
   /// ordinary one**, so it is recorded rather than derived from the tree.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub inherited_from: Option<String>,
+  // **PLAIN `//`, AND THE `///` BELOW IS THE ONLY PART A CONSUMER SEES.** This
+  // reasoning names this project's own steel threads, and a `///` is lifted
+  // verbatim by schemars into `thread.schema.json` and by async-graphql into the
+  // SDL -- so writing it as documentation publishes Intent's project-management
+  // state into a face every consumer compiles against.
+  // `no_pm_state_in_output` caught exactly that here, which is the third time
+  // this trap has fired in this file and the second time on a fiat field.
+  //
+  // A SECOND FIELD RATHER THAN A NEW MEANING FOR `inherited_from` (vc,
+  // 2026-08-30). The two answer different questions and both are wanted: "show
+  // me everything closed by this thread's close" is an ENTITY question and is
+  // cheap on `inherited_from`, while "which of the two times this thread was
+  // fiat-closed did this child come from" is an EVENT question that an entity id
+  // cannot answer at all. The second is reachable because hv ruled the fiat exit
+  // reversible: a thread can be fiat-closed, reopened and fiat-closed again, and
+  // under an entity marker alone those cascades are indistinguishable forever.
+  //
+  // Repurposing the existing field was the option declined, and its cost is the
+  // reason: it is already published with a `///` saying it names the ancestor
+  // entity, so changing the meaning without changing the shape leaves every
+  // consumer parsing and the ones reading it as a thread id silently wrong --
+  // nothing breaks, so nothing reports.
+  //
+  // NOT `inherited_at`: in this estate `_at` means a TIME, and a ULID is
+  // lexically sortable by time, so that name would read as a timestamp AND
+  // behave plausibly as one until somebody parsed it.
+  /// The id of the event that recorded the ancestor's fiat close, when this
+  /// record was written by a cascade rather than by a close of its own.
+  ///
+  /// Absent on a directly-ruled close. Present with [`FiatRecord::inherited_from`],
+  /// which names the ancestor entity: this identifies WHICH close, so repeated
+  /// closes of the same ancestor stay distinguishable.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub inherited_event: Option<String>,
 }
 
 /// **THE ONE RENDERING OF A FIAT CLOSE -- ASPIRED TO, AND NOT YET TRUE.**

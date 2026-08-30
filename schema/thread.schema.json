@@ -134,6 +134,13 @@
               "description": "Who recorded it.",
               "type": "string"
             },
+            "inherited_event": {
+              "description": "The id of the event that recorded the ancestor's fiat close, when this\nrecord was written by a cascade rather than by a close of its own.\n\nAbsent on a directly-ruled close. Present with [`FiatRecord::inherited_from`],\nwhich names the ancestor entity: this identifies WHICH close, so repeated\ncloses of the same ancestor stay distinguishable.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "inherited_from": {
               "description": "Set on a row closed by CASCADE, naming the ancestor whose fiat close\nreached it. **Its presence is what stops a cascaded row reading as an\nordinary one**, so it is recorded rather than derived from the tree.",
               "type": [
@@ -400,6 +407,13 @@
         "by": {
           "description": "Who recorded it.",
           "type": "string"
+        },
+        "inherited_event": {
+          "description": "The id of the event that recorded the ancestor's fiat close, when this\nrecord was written by a cascade rather than by a close of its own.\n\nAbsent on a directly-ruled close. Present with [`FiatRecord::inherited_from`],\nwhich names the ancestor entity: this identifies WHICH close, so repeated\ncloses of the same ancestor stay distinguishable.",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "inherited_from": {
           "description": "Set on a row closed by CASCADE, naming the ancestor whose fiat close\nreached it. **Its presence is what stops a cascaded row reading as an\nordinary one**, so it is recorded rather than derived from the tree.",
@@ -710,5 +724,5 @@
   "title": "Thread",
   "type": "object",
   "x-intent-ver": "3.0.0",
-  "x-schema-json-ver": 15
+  "x-schema-json-ver": 16
 }

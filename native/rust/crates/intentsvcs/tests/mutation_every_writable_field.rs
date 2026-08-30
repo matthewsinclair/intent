@@ -121,6 +121,7 @@ fn fully_populated_row() -> AcceptanceTest {
         env: "darwin/arm64".to_string(),
       },
       inherited_from: Some("ST0001".to_string()),
+      inherited_event: None,
     }),
     id: "AT-03.1".to_string(),
     kind: AtKind::Test,
@@ -1324,6 +1325,7 @@ fn fully_populated_thread(id: &str) -> Thread {
       env: "darwin/arm64".to_string(),
     },
     inherited_from: None,
+    inherited_event: None,
   });
   thread.completed = Some("2026-08-20".to_string());
   thread.acceptance = Some(intentsvcs::model::AcceptanceMode::Exempt);
@@ -2113,6 +2115,7 @@ fn fully_populated_work_package() -> intentsvcs::model::WorkPackage {
         env: "darwin/arm64".to_string(),
       },
       inherited_from: Some("ST0056".to_string()),
+      inherited_event: None,
     }),
     scope_legacy: Some(Legacy {
       raw: "Medium-Large".to_string(),

@@ -67,6 +67,7 @@ fn maximal_thread(id: &str) -> Thread {
       env: "darwin/arm64".to_string(),
     },
     inherited_from: None,
+    inherited_event: None,
   });
   t.wps[0].fiat = Some(FiatRecord {
     because: "cascaded from the thread's close".to_string(),
@@ -77,6 +78,7 @@ fn maximal_thread(id: &str) -> Thread {
       env: "darwin/arm64".to_string(),
     },
     inherited_from: Some(id.to_string()),
+    inherited_event: None,
   });
   t.tests = vec![AcceptanceTest {
     fiat: None,

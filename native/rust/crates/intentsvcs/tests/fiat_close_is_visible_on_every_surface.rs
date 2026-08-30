@@ -81,6 +81,7 @@ fn fiat(inherited_from: Option<&str>) -> AcState {
       env: "darwin/arm64".to_string(),
     },
     inherited_from: inherited_from.map(str::to_string),
+    inherited_event: None,
   })
 }
 

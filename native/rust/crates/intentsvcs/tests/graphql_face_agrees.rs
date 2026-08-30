@@ -277,6 +277,7 @@ fn projection_cases() -> Vec<intentsvcs::model::AcState> {
         env: "darwin/arm64".into(),
       },
       inherited_from: None,
+      inherited_event: None,
     }),
     AcState::Fiat(intentsvcs::model::FiatRecord {
       because: "the parent was cut".into(),
@@ -287,6 +288,7 @@ fn projection_cases() -> Vec<intentsvcs::model::AcState> {
         env: "darwin/arm64".into(),
       },
       inherited_from: Some("ST0066".into()),
+      inherited_event: None,
     }),
   ]
 }

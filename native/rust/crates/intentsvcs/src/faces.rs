@@ -41,11 +41,11 @@ pub const INTENT_VER: &str = env!("CARGO_PKG_VERSION");
 /// content changes and its version does not, which is the same forcing
 /// function `SCHEMA_VERSION` has for the store -- the one that earned its
 /// existence within hours of being written.
-pub const SCHEMA_JSON_VER: u32 = 15;
+pub const SCHEMA_JSON_VER: u32 = 16;
 /// See [`SCHEMA_JSON_VER`].
 pub const SCHEMA_DDL_VER: u32 = 13;
 /// See [`SCHEMA_JSON_VER`].
-pub const SCHEMA_SDL_VER: u32 = 13;
+pub const SCHEMA_SDL_VER: u32 = 14;
 
 /// The committed faces, as `(relative path under schema/, content)` pairs.
 pub fn faces() -> Vec<(&'static str, String)> {
