@@ -331,7 +331,21 @@ STATUS="$(jq -r '.status // empty' "$IN")"
 # This is the same defect this whole directory exists to prevent, in the file
 # that is supposed to be THE source of truth for the command surface. A view
 # whose own header miscounts its rows undermines every number below it.
-N_FAM="$(jq -r '.families | length' "$IN")"
+# **THE SENTENCE SAYS "v2 FAMILIES" AND `families` STOPPED BEING THAT LIST.**
+# `daemon` moved into it on 2026-08-30 (vc's ruling) because `spine::build`
+# iterates this section and a family's leaves are its child rows -- so the
+# section is the SPINE's unit and was only ever COINCIDENTALLY also the v2
+# inventory. Counting its length against a claim about v2 would have forced the
+# sentence to say 28 v2 families when there are 27, which is the same bent label
+# the recoverability check refuses two hundred lines down: adjusting a figure so
+# a mechanism produces the right answer.
+#
+# v2-ness is DERIVED from `v2_source` rather than declared beside it. Exact
+# today -- 27 families carry one and only `daemon` does not -- and it keeps the
+# staleness this check was written for: a family added without a `v2_source` no
+# longer moves the v2 figure, and one added WITH one still does.
+N_FAM="$(jq -r '[.families[] | select(.v2_source != null)] | length' "$IN")"
+N_NEW_FAM="$(jq -r '[.families[] | select(.v2_source == null)] | length' "$IN")"
 N_NEW="$(jq -r '.new_surface | length' "$IN")"
 if [ -n "$STATUS" ]; then
   claimed_fam="$(printf '%s' "$STATUS" | sed -nE 's/.*All ([0-9]+) v2 families.*/\1/p')"

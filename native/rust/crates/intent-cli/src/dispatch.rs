@@ -146,6 +146,22 @@ pub struct Table {
 #[derive(Debug, Clone, Deserialize)]
 pub struct Family {
   pub name: String,
+  /// The v2 file this family was ported from, or `None` for new surface.
+  ///
+  /// **READ, NOT PROSE, AND THAT IS THE POINT.** `families` is the SPINE's unit
+  /// -- `build` iterates it and a family's leaves are its child rows -- and it
+  /// was only ever coincidentally also the v2 inventory. `daemon` moved into it
+  /// on 2026-08-30 because a `new_surface` row carries subcommands as a bare
+  /// `values` list, with no per-verb help, no per-verb flags, and one
+  /// `recoverability` for four verbs whose answers differ.
+  ///
+  /// So "how many v2 families are there" stopped being `families.len()`. Making
+  /// this field readable is what lets the question be DERIVED rather than
+  /// answered by a hand-typed number that would have to say 28 to pass -- the
+  /// bent label the register's own generator refuses two hundred lines from
+  /// where it checks this one.
+  #[serde(default)]
+  pub v2_source: Option<String>,
   pub entries: Vec<Entry>,
 }
 
@@ -1065,7 +1081,23 @@ mod tests {
   fn the_compiled_table_parses_and_is_the_expected_shape() {
     let t = table();
     assert!(t.schema.starts_with("intent/dispatch-table@"));
-    assert_eq!(t.families.len(), 27, "27 v2 families");
+    // **`families` IS THE SPINE'S UNIT AND STOPPED BEING THE v2 INVENTORY.**
+    // `daemon` moved into it on 2026-08-30 (vc's ruling) because a `new_surface`
+    // row carries subcommands as a bare `values` list -- no per-verb help, no
+    // per-verb flags, and one `recoverability` for four verbs whose answers
+    // differ. Counting the section against a claim about v2 would force this to
+    // say 28 when there are 27, which is the bent label the register's own
+    // generator refuses elsewhere. v2-ness is DERIVED from `v2_source`.
+    assert_eq!(
+      t.families.iter().filter(|f| f.v2_source.is_some()).count(),
+      27,
+      "27 v2 families"
+    );
+    assert_eq!(
+      t.families.iter().filter(|f| f.v2_source.is_none()).count(),
+      1,
+      "one new-surface family (`daemon`), stated separately so the v2 figure cannot silently absorb new surface"
+    );
     assert!(
       t.families.iter().flat_map(|f| f.entries.iter()).count() >= 85,
       "the table carries the full entry set"

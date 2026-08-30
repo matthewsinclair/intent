@@ -2,7 +2,7 @@
 
 > GENERATED VIEW -- the canon is `dispatch-table.json` beside this file. Regenerate with `parity/tools/gen_dispatch_table.sh`; do not hand-edit rows. Measured at `9ec1656` on 2026-08-14 by ic.
 
-**Status:** All 27 v2 families authored + 14 new-surface entries. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.
+**Status:** All 27 v2 families authored + 13 new-surface entries, plus 1 NEW-SURFACE FAMILY (`daemon`, 4 verbs). **`families` now holds one member that is not a v2 family, and the count is stated in two parts rather than merged**: the section is the SPINE's unit -- `spine::build` iterates it and a family's leaves are its child rows -- and it was only ever coincidentally also the v2 inventory. `daemon` needed to be there because a `new_surface` row carries subcommands as a bare `values` list, which has no per-verb help, no per-verb flags, and one `recoverability` for four verbs whose answers differ (vc's ruling 2026-08-30). Keeping the v2 figure separate is deliberate: it is a claim about the PORT and must not silently absorb new surface. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.
 
 - THE command-surface source of truth for Intent v3 (AC-05.1). The clap surface, the help text, the MCP tool list and the `intent llm` agent guide all render FROM this file; nothing renders from `bin/**` and nothing describes the surface a second time.
 - This is the AUTHORED artefact. `dispatch-table.md` beside it is a GENERATED view -- run `parity/tools/gen_dispatch_table.sh`, never hand-edit the view.
@@ -3467,6 +3467,94 @@ Print the Intent version
   - `0.record`: parity.md
 - **MCP:** exposed as an agent tool -- read-only
 
+## Family: `daemon`
+
+Manage the machine-level intentd
+
+- **v2 source:** `new-surface`
+- **v2 help file:** none
+- **Owning work package:** WP-08
+
+- **NEW SURFACE, AND A FAMILY RATHER THAN ONE ROW BECAUSE ONE ROW COULD NOT STATE A TRUE FACT ABOUT ITS VERBS** (vc's ruling, 2026-08-30, on ic's measurement; wanted by cc, who owns WP-08). It shipped as a single `new_surface` entry with a `subcommand` slot listing `start|stop|status|run`, which carries names and nothing else -- no per-verb help, no per-verb flags, and one `recoverability` for four verbs with different answers.
+- **THE TWO ALTERNATIVES WERE BOTH DEFECTS ALREADY NAMED ON THIS ESTATE.** A `--format` on the head row lands on `start`, `stop`, `run` and `status` alike, which is a FLAG ACCEPTED AND IGNORED -- worse than one refused, because the caller believes they got the behaviour and the exit code agrees. And a child row under a `new_surface` head is never read by `spine::build`, which iterates `table.families`: measured, that produced TWO TESTS DISAGREEING about whether the command exists, one saying it was missing from the surface and one saying it was present with no row behind it. That is what two homes look like from outside.
+- `daemon status` is the only READ in the family and the only member whose exposure question is open.
+
+| command         | args      | flags                  | help                                                             | disposition |
+| --------------- | --------- | ---------------------- | ---------------------------------------------------------------- | ----------- |
+| `daemon`        | <command> | --                     | Manage the machine-level intentd                                 | new-surface |
+| `daemon start`  | --        | --                     | Start intentd for this machine                                   | new-surface |
+| `daemon stop`   | --        | --                     | Stop the running intentd                                         | new-surface |
+| `daemon status` | --        | --format terminal/json | Report whether intentd is running, and the address it answers on | new-surface |
+| `daemon run`    | --        | --                     | Run intentd in the foreground, without daemonising               | new-surface |
+
+### `daemon`
+
+Manage the machine-level intentd
+
+- **v2:** new-surface
+- **Arguments:**
+  - `command` (subcommand, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- read-only
+- **MCP note:** The family head dispatches and does nothing itself.
+- **basis:** design.md:73-74, D07/D08/D19. **THE HEAD ROW CARRIES THE `subcommand` ARG AND NO `values` KEY.** In the families model the leaves ARE the child entries, so a `values` list here would be a second home for the roster the entries already are -- and its ABSENCE is what says the bare command is illegal, rather than a default deciding it (cc, who hit the missing-arg form as a startup panic before any work).
+
+### `daemon start`
+
+Start intentd for this machine
+
+- **v2:** new-surface
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** Machine-level process control -- the canonical example behind the whole exposure field, and the row that makes `lean closed` the right default rather than a nicety.
+- **basis:** design.md:73-74, D07/D08/D19. **REFUSES when a daemon is already running rather than evicting one** -- AC-08.12, landed `6b32b71d`, a kernel file lock rather than a liveness probe. So a second invocation is a clean refusal, not a takeover.
+- **recoverability:** reversible
+- **recoverability anomaly:** REVERSIBLE AND WITHHELD ANYWAY, AND THE WITHHOLD REASON IS NOT IRREVERSIBILITY. The MCP withhold list is derived from `recoverability` because the usual ground for keeping a mutation off the tool tier is that the surface cannot undo it -- and these three ARE undoable, each by a sibling. They are withheld because they are MACHINE-LEVEL PROCESS CONTROL, which is this family's own stated ground and the canonical example behind the exposure field existing at all. **The head row carried `one-way` while it was ONE ROW STANDING FOR FOUR VERBS, which is a label bent to make a derived number come out** (cc's words). A representation that must state something false for a mechanism to produce the right answer is the mechanism's defect, not the row's -- and the generator refusing the bent label rather than accepting it is that working. Splitting the family is what made each verb's real recoverability statable.
+
+### `daemon stop`
+
+Stop the running intentd
+
+- **v2:** new-surface
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** Machine-level process control. See `daemon start`.
+- **basis:** design.md:73-74, D07/D08/D19. The undo of `daemon start`, which is why neither is one-way.
+- **recoverability:** reversible
+- **recoverability anomaly:** REVERSIBLE AND WITHHELD ANYWAY, AND THE WITHHOLD REASON IS NOT IRREVERSIBILITY. The MCP withhold list is derived from `recoverability` because the usual ground for keeping a mutation off the tool tier is that the surface cannot undo it -- and these three ARE undoable, each by a sibling. They are withheld because they are MACHINE-LEVEL PROCESS CONTROL, which is this family's own stated ground and the canonical example behind the exposure field existing at all. **The head row carried `one-way` while it was ONE ROW STANDING FOR FOUR VERBS, which is a label bent to make a derived number come out** (cc's words). A representation that must state something false for a mechanism to produce the right answer is the mechanism's defect, not the row's -- and the generator refusing the bent label rather than accepting it is that working. Splitting the family is what made each verb's real recoverability statable.
+
+### `daemon status`
+
+Report whether intentd is running, and the address it answers on
+
+- **v2:** new-surface
+- **Flags:**
+  - `--format` `terminal|json` (enum) -- Output format
+    - **default:** terminal
+    - **disposition:** keep
+    - **disposition basis:** **`--format`, NOT `--json`, ON hv's 2026-08-21 SPELLING RULING**: `--format` where the verb has formats other than json, and `--json` kept ONLY as a v2 parity alias. `daemon` is new surface with no v2 ancestor, so there is no obligation to inherit and `--json` would be a second spelling minted rather than kept. **The machine-readable form is why this row exists**: ST0064's menubar app must ask the CLI where the daemon is, so that no port literal and no setting can exist in the app. Geodica reached the same design independently -- _the address comes from the one resolver, never from config or a setting_ -- which is a second measurement of one design under different constraints rather than a citation.
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- read-only
+- **MCP note:** **CLOSED CONSERVATIVELY AND THE QUESTION IS RECORDED RATHER THAN SETTLED.** This family is closed because `start|stop|run` is machine-level process control -- and that justification, in its own words, does NOT name `status`. This row is a READ and is the one member the stated reason does not reach, so it is a candidate for exposure on a ruling rather than on a reading of a sentence written about its siblings. Closed until then, because a wrongly-open row is the expensive direction.
+- **basis:** AC-01.5, D56. **IT MUST ANSWER FROM `intentsvcs::daemon` -- `candidates()` then `route()` -- AND FROM NOTHING ELSE** (cc, who owns the write side and landed it at `b9d16dcc`). hv's D6 has the daemon bind `127.0.0.1:0` and PUBLISH what the kernel gave it, so there is no port literal anywhere to read and `candidates()` is the one reader of that address file. **A second resolver here would let the menubar app and the CLI disagree about where the daemon is, SILENTLY, because both answers look like addresses.** One door, so ST0064's app asks the same question the store-routing door asks rather than a second implementation that agrees today.
+
+### `daemon run`
+
+Run intentd in the foreground, without daemonising
+
+- **v2:** new-surface
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** Machine-level process control. See `daemon start`.
+- **basis:** AC-08.9: `intent daemon run` serves the IDENTICAL code in the foreground. **It is long-running and does not return**, which is the property a consumer of `recoverability` should read before treating it like its siblings.
+- **recoverability:** reversible
+- **recoverability anomaly:** REVERSIBLE AND WITHHELD ANYWAY, AND THE WITHHOLD REASON IS NOT IRREVERSIBILITY. The MCP withhold list is derived from `recoverability` because the usual ground for keeping a mutation off the tool tier is that the surface cannot undo it -- and these three ARE undoable, each by a sibling. They are withheld because they are MACHINE-LEVEL PROCESS CONTROL, which is this family's own stated ground and the canonical example behind the exposure field existing at all. **The head row carried `one-way` while it was ONE ROW STANDING FOR FOUR VERBS, which is a label bent to make a derived number come out** (cc's words). A representation that must state something false for a mechanism to produce the right answer is the mechanism's defect, not the row's -- and the generator refusing the bent label rather than accepting it is that working. Splitting the family is what made each verb's real recoverability statable.
+
 ## Known exposures -- defects this file does not have, and is not protected against
 
 ### EXP-01 -- The generated view is formatter-stable today by accident, not by design
@@ -3600,7 +3688,6 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 | `export`   | --                 | --format <fmt>                                         | Extract the store into a portable format usable without Intent                                               | WP-06        | design.md:57 -- YAML/md/anything else are export projections                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `ingest`   | [path]             | --from-md                                              | Ingest markdown into the store through the API gate (the recovery path, and the v2 migrator)                 | WP-03        | design.md:66; WP-03 deliverable, shared with the WP-10 migrator                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `backup`   | --                 | --list                                                 | Snapshot this machine's store -- prunes expired snapshots; one-way, no restore verb ships                    | WP-03        | D35 (hv, 2026-08-15): 'a `.backup/` dir in the project that is gitignored could have a per-{day,week,month} rolled-up snapshot of the actual SQLite db file, configurable from `intent config`'.                                                                                                                                                                                                                                                                                                                                                                     |
-| `daemon`   | <subcommand>       | --                                                     | Manage the machine-level intentd                                                                             | WP-08        | design.md:73-74, D07/D08/D19                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `mcp`      | --                 | --                                                     | Serve the MCP surface over stdio                                                                             | WP-09        | design.md:84, D11                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `organize` | --                 | --apply, --default, --force                            | Reconcile the tree with .intentfiles: realise what is declared, remove what is not (previews unless --apply) | ST0057 WP-04 | D57-3 (hv, 2026-08-18): the reconciliation verb of the sparse-projection model -- hydrate, verify, dehydrate, and refuse. Implemented at `intentsvcs::organize`.                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `edit`     | <kind> <id> [file] | --editor <program>, --path, --browser                  | Print the path to open for an artefact, realising it first so the path exists                                | WP-05        | AC-05.1 / AC-05.3. **`st edit` printed a path and left the operator to find out whether it was there** -- v2's own note says the thread DIRECTORY must exist and the file need not. Under the disk model an artefact may legitimately have no realised form at all, so the same command on a dehydrated thread names a path to nothing. **This verb hydrates first, so the path it prints EXISTS**, and `st edit` becomes a delegate rather than a second implementation: AC-05.3 is explicit that path-printing has ONE home.                                       |
@@ -3701,14 +3788,6 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **Wants review:**
   - uncertain on `exposed_on_mcp`
   - Genuinely harmless -- it writes a snapshot into `.backup/db/` and touches nothing else. Closed only by the standing lean, which is the weakest reason on this list.
-
-### `daemon`
-
-- **v2:** new-surface
-- **disposition:** new-surface
-- **recoverability:** one-way
-- **MCP:** not exposed -- **mutates**
-- **MCP note:** The canonical example behind the whole exposure field: `daemon start|stop|run` is machine-level process control, and it is the row that makes 'lean closed' the right default rather than a nicety.
 
 ### `mcp`
 

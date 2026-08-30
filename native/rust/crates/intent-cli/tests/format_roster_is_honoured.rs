@@ -75,6 +75,16 @@ const ARGV: &[(&str, &[&str])] = &[
   // header-and-separator rather than as a sentence, so the non-empty control
   // below could not see it; issue 0121's disclosure made it visible and the
   // control fired the same hour.
+  // **DECLARED RATHER THAN SKIPPED, AND THE DRIVE IS CURRENTLY VACUOUS -- SAY
+  // SO.** `daemon status` is DECLARED AND UNWIRED: it returns the `known command
+  // that is not implemented yet` marker at rc=2 for every argv, so this drive
+  // cannot yet distinguish a format the verb accepts from one it refuses. It
+  // passes here because the marker matches neither refusal pattern, which is a
+  // pass BY NOT MATCHING rather than by being right. The entry is here because
+  // this file refuses to be skipped, and the honest state is recorded rather
+  // than left to look like coverage. **It becomes a real drive the moment cc
+  // wires the arm** (WP-08) -- nothing here needs changing then.
+  ("daemon status", &["daemon", "status"]),
   ("st list", &["st", "list", "--status", "all"]),
   ("st sync", &["st", "sync"]),
   ("wp list", &["wp", "list", "ST0001"]),

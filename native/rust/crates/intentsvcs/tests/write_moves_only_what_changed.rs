@@ -569,7 +569,16 @@ const UNPROVEN: &[&str] = &[
   "claude upgrade",
   "claude ws",
   "config set",
-  "daemon",
+  // **THE FAMILY HEAD CAME OUT AND THREE OF ITS FOUR VERBS WENT IN.** `daemon`
+  // was one row standing for four verbs; splitting it into a family (ic,
+  // 2026-08-30, vc's ruling) makes the head a dispatcher that writes nothing
+  // and the verbs the things that write. `daemon status` is deliberately ABSENT
+  // from this roster: it is a pure READ, and the asymmetry between it and its
+  // siblings is the same one that argued for the split -- one row could not
+  // state it.
+  "daemon run",
+  "daemon start",
+  "daemon stop",
   "ext new",
   "fileindex",
   "init",
