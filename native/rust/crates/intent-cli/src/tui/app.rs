@@ -104,7 +104,7 @@ impl App {
   }
 
   /// The row under the cursor, if there is one.
-  fn focused<'r>(&self, rows: &'r [Row]) -> Option<&'r Row> {
+  pub fn focused_row<'r>(&self, rows: &'r [Row]) -> Option<&'r Row> {
     self.focus.and_then(|f| rows.get(f.index()))
   }
 
@@ -124,7 +124,10 @@ impl App {
     // The machine says nothing about this trigger from this mode. Same rule --
     // and `arm` says nothing for an ambiguity no row kind resolves, which is
     // the same answer for the same reason.
-    let row_kind = self.focused(rows).map(|r| r.kind.as_str()).unwrap_or("");
+    let row_kind = self
+      .focused_row(rows)
+      .map(|r| r.kind.as_str())
+      .unwrap_or("");
     let Some(next) = mode::arm(&mode::steps(self.mode, trigger), row_kind) else {
       return Step::Continue;
     };
@@ -136,7 +139,7 @@ impl App {
     if next == Mode::Embed && self.mode == mode::REST {
       let (Some(View::Item { kind, id }), Some(row)) = (
         Some(self.stack.current().clone()).filter(|v| matches!(v, View::Item { .. })),
-        self.focused(rows),
+        self.focused_row(rows),
       ) else {
         return Step::Continue;
       };

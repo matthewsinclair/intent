@@ -92,6 +92,15 @@ pub const FOOT: usize = 4;
 /// Every line the screen spends on chrome rather than on rows.
 pub const CHROME: usize = HEAD + FOOT;
 
+/// The one extra line a split BODY costs: the labelled rule between the panes.
+pub const SPLIT_RULE: usize = 1;
+
+/// The chrome of a screen whose BODY is split.
+pub const SPLIT_CHROME: usize = CHROME + SPLIT_RULE;
+
+/// The label on the rule between the panes.
+pub const DETAIL_LABEL: &str = " detail ";
+
 /// Stands in for "a rule goes here" while the degraded screen is assembled, so
 /// the priority order reads as a list of sections rather than as arithmetic.
 /// Never rendered: [`Screen::compose`] replaces it with a rule of the right
@@ -120,6 +129,19 @@ pub struct Row {
   pub title: String,
   pub value: String,
   pub kind: String,
+  /// What this row expands into, if anything.
+  ///
+  /// **THE SPLIT IS TRIGGERED BY THE ROW CARRYING DETAIL, NEVER BY A LIST OF
+  /// VIEW KINDS** (`tui-design.md` section 6, in those words). A list of kinds
+  /// is a second place to update when a new view arrives, *and it is the half
+  /// that gets forgotten* -- the new view renders, looks complete, and silently
+  /// has no detail pane. As a field on the row there is nothing to remember: a
+  /// row that has detail shows detail.
+  ///
+  /// Detail rows are ROWS, so the two panes share one renderer. Stripping
+  /// markup in one place and parsing it in the other is two encodings of one
+  /// fact.
+  pub detail: Option<Vec<Row>>,
 }
 
 impl Row {
@@ -131,6 +153,7 @@ impl Row {
       title,
       value: value.into(),
       kind: kind.into(),
+      detail: None,
     }
   }
 
@@ -146,8 +169,72 @@ impl Row {
       title: title.into(),
       value: value.into(),
       kind: kind.into(),
+      detail: None,
     }
   }
+
+  /// The same row, carrying what it expands into.
+  pub fn expanding_to(mut self, detail: Vec<Row>) -> Self {
+    self.detail = Some(detail);
+    self
+  }
+
+  /// Whether this row splits the BODY.
+  ///
+  /// **EMPTY DETAIL IS NOT DETAIL.** A `Some(vec![])` would open a pane with
+  /// nothing in it, delimited by a rule separating nothing from nothing --
+  /// which section 2 allows nowhere.
+  pub fn has_detail(&self) -> bool {
+    self.detail.as_ref().is_some_and(|d| !d.is_empty())
+  }
+}
+
+/// Push one pane's lines, padded to the height it was given.
+///
+/// **THE PADDING IS WHAT HOLDS THE CHROME IN PLACE.** A pane that pushed only
+/// the rows it had would move every line below it whenever the row set was
+/// short, so the rules and the foot would walk up the screen as the operator
+/// navigated.
+fn pane(out: &mut Vec<String>, rows: &[String], height: usize) {
+  for r in rows {
+    out.push(r.clone());
+  }
+  for _ in rows.len()..height {
+    out.push(String::new());
+  }
+}
+
+/// How the BODY divides between the list and the detail pane.
+///
+/// **THE DETAIL PANE TAKES WHAT IT NEEDS AND NEVER MORE THAN HALF.** A fixed
+/// split wastes lines on a two-row detail and starves a long one. An UNCAPPED
+/// one is worse: a criterion whose detail runs to a dozen rows would push the
+/// list it was selected from off the screen, and the operator loses the thing
+/// they were navigating in order to look at one item of it.
+///
+/// **A DETAIL PANE OF ZERO LINES IS NO SPLIT AT ALL**, which is why this
+/// returns the whole body to the list rather than a rule with nothing under it.
+pub fn divide(body: usize, detail_rows: usize) -> (usize, usize) {
+  let for_detail = detail_rows.min(body / 2);
+  (body - for_detail, for_detail)
+}
+
+/// The rule between the panes, with its label centred.
+///
+/// **THE LABEL IS DROPPED RATHER THAN CLIPPED ON A NARROW VIEWPORT.** A rule
+/// reading `── deta` is a rule that looks broken; a plain rule looks like the
+/// two the screen already carries, which is what it is.
+pub fn labelled_rule(width: usize) -> String {
+  if width < DETAIL_LABEL.chars().count() + 4 {
+    return std::iter::repeat_n(RULE, width).collect();
+  }
+  let label = DETAIL_LABEL.chars().count();
+  let left = (width - label) / 2;
+  let right = width - label - left;
+  let mut out: String = std::iter::repeat_n(RULE, left).collect();
+  out.push_str(DETAIL_LABEL);
+  out.extend(std::iter::repeat_n(RULE, right));
+  out
 }
 
 /// The BODY: one rendered string per row, and the columns they share.
@@ -185,6 +272,16 @@ impl Plan {
 pub struct Screen {
   pub app: String,
   pub body: Plan,
+  /// The lower pane, when the selected row carries detail.
+  ///
+  /// **ITS OWN COLUMNS, NOT THE LIST'S.** `AC-17.11` guarantees that names
+  /// align in one column and values in another *across the whole form*, and the
+  /// detail pane is a different pane with a different row set -- forcing it to
+  /// the list's gutter would indent four short names past a column computed for
+  /// `attachments`. Each pane keeps the guarantee within itself, which is what
+  /// the guarantee is about; a shared gutter would be a promise neither pane
+  /// made.
+  pub detail: Option<Plan>,
   pub status: String,
   pub command: String,
   pub info: String,
@@ -241,18 +338,39 @@ impl Screen {
         .collect();
     }
 
-    let body_h = height - CHROME;
     let rule: String = std::iter::repeat_n(RULE, w).collect();
     let mut out = Vec::with_capacity(height);
     out.push(clip(&self.app, w));
     out.push(rule.clone());
-    let rows = self.body.visible(first, body_h);
-    for r in rows {
-      out.push(r.clone());
+
+    // **THE SPLIT IS THE LAST THING TO SURVIVE A SHRINKING VIEWPORT, NOT THE
+    // FIRST.** A detail pane needs the labelled rule AND at least one line
+    // under it; where the body cannot pay for both, the LIST is what stays,
+    // because it is what the operator navigates with and the detail is one
+    // keystroke away again. `divide` returning zero says the same thing, and
+    // both routes land on the unsplit body below rather than on a rule with
+    // nothing beneath it.
+    let split = match &self.detail {
+      Some(d) if height >= SPLIT_CHROME => {
+        let body_h = height - SPLIT_CHROME;
+        let (list_h, detail_h) = divide(body_h, d.rows.len());
+        (detail_h > 0).then_some((list_h, detail_h, d))
+      }
+      _ => None,
+    };
+
+    match split {
+      Some((list_h, detail_h, detail)) => {
+        pane(&mut out, self.body.visible(first, list_h), list_h);
+        out.push(labelled_rule(w));
+        pane(&mut out, detail.visible(0, detail_h), detail_h);
+      }
+      None => {
+        let body_h = height - CHROME;
+        pane(&mut out, self.body.visible(first, body_h), body_h);
+      }
     }
-    for _ in rows.len()..body_h {
-      out.push(String::new());
-    }
+
     out.push(rule);
     out.push(clip(&self.status, w));
     out.push(clip(&self.command, w));
@@ -352,6 +470,7 @@ mod tests {
 
   fn screen() -> Screen {
     Screen {
+      detail: None,
       app: "ST0056   Add a Rust-based CLI".into(),
       body: plan(&hard_rows(), NARROW),
       status: "NORMAL   title   text   1/4".into(),
@@ -625,5 +744,216 @@ mod tests {
       checked > 0,
       "no shipped row was examined, so this test asserted nothing"
     );
+  }
+
+  fn detail_rows() -> Vec<Row> {
+    vec![
+      Row::new("kind", "test", "text"),
+      Row::new("state", "computed", "text"),
+      Row::new("evidence", "layout.rs", "text"),
+      Row::new(
+        "text",
+        "A CHECKER VERIFIES MEMBERSHIP IN A VOCABULARY",
+        "prose",
+      ),
+    ]
+  }
+
+  fn split() -> Screen {
+    Screen {
+      detail: Some(plan(&detail_rows(), NARROW)),
+      ..screen()
+    }
+  }
+
+  /// **NEVER MORE THAN HALF, AND NEVER LESS THAN THE LIST NEEDS.** An uncapped
+  /// detail pane pushes the list it was selected from off the screen, so the
+  /// operator loses the thing they were navigating in order to look at one item
+  /// of it.
+  #[test]
+  fn the_detail_pane_takes_what_it_needs_and_never_more_than_half() {
+    let mut examined = 0usize;
+    for body in 0..40usize {
+      for wanted in 0..40usize {
+        let (list, detail) = divide(body, wanted);
+        assert_eq!(list + detail, body, "divide({body}, {wanted}) lost a line");
+        assert!(
+          detail <= body / 2,
+          "divide({body}, {wanted}) gave the detail more than half"
+        );
+        assert!(
+          detail <= wanted,
+          "divide({body}, {wanted}) gave the detail more lines than it has rows"
+        );
+        assert!(
+          list >= detail,
+          "divide({body}, {wanted}) left the list smaller than the pane it opened"
+        );
+        examined += 1;
+      }
+    }
+    assert!(examined > 0, "no division was examined");
+    assert_eq!(divide(1, 9), (1, 0), "a body of one line cannot be split");
+    assert_eq!(divide(0, 9), (0, 0));
+  }
+
+  /// The rule between the panes is exactly as wide as everything else, and it
+  /// **drops its label rather than clipping it** -- `-- deta` reads as broken
+  /// where a plain rule reads as the two the screen already carries.
+  #[test]
+  fn the_labelled_rule_fills_its_width_and_drops_the_label_before_clipping_it() {
+    let mut carried = 0usize;
+    let mut plain = 0usize;
+    for w in 0..60usize {
+      let r = labelled_rule(w);
+      assert_eq!(
+        r.chars().count(),
+        w,
+        "the rule at width {w} is not {w} wide"
+      );
+      if r.contains(DETAIL_LABEL.trim()) {
+        carried += 1;
+      } else {
+        assert!(
+          r.chars().all(|c| c == RULE),
+          "a rule without its label must be a plain rule: {r:?}"
+        );
+        plain += 1;
+      }
+    }
+    assert!(
+      carried > 0 && plain > 0,
+      "only one of the two arms was driven"
+    );
+  }
+
+  /// **THE CHROME HOLDS ITS POSITION WHETHER THE BODY IS SPLIT OR NOT.** The
+  /// APP row, the rules and the four foot lines are where an operator looks;
+  /// a split that shifted them would move the mode indicator every time the
+  /// cursor crossed a row that happened to carry detail.
+  #[test]
+  fn a_split_body_leaves_the_app_row_and_the_foot_exactly_where_they_were() {
+    for height in [SPLIT_CHROME, SPLIT_CHROME + 3, 24usize] {
+      let flat = screen().compose(0, height);
+      let cut = split().compose(0, height);
+      assert_eq!(flat.len(), height);
+      assert_eq!(cut.len(), height, "a split screen is not {height} lines");
+      assert_eq!(cut[0], flat[0], "the APP row moved at height {height}");
+      for back in 1..=4usize {
+        assert_eq!(
+          cut[height - back],
+          flat[height - back],
+          "foot line -{back} moved at height {height}"
+        );
+      }
+    }
+  }
+
+  /// **THE SPLIT IS THE FIRST THING TO GO AND THE LIST IS WHAT STAYS.** A body
+  /// that cannot pay for the labelled rule AND a line under it renders unsplit
+  /// rather than showing a rule with nothing beneath it -- section 2 allows no
+  /// chrome that delimits nothing.
+  #[test]
+  fn a_body_too_short_for_both_panes_keeps_the_list_and_drops_the_detail() {
+    let label = DETAIL_LABEL.trim();
+    let mut split_at = 0usize;
+    let mut flat_at = 0usize;
+    for height in CHROME..=(SPLIT_CHROME + 2) {
+      let lines = split().compose(0, height);
+      assert_eq!(lines.len(), height);
+      if lines.iter().any(|l| l.contains(label)) {
+        split_at += 1;
+      } else {
+        flat_at += 1;
+      }
+    }
+    assert!(
+      split_at > 0 && flat_at > 0,
+      "the sweep never saw both outcomes, so it is not driving the degradation it names"
+    );
+    assert!(
+      !split().compose(0, CHROME).iter().any(|l| l.contains(label)),
+      "a body with no room for a detail pane still opened one"
+    );
+  }
+
+  /// **EMPTY DETAIL IS NOT DETAIL.** `Some(vec![])` would open a pane with
+  /// nothing in it under a rule separating nothing from nothing.
+  #[test]
+  fn an_empty_detail_row_set_does_not_split_anything() {
+    let s = Screen {
+      detail: Some(plan(&[], NARROW)),
+      ..screen()
+    };
+    assert!(
+      !s.compose(0, 24)
+        .iter()
+        .any(|l| l.contains(DETAIL_LABEL.trim())),
+      "an empty detail pane was opened"
+    );
+  }
+
+  /// **EACH PANE KEEPS `AC-17.11`'s ALIGNMENT WITHIN ITSELF.** They do not
+  /// share a gutter, and they must not have to: the guarantee is that names
+  /// align in one column and values in another, and a shared gutter computed
+  /// for `attachments` would indent four short detail names past it.
+  #[test]
+  fn both_panes_are_internally_aligned_without_sharing_a_gutter() {
+    let list = plan(&hard_rows(), NARROW);
+    let detail = plan(&detail_rows(), NARROW);
+    for (what, p, rows) in [
+      ("list", &list, hard_rows()),
+      ("detail", &detail, detail_rows()),
+    ] {
+      let mut checked = 0usize;
+      for (line, row) in p.rows.iter().zip(rows.iter()) {
+        if row.value.is_empty() {
+          continue;
+        }
+        let chars: Vec<char> = line.chars().collect();
+        assert!(
+          chars.len() > p.value_col,
+          "{what}: a row carrying a value is shorter than its own value column"
+        );
+        assert_ne!(
+          chars[p.value_col], ' ',
+          "{what}: the value column does not start where the plan says: {line:?}"
+        );
+        checked += 1;
+      }
+      assert_eq!(
+        checked,
+        rows.iter().filter(|r| !r.value.is_empty()).count(),
+        "{what}: some row carrying a value was never examined"
+      );
+    }
+    assert_ne!(
+      list.value_col, detail.value_col,
+      "the two panes happen to share a gutter here, so this test cannot show they compute their \
+       own -- pick fixtures whose longest names differ"
+    );
+  }
+
+  /// No line is ever wider than the viewport, **the labelled rule included** --
+  /// it is the one chrome line built from a width rather than clipped to one.
+  #[test]
+  fn no_line_of_a_split_screen_is_wider_than_the_viewport() {
+    for width in [8usize, NARROW, 100] {
+      let s = Screen {
+        detail: Some(plan(&detail_rows(), width)),
+        app: screen().app,
+        body: plan(&hard_rows(), width),
+        status: screen().status,
+        command: screen().command,
+        info: screen().info,
+      };
+      for (i, line) in s.compose(0, 24).iter().enumerate() {
+        assert!(
+          line.chars().count() <= width,
+          "line {i} is {} wide at viewport {width}: {line:?}",
+          line.chars().count()
+        );
+      }
+    }
   }
 }

@@ -91,6 +91,15 @@ pub fn screen_for(app: &App, rows: &[Row], width: usize) -> Screen {
   Screen {
     app: app_row(app),
     body: layout::plan(rows, width),
+    // **THE SELECTED ROW DECIDES, AND NOTHING ELSE DOES.** No view kind is
+    // consulted here and none should be: `tui-design.md` section 6 says the
+    // split is triggered by the row CARRYING detail, because a list of kinds is
+    // a second place to update and *it is the half that gets forgotten*.
+    detail: app
+      .focused_row(rows)
+      .filter(|r| r.has_detail())
+      .and_then(|r| r.detail.as_ref())
+      .map(|d| layout::plan(d, width)),
     status: status_row(app, rows),
     command: command_row(app),
     info: info_row(app, rows),
@@ -397,5 +406,85 @@ mod tests {
       );
       seen.push(line);
     }
+  }
+
+  /// **THE SPLIT FOLLOWS THE CURSOR WITHIN ONE VIEW, WHICH IS WHAT MAKES IT
+  /// ROW-TRIGGERED RATHER THAN KIND-TRIGGERED.** Same app, same view, same row
+  /// set -- only the cursor moves, and the pane opens and closes with it.
+  ///
+  /// **A SPLIT KEYED OFF THE VIEW KIND IS CORRECT ON EVERY SCREENSHOT OF A
+  /// CRITERIA LIST AND FAILS HERE**, which is why the control is moving the
+  /// cursor rather than changing the view. `tui-design.md` section 6 names this
+  /// exactly: a list of kinds is a second place to update when a new view
+  /// arrives, *and it is the half that gets forgotten*.
+  #[test]
+  fn the_split_follows_the_cursor_rather_than_the_view() {
+    let with_detail = vec![
+      Row::new("title", "ST0056", "text"),
+      Row::new("status", "wip", "select").expanding_to(vec![
+        Row::new("legal", "done, cancelled", "text"),
+        Row::new("owed", "a reason", "text"),
+      ]),
+      Row::new("slug", "add-a-rust-based-cli", "text"),
+    ];
+    assert_eq!(
+      with_detail.iter().filter(|r| r.has_detail()).count(),
+      1,
+      "the fixture must carry detail on exactly one row, or the walk below cannot tell the two \
+       wirings apart"
+    );
+
+    let mut app = App::explore();
+    app.point_at(with_detail.len());
+    let before = app.stack.current().clone();
+
+    let mut opened_on = Vec::new();
+    for at in 0..with_detail.len() {
+      app.focus = app.focus.and_then(|f| f.at(at));
+      let screen = screen_for(&app, &with_detail, 60);
+      if screen.detail.is_some() {
+        opened_on.push(at);
+      }
+      assert_eq!(
+        app.stack.current(),
+        &before,
+        "the view changed during the walk, so the split could still be keyed off it"
+      );
+    }
+    assert_eq!(
+      opened_on,
+      vec![1usize],
+      "the detail pane opened on rows {opened_on:?}, and exactly one row carries detail"
+    );
+  }
+
+  /// The detail pane reaches the screen, with its own rows on it. A `Screen`
+  /// that carried detail nothing composed would satisfy the trigger test above
+  /// and show the operator nothing.
+  #[test]
+  fn the_detail_the_row_carries_is_what_reaches_the_screen() {
+    let rows = vec![
+      Row::new("title", "ST0056", "text"),
+      Row::new("status", "wip", "select").expanding_to(vec![
+        Row::new("legal", "done, cancelled", "text"),
+        Row::new("owed", "a reason", "text"),
+      ]),
+    ];
+    let mut app = App::explore();
+    app.point_at(rows.len());
+    app.focus = app.focus.and_then(|f| f.at(1));
+    let lines = screen_for(&app, &rows, 60).compose(0, 24);
+    for expected in ["legal", "done, cancelled", "owed", "a reason"] {
+      assert!(
+        lines.iter().any(|l| l.contains(expected)),
+        "{expected:?} is in the row's detail and never reached the screen"
+      );
+    }
+    assert!(
+      lines
+        .iter()
+        .any(|l| l.contains(layout::DETAIL_LABEL.trim())),
+      "the detail pane has no rule naming it"
+    );
   }
 }

@@ -46,7 +46,7 @@ pub fn render(screen: &Screen, first: usize, area: Rect, buf: &mut Buffer) {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::tui::layout::{CHROME, RULE, Row, Screen, plan};
+  use crate::tui::layout::{self, CHROME, RULE, Row, Screen, plan};
   use ratatui::Terminal;
   use ratatui::backend::TestBackend;
 
@@ -68,11 +68,28 @@ mod tests {
 
   fn screen() -> Screen {
     Screen {
+      detail: None,
       app: "ST0056   Add a Rust-based CLI".into(),
       body: plan(&rows(), W as usize),
       status: "NORMAL   title   text   1/4".into(),
       command: "cmd: (none)".into(),
       info: "What this thread is called.".into(),
+    }
+  }
+
+  /// The same screen with the selected row expanded. **FOUR detail rows against
+  /// a body that can afford them**, so the split actually happens rather than
+  /// degrading to the unsplit case this is contrasted with.
+  fn split_screen() -> Screen {
+    let detail = vec![
+      Row::new("kind", "test", "text"),
+      Row::new("state", "computed", "text"),
+      Row::new("evidence", "layout.rs", "text"),
+      Row::new("text", "A CHECKER VERIFIES MEMBERSHIP", "prose"),
+    ];
+    Screen {
+      detail: Some(plan(&detail, W as usize)),
+      ..screen()
     }
   }
 
@@ -173,38 +190,59 @@ mod tests {
   ///
   /// The horizontal rule is the one box-drawing character allowed, and only on
   /// the two lines the design puts it on -- so the check is by POSITION, not by
-  /// character class. A rule anywhere else is a border by another name.
+  /// **ONLY THE DECLARED RULES ARE EVER PAINTED, AND NO BORDER IS.** Section 2:
+  /// *there are no borders anywhere; those rules are the only chrome.*
+  ///
+  /// **DRIVEN ON BOTH SHAPES, BECAUSE THE COUNT IS NOT A CONSTANT.** An unsplit
+  /// screen carries two rules and a split one carries three -- and the third is
+  /// LABELLED, so a check that recognised a rule by "every character is the
+  /// box-drawing horizontal" would read the label as a border and report the
+  /// split as a defect. Asserting only the unsplit shape would leave that check
+  /// looking correct until the first detail pane.
   #[test]
-  fn only_the_two_declared_rules_are_ever_painted_and_no_border_is() {
-    let s = screen();
-    let painted_lines = painted(&s, 0, H);
-    let rule: String = std::iter::repeat_n(RULE, W as usize).collect();
-    let allowed = [1usize, H as usize - 4];
-    for (y, line) in painted_lines.iter().enumerate() {
-      if *line == rule {
-        assert!(
-          allowed.contains(&y),
-          "a rule was painted on line {y}, which is not a rule line"
-        );
-        continue;
-      }
-      for ch in line.chars() {
-        assert!(
-          !"|+\u{2502}\u{250c}\u{2510}\u{2514}\u{2518}\u{251c}\u{2524}\u{252c}\u{2534}\u{253c}"
-            .contains(ch),
-          "a border character reached the screen on line {y}: {line:?}"
-        );
-        assert!(
-          ch != RULE,
-          "a box-drawing horizontal appeared off a rule line, on line {y}: {line:?}"
-        );
-      }
-    }
-    assert_eq!(
-      painted_lines.iter().filter(|l| **l == rule).count(),
-      2,
-      "exactly two rules reach the screen"
+  fn only_the_declared_rules_are_ever_painted_and_no_border_is() {
+    let plain: String = std::iter::repeat_n(RULE, W as usize).collect();
+    let labelled = layout::labelled_rule(W as usize);
+    assert_ne!(
+      plain, labelled,
+      "the labelled rule is indistinguishable from a plain one, so the split case below proves \
+       nothing this test could not already see"
     );
+
+    for (what, s, rule_lines) in [
+      ("unsplit", screen(), vec![1usize, H as usize - 4]),
+      ("split", split_screen(), vec![1usize, 1 + 4, H as usize - 4]),
+    ] {
+      let painted_lines = painted(&s, 0, H);
+      for (y, line) in painted_lines.iter().enumerate() {
+        if rule_lines.contains(&y) {
+          assert!(
+            *line == plain || *line == labelled,
+            "{what}: line {y} is declared a rule and is not one: {line:?}"
+          );
+          continue;
+        }
+        for ch in line.chars() {
+          assert!(
+            !"|+\u{2502}\u{250c}\u{2510}\u{2514}\u{2518}\u{251c}\u{2524}\u{252c}\u{2534}\u{253c}"
+              .contains(ch),
+            "{what}: a border character reached the screen on line {y}: {line:?}"
+          );
+          assert!(
+            ch != RULE,
+            "{what}: a box-drawing horizontal appeared off a rule line, on line {y}: {line:?}"
+          );
+        }
+      }
+      assert_eq!(
+        painted_lines
+          .iter()
+          .filter(|l| **l == plain || **l == labelled)
+          .count(),
+        rule_lines.len(),
+        "{what}: the screen painted a number of rules it did not declare"
+      );
+    }
   }
 
   /// A terminal too short for the chrome must not panic and must still show the
