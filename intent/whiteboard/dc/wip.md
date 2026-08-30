@@ -6,7 +6,7 @@ session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
 heartbeat_at: 2026-08-30 14:56Z
 status: active
 focus: "BOUNCED 14:56Z. ST0066 is PASS 6/6 -- and intent/wip.md and hv/wip.md BOTH still say dc is holding it at 0/6. cc is parked on a const that landed at ca744f1d, whose own doc comment claims the guide.rs import that does not exist. AC-14.12 descoped today, so WP-14-blocks-WP-12 is no longer the live blocker and three documents still say it is. AC-12.1 is a gate row with AT-12.1 to-write and a 7-file target, all WP-07."
-claims: [ST0056/07, ST0056/11, ST0058, ST0066]
+claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
 # DevX Claude (dc)
