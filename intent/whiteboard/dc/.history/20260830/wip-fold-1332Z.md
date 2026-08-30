@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-08-30 13:32Z
+heartbeat_at: 2026-08-30 13:20Z
 status: active
-focus: "FOLDED. ST0066 CLOSED 6/6, zero fiat. ST0058 CLAIMED and 3/6 -- AC-00.5 satisfied on its own driven falsifier, `agents init`/`validate` built so AC-00.3's census is `ext` alone (4 verbs, hv rules IN or OUT), AC-00.6 diagnosed and its fix needs a dispatch-table write I will not make unilaterally. AC-00.1 is structurally tag-gated by its own text. Shell suite 6 red -> 1, the 1 accurate and held. ON THE BOUNCE: work with vc to finish ST0058."
+focus: "ST0066 CLOSED 6/6 ON DRIVEN EVIDENCE, ZERO FIAT -- two of the six were RED when driven and produced `0158` and `0159`. SHELL SUITE 6 RED -> 1, and not one of the five was a regression: each was an instrument out of step with a deliberate decision. The remaining red (`shipped_surface_drift`) is ACCURATE and held for hv per vc: the property is EITHER IN BOTH TREES OR DECLARED, so undeclared divergence is the failure and the ten files want declaring. AC-07.7 PRE-VERIFIED: every path v3 resolves against its install root is covered by SUPPORT_PATHS, so the tag closes WP-07. NEXT: nothing of mine is blocked or owed."
 claims: [ST0056/07, ST0056/11, ST0058, ST0066]
 ---
 
@@ -32,25 +32,28 @@ claims: [ST0056/07, ST0056/11, ST0058, ST0066]
 
 ## DOING
 
-### ST0058 -- CLAIMED, 3/6, AND THE THREE OPEN ROWS ARE OPEN FOR THREE DIFFERENT REASONS.
+### ST0066 -- MECHANISM COMPLETE. WHAT REMAINS IS EVIDENCE, AND THE THREAD STAYS 0/6.
 
-**`AC-00.3` IS `ext` ALONE AND THE DECISION IS hv's, NOT A BUILD.** Census derived from 180KB of canon -- AGENTS.md + CLAUDE.md + usage-rules.md + every shipped SKILL.md -- yielding 46 `intent <family> <verb>` pairs, each driven past clap. Six were unimplemented; `agents init`/`validate` are now built, leaving `ext list|new|show|validate`. **`ext` is 820 lines of v2 shell, it is WP-06 parity work which is cc's, and cc is on the daemon.** vc recommends OUT, on the ground that `lib/templates/llm/_AGENTS.md` and `_usage-rules.md` MANDATE `intent ext` -- so every project `intent init` touches receives canon instructing its agents to call a verb that refuses. **AGREEMENT HAS TWO SIDES: if `ext` is out, the fix is canon stopping the promise, which is a template edit in my lane and closes the row without porting a line.** Both sides prepared; neither started.
+**THE BUILD NARRATIVE THAT USED TO LIVE HERE IS GONE BECAUSE IT GAINED A CANONICAL HOME TODAY**, not because it stopped mattering. hv's two-and-two shape, the declined alternatives, what was built against what remains, and D4-held-for-hv are now in `intent/st/ST0066/info.md`; the machines are in `data-model.md` with the checker green on all five; the cascade's from-sets, the fiat-clear invariant and the `inherited_from`/`inherited_event` split are in `facade.rs` and `model.rs` where a `///` publishes them into both faces. **A board copy of any of that is a second home, and the second home is the one that drifts.**
 
-**`AC-00.6` IS DIAGNOSED AND ITS FIX NEEDS A WRITE I WILL NOT MAKE ALONE.** `intent --help` rc=0; `intent help` rc=2 RETIRED, remedy _there is no v3 replacement -- remove it from any script that calls it_. **That remedy is FALSE: `--help` is the replacement**, so the two spellings disagree about whether the capability EXISTS, which is exactly the row's property. Mechanism: `spine.rs:741-743` maps `replacement: ""` -> `DeclaredNone`, `replacement: "<name>"` -> `use <name> instead`, absent -> `Unrecorded`. **The `help` entry in `surface/dispatch-table.json` carries NO `replacement` key at all.** Fix is to name it, plus `retired_commands.rs:221` which pins the false remedy. **`surface/dispatch-table.json` is `include_str!`'d and an uncommitted edit to it poisoned every node's binary once; cc refused to write it unilaterally and vc ruled it. So this is vc's authorisation, not my edit.** Issue `0086`.
+**ALL SIX ROWS ARE `(non-test)`: THE DOOR IS `ac satisfy --evidence`, NOT AN AT.** This board said _the six ATs_ until 2026-08-30 and the falsehood had already reached `intent/wip.md`.
 
-**`AC-00.1` IS STRUCTURALLY TAG-GATED BY ITS OWN TEXT.** hv widened it to COHERENT AND CURRENT, so the third falsifier limb -- either binary naming a commit that is not the checkout -- can only be false at the cut. **The row says so itself and says it is not a useful signal in the meantime.** Verify the limbs are checkable; do not pretend it can move.
+**FOUR ROWS ARE DRIVEABLE NOW (AC-00.1 to 00.4).** Fixture built at `scratchpad/st0066-ev/probe` and the tree-hash instrument POSITIVE-CONTROLLED against a pure read, so a change can be attributed to a write. **A fresh fixture per kind is required for the success arms** -- `fc` on the ST cascades and closes the rest, so one fixture cannot serve four. **AC-00.4 carries its own protocol and the WP kind is the one whose number cannot be made to move**, which the row says itself: state it per kind rather than claiming a uniform pass.
 
-### PARKED BEHIND hv's HAND, ALL OF IT
+**AC-00.5 NEEDS A VACUITY CHECK BEFORE ITS BUILD.** `finding.rs` carries no fiat path. But _wherever it reports one_ passes by absence if `doctor` has no path that can report a fiat-closed entity -- the trap `AC-00.4` was rewritten for. `StatusGateDisagreement` is the candidate; if it is not one, the row wants a rewrite and that is vc's, not a build.
 
-**WP-07 is AC-07.7 only and it is PRE-VERIFIED**: every path v3 resolves against its install root is covered by `SUPPORT_PATHS`, driven through the real `resolved_install_paths`. **That is the NECESSARY half; the sufficient half needs a keg built from this code.** WP-11 is AC-11.1/11.4, both needing a published artefact. WP-14 fully descoped to ST0069. `bin/.devbin` and the `claude start`/`ws` smoke arm both need a keg. The store-migration guard is hv-scheduled for after the cut.
+**AC-00.6's LIBRARY HALF IS LANDED AND GREEN** (`IN-AG-FIAT-001`, validator 9/9). The skills half is ic's: one bullet in `in-essentials` naming the id, no restatement.
+
+**TICKING WITHOUT DRIVEN EVIDENCE WOULD BE A HAND-PERFORMED FIAT CLOSE OF THE THREAD THAT BUILDS FIAT CLOSE.**
 
 ## TODO
 
-- **ON THE BOUNCE: work with vc to finish ST0058.** That is hv's instruction and it is the whole queue.
-- **The `ext` ruling, both sides prepared.** IN -> cc's WP-06 and AC-00.3 waits. OUT -> I edit `lib/templates/llm/_AGENTS.md` and `_usage-rules.md` to stop mandating it.
-- **AC-00.6 needs vc's authorisation** for the `surface/dispatch-table.json` write plus the `retired_commands.rs` arm that pins the false remedy.
-- **A FIFTH MEANING RIDES `rc=2`:** `intent init` in an existing project. AC-00.5 documented four and ended _ASSUME THE LIST OF MEANINGS IS STILL SHORT_ -- the count grew the first time somebody drove a verb the earlier census had no reason to include. Recorded in AC-00.5's evidence; it is evidence FOR the enumerable remedy.
-- **MY OFFER, FOR SLACK AND NOT INSTEAD OF SCOPED WORK:** go looking for the next instrument that passes whether its subject exists or not. Three surfaced today without being hunted.
+- **AC-07.7 IS DRIVEN RED, SO WP-07 DOES NOT CLOSE BEFORE THE CUT.** vc's two-sided drive: the keg ships **NO `plugins/claude` tree at all**, so `claude ws list` returns rc=2 while `--help` returns rc=0 -- **surface complete, function absent**. Green needs a keg from fixed code, which needs a tag, which is hv's hand. **Same gate as WP-11: two WPs behind one.** Record the red; do not satisfy the row.
+- **OPEN AND MINE, SCHEDULED AFTER THE CUT BY hv: THE STORE-MIGRATION HAZARD IS THE RATIFIED `HOME` GUARD WITH ONE AXIS MISSING.** **MY OWN FOUR-NAME LIST WAS WRONG AND THE ERROR IS INSTRUCTIVE: `table_driven_tests_fixture_their_home` IS THE GUARD, NOT A SUBJECT** -- it never spawns the binary, it SCANS other tests' source. Measured members: `bootstrap_door` fixtures `HOME` and sets no `current_dir`; `schema_versioning` and `version_spellings_agree` fixture neither. **AND COUNTING `current_dir` OCCURRENCES IS THE WRONG INSTRUMENT** -- `exit_codes.rs` passes `Path::new(".")`, which counts as isolation and is not; I nearly built hv's options on that count. **THE ESTATE ALREADY RATIFIED THIS ARGUMENT ONE AXIS OVER:** the guard's own module doc measured 43 spawning files, 30 unfixtured, and rejected the blanket predicate for the table-driven one -- _the hazard is not spawning the binary, it is spawning verbs chosen by DATA_, nine files. That guard binds `HOME`. **The store is PROJECT-relative, `testkit` has `fixture_home()` and NOTHING for cwd, so the ratified guard has a second axis and the helper wants a sibling.** Remedy: `testkit::fixture_project()` plus the predicate extended over the same nine. **A DEV-TREE HAZARD, NOT A SHIPPED DEFECT** -- no user runs our suite -- which is why it waits. The 2026-08-30 store move is still unbisected.
+- **A REFUSED COMMIT PARKS YOUR PATHS IN THE SHARED INDEX AND SAYS NOTHING** (ic's find, wants an issue). `git commit` stages and unstages nothing when a hook rejects, so from inside it reads as a commit that did not happen, and the staged files are visible only to the NEXT node. True of every gate refusal, not just the rustfmt arm.
+- **MINE AND UNSTARTED:** `bin/.devbin` is WP-11. `pub const UNWIRED_PHRASE` beside its emitter in `render.rs`, with `guide.rs` importing it -- cc is parked behind this and I am not reporting it again as though standing still were motion.
+- **hv's STANDING DIRECTIVE (b):** the `bin/int` -> `bin/devbin` rename goes AFTER the sweep.
+- **PARKED, NOT MINE TO CLOSE:** WP-11 needs a published tag (hv's hand); fleet work is halted by hv; the `claude start`/`ws` smoke arm needs a keg.
 
 ## Watch-outs
 
