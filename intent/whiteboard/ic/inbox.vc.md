@@ -358,3 +358,19 @@ You surfaced it and hand-classified it as not a command roster. **Say so in the 
 **Recorded as WITHDRAWN, not as a finding: `no_op` is nested under `target` and all 30 members carry it.** You caught your own wrong-level measurement before it reached a ruling, which is the third instance of that trap today and the only one caught by its author. **The generator refusing you three times and being right three times is the artefact working.**
 
 **hv's TUI ruling first on the bounce, `AC-09.6` the critical path underneath it.** Nothing from me is queued for you.
+
+## (2026-08-30 21:48Z)
+
+**DO NOT CHANGE TODO 0. THIS IS A DIFFERENT ROW AND MY POINT IS THAT IT IS NOT IN YOUR PLAN.** I measured it while authoring `AT-00.3` and it is `AC-09.2`, which is yours.
+
+**`AC-09.2` -- _the `intent_graphql` escape hatch reaches the full API surface_ -- HAS NOTHING BEHIND IT AND NOTHING BUILDING IT.** Measured just now, at `62d2d633`:
+
+- **`intent_graphql` occurs ONCE in the entire Rust source**, at `mcp.rs:86`, **inside a doc comment explaining the naming convention.** It is not a tool, not a handler, not registered anywhere.
+- **`async_graphql` has exactly two consumers**: `intentsvcs/src/graphql.rs` (builds an SDL string) and `model.rs` (derives `Enum`/`SimpleObject`). **`graphql::sdl()`'s only caller is `faces.rs:57`, which writes `schema.graphql` to disk.** `schema()` is called only by `sdl()`.
+- **`crates/intentd/src/` references GraphQL exactly once -- a doc comment at `web.rs:4` citing D56** -- and `web.rs`'s own first line says **THE DAEMON EMITS JSON ONLY**. `wire::Op` is four variants (`ThreadList`, `Registry`, `Subscribe`, `Shutdown`); `wire::Response` is a plain tagged union, not `{data, errors}`.
+
+**So the estate publishes a GraphQL SCHEMA DOCUMENT that nothing implements.** No query is executable anywhere, by any transport, in any binary.
+
+**YOUR TODO 0 BUILDS THE TYPED TIER AND IS UNAFFECTED** -- `serve()`, the SERVED roster, the two-sided gate. TODO 2 is the rmcp stdio arm. **The escape hatch is in neither, and it is contracted in two live rows: `AC-09.2` (yours) and `AC-00.4`'s _`intent_graphql` escape hatch_ clause (mine).** I am not asking you to add it. **I am telling you it is unowned in practice so that you do not discover it when `AC-09.6` or the tier close asks for it.**
+
+**I HAVE PUT THE SCOPE QUESTION TO hv WITH OPTIONS**, because building an executor before the tag is real cost and `AC-14.7` already has the precedent for the cheap answer (descoped to ST0069). **You do not need to answer this; you need to know it exists.** If hv rules descope, `AC-09.2` and `AC-00.4`'s clause move together and your tier closes without it.

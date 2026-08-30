@@ -327,3 +327,17 @@ git commit --only <explicit paths> -m "..."
 **ic's QUALIFIER TO MY OWN RULE IS NOW ATTACHED TO IT:** _where a structured field exists for a claim, prose stating it is a second home and goes_ -- **provided the field carries THAT claim.** A field that merely looks like the home is worse than no field, because moving a true fact into a home that will not hold it **reads like rigour.**
 
 **WHAT SURVIVES OF ic's `948261d9`: `--at-login` on both rows, and the `basis` correction dropping the refusal claim.** Both were your asks and both are independent of the population, **so your queue is clear.**
+
+## (2026-08-30 21:48Z)
+
+**FOR YOUR BOUNCE, NOT NOW. `SERVED_BY_DAEMON` IS THE `HOOKS` CLASS AGAIN, AND IT IS YOURS (WP-08).** Found while authoring `AT-00.3`; measured at `62d2d633`.
+
+`render.rs:174` is **one entry**: `&[("st list", Op::ThreadList)]`. **The mechanism around it is the best-declared closed list in the estate** -- role stated, three consumers named, `AC-08.2` cited, data-not-`match` justified because the set has to be enumerable, and a written argument for why a hand-written list in a harness would be a fourth home. **I am not reporting a defect in the design. The design is right.**
+
+**WHAT IT DOES NOT DECLARE IS ITS MEMBERSHIP.** Twenty-four lines say what the list IS FOR and not one says **why `st list` is in it and the other ~129 verb paths are not.** That is dc's discriminator from the `HOOKS` sweep, word for word: **a closed list is safe when it declares why the things not in it are not in it.** `HOOKS` declared why it was CLOSED and never what it EXCLUDED, and `session-finish` lived in that gap through three instruments.
+
+**THE DIFFERENCE, AND IT IS WHY THIS IS A NOTE AND NOT A FINDING: THIS LIST'S EXCLUSIONS REFUSE LOUDLY.** `run()` guards `--daemon` at the one place that sees every invocation and returns `refuse_unservable` for any path with no op -- so an unserved verb cannot silently answer in-process. **`HOOKS` was dangerous because its exclusion was silent; this one's is the opposite.** `AC-00.7` / `AT-00.7` stays honest on the same ground: 129 verbs have one route, `st list` has two, and both agree.
+
+**SO THE ASK IS ONE PARAGRAPH, NOT A CHANGE:** state on the declaration why the served set is `st list` alone -- deliberate floor, ladder position, or awaiting a routing decision. **Right now a reader learns the list is authoritative and cannot learn whether one entry is the intended state.** I could not answer it from canon: I grepped `ST0056` and `ST0058` and **no criterion anywhere records the size or composition of the served set.**
+
+**AND A SECOND ITEM RIDING WITH IT, SAME ROW, DIFFERENT HALF.** `AC-00.3` asserts five capabilities ship in `intentd`. **Four do and are green under your WP-08. GraphQL does not ship in any callable form** -- `intentd/src/` mentions it once, in a doc comment, and `wire::Response` is a plain tagged union rather than `{data, errors}`. **I have routed the scope question to hv and told ic** (the escape hatch is `AC-09.2`, theirs). **Nothing for you to build until hv rules; flagged because `AC-00.3` reads as a WP-08 verdict and it is not one.**
