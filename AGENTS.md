@@ -144,18 +144,6 @@ intent claude rules show <id>   # inspect
 intent claude rules validate    # schema check
 ```
 
-## Extensions
-
-User extensions live at `~/.intent/ext/<name>/` and contribute subagents, skills, or rule packs without modifying canon.
-
-```bash
-intent ext list
-intent ext show <name>
-intent ext new <name>
-```
-
-Authoring guide: `intent/docs/writing-extensions.md` at the Intent install.
-
 ## Session Hooks
 
 `.claude/settings.json` wires three Claude Code lifecycle hooks: **SessionStart** (inject context + `/in-session` reminder), **UserPromptSubmit** (strict gate -- block first prompt until `/in-session` runs), **Stop** (remind `/in-finish` at wrap-up). Full architecture: `intent/docs/working-with-llms.md#session-hook-architecture` at the Intent install.

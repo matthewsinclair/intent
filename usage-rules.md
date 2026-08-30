@@ -143,17 +143,6 @@ intent claude rules index                       # Regenerate rules/index.json
 
 Rule IDs use the form `IN-<LANG>-<CAT>-<NNN>` (eg `IN-EX-CODE-006`, `IN-AG-HIGHLANDER-001`). Library root: `intent/plugins/claude/rules/`.
 
-### Extensions
-
-```bash
-intent ext list
-intent ext show <name>
-intent ext validate [<name>]
-intent ext new <name> --subagent | --skill | --rule-pack
-```
-
-User extensions live at `~/.intent/ext/<name>/` and contribute subagents, skills, or rule packs without forking Intent. Extension items shadow canon by name (subagents / skills) or by rule `id:` (rules), with a visible shadow warning. Set `INTENT_EXT_DISABLE=1` to revert to canon-only for a command.
-
 ### Other
 
 ```bash
@@ -233,8 +222,6 @@ Single source of truth for coding rules. Critic subagents read the library at in
 - Schema: `intent/plugins/claude/rules/_schema/rule-schema.md`.
 - Authoring guide: `intent/docs/rules.md`.
 - Critic contract: `intent/docs/critics.md`.
-
-Per-project rule overrides go in extensions (`~/.intent/ext/*/rules/`), not by editing canon.
 
 ## Critics and pre-commit
 
