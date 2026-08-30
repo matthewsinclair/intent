@@ -25,26 +25,22 @@
 
 use intentsvcs::nav::View;
 
-/// One addressable entity, as the omnibox sees it.
+/// One addressable destination, as the omnibox sees it.
+///
+/// **THE DOOR IS DECLARED, NOT DERIVED** -- the same rule rows follow
+/// (`tui-design.md` §6). It stopped being a computed `Item` when the index
+/// grew COLLECTION entries: typing `iss` jumps to the issues LIST, which
+/// keeps every level of the model reachable through the one device after
+/// the entities lobby stopped being the root.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Entry {
-  /// The entity kind -- `thread`, `issue`, `wp` -- as `View::Item` spells it.
-  pub kind: String,
-  /// The id an operator would type: `ST0056`, `0171`.
+  /// The id an operator would type: `ST0056`, `0171`, `thread`.
   pub id: String,
   pub title: String,
-  /// The display form of the entity's status, already humanised by the model.
+  /// The display form of the entity's status; empty for a collection.
   pub status: String,
-}
-
-impl Entry {
   /// Where Enter on this entry goes.
-  pub fn door(&self) -> View {
-    View::Item {
-      kind: self.kind.clone(),
-      id: self.id.clone(),
-    }
-  }
+  pub door: View,
 }
 
 /// One scored hit: the entry, and which character positions of its haystack
@@ -214,7 +210,7 @@ impl Omnibox {
       };
     }
     match self.picked(m.len()) {
-      Some(p) => Go::Pick(index[m[p].entry].door()),
+      Some(p) => Go::Pick(index[m[p].entry].door.clone()),
       None => Go::Spelling(typed.to_string()),
     }
   }
@@ -226,12 +222,23 @@ mod tests {
 
   fn index() -> Vec<Entry> {
     let mk = |kind: &str, id: &str, title: &str, status: &str| Entry {
-      kind: kind.into(),
       id: id.into(),
       title: title.into(),
       status: status.into(),
+      door: View::Item {
+        kind: kind.into(),
+        id: id.into(),
+      },
     };
     vec![
+      Entry {
+        id: "issue".into(),
+        title: "all issues".into(),
+        status: String::new(),
+        door: View::Collection {
+          kind: "issue".into(),
+        },
+      },
       mk(
         "thread",
         "ST0056",
@@ -306,6 +313,16 @@ mod tests {
     assert_eq!(idx[m[0].entry].id, "ST0064");
     let m = matches(&idx, "facade", 8);
     assert_eq!(idx[m[0].entry].id, "0171");
+    // And a COLLECTION is a destination like any other: the issues list is
+    // one word away, which is what replaced the entities lobby as the way in.
+    let m = matches(&idx, "issue", 8);
+    assert_eq!(
+      idx[m[0].entry].door,
+      View::Collection {
+        kind: "issue".into()
+      },
+      "typing a kind must offer its collection first"
+    );
   }
 
   /// The positions point into [`haystack`]'s text, and every one is a real

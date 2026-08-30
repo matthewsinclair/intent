@@ -50,6 +50,7 @@ fn style(role: Role) -> Style {
     Role::Warn => d.fg(Color::Yellow),
     Role::Error => d.fg(Color::Red),
     Role::Selected => d.add_modifier(Modifier::REVERSED),
+    Role::Match => d.fg(Color::Cyan).add_modifier(Modifier::BOLD),
     Role::Title => d.add_modifier(Modifier::BOLD),
     Role::OmniActive => d.fg(Color::Cyan).add_modifier(Modifier::BOLD),
     Role::ModeChip(mode) => {
@@ -121,9 +122,9 @@ mod tests {
       detail: None,
       app: "ST0056   Add a Rust-based CLI".into(),
       body: plan(&rows(), W as usize),
-      status: "NAV   title   text   1/4".into(),
-      command: "\u{276f}".into(),
-      info: "What this thread is called.".into(),
+      omnibox: "\u{276f}".into(),
+      hint: "NAV  1/4  \u{23ce} edit".into(),
+      dropdown: Vec::new(),
       mode: crate::tui::mode::Mode::Nav,
       selected: None,
       noticed: false,
@@ -199,13 +200,12 @@ mod tests {
       "a rule must be painted under the APP row"
     );
     assert_eq!(
-      painted_lines[H as usize - 4],
+      painted_lines[H as usize - 3],
       rule,
       "a rule must be painted above the foot"
     );
-    assert_eq!(painted_lines[H as usize - 3], s.status);
-    assert_eq!(painted_lines[H as usize - 2], s.command);
-    assert_eq!(painted_lines[H as usize - 1], s.info);
+    assert_eq!(painted_lines[H as usize - 2], s.omnibox);
+    assert_eq!(painted_lines[H as usize - 1], s.hint);
   }
 
   /// Scrolling moves the WINDOW and leaves the chrome alone -- the two
@@ -263,8 +263,8 @@ mod tests {
     );
 
     for (what, s, rule_lines) in [
-      ("unsplit", screen(), vec![1usize, H as usize - 4]),
-      ("split", split_screen(), vec![1usize, 1 + 4, H as usize - 4]),
+      ("unsplit", screen(), vec![1usize, H as usize - 3]),
+      ("split", split_screen(), vec![1usize, 1 + 4, H as usize - 3]),
     ] {
       let painted_lines = painted(&s, 0, H);
       for (y, line) in painted_lines.iter().enumerate() {
@@ -308,8 +308,8 @@ mod tests {
       assert_eq!(painted_lines.len(), h as usize);
       assert_eq!(
         *painted_lines.last().unwrap(),
-        s.info,
-        "the INFO row must survive to the last line at height {h}"
+        s.hint,
+        "the HINT row must survive to the last line at height {h}"
       );
     }
   }
@@ -326,7 +326,7 @@ mod tests {
       ..screen()
     };
     sc.mode = crate::tui::mode::Mode::Nav;
-    sc.status = "NAV   status".into();
+    sc.hint = "NAV   status".into();
     let mut term = Terminal::new(TestBackend::new(W, H)).expect("TestBackend must build");
     term
       .draw(|f| {
@@ -336,8 +336,8 @@ mod tests {
       .expect("a draw into an in-memory backend cannot fail");
     let buf = term.backend().buffer().clone();
 
-    // The chip: row H-3, column 0 -- NAV in Nav's green, reversed.
-    let chip = &buf[(0, H - 3)];
+    // The chip leads the HINT line -- the last row. NAV in Nav's green, reversed.
+    let chip = &buf[(0, H - 1)];
     assert_eq!(chip.symbol(), "N");
     assert_eq!(
       chip.style().fg,

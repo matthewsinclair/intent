@@ -38,9 +38,14 @@ impl Stack {
     }
   }
 
-  /// `intent explore`.
+  /// `intent explore` -- **rooted at the THREADS LIST, not a lobby** (hv,
+  /// 2026-08-30: boot into the model). The entity-kind ladder survives as
+  /// [`View::Entities`], reachable by address; the omnibox carries collection
+  /// entries so every other kind is one word away.
   pub fn explore() -> Self {
-    Self::rooted_at(View::Entities)
+    Self::rooted_at(View::Collection {
+      kind: "thread".into(),
+    })
   }
 
   /// `intent edit <kind> <id>`.
@@ -179,7 +184,13 @@ mod tests {
   fn explore_and_edit_are_the_same_stack_with_different_bottoms() {
     let e = Stack::explore();
     let i = Stack::at_item("thread", "ST0056");
-    assert_eq!(e.current(), &View::Entities);
+    assert_eq!(
+      e.current(),
+      &View::Collection {
+        kind: "thread".into()
+      },
+      "explore boots into the model -- the threads list -- not a lobby"
+    );
     assert_eq!(
       i.current(),
       &View::Item {
@@ -204,16 +215,18 @@ mod tests {
   #[test]
   fn the_trail_names_every_level_the_stack_holds() {
     let mut s = Stack::explore();
-    assert_eq!(s.trail(), "/");
-    s.push(View::Collection {
-      kind: "thread".into(),
-    });
+    assert_eq!(s.trail(), "/thread", "the root names itself");
     s.push(View::Item {
       kind: "thread".into(),
       id: "ST0056".into(),
     });
+    s.push(View::Children {
+      kind: "thread".into(),
+      id: "ST0056".into(),
+      field: "wps".into(),
+    });
     let trail = s.trail();
-    for expected in ["/", "/thread", "/thread/ST0056"] {
+    for expected in ["/thread", "/thread/ST0056"] {
       assert!(
         trail.contains(expected),
         "the trail {trail:?} does not name {expected}"

@@ -86,8 +86,11 @@ pub const RULE: char = '\u{2500}';
 /// Lines above the body: the APP row and the rule under it.
 pub const HEAD: usize = 2;
 
-/// Lines below the body: the rule, then STATUS, COMMAND and INFO.
-pub const FOOT: usize = 4;
+/// Lines below the body: the rule, then the OMNIBOX line and the HINT line.
+/// Was 4 (STATUS + COMMAND + INFO) -- collapsed on hv's minimal-chrome
+/// ruling: one mode-chipped hint line does the work three did, and the row
+/// the foot gives back goes to the body.
+pub const FOOT: usize = 3;
 
 /// Every line the screen spends on chrome rather than on rows.
 pub const CHROME: usize = HEAD + FOOT;
@@ -266,6 +269,8 @@ pub enum Role {
   Error,
   /// The cursor row.
   Selected,
+  /// A matched letter in the dropdown -- why this entry is offered.
+  Match,
   /// The mode chip -- coloured PER MODE by the printer.
   ModeChip(super::mode::Mode),
   /// The omnibox line while the omnibox has the keyboard.
@@ -341,15 +346,19 @@ pub struct Screen {
   /// the guarantee is about; a shared gutter would be a promise neither pane
   /// made.
   pub detail: Option<Plan>,
-  pub status: String,
-  pub command: String,
-  pub info: String,
+  /// The omnibox line: caret + buffer, or the menu bar in MENU.
+  pub omnibox: String,
+  /// The hint line: mode chip + whatever helps RIGHT NOW. A notice takes it.
+  pub hint: String,
+  /// Dropdown lines composed by the caller, painted ABOVE the bottom rule,
+  /// eating body rows -- present only while the omnibox has matches to show.
+  pub dropdown: Vec<(String, Ink)>,
   /// The live mode, for the chip's per-mode colour and the omnibox line's
   /// active/inactive brightness.
   pub mode: super::mode::Mode,
   /// The cursor's body-row index (list pane), for the selection overlay.
   pub selected: Option<usize>,
-  /// The info line is a NOTICE -- something happened -- rather than help.
+  /// The hint line is a NOTICE -- something happened -- rather than help.
   pub noticed: bool,
 }
 
@@ -396,9 +405,8 @@ impl Screen {
       let degraded = [
         self.app.as_str(),
         RULE_MARK,
-        self.status.as_str(),
-        self.command.as_str(),
-        self.info.as_str(),
+        self.omnibox.as_str(),
+        self.hint.as_str(),
       ];
       return degraded
         .iter()
@@ -473,31 +481,41 @@ impl Screen {
       }
     }
 
+    // **THE DROPDOWN EATS THE BODY FROM THE BOTTOM, NEVER THE CHROME** --
+    // it slots in above the bottom rule, replacing the last body rows, so
+    // the omnibox line it belongs to stays exactly where the operator's eye
+    // already is. Clipped to the body it can actually eat.
+    if !self.dropdown.is_empty() {
+      let body_len = out.len().saturating_sub(HEAD);
+      let take = self.dropdown.len().min(body_len);
+      out.truncate(out.len() - take);
+      for (line, ink) in self.dropdown.iter().take(take) {
+        out.push((clip(line, w), ink.clone()));
+      }
+    }
+
     out.push((rule, rule_ink));
-    // The mode chip leads the status row and is coloured PER MODE -- hv's
-    // "the state changes between modes are not obvious", answered where the
-    // state is written.
-    let status = clip(&self.status, w);
-    let chip = self.mode.name().chars().count().min(status.chars().count());
-    let mut status_ink: Ink = vec![(0, chip, Role::ModeChip(self.mode))];
-    status_ink.push((chip, status.chars().count(), Role::Muted));
-    out.push((status, status_ink));
-    let command = clip(&self.command, w);
-    let command_role = if self.mode == super::mode::Mode::Omnibox {
+    let omnibox = clip(&self.omnibox, w);
+    let omnibox_role = if self.mode == super::mode::Mode::Omnibox {
       Role::OmniActive
     } else {
       Role::Muted
     };
-    let command_ink = whole(&command, command_role);
-    out.push((command, command_ink));
-    let info = clip(&self.info, w);
-    let info_role = if self.noticed {
+    let omnibox_ink = whole(&omnibox, omnibox_role);
+    out.push((omnibox, omnibox_ink));
+    // The mode chip leads the hint line and is coloured PER MODE -- hv's
+    // "the state changes between modes are not obvious", answered where the
+    // state is written.
+    let hint = clip(&self.hint, w);
+    let chip = self.mode.name().chars().count().min(hint.chars().count());
+    let mut hint_ink: Ink = vec![(0, chip, Role::ModeChip(self.mode))];
+    let tail_role = if self.noticed {
       Role::Warn
     } else {
       Role::Muted
     };
-    let info_ink = whole(&info, info_role);
-    out.push((info, info_ink));
+    hint_ink.push((chip, hint.chars().count(), tail_role));
+    out.push((hint, hint_ink));
     out
   }
 }
@@ -617,9 +635,9 @@ mod tests {
       detail: None,
       app: "ST0056   Add a Rust-based CLI".into(),
       body: plan(&hard_rows(), NARROW),
-      status: "NAV   title   text   1/4".into(),
-      command: "\u{276f}".into(),
-      info: "What this thread is called.".into(),
+      omnibox: "\u{276f}".into(),
+      hint: "NAV  1/4  \u{23ce} edit".into(),
+      dropdown: Vec::new(),
       mode: super::super::mode::Mode::Nav,
       selected: None,
       noticed: false,
@@ -763,21 +781,16 @@ mod tests {
       );
       assert_eq!(lines[1], rule, "a rule sits directly under the APP row");
       assert_eq!(
-        lines[height - 4],
+        lines[height - 3],
         rule,
         "a rule sits directly above the foot"
       );
       assert_eq!(
-        lines[height - 3],
-        s.status,
-        "STATUS is the third line from the bottom"
-      );
-      assert_eq!(
         lines[height - 2],
-        s.command,
-        "COMMAND is the second from the bottom"
+        s.omnibox,
+        "the OMNIBOX line is second from the bottom"
       );
-      assert_eq!(lines[height - 1], s.info, "INFO is the last line");
+      assert_eq!(lines[height - 1], s.hint, "the HINT line is the last line");
       assert_eq!(
         lines.iter().filter(|l| **l == rule).count(),
         2,
@@ -803,7 +816,7 @@ mod tests {
     };
     let a = short.compose(0, 20);
     let b = long.compose(0, 20);
-    for i in [0, 1, 16, 17, 18, 19] {
+    for i in [0, 1, 17, 18, 19] {
       assert_eq!(
         a[i], b[i],
         "chrome line {i} moved when the row count changed"
@@ -847,8 +860,8 @@ mod tests {
       assert_eq!(lines.len(), height);
       assert_eq!(
         *lines.last().unwrap(),
-        s.info,
-        "the INFO row survives to the last line"
+        s.hint,
+        "the HINT row survives to the last line"
       );
     }
   }
@@ -975,7 +988,7 @@ mod tests {
   }
 
   /// **THE CHROME HOLDS ITS POSITION WHETHER THE BODY IS SPLIT OR NOT.** The
-  /// APP row, the rules and the four foot lines are where an operator looks;
+  /// APP row, the rules and the three foot lines are where an operator looks;
   /// a split that shifted them would move the mode indicator every time the
   /// cursor crossed a row that happened to carry detail.
   #[test]
@@ -986,7 +999,7 @@ mod tests {
       assert_eq!(flat.len(), height);
       assert_eq!(cut.len(), height, "a split screen is not {height} lines");
       assert_eq!(cut[0], flat[0], "the APP row moved at height {height}");
-      for back in 1..=4usize {
+      for back in 1..=3usize {
         assert_eq!(
           cut[height - back],
           flat[height - back],
@@ -1113,13 +1126,13 @@ mod tests {
     for mode in [Mode::Omnibox, Mode::Nav, Mode::Menu] {
       let mut sc = screen();
       sc.mode = mode;
-      sc.status = format!("{}   title", mode.name());
+      sc.hint = format!("{}   title", mode.name());
       let painted = sc.painted(0, 24);
-      let (status, status_ink) = &painted[painted.len() - 3];
+      let (hint, hint_ink) = &painted[painted.len() - 1];
       assert_eq!(
-        status_ink.first(),
+        hint_ink.first(),
         Some(&(0, mode.name().chars().count(), Role::ModeChip(mode))),
-        "the status line must LEAD with a chip naming {mode:?}: {status:?} {status_ink:?}"
+        "the hint line must LEAD with a chip naming {mode:?}: {hint:?} {hint_ink:?}"
       );
       let (_, command_ink) = &painted[painted.len() - 2];
       let want = if mode == Mode::Omnibox {

@@ -3064,26 +3064,46 @@ impl tui::run::Source for Live {
     }
   }
 
-  /// Every addressable entity, id-first so the omnibox's id-weighted scorer
-  /// is working over the same shape the operator types.
+  /// Every addressable destination, id-first so the omnibox's id-weighted
+  /// scorer is working over the same shape the operator types.
+  ///
+  /// **COLLECTIONS LEAD**, one per declared kind, because the entities lobby
+  /// stopped being the root: `iss` reaching the issues LIST through the same
+  /// device as `0171` reaching one issue is what keeps the whole model a few
+  /// keystrokes away. The kinds come from the form declaration -- the same
+  /// derivation the views walk -- never from a typed list.
   fn index(&mut self) -> Vec<tui::omnibox::Entry> {
+    use intentsvcs::nav::View;
     use tui::omnibox::Entry;
-    let mut out: Vec<Entry> = self
-      .facade
-      .st_list()
+    let mut out: Vec<Entry> = intentsvcs::nav::kinds(&self.declaration)
       .into_iter()
-      .map(|t| Entry {
-        kind: "thread".into(),
-        id: t.id.clone(),
-        title: t.title.clone(),
-        status: intentsvcs::form::field(&serde_json::json!({ "status": t.status }), "status"),
+      .map(|kind| Entry {
+        id: kind.clone(),
+        title: format!("all {kind}s"),
+        status: String::new(),
+        door: View::Collection { kind },
       })
       .collect();
-    out.extend(self.facade.issue_list().into_iter().map(|i| Entry {
-      kind: "issue".into(),
-      id: format!("{:04}", i.number),
-      title: i.title.clone(),
-      status: intentsvcs::form::field(&serde_json::json!({ "status": i.status }), "status"),
+    out.extend(self.facade.st_list().into_iter().map(|t| Entry {
+      id: t.id.clone(),
+      title: t.title.clone(),
+      status: intentsvcs::form::field(&serde_json::json!({ "status": t.status }), "status"),
+      door: View::Item {
+        kind: "thread".into(),
+        id: t.id.clone(),
+      },
+    }));
+    out.extend(self.facade.issue_list().into_iter().map(|i| {
+      let id = format!("{:04}", i.number);
+      Entry {
+        id: id.clone(),
+        title: i.title.clone(),
+        status: intentsvcs::form::field(&serde_json::json!({ "status": i.status }), "status"),
+        door: View::Item {
+          kind: "issue".into(),
+          id,
+        },
+      }
     }));
     out
   }
