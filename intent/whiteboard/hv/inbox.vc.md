@@ -1159,3 +1159,41 @@ dc reported your `AT-01.8` retirement as unexecutable -- retiring a row appeared
 === AND ONE THING THAT IS NOT A DECISION BUT YOU SHOULD SEE IT ===
 
 **WP-08 IS 12/12 AND ST0056 IS 96/135, UP FROM 91 AT THE FOLD, AND NOT ONE OF THE FIVE CLOSES WAS NEW CODE.** Two rows were stale at `to-write` with a pre-commit-gated instrument reporting them for days; three cited `intentd/tests/` when the tests live in `intent-cli/tests/`, because **a package's integration tests build that package's binaries and not another's** -- so those rows named a place the test could not exist. A sweep of all 337 cited rows for the same shape found exactly one more, and it is mine (`AT-00.3`). **The daemon was built and working the whole time; the register did not know.**
+
+## (2026-08-30 20:47Z)
+
+**A THIRD DECISION, ROUTED TO YOU BY dc, AND I HAVE A RECOMMENDATION BECAUSE IT BLOCKS ONE OF MY OWN ROWS.** Plus one correction to what I told you an hour ago.
+
+=== THE DECISION: WHICH `intent` DOES THE RELEASE SCRIPT INVOKE AFTER THE PRUNE? ===
+
+**CONTEXT, MEASURED RATHER THAN RELAYED.** `bin/.devbin/cmd/build.d/release` references no v3 binary anywhere -- no `target/release`, no `build cli`, no `intent3` -- and its four v2 sites all name a PATH inside the repo:
+
+    :67   HELPERS="$PROJECT_ROOT/bin/intent_helpers"
+    :373  "$PROJECT_ROOT/bin/intent" doctor
+    :663  "$PROJECT_ROOT/bin/intent" agents sync
+    :690  "$PROJECT_ROOT/bin/intent" claude upgrade --apply --skip-settings
+
+**So today the script is DETERMINISTIC: it invokes a specific file in the tree.** After the prune those become v3 calls, and the question dc will not decide alone is whether they resolve `native/rust/target/release/intent` explicitly or take whatever `intent` is on PATH.
+
+**MY RECOMMENDATION: RESOLVE `native/rust/target/release/intent`, AND REFUSE IF IT IS ABSENT.** Four reasons, and the third is the one that decides it.
+
+1. **It PRESERVES the property the script has today.** `$PROJECT_ROOT/bin/intent` is a path, not a name. Swapping a path for a PATH lookup is not a port -- it is a loss of determinism smuggled in as one, and it would be invisible because both spellings work on every machine that happens to be set up right.
+2. **Two of the three calls WRITE CANON THAT GOES INTO THE RELEASE.** `agents sync` and `claude upgrade --apply` generate committed content. Generating a release's canon with an ambient binary makes the released bytes depend on the operator's shell configuration.
+3. **THE FAILURE IS NOT HYPOTHETICAL -- IT IS LIVE ON THIS MACHINE RIGHT NOW.** Measured at 20:47Z: `intent` reports `dirty-a402625f...`, `intentd` reports NO commit at all, and `self_provenance_check.sh` has them built from two DIFFERENT trees. `int local status` shows `~/.local/bin/intent` is a symlink straight into the release directory that, in its own words, _passes through nothing_. **So the ambient binary is precisely the one with no provenance guarantee, and it is what a PATH lookup would find today.** This is the same class cc closed in four test files this afternoon, arriving in the release process, where the blast radius is a shipped artefact rather than a test result.
+4. **Refuse-if-absent FAILS CLOSED**, and a release script requiring the artefact it is releasing to exist is correct rather than inconvenient.
+
+**THE HONEST COST:** the script then depends on a prior `build cli`, so ordering becomes explicit. I regard that as the point rather than the price -- it is the same reason `bin/devbin build all` exists.
+
+**OPTIONS.** (1) Resolve-and-refuse -- my recommendation. (2) Take the ambient binary -- simpler, and it makes release canon a function of the operator's PATH. (3) Resolve, and FALL BACK to ambient with a warning -- I would not take this: a fallback that warns is a fallback that gets ignored, and it reintroduces exactly the nondeterminism in the case where it matters most.
+
+=== A CORRECTION TO MY 20:40Z NOTE, FOUND BY dc AND VERIFIED BY ME ===
+
+I told you `at.fc` is declared from `to-write|red` and never from green, and offered that as the reason the red step in the retirement route was required. **That is true of the EDGE and false as a constraint.** `at.set` declares `from: &[]`, which `Edge::accepts` reads as any state, so **`green -> red -> fiat` reaches fiat from a passing row in one extra step** -- which is precisely the walk dc just did.
+
+**So Machine 5's green-exclusion is ADVISORY, NOT STRUCTURAL**, while the table's own prose gives it as a real constraint: _a fiat close reachable from a passing row is not recoverable by a later narrowing once estates carry them._ **It held in this instance only because the `red` was TRUE** -- dc measured the green was unreachable-by-construction, so red was the honest state and not a stepping stone. It would stop nobody for whom that was not the case. **I authored the route that demonstrates the gap**, so it belongs on the record next to the amendment options rather than filed separately. It does not change my recommendation to defer the table past the tag; it does mean one of the things being deferred is a narrowing that is not currently narrowing anything.
+
+=== EXECUTED, VERIFIED BY ME RATHER THAN TAKEN ON REPORT ===
+
+**YOUR DELETE-AND-RETIRE RULING IS DONE** -- `bbd7e1c0`. `AT-01.8` is `test`/`fiat` with your ruling quoted in its `--because` record, the bats file is deleted, and **ST0043 reads 7/7 satisfied, 1 withdrawn -- PASS.** I re-drove the estate invariant independently: **278 green-or-red rows carry a citation and ZERO cite an absent file.**
+
+**AND THE RETIREMENT FOUND A DEFECT ON ITS WAY THROUGH**, which dc fixed in the same commit: the fiat close warned that `AC-01.6` _stays unsatisfied with nothing left that could satisfy them_ -- for a criterion you and I had withdrawn minutes earlier. `contract::solely_covered_by` filtered on kind and cover-count and never on STATE, while `resolve` three lines below carries _a descoped or withdrawn AC is not asked whether it is satisfied._ **The symptom was a remedy that did not apply, never a wrong count** -- `ac status` read PASS throughout -- so nothing downstream disagreed and only the advice was wrong.
