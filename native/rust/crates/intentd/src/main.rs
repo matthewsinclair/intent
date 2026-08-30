@@ -31,6 +31,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use intentsvcs::daemon::{self, Bound, DaemonError, Published};
+use intentsvcs::launchagent;
 use intentsvcs::remedy::Remedy;
 use intentsvcs::userstate;
 use intentsvcs::wire::{self, Event, Op, Response};
@@ -245,6 +246,8 @@ async fn serve_under(root: &Path) -> Result<(), StartupError> {
   // rather than a flag the loop polls: a flag would only be noticed on the next
   // accept, so a daemon nobody else connects to would sit there having agreed
   // to stop.
+  heal_the_policy_stamp();
+
   let stop = Arc::new(tokio::sync::Notify::new());
 
   loop {
@@ -549,5 +552,60 @@ async fn shutdown() -> &'static str {
   tokio::select! {
     _ = term.recv() => "SIGTERM",
     _ = interrupt.recv() => "SIGINT",
+  }
+}
+
+/// Regenerate this machine's LaunchAgent if an older build wrote it
+/// (`AC-08.7`).
+///
+/// **THE STAMP IS THE TRIGGER AND THE CONTENT IS WHAT HEALS.** A version bump
+/// alone rewrites a byte-identical file, which is a no-op and fine; what the
+/// marker buys is that when the content DOES change -- a new log path, a key we
+/// start emitting, a binary that moved -- the operator's plist is brought up to
+/// date without them running anything. **That is the whole of "an old install
+/// heals without a migration": the healing is a property of booting, so there
+/// is no step anyone can skip.**
+///
+/// **IT REGENERATES THE FILE AND DOES NOT RELOAD THE JOB, DELIBERATELY.**
+/// `launchctl unload` + `load` on our own label would stop THIS process -- the
+/// one doing the healing -- so a daemon that reloaded its own job would exit
+/// every time it healed, and `KeepAlive` is false, so nothing would bring it
+/// back. Writing the file is enough: `launchd` reads it at the next login,
+/// which is exactly when a LaunchAgent's contents matter.
+///
+/// **REPORTED AND NEVER FATAL.** A daemon that refused to start because it
+/// could not rewrite a plist would turn a cosmetic staleness into an outage,
+/// and the plist is not needed for this process to serve anything -- it is only
+/// needed for the NEXT one to start itself.
+fn heal_the_policy_stamp() {
+  let Ok(home) = intentsvcs::userstate::home() else {
+    // No home means no per-user state at all, which the daemon reports
+    // elsewhere when it matters. There is no plist to heal.
+    return;
+  };
+  if !launchagent::is_stale(&home) {
+    return;
+  }
+  let was = launchagent::stamped_version(&home).unwrap_or_else(|| "unstamped".to_string());
+  // **THE PLIST NAMES THIS BINARY, WHICH IS THE ONE FACT AN OLD PLIST IS MOST
+  // LIKELY TO HAVE WRONG.** Resolved from `current_exe` rather than from
+  // anything ambient, on `install.rs`'s precedent: a path read from the
+  // environment would heal the plist to whatever the environment happened to
+  // say, which is how a self-healing artefact starts healing itself wrong.
+  let Ok(binary) = std::env::current_exe() else {
+    eprintln!(
+      "warning: this machine's LaunchAgent was written by {was} and could not be regenerated: this process cannot resolve its own path\n  remedy: `intent daemon start --at-login` rewrites it."
+    );
+    return;
+  };
+  match launchagent::write_plist(&home, &binary) {
+    Ok(path) => println!(
+      "intentd: regenerated the LaunchAgent at {} (was {was}, now {})",
+      path.display(),
+      intentsvcs::faces::INTENT_VER
+    ),
+    Err(e) => eprintln!(
+      "warning: this machine's LaunchAgent was written by {was} and could not be regenerated: {e}\n  remedy: `intent daemon start --at-login` rewrites it. The daemon is running and unaffected; the stale plist only matters at the next login."
+    ),
   }
 }

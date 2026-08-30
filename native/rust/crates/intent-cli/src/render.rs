@@ -18,6 +18,7 @@ use intentsvcs::daemon;
 use intentsvcs::facade::{
   EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, Note, Outcome,
 };
+use intentsvcs::launchagent;
 use intentsvcs::model::{
   self, AcKind, AtKind, AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str,
 };
@@ -5125,8 +5126,8 @@ fn modules_check() -> Result<(), Failure> {
 fn daemon(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("run", _)) => daemon_run(),
-    Some(("start", _)) => daemon_start(),
-    Some(("stop", _)) => daemon_stop(),
+    Some(("start", sm)) => daemon_start(given(sm, "at-login")),
+    Some(("stop", sm)) => daemon_stop(given(sm, "at-login")),
     Some(("status", _)) => daemon_status(),
     Some((verb, _)) => unwired("daemon", verb),
     None => unwired("daemon", ""),
@@ -5179,7 +5180,7 @@ fn daemon_run() -> Result<(), Failure> {
 /// the logs* gets one answer regardless of how the daemon came up -- a start
 /// path that logged somewhere else would make the question depend on history
 /// nobody recorded.
-fn daemon_start() -> Result<(), Failure> {
+fn daemon_start(at_login: bool) -> Result<(), Failure> {
   use std::os::unix::process::CommandExt;
 
   let home = intentsvcs::userstate::home().map_err(|e| Failure::Error(e.render()))?;
@@ -5198,6 +5199,29 @@ fn daemon_start() -> Result<(), Failure> {
   }
 
   let binary = resolve_intentd()?;
+
+  // **ENROLMENT COMES FIRST, AND THEN `launchd` DOES THE STARTING.** The plist
+  // carries `RunAtLoad`, so loading it starts the daemon -- which means the
+  // enrolled path must not ALSO spawn one, or two processes race for the socket
+  // and the loser's refusal is reported as a failure to start.
+  if at_login {
+    let plist = launchagent::write_plist(&home, &binary).map_err(|e| Failure::Error(e.render()))?;
+    launchagent::load(&plist).map_err(|e| Failure::Error(e.render()))?;
+    for _ in 0..START_ATTEMPTS {
+      if let daemon::Route::Daemon(endpoint) = route_now()? {
+        println!("ok: intentd is enrolled at login and answering at {endpoint}");
+        println!("     plist: {}", plist.display());
+        return Ok(());
+      }
+      std::thread::sleep(START_PAUSE);
+    }
+    return Err(Failure::Error(format!(
+      "error: intentd was enrolled at login and is not answering\n  remedy: the plist is at `{}` and `launchctl` accepted it, so the job loaded and the process did not come up. Its output is in `{}`.",
+      plist.display(),
+      intentsvcs::userstate::daemon_log_under(&home).display()
+    )));
+  }
+
   let out = intentsvcs::userstate::daemon_log_under(&home);
   let err = intentsvcs::userstate::daemon_error_log_under(&home);
   if let Some(parent) = out.parent() {
@@ -5274,9 +5298,45 @@ const START_PAUSE: std::time::Duration = std::time::Duration::from_millis(20);
 /// daemon will not answer its own socket, and that is precisely when an
 /// operator needs it stopped. A wire-only `stop` would work in every case
 /// except the one it was reached for.
-fn daemon_stop() -> Result<(), Failure> {
+fn daemon_stop(at_login: bool) -> Result<(), Failure> {
   let home = intentsvcs::userstate::home().map_err(|e| Failure::Error(e.render()))?;
 
+  // **UNLOADING STOPS THE JOB AS WELL AS UNENROLLING IT**, so the enrolled path
+  // does not fall through to the wire-then-signal sequence below: asking a
+  // daemon `launchd` has already stopped to stop itself would report a failure
+  // to reach something that is correctly gone.
+  //
+  // **UNENROLLING A MACHINE THAT WAS NEVER ENROLLED IS SUCCESS.** The operator
+  // asked for no enrolment and there is none, which is `populations.self_loop`'s
+  // rule applied to the flag rather than only to the bare verb.
+  if at_login {
+    if launchagent::is_enrolled(&home) {
+      let plist = intentsvcs::userstate::launch_agent_plist_under(&home);
+      launchagent::unload(&plist).map_err(|e| Failure::Error(e.render()))?;
+    }
+    let removed = launchagent::remove_plist(&home).map_err(|e| Failure::Error(e.render()))?;
+    // The job is unloaded; anything still answering was started by hand and is
+    // stopped by the ordinary path rather than left behind.
+    let still_up = matches!(route_now()?, daemon::Route::Daemon(_));
+    if still_up {
+      stop_whatever_is_running(&home)?;
+    }
+    println!(
+      "ok: intentd is not enrolled at login{}",
+      if removed {
+        " (the plist was removed)"
+      } else {
+        ""
+      }
+    );
+    return Ok(());
+  }
+
+  stop_whatever_is_running(&home)
+}
+
+/// Stop a running daemon: over the wire first, by signal if it will not answer.
+fn stop_whatever_is_running(home: &std::path::Path) -> Result<(), Failure> {
   if let daemon::Route::Daemon(endpoint) = route_now()? {
     let asked = wire::ask(
       &endpoint,
@@ -5301,7 +5361,7 @@ fn daemon_stop() -> Result<(), Failure> {
     // signal exists for, so fall through rather than reporting a failure.
   }
 
-  let Some(pid) = running_daemon_pid(&home)? else {
+  let Some(pid) = running_daemon_pid(home)? else {
     println!("ok: no intentd is running");
     return Ok(());
   };

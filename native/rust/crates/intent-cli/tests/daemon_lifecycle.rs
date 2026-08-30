@@ -238,3 +238,89 @@ fn the_logs_land_where_d19_put_them() {
     text(&started)
   );
 }
+
+/// `AC-08.7`: **a stale policy stamp is healed on boot, without a migration.**
+///
+/// **THIS ARM BELONGS TO `AC-08.7` AND LIVES BESIDE `AT-08.4`, WHICH IS A
+/// DELIBERATE CHOICE TO REPORT RATHER THAN A DEFAULT.** The claim is about what
+/// happens ON BOOT, so it needs a real `intentd` started under an isolated
+/// `HOME` with a stale plist already in place -- and that fixture is here.
+/// Building a second one in its own file would fork `Machine`, and the shared
+/// module where it would otherwise go has a peer working in it. **Cited here
+/// rather than moved**: a row whose declared path names a file that cannot host
+/// it is the defect `AT-08.2` already hit.
+///
+/// **THE FIXTURE PLANTS A PLIST WITH NO MARKER, WHICH IS THE REAL POPULATION.**
+/// Every plist written before the stamp existed looks exactly like this, and
+/// "an old install heals without a migration" is a claim about those rather
+/// than about a version bump.
+#[test]
+fn a_stale_launchagent_is_regenerated_when_the_daemon_boots() {
+  let machine = Machine::new();
+  let plist = machine
+    .home
+    .join("Library/LaunchAgents/com.matthewsinclair.intentd.plist");
+  std::fs::create_dir_all(plist.parent().expect("a parent")).expect("dirs");
+  std::fs::write(&plist, "<plist><dict><key>Label</key></dict></plist>\n")
+    .expect("plant a pre-stamp plist");
+
+  // **ANTI-VACUITY, AND IT IS NOT CEREMONY HERE.** If the planted file did not
+  // read as stale, the arm below would pass on a daemon that healed nothing --
+  // and the assertion it would pass is "the file changed", which a rewrite of
+  // an already-current file also satisfies.
+  let before = std::fs::read_to_string(&plist).expect("read the planted plist");
+  assert!(
+    !before.contains("INTENT_VER:"),
+    "the planted plist already carries a stamp, so nothing here is stale"
+  );
+
+  let started = machine.run(&["daemon", "start"]);
+  assert_eq!(
+    started.status.code(),
+    Some(0),
+    "start failed: {}",
+    text(&started)
+  );
+
+  let after = std::fs::read_to_string(&plist).expect("read the plist after boot");
+  assert!(
+    after.contains(&format!("INTENT_VER: {}", env!("CARGO_PKG_VERSION"))),
+    "the daemon booted and did not heal a plist with no marker, so an old install needs a migration after all: {after}"
+  );
+  // It healed to a REAL plist rather than merely stamping the old one: the
+  // stamp is the trigger and the content is what heals.
+  assert!(
+    after.contains("StandardOutPath"),
+    "the plist was stamped without being regenerated: {after}"
+  );
+}
+
+/// **HEALING MUST NOT ENROL, AND THIS IS THE ARM THAT BOUNDS IT.**
+///
+/// A machine that never enrolled has no plist. Treating that absence as
+/// staleness would write one on the next boot -- enrolling an operator who
+/// never asked, silently, as a side effect of starting a daemon for one
+/// session. **Absent and out-of-date are different states**, and only the
+/// second is `AC-08.7`'s subject.
+#[test]
+fn booting_does_not_enrol_a_machine_that_never_asked() {
+  let machine = Machine::new();
+  let plist = machine
+    .home
+    .join("Library/LaunchAgents/com.matthewsinclair.intentd.plist");
+  assert!(!plist.exists(), "the fixture is already enrolled");
+
+  let started = machine.run(&["daemon", "start"]);
+  assert_eq!(
+    started.status.code(),
+    Some(0),
+    "start failed: {}",
+    text(&started)
+  );
+
+  assert!(
+    !plist.exists(),
+    "starting a daemon enrolled this machine at login without being asked: {}",
+    plist.display()
+  );
+}

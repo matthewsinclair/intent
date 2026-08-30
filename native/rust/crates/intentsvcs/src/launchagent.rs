@@ -76,6 +76,19 @@ impl Remedy for LaunchAgentError {
 
 /// The plist `launchd` reads, as text.
 ///
+/// **THE STAMP IS A COMMENT RATHER THAN A `<key>`, AND THAT IS A DELIBERATE
+/// LIMIT ON WHAT WE PUT IN SOMEBODY ELSE'S GRAMMAR.** `launchd`'s plist
+/// vocabulary is closed; an unknown key is tolerated but it is not ours to
+/// invent, and a comment cannot change how the job is interpreted.
+///
+/// **AND IT SAYS WHAT THE FILE IS, NOT WHICH CRITERION REQUIRED IT** (D37). The
+/// first version carried `AC-08.7, design.md:82` into the generated artefact,
+/// which `no_pm_state_in_output` refused -- correctly: a user reading their own
+/// `~/Library/LaunchAgents` learns nothing from an Intent work-package id, and
+/// what they need is that edits do not survive an upgrade and which verb to use
+/// instead. **The reasoning belongs here, where a maintainer reads it, and the
+/// consequence belongs there, where an operator does.**
+///
 /// **`RunAtLoad` IS TRUE AND `KeepAlive` IS FALSE, AND THE SECOND ONE IS THE
 /// DECISION.** `KeepAlive` would have launchd restart the daemon whenever it
 /// exits -- including every time an operator runs `intent daemon stop`, which
@@ -91,6 +104,12 @@ pub fn plist(binary: &Path, log: &Path, error_log: &Path) -> String {
 <dict>
   <key>Label</key>
   <string>{label}</string>
+  <!-- {stamp_key}: {version}
+       Written by Intent. This file is regenerated when the version above is
+       not the version of the running tool, so edits to it do not survive an
+       upgrade. To change how the daemon starts, use `intent daemon start
+       --at-login`; to stop it starting at login, `intent daemon stop
+       --at-login`. -->
   <key>ProgramArguments</key>
   <array>
     <string>{binary}</string>
@@ -107,10 +126,47 @@ pub fn plist(binary: &Path, log: &Path, error_log: &Path) -> String {
 </plist>
 "#,
     label = escape(LAUNCH_AGENT_LABEL),
+    stamp_key = STAMP_KEY,
+    version = escape(crate::faces::INTENT_VER),
     binary = escape(&binary.display().to_string()),
     log = escape(&log.display().to_string()),
     error_log = escape(&error_log.display().to_string()),
   )
+}
+
+/// The marker naming the build that generated a plist (`AC-08.7`).
+///
+/// **ONE HOME, BECAUSE THE WRITER AND THE READER MUST AGREE ABOUT IT** and they
+/// are in different functions -- a second spelling makes every plist read as
+/// unstamped, which self-heals by rewriting a correct file forever.
+pub const STAMP_KEY: &str = "INTENT_VER";
+
+/// The version that generated the plist under `root`, if it says.
+///
+/// `None` for a plist with no marker, which is what every plist written before
+/// `AC-08.7` looks like -- **and that is the case the criterion is mostly
+/// about**: an old install heals without a migration precisely because an
+/// absent marker is treated as stale rather than as a reason to refuse.
+pub fn stamped_version(root: &Path) -> Option<String> {
+  let body = std::fs::read_to_string(userstate::launch_agent_plist_under(root)).ok()?;
+  let marker = format!("{STAMP_KEY}: ");
+  let at = body.find(&marker)? + marker.len();
+  let rest = &body[at..];
+  let end = rest.find('\n').unwrap_or(rest.len());
+  Some(rest[..end].trim().to_string())
+}
+
+/// Does the plist under `root` need regenerating?
+///
+/// **NOT ENROLLED IS NOT STALE.** An absent plist is an operator who never
+/// enrolled, and healing it would enrol them -- turning a repair into a
+/// decision they did not make. `AC-08.7` is about artefacts that EXIST being
+/// brought up to date, never about creating ones that do not.
+pub fn is_stale(root: &Path) -> bool {
+  if !is_enrolled(root) {
+    return false;
+  }
+  stamped_version(root).as_deref() != Some(crate::faces::INTENT_VER)
 }
 
 /// XML-escape a value going into the plist.
@@ -312,6 +368,104 @@ mod tests {
         .expect("a parent")
         .is_dir(),
       "the log directory was not created, so launchd would fail the job at spawn"
+    );
+  }
+
+  #[test]
+  fn a_freshly_written_plist_carries_this_builds_stamp() {
+    let home = root();
+    write_plist(home.path(), std::path::Path::new("/bin/intentd")).expect("write");
+    assert_eq!(
+      stamped_version(home.path()).as_deref(),
+      Some(crate::faces::INTENT_VER),
+      "a plist this build just wrote does not name this build"
+    );
+    assert!(
+      !is_stale(home.path()),
+      "a plist this build just wrote reports as stale, so every boot would rewrite it forever"
+    );
+  }
+
+  /// **THE CASE `AC-08.7` IS MOSTLY ABOUT: AN OLD INSTALL.**
+  ///
+  /// Every plist written before the stamp existed has no marker at all.
+  /// Treating an absent marker as stale is what lets those heal **without a
+  /// migration** -- the alternative is a one-off upgrade step that an operator
+  /// who never runs it never gets.
+  #[test]
+  fn a_plist_with_no_marker_at_all_is_stale() {
+    let home = root();
+    let path = userstate::launch_agent_plist_under(home.path());
+    std::fs::create_dir_all(path.parent().expect("a parent")).expect("dirs");
+    std::fs::write(&path, "<plist><dict><key>Label</key></dict></plist>\n")
+      .expect("write a pre-stamp plist");
+
+    assert_eq!(
+      stamped_version(home.path()),
+      None,
+      "an unstamped plist reported a version"
+    );
+    assert!(
+      is_stale(home.path()),
+      "a plist from before the stamp existed is not being healed, which is the whole population the criterion names"
+    );
+  }
+
+  #[test]
+  fn a_plist_from_another_build_is_stale() {
+    let home = root();
+    write_plist(home.path(), std::path::Path::new("/bin/intentd")).expect("write");
+    let path = userstate::launch_agent_plist_under(home.path());
+    let body = std::fs::read_to_string(&path).expect("read");
+    let aged = body.replace(
+      &format!("{STAMP_KEY}: {}", crate::faces::INTENT_VER),
+      &format!("{STAMP_KEY}: 0.0.1-from-another-build"),
+    );
+    assert_ne!(aged, body, "the fixture did not actually age the stamp");
+    std::fs::write(&path, aged).expect("write the aged plist");
+
+    assert_eq!(
+      stamped_version(home.path()).as_deref(),
+      Some("0.0.1-from-another-build")
+    );
+    assert!(
+      is_stale(home.path()),
+      "a plist naming another build is not stale"
+    );
+  }
+
+  /// **NOT ENROLLED IS NOT STALE, AND THIS IS THE ARM THAT BOUNDS THE FEATURE.**
+  ///
+  /// Self-healing that treated absence as staleness would ENROL an operator who
+  /// never asked to be -- turning a repair into a decision they did not make,
+  /// silently, on every boot. `AC-08.7` is about artefacts that exist being
+  /// brought up to date; **an artefact that does not exist is not out of date,
+  /// it is absent, and those are different states.**
+  #[test]
+  fn a_machine_that_never_enrolled_is_not_stale() {
+    let home = root();
+    assert!(!is_enrolled(home.path()), "the fixture is already enrolled");
+    assert!(
+      !is_stale(home.path()),
+      "a machine that never enrolled reports as stale, so booting would enrol it without being asked"
+    );
+  }
+
+  #[test]
+  fn regenerating_a_stale_plist_brings_the_stamp_current() {
+    let home = root();
+    let path = userstate::launch_agent_plist_under(home.path());
+    std::fs::create_dir_all(path.parent().expect("a parent")).expect("dirs");
+    std::fs::write(&path, "<plist><dict></dict></plist>\n").expect("write an old plist");
+    assert!(
+      is_stale(home.path()),
+      "the fixture is not stale to begin with"
+    );
+
+    write_plist(home.path(), std::path::Path::new("/bin/intentd")).expect("regenerate");
+    assert!(
+      !is_stale(home.path()),
+      "regenerating left the plist stale, so the healing does not converge"
     );
   }
 
