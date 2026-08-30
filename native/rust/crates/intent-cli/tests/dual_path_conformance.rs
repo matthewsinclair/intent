@@ -100,6 +100,41 @@ impl Route {
       Route::InProcess => "in-process",
     }
   }
+
+  /// The hazards this route cannot survive.
+  ///
+  /// **PER-ROUTE RATHER THAN PER-HARNESS, AND THE REASON IS AN ORDERING THAT IS
+  /// LOAD-BEARING BY ACCIDENT.** [`Route::ALL`] runs `Binary` first, and that is
+  /// the ONLY reason an `exec` row presents as a hang rather than as the test
+  /// binary vanishing mid-run. A single harness-wide exclusion leaves that
+  /// hazard exactly where it is -- latent, and resting on the order of an array
+  /// that reads as cosmetic. **Written down per route, the in-process refusal
+  /// carries its own reason and survives somebody reordering the list.**
+  fn cannot_survive(self) -> &'static [Hazard] {
+    match self {
+      // It waits for a child to exit, so a row that never exits blocks it. An
+      // `exec` in a CHILD is fine -- the child's image is not this one.
+      Route::Binary => &[Hazard::NeverReturns],
+      // It runs the row in THIS process, so both properties are fatal here.
+      Route::InProcess => &[Hazard::NeverReturns, Hazard::ReplacesTheImage],
+    }
+  }
+}
+
+/// The routes that could drive this row, if any refused it.
+fn refused_by(path: &str) -> Vec<Route> {
+  let Some((_, hazards)) = HAZARDS.iter().find(|(row, _)| *row == path) else {
+    return Vec::new();
+  };
+  Route::ALL
+    .iter()
+    .copied()
+    .filter(|route| {
+      hazards
+        .iter()
+        .any(|hazard| route.cannot_survive().contains(hazard))
+    })
+    .collect()
 }
 
 /// What a route answered: the exit code, and the message it put on stderr.
@@ -220,6 +255,48 @@ fn drive(route: Route, argv: &[String]) -> Answer {
   }
 }
 
+/// A property of a row that some route cannot survive driving.
+///
+/// **TWO PROPERTIES, NOT ONE, AND THE DISTINCTION IS LOAD-BEARING** (vc's
+/// correction, 2026-08-30). `daemon run` has both today, which is exactly what
+/// makes a single key look sufficient -- and the next verb will have only one
+/// of them. A verb that blocks forever WITHOUT exec is never-returning and
+/// harmless to the in-process route's image; a verb that execs and exits fast
+/// is hostile but perfectly comparable. **One exclusion keyed on "does not
+/// return" classifies the second by the wrong test and lets it through to the
+/// route it destroys.**
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum Hazard {
+  /// The row is specified never to exit.
+  ///
+  /// `via_binary` calls `Command::output`, which waits for the child. There is
+  /// no version of an output-capturing harness that can drive this -- a
+  /// different thing from "this is hard to test".
+  NeverReturns,
+  /// The row REPLACES the calling process image.
+  ///
+  /// **THIS IS THE ONE THAT DESTROYS RATHER THAN BLOCKS.** `via_library` calls
+  /// `render::run` IN THIS PROCESS, so an `exec` there does not fail the row --
+  /// it takes the test binary and every other row in this file with it, and
+  /// reports nothing about why.
+  ReplacesTheImage,
+}
+
+/// What each row is known to do that a route may not survive.
+///
+/// **THIS WAS A LIVE HANG, NOT A HYPOTHETICAL.** `daemon run` execs into
+/// `intentd`; `daemon` moved into the SHIPPED population on 2026-08-30, hours
+/// after `daemon_run` was built. Neither half is a defect alone -- an
+/// unimplemented `daemon` returned the unwired marker instantly, and an
+/// unshipped row is never driven -- and the intersection stopped the whole
+/// `intent-cli` suite from EVER completing, on every session on this machine,
+/// while presenting as nothing worse than a slow test. Four harness processes
+/// were found hung, across two sessions, one of them from a REBUILT binary.
+const HAZARDS: &[(&str, &[Hazard])] = &[(
+  "daemon run",
+  &[Hazard::NeverReturns, Hazard::ReplacesTheImage],
+)];
+
 /// **ONE TEST FUNCTION, DELIBERATELY.**
 ///
 /// The in-process route sets the process working directory, which is global
@@ -240,6 +317,7 @@ fn invariant_every_shipped_verb_answers_identically_down_every_route() {
   // being closed separately -- this harness must not inherit it, and must not
   // paper over it either, so the count below is reported.
   let mut argvs: Vec<Vec<String>> = Vec::new();
+  let mut excluded: Vec<(String, String)> = Vec::new();
   let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
   // `shipped_entries` is the ONE traversal -- families plus `new_surface`,
   // filtered by `is_shipped`. Rolling a second one here would be a divergent
@@ -247,6 +325,22 @@ fn invariant_every_shipped_verb_answers_identically_down_every_route() {
   // that there is one description of the surface.
   for entry in dispatch::shipped_entries(&table) {
     if seen.insert(entry.path.clone()) {
+      // **A ROW IS COMPARED ONLY IF EVERY ROUTE COULD DRIVE IT.** A comparison
+      // needs two answers, so a row one route refuses has nothing to compare --
+      // and driving it down the survivors would report agreement between a
+      // route and itself.
+      let refused = refused_by(&entry.path);
+      if !refused.is_empty() {
+        excluded.push((
+          entry.path.clone(),
+          refused
+            .iter()
+            .map(|r| r.name())
+            .collect::<Vec<_>>()
+            .join(", "),
+        ));
+        continue;
+      }
       argvs.push(entry.path.split(' ').map(str::to_string).collect());
     }
   }
@@ -254,6 +348,22 @@ fn invariant_every_shipped_verb_answers_identically_down_every_route() {
     !argvs.is_empty(),
     "the shipped population is empty, so this harness proved nothing -- \
      the table is the corpus and an empty corpus passes for free"
+  );
+
+  // **EVERY DECLARED HAZARD MUST HAVE MATCHED A REAL ROW, AND THIS IS THE ARM
+  // THAT MATTERS.** A hazard list is a filter aimed at the corpus, so it has the
+  // failure every filter has: rename `daemon run` and the entry matches nothing,
+  // the row rejoins the population, and the suite goes back to hanging forever
+  // -- with the list still sitting here looking like it is doing its job.
+  // Requiring each declared row to have FIRED turns that silence into a named
+  // failure.
+  let declared: Vec<&str> = HAZARDS.iter().map(|(row, _)| *row).collect();
+  let fired: Vec<&str> = excluded.iter().map(|(row, _)| row.as_str()).collect();
+  assert_eq!(
+    fired, declared,
+    "declared hazardous row(s) {declared:?} but {fired:?} were found in the shipped population. \
+     A row renamed out from under this list is being driven again, and driving it does not fail -- \
+     it hangs forever, or replaces this test binary, depending on which route reaches it first"
   );
 
   let mut compared_on_code_only = 0usize;
@@ -324,12 +434,21 @@ fn invariant_every_shipped_verb_answers_identically_down_every_route() {
     divergences.join("\n  ")
   );
 
+  // The excluded rows are NAMED in the summary, never merely subtracted. A
+  // population reported only as a total is one nobody can audit -- and this
+  // file's subject is a harness that must not quietly shrink.
   eprintln!(
     "dual-path conformance: {} shipped row(s) x {} route(s) agreed \
-     ({} on exit code and message, {} on exit code alone)",
+     ({} on exit code and message, {} on exit code alone); \
+     {} row(s) not compared, each refused by at least one route: {:?}",
     argvs.len(),
     Route::ALL.len(),
     compared_on_code_and_message,
-    compared_on_code_only
+    compared_on_code_only,
+    excluded.len(),
+    excluded
+      .iter()
+      .map(|(row, refused)| format!("{row} (refused by: {refused})"))
+      .collect::<Vec<_>>()
   );
 }
