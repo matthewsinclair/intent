@@ -68,7 +68,8 @@
 use std::fmt;
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
-use std::os::unix::net::UnixStream;
+use std::os::unix::fs::MetadataExt;
+use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::PathBuf;
 
 use std::time::Duration;
@@ -301,6 +302,15 @@ pub fn route(candidates: &[Endpoint]) -> Route {
 pub enum DaemonError {
   #[error("the daemon address at `{path}` is not an address: {found:?}")]
   UnreadableAddress { path: PathBuf, found: String },
+  /// Another daemon is already answering on the socket.
+  ///
+  /// **REFUSED RATHER THAN TAKEN OVER, AND THAT IS THE WHOLE POINT.** Binding a
+  /// unix socket whose path exists requires unlinking it first, so "start a
+  /// daemon" and "silently evict the running one" are the same two syscalls.
+  /// A second daemon that evicts the first leaves it holding a listener no path
+  /// reaches, serving nobody, with every client routed at the newcomer.
+  #[error("a daemon is already answering on `{path}`")]
+  AlreadyRunning { path: PathBuf },
   /// The daemon bound a port and could not tell anyone where.
   ///
   /// **A HARD FAILURE FOR THE DAEMON, NOT A DEGRADED MODE.** A listener nobody
@@ -319,6 +329,9 @@ impl crate::remedy::Remedy for DaemonError {
   fn remedy(&self) -> String {
     match self {
       DaemonError::UnreadableAddress { .. } => "this file is written by intentd when it starts and holds one loopback address, eg `127.0.0.1:54321`. If no daemon is running, deleting it is safe and this command will run in-process; if one is running, restart it so it republishes its address.".to_string(),
+      DaemonError::AlreadyRunning { .. } => {
+        "this machine already has an intentd serving these projects, and a second one would evict it. Stop the running daemon first if you mean to replace it.".to_string()
+      }
       DaemonError::Unpublishable { path, .. } => format!(
         "intentd bound a port and could not record it, so no client could have found it. Check that `{}` is writable -- it is created by intentd under your own per-user state directory.",
         path.parent().map(|p| p.display().to_string()).unwrap_or_else(|| "its directory".to_string())
@@ -501,6 +514,90 @@ impl Drop for Published {
   fn drop(&mut self) {
     if let Ok(text) = std::fs::read_to_string(&self.path) {
       if text.trim() == self.addr.to_string() {
+        let _ = std::fs::remove_file(&self.path);
+      }
+    }
+  }
+}
+
+/// A bound unix socket, unlinked when this value is dropped.
+///
+/// **THE SOCKET'S TWIN OF [`Published`], AND ITS CONCURRENCY STORY IS
+/// GENUINELY DIFFERENT.** An address file can be replaced by a second daemon
+/// with one atomic `rename`, so [`Published`] compares CONTENT before removing
+/// it. A socket path cannot be replaced that way at all: binding requires the
+/// path to be free, so a second daemon must UNLINK the first one's socket to
+/// take it -- which means "start" and "silently evict whoever is running" are
+/// the same two syscalls. So the two guards differ where the mechanism differs:
+/// this one refuses to evict, and compares IDENTITY rather than content on the
+/// way out, because a socket file has no content to compare.
+///
+/// **THE DAEMON USES THE CLIENT'S OWN ROUTING RULE TO DECIDE.** A crash leaves
+/// the socket file behind -- `AC-08.3` case 1, the case the whole probe exists
+/// for -- and that stale file would otherwise block every restart forever,
+/// which is a worse outage than the one it came from. So before binding, an
+/// existing path is PROBED with [`Endpoint::answers`]: answering means a daemon
+/// is live and this one refuses; silent means the file is a corpse and is
+/// removed. **One definition of "a daemon is there", used by the client to
+/// decide where to send work and by the daemon to decide whether to start** --
+/// two answers to that question is how a daemon evicts a healthy peer because
+/// it used a weaker test than the clients do.
+#[derive(Debug)]
+pub struct Bound {
+  path: PathBuf,
+  /// `(dev, ino)` of the socket THIS process created.
+  ///
+  /// The analogue of [`Published`]'s content comparison: it is what makes the
+  /// unlink on drop a compare-and-delete rather than a delete, so a daemon that
+  /// was evicted cannot take its evictor's socket down on the way out.
+  identity: (u64, u64),
+}
+
+impl Bound {
+  /// Bind the daemon socket, refusing to evict a daemon that is answering.
+  pub fn bind_socket_under(root: &std::path::Path) -> Result<(UnixListener, Self), DaemonError> {
+    let path = crate::userstate::daemon_socket_under(root);
+    let fail = |source| DaemonError::Unpublishable {
+      path: path.clone(),
+      source,
+    };
+    if let Some(parent) = path.parent() {
+      std::fs::create_dir_all(parent).map_err(fail)?;
+    }
+    if path.exists() {
+      if Endpoint::Unix(path.clone()).answers() {
+        return Err(DaemonError::AlreadyRunning { path });
+      }
+      // Silent, so it is a corpse rather than a peer. Removing it is what
+      // stops one crash from making every future start impossible.
+      std::fs::remove_file(&path).map_err(fail)?;
+    }
+    let listener = UnixListener::bind(&path).map_err(fail)?;
+    let meta = std::fs::metadata(&path).map_err(fail)?;
+    Ok((
+      listener,
+      Bound {
+        path,
+        identity: (meta.dev(), meta.ino()),
+      },
+    ))
+  }
+
+  /// The endpoint clients will reach this daemon on.
+  pub fn endpoint(&self) -> Endpoint {
+    Endpoint::Unix(self.path.clone())
+  }
+}
+
+impl Drop for Bound {
+  /// **COMPARE AND UNLINK, NEVER UNLINK**, for [`Published`]'s reason and by a
+  /// different means: a socket file carries no content, so identity is `(dev,
+  /// ino)`. A daemon whose socket was replaced under it must not remove its
+  /// successor's on the way out -- that would leave a live daemon unreachable,
+  /// which is the false negative no probe can correct.
+  fn drop(&mut self) {
+    if let Ok(meta) = std::fs::metadata(&self.path) {
+      if (meta.dev(), meta.ino()) == self.identity {
         let _ = std::fs::remove_file(&self.path);
       }
     }

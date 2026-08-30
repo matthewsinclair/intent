@@ -221,3 +221,132 @@ fn republishing_swings_the_file_rather_than_rewriting_it() {
     "the address file kept its inode across a republish, so it was rewritten IN PLACE rather than renamed over. Atomicity here is rename(2)'s and nothing else's -- a reader can now see a half-written address, and AC-08.3's parser REFUSES one, so every concurrent command becomes a hard error"
   );
 }
+
+// ---------------------------------------------------------------------------
+// The socket's twin of the above. `Bound` guards the unix socket file the way
+// `Published` guards the address, and differs exactly where the mechanism does.
+// ---------------------------------------------------------------------------
+
+use intentsvcs::daemon::{Bound, DaemonError};
+use std::io::{Read, Write};
+use std::os::unix::net::UnixListener;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+
+/// A socket that ACCEPTS and answers -- the only fixture a live daemon
+/// resembles, and the lesson `cli_routing.rs` paid for: a bare listener that
+/// never accepts is the PHANTOM, not the live case.
+struct Answering {
+  stop: Arc<AtomicBool>,
+  thread: Option<std::thread::JoinHandle<()>>,
+}
+
+impl Answering {
+  fn on(listener: UnixListener) -> Self {
+    listener.set_nonblocking(true).expect("non-blocking");
+    let stop = Arc::new(AtomicBool::new(false));
+    let flag = Arc::clone(&stop);
+    let thread = std::thread::spawn(move || {
+      while !flag.load(Ordering::Relaxed) {
+        match listener.accept() {
+          Ok((mut s, _)) => {
+            let _ = s.set_nonblocking(false);
+            let _ = s.set_read_timeout(Some(std::time::Duration::from_millis(500)));
+            let mut buf = [0u8; 64];
+            if matches!(s.read(&mut buf), Ok(n) if n > 0) {
+              let _ = s.write_all(b"{\"ok\":true}\n");
+            }
+          }
+          _ => std::thread::sleep(std::time::Duration::from_millis(1)),
+        }
+      }
+    });
+    Answering {
+      stop,
+      thread: Some(thread),
+    }
+  }
+}
+
+impl Drop for Answering {
+  fn drop(&mut self) {
+    self.stop.store(true, Ordering::Relaxed);
+    if let Some(t) = self.thread.take() {
+      let _ = t.join();
+    }
+  }
+}
+
+#[test]
+fn binding_creates_the_socket_and_dropping_removes_it() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let socket = userstate::daemon_socket_under(dir.path());
+  assert!(!socket.exists(), "the fixture must start with no socket");
+
+  let (listener, bound) = Bound::bind_socket_under(dir.path()).expect("bind");
+  assert!(socket.exists());
+  assert_eq!(bound.endpoint(), Endpoint::Unix(socket.clone()));
+
+  drop(bound);
+  drop(listener);
+  assert!(
+    !socket.exists(),
+    "the socket outlived the daemon, making AC-08.3 case 1 this daemon's own doing rather than a crash"
+  );
+}
+
+/// The restart-after-crash case: a corpse must not block every future start.
+#[test]
+fn a_stale_socket_is_cleared_rather_than_blocking_the_restart() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let socket = userstate::daemon_socket_under(dir.path());
+  std::fs::create_dir_all(socket.parent().expect("parent")).expect("mkdir");
+  // A crash: the file outlives the listener, and `bind` refuses a path that
+  // exists, so without this one crash makes every future start impossible.
+  drop(UnixListener::bind(&socket).expect("bind the corpse"));
+  assert!(socket.exists(), "the fixture is not stale");
+
+  let (_l, _b) = Bound::bind_socket_under(dir.path()).expect("a corpse must not block a restart");
+  assert!(socket.exists());
+}
+
+/// A daemon that IS answering is not evicted.
+#[test]
+fn a_live_daemon_is_refused_rather_than_evicted() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let (listener, first) = Bound::bind_socket_under(dir.path()).expect("bind the first daemon");
+  let _answering = Answering::on(listener);
+  assert!(
+    first.endpoint().answers(),
+    "the fixture's first daemon is not answering, so this would exercise the stale path instead"
+  );
+
+  match Bound::bind_socket_under(dir.path()) {
+    Err(DaemonError::AlreadyRunning { .. }) => {}
+    Err(other) => panic!("a live daemon must be refused as AlreadyRunning, got: {other}"),
+    Ok(_) => panic!(
+      "a second daemon EVICTED a live one. It now serves every client while the first holds a listener no path reaches"
+    ),
+  }
+}
+
+/// Compare-and-unlink, by identity rather than by content.
+#[test]
+fn an_evicted_daemon_does_not_unlink_its_successors_socket() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let socket = userstate::daemon_socket_under(dir.path());
+
+  // The first never accepts, so it reads as a corpse and is evicted.
+  let (first_listener, first) = Bound::bind_socket_under(dir.path()).expect("bind first");
+  let (_second_listener, second) = Bound::bind_socket_under(dir.path()).expect("evict the corpse");
+  assert!(socket.exists());
+
+  drop(first);
+  drop(first_listener);
+
+  assert!(
+    socket.exists(),
+    "the evicted daemon unlinked its SUCCESSOR's socket on the way out, leaving a live daemon unreachable -- the false negative no probe can correct"
+  );
+  assert_eq!(second.endpoint(), Endpoint::Unix(socket));
+}
