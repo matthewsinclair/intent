@@ -994,3 +994,25 @@ dc is building the `agents` pair regardless -- a half-wired family is worse than
 **A WITHDRAWAL YOU SHOULD SEE, BECAUSE IT WAS MINE.** I authorised a one-field write to the `help` row at 13:37Z declaring `--help` as its replacement. **It was wrong and dc caught it before ic made it.** Your ruling says the two are DIFFERENT surfaces, so that write would have replaced an honest-but-stale value with a claim you had already contradicted. dc had reported the row carried no replacement key; I verified by listing the entry's top-level keys and agreed. **The field is nested. Both of us checked the level that has no such key.** A verification that shares the defect it verifies turns one node's mistake into a two-node consensus, which is what carried it as far as an authorisation. Nothing landed.
 
 **SIXTH ITEM ON THIS QUEUE.** Unchanged above it: the four hung processes needing your hand, `design.md:22`'s refuted parenthetical, `tui-design.md` section 9's plural path, `shipped_surface_drift`'s declaration kind, and `ext`.
+
+## (2026-08-30 14:19Z)
+
+**THE SSOT GAP I SENT YOU AN HOUR AGO IS BIGGER THAN I COSTED IT, AND dc's MEASUREMENT IS WHY. Same decision, more weight.**
+
+I described it as _hv's `help` ruling has no home in the SSOT_. **dc measured the surface and it is not one homeless ruling -- it is a prose surface with NO STRUCTURED WAY TO SAY SCHEDULED AT ALL.**
+
+| net                              | what it counts          | result                                     |
+| -------------------------------- | ----------------------- | ------------------------------------------ |
+| key ends `_note`                 | dc's first enumerator   | 8 key names, 10 instances                  |
+| key contains `note`              | adds `note` and `notes` | 10 key names, `note` alone at 66 instances |
+| any key with >200 chars of prose | the real population     | **137 DISTINCT KEY NAMES**                 |
+
+`disposition_basis` 49, `ratification` 47, `why` 18, `basis` 16, down a long tail. **`help`'s note is the instance that cost us a morning, not the extent of the problem.**
+
+**THIS KILLED A CHECK RATHER THAN SIZING ONE.** dc was building a general note-classifier; a roster classifying every prose field is several hundred rows, which is a second copy of the table rather than a test. **The answer is a schema affordance -- a structured way to record RULED AND NOT YET BUILT -- not a wider net.** That is ic's file and your cut, which is why it stays in this bundle rather than becoming a test of dc's.
+
+**dc IS LANDING A BOUNDED ONE INSTEAD AND I APPROVED IT:** `spelling_note` alone, two instances, keyed on a TYPED field rather than a prose heuristic, with a header that states the 137-key limit out loud. **They asked whether to withhold even that, on the grounds that a small green beside a large open problem is what makes people stop looking.** That is right, and it needs both halves -- so the open problem gets a home here regardless of which way you rule. **If the affordance is out of the cut it wants an issue rather than nothing**, because a gap whose only record is the header of a check that does not cover it is `help`'s own defect one level up.
+
+**NO NEW DECISION. This strengthens option 2 in my previous entry** -- declaring `help` in `new_surface` stops being tidiness and becomes the first use of an affordance the table has never had.
+
+**AND THE MEASUREMENT CAUGHT ITSELF ON A WARNING IT WAS READING AT THE TIME.** `arg_values_note` in that same table records cc's 2026-08-17 finding -- three enumerators, three values, a set of five, none of them careless -- and states the lesson as **a population reported by an enumerator is the enumerator's subject, not the population.** dc read that note while classifying it and made its exact error one file over. **Fourth instance of that class today across four nodes**, mine included, and in every case the corrective was a prediction written BEFORE the run rather than any amount of care.
