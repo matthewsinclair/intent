@@ -252,10 +252,27 @@ pub fn init(
   // The schedule's default has ONE home: [`crate::project::BackupConfig`]. A
   // second literal here is how a default drifts from the thing that reads it.
   let backup_schedule = crate::project::BackupConfig::default().schedule;
+
+  // **`project_id` IS MINTED HERE BECAUSE `init` IS ONE OF THE TWO WAYS A
+  // PROJECT COMES TO EXIST, AND IT WAS THE ONE THAT DID NOT MINT.** D15
+  // ratifies `(project_id, natural_id)` as the global identity and D20 spells
+  // both daemon events with the project half, so a project without one is a
+  // ratified seam with an unbuilt half rather than a project that opted out.
+  //
+  // **THE MISSING HALF WAS INVISIBLE PRECISELY WHERE IT WOULD HAVE BEEN
+  // NOTICED.** `stamp_version` mints during migration, so every tree anyone
+  // develops in -- including Intent's own, which is self-hosted through a v2
+  // migration -- carries an id and looks correct. The population that lacked
+  // one was every project `init` creates, which is all of them from here.
+  //
+  // Minted BESIDE THE CONFIG WRITE rather than lazily at first use: a lazily
+  // minted id differs between two readers that race, which would make the
+  // identity depend on who asked first.
+  let project_id = crate::project::mint_project_id();
   write(
     &config,
     &format!(
-      "{{\n  \"intent_version\": {intent_version:?},\n  \"project_name\": {project_name:?},\n  \"author\": {author:?},\n  \"created\": {stamp:?},\n  \"intent_dir\": \"intent\",\n  \"languages\": [],\n  \"backup\": {{\n    \"schedule\": {backup_schedule:?}\n  }}\n}}\n"
+      "{{\n  \"intent_version\": {intent_version:?},\n  \"project_name\": {project_name:?},\n  \"author\": {author:?},\n  \"project_id\": {project_id:?},\n  \"created\": {stamp:?},\n  \"intent_dir\": \"intent\",\n  \"languages\": [],\n  \"backup\": {{\n    \"schedule\": {backup_schedule:?}\n  }}\n}}\n"
     ),
   )?;
 

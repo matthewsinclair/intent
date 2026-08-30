@@ -201,7 +201,43 @@ pub struct Config {
 /// order carries no meaning, and the alternative -- editing the file as text to
 /// preserve a layout nothing reads -- trades a real guarantee for a cosmetic
 /// one.
+/// A fresh project identity: D15's cloud seam, minted.
+///
+/// **ONE HOME, BECAUSE TWO PATHS MINT AND A PROJECT HAS EXACTLY ONE IDENTITY.**
+/// `init` mints for a project being created and the migration mints for one
+/// being carried forward, and those are the only two ways a project comes to
+/// exist. A second `Uuid::new_v4()` literal at either site would be two homes
+/// for the one fact D15 ratifies -- and the drift would be invisible, because
+/// both spellings produce a perfectly good UUID and nothing downstream can tell
+/// which function made it.
+///
+/// This follows [`BackupConfig::default`] immediately above, which exists for
+/// the same reason and says so: *a second literal here is how a default drifts
+/// from the thing that reads it*.
+pub fn mint_project_id() -> String {
+  uuid::Uuid::new_v4().to_string()
+}
+
 impl Config {
+  /// The project's identity, or `None` when it has never been minted.
+  ///
+  /// **AN EMPTY STRING IS ABSENT, NOT A VALUE, AND THAT IS THE WHOLE REASON
+  /// THIS METHOD EXISTS.** `project_id` is `Option<String>` and every read site
+  /// reached it through `.unwrap_or_default()`, which turns *this project has
+  /// no identity* into `""` -- an answer, of the right type, that every
+  /// consumer downstream is then correct about. That is
+  /// `IN-AG-NO-SILENT-001` in the accessor of a ratified seam.
+  ///
+  /// **IT WAS NOT A HYPOTHETICAL.** Three subscription arms asserted that an
+  /// event's project matched the feed's, both sides arrived as `""`, and all
+  /// three passed: an equality between two defaults is a tautology wearing a
+  /// comparison's clothes. Callers that must branch on absence ask this;
+  /// callers that genuinely want a display string can still default, but they
+  /// now have to say so.
+  pub fn identity(&self) -> Option<&str> {
+    self.project_id.as_deref().filter(|id| !id.is_empty())
+  }
+
   /// Declare a language. `true` when the array actually changed.
   ///
   /// **APPENDS, never sorts, and idempotent** -- v2's `add_project_language`

@@ -169,17 +169,25 @@ impl ProjectHandle {
       // OFF THE HANDLE.** The handle does not exist yet -- it is built from what
       // this thread reports -- and reaching back for it per event would make the
       // publisher depend on the thing it is publishing to.
-      let mut thread_project_id = String::new();
-      let mut facade = match open_facade(&thread_root) {
+      //
+      // **BOUND FROM THE MATCH RATHER THAN PRE-DECLARED EMPTY, AND THAT IS THE
+      // POINT RATHER THAN TIDINESS.** It was `let mut thread_project_id =
+      // String::new()` assigned in the `Ok` arm, and rustc reported the initial
+      // value as never read -- correctly, since the other arm returns. **The
+      // warning was cosmetic and the SHAPE was not**: an identity with an empty
+      // default is the precise defect this daemon's events were found carrying,
+      // where `""` stood in for *absent* and made two projects compare equal.
+      // Binding it out of the match means the store thread cannot hold an empty
+      // id even transiently, because there is no state in which it has one.
+      let (mut facade, thread_project_id) = match open_facade(&thread_root) {
         Ok((facade, project_id)) => {
-          thread_project_id = project_id.clone();
-          if ready_tx.send(Ok(project_id)).is_err() {
+          if ready_tx.send(Ok(project_id.clone())).is_err() {
             // Nobody is waiting any more: the caller went away between the
             // spawn and the open. Drop the facade rather than serve a queue no
             // one will read.
             return;
           }
-          facade
+          (facade, project_id)
         }
         Err(refusal) => {
           let _ = ready_tx.send(Err(refusal));

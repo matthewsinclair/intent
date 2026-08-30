@@ -291,7 +291,7 @@ fn stamp_version(project: &Project) -> Result<(), std::io::Error> {
   if unstamped {
     map.insert(
       "project_id".to_string(),
-      serde_json::Value::String(uuid::Uuid::new_v4().to_string()),
+      serde_json::Value::String(crate::project::mint_project_id()),
     );
   }
   // **THE SCHEDULE IS BACK-FILLED SO THAT IT IS SOMETHING TO READ AND EDIT**

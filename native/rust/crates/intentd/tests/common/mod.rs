@@ -71,43 +71,36 @@ pub fn project(name: &str) -> PathBuf {
   // IDENTICAL listings, so a registry that served one store to everybody would
   // have passed a test written to catch exactly that. The title is what makes
   // the two answers distinguishable at all.
-  // **THE FIXTURE MINTS A `project_id` BECAUSE `intent init` DOES NOT, AND THAT
-  // IS A REPORTED GAP RATHER THAN A FIXTURE CONVENIENCE.** D15 ratifies
-  // `project_id` as a cloud seam and D20 keys both subscription events on it --
-  // and `intentsvcs::init::init` writes a config with no such field, so every
-  // project created today carries `None`. Seven call sites reach it through
-  // `unwrap_or_default()`, which turns the absence into an empty string rather
-  // than an error.
+  // **THE FIXTURE ASSERTS AN IDENTITY RATHER THAN SUPPLYING ONE, AND THAT IS
+  // THE DIFFERENCE BETWEEN A GUARD AND A WORKAROUND.** This block used to
+  // text-splice a `project_id` into the config, because `intent init` minted
+  // none and D20 keys both subscription events on one. **That gap is closed --
+  // `init` now mints through `project::mint_project_id`** -- so the fixture
+  // stops manufacturing the property and starts checking it.
   //
-  // **WITHOUT THIS LINE FOUR SUBSCRIPTION ARMS COMPARE `""` TO `""` AND PASS.**
-  // That is the vacuous-assertion shape exactly: the daemon would emit events
-  // naming no project, two projects' events would be indistinguishable, and
-  // every test asserting the id would agree. Raised with vc, who owns whether
-  // `init` should mint one; the fixture states the property the tests need
-  // rather than papering over its absence.
-  // **A TEXT SPLICE RATHER THAN A JSON ROUND TRIP, BECAUSE `serde_json` IS NOT
-  // A DEPENDENCY OF THIS CRATE AND ADDING ONE FOR A FIXTURE IS THE WRONG
-  // TRADE.** The anchor is asserted, so a change to the initialiser's output
-  // fails here loudly instead of silently leaving the id unset -- which is the
-  // failure this whole block exists to prevent.
-  let config_path = root.join("intent/.config/config.json");
-  let text = std::fs::read_to_string(&config_path).expect("the initialiser wrote a config");
-  let anchor = "\"intent_dir\": \"intent\"";
-  assert!(
-    text.contains(anchor),
-    "the initialiser's config no longer contains `{anchor}`, so this fixture cannot set a project_id and every event-identity assertion downstream would compare empty strings: {text}"
-  );
-  let id = format!("test-{name}-{}", std::process::id());
-  std::fs::write(
-    &config_path,
-    text.replace(anchor, &format!("\"project_id\": \"{id}\",\n  {anchor}")),
-  )
-  .expect("write the config back");
-
+  // **THE CHECK IS NOT CEREMONY, BECAUSE THE FAILURE IT CATCHES IS SILENT.**
+  // Without an identity every arm asserting `event.project_id ==
+  // feed.project_id` compares `""` to `""` and PASSES: an equality between two
+  // defaults is a tautology wearing a comparison's clothes. Four arms were in
+  // exactly that state and were only caught by a line saying so. If minting
+  // ever regresses, this panics here rather than turning the suite green and
+  // meaningless.
+  //
+  // It reads through `Config::identity`, which is the accessor that treats an
+  // EMPTY string as absent -- the same rule, in one home, rather than a second
+  // opinion about what counts as having one.
   let project = intentsvcs::project::Project::open(&root).expect("the project just created");
   let ctx = intentsvcs::facade::FacadeContext {
     principal: "test".to_string(),
-    project_id: project.config().project_id.clone().unwrap_or_default(),
+    project_id: project
+      .config()
+      .identity()
+      .unwrap_or_else(|| {
+        panic!(
+          "the initialiser wrote no usable project_id, so every event-identity assertion downstream would compare empty strings and pass"
+        )
+      })
+      .to_string(),
     version: env!("CARGO_PKG_VERSION").to_string(),
   };
   let mut facade = intentsvcs::facade::Facade::open(project, ctx).expect("open the new project");
