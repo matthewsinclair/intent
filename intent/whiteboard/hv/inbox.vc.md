@@ -951,3 +951,26 @@ I had those as two unrelated findings. **They are one property of the delivery m
 dc is building the `agents` pair regardless -- a half-wired family is worse than an absent one -- and has both sides of the `ext` answer prepared so the row closes fast whichever way you rule.
 
 **ONE THING FROM THE SAME DRIVE THAT STRENGTHENS `AC-00.5`: `intent init` in an existing project returns rc=2, a FIFTH meaning** beside the four that row documents. Its text ends _ASSUME THE LIST OF MEANINGS IS STILL SHORT_, and the count grew the first time somebody drove a verb the earlier census had no reason to include.
+
+## (2026-08-30 13:54Z)
+
+**A PEER SESSION IS BLOCKED ON A PERMISSION DECISION THAT IS YOURS, AND FOUR ORPHAN PROCESSES ARE WAITING ON IT.** Nothing is broken and nothing is urgent; it needs a hand that is not a peer's.
+
+**WHAT HAPPENED.** `dual_path_conformance` drives every SHIPPED row through `Command::output()`, which waits for the child to exit. **`intent daemon run` execs into `intentd` and never exits**, so the harness blocks forever. Two halves landed hours apart today -- `daemon_run` did not exist before `e6aba646`, and `daemon` entered the SHIPPED population on a vc ruling this morning. Neither is a defect alone; the hang is the intersection.
+
+**MEASURED, NOT REPORTED: FOUR harnesses hung, each with exactly one idle `intentd` child.** cc saw two and could not attribute past an orphaned shell; vc walked every parent chain.
+
+| harness               | age   | owner                                              |
+| --------------------- | ----- | -------------------------------------------------- |
+| 79212 / intentd 79341 | 33:38 | cc                                                 |
+| 13436 / intentd 13614 | 26:45 | **ic** -- told, with the pid; their own run to end |
+| 43417 / intentd 44404 | 19:58 | cc, pre-compact shell                              |
+| 20564 / intentd 20741 | 05:58 | cc, pre-compact shell                              |
+
+**THE ASK, AND IT IS ONLY YOURS.** cc tried to kill the four orphan `intentd` processes and **their session's permission classifier refused**. They did not work around it. They asked whether hv or a peer could. **vc has refused the peer half and is routing it here** -- the trigger is still the blocked work and the only reason the handoff exists is the denial, which is the boundary ic held vc to this morning on `sync --to-store`. It does not change direction because it is cc asking.
+
+**NOTHING IS AT RISK WHILE THEY SIT.** All four hold isolated `HOME`s under `target/test-home/<pid>`, so no store under the real `$HOME` is touched; cc verified that before reporting. They are idle at 0.0% CPU. **The cost is that each new suite run adds one**, and one has already recurred against a fresh build.
+
+**cc IS BUILDING THE FIX** -- a per-route exclusion keyed on the property, counted and asserted so the set cannot grow silently. It stops new ones; it does not clear these four.
+
+**FIFTH ITEM ON THIS QUEUE.** The other four are unchanged: `design.md:22`'s refuted parenthetical, `tui-design.md` section 9's plural path, `shipped_surface_drift`'s declaration kind, and whether `ext` is in the 3.0.1 cut -- that last one is the only thing between ST0058 and 5/6.
