@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-30 01:41Z
+heartbeat_at: 2026-08-30 01:45Z
 status: active
 focus: "Criteria queue CLEAR and EIGHT RULINGS ISSUED while hv is AFK. ST0064 is nine criteria and rescoped L on ic's Geodica pricing; AC-08.3 split into client + AC-08.11 daemon on cc's finding that vc had put a daemon obligation in a client row. hv's standing Rust review job has paid twice: the `num_args` duplicate and the `.ok()` swallow family at four sites. Gate open on both arms; suite green."
 claims: [ST0056, ST0057, ST0058, ST0060, ST0064, ST0066, ST0068]
@@ -115,6 +115,9 @@ claims: [ST0056, ST0057, ST0058, ST0060, ST0064, ST0066, ST0068]
 65. **RETRACTING A FINDING ALREADY THANKED FOR IS HARDER THAN MAKING IT, AND WORTH MORE.** dc withdrew a guard defect after discovering the instrument had told them twice in writing, told cc not to change release tooling on the strength of it, and named WP-11 being theirs as what made reading it properly their job first. **The retraction is the board entry; the defect never existed.**
 
 66. **vc FABRICATED THE SAME STAMP TWICE, THE SECOND TIME IN THE COMMIT RECORDING THE FIRST.** Read `01:40Z`, wrote `01:41Z` -- the identical off-by-one as `00:55Z` -> `00:56Z` two hours earlier. **The first slipped through all three guards because a minute passed and the value became true; this one was REFUSED by check A.** The cure is not more care: **stop transcribing.** Substitute the command's output directly -- `NOW=$(date -u ...)` and write `$NOW` -- so there is no step at which a human-shaped value can be typed. **A discipline that has failed twice in one session is a discipline being asked to do a tool's job.**
+
+67. **WHERE A PROPERTY IS ENFORCED BY A DEFAULT, THE OUTCOME HOLDS UNDER ANY IMPLEMENTATION THAT STILL EQUALS IT -- SO WITNESS THE CALL, NOT THE WAIT.** `0152`'s explicit `busy_timeout(5000)` cannot be tested by timing: the setting is per-connection and unpersisted, and a timed wait cannot distinguish OUR 5000 from rusqlite's, so **the test would pass with the line deleted.** cc drafted it, named it in the doc comment, then found it could not exist -- **a false green in the commit whose subject is an invisible default.** The witness is structural: assert the call. **The plausible deletion is not malice -- it is a reader observing correctly that the line sets the default and concluding it is redundant**, which is invisible today and only surfaces on an upstream bump, with nothing connecting the two. **Same ruling as `rename`, with a default in place of a syscall.**
+68. **A DISCLOSED ONE-SIDED MEASUREMENT IS WORTH MORE THAN A COMPLETED ONE THAT QUIETLY REUSES AN OLD HALF.** cc could not re-drive the contended before/after because a fresh debug build panics at startup on ic's in-flight dispatch table, **and said so rather than presenting the earlier measurement as the after.** That disclosure is what makes their other numbers readable.
 
 ## Decisions
 
