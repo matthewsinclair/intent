@@ -90,6 +90,21 @@ const FANS_OUT: &[(&str, &[&str])] = &[
   ("at.set", &["at green", "at red", "at na"]),
   ("ac.fc", &["fc"]),
   ("at.fc", &["fc"]),
+  // **THE THIRD AND FOURTH MACHINES, ARRIVING AS THEIR EDGES LANDED** (dc,
+  // `d4526c1b`), which is what the note above says these entries do. Both are
+  // `fc` for the same reason as their siblings: one command, and the TARGET
+  // decides which machine moved. `intent fc <TARGET> [CHILD]` takes an optional
+  // child, so omitting it fiat-closes the thread or work package itself.
+  //
+  // **THESE TWO WERE STRUCK BEFORE THEY WERE RATIFIED, AND THAT IS THE REASON
+  // TO ADD THEM RATHER THAN TO EXEMPT THEM.** dc and hv ruled that ST and WP
+  // get no status VARIANT -- `fiat` sits BESIDE a status that stays
+  // `completed`/`done` -- and the earlier reading of that ruling was that
+  // `st.fc`/`wp.fc` were struck outright. They were not: the edges exist, on
+  // the same machines, writing a field beside the status rather than a new
+  // status. A verb whose edge exists and whose row exists belongs here.
+  ("st.fc", &["fc"]),
+  ("wp.fc", &["fc"]),
 ];
 
 /// Rows that belong in the population without owning a machine verb.
