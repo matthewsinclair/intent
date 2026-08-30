@@ -432,6 +432,25 @@ pub struct Thread {
   /// the same call, and only the log is ever read for history.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub status_reason: Option<String>,
+  /// The fiat close, present exactly when this thread was closed on human
+  /// authority against the evidence rather than on a passing gate.
+  ///
+  /// **BESIDE the status and NOT a status variant** (hv, 2026-08-28). The status
+  /// stays `completed`, so Machine 1 is untouched and every consumer that
+  /// reads it keeps working; what changes is the EDGE that reached it. `st.fc`
+  /// is guarded by `ReasonRecorded` where `st.done` is guarded by `GatePass` --
+  /// **a fiat close is by definition the case where the gate does not pass**, so
+  /// relaxing the existing edge to accept either guard would have made
+  /// `st.done` silently fiat-capable.
+  ///
+  /// **NOTHING STRUCTURAL HOLDS THIS FIELD AND [`Thread::status`] IN AGREEMENT**,
+  /// which is the same exposure [`AcceptanceTest::fiat`] carries and for a
+  /// different reason: there, a payload was impossible; here, hv ruled the status
+  /// value must not move at all. So the invariant is every verb's to keep --
+  /// `st.fc` writes the pair together, every other transition out of
+  /// `completed` clears it, and [`Facade::put`] refuses to write it.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub fiat: Option<FiatRecord>,
   /// ISO 8601 date, `YYYY-MM-DD`.
   pub created: String,
   /// ISO 8601 date, `YYYY-MM-DD`. **No time component**, so the finest interval
@@ -855,6 +874,29 @@ pub struct WorkPackage {
   /// and any transition without a reason clears it.
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub status_reason: Option<String>,
+  /// The fiat close, present exactly when this work package was closed on human
+  /// authority against the evidence rather than on a passing gate.
+  ///
+  /// **BESIDE the status and NOT a status variant** (hv, 2026-08-28). The status
+  /// stays `done`, so Machine 2 is untouched and every consumer that reads it
+  /// keeps working; what changes is the EDGE that reached it. `wp.fc` is guarded
+  /// by `ReasonRecorded` where `wp.done` is guarded by `GatePass` -- **a fiat
+  /// close is by definition the case where the gate does not pass**, so relaxing
+  /// the existing edge to accept either guard would have made `wp.done` silently
+  /// fiat-capable.
+  ///
+  /// **NOTHING STRUCTURAL HOLDS THIS FIELD AND [`WorkPackage::status`] IN
+  /// AGREEMENT**, so the invariant is every verb's to keep: `wp.fc` writes the
+  /// pair together, every other transition out of `done` clears it, and
+  /// [`Facade::put`] refuses to write it.
+  ///
+  /// **This is also the field a cascade writes into.** A fiat close on a thread
+  /// reaches its work packages, and a cascaded record carries
+  /// [`FiatRecord::inherited_from`] naming the ancestor -- so a package closed
+  /// in its own right and one closed because its thread was are distinguishable
+  /// by query rather than by reading the reason.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub fiat: Option<FiatRecord>,
   // PUBLISHED (D37): the two `///` blocks below become field descriptions in
   // thread.schema.json and the SDL, so the design provenance that used to be in
   // them -- which decision modelled what, which of our work packages would have

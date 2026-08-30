@@ -1006,6 +1006,9 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
         "st.cancel" => facade.st_cancel(ST, REASON).expect("st cancel"),
         "st.reopen" => facade.st_reopen(ST, REASON).expect("st reopen"),
         "st.reinstate" => facade.st_reinstate(ST, REASON).expect("st reinstate"),
+        // `by` is the invoker recorded on the fiat record, not an actor the
+        // walk models; any non-empty value drives the edge.
+        "st.fc" => facade.st_fc(ST, REASON, "hv").expect("st fc"),
         other => panic!("no arm drives {other} on Thread.status"),
       };
       assert_movement(entity, field, edge, from, outcome);
@@ -1049,6 +1052,7 @@ fn execute(entity: &str, field: &str, edge: &Edge, from: &str) -> String {
         "wp.reopen" => facade.wp_reopen(ST, seq, REASON).expect("wp reopen"),
         "wp.cancel" => facade.wp_cancel(ST, seq, REASON).expect("wp cancel"),
         "wp.reinstate" => facade.wp_reinstate(ST, seq, REASON).expect("wp reinstate"),
+        "wp.fc" => facade.wp_fc(ST, seq, REASON, "hv").expect("wp fc"),
         other => panic!("no arm drives {other} on WorkPackage.status"),
       };
       assert_movement(entity, field, edge, from, outcome);
@@ -1369,6 +1373,12 @@ const RATIFIED_THREAD: &[RatifiedEdge] = &[
     &[Guard::ReasonRecorded],
   ),
   ("st.done", &["wip"], "completed", &[Guard::GatePass]),
+  // **THE SAME FROM-STATE AND THE SAME LANDING AS `st.done`, AND A DIFFERENT
+  // GUARD** (hv, D1, 2026-08-29). The pair is the whole point: two edges into
+  // `completed`, one that requires the gate to pass and one that exists because
+  // it did not. Relaxing `st.done` to accept either guard was the option hv
+  // declined, and this row is what makes the refusal checkable.
+  ("st.fc", &["wip"], "completed", &[Guard::ReasonRecorded]),
   (
     "st.cancel",
     &["triage", "not-started", "wip", "hold"],
@@ -1460,6 +1470,7 @@ const RATIFIED_WP: &[RatifiedEdge] = &[
   ("wp.start", &["not-started"], "wip", &[]),
   ("wp.unstart", &["wip"], "not-started", &[]),
   ("wp.done", &["wip"], "done", &[Guard::GatePass]),
+  ("wp.fc", &["wip"], "done", &[Guard::ReasonRecorded]),
   ("wp.reopen", &["done"], "wip", &[Guard::ReasonRecorded]),
   // hv, 2026-08-21: `Cancelled` at WP level, after a live consumer hit the
   // deadlock the original ruling created. NOT `GatePass` -- this verb is the
@@ -1870,6 +1881,14 @@ const UNMET: &[(&str, Guard, Unmet, &str)] = &[
     "driven from `completed`, its only declared from-state",
   ),
   (
+    "st.fc",
+    Guard::ReasonRecorded,
+    Unmet::BlankJustification,
+    "driven from `wip`, its only declared from-state, so the transition check cannot be what refuses. \
+     **This is the guard whose absence would be worst**: a fiat close with no reason is a close on \
+     human authority with nothing recording whose, and the attribution posture is the whole design",
+  ),
+  (
     "st.reinstate",
     Guard::ReasonRecorded,
     Unmet::BlankJustification,
@@ -1880,6 +1899,12 @@ const UNMET: &[(&str, Guard, Unmet, &str)] = &[
     Guard::ReasonRecorded,
     Unmet::BlankJustification,
     "driven from `wip`, a declared from-state, so the transition check cannot be what refuses",
+  ),
+  (
+    "wp.fc",
+    Guard::ReasonRecorded,
+    Unmet::BlankJustification,
+    "driven from `wip`, its only declared from-state; same reasoning as `st.fc`",
   ),
   (
     "wp.reinstate",
@@ -2147,12 +2172,14 @@ fn attempt(
     "st.cancel" => facade.st_cancel(ST, justification),
     "st.reopen" => facade.st_reopen(ST, justification),
     "st.reinstate" => facade.st_reinstate(ST, justification),
+    "st.fc" => facade.st_fc(ST, justification, "hv"),
     "wp.start" => facade.wp_start(ST, seq),
     "wp.unstart" => facade.wp_unstart(ST, seq),
     "wp.done" => facade.wp_done(ST, seq),
     "wp.reopen" => facade.wp_reopen(ST, seq, justification),
     "wp.cancel" => facade.wp_cancel(ST, seq, justification),
     "wp.reinstate" => facade.wp_reinstate(ST, seq, justification),
+    "wp.fc" => facade.wp_fc(ST, seq, justification, "hv"),
     other => panic!("no arm drives {other}"),
   }
 }

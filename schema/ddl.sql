@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.0
--- SCHEMA_DDL_VER: 12
+-- SCHEMA_DDL_VER: 13
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -70,6 +70,12 @@ CREATE TABLE IF NOT EXISTS threads (
   -- so a preamble carried there comes back in the wrong place -- bytes kept,
   -- position moved, which is harder to see than a drop.
   preamble TEXT NOT NULL DEFAULT '',
+  -- The thread's fiat record, as serde JSON, or NULL. Present exactly when the
+  -- thread reached `completed` through `st.fc` rather than `st.done`. LAST for
+  -- the reason `tests.fiat` is last: a rung that recreates this table carries
+  -- the older column list forward, and the new column is the one the SELECT
+  -- must not name.
+  fiat TEXT,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
@@ -139,6 +145,9 @@ CREATE TABLE IF NOT EXISTS wps (
   -- As `threads.preamble`; 5 of the canary's 20 regions are work-package ones.
   preamble TEXT NOT NULL DEFAULT '',
   written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  -- The package's fiat record, as serde JSON, or NULL. Carries an
+  -- `inherited_from` when it was written by a cascade from its thread.
+  fiat TEXT,
   PRIMARY KEY (thread_id, seq)
 );
 -- `state` is the whole recorded AC state as its serde JSON, replacing the

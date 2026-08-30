@@ -31,8 +31,8 @@ use std::collections::BTreeSet;
 
 use common::{Fixture, PROJECT_ID, sample_thread};
 use intentsvcs::model::{
-  AcceptanceMode, AcceptanceTest, AtKind, AtStatus, ISSUE_SCHEMA, Issue, IssueStatus, Thread,
-  to_canonical_json,
+  AcceptanceMode, AcceptanceTest, AtKind, AtStatus, FiatRecord, ISSUE_SCHEMA, Invoker, Issue,
+  IssueStatus, Thread, to_canonical_json,
 };
 
 /// Every optional field populated, on top of the shared markup-bearing
@@ -44,6 +44,40 @@ fn maximal_thread(id: &str) -> Thread {
   let mut t = sample_thread(id);
   t.completed = Some("2026-08-15".to_string());
   t.acceptance = Some(AcceptanceMode::Exempt);
+  // **ST0066: the fiat record has to be SET here or the round trip proves
+  // nothing about it** -- `Option` is `skip_serializing_if`, so an unset field
+  // survives every encoder including a broken one, which is the whole reason
+  // `every_modelled_field_is_exercised` exists and the reason it went red the
+  // moment this field landed.
+  //
+  // **HOSTILE ON PURPOSE, like every other value in this fixture.** The reason
+  // carries a pipe and a quote because a fiat record is free text written by a
+  // human under pressure, and it is rendered into markdown tables by
+  // `fiat_marker` -- so an unescaped pipe here is a broken row somewhere else.
+  // The WORK PACKAGE carries `inherited_from` and the thread does not: that is
+  // the cascade shape, and the two serde paths (absent and present) are
+  // different journeys through a `skip_serializing_if` field.
+  t.fiat = Some(FiatRecord {
+    because: "closed on hv's word: the panel-survival half is unobservable by               unit test | and waiting on a live sitting"
+      .to_string(),
+    by: "hv".to_string(),
+    at: "2026-08-15T09:30:00.000Z".to_string(),
+    invoker: Invoker {
+      tty: true,
+      env: "darwin/arm64".to_string(),
+    },
+    inherited_from: None,
+  });
+  t.wps[0].fiat = Some(FiatRecord {
+    because: "cascaded from the thread's close".to_string(),
+    by: "hv".to_string(),
+    at: "2026-08-15T09:30:00.000Z".to_string(),
+    invoker: Invoker {
+      tty: true,
+      env: "darwin/arm64".to_string(),
+    },
+    inherited_from: Some(id.to_string()),
+  });
   t.tests = vec![AcceptanceTest {
     fiat: None,
     id: "AT-03.8".to_string(),

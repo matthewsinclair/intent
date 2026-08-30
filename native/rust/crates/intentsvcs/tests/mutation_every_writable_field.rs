@@ -1307,6 +1307,24 @@ fn fully_populated_thread(id: &str) -> Thread {
   let mut thread = sample_thread(id);
   thread.slug = Some("intent-v3".to_string());
   thread.status_reason = Some("reopened: AC-02.6 was added after the close".to_string());
+  // **POPULATED, NOT PINNED IN `SERDE_SKIPPED`, AND THE DIFFERENCE IS THE WHOLE
+  // TRAP.** `fiat` is `skip_serializing_if`, so a `None` here makes the field
+  // invisible to every JSON-derived measurement and the serde-skipped set moves
+  // -- and the tempting repair is to name it in `SERDE_SKIPPED`. That roster is
+  // for `#[serde(skip)]`, is checked in BOTH directions, and a pin there would
+  // pass today and go red the moment anything populated the field. **The same
+  // repair was reached for and rejected on `AcceptanceTest::fiat` on
+  // 2026-08-29**; this is the second kind and the reasoning is unchanged.
+  thread.fiat = Some(intentsvcs::model::FiatRecord {
+    because: "closed on hv's word; the surviving half is unobservable by unit test".to_string(),
+    by: "hv".to_string(),
+    at: "2026-08-20T11:00:00.000Z".to_string(),
+    invoker: intentsvcs::model::Invoker {
+      tty: true,
+      env: "darwin/arm64".to_string(),
+    },
+    inherited_from: None,
+  });
   thread.completed = Some("2026-08-20".to_string());
   thread.acceptance = Some(intentsvcs::model::AcceptanceMode::Exempt);
   thread.objective = "Ship v3.0.0 with the store as the durable SSOT.".to_string();
@@ -1369,12 +1387,21 @@ fn the_thread_fixture_serialises_every_field_and_the_three_roles_partition_it() 
     "preamble",
     "related",
   ];
+  // **A FIFTH ROLE, AND IT IS EMPHATICALLY NOT COLLATERAL** (ST0066, hv's D7).
+  // `fiat` serialises, and `put` REFUSES to change it rather than clearing it,
+  // so it is neither a field the body must send nor a field a write could lose.
+  // **It is named for exactly the reason `completed` is named**: an unclassified
+  // field is quietly absorbed into whichever role is counted loosest, and the
+  // count still adds up afterwards. Collateral is the loosest role here, and
+  // filing an unauthorable field there would assert that a `put` could clear it.
+  const UNAUTHORABLE: [&str; 1] = ["fiat"];
 
   let classified: BTreeSet<&str> = REQUIRED
     .iter()
     .chain(GRAFTED_CHILDREN.iter())
     .chain(ASKED_FOR.iter())
     .chain(COLLATERAL.iter())
+    .chain(UNAUTHORABLE.iter())
     .copied()
     .collect();
 
@@ -2074,6 +2101,19 @@ fn fully_populated_work_package() -> intentsvcs::model::WorkPackage {
     seq: 1,
     title: "The field axis".to_string(),
     scope: Some(intentsvcs::model::TShirt::M),
+    // Carries `inherited_from`, because the cascade case and the
+    // judged-individually case take different paths through a
+    // `skip_serializing_if` option and only one of them would otherwise be seen.
+    fiat: Some(intentsvcs::model::FiatRecord {
+      because: "cascaded from the thread's fiat close".to_string(),
+      by: "hv".to_string(),
+      at: "2026-08-20T11:00:00.000Z".to_string(),
+      invoker: intentsvcs::model::Invoker {
+        tty: true,
+        env: "darwin/arm64".to_string(),
+      },
+      inherited_from: Some("ST0056".to_string()),
+    }),
     scope_legacy: Some(Legacy {
       raw: "Medium-Large".to_string(),
     }),
@@ -2176,6 +2216,7 @@ fn true_fields(model: &str) -> Vec<&'static str> {
         slug: _,
         status: _,
         status_reason: _,
+        fiat: _,
         created: _,
         completed: _,
         acceptance: _,
@@ -2196,6 +2237,7 @@ fn true_fields(model: &str) -> Vec<&'static str> {
         "slug",
         "status",
         "status_reason",
+        "fiat",
         "created",
         "completed",
         "acceptance",
@@ -2218,6 +2260,7 @@ fn true_fields(model: &str) -> Vec<&'static str> {
         scope_legacy: _,
         status: _,
         status_reason: _,
+        fiat: _,
         objective: _,
         body: _,
         preamble: _,
@@ -2229,6 +2272,7 @@ fn true_fields(model: &str) -> Vec<&'static str> {
         "scope_legacy",
         "status",
         "status_reason",
+        "fiat",
         "objective",
         "body",
         "preamble",
@@ -2929,6 +2973,7 @@ fn the_work_package_tail_carries_the_same_property() {
     scope_legacy: None,
     status: intentsvcs::model::WpStatus::Done,
     status_reason: None,
+    fiat: None,
     objective: String::new(),
     body: String::new(),
     preamble: String::new(),

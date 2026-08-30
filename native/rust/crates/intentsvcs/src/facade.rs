@@ -1494,7 +1494,13 @@ fn declared_list_edit(op: &str) -> Option<ListAction> {
     // not ruled on the FORM, so a status-keyed rewrite would be an unruled
     // change wearing a refactor.
     "st.start" | "st.resume" | "st.reopen" => Some(ListAction::Add),
-    "st.done" | "st.cancel" | "st.hold" | "st.triage" => Some(ListAction::Remove),
+    // **`st.fc` REMOVES BECAUSE IT LANDS WHERE `st.done` LANDS.** The membership
+    // of this table is a property of the LANDING STATE -- declared iff `wip` --
+    // and a fiat close reaches `completed` exactly as an ordinary close does.
+    // The difference between the two edges is the guard and the record beside
+    // the status, neither of which the manifest has an opinion about: a thread
+    // that is finished is off the realised set however it got there.
+    "st.done" | "st.fc" | "st.cancel" | "st.hold" | "st.triage" => Some(ListAction::Remove),
     // **THE TWO LEGITIMATE `None`s, NAMED SO THE WILDCARD STOPS ANSWERING FOR
     // THEM** (vc's Highlander finding F1, 2026-08-27). This vocabulary has two
     // consumers and they fail in OPPOSITE directions: an op missing from
@@ -3808,6 +3814,9 @@ impl Facade {
       slug: Some(slugify(title)),
       status: ThreadStatus::Triage,
       status_reason: None,
+      // A creation path: only `st.fc` writes this, so `None` is the fact and
+      // not a placeholder. A brand-new thread has not been closed at all.
+      fiat: None,
       // **EMPTY, AND THAT IS THE POINT** (D42). Nothing here knows what day it
       // is, and nothing needs to: the store fills this inside the INSERT and
       // hands back what it wrote. Same idiom as `Envelope::minted`, which mints
@@ -3932,6 +3941,107 @@ impl Facade {
     self.set_thread_status(id, ThreadStatus::Completed, "st.done", None, list, on)
   }
 
+  /// `intent fc <ST>`: close the thread on human authority against the evidence,
+  /// recording who, when and why (hv, D1, 2026-08-29).
+  ///
+  /// **THE GUARD IS `ReasonRecorded` AND NEVER `GatePass`**, which is the whole
+  /// of the ruling in one line: this verb exists for the case where the gate does
+  /// NOT pass, so gating it would make it unreachable exactly when it is needed.
+  /// The gate is a no-op here rather than skipped -- `check_gate` is keyed on the
+  /// DECLARED guard, so the edge declaring `ReasonRecorded` is what makes the
+  /// gate not run, and no second place holds that decision.
+  ///
+  /// **The status lands on `completed`, the same value `st.done` reaches**, and
+  /// the record beside it on [`Thread::fiat`] is the only thing that
+  /// distinguishes them. That is hv's 2026-08-28 shape, and it is why this is an
+  /// edge rather than a status variant.
+  pub fn st_fc(&mut self, id: &str, because: &str, by: &str) -> Result<Outcome, FacadeError> {
+    let standing = self.st_show(id)?.fiat.as_ref().map(|r| r.because.clone());
+
+    // **NOT AN `unwrap`, AND NOT UNREACHABLE**, for the reason `at_fc` records:
+    // `check_reason` returns `None` when the verb declares no `ReasonRecorded`
+    // guard, so this arm is what happens if that declaration is ever dropped
+    // from the table -- and the consequence would be a `FiatRecord` stored with
+    // an empty `because`. Refusing is the honest answer to a table and a verb
+    // that disagree.
+    let because = Self::check_reason("Thread", "status", "st.fc", Some(because))?
+      .ok_or(FacadeError::ReasonRequired { verb: "st.fc" })?;
+
+    let record = crate::model::FiatRecord {
+      because: because.clone(),
+      by: by.to_string(),
+      // D42: no function here takes a time. The stamp is applied BY the write.
+      at: String::new(),
+      invoker: crate::model::Invoker::collected(),
+      inherited_from: None,
+    };
+    self
+      .set_thread_status_fiat(
+        id,
+        ThreadStatus::Completed,
+        "st.fc",
+        Some(&because),
+        ListEdit::AsDeclared,
+        None,
+        Some(record),
+      )
+      .map_err(|cause| match (cause, standing) {
+        // **The standing reason is what the operator needs before replacing one
+        // human judgement with another**, so it is carried rather than summarised.
+        (FacadeError::IllegalTransition { .. }, Some(because)) => FacadeError::AlreadyFiatClosed {
+          subject: id.to_string(),
+          because,
+          undo: format!("intent st reopen {id} --reason <why>"),
+        },
+        (other, _) => other,
+      })
+  }
+
+  /// `intent fc <ST>/<NN>`: close the work package on human authority against the
+  /// evidence. Same ruling, same guard and same reasoning as [`Facade::st_fc`].
+  pub fn wp_fc(
+    &mut self,
+    st: &str,
+    seq: u32,
+    because: &str,
+    by: &str,
+  ) -> Result<Outcome, FacadeError> {
+    let standing = self
+      .st_show(st)?
+      .wps
+      .iter()
+      .find(|w| w.seq == seq)
+      .and_then(|w| w.fiat.as_ref().map(|r| r.because.clone()));
+
+    let because = Self::check_reason("WorkPackage", "status", "wp.fc", Some(because))?
+      .ok_or(FacadeError::ReasonRequired { verb: "wp.fc" })?;
+
+    let record = crate::model::FiatRecord {
+      because: because.clone(),
+      by: by.to_string(),
+      at: String::new(),
+      invoker: crate::model::Invoker::collected(),
+      inherited_from: None,
+    };
+    self
+      .set_wp_status_fiat(
+        st,
+        seq,
+        WpStatus::Done,
+        "wp.fc",
+        Some(&because),
+        Some(record),
+      )
+      .map_err(|cause| match (cause, standing) {
+        (FacadeError::IllegalTransition { .. }, Some(because)) => FacadeError::AlreadyFiatClosed {
+          subject: format!("{st}/{seq:02}"),
+          because,
+          undo: format!("intent wp reopen {st}/{seq:02} --reason <why>"),
+        },
+        (other, _) => other,
+      })
+  }
+
   /// Reopen a completed thread.
   ///
   /// **The ratified machines have no terminal states**, and this is one of the
@@ -4038,6 +4148,41 @@ impl Facade {
     list: ListEdit,
     on: Option<&str>,
   ) -> Result<Outcome, FacadeError> {
+    self.set_thread_status_fiat(id, status, op, reason, list, on, None)
+  }
+
+  /// The one implementation, taking what happens to the fiat record beside the
+  /// status (ST0066).
+  ///
+  /// **A WRAPPER OVER ONE IMPLEMENTATION, for the reason [`Facade::st_done`] and
+  /// [`Facade::st_done_listing`] already record**: threading the argument through
+  /// would have rewritten eight call sites in a file four sessions edit
+  /// concurrently, for a diff whose entire content is the word `None`. The
+  /// delegation is one line and there is one body, so this is a second door and
+  /// never a second answer.
+  ///
+  /// **THE INVARIANT LIVES HERE BECAUSE THIS IS WHERE EVERY THREAD STATUS WRITE
+  /// PASSES.** `Thread::fiat` is beside the status and no type holds the two in
+  /// agreement, so something must, and a rule kept by every verb separately is a
+  /// rule kept until somebody adds the next verb. **The clear is unconditional
+  /// and is not "reset a field on the way past"**: a fiat record explains the
+  /// state the thread was IN, so a thread that has left `completed` has left the
+  /// record's subject behind. That is the same argument `status_reason` makes,
+  /// with the opposite conclusion about defaults -- a reason is written only when
+  /// the caller says something, and a fiat record is cleared unless the caller
+  /// says otherwise -- because a stale reason is confusing and a stale fiat
+  /// record is a false claim about a person.
+  #[allow(clippy::too_many_arguments)]
+  fn set_thread_status_fiat(
+    &mut self,
+    id: &str,
+    status: ThreadStatus,
+    op: &'static str,
+    reason: Option<&str>,
+    list: ListEdit,
+    on: Option<&str>,
+    fiat: Option<crate::model::FiatRecord>,
+  ) -> Result<Outcome, FacadeError> {
     let from = self.st_show(id)?.status;
 
     // **THE SELF-LOOP TEST IS FIRST, AND ITS POSITION IS THE RULING.** It sits
@@ -4064,6 +4209,9 @@ impl Facade {
     let mut next = self.canon.clone();
     let thread = find_thread_mut(&mut next, id)?;
     thread.status = status;
+    // See this function's own doc: unconditional, because the record describes
+    // the state being left.
+    thread.fiat = fiat;
     // **WRITTEN ONLY WHEN THE CALLER SAID SOMETHING, WHICH MAKES CLEARING AN ACT
     // RATHER THAN A DEFAULT** (vc's ruling, 2026-08-25). It read
     // `thread.status_reason = reason.clone()` unconditionally, and `check_reason`
@@ -4348,6 +4496,9 @@ impl Facade {
       scope_legacy: None,
       status: WpStatus::NotStarted,
       status_reason: None,
+      // A creation path: only `wp.fc` writes this, so `None` is the fact and
+      // not a placeholder. A brand-new package has not been closed at all.
+      fiat: None,
     });
     self.apply(
       "wp.new",
@@ -4509,6 +4660,22 @@ impl Facade {
     op: &'static str,
     reason: Option<&str>,
   ) -> Result<Outcome, FacadeError> {
+    self.set_wp_status_fiat(st, seq, status, op, reason, None)
+  }
+
+  /// The one implementation, taking what happens to the fiat record beside the
+  /// status. Same split and same reasoning as
+  /// [`Facade::set_thread_status_fiat`]; the invariant lives here because this
+  /// is where every work-package status write passes.
+  fn set_wp_status_fiat(
+    &mut self,
+    st: &str,
+    seq: u32,
+    status: WpStatus,
+    op: &'static str,
+    reason: Option<&str>,
+    fiat: Option<crate::model::FiatRecord>,
+  ) -> Result<Outcome, FacadeError> {
     let label = format!("{st}/{seq:02}");
     let from = self
       .st_show(st)?
@@ -4554,6 +4721,9 @@ impl Facade {
         seq,
       })?;
     wp.status = status;
+    // Unconditional, because the record describes the state being left -- see
+    // [`Facade::set_thread_status_fiat`].
+    wp.fiat = fiat;
     // **WRITTEN ONLY WHEN THE CALLER SAID SOMETHING, WHICH MAKES CLEARING AN ACT
     // RATHER THAN A DEFAULT** (vc's ruling, 2026-08-25). It read
     // `wp.status_reason = reason.clone()` unconditionally, and `check_reason`
@@ -6110,6 +6280,40 @@ impl Facade {
                most evidence are the ones it would hit hardest"
             )));
           }
+        }
+
+        // **hv's D7 EXTENDED TO THIS KIND: `put` REFUSES TO AUTHOR A FIAT
+        // RECORD.** The fiat record is evidence about a PERSON -- who closed
+        // this against the evidence, when, and from what invocation -- and no
+        // other field on this row is. Prevention in general is unachievable and
+        // that is exactly why the posture is attribution, **so a door that lets
+        // the record be fabricated without the guard holes the only half that
+        // works.**
+        //
+        // **AND IT RUNS AFTER THE COLLATERAL-CLEAR CHECK, WHICH IS AN ORDERING
+        // DECISION AND NOT AN ACCIDENT.** Placed before it, this refusal fired
+        // on a body that simply omitted `fiat` -- true, and the wrong thing to
+        // tell that caller, because the same body had omitted eight other
+        // fields and the general refusal names all of them. **A narrower
+        // refusal that preempts a broader one hides the broader one**, so the
+        // specific message is only reached once the general one is satisfied.
+        //
+        // **CHANGED, not PRESENT.** `put` is a whole-row write, so an ordinary
+        // read-modify-write on an already fiat-closed thread sends the record
+        // back untouched; refusing `Some` outright would make such a thread
+        // unputtable and its `objective` uneditable forever.
+        //
+        // **AND IT LIVES HERE RATHER THAN IN THE `Unsettable` ROSTER**, which
+        // `set` and the form layer read and `put` consults neither -- the first
+        // draft of this ruling went into that roster, the suite stayed green,
+        // and the green was the tell.
+        if existing.fiat != row.fiat {
+          return Err(refuse(
+            "the fiat record is evidence about a person and `put` cannot author it: \
+             use `intent fc <target> --because \"<why>\"`, which records who closed it, \
+             when, and the invocation's own evidence that no caller supplies"
+              .to_string(),
+          ));
         }
 
         if row == existing {
@@ -7725,8 +7929,14 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
     AddrEntity::Thread { .. } => match field {
       "schema" | "id" => Some(Unsettable::Identity),
       "status" => Some(Unsettable::Machine(
-        "intent st start|done|hold|resume|cancel|reopen|reinstate",
+        "intent st start|done|fc|hold|resume|cancel|reopen|reinstate",
       )),
+      // **`Machine` and therefore `Elsewhere`, not `Never`** -- the record HAS a
+      // route and this names it, which is the distinction the kind exists to
+      // make. `fc` is in the status list above for the same reason: it is one of
+      // the edges that reaches `completed`, and a route list that named only the
+      // gated one would send a reader to a verb that refuses them.
+      "fiat" => Some(Unsettable::Machine("intent fc <ST-id> --because")),
       // `completed` is deliberately NOT here -- see [`Unsettable::Stamped`].
       "created" => Some(Unsettable::Stamped),
       _ => None,
@@ -7734,8 +7944,9 @@ fn unsettable(entity: &AddrEntity, field: &str) -> Option<Unsettable> {
     AddrEntity::Wp { .. } => match field {
       "seq" => Some(Unsettable::Identity),
       "status" => Some(Unsettable::Machine(
-        "intent wp start|done|unstart|reopen|cancel|reinstate",
+        "intent wp start|done|fc|unstart|reopen|cancel|reinstate",
       )),
+      "fiat" => Some(Unsettable::Machine("intent fc <ST-id>/<NN> --because")),
       _ => None,
     },
     AddrEntity::Ac { .. } => match field {

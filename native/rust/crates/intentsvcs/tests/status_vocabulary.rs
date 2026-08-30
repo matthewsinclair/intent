@@ -222,6 +222,7 @@ fn every_work_package_spelling_reaches_a_view_and_excludes_the_others() {
       scope_legacy: None,
       status,
       status_reason: None,
+      fiat: None,
       objective: "the objective".to_string(),
       body: String::new(),
     }];

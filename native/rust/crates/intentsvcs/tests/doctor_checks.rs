@@ -38,6 +38,7 @@ fn clean_thread(id: &str) -> Thread {
     slug: None,
     status: ThreadStatus::Wip,
     status_reason: None,
+    fiat: None,
     created: "2026-08-14".to_string(),
     completed: None,
     acceptance: None,
@@ -61,6 +62,7 @@ fn clean_thread(id: &str) -> Thread {
       // the check rather than the check being tested by the fixture.
       status: WpStatus::Done,
       status_reason: None,
+      fiat: None,
       objective: String::new(),
       body: String::new(),
       preamble: String::new(),
@@ -857,6 +859,7 @@ fn a_gate_with_no_contract_to_judge_is_not_a_disagreement() {
     scope_legacy: None,
     status: WpStatus::NotStarted,
     status_reason: None,
+    fiat: None,
     objective: String::new(),
     body: String::new(),
     preamble: String::new(),

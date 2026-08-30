@@ -649,6 +649,7 @@ mod tests {
       slug: None,
       status: ThreadStatus::Wip,
       status_reason: None,
+      fiat: None,
       created: "2026-08-14".to_string(),
       completed: None,
       acceptance: None,
@@ -663,6 +664,7 @@ mod tests {
         scope_legacy: None,
         status: crate::model::WpStatus::Wip,
         status_reason: None,
+        fiat: None,
         objective: String::new(),
         body: String::new(),
       }],
@@ -836,6 +838,7 @@ mod tests {
       scope_legacy: None,
       status: crate::model::WpStatus::NotStarted,
       status_reason: None,
+      fiat: None,
       objective: String::new(),
       body: String::new(),
     });

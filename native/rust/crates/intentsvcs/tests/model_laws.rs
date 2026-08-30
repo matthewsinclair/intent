@@ -121,6 +121,37 @@ fn ac_state() -> impl Strategy<Value = AcState> {
   ]
 }
 
+/// A fiat record for the two fields that carry one BESIDE a status rather than
+/// inside it -- `Thread::fiat` and `WorkPackage::fiat` (ST0066).
+///
+/// **GENERATED AND NOT PINNED TO `None`, which is this file's own lesson applied
+/// before it had to be learned twice.** The `AcState::Fiat` arm eight lines above
+/// exists because a generator that omits a case lets a round-trip law promise
+/// coverage it does not have. `Option<FiatRecord>` on a struct field has exactly
+/// the same two paths -- `skip_serializing_if` means absent and present are
+/// different journeys through serde -- so both are generated here.
+///
+/// `at` is fixed for the reason the `AcState::Fiat` arm gives: a stamp is a label,
+/// and varying the one field whose variation proves nothing buys nothing.
+fn fiat_record() -> impl Strategy<Value = Option<FiatRecord>> {
+  proptest::option::of(
+    (
+      "[a-z ]{1,40}",
+      "[a-z]{2,8}",
+      any::<bool>(),
+      "[a-z0-9/]{3,16}",
+      proptest::option::of("ST[0-9]{4}"),
+    )
+      .prop_map(|(because, by, tty, env, inherited_from)| FiatRecord {
+        because,
+        by,
+        at: "2026-08-29T22:10:00.000Z".to_string(),
+        invoker: Invoker { tty, env },
+        inherited_from,
+      }),
+  )
+}
+
 /// **THE COMPILE-TIME HALF OF THE CLAIM ABOVE. It is never called, and that is
 /// the point.**
 ///
@@ -188,6 +219,7 @@ prop_compose! {
     body in "(?s)[A-Za-z0-9 \n#`|_-]{0,200}",
     preamble in "[A-Za-z0-9 ,.`|_-]{0,80}",
     status_reason in proptest::option::of("[A-Za-z ,.]{1,60}"),
+    fiat in fiat_record(),
   ) -> WorkPackage {
     WorkPackage {
       seq,
@@ -196,6 +228,7 @@ prop_compose! {
       scope_legacy: scope.1,
       status,
       status_reason,
+      fiat,
       objective,
       body,
       preamble: preamble.trim().to_string(),
@@ -236,7 +269,7 @@ prop_compose! {
 }
 
 prop_compose! {
-  fn thread()(n in 0u32..9999, title in "[A-Za-z ]{1,60}", slug in proptest::option::of("[a-z-]{3,20}"), status in thread_status(), status_reason in proptest::option::of("[A-Za-z ,.]{1,60}"), completed in proptest::option::of(Just("2026-08-14".to_string())), exempt in any::<bool>(), objective in prose_text(), context in prose_text(), preamble in "[A-Za-z0-9 ,.`|_-]{0,80}", related in prop::collection::vec(related(), 0..3), attachments in prop::collection::vec(attachment(), 0..3), wps in prop::collection::vec(work_package(), 0..3), criteria in prop::collection::vec(criterion(), 0..3), tests in prop::collection::vec(acceptance_test(), 0..3)) -> Thread {
+  fn thread()(n in 0u32..9999, title in "[A-Za-z ]{1,60}", slug in proptest::option::of("[a-z-]{3,20}"), status in thread_status(), status_reason in proptest::option::of("[A-Za-z ,.]{1,60}"), fiat in fiat_record(), completed in proptest::option::of(Just("2026-08-14".to_string())), exempt in any::<bool>(), objective in prose_text(), context in prose_text(), preamble in "[A-Za-z0-9 ,.`|_-]{0,80}", related in prop::collection::vec(related(), 0..3), attachments in prop::collection::vec(attachment(), 0..3), wps in prop::collection::vec(work_package(), 0..3), criteria in prop::collection::vec(criterion(), 0..3), tests in prop::collection::vec(acceptance_test(), 0..3)) -> Thread {
     Thread {
       body: String::new(),
       // GENERATED, not blanked. A field pinned to the empty string in the
@@ -252,6 +285,7 @@ prop_compose! {
       slug,
       status,
       status_reason,
+      fiat,
       created: "2026-08-14".to_string(),
       completed,
       acceptance: exempt.then_some(AcceptanceMode::Exempt),
@@ -344,6 +378,7 @@ fn sample_thread() -> Thread {
     slug: Some("intent-v3".to_string()),
     status: ThreadStatus::Wip,
     status_reason: Some("reopened: AC-02.6 was added after the close".to_string()),
+    fiat: None,
     created: "2026-08-14".to_string(),
     completed: None,
     acceptance: None,
@@ -360,6 +395,7 @@ fn sample_thread() -> Thread {
       scope_legacy: None,
       status: WpStatus::Wip,
       status_reason: None,
+      fiat: None,
       objective: String::new(),
       body: String::new(),
       preamble: String::new(),

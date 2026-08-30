@@ -321,6 +321,20 @@ pub const FIELDS: &[Field] = &[
           &[Guard::ReasonRecorded],
         ),
         Edge::guarded("st.done", &["wip"], "completed", &[Guard::GatePass]),
+        // **`st.fc` LANDS WHERE `st.done` LANDS, FROM WHERE `st.done` COMES FROM, AND
+        // IS GUARDED BY `ReasonRecorded` RATHER THAN `GatePass`** (hv, D1,
+        // 2026-08-29). **A fiat close is BY DEFINITION the case where the gate
+        // does not pass**, so the guard cannot be the gate; and the alternative
+        // hv declined -- relaxing `st.done` to accept EITHER guard -- would have
+        // made `st.done` itself silently fiat-capable, one verb with two
+        // meanings.
+        //
+        // **The landing state does not move, which is what keeps hv's
+        // 2026-08-28 `fiat sits beside the status` ruling intact**: the status
+        // VALUE stays `completed` and every consumer reading it keeps working. What
+        // this adds is a second EDGE into that state, and the record beside it
+        // on `Thread.fiat` is what distinguishes the two.
+        Edge::guarded("st.fc", &["wip"], "completed", &[Guard::ReasonRecorded]),
         Edge::guarded(
           "st.cancel",
           &["triage", "not-started", "wip", "hold"],
@@ -401,6 +415,20 @@ pub const FIELDS: &[Field] = &[
         Edge::direct("wp.start", &["not-started"], "wip"),
         Edge::direct("wp.unstart", &["wip"], "not-started"),
         Edge::guarded("wp.done", &["wip"], "done", &[Guard::GatePass]),
+        // **`wp.fc` LANDS WHERE `wp.done` LANDS, FROM WHERE `wp.done` COMES FROM, AND
+        // IS GUARDED BY `ReasonRecorded` RATHER THAN `GatePass`** (hv, D1,
+        // 2026-08-29). **A fiat close is BY DEFINITION the case where the gate
+        // does not pass**, so the guard cannot be the gate; and the alternative
+        // hv declined -- relaxing `wp.done` to accept EITHER guard -- would have
+        // made `wp.done` itself silently fiat-capable, one verb with two
+        // meanings.
+        //
+        // **The landing state does not move, which is what keeps hv's
+        // 2026-08-28 `fiat sits beside the status` ruling intact**: the status
+        // VALUE stays `done` and every consumer reading it keeps working. What
+        // this adds is a second EDGE into that state, and the record beside it
+        // on `WorkPackage.fiat` is what distinguishes the two.
+        Edge::guarded("wp.fc", &["wip"], "done", &[Guard::ReasonRecorded]),
         Edge::guarded("wp.reopen", &["done"], "wip", &[Guard::ReasonRecorded]),
         // Mirrors `st.cancel`: reachable from every live state, reason required.
         // NOT `Guard::GatePass` -- this verb is the announcement that there is

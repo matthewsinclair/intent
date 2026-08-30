@@ -153,6 +153,12 @@ CREATE TABLE IF NOT EXISTS threads (
   -- so a preamble carried there comes back in the wrong place -- bytes kept,
   -- position moved, which is harder to see than a drop.
   preamble TEXT NOT NULL DEFAULT '',
+  -- The thread's fiat record, as serde JSON, or NULL. Present exactly when the
+  -- thread reached `completed` through `st.fc` rather than `st.done`. LAST for
+  -- the reason `tests.fiat` is last: a rung that recreates this table carries
+  -- the older column list forward, and the new column is the one the SELECT
+  -- must not name.
+  fiat TEXT,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
@@ -222,6 +228,9 @@ CREATE TABLE IF NOT EXISTS wps (
   -- As `threads.preamble`; 5 of the canary's 20 regions are work-package ones.
   preamble TEXT NOT NULL DEFAULT '',
   written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  -- The package's fiat record, as serde JSON, or NULL. Carries an
+  -- `inherited_from` when it was written by a cascade from its thread.
+  fiat TEXT,
   PRIMARY KEY (thread_id, seq)
 );
 -- `state` is the whole recorded AC state as its serde JSON, replacing the
@@ -455,7 +464,7 @@ CREATE TABLE IF NOT EXISTS project (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 15;
+pub const SCHEMA_VERSION: i32 = 16;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -1007,6 +1016,74 @@ const MIGRATIONS: &[(i32, &str)] = &[(
        SELECT thread_id, id, kind, file, prose, covers, status, note, legacy FROM tests;
      DROP TABLE tests;
      ALTER TABLE tests_v15 RENAME TO tests;",
+  ),
+  (
+    16,
+    // 15 -> 16: ST0066 again, for the ST and WP kinds. `threads` and `wps` each
+    // gain a home for a fiat record.
+    //
+    // **TWO TABLES IN ONE RUNG BECAUSE IT IS ONE RULING.** hv's D1 declared
+    // `st.fc` and `wp.fc` together, from the same from-states as their `done`
+    // siblings and landing on the same states. Splitting them across two rungs
+    // would let a store exist at a version where a thread can be fiat-closed and
+    // its cascade has nowhere to land -- a half-applied ruling, reachable only
+    // by interrupting a migration, and the ladder is one-way so it would stay
+    // there.
+    //
+    // **REBUILDS RATHER THAN `ALTER TABLE ADD COLUMN`, for the reason rung 15
+    // records**: `a_store_stamped_by_an_earlier_draft_of_a_rung_is_walked_forward_not_refused`
+    // builds its store from the CURRENT `DDL`, which already carries both
+    // columns, then stamps an older version onto it -- so an `ADD COLUMN` reds
+    // with `duplicate column name: fiat`. Neither `SELECT` names `fiat`, which
+    // is what makes one statement correct against both worlds: a real store at
+    // 15 has no such column, and the test's store has one whose contents are
+    // irrelevant because nothing has been able to write it yet.
+    //
+    // `created_at` and `updated_at` ARE carried on `threads`, unlike `written_at`
+    // on the child tables. They are entity dates rather than record stamps: when
+    // this thread was created is a fact about the thread, and re-stamping it to
+    // the moment of a migration would silently rewrite the age of every thread
+    // in the estate.
+    "CREATE TABLE threads_v16 (
+       id TEXT PRIMARY KEY,
+       title TEXT NOT NULL,
+       slug TEXT,
+       status TEXT NOT NULL,
+       status_reason TEXT,
+       created TEXT NOT NULL,
+       completed TEXT,
+       acceptance TEXT,
+       objective TEXT NOT NULL,
+       context TEXT NOT NULL,
+       body TEXT NOT NULL DEFAULT '',
+       preamble TEXT NOT NULL DEFAULT '',
+       fiat TEXT,
+       created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+     );
+     INSERT INTO threads_v16 (id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble, created_at, updated_at)
+       SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble, created_at, updated_at FROM threads;
+     DROP TABLE threads;
+     ALTER TABLE threads_v16 RENAME TO threads;
+     CREATE TABLE wps_v16 (
+       thread_id TEXT NOT NULL REFERENCES threads (id) ON DELETE CASCADE,
+       seq INTEGER NOT NULL,
+       title TEXT NOT NULL,
+       scope TEXT,
+       scope_legacy TEXT,
+       status TEXT NOT NULL,
+       status_reason TEXT,
+       objective TEXT NOT NULL,
+       body TEXT NOT NULL,
+       preamble TEXT NOT NULL DEFAULT '',
+       written_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+       fiat TEXT,
+       PRIMARY KEY (thread_id, seq)
+     );
+     INSERT INTO wps_v16 (thread_id, seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble)
+       SELECT thread_id, seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble FROM wps;
+     DROP TABLE wps;
+     ALTER TABLE wps_v16 RENAME TO wps;",
   ),
 ];
 
@@ -1642,8 +1719,10 @@ impl Store {
     // 2026-08-28). `Change` upserts, because every ordinary verb clones canon,
     // edits a field and writes the whole row back. `Create` omits the clause,
     // so an id that already exists raises the UNIQUE constraint and the
-    // transaction is refused rather than quietly overwriting all twelve columns
-    // of a thread somebody else is holding.
+    // transaction is refused rather than quietly overwriting every column of a
+    // thread somebody else is holding. (That sentence said "all twelve columns"
+    // until ST0066 added a thirteenth -- a count in prose beside the list that
+    // holds it.)
     let on_conflict = match door {
       Door::Change => {
         "ON CONFLICT (id) DO UPDATE SET
@@ -1658,13 +1737,14 @@ impl Store {
            context = excluded.context,
            body = excluded.body,
            preamble = excluded.preamble,
+           fiat = excluded.fiat,
            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')"
       }
       Door::Create => "",
     };
     let stored = tx.query_row(
       &format!(
-        "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10, ?11, ?12)
+        "INSERT INTO threads (id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble, fiat) VALUES (?1, ?2, ?3, ?4, ?5, {dates}, ?8, ?9, ?10, ?11, ?12, ?13)
          {on_conflict}
          RETURNING created, completed"
       ),
@@ -1681,6 +1761,7 @@ impl Store {
         t.context,
         t.body,
         t.preamble,
+        t.fiat.as_ref().map(serde_json::to_string).transpose()?,
       ],
       |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
     );
@@ -1713,7 +1794,7 @@ impl Store {
     }
     for wp in &t.wps {
       tx.execute(
-        "INSERT INTO wps (thread_id, seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+        "INSERT INTO wps (thread_id, seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble, fiat) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
         params![
           t.id,
           wp.seq,
@@ -1724,7 +1805,8 @@ impl Store {
           wp.status_reason,
           wp.objective,
           wp.body,
-          wp.preamble
+          wp.preamble,
+          wp.fiat.as_ref().map(serde_json::to_string).transpose()?,
         ],
       )?;
     }
@@ -2000,7 +2082,7 @@ impl Store {
   pub fn load_canon(&self) -> Result<(Vec<Thread>, Vec<Issue>), StoreError> {
     let mut threads = Vec::new();
     let mut stmt = self.conn.prepare(
-      "SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble FROM threads ORDER BY id",
+      "SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble, fiat FROM threads ORDER BY id",
     )?;
     let rows = stmt.query_map([], |row| {
       Ok((
@@ -2016,6 +2098,7 @@ impl Store {
         row.get::<_, String>(9)?,
         row.get::<_, String>(10)?,
         row.get::<_, String>(11)?,
+        row.get::<_, Option<String>>(12)?,
       ))
     })?;
 
@@ -2037,6 +2120,7 @@ impl Store {
       context,
       body,
       preamble,
+      fiat,
     ) in shells
     {
       threads.push(Thread {
@@ -2053,6 +2137,7 @@ impl Store {
         slug,
         status: enum_from(&status)?,
         status_reason,
+        fiat: fiat.map(|raw| serde_json::from_str(&raw)).transpose()?,
         created,
         completed,
         acceptance: acceptance.as_deref().map(enum_from).transpose()?,
@@ -2145,7 +2230,7 @@ impl Store {
   fn wps_of(&self, thread: &str) -> Result<Vec<WorkPackage>, StoreError> {
     let mut stmt = self
       .conn
-      .prepare("SELECT seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
+      .prepare("SELECT seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble, fiat FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
     let raw = stmt
       .query_map(params![thread], |row| {
         Ok((
@@ -2158,13 +2243,25 @@ impl Store {
           row.get::<_, String>(6)?,
           row.get::<_, String>(7)?,
           row.get::<_, String>(8)?,
+          row.get::<_, Option<String>>(9)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
     raw
       .into_iter()
       .map(
-        |(seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble)| {
+        |(
+          seq,
+          title,
+          scope,
+          scope_legacy,
+          status,
+          status_reason,
+          objective,
+          body,
+          preamble,
+          fiat,
+        )| {
           Ok(WorkPackage {
             seq,
             title,
@@ -2172,6 +2269,7 @@ impl Store {
             scope_legacy: scope_legacy.map(|raw| crate::model::Legacy { raw }),
             status: enum_from(&status)?,
             status_reason,
+            fiat: fiat.map(|raw| serde_json::from_str(&raw)).transpose()?,
             objective,
             body,
             preamble,

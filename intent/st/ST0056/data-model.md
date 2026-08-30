@@ -590,6 +590,7 @@ States: `Triage` (proposed rename of `Tbc`) | `NotStarted` | `Wip` | `Hold` | `C
 | `NotStarted` | `Hold`       | `st hold`      | reason recorded    |
 | `NotStarted` | `Cancelled`  | `st cancel`    | reason recorded    |
 | `Wip`        | `Completed`  | `st done`      | **`ac gate` PASS** |
+| `Wip`        | `Completed`  | `st.fc`        | reason recorded    |
 | `Wip`        | `Hold`       | `st hold`      | reason recorded    |
 | `Wip`        | `Cancelled`  | `st cancel`    | reason recorded    |
 | `Hold`       | `Wip`        | `st resume`    | --                 |
@@ -613,6 +614,12 @@ States: `Triage` (proposed rename of `Tbc`) | `NotStarted` | `Wip` | `Hold` | `C
 
 **The general rule, because more of these are coming** (`wp new --start`, and anything else that bundles): **a convenience flag is sugar over declared transitions and never a new edge.** If a bundle cannot be expressed as a sequence of declared transitions, the bundle is proposing a machine change and goes to hv as one.
 
+**THE `st.fc` ROW IS hv's D1 OF 2026-08-29, AND IT SITS DELIBERATELY BESIDE `st done` RATHER THAN REPLACING IT.** Same from-state, same landing state, and **`reason recorded` where `st done` has the gate** -- because a fiat close is BY DEFINITION the case where the gate does not pass, so guarding this edge with the gate would make it unreachable at exactly the moment it is for. **The option hv declined was relaxing `st done` to accept either guard**, which would have left one verb with two meanings and made `st done` silently fiat-capable.
+
+**The status VALUE does not move, which is what keeps hv's 2026-08-28 ruling intact** -- `fiat` sits BESIDE the status, so `Completed` still means `Completed` and every consumer reading it keeps working. What distinguishes the two edges after the fact is the record on `Thread.fiat`, and **no type holds that record and the status in agreement**: every verb touching this machine's status must clear it, which `Facade::set_thread_status_fiat` does in one place so that a verb added later inherits it.
+
+**The Verb cell carries the OP TOKEN and not a CLI invocation**, for the reason Machine 3 records against `ac.fc`: the CLI spelling is one top-level `intent fc <target>`, whose second word is the target rather than a subcommand.
+
 ### Machine 2 -- Work package (`WpStatus`)
 
 States: `NotStarted` | `Wip` | `Done` | `Cancelled`. **Entry: `NotStarted`.**
@@ -623,6 +630,7 @@ States: `NotStarted` | `Wip` | `Done` | `Cancelled`. **Entry: `NotStarted`.**
 | `NotStarted` | `Wip`        | `wp start`     | --                 |
 | `NotStarted` | `Cancelled`  | `wp cancel`    | reason recorded    |
 | `Wip`        | `Done`       | `wp done`      | **`ac gate` PASS** |
+| `Wip`        | `Done`       | `wp.fc`        | reason recorded    |
 | `Wip`        | `NotStarted` | `wp unstart`   | --                 |
 | `Wip`        | `Cancelled`  | `wp cancel`    | reason recorded    |
 | `Done`       | `Wip`        | `wp reopen`    | reason recorded    |
@@ -644,6 +652,14 @@ States: `NotStarted` | `Wip` | `Done` | `Cancelled`. **Entry: `NotStarted`.**
 **`Hold` is still not proposed** -- a paused package is `Wip` that nobody is touching, and no consumer has hit the absence.
 
 **Open for hv, and it is the sharper question**: should `wp done` be **refused** while the gate is BLOCKED, or should a status that disagrees with its gate be **reported** as the defect it is? Today it is neither -- `wp done` consults the gate, but nothing re-checks afterwards, so a WP that was legitimately `Done` silently becomes a false green the moment its contract grows. **Recommendation: both.** Refuse on the way in, and have `doctor` report any unit whose status disagrees with its gate, because the contract can change under a status that was true when it was set.
+
+**THE `wp.fc` ROW IS hv's D1 OF 2026-08-29, AND IT SITS DELIBERATELY BESIDE `wp done` RATHER THAN REPLACING IT.** Same from-state, same landing state, and **`reason recorded` where `wp done` has the gate** -- because a fiat close is BY DEFINITION the case where the gate does not pass, so guarding this edge with the gate would make it unreachable at exactly the moment it is for. **The option hv declined was relaxing `wp done` to accept either guard**, which would have left one verb with two meanings and made `wp done` silently fiat-capable.
+
+**The status VALUE does not move, which is what keeps hv's 2026-08-28 ruling intact** -- `fiat` sits BESIDE the status, so `Done` still means `Done` and every consumer reading it keeps working. What distinguishes the two edges after the fact is the record on `WorkPackage.fiat`, and **no type holds that record and the status in agreement**: every verb touching this machine's status must clear it, which `Facade::set_wp_status_fiat` does in one place so that a verb added later inherits it.
+
+**The Verb cell carries the OP TOKEN and not a CLI invocation**, for the reason Machine 3 records against `ac.fc`: the CLI spelling is one top-level `intent fc <target>`, whose second word is the target rather than a subcommand.
+
+**AND THIS IS THE FIELD A CASCADE WRITES INTO.** A fiat close on a thread reaches its work packages, and a cascaded record carries `inherited_from` naming the ancestor -- so a package closed in its own right and one closed because its thread was are distinguishable by query rather than by reading the reason.
 
 ### Machine 3 -- Acceptance criterion
 

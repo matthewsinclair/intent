@@ -505,6 +505,17 @@
           "description": "Every OTHER authored section of the work package, verbatim.\n\nWork packages exceed the template freely, so `objective` takes the one\nguaranteed section and this takes the rest whole. That is lossless by\nconstruction, where a fixed set of named sections would silently drop\nanything unforeseen.",
           "type": "string"
         },
+        "fiat": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FiatRecord"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The fiat close, present exactly when this work package was closed on human\nauthority against the evidence rather than on a passing gate.\n\n**BESIDE the status and NOT a status variant** (hv, 2026-08-28). The status\nstays `done`, so Machine 2 is untouched and every consumer that reads it\nkeeps working; what changes is the EDGE that reached it. `wp.fc` is guarded\nby `ReasonRecorded` where `wp.done` is guarded by `GatePass` -- **a fiat\nclose is by definition the case where the gate does not pass**, so relaxing\nthe existing edge to accept either guard would have made `wp.done` silently\nfiat-capable.\n\n**NOTHING STRUCTURAL HOLDS THIS FIELD AND [`WorkPackage::status`] IN\nAGREEMENT**, so the invariant is every verb's to keep: `wp.fc` writes the\npair together, every other transition out of `done` clears it, and\n[`Facade::put`] refuses to write it.\n\n**This is also the field a cascade writes into.** A fiat close on a thread\nreaches its work packages, and a cascaded record carries\n[`FiatRecord::inherited_from`] naming the ancestor -- so a package closed\nin its own right and one closed because its thread was are distinguishable\nby query rather than by reading the reason."
+        },
         "objective": {
           "default": "",
           "description": "What this work package ships: the one section every work package has.",
@@ -622,6 +633,17 @@
       },
       "type": "array"
     },
+    "fiat": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FiatRecord"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The fiat close, present exactly when this thread was closed on human\nauthority against the evidence rather than on a passing gate.\n\n**BESIDE the status and NOT a status variant** (hv, 2026-08-28). The status\nstays `completed`, so Machine 1 is untouched and every consumer that\nreads it keeps working; what changes is the EDGE that reached it. `st.fc`\nis guarded by `ReasonRecorded` where `st.done` is guarded by `GatePass` --\n**a fiat close is by definition the case where the gate does not pass**, so\nrelaxing the existing edge to accept either guard would have made\n`st.done` silently fiat-capable.\n\n**NOTHING STRUCTURAL HOLDS THIS FIELD AND [`Thread::status`] IN AGREEMENT**,\nwhich is the same exposure [`AcceptanceTest::fiat`] carries and for a\ndifferent reason: there, a payload was impossible; here, hv ruled the status\nvalue must not move at all. So the invariant is every verb's to keep --\n`st.fc` writes the pair together, every other transition out of\n`completed` clears it, and [`Facade::put`] refuses to write it."
+    },
     "id": {
       "description": "Natural id, eg `ST0000`. Global identity is `(project_id, id)`.",
       "type": "string"
@@ -688,5 +710,5 @@
   "title": "Thread",
   "type": "object",
   "x-intent-ver": "3.0.0",
-  "x-schema-json-ver": 14
+  "x-schema-json-ver": 15
 }

@@ -415,6 +415,9 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
       slug: front.get("slug").filter(|s| !s.is_empty()).cloned(),
       status: status.unwrap_or(ThreadStatus::NotStarted),
       status_reason: None,
+      // A creation path: only `st.fc` writes this, so `None` is the fact and
+      // not a placeholder. v2 has no fiat close, so a migrated thread can carry none.
+      fiat: None,
       created: date(front.get("created")),
       completed: front
         .get("completed")
@@ -1247,6 +1250,9 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
       scope_legacy,
       status,
       status_reason: None,
+      // A creation path: only `wp.fc` writes this, so `None` is the fact and
+      // not a placeholder. v2 has no fiat close, so a migrated package can carry none.
+      fiat: None,
       objective: section(&sections, "Objective"),
       // D28: everything that is not the objective is the body, carried
       // verbatim, so a section the template never named survives -- **and in
