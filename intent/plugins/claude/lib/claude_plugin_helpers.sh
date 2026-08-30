@@ -17,7 +17,9 @@
 #   plugin_copy_to_target NAME      -- copy source to target location
 #   plugin_remove_target NAME       -- remove installed item
 #   plugin_checksum_target NAME     -- echo checksum of installed file
-#   plugin_get_available_names      -- echo space-separated available names
+#   plugin_get_available_names      -- echo WHITESPACE-separated available
+#                                      names. `skills` emits spaces, `subagents`
+#                                      emits newlines from jq; both are valid.
 #   plugin_manifest_extra NAME      -- echo extra jq fields (or empty)
 #
 # Optional callbacks (v2.9.0+, for multi-root discovery):
@@ -278,13 +280,28 @@ plugin_install() {
   if [ "$install_all" = true ]; then
     local available
     available=$(plugin_get_available_names)
-    # Word-splitting here is INTENDED -- the callback's contract (line 20) is
-    # space-separated names -- but `items_to_install=($available)` also ran
-    # PATHNAME EXPANSION, so a plugin name carrying a glob character expanded
-    # against the filesystem instead of naming itself. `read -ra` splits on IFS
-    # and never globs. `|| true` because `read` reports EOF-without-delimiter as
-    # non-zero, which is the normal case for a here-string.
-    read -ra items_to_install <<< "$available" || true
+    # Word-splitting here is INTENDED -- but `items_to_install=($available)`
+    # also ran PATHNAME EXPANSION, so a plugin name carrying a glob character
+    # expanded against the filesystem instead of naming itself. `read -ra`
+    # splits on IFS and never globs, which is the fix and it stands.
+    #
+    # **A BARE `read -ra` WITH A HERE-STRING READS ONE LINE, AND THAT SILENTLY
+    # DROPPED EIGHT OF NINE SUBAGENTS.** The contract said space-separated and
+    # `skills` honours it, but `subagents` returns `jq -r '.agents[].name'` --
+    # NEWLINE-separated, and always has. The old assignment split on the default
+    # IFS, which includes newline, so a callback VIOLATING the contract and one
+    # honouring it were indistinguishable to this loop. The stricter reader was
+    # right about globbing and inherited a latent violation the permissive one
+    # had been absorbing.
+    #
+    # So the loop takes WHITESPACE, newlines included, which is what both
+    # implementations actually emit and what line 20 now says. A form truncating
+    # at the first newline leaves the next callback author one `echo` away from
+    # the same silent loss.
+    items_to_install=()
+    while IFS=$' \t\n' read -ra _chunk; do
+      [ ${#_chunk[@]} -eq 0 ] || items_to_install+=("${_chunk[@]}")
+    done <<< "$available"
   fi
 
   local installed_count=0

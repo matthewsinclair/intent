@@ -39,16 +39,33 @@ README="${ROOT}/README.md"
   assert_output "off"
 }
 
-@test "PREMISE: README.md still carries the embedded fence this protects" {
-  # Without this the test below passes vacuously the day the fence is removed --
-  # a green that means "nothing to protect" reads identically to one meaning
-  # "protected". If this ever reds, the guard above may genuinely be unnecessary.
-  run grep -c '^```markdown$' "$README"
-  assert_success
-  [ "$output" -ge 1 ]
+# Every root markdown file carrying a LANGUAGE-TAGGED fence -- the population
+# `embeddedLanguageFormatting` acts on, discovered rather than named.
+fenced_root_md() {
+  local f
+  for f in "$ROOT"/*.md; do
+    [ -f "$f" ] || continue
+    grep -qE '^```[a-z]+$' "$f" && echo "$f"
+  done
 }
 
-@test "a fmt sweep leaves README.md byte-identical" {
+@test "PREMISE: some root markdown still carries the embedded fence this protects" {
+  # Without this the test below passes vacuously the day the fences are gone --
+  # a green meaning "nothing to protect" reads identically to one meaning
+  # "protected".
+  #
+  # **IT ASKS ABOUT THE POPULATION AND NOT ABOUT ONE FILE, BECAUSE NAMING THE
+  # FILE IS WHAT BROKE IT.** This arm read `README.md` and went red on
+  # 2026-08-29 when the front door stopped describing a retired tool and lost
+  # its ```markdown fence with it. Nothing was wrong: the guard's subject had
+  # MOVED, to `AGENTS.md` and `usage-rules.md`, and an instrument naming one
+  # member of a population reports the member leaving as the property failing.
+  # Discovered, so it re-aims itself the next time content moves.
+  run fenced_root_md
+  [ -n "$output" ]
+}
+
+@test "a fmt sweep leaves every fenced root markdown byte-identical" {
   # The behavioural check. Skipped rather than failed where prettier cannot be
   # reached, because a guard that reds on a missing toolchain is a guard someone
   # disables -- and the structural assertions above still run everywhere.
@@ -58,6 +75,54 @@ README="${ROOT}/README.md"
 
   # The gate's own flags, from lib/cmd/fmt. Run WITHOUT --write, so the check
   # cannot itself be the thing that damages the file.
-  run bash -c "cd '$ROOT' && npx --yes prettier --prose-wrap never README.md 2>/dev/null | diff -q - README.md"
-  assert_success
+  #
+  # **OVER THE WHOLE FENCED POPULATION**, for the reason the premise gives: a
+  # sweep proven safe on one file says nothing about the file the content moved
+  # to.
+  # **THE ASSERTION IS ABOUT WHAT IS INSIDE THE FENCES, NOT ABOUT THE WHOLE
+  # FILE, AND THE DISTINCTION IS THE ENTIRE POINT OF THIS GUARD.** Reflowing
+  # prose and realigning tables is the gate's DECLARED JOB -- this estate forbids
+  # hand-wrapped markdown -- so a file that has never been swept differing from
+  # its swept form is the gate working. `usage-rules.md` differs by 86 lines of
+  # table realignment right now and none of it is damage. A whole-file byte
+  # comparison cannot tell those two apart, and passed here only because the file
+  # it named happened to be swept already.
+  #
+  # **AND IT ESTABLISHES ITS OWN POSITIVE CONTROL BEFORE ASSERTING ANYTHING,
+  # because without one it passes whether the guard is on or off.** Measured
+  # 2026-08-30: with `embeddedLanguageFormatting` flipped to `auto` this arm
+  # STILL PASSED. The root fences are ```bash, which prettier has no formatter
+  # for, and one ```yaml block already in prettier's canonical form -- so there
+  # was nothing in the corpus the protection could be shown to protect. That is
+  # the premise arm's own failure one level down: it asks whether a fence EXISTS
+  # when the property needs a fence prettier would CHANGE.
+  #
+  # So the corpus is asked first, by running the same sweep with the guard
+  # explicitly OFF. If that moves nothing, the protection is real but currently
+  # unwitnessable here, and this SKIPS with that reason rather than reporting a
+  # green nobody earned.
+  fenced() { awk '/^```[a-z]+$/{inf=1;next} /^```$/{inf=0} inf' "$1"; }
+  sweep() { bash -c "cd '$ROOT' && npx --yes prettier --prose-wrap never --embedded-language-formatting=$1 '$2' 2>/dev/null"; }
+
+  local f name demonstrable="" mangled=""
+  while read -r f; do
+    name="$(basename "$f")"
+    sweep off "$name" > "$BATS_TEST_TMPDIR/on.md"
+    sweep auto "$name" > "$BATS_TEST_TMPDIR/off.md"
+    fenced "$f" > "$BATS_TEST_TMPDIR/orig.txt"
+    fenced "$BATS_TEST_TMPDIR/off.md" > "$BATS_TEST_TMPDIR/off.txt"
+    fenced "$BATS_TEST_TMPDIR/on.md" > "$BATS_TEST_TMPDIR/on.txt"
+
+    diff -q "$BATS_TEST_TMPDIR/orig.txt" "$BATS_TEST_TMPDIR/off.txt" >/dev/null ||
+      demonstrable="${demonstrable} ${name}"
+    diff -q "$BATS_TEST_TMPDIR/orig.txt" "$BATS_TEST_TMPDIR/on.txt" >/dev/null ||
+      mangled="${mangled} ${name}"
+  done < <(fenced_root_md)
+
+  if [ -n "$mangled" ]; then
+    echo "a fmt sweep would rewrite content INSIDE a fenced block in:${mangled}"
+    return 1
+  fi
+  [ -n "$demonstrable" ] ||
+    skip "no root fence currently holds content prettier would reformat (```bash has no formatter, the one ```yaml block is already canonical) -- the config is still correct and this arm cannot witness it today"
 }
