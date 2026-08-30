@@ -33,8 +33,9 @@
 //! says nothing*, and a realiser that treated it as a self-loop would silently
 //! absorb every input the table forgot.
 
-use crossterm::event::KeyEvent;
+use crossterm::event::{KeyCode, KeyEvent};
 
+use super::focus::Focus;
 use super::keys;
 use super::mode::{self, Mode};
 use super::nav::{Stack, View};
@@ -54,6 +55,9 @@ pub struct App {
   pub mode: Mode,
   /// The first body row on screen.
   pub scroll: usize,
+  /// Which row the cursor is on. `None` for a view with no rows -- an empty
+  /// form has no focus rather than a focus on nothing (`AC-17.5`).
+  pub focus: Option<Focus>,
 }
 
 impl App {
@@ -63,6 +67,7 @@ impl App {
       stack: Stack::explore(),
       mode: mode::REST,
       scroll: 0,
+      focus: None,
     }
   }
 
@@ -72,6 +77,7 @@ impl App {
       stack: Stack::at_item(kind, id),
       mode: mode::REST,
       scroll: 0,
+      focus: None,
     }
   }
 
@@ -105,8 +111,33 @@ impl App {
       }
     }
 
+    // **DIRECTION IS THE APP'S BUSINESS AND THE MACHINE'S IGNORANCE IS
+    // DELIBERATE.** `EDGES` says NORMAL + Move stays in NORMAL, and that is all
+    // it should say: up and down are the same MODE transition and different
+    // motions, so folding direction into the trigger vocabulary would put four
+    // near-identical self-loops in a table whose whole value is being readable
+    // as a graph. The app has the keystroke and reads it here.
+    if trigger == "Move" {
+      self.focus = match key.code {
+        KeyCode::Up | KeyCode::Left => self.focus.map(Focus::back),
+        KeyCode::Down | KeyCode::Right => self.focus.map(Focus::forward),
+        _ => self.focus,
+      };
+    }
+
     self.mode = next;
     Step::Continue
+  }
+
+  /// Point the cursor at a view of `n` rows.
+  ///
+  /// **A ROW COUNT CHANGE RESETS THE CURSOR RATHER THAN CLAMPING IT**, for the
+  /// reason the design gives for the scroll: *a row index means nothing once
+  /// the row set changes*. Clamping keeps a number that no longer refers to
+  /// anything the operator chose.
+  pub fn point_at(&mut self, n: usize) {
+    self.focus = Focus::first(n);
+    self.scroll = 0;
   }
 
   /// Descend into `view`. Cursor and scroll reset with the view, *because a row
@@ -320,6 +351,62 @@ mod tests {
     assert_eq!(
       app.scroll, 0,
       "popping kept a scroll position from the view below"
+    );
+  }
+
+  /// **THE CURSOR MOVES BOTH WAYS AND WRAPS**, which is `AC-17.5` reaching the
+  /// loop: the focus module proves the walk is total and reversible, and this
+  /// proves the ARROW KEYS drive it. A realiser can satisfy the first and fail
+  /// the second by wiring both arrows to `forward`.
+  #[test]
+  fn the_arrows_move_the_cursor_in_opposite_directions_and_wrap() {
+    let mut app = App::explore();
+    app.point_at(3);
+    assert_eq!(app.focus.map(Focus::index), Some(0));
+    app.on_key(key(KeyCode::Down));
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(1),
+      "Down did not advance the cursor"
+    );
+    app.on_key(key(KeyCode::Up));
+    assert_eq!(app.focus.map(Focus::index), Some(0), "Up did not undo Down");
+    app.on_key(key(KeyCode::Up));
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(2),
+      "the cursor did not wrap backwards"
+    );
+    app.on_key(key(KeyCode::Down));
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(0),
+      "the cursor did not wrap forwards"
+    );
+  }
+
+  /// A view with no rows has no cursor -- not a cursor on row zero of nothing.
+  #[test]
+  fn an_empty_view_has_no_cursor_and_moving_does_not_invent_one() {
+    let mut app = App::explore();
+    app.point_at(0);
+    assert_eq!(app.focus, None);
+    app.on_key(key(KeyCode::Down));
+    assert_eq!(app.focus, None, "moving in an empty view invented a cursor");
+  }
+
+  /// Arrows must not move the cursor from a mode that is collecting text --
+  /// there, they belong to the field editor.
+  #[test]
+  fn arrows_do_not_move_the_cursor_while_a_field_is_collecting_text() {
+    let mut app = App::explore();
+    app.point_at(3);
+    app.mode = Mode::Field;
+    let before = app.focus;
+    app.on_key(key(KeyCode::Down));
+    assert_eq!(
+      app.focus, before,
+      "an arrow moved the row cursor while editing a field"
     );
   }
 
