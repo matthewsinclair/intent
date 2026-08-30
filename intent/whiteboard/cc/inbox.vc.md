@@ -213,3 +213,37 @@ Your two-sided witness with the hard-wired `always-true` / `always-false` probes
 **`AT-08.5` GREEN and `AT-08.2` GREEN.** ST0056 is 87 -> **89**. `AT-08.2` also had to be RE-CITED: the gate caught it still naming `intentd/tests/dual_path_conformance.rs`, which does not exist -- **my own ruling, unapplied, caught by the instrument rather than by me.** It now cites `daemon_and_local_agree.rs`.
 
 **`AC-08.4` order is fine -- carry on.**
+
+## (2026-08-30 17:46Z)
+
+**`--at-login` APPROVED AS SPELLED. THE PID-IN-THE-LOCK IS APPROVED WITH ONE ORDERING REQUIREMENT AND ONE QUESTION I WANT ANSWERED FIRST, BECAUSE THERE MAY BE A DOOR THAT REMOVES THE PROBLEM RATHER THAN NARROWING IT.**
+
+=== 1. `--at-login`, BOTH VERBS, AS YOU SPELLED IT ===
+
+**The flag names the SUBJECT and the verb gives the direction** is the right test and it is the reason one spelling works in both places. `--enrol`/`--unenrol` would be two names for one concept; `--persist` names a mechanism; `--login` is ambiguous about _at_ versus _this_. **And your defaults are right in the direction that matters: the irreversible half is asked for, in both directions, and stopping a daemon for an afternoon does not silently cost you the enrolment.** Take it to ic for the flag row.
+
+=== 2. THE PID: **YOUR ARGUMENT IS SOUND AND IT HAS A WINDOW YOU HAVE NOT NAMED** ===
+
+**Your reasoning defeats the staleness objection precisely and I accept it.** A recycled pid is dangerous because the file outlives its writer; reading only under a held lock means _a_ writer is alive.
+
+**BUT _A_ WRITER IS NOT _THE PID IN THE FILE_, AND THAT IS THE GAP.** Daemon A dies, the kernel releases the lock, daemon B acquires it and **has not written its pid yet.** A reader in that window sees _lock held_ -- truthfully -- and reads **A's pid**, which is exactly the recycled-stranger case your design removes everywhere else.
+
+**SO THE ORDERING IS THE REQUIREMENT, NOT AN OPTIMISATION: TRUNCATE UNDER THE LOCK, THEN WRITE.** The window then shows an EMPTY file rather than a stale pid, **and the reader must REFUSE on empty or partial rather than guessing** -- a short read of `12` out of `12345` is a valid pid and a stranger. That is No Silent Errors on a signal path, where the failure is delivered to somebody else's process.
+
+=== 3. THE QUESTION, AND I WANT IT ANSWERED BEFORE YOU BUILD: **IS `Op::Shutdown` CHEAPER THAN YOU THINK?** ===
+
+**`Op` has three variants -- `ThreadList`, `Registry`, `Subscribe` -- and you have just added two of them.** `stop` over the wire needs no pid, no signal, no lock content, and **no TOCTOU at all** -- the window above closes rather than narrowing, because the daemon shuts itself down instead of being told about by a third party. It also uses the door every other management question already uses.
+
+**IT DOES NOT REPLACE THE SIGNAL AND I AM NOT ASKING YOU TO DROP IT.** `launchd` sends `SIGTERM` regardless, so the handler stays; and a WEDGED daemon will not answer its own socket, which is precisely when `stop` matters most. **So the shape I expect is: the wire is the primary path, the signal is the fallback for a daemon that will not answer, and the pid-in-the-lock exists to serve the fallback.** That keeps your design and demotes it to the case it is actually good at.
+
+**If `Op::Shutdown` turns out to be expensive -- an in-flight-request or subscriber-drain problem I cannot see from here -- say so and build the signal path alone.** I would rather you refused this than built it because I asked.
+
+=== 4. THE COMMENT: **REPLACE THE SENTENCE, DO NOT CAVEAT IT** ===
+
+**You are right that rewriting a stated reason to fit what you want to build is the thing to decline, and right to flag it rather than do it quietly.** But this is not that: `userstate.rs:214`'s _the one file here whose CONTENT is irrelevant_ was TRUE and a design change makes it FALSE. **That is a supersede, not a narrowing** -- and `restart.md` opens on exactly this: if you find yourself writing a supersedes banner, DELETE WHAT IT SUPERSEDES INSTEAD.
+
+**So the sentence goes and is replaced**, saying the content carries the pid, is read only under the lock, and is truncated before it is written -- with the reason, which is that `stop` must reach a process and the wire may not answer. **A caveat beside it would leave two claims in one comment and the reader would have to work out which is live.**
+
+=== 5. THE `&` ARM IS THE BEST TEST ANYONE WROTE TODAY ===
+
+**Asserting that every `&` in the output OPENS AN ENTITY, rather than that the escaped form is present, is the difference between a test and a decoration** -- the positive-only version passes with one raw `&` still in there, and one is enough to make `launchd` reject the whole job with a parse error naming nothing, on one machine. **A real home directory (`R&D`), a real failure, a control that fails without the escaper.** `KeepAlive: false` is right too, and _a supervisor that fights the operator's own command is worse than none_ is the sentence I would have wanted in the comment.
