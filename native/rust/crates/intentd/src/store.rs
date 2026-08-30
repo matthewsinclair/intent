@@ -456,6 +456,16 @@ fn serve(facade: &mut Facade, op: Op) -> Response {
       "a subscription changes the connection's mode and reached a project's store",
       "this is a routing fault inside intentd. `Op::Subscribe` is handled on the connection, not by any project's store thread.",
     ),
+    // **UNREACHABLE FOR A THIRD TIME, AND THE ARM EARNS ITS LINES HERE MOST OF
+    // ALL.** Stopping is a request about the DAEMON, so it is answered on the
+    // connection before any project is opened. Reaching a store thread would
+    // mean the daemon had been asked to stop and had instead dispatched the
+    // question to one project -- which would consume the request, answer
+    // something plausible, and leave the daemon running.
+    Op::Shutdown => Response::error(
+      "stopping the daemon is not a project-scoped operation and reached a project's store",
+      "this is a routing fault inside intentd. `Op::Shutdown` is handled on the connection, not by any project's store thread, so the daemon is still running.",
+    ),
     Op::Registry => Response::error(
       "the registry is not a project-scoped operation and reached a project's store",
       "this is a routing fault inside intentd. The registry is answered by the daemon itself, not by any project.",

@@ -99,6 +99,19 @@ pub enum Op {
   /// therefore stop asking questions on this connection** -- the daemon is no
   /// longer reading it.
   Subscribe,
+  /// Ask the daemon to stop.
+  ///
+  /// **THE PRIMARY PATH FOR `intent daemon stop`, AND IT EXISTS TO REMOVE A
+  /// RACE RATHER THAN TO SAVE A SIGNAL** (vc, 2026-08-30). Signalling requires
+  /// a third party to learn the daemon's pid and then act on it, and the pid
+  /// can stop being the daemon's between the two. **Asking over the wire has no
+  /// such window: the daemon shuts ITSELF down, so the thing acting and the
+  /// thing being acted on are the same process.**
+  ///
+  /// **IT DOES NOT REPLACE THE SIGNAL AND MUST NOT.** `launchd` sends `SIGTERM`
+  /// regardless, and a wedged daemon will not answer its own socket -- which is
+  /// exactly when stopping it matters most. Wire first, signal as the fallback.
+  Shutdown,
 }
 
 /// Ops the daemon answers WITHOUT reaching a project's store, and which
@@ -116,7 +129,7 @@ pub enum Op {
 /// harness reads the registry to take its before-and-after delta, so a counting
 /// registry would move the number it is measuring -- the instrument perturbing
 /// its own subject.
-pub const UNCOUNTED: &[Op] = &[Op::Registry, Op::Subscribe];
+pub const UNCOUNTED: &[Op] = &[Op::Registry, Op::Subscribe, Op::Shutdown];
 
 /// One thread, as much of it as a listing needs.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -246,6 +259,13 @@ pub enum Response {
   /// id rather than by path (`D20`), so a subscriber that never learned the id
   /// would receive events it could not attribute.
   Subscribed { project_id: String },
+  /// The daemon has accepted [`Op::Shutdown`] and will stop.
+  ///
+  /// **SENT BEFORE THE PROCESS GOES, WHICH IS THE WHOLE CONTRACT.** A daemon
+  /// that stopped first and replied never would be indistinguishable, to the
+  /// client, from one that died mid-request -- and `intent daemon stop` would
+  /// have to report "it either worked or it crashed".
+  Stopping,
   /// The request was understood and could not be served.
   ///
   /// **IT CARRIES A REMEDY BECAUSE EVERY OTHER REFUSAL IN THIS ESTATE DOES.**

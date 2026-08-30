@@ -239,18 +239,35 @@ async fn serve_under(root: &Path) -> Result<(), StartupError> {
     published.endpoint()
   );
 
+  // **ONE HANDLE, CLONED PER CONNECTION, AND IT IS THE ONLY WAY A REQUEST CAN
+  // STOP THIS PROCESS.** A connection cannot reach the accept loop directly --
+  // it runs in its own task -- so `Op::Shutdown` needs a channel back. `Notify`
+  // rather than a flag the loop polls: a flag would only be noticed on the next
+  // accept, so a daemon nobody else connects to would sit there having agreed
+  // to stop.
+  let stop = Arc::new(tokio::sync::Notify::new());
+
   loop {
     tokio::select! {
       accepted = unix.accept() => match accepted {
-        Ok((stream, _)) => { tokio::spawn(answer(stream, Arc::clone(&registry))); }
+        Ok((stream, _)) => { tokio::spawn(answer(stream, Arc::clone(&registry), Arc::clone(&stop))); }
         Err(e) => accept_failed("unix", e).await,
       },
       accepted = tcp.accept() => match accepted {
-        Ok((stream, _)) => { tokio::spawn(answer(stream, Arc::clone(&registry))); }
+        Ok((stream, _)) => { tokio::spawn(answer(stream, Arc::clone(&registry), Arc::clone(&stop))); }
         Err(e) => accept_failed("loopback", e).await,
       },
       reason = shutdown() => {
         println!("intentd stopping: {reason}");
+        break;
+      }
+      // **THE SAME EXIT AS A SIGNAL, DELIBERATELY.** It breaks the same loop
+      // and unwinds through the same guards, so `Op::Shutdown` inherits every
+      // property `SIGTERM` already has -- the socket is unlinked, the lock is
+      // released -- rather than becoming a second way to stop that has to be
+      // kept in step with the first.
+      () = stop.notified() => {
+        println!("intentd stopping: asked over the wire");
         break;
       }
     }
@@ -293,7 +310,7 @@ async fn accept_failed(transport: &str, e: io::Error) {
 /// client opens a fresh connection to probe and never reuses it, so answering
 /// and closing is what its caller expects; a request connection stays open so a
 /// client can ask more than one question without paying for a connect each time.
-async fn answer<S>(stream: S, registry: Arc<Registry>)
+async fn answer<S>(stream: S, registry: Arc<Registry>, stop: Arc<tokio::sync::Notify>)
 where
   S: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin,
 {
@@ -327,9 +344,12 @@ where
       return;
     }
 
-    let (response, feed) = match dispatch(&registry, &mut bound, &line).await {
-      Served::Reply(response) => (response, None),
-      Served::Feed { project_id, events } => (Response::Subscribed { project_id }, Some(events)),
+    let (response, feed, stopping) = match dispatch(&registry, &mut bound, &line).await {
+      Served::Reply(response) => (response, None, false),
+      Served::ReplyThenStop(response) => (response, None, true),
+      Served::Feed { project_id, events } => {
+        (Response::Subscribed { project_id }, Some(events), false)
+      }
     };
     // A response that cannot be serialised is a fault in the daemon, not in the
     // request, and there is no honest way to report it in a format the client
@@ -340,6 +360,15 @@ where
       return;
     };
     if writable.write_all(&framed).await.is_err() || writable.flush().await.is_err() {
+      return;
+    }
+
+    // **THE STOP FIRES HERE, AFTER THE FLUSH, AND NOWHERE EARLIER.** This line
+    // is the contract `Served::ReplyThenStop` exists to make unmissable: the
+    // client has its answer before the accept loop is told anything, so a
+    // successful stop cannot be mistaken for the daemon dying mid-request.
+    if stopping {
+      stop.notify_one();
       return;
     }
 
@@ -362,6 +391,17 @@ where
 /// rather than of the routing decision that produced it.
 enum Served {
   Reply(Response),
+  /// Answer, and THEN stop the daemon.
+  ///
+  /// **A SEPARATE VARIANT RATHER THAN A NOTIFY INSIDE `dispatch`, BECAUSE THE
+  /// ORDER IS THE CONTRACT.** Firing the stop where the request is understood
+  /// would race the reply: the accept loop can break and `main` return while
+  /// the task that owes the client an answer is still writing it. **The client
+  /// would then see a closed connection, which is what a daemon dying
+  /// mid-request looks like** -- so a successful stop and a crash would be
+  /// reported identically. Carrying the intent back to the writer makes the
+  /// sequence impossible to get wrong: reply, flush, then notify.
+  ReplyThenStop(Response),
   Feed {
     project_id: String,
     events: tokio::sync::broadcast::Receiver<Event>,
@@ -418,6 +458,14 @@ async fn dispatch(registry: &Registry, bound: &mut Option<PathBuf>, line: &[u8])
   // resolving, which is exactly when binding to it would fail.
   if matches!(request.op, Op::Registry) {
     return Served::Reply(registry.snapshot().await);
+  }
+
+  // **ANSWERED WITHOUT BINDING, FOR A SHARPER VERSION OF `Op::Registry`'s
+  // REASON.** Stopping the daemon is not a question for any project, and the
+  // operator most likely to ask it is the one whose project will not open --
+  // so binding first would refuse the very request that fixes their machine.
+  if matches!(request.op, Op::Shutdown) {
+    return Served::ReplyThenStop(Response::Stopping);
   }
 
   // **THE BINDING IS CHECKED BEFORE ANYTHING IS OPENED.** Canonicalising is a
