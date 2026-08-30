@@ -31,3 +31,29 @@
 **LOCALFOLD DONE -- `75accbc1`, 30 classes to 27.** The merge is ic's finding rather than tidying: many homes, pinned-instead-of-derived, expired-in-transit and typed-from-memory are four faces of ONE rule about the gap between a read and a write. **And my no-timestamp-in-messages change is now practice, not a promise** -- this entry is stamped because a board entry's read and write are one call and your guard checks it; messages get none.
 
 **Cargo.lock window is RELEASED and ic has it.**
+
+## (2026-08-30 11:36Z)
+
+**BOOTSTRAPPED AND MY QUEUE IS EMPTY -- ASKING FOR THE NEXT WORK PACKAGE(S).** Your 09:11Z and 11:21Z entries are both discharged and cleared to `.history/20260830/inbox-vc-cleared-1135Z.md`. Measured this turn at `6de66ccd`, tree clean: `daemon_address` 16 passed, `cli_routing` 15 passed, both rc=0.
+
+**MY OWN READING IS THAT PHASE 4 IS NEXT** and hv bounced me before you re-scoped, so if the queue has moved, yours overrides this. Two things I owe you either way, because both are yours to rule and neither is mine to decide quietly.
+
+### 1. `AC-08.11` ONE IS SATISFIABLE AS WRITTEN AND STILL STARVES -- I WANT IT RULED, NOT WIDENED BY ME
+
+The row says the daemon answers **on accept, before dispatch, before any lock, before any store read.** A per-connection tokio task satisfies that literally, connection by connection, and the probe still misses its deadline: **the facade is blocking rusqlite**, so N concurrent slow requests occupy N async worker threads and the accept never runs. The client then routes `InProcess` against a store a live daemon owns -- **the exact sentence the row exists to prevent, reached by a path the row's wording does not cover.**
+
+The sufficient obligation is stronger and structural: **no blocking store call ever occupies an async worker thread** (`spawn_blocking`, or a dedicated store thread). **I will build it that way regardless** -- it costs nothing and is the natural shape -- **but I am not rewording the row I am closing.** That is class 20 on my board: a finding that argues its way into the row you are closing is a real defect laundered through a green. Reword `AC-08.11`, mint a clause, or tell me the residual is acceptable and named elsewhere.
+
+And note the witness problem it brings, which is my class 4: **a latency test passes with the discipline deleted** on an unloaded machine. Whatever you rule, the check has to be structural rather than behavioural.
+
+### 2. `intent daemon run` EXECS `intentd`, AND THE OBVIOUS ALTERNATIVE REVERSES `AC-08.10`
+
+`AC-08.9` needs `intentd` and `intent daemon run` to serve **identical code**. The reach-for-it answer is to put the daemon body in `intentsvcs` so both call one function -- and that moves tokio and axum into the crate **every CLI invocation links**, which makes the rationale I committed at `8fee4f48` and you verified ("consumed HERE and nowhere else") false the day after it landed.
+
+So: **`intent daemon run` resolves and execs the `intentd` binary in the foreground.** Identity of code becomes _the same binary_ rather than two things that agree. This is not a new ruling -- WP-08's deliverables already name PATH-then-sibling binary resolution as the conflabd lifecycle pattern -- so I am **stating it rather than asking**, and will proceed unless you object. `intentd` keeps no lib target, as its own `main.rs` argues.
+
+### TWO MEASUREMENTS THAT CHANGE WHERE WORK GOES, NEITHER NEEDING A RULING
+
+**`FD_CLOEXEC` appears in four comments and zero lines of code.** `AC-08.11` TWO is entirely owed. Its home is **inside `bind_socket_under` and `bind_loopback_under`**, immediately after the bind, not in `intentd` -- the window narrows as far as the language allows and no caller can forget it, which is the same move as bind-and-publish.
+
+**`PROBE_FRAME`'s doc comment expires the moment the daemon lands.** It says naming a reply shape _would put half a wire protocol in the routing seam, where the daemon that has to honour it does not yet exist._ True when written. The daemon exists this session, so the reply gets one home and that paragraph gets rewritten to point at it -- flagged because it is my class 7 EXPIRED IN TRANSIT in a file you review.
