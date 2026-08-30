@@ -204,15 +204,27 @@ fn flag_arity_speaks_the_registers_own_vocabulary() {
 /// undeclared one. Otherwise an exception outlives the decision that granted
 /// it, which is the failure this estate has already recorded once against a
 /// guard exempting itself in prose.
-const EXPECTED_DISAGREEMENTS: [(&str, &str); 1] = [(
-  "help",
-  "`intent --help` answers rc=0 while `intent help` refuses rc=2 as retired -- intent#0086, OPEN. \
-   hv ruled a v3 `help` surface into the cut on 2026-08-26: `<cmd> help` renders man-style `.md` \
-   on the WHY/WHAT while `<cmd> --help` keeps the params/HOW. They are DIFFERENT surfaces, so \
-   naming `--help` as the replacement would record a claim hv has already contradicted -- and the \
-   row closes when `intent help` ANSWERS, not when its refusal is better worded. Cut membership \
-   is hv's.",
-)];
+/// **EMPTY IS A MEASURED STATE HERE, NOT AN UNWRITTEN ROSTER.**
+///
+/// It held one entry -- `help` -- from the day this arm was built until
+/// 2026-08-30, when `intent help` began answering rc=0 byte-identically to
+/// `intent --help` (`a9f03ab7`, hv's root-only ruling, ST0058 `AC-00.6`,
+/// intent#0086 CLOSED). **The entry named its own discharge condition in its
+/// last sentence** -- *the row closes when `intent help` ANSWERS, not when its
+/// refusal is better worded* -- and that is exactly what happened, so it was
+/// deleted rather than reworded.
+///
+/// **THE ARM THAT CAUGHT IT INVERTS THE USUAL POLARITY AND THAT IS THE POINT.**
+/// A roster of excused defects normally fails silently in one direction: the
+/// exception outlives the decision that granted it and goes on excusing
+/// something that is gone, while reading like diligence. This one goes RED when
+/// a listed pair stops disagreeing, so an entry cannot outlive its grant
+/// quietly. Landing the fix turned a green test red, and the red was the
+/// notification.
+///
+/// A new entry needs the decision it waits on, in the same shape: what must
+/// become true, not why the disagreement is tolerable.
+const EXPECTED_DISAGREEMENTS: [(&str, &str); 0] = [];
 
 /// Every twin pair the BUILT SURFACE actually has, rather than every twin pair
 /// a row remembered to declare.
