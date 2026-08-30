@@ -69,6 +69,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("backup", m)) => backup(m),
     Some(("info", _)) => info(),
     Some(("version", _)) => version(),
+    Some(("help", _)) => help_root(),
     Some(("plugin", m)) => plugin(m),
     Some(("lang", m)) => lang(m),
     Some(("modules", m)) => modules(m),
@@ -5236,6 +5237,34 @@ fn version() -> Result<(), Failure> {
     "{}",
     crate::spine::build(&dispatch::table()).render_version()
   );
+  Ok(())
+}
+
+/// `intent help` -- the root usage, and the SAME renderer `--help` reaches.
+///
+/// **THIS SHIPS NO HELP TEXT OF ITS OWN, WHICH IS THE WHOLE POINT OF THE ROW.**
+/// It rebuilds the clap `Command` from the compiled-in dispatch table and asks
+/// IT to render, exactly as `version()` above does for `--version`. Two
+/// spellings, one renderer, so the pair CANNOT drift apart later -- which is
+/// the property `AC-00.6` is about rather than a tidiness preference.
+///
+/// The estate already carries three homes for *what is Intent*: this command
+/// list, `intent llm`'s generated agent guide, and `intent info`'s
+/// install-and-project status. **A fourth authored page is what `bin/intent_help`
+/// was**, and its drift is the reason that family is retired -- 11 help files
+/// for 27 commands, a hand-maintained list behind a skip list, and `upgrade`
+/// still described as an STP migration at v2.19.0. Writing one here would have
+/// re-created the thing this row retires.
+///
+/// **ROOT ONLY, AND THE ABSENT ARGUMENT IS DELIBERATE** (hv, 2026-08-30).
+/// Per-command help already answers as `intent <cmd> --help`; hv's post-tag
+/// `<cmd> help` is a different surface carrying different content, so declaring
+/// a `command` argument here would ship a promise that ruling has to unmake.
+fn help_root() -> Result<(), Failure> {
+  // `print!` for the reason `version()` gives one screen up: `render_help()`
+  // already ends in a newline, and the byte-identity property against `--help`
+  // is the criterion, so tidying the output would break it.
+  print!("{}", crate::spine::build(&dispatch::table()).render_help());
   Ok(())
 }
 

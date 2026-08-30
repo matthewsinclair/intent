@@ -4,7 +4,7 @@
   "measured_at": "9ec1656",
   "measured_on": "2026-08-14",
   "measured_by": "ic",
-  "status": "All 27 v2 families authored + 14 new-surface entries, plus 1 NEW-SURFACE FAMILY (`daemon`, 4 verbs). **`families` now holds one member that is not a v2 family, and the count is stated in two parts rather than merged**: the section is the SPINE's unit -- `spine::build` iterates it and a family's leaves are its child rows -- and it was only ever coincidentally also the v2 inventory. `daemon` needed to be there because a `new_surface` row carries subcommands as a bare `values` list, which has no per-verb help, no per-verb flags, and one `recoverability` for four verbs whose answers differ (vc's ruling 2026-08-30). Keeping the v2 figure separate is deliberate: it is a claim about the PORT and must not silently absorb new surface. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
+  "status": "All 27 v2 families authored + 15 new-surface entries, plus 1 NEW-SURFACE FAMILY (`daemon`, 4 verbs). **`families` now holds one member that is not a v2 family, and the count is stated in two parts rather than merged**: the section is the SPINE's unit -- `spine::build` iterates it and a family's leaves are its child rows -- and it was only ever coincidentally also the v2 inventory. `daemon` needed to be there because a `new_surface` row carries subcommands as a bare `values` list, which has no per-verb help, no per-verb flags, and one `recoverability` for four verbs whose answers differ (vc's ruling 2026-08-30). Keeping the v2 figure separate is deliberate: it is a claim about the PORT and must not silently absorb new surface. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
   "target_states": [
     {
       "state": "as-observed",
@@ -8339,6 +8339,26 @@
         "note": "The browser twin of this reach is `edit --browser` / `browse`, which is also `exposed_on_mcp: false`. Both are HUMAN faces onto the same model; the agent's door onto that model is the daemon's JSON face (AC-08.9), not either realiser."
       },
       "recoverability_anomaly": "**WITHHELD FROM MCP WHILE BEING REVERSIBLE, AND THE GROUND IS THAT IT IS NOT CALLABLE RATHER THAN THAT IT IS DANGEROUS.** The withhold list is derived from `recoverability` because MCP should not expose a mutation the surface cannot undo -- and this one it can: every edit `explore` makes goes through `intentsvcs` like any other client and is reversible by the same doors. **It is withheld because an interactive TUI blocks on keystrokes and needs a terminal, so an agent calling it receives a request that never returns.** That is a fact about the CHANNEL, not about the risk. **IT IS THE THIRD ROW ON THIS EXACT GROUND AND THE PRECEDENT IS WHY IT IS RECORDED RATHER THAN ARGUED**: `edit` and `browse` are both reversible, both withheld, and both on the ground that what they reach is a HUMAN face on THIS machine -- a path or a URL that exists here and nowhere else. `explore` is the third face in that set and the agent's door onto the same model is the daemon's JSON face (AC-08.9), not any of the three. **Recorded rather than resolved by relabelling: calling it `one-way` would make a derived number come out and would be false**, which is the move the `daemon` head row was making while one row stood for four verbs. Same day, ic ruled `organize` EXPOSED under AC-05.1 on the converse reasoning -- blast radius is not the rule, undoability is -- so bending undoability here to cover a channel problem would have contradicted a ruling made hours earlier."
+    },
+    {
+      "path": "help",
+      "help": "Show usage for Intent",
+      "args": [],
+      "v2": "new-surface",
+      "basis": "hv, 2026-08-30, ruling `help` INTO the 3.0.0 cut at the ROOT ONLY. The `help` FAMILY's `target.spelling_note` already scheduled exactly this -- _the v2 face stays retired and the TOKEN is reclaimed by a new program, declared in `new_surface`_ -- so this row lands a ruling the table had been carrying as pending since 2026-08-26. hv's fuller `<cmd> help` shape (man-style `.md` on the WHY/WHAT while `<cmd> --help` keeps the params/HOW) is RECORDED AND POST-TAG; it is not what this row ships.",
+      "owner_wp": "WP-05",
+      "acceptance": "ST0058 AC-00.6 (driven by vc 2026-08-30). The row's falsifier is _any capability reachable by a flag and refused by its subcommand twin, or the reverse_, and `intent --help` rc=0 against `intent help` rc=2 was its last live instance -- issue 0086.",
+      "name_reclaimed": "**THE NAME IS RECLAIMED, THE v2 FACE STAYS RETIRED, AND THIS FOLLOWS `organize` EXACTLY.** The `help` FAMILY in this table is `bin/intent_help`, whose retire is untouched and whose reasons are unchanged: `lib/help/` held 11 help files for 27 commands, its grammar was used once each, and it hand-maintained a command list behind a skip list rather than enumerating the surface. **None of that is ported.** The token is taken by a different program: a spelling of the help clap already renders from the compiled-in dispatch table. **AND `spine.rs` FORBADE THE TOKEN RATHER THAN THE FACE** -- `.disable_help_subcommand(true)` -- which is the same three-assertions shape `organize` hit.",
+      "target": {
+        "state": "new-surface"
+      },
+      "disposition": "new-surface",
+      "exposed_on_mcp": false,
+      "read_or_mutate": "read",
+      "flags": [],
+      "one_home": "**THIS SHIPS NO HELP TEXT OF ITS OWN, AND THAT IS THE POINT.** The arm rebuilds the clap `Command` from the same compiled-in table `--help` uses and asks IT to render, so the twin AC-00.6 is about cannot drift apart later -- there is one renderer with two spellings. The estate already carries three homes for _what is Intent_ (`--help`'s command list, `intent llm`'s generated agent guide, `intent info`'s install-and-project status); **a fourth authored page would have been the Highlander violation this row exists to avoid**, and writing one is what `bin/intent_help` did.",
+      "root_only": "**ROOT ONLY, AND THE ARG IS DELIBERATELY ABSENT** (hv, 2026-08-30). The v2 `help` entry declared `command` at arity `0..1`; this row declares no args, because the live twin-pair AC-00.6 fires on is the ROOT one and per-command help already answers as `intent <cmd> --help`. Declaring the arg here would ship a third spelling of per-command help while hv's post-tag `<cmd> help` is a DIFFERENT surface with different content, and the table would then carry a promise the post-tag ruling has to unmake.",
+      "recoverability_absent": "**DECLARED ABSENT, NOT OMITTED.** `help` is a `read`, and `dispatch.rs`'s vocabulary check refuses a recoverability on one -- _the question is vacuous for a command that changes nothing_. Recorded here so the absence reads as the rule rather than as an oversight, which is the table's own standing objection to absence-as-meaning."
     }
   ],
   "provenance": {
@@ -8475,7 +8495,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 40,
+      "n": 41,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -8556,7 +8576,10 @@
         "recoverability_anomaly",
         "side_effect_ruled",
         "truth_model_correction",
-        "v2"
+        "v2",
+        "one_home",
+        "recoverability_absent",
+        "root_only"
       ]
     },
     "flag": {
@@ -8790,7 +8813,8 @@
       "fc",
       "surface",
       "browse",
-      "explore"
+      "explore",
+      "help"
     ],
     "shipped": [
       "st",
@@ -8918,7 +8942,8 @@
       "fc",
       "surface",
       "browse",
-      "explore"
+      "explore",
+      "help"
     ],
     "retired": [
       "st repair",
@@ -9054,7 +9079,8 @@
       "fc",
       "surface",
       "browse",
-      "explore"
+      "explore",
+      "help"
     ],
     "self_loop": [
       "ac descope",
