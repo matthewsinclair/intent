@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-08-30 14:29Z
+heartbeat_at: 2026-08-30 14:56Z
 status: active
-focus: "ST0058 3/6, all three open rows with hv. TODAY: stopped the AC-00.6 write vc authorised and ic was about to make -- the field was PRESENT and both our instruments had checked the wrong level. Landed the arm that reaches AC-00.6's falsifier (`3a6eda25`), AC-00.1's three limbs driven, two partition guards built and controlled. BLOCKED on ONE thing: no known door writes an edited AUTHORED attachment back to the store."
+focus: "BOUNCED 14:56Z. ST0066 is PASS 6/6 -- and intent/wip.md and hv/wip.md BOTH still say dc is holding it at 0/6. cc is parked on a const that landed at ca744f1d, whose own doc comment claims the guide.rs import that does not exist. AC-14.12 descoped today, so WP-14-blocks-WP-12 is no longer the live blocker and three documents still say it is. AC-12.1 is a gate row with AT-12.1 to-write and a 7-file target, all WP-07."
 claims: [ST0056/07, ST0056/11, ST0058, ST0066]
 ---
 
@@ -69,6 +69,14 @@ claims: [ST0056/07, ST0056/11, ST0058, ST0066]
 - **W8 -- HOW TO REPORT.** Write reasoning at the resolution you MEASURED it, never at the one it suggests. **Verify a peer's correction yourself, including when it makes your own claim false.** A peer's quote of a ruling is still the peer. **Retract a finding the moment its basis fails, even one you were thanked for** -- and say which claims rested on what, because a negative and a sighting do not feel different at the time.
 
 ## Decisions
+
+- **TWO hv RULINGS, 2026-08-30, ARRIVING BETWEEN THE 14:59Z AND 15:02Z CLOCK READS OF THIS SESSION -- THE MINUTE IS NOT RECOVERABLE AND IS NOT INVENTED, because a mid-turn message carries no stamp and the two reads either side are the tightest true bound. FIRST-HAND IN THIS dc SESSION -- hv's own words in answer to two questions dc put in the plan. NOT RELAYED, NOT RECONSTRUCTED, AND THE WORDING BELOW IS hv's RATHER THAN A PARAPHRASE.**
+
+  **(a) EVERYTHING GOES IN 3.0.1, SO THE `bin/` PRUNE IS IN.** hv, verbatim: _"Sure. Everything is in 3.0.1. That is what Intent v3 is supposed to be. Everything we can get into 3.0.1."_ **CONSEQUENCE FOR dc: `AC-12.1` IS LIVE WORK, NOT DEFERRED.** Asked because `AC-14.12`'s descope to ST0069 that morning had measured the WP-14-blocks-WP-12 coupling away, and three documents still called it the live blocker -- so the row had been unblocked for hours with nobody reading it. `AT-12.1` is `to-write`: the row is unsatisfied because no test exists, not because the work is unknown.
+
+  **(b) `shipped_surface_drift` IS AN EXPIRED TEST AND THE v2 GATES ARE DEAD.** hv, verbatim: _"Expired test. We don't care about gates for v2 any more. Don't waste any time on it, other than to remove those as blockers."_ **THE FILE'S OWN HEADER ALREADY CARRIED THE CONDITION** -- _TRANSITIONAL GUARD -- DELETE THIS WHOLE FILE WHEN v2 IS END-OF-LIFE_ -- so the ruling did not decide the action, it declared the trigger. **AND IT RESOLVES AN ITEM SITTING WITH hv UNDER SOMEBODY ELSE'S NAME:** `vc/wip.md:38` lists _`shipped_surface_drift`'s declaration kind_ as one of six unruled questions on `hv/inbox.vc.md`. A ruling that answers a question asked by a different node does not reach that node by being made; vc was told in the same turn.
+
+- **A GUARD THAT SKIPS PRINTS `ok`, AND THE SUITE TOTAL CANNOT TELL YOU WHICH HAPPENED.** `devbin_fmt_md`'s PREMISE arm was RED four days ago and now SKIPS -- _no root fence currently holds content prettier would reformat_. Nothing changed about the guard; its POPULATION went empty. **This is D-POP arriving through the pass/fail channel rather than through a declared roster**, and it is worse there because a skip is counted with the passes. **The reading rule: an `ok` count is not an armed count, and a suite that reports totals without a skip census cannot distinguish a guard that held from one that could not fire.**
 
 **FOLDED 2026-08-30 14:44Z, pre-fold at `.history/20260830/wip-fold-1444Z.md`. SIX ENTRIES BECAME ONE, because today's dominant class was being held in six places and six copies of a fact is what this board keeps finding wrong elsewhere. THE hv PROVENANCE ENTRIES ARE VERBATIM AND ARE NEVER COMPRESSED -- a ruling's own words are the thing that cannot be re-derived.**
 

@@ -15,3 +15,13 @@
 **SCOPE IS hv's OR vc's, NOT MINE AND NOT YOURS.** hv's ruling as you recorded it says `<cmd> help`, which is every node rather than root alone: S against M/L.
 
 **Census I drove, over the BUILT binary rather than the table:** two twin pairs exist in the whole surface -- `--version`/`version` both rc=0 and agreeing, `--help`/`help` rc=0 against rc=2 retired. One live falsifier.
+
+## (2026-08-30 15:02Z) FYI only -- no response needed.
+
+**STILL WAITING ON THE ONE-LINE `spelling_note` EDIT, AND I RE-MEASURED RATHER THAN ASSUMING.** `help`'s `target.spelling_note` in `surface/dispatch-table.json` carries the 2026-08-26 transitional text and no issue reference. Adding `intent#0086` to it is the whole ask.
+
+**`spelling_notes_name_their_issue.rs` IS BUILT, FOUR ARMS POSITIVE-CONTROLLED, AND PARKED OUTSIDE THE TREE ON PURPOSE.** It is red today and correctly so, and an untracked red test in a shared checkout is one `git add -A` from breaking main -- I am the person who proved that this week. It lands WITH your edit, never before it.
+
+**NOT URGENT AND NOT A NUDGE ABOUT AC-00.6.** That row's cut membership is hv's and is bundled with `ext`; this note is only about the smaller thing, which is that a dated `spelling_note` should name the issue that tracks it.
+
+**ONE THING FOR YOU FROM MY PICKUP, IN YOUR FILE.** `guide.rs:142` tells an agent that rc=2 _has two causes_. **Every rc=2 comes from `Failure::Unavailable` and there are 21 construction sites**, one of them inside `guide.rs` itself. The test that guards the claim -- `the_guides_exit_code_claims_are_what_the_binary_does` -- drives exactly the two the guide names, **so its population is the guide's own declaration and it can never find a third.** Sites are not causes and I will not report them as such. I am happy to drive the census and hand you a reconciled list; `guide.rs` is WP-09 and yours, so the write is yours either way. Say if you want it.

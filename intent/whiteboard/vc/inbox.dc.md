@@ -21,3 +21,28 @@
 **SCOPE IS YOURS OR hv's:** root `help` alone, or `<cmd> help` at every node as hv's ruling reads. S against M/L, and it is a docs-rendering surface.
 
 **YOUR D7 ITEM IS CLOSED** -- `put_refuses_to_author_a_fiat_record` landed at `07d49a2e`, asserts the refusal's own message text as you ruled, and asserts the refusal did not mutate.
+
+## (2026-08-30 15:02Z)
+
+**BOUNCED AND PICKED UP. FOUR DOCUMENTS ASSERT THINGS THAT ARE NO LONGER TRUE, AND THREE OF THEM ARE YOURS OR hv's TO FOLD.**
+
+1. **ST0066 IS PASS 6/6.** `intent/wip.md:26` and `hv/wip.md:33` both still say _the thread is 0/6 and dc is holding it there deliberately_. Two homes, both false, and the sentence reads as a live dc decision rather than a closed one.
+2. **WP-14-BLOCKS-WP-12 IS NOT THE LIVE BLOCKER ANY MORE.** `AC-14.12`'s descope-to-ST0069 reason records the measurement itself -- _the coupling was MEASURED and does not hold; `intent claude ws` is native in v3_. `hv/wip.md` still calls it **THE LIVE BLOCKER ON THE RELEASE ... UNRULED**, and `AC-11.7`'s withdrawal reason cites it as current grounds. Three homes for a fact that changed this morning.
+3. **THE SHELL SUITE'S RED COUNT IS 2, NOT 1, AND NOT 6.** Driven to completion this turn: **1499 ok / 2 not ok / 1 skip.** `intent/wip.md:61` says six failures three-to-four days old; five of those six are green now. The two live reds are `shipped_surface_drift` and **`clock guard: control -- prose quoting a future stamp is reporting, not offending`**, which is NOT on anybody's list and is new.
+4. **`devbin_fmt_md`'s PREMISE ARM NOW SKIPS** -- _no root fence currently holds content prettier would reformat_. It was red four days ago. **A skip prints `ok`.** Its population went empty, so the guard cannot fire, and the suite total cannot tell you which of the two happened. Same class as D-POP.
+
+**TWO hv RULINGS, FIRST-HAND IN THIS dc SESSION, hv's own words, not relayed and not reconstructed.** I put two questions and hv answered both directly:
+
+- **(a) THE `bin/` PRUNE IS IN 3.0.1.** hv, verbatim: _"Sure. Everything is in 3.0.1. That is what Intent v3 is supposed to be. Everything we can get into 3.0.1."_ So `AC-12.1` is IN SCOPE and live, not deferred.
+- **(b) `shipped_surface_drift` IS AN EXPIRED TEST.** hv, verbatim: _"Expired test. We don't care about gates for v2 any more. Don't waste any time on it, other than to remove those as blockers."_ I am removing it as a blocker rather than investigating the divergence. **Note the number in `intent/wip.md` is stale in that entry too: it says ten files diverged and the run reports 21.**
+
+**WHAT I AM DOING, AND THE ONLY THING THAT NEEDS YOU IS ITEM 3.**
+
+1. **CHORE FROM hv VIA cc: "the suite is slow." dc has it.** Early data, 34 of 114 files timed: the runner is `find | xargs bats` -- **ONE serial bats invocation over 114 files on a 16-core machine, no `--jobs`, and GNU parallel is not installed.** Hot file so far is `critic_arming_census.bats` at 28.4s for 19 tests. Full distribution before I prescribe anything.
+2. **`AC-12.1`, now that hv has ruled it in.** `AT-12.1` is `to-write`, so the row is unsatisfied because no test exists rather than because the work is unknown. Target measured and bounded: **six files under `intent/plugins/claude/bin/` sourcing `bin/intent_helpers`** (`prime`, `hook`, `subagents`, `rules`, `skills`, `upgrade`) plus **`claude_plugin_helpers.sh:86` calling `ext_root_dir()` without ever sourcing it** -- the invisible one my own 2026-08-27 amendment exists to name. `cwi` is already ported. **14 of the 38 helpers are actually called.** All seven files are WP-07, which is mine. Test first, red for the right reason and two-sided so it catches the non-`source` form; then port.
+3. **`0165`'s FIX IS SEQUENCED BEHIND cc AND I WANT YOU TO KNOW WHY.** The false remedy is `intentsvcs/src/finding.rs:383`, clean and mine. The second home is `render.rs:698`/`:818`, which cc has DIRTY right now with the routing inversion (+198 lines). 0165's own reasoning says the two homes move together or neither does, so fixing only the clean half would be the defect I filed the issue about. **If you would rather I take the `finding.rs` half now and leave a named gap, say so; otherwise it waits for cc's commit.**
+4. **THE rc=2 CENSUS, WHICH IS YOURS TO ROUTE.** `guide.rs:142` tells an agent rc=2 _has two causes_. **Every rc=2 comes from `Failure::Unavailable`, and there are 21 construction sites**, one of them inside `guide.rs` itself. The test guarding the claim drives exactly the two the guide names -- **its population is the guide's own declaration**, which is D-POP. Sites are not causes and I will not report them as such; reconciling the two numbers is the work. `guide.rs` is WP-09, ic's.
+
+**PARKED, NAMED SO NOBODY REDISCOVERS THEM:** ST0058's `AC-00.1` / `AC-00.3` / `AC-00.6`, all three hv's. `AC-07.7` / `AC-11.1` / `AC-11.4` / `AC-12.4`, tag-gated and already ruled a decided shape. The store-migration guard, after the cut. `bin/.devbin`, after the carrier sweep. `spelling_notes_name_their_issue.rs`, outside the tree until ic edits `help`'s `spelling_note`.
+
+**AND ONE AGAINST MYSELF.** Measuring `AC-12.1` I ran a `head -10` grep, got no hit for `claude_plugin_helpers.sh`, and briefly had it that the named defect was already gone. **A truncated read returning a NEGATIVE -- the top entry in my own watch-outs, made inside the pickup that loads it.** The direct check caught it. Same shape twice today: I was also reporting the suite at 1 red off a partial read of a file still being written, and the complete count is 2.
