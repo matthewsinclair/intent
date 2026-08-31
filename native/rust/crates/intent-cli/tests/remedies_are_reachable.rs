@@ -111,18 +111,27 @@ const FORBIDDEN: &[(&str, &str)] = &[
 /// run is the guard that must be bypassed, and a guard that must be bypassed is
 /// one nobody keeps.
 ///
-/// **WHY THESE TWO ARE HERE RATHER THAN FIXED: it is a ruling, not a wiring
-/// job.** hv ruled on 2026-08-31 that `config`, `ext`, `fileindex` and `learn`
-/// SHIP declared-and-unbuilt in 3.0.1, with `--help` NARROWED so the tool stops
-/// advertising what the verb does not honour. **This finding is that ruling
-/// arriving from the other side**: not merely that `--help` overclaims, but
-/// that a REMEDY ROUTES THE OPERATOR INTO THE OVERCLAIM. What the remedy should
-/// say instead interacts with the narrowing -- narrow the help and the
-/// "for the verbs that are" branch points at an empty list, which is ic's
-/// original zero-verbs defect returning by another road. **That is a
-/// specification question for vc and hv and is deliberately not answered by a
-/// test.**
-const INHERITED_UNREACHABLE: &[&str] = &["config --help", "ext --help"];
+/// **IT WAS TWO AND IT IS NOW EMPTY, CLOSED BY THE PREDICATE RATHER THAN BY THE
+/// RULING** (AT-06.11, 2026-08-31). Both entries were `config --help` and
+/// `ext --help`: `unwired()` decided its remedy by asking the dispatch TABLE
+/// whether the family declared any shipped verb, while the sentence it prints
+/// promises the verbs this build IMPLEMENTS. hv ruled the same day that
+/// `config` and `ext` SHIP declared-and-unbuilt in 3.0.1, so the families stay
+/// exactly as they are -- what changed is that their remedy stopped routing the
+/// operator into a help block where nothing works.
+///
+/// **THE SPECIFICATION QUESTION THIS LIST RECORDED AS OPEN DISSOLVED RATHER
+/// THAN BEING ANSWERED.** It read: narrow the help and "for the verbs that are"
+/// points at an empty list, which is ic's original zero-verbs defect by another
+/// road. That is true, and it presumed a sentence had to be written. The
+/// else-branch already said the right thing, so a correct predicate routes
+/// these two into an EXISTING branch and nothing new was specified.
+///
+/// **EMPTY AND KEPT, NOT DELETED.** The comparison below is EQUALITY, so an
+/// empty roster is a live ratchet: the next remedy that cannot be acted on reds
+/// this arm on the day it is written. Deleting the list would retire the check
+/// at the moment it first had nothing to excuse.
+const INHERITED_UNREACHABLE: &[&str] = &[];
 
 fn binary() -> &'static str {
   env!("CARGO_BIN_EXE_intent")
@@ -136,28 +145,68 @@ fn binary() -> &'static str {
 /// by exit code from a wired verb refusing input. The loop is bounded at three
 /// sentinels; a verb needing more than that is reported inconclusive rather than
 /// guessed at, because a guess here is invisible inside a green.
-fn wiredness(root: &std::path::Path, path: &str) -> Wired {
+fn wiredness(fx: &Fixture, path: &str) -> Wired {
+  match drive(fx, path) {
+    None => Wired::Inconclusive,
+    Some(text) if unwired_refusal(&text).is_some() => Wired::No,
+    Some(_) => Wired::Yes,
+  }
+}
+
+/// Drive one declared path until clap stops asking for arguments, and hand back
+/// what the binary said.
+///
+/// **IT GOES THROUGH `Fixture::run`, WHICH IS THE WHOLE REASON IT EXISTS.** The
+/// sentinel loop used to spawn `Command::new(binary())` directly with only
+/// `current_dir` set, so roughly a hundred and ten drives per run reached the
+/// REAL `$HOME` while `Fixture` fixtured the other two spawn sites beside them.
+/// `table_driven_tests_fixture_their_home.rs` was green throughout and correctly
+/// so: its `fixtures_home` predicate is FILE-scoped (`src.contains(".env(\"HOME\"")`),
+/// and this file does contain that call -- in `Fixture`, not here. **The guard's
+/// name covers this; its predicate cannot see inside a file.** Reported to dc,
+/// whose file that is. Folding every spawn into one home is what makes the fix
+/// hold rather than the fix being applied twice and drifting once.
+fn drive(fx: &Fixture, path: &str) -> Option<String> {
   let mut argv: Vec<String> = path.split_whitespace().map(str::to_string).collect();
   for _ in 0..4 {
-    let out = Command::new(binary())
-      .args(&argv)
-      .current_dir(root)
-      .output()
-      .expect("the binary under test runs");
-    let text = format!(
-      "{}{}",
-      String::from_utf8_lossy(&out.stdout),
-      String::from_utf8_lossy(&out.stderr)
-    );
-    if text.contains(UNWIRED) {
-      return Wired::No;
-    }
-    if !text.contains("required arguments were not provided") {
-      return Wired::Yes;
+    let text = fx.run(&argv);
+    if unwired_refusal(&text).is_some() || !text.contains("required arguments were not provided") {
+      return Some(text);
     }
     argv.push(SENTINEL.to_string());
   }
-  Wired::Inconclusive
+  None
+}
+
+/// The unwired refusal AS EMITTED, with its remedy -- which is not the same
+/// thing as the phrase appearing somewhere in the output.
+///
+/// **`intent llm guide` IS THE REASON THIS IS NOT A `contains`.** It is wired,
+/// and it renders the agent guide, which DOCUMENTS the unwired phrase verbatim
+/// and carries `remedy:` lines of its own. A whole-output `contains` therefore
+/// reported a built verb as unwired and then paired the marker with a remedy
+/// from an unrelated paragraph -- `"satisfy or formally descope the remaining
+/// criteria"`, measured 2026-08-31. **The estate has met this precision before**
+/// (`the_binary_under_test_is_the_one_cargo_built.rs`): a mention is not an
+/// instance, and a check that reds the documentation of the hazard it guards
+/// against is one nobody keeps.
+///
+/// The refusal is two lines in a fixed order, so they are read as a PAIR. Taking
+/// the first `remedy:` anywhere in the output is what let the two come from
+/// different messages.
+fn unwired_refusal(text: &str) -> Option<String> {
+  let lines: Vec<&str> = text.lines().collect();
+  let at = lines
+    .iter()
+    .position(|l| l.trim_start().starts_with("error: ") && l.contains(UNWIRED))?;
+  Some(
+    lines
+      .get(at + 1)
+      .and_then(|l| l.trim_start().strip_prefix("remedy: "))
+      .unwrap_or("")
+      .trim()
+      .to_string(),
+  )
 }
 
 #[derive(PartialEq, Debug)]
@@ -298,12 +347,12 @@ fn every_emitted_remedy_names_something_this_build_can_do() {
         let any_wired = verbs
           .iter()
           .filter(|p| !forbidden.contains(p.as_str()))
-          .any(|p| wiredness(fx.dir.path(), p) == Wired::Yes);
+          .any(|p| wiredness(&fx, p) == Wired::Yes);
         if !verbs.is_empty() && !any_wired {
           unreachable.insert(r.clone());
         }
       } else if declared.contains(&r) && !forbidden.contains(r.as_str()) {
-        if wiredness(fx.dir.path(), &r) == Wired::No {
+        if wiredness(&fx, &r) == Wired::No {
           unreachable.insert(r.clone());
         }
       }
@@ -384,17 +433,105 @@ fn the_harvest_reaches_a_remedy_the_estate_asserts_elsewhere() {
 /// matches nothing and reds -- but one that answered `No` unconditionally, or
 /// that could not tell them apart, would produce noise that happens to be
 /// filtered. So both verdicts are pinned against known members of each class.
+/// The two remedies, RE-TYPED, for the same reason `UNWIRED` above is.
+const ROOT_FORM: &str = "nothing in this build provides it";
+const FAMILY_FORM: &str = "for the verbs that are";
+
+/// **THE CALL SITE IS A DECLARATION, AND THIS IS WHAT KEEPS IT HONEST.**
+///
+/// vc's ruling, 2026-08-31: wiredness is DERIVED, or declared by a test that
+/// DRIVES every declared-unwired path and asserts the marker -- never a
+/// hand-maintained flag. `unwired()` no longer computes whether a family has
+/// wired verbs, because the binary cannot enumerate its own match arms; which
+/// remedy applies is decided by WHERE the call is, and `render.rs` argues that
+/// position is structural.
+///
+/// **That argument is sound today and no reading of `render.rs` can confirm it
+/// stayed sound.** A family that keeps its handler while its last wired verb is
+/// removed takes the family branch and points at nothing -- exactly what
+/// `config` and `ext` did, with nothing in the source looking wrong. It is the
+/// shape a static compare cannot see, so it is driven instead.
+///
+/// **BOTH VERDICTS ARE REQUIRED TO OCCUR**, because a census that only ever
+/// reaches one branch confirms nothing about the other and reads identically to
+/// one that checks both.
+#[test]
+fn the_remedy_a_family_emits_matches_the_verbs_it_actually_wires() {
+  let fx = Fixture::new();
+  let forbidden: BTreeSet<&str> = FORBIDDEN.iter().map(|(p, _)| *p).collect();
+
+  let mut families: BTreeSet<String> = BTreeSet::new();
+  for path in common::declared_paths() {
+    if let Some((family, _)) = path.split_once(' ') {
+      families.insert(family.to_string());
+    }
+  }
+
+  let (mut root_form, mut family_form, mut wrong, mut silent) =
+    (Vec::new(), Vec::new(), Vec::new(), Vec::new());
+
+  for family in &families {
+    let verbs: Vec<String> = common::declared_paths()
+      .into_iter()
+      .filter(|p| p.starts_with(&format!("{family} ")) && !forbidden.contains(p.as_str()))
+      .collect();
+
+    let wired = verbs.iter().any(|p| wiredness(&fx, p) == Wired::Yes);
+
+    // The remedy this family ACTUALLY prints, taken from the first of its own
+    // paths that reaches the unwired door. A family every one of whose verbs is
+    // built emits nothing here and is recorded rather than skipped in silence.
+    let emitted = verbs
+      .iter()
+      .find_map(|p| Some((p.clone(), unwired_refusal(&drive(&fx, p)?)?)));
+
+    let Some((path, remedy)) = emitted else {
+      silent.push(family.clone());
+      continue;
+    };
+
+    let expected = if wired { FAMILY_FORM } else { ROOT_FORM };
+    let unexpected = if wired { ROOT_FORM } else { FAMILY_FORM };
+    if remedy.contains(expected) && !remedy.contains(unexpected) {
+      if wired {
+        family_form.push(family.clone());
+      } else {
+        root_form.push(family.clone());
+      }
+    } else {
+      wrong.push(format!(
+        "{family} (via `{path}`): has a wired verb = {wired}, so the remedy must carry {expected:?} and not {unexpected:?} -- it said {remedy:?}"
+      ));
+    }
+  }
+
+  assert!(
+    wrong.is_empty(),
+    "a family's unwired remedy disagrees with the verbs it actually wires, which is AT-06.11 returning:\n  {}",
+    wrong.join("\n  ")
+  );
+
+  // **THE POPULATION BEFORE THE PROPERTY.** If the walk stops reaching the
+  // binary, every check above passes on nothing and says the word it says when
+  // the estate is clean.
+  assert!(
+    !root_form.is_empty() && !family_form.is_empty(),
+    "this census must reach BOTH remedies or it confirms neither -- root-form: \
+     {root_form:?}, family-form: {family_form:?}, emitting nothing: {silent:?}"
+  );
+}
+
 #[test]
 fn the_wiredness_probe_separates_a_built_verb_from_a_declared_one() {
   let fx = Fixture::new();
   assert_eq!(
-    wiredness(fx.dir.path(), "st list"),
+    wiredness(&fx, "st list"),
     Wired::Yes,
     "`st list` is built and driven all over this estate; a probe calling it unwired cannot be \
      trusted about anything"
   );
   assert_eq!(
-    wiredness(fx.dir.path(), "config get"),
+    wiredness(&fx, "config get"),
     Wired::No,
     "`config get` is declared and unbuilt (hv, 2026-08-31), and reaching that verdict REQUIRES \
      satisfying clap first -- a bare probe answers `required arguments were not provided`, which \

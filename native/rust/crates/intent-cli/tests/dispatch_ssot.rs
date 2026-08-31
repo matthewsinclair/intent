@@ -483,9 +483,29 @@ fn a_flags_disposition_decides_whether_it_reaches_the_surface() {
 /// ic swept it: 17 unimplemented commands, **9 of them leaves**.
 ///
 /// A remedy that cannot be acted on is worse than none, because it reads as a
-/// lead and spends the reader's next move. Both populations are asserted
-/// non-empty: with either at zero this is checking one branch and would pass on
-/// the defect.
+/// lead and spends the reader's next move.
+///
+/// **NARROWED TO THE LEAF HALF ON 2026-08-31, AND THE OTHER HALF HAS A NAMED
+/// NEW OWNER RATHER THAN NO OWNER** (AT-06.11). This arm used to check both
+/// directions, deciding "does the family have verbs" with
+/// `e.verb().is_some() && e.is_shipped()` -- **the same table-derived predicate
+/// the product was using, so the defect had a guard asserting it, which is why
+/// it survived.** The comment inside this test already records learning that
+/// detecting behaviour by its wording breaks once something describes the
+/// behaviour; asking the TABLE what the BINARY implements is the same class of
+/// error one question over.
+///
+/// The leaf direction stays here and is honest from the table alone: a family
+/// declaring NO verbs has none to list, in the specification or in the build,
+/// so no probe is needed to know its help would be empty.
+///
+/// The family-with-verbs direction cannot be answered here. "Has a verb that
+/// WORKS" is only knowable by driving one, so it moved to
+/// `remedies_are_reachable.rs::the_remedy_a_family_emits_matches_the_verbs_it_actually_wires`,
+/// which spawns the binary for every declared verb of every family and asserts
+/// the correspondence in BOTH directions with both populations non-empty. Two
+/// homes for one property is the Highlander defect; a narrowing that names its
+/// successor is not a deletion.
 #[test]
 fn an_unbuilt_leaf_does_not_send_the_reader_to_an_empty_help() {
   let table = dispatch::table();
@@ -525,36 +545,29 @@ fn an_unbuilt_leaf_does_not_send_the_reader_to_an_empty_help() {
       continue;
     }
 
-    let has_verbs = family
-      .entries
-      .iter()
-      .any(|e| e.verb().is_some() && e.is_shipped());
-    let points_at_own_help = text.contains(&format!("intent {} --help", family.name));
-    if has_verbs {
+    // DECLARES no verbs, which is the one wiredness question the table can
+    // answer: a family with nothing under it has nothing to list either way.
+    let declares_verbs = family.entries.iter().any(|e| e.verb().is_some());
+    if declares_verbs {
       families += 1;
-      if !points_at_own_help {
-        wrong.push(format!(
-          "`{}` has verbs and its remedy does not name them: {text}",
-          family.name
-        ));
-      }
-    } else {
-      leaves += 1;
-      if points_at_own_help {
-        wrong.push(format!(
-          "`{}` has NO verbs and its remedy sends the reader to a help block that lists none: \
-           {text}",
-          family.name
-        ));
-      }
+      continue;
+    }
+    leaves += 1;
+    if text.contains(&format!("intent {} --help", family.name)) {
+      wrong.push(format!(
+        "`{}` has NO verbs and its remedy sends the reader to a help block that lists none: \
+         {text}",
+        family.name
+      ));
     }
   }
 
   assert!(wrong.is_empty(), "{}", wrong.join("\n"));
   assert!(
-    leaves > 0 && families > 0,
-    "both shapes must be exercised to be discriminating: {leaves} unbuilt leaves and {families} \
-     unbuilt families with verbs"
+    leaves > 0,
+    "no unbuilt leaf was reached, so this arm checked nothing and says the same word it says \
+     when the estate is clean -- {families} unbuilt families with verbs were seen and are the \
+     other file's subject"
   );
 }
 

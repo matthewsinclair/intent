@@ -90,7 +90,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     // Serves until the MCP host closes stdin -- the row's `not_probed`
     // exemption describes exactly this, in the built tense.
     Some(("mcp", _)) => crate::mcp_stdio::run(),
-    Some((family, _)) => unwired(family, ""),
+    Some((family, _)) => unwired_whole_family(family),
     None => {
       println!(
         "intent {} -- run `intent --help`",
@@ -1166,9 +1166,53 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
 /// and spends the reader's next move. The leaf form points at the root surface,
 /// which is never empty, and says plainly that nothing here provides it.
 ///
-/// The family/leaf question is asked of the TABLE rather than of a list kept
-/// here, so a family that gains or loses its verbs moves between the two forms
-/// on its own -- ic's nine is a measurement of today, not a roster to maintain.
+/// **THE FAMILY/LEAF QUESTION USED TO BE ASKED OF THE TABLE, AND THAT WAS THE
+/// WRONG QUESTION ASKED WELL** (AT-06.11, corrected 2026-08-31). The reasoning
+/// it replaced is good and is why it survived so long: ask the table, and a
+/// family that gains or loses verbs moves between the two forms on its own,
+/// with no roster to maintain. **It self-maintains against the wrong fact.**
+/// `surface/dispatch-table.json` is a SPECIFICATION of the surface this build
+/// intends to have; the sentence promises the verbs this build HAS. The two
+/// agree exactly while every declared verb is also built, which is the state
+/// the estate is deliberately leaving.
+///
+/// Measured on the day, by driving all 121 declared paths and reading for
+/// `UNWIRED_PHRASE`, and again statically from the other direction:
+///
+/// - **`config` and `ext` -- LIVE, both directions agree.** Each declares verbs
+///   (`config get`, `ext list` ...) and has no dispatch arm at all, so the
+///   predicate said "has verbs" and sent the operator to a help block in which
+///   nothing works. hv ruled on 2026-08-31 that both SHIP declared-and-unbuilt
+///   in 3.0.1, so this is the shape that stays.
+/// - **`surface` -- LATENT, and the same defect inverted.** It has a wired verb
+///   (`surface retired`) and lives in `new_surface`, which `families` does not
+///   contain, so the walk could not see it and the remedy claimed nothing was
+///   provided. Its arm is unreachable today (clap refuses both routes to it),
+///   so this was never emitted -- **which is the reason to fix it now rather
+///   than the reason not to.**
+///
+/// **THE PREDICATE IS GONE RATHER THAN REPAIRED, BECAUSE THE BINARY CANNOT
+/// ANSWER IT.** Nothing here can enumerate its own match arms, so any answer
+/// computed in this function is a proxy for the fact, and the last proxy was
+/// accidentally right for as long as the table and the build agreed. The two
+/// absences are now two functions, and **which one applies is decided by WHERE
+/// THE CALL IS, which is the only place in the program that knows**:
+/// [`unwired_whole_family`] is reachable solely from [`run`]'s catch-all, whose
+/// POSITION is the fact and which no future family can be added to by accident.
+///
+/// **AND A CALL SITE IS STILL A DECLARATION, SO IT IS DRIVEN, NOT TRUSTED**
+/// (vc's ruling, and the alternative it grants in the same breath). A family
+/// that has a handler but whose every verb is unwired would take the wrong
+/// branch again and no reading of this file would show it;
+/// `remedies_are_reachable.rs` spawns the binary for every declared verb of
+/// every family and asserts the correspondence, so that shape reds the day it
+/// appears rather than the day someone re-derives this comment.
+///
+/// **ORDERING, RULED BY vc: this lands BEFORE OR WITH hv's `--help` narrowing
+/// and NEVER AFTER.** Narrow the help first and "for the verbs that are" points
+/// at an empty list -- ic's original zero-verbs defect returning by another
+/// road, and strictly worse than what it replaced. Predicate-first is safe
+/// standing alone, which is why it is standing alone.
 /// `intent surface` -- queries about this build`s own command surface.
 fn surface(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
@@ -1268,23 +1312,35 @@ fn surface_retired(m: &ArgMatches) -> Result<(), Failure> {
 /// than closing one -- and would have looked closed, which is worse.
 pub const UNWIRED_PHRASE: &str = "is a known command that is not implemented yet";
 
+/// A verb missing from a family whose handler DID run, so its siblings include
+/// at least one that works.
 fn unwired(family: &str, verb: &str) -> Result<(), Failure> {
   let path = if verb.is_empty() {
     family.to_string()
   } else {
     format!("{family} {verb}")
   };
-  let has_verbs = dispatch::table()
-    .families
-    .iter()
-    .filter(|f| f.name == family)
-    .flat_map(|f| f.entries.iter())
-    .any(|e| e.verb().is_some() && e.is_shipped());
-  let remedy = if has_verbs {
-    format!("run `intent {family} --help` for the verbs that are")
-  } else {
-    "nothing in this build provides it -- `intent --help` lists what does".to_string()
-  };
+  refuse_unwired(
+    &path,
+    &format!("run `intent {family} --help` for the verbs that are"),
+  )
+}
+
+/// A family with NO DISPATCH ARM, so every verb under it is unbuilt.
+///
+/// **Reachable only from [`run`]'s catch-all.** See [`unwired`] for why that
+/// position, rather than a computed predicate, is what decides between the two.
+fn unwired_whole_family(family: &str) -> Result<(), Failure> {
+  refuse_unwired(
+    family,
+    "nothing in this build provides it -- `intent --help` lists what does",
+  )
+}
+
+/// The refusal both absences end in -- ONE home, because the two differ only in
+/// their remedy and a second `Failure::Unavailable` here is how the exit code
+/// below drifts between them without anything saying so.
+fn refuse_unwired(path: &str, remedy: &str) -> Result<(), Failure> {
   // **`Unavailable`, not `Error` -- this is issue 0038 and it is the exit code
   // that matters, not the wording.** The message was already correct and said
   // plainly that the command is unbuilt; it exited 1, which every consumer
@@ -8403,14 +8459,15 @@ mod tests {
   ///
   /// # The two arms are a PAIR and neither can pass on the other's text
   ///
-  /// `unwired` branches its remedy on whether the family has any shipped verb,
-  /// and **both branches end in the same `Unavailable` with the same phrase**,
-  /// so an arm asserting only the code and the phrase passes against either.
-  /// Each arm therefore asserts its own branch AND the ABSENCE of the other's.
-  /// Without that, the branch is untested and the test reads as if it were not.
+  /// The two remedies are two FUNCTIONS rather than two branches of a
+  /// predicate, and **both still end in the same `Unavailable` with the same
+  /// phrase** (`refuse_unwired`), so an arm asserting only the code and the
+  /// phrase passes against either. Each arm therefore asserts its own remedy
+  /// AND the ABSENCE of the other's. Without that, one door is untested and
+  /// the test reads as if it were not.
   #[test]
   fn a_family_that_does_not_exist_refuses_at_two_and_names_the_path() {
-    let failure = unwired("not-a-family", "").expect_err("unwired always fails");
+    let failure = unwired_whole_family("not-a-family").expect_err("unwired always fails");
 
     // **The literal 2, deliberately, not `EXIT_UNAVAILABLE`.** The contract is
     // with consumers written against v2, which know the NUMBER; asserting the
@@ -8466,9 +8523,10 @@ mod tests {
   /// HAD TO MOVE.**
   ///
   /// This test used to call `unwired("st", "dehydrate")` BY HAND. `unwired` is
-  /// a pure function that interpolates the verb into a message and consults
-  /// only whether the FAMILY ships verbs -- **the verb's own wired-ness is
-  /// never read.** So the fixture was decorative: the test passed identically
+  /// a pure function that interpolates the verb into a message and reads
+  /// nothing about the verb -- **the verb's own wired-ness is never
+  /// consulted**, and since 2026-08-31 the family's is not either: the
+  /// caller's POSITION decides. So the fixture was decorative: it passed identically
   /// for `st list`, and it kept passing on the day `dehydrate` was wired, which
   /// is the exact moment a test with this name should have gone red.
   ///

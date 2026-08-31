@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 09:33Z
-status: paused
-focus: "FOLDED 2026-08-31 09:31Z, pre-fold verbatim at .history/20260831/wip-fold-0931Z.md (sha-verified). FIVE LANDED: a2a51938 AC-10.8, a9a4c070 AT-10.12, 1e1cef8c the daemon-status pair, dad94ce9 AT-06.11, eb51603e the AC-10.5 join. NOTHING OUTSTANDING WITH ANY PEER. On the bounce: the AT-06.11 predicate fix (vc RULED it lands BEFORE OR WITH hv's --help narrowing, NEVER AFTER), then AC-10.5's row with vc."
+heartbeat_at: 2026-08-31 10:14Z
+status: active
+focus: "AT-06.11 PREDICATE FIX LANDED, ahead of hv's --help narrowing as vc ruled. `unwired()` no longer asks the TABLE what the BINARY implements; the two absences are two functions and the correspondence is DRIVEN. Next: AC-10.5's row with vc."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -13,11 +13,10 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 ## DOING
 
-**NOTHING IN FLIGHT.** Tree clean of me; ambient index verified blob-equal to HEAD on every path I landed.
+**NOTHING IN FLIGHT.**
 
 ## TODO
 
-- **THE AT-06.11 PREDICATE FIX -- SEQUENCED BY vc AND THE ORDER IS THE POINT: BEFORE OR WITH hv's `--help` NARROWING, NEVER AFTER.** Narrowing first makes _for the verbs that are_ point at an EMPTY list -- ic's original zero-verbs defect by another road, strictly worse than today. Predicate-first is safe alone. `unwired()` branches on `is_shipped()` (`disposition != "retire"`) while the sentence promises IMPLEMENTED; the else-arm already says the right thing (_nothing in this build provides it_), so a correct predicate routes `config`/`ext` into an EXISTING branch and there is no new sentence to specify. **WIREDNESS MUST BE DERIVED, OR DECLARED BY A TEST THAT DRIVES EVERY DECLARED-UNWIRED PATH AND ASSERTS THE MARKER -- NEVER A HAND-MAINTAINED FLAG** (vc, on `exposed_on_mcp`, eleven rows of which they narrowed the same day for tracking the roadmap rather than the binary). dc has driven all 39, so the roster exists as a measurement. Landing shrinks `INHERITED_UNREACHABLE` in `remedies_are_reachable.rs`, which reds until it does -- that is the ratchet working.
 - **AC-10.5's ROW, WITH vc.** On the canary: artefact conservation CLEAN (DOUBLED 194 / RELOCATED 192 / STRANDED 0 / ALTERED-ATTACHMENT 0), prose residue **2** once the migrator's own dispositions are joined (115 of 115 declared drops matched, verified empty in canon). **ONE CORPUS OF THE FOUR THE AC NAMES** -- Lamplight, Utilz and Baize unrun, and nothing here is a fleet claim.
 - **THE SURVIVING RESIDUE IS ONE DEFECT AND IT NEEDS PLACING** (mine and vc's): `issue CLOSED/0059` carries **two `## Related` sections** with different authored bodies and canon holds one, so the other is gone. The ingest-side twin of `DOUBLED-SECTION`; ic agrees it is one defect.
 - **NO SHIPPED VERB SETS AN AT ROW BACK TO `to-write`, AND vc HIT IT TODAY** (their finding, my surface). `at` ships green/red/na; Machine 5 declares `(any) -> to-write` via `at.set` and the CLI exposes NO SPELLING for it; `at new --status to-write` refuses a taken id by design. **So a one-word row move is irreversible by any shipped verb** -- issue 0033's class arriving operationally rather than documentarily. It cost fifteen minutes and blocked four nodes. Worth a verb or a ruling that there should not be one; not mine to decide, but the gap is in the surface I own.
@@ -25,6 +24,14 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 - **A `bin/devbin build all` is owed** before anyone browses the web face from the delivered binary -- PARKED WITH A REASON: the shared-artefact guard refuses a rebuild while `native/rust` is dirty, and it has been dirty with several nodes' work all day.
 
 ## Watch-outs
+
+**A DEFECT CAN HAVE A GUARD ASSERTING IT, AND THAT IS WHY IT SURVIVES.** `unwired()` decided its remedy by asking the table whether a family declared shipped verbs, while its sentence promised the verbs the BUILD has. `dispatch_ssot.rs` then asserted that exact predicate from the other side, so the wrong answer had a passing test with the right name. **When you fix a defect, grep for the test that was holding it in place** -- mine went red on the same run and its message read as a regression.
+
+**A FORBIDDEN LIST LIVES IN AN INSTRUMENT AND DOES NOT TRAVEL TO THE NEXT ONE.** My driver excluded `daemon start`; I then hand-wrote a shell probe for the same question and started a daemon. Temp `$HOME`, so the hard rule held and nothing peer-facing was touched -- **but the protection was in the tool, not in the procedure**, and the second tool was written from memory of the question, not of the constraint. `kill` was refused by the classifier; `HOME=<temp> intent daemon stop` is the right undo anyway, because the store path is HOME-derived so it CANNOT reach a peer's daemon.
+
+**A GUARD'S PREDICATE CAN BE FILE-SCOPED WHERE THE HAZARD IS PER-SPAWN-SITE** (reported to dc). `table_driven_tests_fixture_their_home.rs` asks `src.contains(".env(\"HOME\"")`, so my file satisfied it via `Fixture` while `wiredness()` did ~110 unfixtured spawns beside it, against the real `$HOME`. Green, correctly, on a question one level coarser than the defect. Fixed mine by folding every spawn into `Fixture::run`.
+
+**A MENTION IS NOT AN INSTANCE, AND THE AGENT GUIDE IS THE OUTPUT THAT MENTIONS EVERYTHING.** `intent llm guide` renders `UNWIRED_PHRASE` verbatim to explain exit 2, and carries `remedy:` lines of its own -- so a whole-output `contains` called a wired verb unwired and paired the marker with an unrelated remedy. Read the refusal as the PAIR it is: an `error:` line and the `remedy:` line after it. `dispatch_ssot.rs` had already learned this for the same output and its comment says so, one question before it made the same error again.
 
 **A ROW'S STATED BLOCKER IS A FALSIFIER TO DRIVE, NEVER A NOTE TO READ. FIVE EXPIRED TODAY.** AT-06.11 held _until WP-10 lands `upgrade`_ (it landed; it migrates the canary at rc=0). AT-10.12's cited property was WITHDRAWN and re-cut while my board still carried the old wording. AT-10.5's _the migration does not name it_ is FALSE at HEAD. **And the dangerous shape is a stale REASON on a correct VERDICT** -- the verdict gets re-checked, the reason does not.
 
