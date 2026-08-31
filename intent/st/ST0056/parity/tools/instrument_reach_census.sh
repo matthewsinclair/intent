@@ -172,6 +172,99 @@ if [ "${#uncovered[@]}" -gt 0 ]; then
   echo ""
 fi
 
+
+# ==========================================================================
+# SIDE C -- THE UNION PER PROPERTY, WHICH IS WHAT THE CRITERION ASKS FOR
+# ==========================================================================
+# Sides A and B are per-FILE. AC-00.16 is scoped `for any property the estate
+# claims to hold`, so the unit is a CLAIM and its certificates. The register
+# holds that pairing: an AT row carries a `file` and a `covers` list, so
+# claim -> certificates is derived, never listed.
+#
+# **AND THE PREDICATE BELOW IS UNSOUND IN BOTH DIRECTIONS. MEASURED, THREE
+# SPELLINGS, NOT REASONED -- THE THIRD TIME THIS FILE HAS PAID FOR ASSUMING A
+# SPELLING OF "COVERED".** Declaring a reach is a SEMANTIC act performed with
+# ordinary words, so no grep decides it:
+#
+#   narrow      142 declaring / 36 silent. 16 of those 36 declare a reach in
+#               words it does not match -- `NOT covered`, `Nothing here
+#               captures`, `deliberately NOT`. It INVENTS defects, which is
+#               the forbidden direction for a defect list.
+#   wide        158 / 20, by admitting the bare token `reach`. Every rescue
+#               sampled was a MENTION: "reach for `sync`", "did not reach the
+#               operator", "an ignore rule reaching canon". None declares
+#               anything. That is 1d's mention-is-not-an-instance, committed
+#               inside the instrument built to catch it.
+#   calibrated  150 / 28, and still wrong both ways: of four sampled rescues
+#               two are genuine (`AC-14.7 and AC-14.8 are NOT covered`) and
+#               two are about the SUBJECT's behaviour, not the instrument's
+#               reach (`deliberately NOT rewritten -- authority follows
+#               authorship`).
+#
+# **SO SIDE C REPORTS A PARTITION AND REFUSES TO CALL IT A DEFECT LIST.** The
+# count is real; the membership is not decidable by this instrument. What
+# closes AC-00.16 is a STRUCTURAL declaration -- a REACH block in a fixed
+# form, which this file emits and which is exactly the emit partner 1g says a
+# consumed-but-never-emitted form needs. That is a criterion amendment and it
+# is hv's, not the author's: the author of a check is not a safe source for
+# that check's own denominator, and this author's amendment would make this
+# author's red row greenable.
+
+CLAIMS_TSV="$(jq -rs '
+  [ .[] | .id as $st | (.tests // [])[]
+    | select((.file // "") | length > 0)
+    | .file as $f | (.covers // [])[] | "\($st)/\(.)\t\($f)" ]
+  | unique | .[]' intent/.canon/st/*.json 2>/dev/null)"
+
+nclaims="$(printf '%s\n' "$CLAIMS_TSV" | awk -F'\t' 'NF==2 {print $1}' | sort -u | grep -c . )"
+
+# THE DERIVED SET REFUSES WHEN EMPTY, EXACTLY AS THE POPULATIONS AND SIDE B'S
+# PREFIX SET DO. Same reason: a draft that loses this to a shell error would
+# print a closing partition over nothing and read as a clean pass.
+[ "$nclaims" -gt 0 ] || { echo "error: derived claim set is empty; a per-property answer from it would be vacuous" >&2; exit 2; }
+
+DECLARES='does not (read|cover|scan|reach|see|assert|check|test|touch|know)|out of scope|NOT in scope|says nothing|DOES NOT |only (covers|checks|reads|asserts|tests|exercises|knows)|limited to|deliberately (out|excluded|not)|no attempt|not covered|nothing (here|in this file)'
+
+c_all=0; c_some=0; c_none=0; c_absent=0; multi=0
+some_list=()
+while IFS= read -r ac; do
+  [ -n "$ac" ] || continue
+  d=0; s=0; n=0
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    n=$((n + 1))
+    [ -f "$f" ] || continue
+    if grep -qiE "$DECLARES" "$f" 2>/dev/null; then d=$((d + 1)); else s=$((s + 1)); fi
+  done < <(printf '%s\n' "$CLAIMS_TSV" | awk -F'\t' -v a="$ac" '$1 == a {print $2}')
+  [ "$n" -gt 1 ] && multi=$((multi + 1))
+  if   [ $((d + s)) -eq 0 ]; then c_absent=$((c_absent + 1))
+  elif [ "$s" -eq 0 ];       then c_all=$((c_all + 1))
+  elif [ "$d" -eq 0 ];       then c_none=$((c_none + 1))
+  else c_some=$((c_some + 1)); some_list+=("$ac ($d declaring, $s silent)")
+  fi
+done < <(printf '%s\n' "$CLAIMS_TSV" | awk -F'\t' 'NF==2 {print $1}' | sort -u)
+
+echo "SIDE C -- the union PER PROPERTY: each claim, against its own certificates"
+printf '    %s claim(s) carry at least one certificate; %s carry more than one\n' "$nclaims" "$multi"
+printf '    partition: %s all-declare + %s SOME + %s none + %s all-absent = %s\n' \
+  "$c_all" "$c_some" "$c_none" "$c_absent" "$((c_all + c_some + c_none + c_absent))"
+[ $((c_all + c_some + c_none + c_absent)) -eq "$nclaims" ] || { echo "error: side C partition does not close" >&2; exit 2; }
+echo ""
+echo "    ALL-ABSENT is an EXCLUSION WITH ITS REASON NAMED, not a silent drop: every"
+echo "    certificate is to-write, so the property has no instrument to interrogate yet."
+echo "    The denominator moves visibly rather than the corpus shrinking quietly."
+echo ""
+if [ "${#some_list[@]}" -gt 0 ]; then
+  echo "    SOME -- the sharp form. A claim whose certificates DISAGREE about declaring"
+  echo "    reach has a union nobody owns, and each file still passes its own inspection:"
+  for m in "${some_list[@]}"; do printf '      %s\n' "$m"; done
+  echo ""
+fi
+printf '    AND THE SHARP FORM IS NEARLY UNPOPULATED HERE: %s of %s claims have exactly ONE\n' "$((nclaims - multi))" "$nclaims"
+echo "    certificate, so for those the union IS the instrument and Side C asks the same"
+echo "    question as Side A. Per-property is the right unit and this estate's shape is"
+echo "    what limits what it can see -- a fact the reader needs and the count does not say."
+echo ""
 cat <<'REACH'
 REACH, in the output because a limit not in the output is not a limit the
 reader has:
@@ -179,10 +272,14 @@ reader has:
               instruments, the shipped git hooks. Side B: shipped shell
               surfaces -- plugin and skill executables, shipped git-hook and
               session-hook bodies.
-  DOES NOT    ask WHICH property a surface is covered FOR. This is the gap
-              that keeps the row red, and it is the class itself: all three
-              founding instances were files being read the whole time, for a
-              property narrower than the one being claimed.
+  COVERS      Side C: every claim in the register carrying a certificate,
+              keyed by the AT `covers` list. This is the per-property union
+              the row was owed, derived from the register rather than listed.
+  DOES NOT    DECIDE whether a certificate declares its reach. Side C's
+              predicate is LEXICAL and unsound in BOTH directions -- measured,
+              three spellings, not reasoned. Its partition is a real count
+              over a real population; its MEMBERSHIP is not a defect list and
+              must not be read as one.
   DOES NOT    cover colocated `#[cfg(test)]` modules in src/, the critic rule
               library, or any NON-SHELL shipped surface. The Rust binaries are
               shipped surfaces and are deliberately out: `intent` is the
@@ -205,14 +302,32 @@ if [ "${#uncovered[@]}" -gt 0 ]; then
   echo "RED. ${#uncovered[@]} shipped surface(s) sit under no instrument's reach at all."
   exit 1
 fi
-echo "RED, AND NOT BECAUSE THE COMPLEMENT IS NON-EMPTY -- IT IS EMPTY."
-echo "Every shipped shell surface is inside some instrument's reach. The row stays"
-echo "red because a FILE-level union is not the criterion: AC-00.16 is scoped *for"
-echo "any property the estate claims*, and this cannot say WHICH property a file is"
-echo "covered for. One walk of intent/plugins/claude marks all 22 covered, truthfully,"
-echo "for tracker citations alone."
-echo ""
-echo "MOVES WHEN the union is computed PER PROPERTY -- for each claim, its"
-echo "instruments' reach against the population the claim covers. The register"
-echo "already holds the AC/AT pairing that would key it."
+cat <<'VERDICT'
+RED, AND THE REASON HAS CHANGED -- WHICH IS THE PROGRESS.
+Side B's complement is EMPTY and Side C now computes the per-property union the
+row was owed, so neither of the two things that previously kept this row red is
+what keeps it red now.
+
+WHAT KEEPS IT RED IS THAT AC-00.16's FIRST CONJUNCT IS NOT MACHINE-DECIDABLE AS
+WRITTEN. `the instruments asserting it declare their reach` asks whether prose
+performs a semantic act, and three calibrated spellings each failed in a
+DIFFERENT direction over the same 178 files: narrow INVENTS defects (16 of 36
+were declaring in words it did not match), wide rescues on MENTIONS of the token
+`reach`, calibrated does both at a smaller rate. A criterion decided by
+vocabulary is not decided, and this instrument will not launder a judgement it
+cannot make into a verdict it prints.
+
+TWO THINGS THE PARTITION DOES SAY, AND BOTH ARE REAL. One claim -- ST0056/AC-00.7
+-- has certificates that DISAGREE about declaring reach, which is the sharp form:
+a union nobody owns while each file passes its own inspection. And 322 of 328
+claims carry exactly ONE certificate, so per-property collapses to per-instrument
+for 98% of the estate. The unit is right; the estate's shape bounds what it sees.
+
+MOVES WHEN the declaration becomes STRUCTURAL rather than lexical -- a REACH
+block in a fixed form, of which this file is the only instance and therefore the
+emit partner a never-emitted form needs. THAT IS A CRITERION AMENDMENT AND IT IS
+hv's, NOT THIS AUTHOR'S: the author of a check is not a safe source for that
+check's own denominator, and this author's amendment would make this author's own
+red row greenable.
+VERDICT
 exit 1
