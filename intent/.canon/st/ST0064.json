@@ -86,7 +86,8 @@
       "text": "**THE APP HOLDS NO PRODUCT LOGIC: EVERY CONTROL IS A VERB IT SHELLS OUT TO, AND NOTHING IN SWIFT KNOWS A LOG FORMAT, A PIDFILE LAYOUT OR A CONFIG SCHEMA.** hv set this as the whole shape of the app on 2026-08-26 and it is the row every other row on this thread leans on: start, stop, restart and doctor are `intent` / `intentd` invocations, and every fact displayed comes from the daemon or the CLI rather than from a Swift-side derivation. **The check is by ABSENCE and it is mechanical**: the Swift sources contain no parser for a log line, no path assembled toward a pidfile, and no key read out of a config file. **The daemon is the authority on the daemon** -- an app that computes any of the three has taken a second home for a value `intentd` already owns, and the two will disagree at exactly the moment the app exists to be trusted.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "Mechanical absence check + read (ic, HEAD b083fb4c): no log-line parser, no pidfile-path assembly, no config-key read across the 7 Swift sources; every control routes to an intent verb (menu actions -> IntentCLI/DaemonService: daemon start/stop, doctor, edit --path); facts sourced from 'daemon status --format json' (Health.decode) and the CLI. Spawn sweep: only subprocess spawns are LoginShell's PATH-capture zsh and IntentCLI's two run paths."
       }
     },
     {
@@ -142,7 +143,8 @@
       "text": "**THE ICON IS INTENT'S TURTLE (`docs/design/intent-logo.*`) AND ITS STATE SEMANTICS ARE DERIVED FROM THE HEALTH PREDICATE, NEVER STORED ALONGSIDE IT.** hv named the asset and the reason on 2026-08-26 -- *slow and steady wins the race* -- and the substantive half of this row is the second clause: the menubar glyph is a RENDERING of the one predicate in `AC-01.2`, computed at paint time, with no cached `lastKnownState` that can outlive what produced it. **A status cached beside the thing it describes is the gate-figure defect in miniature**: two homes, one value, and the stale one is the one on screen.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "Turtle asset + state-derived (ic, HEAD b083fb4c): MenuBarIcon.imageset (menubar_18/36/54.png, template-rendering-intent=template) rasterised from docs/design/intent-logo.svg by 'int macos app-icons' (rsvg-convert), landed d00956ec, turtle visually confirmed. Tint computed at paint time from the one health predicate (Theme.menuBarTint + updateStatusIcon on every observation change), no cached lastKnownState."
       }
     },
     {

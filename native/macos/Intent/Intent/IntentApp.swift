@@ -68,9 +68,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
   }
 
-  /// The turtle -- slow and steady wins the race (AC-01.8). The rasterised asset
-  /// lands with that row; until then the system tortoise stands in,
-  /// template-rendered so its tint follows the health predicate at paint time.
+  /// The turtle -- slow and steady wins the race (AC-01.8). `MenuBarIcon` is the
+  /// brand turtle rasterised from `docs/design/intent-logo.svg` by
+  /// `int macos app-icons` (a template alpha silhouette, so its tint follows the
+  /// health predicate at paint time); the system tortoise is a fallback only if
+  /// the compiled catalogue is somehow absent.
   private static func menuBarImage() -> NSImage? {
     if let asset = NSImage(named: "MenuBarIcon") { return asset }
     return NSImage(systemSymbolName: "tortoise.fill", accessibilityDescription: "Intent")
