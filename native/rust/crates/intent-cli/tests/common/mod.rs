@@ -212,17 +212,83 @@ impl RealDaemon {
     // together. That is not hypothetical: it happened on this machine on
     // 2026-08-30, from an `intentd --help`.
     let home = short_dir("dualpath-home");
-    let child = Command::new(env!("CARGO_BIN_EXE_intent"))
-      .args(["daemon", "run"])
-      .env("HOME", &home)
-      .stdout(Stdio::null())
-      .stderr(Stdio::null())
-      .spawn()
-      .expect("the shipped intent binary runs");
-
-    let running = RealDaemon { child, home };
+    let running = RealDaemon {
+      child: spawn_under(&home),
+      home,
+    };
     running.wait_until_it_answers_a_real_op();
     running
+  }
+
+  /// The pid of the process actually SERVING this daemon.
+  ///
+  /// **IT IS THE CHILD'S OWN PID BECAUSE `daemon run` EXECS** -- `render.rs`
+  /// calls `Command::exec()`, which REPLACES the `intent` process with
+  /// `intentd` rather than spawning it, so no grandchild exists and this pid is
+  /// the server. **If that ever becomes a spawn this silently starts returning
+  /// the wrapper**, and a test asserting "the daemon moved" would then be
+  /// asserting that a wrapper moved. [`RealDaemon::restart`] checks the
+  /// assumption rather than restating it.
+  pub fn pid(&self) -> u32 {
+    self.child.id()
+  }
+
+  /// Kill this daemon and bring a fresh one up **under the same home**,
+  /// returning once it answers a real op.
+  ///
+  /// **THE HOME IS DELIBERATELY REUSED AND THE SOCKET PATH DOES NOT MOVE.**
+  /// `userstate::daemon_socket_under` is `<home>/.local/share/intent/intentd.sock`
+  /// -- no pid, no port, no nonce -- so a restart produces the IDENTICAL
+  /// `Endpoint::Unix`. **An endpoint comparison is therefore not a witness that
+  /// anything restarted**, and a test written against one would assert
+  /// something false by construction. The pid is the witness, which is why
+  /// [`RealDaemon::pid`] exists beside this.
+  ///
+  /// **WHAT THIS IS FOR (ic, AC-09.3): per-request target resolution.** A
+  /// client that resolved once at startup, or that cached a connection, fails
+  /// against a dead-then-live process behind an unchanged path; one that
+  /// resolves per request passes. That is the row's actual subject, and the
+  /// unchanged socket makes it a sharper test rather than a weaker one.
+  ///
+  /// **`Drop` IS NOT USED TO STOP THE OLD ONE**, because `Drop` also removes
+  /// the home -- which is the one thing a restart must not do. The reaping is
+  /// shared with `Drop` through [`RealDaemon::reap`] so there is one kill path
+  /// and not two to drift.
+  pub fn restart(mut self) -> RealDaemon {
+    let was = self.pid();
+    self.reap();
+    self.child = spawn_under(&self.home);
+    self.wait_until_it_answers_a_real_op();
+
+    assert_ne!(
+      was,
+      self.pid(),
+      "the restarted daemon reports the same pid as the one just killed, so nothing moved \
+       and any test using this as a witness is measuring nothing"
+    );
+    // **THE EXEC ASSUMPTION, CHECKED WHERE IT IS RELIED ON.** `pid()` is the
+    // server only while `daemon run` execs. A grandchild here means it now
+    // spawns, `pid()` has quietly become the wrapper's, and the assertion
+    // above still passes -- so this is the arm that would catch it.
+    assert!(
+      children_of(self.pid()).is_empty(),
+      "`intent daemon run` has a child process, so it no longer execs into intentd -- \
+       `pid()` is now the wrapper's and is no longer a witness for which daemon answered"
+    );
+    self
+  }
+
+  /// Stop the child and everything under it, WITHOUT touching the home.
+  ///
+  /// **BY PID, NEVER BY NAME** -- reaping everything that looks like an
+  /// `intentd` would kill a concurrent session's daemon; four of us share this
+  /// machine.
+  fn reap(&mut self) {
+    for child in children_of(self.child.id()) {
+      let _ = Command::new("kill").arg("-TERM").arg(&child).status();
+    }
+    let _ = self.child.kill();
+    let _ = self.child.wait();
   }
 
   pub fn home(&self) -> &Path {
@@ -346,6 +412,21 @@ impl RealDaemon {
   }
 }
 
+/// Start `intent daemon run` under a given home. **ONE spawn site**, shared by
+/// [`RealDaemon::start`] and [`RealDaemon::restart`], so the two cannot drift
+/// about the flags, the environment or the redirected output -- a restart that
+/// differed from the original start in any of those would be testing a
+/// different daemon than the one the test set up.
+fn spawn_under(home: &Path) -> Child {
+  Command::new(env!("CARGO_BIN_EXE_intent"))
+    .args(["daemon", "run"])
+    .env("HOME", home)
+    .stdout(Stdio::null())
+    .stderr(Stdio::null())
+    .spawn()
+    .expect("the shipped intent binary runs")
+}
+
 impl Drop for RealDaemon {
   /// **REAP THE CHILDREN BEFORE THE PARENT, AND CLEAN UP IN `Drop` RATHER THAN
   /// AFTER THE ASSERTIONS.** A kill written after them is dead code until an
@@ -360,11 +441,11 @@ impl Drop for RealDaemon {
   /// **BY PID, NEVER BY NAME.** Reaping everything that looks like an `intentd`
   /// would kill a concurrent session's daemon; four of us share this machine.
   fn drop(&mut self) {
-    for child in children_of(self.child.id()) {
-      let _ = Command::new("kill").arg("-TERM").arg(&child).status();
-    }
-    let _ = self.child.kill();
-    let _ = self.child.wait();
+    // **THE KILL IS `reap`'s AND THE HOME REMOVAL IS THIS FUNCTION'S**, which
+    // is the whole reason they are separate: `restart` needs the first without
+    // the second, and a second copy of the reaping here would be the two-homes
+    // shape in the one place a leak costs a hung `cargo`.
+    self.reap();
     let _ = std::fs::remove_dir_all(&self.home);
   }
 }
