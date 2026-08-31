@@ -1,113 +1,96 @@
 # Known defects in v3.0.0
 
-**This page is derived, not remembered.** Its members come from Intent's own issue register as it stood at the v3.0.0 cut, and the derivation is checked by `intent/st/ST0056/parity/tools/docs_defect_disposition_check.sh`, which refuses to report unless every member of that set is either stated here or recorded as something a reader cannot reach.
+**Every defect on this page has been run against v3.0.0 itself.** Not against `main`, not inferred from our issue register: driven against the published binary, which reports `intent 3.0.0 (80d8b2ca)`. Where a claim could not be driven it is not on the page, and the last section says what that leaves out.
 
-**A defect is on this page if you can hit it by following the documentation correctly.** That is the whole test. Something that only bites a maintainer editing the register, or a five-session team sharing one checkout, is recorded elsewhere and deliberately kept off this page.
+That distinction is not pedantry. The first draft of this page was written from our issue titles and it was wrong in both directions: it described defects that arrived after the tag and are not in this build, and it described one that is real with the wrong symptom. Driving it against the shipped binary was the only thing that found either.
 
-**Every entry below has been driven against the v3.0.0 keg itself, or is marked where it has not.** That check is not decoration: the first draft of this page was written from our issue titles, and driving it found entries that describe defects which arrived AFTER the tag and are not in this build at all. Those have been removed. An entry that names a condition this harness cannot create says so in the entry.
+**A defect is on this page if you can hit it by following the documentation correctly.** Something that only bites a maintainer editing the register, or a team sharing one checkout, is recorded against the issue rather than here.
 
-Two things worth knowing before the list. **An issue being closed in our register does not mean the fix is in your build** — several entries below are closed on `main` and still live in v3.0.0, because the fix landed after the tag. And **an issue being open does not always mean it is still broken**; where we know that, the entry says so.
+Two things worth knowing before the list. **An issue being closed in our register does not mean the fix is in your build** — the register tracks `main`, and several fixes landed after the tag. And **an issue being open does not always mean it is still broken.**
 
-## Installing and upgrading
+## A stray directory disables the whole project
 
-**`intent init` bakes an absolute path into `.claude/settings.json`** (`intent#0016`). The generated settings carry a path from the machine that generated them, so the file is not portable between machines or checkouts.
+**Any `STnnnn` directory anywhere under `intent/st/` is picked up as a thread, and one it cannot read stops every command** (`intent#0011`). A staging or scratch copy at `intent/st/staging/ST0099/` is enough. What you get is not a duplicate row in a listing, it is:
 
-**`intent claude upgrade` is parsed but unwired** (`intent#0077`). It accepts the command and does nothing, so nothing regenerates the root `CLAUDE.md` in a project self-hosted on v3. Regenerate the agent contract with `intent agents sync`, which does work.
+```
+  error: this project has not been migrated to Intent v3 -- it declares Intent 3.0.0,
+         and 1 steel thread carries v2 canon this binary cannot read (ST0099)
+  remedy: run `intent upgrade` to migrate this project to Intent v3
+```
 
-**There is no v3 equivalent of `intent claude upgrade --skip-settings`** (`intent#0143`). v2 had a flag to decline the Claude Code settings file; v3 does not, so `claude upgrade` has no way to leave your settings alone. Combined with the entry above this is currently moot, and it will stop being moot when that verb is wired.
-
-**`intent upgrade` on a v2 project blocks on an interactive prompt with no terminal** (`intent#0071`). In CI, or any non-interactive context, it waits for a read that can never arrive. Run it from a terminal.
+on every verb, including ones that have nothing to do with the stray thread. The remedy is misleading: the project is fine and one directory is not. Keep working copies of threads outside `intent/st/`.
 
 ## Threads
 
-**`intent st list` shows only in-progress threads and does not say so** (`intent#0121`). Threads in other statuses are absent from the output with nothing indicating a filter is applied, so a short list reads as a short project. Pass `--status all` to see everything.
+**`intent st list` shows only in-progress threads and discloses the filter nowhere** (`intent#0121`). Driven: two threads, one `WIP` and one `Triage`; the default listing shows one row and `--status all` shows both, with nothing in the default output indicating that anything was filtered. A short list reads as a short project.
 
-**`intent st list` counts any `STnnnn` directory at any depth** (`intent#0011`). A staging or scratch area under `intent/st/` becomes duplicate live threads in the listing. Keep working copies outside `intent/st/`.
-
-**`intent st show` and `intent st list` cannot see threads in `_inbox/`** (`intent#0066`). Four of the five status directories resolve; `_inbox/` does not, so a thread there is invisible to `st show`, `st list`, `ac gate`, `at lint` and `todo` alike, and reads as a thread that does not exist rather than one that is filed elsewhere.
-
-**A migrated thread has no slug, so `intent st list` renders a blank column for the whole estate** (`intent#0080`). `st new` computes a slug and migration does not, so the two doors that create threads disagree on the same field.
-
-**`intent st hydrate` reports `exists` for a file it just created** (`intent#0083`). Its output cannot distinguish restoring a missing file from doing nothing, so you cannot tell from the result which happened.
-
-**`intent st edit` writes on its own refusal** (`intent#0145`). For a known thread it can exit 1 and still have written, and the remedy it prints names an empty list, so the message does not tell you what to do next.
-
-## Work packages
-
-**`intent wp list` returns success and zero rows for BUCKETED threads whose work packages are in the store** (`intent#0103`). A thread you created yourself lists its work packages correctly; the defect is on threads that arrived through bucketing, so an empty result there does not mean an empty thread.
+**`intent st hydrate` reports `exists` for a file it has just created** (`intent#0083`). Driven by deleting `info.md` and hydrating: the file is restored and reported with the same `exists:` prefix as the one that was already there. The output cannot distinguish a restore from a no-op, so you cannot tell what it did.
 
 ## Criteria and tests
 
-**`intent ac new` on an id that already exists replaces the row instead of refusing** (`intent#0119`). The replacement is a full write, so any field you do not supply is written empty rather than preserved. In v3.0.0 there is no verb that edits a criterion in place, so the verb that repairs is the verb that destroys. The same shape applies to `at new`. Treat `ac new` as create-only and read `ac list` before re-running it on an id you are unsure about.
+**`intent ac new` on an id that already exists replaces the row instead of refusing** (`intent#0119`). Driven: creating `AC-01.1` twice returns `ok: AC-01.1 created` both times. The replacement is a full write, so a field you do not supply is written empty rather than preserved, and there is no verb that edits a criterion in place. Treat `ac new` as create-only and read `ac list` before re-running it on an id you are unsure of. **v3.0.1 closes this**; on v3.0.0 the verb that repairs is the verb that destroys.
 
-**`intent ac list` never prints the criterion text** (`intent#0168`). It prints ids, coverage and satisfaction, so planning from its output means planning from ids. There is no `ac show`.
+**`intent ac list` never prints the criterion text** (`intent#0168`). Driven: a criterion whose text is a distinctive sentence does not have that sentence anywhere in the listing. It prints ids, coverage and satisfaction, so planning from its output means planning from ids. There is no `ac show`.
 
-**`intent ac list` renders a fiat-closed criterion as `satisfied: no`** (`intent#0137`). A second rendering site bypasses the one composer, so the listing disagrees with the criterion's actual state.
+**`intent at lint --fix` is advertised and refuses** (`intent#0139`). `at lint --help` documents it as _Migrate the mechanical part of a legacy row_; calling it exits non-zero without doing so.
 
-**`intent at lint --fix` is advertised in `--help` and refuses when called** (`intent#0139`). The flag is declared and answers that it is not implemented.
+## Editing
 
-**`intent at green`'s help asserts a guard that is not enforced** (`intent#0142`). It says a green status is reachable only from red. That described v2; v3 does not enforce it, so a test can go straight from `to-write` to `green` without ever being observed failing. Go through `red` anyway.
+**No verb writes a thread's title, objective, context, body or preamble** (`intent#0185`). Driven: `intent st edit ST0001 info` refuses with `is generated from the model, so an edit here is lost at the next render`, and its remedy says to author it with `intent st` — which has no verb that writes those fields. Edit `intent/.canon/st/<ID>.json`, then `intent sync --to-store`, then `intent sync --to-disk`.
 
-**`intent at edit` ignores the kind it was given** (`intent#0146`), and the remedy it prints will walk a non-test row into carrying both a file and prose, which `at lint` has no rule for.
+**`intent issues add` creates an issue whose body no verb can write** (`intent#0090`). Driven: the created issue has a body of length zero and nothing can fill it. Issue titles and work package bodies have the same write-once door (`intent#0154`).
 
-**An unsatisfied criterion's note can be written only by migration** (`intent#0140`). No verb authors or edits one, so the field is readable, publishable, and unreachable from the command line.
+## Syncing
 
-## Editing anything
+**`intent sync --to-store` reports two contradictory things in one breath** (`intent#0069`, `intent#0111`). Driven on a thread-scoped sync:
 
-**No verb writes a thread's title, objective, context, body or preamble** (`intent#0185`). The refusal you get if you try names `intent st` as the place to author those fields, and no `intent st` verb writes them. Edit `intent/.canon/st/<ID>.json` and run `intent sync --to-store`, then `intent sync --to-disk`.
+```
+  note: the store and the extract agree; this restore overwrites nothing
+  ok: store replaced from the extract, 1 thread(s)
+```
 
-**No entity's authored prose can be edited after creation** (`intent#0154`). Issue bodies, issue titles and work package bodies all have write-once doors, so a value that was wrong when it was created stays wrong.
+The first line says nothing changed and the second says the store was replaced. A thread-scoped call also describes itself as acting on the whole store.
 
-**`intent issues add` creates a body that no verb can write** (`intent#0090`), and the refusal that makes it unreachable names the form rather than the field, so the message points at the wrong thing.
+## Declared and not implemented
 
-**`intent edit` in v3.0.0 does not accept `--path`** and refuses with `unexpected argument`. The kind-blindness recorded as `intent#0149` and `intent#0189` -- where the tool takes a kind, drops it, and answers about a different entity -- arrived after the tag and is not in this build.
+Each of these is listed in `--help` and refuses when called. Driven against v3.0.0, exit codes as shown.
 
-**`intent edit` refuses the address form its own remedy tells you to use** (`intent#0153`).
+**`intent daemon` and its subcommands** (`intent#0163`) — `error: daemon is a known command that is not implemented yet`, exit 2.
 
-## Syncing and the store
+**`intent claude rules validate`** (`intent#0156`) — the same refusal at exit 2. The command works in the v2 shell estate.
 
-**`intent sync` misdescribes its own scope, twice** (`intent#0069`). A thread-scoped `--to-store` reports that the whole store was replaced, and an unscoped run can report that the store and the extract agree while they hold different numbers of issues.
+**`intent ext remove`** (`intent#0177`) — `unrecognized subcommand`. `ext` creates and has no way to undo.
 
-**`intent sync --to-store` can report overwriting nothing and replacing the store in one breath** (`intent#0111`), and its agreement verdict never examines an addition, so a new row is not what it checks.
+**`intent agents` on its own** (`intent#0175`) — exit 2, while `intent agents sync` and `intent agents validate` both work. The bare family verb is an unwired dispatcher, not a broken feature; run `intent agents --help` for the verbs that are wired.
 
-**`intent sync --to-disk` does not materialise a new attachment** (`intent#0082`). A file authored in canon alone never reaches disk and nothing reports that it did not. `intent st attach` is the writer for attachments; no direction of `sync` is.
+## Declared, accepted, and ignored
 
-## The daemon
+These flags are documented in `--help`, accepted without complaint, and read by nothing. Passing one changes no behaviour and reports no error.
 
-**`intentd --help` starts a daemon instead of printing help** (`intent#0162`). Asking the binary to describe itself runs it.
+**`intent agents init --template`** (`intent#0180`) and **`intent llm usage_rules --symlink`** (`intent#0181`). Both confirmed present in v3.0.0's own help output.
 
-**`intent daemon start` and `intent daemon stop` are declared in `--help` and unwired** (`intent#0163`). They are listed as commands and do not do the thing they name.
+**`intent claude upgrade` has no `--skip-settings`** (`intent#0143`). v2 had a flag to decline the Claude Code settings file. v3.0.0's `claude upgrade --help` offers only `--apply`, `--force` and `--help`, so there is no way to ask it to leave your settings alone.
 
-## The agent contract, skills and rules
+## Recorded against v3.0.0 and NOT present in it
 
-**`intent agents` on its own answers `not implemented yet`, while its subcommands work** (`intent#0175`). The bare family verb is an unwired dispatcher; `intent agents sync` and `intent agents validate` both run correctly. Run `intent agents --help` for the verbs that are wired.
+These are in our register and you will not hit them on this build. They are listed because finding an open issue that describes your version is otherwise alarming.
 
-**`intent agents init --template` is declared, documented in help, and accepted, and no renderer reads it** (`intent#0180`). Passing it changes nothing and reports nothing.
+**`intent st new` writes no files** (`intent#0079`) — not true of v3.0.0, where `st new` writes `info.md` and `acceptance.md`. This arrived after the tag.
 
-**`intent llm usage_rules --symlink` is declared, documented in help, and accepted, and the function behind it takes no arguments** (`intent#0181`). Same shape as the entry above.
+**`intent edit` ignores the kind it was given** (`intent#0149`, `intent#0189`) — v3.0.0's `edit` does not accept `--path` at all, refusing with `unexpected argument`. Post-tag.
 
-**`intent claude skills uninstall --force` reports success while leaving the skill on disk** (`intent#0078`). It prints `ok: 1 changed` at exit 0 and the skill remains fully loadable.
-
-**`intent claude rules validate` is declared and not implemented in v3** (`intent#0156`). It refuses at exit 2. The same command works in the v2 shell estate.
-
-**`intent modules find` and `intent modules check` are not implemented in v3** (`intent#0067`), and their refusal routes you to `intent upgrade`, which cannot help (`intent#0122`). The remedy cites the canon as the authority for behaviour that canon stopped describing on 2026-08-24. If you need to query `MODULES.md`, grep it directly.
-
-**`intent ext` creates and cannot remove** (`intent#0177`). There is no `ext remove`, so an extension you add through the tool has to be removed by hand.
-
-## Other
-
-**`intent todo notdone` and `intent todo toggle` mutate through helpers that bypass the facade** (`intent#0176`), which is the door every other write goes through.
-
-**`intent fc` dispatches on kind by hand** (`intent#0171`), putting four different operations behind one verb with no single door, and exposes a one-way mutation over MCP.
-
-**Two shipped messages glue a bare `a` in front of a vowel-initial noun** (`intent#0081`), so you will see `a issue` rather than `an issue`.
+**`intent fc` dispatches on kind by hand** (`intent#0171`) and **`ac list` renders a fiat-closed criterion wrongly** (`intent#0137`) — neither `intent fc` nor `intent at fc` exists in v3.0.0; both refuse with `unrecognized subcommand`. Post-tag.
 
 ## Migrating from v2
 
-The v2 ingest has its own defect set and its own recovery routes, and they are covered where you meet them: see [Migrating from v2](migrating-from-v2.md). In summary, the ingest can discard authored prose that sits between two recognised fields (`intent#0124`), splice a row so that text is lost at the head and duplicated in the middle (`intent#0126`), drop a note field entirely and leave a stub (`intent#0127`), rewrite an authored full stop into its own field delimiter (`intent#0129`), and it has two behaviours for one input shape of which only the destructive one is detectable (`intent#0138`). A retired refusal also leaves the ingest refusing a thread on a label the collector had already stopped honouring (`intent#0084`).
+The v2 ingest has its own defect set and its own recovery routes, covered where you meet them in [Migrating from v2](migrating-from-v2.md): evidence discarded silently from criteria authored unsatisfied (`intent#0133`), and a measurement that cannot tell "nothing was lost" from "nothing was measured" (`intent#0098`). `intent st repair` is declared retired and was never built in v3.0.0 either (`intent#0118`).
 
-**Criteria authored as unsatisfied with an evidence clause lost the evidence when ingested by v3.0.0** (`intent#0133`), and [Migrating from v2](migrating-from-v2.md) covers how to tell whether your project is affected.
+## What this page does not cover
 
-## How to read this page against your own build
+**This is the driven set, not the whole register.** Intent's open issues include defects that need a condition this page's checks cannot create from a fresh project — a migrated v2 estate, a bucketed thread, an installed skill, a running daemon. Those are real and they are not described here, because describing an undriven defect is how the first version of this page came to be wrong.
 
-`intent --version` names the build you are on. Everything here is measured against v3.0.0, the published tag. If you are on a source install from `main`, some of these are fixed and this page does not track that: it describes what shipped.
+If you hit something not listed, that is the gap rather than a surprise. The register is the fuller record, and `intent doctor` reports on your own project.
+
+## Reading this against your own build
+
+`intent --version` names the build you are on. Everything here was driven against `intent 3.0.0 (80d8b2ca)`, the published tag. A source install from `main` behaves differently, and several entries above are already fixed there.
