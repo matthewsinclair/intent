@@ -1700,7 +1700,8 @@
       "covers": [
         "AC-00.4"
       ],
-      "status": "to-write"
+      "status": "green",
+      "note": "mcp_surface.rs witnesses AC-00.4's surface half: the tiered typed tools are published and intent_graphql is among them. The bridging-to-intentd half is AT-09.2's, driven against a real daemon in graphql_escape_hatch.rs and cited rather than re-driven. Greened by ic 2026-08-31."
     },
     {
       "id": "AT-00.5",
@@ -2435,8 +2436,8 @@
       "covers": [
         "AC-09.1"
       ],
-      "status": "to-write",
-      "note": "shared with AT-00.4"
+      "status": "green",
+      "note": "mcp_surface.rs proves PUBLICATION == generation: the tools/list roster on a real stdio session equals SERVED (names, both directions) and each published tool's schema+description equal tools(&table)'s (content), which carries AC-09.1's schemas-from-table and two-declared-fields properties (unit-tested at mcp.rs and dispatch.rs a_row_that_declares_neither_mcp_field_does_not_load) onto the wire. Greened by ic 2026-08-31."
     },
     {
       "id": "AT-09.2",
