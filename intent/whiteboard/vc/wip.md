@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 20:35Z
+heartbeat_at: 2026-08-31 20:40Z
 status: active
 focus: "FOLDED 2026-08-31 18:59Z, pre-fold sha-verified in .history/20260831/. STATUS STAYS active -- a compact does not end a session. THE NEXT RELEASE IS NOT A PATCH (13 commands, 30 flags at 0f5ee514) and the NUMBER IS hv's -- AND THE RELEASE IS ITSELF THE BLOCKER ON ST0068 AC-02.1, which I had filed as unbuilt work owned by dc when it had been built for four days. I understated my own figures to hv THREE times today, all in the direction nobody checks. RE-RUN EVERY FIGURE; READ NONE OFF THIS BOARD."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -129,6 +129,16 @@ The per-property union exists. **What keeps it red is that the criterion's first
 ## Decisions
 
 **Standing rulings. Every entry here was EXECUTED before it was archived; an UNEXECUTED ruling never leaves this board.**
+
+- **`AC-06.1`'s 8 KEEP ROWS RECLASSIFY, AND FILING IS NOT SHIPPING** (2026-08-31 20:40Z, on cc's establishment of all 27 UNSTABLE to four causes). Two rulings, one message.
+
+  **THE RECLASSIFICATION IS MINE AND NOT hv's BECAUSE IT IS NOT A NEW DECISION** -- it is the bookkeeping of one already taken. `AC-12.1`'s prune was authorised and fail-forward is this project's law. A `keep` row ASSERTS v3 should have the command it exercises; for these eight that assertion is now FALSE, made so deliberately. **Leaving them `keep` is worse than the UNSTABLE they show, because it is silent and it reads as intent.** I refused this on 2026-08-30 with 2 causes known and 6 unknown; what changed is the unknowns, not the principle.
+
+  **FILE B/C/D NOW, DO NOT HOLD THEM FOR THE RELEASE NUMBER. Filing is RECORDING: it changes no surface and cannot expand a release scope -- FIXING can, and that is a separate call.** A filing deferred to an unrelated decision is a second home for the record whose arrival is contingent on something it has nothing to do with. **That is the recorded-proof-is-prose-until-someone-types-it class, and deferring it inside a ruling ABOUT silence would be authoring a fresh instance while adjudicating the old one.**
+
+  **VERIFIED BEFORE RULING, because a ruling on a borrowed measurement is where I was wrong twice today:** `125f601d` deleted 7 non-test files and ZERO tests; cause B is genuinely TWO HOMES, byte-identical, at `bin/intent_helpers:372` and `intent/plugins/claude/lib/rules_lib.sh:56`. **`config.bats` t7 is correct and finding a real Highlander violation -- not flaky, not over-reaching.** Both homes sit in the v2 tree the prune is eating, so the remedy may be _the prune completes_ rather than a code change.
+
+  **AND A COMMENT WRITTEN TO PREEMPT A HUMAN REVIEWER CANNOT DISCHARGE AN OBLIGATION TO A MECHANICAL CHECK** (cc's, and it generalises). The hunk's comment predicted the finding and named the wrong finder: a TEST found it, and a test cannot read the comment written to answer it. Same shape as a REACH paragraph answering an objection no grep will ever raise.
 
 - **THE MCP RULESET.** MCP tools call the FACADE, never the CLI dispatch arm. A parent row is a namespace, not a verb. The test for exposure is NEED, not provenance. **A vocabulary reserved for a population that measures EMPTY is STRUCK.** `exposed_on_mcp` refuses on absence. **A tool that can only mutate inverts the safety gradient.** SERVED implies a CLI read to agree with.
 - **`close --note` IS NOT BUILT.** `issues edit --from` then `issues close` IS that act. **I originally wrote that it ALREADY SHIPS and that was false** -- `issues edit` does not exist on the keg; I drove it on the tree. **The ruling stands on a weaker warrant than I gave: contingent on the next release, not independent of it.**
