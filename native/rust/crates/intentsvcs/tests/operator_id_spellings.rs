@@ -150,15 +150,41 @@ fn a_filename_suffix_is_stripped() {
   assert_eq!(model::normalise_issue_id(" 0021.json "), Ok(21));
 }
 
-/// **THE AGNOSTIC DOOR ONLY GAINS.** Both canonical forms still resolve there;
-/// untagged short digits are refused as AMBIGUOUS rather than guessed, and the
-/// refusal carries the sequence so the caller can name `s59` and `i59` back.
+/// **EVERY UNTAGGED SPELLING IS AMBIGUOUS HERE, INCLUDING THE FOUR-DIGIT ONE,
+/// AND THAT LAST WORD IS THE WHOLE CHANGE** (hv, 2026-08-31).
+///
+/// This test used to assert `normalise_id("0059") == Ok((Issue, 59))` under a
+/// heading that read *the agnostic door only gains*. It did not gain: it
+/// assigned by WIDTH. `THREAD_DIGITS` and `ISSUE_DIGITS` are both 4, so a
+/// four-digit token is well formed in BOTH families and the arm handed every
+/// one of them to `Issue` without anything to break the tie -- while `59` and
+/// `046`, which are no more ambiguous, were refused. **The door was strictest
+/// about the spellings nobody writes and silent about the one this estate
+/// writes everywhere.**
+///
+/// **THE OLD ASSERTION WAS A TRUE STATEMENT ABOUT A WRONG RULE.** It is kept
+/// here inverted rather than deleted, because the pair `0059` refused and
+/// `s59`/`i59` accepted is the entire content of the ruling.
+///
+/// What settles it lives elsewhere and must: this function is PURE, so it
+/// reports the ambiguity and [`intentsvcs::resolve`] asks the project which of
+/// the two exists.
 #[test]
-fn the_collection_agnostic_door_refuses_only_what_is_genuinely_ambiguous() {
+fn the_collection_agnostic_door_refuses_every_untagged_spelling() {
+  // Tagged, in either family, still resolves without a store.
   assert_eq!(model::normalise_id("ST0059"), Ok((IdKind::Thread, 59)));
-  assert_eq!(model::normalise_id("0059"), Ok((IdKind::Issue, 59)));
   assert_eq!(model::normalise_id("s59"), Ok((IdKind::Thread, 59)));
   assert_eq!(model::normalise_id("i59"), Ok((IdKind::Issue, 59)));
+
+  // **THE CANONICAL ISSUE SPELLING IS AMBIGUOUS TOO, AND IT IS THE ONE THAT
+  // MATTERS.** `0164` is the form written throughout this estate; while it
+  // resolved by width, the ambiguity arm below could never fire on a real id
+  // and the ladder above it was unreachable in practice.
+  assert_eq!(
+    model::normalise_id("0059"),
+    Err(IdError::Ambiguous { seq: 59 }),
+    "four digits is well formed in BOTH families -- width is not a tie-breaker"
+  );
 
   // `59` and `046` name both collections and neither door is named. In THIS
   // estate both ST0059 and issue 0059 exist, so this is not hypothetical.

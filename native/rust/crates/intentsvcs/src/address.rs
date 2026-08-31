@@ -806,10 +806,19 @@ pub fn serve_md(
 /// dispatch table's `intrinsic` discussion exists to kill; an inference that
 /// calls the module owning the fact is not the same thing.
 ///
-/// The two predicates are disjoint by construction -- a thread id is `ST` plus
-/// four digits, an issue id is exactly four digits -- so the promotion is total
-/// and unambiguous over well-formed ids, and there is no precedence rule to get
-/// wrong.
+/// **IT IS NO LONGER TOTAL OVER WELL-FORMED IDS, AND SAYING SO IS THE POINT.**
+/// This paragraph used to read *the promotion is total and unambiguous over
+/// well-formed ids, and there is no precedence rule to get wrong* -- which was
+/// true only because [`model::normalise_id`] carried a width arm that assigned
+/// every untagged four-digit token to `Issue`. `THREAD_DIGITS` and
+/// `ISSUE_DIGITS` are both 4, so that arm was a precedence rule: the one this
+/// paragraph claimed did not exist, applied silently, on the majority spelling.
+///
+/// With the arm gone, a bare number is [`AddressError::AmbiguousId`] and this
+/// function stays PURE -- which is why it can still be called three times
+/// inside `mcp.rs`'s argument validation before any work begins.
+/// [`crate::resolve`] is the door that reads the store and decides; the tagged
+/// spellings `s59` and `i59` settle it without one.
 ///
 /// # The third case is the one worth getting right
 ///
@@ -825,10 +834,7 @@ pub fn promote(input: &str) -> Result<Address, AddressError> {
     Ok((model::IdKind::Thread, seq)) => {
       parse(&format!("{SCHEME}/threads/{}", model::thread_id(seq)))
     }
-    Ok((model::IdKind::Issue, seq)) => parse(&format!(
-      "{SCHEME}/issues/{seq:0width$}",
-      width = model::ISSUE_DIGITS
-    )),
+    Ok((model::IdKind::Issue, seq)) => parse(&format!("{SCHEME}/issues/{}", model::issue_id(seq))),
     Err(model::IdError::Ambiguous { seq }) => Err(AddressError::AmbiguousId {
       input: input.to_string(),
       seq,

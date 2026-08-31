@@ -129,28 +129,53 @@ fn a_well_formed_address_for_something_absent_opens_the_root_and_says_so() {
   );
 }
 
-/// **NAMING TWO THINGS IS NOT NAMING NOTHING.** `56` is `IdError::Ambiguous`,
-/// which is the ambiguity `AC-17.6` exists to record -- and it is hv's own
-/// natural spelling, so the message has to be the useful one.
+/// **NAMING TWO THINGS IS NOT NAMING NOTHING, AND THEY NO LONGER SHARE A
+/// VARIANT.** This test's claim is unchanged and the shape carrying it is not.
+///
+/// It used to require BOTH cases to arrive as [`Unlanded::Unreadable`] with
+/// different sentences, on the ground that `crate::address` already tells them
+/// apart IN WORDS. That was the best available answer while `land` could only
+/// ask the GRAMMAR: a bare number is ambiguous as a spelling, and nothing knew
+/// whether either candidate was really there.
+///
+/// **hv's LADDER MADE IT A DIFFERENT QUESTION** (2026-08-31). `56` now reaches
+/// the store, and the distinction is carried by the TYPE rather than by prose a
+/// caller has to read: [`Unlanded::Ambiguous`] holds the candidates as
+/// addresses, so the explorer can offer them as rows and MCP can return them
+/// structured -- neither of which is possible from a sentence. Requiring the
+/// old variant here would be requiring the tool to know less than it does.
 #[test]
 fn a_bare_short_number_names_two_things_and_the_message_says_which() {
+  // `anything` says every view is present, so both rungs exist and the ladder
+  // finds two. It refuses to pick -- which is the whole ruling.
   let landing = nav::land("56", anything);
-  let Landing::Root(Unlanded::Unreadable { why, .. }) = &landing else {
-    panic!("`56` is ambiguous and was not reported as unreadable: {landing:?}");
+  let Landing::Root(Unlanded::Ambiguous { candidates, .. }) = &landing else {
+    panic!("`56` names two live things and was not reported as ambiguous: {landing:?}");
   };
-  assert!(
-    why.contains("56"),
-    "the parser's own words must reach the operator, and they did not mention the input: {why}"
+  assert_eq!(
+    candidates.iter().map(|a| a.to_url()).collect::<Vec<_>>(),
+    vec![
+      "intent:///threads/ST0056".to_string(),
+      "intent:///issues/0056".to_string()
+    ],
+    "the operator has to be told WHICH two, in a form they can paste back"
   );
+
+  // **AND THE POINT THE OLD ASSERTION WAS MAKING STILL HOLDS, MEASURED THE
+  // SAME WAY.** A spelling that names nothing is a different answer from one
+  // that names two -- now a different variant rather than a different sentence.
   let nothing = nav::land("banana", anything);
-  let Landing::Root(Unlanded::Unreadable { why: other, .. }) = &nothing else {
+  let Landing::Root(Unlanded::Unreadable { why, .. }) = &nothing else {
     panic!("`banana` names nothing and was not reported as unreadable: {nothing:?}");
   };
+  assert!(
+    why.contains("banana"),
+    "the parser's own words must reach the operator, and they did not mention the input: {why}"
+  );
   assert_ne!(
-    why, other,
-    "naming two things and naming nothing share a variant BECAUSE the parser tells them apart in \
-     words -- if the words are the same, the variant is hiding a distinction rather than \
-     delegating it"
+    landing.to_string_lossy(),
+    nothing.to_string_lossy(),
+    "naming two things and naming nothing must not read the same"
   );
 }
 

@@ -43,6 +43,23 @@ fn a_bare_thread_id_becomes_this_project_s_thread() {
 /// `st` cannot carry issues, so the verb is top-level and the argument must
 /// span both forms.
 ///
+/// # The spelling moved from `0042` to `i42`, and BOTH assertions survived
+///
+/// This drove `promote("0042")`, which resolved because
+/// [`intentsvcs::model::normalise_id`] carried a width arm assigning every
+/// untagged four-digit token to `Issue`. That arm came out on 2026-08-31 when
+/// hv's resolution ladder landed: `THREAD_DIGITS` and `ISSUE_DIGITS` are both
+/// 4, so the arm was deciding by width what it could not decide by form, and
+/// `0042` is now [`AddressError::AmbiguousId`] -- asserted below, because the
+/// refusal is the ruling.
+///
+/// **THE TAGGED SPELLING CARRIES THE REST OF THE TEST, WHICH IS THE POINT OF
+/// CHANGING IT RATHER THAN DELETING IT.** What this test is FOR is the
+/// addressable-versus-realisable split below, and that claim is about ISSUES
+/// rather than about how one was spelled. `i42` names an issue with no
+/// ambiguity to resolve, so the second assertion is tested exactly as before
+/// and a store is still never consulted.
+///
 /// # An issue is still ADDRESSABLE and is no longer an ARTEFACT
 ///
 /// This asserted `artefact()` returned `Some(("ISSUE", "0042"))`. hv ruled on
@@ -59,7 +76,20 @@ fn a_bare_thread_id_becomes_this_project_s_thread() {
 /// without the second.
 #[test]
 fn a_bare_issue_id_becomes_this_project_s_issue() {
-  let a = promote("0042").expect("an issue id is addressable");
+  // **THE UNTAGGED FORM IS REFUSED, AND SAYING SO HERE IS NOT DUPLICATION.**
+  // `operator_id_spellings` proves the model refuses it; this proves the
+  // refusal REACHES `promote` rather than being re-decided at this door -- the
+  // second resolver that the whole address ruling exists to prevent.
+  assert!(
+    matches!(
+      promote("0042"),
+      Err(intentsvcs::address::AddressError::AmbiguousId { seq: 42, .. })
+    ),
+    "a bare four-digit token names an issue AND a thread, and this door is pure, so it reports \
+     the ambiguity rather than picking"
+  );
+
+  let a = promote("i42").expect("a tagged issue id is addressable");
   assert_eq!(
     a.entity,
     Entity::Issue {

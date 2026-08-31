@@ -281,6 +281,32 @@ pub enum Unlanded {
     kind: String,
     view: View,
   },
+  /// An untagged number that names MORE THAN ONE thing which actually exists.
+  ///
+  /// **THE CANDIDATES ARE A LIST RATHER THAN A SENTENCE, WHICH IS THE WHOLE
+  /// REASON THIS IS A VARIANT AND NOT A MESSAGE** (vc, 2026-08-31). The
+  /// explorer renders them as rows to pick from, the MCP tier needs them
+  /// structured, and a CLI verb prints a refusal -- three renderings of one
+  /// fact, and a resolver that returned prose would force two of the three to
+  /// parse English back.
+  #[error("`{input}` names {} things in this project", candidates.len())]
+  Ambiguous {
+    input: String,
+    candidates: Vec<crate::address::Address>,
+  },
+  /// A well-formed untagged number that names NOTHING here.
+  ///
+  /// **NOT THE SAME FACT AS [`Unlanded::Absent`], AND COLLAPSING THEM WOULD
+  /// MISREPORT ONE.** `Absent` knows which collection was meant, because the
+  /// spelling said so; this arrives from a spelling that named two and found
+  /// neither, so there is no single `kind` to put in that sentence. Saying
+  /// *this project has no such thread* about `0999` would be true and would
+  /// answer about one of the two things the caller might have meant.
+  #[error("`{input}` is well formed and names nothing in this project")]
+  Unresolvable {
+    input: String,
+    searched: Vec<crate::address::Address>,
+  },
 }
 
 /// The view an entity address opens, or `None` where this surface has none.
@@ -308,7 +334,7 @@ pub enum Unlanded {
 /// one gets authored somewhere else. **This is the one home**, and
 /// `every_child_view_this_maps_to_is_a_descent_the_declaration_carries` holds
 /// its output against the declaration so the two cannot drift in silence.
-fn view_for(entity: &Entity) -> Option<View> {
+pub fn view_for(entity: &Entity) -> Option<View> {
   let item = |kind: &str, id: &str| View::Item {
     kind: kind.to_string(),
     id: id.to_string(),
@@ -348,6 +374,40 @@ fn view_for(entity: &Entity) -> Option<View> {
   }
 }
 
+/// The inverse of [`view_for`] FOR ITEM VIEWS, which is the only direction a
+/// face holding a kind and an id can travel.
+///
+/// **THIS IS NOT A RESOLVER, AND THE DIFFERENCE IS WHY IT IS ALLOWED TO
+/// EXIST.** [`crate::resolve`] answers *what does this token NAME*, which needs
+/// the store because a bare number names two things. This answers *what is the
+/// address of the thing I am already looking at*: the kind is KNOWN, carried by
+/// the view the operator navigated to, so nothing is inferred from a spelling
+/// and no second ladder is created.
+///
+/// **IT EXISTS BECAUSE THE WIDTH ARM CAME OUT** (2026-08-31). The TUI's editor
+/// reached `address::promote(&handoff.id)` and let the SPELLING decide, which
+/// worked only while an untagged four-digit token silently meant `Issue`. With
+/// that arm gone `promote("0164")` is ambiguous, so the TUI would have refused
+/// to save an edit to any issue field -- **and no test would have caught it**,
+/// because every TUI test drives `kind: "thread", id: "ST0056"`, which is
+/// tagged and resolves either way. The kind the editor was already holding, and
+/// underscoring in one of the two signatures, is now read.
+///
+/// `None` for a view that is not an item, and for any kind outside the two that
+/// have item views at all. [`view_for`] is the roster --
+/// `an_item_view_round_trips_to_the_entity_it_came_from` drives the pair
+/// together so neither can grow an arm the other lacks.
+pub fn entity_for_item(view: &View) -> Option<Entity> {
+  let View::Item { kind, id } = view else {
+    return None;
+  };
+  match kind.as_str() {
+    "thread" => Some(Entity::Thread { id: id.clone() }),
+    "issue" => Some(Entity::Issue { id: id.clone() }),
+    _ => None,
+  }
+}
+
 /// Resolve an operator's spelling to a [`Landing`].
 ///
 /// # One call, and nothing new resolves anything
@@ -369,8 +429,34 @@ fn view_for(entity: &Entity) -> Option<View> {
 /// editor launcher is passed in as a closure rather than resolved where it is
 /// used. Both faces then share one presence rule instead of writing two.
 pub fn land(input: &str, present: impl Fn(&View) -> bool) -> Landing {
-  let address = match crate::address::promote(input) {
-    Ok(a) => a,
+  // **ONE PROBE, DERIVED, RATHER THAN A SECOND CLOSURE INJECTED BESIDE
+  // `present`.** The ruled shape was a second injected closure; this asks the
+  // one that is already here. `exists` and `present` would be two probes of
+  // nearly the same question -- *is this thing in the store* against *does this
+  // view have content* -- and for an ITEM view they are the same question, so
+  // two injections would be two homes that agree until a face wires one of them
+  // differently. Deriving it also means a caller cannot supply a presence rule
+  // for landing and a different one for resolving.
+  let exists =
+    |a: &crate::address::Address| view_for(&a.entity).map(|v| present(&v)).unwrap_or(false);
+  let address = match crate::resolve::resolve(input, exists) {
+    Ok(crate::resolve::Resolution::Resolved(a)) => a,
+    // **THE LADDER FOUND TWO AND REFUSES TO PICK.** Precedence here would be
+    // `0189` one layer up: answering confidently about the entity the caller
+    // did not name. 48 of 69 thread numbers on this estate are also issue
+    // numbers, so it would be the common case rather than a corner.
+    Ok(crate::resolve::Resolution::Ambiguous(candidates)) => {
+      return Landing::Root(Unlanded::Ambiguous {
+        input: input.to_string(),
+        candidates,
+      });
+    }
+    Ok(crate::resolve::Resolution::Unresolvable { searched }) => {
+      return Landing::Root(Unlanded::Unresolvable {
+        input: input.to_string(),
+        searched,
+      });
+    }
     Err(why) => {
       return Landing::Root(Unlanded::Unreadable {
         input: input.to_string(),
@@ -413,6 +499,26 @@ impl crate::remedy::Remedy for Unlanded {
         "issue" => "list what is there with `intent issue list`".into(),
         _ => "list what is there with `intent st list`".into(),
       },
+      // **THE REMEDY IS THE ADDRESSES THEMSELVES, NOT ADVICE ABOUT THEM.** The
+      // operator's next move is to name one, so naming both is the shortest
+      // path to it -- and each is rendered by `to_url` rather than spelled
+      // here, so a worked example cannot teach a form the tool refuses.
+      Unlanded::Ambiguous { candidates, .. } => format!(
+        "name the one you meant: {}",
+        candidates
+          .iter()
+          .map(|a| a.to_url())
+          .collect::<Vec<_>>()
+          .join(" or ")
+      ),
+      Unlanded::Unresolvable { searched, .. } => format!(
+        "nothing was found at {} -- list what is there with `intent st list` or `intent issue list`",
+        searched
+          .iter()
+          .map(|a| a.to_url())
+          .collect::<Vec<_>>()
+          .join(" or ")
+      ),
     }
   }
 }

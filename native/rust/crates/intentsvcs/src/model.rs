@@ -137,6 +137,19 @@ pub fn is_thread_id(name: &str) -> bool {
       .all(|b| b.is_ascii_digit())
 }
 
+/// The canonical id for the nth issue.
+///
+/// **THE COUNTERPART [`thread_id`] HAS ALWAYS HAD, AND THE ASYMMETRY WAS THE
+/// DEFECT.** `is_thread_id`/`thread_id` and `is_issue_id` existed; the issue
+/// FORMATTER did not, so the one place that needed it -- [`crate::address::promote`]
+/// -- spelled the zero-padding inline. That was survivable while it was the
+/// only caller and stops being survivable the moment there are two: a resolver
+/// that formats its own issue id is a second declaration of a fact this module
+/// owns, and two spellings of one width agree exactly until one of them moves.
+pub fn issue_id(seq: u32) -> String {
+  format!("{seq:0ISSUE_DIGITS$}")
+}
+
 /// Whether `name` is an issue id.
 ///
 /// Width DERIVED from [`ISSUE_DIGITS`] for the same reason [`is_thread_id`]
@@ -215,12 +228,16 @@ pub enum IdError {
   Ambiguous { seq: u32 },
 }
 
-/// An operator's spelling, decomposed. `digits` is the count AS TYPED, which is
-/// what distinguishes the canonical four-digit issue id from a short form.
+/// An operator's spelling, decomposed.
+///
+/// **IT CARRIED A `digits` COUNT UNTIL 2026-08-31 AND THE FIELD LEFT WITH ITS
+/// ONLY READER.** That count existed so [`normalise_id`] could assign an
+/// untagged four-digit token to `Issue` by its WIDTH; with the ladder ruled and
+/// that arm gone, nothing asks how many digits were typed, and a field kept
+/// against a rule that no longer exists is how a removed rule comes back.
 struct Spelling {
   tag: Option<IdKind>,
   seq: u32,
-  digits: usize,
 }
 
 /// Case-insensitive prefix strip. The CLI door is case-insensitive on purpose
@@ -272,11 +289,7 @@ fn spelling(raw: &str) -> Result<Spelling, IdError> {
   let bare = if bare.is_empty() { "0" } else { bare };
   let seq: u32 = bare.parse().map_err(|_| IdError::OutOfRange)?;
 
-  Ok(Spelling {
-    tag,
-    seq,
-    digits: digits.len(),
-  })
+  Ok(Spelling { tag, seq })
 }
 
 /// Whether `seq` fits a fixed-width id.
@@ -342,16 +355,35 @@ pub fn normalise_issue_id(raw: &str) -> Result<u32, IdError> {
 /// `i59` -- and a refusal whose remedy is a spelling the operator can type is a
 /// different object from one that just says no.
 ///
-/// **THE TWO CANONICAL FORMS KEEP RESOLVING, SO THIS DOOR ONLY GAINS.**
-/// `ST0059` is a thread and exactly-`ISSUE_DIGITS` digits is an issue -- that
-/// is what this door does today, and narrowing it would be a regression sold as
-/// a fix.
+/// **THE WIDTH ARM IS GONE, AND ITS REMOVAL IS WHAT MAKES THE AMBIGUITY ARM
+/// REACHABLE AT ALL** (hv, 2026-08-31, executing the resolution ladder). This
+/// function used to read `None if s.digits == ISSUE_DIGITS => Issue`, and the
+/// paragraph here defended it: *`ST0059` is a thread and exactly-`ISSUE_DIGITS`
+/// digits is an issue, and narrowing it would be a regression sold as a fix.*
+///
+/// **THAT SENTENCE ASSIGNED BY WIDTH WHAT IT CLAIMED TO ASSIGN BY FORM.**
+/// [`THREAD_DIGITS`] and [`ISSUE_DIGITS`] are BOTH 4, so `0164` is a
+/// well-formed id in both families and the arm silently handed every one of
+/// them to `Issue`. `0164` is the form this estate writes everywhere -- so the
+/// refusal below, and the whole ladder above it, could never fire on the ids
+/// anyone actually types. **A ruling that cannot reach the common case has not
+/// been executed**, and the arm was the thing stopping it.
+///
+/// **IT WAS ALREADY A LIVE DISAGREEMENT RATHER THAN A LATENT ONE.** Driven
+/// before the change: `intent st show 0164` answered *no steel thread ST0164*
+/// while `promote("0164")` read the same token as an ISSUE -- two resolvers,
+/// one input, two families, both reachable from the command line.
+///
+/// **WHAT THIS DOOR CANNOT DO IS DECIDE, AND IT MUST NOT PRETEND TO.** It is
+/// PURE and never reads the store, so for a bare number it can only report the
+/// ambiguity. [`crate::resolve`] sits above it and asks the project which of
+/// the two exists; the tagged spellings `s59` and `i59` remain the answer for
+/// anyone who wants to settle it in the argument itself.
 pub fn normalise_id(raw: &str) -> Result<(IdKind, u32), IdError> {
   let s = spelling(raw)?;
   match s.tag {
     Some(IdKind::Thread) => Ok((IdKind::Thread, fits(s.seq, THREAD_DIGITS)?)),
     Some(IdKind::Issue) => Ok((IdKind::Issue, fits(s.seq, ISSUE_DIGITS)?)),
-    None if s.digits == ISSUE_DIGITS => Ok((IdKind::Issue, fits(s.seq, ISSUE_DIGITS)?)),
     None => Err(IdError::Ambiguous { seq: s.seq }),
   }
 }

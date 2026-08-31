@@ -17,8 +17,9 @@
 //! covered than the private one it replaced, so this file exists at the moment
 //! of the move rather than after it.
 
+use intentsvcs::address::Entity;
 use intentsvcs::form::Loaded;
-use intentsvcs::nav::{View, descents, face_json, kinds};
+use intentsvcs::nav::{Landing, Unlanded, View, descents, face_json, kinds, land};
 
 fn loaded() -> Loaded {
   Loaded::load().expect("the shipped form declaration must load")
@@ -222,4 +223,133 @@ fn the_contract_needs_no_renderer_and_no_terminal() {
   };
   assert_eq!(v.path(), "/thread/ST0056/wps");
   assert_eq!(View::parse("/thread/ST0056/wps"), Some(v));
+}
+
+// ===========================================================================
+// hv's RESOLUTION LADDER, 2026-08-31. These arms exist because the change that
+// removed the width arm broke NOTHING in either suite -- which was not good
+// news. `promote("0164")` went from silently meaning ISSUE to being ambiguous,
+// and the TUI's editor, the explorer and the `edit` verb all changed behaviour
+// with every test still green, because every existing test drives `ST0056`:
+// tagged, and therefore unaffected either way. **A green suite over a corpus
+// that cannot exhibit the change is the vacuity class, and it was measured
+// here rather than argued.**
+// ===========================================================================
+
+/// The one presence rule these arms vary. `land` derives its resolver probe
+/// from this same closure, so a test that says *both exist* means it for both
+/// questions and cannot make them disagree.
+fn only(kinds: &'static [&'static str]) -> impl Fn(&View) -> bool {
+  move |v: &View| match v {
+    View::Item { kind, .. } => kinds.contains(&kind.as_str()),
+    _ => true,
+  }
+}
+
+/// **A BARE NUMBER NAMING TWO LIVE THINGS IS REFUSED, AND THE CANDIDATES COME
+/// BACK AS ADDRESSES.** Before the ladder this opened the ISSUE, chosen by
+/// digit count, with nothing said.
+#[test]
+fn a_bare_number_that_names_two_things_lands_nowhere_and_names_both() {
+  let Landing::Root(Unlanded::Ambiguous { input, candidates }) =
+    land("0059", only(&["thread", "issue"]))
+  else {
+    panic!("two live candidates is an ambiguity, not a landing");
+  };
+  assert_eq!(input, "0059");
+  assert_eq!(
+    candidates.iter().map(|a| a.to_url()).collect::<Vec<_>>(),
+    vec![
+      "intent:///threads/ST0059".to_string(),
+      "intent:///issues/0059".to_string()
+    ],
+    "the ladder's order fixes the report's order, and each candidate is rendered by the grammar"
+  );
+}
+
+/// **ONE LIVE CANDIDATE RESOLVES, WHICH IS THE HALF THAT MAKES THE REFUSAL
+/// ABOVE TOLERABLE.** A door that refused every bare number would be a
+/// regression sold as a fix; this is what makes the ladder a resolution rather
+/// than a narrowing.
+#[test]
+fn a_bare_number_that_names_one_live_thing_lands_on_it() {
+  assert_eq!(
+    land("0059", only(&["issue"])),
+    Landing::At(View::Item {
+      kind: "issue".to_string(),
+      id: "0059".to_string()
+    }),
+    "only the issue is there, so the number is not ambiguous IN THIS PROJECT"
+  );
+  assert_eq!(
+    land("0059", only(&["thread"])),
+    Landing::At(View::Item {
+      kind: "thread".to_string(),
+      id: "ST0059".to_string()
+    }),
+    "and the same spelling lands on the thread when that is the one that exists"
+  );
+}
+
+/// **NAMING NOTHING IS ITS OWN ANSWER AND SAYS WHERE IT LOOKED.** Reporting
+/// `no such thread` here would answer about one of the two things the caller
+/// might have meant -- the precedence defect one layer up.
+#[test]
+fn a_bare_number_that_names_nothing_reports_both_places_it_looked() {
+  let Landing::Root(Unlanded::Unresolvable { searched, .. }) = land("0059", only(&[])) else {
+    panic!("no live candidate is unresolvable, and is not the same fact as absent");
+  };
+  assert_eq!(
+    searched.iter().map(|a| a.to_url()).collect::<Vec<_>>(),
+    vec![
+      "intent:///threads/ST0059".to_string(),
+      "intent:///issues/0059".to_string()
+    ]
+  );
+}
+
+/// **A TAGGED SPELLING NEVER CONSULTS PRESENCE TO DECIDE WHAT IT NAMES**, so
+/// `s59` still lands on the thread in a project where only the issue exists.
+/// The kind came from the argument; presence only decides `At` against
+/// `Absent`.
+#[test]
+fn a_tagged_spelling_is_not_re_decided_by_what_happens_to_exist() {
+  assert!(
+    matches!(
+      land("s59", only(&["issue"])),
+      Landing::Root(Unlanded::Absent { kind, .. }) if kind == "thread"
+    ),
+    "`s59` names a thread; the thread is missing, which is ABSENT rather than a resolution to the issue"
+  );
+}
+
+/// **EVERY ENTITY `view_for` GIVES AN ITEM VIEW REBUILDS FROM THAT VIEW.** The
+/// TUI editor holds a kind and an id and has to get back to an address; this
+/// holds the two directions together so neither grows an arm the other lacks.
+#[test]
+fn an_item_view_round_trips_to_the_entity_it_came_from() {
+  for entity in [
+    Entity::Thread {
+      id: "ST0059".to_string(),
+    },
+    Entity::Issue {
+      id: "0059".to_string(),
+    },
+  ] {
+    let view = intentsvcs::nav::view_for(&entity).expect("both forms have item views");
+    assert_eq!(
+      intentsvcs::nav::entity_for_item(&view).as_ref(),
+      Some(&entity),
+      "the inverse must return the entity the view was built from"
+    );
+  }
+
+  // A view that is not an item has no entity to rebuild, and saying so is not
+  // the same as failing.
+  assert_eq!(
+    intentsvcs::nav::entity_for_item(&View::Collection {
+      kind: "thread".to_string()
+    }),
+    None
+  );
 }

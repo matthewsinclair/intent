@@ -3336,12 +3336,11 @@ impl tui::edit::Model for Live {
   /// knows the fact, and a copy worded here would be a worse second home for it.
   fn artefact(
     &mut self,
-    _kind: &str,
+    kind: &str,
     id: &str,
     name: &str,
   ) -> Result<std::path::PathBuf, tui::edit::Refused> {
-    let address =
-      intentsvcs::address::promote(id).map_err(|e| tui::edit::Refused::new(e.to_string()))?;
+    let address = handed_address(kind, id)?;
     artefact_path(&mut self.facade, &address, name).map_err(|e| {
       // **THE REMEDY TRAVELS WITH THE REFUSAL, AND DROPPING IT WOULD LOSE THE
       // USEFUL HALF.** `FacadeError::NotEditable` says the view is generated
@@ -3374,13 +3373,24 @@ impl tui::edit::Model for Live {
     })
   }
 
-  /// **`promote` IS THE ONE RESOLVER AND THE KIND IS NOT RE-DERIVED HERE.** A
-  /// thread id is `ST` plus four digits and an issue id is four digits: the two
-  /// are disjoint by construction, which is why that function is total over
-  /// well-formed ids and why a second inference from `h.kind` would only be a
-  /// second place to disagree.
+  /// **THE KIND IS READ, AND THE COMMENT THAT USED TO SIT HERE IS WHY IT HAS
+  /// TO BE.** It said *`promote` IS THE ONE RESOLVER AND THE KIND IS NOT
+  /// RE-DERIVED HERE*, on the ground that a thread id is `ST` plus four digits
+  /// and an issue id is four digits, so the two are disjoint by construction.
+  /// **They were never disjoint** -- `THREAD_DIGITS == ISSUE_DIGITS == 4`, so
+  /// `0164` is well formed in both families and `promote` only appeared total
+  /// because a width arm assigned every such token to `Issue` without a
+  /// tie-breaker. With hv's ladder landed and that arm gone, this route would
+  /// refuse every issue edit.
+  ///
+  /// **READING `h.kind` IS NOT A SECOND INFERENCE, WHICH IS THE DISTINCTION
+  /// THE OLD COMMENT MISSED.** The handoff CARRIES the kind -- it is the view
+  /// the operator navigated to, not a guess from the spelling -- and `read`
+  /// two functions above has always used it. One of the two sibling methods
+  /// read the kind and the other underscored it, against one id, and only the
+  /// width arm kept them agreeing.
   fn write(&mut self, h: &tui::edit::Handoff, value: &str) -> Result<(), tui::edit::Refused> {
-    let address = address::promote(&h.id).map_err(|e| tui::edit::Refused::new(e.render()))?;
+    let address = handed_address(&h.kind, &h.id)?;
     self
       .facade
       .set(
@@ -3391,6 +3401,38 @@ impl tui::edit::Model for Live {
       .map(|_| ())
       .map_err(|e| tui::edit::Refused::new(e.to_string()))
   }
+}
+
+/// The address of the item a TUI handoff names, built from the kind it CARRIES.
+///
+/// **ONE HOME BECAUSE TWO METHODS NEED IT AND THEY MUST NOT DISAGREE** -- the
+/// same reason `entity_json` below is one function. `Source::artefact` and
+/// `Source::write` both turn a (kind, id) pair into an address, and they used
+/// to do it two different ways: one discarded the kind entirely, the other
+/// never had it.
+///
+/// **THE TRANSLATION ITSELF IS `nav`'s, NOT THIS FILE'S.** `nav` declares
+/// itself the one place the view vocabulary and the address vocabulary meet, so
+/// the mapping lives beside `view_for` and this is a call rather than a copy. A
+/// kind spelled here would be a second roster of which forms have item views.
+fn handed_address(
+  kind: &str,
+  id: &str,
+) -> Result<intentsvcs::address::Address, tui::edit::Refused> {
+  let view = intentsvcs::nav::View::Item {
+    kind: kind.to_string(),
+    id: id.to_string(),
+  };
+  let entity = intentsvcs::nav::entity_for_item(&view).ok_or_else(|| {
+    tui::edit::Refused::new(format!(
+      "error: `{kind}` is not a kind with an item to open -- the explorer opens threads and issues"
+    ))
+  })?;
+  Ok(intentsvcs::address::Address {
+    authority: None,
+    entity,
+    format: None,
+  })
 }
 
 /// One entity as JSON, by kind and id.
@@ -7455,6 +7497,55 @@ fn worked_address() -> String {
   .to_url()
 }
 
+/// A bare number, asked of THIS PROJECT -- hv's resolution ladder, at the one
+/// door that has nothing else to break the tie with.
+///
+/// **THE PRESENCE PROBE IS `nav`'s, COMPOSED FROM TWO FUNCTIONS THAT ALREADY
+/// EXIST.** `view_for` translates an entity to the view that shows it and
+/// `present` asks the store whether that view has content -- which is exactly
+/// the pair `nav::land` uses. Writing a third presence rule here would be a
+/// second answer to *is this thing there*, and the two would agree until a
+/// face wired one of them differently.
+fn resolved_against_the_project(raw: &str) -> Result<intentsvcs::address::Address, Failure> {
+  use intentsvcs::resolve::Resolution;
+
+  let facade = open()?;
+  let exists = |a: &intentsvcs::address::Address| {
+    intentsvcs::nav::view_for(&a.entity)
+      .map(|v| present(&facade, &v))
+      .unwrap_or(false)
+  };
+
+  match intentsvcs::resolve::resolve(raw, exists).map_err(|e| Failure::Error(e.render()))? {
+    Resolution::Resolved(address) => Ok(address),
+    // **BOTH EXIST, SO THE REFUSAL NAMES BOTH AND PICKS NEITHER.** The
+    // candidates are rendered through `to_url`, so the operator is shown a form
+    // they can paste straight back -- and a worked example here cannot go stale
+    // into the shape the parser refuses.
+    Resolution::Ambiguous(candidates) => Err(Failure::Error(format!(
+      "error: `{raw}` names {} things in this project, and nothing here says which\n  remedy: name the one you meant -- {}",
+      candidates.len(),
+      candidates
+        .iter()
+        .map(|a| a.to_url())
+        .collect::<Vec<_>>()
+        .join(" or ")
+    ))),
+    // **NOT `no such thread`, WHICH IS WHAT A LADDER WITH PRECEDENCE WOULD
+    // SAY.** The number named two things and neither is here; reporting only
+    // the first rung would answer about one of the two the caller might have
+    // meant, which is the defect this whole door exists to close.
+    Resolution::Unresolvable { searched } => Err(Failure::Error(format!(
+      "error: `{raw}` is well formed and names nothing in this project\n  remedy: nothing was found at {} -- list what is there with `intent st list` or `intent issues list`",
+      searched
+        .iter()
+        .map(|a| a.to_url())
+        .collect::<Vec<_>>()
+        .join(" or ")
+    ))),
+  }
+}
+
 /// The one door from an operator's spelling to an address, with the kind as an
 /// OPTIONAL tie-breaker.
 ///
@@ -7483,18 +7574,24 @@ pub(crate) fn address_of(
   use intentsvcs::address::{Entity, SCHEME};
 
   let Some(kind) = kind else {
-    // **NO KIND AND NO SCHEME IS THE ONE CASE THIS CANNOT ANSWER, AND IT IS THE
-    // LADDER'S SEAT.** hv has ruled a resolution ladder for a bare number
-    // (thread, then issue, then work package); until it exists there is no
-    // tie-breaker here, and guessing would be `0189` again. The refusal names
-    // both spellings that DO work rather than the one that will.
-    if !raw.starts_with(SCHEME) {
-      return Err(Failure::Error(format!(
-        "error: `{raw}` could name a thread or an issue and nothing here says which\n  remedy: name the kind, eg `intent edit st {raw}`, or a whole address, eg `intent edit {}`",
-        worked_address()
-      )));
+    if raw.starts_with(SCHEME) {
+      return address::parse(raw).map_err(|e| Failure::Error(e.render()));
     }
-    return address::parse(raw).map_err(|e| Failure::Error(e.render()));
+    // **THE SEAT THIS COMMENT RESERVED IS NOW OCCUPIED.** It used to read *no
+    // kind and no scheme is the one case this cannot answer, and it is the
+    // LADDER'S SEAT ... until it exists there is no tie-breaker here, and
+    // guessing would be `0189` again*, and it refused. hv's ladder landed on
+    // 2026-08-31, so the tie-breaker exists: the PROJECT is asked which of the
+    // two the number names. **That is the third guard this week to name its own
+    // exit condition and have the condition arrive.**
+    //
+    // **THE STORE IS OPENED ONLY WHEN THE ARGUMENT IS ACTUALLY AMBIGUOUS.**
+    // `resolve` returns without a probe for anything tagged or scheme-spelled,
+    // but this function would still have to hold a facade to pass one -- and
+    // `edit --browser` returns before opening a store at all. So the facade is
+    // opened HERE, inside the one branch that can need it, rather than hoisted
+    // to the top of the verb where it would cost every invocation a store.
+    return resolved_against_the_project(raw);
   };
 
   let wanted = match kind {

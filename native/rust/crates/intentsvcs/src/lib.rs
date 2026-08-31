@@ -83,6 +83,7 @@ pub mod project;
 pub mod prose;
 pub mod realise;
 pub mod remedy;
+pub mod resolve;
 pub mod rootfiles;
 pub mod rules;
 pub mod store;
