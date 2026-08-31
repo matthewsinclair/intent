@@ -18,6 +18,7 @@
 0059	not-reader-reachable	internal-tooling -- parity check instruments and their execution sites are the estate's own rig	
 0064	not-reader-reachable	internal-tooling -- flag_reachability is a renderer-internal wiring rule with no reader-facing surface	
 0065	not-reader-reachable	no-door -- doctor has no acknowledgement mechanism to find; nothing in the docs or --help offers one to look for	
+0066	stated	docs/known-defects.md	intent#0066
 0067	not-reader-reachable	not-in-published-build -- driven with a MODULES.md present: `modules find intent_helpers` RETURNS THE ROW in v3.0.0. The recorded parity gap is not in this build.	
 0068	not-reader-reachable	register-authoring -- a constraint on how lang init must be BUILT, not a behaviour a reader meets	
 0069	stated	docs/known-defects.md	intent#0069
@@ -28,6 +29,7 @@
 0076	not-reader-reachable	internal-tooling -- IN-EX-TEST-001's greppable proxy is a rule-library authoring concern	
 0079	not-reader-reachable	not-in-published-build -- driven against the v3.0.0 keg: st new writes acceptance.md AND info.md there. The defect arrived after the tag.	
 0080	stated	docs/known-defects.md	intent#0080
+0082	stated	docs/known-defects.md	intent#0082
 0083	stated	docs/known-defects.md	intent#0083
 0085	not-reader-reachable	internal-tooling -- post-tool-advisory is a Claude Code hook, not a documented verb	
 0087	not-reader-reachable	register-authoring -- VIEW_NAMES and Project::classify are internal encodings with no reader-facing spelling	

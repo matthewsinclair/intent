@@ -20,6 +20,8 @@ Two things worth knowing before the list. **An issue being closed in our registe
 
 on every verb, including ones that have nothing to do with the stray thread. The remedy is misleading: the project is fine and one directory is not. Keep working copies of threads outside `intent/st/`.
 
+**A second route reaches the same wall.** A thread placed under an `_inbox/` status directory produces the identical stop (`intent#0066`), rather than the invisibility that issue records. Two different stray-directory shapes, one symptom, and in both cases the message names a thread the operator never created.
+
 ## Threads
 
 **`intent st list` shows only in-progress threads and discloses the filter nowhere** (`intent#0121`). Driven: two threads, one `WIP` and one `Triage`; the default listing shows one row and `--status all` shows both, with nothing in the default output indicating that anything was filtered. A short list reads as a short project.
@@ -54,6 +56,10 @@ on every verb, including ones that have nothing to do with the stray thread. The
 ```
 
 The first line says nothing changed and the second says the store was replaced. A thread-scoped call also describes itself as acting on the whole store.
+
+**A file authored in canon alone never reaches disk, and the sync says it worked** (`intent#0082`). Driven: an attachment added to `intent/.canon/st/ST0001.json` and then synced produces `ok: extract written for 1 thread(s)` and no file. The count of files under `intent/st/` does not move.
+
+This bounds the canon-editing route that [Getting started](getting-started.md) uses for thread fields: editing canon and syncing works for a thread's `objective` and `context`, and does **not** work for adding a file. `intent st attach` is the writer for attachments, and no direction of `sync` is.
 
 ## Declared and not implemented
 
