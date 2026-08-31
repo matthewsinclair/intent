@@ -43,6 +43,20 @@ use thiserror::Error;
 /// The scheme, including its separator. Written once.
 pub const SCHEME: &str = "intent://";
 
+/// The addressable collections, in one place.
+///
+/// **THE MATCH ARM IN `parse_entity` CANNOT READ THIS** -- patterns are not
+/// expressions -- so that list stays literal and this one exists to stop the
+/// PROSE from being a third home. Both remedies below are generated from it,
+/// which is the half that used to drift silently: a collection added to the
+/// grammar left the sentence naming three.
+const COLLECTIONS: &[&str] = &["threads", "issues", "nodes", "events"];
+
+fn collections() -> String {
+  let (last, rest) = COLLECTIONS.split_last().expect("collections is not empty");
+  format!("{} and {last}", rest.join(", "))
+}
+
 /// A representation of the addressed entity.
 ///
 /// **Exactly two, closed for 3.0.0.** `GET` accepts both; `PUT` accepts `json`
@@ -246,6 +260,31 @@ pub enum AddressError {
   NotAnIntentUrl { input: String },
   #[error("`{segment}` is not an addressable collection")]
   UnknownCollection { segment: String },
+  /// The authority slot holds a COLLECTION name, so a slash is missing.
+  ///
+  /// **THE MOST COMMON MISTAKE IN THIS GRAMMAR, MEASURED RATHER THAN
+  /// SUPPOSED** (2026-08-31). `intent://threads/ST0000` reads `threads` as the
+  /// PROJECT and `ST0000` as the collection, so the refusal used to complain
+  /// about `ST0000` -- true, and pointing away from the fix.
+  ///
+  /// **Across this estate's own boards the two-slash form appeared TEN times
+  /// against ONE canonical use, produced independently by four parties who
+  /// work on this tool daily.** Nothing emits a canonical address, so nobody
+  /// could learn that the authority is empty, and everybody reconstructed the
+  /// same wrong form from the same intuition about URLs. `file:///` has had
+  /// thirty years and fares no better.
+  ///
+  /// **So this refusal spells the right form back. It is the smallest possible
+  /// emit partner, and it sits exactly where the mistake is made.**
+  #[error(
+    "`{input}` puts `{collection}` where the PROJECT goes, so it names another project's `{shadowed}` rather than this project's `{collection}`"
+  )]
+  AuthorityIsACollection {
+    input: String,
+    collection: String,
+    shadowed: String,
+    canonical: String,
+  },
   #[error("`{input}` names no entity -- an address needs a collection and an id")]
   Empty { input: String },
   #[error("`{id}` is not a valid {kind} id")]
@@ -310,7 +349,10 @@ impl Remedy for AddressError {
         format!("an address begins `{SCHEME}`; an empty authority means this project")
       }
       AddressError::UnknownCollection { .. } => {
-        "the collections are threads, issues, nodes and events".into()
+        format!("the collections are {}", collections())
+      }
+      AddressError::AuthorityIsACollection { canonical, .. } => {
+        format!("the authority is EMPTY for this project, so it takes THREE slashes: `{canonical}`")
       }
       AddressError::Empty { .. } => {
         format!("name an entity, eg `{SCHEME}/threads/ST0000`")
@@ -386,6 +428,12 @@ const VIEW_NAMES: &[&str] = &[
 ];
 
 /// Parse an `intent://` address. **The one implementation** (AC-07.1).
+/// The first non-empty segment of a path, for naming what a mis-slashed
+/// address ACTUALLY asked for.
+fn segments_head(path: &str) -> Option<String> {
+  path.split('/').find(|s| !s.is_empty()).map(str::to_string)
+}
+
 pub fn parse(input: &str) -> Result<Address, AddressError> {
   let rest = input
     .strip_prefix(SCHEME)
@@ -404,6 +452,19 @@ pub fn parse(input: &str) -> Result<Address, AddressError> {
     Some((a, p)) => (a, p),
     None => (location, ""),
   };
+  // **A COLLECTION IN THE AUTHORITY SLOT IS A MISSING SLASH, AND IT IS CAUGHT
+  // HERE RATHER THAN LEFT TO `parse_entity`.** By the time the path is parsed
+  // the evidence is gone: the parser is looking at `ST0000` and can only say it
+  // is not a collection, which is true and sends the reader to the wrong half
+  // of their address.
+  if COLLECTIONS.contains(&authority) {
+    return Err(AddressError::AuthorityIsACollection {
+      input: input.to_string(),
+      collection: authority.to_string(),
+      shadowed: segments_head(path).unwrap_or_else(|| "(nothing)".to_string()),
+      canonical: format!("{SCHEME}/{location}"),
+    });
+  }
   let authority = (!authority.is_empty()).then(|| authority.to_string());
 
   let segments: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();

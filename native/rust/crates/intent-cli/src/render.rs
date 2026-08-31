@@ -1443,10 +1443,10 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
       // downstream can act on it, so the refusal belongs here and must name
       // both shapes rather than only the one it happens to prefer.
       (None, None) => {
-        return Err(Failure::Error(
-          "error: `edit` needs something to open\n  remedy: name an address, eg `intent edit intent:///threads/<thread>`, or a kind and an id, eg `intent edit st <id>`"
-            .to_string(),
-        ));
+        return Err(Failure::Error(format!(
+          "error: `edit` needs something to open\n  remedy: name an address, eg `intent edit {}`, or a kind and an id, eg `intent edit st <id>`",
+          worked_address()
+        )));
       }
       (Some(one), _) if one.starts_with(intentsvcs::address::SCHEME) => {
         // The address carries its own kind, so there is none to check against
@@ -7429,6 +7429,32 @@ pub(crate) fn thread_spec(raw: &str) -> Result<String, Failure> {
   })
 }
 
+/// A worked address, RENDERED from the grammar rather than typed.
+///
+/// **TWO GUARDS MEET ON THIS ONE STRING AND A LITERAL SATISFIES NEITHER.**
+/// `address_resolution_single_home.rs` refuses the scheme spelled anywhere in
+/// `intent-cli` outside a comment -- correctly, since a second speller agrees
+/// with the grammar exactly until one moves -- and `no_pm_state_in_output.rs`
+/// refuses a worked example naming a thread in the reader's own project. So the
+/// example carries a PLACEHOLDER for the id and takes its shape from
+/// [`Address::to_url`], which is the same function `show` emits through.
+///
+/// **THAT ALSO MAKES IT UNABLE TO GO STALE**, which a literal could: if the
+/// grammar ever moves, every worked example in this file moves with it, and the
+/// day it did not is the day an operator is taught the form the tool refuses.
+/// That is not hypothetical -- it is the ten-against-one measurement that put
+/// this whole seam on the board.
+fn worked_address() -> String {
+  intentsvcs::address::Address {
+    authority: None,
+    entity: intentsvcs::address::Entity::Thread {
+      id: "<thread>".to_string(),
+    },
+    format: None,
+  }
+  .to_url()
+}
+
 /// The one door from an operator's spelling to an address, with the kind as an
 /// OPTIONAL tie-breaker.
 ///
@@ -7454,7 +7480,7 @@ pub(crate) fn address_of(
   kind: Option<&str>,
   raw: &str,
 ) -> Result<intentsvcs::address::Address, Failure> {
-  use intentsvcs::address::SCHEME;
+  use intentsvcs::address::{Entity, SCHEME};
 
   let Some(kind) = kind else {
     // **NO KIND AND NO SCHEME IS THE ONE CASE THIS CANNOT ANSWER, AND IT IS THE
@@ -7464,7 +7490,8 @@ pub(crate) fn address_of(
     // both spellings that DO work rather than the one that will.
     if !raw.starts_with(SCHEME) {
       return Err(Failure::Error(format!(
-        "error: `{raw}` could name a thread or an issue and nothing here says which\n  remedy: name the kind, eg `intent edit st {raw}`, or a whole address, eg `intent edit intent:///threads/<thread>`"
+        "error: `{raw}` could name a thread or an issue and nothing here says which\n  remedy: name the kind, eg `intent edit st {raw}`, or a whole address, eg `intent edit {}`",
+        worked_address()
       )));
     }
     return address::parse(raw).map_err(|e| Failure::Error(e.render()));
@@ -7494,11 +7521,20 @@ pub(crate) fn address_of(
     return Ok(address);
   }
 
-  let url = match kind {
-    "st" => format!("{SCHEME}/threads/{}", thread_spec(raw)?),
+  // **THE ENTITY IS CONSTRUCTED, NEVER A URL STRING THAT IS THEN PARSED.**
+  // The first build of this did `format!("{SCHEME}/threads/{id}")` and handed
+  // it to `parse`, which `address_resolution_single_home.rs` refused by name:
+  // *resolution has ONE home and these spell the scheme themselves*. It was
+  // right -- a second place that knows `threads` is a path segment and that the
+  // authority comes first agrees with the grammar exactly until one of them
+  // moves. Building the `Entity` states the SUBJECT and leaves every question
+  // about spelling to `address`.
+  let entity = match kind {
+    "st" => Entity::Thread {
+      id: thread_spec(raw)?,
+    },
     // `thread_spec` normalises the thread half and passes the tail through
-    // UNTOUCHED, so the composite arrives as `ST0000/03` and only needs its
-    // separator spelled the way the grammar spells it.
+    // UNTOUCHED, so the composite arrives as `ST0000/03` and splits here.
     "wp" => {
       let spec = thread_spec(raw)?;
       let (thread, wp) = spec.split_once('/').ok_or_else(|| {
@@ -7506,15 +7542,24 @@ pub(crate) fn address_of(
           "error: `{raw}` does not name a work package\n  remedy: name it as `<thread>/<NN>`, eg `<thread>/03`"
         ))
       })?;
-      format!("{SCHEME}/threads/{thread}/wp/{wp}")
+      Entity::Wp {
+        thread: thread.to_string(),
+        wp: wp.to_string(),
+      }
     }
-    _ => format!(
-      "{SCHEME}/issues/{:0width$}",
-      model::normalise_issue_id(raw).map_err(|e| id_refusal(raw, e, model::IdKind::Issue))?,
-      width = model::ISSUE_DIGITS
-    ),
+    _ => Entity::Issue {
+      id: format!(
+        "{:0width$}",
+        model::normalise_issue_id(raw).map_err(|e| id_refusal(raw, e, model::IdKind::Issue))?,
+        width = model::ISSUE_DIGITS
+      ),
+    },
   };
-  address::parse(&url).map_err(|e| Failure::Error(e.render()))
+  Ok(intentsvcs::address::Address {
+    authority: None,
+    entity,
+    format: None,
+  })
 }
 
 /// An enum-typed ARGUMENT, enforced from the table exactly as the enum-typed
