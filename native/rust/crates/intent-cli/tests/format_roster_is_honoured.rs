@@ -73,15 +73,23 @@ const ARGV: &[(&str, &[&str])] = &[
   // header-and-separator rather than as a sentence, so the non-empty control
   // below could not see it; issue 0121's disclosure made it visible and the
   // control fired the same hour.
-  // **DECLARED RATHER THAN SKIPPED, AND THE DRIVE IS CURRENTLY VACUOUS -- SAY
-  // SO.** `daemon status` is DECLARED AND UNWIRED: it returns the `known command
-  // that is not implemented yet` marker at rc=2 for every argv, so this drive
-  // cannot yet distinguish a format the verb accepts from one it refuses. It
-  // passes here because the marker matches neither refusal pattern, which is a
-  // pass BY NOT MATCHING rather than by being right. The entry is here because
-  // this file refuses to be skipped, and the honest state is recorded rather
-  // than left to look like coverage. **It becomes a real drive the moment cc
-  // wires the arm** (WP-08) -- nothing here needs changing then.
+  // **THIS ENTRY WAS VACUOUS FOR FOURTEEN DAYS AND ITS OWN NOTE SAID SO WHILE
+  // BEING WRONG ABOUT WHY.** The note read: *`daemon status` is DECLARED AND
+  // UNWIRED, it returns the unwired marker at rc=2 for every argv ... it
+  // becomes a real drive the moment cc wires the arm -- nothing here needs
+  // changing then.* **The wiring landed at `e6aba646` and nothing here
+  // changed, because nothing had to**: the verb then answered `ok:` at rc=0
+  // for EVERY value of `--format`, having never read the flag. The pass
+  // condition is *matches neither refusal pattern*, and a wired verb ignoring
+  // its flag matches neither pattern either -- **so the arm went
+  // vacuous-because-UNWIRED to vacuous-because-UNREAD with the same green and
+  // no signal.** The promise did not fire because the sentence *nothing here
+  // needs changing then* was the part that was wrong.
+  //
+  // **IT IS A REAL DRIVE NOW** (cc, 2026-08-31): `daemon_status` reads the
+  // flag through `enum_flag`, the roster is narrowed to `terminal`, and
+  // `the_daemon_status_lookup_resolves_and_refuses_by_name` below drives the
+  // refusal rather than leaving acceptance to stand for both verdicts.
   ("daemon status", &["daemon", "status"]),
   ("st list", &["st", "list", "--status", "all"]),
   ("st sync", &["st", "sync"]),
@@ -138,6 +146,62 @@ fn it_can_fail() {
   let (out, code) = run(p.path(), &["issues", "list", "--format", "bogus"]);
   assert_ne!(code, 0, "an undeclared value must be refused: {out}");
   assert!(out.contains("is not a format"), "{out}");
+}
+
+/// **THE `daemon status` ROSTER LOOKUP RESOLVES, AND THE REFUSAL NAMES THE ROW.**
+///
+/// `render.rs` spells the literal `"daemon status"` to look its roster up:
+/// `enum_flag(a, "daemon status", "--format")`. **That literal is the first
+/// MULTI-token command path the roster scanner has ever met** -- `doctor`'s is
+/// a single token and goes unscanned -- so it is declared in
+/// `command_rosters_are_derived_or_declared.rs`, and it is declared
+/// `CheckedBy` **this arm**.
+///
+/// **WHICH MAKES THE EXIT CODE THE ASSERTION, NOT THE MESSAGE.** `enum_flag`
+/// has two failure branches and they are not the same fact:
+///
+/// - the label does NOT resolve in the table -> `Failure::Unavailable`, **rc
+///   2**, *the dispatch table declares no values for `--format` on ...*. That
+///   is the typo case, and it is what this arm exists to catch.
+/// - the label resolves and the VALUE is undeclared -> `Failure::Error`, **rc
+///   1**, naming the row and what it takes.
+///
+/// So asserting rc 1 is asserting that the lookup found the row. **A test that
+/// only asserted "it refused" would pass on the typo**, because a mistyped
+/// label refuses too -- more loudly, and about the wrong thing. That
+/// distinction is the whole reason this can be classified `CheckedBy` rather
+/// than merely tolerated: vc's condition was that a runtime check nothing
+/// exercises is a guard nobody runs.
+#[test]
+fn the_daemon_status_lookup_resolves_and_refuses_by_name() {
+  let p = seeded();
+  let (out, code) = run(p.path(), &["daemon", "status", "--format", "zzz"]);
+
+  assert_eq!(
+    code, 1,
+    "an undeclared `--format` value must refuse at 1 -- a 2 here means the literal \
+     `daemon status` in `render.rs` no longer resolves to a table row, so the roster lookup \
+     is broken rather than the value being wrong: {out}"
+  );
+  assert!(
+    !out.contains("declares no values"),
+    "`enum_flag` took its label-did-not-resolve branch, so `render.rs` and the dispatch table \
+     disagree about how this row is spelled: {out}"
+  );
+  assert!(
+    out.contains("daemon status") && out.contains("zzz"),
+    "the refusal must name the row it refused for and the value it refused: {out}"
+  );
+
+  // **AND THE DECLARED VALUE STILL WORKS**, so the arm above is not passing
+  // because the verb refuses everything -- which is the shape a broken
+  // `enum_flag` would produce and is indistinguishable from correctness
+  // without this line.
+  let (_, ok_code) = run(p.path(), &["daemon", "status", "--format", "terminal"]);
+  assert_eq!(
+    ok_code, 0,
+    "the one declared value must still be accepted, or the refusal above proves nothing"
+  );
 }
 
 /// The fixture is genuinely non-empty, so the drives below reach the renderer

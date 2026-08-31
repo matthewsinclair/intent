@@ -99,6 +99,30 @@ const MCP_SERVING_MATCH: &str = "the MCP serving match: SERVED + arms, held agai
 const DECLARED: &[(&str, &str, Why)] = &[
   (
     "intent-cli/src/render.rs",
+    "daemon status",
+    Why::CheckedBy(
+      "NOT A ROSTER AND NOT A COINCIDENCE: it is the LOOKUP KEY `enum_flag(a, \"daemon status\", \
+     \"--format\")` uses to find the row's declared values, and the same literal names the row \
+     back to the operator in the refusal. **The first MULTI-token label the scanner has met** -- \
+     `doctor`'s is a single token and goes unscanned -- so this shape is new to the guard rather \
+     than newly wrong. \
+     HELD AGAINST THE TABLE AT RUNTIME, WHICH IS WHY THIS IS `CheckedBy` AND NOT MERELY \
+     TOLERATED: `enum_flag` resolves the literal against `dispatch::table()` and takes a DIFFERENT \
+     branch when it does not match -- `Failure::Unavailable` at exit 2, `the dispatch table \
+     declares no values`, rather than the exit-1 refusal an undeclared VALUE gets. So a typo \
+     cannot pass as a working lookup. \
+     DRIVEN BY `format_roster_is_honoured::the_daemon_status_lookup_resolves_and_refuses_by_name`, \
+     which asserts the exit CODE and not merely that it refused -- a mistyped label refuses too, \
+     more loudly and about the wrong thing. Mutation driven in a detached worktree: doubling the \
+     space in the literal reds that arm on the 2-versus-1 assertion, naming the cause. \
+     THE ARM IS THE CONDITION OF THIS CLASSIFICATION (vc, 2026-08-31): a runtime check nothing \
+     exercises is a guard nobody runs, and `CheckedBy` on the strength of an unexercised refusal \
+     would be declaring a guarantee from a mechanism no test has made fire. Without that arm this \
+     entry is `NotARoster` and nothing stronger.",
+    ),
+  ),
+  (
+    "intent-cli/src/render.rs",
     "st list",
     Why::Discharges(
       "TWO SITES SPELL IT AND THEY DISCHARGE TOGETHER. (1) `SERVED_BY_DAEMON`, the roster; (2) the \

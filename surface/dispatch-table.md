@@ -3562,13 +3562,13 @@ Manage the machine-level intentd
 - **THE TWO ALTERNATIVES WERE BOTH DEFECTS ALREADY NAMED ON THIS ESTATE.** A `--format` on the head row lands on `start`, `stop`, `run` and `status` alike, which is a FLAG ACCEPTED AND IGNORED -- worse than one refused, because the caller believes they got the behaviour and the exit code agrees. And a child row under a `new_surface` head is never read by `spine::build`, which iterates `table.families`: measured, that produced TWO TESTS DISAGREEING about whether the command exists, one saying it was missing from the surface and one saying it was present with no row behind it. That is what two homes look like from outside.
 - `daemon status` is the only READ in the family and the only member whose exposure question is open.
 
-| command         | args      | flags                  | help                                                             | disposition |
-| --------------- | --------- | ---------------------- | ---------------------------------------------------------------- | ----------- |
-| `daemon`        | <command> | --                     | Manage the machine-level intentd                                 | new-surface |
-| `daemon start`  | --        | --at-login             | Start intentd for this machine                                   | new-surface |
-| `daemon stop`   | --        | --at-login             | Stop the running intentd                                         | new-surface |
-| `daemon status` | --        | --format terminal/json | Report whether intentd is running, and the address it answers on | new-surface |
-| `daemon run`    | --        | --                     | Run intentd in the foreground, without daemonising               | new-surface |
+| command         | args      | flags             | help                                                             | disposition |
+| --------------- | --------- | ----------------- | ---------------------------------------------------------------- | ----------- |
+| `daemon`        | <command> | --                | Manage the machine-level intentd                                 | new-surface |
+| `daemon start`  | --        | --at-login        | Start intentd for this machine                                   | new-surface |
+| `daemon stop`   | --        | --at-login        | Stop the running intentd                                         | new-surface |
+| `daemon status` | --        | --format terminal | Report whether intentd is running, and the address it answers on | new-surface |
+| `daemon run`    | --        | --                | Run intentd in the foreground, without daemonising               | new-surface |
 
 ### `daemon`
 
@@ -3621,10 +3621,10 @@ Report whether intentd is running, and the address it answers on
 
 - **v2:** new-surface
 - **Flags:**
-  - `--format` `terminal|json` (enum) -- Output format
+  - `--format` `terminal` (enum) -- Output format
     - **default:** terminal
     - **disposition:** keep
-    - **disposition basis:** **`--format`, NOT `--json`, ON hv's 2026-08-21 SPELLING RULING**: `--format` where the verb has formats other than json, and `--json` kept ONLY as a v2 parity alias. `daemon` is new surface with no v2 ancestor, so there is no obligation to inherit and `--json` would be a second spelling minted rather than kept. **The machine-readable form is why this row exists**: ST0064's menubar app must ask the CLI where the daemon is, so that no port literal and no setting can exist in the app. Geodica reached the same design independently -- _the address comes from the one resolver, never from config or a setting_ -- which is a second measurement of one design under different constraints rather than a citation.
+    - **disposition basis:** **`--format`, NOT `--json`, ON hv's 2026-08-21 SPELLING RULING**: `--format` where the verb has formats other than json, and `--json` kept ONLY as a v2 parity alias. `daemon` is new surface with no v2 ancestor, so there is no obligation to inherit and `--json` would be a second spelling minted rather than kept. **The machine-readable form is why this row exists**: ST0064's menubar app must ask the CLI where the daemon is, so that no port literal and no setting can exist in the app. Geodica reached the same design independently -- _the address comes from the one resolver, never from config or a setting_ -- which is a second measurement of one design under different constraints rather than a citation. **NARROWED TO `terminal` 2026-08-31 (cc, RULED BY vc), AND WIDEN IT AGAIN WHEN A PROJECTION IS BUILT** -- the same correction and the same precedent as `07ad9876`, which narrowed five verbs off `json` for want of one. `daemon status` DECLARED `terminal|json`, PROJECTED NEITHER, AND REFUSED NOTHING: `--format json`, `--format terminal` and `--format zzz` were byte-identical at rc=0, because `render.rs`'s `daemon_status()` took no format argument and nothing downstream ever read the flag. **THE PARAGRAPH ABOVE IS WHY THE ROW EXISTS AND IT IS NOT A REASON TO KEEP THE VALUE**: ST0064's menubar app is the named consumer and it is UNBUILT -- no Swift source for it exists, so the contract has no reader, and minting an output contract before a tag owes it forever. **AND THE COUNTER-ARGUMENT IS REAL, RECORDED RATHER THAN BURIED** (vc): unlike the five, this verb returns a small OBJECT -- answering, and where -- not a list of lists, so it is in the shape class that CAN project, and building it is small. Narrowing cannot be wrong, because it makes the declaration true of the binary; widening is a decision anyone can take the day the app needs it.
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface`
 - **MCP:** not exposed -- read-only

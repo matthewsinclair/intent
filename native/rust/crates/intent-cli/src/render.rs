@@ -5325,7 +5325,7 @@ fn daemon(m: &ArgMatches) -> Result<(), Failure> {
     Some(("run", _)) => daemon_run(),
     Some(("start", sm)) => daemon_start(given(sm, "at-login")),
     Some(("stop", sm)) => daemon_stop(given(sm, "at-login")),
-    Some(("status", _)) => daemon_status(),
+    Some(("status", sm)) => daemon_status(sm),
     Some((verb, _)) => unwired("daemon", verb),
     None => unwired("daemon", ""),
   }
@@ -5602,7 +5602,43 @@ fn route_now() -> Result<daemon::Route, Failure> {
   Ok(daemon::route(&candidates))
 }
 
-fn daemon_status() -> Result<(), Failure> {
+/// `intent daemon status` -- this machine's route, right now.
+///
+/// **THE FLAG IS READ BEFORE THE PROBE, AND UNTIL 2026-08-31 IT WAS NOT READ AT
+/// ALL.** The dispatch row declared `--format terminal|json`; this function
+/// took no argument, the arm above matched `Some(("status", _))` and discarded
+/// the `ArgMatches`, and so `--format json`, `--format terminal` and
+/// `--format zzz` were BYTE-IDENTICAL at rc=0. **That is the one verb of eleven
+/// that never reached the refusal this estate's own `disposition_basis`
+/// declares** -- an unknown value is refused in the renderer at exit 1, never
+/// at exit 2 -- so it answered a different question's answer and called it ok.
+///
+/// **IT IS THE SAME SHAPE AS THE `sync` EPISODE RECORDED IN THIS FILE**, down
+/// to the discarded `ArgMatches` in the match arm: a surface that advertises a
+/// flag and an implementation that denies it exists disagree in the one place
+/// a user checks. Found by vc while measuring `AC-00.3`, not by the arm that
+/// covers this row -- `format_roster_is_honoured.rs` declares `daemon status`
+/// rather than skipping it, and passed throughout, because its pass condition
+/// is *matches neither refusal pattern* and **a wired verb that ignores the
+/// flag matches neither pattern either.** It went vacuous-because-UNWIRED to
+/// vacuous-because-UNREAD with the same green and no signal.
+///
+/// **THE ROSTER IS ONE VALUE AND THE `match` IS STILL EXHAUSTIVE, WHICH IS THE
+/// WHOLE POINT OF WRITING IT THIS WAY.** [`enum_flag`] already refuses anything
+/// the table does not declare, so the second arm is unreachable today. It
+/// becomes reachable the moment someone widens the row back to `terminal|json`
+/// -- and then it REFUSES rather than printing terminal output under a json
+/// flag, which is the exact defect this function was fixed for. **Widening the
+/// declaration without building the projection is now loud instead of silent.**
+fn daemon_status(a: &ArgMatches) -> Result<(), Failure> {
+  match enum_flag(a, "daemon status", "--format")?.as_str() {
+    "terminal" => {}
+    other => {
+      return Err(Failure::Unavailable(format!(
+        "error: the dispatch table declares `--format {other}` for `daemon status` and this build has no {other} projection\n  remedy: this is a defect in the build rather than in what you typed -- the declaration was widened without the projection being written"
+      )));
+    }
+  }
   let candidates = daemon::candidates().map_err(|e| Failure::Error(e.render()))?;
   match daemon::route(&candidates) {
     daemon::Route::Daemon(endpoint) => println!("ok: intentd is answering at {endpoint}"),
