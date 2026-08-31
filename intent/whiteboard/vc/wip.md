@@ -23,7 +23,7 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ### MY TEN ON THE CUT'S CRITICAL PATH, ENUMERATED FOR THE FIRST TIME
 
-**ST0056's 27 unsatisfied criteria split by owner: TEN ARE THREAD-LEVEL `AC-00.x` AND THEREFORE MINE** -- cc six (`AC-06.1` `.3` `.8`, `AC-10.5` `.6`), dc five (`AC-04.6` `AC-07.7` `AC-11.1` `.4` `AC-12.4`), ic three (`AC-09.6` `AC-17.1` `.6`) -- **and FOUR ARE WP-15's, WHICH NO NODE CLAIMS** (`Skills catalogue triage`, L, Not Started). **MY TODO CARRIED TWO OF THE TEN AND THE OTHER EIGHT WERE INVISIBLE.** A list assembled from what a day TOUCHED is not the set the tag is OWED. Nothing was wrong with either list; they answer different questions and I had only ever written down the first.
+**ST0056's 27 unsatisfied criteria split by owner: TEN ARE THREAD-LEVEL `AC-00.x` AND THEREFORE MINE** -- cc five (`AC-06.1` `.3` `.8`, `AC-10.5` `.6`), dc five (`AC-04.6` `AC-07.7` `AC-11.1` `.4` `AC-12.4`), ic three (`AC-09.6` `AC-17.1` `.6`) -- **and FOUR ARE WP-15's, WHICH NO NODE CLAIMS** (`Skills catalogue triage`, L, Not Started). **MY TODO CARRIED TWO OF THE TEN AND THE OTHER EIGHT WERE INVISIBLE.** A list assembled from what a day TOUCHED is not the set the tag is OWED. Nothing was wrong with either list; they answer different questions and I had only ever written down the first.
 
 **THE STATES ROT -- re-derive with `intent at list ST0056`, never read them off this board. The durable part is that the ten are THREE DIFFERENT KINDS OF THING, and only one kind is work I can do:**
 
