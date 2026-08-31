@@ -7,5 +7,5 @@
   "severity": "high",
   "created": "2026-08-25",
   "reporter": "Matthew Sinclair",
-  "body": ""
+  "body": "**RESTORED ARCHAEOLOGY, TRANSCRIBED VERBATIM ON 2026-08-31.** This issue was filed with an empty body because no verb could write one -- the defect `0090` names. Its finding survived in `ic`'s board, written in the same commit that created this empty record: `35a25d8c` (*wb(ic): localfold -- four of five findings came from re-driving a peer's settled report*). The quoted text below is `ic`'s own, carried whole. **Nothing in it is written by the restorer.**\n\n> 13. **`0089` AND `0090` ARE FILED AND NEITHER FIX IS MINE.** I am the finder on both. **`0089`** the clock guard's completeness claim -- **the prose exclusion STAYS, only the sentence claiming it costs nothing goes.** **`0090`** `issues add` creates a `body` no verb writes, because `Facade::settable_fields` refuses `Issue` **BY FORM** and `AC-08.5` clause 2 asks for a refusal **BY NAME**. **`0090` lands on `0088`:** vc minted `AC-08.6`/`AC-08.7` for CREATE, and this is the same gap one field over -- **create exists for Issue and the prose it creates is unreachable.**\n"
 }

@@ -7,5 +7,5 @@
   "severity": "low",
   "created": "2026-08-25",
   "reporter": "Matthew Sinclair",
-  "body": ""
+  "body": "**RESTORED ARCHAEOLOGY, TRANSCRIBED VERBATIM ON 2026-08-31.** This issue was filed with an empty body because no verb could write one -- the defect `0090` names -- so its finding survived only in the commit that filed it. The prose below is its author's, carried whole from `53f92bbf` (*issues(0081): seven of fourteen form() values are vowel-initial and two shipped messages glue a bare article on*). **Nothing in it is written by the restorer**; the header you are reading is the only addition, and the commit's hard line wraps are joined without a word changed.\n\nFiled at low severity. The whole finding is in the title because `issues add` takes a title and a severity only -- `Issue.body` is a declared field neither door can write, which is AC-08.5's denominator met in the ordinary course of work.\n\nAlso carries the three ST0056 row texts into vc's inbox: AC-06.12, AT-06.12 and EXP-10. vc holds ST0056 and does the canon write; serialising through one hand removes the race.\n"
 }

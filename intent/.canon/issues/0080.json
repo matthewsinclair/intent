@@ -7,5 +7,5 @@
   "severity": "medium",
   "created": "2026-08-25",
   "reporter": "Matthew Sinclair",
-  "body": ""
+  "body": "**RESTORED ARCHAEOLOGY, TRANSCRIBED VERBATIM ON 2026-08-31.** This issue was filed with an empty body because no verb could write one -- the defect `0090` names -- so its finding survived only in the commit that filed it. The prose below is its author's, carried whole from `693fa19c` (*issues(0080): migrate does not compute Thread.slug, so the hoisted estate lists blank*). **Nothing in it is written by the restorer**; the header you are reading is the only addition, and the commit's hard line wraps are joined without a word changed.\n\nFound while driving the v2->v3 upgrade on a throwaway built from a real Intentv2 thread, answering hv's question about what hoisting the estate involves.\n\nDriven: title, created and status all survive migration intact. `slug` is None in canon, so `st list` renders an empty Slug column for every migrated thread. `st new` computes a slug; `migrate` does not. Same axis as ic's 0077 -- a field the model declares and only one of two doors writes.\n\nCosmetic per thread, estate-wide in effect: it is the primary listing view in every project that gets hoisted.\n"
 }
