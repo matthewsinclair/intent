@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 07:23Z
+heartbeat_at: 2026-08-31 07:25Z
 status: paused
-focus: "FOLDED 2026-08-31 07:23Z, pre-fold at .history/20260831/wip-fold-0721Z.md. Four landed: 49d8b24e AT-06.6, 4a3ca7a9 SERVED_BY_DAEMON membership, ccbb4afd AT-10.8, a3b8aa60 the stale-sibling-intentd refusal. Nothing of mine is uncommitted and nothing is owed to me. ON THE BOUNCE: AT-10.12 migrator_determinism.rs, ISOLATED FIXTURE ONLY. Waiting on vc for ONE thing -- which output carries AC-10.8's residue naming."
+focus: "FOLDED 2026-08-31 07:23Z, pre-fold at .history/20260831/wip-fold-0721Z.md. Four landed: 49d8b24e AT-06.6, 4a3ca7a9 SERVED_BY_DAEMON membership, ccbb4afd AT-10.8, a3b8aa60 the stale-sibling-intentd refusal. NOTHING IS OUTSTANDING WITH ANY PEER: vc RULED AC-10.8 (option d, qualify the claim) and SEQUENCED AT-10.5 immediately after AT-10.8. On the bounce, in order: AC-10.8 naming half, then AT-10.5, then AT-10.12 (ISOLATED FIXTURE ONLY)."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -18,8 +18,8 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ## TODO
 
 - **AT-10.12 `migrator_determinism.rs`** -- migrate a fixture, migrate again, require identical canon bytes, **and separately** require the output to match canon from the same binary. **The two are different assertions and the second is the one that failed.** **ISOLATED FIXTURE, NEVER THE LIVE TREE**: this is the verb that zeroed the estate's event log, and I have stated I will not run it here again for any reason, including verifying my own fix. Positive control is the measured divergence itself.
-- **AC-10.8's naming half -- BLOCKED ON vc, and it is a specification call not a build one.** `sync --to-disk` prints `ok: extract written for {n} thread(s)` and names no residue. I put three readings to vc and recommended (c) -- `doctor`/`export` rather than the egest -- holding it loosely. **Do not build to the literal wording without the ruling**: rewording a criterion to match what is easy to build is the move to avoid, and so is printing a MODEL constant on every run of a routine verb.
-- **AT-10.5 `fleet_corpus_ingest.rs`** -- the `migrate.rs` blocker expired 2026-08-27, **but vc's second and load-bearing argument stands: AC-10.5 asks the MIGRATION to name its residue and it does not.** Same shape as AC-10.8's second half; both move together or neither does.
+- **AC-10.8's naming half -- RULED BY vc 2026-08-31, OPTION (d), AND IT WAS NONE OF MY THREE.** **The output must not CLAIM COMPLETENESS IT DOES NOT HAVE -- a qualifier on the claim, not an enumeration beside it.** One line, the existing one, extended: `ok: extract written for 301 thread(s); prose, shipped content and wip/restart are not modelled and are unchanged`. **vc refused (c) for the reason I gave for distrusting it** -- moving the obligation to `doctor`/`export` rewords the row off the verb whose output creates the false impression, and that sentence goes on claiming what it claims. **And refused (a) on my suppression argument**, with (b) collapsing into (a) because the set is a model constant rather than a per-run measurement. **DERIVED FROM `data-model.md`, NEVER HARDCODED -- vc is holding me to my own condition**, for ic's `--out-of-model` reason: a verb that names its own denominator certifies itself.
+- **AT-10.5 IMMEDIATELY AFTER AT-10.8 -- NOT PULLED FORWARD, AND NOT A QUEUE PREFERENCE.** vc's reason: **the two rows are ONE design question asked of two verbs.** AC-10.5 asks the migration to name its residue; AC-10.8 asks the egest to name what it cannot reproduce. **Ruling (d) applies to both, and doing them adjacently is one ruling applied twice rather than two rulings that drift.**
 - **AT-06.11 `remedies_are_reachable.rs`** -- walk the emitted REMEDY STRINGS, never the declared verbs; a test asserting every declared verb exists passes trivially. Held red by design once written.
 - **AC-06.8 is ic's file, reported not fixed.** `INHERITED_UNREAD` carries four live entries and **three are `st bootstrap` flags on a verb that refuses at rc=2** -- graded as violations because `unwired_families()` keys the deferral on the FAMILY and `st` is wired.
 - **A `bin/devbin build all` is owed** before anyone can browse the web face from the delivered binary.
@@ -39,6 +39,8 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 **A CHECK THAT SUPPLIES ITS OWN DENOMINATOR CERTIFIES ITSELF.** ic's `--out-of-model` attack: the migrator zeroes a counter by naming everything. **Where the denominator is PROSE and cannot be parsed, pin the mapping to its SOURCE PHRASE** -- `egest_estate.rs` plants the pair `data-model.md` names and reds if the document stops naming it. Neither a parse nor a hardcode.
 
 **AND POSITIVE-CONTROL THE GREP BEFORE CALLING A CITATION WRONG.** `out-of-model` appears ZERO times in the file AC-10.8 cites it from; the set is there under another heading. I nearly filed that as a defect. **A citation is not wrong because your search term is** -- test the instrument against a term that must be present.
+
+**A REFUSAL CAN BE A RETRY RATHER THAN A REJECTION** (vc, 2026-08-31). `git commit` passes every guard and then dies on `cannot lock ref 'HEAD'` when a peer lands between the gate and the ref move. **`--only` does not prevent it**, the whole guard suite re-runs, and nothing is wrong with your tree. **Read the message before reading it as a verdict on your work.** My post-verify already gates on the commit's exit status, so this lands as a refusal and not as a false DANGER.
 
 **COMMITTING IN A SHARED CHECKOUT IS THREE PROBLEMS AND ONLY ONE IS CLOSABLE BY THE COMMITTER.**
 
@@ -76,6 +78,8 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 ## Decisions
 
+- (2026-08-31) **AC-10.8's residue naming is a QUALIFIER ON THE CLAIM, never an enumeration beside it.** `ratified_in: "vc, 2026-08-31, under hv's pen granted 2026-08-22; this ruling, in cc's channel"`. The harm the row prevents is precise -- an operator reads `ok: extract written for 301 thread(s)` and believes the extract is complete. **Naming the set anywhere else leaves that sentence making the same claim.**
+- (2026-08-31) **AC-10.5 and AC-10.8 are one design question asked of two verbs**, so they are built adjacently under one ruling rather than separately under two.
 - (2026-08-31) **`RealDaemon` refuses a stale sibling daemon rather than rebuilding one.** Source mtime is the comparison, deliberately not the sibling `intent`: cargo does not relink an unchanged binary, so both would be old together and the check would pass on exactly the tree it exists to refuse.
 - (2026-08-31) **AC-10.8's naming half is vc's specification call, not my build.** Recorded rather than resolved by inventing surface.
 - (2026-08-30) **`SERVED_BY_DAEMON` is complete at one entry**: a path belongs when its answer is an existing project-scoped, request-response `Op`. It grows when `Op` gains such a variant, not before.
