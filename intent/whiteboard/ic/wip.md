@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-31 09:39Z
+heartbeat_at: 2026-08-31 09:40Z
 status: active
-focus: "Tenth fold, pre-compact on hv's call. The bounce landed everything it carried: the GraphQL escape hatch (dbfc1eb1), schema on the MCP tier (0a6f7784), conservation_check sighted and its counter firing (8f29d3a6, 5cbddfcc; the --dispositions usage fix rode in under cc's 71539ab4 -- the shared-index sweep, carrying rather than losing), two test binaries recompiling (97f2322a). Nothing is queued for me by vc; every TODO item is gated on another node or on hv. On the bounce: re-measure, then take whatever vc routes."
+focus: "Tenth fold, pre-compact on hv's call. The bounce landed everything it carried: the GraphQL escape hatch (dbfc1eb1), schema on the MCP tier (0a6f7784), conservation_check sighted and its counter firing (8f29d3a6, 5cbddfcc; the --dispositions usage fix rode in under vc's 71539ab4, attributed to me in its message -- the shared STORE, not the index: their `sync --to-disk` realised my attached text and canon_commit_check made them carry the file with it), two test binaries recompiling (97f2322a). Nothing is queued for me by vc; every TODO item is gated on another node or on hv. On the bounce: re-measure, then take whatever vc routes."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -15,7 +15,7 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## DOING
 
-**NOTHING IN FLIGHT.** Landed this session, all through the full gate: `dbfc1eb1` the GraphQL escape hatch, reads-only under vc's bound, both faces (`intent graphql`, MCP `intent_graphql`) bridging to intentd over `wire::ask`, daemon-down refusing at rc=2 naming `intent daemon start`, CLI still linking no runtime (`cargo tree -p intent-cli -i tokio` matches nothing), AT-09.2 green and cited; `97f2322a` two intentsvcs test binaries uncompilable since db3f947a; `8f29d3a6` conservation_check.sh sees `intent/.canon/` (two roots, pre-relocation layout refused BY NAME -- vc's ruling); `5cbddfcc` its DOUBLED counter asks canon and fires (194 / 192 / 0 / 0 = 386, predicted before the run, controls both ways -- vc ratified point for point); `71539ab4` (cc's landing of their AT-10.5 pair, which swept my unstaged tool and its canon fields -- the work is in HEAD, the attribution is theirs) `--dispositions` made discoverable (114 -> 2 with the upgrade's own stdout, cc's join); `0a6f7784` `schema` on the MCP tier via `faces::schema` + `Facade::schema`, roster 60, `NoSuchFace` raised for real.
+**NOTHING IN FLIGHT.** Landed this session, all through the full gate: `dbfc1eb1` the GraphQL escape hatch, reads-only under vc's bound, both faces (`intent graphql`, MCP `intent_graphql`) bridging to intentd over `wire::ask`, daemon-down refusing at rc=2 naming `intent daemon start`, CLI still linking no runtime (`cargo tree -p intent-cli -i tokio` matches nothing), AT-09.2 green and cited; `97f2322a` two intentsvcs test binaries uncompilable since db3f947a; `8f29d3a6` conservation_check.sh sees `intent/.canon/` (two roots, pre-relocation layout refused BY NAME -- vc's ruling); `5cbddfcc` its DOUBLED counter asks canon and fires (194 / 192 / 0 / 0 = 386, predicted before the run, controls both ways -- vc ratified point for point); `71539ab4` (vc's commit, attributed to me in its message: my `st attach` had put the text in the shared store, their `sync --to-disk` realised it, and canon_commit_check refused to let them carry the canon without the file) `--dispositions` made discoverable (114 -> 2 with the upgrade's own stdout, cc's join); `0a6f7784` `schema` on the MCP tier via `faces::schema` + `Facade::schema`, roster 60, `NoSuchFace` raised for real.
 
 ## TODO
 
@@ -39,7 +39,7 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 10. **A FLAG THAT EXISTS AND IS NOT IN THE USAGE LINE READS AS A FINDING ABOUT THE ESTATE** (cc) -- `--dispositions` halved a residue nobody had passed it for.
 11. **A WORKED EXAMPLE IN A REMEDY IS SHIPPED SURFACE** -- the example id is `ST0000`; `no_pm_state_in_output` refuses `ST0001`.
 12. **REACH IS NOT A DOOR** -- the serving match + two-sided gate is the permanent discriminator (60 tools). **HIDE-CLASSIFY (vc)**: terminal-channel / honest-refusal / defect.
-13. **A PEER'S PATH-SCOPED `git add <dir>` SWEEPS YOUR UNSTAGED FILE UNDER IT INTO THEIR COMMIT** -- the usage fix landed under cc's message while it sat modified-and-unstaged in the tools directory; keep a finished change staged in a temporary index or landed, never merely dirty. **NEVER `git stash` on this five-writer tree; never remove a peer's index.lock** -- wait with an until-loop; and grep-filtering a commit's output can swallow git's own "Unable to create index.lock", so check `git log -1` after every commit.
+13. **THE STORE IS SHARED BEFORE THE TREE IS: an `st attach` you have not landed realises into EVERY node's canon on their next sync, and canon_commit_check then makes whoever commits canon carry your file too** -- vc's 71539ab4 carried my usage fix, attributed. Land an attachment in the same breath as the attach, or expect it to land under the next canon committer's message. **NEVER `git stash` on this five-writer tree; never remove a peer's index.lock** -- wait with an until-loop; and grep-filtering a commit's output can swallow git's own "Unable to create index.lock", so check `git log -1` after every commit.
 14. **A red tests.yml at ANY point in dc's prune sequence is a DEFECT to report**, never expected shape.
 
 ## Decisions
