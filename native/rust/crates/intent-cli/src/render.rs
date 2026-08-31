@@ -1396,10 +1396,22 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
   // own verb. Folding them together gave `st edit 59` the agnostic door's
   // refusal for an argument that was never ambiguous -- and let `st edit 0042`
   // accept an ISSUE, which then failed three layers down in the realiser.
-  let argument = match arg(m, "address") {
-    Ok(a) => a,
-    Err(_) => thread_arg(m, "id")?,
-  };
+  // **THE KIND IS READ. IT WAS NOT, AND THAT WAS `0189`** (cc, mechanism by vc,
+  // 2026-08-31). This line used to probe `arg(m, "address")` -- which is
+  // `explore`'s argument name, where this verb's is `id` -- so the probe ALWAYS
+  // erred and ALWAYS fell through to `thread_arg`, the THREAD parser. The kind
+  // the operator typed reached nothing, and `intent edit issue 0056 --path`
+  // printed thread ST0056's `info.md` at rc=0: the caller named an issue, the
+  // tool answered about a thread, and reported success.
+  //
+  // **IT SURVIVED BECAUSE THE FALLBACK IS RIGHT BY ACCIDENT ON EVERY COMMON
+  // PATH.** `edit st ST0056` and `edit st 56` both work through it, and since
+  // `THREAD_DIGITS == ISSUE_DIGITS == 4` an issue spelling produces a
+  // WELL-FORMED thread id rather than an error -- so the wrong answer appears
+  // only when an issue number is also a thread number, which is 48 of 69 on
+  // this estate (vc). Common and silent, rather than rare and loud.
+  let kind = enum_arg(m, "edit", "kind")?;
+  let address = kind_scoped_address(&kind, &arg(m, "id")?)?;
   let file = opt(m, "file").unwrap_or_else(|| "info".to_string());
 
   // **THE DECLARED VOCABULARY IS ENFORCED HERE, FROM THE TABLE, AND THE LAYER
@@ -1432,7 +1444,6 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
     return browsed(m);
   }
 
-  let address = address::promote(&argument).map_err(|e| Failure::Error(e.render()))?;
   let mut facade = open()?;
   let path = artefact_path(&mut facade, &address, &file).map_err(fail)?;
 
@@ -7355,6 +7366,103 @@ pub(crate) fn thread_spec(raw: &str) -> Result<String, Failure> {
     Some(t) => format!("{id}/{t}"),
     None => id,
   })
+}
+
+/// The one door from an operator's `<KIND> <ID>` pair to an address.
+///
+/// **THE KIND IS NOT DECORATION: IT IS THE TIE-BREAKER THE ROW SAYS IT IS.**
+/// `edit`'s table note -- *THE KIND RESOLVES AN AMBIGUITY THE TOOL ALREADY
+/// REPORTS* (`AC-17.6`) -- and `THREAD_DIGITS == ISSUE_DIGITS == 4` means a
+/// bare four-digit spelling is a well-formed id in BOTH families. Without the
+/// kind there is nothing to break the tie with, which is `0189`.
+///
+/// **AN ADDRESS CARRIES ITS OWN KIND, AND A CONTRADICTION IS REFUSED RATHER
+/// THAN RESOLVED BY PRECEDENCE.** `edit st intent://issues/0056` names two
+/// different entities in one invocation; picking either would be the
+/// wrong-subject-silently shape this function exists to close. The whole point
+/// of `0189` is that answering confidently about the entity the caller did not
+/// name is worse than refusing.
+///
+/// **`browse` DECLARES THE IDENTICAL `kind` + `id: address-or-id` SHAPE AND IS
+/// UNWIRED (rc=2), SO IT CARRIES NO DEFECT TODAY.** Whoever wires it calls
+/// THIS, rather than writing a second door -- two spellings of one verb that
+/// disagree about which forms they accept is the drift the aliasing was meant
+/// to prevent (vc raised it).
+pub(crate) fn kind_scoped_address(
+  kind: &str,
+  raw: &str,
+) -> Result<intentsvcs::address::Address, Failure> {
+  use intentsvcs::address::SCHEME;
+
+  let wanted = match kind {
+    "st" => "thread",
+    "wp" => "wp",
+    "issue" => "issue",
+    // Unreachable while `enum_arg` guards the caller; a refusal rather than a
+    // panic because an unguarded caller must not be the thing that finds out.
+    other => {
+      return Err(Failure::Error(format!(
+        "error: `{other}` is not a kind this verb can open\n  remedy: name one of st, wp, issue"
+      )));
+    }
+  };
+
+  if raw.starts_with(SCHEME) {
+    let address = address::parse(raw).map_err(|e| Failure::Error(e.render()))?;
+    let got = address.entity.form();
+    if got != wanted {
+      return Err(Failure::Error(format!(
+        "error: you named `{kind}` and the address names a {got}\n  remedy: drop the kind or name the one the address carries -- resolving this by precedence would answer about an entity you did not name"
+      )));
+    }
+    return Ok(address);
+  }
+
+  let url = match kind {
+    "st" => format!("{SCHEME}/threads/{}", thread_spec(raw)?),
+    // `thread_spec` normalises the thread half and passes the tail through
+    // UNTOUCHED, so the composite arrives as `ST0056/03` and only needs its
+    // separator spelled the way the grammar spells it.
+    "wp" => {
+      let spec = thread_spec(raw)?;
+      let (thread, wp) = spec.split_once('/').ok_or_else(|| {
+        Failure::Error(format!(
+          "error: `{raw}` does not name a work package\n  remedy: name it as `<thread>/<NN>`, eg `ST0056/03`"
+        ))
+      })?;
+      format!("{SCHEME}/threads/{thread}/wp/{wp}")
+    }
+    _ => format!(
+      "{SCHEME}/issues/{:0width$}",
+      model::normalise_issue_id(raw).map_err(|e| id_refusal(raw, e, model::IdKind::Issue))?,
+      width = model::ISSUE_DIGITS
+    ),
+  };
+  address::parse(&url).map_err(|e| Failure::Error(e.render()))
+}
+
+/// An enum-typed ARGUMENT, enforced from the table exactly as the enum-typed
+/// FLAGS are.
+///
+/// **THE `kind` ENUM WAS DECLARED AND UNENFORCED, AND `intent edit banana
+/// ST0056 --path` PRINTED A PATH AT rc=0** -- the third defect in `0189`, and
+/// the same declaration-versus-implementation gap `--format` carried until
+/// `07ad9876`. Read from the table rather than written out, so the vocabulary
+/// keeps one home.
+///
+/// Not a clap `value_parser`, for the reason the `file` check beside it gives:
+/// clap rejects at exit 2, which is `INV-04`'s USAGE code that the pre-commit
+/// gate fails OPEN on.
+fn enum_arg(m: &ArgMatches, verb: &str, name: &str) -> Result<String, Failure> {
+  let given = arg(m, name)?;
+  let permitted = dispatch::arg_values(&dispatch::table(), verb, name);
+  if !permitted.is_empty() && !permitted.iter().any(|v| v == &given) {
+    return Err(Failure::Error(format!(
+      "error: `{given}` is not a {name} this verb can open\n  remedy: name one of {}",
+      permitted.join(", ")
+    )));
+  }
+  Ok(given)
 }
 
 /// An operator's spelling of an ISSUE id, as a number.
