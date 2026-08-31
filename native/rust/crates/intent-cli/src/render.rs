@@ -5670,10 +5670,28 @@ fn daemon_status(a: &ArgMatches) -> Result<(), Failure> {
       )));
     }
   }
-  let candidates = daemon::candidates().map_err(|e| Failure::Error(e.render()))?;
-  match daemon::route(&candidates) {
-    daemon::Route::Daemon(endpoint) => println!("ok: intentd is answering at {endpoint}"),
-    daemon::Route::InProcess => {
+  // **THE THREE-STATE PROJECTION, NOT `route()` DIRECTLY** (`ST0064` `AC-01.6`,
+  // vc 2026-08-31). `route()` answers where a command RUNS, which is binary;
+  // this verb answers what an operator is SHOWN, where a holder that is alive
+  // and not serving is not the same as nothing running. `AC-01.2` makes the
+  // menubar app a client of THIS verb rather than of a second predicate, so
+  // the split has to be visible here or the app cannot honour it without
+  // reimplementing the question.
+  match daemon::health().map_err(|e| Failure::Error(e.render()))? {
+    daemon::Health::Live(endpoint) => println!("ok: intentd is answering at {endpoint}"),
+    // **THE REMEDY IS THE POINT OF THE STATE, SO IT IS PRINTED WITH IT.** A
+    // split whose two sides read the same to an operator is a vocabulary
+    // change; `AC-08.12` makes unlinking a live daemon's socket destructive,
+    // so the one thing this state must convey is do not do that.
+    daemon::Health::Stale { pid } => {
+      println!(
+        "ok: intentd (pid {pid}) holds the lock and is not answering; commands run in-process"
+      );
+      println!(
+        "note: that process is alive -- investigate it rather than removing the socket, which it still owns"
+      );
+    }
+    daemon::Health::Absent => {
       println!("ok: no intentd is answering; commands run in-process")
     }
   }

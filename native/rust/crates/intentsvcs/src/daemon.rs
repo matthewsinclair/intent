@@ -352,6 +352,96 @@ pub fn route(candidates: &[Endpoint]) -> Route {
   Route::InProcess
 }
 
+/// What an operator's SURFACE should show about the daemon, as against where a
+/// command should RUN.
+///
+/// **THREE STATES, AND THEY ARE A PROJECTION ABOVE [`Route`] RATHER THAN A
+/// WIDENING OF IT** (vc, 2026-08-31, ruling on cc's six-case measurement;
+/// `ST0064` `AC-01.6`). [`Route`]'s own doc states the absence of a third
+/// variant as the invariant that keeps "never two sync engines live at once"
+/// inside the type system, so widening it was never the cheaper option -- it
+/// was the one that dismantles the guarantee. This type asks a DIFFERENT
+/// question. `Route` answers *where does this command run*, which is genuinely
+/// binary; a menubar or a status line asks *what do I show*, where STALE and
+/// ABSENT are not the same answer even though they route identically.
+///
+/// **`AC-01.2` STAYS TRUE BY CONSTRUCTION, WHICH IS THE REASON FOR THE
+/// ARRANGEMENT AND NOT A SIDE EFFECT.** The chain is app -> CLI verb -> this
+/// projection -> [`route`]: one predicate, one code path, no second
+/// implementation to drift. A health check written in Swift would be the
+/// two-predicates-that-agree shape that row forbids, and it fails SILENTLY AND
+/// INVERTED -- a green dot while every verb runs in-process.
+///
+/// **THE SPLIT IS EARNED BY THE REMEDY, NEVER BY THE VOCABULARY** (`AC-01.6`,
+/// as ruled). The prohibition on rendering `RUNNING` for an endpoint that
+/// connects without answering is satisfied by EITHER candidate discriminator,
+/// so matching this vocabulary proves nothing about a build. What must hold is
+/// that the two non-live states carry DIFFERENT remedies:
+///
+/// - [`Self::Stale`] -- a holder is ALIVE and not serving. Investigate that
+///   pid; **do NOT unlink**, because `AC-08.12` makes being wrong here
+///   destructive rather than merely wasteful.
+/// - [`Self::Absent`] -- nothing owns the endpoint, so any residue is safe to
+///   clear.
+///
+/// **AN ORPHANED LISTENING DESCRIPTOR THEREFORE LANDS ON `Absent`, AND THAT IS
+/// THE ONE CASE THE TWO CANDIDATE DISCRIMINATORS DISAGREED ON.** It has no
+/// holder to investigate -- the parent is dead and the kernel released the
+/// lock -- so rendering it stale would declare a remedy nobody can carry out.
+/// It is the 1-in-300 case `AC-08.3` measures, and it is exactly why the
+/// discriminator below is the LOCK and not a bare `connect()`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Health {
+  /// A daemon completed a round trip at this address.
+  Live(Endpoint),
+  /// A process holds the lock and is not answering.
+  Stale { pid: u32 },
+  /// Nothing holds the lock and nothing answers.
+  Absent,
+}
+
+/// The three-state projection, composed from [`route`] and [`running_pid_under`].
+///
+/// **THE ORDER IS LOAD-BEARING AND NOT A STYLE CHOICE: ROUTE FIRST, LOCK
+/// SECOND.** A live daemon holds the lock AND answers, so a lock-first reading
+/// would report every healthy daemon as [`Health::Stale`] -- the failure would
+/// be total rather than rare, which is the only reason it would be caught.
+/// Asking the round trip first means the lock is consulted ONLY once liveness
+/// has already been refused, which is the sole question it is being asked.
+///
+/// **NO NEW PRIMITIVE.** Liveness is `AC-08.3`'s completed round trip under a
+/// bounded deadline, unchanged and unwrapped; the discriminator is
+/// [`running_pid_under`], which establishes its answer BY TAKING THE KERNEL
+/// LOCK rather than by reading a pid file or trusting a probe -- so it cannot
+/// name a stranger the kernel has recycled.
+///
+/// **A FAULT IS NOT A STATE.** `candidates_under` refuses on an unreadable or
+/// malformed address rather than dropping the candidate, and that refusal
+/// travels rather than collapsing into [`Health::Absent`]: telling an operator
+/// *nothing is running* when the truth is *we could not find out* is the
+/// confident-negative defect this estate keeps re-finding.
+pub fn health_under(root: &std::path::Path) -> Result<Health, DaemonError> {
+  if let Route::Daemon(endpoint) = route(&candidates_under(root)?) {
+    return Ok(Health::Live(endpoint));
+  }
+  match running_pid_under(root)? {
+    Some(pid) => Ok(Health::Stale { pid }),
+    None => Ok(Health::Absent),
+  }
+}
+
+/// [`health_under`] against the operator's own home.
+///
+/// **NO HOME IS [`Health::Absent`] AND NOT AN ERROR**, matching [`candidates`]:
+/// without `$HOME` there is no per-user state and so no daemon to find, which
+/// is an answer rather than a failure.
+pub fn health() -> Result<Health, DaemonError> {
+  let Ok(root) = crate::userstate::home() else {
+    return Ok(Health::Absent);
+  };
+  health_under(&root)
+}
+
 /// Every address this build knows to look for a daemon on.
 ///
 /// **EMPTY IS A LEGITIMATE ANSWER, NOT AN ERROR.** Without `$HOME` there is no
