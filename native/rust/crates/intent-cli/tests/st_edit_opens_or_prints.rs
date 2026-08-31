@@ -7,25 +7,38 @@
 //! property of the environment, so a wrapper, a CI job or an editor plugin gets
 //! a different result with nothing in the command saying why.
 //!
-//! # The regression this file was asked to carry, and why it is not the one below
+//! # The regression this file was asked to carry, which it now carries
 //!
 //! The change was specified as owing one test: `$EDITOR "$(intent st edit
 //! ST0001 info)"` must still return the path, because it is in
-//! `docs/getting-started.md`. **That invocation does not work at HEAD and has
-//! not since `c4709d3f`, for reasons that have nothing to do with this change.**
-//! `info.md` is a GENERATED VIEW, and `Facade::edit` refuses a generated view
-//! before it does anything else -- `intent/st/ST0001/info.md is generated from
-//! the model, so an edit here is lost at the next render`. The register's
-//! default for the `file` argument is `info`, so the bare `intent st edit
-//! ST0001` refuses too, and `facade.rs` says so in passing inside a comment
-//! about a different bug.
+//! `docs/getting-started.md`.
 //!
-//! **Written as specified, the regression test would have failed and read as
-//! this change breaking it.** So the arm below drives the same PROPERTY -- a
-//! captured stdout receives the path and nothing opens -- through `design`,
-//! which is a file this verb can actually hand back. The documentation defect
-//! is real and is filed separately; it is not this file's subject and it must
-//! not be laundered into a green here.
+//! **THIS SECTION SAID THAT INVOCATION DOES NOT WORK AND HAS NOT SINCE
+//! `c4709d3f`. THAT WAS TRUE WHEN WRITTEN AND IS NOW FALSE**, and the thing
+//! that changed it is a ruling this file's own header already cites: hv ruled
+//! the thread cover OPEN on 2026-08-29, so `project.rs` classifies it
+//! `EditDisposition::OpenRoundTrip` rather than `Refuse`. Driven under this
+//! file's own fixture: `st edit ST0001 info` exits 0 and prints the cover's
+//! path, and so does the bare `st edit ST0001`, whose declared default for
+//! `file` is `info`. The claim that both refuse outlived its basis by two days
+//! -- and it was load-bearing, because it is the stated reason the arms below
+//! route around `info`.
+//!
+//! **So the owed regression is written, as `the_documented_command_substitution
+//! _still_returns_the_covers_path`.** It drives the getting-started form
+//! directly rather than a proxy for it.
+//!
+//! # `design` is still the right vehicle for the arms below, for a NEW reason
+//!
+//! Not inertia, and not the expired one. There are THREE dispositions, not two:
+//! `Refuse` (`acceptance`, still refused, driven), `OpenRoundTrip` (the cover,
+//! whose path comes back AND whose `## Objective` / `## Context` are read back
+//! by `sync --to-store`), and plain `Open` (an attachment, which is handed over
+//! with nothing reading it back). **The arms below are about the TTY branch and
+//! the two overrides, which are properties of handing over a path at all**, so
+//! they belong on the disposition with no round-trip behaviour attached --
+//! otherwise a failure in the round-trip machinery would surface here, in a
+//! file about `IsTerminal`, and be read as an editor-launch defect.
 //!
 //! # What the pty proves that no ordinary test can
 //!
@@ -56,11 +69,17 @@ fn intent(dir: &Path, args: &[&str]) -> Output {
 
 /// A project whose only thread CARRIES `design.md` as an attachment.
 ///
-/// **THE ATTACHMENT IS THE POINT OF THE FIXTURE, NOT SCENERY.** On a thread
-/// with none, every one of the five declared `file` values refuses: `info` and
-/// `acceptance` are generated views, and `design`, `impl` and `tasks` are not
-/// carried, so `hydrate` never realises them. A fixture without this line
-/// tests the refusal path five times and the subject zero times.
+/// **THE ATTACHMENT IS THE POINT OF THE FIXTURE, NOT SCENERY.** Without it
+/// `design`, `impl` and `tasks` are not carried, so `hydrate` never realises
+/// them and every arm below tests a refusal instead of its subject.
+///
+/// **THIS COMMENT USED TO SAY ALL FIVE VALUES REFUSE ON A BARE THREAD, AND
+/// THAT IS NO LONGER TRUE OF `info`.** Driven: on exactly this fixture,
+/// `info` exits 0 and returns the cover's path, because hv ruled the cover
+/// open on 2026-08-29. `acceptance` still refuses and is still a generated
+/// view. The correction matters here rather than only in the header, because
+/// this is the comment a reader consults when asking why the fixture attaches
+/// anything at all.
 fn seeded() -> tempfile::TempDir {
   let dir = tempfile::tempdir().expect("tempdir");
   intent(dir.path(), &["init", "editproj"]);
@@ -162,6 +181,40 @@ fn a_captured_stdout_still_receives_the_path_and_opens_nothing() {
     !log.exists(),
     "an editor was launched into a pipe. $EDITOR was set and reachable, so this is the branch \
      choosing wrongly rather than the launch failing"
+  );
+}
+
+/// **THE REGRESSION THE RULING OWED, DRIVEN AS THE DOCUMENTATION SPELLS IT.**
+///
+/// `docs/getting-started.md` carries `$EDITOR "$(intent st edit ST0001 info)"`,
+/// and command substitution makes stdout a PIPE -- which is the whole reason
+/// the TTY default is safe for an existing output contract. This drives that
+/// exact shape: captured stdout, no `--path`, and the cover's path comes back.
+///
+/// **IT IS ABOUT `info` SPECIFICALLY AND NOT ABOUT THE PIPE BRANCH IN
+/// GENERAL.** The arms above already prove a piped stdout receives a path;
+/// what this adds is that the COVER is reachable, which is the half that was
+/// refused before hv's 2026-08-29 ruling and the half the documentation
+/// depends on. A green here on `design` would prove the branch and miss the
+/// regression.
+#[test]
+fn the_documented_command_substitution_still_returns_the_covers_path() {
+  let dir = seeded();
+  let out = intent(dir.path(), &["st", "edit", "ST0001", "info"]);
+  assert!(
+    out.status.success(),
+    "the cover is OpenRoundTrip since hv's 2026-08-29 ruling, so this must hand back a \n            path rather than refuse: {}",
+    String::from_utf8_lossy(&out.stderr)
+  );
+  assert_eq!(
+    String::from_utf8_lossy(&out.stdout).trim(),
+    dir
+      .path()
+      .path_canonical()
+      .join("intent/st/ST0001/info.md")
+      .display()
+      .to_string(),
+    "getting-started substitutes this into $EDITOR, so it must be the cover's path and \n            nothing else"
   );
 }
 
