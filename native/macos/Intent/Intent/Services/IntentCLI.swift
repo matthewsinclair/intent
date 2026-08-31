@@ -13,6 +13,7 @@ enum IntentCLIError: LocalizedError {
   case binaryNotFound
   case failedToLaunch(underlying: String)
   case commandFailed(command: String, exitCode: Int32, stderr: String)
+  case projectRootInvalid(path: String)
 
   var errorDescription: String? {
     switch self {
@@ -22,7 +23,42 @@ enum IntentCLIError: LocalizedError {
       "Could not launch intent: \(underlying)"
     case .commandFailed(let command, let code, let stderr):
       "`\(command)` exited \(code): \(stderr)"
+    case .projectRootInvalid(let path):
+      "the configured project root is not an Intent project: \(path) (no intent/.config/config.json). Settings -> Estate -> set a project directory."
     }
+  }
+}
+
+/// Which Intent project this menubar is pointed at.
+///
+/// INTERIM, and it knows it: this is a per-app-instance stand-in for D07's
+/// ratified-but-unbuilt machine registry ("one intentd per machine, N projects,
+/// per-project DBs, REGISTRY"). When D07's registry lands, the app READS IT and
+/// this local store goes away -- it must never become a parallel home that has
+/// to agree with the registry forever, which is issue 0204's shape. A short-
+/// lived second home that knows it is second is fine; one that forgets is not.
+/// (vc ruling (a) + condition (ii), 2026-08-31.)
+///
+/// Per-app-instance is the right scope regardless of D07: a machine holds many
+/// Intent projects, so "which project is this app controlling" is app state,
+/// like a window position -- not a machine-level fact. The root is stored as a
+/// path; every child the CLI spawns runs with it as the working directory, so
+/// verbs resolve by CWD walk-up exactly as in a terminal (no new resolution
+/// path, no flag for `edit`/`graphql` to learn).
+enum ProjectConfig {
+  static let rootKey = "IntentProjectRoot"
+
+  /// The configured project root, or nil if none is set.
+  static func configuredRoot() -> String? {
+    guard let root = UserDefaults.standard.string(forKey: rootKey), !root.isEmpty else { return nil }
+    return root
+  }
+
+  /// A directory is an Intent project iff it carries `intent/.config/config.json`.
+  static func isIntentProject(_ path: String) -> Bool {
+    let marker = (path as NSString).appendingPathComponent("intent/.config/config.json")
+    var isDir: ObjCBool = false
+    return FileManager.default.fileExists(atPath: marker, isDirectory: &isDir) && !isDir.boolValue
   }
 }
 
@@ -48,6 +84,21 @@ enum IntentCLI {
     return env
   }
 
+  /// The child's working directory: the configured project root, VALIDATED as an
+  /// Intent project. nil means none is configured -- machine-level verbs still
+  /// work and a project verb gets the CLI's own not-in-project error, which is
+  /// honest. A configured-but-invalid root is a LOUD refusal (condition (i)),
+  /// never a silent spawn into a directory where CWD walk-up finds a different
+  /// project or none. Once Settings validates on set, this runtime check is the
+  /// defensive backstop rather than the primary guard. (AC-01.3/01.5.)
+  static func projectDirectory() throws -> URL? {
+    guard let root = ProjectConfig.configuredRoot() else { return nil }
+    guard ProjectConfig.isIntentProject(root) else {
+      throw IntentCLIError.projectRootInvalid(path: root)
+    }
+    return URL(fileURLWithPath: root, isDirectory: true)
+  }
+
   /// Runs and returns stdout; a non-zero exit is an error carrying stderr.
   static func run(_ args: [String]) async throws -> String {
     let result = try await capture(args)
@@ -65,8 +116,9 @@ enum IntentCLI {
   static func capture(_ args: [String]) async throws -> CLIRunResult {
     guard let binary = binary() else { throw IntentCLIError.binaryNotFound }
     let env = environment()
+    let cwd = try projectDirectory()
     return try await Task.detached(priority: .userInitiated) {
-      try runProcess(binary: binary, args: args, env: env)
+      try runProcess(binary: binary, args: args, env: env, cwd: cwd)
     }.value
   }
 
@@ -82,20 +134,22 @@ enum IntentCLI {
   ) async throws -> CLIRunResult {
     guard let binary = binary() else { throw IntentCLIError.binaryNotFound }
     let env = environment()
+    let cwd = try projectDirectory()
     return try await Task.detached(priority: .userInitiated) {
-      try runProcessStreaming(binary: binary, args: args, env: env, onStart: onStart, onLine: onLine)
+      try runProcessStreaming(binary: binary, args: args, env: env, cwd: cwd, onStart: onStart, onLine: onLine)
     }.value
   }
 
   // MARK: - Processes
 
-  private static func runProcess(binary: String, args: [String], env: [String: String]) throws
-    -> CLIRunResult
+  private static func runProcess(binary: String, args: [String], env: [String: String], cwd: URL?)
+    throws -> CLIRunResult
   {
     let process = Process()
     process.executableURL = URL(fileURLWithPath: binary)
     process.arguments = args
     process.environment = env
+    process.currentDirectoryURL = cwd
 
     let stdout = Pipe()
     let stderr = Pipe()
@@ -160,6 +214,7 @@ enum IntentCLI {
     binary: String,
     args: [String],
     env: [String: String],
+    cwd: URL?,
     onStart: (@Sendable (RunningProcess) -> Void)?,
     onLine: @Sendable @escaping (String) -> Void
   ) throws -> CLIRunResult {
@@ -167,6 +222,7 @@ enum IntentCLI {
     process.executableURL = URL(fileURLWithPath: binary)
     process.arguments = args
     process.environment = env
+    process.currentDirectoryURL = cwd
 
     let pipe = Pipe()
     process.standardOutput = pipe
