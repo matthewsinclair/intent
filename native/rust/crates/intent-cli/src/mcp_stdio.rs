@@ -311,7 +311,11 @@ fn resources_list(
     ResourceReply::Listing(list) => Ok(json!({
       "resources": list.iter().map(resource_frame).collect::<Vec<_>>(),
     })),
-    ResourceReply::Refused(text) => Err((JSONRPC_INVALID_PARAMS, text)),
+    // resources/list takes no params, so a refusal cannot be INVALID_PARAMS --
+    // that code sends a client to inspect arguments it never sent. A host-side
+    // refusal of a paramless method is INTERNAL_ERROR, as the wrong-reply arm
+    // below already is.
+    ResourceReply::Refused(text) => Err((JSONRPC_INTERNAL_ERROR, text)),
     ResourceReply::Contents { .. } => Err((
       JSONRPC_INTERNAL_ERROR,
       "the host answered a resources/list with contents".to_string(),
@@ -502,7 +506,10 @@ mod tests {
   fn an_unknown_method_and_a_parse_error_answer_with_their_codes() {
     let out = drive(
       &[
-        r#"{"jsonrpc":"2.0","id":5,"method":"resources/list"}"#,
+        // A method that can never become real. This was `resources/list`,
+        // which `2d05aa94` turned into a live method -- a feature arriving is
+        // exactly what must not turn a "no such method" assertion false.
+        r#"{"jsonrpc":"2.0","id":5,"method":"not/a/real/method"}"#,
         r#"this is not json"#,
       ],
       &mut never,
