@@ -105,7 +105,15 @@ done
 total=$((run + unrun))
 scored=$((total - refused))
 echo ""
-echo "    partition: ${run} run + ${unrun} unrun = ${total} of 4 declared member(s)"
+# **THE `4` STAYS A LITERAL ON PURPOSE, AND THE DECLARATION IS THE POINT**
+# (vc 2026-08-31, closing of_n_labels_its_derivation.sh's finding at this line).
+# Deriving it by counting MEMBERS would make the guard below TAUTOLOGICAL: the
+# loop iterates MEMBERS, so `total` already equals that count by construction,
+# and the check would then assert nothing. The literal is a SECOND, INDEPENDENT
+# statement of a fact the criterion owns -- edit MEMBERS without authority and
+# this trips, which is exactly the work it is here to do. So it takes AC-00.11's
+# third arm: recorded, labelled AT the number, naming what would derive it.
+echo "    partition: ${run} run + ${unrun} unrun = ${total} of 4 [RECORDED: the member count AC-10.5 names; DERIVED-BY: counting MEMBERS -- deliberately not, it would make the next line tautological] declared member(s)"
 [ "$total" -eq 4 ] || { echo "error: partition does not close over the declared members" >&2; exit 2; }
 echo "    of the run: ${conserved} conserved + ${named} named-its-residue + ${lost} lost-and-unnamed + ${refused} refused = ${run}"
 [ $((conserved + named + lost + refused)) -eq "$run" ] || { echo "error: verdict partition does not close" >&2; exit 2; }
@@ -115,7 +123,7 @@ echo "    of the run: ${conserved} conserved + ${named} named-its-residue + ${lo
 # A silent drop from four members to two IS the attack. A drop the reader is
 # told about, with each excluded member naming why, is the cure -- and the
 # difference is entirely whether the reader is told.
-echo "    conservation is claimed over ${scored} of 4 -- the other ${refused} are REFUSED by the migrator and named above"
+echo "    conservation is claimed over ${scored} of 4 [RECORDED: the member count AC-10.5 names; DERIVED-BY: counting MEMBERS -- see the note at the partition line] -- the other ${refused} are REFUSED by the migrator and named above"
 if [ "${#bare_refusal[@]}" -gt 0 ]; then
   echo "error: refused without a reason (${bare_refusal[*]}) -- an exclusion that does not say why is a silent narrowing of the corpus" >&2
   exit 2

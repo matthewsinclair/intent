@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 20:17Z
+heartbeat_at: 2026-08-31 20:35Z
 status: active
 focus: "FOLDED 2026-08-31 18:59Z, pre-fold sha-verified in .history/20260831/. STATUS STAYS active -- a compact does not end a session. THE NEXT RELEASE IS NOT A PATCH (13 commands, 30 flags at 0f5ee514) and the NUMBER IS hv's -- AND THE RELEASE IS ITSELF THE BLOCKER ON ST0068 AC-02.1, which I had filed as unbuilt work owned by dc when it had been built for four days. I understated my own figures to hv THREE times today, all in the direction nobody checks. RE-RUN EVERY FIGURE; READ NONE OFF THIS BOARD."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -31,7 +31,18 @@ The per-property union exists. **What keeps it red is that the criterion's first
 
 ## TODO
 
-1. **`AT-00.11`'s instrument does not exist** (`of_n_closes_over_examined.sh`). Mode 2 is built and now RED. **This was on the board as a DECISION I owed and it is a BUILD -- the "width arm" in the old wording belongs to `AC-01.5`, not here.** A TODO naming a decision that does not parse survived three folds.
+1. **`AT-00.11` -- THE CONTROL IS FOUND, AND IT IS NOT A REVISION.** `of_n_closes_over_examined.sh` still does not exist; what changed 2026-08-31 20:35Z is that its blocking prerequisite is now answered by measurement.
+
+   **`AC-00.11` CITES `c51f10d5` AS THE DEFECT LIVE. IT IS THE FIX COMMIT.** Its tree already carries the `EXAMINED 2 of 1` comment and the `comm -12` intersection that closes the hole. Its parent `4ba598f1` IS pre-fix -- and driven against its OWN tree in a worktree it printed `EXAMINED 2 of 278`, arithmetically clean. **So the row's own cited control does not reproduce, and neither does its parent.**
+
+   **NO MAIN-LINE REVISION REPRODUCES IT.** The fix landed FOUR MINUTES after the defect commit (23:04 -> 23:08 on 2026-08-18) and both predate the live layout move (`16048f82`, 08:31 the next morning). The window in which the flat layout met the unfixed instrument **never existed on main** -- the historical `2 of 1` came from a fixture or a pre-move experiment, which is why reading the log was never going to find it. **The row told me to find the revision BY RUNNING IT; running it says there is none.**
+
+   **THE CONTROL IS A CONSTRUCTED FIXTURE, AND IT IS DRIVEN: `EXAMINED 5 of 3 ... the other -2`.** Recipe, so nobody re-derives it: take `4ba598f1`'s `canon_commit_check.sh`; give it a HEAD whose RECORDED-attachment total is small (half-migrate -- delete every `thread.json` but one, and commit it); then COMMIT more files under the canon roots than that total. Pre-fix, `scoped` counts FILTER KEYS -- every changed file under the roots, attachment or not -- so it runs past `total` and the remainder goes negative.
+
+   **TWO TRAPS THAT COST ME A PASS EACH, BOTH WORTH KEEPING.** `total` is read from the REVISION, not the worktree, so deleting files on disk moves nothing. And the narrowing reads `git diff-tree` on the **COMMIT**, not the index -- staging the files printed `EXAMINED 0 of 3` and looked like a refutation. **Both failures presented as the defect being absent.**
+
+   **SO THE BUILD IS NOW SHAPED**: the instrument takes two trees, and the positive control is a fixture it constructs rather than a revision it checks out. `AC-00.11`'s `c51f10d5` citation should be corrected when someone next has the pen on that row -- it is load-bearing wording that sent me at a revision that cannot fail.
+
 2. **`AT-00.2`, `AC-00.8`, `AC-00.10`** -- behind cc's WP-10, behind WP-06 and WP-07. Read off WP-10's cover by cc; sequence around it.
 3. **The third absence class in `capability_ship_check.sh`** -- it carries dangling-symlink, not-on-PATH and no-daemon, NOT _a build ran and left nothing behind_.
 4. **WP-15's four criteria have NO OWNER** (hv's to assign); **`parity/register.md`'s 39 stale rows** (GENERATED -- the template is the fix); **`0136`** (hv ruled: after the tag); **`intent/wip.md`** before the tag.

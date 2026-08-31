@@ -38,9 +38,11 @@
 # REACH
 # ==========================================================================
 #
-#   - **16 OF 64 PARITY INSTRUMENTS.** It examines the ones the roster marks
+#   - **THE ROSTER'S GATED SET, COUNTED AT RUN TIME AND PRINTED.** No figure is
+#     stated here, because a reach claim in a comment cannot be re-measured and
+#     this one had already drifted. It examines the ones the roster marks
 #     `gated`, because gated is this estate`s own definition of *has a safe bare
-#     invocation*. The other 48 take tree arguments or mutate a tree. A
+#     invocation*. The rest take tree arguments or mutate a tree. A
 #     partition printed by an instrument nobody can invoke bare is outside
 #     every checker`s reach, and that is a gap this tool does not close.
 #   - **PER LINE.** A partition spread ACROSS lines is not detected -- which is
@@ -70,6 +72,24 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="${ROOT:-$(cd "$HERE/../../../../.." && pwd)}"
 TOOLS="$ROOT/intent/st/ST0056/parity/tools"
 
+# ---------------------------------------------------------------------------
+# THE ROSTER IS THE ONE HOME FOR *WHICH INSTRUMENTS EXIST AND WHICH ARE GATED*,
+# and this tool asks it two different questions: which set to RUN, and what
+# reach to CLAIM. Those used to be one parse and one HAND-TYPED pair of
+# literals, and the literals had drifted -- the REACH line said `16 of 64`
+# against a roster carrying 17 gated and 54 instruments (vc 2026-08-31). Found
+# by of_n_labels_its_derivation.sh, which is the sibling criterion catching
+# THIS tool doing the thing it exists to check for; a second home for a number
+# is a second home whether or not the tool enforcing that owns it.
+# ---------------------------------------------------------------------------
+ROSTER_SRC="$TOOLS/runner_roster_check.sh"
+roster_names() {
+  # $1: a disposition to match, or ALL for every row the roster calls an instrument.
+  sed -n "/^ROSTER='/,/^'/p" "$ROSTER_SRC" | sed '1d;$d' \
+    | awk -v want="$1" 'NF && $1 ~ /\.(sh|bash)$/ && (want == "ALL" ? $2 != "not-an-instrument" : $2 == want) { print $1 }'
+}
+roster_count() { roster_names "$1" | grep -c . || true; }
+
 FROM=""
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -90,10 +110,8 @@ if [ -n "$FROM" ]; then
   [ -d "$FROM" ] || { echo "partition: no such capture directory: $FROM" >&2; exit 2; }
   WORK="$FROM"; SOURCE_LABEL="pre-captured output: $FROM"
 else
-  ROSTER_SRC="$TOOLS/runner_roster_check.sh"
   [ -f "$ROSTER_SRC" ] || { echo "partition: cannot read the roster at $ROSTER_SRC" >&2; exit 2; }
-  GATED="$(sed -n "/^ROSTER='/,/^'/p" "$ROSTER_SRC" | sed '1d;$d' \
-            | awk 'NF && $1 ~ /\.(sh|bash)$/ && $2 == "gated" { print $1 }')"
+  GATED="$(roster_names gated)"
   [ -n "$GATED" ] || { echo "partition: parsed 0 gated rows from the roster -- the parse is broken, not the estate" >&2; exit 2; }
   WORK="$(mktemp -d "${TMPDIR:-/tmp}/partition-check.XXXXXX")"
   trap 'rm -rf "$WORK"' EXIT
@@ -229,7 +247,16 @@ fi
 echo "  THE PARTITION CLOSES: $STATES + $UNSTATED + $NOPART = $EXAMINED."
 echo
 
-echo "partition: REACH -- 16 of 64 parity instruments (the roster's gated set, the"
+# **BOTH OPERANDS ARE READ FROM THE ROSTER AT RUN TIME.** They were `16 of 64`,
+# hand-typed, and both had drifted. A reach claim is a measurement about the
+# estate; typing it makes it true once and silently false afterwards, which is
+# AC-00.11's whole subject.
+[ -f "$ROSTER_SRC" ] || { echo "partition: cannot read the roster at $ROSTER_SRC -- refusing to state a reach it cannot measure" >&2; exit 2; }
+REACH_GATED="$(roster_count gated)"
+REACH_INSTR="$(roster_count ALL)"
+REACH_OTHER=$((REACH_INSTR - REACH_GATED))
+[ "$REACH_GATED" -gt 0 ] && [ "$REACH_INSTR" -ge "$REACH_GATED" ] || { echo "partition: the roster parse returned $REACH_GATED gated of $REACH_INSTR -- the parse is broken, not the estate" >&2; exit 2; }
+echo "partition: REACH -- ${REACH_GATED} of ${REACH_INSTR} parity instruments (the roster's gated set, the"
 echo "  only ones with a safe bare invocation), PER LINE, and over OUTPUT rather than"
 echo "  source. A partition that is BOTH unstated AND broken is invisible here by"
 echo "  construction: nothing separates three unrelated integers from a failed"
