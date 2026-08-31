@@ -1127,7 +1127,16 @@ impl crate::remedy::Remedy for FacadeError {
         format!("this artefact carries: {}", present.join(", "))
       }
       Self::NotHydratable { form, .. } => format!(
-        "address an ARTEFACT instead -- a thread or an issue. A `{form}` has no files of its own, so there is nothing for realisation to create; if you meant the thread that carries it, address the thread."
+        // **`or an issue` CAME OUT, AND IT WAS WRONG FOR EVERY FORM ROUTED HERE
+        // RATHER THAN ONLY FOR AN ISSUE** (found by cc driving
+        // `intent edit issue 0164 --path`, diagnosed by ic, 2026-08-31). An
+        // issue has NO realised form at all -- the sibling refusals at the two
+        // `why` sites below say exactly that, in these words: *only an artefact
+        // -- a steel thread -- is named by `.intentfiles`*. So it was never a
+        // valid target, and offering it as the remedy sent the operator back to
+        // the thing that had just been refused. The issue case only made it
+        // glaring by naming its own subject.
+        "address an ARTEFACT instead -- a steel thread. A `{form}` has no files of its own, so there is nothing for realisation to create; if you meant the thread that carries it, address the thread."
       ),
       Self::NoManifestToUnlistFrom { path, .. } => format!(
         "write one first with `intent organize --default`, which declares the open threads; then re-run. Removing a thread's files is a change to a list that has to exist before it can be changed, and {path} does not."
