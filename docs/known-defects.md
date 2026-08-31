@@ -118,6 +118,16 @@ These flags are documented in `--help`, accepted without complaint, and read by 
 
 **`intent claude upgrade` has no `--skip-settings`** (`intent#0143`). v2 had a flag to decline the Claude Code settings file. v3.0.0's `claude upgrade --help` offers only `--apply`, `--force` and `--help`, so there is no way to ask it to leave your settings alone.
 
+**`intent claude skills uninstall --force`** (`intent#0078`). The flag is in `--help` and the call behind it takes no force argument at all, so passing it changes nothing. Driven on v3.0.0 against a skill this build did not write:
+
+```
+  $ intent claude skills uninstall hand-made --force
+    hand-made                    removed (0 file(s)); left 1 this build did not install: SKILL.md
+  ok: 1 changed, 0 already settled, 0 need a decision
+```
+
+The file is still on disk afterwards, and **that is the tool being careful rather than the tool failing** — it will not delete what it has no record of writing, and the per-skill line says so, gives the count, and names the file. **What is wrong is one line lower: the summary says `1 changed` when no file changed.** Read the per-skill line, not the total.
+
 ## Recorded against v3.0.0 and NOT present in it
 
 These are in our register and you will not hit them on this build. They are listed because finding an open issue that describes your version is otherwise alarming.
