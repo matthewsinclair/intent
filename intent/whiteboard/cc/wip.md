@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-30 22:28Z
-status: active
-focus: "AT-06.6 (49d8b24e), SERVED_BY_DAEMON membership (4a3ca7a9), AT-10.8 (ccbb4afd) landed. ics RED backup test was a STALE SIBLING intentd, not my key -- RealDaemon now refuses one. AC-10.8s naming half stays unbuilt pending vcs design call. Next: AT-10.12 migrator_determinism.rs, ISOLATED FIXTURE ONLY."
+heartbeat_at: 2026-08-31 07:23Z
+status: paused
+focus: "FOLDED 2026-08-31 07:23Z, pre-fold at .history/20260831/wip-fold-0721Z.md. Four landed: 49d8b24e AT-06.6, 4a3ca7a9 SERVED_BY_DAEMON membership, ccbb4afd AT-10.8, a3b8aa60 the stale-sibling-intentd refusal. Nothing of mine is uncommitted and nothing is owed to me. ON THE BOUNCE: AT-10.12 migrator_determinism.rs, ISOLATED FIXTURE ONLY. Waiting on vc for ONE thing -- which output carries AC-10.8's residue naming."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -13,72 +13,74 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 ## DOING
 
-**NOTHING IN FLIGHT.** AT-10.8 is built and landed. **AC-10.8 stays RED on its second half and that is the honest state**: the criterion wants the out-of-model set named in the output, `sync --to-disk` prints `ok: extract written for {n} thread(s)`, and the arm for it is `#[ignore]`d with its expiry rather than relaxed. **Waiting on vc for WHICH output carries the naming** -- I recommended `doctor`/`export` over the egest, held loosely, because the set is a property of the MODEL and a constant restated every run is where suppression starts.
+**NOTHING IN FLIGHT.** Tree is clean of me.
 
 ## TODO
 
-- **AT-10.12 `migrator_determinism.rs`** -- migrate a fixture, migrate again, require identical canon bytes, AND separately require the output to match canon from the same binary. **The two are different assertions and the second is the one that failed.** **ISOLATED FIXTURE, NEVER THE LIVE TREE** -- this is the verb that zeroed the estate's event log and I have stated I will not run it here again for any reason, including verifying my own fix.
-- **AT-10.5 `fleet_corpus_ingest.rs`** -- its named blocker (`migrate.rs` absent) EXPIRED 2026-08-27. **But vc's second argument still stands and is the load-bearing one: AC-10.5 asks the MIGRATION to name its residue and the migration does not.** Same shape as AC-10.8's second half. Asked vc whether to pull it forward.
-- **AT-06.11 `remedies_are_reachable.rs`** -- walk the emitted REMEDY STRINGS, never the declared verbs. Held red by design once written.
-- **AC-06.8** -- reported to vc, not mine to fix: `INHERITED_UNREAD` has four live entries, three of them `st bootstrap` flags on a verb that refuses at rc=2. ic owns the file.
+- **AT-10.12 `migrator_determinism.rs`** -- migrate a fixture, migrate again, require identical canon bytes, **and separately** require the output to match canon from the same binary. **The two are different assertions and the second is the one that failed.** **ISOLATED FIXTURE, NEVER THE LIVE TREE**: this is the verb that zeroed the estate's event log, and I have stated I will not run it here again for any reason, including verifying my own fix. Positive control is the measured divergence itself.
+- **AC-10.8's naming half -- BLOCKED ON vc, and it is a specification call not a build one.** `sync --to-disk` prints `ok: extract written for {n} thread(s)` and names no residue. I put three readings to vc and recommended (c) -- `doctor`/`export` rather than the egest -- holding it loosely. **Do not build to the literal wording without the ruling**: rewording a criterion to match what is easy to build is the move to avoid, and so is printing a MODEL constant on every run of a routine verb.
+- **AT-10.5 `fleet_corpus_ingest.rs`** -- the `migrate.rs` blocker expired 2026-08-27, **but vc's second and load-bearing argument stands: AC-10.5 asks the MIGRATION to name its residue and it does not.** Same shape as AC-10.8's second half; both move together or neither does.
+- **AT-06.11 `remedies_are_reachable.rs`** -- walk the emitted REMEDY STRINGS, never the declared verbs; a test asserting every declared verb exists passes trivially. Held red by design once written.
+- **AC-06.8 is ic's file, reported not fixed.** `INHERITED_UNREAD` carries four live entries and **three are `st bootstrap` flags on a verb that refuses at rc=2** -- graded as violations because `unwired_families()` keys the deferral on the FAMILY and `st` is wired.
 - **A `bin/devbin build all` is owed** before anyone can browse the web face from the delivered binary.
 
 ## Watch-outs
 
-**A STALE SIBLING BINARY REPORTS ITSELF AS A DEFECT IN SOMEONE ELSE'S KEY, AND IT DID.** ic hit `a_project_with_backups_turned_off_...` RED on a clean HEAD and it was neither their code nor my key: the daemon was built before `42402762`. **Measured in the binaries, never the source** -- `strings | grep -c 'backup.enabled = false'` gives 1 for a gated daemon and 0 for `target/debug/intentd`. `render.rs:5620` resolves the daemon as `current_exe().parent().join("intentd")`, and **`cargo test -p intent-cli` builds this package's binaries and not another package's**, so the sibling is whatever an earlier build left.
+**A ROW'S STATED BLOCKER IS A FALSIFIER TO DRIVE, NOT A NOTE TO READ. FOUR OF MINE HAD EXPIRED UNANNOUNCED.** AT-06.8 held red _until the arm runs_ (ic un-`#[ignore]`d it 2026-08-27); AT-10.5 held _until `migrate.rs` exists_ (it does); AC-06.6 awaiting a mechanism already built; and my own fold sent me at WP-13, whose nine criteria were descoped to ST0069. **Re-drive the register at pickup before believing your own handover.**
 
-**BOTH EXISTING PROTECTIONS MISS IT BY DESIGN, IN OPPOSITE DIRECTIONS.** The `wait_until_it_answers` panic covers ABSENT; the version check covers a CROSS-version mismatch and both binaries say `3.0.0`. **Same version, different build, nothing to compare.** `RealDaemon::start` now refuses a sibling older than the newest `intentd`/`intentsvcs` source, and REFUSES rather than rebuilding -- a harness that quietly builds hides the class from the node whose binary was stale.
+**AND THE DANGEROUS SHAPE IS A STALE REASON ON A CORRECT VERDICT.** AT-06.8's red is right and its stated reason is dead, so **a reader honouring the note's own expiry would move the row to green.** The verdict gets re-checked; the reason does not.
 
-**AND IT IS THE RESIDUAL LIMIT I WROTE INTO `the_binary_under_test_is_the_one_cargo_built.rs` YESTERDAY, FIRED WITHIN A DAY.** That header says the guard proves the SPELLING and not that a spawn reached the intended inode. **Writing a limit down does not close it**, and the person who hit it was not the person who recorded it.
+**A GUARD'S AUTHORITY IS ITS MEMBERSHIP RULE, NEVER ITS NAME.** `export_round_trip.rs`'s anti-vacuity arm -- the one whose whole job is refusing to assert over an empty set -- counted TWO kinds of a THREE-kind type under the name `..._carries_both_kinds_...`, blind to a variant hv had ruled in months-of-commits earlier. **Its name stated its membership rule and the rule went stale.** `export.rs` reasons about that exact hazard for that exact type in its own comment; the test never inherited it. **Where a population must not silently shrink, use an exhaustive `match` so a new variant fails to COMPILE**, never `matches!`.
 
-**MY BOARD'S NEXT-ITEM WAS STALE IN THE DIRECTION THAT COSTS A SESSION.** It sent me to ask hv about WP-13; WP-13 was descoped to ST0069 and there was nothing to ask. **A fold records what you were thinking, and what you were thinking is the first thing to go out of date.** Re-drive the register at pickup before believing your own handover.
+**A STALE SIBLING BINARY REPORTS ITSELF AS A DEFECT IN SOMEONE ELSE'S KEY.** ic hit a red backup arm on clean HEAD; the daemon predated the gate. **Measured in the binaries, never the source** -- `strings | grep -c 'backup.enabled = false'` gives 1 gated, 0 stale. `render.rs:5620` resolves the daemon as `current_exe().parent().join("intentd")`, and `cargo test -p intent-cli` builds this package's binaries and not another's. **Both prior protections missed in opposite directions**: the panic covers ABSENT, the version check covers CROSS-version, and both binaries say `3.0.0`. Closed by a refusal in `RealDaemon::start` (`a3b8aa60`) -- **and a refusal, never a rebuild**, because a harness that quietly builds hides the class from the node whose binary was stale.
 
-**A GUARD'S AUTHORITY IS ITS MEMBERSHIP RULE, NEVER ITS NAME. SIXTH INSTANCE 2026-08-30 21:45Z:** `flag_reachability`'s `unwired_families()` keys its deferral on the FAMILY -- the first token of the path -- so `st bootstrap`, which refuses at rc=2 as unimplemented, has its three flags graded as if wired and grandfathered as debt. **Three of the four entries in `INHERITED_UNREAD` are not debt at all.**
+**WRITING A LIMIT DOWN DOES NOT CLOSE IT.** That sibling hazard is stated verbatim in `the_binary_under_test_is_the_one_cargo_built.rs`'s header, written 2026-08-30, and **it fired within a day on a node who had never read it.** A recorded limit is a note to the author, not a guard on the estate.
 
-**AND THE FIVE FROM 2026-08-30 STAND:** vc's `populations.self_loop`; my arm 6b's hardcoded `case`; dc reading `table_driven_tests_fixture_their_home` as the guard over binary resolution; dc's `facade.rs` kind rule; vc catching my arm undercount. **In three of the five the CONCLUSION WAS STILL CORRECT**, which is why they survived. **My own was worst-shaped: I read every arm of the file I was attacking and truncated my grep on the file I was defending.**
+**A CHECK THAT SUPPLIES ITS OWN DENOMINATOR CERTIFIES ITSELF.** ic's `--out-of-model` attack: the migrator zeroes a counter by naming everything. **Where the denominator is PROSE and cannot be parsed, pin the mapping to its SOURCE PHRASE** -- `egest_estate.rs` plants the pair `data-model.md` names and reds if the document stops naming it. Neither a parse nor a hardcode.
 
-**A BLOCKER'S EXPIRY IS SILENT AND NOTHING ANNOUNCES IT. THREE TODAY, ALL MINE.** AT-06.8 held red _until the arm runs_ (ic un-`#[ignore]`d it 2026-08-27); AT-10.5 held to-write _until `migrate.rs` exists_ (it does, 2026-08-27); AC-06.6 awaiting a mechanism that is fully built. **A row states its own falsifier and then nobody drives it.** Drive the falsifier, do not read the note.
-
-**AND THE DANGEROUS HALF: AT-06.8's NOTE WOULD NOW MOVE THE ROW TO GREEN IF HONOURED.** Its stated expiry has been met and the row is still correctly red for a reason the note does not give. **A stale reason attached to a correct verdict is worse than a stale verdict**, because the verdict gets re-checked and the reason does not.
-
-**A DECLARED, HELPED, UNREAD FLAG IS HARMLESS ONLY WHILE ITS VERB REFUSES.** `st bootstrap --dry-run` and `--audit-only` promise no-writes and are read by nothing. rc=2 is the only thing making that safe. **Wiring the verb without wiring the flags is what converts it into the defect**, and that is a one-commit distance.
-
-**THE BINARY ON PATH IS NOT THE BINARY YOU BUILT, AND IT CAN VANISH MID-MEASUREMENT.** I read `upgrade` and `export` through `~/.local/bin/intent`, got clean output, and **the file does not exist now** -- a release build cleans and rebuilds in place, dangling the symlink for ~66s. **A measurement through PATH has a shelf life.** Build your own and drive that.
-
-**`... | head; echo "rc=$?"` REPORTS `head`'s STATUS.** I printed `rc=0` under a command that exits 2. Capture with `out=$(cmd 2>&1); rc=$?` or `${PIPESTATUS[0]}`. **The failure returns a plausible number rather than an error.**
+**AND POSITIVE-CONTROL THE GREP BEFORE CALLING A CITATION WRONG.** `out-of-model` appears ZERO times in the file AC-10.8 cites it from; the set is there under another heading. I nearly filed that as a defect. **A citation is not wrong because your search term is** -- test the instrument against a term that must be present.
 
 **COMMITTING IN A SHARED CHECKOUT IS THREE PROBLEMS AND ONLY ONE IS CLOSABLE BY THE COMMITTER.**
 
-- **CONTENTION** -- taking a peer's bytes. Closed by a HEAD-pinned private index (below), or `--only` where whole files suffice.
-- **COHERENCE** -- the tree you commit must make sense. **NOT closeable by you**: a half-landed pair is incoherent however carefully you scope, and on 2026-08-30 one blocked EVERY node in the estate for ~20 minutes. The remedy is the guard's own: land the pair, or wait.
-- **REVERSION** -- vc's find. `at.set` then `sync_from_disk` 1.2s later took their green AND a path correction, **and the row looked untouched afterwards.** D01 makes the store SSOT and `sync_from_disk` inverts it for one call. **Announce any disk->store sync before running it.**
+- **CONTENTION** -- taking a peer's bytes. Closed by a HEAD-pinned private index.
+- **COHERENCE** -- **NOT closeable by you**: a half-landed pair is incoherent however carefully you scope. Land the pair, or wait.
+- **REVERSION** -- the nastiest, because it leaves a correct-looking artefact. **Announce any disk->store sync before running it.**
 
-**THE PINNED PRIVATE INDEX, AND IT IS ONLY SAFE PINNED ON BOTH SIDES.** `base=$(git rev-parse HEAD)`; `read-tree $base`; stage; refuse if HEAD moved; commit; **then assert `HEAD^ == base`.**
+**A RULE THAT NAMES _WHEN_ AND NOT _IN WHICH ENVIRONMENT_ IS SATISFIABLE BY THE BROKEN FORM** (dc's generalisation of my `GIT_INDEX_FILE` slip, 2026-08-31, and it is better than the instance). Mine said _reset in the same turn as the commit_ -- and the same turn is exactly where the variable is still exported, so the rule as written endorsed the defect. **dc's own note was worse and they said so: it named a pre-commit check and nothing about teardown, so it had no clause that could even be read wrong.** Before writing a procedural rule, ask which environment it runs in.
 
-- **Why both sides:** git resolves the parent AFTER the hooks, so **the pre-commit gate's entire runtime sits between the pre-check and the commit object.** ic nearly lost two of vc's commits to the unpinned form.
-- **Why pin at all:** `--only` and plain `commit` lose LOUDLY on `cannot lock ref 'HEAD'`. **A private index removes the contention and therefore the noise.** The post-verify buys the noise back.
-- **Its other cost:** the commit moves HEAD while the AMBIENT index keeps pre-commit entries, so **the ambient index becomes a silent reversion of your own commit.** `git reset -q HEAD -- <paths>` in the SAME turn as the commit.
+**THE PINNED PRIVATE INDEX, AND THREE WAYS I GOT IT WRONG TODAY.**
 
-**A TRUE CLAIM CAN HAVE A SHELF LIFE SHORTER THAN THE MESSAGE CARRYING IT.** dc warned me five of my paths were staged as pending reversions; true when sent, false when it arrived. Re-measure on receipt -- and **resetting another node's index entries is the same offence as taking their bytes.**
+- **Pin on BOTH sides.** Git resolves the parent AFTER the hooks, so the gate's whole runtime sits between the pre-check and the commit object.
+- **`unset GIT_INDEX_FILE` BEFORE the reset, never after.** I reset with it still exported, so the reset hit the PRIVATE index and **the ambient index was left holding 30 deletions of the commit I had just landed** -- a staged reversion of my own work that any node's plain `commit` would have taken.
+- **Gate the post-verify on the commit's EXIT STATUS.** On a refusal HEAD never moved, so `HEAD^` is the base's parent and the check screams DANGER at a gate working correctly. A check that cannot tell _nothing happened_ from _something bad happened_ trains you to ignore it.
 
-**AN UNTRACKED FILE CAN CHANGE WHAT A SHARED GUARD SAYS ABOUT EVERY NODE, WITH NO SIGNAL TO ITS AUTHOR.** The guard runs at commit; if your last commit predates the file, the refusal lands on whoever commits next.
+**`cd` PERSISTS BETWEEN TOOL CALLS AND IT COST ME THREE REFUSALS.** A `cargo` call leaves the shell in `native/rust`; the next `git add -- native/rust/...` then resolves to `native/rust/native/rust/...` and matches nothing. **Start every git turn with an absolute `cd`.**
 
-**`cargo test -p intent-cli` DOES NOT REBUILD `intentd`.** A control that cannot fail certifies a test that cannot fail. `cargo build -p intentd` first.
+**`... | head; echo "rc=$?"` REPORTS `head`'s STATUS.** I printed `rc=0` under a command that exits 2. Use `out=$(cmd 2>&1); rc=$?`.
+
+**A MEASUREMENT THROUGH PATH HAS A SHELF LIFE.** I read `upgrade` and `export` through `~/.local/bin/intent`, got clean output, and the file did not exist minutes later -- a release build cleans and rebuilds in place. **Build your own and drive that.**
+
+**A TRUE CLAIM CAN HAVE A SHELF LIFE SHORTER THAN THE MESSAGE CARRYING IT.** Re-measure on receipt -- and **resetting another node's index entries is the same offence as taking their bytes.**
+
+**`cargo test -p intent-cli` DOES NOT REBUILD `intentd`.** Now enforced rather than remembered, but the fact is unchanged.
 
 **A UNIX SOCKET PATH HAS A LENGTH LIMIT AND THE SESSION SCRATCHPAD EXCEEDS IT** (`SUN_LEN`, 143 bytes). `RealDaemon` uses `short_dir`.
 
 **NEVER START `intentd` UNDER THE REAL `$HOME` WHILE PEERS ARE LIVE** -- it takes the store exclusively and refuses every peer's store verbs at once.
 
-**rustfmt NEEDS `--edition 2024` HERE.** `--edition 2021` fails on let-chains with an error that reads like a code defect and formats nothing. Format BEFORE staging.
+**rustfmt NEEDS `--edition 2024` HERE**, and **it reformats what you just wrote** -- a patch anchor built from your own source text stops matching after it runs. Format, then re-read, then patch.
 
 **EXHAUSTIVENESS MAKES THE COMPILER FORCE YOU TO HANDLE A VARIANT, NEVER TO HANDLE IT CORRECTLY.** Drive the effect, not the verdict.
 
+**DO NOT `assert_eq!` ON FILE BYTES.** Mine dumped 757KB of sqlite on its first red. Collect the differing PATHS and name those.
+
 ## Decisions
 
-- (2026-08-30 21:45Z) **A row's stated blocker is a falsifier to DRIVE, not a note to read.** Three of mine had expired unannounced. Re-drive at pickup.
-- (2026-08-30) **`backup.enabled` gates the daemon sweep and NOTHING else** -- `cycle` ungated so `intent backup` still works, doctor ungated so staleness is still reported. vc's homonym ruling, quoted at the field itself.
-- (2026-08-30) **`Due::Disabled` is checked BEFORE `schedule`**, so an inert value is not announced as a defect.
+- (2026-08-31) **`RealDaemon` refuses a stale sibling daemon rather than rebuilding one.** Source mtime is the comparison, deliberately not the sibling `intent`: cargo does not relink an unchanged binary, so both would be old together and the check would pass on exactly the tree it exists to refuse.
+- (2026-08-31) **AC-10.8's naming half is vc's specification call, not my build.** Recorded rather than resolved by inventing surface.
+- (2026-08-30) **`SERVED_BY_DAEMON` is complete at one entry**: a path belongs when its answer is an existing project-scoped, request-response `Op`. It grows when `Op` gains such a variant, not before.
+- (2026-08-30) **`backup.enabled` gates the daemon sweep and NOTHING else** -- `cycle` ungated so `intent backup` still works, doctor ungated so staleness is still reported.
 - (2026-08-30) **A new guard gets a file named for its contract**, never an arm inside one whose name describes something else.
-- (2026-08-30) **Attachments are AUTHORED; no sync direction rewrites them.** `st attach <ID> <rel> --from <file>` is the narrow disk->store door; `--to-store` is destructive and bare replaces the WHOLE store -- scope it to the thread.
-- (2026-08-30) **One published port, both protocols, disambiguated at byte 0.** `Op::Shutdown` is refused over HTTP; `/op` binds per REQUEST where the socket binds per CONNECTION.
-- (2026-08-30) **51737 is a preference, never a promise** -- ask for it, fall back to a kernel port, publish what was bound. D6 intact.
+- (2026-08-30) **Attachments are AUTHORED; no sync direction rewrites them.**
+- (2026-08-30) **One published port, both protocols, disambiguated at byte 0.** `Op::Shutdown` is refused over HTTP.
+- (2026-08-30) **51737 is a preference, never a promise** -- publish what was bound. D6 intact.
