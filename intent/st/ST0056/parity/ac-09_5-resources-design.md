@@ -22,9 +22,11 @@ So the resource set is exactly the entities with a `*_show` facade door, and "co
 
 **Resources serve model entities through EXISTING facade doors. Zero new facade surface.**
 
-- `intent:///thread/<id>` → `Facade::st_show(id)` → matches `intent st show <id>`
-- `intent:///work-package/<st>/<seq>` → `Facade::wp_show(st, seq)` → matches `intent wp show`
-- `intent:///issue/<n>` → `Facade::issue_show(n)` → matches `intent issues show`
+- `intent:///threads/<id>` → `Facade::st_show(id)` → matches `intent st show <id>`
+- `intent:///threads/<st>/wp/<n>` → `Facade::wp_show(st, seq)` → matches `intent wp show`
+- `intent:///issues/<nnnn>` → `Facade::issue_show(n)` → matches `intent issues show`
+
+The URIs are the `intent://` address scheme's own — **plural, four-digit issue ids, `address.rs`'s grammar**, not spelled by this surface.
 
 **(B) build file-read doors + CLI verbs for wip and boards** was declined for the tag: it is new surface (`Facade::wip`, `Facade::board(node)` plus their CLI verbs) and the choice of building it before the tag is hv's, taken to hv costed — the same division as the GraphQL hatch, where vc bounded under the pen and hv ruled the build. **(C) serve wip/boards as raw file resources with no CLI equivalent** was rejected: a read beside the facade breaks the one-door rule AND makes the match clause vacuous — two defects for one.
 
@@ -34,7 +36,7 @@ So the resource set is exactly the entities with a `*_show` facade door, and "co
 
 1. **One facade door per resource** (`AC-09.1` / `AC-09.6`). A resource reads through a `Facade` method, never a file read beside the facade, so the resource and the CLI read are the SAME read and "contents match" holds by construction rather than by a second implementation kept in sync. The MCP tier calls the facade, never the CLI dispatch arm (vc's MCP ruleset (a)).
 
-2. **URI grammar is DERIVED from the one path grammar** (`AC-17.12` / `nav.rs`). The TUI view stack and the web URL path are already the same sequence from the schema relations (`View::Collection { kind }`, `View::Item { kind, id }`). A resource URI is a third face onto that same grammar and derives from it — the kind segment is exactly a `nav.rs` kind — or it is `MODULES.md` with a URI syntax. No new kind vocabulary; a resource for wip or a board would need a kind the grammar does not have, which is the same tell that they are not model entities.
+2. **The URI is an `intent://` address, PARSED AND RENDERED BY `address.rs`** — the estate's one home for the scheme (`D57-8`), guarded by `address_resolution_single_home::no_second_resolver_exists`. `resource_list` renders each URI from an `address::Entity`; `resource_read` recovers the entity with `address::parse`; the three forms with a `*_show` door become resources and every other address is refused. **CORRECTION, recorded rather than overwritten (ic, 2026-08-31, on cc's guard):** the first draft of this design and its first code cut spelled a SINGULAR `intent:///thread/<id>` "derived from `nav.rs`'s kinds". That was wrong twice — it hand-spelled the scheme (a second resolver the guard reds), and it used the wrong grammar. The `intent://` scheme is `address.rs`'s and is PLURAL (`intent:///threads/ST0056`); the singular `/thread/…` is `nav.rs`'s TUI/web path, a DIFFERENT single-home grammar. Two legitimate grammars, and the design proposed a third by hand between them. The reason is kept because a later reader tempted to "align the resource URI with the TUI path" would re-make exactly this mistake.
 
 3. **`resources/list` == `resources/read`, both directions** — the same agreement `mcp_surface.rs` pins for tools. A listed resource that read cannot serve, or a readable resource not listed, is the tool-roster defect on the resource surface.
 
@@ -50,7 +52,7 @@ Then `mcp_resources.rs` asserts the resource's content equals `intent st show <i
 
 ## What `mcp_resources.rs` (AT-09.5) witnesses
 
-- `resources/list` over a real stdio session enumerates one resource per entity the facade can `*_show`, and every listed URI parses under the `nav.rs` kind grammar.
+- `resources/list` over a real stdio session enumerates one resource per entity the facade can `*_show`, and every listed URI round-trips through `address::parse` (the plural `intent://` grammar), not a grammar spelled by this surface.
 - `resources/read(uri)` returns content byte-identical to the equivalent CLI read (`st show <id>`), driven for a thread, a work package and an issue.
 - list and read agree both ways (no listed-but-unreadable, no readable-but-unlisted).
 - **Scope stated, not discovered:** wip.md and the whiteboard boards are NOT resources under this bound, because they have no facade door and no CLI read to match; they are the hv-costed follow-on.
