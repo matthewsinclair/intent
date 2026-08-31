@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 177,
+  "slug": "ext-ships-the-creating-half-without-the-undoing",
+  "title": "ext ships the creating half without the undoing half -- there is no ext remove",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-31",
+  "reporter": "Matthew Sinclair",
+  "body": "REHOMED 2026-08-31 (vc) FROM `ext new`'s `recoverability_anomaly` FIELD, WHICH THE GENERATOR CORRECTLY REFUSED TO LET ME KEEP. The anomaly was my own ruling of 2026-08-16 and it named two resolutions: build `ext remove`, and the row becomes `reversible`; or withhold `ext new`, and it becomes an ordinary agreement. **hv's 2026-08-31 narrow of the eleven unwired MCP rows took the second one, as a side effect rather than as a choice about this** -- so the anomaly went stale by arm 2's definition and had to be deleted.\n\n**THE FINDING DOES NOT GO STALE WITH IT, WHICH IS THE ONLY REASON THIS ISSUE EXISTS.** `ext` ships `list`, `show`, `validate` and `new`, and there is no `ext remove` anywhere in the dispatch table, so **nothing undoes a scaffold.** That was true before the narrow and it is true after it. It unifies with `backup` shipping without a `restore`: both are a family shipping the creating half without the undoing half.\n\n**AND THE MECHANISM IS WORTH MORE THAN THE FINDING.** A live finding was living in a field whose whole purpose is to document a DISAGREEMENT, so the moment the disagreement was resolved -- by an unrelated change, for an unrelated reason -- the guard required the finding's only home to be deleted. **That is the record-outliving-its-premise class inverted: not a record surviving its subject, but a finding dying with the field that happened to host it.** The guard is right in both directions and neither direction is the problem; the problem is that an anomaly field is a home for WHY TWO FIELDS DISAGREE and is not a home for a product gap.\n\n**BEARING ON hv's 2026-08-31 RULING** that `config`/`ext`/`fileindex`/`learn` ship declared-and-unbuilt: when `ext` is eventually built, **shipping `new` without `remove` is the state this issue objects to**, and the completeness question should be settled at build time rather than rediscovered from a field that no longer exists."
+}
