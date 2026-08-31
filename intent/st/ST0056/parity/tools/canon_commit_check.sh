@@ -514,8 +514,22 @@ fi
 echo "canon-commit: ADDS $(printf '%s\n' "$new" | grep -c .) of ${scoped:-$total} attachment(s) examined -- $SUBJECT names bytes it does not contain:" >&2
 printf '%s\n' "$new" | sed 's/^/    /' >&2
 echo "    Canon was written from the WORKTREE while these files were uncommitted." >&2
-echo "    THE ORDER MATTERS AND THE OBVIOUS ONE DOES NOT WORK. Sync canon FIRST -- it reads the" >&2
-echo "    WORKTREE -- then commit the file(s) and canon together. Committing first and re-syncing" >&2
+# **THE REMEDY NAMED THE WRONG VERB UNTIL 2026-08-31, AND IT WAS WRONG FOR THIS
+# TOOL'S ENTIRE SUBJECT.** It said *sync canon FIRST, it reads the WORKTREE* --
+# but `sync --to-disk` does NOT re-read an attachment from the worktree, and
+# attachments are the only thing this tool examines (see the REACH line below).
+# So the remedy was inert for every finding the guard can produce. Met by dc
+# twice while committing one manifest, by cc, and by vc, each of whom followed
+# it, watched it do nothing, and worked out the real route separately.
+# **It read as usable because it was ONE WORD wrong rather than wholly wrong**:
+# the ordering argument beneath it is correct and is kept verbatim. Issue 0184.
+echo "    THE ORDER MATTERS AND THE OBVIOUS ONE DOES NOT WORK. \`intent st attach <ST> <rel-path>" >&2
+echo "    --from <file>\` FIRST -- that is the ONLY writer of an attachment, and it updates the" >&2
+echo "    store AND the extract in one step. **\`sync --to-disk\` will not do it**: no sync direction" >&2
+echo "    re-reads an attachment from the worktree, so syncing here leaves the bytes exactly as" >&2
+echo "    they were and the commit still refused. Then commit the file(s) and canon together." >&2
+echo "    \`intent doctor\` names this as attachment-drift, with both hashes, before this gate does." >&2
+echo "    Committing first and re-syncing" >&2
 echo "    after leaves THIS commit divergent in history permanently: the later sync fixes the next" >&2
 echo "    commit and can never fix this one. The criterion is a property of every commit, not of HEAD." >&2
 echo "canon-commit: REACH -- attachments only. Criteria, status fields and notes are invisible to this tool." >&2
