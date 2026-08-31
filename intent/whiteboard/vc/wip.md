@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 21:02Z
+heartbeat_at: 2026-08-31 21:05Z
 status: active
 focus: "FOLDED 2026-08-31 18:59Z, pre-fold sha-verified in .history/20260831/. STATUS STAYS active -- a compact does not end a session. THE NEXT RELEASE IS NOT A PATCH (13 commands, 30 flags at 0f5ee514) and the NUMBER IS hv's -- AND THE RELEASE IS ITSELF THE BLOCKER ON ST0068 AC-02.1, which I had filed as unbuilt work owned by dc when it had been built for four days. I understated my own figures to hv THREE times today, all in the direction nobody checks. RE-RUN EVERY FIGURE; READ NONE OFF THIS BOARD."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -175,9 +175,23 @@ The per-property union exists. **What keeps it red is that the criterion's first
 
   **A PHRASE OF MINE BECOMES A SPEC THE MOMENT SOMEONE BUILDS AGAINST IT.** Both were loose talk that read as design, and neither cost anything only because ic and I checked before building. **This is the same failure as the premise-versus-conclusion error above, one step earlier: there I verified the wrong thing, here I verified nothing and it still read as authoritative.**
 
-- **ST0064 PROJECT ROOT: RULED (a) -- THE APP STORES A CONFIGURED ROOT AND SETS THE CHILD'S CWD** (2026-08-31, ic's question, ic's recommendation, and the measurement inverted the argument I expected to make). **NO PROJECT REGISTRY EXISTS**, so (a) creates the FIRST home for that fact, not a second -- the Highlander objection to it has no subject.
+- **ST0064 PROJECT ROOT: RULED (a) -- THE APP STORES A CONFIGURED ROOT AND SETS THE CHILD'S CWD** (2026-08-31, ic's question, ic's recommendation, and the measurement inverted the argument I expected to make). **CORRECTED WITHIN THE HOUR: `D07` RATIFIES A REGISTRY** -- _One intentd per machine, N projects, per-project DBs, REGISTRY_. I measured `~/.intent/config.json`, found none, and ruled that none EXISTS -- reading today's filesystem as the design. **(a) still stands but its strongest ground is void**: (b) would not INVENT a global fact, it would build a ratified-but-unbuilt D07 component. What survives is SEQUENCING, not novelty -- building D07's registry is release scope and hv's.
 
-  **AND (b) IS THE HIGHLANDER VIOLATION, NOT (a)**: a machine-level registry query introduces a SECOND resolution mechanism alongside CWD walk-up, which the two would then have to agree on forever with nothing checking -- **a fresh instance of `0204`, which I filed an hour earlier.** (b) also asserts the machine has _a_ project, false the moment a second exists, and this fleet is fourteen. **CONDITION: the configured root is VALIDATED as an Intent project when set, and the app refuses LOUDLY if not** -- otherwise children spawn where walk-up finds a different project and a correctly-working CLI emits confusing errors.
+  **AND (b) IS THE HIGHLANDER VIOLATION, NOT (a)**: a machine-level registry query introduces a SECOND resolution mechanism alongside CWD walk-up, which the two would then have to agree on forever with nothing checking -- **a fresh instance of `0204`, which I filed an hour earlier.** (b) also asserts the machine has _a_ project, false the moment a second exists, and this fleet is fourteen. **CONDITION, NOW TWO CLAUSES: (i) the configured root is VALIDATED as an Intent project when set, and the app refuses LOUDLY if not; (ii) the store is marked IN THE CODE as an INTERIM standing in for `D07`'s registry, naming D07, so that when the registry lands the app READS it rather than keeping a parallel home. A short-lived second home that knows it is second is fine; one that forgets is `0204`.** -- otherwise children spawn where walk-up finds a different project and a correctly-working CLI emits confusing errors.
+
+- **THREE TIMES TODAY I MEASURED SOMETHING TRUE AND RULED ON A BROADER QUESTION THAN THE MEASUREMENT ANSWERED.** This is the session's own defect and it is not the same as being careless -- **every one of the three measurements was correct, which is what made each ruling feel driven.**
+
+  - **`AC-06.1`:** verified `125f601d` deleted zero tests (TRUE) -> ruled the commands were gone (FALSE; it deleted the plugin SCRIPTS).
+  - **`AT-00.11`:** read `c51f10d5` cited as the defect live -> it is the FIX commit.
+  - **`ST0064`:** measured `~/.intent/config.json` holds no registry (TRUE) -> ruled no registry EXISTS (FALSE; `D07` ratifies one, unbuilt).
+
+  **THE COMMON FACTOR IS THAT THE MEASUREMENT ANSWERED A NARROWER QUESTION THAN THE RULING.** A spot check confirms the narrow fact and licenses nothing. **All three were caught by a PEER driving, never by me re-reading -- so the corrective is not more care, it is stating what the measurement does NOT establish before ruling on it.**
+
+- **`D10` RATIFIES THE PLUGIN-SCRIPT PRUNE; the 24 `deviate` rows cite it and drop `UNRATIFIED`** (2026-08-31). **TRACED, NOT PICKED, and that distinction is the whole ruling**: `D10` reads _shell pruned at the cut_; `AC-12.1` reads _the shell implementation is pruned at the cut_ -- **the operative clause WORD FOR WORD**; and `125f601d`'s own title is _AC-12.1's prune lands_. Three links, each checkable. **`lib_classify.sh` forbids supplying a PLAUSIBLE reference -- resemblance is not evidence, a shared operative clause is. Had D10 merely MENTIONED shell, this would have gone to hv to mint a new one.** Minting is a design act and hv's hand; ruling that an existing ratified decision covers a case is adjudication and mine.
+
+  **AND THE CITATION IS WHAT MAKES TRIMMING THE NOTES SAFE:** once every row cites `D10` the shared argument has a named home, so a per-row note repeating it is a second copy of a ratified decision. Each note keeps only what is true of ITS row. **A D-number is a citation with a referent, not the absence-as-meaning this estate rejects.**
+
+  **cc's COUNT IS 24 AND MINE SAID 21** -- my own clauses read 19 + 2 + 3 and I totalled them wrong in the same message. Three rows would have stayed silently `keep`.
 
 - **A RECLASSIFICATION IS A CLAIM ABOUT WHY, AND A CLASS CHANGE WITHOUT ITS REASON IS A DELETION WEARING A NEW LABEL** (2026-08-31). **Three rulings today turned out to be this one rule in different clothes** -- worth stating once rather than three times.
 
