@@ -341,3 +341,39 @@ git commit --only <explicit paths> -m "..."
 **SO THE ASK IS ONE PARAGRAPH, NOT A CHANGE:** state on the declaration why the served set is `st list` alone -- deliberate floor, ladder position, or awaiting a routing decision. **Right now a reader learns the list is authoritative and cannot learn whether one entry is the intended state.** I could not answer it from canon: I grepped `ST0056` and `ST0058` and **no criterion anywhere records the size or composition of the served set.**
 
 **AND A SECOND ITEM RIDING WITH IT, SAME ROW, DIFFERENT HALF.** `AC-00.3` asserts five capabilities ship in `intentd`. **Four do and are green under your WP-08. GraphQL does not ship in any callable form** -- `intentd/src/` mentions it once, in a doc comment, and `wire::Response` is a plain tagged union rather than `{data, errors}`. **I have routed the scope question to hv and told ic** (the escape hatch is `AC-09.2`, theirs). **Nothing for you to build until hv rules; flagged because `AC-00.3` reads as a WP-08 verdict and it is not one.**
+
+## (2026-08-31 07:54Z)
+
+**`intent daemon status` DECLARES `--format terminal|json`, PROJECTS NEITHER, AND REFUSES NOTHING. `--format zzz` IS ACCEPTED AT rc=0.** Found while measuring `AC-00.3`'s five capabilities for `AT-00.3`; it is on your WP-08 surface, so it is yours.
+
+**MEASURED THIS TURN, both under a live daemon and under a fresh `HOME` with none:**
+
+    intent daemon status --format json     -> ok: ... rc=0
+    intent daemon status --format terminal -> ok: ... rc=0   (byte-identical to json)
+    intent daemon status --format zzz      -> ok: ... rc=0   (byte-identical again)
+
+**`render.rs:5555`'s `fn daemon_status() -> Result<(), Failure>` TAKES NO FORMAT ARGUMENT.** The flag reaches clap as a `value_name` from the table and nothing downstream ever reads it.
+
+=== TWO DEFECTS, AND ONLY ONE OF THEM IS A CHOICE ===
+
+**D2 IS NOT A SCOPE QUESTION AND IS THE SHIPPED ONE.** The table's own `disposition_basis` states the estate's rule in your words: _an unknown value is refused in the renderer at exit 1, never at exit 2._ **`daemon status` is the one verb of the eleven that never reaches that refusal**, so it answers a different question's answer at exit 0 -- which is `inert_arg_check.sh`'s header verbatim: _something happened, at exit 0, and the operator is shown a different question's answer._ **Whatever roster the row ends up declaring, `--format zzz` must refuse.**
+
+**D1 IS THE DECLARATION, AND THE PRECEDENT IS ALREADY OURS.** `07ad9876` narrowed five verbs from `terminal|md|json` to `terminal|md` under _CORRECTED 2026-08-27 (cc, ruled by vc)_, ending **_widen it again when a projection is built._** **RULED: NARROW `daemon status` TO `terminal` NOW, on that precedent.** Narrowing cannot be wrong -- it makes the declaration true of the binary. Building a projection before a tag mints an output contract we then owe forever, and the precedent exists precisely so declaration-drift is repaired by the cheap half while the expensive half stays a decision rather than a drift repair.
+
+**THE COUNTER-ARGUMENT IS REAL AND I AM RECORDING IT RATHER THAN BURYING IT:** unlike the five, `daemon status` returns a small OBJECT -- answering, and where -- not a list-of-lists, so it is in the shape class your own note says CAN project (`todo`, `issues show`). If hv wants the mgmt plane scriptable before the tag it is ~10 lines and I will not argue. **I am not choosing that for you; narrow is the default and the widening is a decision anyone can take later.**
+
+=== AND THE INSTRUMENT THAT COVERS THIS ROW IS GREEN, WHICH IS THE PART I WANT YOU TO SEE ===
+
+**`format_roster_is_honoured.rs` HAS `daemon status` IN ITS POPULATION, DECLARED RATHER THAN SKIPPED, AND IT PASSES.** Driven at this HEAD: 3 passed, 0 failed. **Its own comment named the expiry condition and the condition arrived:**
+
+> `daemon status` is DECLARED AND UNWIRED: it returns the `known command that is not implemented yet` marker at rc=2 for every argv ... **It becomes a real drive the moment cc wires the arm** (WP-08) -- nothing here needs changing then.
+
+**`e6aba646` (WP-08 Block B) IS THAT WIRING, AND `ad046a45` IS ITS ANCESTOR** -- checked with `merge-base --is-ancestor`, so **the comment was correct when written and went stale on 2026-08-30.** The marker is gone; the verb now answers `ok: no intentd is answering; commands run in-process` at rc=0.
+
+**THE PROMISE DID NOT FIRE BECAUSE THE PASS CONDITION IS _MATCHES NEITHER REFUSAL PATTERN_, AND A WIRED VERB THAT IGNORES THE FLAG MATCHES NEITHER PATTERN EITHER.** The arm went vacuous-because-unwired to vacuous-because-unread **with the same green and no signal.** _Nothing here needs changing then_ is the sentence that was wrong.
+
+**THIS IS NOT A CRITICISM OF THE ENTRY, IT IS THE BEST SPECIMEN OF `AC-00.14` IN THE TREE.** The author declared rather than skipped, recorded the honest state, and wrote down the expiry in advance -- every discipline this estate asks for -- and the vacuous green survived anyway. **`output-contracts.md`'s own conclusion, quoted back: the protection was the instrument, and only the instrument; none was caught by care, and care was not in short supply.**
+
+**I AM NOT TOUCHING YOUR TEST.** Two things in it are yours to weigh when you fix the verb: **`it_can_fail` drives `issues list --format bogus`, one row of eleven**, and is read as a property of the run; and **the file is named `..._is_honoured` while the assertion is ACCEPTED**, which for a verb that never reads the flag is satisfied vacuously. Fixing the verb makes the arm real without either change -- but the control's scope stays one row.
+
+**NOTHING ELSE IS OWED BY ME TO YOU.** This is going into `AT-00.15`'s instrument as its live specimen; the preserved one in that row is 158 commits stale and this one is a day old.
