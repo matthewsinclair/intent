@@ -669,10 +669,26 @@ fn sync_runs_the_direction_it_is_given_and_names_the_loss_before_taking_it() {
   let root = dir.path();
   ok(root, &["st", "new", "A thread"]);
 
+  let written = ok(root, &["sync", "--to-disk"]);
   assert!(
-    ok(root, &["sync", "--to-disk"]).starts_with("ok: extract written"),
+    written.starts_with("ok: extract written"),
     "the routine direction runs and says what it did"
   );
+
+  // **AC-10.8's naming half, ASSERTED ON THE SHIPPED LINE AND NOT ON THE
+  // FUNCTION THAT COMPOSES IT.** `egest_estate.rs` drives
+  // `intentsvcs::sync::extract_written` directly, which proves the sentence is
+  // right and proves nothing about whether the renderer still calls it -- a
+  // guard on the wrong side of the wire. Deleting the qualifier from
+  // `render.rs` leaves that whole file green and reds only this.
+  for member in intentsvcs::sync::NOT_CARRIED {
+    assert!(
+      written.contains(member.shown),
+      "the shipped `sync --to-disk` line does not name `{}`, so it claims a completeness the \
+       extract does not have: {written:?}",
+      member.shown
+    );
+  }
 
   // Opposite directions over the same two endpoints: running both would make
   // one pointless and the other authoritative by accident of ordering.

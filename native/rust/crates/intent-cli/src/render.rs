@@ -924,7 +924,11 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
     (true, false) => {
       let mut f = open_exclusive()?;
       let count = f.sync_to_disk(&scope).map_err(fail)?;
-      println!("ok: extract written for {count} thread(s)");
+      // **THE SENTENCE IS COMPOSED IN `intentsvcs::sync`, NEVER HERE.** What
+      // an extract cannot carry is a fact about the projection, so a renderer
+      // that spelled it out would be a second answer beside the declared one,
+      // free to drift the day the model changes and nothing to notice.
+      println!("ok: {}", intentsvcs::sync::extract_written(count));
       Ok(())
     }
     (false, true) => {

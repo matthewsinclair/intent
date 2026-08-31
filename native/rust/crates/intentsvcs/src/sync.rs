@@ -50,6 +50,82 @@ pub const ROOT_FILES: &[&str] = &["AGENTS.md", "CLAUDE.md", "usage-rules.md"];
 /// there: a copy of truth must never re-enter through the ingest gate.
 pub const SKIPPED_DIRS: &[&str] = &[".cache", ".treeindex", ".backup"];
 
+/// One member of the set an extract cannot carry.
+///
+/// **TWO PHRASES, BECAUSE THE ONE A REPORT READS WELL WITH IS NOT THE ONE THE
+/// DOCUMENT USES.** `shown` is what the operator sees; `justified_by` is the
+/// literal text `data-model.md`'s `## What is deliberately not modelled` must
+/// still contain for that member to be declarable at all. Collapsing them
+/// would force a choice between a note that reads like a filename list and a
+/// derivation that cannot be checked.
+pub struct NotCarried {
+  /// How the qualifier names it.
+  pub shown: &'static str,
+  /// The phrase in `data-model.md` that authorises naming it.
+  pub justified_by: &'static str,
+}
+
+/// **WHAT `sync --to-disk` DOES NOT WRITE.** Declared HERE, beside the scope
+/// constants, because it is the same kind of fact they are: what this
+/// operation's reach is, and therefore is not.
+///
+/// **IT IS DERIVED FROM `data-model.md` AND PINNED TO IT BY A TEST, NEVER
+/// PARSED AND NEVER FREELY HARDCODED.** The section is prose and two of its
+/// three entries are categories rather than paths, so no parse exists; but a
+/// set this code chose for itself would be a denominator certifying itself --
+/// ic's `--out-of-model` attack, where naming everything zeroes the loss.
+/// `egest_estate.rs` requires the document to still carry every `justified_by`
+/// below, so the declaration cannot outlive the sentences it came from.
+///
+/// **EACH ONE IS MEASURED, NOT ASSUMED.** A fixture holding an instance of all
+/// three ingests them, deletes the estate and egests: none of the three
+/// returns, and freeform prose is absent from the store entirely rather than
+/// merely unprojected. That is why the note may say *not modelled* -- the
+/// stronger and more specific claim -- rather than hedging about reach.
+pub const NOT_CARRIED: &[NotCarried] = &[
+  NotCarried {
+    shown: "prose",
+    justified_by: "Prose (stored verbatim",
+  },
+  NotCarried {
+    shown: "shipped content",
+    justified_by: "shipped content",
+  },
+  NotCarried {
+    shown: "wip/restart",
+    justified_by: "wip.md / restart.md",
+  },
+];
+
+/// The claim `intent sync --to-disk` makes, **qualified in its own sentence.**
+///
+/// **THE QUALIFIER IS ON THE CLAIM AND IS NOT AN ENUMERATION BESIDE IT** (vc's
+/// ruling on AC-10.8, 2026-08-31, under hv's pen granted 2026-08-22). The
+/// criterion requires the out-of-model set *"named in the output rather than
+/// silently absent"*, and three readings were put up that all answered *where
+/// do we print the list*. The ruling refused all three: the defect is that
+/// `ok: extract written for 301 thread(s)` **claims a completeness it does not
+/// have**, so an operator reads it and believes the extract is the estate.
+/// Naming the set anywhere else -- a second line, `doctor`, `export` -- leaves
+/// that sentence making the same claim.
+///
+/// **AND *ARE UNCHANGED* IS THE HALF AN OPERATOR ACTS ON**, so it is measured
+/// by its own arm rather than asserted here: an egest over a live estate must
+/// leave all three byte-identical. A qualifier that quietly stopped being true
+/// would be worse than the bare count it replaced.
+pub fn extract_written(threads: usize) -> String {
+  let shown: Vec<&str> = NOT_CARRIED.iter().map(|m| m.shown).collect();
+  format!(
+    "extract written for {threads} thread(s); {} are not modelled and are unchanged",
+    // Oxford-less "a, b and c": the members are a closed declared set, so the
+    // join is over whatever `NOT_CARRIED` holds and never a written-out list.
+    match shown.split_last() {
+      Some((last, rest)) if !rest.is_empty() => format!("{} and {last}", rest.join(", ")),
+      _ => shown.join(", "),
+    }
+  )
+}
+
 /// Which threads a `sync` run takes from its SOURCE.
 ///
 /// **Both directions were whole-estate only until hv ruled otherwise on
