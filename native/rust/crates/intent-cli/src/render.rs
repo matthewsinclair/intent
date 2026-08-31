@@ -1141,7 +1141,7 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
 /// dispatch table rather than hardcoded, which was the right fix for the
 /// problem it was solving and the wrong thing to be printing at all. D37: our
 /// own thread and work-package numbers are not output. A user reading
-/// "(ST0056 WP-08)" learns nothing they can act on; they learn that this tool
+/// "(ST0000 WP-08)" learns nothing they can act on; they learn that this tool
 /// leaks its authors' backlog.
 ///
 /// The distinction the message exists to draw is preserved in full -- "you
@@ -1401,18 +1401,79 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
   // `explore`'s argument name, where this verb's is `id` -- so the probe ALWAYS
   // erred and ALWAYS fell through to `thread_arg`, the THREAD parser. The kind
   // the operator typed reached nothing, and `intent edit issue 0056 --path`
-  // printed thread ST0056's `info.md` at rc=0: the caller named an issue, the
+  // printed thread ST0000's `info.md` at rc=0: the caller named an issue, the
   // tool answered about a thread, and reported success.
   //
   // **IT SURVIVED BECAUSE THE FALLBACK IS RIGHT BY ACCIDENT ON EVERY COMMON
-  // PATH.** `edit st ST0056` and `edit st 56` both work through it, and since
+  // PATH.** `edit st ST0000` and `edit st 56` both work through it, and since
   // `THREAD_DIGITS == ISSUE_DIGITS == 4` an issue spelling produces a
   // WELL-FORMED thread id rather than an error -- so the wrong answer appears
   // only when an issue number is also a thread number, which is 48 of 69 on
   // this estate (vc). Common and silent, rather than rare and loud.
-  let kind = enum_arg(m, "edit", "kind")?;
-  let address = kind_scoped_address(&kind, &arg(m, "id")?)?;
-  let file = opt(m, "file").unwrap_or_else(|| "info".to_string());
+  // **THE VERB PARSES ITS OWN POSITIONALS, AND hv TOOK THAT TRADE WITH THE COST
+  // IN FRONT OF THEM** (2026-08-31, over vc's `--address` recommendation).
+  // `intent edit intent:///threads/<thread>` names the kind INSIDE the address, so
+  // demanding `<KIND>` separately asks the caller for what the argument already
+  // carries -- which is what forced ST0064's menubar app to parse a kind out of
+  // a URL in Swift, the second resolver `AC-01.5` forbids.
+  //
+  // **THE OBJECTION IS RECORDED RATHER THAN ANSWERED: this is a second argument
+  // grammar inside one verb.** It is correct as written and at risk at the next
+  // argument added here, because clap no longer describes the shape and this
+  // block does. **A third positional cannot simply be declared** -- it has to be
+  // threaded through both branches below, and forgetting is silent.
+  //
+  // The rule itself is small and closed: **IF THE FIRST POSITIONAL IS AN
+  // ADDRESS, IT IS THE WHOLE ADDRESS**, and the next positional is the FILE.
+  let (address, file) = {
+    let first = opt(m, "kind");
+    let second = opt(m, "id");
+    let third = opt(m, "file");
+    match (first, second.clone()) {
+      // **`intent st edit <id>` SHARES THIS FUNCTION AND HAS NO `kind`
+      // POSITIONAL AT ALL.** It is thread-scoped and learns its collection from
+      // its own verb, so an id with no kind beside it is a THREAD -- and the
+      // absence of the kind is what says so, rather than anything about the
+      // spelling. **This arm is the whole reason the match is on the PAIR:**
+      // reading `first` alone cannot tell `st edit ST0000` from a bare
+      // `intent edit`, and the first build of this refused nine editor tests
+      // because it tried.
+      (None, Some(id)) => (address_of(Some("st"), &id)?, third),
+      // Both positionals are `0..1` so clap accepts the bare verb; nothing
+      // downstream can act on it, so the refusal belongs here and must name
+      // both shapes rather than only the one it happens to prefer.
+      (None, None) => {
+        return Err(Failure::Error(
+          "error: `edit` needs something to open\n  remedy: name an address, eg `intent edit intent:///threads/<thread>`, or a kind and an id, eg `intent edit st <id>`"
+            .to_string(),
+        ));
+      }
+      (Some(one), _) if one.starts_with(intentsvcs::address::SCHEME) => {
+        // The address carries its own kind, so there is none to check against
+        // it. The FILE moves up one slot -- clap put it in `id`.
+        (address_of(None, &one)?, second.or(third))
+      }
+      // **A LONE TOKEN THAT IS NOT A KIND IS A BARE ID, AND SAYING SO IS THE
+      // WHOLE VALUE OF THIS ARM.** `intent edit 0056` is the natural thing to
+      // type; routing it through the enum check answers *`0056` is not a kind*,
+      // which is true and tells the operator nothing about what they did wrong.
+      // `address_of` with no kind gives them the refusal hv's ladder will one
+      // day make unnecessary -- naming both entities the number could mean.
+      (Some(one), None) if check_enum(&one, "edit", "kind").is_err() => {
+        (address_of(None, &one)?, third)
+      }
+      (Some(kind), _) => {
+        let kind = check_enum(&kind, "edit", "kind")?;
+        let id = second.ok_or_else(|| {
+          Failure::Error(format!(
+            "error: `{kind}` names a kind and nothing to open\n  remedy: `intent edit {kind} <id>`, or name a whole address instead"
+          ))
+        })?;
+        (address_of(Some(&kind), &id)?, third)
+      }
+    }
+  };
+  let file = file.unwrap_or_else(|| "info".to_string());
 
   // **THE DECLARED VOCABULARY IS ENFORCED HERE, FROM THE TABLE, AND THE LAYER
   // IS THE POINT.** `surface/dispatch-table.json` declares
@@ -1695,7 +1756,7 @@ fn hydrated(argument: &str) -> Result<(), Failure> {
   // `wrote:` would be a count of one thing standing for a count of another,
   // which is the class that let `1 refused` speak for 423 files.
   // **THE URL RATHER THAN THE ARGUMENT, SO THE PROMOTION IS VISIBLE.** An
-  // operator who typed `ST0056` is told what it was promoted to, which is the
+  // operator who typed `ST0000` is told what it was promoted to, which is the
   // one place the bare-id shorthand can be seen doing its work; echoing their
   // own argument back would confirm only that it was received.
   let project = facade.project();
@@ -2405,7 +2466,7 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       //
       // **`status_line`, not `line` -- the exit code was always right and the
       // PREFIX was wrong, and that combination is the harm.** This printed the
-      // gate's own line (`gate: ST0056 BLOCKED -- ...`) beside exit 0, so a
+      // gate's own line (`gate: ST0000 BLOCKED -- ...`) beside exit 0, so a
       // consumer reading either channel alone gets a different answer than one
       // reading the other; the pre-commit gate is such a consumer. It also
       // dumped the full unsatisfied enumeration, which is `ac list`'s job --
@@ -3193,7 +3254,7 @@ struct Live {
   declaration: intentsvcs::form::Loaded,
   /// **`AC-17.8`'s file vocabulary, from THE SURFACE'S OWN DECLARATION.**
   /// `arg_values(table, "edit", "file")` rather than a roster in this file, and
-  /// rather than the attachment set -- **measured 2026-08-30, ST0056 carries
+  /// rather than the attachment set -- **measured 2026-08-30, ST0000 carries
   /// 301 attachments and not one generated view among them**, so the
   /// attachments could never have offered the operator the thing the criterion
   /// requires them to be refused for.
@@ -6377,8 +6438,8 @@ fn fc(m: &ArgMatches) -> Result<(), Failure> {
       Ok(())
     }
     // **NO CHILD MEANS THE TARGET ITSELF, AND WHICH KIND IT IS COMES FROM
-    // `scope_of` RATHER THAN FROM A SECOND READING HERE.** `ST0056` is a thread
-    // and `ST0056/03` is a work package, which is the same distinction `ac gate`
+    // `scope_of` RATHER THAN FROM A SECOND READING HERE.** `ST0000` is a thread
+    // and `ST0000/03` is a work package, which is the same distinction `ac gate`
     // and `wp_target` already make; parsing the slash again in this arm would be
     // a second place for the answer to differ.
     //
@@ -7352,7 +7413,7 @@ fn thread_arg(m: &ArgMatches, name: &str) -> Result<String, Failure> {
   thread_spec(&raw)
 }
 
-/// `ST0056`, `56`, `s56` -- and the `<thread>/<NN>` composite the scoped verbs
+/// `ST0000`, `56`, `s56` -- and the `<thread>/<NN>` composite the scoped verbs
 /// take, whose thread half is normalised and whose tail is passed through
 /// UNTOUCHED because a work-package number is not this function's to interpret.
 pub(crate) fn thread_spec(raw: &str) -> Result<String, Failure> {
@@ -7368,7 +7429,8 @@ pub(crate) fn thread_spec(raw: &str) -> Result<String, Failure> {
   })
 }
 
-/// The one door from an operator's `<KIND> <ID>` pair to an address.
+/// The one door from an operator's spelling to an address, with the kind as an
+/// OPTIONAL tie-breaker.
 ///
 /// **THE KIND IS NOT DECORATION: IT IS THE TIE-BREAKER THE ROW SAYS IT IS.**
 /// `edit`'s table note -- *THE KIND RESOLVES AN AMBIGUITY THE TOOL ALREADY
@@ -7388,11 +7450,25 @@ pub(crate) fn thread_spec(raw: &str) -> Result<String, Failure> {
 /// THIS, rather than writing a second door -- two spellings of one verb that
 /// disagree about which forms they accept is the drift the aliasing was meant
 /// to prevent (vc raised it).
-pub(crate) fn kind_scoped_address(
-  kind: &str,
+pub(crate) fn address_of(
+  kind: Option<&str>,
   raw: &str,
 ) -> Result<intentsvcs::address::Address, Failure> {
   use intentsvcs::address::SCHEME;
+
+  let Some(kind) = kind else {
+    // **NO KIND AND NO SCHEME IS THE ONE CASE THIS CANNOT ANSWER, AND IT IS THE
+    // LADDER'S SEAT.** hv has ruled a resolution ladder for a bare number
+    // (thread, then issue, then work package); until it exists there is no
+    // tie-breaker here, and guessing would be `0189` again. The refusal names
+    // both spellings that DO work rather than the one that will.
+    if !raw.starts_with(SCHEME) {
+      return Err(Failure::Error(format!(
+        "error: `{raw}` could name a thread or an issue and nothing here says which\n  remedy: name the kind, eg `intent edit st {raw}`, or a whole address, eg `intent edit intent:///threads/<thread>`"
+      )));
+    }
+    return address::parse(raw).map_err(|e| Failure::Error(e.render()));
+  };
 
   let wanted = match kind {
     "st" => "thread",
@@ -7421,13 +7497,13 @@ pub(crate) fn kind_scoped_address(
   let url = match kind {
     "st" => format!("{SCHEME}/threads/{}", thread_spec(raw)?),
     // `thread_spec` normalises the thread half and passes the tail through
-    // UNTOUCHED, so the composite arrives as `ST0056/03` and only needs its
+    // UNTOUCHED, so the composite arrives as `ST0000/03` and only needs its
     // separator spelled the way the grammar spells it.
     "wp" => {
       let spec = thread_spec(raw)?;
       let (thread, wp) = spec.split_once('/').ok_or_else(|| {
         Failure::Error(format!(
-          "error: `{raw}` does not name a work package\n  remedy: name it as `<thread>/<NN>`, eg `ST0056/03`"
+          "error: `{raw}` does not name a work package\n  remedy: name it as `<thread>/<NN>`, eg `<thread>/03`"
         ))
       })?;
       format!("{SCHEME}/threads/{thread}/wp/{wp}")
@@ -7445,7 +7521,7 @@ pub(crate) fn kind_scoped_address(
 /// FLAGS are.
 ///
 /// **THE `kind` ENUM WAS DECLARED AND UNENFORCED, AND `intent edit banana
-/// ST0056 --path` PRINTED A PATH AT rc=0** -- the third defect in `0189`, and
+/// ST0000 --path` PRINTED A PATH AT rc=0** -- the third defect in `0189`, and
 /// the same declaration-versus-implementation gap `--format` carried until
 /// `07ad9876`. Read from the table rather than written out, so the vocabulary
 /// keeps one home.
@@ -7453,16 +7529,15 @@ pub(crate) fn kind_scoped_address(
 /// Not a clap `value_parser`, for the reason the `file` check beside it gives:
 /// clap rejects at exit 2, which is `INV-04`'s USAGE code that the pre-commit
 /// gate fails OPEN on.
-fn enum_arg(m: &ArgMatches, verb: &str, name: &str) -> Result<String, Failure> {
-  let given = arg(m, name)?;
+fn check_enum(given: &str, verb: &str, name: &str) -> Result<String, Failure> {
   let permitted = dispatch::arg_values(&dispatch::table(), verb, name);
-  if !permitted.is_empty() && !permitted.iter().any(|v| v == &given) {
+  if !permitted.is_empty() && !permitted.iter().any(|v| v.as_str() == given) {
     return Err(Failure::Error(format!(
       "error: `{given}` is not a {name} this verb can open\n  remedy: name one of {}",
       permitted.join(", ")
     )));
   }
-  Ok(given)
+  Ok(given.to_string())
 }
 
 /// An operator's spelling of an ISSUE id, as a number.
@@ -8471,7 +8546,7 @@ mod tests {
   /// contains no generated view the second clause has no subject** and every
   /// other assertion here would pass over a surface that can never exhibit the
   /// behaviour. That is not hypothetical: the first proposal for this row read
-  /// the ATTACHMENT set, and ST0056 carries 301 attachments with **not one
+  /// the ATTACHMENT set, and ST0000 carries 301 attachments with **not one
   /// generated view among them** -- so the refusal would have been unreachable
   /// while the row looked satisfiable.
   #[test]

@@ -156,22 +156,33 @@ const DECLARED: &[Slot] = &[
     disposition: Disposition::Enforced,
   },
   Slot {
-    // **DECLARED AND DROPPED, WHICH IS WHY IT IS `Unenforced` AND NOT
-    // `Enforced`** (issue 0149). `intent edit issue 148 --path` answers `no
-    // steel thread ST0148 in this project`: the parser takes `issue`, the arm
-    // ignores it, and the refusal is about an entity the caller never named.
+    // **MOVED FROM `Unenforced("0149")` TO `Enforced` ON 2026-08-31, WHICH IS
+    // THIS ROW'S OWN EXIT CONDITION EXECUTED RATHER THAN A WIDENING.** The
+    // comment here read *it moves to `Enforced` when the resolver reads the
+    // kind*, and the resolver now reads it.
     //
-    // AC-17.6's whole argument for the slot is that `intent edit 1` already
-    // refuses with `1 names both a steel thread and an issue` -- so the kind
-    // resolves an ambiguity the tool ALREADY reports. **A caller who types
-    // `issue` has supplied that answer, and being told about `ST0148` says the
-    // tool discarded the one thing it asked for.** It moves to `Enforced` when
-    // the resolver reads the kind, which WP-17 piece 3 owes.
+    // What it recorded: `intent edit issue 148 --path` answered `no steel
+    // thread ST0148 in this project` -- the parser took `issue`, the arm
+    // ignored it, and the refusal was about an entity the caller never named.
+    // **The cause was that `render.rs` probed clap for `arg(m, "address")`,
+    // which is `explore`'s argument name where this verb's is `id`, so the
+    // probe always erred and always fell through to the THREAD parser** (vc's
+    // diagnosis; cc's fix, `0189`).
+    //
+    // **AND `0189` IS WHY THE MOVE MATTERS MORE THAN THE ROW SUGGESTED.** This
+    // row's example is a refusal about the wrong subject, which is survivable.
+    // The same discard also SUCCEEDED: `intent edit issue 0056 --path` printed
+    // thread ST0056's `info.md` at rc=0, and under `--editor` that opens it.
+    //
+    // AC-17.6's argument for the slot stands unchanged: `intent edit 1` refuses
+    // with `1 names both a steel thread and an issue`, so the kind resolves an
+    // ambiguity the tool ALREADY reports -- and a caller who types `issue` has
+    // supplied that answer.
     path: "edit",
     arg: "kind",
     lead: &[],
     trail: &["ST0001"],
-    disposition: Disposition::Unenforced("0149"),
+    disposition: Disposition::Enforced,
   },
   Slot {
     // The twin (INV-09). Unbuilt today -- `intent browse st ST0056` answers

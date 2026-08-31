@@ -1,4 +1,4 @@
-//! `0189`: `intent edit issue 0056 --path` printed thread ST0056's `info.md`
+//! `0189`: `intent edit issue 0056 --path` printed thread ST0000's `info.md`
 //! at rc=0.
 //!
 //! **THE CALLER NAMED AN ISSUE, THE TOOL ANSWERED ABOUT A THREAD, AND REPORTED
@@ -15,7 +15,7 @@
 //!
 //! **IT SURVIVED BECAUSE THE FALLBACK IS RIGHT BY ACCIDENT ON EVERY COMMON
 //! PATH**, which is why no test caught it and why the arms below are shaped the
-//! way they are. `edit st ST0056` and `edit st 56` both work THROUGH the
+//! way they are. `edit st ST0000` and `edit st 56` both work THROUGH the
 //! defect. And because `THREAD_DIGITS == ISSUE_DIGITS == 4`, an issue spelling
 //! produces a WELL-FORMED thread id rather than an error -- so the wrong answer
 //! is visible only when an issue number is also a thread number, **which is 48
@@ -78,7 +78,7 @@ fn naming_an_issue_does_not_answer_about_the_thread_of_the_same_number() {
 
 #[test]
 fn the_kind_vocabulary_the_table_declares_is_enforced() {
-  // `intent edit banana ST0056 --path` printed a path at rc=0: the enum was
+  // `intent edit banana ST0000 --path` printed a path at rc=0: the enum was
   // declared and nothing honoured it, the same gap `--format` carried until
   // `07ad9876`.
   let dir = seeded();
@@ -127,5 +127,119 @@ fn a_kind_that_contradicts_the_address_is_refused_rather_than_resolved() {
   assert!(
     out.contains("issue"),
     "the refusal must name what the address actually carries: {out}"
+  );
+}
+
+/// **hv's RULED SHAPE, 2026-08-31: `<KIND>` IS OPTIONAL WHEN THE FIRST
+/// POSITIONAL IS AN ADDRESS.**
+///
+/// `ST0064` `AC-01.5` has the menubar app hand a URL to the resolver and open
+/// what comes back. Demanding a kind beside it would make the app parse the
+/// kind OUT of the URL in Swift, which is the second resolver that row forbids
+/// -- so the kind-free door is the criterion's requirement rather than a
+/// convenience.
+///
+/// **vc recommended an `--address` OPTION and hv chose hand-parsed positionals,
+/// having read the cost stated.** The trade is recorded in `render.rs` beside
+/// the parse; what is pinned HERE is that all three forms answer, because the
+/// risk of a hand-parsed shape is the next argument added silently breaking one
+/// branch while the others stay green.
+#[test]
+fn all_three_ruled_spellings_reach_the_same_artefact() {
+  let dir = seeded();
+  let mut answers = Vec::new();
+  for argv in [
+    ["edit", "intent:///threads/ST0001", "--path"].as_slice(),
+    ["edit", "st", "ST0001", "--path"].as_slice(),
+    ["edit", "st", "1", "--path"].as_slice(),
+  ] {
+    let (out, rc) = run(dir.path(), argv);
+    assert_eq!(rc, 0, "{argv:?} was refused: {out}");
+    answers.push(out.trim().to_string());
+  }
+  assert!(
+    answers.windows(2).all(|w| w[0] == w[1]),
+    "the three ruled spellings must name ONE artefact, and they named {answers:?}"
+  );
+}
+
+/// **THE FILE ARGUMENT MOVES UP A SLOT UNDER THE ADDRESS FORM, AND THAT IS THE
+/// PART A HAND-PARSED SHAPE GETS WRONG.** clap puts it in `id` when the kind is
+/// absent, so both branches have to thread it and only a drive can tell.
+///
+/// **THE DISCRIMINATOR IS THAT THE ARGUMENT CHANGES THE ANSWER, AND FINDING ONE
+/// TOOK TWO WRONG FIXTURES.** A fresh thread carries `info.md` and
+/// `acceptance.md`; `design` is not there at all, and `acceptance` is a
+/// GENERATED view this verb refuses to open. `info` is the DEFAULT, so passing
+/// it proves nothing -- an arm that ignored the argument entirely would pass.
+/// **So the file is asserted by its EFFECT: naming `acceptance` must change the
+/// outcome, and must change it the same way down both branches.**
+#[test]
+fn the_file_argument_survives_both_branches() {
+  let dir = seeded();
+  let (default_file, rc) = run(dir.path(), &["edit", "st", "ST0001", "--path"]);
+  assert_eq!(rc, 0, "the default file must resolve: {default_file}");
+
+  let (with_kind, _) = run(
+    dir.path(),
+    &["edit", "st", "ST0001", "acceptance", "--path"],
+  );
+  let (with_address, _) = run(
+    dir.path(),
+    &["edit", "intent:///threads/ST0001", "acceptance", "--path"],
+  );
+
+  assert_ne!(
+    with_kind.trim(),
+    default_file.trim(),
+    "naming a file changed nothing, so this arm cannot tell a read argument from an ignored one"
+  );
+  assert_eq!(
+    with_kind.trim(),
+    with_address.trim(),
+    "the file argument reached one branch and not the other -- which is exactly the failure a \
+     hand-parsed positional shape invites"
+  );
+  assert!(
+    with_kind.contains("acceptance"),
+    "neither branch named the file it was given: {with_kind}"
+  );
+}
+
+/// **THE TWO EMPTY SHAPES REFUSE, AND THEY NAME DIFFERENT THINGS.** Both
+/// positionals are `0..1`, so clap accepts the bare verb and a lone kind; the
+/// spine's own comment records that a surface accepting an invented verb is a
+/// No Silent Errors failure rather than a gap.
+#[test]
+fn the_shapes_clap_can_no_longer_refuse_are_refused_here() {
+  let dir = seeded();
+  let (bare, rc) = run(dir.path(), &["edit", "--path"]);
+  assert_ne!(rc, 0, "the bare verb was accepted: {bare}");
+  assert!(
+    bare.contains("intent:///") && bare.contains("st"),
+    "the refusal must name BOTH working shapes, not the one it prefers: {bare}"
+  );
+
+  let (kind_only, rc) = run(dir.path(), &["edit", "st", "--path"]);
+  assert_ne!(
+    rc, 0,
+    "a kind with nothing to open was accepted: {kind_only}"
+  );
+}
+
+/// **A LONE BARE ID MEETS THE LADDER'S SEAT, NOT THE ENUM CHECK.** `intent edit
+/// 0056` is the natural thing to type. Routing it through the kind vocabulary
+/// answers *`0056` is not a kind*, which is true and useless; the refusal that
+/// helps names both entities the number could mean -- which is the question
+/// hv's resolution ladder will answer and, until it exists, the one thing this
+/// verb must not guess at.
+#[test]
+fn a_bare_id_is_told_what_it_is_ambiguous_between() {
+  let dir = seeded();
+  let (out, rc) = run(dir.path(), &["edit", "0001", "--path"]);
+  assert_ne!(rc, 0, "a bare id was resolved without a tie-breaker: {out}");
+  assert!(
+    out.contains("thread") && out.contains("issue"),
+    "the refusal must name what the number is ambiguous BETWEEN: {out}"
   );
 }

@@ -8218,19 +8218,19 @@
         {
           "name": "kind",
           "type": "enum",
-          "arity": "1",
+          "arity": "0..1",
           "values": [
             "st",
             "wp",
             "issue"
           ],
-          "note": "**THE KIND RESOLVES AN AMBIGUITY THE TOOL ALREADY REPORTS, rather than being new syntax for its own sake.** Measured 2026-08-29: `intent edit 1` refuses with `1 names both a steel thread and an issue`. AC-17.6."
+          "note": "**THE KIND RESOLVES AN AMBIGUITY THE TOOL ALREADY REPORTS, rather than being new syntax for its own sake.** Measured 2026-08-29: `intent edit 1` refuses with `1 names both a steel thread and an issue`. AC-17.6. **ARITY 0..1 SINCE 2026-08-31, ON hv's RULING, AND THE COST WAS STATED BEFORE IT WAS TAKEN.** `intent edit intent:///threads/ST0056` names the kind IN the address, so demanding it separately asks the caller for information the argument already carries -- which is what forced `ST0064`'s menubar app to parse the kind out of a URL in Swift, the second resolver `AC-01.5` forbids. **vc recommended an `--address` OPTION instead and hv chose this, having read the trade in as many words: the verb parses its own positionals rather than declaring them.** The rule the verb owns is small and closed: IF THE FIRST POSITIONAL IS AN ADDRESS, IT IS THE WHOLE ADDRESS, and the next positional is the FILE. The risk is the next argument added to this verb, and it is named in `render.rs` beside the parse."
         },
         {
           "name": "id",
           "type": "address-or-id",
-          "arity": "1",
-          "note": "An operator's spelling resolves to the id -- `56`, `ST0056`, `st56`, `ST56` all name one thread (AC-06.12). `address::promote` stays the one door, so a typo is a USAGE error naming both forms and never a not-found."
+          "arity": "0..1",
+          "note": "An operator's spelling resolves to the id -- `56`, `ST0056`, `st56`, `ST56` all name one thread (AC-06.12). `address::promote` stays the one door, so a typo is a USAGE error naming both forms and never a not-found. **ARITY 0..1 SINCE 2026-08-31**: it is absent when the first positional is a whole address. It is NOT optional in meaning -- a bare kind with no id is refused in the renderer, because clap cannot express *required unless the previous positional was an address*."
         },
         {
           "name": "file",
