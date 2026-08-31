@@ -143,3 +143,4 @@
 0078	stated	docs/known-defects.md	intent#0078
 0194	stated	docs/known-defects.md	intent#0194
 0162	stated	docs/known-defects.md	intent#0162
+0197	not-reader-reachable	not-in-published-build -- driven: the keg's `at new` declares no --note at all (error: unexpected argument '--note' found), so a to-write note cannot be SET on 3.0.0 (80d8b2ca) and the write-once trap is unreachable there	
