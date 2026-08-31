@@ -12,6 +12,7 @@
 		692A1EC01D5213CB6472B434 /* LoginShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DC7A046D343F9FF30FC56EA /* LoginShell.swift */; };
 		77F2AD848C06FB9ADCF161AC /* ContinuousObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */; };
 		7D834CF192226880601F3117 /* Health.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93A196E045968A129A323B3D /* Health.swift */; };
+		8D27169B4F83BE63308AB785 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8EAE393A0F5FE9A9C3B52262 /* Assets.xcassets */; };
 		916BB7ABBBF4DD2D92D59492 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 894E47351007915CC6F59BBD /* Theme.swift */; };
 		954C28016164850D99C2B79C /* IntentCLI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */; };
 		E4FB94495E37A90BCFC43C24 /* IntentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A21089C3EE01CC6CD256BFC /* IntentApp.swift */; };
@@ -39,6 +40,7 @@
 		7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuousObservation.swift; sourceTree = "<group>"; };
 		894E47351007915CC6F59BBD /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		8A21089C3EE01CC6CD256BFC /* IntentApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentApp.swift; sourceTree = "<group>"; };
+		8EAE393A0F5FE9A9C3B52262 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		93A196E045968A129A323B3D /* Health.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Health.swift; sourceTree = "<group>"; };
 		9DC7A046D343F9FF30FC56EA /* LoginShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginShell.swift; sourceTree = "<group>"; };
 		CB43CE810A6886230867C1CB /* Intent.Debug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intent.Debug.entitlements; sourceTree = "<group>"; };
@@ -58,6 +60,7 @@
 		0A160BAD77A6EC5280578BBA /* Intent */ = {
 			isa = PBXGroup;
 			children = (
+				8EAE393A0F5FE9A9C3B52262 /* Assets.xcassets */,
 				4634133A4EB56FC2D1AED35E /* Info.plist */,
 				CB43CE810A6886230867C1CB /* Intent.Debug.entitlements */,
 				3FAB073C6E0F8ACF198E5CB8 /* Intent.entitlements */,
@@ -122,6 +125,7 @@
 			buildConfigurationList = 67E537567E772345C90EB0AC /* Build configuration list for PBXNativeTarget "Intent" */;
 			buildPhases = (
 				4AF7FB044E3EA174021F9F80 /* Sources */,
+				A43CF13D2B9B8F145436FD50 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -190,6 +194,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A43CF13D2B9B8F145436FD50 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D27169B4F83BE63308AB785 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4AF7FB044E3EA174021F9F80 /* Sources */ = {

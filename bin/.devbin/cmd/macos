@@ -2054,7 +2054,309 @@ cmd_store_creds() {
   printf '  Stored. Verify with: int macos doctor\n'
 }
 
-SUBCOMMANDS="doctor stage sign notarize verify checksum prepare formula publish smoke env store-creds"
+# =============================================================================
+# int macos app-* -- the menubar app (native/macos/Intent) build pipeline.
+#
+# CHUNK 1 (no credentials): the buildable/testable/installable .app plus its
+# icon asset. Chunk 2 adds app-sign / app-notarize against the Geodica ADC and
+# rewrites the header lines that still say Intent ships no .app bundle.
+#
+# TRANSLATED from Geodica's bin/geodica_app (Elixir), which is the reference for
+# generate-if-stale, the SYMROOT/OBJROOT-off-the-tree location args, the stamps
+# passed as build settings, and exec-not-open for run. AC-01.7 (this is the
+# devbin verb, not a remembered xcodebuild line), AC-01.8 (app-icons is the
+# turtle), AC-01.9 lives in the app itself.
+#
+# WHY THE BUILD PRODUCTS GO OFF THE DROPBOX TREE. native/macos is on the synced
+# tree; Xcode's synced xattrs then break codesign ("resource fork, Finder
+# information, or similar detritus"). SYMROOT/OBJROOT/derivedData on the command
+# line win over any Xcode Locations preference and land under XDG state.
+# -----------------------------------------------------------------------------
+
+APP_DIR="$ROOT/native/macos/Intent"
+APP_PROJECT="$APP_DIR/Intent.xcodeproj"
+APP_ASSETS="$APP_DIR/Intent/Assets.xcassets"
+LOGO_SVG="$ROOT/docs/design/intent-logo.svg"
+APP_STATE_DIR="${INTENT_MACOS_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/intent}/build/macos"
+
+# derivedData + products + intermediates off the synced tree (see header): a
+# constant for the run, so a plain global array rather than a word-split of a
+# command substitution -- the paths hold no spaces here, but a critic-clean arg
+# list must not depend on that.
+APP_LOC_ARGS=(
+  -derivedDataPath "$APP_STATE_DIR"
+  "SYMROOT=$APP_STATE_DIR/Build/Products"
+  "OBJROOT=$APP_STATE_DIR/Build/Intermediates.noindex"
+)
+
+app_bundle() { printf '%s' "$APP_STATE_DIR/Build/Products/$1/Intent.app"; }
+
+# The four stamps xcodebuild substitutes into Info.plist. Version is the source
+# tree's release tag (never a built binary -- the .app may be built before any
+# intent is staged); the tree hash is what app-verify/doctor compares against an
+# installed copy. `short` keeps the -dirty suffix, which is the load-bearing bit.
+app_git() { git -C "$ROOT" "$@" 2>/dev/null; }
+
+app_source_tree() {
+  local tree dirt
+  tree="$(app_git rev-parse HEAD:native/macos 2>/dev/null)" || tree=""
+  [ -n "$tree" ] || { printf 'dev'; return; }
+  dirt="$(app_git status --porcelain -- native/macos 2>/dev/null)"
+  # if/else, not `[ ] && printf || printf`: a failed first printf would run the
+  # `-dirty` branch too and stamp the tree hash twice, and this value is what
+  # app-doctor compares against an installed copy (dc's finding 2).
+  if [ -z "$dirt" ]; then printf '%s' "$tree"; else printf '%s-dirty' "$tree"; fi
+}
+
+app_version() {
+  local v
+  v="$(app_git describe --tags --abbrev=0 2>/dev/null)" || v=""
+  v="${v#v}"
+  [ -n "$v" ] && printf '%s' "$v" || printf 'dev'
+}
+
+# Populates the scalars AND APP_STAMP_ARGS (the xcodebuild build-setting form),
+# so the two never drift.
+app_stamps() {
+  APP_VERSION="$(app_version)"
+  APP_BUILD="$(app_git rev-list --count HEAD 2>/dev/null || echo 0)"
+  APP_COMMIT="$(app_git rev-parse --short HEAD 2>/dev/null || echo dev)"
+  APP_TREE="$(app_source_tree)"
+  APP_STAMP_ARGS=(
+    "INTENT_VERSION=$APP_VERSION"
+    "INTENT_BUILD=$APP_BUILD"
+    "INTENT_COMMIT=$APP_COMMIT"
+    "INTENT_SOURCE_TREE=$APP_TREE"
+  )
+}
+
+app_short_tree() {
+  case "$1" in
+    *-dirty) printf '%.7s-dirty' "$1" ;;
+    *) printf '%.7s' "$1" ;;
+  esac
+}
+
+# The SET of source PATHS, sorted and hashed -- xcodegen scans by presence, so
+# add/remove is what must trigger a regenerate; content edits never do.
+#
+# The dirs are ASSERTED, not swallowed with `2>/dev/null` (dc's finding 1): a
+# missing source dir would hash empty input to a perfectly STABLE digest, and
+# generate_if_stale would then read "unchanged" forever while a whole directory
+# is gone -- silent by construction (IN-AG-NO-SILENT-001).
+app_sources_hash() {
+  [ -d "$APP_DIR/Intent" ] || die "no source dir at $APP_DIR/Intent -- the app project is incomplete"
+  [ -d "$APP_DIR/IntentTests" ] || die "no test dir at $APP_DIR/IntentTests -- the app project is incomplete"
+  find "$APP_DIR/Intent" "$APP_DIR/IntentTests" -type f | LC_ALL=C sort |
+    shasum -a 256 | cut -d' ' -f1
+}
+
+# xcodegen rewrites the project wholesale (invalidating the incremental build),
+# so it runs ONLY when the spec moved ahead of the generated project or the set
+# of source files changed -- a file added after the last generate is simply
+# absent from the project and the build fails on it. Edits to existing files
+# never trigger it.
+app_generate_if_stale() {
+  local yml="$APP_DIR/project.yml" pbx="$APP_PROJECT/project.pbxproj"
+  local stamp="$APP_STATE_DIR/sources.sha256" sources why
+  [ -f "$yml" ] || die "no project at $APP_DIR (expected project.yml)"
+  sources="$(app_sources_hash)"
+  if [ ! -f "$pbx" ]; then why="no generated project yet"
+  elif [ "$yml" -nt "$pbx" ]; then why="project.yml is newer than the project"
+  elif [ "$(cat "$stamp" 2>/dev/null || true)" != "$sources" ]; then why="the set of source files changed"
+  else return 0
+  fi
+  command -v xcodegen >/dev/null 2>&1 || die "xcodegen not found (brew install xcodegen)"
+  printf -- '-> xcodegen generate (%s)\n' "$why"
+  ( cd "$APP_DIR" && xcodegen generate ) || die "xcodegen generate failed"
+  mkdir -p "$APP_STATE_DIR"
+  printf '%s' "$sources" >"$stamp"
+}
+
+app_require_xcode() {
+  command -v xcodebuild >/dev/null 2>&1 || die "xcodebuild not found -- install Xcode and run: xcode-select --install"
+  xcode-select -p >/dev/null 2>&1 || die "no Xcode command-line tools selected -- run: sudo xcode-select --switch /Applications/Xcode.app"
+}
+
+# --- app-icons: rasterise the turtle into a tracked asset catalogue ----------
+# AC-01.8. The SVG at docs/design is the source of truth; this REGENERATES the
+# committed Assets.xcassets when it changes. AppIcon is the colour turtle for
+# the dock/About; MenuBarIcon is a template (alpha silhouette) the app tints at
+# paint time from the ONE health predicate -- so the colour is never baked here.
+app_png() { rsvg-convert -w "$1" -h "$1" "$LOGO_SVG" -o "$2" || die "rsvg-convert failed at ${1}px"; }
+
+app_appicon_contents() {
+  cat <<'JSON'
+{
+  "images" : [
+    { "idiom" : "mac", "scale" : "1x", "size" : "16x16", "filename" : "icon_16.png" },
+    { "idiom" : "mac", "scale" : "2x", "size" : "16x16", "filename" : "icon_32.png" },
+    { "idiom" : "mac", "scale" : "1x", "size" : "32x32", "filename" : "icon_32.png" },
+    { "idiom" : "mac", "scale" : "2x", "size" : "32x32", "filename" : "icon_64.png" },
+    { "idiom" : "mac", "scale" : "1x", "size" : "128x128", "filename" : "icon_128.png" },
+    { "idiom" : "mac", "scale" : "2x", "size" : "128x128", "filename" : "icon_256.png" },
+    { "idiom" : "mac", "scale" : "1x", "size" : "256x256", "filename" : "icon_256.png" },
+    { "idiom" : "mac", "scale" : "2x", "size" : "256x256", "filename" : "icon_512.png" },
+    { "idiom" : "mac", "scale" : "1x", "size" : "512x512", "filename" : "icon_512.png" },
+    { "idiom" : "mac", "scale" : "2x", "size" : "512x512", "filename" : "icon_1024.png" }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}
+JSON
+}
+
+app_menubar_contents() {
+  cat <<'JSON'
+{
+  "images" : [
+    { "idiom" : "universal", "scale" : "1x", "filename" : "menubar_18.png" },
+    { "idiom" : "universal", "scale" : "2x", "filename" : "menubar_36.png" },
+    { "idiom" : "universal", "scale" : "3x", "filename" : "menubar_54.png" }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 },
+  "properties" : { "template-rendering-intent" : "template" }
+}
+JSON
+}
+
+cmd_app_icons() {
+  command -v rsvg-convert >/dev/null 2>&1 || die "rsvg-convert not found (brew install librsvg)"
+  [ -f "$LOGO_SVG" ] || die "no logo at $LOGO_SVG"
+  local appset="$APP_ASSETS/AppIcon.appiconset" barset="$APP_ASSETS/MenuBarIcon.imageset"
+  printf -- '-> rasterising %s\n' "$LOGO_SVG"
+  mkdir -p "$appset" "$barset"
+  printf '{\n  "info" : { "author" : "xcode", "version" : 1 }\n}\n' >"$APP_ASSETS/Contents.json"
+  local px
+  for px in 16 32 64 128 256 512 1024; do app_png "$px" "$appset/icon_$px.png"; done
+  app_appicon_contents >"$appset/Contents.json"
+  for px in 18 36 54; do app_png "$px" "$barset/menubar_$px.png"; done
+  app_menubar_contents >"$barset/Contents.json"
+  printf 'wrote AppIcon (7 sizes) + MenuBarIcon (template, 3 scales) to %s\n' "${APP_ASSETS#"$ROOT"/}"
+}
+
+# --- app-doctor: preflight the toolchain, no build -----------------------------
+cmd_app_doctor() {
+  local ok=1
+  printf 'app project: %s\n' "${APP_DIR#"$ROOT"/}"
+  printf 'build state: %s\n' "$APP_STATE_DIR"
+  app_stamps
+  printf 'stamps:      %s build %s, %s, tree %s\n' "$APP_VERSION" "$APP_BUILD" "$APP_COMMIT" "$(app_short_tree "$APP_TREE")"
+  printf '\ntoolchain:\n'
+  for t in xcodegen xcodebuild rsvg-convert; do
+    if command -v "$t" >/dev/null 2>&1; then printf '  %-14s %s\n' "$t" "$(command -v "$t")"
+    else printf '  %-14s MISSING\n' "$t"; ok=0; fi
+  done
+  printf '  %-14s %s\n' "assets" "$( [ -d "$APP_ASSETS/AppIcon.appiconset" ] && echo present || echo 'absent (run: int macos app-icons)' )"
+  [ "$ok" = 1 ] || die "toolchain incomplete -- see MISSING above"
+}
+
+# --- app-build -----------------------------------------------------------------
+# Default Debug; `int macos app-build release` for Release. Unsigned by default
+# for dev (CODE_SIGNING_ALLOWED=NO): it proves the thing compiles without
+# needing an identity. Distribution signing is app-sign (chunk 2), never here.
+cmd_app_build() {
+  local config="Debug"
+  case "${1:-}" in release|Release) config="Release" ;; ""|debug|Debug) config="Debug" ;;
+    *) die "app-build: unknown config '$1' (debug|release)" ;; esac
+  app_require_xcode
+  app_generate_if_stale
+  [ -d "$APP_ASSETS/AppIcon.appiconset" ] || die "no icon asset -- run: int macos app-icons"
+  mkdir -p "$APP_STATE_DIR"
+  app_stamps
+  printf -- '-> xcodebuild -scheme Intent -configuration %s  (%s build %s, %s, tree %s)\n' \
+    "$config" "$APP_VERSION" "$APP_BUILD" "$APP_COMMIT" "$(app_short_tree "$APP_TREE")"
+  local out rc=0
+  out="$(xcodebuild -project "$APP_PROJECT" -scheme Intent -configuration "$config" \
+    -destination 'generic/platform=macOS' -quiet \
+    "${APP_LOC_ARGS[@]}" "${APP_STAMP_ARGS[@]}" CODE_SIGNING_ALLOWED=NO build 2>&1)" || rc=$?
+  if [ "$rc" != 0 ]; then printf '%s\n' "$out" | tail -40; die "xcodebuild exited $rc"; fi
+  [ -n "$(printf '%s' "$out" | tr -d '[:space:]')" ] && printf '%s\n' "$out"
+  printf 'built %s\n' "$(app_bundle "$config")"
+}
+
+# --- app-run: build Debug, quit any running copy, exec the binary directly -----
+# `open` resolves by bundle id and can launch the INSTALLED copy instead of the
+# one just built; two menubar turtles is the wrong kind of surprise.
+cmd_app_run() {
+  cmd_app_build Debug
+  osascript -e 'tell application id "com.matthewsinclair.intent.macos" to quit' >/dev/null 2>&1 || true
+  local exe; exe="$(app_bundle Debug)/Contents/MacOS/Intent"
+  [ -x "$exe" ] || die "no executable at $exe"
+  nohup "$exe" >/dev/null 2>&1 &
+  printf 'running %s\n' "$exe"
+  printf "logs: log stream --predicate 'subsystem == \"com.matthewsinclair.intent.macos\"'\n"
+}
+
+# --- app-test: xcodebuild test (IntentTests) -- not -quiet, so the count shows -
+# Stamped like app-build (dc's call): the bundle you TEST must be the bundle you
+# SHIP, and the difference would live in exactly the Info.plist metadata
+# app-verify exists to check -- so an unstamped test bundle makes a real
+# stamp defect indistinguishable from the benign "test does not stamp" one.
+cmd_app_test() {
+  app_require_xcode
+  app_generate_if_stale
+  app_stamps
+  printf -- '-> xcodebuild test -scheme Intent\n'
+  local out rc=0
+  out="$(xcodebuild -project "$APP_PROJECT" -scheme Intent -destination 'platform=macOS' \
+    "${APP_LOC_ARGS[@]}" "${APP_STAMP_ARGS[@]}" CODE_SIGNING_ALLOWED=NO test 2>&1)" || rc=$?
+  if [ "$rc" != 0 ]; then
+    printf '%s\n' "$out" | grep -E 'Executed [0-9]+ test|error:|✘|failed' | tail -40 || true
+    printf '%s\n' "$out" | tail -20
+    die "xcodebuild test exited $rc"
+  fi
+  printf '%s\n' "$out" | grep -E 'Executed [0-9]+ test|Test Suite .* passed' | tail -8 || true
+  printf 'IntentTests passed\n'
+}
+
+# --- app-install: build Release, install to /Applications, register, launch ----
+# Chunk 1 installs an UNSIGNED dev build; distribution goes through app-sign +
+# app-notarize first (chunk 2). ditto preserves the bundle; lsregister claims
+# the intent:// scheme for THIS copy.
+cmd_app_install() {
+  cmd_app_build Release
+  local src dst lsr tmp
+  src="$(app_bundle Release)"; dst="/Applications/Intent.app"
+  lsr="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+  # Stage into a sibling temp and swap on success (dc's finding 3): a failed
+  # ditto must never leave /Applications with no Intent.app where a working one
+  # stood a second earlier. The temp is beside dst, so the swap is a rename on
+  # one volume rather than a second copy.
+  tmp="$dst.new-$$"
+  rm -rf "$tmp"
+  ditto "$src" "$tmp" || { rm -rf "$tmp"; die "ditto failed copying $src -> $tmp"; }
+  osascript -e 'tell application id "com.matthewsinclair.intent.macos" to quit' >/dev/null 2>&1 || true
+  [ -d "$dst" ] && { "$lsr" -u "$dst" >/dev/null 2>&1 || true; rm -rf "$dst"; }
+  mv "$tmp" "$dst" || { rm -rf "$tmp"; die "could not move $tmp -> $dst"; }
+  "$lsr" -f "$dst" >/dev/null 2>&1 || true
+  open "$dst" || die "could not launch $dst"
+  app_stamps
+  printf 'installed %s (%s build %s, %s); intent:// -> Intent.app; running\n' "$dst" "$APP_VERSION" "$APP_BUILD" "$APP_COMMIT"
+}
+
+# --- app-verify: non-credential checks on a built bundle -----------------------
+# Chunk 2 adds the codesign/spctl/notary arms. This proves the bundle is there,
+# the executable is present, LSUIElement is set (a menubar app has no dock item),
+# and the Info.plist stamps are the built ones rather than the "dev" defaults --
+# so a bundle built from inside Xcode is NAMED as such rather than passing quietly.
+cmd_app_verify() {
+  local config="${1:-Debug}" bundle plist exe v
+  bundle="$(app_bundle "$config")"
+  [ -d "$bundle" ] || die "no $config bundle at $bundle -- run: int macos app-build $config"
+  plist="$bundle/Contents/Info.plist"; exe="$bundle/Contents/MacOS/Intent"
+  printf 'bundle:  %s\n' "$bundle"
+  [ -x "$exe" ] || die "no executable at $exe"
+  printf 'exec:    present\n'
+  local uielem; uielem="$(/usr/libexec/PlistBuddy -c 'Print :LSUIElement' "$plist" 2>/dev/null || echo '')"
+  [ "$uielem" = "true" ] || die "LSUIElement is '$uielem', not true -- the app would take a dock slot"
+  printf 'LSUIElement: true\n'
+  v="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist" 2>/dev/null || echo dev)"
+  printf 'version: %s (commit %s)\n' "$v" "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$plist" 2>/dev/null || echo '?')"
+  [ "$v" != "dev" ] || printf '  note: built from inside Xcode (stamps are defaults) -- run int macos app-build for a stamped bundle\n'
+}
+
+
+SUBCOMMANDS="doctor stage sign notarize verify checksum prepare formula publish smoke env store-creds app-doctor app-icons app-build app-run app-test app-install app-verify"
 
 usage() {
   cat <<'USAGE'
@@ -2099,6 +2401,24 @@ intent macos <subcommand>
   env          Print the resolved identity + which creds are present
   store-creds  Store APPLE_ID / APPLE_APP_PASSWORD / APPLE_TEAM_ID in the
                login Keychain (interactive; once per machine)
+
+  THE MENUBAR APP (native/macos/Intent). Build, run, test, install, icon.
+  Signing + notarisation of the .app land as app-sign / app-notarize.
+
+  app-doctor   Preflight: xcodegen, xcodebuild, rsvg-convert, the icon asset
+  app-icons    Rasterise docs/design/intent-logo.svg into the tracked asset
+               catalogue (AppIcon + the template MenuBarIcon); re-run when the
+               logo changes
+  app-build    xcodegen-if-stale + xcodebuild (Debug default; app-build release
+               for Release). Unsigned; products land off the synced tree so
+               synced xattrs cannot break a later codesign
+  app-run      Build Debug and exec the built binary directly (never open, which
+               can launch the installed copy); quits any running copy first
+  app-test     xcodebuild test -- the IntentTests target
+  app-install  Build Release, install to /Applications, register intent://,
+               launch. Dev (unsigned) until app-sign lands
+  app-verify   Non-credential checks on a built bundle: executable present,
+               LSUIElement set, Info.plist stamps are the built ones
 USAGE
 }
 
@@ -2116,5 +2436,12 @@ case "${1:-}" in
   publish) shift; cmd_publish "${1:-}" ;;
   smoke) shift; cmd_smoke "$@" ;;
   store-creds) cmd_store_creds ;;
+  app-doctor)  cmd_app_doctor ;;
+  app-icons)   cmd_app_icons ;;
+  app-build)   shift; cmd_app_build "${1:-}" ;;
+  app-run)     cmd_app_run ;;
+  app-test)    cmd_app_test ;;
+  app-install) cmd_app_install ;;
+  app-verify)  shift; cmd_app_verify "${1:-}" ;;
   *) die "unknown macos subcommand: $1 (try: $SUBCOMMANDS)" ;;
 esac
