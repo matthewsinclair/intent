@@ -2828,6 +2828,26 @@ fn upgrade() -> Result<(), Failure> {
     "migrated: {} thread(s), {} issue(s), {} file(s) written",
     done.threads, done.issues, done.files
   );
+  // **THE MIGRATION SAYS WHAT IT DID NOT CARRY, WHICH IS AC-10.8's PROPERTY ON
+  // THE INGEST SIDE** (issue 0183, vc's ruling 2026-08-31). Without it every
+  // non-canon file in the estate reports UNACCOUNTED to
+  // `conservation_check.sh` -- 347 on the canary, 135 on baize -- and no member
+  // of the AC-10.5 corpus can satisfy either disjunct of the criterion.
+  //
+  // **THE TWO LINES ARE SEPARATE BECAUSE THEY ARE DIFFERENT CLAIMS**, and
+  // collapsing them was the defect this nearly shipped as. The first says the
+  // model does not cover these; the second says the model DOES cover these and
+  // no build carries them yet. 110 of baize's 135 are the whiteboard, which
+  // `data-model.md` moved INTO the model at D30 -- reporting those as
+  // out-of-model would have contradicted an hv ruling, and would have closed by
+  // fiat a gap that closes on its own when WP-14 lands.
+  //
+  // On stderr with the counts, not stdout with the dispositions: this is the
+  // migration describing its own reach, not a per-artefact record.
+  eprintln!("{}", intentsvcs::sync::migration_not_carried());
+  if let Some(gap) = intentsvcs::sync::migration_not_yet_built() {
+    eprintln!("{gap}");
+  }
   // **Printed only when it happened, because on a first run it is noise and on
   // a re-run it is the only thing the operator actually wants to know.** It is
   // a count of threads whose SOURCE differed, not of work skipped: they are in

@@ -630,7 +630,11 @@ const UNPROVEN: &[&str] = &[
   "daemon start",
   "daemon stop",
   "ext new",
-  "fileindex",
+  // `fileindex` left this roster on 2026-08-31 by being RETIRED (hv's A4,
+  // executed at `c6515ad6`), not by being proven. A retired verb is not a
+  // shipped mutator, so it cannot be unproven either -- and the arm below is
+  // an EQUALITY, which is what turned the retirement into a red here rather
+  // than into a roster that quietly outlived its subject.
   "init",
   "learn",
   "llm usage_rules",

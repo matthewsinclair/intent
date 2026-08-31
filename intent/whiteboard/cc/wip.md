@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 10:52Z
+heartbeat_at: 2026-08-31 11:19Z
 status: active
-focus: "fileindex A4 EXECUTED -- hv's 2026-08-26 retirement ruling, five days archive-only. AC-10.5 recorded, blocker filed as 0183, guard-remedy defect as 0184. NEXT: the migrator naming its out-of-model file set (vc ruled it mine; it is 0183 and blocks AC-10.5 on every member)."
+focus: "0183 parts 1+2 LANDED on vc's ruling -- the migrator names what it did not carry, in classes pinned to data-model.md, with the whiteboard named as a WP-14 GAP and not as out-of-model. Part 3 (the five-way UNACCOUNTED split) is ic's, my vocabulary. fileindex A4 executed. restart+pid landed for ic."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -17,11 +17,8 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 ## TODO
 
-- **THE MIGRATOR MUST NAME ITS OUT-OF-MODEL FILE SET** -- vc ruled it mine, and it is `AC-10.5`'s named blocker on **every** member that migrates at all (issue **0183**). `intent upgrade` names dispositions per SECTION and never names the FILE set, so `conservation_check.sh --out-of-model` has nothing to consume and every non-canon file reports UNACCOUNTED: 347 canary, 135 baize. `AC-10.8`'s property on the ingest side; **not a second home for it** -- that row is a verb naming what its OUTPUT omits, this is the migrator naming what it did not CARRY.
-- **`RealDaemon::restart(self)` + `pid()` FOR ic's AC-09.3.** My seam. Measured and told them: the socket path is FIXED per home (`userstate.rs:180`, no pid), so the endpoint does NOT move across a restart and **the witness is the pid, not the endpoint** -- their row's real subject is per-request resolution, which a fixed socket with a dead-then-live process behind it tests honestly. ic is drafting `mcp_bridge_restart.rs` against that API. Behind the out-of-model fix by their own sequencing.
-
-- **ISSUE WRITE PATH -- BUILD THE PACKAGE** (hv, 2026-08-28/29; package CHOSEN, edit-verb-only and leave-as-is declined). hv's own words put it in cc's lane **after Laksa and 0121**, so it is NOT jumped ahead of the fleet row. `issues edit --body/--from`, `close --note`, scoped issue sync, then restore 20 empty bodies from commit archaeology; `0122` and `0118` are the edit verb's first two drives, so the live cases are the acceptance cases. State: `issues` ships `list add show close open`; no `edit`; `close` takes no `--note`. **`add` DOES take `--body`/`--from`** -- measured, and it is how 0183 was filed.
-- **THE DISPOSITION PARTITION, WITH ic.** The migrator emits three verbs (`dropped`, `deferred`, `refiled`); `conservation_check.sh` parses two. vc RULED the cure is not adding `refiled` -- **assert the partition CLOSES**, so the fourth verb fails loudly instead of sitting outside a join. ic's tool, my finding.
+- **TEACH `corrected_check.sh` `SUPERSEDED` vs `UNAPPLIED`** -- vc ruled it mine and explicitly NOT to jump 0183 for. Retiring `fileindex` left `parity.md` ratifying a unit nothing claims, and the check calls that `UNAPPLIED` -- **but a ratification whose SUBJECT was later retired is superseded, not unapplied, and only one of those is a defect.** Same distinction as a retired refusal versus an unbuilt one, one level up: the correct refusal with the wrong word. Warning-only today.
+- **ISSUE WRITE PATH -- BUILD THE PACKAGE** (hv, 2026-08-28/29). Still NOT jumped: hv sized it post-Laksa and post-`0121` and nothing has re-sequenced it. **It cost me a correction today**: 0183's body is wrong and `issues edit` does not exist, so the correction went into AC-10.5's note instead (vc's ruling). vc is putting both instances to hv as evidence, costed, without re-sequencing under the pen.
 
 - **AC-10.5's ROW, WITH vc.** On the canary: artefact conservation CLEAN (DOUBLED 194 / RELOCATED 192 / STRANDED 0 / ALTERED-ATTACHMENT 0), prose residue **2** once the migrator's own dispositions are joined (115 of 115 declared drops matched, verified empty in canon). **ONE CORPUS OF THE FOUR THE AC NAMES** -- Lamplight, Utilz and Baize unrun, and nothing here is a fleet claim.
 - **THE SURVIVING RESIDUE IS ONE DEFECT AND IT NEEDS PLACING** (mine and vc's): `issue CLOSED/0059` carries **two `## Related` sections** with different authored bodies and canon holds one, so the other is gone. The ingest-side twin of `DOUBLED-SECTION`; ic agrees it is one defect.

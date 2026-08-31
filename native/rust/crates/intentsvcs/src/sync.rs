@@ -112,6 +112,93 @@ pub const NOT_CARRIED: &[NotCarried] = &[
 /// **AND *ARE UNCHANGED* IS THE HALF AN OPERATOR ACTS ON**, so it is measured
 /// by its own arm rather than asserted here: an egest over a live estate must
 /// leave all three byte-identical. A qualifier that quietly stopped being true
+/// One class of thing the model CLAIMS and no build carries yet.
+///
+/// **A BUILD GAP IS NOT A REACH DECLARATION AND MUST NOT BE SPELLED LIKE ONE.**
+/// [`NOT_CARRIED`] says *the model does not cover this*; a member here says
+/// *the model covers this and the code has not caught up*. The first closes by
+/// fiat and permanently, the second closes on its own when the work lands --
+/// **and a gap that expires is worth more than a zero that never does** (vc,
+/// 2026-08-31).
+pub struct NotYetBuilt {
+  /// How the report names it.
+  pub shown: &'static str,
+  /// Where in the estate it lives, so the operator can see it is still there.
+  pub at: &'static str,
+  /// The phrase in `data-model.md` that puts it INSIDE the model.
+  pub justified_by: &'static str,
+  /// The work package that owes it.
+  pub owed_by: &'static str,
+}
+
+/// **WHAT THE MODEL CLAIMS THAT THE MIGRATOR DOES NOT YET CARRY.**
+///
+/// **THIS DECLARATION EXISTS BECAUSE ITS ABSENCE ALMOST PRODUCED THE OPPOSITE
+/// CLAIM.** Driving the full `AC-10.5` corpus, `conservation_check.sh` reported
+/// 135 UNACCOUNTED files on baize and 347 on the canary, and issue `0183` was
+/// filed proposing the migrator name them as its out-of-model set. **110 of
+/// baize's 135 -- 81% -- are `intent/whiteboard/`, which `data-model.md:510`
+/// says LEFT the not-modelled set at D30 and is modelled as
+/// `wb_node`/`wb_item`/`wb_message`.** Declaring them out-of-model would have
+/// contradicted an hv ruling that moved them INTO the model, and it is exactly
+/// the denominator attack [`NOT_CARRIED`] warns about two hundred lines above:
+/// *a set this code chose for itself would be a denominator certifying itself.*
+/// Pinning the classification to the document is the only thing that caught it;
+/// care did not, and the author was quoting the warning at the time.
+///
+/// **NOTHING HERE IS LOST.** The files are untouched on disk. What is unmet is
+/// the model's own claim, which is why this reports rather than refuses.
+pub const NOT_YET_BUILT: &[NotYetBuilt] = &[NotYetBuilt {
+  shown: "the whiteboard",
+  at: "intent/whiteboard/",
+  // **THE PHRASE ASSERTS DEPARTURE, WHICH IS THE ONLY KIND THAT CAN JUSTIFY
+  // THIS SET.** "modelled above as `wb_node`..." is true and would have been
+  // the wrong pin: it appears INSIDE the not-modelled section, so a check
+  // asking only whether the section carries it cannot tell a member from an
+  // exception the section is describing.
+  justified_by: "left this set at D30",
+  owed_by: "WP-14",
+}];
+
+/// The migrator's twin of [`extract_written`], composed from the SAME
+/// [`NOT_CARRIED`] because the two operations decline the same three
+/// categories for the same reason.
+///
+/// **ONE DECLARATION, TWO SENTENCES.** A second const naming the same three
+/// classes would be the Highlander defect in the one place the estate can
+/// least afford it: the two would agree on the day they were written and drift
+/// the first time `data-model.md` moves -- and the pinning test would pass on
+/// both while they disagreed with each other.
+pub fn migration_not_carried() -> String {
+  let shown: Vec<&str> = NOT_CARRIED.iter().map(|m| m.shown).collect();
+  format!(
+    "not carried into the model: {} are not modelled and are unchanged on disk",
+    match shown.split_last() {
+      Some((last, rest)) if !rest.is_empty() => format!("{} and {last}", rest.join(", ")),
+      _ => shown.join(", "),
+    }
+  )
+}
+
+/// The build-gap line, or `None` when the model has no unmet claim.
+///
+/// **`None` RATHER THAN AN EMPTY SENTENCE**, so the day WP-14 lands the line
+/// disappears instead of reading "nothing is missing" -- which is a claim, and
+/// one this function is not entitled to make about anything outside its list.
+pub fn migration_not_yet_built() -> Option<String> {
+  if NOT_YET_BUILT.is_empty() {
+    return None;
+  }
+  let each: Vec<String> = NOT_YET_BUILT
+    .iter()
+    .map(|m| format!("{} ({}, owed by {})", m.shown, m.at, m.owed_by))
+    .collect();
+  Some(format!(
+    "not yet carried -- the model claims these and they are still on disk: {}",
+    each.join(", ")
+  ))
+}
+
 /// would be worse than the bare count it replaced.
 pub fn extract_written(threads: usize) -> String {
   let shown: Vec<&str> = NOT_CARRIED.iter().map(|m| m.shown).collect();
