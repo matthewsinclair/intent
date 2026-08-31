@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 07:31Z
+heartbeat_at: 2026-08-30 21:41Z
 status: active
-focus: "FOLDED 2026-08-31 07:31Z, pre-fold at .history/20260831/wip-fold-0729Z.md. ST0056 97/135, WP-08 12/12. hv RULED THE GraphQL ESCAPE HATCH IN, BEFORE THE TAG, over my recommendation to descope -- AC-09.2 is ic TODO 0 under my bounded reading. Three hv decisions open. Nothing owed by me to any node."
+focus: "LOCALFOLD 2026-08-30 21:37Z, pre-fold at .history/20260830/wip-fold-2133Z.md (49,677 -> 32,097). ST0056 96/135 and WP-08 12/12 -- five closes today, NONE of them new code. hv has FOUR decisions with options. Nothing owed by me to any node."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
@@ -15,45 +15,45 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ## DOING
 
-### THE CUT, MEASURED 2026-08-31 07:31Z -- RE-RUN THE VERBS, THESE ROT
+### THE CUT, MEASURED 2026-08-30 21:33Z -- RE-RUN THE VERBS, THESE ROT
 
-**ST0056 97/135** (25 descoped, 2 withdrawn), up from 96 at the 21:33Z fold. **WP-08 12/12.** **ST0057 66/66 PASS. ST0066 6/6 PASS. ST0058 4/6. ST0068 4/9.** Run `intent ac gate ST0056` and the three feeders; do not read these.
+**ST0056 96/135** (25 descoped, 2 withdrawn) -- **up from 91 at the 19:44Z fold, and NOT ONE of the five closes was new code.** **ST0057 66/66 PASS. ST0066 6/6 PASS. ST0058 4/6** (dc's). **ST0068 4/9** (mine). **WP-13 (search) is post-tag; ST0060, ST0046, ST0064 are OUT.**
 
-### hv RULED THE GraphQL ESCAPE HATCH **IN**, BEFORE THE TAG -- OVER MY RECOMMENDATION TO DESCOPE
+**ST0056's 39 open rows, by WP: WP-00 13, WP-09 6, WP-06 5, WP-15 4, WP-10 4, WP-17 2, WP-11 2, WP-12 1.** **WP-00 IS MINE AND IS THE LARGEST BLOCK, so ST0056 cannot close before my rows do.** **WP-08 IS 12/12** -- closed today.
 
-**First-hand in this session, hv's own selection from three options I authored, 2026-08-31.** Full menu, measurement and my bounded reading are on `hv/wip.md` under Standing directives. **THE CUT MOVES AND I DO NOT RAISE IT AGAIN.**
+### WP-00: THE AGGREGATE GATES ARE TWO ROWS, NOT FOUR
 
-**WHAT THE MEASUREMENT FOUND, so nobody sizes it from the word _unbuilt_:** `intentsvcs/src/graphql.rs` is **221 lines and a DELIBERATE STUB, not an absence** -- a `Query` root with `thread` / `threads` / `issue` / `issues`, every one through a single shared `unwired()` reading _the SDL face is published ahead of the resolvers_, plus `EmptyMutation` / `EmptySubscription`. `schema()`'s only caller is `sdl()`; `sdl()`'s only caller is `faces.rs:57`, which writes `schema.graphql` to disk. **`intentd/src/` names GraphQL once, in a doc comment; `wire::Op` is four variants; `wire::Response` is a plain tagged union, not `{data, errors}`; `intent_graphql` occurs ONCE in the whole source, inside a comment describing the naming convention.**
+**`AT-00.1` and `AT-00.6` are ALREADY red against real, running artefacts with their reasons on the rows** -- the measurement narrowed my own TODO. **Only `AT-00.3` (intentd ships) and `AT-00.4` (MCP ships) cite files that do not exist.**
 
-**SO THE RESOLVERS ARE SMALL AND `AC-09.2`'s _reaches the full API surface_ IS THE ENTIRE COST.** Bounded under the pen so ic could start: **reads only, derived from one roster, mutations out of 3.0.1, resolvers reaching the store through ic's facade seam rather than a second map beside it.** Mutations are out because a GraphQL mutation path would be a **second home for everything `serve()` already maps, arriving in the same release as the first.**
+**`AC-00.3` HAS A NAMED SHORTFALL RATHER THAN A PLACEHOLDER, AND HALF OF IT MAY BE NEWS TO hv:** `intent daemon` offers `start|stop|status|run` and **no `install`/`uninstall`**, and **`graphql.rs` builds a `Schema` whose ONLY use in the estate is `schema().sdl()`** -- nothing in `intentd` references it, so **no GraphQL query is executable anywhere in the product** while D56 ratifies _GraphQL/JSON over the socket AND over HTTP_. The JSON half ships. **`AT-00.3` also carries the last misplaced citation** (`intentd/tests/` -> `intent-cli/tests/daemon_lifecycle.rs`), found by the estate-wide sweep.
 
-**THE CONSTRAINT I OWED ic AND ALMOST DID NOT SPOT:** async-graphql resolvers are async, executing a query needs a runtime, and ic's stdio tier is synchronous open-per-call -- which is the property that made the zero-dep loop affordable one ruling earlier. **So `intent_graphql` bridges to `intentd` (`AC-00.4` already says so) and the typed tier stays synchronous, or the ruling undoes itself one tool later.** ic has taken it and will verify the bridge route FIRST, with the daemon-down case refusing by remedy rather than degrading to an in-process executor -- **which is the runtime arriving through the back door.**
+**`AC-00.4` is measurable today: `intent mcp` is DECLARED and refuses at rc=2.** ic's tier is being built now.
 
-### WHAT MOVED TODAY
+**`AT-00.20` (`AC-00.16`) IS MINE AND DRIVABLE** -- `instrument_reach_census.sh` is 62 lines and the row says _what is owed is the check, not the finding_. **The population grew again today: `implemented_check.sh` excludes `mcp` BY NAME and `mcp` is the row `AC-00.4` is about.** **`AT-00.15`** (instrument currency) is still writable. **`AT-00.11` is blocked as a RESULT, not a pause (`0160`).**
 
-- **`AT-06.6` closed 96 -> 97** and was a **false `to-write` whose citation named a file that never existed** -- wrong crate AND wrong spelling, so the row and its citation were consistent with each other and both wrong. **Third instance of that class today.** Driven before moving it (`cargo test -p intentsvcs --test export_round_trip`, 10/10), not moved on cc's word.
-- **`AT-06.8` keeps its red and loses its reason.** Its note held the row red on an expiry that has since arrived: _clears when `init`/`bootstrap` land_. They landed, the arm runs, all five arms are green. **A reader honouring the note's own expiry would have moved it to GREEN.** The live reason -- `INHERITED_UNREAD`'s four entries -- is now on the row.
-- **hv's board carried two stale lines and one was stale in the PESSIMISTIC direction**: it told hv the daemon is NOT started and named `AC-08.10` as next, while WP-08 is 12/12 and D56 **is** `AC-08.10`. Corrected under the pen. The other said WP-14-blocks-WP-12 was UNRULED, eight entries above the ruling that closed it.
+### WP-15 -- TWO ARMS LEFT
+
+`AC-15.4` and `AC-15.2`'s verb arm are clean and the zero is believable (positive-controlled on planted retired verbs). **Left: `AC-15.1`'s triage table and `AC-15.3`, entangled with dc's subagents build.**
 
 ## TODO
 
-1. **`AT-00.3`** -- and hv's ruling has now SHAPED it: `AC-00.3` names five capabilities, four ship green under WP-08, and **GraphQL is the fifth and is being built.** So the row cannot go green until the escape hatch lands, and it is not blocked on me. **The artefact belongs in `parity/tools/` as a shell instrument** (the family I own -- `AT-00.10`-`.16`, `.20` all cite it), NOT in a crate: four of the five capabilities are daemon-side and the fifth is a claim about the CLI, so no single-crate test can witness all five. **That is why the original citation named `intentd/tests/daemon_lifecycle.rs`, a file that has never existed in a directory that does.**
-2. **`AT-00.4`** -- MCP ships. **`mcp_surface.rs` does not exist and `AT-09.1` SHARES it**, so one artefact closes two rows. ic landed `serve()` at `db3f947a` and the stdio arm is next in their lane; **write this AFTER their transport lands, not against a moving target.**
-3. **`AT-00.20`** -- instrument-reach census; the stub is 62 lines and I now have **seven** instances, two of them found today (below).
-4. **`AT-00.15`** -- instrument currency; a CONTENT test, never chronological.
-5. **WP-15's `AC-15.1` / `AC-15.3`.**
-6. **`AC-09.6`'s remaining OPEN classes are mine to carry** -- ic removed the agents pair and four narrows today.
-7. **ST0068**, 4/9, and the nine `at` rows dc moves once `at.recast` exists.
-8. **`parity/register.md`'s 39 stale rows** -- GENERATED, so regenerating reproduces the stale note; the generator's template is the fix.
-9. **`0136`'s ~44-site `AcState::Computed` change** -- after the tag. **`intent/wip.md`** -- check before the tag; hv reads it on restart.
+1. **`AT-00.3` and `AT-00.4`** -- the two real aggregate-gate authoring jobs, with `AT-00.3`'s citation corrected in the same pass.
+2. **`AT-00.20`** -- the instrument-reach census; the population is fresh and I have five instances.
+3. **`AT-00.15`** -- instrument currency; a CONTENT test, never a chronological one.
+4. **WP-15's `AC-15.1` / `AC-15.3`.**
+5. **ST0068**, 4/9 -- and the nine `at` rows dc will move once the recast verb exists.
+6. **`parity/register.md`: 39 rows claim work that is done.** All say _Needs per-test rows_ and all 39 have them. **The file is GENERATED, so regenerating REPRODUCES the stale note** -- the generator's template is the fix, and a regenerating artefact that cannot self-correct is worse than a hand-written stale one because refreshing it looks like fixing it.
+7. **`0136`'s ~44-site `AcState::Computed` change** -- after the tag.
+8. **`intent/wip.md`** -- check before the tag; hv reads it on restart.
 
-## hv items -- THREE OPEN, ALL ON `hv/inbox.vc.md` WITH OPTIONS AND A RECOMMENDATION
+## hv items -- FOUR OPEN, ALL ON `hv/inbox.vc.md` WITH OPTIONS AND A RECOMMENDATION
 
-1. **RATIFY `INV-03` OR DECLINE IT** (`0167`). It declares `state: ratified` while its own prose says _hv ratification outstanding_; the vocabulary is `{ratified, provisional}` and **neither value is true.** Only finding `vocab_adequacy_check.sh` returns, and **`AT-00.14` is red because of it.** One word closes a WP-00 gate row.
-2. **MACHINE 5's TABLE AMENDMENT.** `AtStatus::permitted_for` exists as a function **nothing calls on the way in**, and the four `at.set` edges declare no guard -- so adding enforcement without amending the table reds `machine_table_check.sh` for everyone. **`model.rs:1790` says the pen is hv's.** Recommend deferring past the tag.
-3. **THE 11 UNWIRED MCP ROWS -- ONE FLIP, NOT ELEVEN.** Recommend narrowing all eleven now, on ic's principle: **the flag should track the BINARY, not the roadmap.**
+1. **RATIFY `INV-03` OR DECLINE IT** (`0167`). It declares `state: ratified` while its own prose says _hv ratification outstanding_; the vocabulary is `{ratified, provisional}` and **neither value is true.** It is the ONLY finding `vocab_adequacy_check.sh` returns, and **`AT-00.14` is red because of it.** One word closes a WP-00 gate row; declining is equally fine and the vocabulary gains a third state.
+2. **MACHINE 5's TABLE AMENDMENT.** `AtStatus::permitted_for` exists as a function **nothing calls on the way in**, and the four `at.set` edges declare no guard -- so adding enforcement without amending the table reds `machine_table_check.sh` for everyone. **`model.rs:1790` says the amendment is hv's pen, not mine.** Recommend deferring past the tag; nothing is blocked on it.
+3. **THE 11 UNWIRED MCP ROWS -- ONE FLIP, NOT ELEVEN.** Recommend narrowing all eleven now. ic's principle is the reason: **the flag should track the BINARY, not the roadmap.**
+4. **THE 12 FACADE GAPS -- BUILD `schema`, DEFER ELEVEN.** And **`todo notdone`/`todo toggle` are NOT a gap: they MUTATE through helpers that never pass the facade**, which is a boundary leak to record as architecture, not queue as a tool.
 
-**ANSWERED AND CLOSED: the GraphQL scope question (hv: build it), and the release binary (dc built to my recommendation at `8a7ed88d`).** **dc HOLDS THE IRREVERSIBLE `bin/` DELETE WITH hv DIRECTLY** -- 26 files / 12,415 lines -- which they declined to take on my word. **dc has since measured it is bigger than their own board recorded: `tests/run_tests.sh:24` sources `bin/intent_helpers` above every `@test`, so the prune does not fail tests, it stops the suite STARTING**, and CI dies on a `source` rather than an assertion.
+**ANSWERED SINCE, NEEDING NOTHING: which `intent` the release script invokes** -- dc built to the recommendation at `8a7ed88d`, verified by me. **AND dc HAS THE IRREVERSIBLE `bin/` DELETE WITH hv DIRECTLY** (26 files / 12,415 lines), which they declined to take on my word.
 
 ## Standing directives from hv
 
@@ -62,10 +62,6 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 - **THE AIM IS TO FULLY SHIP v3 WITH ALL FUNCTIONALITY. intentd is a priority. Then tree-sitter and full search. Push.**
 
 ## Watch-outs
-
-- **(NEW 2026-08-31) THE DELIVERED `intent` IS A SYMLINK INTO A BUILD OUTPUT DIRECTORY, SO DURING ANY PEER'S RELEASE BUILD THE ESTATE HAS NO `intent` AT ALL.** Measured directly: `~/bin/intent -> native/rust/target/release/intent`, and mid-`cargo build --release` that path does not exist. **An instrument that shells out to it gets 127 where it expects a refusal -- a WRONG ANSWER, not an error**, and any instrument reading rc != 0 as _not implemented_ silently flips its verdict while a peer builds. **cc hit the same thing independently the same hour**, measuring `upgrade` and `export` through a binary that had vanished by the time they read the output. **Seventh member of the instrument-integrity class and it belongs in `AT-00.20`'s census.**
-- **(NEW 2026-08-31) `git commit` CAN PASS EVERY GUARD AND THEN DIE ON `cannot lock ref 'HEAD'`.** A peer landing between the gate and the ref move loses you the commit **after** the full guard suite has run; `--only` does not prevent it, because `--only` scopes PATHS and this is a ref race. **It is a RETRY, not a rejection of your tree** -- and the whole suite re-runs. **Fifth member of the shared-tree class**, alongside cc's `GIT_INDEX_FILE` finding the same evening: a `git reset` with `GIT_INDEX_FILE` still exported hit the private index, leaving **the ambient index holding 30 deletions of cc's own commit**, which any node's plain `git commit` would have taken.
-- **(2026-08-31) A NOTE THAT NAMES ITS OWN EXPIRY IS A LIVE INSTRUCTION TO MOVE THE ROW.** `AT-06.8` held a red whose note said it clears when `init`/`bootstrap` land. They landed and the row is still correctly red for a different reason. **The worst case for the form is exactly that: the named condition arrives while the row must not move**, and the note reads as authorisation. Write the CURRENT reason; record a dead one as dead.
 
 **EIGHT SHAPES. Mechanisms only; incidents are in the fold archives.** Today's additions were folded INTO classes, never appended beside them.
 
@@ -101,10 +97,6 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ## Decisions
 
-- **(2026-08-31) THE GraphQL ESCAPE HATCH IS BUILT BEFORE THE TAG.** hv, first-hand, hv's own selection from three, **over my recommendation to descope.** Recorded in full on `hv/wip.md`. **I bounded _the full API surface_ under the pen -- reads only, one derived roster, mutations out -- because the clause is unbounded as written and is the difference between S and XL.**
-- **(2026-08-31) ZERO-DEP STDIO LOOP FOR 3.0.0; rmcp STANDS FOR STREAMABLE HTTP IN 3.x.** Mine under the pen, in ic's channel. **The deciding fact is the one ic MEASURED, not the one they argued:** the ratified row cites Lamplight's `mcp.rs` as the proof point for stdio, and Lamplight's `mcp.rs` uses no rmcp -- 339 lines of hand-rolled JSON-RPC. **The design's own cited evidence for that mode is evidence against the dependency.** Lock and async costs were the second reason, deliberately: had the Lamplight read gone the other way I would have ruled rmcp and paid them.
-- **(2026-08-31) `AC-10.8`'s RESIDUE NAMING IS A CLAIM QUESTION, NOT AN ENUMERATION QUESTION -- option (d), a fourth cc had not put.** Mine under the pen. All three of cc's readings argued WHERE to print a list; **the sentence already there (`ok: extract written for {n} thread(s)`) is making a claim it cannot support, so the fix is to QUALIFY the claim rather than append its exceptions somewhere.** One line, and it is the scope OF the result rather than a payload beside it -- **which answers cc's own suppression objection, that a model constant restated every run is where suppression starts: a constant is fine when it is a qualifier.** **AND `AC-10.5` IS THE SAME QUESTION ASKED OF A DIFFERENT VERB**, so I ruled the sequencing too: build them adjacently, one ruling applied twice rather than two that drift.
-
 **FOLDED 2026-08-30 21:33Z from 26 entries to 11. Today's incidents went INTO the mechanisms, never beside them; pre-fold verbatim in `.history/20260830/`.**
 
 - **THE MCP RULESET, ONE ENTRY BECAUSE THE CLAUSES ONLY MAKE SENSE TOGETHER.** **(a) MCP tools call the FACADE, never the CLI dispatch arm; one method per exposed row, and where none exists ADD one rather than compose in the tier** -- composing makes MCP a second home for logic the CLI already carries. **(b) A PARENT ROW IS A NAMESPACE, NOT A VERB -- narrow it**; the only tool a parent could offer is one asking _which leaf?_, which is a menu, and the typed tiers exist so an agent need not navigate one. **(c) THE TEST FOR EXPOSURE IS NEED, NOT PROVENANCE** -- _does an agent need this to do its work on THIS project?_ `schema` yes (it is the shape of the entities it is about to manipulate, and getting it wrong corrupts the store), `lang list` yes, `version`/`llm guide`/`surface` no. **My first spelling of this test was _does it tell an agent about the project_, and it was WRONG: `schema` renders compiled-in faces exactly like the rows it narrows, so by that test `schema` narrows too.** ic could have held me to it. **(d) NO EXEMPTION CLASS AND NO `face:` SPELLING.** A softer rule beside the first is where everything ends up -- and when I measured the candidates the population was EMPTY, each for a different reason (`llm guide`/`surface` narrowed on need; `agents generate`/`validate` had their function in `intentsvcs` all along, so they are facade GAPS and rule (a) covers them). **A vocabulary reserved for a population that turns out empty is STRUCK, not left pending: a pending spelling is an invitation.** **(e) `exposed_on_mcp` REFUSES ON ABSENCE, WHICH IS STRONGER THAN THE DEFAULT-FALSE I RULED FOR AND WHICH WAS ALREADY THERE.** cc reported the field defaults true; I checked that the CONSEQUENCE would be bad and never checked the PREMISE. **`dispatch.rs:259` carries no `#[serde(default)]` and the doc block at `:1308` says the omission is deliberate; a row omitting it does not load.** ic's sentence is the keeper: **default-false would CONVERT A FORGOTTEN DECISION INTO A QUIET NON-EXPOSURE instead of a refusal that makes somebody decide** -- it fails in the direction that looks safe, which is the harder one to notice. **Flag-level stays default-true**: that key only trims parameters and can never add a tool, so guarding it would cost ~106 annotations against no defect -- cc withdrew the objection themselves once they saw the level split, and the concern AND its answer go in the field's doc. **(f) THE TIER SERVES IN-PROCESS ONLY IN 3.0.0, so `AC-08.2`'s dual-path property does NOT extend to the MCP face** -- a stated limit carrying its discharge condition (_false when the tier routes through the op dispatch_), not a gap. **(g) DIRECT FACADE CALL NOW, `dispatch(op)` AS THE 3.x DESTINATION, AND THE CHOICE WAS SEQUENCING RATHER THAN PRINCIPLE** -- ic's op-routing shape is the better architecture and I declined it because `Op` carries six variants of a daemon CONTROL protocol, so covering the surface lands ~55 variants on cc's lane ahead of hv's order. **Anti-drift is the estate's own declared-and-gated pattern (`dispatch_ssot.rs` and two siblings), NOT codegen** -- no `build.rs` here generates Rust. **(h) A TOOL THAT CAN ONLY MUTATE INVERTS THE SAFETY GRADIENT**, and a CORRECT refusal can produce it: `st sync` refuses without `write=true` because the declared facade is the write half, leaving the safe half unavailable and the destructive half the only door. Ship it; put the missing half on the gap list, because a temporary refusal becomes permanent by nobody revisiting it.
@@ -131,14 +123,14 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 - **THE DAEMON'S PUBLISHED PORT SERVES BOTH PROTOCOLS, DISAMBIGUATED AT BYTE 0 -- NEITHER OF cc's TWO READINGS.** `candidates_under` puts `Unix` FIRST always and APPENDS `Tcp`, so **the TCP listener is the socket's UNDERSTUDY, not a second transport with its own constituency** -- which kills _TCP becomes HTTP_ (it strands the fallback whose only job is the failure you cannot otherwise route around) and confirms cc's own objection to a second port. **`wire::frame` is `serde_json::to_vec` + `\n`, so every frame begins `{` and every HTTP request begins with an ASCII method letter: one byte, no heuristic.** D6 untouched -- the port number is a PREFERENCE, never a promise.
 
-## Coordination -- 2026-08-31 07:31Z; every ruling also on the peer inbox files
+## Coordination -- 2026-08-30 21:33Z, every ruling also on the peer inbox files
 
-**NOTHING IS OWED BY ME TO ANY NODE AND NOTHING OF MINE IS UNCOMMITTED.** Last: `fac6235a`.
+**NOTHING IS OWED BY ME TO ANY NODE, AND NOTHING OF MINE IS UNCOMMITTED.**
 
-**cc** -- FOLDED AND PAUSED at `f89cd1a8`. Ruled for them today: **`AC-10.8` option (d)**, which they accepted as better than all three they put, and the `AC-10.5` sequencing. **cc's board sent them at the wrong work on their own bounce** -- it named WP-13 as their only unbuilt claim and all nine of WP-13's ACs are descoped to ST0069, so their live queue (WP-06 five open, WP-10 four open) was the one thing their fold did not name. **They found it by re-measuring instead of reading their ledger**, which is the handover rule working. On their bounce: `AC-10.8`'s naming half, then `AT-10.5`, then `AT-10.12` in an isolated fixture.
+**cc** -- **FOLDED AND PAUSED at `d8fa3043`.** WP-08 12/12. Ruled for them today: `backup.enabled` LIVE (homonym); **the transport -- one published port, both protocols, byte-0 disambiguation**, which they built at `41f07d45` with all three conditions driven. **They are deliberately NOT starting WP-13 and NOT building into `AC-17.1` or the MCP tier, on the grounds that ACCEPTING WORK is the quiet way a human's sequencing gets overturned.** Owed to them: nothing. **They found my `AT-08.5` note recording a drive of a DIFFERENT FILE, on a row I drove personally -- repaired.**
 
-**dc** -- ACTIVE, folding. **Holds the irreversible `bin/` delete with hv directly and has re-measured it BIGGER than their board recorded**: the prune stops the bats suite STARTING rather than failing it. Their two self-corrections (the release carry is one function, not three; `cutover_guard.bash` does not die with its subject) were both found by driving rather than reading.
+**dc** -- ACTIVE. Executed hv's retirement at `bbd7e1c0` by the fiat route, ported three of four release-script edges at `8a7ed88d` to my recommendation, landed the mirror guard. Ruled for them: **the `at` kind ruling, THREE TIMES CORRECTED** -- the comment they cited governs a different verb, my conditions 2-3 were AC-side and I attached them to the AT verb in the message correcting them for the same class, the shape is `at.recast` not `--kind`, **and the pen was never mine.** Owed to them: nothing; the `bin/` delete is with hv.
 
-**ic** -- ACTIVE, folding. **`db3f947a` landed the serving match**: `serve()` answers all 58 exposed rows through one door, two-sided gate live. Ruled for them today: **zero-dep stdio loop**. **`AC-09.2` is now TODO 0 on their bounce** under hv's build ruling and my bounds.
+**ic** -- ACTIVE, building the MCP serving match. Ruled: `llm guide`/`surface` NARROW; **no `face:` spelling, question CLOSED not deferred**; `info` STOPS (its door is `st_list` under a description promising an overview); direct facade call now with `dispatch(op)` as the 3.x destination; the in-process-only limit recorded with its discharge condition. **They refuted my `exposed_on_mcp` ruling with a measurement and were right** -- refuse-on-absence already stands and is stronger than the default-false I ruled for. Owed to them: nothing.
 
-**hv** -- board corrected under the pen twice today; three decisions open on `hv/inbox.vc.md`, each with options and a recommendation.
+**hv** -- **four decisions on the inbox, all with options and a recommendation.** See the hv items section.
