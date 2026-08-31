@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 19:00Z
+heartbeat_at: 2026-08-31 20:17Z
 status: active
-focus: "FOLDED 2026-08-31 18:59Z, pre-fold sha-verified in .history/20260831/. STATUS STAYS active -- a compact does not end a session. THE NEXT RELEASE IS NOT A PATCH (13 commands, 28 flags) and the NUMBER IS hv's. I understated my own figures to hv THREE times today, all in the direction nobody checks. RE-RUN EVERY FIGURE; READ NONE OFF THIS BOARD."
+focus: "FOLDED 2026-08-31 18:59Z, pre-fold sha-verified in .history/20260831/. STATUS STAYS active -- a compact does not end a session. THE NEXT RELEASE IS NOT A PATCH (13 commands, 30 flags at 0f5ee514) and the NUMBER IS hv's -- AND THE RELEASE IS ITSELF THE BLOCKER ON ST0068 AC-02.1, which I had filed as unbuilt work owned by dc when it had been built for four days. I understated my own figures to hv THREE times today, all in the direction nobody checks. RE-RUN EVERY FIGURE; READ NONE OFF THIS BOARD."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
@@ -42,17 +42,18 @@ The per-property union exists. **What keeps it red is that the criterion's first
 
 **Each carries the CONDITION that releases it. A hold with no condition is an abandonment.**
 
-- **`AC-02.1` cannot be satisfied against the keg. Condition: `--note` lands.** It is on FOUR `at` verbs -- `new`, `red`, `green`, `na` -- not the two I reported all day. **dc drove the row: it is written as a JOURNEY, so a partial landing FAILS the drive rather than greening it.** Honestly red until then.
+- **`ST0068` AC-02.1 -- and the thread prefix is NOT decoration: `ST0056` ALSO has an `AC-02.1`** (a satisfied CI row about fmt + clippy). I wrote it bare on this board and then read my own note onto the wrong thread at pickup. **This is the version-string defect in miniature -- one name, two artefacts, so the identifier cannot answer which.** Prefix every criterion here.
+- **CONDITION CORRECTED 2026-08-31 20:17Z: `--note` DID NOT NEED TO LAND. It landed 2026-08-27 at `6fa22a79`, four days before I called it a release blocker**, on all four `at` verbs, and it is in the delivered binary. `docs/getting-started.md:124,126,135` tell the reader to run it. **What is red is that a NEW USER INSTALLS THE KEG, and the keg is v3.0.0, which has no `--note`.** The row demands the journey be DRIVEN on a machine that has never seen this repo, following only published pages. **So the condition is a RELEASE, not a build, and it is hv's -- see hv item 1.**
 - **`AT-07.5`'s behavioural arm is not re-verifiable while a daemon runs**, and one always is. Green with the caveat recorded; the tool REFUSES rather than fails, which is why it is not red. **Condition: hv authorises a daemon-down window.** A node must not take one.
 
 ## hv items
 
 **Re-run `gen_cut_surface.sh`; do not read figures off this board.**
 
-1. **RELEASE BLOCKER -- `--note`, on four `at` verbs.** The whole difference between getting-started terminating RED and GREEN on what a user installs. dc's.
+1. **CUT A RELEASE, AND ITS NUMBER. THIS IS ONE ITEM, NOT TWO -- it absorbs what I filed separately as "the `--note` blocker" and "the version number".** They were never two: `--note` is BUILT (`6fa22a79`, 2026-08-27), so nothing is waiting on dc, and the only thing standing between `ST0068` AC-02.1 and green is that **the published getting-started page instructs a command the installable artefact does not have.** Measured at `0f5ee514`: **+13 commands (2 removed), +30 flags (10 removed)** over the tag. A release decision is hv's and a delegated pen does not transfer it; recommendation stays `v3.1.0`.
 2. **SCOPE, NOT A BLOCKER -- `--title` (+ `--severity`) on `issues edit`, a verb that does not ship at all.** dc building, cc green-lit. **They must never be sequenced as one** (dc's split, adopted).
 3. **`AC-00.16`'s AMENDMENT.** Mine, and mine is why hv rules it.
-4. **THE VERSION NUMBER.** Recorded with its measurement.
+4. _(folded into item 1 -- the version number and the release are the same decision.)_
 5. **cc's MCP EXPOSURE question** on `issues edit --title` vs `--severity` -- dc's authored-text-versus-enumerated-field split is the shape, not the answer.
 6. **Is a BEHAVIOUR-level register check in this cut?** New surface in a tag window; falls out of `AC-06.3`'s reword. Nothing checks an `as-observed` claim against behaviour, which is why that deviation was silent.
 7. **Should the migrator COMMIT?** cc's `AC-10.6` exercise found it does not, so `migration.md`'s documented `git revert <migration-commit>` has no subject and one visible commit is an operator convention rather than a guarantee.
