@@ -3,52 +3,54 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-31 13:23Z
+heartbeat_at: 2026-08-31 14:06Z
 status: active
-focus: "Building ST0064 (the M-port menubar app, hv's 3.0.1 addition). This turn: the scaffold spine LANDED (5d915bfe + ce03a6d3 fix), typecheck-clean vs the macOS 14 SDK; AC-17.12 reason-fold applied (a571feda, vc-ratified). cc LANDED the machine-readable daemon status (ae8dc4d4) in my shape, so the health seam (AC-01.2/06) is UNBLOCKED -- the health display is my immediate next build. Dependencies all coordinated: vc ruled nav-internal + the bare-number ladder; dc ruled int-macos option A with 3 header conditions; cc built + shaped the health projection."
+focus: "ST0064 (the M-port menubar app). This turn: the health display LANDED (94ea6126 -- daemon status drives the tinted tortoise + state-gated menu, AC-01.2/06 + the 01.8 derivation) and AC-01.5 LANDED (2832a7fe -- wired to cc's resolver door 9508788, verified end to end). Also fixed a red mcp_stdio test + the protocol defect under it (176fceb2, mine from AC-09.5). Six of nine criteria are built + typecheck-clean; the big remaining piece is the int macos app-* build/sign verb (AC-01.7, dc's option A) that makes the app actually build/run/test."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
 # Interface Claude (ic)
 
-**Pre-fold verbatim at `.history/20260831/wip-fold-1213Z.md` (eleventh fold). RE-MEASURE EVERY FIGURE AT PICKUP -- five nodes write this tree. Coordinated by vc (hv, 2026-08-31).**
+**Pre-fold at `.history/20260831/wip-fold-1213Z.md`. RE-MEASURE EVERY FIGURE AT PICKUP. Coordinated by vc (hv, 2026-08-31).**
 
 ## DOING
 
-**ST0064 -- THE MENUBAR APP. Scaffold spine LANDED; the health seam just UNBLOCKED; building the health display next.**
+**ST0064 -- the menubar app. BUILT + typecheck-clean this turn; the build/sign verb is the next major piece.** All Swift is faithful ports of Geodica, `native/macos/Intent`, typechecks against the macOS 14 SDK.
 
-- **LANDED this turn:** `5d915bfe` the scaffold (`native/macos/Intent`: IntentApp + LoginShell + IntentCLI + project.yml + plists + LoginShellTests + tracked .xcodeproj), faithful ports of Geodica, typecheck-clean vs the macOS 14 SDK -> **AC-01.1 + AC-01.9 spine**. `ce03a6d3` fixed the intent:// handler (it wrongly shelled `intent explore`, which needs a terminal a .app cannot give; now a gated stub). `a571feda` AC-17.12 reason-fold (vc-ratified, row stays green). WP-01 started, port-design attached (`287955df`).
-- **NEXT, UNBLOCKED -- the health display (AC-01.2 / AC-01.6 / AC-01.8-derivation).** cc landed `intent daemon status --format json` at `ae8dc4d4` in my shape: `{"state":"live|stale|absent","endpoint":<iff live>,"pid":<iff stale>}`. Build DaemonService (shells the verb, decodes), the Health model, wire the menubar icon + Start/Stop/Restart menu; the unlink/socket affordance gated on `state=="absent"`, NEVER on stale (AC-01.6 remedy). Mirror cc's 3-literal tripwire in a Swift decode test. Then MINT AT-01.6 with cc's bound-but-silent-socket fixture -- construct stale END TO END, never wait for the 1-in-300 race.
+Criterion status (code built; gate-satisfaction via evidence/AT comes with the build verb + AT-01.6):
+
+- **AC-01.1** no product logic -- built (verify by an absence-grep at the end).
+- **AC-01.2 / 01.6** health -- BUILT (`94ea6126`): DaemonService polls `daemon status --format json` (cc's projection, the one predicate via the CLI), decodes {state,endpoint?,pid?}; the menu gates Start/Stop/Restart on it, unlink NEVER on stale (pid named, investigate). HealthTests mirror cc's 3-literal tripwire.
+- **AC-01.8 derivation** -- BUILT: the tortoise tint is computed at paint time from the state, no cache. **Asset half TODO** (rasterise intent-logo.svg).
+- **AC-01.5** intent:// handler -- BUILT + VERIFIED (`2832a7fe`): hands the whole address to `intent edit <addr> --path` (cc's door), opens the path, parses nothing. Canonical form is `intent:///` (THREE slashes).
+- **AC-01.9 / 01.1** login-shell + one shell-out -- BUILT (`5d915bfe`), LoginShellTests green-by-design.
 
 ## TODO
 
-1. **AC-01.7 -- the `int macos` app-\* verb.** dc RULED option A (extend `cmd/macos`, dc's file) with 3 header edits in the SAME commit as app-sign: strike the expired "five short subcommands" ground; rewrite the bundle disclaimer to what is TRUE (bare Mach-O for the CLI binaries, .app for the app, bundle walk + entitlements in app-\* arms, keep + sharpen the stapling asymmetry); name `kc_get`/`require_identity`/notarytool as the shared Highlander unit. Read the BUNDLE'S embedded marker for traceability, not the manifest (dc's stage-staleness gap, the 0187 class). PING dc the moment I edit `cmd/macos` (W4: one hand, one file); dc reviews the diff. Notarise arm = hv's ADC.
-2. **AC-01.5 -- the intent:// handler wire-in.** BLOCKED on the DOOR, not on resolution semantics (vc's correction): both doors fail -- `edit intent://... --path` swallows the URL into <KIND>, `explore` needs a tty. vc routed the edit-narrow-door to cc to pull forward ahead of consumerless sites. The app inherits the ST->issue->WP ladder + multi-candidate for free (never reimplements it). Not a promote() call site (Swift shell-out). If a jump-to/search box ever takes a bare id, the candidate list is a VIEW to design.
-3. **The console -- IN for 3.0.1 (hv ruled).** cc builds `intent daemon logs` (thin: intentd.log + intentd.err.log exist, userstate.rs:293/308 resolves both); I port Geodica's ConsoleRunner.swift + ConsoleWindowController.swift. AC-01.4's tail-orphan gate is LIVE WORK -- verify against SIGTERM/SIGINT/SIGKILL SEPARATELY before building the console on it. Wait for cc's verb, like the health face.
-4. **AC-01.8 -- the turtle asset.** Rasterise `docs/design/intent-logo.svg` with rsvg-convert into the asset catalog; the state-derivation half wires with the health display.
-5. **AC-09.6** -- the 21-row exposed=>servable flip; vc routes when dc's `dispatch-table.json` lands.
-6. **AC-06.8** -- row red by vc's note; not mine to close.
-7. **Parity-tool hardening** (mine, unblocked, not tag-blocking): conservation_check.sh refiled + UNACCOUNTED 5-way; gen_dispatch_table.sh rot.
-8. **GraphQL** -- RESOLVED: vc landed AT-00.3, AC-00.3 closed (ST0056 108/135); AC-09.2 was a stale note, re-measured against HEAD.
+1. **AC-01.7 -- the `int macos` app-\* build/sign verb. THE next major build; it makes the app actually build/run/test.** dc's option A: extend `cmd/macos` (dc's file) with app build/run/test/install, reusing the credential/notary flow. In the SAME commit as app-sign, dc's 3 header-truth edits (strike the "five short subcommands" ground; rewrite the .app disclaimer + sharpen the stapling asymmetry; name kc_get/require_identity/notarytool as the shared unit) + read the BUNDLE'S embedded marker, not the manifest. **PING dc before editing `cmd/macos` (W4, one hand); dc reviews the diff.** Notarise = hv's ADC.
+2. **AT-01.6 -- mint with cc's bound-but-silent-socket fixture** (cc offered; ping when at it). Construct stale END TO END, never wait for the race; assert the two remedies differ.
+3. **AC-01.8 asset** -- rasterise `docs/design/intent-logo.svg` (rsvg-convert) into the asset catalog as MenuBarIcon + AppIcon.
+4. **AC-01.4 + console** -- IN for 3.0.1; port Geodica's ConsoleRunner + ConsoleWindowController; the tail-orphan gate is live work (verify SIGTERM/SIGINT/SIGKILL separately). GATED on cc's `intent daemon logs` verb.
+5. **AC-01.3** -- coherence Q to vc: does daemon-status satisfy it (CLI channel talks GraphQL/JSON to intentd) or does the app owe one real `intent graphql` query? Not blocking.
+6. **AC-09.6** -- 21-row flip, vc routes when dc's dispatch-table.json lands. **Parity hardening** (mine, not tag-blocking). **AC-06.8** row red, not mine.
 
 ## Watch-outs -- mechanisms only
 
-1. **`daemon status --format json`: keys are ALPHABETICAL** (endpoint before state on live -- serde BTreeMap), Codable-irrelevant. The three literals (live/stale/absent) are cc's tripwire: a renamed `Health` variant compiles + serialises but SILENTLY stops decoding in Swift, in my repo where cc cannot see it -- MIRROR the tripwire in a Swift decode test. **REBUILD intentd + the debug intent before driving daemon status** (the running release pair predates today's commits).
-2. **`intent explore` NEEDS A TERMINAL** -- never shell it from the app with captured stdout; it opens a TUI and refuses when stdout is not a tty. The pipe-safe address door is the URI-uniformity work.
-3. **xcodegen scans sources BY PRESENCE** -- a new Swift file absent from a regenerated .xcodeproj silently is not in the build; regenerate on any source-set change.
-4. **A CROSS-CRATE GUARD IS INVISIBLE TO `cargo test -p <changed-crate>`** -- run `cargo test -p intentsvcs` before any address-touching landing.
-5. **`git add $P` WITH A SPACE-JOINED VAR DOES NOT WORD-SPLIT UNDER zsh** -- one pathspec, matches nothing, commits NOTHING. List paths explicitly.
-6. **cc's POST-VERIFY IS STANDING: after every commit, `git show --name-only HEAD` must EQUAL your intended path set.**
-7. **THE STORE IS SHARED BEFORE THE TREE IS** -- an `st attach`/`ac edit`/`wp new` realises into peers' canon on their sync; land canon writes in the same breath; NEVER write a shared extract (ST0056.json) a peer is mid-edit on -- coordinate the window (did this turn for AC-17.12).
-8. **NEVER remove a peer's `.git/index.lock`** -- wait for it to clear (hit dc's lock this turn; retried clean).
-9. **An ATTACHMENT does not realise to disk on `st attach`** -- the canon is SSOT; realise deliberately (disk = exact canon bytes) rather than `sync --to-disk`, which pulls peers' pending attachments into your extract.
-10. **MARKDOWN PRETTIER-FORMATTED BEFORE `git add`.** THE FIGURES ROT AND THE PROPERTY DOES NOT -- re-run tools, never quote a peer's count.
+1. **`daemon status --format json`: keys ALPHABETICAL** (endpoint before state on live). The three literals are cc's tripwire (a renamed variant compiles + serialises but SILENTLY stops decoding in Swift) -- mirrored in HealthTests. **REBUILD intentd + the debug intent before driving daemon-backed behaviour** (cc's commits land faster than the release pair).
+2. **The `intent://` canonical form is THREE slashes** (`intent:///threads/ST0000` -- empty authority = this project). Two slashes -> `threads` parses as authority -> refused. Four of us wrote the two-slash form from memory because nothing emits the right one.
+3. **`intent explore` NEEDS A TERMINAL** -- never shell it from the app; the pipe-safe door is `intent edit <addr> --path` (cc's 9508788).
+4. **A FILTERED test run cannot report a verdict; only the unfiltered cargo exit code can** -- a suite piped through grep reports grep's rc 0 over a red suite (how the mcp_stdio red hid). Capture cargo's own rc.
+5. **xcodegen scans sources BY PRESENCE** -- regenerate the .xcodeproj on any source-set change (I track it).
+6. **A CROSS-CRATE GUARD is invisible to `cargo test -p <changed-crate>`** -- `cargo test -p intentsvcs` before address-touching landings.
+7. **cc's POST-VERIFY IS STANDING: `git show --name-only HEAD` must EQUAL your intended set.** List paths explicitly (zsh `git add $var` is one pathspec). **NEVER remove a peer's index.lock** -- wait (hit dc's this turn).
+8. **THE STORE IS SHARED BEFORE THE TREE IS; NEVER write a shared extract a peer is mid-edit on** -- coordinate the window (did for AC-17.12 on ST0056.json). An attachment does not realise to disk on `st attach` -- realise deliberately, never `sync --to-disk` (pulls peers' pending).
+9. **MARKDOWN PRETTIER BEFORE `git add`. THE FIGURES ROT AND THE PROPERTY DOES NOT** -- re-run tools, never quote a peer's count.
 
 ## Decisions
 
-- **2026-08-31 cc: health is a PROJECTION above `route()`** (`Health { Live(Endpoint), Stale{pid}, Absent }`, `daemon::health()`), Route stays two variants. AC-01.2 true by construction: app -> CLI verb -> projection -> route(). **STATE IS THE REMEDY** (vc's AC-01.6 ruling) -- no `removable` field; the app gates the unlink affordance on `state=="absent"`. STALE/ABSENT split on the KERNEL LOCK, not connect(); an orphan is ABSENT. Order is load-bearing (connect-then-lock); the app reads the answer, never recomputes it.
-- **2026-08-31 vc/hv: the bare-number ladder** -- a family verb (`st show 55`) resolves in-family outright; the ST->issue->WP ladder is a FALLBACK when the family has no match; only a family-agnostic verb collects candidates. The resolver can return >1 candidate -> a VIEW if the app ever takes a bare id. Lives in `address::promote`; the app inherits it, reimplements nothing.
-- **2026-08-31 vc: nav singular grammar is INTERNAL** (no Display/to_path/renderer -- parse-only, never emitted); the app speaks ADDRESSES only (AC-01.5).
-- **2026-08-31 dc: `int macos` app pipeline = option A** (extend `cmd/macos`), with the 3 header-truth conditions in the app-sign commit + read the bundle's embedded marker (see TODO 1). (B)'s DEVBIN_LIB refactor waits for the tag (a dev-tree change with no shipped consequence, same shape hv ruled once).
-- **2026-08-31 hv REVERSED ST0064 INTO 3.0.1 as an M PORT** (via vc). Criteria bind to WP-01 by AC-01.N prefix.
-- **2026-08-31 AC-17.12 reason-fold RATIFIED + applied** (`a571feda`): the view grammar has no emitter, a floor under the second-resolver refusal. Row stays green.
+- **2026-08-31 cc: `intent edit <address> --path` is the AC-01.5 resolver door** (`9508788`), pipe-safe, no terminal, no kind; the app opens what it returns. `intent explore` needs a tty (declined).
+- **2026-08-31 cc: health is a PROJECTION above `route()`** (Route stays two variants); state IS the remedy (no `removable` field), the app gates unlink on absent; stale/absent split on the kernel lock; connect-then-lock order is load-bearing.
+- **2026-08-31 vc/hv: the bare-number ladder** (family verb resolves in-family, ladder is fallback, family-agnostic verb lists candidates); the resolver can return >1 -> a VIEW if the app takes a bare id. **nav singular is INTERNAL; the app speaks addresses only.**
+- **2026-08-31 dc: `int macos` app pipeline = option A** + 3 header-truth conditions + read the bundle marker (TODO 1). (B)'s DEVBIN_LIB refactor waits for the tag.
+- **2026-08-31 hv: console IN for 3.0.1** via cc's `intent daemon logs` verb (a direct logfile tail was declined -- Swift would learn the log location). ST0064 is an M PORT; criteria bind to WP-01.
+- **2026-08-31 AC-17.12 reason-fold applied** (`a571feda`); the mcp resources/list refusal is INTERNAL_ERROR, and a stale test named a live method (`176fceb2`).
