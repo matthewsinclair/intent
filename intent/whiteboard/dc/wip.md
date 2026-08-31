@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-08-31 13:00Z
+heartbeat_at: 2026-08-31 13:07Z
 status: active
-focus: "AGGRESSIVE LOCALFOLD 2026-08-31 13:00Z. ST0068 is my work, vc coordinating. AC-02.1 DRIVEN AND LANDED (e2a7a0e4, cafde415, baf8cf8e): the published getting-started page reached ZERO satisfied criteria and failed 4 of 20 steps. Six defects, rewritten, re-driven 30 commands zero failures to ac gate PASS. NOT CLAIMED -- not a fresh machine, install half undriven (hv's to authorise). NEXT: AC-02.3, population derived at 105 open of 166, filter corrected by the AC's OWN named members failing it 2 of 4. OPEN ON MY FILE: ic asks to put the menubar app pipeline into bin/.devbin/cmd/macos."
+focus: "AGGRESSIVE LOCALFOLD 2026-08-31 13:00Z. ST0068 is my work, vc coordinating. AC-02.1 DRIVEN AND LANDED (e2a7a0e4, cafde415, baf8cf8e): the published getting-started page reached ZERO satisfied criteria and failed 4 of 20 steps. Six defects, rewritten, re-driven 30 commands zero failures to ac gate PASS. NOT CLAIMED -- not a fresh machine, install half undriven (hv's to authorise). NEXT: AC-02.3, population derived at 105 open of 166, filter corrected by the AC's OWN named members failing it 2 of 4. SETTLED WITH ic: the menubar pipeline extends bin/.devbin/cmd/macos with app-* arms; ic writes, I review, they ping before editing."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -40,7 +40,7 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 **NEXT: AC-02.3.** Population derived at **105 open of 166** -- it moved from 103 of 164 during the work, which is the row's own argument for deriving rather than transcribing, demonstrating itself. Three deliverables: a per-member disposition manifest, a checker that refuses on any undisposed member **and verifies each `stated` claim against the actual bytes of the page it names**, and the doc statements for the reader-reachable set.
 
-**OPEN AND ON MY FILE: ic asks to put ST0064's menubar build/sign/notarise pipeline into `bin/.devbin/cmd/macos` (WP-11, mine).** Their (A) extends it in place; (B) gives the app its own home sourcing my credential functions, which first needs those factored into `DEVBIN_LIB`. Answer owed.
+**SETTLED WITH ic: ST0064's menubar build/sign/notarise pipeline EXTENDS `bin/.devbin/cmd/macos` (WP-11, mine) with `app-*` arms.** **ic writes it, I review, and they ping BEFORE editing so I hold off** -- W4, one hand in one file, uncompilable between steps. It is sequenced after their Swift scaffold (`native/macos/`, greenfield, does not touch my file), so nothing is owed from me until that ping. **(A) is right, and NOT for the reason my own header gives.** That header argues for one file because it is _five short subcommands_; it is now **2,120 lines and 12 dispatch arms**, so the ground has expired and must not be quoted at a later (B). The real ground is hv's store-migration shape: **(B)'s prerequisite is factoring the credential flow into `DEVBIN_LIB`, which is a refactor of the publishing gate inside a release window.** **THE CONDITION, IN THE SAME COMMIT AS `app-sign`:** strike the expired ground; rewrite the `.app` disclaimer to what is true, **keeping and sharpening the stapling paragraph -- a bare binary cannot be stapled and that is correct, AND a `.app` can**; and name `kc_get` / `require_identity` / the notarytool flow as the shared Highlander unit at those functions so a later (B) split is mechanical. **A header saying we do not do bundles over a body that signs one is `0187`'s defect with a longer fuse, and `0187` is mine from this morning.** ic also took the `int macos stage` gap: the app pipeline reads the BUNDLE'S OWN embedded marker, never the manifest's meant-to-be -- **a record of intention read as a record of fact.**
 
 ## TODO
 
