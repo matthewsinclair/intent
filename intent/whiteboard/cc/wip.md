@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 08:26Z
+heartbeat_at: 2026-08-31 08:38Z
 status: active
 focus: "LANDED TODAY: a2a51938 AC-10.8, a9a4c070 AT-10.12 (both green, both mutation-driven). NEXT: AT-06.11 remedies_are_reachable.rs. HELD BEHIND ic: the daemon-status --format fix (built and driven, render.rs contended) and AT-10.5 (conservation_check.sh cannot see canon). NEITHER HOLD IS MINE TO CLEAR."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
@@ -62,6 +62,20 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 - **REVERSION** -- the nastiest, because it leaves a correct-looking artefact. **Announce any disk->store sync before running it.**
 
 **A RULE THAT NAMES _WHEN_ AND NOT _IN WHICH ENVIRONMENT_ IS SATISFIABLE BY THE BROKEN FORM** (dc's generalisation of my `GIT_INDEX_FILE` slip, 2026-08-31, and it is better than the instance). Mine said _reset in the same turn as the commit_ -- and the same turn is exactly where the variable is still exported, so the rule as written endorsed the defect. **dc's own note was worse and they said so: it named a pre-commit check and nothing about teardown, so it had no clause that could even be read wrong.** Before writing a procedural rule, ask which environment it runs in.
+
+**A PRIVATE-INDEX COMMIT THAT ADDS A NEW FILE LEAVES THE AMBIENT INDEX WITH NO ENTRY FOR IT, AND THE ONLY WITNESS IS A CLONE NOBODY HAS MADE** (caught by vc AND ic independently, 2026-08-31; mine, and not deliberate). `read-tree HEAD` into a private `GIT_INDEX_FILE`, `add` there, commit -- HEAD gains the file, **the ambient index is never told**, and against the new HEAD it reads as a STAGED DELETION. **MODIFIED FILES ARE IMMUNE, WHICH IS WHY IT TOOK THIS LONG TO SURFACE**: measured on all five paths I touched today, the four modified each held an ambient entry and the one I CREATED held none. **Creation is the entire population.**
+
+**AND THE CONSEQUENCE IS WHY IT OUTRANKS AN ORDINARY DIRTY FILE** (vc's wording, kept): the next commit that is not path-scoped **deletes the file FROM THE REPOSITORY while leaving it on every local disk.** `absent_at_check` finds it, cargo builds it, the citation resolves -- **and the estate has no instrument that would see it, because every instrument reads a worktree that still has the file.**
+
+**IT IS THE HOOKS TRAP'S CLASS FROM A DIFFERENT MECHANISM.** `restart.md` opens with it: hooks are tracked and `core.hooksPath` is repo-local config a clone does not inherit, so a fresh clone has every hook body and runs none, and _nothing triggers this automatically and nothing can_. **Local tree fine, clone broken, nothing local able to tell.** Two instances, two mechanisms, one property; handed to vc as a property rather than as a row.
+
+**PROCEDURE, NOT MEMORY: after any private-index commit that CREATES a file, `git restore --staged` the created paths.** Idempotent, syncs the entry from HEAD, loses nothing because disk already equals HEAD.
+
+**AND THE RULE-WRITING FAILURE UNDERNEATH IT IS THE PART TO KEEP.** This board already said _`unset GIT_INDEX_FILE` BEFORE the reset_, written the day the ambient index was left holding 30 deletions of a commit I had just landed. **I wrote that rule about a `git reset` and the class has nothing to do with resets** -- no reset was involved here. **My rule named an ACT where the class is a MECHANISM**, which is dc's _a rule that names WHEN and not IN WHICH ENVIRONMENT is satisfiable by the broken form_ -- arriving again, in a rule I wrote AFTER recording that generalisation two entries below.
+
+**TWICE IN ONE DAY A DECLARATION OF MINE PROVED NARROWER THAN ITS CLASS.** The other was `SERVED_BY_DAEMON`'s membership rule, which said _project-scoped, request-response `Op`_ full stop -- true of every member because every `Op` had an in-process twin when I wrote it, and **wrong the moment ic added one that did not.** A declaration true of every current member is not the same as a correct one, and nothing separates them until someone adds a member.
+
+**A REPO LOCK IS A RETRY, NOT A REJECTION** -- `git restore --staged` died on `index.lock: File exists` with a peer mid-commit, and succeeded on the next attempt. Same family as the `cannot lock ref 'HEAD'` refusal.
 
 **THE PINNED PRIVATE INDEX, AND THREE WAYS I GOT IT WRONG TODAY.**
 
