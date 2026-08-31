@@ -13,7 +13,7 @@ title: The Intent menubar app: controlling intentd from the macOS menubar
 
 ## Acceptance Criteria
 
-### WP-01 -- Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon (status: Not Started)
+### WP-01 -- Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon (status: WIP)
 
 - AC-01.1 (non-test) **THE APP HOLDS NO PRODUCT LOGIC: EVERY CONTROL IS A VERB IT SHELLS OUT TO, AND NOTHING IN SWIFT KNOWS A LOG FORMAT, A PIDFILE LAYOUT OR A CONFIG SCHEMA.** hv set this as the whole shape of the app on 2026-08-26 and it is the row every other row on this thread leans on: start, stop, restart and doctor are `intent` / `intentd` invocations, and every fact displayed comes from the daemon or the CLI rather than from a Swift-side derivation. **The check is by ABSENCE and it is mechanical**: the Swift sources contain no parser for a log line, no path assembled toward a pidfile, and no key read out of a config file. **The daemon is the authority on the daemon** -- an app that computes any of the three has taken a second home for a value `intentd` already owns, and the two will disagree at exactly the moment the app exists to be trusted. -- satisfied: no
 - AC-01.2 (non-test) **THE APP'S HEALTH PREDICATE AND THE CLI'S ROUTING PREDICATE ARE ONE PREDICATE, NOT TWO THAT AGREE.** `AC-08.3` rules how a client decides the daemon is live: a completed request-response round-trip under a bounded deadline, never a presence test and never a bare `connect()`. **The app asks the same question and MUST reach the same answer through the same code path** -- the CLI verb, not a Swift reimplementation of the probe. **Two homes for `is intentd running` is the defect this estate has now recorded at three scales**, and this is its worst instance, because the disagreement is SILENT AND INVERTED: the menubar shows a green dot while the CLI routes every verb in-process, and the operator is looking at the one surface built to tell them otherwise. -- satisfied: no
@@ -31,7 +31,7 @@ title: The Intent menubar app: controlling intentd from the macOS menubar
 
 ## Acceptance Tests
 
-### WP-01 -- Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon (status: Not Started)
+### WP-01 -- Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon (status: WIP)
 
 _(no tests in this group)_
 

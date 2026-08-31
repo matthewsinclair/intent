@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
 scope: M
-status: Not Started
+status: WIP
 ---
 
 # WP-01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
