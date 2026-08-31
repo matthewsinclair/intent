@@ -86,3 +86,21 @@ The hand-read this row budgeted M for was replaced by a **syn-based scanner** (`
 **Edited now (mechanical truth, no scope):** the 59 rows with a clean single door gain `"facade": "<method>"` in `surface/dispatch-table.json` — 52 one-door rows plus the 7 clean primaries. The field is declared ahead of the WP-09 generator that will consume it, which is the same order `exposed_on_mcp` itself was declared in.
 
 **To hv, through vc, as one decision list:** 8 narrows (version, claude hook, 3 namespaces, critic, sync, agents sync), 12 facade gaps to build or defer (schema, lang ×4, llm usage_rules, modules ×2, plugin ×2, todo ×2), 2 vocabulary calls (llm guide, surface), 2 waiting on 0171, and 11 unwired rows to wire or narrow. **A smaller honest tool list is a better tag than a larger one with holes** (vc's sentence, kept).
+
+## The ruling and the narrow — hv, 2026-08-31
+
+**hv ruled (15:54Z): NARROW the table AND make the silent drop loud.** Declined: _wire all 21 facades_ (real work in a tag window, and 4 of the 21 are namespaces each needing their own door design), and _loud refusal only, decide the 21 after the tag_ (not shippable alone — the build fails until all 21 are dispositioned). **Owner split: cc for the loud refusal at `mcp.rs:97`, ic for the table dispositions here.**
+
+**Measured at the current tree and positive-controlled: 81 exposed on MCP, 60 carrying a facade (== the `SERVED` roster), 21 without.** The 21 are this document's earlier partition, reproduced from `surface/dispatch-table.json` rather than transcribed; cc re-derived the same 81/21 from the table independently, which is the control on the number. The count moved from the read's 94 exposed because 13 rows were narrowed or wired between the read and the ruling (info/guide/surface/schema and the settled unwired rows), so the current table is a cleaner set than the 2026-08-30 partition above.
+
+**The disposition, taken: all 21 narrowed to `exposed_on_mcp: false` for 3.0.1** (edited in `surface/dispatch-table.json`, this commit). After it every exposed row carries a facade, so the criterion holds by construction and cc's refusal fires on nothing — the gate closes behind a table that already satisfies it. The 21, by hv's cleave:
+
+- **4 namespace** — a parent carrying verb-slots, so there is no single door: `claude rules`, `claude skills`, `claude ws`, `critic`. Serving these needs a per-namespace door design, deferred rather than designed here.
+- **7 read leaves**: `lang list`, `lang show`, `modules check`, `modules find`, `plugin list`, `plugin show`, `version`.
+- **10 mutate leaves**: `agents sync`, `claude hook`, `fc`, `lang init`, `lang remove`, `llm usage_rules`, `sync`, `todo done`, `todo notdone`, `todo toggle`.
+
+**The 13 undoable mutate rows also carry a `recoverability_anomaly`.** The MCP withhold list is derived from `recoverability` — MCP withholds a mutation the surface cannot undo — but these are `reversible`/`idempotent` and withheld anyway, on the facade-door ground rather than a danger ground. Each records that, and it is self-expiring: `gen_dispatch_table.sh` arm 2 refuses a stale anomaly, so re-exposing a row must delete its anomaly in the same act. The three retiring rows (`issues hydrate`, `issues dehydrate`, `lang sync`) are excluded — the gate's own population excludes `disposition`/`target.state == retire`, and a selector that does not mirror that over-matches them.
+
+**Post-tag re-add candidates, flagged not built:** the reads an agent genuinely wants, which a facade door would restore — `lang list` / `lang show` (config), `modules check` / `modules find` (`MODULES.md`), `plugin list` / `plugin show` (project reads), and `critic` (real agent value, its own scope decision). **Two the narrow protects, re-add only with care:** `sync` and `agents sync` reach the four direction methods including `--to-store`, the D01-inverting hazard that destroyed a store write on 2026-08-30 — not a tool an MCP agent should reach casually. `version` describes the binary, not the project — a likely permanent narrow.
+
+**Sequencing: the narrow lands first (this commit); cc lands the loud refusal on top, so nothing is red in between.** cc's refusal is tested against a planted fixture row rather than the live table, so it stays honest after this narrow.

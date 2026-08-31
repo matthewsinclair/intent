@@ -1943,8 +1943,9 @@ Mark a thread/WP done (via intent st/wp done), then regenerate
 - **Target:** `as-observed`
 - **exposure:** EXPOSURE -- NOT a D42 one, and the first two versions of this note got that wrong (ic, audit 2026-08-15, corrected twice the same day). hv has narrowed D42 twice since I filed it: RETURNING a time is fine, and READING a clock to make a decision or to stamp when a command ran into a GENERATED artefact is fine too -- there is no need to be pathological about it. `--flush` is exactly that permitted case on both counts: v2 `flush_watermark` reads `date -u` and writes the instant into `todo.md`, which is a generated view, and the value is then used to decide DONE-bucket membership. So the clock read is legitimate and I withdraw the D42 complaint. WHAT SURVIVES IS A DIFFERENT AND BETTER DEFECT, found only by reading the v2 source to check the first claim: `generate()` reads the watermark BACK OUT of `todo.md` (`read_done_watermark`, bin/intent_todo:228), so the generated view is the watermark's ONLY store. Under the v3 truth model -- DB rebuildable, `rm` of a derived artefact always safe, md = generated views plus authored prose -- a watermark is neither, and deleting `todo.md` to regenerate it silently resets the flush to zero and resurrects every flushed item. The v3 watermark must live in the store. WP-03 owns the renderer and this is its constraint, not WP-06's.
 - **no op:** `ok: <ID> already Completed`, exit 0 -- **SHIPPED at `d0f345b5`**, and **BYTE-IDENTICAL to `st done`'s, which is 0050's actual subject**: the wrapper and the call it delegates to now answer the same question the same way. Before that commit this row was the only arm in the renderer that reported a no-op at all, in the spelling `ok: <spec> was already done` -- honest about the no-op, wrong about the voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic).
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **recoverability:** reversible
+- **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 
 ### `todo notdone`
 
@@ -1961,8 +1962,9 @@ Reopen a thread/WP to WIP, then regenerate
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **no op:** **NO SELF-LOOP IS REACHABLE: the row refuses UNCONDITIONALLY, at exit 1, before any state is read.** Measured 2026-08-17 by driving the verb twice through the real binary (ic). `render.rs:1158-1168` returns the refusal for every invocation -- on a thread already in the target state, on one that would move, on any state at all. So this is not `unexamined` and not a no-op value: **there is no code path from this row to the facade**, and the `no_op` question cannot be asked of it until that changes. cc's reasoning is on the arm and it is sound: the ratified reopen is guarded `ReasonRecorded`, the declared surface for these two carries a specifier and nothing else, and the two alternatives are worse -- synthesising a reason puts a sentence nobody wrote into the permanent record, and bypassing the guard for one caller makes the machine advisory. **The comment routes the decision here by name**: whether these rows grow a reason argument or are withdrawn belongs to the table's owner. **v2 performs the write silently**, so this is a hard parity break either way, and the row currently ships a verb that cannot succeed.
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **recoverability:** reversible
+- **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 
 ### `todo toggle`
 
@@ -1979,8 +1981,9 @@ Flip done/not-done, then regenerate
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **no op:** **NO SELF-LOOP IS REACHABLE: the row refuses UNCONDITIONALLY, at exit 1, before any state is read.** Measured 2026-08-17 by driving the verb twice through the real binary (ic). `render.rs:1158-1168` returns the refusal for every invocation -- on a thread already in the target state, on one that would move, on any state at all. So this is not `unexamined` and not a no-op value: **there is no code path from this row to the facade**, and the `no_op` question cannot be asked of it until that changes. cc's reasoning is on the arm and it is sound: the ratified reopen is guarded `ReasonRecorded`, the declared surface for these two carries a specifier and nothing else, and the two alternatives are worse -- synthesising a reason puts a sentence nobody wrote into the permanent record, and bypassing the guard for one caller makes the machine advisory. **The comment routes the decision here by name**: whether these rows grow a reason argument or are withdrawn belongs to the table's owner. **v2 performs the write silently**, so this is a hard parity break either way, and the row currently ships a verb that cannot succeed.
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **recoverability:** reversible
+- **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 
 ## Family: `info`
 
@@ -2461,9 +2464,10 @@ Regenerate AGENTS.md from current project state
   - Writes AGENTS.md.bak beside it -- the previous version. UNDECLARED until 2026-08-17 and announced by line 3 of stdout. Covered by `*.bak` at `.gitignore:51`, so it does not reach git.
 - **Observed notes:** **THIS VOICE IS RECORDED AND MUST NOT BE TIDIED, and the row is where a v3 implementer will read it.** Two of the three lines are against the house style that 0023 spent a release enforcing: line 1 is a BARE CAPITALISED progress line with no `ok:` prefix and a trailing ellipsis, and line 2 carries a TRAILING FULL STOP. Both are v2's observed behaviour on an `as-observed` row, so **reproducing them IS the contract** -- a v3 that cleans them up has broken parity, however much better it reads. A deviation here wants RATIFYING, not fixing. **A third line existed that nobody had recorded**, which is why the warning is written from the measurement rather than from memory of it. **No `stdout_exact` yet, deliberately: the `agents` family is UNBUILT in v3** (exit 2, `error: agents is a known command that is not implemented yet`). A declaration now would red for not-built rather than for a parity break, and the whole point of splitting the as-observed and corrected legs was that a red must name one remedy. The bytes above are measured and ready; declare them when the family ships. AGENTS.md is THE proven generated-committed-view precedent that D04 generalises to info.md, acceptance.md, steel_threads.md and todo.md.
 - **Target:** `as-observed`
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **MCP classification grounded in:** intent/plugins/agents/bin/intent_agents:693 -- backs up AGENTS.md then rewrites it
 - **recoverability:** idempotent
+- **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 
 ### `agents validate`
 
@@ -2610,8 +2614,9 @@ Manage Claude Code skills
   - `0.authority`: hv
   - `0.date`: 2026-08-22
   - `0.record`: null
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **recoverability:** idempotent
+- **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 
 ### `claude rules`
 
@@ -2634,11 +2639,12 @@ List and show rule-library rules
   - `intent claude rules index` MUTATES `INTENT_HOME` -- it rewrote a tracked file (intent/plugins/claude/rules/index.json) in the worktree under test. A verb that reads like a query modifies the installation.
 - **Target:** `pending-hv`
 - **Open question for hv:** In v3 rules are embedded in the binary (WP-07), so `index` has no installation to mutate and arguably retires with the on-disk rules root. Decide at the surface cut.
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **Wants review:**
   - uncertain on `read_or_mutate`
   - Leaned mutate against the obvious reading. `rules list` / `rules show` are plainly reads and are the ones agents want, but `intent_claude_rules` carries write primitives I did not attribute to an arm. If they all live in an unrelated arm this is a `read`.
 - **recoverability:** idempotent
+- **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 
 ### `claude hook`
 
@@ -2655,11 +2661,12 @@ Run a named Intent hook
 - **stderr:** the hook's stderr, verbatim
 - **Target:** `as-observed`
 - **Note:** **Byte-compatible on day one is a hard requirement, not a preference** (parity.md). Consumer `.claude/settings.json` files reference `intent claude hook <name>` by runtime resolution (issue 0016); if this path changes shape, every consumer's hooks break on the binary swap. The single most parity-critical entry in the family.
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **Wants review:**
   - uncertain on `exposed_on_mcp`
   - Installs and removes Claude Code lifecycle hooks -- an agent editing the hooks that police it is the shape of the problem, even when each step is legitimate.
 - **recoverability:** idempotent
+- **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 
 ### `claude upgrade`
 
@@ -2718,8 +2725,9 @@ Manage whiteboard workstreams
 - **Observed notes:** `hygiene` enforces the line-oriented `key: value` header contract (D13) and says nothing about YAML validity, because validity is not the contract.
 - **Target:** `as-observed`
 - **Note:** D14: the whiteboard stays md-authored through 3.0.0/3.1 and is restructured in the 3.2 bus ST. So this family ports as-is rather than being reified.
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **recoverability:** idempotent
+- **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 
 ### `claude start`
 
@@ -2799,7 +2807,7 @@ Run Intent rule-library critics against source files
 - **Open question for hv:** **WITHDRAWN 2026-08-20, AND THIS ROW IS THE SHARPEST ARTEFACT OF THE INVERSION: IT PROPOSED TO RATIFY THE BUG.** It read _Exit 2 must keep meaning findings-present (INV-04), which requires the other three conditions to move to exit 1 per INV-02_. **Had hv granted it, usage errors would have moved to exit 1 and findings would have been pinned to exit 2 -- and `lib/templates/hooks/pre-commit.sh:350-369` fails OPEN on 2 and BLOCKS on 1.** Every finding would have sailed through the gate and every typo would have blocked the commit: the gate inverted, in this repo and in every consumer through one symlink, with a ratification behind it. **The row correctly identified that it had a LIVE CONSUMER and correctly called it the highest priority of the 19 -- and both of those were reasons its wrongness would have propagated fastest.** Nothing is owed here now: v2's behaviour is already coherent (0 clean, 1 findings, 2 usage, 3 refused) and v3 reproduces it, so the `corrected` change this row asked for is not merely unnecessary but harmful. See INV-04's `corrected_2026_08_20`.
 - **Note:** Confirmed independently by vc at the same revision; escalate to hv ahead of the usage-convention bundle.
 - **wp07 owes:** MEASURED DIVERGENCE, RECORDED NOT RULED (cc measured it building 0038; ic recorded it 2026-08-16). **`intent critic` with NO language exits 2 in v2 and 1 in v3.** v2's 2 comes from `critic`'s OWN argument parsing -- it is already in `observed.exit` above as `bare invocation -- 1588B usage printed to STDOUT`. v3's 1 comes from clap under INV-02, which is correct for a usage error everywhere else in the surface. **So this is not a defect in either binary: it is the one place v2 used 2 for a usage error, and WP-07 has to decide whether to reproduce it.** Recorded here because the decision is invisible at the moment it gets made -- whoever wires `critic`'s language validation will be looking at clap's behaviour, which is already right by the general rule, and nothing on the path will mention that this command is the exception. `target.state` stays `pending-hv`: a divergence that needs a ruling is not settled by writing it down. **The wider point 0038 established, and the reason this matters more than one exit code: an exit code is a property of the CALLER's contract, not of the tool.** `critic`'s 2 has a live consumer -- the pre-commit gate reads it today as findings-present -- which is why it is the only unit in this register whose exit code is load-bearing before v3 ships.
-- **MCP:** exposed as an agent tool -- read-only
+- **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** bin/intent_critic -- no write primitive in the file; it reports and sets an exit code
 
 ## Family: `lang`
@@ -2851,7 +2859,7 @@ List the languages a project may declare
 - **stdout:** one row per language
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
-- **MCP:** exposed as an agent tool -- read-only
+- **MCP:** not exposed -- read-only
 
 ### `lang show`
 
@@ -2872,7 +2880,7 @@ Show what declaring a language does
   - `0.authority`: vc
   - `0.date`: 2026-08-25
   - `0.record`: issue 0068
-- **MCP:** exposed as an agent tool -- read-only
+- **MCP:** not exposed -- read-only
 
 ### `lang init`
 
@@ -2898,8 +2906,9 @@ Declare one or more languages (idempotent; multi-lang)
   - `0.authority`: vc
   - `0.date`: 2026-08-25
   - `0.record`: issue 0068
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **recoverability:** idempotent
+- **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 
 ### `lang remove`
 
@@ -2920,9 +2929,10 @@ Undeclare one or more languages (idempotent; multi-lang)
   - `0.authority`: vc
   - `0.date`: 2026-08-25
   - `0.record`: issue 0068
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **recoverability:** idempotent
 - **note:** **WITHHELD UNDER v2's BEHAVIOUR, EXPOSED UNDER v3's, AND THE LABEL DID NOT CHANGE TO MAKE A NUMBER COME OUT.** The withhold carried a stated reason -- "Removes per-language canon. Deletion of authored canon is the one shape where a wrong call is not recoverable from the tool" -- and v3's `remove` deletes no canon. It edits `config.json`'s `languages` array, and `lang init <lang>` puts it back, so the mutation is undoable BY THE SURFACE, which is the test `recoverability` encodes. **The reason expired with the behaviour it described; keeping the withhold would have kept a guard whose premise was gone.** Found by `view_skew_check.sh`/`gen_dispatch_table.sh` refusing the render when `recoverability` moved and `exposed_on_mcp` did not -- the two fields are one claim and the generator will not let them disagree in silence.
+- **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 
 ### `lang sync`
 
@@ -2997,10 +3007,11 @@ Display the Intent usage rules for LLMs
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **Note:** The optional-value flag is a genuine clap modelling decision (`num_args(0..=1)`), not a free port. Worth naming here so WP-05 does not discover it as a parse bug.
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **Wants review -- the classification disagrees with the verb name:** Reads as a display command, and its default IS display. The flag is what makes the entry a mutation -- the same shape as `at lint`, `doctor`, and `todo list`, which is why the field is defined over the entry rather than the default.
 - **MCP classification grounded in:** bin/intent_llm:65 is `cat "$USAGE_RULES_FILE"`; :88-100 is the `--symlink` path, which creates a symlink and warns when one exists
 - **recoverability:** idempotent
+- **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 
 ### `llm guide`
 
@@ -3114,7 +3125,7 @@ Compare MODULES.md registry against filesystem
   - `0.authority`: vc
   - `0.date`: 2026-08-25
   - `0.record`: 488696e3
-- **MCP:** exposed as an agent tool -- read-only
+- **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** bin/intent_modules -- no write primitive in the file
 
 ### `modules find`
@@ -3133,7 +3144,7 @@ Search MODULES.md for a term
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **Note:** as-observed and now actually so. v3 reproduces grep's convention because v2 already had it: match rc=0, no match prints on stdout at rc=1 with stderr silent. **The two documents that said 0 agreed with each other and neither agreed with the program**, which is why this row's evidence class moved rather than its target state.
-- **MCP:** exposed as an agent tool -- read-only
+- **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** bin/intent_modules -- no write primitive in the file
 
 ## Family: `plugin`
@@ -3180,7 +3191,7 @@ List all plugins and their commands
 - **stdout:** one block per plugin
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
-- **MCP:** exposed as an agent tool -- read-only
+- **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** bin/intent_plugin -- no write primitive in the file
 
 ### `plugin show`
@@ -3196,7 +3207,7 @@ Show detailed information for a plugin
 - **stdout:** the plugin detail
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
-- **MCP:** exposed as an agent tool -- read-only
+- **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** bin/intent_plugin -- no write primitive in the file
 
 ## Family: `ext`
@@ -3587,7 +3598,7 @@ Print the Intent version
   - `0.authority`: hv
   - `0.date`: 2026-08-14
   - `0.record`: parity.md
-- **MCP:** exposed as an agent tool -- read-only
+- **MCP:** not exposed -- read-only
 
 ## Family: `daemon`
 
@@ -3846,13 +3857,14 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **d34 wording:** FINAL wording, released by D34 (hv, 2026-08-15) after I held it pending the multi-machine question. **The DB is per-machine truth and is never committed; the committed extract IS the interchange between nodes**, and a fresh clone reconstitutes its DB by passing that extract through the ingest gate. So the help names both endpoints exactly: `this machine's store` (per-machine, authoritative locally) and `the committed extract` (what travels). D34 adopts the formulation _authority is not bidirectional just because transport is_ -- which is why the string says `in both directions` about the MOVEMENT and says nothing about precedence. A help line implying the file could win would describe a different architecture.
 - **disposition:** new-surface
 - **recoverability:** idempotent
+- **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 - **Flags:**
   - `--to-disk` (bool) -- Write the store out to the committed extract
     - **disposition:** keep
   - `--to-store` (bool) -- Read the committed extract into the store, through the API gate
     - **disposition:** keep
     - **disposition basis:** RULED `keep` by ic, 2026-08-15, on the boundary declared at `boundary_ruled` below. It was `pending` on the ground that `sync --to-store` and `ingest` might be two spellings for one act; they are not, and the flag ships. cc had already implemented it and stopped rather than let the code answer the open question -- which was right, and is the reason this row is ruled rather than discovered.
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **Wants review:**
   - uncertain on `exposed_on_mcp`
   - Leaned OPEN against the standing lean because sync is ordinary workflow, and it is the one row where that lean is least comfortable: it moves truth in BOTH directions, so a wrong `--to-store` can overwrite this machine's store from a stale extract. **The stated closing condition was TESTED and DID NOT FIRE**: it said _if the boundary with `ingest` is drawn so that `sync --to-store` is the recovery path, this should close_, and `boundary_ruled` draws it the other way -- `sync` is routine reconciliation of a self-produced artefact and `ingest` is the recovery path. So the lean STAYS OPEN, and it stays open because a condition was checked rather than because nobody came back to it. Recorded rather than deleted: a closing condition that was evaluated and not met is a different fact from one still pending.
@@ -4008,6 +4020,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **acceptance:** ST0066 AC-00.1 (the verb and its refusal), AC-00.3 (the cascade), AC-00.4 (renders distinguishably wherever counted)
 - **disposition:** new-surface
 - **recoverability:** reversible
+- **recoverability anomaly:** WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold.
 - **Flags:**
   - `--because` `<text>` (string) -- Why this is being closed on authority rather than met -- REQUIRED
     - **required:** true
@@ -4028,7 +4041,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 - **probe consequence:** **THIS ROW CANNOT BE PROBED FOR WIRING BY DRIVING IT BARE, PERMANENTLY AND BY DESIGN, AND IT IS THE FIRST ROW OF THAT SHAPE.** `flag_reachability.rs`'s `unwired_families()` drives each probeable `new_surface[]` row BARE (`:345-362`) and asks whether the output contains `is a known command that is not implemented yet`. For a row with a required argument clap refuses FIRST, with a message that does not contain that marker, so the probe reads an unwired row as WIRED and the flag gate then fires on `--because`. **The population and the deferral path are both fine** -- `unwired_families()` walks `families` at `:249` AND `new_surface` at `:345`, and the deferral keys a `new_surface` row by its own path. **What is blind is the INVOCATION.** The fix is the rule vc drew from cc's bare-`daemon` finding the same day -- construct the probe from the row's OWN declaration rather than driving a bare form -- and for a WRITER the invocation must also be one that cannot succeed, because this same file already ruled that a probe whose question has a side effect is not a probe (the `bootstrap` incident). `intent fc ST9999 --because <probe>` satisfies clap, reaches the arm, and answers either the unwired marker or an unknown-thread refusal -- both safe, both distinguishable from each other.
 - **from states:** **`computed` AND `unsatisfied` ONLY, AND `satisfied` IS EXCLUDED FOR A REASON THE REFUSAL MUST STATE** (dc reasoning, adopted here so the omission is explicable rather than arbitrary). A fiat close is how an UNMET requirement is closed on authority. Allowing it on a MET one would let a close-on-authority overwrite a close-on-evidence -- destroying the evidence in order to record that none was needed, which is the exact inversion of what the verb is for. `descoped` and `withdrawn` are excluded too, on the different ground that they are already out of scope: there is nothing to close. **THAT SENTENCE DESCRIBES THE CRITERION MACHINE AND THIS ROW REACHES FOUR MACHINES, SO IT IS A PARTIAL ANSWER SHAPED LIKE A WHOLE ONE.** The ACCEPTANCE-TEST machine entry states are `to-write` and `red` (dc, 2026-08-29, edge built and declared from those two only) -- a DIFFERENT pair naming the same idea, because a test that has not been written and a test that fails are its two unmet states the way `computed` and `unsatisfied` are a criterion two. **The token stays per-machine on purpose** -- one token for four machines is the collapse `FANS_OUT` was renamed to avoid. ST and WP have NO entry states here at all: hv ruled 2026-08-28 that neither gets a status variant and `fiat` sits BESIDE a status that stays `completed`/`done`, so the cascade reaches their CHILDREN and never moves the parent status.
 - **off scope voice:** **ic's WORDING, DECLARED AND NOT DRIVEN -- dc to wire and confirm.** Today `fc` on a `withdrawn` or `descoped` criterion answers with the bare machine refusal, where every sibling that writes about satisfaction answers with `OffScope` naming the undo. dc attempted the obvious wiring and REVERTED it, correctly: `OffScope`'s remedy hardcodes the `ac satisfy` story, so reusing it produced `if you mean to fiat-closed it` followed by a paragraph about recording evidence -- right shape, wrong sentence, and worse than the bare refusal it replaced. The sentences this row asks for, one per state: WITHDRAWN -- `error: AC-03.1 is withdrawn, so there is nothing in scope to close` / `remedy: run `intent ac reinstate <thread> AC-03.1` to bring it back into scope first. A fiat close records that an IN-SCOPE requirement was closed on authority; a withdrawn one is already out of scope, so closing it would assert something about the contract that is not true`. DESCOPED -- the same sentence with `descoped` and `intent ac rescope`. **The two differ only in the state and the undo verb, which is the whole reason they must not share one hardcoded remedy** -- that is how `ac rescope` came to be answered about `reinstate` twice (issue 0053).
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **Wants review:**
   - uncertain on `exposed_on_mcp`
   - **EXPOSED, FOLLOWING THIS TABLE'S OWN DERIVATION, AND THE GROUND UNDERNEATH IT IS OPEN FOR hv.** ic first authored this row `false`: ST0066 AC-00.6 requires the LLM-side contract to FORBID invoking `fc`, so putting the one forbidden verb on the machine face hands it to the agent forbidden to use it. `gen_dispatch_table.sh` REFUSED that row, and correctly -- withholding here is DERIVED from `recoverability` (the face withholds a mutation the surface cannot undo) and `fc` is `reversible`, so withholding it asserts a ground this table does not carry. **`recoverability_anomaly` was the offered escape and ic declined it:** that key is named for recoverability, and admitting a member for a different reason is the defect this estate hit three times on 2026-08-29 alone -- `not_probed`'s `nonreturning` predecessor losing `claude upgrade` to its own name, `FANS_OUT` carrying fan-out and rename under one meaning, and this. **A key named for one reason cannot hold members admitted for another.** **AC-00.6's own text leans the same way as the derivation:** enforcement is `detection plus attribution, never a claimed impossibility`, and withholding a tool the agent can still reach by shelling out claims an impossibility it does not have. What withholding removes is the ACCIDENT, not the capability. **THE QUESTION FOR hv IS NARROWER THAN THIS ROW: does the machine face need a SECOND withholding ground -- `withheld because the loaded contract forbids it` -- distinct from irreversibility?** If yes, it is a vocabulary addition rather than a label change, and `fc` is its first member. Until then this row follows the rule that exists rather than the one ic would have written.

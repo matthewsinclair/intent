@@ -4155,9 +4155,10 @@
             "no_op": "`ok: <ID> already Completed`, exit 0 -- **SHIPPED at `d0f345b5`**, and **BYTE-IDENTICAL to `st done`'s, which is 0050's actual subject**: the wrapper and the call it delegates to now answer the same question the same way. Before that commit this row was the only arm in the renderer that reported a no-op at all, in the spelling `ok: <spec> was already done` -- honest about the no-op, wrong about the voice. Measured 2026-08-17 by driving the verb twice through the real binary (ic)."
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
         },
         {
           "path": "todo notdone",
@@ -4199,9 +4200,10 @@
             "no_op": "**NO SELF-LOOP IS REACHABLE: the row refuses UNCONDITIONALLY, at exit 1, before any state is read.** Measured 2026-08-17 by driving the verb twice through the real binary (ic). `render.rs:1158-1168` returns the refusal for every invocation -- on a thread already in the target state, on one that would move, on any state at all. So this is not `unexamined` and not a no-op value: **there is no code path from this row to the facade**, and the `no_op` question cannot be asked of it until that changes. cc's reasoning is on the arm and it is sound: the ratified reopen is guarded `ReasonRecorded`, the declared surface for these two carries a specifier and nothing else, and the two alternatives are worse -- synthesising a reason puts a sentence nobody wrote into the permanent record, and bypassing the guard for one caller makes the machine advisory. **The comment routes the decision here by name**: whether these rows grow a reason argument or are withdrawn belongs to the table's owner. **v2 performs the write silently**, so this is a hard parity break either way, and the row currently ships a verb that cannot succeed."
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
         },
         {
           "path": "todo toggle",
@@ -4243,9 +4245,10 @@
             "no_op": "**NO SELF-LOOP IS REACHABLE: the row refuses UNCONDITIONALLY, at exit 1, before any state is read.** Measured 2026-08-17 by driving the verb twice through the real binary (ic). `render.rs:1158-1168` returns the refusal for every invocation -- on a thread already in the target state, on one that would move, on any state at all. So this is not `unexamined` and not a no-op value: **there is no code path from this row to the facade**, and the `no_op` question cannot be asked of it until that changes. cc's reasoning is on the arm and it is sound: the ratified reopen is guarded `ReasonRecorded`, the declared surface for these two carries a specifier and nothing else, and the two alternatives are worse -- synthesising a reason puts a sentence nobody wrote into the permanent record, and bypassing the guard for one caller makes the machine advisory. **The comment routes the decision here by name**: whether these rows grow a reason argument or are withdrawn belongs to the table's owner. **v2 performs the write silently**, so this is a hard parity break either way, and the row currently ships a verb that cannot succeed."
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
-          "recoverability": "reversible"
+          "recoverability": "reversible",
+          "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
         }
       ],
       "bats_coverage": {
@@ -5198,12 +5201,13 @@
             "state": "as-observed"
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
             "grounded_in": "intent/plugins/agents/bin/intent_agents:693 -- backs up AGENTS.md then rewrites it"
           },
-          "recoverability": "idempotent"
+          "recoverability": "idempotent",
+          "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
         },
         {
           "path": "agents validate",
@@ -5553,9 +5557,10 @@
             ]
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
-          "recoverability": "idempotent"
+          "recoverability": "idempotent",
+          "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
         },
         {
           "path": "claude rules",
@@ -5621,7 +5626,7 @@
             "question": "In v3 rules are embedded in the binary (WP-07), so `index` has no installation to mutate and arguably retires with the on-disk rules root. Decide at the surface cut."
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
             "uncertain": [
@@ -5629,7 +5634,8 @@
             ],
             "why_uncertain": "Leaned mutate against the obvious reading. `rules list` / `rules show` are plainly reads and are the ones agents want, but `intent_claude_rules` carries write primitives I did not attribute to an arm. If they all live in an unrelated arm this is a `read`."
           },
-          "recoverability": "idempotent"
+          "recoverability": "idempotent",
+          "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
         },
         {
           "path": "claude hook",
@@ -5670,7 +5676,7 @@
             "note": "**Byte-compatible on day one is a hard requirement, not a preference** (parity.md). Consumer `.claude/settings.json` files reference `intent claude hook <name>` by runtime resolution (issue 0016); if this path changes shape, every consumer's hooks break on the binary swap. The single most parity-critical entry in the family."
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
             "uncertain": [
@@ -5678,7 +5684,8 @@
             ],
             "why_uncertain": "Installs and removes Claude Code lifecycle hooks -- an agent editing the hooks that police it is the shape of the problem, even when each step is legitimate."
           },
-          "recoverability": "idempotent"
+          "recoverability": "idempotent",
+          "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
         },
         {
           "path": "claude upgrade",
@@ -5826,9 +5833,10 @@
             "note": "D14: the whiteboard stays md-authored through 3.0.0/3.1 and is restructured in the 3.2 bus ST. So this family ports as-is rather than being reified."
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
-          "recoverability": "idempotent"
+          "recoverability": "idempotent",
+          "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
         },
         {
           "path": "claude start",
@@ -6031,7 +6039,7 @@
             "wp07_owes": "MEASURED DIVERGENCE, RECORDED NOT RULED (cc measured it building 0038; ic recorded it 2026-08-16). **`intent critic` with NO language exits 2 in v2 and 1 in v3.** v2's 2 comes from `critic`'s OWN argument parsing -- it is already in `observed.exit` above as `bare invocation -- 1588B usage printed to STDOUT`. v3's 1 comes from clap under INV-02, which is correct for a usage error everywhere else in the surface. **So this is not a defect in either binary: it is the one place v2 used 2 for a usage error, and WP-07 has to decide whether to reproduce it.** Recorded here because the decision is invisible at the moment it gets made -- whoever wires `critic`'s language validation will be looking at clap's behaviour, which is already right by the general rule, and nothing on the path will mention that this command is the exception. `target.state` stays `pending-hv`: a divergence that needs a ruling is not settled by writing it down. **The wider point 0038 established, and the reason this matters more than one exit code: an exit code is a property of the CALLER's contract, not of the tool.** `critic`'s 2 has a live consumer -- the pre-commit gate reads it today as findings-present -- which is why it is the only unit in this register whose exit code is load-bearing before v3 ships."
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "read",
           "mcp_review": {
             "grounded_in": "bin/intent_critic -- no write primitive in the file; it reports and sets an exit code"
@@ -6126,7 +6134,7 @@
             "state": "as-observed"
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "read"
         },
         {
@@ -6173,7 +6181,7 @@
             ]
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "read"
         },
         {
@@ -6229,9 +6237,10 @@
             ]
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
-          "recoverability": "idempotent"
+          "recoverability": "idempotent",
+          "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
         },
         {
           "path": "lang remove",
@@ -6280,10 +6289,11 @@
             ]
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "recoverability": "idempotent",
-          "note": "**WITHHELD UNDER v2's BEHAVIOUR, EXPOSED UNDER v3's, AND THE LABEL DID NOT CHANGE TO MAKE A NUMBER COME OUT.** The withhold carried a stated reason -- \"Removes per-language canon. Deletion of authored canon is the one shape where a wrong call is not recoverable from the tool\" -- and v3's `remove` deletes no canon. It edits `config.json`'s `languages` array, and `lang init <lang>` puts it back, so the mutation is undoable BY THE SURFACE, which is the test `recoverability` encodes. **The reason expired with the behaviour it described; keeping the withhold would have kept a guard whose premise was gone.** Found by `view_skew_check.sh`/`gen_dispatch_table.sh` refusing the render when `recoverability` moved and `exposed_on_mcp` did not -- the two fields are one claim and the generator will not let them disagree in silence."
+          "note": "**WITHHELD UNDER v2's BEHAVIOUR, EXPOSED UNDER v3's, AND THE LABEL DID NOT CHANGE TO MAKE A NUMBER COME OUT.** The withhold carried a stated reason -- \"Removes per-language canon. Deletion of authored canon is the one shape where a wrong call is not recoverable from the tool\" -- and v3's `remove` deletes no canon. It edits `config.json`'s `languages` array, and `lang init <lang>` puts it back, so the mutation is undoable BY THE SURFACE, which is the test `recoverability` encodes. **The reason expired with the behaviour it described; keeping the withhold would have kept a guard whose premise was gone.** Found by `view_skew_check.sh`/`gen_dispatch_table.sh` refusing the render when `recoverability` moved and `exposed_on_mcp` did not -- the two fields are one claim and the generator will not let them disagree in silence.",
+          "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
         },
         {
           "path": "lang sync",
@@ -6442,13 +6452,14 @@
             "note": "The optional-value flag is a genuine clap modelling decision (`num_args(0..=1)`), not a free port. Worth naming here so WP-05 does not discover it as a parse bug."
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
             "counterintuitive": "Reads as a display command, and its default IS display. The flag is what makes the entry a mutation -- the same shape as `at lint`, `doctor`, and `todo list`, which is why the field is defined over the entry rather than the default.",
             "grounded_in": "bin/intent_llm:65 is `cat \"$USAGE_RULES_FILE\"`; :88-100 is the `--symlink` path, which creates a symlink and warns when one exists"
           },
-          "recoverability": "idempotent"
+          "recoverability": "idempotent",
+          "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
         },
         {
           "path": "llm guide",
@@ -6673,7 +6684,7 @@
             ]
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "read",
           "mcp_review": {
             "grounded_in": "bin/intent_modules -- no write primitive in the file"
@@ -6722,7 +6733,7 @@
             "note": "as-observed and now actually so. v3 reproduces grep's convention because v2 already had it: match rc=0, no match prints on stdout at rc=1 with stderr silent. **The two documents that said 0 agreed with each other and neither agreed with the program**, which is why this row's evidence class moved rather than its target state."
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "read",
           "mcp_review": {
             "grounded_in": "bin/intent_modules -- no write primitive in the file"
@@ -6816,7 +6827,7 @@
             "state": "as-observed"
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "read",
           "mcp_review": {
             "grounded_in": "bin/intent_plugin -- no write primitive in the file"
@@ -6856,7 +6867,7 @@
             "state": "as-observed"
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "read",
           "mcp_review": {
             "grounded_in": "bin/intent_plugin -- no write primitive in the file"
@@ -7750,7 +7761,7 @@
             ]
           },
           "disposition": "keep",
-          "exposed_on_mcp": true,
+          "exposed_on_mcp": false,
           "read_or_mutate": "read"
         }
       ],
@@ -7972,7 +7983,7 @@
         "state": "new-surface"
       },
       "disposition": "new-surface",
-      "exposed_on_mcp": true,
+      "exposed_on_mcp": false,
       "read_or_mutate": "mutate",
       "mcp_review": {
         "uncertain": [
@@ -7980,7 +7991,8 @@
         ],
         "why_uncertain": "Leaned OPEN against the standing lean because sync is ordinary workflow, and it is the one row where that lean is least comfortable: it moves truth in BOTH directions, so a wrong `--to-store` can overwrite this machine's store from a stale extract. **The stated closing condition was TESTED and DID NOT FIRE**: it said _if the boundary with `ingest` is drawn so that `sync --to-store` is the recovery path, this should close_, and `boundary_ruled` draws it the other way -- `sync` is routine reconciliation of a self-produced artefact and `ingest` is the recovery path. So the lean STAYS OPEN, and it stays open because a condition was checked rather than because nobody came back to it. Recorded rather than deleted: a closing condition that was evaluated and not met is a different fact from one still pending."
       },
-      "recoverability": "idempotent"
+      "recoverability": "idempotent",
+      "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
     },
     {
       "path": "schema",
@@ -8401,7 +8413,7 @@
         "off_scope_voice": "**ic's WORDING, DECLARED AND NOT DRIVEN -- dc to wire and confirm.** Today `fc` on a `withdrawn` or `descoped` criterion answers with the bare machine refusal, where every sibling that writes about satisfaction answers with `OffScope` naming the undo. dc attempted the obvious wiring and REVERTED it, correctly: `OffScope`'s remedy hardcodes the `ac satisfy` story, so reusing it produced `if you mean to fiat-closed it` followed by a paragraph about recording evidence -- right shape, wrong sentence, and worse than the bare refusal it replaced. The sentences this row asks for, one per state: WITHDRAWN -- `error: AC-03.1 is withdrawn, so there is nothing in scope to close` / `remedy: run `intent ac reinstate <thread> AC-03.1` to bring it back into scope first. A fiat close records that an IN-SCOPE requirement was closed on authority; a withdrawn one is already out of scope, so closing it would assert something about the contract that is not true`. DESCOPED -- the same sentence with `descoped` and `intent ac rescope`. **The two differ only in the state and the undo verb, which is the whole reason they must not share one hardcoded remedy** -- that is how `ac rescope` came to be answered about `reinstate` twice (issue 0053)."
       },
       "disposition": "new-surface",
-      "exposed_on_mcp": true,
+      "exposed_on_mcp": false,
       "mcp_review": {
         "uncertain": [
           "exposed_on_mcp"
@@ -8409,7 +8421,8 @@
         "why_uncertain": "**EXPOSED, FOLLOWING THIS TABLE'S OWN DERIVATION, AND THE GROUND UNDERNEATH IT IS OPEN FOR hv.** ic first authored this row `false`: ST0066 AC-00.6 requires the LLM-side contract to FORBID invoking `fc`, so putting the one forbidden verb on the machine face hands it to the agent forbidden to use it. `gen_dispatch_table.sh` REFUSED that row, and correctly -- withholding here is DERIVED from `recoverability` (the face withholds a mutation the surface cannot undo) and `fc` is `reversible`, so withholding it asserts a ground this table does not carry. **`recoverability_anomaly` was the offered escape and ic declined it:** that key is named for recoverability, and admitting a member for a different reason is the defect this estate hit three times on 2026-08-29 alone -- `not_probed`'s `nonreturning` predecessor losing `claude upgrade` to its own name, `FANS_OUT` carrying fan-out and rename under one meaning, and this. **A key named for one reason cannot hold members admitted for another.** **AC-00.6's own text leans the same way as the derivation:** enforcement is `detection plus attribution, never a claimed impossibility`, and withholding a tool the agent can still reach by shelling out claims an impossibility it does not have. What withholding removes is the ACCIDENT, not the capability. **THE QUESTION FOR hv IS NARROWER THAN THIS ROW: does the machine face need a SECOND withholding ground -- `withheld because the loaded contract forbids it` -- distinct from irreversibility?** If yes, it is a vocabulary addition rather than a label change, and `fc` is its first member. Until then this row follows the rule that exists rather than the one ic would have written."
       },
       "read_or_mutate": "mutate",
-      "recoverability": "reversible"
+      "recoverability": "reversible",
+      "recoverability_anomaly": "WITHHELD FOR NO FACADE DOOR (AC-09.6), NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because it has no single facade method to serve it -- AC-09.6, exposed implies servable: a tool that cannot be served must not be published. Narrowed 2026-08-31, hv-directed (narrow the table AND make the drop loud), as the ic-owned table dispositions, with the other exposed-but-unserved rows in one flip; cc lands the loud refusal at `mcp.rs:97` on top. The per-row basis (namespace / facade-bypass / multi-door / the sync fan) is recorded in `parity/ac-09_6-mcp-facade-read.md`. SELF-EXPIRING: when a facade door is built and this row re-exposed, this string must be deleted in the SAME act -- arm 2 of `gen_dispatch_table.sh` refuses a stale anomaly, so a reason for a withhold cannot outlive the withhold."
     },
     {
       "path": "surface",
