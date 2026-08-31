@@ -73,6 +73,9 @@ const JSONRPC_PARSE_ERROR: i64 = -32700;
 const JSONRPC_METHOD_NOT_FOUND: i64 = -32601;
 /// JSON-RPC "Invalid params" -- the spec's code for an unknown tool name.
 const JSONRPC_INVALID_PARAMS: i64 = -32602;
+/// JSON-RPC "Internal error" -- reserved here for a host handler returning the
+/// wrong `ResourceReply` variant, which is a programming error, not a request.
+const JSONRPC_INTERNAL_ERROR: i64 = -32603;
 
 /// The protocol revision offered when the client names none.
 const FALLBACK_PROTOCOL_VERSION: &str = "2025-06-18";
@@ -89,23 +92,44 @@ pub fn run() -> Result<(), Failure> {
   })?;
   let stdin = std::io::stdin();
   let mut stdout = std::io::stdout();
-  serve_frames(&mut stdin.lock(), &mut stdout, &tools, &mut |tool, args| {
-    // **OPEN PER CALL, THROUGH THE ONE DOOR.** A fresh facade per request is
-    // the contract `mcp.rs`'s header states: an MCP host keeps this process
-    // alive for a whole client session, so a facade opened at spawn would
-    // serve every later call from the store as it stood at the first one.
-    let opened = crate::render::context().and_then(|(project, ctx)| {
+  // **OPEN PER REQUEST, THROUGH THE ONE DOOR** -- tools AND resources. A fresh
+  // facade per request is the contract `mcp.rs`'s header states: an MCP host
+  // keeps this process alive for a whole client session, so a facade opened at
+  // spawn would serve every later request from the store as it stood at the
+  // first one.
+  let open_facade = || {
+    crate::render::context().and_then(|(project, ctx)| {
       crate::render::engine(project, ctx.clone(), crate::render::StoreNeed::Shared)
         .map(|facade| (facade, ctx))
-    });
-    match opened {
-      Err(e) => Answered::Refused(e.message().unwrap_or("refused").to_string()),
-      Ok((mut facade, ctx)) => match crate::mcp::serve(&mut facade, &ctx, &tool.path, args) {
-        Ok(value) => Answered::Value(value),
-        Err(e) => Answered::Refused(e.render()),
+    })
+  };
+  let mut call = |tool: &Tool, args: &Value| match open_facade() {
+    Err(e) => Answered::Refused(e.message().unwrap_or("refused").to_string()),
+    Ok((mut facade, ctx)) => match crate::mcp::serve(&mut facade, &ctx, &tool.path, args) {
+      Ok(value) => Answered::Value(value),
+      Err(e) => Answered::Refused(e.render()),
+    },
+  };
+  let mut resources = |ask: ResourceAsk| match open_facade() {
+    Err(e) => ResourceReply::Refused(e.message().unwrap_or("refused").to_string()),
+    Ok((facade, _ctx)) => match ask {
+      ResourceAsk::List => ResourceReply::Listing(crate::mcp::resource_list(&facade)),
+      ResourceAsk::Read(uri) => match crate::mcp::resource_read(&facade, uri) {
+        Ok(text) => ResourceReply::Contents {
+          uri: uri.to_string(),
+          text,
+        },
+        Err(e) => ResourceReply::Refused(e.render()),
       },
-    }
-  })
+    },
+  };
+  serve_frames(
+    &mut stdin.lock(),
+    &mut stdout,
+    &tools,
+    &mut call,
+    &mut resources,
+  )
 }
 
 /// What one tool call produced, as the wire will carry it: the tool's JSON
@@ -120,6 +144,23 @@ pub enum Answered {
   Refused(String),
 }
 
+/// What a resource request needs from the host: `List` enumerates, `Read` takes
+/// one URI. Parallel to the `call` closure for tools -- both need the same
+/// per-request facade, and the host supplies it.
+pub enum ResourceAsk<'a> {
+  List,
+  Read(&'a str),
+}
+
+/// What the host answers a [`ResourceAsk`] with. A refusal -- an unopenable
+/// project, a URI naming nothing -- is an ANSWER for the agent (`isError`-style
+/// text), never a failure of the loop, the same discipline as [`Answered`].
+pub enum ResourceReply {
+  Listing(Vec<crate::mcp::Resource>),
+  Contents { uri: String, text: String },
+  Refused(String),
+}
+
 /// The loop over any reader/writer pair. `run` is the stdio wiring plus the
 /// real facade closure; this is the behaviour the tests drive with real
 /// frames. `call` answers one found tool's invocation.
@@ -128,11 +169,12 @@ pub fn serve_frames(
   output: &mut impl Write,
   tools: &[Tool],
   call: &mut dyn FnMut(&Tool, &Value) -> Answered,
+  resources: &mut dyn FnMut(ResourceAsk) -> ResourceReply,
 ) -> Result<(), Failure> {
   for line in input.lines() {
     let line =
       line.map_err(|e| Failure::Error(format!("error: could not read from stdin: {e}")))?;
-    if let Some(response) = answer_line(&line, tools, call) {
+    if let Some(response) = answer_line(&line, tools, call, resources) {
       write_frame(output, &response)?;
     }
   }
@@ -144,6 +186,7 @@ fn answer_line(
   line: &str,
   tools: &[Tool],
   call: &mut dyn FnMut(&Tool, &Value) -> Answered,
+  resources: &mut dyn FnMut(ResourceAsk) -> ResourceReply,
 ) -> Option<Value> {
   let trimmed = line.trim();
   if trimmed.is_empty() {
@@ -155,7 +198,7 @@ fn answer_line(
       JSONRPC_PARSE_ERROR,
       &format!("this line is not JSON-RPC: {source}"),
     )),
-    Ok(message) => answer_message(&message, tools, call),
+    Ok(message) => answer_message(&message, tools, call, resources),
   }
 }
 
@@ -163,6 +206,7 @@ fn answer_message(
   message: &Value,
   tools: &[Tool],
   call: &mut dyn FnMut(&Tool, &Value) -> Answered,
+  resources: &mut dyn FnMut(ResourceAsk) -> ResourceReply,
 ) -> Option<Value> {
   let id = message.get("id").cloned();
   let method = message.get("method").and_then(Value::as_str).unwrap_or("");
@@ -179,6 +223,8 @@ fn answer_message(
     "ping" => Ok(json!({})),
     "tools/list" => Ok(json!({ "tools": tools.iter().map(tool_frame).collect::<Vec<_>>() })),
     "tools/call" => tool_call(&params, tools, call),
+    "resources/list" => resources_list(resources),
+    "resources/read" => resources_read(&params, resources),
     other => Err((
       JSONRPC_METHOD_NOT_FOUND,
       format!("no method named `{other}` on this server"),
@@ -200,7 +246,7 @@ fn initialize_result(params: &Value) -> Value {
     .unwrap_or(FALLBACK_PROTOCOL_VERSION);
   json!({
     "protocolVersion": version,
-    "capabilities": { "tools": {} },
+    "capabilities": { "tools": {}, "resources": {} },
     "serverInfo": { "name": "intent", "version": env!("CARGO_PKG_VERSION") },
   })
 }
@@ -255,6 +301,56 @@ fn pretty(value: &Value) -> String {
   format!("{value:#}")
 }
 
+/// `resources/list`: every resource the host enumerates, as the wire carries
+/// them. An unopenable project is a refusal on the protocol channel, never an
+/// empty listing that would read as "this project has no resources".
+fn resources_list(
+  resources: &mut dyn FnMut(ResourceAsk) -> ResourceReply,
+) -> Result<Value, (i64, String)> {
+  match resources(ResourceAsk::List) {
+    ResourceReply::Listing(list) => Ok(json!({
+      "resources": list.iter().map(resource_frame).collect::<Vec<_>>(),
+    })),
+    ResourceReply::Refused(text) => Err((JSONRPC_INVALID_PARAMS, text)),
+    ResourceReply::Contents { .. } => Err((
+      JSONRPC_INTERNAL_ERROR,
+      "the host answered a resources/list with contents".to_string(),
+    )),
+  }
+}
+
+/// `resources/read`: one resource's contents, in the `text/plain` the CLI read
+/// returns. A URI naming nothing is a refusal on the protocol channel -- the
+/// read did not resolve, so there are no contents to carry (unlike a tool call,
+/// where a found tool's refusal is `isError` content).
+fn resources_read(
+  params: &Value,
+  resources: &mut dyn FnMut(ResourceAsk) -> ResourceReply,
+) -> Result<Value, (i64, String)> {
+  let uri = params.get("uri").and_then(Value::as_str).unwrap_or("");
+  if uri.is_empty() {
+    return Err((
+      JSONRPC_INVALID_PARAMS,
+      "resources/read needs a `uri`".to_string(),
+    ));
+  }
+  match resources(ResourceAsk::Read(uri)) {
+    ResourceReply::Contents { uri, text } => Ok(json!({
+      "contents": [ { "uri": uri, "mimeType": "text/plain", "text": text } ],
+    })),
+    ResourceReply::Refused(text) => Err((JSONRPC_INVALID_PARAMS, text)),
+    ResourceReply::Listing(_) => Err((
+      JSONRPC_INTERNAL_ERROR,
+      "the host answered a resources/read with a listing".to_string(),
+    )),
+  }
+}
+
+/// One resource as the wire advertises it in `resources/list`.
+fn resource_frame(r: &crate::mcp::Resource) -> Value {
+  json!({ "uri": r.uri, "name": r.name, "mimeType": "text/plain" })
+}
+
 fn error_frame(id: &Value, code: i64, message: &str) -> Value {
   json!({
     "jsonrpc": "2.0",
@@ -287,7 +383,19 @@ mod tests {
     let input = frames.join("\n");
     let mut out: Vec<u8> = Vec::new();
     let all = tools();
-    serve_frames(&mut Cursor::new(input), &mut out, &all, call).expect("the loop completes");
+    // These unit tests drive the tool surface; the resource surface is driven
+    // end to end in `mcp_resources.rs` against a real project.
+    let mut resources = |_ask: ResourceAsk| {
+      ResourceReply::Refused("this unit harness serves no resources".to_string())
+    };
+    serve_frames(
+      &mut Cursor::new(input),
+      &mut out,
+      &all,
+      call,
+      &mut resources,
+    )
+    .expect("the loop completes");
     String::from_utf8(out)
       .expect("utf8 output")
       .lines()

@@ -2475,7 +2475,8 @@
       "covers": [
         "AC-09.5"
       ],
-      "status": "to-write"
+      "status": "green",
+      "note": "mcp_resources.rs drives resources/list + resources/read over a real intent mcp session and requires each read byte-identical to intent st show / wp show / issues show -- the same crate::show renderer serves both faces (451b4d7f), so contents match by construction not by two renderers agreeing (AC-09.4). Resources are entity models through st_show/wp_show/issue_show (zero new facade surface); URI kinds are the nav grammar's thread/wp/issue; wip.md and boards are absent for want of a CLI read to match (reworded AC-09.5 f27829df). list==read agreement asserted; unknown uri refused not answered empty. Greened by ic 2026-08-31."
     },
     {
       "id": "AT-10.1",
