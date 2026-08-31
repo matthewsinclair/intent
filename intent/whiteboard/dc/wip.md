@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-08-31 15:21Z
+heartbeat_at: 2026-08-31 15:51Z
 status: active
-focus: "Picked up post-compact 2026-08-31 15:21Z; tree clean of me, nothing inbound. AC-02.3 at 130 of 138 -- every stated row DRIVEN against the v3.0.0 keg, which reports 80d8b2ca and is a READ. Eight left and all named: 4 bodyless held for cc, 2 tiers agreed undriven, 0071 needs the v2 BINARY, 0081's site five probes did not reach. THE DENOMINATOR MOVES -- 103 to 138 in a day -- so run the verb, never transcribe it. TWENTY-ONE register members do not describe the shipped binary. HOLDING for instructions. ic pings before touching cmd/macos."
+focus: "2026-08-31 15:51Z. AC-02.1 DRIVEN END TO END against the keg and the tree: gate BLOCKS 1/3 on the published binary and PASSES 3/3 on the tree, so the page cannot reach its own passing gate on what a user installs today. Filed 0191, 0192 (rewritten by me after cc caught it), 0193. 0193 REWRITE IS PARKED UNLANDED at .history/20260831/0193-rewrite-PENDING.md -- rc=127, land it when hv build returns. at.recast drafted and with vc. NEVER TRANSCRIBE A FIGURE: my own board carried 21 where the record derived 10."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -45,13 +45,18 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 **THE KEG IS THE ESTATE'S UNLOCK.** `/opt/homebrew/Cellar/intent/3.0.0_1/bin/intent` reports `80d8b2ca`, THE CUT COMMIT. hv's pin governs LINKING; **running it is a read.** Broadcast to cc and ic.
 
 - **DRIVE THE KEG ONLY IN A TREE THE KEG INITIALISED OR MIGRATED.** This repo's store is schema **16**, the keg speaks **13**, and it refuses this tree before reaching any behaviour.
-- **TWENTY-ONE REGISTER MEMBERS DO NOT DESCRIBE THE SHIPPED BINARY.** **THE OPEN REGISTER SUBSTANTIALLY DESCRIBES `main`, AND NO FIELD SAYS WHICH BUILD A ROW IS ABOUT** (vc folding into `0188`). **HOLD THE PROPERTY, NEVER THE COUNT** -- I handed ic `11` and it was 16 within the hour.
+- **THE OPEN REGISTER SUBSTANTIALLY DESCRIBES `main`, AND NO FIELD SAYS WHICH BUILD A ROW IS ABOUT.** FILED AS `0191`, not 0188 -- 0188 is the closure-kind hole and a different subject. **TEN driven ids, not the twenty-one this line used to carry**: that figure was reproducible from nothing and had walked across from `0080`'s unrelated _21 of 56_. **HOLD THE PROPERTY, NEVER THE COUNT** -- I handed ic `11` and it was 16 within the hour, and I handed vc `21` when the record derived 10. See W27.
 - **F1 IS CAPTURED, NEVER WRITTEN** (`f7434f1c`, 2.19.0): the fixture README rejects a hand-authored seed as _one degree closer to the thing under test than a fixture may be_. **A 2.18.0 capture is BELOW THE MIGRATION FLOOR.**
 - **A CLEAN NEGATIVE OVER A CORPUS THAT MAY NOT EXHIBIT THE FAILURE CARRIES ITS CAVEAT ON EVERY ROW**, never in a footnote.
 - **`0082` BOUNDS OUR OWN ADVICE**: a canon-authored attachment never reaches disk and `sync --to-disk` says `ok`. getting-started's edit-canon-and-sync route is right for `objective`/`context` and **is not a route for adding a file** -- `st attach` is.
 - **`0011` IS BIGGER THAN ITS TITLE AND `0066` IS A SECOND DOOR TO IT.** Any unreadable thread directory under `intent/st/` **STOPS EVERY VERB**, naming a thread the operator never created.
 
 **SETTLED WITH ic: ST0064's menubar pipeline EXTENDS `bin/.devbin/cmd/macos` with `app-*` arms. ic writes, I review, they ping BEFORE editing.** Sequenced after their AC-09.6 work, so nothing is owed from me until the ping. **THE CONDITION, IN THE SAME COMMIT AS `app-sign`:** strike the expired _five short subcommands_ ground; rewrite the `.app` disclaimer keeping the stapling asymmetry (a bare binary cannot be stapled, a `.app` can); name `kc_get` / `require_identity` / the notarytool flow as the shared Highlander unit.
+
+**TODAY'S FILINGS, AND THE ONE STILL PENDING.** `0191` -- register rows cannot say which build they describe. `0192` -- **REWRITTEN BY ME after cc caught it**: the thread cover is `OpenRoundTrip` over a closed allow-list by hv's 2026-08-29 ruling, NOT an unguarded file, and my sentinel ran `--to-disk`, which renders over the view by definition. What survives at medium: the read-back is written (`views.rs`, `ingest.rs`, a test) and **no verb an operator can run connects it to the store** -- `sync` has two directions, `ingest` and `ingest --from-md` both write nothing. `doctor` DOES warn, so nothing is silent.
+
+- **`0193`'s REWRITE IS WRITTEN AND NOT LANDED** -- `.history/20260831/0193-rewrite-PENDING.md`. `issues edit` hit rc=127 mid-write when the dev binary went absent. **Until it lands 0193 reads as a refusing verb and it is a MISSING FILE**: `design`/`impl`/`tasks` are ATTACHMENTS, written by `intent st attach`, which is why the verb hands back ST0056's and refuses a fresh thread's. Land it in one command when hv's build returns.
+- **`at.recast`'s DOCUMENTATION HALF IS DRAFTED AND WITH vc** -- `.history/20260831/at-recast-draft.md`. Not canon, no docs page touched. It corrects two of this board's own claims: `at edit` does NOT refuse a re-cite to a file lacking the row id -- it answers `ok:` and the GATE refuses later, and `at lint` passes that row too.
 
 ## TODO
 
@@ -130,6 +135,9 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 - **W26 -- A PARTITION BUILT FROM THE DIRECTION YOU EXPECT THE DRIFT TO RUN HAS NO BUCKET FOR THE OPPOSITE DIRECTION, AND THE UNNAMED CASE SORTS TO THE WRONG ONE IN SILENCE** (vc's rule, corrected by my drive and adopted by them verbatim). Two dispositions were both keyed on the OLD build failing, so _new build fails where the old one passed_ had no home and defaulted to _the docs are stale_ -- which would have filed a regression in the release candidate as a documentation lag. **THE THREE CLASSES: old fails / new passes = the docs are ahead, note it. Both fail = the docs are wrong, file it. OLD PASSES / NEW FAILS = THE TREE BROKE WHAT THE TAG HAD RIGHT, and it outranks both.** General form: **before trusting a partition, name the case it has no bucket for and check where that case lands.**
 - **W27 -- A FIGURE WITH NO HOME THAT DERIVES IT SURVIVES ON RESTATEMENT, AND EACH RESTATEMENT MAKES IT LOOK BETTER SOURCED.** vc corrected an issue NUMBER I had handed on; checking it found the FIGURE wrong too -- _twenty-one_ was not reproducible from anything in the estate, the durable record derived TEN, and the manifest carried no verdict column so it was never derivable there. It had walked across from an unrelated _21 of 56_. **A number that lives on a board and in a handover and in no instrument is not evidence.** Same family as the handover rule -- hand over PROPERTIES, re-measure, never trust a ledger -- arriving through repetition rather than through age. **Cure: state the figure with the command that produces it, so the next reader re-derives instead of inheriting.**
+
+- **W28 -- THE INSTRUMENT ITSELF CAN GO ABSENT, AND ITS ABSENCE READS AS AN EMPTY ANSWER** (vc broadcast it; it cost me a write). The dev `intent` is a SYMLINK INTO A BUILD OUTPUT, so a rebuild deletes it mid-session and every call returns **rc=127 with nothing on stdout** -- indistinguishable from a verb that ran and found nothing. **Read the EXIT CODE, never the output, and never put `2>/dev/null` in a harness that drives it.** The keg is a real file and is unaffected, which is the second half of the rule: **know which of your instruments is a symlink.**
+- **W29 -- A WITHDRAWAL IS A CLAIM, AND IT NEEDS THE SAME EVIDENCE AS THE FINDING IT RETRACTS.** vc correctly withdrew a finding of mine and, in the same message, withdrew _every drive since 16:30Z_ -- which swept up a run that really happened, at rc=0, with substantive output, against the DEBUG binary that had not vanished. **Withdrawing a real result costs the same as keeping a fabricated one.** The right move is to name the limitation the evidence supports -- _that build is somebody's uncommitted tree_ -- rather than the widest one available.
 
 ## Decisions
 
