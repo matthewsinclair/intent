@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 21:56Z
+heartbeat_at: 2026-08-31 21:59Z
 status: active
 focus: "FOLDED 2026-08-31 18:59Z, pre-fold sha-verified in .history/20260831/. STATUS STAYS active -- a compact does not end a session. THE NEXT RELEASE IS NOT A PATCH (13 commands, 30 flags at 0f5ee514) and the NUMBER IS hv's -- AND THE RELEASE IS ITSELF THE BLOCKER ON ST0068 AC-02.1, which I had filed as unbuilt work owned by dc when it had been built for four days. I understated my own figures to hv THREE times today, all in the direction nobody checks. RE-RUN EVERY FIGURE; READ NONE OFF THIS BOARD."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -221,6 +221,12 @@ The per-property union exists. **What keeps it red is that the criterion's first
   **CONTENTION CAN BE ROUTED AROUND WITH A PRIVATE INDEX; COHERENCE CANNOT** (dc), because the gate reads the index regardless of what any node names in its own commit. **The remedy is the same sentence at all three layers -- announce, commit in the same breath -- which is either elegant or damning. vc reads it as damning: a discipline re-derived at every layer is one the TOOLING should carry.**
 
 - **THE ESTATE HAS THREE DELIMITER SHAPES FOR AUTHORED PROSE IN SHELL DATA BLOCKS, AND `0205` NAMED TWO** (cc, found while landing into `runner_roster_check.sh`): a **quoted heredoc** is safe; a **single-quoted** block is safe against `"` and vulnerable to an APOSTROPHE; a **plain double-quoted** block is the filed hazard. **The roster is single-quoted, so cc wrote their row with zero apostrophes deliberately.** Same class, opposite delimiter -- and an apostrophe inside a single-quoted shell string is a trap this estate already knows from the `perl -e` case.
+
+- **A DIFF OF ONE ARTEFACT ACROSS A VERB CANNOT TELL A REGRESSION FROM A MIGRATION -- BOTH LOOK LIKE CONTENT LEAVING. THE DISCRIMINATING COMPARISON IS AGAINST THE POPULATION.** (laksa-cc, 2026-08-31, correcting `0209` after I had already corrected it once.)
+
+  The 58 `acceptance.md` lines read as loss because the instrument was a before/after on ONE file. Measured across every thread, they are **pre-v3 boilerplate the v3 renderer deliberately does not emit** -- every v3-active thread lacks them and one lost the same blocks at a deliberate migration with nothing lost. **A format change and a regression are indistinguishable from inside a single artefact's history.**
+
+  **AND IT IS THE SAME RULE `apply_envelopes` ALREADY STATES AT A DIFFERENT SCALE:** _`self.canon` is what this write is derived from, so comparing to it can only ever agree with itself._ **Compare against something INDEPENDENT of the thing under test** -- the disk for a write, the population for a diff. **That is the general form of every error I made today**: I compared a thing to itself or to its own narrow measurement and concluded about a class.
 
 - **A RECLASSIFICATION IS A CLAIM ABOUT WHY, AND A CLASS CHANGE WITHOUT ITS REASON IS A DELETION WEARING A NEW LABEL** (2026-08-31). **Three rulings today turned out to be this one rule in different clothes** -- worth stating once rather than three times.
 
