@@ -183,16 +183,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
   }
 
-  /// AC-01.5, gated. The resolver door -- a pipe-safe CLI verb that accepts an
-  /// `intent://` URL and yields the entity to open -- is the URI-uniformity
-  /// work, in flight (cc's narrow-door promote-then-narrow). `intent explore`
-  /// accepts the URL but needs a terminal a `.app` cannot give it, and
-  /// `intent edit` takes <kind> <id>, not a URL, until those doors accept the
-  /// scheme. So this holds rather than parsing the address here -- which the
-  /// row forbids -- and wires to that door the moment it lands.
+  /// AC-01.5. Hands the WHOLE address to the resolver via the pipe-safe
+  /// `intent edit <address> --path` (cc's `9508788`), which realises the entity
+  /// and prints its path; the app opens that and parses nothing itself.
+  /// Addresses are `intent:///…` -- three slashes, an empty authority meaning
+  /// *this project*; a bare number is refused until the ladder lands, so the URL
+  /// scheme only ever delivers a full address here.
   private func openAddress(_ address: String) {
-    Self.logger.info(
-      "intent:// open \(address, privacy: .public) -- awaiting the address-resolver door")
+    Self.logger.info("open \(address, privacy: .public)")
+    Task {
+      do {
+        let path = try await IntentCLI.run(["edit", address, "--path"])
+          .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !path.isEmpty else {
+          return showAlert("Could not open \(address)", message: "the resolver returned no path")
+        }
+        NSWorkspace.shared.open(URL(fileURLWithPath: path))
+      } catch {
+        showAlert("Could not open \(address)", message: error.localizedDescription)
+      }
+    }
   }
 
   // MARK: - Actions
