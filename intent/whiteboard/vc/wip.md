@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 20:45Z
+heartbeat_at: 2026-08-31 20:48Z
 status: active
 focus: "FOLDED 2026-08-31 18:59Z, pre-fold sha-verified in .history/20260831/. STATUS STAYS active -- a compact does not end a session. THE NEXT RELEASE IS NOT A PATCH (13 commands, 30 flags at 0f5ee514) and the NUMBER IS hv's -- AND THE RELEASE IS ITSELF THE BLOCKER ON ST0068 AC-02.1, which I had filed as unbuilt work owned by dc when it had been built for four days. I understated my own figures to hv THREE times today, all in the direction nobody checks. RE-RUN EVERY FIGURE; READ NONE OFF THIS BOARD."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -139,6 +139,18 @@ The per-property union exists. **What keeps it red is that the criterion's first
   **VERIFIED BEFORE RULING, because a ruling on a borrowed measurement is where I was wrong twice today:** `125f601d` deleted 7 non-test files and ZERO tests; cause B is genuinely TWO HOMES, byte-identical, at `bin/intent_helpers:372` and `intent/plugins/claude/lib/rules_lib.sh:56`. **`config.bats` t7 is correct and finding a real Highlander violation -- not flaky, not over-reaching.** Both homes sit in the v2 tree the prune is eating, so the remedy may be _the prune completes_ rather than a code change.
 
   **AND A COMMENT WRITTEN TO PREEMPT A HUMAN REVIEWER CANNOT DISCHARGE AN OBLIGATION TO A MECHANICAL CHECK** (cc's, and it generalises). The hunk's comment predicted the finding and named the wrong finder: a TEST found it, and a test cannot read the comment written to answer it. Same shape as a REACH paragraph answering an objection no grep will ever raise.
+
+- **v2 MESSAGE STRINGS ARE OUTSIDE THE NARROWED PARITY CONTRACT** (2026-08-31, on dc's re-drive of AT-05.2 finding 6 of 10 core `keep` files red under v3). **The six rows are MISCLASSIFIED and want `deviate`; they are not a v3 defect.**
+
+  **`parity.md`'s in-scope list names VOICE, NOT WORDING** -- _stderr voice (`ok:`/`error:` lowercase, 0023)_ -- and the list is CLOSED by construction (_except where this contract says so, IN ADVANCE_ / _decided here, never discovered in triage_). Neither _stdout shape_ nor _behavioural semantics_ reaches a literal: shape is not content, and the behaviour holds.
+
+  **THE SETTLING GROUND IS THAT 0023 IS CITED IN THE SCOPE LINE ITSELF.** That is the ruling which RETIRED the capitalised voice across 26 sites, hv-ruled on the batching principle. **A contract naming the wording-change decision as its definition of in-scope voice cannot also make the pre-change literals binding -- it would make v3 non-compliant FOR COMPLYING WITH 0023.** Driven, not quoted: v3 emits `error: no steel thread ST9999 in this project` plus a `remedy:` line -- correct voice, strictly MORE informative than the v2 string asserted. **The tests are the stale artefact, not the binary.**
+
+  **THE CONDITION IS BINDING: `deviate` means RETARGET, NEVER DELETE.** Assertions removed rather than repointed convert a live regression net into silence -- the AC-06.3 defect reached through a reclassification instead of through neglect.
+
+  **AND THE DURABLE HALF IS ABOUT THE REGISTER'S AXIS, NOT SIX FILES (dc's): BURN MEASURES WHETHER A TEST REACHES THE CLI, NOT WHETHER IT PASSES.** So `keep` has never meant _runs unmodified_, whatever the class name says. Known since cc's 8-of-31 on 2026-08-14; **what is new is that it reaches the CORE families, the one corpus `AC-05.2` claims.**
+
+  **WP-05 STAYS `wip` -- dc's call and it is right.** AT-05.2's green does not become honest by re-declaring it; it becomes honest when the six carry retargeted assertions.
 
 - **THE MCP RULESET.** MCP tools call the FACADE, never the CLI dispatch arm. A parent row is a namespace, not a verb. The test for exposure is NEED, not provenance. **A vocabulary reserved for a population that measures EMPTY is STRUCK.** `exposed_on_mcp` refuses on absence. **A tool that can only mutate inverts the safety gradient.** SERVED implies a CLI read to agree with.
 - **`close --note` IS NOT BUILT.** `issues edit --from` then `issues close` IS that act. **I originally wrote that it ALREADY SHIPS and that was false** -- `issues edit` does not exist on the keg; I drove it on the tree. **The ruling stands on a weaker warrant than I gave: contingent on the next release, not independent of it.**
