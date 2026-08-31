@@ -135,3 +135,6 @@
 0188	not-reader-reachable	register-authoring -- the register's inability to record why an issue was closed is met by a register author, not by a reader	
 0189	not-reader-reachable	not-in-published-build -- driven against the v3.0.0 keg: edit refuses --path with `unexpected argument`, so the kind-blindness is post-tag.	
 0190	not-reader-reachable	register-authoring -- the duplicate rows and the exposed_on_mcp contradiction are in surface/dispatch-table.json, our generator's SOURCE. The reader-facing consequence of the shared spelling is already stated at docs/reference/cut-surface.md:224; the MCP exposure contradiction reaches no published page.	
+0191	stated	docs/known-defects.md	A source install from `main` behaves differently, and several entries above are already fixed there
+0192	stated	docs/known-defects.md	intent#0192
+0193	stated	docs/getting-started.md	a thread's file set is a property of the model, not of the directory
