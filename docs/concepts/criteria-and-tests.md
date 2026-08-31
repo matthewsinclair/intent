@@ -77,7 +77,35 @@ A criterion with nothing behind it is a promise. An acceptance test is what make
 
 **Take a test through `red` before `green`, and know that the tool does not make you.** A test that goes straight from `to-write` to `green` has never been observed failing, so nothing has demonstrated it can fail — which is the difference between a test and a decoration.
 
-**v2 enforced this and v3 does not.** `at green` accepts any status from any status, and the guard is recorded as owed rather than dropped. **The command's own help text still says "reachable only from red", which is v2's contract and not this tool's** — so if you read that and assumed it was checked, the tool told you so and was wrong. It is a discipline you keep, not one you are held to.
+**v2 enforced this and v3 does not.** `at green` accepts any status from any status, and the guard is recorded as owed rather than dropped. **On `v3.0.0` the command's own help text says "reachable only from red", which is v2's contract and not this tool's** — so if you read that and assumed it was checked, the tool told you so and was wrong. The help text is corrected after `v3.0.0` and the behaviour is unchanged by that: it is a discipline you keep, not one you are held to.
+
+**`to-write` is a state you can leave and cannot return to.** The status verbs are `at green`, `at red` and `at na`, and none of them spells `to-write` — a test enters there when `at new` creates it, and no command walks it back. That is recorded rather than fixed: inventing a verb so the diagram looks symmetrical is how a surface grows commands nobody asked for.
+
+So the way out of a row that has stopped being true is not a status change. **It is to write the artefact the row was owed.** A row is not stuck because its status is wrong; it is stuck because it is now claiming something that is not yet the case, and the repair is to make it the case.
+
+**A citation is checked when the row claims a verdict, not when it is written.** While a test is `to-write` it may cite a file that does not carry its id, and the linter accepts it — the row is naming an intention, and there is nothing to check yet:
+
+```
+  $ intent at lint ST0001
+  lint: ST0001 ok -- 1 AT row(s) conform
+```
+
+Move that same row to `green` or `red` and the citation becomes a claim, so the linter and the gate both refuse it:
+
+```
+  $ intent at lint ST0001
+  tests/unrelated.rs does not carry the literal id AT-03.1
+  lint: ST0001 FAILED -- 1 finding(s) over 1 AT row(s)
+
+  $ intent ac gate ST0001
+  gate: ST0001 BLOCKED -- 1 acceptance test contract finding(s) over 1 row(s): tests/unrelated.rs does not carry the literal id AT-03.1
+```
+
+**Read the gate's shape, not just the word `BLOCKED`.** A criterion nothing has satisfied yet reads `BLOCKED -- 0/1 satisfied`; a row whose citation does not hold up reads as a contract finding against the row. They block for different reasons and the message says which.
+
+**Re-citing a row to a different file is `intent at edit`, which is newer than `v3.0.0`** and so is not in an installed copy of it — see the [command reference](../reference/index.md). On `v3.0.0`, `at new` on an id that already exists rewrites the row and still reports `ok: created`, so it is [a known defect](../known-defects.md) rather than a re-cite route.
+
+**One thing the tool cannot tell you, and it decides which file you write.** A `red` row's cited artefact sits in whatever the project's default test run collects. Citing a file inside that run does not merely record your own red — it turns the whole run red for everyone working on the project, including people with no stake in this criterion. A row that will sit `red` for a while should cite an instrument that runs on demand.
 
 A `non-test` acceptance test cites what was read rather than a file:
 

@@ -126,7 +126,7 @@ A test starts at `to-write`. When it exists and fails it is `red`; when it passe
   $ intent at green ST0001 AT-01.2 --note "passes across a restart"
 ```
 
-**Go through `red` first, even though nothing forces you to.** A test that goes straight from `to-write` to `green` was never observed failing, so nothing has demonstrated it can fail — which is the difference between a test and a decoration. **`at green`'s own help says "reachable only from red"; that describes v2, and v3 does not enforce it.** See [Criteria and tests](concepts/criteria-and-tests.md).
+**Go through `red` first, even though nothing forces you to.** A test that goes straight from `to-write` to `green` was never observed failing, so nothing has demonstrated it can fail — which is the difference between a test and a decoration. **On `v3.0.0`, `at green`'s own help says "reachable only from red"; that describes v2, and no v3 build enforces it.** See [Criteria and tests](concepts/criteria-and-tests.md).
 
 **Not everything is testable by a test, and Intent does not pretend otherwise.** `AC-02.1` was created `non-test` in §4. Its acceptance test cites what was read rather than a file, and **the criterion is then satisfied by naming the evidence**:
 
