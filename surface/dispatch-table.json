@@ -8773,7 +8773,7 @@
     "not_probed": [
       {
         "path": "mcp",
-        "why": "UNBUILT, not serving -- `mcp` refuses at rc=2 `is a known command that is not implemented yet`, measured with a timeout. The previous reason (`never returns -- serves until killed`) ASSERTED THE PROPERTY UNDER TEST, which is what kept it unmeasured. The exemption stands as a precaution about the BUILT state, and is sound only in that tense (cc, 2026-08-29)."
+        "why": "never returns when it serves -- `intent mcp` is the stdio MCP server, alive until its host closes stdin, so a bare probe with no host blocks forever. BUILT 2026-08-30 (WP-09): the previous why recorded the UNBUILT refusal (rc=2 `is a known command that is not implemented yet`) and cc's note that the never-returns precaution is sound only in the built tense -- this is that tense, now measured: the end-to-end drive closes stdin and reads exit 0 (`mcp_stdio_serves.rs`)."
       },
       {
         "path": "claude upgrade",

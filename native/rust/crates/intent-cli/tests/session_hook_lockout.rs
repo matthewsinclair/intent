@@ -148,16 +148,23 @@ fn every_command_the_session_hooks_invoke_is_implemented() {
 /// `unwired` prints; if that message is reworded, the test above passes for
 /// every command whether implemented or not.
 ///
-/// `mcp` is used because it is declared in the dispatch table and unwired --
-/// the same condition `claude hook` was in when 0043 was filed.
+/// The specimen is any command that is declared in the dispatch table and
+/// unwired -- the same condition `claude hook` was in when 0043 was filed.
+/// It was `mcp` until WP-09 built the stdio server (2026-08-30), at which
+/// point this test went red exactly as its message instructs and the specimen
+/// moved to `st bootstrap`. When THAT wires, the red lands on whoever wired
+/// it, and the message below says what to do; if the estate ever runs out of
+/// unwired declared commands entirely, the marker's realness needs a
+/// different proof than driving one -- read `retirement_is_enumerable`'s
+/// emptied COMING-SOON arm for the shape that took.
 #[test]
 fn the_marker_is_the_message_an_unimplemented_command_actually_prints() {
   let root = install_root();
-  let (code, stderr) = run(&["mcp".to_string()], &root);
+  let (code, stderr) = run(&["st".to_string(), "bootstrap".to_string()], &root);
   assert!(
     stderr.contains(UNIMPLEMENTED),
-    "`intent mcp` is a declared, unwired command and did not print the marker this file matches on. Either it has been implemented -- pick another unwired \
-     command -- or the message was reworded and every assertion in this file is now vacuous. exit {code:?}, stderr: {stderr}"
+    "`intent st bootstrap` is a declared, unwired command and did not print the marker this file matches on. Either it has been implemented -- pick another \
+     unwired command -- or the message was reworded and every assertion in this file is now vacuous. exit {code:?}, stderr: {stderr}"
   );
 }
 

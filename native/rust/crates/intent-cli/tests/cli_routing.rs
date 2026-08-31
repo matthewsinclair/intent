@@ -912,7 +912,14 @@ fn the_in_process_engine_has_exactly_one_door() {
     let code = fs::read_to_string(file).unwrap_or_else(|e| panic!("read {}: {e}", file.display()));
     let mut enclosing = "<none>".to_string();
     for (n, line) in code.lines().enumerate() {
-      if line.starts_with("fn ") || line.starts_with("pub fn ") {
+      // `pub(crate) fn` joined the list when the door itself was promoted for
+      // the MCP transport (2026-08-30): a tracker blind to a visibility
+      // spelling mis-attributes the one legal site to whatever `fn` came
+      // before it.
+      if line.starts_with("fn ")
+        || line.starts_with("pub fn ")
+        || line.starts_with("pub(crate) fn ")
+      {
         enclosing = line.trim_end_matches(" {").to_string();
       }
       // Comment lines are skipped so the module's own prose may NAME the call

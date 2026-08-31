@@ -191,12 +191,34 @@ fn a_retired_command_and_an_unbuilt_one_are_separable_without_reading_a_message(
     !retired.is_empty(),
     "the published roster is empty, so nothing here tests membership"
   );
-  assert!(
-    !unbuilt.is_empty(),
-    "no shipped command refuses at 2 while absent from the roster, so the COMING SOON arm is \
-     untested -- if every declared verb is now built, this test needs re-reading rather than \
-     re-running"
-  );
+  // **THE COMING-SOON ARM'S POPULATION EMPTIED LEGITIMATELY ON 2026-08-30**:
+  // `mcp` was the last unbuilt single-token row, and WP-09 built it (the
+  // stdio server -- bare `intent mcp` now SERVES rather than refusing, which
+  // is exactly how it left this derivation). The non-vacuity assert that
+  // stood here asked for a re-read on that day rather than a re-run, and this
+  // is the read: the arm stays fully armed -- the population is a PREDICATE,
+  // so the next declared-unbuilt verb re-enters it with no edit here -- and
+  // the instrument-control duty the assert carried moves to the retired loop
+  // below, which proves on every run that `run_path` can still SEE a 2. A
+  // broken probe therefore reds the retired half instead of reading as
+  // all-built.
+  if unbuilt.is_empty() {
+    for path in &retired {
+      assert_eq!(
+        run_path(path),
+        2,
+        "`intent {path}` must refuse with the shared code -- and this loop is also the probe's \
+         positive control now that the unbuilt population is empty"
+      );
+      assert_eq!(classify(2, &roster, path), Verdict::GoneForever);
+    }
+    assert_eq!(
+      classify(run(&["version"]), &roster, "version"),
+      Verdict::NotARefusal(0),
+      "a live command must fall out of both classes, or the classifier is a constant"
+    );
+    return;
+  }
 
   // **THE EXIT CODE MUST NOT DISCRIMINATE.** Asserted rather than assumed: if a
   // later change gave retirement its own code, the criterion would be met by

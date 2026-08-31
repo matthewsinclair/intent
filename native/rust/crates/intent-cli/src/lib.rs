@@ -13,6 +13,7 @@
 pub mod dispatch;
 pub mod guide;
 pub mod mcp;
+pub mod mcp_stdio;
 pub mod render;
 pub mod spine;
 pub mod tui;

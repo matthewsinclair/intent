@@ -21,10 +21,14 @@
 //! # Open-per-call
 //!
 //! The facade is opened by the CALLER, per call, through `render.rs`'s one
-//! door (`open()`; `open_exclusive()` for `st sync`, the one exclusive-family
-//! tool) -- `cli_routing::the_in_process_engine_has_exactly_one_door` counts
-//! construction sites, and this module must never add one. [`serve`] takes
-//! the opened facade and returns; nothing here caches, pools, or re-opens.
+//! door -- `cli_routing::the_in_process_engine_has_exactly_one_door` counts
+//! construction sites, and this module must never add one. Every exposed row
+//! opens SHARED: the plan's draft said `open_exclusive()` for `st sync`, and
+//! the tree says otherwise -- the CLI's own `st sync` arm opens shared, and
+//! the exclusive family (top-level `sync`, `ingest`) exposes no tool, so the
+//! claim was corrected to the measurement rather than the measurement to the
+//! claim. [`serve`] takes the opened facade and returns; nothing here caches,
+//! pools, or re-opens.
 //!
 //! # The population is the TABLE's, by declaration
 //!

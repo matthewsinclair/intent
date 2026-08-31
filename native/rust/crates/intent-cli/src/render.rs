@@ -84,6 +84,9 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("fc", m)) => fc(m),
     Some(("surface", m)) => surface(m),
     Some(("daemon", m)) => daemon(m),
+    // Serves until the MCP host closes stdin -- the row's `not_probed`
+    // exemption describes exactly this, in the built tense.
+    Some(("mcp", _)) => crate::mcp_stdio::run(),
     Some((family, _)) => unwired(family, ""),
     None => {
       println!(
@@ -114,7 +117,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
 /// for a different reason now: narrowing it to *a daemon WATCHING this project*
 /// is a one-line change here rather than an audit of sixty-seven call sites.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum StoreNeed {
+pub(crate) enum StoreNeed {
   /// A read, or a bounded change the store itself serialises.
   ///
   /// **THESE RUN IN THIS PROCESS WHATEVER ELSE IS ALIVE.** The justification
@@ -393,7 +396,11 @@ fn open_for(need: StoreNeed) -> Result<Facade, Failure> {
 /// that is not implemented yet* would be false twice over: the verb is built
 /// and the store is reachable -- by something else. A gate arm keyed on that
 /// marker would read every store verb on a daemon machine as an unbuilt one.
-fn engine(project: Project, ctx: FacadeContext, need: StoreNeed) -> Result<Facade, Failure> {
+pub(crate) fn engine(
+  project: Project,
+  ctx: FacadeContext,
+  need: StoreNeed,
+) -> Result<Facade, Failure> {
   // A candidate list that cannot be COMPUTED is refused rather than shortened:
   // a shorter list runs in-process, which is the one outcome this rule exists
   // to prevent. See `daemon::DaemonError`.
@@ -498,7 +505,7 @@ fn watching_this_project(endpoint: &daemon::Endpoint, root: &Path) -> Result<boo
 /// Split out from [`open`] because `doctor` needs exactly this much and no
 /// more: it has to run on a project that cannot be opened, since that is when
 /// someone reaches for it. Every other verb goes on through [`engine`].
-fn context() -> Result<(Project, FacadeContext), Failure> {
+pub(crate) fn context() -> Result<(Project, FacadeContext), Failure> {
   let cwd = std::env::current_dir()
     .map_err(|e| format!("error: cannot read the working directory: {e}"))?;
   let project = Project::discover(&cwd).map_err(|e| {
