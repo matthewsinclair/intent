@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 12:49Z
+heartbeat_at: 2026-08-31 13:02Z
 status: active
-focus: "2026-08-31 12:49Z, coordinating on hv's go. RULED TODAY: discriminator A (kernel lock) for the third endpoint state; the projection lives beside route(); status_reason on Issue, on cc's correction of my own answer; laksa ST0090 AT-00.2. REPAIRED: AC-01.6 premise defect, AT-02.1/02.3 weaker than their ACs (dc, swept as a bounded class), AC-02.3 rotted figure. FILED 0186, 0187. SIX questions now on hv's board in a new section, because a question in transit is a question nobody has been asked."
+focus: "2026-08-31 13:02Z. ST0056 108/135 -- AC-00.3 CLOSED by AT-00.3 at 70976f0e, instrument written FIRST and re-cited after. Six commits this round. RULED: discriminator A, projection home, status_reason (cc overturned my own answer), nav internal, laksa ST0090. REPAIRED: AC-01.6 premise, AT-02.1/02.3 (dc found a class of mine, swept and bounded), AC-02.3 rotted figure. FILED 0186, 0187. hv board has a new Questions PUT section, six live."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
@@ -21,7 +21,7 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ## TODO
 
-1. **`AT-00.3`** -- `AC-00.3` names five capabilities and GraphQL now ships. **The artefact belongs in `parity/tools/` as a shell instrument** -- four of five are daemon-side and the fifth is a claim about the CLI, so no single-crate test witnesses all five. **Do NOT re-drive WP-08's behaviours; the row's claim is that they SHIP.**
+1. ~~`AT-00.3`~~ **DONE 2026-08-31 (`70976f0e`): `AC-00.3` CLOSES, ST0056 IS 108/135.** `capability_ship_check.sh` drives four of five capabilities and rests the mgmt plane on a DECLARATION, because driving `shutdown` kills the daemon all four sessions share. **The op roster is DERIVED from the running daemon** -- serde enumerates its accepted variants in the unknown-variant refusal -- with a two-sided in-band control, since a containment test over an empty haystack reports presence or absence depending only on which way the grep falls. **Its launchd arm was a MENTION test in v1 and passed for the wrong reason**; now a call-SITE edge plus a driven `--at-login` surface, caught by opening the four files the count rested on.
 2. **`AT-00.20`'s SUCCESSOR: THE UNION PER PROPERTY.** Today's census computes a FILE-level union and says so. `AC-00.16` is scoped _for any property the estate claims_, and **the register already holds the AC/AT pairing that would key it.**
 3. **WP-15's `AC-15.1` / `AC-15.3`**; **ST0068** 4/9; **`AC-09.6`** closes on ic's 21-row flip once dc's `dispatch-table.json` lands.
 4. **`parity/register.md`'s 39 stale rows** -- GENERATED, so the generator's template is the fix.
@@ -94,6 +94,8 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
    **(iv) A GUARD WHOSE POPULATION IS THE WORKTREE OR THE INDEX MAKES EVERY NODE'S COMMIT DEPEND ON EVERY OTHER NODE'S UNCOMMITTED STATE** (`0174`). **AND THE MIRROR: EVERY INSTRUMENT READS THE WORKTREE, so a defect existing only in the commit has no witness but a clone nobody has made** (`0178`). **SOME OF OUR TOOLS READ THE INDEX AND SOME READ THE WORKTREE, AND NOTHING TELLS YOU WHICH YOU ARE HOLDING** (dc's W17) -- `corrected_check.sh` reads the STAGED copy, correctly for a commit gate, and I re-drove a fix twice against an unstaged file getting the identical failure. **A private-index commit that CREATES files leaves the ambient index reading them as staged DELETIONS until the author restores them, and that window is observable to peers and invisible to the author** -- I raised an alarm inside one. **The author is the only node for whom it is not a surprise, and not the one who pays.**
 
+   **4(v). AN ABSENT CITATION IS TOLERATED AND A PRESENT ONE IS JUDGED, SO CREATING THE ARTEFACT IS WHAT TURNS A TOLERATED ROW INTO A VIOLATED ONE** (cc). `AT-00.3` cited a file that had never existed; `declared_kind_check.sh` scores that ABSENT and lets it through. **Staging the instrument reddened cc's commit for a file cc had never touched** -- `0174`'s class arriving from a direction neither of us had seen, where the trigger is not an edit but a CREATION. **cc's tell was better than the guard's message: the partition MOVED between two of their own commits (`38 absent, 0 disagreeing` to `37 absent, 1 disagreeing`), which names the cause where the message names only the symptom.** Cure: an instrument and its roster row are ONE commit, and a guard reading the index makes any half-landed pair everyone's problem.
+
    **THE CANON PIPELINE CARRIES THE HAZARD ONE LAYER ABOVE GIT. AN ATTACHMENT IS AUTHORED AND NO SYNC DIRECTION REWRITES IT** -- so `sync --to-disk` does NOT materialise one, and grepping the file on disk after a sync reports your own store-write as missing. **The sequence is `intent st attach`, then `sync --to-disk`, then commit file AND extract together.** **The guard's own remedy says _sync canon FIRST, it reads the WORKTREE_, and for attachments that is FALSE** (`0184`). **AND THE STORE IS SHARED BEFORE THE TREE IS** (ic): a peer's `st attach` puts their bytes in the store, so the next node to sync realises them. **ic's cure is the estate's: splice the peer's leaf back to HEAD in your extract, restore the file, verify canon-sha == disk-hash for every attachment you DO carry.**
 
 5. **A CRITERION IS OWNED BY WHOEVER CAN SATISFY IT, AND MUST BE ABLE TO FAIL.** **Unfalsifiable forms met: an unbounded set; a checklist of page names; a count of a kind the instrument does not count; a criterion restating its source; a bar satisfied by ONE MEMBER OF A GROWING SET.** **A partition DERIVED from its parts closes by construction; only one MEASURED against a population is worth asserting.** **A FLEET CRITERION SCORED OVER THE ONE MEMBER SOMEBODY HAPPENED TO RUN IS `AC-00.11`'s WRONG-M WITH ESTATES AS THE POPULATION.**
@@ -111,6 +113,8 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 8. **vc's OWN.**
 
    **8a. SHELL QUOTING EATS CONTENT AND THE COMMAND STILL SUCCEEDS.** Five mechanisms: no word-splitting under zsh; an unmatched glob aborting the whole call; an apostrophe inside a single-quoted program being a PARSE error that runs nothing; `$?` after a pipe reading the last stage; and a BACKTICK inside a DOUBLE-quoted string running a command. **The dangerous case is the word that IS a command.** Write messages to a file and use `-F` with a quoted heredoc. **And the zsh no-split trap has a NEW form: it can land NOTHING** -- ic's `git add $P` matched no pathspec and committed a peer's paths instead, an empty action that looked completed, caught only by post-verify.
+
+   **8a(vi). AND THE APOSTROPHE FORM HAS A DATA-FILE VARIANT WHERE ONE READER BREAKS AND THE OTHER DOES NOT.** The parity roster lives in a single-quoted shell string (`ROSTER='...'`), so possessives in a rationale TERMINATE the block and break `runner_roster_check.sh` outright -- **while `declared_kind_check.sh`, which extracts the same block with `sed`, kept working and reported nothing.** Two readers of one home, disagreeing in silence, and only one of them able to notice. **A format whose parser is the shell will eat prose, and the reader that does not use the shell will not tell you.** Generalises past shell: wherever a data block is parsed by two different mechanisms, the more permissive one hides the stricter one's breakage.
 
    **8b. I RULE AGAINST STATES THAT HAVE ALREADY MOVED.** A message states HEAD at SEND time and is read against HEAD at READ time. **RE-MEASURE BEFORE RULING, EVERY TIME.** **When a ruling's premise dies, SAY SO AND REVERSE IT.**
 
