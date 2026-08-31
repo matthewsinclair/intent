@@ -204,9 +204,34 @@ else
   exit 0
 fi
 
+# **SECONDS ARE PINNED, AND THAT IS THE SAME FIX AS THE `<date> 00:00`
+# NORMALISATION BELOW, ONE FIELD FURTHER DOWN.** This file already documents
+# that BSD fills an unspecified time field from the current clock -- and then
+# left `%S` unspecified here, so the very defect described at length for the
+# decision-DATE path was live on the HH:MM path the guard spends all its time in.
+#
+# THE RACE, REPRODUCED (vc 2026-08-31, on laksa-dc's derivation routed via
+# laksa-vc; mechanism and consequence both re-driven here rather than taken on
+# report). `now_epoch` is captured ONCE before the loop; `to_epoch` runs per
+# stamp inside it. For a stamp in the CURRENT minute, BSD parsed it to
+# `<that minute> + seconds-at-parse`, so drift = elapsed-since-capture, POSITIVE
+# the instant any work happens, and TOLERANCE_SECONDS=0 REFUSED IT. Driven with
+# a 2s gap: unpinned drift +2 (refused), pinned drift -57 (passes). GNU
+# zero-fills, so drift went negative and passed -- macOS-only, invisible in CI,
+# and presenting as an intermittent refusal that passes on an IDENTICAL retry.
+# **THAT PRESENTATION IS THE WORST PART: a guard that refuses honest work at
+# random teaches every node to route around it**, and this one refuses the
+# stamps produced by obeying its own rule.
+#
+# IT DOES NOT WEAKEN CHECK A. The assertion unit is the MINUTE -- a stamp whose
+# minute genuinely postdates the commit still refuses, because pinning moves the
+# parse to `:00` of the stamped minute rather than shifting the minute itself.
+# What it removes is the only producer of positive drift on a stable clock,
+# which is what makes the TOLERANCE=0 note's "zero false positives by
+# construction" true on both flavours instead of only on GNU.
 to_epoch() {
   case "$DATE_FLAVOUR" in
-    bsd) date -u -j -f '%Y-%m-%d %H:%M' "$1" '+%s' 2>/dev/null ;;
+    bsd) date -u -j -f '%Y-%m-%d %H:%M:%S' "$1:00" '+%s' 2>/dev/null ;;
     gnu) date -u -d "$1" '+%s' 2>/dev/null ;;
   esac
 }
