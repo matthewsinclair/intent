@@ -155,3 +155,5 @@ If you hit something not listed, that is the gap rather than a surprise. The reg
 ## Reading this against your own build
 
 `intent --version` names the build you are on. Everything here was driven against `intent 3.0.0 (80d8b2ca)`, the published tag. A source install from `main` behaves differently, and several entries above are already fixed there.
+
+**The register itself cannot tell you which build a row describes** (`intent#0191`). An issue says what is broken and carries no field naming the version it was broken in, so `intent issues list` mixes rows about the published tag with rows about `main`. This page is the partition, drawn by hand and by driving each row: what is above is what a v3.0.0 reader can hit, and the section before last names the rows that read alarmingly and are not present. **If you find an open issue that seems to describe your version, check here before believing it.**
