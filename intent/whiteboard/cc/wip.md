@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 11:29Z
+heartbeat_at: 2026-08-31 11:36Z
 status: active
-focus: "0183 parts 1+2 LANDED on vc's ruling -- the migrator names what it did not carry, in classes pinned to data-model.md, with the whiteboard named as a WP-14 GAP and not as out-of-model. Part 3 (the five-way UNACCOUNTED split) is ic's, my vocabulary. fileindex A4 executed. restart+pid landed for ic."
+focus: "Every item vc sequenced is landed: AT-06.11, AC-10.5's four members, fileindex A4, restart+pid, 0183 parts 1+2, the pin fix, and now SUPERSEDED vs UNAPPLIED. NOTHING IN FLIGHT, nothing owed to a peer. Only the write-path package remains, and it is hv's to sequence."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -17,7 +17,6 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 ## TODO
 
-- **TEACH `corrected_check.sh` `SUPERSEDED` vs `UNAPPLIED`** -- vc ruled it mine and explicitly NOT to jump 0183 for. Retiring `fileindex` left `parity.md` ratifying a unit nothing claims, and the check calls that `UNAPPLIED` -- **but a ratification whose SUBJECT was later retired is superseded, not unapplied, and only one of those is a defect.** Same distinction as a retired refusal versus an unbuilt one, one level up: the correct refusal with the wrong word. Warning-only today.
 - **ISSUE WRITE PATH -- BUILD THE PACKAGE** (hv, 2026-08-28/29). Still NOT jumped: hv sized it post-Laksa and post-`0121` and nothing has re-sequenced it. **It cost me a correction today**: 0183's body is wrong and `issues edit` does not exist, so the correction went into AC-10.5's note instead (vc's ruling). vc is putting both instances to hv as evidence, costed, without re-sequencing under the pen.
 
 - **AC-10.5's ROW, WITH vc.** On the canary: artefact conservation CLEAN (DOUBLED 194 / RELOCATED 192 / STRANDED 0 / ALTERED-ATTACHMENT 0), prose residue **2** once the migrator's own dispositions are joined (115 of 115 declared drops matched, verified empty in canon). **ONE CORPUS OF THE FOUR THE AC NAMES** -- Lamplight, Utilz and Baize unrun, and nothing here is a fleet claim.

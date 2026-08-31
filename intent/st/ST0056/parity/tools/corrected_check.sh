@@ -123,7 +123,43 @@ CLAIMED="$(jq -r '
 # REVERSE first, because it is the one that matters: parity.md ratifies a unit
 # and nothing claims it. THIS is the INV-06 / INV-07 direction -- the decision
 # was made and the register never moved.
-UNAPPLIED="$(comm -13 <(printf '%s\n' "$CLAIMED") <(printf '%s\n' "$CITED"))"
+CITED_NOT_CLAIMED="$(comm -13 <(printf '%s\n' "$CLAIMED") <(printf '%s\n' "$CITED"))"
+
+# --- and that set is TWO things, only one of which is a defect ---------------
+#
+# **A RATIFICATION WHOSE SUBJECT WAS LATER RETIRED IS SUPERSEDED, NOT UNAPPLIED**
+# (vc, 2026-08-31, on cc's finding). The two say different things and reporting
+# both with the same word is the correct refusal with the wrong reason:
+#
+#   UNAPPLIED   the unit still exists, parity.md ratified a correction for it,
+#               and the table never claimed it. The decision was made and the
+#               register never moved. **A defect, and the INV-06 / INV-07
+#               direction.**
+#   SUPERSEDED  the table now RETIRES the unit. The ratification was true when
+#               hv made it; what changed is that a later hv ruling removed its
+#               subject. **Not a defect -- there is nothing to apply.**
+#
+# **THIS IS THE SAME DISTINCTION `fileindex` ITSELF NOW MAKES AT THE VERB**, one
+# level up: a retired refusal and an unbuilt one say different things, and
+# `not implemented yet` means LATER where hv ruled NEVER. Executing that
+# retirement (`c6515ad6`) is what produced the first instance here -- this check
+# reported `UNAPPLIED fileindex` for a decision that had been made AND applied
+# correctly, which sends a reader chasing a register that is not behind.
+#
+# **AND IT COVERS A WINDOW RATHER THAN A PERMANENT STATE.** The standing repair
+# is to strike the unit from the machine-read `covers:` clause and record the
+# supersession beneath it, which vc did within the hour -- so a superseded unit
+# is not meant to sit here. What this branch buys is that during the window
+# between a retirement landing and the record being updated, the tool says the
+# true thing instead of reporting a defect that does not exist. That window was
+# thirty minutes and observed; the next one may not be.
+RETIRED="$(jq -r '
+  [ (.invariants[]? | select(.target.state == "retire") | .id),
+    ([.families[].entries[], .new_surface[]][] | select(.disposition == "retire" or .target.state == "retire") | .path) ]
+  | .[]' "$TABLE" | sort -u)"
+
+SUPERSEDED="$(comm -12 <(printf '%s\n' "$CITED_NOT_CLAIMED") <(printf '%s\n' "$RETIRED"))"
+UNAPPLIED="$(comm -23 <(printf '%s\n' "$CITED_NOT_CLAIMED") <(printf '%s\n' "$RETIRED"))"
 
 # FORWARD: a unit claims `corrected` and parity.md does not cite it. That is not
 # automatically wrong -- a unit can be ratified by an hv ruling on another date,
@@ -199,11 +235,17 @@ if [ -n "$UNCITED" ]; then
   printf '  -- the row asserts a ratification the ratifying document does not make. Fix the row, or add the id to the member'\''s `covers:` clause.\n'
 fi
 
+if [ -n "$SUPERSEDED" ]; then
+  printf '\ncorrected: parity.md ratifies units whose SUBJECT WAS LATER RETIRED -- not a defect:\n'
+  printf '%s\n' "$SUPERSEDED" | sed 's/^/  SUPERSEDED /'
+  printf '  -- the ratification was true when it was made and a later ruling removed what it applied to, so there is nothing to apply. RC is unaffected. The standing repair is to strike the id from the member'\''s `covers:` clause and record the supersession beneath it -- deleting it outright would make the record claim hv ratified something they did not.\n'
+fi
+
 if [ -n "$UNAPPLIED" ]; then
   RC=1
   printf '\ncorrected: parity.md RATIFIES units that nothing claims:\n'
   printf '%s\n' "$UNAPPLIED" | sed 's/^/  UNAPPLIED  /'
-  printf '  -- THIS IS THE DIRECTION THAT HID INV-06 AND INV-07 FOR A DAY. The decision was made and the register never moved; both files read correctly on their own.\n'
+  printf '  -- THIS IS THE DIRECTION THAT HID INV-06 AND INV-07 FOR A DAY. The decision was made and the register never moved; both files read correctly on their own. A unit whose subject was RETIRED is reported as SUPERSEDED above and is not counted here.\n'
 fi
 
 [ "$RC" = "0" ] && printf '  the ratified set and the claimed set agree exactly.\n'
