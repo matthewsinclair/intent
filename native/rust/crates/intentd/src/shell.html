@@ -57,6 +57,28 @@
     padding: .9rem 1rem; overflow-x: auto; margin: .6rem 0 0;
   }
   pre code { background: none; border: 0; padding: 0; }
+  .snippet { position: relative; }
+  /* The button sits OVER the block, so the block reserves room for it rather
+     than letting a long line slide underneath on a narrow window. */
+  .snippet pre { padding-right: 3.1rem; }
+  .copy {
+    position: absolute; top: .55rem; right: .55rem;
+    display: grid; place-items: center;
+    width: 1.9rem; height: 1.9rem; padding: 0;
+    background: var(--ground); color: var(--muted);
+    border: 1px solid var(--rule); border-radius: 5px;
+    cursor: pointer; font: inherit;
+  }
+  .copy:hover { color: var(--ink); }
+  .copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .copy svg { width: 15px; height: 15px; display: block; }
+  /* One button, three states, and the ICON is what says which -- a title
+     attribute alone announces nothing to someone who never hovers. */
+  .copy .tick { display: none; }
+  .copy.ok .clip { display: none; }
+  .copy.ok .tick { display: block; }
+  .copy.ok { color: var(--accent); border-color: var(--accent); }
+  .copy.failed { color: #b4453a; border-color: #b4453a; }
 
     .build {
       color: #8a8a85;
@@ -95,11 +117,83 @@
     cannot read your estate over loopback:
   </p>
 
-  <pre><code>curl -s http://127.0.0.1:$PORT/op \
+  <div class="snippet">
+    <button class="copy" type="button" title="Copy" aria-label="Copy this command">
+      <svg class="clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+        <path d="M5 15V5a2 2 0 0 1 2-2h10"></path>
+      </svg>
+      <svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 12.5 9.5 18 20 6.5"></path>
+      </svg>
+    </button>
+    <pre><code>curl -s http://127.0.0.1:$PORT/op \
   -H "Authorization: Bearer $(cat ~/.local/share/intent/intentd.token)" \
   -d '{"root":"'"$PWD"'","op":"registry"}'</code></pre>
+  </div>
 
   <hr class="rule">
 
   <p class="build">{{BUILD}}</p>
 </main>
+
+<script>
+  // **THE COPIED BYTES ARE THE RENDERED BYTES.** The text comes from the
+  // block's own `textContent` rather than from a second copy held in an
+  // attribute, so the thing on the clipboard cannot drift from the thing on
+  // the screen -- which is the whole failure mode of a copy button.
+  document.querySelectorAll(".snippet").forEach(function (snippet) {
+    var button = snippet.querySelector(".copy");
+    var source = snippet.querySelector("code");
+    if (!button || !source) {
+      return;
+    }
+
+    var revert;
+    function settle(state, title) {
+      button.classList.remove("ok", "failed");
+      if (state) {
+        button.classList.add(state);
+      }
+      button.title = title;
+      window.clearTimeout(revert);
+      revert = window.setTimeout(function () {
+        button.classList.remove("ok", "failed");
+        button.title = "Copy";
+      }, 1600);
+    }
+
+    // The fallback is not decoration: it leaves the command SELECTED so the
+    // keyboard copy the operator already knows still works.
+    function selectInstead() {
+      var range = document.createRange();
+      range.selectNodeContents(source);
+      var selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+
+    button.addEventListener("click", function () {
+      // **A CLIPBOARD THAT IS NOT THERE IS REPORTED, NEVER SWALLOWED.** The
+      // API needs a secure context; loopback is one, so this is the browser
+      // that cannot rather than the page that failed -- and a button that
+      // quietly did nothing would be indistinguishable from one that worked.
+      if (!navigator.clipboard || !navigator.clipboard.writeText) {
+        settle("failed", "This browser will not copy from here -- the command is selected, press the copy key");
+        selectInstead();
+        return;
+      }
+      navigator.clipboard.writeText(source.textContent).then(
+        function () {
+          settle("ok", "Copied");
+        },
+        function () {
+          settle("failed", "Copying was refused -- the command is selected, press the copy key");
+          selectInstead();
+        }
+      );
+    });
+  });
+</script>
