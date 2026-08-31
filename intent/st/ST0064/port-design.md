@@ -1,6 +1,6 @@
 # ST0064 port design: the Intent menubar app (ic)
 
-Authored by ic on the bounce (2026-08-31), the Intent-specific port of Geodica's menubar app. The Geodica handoff is the sibling attachment `design-menubar-app.md`; THIS records what the handoff does not -- the Intent module layout, the criterion-to-file binding, the gated seams, and the `int macos` lane decision. hv put ST0064 into 3.0.1 as an M PORT; vc coordinates.
+Authored by ic on the bounce (2026-08-31), the Intent-specific port of Geodica's menubar app. The Geodica handoff is the sibling attachment `design-menubar-app.md`; THIS records what the handoff does not -- the Intent module layout, the criterion-to-file binding, the gated seams, and the `int macos` lane decision. hv put ST0064 into the next release (the one that carries the daemon family; hv holds the number) as an M PORT; vc coordinates.
 
 ## The load-bearing rule (AC-01.1)
 
