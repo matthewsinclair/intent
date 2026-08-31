@@ -108,6 +108,11 @@ pub fn trigger(mode: Mode, key: KeyEvent) -> Option<&'static str> {
     (Mode::Nav, KeyCode::Char(_)) => Some("Typing"),
     (Mode::Menu, KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right) => Some("Move"),
     (Mode::Menu, KeyCode::Backspace) => Some("Back"),
+    // **`/` ADVANCES THE MODE RING FROM MENU** (hv Option A, 2026-08-31): the one
+    // key that always means "the next place I can stand" carries MENU -> NAV,
+    // completing NAV -> OMNIBOX -> MENU -> NAV. Bound before the accelerator arm
+    // so a menu never reads it as a hotkey letter.
+    (Mode::Menu, KeyCode::Char('/')) => Some("/"),
     // A menu accelerator. Found by POSITION in the label rather than assumed to
     // be the first character, which is the menu's own rule -- but which letter
     // is live is the menu's business, so any character offers itself here and

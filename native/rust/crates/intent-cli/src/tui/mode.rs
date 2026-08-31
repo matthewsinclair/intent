@@ -31,6 +31,14 @@
 //! that made it dangerous to lean on: **quitting is now an act, never an
 //! accident.** `Ctrl-C` quits from anywhere and `:q` quits from the omnibox;
 //! the modern agent idiom (Claude Code's own) is exactly this shape.
+//!
+//! **`/` IS THE MODE-ADVANCE KEY (hv Option A, 2026-08-31).** It cycles
+//! `NAV -> OMNIBOX -> MENU -> NAV` -- the one key that always means *the next
+//! place I can stand*. It supersedes `/`-jumps-to-MENU from NAV, so the Lotus
+//! menu is two `/` from NAV, the trade for a single predictable advance key.
+//! The Esc toggle above is UNCHANGED and deliberately so: `/` advances the ring
+//! forward, Esc is the non-cyclic way back between the two home modes, and the
+//! empty-buffer guard on `OMNIBOX + /` keeps the ring off a typed address.
 
 /// The modes. hv's word for the second one -- *edit/nav mode distinction* --
 /// is the name used, in place of vi's NORMAL: the rest state moved to the
@@ -121,13 +129,24 @@ pub const EDGES: &[Edge] = &[
     Mode::Omnibox,
     "a printable seeds the buffer",
   ),
-  Edge::new(Mode::Nav, "/", Mode::Menu, ""),
+  Edge::new(
+    Mode::Nav,
+    "/",
+    Mode::Omnibox,
+    "advance the ring -- hv Option A",
+  ),
   Edge::new(Mode::Menu, "Hotkey", Mode::Menu, "select or drill in"),
   Edge::new(Mode::Menu, "Move", Mode::Menu, "select or drill in"),
   Edge::new(Mode::Menu, "Enter", Mode::Nav, ""),
   Edge::new(Mode::Menu, "Back", Mode::Nav, ""),
   Edge::new(Mode::Menu, "Cancel", Mode::Nav, ""),
   Edge::new(Mode::Menu, "Esc", Mode::Nav, ""),
+  Edge::new(
+    Mode::Menu,
+    "/",
+    Mode::Nav,
+    "advance the ring -- hv Option A",
+  ),
   Edge::new(Mode::Field, "Typing", Mode::Field, ""),
   Edge::new(Mode::Field, "Enter", Mode::Nav, "commit"),
   Edge::new(Mode::Field, "Esc", Mode::Nav, "discard"),
@@ -611,8 +630,10 @@ mod tests {
   ///
   /// The planted pair moved when `button` claimed `NAV`: the old pair's `MENU
   /// Enter -> NORMAL` arm became a claimed target, so the plant would have
-  /// stopped exhibiting the case it names. `NAV`'s `:` and `/` edges target
-  /// `OMNIBOX` and `MENU`, which no row kind claims.
+  /// stopped exhibiting the case it names. `NAV`'s `:` and `/` edges both
+  /// target `OMNIBOX` under Option A (they were `OMNIBOX` and `MENU` before),
+  /// and neither is claimed by a row kind -- two unclaimed arms whatever their
+  /// target, so `arm` refuses rather than guessing.
   #[test]
   fn two_unclaimed_arms_are_refused_rather_than_guessed() {
     let planted: Vec<&'static Edge> = EDGES

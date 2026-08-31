@@ -65,18 +65,21 @@ Three sections, named by hv, separated by two rules. **There are no borders anyw
 | NAV     | Esc       | OMNIBOX | home to the input                 |
 | NAV     | `:`       | OMNIBOX | seed the buffer with `:`          |
 | NAV     | Typing    | OMNIBOX | a printable seeds the buffer      |
-| NAV     | `/`       | MENU    |                                   |
+| NAV     | `/`       | OMNIBOX | advance the ring — hv Option A    |
 | MENU    | Hotkey    | MENU    | select or drill in                |
 | MENU    | Move      | MENU    | select or drill in                |
 | MENU    | Enter     | NAV     |                                   |
 | MENU    | Back      | NAV     |                                   |
 | MENU    | Cancel    | NAV     |                                   |
 | MENU    | Esc       | NAV     |                                   |
+| MENU    | `/`       | NAV     | advance the ring — hv Option A    |
 | FIELD   | Typing    | FIELD   |                                   |
 | FIELD   | Enter     | NAV     | commit                            |
 | FIELD   | Esc       | NAV     | discard                           |
 | EMBED   | Typing    | EMBED   | forwarded to the child            |
 | EMBED   | ChildExit | NAV     | read the file back                |
+
+**hv Option A (2026-08-31, ruled in conversation): `/` is the single mode-advance key, cycling NAV → OMNIBOX → MENU → NAV.** hv's frame: _`/` just cycles thru the three_. It supersedes the earlier `/`-jumps-straight-to-MENU binding for NAV, so the Lotus MENU is now two `/` from NAV — the trade for one predictable advance key on the least-frequent of the three destinations. **The empty-buffer guard is unchanged and is what makes it safe:** `/` only advances from OMNIBOX when the buffer is empty, because `st/ST0056` is a legal address; mid-address it is a character. **Esc is unchanged too:** it still toggles the two home modes {OMNIBOX, NAV} and never quits, so `/` advances the ring forward and Esc is always the non-cyclic way back.
 
 **Two invariants, asserted at startup and checkable headlessly:**
 
@@ -100,12 +103,12 @@ Three sections, named by hv, separated by two rules. **There are no borders anyw
 | `Backspace` | delete                            | pop the view stack                    |
 | `ESC`       | to NAV, buffer kept               | to OMNIBOX                            |
 | `:`         | (a character)                     | to OMNIBOX, seeded with `:`           |
-| `/`         | MENU when the buffer is empty     | MENU                                  |
+| `/`         | MENU when the buffer is empty     | advance the ring → OMNIBOX            |
 | `Ctrl-C`    | quit                              | quit                                  |
 
 **Typing anywhere in NAV lands in the omnibox** — the Claude Code affordance: you never select an input before typing, the input is simply where unclaimed keystrokes go. The cost is stated: NAV has no single-letter bindings (`e`-to-edit and `hjkl` died for this), because a letter that does something in NAV is a letter the omnibox never receives. Enter on the row already edits; arrows already move.
 
-**`/` is the MENU key**, the real Lotus 1-2-3 binding, guarded in the omnibox by the empty buffer since `st/ST0056` is a legal address. There is ONE typed vocabulary and it lives in the omnibox; `:` survives only as a seed character for it, so `:w` and `:q` keep their vi muscle memory without a COMMAND mode to host them.
+**`/` is the mode-advance key** (hv Option A, 2026-08-31), cycling NAV → OMNIBOX → MENU → NAV — the Lotus 1-2-3 menu is one stop on that ring. It is guarded in the omnibox by the empty buffer since `st/ST0056` is a legal address: mid-address `/` is a character, so it only advances from a clean prompt. There is ONE typed vocabulary and it lives in the omnibox; `:` survives only as a seed character for it, so `:w` and `:q` keep their vi muscle memory without a COMMAND mode to host them.
 
 **`C-w` is retired with the vi field keymap** (hv, 2026-08-30: _we're handing the text off to a dedicated editor, not trying to recreate it inside_). In-place editing keeps ONE keymap — readline defaults — and everything longer goes to `$EDITOR`.
 
