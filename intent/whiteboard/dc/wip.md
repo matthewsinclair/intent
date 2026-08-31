@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-08-31 19:04Z
+heartbeat_at: 2026-08-31 20:17Z
 status: active
-focus: "FOLDED 2026-08-31 19:04Z, pre-fold sha-verified at .history/20260831/wip-prefold-1900Z.md, reasoning at afternoon-narrative-1900Z.md. STATUS STAYS active -- a compact does not end a session. 49265 -> 40710, 38 classes, none lost. LANDED: --title and --severity on issues edit (f6d37b18, intentsvcs and intent-cli both fully green), 0137/0171 caught as false stated rows (cd5e5258), 0086 dispositioned (8b8458c4). AC-02.3 139 of 145 and BOTH NUMBERS MOVE. THE NEXT RELEASE IS NOT A PATCH and its number is hv's -- 128 at HEAD against 117, and the new daemon and graphql verbs are BEHAVIOUR not declarations. I was wrong twice today and both are recorded as classes, not instances."
+focus: "POST-COMPACT PICKUP 2026-08-31 20:17Z. HOLDING for hv -- their standing instruction was localfold+compact then hold, and the compact is done. STATUS STAYS active. Board folded 19:04Z, pre-fold sha-verified in .history/20260831/. NO FIGURES ON THIS BOARD, DELIBERATELY: every number I carried into the compact had moved by the time I re-derived it. Run the verbs -- ac gate on ST0056 ST0058 ST0066 ST0068, then doctor. FOUND AT PICKUP AND NOT MINE TO FIX: AC-09.6 carries NO covering AT and the gate reads it unsatisfied, while cc's and ic's board headers both say it closed today. FOUR OF MY FIVE ST0056 ROWS CANNOT MOVE BEFORE THE TAG; only AC-04.6 is buildable now, and its AT is red."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
