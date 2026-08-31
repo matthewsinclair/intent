@@ -578,6 +578,8 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NoSuchEditable { .. } => "NoSuchEditable",
     FacadeError::FieldNotWritable { .. } => "FieldNotWritable",
     FacadeError::ValueNotRecordable { .. } => "ValueNotRecordable",
+    FacadeError::Install(_) => "Install",
+    FacadeError::RootFile(_) => "RootFile",
   }
 }
 
@@ -638,11 +640,37 @@ const ALL_VARIANTS: &[&str] = &[
   "EgestWouldEmptyTheEstate",
   "WriteWouldEmptyAnAuthoredBody",
   "Realise",
+  "Install",
+  "RootFile",
 ];
 
 /// Variants that need a broken world rather than a bad call, and are covered by
 /// the tests that break that world instead.
 const NOT_PROVOKED_HERE: &[&str] = &[
+  // **BOTH LANDED IN HEAD WITHOUT THIS ARM, BY ic, AT db3f947a -- THE SAME
+  // CLASS `Realise` BELOW RECORDS AGAINST SOMEONE ELSE.** `agents generate`
+  // and `agents validate` moved onto the facade so MCP could reach them, the
+  // two wrapping variants were added with `#[from]`, and this test binary
+  // stopped compiling for every node. Nothing ran it for a day: the CLI's
+  // suites build the CLI's tests and not this crate's. Found at the next
+  // `cargo check --workspace --all-targets`, which is the instrument that
+  // should have preceded that landing.
+  //
+  // `Install` is reachable only when the running binary sits OUTSIDE an
+  // Intent install: `install::resolve` walks up from `current_exe` looking for
+  // `lib/templates/`, and every test binary in this workspace sits under the
+  // repository root, which is one. No argument a facade call can pass moves
+  // the executable. The resolver's own arms are driven in `install.rs`'s unit
+  // tests, where the executable path is a parameter rather than a fact about
+  // the process.
+  "Install",
+  // `RootFile` reaches the facade through `agents_generate` alone, and only
+  // when the INSTALL is damaged -- a template under `lib/templates/` unreadable
+  // or malformed -- which is a property of the world, not of the call. That
+  // the type carries a remedy at all is held by `remedy_coverage.rs`; the
+  // texts themselves are read by no test yet, which is stated rather than
+  // implied by a citation that could not go red.
+  "RootFile",
   // **DECLARED BY ic, NOT BY ITS AUTHOR, AND THEY SHOULD OVERTURN IT IF IT IS
   // WRONG.** The variant landed in HEAD without this arm, so the workspace did
   // not compile for any node; the arm is mechanical and the exemption is the

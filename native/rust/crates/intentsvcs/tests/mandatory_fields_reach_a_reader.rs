@@ -154,7 +154,16 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     | FacadeError::ValueNotRecordable { .. }
     // A wrapped realisation failure. It reports that making files exist did not
     // work, not that a value was left out -- no authored prose behind it.
-    | FacadeError::Realise(_) => None,
+    | FacadeError::Realise(_)
+    // **ic's, and they landed without these arms at db3f947a** -- `agents
+    // generate` / `validate` moved onto the facade for MCP, and this binary
+    // stopped compiling for every node until the next workspace-wide check.
+    // Both wrap a fault in the INSTALL rather than in the call: the binary
+    // outside any `lib/templates/`, or a template unreadable or malformed. The
+    // caller supplied nothing and left nothing out; there is no authored value
+    // behind either to carry to a reader.
+    | FacadeError::Install(_)
+    | FacadeError::RootFile(_) => None,
   }
 }
 
