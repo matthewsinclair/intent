@@ -56,14 +56,11 @@ mod common;
 
 use std::collections::BTreeMap;
 
-use common::{Fixture, changed, sample_issue, sample_thread, tree};
+use common::{
+  DATA_MODEL, Fixture, OUT_OF_MODEL_HEADING, changed, data_model_text, out_of_model_enumeration,
+  out_of_model_section, sample_issue, sample_thread, tree,
+};
 use intentsvcs::sync::Scope;
-
-/// The document AC-10.8 names as carrying the enumeration.
-const DATA_MODEL: &str = "intent/st/ST0056/data-model.md";
-
-/// The heading the enumeration actually sits under.
-const OUT_OF_MODEL_HEADING: &str = "## What is deliberately not modelled";
 
 /// The out-of-model members this fixture can plant, because they are the only
 /// ones named as PATHS rather than as categories.
@@ -72,24 +69,6 @@ const NAMED_PAIR: &[&str] = &["wip.md", "restart.md"];
 /// The two directories the egest reads FROM and therefore may not be deleted:
 /// the store it projects, and the config that says where anything lives.
 const NOT_THE_FILE_ESTATE: &[&str] = &[".cache", ".config"];
-
-fn data_model_text() -> String {
-  let path = testkit::repo_root().join(DATA_MODEL);
-  std::fs::read_to_string(&path)
-    .unwrap_or_else(|e| panic!("AC-10.8 names {DATA_MODEL} as the enumeration's home: {e}"))
-}
-
-/// The enumeration's own section, from its heading to the next one.
-fn out_of_model_section(text: &str) -> &str {
-  let start = text
-    .find(OUT_OF_MODEL_HEADING)
-    .unwrap_or_else(|| panic!("{DATA_MODEL} no longer carries `{OUT_OF_MODEL_HEADING}`"));
-  let rest = &text[start + OUT_OF_MODEL_HEADING.len()..];
-  match rest.find("\n## ") {
-    Some(end) => &rest[..end],
-    None => rest,
-  }
-}
 
 /// **THE DENOMINATOR IS DECLARED WHERE THE CRITERION SAYS, AND STILL NAMES WHAT
 /// THIS TEST PLANTS.**
@@ -103,6 +82,17 @@ fn out_of_model_section(text: &str) -> &str {
 fn the_denominator_is_declared_where_the_criterion_says_it_is() {
   let text = data_model_text();
   let section = out_of_model_section(&text);
+  // **THE ENUMERATION HALF, NOT THE WHOLE SECTION, AND THAT WAS A LIVE HOLE IN
+  // THIS ARM.** It used to ask whether the SECTION contained the justifying
+  // phrase. The section states the whiteboard's DEPARTURE inside itself -- *The
+  // whiteboard left this set at D30 ... modelled above as `wb_node`* -- so a
+  // member justified by any phrase from that paragraph passed here while the
+  // document was saying the exact opposite. **A mention is not an instance, in
+  // the instrument written to stop precisely that.** Found 2026-08-31 when the
+  // mirror check in `the_migrator_says_what_it_did_not_carry.rs` fired on its
+  // own author's first draft; latent here rather than live, because no current
+  // member is justified from the departure prose.
+  let (enumeration, _exceptions) = out_of_model_enumeration(section);
 
   // **THE PRODUCT'S OWN DECLARATION IS THE SUBJECT, NOT THIS TEST'S IDEA OF
   // IT.** `NOT_CARRIED` is what the shipped qualifier is built from, so pinning
@@ -110,11 +100,12 @@ fn the_denominator_is_declared_where_the_criterion_says_it_is() {
   // document authorises -- the denominator problem moved one file over.
   for member in intentsvcs::sync::NOT_CARRIED {
     assert!(
-      section.contains(member.justified_by),
-      "the shipped qualifier names `{}`, justified by the phrase `{}`, and \
-       `{OUT_OF_MODEL_HEADING}` in {DATA_MODEL} no longer carries that phrase. Re-derive the \
-       declaration in `intentsvcs::sync` from the section as it now reads -- do not adjust the \
-       phrase to match what the document happens to say, which is the claim certifying itself",
+      enumeration.contains(member.justified_by),
+      "the shipped qualifier names `{}`, justified by the phrase `{}`, and the ENUMERATION \
+       under `## What is deliberately not modelled` no longer carries that phrase. If it is now \
+       only in the section's departure prose, the document says that thing LEFT the excluded \
+       set and the declaration has it backwards. Re-derive from the section as it now reads -- \
+       do not adjust the phrase to match, which is the claim certifying itself",
       member.shown,
       member.justified_by
     );

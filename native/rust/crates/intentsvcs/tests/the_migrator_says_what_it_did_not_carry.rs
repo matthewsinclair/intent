@@ -20,25 +20,9 @@
 //!   Closes on its own when the work lands. **A gap that expires is worth more
 //!   than a zero that never does** (vc, 2026-08-31).
 
-const DATA_MODEL: &str = "intent/st/ST0056/data-model.md";
-const OUT_OF_MODEL_HEADING: &str = "## What is deliberately not modelled";
+mod common;
 
-fn data_model_text() -> String {
-  let path = testkit::repo_root().join(DATA_MODEL);
-  std::fs::read_to_string(&path)
-    .unwrap_or_else(|e| panic!("the declarations are pinned to {DATA_MODEL}: {e}"))
-}
-
-fn out_of_model_section(text: &str) -> &str {
-  let start = text
-    .find(OUT_OF_MODEL_HEADING)
-    .unwrap_or_else(|| panic!("{DATA_MODEL} no longer carries `{OUT_OF_MODEL_HEADING}`"));
-  let rest = &text[start + OUT_OF_MODEL_HEADING.len()..];
-  match rest.find("\n## ") {
-    Some(end) => &rest[..end],
-    None => rest,
-  }
-}
+use common::{data_model_text, out_of_model_enumeration, out_of_model_section};
 
 /// **THE ARM THAT WOULD HAVE CAUGHT THE NEAR-MISS.**
 ///
@@ -61,14 +45,14 @@ fn a_not_yet_built_class_is_inside_the_model_and_not_in_the_excluded_section() {
     assert!(
       text.contains(member.justified_by),
       "`{}` is reported as modelled-but-unbuilt on the strength of the phrase `{}`, and \
-       {DATA_MODEL} no longer carries it. Re-derive the claim from the document -- do not \
+       data-model.md no longer carries it. Re-derive the claim from the document -- do not \
        adjust the phrase to match, which is the claim certifying itself",
       member.shown,
       member.justified_by
     );
     assert!(
       excluded.contains(member.justified_by),
-      "`{}` is reported as modelled-but-unbuilt on a phrase outside `{OUT_OF_MODEL_HEADING}`, \
+      "`{}` is reported as modelled-but-unbuilt on a phrase outside `## What is deliberately not modelled`, \
        so nothing ties the claim to the section that would otherwise exclude it",
       member.shown
     );
@@ -99,10 +83,7 @@ fn an_out_of_model_justification_comes_from_the_enumeration_and_not_from_its_exc
   let text = data_model_text();
   let section = out_of_model_section(&text);
 
-  let split = section
-    .find("left this set")
-    .expect("the section states the whiteboard's departure; if that prose moved, re-derive this");
-  let (enumeration, exceptions) = section.split_at(split);
+  let (enumeration, exceptions) = out_of_model_enumeration(section);
 
   assert!(
     !enumeration.is_empty() && !exceptions.is_empty(),
@@ -212,10 +193,7 @@ fn the_build_gap_line_says_where_the_files_are_and_who_owes_them() {
 fn the_split_separates_the_enumeration_from_the_exception_prose() {
   let text = data_model_text();
   let section = out_of_model_section(&text);
-  let split = section
-    .find("left this set")
-    .expect("the departure prose is present");
-  let (enumeration, exceptions) = section.split_at(split);
+  let (enumeration, exceptions) = out_of_model_enumeration(section);
 
   // `wb_node` appears ONLY where the document says the whiteboard is modelled.
   assert!(

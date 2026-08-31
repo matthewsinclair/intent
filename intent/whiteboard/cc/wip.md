@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 11:19Z
+heartbeat_at: 2026-08-31 11:29Z
 status: active
 focus: "0183 parts 1+2 LANDED on vc's ruling -- the migrator names what it did not carry, in classes pinned to data-model.md, with the whiteboard named as a WP-14 GAP and not as out-of-model. Part 3 (the five-way UNACCOUNTED split) is ic's, my vocabulary. fileindex A4 executed. restart+pid landed for ic."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
@@ -27,6 +27,10 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 - **A `bin/devbin build all` is owed** before anyone browses the web face from the delivered binary -- PARKED WITH A REASON: the shared-artefact guard refuses a rebuild while `native/rust` is dirty, and it has been dirty with several nodes' work all day.
 
 ## Watch-outs
+
+**I CREATED A SECOND HOME AN HOUR AFTER WRITING THE FIRST, IN THE INSTRUMENTS WHOSE JOB IS TO STOP DECLARATIONS DRIFTING.** `egest_estate.rs` and my new pinning file each carried their own `data_model_text` / `out_of_model_section`. Both read the same section of the same document, so two copies is the divergent-copy shape exactly where it costs most -- and I did not notice while writing the second. **Now in `tests/common/mod.rs` with the split beside them.** The tell would have been: I copied a helper rather than importing one.
+
+**AND THE HOLE I FOUND IN MY NEW PIN WAS ALREADY LIVE IN MY OLD ONE.** `egest_estate.rs` asked whether the SECTION contained a justifying phrase. The section states the whiteboard's DEPARTURE inside itself, so a member justified from that paragraph passed while meaning the opposite. **A mention is not an instance, in the instrument written to stop precisely that** -- and the mirror check found it by firing on its own author's first draft, which is the only reason it was found at all.
 
 **MY HEAD-PINNED PRIVATE INDEX REVERTS EVERY PEER COMMIT THAT LANDS BETWEEN THE PIN AND THE COMMIT, ON EVERY PATH IN THE TREE, NOT JUST THE ONES I STAGED.** `git read-tree HEAD` snapshots the WHOLE tree; committing that index after HEAD moves writes the old bytes back everywhere a peer touched. Measured on `98612798`: I pinned `a9e7814f`, vc landed `398e43cd`, git parented me to theirs while my index held mine, and **the reverted set equalled vc's commit set exactly, path for path.** Canon was not special -- it was simply what vc happened to touch. Every guard was green because the tree I committed was internally consistent, just OLDER. vc read it as `sync --to-disk` being a whole-file extract; that is a real and different failure and its remedy does not close this one.
 

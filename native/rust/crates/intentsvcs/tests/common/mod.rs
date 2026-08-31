@@ -646,3 +646,64 @@ pub fn changed(
   out.dedup();
   out
 }
+
+// ---------------------------------------------------------------------------
+// THE AUTHORISING DOCUMENT
+//
+// **TWO TESTS PIN DECLARATIONS TO `data-model.md` AND THEY MUST READ IT THE
+// SAME WAY.** `egest_estate.rs` pins what the EXTRACT cannot carry;
+// `the_migrator_says_what_it_did_not_carry.rs` pins what the MIGRATOR does not.
+// Both are checking the same section of the same file, so two copies of the
+// reader is the divergent-copy shape in the instruments whose whole job is to
+// stop a declaration drifting from its source -- and the second copy was
+// written by me an hour after the first.
+// ---------------------------------------------------------------------------
+
+/// The document that authorises every out-of-model declaration.
+pub const DATA_MODEL: &str = "intent/st/ST0056/data-model.md";
+
+/// The heading the enumeration sits under.
+pub const OUT_OF_MODEL_HEADING: &str = "## What is deliberately not modelled";
+
+pub fn data_model_text() -> String {
+  let path = testkit::repo_root().join(DATA_MODEL);
+  std::fs::read_to_string(&path)
+    .unwrap_or_else(|e| panic!("AC-10.8 names {DATA_MODEL} as the enumeration's home: {e}"))
+}
+
+/// The section, from its heading to the next one.
+pub fn out_of_model_section(text: &str) -> &str {
+  let start = text
+    .find(OUT_OF_MODEL_HEADING)
+    .unwrap_or_else(|| panic!("{DATA_MODEL} no longer carries `{OUT_OF_MODEL_HEADING}`"));
+  let rest = &text[start + OUT_OF_MODEL_HEADING.len()..];
+  match rest.find("\n## ") {
+    Some(end) => &rest[..end],
+    None => rest,
+  }
+}
+
+/// The section's ENUMERATION -- the part that lists members -- separated from
+/// the prose describing what has LEFT the set.
+///
+/// **A `contains` OVER THE WHOLE SECTION CANNOT TELL A MEMBER FROM AN
+/// EXCEPTION, AND THAT HOLE WAS LIVE IN THIS ESTATE.** The section states the
+/// whiteboard's departure inside itself -- *The whiteboard left this set at
+/// D30 ... and is modelled above as `wb_node`/`wb_item`/`wb_message`* -- so a
+/// declaration justified by any phrase from that paragraph passed the pin while
+/// meaning the exact opposite of what the pin was checking.
+///
+/// **FOUND BY THE MIRROR CHECK FIRING ON ITS AUTHOR'S FIRST DRAFT** (cc,
+/// 2026-08-31): pinning the modelled-but-unbuilt class to *modelled above as
+/// `wb_node`* and then asserting that phrase must NOT be in the excluded
+/// section reddened immediately, because it IS. **A mention is not an instance,
+/// in the instrument built to stop exactly that.**
+pub fn out_of_model_enumeration(section: &str) -> (&str, &str) {
+  let split = section.find(DEPARTURE).unwrap_or_else(|| {
+    panic!("the section no longer states a departure with `{DEPARTURE}`; re-derive the split")
+  });
+  section.split_at(split)
+}
+
+/// The document's own words for a thing LEAVING the excluded set.
+pub const DEPARTURE: &str = "left this set";
