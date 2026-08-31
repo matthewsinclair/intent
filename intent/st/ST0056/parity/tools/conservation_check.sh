@@ -294,9 +294,22 @@ case "$SUBJECT" in
   *) echo "conservation: subject $SUBJECT" ;;
 esac
 
-# The canon root. `st/<ID>/thread.json` and `issues/<n>.json` are data-model.md's
-# canonical paths; a tree with neither has not been migrated, and saying so is
-# the whole difference between a refusal and a green.
+# The canon root, and the realised tree beside it. Since ST0057 WP-01 (16048f82,
+# 2026-08-19) canon is FLAT and lives under `.canon/`: `intent/.canon/st/<ID>.json`
+# and `intent/.canon/issues/<NNNN>.json`. The REALISED files -- `st/<ID>/info.md`,
+# `st/<ID>/design.md`, `st/<ID>/WP/NN/info.md` -- stay under `intent/st/`. A tree
+# with neither has not been migrated, and saying so is the whole difference
+# between a refusal and a green.
+#
+# TWO ROOTS, NOT ONE, AND THE SPLIT IS WHAT THIS TOOL WAS BLIND TO FOR TWELVE
+# DAYS (cc, 2026-08-31, measured end to end; last change to this file e3df4b5b
+# predates the relocation by twelve hours and six sibling tools were brought
+# across). The DOUBLED / STRANDED / RELOCATED questions are asked of the realised
+# tree -- does a counterpart exist at `st/<ID>/<base>`? -- and every other
+# question is asked of canon. With one identifier for both, `intent/st` still
+# existing made the old resolver SUCCEED while every canon read under it found
+# nothing, and only the `n_converted` guard turned that into a refusal instead of
+# a conservation report over an empty comparison.
 # THE ARGUMENT IS A PROJECT ROOT -- the same kind of directory `estate_corpus.sh`
 # captures and `estate_census.sh` reads. It did not used to be. `CANON` was the
 # argument verbatim, so this tool alone among the three wanted the INTENT DIR,
@@ -309,14 +322,25 @@ esac
 # because the two are distinguishable by structure and a silent choice between
 # them is how the wrong tree gets measured without anyone finding out. Neither
 # present is still a refusal: that arm is what stops an unmigrated tree passing.
-if [ -d "$MIGRATED/intent/st" ]; then
-  CANON="$MIGRATED/intent"
-  echo "conservation: canon at $CANON (argument read as a project root)"
-elif [ -d "$MIGRATED/st" ]; then
-  CANON="$MIGRATED"
-  echo "conservation: canon at $CANON (argument read as an intent dir)"
+if [ -d "$MIGRATED/intent/.canon/st" ]; then
+  CANON="$MIGRATED/intent/.canon"
+  REALISED="$MIGRATED/intent"
+  echo "conservation: canon at $CANON, realised tree at $REALISED (argument read as a project root)"
+elif [ -d "$MIGRATED/.canon/st" ]; then
+  CANON="$MIGRATED/.canon"
+  REALISED="$MIGRATED"
+  echo "conservation: canon at $CANON, realised tree at $REALISED (argument read as an intent dir)"
 else
-  die "$MIGRATED holds no st/ canon at either $MIGRATED/intent/st or $MIGRATED/st -- this is an UNMIGRATED tree, and a check that cannot see its subject does not pass it"
+  # THE PRE-RELOCATION LAYOUT IS REFUSED BY NAME AND NEVER ACCEPTED. A third
+  # arm that read `st/<ID>/thread.json` would let a pre-ST0057 tree pass as
+  # current, which is this defect one layer down: the instrument would measure
+  # an old shape and report on it in the present tense. The count is printed so
+  # the operator can tell an old tree from an empty one.
+  legacy_n="$(find "$MIGRATED/intent/st" "$MIGRATED/st" -maxdepth 2 -name thread.json 2>/dev/null | wc -l | tr -d ' ')"
+  if [ "${legacy_n:-0}" -gt 0 ]; then
+    die "no canon at .canon/st/<ID>.json, but $legacy_n thread(s) sit at the PRE-RELOCATION location st/<ID>/thread.json -- this tool measures the post-ST0057 layout (16048f82). Migrate the tree with a current v3 binary rather than pointing the instrument at the old shape"
+  fi
+  die "$MIGRATED holds no .canon/st canon at either $MIGRATED/intent/.canon/st or $MIGRATED/.canon/st -- this is an UNMIGRATED tree, and a check that cannot see its subject does not pass it"
 fi
 
 WORK="$(mktemp -d)" || die "cannot create a scratch directory"
@@ -353,7 +377,7 @@ while IFS=$'\t' read -r _ path kind id bucket; do
   esac
 
   # Owned by an entity whose canon exists at the flat path.
-  if [ -n "$st" ] && [ -f "$CANON/st/$st/thread.json" ]; then
+  if [ -n "$st" ] && [ -f "$CANON/st/$st.json" ]; then
     base="${path##*/}"
     if [ "$bucket" = "-" ]; then
       a_conv=$((a_conv + 1))
@@ -382,7 +406,7 @@ while IFS=$'\t' read -r _ path kind id bucket; do
     # in one merged count with a population that is genuinely fine.
     case "$base" in
       info.md|acceptance.md)
-        if [ -f "$CANON/st/$st/$base" ]; then
+        if [ -f "$REALISED/st/$st/$base" ]; then
           report DOUBLED "$path (also generated at st/$st/$base -- two artefacts, one role)"
           c_doubled=$((c_doubled + 1))
         else
@@ -391,7 +415,7 @@ while IFS=$'\t' read -r _ path kind id bucket; do
         fi
         ;;
       *)
-        if [ -f "$CANON/st/$st/$base" ]; then
+        if [ -f "$REALISED/st/$st/$base" ]; then
           a_reloc=$((a_reloc + 1))
         else
           report STRANDED "$path (the only copy -- authored prose under $id's v2 bucket, neither moved nor named out-of-model)"
@@ -432,7 +456,7 @@ issue_canon_path() { printf '%s/issues/%s.json' "$CANON" "${1##*/}"; }
   if grep -qxF "$path" "$WORK/oom"; then
     a_oom=$((a_oom + 1))
   elif [ -n "$st" ]; then
-    report UNCONVERTED "$path (owner $id has no st/$st/thread.json)"
+    report UNCONVERTED "$path (owner $id has no canon at .canon/st/$st.json)"
   else
     report UNACCOUNTED "$path (no owner, and the migrator did not name it out-of-model)"
   fi
@@ -443,10 +467,10 @@ done < <(awk -F'\t' '$1 == "FILE"' "$CENSUS")
 # ---------------------------------------------------------------------------
 census_ids() { awk -F'\t' -v k="$1" '$1 == "ENTITY" && $2 == k { print $3 }' "$CENSUS" | sort -u; }
 
-canon_thread_ids() { find "$CANON/st" -name thread.json -maxdepth 2 2>/dev/null | while IFS= read -r j; do jq -r '.id' "$j"; done | sort -u; }
-canon_wp_ids() { find "$CANON/st" -name thread.json -maxdepth 2 2>/dev/null | while IFS= read -r j; do jq -r '.id as $t | .wps[]? | "\($t)/\(.seq)"' "$j"; done | sort -u; }
-canon_ac_ids() { find "$CANON/st" -name thread.json -maxdepth 2 2>/dev/null | while IFS= read -r j; do jq -r '.id as $t | .criteria[]? | "\($t)/\(.id)"' "$j"; done | sort -u; }
-canon_at_ids() { find "$CANON/st" -name thread.json -maxdepth 2 2>/dev/null | while IFS= read -r j; do jq -r '.id as $t | .tests[]? | "\($t)/\(.id)"' "$j"; done | sort -u; }
+canon_thread_ids() { find "$CANON/st" -maxdepth 1 -name '*.json' 2>/dev/null | while IFS= read -r j; do jq -r '.id' "$j"; done | sort -u; }
+canon_wp_ids() { find "$CANON/st" -maxdepth 1 -name '*.json' 2>/dev/null | while IFS= read -r j; do jq -r '.id as $t | .wps[]? | "\($t)/\(.seq)"' "$j"; done | sort -u; }
+canon_ac_ids() { find "$CANON/st" -maxdepth 1 -name '*.json' 2>/dev/null | while IFS= read -r j; do jq -r '.id as $t | .criteria[]? | "\($t)/\(.id)"' "$j"; done | sort -u; }
+canon_at_ids() { find "$CANON/st" -maxdepth 1 -name '*.json' 2>/dev/null | while IFS= read -r j; do jq -r '.id as $t | .tests[]? | "\($t)/\(.id)"' "$j"; done | sort -u; }
 canon_issue_ids() { find "$CANON/issues" -name '*.json' 2>/dev/null | sed 's|.*/||; s|\.json$||' | sort -u; }
 
 compare_ids() {
@@ -767,16 +791,16 @@ while IFS=$'\t' read -r _ kind id section bytes sha trim; do
   if [ "$section" = "(preamble)" ]; then
     case "$kind" in
       thread)
-        j="$CANON/st/$id/thread.json"
-        [ -f "$j" ] || { report LOST-PROSE "thread $id prose above the first heading ($bytes bytes -- no thread.json)"; c_lost=$((c_lost + 1)); continue; }
+        j="$CANON/st/$id.json"
+        [ -f "$j" ] || { report LOST-PROSE "thread $id prose above the first heading ($bytes bytes -- no canon at .canon/st/<ID>.json)"; c_lost=$((c_lost + 1)); continue; }
         jq -j '.preamble // ""' "$j" >"$WORK/f" 2>/dev/null || : >"$WORK/f"
         compare_prose "$id '(preamble)'" "$sha" "$trim" "$WORK/f" modelled
         continue
         ;;
       wp)
         st="${id%%/*}"; seq="${id##*/}"; seq="$(printf '%s' "$seq" | sed 's|^0*||')"
-        j="$CANON/st/$st/thread.json"
-        [ -f "$j" ] || { report LOST-PROSE "wp $id prose above the first heading ($bytes bytes -- no thread.json)"; c_lost=$((c_lost + 1)); continue; }
+        j="$CANON/st/$st.json"
+        [ -f "$j" ] || { report LOST-PROSE "wp $id prose above the first heading ($bytes bytes -- no canon at .canon/st/<ID>.json)"; c_lost=$((c_lost + 1)); continue; }
         jq -j ".wps[] | select(.seq == $seq) | .preamble // \"\"" "$j" >"$WORK/f" 2>/dev/null || : >"$WORK/f"
         compare_prose "wp $id '(preamble)'" "$sha" "$trim" "$WORK/f" modelled
         continue
@@ -796,7 +820,7 @@ while IFS=$'\t' read -r _ kind id section bytes sha trim; do
   # is a field for it" and "the field holds what left" are different claims.
   if [ "$kind" = wp ]; then
     st="${id%%/*}"; seq="${id##*/}"; seq="$(printf '%s' "$seq" | sed 's|^0*||')"
-    j="$CANON/st/$st/thread.json"
+    j="$CANON/st/$st.json"
     [ -f "$j" ] || continue
     if [ "$section" = Objective ]; then
       jq -j ".wps[] | select(.seq == $seq) | .objective // \"\"" "$j" >"$WORK/f" 2>/dev/null || : >"$WORK/f"
@@ -854,7 +878,7 @@ while IFS=$'\t' read -r _ kind id section bytes sha trim; do
   [ "$kind" = thread ] ||
     die "kind '$kind' is declared compared but reached no arm -- prose_kind_disposition() and the arms above have drifted apart"
   st="$id"
-  j="$CANON/st/$st/thread.json"
+  j="$CANON/st/$st.json"
   [ -f "$j" ] || continue
   field=
   case "$section" in
@@ -963,7 +987,7 @@ while IFS= read -r j; do
     report ADDED-PROSE "wp $st/$seq '$heading' (in the canon, in no estate section -- a superset is not conservation)"
     c_added=$((c_added + 1))
   done < <(jq -r '.wps[]? | .seq as $s | (.body // "") | split("\n")[] | select(startswith("## ")) | "\($s)\t\(.[3:])"' "$j" 2>/dev/null)
-done < <(find "$CANON/st" -name thread.json -maxdepth 2 2>/dev/null | sort)
+done < <(find "$CANON/st" -maxdepth 1 -name '*.json' 2>/dev/null | sort)
 
 # THE ARM ABOVE READS `.wps[].body` -- THE MODEL -- AND cc FOUND ACCRETION THE
 # MODEL CANNOT HOLD. 40 of 140 migrated work-package VIEWS ship with two
@@ -984,12 +1008,12 @@ while IFS= read -r v; do
   [ -n "$dups" ] || continue
   while IFS= read -r h; do
     [ -n "$h" ] || continue
-    report DOUBLED-SECTION "${v#"$CANON"/} carries '${h#\#\# }' twice (one carried, one generated -- two artefacts, one role)"
+    report DOUBLED-SECTION "${v#"$REALISED"/} carries '${h#\#\# }' twice (one carried, one generated -- two artefacts, one role)"
     c_dup=$((c_dup + 1))
   done <<EOF
 $dups
 EOF
-done < <(find "$CANON/st" -path '*/WP/*' -name info.md 2>/dev/null | sort)
+done < <(find "$REALISED/st" -path '*/WP/*' -name info.md 2>/dev/null | sort)
 
 # ---------------------------------------------------------------------------
 # The totals are printed on every run, pass or fail. A check that only speaks
