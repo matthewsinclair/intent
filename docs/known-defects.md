@@ -90,6 +90,14 @@ The same section inserted **before** the banner is refused, by name, with the te
 
 **What search gets right, so this is not read as worse than it is:** an unindexed project says so rather than returning an empty list, in the tool's own words -- `nothing is indexed, so this search could not have matched -- an empty result here does NOT mean <term> is absent`. That is the failure mode that would actually mislead a reader, and it is closed.
 
+## The daemon
+
+**`intentd --help` starts a daemon instead of printing help** (`intent#0162`). On v3.0.0 the binary inspects argv for `--version` and then serves regardless of what else is there, so any argument it does not recognise -- `--help` and `-h` included -- falls through to starting a real daemon under your real `$HOME`. It binds, it publishes, and it does not return. While it is up, every other Intent session on the machine has its store verbs refused at `rc=2` by a daemon nobody meant to start.
+
+Do not type it. If you already have, find the process and stop it: `pgrep -fl intentd`, then `intent daemon stop` or kill the pid. **v3.0.1 closes this** -- the fixed binary prints usage for `--help` and refuses any other argument with a remedy, on the stated ground that starting a daemon by accident takes every session on the machine down together.
+
+**How this entry was established, because the obvious check is the defect.** Running `intentd --help` on the published build to confirm the behaviour would reproduce the outage on the machine doing the checking. So the two binaries were compared statically instead: the v3.0.1 help text is absent from the v3.0.0 binary and present in the current one, with a control string both carry, so an unreadable binary cannot masquerade as an unfixed one. The behaviour itself was driven first-hand on 2026-08-30, once, before it was understood -- which is how it was found.
+
 ## Declared and not implemented
 
 Each of these is listed in `--help` and refuses when called. Driven against v3.0.0, exit codes as shown.
