@@ -7,7 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2997E46680241912D530A7B5 /* HealthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29672806305D887EA65656B8 /* HealthTests.swift */; };
+		39B9EAFE62DD941B78D87ABA /* DaemonService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20934AD411AEAE2B4F79A01B /* DaemonService.swift */; };
 		692A1EC01D5213CB6472B434 /* LoginShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DC7A046D343F9FF30FC56EA /* LoginShell.swift */; };
+		77F2AD848C06FB9ADCF161AC /* ContinuousObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */; };
+		7D834CF192226880601F3117 /* Health.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93A196E045968A129A323B3D /* Health.swift */; };
+		916BB7ABBBF4DD2D92D59492 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 894E47351007915CC6F59BBD /* Theme.swift */; };
 		954C28016164850D99C2B79C /* IntentCLI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */; };
 		E4FB94495E37A90BCFC43C24 /* IntentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A21089C3EE01CC6CD256BFC /* IntentApp.swift */; };
 		FCF20238A656A982DF4B12D1 /* LoginShellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E9C74AD191140D77FB3294C /* LoginShellTests.swift */; };
@@ -24,18 +29,32 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		20934AD411AEAE2B4F79A01B /* DaemonService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaemonService.swift; sourceTree = "<group>"; };
+		29672806305D887EA65656B8 /* HealthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthTests.swift; sourceTree = "<group>"; };
 		3FAB073C6E0F8ACF198E5CB8 /* Intent.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intent.entitlements; sourceTree = "<group>"; };
 		4634133A4EB56FC2D1AED35E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4AF69039A2E9F208B08C436D /* IntentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IntentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5E9C74AD191140D77FB3294C /* LoginShellTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginShellTests.swift; sourceTree = "<group>"; };
 		60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentCLI.swift; sourceTree = "<group>"; };
+		7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuousObservation.swift; sourceTree = "<group>"; };
+		894E47351007915CC6F59BBD /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		8A21089C3EE01CC6CD256BFC /* IntentApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentApp.swift; sourceTree = "<group>"; };
+		93A196E045968A129A323B3D /* Health.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Health.swift; sourceTree = "<group>"; };
 		9DC7A046D343F9FF30FC56EA /* LoginShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginShell.swift; sourceTree = "<group>"; };
 		CB43CE810A6886230867C1CB /* Intent.Debug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intent.Debug.entitlements; sourceTree = "<group>"; };
 		D9ED4FC1411ABD3535ED4A3F /* Intent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Intent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		06F1E41B346A90B5B5929D42 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */,
+				894E47351007915CC6F59BBD /* Theme.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
 		0A160BAD77A6EC5280578BBA /* Intent */ = {
 			isa = PBXGroup;
 			children = (
@@ -43,14 +62,25 @@
 				CB43CE810A6886230867C1CB /* Intent.Debug.entitlements */,
 				3FAB073C6E0F8ACF198E5CB8 /* Intent.entitlements */,
 				8A21089C3EE01CC6CD256BFC /* IntentApp.swift */,
+				2663181069977861CA08EB95 /* Models */,
 				4C162142A7E052C76D6298ED /* Services */,
+				06F1E41B346A90B5B5929D42 /* Utilities */,
 			);
 			path = Intent;
+			sourceTree = "<group>";
+		};
+		2663181069977861CA08EB95 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				93A196E045968A129A323B3D /* Health.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 		36432786E9DEB6D7808CC402 /* IntentTests */ = {
 			isa = PBXGroup;
 			children = (
+				29672806305D887EA65656B8 /* HealthTests.swift */,
 				5E9C74AD191140D77FB3294C /* LoginShellTests.swift */,
 			);
 			path = IntentTests;
@@ -59,6 +89,7 @@
 		4C162142A7E052C76D6298ED /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				20934AD411AEAE2B4F79A01B /* DaemonService.swift */,
 				60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */,
 				9DC7A046D343F9FF30FC56EA /* LoginShell.swift */,
 			);
@@ -165,9 +196,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				77F2AD848C06FB9ADCF161AC /* ContinuousObservation.swift in Sources */,
+				39B9EAFE62DD941B78D87ABA /* DaemonService.swift in Sources */,
+				7D834CF192226880601F3117 /* Health.swift in Sources */,
 				E4FB94495E37A90BCFC43C24 /* IntentApp.swift in Sources */,
 				954C28016164850D99C2B79C /* IntentCLI.swift in Sources */,
 				692A1EC01D5213CB6472B434 /* LoginShell.swift in Sources */,
+				916BB7ABBBF4DD2D92D59492 /* Theme.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -175,6 +210,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2997E46680241912D530A7B5 /* HealthTests.swift in Sources */,
 				FCF20238A656A982DF4B12D1 /* LoginShellTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

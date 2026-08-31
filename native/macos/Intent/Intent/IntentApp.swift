@@ -4,17 +4,18 @@ import ServiceManagement
 
 /// Intent.app: the menubar item, the intent:// handler, and control of intentd.
 /// Every action here runs an `intent` verb; every fact shown comes from the
-/// daemon or the CLI, never from a Swift-side derivation (AC-01.1). The shape
-/// is Geodica's AppDelegate, cut to intentd. The health display, the console
-/// and settings land as their gated seams arrive: cc's machine-readable
-/// `daemon status` for the LIVE/STALE/ABSENT indicator (AC-01.2 / AC-01.6), and
-/// the log-source ruling for the console (AC-01.4).
+/// daemon or the CLI, never from a Swift-side derivation (AC-01.1). The shape is
+/// Geodica's AppDelegate, cut to intentd. The console and settings land as their
+/// gated seams arrive: the console on cc's `intent daemon logs` verb (AC-01.4),
+/// the intent:// wire-in on the resolver door (AC-01.5).
 @main
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
   static let logger = Logger(subsystem: "com.matthewsinclair.intent.macos", category: "App")
 
   private var statusItem: NSStatusItem?
+  private let daemon = DaemonService.shared
+  private var observation: ContinuousObservation?
 
   static let firstRunKey = "FirstRunDone"
 
@@ -35,17 +36,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       button.image = image
       if image == nil { button.title = "◆" }  // never a zero-width item
     }
-    rebuildMenu()
 
     let shell = LoginShellStore.shared.current()
     Self.logger.info(
       "launched; intent: \(shell.intent ?? "not found", privacy: .public) (\(shell.source, privacy: .public))"
     )
 
+    daemon.startPolling()
+    startObserving()  // renders the current state immediately, then on every change
+
     if !UserDefaults.standard.bool(forKey: Self.firstRunKey) {
       UserDefaults.standard.set(true, forKey: Self.firstRunKey)
       enableLaunchAtLoginByDefault()
     }
+  }
+
+  func applicationWillTerminate(_ notification: Notification) {
+    daemon.stopPolling()
+    observation?.stop()
   }
 
   /// Registered as a login item on first run so the menubar comes back after a
@@ -62,8 +70,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   /// The turtle -- slow and steady wins the race (AC-01.8). The rasterised asset
   /// lands with that row; until then the system tortoise stands in,
-  /// template-rendered so it adapts black/white to the bar. Its STATE semantics
-  /// arrive with the health predicate, derived at paint time and never cached.
+  /// template-rendered so its tint follows the health predicate at paint time.
   private static func menuBarImage() -> NSImage? {
     if let asset = NSImage(named: "MenuBarIcon") { return asset }
     return NSImage(systemSymbolName: "tortoise.fill", accessibilityDescription: "Intent")
@@ -87,11 +94,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     NSApp.mainMenu = mainMenu
   }
 
+  // MARK: - Observation
+
+  /// The icon and menu follow the daemon's health; ContinuousObservation re-arms
+  /// after every change, so a single poll drives both.
+  private func startObserving() {
+    observation = ContinuousObservation(
+      track: { [weak self] in
+        guard let self else { return }
+        _ = (self.daemon.health, self.daemon.busy)
+      },
+      onChange: { [weak self] in
+        guard let self else { return }
+        self.updateStatusIcon()
+        self.rebuildMenu()
+      }
+    )
+  }
+
+  private func updateStatusIcon() {
+    guard let button = statusItem?.button else { return }
+    button.contentTintColor = Theme.menuBarTint(for: daemon.health)
+    button.toolTip = statusSummary()
+  }
+
+  private func statusSummary() -> String {
+    daemon.busy ?? daemon.health.summary
+  }
+
   // MARK: - Menu
 
-  /// A static control menu until cc's machine-readable `daemon status` lands;
-  /// then Start / Stop / Restart gate on LIVE / STALE / ABSENT and the socket
-  /// affordance appears only on ABSENT, never on STALE (AC-01.6).
+  /// Gated on the ONE health predicate. Start when absent, Stop/Restart when
+  /// live; a stale daemon offers Restart to recover and NEVER an unlink -- the
+  /// socket has an owner to investigate, not remove (AC-01.6 / AC-08.12), and
+  /// the summary above names its pid.
   private func rebuildMenu() {
     let menu = NSMenu()
 
@@ -102,15 +138,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       attributes: [.font: NSFont.boldSystemFont(ofSize: 13)]
     )
     menu.addItem(identity)
+
+    let summary = NSMenuItem(title: statusSummary(), action: nil, keyEquivalent: "")
+    summary.isEnabled = false
+    menu.addItem(summary)
     menu.addItem(.separator())
 
-    menu.addItem(NSMenuItem(title: "Start intentd", action: #selector(startDaemon), keyEquivalent: ""))
-    menu.addItem(NSMenuItem(title: "Stop intentd", action: #selector(stopDaemon), keyEquivalent: ""))
-    menu.addItem(
-      NSMenuItem(title: "Restart intentd", action: #selector(restartDaemon), keyEquivalent: ""))
+    if let busy = daemon.busy {
+      let item = NSMenuItem(title: busy, action: nil, keyEquivalent: "")
+      item.isEnabled = false
+      menu.addItem(item)
+    } else {
+      switch daemon.health {
+      case .live:
+        menu.addItem(
+          NSMenuItem(title: "Stop intentd", action: #selector(stopDaemon), keyEquivalent: ""))
+        menu.addItem(
+          NSMenuItem(title: "Restart intentd", action: #selector(restartDaemon), keyEquivalent: ""))
+      case .stale:
+        menu.addItem(
+          NSMenuItem(title: "Restart intentd", action: #selector(restartDaemon), keyEquivalent: ""))
+      case .absent, .unknown:
+        menu.addItem(
+          NSMenuItem(title: "Start intentd", action: #selector(startDaemon), keyEquivalent: ""))
+      }
+    }
+
     menu.addItem(NSMenuItem(title: "Run Doctor", action: #selector(runDoctorVerb), keyEquivalent: ""))
     menu.addItem(.separator())
-
     menu.addItem(NSMenuItem(title: "Quit Intent", action: #selector(quit), keyEquivalent: "q"))
 
     statusItem?.menu = menu
@@ -142,20 +197,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   // MARK: - Actions
 
-  @objc private func startDaemon() { runVerb(["daemon", "start"], failing: "Start failed") }
-  @objc private func stopDaemon() { runVerb(["daemon", "stop"], failing: "Stop failed") }
+  @objc private func startDaemon() { runLifecycle("Start failed") { try await self.daemon.start() } }
+  @objc private func stopDaemon() { runLifecycle("Stop failed") { try await self.daemon.stop() } }
+  @objc private func restartDaemon() {
+    runLifecycle("Restart failed") { try await self.daemon.restart() }
+  }
   @objc private func runDoctorVerb() { runVerb(["doctor"], failing: "Doctor failed") }
 
-  /// intentd has no `restart` verb; the order -- stop, then start -- is the
-  /// CLI's to own, not the app's to invent.
-  @objc private func restartDaemon() {
+  private func runLifecycle(_ failing: String, _ op: @escaping () async throws -> Void) {
     Task {
-      do {
-        _ = try await IntentCLI.capture(["daemon", "stop"])
-        _ = try await IntentCLI.run(["daemon", "start"])
-      } catch {
-        showAlert("Restart failed", message: error.localizedDescription)
-      }
+      do { try await op() } catch { showAlert(failing, message: error.localizedDescription) }
     }
   }
 
