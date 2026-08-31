@@ -5662,14 +5662,7 @@ fn route_now() -> Result<daemon::Route, Failure> {
 /// flag, which is the exact defect this function was fixed for. **Widening the
 /// declaration without building the projection is now loud instead of silent.**
 fn daemon_status(a: &ArgMatches) -> Result<(), Failure> {
-  match enum_flag(a, "daemon status", "--format")?.as_str() {
-    "terminal" => {}
-    other => {
-      return Err(Failure::Unavailable(format!(
-        "error: the dispatch table declares `--format {other}` for `daemon status` and this build has no {other} projection\n  remedy: this is a defect in the build rather than in what you typed -- the declaration was widened without the projection being written"
-      )));
-    }
-  }
+  let format = enum_flag(a, "daemon status", "--format")?;
   // **THE THREE-STATE PROJECTION, NOT `route()` DIRECTLY** (`ST0064` `AC-01.6`,
   // vc 2026-08-31). `route()` answers where a command RUNS, which is binary;
   // this verb answers what an operator is SHOWN, where a holder that is alive
@@ -5677,7 +5670,35 @@ fn daemon_status(a: &ArgMatches) -> Result<(), Failure> {
   // menubar app a client of THIS verb rather than of a second predicate, so
   // the split has to be visible here or the app cannot honour it without
   // reimplementing the question.
-  match daemon::health().map_err(|e| Failure::Error(e.render()))? {
+  let health = daemon::health().map_err(|e| Failure::Error(e.render()))?;
+
+  // **THE MACHINE FACE IS A PROJECTION OF THE SAME VALUE, NOT A SECOND
+  // ANSWER.** Both arms render one `Health` computed once above; asking twice
+  // could answer differently across the two calls, on a verb whose entire
+  // subject is what the daemon is doing right now.
+  //
+  // **SHAPE NAMED BY ic, WHO CONSUMES IT** (`ST0064`, 2026-08-31), rather than
+  // minted here and called their requirement: a bare lowercase `state`
+  // discriminator matching the variant names, `endpoint` iff live, `pid` iff
+  // stale. Their decoder is `enum State: String` plus per-state optionals.
+  //
+  // **NO `removable` FIELD, AND THAT IS ic's OWN INCLINATION RATIFIED.** The
+  // remedy is what the state MEANS (vc's `AC-01.6` ruling), so shipping a bool
+  // beside it would be a derived value travelling next to what derives it --
+  // two homes for one fact, and the one a UI gates on would be the cached one.
+  if format == "json" {
+    let payload = match &health {
+      daemon::Health::Live(endpoint) => {
+        serde_json::json!({ "state": "live", "endpoint": endpoint.to_string() })
+      }
+      daemon::Health::Stale { pid } => serde_json::json!({ "state": "stale", "pid": pid }),
+      daemon::Health::Absent => serde_json::json!({ "state": "absent" }),
+    };
+    println!("{payload}");
+    return Ok(());
+  }
+
+  match health {
     daemon::Health::Live(endpoint) => println!("ok: intentd is answering at {endpoint}"),
     // **THE REMEDY IS THE POINT OF THE STATE, SO IT IS PRINTED WITH IT.** A
     // split whose two sides read the same to an operator is a vocabulary
