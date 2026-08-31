@@ -94,12 +94,29 @@ pub struct Undeclarable {
 pub fn tools(table: &Table) -> Result<Vec<Tool>, Undeclarable> {
   let mut out = Vec::new();
   for entry in crate::dispatch::shipped_entries(table) {
-    let Some(facade) = entry.facade.as_deref() else {
-      continue;
-    };
+    // **THE ORDER IS THE FIX, AND IT USED TO BE THE OTHER WAY ROUND** (hv,
+    // 2026-08-31, AC-09.6). A row the table does not expose is legitimately
+    // skipped, so that question is asked FIRST and its `continue` means what it
+    // says. Only then is a missing facade a defect rather than a shape: an
+    // EXPOSED row with nothing to serve it was reached by the facade arm and
+    // silently dropped, so the table could promise a tool the surface never
+    // published and NOTHING said so -- neither the tier, which was simply
+    // shorter, nor any instrument, because a roster derived from this function
+    // agrees with a short list as readily as with a complete one.
+    //
+    // **REFUSING IS THE POINT, NOT A SIDE EFFECT.** hv declined shipping as-is
+    // and declined a loud refusal with the offending rows deferred; this arm is
+    // the second half of that ruling and lands with the table already narrowed,
+    // never ahead of it.
     if !entry.exposed_on_mcp {
       continue;
     }
+    let Some(facade) = entry.facade.as_deref() else {
+      return Err(Undeclarable {
+        path: entry.path.clone(),
+        why: "the table exposes it on MCP and declares no `facade` to serve it".to_string(),
+      });
+    };
     out.push(Tool {
       name: tool_name(&entry.path),
       path: entry.path.clone(),
@@ -1464,6 +1481,86 @@ mod tests {
       "only {} tools generated, which is too few to be the read's 59 -- the population query \
        has stopped reading the fields",
       got.len()
+    );
+  }
+
+  /// **THE REFUSAL IS DRIVEN, NOT ASSUMED** (`AC-09.6`).
+  ///
+  /// The live table generates every tool cleanly, and it does so because ic
+  /// narrowed all 21 exposed-with-no-facade rows at `f435cc10`. That green is
+  /// the RIGHT outcome and it is NOT evidence the refusal works -- a `continue`
+  /// where this arm belongs produces exactly the same green, which is the
+  /// defect `AC-09.6` exists to end. So the offending row is PLANTED here.
+  ///
+  /// The population comes from [`dispatch::shipped_entries`] rather than a
+  /// second walk of the families: the test must plant its row in the same set
+  /// `tools` reads, and a hand-rolled traversal is how a fixture ends up
+  /// somewhere the subject never looks. Measured the same day: a walk that
+  /// descended into `flags` counted `graphql --variables` as a command row and
+  /// reported 61 exposed where the production selector sees 60.
+  #[test]
+  fn an_exposed_row_with_no_facade_is_refused_by_name() {
+    let mut table = dispatch::table();
+    let victim = dispatch::shipped_entries(&table)
+      .into_iter()
+      .find(|e| e.exposed_on_mcp && e.facade.is_some())
+      .map(|e| e.path.clone())
+      .expect("the table must ship at least one exposed row with a facade");
+
+    strip_facade(&mut table, &victim, true);
+
+    let err = tools(&table).expect_err("an exposed row with no facade must refuse");
+    assert_eq!(err.path, victim, "the refusal must name the offending row");
+    assert_eq!(
+      err.why, "the table exposes it on MCP and declares no `facade` to serve it",
+      "the refusal must say what is wrong, not merely that something is"
+    );
+  }
+
+  /// The other half of the same order, and the reason the arms cannot be
+  /// swapped back: a row the table does not expose is LEGITIMATELY skipped, so
+  /// stripping its facade must stay silent. Without this, "refuse a missing
+  /// facade" would read as license to refuse every row lacking one.
+  #[test]
+  fn an_unexposed_row_with_no_facade_is_skipped_in_silence() {
+    let mut table = dispatch::table();
+    let victim = dispatch::shipped_entries(&table)
+      .into_iter()
+      .find(|e| !e.exposed_on_mcp)
+      .map(|e| e.path.clone())
+      .expect("the table must ship at least one unexposed row");
+
+    strip_facade(&mut table, &victim, false);
+
+    let generated = tools(&table).expect("an unexposed row is not this arm's business");
+    assert!(
+      !generated.iter().any(|t| t.path == victim),
+      "`{victim}` is not exposed and must not have become a tool"
+    );
+  }
+
+  /// Plant the offending shape on ONE row, by path.
+  ///
+  /// `shipped_entries` hands out shared references, so the choice is made
+  /// through it and the mutation is applied by path equality over both homes a
+  /// shipped entry can live in -- a family's `entries` and `new_surface`.
+  fn strip_facade(table: &mut dispatch::Table, path: &str, exposed: bool) {
+    let mut found = false;
+    for entry in table
+      .families
+      .iter_mut()
+      .flat_map(|f| f.entries.iter_mut())
+      .chain(table.new_surface.iter_mut())
+    {
+      if entry.path == path {
+        entry.facade = None;
+        entry.exposed_on_mcp = exposed;
+        found = true;
+      }
+    }
+    assert!(
+      found,
+      "planted no fixture: `{path}` is in no family and not in new_surface"
     );
   }
 
