@@ -79,7 +79,7 @@ Work packages are the units that get done. A thread with one work package is fin
   $ intent wp start ST0001/01
 ```
 
-`intent wp list ST0001` shows where they stand. Statuses are `not-started`, `wip`, `done` and `cancelled`, and they move with `wp start`, `wp done`, `wp cancel` and `wp reopen` rather than by editing a field.
+`intent wp list ST0001` shows where they stand. Statuses are `not-started`, `wip`, `done` and `cancelled`, and they move with `wp start`, `wp done`, `wp cancel` and `wp reopen` rather than by editing a field. **`wp cancel` requires `--reason`** and refuses without one, because the reason is recorded on the work package as the reason for its current state. **`wp reopen` is legal only from `done`** — the machine has no terminal states, so there is always a route, but it goes through the states rather than around them.
 
 ## 4. State the acceptance criteria
 
