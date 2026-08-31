@@ -80,3 +80,5 @@ Then read a thread you know well and check it against what you remember writing.
 ---
 
 Back to [the documentation index](index.md).
+
+**`intent <family> help` does not answer, on any family** (`intent#0203`). In v2, `intent st help` and its siblings printed the family's usage. On `v3.0.0` all nine families -- `st`, `wp`, `ac`, `at`, `todo`, `issues`, `claude`, `agents`, `lang` -- answer `error: unrecognized subcommand 'help'` at exit 1. **Use `--help` instead: `intent st --help` answers on the same build.** The top-level spelling is the confusing part, because the two diverged: bare `intent help` also refuses on `v3.0.0` (that is `intent#0086`, whose remedy text is itself wrong), and it has since been restored at `HEAD` while the per-family spelling has not. So a script that called `intent wp help` needs `intent wp --help`, and it needs it on every version of v3 published so far.
