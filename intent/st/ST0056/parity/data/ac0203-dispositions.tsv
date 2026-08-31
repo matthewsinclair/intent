@@ -102,7 +102,6 @@
 0071	stated	docs/known-defects.md	intent#0071
 0077	stated	docs/known-defects.md	intent#0077
 0078	stated	docs/known-defects.md	intent#0078
-0079	stated	docs/known-defects.md	intent#0079
 0080	stated	docs/known-defects.md	intent#0080
 0081	stated	docs/known-defects.md	intent#0081
 0082	stated	docs/known-defects.md	intent#0082
@@ -124,7 +123,6 @@
 0143	stated	docs/known-defects.md	intent#0143
 0145	stated	docs/known-defects.md	intent#0145
 0146	stated	docs/known-defects.md	intent#0146
-0149	stated	docs/known-defects.md	intent#0149
 0153	stated	docs/known-defects.md	intent#0153
 0156	stated	docs/known-defects.md	intent#0156
 0162	stated	docs/known-defects.md	intent#0162
@@ -136,5 +134,8 @@
 0177	stated	docs/known-defects.md	intent#0177
 0180	stated	docs/known-defects.md	intent#0180
 0181	stated	docs/known-defects.md	intent#0181
-0189	stated	docs/known-defects.md	intent#0189
 0075	not-reader-reachable	internal-tooling -- view_skew_check is a parity instrument; no published page or --help routes a reader to it	
+
+0079	not-reader-reachable	not-in-published-build -- driven against the v3.0.0 keg: st new writes acceptance.md AND info.md there. The defect arrived after the tag.	
+0189	not-reader-reachable	not-in-published-build -- driven against the v3.0.0 keg: edit refuses --path with `unexpected argument`, so the kind-blindness is post-tag.	
+0149	not-reader-reachable	not-in-published-build -- driven against the v3.0.0 keg: edit refuses --path with `unexpected argument`, so the kind-blindness is post-tag. Its absence is stated on the known-defects page so a reader is not left guessing.	

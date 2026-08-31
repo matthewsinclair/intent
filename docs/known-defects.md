@@ -4,6 +4,8 @@
 
 **A defect is on this page if you can hit it by following the documentation correctly.** That is the whole test. Something that only bites a maintainer editing the register, or a five-session team sharing one checkout, is recorded elsewhere and deliberately kept off this page.
 
+**Every entry below has been driven against the v3.0.0 keg itself, or is marked where it has not.** That check is not decoration: the first draft of this page was written from our issue titles, and driving it found entries that describe defects which arrived AFTER the tag and are not in this build at all. Those have been removed. An entry that names a condition this harness cannot create says so in the entry.
+
 Two things worth knowing before the list. **An issue being closed in our register does not mean the fix is in your build** — several entries below are closed on `main` and still live in v3.0.0, because the fix landed after the tag. And **an issue being open does not always mean it is still broken**; where we know that, the entry says so.
 
 ## Installing and upgrading
@@ -17,8 +19,6 @@ Two things worth knowing before the list. **An issue being closed in our registe
 **`intent upgrade` on a v2 project blocks on an interactive prompt with no terminal** (`intent#0071`). In CI, or any non-interactive context, it waits for a read that can never arrive. Run it from a terminal.
 
 ## Threads
-
-**`intent st new` reports `created` and writes no files** (`intent#0079`). The thread is real and it is listed in `.intentfiles` exactly like a materialised one, but nothing appears on disk until you run `intent sync --to-disk`. The `--dehydrate` flag's own help implies the default writes them; it does not.
 
 **`intent st list` shows only in-progress threads and does not say so** (`intent#0121`). Threads in other statuses are absent from the output with nothing indicating a filter is applied, so a short list reads as a short project. Pass `--status all` to see everything.
 
@@ -34,7 +34,7 @@ Two things worth knowing before the list. **An issue being closed in our registe
 
 ## Work packages
 
-**`intent wp list` returns success and zero rows for threads whose work packages are in the store** (`intent#0103`). The rows exist and the listing does not show them, so an empty result does not mean an empty thread.
+**`intent wp list` returns success and zero rows for BUCKETED threads whose work packages are in the store** (`intent#0103`). A thread you created yourself lists its work packages correctly; the defect is on threads that arrived through bucketing, so an empty result there does not mean an empty thread.
 
 ## Criteria and tests
 
@@ -60,7 +60,7 @@ Two things worth knowing before the list. **An issue being closed in our registe
 
 **`intent issues add` creates a body that no verb can write** (`intent#0090`), and the refusal that makes it unreachable names the form rather than the field, so the message points at the wrong thing.
 
-**`intent edit` accepts a kind and then answers about a different entity** (`intent#0149`, `intent#0189`). `intent edit issue 148 --path` refuses with `no steel thread ST0148 in this project`. The parser accepts the kind, the resolver drops it, and the refusal is about an entity you never named. Being told about a thread means the tool discarded the one piece of information it asked you for.
+**`intent edit` in v3.0.0 does not accept `--path`** and refuses with `unexpected argument`. The kind-blindness recorded as `intent#0149` and `intent#0189` -- where the tool takes a kind, drops it, and answers about a different entity -- arrived after the tag and is not in this build.
 
 **`intent edit` refuses the address form its own remedy tells you to use** (`intent#0153`).
 
