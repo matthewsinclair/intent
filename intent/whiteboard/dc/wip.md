@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-08-31 12:15Z
+heartbeat_at: 2026-08-31 12:47Z
 status: active
-focus: "LOCALFOLD 2026-08-31 12:15Z: 56065 -> 53227 bytes, and it shrank while absorbing eight commits and gaining two classes. Day narrative to .history/20260831/day-narrative-1049Z.md. NOTHING IN FLIGHT, tree clean of me. Under vc coordination. HELD DELETE IS THREE VERBS (config, ext, learn) after hv's 2026-08-26 fileindex ruling was found UNEXECUTED and archive-only; vc carries the resized shape to hv and I do not re-put it. hv RULED at.recast: NO undo verb -- closed, documentation half still owed. ON THE BOUNCE: the nine ST0068 rows, unblocked and next."
+focus: "ACTIVE on ST0068. AC-02.1 DRIVEN AND LANDED (e2a7a0e4, cafde415): the published getting-started page reached ZERO satisfied criteria, failed 4 of its 20 steps, and 3 of those were its last 5. Six defects, rewritten, re-driven 30 commands zero failures to ac gate PASS. Two product findings routed to vc: render.rs:4461 refuses --lang on a reason that is FALSE, and ac new --kind defaults to non-test so the page built a thread whose tests were decorative. NOT CLAIMING AC-02.1 -- not a fresh machine, install half undriven, and the AT is weaker than the AC vc rewrote. NEXT: AC-02.3, 103 open of 164, denominator asserted."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -32,11 +32,17 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-**NOTHING IN FLIGHT. TREE CLEAN OF ME. Working under vc's coordination (hv, 2026-08-31).**
+**ST0068, under vc's coordination. AC-02.1 is DRIVEN AND LANDED; AC-02.3 is next.**
 
-**NEXT, AND IT IS UNBLOCKED: THE NINE ST0068 ROWS** -- they were waiting only on `at.recast`, which hv has now CLOSED (no undo verb), so they are takeable. vc ordered (1) the census gap and (4) `agents init --template` ahead of them; both are done.
+**AC-02.1 -- THE PUBLISHED PAGE REACHED ZERO SATISFIED CRITERIA.** Driven under the contaminant control the row names: fresh HOME, PATH scrubbed to the v3 release dir alone, INTENT_HOME set per install.md's source route, fresh `git init` inheriting no `core.hooksPath`. 4 of 20 steps failed and 3 were the last 5. Six defects: `init --lang rust` refuses at the FIRST command; nothing creates the project; **`ac new --kind` defaults to `non-test`, so all three criteria the page creates ignore their tests while section 6 states the opposite as the model's central promise**; the non-test example covers an AC section 4 never creates; a green row's cited file must EXIST; and it must CARRY THE ROW'S OWN LITERAL ID. Rewritten to the proven sequence and re-driven: **30 commands, zero failures, empty directory to `ac gate` PASS and a closed thread.**
 
-**Eight commits on 2026-08-31; narrative in `.history/20260831/day-narrative-1049Z.md`.** What survives here is rules and live state only.
+**THE ORDER OF DISCOVERY IS THE TRANSFERABLE PART: #6 WAS ONLY REACHABLE BY FIXING #5 AND RE-RUNNING.** A drive that stops at its first failure reports one defect and hides every one behind it. Drive to green, then count the passes -- the count is the claim.
+
+**TWO PRODUCT FINDINGS, NEITHER MINE TO RULE, BOTH WITH vc.** `render.rs:4461` refuses `--lang` because _`intent lang init` is not implemented_ -- **it IS, driven rc=0** -- so the conclusion is right (`init` reads the flag nowhere in its 4442-4591 body; positive control 118 `lang` hits in the file), the reason is FALSE, and the remedy tells the reader to wait for a command that shipped. **The rotted-proof class in executable form.** And `ac new --kind`'s `non-test` default is an hv question wearing a docs bug.
+
+**NOT CLAIMING AC-02.1, THREE REASONS.** Not a machine that has never seen this repo. The install half is UNDRIVEN -- brew `intent 3.0.0_1` is here unlinked AND pinned by hv, so re-driving it mutates hv's environment. And **the AT is WEAKER than the AC**: vc rewrote AC-02.1 on 2026-08-30 and AT-02.1 still carries the pre-rewrite bar, so the fixed page meets the AT and not the AC.
+
+**ST0058's `AC-00.1` FALSIFIER HAS STOPPED FIRING -- RE-MEASURED, NOT ASSUMED.** The pair was rebuilt during my boot on tty s043 (no node's tty); both carry `b1f9cd50` clean from one `--workspace --bins --release` pass and `self_provenance_check.sh` says `currency ok`. **The `--version` skew is not skew**: `emit_source_commit` pins `rev-list -1 HEAD` over `native/rust` + `surface` + `docs/design`, so it names the last commit touching the BUILD'S INPUTS by design. Separately `intentd --version` prints no commit where `intent --version` does, so **the pair cannot be compared through `--version` at all** -- the embedded marker is the only route.
 
 ## TODO
 
