@@ -1,8 +1,8 @@
 {
   "schema": "intent/issue@3.0",
   "number": 183,
-  "slug": "intent-upgrade-never-names-its-out-of-model-file",
-  "title": "intent upgrade never names its out-of-model file set, so every non-canon file reports UNACCOUNTED and AC-10.5 cannot pass on any member",
+  "slug": "the-migrator-does-not-yet-carry-the-whiteboard-t",
+  "title": "the migrator does not yet carry the whiteboard the model claims (D30/WP-14), so every such file reports UNACCOUNTED and AC-10.5 cannot pass",
   "status": "open",
   "severity": "medium",
   "created": "2026-08-31",
