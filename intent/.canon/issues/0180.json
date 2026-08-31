@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 180,
+  "slug": "agents-init-template-is-declared-helped-and-acce",
+  "title": "agents init --template is declared, helped and accepted, and no renderer arm reads it",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-31",
+  "reporter": "Matthew Sinclair",
+  "body": "CLASS: AC-06.8 -- a declared-and-inert flag. `--help` lists it, the parser accepts it, the exit code is 0, and nothing happens; an operator cannot tell it from a working flag at the surface they read.\n\nFOUND 2026-08-31 by the per-entry wiredness probe in `flag_reachability.rs` (landed 5bd42c95). `agents` refuses bare (issue 0175), so the family-keyed probe it replaced had deferred every flag beneath that root, and `agents init --template` had never once been graded.\n\nEVIDENCE: `agents init` is wired (it answers inside a project). The id `template` is spelled nowhere in `native/rust/crates/intent-cli/src` -- no clap accessor site and no string literal, which is the gate's deliberately conservative conjunction; nothing in intentsvcs is handed the ArgMatches, so the read cannot be hiding one crate down.\n\nTHE REMEDY IS A SCOPE DECISION, NOT A WIRING JOB (the criterion's own words): either wire the flag to what v2's `agents init --template` did (functional parity, hv's ruling), or withdraw it from `surface/dispatch-table.json` so `--help` stops advertising it. Until one of those happens the flag is held visible in `INHERITED_UNREAD` with dc as owner, and the ratchet reds the moment it stops being unread.\n\nOWNER: dc (ST0058; `agents init` landed at c75a5b1a). Sibling of the same class and day: `llm usage_rules --symlink` (WP-09).\n"
+}

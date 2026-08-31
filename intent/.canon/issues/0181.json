@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 181,
+  "slug": "llm-usage-rules-symlink-is-declared-helped-and-a",
+  "title": "llm usage_rules --symlink is declared, helped and accepted, and llm_usage_rules() takes no ArgMatches",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-31",
+  "reporter": "Matthew Sinclair",
+  "body": "CLASS: AC-06.8 -- a declared-and-inert flag. `--help` lists it, the parser accepts it, the exit code is 0, and nothing happens.\n\nFOUND 2026-08-31 by the per-entry wiredness probe in `flag_reachability.rs` (landed 5bd42c95). `llm` refuses bare, so the family-keyed probe it replaced had deferred every flag beneath that root, and `llm usage_rules --symlink` had never been graded -- this one was NOT in the prediction written before the run, which named `agents init` as a candidate and not this; recorded as the unpredicted half.\n\nEVIDENCE: `render.rs:6452` reads `Some((\"usage_rules\", _)) => llm_usage_rules()` -- the arm discards its ArgMatches entirely, so no flag on the row can be read by construction. `\"symlink\"` appears once in the crate, at `mcp.rs:1005`, rendering an unrelated enum; it is not a read of this flag.\n\nTHE REMEDY IS A SCOPE DECISION, NOT A WIRING JOB: either wire the flag to what v2's `--symlink` did (link the root `usage-rules.md` to its source rather than copying it -- parity, hv's ruling), or withdraw it from `surface/dispatch-table.json` so `--help` stops advertising it. Until then it is held visible in `INHERITED_UNREAD` with WP-09 as owner, and the ratchet reds the moment it stops being unread.\n\nOWNER: ic (WP-09, the `llm` family). Sibling of the same class and day: `agents init --template` (dc).\n"
+}
