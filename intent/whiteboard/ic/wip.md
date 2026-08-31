@@ -20,6 +20,8 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 - BUILT: **AC-01.1** (no product logic), **01.9** (login-shell PATH + one shell-out), **01.2/06** (health display -- DaemonService polls `daemon status --format json`, the tinted tortoise + state-gated menu, unlink NEVER on stale), **01.8-derivation** (tint at paint time, no cache), **01.5** (intent:// -> `intent edit <addr> --path`, verified). Commits: `5d915bfe` spine, `94ea6126` health, `2832a7fe`+`ce03a6d3` handler, `176fceb2` the mcp red-test/protocol fix.
 - _*NEXT -- the int macos app-* build verb, chunk 1 (no-creds)._* Reference: Geodica's `bin/geodica_app` (511-line ELIXIR), TRANSLATE to bash into dc's `cmd/macos`, reuse its `kc_get`/`IDENTITY`/`notarytool` unit. Chunk 1: app-doctor + app-verify (refusal arms) + **app-icons** (= AC-01.8 asset, `rsvg-convert docs/design/intent-logo.svg`) + app-build/run/test/install (xcodebuild; SYMROOT/OBJROOT off the Dropbox tree; stamps as build settings; exec-not-`open`). **PING dc first (W4, one hand); draft the diff; dc reviews.** Chunk 2: app-sign/notarize + dc's 3 header-truth edits + the bundle-embedded-marker read.
 
+**NOTE (fold, 2026-08-31 14:28Z):** an uncommitted `address_url` emit-partner sits in `show.rs` (my file) -- a peer is writing the URI EMIT side that the split assigned me (`ic takes ... the emit side`). RE-CHECK ownership at pickup before writing it; if it has landed, do not duplicate.
+
 ## TODO
 
 1. _*The int macos app-* verb_* -- chunk 1 then chunk 2 (above). THE piece that makes the app build/run/test. Notarise arm = hv's ADC.
