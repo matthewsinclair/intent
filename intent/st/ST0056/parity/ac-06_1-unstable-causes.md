@@ -45,7 +45,32 @@ Run in a detached worktree at the measured revision, because three peers are liv
 
 `125f601d` (AC-12.1, 2026-08-30) deleted `intent_claude_prime`, `intent_claude_rules`, `intent_claude_skills`, `intent_claude_subagents` and `intent_claude_upgrade`. **It deleted no tests.** `intent/plugins/claude/bin/` now holds `intent_claude_cwi` and `intent_claude_hook` and nothing else.
 
-Every one of the 24 files fails with the same shape -- `error: Plugin command not found: .../intent_claude_<name>` -- and the failures distribute across exactly the five pruned names. These are v2 conformance tests exercising commands **v3 deliberately does not have**, so they are expired `keep` and `pending` rows rather than broken tests, and **the remedy is a disposition, never a repair.**
+Every one of the 24 files fails with the same shape -- `error: Plugin command not found: .../intent_claude_<name>` -- and the failures distribute across exactly the five pruned names.
+
+**CORRECTED 2026-08-31, BEFORE ANY ROW WAS RECLASSIFIED (dc's challenge, driven by cc against both binaries).** This paragraph read _these are v2 conformance tests exercising commands v3 deliberately does not have, so they are expired rows_. **That is false for three of the five commands**, and acting on it would have deleted coverage for shipping surface. `125f601d` deleted the v2 PLUGIN SCRIPTS (`intent/plugins/claude/bin/intent_claude_*`), **not the commands** -- v3 carries its own Rust implementations. Verbs INVOKED, not `--help`'d, in a project each binary initialised, rc taken without a pipe:
+
+| command                 | release `abe69906` | debug `f9709004` |
+| ----------------------- | ------------------ | ---------------- |
+| `claude prime`          | rc=2 UNWIRED       | rc=2 UNWIRED     |
+| `claude rules list`     | rc=0 **WIRED**     | rc=0 **WIRED**   |
+| `claude skills list`    | rc=0 **WIRED**     | rc=0 **WIRED**   |
+| `claude subagents list` | rc=2 UNWIRED       | rc=2 UNWIRED     |
+| `claude upgrade`        | rc=0 **WIRED**     | rc=0 **WIRED**   |
+
+**`--help` CANNOT ANSWER THIS AND WOULD HAVE SAID ALL FIVE ARE WIRED**: it renders for a DECLARED command whether or not an arm exists. Both dc and cc reached for it first.
+
+**So the files are not expired. They are AIMED AT A DEAD ENTRY POINT FOR A VERB THAT STILL SHIPS**, and the disposition is per-row rather than per-cause:
+
+| disposition                                         | count | rows                                                                                                                                                                                                           |
+| --------------------------------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| only-UNWIRED -- retire defensible                   | 3     | `agent_commands`, `claude_prime`, `ambient_project_root_guard`                                                                                                                                                 |
+| only-WIRED -- **retire would delete live coverage** | 19    | `rule_index`, `rule_validator`, `skills_commands`, `rule_pack_*` (9), `au`/`co`/`pr_language_code_guard`, `intent_upgrade_dispatcher`, `intent_upgrade_orchestrator`, `no_absolute_home_paths`, `test_autopsy` |
+| MIXED -- wants a per-test split, not a file class   | 2     | `ext_discovery` (rules+skills wired, subagents unwired), `test_diogenes` (skills wired, subagents unwired)                                                                                                     |
+| not this cause                                      | 3     | `plugin_commands`, `config`, `intent_critic`                                                                                                                                                                   |
+
+**THE REGISTER'S OWN HEADER NAMES THIS HAZARD** -- _a wrong `retire` is coverage that disappears at the cut with nobody watching, which is the defect the AT grammar existed to kill_. The uncorrected reading would have inflicted exactly that on `rules` and `skills`, across nineteen rows, while looking like tidy bookkeeping.
+
+**HOW THE ERROR WAS MADE, recorded because it is this document's own named class arriving inside this document.** _The plugin script is deleted_ was read as _the command is gone_ -- the mechanism taken from an adjacent fact rather than from the thing itself. That is the identical error the closing section corrects on `plugin_commands.bats`, committed in the same report that names it. **The only thing separating the two is that one had been driven and the other had not.**
 
 Two entries in this class do not present as _command not found_ and are recorded separately so the next reader does not pattern-match past them:
 
