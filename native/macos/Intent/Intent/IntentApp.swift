@@ -119,30 +119,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   // MARK: - intent://
 
   /// LaunchServices delivers every intent:// URL here -- the app is the
-  /// registered handler -- and the handler hands the address to the ONE resolver
-  /// via `intent explore`, opening what it names (AC-01.5). The app parses no
-  /// address itself: it is a client of the addressing rules, never a second
-  /// resolver.
+  /// registered handler -- and the handler hands the WHOLE address to the one
+  /// resolver, opening what it names (AC-01.5). The app parses no address
+  /// itself: it is a client of the addressing rules, never a second resolver.
   func application(_ application: NSApplication, open urls: [URL]) {
     for url in urls {
       openAddress(url.absoluteString)
     }
   }
 
+  /// AC-01.5, gated. The resolver door -- a pipe-safe CLI verb that accepts an
+  /// `intent://` URL and yields the entity to open -- is the URI-uniformity
+  /// work, in flight (cc's narrow-door promote-then-narrow). `intent explore`
+  /// accepts the URL but needs a terminal a `.app` cannot give it, and
+  /// `intent edit` takes <kind> <id>, not a URL, until those doors accept the
+  /// scheme. So this holds rather than parsing the address here -- which the
+  /// row forbids -- and wires to that door the moment it lands.
   private func openAddress(_ address: String) {
-    Self.logger.info("open \(address, privacy: .public)")
-    Task {
-      do {
-        let result = try await IntentCLI.capture(["explore", address])
-        if !result.isSuccess {
-          showAlert(
-            "Could not open \(address)",
-            message: result.stderr.isEmpty ? result.stdout : result.stderr)
-        }
-      } catch {
-        showAlert("Could not open \(address)", message: error.localizedDescription)
-      }
-    }
+    Self.logger.info(
+      "intent:// open \(address, privacy: .public) -- awaiting the address-resolver door")
   }
 
   // MARK: - Actions
