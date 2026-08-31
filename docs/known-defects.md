@@ -84,6 +84,12 @@ This bounds the canon-editing route that [Getting started](getting-started.md) u
 
 The same section inserted **before** the banner is refused, by name, with the text left intact — so this is one hole in a working guard rather than a missing one. `intent doctor` does report the drift as `view-skew`, so the loss is detectable after the fact; what does not report it is the verb you ran to make the edit land. **Append above the banner, or put the text in `## Objective` or `## Context`, which are the two sections that round-trip.**
 
+## Searching
+
+**A hyphen in a search query is read as SQL and leaks the error** (`intent#0194`). Driven on both builds: `intent search canon-ignore` exits 1 with `sqlite: no such column: ignore`, while `intent search canon` returns hits normally. The query goes to FTS5 unescaped, so the hyphen is parsed as an operator and the term after it as a column name. Any query containing `-` fails the same way, which includes most of this project's own vocabulary -- `read-back`, `at-lint`, `to-write`. Quote nothing and search a single word; there is no escaping syntax that helps, because the escaping is missing on the tool's side of the call.
+
+**What search gets right, so this is not read as worse than it is:** an unindexed project says so rather than returning an empty list, in the tool's own words -- `nothing is indexed, so this search could not have matched -- an empty result here does NOT mean <term> is absent`. That is the failure mode that would actually mislead a reader, and it is closed.
+
 ## Declared and not implemented
 
 Each of these is listed in `--help` and refuses when called. Driven against v3.0.0, exit codes as shown.
