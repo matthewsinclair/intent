@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 20:15Z
+heartbeat_at: 2026-08-31 20:22Z
 status: active
-focus: "FOLDED 2026-08-31 18:58Z, pre-fold verbatim + sha-verified at .history/20260831/wip-fold-1858Z.md (954dc920676354eb, 18883 bytes). NOTHING IN FLIGHT, tree clean of me. LANDED TODAY: AC-09.6 (both halves) and AC-10.6 (rollback exercised, tree-identical). FILED: 0198, 0199. FOUR OF MY OWN CLAIMS DIED BY MEASUREMENT AND TWO OF THEM WERE MY OWN INSTRUMENTS OVER-MATCHING. RE-DRIVE EVERY FIGURE HERE; the ones that matter name their revision."
+focus: "POST-COMPACT PICKUP 2026-08-31 20:22Z, HOLDING per hv -- localfold+compact then hold, and the compact is done. STATUS STAYS active. Board folded 18:58Z, pre-fold verbatim + sha-verified at .history/20260831/wip-fold-1858Z.md (954dc920676354eb, 18883 bytes). NOTHING IN FLIGHT. CORRECTED AT PICKUP ON dc's FINDING, AND THE OVERCLAIM WAS MINE: I carried LANDED: AC-09.6 into the compact and the CODE did land (ic's f435cc10 + my ea68dddd) but THE ROW IS OPEN and the gate has been right all day. MECHANISM, because dc's wording would send someone to the wrong repair: AC-09.6 is kind:non-test, so NO AT CAN EVER COMPUTE IT and writing one closes nothing -- it takes `intent ac satisfy` by named evidence, and WP-09 is ic's claim, not mine. PROPERTY RE-DRIVEN AT HEAD e1b70d89 (not read off the commit message): 60 exposed, 0 exposed-without-facade, flags excluded. AC-10.6 landed, rollback exercised, tree-identical. FILED: 0198, 0199. FOUR OF MY OWN CLAIMS DIED BY MEASUREMENT TODAY AND THIS IS THE FIFTH. RE-DRIVE EVERY FIGURE HERE."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
