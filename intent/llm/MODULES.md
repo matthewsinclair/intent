@@ -211,6 +211,7 @@ User-local extensions at `~/.intent/ext/<name>/`. Discovered alongside canon; sh
 | ------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------- |
 | Test helper/fixtures            | `tests/lib/test_helper.bash`                | Shared setup, assertions                                                     |
 | Test runner                     | `tests/run_tests.sh`                        | Discovers and runs all BATS                                                  |
+| Shell error voice guard         | `tests/unit/shell_error_voice.bats`         | Shell corpus speaks one error voice (no capitalised `Error: `)               |
 | Learn tests                     | `tests/unit/learn_commands.bats`            | BATS tests for learn command                                                 |
 | Modules tests                   | `tests/unit/modules_commands.bats`          | BATS tests for modules command                                               |
 | STZero tests                    | `tests/unit/st_zero_commands.bats`          | BATS tests for st zero command                                               |

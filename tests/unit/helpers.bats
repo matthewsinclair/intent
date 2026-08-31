@@ -195,13 +195,10 @@ stampv() {
   [[ "$output" != *"reached"* ]] || fail "error() returned instead of exiting"
 }
 
-@test "no shell command emits a capitalised Error: prefix" {
-  # Mechanical, because a single voice is only single if nothing reintroduces
-  # the other one -- grep for the rule rather than reading for it (0011). Scoped
-  # to the shell CLI: the autopsy .exs is a different runtime, the Elixir
-  # archetype template is generated content for a USER's app, and the rule
-  # library's hits are Rust enum names and a deliberate "## Bad" example.
-  run grep -rn '"Error: ' "${INTENT_PROJECT_ROOT}/bin" "${INTENT_PROJECT_ROOT}/intent/plugins/claude/bin" "${INTENT_PROJECT_ROOT}/intent/plugins/agents/bin"
-  [ "$status" -ne 0 ] || fail "capitalised Error: prefix reintroduced:
-$output"
-}
+# THE CAPITALISED-`Error: ` CORPUS ARM MOVED OUT OF THIS FILE, 2026-08-31.
+# It was the one arm here that never sourced bin/intent_helpers -- it greps
+# directories -- so it is the one arm with a job after the prune deletes this
+# file's subject. It now lives in `tests/unit/shell_error_voice.bats`, where it
+# gained the denominator and the positive control it never had: as written here
+# it could not tell grep's exit 1 (clean corpus) from exit 2 (unreadable
+# corpus), and passed on both.
