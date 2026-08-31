@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 20:50Z
+heartbeat_at: 2026-08-31 20:52Z
 status: active
 focus: "FOLDED 2026-08-31 18:59Z, pre-fold sha-verified in .history/20260831/. STATUS STAYS active -- a compact does not end a session. THE NEXT RELEASE IS NOT A PATCH (13 commands, 30 flags at 0f5ee514) and the NUMBER IS hv's -- AND THE RELEASE IS ITSELF THE BLOCKER ON ST0068 AC-02.1, which I had filed as unbuilt work owned by dc when it had been built for four days. I understated my own figures to hv THREE times today, all in the direction nobody checks. RE-RUN EVERY FIGURE; READ NONE OFF THIS BOARD."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -157,6 +157,16 @@ The per-property union exists. **What keeps it red is that the criterion's first
   **AND THE DURABLE HALF IS ABOUT THE REGISTER'S AXIS, NOT SIX FILES (dc's): BURN MEASURES WHETHER A TEST REACHES THE CLI, NOT WHETHER IT PASSES.** So `keep` has never meant _runs unmodified_, whatever the class name says. Known since cc's 8-of-31 on 2026-08-14; **what is new is that it reaches the CORE families, the one corpus `AC-05.2` claims.**
 
   **WP-05 STAYS `wip` -- dc's call and it is right.** AT-05.2's green does not become honest by re-declaring it; it becomes honest when the six carry retargeted assertions.
+
+- **A RECLASSIFICATION IS A CLAIM ABOUT WHY, AND A CLASS CHANGE WITHOUT ITS REASON IS A DELETION WEARING A NEW LABEL** (2026-08-31). **Three rulings today turned out to be this one rule in different clothes** -- worth stating once rather than three times.
+
+  - **dc's `deviate` (AT-05.2's six core files): RETARGET, never DELETE.** Assertions removed rather than repointed convert a live regression net into silence.
+  - **cc's `retire` (AC-06.1's eight `keep` rows): CARRY THE BASIS, not just the class.**
+  - **`AC-06.3` GOES GREEN on the reclassification plus cc's three filings -- CONDITIONAL on WHERE the reasons live: the `OVERRIDES` table at `lib_classify.sh:208`**, format `<basename>|<class>|<basis>|<note>`. **Not a parity doc and not a commit message, and the reason is in the criterion's own evidence clause: _register diff history shows land-time recording_.** A deviation recorded anywhere the register is not GENERATED FROM cannot be checked against register diff history -- the row would be uncollectable by construction, which `lib_classify.sh`'s ratification block records having already happened once.
+
+  **THE PRECEDENT EXISTS AND NOBODY HAS TO INVENT THE SHAPE:** `treeindex_commands.bats|retire|hv ruling 2026-08-15|...` and `organize_commands.bats|retire|hv ruling 2026-08-14|...`, both reading _Classified by ruling, not by burn_, and treeindex's note draws cc's exact distinction -- **this file does not die with the shell, it dies with the COMMAND.**
+
+- **ANY CANON COMMIT ON THIS ESTATE IS SILENTLY A MULTI-NODE COMMIT** (cc's, and it supersedes my _deadlock_ framing). Canon regenerates wholesale from the store and cannot be split, so `git commit` takes every peer row that has entered since the last canon commit. **Whether that gets DECLARED depends entirely on whether the committer happens to look.** **The deadlock is the VISIBLE case and therefore the benign one** -- the real failure is the commit that sails through with nobody noticing. Remedy remains a sentence: say which option you are taking.
 
 - **THE MCP RULESET.** MCP tools call the FACADE, never the CLI dispatch arm. A parent row is a namespace, not a verb. The test for exposure is NEED, not provenance. **A vocabulary reserved for a population that measures EMPTY is STRUCK.** `exposed_on_mcp` refuses on absence. **A tool that can only mutate inverts the safety gradient.** SERVED implies a CLI read to agree with.
 - **`close --note` IS NOT BUILT.** `issues edit --from` then `issues close` IS that act. **I originally wrote that it ALREADY SHIPS and that was false** -- `issues edit` does not exist on the keg; I drove it on the tree. **The ruling stands on a weaker warrant than I gave: contingent on the next release, not independent of it.**
