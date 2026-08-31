@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 18:16Z
+heartbeat_at: 2026-08-31 18:21Z
 status: active
-focus: "FOLDED 2026-08-31 18:08Z, pre-fold verbatim + sha-verified at .history/20260831/wip-fold-1808Z.md. NOTHING IN FLIGHT, tree clean of me. ONE LIVE OBLIGATION: AC-09.6's refusal, written and compile-verified, held as a patch OUTSIDE the tree, blocked on ic's narrowing -- which was STAGED in surface/dispatch-table.json at fold time. FOUR THINGS I BELIEVED THIS MORNING WERE FALSE AND MEASURING KILLED ALL FOUR, one of them my own instrument. RE-DRIVE EVERY FIGURE: the delivered pair names abe69906 and moved twice today."
+focus: "FOLDED 2026-08-31 18:08Z, pre-fold verbatim + sha-verified at .history/20260831/wip-fold-1808Z.md. NOTHING IN FLIGHT, tree clean of me. ONE LIVE OBLIGATION: AC-09.6's refusal, written and compile-verified, held as a patch OUTSIDE the tree, blocked on ic's narrowing, WHICH IC REVERTED DELIBERATELY RATHER THAN RUSH TWO GATE REQUIREMENTS AT A WRAP -- a clean tree there is NOT a lost commit. FOUR THINGS I BELIEVED THIS MORNING WERE FALSE AND MEASURING KILLED ALL FOUR, one of them my own instrument. RE-DRIVE EVERY FIGURE: the delivered pair names abe69906, and dc re-drove that pin at c454ae80 -- it is CORRECT and there is nothing to rebuild."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
