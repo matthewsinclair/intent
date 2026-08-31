@@ -122,22 +122,29 @@ fn a_browser_gets_the_shell_page_and_the_mark() {
   );
 }
 
-/// **THE PAGE SAYS WHAT IT WAS BUILT FROM, AND WHAT THE ARTEFACT BESIDE IT WAS.**
+/// **THE PAGE NAMES EVERY ARTEFACT IT IS RUNNING, EACH WITH ITS OWN VERSION AND
+/// SHORT COMMIT, AND SAYS NOTHING ABOUT THE RELATIONSHIP BETWEEN THEM.**
 ///
-/// hv asked for the version and hash of "it and the cli and svcs and anything
-/// else built that it's using". Three artefacts with three different kinds of
-/// certainty, so the footer names the relationship rather than printing three
-/// shas as if they were three independent measurements: `intentd` answers for
-/// itself, `intentsvcs` is linked into it and is the same build by
-/// construction, and `intent` is a SEPARATE artefact read from the sibling on
-/// disk.
+/// hv asked for the version and hash of "it and the cli and svcs". **The first
+/// build of this answered with prose about the relationship** -- `intentsvcs,
+/// linked into it`, `the same build` -- **and hv ruled that out as
+/// editorialising** (2026-08-31): *what I want is just the build artefacts by
+/// name, and then the version number and the short git hash that they were each
+/// built against.* The facts carry it without help. Two rows showing different
+/// shas ARE two different builds, and a reader does not need to be told in
+/// words what the numbers already say.
 ///
-/// **THE SIBLING LINE IS THE ONE THAT EARNS THE FOOTER.** Measured 2026-08-17,
+/// **THE SIBLING ROW IS THE ONE THAT EARNS THE FOOTER.** Measured 2026-08-17,
 /// the two binaries of one release were built forty-two hours apart while a
 /// manifest called the pair traceable. A footer reporting only this process
 /// would look complete and say nothing about the half that was wrong -- and on
 /// the very first render of this feature the two shas differed, which is the
 /// state it exists to make visible.
+///
+/// **THE VERSIONS ARE READ, NEVER SUBSTITUTED.** `intent` reports its own,
+/// out of a marker in the sibling binary, because this process spelling its own
+/// `CARGO_PKG_VERSION` there would assert a version from the wrong manifest --
+/// the substitution `source_commit.rs` already rejects for the sha.
 #[test]
 fn the_shell_page_says_what_it_and_its_sibling_were_built_from() {
   let daemon = RealDaemon::start();
@@ -147,31 +154,55 @@ fn the_shell_page_says_what_it_and_its_sibling_were_built_from() {
   let footer = body
     .split("class=\"build\"")
     .nth(1)
-    .unwrap_or_else(|| panic!("the shell page carries no build footer: {body}"));
+    .unwrap_or_else(|| panic!("the shell page carries no build footer: {body}"))
+    .split("</p>")
+    .next()
+    .expect("the footer paragraph closes");
+
+  // **ALL THREE, BECAUSE THE ONE MOST LIKELY TO GO MISSING IS THE SIBLING** --
+  // it is the only row that depends on reading another file off disk, so it is
+  // the only one that can fail while the page still renders.
+  for artefact in ["intent ", "intentd ", "intentsvcs "] {
+    assert!(
+      footer.contains(artefact),
+      "the footer must name `{artefact}`: {footer}"
+    );
+  }
 
   assert!(
     footer.contains(env!("CARGO_PKG_VERSION")),
     "the footer must name the version: {footer}"
   );
-  // **THE COMMIT IS ASSERTED AS PRESENT, NOT AS A LITERAL.** Pinning the sha
-  // would make this file need editing on every commit, and a test nobody can
-  // keep green is one somebody eventually deletes.
+
+  // **THE HASH IS ASSERTED AS SHORT AND PRESENT, NEVER AS A LITERAL.** Pinning
+  // a sha would make this file need editing on every commit, and a test nobody
+  // can keep green is one somebody eventually deletes. What IS pinned is hv's
+  // actual request -- a SHORT hash -- because a footer that regressed to full
+  // shas would satisfy every other assertion here.
+  let longest = footer
+    .split(|c: char| !c.is_ascii_hexdigit())
+    .map(str::len)
+    .max()
+    .unwrap_or(0);
   assert!(
-    footer.contains("intentd") && footer.contains("intentsvcs"),
-    "the footer must name both this binary and the library linked into it: {footer}"
+    longest <= 8,
+    "the footer carries a {longest}-character hex run, so a hash is being \
+     rendered in full where hv asked for the short form: {footer}"
   );
   assert!(
-    footer.contains("linked into it"),
-    "intentsvcs's sha is the SAME sha by construction, and saying so is what stops a reader \
-     taking two numbers for two measurements: {footer}"
+    footer.matches('(').count() == 3,
+    "each of the three artefacts carries its own parenthesised hash: {footer}"
   );
-  // The sibling is reported however it resolves -- same build, different build,
-  // or not readable. **What is refused is silence**: a footer that omitted the
-  // line when it could not read the sibling would read as "there is no CLI".
-  assert!(
-    footer.contains("intent "),
-    "the footer must account for the sibling binary one way or another: {footer}"
-  );
+
+  // **THE PROSE hv REMOVED MUST NOT COME BACK.** It was not wrong, it was
+  // unasked for -- and an assertion is the only thing that stops a later reader
+  // helpfully re-adding an explanation.
+  for editorial in ["linked into it", "the same build", "a different build"] {
+    assert!(
+      !footer.contains(editorial),
+      "the footer editorialises about the relationship between artefacts, which hv ruled out: {footer}"
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------

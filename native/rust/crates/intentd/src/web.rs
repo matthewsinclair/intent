@@ -288,40 +288,69 @@ impl axum::serve::Listener for HandedOver {
 /// reads as a commit -- so the footer shows it verbatim rather than trimming
 /// the prefix off and presenting a sha the tree did not match.
 fn build_footer() -> String {
-  let sibling = match sibling_commit("intent") {
-    Some(commit) if commit == crate::SOURCE_COMMIT => {
-      format!("intent {commit} &mdash; the same build")
-    }
-    Some(commit) => format!("intent {commit} &mdash; <strong>a different build</strong>"),
-    // **NAMED RATHER THAN OMITTED.** A missing line reads as "there is no CLI";
+  // **THREE ARTEFACTS, EACH NAMING ITS OWN VERSION AND COMMIT, WITH NO CLAIM
+  // ABOUT THE RELATIONSHIP BETWEEN THEM** (hv, 2026-08-31). It read
+  // `intentsvcs, linked into it` and `the same build` -- prose asserting a
+  // relationship the reader has not asked about and cannot check at a glance.
+  // The facts stand on their own: two rows carrying different shas SAY they are
+  // different builds, and saying so in words as well was the editorialising.
+  //
+  // **`intent` IS READ OFF THE SIBLING BINARY, BOTH FIELDS.** Substituting this
+  // binary's `CARGO_PKG_VERSION` for it would assert a version from the wrong
+  // manifest -- the same substitution `source_commit.rs` rejects for the sha,
+  // and the two artefacts have been measured forty-two hours apart.
+  //
+  // **`intentsvcs` TAKES THIS BINARY'S COMMIT, AND THAT IS EXACT RATHER THAN
+  // ASSUMED.** It ships no artefact of its own, and its sources are inside the
+  // embed's `DIRT_SCOPE`, so the sha this binary carries is computed over a
+  // scope that includes them. Its version comes from its own crate.
+  let this = crate::SOURCE_COMMIT;
+  let sibling = match (
+    sibling_marker("intent", "version"),
+    sibling_marker("intent", "commit"),
+  ) {
+    (Some(version), Some(commit)) => artefact("intent", &version, &commit),
+    // A binary built before the version marker existed still answers the older
+    // question, so it is named with what it can say rather than dropped.
+    (None, Some(commit)) => format!("intent ({})", short(&commit)),
+    // **NAMED RATHER THAN OMITTED.** A missing row reads as "there is no CLI";
     // this reads as "this daemon could not tell you", which is the true one.
-    None => "intent &mdash; not readable from beside this binary".to_string(),
+    _ => "intent (unreadable)".to_string(),
   };
   format!(
-    "intentd {} {} &middot; intentsvcs, linked into it &middot; {sibling}",
-    env!("CARGO_PKG_VERSION"),
-    crate::SOURCE_COMMIT,
+    "{sibling} &nbsp;|&nbsp; {} &nbsp;|&nbsp; {}",
+    artefact("intentd", env!("CARGO_PKG_VERSION"), this),
+    artefact("intentsvcs", intentsvcs::VERSION, this),
   )
 }
 
-/// The source commit of a sibling binary, read from the ARTEFACT.
+fn artefact(name: &str, version: &str, commit: &str) -> String {
+  format!("{name} {version} ({})", short(commit))
+}
+
+/// The commit in its short form, preserving what the value is NOT.
 ///
-/// **THE SAME MARKER `self_provenance_check.sh` GREPS, AND FOR THE SAME REASON**
-/// -- a manifest states what was meant to be built and only the artefact can
-/// answer what was. The marker is self-delimiting (`[intent-source-commit:...]`)
-/// because rodata packs literals with no separator, so an unterminated one runs
-/// into whatever the linker laid down next; this reads to the closing bracket
-/// rather than taking a fixed width.
-///
-/// Every failure is `None` and none of them is reported as an absent CLI: a
-/// binary that will not read, a marker that is not there, and a sibling that
-/// does not exist are three different facts, and this function is only entitled
-/// to say it could not answer.
-fn sibling_commit(name: &str) -> Option<String> {
-  const OPEN: &[u8] = b"[intent-source-commit:";
+/// **`dirty-` AND `unknown` SURVIVE INTACT, WHICH IS THE WHOLE CARE HERE.**
+/// `source_commit.rs` carries the dirt INSIDE the value precisely so a consumer
+/// cannot drop it by forgetting a second field, and a naive `[..8]` would
+/// render `dirty-b1` -- a string that reads like a short sha and asserts a
+/// cleanliness the build never had.
+fn short(commit: &str) -> String {
+  match commit.strip_prefix("dirty-") {
+    Some(sha) => format!("dirty-{}", sha.chars().take(8).collect::<String>()),
+    None if commit == "unknown" => commit.to_string(),
+    None => commit.chars().take(8).collect(),
+  }
+}
+
+/// A self-delimiting `[intent-source-<key>:...]` marker, read out of a binary
+/// sitting beside this one.
+fn sibling_marker(name: &str, key: &str) -> Option<String> {
+  let open = format!("[intent-source-{key}:");
+  let open = open.as_bytes();
   let path = std::env::current_exe().ok()?.parent()?.join(name);
   let bytes = std::fs::read(path).ok()?;
-  let at = bytes.windows(OPEN.len()).position(|w| w == OPEN)? + OPEN.len();
+  let at = bytes.windows(open.len()).position(|w| w == open)? + open.len();
   let end = at + bytes[at..].iter().position(|b| *b == b']')?;
   String::from_utf8(bytes[at..end].to_vec()).ok()
 }

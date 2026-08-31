@@ -83,6 +83,17 @@ pub(crate) const SOURCE_COMMIT: &str = env!("INTENT_SOURCE_COMMIT");
 /// `intent-cli` having a lib is incidental rather than the pattern).
 #[used]
 static SOURCE_COMMIT_MARKER: &str = env!("INTENT_SOURCE_COMMIT_MARKER");
+/// The artefact's own VERSION, embedded for the same reason as the commit
+/// beside it: a reader holding a SIBLING binary can otherwise only substitute
+/// its own `CARGO_PKG_VERSION`, which is a claim about the reader. `intent` and
+/// `intentd` are separately-built artefacts that have been measured
+/// forty-two hours apart, so a surface naming both must read both.
+///
+/// A SEPARATE MARKER rather than a wider commit one -- five parsers capture
+/// `[intent-source-commit:...]` with `[^]]*`, and widening it would change what
+/// every one of them captures.
+#[used]
+static SOURCE_VERSION_MARKER: &str = env!("INTENT_SOURCE_VERSION_MARKER");
 
 /// How long a connection may stay silent before its task is dropped.
 ///

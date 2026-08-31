@@ -261,4 +261,24 @@ fn emit_source_commit() {
   // unrelated literal. `artefact_source_commit`'s `[^]]*` stops at the bracket
   // this line provides, so these two lines are one contract with one home each.
   println!("cargo:rustc-env=INTENT_SOURCE_COMMIT_MARKER=[intent-source-commit:{value}]");
+
+  // **A SECOND MARKER RATHER THAN A WIDER FIRST ONE, AND THE FORMAT ABOVE IS
+  // WHY.** Four shell parsers and `web.rs` read `[intent-source-commit:...]`
+  // with `[^]]*`; adding a field inside it would change what every one of them
+  // captures, and the emit-side history in this file is precisely a fork that
+  // failed per-binary and quietly. An independent, self-delimiting marker is
+  // additive: nothing that reads the commit sees any difference.
+  //
+  // **THE VERSION IS THE ARTEFACT'S OWN, WHICH IS THE ENTIRE REASON IT IS
+  // EMBEDDED AT ALL.** A reader that wants a sibling binary's version can
+  // otherwise only substitute its own `CARGO_PKG_VERSION`, which is a claim
+  // about the reader rather than about the artefact -- the same substitution
+  // this file's opening argument rejects for the commit. `intent` and `intentd`
+  // are separately-built artefacts that HAVE disagreed (forty-two hours apart,
+  // measured), so the footer that names both must read both.
+  //
+  // Unlike the commit, this carries no dirt annotation: a version is declared in
+  // a manifest and a dirty tree does not make it a different number.
+  let version = std::env::var("CARGO_PKG_VERSION").unwrap_or_else(|_| "unknown".to_string());
+  println!("cargo:rustc-env=INTENT_SOURCE_VERSION_MARKER=[intent-source-version:{version}]");
 }

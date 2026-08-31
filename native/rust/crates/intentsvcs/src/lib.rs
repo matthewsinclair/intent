@@ -40,6 +40,15 @@
 // with a scoped allow naming the reason.
 #![allow(clippy::result_large_err)]
 
+/// This library's own version.
+///
+/// **IT IS READ HERE RATHER THAN SUBSTITUTED BY A CONSUMER.** `intentsvcs` is
+/// linked into both binaries and ships no artefact of its own, so a surface
+/// naming it has nothing to read a marker off; a consumer spelling its OWN
+/// `CARGO_PKG_VERSION` would be asserting this crate's version from a different
+/// manifest. This is the same value from the right one.
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 pub mod address;
 pub mod backup;
 pub mod bootstrap;
