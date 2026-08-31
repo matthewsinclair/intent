@@ -83,7 +83,9 @@ pub fn router(face: Face) -> Router {
 async fn shell() -> impl IntoResponse {
   (
     [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
-    SHELL.replace("{{VERSION}}", env!("CARGO_PKG_VERSION")),
+    SHELL
+      .replace("{{VERSION}}", env!("CARGO_PKG_VERSION"))
+      .replace("{{BUILD}}", &build_footer()),
   )
 }
 
@@ -258,4 +260,68 @@ impl axum::serve::Listener for HandedOver {
       ))),
     }
   }
+}
+
+/// What this page, and the artefacts behind it, were built from.
+///
+/// **THREE ARTEFACTS, THREE DIFFERENT KINDS OF CERTAINTY, AND THE FOOTER SAYS
+/// WHICH IS WHICH.** Printing three shas in a row would imply they are three
+/// independent measurements, and they are not:
+///
+/// - **`intentd`** -- this process. `crate::SOURCE_COMMIT` is embedded in this
+///   binary at build time, so it is not a claim, it is the artefact answering.
+/// - **`intentsvcs`** -- LINKED INTO this binary, so it is the same build by
+///   construction. A separate sha here would be either the same number twice or
+///   a lie; naming the relationship is the honest form.
+/// - **`intent`** -- a SEPARATE artefact that this daemon does not run and
+///   cannot be sure any caller used. It is read from the sibling on disk, and
+///   labelled as the sibling rather than as "your CLI".
+///
+/// **THE SIBLING IS WORTH READING BECAUSE THE PAIR GOES OUT OF STEP FOR REAL.**
+/// Measured 2026-08-17 with a clean tree and a manifest saying otherwise: the
+/// two binaries were built three and FORTY-TWO hours before the commit they
+/// were recorded under, and forty-two hours apart from each other. A footer
+/// that showed only this process would have looked complete and said nothing
+/// about the half that was wrong.
+///
+/// A build with a dirty tree carries `dirty-<sha>`, which no correct parser
+/// reads as a commit -- so the footer shows it verbatim rather than trimming
+/// the prefix off and presenting a sha the tree did not match.
+fn build_footer() -> String {
+  let sibling = match sibling_commit("intent") {
+    Some(commit) if commit == crate::SOURCE_COMMIT => {
+      format!("intent {commit} &mdash; the same build")
+    }
+    Some(commit) => format!("intent {commit} &mdash; <strong>a different build</strong>"),
+    // **NAMED RATHER THAN OMITTED.** A missing line reads as "there is no CLI";
+    // this reads as "this daemon could not tell you", which is the true one.
+    None => "intent &mdash; not readable from beside this binary".to_string(),
+  };
+  format!(
+    "intentd {} {} &middot; intentsvcs, linked into it &middot; {sibling}",
+    env!("CARGO_PKG_VERSION"),
+    crate::SOURCE_COMMIT,
+  )
+}
+
+/// The source commit of a sibling binary, read from the ARTEFACT.
+///
+/// **THE SAME MARKER `self_provenance_check.sh` GREPS, AND FOR THE SAME REASON**
+/// -- a manifest states what was meant to be built and only the artefact can
+/// answer what was. The marker is self-delimiting (`[intent-source-commit:...]`)
+/// because rodata packs literals with no separator, so an unterminated one runs
+/// into whatever the linker laid down next; this reads to the closing bracket
+/// rather than taking a fixed width.
+///
+/// Every failure is `None` and none of them is reported as an absent CLI: a
+/// binary that will not read, a marker that is not there, and a sibling that
+/// does not exist are three different facts, and this function is only entitled
+/// to say it could not answer.
+fn sibling_commit(name: &str) -> Option<String> {
+  const OPEN: &[u8] = b"[intent-source-commit:";
+  let path = std::env::current_exe().ok()?.parent()?.join(name);
+  let bytes = std::fs::read(path).ok()?;
+  let at = bytes.windows(OPEN.len()).position(|w| w == OPEN)? + OPEN.len();
+  let end = at + bytes[at..].iter().position(|b| *b == b']')?;
+  String::from_utf8(bytes[at..end].to_vec()).ok()
 }

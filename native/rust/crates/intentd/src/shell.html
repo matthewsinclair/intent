@@ -57,7 +57,14 @@
     padding: .9rem 1rem; overflow-x: auto; margin: .6rem 0 0;
   }
   pre code { background: none; border: 0; padding: 0; }
-</style>
+
+    .build {
+      color: #8a8a85;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.75rem;
+      line-height: 1.6;
+    }
+  </style>
 
 <main>
   <div class="mark"><img src="/intent-logo.svg" alt="The Intent turtle"></div>
@@ -91,4 +98,8 @@
   <pre><code>curl -s http://127.0.0.1:$PORT/op \
   -H "Authorization: Bearer $(cat ~/.local/share/intent/intentd.token)" \
   -d '{"root":"'"$PWD"'","op":"registry"}'</code></pre>
+
+  <hr class="rule">
+
+  <p class="build">{{BUILD}}</p>
 </main>

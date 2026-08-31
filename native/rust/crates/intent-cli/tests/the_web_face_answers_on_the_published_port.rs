@@ -122,6 +122,58 @@ fn a_browser_gets_the_shell_page_and_the_mark() {
   );
 }
 
+/// **THE PAGE SAYS WHAT IT WAS BUILT FROM, AND WHAT THE ARTEFACT BESIDE IT WAS.**
+///
+/// hv asked for the version and hash of "it and the cli and svcs and anything
+/// else built that it's using". Three artefacts with three different kinds of
+/// certainty, so the footer names the relationship rather than printing three
+/// shas as if they were three independent measurements: `intentd` answers for
+/// itself, `intentsvcs` is linked into it and is the same build by
+/// construction, and `intent` is a SEPARATE artefact read from the sibling on
+/// disk.
+///
+/// **THE SIBLING LINE IS THE ONE THAT EARNS THE FOOTER.** Measured 2026-08-17,
+/// the two binaries of one release were built forty-two hours apart while a
+/// manifest called the pair traceable. A footer reporting only this process
+/// would look complete and say nothing about the half that was wrong -- and on
+/// the very first render of this feature the two shas differed, which is the
+/// state it exists to make visible.
+#[test]
+fn the_shell_page_says_what_it_and_its_sibling_were_built_from() {
+  let daemon = RealDaemon::start();
+  let (status, body) = get(&published(&daemon), "/");
+  assert!(status.contains("200"), "GET / answered {status}");
+
+  let footer = body
+    .split("class=\"build\"")
+    .nth(1)
+    .unwrap_or_else(|| panic!("the shell page carries no build footer: {body}"));
+
+  assert!(
+    footer.contains(env!("CARGO_PKG_VERSION")),
+    "the footer must name the version: {footer}"
+  );
+  // **THE COMMIT IS ASSERTED AS PRESENT, NOT AS A LITERAL.** Pinning the sha
+  // would make this file need editing on every commit, and a test nobody can
+  // keep green is one somebody eventually deletes.
+  assert!(
+    footer.contains("intentd") && footer.contains("intentsvcs"),
+    "the footer must name both this binary and the library linked into it: {footer}"
+  );
+  assert!(
+    footer.contains("linked into it"),
+    "intentsvcs's sha is the SAME sha by construction, and saying so is what stops a reader \
+     taking two numbers for two measurements: {footer}"
+  );
+  // The sibling is reported however it resolves -- same build, different build,
+  // or not readable. **What is refused is silence**: a footer that omitted the
+  // line when it could not read the sibling would read as "there is no CLI".
+  assert!(
+    footer.contains("intent "),
+    "the footer must account for the sibling binary one way or another: {footer}"
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Condition 1, second side: a frame is STILL answered as a frame.
 // ---------------------------------------------------------------------------

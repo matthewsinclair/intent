@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 12:02Z
+heartbeat_at: 2026-08-31 12:08Z
 status: active
-focus: "WRITE-PATH PACKAGE: `issues edit` landed (hv, re-sequenced at b1bf4cea). Next in hv's order: `close --note` (needs a ruling -- Issue has no note field), scoped issue sync, then the 21 empty bodies. Address-uniformity is mapped with ic and HELD for hv. New chore: version+hash footer on the intentd shell page."
+focus: "`issues edit` landed; shell-page build footer landed and it showed a MISMATCHED PAIR on its first render. NEXT: vc has opened a WP-08 seam that is now release-blocking (hv put the menubar app in 3.0.1) -- `Route` has two variants and ST0064 AC-01.6 needs three states. Bring vc the shape."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -16,6 +16,9 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 **NOTHING IN FLIGHT.**
 
 ## TODO
+
+- **THE THIRD ENDPOINT STATE, AND IT IS RELEASE-BLOCKING NOW** (vc, after hv put the menubar app into 3.0.1 and reversed `D3`). `ST0064 AC-01.2` says the app's health predicate and the CLI's routing predicate are ONE predicate; `AC-01.6` says the app shows LIVE / STALE / ABSENT. **`daemon::route` has TWO variants (`daemon.rs:330`), so the shared predicate collapses STALE into ABSENT.** ic cannot invent the third state in Swift without becoming the two-predicates-that-agree shape the row forbids, so it widens on my side. **vc has NOT ruled whether the third state belongs in `Route` itself or in a projection above it** -- `Route` answers _where does this command run_, which is genuinely binary, while the app asks _what do I show_, where STALE is not ABSENT. Bring vc the shape. `AC-08.3` governs either way: liveness is a completed round-trip under a bounded deadline, never a presence check, and **both consumers must reach THAT rather than two implementations of it**.
+- **`daemon status` HAS NO MACHINE-READABLE FACE**, and the menubar app is a machine consumer. `render.rs` refuses every `--format` but `terminal`, naming it a build defect in its own message -- which is MY narrowing from this morning, correct then and now the thing standing between the app and the daemon. **The delivered binary disagrees (rc=0 for `--format json`) because it is stale, not because the source is wrong.**
 
 - **ISSUE WRITE PATH -- BUILD THE PACKAGE** (hv, 2026-08-28/29). Still NOT jumped: hv sized it post-Laksa and post-`0121` and nothing has re-sequenced it. **It cost me a correction today**: 0183's body is wrong and `issues edit` does not exist, so the correction went into AC-10.5's note instead (vc's ruling). vc is putting both instances to hv as evidence, costed, without re-sequencing under the pen.
 

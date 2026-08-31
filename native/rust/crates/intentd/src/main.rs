@@ -44,14 +44,25 @@ mod web;
 
 use registry::Registry;
 
-// NO `SOURCE_COMMIT` CONST HERE, DELIBERATELY, AND THE ASYMMETRY WITH
-// `intent-cli` IS THE POINT RATHER THAN AN OVERSIGHT. There it is `pub` in a
-// lib, so it is real API something can read. `intentd` has no lib, so a const
-// here is unreadable by anything, forever -- `dead_code` said so under
-// `-D warnings` and it was right. Silencing that with `#[allow(dead_code)]`
-// would have kept a declaration whose only purpose was to look symmetrical.
-// The marker below is the whole artefact-facing contract; it is what every
-// consumer greps, and `#[used]` is what makes it survive.
+// **THIS CONST'S ABSENCE WAS CORRECT UNTIL A READER EXISTED, AND ONE NOW DOES.**
+//
+// The reasoning it replaces stands on its own terms and is kept, because the
+// reason it expired is more useful than the conclusion: *`intentd` has no lib,
+// so a const here is unreadable by anything, FOREVER -- `dead_code` said so
+// under `-D warnings` and it was right.* Every word of that was true when
+// written. **The `forever` is what expired**: the shell page now reports its
+// own build, so `web.rs` reads this and `dead_code` is satisfied by a consumer
+// rather than by an `#[allow]`.
+//
+// That is the class this estate keeps meeting from the other side -- a stated
+// blocker whose REASON expires while its VERDICT still reads as current. The
+// verdict here was "no const"; the reason was "nothing can read it"; only the
+// reason was ever load-bearing.
+//
+// The marker below remains the artefact-facing contract and is NOT replaced by
+// this: a const is readable by code in this binary, and the marker is readable
+// by a tool with only the file. Two readers, two mechanisms, one value.
+pub(crate) const SOURCE_COMMIT: &str = env!("INTENT_SOURCE_COMMIT");
 
 /// The string `int macos publish` and `self_provenance_check.sh` grep out of the
 /// ARTEFACT.
