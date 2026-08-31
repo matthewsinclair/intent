@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-31 07:31Z
+heartbeat_at: 2026-08-31 07:45Z
 status: active
 focus: "Ninth fold, pre-compact on hv's call. BOTH MCP halves are LANDED: db3f947a (the serving match, 58 arms, two-sided gate) and fa2c3d36 (the stdio server, ZERO-DEP by vc's 2026-08-31 ruling on the design's own cited evidence). The BOUNCE builds the GraphQL escape hatch -- hv ruled it IN before the tag; AC-09.2 is mine; vc's bounds in TODO 0."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
