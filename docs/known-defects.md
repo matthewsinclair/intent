@@ -26,6 +26,8 @@ on every verb, including ones that have nothing to do with the stray thread. The
 
 **`intent st hydrate` reports `exists` for a file it has just created** (`intent#0083`). Driven by deleting `info.md` and hydrating: the file is restored and reported with the same `exists:` prefix as the one that was already there. The output cannot distinguish a restore from a no-op, so you cannot tell what it did.
 
+**A migrated v2 project loses some thread slugs** (`intent#0080`). Driven against a real 2.19.0 estate captured from this repository's history and migrated by v3.0.0: 21 of 56 threads come through with no slug. The register records this as affecting every migrated thread and blanking the whole column; it does not. The `Slug` column renders normally and most threads carry one, so the ones that do not are easy to miss.
+
 ## Criteria and tests
 
 **`intent ac new` on an id that already exists replaces the row instead of refusing** (`intent#0119`). Driven: creating `AC-01.1` twice returns `ok: AC-01.1 created` both times. The replacement is a full write, so a field you do not supply is written empty rather than preserved, and there is no verb that edits a criterion in place. Treat `ac new` as create-only and read `ac list` before re-running it on an id you are unsure of. **v3.0.1 closes this**; on v3.0.0 the verb that repairs is the verb that destroys.

@@ -122,3 +122,4 @@
 0188	not-reader-reachable	register-authoring -- the register's inability to record why an issue was closed is met by a register author, not by a reader	
 0189	not-reader-reachable	not-in-published-build -- driven against the v3.0.0 keg: edit refuses --path with `unexpected argument`, so the kind-blindness is post-tag.	
 0153	stated	docs/known-defects.md	intent#0153
+0080	stated	docs/known-defects.md	intent#0080
