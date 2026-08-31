@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 18:11Z
+heartbeat_at: 2026-08-31 18:21Z
 status: active
 focus: "FOLDED 2026-08-31 18:11Z, pre-fold sha-verified at .history/20260831/wip-fold-1809Z.md. STATUS STAYS active -- a compact does not end a session. THREE THINGS WAIT ON hv AND TWO ARE ONE FLAG ON A SHIPPING VERB. I was corrected four times today and every correction was a peer measuring instead of complying; three of the four were claims I had relayed or reasoned onward without measuring. RE-RUN EVERY FIGURE."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
