@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-31 14:06Z
+heartbeat_at: 2026-08-31 14:19Z
 status: active
 focus: "ST0064 (the M-port menubar app). This turn: the health display LANDED (94ea6126 -- daemon status drives the tinted tortoise + state-gated menu, AC-01.2/06 + the 01.8 derivation) and AC-01.5 LANDED (2832a7fe -- wired to cc's resolver door 9508788, verified end to end). Also fixed a red mcp_stdio test + the protocol defect under it (176fceb2, mine from AC-09.5). Six of nine criteria are built + typecheck-clean; the big remaining piece is the int macos app-* build/sign verb (AC-01.7, dc's option A) that makes the app actually build/run/test."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
@@ -51,6 +51,7 @@ Criterion status (code built; gate-satisfaction via evidence/AT comes with the b
 - **2026-08-31 cc: `intent edit <address> --path` is the AC-01.5 resolver door** (`9508788`), pipe-safe, no terminal, no kind; the app opens what it returns. `intent explore` needs a tty (declined).
 - **2026-08-31 cc: health is a PROJECTION above `route()`** (Route stays two variants); state IS the remedy (no `removable` field), the app gates unlink on absent; stale/absent split on the kernel lock; connect-then-lock order is load-bearing.
 - **2026-08-31 vc/hv: the bare-number ladder** (family verb resolves in-family, ladder is fallback, family-agnostic verb lists candidates); the resolver can return >1 -> a VIEW if the app takes a bare id. **nav singular is INTERNAL; the app speaks addresses only.**
+- **2026-08-31 vc ruled the app project model: (a) a single configured project storing the ROOT PATH only** (what the daemon registry returns via `{op:registry}` -> `{root, root_exists}`). Set the child CWD to it for project-scoped commands (edit, graphql); daemon control stays machine-level. A later picker (b) fills the SAME field from the registry -- no migration. Must not collide with the address authority slot (is_local = empty authority, AC-07.6). AC-01.5 = additive CWD wiring; AC-01.3 runs against it. Cheap to overturn.
 - **2026-08-31 dc: `int macos` app pipeline = option A** + 3 header-truth conditions + read the bundle marker (TODO 1). (B)'s DEVBIN_LIB refactor waits for the tag.
 - **2026-08-31 hv: console IN for 3.0.1** via cc's `intent daemon logs` verb (a direct logfile tail was declined -- Swift would learn the log location). ST0064 is an M PORT; criteria bind to WP-01.
 - **2026-08-31 AC-17.12 reason-fold applied** (`a571feda`); the mcp resources/list refusal is INTERNAL_ERROR, and a stale test named a live method (`176fceb2`).
