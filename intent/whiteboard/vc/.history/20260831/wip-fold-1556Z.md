@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 15:56Z
+heartbeat_at: 2026-08-31 15:25Z
 status: active
-focus: "FOLDED 2026-08-31 15:56Z, pre-fold sha-verified at .history/20260831/wip-fold-1556Z.md. STATUS STAYS active -- invariant 6, and the skill now says so in one voice rather than three. hv RULED TWO: 0192 wire the read-back (cost it first, fall back to re-closing rather than shipping the hazard), AC-09.6 narrow AND make the drop loud. Both on hv/wip.md, both cc's. RE-RUN EVERY FIGURE -- the binary is 553ac304 and moved twice today. I fabricated two timestamps by reading local off ls -la and appending Z; dc caught it."
+focus: "FOLDED 2026-08-31 15:12Z, pre-fold sha-verified at .history/20260831/wip-fold-1510Z.md. STATUS STAYS active -- a compact does not end a session (invariant 6), and /in-finish disagreeing with that is TODO 1. ST0056 108/135. EVERY hv ITEM RULED, nothing waiting either way. Address uniformity CLOSED in both halves; cc building the resolver. Filed 0186-0190; 0190 is two contradicting rows for one command in the table that generates the MCP surface, found because two censuses differed by ONE."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
@@ -17,34 +17,24 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ### THE CUT -- RE-RUN THE VERBS, THESE ROT
 
-**Run `intent ac gate <ST>`; do not read a figure off this board.** At 15:56Z: ST0056 108/135, ST0057 66/66 PASS, ST0060 0/20 (Triage, `intent vault`, NOT a v3.0.1 thread), ST0064 0/9, ST0066 6/6 PASS, ST0068 4/9.
+**ST0056 108/135. ST0057 66/66 PASS. ST0066 6/6 PASS. ST0068 4/9 (`AC-02.3` at 117/137 and rising only from DRIVEN evidence). ST0064 0/9, spine landing.** Run `intent ac gate <ST>`; do not read these.
 
-**AND THE BINARY IS NOT NECESSARILY HEAD, AND IT MOVED TWICE TODAY** -- a854d7c3, then absent for ~19 minutes, then 553ac304. `intent --version` names the commit it was built from. Check it before quoting any behaviour, and check the EXIT CODE before believing an empty answer.
-
-### WATCHING hv's TWO RULINGS OF 15:54Z EXECUTE (both cc's, neither mine)
-
-**They are recorded on `hv/wip.md`, which is their home -- do not copy them here.** My job is to notice if they do not land: `0192` wants the read-back wired with hv's cost-it-first condition, `AC-09.6` wants the table narrowed AND `mcp.rs:97` made loud.
+**AND THE BINARY IS NOT HEAD.** `intent --version` names the commit it was built from; when that differs from `git rev-parse HEAD`, what you drive is not what the tree says. Check it before quoting any behaviour.
 
 ## TODO
 
-1. **ADD THE THIRD ABSENCE CLASS TO `capability_ship_check.sh`** (cc's finding, 2026-08-31). The tool carries three absences -- dangling symlink, not on PATH, no daemon -- and NOT **a build ran and left nothing behind**. `dvb build all` forces the provenance embeds, which DELETES the binary pair, then can exit 1 at the SET check without replacing them. **That state is indistinguishable from mid-rebuild to any instrument that only asks whether cargo is running.** cc files the `dvb build all` delete-then-fail hazard separately; the CLASS is mine.
-2. **`AT-00.20`'s SUCCESSOR: THE UNION PER PROPERTY** (`AC-00.16`, mine). Today's census computes a FILE-level union and says so; the criterion is scoped _for any property the estate claims_, and the register already holds the AC/AT pairing that would key it.
-3. **DECIDE WHETHER cc's WIDTH-ARM GREEN WANTS ITS OWN `AC-00` CRITERION** or belongs under `AC-00.11`. cc removed the arm, `promote("0164")` changed meaning for the TUI, the explorer and `edit`, and BOTH SUITES STAYED GREEN because every existing test drives `ST0056` -- tagged, therefore unaffected in either direction. **The corpus could not exhibit the change**, and two real regressions sat under that green, found by reading rather than by the suite. `AC-00.11`'s population is the MEASURED one; this one's population is the TEST corpus, and that is either a new criterion or a widening of an existing one.
-4. **WP-15's `AC-15.1` / `AC-15.3`**; **`parity/register.md`'s 39 stale rows** (GENERATED -- the generator's template is the fix); **`0136`'s ~44-site `AcState::Computed` change** (hv ruled: after the tag); **`intent/wip.md`** before the tag, since hv reads it on restart.
-5. **`design.md:88` still says `rmcp (official SDK): stdio ... now`**, which my 2026-08-31 ruling reversed. Design prose is hv's hand, so this is a flag rather than an edit.
-
-## Holds
-
-**Each carries the CONDITION that releases it, per the section I landed in the skill today. A hold with no condition is an abandonment.**
-
-- **`0193`'s wrong subject stands in the register.** Held by: dc, whose rewrite is parked at `dc/.history/20260831/0193-rewrite-PENDING.md`. **Condition: dc lands it now that the binary is back** -- I have told them to. If it is still wrong at the next pickup, it becomes mine.
-- **The `at lint` defect is unfiled.** Held by: dc, on my ruling that it is a verb defect and not a page caveat. **Condition: dc files it.** The verb answers `ok -- N AT row(s) conform` for a row citing a file with no id, while the gate refuses that same row.
-- **`AC-02.1` cannot be satisfied against the keg.** dc drove getting-started end to end: the terminating gate is BLOCKED on 3.0.0 because `at green --note` is refused there, so the page cannot be driven to its own passing gate on what a user installs TODAY, while its opening sentence says it can. **Condition: v3.0.1 ships.** Honestly red until then, and NOT to be scored against the tree to make it green.
-- **The `dvb build all` delete-then-fail hazard is UNFILED.** Held by: cc, who has the detail and the run. **Condition: cc files it on the bounce** -- they deferred deliberately on the grounds that a half-written issue in the register is worse than a described one in a message, which is right. It deletes the binary pair to force the provenance embeds and does not restore them if the build then fails, against a shared artefact four sessions consume.
+1. **THE `/in-finish` vs `/in-whiteboard` CONTRADICTION IS MINE TO RECONCILE IN THE SKILL BODIES** (laksa-vc, 2026-08-31 14:37Z). `/in-finish`'s localfold step says RELEASE (set `status: paused`); **`/in-whiteboard` invariant 6 says a compact does not end a session and its red-flag table names setting paused there as the ERROR.** laksa-cc followed invariant 6 as the more specific rule and stayed `active`; **I did the same in this fold.** Two installed skills disagreeing on one step means every node re-derives it under pressure, and this is canon every fleet project inherits.
+2. **`0190`'s UNIQUENESS ARM** -- `surface/dispatch-table.json` has two rows for `organize` (contradicting on `exposed_on_mcp`) and two for `help`. The table is GENERATED, so the fix is `gen_dispatch_table.sh`, and **no guard refuses a repeated `path`.** Sequence: dc lands, `0190` fixes, hv rules the 21, then ic writes.
+3. **CARRY ic's `AC-09.6` CLEAVE TO hv** -- 81 exposed / 60 served / 21 gap / **zero one-way falsifiers** (verified: the three exposed one-way rows are all SERVED, and `ext new` is not exposed). The 21 cleave into 4 namespace rows, 8 read leaves, 9 recoverable mutate leaves. **ic's recommendation, carried as theirs: a smaller honest tool list beats a larger one with holes.** Hold until `0190` is fixed so ic is not dispositioning rows a generator will rewrite.
+4. **`AT-00.20`'s SUCCESSOR: THE UNION PER PROPERTY.** Today's census computes a FILE-level union and says so. `AC-00.16` is scoped _for any property the estate claims_, and **the register already holds the AC/AT pairing that would key it.**
+5. **WP-15's `AC-15.1` / `AC-15.3`**; **`parity/register.md`'s 39 stale rows** (GENERATED -- the generator's template is the fix); **`0136`'s ~44-site `AcState::Computed` change** (after the tag); **`intent/wip.md`** before the tag, since hv reads it on restart.
+6. **`design.md:88` still says `rmcp (official SDK): stdio ... now`**, which my 2026-08-31 ruling reversed. Design prose is hv's hand.
 
 ## hv items
 
-**NOTHING IS WAITING ON hv AND NOTHING OF MINE IS WAITING ON ANYONE.** hv ruled two today at 15:54Z -- `0192` wire the read-back (with the cost-it-first condition and re-closing as the named fallback), and `AC-09.6` narrow the table AND make `mcp.rs:97` loud. **Both live on `hv/wip.md` under `## Rulings made and NOT yet executed`, which is their home, and both are cc's to execute.** Do not re-derive them here: a ruling copied onto a second board goes stale the day it moves, and this section existing at all is how the morning fold buried four of them.
+**EVERY ITEM PUT TO hv TODAY IS RULED. NOTHING IS WAITING ON hv AND NOTHING OF MINE IS WAITING ON ANYONE.** They live on `hv/wip.md` under `## Rulings made and NOT yet executed`, which is their home; **`## Questions PUT to hv and NOT yet ruled` -- a section I added today because the board had no place for a question asked and unanswered -- is now EMPTY.** Do not re-derive them here: **a ruling copied onto a second board goes stale the day it moves**, and this section existing at all is how the fold buried four of them this morning.
+
+**THE ONE THING hv MAY YET REVERSE, RECORDED BECAUSE IT RESTS ON A NUMBER I GAVE THEM:** hv declined the show-emit partly on my claim that parity instruments parsing `st show` output would break. **Measured after the ruling: that cost is ZERO** -- `view_skew_check` rc=0, `inert_arg_check` rc=0, `read_claim_probe` rc=1 for a reason it names itself. The ruling stands on its other ground and re-lands as one cherry-pick if hv reverses.
 
 ## Standing directives from hv
 
@@ -144,10 +134,6 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
    **8h. A REVERT LANDS IN THE TREE AND TAKES EFFECT IN THE ARTEFACT, AND A BUILD NOBODY SCHEDULES SITS BETWEEN THEM.** `a854d7c3` shipped hv's declined option; cc reverted it at `4e7f0d7f` with every guard green -- **and the delivered binary went on emitting it, because it was built from the reverted commit.** `intent --version` reported `a854d7c3` while HEAD was `4e7f0d7f`. **The provenance stamp is what makes the gap visible, and it did so on a case it was not built for.** Generalises past reverts: **any commit's effect on what a peer DRIVES is deferred until someone rebuilds, and on a shared machine the person who lands the fix is rarely the person who rebuilds.**
 
-   **8i. I TYPED TWO TIMESTAMPS FROM A LOCAL CLOCK AND PUT A `Z` ON THEM, INSIDE A BROADCAST TELLING THREE PEERS WHEN TO DISTRUST THEIR MEASUREMENTS.** I read `16:43` off an `ls -la` line -- which prints LOCAL -- and wrote `~16:45Z` and `16:30Z`. `date -u` was 15:54Z against `date` at 16:54 BST, so both were the documented +1h form, committed by the node that enforces the rule, one turn after reading a real `15:48Z` and not using it. **The cost was not a wrong board stamp: it was an INSTRUCTION, ambiguous by an hour, acted on by three peers.** dc caught it and resolved my instruction by exit code rather than by clock, which is why it did not bite. **THREE NODES MADE THIS EXACT ERROR IN ONE HOUR AND EVERY ONE WAS CAUGHT BY ANOTHER NODE RATHER THAN BY A GUARD** -- mine twice, cc's once (their `16:46Z` for the build, also read off `ls -la`), dc's catch of both. The three whiteboard guards cover BOARDS; the messages channel carries the same ordering claims under no check at all, which is issue `0099` with a third instance now. **A clock value goes in only when `date -u` is in THIS turn's tool output, verbatim** -- and a time read off any tool that prints local (`ls`, `stat`, `git log`) is that tool's zone, so appending `Z` is an ASSERTION rather than a format.
-
-   **8j. I MOVED FROM A TRUE CONCLUSION TO A FALSE ONE BY REASONING BETTER, AND THE LESSON IS NOT `TRUST THE CALM READING`** (cc's correction, 2026-08-31). The binary vanished; I called it broken (alarming, and closer to true); hv said they were rebuilding; I corrected to rebuilding (calm, careful, and WRONG). **The truth was a third state neither covers -- a build ran, deleted the pair, and failed without replacing them.** My `pgrep -fl 'cargo|dvb build'` had returned a hit that was a peer's CLAUDE PROCESS matching its own system prompt; I correctly dismissed it as a false positive and then drew a conclusion from a pattern that had just proven it could not answer. **The discipline is neither reading: RE-MEASURE WITH AN INSTRUMENT THAT CAN ANSWER.** Storing only _do not resolve toward alarm_ leaves _trust the calm reading_, which was wrong here.
-
 ## Decisions
 
 **Dated decisions folded 2026-08-30 21:33Z, 2026-08-31 09:40Z, 12:13Z and 15:10Z. Bodies in `.history/`. EVERY ONE WAS EXECUTED BEFORE IT WAS ARCHIVED, AND EACH CROSS-REFERENCES A SHAPE ABOVE THAT STAYS -- the narrative goes, the mechanism does not.**
@@ -162,16 +148,16 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 - **A TEST GOING RED BECAUSE A FIX LANDED IS THE NOTIFICATION WORKING.**
 - **THE DAEMON'S PUBLISHED PORT SERVES BOTH PROTOCOLS, DISAMBIGUATED AT BYTE 0.**
 
-## Coordination -- 2026-08-31 15:56Z
+## Coordination -- 2026-08-31 15:10Z
 
-**NOTHING IS OWED BY ME TO ANY NODE AND NOTHING IS WAITING ON hv.** Every inbox of mine is empty or actioned before clearing.
+**NOTHING IS OWED BY ME TO ANY NODE, NOTHING OF MINE IS UNCOMMITTED, AND NOTHING IS WAITING ON hv.**
 
-**cc** -- resolver LANDED at `e2fcf350`, ten paths, all four ladder outcomes driven. Both deviations I ruled were cc's improvements on my shape: a derived presence closure instead of a second injection (Highlander, and right), and `Unlanded::Unresolvable` because `Resolution` has three outcomes and I named a two-outcome error type. **cc reversed themselves on 0192 within the hour -- first correcting my wrong escalation, then finding their own counter-argument false because they had read `views.rs` without running the verb.** Now holds hv's two rulings.
+**cc** -- building the resolver, ruled in all six parts (above a PURE `promote`, a value never prose, width arm out in the same change, the conversions, the TUI kind-repairs, the closure beside `present`, `Unlanded::Ambiguous`). Corrected my discriminator from PROVENANCE to SPELLING and was right. Reverted the declined show-emit at `4e7f0d7f` without argument. **Retracted their own `sync` finding after I had already carried it to hv's board** -- reasoning from the parser upward instead of the callers down.
 
-**dc** -- drove getting-started end to end against BOTH binaries and gave me a class my rule did not have: **keg-passes/tree-fails, the tree BROKE what the tag had right**, which my two classes sorted into docs-lag by default. Also found my `21 register members` figure was never derivable from anything (0191, the durable record derives TEN) after I told them an issue NUMBER was wrong. **Caught my clock error.** at.recast drafted and ruled; `0193` and the `at lint` filing are their two open holds.
+**ic** -- ST0064 spine, `AC-01.7`'s `int macos` build verb as the keystone that makes the written work verifiable. **Corrected their own board's `6/9 built` to `0/9 green`**: built was measuring typecheck-clean and reading as progress toward a tag. `AC-09.6` driven and cleaved; waiting on me to run hv's decision round.
 
-**ic** -- corrected their own `AC-09.6` cleave when mine disagreed, and both were right on different axes: 4 namespace + 7 read + 10 mutate reproduces exactly from the table. **Audited their macOS harness for the rc=127 shape rather than asserting it was clean**, and named the one cosmetic conflation they are leaving. `int macos` landed at `d00956ec`.
+**dc** -- `AC-02.3`, F1 built. **Published 43 defect claims from issue TITLES, drove them against the shipped keg, found six false, and fixed the METHOD rather than the entries.** Corrected me on F1's justification. **Found the keg is drivable read-only**, which turns the population rule's hardest question into a measurement.
 
-**laksa-vc** -- routed laksa-cc's clearing rule here because the enforcement home is the skill. Landed in `63e19f60`.
+**laksa-vc** -- ST0090 ruled, D3 closed both ways, and they have flagged the `/in-finish` vs `/in-whiteboard` contradiction that is TODO 1.
 
-**STATUS STAYS `active` THROUGH THIS COMPACT**, and the skill now says so in one voice -- the contradiction that made three nodes re-derive it is gone from all three sites.
+**STATUS STAYS `active` THROUGH THIS COMPACT.** `/in-whiteboard` invariant 6: a compact does not end a session, and its red-flag table names setting `paused` here as the error. `/in-finish`'s localfold step says otherwise and is the half that is wrong -- see TODO 1.
