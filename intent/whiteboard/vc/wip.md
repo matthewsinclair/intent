@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 20:58Z
+heartbeat_at: 2026-08-31 21:02Z
 status: active
 focus: "FOLDED 2026-08-31 18:59Z, pre-fold sha-verified in .history/20260831/. STATUS STAYS active -- a compact does not end a session. THE NEXT RELEASE IS NOT A PATCH (13 commands, 30 flags at 0f5ee514) and the NUMBER IS hv's -- AND THE RELEASE IS ITSELF THE BLOCKER ON ST0068 AC-02.1, which I had filed as unbuilt work owned by dc when it had been built for four days. I understated my own figures to hv THREE times today, all in the direction nobody checks. RE-RUN EVERY FIGURE; READ NONE OFF THIS BOARD."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -167,6 +167,17 @@ The per-property union exists. **What keeps it red is that the criterion's first
   **THE SSOT SETTLES IT AND MY OWN EARLIER RULING MAKES IT BINDING**: `surface/dispatch-table.json` disposes EVERY `claude` verb `keep`, prime and subagents included -- and the register's vocabulary is _shared VERBATIM with the dispatch table_ (vc, 2026-08-14). **A register `retire` against a table `keep` is two artefacts contradicting each other in the one place I ruled they must agree, and NOTHING CROSS-CHECKS THEM** (filed).
 
   **MY ERROR IS DISTINCT FROM cc's AND WORSE IN ONE WAY. I verified the cheap half of their report -- `125f601d` deleted zero tests, true -- and treated that as verifying the INFERENCE built on it.** Verifying a premise is not verifying its conclusion, and **a ruling built that way FEELS driven**, which is why nothing in my own process caught it. cc caught it, then narrowed to 2; the answer was 0. **Each `deviate` row needs a D-number or carries `UNRATIFIED` loudly -- never an invented one.**
+
+- **AN ARTEFACT NAMED IN A RULING MUST BE VERIFIED TO EXIST AT THE MOMENT OF WRITING** (2026-08-31). **TWICE TODAY A FORMULATION OF MINE SENT A NODE AT SOMETHING THAT IS NOT THERE**, and both were found by a peer DRIVING rather than reading:
+
+  - **`AC-00.11` cites `c51f10d5` as _the defect live_. It is the FIX commit.** No main-line revision reproduces the defect at all.
+  - **My app model said _the registry's root_. There is no registry.** `~/.intent/config.json` holds `intent_version`, `author`, `intent_dir` -- nothing registers project roots.
+
+  **A PHRASE OF MINE BECOMES A SPEC THE MOMENT SOMEONE BUILDS AGAINST IT.** Both were loose talk that read as design, and neither cost anything only because ic and I checked before building. **This is the same failure as the premise-versus-conclusion error above, one step earlier: there I verified the wrong thing, here I verified nothing and it still read as authoritative.**
+
+- **ST0064 PROJECT ROOT: RULED (a) -- THE APP STORES A CONFIGURED ROOT AND SETS THE CHILD'S CWD** (2026-08-31, ic's question, ic's recommendation, and the measurement inverted the argument I expected to make). **NO PROJECT REGISTRY EXISTS**, so (a) creates the FIRST home for that fact, not a second -- the Highlander objection to it has no subject.
+
+  **AND (b) IS THE HIGHLANDER VIOLATION, NOT (a)**: a machine-level registry query introduces a SECOND resolution mechanism alongside CWD walk-up, which the two would then have to agree on forever with nothing checking -- **a fresh instance of `0204`, which I filed an hour earlier.** (b) also asserts the machine has _a_ project, false the moment a second exists, and this fleet is fourteen. **CONDITION: the configured root is VALIDATED as an Intent project when set, and the app refuses LOUDLY if not** -- otherwise children spawn where walk-up finds a different project and a correctly-working CLI emits confusing errors.
 
 - **A RECLASSIFICATION IS A CLAIM ABOUT WHY, AND A CLASS CHANGE WITHOUT ITS REASON IS A DELETION WEARING A NEW LABEL** (2026-08-31). **Three rulings today turned out to be this one rule in different clothes** -- worth stating once rather than three times.
 
