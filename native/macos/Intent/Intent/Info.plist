@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(INTENT_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(INTENT_BUILD)</string>
+	<key>IntentCommit</key>
+	<string>$(INTENT_COMMIT)</string>
+	<key>IntentSourceTree</key>
+	<string>$(INTENT_SOURCE_TREE)</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>Intent address link</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>intent</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Intent opens the entity an intent:// address names.</string>
+</dict>
+</plist>

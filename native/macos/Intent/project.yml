@@ -1,0 +1,71 @@
+name: Intent
+options:
+  bundleIdPrefix: com.matthewsinclair
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: true
+# Ported from Geodica's project.yml (~/Devel/prj/Gtools/native/macos), itself
+# cut from Conflab's. The menubar app shells out to `intent` / `intentd` and
+# holds no product logic (AC-01.1). Both configs sign with the Geodica ADC
+# team on this machine; Developer ID signing + notarisation for distribution
+# is the `int macos app-sign | app-notarize` path (AC-01.7), never this spec.
+configs:
+  Debug: debug
+  Release: release
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    # Xcode 16 recommended defaults, baked in so `xcodegen generate` never
+    # re-raises the "Update to Recommended Settings" dialog.
+    DEAD_CODE_STRIPPING: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    STRING_CATALOG_GENERATE_SYMBOLS: YES
+    ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS: YES
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+    # The stamps, substituted into Info.plist. `int macos app-build` overrides
+    # all four on the xcodebuild command line from the source tree + git; a
+    # build from inside Xcode gets these defaults, so About says "dev" rather
+    # than lying. No generated Swift file (Conflab's BuildInfo lesson).
+    INTENT_VERSION: dev
+    INTENT_BUILD: "0"
+    INTENT_COMMIT: dev
+    INTENT_SOURCE_TREE: dev
+  configs:
+    Debug:
+      CODE_SIGN_STYLE: Automatic
+      DEVELOPMENT_TEAM: 76BQL8L47U
+    Release:
+      CODE_SIGN_STYLE: Automatic
+      DEVELOPMENT_TEAM: 76BQL8L47U
+targets:
+  Intent:
+    type: application
+    platform: macOS
+    sources:
+      - Intent
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.matthewsinclair.intent.macos
+        INFOPLIST_FILE: Intent/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_HARDENED_RUNTIME: YES
+      configs:
+        Debug:
+          CODE_SIGN_ENTITLEMENTS: Intent/Intent.Debug.entitlements
+        Release:
+          CODE_SIGN_ENTITLEMENTS: Intent/Intent.entitlements
+    scheme:
+      testTargets:
+        - IntentTests
+  IntentTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - IntentTests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: Intent

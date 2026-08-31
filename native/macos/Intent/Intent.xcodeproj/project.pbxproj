@@ -1,0 +1,437 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		692A1EC01D5213CB6472B434 /* LoginShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DC7A046D343F9FF30FC56EA /* LoginShell.swift */; };
+		954C28016164850D99C2B79C /* IntentCLI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */; };
+		E4FB94495E37A90BCFC43C24 /* IntentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A21089C3EE01CC6CD256BFC /* IntentApp.swift */; };
+		FCF20238A656A982DF4B12D1 /* LoginShellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E9C74AD191140D77FB3294C /* LoginShellTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B27280B0EEC4EF5169BFA62A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 57EA405432D0975FFD8420F2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8BB28D78213FAA9DA1247371;
+			remoteInfo = Intent;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		3FAB073C6E0F8ACF198E5CB8 /* Intent.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intent.entitlements; sourceTree = "<group>"; };
+		4634133A4EB56FC2D1AED35E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		4AF69039A2E9F208B08C436D /* IntentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IntentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5E9C74AD191140D77FB3294C /* LoginShellTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginShellTests.swift; sourceTree = "<group>"; };
+		60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentCLI.swift; sourceTree = "<group>"; };
+		8A21089C3EE01CC6CD256BFC /* IntentApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentApp.swift; sourceTree = "<group>"; };
+		9DC7A046D343F9FF30FC56EA /* LoginShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginShell.swift; sourceTree = "<group>"; };
+		CB43CE810A6886230867C1CB /* Intent.Debug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intent.Debug.entitlements; sourceTree = "<group>"; };
+		D9ED4FC1411ABD3535ED4A3F /* Intent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Intent.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0A160BAD77A6EC5280578BBA /* Intent */ = {
+			isa = PBXGroup;
+			children = (
+				4634133A4EB56FC2D1AED35E /* Info.plist */,
+				CB43CE810A6886230867C1CB /* Intent.Debug.entitlements */,
+				3FAB073C6E0F8ACF198E5CB8 /* Intent.entitlements */,
+				8A21089C3EE01CC6CD256BFC /* IntentApp.swift */,
+				4C162142A7E052C76D6298ED /* Services */,
+			);
+			path = Intent;
+			sourceTree = "<group>";
+		};
+		36432786E9DEB6D7808CC402 /* IntentTests */ = {
+			isa = PBXGroup;
+			children = (
+				5E9C74AD191140D77FB3294C /* LoginShellTests.swift */,
+			);
+			path = IntentTests;
+			sourceTree = "<group>";
+		};
+		4C162142A7E052C76D6298ED /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */,
+				9DC7A046D343F9FF30FC56EA /* LoginShell.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		7B5A377AB41B28879377D20A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D9ED4FC1411ABD3535ED4A3F /* Intent.app */,
+				4AF69039A2E9F208B08C436D /* IntentTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8C961C266FDD3CFBBA3D5CCB = {
+			isa = PBXGroup;
+			children = (
+				0A160BAD77A6EC5280578BBA /* Intent */,
+				36432786E9DEB6D7808CC402 /* IntentTests */,
+				7B5A377AB41B28879377D20A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8BB28D78213FAA9DA1247371 /* Intent */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 67E537567E772345C90EB0AC /* Build configuration list for PBXNativeTarget "Intent" */;
+			buildPhases = (
+				4AF7FB044E3EA174021F9F80 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Intent;
+			packageProductDependencies = (
+			);
+			productName = Intent;
+			productReference = D9ED4FC1411ABD3535ED4A3F /* Intent.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9CDDC26E0FB5D9AAC5F16E1C /* IntentTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA6FEAF1F0E40EF3446BB27B /* Build configuration list for PBXNativeTarget "IntentTests" */;
+			buildPhases = (
+				E7E51653936A202A5E0085C3 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E4616B62B25BDB8CE4AE67E2 /* PBXTargetDependency */,
+			);
+			name = IntentTests;
+			packageProductDependencies = (
+			);
+			productName = IntentTests;
+			productReference = 4AF69039A2E9F208B08C436D /* IntentTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		57EA405432D0975FFD8420F2 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					8BB28D78213FAA9DA1247371 = {
+						DevelopmentTeam = 76BQL8L47U;
+						ProvisioningStyle = Automatic;
+					};
+					9CDDC26E0FB5D9AAC5F16E1C = {
+						DevelopmentTeam = 76BQL8L47U;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 143428984FAF7DB3B60F8C11 /* Build configuration list for PBXProject "Intent" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 8C961C266FDD3CFBBA3D5CCB;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 7B5A377AB41B28879377D20A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8BB28D78213FAA9DA1247371 /* Intent */,
+				9CDDC26E0FB5D9AAC5F16E1C /* IntentTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4AF7FB044E3EA174021F9F80 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E4FB94495E37A90BCFC43C24 /* IntentApp.swift in Sources */,
+				954C28016164850D99C2B79C /* IntentCLI.swift in Sources */,
+				692A1EC01D5213CB6472B434 /* LoginShell.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7E51653936A202A5E0085C3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FCF20238A656A982DF4B12D1 /* LoginShellTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E4616B62B25BDB8CE4AE67E2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8BB28D78213FAA9DA1247371 /* Intent */;
+			targetProxy = B27280B0EEC4EF5169BFA62A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		47DE3790A1A1DC3760533E1F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 76BQL8L47U;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INTENT_BUILD = 0;
+				INTENT_COMMIT = dev;
+				INTENT_SOURCE_TREE = dev;
+				INTENT_VERSION = dev;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		682C3FE20455A502A029D4A1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.matthewsinclair.IntentTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Intent.app/Contents/MacOS/Intent";
+			};
+			name = Debug;
+		};
+		74870316C4717F7721F7E385 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.matthewsinclair.IntentTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Intent.app/Contents/MacOS/Intent";
+			};
+			name = Release;
+		};
+		7D6A7F7E0504ABC96F04ECD9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 76BQL8L47U;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INTENT_BUILD = 0;
+				INTENT_COMMIT = dev;
+				INTENT_SOURCE_TREE = dev;
+				INTENT_VERSION = dev;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		D9E1A7DDEBDC8583F99FE62A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Intent/Intent.Debug.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = Intent/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.matthewsinclair.intent.macos;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		ED02143326A1523EB93F0838 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Intent/Intent.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = Intent/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.matthewsinclair.intent.macos;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		143428984FAF7DB3B60F8C11 /* Build configuration list for PBXProject "Intent" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				47DE3790A1A1DC3760533E1F /* Debug */,
+				7D6A7F7E0504ABC96F04ECD9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		67E537567E772345C90EB0AC /* Build configuration list for PBXNativeTarget "Intent" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D9E1A7DDEBDC8583F99FE62A /* Debug */,
+				ED02143326A1523EB93F0838 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CA6FEAF1F0E40EF3446BB27B /* Build configuration list for PBXNativeTarget "IntentTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				682C3FE20455A502A029D4A1 /* Debug */,
+				74870316C4717F7721F7E385 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 57EA405432D0975FFD8420F2 /* Project object */;
+}
