@@ -1,0 +1,8 @@
+named -- artefact conservation clean; prose residue 2, both one defect, unnamed by the migration
+Driven by cc 2026-08-31 09:29Z on the pinned canary with ic's landed conservation_check.sh.
+  with --dispositions: ALTERED 2, without-a-destination 0, 543 findings
+  artefact: DOUBLED 194 + RELOCATED 192 = 386, STRANDED 0, ALTERED-ATTACHMENT 0
+  both zeros shown able to fire by planted mutations on COMPLETED/ST0001/design.md
+The 2: issue CLOSED/0059 carries two `## Related` sections with different authored
+bodies; canon holds one. NAMED here, not named by the migration -- so this member
+does not satisfy either disjunct of AC-10.5 and the verdict is recorded as such.

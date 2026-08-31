@@ -219,7 +219,7 @@ while [ $# -gt 0 ]; do
 done
 
 [ -n "$CENSUS" ] && [ -n "$MIGRATED" ] ||
-  die "usage: conservation_check.sh <census.tsv> <migrated-project-root> [--out-of-model <file>] [--binary <v3-intent>]"
+  die "usage: conservation_check.sh <census.tsv> <migrated-project-root> [--dispositions <intent-upgrade-stdout>] [--out-of-model <file>] [--binary <v3-intent>]   (without --dispositions every removed section counts as LOSS, whether or not the migrator named it -- pass the stdout of the \`intent upgrade\` that produced the tree)"
 [ -z "$BINARY" ] || [ -x "$BINARY" ] || die "no such executable: $BINARY"
 [ -f "$CENSUS" ] || die "no such census: $CENSUS"
 [ -d "$MIGRATED" ] || die "no such migrated root: $MIGRATED"
@@ -1101,7 +1101,7 @@ if [ -n "$DISPO" ]; then
   [ "$c_drop" -eq "$n_dec" ] ||
     echo "conservation: prose -- WARNING: $((n_dec - c_drop)) declared drop(s) matched no census section, so they are reported as ALTERED or not at all -- a declared drop this tool cannot find is a claim it cannot check"
 else
-  echo "conservation: prose -- DECLARED-DROP not measured -- no --dispositions given, so every removal above is counted as loss whether or not the migrator named it"
+  echo "conservation: prose -- DECLARED-DROP not measured -- no --dispositions given, so every removal above is counted as loss whether or not the migrator named it. The migrator names its residue per section on stdout: re-run with --dispositions <the stdout of the intent upgrade that produced this tree> and each declared drop is VERIFIED EMPTY IN CANON rather than taken on its word (measured 2026-08-31: 114 -> 2 on the canary, 115 of 115 declared drops verified)"
 fi
 echo "conservation: prose -- compared $((c_seen - c_declared)) of $c_seen census section(s); NOT compared $c_declared, declared:${declared_kinds:- none}"
 # THE DENOMINATOR ABOVE THE DENOMINATOR, and it exists because a fact written in
