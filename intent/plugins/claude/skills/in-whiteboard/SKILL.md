@@ -86,9 +86,20 @@ claims: [STxxxx, ...]
 # <Name> (<node>)
 ## DOING        -- in-flight work (archived into .history/ when done)
 ## TODO         -- queued / next
+## Holds        -- work you are NOT doing, each with the CONDITION that releases it
 ## Watch-outs   -- durable cautions peers should know (standing; not archived)
 ## Decisions    -- cross-node decisions, broadcast by being read at pickup
 ```
+
+### `## Holds` -- the condition is the required field, not the item
+
+A hold is work this node has stopped, deliberately, waiting on something. **The item is not the content; the CONDITION is.** _Holding 0162 until the shared daemon is free_ is a hold. _Holding 0162_ is an item that has left DOING and entered nothing, and it is indistinguishable at every later reading from work that was quietly dropped.
+
+Why the condition rather than the lifter: naming who or what you are waiting on records a dependency, and a dependency can be discharged by someone who never reads your board. Naming the CONDITION records what has to become true, which is checkable by you at every pickup without asking anyone. A hold whose condition cannot be written down is not a hold; it is an abandonment, and it belongs in TODO with a reason or out of the board entirely.
+
+**A hold with no condition is a silent exclusion**, which is the same defect as an instrument that narrows its population without saying so: the work leaves the count and nothing marks the departure. Two holds that look identical -- one blocked permanently, one blocked until this afternoon -- collapse into one shape the moment the condition is dropped, and the temporary one then reads as permanent forever.
+
+Check every hold at pickup and move the released ones back into TODO. This section is NOT archived by a fold while its condition stands unmet.
 
 Only the header block is required for protocol compliance; the body sections are the working content.
 
@@ -242,6 +253,8 @@ Use for 1-to-all signals -- eg "touching `apps/lamplight/**` for ST-X" (a shared
 
 ### clear <sender>
 
+**AN ENTRY MAY BE ARCHIVED ONLY IF IT WAS ANSWERED, ACTIONED, OR RE-STATED LIVE ON YOUR BOARD. CLEARING IS NOT ONE OF THE THREE.** `clear` is not inbox hygiene and reading an entry is not handling it: the op moves an entry to where nobody looks, so a cleared-but-unactioned entry leaves a board that is affirmatively wrong rather than merely stale. Measured in Laksa 2026-08-31 (laksa-cc, adopted fleet-wide, routed here because the enforcement home is this file): a node routed two red guards to a peer, correctly attributed; the peer's next fold cleared and archived the entry unactioned and wrote _nothing in flight_, and the tree stayed red until a SECOND report caught it a session later. No guard is possible here -- actioned-ness is judgement -- so the precondition is prose and the discipline is yours.
+
 1. In your `<you>/inbox.<sender>.md`, move the handled entries verbatim into `<you>/.history/<YYYYMMDD>/inbox.<sender>.md`, and remove them from the live inbox (leaving the header + `_(empty)_` if none remain).
 2. You own your inbox -- no peer files touched. Touch heartbeat.
 
@@ -250,8 +263,9 @@ Use for 1-to-all signals -- eg "touching `apps/lamplight/**` for ST-X" (a shared
 Roll your OWN node's DONE content out of the live files into your own history, daily-or-more, so the live files stay lean (they are read on every pickup).
 
 1. Ensure `<you>/.history/<YYYYMMDD>/` exists (today, or the content's own date).
-2. From `<you>/wip.md`: move DONE `## DOING` items + superseded blocks into `<you>/.history/<YYYYMMDD>/wip.md`. KEEP frontmatter, live DOING/TODO, `## Watch-outs`, and still-relevant `## Decisions`.
-3. From each `<you>/inbox.<sender>.md`: move handled entries into history (same as `clear`).
+2. From `<you>/wip.md`: move DONE `## DOING` items + superseded blocks into `<you>/.history/<YYYYMMDD>/wip.md`. KEEP frontmatter, live DOING/TODO, `## Watch-outs`, `## Holds`, and still-relevant `## Decisions`.
+   - **AN UNEXECUTED RULING IS LIVE STATE, NOT HISTORY. A fold archives the NARRATIVE of a ruling and never the ruling itself while it is unexecuted.** Execution status is the discriminator; the date is evidence of nothing. Verify execution against the ARTEFACT, never against the board that records it. Measured on this protocol 2026-08-30: a fold applied the rule _cut any mention of DONE work_ to a whole dated ruling record, which keyed on **dated** where the rule keys on **done** -- so the fold enforcing _doing and todo only_ is the thing that removed todo items. Not one word was lost, which is precisely the failure: a live directive reachable only by grepping `.history/` is discoverable by nobody, because grepping `.history/` is not a thing a node does at pickup. Two buried directives were found, one of them shipping the option the human had explicitly DECLINED, five days on.
+3. From each `<you>/inbox.<sender>.md`: move handled entries into history (same as `clear`, **including its precondition** -- answered, actioned, or re-stated live, and reading is none of the three).
 4. `prettier --write` the touched files if the project formats markdown.
 5. **Single-owner: you only ever touch your own `<you>/` directory, so there is no peer-collision hazard** -- this is the key simplification over 2.0's shared-file archive. Commit via explicit pathspec (`git commit --only <you>/...`), never `-A`.
 
@@ -261,11 +275,13 @@ Roll your OWN node's DONE content out of the live files into your own history, d
 
 ### release
 
+**THIS IS A SESSION-END OP AND NOTHING ELSE.** Do not run it for a localfold, a compact, or a context reset -- see invariant 6. If the session continues, the status continues.
+
 1. Set your `wip.md` `status: paused`; update `heartbeat_at`. Leave `claims` + body intact.
 
 ### Fold vocabulary (localfold / globalfold)
 
-The human may say "localfold" or "globalfold" (terms from Lamplight; defined in `/in-finish`). In whiteboard terms: **localfold** = tidy your OWN node before a compact -- migrate settled `## Decisions` into `wip.md`, `archive` your own DONE content, then `release`. **globalfold** = the project-wide snapshot (`intent/wip.md` / `restart.md` / `done.md`), typically the coordinating / validation node's job, not a per-node op. Either way you only ever fold your own `<you>/` directory.
+The human may say "localfold" or "globalfold" (terms from Lamplight; defined in `/in-finish`). In whiteboard terms: **localfold** = tidy your OWN node before a compact -- migrate settled `## Decisions` into `wip.md`, then `archive` your own DONE content. **IT DOES NOT `release`.** A localfold before a compact is not a session ending, and invariant 6 says exactly that; `release` belongs to `/in-finish` when the session actually ends. This sentence read _then `release`_ until 2026-08-31 and contradicted invariant 6 and the red-flag table **in this same file**, four sections apart -- which is why nodes kept re-deriving the answer under compact pressure instead of reading it. `/in-finish` carried the same error in two places and has been corrected with it. **globalfold** = the project-wide snapshot (`intent/wip.md` / `restart.md` / `done.md`), typically the coordinating / validation node's job, not a per-node op. Either way you only ever fold your own `<you>/` directory.
 
 ### status
 
@@ -318,6 +334,9 @@ Concurrent sessions need a live coordination surface, and `wip.md` (the post-ses
 | "I'll edit a peer's `wip.md` to correct it."                | Never. You write only your own node. Send an `ask` to its inbox.                                |
 | "I'll keep a shared file for platform edits."               | That is the retired `lamplight.md`. Use `announce` -- broadcast to inboxes, no shared file.     |
 | "/compact ended the session, so I'll set `status: paused`." | No. `/compact` is transparent. Status stays active; `/in-session` re-fires `pickup`.            |
+| "This ruling is dated, so the fold archives it."            | Only if it was EXECUTED. Unexecuted, it is todo work, and `.history/` is where nobody looks.    |
+| "I read the inbox entry, so `clear` is just hygiene."       | Reading is not handling. Answer it, action it, or re-state it live -- then clear.               |
+| "I am holding this item." (no condition)                    | Then it is not a hold. Name what has to become true, or it reads as abandoned at every pickup.  |
 | "I'll archive the whole board while I'm here."              | You archive only your own `<you>/` dir. Single-owner, collision-free -- that is the point.      |
 | "The node said it's done, so it's done."                    | A "done" claim is the _trigger_ to verify, not the verdict. Read the as-built against the ask.  |
 | "I know roughly what time it is."                           | You do not. You have no clock. Run `date -u`; a plausible stamp is fabricated, not approximate. |

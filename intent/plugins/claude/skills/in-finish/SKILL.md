@@ -11,7 +11,7 @@ End-of-session wrap-up. Ensure all state is captured so the next session can pic
 
 "Fold" is shorthand for this wrap-up (compact, tidy, snapshot). Two scopes, coined in the Lamplight project:
 
-- **localfold** -- per-workstream tidy before a **compact** or context reset. Fold only THIS workstream's own Intent docs and whiteboard node: its ST/WP docs, its in-progress state, and (in a whiteboard project) its own-node `archive` + `release`. Scope is just you; you do not touch project-wide docs or other nodes.
+- **localfold** -- per-workstream tidy before a **compact** or context reset. Fold only THIS workstream's own Intent docs and whiteboard node: its ST/WP docs, its in-progress state, and (in a whiteboard project) its own-node `archive`. Scope is just you; you do not touch project-wide docs or other nodes. **IT DOES NOT `release`.** A compact is not the end of a session, so the node's `status` stays `active` -- `/in-whiteboard` invariant 6 says so and its red-flag table names setting `paused` here as the error. This line read `archive` + `release` until 2026-08-31, contradicting that invariant, and step 1 below contradicted it a second time; both are corrected. Release belongs to a session that is actually ending.
 - **globalfold** -- project-wide tidy before **end of day**, when all workstreams close out. Fold the shared project tracking docs (`intent/wip.md`, `intent/restart.md`, `.claude/restart.md`, `done.md`) into a coherent snapshot. In a multi-node setup this is typically the coordinating / validation workstream's job, not every node's.
 
 When the human says "localfold", run the wrap below scoped to your own workstream; when they say "globalfold", run the project-wide version across the shared docs. A solo project has one workstream, so local and global coincide.
@@ -20,7 +20,7 @@ When the human says "localfold", run the wrap below scoped to your own workstrea
 
 ### 1. Release the whiteboard
 
-If `intent/whiteboard/` exists in the project root, invoke `/in-whiteboard release`. This sets your node's board `status: paused` and refreshes its heartbeat before any doc updates are committed. Before releasing, consider whether any entries in your node's `## Decisions` should be migrated into `wip.md` / `done.md` for permanent record -- the whiteboard is the live channel, `wip.md` / `done.md` are the snapshots. If the directory doesn't exist, skip silently.
+If `intent/whiteboard/` exists in the project root **and this session is actually ending**, invoke `/in-whiteboard release`. This sets your node's board `status: paused` and refreshes its heartbeat before any doc updates are committed. **If you are folding before a `/compact` or a context reset, DO NOT release** -- run `/in-whiteboard touch` instead and leave `status: active`. The discriminator is whether the SESSION ends, never whether a fold happened. Before releasing, consider whether any entries in your node's `## Decisions` should be migrated into `wip.md` / `done.md` for permanent record -- the whiteboard is the live channel, `wip.md` / `done.md` are the snapshots. If the directory doesn't exist, skip silently.
 
 ### 2. Update steel thread docs
 
