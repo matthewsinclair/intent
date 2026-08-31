@@ -85,8 +85,10 @@ uuid = { version = "1", features = ["v4"] }
 #   grep -c '^name = "<crate>"$' Cargo.lock
 #
 # against tokio, axum, hyper, actix-web, async-std, smol, tower and notify.
-# `async-graphql` was already here and pulled no runtime in, because it has
-# only ever been used SYNCHRONOUSLY, for the SDL export.
+# `async-graphql` was already here and pulled no runtime in, and still does
+# not: its resolvers are async fns, which compile without one, and the only
+# place that EXECUTES a document is intentd, on this runtime's handle -- the
+# escape hatch ruling (vc, 2026-08-31). The CLI bridges to intentd or refuses.
 #
 # **THE CHOICE IS CITED, NOT RE-ARGUED, WHICH AC-08.10 EXPLICITLY PERMITS.**
 # The sibling estate `../Conflab` runs exactly this pair in `conflabd`:

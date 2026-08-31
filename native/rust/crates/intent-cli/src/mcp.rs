@@ -346,6 +346,11 @@ pub enum ServeError {
   Args { path: String, why: String },
   #[error(transparent)]
   Refused(#[from] FacadeError),
+  /// The escape hatch could not reach, or was refused by, the daemon that
+  /// executes it. Rendered by `hatch` with its own remedies -- the one tool on
+  /// this surface whose refusal can name `intent daemon start`.
+  #[error(transparent)]
+  Bridge(#[from] crate::hatch::HatchError),
 }
 
 impl ServeError {
@@ -354,6 +359,7 @@ impl ServeError {
   pub fn render(&self) -> String {
     match self {
       Self::Refused(e) => e.render(),
+      Self::Bridge(e) => e.render(),
       other => other.to_string(),
     }
   }
@@ -365,7 +371,7 @@ impl ServeError {
 /// end-to-end by `tests::every_roster_path_reaches_an_arm`. A row gaining its
 /// door joins `tools()` by regeneration and this list by hand -- the gate is
 /// what makes forgetting either half a red test rather than a silent gap.
-pub const SERVED: [&str; 58] = [
+pub const SERVED: [&str; 59] = [
   "st new",
   "st start",
   "st done",
@@ -424,6 +430,7 @@ pub const SERVED: [&str; 58] = [
   "export",
   "organize",
   "events",
+  "graphql",
 ];
 
 /// Answer one tool call against an already-open facade.
@@ -938,6 +945,19 @@ pub fn serve(
     }
 
     // ----- doctor / agents -----
+    // **THE ESCAPE HATCH: SHIPPED TO intentd, NEVER EXECUTED HERE.** The open
+    // facade is touched for its root and nothing else -- a tool that ran the
+    // document in this process would be the async runtime arriving through the
+    // back door, which is the one thing the zero-dependency ruling forbids
+    // (`hatch.rs` carries the whole argument). The arguments are refused
+    // BEFORE any daemon is looked for, which is what keeps the roster drive
+    // deterministic on a machine with or without one running.
+    "graphql" => {
+      let query = need_s(path, map, "query")?;
+      let variables = crate::hatch::variables(opt_s(path, map, "variables")?)
+        .map_err(|e| args_err(path, e.to_string()))?;
+      Ok(crate::hatch::graphql(f.project().root(), query, variables)?)
+    }
     "doctor" => {
       let report = Facade::doctor(f.project(), ctx, Some(f.store()));
       Ok(crate::render::doctor_json(&report))
@@ -1550,6 +1570,30 @@ mod tests {
         "`{path}` must be UnknownTool on this surface"
       );
     }
+  }
+
+  /// The hatch's arguments are refused BEFORE any daemon is looked for, so
+  /// this drive is deterministic on a machine with or without one running --
+  /// and neither refusal is `UnknownTool`, which is what the roster gate needs.
+  #[test]
+  fn the_hatch_refuses_its_arguments_before_reaching_for_a_daemon() {
+    let (_dir, mut facade) = fixture();
+    let ctx = drive_ctx();
+    let missing = serve(&mut facade, &ctx, "graphql", &json!({}));
+    assert!(
+      matches!(&missing, Err(ServeError::Args { why, .. }) if why.contains("query")),
+      "{missing:?}"
+    );
+    let bad = serve(
+      &mut facade,
+      &ctx,
+      "graphql",
+      &json!({"query": "{ threads { id } }", "variables": "[1]"}),
+    );
+    assert!(
+      matches!(&bad, Err(ServeError::Args { why, .. }) if why.contains("--variables")),
+      "{bad:?}"
+    );
   }
 
   /// An unknown parameter is refused by name, never accepted-and-ignored --

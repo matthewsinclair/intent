@@ -177,6 +177,12 @@ impl ProjectHandle {
     let ingested = std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0));
     let thread_ingested = std::sync::Arc::clone(&ingested);
     let thread_events = events.clone();
+    // **CAPTURED HERE BECAUSE HERE IS INSIDE THE RUNTIME AND THE STORE THREAD
+    // IS NOT.** `Handle::current()` panics off a runtime thread; this `async
+    // fn` runs on one, so the handle is taken once and moved across. The store
+    // thread uses it for exactly one thing: blocking on a GraphQL execution
+    // (`Op::Graphql`) with THIS process's runtime rather than a second one.
+    let runtime = tokio::runtime::Handle::current();
 
     std::thread::spawn(move || {
       // **THE ID IS LEARNED ON THIS THREAD AND KEPT HERE, RATHER THAN READ BACK
@@ -251,7 +257,7 @@ impl ProjectHandle {
       while let Some(work) = rx.blocking_recv() {
         match work {
           Work::Client { op, reply } => {
-            let response = serve(&mut facade, op);
+            let response = serve(&mut facade, op, &runtime);
             // A dropped receiver means the client disconnected mid-request.
             // The work is already done and there is nobody to tell, which is a
             // state rather than a fault.
@@ -592,7 +598,12 @@ fn open_facade(root: &Path) -> Result<(Facade, String), Response> {
 /// **THE ONLY FUNCTION IN THIS CRATE THAT TOUCHES A `Facade`, AND IT RUNS ON
 /// THE STORE THREAD.** Adding an operation means adding an arm here; there is
 /// nowhere else it could be added, which is the property the door is for.
-fn serve(facade: &mut Facade, op: Op) -> Response {
+///
+/// `runtime` is the daemon's own tokio handle, and it is here for one arm:
+/// the store thread is a plain `std::thread`, so a future produced by the
+/// facade has to be driven by something, and the something must not be a
+/// second executor.
+fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Response {
   match op {
     Op::ThreadList => Response::Threads {
       threads: facade
@@ -606,6 +617,26 @@ fn serve(facade: &mut Facade, op: Op) -> Response {
           completed: thread.completed.clone(),
         })
         .collect(),
+    },
+    // **THE STORE THREAD BLOCKS ON THIS, AND IT IS THE RIGHT THREAD TO DO IT
+    // ON.** Executing a document is async because async-graphql's resolvers
+    // are; the future awaits nothing outside itself -- the snapshot was taken
+    // through the facade BEFORE the future existed -- so `block_on` costs this
+    // thread exactly the resolver work and costs no worker anything. The
+    // handle is tokio's own, taken in `open`: no second executor enters the
+    // daemon, and none may enter the CLI, which is why the CLI ships the
+    // document here at all (vc's ruling, 2026-08-31, recorded on the op).
+    //
+    // A refusal the SCHEMA makes -- a mutation against `EmptyMutation`, an
+    // unknown field -- is inside `response`, on the spec's channel; the only
+    // `Response::Error` this arm can produce is a serialisation fault, which
+    // is intentd's and says so.
+    Op::Graphql { query, variables } => match runtime.block_on(facade.graphql(&query, variables)) {
+      Ok(response) => Response::Graphql { response },
+      Err(e) => Response::error(
+        format!("the GraphQL answer could not be serialised: {e}"),
+        "this is a fault in intentd rather than in the document or the project; the daemon's log names it.",
+      ),
     },
     // **UNREACHABLE BY DISPATCH AND ANSWERED ANYWAY.** The registry is not
     // scoped to a project, so the connection handler answers it before any

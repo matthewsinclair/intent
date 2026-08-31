@@ -383,19 +383,20 @@ type Legacy {
 
 type Query {
   """
-  One steel thread by its natural id, eg `ST0000`.
+  One steel thread by its natural id, eg `ST0000`; `null` when there is
+  none, which is an answer and not an error.
   """
   thread(id: String!): Thread
   """
-  Every steel thread in the project.
+  Every steel thread in the project, in the order `st list` renders them.
   """
   threads: [Thread!]!
   """
-  One issue by its number.
+  One issue by its number; `null` when there is none.
   """
   issue(number: Int!): Issue
   """
-  Every issue in the project.
+  Every issue in the project, in number order.
   """
   issues: [Issue!]!
 }

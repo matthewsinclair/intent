@@ -12,6 +12,7 @@
 
 pub mod dispatch;
 pub mod guide;
+pub mod hatch;
 pub mod mcp;
 pub mod mcp_stdio;
 pub mod render;

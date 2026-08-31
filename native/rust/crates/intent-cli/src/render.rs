@@ -45,7 +45,9 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
   // at exit 0. See [`refuse_unservable`].
   if via_daemon(matches) {
     let path = invoked_path(matches);
-    if daemon_op_for(&path).is_none() {
+    // A daemon-only verb grants the flag by existing: it was going to the
+    // daemon anyway, so `--daemon` on it is redundant rather than refusable.
+    if daemon_op_for(&path).is_none() && !crate::hatch::daemon_only(&path) {
       return Err(refuse_unservable(&path));
     }
   }
@@ -84,6 +86,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("fc", m)) => fc(m),
     Some(("surface", m)) => surface(m),
     Some(("daemon", m)) => daemon(m),
+    Some(("graphql", m)) => graphql(m),
     // Serves until the MCP host closes stdin -- the row's `not_probed`
     // exemption describes exactly this, in the built tense.
     Some(("mcp", _)) => crate::mcp_stdio::run(),
@@ -183,16 +186,24 @@ pub(crate) enum StoreNeed {
 /// was the intended state or an unfinished one.
 ///
 /// **THE MEMBERSHIP RULE: a path belongs here when its answer is an existing
-/// project-scoped, request-response [`Op`].** That is one path today because
-/// [`Op`] has exactly one such variant, and the other three are excluded by
-/// what they ARE rather than by not having been done yet -- `Registry` is
-/// deliberately not scoped to one project, `Subscribe` changes the
-/// connection's MODE and answers once before streaming, and `Shutdown` acts on
-/// the daemon rather than answering a question about the estate. **So this is
-/// the COMPLETE set under today's vocabulary, not a floor someone stopped at.**
+/// project-scoped, request-response [`Op`] AND the verb also answers
+/// in-process.** Both clauses are load-bearing. The first excludes three of
+/// [`Op`]'s five variants by what they ARE rather than by not having been done
+/// yet -- `Registry` is deliberately not scoped to one project, `Subscribe`
+/// changes the connection's MODE and answers once before streaming, and
+/// `Shutdown` acts on the daemon rather than answering a question about the
+/// estate. The second excludes `Graphql`: it is project-scoped
+/// request-response and has NO in-process twin, by ruling (the CLI carries no
+/// runtime; vc, 2026-08-31), so the identity claim the conformance harness
+/// makes over this list cannot be made for it. It is declared instead at
+/// [`crate::hatch::DAEMON_ONLY`], which is what lets `--daemon` pass on it.
+/// **So this is the COMPLETE set under today's vocabulary, not a floor
+/// someone stopped at.**
 ///
-/// **IT GROWS WHEN `Op` GAINS A PROJECT-SCOPED REQUEST-RESPONSE VARIANT, AND
-/// NOT BEFORE** -- adding a path here without one has nothing to map it to.
+/// **IT GROWS WHEN `Op` GAINS A PROJECT-SCOPED REQUEST-RESPONSE VARIANT WITH
+/// AN IN-PROCESS TWIN, AND NOT BEFORE** -- adding a path here without an op has
+/// nothing to map it to, and adding one without a twin hands the harness a
+/// comparison with one side.
 /// The 3.x destination is a general `dispatch(op)`, at which point this roster
 /// becomes a projection of the dispatch table rather than a second home, which
 /// is the discharge condition recorded on the drift guard below.
@@ -345,6 +356,40 @@ fn served<T>(
       "error: {e}\n  remedy: {}",
       e.remedy()
     ))),
+  }
+}
+
+/// The escape hatch's terminal face (`AC-00.4`, `AC-09.2`): one document,
+/// shipped to intentd, answered as the spec's `{data, errors}` object on stdout.
+///
+/// **THE STORE IS NEVER OPENED HERE.** `context()` resolves the project and
+/// nothing more; the daemon owns the answer, and a facade opened for a verb
+/// that cannot use it would be a lock taken for nothing. What can fail before
+/// the wire is the arguments, and `hatch` refuses those in its one voice.
+///
+/// **EXIT 1 ON A DOCUMENT THE SCHEMA REFUSED, SILENTLY, WITH THE ANSWER ON
+/// STDOUT.** A mutation against `EmptyMutation` or an unknown field comes back
+/// as `errors` inside a well-formed response -- that IS the answer, and a
+/// machine reading stdout has it in full -- so [`Failure::Verdict`] is the
+/// shape: the verdict is where machines read it and stderr stays clean. A
+/// daemon that could not be reached is rc=2, from `hatch`, like every other
+/// *this build cannot answer* in the estate.
+fn graphql(m: &ArgMatches) -> Result<(), Failure> {
+  let query = arg(m, "query")?;
+  let variables = crate::hatch::variables(opt(m, "variables").as_deref())
+    .map_err(crate::hatch::HatchError::failure)?;
+  let (project, _ctx) = context()?;
+  let answer = crate::hatch::graphql(project.root(), &query, variables)
+    .map_err(crate::hatch::HatchError::failure)?;
+  let rendered = serde_json::to_string_pretty(&answer).map_err(|e| {
+    Failure::Error(format!(
+      "error: the answer could not be rendered: {e}\n  remedy: this is a fault in the CLI rather than in the document or the project."
+    ))
+  })?;
+  println!("{rendered}");
+  match crate::hatch::has_errors(&answer) {
+    true => Err(Failure::Verdict),
+    false => Ok(()),
   }
 }
 

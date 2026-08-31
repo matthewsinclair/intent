@@ -128,6 +128,51 @@ pub const PAUSE: std::time::Duration = std::time::Duration::from_millis(20);
 /// **NOT `tempfile`, AND NOT FOR TIDINESS.** A unix socket address is a
 /// fixed-size field, so the whole path has to fit; `$TMPDIR` on macOS is a
 /// ~50-character generated path and the daemon's own suffix is another 32.
+/// Drive one `intent mcp` session against `root`: every frame written in
+/// order, stdin closed (an MCP host's goodbye), every stdout line parsed as a
+/// frame. `home` isolates daemon discovery exactly as the daemon fixtures do;
+/// `None` leaves the ambient one.
+///
+/// **ONE DRIVER FOR EVERY TEST THAT SPEAKS TO THE SERVER**, so no test file
+/// owns its own opinion about how frames are written or when stdin closes --
+/// the failure when two drivers drift is a test that hangs on a server that
+/// was waiting for a newline.
+pub fn mcp_session(
+  root: &Path,
+  home: Option<&Path>,
+  frames: &[&str],
+) -> (std::process::Output, Vec<serde_json::Value>) {
+  use std::io::Write;
+  let mut cmd = Command::new(env!("CARGO_BIN_EXE_intent"));
+  cmd
+    .arg("mcp")
+    .current_dir(root)
+    .stdin(Stdio::piped())
+    .stdout(Stdio::piped())
+    .stderr(Stdio::piped());
+  if let Some(home) = home {
+    cmd.env("HOME", home);
+  }
+  let mut child = cmd.spawn().expect("spawn intent mcp");
+  {
+    let stdin = child.stdin.as_mut().expect("stdin");
+    for frame in frames {
+      stdin.write_all(frame.as_bytes()).expect("write a frame");
+      stdin.write_all(b"\n").expect("terminate it");
+    }
+    stdin.flush().expect("flush");
+  }
+  drop(child.stdin.take());
+  let out = child.wait_with_output().expect("wait for the server");
+  let parsed = String::from_utf8_lossy(&out.stdout)
+    .lines()
+    .map(|line| {
+      serde_json::from_str(line).unwrap_or_else(|e| panic!("not one JSON frame: {line}: {e}"))
+    })
+    .collect();
+  (out, parsed)
+}
+
 pub fn short_dir(tag: &str) -> PathBuf {
   static NEXT: AtomicU32 = AtomicU32::new(0);
   let dir = PathBuf::from("/tmp").join(format!(

@@ -4,7 +4,7 @@
   "measured_at": "9ec1656",
   "measured_on": "2026-08-14",
   "measured_by": "ic",
-  "status": "All 27 v2 families authored + 15 new-surface entries, plus 1 NEW-SURFACE FAMILY (`daemon`, 4 verbs). **`families` now holds one member that is not a v2 family, and the count is stated in two parts rather than merged**: the section is the SPINE's unit -- `spine::build` iterates it and a family's leaves are its child rows -- and it was only ever coincidentally also the v2 inventory. `daemon` needed to be there because a `new_surface` row carries subcommands as a bare `values` list, which has no per-verb help, no per-verb flags, and one `recoverability` for four verbs whose answers differ (vc's ruling 2026-08-30). Keeping the v2 figure separate is deliberate: it is a claim about the PORT and must not silently absorb new surface. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
+  "status": "All 27 v2 families authored + 16 new-surface entries, plus 1 NEW-SURFACE FAMILY (`daemon`, 4 verbs). **`families` now holds one member that is not a v2 family, and the count is stated in two parts rather than merged**: the section is the SPINE's unit -- `spine::build` iterates it and a family's leaves are its child rows -- and it was only ever coincidentally also the v2 inventory. `daemon` needed to be there because a `new_surface` row carries subcommands as a bare `values` list, which has no per-verb help, no per-verb flags, and one `recoverability` for four verbs whose answers differ (vc's ruling 2026-08-30). Keeping the v2 figure separate is deliberate: it is a claim about the PORT and must not silently absorb new surface. Targets marked pending-hv await the usage-convention scope ruling. MEASURED_AT IS A HISTORICAL PIN AND MUST NEVER BE ADVANCED: 9ec1656 precedes the hoist (0ec2ac79) by 1231 commits and names the tree where the v2 surface still existed. This register maps v2 surface to v3 targets, so its stamp is a claim about what was observed, not about how current the file is. Advancing it to HEAD would point a v2-surface measurement at a tree that has no v2 surface -- the same harm the estate_corpus hoist row was carrying until 2026-08-18, where a re-pin-on-HEAD-move rule outlived the migration that expired it. Re-measure only against a tree that still has the v2 surface; there is no such tree after the hoist.",
   "target_states": [
     {
       "state": "as-observed",
@@ -8462,6 +8462,42 @@
       "one_home": "**THIS SHIPS NO HELP TEXT OF ITS OWN, AND THAT IS THE POINT.** The arm rebuilds the clap `Command` from the same compiled-in table `--help` uses and asks IT to render, so the twin AC-00.6 is about cannot drift apart later -- there is one renderer with two spellings. The estate already carries three homes for _what is Intent_ (`--help`'s command list, `intent llm`'s generated agent guide, `intent info`'s install-and-project status); **a fourth authored page would have been the Highlander violation this row exists to avoid**, and writing one is what `bin/intent_help` did.",
       "root_only": "**ROOT ONLY, AND THE ARG IS DELIBERATELY ABSENT** (hv, 2026-08-30). The v2 `help` entry declared `command` at arity `0..1`; this row declares no args, because the live twin-pair AC-00.6 fires on is the ROOT one and per-command help already answers as `intent <cmd> --help`. Declaring the arg here would ship a third spelling of per-command help while hv's post-tag `<cmd> help` is a DIFFERENT surface with different content, and the table would then carry a promise the post-tag ruling has to unmake.",
       "recoverability_absent": "**DECLARED ABSENT, NOT OMITTED.** `help` is a `read`, and `dispatch.rs`'s vocabulary check refuses a recoverability on one -- _the question is vacuous for a command that changes nothing_. Recorded here so the absence reads as the rule rather than as an oversight, which is the table's own standing objection to absence-as-meaning."
+    },
+    {
+      "path": "graphql",
+      "help": "Execute a GraphQL document against this project through intentd -- the read-only escape hatch",
+      "args": [
+        {
+          "name": "query",
+          "type": "string",
+          "arity": "1",
+          "note": "The document, verbatim. Validated by the schema in intentd, never by the CLI: `EmptyMutation` ships, so a mutation document is refused inside the answer's `errors` on the spec's own channel, and the CLI does not read the document at all."
+        }
+      ],
+      "v2": "new-surface",
+      "basis": "design.md:86 -- the `intent_graphql` escape hatch beside the typed MCP tier; `AC-00.4`'s `bridging to intentd when it is up`. hv ruled it IN before the tag (2026-08-31, first-hand in vc's session, hv's own selection from three options vc authored, over vc's descope recommendation); vc bounded it under the pen to READS ONLY, derived from one roster, mutations out of 3.0.1 (hv/wip.md, the escape-hatch entry). No v2 antecedent. DAEMON-ONLY BY RULING: executing a document needs an async runtime and the CLI carries none (`cargo tree -p intent-cli -i tokio` matches no package), so both faces bridge over `wire::ask` and refuse naming `intent daemon start` when no daemon answers -- never an in-process executor. NOT in `SERVED_BY_DAEMON`: it has no in-process twin, so the `AC-08.2` identity claim cannot be made for it; declared at `hatch::DAEMON_ONLY` with that reason.",
+      "owner_wp": "WP-09",
+      "acceptance": "AC-00.4, AC-09.2 (bounded reading ruled 2026-08-31; `graphql_escape_hatch.rs` is the drive, both faces)",
+      "target": {
+        "state": "new-surface"
+      },
+      "disposition": "new-surface",
+      "exposed_on_mcp": true,
+      "read_or_mutate": "read",
+      "flags": [
+        {
+          "spellings": [
+            "--variables"
+          ],
+          "type": "string",
+          "value": "<JSON>",
+          "help": "GraphQL variables as a JSON object, given as text",
+          "disposition": "keep",
+          "disposition_basis": "NEW IN v3, NO v2 ANTECEDENT. JSON TEXT ON BOTH FACES because the row's flag type vocabulary is what the clap surface and the MCP schema both derive from -- one row, one type; an object-typed MCP parameter would need a second vocabulary for one flag. Parsed once, in `hatch::variables`, before any daemon is looked for, so a bad value is refused in one voice at exit 1 (INV-04: values are refused in the renderer, never by a value_parser at 2).",
+          "exposed_on_mcp": true
+        }
+      ],
+      "facade": "graphql"
     }
   ],
   "provenance": {
@@ -8598,7 +8634,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 41,
+      "n": 42,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -8769,7 +8805,7 @@
     }
   ],
   "populations": {
-    "why": "THE FOUR POPULATIONS, ENUMERATED, so no consumer has to re-derive one. `.families[].entries[]` reads like the command surface and is not it, in BOTH directions at once: too narrow, because it omits the 8 top-level `new_surface[]` rows and all 8 ship; too wide, because it includes the 5 rows dispositioned `retire`, which the binary does not contain. 104 against 112 against 107, three apart with opposite signs, so no count-based sanity check flinches -- which is how the same wrong population was hand-written five times in one week. **The fix is not vigilance and it is not a shared library either: a sourced library closes the class only for callers that source it, and nothing makes them.** `lib_surface.sh` was built as the one home and then sat beside `implemented_check.sh`'s own list and four inline walks in `surface_check.sh`, none of which sourced it, so it added a home rather than removing three. This block is the one home; the library reads it, and `gen_dispatch_table.sh` refuses when it disagrees with the corpus. The redundancy is deliberate -- `retired` is `declared` minus `shipped` and `probeable` is `shipped` minus `not_probed` -- because a consumer that has to subtract is a consumer that is computing. `Entry::is_shipped()` in the binary is NOT replaced by a lookup: it fails OPEN across two fields and is the only thing stopping a single hand-edit from shipping a retired command, and a list is edited by people who believe they are editing data. It stays a predicate and a Rust test binds it to `shipped`. Order is table order. **`not_probed` CARRIES ITS OWN REASONS BECAUSE ITS PREDECESSOR LOST A MEMBER TO ITS NAME** (vc, 2026-08-17, on their own `SURFACE_NONRETURNING`): the four are excluded for TWO different reasons -- two never return, two write outside the sandbox -- and `claude upgrade`, which returns perfectly well and installs into the operator's real `~/.claude`, fell out of a list whose name was only ever entitled to define one of the two. `claude start` survived only because it satisfies both readings, so the surviving two-word row made the list look complete. A key named for one reason cannot hold members admitted for another, and the correction is not a better name but a member that states its own grounds. **AND THE CRITERION IS NARROWER THAN `writes outside the sandbox`, WHICH IS THE GUARD AGAINST THIS LIST GOING SHORT A SECOND TIME** (vc, 2026-08-17, who checked their own fix by CORRESPONDENCE rather than reading it -- all four populations diffed member-by-member, not by count, because counts pass on a block with the right arithmetic and the wrong rows). Two SIBLINGS write destructively to the operator's real home -- `plugin_remove_target` is `rm -rf \"$HOME/.claude/skills/$1\"` at `intent/plugins/claude/bin/intent_claude_skills:73` and `rm -f \"$HOME/.claude/agents/$1.md\"` at `intent_claude_subagents:79` -- and BOTH are correctly probeable, because bare `claude skills` and bare `claude subagents` dispatch to help (`\"\"|help|-h|--help)` at :406 and :733 respectively) so the probe never reaches the destructive verb. `intent_claude_upgrade` has no such arm: it is a LEAF, and bare RUNS it. **So the criterion is `writes outside the sandbox WHEN INVOKED BARE, because bare is how the probe invokes`** -- and a criterion stated more broadly than the one actually applied is precisely what let a member fall out of this list last time. If a row ever gains a bare side effect, or a leaf is added under a name that reads like a family, the list goes short again in silence. Verified at HEAD by ic before recording. **THIRD ARRAY, AND IT IS EMPTY TODAY (ic, 2026-08-22): `families_outstanding` is a top-level array alongside `families` and `new_surface`.** A union of the other two is correct ONLY while this one has zero members, and nothing announces the day it does not -- a walk that is right by accident reads exactly like a walk that is right by construction. **Consult this block; do not union the arrays you happen to know about.**",
+    "why": "THE FOUR POPULATIONS, ENUMERATED, so no consumer has to re-derive one. `.families[].entries[]` reads like the command surface and is not it, in BOTH directions at once: too narrow, because it omits the top-level `new_surface[]` rows, every one of which ships; too wide, because it includes the 5 rows dispositioned `retire`, which the binary does not contain. 104 against 112 against 107, three apart with opposite signs, so no count-based sanity check flinches -- which is how the same wrong population was hand-written five times in one week. **The fix is not vigilance and it is not a shared library either: a sourced library closes the class only for callers that source it, and nothing makes them.** `lib_surface.sh` was built as the one home and then sat beside `implemented_check.sh`'s own list and four inline walks in `surface_check.sh`, none of which sourced it, so it added a home rather than removing three. This block is the one home; the library reads it, and `gen_dispatch_table.sh` refuses when it disagrees with the corpus. The redundancy is deliberate -- `retired` is `declared` minus `shipped` and `probeable` is `shipped` minus `not_probed` -- because a consumer that has to subtract is a consumer that is computing. `Entry::is_shipped()` in the binary is NOT replaced by a lookup: it fails OPEN across two fields and is the only thing stopping a single hand-edit from shipping a retired command, and a list is edited by people who believe they are editing data. It stays a predicate and a Rust test binds it to `shipped`. Order is table order. **`not_probed` CARRIES ITS OWN REASONS BECAUSE ITS PREDECESSOR LOST A MEMBER TO ITS NAME** (vc, 2026-08-17, on their own `SURFACE_NONRETURNING`): the four are excluded for TWO different reasons -- two never return, two write outside the sandbox -- and `claude upgrade`, which returns perfectly well and installs into the operator's real `~/.claude`, fell out of a list whose name was only ever entitled to define one of the two. `claude start` survived only because it satisfies both readings, so the surviving two-word row made the list look complete. A key named for one reason cannot hold members admitted for another, and the correction is not a better name but a member that states its own grounds. **AND THE CRITERION IS NARROWER THAN `writes outside the sandbox`, WHICH IS THE GUARD AGAINST THIS LIST GOING SHORT A SECOND TIME** (vc, 2026-08-17, who checked their own fix by CORRESPONDENCE rather than reading it -- all four populations diffed member-by-member, not by count, because counts pass on a block with the right arithmetic and the wrong rows). Two SIBLINGS write destructively to the operator's real home -- `plugin_remove_target` is `rm -rf \"$HOME/.claude/skills/$1\"` at `intent/plugins/claude/bin/intent_claude_skills:73` and `rm -f \"$HOME/.claude/agents/$1.md\"` at `intent_claude_subagents:79` -- and BOTH are correctly probeable, because bare `claude skills` and bare `claude subagents` dispatch to help (`\"\"|help|-h|--help)` at :406 and :733 respectively) so the probe never reaches the destructive verb. `intent_claude_upgrade` has no such arm: it is a LEAF, and bare RUNS it. **So the criterion is `writes outside the sandbox WHEN INVOKED BARE, because bare is how the probe invokes`** -- and a criterion stated more broadly than the one actually applied is precisely what let a member fall out of this list last time. If a row ever gains a bare side effect, or a leaf is added under a name that reads like a family, the list goes short again in silence. Verified at HEAD by ic before recording. **THIRD ARRAY, AND IT IS EMPTY TODAY (ic, 2026-08-22): `families_outstanding` is a top-level array alongside `families` and `new_surface`.** A union of the other two is correct ONLY while this one has zero members, and nothing announces the day it does not -- a walk that is right by accident reads exactly like a walk that is right by construction. **Consult this block; do not union the arrays you happen to know about.**",
     "not_probed": [
       {
         "path": "mcp",
@@ -8920,7 +8956,8 @@
       "surface",
       "browse",
       "explore",
-      "help"
+      "help",
+      "graphql"
     ],
     "shipped": [
       "st",
@@ -9049,7 +9086,8 @@
       "surface",
       "browse",
       "explore",
-      "help"
+      "help",
+      "graphql"
     ],
     "retired": [
       "st repair",
@@ -9186,7 +9224,8 @@
       "surface",
       "browse",
       "explore",
-      "help"
+      "help",
+      "graphql"
     ],
     "self_loop": [
       "ac descope",

@@ -43,3 +43,13 @@ rusqlite.workspace = true
 # watching what it inherits -- measures the outcome rather than the property,
 # so it would pass on an unloaded machine with the flag gone.
 libc = "0.2"
+# **TEST-ONLY, AND IT ADDS NO THIRD-PARTY CODE:** `tokio` is already in this
+# workspace's lock as intentd's runtime, so this makes an existing compile unit
+# reachable from `tests/` rather than pulling one in. It is needed because the
+# GraphQL resolvers are async fns and a test that drives them has to await:
+# `graphql_reads_through_the_facade.rs` executes real documents against a real
+# store. **THE SHIPPED CRATE STILL CARRIES NO RUNTIME** -- that is the property
+# the escape hatch's runtime-free CLI rests on (vc, 2026-08-31) -- and a
+# dev-dependency cannot reach a dependent's build graph, which is why this is
+# the right section for it and `[dependencies]` never would be.
+tokio.workspace = true

@@ -21,11 +21,14 @@
 //!
 //! ## What this is NOT
 //!
-//! **NOT THE GraphQL FACE.** `AC-08.2`'s dual-path conformance across the whole
-//! verb surface is served by a GraphQL skin over the facade
-//! ([`crate::graphql`]), and that is still ahead. This is the envelope that
-//! carries a request to a project and an answer back -- addressing, binding and
-//! failure -- and it is deliberately separable from what is being asked.
+//! **NOT THE GraphQL FACE, THOUGH IT NOW CARRIES ONE REQUEST TO IT.** The face
+//! -- the schema and its resolvers -- is [`crate::graphql`]. This is the
+//! envelope that carries a request to a project and an answer back --
+//! addressing, binding and failure -- and it is deliberately separable from
+//! what is being asked. [`Op::Graphql`] is that separation kept rather than
+//! broken: ONE op whose payload is a document, answered by ONE value whose
+//! shape the GraphQL specification owns, so the envelope learns nothing about
+//! fields and a schema change never reaches this file.
 //!
 //! **AND NOT A SECOND RENDERER.** Nothing here formats anything for a human. A
 //! response carries values; the CLI renders them, exactly as it renders the
@@ -82,6 +85,29 @@ pub struct Request {
 pub enum Op {
   /// Every steel thread in the project, in the order the model holds them.
   ThreadList,
+  /// Execute one GraphQL document against the project -- the escape hatch
+  /// (`AC-00.4`, `AC-09.2`), READS ONLY in 3.0.x.
+  ///
+  /// **THE ONE OP WHOSE PAYLOAD IS A QUESTION RATHER THAN A NAME, AND THE
+  /// REASON IT IS AN OP AT ALL.** Executing a document needs an async runtime
+  /// and the CLI carries none (vc, 2026-08-31, under hv's pen): the terminal
+  /// and MCP faces both ship the document here and intentd executes it on its
+  /// own runtime. **There is no in-process twin**, which is why this variant is
+  /// project-scoped request-response and still not a member of the CLI's
+  /// `SERVED_BY_DAEMON` -- the dual-path identity claim cannot be made for a
+  /// verb with one path, and the CLI declares it under `hatch::DAEMON_ONLY`.
+  ///
+  /// **`variables` IS ABSENT ON THE WIRE WHEN IT IS `None`**, so the
+  /// hand-written line stays what a client would type:
+  /// `{"root":"/p","op":"graphql","query":"{ threads { id } }"}`. The document
+  /// travels verbatim and is validated by the schema, never here --
+  /// `EmptyMutation` is what makes the reads-only bound a property of the face
+  /// rather than a check on the envelope.
+  Graphql {
+    query: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    variables: Option<serde_json::Value>,
+  },
   /// The projects this daemon has opened, and whether their roots still exist.
   ///
   /// **NOT SCOPED TO ONE PROJECT, WHICH IS WHY IT IS ANSWERED WITHOUT BINDING
@@ -247,6 +273,17 @@ pub struct RegisteredProject {
 pub enum Response {
   /// The threads a [`Op::ThreadList`] found.
   Threads { threads: Vec<ThreadSummary> },
+  /// The answer to an [`Op::Graphql`]: the spec-shaped `{data, errors}` object
+  /// exactly as the face serialised it.
+  ///
+  /// **ONE VALUE, NOT TWO FIELDS, BECAUSE THE SHAPE HAS AN OWNER AND IT IS NOT
+  /// THIS MODULE.** Splitting `data` from `errors` here would mint a third
+  /// spelling of a response the GraphQL specification already fixes and every
+  /// client already parses. A schema-side refusal -- a mutation document
+  /// against `EmptyMutation`, an unknown field -- travels INSIDE this value on
+  /// the spec's own channel: it is an answer about the document, not a failure
+  /// to serve, so it is never [`Response::Error`].
+  Graphql { response: serde_json::Value },
   /// The projects a [`Op::Registry`] found.
   Registry { projects: Vec<RegisteredProject> },
   /// This connection is now a feed (`AC-08.6`).
@@ -528,6 +565,61 @@ mod tests {
     let registry = br#"{"root":"/tmp/project","op":"registry"}"#;
     let parsed: Request = serde_json::from_slice(registry).expect("parses");
     assert_eq!(parsed.op, Op::Registry);
+
+    // The hatch's line, as an agent or a person would write it: no
+    // `variables` key at all when there are none.
+    let graphql = br#"{"root":"/tmp/project","op":"graphql","query":"{ threads { id } }"}"#;
+    let parsed: Request =
+      serde_json::from_slice(graphql).expect("the documented hatch line parses");
+    assert_eq!(
+      parsed.op,
+      Op::Graphql {
+        query: "{ threads { id } }".to_string(),
+        variables: None,
+      }
+    );
+  }
+
+  #[test]
+  fn a_graphql_request_carries_variables_only_when_it_has_them() {
+    // **ABSENT, NOT `null`, ON THE WIRE.** A client that never sends variables
+    // must be able to write the line by hand without knowing the key exists,
+    // and a daemon must read that line back into `None` -- both directions,
+    // because the round trip is the only thing that proves the two agree.
+    let bare = Request {
+      root: PathBuf::from("/tmp/project"),
+      op: Op::Graphql {
+        query: "{ threads { id } }".to_string(),
+        variables: None,
+      },
+    };
+    let emitted = String::from_utf8(frame(&bare).expect("serialisable")).expect("utf8");
+    assert_eq!(
+      emitted.trim_end(),
+      r#"{"root":"/tmp/project","op":"graphql","query":"{ threads { id } }"}"#,
+      "the emitted form drifted from the documented one"
+    );
+
+    let with = Request {
+      root: PathBuf::from("/tmp/project"),
+      op: Op::Graphql {
+        query: "query($id: String!) { thread(id: $id) { id } }".to_string(),
+        variables: Some(serde_json::json!({"id": "ST0001"})),
+      },
+    };
+    let framed = frame(&with).expect("serialisable");
+    let back: Request = serde_json::from_slice(framed.trim_ascii_end()).expect("parses");
+    assert_eq!(back, with);
+
+    let answer = Response::Graphql {
+      response: serde_json::json!({"data": {"threads": []}}),
+    };
+    let framed = frame(&answer).expect("serialisable");
+    assert_eq!(
+      parse_response(&framed).expect("readable"),
+      answer,
+      "the face's answer must survive the wire unchanged"
+    );
   }
 
   #[test]
