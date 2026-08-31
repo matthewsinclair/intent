@@ -82,7 +82,7 @@
 0134	not-reader-reachable	multi-node -- hunk-level commits with a peer editing the same file is a shared-checkout hazard	
 0135	not-reader-reachable	multi-node -- two facades taking one id requires concurrent sessions	
 0136	not-reader-reachable	register-authoring -- deny_unknown_fields on AcState::Computed is a canon-schema concern	
-0137	stated	docs/known-defects.md	intent#0137
+0137	not-reader-reachable	not-in-published-build -- driven against the v3.0.0 keg: its `ac` surface carries ten verbs and no fiat door at all (`fiat` scores 0 across its root, ac, at, st and wp help), so the fiat-closed state whose render is defective cannot be created on this build. `intent fc` exists on main, so the render defect is post-tag.	
 0138	not-reader-reachable	not-exhibited -- the only `dropped` lines in the migration are DISCLOSED with their reason -- boilerplate byte-identical to lib/templates/prj/st/WP/info.md, no author wrote it. Nothing silent. Same corpus caveat.	
 0139	stated	docs/known-defects.md	intent#0139
 0140	not-reader-reachable	not-in-published-build -- driven in the same tree: a criterion's `state` object carries ONLY `is` in v3.0.0, so there is no note to publish. Consistent with 0133 (the unsatisfied state carries no payload).	
@@ -115,7 +115,7 @@
 0168	stated	docs/known-defects.md	intent#0168
 0169	not-reader-reachable	post-cut-subject -- guide.rs's exit-code assignment is post-cut infrastructure	
 0170	not-reader-reachable	register-authoring -- VIEW_NAMES and Project::classify overlap; internal encodings	
-0171	stated	docs/known-defects.md	intent#0171
+0171	not-reader-reachable	not-in-published-build -- driven against the v3.0.0 keg in a bare dir: `intent fc` and `intent at fc` both answer `unrecognized subcommand` at rc=1, refused before any store is touched. `intent fc` exists on main. Post-tag.	
 0172	not-reader-reachable	no-door -- intentd's persisted project registry has no documented verb; nothing routes a reader to a login-started daemon	
 0173	not-reader-reachable	internal-tooling -- stale_at_check.sh is a parity instrument	
 0174	not-reader-reachable	multi-node -- two pre-commit guards taking their population from the worktree is a shared-checkout hazard	

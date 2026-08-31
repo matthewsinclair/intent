@@ -22,7 +22,8 @@
 # following the docs correctly.
 #
 # Exit 0 = every member dispositioned and every `stated` quote found.
-# Exit 1 = a member is undispositioned, a row is stale, or a quote is absent.
+# Exit 1 = a member is undispositioned, a row is stale, a quote is absent, or a
+# `stated` row is contradicted by the page filing that id under NOT present.
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 2
 
@@ -74,6 +75,41 @@ if [ "$miss" -gt 0 ]; then
 fi
 note "  control: AC-02.3's five named members, 0 of 5 dropped"
 
+# ---- 2b. the not-present region, and the control that locates it -----------
+# A `stated` row is verified against BYTES, so an id printed in the section
+# that says the defect is NOT in this build satisfies the byte check while the
+# page asserts the opposite. That is a contradiction, not a disposition, and it
+# is invisible to every check above. (dc, 2026-08-31: two rows, 0137 and 0171,
+# both `stated` against a section reading "neither exists in v3.0.0".)
+#
+# The region is located by its heading and the heading MUST be found. A check
+# that degrades to a no-op when a page is retitled is worse than no check,
+# because the green then means nothing and says nothing.
+NOTPRESENT_PAGE=docs/known-defects.md
+NOTPRESENT_HEAD='## Recorded against v3.0.0 and NOT present in it'
+np_start=0; np_end=0
+if [ -f "$NOTPRESENT_PAGE" ]; then
+  np_start=$(grep -nxF -- "$NOTPRESENT_HEAD" "$NOTPRESENT_PAGE" | cut -d: -f1 | head -1)
+  if [ -z "$np_start" ]; then
+    note "docs-disposition: FAIL -- $NOTPRESENT_PAGE no longer carries the heading"
+    note "  $NOTPRESENT_HEAD"
+    note "  The not-present check cannot be anchored and would pass every row in"
+    note "  silence. Retitle the check, not just the page."
+    rm -f "$pop_file"; exit 1
+  fi
+  np_end=$(awk -v s="$np_start" 'NR>s && /^## / {print NR-1; exit}' "$NOTPRESENT_PAGE")
+  [ -z "$np_end" ] && np_end=$(wc -l < "$NOTPRESENT_PAGE")
+  np_ids=$(awk -v s="$np_start" -v e="$np_end" 'NR>=s && NR<=e' "$NOTPRESENT_PAGE" \
+           | grep -oE 'intent#[0-9]{4}' | wc -l | tr -d ' ')
+  if [ "$np_ids" -lt 2 ]; then
+    note "docs-disposition: FAIL -- the not-present region (lines $np_start-$np_end) holds"
+    note "  $np_ids ids. The range arithmetic is wrong or the section emptied out;"
+    note "  either way its verdicts are unearned. Refusing to trust it."
+    rm -f "$pop_file"; exit 1
+  fi
+  note "  control: not-present region is lines $np_start-$np_end and holds $np_ids ids"
+fi
+
 # ---- 3. the manifest --------------------------------------------------------
 if [ ! -f "$MANIFEST" ]; then
   note "docs-disposition: FAIL -- no manifest at $MANIFEST; all $pop members are undispositioned."
@@ -106,6 +142,16 @@ while IFS= read -r id; do
         note "  PAGE ABSENT: $id names '$where', which does not exist"; badquote=$((badquote+1)); continue
       elif ! grep -qF -- "$quote" "$where"; then
         note "  QUOTE ABSENT: $id -- '$quote' is not in the bytes of $where"; badquote=$((badquote+1)); continue
+      fi
+      if [ "$where" = "$NOTPRESENT_PAGE" ] && [ "$np_start" -gt 0 ]; then
+        outside=$(grep -nF -- "$quote" "$where" | cut -d: -f1 \
+                  | awk -v s="$np_start" -v e="$np_end" '$1 < s || $1 > e' | wc -l | tr -d ' ')
+        if [ "$outside" -eq 0 ]; then
+          note "  CONTRADICTION: $id claims stated, but every occurrence of '$quote' in"
+          note "    $where sits inside 'Recorded against v3.0.0 and NOT present in it'."
+          note "    The page says a reader cannot hit it; the row says the page states it."
+          badquote=$((badquote+1)); continue
+        fi
       fi
       stated=$((stated+1)) ;;
     not-reader-reachable)
