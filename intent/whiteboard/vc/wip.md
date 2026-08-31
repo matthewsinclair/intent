@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 09:40Z
+heartbeat_at: 2026-08-31 10:19Z
 status: active
-focus: "FOLDED 2026-08-31 09:40Z, pre-fold at .history/20260831/wip-fold-0940Z.md. ST0056 102/135. hv ANSWERED FOUR DECISIONS, all to recommendation. I ARMED TWO REPO-WIDE GUARDS AGAINST EVERY NODE TODAY and both were mine to clear. Nothing owed to any node."
+focus: "AT-00.20 landed red-with-a-better-reason (8a80071c). MY OWN FOLD BURIED THREE LIVE hv RULINGS and one of them I rediscovered as a fresh defect four days later. Sweep driven, reach stated, all three restored to hv board. AC-09.1 reworded. Three peers routed."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
@@ -23,13 +23,14 @@ Closed today: `AT-06.6`, `AT-10.8`, `AT-10.12`, `AT-00.14`, `AT-06.11`. Landed r
 
 ## TODO
 
-1. **`AT-00.20`** -- instrument-reach census. Its own declared gap is the work: it reads `crates/*/tests/*.rs` and NOT the BATS suite, the shell instruments, the hooks or the critic library. **Closing that gap is what AC-00.16 asks (own the union), and it stops the instrument being an instance of its own class.**
+1. **THE UNDRIVEN HALF OF THE RULING SWEEP.** Every hv ruling whose subject is prose, sequencing, scope or judgement -- most of the 2026-08-27 six-ruling pass and everything before it. **A grep cannot clear these; they need a read, and the read is mine.** Three unexecuted found in the mechanical half, so the prior is not low.
 2. **`AT-00.3`** -- `AC-00.3` names five capabilities. GraphQL now SHIPS (ic, `dbfc1eb1`), so the row is unblocked for the first time. **The artefact belongs in `parity/tools/` as a shell instrument** -- four of five are daemon-side and the fifth is a claim about the CLI, so no single-crate test witnesses all five. **Do NOT re-drive WP-08's behaviours; the row's claim is that they SHIP, which is the release-level question WP-08 does not ask.**
-3. **`AT-00.4`** -- `mcp_surface.rs` does not exist and **`AT-09.1` SHARES it**, so one artefact closes two rows.
-4. **WP-15's `AC-15.1` / `AC-15.3`**; **`AC-09.6`'s remaining OPEN classes**; **ST0068** 4/9.
-5. **`parity/register.md`'s 39 stale rows** -- GENERATED, so the generator's template is the fix.
-6. **`0136`'s ~44-site `AcState::Computed` change** -- after the tag. **`intent/wip.md`** -- check before the tag; hv reads it on restart.
-7. **`design.md:88` still says `rmcp (official SDK): stdio ... now`**, which my 2026-08-31 ruling reversed. Flagged by ic. Design prose is hv's hand.
+3. **`AT-00.4` / `AT-09.1` -- HANDED TO ic 2026-08-31.** They are building the shared `mcp_surface.rs` and their framing is better than mine was: **the mcp.rs unit tests prove GENERATION and nothing proves PUBLICATION.** I take both row moves when they hand me the drive; I do not write beside it.
+4. **`AT-00.20`'s successor: THE UNION PER PROPERTY.** Today's census computes a FILE-level union and says so. AC-00.16 is scoped _for any property the estate claims_, and **the register already holds the AC/AT pairing that would key it.** That is the shape of the row's green condition.
+5. **WP-15's `AC-15.1` / `AC-15.3`**; **`AC-09.6`** closes on ic's 21-row flip (ruled within the pen); **ST0068** 4/9.
+6. **`parity/register.md`'s 39 stale rows** -- GENERATED, so the generator's template is the fix.
+7. **`0136`'s ~44-site `AcState::Computed` change** -- after the tag. **`intent/wip.md`** -- check before the tag; hv reads it on restart.
+8. **`design.md:88` still says `rmcp (official SDK): stdio ... now`**, which my 2026-08-31 ruling reversed. Flagged by ic. Design prose is hv's hand.
 
 ## hv items
 
@@ -100,6 +101,12 @@ Closed today: `AT-06.6`, `AT-10.8`, `AT-10.12`, `AT-00.14`, `AT-06.11`. Landed r
    **8d. REPORTING IS NOT ROUTING**, and I offered to run a verb a peer's session had been denied. **AND I MEASURE AGAINST STALE BINARIES.**
 
 ## Decisions
+
+- **(2026-08-31) AN UNEXECUTED RULING IS LIVE STATE, NOT HISTORY -- AND THE DEFECT IS MINE.** hv's fold rule keys on DONE; my 2026-08-30 fold keyed on DATED and moved the whole ruling record to `.history/`. **A ruling nobody has executed is TODO WORK by that rule, so the fold enforcing "doing and todo only" is what removed todo items.** Nothing was deleted, which is the failure: a live directive reachable only by grepping `.history/` is discoverable by nobody. Found by dc looking for whether hv had already answered before asking again -- a habit, not a mechanism. **Three buried: `fileindex` (shipping the option hv DECLINED), ic's `## Holds`, and the issue write path.** A fold archives the NARRATIVE of a ruling, never the ruling while unexecuted.
+- **(2026-08-31) A BURIED RULING GETS REDISCOVERED AND RE-COSTED BY THE NODE THAT BURIED IT.** I filed `0179` -- _an issue body is write-once ... post-tag, and cheap_ -- as a discovery with a remedy, four days after hv ruled that exact package built. **That is the fold's price measured in my own work rather than argued**, and it is why the class is not "archives are hard to grep".
+- **(2026-08-31) BOTH NAIVE SPELLINGS OF "COVERED" ARE UNSOUND, MEASURED, AND THE SECOND ONE MANUFACTURED FOUR DEFECTS.** `named` is not coverage -- an exemption list names what it EXCLUDES. `not named` is not non-coverage -- **an instrument that walks a tree names no file in it.** The third spelling over-approximates on purpose so every error lands in false NEGATIVES: for an instrument whose output is a defect list, that is the only acceptable direction. Caught by opening the instrument the finding ACCUSED rather than trusting the finding.
+- **(2026-08-31) A REWORD IS THE 3b DEFECT WHEN THE BUILD IS UNFINISHED AND THE CORRECT REPAIR WHEN A RULING MOVED.** `AC-09.1` named `schemars`-derived schemas while `mcp.rs` derives from the TABLE under D37 and says why. **A criterion that RESTATES a decision it does not own becomes a second home the moment that decision moves** -- `AC-00.3`'s shape, same repair. The reword keeps the obligation (DERIVED, never hand-kept) and drops only the mechanism.
+- **(2026-08-31, cc) A DEFECT CAN HAVE A GUARD ASSERTING IT.** `dispatch_ssot.rs`'s arm had the RIGHT NAME and a predicate that could not see the defect, **so every review looking for coverage of it found coverage of it.** Worse than no test: it consumes the search that would have found the hole. Cure: when fixing a defect, grep for the test holding it in place before reading a red as your own breakage.
 
 - **(2026-08-31) FOUR hv DECISIONS, ALL TO RECOMMENDATION.** The four declared-and-unbuilt verbs SHIP with `--help` narrowed; `INV-03` RATIFIED; Machine 5's table DEFERRED; build `schema` only. **`INV-03`'s fix was NOT the one the criterion forbids: nothing about the vocabulary changed, the outstanding EVENT happened and the prose now records it.** Re-anchoring the enum to the prose would have certified the unfinished state as finished -- the defect committed inside its own remedy.
 - **(2026-08-31) THE ELEVEN UNWIRED MCP ROWS NARROW AS ONE FLIP**, on ic's principle that **the flag tracks the BINARY, not the roadmap.** Every one live-verified. **A HAND-MAINTAINED WIREDNESS FLAG IS WHAT `exposed_on_mcp` WAS** -- so where `unwired()`'s predicate needs wiredness, DERIVE it or declare it with a test that DRIVES every path. Never a hand-maintained flag.
