@@ -7243,7 +7243,7 @@
       "family_notes": [
         "The widest short-flag surface in the CLI (-C -U -X -f -h -i -r -v), and the only family where short flags carry meaning beyond an alias for a long form.",
         "45 of 47 tests in `tests/unit/fileindex_commands.bats` bypass the dispatcher (burn 2/47), the same shape as treeindex.",
-        "**The thinness number is evidence in a live decision, not just a register row.** 2 burning tests against 47 in the file: hv has not yet ruled whether `fileindex` follows `treeindex` into retirement under WP-13, and 45 of 47 tests bypassing the dispatcher means the conformance suite would barely notice either way. (vc, 2026-08-14.)"
+        "**hv RULED THIS ON 2026-08-26 (A4): `fileindex` FOLLOWS `treeindex` INTO RETIREMENT.** This bullet previously read that hv had not yet ruled, and it stayed false for five days because the ruling was folded into `.history/` before it was executed. The thinness evidence it carried is kept because it is still true and it is what made the decision cheap: 45 of 47 tests in `tests/unit/fileindex_commands.bats` bypass the dispatcher (burn 2/47), the same shape as `treeindex`, so the conformance suite barely notices either way. (vc, 2026-08-14; ruling recorded by cc, 2026-08-31.)"
       ],
       "entries": [
         {
@@ -7269,7 +7269,8 @@
               ],
               "type": "bool",
               "help": "Mark checked",
-              "disposition": "keep"
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
@@ -7278,7 +7279,8 @@
               ],
               "type": "bool",
               "help": "Mark unchecked",
-              "disposition": "keep"
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
@@ -7287,7 +7289,8 @@
               ],
               "type": "bool",
               "help": "Flip the mark",
-              "disposition": "keep"
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
@@ -7297,7 +7300,8 @@
               "type": "string",
               "help": "Target file",
               "value": "<path>",
-              "disposition": "keep"
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
@@ -7307,7 +7311,8 @@
               "type": "string",
               "help": "Index file",
               "value": "<path>",
-              "disposition": "keep"
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
@@ -7316,7 +7321,8 @@
               "type": "string",
               "help": "Index directory",
               "value": "<path>",
-              "disposition": "keep"
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
@@ -7325,7 +7331,8 @@
               "type": "string",
               "help": "Intent directory",
               "value": "<path>",
-              "disposition": "keep"
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
@@ -7333,7 +7340,8 @@
               ],
               "type": "bool",
               "help": "Operate without an Intent project",
-              "disposition": "keep"
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
@@ -7341,7 +7349,8 @@
               ],
               "type": "bool",
               "help": "Recurse",
-              "disposition": "keep"
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
@@ -7349,8 +7358,8 @@
               ],
               "type": "bool",
               "help": "Verbose",
-              "disposition": "keep",
-              "disposition_basis": "hv RULED IT SHIPS, D55, 2026-08-20; vc ruled the VALUE `keep`, 2026-08-20, refusing a fourth value cc proposed. cc's objection was that the family is unimplemented so neither `pending` nor `keep` is true -- and it asks this field about the wrong subject. `disposition` is a claim about a FLAG: under `keep` the table says the flag is kept and the spine keeps it, which is AGREEMENT. What disagrees with reality is the COMMAND, which already has its own honest report (`is a known command that is not implemented yet`). `pending` would be the only one of the two that states something FALSE to a user, asserting a decision is pending after hv has made it. Before extending a vocabulary, check whether the field is being asked about the right subject."
+              "disposition": "retire",
+              "disposition_basis": "Inherited from the entry: a retired command never reaches clap, so neither can its flags. Mechanically checkable, and the refusal checks it."
             },
             {
               "spellings": [
@@ -7405,20 +7414,20 @@
             }
           },
           "target": {
-            "state": "corrected",
-            "build_measured": "BUILD HAS ALREADY DECIDED (ic measured, 2026-08-15). See INV-07: the v3 binary exits 0 on `--help` today, deliberately (`spine.rs:193` maps clap's DisplayHelp to EXIT_OK, and `spine.rs:27` names the divergence). This row asks whether to reproduce or correct, and the code has answered `corrected` without the contract recording it. Measurement, not a ruling.",
-            "ratification": "hv, 2026-08-14 at the bounce, via parity.md's `Corrected` ratified deviation class -- which names this exact defect as a known member: \"`--help` reporting failure on 10 of 27 commands\". APPLIED by vc, 2026-08-15, who ruled it independently from INV-04 (0 is success, 1 is every failure) before either of us noticed the earlier ratification. Two routes, same answer: the requirement governs v3 and the gap is a parity class. hv ratification is therefore NOT outstanding -- it predates the question.",
-            "behaviour": "Defers to INV-07, now `corrected`: `--help` exits 0 to stdout. The v3 binary already does this.",
+            "state": "retire",
+            "spelling": "",
+            "ratification": "hv, 2026-08-26 00:19Z -- **A4 `fileindex` -- RETIRE IT, correct the table.** Verbatim at `intent/whiteboard/hv/.history/20260830/wip-fold-0905Z.md:179`. Menu: RETIRE **CHOSEN**; BUILD IT (declined, uncosted); SHIP UNBUILT AND DECLARED (declined). Under the same evening's `AC-00.5` ruling a retirement must become ENUMERABLE, which is why the row carries `spelling: \"\"` rather than merely flipping its disposition. **THIS SUPERSEDES THE ROW'S EARLIER `corrected` RATIFICATION** (hv, 2026-08-14, via parity.md's `Corrected` class, on whether `--help` exits 0). That question was real and is now moot: a retired command has no `--help` to exit from. The measurement behind it is dropped rather than carried, because a dated note answering a dead question is how a row accumulates two states. **EXECUTED 2026-08-31 by cc, five days after ratification, and it was unexecuted because it was ARCHIVE-ONLY** -- vc's 2026-08-30 fold keyed on DATED where hv's rule keys on DONE, so an unexecuted ruling was carried into `.history/` and nobody greps `.history/` at pickup. Found by dc, restored to hv's live board by vc, recorded in issue 0182. **WHAT SHIPPED IN THE MEANTIME WAS THE OPTION hv DECLINED**: the row read `keep`/`corrected` while the binary refused with the UNWIRED marker -- _not implemented yet_ means LATER and hv ruled NEVER, which is `AC-00.5`'s own subject firing on the verb its ruling was quoted at.",
+            "behaviour": "Retired whole. `fileindex` does not reach clap (`spine::build` skips a family whose entry is not `is_shipped()`), so it is absent from `--help`, refuses by name through `retired_refusal`, and is enumerable via `intent surface retired` -- the three properties `treeindex` already has by the same mechanism. `bin/intent_fileindex` and its bats file are NOT in scope here: hv ruled `bin/` decided whole and separately, the same carve-out `treeindex` records.",
             "rulings": [
               {
                 "state": "ratified",
                 "authority": "hv",
-                "date": "2026-08-14",
-                "record": "parity.md"
+                "date": "2026-08-26",
+                "record": "intent/whiteboard/hv/.history/20260830/wip-fold-0905Z.md:179"
               }
             ]
           },
-          "disposition": "keep",
+          "disposition": "retire",
           "exposed_on_mcp": false,
           "read_or_mutate": "mutate",
           "mcp_review": {
@@ -8664,7 +8673,7 @@
     {
       "disposition": "keep",
       "target_state": "corrected",
-      "n": 28,
+      "n": 27,
       "gloss": "The command survives with a defect fixed. `keep` is right precisely because a corrected command still SURVIVES; the correction is what `target.state` records."
     },
     {
@@ -8676,7 +8685,7 @@
     {
       "disposition": "retire",
       "target_state": "retire",
-      "n": 9,
+      "n": 10,
       "gloss": "The command does not ship. The second pair where the fields MUST agree, and the one with teeth: `Entry::is_shipped()` reads both and fails OPEN, so a single hand-edit to either field alone would ship a retired command."
     },
     {
@@ -9097,7 +9106,6 @@
       "ext show",
       "ext validate",
       "ext new",
-      "fileindex",
       "version",
       "daemon",
       "daemon start",
@@ -9129,6 +9137,7 @@
       "organize",
       "lang sync",
       "treeindex",
+      "fileindex",
       "help",
       "st_zero"
     ],
@@ -9236,7 +9245,6 @@
       "ext show",
       "ext validate",
       "ext new",
-      "fileindex",
       "version",
       "daemon",
       "daemon stop",

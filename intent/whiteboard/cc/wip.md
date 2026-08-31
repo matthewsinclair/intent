@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 10:39Z
+heartbeat_at: 2026-08-31 10:52Z
 status: active
-focus: "AC-10.5: all four members recorded, the fourth verdict `refused` implemented on vc's ruling, blocker filed as issue 0183. NEXT: fileindex A4 -- an hv RETIRE ruling from 2026-08-26 in my lane, unexecuted for five days because a fold archived it."
+focus: "fileindex A4 EXECUTED -- hv's 2026-08-26 retirement ruling, five days archive-only. AC-10.5 recorded, blocker filed as 0183, guard-remedy defect as 0184. NEXT: the migrator naming its out-of-model file set (vc ruled it mine; it is 0183 and blocks AC-10.5 on every member)."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -17,7 +17,9 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 ## TODO
 
-- **`fileindex` A4 -- hv RULED RETIRE ON 2026-08-26 AND WHAT SHIPS IS THE OPTION hv DECLINED.** Mine (`owner_wp: WP-06`); found by dc, restored to hv's live board by vc at `5bdd44ce`/`33b1127f`. Menu was RETIRE (chosen) / BUILD IT (declined) / SHIP UNBUILT AND DECLARED (declined). Today `fileindex` is IN `--help` as _Maintain checkbox file indexes_, refuses with the UNWIRED marker, and is ABSENT from `surface retired` -- **_not implemented yet_ means LATER and hv ruled NEVER.** `treeindex` is the executed reference for all three edits: flip `.families[23].entries[0].disposition` `keep` -> `retire`; give the row the DECLARED-EMPTY `replacement` (`spine.rs` REFUSES an absent one on purpose); drop it from the built clap surface, since `retired_and_unreachable` filters on `!reachable` -- **a retire-dispositioned row whose spelling still parses is invisible to `surface retired` AND keeps `--help` advertising it, ie strictly worse than today.** Same family as AT-06.11, opposite direction: a refusal whose sentence makes a promise the build does not keep. Shrinks dc's held `bin/` prune from four verbs to three.
+- **THE MIGRATOR MUST NAME ITS OUT-OF-MODEL FILE SET** -- vc ruled it mine, and it is `AC-10.5`'s named blocker on **every** member that migrates at all (issue **0183**). `intent upgrade` names dispositions per SECTION and never names the FILE set, so `conservation_check.sh --out-of-model` has nothing to consume and every non-canon file reports UNACCOUNTED: 347 canary, 135 baize. `AC-10.8`'s property on the ingest side; **not a second home for it** -- that row is a verb naming what its OUTPUT omits, this is the migrator naming what it did not CARRY.
+- **`RealDaemon::restart(self)` + `pid()` FOR ic's AC-09.3.** My seam. Measured and told them: the socket path is FIXED per home (`userstate.rs:180`, no pid), so the endpoint does NOT move across a restart and **the witness is the pid, not the endpoint** -- their row's real subject is per-request resolution, which a fixed socket with a dead-then-live process behind it tests honestly. ic is drafting `mcp_bridge_restart.rs` against that API. Behind the out-of-model fix by their own sequencing.
+
 - **ISSUE WRITE PATH -- BUILD THE PACKAGE** (hv, 2026-08-28/29; package CHOSEN, edit-verb-only and leave-as-is declined). hv's own words put it in cc's lane **after Laksa and 0121**, so it is NOT jumped ahead of the fleet row. `issues edit --body/--from`, `close --note`, scoped issue sync, then restore 20 empty bodies from commit archaeology; `0122` and `0118` are the edit verb's first two drives, so the live cases are the acceptance cases. State: `issues` ships `list add show close open`; no `edit`; `close` takes no `--note`. **`add` DOES take `--body`/`--from`** -- measured, and it is how 0183 was filed.
 - **THE DISPOSITION PARTITION, WITH ic.** The migrator emits three verbs (`dropped`, `deferred`, `refiled`); `conservation_check.sh` parses two. vc RULED the cure is not adding `refiled` -- **assert the partition CLOSES**, so the fourth verb fails loudly instead of sitting outside a join. ic's tool, my finding.
 
