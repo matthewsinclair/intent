@@ -215,7 +215,9 @@ fn hint_row(app: &App, rows: &[Row]) -> String {
   }
   match app.mode {
     super::mode::Mode::Omnibox => {
-      parts.push("type an address or a few letters \u{b7} \u{23ce} go \u{b7} ESC nav".into());
+      parts.push(
+        "type an address or a few letters \u{b7} \u{23ce} go \u{b7} ESC nav \u{b7} / menu".into(),
+      );
     }
     super::mode::Mode::Nav => {
       if let Some(f) = app.focus
@@ -235,14 +237,15 @@ fn hint_row(app: &App, rows: &[Row]) -> String {
         }
       }
       parts.push(
-        "\u{2190}\u{2192}\u{2191}\u{2193} move \u{b7} \u{232b} back \u{b7} type to find".into(),
+        "\u{2190}\u{2192}\u{2191}\u{2193} move \u{b7} \u{232b} back \u{b7} type to find \u{b7} / omnibox"
+          .into(),
       );
       if let Some(hint) = pane_hint(app, rows) {
         parts.push(hint);
       }
     }
     super::mode::Mode::Menu => {
-      parts.push("letter picks \u{b7} \u{23ce} go \u{b7} ESC close".into())
+      parts.push("letter picks \u{b7} \u{23ce} go \u{b7} ESC close \u{b7} / nav".into())
     }
     super::mode::Mode::Field => parts.push("\u{23ce} commit \u{b7} ESC discard".into()),
     super::mode::Mode::Embed => {}
