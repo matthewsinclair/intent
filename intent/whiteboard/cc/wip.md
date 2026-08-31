@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 10:14Z
+heartbeat_at: 2026-08-31 10:29Z
 status: active
-focus: "AT-06.11 PREDICATE FIX LANDED, ahead of hv's --help narrowing as vc ruled. `unwired()` no longer asks the TABLE what the BINARY implements; the two absences are two functions and the correspondence is DRIVEN. Next: AC-10.5's row with vc."
+focus: "AT-06.11 predicate fix LANDED (98612798). AC-10.5: ALL FOUR MEMBERS NOW DRIVEN -- and TWO OF THE FOUR NEVER MIGRATE, so the verdict vocabulary has no word for half the corpus. Blocked on vc for that ruling; everything else measured and controlled."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -13,7 +13,22 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 ## DOING
 
-**NOTHING IN FLIGHT.**
+**AC-10.5 -- ALL FOUR CORPUS MEMBERS DRIVEN, BLOCKED ON A VOCABULARY RULING FROM vc.** Fixtures at `/private/tmp/cc-fleet`, captures verified against the pinned revisions, fixtured `HOME` throughout so the real store was never touched.
+
+| member    | declares | migrator                       | artefact              | prose                                                    | UNACCOUNTED |
+| --------- | -------- | ------------------------------ | --------------------- | -------------------------------------------------------- | ----------- |
+| canary    | 2.19.0   | rc=0, 168 disp                 | STRANDED 0, ALT-ATT 0 | ALTERED **2** (one defect, `CLOSED/0059`)                | 347         |
+| baize     | 2.19.0   | rc=0, 109 disp                 | STRANDED 0, ALT-ATT 0 | ALTERED 0, DOUBLED-SECTION 0, 52/52 drops verified empty | 135         |
+| lamplight | 2.19.0   | **REFUSED** -- 6 findings      | n/a                   | n/a                                                      | n/a         |
+| utilz     | 2.18.0   | **REFUSED** -- below the floor | n/a                   | n/a                                                      | n/a         |
+
+**TWO OF FOUR NEVER MIGRATE, AND `fleet_corpus_conservation.sh` READS `conserved` / `named` / else-LOST.** A refused member fits none: `conserved` is a vacuous pass on a member that never ran, and anything else reads LOST, which asserts the migrator destroyed data when it correctly declined. **I wrote no verdict file rather than pick the less wrong lie.**
+
+**BOTH REFUSALS ARE VERIFIED INERT** -- lamplight 5613/5613 and utilz 101/101 still byte-identical to their pinned revisions afterwards, and **zero files written under the fixtured HOME**: both declined before touching the store.
+
+**LAMPLIGHT'S REFUSAL IS 6 ROWS IN 3 FILES OF 5613, NOT THE ~1158 THE CORPUS NOTE ANTICIPATED** -- 5 `unread-field` (4 are `evidence` on a row missing its `(non-test)` marker, 1 is `red-first`) and 1 `unparseable-row`. **The last names an UNMADE RULING**: `AC-05.2` writes its note in markdown emphasis, "which is a separate ruling from where the field ends and has not been made". The migrator is blocked on a spec decision and says so rather than guessing, which is the behaviour we want and is not a defect to fix in code.
+
+**UNACCOUNTED IS ONE FINDING ABOUT THE MIGRATOR, NOT A PER-MEMBER RESIDUE, AND IT IS AC-10.8's PROPERTY ON THE INGEST SIDE.** 347 canary / 135 baize, and on baize the whole set is non-canon: 110 `intent/whiteboard/`, 12 `intent/llm/`, `steel_threads.md`, wip/todo/restart/done, history, dotfiles. **No authored thread file is in it** -- checked explicitly for design/impl/tasks/acceptance/info. `intent upgrade` names dispositions per SECTION and never names an out-of-model FILE set, so `--out-of-model` has nothing to consume. Measured: `whiteboard`, `intent/llm/`, `wip.md`, `todo.md`, `steel_threads.md` are each named **zero** times in the migrator's output.
 
 ## TODO
 
@@ -24,6 +39,10 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 - **A `bin/devbin build all` is owed** before anyone browses the web face from the delivered binary -- PARKED WITH A REASON: the shared-artefact guard refuses a rebuild while `native/rust` is dirty, and it has been dirty with several nodes' work all day.
 
 ## Watch-outs
+
+**A CONTROL CAN FAIL IN TWO PLACES AT ONCE AND STILL LOOK LIKE A CLEAN NEGATIVE.** My first baize positive control moved nothing, and I nearly read that as the counter being unable to fire. It was the control: `cp -R` left the `.CAPTURE` record behind (it lives BESIDE the tree by design) AND the victim was not in the attachment set. **The tool said so in a line I had not read** -- _a subject with NO CAPTURE RECORD, revision UNKNOWN, so this figure names no tree_. Redone properly both zeros fire: ALTERED-ATTACHMENT 0 -> 1 on a byte change, STRANDED 0 -> 1 on dropping the canon entry.
+
+**A `||` AFTER A PIPELINE BINDS TO THE LAST STAGE, SO A `grep ... | head || echo "(none)"` FALLBACK NEVER FIRES.** Same family as `| head; echo $?` already on this board. It cost me a moment reading a missing "(none)" as a match.
 
 **A DEFECT CAN HAVE A GUARD ASSERTING IT, AND THAT IS WHY IT SURVIVES.** `unwired()` decided its remedy by asking the table whether a family declared shipped verbs, while its sentence promised the verbs the BUILD has. `dispatch_ssot.rs` then asserted that exact predicate from the other side, so the wrong answer had a passing test with the right name. **When you fix a defect, grep for the test that was holding it in place** -- mine went red on the same run and its message read as a regression.
 
