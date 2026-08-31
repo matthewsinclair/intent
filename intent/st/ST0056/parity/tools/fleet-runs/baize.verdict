@@ -1,0 +1,15 @@
+named -- conserves on every loss axis; residue is UNACCOUNTED 135, wholly non-canon, and the migration does not name it
+Driven by cc 2026-08-31 on baize @ a519398deec9 with --dispositions, captured via
+estate_corpus.sh and verified against the pin. `intent upgrade` rc=0: 25 threads, 1 issue,
+64 files, 109 dispositions.
+  artefact: STRANDED 0, ALTERED-ATTACHMENT 0, DOUBLED 125, RELOCATED 71
+  prose:    ALTERED 0, without-a-destination 0, DOUBLED-SECTION 0
+            DECLARED-DROP 52 of 52 matched AND verified empty in canon
+  liveness: ok -- `st list` named all 25 census threads
+  BOTH ZEROS ARE CONTROLLED, not merely reported: mutating an attachment's bytes moves
+  ALTERED-ATTACHMENT 0 -> 1; dropping its canon entry moves STRANDED 0 -> 1.
+  WHY `named` AND NOT `conserved`: UNACCOUNTED 135 -- files that reached no owner and that the
+  migrator never declared out-of-model. 110 intent/whiteboard/, 12 intent/llm/,
+  steel_threads.md, wip/todo/restart/done, history, dotfiles. NO AUTHORED THREAD FILE IS IN
+  THE SET (checked design/impl/tasks/acceptance/info explicitly; empty), so it is a NAMING gap
+  and not data loss. Named here, not by the migration -- so neither disjunct of AC-10.5 holds.

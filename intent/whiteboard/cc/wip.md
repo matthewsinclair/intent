@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 10:29Z
+heartbeat_at: 2026-08-31 10:39Z
 status: active
-focus: "AT-06.11 predicate fix LANDED (98612798). AC-10.5: ALL FOUR MEMBERS NOW DRIVEN -- and TWO OF THE FOUR NEVER MIGRATE, so the verdict vocabulary has no word for half the corpus. Blocked on vc for that ruling; everything else measured and controlled."
+focus: "AC-10.5: all four members recorded, the fourth verdict `refused` implemented on vc's ruling, blocker filed as issue 0183. NEXT: fileindex A4 -- an hv RETIRE ruling from 2026-08-26 in my lane, unexecuted for five days because a fold archived it."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -13,24 +13,13 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 ## DOING
 
-**AC-10.5 -- ALL FOUR CORPUS MEMBERS DRIVEN, BLOCKED ON A VOCABULARY RULING FROM vc.** Fixtures at `/private/tmp/cc-fleet`, captures verified against the pinned revisions, fixtured `HOME` throughout so the real store was never touched.
-
-| member    | declares | migrator                       | artefact              | prose                                                    | UNACCOUNTED |
-| --------- | -------- | ------------------------------ | --------------------- | -------------------------------------------------------- | ----------- |
-| canary    | 2.19.0   | rc=0, 168 disp                 | STRANDED 0, ALT-ATT 0 | ALTERED **2** (one defect, `CLOSED/0059`)                | 347         |
-| baize     | 2.19.0   | rc=0, 109 disp                 | STRANDED 0, ALT-ATT 0 | ALTERED 0, DOUBLED-SECTION 0, 52/52 drops verified empty | 135         |
-| lamplight | 2.19.0   | **REFUSED** -- 6 findings      | n/a                   | n/a                                                      | n/a         |
-| utilz     | 2.18.0   | **REFUSED** -- below the floor | n/a                   | n/a                                                      | n/a         |
-
-**TWO OF FOUR NEVER MIGRATE, AND `fleet_corpus_conservation.sh` READS `conserved` / `named` / else-LOST.** A refused member fits none: `conserved` is a vacuous pass on a member that never ran, and anything else reads LOST, which asserts the migrator destroyed data when it correctly declined. **I wrote no verdict file rather than pick the less wrong lie.**
-
-**BOTH REFUSALS ARE VERIFIED INERT** -- lamplight 5613/5613 and utilz 101/101 still byte-identical to their pinned revisions afterwards, and **zero files written under the fixtured HOME**: both declined before touching the store.
-
-**LAMPLIGHT'S REFUSAL IS 6 ROWS IN 3 FILES OF 5613, NOT THE ~1158 THE CORPUS NOTE ANTICIPATED** -- 5 `unread-field` (4 are `evidence` on a row missing its `(non-test)` marker, 1 is `red-first`) and 1 `unparseable-row`. **The last names an UNMADE RULING**: `AC-05.2` writes its note in markdown emphasis, "which is a separate ruling from where the field ends and has not been made". The migrator is blocked on a spec decision and says so rather than guessing, which is the behaviour we want and is not a defect to fix in code.
-
-**UNACCOUNTED IS ONE FINDING ABOUT THE MIGRATOR, NOT A PER-MEMBER RESIDUE, AND IT IS AC-10.8's PROPERTY ON THE INGEST SIDE.** 347 canary / 135 baize, and on baize the whole set is non-canon: 110 `intent/whiteboard/`, 12 `intent/llm/`, `steel_threads.md`, wip/todo/restart/done, history, dotfiles. **No authored thread file is in it** -- checked explicitly for design/impl/tasks/acceptance/info. `intent upgrade` names dispositions per SECTION and never names an out-of-model FILE set, so `--out-of-model` has nothing to consume. Measured: `whiteboard`, `intent/llm/`, `wip.md`, `todo.md`, `steel_threads.md` are each named **zero** times in the migrator's output.
+**NOTHING IN FLIGHT.**
 
 ## TODO
+
+- **`fileindex` A4 -- hv RULED RETIRE ON 2026-08-26 AND WHAT SHIPS IS THE OPTION hv DECLINED.** Mine (`owner_wp: WP-06`); found by dc, restored to hv's live board by vc at `5bdd44ce`/`33b1127f`. Menu was RETIRE (chosen) / BUILD IT (declined) / SHIP UNBUILT AND DECLARED (declined). Today `fileindex` is IN `--help` as _Maintain checkbox file indexes_, refuses with the UNWIRED marker, and is ABSENT from `surface retired` -- **_not implemented yet_ means LATER and hv ruled NEVER.** `treeindex` is the executed reference for all three edits: flip `.families[23].entries[0].disposition` `keep` -> `retire`; give the row the DECLARED-EMPTY `replacement` (`spine.rs` REFUSES an absent one on purpose); drop it from the built clap surface, since `retired_and_unreachable` filters on `!reachable` -- **a retire-dispositioned row whose spelling still parses is invisible to `surface retired` AND keeps `--help` advertising it, ie strictly worse than today.** Same family as AT-06.11, opposite direction: a refusal whose sentence makes a promise the build does not keep. Shrinks dc's held `bin/` prune from four verbs to three.
+- **ISSUE WRITE PATH -- BUILD THE PACKAGE** (hv, 2026-08-28/29; package CHOSEN, edit-verb-only and leave-as-is declined). hv's own words put it in cc's lane **after Laksa and 0121**, so it is NOT jumped ahead of the fleet row. `issues edit --body/--from`, `close --note`, scoped issue sync, then restore 20 empty bodies from commit archaeology; `0122` and `0118` are the edit verb's first two drives, so the live cases are the acceptance cases. State: `issues` ships `list add show close open`; no `edit`; `close` takes no `--note`. **`add` DOES take `--body`/`--from`** -- measured, and it is how 0183 was filed.
+- **THE DISPOSITION PARTITION, WITH ic.** The migrator emits three verbs (`dropped`, `deferred`, `refiled`); `conservation_check.sh` parses two. vc RULED the cure is not adding `refiled` -- **assert the partition CLOSES**, so the fourth verb fails loudly instead of sitting outside a join. ic's tool, my finding.
 
 - **AC-10.5's ROW, WITH vc.** On the canary: artefact conservation CLEAN (DOUBLED 194 / RELOCATED 192 / STRANDED 0 / ALTERED-ATTACHMENT 0), prose residue **2** once the migrator's own dispositions are joined (115 of 115 declared drops matched, verified empty in canon). **ONE CORPUS OF THE FOUR THE AC NAMES** -- Lamplight, Utilz and Baize unrun, and nothing here is a fleet claim.
 - **THE SURVIVING RESIDUE IS ONE DEFECT AND IT NEEDS PLACING** (mine and vc's): `issue CLOSED/0059` carries **two `## Related` sections** with different authored bodies and canon holds one, so the other is gone. The ingest-side twin of `DOUBLED-SECTION`; ic agrees it is one defect.
@@ -39,6 +28,14 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 - **A `bin/devbin build all` is owed** before anyone browses the web face from the delivered binary -- PARKED WITH A REASON: the shared-artefact guard refuses a rebuild while `native/rust` is dirty, and it has been dirty with several nodes' work all day.
 
 ## Watch-outs
+
+**MY HEAD-PINNED PRIVATE INDEX REVERTS EVERY PEER COMMIT THAT LANDS BETWEEN THE PIN AND THE COMMIT, ON EVERY PATH IN THE TREE, NOT JUST THE ONES I STAGED.** `git read-tree HEAD` snapshots the WHOLE tree; committing that index after HEAD moves writes the old bytes back everywhere a peer touched. Measured on `98612798`: I pinned `a9e7814f`, vc landed `398e43cd`, git parented me to theirs while my index held mine, and **the reverted set equalled vc's commit set exactly, path for path.** Canon was not special -- it was simply what vc happened to touch. Every guard was green because the tree I committed was internally consistent, just OLDER. vc read it as `sync --to-disk` being a whole-file extract; that is a real and different failure and its remedy does not close this one.
+
+**AND MY POST-VERIFY WAS STRUCTURALLY BLIND TO IT: I checked `git diff --cached` over THE PATHS I STAGED.** The reverted paths were not on my list, so I never looked -- **the population I expected instead of the population the commit had**, which is the error I spent the day finding in three instruments. **PROCEDURE: re-pin at COMMIT time (compare `git rev-parse HEAD` to the pin; if it moved, `read-tree` again, re-add, re-check), and post-verify against `git show --name-only <commit>` REQUIRING EQUALITY with the intended set.**
+
+**A SYNC REALISES WHATEVER IS IN THE STORE, INCLUDING PEER WRITES NOBODY HAS COMMITTED YET.** My `sync --to-disk` for issue 0183 also wrote a peer's AT rows (`to-write` -> `green`, with notes) into `ST0056.json` and `acceptance.md`. Correct behaviour under D01 and **not mine to commit** -- check what a sync moved before staging, never assume it wrote only your own change.
+
+**FILLING IN MISSING DATA CAN TURN AN INSTRUMENT GREEN ON A CORPUS THAT FAILS.** `fleet_corpus_conservation.sh` reddened only on UNRUN or LOST, so recording the last three members would have flipped it to PASS while **its own canary verdict text said neither disjunct of AC-10.5 holds.** The unrun members were masking it. Gate on the property, and check what your gate does at the moment the last gap closes.
 
 **A CONTROL CAN FAIL IN TWO PLACES AT ONCE AND STILL LOOK LIKE A CLEAN NEGATIVE.** My first baize positive control moved nothing, and I nearly read that as the counter being unable to fire. It was the control: `cp -R` left the `.CAPTURE` record behind (it lives BESIDE the tree by design) AND the victim was not in the attachment set. **The tool said so in a line I had not read** -- _a subject with NO CAPTURE RECORD, revision UNKNOWN, so this figure names no tree_. Redone properly both zeros fire: ALTERED-ATTACHMENT 0 -> 1 on a byte change, STRANDED 0 -> 1 on dropping the canon entry.
 
@@ -78,7 +75,7 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 **COMMITTING IN A SHARED CHECKOUT IS FOUR PROBLEMS AND MY ISOLATION REACHES ONE.**
 
-- **CONTENTION** -- taking a peer's bytes from files you did not touch. Closed by a HEAD-pinned private index.
+- **CONTENTION** -- taking a peer's bytes from files you did not touch. **NOT closed by a HEAD-pinned private index: INVERTED by it.** See below.
 - **COHERENCE** -- **NOT closeable by you**: `git add` has no hunk scope, so a peer and you in ONE file is land-the-pair-or-wait. Met twice today; both times the answer was to preserve out of tree and let the node mid-flight go first.
 - **REVERSION** -- a correct-looking artefact. Announce any disk->store sync.
 - **WORKTREE VISIBILITY** (dc's, and the one none of the three describes): **a guard's population is the WORKTREE while every isolation device I own operates on the INDEX.** An untracked file nobody staged red-lines the gate for every node, and **the author is the one node whose gate may not fire on it.**

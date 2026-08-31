@@ -1,0 +1,9 @@
+refused -- below the migration floor, declined before touching the store; 101/101 byte-identical, 0 files written under fixtured HOME
+Driven by cc 2026-08-31 on utilz @ 367a75a3d357, captured via estate_corpus.sh and verified
+against the pin before and after.
+  `intent upgrade` exits 1: "this project declares Intent 2.18.0 and is below the migration
+  floor, so it cannot be converted directly", remedy names `install intent@2 && intent upgrade`.
+  OUT OF AC-10.5's CONSERVATION POPULATION (vc, 2026-08-31): conservation is a property OF A
+  MIGRATION, and with no migration it is not false but UNDEFINED. This refusal is AC-10.1's
+  input, not AC-10.5's -- which is what estate_corpus.sh pins this revision for.
+  INERTNESS IS THE POSITIVE FINDING, not a shrug: it declined BEFORE touching the store.

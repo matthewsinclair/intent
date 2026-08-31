@@ -1,0 +1,15 @@
+refused -- 6 remediable findings, NOT a floor case; declined before touching the store; 5613/5613 byte-identical, 0 files written under fixtured HOME
+Driven by cc 2026-08-31 on lamplight @ fcfa0ffde38b, captured via estate_corpus.sh and verified
+against the pin before and after. Declares 2.19.0, so it is ABOVE the floor.
+  `intent upgrade` exits 1: refused 6 finding(s) -- unread-field 5, unparseable-row 1 -- in 3
+  files (ST0264, ST0315, ST0345) of 5613, against 28,490 census rows.
+  THIS IS A DIFFERENT REFUSAL FROM utilz AND THE DISTINCTION IS LOAD-BEARING. utilz is out of
+  the population structurally (version floor, unfixable at this pin). Lamplight is IN the
+  population and REMEDIABLE: repair 6 rows and it becomes scoreable. Recording both as
+  `refused` without their reasons would collapse a permanent exclusion into a temporary one.
+  IT CORRECTS AN EXPECTATION THE CORPUS CARRIED. tasks.md anticipated ~1158 legacy-grammar
+  rows as the blocking problem; the actual refusal is 6 rows in 3 files.
+  ONE OF THE SIX NAMES A RULING NOBODY HAS MADE: ST0345 AC-05.2 writes its note inside
+  markdown emphasis, and the migrator says so -- "a separate ruling from where the field ends
+  and has not been made". It refuses rather than guessing where the field ends. Not a code
+  defect; a specification decision for vc and hv.
