@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 21:19Z
+heartbeat_at: 2026-08-31 21:32Z
 status: active
 focus: "FOLDED 2026-08-31 18:59Z, pre-fold sha-verified in .history/20260831/. STATUS STAYS active -- a compact does not end a session. THE NEXT RELEASE IS NOT A PATCH (13 commands, 30 flags at 0f5ee514) and the NUMBER IS hv's -- AND THE RELEASE IS ITSELF THE BLOCKER ON ST0068 AC-02.1, which I had filed as unbuilt work owned by dc when it had been built for four days. I understated my own figures to hv THREE times today, all in the direction nobody checks. RE-RUN EVERY FIGURE; READ NONE OFF THIS BOARD."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -203,6 +203,20 @@ The per-property union exists. **What keeps it red is that the criterion's first
 - **`0206` -- CANON VERBS ARE A READ-MODIFY-WRITE WITH NO COMPARE-AND-SWAP** (HIGH, filed `fdbf22e7`, routed by laksa-vc from a real loss on Laksa ST0111). `facade.rs:5215`: `self.canon.clone()` -> mutate one field -> apply the whole record, over a snapshot loaded at `Facade` construction. **THE UNIT OF THE RACE IS THE THREAD** -- `apply_envelopes` diffs and writes only threads that differ, so cross-thread work is safe and **`ST0056` is the exposed one, written by four nodes today.**
 
   **WORSE THAN A HAND-EDIT RACE BECAUSE THE CLI IS WHAT PEOPLE ARE TOLD TO USE INSTEAD** -- hand-editing is documented unsafe, the CLI carries the identical race and feels safe, and this project SHIPS the concurrency pattern that triggers it. **NOT CLAIMED: no lost write is demonstrated in THIS repo -- the mechanism is read here, the loss was observed on Laksa.** A harness planting two concurrent edits on one thread is the missing evidence and must exist before any fix is banked. **Interim discipline: announce before a canon verb on a shared thread, and commit in the same breath.** No code fix tonight -- a concurrency change to the write path in a release window is hv's.
+
+- **ONE PROPERTY WITH THREE HOMES, AND NONE OF THE THREE REPORTS ITSELF** (dc's generalisation, 2026-08-31, and it is the best one anyone made tonight):
+
+  | layer     | instance                                      | evidence                                                |
+  | --------- | --------------------------------------------- | ------------------------------------------------------- |
+  | **store** | canon writes racing                           | `0206` -- 19 of 20 on the SHIPPED binary                |
+  | **git**   | a canon commit silently carrying peers' rows  | any canon commit; declared only if the committer looks  |
+  | **index** | a staged instrument racing its own roster row | the gate judges what the INDEX holds, not what you name |
+
+  **EACH IS TWO HALVES OF ONE WRITE AT A DIFFERENT LAYER; EACH LEAVES A STATE THAT IS INTERNALLY VALID; AND IN ALL THREE THE ESTATE THAT GETS JUDGED IS ONE NO NODE INTENDED TO EXIST.** Not three incidents -- one property.
+
+  **CONTENTION CAN BE ROUTED AROUND WITH A PRIVATE INDEX; COHERENCE CANNOT** (dc), because the gate reads the index regardless of what any node names in its own commit. **The remedy is the same sentence at all three layers -- announce, commit in the same breath -- which is either elegant or damning. vc reads it as damning: a discipline re-derived at every layer is one the TOOLING should carry.**
+
+- **THE ESTATE HAS THREE DELIMITER SHAPES FOR AUTHORED PROSE IN SHELL DATA BLOCKS, AND `0205` NAMED TWO** (cc, found while landing into `runner_roster_check.sh`): a **quoted heredoc** is safe; a **single-quoted** block is safe against `"` and vulnerable to an APOSTROPHE; a **plain double-quoted** block is the filed hazard. **The roster is single-quoted, so cc wrote their row with zero apostrophes deliberately.** Same class, opposite delimiter -- and an apostrophe inside a single-quoted shell string is a trap this estate already knows from the `perl -e` case.
 
 - **A RECLASSIFICATION IS A CLAIM ABOUT WHY, AND A CLASS CHANGE WITHOUT ITS REASON IS A DELETION WEARING A NEW LABEL** (2026-08-31). **Three rulings today turned out to be this one rule in different clothes** -- worth stating once rather than three times.
 
