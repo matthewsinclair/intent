@@ -432,6 +432,78 @@ MISSING_OBS="$(jq -r '
 [ -z "$MISSING_OBS" ] || die "entries name a v2 antecedent but carry no observed block -- a measured command must ship its measurement, or the view will state there was nothing to measure:
 $(printf '%s' "$MISSING_OBS" | sed 's/^/  /')"
 
+# --- KEY INTEGRITY: `path` IS THE TABLE'S KEY AND TWO ARRAYS CAN BOTH CLAIM IT
+#
+# Issue 0190. Every check in this file walks `[.families[].entries[],
+# .new_surface[]]` as ONE population keyed by `path`, and until now nothing
+# established that the key is unique across it. Measured 2026-08-31: 138 rows,
+# 136 distinct paths -- `organize` and `help` each appear in both arrays.
+#
+# THE COLLISIONS ARE NOT MISTAKES, WHICH IS WHY THIS ARM DECLARES RATHER THAN
+# DELETES. Each pair is one spelling used by two different commands:
+#
+#   families/organize     v2 `intent organize`, "Organize steel threads into
+#                         status directories" (`bin/intent_organize`). RETIRED,
+#                         ratified by hv 2026-08-14 over both v2 faces.
+#   new_surface/organize  v3 `intent organize`, "Reconcile the tree with
+#                         .intentfiles". SHIPS -- driven at rc=0 with help
+#                         matching the row verbatim, and `st organize`, the
+#                         other face hv named, refuses in the build.
+#
+# Both rows are true. The table has been stating "a v3 command reuses a spelling
+# its v2 namesake gave up" through the only mechanism it had, which is a
+# collision. The `help` pair already said so IN PROSE -- a `spelling_note` ic
+# wrote in English because the schema had no field for it -- and a fact that can
+# only be written in prose is a fact no check can hold anyone to.
+#
+# WHAT THE COLLISION COSTS, STATED NARROWLY BECAUSE THE WIDE VERSION IS WRONG
+# AND WAS NEARLY SHIPPED. It does NOT corrupt the exposure census: of the four
+# colliding rows exactly one carries `exposed_on_mcp: true`, so `organize`
+# contributes one and `help` contributes zero, and both figures are correct. The
+# cost is that `exposed_on_mcp` STOPS BEING A FUNCTION OF THE COMMAND -- ask this
+# table whether `organize` is on the MCP surface and it answers both `false` and
+# `true`, and which answer a consumer gets depends on which array it reads first.
+# Several checks read `.families` first. Reasoning from "the source has a defect"
+# to "every figure derived from it is suspect" is what the narrow statement
+# refuses; a defect does not propagate to a derived number by entitlement, and
+# asking which number and by how much cost one query.
+#
+# ARM 1 refuses an UNDECLARED collision. ARM 2 refuses a STALE declaration -- a
+# note describing a collision that no longer exists. Same pairing as
+# `recoverability_anomaly` below and for the same reason: a one-directional check
+# lets the escape hatch outlive the thing it excused.
+#
+# A NON-EMPTY STATEMENT BUYS THE ESCAPE AND A BOOLEAN DOES NOT. `true` records
+# that somebody knew about the collision; it cannot record which v2 command gave
+# the spelling up, or under whose ruling, which is the whole content of the
+# claim. Same call `mcp_review` makes below, made the same way.
+#
+# THE FIELD NAME IS ic'S AND SO IS THE CONCEPT. The `help` row's `spelling_note`
+# says, in as many words, that the row is *scheduled to follow the `organize`
+# pattern: the v2 face stays retired and the TOKEN is reclaimed by a new program,
+# declared in `new_surface` with a `name_reclaimed` ratification*. ic had already
+# seen the pattern, named both its members, and named this field, and it had
+# nowhere to live but prose. A second name for it would have been a Highlander
+# violation in vocabulary -- committed while building the check whose whole
+# subject is one key meaning two things.
+UNDECLARED_RECLAIM="$(jq -r '
+  [.families[].entries[].path] as $fam
+  | .new_surface[]
+  | select(.path as $p | $fam | index($p))
+  | select(((.name_reclaimed // "") | length) == 0)
+  | .path' "$IN")"
+[ -z "$UNDECLARED_RECLAIM" ] || die "a new-surface row reuses a \`path\` that a families entry also claims, and does not say so. \`path\` is this table's key and every check here scores over both arrays as one population, so an undeclared collision makes \`exposed_on_mcp\` answer twice for one command and the answer a consumer gets depends on its iteration order. Declare it in \`name_reclaimed\` -- naming the v2 command that gave the spelling up and the ruling that retired it -- or give the v3 command a different path. Offending paths:
+$(printf '%s' "$UNDECLARED_RECLAIM" | sed 's/^/  /')"
+
+STALE_RECLAIM="$(jq -r '
+  [.families[].entries[].path] as $fam
+  | .new_surface[]
+  | select(((.name_reclaimed // "") | length) > 0)
+  | select(.path as $p | $fam | index($p) | not)
+  | .path' "$IN")"
+[ -z "$STALE_RECLAIM" ] || die "a new-surface row declares \`name_reclaimed\` while no families entry claims its path -- the collision it documents is gone, so the note describes a state that no longer exists. Remove it. Offending paths:
+$(printf '%s' "$STALE_RECLAIM" | sed 's/^/  /')"
+
 # --- MCP DECLARATION: both fields, on every row, no defaults ----------------
 # AC-09.1. The MCP tool list renders from this file, so a row that declares
 # nothing has to be resolved SOMEHOW at render time, and every available
