@@ -1,5 +1,5 @@
-//! **AC-06.6 -- `intent export --format <fmt>` round-trips, or refuses by
-//! name.**
+//! **`AT-06.6` / `AC-06.6` -- `intent export --format <fmt>` round-trips, or
+//! refuses by name.**
 //!
 //! The criterion is a disjunction, so a guard that only checks one arm passes
 //! on an estate where the other is broken. Both are checked here, and both are
