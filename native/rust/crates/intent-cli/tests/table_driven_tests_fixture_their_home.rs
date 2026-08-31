@@ -27,15 +27,61 @@
 //! **The hazard is not spawning the binary. It is spawning verbs chosen by
 //! DATA.** A table-driven test's reach is the table's contents at run time, so
 //! its blast radius grows on somebody else's commit, in a file its author never
-//! touched. That is the population this guard binds, and it is nine files.
+//! touched. That is the population this guard binds.
 //!
-//! # What it cannot do
+//! **THE POPULATION GROWS AND NO FIGURE FOR IT IS KEPT HERE.** This paragraph
+//! said *nine files* and there were fifteen when that was next measured
+//! (2026-08-31) -- a count in prose that the scan contradicts, which is the
+//! defect this estate keeps finding in other people's documents. The arm below
+//! asserts a FLOOR and prints what it actually found; the floor catches the
+//! scan going blind, and nothing here claims to know the number.
+//!
+//! # What it cannot do, with the instance that shows it is not a corner case
 //!
 //! It reads source text, so it establishes that the fixture is SPELLED, not
 //! that every spawn in the file uses it. A file with two runners and one
 //! fixtured passes here. That limit is real and is why `testkit::fixture_home`
 //! exists as one shared helper rather than as advice: the cheap thing to do and
 //! the correct thing to do are the same call.
+//!
+//! **THE LIMIT WAS DECLARED IN THE ABSTRACT AND MEASURED IN THE CONCRETE ON
+//! 2026-08-31, BY cc, AGAINST cc's OWN FILE.** `remedies_are_reachable.rs`
+//! spelled `.env("HOME"` inside its `Fixture`, so it passed here -- while
+//! `wiredness()` beside it spawned `Command::new(binary())` with no override,
+//! roughly **110 unfixtured invocations per run**, driving every declared verb
+//! with up to four sentinel arguments. *Two runners and one fixtured* is the
+//! rule; **one fixtured and a hundred and ten unfixtured** is what it permitted.
+//! cc folded every spawn into `Fixture::run` at `98612798`, so that file's
+//! file-scoped answer is now also its true one.
+//!
+//! # Why the predicate was NOT tightened after that (dc, 2026-08-31)
+//!
+//! **Measured across the whole bound population before deciding, because the
+//! spawn-site count is a SHORTLIST and not a finding** -- one `Command::new`
+//! inside a helper called a hundred times is a single site, and a file with
+//! four sites may have three that are perfectly safe. Every shortlisted file
+//! was opened:
+//!
+//! - `cli_end_to_end.rs` -- three unfixtured spawns, all `st list` with
+//!   `COLUMNS` set.
+//! - `flag_reachability.rs` -- two unfixtured spawns, both `critic --languages`.
+//! - `common/mod.rs::mcp_session` -- takes `home: Option<&Path>` and documents
+//!   that `None` leaves the ambient one. **Both callers pass `Some`; nothing
+//!   walks that door today.**
+//!
+//! **Every remaining unfixtured spawn names its verb**, which is precisely the
+//! population the rationale above says this guard deliberately does not bind: a
+//! test that spells `st list` can only ever run `st list`. Tightening to
+//! *every spawn site must be fixtured* would red five sites across two files in
+//! other nodes' lanes to describe a hazard that does not apply to them -- the
+//! same argument that chose this predicate over "every test that spawns the
+//! binary", arriving a second time about the same file.
+//!
+//! **So cc's instance is closed by cc's fix, not by a stronger predicate**, and
+//! the limit stays declared rather than enforced. What changed is that it now
+//! carries the measurement, because *a file with two runners and one fixtured
+//! passes* did not make anyone act and *one fixtured against a hundred and ten*
+//! does.
 //!
 //! Its own honesty check is below -- a scan whose population is empty passes
 //! for free, so the population is asserted before the property is.
@@ -137,12 +183,23 @@ fn population() -> Vec<(PathBuf, String)> {
 #[test]
 fn the_scan_can_see_the_files_it_is_meant_to_bind() {
   let found = population();
+  // The floor is a FLOOR and not the count. The population grows as tests are
+  // added, and pinning the number here would make every new table-driven test
+  // an edit to this file -- with the number going stale in between, which is
+  // what happened to the module note above.
   assert!(
     found.len() >= 8,
-    "the guard found only {} table-driven test files. It was written against 9, and \
-     a scan that has stopped matching reports a clean estate rather than an error: {:?}",
+    "the guard found only {} table-driven test files, below the floor of 8. A scan \
+     that has stopped matching reports a clean estate rather than an error: {:?}",
     found.len(),
     found.iter().map(|(p, _)| p.file_name()).collect::<Vec<_>>()
+  );
+  // Printed so the population is OBSERVABLE (`cargo test -- --nocapture`)
+  // rather than only assertable. The figure that went stale above went stale
+  // because it lived in prose and nothing ever printed the real one.
+  println!(
+    "bound population: {} table-driven test file(s)",
+    found.len()
   );
   assert!(
     found.iter().any(|(p, _)| p.ends_with("dispatch_ssot.rs")),
