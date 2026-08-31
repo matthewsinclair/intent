@@ -6300,24 +6300,88 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
     // instances were in the record of a finding ABOUT the missing verb.
     Some(("edit", a)) => {
       let number = issue_arg(a, "id")?;
-      // **"NO PROSE GIVEN" AND "PROSE THAT IS EMPTY" ARE DIFFERENT MISTAKES AND
-      // MUST NOT SHARE A MESSAGE** -- the same-text-for-different-causes
-      // collapse `AC-04.4` forbids. `issue_body` returns an empty string when
-      // neither flag is passed, which is correct for `add` (an unwritten body
-      // is a state) and would be an ERASURE here. So the flag-absence is caught
-      // in the renderer, which is the layer that knows about flags, and the
-      // empty-prose refusal stays in the facade, which is the layer that knows
-      // what it would destroy.
-      if opt(a, "body").is_none() && opt(a, "from").is_none() {
+      let title = opt(a, "title");
+      let severity = opt(a, "severity");
+      let prose_given = opt(a, "body").is_some() || opt(a, "from").is_some();
+
+      // **"NOTHING TO CHANGE" AND "A VALUE THAT IS EMPTY" ARE DIFFERENT
+      // MISTAKES AND MUST NOT SHARE A MESSAGE** -- the same-text-for-different-
+      // causes collapse `AC-04.4` forbids. `issue_body` returns an empty string
+      // when neither prose flag is passed, which is correct for `add` (an
+      // unwritten body is a state) and would be an ERASURE here. So flag-absence
+      // is caught in the renderer, the layer that knows about flags, and the
+      // empty-value refusals stay in the facade, the layer that knows what they
+      // would destroy.
+      //
+      // **THIS REFUSAL HAD TO WIDEN WHEN THE VERB GREW TWO MORE DOORS, AND THE
+      // OLD ONE IS THE TRAP.** It read "neither --body nor --from was given",
+      // which was true and complete while prose was the only editable field.
+      // Left alone it would have refused `--title` ALONE -- a legal call --
+      // with a message naming two flags the operator never wanted. A refusal
+      // that enumerates the doors goes stale the moment a door is added, and it
+      // fails toward rejecting valid input rather than accepting invalid input,
+      // which is why it is worth stating rather than quietly fixing.
+      if !prose_given && title.is_none() && severity.is_none() {
         return Err(Failure::Error(format!(
-          "error: `issues edit` needs the prose to write, and neither --body nor --from was given\n  remedy: `intent issues edit {number:04} --body <text>`, or --from <file> to read it from disk"
+          "error: `issues edit` was given nothing to change\n  remedy: name at least one of --body <text>, --from <file>, --title <text> or --severity <{}>, as in `intent issues edit {number:04} --title <text>`",
+          intentsvcs::model::IssueSeverity::SPELLINGS.join("|")
         )));
       }
-      let body = issue_body(a)?;
+
+      // **THE ROSTER IS ENFORCED AT THE DOOR `add` ENFORCES IT AT, BY THE SAME
+      // CALL.** A severity the create path refuses and the correction path
+      // accepts would let the record hold a value that cannot be written again,
+      // so the two doors have to agree by construction rather than by both
+      // being remembered. Exit 1 rather than clap's 2, by the `--format` ruling:
+      // the pre-commit gate fails open on USAGE.
+      if let Some(bad) = severity.as_deref()
+        && intentsvcs::model::IssueSeverity::parse(bad).is_none()
+      {
+        return Err(Failure::Error(format!(
+          "error: `{bad}` is not an issue severity\n  remedy: name one of {}",
+          intentsvcs::model::IssueSeverity::SPELLINGS.join(", ")
+        )));
+      }
+
+      // **THIS VERB'S `--severity` CARRIES NO DEFAULT, AND THE ABSENCE IS
+      // LOAD-BEARING.** `add` defaults to `medium` in the table because a new
+      // issue has to land somewhere. A default here would rewrite the severity
+      // of every issue whose TITLE was corrected, silently, having been asked
+      // for nothing of the kind. `opt` returns `None` only while the table
+      // declares no default for the row, so adding one there would break this
+      // arm from a file it does not mention.
+      let body = if prose_given {
+        Some(issue_body(a)?)
+      } else {
+        None
+      };
+
+      // Names the fields the operator ADDRESSED. `Outcome` says whether
+      // anything moved; this says what the call was about, and both are true of
+      // the record afterwards.
+      let mut asked: Vec<&str> = Vec::new();
+      if body.is_some() {
+        asked.push("body");
+      }
+      if title.is_some() {
+        asked.push("title");
+      }
+      if severity.is_some() {
+        asked.push("severity");
+      }
+      let written = format!("{} written", asked.join(" and "));
+
       reported(
-        &open()?.issue_edit(number, &body).map_err(fail)?,
+        &open()?
+          .issue_edit(
+            number,
+            body.as_deref(),
+            title.as_deref(),
+            severity.as_deref(),
+          )
+          .map_err(fail)?,
         &format!("issue {number:04}"),
-        "body written",
+        &written,
       );
       Ok(())
     }

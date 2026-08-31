@@ -3579,7 +3579,7 @@
         },
         {
           "path": "issues edit",
-          "help": "Rewrite an issue's prose",
+          "help": "Correct an issue's record: its prose, its title, its severity",
           "args": [
             {
               "name": "id",
@@ -3609,6 +3609,30 @@
               "disposition_basis": "New with the verb. `issues add` carries the same two spellings and the same one-of-them rule, read through the shared `issue_body` helper, so the flags are one declaration honoured twice rather than two that agree today.",
               "exposed_on_mcp": false,
               "note": "narrowed off MCP because it names a local file for the CLI to read -- an MCP agent reads its own files and passes body"
+            },
+            {
+              "spellings": [
+                "--title"
+              ],
+              "type": "string",
+              "help": "The issue's title",
+              "value": "<text>",
+              "disposition": "keep",
+              "disposition_basis": "`0154` predicted this half-fix in advance: it asked for an edit door covering title AND body, and warned that a one-field fix _leaves the case that prompted the filing exactly where it is_. `0151` owns the title row. The body door shipped alone at `dbd0e5ab` and left title and severity writable exactly once, at creation, forever -- the same write-once shape the verb was built to end.",
+              "exposed_on_mcp": false,
+              "note": "withheld on the same AUTHORSHIP ground as the verb itself: a title is text a human wrote, and an agent replacing it is the act no ruling grants. Deliberately NOT bundled with --severity, which is a classification over an enumerated domain rather than authored prose -- landing them as one pair would settle the authorship question by accident. cc holds the disposition for hv."
+            },
+            {
+              "spellings": [
+                "--severity"
+              ],
+              "type": "enum",
+              "help": "Severity",
+              "value": "critical|high|medium|low",
+              "disposition": "keep",
+              "disposition_basis": "`0154` predicted this half-fix in advance: it asked for an edit door covering title AND body, and warned that a one-field fix _leaves the case that prompted the filing exactly where it is_. `0151` owns the title row. The body door shipped alone at `dbd0e5ab` and left title and severity writable exactly once, at creation, forever -- the same write-once shape the verb was built to end.",
+              "exposed_on_mcp": false,
+              "note": "**CARRIES NO `default`, AND THE ABSENCE IS LOAD-BEARING.** `issues add` defaults to `medium` because a new issue has to land somewhere; a default here would rewrite the severity of every issue whose TITLE was corrected, silently. The renderer reads absence through `opt` returning None, so adding a default to this row would break that arm from a file it does not mention."
             }
           ],
           "v2": "new-surface",

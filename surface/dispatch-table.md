@@ -1574,17 +1574,17 @@ Track issues without the ceremony of a steel thread
 - **The OPEN/CLOSED directory layout is a ratified deviation.** v2 stores issues at `intent/issues/{OPEN,CLOSED}/NNNN/NNNN-slug.md`, so the directory encodes status. In v3 status is data (`issues/<n>.json`) and index views replace directory browsing (parity.md, D02/D04). Tests asserting the directory shape retire with the layout.
 - `new` is an undocumented alias for `add`, and there is an undocumented `help` verb -- both measured, neither in parity.md's original table.
 
-| command                           | args      | flags                                                             | help                                                   | disposition |
-| --------------------------------- | --------- | ----------------------------------------------------------------- | ------------------------------------------------------ | ----------- |
-| `issues`                          | [command] | --width <n>, --format terminal/md                                 | Track issues without the ceremony of a steel thread    | keep        |
-| `issues list`                     | --        | --kind open/closed/all, --width <n>, --format terminal/md         | List issues (default: open)                            | keep        |
-| `issues add` (alias `issues new`) | <title>   | --severity critical/high/medium/low, --body <text>, --from <file> | Add a new issue, print its ID:TITLE                    | keep        |
-| `issues edit`                     | <id>      | --body <text>, --from <file>                                      | Rewrite an issue's prose                               | new-surface |
-| `issues show`                     | <id>      | --json, --format terminal/md/json                                 | Show one issue (optionally as JSON)                    | keep        |
-| `issues close`                    | <id>      | --                                                                | Mark an issue done: OPEN -> CLOSED                     | keep        |
-| `issues open`                     | <id>      | --                                                                | Reopen an issue: CLOSED -> OPEN                        | keep        |
-| `issues hydrate`                  | <id>      | --                                                                | Add an issue to .intentfiles and write its files       | retire      |
-| `issues dehydrate`                | <id>      | --                                                                | Remove an issue from .intentfiles and delete its files | retire      |
+| command                           | args      | flags                                                                             | help                                                          | disposition |
+| --------------------------------- | --------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------- |
+| `issues`                          | [command] | --width <n>, --format terminal/md                                                 | Track issues without the ceremony of a steel thread           | keep        |
+| `issues list`                     | --        | --kind open/closed/all, --width <n>, --format terminal/md                         | List issues (default: open)                                   | keep        |
+| `issues add` (alias `issues new`) | <title>   | --severity critical/high/medium/low, --body <text>, --from <file>                 | Add a new issue, print its ID:TITLE                           | keep        |
+| `issues edit`                     | <id>      | --body <text>, --from <file>, --title <text>, --severity critical/high/medium/low | Correct an issue's record: its prose, its title, its severity | new-surface |
+| `issues show`                     | <id>      | --json, --format terminal/md/json                                                 | Show one issue (optionally as JSON)                           | keep        |
+| `issues close`                    | <id>      | --                                                                                | Mark an issue done: OPEN -> CLOSED                            | keep        |
+| `issues open`                     | <id>      | --                                                                                | Reopen an issue: CLOSED -> OPEN                               | keep        |
+| `issues hydrate`                  | <id>      | --                                                                                | Add an issue to .intentfiles and write its files              | retire      |
+| `issues dehydrate`                | <id>      | --                                                                                | Remove an issue from .intentfiles and delete its files        | retire      |
 
 ### `issues`
 
@@ -1679,7 +1679,7 @@ Add a new issue, print its ID:TITLE
 
 ### `issues edit`
 
-Rewrite an issue's prose
+Correct an issue's record: its prose, its title, its severity
 
 - **v2:** new-surface
 - **Arguments:**
@@ -1692,6 +1692,16 @@ Rewrite an issue's prose
     - narrowed off MCP because it names a local file for the CLI to read -- an MCP agent reads its own files and passes body
     - **disposition:** keep
     - **disposition basis:** New with the verb. `issues add` carries the same two spellings and the same one-of-them rule, read through the shared `issue_body` helper, so the flags are one declaration honoured twice rather than two that agree today.
+    - **exposed on mcp:** false
+  - `--title` `<text>` (string) -- The issue's title
+    - withheld on the same AUTHORSHIP ground as the verb itself: a title is text a human wrote, and an agent replacing it is the act no ruling grants. Deliberately NOT bundled with --severity, which is a classification over an enumerated domain rather than authored prose -- landing them as one pair would settle the authorship question by accident. cc holds the disposition for hv.
+    - **disposition:** keep
+    - **disposition basis:** `0154` predicted this half-fix in advance: it asked for an edit door covering title AND body, and warned that a one-field fix _leaves the case that prompted the filing exactly where it is_. `0151` owns the title row. The body door shipped alone at `dbd0e5ab` and left title and severity writable exactly once, at creation, forever -- the same write-once shape the verb was built to end.
+    - **exposed on mcp:** false
+  - `--severity` `critical|high|medium|low` (enum) -- Severity
+    - **CARRIES NO `default`, AND THE ABSENCE IS LOAD-BEARING.** `issues add` defaults to `medium` because a new issue has to land somewhere; a default here would rewrite the severity of every issue whose TITLE was corrected, silently. The renderer reads absence through `opt` returning None, so adding a default to this row would break that arm from a file it does not mention.
+    - **disposition:** keep
+    - **disposition basis:** `0154` predicted this half-fix in advance: it asked for an edit door covering title AND body, and warned that a one-field fix _leaves the case that prompted the filing exactly where it is_. `0151` owns the title row. The body door shipped alone at `dbd0e5ab` and left title and severity writable exactly once, at creation, forever -- the same write-once shape the verb was built to end.
     - **exposed on mcp:** false
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-28/29, verbatim at `intent/whiteboard/hv/.history/20260830/wip-fold-0905Z.md:116`; re-sequenced to cc after `0183` and recorded at `b1bf4cea`. **THE EVIDENCE FOR THE RE-SEQUENCING WAS TWO MEASURED INSTANCES IN ONE SESSION OF THIS VERB'S ABSENCE PREVENTING A CORRECTION, BOTH IN THE RECORD OF A FINDING ABOUT THE MISSING VERB** -- vc's `0179` re-discovering hv's own ruling as a fresh defect four days after it was made, and cc's `0183` unable to correct a body whose remedy measurement had just proved wrong. hv's design, not the builder's: `0122`'s scope correction is this verb's FIRST DRIVE and `0118`'s re-premise its second, so the live cases are the acceptance cases. -- behaviour: Replaces `Issue.body` whole. **An empty body is REFUSED rather than written**, which is deliberately NOT symmetric with `issues add`: `add` leaves a body empty because an unwritten body is a state and nothing is lost, while editing one to empty ERASES authored prose whose only other copy is the event log. And **`--body`/`--from` absent is refused separately from empty prose**, because they are different mistakes and `AC-04.4` forbids one message for two causes. Re-writing identical bytes reports `already` and writes nothing, so the event log cannot show a correction that did not happen.

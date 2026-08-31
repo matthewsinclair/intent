@@ -7107,7 +7107,7 @@ impl Facade {
     Ok(number)
   }
 
-  /// Replace an issue's authored prose.
+  /// Correct an issue's authored record: its prose, its title, its severity.
   ///
   /// **THE VERB hv RULED ON 2026-08-28/29 AND vc RE-DISCOVERED AS A DEFECT FOUR
   /// DAYS LATER.** `issues add` could WRITE a body from the day the create door
@@ -7122,7 +7122,22 @@ impl Facade {
   /// finding about the thing this verb is. That is the evidence hv re-sequenced
   /// the package on.
   ///
-  /// # An empty body is REFUSED, and that is not symmetry with `add`
+  /// # Title and severity, and why they arrived a release later than the body
+  ///
+  /// **THE BODY DOOR SHIPPED ALONE AND LEFT TWO FIELDS STILL WRITE-ONCE.**
+  /// `issues add` sets a title (a required positional) and a severity (a flag),
+  /// and until this method took them nothing could change either: both were
+  /// writable exactly once, at creation, forever. `0154` predicted precisely
+  /// this half-fix in advance -- it asked for an edit door covering title AND
+  /// body, and warned that a one-field fix *leaves the case that prompted the
+  /// filing exactly where it is* -- and `0151` owns the title row.
+  ///
+  /// **EACH FIELD IS `Option` BECAUSE NOT ADDRESSING A FIELD AND EMPTYING IT
+  /// ARE DIFFERENT ACTS.** `None` leaves the field alone; `Some("")` is an
+  /// erasure and is refused. A signature taking three `&str` could not tell
+  /// them apart, which would make "correct the title" silently erase the prose.
+  ///
+  /// # An empty value is REFUSED, and that is not symmetry with `add`
   ///
   /// `issue_add` leaves the body empty when nobody passes one, because an
   /// unwritten body is a STATE. Here an empty body is an ERASURE: it destroys
@@ -7132,26 +7147,83 @@ impl Facade {
   /// so they get opposite defaults, and this refuses rather than treating
   /// "no prose given" as "make it have no prose".
   ///
-  /// # `AlreadyThere` rather than a write, when the bytes match
+  /// A title has no such state in either direction: `add` requires one, so there
+  /// is no issue anywhere carrying an empty title and no act that should create
+  /// the first. **The two refusals name their own field**, because `AC-04.4`
+  /// forbids one message for two causes and an operator who emptied the title
+  /// learns nothing from a sentence about prose.
+  ///
+  /// # `AlreadyThere` rather than a write, when nothing given would move
   ///
   /// The same discipline `set_issue_status` uses: re-writing identical bytes
   /// would emit an event saying something changed, and a reader of the log
-  /// cannot tell a real correction from a no-op after the fact.
-  pub fn issue_edit(&mut self, number: u32, body: &str) -> Result<Outcome, FacadeError> {
-    if body.trim().is_empty() {
+  /// cannot tell a real correction from a no-op after the fact. With three
+  /// fields the test is that NONE of the ones addressed would move -- a call
+  /// that corrects a title and passes the body it already has is a real
+  /// correction, not a no-op.
+  pub fn issue_edit(
+    &mut self,
+    number: u32,
+    body: Option<&str>,
+    title: Option<&str>,
+    severity: Option<&str>,
+  ) -> Result<Outcome, FacadeError> {
+    if let Some(b) = body
+      && b.trim().is_empty()
+    {
       return Err(FacadeError::ValueNotRecordable {
         field: "body".to_string(),
-        given: body.to_string(),
+        given: b.to_string(),
         why: "an empty body would ERASE the issue's prose, and the only copy of what it said \
               is the event log. `issues add` may leave a body empty because nothing is lost; \
               correcting one to empty is a different act"
           .to_string(),
       });
     }
+    if let Some(t) = title
+      && t.trim().is_empty()
+    {
+      return Err(FacadeError::ValueNotRecordable {
+        field: "title".to_string(),
+        given: t.to_string(),
+        why: "an issue with no title cannot be told from any other in `issues list`, and \
+              `issues add` takes the title as a required positional for that reason. Unlike a \
+              body, there is no state in which this field is legitimately empty"
+          .to_string(),
+      });
+    }
 
-    if self.issue_show(number)?.body == body {
+    // Read once, into OWNED values. `issue_show` hands back a borrow of
+    // `self.canon`, and everything below this needs `&mut self` -- so the
+    // comparison has to finish before the mutation starts, rather than the
+    // borrow being held across it.
+    let (was_body, was_title, was_severity) = {
+      let c = self.issue_show(number)?;
+      (c.body.clone(), c.title.clone(), c.severity.clone())
+    };
+
+    // **WHAT WAS ADDRESSED IS NOT WHAT WOULD CHANGE**, and only the second is
+    // recordable. A caller passing the value a field already holds has asked
+    // for nothing, and the event log must not say otherwise.
+    let body_change = body.filter(|b| *b != was_body.as_str());
+    let title_change = title.filter(|t| *t != was_title.as_str());
+    let severity_change = severity.filter(|s| was_severity.as_deref() != Some(*s));
+
+    if body_change.is_none() && title_change.is_none() && severity_change.is_none() {
+      // Names what was already true rather than a fixed sentence: the caller may
+      // have addressed three fields and needs to know it was all three.
+      let mut held: Vec<&str> = Vec::new();
+      if body.is_some() {
+        held.push("that prose");
+      }
+      if title.is_some() {
+        held.push("that title");
+      }
+      if severity.is_some() {
+        held.push("that severity");
+      }
       return Ok(Outcome::AlreadyThere {
-        state: "carrying exactly that prose".to_string(),
+        state: format!("carrying exactly {}", held.join(" and ")),
       });
     }
 
@@ -7161,19 +7233,52 @@ impl Facade {
       .iter_mut()
       .find(|i| i.number == number)
       .ok_or(FacadeError::NoSuchIssue { number })?;
-    issue.body = body.to_string();
+    if let Some(b) = body_change {
+      issue.body = b.to_string();
+    }
+    if let Some(t) = title_change {
+      // **THE SLUG IS DERIVED FROM THE TITLE AND HAS TO BE RE-DERIVED WITH IT.**
+      // `issue_add` computes it once through `slugify` and nothing recomputes it
+      // afterwards, so a retitle that left it alone would ship a row whose slug
+      // describes a title the issue no longer has. That is the divergent-copy
+      // shape at FIELD scale rather than module scale, and it is worse than the
+      // usual case because both copies live inside one record and no reader
+      // compares them.
+      issue.title = t.to_string();
+      issue.slug = slugify(t);
+    }
+    if let Some(s) = severity_change {
+      issue.severity = Some(s.to_string());
+    }
 
     // **THE PAYLOAD CARRIES A SIZE AND NOT THE PROSE**, matching `issues.add`,
     // which records title and severity and never the body. An event log that
     // copied every body would become a second home for the prose -- and the one
-    // that grows without bound while nothing reads it.
+    // that grows without bound while nothing reads it. Title and severity ARE
+    // carried, because `issues.add` carries them, and a log recording a retitle
+    // without the new title could not answer what it was retitled to.
+    //
+    // **ONLY WHAT CHANGED APPEARS**, built as a map rather than a fixed shape
+    // with nulls: an absent key says the field was not moved, where
+    // `"title": null` would say it was moved to nothing.
+    let mut payload = serde_json::Map::new();
+    if let Some(b) = body_change {
+      payload.insert("bytes".to_string(), json!(b.len()));
+    }
+    if let Some(t) = title_change {
+      payload.insert("title".to_string(), json!(t));
+    }
+    if let Some(s) = severity_change {
+      payload.insert("severity".to_string(), json!(s));
+    }
+
     self.apply(
       "issues.edit",
       Subject {
         kind: "issue".to_string(),
         id: format!("{number:04}"),
       },
-      json!({"bytes": body.len()}),
+      serde_json::Value::Object(payload),
       next,
     )?;
     Ok(Outcome::Moved)

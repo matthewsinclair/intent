@@ -1005,7 +1005,7 @@ fn cases() -> Vec<Case> {
       },
       |fx| {
         fx.facade()
-          .issue_edit(1, "the corrected premise")
+          .issue_edit(1, Some("the corrected premise"), None, None)
           .expect("issues edit");
       },
       true,
