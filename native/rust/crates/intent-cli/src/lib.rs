@@ -16,6 +16,7 @@ pub mod hatch;
 pub mod mcp;
 pub mod mcp_stdio;
 pub mod render;
+pub mod show;
 pub mod spine;
 pub mod tui;
 

@@ -2005,20 +2005,12 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       let id = thread_arg(a, "id")?;
       let f = open()?;
       let t = f.st_show(&id).map_err(fail)?;
-      println!("{}: {}", t.id, t.title);
-      println!("status: {}", t.status.display());
-      // **Directly under the status, because it is the status's reason.** Four
-      // verbs REQUIRE one and refuse without it, and until now no human face
-      // showed it -- the field reached `thread.json` and the GraphQL SDL and
-      // nothing a person reads. It carries the CURRENT status's reason only;
-      // any transition without a reason clears it.
-      if let Some(reason) = &t.status_reason {
-        println!("reason: {reason}");
-      }
-      println!("created: {}", t.created);
-      if let Some(done) = &t.completed {
-        println!("completed: {done}");
-      }
+      // **ONE RENDERER, shared with the MCP resource read (`AC-09.5`).** The
+      // field order and the present-only lines that used to live here inline
+      // are `crate::show::thread`, so this arm and `intent:///thread/<id>`
+      // emit byte-identical text by construction rather than by two copies
+      // agreeing today.
+      print!("{}", crate::show::thread(t));
       Ok(())
     }
     // `intent st sync` is v2's INDEX sync, and it is NOT the top-level
@@ -2231,27 +2223,14 @@ fn wp(m: &ArgMatches) -> Result<(), Failure> {
       let (st, seq) = wp_target(a)?;
       let f = open()?;
       let wp = f.wp_show(&st, seq).map_err(fail)?;
-      println!("{st}/WP-{:02}: {}", wp.seq, wp.title);
-      // **`display()`, not `enum_str` -- this printed `wip` where every other
-      // surface prints `WIP`, and the row makes it a parity break rather than a
-      // preference.** `wp show` is `keep` / `as-observed`, v2 implements it by
-      // catting `info.md` (`bin/intent_wp:263`), and `views.rs` writes that file's
-      // status line with `display()`. So v2 printed `WIP` and the row's own note
-      // says "the command reads the view, so its output is unchanged in kind".
-      //
-      // Found by issue 0050's witness, which reads a state back from the tool
-      // rather than asserting a literal: `st show` and `issues show` both said
-      // `WIP`-style and this one said `wip`, in the same tool, on the same field,
-      // with no reason recorded anywhere. **Three `show` commands and two
-      // vocabularies is 0047's shape**, and a test that pinned the kebab was
-      // pinning the divergence.
-      println!("status: {}", wp.status.display());
-      // Same rule as `st show`: `wp reopen` is the WP transition the machine
-      // guards with a required reason, and nothing rendered it.
-      if let Some(reason) = &wp.status_reason {
-        println!("reason: {reason}");
-      }
-      println!("scope: {}", wp.scope_display());
+      // **ONE RENDERER (`crate::show::work_package`), shared with the MCP
+      // resource read.** The `display()`-not-`enum_str` fix (issue 0050: this
+      // arm printed `wip` where `st show` and `issues show` printed `WIP`) and
+      // the present-only `reason` line moved into that one home, so the three
+      // `show` commands cannot drift into two vocabularies again -- the defect
+      // 0047 named -- and the resource emits the same bytes. `st` is the
+      // caller's because the model is identified within its thread.
+      print!("{}", crate::show::work_package(&st, wp));
       Ok(())
     }
     Some((verb, _)) => unwired("wp", verb),
@@ -6064,27 +6043,12 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
             .map_err(|e| format!("error: the issue could not be rendered as JSON: {e}"))?
         );
       } else {
-        println!("{:04}: {}", issue.number, issue.title);
-        println!("status: {}", issue.status.display());
-        if let Some(sev) = &issue.severity {
-          println!("severity: {sev}");
-        }
-        println!("created: {}", issue.created);
-        if let Some(closed) = &issue.closed {
-          println!("closed: {closed}");
-        }
-        // **v2's `cmd_show` cats the whole file** (`bin/intent_issues:270`), so
-        // until the body was modelled this command showed strictly LESS than
-        // the tool it replaces -- the prose, and `reporter`, both carried and
-        // both unreachable. A field nothing can read is a field that is not
-        // there, and an issue is mostly its prose.
-        if let Some(reporter) = &issue.reporter {
-          println!("reporter: {reporter}");
-        }
-        if !issue.body.is_empty() {
-          println!();
-          println!("{}", issue.body);
-        }
+        // **ONE RENDERER (`crate::show::issue`), shared with the MCP resource
+        // read.** v2's `cmd_show` cats the whole file (`bin/intent_issues:270`),
+        // so the body and `reporter` are part of the read and part of what the
+        // resource must match; the present-only lines and the blank-line-then-
+        // body shape live in that one home so the two faces cannot drift.
+        print!("{}", crate::show::issue(issue));
       }
       Ok(())
     }
