@@ -101,7 +101,7 @@
     {
       "id": "AT-02.1",
       "kind": "non-test",
-      "prose": "Follow docs/getting-started.md end to end on a fresh project and reach a satisfied criterion",
+      "prose": "Drive docs/getting-started.md on a machine that has never seen this repository, following only the published pages and RUNNING every command rather than reading it, terminating at `intent ac gate` returning PASS on a thread the reader created. Prose strengthened 2026-08-31 (vc) on dc's finding: it read `follow getting-started end to end on a fresh project and reach a satisfied criterion`, which was AC-02.1's bar BEFORE the 2026-08-30 rewrite, so the driven row and the read row had drifted apart and a build could have gone green on the weaker one.",
       "covers": [
         "AC-02.1"
       ],
@@ -120,7 +120,7 @@
     {
       "id": "AT-02.3",
       "kind": "non-test",
-      "prose": "Read install.md and migrating-from-v2.md against the measured defect list for the published build",
+      "prose": "Derive the defect set from the open-issue register at the cut and record a DISPOSITION for every member -- stated in the docs where a reader would meet it, or recorded as not reader-reachable with the reason -- and report the count of each. Prose strengthened 2026-08-31 (vc) on dc's finding: it read `read install.md and migrating-from-v2.md against the measured defect list`, which is a READ where AC-02.3 demands a derived set with per-member dispositions and counts.",
       "covers": [
         "AC-02.3"
       ],

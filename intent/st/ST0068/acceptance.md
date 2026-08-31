@@ -54,9 +54,9 @@ title: Update Intent's docs for v3
 
 ### Group 02
 
-- AT-02.1 (non-test) Follow docs/getting-started.md end to end on a fresh project and reach a satisfied criterion -- covers AC-02.1 -- status: n/a
+- AT-02.1 (non-test) Drive docs/getting-started.md on a machine that has never seen this repository, following only the published pages and RUNNING every command rather than reading it, terminating at `intent ac gate` returning PASS on a thread the reader created. Prose strengthened 2026-08-31 (vc) on dc's finding: it read `follow getting-started end to end on a fresh project and reach a satisfied criterion`, which was AC-02.1's bar BEFORE the 2026-08-30 rewrite, so the driven row and the read row had drifted apart and a build could have gone green on the weaker one. -- covers AC-02.1 -- status: n/a
 - AT-02.2 (non-test) Diff every verb named in docs/ against the cut-surface artefact for the release the docs describe -- covers AC-02.2 -- status: n/a -- Driven by vc, 2026-08-29, after fixing two artefacts in the checker itself.
-- AT-02.3 (non-test) Read install.md and migrating-from-v2.md against the measured defect list for the published build -- covers AC-02.3 -- status: n/a
+- AT-02.3 (non-test) Derive the defect set from the open-issue register at the cut and record a DISPOSITION for every member -- stated in the docs where a reader would meet it, or recorded as not reader-reachable with the reason -- and report the count of each. Prose strengthened 2026-08-31 (vc) on dc's finding: it read `read install.md and migrating-from-v2.md against the measured defect list`, which is a READ where AC-02.3 demands a derived set with per-member dispositions and counts. -- covers AC-02.3 -- status: n/a
 - AT-02.4 (non-test) Read the reference output's provenance header for the revision it names -- covers AC-02.4 -- status: n/a -- Provenance header read on index.md and intent-st.md; names generator, revision and baseline.
 
 ### Group 03
