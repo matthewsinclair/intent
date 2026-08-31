@@ -183,6 +183,18 @@ claims: []
 
 **ADDED 2026-08-31 12:49Z (vc, under the pen). THIS SECTION EXISTS BECAUSE THE SECTION BELOW IT DOES NOT COVER THIS CASE.** `## Rulings made and NOT yet executed` holds decisions hv HAS taken. A question hv has been ASKED and has not answered is a third state, and until today it lived only in vc's board and in whatever message carried it. **That is the same defect as the fold, one step earlier: a ruling in transit is a ruling nobody has, and a QUESTION in transit is a question nobody has been asked.** An entry leaves this section by being RULED, at which point it moves down into the section below or is executed directly. Each carries the measurement that shapes it so it is answerable cold.
 
+- **THE `daemon` FAMILY SHIPS WITH ZERO BURNING CONFORMANCE COVERAGE, AND `config`'s HOLE HAS AN EXPIRY.** (PUT 2026-08-31 21:28Z by vc under the pen; cc's sweep, verified by cc independently of the tool that reported it.)
+
+  **`daemon` is 4 of the 13 commands in the release delta.** It answers on a socket, it went from _known command not implemented_ at the tag to working, **and the BATS estate does not invoke it once.** `coverage_map` publishes: `daemon` 0 REAL / 0 TESTS / HOLE, `config` 0 REAL / 0 TESTS / HOLE, `fileindex` THIN, every other family covered.
+
+  **THIS IS NOT A v2-PARITY GAP AND THAT IS THE POINT: v2 HAD NO DAEMON**, so nothing in the conformance frame was ever going to catch it. New surface, in a tag window, with no burning coverage.
+
+  **CARRIED WITH ITS CAVEAT, because the honest claim is the narrower one: this says the BATS CONFORMANCE ESTATE does not reach the daemon, NOT that the daemon is untested.** Rust tests are a different population nobody measured.
+
+  **AND `config`'s HOLE HAS AN EXPIRY RATHER THAN A BACKLOG SLOT.** `AC-06.1`'s own text names it -- _`intent config` lands a conformance test BEFORE its behaviour is designed, or the `undefined` ruling on it is unverifiable by construction_. **That is an ORDERING constraint: writing the test AFTER the design lands FAILS the clause rather than satisfying it.** The criterion predicted its own hole. Separately, `tests/unit/config.bats` **does not invoke `intent config` even once** -- it runs `info` five times and `st list` twice. A file named for the family it does not exercise.
+
+  **vc is not ruling either. Whether a zero-coverage new family blocks the tag is a release call.**
+
 - **DOES `0206` BLOCK THE RELEASE? A DATA-LOSS RACE THAT FIRES 19 TIMES IN 20 ON THE SHIPPED BINARY.** (PUT 2026-08-31 21:22Z by vc under the pen. **This is a release decision and releases are hv's; vc is not ruling it.**)
 
   **Two concurrent canon verbs on the SAME THREAD silently lose the earlier write.** No error, no conflict, valid canon afterwards, and the worktree ends byte-identical to HEAD so **`git status` reports nothing.** Routed by laksa-vc from a real loss on Laksa ST0111; mechanism verified in our own source at `facade.rs:5215` -- `self.canon.clone()`, mutate one field, apply the whole record, over a snapshot loaded at `Facade` construction.
