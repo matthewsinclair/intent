@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 08:38Z
+heartbeat_at: 2026-08-31 08:44Z
 status: active
-focus: "LANDED TODAY: a2a51938 AC-10.8, a9a4c070 AT-10.12 (both green, both mutation-driven). NEXT: AT-06.11 remedies_are_reachable.rs. HELD BEHIND ic: the daemon-status --format fix (built and driven, render.rs contended) and AT-10.5 (conservation_check.sh cannot see canon). NEITHER HOLD IS MINE TO CLEAR."
+focus: "LANDED: a2a51938 AC-10.8, a9a4c070 AT-10.12. ON AT-06.11 -- its stated blocker (held red until WP-10 lands `upgrade`) IS EXPIRED, `upgrade` migrates the canary at rc=0. THE STATIC HARVEST IS REFUSED BY ITS OWN POSITIVE CONTROL: a DELEGATED remedy puts no literal on a `remedy:` line, so the walk must be DYNAMIC over emitted output as the row always said. Held behind ic: daemon-status fix, AT-10.5."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -13,7 +13,13 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 ## DOING
 
-**AT-06.11 `remedies_are_reachable.rs`** -- walk the emitted REMEDY STRINGS, never the declared verbs; a test asserting every declared verb exists passes trivially.
+**AT-06.11 `remedies_are_reachable.rs` -- MEASURED, NOT YET BUILT, AND THE MEASUREMENT CHANGED THE DESIGN.**
+
+- **THE ROW'S BLOCKER HAS EXPIRED.** It is held red _until WP-10 lands `upgrade`_, and the known failing instance is v3's unmigrated-project refusal naming a verb v3 does not carry. **`upgrade` LANDED**: it migrated the pinned canary at rc=0 today -- 56 threads, 61 issues, 136 files. Re-drive before believing the note.
+- **A STATIC HARVEST OVER `remedy:` LINES IS THE WRONG POPULATION AND ITS OWN POSITIVE CONTROL SAYS SO.** Mine found 159 remedy lines and 24 distinct command references, all 24 resolving in the dispatch table and none retired -- **which is exactly the trivial pass the row warns about.** Then the control: `unmigrated_project.rs:335` asserts the refusal names `intent upgrade`, and **my harvester never saw it**, because `FacadeError::Unmigrated(pending) => pending.remedy()` DELEGATES -- the literal lives in a `Remedy` impl and never sits on a line containing `remedy:`. **A whole class of remedies cannot appear in that corpus.**
+- **SO THE WALK MUST BE DYNAMIC OVER EMITTED OUTPUT, WHICH IS WHAT THE ROW SAID ALL ALONG** (ic harvested across 106 paths). The apparatus exists in `flag_reachability.rs` -- `probeable()`, `not_probed()` with LOUD `.expect()` exclusions, and `PROBE_SENTINEL = "ST9999"`, an argument that satisfies clap and cannot resolve.
+- **AND THE PROBE SET IS NOT THE REFERENCE SET, BY STANDING RULE.** `fc` is never invoked by me under any circumstance (`IN-AG-FIAT-001`); `daemon start`/`daemon stop` are excluded while peers are live; `claude upgrade --apply` writes into the Intent install. **Those exclusions must be declared and must fail loud**, on `flag_reachability.rs`'s own precedent, or the check is safe by accident of scope.
+- Of the 14 references I could safely probe in a real fixture, **every one reaches its verb** -- no unwired marker. That is evidence, not a verdict, because the population is the incomplete one.
 
 ## TODO
 
@@ -24,6 +30,10 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 - **A `bin/devbin build all` is owed** before anyone can browse the web face from the delivered binary.
 
 ## Watch-outs
+
+**A DELEGATED REMEDY PUTS NO LITERAL WHERE A GREP FOR `remedy:` CAN SEE IT.** My harvest found 24 command references, all valid -- and could not have found the one the estate already has a test for, because `FacadeError::Unmigrated(pending) => pending.remedy()` produces the string one call away. **THE CONTROL IS WHAT CAUGHT IT: I went looking for a reference I KNEW existed and the instrument did not have it.** A corpus that cannot contain the known instance cannot support a claim about the population.
+
+**AND `${=c}` IS THE ZSH SPELLING; PLAIN `$c` DOES NOT SPLIT** -- third firing today, and this one manufactured a 15-row table of `reaches the verb` verdicts in which **not one multi-word verb was ever invoked**: `lang list` went to clap as a single argument and came back `unrecognized subcommand`. Paired with an `init --name P` that silently created no project, so the whole probe also ran outside a project. **Two independent breakages, one plausible-looking table, no error anywhere.** The tell was uniformity -- every row rc=1 -- and uniformity across a set that should differ is the thing to distrust.
 
 **A GUARD WHOSE SCOPE WAS NEVER STATED IS NOT A STALE GUARD, AND THE REMEDY IS DIFFERENT.** `upgrade_command.rs`'s `running_it_twice_leaves_the_tree_byte_identical` is green, correct, and its fixture holds NO issues -- while AC-10.12's measured defect is 40 issue bodies rewritten. **It would have passed through the whole episode.** Nothing had gone stale; nobody had written down where its reach stopped, so a green there read as evidence about somewhere else. **Driven rather than argued: dropping the issues from my own fixture leaves the property arm passing**, so the blind spot is demonstrated inside the file that closes it.
 
