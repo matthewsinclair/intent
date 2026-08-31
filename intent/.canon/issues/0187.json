@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 187,
+  "slug": "intent-init-lang-refuses-with-a-reason-that-expi",
+  "title": "intent init --lang refuses with a reason that expired: it says lang init is not implemented, and it is",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-31",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent init --lang rust` exits 2. That is the FIRST command on `docs/getting-started.md`, so it is the first thing a new user runs and the first thing that fails.\n\n**The conclusion is right and the REASON is false.** `render.rs:4461` refuses the flag and tells the reader that `intent lang init` is not implemented. It is implemented -- driven, rc=0, `declared: rust`. What is actually true is narrower: `init` reads the flag nowhere in its own body (`render.rs:4442-4591`), with a positive control of 118 `lang` hits elsewhere in the same file, so the flag is accepted at the parser and ignored by the command.\n\n**So the remedy the tool prints sends the reader to wait for a command that already shipped.** A refusal whose stated reason expired is worse than a bare refusal, because it is actionable and the action is wrong.\n\n## The class\n\nThis is a rotted proof in executable form. The guard fires correctly on a premise that has since become false, and the comment above it is a good account of a guard that was once silently ignored -- accurate when written, load-bearing now, and stale. **A guard's steady state is silence, so nothing reports the rot; the only way it surfaces is somebody reading the message a user was given.**\n\n## The fix, which is not removing the guard\n\n`init` should CALL `lang init` rather than refuse the flag. Removing the guard would restore the silent-ignore the guard exists to prevent. Until then the reason text must say what is true: the flag is not yet wired into `init`, and the reader should run `intent lang init <lang>` after `intent init`.\n\nFound by dc, 2026-08-31, driving the published getting-started page end to end under a fresh HOME, a scrubbed PATH, an explicit INTENT_HOME and a fresh `git init` -- which is how the six defects on that page were found, none of them recoverable by proofreading.\n"
+}
