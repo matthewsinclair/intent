@@ -30,7 +30,36 @@
 
 use std::fmt::Write;
 
+use intentsvcs::address::{Address, Entity};
 use intentsvcs::model::{Issue, Thread, WorkPackage};
+
+/// The entity's canonical address, rendered through [`Address::to_url`].
+///
+/// **THIS IS THE EMIT PARTNER, AND IT EXISTS BECAUSE NOTHING EMITTED ONE.**
+/// Measured 2026-08-31: across this estate's own boards the NON-canonical
+/// `intent://` form appeared ten times against one canonical `intent:///` use,
+/// produced independently by four people who work on this tool daily. The
+/// grammar was right and unlearnable -- the authority is EMPTY for this
+/// project, so the form takes three slashes, and a reader who has never been
+/// shown one reconstructs the two-slash shape from ordinary URL intuition every
+/// time. `file:///` has had thirty years and fares no better.
+///
+/// **A strict refusal without this would refuse the spelling everybody reaches
+/// for while never once showing the one it wants.** The refusal in
+/// `address.rs` spells the right form back at the point of the mistake; this
+/// shows it before the mistake is made. Neither is sufficient alone.
+///
+/// **RENDERED, NEVER FORMATTED BY HAND.** `to_url` round-trips with `parse`, so
+/// what is printed here is a string the tool will accept back -- which a
+/// hand-built `format!` would only be until someone changed the grammar.
+fn address(entity: Entity) -> String {
+  Address {
+    authority: None,
+    entity,
+    format: None,
+  }
+  .to_url()
+}
 
 /// `intent st show <id>`'s text: id, title, status, its reason if any, created,
 /// completed if any. No body — `st show` does not print it.
@@ -45,6 +74,11 @@ pub fn thread(t: &Thread) -> String {
   if let Some(done) = &t.completed {
     let _ = writeln!(s, "completed: {done}");
   }
+  let _ = writeln!(
+    s,
+    "address: {}",
+    address(Entity::Thread { id: t.id.clone() })
+  );
   s
 }
 
@@ -59,6 +93,14 @@ pub fn work_package(st: &str, wp: &WorkPackage) -> String {
     let _ = writeln!(s, "reason: {reason}");
   }
   let _ = writeln!(s, "scope: {}", wp.scope_display());
+  let _ = writeln!(
+    s,
+    "address: {}",
+    address(Entity::Wp {
+      thread: st.to_string(),
+      wp: format!("{:02}", wp.seq),
+    })
+  );
   s
 }
 
@@ -79,6 +121,13 @@ pub fn issue(i: &Issue) -> String {
   if let Some(reporter) = &i.reporter {
     let _ = writeln!(s, "reporter: {reporter}");
   }
+  let _ = writeln!(
+    s,
+    "address: {}",
+    address(Entity::Issue {
+      id: format!("{:04}", i.number),
+    })
+  );
   if !i.body.is_empty() {
     let _ = writeln!(s);
     let _ = writeln!(s, "{}", i.body);
