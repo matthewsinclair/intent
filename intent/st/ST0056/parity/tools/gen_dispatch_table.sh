@@ -517,19 +517,43 @@ $(printf '%s' "$MCP_ON_DEAD" | sed 's/^/  /')"
 # `upgrade`, `agents generate`, `agents sync`, `claude prime`, `mcp`) all mutate
 # through their own action and carry no retired flag, so none of them trip it.
 #
+# THE REMEDY'S SECOND BRANCH IS NOW BUILT, AND IT WAS NOT (dc, 2026-08-31).
+# The message offers two ways out -- reclassify, or say in `mcp_review` what
+# still mutates -- and the jq below consulted no such field, so only the first
+# was reachable. `doctor` took that one in 2026-08-16 because it was genuinely
+# a read. `agents init` is the first row needing the other: it writes AGENTS.md
+# with no flag and no argument, so reclassifying it would write a false fact
+# into the SSOT to satisfy a guard. `mcp_review.still_mutates` is the key,
+# deliberately a NEW one rather than the existing `counterintuitive`: `doctor`
+# carries a `counterintuitive` note, so keying the escape on that field would
+# have disarmed this check's own worked example.
+#
 # MUTATION-PROVEN, and it must be, because its correct steady state is SILENCE:
-# with `doctor` fixed this arm reports nothing forever, which is the shape that
-# rots unnoticed. Reproduce with
-#   jq '.families |= map(.entries |= map(if .path == "doctor"
-#       then .read_or_mutate = "mutate" else . end))' surface/dispatch-table.json > /tmp/t.json
+# with every row grounded this arm reports nothing forever, which is the shape
+# that rots unnoticed. Reproduce, from the repo root so the generator's own
+# root resolution still finds the tree:
+#   jq 'del(.families[13].entries[1].mcp_review.still_mutates)' \
+#       surface/dispatch-table.json > /tmp/t.json
 #   IN=/tmp/t.json OUT=/tmp/t.md bash .../gen_dispatch_table.sh
-# -> REFUSES, naming `doctor (--fix)`. Restore the file and it passes.
+# -> REFUSES, naming `agents init (--template)`. Setting the field to "" also
+# refuses; only a non-empty statement buys the escape.
+#
+# **THE PROOF THIS REPLACES HAD SILENTLY STOPPED REPRODUCING, WHICH IS THE
+# WARNING ABOVE COMING TRUE ONE LEVEL UP.** It flipped `doctor` to `mutate` and
+# expected a refusal naming `doctor (--fix)`. Driven 2026-08-31 against HEAD's
+# table with HEAD's predicate -- before any of this change -- it names NOTHING:
+# `doctor` gained `--verbose`, `--quiet` and `--format` as `keep` flags at
+# `cb78080d`, and the fourth condition below requires ZERO of those. So the
+# recorded reproduction had been unrunnable for as long as those flags have
+# existed, and nothing said so, because a mutation proof is prose until someone
+# types it. It is replaced with one driven the day it was written.
 RETIRED_GROUNDING="$(jq -r '
   [.families[].entries[], .new_surface[]]
   | map(select((.disposition // "") != "retire" and (.target.state // "") != "retire"))
   | map(select(.read_or_mutate == "mutate"))
   | map(select(((.args // []) | length) == 0))
   | map(select(([.flags[]? | select(.disposition == "keep")] | length) == 0))
+  | map(select(((.mcp_review.still_mutates // "") | length) == 0))
   | map(select(([.flags[]? | select(.disposition == "retire")] | length) > 0)
         | .path + " (" + ([.flags[] | select(.disposition == "retire") | .spellings[0]] | join(", ")) + ")")
   | join("\n")' "$IN")"

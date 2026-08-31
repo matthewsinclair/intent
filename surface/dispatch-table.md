@@ -2391,7 +2391,8 @@ Initialize AGENTS.md at project root
 - **v2:** plugin dispatch
 - **Flags:**
   - `--template` `<name>` (string) -- Initial content from a named template
-    - **disposition:** keep
+    - **disposition:** retire
+    - **disposition basis:** Withdrawn 2026-08-31 (vc, within the pen; AC-06.8's remedy sanctions wire-or-withdraw and this is the direction that deletes a false claim rather than adding a capability -- wiring it would be new behaviour and hv's). Found by ic via AT-06.8's fix at 5bd42c95: flag_reachability now probes every ENTRY rather than each family's bare root, so leaves under a root that refuses bare -- `agents`, which is a deliberate unwired dispatcher over wired subverbs -- were graded for the first time. `"template"` is spelled nowhere in intent-cli/src. MEASURED BY VARIATION rather than by reading the source (dc, 2026-08-31): `agents init` run in three FRESH projects with --template elixir, with --template definitely-not-a-template, and with no flag at all produced BYTE-IDENTICAL AGENTS.md, one md5, all at rc=0. **The flag was a false claim in two directions**: it advertised templating that does not happen, and it accepted a template name that does not exist -- where v2 refused an unknown one by name and listed the alternatives (intent_agents:181-183). v2's behaviour, recorded so a later wiring has a target rather than a help string: `--template <name>` copied intent/plugins/agents/templates/<name> into the project, AGENTS.md at the root beside its sibling templates. That capability has no v3 home and this withdrawal does not create one; it stops the surface claiming it has.
 - **Exit codes:**
   - `0` -- created
   - `1` -- already exists
@@ -2399,7 +2400,7 @@ Initialize AGENTS.md at project root
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
 - **MCP:** not exposed -- **mutates**
-- **MCP classification grounded in:** intent/plugins/agents/bin/intent_agents:196-216 -- cp of AGENTS.md / RULES.md / ARCHITECTURE.md
+- **MCP classification grounded in:** intent/plugins/agents/bin/intent_agents:223 -- `intent_agents_generate_content > "$PROJECT_ROOT/AGENTS.md"`, the UNCONDITIONAL write on the else branch, taken when no flag is given. **RE-GROUNDED 2026-08-31 (dc), AND THE GENERATOR CAUGHT IT RATHER THAN A REVIEWER.** This field named :196-216 -- the `cp` of AGENTS.md / RULES.md / ARCHITECTURE.md, which is the `--template` BRANCH -- so when that flag was withdrawn, `gen_dispatch_table.sh` refused to render: _the classification is grounded in something withdrawn_. The row's `mutate` was never in doubt and the refusal did not say it was; what was wrong is that the only WRITE this row had ever recorded was the one behind an inert flag. Measured in v3 rather than inferred: `agents init` with no flag at all writes AGENTS.md and exits 0, and a second run exits 1 `already exists`, which is exactly the two-code shape `observed` records. The classification is unchanged; its evidence now names a branch that still exists.
 - **recoverability:** one-way
 
 ### `agents generate`

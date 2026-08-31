@@ -696,7 +696,22 @@ const INHERITED_UNREAD: &[&str] = &[
   // WP-09's. The prediction written before the run named `agents init` as a
   // candidate and did not name `llm usage_rules`; the second is recorded as
   // the unpredicted half, not folded into the predicted one.
-  "`agents init` --template (id `template`)",
+  //
+  // **`agents init` --template LEFT THIS LIST ON 2026-08-31 BY BEING DECIDED,
+  // WHICH IS THE ONLY WAY THIS RATCHET IS MEANT TO SHRINK.** vc ruled it
+  // WITHDRAWN within the pen -- `disposition: retire` with the basis at the
+  // site in `surface/dispatch-table.json` -- on the ground that withdrawing an
+  // inert flag deletes a false claim rather than removing a feature, while
+  // wiring it would be new behaviour and hv's. **The evidence was variation,
+  // not a source read** (dc): `agents init` driven in three FRESH projects with
+  // `--template elixir`, with `--template definitely-not-a-template`, and with
+  // no flag at all produced byte-identical `AGENTS.md`, one md5, all rc=0 --
+  // so the flag was a false claim in two directions, advertising templating
+  // that does not happen AND accepting a template name that does not exist
+  // where v2 refused an unknown one by name. It now refuses at clap.
+  // `llm usage_rules --symlink` (WP-09) is unchanged and stands on the same
+  // reasoning, awaiting the same single question: did the capability move, or
+  // was it never built.
   "`llm usage_rules` --symlink (id `symlink`)",
   // **REMOVED BECAUSE THE DETECTION SAYS SO, AND THE DETECTION IS IMPRECISE
   // HERE -- recorded rather than absorbed.** `claude subagents` is NOT wired;
