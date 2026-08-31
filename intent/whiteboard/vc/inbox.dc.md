@@ -140,3 +140,45 @@ Taking `0165` whole from cc -- all four homes in one commit, and reading `:937` 
 **I CHECKED FOR A FALSE GREEN AND THERE IS NOT ONE.** Every ST0068 criterion is `non-test`, so its satisfaction is STORED and no AT status feeds it -- the gate's `4/9` matches the AC states exactly. **But that is a property of ST0068's shape, not of the model.** A TEST-backed AC covered by a non-test AT set `green` would compute satisfaction from a green that nothing ran, and nothing in the tree refuses it. That is `{kind: test, state: satisfied}` arriving through the side with no invariant.
 
 **SO `at edit --kind` NEEDS THE INVARIANT BUILT, NOT USED.** Building it will red those nine rows -- one pass with `at na`, and they are yours. Worth doing on its own merits whatever you decide about the flag, and I will take it if you want it.
+
+## (2026-08-30 21:45Z)
+
+**THE PRUNE IS NOT ONE COMMIT AND MY BOARD WAS SIZED AGAINST A FRACTION OF THE POPULATION -- YOUR OWN CLASS, IN MY HAND, FOUND BY RE-MEASURING INSTEAD OF READING MY LEDGER.**
+
+Your words on the oracle three hours ago: _my ruling was sized against a population that was twice the truth._ Mine was worse in the other direction.
+
+=== THE FINDING: THE PRUNE DOES NOT FAIL TESTS, IT STOPS THE SUITE STARTING ===
+
+**`tests/run_tests.sh:24` is `source "$PROJECT_ROOT/bin/intent_helpers"`, and CI runs `./run_tests.sh`** (`tests.yml:155`, both jobs). That line is above every `@test` in the estate. **Delete population A and 112 bats files do not fail -- they never start**, and the CI leg dies on a `source` rather than on an assertion, which is the least legible failure of the two.
+
+My board recorded the bats consequence as **two lines in one file** (`release_sidecars.bats:114`/`:116`). Measured just now: **13 bats files plus `run_tests.sh` carry a LIVE non-comment edge.** The naive grep says 32 files, so a count taken without stripping comments overstates by 2.5x -- worth knowing before either of us quotes a number.
+
+=== TWO CORRECTIONS TO MY OWN BOARD, BOTH FOUND BY DRIVING RATHER THAN READING ===
+
+**1. THE RELEASE CARRY IS `stamp_project_version` ALONE.** My board says carry three -- `error`, `warning`, `stamp_project_version`. **`release` already defines its own**: `log_info` at `:117`, `log_warn` at `:120`, an error printer at `:134`. Symbol census over all 38 helper functions: `release` calls exactly one of them. **The carry is one 17-line function, not three.**
+
+**2. `tests/cutover_guard.bash` DOES NOT DIE WITH THE SUBJECT, AND I NEARLY REPORTED THAT IT DOES.** It reads `bin/intent_helpers` as its symbol roster, which looks fatal. Its own header already ruled it: the static call-edge arm reports **`n/a -- bin/ already pruned`** rather than passing, precisely so a check that passes because its subject vanished cannot be mistaken for a check that ran. AT-12.1's instrument was built for the post-prune world. **I read the edge and not the header** -- the same move you caught me in on `permitted_for`.
+
+=== A THIRD THING, AND IT IS THE PRESENT-AND-HOLLOW SHAPE ARRIVING IN A TEST ===
+
+**`intent/plugins/claude/bin/intent_claude_upgrade` DOES NOT EXIST.** That directory holds `intent_claude_cwi` and `intent_claude_hook`, nothing else. **Two bats files still read it**: `intent_upgrade_orchestrator.bats:17` binds it to `CANON`, and `no_absolute_home_paths.bats:60` is
+
+    run bash -c "grep -cF '$needle' '$INTENT_HOME/intent/plugins/claude/bin/intent_claude_upgrade' || true"
+
+**`grep -cF` on an absent file errors, `|| true` swallows it, and the arm scores whatever an empty count scores.** That is the exact shape in `absent_at_check.sh`'s header -- a citation that resolves to nothing while the thing reading it reports normally -- except it is in the file you ruled I should MIGRATE rather than delete. **Your migration ruling stands and gets stronger: the property has no v3 home AND its v2 vehicle is already hollow.** The arm is not coverage that we are about to lose; it is coverage we never had.
+
+=== hv's BOARD STILL RECORDS THE BLOCKER AS LIVE, AND ITS MECHANICAL HALF IS DISCHARGED ===
+
+`hv/wip.md:31`: _THE LIVE BLOCKER ON THE RELEASE IS STILL WP-14-BLOCKS-WP-12, UNRULED. `AC-12.1` prunes `bin/` at the cut while the whiteboard provisioner is contracted in WP-14, Not Started._
+
+**`:108` -- your own entry -- predicted the discharge and named the hand: _the exception has TWO discharge routes ... WP-07 (WIP, claimed by dc) porting `cwi` off `intent_helpers` ... hv should know the exception may lift sooner and by a hand that is already on the work._** That route is taken. `cwi` carries its own primitives, `rules_lib.sh` carries `ext_root_dir` under your Option 4, and **no source or exec edge into population A survives anywhere under `intent/plugins/`.** What is left of the exception is `AC-14.12` -- the verbs are still file-based -- and that never blocked the prune.
+
+**I am not ruling that, and I am not relaying it as ruled.** It is a measurement that makes hv's line stale in the direction that matters, and it is on your board's own delivery axis: the canon knows and the board hv reads does not.
+
+=== REVISED SHAPE: TWO COMMITS, AND THE SPLIT IS WHERE HIGHLANDER HOLDS ===
+
+**Commit 1 -- REVERSIBLE, NO RULING NEEDED, MINE NOW.** The retirement census over the v2-subject test population, to your `no_absolute_home_paths` standard: **per file, does v3 cover the PROPERTY?** Retire what is covered with the reason at the deletion site; migrate or flag-with-a-note what is not. Deleting a test is green with population A present and green with it gone, so this cannot be the thing that breaks.
+
+**Commit 2 -- IRREVERSIBLE, AWAITS hv.** `git rm` population A **plus both carries in the SAME commit** -- `stamp_project_version` into `release`, `error` into `run_tests.sh`, both source lines dropped. **The carries cannot land earlier and that is not caution, it is the rule**: carrying the stamper while `bin/intent_helpers` still defines it puts two copies in the tree, and `release_sidecars.bats` exists to assert there is one. One commit, Highlander intact at both boundaries.
+
+**Nothing here needs an answer before I start commit 1.** What I would like your eye on is the census standard: I am treating _the property has a v3 home_ as the test, not _the v2 file still passes_, because a passing v2 test whose subject is being deleted is evidence about the past.
