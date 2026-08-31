@@ -179,7 +179,22 @@ claims: []
 
 ---
 
+## Rulings made and NOT yet executed
+
+**RESTORED TO THIS BOARD 2026-08-31 10:11Z, AND THE REASON IS A DEFECT IN THE FOLD THAT REMOVED THEM -- vc's, under vc's pen.** Found by dc, who went looking for whether hv had already answered a question before asking it again, and found the answer in `.history/`.
+
+**hv's rule keys on DONE. THE FOLD KEYED ON DATED.** The ruling being enforced was hv's own -- _"cut ANY mention of done work out of the wip.md and restart.md docs. They should ONLY EVER contain doing and todo work, no exceptions"_ -- and the 2026-08-30 fold moved the whole dated ruling record to `.history/` on the strength of it. **A ruling nobody has executed is TODO WORK BY THAT RULE, so the fold enforcing "doing and todo only" is what removed todo items.** Nothing was deleted and every word is still in `.history/20260830/wip-fold-0905Z.md`, which is exactly the problem: **a live directive reachable only by grepping an archive is discoverable by nobody, because grepping `.history/` is not a thing a node does at pickup.**
+
+**THE RULE THAT REPLACES THE ONE THE FOLD USED: AN UNEXECUTED RULING IS LIVE STATE, NOT HISTORY. A fold archives the NARRATIVE of a ruling and never the ruling itself while it is unexecuted.** Execution status is the discriminator; the date is not evidence of anything. This section is where an unexecuted ruling lives until someone executes it, and an entry LEAVES it by being executed, never by ageing.
+
+**These two are what an audit of the 2026-08-26 eight-ruling pass turned up. It is not a proof that there are no others** -- the six-ruling pass of 2026-08-27 and everything before it have not been driven, and vc owns that sweep.
+
+- **A4 `fileindex` -- RETIRE IT, correct the table.** (hv, 2026-08-26 00:19Z, verbatim at `.history/20260830/wip-fold-0905Z.md:179`.) Menu: RETIRE **CHOSEN**; BUILD IT (declined, uncosted); SHIP UNBUILT AND DECLARED (declined). Under the same evening's `AC-00.5` ruling a retirement must become ENUMERABLE. **STATE AT 2026-08-31: UNEXECUTED, AND WHAT SHIPS IS THE OPTION hv DECLINED.** Measured by dc: `surface/dispatch-table.json` still reads `disposition: keep` with `replacement` absent; `fileindex` is in `--help`, refuses at rc=2 with the UNWIRED marker (_not implemented yet_), and is ABSENT from `intent surface retired` -- where `treeindex`, retired by the same mechanism, is listed and refuses by name. **The two refusals say different things and only one is true: _not implemented yet_ means LATER and hv ruled NEVER.** That is `AC-00.5`'s own subject firing on the verb its ruling was quoted at. Owner: cc (`owner_wp: WP-06`).
+- **A6 ic's `## Holds` -- LAND IT, with the CONDITION as the required field.** (hv, 2026-08-26 00:19Z, same pass.) dc's sharpening, adopted: the condition is load-bearing, not the lifter. Menu: LAND **CHOSEN**; AFTER THE CUT; DECLINE. Taken knowingly as a shipped-skill change with fleet blast radius. **STATE AT 2026-08-31: UNEXECUTED.** `intent/plugins/claude/skills/in-whiteboard/SKILL.md` has no `## Holds` section; its only occurrence of the word is ordinary prose about inboxes at `:119`.
+
 ## The dated ruling record
+
+**Every ruling hv has made, verbatim and attributed, is in `.history/` -- BUT AN UNEXECUTED ONE IS NOT HISTORY AND BELONGS IN THE SECTION ABOVE.** The 2026-08-30 fold did not make that distinction and buried at least two live directives; the rule that replaces it is stated there.
 
 **Every ruling hv has made, verbatim and attributed, is in `.history/`.** It left this file in the 2026-08-30 fold and nothing was deleted: `.history/20260830/wip-fold-0905Z.md` is the 137,298-byte board as it stood, and `.history/20260828/standing-directives-spent.md` is the earlier split.
 
