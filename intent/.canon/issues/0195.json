@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 195,
+  "slug": "intent-search-reports-every-hit-at-line-0-and-re",
+  "title": "intent search reports every hit at line 0 and repeats one file per match, so a result set cannot be navigated",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-31",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent search` reports every hit at line 0 and repeats one file per hit, so a result set cannot be navigated.\n\nDRIVEN, 2026-08-31, against a854d7c3. `intent/st/ST0056/design.md` contains the\nphrase `rmcp (official SDK)` exactly once:\n\n  $ intent search 'official SDK'\n  intent/st/ST0056/design.md:0  ST0056  design.md\n  intent/st/ST0056/design.md:0  ST0056  design.md\n  intent/st/ST0056/design.md:0  ST0056  design.md\n  intent/st/ST0056/design.md:0  ST0056  design.md\n\nTwo things are wrong and they are independent.\n\nTHE LINE NUMBER IS ALWAYS 0. `path:0` is the shape of a `file:line` reference,\nso it reads as a location and is not one -- an editor or a jump-to-line consumer\nlands at the top of the file every time. A column that always holds the same\nvalue carries no information while occupying the position a reader trusts most.\n\nTHE SAME FILE REPEATS ONCE PER MATCH WITH NOTHING TO DISTINGUISH THE ROWS. Four\nidentical lines are indistinguishable from one match reported four times, or\nfrom four matches whose locations were lost. dc measured 18 identical rows for\none file on a canon term. Either the rows should carry the distinct locations\nthey represent, or they should be collapsed to one row per file with a count.\n\nReported alongside the FTS5 escaping defect, which is filed separately: that one\nrefuses queries, this one answers them uselessly, and they have different fixes.\nFound by dc while driving `docs/getting-started.md` for AC-02.1.\n"
+}

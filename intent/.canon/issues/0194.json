@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 194,
+  "slug": "intent-search-passes-the-query-into-fts5-unescap",
+  "title": "intent search passes the query into FTS5 unescaped, so any hyphenated term fails with a leaked sqlite error",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-31",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent search` passes the query into FTS5 unescaped, so any hyphenated term fails and the refusal leaks the storage layer.\n\nDRIVEN, 2026-08-31, against a854d7c3:\n\n  $ intent search 'Rate-limited'\n  error: the search query `Rate-limited` was refused\n    caused by: sqlite: no such column: limited\n    caused by: no such column: limited\n\nThe hyphen reaches FTS5's query grammar, which reads `Rate-limited` as a column\nreference. Two defects in one line.\n\nFIRST, A LARGE AND ORDINARY CLASS OF QUERIES CANNOT BE RUN. Hyphenated terms are\nnot exotic in this corpus -- `dry-run`, `new-surface`, `read-only`, `to-disk`,\n`fail-forward`, `steel-thread` -- so the verb refuses a substantial share of what\nan operator would naturally type, and refuses it with an error that gives no clue\nthat the hyphen is the cause.\n\nSECOND, THE REFUSAL LEAKS THE STORAGE LAYER TO THE OPERATOR. `sqlite: no such\ncolumn: limited` names a technology the surface does not otherwise expose and\ndescribes a condition the caller cannot act on. The remedy line is absent\nentirely, against the estate's own convention that a refusal names what to do.\n\nThe fix is to escape or quote the query before it reaches FTS5, and to refuse\nunparseable input in Intent's own voice rather than passing SQLite's through.\n\nFound by dc while driving `docs/getting-started.md` for AC-02.1, where it was\nnamed inside issue 0193 so the page would not be corrected twice. Filed\nseparately because the page defect and the verb defect want different fixes, and\na verb defect addressed only inside a docs issue is addressed to nobody.\n"
+}
