@@ -1579,6 +1579,7 @@ Track issues without the ceremony of a steel thread
 | `issues`                          | [command] | --width <n>, --format terminal/md                                 | Track issues without the ceremony of a steel thread    | keep        |
 | `issues list`                     | --        | --kind open/closed/all, --width <n>, --format terminal/md         | List issues (default: open)                            | keep        |
 | `issues add` (alias `issues new`) | <title>   | --severity critical/high/medium/low, --body <text>, --from <file> | Add a new issue, print its ID:TITLE                    | keep        |
+| `issues edit`                     | <id>      | --body <text>, --from <file>                                      | Rewrite an issue's prose                               | new-surface |
 | `issues show`                     | <id>      | --json, --format terminal/md/json                                 | Show one issue (optionally as JSON)                    | keep        |
 | `issues close`                    | <id>      | --                                                                | Mark an issue done: OPEN -> CLOSED                     | keep        |
 | `issues open`                     | <id>      | --                                                                | Reopen an issue: CLOSED -> OPEN                        | keep        |
@@ -1675,6 +1676,34 @@ Add a new issue, print its ID:TITLE
 - **MCP:** exposed as an agent tool -- **mutates**
 - **recoverability:** reversible
 - **facade:** issue_add
+
+### `issues edit`
+
+Rewrite an issue's prose
+
+- **v2:** new-surface
+- **Arguments:**
+  - `id` (issue-id, arity `1`)
+- **Flags:**
+  - `--body` `<text>` (string) -- The issue's prose, inline
+    - **disposition:** keep
+    - **disposition basis:** New with the verb. `issues add` carries the same two spellings and the same one-of-them rule, read through the shared `issue_body` helper, so the flags are one declaration honoured twice rather than two that agree today.
+  - `--from` `<file>` (string) -- Read the issue's prose from a file
+    - narrowed off MCP because it names a local file for the CLI to read -- an MCP agent reads its own files and passes body
+    - **disposition:** keep
+    - **disposition basis:** New with the verb. `issues add` carries the same two spellings and the same one-of-them rule, read through the shared `issue_body` helper, so the flags are one declaration honoured twice rather than two that agree today.
+    - **exposed on mcp:** false
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: hv, 2026-08-28/29, verbatim at `intent/whiteboard/hv/.history/20260830/wip-fold-0905Z.md:116`; re-sequenced to cc after `0183` and recorded at `b1bf4cea`. **THE EVIDENCE FOR THE RE-SEQUENCING WAS TWO MEASURED INSTANCES IN ONE SESSION OF THIS VERB'S ABSENCE PREVENTING A CORRECTION, BOTH IN THE RECORD OF A FINDING ABOUT THE MISSING VERB** -- vc's `0179` re-discovering hv's own ruling as a fresh defect four days after it was made, and cc's `0183` unable to correct a body whose remedy measurement had just proved wrong. hv's design, not the builder's: `0122`'s scope correction is this verb's FIRST DRIVE and `0118`'s re-premise its second, so the live cases are the acceptance cases. -- behaviour: Replaces `Issue.body` whole. **An empty body is REFUSED rather than written**, which is deliberately NOT symmetric with `issues add`: `add` leaves a body empty because an unwritten body is a state and nothing is lost, while editing one to empty ERASES authored prose whose only other copy is the event log. And **`--body`/`--from` absent is refused separately from empty prose**, because they are different mistakes and `AC-04.4` forbids one message for two causes. Re-writing identical bytes reports `already` and writes nothing, so the event log cannot show a correction that did not happen.
+- **rulings:**
+  - `0.state`: ratified
+  - `0.authority`: hv
+  - `0.date`: 2026-08-28
+  - `0.record`: intent/whiteboard/hv/.history/20260830/wip-fold-0905Z.md:116
+- **MCP:** not exposed -- **mutates**
+- **basis:** hv, 2026-08-28/29 -- ISSUE WRITE PATH, BUILD THE PACKAGE. Menu: package CHOSEN; edit verb only (declined); leave as-is (declined). **v2 has no counterpart because v2 did not need one: an issue was a markdown file and correcting it was editing it.** Under the disk-optional model that route stops existing, so the create door landed (`issues add --body/--from`, hv 2026-08-27) with no correction door beside it and an issue body became WRITE-ONCE.
+- **recoverability:** reversible
+- **recoverability anomaly:** REVERSIBLE AND WITHHELD FROM MCP, DELIBERATELY, AND THIS IS A QUESTION FOR hv RATHER THAN A SETTLED CLASSIFICATION. The withhold rule derives from whether the SURFACE can undo the act, and by that test this is reversible: the verb writes any body, including the previous one. **What it cannot do is TELL you the previous one** -- the prior prose survives only in the event log and no verb reads it back -- so an undo needs knowledge from outside the tool. That is a weaker reversibility than `issues close`/`open`, which undo each other completely. **AND THE REASON FOR WITHHOLDING IS AUTHORSHIP, NOT RECOVERABILITY.** Every other exposed issue mutator either creates prose (`add`) or moves a status field; this one REPLACES prose a human wrote. An agent rewriting a human's issue body is a different act from an agent closing an issue, and nobody has ruled that it should. **Withholding is the recoverable error here**: if it is wrong, a flag flips; if exposing it is wrong, an agent surface shipped a capability over authored text that no ruling granted. cc, 2026-08-31, building hv's write-path package -- flagged to hv and ic rather than decided by the builder.
 
 ### `issues show`
 

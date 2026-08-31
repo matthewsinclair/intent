@@ -997,6 +997,20 @@ fn cases() -> Vec<Case> {
       true,
     ),
     (
+      "issues edit",
+      |fx| {
+        fx.facade()
+          .issue_add("a defect", None, None, "the original premise")
+          .expect("to exist");
+      },
+      |fx| {
+        fx.facade()
+          .issue_edit(1, "the corrected premise")
+          .expect("issues edit");
+      },
+      true,
+    ),
+    (
       "issues close",
       |fx| {
         fx.facade()

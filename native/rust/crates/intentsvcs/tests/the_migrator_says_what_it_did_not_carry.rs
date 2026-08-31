@@ -175,9 +175,15 @@ fn the_build_gap_line_says_where_the_files_are_and_who_owes_them() {
   );
   for member in intentsvcs::sync::NOT_YET_BUILT {
     assert!(line.contains(member.at), "the line must name where: {line}");
+    // **AND IT MUST NOT NAME A WORK PACKAGE -- D37**, which this arm asserted
+    // the OPPOSITE of for an hour. `no_pm_state_in_output.rs` refused the
+    // literal, not just the render: a shipped `WP-14` is one edit from a
+    // terminal. The number is not carried here at all now -- `data-model.md`
+    // says "built in WP-14" in the sentence `justified_by` pins to, so the
+    // document is its one home.
     assert!(
-      line.contains(member.owed_by),
-      "a gap with no owed work package cannot be chased, and cannot be seen to expire: {line}"
+      !line.contains("WP-"),
+      "the emitted line names a work package of ours, which D37 forbids: {line}"
     );
   }
 }

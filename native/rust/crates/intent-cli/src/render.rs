@@ -6140,6 +6140,34 @@ fn issues(m: &ArgMatches) -> Result<(), Failure> {
       println!("{number:04}:{title}");
       Ok(())
     }
+    // **THE CORRECTION DOOR** (hv, 2026-08-28/29; re-sequenced to cc after
+    // `0183` and recorded at `b1bf4cea`). Until this existed an issue body was
+    // write-once: `issues add` could write one and nothing could ever correct
+    // it, so a filing with a wrong premise stayed wrong. Both of this session's
+    // instances were in the record of a finding ABOUT the missing verb.
+    Some(("edit", a)) => {
+      let number = issue_arg(a, "id")?;
+      // **"NO PROSE GIVEN" AND "PROSE THAT IS EMPTY" ARE DIFFERENT MISTAKES AND
+      // MUST NOT SHARE A MESSAGE** -- the same-text-for-different-causes
+      // collapse `AC-04.4` forbids. `issue_body` returns an empty string when
+      // neither flag is passed, which is correct for `add` (an unwritten body
+      // is a state) and would be an ERASURE here. So the flag-absence is caught
+      // in the renderer, which is the layer that knows about flags, and the
+      // empty-prose refusal stays in the facade, which is the layer that knows
+      // what it would destroy.
+      if opt(a, "body").is_none() && opt(a, "from").is_none() {
+        return Err(Failure::Error(format!(
+          "error: `issues edit` needs the prose to write, and neither --body nor --from was given\n  remedy: `intent issues edit {number:04} --body <text>`, or --from <file> to read it from disk"
+        )));
+      }
+      let body = issue_body(a)?;
+      reported(
+        &open()?.issue_edit(number, &body).map_err(fail)?,
+        &format!("issue {number:04}"),
+        "body written",
+      );
+      Ok(())
+    }
     Some(("close", a)) => {
       let number = issue_arg(a, "id")?;
       reported(

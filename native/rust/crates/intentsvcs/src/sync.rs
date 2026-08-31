@@ -127,8 +127,23 @@ pub struct NotYetBuilt {
   pub at: &'static str,
   /// The phrase in `data-model.md` that puts it INSIDE the model.
   pub justified_by: &'static str,
-  /// The work package that owes it.
-  pub owed_by: &'static str,
+  // **THE WORK PACKAGE THAT OWES IT IS DELIBERATELY NOT A FIELD HERE.**
+  //
+  // It was one for an hour, and `no_pm_state_in_output.rs` refused it: a
+  // shipped string literal carrying `WP-14` is one edit away from a terminal,
+  // and D37 rules that our own work-package numbers do not reach a user's.
+  // Removing the render was not enough and the guard was right to be stricter
+  // than the ruling.
+  //
+  // **AND DROPPING IT OUTRIGHT IS BETTER THAN EXEMPTING IT, BECAUSE THE NUMBER
+  // ALREADY HAS A HOME.** `data-model.md` says the whiteboard is "built in
+  // WP-14" in the same sentence `justified_by` pins to -- so a second copy here
+  // would be the divergent-copy shape in a struct whose whole purpose is
+  // deriving a claim from that document rather than restating it.
+  //
+  // **This is the identical mistake `unwired`'s message made and D37 corrected**,
+  // repeated by the author who had read that comment the same morning while
+  // repairing that very function.
 }
 
 /// **WHAT THE MODEL CLAIMS THAT THE MIGRATOR DOES NOT YET CARRY.**
@@ -157,7 +172,6 @@ pub const NOT_YET_BUILT: &[NotYetBuilt] = &[NotYetBuilt {
   // asking only whether the section carries it cannot tell a member from an
   // exception the section is describing.
   justified_by: "left this set at D30",
-  owed_by: "WP-14",
 }];
 
 /// The migrator's twin of [`extract_written`], composed from the SAME
@@ -191,7 +205,7 @@ pub fn migration_not_yet_built() -> Option<String> {
   }
   let each: Vec<String> = NOT_YET_BUILT
     .iter()
-    .map(|m| format!("{} ({}, owed by {})", m.shown, m.at, m.owed_by))
+    .map(|m| format!("{} ({})", m.shown, m.at))
     .collect();
   Some(format!(
     "not yet carried -- the model claims these and they are still on disk: {}",

@@ -3578,6 +3578,61 @@
           "facade": "issue_add"
         },
         {
+          "path": "issues edit",
+          "help": "Rewrite an issue's prose",
+          "args": [
+            {
+              "name": "id",
+              "type": "issue-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [
+            {
+              "spellings": [
+                "--body"
+              ],
+              "type": "string",
+              "help": "The issue's prose, inline",
+              "value": "<text>",
+              "disposition": "keep",
+              "disposition_basis": "New with the verb. `issues add` carries the same two spellings and the same one-of-them rule, read through the shared `issue_body` helper, so the flags are one declaration honoured twice rather than two that agree today."
+            },
+            {
+              "spellings": [
+                "--from"
+              ],
+              "type": "string",
+              "help": "Read the issue's prose from a file",
+              "value": "<file>",
+              "disposition": "keep",
+              "disposition_basis": "New with the verb. `issues add` carries the same two spellings and the same one-of-them rule, read through the shared `issue_body` helper, so the flags are one declaration honoured twice rather than two that agree today.",
+              "exposed_on_mcp": false,
+              "note": "narrowed off MCP because it names a local file for the CLI to read -- an MCP agent reads its own files and passes body"
+            }
+          ],
+          "v2": "new-surface",
+          "basis": "hv, 2026-08-28/29 -- ISSUE WRITE PATH, BUILD THE PACKAGE. Menu: package CHOSEN; edit verb only (declined); leave as-is (declined). **v2 has no counterpart because v2 did not need one: an issue was a markdown file and correcting it was editing it.** Under the disk-optional model that route stops existing, so the create door landed (`issues add --body/--from`, hv 2026-08-27) with no correction door beside it and an issue body became WRITE-ONCE.",
+          "target": {
+            "state": "new-surface",
+            "ratification": "hv, 2026-08-28/29, verbatim at `intent/whiteboard/hv/.history/20260830/wip-fold-0905Z.md:116`; re-sequenced to cc after `0183` and recorded at `b1bf4cea`. **THE EVIDENCE FOR THE RE-SEQUENCING WAS TWO MEASURED INSTANCES IN ONE SESSION OF THIS VERB'S ABSENCE PREVENTING A CORRECTION, BOTH IN THE RECORD OF A FINDING ABOUT THE MISSING VERB** -- vc's `0179` re-discovering hv's own ruling as a fresh defect four days after it was made, and cc's `0183` unable to correct a body whose remedy measurement had just proved wrong. hv's design, not the builder's: `0122`'s scope correction is this verb's FIRST DRIVE and `0118`'s re-premise its second, so the live cases are the acceptance cases.",
+            "behaviour": "Replaces `Issue.body` whole. **An empty body is REFUSED rather than written**, which is deliberately NOT symmetric with `issues add`: `add` leaves a body empty because an unwritten body is a state and nothing is lost, while editing one to empty ERASES authored prose whose only other copy is the event log. And **`--body`/`--from` absent is refused separately from empty prose**, because they are different mistakes and `AC-04.4` forbids one message for two causes. Re-writing identical bytes reports `already` and writes nothing, so the event log cannot show a correction that did not happen.",
+            "rulings": [
+              {
+                "state": "ratified",
+                "authority": "hv",
+                "date": "2026-08-28",
+                "record": "intent/whiteboard/hv/.history/20260830/wip-fold-0905Z.md:116"
+              }
+            ]
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "recoverability": "reversible",
+          "recoverability_anomaly": "REVERSIBLE AND WITHHELD FROM MCP, DELIBERATELY, AND THIS IS A QUESTION FOR hv RATHER THAN A SETTLED CLASSIFICATION. The withhold rule derives from whether the SURFACE can undo the act, and by that test this is reversible: the verb writes any body, including the previous one. **What it cannot do is TELL you the previous one** -- the prior prose survives only in the event log and no verb reads it back -- so an undo needs knowledge from outside the tool. That is a weaker reversibility than `issues close`/`open`, which undo each other completely. **AND THE REASON FOR WITHHOLDING IS AUTHORSHIP, NOT RECOVERABILITY.** Every other exposed issue mutator either creates prose (`add`) or moves a status field; this one REPLACES prose a human wrote. An agent rewriting a human's issue body is a different act from an agent closing an issue, and nobody has ruled that it should. **Withholding is the recoverable error here**: if it is wrong, a flag flips; if exposing it is wrong, an agent surface shipped a capability over authored text that no ruling granted. cc, 2026-08-31, building hv's write-path package -- flagged to hv and ic rather than decided by the builder."
+        },
+        {
           "path": "issues show",
           "help": "Show one issue (optionally as JSON)",
           "args": [
@@ -8667,7 +8722,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 42,
+      "n": 43,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -8916,6 +8971,7 @@
       "issues",
       "issues list",
       "issues add",
+      "issues edit",
       "issues show",
       "issues close",
       "issues open",
@@ -9053,6 +9109,7 @@
       "issues",
       "issues list",
       "issues add",
+      "issues edit",
       "issues show",
       "issues close",
       "issues open",
@@ -9194,6 +9251,7 @@
       "issues",
       "issues list",
       "issues add",
+      "issues edit",
       "issues show",
       "issues close",
       "issues open",

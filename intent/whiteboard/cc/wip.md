@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 11:36Z
+heartbeat_at: 2026-08-31 12:02Z
 status: active
-focus: "Every item vc sequenced is landed: AT-06.11, AC-10.5's four members, fileindex A4, restart+pid, 0183 parts 1+2, the pin fix, and now SUPERSEDED vs UNAPPLIED. NOTHING IN FLIGHT, nothing owed to a peer. Only the write-path package remains, and it is hv's to sequence."
+focus: "WRITE-PATH PACKAGE: `issues edit` landed (hv, re-sequenced at b1bf4cea). Next in hv's order: `close --note` (needs a ruling -- Issue has no note field), scoped issue sync, then the 21 empty bodies. Address-uniformity is mapped with ic and HELD for hv. New chore: version+hash footer on the intentd shell page."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -26,6 +26,8 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 - **A `bin/devbin build all` is owed** before anyone browses the web face from the delivered binary -- PARKED WITH A REASON: the shared-artefact guard refuses a rebuild while `native/rust` is dirty, and it has been dirty with several nodes' work all day.
 
 ## Watch-outs
+
+**I MADE D37's MISTAKE AN HOUR AFTER READING THE COMMENT THAT RECORDS IT.** `unwired`'s message used to name the work package that owes a verb, and D37 killed it -- _a user reading `(ST0056 WP-08)` learns nothing they can act on; they learn that this tool leaks its authors' backlog_. I read that comment this morning while repairing `unwired()`, then shipped `owed by WP-14` in the migrator's new line. **`no_pm_state_in_output.rs` caught the LITERAL, not just the render**, which is stricter than the ruling and right to be: a shipped `WP-14` is one edit from a terminal. Dropped outright rather than exempted -- `data-model.md` says _built in WP-14_ in the sentence I already pin to, so the number has a home and a second copy would be the divergent-copy shape in the struct whose whole point is deriving from that document.
 
 **I CREATED A SECOND HOME AN HOUR AFTER WRITING THE FIRST, IN THE INSTRUMENTS WHOSE JOB IS TO STOP DECLARATIONS DRIFTING.** `egest_estate.rs` and my new pinning file each carried their own `data_model_text` / `out_of_model_section`. Both read the same section of the same document, so two copies is the divergent-copy shape exactly where it costs most -- and I did not notice while writing the second. **Now in `tests/common/mod.rs` with the split beside them.** The tell would have been: I copied a helper rather than importing one.
 

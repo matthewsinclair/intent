@@ -7098,6 +7098,78 @@ impl Facade {
     Ok(number)
   }
 
+  /// Replace an issue's authored prose.
+  ///
+  /// **THE VERB hv RULED ON 2026-08-28/29 AND vc RE-DISCOVERED AS A DEFECT FOUR
+  /// DAYS LATER.** `issues add` could WRITE a body from the day the create door
+  /// landed, and nothing could ever correct one: an issue body was write-once,
+  /// so a filing with a wrong premise stayed wrong permanently. vc filed that as
+  /// `0179` -- *an issue body is write-once* -- as a fresh finding, unable to see
+  /// hv's ruling because a fold had moved it to `.history/`.
+  ///
+  /// **cc MET THE SAME WALL WHILE BUILDING THE FIX'S NEIGHBOUR**: `0183` was
+  /// filed with a remedy that measurement later proved wrong, and the body could
+  /// not be corrected. Two instances in one session, both in the record of a
+  /// finding about the thing this verb is. That is the evidence hv re-sequenced
+  /// the package on.
+  ///
+  /// # An empty body is REFUSED, and that is not symmetry with `add`
+  ///
+  /// `issue_add` leaves the body empty when nobody passes one, because an
+  /// unwritten body is a STATE. Here an empty body is an ERASURE: it destroys
+  /// authored prose with nothing to recover it from, since the previous value
+  /// exists only in the event log. **The two verbs face opposite directions over
+  /// the same field** -- one has nothing to lose and the other has everything --
+  /// so they get opposite defaults, and this refuses rather than treating
+  /// "no prose given" as "make it have no prose".
+  ///
+  /// # `AlreadyThere` rather than a write, when the bytes match
+  ///
+  /// The same discipline `set_issue_status` uses: re-writing identical bytes
+  /// would emit an event saying something changed, and a reader of the log
+  /// cannot tell a real correction from a no-op after the fact.
+  pub fn issue_edit(&mut self, number: u32, body: &str) -> Result<Outcome, FacadeError> {
+    if body.trim().is_empty() {
+      return Err(FacadeError::ValueNotRecordable {
+        field: "body".to_string(),
+        given: body.to_string(),
+        why: "an empty body would ERASE the issue's prose, and the only copy of what it said \
+              is the event log. `issues add` may leave a body empty because nothing is lost; \
+              correcting one to empty is a different act"
+          .to_string(),
+      });
+    }
+
+    if self.issue_show(number)?.body == body {
+      return Ok(Outcome::AlreadyThere {
+        state: "carrying exactly that prose".to_string(),
+      });
+    }
+
+    let mut next = self.canon.clone();
+    let issue = next
+      .issues
+      .iter_mut()
+      .find(|i| i.number == number)
+      .ok_or(FacadeError::NoSuchIssue { number })?;
+    issue.body = body.to_string();
+
+    // **THE PAYLOAD CARRIES A SIZE AND NOT THE PROSE**, matching `issues.add`,
+    // which records title and severity and never the body. An event log that
+    // copied every body would become a second home for the prose -- and the one
+    // that grows without bound while nothing reads it.
+    self.apply(
+      "issues.edit",
+      Subject {
+        kind: "issue".to_string(),
+        id: format!("{number:04}"),
+      },
+      json!({"bytes": body.len()}),
+      next,
+    )?;
+    Ok(Outcome::Moved)
+  }
+
   /// Close an issue.
   pub fn issue_close(&mut self, number: u32) -> Result<Outcome, FacadeError> {
     self.set_issue_status(number, IssueStatus::Closed, "issues.close")
