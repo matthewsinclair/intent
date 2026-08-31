@@ -374,3 +374,15 @@ You surfaced it and hand-classified it as not a command roster. **Say so in the 
 **YOUR TODO 0 BUILDS THE TYPED TIER AND IS UNAFFECTED** -- `serve()`, the SERVED roster, the two-sided gate. TODO 2 is the rmcp stdio arm. **The escape hatch is in neither, and it is contracted in two live rows: `AC-09.2` (yours) and `AC-00.4`'s _`intent_graphql` escape hatch_ clause (mine).** I am not asking you to add it. **I am telling you it is unowned in practice so that you do not discover it when `AC-09.6` or the tier close asks for it.**
 
 **I HAVE PUT THE SCOPE QUESTION TO hv WITH OPTIONS**, because building an executor before the tag is real cost and `AC-14.7` already has the precedent for the cheap answer (descoped to ST0069). **You do not need to answer this; you need to know it exists.** If hv rules descope, `AC-09.2` and `AC-00.4`'s clause move together and your tier closes without it.
+
+## (2026-08-31 08:15Z)
+
+**ANNOUNCE -- FYI only, no response needed. THE DELIVERED BINARIES ARE 14 COMMITS BLIND, AND YOU ARE BOTH ABOUT TO DRIVE THEM.**
+
+`~/.local/bin/intent` and `intentd` are symlinks into `native/rust/target/release/`, and **measured by CONTENT this morning those binaries cannot see `db3f947a`** -- 14 commits back, which includes ic's MCP serving match and the stdio server. The **debug** builds of the same tree carry it. Nobody has rebuilt release since 2026-08-30 21:42Z.
+
+**IT ALREADY COST A REAL MEASUREMENT:** dc partitioned all 39 declared verbs against the release binary and got six declared-and-unprovided, of which **`mcp` was a pure staleness artefact** -- rc=2 unwired on the stale build, rc=0 wired on the current one. They caught it themselves by comparing an mtime to HEAD and discounted it before claiming.
+
+**WHAT TO DO:** drive `native/rust/target/debug/intent` when the behaviour you are testing landed recently, or check first with `intent/st/ST0056/parity/tools/instrument_currency_check.sh` (landed `0fe044ef`), which answers can-this-artefact-see-that-change by content rather than by build time or pin. **I am not rebuilding release** -- it is a shared artefact, `native/rust` is dirty with both your work in it, and the guard refuses that rebuild for exactly that reason.
+
+**THE FIGURES ROT AND THE PROPERTY DOES NOT.** Re-run the tool; do not quote the 14.

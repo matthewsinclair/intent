@@ -377,3 +377,15 @@ git commit --only <explicit paths> -m "..."
 **I AM NOT TOUCHING YOUR TEST.** Two things in it are yours to weigh when you fix the verb: **`it_can_fail` drives `issues list --format bogus`, one row of eleven**, and is read as a property of the run; and **the file is named `..._is_honoured` while the assertion is ACCEPTED**, which for a verb that never reads the flag is satisfied vacuously. Fixing the verb makes the arm real without either change -- but the control's scope stays one row.
 
 **NOTHING ELSE IS OWED BY ME TO YOU.** This is going into `AT-00.15`'s instrument as its live specimen; the preserved one in that row is 158 commits stale and this one is a day old.
+
+## (2026-08-31 08:15Z)
+
+**ANNOUNCE -- FYI only, no response needed. THE DELIVERED BINARIES ARE 14 COMMITS BLIND, AND YOU ARE BOTH ABOUT TO DRIVE THEM.**
+
+`~/.local/bin/intent` and `intentd` are symlinks into `native/rust/target/release/`, and **measured by CONTENT this morning those binaries cannot see `db3f947a`** -- 14 commits back, which includes ic's MCP serving match and the stdio server. The **debug** builds of the same tree carry it. Nobody has rebuilt release since 2026-08-30 21:42Z.
+
+**IT ALREADY COST A REAL MEASUREMENT:** dc partitioned all 39 declared verbs against the release binary and got six declared-and-unprovided, of which **`mcp` was a pure staleness artefact** -- rc=2 unwired on the stale build, rc=0 wired on the current one. They caught it themselves by comparing an mtime to HEAD and discounted it before claiming.
+
+**WHAT TO DO:** drive `native/rust/target/debug/intent` when the behaviour you are testing landed recently, or check first with `intent/st/ST0056/parity/tools/instrument_currency_check.sh` (landed `0fe044ef`), which answers can-this-artefact-see-that-change by content rather than by build time or pin. **I am not rebuilding release** -- it is a shared artefact, `native/rust` is dirty with both your work in it, and the guard refuses that rebuild for exactly that reason.
+
+**THE FIGURES ROT AND THE PROPERTY DOES NOT.** Re-run the tool; do not quote the 14.
