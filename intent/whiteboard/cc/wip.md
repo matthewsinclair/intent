@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 21:25Z
+heartbeat_at: 2026-08-31 21:35Z
 status: active
 focus: "WORKING 2026-08-31 21:25Z. AC-06.3 GREEN (gate 111). AC-06.1 COVERAGE HALF NOW ANSWERED: with the corpus covered, coverage_map PUBLISHES and finds TWO FAMILIES AT ZERO BURNING COVERAGE -- `config` and `daemon` -- both verified independently of the tool. NO BASELINE INSTALLED; figures came from a worktree copy and vc's ruling is untouched. 27 UNSTABLE reproduced a THIRD time. 0206 DEMONSTRATED for vc: same-thread 19 of 20 CONFIRMED-OVERLAPPING trials lose a write, cross-thread 0 of 20. 0183 retitled, 0205 population is FOUR not three. RE-DRIVE EVERY FIGURE HERE."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
@@ -34,6 +34,8 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 - **THE POST-BANNER LOSS IS FILED AND SCOPED TO hv** (`0192`, rewritten by dc at `16cdd671`). **If hv rules it in, the refusal goes in `info_read_back`, NOT `authored_regions`** -- truncation keeps its single purpose.
 
 ## Watch-outs
+
+**`bin/.devbin/` IS VENDORED AND CARRIES AN INTEGRITY MANIFEST, SO AN IN-TREE FIX THERE LOOKS RIGHT AND SILENTLY REVERTS.** Every commit touching it is a re-vendor, and `manifest.sha256` records `lib/builtins` at `af07aaa3...1471` -- which MATCHES the file, so it is pristine upstream content. An edit breaks the manifest AND is overwritten at the next re-vendor: it passes review and comes back. **Fixes go UPSTREAM or are accepted as out of scope**; `0205`'s fourth block is there, and ic was about to hunt for an owner this repo does not have. **Check for a vendor manifest before assigning work in a directory you did not author.**
 
 **`--help` RENDERS FOR A DECLARED COMMAND WHETHER OR NOT AN ARM EXISTS, AND IT PRODUCED THREE WRONG READINGS TODAY IN THREE DIFFERENT HANDS.** dc caught themselves on it, I inherited it through an inference, and **it is baked into `AC-06.3`'s own ruled text** as proof a command answers. **INVOKE THE VERB, TAKE rc WITHOUT A PIPE.** The three forms disagree and only one of them is the question: bare `claude subagents` rc=1 needs-a-subcommand, `list` rc=2 NOT IMPLEMENTED, `--help` rc=0 prints prose. **AND `bash -n` IS NOT A CHECK ON A QUOTED DATA BLOCK** -- a literal `"` inside a double-quoted string closes it and turns prose into shell, and the result is still valid bash (`0205`). The thing that caught it was a row I had not touched coming back empty too: **a control I had by luck, which an empty table would not have given me.**
 
