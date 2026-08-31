@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 20:48Z
+heartbeat_at: 2026-08-31 20:50Z
 status: active
 focus: "FOLDED 2026-08-31 18:59Z, pre-fold sha-verified in .history/20260831/. STATUS STAYS active -- a compact does not end a session. THE NEXT RELEASE IS NOT A PATCH (13 commands, 30 flags at 0f5ee514) and the NUMBER IS hv's -- AND THE RELEASE IS ITSELF THE BLOCKER ON ST0068 AC-02.1, which I had filed as unbuilt work owned by dc when it had been built for four days. I understated my own figures to hv THREE times today, all in the direction nobody checks. RE-RUN EVERY FIGURE; READ NONE OFF THIS BOARD."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -45,9 +45,15 @@ The per-property union exists. **What keeps it red is that the criterion's first
 
 2. **`AT-00.2`, `AC-00.8`, `AC-00.10`** -- behind cc's WP-10, behind WP-06 and WP-07. Read off WP-10's cover by cc; sequence around it.
 3. ~~The missing absence class in `capability_ship_check.sh`~~ **DONE 48533319.** It was a FOURTH, not a third, and the gap LIED ABOUT THE SUBSYSTEM: a present-executable-broken binary printed `NO DAEMON is answering` with remedy `intent daemon start`, measured by planting `#!/bin/sh; exit 1` on PATH. **Worse than the conflation cc named, because the other three tell the truth about the world they name.** Discriminator is `--version` -- a read needing no daemon, so a failure is a fact about the ARTEFACT. Controlled both ways; byte-identical on a working binary.
-4. **WP-15's four criteria have NO OWNER** (hv's to assign); **`parity/register.md`'s 39 stale rows** (GENERATED -- the template is the fix); **`0136`** (hv ruled: after the tag); **`intent/wip.md`** before the tag.
-5. **The re-pin rule in `estate_corpus.sh` has EXPIRED for EVERY MEMBER IT NAMES -- four, not the three I found** (cc's correction, in my favour). It names `canary`, `lamplight`, `utilz`, `baize` as repositories whose migrations have NOT run; all four now declare 3.0.0, **canary included, because canary IS this repo and it is self-hosted.** Re-pinning any to HEAD would point at a tree with no v2 source. Harness is ic's.
-6. **`design.md:88`** still says `rmcp (official SDK): stdio ... now`, which my ruling reversed. Design prose is hv's hand -- a flag, not an edit.
+4. **WP-15's four criteria have NO OWNER** (hv's to assign); **`0136`** (hv ruled: after the tag); **`intent/wip.md`** before the tag.
+
+5. **`parity/register.md` -- BLOCKED ON THE RECLASSIFICATION, NOT ON ME, AND REGENERATING IT NOW WOULD LAUNDER ITS STALENESS.** Measured 2026-08-31: `gen_register.sh` reads the COMMITTED `burn-baseline.tsv`, not a live burn. So regenerating today reproduces the SAME 2026-08-15 classifications (`c60cdbd`, 16 days old) while refreshing the _Measured at_ line -- **a no-op on substance that makes a stale measurement read as current.** That is the copied-figure-without-its-revision class, manufactured by the act of tidying.
+
+   **The order is: reclassify the 8 `keep` rows (my `AC-06.1` ruling, cc executing) -> UNSTABLE drops -> a fresh baseline becomes installable -> THEN regenerate.** Regenerating at any earlier point is worse than leaving it visibly stale. `gen_register.sh:41` already says `burn.tsv` carries no revision and cannot know where it came from -- **the script documents this hazard and nothing enforces it.**
+
+6. **CONDITIONAL, FIRES ONLY IF hv RULES `3.1.0`: `ST0064/info.md` carries hv's dated ruling record naming `3.0.1` three times.** It gets a SUPERSEDING NOTE -- hv's original verbatim with its date, then the new decision with ITS date -- and **NOTHING IS DELETED OR REWORDED.** ic caught that my own advice, applied as I phrased it, would have edited hv's words to keep them true; **a stale number is visibly stale and a smoothed record is not.** ic's own prose goes property-based, which is theirs. **This is the pen's constraint one thread over and I failed to apply it: the pen writes hv's word with attribution, it never revises hv's word.**
+7. **The re-pin rule in `estate_corpus.sh` has EXPIRED for EVERY MEMBER IT NAMES -- four, not the three I found** (cc's correction, in my favour). It names `canary`, `lamplight`, `utilz`, `baize` as repositories whose migrations have NOT run; all four now declare 3.0.0, **canary included, because canary IS this repo and it is self-hosted.** Re-pinning any to HEAD would point at a tree with no v2 source. Harness is ic's.
+8. **`design.md:88`** still says `rmcp (official SDK): stdio ... now`, which my ruling reversed. Design prose is hv's hand -- a flag, not an edit.
 
 ## Holds
 
