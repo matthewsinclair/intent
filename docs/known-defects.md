@@ -40,6 +40,8 @@ on every verb, including ones that have nothing to do with the stray thread. The
 
 **`intent issues add` creates an issue whose body no verb can write** (`intent#0090`). Driven: the created issue has a body of length zero and nothing can fill it. Issue titles and work package bodies have the same write-once door (`intent#0154`).
 
+**`intent edit` sends you to a route that gives the same refusal** (`intent#0153`). Driven: `intent edit ST0001` refuses with `is generated from the model, so an edit here is lost at the next render` and a remedy saying to author it with `intent st`. Following that remedy -- `intent st edit ST0001 info` -- produces the identical refusal. The remedy names the door you just came through.
+
 ## Syncing
 
 **`intent sync --to-store` reports two contradictory things in one breath** (`intent#0069`, `intent#0111`). Driven on a thread-scoped sync:
@@ -78,6 +80,10 @@ These are in our register and you will not hit them on this build. They are list
 **`intent st new` writes no files** (`intent#0079`) — not true of v3.0.0, where `st new` writes `info.md` and `acceptance.md`. This arrived after the tag.
 
 **`intent edit` ignores the kind it was given** (`intent#0149`, `intent#0189`) — v3.0.0's `edit` does not accept `--path` at all, refusing with `unexpected argument`. Post-tag.
+
+**`intent modules find` is unimplemented** (`intent#0067`) and **`modules check` routes you to `intent upgrade`** (`intent#0122`) -- neither is true of v3.0.0. Driven with a `MODULES.md` present, `modules find` returns the row, and `modules check` routes to `intent lang init`.
+
+**`intent init` bakes an absolute path into `.claude/settings.json`** (`intent#0016`), **`st edit`'s refusal names an empty list** (`intent#0145`), and **`at edit` is kind-blind** (`intent#0146`) -- none reproduce on v3.0.0. The settings file carries no absolute path, the refusal names `acceptance.md, info.md`, and `at edit` does not exist there at all.
 
 **`intent fc` dispatches on kind by hand** (`intent#0171`) and **`ac list` renders a fiat-closed criterion wrongly** (`intent#0137`) — neither `intent fc` nor `intent at fc` exists in v3.0.0; both refuse with `unrecognized subcommand`. Post-tag.
 
