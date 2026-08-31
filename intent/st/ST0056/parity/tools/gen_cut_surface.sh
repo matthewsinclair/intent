@@ -126,6 +126,53 @@ shipped_at() {
   printf '%s\n' "$out" | LC_ALL=C sort
 }
 
+# **THE FLAG DELTA IS A SEPARATE QUESTION FROM THE COMMAND DELTA AND WAS THE
+# ONE ACTUALLY BEING ASKED.** The command diff above answers "what verbs are
+# new"; it is silent on a flag added to a verb that already shipped, which is
+# exactly the shape of the gap that sent `--note` to hv as an open scope item.
+# Measured 2026-08-31: 13 new commands and 28 new flags, so reporting only the
+# first understates the delivery by more than half.
+#
+# TWO NARROWINGS, BOTH LOAD-BEARING, BOTH MEASURED RATHER THAN ASSUMED:
+#
+#   RESTRICTED TO `shipped`  A row dispositioned `retire` STILL CARRIES ITS
+#                            FLAGS in the register. Unrestricted, `fileindex`'s
+#                            8 flags and `st repair --write` read as present at
+#                            HEAD, and the removal count came out as 1 when the
+#                            true figure is 10. The restriction changed the
+#                            REMOVED set and left the NEW set byte-identical --
+#                            checked, not assumed, because a narrowing that
+#                            moves a number you are not watching is the
+#                            denominator attack.
+#
+#   INTRINSIC EXCLUDED       clap supplies `--help`/`-h` on every command, so
+#                            they appear and disappear with the command and
+#                            carry no delta signal of their own. The register
+#                            already dispositions them `intrinsic`, so this
+#                            reads a DECLARED field rather than matching on the
+#                            spelling -- the inference-from-name that EXP-05
+#                            exists to replace.
+#
+# **AND THE REMOVALS ARE PARTITIONED RATHER THAN TOTALLED.** A flag that left
+# because its whole command was retired is already counted one section up;
+# reporting it again as a flag regression double-counts one decision and
+# manufactures alarm. Only a flag removed from a command that STILL SHIPS is an
+# independent regression. Measured: 9 + 1 = 10, and the 1 is `st new
+# --dehydrate`, retired by hv on 2026-08-27.
+#
+# KNOWN IMPRECISION, STATED BECAUSE IT CANNOT BE FIXED HERE: pairs are keyed on
+# (path, spelling) and `organize` is two different commands sharing one path,
+# so their flags union. It is the same duplicate-spelling trap the closing
+# section names for commands, and it is the reason this keys on the pair rather
+# than reporting a bare per-command count.
+flags_at() {
+  local table="$1" shipped="$2" out
+  out="$(jq -r '[.. | objects | select(has("flags") and has("path")) | .path as $p
+    | (.flags[]? | select((.disposition // "") != "intrinsic") | .spellings[]? | select(startswith("--")))
+    | "\($p)\t\(.)"] | unique | .[]' "$table")" || return 1
+  printf '%s\n' "$out" | awk -F'\t' 'NR==FNR{s[$0];next} $1 in s' "$shipped" - | LC_ALL=C sort
+}
+
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -138,12 +185,17 @@ BASE_SHA="$(resolve "$BASELINE")" || {
 table_at "$REV_SHA" "$TMP/rev.json"
 shipped_at "$TMP/rev.json" > "$TMP/rev.shipped"
 REV_N="$(wc -l < "$TMP/rev.shipped" | tr -d ' ')"
+flags_at "$TMP/rev.json" "$TMP/rev.shipped" > "$TMP/rev.flags"
+REV_F="$(wc -l < "$TMP/rev.flags" | tr -d ' ')"
 
 BASE_N="--"
+BASE_F="--"
 if [ -n "$BASE_SHA" ]; then
   if table_at "$BASE_SHA" "$TMP/base.json" 2>/dev/null; then
     shipped_at "$TMP/base.json" > "$TMP/base.shipped"
     BASE_N="$(wc -l < "$TMP/base.shipped" | tr -d ' ')"
+    flags_at "$TMP/base.json" "$TMP/base.shipped" > "$TMP/base.flags"
+    BASE_F="$(wc -l < "$TMP/base.flags" | tr -d ' ')"
   else
     echo "note: no register at ${BASELINE}; comparison omitted" >&2
     BASE_SHA=""
@@ -177,6 +229,8 @@ emit() {
 | Compared against | ${COMPARED} |
 | Commands shipped at this revision | **${REV_N}** |
 | Commands shipped at the baseline | ${BASE_N} |
+| Flags on shipped commands at this revision | **${REV_F}** |
+| Flags on shipped commands at the baseline | ${BASE_F} |
 | Refusals declared at this revision | ${REFUSAL_N} |
 
 **Every figure here is a property of one revision.** A count copied out of this file without the revision beside it is true when copied and silently false at the next merge -- which is the exact defect this artefact was built to stop, so it would be a poor place to reintroduce it.
@@ -200,6 +254,46 @@ HDR
     if [ -n "$removed" ]; then
       printf '\nCommands `%s` has that `%s` does not -- **a v2-era reader may still type these**:\n\n' "$BASELINE" "$REV"
       printf '%s\n' "$removed" | sed 's/^/- `/; s/$/`/'
+    fi
+
+    # **A FLAG ON AN ALREADY-SHIPPING COMMAND IS INVISIBLE TO THE DIFF ABOVE**,
+    # and that blind spot is why this section exists: the command list says
+    # `at green` shipped at both revisions, which is true and hides that it
+    # gained `--note` in between.
+    local fadded fgone fgone_with_cmd fgone_standalone
+    fadded="$(LC_ALL=C comm -13 "$TMP/base.flags" "$TMP/rev.flags" || true)"
+    fgone="$(LC_ALL=C comm -23 "$TMP/base.flags" "$TMP/rev.flags" || true)"
+
+    printf '\n### Flags\n\n'
+    printf 'Pairs of (command, flag) over the SHIPPED population at each revision, excluding flags the register dispositions `intrinsic` -- `--help` and `-h` come from clap on every command and would move with the command rather than on their own.\n\n'
+
+    if [ -n "$fadded" ]; then
+      printf 'Flags at `%s` that `%s` does NOT have:\n\n' "$REV" "$BASELINE"
+      printf '%s\n' "$fadded" | awk -F'\t' '{printf "- `%s` gains `%s`\n", $1, $2}'
+    else
+      printf 'No flag exists at `%s` that is absent from `%s`.\n' "$REV" "$BASELINE"
+    fi
+
+    if [ -n "$fgone" ]; then
+      # **PARTITIONED, NOT TOTALLED.** A flag that left because its command was
+      # retired is already counted above; repeating it here would double-count
+      # one decision and read as a regression nobody made.
+      fgone_with_cmd="$(printf '%s\n' "$fgone" | awk -F'\t' 'NR==FNR{s[$0];next} !($1 in s)' "$TMP/rev.shipped" - || true)"
+      fgone_standalone="$(printf '%s\n' "$fgone" | awk -F'\t' 'NR==FNR{s[$0];next} ($1 in s)' "$TMP/rev.shipped" - || true)"
+
+      printf '\nFlags `%s` has that `%s` does not, **partitioned by whether the command survived**:\n\n' "$BASELINE" "$REV"
+
+      if [ -n "$fgone_standalone" ]; then
+        printf 'On a command that STILL SHIPS -- **an independent flag regression, and the only kind that is news here**:\n\n'
+        printf '%s\n' "$fgone_standalone" | awk -F'\t' '{printf "- `%s` loses `%s`\n", $1, $2}'
+      else
+        printf 'On a command that still ships: none.\n'
+      fi
+
+      if [ -n "$fgone_with_cmd" ]; then
+        printf '\nOn a command that was itself retired -- **already counted one section up; listed so the arithmetic closes, not as separate news**:\n\n'
+        printf '%s\n' "$fgone_with_cmd" | awk -F'\t' '{printf "- `%s` (with `%s`)\n", $2, $1}'
+      fi
     fi
   fi
 
