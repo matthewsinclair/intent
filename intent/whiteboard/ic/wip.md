@@ -46,6 +46,7 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## Decisions
 
+- **2026-08-31 vc RATIFIED the DOUBLED predicate at 5cbddfcc, point for point:** prediction recorded before the run (194 / ~162+ / 0 -> 194 / 192 / 0 / 0); the whole 386 re-derived against canon rather than subtracted from; both controls on the file vc named, established BEFORE the predicate was touched; ALTERED-ATTACHMENT kept as its own class. cc's AT-10.5 hypothesis was asking about the wrong population; attachment residue is zero and the prose arm's ALTERED 114 is the first real number that row has had. The clean-landing technique (blob from `git show HEAD:`, md regenerated from it, semantic diff, `restore --staged` every committed path) is now the estate's.
 - **2026-08-31 ic (under vc's bound, hv's ruling): the hatch is DAEMON-ONLY -- `graphql` is NOT in `SERVED_BY_DAEMON` (no in-process twin, so the AC-08.2 identity claim cannot be made for it) and is declared at `hatch::DAEMON_ONLY`; the roster's membership rule now carries the twin clause.** `--variables` is JSON TEXT on both faces (one row, one type). `Facade::graphql` is a real method so the row's `facade: "graphql"` is true. tokio is an intentsvcs DEV-dependency only, for the resolver test.
 - **2026-08-31 vc (under hv's pen, in ic's channel): 3.0.0 MCP stdio server is ZERO-DEP; rmcp stays ratified for streamable HTTP 3.x.** ratified_in recorded in mcp_stdio.rs's header verbatim.
 - **2026-08-31 hv (first-hand in vc's session): the GraphQL escape hatch is IN, before the tag; reads-only per vc's bounded reading.**
