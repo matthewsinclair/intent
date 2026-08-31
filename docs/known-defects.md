@@ -46,6 +46,17 @@ on every verb, including ones that have nothing to do with the stray thread. The
 
 **`intent edit` sends you to a route that gives the same refusal** (`intent#0153`). Driven: `intent edit ST0001` refuses with `is generated from the model, so an edit here is lost at the next render` and a remedy saying to author it with `intent st`. Following that remedy -- `intent st edit ST0001 info` -- produces the identical refusal. The remedy names the door you just came through.
 
+**Addressing an issue with `intent edit` refuses with a remedy that offers the thing it just refused, and glues a bare `a` onto a vowel-initial noun** (`intent#0081`). Driven on v3.0.0, using the address form its own `--help` prescribes (`Usage: intent edit <ADDRESS> [FILE]`):
+
+```
+  $ intent edit intent:///issues/0001
+  error: `issue` is not something that can be realised to disk ...
+    remedy: address an ARTEFACT instead -- a thread or an issue. A `issue` has no files
+    of its own, so there is nothing for realisation to create ...
+```
+
+Two things are wrong in one message. **The remedy says `a thread or an issue`** and an issue is exactly what was refused, so following it returns you to the refusal — that half is corrected after `v3.0.0`, which now says `a steel thread`. **`A \`issue\`` is the article bug** and it is not corrected: seven of the fourteen entity names are vowel-initial, and this site builds the article by hand rather than asking the noun for it. The refusal is still telling you the right thing; only its grammar and its remedy are wrong.
+
 ## Syncing
 
 **`intent sync --to-store` reports two contradictory things in one breath** (`intent#0069`, `intent#0111`). Driven on a thread-scoped sync:
