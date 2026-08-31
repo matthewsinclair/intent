@@ -138,10 +138,12 @@ fn resources_list_names_each_entity_and_nothing_without_a_cli_read() {
     .map(|r| r["uri"].as_str().expect("a resource uri").to_string())
     .collect();
 
+  // The `intent://` address grammar is plural and owned by `address.rs`
+  // (`address_of` / `address::parse`), not spelled here or in `mcp.rs`.
   for expected in [
-    format!("intent:///thread/{st}"),
-    format!("intent:///wp/{st}/{seq}"),
-    format!("intent:///issue/{number:04}"),
+    format!("intent:///threads/{st}"),
+    format!("intent:///threads/{st}/wp/{seq}"),
+    format!("intent:///issues/{number:04}"),
   ] {
     assert!(
       uris.contains(&expected),
@@ -149,13 +151,12 @@ fn resources_list_names_each_entity_and_nothing_without_a_cli_read() {
     );
   }
 
-  // wip.md and the boards are NOT resources: no `intent:///wip`, no
-  // `intent:///node/...` (the whiteboard board kind). Their absence is the
+  // wip.md and the boards are NOT resources: no `intent:///nodes/...` (the
+  // whiteboard board address) and nothing spelling `wip`. Their absence is the
   // reworded criterion, asserted rather than assumed.
-  for absent in ["wip", "node", "node-inbox"] {
-    let prefix = format!("intent:///{absent}");
+  for absent in ["intent:///nodes", "intent:///events", "intent:///wip"] {
     assert!(
-      !uris.iter().any(|u| u.starts_with(&prefix)),
+      !uris.iter().any(|u| u.starts_with(absent)),
       "a `{absent}` resource is served, but it has no CLI read to match: {uris:?}"
     );
   }
@@ -166,18 +167,19 @@ fn every_listed_resource_reads_as_exactly_its_cli_show() {
   let (fx, st, seq, number) = project();
   let root = &fx.0;
 
-  // The three kinds against their CLI reads, byte for byte.
+  // The three kinds against their CLI reads, byte for byte. The URI is the
+  // plural `intent://` address; the CLI argv is the verb's own spelling.
   let cases: [(String, Vec<String>); 3] = [
     (
-      format!("intent:///thread/{st}"),
+      format!("intent:///threads/{st}"),
       vec!["st".into(), "show".into(), st.clone()],
     ),
     (
-      format!("intent:///wp/{st}/{seq}"),
+      format!("intent:///threads/{st}/wp/{seq}"),
       vec!["wp".into(), "show".into(), format!("{st}/{seq}")],
     ),
     (
-      format!("intent:///issue/{number:04}"),
+      format!("intent:///issues/{number:04}"),
       vec!["issues".into(), "show".into(), format!("{number:04}")],
     ),
   ];
@@ -238,7 +240,7 @@ fn resources_list_and_read_agree_every_listed_uri_reads() {
 #[test]
 fn a_uri_that_names_nothing_is_refused_not_answered_empty() {
   let (fx, _st, _seq, _n) = project();
-  let read = r#"{"jsonrpc":"2.0","id":2,"method":"resources/read","params":{"uri":"intent:///thread/ST9999"}}"#;
+  let read = r#"{"jsonrpc":"2.0","id":2,"method":"resources/read","params":{"uri":"intent:///threads/ST9999"}}"#;
   let frames = session(&fx.0, &[init_frame(), read]);
   let answer = response(&frames, 2);
   assert!(

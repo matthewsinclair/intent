@@ -1310,11 +1310,21 @@ fn verdict_json(verdict: &Verdict, line: String) -> Value {
 //
 // A resource is a model entity read through its EXISTING facade door and
 // rendered by `crate::show` -- so its contents ARE the CLI read, byte for byte,
-// rather than a second rendering that agrees today. The URI kind is the
-// nav/address grammar's own (`thread`, `wp`, `issue`), never a fourth spelling:
-// a resource URI is one more face onto the one path grammar. wip.md and the
-// whiteboard boards are deliberately NOT resources -- they have no facade door
-// and no CLI read to match, so serving them would assert agreement with
+// rather than a second rendering that agrees today.
+//
+// **THE URI IS AN `intent://` ADDRESS, PARSED AND RENDERED BY `address.rs` --
+// NEVER SPELLED HERE.** That scheme (D57-8) is the estate's ONE home for
+// addressing an entity, and `address_resolution_single_home::no_second_resolver_exists`
+// guards it: an earlier cut of this module hand-wrote `intent:///thread/<id>`,
+// which was a second resolver AND the wrong grammar -- the scheme is plural
+// (`intent:///threads/ST0056`, `intent:///threads/<st>/wp/<n>`,
+// `intent:///issues/<n>`), and the singular `/thread/…` is `nav.rs`'s TUI/web
+// path, a DIFFERENT single-home grammar. So `resource_list` builds each URI by
+// rendering an `address::Entity` and `resource_read` recovers the entity with
+// `address::parse`; the three entity forms that have a `*_show` door become
+// resources and every other address is refused as not-a-resource. wip.md and
+// the whiteboard boards are deliberately NOT resources -- they have no facade
+// door and no CLI read to match, so serving them would assert agreement with
 // nothing (the reworded AC-09.5, and the design at
 // `intent/st/ST0056/parity/ac-09_5-resources-design.md`).
 // ---------------------------------------------------------------------------
@@ -1346,74 +1356,80 @@ impl ResourceError {
   }
 }
 
+/// The `intent://` address of an entity, rendered by `address.rs` -- the one
+/// home for the scheme. `authority: None` is the empty authority: THIS project.
+fn address_of(entity: intentsvcs::address::Entity) -> String {
+  intentsvcs::address::Address {
+    authority: None,
+    entity,
+    format: None,
+  }
+  .to_url()
+}
+
 /// Every concrete resource, enumerated from the facade: one per thread, work
-/// package and issue. The name is the first line the CLI read prints, so a
-/// listing reads the way `st list` does.
+/// package and issue. The URI is the entity's own `intent://` address; the name
+/// is the first line the CLI read prints, so a listing reads the way `st list`
+/// does.
 pub fn resource_list(f: &Facade) -> Vec<Resource> {
+  use intentsvcs::address::Entity;
   let mut out = Vec::new();
   for t in f.st_list() {
     out.push(Resource {
-      uri: format!("intent:///thread/{}", t.id),
+      uri: address_of(Entity::Thread { id: t.id.clone() }),
       name: format!("{}: {}", t.id, t.title),
     });
     for wp in &t.wps {
       out.push(Resource {
-        uri: format!("intent:///wp/{}/{}", t.id, wp.seq),
+        uri: address_of(Entity::Wp {
+          thread: t.id.clone(),
+          wp: wp.seq.to_string(),
+        }),
         name: format!("{}/WP-{:02}: {}", t.id, wp.seq, wp.title),
       });
     }
   }
   for i in f.issue_list() {
     out.push(Resource {
-      uri: format!("intent:///issue/{:04}", i.number),
+      uri: address_of(Entity::Issue {
+        id: format!("{:04}", i.number),
+      }),
       name: format!("{:04}: {}", i.number, i.title),
     });
   }
   out
 }
 
-/// Read one resource by URI: parse the nav-grammar path, take the facade door,
-/// render with `crate::show`. The returned text is byte-identical to the
-/// equivalent `intent … show` -- the same function renders both faces.
+/// Read one resource by URI: recover the entity with `address::parse` -- the one
+/// resolver -- take its facade door, render with `crate::show`. The returned
+/// text is byte-identical to the equivalent `intent … show`, the same function
+/// rendering both faces. An address whose entity has no `*_show` door is not a
+/// resource and is refused.
 pub fn resource_read(f: &Facade, uri: &str) -> Result<String, ResourceError> {
-  let bad = |why: &str| ResourceError::BadUri {
+  use intentsvcs::address::Entity;
+  let bad = |why: String| ResourceError::BadUri {
     uri: uri.to_string(),
-    why: why.to_string(),
+    why,
   };
-  let rest = uri
-    .strip_prefix("intent:///")
-    .ok_or_else(|| bad("a resource uri begins `intent:///`"))?;
-  let mut parts = rest.split('/').filter(|s| !s.is_empty());
-  let kind = parts.next().unwrap_or("");
-  match kind {
-    "thread" => {
-      let id = parts
-        .next()
-        .ok_or_else(|| bad("a thread uri is `intent:///thread/<id>`"))?;
-      Ok(crate::show::thread(f.st_show(id)?))
-    }
-    "wp" => {
-      let st = parts
-        .next()
-        .ok_or_else(|| bad("a work-package uri is `intent:///wp/<st>/<seq>`"))?;
-      let seq = parts
-        .next()
-        .ok_or_else(|| bad("a work-package uri is `intent:///wp/<st>/<seq>`"))?
+  let address = intentsvcs::address::parse(uri).map_err(|e| bad(e.render()))?;
+  match address.entity {
+    Entity::Thread { id } => Ok(crate::show::thread(f.st_show(&id)?)),
+    Entity::Wp { thread, wp } => {
+      let seq = wp
         .parse::<u32>()
-        .map_err(|_| bad("the work-package sequence must be a whole number"))?;
-      Ok(crate::show::work_package(st, f.wp_show(st, seq)?))
+        .map_err(|_| bad("a work-package address ends in a whole-number sequence".to_string()))?;
+      Ok(crate::show::work_package(&thread, f.wp_show(&thread, seq)?))
     }
-    "issue" => {
-      let number = parts
-        .next()
-        .ok_or_else(|| bad("an issue uri is `intent:///issue/<number>`"))?
+    Entity::Issue { id } => {
+      let number = id
         .parse::<u32>()
-        .map_err(|_| bad("the issue number must be a whole number"))?;
+        .map_err(|_| bad("an issue address ends in a whole number".to_string()))?;
       Ok(crate::show::issue(f.issue_show(number)?))
     }
-    other => Err(bad(&format!(
-      "`{other}` is not a resource kind -- resources are `thread`, `wp` and `issue`"
-    ))),
+    _ => Err(bad(
+      "resources are threads, work packages and issues -- this address names another kind"
+        .to_string(),
+    )),
   }
 }
 
