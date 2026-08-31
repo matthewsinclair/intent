@@ -33,14 +33,18 @@
 //!
 //! # The gate line, and why it is not the whole population
 //!
-//! Flags on a family with NO renderer arm are reported and NOT gated. There is
-//! nothing there to read them yet, they arrive one at a time as each command is
-//! wired, and gating them would make this a permanently-red check over a
-//! backlog nobody can clear in one commit -- the guard that must be bypassed,
-//! which is the guard nobody keeps. **They are NAMED on every run**: a silent
-//! cap reads as complete when it is not.
+//! Flags on an ENTRY the binary refuses as unwired are reported and NOT gated.
+//! There is nothing there to read them yet, they arrive one at a time as each
+//! command is wired, and gating them would make this a permanently-red check
+//! over a backlog nobody can clear in one commit -- the guard that must be
+//! bypassed, which is the guard nobody keeps. **They are NAMED on every run**:
+//! a silent cap reads as complete when it is not. **The unit was the FAMILY
+//! until 2026-08-31, and that was the live reason `AT-06.8` stayed red** (ic,
+//! on cc's measurement and vc's note): an unwired verb under a wired root was
+//! graded as wired, and a wired verb under a refusing root was never graded at
+//! all. The probe now asks every entry for itself.
 //!
-//! Whether a family has an arm is decided BEHAVIOURALLY, by running it, not by
+//! Whether an entry has an arm is decided BEHAVIOURALLY, by running it, not by
 //! searching the source, because **a capability arriving under an unlisted name
 //! is invisible to a name check.** Driven in `cli_write_moves_only_what_changed.rs`.
 //! **It was established in `declared_but_unwired.rs`, which retired on
@@ -51,6 +55,7 @@
 
 use std::collections::BTreeSet;
 use std::process::Command;
+use std::sync::OnceLock;
 
 use intent_cli::dispatch;
 
@@ -176,10 +181,14 @@ fn ids_the_renderer_reads(src: &str) -> BTreeSet<String> {
 ///
 /// `probeable` is `shipped` minus `populations.not_probed`, and `not_probed` is
 /// a machine-readable DO-NOT-DRIVE list carrying a reason per member. Two of
-/// the four never return -- `daemon` and `mcp` serve until killed, so any
-/// timeout classifies a working server as a hang -- and two write outside any
+/// the five never return -- `daemon run` and `mcp` serve until killed, so any
+/// timeout classifies a working server as a hang -- two write outside any
 /// sandbox when invoked bare: `claude upgrade` installs into the operator's
-/// REAL `~/.claude`, and `claude start` launches a real Claude Code session.
+/// REAL `~/.claude`, and `claude start` launches a real Claude Code session --
+/// and one, `daemon start`, returns cleanly and leaves a daemon running behind
+/// the probe. The last two joined the list on 2026-08-31, when the probe below
+/// widened from family roots to every entry and would otherwise have reached
+/// them.
 ///
 /// **`.expect()` rather than a default, because the exclusion must fail LOUD
 /// when it cannot be found.** A missing list that degrades to "exclude nothing"
@@ -223,7 +232,19 @@ fn not_probed() -> BTreeSet<String> {
     .collect()
 }
 
-/// Families the binary answers with the unwired refusal.
+/// What the binary answers for EVERY shipped entry, driven rather than read.
+///
+/// **KEYED ON THE ENTRY AND NOT ON ITS FAMILY, AND THE CHANGE IS THE LIVE
+/// REASON `AT-06.8` WAS RED** (ic, 2026-08-31, on cc's measurement and vc's
+/// note). This function's predecessor, `unwired_families`, drove each family's
+/// BARE root, and the gate below keyed its deferral on the first token of an
+/// entry's path. Both directions of that were wrong at once: an unimplemented
+/// verb inside a wired family had its flags graded as if wired -- `st
+/// bootstrap`'s three, under a wired `st`, which is the trio that held the row
+/// red -- and a wired verb inside a family whose bare root refuses had its
+/// flags never graded at all -- every `claude` and `agents` leaf, under roots
+/// whose `None` arm answers the unwired phrase. **The unit that is wired or
+/// not is the entry, and the probe was asking about its parent.**
 ///
 /// # This drives commands, so its population is a SAFETY question
 ///
@@ -241,6 +262,43 @@ fn not_probed() -> BTreeSet<String> {
 /// dangerous as the project succeeds**, which is the wrong direction for a
 /// harness to age against a work programme whose whole content is wiring
 /// families.
+///
+/// **THIS IS THAT WIDENING, DONE THROUGH THE DO-NOT-DRIVE LIST RATHER THAN
+/// AROUND IT, AND IT FOUND TWO ROWS THE ROOT-ONLY LOOP HAD BEEN PROTECTING BY
+/// NEVER REACHING THEM.** `daemon run` never returns -- it IS the daemon, in
+/// the foreground -- and `daemon start` detaches one that outlives the probe.
+/// Both sat in `populations.probeable` because nothing had ever driven a
+/// `daemon` leaf; both are now in `populations.not_probed` with their grounds,
+/// and this function refuses to drive any entry outside `probeable` rather
+/// than skipping it.
+///
+/// # How an entry is asked, and what its answer means
+///
+/// - A row whose verb slot is filled by clap SUBCOMMANDS with declared
+///   `values` (`claude skills <verb>`) is driven ONCE PER VALUE -- with the
+///   bare form as well when the slot is optional -- and is unwired only if
+///   EVERY invocation answers the refusal. The flags sit on the row, and one
+///   wired verb is enough for an arm to read them.
+/// - A root row with a subcommand slot and no `values` (`st`, `daemon`) is
+///   driven BARE, exactly as the families loop always did: the dispatcher's
+///   own `None` arm answers for it, and a sentinel in a subcommand slot is a
+///   clap usage error that reaches no arm at all.
+/// - Every other row is driven with [`PROBE_SENTINEL`] in each required
+///   positional and after each required flag -- the `args[0]` rule the
+///   `new_surface` loop already applied, now applied to every entry.
+/// - A row in `populations.not_probed` is never driven and is reported as
+///   NOT PROBED, in a bucket of its own: its wiredness is unknown here, so a
+///   flag on it is neither gated nor deferred but NAMED on every run.
+///
+/// The refusal fires BEFORE any project is resolved -- driven 2026-08-31:
+/// `st bootstrap` answers the marker at rc=2 in an empty directory and in a
+/// freshly initialised project alike, and `config get x` the same -- so the
+/// empty sandbox directory is a fair place to ask every entry the question.
+/// **Every entry is asked in ONE stream, `dispatch::shipped_entries`**, the
+/// chain the binary itself dispatches through, so this probe cannot cover a
+/// population the gate below does not. The two loops this replaces -- one
+/// over families, one over `new_surface[]`, the second of which was measured
+/// unexercised -- are one loop.
 /// The value handed to every required argument of a probed row.
 ///
 /// **It has to satisfy clap and be incapable of RESOLVING**, because the rows
@@ -250,29 +308,48 @@ fn not_probed() -> BTreeSet<String> {
 /// refuses on its own terms rather than performing the act.
 const PROBE_SENTINEL: &str = "ST9999";
 
-fn unwired_families() -> BTreeSet<String> {
+/// The two things the probe can say about an entry, and the one it must not
+/// fake: an entry it was not allowed to ask is neither wired nor unwired here.
+struct Wiredness {
+  /// Entry paths every probed invocation of which answered the unwired
+  /// refusal.
+  unwired: BTreeSet<String>,
+  /// Entry paths `populations.not_probed` forbids driving. Not a verdict.
+  not_probed: BTreeSet<String>,
+}
+
+/// One probe pass per test binary, shared: every arm that needs the answer
+/// reads the same measurement instead of re-spawning the whole surface.
+fn wiredness() -> &'static Wiredness {
+  static PROBED: OnceLock<Wiredness> = OnceLock::new();
+  PROBED.get_or_init(probe_every_shipped_entry)
+}
+
+fn probe_every_shipped_entry() -> Wiredness {
   let dir = tempfile::tempdir().expect("tempdir");
   let table = dispatch::table();
   let probeable = probeable();
-  let mut out = BTreeSet::new();
-  for family in &table.families {
-    let Some(entry) = family.entries.iter().find(|e| e.verb().is_none()) else {
-      continue;
-    };
-    if !entry.is_shipped() {
+  let never_drive = not_probed();
+  let mut unwired = BTreeSet::new();
+  let mut skipped = BTreeSet::new();
+  for entry in dispatch::shipped_entries(&table) {
+    // **THE EXCLUSION IS NAMED, NOT SKIPPED.** A row in the DO-NOT-DRIVE list
+    // is recorded as unprobed so the gate can report its flags by name; a row
+    // in NEITHER list is a change to this loop that nobody costed against
+    // that list, and the assertion refuses it rather than letting the harness
+    // quietly measure less than it claims.
+    if never_drive.contains(&entry.path) {
+      skipped.insert(entry.path.clone());
       continue;
     }
-    // **THE GATE, AND IT REFUSES RATHER THAN SKIPPING.** Skipping would let the
-    // harness quietly measure less than it claims; the population it drives has
-    // to be one the table vouched for, and a path outside it is a change to
-    // this loop that nobody costed against the DO-NOT-DRIVE list.
     assert!(
-      probeable.contains(&family.name),
-      "`{}` is not in `populations.probeable`, so this harness must not drive it. Either the \
-       table's populations moved, or this loop was widened past what they vouch for -- check \
-       `populations.not_probed` before adding it back: two of its four members never return, and \
-       two write outside the sandbox into the operator's real home.",
-      family.name
+      probeable.contains(&entry.path),
+      "`{}` is a shipped row that is in neither `populations.probeable` nor \
+       `populations.not_probed`. This loop will not drive an unvouched-for path and will not \
+       drop one silently: put it in one list or the other -- of the members `not_probed` has, \
+       two never return, two write outside the sandbox into the operator's real home, and one \
+       leaves a daemon running behind the probe.",
+      entry.path
     );
     // **`HOME` IS SANDBOXED BECAUSE THIS PROBE RUNS THE COMMAND, AND ONE OF
     // THEM NOW WRITES** (vc, 2026-08-27, under hv's pen; found by cc driving
@@ -313,120 +390,111 @@ fn unwired_families() -> BTreeSet<String> {
     // reason having nothing to do with this fix. **An instrument placed where
     // the defect cannot occur reports absence and reads exactly like a pass.**
     // Rebuilt in-tree under `target/vc/`, it reproduced first try.
-    let output = Command::new(env!("CARGO_BIN_EXE_intent"))
-      .arg(&family.name)
-      .current_dir(dir.path())
-      .env("HOME", dir.path())
-      .output()
-      .unwrap_or_else(|e| panic!("could not run `intent {}`: {e}", family.name));
-    let said = String::from_utf8_lossy(&output.stderr).into_owned()
-      + &String::from_utf8_lossy(&output.stdout);
-    if said.contains(UNWIRED) {
-      out.insert(family.name.clone());
+    // A verb value can be in the DO-NOT-DRIVE list in its own right, so the
+    // expanded spelling is checked as well as the row. A row every one of
+    // whose invocations is forbidden is unprobed, not unwired.
+    let invocations: Vec<Vec<String>> = invocations_for(entry)
+      .into_iter()
+      .filter(|argv| !never_drive.contains(&argv.join(" ")))
+      .collect();
+    if invocations.is_empty() {
+      skipped.insert(entry.path.clone());
+      continue;
+    }
+    // `all` stops at the first invocation an arm answers, so a row with one
+    // wired verb is settled by that verb and its later, possibly writing,
+    // verbs are never reached.
+    let every_answer_refused = invocations.iter().all(|argv| {
+      let output = Command::new(env!("CARGO_BIN_EXE_intent"))
+        .args(argv)
+        .current_dir(dir.path())
+        .env("HOME", dir.path())
+        .output()
+        .unwrap_or_else(|e| panic!("could not run `intent {}`: {e}", argv.join(" ")));
+      let said = String::from_utf8_lossy(&output.stderr).into_owned()
+        + &String::from_utf8_lossy(&output.stdout);
+      said.contains(UNWIRED)
+    });
+    if every_answer_refused {
+      unwired.insert(entry.path.clone());
     }
   }
+  Wiredness {
+    unwired,
+    not_probed: skipped,
+  }
+}
 
-  // **AND THE SAME QUESTION FOR THE ROWS THAT ARE NOT IN A FAMILY**, which is
-  // what this function could not previously ask. `new_surface[]` rows are
-  // top-level commands with no family above them, so the loop over
-  // `table.families` never reached one -- and `organize` alone declares three
-  // flags. The doc above called widening this a one-line change and warned that
-  // doing it naively inherits the whole hazard; this is that widening, done
-  // through the DO-NOT-DRIVE list rather than around it.
+/// The invocations that ask one row whether an arm answers it.
+fn invocations_for(entry: &dispatch::Entry) -> Vec<Vec<String>> {
+  // **THE PROBE IS CONSTRUCTED FROM THE ROW'S OWN DECLARED VALUES, NOT
+  // DRIVEN BARE, AND THAT IS vc's `args[0]` RULE IN ITS THIRD INSTANCE.**
+  // Driving bare asks a question a row with required arguments cannot
+  // answer: clap refuses for the missing argument BEFORE dispatch, with a
+  // message carrying no unwired marker, **so an unwired row reads as WIRED
+  // and its flags then fail the gate below.** `fc` is where it was caught
+  // (dc, 2026-08-29); `daemon` was the same rule with a required subcommand
+  // and `at green` the same rule with an unread guard.
   //
-  // **AND THIS LOOP IS UNEXERCISED TODAY -- MEASURED, NOT ASSUMED.** Gutting
-  // it to an immediate `continue` leaves the whole suite GREEN, because not one
-  // of the nine probeable `new_surface[]` rows answers with the unwired
-  // refusal: all nine are wired, and the two that are not probeable (`daemon`,
-  // `mcp`) declare no flags, so nothing reaches the deferral path. **It is kept
-  // rather than deleted, and the reason is this file's own thesis:** the
-  // families loop was safe by accident of SCOPE too, right up until someone
-  // widened it. A deferral that exists only once a row needs it is written
-  // under deadline by whoever is wiring that row. What is NOT claimed is that
-  // this half has been proven -- it has been proven not to break anything,
-  // which is a different sentence.
+  // **AND THE ARGUMENTS MUST NOT LET THE COMMAND SUCCEED, WHICH IS A HARDER
+  // CONSTRAINT THAN SATISFYING CLAP.** Rows here WRITE -- `fc` performs a
+  // fiat close and `edit` realises artefacts -- and this file already ruled
+  // on that class: *a probe whose question has a side effect is not a
+  // probe*, the `bootstrap` incident, where asking whether a command was
+  // wired published into the operator's real `~/.intent`. So every supplied
+  // value is [`PROBE_SENTINEL`], which resolves to nothing for any argument
+  // kind the table declares: not a thread, not an address, not a
+  // subcommand.
   //
-  // **THE EXCLUSION IS NAMED, NOT SKIPPED.** A row outside `probeable` is
-  // dropped only after the table is made to say WHY, so a future
-  // non-probeable row cannot leave this loop quietly measuring less than it
-  // claims -- the same reason the gate above refuses instead of skipping.
-  let never_drive = not_probed();
-  for entry in &table.new_surface {
-    if !entry.is_shipped() {
-      continue;
-    }
-    if !probeable.contains(&entry.path) {
-      assert!(
-        never_drive.contains(&entry.path),
-        "`{}` is a shipped `new_surface[]` row that is in neither `populations.probeable` nor \
-         `populations.not_probed`. This loop will not drive an unvouched-for path and will not \
-         drop one silently: put it in one list or the other.",
-        entry.path
-      );
-      continue;
-    }
-    // Same sandbox, same reason as the families loop above -- and this loop is
-    // the one the doc calls the widening, so it must not be the half that
-    // inherits the hazard.
-    //
-    // **THE PROBE IS CONSTRUCTED FROM THE ROW'S OWN DECLARED VALUES, NOT
-    // DRIVEN BARE, AND THAT IS vc's `args[0]` RULE IN ITS THIRD INSTANCE.**
-    // Driving bare asks a question a row with required arguments cannot
-    // answer: clap refuses for the missing argument BEFORE dispatch, with a
-    // message carrying no unwired marker, **so an unwired row reads as WIRED
-    // and its flags then fail the gate below.** `fc` is where it was caught
-    // (dc, 2026-08-29); `daemon` was the same rule with a required subcommand
-    // and `at green` the same rule with an unread guard.
-    //
-    // **AND THE ARGUMENTS MUST NOT LET THE COMMAND SUCCEED, WHICH IS A HARDER
-    // CONSTRAINT THAN SATISFYING CLAP.** Rows here WRITE -- `fc` performs a
-    // fiat close and `edit` realises artefacts -- and this file already ruled
-    // on that class: *a probe whose question has a side effect is not a
-    // probe*, the `bootstrap` incident, where asking whether a command was
-    // wired published into the operator's real `~/.intent`. So every supplied
-    // value is [`PROBE_SENTINEL`], which resolves to nothing for any argument
-    // kind the table declares: not a thread, not an address, not a
-    // subcommand.
-    //
-    // **DRIVEN TWO-SIDED BEFORE LANDING, on all four probeable rows carrying
-    // required arguments.** `search`, `daemon` and `edit` return the SAME
-    // verdict bare and sentinel-supplied -- so the change alters no existing
-    // conclusion -- while `fc` moves from `reads-as-WIRED` (rc=1, clap) to
-    // `UNWIRED` (rc=2, the marker), which is the one verdict that was wrong.
-    // A probe answering "wired" for every row is indistinguishable from a
-    // working one until something is genuinely unwired, and `fc` is the only
-    // unwired row available to prove it against.
-    let mut probe = Command::new(env!("CARGO_BIN_EXE_intent"));
-    probe.arg(&entry.path);
-    for arg in &entry.args {
+  // **DRIVEN TWO-SIDED BEFORE LANDING, on all four probeable rows carrying
+  // required arguments.** `search`, `daemon` and `edit` return the SAME
+  // verdict bare and sentinel-supplied -- so the change alters no existing
+  // conclusion -- while `fc` moves from `reads-as-WIRED` (rc=1, clap) to
+  // `UNWIRED` (rc=2, the marker), which is the one verdict that was wrong.
+  // A probe answering "wired" for every row is indistinguishable from a
+  // working one until something is genuinely unwired, and `fc` is the only
+  // unwired row available to prove it against.
+  let base: Vec<String> = entry.path.split_whitespace().map(str::to_string).collect();
+  let required_values = |argv: &mut Vec<String>| {
+    for arg in entry.args.iter().filter(|a| a.kind != "subcommand") {
       // Requiredness for a POSITIONAL is the arity, not a boolean -- the table
       // spells it `1` / `1..n` for required and `0..1` / `0..n` for optional.
       // Reading a `required` field here would be reading one that does not
       // exist on `Arg`, which is the field-shaped half of the same mistake
       // this comment is about.
       if arg.arity.starts_with('1') {
-        probe.arg(PROBE_SENTINEL);
+        argv.push(PROBE_SENTINEL.to_string());
       }
     }
     for flag in &entry.flags {
       if flag.required {
         if let Some(spelling) = flag.spellings.first() {
-          probe.arg(spelling).arg(PROBE_SENTINEL);
+          argv.push(spelling.clone());
+          argv.push(PROBE_SENTINEL.to_string());
         }
       }
     }
-    let output = probe
-      .current_dir(dir.path())
-      .env("HOME", dir.path())
-      .output()
-      .unwrap_or_else(|e| panic!("could not run `intent {}`: {e}", entry.path));
-    let said = String::from_utf8_lossy(&output.stderr).into_owned()
-      + &String::from_utf8_lossy(&output.stdout);
-    if said.contains(UNWIRED) {
-      out.insert(entry.path.clone());
-    }
+  };
+  let Some(slot) = entry.args.iter().find(|a| a.kind == "subcommand") else {
+    let mut argv = base;
+    required_values(&mut argv);
+    return vec![argv];
+  };
+  if slot.values.is_empty() {
+    // A root whose slot names no verbs of its own: bare, and the dispatcher's
+    // `None` arm answers for it.
+    return vec![base];
   }
-
+  let mut out = Vec::new();
+  if slot.arity.starts_with('0') {
+    out.push(base.clone());
+  }
+  for verb in &slot.values {
+    let mut argv = base.clone();
+    argv.push(verb.clone());
+    required_values(&mut argv);
+    out.push(argv);
+  }
   out
 }
 
@@ -453,8 +521,8 @@ fn no_do_not_drive_path_is_vouched_for_as_probeable() {
   assert!(
     !not_probed.is_empty(),
     "`populations.not_probed` is empty, so this check has nothing to test and the gate in \
-     `unwired_families` is unguarded. Four paths belong here: two that never return and two that \
-     write into the operator's real home."
+     `wiredness` is unguarded. Five paths belong here: two that never return, two that write \
+     into the operator's real home, and one that leaves a daemon running behind the probe."
   );
 
   let probeable = probeable();
@@ -462,7 +530,7 @@ fn no_do_not_drive_path_is_vouched_for_as_probeable() {
     assert!(
       !probeable.contains(path),
       "`{path}` is in BOTH `populations.not_probed` and `populations.probeable`. The gate in \
-       `unwired_families` reads `probeable` and would drive it. `not_probed` members either never \
+       `wiredness` reads `probeable` and would drive it. `not_probed` members either never \
        return or write outside the sandbox."
     );
   }
@@ -604,9 +672,32 @@ const INHERITED_UNREAD: &[&str] = &[
   // **THE POPULATION HALVED THREE TIMES AND NOT ONE REDUCTION WAS THE ESTATE
   // GETTING BETTER.** Every one was this instrument getting less wrong, and
   // each was found by driving it against a real tree rather than by reading it.
-  "`st bootstrap` --audit-only (id `audit-only`)",
-  "`st bootstrap` --dry-run (id `dry-run`)",
-  "`st bootstrap` --deliverable (id `deliverable`)",
+  //
+  // **THE `st bootstrap` TRIO LEFT THIS LIST ON 2026-08-31 WITHOUT BEING FIXED,
+  // AND THE DISTINCTION IS THE WHOLE ENTRY** (ic, on cc's measurement and vc's
+  // note on `AT-06.8`). `--audit-only`, `--dry-run` and `--deliverable` are as
+  // declared and as unread as they were; what changed is that the probe now
+  // asks `st bootstrap` for ITSELF and it answers the unwired refusal, so the
+  // three are DEFERRED -- named on every run in that bucket -- rather than
+  // graded as if an arm existed to read them. They return to the gate the day
+  // dc wires `st bootstrap`, and on that day each is either read or back here.
+  //
+  // **SURFACED BY THE SAME CHANGE, AND THEY ARE THE MIRROR OF THE TRIO.** Both
+  // sit under a root whose bare form answers the unwired refusal -- `agents`
+  // (issue 0175) and `llm` -- so the family-keyed probe had deferred every flag
+  // beneath them and neither had ever been graded. Both are WIRED leaves with a
+  // declared, helped, accepted flag that no renderer arm reads:
+  // `llm_usage_rules()` takes no `ArgMatches` at all, and `"template"` is
+  // spelled nowhere in the crate. **AC-06.8 instances of the plainest kind,
+  // entered here with their owners rather than absorbed**: the remedy for each
+  // is a SCOPE decision -- wire it (both did something in v2, which is the
+  // parity hv ruled) or withdraw it from the table -- and that is not this
+  // file's to make. `agents init` is dc's (ST0058); `llm usage_rules` is
+  // WP-09's. The prediction written before the run named `agents init` as a
+  // candidate and did not name `llm usage_rules`; the second is recorded as
+  // the unpredicted half, not folded into the predicted one.
+  "`agents init` --template (id `template`)",
+  "`llm usage_rules` --symlink (id `symlink`)",
   // **REMOVED BECAUSE THE DETECTION SAYS SO, AND THE DETECTION IS IMPRECISE
   // HERE -- recorded rather than absorbed.** `claude subagents` is NOT wired;
   // nothing reads its `-v`. It left this list because wiring `claude skills`
@@ -664,15 +755,22 @@ const INHERITED_UNREAD: &[&str] = &[
 /// **AT-06.8 IS THEREFORE NOT SATISFIED BY THIS COMMIT** and the row must not
 /// be moved on the strength of it. The instrument exists and is proven; the
 /// criterion is unmet until this arm runs.
+///
+/// **THAT PARAGRAPH IS FROM THE PARKED ERA AND STAYS AS A QUOTE** (ic,
+/// 2026-08-31): the arm runs, and whether `AT-06.8` moves is decided on what
+/// it PRINTS -- the violation list against `INHERITED_UNREAD`, the deferred
+/// list and the unprobed list -- by the node holding the row's note, never by
+/// a sentence in this file.
 #[test]
 fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
   let table = dispatch::table();
   let src = renderer_source();
   let read = ids_the_renderer_reads(&src);
-  let unwired = unwired_families();
+  let probed = wiredness();
 
   let mut violations = Vec::new();
   let mut deferred = Vec::new();
+  let mut unprobed = Vec::new();
   let mut checked = 0;
   let mut shielded = 0;
   let mut fragile: Vec<String> = Vec::new();
@@ -686,16 +784,12 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
   // binary does not, and the `is_shipped` filter comes with it rather than
   // being spelled a second time here.
   for entry in dispatch::shipped_entries(&table) {
-    // The deferral key. An entry inside a family is keyed by that family --
-    // the first token of its path -- and a `new_surface[]` row is its own key,
-    // because there is no family above it. `unwired_families` now returns both
-    // kinds, so one lookup answers for both.
-    let family_name = entry
-      .path
-      .split_whitespace()
-      .next()
-      .unwrap_or(entry.path.as_str())
-      .to_string();
+    // **THE DEFERRAL KEY IS THE ENTRY'S OWN PATH** (ic, 2026-08-31). It was
+    // the first token of the path -- the family -- which graded `st
+    // bootstrap`'s flags as wired because `st` is, and never graded a `claude`
+    // leaf's because bare `claude` refuses. `wiredness` answers per entry, so
+    // one lookup is the right lookup for a family root, a family verb and a
+    // `new_surface[]` row alike.
     {
       for flag in &entry.flags {
         // `intrinsic` is clap's own -- `--help` and friends. The spine
@@ -712,8 +806,10 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
           entry.path,
           flag.spellings.join(" / ")
         );
-        if unwired.contains(&family_name) {
+        if probed.unwired.contains(&entry.path) {
           deferred.push(line);
+        } else if probed.not_probed.contains(&entry.path) {
+          unprobed.push(line);
         } else {
           checked += 1;
           // **TWO CONDITIONS, AND THE SECOND IS THE THIRD APERTURE THIS CHECK
@@ -789,14 +885,28 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
   // "gated on the wired ones" being read as "gated on all of them".
   if !deferred.is_empty() {
     println!(
-      // **"their family" STOPPED BEING TRUE THE DAY A LEAF JOINED THIS LIST.**
-      // `fc` is a `new_surface` row and has no family; the sentence was written
-      // when only the families loop could contribute. Corrected here rather
-      // than left, because this line is the one a reader carries away.
-      "flag-reachability: {} flag(s) NOT GATED -- their family or leaf is unwired, so no arm could read them yet:",
+      // **"their family" STOPPED BEING TRUE THE DAY A LEAF JOINED THIS LIST,
+      // AND "family or leaf" STOPPED BEING TRUE WHEN THE KEY BECAME THE
+      // ENTRY.** The sentence names the unit the probe actually asked about,
+      // because this line is the one a reader carries away.
+      "flag-reachability: {} flag(s) NOT GATED -- their entry answers the unwired refusal, so no arm could read them yet:",
       deferred.len()
     );
     for line in &deferred {
+      println!("  {line}");
+    }
+  }
+  // **NAMED FOR THE SAME REASON, AND KEPT APART FROM THE DEFERRED LIST.** A
+  // deferred flag has a KNOWN reason nothing reads it; an unprobed flag has an
+  // UNKNOWN one -- the table forbids driving its entry, so this file cannot
+  // say whether an arm reads it. Folding the two together would let "not
+  // gated" read as "known unwired" for a row that may be wired and inert.
+  if !unprobed.is_empty() {
+    println!(
+      "flag-reachability: {} flag(s) NOT GATED -- their entry is in `populations.not_probed`, so this harness may not drive it and cannot say whether an arm reads them:",
+      unprobed.len()
+    );
+    for line in &unprobed {
       println!("  {line}");
     }
   }
@@ -860,9 +970,59 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
   let fixed: Vec<&&str> = inherited.difference(&found).collect();
   assert!(
     fixed.is_empty(),
-    "these flags are in the inherited set and are now READ -- good news, and the list must shrink to match or it decays into an excuse list nobody prunes:\n  {}",
+    "these flags are in the inherited set and no longer report as declared-and-unread -- read, deferred because their own entry is unwired, or withdrawn -- good news either way, and the list must shrink to match or it decays into an excuse list nobody prunes:\n  {}",
     fixed.iter().map(|s| **s).collect::<Vec<_>>().join("\n  ")
   );
+}
+
+/// **THE PROBE'S OWN DISCRIMINATION, PINNED ON INSTANCES THE ESTATE ASSERTS
+/// ELSEWHERE RATHER THAN ON ONES THIS FILE CHOSE** (cc's rule: a control drawn
+/// from the instrument's own enumeration can only confirm the shapes it
+/// already has). Each pin names where the estate makes the same claim, so a
+/// pin that expires is a pin somebody will notice moving.
+///
+/// - `st bootstrap` is UNWIRED under a WIRED `st`: the `DECLARED_BUT_UNWIRED`
+///   roster carries it and `AT-06.8`'s note was about exactly its three flags.
+///   **This is the instance the family-keyed probe got wrong, in the direction
+///   that graded inert flags as wired.**
+/// - `claude skills` is WIRED under a `claude` whose bare form refuses: driven
+///   2026-08-31, `intent claude skills list` answers rc=0 with the canon
+///   roster in an empty directory. **This is the other direction -- flags never
+///   graded because the root refused.**
+/// - `claude subagents` is UNWIRED (cc, 2026-08-22: nothing reads its `-v`),
+///   which is why its flags belong in DEFERRED and not in the ratchet.
+/// - `daemon run` and `mcp` are NOT PROBED, from the table's own list.
+///
+/// **WHEN `st bootstrap` IS WIRED THIS CONTROL EXPIRES, AND THE MESSAGE SAYS
+/// WHAT TO DO:** move the pin to the next unwired verb under a wired root, and
+/// if the surface has none left, the direction still needs a subject -- a
+/// synthetic one, per vc's ruling on borrowed instances.
+#[test]
+fn the_wiredness_probe_asks_about_the_entry_and_not_its_parent() {
+  let probed = wiredness();
+  assert!(
+    probed.unwired.contains("st bootstrap"),
+    "`st bootstrap` did not answer the unwired refusal. If it has been WIRED, this control has expired: pin the next unwired verb under a wired root (the `DECLARED_BUT_UNWIRED` roster lists the candidates), or synthesise one -- the direction it guards is an unwired leaf under a wired family being graded as wired.\n  unwired: {:?}",
+    probed.unwired
+  );
+  assert!(
+    !probed.unwired.contains("st"),
+    "`st` answered the unwired refusal bare, so the probe cannot tell a wired root from an unwired leaf under it"
+  );
+  assert!(
+    !probed.unwired.contains("claude skills"),
+    "`claude skills` was classed unwired -- the verb-slot expansion is not driving its declared values, so every flag under a refusing root would be deferred again"
+  );
+  assert!(
+    probed.unwired.contains("claude subagents"),
+    "`claude subagents` was classed WIRED. If it has been wired, its flags move from DEFERRED to the gate and this pin moves with them; if not, the expansion is mistaking a clap usage error for an arm"
+  );
+  for path in ["daemon run", "mcp"] {
+    assert!(
+      probed.not_probed.contains(path),
+      "`{path}` was not reported as NOT PROBED, so a row the table forbids driving was either driven or silently dropped"
+    );
+  }
 }
 
 /// **THE DISCRIMINATION, AND BOTH HALVES ARE SYNTHETIC.**

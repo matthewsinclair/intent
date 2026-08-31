@@ -8840,6 +8840,14 @@
       {
         "path": "claude start",
         "why": "writes outside the sandbox WHEN INVOKED BARE -- a leaf too, and bare launches a real Claude Code session. It satisfies BOTH readings, which is why its presence made the three-member list look complete"
+      },
+      {
+        "path": "daemon run",
+        "why": "never returns when it serves -- `intent daemon run` IS the daemon, in the foreground, alive until it is signalled, so a probe with nobody to stop it blocks forever. It sat in `probeable` from the day the family was declared because the wiredness probe drove only each family's BARE root, whose `None` arm refuses at once; the moment that probe widened to every entry (ic, 2026-08-31, `flag_reachability.rs`, the AT-06.8 fix) this row was the first thing the widening would have hung on. Same class as `mcp`, found by the same kind of widening cc warned about."
+      },
+      {
+        "path": "daemon start",
+        "why": "leaves a process behind the probe -- `intent daemon start` detaches an `intentd` under `$HOME` and RETURNS, so a sandboxed probe exits cleanly and a live daemon stays running in the tempdir's home with nothing in the harness to reap it. It returns perfectly well, like `claude upgrade`; the ground is the side effect outliving the question, not the exit. Added with `daemon run` when the probe widened to every entry (ic, 2026-08-31)."
       }
     ],
     "declared": [
@@ -9229,10 +9237,8 @@
       "fileindex",
       "version",
       "daemon",
-      "daemon start",
       "daemon stop",
       "daemon status",
-      "daemon run",
       "search",
       "sync",
       "schema",
