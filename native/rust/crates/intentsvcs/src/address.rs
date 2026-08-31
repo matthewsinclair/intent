@@ -412,12 +412,19 @@ impl Remedy for AddressError {
 /// **The two answer different questions over different domains, and only their
 /// OVERLAP has to agree**: every name `classify` calls a `GeneratedView` must
 /// appear here, or that view becomes addressable and `ViewAddressed` stops
-/// refusing it. **Nothing asserts that today.** The gate that would is an
-/// integration test needing no access to this constant -- walk the estate's
-/// thread files, and for each one `classify` calls a `GeneratedView`, require
-/// `parse` to refuse its basename as a segment. It catches a new view type only
-/// once such a file exists in the estate, which is a real limit and still
-/// strictly better than the nothing that guards it now.
+/// refusing it. **ASSERTED SINCE 2026-08-31 by
+/// `intentsvcs/tests/generated_views_are_unaddressable.rs`**, which is the gate
+/// this comment specified and read as a worklist item until it was built: it
+/// walks the estate's thread files and, for each one `classify` calls a
+/// `GeneratedView`, requires `parse` to refuse its basename as a segment.
+///
+/// **THE TEST DOES NOT IMPORT THIS CONSTANT, DELIBERATELY.** Reading the list
+/// would make the assertion circular -- proving only that a list equals itself
+/// -- so the population comes from the estate and the expectation from
+/// `classify`, and this constant is the thing under test rather than a party to
+/// it. Its reach is the one predicted here and is unchanged: it catches a new
+/// view type only once such a file EXISTS in the estate, which is a real limit
+/// and still strictly better than the nothing that guarded this before.
 const VIEW_NAMES: &[&str] = &[
   "info.md",
   "acceptance.md",
