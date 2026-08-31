@@ -365,10 +365,16 @@ report() {
   findings=$((findings + 1))
 }
 
+# ONE HASH FOR EVERY BYTE COMPARISON IN THIS FILE. The prose arm hashed inline
+# in two places and the attachment arm needed a third; three spellings of one
+# operation is how a check on one axis quietly stops agreeing with the check on
+# another.
+file_sha256() { shasum -a 256 <"$1" | cut -d' ' -f1; }
+
 # ---------------------------------------------------------------------------
 # A. Artefact conservation -- reachability, not presence.
 # ---------------------------------------------------------------------------
-a_conv=0 a_reloc=0 a_oom=0 c_doubled=0 c_stranded=0
+a_conv=0 a_reloc=0 a_oom=0 c_doubled=0 c_stranded=0 c_altatt=0
 while IFS=$'\t' read -r _ path kind id bucket; do
   case "$kind" in
     thread|wp) st="${id%%/*}" ;;
@@ -386,17 +392,37 @@ while IFS=$'\t' read -r _ path kind id bucket; do
     # A v2 artefact still sitting under its status bucket. THE MIGRATION DOES NOT
     # EMPTY THE BUCKETS -- deliberately, so a re-run does not collide on ids --
     # so every one of these is expected to still be on disk. Expected is not a
-    # disposition, and the population splits in two with OPPOSITE ones. The test
-    # is the only one that matters and it is asked of the canon, not of the name:
-    # **does a counterpart exist under `st/<ID>/`?**
+    # disposition, and the population splits with OPPOSITE ones. The test is the
+    # only one that matters and it is asked of CANON, not of the name and NOT OF
+    # THE REALISED TREE: **does canon hold a counterpart for this file?**
     #
-    #   yes -> DOUBLED. A redundant original. The authored content reached canon
-    #          (ALTERED 0 / ADDED 0 over the compared sections is the evidence),
-    #          so the bucket copy is superseded and safe to rule out-of-model.
-    #   no  -> STRANDED. **THIS IS THE ONLY COPY.** Authored prose -- design.md,
-    #          impl.md, tasks.md -- that the migration neither moved nor named,
-    #          reachable from nothing in the model. Not redundant, not
-    #          out-of-model, just left behind. Half of a two-ended migration.
+    # **IT ASKED THE REALISED TREE UNTIL 2026-08-31, AND THAT WAS A COUNTER THAT
+    # COULD NOT FIRE** (cc, measured per thread on the canary: of 52 bucketed
+    # `info.md` this tool called the only copy, 50 had their body text in the
+    # canon for their own thread; vc ratified the finding ahead of new surface).
+    # The old test was `[ -f st/<ID>/<base> ]` -- right when files WERE canon,
+    # and blind after D01 reversed and realisation went sparse: the migrated
+    # canary realises exactly ONE flat `info.md` out of 55 threads, so DOUBLED
+    # read 0 and RELOCATED read 0 while STRANDED absorbed all 386, inflating the
+    # one residue figure a reader trusts. A counter whose zero is impossible on
+    # its own subject is the vacuous-green shape one layer down.
+    #
+    #   GENERATED NAMES (info.md, acceptance.md, at thread or WP level): the
+    #          model REGENERATES these from the thread record on realisation, so
+    #          the thread record IS the counterpart -- DOUBLED. Whether the
+    #          content that left arrived is the prose arm's question (ALTERED /
+    #          LOST-PROSE per section), not this one's.
+    #   AUTHORED NAMES (design.md, impl.md, tasks.md, the one-offs): carried as
+    #          ATTACHMENTS, each with its sha256. Canon holds one with the same
+    #          bytes -> RELOCATED; one with DIFFERENT bytes -> ALTERED-ATTACHMENT,
+    #          a real finding this tool could not previously express; none ->
+    #          STRANDED. **THIS IS THE ONLY COPY.** Authored prose the migration
+    #          neither carried nor named, reachable from nothing in the model.
+    #
+    # Positive control, established before the predicate was rewritten and
+    # independent of it: `COMPLETED/ST0001/design.md`'s bucket bytes hash to the
+    # sha256 canon records on ST0001's `design.md` attachment, so a predicate
+    # that cannot call THAT file RELOCATED is wrong, whatever else it says.
     #
     # Named STRANDED rather than UNREACHABLE because the class name is what a
     # reader acts on, and "unreachable" describes the file's position while
@@ -406,20 +432,23 @@ while IFS=$'\t' read -r _ path kind id bucket; do
     # in one merged count with a population that is genuinely fine.
     case "$base" in
       info.md|acceptance.md)
-        if [ -f "$REALISED/st/$st/$base" ]; then
-          report DOUBLED "$path (also generated at st/$st/$base -- two artefacts, one role)"
-          c_doubled=$((c_doubled + 1))
-        else
-          report STRANDED "$path (the only copy -- owner $id has canon at st/$st/ and the model regenerates this name, but nothing did)"
-          c_stranded=$((c_stranded + 1))
-        fi
+        report DOUBLED "$path (a generated name the model regenerates from $st's canon -- two artefacts, one role)"
+        c_doubled=$((c_doubled + 1))
         ;;
       *)
-        if [ -f "$REALISED/st/$st/$base" ]; then
+        # The attachment path is relative to the THREAD directory, whatever
+        # bucket the v2 file sat in: `intent/st/COMPLETED/ST0001/design.md` is
+        # `design.md`, and a WP one-off keeps its `WP/NN/` prefix.
+        rel="${path#*/"$st"/}"
+        recorded="$(jq -r --arg p "$rel" '.attachments[]? | select(.path == $p) | .sha256' "$CANON/st/$st.json" 2>/dev/null | head -n 1)"
+        if [ -z "$recorded" ]; then
+          report STRANDED "$path (the only copy -- authored prose under $id's v2 bucket, carried as no attachment and named out-of-model by nobody)"
+          c_stranded=$((c_stranded + 1))
+        elif [ "$recorded" = "$(file_sha256 "$MIGRATED/$path")" ]; then
           a_reloc=$((a_reloc + 1))
         else
-          report STRANDED "$path (the only copy -- authored prose under $id's v2 bucket, neither moved nor named out-of-model)"
-          c_stranded=$((c_stranded + 1))
+          report ALTERED-ATTACHMENT "$path (canon carries $rel for $st with DIFFERENT bytes -- the original is not redundant until they agree)"
+          c_altatt=$((c_altatt + 1))
         fi
         ;;
     esac
@@ -673,7 +702,7 @@ declared_defer() {
 
 compare_prose() {
   local label="$1" raw="$2" trim="$3" file="$4" dest="${5:-modelled}" got
-  got="$(shasum -a 256 <"$file" | cut -d' ' -f1)"
+  got="$(file_sha256 "$file")"
   # A DEFERRAL CLAIMS CANON IS UNCHANGED, SO EMPTY CANON REFUTES IT. Same
   # separation as the drop: the verdict is the migrator's CLAIM, the state of
   # canon is this tool's OBSERVATION. Checked before the conserved path so a
@@ -688,7 +717,7 @@ compare_prose() {
     return
   fi
   trim_file "$file" "$WORK/trim"
-  got="$(shasum -a 256 <"$WORK/trim" | cut -d' ' -f1)"
+  got="$(file_sha256 "$WORK/trim")"
   if [ "$got" = "$trim" ]; then
     echo "NORMALISED-PROSE $label (content identical; leading/trailing whitespace differs)"
     c_norm=$((c_norm + 1))
@@ -1039,6 +1068,7 @@ else
   stranded_validity=""
 fi
 echo "conservation: v2 status buckets -- DOUBLED $c_doubled (superseded originals, content reached canon), STRANDED $c_stranded (THE ONLY COPY, reachable from nothing) $(subject_revision)$stranded_validity"
+echo "conservation: v2 status buckets -- RELOCATED $a_reloc (authored files canon carries as attachments, bytes identical), ALTERED-ATTACHMENT $c_altatt (carried with DIFFERENT bytes -- an original is not redundant until they agree)"
 # ALTERED is printed EXPLICITLY, including when it is zero, because against the
 # real migrator the healthy reading is `conserved 0`. `sections()` trims every
 # body, so nothing survives byte-identical and everything content-preserving lands
