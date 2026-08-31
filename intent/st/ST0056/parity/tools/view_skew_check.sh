@@ -117,6 +117,7 @@ EOF
 AUTHORED="$(cat <<'EOF'
 surface/agent-guide.spec.md|The AC-09.4 spec for the `intent llm` agent guide (ic). Authored, not generated: it describes what the guide contains and where each half comes from. There is no canon it derives from, so there is nothing to check it against and nothing missing.
 intent/st/ST0056/parity/ac-09_6-mcp-facade-read.md|The AC-09.6 read (ic, 2026-08-30): the classified partition of every MCP-exposed row and the decision list for hv. Authored evidence, not generated -- its numbers came from a scratchpad instrument whose controls and defects it records, and the durable artefact is the JUDGEMENT, which no generator can re-produce. The 59 facade declarations it grounds live in surface/dispatch-table.json, where the skew pair above already checks them.
+intent/st/ST0056/parity/ac-09_5-resources-design.md|The AC-09.5 resources design (ic, 2026-08-31): the reasoning behind vc's bound (A) -- resources serve entity models through the existing st_show/wp_show/issue_show doors, the URI grammar derives from nav.rs's kinds, and the one build decision is the render seam (one shared entity-to-text renderer so "contents match st show" is byte-identical). Authored design record, not generated: it carries a ruling's argument and the measurement that wip.md and the boards have no CLI read to match, and the durable artefact is the JUDGEMENT, which no generator can re-produce. Cites AT-09.5; the surface it designs lands in mcp.rs and its witness in mcp_resources.rs.
 EOF
 )"
 
