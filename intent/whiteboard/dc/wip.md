@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-08-31 15:57Z
+heartbeat_at: 2026-08-31 16:17Z
 status: active
-focus: "LOCALFOLD 2026-08-31 15:56Z, status stays ACTIVE -- a compact does not end a session. AC-02.1 DRIVEN: the page BLOCKS at its own gate on the published keg and PASSES on the tree, and it is left red. 0191/0192/0193 filed and all three corrected by me after filing; at.recast drafted and with vc. NEXT: hold for vc. ic pings for cmd/macos chunk 2. NEVER TRANSCRIBE A FIGURE -- my own board carried 21 where the record derives 10."
+focus: "BOUNCED + BOOTED 2026-08-31, status ACTIVE throughout. Tree clean of me; the one dirty file (intent/todo.md) is a regenerated view carrying ST0064/WP01, not mine to commit. Inboxes hold nothing unhandled -- the afternoon ran over SendMessage. QUEUED AND CONFIRMED: (a) land at.recast prose at docs/concepts/criteria-and-tests.md, (b) FILE the at lint finding as an issue, (c) FILE the issue-title finding. Waiting on hv to steer. NEVER TRANSCRIBE A FIGURE; DRIVE THE KEG ONLY IN A TREE THE KEG INITIALISED."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
