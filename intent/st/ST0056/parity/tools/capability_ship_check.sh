@@ -75,8 +75,16 @@
 # exit 2 when they fail. These two are not: they were driven once, by hand, on
 # 2026-08-31, and nothing re-drives them.
 #
-#   BIN=/usr/bin/false   -> rc 2, NOT EVALUABLE, no capability scored.
-#   ROOT=<empty dir>     -> rc 1, RED, `CLI-owned launchd` reported ABSENT.
+#   ROOT=<empty dir>       -> rc 1, RED, `CLI-owned launchd` reported ABSENT.
+#   PATH=<dangling link>   -> rc 2, DANGLING SYMLINK, named as TRANSIENT.
+#   PATH=<no intent>       -> rc 2, not on PATH at all.
+#   BIN=/usr/bin/true      -> rc 2, binary present and NO DAEMON answering.
+#
+# **THE LAST THREE EXIST BECAUSE THE FIRST VERSION COLLAPSED THEM INTO ONE**, and
+# cc named the cost: an instrument that cannot tell absent-because-rebuilding
+# from absent-because-broken will eventually be read as the second. Three
+# absences, three remedies, three different worlds -- and only the middle one is
+# a fact about the estate.
 #
 # **A recorded proof is prose until someone types it**, and this estate has
 # already had a mutation proof stop reproducing while its comment kept
@@ -93,12 +101,46 @@ echo "AT-00.3 -- do AC-00.3's five capabilities SHIP? Driven where a read is saf
 echo "           derived from the daemon's own roster where a drive is not."
 echo ""
 
-# ---------------------------------------------------------------- the socket
+# --------------------------------------------------- the binary, THEN the socket
+# **THREE ABSENCES, NOT ONE, AND CONFLATING THEM IS THE DEFECT cc NAMED** (2026-08-31):
+# *an instrument that cannot tell absent-because-rebuilding from
+# absent-because-broken will eventually be read as the second.* The first
+# version printed "no daemon is answering" for all three worlds, which is right
+# in one of them and actively misleading in the other two.
+#
+# The mid-rebuild case is real and invisible from inside it: the delivered
+# `intent` is a SYMLINK into the cargo output directory, so during a build the
+# link exists and its target does not. `command -v` reports nothing at all --
+# indistinguishable from never-installed unless the link is looked for by name.
+# Measured live on this machine during a `dvb build all`, in a window of about
+# one minute, with four sessions sharing that symlink.
+bin_path="$(command -v "$BIN" 2>/dev/null || true)"
+if [ -z "$bin_path" ]; then
+  dangling=""
+  IFS=: read -ra _dirs <<< "$PATH"
+  for d in "${_dirs[@]}"; do
+    # -L true and -e false is exactly a symlink whose target is gone.
+    if [ -L "$d/$BIN" ] && [ ! -e "$d/$BIN" ]; then dangling="$d/$BIN"; break; fi
+  done
+  if [ -n "$dangling" ]; then
+    echo "    NOT EVALUABLE -- \`$BIN\` is a DANGLING SYMLINK at ${dangling}, which on this"
+    echo "    estate means a build is in flight and the target is momentarily gone."
+    echo "    **This is a TRANSIENT world and not a broken one.** remedy: wait for the"
+    echo "    build and re-run; nothing here is a finding about the estate."
+    exit 2
+  fi
+  echo "    NOT EVALUABLE -- \`$BIN\` is not on PATH at all, so nothing can be asked."
+  echo "    remedy: install or build it. **Distinct from the dangling case above**, which"
+  echo "    is transient, and from a stopped daemon below, which is a running-state fact."
+  exit 2
+fi
+
 sock="$("$BIN" daemon status 2>/dev/null | sed -n 's/.*answering at //p')"
 if [ -z "$sock" ] || [ ! -S "$sock" ]; then
-  echo "    NOT EVALUABLE -- no daemon is answering, so four of the five capabilities"
-  echo "    have no surface to ask. **This is an exclusion, never a pass**: a criterion"
-  echo "    scored over the members that happened to be reachable is AC-00.11's wrong-M."
+  echo "    NOT EVALUABLE -- \`$BIN\` is present at ${bin_path} and NO DAEMON is answering,"
+  echo "    so four of the five capabilities have no surface to ask. **This is an"
+  echo "    exclusion, never a pass**: a criterion scored over the members that happened"
+  echo "    to be reachable is the wrong-M of AC-00.11."
   echo "    remedy: intent daemon start, then re-run."
   exit 2
 fi
