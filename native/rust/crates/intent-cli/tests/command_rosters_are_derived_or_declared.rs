@@ -7,6 +7,16 @@
 //! would restate clause 1. A reading that makes half a row redundant is the
 //! wrong reading -- clause 2 is doing different work or it is doing none.
 //!
+//! **THIS FILE IS `AT-09.4`'s CITED ARTEFACT, AND IT WITNESSES CLAUSE 2 ONLY**
+//! (ic, 2026-08-31; re-cited from `llm_guide_gen.rs`, a file that never
+//! existed). Clause 1 -- *`intent llm` renders the agent guide from the
+//! dispatch table* -- is witnessed in `src/guide.rs`'s own tests, where
+//! `7ecb1e62` proved DERIVATION rather than agreement by mutation: point
+//! `command_reference` at the compiled-in table instead of the one it was
+//! handed and 13 pass while 1 fails. A row citing one file for a two-clause
+//! criterion names the clause the file carries and where the other lives, so
+//! the green cannot be read as this file proving both.
+//!
 //! # What is actually being guarded
 //!
 //! `bin/intent_help` hand-maintained a list of commands behind a skip list, and

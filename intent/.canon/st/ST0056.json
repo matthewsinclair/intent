@@ -2460,11 +2460,12 @@
     {
       "id": "AT-09.4",
       "kind": "test",
-      "file": "native/rust/crates/intent-cli/tests/llm_guide_gen.rs",
+      "file": "native/rust/crates/intent-cli/tests/command_rosters_are_derived_or_declared.rs",
       "covers": [
         "AC-09.4"
       ],
-      "status": "to-write"
+      "status": "green",
+      "note": "Clause 2 is witnessed here, estate-scoped per vc's 2026-08-30 ruling: every exact multi-token command-path literal in shipped source is derived from the table or declared with a discharge condition, and SERVED_BY_DAEMON is declared with a condition that is meetable and discharges early (cc's wording, vc's correction of their own). Clause 1 is witnessed by src/guide.rs's mutation-proved derivation test (7ecb1e62): the guide DERIVES from the table it is handed rather than agreeing with it. Re-cited from llm_guide_gen.rs, which never existed; greened by ic 2026-08-31 under vc's 17:52Z and 18:02Z rulings."
     },
     {
       "id": "AT-09.5",
