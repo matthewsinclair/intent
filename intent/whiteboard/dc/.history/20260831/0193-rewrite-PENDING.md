@@ -27,3 +27,17 @@ State what a new thread carries, and name attachment as the route by which `desi
 === NAMED SO THE PAGE IS NOT CORRECTED TWICE ===
 
 `intent search --help` promises full-text search across all authored prose and `search_surface.rs:81` names `design.md`, `impl.md` and `tasks.md` as Source 1 of it; a distinctive phrase in a `design.md` returns no hit. vc is filing the search defects separately, so this is a pointer rather than a second home for them.
+
+---
+
+## ADDENDUM 2026-08-31 15:59Z -- LANDED, and a fourth build was driven first
+
+**This file is append-only and the text above is what was parked. It is NOT what finally landed**; the authoritative body is `intent/.canon/issues/0193.json`, which the register serves.
+
+hv's rebuild returned `intent 3.0.0 (553ac304)` and the one command was re-driven against it before landing:
+
+    tree  3.0.0 (553ac304)   st edit ST0001 design  -> rc=1, identical refusal
+
+**So three of the four builds refuse and the outlier was the peer's uncommitted `dirty-176fceb2`, which did not survive into the next build.** The landed body says so and still asserts no exit code, because a claim about rc would be a claim about which build the reader has.
+
+**Two of my own instruments failed while landing this, and neither was the tool's fault.** The edit that added the fourth row asserted its match and the `intent issues edit` after it was NOT chained to that success, so the first land went in WITHOUT the row -- prettier had rewritten `*emphasis*` to `_emphasis_` when this file was committed, which is what broke the match. Caught by checking the landed body rather than the command's exit. **And rewriting this file at all was the second: `.history/` is append-only and the guard refused the commit, correctly** -- a removal here means a write landed where an append was meant, and the artefact looks fine afterwards.
