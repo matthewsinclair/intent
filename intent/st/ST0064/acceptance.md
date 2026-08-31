@@ -1,9 +1,9 @@
 ---
 st_id: ST0064
-title: intentd: the Intent daemon, and a menubar app that controls it
+title: The Intent menubar app: controlling intentd from the macOS menubar
 ---
 
-# ST0064: intentd: the Intent daemon, and a menubar app that controls it -- Acceptance
+# ST0064: The Intent menubar app: controlling intentd from the macOS menubar -- Acceptance
 
 > **THIS FILE IS A GENERATED VIEW, AND A ROW AUTHORED HERE IS DISCARDED BY THE NEXT SYNC.** The acceptance contract is canon in the thread model; this file renders it. Acceptance Criteria (AC) are the ratified completeness boundary; Acceptance Tests (AT) are the small red-to-green tests that prove them.
 >

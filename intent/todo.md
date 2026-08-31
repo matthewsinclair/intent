@@ -40,6 +40,8 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [-] ST0058: Local cutover: v3 usable across the estate before it is releasable
   - [-] 01: One path to the native CLI: int cli carries the coherence guard
 - [-] ST0061: dehydrate
+- [-] ST0064: The Intent menubar app: controlling intentd from the macOS menubar
+  - [ ] 01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
 - [-] ST0065: Review Intent's use of .md files and /in-* skills for the v3 release
   - [-] 01: Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set
   - [-] 02: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided
@@ -53,8 +55,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [?] ST0060: Add 'intent vault' as a way for intent projects to manage local credentials
 - [?] ST0062: help
 - [?] ST0063: start
-- [?] ST0064: intentd: the Intent daemon, and a menubar app that controls it
-  - [ ] 01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
 - [?] ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
 
 ## DONE:2026-08-30T08:49:54Z

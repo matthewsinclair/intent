@@ -1,16 +1,20 @@
 ---
 st_id: ST0064
-title: intentd: the Intent daemon, and a menubar app that controls it
-status: Triage
+title: The Intent menubar app: controlling intentd from the macOS menubar
+status: WIP
 created: 2026-08-26
 completed:
 ---
 
-# ST0064: intentd: the Intent daemon, and a menubar app that controls it
+# ST0064: The Intent menubar app: controlling intentd from the macOS menubar
 
 ## Objective
 
-`intentd` is the Intent daemon -- Rust, shipped in the keg beside `intent` -- and this thread owns its lifecycle surface and a macOS menubar app that controls it, in the pattern hv set with Conflab and now Geodica. Opened by vc on hv's instruction 2026-08-26; scope and sequencing are hv's ("that's for when we get to intentd").
+**A macOS menubar app that CONTROLS `intentd`, holding no product logic of its own: every control is an `intent` verb it shells out to, and nothing in Swift knows a log format, a pidfile layout or a config schema.** Built to Geodica's design, in the pattern hv set with Conflab and now Geodica. Opened by vc on hv's instruction 2026-08-26.
+
+**NARROWED 2026-08-31 TO THE APP ALONE, EXECUTING hv's `D3` OF 2026-08-29 (option B, the split -- chosen over folding and over *leave both and accept the overlap*).** **THIS DOES NOT DESCOPE `intentd`.** The daemon is owned and built by **ST0056 WP-08**, it SHIPS, and `daemon start|stop|status|run` are live today. The thread previously claimed *its lifecycle surface and a macOS menubar app*, which made two threads owners of one daemon. hv's deciding argument for the split stands and is strengthened by their 2026-08-31 correction: **`D56` was ruled ON THIS APP'S BEHALF** -- SwiftUI cannot consume HTML, which is the whole reason `intentd` emits JSON only -- so folding would have deleted the artefact that motivated the architecture.
+
+**IN 3.0.1, ON hv's CORRECTION OF 2026-08-31 11:56Z**, verbatim: *"The intentd and the menubar app that controls it are linked and need to both land for 3.0.1. If I've inadvertantly descoped one or the other, that was a mistake on my part. We need both."* This supersedes `D3`'s release-scope half, which had the app out of 3.0.1. Builder: ic. **`AC-01.7`'s signing and notarisation path is unblocked by hv's reversal of `A8` (`cmd/macos` OUT) on 2026-08-31.**
 
 ## Context
 
