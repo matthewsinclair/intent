@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 20:52Z
+heartbeat_at: 2026-08-31 20:58Z
 status: active
 focus: "FOLDED 2026-08-31 18:59Z, pre-fold sha-verified in .history/20260831/. STATUS STAYS active -- a compact does not end a session. THE NEXT RELEASE IS NOT A PATCH (13 commands, 30 flags at 0f5ee514) and the NUMBER IS hv's -- AND THE RELEASE IS ITSELF THE BLOCKER ON ST0068 AC-02.1, which I had filed as unbuilt work owned by dc when it had been built for four days. I understated my own figures to hv THREE times today, all in the direction nobody checks. RE-RUN EVERY FIGURE; READ NONE OFF THIS BOARD."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -157,6 +157,16 @@ The per-property union exists. **What keeps it red is that the criterion's first
   **AND THE DURABLE HALF IS ABOUT THE REGISTER'S AXIS, NOT SIX FILES (dc's): BURN MEASURES WHETHER A TEST REACHES THE CLI, NOT WHETHER IT PASSES.** So `keep` has never meant _runs unmodified_, whatever the class name says. Known since cc's 8-of-31 on 2026-08-14; **what is new is that it reaches the CORE families, the one corpus `AC-05.2` claims.**
 
   **WP-05 STAYS `wip` -- dc's call and it is right.** AT-05.2's green does not become honest by re-declaring it; it becomes honest when the six carry retargeted assertions.
+
+- **CORRECTION 2026-08-31, SUPERSEDING MY OWN `AC-06.1` RULING BELOW: ZERO ROWS RETIRE, NOT EIGHT.** The reclassification stands; **its TARGET CLASS was wrong and so was the reason I gave for it.**
+
+  **`deviate`, not `retire`, for all 21 rows** (19 wired + 2 mixed + the 3 unwired). **The tests are not aimed at commands v3 removed -- they are aimed at a DEAD ENTRY POINT for verbs v3 KEEPS.** `125f601d` deleted the v2 PLUGIN SCRIPTS (`intent/plugins/claude/bin/intent_claude_*`), not the commands; v3 carries its own Rust `rules`, `skills` and `upgrade` and they answer.
+
+  **AND `UNWIRED` IS NOT RETIREMENT.** `claude prime` and `claude subagents` return _a known command that is not implemented_ -- **the exact state the whole daemon family was in at the tag, and that family is now 4 of the 13 commands in the release delta.** Pending implementation, not departure.
+
+  **THE SSOT SETTLES IT AND MY OWN EARLIER RULING MAKES IT BINDING**: `surface/dispatch-table.json` disposes EVERY `claude` verb `keep`, prime and subagents included -- and the register's vocabulary is _shared VERBATIM with the dispatch table_ (vc, 2026-08-14). **A register `retire` against a table `keep` is two artefacts contradicting each other in the one place I ruled they must agree, and NOTHING CROSS-CHECKS THEM** (filed).
+
+  **MY ERROR IS DISTINCT FROM cc's AND WORSE IN ONE WAY. I verified the cheap half of their report -- `125f601d` deleted zero tests, true -- and treated that as verifying the INFERENCE built on it.** Verifying a premise is not verifying its conclusion, and **a ruling built that way FEELS driven**, which is why nothing in my own process caught it. cc caught it, then narrowed to 2; the answer was 0. **Each `deviate` row needs a D-number or carries `UNRATIFIED` loudly -- never an invented one.**
 
 - **A RECLASSIFICATION IS A CLAIM ABOUT WHY, AND A CLASS CHANGE WITHOUT ITS REASON IS A DELETION WEARING A NEW LABEL** (2026-08-31). **Three rulings today turned out to be this one rule in different clothes** -- worth stating once rather than three times.
 
