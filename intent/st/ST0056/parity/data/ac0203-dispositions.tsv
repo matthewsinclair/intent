@@ -94,3 +94,47 @@
 0185	stated	docs/getting-started.md	There is no verb for this yet, and the refusal you get if you try says there is.
 0187	stated	docs/getting-started.md	does not work in this build and refuses with a reason that is out of date.
 0154	stated	docs/install.md	there is no verb that edits a criterion in place
+0011	stated	docs/known-defects.md	intent#0011
+0016	stated	docs/known-defects.md	intent#0016
+0066	stated	docs/known-defects.md	intent#0066
+0067	stated	docs/known-defects.md	intent#0067
+0069	stated	docs/known-defects.md	intent#0069
+0071	stated	docs/known-defects.md	intent#0071
+0077	stated	docs/known-defects.md	intent#0077
+0078	stated	docs/known-defects.md	intent#0078
+0079	stated	docs/known-defects.md	intent#0079
+0080	stated	docs/known-defects.md	intent#0080
+0081	stated	docs/known-defects.md	intent#0081
+0082	stated	docs/known-defects.md	intent#0082
+0083	stated	docs/known-defects.md	intent#0083
+0084	stated	docs/known-defects.md	intent#0084
+0090	stated	docs/known-defects.md	intent#0090
+0103	stated	docs/known-defects.md	intent#0103
+0111	stated	docs/known-defects.md	intent#0111
+0121	stated	docs/known-defects.md	intent#0121
+0122	stated	docs/known-defects.md	intent#0122
+0124	stated	docs/known-defects.md	intent#0124
+0126	stated	docs/known-defects.md	intent#0126
+0127	stated	docs/known-defects.md	intent#0127
+0129	stated	docs/known-defects.md	intent#0129
+0137	stated	docs/known-defects.md	intent#0137
+0138	stated	docs/known-defects.md	intent#0138
+0139	stated	docs/known-defects.md	intent#0139
+0140	stated	docs/known-defects.md	intent#0140
+0143	stated	docs/known-defects.md	intent#0143
+0145	stated	docs/known-defects.md	intent#0145
+0146	stated	docs/known-defects.md	intent#0146
+0149	stated	docs/known-defects.md	intent#0149
+0153	stated	docs/known-defects.md	intent#0153
+0156	stated	docs/known-defects.md	intent#0156
+0162	stated	docs/known-defects.md	intent#0162
+0163	stated	docs/known-defects.md	intent#0163
+0168	stated	docs/known-defects.md	intent#0168
+0171	stated	docs/known-defects.md	intent#0171
+0175	stated	docs/known-defects.md	intent#0175
+0176	stated	docs/known-defects.md	intent#0176
+0177	stated	docs/known-defects.md	intent#0177
+0180	stated	docs/known-defects.md	intent#0180
+0181	stated	docs/known-defects.md	intent#0181
+0189	stated	docs/known-defects.md	intent#0189
+0075	not-reader-reachable	internal-tooling -- view_skew_check is a parity instrument; no published page or --help routes a reader to it	

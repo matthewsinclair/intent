@@ -170,6 +170,7 @@ When you want the gate rather than the listing:
 
 - **[Concepts](concepts/)** — the model underneath: what a thread is, how criteria reach their state, and why the store rather than the files is the source of truth.
 - **[Command reference](reference/)** — the full surface.
+- **[Known defects](known-defects.md)** — what is broken in v3.0.0 that you can reach by following these pages correctly, derived from the issue register at the cut rather than remembered.
 - `intent todo` — a flat DOING / TODO / DONE view across every thread and work package, generated from their real status.
 - `intent doctor` — findings about **this project**: a stale backup, a thread whose status disagrees with its own gate, a store that has drifted from committed canon. It does not inspect your installation.
 
