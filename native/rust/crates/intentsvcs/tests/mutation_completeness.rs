@@ -18,7 +18,7 @@
 //! D30's whiteboard entities before they are written.
 //!
 //! It reads the schema by GENERATING it from the types rather than by reading
-//! `schema/`, for the reason `faces::all_faces_banner` gives: the committed
+//! `schema/`, for the reason `faces::banner` gives: the committed
 //! file and the types are tied together by `schema_faces_drift.rs`, so
 //! generating makes this a second independent witness rather than a reader of
 //! a file that could have drifted.

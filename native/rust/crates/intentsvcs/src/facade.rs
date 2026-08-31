@@ -1068,9 +1068,14 @@ impl crate::remedy::Remedy for FacadeError {
       Self::BadQuery { .. } => {
         "search takes an FTS5 expression -- quote a phrase, and escape or drop bare punctuation like `:` and `*`".to_string()
       }
-      Self::NoSuchFace { .. } => {
-        "run `intent schema` with no argument to print every face, which also names them".to_string()
-      }
+      // The alternatives are NAMED here rather than pointed at: the faces are
+      // generated from the types and cost nothing to list, and a remedy that
+      // says "run the command again differently" when it could say the answer
+      // is a round trip for nothing.
+      Self::NoSuchFace { .. } => format!(
+        "one of: {} -- or run `intent schema` with no argument to print every face under its own banner",
+        crate::faces::face_names().join(", ")
+      ),
       // `--kind all` rather than a bare list: the default bucket is OPEN, so a
       // remedy without it sends someone looking for a closed issue in a list
       // that cannot contain one, and they conclude it is gone.

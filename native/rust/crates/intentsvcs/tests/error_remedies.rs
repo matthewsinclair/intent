@@ -39,6 +39,15 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     "unknown thread",
     facade.st_show("ST9999").expect_err("no such thread"),
   )];
+  // Reachable by a bad CALL since `Facade::schema` landed -- before it, the
+  // variant existed and nothing on the facade raised it, so its exemption
+  // below cited a CLI arm that composed its own refusal string instead.
+  out.push((
+    "unknown schema face",
+    facade
+      .schema(Some("not-a-face"))
+      .expect_err("a face the types do not generate is refused by name"),
+  ));
   // **THE PROVOCATION THAT USED TO BE HERE WAS `organize` ON A PROJECT WITH NO
   // MANIFEST, AND IT STOPPED REFUSING (ST0057 AC-04.7).** Absent is now nobody
   // having said, so it is not an error at all -- and the comment that stood
@@ -700,8 +709,7 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // because that needs two facades and a shared store rather than a bad call.
   "ThreadExists",
   "IssueExists",
-  "BadQuery",   // FTS5 syntax -- `facade_search.rs` territory
-  "NoSuchFace", // `intent schema <name>` with an unknown face
+  "BadQuery", // FTS5 syntax -- `facade_search.rs` territory
   // Needs a projection that LIES -- a format claiming to round-trip and
   // dropping data. Only `export::project_with` can be handed one, and
   // `export_round_trip.rs` does exactly that; a call through the facade cannot

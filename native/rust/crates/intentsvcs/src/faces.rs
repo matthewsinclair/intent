@@ -106,22 +106,82 @@ fn versioned_sdl(body: &str) -> String {
 /// A face missing a marker yields an empty string rather than being skipped: a
 /// missing measurement must present as a gap the caller can see, never as a row
 /// that is quietly absent from a list.
-pub fn versions() -> Vec<(&'static str, String, &'static str, String)> {
-  faces()
+/// One face as the `schema` row answers it: the committed body, and the two
+/// version markers `--versions` reports instead of the body.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SchemaFace {
+  pub name: &'static str,
+  pub content: String,
+  pub intent_ver: String,
+  pub key: &'static str,
+  pub contract_ver: String,
+}
+
+fn describe(name: &'static str, content: String) -> SchemaFace {
+  let key = SCHEMA_VER_KEYS
+    .iter()
+    .find(|(face, _)| *face == name)
+    .map_or("SCHEMA_VER", |(_, key)| *key);
+  SchemaFace {
+    name,
+    intent_ver: marker(&content, INTENT_VER_KEY).unwrap_or_default(),
+    key,
+    contract_ver: marker(&content, key).unwrap_or_default(),
+    content,
+  }
+}
+
+/// The `schema` row's answer: every face, or the one named -- and an unknown
+/// name is refused by name rather than answered empty.
+///
+/// **ONE HOME FOR A ROW THAT ANSWERS IN TWO PLACES, AND WHY THE HOME IS HERE
+/// RATHER THAN ON THE FACADE.** `intent schema` is a GLOBAL verb -- it answers
+/// outside a project, which `schema_command.rs` pins -- so its terminal arm
+/// cannot open a facade to ask. The MCP tier reaches everything through the
+/// facade, by the ruleset vc recorded (one method per exposed row; add one
+/// rather than compose in the tier). So the selection lives here, store-free,
+/// and [`Facade::schema`] is the facade's door onto exactly this function:
+/// two callers, one body, and the refusal cannot drift between them.
+pub fn schema(face: Option<&str>) -> Result<Vec<SchemaFace>, crate::facade::FacadeError> {
+  let all: Vec<SchemaFace> = faces()
     .into_iter()
-    .map(|(name, body)| {
-      let key = SCHEMA_VER_KEYS
-        .iter()
-        .find(|(face, _)| *face == name)
-        .map_or("SCHEMA_VER", |(_, key)| *key);
-      (
-        name,
-        marker(&body, INTENT_VER_KEY).unwrap_or_default(),
-        key,
-        marker(&body, key).unwrap_or_default(),
-      )
-    })
-    .collect()
+    .map(|(name, content)| describe(name, content))
+    .collect();
+  match face {
+    None => Ok(all),
+    Some(name) => all
+      .into_iter()
+      .find(|f| f.name == name)
+      .map(|f| vec![f])
+      .ok_or_else(|| crate::facade::FacadeError::NoSuchFace {
+        face: name.to_string(),
+      }),
+  }
+}
+
+impl crate::facade::Facade {
+  /// The `schema` row on the MCP tier (`facade: "schema"` in the dispatch
+  /// table). It touches no store -- the faces are generated from the types --
+  /// and delegates to [`schema`], which is the one home; see there for why the
+  /// home is not this method.
+  pub fn schema(&self, face: Option<&str>) -> Result<Vec<SchemaFace>, crate::facade::FacadeError> {
+    schema(face)
+  }
+}
+
+/// The bare form's text: every face under a `== <name> ==` banner, so the
+/// output stays machine-splittable (AC-06.5's per-face byte identity is
+/// checked by splitting exactly this).
+pub fn banner(faces: &[SchemaFace]) -> String {
+  let mut out = String::new();
+  for face in faces {
+    out.push_str(&format!("== {} ==\n", face.name));
+    out.push_str(&face.content);
+    if !face.content.ends_with('\n') {
+      out.push('\n');
+    }
+  }
+  out
 }
 
 /// The value a face records for a marker, in whichever idiom that face uses.
@@ -176,18 +236,6 @@ pub fn face_names() -> Vec<&'static str> {
 /// after the model and the committed face had drifted apart. Printing from the
 /// types makes the command a second, independent witness to the same drift
 /// `schema_faces_drift.rs` guards.
-pub fn all_faces_banner() -> String {
-  let mut out = String::new();
-  for (path, content) in faces() {
-    out.push_str(&format!("== {path} ==\n"));
-    out.push_str(&content);
-    if !content.ends_with('\n') {
-      out.push('\n');
-    }
-  }
-  out
-}
-
 /// Render one type's JSON Schema in canonical form (2-space pretty, trailing
 /// newline).
 fn schema_json<T: schemars::JsonSchema>() -> String {

@@ -3822,6 +3822,7 @@ A command family with no burning coverage is a parity hole: v3 can change it fre
 
 - **v2:** new-surface
 - **disposition:** new-surface
+- **facade:** schema
 - **Flags:**
   - `--versions` (bool) -- Print each face's INTENT_VER and SCHEMA_<TYPE>_VER instead of the face bodies
     - **disposition:** keep

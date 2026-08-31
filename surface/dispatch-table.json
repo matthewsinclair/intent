@@ -7950,7 +7950,8 @@
           "composition_with_face_arg": "`--versions` selects the OUTPUT MODE; the existing `face` arg selects WHICH faces. So `intent schema --versions` prints one line per face and `intent schema ddl.sql --versions` prints that face's line only -- the two compose without a new rule, and no arm has to special-case the other. Declared here rather than left to build time because an undeclared composition is how two authors end up with two answers, which is the same defect this row's own boundary question was.",
           "spelling_note": "`--versions` PLURAL, and the singular is not merely a style choice: `-V, --version` is a clap intrinsic on the root command. MEASURED 2026-08-15 -- it does NOT propagate to subcommands (`intent schema --version` gives `unexpected argument`), so the singular would not have collided today. It is still the wrong name, because it would print several lines and because a future `propagate_version(true)` would make the collision real without anyone touching this row."
         }
-      ]
+      ],
+      "facade": "schema"
     },
     {
       "path": "export",

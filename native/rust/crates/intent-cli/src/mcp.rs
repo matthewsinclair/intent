@@ -371,7 +371,7 @@ impl ServeError {
 /// end-to-end by `tests::every_roster_path_reaches_an_arm`. A row gaining its
 /// door joins `tools()` by regeneration and this list by hand -- the gate is
 /// what makes forgetting either half a red test rather than a silent gap.
-pub const SERVED: [&str; 59] = [
+pub const SERVED: [&str; 60] = [
   "st new",
   "st start",
   "st done",
@@ -431,6 +431,7 @@ pub const SERVED: [&str; 59] = [
   "organize",
   "events",
   "graphql",
+  "schema",
 ];
 
 /// Answer one tool call against an already-open facade.
@@ -957,6 +958,33 @@ pub fn serve(
       let variables = crate::hatch::variables(opt_s(path, map, "variables")?)
         .map_err(|e| args_err(path, e.to_string()))?;
       Ok(crate::hatch::graphql(f.project().root(), query, variables)?)
+    }
+    // The shape of the entities an agent is about to manipulate -- vc's need
+    // test says yes to this row by name. Store-free: the faces are generated
+    // from the types, and `Facade::schema` is the door onto `faces::schema`,
+    // the same home the global terminal verb answers from.
+    "schema" => {
+      let face = opt_s(path, map, "face")?;
+      let faces = f.schema(face)?;
+      if opt_b(path, map, "versions")? {
+        val(
+          path,
+          &faces
+            .iter()
+            .map(|x| {
+              json!({"face": x.name, "intent_ver": x.intent_ver, "key": x.key, "contract_ver": x.contract_ver})
+            })
+            .collect::<Vec<_>>(),
+        )
+      } else {
+        val(
+          path,
+          &faces
+            .iter()
+            .map(|x| json!({"name": x.name, "content": x.content}))
+            .collect::<Vec<_>>(),
+        )
+      }
     }
     "doctor" => {
       let report = Facade::doctor(f.project(), ctx, Some(f.store()));
@@ -1570,6 +1598,52 @@ mod tests {
         "`{path}` must be UnknownTool on this surface"
       );
     }
+  }
+
+  /// `intent_schema` answers from the faces the types generate, per face or
+  /// all, refuses an unknown face by name, and carries the two version markers
+  /// when asked for versions instead of bodies.
+  #[test]
+  fn the_schema_tool_answers_from_the_faces_and_refuses_an_unknown_one() {
+    let (_dir, mut facade) = fixture();
+    let ctx = drive_ctx();
+
+    let one =
+      serve(&mut facade, &ctx, "schema", &json!({"face": "ddl.sql"})).expect("a known face");
+    assert_eq!(one.as_array().map(Vec::len), Some(1), "{one}");
+    assert_eq!(one[0]["name"], "ddl.sql");
+    assert_eq!(
+      one[0]["content"].as_str(),
+      intentsvcs::faces::face("ddl.sql").as_deref(),
+      "the tool's content is the face's, byte for byte"
+    );
+
+    let all = serve(&mut facade, &ctx, "schema", &json!({})).expect("every face");
+    assert_eq!(
+      all.as_array().map(Vec::len),
+      Some(intentsvcs::faces::face_names().len()),
+      "{all}"
+    );
+
+    let versions = serve(&mut facade, &ctx, "schema", &json!({"versions": true})).expect("markers");
+    for row in versions.as_array().expect("a list") {
+      assert_eq!(row["intent_ver"], intentsvcs::faces::INTENT_VER, "{row}");
+      assert!(
+        row["contract_ver"].as_str().is_some_and(|v| !v.is_empty()),
+        "{row}"
+      );
+    }
+
+    let unknown = serve(&mut facade, &ctx, "schema", &json!({"face": "not-a-face"}));
+    assert!(
+      matches!(
+        unknown,
+        Err(ServeError::Refused(
+          intentsvcs::facade::FacadeError::NoSuchFace { .. }
+        ))
+      ),
+      "{unknown:?}"
+    );
   }
 
   /// The hatch's arguments are refused BEFORE any daemon is looked for, so

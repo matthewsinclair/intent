@@ -4723,64 +4723,40 @@ pub fn withheld_flags(table: &dispatch::Table) -> Vec<String> {
 /// make the command fail in the one place it is most useful -- outside a
 /// project, when you are deciding what a project should contain.
 fn schema(m: &ArgMatches) -> Result<(), Failure> {
-  // **`--versions` selects the OUTPUT MODE and `face` selects WHICH faces**
-  // (ic, declared with the row rather than left to be inferred). They compose:
-  // neither arm special-cases the other, so `intent schema ddl.sql --versions`
-  // is one face's versions and `intent schema --versions` is all of them. An
-  // undeclared composition is how two authors arrive at two answers.
   let versions = given(m, "versions");
-  match m.try_get_one::<String>("face") {
-    Ok(Some(name)) => match intentsvcs::faces::face(name) {
-      Some(content) => {
-        if versions {
-          print_versions(Some(name));
-        } else {
-          print!("{content}");
-        }
-        Ok(())
-      }
-      None => Err(
-        format!(
-          "error: no schema face named `{name}`\n  remedy: one of: {}",
-          intentsvcs::faces::face_names().join(", ")
-        )
-        .into(),
-      ),
-    },
-    Ok(None) => {
-      if versions {
-        print_versions(None);
-      } else {
-        print!("{}", intentsvcs::faces::all_faces_banner());
-      }
-      Ok(())
+  let face = match m.try_get_one::<String>("face") {
+    Ok(face) => face.cloned(),
+    Err(e) => {
+      return Err(format!(
+        "error: the CLI asked for an argument `face` that the dispatch table does not declare\n  caused by: {e}\n  remedy: this is a build defect -- the renderer and surface/dispatch-table.json disagree"
+      )
+      .into());
     }
-    Err(e) => Err(format!(
-      "error: the CLI asked for an argument `face` that the dispatch table does not declare\n  caused by: {e}\n  remedy: this is a build defect -- the renderer and surface/dispatch-table.json disagree"
-    )
-    .into()),
+  };
+  // GLOBAL: this verb answers outside a project, so no facade is opened here.
+  // `faces::schema` is the one home, and `Facade::schema` is the MCP tier's
+  // door onto the same function -- the refusal below is the facade's refusal.
+  let faces = intentsvcs::faces::schema(face.as_deref()).map_err(fail)?;
+  if versions {
+    print_versions(&faces);
+  } else if face.is_some() {
+    for f in &faces {
+      print!("{}", f.content);
+    }
+  } else {
+    print!("{}", intentsvcs::faces::banner(&faces));
   }
+  Ok(())
 }
 
-/// One line per face: which build produced it, and which contract it is.
-///
-/// **Both parts, always, because they answer different questions** -- the tool
-/// version says which build wrote the artefact and moves on every release; the
-/// contract version says whether a consumer needs to regenerate their client
-/// and must not move on a patch. Printing only one of them would leave the
-/// reader unable to tell a rebuild from a change, which is the distinction the
-/// two-part scheme exists for.
-///
-/// The keys are the faces' own spellings, so a line here and a line inside the
-/// artefact can be correlated without a translation table.
-fn print_versions(only: Option<&str>) {
-  let rows: Vec<_> = intentsvcs::faces::versions()
-    .into_iter()
-    .filter(|(name, ..)| only.is_none_or(|want| *name == want))
-    .collect();
-  let width = rows.iter().map(|(n, ..)| n.len()).max().unwrap_or(0);
-  for (name, tool, key, contract) in rows {
-    println!("{name:<width$}  INTENT_VER={tool}  {key}={contract}");
+/// `--versions`: one line per face, both markers, instead of the bodies.
+fn print_versions(faces: &[intentsvcs::faces::SchemaFace]) {
+  let width = faces.iter().map(|f| f.name.len()).max().unwrap_or(0);
+  for f in faces {
+    println!(
+      "{:<width$}  INTENT_VER={}  {}={}",
+      f.name, f.intent_ver, f.key, f.contract_ver
+    );
   }
 }
 
