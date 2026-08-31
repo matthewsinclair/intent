@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 21:05Z
+heartbeat_at: 2026-08-31 21:19Z
 status: active
 focus: "FOLDED 2026-08-31 18:59Z, pre-fold sha-verified in .history/20260831/. STATUS STAYS active -- a compact does not end a session. THE NEXT RELEASE IS NOT A PATCH (13 commands, 30 flags at 0f5ee514) and the NUMBER IS hv's -- AND THE RELEASE IS ITSELF THE BLOCKER ON ST0068 AC-02.1, which I had filed as unbuilt work owned by dc when it had been built for four days. I understated my own figures to hv THREE times today, all in the direction nobody checks. RE-RUN EVERY FIGURE; READ NONE OFF THIS BOARD."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -192,6 +192,17 @@ The per-property union exists. **What keeps it red is that the criterion's first
   **AND THE CITATION IS WHAT MAKES TRIMMING THE NOTES SAFE:** once every row cites `D10` the shared argument has a named home, so a per-row note repeating it is a second copy of a ratified decision. Each note keeps only what is true of ITS row. **A D-number is a citation with a referent, not the absence-as-meaning this estate rejects.**
 
   **cc's COUNT IS 24 AND MINE SAID 21** -- my own clauses read 19 + 2 + 3 and I totalled them wrong in the same message. Three rows would have stayed silently `keep`.
+
+- **THIS ESTATE DOCUMENTS ITS OWN MECHANISMS CORRECTLY AND THEN APPLIES THE FIX ONE FIELD SHORT** (2026-08-31, two independent instances in one day, both routed from Laksa). **Neither would have suggested a class alone.**
+
+  - **`whiteboard-clock-guard.sh`** explains at length that BSD fills an unspecified time field from the clock, fixes it for the decision-DATE path (`<date> 00:00`), and **leaves `%S` unspecified on the HH:MM path the guard spends all its time in** -- refusing honest stamps on macOS. Fixed `e0cdc389`.
+  - **`apply_envelopes`** carries the guard added after Lamplight lost 4934 bytes of issue prose, whose comment states the principle exactly -- _against the DISK rather than against `self.canon`, because `self.canon` is what this write is derived from, so comparing to it can only ever agree with itself_ -- **scoped to one authored body instead of to the record.** The reasoning generalises verbatim and nobody generalised it. Filed `0206`.
+
+  **THE COMMON SHAPE: THE PROSE IS RIGHT, THE SCOPE OF THE REMEDY IS THE AUTHOR'S CURRENT BUG.** A comment this good reads as coverage -- **nobody re-derives a mechanism that is already written down beside them**, so the narrow fix inherits the wide explanation's credibility. **Detection is not "read more carefully"; it is asking of any documented mechanism WHICH CALL SITES THE REMEDY ACTUALLY REACHES.**
+
+- **`0206` -- CANON VERBS ARE A READ-MODIFY-WRITE WITH NO COMPARE-AND-SWAP** (HIGH, filed `fdbf22e7`, routed by laksa-vc from a real loss on Laksa ST0111). `facade.rs:5215`: `self.canon.clone()` -> mutate one field -> apply the whole record, over a snapshot loaded at `Facade` construction. **THE UNIT OF THE RACE IS THE THREAD** -- `apply_envelopes` diffs and writes only threads that differ, so cross-thread work is safe and **`ST0056` is the exposed one, written by four nodes today.**
+
+  **WORSE THAN A HAND-EDIT RACE BECAUSE THE CLI IS WHAT PEOPLE ARE TOLD TO USE INSTEAD** -- hand-editing is documented unsafe, the CLI carries the identical race and feels safe, and this project SHIPS the concurrency pattern that triggers it. **NOT CLAIMED: no lost write is demonstrated in THIS repo -- the mechanism is read here, the loss was observed on Laksa.** A harness planting two concurrent edits on one thread is the missing evidence and must exist before any fix is banked. **Interim discipline: announce before a canon verb on a shared thread, and commit in the same breath.** No code fix tonight -- a concurrency change to the write path in a release window is hv's.
 
 - **A RECLASSIFICATION IS A CLAIM ABOUT WHY, AND A CLASS CHANGE WITHOUT ITS REASON IS A DELETION WEARING A NEW LABEL** (2026-08-31). **Three rulings today turned out to be this one rule in different clothes** -- worth stating once rather than three times.
 
