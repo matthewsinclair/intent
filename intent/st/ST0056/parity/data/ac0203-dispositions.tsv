@@ -27,10 +27,12 @@
 0074	not-reader-reachable	internal-tooling -- critic coverage messaging is the pre-commit gate's surface	
 0075	not-reader-reachable	internal-tooling -- view_skew_check is a parity instrument; no published page or --help routes a reader to it	
 0076	not-reader-reachable	internal-tooling -- IN-EX-TEST-001's greppable proxy is a rule-library authoring concern	
+0077	not-reader-reachable	not-in-published-build -- driven in a keg-initialised tree: `claude upgrade --apply` writes CLAUDE.md (3509 bytes), .claude/settings.json and AGENTS.md. The unwired claim is not true of v3.0.0.	
 0079	not-reader-reachable	not-in-published-build -- driven against the v3.0.0 keg: st new writes acceptance.md AND info.md there. The defect arrived after the tag.	
 0080	stated	docs/known-defects.md	intent#0080
 0082	stated	docs/known-defects.md	intent#0082
 0083	stated	docs/known-defects.md	intent#0083
+0084	not-reader-reachable	not-exhibited -- the keg migration of f7434f1c refused NOTHING: 0 refusal lines across 56 threads, rc=0. Same corpus caveat as 0124/0126/0129 -- it was not constructed to carry the retired label.	
 0085	not-reader-reachable	internal-tooling -- post-tool-advisory is a Claude Code hook, not a documented verb	
 0087	not-reader-reachable	register-authoring -- VIEW_NAMES and Project::classify are internal encodings with no reader-facing spelling	
 0088	not-reader-reachable	register-authoring -- ST0057's prose cites criterion ids inside this estate's own canon	
@@ -70,6 +72,7 @@
 0124	not-reader-reachable	not-exhibited -- 176 v2 AT rows across 14 acceptance files in a keg-migrated capture of f7434f1c came through with prose byte-identical, 176 of 176. CAVEAT ON THE RECORD: this corpus may not contain prose sitting BETWEEN two recognised fields, so this is a clean negative over a corpus whose ability to exhibit the failure is unproven.	
 0125	not-reader-reachable	multi-node -- three register checks reading the worktree is a shared-checkout hazard	
 0126	not-reader-reachable	not-exhibited -- same 176-row comparison, no splice found. Same caveat: the corpus is real v2 output and was not constructed to carry the triggering shape.	
+0127	not-reader-reachable	not-exhibited -- zero canon objects carry a `legacy` key after a keg migration of f7434f1c. NOTE a text grep for `legacy` over the JSON returns 10 files and is BLIND -- it matches the word in prose; only the structured query answers.	
 0128	not-reader-reachable	internal-tooling -- rulings_check and the runner's report-only contract	
 0129	not-reader-reachable	not-exhibited -- same 176-row comparison, no delimiter rewritten into authored text. NOTE the naive form of this check is BLIND: ' -- ' occurs natively in v2 row syntax, so only a source-to-canon comparison can answer it, and this one is negative-controlled.	
 0130	not-reader-reachable	multi-node -- concurrent filing collision needs two sessions filing at once	
@@ -80,6 +83,7 @@
 0135	not-reader-reachable	multi-node -- two facades taking one id requires concurrent sessions	
 0136	not-reader-reachable	register-authoring -- deny_unknown_fields on AcState::Computed is a canon-schema concern	
 0137	stated	docs/known-defects.md	intent#0137
+0138	not-reader-reachable	not-exhibited -- the only `dropped` lines in the migration are DISCLOSED with their reason -- boilerplate byte-identical to lib/templates/prj/st/WP/info.md, no author wrote it. Nothing silent. Same corpus caveat.	
 0139	stated	docs/known-defects.md	intent#0139
 0140	not-reader-reachable	not-in-published-build -- driven in the same tree: a criterion's `state` object carries ONLY `is` in v3.0.0, so there is no note to publish. Consistent with 0133 (the unsatisfied state carries no payload).	
 0141	not-reader-reachable	register-authoring -- a self-loop on a payload-carrying state enum is a data-model concern	
@@ -130,3 +134,4 @@
 0187	stated	docs/getting-started.md	does not work in this build and refuses with a reason that is out of date.
 0188	not-reader-reachable	register-authoring -- the register's inability to record why an issue was closed is met by a register author, not by a reader	
 0189	not-reader-reachable	not-in-published-build -- driven against the v3.0.0 keg: edit refuses --path with `unexpected argument`, so the kind-blindness is post-tag.	
+0190	not-reader-reachable	register-authoring -- the duplicate rows and the exposed_on_mcp contradiction are in surface/dispatch-table.json, our generator's SOURCE. The reader-facing consequence of the shared spelling is already stated at docs/reference/cut-surface.md:224; the MCP exposure contradiction reaches no published page.	
