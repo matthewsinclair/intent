@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 12:13Z
+heartbeat_at: 2026-08-31 12:20Z
 status: paused
 focus: "FOLDED 2026-08-31 12:12Z, pre-fold verbatim + sha-verified at .history/20260831/wip-fold-1212Z.md. NOTHING IN FLIGHT, nothing owed to any peer. On the bounce, in order: (1) the third endpoint state -- vc's WP-08 seam, release-blocking since hv put the menubar app in 3.0.1; (2) the write-path package's remaining items. Address-uniformity is mapped with ic and HELD for hv."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
@@ -23,6 +23,10 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 - **ADDRESS UNIFORMITY -- MAPPED WITH ic, HELD FOR hv, NO CODE FROM EITHER OF US.** `promote()` is the declared command-line door and accepts a bare id OR an `intent://` address; 5 call sites use it and **37 use `thread_arg`**, which splits on `/` and reads `intent:` as the thread id. Two hv rulings are needed: does the nav SINGULAR grammar (`/thread/X`, AC-17.12) stay user-facing or go internal to the TUI view stack, and is the strict form the only one. **My measurement is the one that shapes it: NOTHING emits a canonical address -- zero across `st show`, `st list`, `issues show`, `search`, `doctor`, `--json`, `--format md`.** So strict refusal needs an EMIT partner in the same work, or the exact form is unlearnable and hv's `intent://threads/65` is what anyone reconstructs from memory. Split agreed: I take the ~40 call sites + a promote-then-narrow-then-RE-RENDER helper (the `ST0056/03` composite must survive a type that spells it `intent:///threads/ST0056/wp/3`) + a property test + a ratchet; ic takes explore, the address->view resolution, the grammar surface and the emit side.
 
 ## Watch-outs
+
+**A FILE CAN BE IN HEAD AND IN THE STORE WHILE THE COMMITTED EXTRACT NAMES IT NOWHERE, AND EVERY GUARD STAYS GREEN** -- vc, on my AC-10.5 landing, fixed at `8752461b`. `canon_commit_check` tests the OTHER direction: that canon does not name bytes the commit fails to carry. Nothing tests this one. **It matters because the extract is what a clone INGESTS (D34)**: on a fresh clone the store would hold no verdict for any member and `fleet_corpus_conservation.sh` would report all four UNRUN -- _work not yet done_ rather than a defect, with the instrument telling the truth about the estate it was handed.
+
+**AND I MEASURED IT WORSE THAN vc DESCRIBED IT: THE EXTRACT WAS PARTIALLY CORRECT.** At `dbb736ce` it named `canary.verdict` -- vc's, landed earlier -- and none of the three I added. **A partial extract is the shape that reads as fine**, because the field is present and populated. **This is `0178`'s class again: a defect that exists only in the commit, whose only witness is a clone nobody has made** -- and the remedy is still not a tool. `git clone` into a tempdir costs four seconds, and neither of us ran it on a landing whose entire subject was whether a migration conserved what it was given.
 
 **A DEFECT CAN HAVE A GUARD ASSERTING IT, AND THAT IS WHY IT SURVIVES.** `unwired()` asked the TABLE what the BINARY implements; `dispatch_ssot.rs` then asserted that same predicate from the other side. **The test had the RIGHT NAME, so every review looking for coverage of that defect found coverage of it.** A test whose name describes the defect and whose predicate cannot see it is worse than no test -- it consumes the search that would have found the hole. **When you fix a defect, grep for the test holding it in place before reading a red as your own breakage.**
 
