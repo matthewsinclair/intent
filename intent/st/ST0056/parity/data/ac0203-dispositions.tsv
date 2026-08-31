@@ -146,3 +146,4 @@
 0197	not-reader-reachable	not-in-published-build -- driven: the keg's `at new` declares no --note at all (error: unexpected argument '--note' found), so a to-write note cannot be SET on 3.0.0 (80d8b2ca) and the write-once trap is unreachable there	
 0203	stated	docs/migrating-from-v2.md	Use `--help` instead: `intent st --help` answers on the same build
 0200	not-reader-reachable	dev-apparatus-only -- rules_lib.sh ships NOWHERE after the cut (its own header: apparatus for critic_runner.sh and the critic_arming_census.bats oracle), and bin/intent_helpers is v2 CLI source, so no v3.0.0 reader reaches either home	
+0208	not-reader-reachable	intent-own-development-only -- driven: the subject is node identity in THIS repo multi-node commit stream (1 git author, 175 of 314 commits today carrying no wb(<node>) tag). A v3.0.0 consumer runs the binary and never meets the whiteboard commit convention, which is Intent internal process rather than shipped behaviour	
