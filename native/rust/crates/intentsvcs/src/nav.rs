@@ -437,6 +437,15 @@ pub fn land(input: &str, present: impl Fn(&View) -> bool) -> Landing {
   // two injections would be two homes that agree until a face wires one of them
   // differently. Deriving it also means a caller cannot supply a presence rule
   // for landing and a different one for resolving.
+  //
+  // **THE SINGLE DOOR WAS CHOSEN, NOT DEFAULTED, AND THE CONDITION FOR SPLITTING
+  // IT IS RECORDED HERE ON PURPOSE** (vc's condition on accepting this over
+  // their own ruled shape, 2026-08-31). If a face ever genuinely needs presence
+  // and content to DIFFER -- an entity that exists whose view legitimately
+  // renders empty -- that is the moment to separate them, and the separation is
+  // a RULING rather than a quiet second injection. A reader who meets two
+  // closures here later should be able to tell that somebody decided, rather
+  // than that somebody added one.
   let exists =
     |a: &crate::address::Address| view_for(&a.entity).map(|v| present(&v)).unwrap_or(false);
   let address = match crate::resolve::resolve(input, exists) {
