@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-08-31 18:58Z
+heartbeat_at: 2026-08-31 20:15Z
 status: active
 focus: "FOLDED 2026-08-31 18:58Z, pre-fold verbatim + sha-verified at .history/20260831/wip-fold-1858Z.md (954dc920676354eb, 18883 bytes). NOTHING IN FLIGHT, tree clean of me. LANDED TODAY: AC-09.6 (both halves) and AC-10.6 (rollback exercised, tree-identical). FILED: 0198, 0199. FOUR OF MY OWN CLAIMS DIED BY MEASUREMENT AND TWO OF THEM WERE MY OWN INSTRUMENTS OVER-MATCHING. RE-DRIVE EVERY FIGURE HERE; the ones that matter name their revision."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
