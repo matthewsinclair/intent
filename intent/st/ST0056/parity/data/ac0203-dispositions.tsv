@@ -27,6 +27,7 @@
 0075	not-reader-reachable	internal-tooling -- view_skew_check is a parity instrument; no published page or --help routes a reader to it	
 0076	not-reader-reachable	internal-tooling -- IN-EX-TEST-001's greppable proxy is a rule-library authoring concern	
 0079	not-reader-reachable	not-in-published-build -- driven against the v3.0.0 keg: st new writes acceptance.md AND info.md there. The defect arrived after the tag.	
+0080	stated	docs/known-defects.md	intent#0080
 0083	stated	docs/known-defects.md	intent#0083
 0085	not-reader-reachable	internal-tooling -- post-tool-advisory is a Claude Code hook, not a documented verb	
 0087	not-reader-reachable	register-authoring -- VIEW_NAMES and Project::classify are internal encodings with no reader-facing spelling	
@@ -43,6 +44,7 @@
 0100	not-reader-reachable	v2-estate -- unmappable WP status arises in v2 ingest, covered for readers by migrating-from-v2.md's recovery framing	
 0101	not-reader-reachable	internal-tooling -- converge_gitignore's events.jsonl rule is estate self-application	
 0102	not-reader-reachable	internal-tooling -- a control's axis coverage is a property of the parity rig	
+0103	not-reader-reachable	not-in-published-build -- driven in a keg-migrated capture of f7434f1c: `wp list ST0019` renders 3 rows against 3 in canon. The zero-rows defect does not reproduce on v3.0.0.	
 0104	not-reader-reachable	no-door -- doctor's output shape is cosmetic; no page or --help states a contract it violates	
 0105	not-reader-reachable	post-cut-subject -- the shim hook-carrier is infrastructure introduced after the cut; v3.0.0 has neither the carrier nor the defect	
 0106	not-reader-reachable	post-cut-subject -- same carrier; absent from the published build	
@@ -63,8 +65,11 @@
 0121	stated	docs/known-defects.md	intent#0121
 0122	not-reader-reachable	not-in-published-build -- driven: `modules check` routes to `intent lang init <lang>`, not to `intent upgrade`. The recorded remedy defect is not in this build.	
 0123	not-reader-reachable	register-authoring -- the thread close gate's WP blindness is reached through this estate's own threads	
+0124	not-reader-reachable	not-exhibited -- 176 v2 AT rows across 14 acceptance files in a keg-migrated capture of f7434f1c came through with prose byte-identical, 176 of 176. CAVEAT ON THE RECORD: this corpus may not contain prose sitting BETWEEN two recognised fields, so this is a clean negative over a corpus whose ability to exhibit the failure is unproven.	
 0125	not-reader-reachable	multi-node -- three register checks reading the worktree is a shared-checkout hazard	
+0126	not-reader-reachable	not-exhibited -- same 176-row comparison, no splice found. Same caveat: the corpus is real v2 output and was not constructed to carry the triggering shape.	
 0128	not-reader-reachable	internal-tooling -- rulings_check and the runner's report-only contract	
+0129	not-reader-reachable	not-exhibited -- same 176-row comparison, no delimiter rewritten into authored text. NOTE the naive form of this check is BLIND: ' -- ' occurs natively in v2 row syntax, so only a source-to-canon comparison can answer it, and this one is negative-controlled.	
 0130	not-reader-reachable	multi-node -- concurrent filing collision needs two sessions filing at once	
 0131	not-reader-reachable	multi-node -- same concurrent-filing shape; a single reader cannot race themself	
 0132	not-reader-reachable	internal-tooling -- cargo test invocation flags are CI and release-gate surface	
@@ -74,6 +79,7 @@
 0136	not-reader-reachable	register-authoring -- deny_unknown_fields on AcState::Computed is a canon-schema concern	
 0137	stated	docs/known-defects.md	intent#0137
 0139	stated	docs/known-defects.md	intent#0139
+0140	not-reader-reachable	not-in-published-build -- driven in the same tree: a criterion's `state` object carries ONLY `is` in v3.0.0, so there is no note to publish. Consistent with 0133 (the unsatisfied state carries no payload).	
 0141	not-reader-reachable	register-authoring -- a self-loop on a payload-carrying state enum is a data-model concern	
 0142	stated	docs/getting-started.md	reachable only from red
 0143	stated	docs/known-defects.md	intent#0143
@@ -86,6 +92,7 @@
 0150	not-reader-reachable	no-door -- an orphan skill directory canon has forgotten is invisible to the only instrument that looks, so nothing routes a reader there	
 0151	not-reader-reachable	register-authoring -- a false issue title is met by a register author, not by a reader following the docs	
 0152	not-reader-reachable	internal-tooling -- the five-second contended-write timeout is a dependency default under concurrent access	
+0153	stated	docs/known-defects.md	intent#0153
 0154	stated	docs/install.md	there is no verb that edits a criterion in place
 0155	not-reader-reachable	internal-tooling -- rule_validator.bats is a test in the estate's own suite	
 0156	stated	docs/known-defects.md	intent#0156
@@ -121,5 +128,3 @@
 0187	stated	docs/getting-started.md	does not work in this build and refuses with a reason that is out of date.
 0188	not-reader-reachable	register-authoring -- the register's inability to record why an issue was closed is met by a register author, not by a reader	
 0189	not-reader-reachable	not-in-published-build -- driven against the v3.0.0 keg: edit refuses --path with `unexpected argument`, so the kind-blindness is post-tag.	
-0153	stated	docs/known-defects.md	intent#0153
-0080	stated	docs/known-defects.md	intent#0080
