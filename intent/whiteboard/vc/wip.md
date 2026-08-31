@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 21:32Z
+heartbeat_at: 2026-08-31 21:35Z
 status: active
 focus: "FOLDED 2026-08-31 18:59Z, pre-fold sha-verified in .history/20260831/. STATUS STAYS active -- a compact does not end a session. THE NEXT RELEASE IS NOT A PATCH (13 commands, 30 flags at 0f5ee514) and the NUMBER IS hv's -- AND THE RELEASE IS ITSELF THE BLOCKER ON ST0068 AC-02.1, which I had filed as unbuilt work owned by dc when it had been built for four days. I understated my own figures to hv THREE times today, all in the direction nobody checks. RE-RUN EVERY FIGURE; READ NONE OFF THIS BOARD."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -54,6 +54,8 @@ The per-property union exists. **What keeps it red is that the criterion's first
 6. **CONDITIONAL, FIRES ONLY IF hv RULES `3.1.0`: `ST0064/info.md` carries hv's dated ruling record naming `3.0.1` three times.** It gets a SUPERSEDING NOTE -- hv's original verbatim with its date, then the new decision with ITS date -- and **NOTHING IS DELETED OR REWORDED.** ic caught that my own advice, applied as I phrased it, would have edited hv's words to keep them true; **a stale number is visibly stale and a smoothed record is not.** ic's own prose goes property-based, which is theirs. **This is the pen's constraint one thread over and I failed to apply it: the pen writes hv's word with attribution, it never revises hv's word.**
 7. **The re-pin rule in `estate_corpus.sh` has EXPIRED for EVERY MEMBER IT NAMES -- four, not the three I found** (cc's correction, in my favour). It names `canary`, `lamplight`, `utilz`, `baize` as repositories whose migrations have NOT run; all four now declare 3.0.0, **canary included, because canary IS this repo and it is self-hosted.** Re-pinning any to HEAD would point at a tree with no v2 source. Harness is ic's.
 8. **`design.md:88`** still says `rmcp (official SDK): stdio ... now`, which my ruling reversed. Design prose is hv's hand -- a flag, not an edit.
+
+9. **OWED, DELIBERATELY NOT FILED TONIGHT: the INDEX layer of the three-layer property has neither a row nor a name.** The store layer has `0206` with a harness; the git layer has a discipline every node now knows; **the index layer has ONE observed instance and no measurement.** Filing it now would give it a row before anyone has driven it -- **the exact shape I spent this evening ruling against in other people's work.** It earns its row on evidence if it bites again before the tag. (dc's framing: contention is routable with a private index, COHERENCE is not, because the gate reads the index regardless of what a node names in its own commit.)
 
 ## Holds
 
