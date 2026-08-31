@@ -183,20 +183,24 @@ claims: []
 
 **ADDED 2026-08-31 12:49Z (vc, under the pen). THIS SECTION EXISTS BECAUSE THE SECTION BELOW IT DOES NOT COVER THIS CASE.** `## Rulings made and NOT yet executed` holds decisions hv HAS taken. A question hv has been ASKED and has not answered is a third state, and until today it lived only in vc's board and in whatever message carried it. **That is the same defect as the fold, one step earlier: a ruling in transit is a ruling nobody has, and a QUESTION in transit is a question nobody has been asked.** An entry leaves this section by being RULED, at which point it moves down into the section below or is executed directly. Each carries the measurement that shapes it so it is answerable cold.
 
-- **DOES `0206` BLOCK THE RELEASE? A DATA-LOSS RACE THAT FIRES 6 TIMES IN 10 ON THE SHIPPED BINARY.** (PUT %s by vc under the pen. **This is a release decision and releases are hv's; vc is not ruling it.**)
+- **DOES `0206` BLOCK THE RELEASE? A DATA-LOSS RACE THAT FIRES 19 TIMES IN 20 ON THE SHIPPED BINARY.** (PUT 2026-08-31 21:22Z by vc under the pen. **This is a release decision and releases are hv's; vc is not ruling it.**)
 
   **Two concurrent canon verbs on the SAME THREAD silently lose the earlier write.** No error, no conflict, valid canon afterwards, and the worktree ends byte-identical to HEAD so **`git status` reports nothing.** Routed by laksa-vc from a real loss on Laksa ST0111; mechanism verified in our own source at `facade.rs:5215` -- `self.canon.clone()`, mutate one field, apply the whole record, over a snapshot loaded at `Facade` construction.
 
   **DEMONSTRATED HERE BY cc, ON BOTH BINARIES, WITH TWO CONTROLS:**
 
-  | binary  | revision   | same-thread       | cross-thread |
-  | ------- | ---------- | ----------------- | ------------ |
-  | debug   | `f9709004` | **22 of 25 lost** | 0 of 25      |
-  | release | `abe69906` | **9 of 15 lost**  | 0 of 15      |
+  | binary  | revision   | arm          | overlapping trials | non-trials | lost   |
+  | ------- | ---------- | ------------ | ------------------ | ---------- | ------ |
+  | release | `abe69906` | same-thread  | 20                 | 0          | **19** |
+  | release | `abe69906` | cross-thread | 20                 | 0          | **0**  |
 
-  Sequential positive control lands both every time; the cross-thread control loses nothing in 40 iterations, **so the unit of the race is the THREAD** -- which the `apply_envelopes` diff predicted before it was measured.
+  **FIGURE CORRECTED 2026-08-31 21:24Z: I first put 9 of 15 (60%) here and it UNDERSTATED the defect.** That run was diluted by iterations that were not trials -- the two processes launched sequentially-with-luck and did not always overlap, so non-overlapping iterations counted as clean. cc added a start gate and per-process interval timing; an iteration now counts only when the two intervals intersect. **ZERO non-trials in either arm**, so the cross-thread 0 is not _they never overlapped_ -- all 20 demonstrably did and both writes landed anyway. Sequential positive control lands both every time. **The unit of the race is the THREAD**, which the `apply_envelopes` diff predicted before it was measured.
 
-  **THE ARGUMENT FOR BLOCKING:** it is silent data loss in the verb set that IS the product, on the delivered artefact, at 60%%. **And Intent SHIPS the concurrency pattern that triggers it** -- the whiteboard fleet is N sessions on one tree, which this project both invented and runs.
+  **THE BOUND CANNOT FLATTER THE FINDING:** the process wall interval is WIDER than the load-to-apply window, so a non-overlap is a DEFINITE non-trial and an overlap only a POSSIBLE one. Trials are an upper bound and the per-trial loss rate a LOWER bound. **19 of 20 is the floor, not the estimate.**
+
+  **AND THE POPULATION IS 19 CALL SITES, NOT ONE** (dc): `grep -c 'self\.canon\.clone()' facade.rs` returns 19, every one the same load-mutate-apply-whole-record shape. **The race is a property of the facade's WRITE PATH, not of one verb** -- a reader sizing it from a single citation would fix one verb.
+
+  **THE ARGUMENT FOR BLOCKING:** it is silent data loss in the verb set that IS the product, on the delivered artefact, at 95%. **And Intent SHIPS the concurrency pattern that triggers it** -- the whiteboard fleet is N sessions on one tree, which this project both invented and runs.
 
   **THE ARGUMENT AGAINST:** single-session use is safe, the unit is the thread so most work is unaffected, and the interim discipline is one sentence -- **announce before a canon verb on a shared thread, commit in the same breath.** cc notes the canon gate's file-and-canon-together rule already enforces most of that exposure window for anyone following it.
 
