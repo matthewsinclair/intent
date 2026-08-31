@@ -135,6 +135,34 @@ if [ -z "$bin_path" ]; then
   exit 2
 fi
 
+# **A FOURTH ABSENCE: THE BINARY RUNS NOTHING.** The three above cover a
+# dangling link, a missing link, and a stopped daemon -- and they leave out the
+# world where a build RAN AND LEFT NOTHING BEHIND: the artefact is on PATH, is
+# executable, resolves, and does not work. `command -v` is satisfied by the file
+# MODE, so a truncated, half-written or failing binary passes every test above.
+#
+# WITHOUT THIS ARM THAT WORLD IS REPORTED AS `NO DAEMON IS ANSWERING`, WITH THE
+# REMEDY `intent daemon start` -- measured 2026-08-31 (vc) by planting a
+# `#!/bin/sh\nexit 1` on PATH and driving this tool, which printed exactly that.
+# **The operator is then sent to start a daemon that may already be running, and
+# never learns the binary is broken.** That is worse than the conflation cc
+# named, because the other three at least tell the truth about the world they
+# name; this one names the wrong subsystem and hands over a remedy that cannot
+# work.
+#
+# THE DISCRIMINATOR IS A READ THAT NEEDS NO DAEMON. `--version` is answered by
+# the process itself, so a failure is a fact about the ARTEFACT and a success
+# leaves any later silence attributable to the daemon.
+if ! "$BIN" --version >/dev/null 2>&1; then
+  echo "    NOT EVALUABLE -- \`$BIN\` is on PATH at ${bin_path} and DOES NOT RUN: it cannot"
+  echo "    answer \`--version\`, which needs no daemon and no store. **A build ran and left"
+  echo "    nothing behind.** Distinct from the dangling case, which is transient, from"
+  echo "    not-on-PATH, which is never-installed, and from a stopped daemon below --"
+  echo "    which is what this WOULD have been reported as before this arm existed."
+  echo "    remedy: rebuild. Do NOT start a daemon; the daemon is not what is broken."
+  exit 2
+fi
+
 sock="$("$BIN" daemon status 2>/dev/null | sed -n 's/.*answering at //p')"
 if [ -z "$sock" ] || [ ! -S "$sock" ]; then
   echo "    NOT EVALUABLE -- \`$BIN\` is present at ${bin_path} and NO DAEMON is answering,"
