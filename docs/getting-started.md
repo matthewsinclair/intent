@@ -4,18 +4,19 @@ This walks one steel thread from nothing to satisfied. It takes about ten minute
 
 Everything below runs against a real repository. Intent lives inside your project, not beside it.
 
+**Every command on this page has been run, in this order, from an empty directory, and the sequence ends at a passing gate.** That is worth stating because the previous version of this page had not been: it broke on its first command, told you to create a test covering a criterion it never had you create, and ended at a gate its own steps could not pass.
+
 ## 1. Initialise
 
+You need a repository to work in. Intent does not create one:
+
 ```
-  $ cd your-project
-  $ intent init --lang rust
+  $ mkdir your-project && cd your-project
+  $ git init
+  $ intent init
 ```
 
-This creates `intent/` in your repository and generates the agent contract at the root.
-
-`--lang` declares which languages the project is in. **It is a declaration, not a detection** — Intent will not guess from the files present, because file presence is unreliable evidence and a wrong guess loads the wrong rules. Pass a comma-separated list, or add languages later with `intent lang init <lang>`.
-
-What you get:
+`intent init` creates `intent/` in your repository and generates the agent contract at the root.
 
 ```
   intent/
@@ -25,6 +26,17 @@ What you get:
     wip.md                  current work in progress
   AGENTS.md                 the tool-agnostic agent contract, generated
 ```
+
+Then declare which languages the project is in:
+
+```
+  $ intent lang init rust
+  declared: rust
+```
+
+**It is a declaration, not a detection** — Intent will not guess from the files present, because file presence is unreliable evidence and a wrong guess loads the wrong rules. `lang init` takes more than one language and is idempotent, so you can add to it later.
+
+**`intent init --lang rust` does not work in this build and refuses with a reason that is out of date.** It says `intent lang init` is not implemented; that command is implemented and is the one above. What is missing is `init` calling it. Declare languages as a separate step until that is wired.
 
 `AGENTS.md` is **generated from project state** by `intent agents sync`. Do not hand-edit it; the next sync will overwrite you.
 
@@ -73,11 +85,18 @@ Work packages are the units that get done. A thread with one work package is fin
 
 **This is the step that distinguishes Intent from a task tracker.** A criterion is a condition that decides whether the intention was met — not a restatement of the work.
 
+A criterion is one of two kinds, and **the kind decides what satisfies it**:
+
+- `--kind test` — satisfied by its covering tests going green. Nothing else can satisfy it.
+- `--kind non-test` — satisfied by named evidence you record, for the things a test cannot decide: a review, a document, a read.
+
 ```
-  $ intent ac new ST0001 AC-01.1 --text "Evicts oldest entries under memory pressure rather than failing writes"
-  $ intent ac new ST0001 AC-01.2 --text "A warm cache survives a process restart"
+  $ intent ac new ST0001 AC-01.1 --kind test --text "Evicts oldest entries under memory pressure rather than failing writes"
+  $ intent ac new ST0001 AC-01.2 --kind test --text "A warm cache survives a process restart"
   $ intent ac new ST0001 AC-02.1 --text "Requests over quota are refused, not queued"
 ```
+
+**`--kind` defaults to `non-test`, so pass `--kind test` deliberately.** A criterion you meant to be test-backed and left to the default will sit unsatisfied no matter how green its tests are, because greenness is not what satisfies a non-test criterion. The third line above takes the default on purpose — it is satisfied in §5 by evidence rather than by a test.
 
 Ids are caller-assigned. The convention `AC-<wp>.<n>` ties a criterion to the work package that satisfies it, and Intent does not enforce it — it is a convention that reads well, not a rule.
 
@@ -85,34 +104,51 @@ Ids are caller-assigned. The convention `AC-<wp>.<n>` ties a criterion to the wo
 
 A criterion with nothing behind it is a promise. An acceptance test is what turns it into a computed fact.
 
+**A test row cites a file, and the gate checks two things about that file: that it exists, and that it contains the test's own id.** So write the files before you cite them:
+
 ```
+  $ mkdir -p tests
+  $ echo '// AT-01.1 -- evicts oldest entries under memory pressure' > tests/cache_eviction.rs
+  $ echo '// AT-01.2 -- a warm cache survives a process restart'     > tests/cache_persistence.rs
+
   $ intent at new ST0001 AT-01.1 --covers AC-01.1 --file tests/cache_eviction.rs
   $ intent at new ST0001 AT-01.2 --covers AC-01.2 --file tests/cache_persistence.rs
 ```
+
+The id in the file is what ties a row to the thing that runs; without it the gate reports `does not carry the literal id` and the criterion stays unsatisfied even with the row green.
 
 A test starts at `to-write`. When it exists and fails it is `red`; when it passes it is `green`.
 
 ```
   $ intent at red   ST0001 AT-01.1
   $ intent at green ST0001 AT-01.1 --note "passes at 8k entries under 64MB"
+  $ intent at red   ST0001 AT-01.2
+  $ intent at green ST0001 AT-01.2 --note "passes across a restart"
 ```
 
 **Go through `red` first, even though nothing forces you to.** A test that goes straight from `to-write` to `green` was never observed failing, so nothing has demonstrated it can fail — which is the difference between a test and a decoration. **`at green`'s own help says "reachable only from red"; that describes v2, and v3 does not enforce it.** See [Criteria and tests](concepts/criteria-and-tests.md).
 
-**Not everything is testable by a test, and Intent does not pretend otherwise.** A criterion satisfied by a document, a review or an eyeball is `--kind non-test`, and its acceptance test cites what was read rather than a file:
+**Not everything is testable by a test, and Intent does not pretend otherwise.** `AC-02.1` was created `non-test` in §4. Its acceptance test cites what was read rather than a file, and **the criterion is then satisfied by naming the evidence**:
 
 ```
-  $ intent at new ST0001 AT-02.9 --covers AC-02.9 --kind non-test --prose "Reviewed the rate-limit design against the upstream contract, 2026-08-29"
+  $ intent at new ST0001 AT-02.1 --covers AC-02.1 --kind non-test --prose "Reviewed the rate-limit design against the upstream contract"
+  $ intent at na  ST0001 AT-02.1 --note "Reviewed 2026-08-31; refusal path confirmed against the upstream contract"
+  $ intent ac satisfy ST0001 AC-02.1 --evidence "AT-02.1: reviewed against the upstream contract"
 ```
+
+**`at new` refuses a `--covers` naming a criterion that does not exist**, which is what you want — a test covering nothing is a row that can never move its criterion.
 
 ## 6. Read the state back
 
 ```
   $ intent st show ST0001
   $ intent ac list ST0001
+  ac: AC-01.1  covered-by: AT-01.1  satisfied: yes
+  ac: AC-01.2  covered-by: AT-01.2  satisfied: yes
+  ac: AC-02.1  covered-by: AT-02.1  satisfied: yes
 ```
 
-**A criterion's state is computed, not asserted.** If its covering tests are green, it is satisfied; if they are not, it is not. You do not tick a box, and there is no way to make a thread look done that does not involve making it done.
+**A test-backed criterion's state is computed, not asserted.** If its covering tests are green, it is satisfied; if they are not, it is not. You do not tick a box, and there is no way to make a test-backed thread look done that does not involve making it done. **A non-test criterion is the deliberate exception**: it is satisfied by evidence you record, which is why the evidence is named on the record and `ac unsatisfy` clears the satisfaction and the evidence together.
 
 When you want the gate rather than the listing:
 
@@ -127,6 +163,8 @@ When you want the gate rather than the listing:
 ```
   $ intent st done ST0001
 ```
+
+`st done` runs the gate first and refuses a thread that would not pass it, so a closed thread is a thread that was actually finished.
 
 ## Where to go next
 
