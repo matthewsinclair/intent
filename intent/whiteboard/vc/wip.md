@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-08-31 15:56Z
+heartbeat_at: 2026-08-31 16:17Z
 status: active
 focus: "FOLDED 2026-08-31 15:56Z, pre-fold sha-verified at .history/20260831/wip-fold-1556Z.md. STATUS STAYS active -- invariant 6, and the skill now says so in one voice rather than three. hv RULED TWO: 0192 wire the read-back (cost it first, fall back to re-closing rather than shipping the hazard), AC-09.6 narrow AND make the drop loud. Both on hv/wip.md, both cc's. RE-RUN EVERY FIGURE -- the binary is 553ac304 and moved twice today. I fabricated two timestamps by reading local off ls -la and appending Z; dc caught it."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -21,11 +21,23 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 **AND THE BINARY IS NOT NECESSARILY HEAD, AND IT MOVED TWICE TODAY** -- a854d7c3, then absent for ~19 minutes, then 553ac304. `intent --version` names the commit it was built from. Check it before quoting any behaviour, and check the EXIT CODE before believing an empty answer.
 
+### MY TEN ON THE CUT'S CRITICAL PATH, ENUMERATED FOR THE FIRST TIME
+
+**ST0056's 27 unsatisfied criteria split by owner: TEN ARE THREAD-LEVEL `AC-00.x` AND THEREFORE MINE** -- cc six (`AC-06.1` `.3` `.8`, `AC-10.5` `.6`), dc five (`AC-04.6` `AC-07.7` `AC-11.1` `.4` `AC-12.4`), ic three (`AC-09.6` `AC-17.1` `.6`) -- **and FOUR ARE WP-15's, WHICH NO NODE CLAIMS** (`Skills catalogue triage`, L, Not Started). **MY TODO CARRIED TWO OF THE TEN AND THE OTHER EIGHT WERE INVISIBLE.** A list assembled from what a day TOUCHED is not the set the tag is OWED. Nothing was wrong with either list; they answer different questions and I had only ever written down the first.
+
+**THE STATES ROT -- re-derive with `intent at list ST0056`, never read them off this board. The durable part is that the ten are THREE DIFFERENT KINDS OF THING, and only one kind is work I can do:**
+
+- **RELEASE-GATED, AND CORRECTLY RED (2).** `AC-00.5` wants `brew install` on a clean machine and the tap is WP-11, unbuilt; `AC-00.6` deletes the 26 v2 files AT the cut, so it is red BY CONSTRUCTION until the cut happens. **Neither can go green before the tag and NEITHER MAY BE REWORDED TOWARD GREEN** -- 3b, rewording to match an unfinished build is the defect. Their redness is the record working.
+- **ONE-WAY CERTIFICATE MOVES (2 reachable).** `AT-00.2` (fleet corpus ingest) and `AT-00.11` are `to-write`, and 8c is that no verb sets a row back. **The artefact exists BEFORE the move, never after.**
+- **DRIVABLE NOW -- INSTRUMENT EXISTS AND FAILS (6).** `AC-00.1` `AC-00.7` `AC-00.8` `AC-00.10` `AC-00.14` `AC-00.16`. **For each, 3b's question BEFORE any edit: red because the build is unfinished, or red because the criterion is a stale second home?** And where a reword is right, **carry its AT** -- dc's 3d, my 2026-08-30 pass strengthened two criteria and left both certificates at the old bar.
+
 ### WATCHING hv's TWO RULINGS OF 15:54Z EXECUTE (both cc's, neither mine)
 
 **They are recorded on `hv/wip.md`, which is their home -- do not copy them here.** My job is to notice if they do not land: `0192` wants the read-back wired with hv's cost-it-first condition, `AC-09.6` wants the table narrowed AND `mcp.rs:97` made loud.
 
 ## TODO
+
+**ITEMS 2 AND 3 ARE THE CONTENT OF TWO ROWS IN THE ENUMERATION ABOVE** (`AC-00.16` and `AC-00.11`); the set lives there and the detail lives here, which is one home each rather than two. **ITEMS 1, 4 AND 5 ARE NOT ON THE CUT'S CRITICAL PATH** and should yield to the other eight criteria whenever they compete.
 
 1. **ADD THE THIRD ABSENCE CLASS TO `capability_ship_check.sh`** (cc's finding, 2026-08-31). The tool carries three absences -- dangling symlink, not on PATH, no daemon -- and NOT **a build ran and left nothing behind**. `dvb build all` forces the provenance embeds, which DELETES the binary pair, then can exit 1 at the SET check without replacing them. **That state is indistinguishable from mid-rebuild to any instrument that only asks whether cargo is running.** cc files the `dvb build all` delete-then-fail hazard separately; the CLASS is mine.
 2. **`AT-00.20`'s SUCCESSOR: THE UNION PER PROPERTY** (`AC-00.16`, mine). Today's census computes a FILE-level union and says so; the criterion is scoped _for any property the estate claims_, and the register already holds the AC/AT pairing that would key it.
@@ -37,7 +49,6 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 **Each carries the CONDITION that releases it, per the section I landed in the skill today. A hold with no condition is an abandonment.**
 
-- **`0193`'s wrong subject stands in the register.** Held by: dc, whose rewrite is parked at `dc/.history/20260831/0193-rewrite-PENDING.md`. **Condition: dc lands it now that the binary is back** -- I have told them to. If it is still wrong at the next pickup, it becomes mine.
 - **The `at lint` defect is unfiled.** Held by: dc, on my ruling that it is a verb defect and not a page caveat. **Condition: dc files it.** The verb answers `ok -- N AT row(s) conform` for a row citing a file with no id, while the gate refuses that same row.
 - **`AC-02.1` cannot be satisfied against the keg.** dc drove getting-started end to end: the terminating gate is BLOCKED on 3.0.0 because `at green --note` is refused there, so the page cannot be driven to its own passing gate on what a user installs TODAY, while its opening sentence says it can. **Condition: v3.0.1 ships.** Honestly red until then, and NOT to be scored against the tree to make it green.
 - **The `dvb build all` delete-then-fail hazard is UNFILED.** Held by: cc, who has the detail and the run. **Condition: cc files it on the bounce** -- they deferred deliberately on the grounds that a half-written issue in the register is worse than a described one in a message, which is right. It deletes the binary pair to force the provenance embeds and does not restore them if the build then fails, against a shared artefact four sessions consume.
