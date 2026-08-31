@@ -73,7 +73,7 @@ A missing required argument, an unknown option, or an unknown subcommand exits 1
 Commands that need a project refuse outside one with exactly `error: not in an Intent project directory`, exit 1.
 
 - **v2:** bin/intent:206; measured uniform across 14 commands
-- **Target:** `corrected` -- ratified: vc-ruled 2026-08-15 on ic's finding. hv ratification outstanding, NOT blocking, one word to reverse. The basis is RATIFIED rather than new scope: the `error:` + `remedy:` voice that INV-01 and AC-06.11 both push toward is what v3's message already speaks and v2's does not. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. vc, 2026-08-15, ruling applied at commit 8d6604c4 -- behaviour: v2 emits `error: not in an Intent project directory` then `  '<cmd>' requires an Intent project`. v3 emits `error: no Intent project found at or above <dir> (looked for intent/.config/config.json)` then a `remedy:` line naming `intent init` or changing directory. MEASURED on both binaries, not read.
+- **Target:** `corrected` -- ratified: vc-ruled 2026-08-15 on ic's finding, and RATIFIED BY hv 2026-08-31, put by vc with three options (ratify / decline-and-mint-a-third-state / leave it red) and this one chosen. The outstanding half is discharged: this field no longer carries a state its own prose denies. RECORDED RATHER THAN RE-ANCHORED -- AC-00.13's corollary is that the remedy for a DANGLING value is the wrong remedy for an INEXPRESSIBLE one, so the fix was never to edit the enum to agree with the prose; it was for the ratification to happen. It has. The basis is RATIFIED rather than new scope: the `error:` + `remedy:` voice that INV-01 and AC-06.11 both push toward is what v3's message already speaks and v2's does not. MIGRATED FROM `ratified_in` (ic, 2026-08-22): the machine-read half of the text below is now the declared `rulings` array above; this is the human half and NOTHING PARSES IT. vc, 2026-08-15, ruling applied at commit 8d6604c4 -- behaviour: v2 emits `error: not in an Intent project directory` then `  '<cmd>' requires an Intent project`. v3 emits `error: no Intent project found at or above <dir> (looked for intent/.config/config.json)` then a `remedy:` line naming `intent init` or changing directory. MEASURED on both binaries, not read.
 - **found by:** ic, 2026-08-15, and HOW is the useful part: it surfaced while BUILDING the probe for this very invariant -- one of the two `surface_check.sh` declares unchecked. **The skip was hiding a finding.** Its reason (`needs a probe run outside a project`) was true and was never a claim that nothing was wrong, but it reads like one, and it is the sentence anyone re-reading the file relies on. Revisit skips; do not trust their reasons.
 - **why not revert:** The v3 message is BETTER by this estate's own standards -- it names the directory searched, says what it was looking for, and carries a remedy. **Reverting to v2's wording to satisfy a parity row would make the surface worse in order to make a table right.** vc verified the grep rather than taking it on report: nothing in `parity.md`, `acceptance.md` or `design.md` names either string or ratifies the change, so unlike INV-06/07/08 -- which moved to `corrected` with a chain -- this one had simply diverged.
 - **rulings:**
@@ -2081,7 +2081,7 @@ Print one configuration value
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15, answering D35's `configurable from intent config`: `config get` / `config set` are new surface and should exist.
 - **unknown key refuses:** AN UNKNOWN KEY EXITS NON-ZERO AND SAYS SO. It must NOT print an empty line at exit 0, because empty is indistinguishable from a key legitimately set to empty -- the same absence-as-meaning collapse that makes an absent retention count different from `0`. A user scripting against this needs the two cases separable, and the only place that can be decided is here.
 - **scope caution:** hv, 2026-08-15: this is USER-FACING project configuration. Intent dogfoods itself so this repo's own `config.json` is also a dev artefact, but that is a coincidence of the project and not a property of the command.
-- **MCP:** exposed as an agent tool -- read-only
+- **MCP:** not exposed -- read-only
 
 ### `config set`
 
@@ -2097,11 +2097,12 @@ Set one configuration value
 - **known keys are derived:** THE VALID-KEY SET IS DERIVED FROM THE DECLARED CONFIG SCHEMA, NEVER A HAND-MAINTAINED LIST IN THE SETTER. A hand list is a designed figure: correct the day it is typed, silently wrong at the next key added, because the act that invalidates it (declaring a new setting) is not the act that updates it. Derived, a new key becomes settable the day it is declared and an unknown one stays refused for free. Same rule the drift check applies to new surface, pointed at configuration.
 - **typed writes:** VALUES ARE WRITTEN WITH THEIR DECLARED TYPE, NOT AS STRINGS. `config set backup.enabled false` must write JSON `false`, not `"false"` -- a non-empty string is truthy nearly everywhere, so the string form would turn `disable the scheduled backup` into `enable it`, which is the worst available direction for that particular key. The type comes from the same schema that validates the key, so a value that cannot be coerced is a refusal rather than a cast.
 - **not model state:** `config.json` is project configuration, NOT model state, so this writes the file rather than mutating through the store -- and D32's every-state-is-leavable reasoning does not apply. vc's carry-forward on the `config` row above records the trigger that would change that: if configuration ever enters the model the way the whiteboard did under D30, this becomes a D32 question rather than a surface one.
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **Wants review:**
   - uncertain on `exposed_on_mcp`
   - Leaned OPEN against the standing lean, so it wants a look. hv ruled config is legitimate per-project surface; that ruling was about the keys existing, not about who may write them. An agent that can write config can turn `backup.enabled` off.
 - **recoverability:** reversible
+- **recoverability anomaly:** WITHHELD FOR WIREDNESS, NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because on a CURRENT build it answers `is a known command that is not implemented yet` at rc=2 and there is no mutation to recover from. Narrowed 2026-08-31 (hv-directed) with ten others as one flip, on the principle that the flag tracks the BINARY and not the roadmap. THIS ANOMALY IS SELF-EXPIRING AND MUST BE DELETED WITH THE RE-EXPOSURE: arm 2 of gen_dispatch_table.sh refuses a stale anomaly, so the wiring commit that flips `exposed_on_mcp` back must drop this string in the same act or the generator refuses. That is the guard working -- a reason for a withhold outliving the withhold is the record-outliving-its-premise class, and here it cannot.
 
 ## Family: `init`
 
@@ -2475,7 +2476,7 @@ Manage AGENTS.md templates
   - `1.authority`: hv
   - `1.date`: 2026-08-17
   - `1.record`: 632d9d86
-- **MCP:** exposed as an agent tool -- read-only
+- **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** intent/plugins/agents/bin/intent_agents:768-801 -- `list` reads the templates dir, `show` cats one file; no write primitive on any arm, so `read` is now grounded rather than assumed
 
 ## Family: `claude`
@@ -2544,8 +2545,9 @@ Manage Claude Code subagents
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** `intent/plugins/claude/subagents/.manifest/` tracks global-agents.json but NOT its sibling installed-agents.json, and .gitignore names neither, so running `install` inside a project leaves a permanent untracked file holding absolute machine paths. Pre-existing; wants an issue.
 - **Target:** `as-observed`
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **recoverability:** idempotent
+- **recoverability anomaly:** WITHHELD FOR WIREDNESS, NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because on a CURRENT build it answers `is a known command that is not implemented yet` at rc=2 and there is no mutation to recover from. Narrowed 2026-08-31 (hv-directed) with ten others as one flip, on the principle that the flag tracks the BINARY and not the roadmap. THIS ANOMALY IS SELF-EXPIRING AND MUST BE DELETED WITH THE RE-EXPOSURE: arm 2 of gen_dispatch_table.sh refuses a stale anomaly, so the wiring commit that flips `exposed_on_mcp` back must drop this string in the same act or the generator refuses. That is the guard working -- a reason for a withhold outliving the withhold is the record-outliving-its-premise class, and here it cannot.
 
 ### `claude skills`
 
@@ -2664,9 +2666,10 @@ Generate MEMORY.md content for a Claude session
 - **Defects observed in v2:**
   - INV-06 at intent_claude_prime:212 writes `Error:` to stdout -- one of the parked plugin-bin sites
 - **Target:** `as-observed`
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **MCP classification grounded in:** intent/plugins/claude/bin/intent_claude_prime:250-251 -- `mkdir -p "$memory_dir"` then `echo "$content" > "$memory_path"`
 - **recoverability:** idempotent
+- **recoverability anomaly:** WITHHELD FOR WIREDNESS, NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because on a CURRENT build it answers `is a known command that is not implemented yet` at rc=2 and there is no mutation to recover from. Narrowed 2026-08-31 (hv-directed) with ten others as one flip, on the principle that the flag tracks the BINARY and not the roadmap. THIS ANOMALY IS SELF-EXPIRING AND MUST BE DELETED WITH THE RE-EXPOSURE: arm 2 of gen_dispatch_table.sh refuses a stale anomaly, so the wiring commit that flips `exposed_on_mcp` back must drop this string in the same act or the generator refuses. That is the guard working -- a reason for a withhold outliving the withhold is the record-outliving-its-premise class, and here it cannot.
 
 ### `claude ws`
 
@@ -3019,9 +3022,10 @@ Capture project-specific learnings for future LLM sessions
 - **stdout:** confirmation, or the learnings list
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **MCP classification grounded in:** bin/intent_learn:82 (append_learning), called at :201
 - **recoverability:** idempotent
+- **recoverability anomaly:** WITHHELD FOR WIREDNESS, NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because on a CURRENT build it answers `is a known command that is not implemented yet` at rc=2 and there is no mutation to recover from. Narrowed 2026-08-31 (hv-directed) with ten others as one flip, on the principle that the flag tracks the BINARY and not the roadmap. THIS ANOMALY IS SELF-EXPIRING AND MUST BE DELETED WITH THE RE-EXPOSURE: arm 2 of gen_dispatch_table.sh refuses a stale anomaly, so the wiring commit that flips `exposed_on_mcp` back must drop this string in the same act or the generator refuses. That is the guard working -- a reason for a withhold outliving the withhold is the record-outliving-its-premise class, and here it cannot.
 
 ## Family: `modules`
 
@@ -3213,7 +3217,7 @@ List installed extensions
 - **stdout:** one row per extension
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
-- **MCP:** exposed as an agent tool -- read-only
+- **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** bin/intent_ext -- every write primitive in the file is inside ext_new (:743-759)
 
 ### `ext show`
@@ -3229,7 +3233,7 @@ Show manifest + contributions for one extension
 - **stdout:** the manifest and contributions
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Target:** `as-observed`
-- **MCP:** exposed as an agent tool -- read-only
+- **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** bin/intent_ext -- writes confined to ext_new (:743-759)
 
 ### `ext validate`
@@ -3248,7 +3252,7 @@ Validate extension manifests
 - **Defects observed in v2:**
   - Help text marks this `[Session 3]` -- an internal development-scheduling tag in user-facing help.
 - **Target:** `as-observed`
-- **MCP:** exposed as an agent tool -- read-only
+- **MCP:** not exposed -- read-only
 - **MCP classification grounded in:** bin/intent_ext -- writes confined to ext_new (:743-759)
 
 ### `ext new`
@@ -3279,9 +3283,8 @@ Scaffold a new extension
   - `0.authority`: vc
   - `0.date`: 2026-08-15
   - `0.record`: 803ff46d
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **recoverability:** one-way
-- **recoverability anomaly:** DISAGREES WITH `exposed_on_mcp` AND IS REPORTED RATHER THAN ABSORBED (vc's ruling, 2026-08-16). `one-way` here, exposed on MCP in the table. **The anomaly is an INCOMPLETE FAMILY, not a misclassified row:** `ext` ships `list`, `show`, `validate` and `new`, and there is no `ext remove` anywhere in the table, so nothing undoes a scaffold. It unifies with `backup` shipping without a `restore`: both are a family shipping the creating half without the undoing half. **The field is not failing here, it is DETECTING a real gap on its first run** -- a derived field that merely reproduces the partition it was fitted to tells you nothing. Resolution is a SCOPE call for hv (build `ext remove`, and this row becomes `reversible`; or withhold `ext new`, and it becomes an ordinary agreement), never a label anyone adjusts.
 
 ## Family: `treeindex`
 
@@ -3413,11 +3416,12 @@ Maintain checkbox file indexes
   - `0.authority`: hv
   - `0.date`: 2026-08-14
   - `0.record`: parity.md
-- **MCP:** exposed as an agent tool -- **mutates**
+- **MCP:** not exposed -- **mutates**
 - **Wants review:**
   - uncertain on `exposed_on_mcp`
   - Writes an index an agent would plausibly want to refresh before searching. Leaned open; the cost of being wrong is a stale-index rebuild, not lost work.
 - **recoverability:** idempotent
+- **recoverability anomaly:** WITHHELD FOR WIREDNESS, NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because on a CURRENT build it answers `is a known command that is not implemented yet` at rc=2 and there is no mutation to recover from. Narrowed 2026-08-31 (hv-directed) with ten others as one flip, on the principle that the flag tracks the BINARY and not the roadmap. THIS ANOMALY IS SELF-EXPIRING AND MUST BE DELETED WITH THE RE-EXPOSURE: arm 2 of gen_dispatch_table.sh refuses a stale anomaly, so the wiring commit that flips `exposed_on_mcp` back must drop this string in the same act or the generator refuses. That is the guard working -- a reason for a withhold outliving the withhold is the record-outliving-its-premise class, and here it cannot.
 
 ## Family: `help`
 
