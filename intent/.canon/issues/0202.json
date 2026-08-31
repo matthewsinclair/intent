@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 202,
+  "slug": "a-scaffolded-project-has-no-claude-settings-json",
+  "title": "a scaffolded project has no .claude/settings.json, though the template exists",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-31",
+  "reporter": "Matthew Sinclair",
+  "body": "A scaffolded project has no `.claude/settings.json`, though the template exists.\n\n**Found by** `tests/unit/no_absolute_home_paths.bats` t5 (\"a scaffolded project's hooks are portable and actually run\") while establishing the causes of AC-06.1's 27 UNSTABLE files.\n\n**Measured:** the assertion `[ -f .claude/settings.json ]` fails after scaffolding. `lib/templates/.claude/settings.json` is present in the tree, so the source of the file exists and something between the template and the scaffolded project does not deliver it.\n\n**ROOT CAUSE IS NOT ESTABLISHED AND IS NOT GUESSED.** This issue records the observed failure and its control, nothing more.\n\n**CONTROL:** `burn-baseline.tsv` records this file at DEFAULT_FAIL 0 on 2026-08-15, so it was green then and this is a regression inside that window. Note the file had 10 tests at the baseline and has 7 now, so the file itself changed; the control establishes that its default run was green, not that this particular test existed unchanged throughout.\n\n**This file is MIXED.** Its other failure IS the AC-12.1 prune (a grep against the deleted `intent_claude_upgrade`). Only t5 is this issue. Recorded explicitly because a file with two causes is exactly where a single-cause attribution goes wrong.\n\n**Relevance beyond the test:** `.claude/settings.json` is what wires the Claude Code session hooks. If scaffolding genuinely does not deliver it, new projects get no hooks and nothing reports that -- the failure is silent by construction.\n"
+}

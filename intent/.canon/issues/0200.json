@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 200,
+  "slug": "ext-root-dir-has-two-byte-identical-homes-and-th",
+  "title": "ext_root_dir has two byte-identical homes, and the comment authorising the second cannot be read by the check that refuses it",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-08-31",
+  "reporter": "Matthew Sinclair",
+  "body": "`ext_root_dir` has two byte-identical homes, and the comment that authorises the second cannot be read by the check that refuses it.\n\n**Found by** `tests/unit/config.bats` t7 (\"ext-root expansion is not inlined outside intent_helpers\"), an ST0042 Highlander guard, while establishing the causes of AC-06.1's 27 UNSTABLE files. **Verified by vc** before ruling: the two homes are genuinely byte-identical.\n\n- `bin/intent_helpers:372`\n- `intent/plugins/claude/lib/rules_lib.sh:56` -- `echo \"${INTENT_EXT_DIR:-$HOME/.intent/ext}\"`\n\n**The second home was added deliberately, by `125f601d` (AC-12.1's cutover prune), and for a good reason**: it replaced `source \"$INTENT_HOME/bin/intent_helpers\"` so the surviving file carries no `bin/` dependency, which is the property AC-12.1 exists to establish. The hunk carries a long comment ending:\n\n> the next node running a duplication sweep will find this and be right to ask (vc, 2026-08-30)\n\n**THE CLASS, WHICH IS WHY THIS IS FILED AS MORE THAN ONE ROW.** That prediction was right about what would find it and wrong about who. It was not a node running a sweep -- it was a TEST that predates the prune, and **a test cannot read the comment written to answer it.** A comment written to preempt a human reviewer does not discharge an obligation to a mechanical check. Same shape as `0199`, where a guard's instructions to the human are the one part of it no instrument reads.\n\n**REMEDY IS NOT OBVIOUS AND IS NOT CLAIMED HERE.** Both homes are in the v2 tree the prune is eating, so completing the prune may dissolve it (vc). The alternatives are to exempt `rules_lib.sh` in the guard WITH the reason, or to take the red as a recorded deviation. What is ruled out is doing neither silently, which is what `AC-06.3` forbids.\n\n**Scope:** does not block the tag by itself. The guard is correct and the duplication is real, so the row cannot be called a flake.\n"
+}

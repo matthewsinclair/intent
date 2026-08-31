@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 201,
+  "slug": "intent-critic-yml-disabled-does-not-suppress-the",
+  "title": "intent_critic.yml disabled: does not suppress the rule it names",
+  "status": "open",
+  "severity": "high",
+  "created": "2026-08-31",
+  "reporter": "Matthew Sinclair",
+  "body": "`.intent_critic.yml` `disabled:` does not suppress the rule it names.\n\n**Found by** `tests/unit/intent_critic.bats` t19 (\"disabled rule in .intent_critic.yml is suppressed\") while establishing the causes of AC-06.1's 27 UNSTABLE files.\n\n**The test** writes `.intent_critic.yml` carrying `disabled: [IN-EX-TEST-001]` plus `severity_min: critical` into a temporary project, then runs the elixir critic against a fixture and expects a clean exit with no mention of the rule.\n\n**Measured:** the rule fires four times at CRITICAL and the run exits 1.\n\n**ROOT CAUSE IS NOT ESTABLISHED AND IS DELIBERATELY NOT GUESSED.** One plausible mechanism is project-root resolution -- the fixture lives outside the temporary project the test builds, so the runner may be resolving config from the file's own tree rather than from the cwd project. **Plausible is not established**, and this issue records the failure rather than a diagnosis, so that nobody inherits a confident wrong cause. The estate has an active family of project-root-resolution work (`ambient_project_root_guard`, `switched_project_gate_resolution`) that is the obvious place to look first.\n\n**CONTROL, so this is not read as ambient estate rot:** `burn-baseline.tsv` records this file at DEFAULT_FAIL 0 on 2026-08-15. It was green then. This is a regression inside that window, not a long-standing red.\n\n**It is NOT the AC-12.1 prune.** 25 of the 27 UNSTABLE files are the prune; this is one of the two that are not, and attributing it there by proximity is the error this filing exists to prevent.\n"
+}
