@@ -183,6 +183,25 @@ claims: []
 
 **ADDED 2026-08-31 12:49Z (vc, under the pen). THIS SECTION EXISTS BECAUSE THE SECTION BELOW IT DOES NOT COVER THIS CASE.** `## Rulings made and NOT yet executed` holds decisions hv HAS taken. A question hv has been ASKED and has not answered is a third state, and until today it lived only in vc's board and in whatever message carried it. **That is the same defect as the fold, one step earlier: a ruling in transit is a ruling nobody has, and a QUESTION in transit is a question nobody has been asked.** An entry leaves this section by being RULED, at which point it moves down into the section below or is executed directly. Each carries the measurement that shapes it so it is answerable cold.
 
+- **DOES `0206` BLOCK THE RELEASE? A DATA-LOSS RACE THAT FIRES 6 TIMES IN 10 ON THE SHIPPED BINARY.** (PUT %s by vc under the pen. **This is a release decision and releases are hv's; vc is not ruling it.**)
+
+  **Two concurrent canon verbs on the SAME THREAD silently lose the earlier write.** No error, no conflict, valid canon afterwards, and the worktree ends byte-identical to HEAD so **`git status` reports nothing.** Routed by laksa-vc from a real loss on Laksa ST0111; mechanism verified in our own source at `facade.rs:5215` -- `self.canon.clone()`, mutate one field, apply the whole record, over a snapshot loaded at `Facade` construction.
+
+  **DEMONSTRATED HERE BY cc, ON BOTH BINARIES, WITH TWO CONTROLS:**
+
+  | binary  | revision   | same-thread       | cross-thread |
+  | ------- | ---------- | ----------------- | ------------ |
+  | debug   | `f9709004` | **22 of 25 lost** | 0 of 25      |
+  | release | `abe69906` | **9 of 15 lost**  | 0 of 15      |
+
+  Sequential positive control lands both every time; the cross-thread control loses nothing in 40 iterations, **so the unit of the race is the THREAD** -- which the `apply_envelopes` diff predicted before it was measured.
+
+  **THE ARGUMENT FOR BLOCKING:** it is silent data loss in the verb set that IS the product, on the delivered artefact, at 60%%. **And Intent SHIPS the concurrency pattern that triggers it** -- the whiteboard fleet is N sessions on one tree, which this project both invented and runs.
+
+  **THE ARGUMENT AGAINST:** single-session use is safe, the unit is the thread so most work is unaffected, and the interim discipline is one sentence -- **announce before a canon verb on a shared thread, commit in the same breath.** cc notes the canon gate's file-and-canon-together rule already enforces most of that exposure window for anyone following it.
+
+  **vc's recommendation: SHIP, with `0206` named in the release notes and the discipline documented -- and do NOT attempt a concurrency fix inside the tag window.** A compare-and-swap on the write path is the kind of change that wants its own thread and its own drive, and the harness to prove it now exists. **But the recommendation is vc's and the call is hv's.**
+
 - **WHO OWNS WP-14? A RED CRITERION NOW CHAINS BEHIND AN UNOWNED, UNSTARTED `L`.** (PUT 2026-08-31 21:13Z by vc under the pen; measured, not inferred.) **`AC-10.5` is red on substance and no node can unblock it.**
 
   **THE CHAIN, driven by cc and re-measured by vc:** `fleet_corpus_conservation.sh` runs clean -- 4 run + 0 unrun -- and reports 2 of 4 members carrying residue the migration does not name, 0 of 2 scored members conserved outright. **cc's own issue `0183` said the migrator never names its out-of-model file set. THAT REMEDY IS WRONG AND cc RETRACTED IT**: 110 of baize's 135 unaccounted files -- 81% -- are `intent/whiteboard/`, which **LEFT the not-modelled set at `D30`** and is modelled as `wb_node`/`wb_item`/`wb_message`. **They are not out-of-model; they are IN the model and NOT YET BUILT.** Opposite claims producing an identical count. **Naming them would ZERO the loss by asserting the project meant to abandon what hv ruled it would carry** -- and `sync.rs`'s own `NOT_CARRIED` comment warns about that exact denominator attack two hundred lines above the site.
