@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-08-31 09:00Z
+heartbeat_at: 2026-08-31 09:25Z
 status: active
-focus: "The GraphQL escape hatch is LANDED at dbfc1eb1, reads-only under vc's bound, both faces bridging to intentd with the CLI still linking no runtime. TODO 0 is done; conservation_check.sh sees .canon again at 8f29d3a6 (cc drives AT-10.5); now the `schema` facade gap hv ruled in."
+focus: "The GraphQL escape hatch is LANDED at dbfc1eb1, reads-only under vc's bound, both faces bridging to intentd with the CLI still linking no runtime. TODO 0 is done; conservation_check.sh sees .canon (8f29d3a6) and its DOUBLED counter fires (5cbddfcc: 194/192/0/0, prediction held); schema is on the MCP tier (0a6f7784, roster 60). Nothing is queued for me by vc; the remaining TODO items are gated on others."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -19,14 +19,15 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 **LANDED `8f29d3a6`:** `conservation_check.sh` sees `intent/.canon/` again -- two roots (CANON = `.canon`, REALISED = the intent dir), the five collectors on the flat file, the pre-relocation layout refused BY NAME (vc ratified cc's property as a ruling). Driven in scratch: OLD tool rc=2 `converted 0` (the control); FIXED tool converted 344 / STRANDED 386 / ALTERED 114 / ADDED 0 / 1370 byte-identical / liveness ok over 56 -- cc's numbers to read against AT-10.5. Canon moved with it (`intent st attach`, the order canon_commit_check prescribes).
 
+**LANDED `0a6f7784`:** `schema` on the MCP tier -- `faces::schema` the store-free one home (the verb is GLOBAL, so its terminal arm can open no facade), `Facade::schema` beside it as the tier's door, `NoSuchFace` raised for real with a remedy that names the faces, roster 60. hv's ruling: build `schema`, defer eleven. **LANDED `5cbddfcc`:** DOUBLED asked the REALISED tree and could not fire (the migrated canary realises ONE flat info.md of 55); it asks CANON now -- generated names DOUBLED via the thread record, authored names RELOCATED via attachment sha256, new ALTERED-ATTACHMENT, STRANDED only when canon carries nothing. Predicted 194 / ~162+ / 0 before running; measured DOUBLED 194, RELOCATED 192, ALTERED 0, STRANDED 0 = 386. Controls both ways on ST0001/design.md (bucket sha == canon sha, established first). AC-10.5's live residue is the prose arm's ALTERED 114 -- cc's.
+
 ## TODO
 
-1. **hv ruled the twelve facade gaps: BUILD `schema` ONLY, defer eleven** (vc, 2026-08-31). `todo notdone` / `todo toggle` are explicitly NOT built -- a boundary leak mutating through helpers that bypass the facade; record it, do not fix it mid-window. Mine.
-2. **flag_reachability's INHERITED_UNREAD trio** (st bootstrap --audit-only/--dry-run/--deliverable) -- MINE once vc routes it; cc suggests the exhaustive-match treatment.
-3. **AC-09.6 satisfy** -- waits on hv's class decisions minus what landed; vc carries the list. **hv ruled the eleven unwired MCP rows NARROW as one flip** (vc has it in their working copy, landing on top of my row).
-4. **The 7 `claude subagents` narrowing rows** -- behind dc's prune-with-census; dc NAMES THE HOUR the --kind verbs land.
-5. **For vc's globalfold, flagged not owned (vc has both queued):** design.md:88's `rmcp ... stdio ... now` against the 2026-08-31 zero-dep ruling; AC-09.2's unbounded wording (`ac edit` is vc's). AT-00.4 (vc's `mcp_surface.rs`) can cite `graphql_escape_hatch.rs` for the bridging clause.
-6. Standing queue: 0142 structural half (guide.rs write is mine); TUI remainder (AC-17.1 browser realiser, AC-17.6 -- hv drives); WP-16; ST0064 parked; scratchpad/wt-tui worktree removal.
+1. **flag_reachability's INHERITED_UNREAD trio** (st bootstrap --audit-only/--dry-run/--deliverable) -- MINE once vc routes it; cc suggests the exhaustive-match treatment.
+2. **AC-09.6 satisfy** -- waits on hv's class decisions minus what landed; vc carries the list. **hv ruled the eleven unwired MCP rows NARROW as one flip** (vc has it in their working copy, landing on top of my row).
+3. **The 7 `claude subagents` narrowing rows** -- behind dc's prune-with-census; dc NAMES THE HOUR the --kind verbs land.
+4. **For vc's globalfold, flagged not owned (vc has both queued):** design.md:88's `rmcp ... stdio ... now` against the 2026-08-31 zero-dep ruling; AC-09.2's unbounded wording (`ac edit` is vc's). AT-00.4 (vc's `mcp_surface.rs`) can cite `graphql_escape_hatch.rs` for the bridging clause.
+5. Standing queue: 0142 structural half (guide.rs write is mine); TUI remainder (AC-17.1 browser realiser, AC-17.6 -- hv drives); WP-16; ST0064 parked; scratchpad/wt-tui worktree removal.
 
 ## Watch-outs -- mechanisms only
 
