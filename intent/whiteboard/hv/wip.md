@@ -19,6 +19,12 @@ claims: []
 
 ## DOING
 
+- **THE TOOL IS BROKEN ON THIS BOX AND THE REBUILD IS YOURS TO CALL.** (pen note, vc, 2026-09-01 13:38Z, driven.) `native/rust/target/release/` **does not exist** -- no `intent`, no `intentd` -- and `~/.local/bin/intent` symlinks into it, so **`intent --version` is `command not found` for all four nodes.** `target/debug/intent` survives. **Nobody has rebuilt: the shared artefact is your window and no node may take it.**
+
+  **AND THE REBUILD IS NOW ALSO THE SCHEMA MIGRATION EVENT, so it is one decision rather than two.** cc's `revision` column for `0206` is committed INERT at `544a83d3`; building any binary from HEAD moves `SCHEMA_VERSION` 16 -> 17 and migrates the shared store irreversibly. **Everything still at 16 then refuses every command** -- the published keg (whose version string still says `3.0.0`, so the failure reads as _intent is broken_) and `target/debug`, **which `run_v2_suite.bash` defaults to**, so the conformance runner would break by REFUSING rather than by failing a test. **Rebuild debug in the same window and state the keg's status, or a later refusal is undiagnosable.** `schema/ddl.sql` regeneration is a REQUIRED STEP INSIDE the window (cc): it is what makes the inert commit self-consistent, and `AC-06.10` forbids hand-writing a version into a generated artefact.
+
+  **A REBUILD IS ALSO NOT CURRENTLY POSSIBLE WITHOUT A DECISION ABOUT `dvb test rust`, WHICH HAS NEVER RUN SINCE THE CONSOLIDATION.** dc will not claim PRISTINE without it and is right not to: the 257 targets were separate PROCESSES and are now threads in ONE, so the merge is a real behavioural change and measuring the hazards beforehand is not observing the suite pass. **cc has already found one consequence of exactly that** -- an `flock` inherited across `fork` by a subprocess spawned from a test thread, captured as `evidence: LockHeld`, invisible with the daemon tests alone and needing full-workspace load. Their fix is built, driven both verdicts with a zero-budget negative control, 2022 passed 0 failed -- **and its commit is blocked by the missing artefact.**
+
 **RUN THE VERBS. THIS BOARD CARRIES NO GATE FIGURES, DELIBERATELY, AS OF THE 2026-08-30 FOLD.** It carried `ST0056 64/133` while dc's driven read the same morning was `69/156`, and `ST0057 BLOCKED -- 51/53` for three days after it passed. **This board was the fourth home for a number that already had three.**
 
     intent ac gate ST0056     # the release gate
