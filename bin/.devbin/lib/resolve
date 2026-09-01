@@ -414,6 +414,7 @@ run_all() {
   local cmd="$1"
   shift
   local opt failed="" skipped="" rc=0 ledger="" label path srr why disagreed=""
+  local executed=0
   init_colors auto
   # ZERO options is a REFUSAL, not a pass. Without this the loop below runs no
   # times and the tail prints "all <cmd> options passed" -- success reported for
@@ -447,6 +448,7 @@ run_all() {
         continue
         ;;
     esac
+    executed=$((executed + 1))
     if ! run_option "$cmd" "$opt" "$@"; then
       failed="$failed $opt"
     fi
@@ -487,7 +489,28 @@ run_all() {
       "${dim:-}" "${reset:-}"
     rc=1
   fi
-  if [ -z "$failed" ] && [ -z "$disagreed" ]; then
+  # ZERO EXECUTED IS THE SAME REFUSAL AS ZERO OPTIONS, REACHED FROM THE OTHER
+  # END. The guard at the top of this function catches a command with no active
+  # options; it cannot catch a command whose options are all EXCLUDED, because
+  # `command_options` is non-empty and the filtering happens in the loop. This
+  # function's own comment conceded the gap -- "can still land here only through
+  # in_all exclusions, which the skip report below covers" -- and the skip report
+  # REPORTS it while the tail below still printed "all options passed" and
+  # returned 0. A run that executed nothing reporting success is the exact false
+  # green the top of this function refuses, and `devbin build all && deploy`
+  # deploys on it.
+  #
+  # Reachable today: a project declaring one option and excluding it from `all`
+  # lands here, and until now was told every option passed.
+  if [ "$executed" -eq 0 ]; then
+    printf '\n%sREFUSING A VERDICT -- %s %s all executed nothing:%s\n' \
+      "${red:-}" "$DEVBIN_INVOKE" "$cmd" "${reset:-}"
+    printf '  every option it offers is excluded from all:%s\n' "$skipped"
+    printf '  %sa run that examined nothing is not a pass. Name an option directly.%s\n' \
+      "${dim:-}" "${reset:-}"
+    rc=1
+  fi
+  if [ "$executed" -gt 0 ] && [ -z "$failed" ] && [ -z "$disagreed" ]; then
     printf '\n%sall %s options passed%s\n' "${green:-}" "$cmd" "${reset:-}"
   fi
   # THE SUMMARY IS WHERE THE INCIDENT HAPPENED, and covering only the per-gate

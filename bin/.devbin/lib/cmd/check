@@ -466,4 +466,242 @@ builtin_check_toolchain() {
   return "$rc"
 }
 
+
+# builtin_check_autotests -- one test target per crate.
+#
+# Cargo's `autotests` defaults to TRUE, so every .rs file directly under a
+# crate's tests/ becomes its own test target: a separate binary and a separate
+# FULL LINK of the crate plus its whole dependency graph. The cost is linear in
+# FILE COUNT, not in test count, and it is silent in BOTH directions -- nothing
+# says anything when target #2 appears, and nothing says anything at #257.
+# Intent reached 257 targets one honest file at a time, holding a 113G target
+# tree; consolidated it builds 5. The ruling is hv's, 2026-08-27, estate-wide.
+# This gate catches target #2.
+#
+# WHY THIS COUNTS FILES RATHER THAN TARGETS, WHICH LOOKS LIKE THE DOCUMENTED
+# TRAP AND IS NOT IT. TN001 is emphatic that test FILES are not cargo TARGETS,
+# and that `cargo test --workspace --no-run | grep -c 'Executable tests/'` is
+# the only count that is not a proxy. That is a rule about a CENSUS -- an
+# instrument reporting how many targets a crate HAS. This gate never asks that.
+# Its predicate is "is auto-discovery on, AND is there more than one file for it
+# to discover", and both halves are decidable from Cargo.toml and the filesystem
+# alone:
+#
+#   autotests = false          -> the crate declares its own targets. COMPLIANT.
+#   absent or true, <= 1 file  -> at most one auto target.          COMPLIANT.
+#   absent or true, >  1 file  -> exactly that many auto targets.   BREACH.
+#
+# The trap's own worked example confirms the split instead of threatening it:
+# Intent's `testkit` greps zero `[[test]]` while cargo reports 1, because a
+# single file with no autotests key is auto-discovered -- and one target is
+# precisely what this gate passes. The expensive count is needed for REPORTING,
+# never for the verdict.
+#
+# That is what keeps this at check speed, and the alternative is self-defeating:
+# `cargo test --no-run` BUILDS every test target in order to count them, which
+# is the expensive half of the build this whole ruling exists to shrink. A gate
+# that must link the test graph to decide whether the test graph is too big is
+# a gate people switch off.
+builtin_check_autotests() {
+  local rc=0 crates=0 breaches=0 manifest dir n rel walk walkrc=0
+  local pruned="target .git .worktrees deps node_modules"
+  [ $# -eq 0 ] ||
+    die "check autotests takes no arguments (got: $*)
+       It reads every crate in the project, whole-project."
+
+  # THE PRUNE LIST IS THE DEFINITION OF WHAT THIS GATE LOOKED AT, NOT AN
+  # OPTIMISATION, so it is printed with the verdict rather than left in here to
+  # be discovered. Two entries are correctness rather than speed:
+  #
+  #   target/     -- crate sources vendored under a build tree are not ours, and
+  #                  a gate that walked them would report breaches in other
+  #                  people's code that nobody here can fix.
+  #   .worktrees/ -- a git worktree is the SAME crate seen a second time. TN001
+  #                  records a fleet census that reported 14 crates where there
+  #                  were 4, by counting worktree copies; a gate doing that
+  #                  reports one breach per checkout of a single Cargo.toml.
+  #
+  # A WALK THAT ERRORED RETURNS NO CRATES, AND NO CRATES READS EXACTLY LIKE A
+  # COMPLIANT PROJECT. So find's status is checked rather than discarded: this
+  # is the one failure this gate could have that would look like success, and
+  # `2>/dev/null` on the walk is what would have hidden it.
+  walk="$(find "$PROJECT_ROOT" \
+    \( -name target -o -name .git -o -name .worktrees -o -name deps -o -name node_modules \) -prune -o \
+    -name Cargo.toml -type f -print)" || walkrc=$?
+  [ "$walkrc" -eq 0 ] ||
+    die "check autotests: the crate walk FAILED (find exit $walkrc).
+       Refusing to report a verdict: a walk that errored finds no crates, and
+       no crates is indistinguishable from a project that is fully compliant."
+
+  local -a found=()
+  while IFS= read -r manifest; do
+    [ -n "$manifest" ] && found+=("$manifest")
+  done <<EOF
+$walk
+EOF
+
+  # A DETERMINATE ZERO IS REPORTED AND PASSES, which is the rule
+  # builtin_check_format and builtin_check_toolchain above already settled: a
+  # fact about the PROJECT is not a run that went wrong. It is distinguishable
+  # from the error case only because the walk's status was checked above.
+  if [ "${#found[@]}" -eq 0 ]; then
+    printf '    no Cargo.toml found (pruned: %s)\n' "$pruned"
+    printf '    this project declares rust and ships no crates -- nothing to check\n'
+    return 0
+  fi
+
+  for manifest in "${found[@]}"; do
+    dir="$(dirname "$manifest")"
+    [ -d "$dir/tests" ] || continue
+    crates=$((crates + 1))
+    rel="${dir#"$PROJECT_ROOT"/}"
+    [ "$rel" = "$dir" ] && rel="."
+    # `autotests` is a bare TOML key, so whitespace around the `=` is the only
+    # variation there is to allow for.
+    if grep -Eq '^[[:space:]]*autotests[[:space:]]*=[[:space:]]*false' "$manifest"; then
+      # WHAT "ONE TARGET PER CRATE" ACTUALLY POLICES, because the literal
+      # reading is wrong and the authoring estate is the proof. intent/vc raised
+      # that this branch counted nothing, so `autotests = false` with ten
+      # [[test]] blocks passed while cargo reported ten targets -- a real
+      # divergence from the rule's NAME. But TN001 itself keeps TWO targets in
+      # two crates on purpose (`dual_path_conformance` mutates process cwd,
+      # `daemon_subscriptions` drives a per-process watch stream, and merged
+      # targets are threads in one process), so a `> 1 is a breach` rule turns
+      # the estate that authored the ruling red on a documented decision. A gate
+      # red in the ordinary case is how a gate teaches people to ignore it.
+      #
+      # The defect being policed is SILENT GROWTH, not arithmetic. Auto-discovery
+      # adds a target when somebody adds a file and tells nobody; a [[test]]
+      # block is a deliberate line in a manifest that a reviewer sees. So
+      # declared blocks pass at any count, and the count is REPORTED so a reader
+      # can see what they are passing.
+      n="$(grep -cE '^[[:space:]]*\[\[test\]\]' "$manifest" || true)"
+      if [ "$n" -eq 0 ] && [ -n "$(find "$dir/tests" -maxdepth 1 -type f -name '*.rs' -print -quit)" ]; then
+        # THE QUIET HOLE, IN ITS LOUDEST FORM, and the one case here that IS
+        # unambiguous. Discovery off, nothing declared, files sitting in tests/:
+        # compiled by nobody, run in no suite. They pass by not existing, which
+        # is the failure mode consolidation inverts rather than removes.
+        warn "$rel: autotests = false and NO [[test]] declared, but tests/ holds .rs files -- nothing compiles them."
+        breaches=$((breaches + 1))
+        rc=1
+      else
+        printf '    %-40s declared (autotests = false, %s target(s))\n' "$rel" "$n"
+      fi
+      continue
+    fi
+    # maxdepth 1 IS CARGO'S OWN RULE AND NOT A DEPTH GUESS, which is the
+    # distinction that matters here: cargo auto-discovers files DIRECTLY under
+    # tests/ and treats a subdirectory as a module of something, never as a
+    # target. This number is semantic, so unlike a scanning depth it is not a
+    # number a reader should defend against by changing it.
+    n="$(find "$dir/tests" -maxdepth 1 -type f -name '*.rs' | wc -l | tr -d ' ')"
+    if [ "$n" -gt 1 ]; then
+      warn "$rel: $n auto-discovered test targets -- $n full links of this crate and its whole dependency graph. Set 'autotests = false' and declare one [[test]] whose suite.rs carries the rest as #[path] modules."
+      breaches=$((breaches + 1))
+      rc=1
+    else
+      printf '    %-40s %d auto target\n' "$rel" "$n"
+    fi
+  done
+
+  # THE CORPUS IS ASSERTED RATHER THAN ASSUMED. An empty walker is silent and an
+  # empty parser is loud, and only one of those is safe -- so the count this
+  # gate examined is printed on every path, including the ones that pass.
+  if [ "$crates" -eq 0 ]; then
+    printf '    %d crate(s), none with a tests/ directory -- nothing to check\n' "${#found[@]}"
+    return 0
+  fi
+  printf '    %d crate(s) with tests/, %d in breach (pruned: %s)\n' \
+    "$crates" "$breaches" "$pruned"
+  return "$rc"
+}
+
+
+# builtin_check_targetdir -- the cargo target directory is the shared one.
+#
+# 52G of Intent's 113G target tree was per-node FORKS (cc 41G, dc 11G, private
+# 919M): separate CARGO_TARGET_DIR trees, one per working session, each a full
+# copy of the same build.
+#
+# THIS IS NOT A DISCIPLINE PROBLEM AND THE GATE MUST NOT READ LIKE IT THINKS IT
+# IS. Cargo's build lock works correctly and INVISIBLY, so a blocked build is
+# indistinguishable from a hung one -- there is no output either way. A node
+# waiting on the lock reasonably concludes it has hung and "fixes" it by
+# pointing CARGO_TARGET_DIR somewhere private, and one node reported doing so
+# permanently, to be "one contender off the shared lock". An instance happened
+# in front of hv while this was being measured: one session's `cargo check` held
+# the lock, hv's test run queued behind it, and hv reported the tests looked
+# hung. They were not.
+#
+# So the fork is a RATIONAL RESPONSE TO AN INVISIBLE WAIT, and a prohibition
+# only holds if the wait is made visible -- both halves or neither. The visible
+# half is a heartbeat around long silent operations, which lives in the gate
+# runner rather than here. Until that lands this arm still earns its place, on
+# the narrower ground that a fork is currently invisible too: nothing anywhere
+# reports that a machine is holding N copies of one build tree. The message
+# below therefore names the CAUSE and not just the rule, because a gate that
+# tells a node to stop doing the only thing that made a hang legible to them is
+# a gate they will switch off.
+builtin_check_targetdir() {
+  local rc=0 seen=0 want cfg val home_cfg
+  [ $# -eq 0 ] ||
+    die "check targetdir takes no arguments (got: $*)
+       It reads the environment and the cargo config, whole-project."
+
+  want="$PROJECT_ROOT/target"
+
+  # 1. THE ENVIRONMENT. This is the per-session fork dc measured, and it is the
+  # one that reaches 41G without ever being written down anywhere.
+  if [ -n "${CARGO_TARGET_DIR:-}" ]; then
+    seen=1
+    if [ "${CARGO_TARGET_DIR%/}" = "$want" ]; then
+      printf '    env      CARGO_TARGET_DIR is set and points at the shared tree\n'
+    else
+      warn "CARGO_TARGET_DIR=$CARGO_TARGET_DIR -- a per-session fork of the build cache, not the shared tree at $want.
+       Each fork is a full copy: one estate measured 52G across three of them.
+       If you set this because a build looked hung, it was almost certainly WAITING on cargo's build lock, which is silent and looks identical to a hang."
+      rc=1
+    fi
+  fi
+
+  # 2. THE PROJECT'S CARGO CONFIG, which forks it for everyone rather than for
+  # one session -- a smaller cache cost and a larger blast radius.
+  for cfg in "$PROJECT_ROOT/.cargo/config.toml" "$PROJECT_ROOT/.cargo/config"; do
+    [ -f "$cfg" ] || continue
+    val="$(sed -n 's/^[[:space:]]*target-dir[[:space:]]*=[[:space:]]*"\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/\1/p' "$cfg" | head -1)"
+    [ -n "$val" ] || continue
+    seen=1
+    if [ "${val%/}" = "$want" ] || [ "${val%/}" = "target" ]; then
+      printf '    config   %s pins the shared tree\n' "${cfg#"$PROJECT_ROOT"/}"
+    else
+      warn "${cfg#"$PROJECT_ROOT"/} sets build.target-dir = $val -- this forks the cache for every session in this project, not just yours."
+      rc=1
+    fi
+  done
+
+  # 3. THE HOME CONFIG, REPORTED SEPARATELY BECAUSE IT IS A DIFFERENT FINDING.
+  # A fork here applies to EVERY rust project on the machine, so it is neither
+  # this project's fault nor something this project can fix -- and a gate that
+  # failed a clean checkout for a machine-level setting would be red in a tree
+  # whose own contents are correct. Reported, not failed.
+  home_cfg="${CARGO_HOME:-$HOME/.cargo}/config.toml"
+  if [ -f "$home_cfg" ]; then
+    val="$(sed -n 's/^[[:space:]]*target-dir[[:space:]]*=[[:space:]]*"\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/\1/p' "$home_cfg" | head -1)"
+    if [ -n "$val" ]; then
+      seen=1
+      printf '    machine  %s sets build.target-dir = %s\n' "$home_cfg" "$val"
+      printf '             this forks EVERY rust project on this machine. Not this project to fix, and not failed here.\n'
+    fi
+  fi
+
+  # THE CORPUS IS STATED ON THE PASSING PATH TOO. "No fork seen" and "I did not
+  # look" are the same silence otherwise, which is the shape this whole packet
+  # is about.
+  if [ "$seen" = 0 ]; then
+    printf '    no target-dir override in the environment, %s or %s -- cargo builds into the shared tree\n' \
+      ".cargo/config.toml" "$home_cfg"
+  fi
+  return "$rc"
+}
+
 run_builtin_gate check "$@"

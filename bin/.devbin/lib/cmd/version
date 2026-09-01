@@ -262,7 +262,10 @@ EOF
 
 case "${1:-}" in
   "")
-    printf '%s %s\n' "${DEVBIN_NAME:-devbin}" "$(read_version)"
+    # Rendered by lib/helpers, NOT here. This arm and the `--version` flag in
+    # bin/devbin answer the same question and used to print two different
+    # things; see version_identity for what that cost and why show stays bare.
+    version_identity
     ;;
   show)
     # read_version emits no terminator (every extractor path strips it), and a

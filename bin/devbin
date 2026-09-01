@@ -335,9 +335,12 @@ case "$command" in
     exit $?
     ;;
   -v | --version)
-    # The bare call IS the point: no argument selects the version-file role.
-    # shellcheck disable=SC2119
-    printf '%s %s\n' "$DEVBIN_NAME" "$(read_version)"
+    # The PROJECT's version, and the commit of the tree it is standing in.
+    # A consumer answers `laksa 1.2.3 (<laksa's HEAD>)` here -- its own identity,
+    # not devbin's. `<name> devbin --version` is the framework's answer and
+    # reads the manifest instead, because in a consumer devbin's bytes came from
+    # a different repository entirely.
+    version_identity "${PROJECT_ROOT:-.}"
     exit 0
     ;;
 esac

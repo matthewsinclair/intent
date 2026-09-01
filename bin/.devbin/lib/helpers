@@ -195,6 +195,11 @@ abs_path() {
 # for, which is exactly where the guard belongs.
 #
 # No newline, matching the corpus: callers interpolate it into their own format.
+#
+# shellcheck disable=SC2120  # the bare call IS the point: it selects the
+# version-file role, which is the documented default above and not an omission.
+# Callers that pass a <file> are reading a SIDECAR; both forms are real and
+# in-file analysis cannot see the sidecar callers, which live in lib/cmd/version.
 read_version() {
   local file="${1:-${DEVBIN_VERSION_FILE:-VERSION}}" role path v=""
   if [ $# -ge 1 ]; then role="${2:-sidecar}"; else role=version-file; fi
@@ -294,16 +299,83 @@ sha256_of() {
 # `rerun-if-changed`, Elixir's `@external_resource`, a make prerequisite, a
 # Dockerfile COPY. That is what makes one function serve four toolchains.
 
-# git_head_sha [root] -- the short commit sha, or `unknown`.
+# git_head_sha [root] [short|full] -- the commit sha, or `unknown`.
 #
 # `unknown` rather than empty or a failure, because every caller in the corpus
 # already handles that string and a build stamped with an empty version is worse
 # than one stamped honestly as unresolved.
+#
+# The form is a PARAMETER rather than a second function, which is the whole
+# point of this being issue 0014's one home: `git_head_sha_full` beside it would
+# be two readers of one fact, free to disagree about the failure string the
+# moment either is touched. `short` stays the default so every existing caller
+# is unchanged.
 git_head_sha() {
-  local root="${1:-${PROJECT_ROOT:-.}}" sha
-  sha="$(git -C "$root" rev-parse --short HEAD 2>/dev/null)" || sha=""
+  local root="${1:-${PROJECT_ROOT:-.}}" form="${2:-short}" sha
+  case "$form" in
+    full) sha="$(git -C "$root" rev-parse HEAD 2>/dev/null)" || sha="" ;;
+    *) sha="$(git -C "$root" rev-parse --short HEAD 2>/dev/null)" || sha="" ;;
+  esac
   [ -n "$sha" ] || sha=unknown
   printf '%s\n' "$sha"
+  return 0
+}
+
+# git_head_identity [root] -- `<full sha>`, `<full sha> +dirty`, or `unknown`.
+#
+# What a `--version` line should say about WHICH bytes are running. A bare sha
+# on a dirty tree is a confident false statement: the binary in front of you is
+# not that commit.
+#
+# IT SAYS `+dirty` AND NOT `THESE BYTES MATCH NO COMMIT`, AND THE DIFFERENT
+# WORDING IS DELIBERATE RATHER THAN A DRIFTED COPY. `source_commit_of` in
+# lib/install stamps that sentence, and it is making a narrower and stronger
+# claim: the VENDORED FILE SET does not correspond to any commit, which is a
+# statement about bytes somebody else will later read out of a manifest (issue
+# 0033). This function answers a looser question -- the working tree it is
+# standing in has uncommitted changes -- and borrowing the stronger sentence for
+# it would put a provenance claim on a checkout that never made one. Two claims,
+# two vocabularies, one producer each.
+# version_identity [root] -- the ONE renderer for `<name> <version> (<tree>)`.
+#
+# TWO CALL SITES ASK THE SAME QUESTION AND BEFORE 2026-09-01 THEY ANSWERED IT
+# DIFFERENTLY. `bin/devbin --version` printed the name, the version and the
+# tree's commit; `bin/devbin version` printed the name and the version alone.
+# Same question, one tree, two answers, and nothing in either output said which
+# one was the whole story -- found by hv running both in devbin's own checkout,
+# where the project IS devbin so the disagreement had nowhere left to hide.
+#
+# It is a Highlander violation of the ordinary kind: not duplicated logic, but
+# duplicated RENDERING, which is the copy that drifts without anyone noticing
+# because each site reads correct on its own. The fix is this function and the
+# rule that no third site prints this line itself.
+#
+# `version show` deliberately does NOT come through here. It is the machine
+# arm -- a bare number for scripting -- and giving it provenance would break
+# every line-oriented reader that consumes it.
+version_identity() {
+  local root="${1:-${PROJECT_ROOT:-.}}"
+  # shellcheck disable=SC2119  # the bare call IS the point: version-file role.
+  # This directive travelled here WITH the call. It used to sit in bin/devbin
+  # above the printf that moved into this function, and leaving it behind is
+  # what reddened lint on the first run of this change -- a suppression is
+  # part of its call site, not of the file it was written in.
+  printf '%s %s (%s)\n' "${DEVBIN_NAME:-devbin}" "$(read_version)" \
+    "$(git_head_identity "$root")"
+}
+
+git_head_identity() {
+  local root="${1:-${PROJECT_ROOT:-.}}" sha
+  sha="$(git_head_sha "$root" full)"
+  if [ "$sha" = unknown ]; then
+    printf 'unknown\n'
+    return 0
+  fi
+  if [ -n "$(git -C "$root" status --porcelain 2>/dev/null)" ]; then
+    printf '%s +dirty\n' "$sha"
+  else
+    printf '%s\n' "$sha"
+  fi
   return 0
 }
 
@@ -712,10 +784,23 @@ manifest_source_commit() { manifest_field "$1" source_commit; }
 #
 # SEPARATED FROM DELIVERY SO IT CAN BE TESTED. The comparison is the part with
 # the logic in it and the guards are the part with the policy; keeping them in
-# one function made the whole thing reachable only through a real terminal, and
-# the only way to give a test one is `script`, which fails outright when stdin
-# is a socket. Every test asserting the notice stayed SILENT then passed
-# vacuously -- no pty, no output, refutation satisfied. Two did.
+# one function made the whole thing reachable only through a real terminal.
+#
+# THE TERMINAL PROBLEM IS SOLVED AND THIS PARAGRAPH USED TO SAY OTHERWISE. It
+# read, in the present tense, that "the only way to give a test one is `script`,
+# which fails outright when stdin is a socket", and recorded that two tests
+# asserting the notice stayed SILENT had passed vacuously -- no pty, no output,
+# refutation satisfied. That was true when written and has not been true since
+# `run_tty_eof` (tests/lib/test_helper.bash) landed: `script` starts when its
+# OWN stdin is `/dev/null`, and the child still gets the allocated pty. The
+# delivery half is exercised for real today -- `ON A TERMINAL the notice
+# actually SPEAKS` is green, not skipped.
+#
+# The correction is kept rather than the paragraph deleted, because the stale
+# version cost something measurable: a node read it as a live gap, re-derived
+# the `</dev/null` trick from scratch, and offered it as a fix that was already
+# in the tree. A comment describing a solved problem in the present tense is a
+# claim with an expiry date, and this file is where that class gets recorded.
 #
 # Prints to stdout; the caller decides where it goes. Empty output means there
 # is nothing to say.

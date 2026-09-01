@@ -130,6 +130,25 @@ _clean_live_binaries() {
 
   real="$(_clean_realpath "$dir")"
 
+  # THE OUTPUT IS DEDUPED, AND THE DUPLICATE WAS A MISCOUNT RATHER THAN NOISE.
+  # Branch (b) walks debug/, release/ and the tree root, takes each executable's
+  # BASENAME, and resolves that name through PATH. A cargo tree ordinarily holds
+  # the same binary in BOTH debug/ and release/, so one PATH entry was printed
+  # once per location carrying its name -- Intent listed `intent` and `intentd`
+  # twice each and reported two at-risk binaries as four.
+  #
+  # It matters because of what the line CLAIMS. The refusal above says "removing
+  # these trees would darken the binaries listed above", so each line is one
+  # binary that goes dark; the loop was counting places the name appears in the
+  # tree, which is a different population and always the larger one. An operator
+  # deciding whether to pass --force reads that list, and a doubled list argues
+  # for caution by overstating -- the direction that erodes trust in the guard.
+  #
+  # Deduped in ORDER rather than sorted: the two branches emit different line
+  # shapes and the order is the story (PATH entries inside the tree, then
+  # binaries the tree provides).
+  {
+
   # (a) A PATH ENTRY THAT IS ITSELF INSIDE THE TREE. Few elements, so the
   # straightforward test is affordable here.
   while IFS= read -r p; do
@@ -153,6 +172,7 @@ _clean_live_binaries() {
       case "$pr/" in "$real"/*) printf '%s -> %s\n' "$found" "$pr" ;; esac
     done
   done
+  } | awk '!seen[$0]++'
   return 0
 }
 

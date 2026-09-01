@@ -1314,6 +1314,101 @@ gate_log_suffix() {
 # feed off --trace, cargo's line-per-test) and the end-of-run report table. A
 # gate wanting either writes a handler and calls these functions directly --
 # which is the D1 boundary again, in a different place.
+# ---------------------------------------------------------------------------
+# THE HEARTBEAT. Fixes no defect; makes correct behaviour legible.
+#
+# Three "is this hung?" exchanges in one day at Intent, every one of them from
+# SILENCE and every one of them a correctly-working operation: a 113G `rm -rf`
+# printing nothing for 35 minutes, cargo linking with nothing between crates,
+# and a build blocked on cargo's build lock. None was hung.
+#
+# THE LAST OF THOSE IS WHY THIS IS NOT COSMETIC. Cargo's build lock works
+# correctly and invisibly, so a blocked build is indistinguishable from a hung
+# one -- and a node that "fixes the hang" by pointing CARGO_TARGET_DIR at a
+# private tree is behaving rationally. That is 52G of one estate's 113G. So
+# `check targetdir` and this heartbeat are two halves of one change: a
+# prohibition on forking only holds if the wait is made visible, and banning it
+# alone gets worked around by the next node that believes it has hung.
+#
+# FOUR THINGS IT DELIBERATELY DOES NOT DO.
+#
+#   1. It NEVER writes into the captured stream. Grammars COUNT lines in the log
+#      and run_gate promotes a counted run that executed nothing to FAILED --
+#      periodic noise inside the capture could move a verdict. The beat goes to
+#      run_gate's OWN stderr, which the `2>&1` inside the pipeline does not
+#      touch; the log stays byte-identical to what it would have been.
+#   2. It only beats when a terminal is attached (`[ -t 2 ]`). Redirected output
+#      -- CI, `devbin check all > log 2>&1` -- is unchanged to the byte. The
+#      case being fixed is a human watching a silent screen.
+#   3. It beats on SILENCE, not on time. The log's size is what it watches, so a
+#      chatty gate never produces a line: the operator can already see it is
+#      alive, and a timer would be adding noise to the case that does not need
+#      it.
+#   4. It reports ELAPSED TIME AND NOTHING ELSE about the cause. run_gate cannot
+#      tell a lock wait from a slow link, and a heartbeat that guessed would be
+#      inventing. "Still running, quiet for 4m" is the whole of what is known
+#      and answers the question that was actually being asked.
+#
+# It carries no trap: a trap here would displace the caller's, which is the same
+# rule that makes run_gate save and restore errexit rather than forcing it. The
+# loop watches its parent instead and exits when the parent goes away.
+gate_heartbeat_start() {
+  local log="$1" label="$2" interval="${DEVBIN_HEARTBEAT_SECS:-30}" parent=$$
+  _GATE_HEARTBEAT_PID=""
+  # 0 disables. Non-numeric disables rather than dying: a malformed override
+  # must not be able to take a gate down.
+  case "$interval" in '' | *[!0-9]*) return 0 ;; esac
+  [ "$interval" -gt 0 ] || return 0
+  [ -t 2 ] || return 0
+  (
+    # No `local` here: this is a subshell, not a function, and the subshell is
+    # what isolates these.
+    hb_total=0
+    hb_quiet=0
+    hb_last=0
+    [ -r "$log" ] && hb_last="$(wc -c <"$log" 2>/dev/null || printf 0)"
+    while :; do
+      sleep "$interval"
+      kill -0 "$parent" 2>/dev/null || exit 0
+      hb_total=$((hb_total + interval))
+      hb_size=0
+      [ -r "$log" ] && hb_size="$(wc -c <"$log" 2>/dev/null || printf 0)"
+      if [ "$hb_size" = "$hb_last" ]; then
+        hb_quiet=$((hb_quiet + interval))
+        printf '    ... %s still running -- quiet for %s, %s elapsed\n' \
+          "$label" "$(fmt_duration "$hb_quiet")" "$(fmt_duration "$hb_total")" >&2
+      else
+        hb_quiet=0
+      fi
+      hb_last="$hb_size"
+    done
+  ) &
+  _GATE_HEARTBEAT_PID=$!
+}
+
+# gate_heartbeat_stop -- CALLED ONLY AFTER PIPESTATUS HAS BEEN CAPTURED.
+# `kill` and `wait` both set $?, so stopping the beat before the verdict is read
+# would overwrite the gate's own exit status with the heartbeat's.
+gate_heartbeat_stop() {
+  [ -n "${_GATE_HEARTBEAT_PID:-}" ] || return 0
+  kill "$_GATE_HEARTBEAT_PID" 2>/dev/null
+  wait "$_GATE_HEARTBEAT_PID" 2>/dev/null
+  _GATE_HEARTBEAT_PID=""
+  return 0
+}
+
+# fmt_duration <seconds> -- "45s", "2m30s", "1h04m". Read by a human mid-wait.
+fmt_duration() {
+  local s="${1:-0}"
+  if [ "$s" -lt 60 ]; then
+    printf '%ds' "$s"
+  elif [ "$s" -lt 3600 ]; then
+    printf '%dm%02ds' "$((s / 60))" "$((s % 60))"
+  else
+    printf '%dh%02dm' "$((s / 3600))" "$(((s % 3600) / 60))"
+  fi
+}
+
 run_gate() {
   local label="" suffix="" grammar=generic out_dir="tmp/gate" source=""
   local keep_log=1 purge=0 purge_only=0 want_color=auto allow_empty=0
@@ -1413,8 +1508,13 @@ run_gate() {
   local errexit_was_on=0
   case "$-" in *e*) errexit_was_on=1 ;; esac
   set +e
+  gate_heartbeat_start "$log" "$label"
   "$@" 2>&1 | tee -a "$log"
+  # PIPESTATUS IS READ BEFORE THE BEAT IS STOPPED, and the order is load-bearing:
+  # `kill` and `wait` both set $?, and PIPESTATUS is clobbered by the next
+  # command to run. Stopping first would hand the gate the heartbeat's verdict.
   rcs=("${PIPESTATUS[@]}")
+  gate_heartbeat_stop
   rc="${rcs[0]}"
   [ "$errexit_was_on" = 1 ] && set -e
 

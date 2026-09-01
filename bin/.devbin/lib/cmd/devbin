@@ -58,10 +58,45 @@ runtime_version() {
 # here and the dispatcher simply had no arm for it. Asking a tool its version is
 # not a usage error, and the answer is devbin's rather than the project's, which
 # `<name> --version` already covers.
+# runtime_identity -- WHICH devbin bytes these are, as a line.
+#
+# Mirrors runtime_version's two cases for the same reason. In a consumer the
+# answer is the manifest's recorded `source_commit`, which is the commit the
+# vendored bytes were taken FROM -- not this repository's HEAD, which belongs to
+# the consumer and would name a completely unrelated piece of software.
+#
+# THE RECORDED LINE IS PRINTED WHOLE. `source_commit_of` writes
+# `<sha> +dirty -- THESE BYTES MATCH NO COMMIT` when devbin's own half was
+# uncommitted at install, and words rather than a sha when the source was not a
+# checkout at all. Issue 0043 was a reader that kept the sha and threw the
+# sentence away, so provenance that said "no commit matches this" rendered as an
+# ordinary clean row. manifest_field already returns the line intact; this must
+# not helpfully trim it.
+#
+# WHERE IT DIVERGES FROM runtime_version, DELIBERATELY: a manifest that exists
+# but records no version DIES there, because there is no honest placeholder for
+# a version number -- it is either right or it is a false claim about different
+# software. Provenance HAS an honest placeholder. `unrecorded` is a true
+# statement, and it beats both dying on `--version` and substituting the
+# consumer's own HEAD, which would be 0043's defect wearing a different hat.
+runtime_identity() {
+  local rec=""
+  if [ -n "${DEVBIN_DIR:-}" ] && [ -f "${DEVBIN_DIR}/manifest.sha256" ]; then
+    rec="$(manifest_source_commit "${PROJECT_ROOT:-.}" 2>/dev/null || true)"
+    [ -n "$rec" ] || rec="provenance unrecorded -- re-run upgrade"
+    printf '%s' "$rec"
+    return 0
+  fi
+  # No manifest: the dogfood checkout (D12), where devbin's own tree IS the
+  # source and its HEAD is the honest answer.
+  git_head_identity "${PROJECT_ROOT:-.}"
+}
+
 show_version() {
-  local ver
+  local ver ident
   ver="$(runtime_version)" || exit 1
-  printf 'devbin %s\n' "$ver"
+  ident="$(runtime_identity)"
+  printf 'devbin %s (%s)\n' "$ver" "$ident"
 }
 
 show_templates() {

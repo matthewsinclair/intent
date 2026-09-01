@@ -1,0 +1,344 @@
+#!/usr/bin/env bash
+#
+# `fullcycle` -- from a total clean: remove the cargo trees, rebuild, test.
+#
+# A TOP-LEVEL COMMAND AND DELIBERATELY NOT `build fullcycle`, which is where it
+# was first put and where it did not belong. `build` is D18 tier 4 -- universal
+# in name only, shipping no option set, because the four corpus projects'
+# build targets intersect at nothing and shipping any of them imposes one
+# project's shape on the rest. A `build.fullcycle` row broke that, and broke it
+# in the way the tier exists to prevent: `command_active` makes a command with
+# no active options inactive, so `build` would have resolved for the FIRST time
+# in every rust estate on the strength of a devbin-shipped option, with `build
+# all` then being exactly one thing -- the destructive one.
+#
+# As a command it is STRUCTURALLY outside every `all`. `all` sweeps a command's
+# options; a command is not one of them. For a verb that deletes the build tree
+# that is worth more than a flag saying the same thing, because no config can
+# opt it back in by accident and no future refactor can quietly re-include it.
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/runlog
+. "$DEVBIN_LIB/runlog"
+
+_fullcycle_usage() {
+  printf 'usage: %s fullcycle [--dry-run] [--force]\n\n' "${DEVBIN_INVOKE:-bin/devbin}"
+  printf '  From a total clean: remove the cargo target trees, rebuild, test.\n'
+  printf '  DESTRUCTIVE. --dry-run shows what would run and executes nothing.\n'
+}
+
+# _fullcycle_phases <launcher> -- THE PHASE LIST, DEFINED EXACTLY ONCE.
+#
+# The dry run and the real run walk this same function. A dry run carrying its
+# own copy of the sequence drifts from the real one and then lies with
+# confidence, in the direction that matters: it is consulted precisely when the
+# caller is unsure what is about to happen.
+#
+# THE REBUILD PHASE IS NOT OPTIONAL AND ITS ABSENCE WAS A REAL DEFECT, SHIPPED.
+# The first version of this ran `clean rust` then `test rust` and nothing else,
+# on the reasoning that devbin's `build` is D18 tier 4 and ships no options, so
+# a shipped cycle must not name it. That reasoning was about which verbs devbin
+# OWNS and never asked whether what remained was still a cycle. It was not:
+# `clean rust` removes `target/` INCLUDING `release/`, and `cargo test` builds
+# debug test binaries and never the release artefacts. On the estate this was
+# specified from, `~/.local/bin/intent` is a symlink into
+# `native/rust/target/release/`, so the two-phase cycle would have deleted the
+# binary every whiteboard guard on the machine resolves through and not put it
+# back -- the 2026-08-29 outage, reproduced by the command written to prevent
+# its cause.
+#
+# So `build all` is a phase again, offered when the project HAS a build command.
+_fullcycle_phases() {
+  local launcher="$1"
+  printf '%s\n' "clean rust"
+  if _fullcycle_can_rebuild "$launcher"; then
+    printf '%s\n' "build all"
+  fi
+  printf '%s\n' "test rust"
+}
+
+# _fullcycle_can_rebuild <launcher> -- true when this project HAS a build verb.
+#
+# A NECESSARY CONDITION AND NOT A SUFFICIENT ONE, and the name used to promise
+# more than it delivers. The property that matters is "can restore the release
+# artefacts"; this asks "is there a build command". Conflab satisfied the proxy
+# and failed the property -- `build all` there runs cargo at the DEV profile, so
+# a cycle refused nothing, reported rc=0 three phases running, and left
+# `~/.local/bin/conflab` and `conflabd` dangling into a release/ the clean had
+# deleted. A sound instrument aimed one unit wide, returning clean.
+#
+# It is kept because a project with NO build verb certainly cannot restore, and
+# refusing those early is still right. What it cannot do is bless the ones that
+# have a verb, so the real guarantee is measured after the fact by
+# _fullcycle_path_links below rather than predicted here.
+_fullcycle_can_rebuild() {
+  "$1" build --help >/dev/null 2>&1
+}
+
+# _fullcycle_path_links -- PATH symlinks that CURRENTLY RESOLVE into this tree,
+# as `<link><TAB>` lines. The before-half of a two-sided control.
+#
+# WHY MEASURED AND NOT PREDICTED. Every attempt to decide in advance whether a
+# cycle will restore what it deletes is a proxy for the thing that matters, and
+# each proxy has now failed in a different way: "has a build verb" passes for a
+# debug-only build, and "clean warns about at-risk binaries" cannot see a
+# symlink that is ALREADY dangling, because a PATH resolver only finds binaries
+# that still work. Once a cycle darkens them, every later run is correctly
+# silent about repeating the damage.
+#
+# So this records what worked BEFORE and re-checks the same list AFTER. Only
+# links that resolved at the start are recorded, which is the honest scope: the
+# cycle answers for what IT broke, not for what it found broken.
+_fullcycle_path_links() {
+  local p f want="${1:-live}"
+  local -a elements=()
+  IFS=: read -r -a elements <<<"$PATH"
+  for p in "${elements[@]}"; do
+    [ -n "$p" ] && [ -d "$p" ] || continue
+    for f in "$p"/*; do
+      [ -L "$f" ] || continue
+      case "$(readlink "$f")" in "$PROJECT_ROOT"/*) ;; *) continue ;; esac
+      # -e follows the link: true means it resolves today.
+      if [ -e "$f" ]; then
+        [ "$want" = live ] && printf '%s\n' "$f"
+      else
+        [ "$want" = dead ] && printf '%s\n' "$f"
+      fi
+    done
+  done
+  return 0
+}
+
+_fullcycle_header() {
+  local dirty link predark=0
+  # WRITTEN BEFORE ANYTHING RUNS, so the log can never be a verdict describing
+  # no commit. git_head_identity already carries `+dirty`; the count sits beside
+  # it because "dirty" and "how dirty" are different questions to somebody
+  # reading this log a week later.
+  # A NON-CHECKOUT REPORTS AS ONE, rather than as zero dirty files. `dirty: 0`
+  # would claim the tree matches its commit when there is no commit to match --
+  # the same false statement a bare sha makes on a dirty tree, in the other
+  # direction. It also cannot be computed here: `set -o pipefail` is on, and
+  # git exiting 128 into `wc` takes the whole handler down with it.
+  printf '    HEAD:  %s\n' "$(git_head_identity "$PROJECT_ROOT")"
+  if git -C "$PROJECT_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+    dirty="$(git -C "$PROJECT_ROOT" status --porcelain | wc -l | tr -d ' ')"
+    printf '    dirty: %s file(s)\n' "$dirty"
+  else
+    printf '    dirty: not a checkout -- these bytes are not compared to anything\n'
+  fi
+
+  # ALREADY DARK BEFORE THIS RUN, REPORTED AND NOT BLAMED ON THE CYCLE.
+  #
+  # THE BEFORE/AFTER CONTROL ALONE HAS A HOLE AND THIS IS IT. It records only
+  # links that RESOLVE at the start, so a tree whose binaries were already
+  # dangling gets a clean report -- correctly, since this cycle did not break
+  # them, and uselessly, since nothing else on the machine will say so either.
+  # `clean`'s at-risk detector resolves basenames through PATH and a dangling
+  # symlink is invisible to a PATH resolver, so once anything darkens a binary
+  # every later run is CORRECTLY silent about it. A check that goes quiet
+  # exactly as the damage persists is worse than one that cannot fire, because
+  # it used to work.
+  #
+  # Measured cause, not hypothetical: hv could not recall whether `conflab`
+  # resolved before a cold cycle, having run a full clean earlier that day. If
+  # it was already dark, the run that reported rc=0 was the SECOND green report
+  # over the same damage.
+  #
+  # REPORTED, NOT FAILED. The cycle answers for what it broke; this is a fact
+  # about the tree it found, and failing on it would make an estate red for
+  # somebody else's clean.
+  while IFS= read -r link; do
+    [ -n "$link" ] || continue
+    [ "$predark" -eq 0 ] &&
+      printf '    ALREADY DANGLING BEFORE THIS RUN (not caused by it, and nothing else reports it):\n'
+    predark=$((predark + 1))
+    printf '      %s -> %s\n' "$link" "$(readlink "$link")"
+  done < <(_fullcycle_path_links dead)
+}
+
+# _fullcycle_run <force> -- the real cycle. Wrapped by run_gate, so its output
+# is sealed and the heartbeat covers its silences -- which is the whole reason
+# this is not a plain handler: the clean is the longest silent operation devbin
+# has, and a silent 35 minutes is indistinguishable from a hang.
+_fullcycle_launcher() {
+  local l="$PROJECT_ROOT/bin/devbin"
+  if [ ! -x "$l" ]; then
+    die "fullcycle: no launcher at $l -- it drives devbin's own verbs and cannot find it."
+  fi
+  printf '%s' "$l"
+}
+
+_fullcycle_run() {
+  local force="$1" launcher phase rc=0 prc start elapsed cleaned=0 link broken=0
+  local -a pass=()
+  [ "$force" = 1 ] && pass+=(--force)
+  launcher="$(_fullcycle_launcher)"
+
+  _fullcycle_header
+  # THE BEFORE-HALF, taken before anything is removed.
+  local -a atrisk=()
+  while IFS= read -r link; do
+    [ -n "$link" ] && atrisk+=("$link")
+  done < <(_fullcycle_path_links live)
+  [ "${#atrisk[@]}" -eq 0 ] ||
+    printf '    watching: %s PATH symlink(s) resolving into this tree\n' "${#atrisk[@]}"
+
+
+  printf '\n    FULLCYCLE STARTING -- this REMOVES the cargo build trees.\n'
+  [ "$force" = 1 ] ||
+    printf '    No --force given: clean will ask, or refuse if there is no terminal.\n'
+
+  while IFS= read -r phase; do
+    [ -n "$phase" ] || continue
+    printf '\n    --- phase: %s ---\n' "$phase"
+    start=$SECONDS
+    prc=0
+    # NO `< /dev/null`. Redirecting the tool's stdin hides terminal-only hangs,
+    # and here it would also defeat `clean`'s confirmation, turning a refusal
+    # into a silent proceed.
+    case "$phase" in
+      clean*)
+        # shellcheck disable=SC2086
+        "$launcher" $phase ${pass[@]+"${pass[@]}"} || prc=$?
+        ;;
+      *)
+        # shellcheck disable=SC2086
+        "$launcher" $phase || prc=$?
+        ;;
+    esac
+    # THE RC IS CAPTURED BEFORE THE TIMING IS PRINTED. A printf placed after a
+    # phase does not run at all when the phase fails under errexit, so the
+    # timing goes missing on exactly the run somebody most wanted a number for
+    # -- and its absence looks identical to the success case. `time` is not used
+    # for a separate measured reason: it reports nothing for a shell function,
+    # however that function was defined.
+    elapsed=$((SECONDS - start))
+    printf '    phase: %-14s %8s  rc=%d\n' "$phase" "$(fmt_duration "$elapsed")" "$prc"
+    case "$phase" in clean*) [ "$prc" -eq 0 ] && cleaned=1 ;; esac
+    if [ "$prc" -ne 0 ]; then
+      rc="$prc"
+      printf '    STOPPING: %s failed. The remaining phases were NOT run.\n' "$phase"
+      # SAY WHAT STATE THE TREE IS IN, because "stopping" understates it once
+      # the clean has already succeeded. A build that fails after the delete
+      # leaves the estate with no release artefacts and no cycle left to
+      # restore them -- and the symptom an operator meets is not a missing
+      # binary, it is a pre-commit gate that will not let them commit, with a
+      # remedy line telling them to install the very tool that is absent.
+      # Reporting "stopped" and letting them discover that is the silent half.
+      if [ "$cleaned" = 1 ]; then
+        printf '\n    THE BUILD TREES WERE ALREADY REMOVED AND HAVE NOT BEEN REBUILT.\n'
+        printf '    Anything on PATH resolving through target/release/ is now dangling.\n'
+        printf '    Rebuild before doing anything else: %s build all\n' "${DEVBIN_INVOKE:-bin/devbin}"
+      fi
+      break
+    fi
+  done < <(_fullcycle_phases "$launcher")
+
+  # THE AFTER-HALF. A GREEN CYCLE THAT DARKENED THE TOOLCHAIN IS THE FALSE GREEN
+  # THIS WHOLE VERB EXISTS TO AVOID, and it is exactly what shipped: clean rust
+  # rc=0, build all rc=0, test rust rc=0, FULLCYCLE FINISHED rc=0, and two
+  # binaries left dangling into a deleted release/ because `build all` there is
+  # debug-only. The warning for that damage existed, was correct, and sat inside
+  # the failed-phase branch -- unreachable on the one path where the operator
+  # has no other clue.
+  #
+  # Checked on EVERY path, success included, and it makes the run RED. The
+  # remedy an operator meets otherwise is a pre-commit gate refusing to let them
+  # commit, with a message naming the tool that is absent.
+  if [ "$cleaned" = 1 ] && [ "${#atrisk[@]}" -gt 0 ]; then
+    for link in "${atrisk[@]}"; do
+      [ -e "$link" ] && continue
+      [ "$broken" -eq 0 ] && printf '\n    THIS CYCLE DARKENED BINARIES IT DID NOT RESTORE:\n'
+      broken=$((broken + 1))
+      printf '      %s -> %s (DANGLING)\n' "$link" "$(readlink "$link")"
+    done
+    if [ "$broken" -gt 0 ]; then
+      printf '    %s link(s) resolved before this run and do not now.\n' "$broken"
+      printf '    The build phase did not repopulate release/ -- a dev-profile build does not.\n'
+      printf '    Rebuild with a RELEASE profile before doing anything else.\n'
+      rc=1
+    fi
+  fi
+
+  printf '\n    FULLCYCLE FINISHED -- rc=%d\n' "$rc"
+  return "$rc"
+}
+
+cmd_fullcycle() {
+  local dry=0 force=0 arg launcher phase
+
+  # THE FLAG IS ONLY AS SAFE AS THE PARSER'S STRICTNESS ABOUT ITS NEIGHBOURS.
+  # For a verb that deletes the build tree the lethal failure is not a dry run
+  # that does something -- it is `--dryrun` or `--dry_run` falling through to a
+  # REAL run because the parser ignored what it did not recognise. So an unknown
+  # argument REFUSES. `clean` sets exactly this precedent and the wording
+  # follows it deliberately.
+  for arg in "$@"; do
+    case "$arg" in
+      -h | --help)
+        _fullcycle_usage
+        return 0
+        ;;
+      --dry-run) dry=1 ;;
+      --force) force=1 ;;
+      *)
+        die "fullcycle: unknown argument '$arg' (only --dry-run and --force are accepted)
+       A verb that deletes the build tree does not guess at what it was asked for."
+        ;;
+    esac
+  done
+
+  cd "$PROJECT_ROOT" || die "cannot enter $PROJECT_ROOT"
+  launcher="$(_fullcycle_launcher)"
+
+  # FAIL CLOSED WHEN THE CYCLE CANNOT PUT BACK WHAT IT TAKES AWAY.
+  #
+  # `clean rust` removes `target/` including `release/`, and `test rust` builds
+  # debug binaries only. Without a rebuild phase this verb is net-destructive,
+  # and on at least one estate the deleted path is what `~/.local/bin/intent`
+  # resolves through -- so the cost is not a slow next build, it is every
+  # whiteboard guard on the machine going dark until somebody rebuilds by hand.
+  #
+  # REFUSING IS THE SAFE DIRECTION AND SKIPPING IS NOT, so the probe's failure
+  # is treated as "cannot rebuild" rather than "no rebuild needed". A project
+  # that genuinely wants clean-then-test has two honest verbs for it and does
+  # not need this one.
+  if ! _fullcycle_can_rebuild "$launcher"; then
+    printf 'fullcycle: REFUSING -- this project has no build command, so the cycle cannot rebuild what it deletes.\n' >&2
+    printf '  clean rust removes target/ INCLUDING release/, and test rust builds debug binaries only.\n' >&2
+    printf '  Anything on PATH resolving through target/release/ would stop resolving and stay broken.\n' >&2
+    printf '  Run %s clean rust and %s test rust yourself if that is really what you want,\n' \
+      "${DEVBIN_INVOKE:-bin/devbin}" "${DEVBIN_INVOKE:-bin/devbin}" >&2
+    printf '  or declare a build command this project can rebuild through.\n' >&2
+    return 1
+  fi
+
+  if [ "$dry" = 1 ]; then
+    # NO run_gate ON A DRY RUN. It executes nothing, so there is no verdict to
+    # seal and no silence to cover, and writing a log artefact for a run that
+    # did not happen would put a record of work beside work that was not done.
+    _fullcycle_header
+    printf '\n    DRY RUN -- nothing below is executed.\n'
+    while IFS= read -r phase; do
+      [ -n "$phase" ] || continue
+      printf '      %s %s%s\n' "${DEVBIN_INVOKE:-bin/devbin}" "$phase" \
+        "$(case "$phase" in clean*) [ "$force" = 1 ] && printf ' --force' ;; esac)"
+    done < <(_fullcycle_phases "$launcher")
+    # WHAT IT CANNOT KNOW, SAID RATHER THAN GUESSED. Quoting a remembered
+    # "~35 minutes, frees 113G" would report another estate's measurement of
+    # another estate's tree as though it described this one.
+    printf '\n    Not shown: how long the clean takes, or how much it frees.\n'
+    printf '    Neither is knowable without running it, and this tree is not the one those numbers came from.\n'
+    return 0
+  fi
+
+  run_gate --label fullcycle --suffix FULLCYC --grammar generic \
+    --out-dir "$(gate_out_dir fullcycle)" \
+    -- _fullcycle_run "$force"
+}
+
+cmd_fullcycle "$@"
