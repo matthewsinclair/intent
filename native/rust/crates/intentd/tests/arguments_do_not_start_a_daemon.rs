@@ -129,6 +129,28 @@ fn version_still_answers_and_serves_nothing() {
     out.contains("intentd") && out.contains(env!("CARGO_PKG_VERSION")),
     "`--version` must name the binary and its version: {out}"
   );
+  // **AND THE BUILD, WHICH THIS ASSERTED FOR NEITHER UNTIL 2026-09-01.** The
+  // commit was embedded by `build.rs` and read back by the pre-commit
+  // self-provenance arm, so it existed everywhere except where an operator
+  // could see it -- `intent --version` named its build and this one did not.
+  // A test that stops at name-and-version passes on exactly that gap, which is
+  // how it survived: every binary here reports the same CARGO_PKG_VERSION, so
+  // the version cannot distinguish two builds and only the commit can.
+  //
+  // Asserted as a SHAPE rather than against a literal: the commit changes with
+  // every build, so a fixed value would be a test of the fixture. What must
+  // hold is that a build identifier is present and not empty.
+  let build = out
+    .split_once('(')
+    .and_then(|(_, rest)| rest.split_once(')'))
+    .map(|(inside, _)| inside.trim().to_string())
+    .unwrap_or_default();
+  assert!(
+    build.len() >= 7,
+    "`--version` must name the BUILD as well as the line, the way `intent --version` does. \
+     Every binary here reports the same CARGO_PKG_VERSION, so the version says which LINE and \
+     only the commit says which BUILD: {out}"
+  );
   assert!(!published(&home), "`--version` served");
 
   let _ = std::fs::remove_dir_all(&home);

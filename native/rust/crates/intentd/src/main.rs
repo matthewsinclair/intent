@@ -167,8 +167,25 @@ async fn main() -> ExitCode {
   // **NO PROJECT-MANAGEMENT STATE IN SHIPPED OUTPUT** (D37). What a user needs
   // from `--version` is the version; which of our work packages finished the
   // daemon is our business, and it stays in the module note above.
+  //
+  // **THE COMMIT IS PART OF THE VERSION, NOT PROJECT-MANAGEMENT STATE, AND
+  // `intent` HAS SAID SO SINCE THE `corrected` RATIFICATION** (hv 2026-08-14).
+  // Its reasoning applies here unchanged: every binary in this estate reports
+  // the same `CARGO_PKG_VERSION`, so the version answers WHICH LINE and only
+  // the commit answers WHICH BUILD. `SOURCE_COMMIT` carries its own dirt inside
+  // the value -- `dirty-<sha>`, or `unknown` when git could not answer -- so
+  // this cannot report a dirty build as a clean one.
+  //
+  // **IT WAS EMBEDDED AND UNPRINTED, WHICH IS THE WORST OF THE THREE STATES.**
+  // `build.rs` has embedded it all along and the pre-commit self-provenance arm
+  // reads it out with `strings`, so the datum existed and only the operator
+  // could not reach it: `intent --version` named its build and `intentd
+  // --version` did not. **This binary needs it MORE than its sibling by its own
+  // build script's argument** -- it is the one measured forty-two hours older
+  // than the commit it was recorded under, and an operator diagnosing a daemon
+  // asks the daemon.
   if std::env::args().any(|arg| arg == "--version" || arg == "-V") {
-    println!("intentd {}", env!("CARGO_PKG_VERSION"));
+    println!("intentd {} ({})", env!("CARGO_PKG_VERSION"), SOURCE_COMMIT);
     return ExitCode::SUCCESS;
   }
 
