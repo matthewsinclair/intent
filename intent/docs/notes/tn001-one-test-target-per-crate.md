@@ -1,5 +1,5 @@
 ---
-verblock: "01 Sep 2026:v0.1: vc - First technote; the consolidation ruling, its mechanism, and the trap in measuring it"
+verblock: "01 Sep 2026:v0.5: vc - Applied at 71a96213; four estates corrected this note and each correction is kept"
 ---
 
 # TN001 -- One test target per crate: the ruling Intent made and did not apply
