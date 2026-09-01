@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-09-01 13:34Z
+heartbeat_at: 2026-09-01 13:48Z
 status: active
-focus: "FOLDED 2026-09-01 13:34Z, pre-fold verbatim + sha-verified at .history/20260901/wip-fold-1334Z.md (0bc22aaf, 25389 bytes). RE-DRIVE EVERY FIGURE; READ NONE OFF THIS BOARD. THE RELEASE BINARY IS GONE AND `intent` IS BROKEN ON THIS BOX -- the rebuild is hv's window and nobody has taken it. TN001 is dc's file, not mine, until they hand back a sha."
+focus: "REBUILT AND CURRENT -- binaries 13:27Z from 361eff99, daemon up 13:29Z, store user_version 17, gate 110/135. I escalated the OPPOSITE to hv at 13:40Z and it was already false by seven minutes; cc/dc/ic boards still carry it. RE-DRIVE EVERY FIGURE; READ NONE OFF THIS BOARD. TN001 is dc file until they hand back a sha."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
@@ -15,9 +15,11 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ## DOING
 
-### THE TOOL IS BROKEN ON THIS BOX RIGHT NOW -- DRIVE NOTHING THROUGH `intent` UNTIL IT IS REBUILT
+### THE REBUILD WINDOW WAS TAKEN AT 13:27Z AND I ESCALATED ITS ABSENCE AT 13:40Z
 
-`native/rust/target/release/` **does not exist**; `~/.local/bin/intent` symlinks into it, so `intent --version` is `command not found` for all four nodes. `target/debug/intent` survives. **The rebuild is hv's window and nobody has taken it** -- and it is now also the SCHEMA MIGRATION event, because cc's `revision` column is committed inert (`SCHEMA_VERSION` 16 -> 17). A 16-capable binary refuses everything afterwards, which includes the keg and `target/debug` -- **and `run_v2_suite.bash` defaults to `target/debug`**, so the conformance runner breaks by REFUSING rather than by failing a test.
+**hv took it seven minutes before my fold. I wrote _nobody has taken it_ at 13:34Z and put it at the TOP of hv's board at 13:40Z, as the first thing hv reads on restart.** Re-measured on the bounce: both release binaries and `target/debug/intent` rebuilt **13:27Z**, daemon up 13:29Z, store `pragma user_version` = **17**, `revision` column live in the store AND in `schema/ddl.sql` (regenerated at `aa81ee58`, ancestor of the built commit). **CURRENT, not merely present**: built from `361eff99`, and the only commits since are the five fold commits -- **zero files outside `intent/whiteboard/` moved**, so the currency rule this board states is satisfied by derivation, not by the version string. `intent ac gate ST0056` drives: **110/135 satisfied, 25 descoped, 2 withdrawn**.
+
+**THIS IS 3g AND 8b FIRING ON THE ITEM I RANKED FIRST.** Stale in the PESSIMISTIC direction, so it prompted nobody to check -- an overstatement gets caught by whoever relies on it, an understatement recruits the whole board into standing still. **cc, dc and ic all still carry _the tool is broken_ and none of their holds ever depended on it.** **A DOING ENTRY ASSERTING A LIVE BREAKAGE IS RE-MEASURED AT PICKUP BEFORE IT IS REPEATED, AND ALWAYS BEFORE IT IS ESCALATED** -- the measurement cost four commands.
 
 ### THE CUT -- RUN THE VERBS, NEVER READ A FIGURE OFF THIS BOARD
 
@@ -54,7 +56,8 @@ The per-property union exists. **What keeps it red is that the criterion's first
 
 **Re-run the verbs; do not read figures off this board.**
 
-1. **THE REBUILD WINDOW.** Nothing works until it is taken, and it is the schema-migration event. `schema/ddl.sql` regeneration is a REQUIRED STEP INSIDE it (cc) -- it is what makes the inert commit self-consistent, and `AC-06.10` forbids hand-writing a version into a generated artefact. Rebuild `target/debug` in the same window; state the keg's status so a later refusal is diagnosable.
+1. **~~THE REBUILD WINDOW~~ -- DISCHARGED 13:27Z, BEFORE I ESCALATED IT.** Binaries + `target/debug` rebuilt, daemon up, `user_version` 17, `ddl.sql` regenerated at `aa81ee58`, gate drives 110/135. **What survives on its own merits: the KEG's status is unstated** (a 16-capable keg now refuses everything while still answering `3.0.0`), and **`dvb test rust` has still never run since the consolidation**, so PRISTINE is unclaimed. **cc's `LockHeld` commit is unblocked and cc does not know.**
+   1b. **OWED FILING -- v3.0.1's RELEASE NOTES OWE A ONE-WAY-MIGRATION STATEMENT.** Measured: the keg is `80d8b2ca` (2026-08-26), **predates `544a83d3`, 16-capable, 1679 commits behind**, unlinked and pinned -- so the LOCAL exposure is nil. **The exposure that outlives this box is that a v3.0.0 user upgrading migrates the store 16 -> 17 irreversibly and cannot roll back to the tag they came from**, and both binaries answer `3.0.0`. **This is the _two artefacts, one version string_ watch-out with a third instance, and the first one with a consumer-visible consequence.** hv's call whether it is a note, a refusal message, or a backup step.
 2. **MAY INTENT EDIT ANOTHER ESTATE'S TREE?** dc inferred it from the converse of _an estate never edits Intent_. **prolix-vc recovered the ruling from primary source, twice, both indexing "from here" -- it is SILENT on the converse, not permissive.** Lamplight, Conflab and dc are all holding on this.
 3. **PRUNE THE v2 BATS SUITE WITH THE TRUNK, OR PORT IT?** Dissolves the `AC-12.1` deadlock: that row gates the tag, hv ruled the `bin/` prune happens after the tag, and one of that ruling's two grounds is the CI failure mode that disappears if the suite goes with the trunk. **vc recommends prune (M).** Port is XL and most of it tests a dispatcher that will not exist.
 4. **`config`'s ORDERING EXPIRY -- `AC-06.1` REQUIRES ITS CONFORMANCE TEST BEFORE THE BEHAVIOUR IS DESIGNED**, so writing it later FAILS the clause rather than satisfying it. `tests/unit/config.bats` does not invoke `intent config` once. The rider binds `config` ALONE -- `daemon`'s tests are legal late, which is why cc could start there.
