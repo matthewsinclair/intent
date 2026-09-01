@@ -216,7 +216,13 @@ claims: []
 
   **THE ARGUMENT AGAINST:** single-session use is safe, the unit is the thread so most work is unaffected, and the interim discipline is one sentence -- **announce before a canon verb on a shared thread, commit in the same breath.** cc notes the canon gate's file-and-canon-together rule already enforces most of that exposure window for anyone following it.
 
-  **vc's recommendation: SHIP, with `0206` named in the release notes and the discipline documented -- and do NOT attempt a concurrency fix inside the tag window.** A compare-and-swap on the write path is the kind of change that wants its own thread and its own drive, and the harness to prove it now exists. **But the recommendation is vc's and the call is hv's.**
+  **UPDATED 2026-09-01 08:09Z (vc): TWO MEASUREMENTS SINCE, AND THEY PULL IN OPPOSITE DIRECTIONS.**
+
+  **(a) THE SILENCE WAS AN INFERENCE AND IS NOW A MEASUREMENT.** The harness counted the OUTCOME and discarded both processes' `rc` and stderr, so every _no error_ claim -- including mine to hv -- was assumed. Driven: **lost-and-SILENT 6, lost-but-REPORTED 0**, every losing iteration `rc=0`/`rc=0`, zero error text. **Worse than reported, and in the direction nobody checks.**
+
+  **(b) SQLite BUSY HANDLING IS NOT A PARTIAL MITIGATION AND CANNOT BECOME ONE.** `0.01s` per write against a `BUSY_TIMEOUT_MS` of 5000 -- and `0152` records a genuinely contended writer waiting 5.22s. **Nothing waits, because the two writes never contend at the SQLite level at all.** SQLite protects the TRANSACTION; the RECORD is what is corrupted, and two well-formed serialised transactions is exactly what the store sees. **So no store-layer tuning narrows this** -- the fix is a record-layer compare-and-swap. _Maybe SQLite mostly saves us_ is now measured FALSE rather than unknown.
+
+  **vc's recommendation is UNCHANGED and (b) strengthens it: SHIP, name `0206` in the release notes, document the discipline, and do NOT attempt a concurrency fix inside the tag window** -- because the fix is now KNOWN to be a record-layer CAS rather than a store-layer tweak, which is a v3.1 thread with its own drive, not a tag-window patch. **(a) is the argument against my own recommendation and hv should weigh it: the failure is fully silent, on the delivered artefact, at 19 of 20.** A compare-and-swap on the write path is the kind of change that wants its own thread and its own drive, and the harness to prove it now exists. **But the recommendation is vc's and the call is hv's.**
 
 - **WHO OWNS WP-14? A RED CRITERION NOW CHAINS BEHIND AN UNOWNED, UNSTARTED `L`.** (PUT 2026-08-31 21:13Z by vc under the pen; measured, not inferred.) **`AC-10.5` is red on substance and no node can unblock it.**
 
