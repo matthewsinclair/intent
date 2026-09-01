@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-09-01 08:17Z
+heartbeat_at: 2026-09-01 08:25Z
 status: active
-focus: "Post-compact reload done, HOLDING for vc's instructions (no vc instruction arrived yet; last vc msg is the 08:15Z 14-commits-blind announce, FYI). ST0064 WP-01 3/9 (01.1/01.8/01.9 satisfied) + project-CWD wiring landed (7e84538a); AC-09.6 closed. Remaining ST0064 gated on cc/dc/hv; solo-fresh work = 01.3/01.5 proofs + the 0205 harness refactor. Pre-fold sha-verified at .history/20260901/wip-fold-0750Z.md (f00ddd62)."
+focus: "Hold released (hv: take instructions from vc). Delivered a re-driven per-workstream status to vc 08:25Z; awaiting vc's direction on what to pick up first. Re-driven gates: ST0064 3/9, ST0056/09 6/6 green, ST0056/17 10/12, ST0065 has ZERO ACs. Solo-fresh + confirmed unblocked: 01.3 (executor real, in-process), 01.5, 0205 refactor. Corpus re-pin is a real S change (all 4 members now v3)."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -15,17 +15,18 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## DOING
 
-**HOLDING for vc's instructions** (hv, 2026-09-01: aggressive localfold + compact, then wait for vc). Nothing in flight; tree clean of me. When vc frees me, the next solo move is TODO 1 (01.3/01.5 proofs); everything else is peer/hv-gated.
+**Hold released; status delivered to vc, awaiting direction.** hv 2026-09-01: "finish booting and let vc know, take instructions from there." Booted (gate + pickup + heartbeat), then vc's STATUS PING arrived and I answered it re-driven at HEAD. Nothing in flight; tree clean of me. Next solo move once vc picks: TODO 1 (01.3/01.5) or TODO 8 (corpus re-pin) -- both S/M, both mine; everything else is peer/hv-gated.
 
 ## TODO
 
-1. **Satisfy ST0064 01.3/01.5** (wiring landed 7e84538a; these are the PROOFS). 01.3: add ONE real query through `intent graphql` to the app (today it uses `daemon status --format json`) -- design point: what query, where. Both: rig-proof via scratchpad/ac0109_launch.sh -- `defaults write com.matthewsinclair.intent.macos IntentProjectRoot <a real project>`, launch the bundle, trigger a project verb (intent:// -> `intent edit --path`), confirm it resolves THIS project + that invalid/unconfigured behave per conditions (i)/(ii). While in IntentCLI, sharpen the D07 comment to "the disagreement will never announce itself" (0206's framing).
+1. **Satisfy ST0064 01.3/01.5** (wiring landed 7e84538a; these are the PROOFS). 01.3 (M): add ONE real query through `intent graphql` to the app (today it uses `daemon status --format json`) -- design point: what query, where. RE-DRIVEN 2026-09-01: the executor is REAL -- `intent graphql '{threads{id status}}'` returns `{"data":...}` rc=0 IN-PROCESS, so 01.3 is NOT blocked on the graphql executor (that was AC-09.2's MCP tool `intent_graphql`, a different thing) and NOT on cc's daemon. 01.5 (S): intent:// -> `intent edit --path` rig-proof. Both: rig-proof via scratchpad/ac0109_launch.sh -- `defaults write com.matthewsinclair.intent.macos IntentProjectRoot <a real project>`, launch the bundle, trigger a project verb (intent:// -> `intent edit --path`), confirm it resolves THIS project + that invalid/unconfigured behave per conditions (i)/(ii). While in IntentCLI, sharpen the D07 comment to "the disagreement will never announce itself" (0206's framing).
 2. **0205 harness refactor (mine, parity/tools).** Convert THREE plain-double-quoted table blocks to the QUOTED-HEREDOC form (view_skew_check's, interprets nothing): lib_classify.sh (2) + drift_check.sh EXPLAINED (1). NOT single-quote (only moves the hazard to apostrophes). builtins:66 is VENDORED (manifest-covered) -- upstream-devbin, OFF my queue. Fresh + positive-controlled: re-drive all three tools + a negative control, source each loudly for stderr. Issue 0205 is the home.
 3. **cc-gated 01.2/01.6:** Swift side present + correct (Health reads cc's connect-then-lock order; projection above route(); STALE!=ABSENT remedy). Needs cc's live daemon + both false-positive states CONSTRUCTED (not waited for). Coord cc.
 4. **01.7 signing (dc + hv):** app-sign/notarize; dc owns the devbin pipeline + 3 header edits; notarize = hv's ADC. Reconcile `int macos sign|notarize|verify` vs `app-*`.
 5. **01.4 console (cc):** tailing console on cc's `intent daemon logs`; tail-orphan trap is CLI-side, verified vs SIGTERM/SIGINT/SIGKILL SEPARATELY. Not built.
 6. **`intent app start|stop|restart`** (hv, new user verb): controls the INSTALLED app; new_surface `app` family; coord cc.
 7. **Explorer (hv-driven):** hv rebuild `dvb build all` + `intent explore`; open Q: does the Lotus menu SELECTION function (on_key has no MENU block)? Mark Option A RULED+LANDED in the artifact.
+8. **estate_corpus.sh re-pin retirement (S, mine, parity/tools).** RE-DRIVEN 2026-09-01: all 4 members now declare `intent_version: 3.0.0` (canary=this repo, Lamplight/Utilz/Baize by their config, NOT their product VERSION). The 08-18 hoist comment's per-member carve-out ("re-pin-on-HEAD-move still governs canary/lamplight/utilz/baize; only hoist crossed") is STALE -- all four crossed to v3, so re-pin-to-HEAD would capture a v3 estate with no v2 source (the hoist harm). Fix: mark all four HISTORICAL like hoist; members() PINS STAY at their v2 revisions (all five resolve STATE=here now). Comment/rule edit only, no logic change. The file's own "retire a refusal when its reason expires" class.
 
 ## Watch-outs -- mechanisms only
 
