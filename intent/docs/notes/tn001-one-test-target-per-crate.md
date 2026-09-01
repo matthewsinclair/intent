@@ -48,7 +48,16 @@ path = "tests/suite.rs"
 
 **2. Make the former targets modules of the one target.** `tests/suite.rs` becomes a list of `#[path]` module declarations, one per file that used to be its own target. The test bodies do not move and do not change.
 
-**3. Guard against orphans, because step 2 is hand-maintained and will drift.** A file added to `tests/` after the switch is compiled by nobody and runs in no suite -- **it passes by not existing.** This is the whole reason the guard is not optional: without it, consolidation converts a slow test estate into a quiet one. The guard asserts that every `.rs` under `tests/` appears in the suite, and it must be driven to BOTH verdicts -- plant an unreferenced file and see it go red -- or it is a green that has never been shown able to fail.
+**3. Guard against orphans, because step 2 is hand-maintained and will drift.** A file added to `tests/` after the switch is compiled by nobody and runs in no suite -- **it passes by not existing.**
+
+**THE FAILURE MODE INVERTS AND STAYS SILENT, WHICH IS THE WHOLE ARGUMENT** (laksa-vc). Before the change, a stray file silently became an extra binary. After it, a stray file silently becomes nothing. **Neither announces itself, so consolidation without a guard trades a LOUD WASTE for a QUIET HOLE.** That is why the guard is not optional and not a follow-up.
+
+**Four subtleties, all from Laksa's implementation, and a guard built from a summary would miss three of them:**
+
+- **KEY ON `#[path = "..."]`, NEVER THE `mod` NAME.** The two are free to diverge and only the path decides what compiles. A mod-name detector agrees with a path detector on every line of a healthy file and diverges the first time somebody renames one without the other -- **which is exactly when you needed it.**
+- **PLANT A REAL FILE; A SYNTHETIC CONTROL IS NOT ENOUGH.** A synthetic control proves the SUBTRACTION works. It cannot prove the DIRECTORY READER reaches the right place -- and a walker that returns an empty list on a `read_dir` error finds no files, therefore no orphans, and goes **GREEN** when aimed at a moved or renamed directory. Laksa planted a real `zz_orphan_probe.rs`, got a red naming it, removed it, got green, in one atomic command with the tree verified clean after. **Both instruments must also assert their own corpus is non-empty, because an empty walker is silent while an empty parser is loud, and only one of those is safe.**
+- **ONLY THE UNDECLARED DIRECTION NEEDS GUARDING.** A path DECLARED with no file behind it is a `#[path]` compile error -- loud, immediate, and needing nothing. Stated so nobody adds the other half later thinking it was missed.
+- **THE GUARD CANNOT CATCH ITS OWN OMISSION, AND NO TEST CLOSES THIS.** Dropped from `suite.rs` it stops being compiled and stops reporting -- its own defect applied to itself. **Its declaration line is load-bearing and must not be tidied away.** Say this in your own note; do not let it be discovered five estates later.
 
 **4. Cut debuginfo, once, at the workspace root.**
 
@@ -60,6 +69,21 @@ debug = "line-tables-only"
 `cargo test` inherits `dev`, so one key here reaches every test target rather than needing a `[profile.test]` beside it. `line-tables-only` keeps the file and line in a backtrace -- what a person actually reads off a failure -- and drops the type and variable detail that only a debugger consumes.
 
 **And separately: pass `--no-fail-fast` at every `cargo test` call site.** With one target, the first failure otherwise stops the whole suite, so consolidation without this trades link time for lost information.
+
+## Do not move the files, and on today's Intent that is a hard constraint
+
+**Use `#[path]` so that NO FILE MOVES.** Laksa did this deliberately and it is the reason thirteen green acceptance-test rows citing those files by path never went stale.
+
+**AND ON THE PUBLISHED RELEASE THERE IS NO WAY BACK FROM MOVING THEM.** Driven, both artefacts, 2026-09-01:
+
+| binary                 | `intent at edit --file`              |
+| ---------------------- | ------------------------------------ |
+| published `v3.0.0` keg | **`unrecognized subcommand 'edit'`** |
+| unreleased dev HEAD    | present                              |
+
+**So on every estate running the published release today, a row's cited file cannot be retargeted by any verb.** A consolidation that moved files would put contract prose and green statuses at risk in order to fix a path -- **real damage, to avoid a cosmetic problem.** The constraint dissolves at the next release, and nobody should plan against that until it is cut.
+
+`#[path]` costs nothing and sidesteps the whole question. Take it even after `at edit` ships.
 
 ## The trap in measuring it, which cost us a wrong scope
 
@@ -77,6 +101,11 @@ A census that counts files and reports targets will be right for every unconsoli
 2. **Apply the four parts above** to every crate whose test files outnumber its declared targets.
 3. **Build the orphan guard before you consolidate, not after.** It is the only thing standing between a consolidated suite and a silently shrinking one.
 4. **Write your own version of this note.** Not a copy -- your crate layout, your counts, your call sites. A note that describes someone else's estate is read once and never checked.
+
+   **FILE IT WHERE YOUR TECHNOTES ALREADY LIVE, AND NUMBER IT NEXT IN YOUR OWN SEQUENCE. THE PATH AND THE NUMBER ARE YOURS, NOT INTENT'S TO CARRY ACROSS.** This paragraph replaces an instruction that said "if `intent/docs/notes/` does not exist yet, this will be your first" -- **which was wrong and would have done real damage** (found by conflab-vc, after it had already been circulated to five estates). Conflab's technotes live at `docs/notes/`, not `intent/docs/notes/`, and its `tn001` is taken by an unrelated note; followed literally, the instruction creates a SECOND notes tree containing a SECOND document numbered TN001 about a different subject. **Conflab's is `tn005`.** **And the failure is silent, because creating a directory always succeeds** -- nothing would have reported the duplicate.
+
+   The instruction generalised Intent's own layout from a sample of two estates that happened to agree. **Before filing, look for the notes tree you already have.**
+
 5. **If you have no Rust, say so and stop.** Two estates on this fleet declare `rust` in `intent/.config/config.json` while every `Cargo.toml` under them is a dependency's NIF. A language declared but not owned arms a critic over code you did not write.
 
 ## Re-deriving Intent's own state
