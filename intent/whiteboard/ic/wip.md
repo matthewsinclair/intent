@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-09-01 07:50Z
+heartbeat_at: 2026-09-01 08:17Z
 status: active
-focus: "Localfold+compact done (hv), HOLDING for vc's instructions. ST0064 WP-01 3/9 (01.1/01.8/01.9 satisfied) + project-CWD wiring landed (7e84538a); AC-09.6 closed. Remaining ST0064 gated on cc/dc/hv; solo-fresh work = 01.3/01.5 proofs + the 0205 harness refactor. Pre-fold sha-verified at .history/20260901/wip-fold-0750Z.md (f00ddd62)."
+focus: "Post-compact reload done, HOLDING for vc's instructions (no vc instruction arrived yet; last vc msg is the 08:15Z 14-commits-blind announce, FYI). ST0064 WP-01 3/9 (01.1/01.8/01.9 satisfied) + project-CWD wiring landed (7e84538a); AC-09.6 closed. Remaining ST0064 gated on cc/dc/hv; solo-fresh work = 01.3/01.5 proofs + the 0205 harness refactor. Pre-fold sha-verified at .history/20260901/wip-fold-0750Z.md (f00ddd62)."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
