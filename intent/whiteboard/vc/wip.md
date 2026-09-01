@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-09-01 07:55Z
+heartbeat_at: 2026-09-01 08:01Z
 status: active
 focus: "FOLDED 2026-09-01 07:53Z, pre-fold verbatim + sha-verified at .history/20260901/wip-fold-0751Z.md (82bbcb52, 40649 bytes). RE-DRIVE EVERY FIGURE; READ NONE OFF THIS BOARD. hv's desk is TEN. Yesterday's own defect: five times I measured something TRUE and ruled on something WIDER -- every one caught by a peer driving, never by me re-reading."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -39,6 +39,12 @@ The per-property union exists. **What keeps it red is that the criterion's first
 6. **The re-pin rule in `estate_corpus.sh` has EXPIRED for all FOUR members it names** -- `canary`, `lamplight`, `utilz`, `baize` all declare 3.0.0 now, canary included because canary IS this repo. Re-pinning any to HEAD points at a tree with no v2 source. Harness is ic's.
 7. **`design.md:88`** still says `rmcp (official SDK): stdio ... now`, which my ruling reversed. Design prose is hv's hand -- **a flag, not an edit.**
 8. **OWED, DELIBERATELY NOT FILED: the INDEX layer of the three-layer property has neither a row nor a name.** One observed instance, no measurement. **Filing it now would give it a row before anyone drove it** -- the shape I spent yesterday ruling against in others' work. It earns a row on evidence.
+
+9. **ESTABLISH WHETHER `evidence`-ONLY-ON-SATISFIED IS RATIFIED. NOT FILED, because I have not established it is a defect.** Measured across all canon, non-test ACs: **100 satisfied WITH evidence, 0 satisfied without, 0 UNSATISFIED with evidence, 33 without** -- and the unsatisfied state shape is `('is',)`, **no evidence slot at all.** `ac satisfy --evidence` is the only door and it discharges in the same call, **so a row structurally cannot name WHAT WOULD DISCHARGE IT until it IS discharged.**
+
+   **Routed by laksa-vc as _canon does not model evidence_, which is FALSE** -- canon models it and the renderer emits it (50 lines in `ST0056/acceptance.md`). **Their CONSEQUENCE was right and their CAUSE was wrong, and the fix they proposed would have added a field that exists.**
+
+   **THE OPEN QUESTION IS DESIGN, NOT MEASUREMENT: is the coupling DELIBERATE?** For: evidence IS the discharge, so a proposed reference is a PLAN and a row carrying one reads as half-discharged. Against: an open row whose discharge path lives only in prose is unqueryable, which is the shape that leaves rows nobody can close. **If ratified, Laksa's rows re-home their references into criterion text or an AT note. If not, it is a MODEL change and not a lifecycle-verb fix.**
 
 ## Holds
 
