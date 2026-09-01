@@ -279,7 +279,15 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // async-graphql `Enum` and so cannot carry a payload the way `AcState`
     // does. A ruling's premise can be correctly measured and still not cover
     // what gets built.
-    ("SCHEMA_DDL_VER", 13, 0x7eda_3b08_294b_eece),
+    //
+    // **13 -> 14 IS `threads.revision`, AND IT MOVES THE DDL FACE ALONE.** The
+    // compare-and-swap token for issue 0206 is a real column, so the persisted
+    // contract moves; it is deliberately absent from the wire and JSON faces,
+    // because it is per-machine write metadata rather than modelled content --
+    // the same reason `derived_dump` excludes it. A one-face result, which is
+    // the reading this instrument produces when something is PERSISTED and not
+    // PUBLISHED.
+    ("SCHEMA_DDL_VER", 14, 0xd644_e366_08fc_d07a),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed
