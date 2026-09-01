@@ -1,5 +1,5 @@
 ---
-verblock: "01 Sep 2026:v0.6: dc - The status column becomes dated events; the regenerating commands wait on a committed gate"
+verblock: "01 Sep 2026:v0.7: dc - The crate table said 5 and cargo says 6; a printed command is not a run one"
 ---
 
 # TN001 -- One test target per crate: the ruling Intent made and did not apply
@@ -169,23 +169,29 @@ Merging removes a file's `mod common;` and rewrites its paths to `crate::common:
 
 ## What it cost Intent, and what holding the cache cost instead
 
-**Applied at `71a96213`. 257 targets became 5.**
+**Applied at `71a96213`. 257 targets became 6.**
 
 | crate      | targets before | after |
 | ---------- | -------------- | ----- |
 | intentsvcs | 164            | 1     |
 | intent-cli | 84             | 2     |
-| intentd    | 8              | 1     |
+| intentd    | 8              | 2     |
 | testkit    | 1              | 1     |
-| **total**  | **257**        | **5** |
+| **total**  | **257**        | **6** |
 
 **Verified by asking cargo, not by counting files** -- which is this note's own trap, so the verification must not walk into it:
 
 ```
-cargo test --workspace --no-run 2>&1 | grep -c 'Executable tests/'    # -> 5
+cargo test --workspace --no-run 2>&1 | grep -c 'Executable tests/'    # -> 6
 ```
 
-`intent-cli` keeps a second target deliberately. Merged targets are threads in ONE process, and across all 257 files exactly one mutates process-global state (`set_current_dir`), so `dual_path_conformance.rs` stays separate. **That was measured before merging rather than hoped for after** -- no test spawns cargo, the one fixed port is written to a file and parsed rather than bound, and every socket path is per-test.
+**THIS TABLE READ `intentd 1` AND `total 5` UNTIL v0.7, AND THE NUMBER WAS TRUE WHEN IT WAS WRITTEN** (caught by vc, adjudicated here with the command above). `33ac4348` gave `intentd` a SECOND declared target back -- `daemon_subscriptions`, which earned it by failing -- **1h37m after `71a96213` recorded the 5.** Three revisions then passed over the table without touching it, **including `73857a72`, whose own subject line names `33ac4348`.**
+
+**AND IT SAT UNDER THE ONE CAPTION IN THIS NOTE THAT BOASTS ABOUT HOW IT WAS VERIFIED.** The caption is correct about method and was stale about result, which is the harder failure to see: a figure with its regenerating command printed beside it still goes stale, because **printing the command is not running it.**
+
+**THE CLASS, AND IT IS THE THIRD INSTANCE IN THIS DOCUMENT** (vc's, and it is the transferable half): **A DOCUMENT APPLIES ITS OWN RULE TO THE CLAIMS ABOUT OTHER PEOPLE AND NOT TO THE CLAIMS ABOUT ITSELF.** The Lamplight row, the Intent row, and now the crate table -- **every one of them a figure about the authoring estate, and the figures about your own estate are the ones nobody audits, because everyone assumes the author would know.**
+
+`intent-cli` and `intentd` each keep a second target deliberately. Merged targets are threads in ONE process, and across all 257 files exactly one mutates process-global state (`set_current_dir`), so `dual_path_conformance.rs` stays separate. **That was measured before merging rather than hoped for after** -- no test spawns cargo, the one fixed port is written to a file and parsed rather than bound, and every socket path is per-test.
 
 ### The figure that reframes the whole exercise
 
