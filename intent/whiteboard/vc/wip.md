@@ -21,9 +21,9 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 **AND TWO ARTEFACTS BOTH ANSWER `3.0.0` WITH 1516 COMMITS BETWEEN THEM** (cc), so _does X ship in 3.0.0_ is unanswerable from the version string. That reaches any AC or release note citing a version.
 
-### THE NEXT RELEASE IS NOT A PATCH, AND THE NUMBER IS hv's
+### THE RELEASE IS `v3.0.1`, FEATURE COMPLETE, AND THE NUMBER QUESTION IS CLOSED
 
-**+13 commands (2 removed), +30 flags (10 removed)** over the tag at `0f5ee514`. The `daemon` family went from _known command not implemented_ to answering on a socket. **Every removal is hv-authorised -- I chased all three.** Recommendation `v3.1.0`. **A release decision is hv's and a delegated pen does not transfer it.**
+**hv, first-hand, 2026-09-01 08:32Z: everything outstanding goes into `3.0.1`, cost is not a constraint, there is no external consumer. NOT TO BE PUT AGAIN, IN ANY FORM.** I asked it three times across three days by re-deriving it from a fresh measurement of the command delta -- **+13 commands and +30 flags is not evidence about the NUMBER and never was.** **THE SCARCITY REGISTER IS RETIRED AS A CLASS**: _ship it red_, _not in this cut_, _after the tag_, _new machinery in a tag window_ were all protecting a date that does not exist. **Any recommendation of mine resting on _there is not time_ is withdrawn unless re-derived on its merits.**
 
 ### `AC-00.16` -- SIDE C LANDED, RED FOR A NEW REASON
 
@@ -35,7 +35,7 @@ The per-property union exists. **What keeps it red is that the criterion's first
 2. **`AT-00.2`, `AC-00.8`, `AC-00.10`** -- behind cc's WP-10, behind WP-06 and WP-07. Sequence around it.
 3. **WP-15's four criteria have NO OWNER** (hv's); **`0136`** (hv ruled: after the tag); **`intent/wip.md`** before the tag.
 4. **`parity/register.md` -- BLOCKED ON THE RECLASSIFICATION, AND REGENERATING IT NOW WOULD LAUNDER ITS STALENESS.** `gen_register.sh` reads the COMMITTED `burn-baseline.tsv`, not a live burn, so regenerating reproduces the SAME 2026-08-15 classifications while refreshing the _Measured at_ line. **Order: reclassify -> UNSTABLE drops -> fresh baseline installable -> THEN regenerate.**
-5. **CONDITIONAL, FIRES ONLY IF hv RULES `3.1.0`: `ST0064/info.md` carries hv's dated ruling naming `3.0.1` three times.** It gets a SUPERSEDING NOTE -- hv's original verbatim with its date, then the new decision with ITS date. **NOTHING DELETED OR REWORDED.** ic caught that my own advice would have edited hv's words to keep them true.
+5. **DEAD -- THE CONDITION DID NOT FIRE.** hv ruled `3.0.1`, so `ST0064/info.md`'s three occurrences are CORRECT AS WRITTEN and take no superseding note. ic verified it is the only artefact of theirs in that position.
 6. **The re-pin rule in `estate_corpus.sh` has EXPIRED for all FOUR members it names** -- `canary`, `lamplight`, `utilz`, `baize` all declare 3.0.0 now, canary included because canary IS this repo. Re-pinning any to HEAD points at a tree with no v2 source. Harness is ic's.
 7. **`design.md:88`** still says `rmcp (official SDK): stdio ... now`, which my ruling reversed. Design prose is hv's hand -- **a flag, not an edit.**
 8. **OWED, DELIBERATELY NOT FILED: the INDEX layer of the three-layer property has neither a row nor a name.** One observed instance, no measurement. **Filing it now would give it a row before anyone drove it** -- the shape I spent yesterday ruling against in others' work. It earns a row on evidence.
@@ -53,20 +53,19 @@ The per-property union exists. **What keeps it red is that the criterion's first
 - **`ST0068` AC-02.1 -- and the thread prefix is NOT decoration: `ST0056` ALSO has an `AC-02.1`** (a satisfied CI row). I read my own bare note onto the wrong thread. **CONDITION: A RELEASE, NOT A BUILD.** `--note` landed `6fa22a79` on 2026-08-27, four days before I called it a blocker; `docs/getting-started.md:124,126,135` instruct it; the keg is v3.0.0 and has none. **hv item 1.**
 - **`AT-07.5`'s behavioural arm is not re-verifiable while a daemon runs**, and one always is. Green with the caveat; the tool REFUSES rather than fails. **Condition: hv authorises a daemon-down window. A node must not take one.**
 
-## hv items -- TEN
+## hv items -- SEVEN, RECUT AGAINST FEATURE-COMPLETE `3.0.1`
 
-**Re-run the verbs; do not read figures off this board.**
+**Re-run the verbs; do not read figures off this board. Three items closed with hv's ruling and are not to be re-put.**
 
-1. **CUT A RELEASE, AND ITS NUMBER.** Absorbs the old _`--note` blocker_ and _version number_ items -- they were never two. **+13 commands, +30 flags.** Recommendation `v3.1.0`.
-2. **`0206` -- DOES A DATA-LOSS RACE BLOCK THE TAG? 19 of 20 on the SHIPPED binary, 19 call sites.** Two concurrent canon verbs on one thread lose a write silently; `git status` reports nothing. **vc recommends SHIP + name it + no concurrency fix in the tag window.**
-3. **THE `daemon` FAMILY SHIPS WITH ZERO BURNING CONFORMANCE COVERAGE** -- 4 of the 13 new commands. Not a v2-parity gap, because v2 had no daemon. **Caveat: the BATS estate does not reach it; that is NOT _untested_.**
-4. **`config`'s HOLE HAS AN EXPIRY.** `AC-06.1` requires its conformance test BEFORE the behaviour is designed -- an ORDERING constraint, so writing it later FAILS the clause.
-5. **WHO OWNS `WP-15`, AND CAN `AC-10.5` CLOSE IN THIS CUT AT ALL?** **CORRECTED 2026-09-01 -- I had these as ONE item and they are three scope positions, one of which I created.** `WP-13`/`WP-14`/`WP-16` are `descoped-to: ST0069` (`3432644c`, hv ruled, vc performed), so they do NOT block the ST0056 gate and WP-13/16 raise nothing. **`WP-15` DOES: `AC-15.1`-`AC-15.4` are live in the gate, `Not Started`, `L`, on no node's `claims:`** -- and `3432644c` records why it stayed (ship-correctness, coupled to `AC-12.1`). **`AC-10.5` is the separate question: live in ST0056, closes only when the whiteboard model is BUILT, and that build is now in ST0069** -- so it cannot close inside this cut whoever owns it. **8c again: Not Started + unowned was TRUE for all three and I ruled on something wider.**
-6. **`AC-00.16`'s AMENDMENT.** Mine, and mine is why hv rules it.
-7. **SCOPE: `--title`/`--severity` on `issues edit`, a verb that does not ship.** **BUILT at `f6d37b18`** -- so the question is no longer whether to build it but whether it belongs in this cut. Part of item 1.
-8. **cc's MCP EXPOSURE question** on `issues edit --title` vs `--severity` -- dc's authored-text-versus-enumerated-field split is the shape, not the answer.
-9. **Is a BEHAVIOUR-level register check in this cut?** Falls out of `AC-06.3`'s reword; nothing checks an `as-observed` claim against behaviour.
-10. **Should the migrator COMMIT?** `AC-10.6` found it does not, so `migration.md`'s `git revert <migration-commit>` has no subject.
+1. **CLOSED 2026-09-01 -- the release is `v3.0.1`.** Absorbed `--title`/`--severity` (BUILT at `f6d37b18`, so they ship) and the number itself.
+2. **`0206` -- RECUT TO **BUILD THE CAS**.** I recommended ship-and-name on the ground that a record-layer compare-and-swap _wants its own thread, not a tag-window patch_. **That ground is gone.** Silent write loss, 19 of 20, 19 call sites, `rc=0` both sides, measured silent rather than assumed -- and Intent SHIPS the concurrency pattern that triggers it. **The harness to prove the fix already exists.**
+3. **`daemon` CONFORMANCE -- BUILD IT (cc, `M`).** No longer _accept and name it_.
+4. **`config`'s ORDERING EXPIRY -- WRITE THE TEST NOW.** Unchanged and now unarguable; the clause fails if the test lands after the design.
+5. **`WP-15` NEEDS AN OWNER, AND `AC-10.5` NEEDS `WP-14` BACK.** Four live red rows on no board. **`AC-10.5` cannot close without the whiteboard model, which sits in ST0069** -- feature-complete means it returns. **`WP-13`/`WP-16` STAY, on hv's own dated sequencing sentence, not on scarcity.** Acting on that reading; one word reverses it.
+6. **`AC-00.16`'s AMENDMENT.** Unchanged -- mine, so hv rules it.
+7. **`AC-04.6` AT `L` -- BUILD IT.** `kind` is mint-only on both entities and changeable nowhere, so **a mis-kinded row is PERMANENT** and `AT-07.7` is the live victim. Was _ship red and name it_; feature-complete means the repair path exists. **Unblocks `0146` fix (2), which must NOT land alone.**
+
+**RECUT AND NO LONGER hv's -- DECIDED, NOT DEFERRED:** MCP exposure (`severity` exposed, an enumerated domain like the status fields; `title` withheld, authored text); the BEHAVIOUR-level register check (**build it**, was _new machinery in a tag window_); the migrator COMMITTING (**make it commit** -- `AC-00.8` says _one visible commit_ and feature-complete means that is a guarantee, not an operator convention); `sync` skipping untracked bytes (**IN**, which means building the staged-versus-untracked distinction -- there is no cheap middle and hv does not want one).
 
 ## Standing directives from hv
 
@@ -109,6 +108,12 @@ The per-property union exists. **What keeps it red is that the criterion's first
 ## Decisions
 
 **Standing rulings. Every entry was EXECUTED before it was archived; an UNEXECUTED ruling never leaves this board. Full reasoning for anything dated 2026-08-31 is in `.history/20260901/wip-fold-0751Z.md`.**
+
+- **A REFUSAL ADDED TO A SURFACE WITH NO INVERSE IS A ONE-WAY DOOR** (2026-09-01, minted on dc's drive; the form is dc's, the name is mine). **`kind` is settable at MINT on both `ac` and `at` and changeable NOWHERE** -- verified independently before ruling: `at edit` carries `--file`/`--prose`/`--covers` and no `--kind`, `ac edit` carries `--text` alone and says _leaving its kind and its satisfaction alone_ in its own help, `at new` refuses a taken id by design, and the `at` family has **no removal path at all**. **So `0146`'s candidate fix (2) -- refuse a field that does not apply to the row's kind -- IS A REGRESSION IF IT LANDS ALONE**: on a mis-kinded row it closes the LAST door that can touch those fields and freezes the row permanently.
+
+  **THIS IS THE INVERSE OF _one field short_ AND IT IS WORSE.** That class under-reaches; this one over-reaches into the escape hatch, and it arrives wearing the clothes of hardening. **DETECTION, AND IT IS CHEAP: before adding a refusal, ask what verb undoes the state it will now trap. If the answer is none, you are not hardening the surface, you are welding it.** **RULED: `0146` fix (2) lands WITH `AC-04.6` or not at all; fix (1) (kind-aware remedy text) is safe alone.**
+
+- **`AT-07.7` STAYS RED AND INCONSISTENT; THE `na` EXIT IS REFUSED** (2026-09-01, vc, on dc's drive and dc's own lean, reached independently). The reachable exit records _n/a -- nothing ran_ about a row whose instrument DEMONSTRABLY RUNS two-sided (keg 0/5 doors, tree 5/5), **trading a TRUE inconsistency for a FALSE statement** -- and `na` reads as resolved, so it is the overclaiming-green defect one status down. **AND THE `doctor` FINDING IS THE EVIDENCE FOR `AC-04.6`**: the na exit makes the finding disappear while the gap stays exactly as open, which is the denominator attack in miniature. **A visible contradiction naming a real gap beats a tidy row that says nothing ran.** `AC-04.6` is resized **M -> L** and is now the gating dependency for repairing ANY mis-kinded row -- **that resize is SCOPE and went to hv, not ruled here.**
 
 - **A FOLD'S VERIFICATION IS AN ID DIFF, NEVER A READ** (2026-09-01, converged independently by vc and cc within an hour). **Both of us folded carefully, both dropped something real, and both caught it ONLY by diffing tracked ids pre- and post-fold.** vc lost two operational mechanisms including `0207`, a hazard re-encountered every time a row's state is set; cc lost `0201` and `0202`, **filed, open, root-cause-unestablished and owned by nobody.** **Prose looks complete to the person who just wrote it, so a read is not independent of the writer -- which makes this the same rule as the entry below, at a layer neither of us had applied it to.**
 
