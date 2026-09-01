@@ -205,36 +205,37 @@ extract_test_body() {
 # at the cut with nobody watching.
 #
 # Format: <basename>|<class>|<basis>|<note>
-OVERRIDES="
-intent_bin_retarget_guard.bats|out-of-scope|harness invariant, decided|Guards the \$INTENT_BIN invariant across the estate by reading test SOURCE; it invokes no CLI at all. It holds \`bin/intent_<sub>\` spellings as literal needles, which the sub-script rule cannot tell from a call site. Carries into v3 unchanged in purpose -- whatever the binary is, the estate must reach it through one name.
+OVERRIDES="$(cat <<'EOF'
+intent_bin_retarget_guard.bats|out-of-scope|harness invariant, decided|Guards the $INTENT_BIN invariant across the estate by reading test SOURCE; it invokes no CLI at all. It holds `bin/intent_<sub>` spellings as literal needles, which the sub-script rule cannot tell from a call site. Carries into v3 unchanged in purpose -- whatever the binary is, the estate must reach it through one name.
 whiteboard_clock_guard.bats|out-of-scope|hook behaviour, decided|Exercises a pre-commit hook in a throwaway git repo, not the Intent CLI. Unaffected by the binary swap.
-treeindex_commands.bats|retire|hv ruling 2026-08-15|Retires with the command. hv ruled treeindex retired WHOLE -- the source tree index in the DB obviates it -- so its 53 tests retire with the thing they test and need no ratification ref, because nothing is being deliberately CHANGED. Note the class reason differs from the usual \`retire\`: this file does not die with the shell, it dies with the command. Classified by ruling; the burn measurement (0/53, sub-script entry point) is what it always was and is no longer what decides the row.
-organize_commands.bats|retire|hv ruling 2026-08-14|Retires with the command. hv ruled \`organize\` vestigial by construction -- a strictly structured model cannot hold data in the wrong spot or format -- so both implementations are planned retires (parity.md, 2026-08-14; via vc). Classified by ruling, not by burn.
-agent_commands.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`subagents\` (DECLARED, not yet implemented -- pending, not departed).
-claude_prime.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`prime\` (DECLARED, not yet implemented -- pending, not departed).
-ext_discovery.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` + \`skills\` (WIRED in v3, answers at rc=0) and reaches \`subagents\` (DECLARED, not yet implemented -- pending, not departed). MIXED: which verbs it touches, not its class.
-rule_index.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` (WIRED in v3, answers at rc=0).
-rule_validator.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` (WIRED in v3, answers at rc=0).
-skills_commands.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`skills\` (WIRED in v3, answers at rc=0).
-test_diogenes.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`skills\` (WIRED in v3, answers at rc=0) and reaches \`subagents\` (DECLARED, not yet implemented -- pending, not departed). MIXED: which verbs it touches, not its class.
-ambient_project_root_guard.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`subagents\` (DECLARED, not yet implemented -- pending, not departed).
-au_language_code_guard.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` (WIRED in v3, answers at rc=0).
-co_language_code_guard.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` (WIRED in v3, answers at rc=0).
-intent_upgrade_dispatcher.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`upgrade\` (WIRED in v3, answers at rc=0).
-intent_upgrade_orchestrator.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`upgrade\` (WIRED in v3, answers at rc=0).
-no_absolute_home_paths.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`upgrade\` (WIRED in v3, answers at rc=0). CORRECTED 2026-09-01: this row previously read MIXED IN CAUSE, only t4 is this deviation, t5 is issue 0202 unrelated. BOTH failures are this deviation. t5 invokes \`claude upgrade\` and gets Plugin command not found; 0202 is CLOSED as not-a-defect, driven against v3 which writes .claude/settings.json byte-identical to the template. The split was taken from the assertion that failed rather than from the command two lines above it.
-pr_language_code_guard.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` (WIRED in v3, answers at rc=0).
-rule_pack_agnostic.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` (WIRED in v3, answers at rc=0).
-rule_pack_author.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` (WIRED in v3, answers at rc=0).
-rule_pack_content.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` (WIRED in v3, answers at rc=0).
-rule_pack_elixir.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` (WIRED in v3, answers at rc=0).
-rule_pack_lua.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` (WIRED in v3, answers at rc=0).
-rule_pack_prose.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` (WIRED in v3, answers at rc=0).
-rule_pack_rust.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` (WIRED in v3, answers at rc=0).
-rule_pack_shell.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` (WIRED in v3, answers at rc=0).
-rule_pack_swift.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`rules\` (WIRED in v3, answers at rc=0).
-test_autopsy.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches \`skills\` (WIRED in v3, answers at rc=0).
-"
+treeindex_commands.bats|retire|hv ruling 2026-08-15|Retires with the command. hv ruled treeindex retired WHOLE -- the source tree index in the DB obviates it -- so its 53 tests retire with the thing they test and need no ratification ref, because nothing is being deliberately CHANGED. Note the class reason differs from the usual `retire`: this file does not die with the shell, it dies with the command. Classified by ruling; the burn measurement (0/53, sub-script entry point) is what it always was and is no longer what decides the row.
+organize_commands.bats|retire|hv ruling 2026-08-14|Retires with the command. hv ruled `organize` vestigial by construction -- a strictly structured model cannot hold data in the wrong spot or format -- so both implementations are planned retires (parity.md, 2026-08-14; via vc). Classified by ruling, not by burn.
+agent_commands.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `subagents` (DECLARED, not yet implemented -- pending, not departed).
+claude_prime.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `prime` (DECLARED, not yet implemented -- pending, not departed).
+ext_discovery.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` + `skills` (WIRED in v3, answers at rc=0) and reaches `subagents` (DECLARED, not yet implemented -- pending, not departed). MIXED: which verbs it touches, not its class.
+rule_index.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` (WIRED in v3, answers at rc=0).
+rule_validator.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` (WIRED in v3, answers at rc=0).
+skills_commands.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `skills` (WIRED in v3, answers at rc=0).
+test_diogenes.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `skills` (WIRED in v3, answers at rc=0) and reaches `subagents` (DECLARED, not yet implemented -- pending, not departed). MIXED: which verbs it touches, not its class.
+ambient_project_root_guard.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `subagents` (DECLARED, not yet implemented -- pending, not departed).
+au_language_code_guard.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` (WIRED in v3, answers at rc=0).
+co_language_code_guard.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` (WIRED in v3, answers at rc=0).
+intent_upgrade_dispatcher.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `upgrade` (WIRED in v3, answers at rc=0).
+intent_upgrade_orchestrator.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `upgrade` (WIRED in v3, answers at rc=0).
+no_absolute_home_paths.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `upgrade` (WIRED in v3, answers at rc=0). CORRECTED 2026-09-01: this row previously read MIXED IN CAUSE, only t4 is this deviation, t5 is issue 0202 unrelated. BOTH failures are this deviation. t5 invokes `claude upgrade` and gets Plugin command not found; 0202 is CLOSED as not-a-defect, driven against v3 which writes .claude/settings.json byte-identical to the template. The split was taken from the assertion that failed rather than from the command two lines above it.
+pr_language_code_guard.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` (WIRED in v3, answers at rc=0).
+rule_pack_agnostic.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` (WIRED in v3, answers at rc=0).
+rule_pack_author.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` (WIRED in v3, answers at rc=0).
+rule_pack_content.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` (WIRED in v3, answers at rc=0).
+rule_pack_elixir.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` (WIRED in v3, answers at rc=0).
+rule_pack_lua.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` (WIRED in v3, answers at rc=0).
+rule_pack_prose.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` (WIRED in v3, answers at rc=0).
+rule_pack_rust.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` (WIRED in v3, answers at rc=0).
+rule_pack_shell.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` (WIRED in v3, answers at rc=0).
+rule_pack_swift.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `rules` (WIRED in v3, answers at rc=0).
+test_autopsy.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugin-script entry point; the verb itself is kept. This file reaches `skills` (WIRED in v3, answers at rc=0).
+EOF
+)"
 
 # ---------------------------------------------------------------------------
 # RATIFICATION REFERENCES for `deviate` rows.
@@ -287,7 +288,7 @@ test_autopsy.bats|deviate|vc ruling 2026-08-31 on D10|Aimed at the dead v2 plugi
 # nothing is being deliberately changed, the command is simply going. The column
 # is kept because `deviate` rows can reappear and parity.md:32 still requires a
 # D-number when they do.
-RATIFICATIONS="
+RATIFICATIONS="$(cat <<'EOF'
 agent_commands.bats|D10
 claude_prime.bats|D10
 ext_discovery.bats|D10
@@ -312,7 +313,8 @@ rule_pack_rust.bats|D10
 rule_pack_shell.bats|D10
 rule_pack_swift.bats|D10
 test_autopsy.bats|D10
-"
+EOF
+)"
 
 lookup_ratification() {
   local hit

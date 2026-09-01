@@ -92,17 +92,27 @@ ITERS="${2:-10}"
 [ -x "$BIN" ] || { echo "canon_race_check: no binary at $BIN" >&2; exit 2; }
 BIN="$(cd "$(dirname "$BIN")" && pwd)/$(basename "$BIN")"
 
+# ONE fixture builder, used by every arm. Duplicating it per arm would let the
+# contended and uncontended arms drift apart, and the whole value of the
+# sequential arm is that it differs from the racing arms in EXACTLY one respect
+# -- whether the two writes overlap. A second copy makes that claim unprovable.
+build_fixture() {
+  local P
+  P=$(mktemp -d) || return 1
+  ( cd "$P" || exit
+    "$BIN" init RaceProbe >/dev/null 2>&1
+    "$BIN" st new Alpha >/dev/null 2>&1; "$BIN" st start ST0001 >/dev/null 2>&1
+    "$BIN" st new Beta  >/dev/null 2>&1; "$BIN" st start ST0002 >/dev/null 2>&1
+    "$BIN" ac new ST0001 AC-01.1 --text t1 --kind non-test >/dev/null 2>&1
+    "$BIN" ac new ST0001 AC-01.2 --text t2 --kind non-test >/dev/null 2>&1
+    "$BIN" ac new ST0002 AC-01.1 --text t3 --kind non-test >/dev/null 2>&1 )
+  printf '%s' "$P"
+}
+
 arm() {
   local mode="$1" trials=0 nontrials=0 lost=0 silent=0 reported=0 i P gate as ae bs be rca rcb tgt ac2 got
   for i in $(seq 1 "$ITERS"); do
-    P=$(mktemp -d) || continue
-    ( cd "$P" || exit
-      "$BIN" init RaceProbe >/dev/null 2>&1
-      "$BIN" st new Alpha >/dev/null 2>&1; "$BIN" st start ST0001 >/dev/null 2>&1
-      "$BIN" st new Beta  >/dev/null 2>&1; "$BIN" st start ST0002 >/dev/null 2>&1
-      "$BIN" ac new ST0001 AC-01.1 --text t1 --kind non-test >/dev/null 2>&1
-      "$BIN" ac new ST0001 AC-01.2 --text t2 --kind non-test >/dev/null 2>&1
-      "$BIN" ac new ST0002 AC-01.1 --text t3 --kind non-test >/dev/null 2>&1 )
+    P=$(build_fixture) || continue
     if [ "$mode" = same ]; then tgt=ST0001; ac2=AC-01.2; else tgt=ST0002; ac2=AC-01.1; fi
     gate="$P/.gate"
     ( cd "$P" || exit; while [ ! -f "$gate" ]; do :; done
@@ -133,10 +143,43 @@ arm() {
   printf '    %-6s trials=%-4s non-trials=%-4s LOST=%-4s SILENT=%-4s REPORTED=%s\n' "$mode" "$trials" "$nontrials" "$lost" "$silent" "$reported"
 }
 
+# THE UNCONTENDED CONTROL, AND IT IS THE ARM THAT MAKES A FIX BELIEVABLE.
+#
+# The header used to say sequential was "checked by hand". Hand-checking is not
+# a control: it is not in the output, so no reader can see whether it was done
+# for THIS run, and it cannot go red.
+#
+# TODAY it proves the harness actually applies both edits, so a loss in `same`
+# is the code losing a write rather than the rig never making one.
+#
+# AFTER A COMPARE-AND-SWAP LANDS it becomes the arm that discriminates: a CAS
+# that refuses on contention and a CAS that refuses EVERYTHING are identical on
+# the `same` arm, and differ only here. A fix must turn `same` from LOST into
+# REFUSED while leaving this GREEN; either half alone is not evidence.
+arm_sequential() {
+  local i P rca rcb got green=0 red=0
+  for i in $(seq 1 "$ITERS"); do
+    P=$(build_fixture) || continue
+    # No gate and no `&`: B starts only after A has exited, so the two writes
+    # cannot overlap by construction rather than by scheduling luck.
+    ( cd "$P" && "$BIN" ac satisfy ST0001 AC-01.1 --evidence A ) >"$P/.oa" 2>&1; rca=$?
+    ( cd "$P" && "$BIN" ac satisfy ST0001 AC-01.2 --evidence B ) >"$P/.ob" 2>&1; rcb=$?
+    got=$(cd "$P" && "$BIN" ac list ST0001 2>/dev/null | grep -c 'satisfied: yes')
+    if [ "$rca" -eq 0 ] && [ "$rcb" -eq 0 ] && [ "$got" -eq 2 ]; then
+      green=$((green+1))
+    else
+      red=$((red+1))
+    fi
+    rm -rf "$P"
+  done
+  printf '    %-6s GREEN=%-4s RED=%-4s   (an uncontended pair must land BOTH)\n' "seq" "$green" "$red"
+}
+
 echo "canon_race_check -- issue 0206, $("$BIN" --version 2>&1 | head -1)"
 echo ""
 arm same
 arm cross
+arm_sequential
 echo ""
 echo "REACH, in the output because a limit not in the output is not a limit the reader has:"
 echo "  COVERS      whether two concurrent canon verbs on ONE thread lose a write,"
@@ -149,5 +192,9 @@ echo "  ESTABLISHES whether a loss is SILENT: both processes rc and output are"
 echo "              CAPTURED, not discarded. SQLite busy path is never ENTERED here"
 echo "              (~0.01s against a 5000ms timeout; 0152 measured a genuinely"
 echo "              contended writer at 5.22s), so no store-layer tuning narrows it."
+echo "  CONTROLS    the uncontended arm is IN THE OUTPUT, not hand-checked. It shows"
+echo "              the rig lands both edits when they do not overlap, so a loss on"
+echo "              the same arm is the code and not the rig -- and after a fix it is"
+echo "              the only arm separating refuses-on-contention from refuses-always."
 echo "  BOUND       trials are an UPPER bound (wall interval is wider than the"
 echo "              load-to-apply window), so the loss rate is a LOWER bound."
