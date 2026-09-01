@@ -117,6 +117,19 @@ use thiserror::Error;
 /// violated, because no number is.
 const PROBE_DEADLINE: Duration = Duration::from_millis(250);
 
+/// How long a `WouldBlock` on the daemon lock is re-checked before it is
+/// believed.
+///
+/// **IT IS SIZED AGAINST A `fork`-TO-`exec` GAP, NOT AGAINST A DAEMON.** The
+/// transient holder this exists for is a child process that has been forked and
+/// has not yet reached `exec`, which is microseconds; a real daemon holds the
+/// lock until it dies. Anything in this range separates them, so the value is
+/// not a tuning parameter and a start that is genuinely refused pays it once.
+const LOCK_CONFIRMATION: Duration = Duration::from_millis(250);
+
+/// The gap between re-checks of the daemon lock. See [`LOCK_CONFIRMATION`].
+const LOCK_RETRY_STEP: Duration = Duration::from_millis(5);
+
 /// What the probe sends to make an endpoint prove it is listening.
 ///
 /// **THE SMALLEST THING THAT IS INSIDE D56 AND OUTSIDE THE PROTOCOL.** D56
@@ -504,8 +517,11 @@ pub enum DaemonError {
   /// daemon" and "silently evict the running one" are the same two syscalls.
   /// A second daemon that evicts the first leaves it holding a listener no path
   /// reaches, serving nobody, with every client routed at the newcomer.
-  #[error("a daemon is already answering on `{path}`")]
-  AlreadyRunning { path: PathBuf },
+  #[error("a daemon is already answering on `{path}` ({evidence})")]
+  AlreadyRunning {
+    path: PathBuf,
+    evidence: RunningEvidence,
+  },
   /// The daemon bound a port and could not tell anyone where.
   ///
   /// **A HARD FAILURE FOR THE DAEMON, NOT A DEGRADED MODE.** A listener nobody
@@ -928,6 +944,45 @@ impl Drop for Token {
   }
 }
 
+/// WHICH of the two conditions refused a start, because they are reached by
+/// different routes and do not mean the same thing.
+///
+/// **THEY RENDERED IDENTICALLY UNTIL 2026-09-01, AND THAT COST A DIAGNOSIS.**
+/// `daemon_address::a_departed_daemon_blocks_nothing` failed roughly 1 in 9
+/// under full-workspace load, and the failure text could not say which branch
+/// produced it -- so the first move had to be a change to this type rather than
+/// to the code under suspicion. A refusal that cannot say what it FOUND makes
+/// its own defect undiagnosable, which is the same class as a guard that is
+/// correct and does not say what to do next.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RunningEvidence {
+  /// Another process holds the lock.
+  ///
+  /// **AUTHORITATIVE.** The kernel releases an `flock` on process death by any
+  /// means, `SIGKILL` included, so a held lock is a living daemon rather than a
+  /// residue.
+  LockHeld,
+  /// This process HOLDS the lock, and something at the socket path still
+  /// completed a round trip.
+  ///
+  /// **THE PAIR IS CONTRADICTORY WHERE `flock` WORKS**, which is why the branch
+  /// that emits this is documented as unreachable there. Seeing it means either
+  /// the lock's guarantee does not hold (a network home directory) or the
+  /// probe answered something that is not a live daemon.
+  EndpointAnsweredUnderOurLock,
+}
+
+impl fmt::Display for RunningEvidence {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      Self::LockHeld => write!(f, "another process holds the lock"),
+      Self::EndpointAnsweredUnderOurLock => {
+        write!(f, "we hold the lock and the socket still answered")
+      }
+    }
+  }
+}
+
 /// A bound unix socket, unlinked when this value is dropped.
 ///
 /// **THE SOCKET'S TWIN OF [`Published`], AND ITS CONCURRENCY STORY IS
@@ -1070,17 +1125,61 @@ impl Bound {
         path: lock_path.clone(),
         source,
       })?;
-    match lock.try_lock() {
-      Err(std::fs::TryLockError::WouldBlock) => {
-        return Err(DaemonError::AlreadyRunning { path });
+    // **A `WouldBlock` IS CONFIRMED BEFORE IT IS BELIEVED, BECAUSE THIS PROCESS
+    // IS NOT THE ONLY THING THAT CAN HOLD A REFERENCE TO THIS LOCK.**
+    //
+    // An `flock` is released when the last descriptor referring to its OPEN
+    // FILE DESCRIPTION closes -- and `fork` duplicates every open descriptor
+    // into the child. `O_CLOEXEC`, which Rust sets on every file it opens,
+    // closes the copy at `exec`; it does nothing between the `fork` and the
+    // `exec`. So any thread spawning a subprocess in that instant hands the
+    // child a reference to a lock it knows nothing about, and the holder's own
+    // close does NOT release it until the child gets to `exec`.
+    //
+    // **THIS LIBRARY FORKS FROM ORDINARY CODE PATHS** -- `git` in `sync`,
+    // `canon` and `doctor`, plus `shellcheck` and `launchctl` -- so the window
+    // is reachable whenever anything else in the process shells out while a
+    // daemon lock is being released. Measured 2026-09-01:
+    // `daemon_address::a_departed_daemon_blocks_nothing` failed about 1 run in
+    // 9 under full-workspace load, where 1174 tests share one process, and NOT
+    // AT ALL when the daemon tests ran alone -- which is the signature of a
+    // foreign `fork` rather than of anything the daemon code does.
+    //
+    // **THE RETRY CANNOT WEAKEN THE REFUSAL, AND THAT ASYMMETRY IS WHY IT IS
+    // THE RIGHT REMEDY HERE.** A real daemon holds this lock for its WHOLE
+    // LIFE, so it is still held when the budget expires and the refusal stands
+    // -- `a_live_daemon_is_refused_rather_than_evicted` and
+    // `a_second_daemon_is_refused_even_when_the_first_is_not_answering` both
+    // pin that. An inherited copy is released at the child's `exec`, which is
+    // the very next thing the child does. The two cases differ by orders of
+    // magnitude, not by a margin that needs tuning.
+    //
+    // **THE SAME SHAPE WOULD BE WRONG ON THE PROBE BELOW**, which is why it is
+    // not applied there: that branch is asymmetric -- answering means REFUSE
+    // and silence means UNLINK -- so confirming before refusing would make the
+    // DESTRUCTIVE outcome more likely, which is the false negative `AC-08.12`
+    // exists to forbid.
+    let mut waited = Duration::ZERO;
+    loop {
+      match lock.try_lock() {
+        Ok(()) => break,
+        Err(std::fs::TryLockError::WouldBlock) if waited < LOCK_CONFIRMATION => {
+          std::thread::sleep(LOCK_RETRY_STEP);
+          waited += LOCK_RETRY_STEP;
+        }
+        Err(std::fs::TryLockError::WouldBlock) => {
+          return Err(DaemonError::AlreadyRunning {
+            path,
+            evidence: RunningEvidence::LockHeld,
+          });
+        }
+        Err(std::fs::TryLockError::Error(source)) => {
+          return Err(DaemonError::Unpublishable {
+            path: lock_path,
+            source,
+          });
+        }
       }
-      Err(std::fs::TryLockError::Error(source)) => {
-        return Err(DaemonError::Unpublishable {
-          path: lock_path,
-          source,
-        });
-      }
-      Ok(()) => {}
     }
 
     // **TRUNCATE UNDER THE LOCK, THEN WRITE, AND THE ORDER IS A REQUIREMENT**
@@ -1113,7 +1212,10 @@ impl Bound {
       // the lock said. Where the lock works this branch is unreachable, which
       // is the point.
       if Endpoint::Unix(path.clone()).answers() {
-        return Err(DaemonError::AlreadyRunning { path });
+        return Err(DaemonError::AlreadyRunning {
+          path,
+          evidence: RunningEvidence::EndpointAnsweredUnderOurLock,
+        });
       }
       // Unlocked AND silent, so it is a corpse rather than a peer. Removing it
       // is what stops one crash from making every future start impossible.

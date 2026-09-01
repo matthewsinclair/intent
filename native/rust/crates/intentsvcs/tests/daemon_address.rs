@@ -355,6 +355,65 @@ fn a_second_daemon_is_refused_even_when_the_first_is_not_answering() {
   }
 }
 
+/// **A HOLDER THAT IS ABOUT TO GO AWAY MUST NOT REFUSE A START** -- the
+/// transient-holder half of `AC-08.12`, and the case that made
+/// `a_departed_daemon_blocks_nothing` fail about 1 run in 9 under
+/// full-workspace load.
+///
+/// **THE REAL HOLDER IN THAT FAILURE WAS A FORKED CHILD.** An `flock` is
+/// released when the last descriptor on its open file description closes, and
+/// `fork` copies every descriptor into the child. `O_CLOEXEC` clears the copy
+/// at `exec` and does nothing before it, so any thread shelling out -- this
+/// library runs `git`, `shellcheck` and `launchctl` from ordinary paths -- can
+/// hand a child a reference to a daemon lock it knows nothing about. The
+/// holder's own close then does not release it.
+///
+/// **THIS FIXTURE USES A SECOND DESCRIPTOR RATHER THAN A FORK, DELIBERATELY.**
+/// It reproduces the property under test -- a foreign reference that is
+/// released shortly -- without forking a multi-threaded test process, which is
+/// its own hazard and would make the test the most dangerous thing in the
+/// suite. What is being driven is the RETRY, and the retry cannot tell which
+/// kind of descriptor held the lock.
+///
+/// The opposite verdict is pinned by
+/// `a_second_daemon_is_refused_even_when_the_first_is_not_answering`: a holder
+/// that does NOT go away is still refused. Both directions, or the retry would
+/// only be shown never to refuse.
+#[test]
+fn a_lock_held_by_a_departing_stranger_is_waited_out_rather_than_refused() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let lock_path = userstate::daemon_lock_under(dir.path());
+  std::fs::create_dir_all(lock_path.parent().expect("parent")).expect("mkdir");
+
+  let stranger = std::fs::File::options()
+    .create(true)
+    .read(true)
+    .write(true)
+    .truncate(false)
+    .open(&lock_path)
+    .expect("open the lock as a stranger");
+  stranger
+    .try_lock()
+    .expect("the fixture's stranger must actually hold the lock, or this proves nothing");
+
+  // Released well inside the confirmation budget, the way a child reaching
+  // `exec` releases its inherited copy.
+  let handle = std::thread::spawn(move || {
+    std::thread::sleep(std::time::Duration::from_millis(40));
+    drop(stranger);
+  });
+
+  let bound = Bound::bind_socket_under(dir.path());
+  handle.join().expect("stranger thread");
+
+  match bound {
+    Ok((_l, _b)) => {}
+    Err(other) => panic!(
+      "a lock held by a descriptor that was about to close refused a start: {other}. A start must not fail because something else in this process forked while the lock was being released"
+    ),
+  }
+}
+
 /// The other half, and the pair is what makes the lock better than either
 /// alternative: refusing on existence would make this impossible.
 #[test]
