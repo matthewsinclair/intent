@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-09-01 18:00Z
+heartbeat_at: 2026-09-01 18:23Z
 status: active
-focus: "HOLD RELEASED, CONFIRMED FIRST-HAND BY MY OPERATOR. Standing instruction: WAIT FOR INSTRUCTIONS FROM vc -- I do not self-assign WP work. A RELEASE BUILD IS IN FLIGHT as of 2026-09-01 18:00Z (intent back, intentd not yet landed), so THE PAIR IS MID-REPLACEMENT AND EVERY FIGURE ABOUT IT IS UNSAFE UNTIL THE BUILD ENDS. Re-drive both, do not read them here."
+focus: "AC-06.11 CORPUS HALF LANDED (a36f3722) and its commit message CARRIES A CLAIM I HAVE SINCE DISPROVED -- the 23 intent-cli failures WERE mine. Next: 0206 Mutation half (waits on dc facade.rs). Working to vc sequencing."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -22,6 +22,8 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 - **The rollout is COMMITTED (`03d40d30`), not dirty** -- my pre-compact board said dirty and was stale in the safe direction.
 - **SUPERSEDED 2026-09-01 18:00Z: THE PAIR IS BEING REPLACED AND THE `CURRENT` CLAIM ABOVE NO LONGER HOLDS.** A `cargo build --workspace --bins --release` is live into the SHARED path (guard allowed it, so the tree was clean at start); `intent` has landed and answers rc=0, `intentd` has NOT. **This is delete-happened + replace-IN-FLIGHT, which is NOT `0196`** -- that was delete-happened + replace-DECLINED, redirected to `target/private/` by the dirty-tree guard. **The discriminator is one command: absent binaries WITH a live release build is the middle of a rebuild; absent binaries with NO build is the outage.** **Re-drive the pair after the build ends; no figure for it goes on this board until then.**
 - **The vendored tree is INTACT.** The one path still uncommitted is `bin/.devbin/manifest.sha256`, and the delta is ONE LINE: `source_commit` moved `e39fba7a` -> `0b7b1b35` with all 31 file hashes unchanged, and the tree matches them (31 OK / 0 FAILED, checker positive-controlled with a well-formed wrong hash). **Byte-identical vendoring from a newer upstream commit -- a provenance update, not drift. Not mine, not touched.**
+
+**`a36f3722`'s COMMIT MESSAGE CARRIES A SUPERSEDED CLAIM AND SHARED HISTORY IS NOT REWRITTEN.** It says the 23 `intent-cli` failures are not mine, on a stash control that could not have said otherwise. **They were mine** -- a stale sibling `intentd`, corrected above. The blast-radius conclusion in that commit still stands: intentsvcs 1175/0, intent-cli **461/0** once `cargo build -p intentd` runs. Told vc first-hand so the record is not only in the commit that misstates it.
 
 **NEXT, in order:** re-drive nothing further (it is done and stamped above) -> `AC-06.11`'s corpus half (mine; dc took the string) -> `0206`'s `Mutation` half (needs dc's facade.rs signal) -> `SchemaMismatch` naming its artefact (S, and smaller than sized).
 
@@ -51,6 +53,8 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 **A VERIFICATION SCOPED TO THE THING CHANGED IS NOT A VERIFICATION** (dc's, and the one I would not have recognised). **The blast radius of a published value is every crate that PINS it, not the crate that DEFINES it** -- `grep -rn <constant> --include='*.rs'` finds that corpus in a second. Unlike a bad grep, this one LOOKS like diligence.
 
 **THE CORPUS IS THE CLAIM; THE VERDICT IS NOT.** Everything three instruments reported one morning was TRUE and every corpus was narrower than its criterion. Beside the verdict, in the OUTPUT and never a comment: **POPULATION** (the set examined, derivation named; `RECORDED` sits AT the number where it cannot be derived), **FORMS** (per-form counts, never one total), **REACH** (`COVERS` / `DOES NOT` / `UNOWNED`).
+
+**AND A CONTROL MUST MANIPULATE THE VARIABLE THE CHECK ACTUALLY READS, WHICH IS THE SHARPEST FORM OF THAT RULE AND COST ME A FALSE EXONERATION.** I attributed 23 `intent-cli` failures to _not mine_ because stashing my two paths and re-running reproduced the same 23. **`git stash` REWRITES the file, so the MTIME stayed fresh -- and the guard that failed those tests keys on MTIME, not on content** (`common/mod.rs:782` refuses to spawn a sibling `intentd` older than the tree; `cargo test -p intent-cli` does not build another package's binaries). My two arms differed only in the dimension the guard IGNORES, so it was guaranteed to fire in both and the matching counts read as proof. **`cargo build -p intentd` then re-run: 461 passed, 0 failed.** THE TELL WAS IN MY OWN OUTPUT AND I EXPLAINED IT AWAY: the baseline had one fewer pass, and I never asked why 23 failures survived removing the only change that could cause them. **Ask what the check READS before choosing what to vary; a control that varies the wrong axis cannot come out any other way.** The guard itself was faultless -- it named the file, the cause and the fix, and I ignored it for twenty minutes.
 
 **A CONTROL THAT CANNOT DISTINGUISH _SAFE_ FROM _NEVER TRIED_ IS NOT A CONTROL.** Drive an instrument to BOTH verdicts or its green means nothing -- a no-mutation probe whose two shasums are both EMPTY has no subject. **And state the bound's DIRECTION**: the `0206` harness's trials are an UPPER bound, so its loss rate cannot flatter the finding.
 
