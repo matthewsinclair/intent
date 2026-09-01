@@ -30,7 +30,7 @@
 //! hypothetical: it happened on this machine on 2026-08-30, from an
 //! `intentd --help`.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::{Command, Output};
 use std::sync::atomic::{AtomicU32, Ordering};
 
