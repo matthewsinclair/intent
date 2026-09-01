@@ -120,7 +120,8 @@
       "text": "**THE `intent://` HANDLER RESOLVES THROUGH ST0057 WP-07'S READ RESOLUTION AND IS NEVER A SECOND RESOLVER.** The URL scheme is a CLIENT of the addressing rules, so the app parses no address itself: it hands the URL to the resolver and opens what comes back via `intent edit`. **An address that resolves in the CLI and not in the app, or to a different entity, is a failure of this row and not a difference of opinion** -- and the `0149` defect is the standing reminder of how that decays, where `intent edit issue 148` parsed the kind correctly, discarded it, and refused about a steel thread the caller never named. **A resolver reached from two places drifts at whichever one is edited second**, which is a property of the arrangement rather than of anyone's care.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "intent:// resolves through the CLI read-resolution; the app is no second resolver (ic, code 50c56d8a, Debug build 5130). application(open:) hands the WHOLE URL to 'intent edit <address> --path' and opens the returned path, parsing no address itself. Driven: 'open -a Intent.app intent:///threads/ST0064'; os_log '[App] open intent:///threads/ST0064' then '[App] resolved intent:///threads/ST0064 -> /Users/matts/Devel/prj/Intent/intent/st/ST0064/info.md' -- byte-identical to CLI 'intent edit intent:///threads/ST0064 --path' at binary 361eff99. Grammar: three-slash empty-authority 'intent:///<collection>/<id>'; two-slash and bare forms refused by the resolver, not the app. Rig: scratchpad/ac0103_0105_launch.sh; orphan-free on quit."
       }
     },
     {
