@@ -16,11 +16,13 @@ Written by vc at hv's direction, on dc's census and dc's build. Circulated to ev
 
 **Intent ruled this estate-wide on 2026-08-27 and then did not do it.**
 
-| estate     | consolidated when this was measured                    |
+| estate     | consolidated, counting CRATES THAT HAVE TESTS          |
 | ---------- | ------------------------------------------------------ |
 | Laksa      | YES -- and its `Cargo.toml` quotes the ruling verbatim |
-| Lamplight  | 1 crate of 10                                          |
+| Lamplight  | **YES -- 1 of 1**                                      |
 | **Intent** | **NO -- not one crate**                                |
+
+**THE LAMPLIGHT ROW READ "1 crate of 10" IN v0.1 AND v0.2 OF THIS NOTE AND IT WAS WRONG** (corrected by lamplight-vc, measured with this note's own instrument). Lamplight has three crates and a workspace root; **exactly one has any test files, and it was consolidated on 2026-08-27 with zero orphans.** That is 100% of the crates that have tests, reported as 10%. The correction arrived while hv was ruling at Lamplight that this note becomes fleet canon -- **so the wrong figure was one step from propagating into every estate.**
 
 Intent is the estate that made the ruling. **201 of its test files landed in the same month the ruling was made**, so the cost was accruing fastest exactly where the decision had been taken. A ruling that is not applied where it was authored is not a slow rollout; it is a ruling nobody is enforcing, and the author is the last to notice because they remember deciding it.
 
@@ -68,7 +70,9 @@ debug = "line-tables-only"
 
 `cargo test` inherits `dev`, so one key here reaches every test target rather than needing a `[profile.test]` beside it. `line-tables-only` keeps the file and line in a backtrace -- what a person actually reads off a failure -- and drops the type and variable detail that only a debugger consumes.
 
-**And separately: pass `--no-fail-fast` at every `cargo test` call site.** With one target, the first failure otherwise stops the whole suite, so consolidation without this trades link time for lost information.
+**And separately: pass `--no-fail-fast` at every `cargo test` call site.** With one target, the first failure otherwise stops the whole suite.
+
+**THIS IS NOT A TIDINESS FLAG AND LAMPLIGHT HAS THE SHARP VERSION: CONSOLIDATION MAKES A BARE `cargo test` STRICTLY WORSE THAN IT WAS.** Their `ci.yml:241` ran bare before and still does -- and on 2026-08-27, **17 independently-failing targets became one, so the first failure now hides the other sixteen.** Before consolidation a bare run reported every failing target; after it, one. **You do not lose the flag's benefit by omitting it; you lose CI information you previously had.** Add it in the same commit as `autotests = false`, not after.
 
 ## Do not move the files, and on today's Intent that is a hard constraint
 
@@ -83,7 +87,11 @@ debug = "line-tables-only"
 
 **So on every estate running the published release today, a row's cited file cannot be retargeted by any verb.** A consolidation that moved files would put contract prose and green statuses at risk in order to fix a path -- **real damage, to avoid a cosmetic problem.** The constraint dissolves at the next release, and nobody should plan against that until it is cut.
 
-`#[path]` costs nothing and sidesteps the whole question. Take it even after `at edit` ships.
+**AND THE PRICE OF THE OTHER CHOICE IS MEASURED, NOT ARGUED** (lamplight-vc, who paid it). Lamplight consolidated by MOVING all 17 files from `tests/*.rs` into `tests/main/*.rs`. **That staled 31 AT citations across 5 threads -- ST0290 25, ST0286 3, ST0264 / ST0315 / ST0351 one each -- undetected for five days.** It compounds with Intent issue `0015`, under which **a GREEN AT whose citation does not resolve still holds a gate up**.
+
+**IT ALSO MANUFACTURED A FALSE FINDING, WHICH IS THE MORE USEFUL HALF.** On 2026-08-27 Lamplight filed that `ST0264`'s `AT-16.4` cited a file _"GENUINELY absent -- a real finding"_. It was not absent; it had moved at 12:22:47Z that morning, and the symptom was filed at 18:44Z without anyone looking for a cause. **THE REMEDY WAS WHAT WAS AT RISK: _absent_ points at voiding a green AT whose test exists and passes; _moved_ points at a path update.** Retracted by its author.
+
+**So "no file moves" is worth roughly 31 stale citations and one wrong finding per crate of that size.** `#[path]` costs nothing and sidesteps the whole question. Take it even after `at edit` ships.
 
 ## The trap in measuring it, which cost us a wrong scope
 
@@ -92,6 +100,10 @@ debug = "line-tables-only"
 A census that counts files and reports targets will be right for every unconsolidated crate and wrong for every consolidated one -- so it systematically overstates the remaining work, and it overstates it MOST for the estates that already did what you asked. Laksa's 16 test files compile to ONE target; a file count reports Laksa as the second-worst offender in the fleet when it is the only estate that is finished.
 
 **On this fleet, a six-tree scope was taken off a file-count column and the correct scope was three.** Two of the six needed nothing -- one already compliant, one with no test files at all -- and a third was a deliberately frozen fallback checkout whose Rust is a pre-cut snapshot. The caveat had been stated at the top of the census and was not applied to the reading below it.
+
+**AND THERE IS A SECOND HEAD OF THE SAME CAVEAT, WHICH PRODUCED THE WRONG LAMPLIGHT FIGURE ABOVE** (lamplight-vc). **On a fleet using worktree isolation, a `find`-based crate census counts every crate once per checkout.** Lamplight holds 14 `Cargo.toml`: four are theirs, **eight are those same four seen again in `.worktrees/cc` and `.worktrees/ic`** -- git worktrees of the same repository -- and two are gitignored dependency NIFs. A census that walks the tree sees fourteen crates where there are four.
+
+**BOTH HEADS PUSH THE SAME DIRECTION, AND IT IS THE DIRECTION THAT PUNISHES COMPLIANCE.** Files-not-targets overstates the work for whoever consolidated; worktrees-as-crates overstates it for whoever isolates. **The estates doing the right thing measure as the worst offenders**, and neither error announces itself.
 
 **So: state the caveat AND apply it, or do not state it. A caveat that sits above a table nobody re-reads is decoration.**
 
