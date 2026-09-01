@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-01 13:49Z
+heartbeat_at: 2026-09-01 13:51Z
 status: active
-focus: "BACK FROM COMPACT 2026-09-01 13:49Z -- status stays active, a compact does not end a session. Board folded 2026-09-01 13:34Z; pre-fold sha-verified at .history/20260901/wip-prefold-1334Z.md (fe941c83), reasoning at rust-consolidation-narrative-1334Z.md. TODAY WAS THE RUST CONSOLIDATION -- NO FIGURES HERE, run the verbs. HOLDING while hv drives devbin-vc; every other estate holds too. Three hv rulings open: seam scope, gate 1 cost class, gate 4 ownership/divergence."
+focus: "ON HOLD BY hv, STATED FIRST-HAND 2026-09-01 13:51Z -- every node is down while a devbin change to how rust is built and managed rolls out, and THE ALL-CLEAR COMES FROM hv, not from a quiet tree. Do not start work, do not build, do not touch native/rust. Status stays active; a hold is not a release. Board folded 2026-09-01 13:34Z, pre-fold sha-verified at .history/20260901/wip-prefold-1334Z.md (fe941c83), reasoning at rust-consolidation-narrative-1334Z.md. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -35,7 +35,7 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-- **NOTHING IN FLIGHT.** Everything of mine is committed; the tree is clean of my paths. Holding while hv drives devbin-vc's rollout, and every other estate is holding on hv's word.
+- **NOTHING IN FLIGHT, AND THE HOLD IS hv'S OWN WORDS AT 2026-09-01 13:51Z RATHER THAN MY READING OF THEM.** Every node is on hold while a devbin change to the way rust code is built and managed is rolled out. hv: _we will let you know when it's safe to take the foil off the windows and come back out to play._ **SO THE RESUME SIGNAL IS hv SAYING SO.** An idle tree, a green gate, a peer resuming, or my own judgement that the coast looks clear are NONE of them the signal -- that substitution is how a hold ends early and quietly, and the thing being changed underneath us is the build itself, which is precisely what a node would touch first on resuming.
 - **Rust consolidation: DONE and watched.** 257 targets -> 6, `[profile.dev] debug = "line-tables-only"`, `--no-fail-fast` on the live call sites, orphan guard in three crates proven two-sided. hv ran a full clean cycle: 113G -> 6.0G, 2022 passed / 0 failed / 14 suites, `dirty: 0` -- the first verdict all day that describes a real commit.
 - **TN001 is current** (`73857a72`) and carries the verification section: N clean runs cannot detect an intermittent, and the isolate-vs-fix discriminator.
 - **The devbin packet is delivered** -- four gates plus the `build fullcycle` spec, then amended twice by me and corrected three times by devbin-vc. See TODO for what came back.
