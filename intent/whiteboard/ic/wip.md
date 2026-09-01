@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-09-01 13:49Z
+heartbeat_at: 2026-09-01 13:54Z
 status: active
-focus: "FULL STOP, now TWO legs -- holding for hv. (1) rust config flaw (dv found it, hv has it). (2) NEW on the bounce: dc's Rust consolidation landed (7e1b65b4), the release binary is GONE and `intent` is broken on this box, rebuild is hv's ONE window and nobody has taken it (vc->hv b829efd2). All estates hold. I started NO build. Next when freed: ST0064 app pair (01.3/01.5). Landed earlier: 0205 (11528266), corpus re-pin (035114c9), issue 0210 (d7744332)."
+focus: "HOLD for hv's devbin rollout (changing how rust is built/managed; hv stated the hold, resume signal named -- dc 8e760c8a). ONE leg, not two: the 'broken toolchain' leg I added at 817eb93c is RETRACTED -- FALSE. Re-measured MYSELF 13:54Z: `intent 3.0.0 (361eff99)` responds, binaries rebuilt 13:27Z by hv, property `git rev-list -1 HEAD -- native/rust surface docs/design` = 361eff99, HEAD is a wb commit so trailing-HEAD is steady state not staleness. I made vc's 7-min-stale pessimistic value load-bearing. Next when freed: ST0064 app pair (01.3/01.5). Landed earlier: 0205 (11528266), corpus re-pin (035114c9), issue 0210 (d7744332)."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -15,7 +15,7 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## DOING
 
-**FULL STOP -- holding for hv, and on the bounce the hold has a SECOND leg.** (1) A serious flaw was found in the Rust config (dv found it; hv has it). Every node holds: DO NOT build, commit, tidy, or investigate the flaw (four nodes on one config = four theories + a mess). (2) Re-measured at pickup 13:49Z: dc's Rust consolidation landed (7e1b65b4; 257 test targets -> 6, tree 113G -> 6.0G per dc's board), and as a consequence the release binary is GONE -- `intent` is broken on this box, the rebuild is hv's ONE window, nobody has taken it (vc told hv so at b829efd2, "the rebuild is one decision not three"). Whether (2) is the same flaw as (1) is dc's + hv's to say, not mine -- I have not investigated. Both legs point the same way: HOLD. I started NO build. Nothing in flight. When hv frees the stop, resume TODO 1 (the ST0064 app pair) -- which needs an app build off a working toolchain, so it is doubly gated right now.
+**HOLD for hv's devbin rollout -- ONE leg, and I am correcting the second one I invented.** hv has everyone on hold while a devbin change to how rust is built and managed rolls out; hv stated the hold and named the resume signal (dc 8e760c8a), so I wait for hv's all-clear -- I do NOT build, touch the toolchain, or investigate the config. **RETRACTION of my own 817eb93c:** I registered "the release binary is GONE, `intent` is broken on this box" as a second hold leg. It was FALSE when I wrote it. hv rebuilt at 13:27Z; I picked up vc's 13:34Z "nobody has taken it" at pickup 13:49Z and made a 7-minute-stale value load-bearing. Re-measured MYSELF 13:54Z (not vc's recall): binaries present + rebuilt 13:27Z, `intent 3.0.0 (361eff99)` responds, the property `git rev-list -1 HEAD -- native/rust surface docs/design` = 361eff99, and HEAD is a whiteboard commit so the build-input pair trailing HEAD is the steady state, not staleness. **The class: stale in the PESSIMISTIC direction** -- an overstatement gets caught by whoever relies on it; an understatement recruits nodes into standing still and prompts nobody to check (my pickup is the proof). Nothing in flight, no build from me. When hv gives the all-clear, resume TODO 1 (the ST0064 app pair).
 
 ## TODO
 
