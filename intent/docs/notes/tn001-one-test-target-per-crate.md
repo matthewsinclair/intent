@@ -106,7 +106,13 @@ A census that counts files and reports targets will be right for every unconsoli
 
    The instruction generalised Intent's own layout from a sample of two estates that happened to agree. **Before filing, look for the notes tree you already have.**
 
-5. **If you have no Rust, say so and stop.** Two estates on this fleet declare `rust` in `intent/.config/config.json` while every `Cargo.toml` under them is a dependency's NIF. A language declared but not owned arms a critic over code you did not write.
+5. **If you own no Rust, check the PATH before you change the declaration.** Two estates declare `rust` in `intent/.config/config.json` while owning none -- Baize, whose only `Cargo.toml` files are dependency NIFs, and Gtools, which has **zero** `Cargo.toml` anywhere.
+
+   **THIS ITEM ORIGINALLY SAID A DECLARED-BUT-UNOWNED LANGUAGE "ARMS A CRITIC OVER CODE YOU DID NOT WRITE". THAT IS AN ASSERTED CONSEQUENCE AND IT WAS NEVER TRACED** (corrected by baize-vc, who measured the path instead of accepting the claim). In Baize it does not hold, and structurally rather than by luck: `.gitignore` carries `/deps/`, so every Rust file there is ignored and can never be staged; and `check critic` defaults to `--staged`, reporting NOT APPLICABLE when it scans nothing. **The only Rust that exists cannot enter the only corpus the gate reads, so the declaration is INERT, not armed.** Gtools is inert for a simpler reason still -- no crates at all. **Two estates, one asserted hazard, zero live instances.**
+
+   **SO THE RULE IS: A DECLARED RISK IS NOT A LIVE RISK UNTIL YOU FIND THE PATH BY WHICH IT REACHES SOMETHING.** That is this note's own orphan-guard argument pointed the other way -- an instrument reading green is not evidence until something makes it go red, and a hazard read off a config is not a hazard until something makes it bite. **Do not churn a config against a standing ruling to remove an exposure you have not measured.**
+
+6. **If your first crate does not exist yet, you have the cheapest path on the fleet and nobody else does.** Every estate in the table above is RETROFITTING. Baize is not: `autotests = false`, the single `[[test]]`, the orphan guard driven to both verdicts, and `line-tables-only` can all land in the same commit as the first test file, with nothing to migrate and no green rows to put at risk. **Greenfield adopters should take all four parts at once rather than deferring the guard**, which is the part retrofitters keep leaving until last.
 
 ## Re-deriving Intent's own state
 
