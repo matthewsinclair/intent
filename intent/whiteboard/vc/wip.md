@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-09-01 08:06Z
+heartbeat_at: 2026-09-01 08:14Z
 status: active
 focus: "FOLDED 2026-09-01 07:53Z, pre-fold verbatim + sha-verified at .history/20260901/wip-fold-0751Z.md (82bbcb52, 40649 bytes). RE-DRIVE EVERY FIGURE; READ NONE OFF THIS BOARD. hv's desk is TEN. Yesterday's own defect: five times I measured something TRUE and ruled on something WIDER -- every one caught by a peer driving, never by me re-reading."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -83,7 +83,7 @@ The per-property union exists. **What keeps it red is that the criterion's first
 2. **AN ABSENCE NEVER LOOKS LIKE A BUG IN THE QUERY.** Output to a FILE, then count. **NEVER SUPPRESS A COMMIT'S ERROR OUTPUT.**
 3. **A CLAIM OUTLIVES ITS BASIS AND NOTHING WATCHES THE JOIN.** **A GREEN ROW WHOSE TEXT OVERCLAIMS IS WORSE THAN A RED.** **`closed` DOES NOT MEAN FIXED.** **EXIT 2 SPANS COULD-NOT-RUN AND PROPERTY-IS-FALSE.**
 
-   **3g. STALE IN THE PESSIMISTIC DIRECTION IS THE ONE NOBODY GOES LOOKING FOR, AND IT IS MINE.** Six instances now, latest: I put `0206` on hv's board at 6-in-10 when it is 19-in-20. **A board that OVERSTATES gets caught by the first person who relies on it; one that UNDERSTATES never prompts anyone to check.** **Cure: a figure addressed to hv carries the VERB that regenerates it.**
+   **3g. STALE IN THE PESSIMISTIC DIRECTION IS THE ONE NOBODY GOES LOOKING FOR, AND IT IS MINE.** Five instances, latest: I put `0206` on hv's board at 6-in-10 when it is 19-in-20. **NOT a member, on cc's correction, and the distinction is worth keeping: _no error, no conflict_ was an UNMEASURED assertion that turned out TRUE.** An unverified claim that holds is a different failure from a figure below its subject -- **the first is luck, the second is a direction. Do not inflate the tally; the class loses its edge if everything joins it.** **A board that OVERSTATES gets caught by the first person who relies on it; one that UNDERSTATES never prompts anyone to check.** **Cure: a figure addressed to hv carries the VERB that regenerates it.**
 
 4. **THE SHARED TREE MAKES ORDINARY OPERATIONS MEAN SOMETHING ELSE.** `git commit --only <explicit paths>`, **PATH-scoped not hunk-scoped**. **AN UNCOMMITTED CHANGE OF YOURS LANDS IN A PEER'S COMMIT.** **NEVER REMOVE AN INDEX LOCK; RETRY.**
 
@@ -96,7 +96,7 @@ The per-property union exists. **What keeps it red is that the criterion's first
 7. **THE FAILURE PATH IS THE ONE THAT MUST STILL WORK AND A GREEN RUN NEVER EXERCISES IT.** **SCREEN AN INSTRUMENT FOR SIDE EFFECTS BEFORE DRIVING IT** -- `intentd --help` starts a real daemon.
 8. **vc's OWN.**
 
-   **8a. SHELL QUOTING EATS CONTENT AND THE COMMAND STILL SUCCEEDS.** zsh does not word-split; an unmatched glob aborts the call; an apostrophe in a single-quoted program runs nothing; `$?` after a pipe reads the last stage. **THE CONTROL IS THE LESSON: mine PASSED because it exercised the variable that could not be wrong.** **AND THE ESTATE HAS THREE DELIMITER SHAPES FOR AUTHORED PROSE IN SHELL DATA BLOCKS** (cc): a quoted HEREDOC is safe; a SINGLE-quoted block is safe against `"` and vulnerable to an APOSTROPHE; a plain DOUBLE-quoted block is the filed hazard (`0205`, population FOUR -- the fourth is an EXTENSIONLESS executable an `--include='*.sh'` sweep structurally cannot see). **`bash -n` PASSES on a block whose MEANING changed, because the result is still valid shell.**
+   **8a. SHELL QUOTING EATS CONTENT AND THE COMMAND STILL SUCCEEDS.** zsh does not word-split; an unmatched glob aborts the call; an apostrophe in a single-quoted program runs nothing; `$?` after a pipe reads the last stage. **THE CONTROL IS THE LESSON: mine PASSED because it exercised the variable that could not be wrong.** **AND AFTER ANY PROGRAMMATIC EDIT, GREP FOR WHAT SHOULD NOW BE THERE -- AND FOR WHAT SHOULD NOT** (cc, generalising `0205` past quoted data blocks). **`bash -n` answers _is this valid bash_, NEVER _is this the file I meant_**: cc's patch silently failed on a stray quote and `bash -n` reported ok on the UNPATCHED file, correctly, because the file was fine and simply unchanged. **My own `%s`-placeholder board entry is the same class from the other side** -- the edit succeeded, prettier ran, every gate passed, and hv's board carried a literal `%s`. **Nothing checks an artefact for unsubstituted placeholders.** Assert on the input AND grep the output. **AND THE ESTATE HAS THREE DELIMITER SHAPES FOR AUTHORED PROSE IN SHELL DATA BLOCKS** (cc): a quoted HEREDOC is safe; a SINGLE-quoted block is safe against `"` and vulnerable to an APOSTROPHE; a plain DOUBLE-quoted block is the filed hazard (`0205`, population FOUR -- the fourth is an EXTENSIONLESS executable an `--include='*.sh'` sweep structurally cannot see). **`bash -n` PASSES on a block whose MEANING changed, because the result is still valid shell.**
 
    **8b. I RULE AGAINST STATES THAT HAVE ALREADY MOVED. RE-MEASURE BEFORE RULING; when a premise dies, SAY SO AND REVERSE IT.**
 
