@@ -115,7 +115,7 @@ A census that counts files and reports targets will be right for every unconsoli
 
 ## What each project should do
 
-1. **Count your real targets, not your files.** `grep -c '^\[\[test\]\]' */Cargo.toml` and `grep -rn 'autotests' --include=Cargo.toml .` together tell you where you actually are. If `autotests` is absent, it is `true`.
+1. **Count your real targets by asking cargo, not by grepping for them.** `cargo test --workspace --no-run 2>&1 | grep -c 'Executable tests/'` is the only count that is not a proxy. The two greps -- `grep -c '^\[\[test\]\]' */Cargo.toml` and `grep -rn 'autotests' --include=Cargo.toml .` -- still DIAGNOSE, and they must not ADJUDICATE: read together with "absent `autotests` means `true`" they do reach the answer, but only by an inference the reader has to make correctly. Intent's own `testkit` shows the cost of getting it wrong -- `grep -c '^\[\[test\]\]'` returns **0** for it while cargo reports **1**, because a single test file with no `autotests` key is auto-discovered. **An estate reading the grep alone sees a crate reporting zero targets, concludes it needs consolidating, and consolidates something already correct.** In a note about instruments that answer confidently about what they never looked at, the measuring instruction must be the direct one.
 2. **Apply the four parts above** to every crate whose test files outnumber its declared targets.
 3. **Build the orphan guard before you consolidate, not after.** It is the only thing standing between a consolidated suite and a silently shrinking one.
 4. **Write your own version of this note.** Not a copy -- your crate layout, your counts, your call sites. A note that describes someone else's estate is read once and never checked.
@@ -131,6 +131,33 @@ A census that counts files and reports targets will be right for every unconsoli
    **SO THE RULE IS: A DECLARED RISK IS NOT A LIVE RISK UNTIL YOU FIND THE PATH BY WHICH IT REACHES SOMETHING.** That is this note's own orphan-guard argument pointed the other way -- an instrument reading green is not evidence until something makes it go red, and a hazard read off a config is not a hazard until something makes it bite. **Do not churn a config against a standing ruling to remove an exposure you have not measured.**
 
 6. **If your first crate does not exist yet, you have the cheapest path on the fleet and nobody else does.** Every estate in the table above is RETROFITTING. Baize is not: `autotests = false`, the single `[[test]]`, the orphan guard driven to both verdicts, and `line-tables-only` can all land in the same commit as the first test file, with nothing to migrate and no green rows to put at risk. **Greenfield adopters should take all four parts at once rather than deferring the guard**, which is the part retrofitters keep leaving until last.
+
+## Verifying a consolidation, which is the part we got wrong twice in an hour
+
+**THE CHARACTERISTIC RISK OF THIS CHANGE IS FLAKINESS, AND N CLEAN RUNS CANNOT DETECT FLAKINESS.** Merged targets are threads in one process where they were separate processes, so anything sharing process state stops failing cleanly and starts failing sometimes. That is the whole cost, and it is the one thing a green run does not speak to.
+
+Intent shipped two claims on clean-run evidence and both were wrong:
+
+| claim                                        | evidence offered                            | what it was worth                      |
+| -------------------------------------------- | ------------------------------------------- | -------------------------------------- |
+| the merge is safe                            | the workspace compiles, 5 targets confirmed | nothing about intermittents            |
+| `daemon_subscriptions` fixed by isolating it | **8 clean full-workspace runs**             | nothing -- hv hit it again immediately |
+
+**Driven two-sided afterwards, the second claim inverted outright: 0 failures in 10 parallel runs, 2 failures in 9 at `--test-threads=1`.** Serialising made it _worse_, so parallelism -- the stated cause -- could not have been the cause. **A two-verdict drive disproved in nineteen runs what nineteen clean runs could not have confirmed.**
+
+So: **before claiming a consolidation is safe, run the suite in a loop under full-workspace contention until you have either a failure or a number of runs you can defend.** A single failure at 1-in-9 means three clean runs is what you would expect whether or not anything was fixed. And **when you think you have found the cause, drive the opposite arm** -- if removing the supposed cause does not help, the diagnosis is dead regardless of how many greens follow it.
+
+### Two files stayed separate, and a third must not
+
+`dual_path_conformance.rs` and `daemon_subscriptions.rs` keep their own `[[test]]` targets: one mutates process cwd, the other drives a per-process file-watch stream. **Both are asking for something a shared process cannot give, so isolation restores an isolation they always had.**
+
+**`daemon_address.rs` is the one that looks identical and is not.** It fails intermittently under contention too, and isolating it would go green immediately -- but its failure is a REAL race in the product's socket-binding path, which the added concurrency merely exposed. **Isolating it lowers the concurrency until the window stops being hit: the failure disappears and the race does not.** That is the denominator attack, and an estate that reaches for isolation whenever a merged suite goes red will quietly convert every product race it surfaces into a green.
+
+**The discriminator: does the test need isolation, or does the PRODUCT need fixing?** Ask what the test is asserting. A test asserting something about the process it runs in wants its own process. A test asserting something about the product wants the product fixed.
+
+### The transform is not symmetric
+
+Merging removes a file's `mod common;` and rewrites its paths to `crate::common::`. **Un-merging must put the declaration back**, or the file stops compiling with an error naming the helper rather than the move that broke it. Every estate that consolidates will eventually pull one file back out, and this is the first thing it meets.
 
 ## What it cost Intent, and what holding the cache cost instead
 

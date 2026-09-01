@@ -58,19 +58,30 @@ intentsvcs = { path = "../intentsvcs" }
 name = "suite"
 path = "tests/suite.rs"
 
-# **KEEPS ITS OWN TARGET, AND IT EARNED IT BY FAILING.** These rows drive the
-# file watcher, whose machinery -- fsevents plus the debouncer -- is PER
-# PROCESS, not per test. Merged into `suite` they went from ~5 rows sharing a
-# process to 28, and under full-workspace CPU contention two of them began
-# receiving each other's events: "the first subscriber was told about
-# /private/tmp/intentd-proj-79902-15/intent rather than the file that changed",
-# both failures carrying the SAME pid.
+# **ITS OWN TARGET, AND THE REASON GIVEN HERE FIRST WAS WRONG.** These rows
+# drive the file watcher, whose machinery -- fsevents plus the debouncer -- is
+# per process rather than per test, and a separate binary is a separate event
+# stream. That is defensible on its own and it is why the target stays.
 #
-# **THE TEMPDIRS WERE NEVER THE PROBLEM AND THAT IS THE TRAP.** Every row has
-# its own directory, so the isolation looks complete by inspection; what is
-# shared is the watcher observing them. Separate binaries are separate
-# processes and separate event streams, which is the isolation these rows
-# always had and nobody had to name until it was taken away.
+# **IT IS NOT, HOWEVER, A FIX, AND THE FIRST VERSION OF THIS COMMENT CLAIMED IT
+# WAS.** The claim was that merging took these rows from ~5 in a process to 28
+# and that CPU contention made subscribers cross. Verified with 8 clean
+# full-workspace runs and committed at `33ac4348`. hv then hit the same two
+# failures INSIDE this isolated target -- 3 passed, 2 failed of 5 -- so the
+# isolation changed nothing, and 8 clean runs against an uncharacterised
+# intermittent were never evidence.
+#
+# **DRIVEN TWO-SIDED AFTERWARDS, WHICH INVERTED IT: 0 failures in 10 parallel
+# runs, 2 failures in 9 runs at `--test-threads=1`.** Serialising makes it
+# WORSE, so parallelism was never the cause.
+#
+# **THE REAL SHAPE IS EVENT BLEED ACROSS TEST BOUNDARIES, AND THE FAILURE
+# MESSAGES SAID SO FROM THE FIRST INSTANCE.** A subscriber is told about
+# `intentd-proj-<pid>-15` while another names `-25`: those indices are OTHER
+# TESTS' project directories, not a wrong file within one test. Serial runs are
+# worse because rows run back-to-back and the previous row's events are still
+# in the debounce window when the next subscribes. Whether the scoping is loose
+# only in tests or generally is an `intentd` question and is with cc.
 [[test]]
 name = "daemon_subscriptions"
 path = "tests/daemon_subscriptions.rs"
