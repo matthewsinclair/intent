@@ -1,5 +1,5 @@
 ---
-verblock: "01 Sep 2026:v0.5: vc - Applied at 71a96213; four estates corrected this note and each correction is kept"
+verblock: "01 Sep 2026:v0.6: dc - The status column becomes dated events; the regenerating commands wait on a committed gate"
 ---
 
 # TN001 -- One test target per crate: the ruling Intent made and did not apply
@@ -18,11 +18,19 @@ Written by vc at hv's direction, on dc's census and dc's build. Circulated to ev
 
 **Intent ruled this estate-wide on 2026-08-27 and then did not do it.**
 
-| estate     | consolidated, counting CRATES THAT HAVE TESTS          |
-| ---------- | ------------------------------------------------------ |
-| Laksa      | YES -- and its `Cargo.toml` quotes the ruling verbatim |
-| Lamplight  | **YES -- 1 of 1**                                      |
-| **Intent** | **NO -- not one crate**                                |
+| estate     | what happened, and when                                                                                         |
+| ---------- | --------------------------------------------------------------------------------------------------------------- |
+| Laksa      | adopted **2026-08-27**, the day of the ruling; its `Cargo.toml` quoted the ruling verbatim                      |
+| Lamplight  | consolidated **2026-08-27**, its one crate that has tests, zero orphans                                         |
+| **Intent** | ruled **2026-08-27**, applied **2026-09-01** at `71a96213` -- **five days, in the estate that made the ruling** |
+
+**THIS TABLE HELD A STATUS COLUMN UNTIL v0.6 AND THE COLUMN IS THE ONE PLACE THIS NOTE BROKE ITS OWN OPENING RULE** (raised by devbin-vc, adjudicated by vc, blessed by hv). Every figure here carries the command that regenerates it -- except a per-estate status, which carries none and cannot. **A DOCUMENT HAS A REVISION AND A MESSAGE DOES NOT, SO THE MESSAGE IS THE COPY THAT ROTS -- AND A PER-ESTATE STATUS TABLE IS A MESSAGE WEARING A DOCUMENT'S CLOTHES.** It looks checkable, and what it asserts is true only at a moment nothing records.
+
+**IT HAD ALREADY ROTTED TWICE, AND THE SECOND ONE WAS STILL SITTING HERE WHEN THIS EDIT WAS MADE.** The Lamplight row read `1 of 10` through v0.1 and v0.2 -- wrong by a factor of ten, in the direction that punishes compliance, corrected while hv was ruling this note fleet canon. And the Intent row read `NO -- not one crate` from v0.1 to v0.5, which stopped being true at `71a96213` and **stayed on the page for the rest of that day**, contradicted by this note's own status line thirteen lines above it.
+
+**THE TEST THAT REPLACED THE COLUMN IS TENSE, NOT IMPORTANCE** (vc's amendment, and it is the half a reader can apply): a PRESENT-TENSE claim about another estate's STATE rots the moment that estate edits anything, silently; a DATED claim about an EVENT survives whatever happens next. `Laksa's Cargo.toml quotes the ruling verbatim` was the first kind. `Laksa adopted it on 2026-08-27, quoting the ruling verbatim` is the second, and nothing Laksa does can falsify it.
+
+**THE REGENERATING COMMANDS ARE NOT HERE YET AND THAT IS DELIBERATE.** `bin/devbin check autotests` is the natural citation and it is **in no commit** -- `git log -S'builtin_check_autotests'` is empty as this is written. A note that cited it would be doing the thing this note exists to stop: asserting something checkable that nobody can check. It goes in when the command has a history, **with dispositions attached** -- `check autotests` DIAGNOSES per-crate and runs anywhere, `cargo test --workspace --no-run 2>&1 | grep -c 'Executable tests/'` ADJUDICATES -- because item 1 below already ruled that split, and a note that acquired a second rule contradicting its first would be the exact defect it is about.
 
 **THE LAMPLIGHT ROW READ "1 crate of 10" IN v0.1 AND v0.2 OF THIS NOTE AND IT WAS WRONG** (corrected by lamplight-vc, measured with this note's own instrument). Lamplight has three crates and a workspace root; **exactly one has any test files, and it was consolidated on 2026-08-27 with zero orphans.** That is 100% of the crates that have tests, reported as 10%. The correction arrived while hv was ruling at Lamplight that this note becomes fleet canon -- **so the wrong figure was one step from propagating into every estate.**
 
