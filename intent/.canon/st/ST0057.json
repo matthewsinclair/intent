@@ -632,6 +632,38 @@
       }
     },
     {
+      "id": "AC-12.1",
+      "text": "A realised issue form is RULED by hv and implemented, and `.intentfiles` carries the `ISSUE` sigil again -- with `ISSUE:<id>` reporting over the file or files it names rather than `ok` over zero files. MINTED 2026-09-01 (vc). WHY THIS ROW DID NOT EXIST: hv retired the sigil on 2026-08-20 because `ISSUE:0001` in a live manifest reported `ok` over zero files, an issue living in the store with no file to realise -- and the work package that would restore it has carried an OBJECTIVE and NO CONTRACT ever since, so ST0057 read PASS with WP-12 unstarted. THE ROW IS WRITTEN AS AGREEMENT, NOT COVERAGE: it binds that the decision is TAKEN and BUILT, and deliberately does not pick between one file per issue under `intent/issues/` and a single rendered `intent/issues.md`, because that choice is hv and a criterion that pre-empts it would force scope under cover of recording it.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-12.2",
+      "text": "`organize` hydrates and dehydrates a realised issue by the same route it does a thread, and WP-11 default declaration gains OPEN issues -- hv 2026-08-26: default means the only things in `.intentfiles` are OPEN, ie STs and ISSUES. MINTED 2026-09-01 (vc). Chains behind AC-12.1: there is nothing to hydrate until the form exists. A SECOND ROUTE would be the defect here rather than the feature -- the thread realisation path already exists and an issue arriving through a parallel one is the two-resolver shape this thread spent WP-07 removing.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-13.1",
+      "text": "hv has RULED between INGEST-THEN-REMOVE and MARK-STALE for the v2 `st/COMPLETED/` bucket, and the ruling is executed on the canary. MINTED 2026-09-01 (vc), written as AGREEMENT rather than coverage -- WP-13 has carried a PROPOSED remedy and no contract, so ST0057 read PASS with the work unstarted. THE STAKES ARE MEASURED, NOT ASSERTED: on Devbin, 24 of 54 bucket files have NO COPY ANYWHERE ELSE, and the estate restart brief routes two of its five opening questions into bucket-only paths -- so a prune WITHOUT ingest breaks the pointers that bootstrap every session there. vc `collapse-buckets.sh` was halted for exactly this reason. The row does not pick the answer: ingest-then-remove and mark-stale are both coherent and they lead to different tools.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-13.2",
+      "text": "Whichever remedy hv rules, the check is a PER-FILE CONTENT PROBE: a distinctive phrase from EACH bucket file is found in the store afterwards, and the SAME probe is shown returning 0 for a phrase never ingested. MINTED 2026-09-01 (vc), and the row exists because EVERY NATURAL CHECK HERE IS SATISFIABLE BY AN INGEST THAT DID NOTHING. `the bucket is gone` is true after a prune that ingested nothing; `ingest returned ok` is true because `intent ingest --from-md` prints `ok:` at rc 0 while writing nothing (issue 0097); `attachments is non-empty` is true if paths were ingested without content. PER FILE and not per thread, because ST0001 `acceptance.md` migrated and its `design.md` did not, so a thread-level check passes on a half-migrated thread. THE NEGATIVE ARM IS NOT DECORATION: a probe that cannot return 0 has not measured anything by returning non-zero.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
       "id": "AC-14.1",
       "text": "The DONE cutoff is project-level CANON on disk -- `intent/.canon/project.json` -- so it crosses a git clone: a machine that has never run a command in the project renders the same cutoff, and does not resurrect every completed thread into DONE. NOT `intent/.config/config.json`, which holds choices a person makes and would give one file two writers; NOT the thread canon, because the cutoff is project-level and belongs to no thread. (hv, 2026-08-26: the cutoff is canon state.)",
       "kind": "test",
@@ -1306,6 +1338,42 @@
       ],
       "status": "green",
       "note": "Driven through the BINARY on a real pseudo-terminal, because AC-11.6's subject is gated on IsTerminal and no other test in this estate can reach it -- organize_default_declaration.rs names that gap in its own module doc. The harness is self-controlling: a pty that failed to present a terminal makes the binary take the no-tty branch and every assertion reds naming the refusal, so there is no separate harness test. WHAT THE ROW DOES NOT COVER, stated rather than left to be noticed: the per-step byte gate (organize::gate) is not exercised here -- this fixture's held removals are stopped by the ESTATE-wide precondition gate, which is a different mechanism, and AC-11.6's parenthetical about matching shas belongs to the other one."
+    },
+    {
+      "id": "AT-12.1",
+      "kind": "test",
+      "prose": "to-write: the covering test cannot be written until hv rules the realised form, because what it asserts depends on which form ships. Kind is TEST rather than non-test deliberately -- `kind` is settable at mint and changeable NOWHERE on either entity (dc, 2026-09-01; AC-04.6 in ST0056 is the row for that hole), so a row minted non-test can never become test-backed, and this behaviour will be tested.",
+      "covers": [
+        "AC-12.1"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-12.2",
+      "kind": "test",
+      "prose": "to-write: blocked behind AT-12.1 -- the assertion depends on the ruled form.",
+      "covers": [
+        "AC-12.2"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-13.1",
+      "kind": "test",
+      "prose": "to-write: the assertion depends on which remedy hv rules -- an ingest is checked by content arriving, a mark-stale by a reader being warned. Kind is TEST because both remedies are testable and `kind` cannot be changed after mint.",
+      "covers": [
+        "AC-13.1"
+      ],
+      "status": "to-write"
+    },
+    {
+      "id": "AT-13.2",
+      "kind": "test",
+      "prose": "to-write: the probe is buildable today and its subject is not -- there is nothing to probe until the remedy runs.",
+      "covers": [
+        "AC-13.2"
+      ],
+      "status": "to-write"
     },
     {
       "id": "AT-14.1",
