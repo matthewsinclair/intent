@@ -41,7 +41,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 01: One path to the native CLI: int cli carries the coherence guard
 - [-] ST0061: dehydrate
 - [-] ST0064: The Intent menubar app: controlling intentd from the macOS menubar
-  - [ ] 01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
+  - [-] 01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
   - [~] 02: CLI shell-out foundation and login-shell PATH capture (AC-01.1, AC-01.9)
   - [~] 03: Daemon health predicate, three endpoint states, and the turtle menubar icon (AC-01.2, AC-01.3, AC-01.6, AC-01.8)
   - [~] 04: The tailing console and its tail-orphan trap (AC-01.4)

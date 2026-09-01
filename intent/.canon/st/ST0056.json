@@ -1148,7 +1148,7 @@
     },
     {
       "id": "AC-12.4",
-      "text": "v3.0.0 tagged on both remotes, GitHub release published, formula live",
+      "text": "(non-test) The release being cut is tagged on both remotes, the GitHub release is published, and the formula is live. REWORDED 2026-09-01 (vc, under the pen, EXECUTING hv's 08:32Z ruling rather than extending it). The row read `v3.0.0` and all three of its clauses were measurably TRUE -- tag `80d8b2ca` on both remotes, release published with three assets, `brew info intent` naming stable 3.0.0 -- so satisfying it AS WRITTEN would have closed the gate row for THIS release on the EVIDENCE OF THE PREVIOUS ONE. Raised by ic 2026-08-29 into hv's inbox and unread until vc's 2026-08-30 pickup. It is deliberately worded as THE RELEASE BEING CUT rather than as a literal version: a criterion naming a version number is a figure, and a figure in a criterion rots at the next release while continuing to read as a requirement -- which is the defect this reword corrects, so re-introducing it with a new number would be the same error one release later.",
       "kind": "non-test",
       "state": {
         "is": "unsatisfied"
