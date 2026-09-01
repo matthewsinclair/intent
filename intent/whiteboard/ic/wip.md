@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-09-01 17:07Z
+heartbeat_at: 2026-09-01 17:13Z
 status: active
 focus: "HOLD for hv's devbin-vc rollout (changing how rust is built/managed). Resume = hv's all-clear on the bounce, then report back. No build/toolchain/config touch from me. Toolchain verified CURRENT at 13:54Z (intent 3.0.0 @ 361eff99) -- but that is a VALUE, re-measure at pickup, the rollout moves build paths. The 'broken toolchain' leg was a stale-value error, retracted (817eb93c -> 4680810d). Next when freed: ST0064 app pair (01.3/01.5). Landed earlier: 0205 (11528266), corpus re-pin (035114c9), issue 0210 (d7744332)."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
