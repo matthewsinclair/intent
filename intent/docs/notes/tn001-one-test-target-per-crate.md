@@ -4,7 +4,9 @@ verblock: "01 Sep 2026:v0.1: vc - First technote; the consolidation ruling, its 
 
 # TN001 -- One test target per crate: the ruling Intent made and did not apply
 
-**Status: RULED (hv, 2026-08-27, estate-wide). APPLICATION IN FLIGHT IN INTENT AT TIME OF WRITING (dc, 2026-09-01, under hv's authority of the same morning). This note is the pattern and the reasoning; it is NOT a report that Intent is finished.** Every figure below carries the command that regenerates it, because a technote is read at boot and a figure in one goes stale silently.
+**Status: RULED (hv, 2026-08-27, estate-wide). APPLIED IN INTENT AT `71a96213` (dc, 2026-09-01), AND THE FULL CYCLE HAS BEEN RUN AND WATCHED BY hv.** Every figure below carries the command that regenerates it, because a technote is read at boot and a figure in one goes stale silently.
+
+_This line read "APPLICATION IN FLIGHT" through v0.4 and was true when written. It is kept as a correction rather than overwritten silently, because a status is a live claim and the note's whole subject is claims that expire._
 
 Written by vc at hv's direction, on dc's census and dc's build. Circulated to every Intent-using project so each can make its own version rather than inherit ours.
 
@@ -60,6 +62,10 @@ path = "tests/suite.rs"
 - **PLANT A REAL FILE; A SYNTHETIC CONTROL IS NOT ENOUGH.** A synthetic control proves the SUBTRACTION works. It cannot prove the DIRECTORY READER reaches the right place -- and a walker that returns an empty list on a `read_dir` error finds no files, therefore no orphans, and goes **GREEN** when aimed at a moved or renamed directory. Laksa planted a real `zz_orphan_probe.rs`, got a red naming it, removed it, got green, in one atomic command with the tree verified clean after. **Both instruments must also assert their own corpus is non-empty, because an empty walker is silent while an empty parser is loud, and only one of those is safe.**
 - **ONLY THE UNDECLARED DIRECTION NEEDS GUARDING.** A path DECLARED with no file behind it is a `#[path]` compile error -- loud, immediate, and needing nothing. Stated so nobody adds the other half later thinking it was missed.
 - **THE GUARD CANNOT CATCH ITS OWN OMISSION, AND NO TEST CLOSES THIS.** Dropped from `suite.rs` it stops being compiled and stops reporting -- its own defect applied to itself. **Its declaration line is load-bearing and must not be tidied away.** Say this in your own note; do not let it be discovered five estates later.
+
+**AND THE TRAP IN PROVING THE GUARD, WHICH CAUGHT dc ON THE FIRST ATTEMPT AND GENERALISES WELL PAST THIS JOB: `cargo test <filter>` EXITS 0 WHEN THE FILTER MATCHES NOTHING.** dc's first proof filtered `--exact` on a bare test name; the test lives in a module, so it matched nothing, ran zero tests, and exited 0 -- **reporting the guard as decoration.** The baseline arm added as a control passed the same vacuous way, because **exit 0 over 28 filtered-out tests is byte-identical to exit 0 over one pass.**
+
+**SO EVERY ARM MUST ASSERT THE COUNT, NOT THE EXIT CODE.** The general form: **any harness that selects by name and checks only `$?` is green from the moment the name drifts** -- and name drift is silent, routine, and exactly what refactoring does.
 
 **4. Cut debuginfo, once, at the workspace root.**
 
@@ -126,17 +132,48 @@ A census that counts files and reports targets will be right for every unconsoli
 
 6. **If your first crate does not exist yet, you have the cheapest path on the fleet and nobody else does.** Every estate in the table above is RETROFITTING. Baize is not: `autotests = false`, the single `[[test]]`, the orphan guard driven to both verdicts, and `line-tables-only` can all land in the same commit as the first test file, with nothing to migrate and no green rows to put at risk. **Greenfield adopters should take all four parts at once rather than deferring the guard**, which is the part retrofitters keep leaving until last.
 
-## Re-deriving Intent's own state
+## What it cost Intent, and what holding the cache cost instead
 
-**Do not read a number off this note.** At the time of writing, Intent's four crates hold 263 files under `crates/*/tests/`, `autotests = false` is set in three of them, and `[[test]]` blocks declare four targets -- but the suite files and the call-site flags were still uncommitted work in progress, so the tree did not yet build in that configuration.
+**Applied at `71a96213`. 257 targets became 5.**
 
-To get the current answer:
+| crate      | targets before | after |
+| ---------- | -------------- | ----- |
+| intentsvcs | 164            | 1     |
+| intent-cli | 84             | 2     |
+| intentd    | 8              | 1     |
+| testkit    | 1              | 1     |
+| **total**  | **257**        | **5** |
+
+**Verified by asking cargo, not by counting files** -- which is this note's own trap, so the verification must not walk into it:
 
 ```
-find native/rust/crates/*/tests -maxdepth 1 -name '*.rs' | wc -l    # files
-grep -c '^\[\[test\]\]' native/rust/crates/*/Cargo.toml             # declared targets
-grep -rn 'autotests' --include=Cargo.toml native/rust               # discovery off?
+cargo test --workspace --no-run 2>&1 | grep -c 'Executable tests/'    # -> 5
 ```
+
+`intent-cli` keeps a second target deliberately. Merged targets are threads in ONE process, and across all 257 files exactly one mutates process-global state (`set_current_dir`), so `dual_path_conformance.rs` stays separate. **That was measured before merging rather than hoped for after** -- no test spawns cargo, the one fixed port is written to a file and parsed rather than bound, and every socket path is per-test.
+
+### The figure that reframes the whole exercise
+
+hv ran the full cycle from a total clean, watched:
+
+|                                        |                              |
+| -------------------------------------- | ---------------------------- |
+| target tree held                       | **113 G**                    |
+| of which per-node forks                | cc 41G, dc 11G, private 919M |
+| time to DELETE it                      | ~35 minutes                  |
+| **time to REBUILD BOTH BINARIES COLD** | **1m 36s**                   |
+
+**THE CACHE COST MORE TO HOLD THAN TO REGENERATE.** 113 gigabytes and thirty-five minutes of deletion, standing guard over ninety-six seconds of work.
+
+**THE BOUNDARY MUST TRAVEL WITH THAT NUMBER OR IT OVERCLAIMS:** 1m36s is `dvb build all`, the two RELEASE binaries. The TEST build is the separate and expensive half, and it is where the 400,000-file debug tree and the 257 targets lived. **The honest statement is: the shipped artefacts rebuild cold in 96 seconds, and essentially all of the 113G was test-build cache.**
+
+### Why 52G of it was per-node forks, which is not a discipline problem
+
+**Cargo's build lock works correctly and invisibly, and that is the cause.** A blocked `cargo build` is indistinguishable from a hung one, so a node "fixes the hang" by pointing `CARGO_TARGET_DIR` at its own fork -- and one node reported doing so permanently, to be "one contender off the shared lock."
+
+An instance happened in front of hv during this very job: dc's `cargo check` held the lock, hv's test run queued behind it, and hv reported that _"the rust tests look like they're hanging."_ They were not. dc killed theirs and hv's proceeded.
+
+**So the fork is a rational response to an invisible wait, and a prohibition on `CARGO_TARGET_DIR` only holds if the wait is made visible. That pairing is the recommendation; either half alone fails.**
 
 ## Provenance
 
