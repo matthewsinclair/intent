@@ -58,10 +58,27 @@
 # Trials are an UPPER bound and the per-trial loss rate a LOWER bound. It cannot
 # flatter the finding; it can only understate it.
 #
-# NOT ESTABLISHED, and not guessed: whether SQLite busy-handling makes the loser
-# RELOAD. Whatever the store layer does, it does not prevent the loss on one
-# thread and does not cause one across two. That bounds the behaviour without
-# explaining it.
+# ESTABLISHED 2026-09-01, replacing a note that said this was unmeasured. The
+# question asked was whether SQLite busy-handling makes the loser RELOAD. The
+# better question is whether the busy path is ENTERED AT ALL, and it is not:
+# every losing iteration completes in ~0.01s against a `BUSY_TIMEOUT_MS` of
+# 5000, where issue `0152` measured a genuinely contended writer waiting 5.22s
+# and then being refused cleanly. **0.01s is not legible alone; it is legible
+# against that 5.22s.**
+#
+# So the two writes never contend at the SQLite level -- each takes and releases
+# the write lock in sequence, and the store sees two well-formed serialised
+# transactions and is RIGHT to accept both. **SQLite protects the TRANSACTION;
+# what is corrupted is the RECORD.** No store-layer tuning touches a path that
+# is never taken, so this closes the door AGAINST a store-side fix rather than
+# for one, and a record-layer compare-and-swap is weighed against nothing.
+#
+# AND THIS TOOL USED TO ASSERT THE SILENCE IT NOW MEASURES. It counted the
+# OUTCOME and discarded both processes' rc and output, so `no error, no
+# conflict` was inherited from the issue rather than driven. **A harness
+# reporting a silence it did not measure is the defect it exists to find, one
+# layer up.** Both are captured now and every loss is classified SILENT or
+# REPORTED.
 #
 # SAFE BARE INVOCATION. Defaults to the tree binary and a short run. Every
 # iteration builds a THROWAWAY project under mktemp -d and discards it; nothing
@@ -76,7 +93,7 @@ ITERS="${2:-10}"
 BIN="$(cd "$(dirname "$BIN")" && pwd)/$(basename "$BIN")"
 
 arm() {
-  local mode="$1" trials=0 nontrials=0 lost=0 i P gate as ae bs be tgt ac2 got
+  local mode="$1" trials=0 nontrials=0 lost=0 silent=0 reported=0 i P gate as ae bs be rca rcb tgt ac2 got
   for i in $(seq 1 "$ITERS"); do
     P=$(mktemp -d) || continue
     ( cd "$P" || exit
@@ -89,23 +106,31 @@ arm() {
     if [ "$mode" = same ]; then tgt=ST0001; ac2=AC-01.2; else tgt=ST0002; ac2=AC-01.1; fi
     gate="$P/.gate"
     ( cd "$P" || exit; while [ ! -f "$gate" ]; do :; done
-      as=$EPOCHREALTIME; "$BIN" ac satisfy ST0001 AC-01.1 --evidence A >/dev/null 2>&1; ae=$EPOCHREALTIME
-      printf '%s %s\n' "$as" "$ae" > "$P/.a" ) &
+      as=$EPOCHREALTIME; "$BIN" ac satisfy ST0001 AC-01.1 --evidence A > "$P/.oa" 2>&1; rca=$?; ae=$EPOCHREALTIME
+      printf '%s %s %s\n' "$as" "$ae" "$rca" > "$P/.a" ) &
     ( cd "$P" || exit; while [ ! -f "$gate" ]; do :; done
-      bs=$EPOCHREALTIME; "$BIN" ac satisfy "$tgt" "$ac2" --evidence B >/dev/null 2>&1; be=$EPOCHREALTIME
-      printf '%s %s\n' "$bs" "$be" > "$P/.b" ) &
+      bs=$EPOCHREALTIME; "$BIN" ac satisfy "$tgt" "$ac2" --evidence B > "$P/.ob" 2>&1; rcb=$?; be=$EPOCHREALTIME
+      printf '%s %s %s\n' "$bs" "$be" "$rcb" > "$P/.b" ) &
     : > "$gate"; wait
-    read -r as ae < "$P/.a"; read -r bs be < "$P/.b"
+    read -r as ae rca < "$P/.a"; read -r bs be rcb < "$P/.b"
     got=$(cd "$P" && "$BIN" ac list ST0001 2>/dev/null | grep -c 'satisfied: yes')
     [ "$mode" = cross ] && got=$(( got + $(cd "$P" && "$BIN" ac list ST0002 2>/dev/null | grep -c 'satisfied: yes') ))
     if [ "$(awk -v a="$ae" -v b="$bs" -v c="$as" -v d="$be" 'BEGIN{print (b<a && c<d)?1:0}')" -eq 1 ]; then
-      trials=$((trials+1)); [ "$got" -lt 2 ] && lost=$((lost+1))
+      trials=$((trials+1))
+      if [ "$got" -lt 2 ]; then
+        lost=$((lost+1))
+        if [ "$rca" -eq 0 ] && [ "$rcb" -eq 0 ] && ! grep -qiE 'error|locked|busy' "$P/.oa" "$P/.ob" 2>/dev/null; then
+          silent=$((silent+1))
+        else
+          reported=$((reported+1))
+        fi
+      fi
     else
       nontrials=$((nontrials+1))
     fi
     rm -rf "$P"
   done
-  printf '    %-6s trials(overlapping)=%-4s non-trials=%-4s LOST=%s\n' "$mode" "$trials" "$nontrials" "$lost"
+  printf '    %-6s trials=%-4s non-trials=%-4s LOST=%-4s SILENT=%-4s REPORTED=%s\n' "$mode" "$trials" "$nontrials" "$lost" "$silent" "$reported"
 }
 
 echo "canon_race_check -- issue 0206, $("$BIN" --version 2>&1 | head -1)"
@@ -120,6 +145,9 @@ echo "  DOES NOT    say WHICH field was lost or in what order: it counts satisfi
 echo "              criteria, so it detects loss without attributing it."
 echo "  DOES NOT    generalise past \`ac satisfy\`. The facade mechanism predicts every"
 echo "              canon verb; predicts is not shows, and only this one is driven."
-echo "  DOES NOT    establish whether SQLite busy-handling makes the loser reload."
+echo "  ESTABLISHES whether a loss is SILENT: both processes rc and output are"
+echo "              CAPTURED, not discarded. SQLite busy path is never ENTERED here"
+echo "              (~0.01s against a 5000ms timeout; 0152 measured a genuinely"
+echo "              contended writer at 5.22s), so no store-layer tuning narrows it."
 echo "  BOUND       trials are an UPPER bound (wall interval is wider than the"
 echo "              load-to-apply window), so the loss rate is a LOWER bound."
