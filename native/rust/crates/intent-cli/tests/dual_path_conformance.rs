@@ -335,6 +335,32 @@ const HAZARDS: &[(&str, &[Hazard])] = &[
     "daemon run",
     &[Hazard::NeverReturns, Hazard::ReplacesTheImage],
   ),
+  // **THE SECOND LIVE HANG, AND IT ARRIVED THE SAME WAY THE FIRST ONE DID.**
+  // `render.rs:92` routes `mcp` into `mcp_stdio::run()`, an MCP server that
+  // serves its transport until the transport closes. That is the verb working,
+  // not failing.
+  //
+  // **THE HANG IS CONDITIONAL ON THE CALLER'S STDIN, WHICH IS WHY IT SURVIVED
+  // CI AND EVERY UNATTENDED RUN.** `via_library` calls `render::run` in THIS
+  // process and this process inherits whatever stdin the suite was given.
+  // Redirected -- CI, `< /dev/null`, a piped harness -- the server reads EOF
+  // and returns immediately, and the row passes. On a terminal there is
+  // nothing to read and nothing to type, so it blocks forever at 0% CPU with
+  // fd 0 on the tty. **Green in CI and hung on a developer's terminal, with no
+  // signal distinguishing the two**, which is worse than a row that always
+  // hangs: an always-hang gets fixed the first day.
+  //
+  // Found 2026-09-01 by hv, who ran the suite interactively and reported it as
+  // "is this a hang". It was diagnosed by reading fd 0 rather than by reading
+  // the test: 0% CPU with a CHR handle on /dev/ttys043 says BLOCKED ON INPUT
+  // and cannot be confused with slow. Ctrl-D released it and it ran on.
+  //
+  // **DECLARED RATHER THAN GIVEN A CLOSED STDIN**, for the reason
+  // `ActsOnTheRealHome` gives above: handing `via_library` its own stdin is a
+  // process-global mutation in a process running every other row, and a verb
+  // whose termination depends on the caller's file descriptors has nothing a
+  // route comparison can be about.
+  ("mcp", &[Hazard::NeverReturns]),
 ];
 
 /// **ONE TEST FUNCTION, DELIBERATELY.**
