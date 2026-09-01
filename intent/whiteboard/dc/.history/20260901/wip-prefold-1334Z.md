@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-01 13:34Z
+heartbeat_at: 2026-09-01 08:17Z
 status: active
-focus: "FOLDED 2026-09-01 13:34Z, pre-fold sha-verified at .history/20260901/wip-prefold-1334Z.md (fe941c83), reasoning at rust-consolidation-narrative-1334Z.md. TODAY WAS THE RUST CONSOLIDATION: 257 test targets to 6, tree 113G to 6.0G, suite 2022/0, and hv watched a full clean cycle. STATUS STAYS active -- a compact does not end a session. NO FIGURES HERE -- run the verbs. Holding while hv drives devbin-vc; every other estate holds too."
+focus: "POST-COMPACT 2026-09-01 08:17Z, board UNCHANGED since the 07:51Z fold (pre-fold sha-verified at .history/20260901/wip-prefold-0751Z.md, reasoning at evening-narrative-0751Z.md). hv is ANSWERED: pair != HEAD is NOT the staleness test -- the pin names the last commit touching native/rust surface docs/design, so the check is rev-list -1 HEAD over those three paths. STATUS STAYS active -- a compact does not end a session. HOLDING for vc per hv. AC-04.6 is the one unblocked row and it sits BEHIND 0207. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -35,30 +35,55 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-- **NOTHING IN FLIGHT.** Everything of mine is committed; the tree is clean of my paths. Holding while hv drives devbin-vc's rollout, and every other estate is holding on hv's word.
-- **Rust consolidation: DONE and watched.** 257 targets -> 6, `[profile.dev] debug = "line-tables-only"`, `--no-fail-fast` on the live call sites, orphan guard in three crates proven two-sided. hv ran a full clean cycle: 113G -> 6.0G, 2022 passed / 0 failed / 14 suites, `dirty: 0` -- the first verdict all day that describes a real commit.
-- **TN001 is current** (`73857a72`) and carries the verification section: N clean runs cannot detect an intermittent, and the isolate-vs-fix discriminator.
-- **The devbin packet is delivered** -- four gates plus the `build fullcycle` spec, then amended twice by me and corrected three times by devbin-vc. See TODO for what came back.
+**HOLDING for vc per hv, 2026-09-01. Tonight's reasoning is at `.history/20260901/evening-narrative-0751Z.md`; earlier days carry their own.**
+
+- **LANDED:** `AC-07.7` measured two-sided and its instrument rostered (`337d6451`); `0203` filed AND dispositioned in one motion (`8acccecd`); `0200` dispositioned as a deviation with an EXPIRY tied to the `bin/` prune (`12cd70ba`); `0208` dispositioned (`c561e79a`).
+- **WP-05 STAYS `wip`. THE STATUS WAS RIGHT AND THE GATE IS THE STALE HALF** -- it passes 7/7 on `AT-05.2` green and that AT's own corpus is RED. vc ruled v2 message strings OUTSIDE the narrowed contract, so the six `keep` rows want `deviate` with assertions **RETARGETED, NEVER DELETED**. **BLOCKED ON `0203`: while the family-`help` question is open the assertion has no correct v3 target.**
+- **`AC-04.6` IS THE ONE UNBLOCKED ROW AND IT IS SPECIFIED, NOT GUESSED.** All seven state-machine verbs exist and are wired; its cited test is 22/22 green; the residual is **two paired `kind` conversions** (`Criterion.kind`, `AcceptanceTest.kind`), each ONE act moving TWO fields because the pairing is enforced in the schema face. **DO NOT START IT UNTIL `0207` IS FIXED -- `at green --note` would destroy the row's own 13,007-byte adjudication record, and closing it is exactly when someone types that.**
+- **THE DELIVERED PAIR IS STALE AND `pair != HEAD` IS NOT THE TEST.** The pin names the last commit touching BUILD INPUTS. **The check is `git rev-list -1 HEAD -- native/rust surface docs/design`** -- that returned `f6d37b18` against a delivered `abe69906`, so it is genuinely 5 commits behind. **A rebuild needs the nodes quiesced (`0196`: the pair is DELETED before building, ~1m18s at rc=127) and `intentd` restarted (W28: it holds the deleted inode and reports healthy).**
 
 ## TODO
 
-**THREE hv RULINGS PENDING, all raised by devbin-vc and all correcting me:**
+### 1. ST0068 -- THE FIVE OPEN ROWS
 
-- **Seam scope.** `dvb build all`, `build fullcycle` and `local status` are INTENT-LOCAL. devbin's shipped seam has no `build` command and no `local` -- `resolve:323` resolves `$DEVBIN_DIR/cmd/` before `$DEVBIN_LIB/cmd/`, which is how Intent has verbs devbin never shipped. **My `release`-outside-`all` precedent was my own config's, not the seam's.** So WHERE `fullcycle` attaches is an open ruling, not a detail.
-- **Gate 1's cost class.** `cargo test --no-run` BUILDS the test targets, so the authoritative count is not check-speed.
-- **Gate 4 is NOT devbin's** -- verified here: the dangling-symlink refusal is `lib/templates/hooks/pre-commit.sh`, an Intent template; no devbin vendored file carries it. And devbin's shipped hook FAILS OPEN by design, so "the fix is blocked BY the outage" does not reproduce there. **Either Intent's hook has diverged from the shipped one, or my refusal is a different check -- and if it diverged, that is bigger than gate 4.** Unresolved; needs a read of both hooks side by side.
+| row         | needs                                                                          | who                            |
+| ----------- | ------------------------------------------------------------------------------ | ------------------------------ |
+| **AC-02.1** | the drive on a machine that has never seen this repo, install half included    | me + **hv** for the brew route |
+| **AC-02.3** | six members, five of them not mine                                             | me / cc / hv                   |
+| **AC-03.2** | register entries carry decision + constraint + consequence **and REACH Laksa** | me / **vc routes**             |
+| **AC-03.1** | Laksa builds the page and reports whether it invented an answer                | **Laksa**, vc routes           |
+| **AC-04.2** | `git tag --contains` against the next tag                                      | **nobody -- not cut**          |
 
-**Corrections devbin-vc made that I verified:**
+- **AC-04.2 IS A WAIT, NOT WORK.** A gate reading five unsatisfied where one cannot be worked misprices the other four.
+- **AC-03.2's UNPROVEN HALF IS THE VERB "REACHES"** -- `design-system.md` section 11 holds the register in good shape; a write surface with no named reader is a queue. **vc holds `inbox.laksa-vc.md` and reports whether a named reader HAS it.**
 
-- `/usr/bin/time` on this fleet is **BSD, not GNU** -- `-f` is an illegal option, portable form is `-p`/`-o`. I offered `-f` unqualified; it would fail on every machine here.
-- **My `SECONDS` amendment carries the class it fixes**: a `printf` after a phase does not run when the phase fails under `set -e`, so the timing is absent exactly on the failure case, and the absence looks like success. Capture rc first or trap.
-- **The autoload stub is a HOST DIVERGENCE, not a devbin property.** devbin documents `eval "$(dvb shell-init zsh)"`, which yields a plain function `time` reports on normally. Our `dvb` is autoloaded from `$fpath` -- a shape devbin neither emits nor documents, and nothing detects the divergence. devbin-vc's `doctor`-check framing is better than my catalogue caveat.
+### 2. THE `bin/` PRUNE -- **RULED BY hv: IT HAPPENS, AFTER THE TAG**
 
-**Open, not mine to close:**
+**A RULING WITH A RELEASE ON IT, NOT A HOLD. Do not re-put it and do not re-litigate it.** hv took it on MY finding, not the line count: `tests/run_tests.sh:24` sources `intent_helpers` above every `@test`, so a wrong move **stops 112 bats files STARTING and CI dies on a `source` rather than an assertion** -- the least legible failure available. That is a property of the CONTAINER and stays true whenever it happens.
 
-- `daemon_subscriptions` event bleed across test boundaries -- characterised, test-level (cc established the watcher publish path is correctly scoped), unfixed, with cc.
-- `0207` (`at green/red/na --note` replaces wholesale), `0203`'s remedy, `0208`'s remedy -- all hv's.
-- AC-04.6 sits behind `0207`; AC-07.7 needs a published artefact.
+- **SHAPE: `config` (161) + `ext` (820) + `learn` (203) = 1,184 lines, 98 arms.** `intent_helpers` (845) and `intent` (290) stay.
+- **COST: 661 MECHANICAL / 474 JUDGEMENT / 336 UNAFFECTED** over 112 files / 1,471 arms. **QUOTE WHEREVER THE PRUNE IS DISCUSSED (vc's ask): A COUNT WITHOUT STRIPPING COMMENTS OVERSTATES BY 2.5x -- 32 naive against 13 live edges.**
+- **ONE COMMIT IF RULED GO:** `git rm` population A (26 files / 12,415 lines) + both carries -- **`stamp_project_version` -> `bin/.devbin/cmd/build.d/release`**, **`error` -> `tests/run_tests.sh`** dropping `:24`'s source line. `tests/cutover_guard.bash` needs nothing.
+
+### 3. STANDING
+
+- **`--title` AND `--severity` LANDED (`f6d37b18`), AND THE MCP DISPOSITION IS NOT MINE.** cc keeps it and routes it to hv through vc, adopting my title-vs-severity split as the ruling SHAPE: authored text falls under the withholding argument, an enumerated classification does not. **Both flags shipped `exposed_on_mcp:false`, the reversible direction.** Do not flip either without hv.
+- **cc's LIVE CAUTION ON MCP:** `tools()` now RETURNS Err for any row `exposed_on_mcp:true` with no facade (`ea68dddd`) -- a new exposed row without a facade takes the whole MCP tier down loudly. Intended. **Give any exposed row a facade.**
+- **DO NOT FILE THE ISSUE-TITLE FINDING. `0151` OWNS THE ROW, `0154` OWNS THE CLASS**, and `0154` predicted the exact half-fix that shipped.
+- **hv ASKED FOR A SHORT COMMIT ON `intent --version` -- DIAGNOSED, NOT LANDED, needs hv's word because it costs a rebuild.** `intent --version` already prints the commit and prints all FORTY characters (`spine.rs:259-263`); the web page prints EIGHT (`web.rs:327` -> `:338` `short()`), **and `short()` preserves `dirty-<sha>` and `unknown` intact, which is the whole care** -- `SOURCE_COMMIT` carries its dirt INSIDE the value. **CONSUMERS CHECKED AND SAFE**: `cmd/macos:1242` takes the version token only, the formula test at `:1386` only asserts the version appears. **A Highlander move, not a one-liner** -- `short()` belongs in `intentsvcs`; `intent modules find short_commit` -> no matches, so a row is owed BEFORE the file. **SEPARATELY: `intentd --version` PRINTS NO COMMIT AT ALL** (`main.rs:170-172`).
+- **SETTLED WITH ic: ST0064's menubar pipeline EXTENDS `bin/.devbin/cmd/macos` with `app-*` arms. ic writes, I review, they ping BEFORE editing.** Nothing owed until the ping. **THE CONDITION, IN THE `app-sign` COMMIT:** strike the expired _five short subcommands_ ground; rewrite the `.app` disclaimer keeping the stapling asymmetry; name `kc_get` / `require_identity` / the notarytool flow as the shared Highlander unit.
+- **The phase split, still owed.**
+- **`at edit` CARRIES NO `--note` ON EITHER BUILD.** Not filed, by me or cc: it wants hv's intent for the verb first, since a re-cite is not a status change.
+- **`0011` IS BIGGER THAN ITS TITLE AND `0066` IS A SECOND DOOR TO IT** -- any unreadable thread directory under `intent/st/` STOPS EVERY VERB.
+- **`0082` BOUNDS OUR OWN ADVICE**: a canon-authored attachment never reaches disk and `sync --to-disk` says `ok`. getting-started's edit-canon-and-sync route is right for `objective`/`context` and **is not a route for adding a file** -- `st attach` is.
+- **`git check-ignore` IS THE WRONG INSTRUMENT FOR OUR CORPUS PREDICATE** (vc): it honours `~/.gitignore_global`, and `sync.rs:513-533` declines global excludes on purpose.
+
+### 4. WITH hv, NOT WITH ME
+
+- **hv OWES: `0192`'s re-decision** (dead premise, cost zero); **the next release's SCOPE AND NUMBER**; **AC-02.1's brew half and `0071`'s v2 binary**; **the MCP exposure ruling** (via cc/vc).
+- **MY FIVE OF ST0056's 27 UNSATISFIED** (vc's partition): **`AC-04.6`**, **`AC-07.7`**, **`AC-11.1`** + **`AC-11.4`** (distribution: cargo-dist, Homebrew, signing), **`AC-12.4`**. **One of mine GATES one of vc's** -- their `AC-00.5` wants `brew install` on a clean machine and the tap is WP-11. **RE-DERIVE THE 27; DO NOT INHERIT IT.**
+- **`doctor` REPORTS WP-05 AND WP-08 RECORDED WIP WITH PASSING GATES.** WP-05 is MINE and I have not looked. Either the contract is missing something or the work is done; `wp done` is refused on a blocked gate, so the report is the same ruling.
+- **THE `--kind non-test` DEFAULT IS AN hv QUESTION WEARING A DOCS BUG** -- vc carries it.
 
 ## Watch-outs
 
