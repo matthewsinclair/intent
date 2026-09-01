@@ -500,9 +500,22 @@ impl crate::remedy::Remedy for Unlanded {
   fn remedy(&self) -> String {
     match self {
       Unlanded::Unreadable { remedy, .. } => remedy.clone(),
+      // **THE BROWSER ROUTE IS NAMED BY ITS WIRED SPELLING, NOT ITS UNWIRED
+      // TWIN** (AC-06.11, found 2026-09-01 by the source-side corpus in
+      // `remedies_are_reachable.rs`, which reaches this arm because no fixture
+      // can provoke it). Driven: `intent browse <kind> <id>` answers `browse is
+      // a known command that is not implemented yet`, while `intent edit <kind>
+      // <id> --browser` is wired and refuses honestly, naming `intent daemon
+      // start`. **THE DECLARATION IS NOT THE DEFECT AND IS NOT TOUCHED HERE**:
+      // `browse` is declared ahead of its arm deliberately, because INV-09 /
+      // `ST0058 AC-00.6` refuses a capability present by one spelling and absent
+      // by the other, and hv ruled it ships on exactly that ground. **A REMEDY
+      // IS NOT A CAPABILITY DECLARATION** -- it is advice an operator types
+      // next, so it names the spelling that works TODAY and moves to the verb
+      // the day the realiser lands.
       Unlanded::NoView { form, .. } => format!(
         "the explorer opens threads and issues; a {form} is addressable but has no view yet, so \
-         reach it with `intent edit` or `intent browse`"
+         reach it with `intent edit` or `intent edit --browser`"
       ),
       Unlanded::Absent { kind, .. } => match kind.as_str() {
         "issue" => "list what is there with `intent issue list`".into(),

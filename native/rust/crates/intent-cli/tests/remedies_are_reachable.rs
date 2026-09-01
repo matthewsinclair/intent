@@ -589,3 +589,249 @@ fn every_command_reference_is_backticked() {
     bare.join("\n  ")
   );
 }
+
+/// Every `remedy()` body in the source, paired with the type that owns it.
+///
+/// **THIS IS THE CORPUS FIX, AND THE DEFECT IT REPAIRS WAS A CORPUS DEFECT
+/// RATHER THAN A WRONG VERDICT.** Every arm above harvests remedies by DRIVING
+/// the binary, and [`Fixture::new`] builds a project with `init` and nothing
+/// else -- no thread, no work package, no criterion, no issue. So the harvested
+/// population is *the remedies reachable from an EMPTY state*, while AC-06.11
+/// claims the property over **every remedy the binary suggests**. Everything
+/// the drive reported was true; the set it reported over was narrower than the
+/// row it satisfies, which is this estate's most expensive shape.
+///
+/// **THE GAP IS STRUCTURED, NOT INCIDENTAL.** 32 types implement `Remedy`
+/// across 27 files, and the state-dependent ones cannot appear in a bare drive
+/// at all: `StoreError`'s schema mismatch needs a store from another version,
+/// `DaemonError` needs a daemon, `SyncError` needs divergence, `Blocked` needs
+/// a v2 estate mid-migration. **Constructing 32 failure conditions is not the
+/// answer** -- several are hazardous on a shared machine (the FORBIDDEN list
+/// above exists because of exactly that) and several are unreachable by
+/// construction from a fixture.
+///
+/// **SO THE POPULATION COMES FROM THE SOURCE, ON `flag_reachability.rs`'s
+/// RATIFIED PRECEDENT.** That file met the same wall on AC-06.8 -- a
+/// hand-listed set was the census that missed `st new -s` -- and answered it by
+/// taking the population from the table and scanning the renderer for what
+/// reads it. The same move here: every `remedy()` body is read out of the
+/// source, so a remedy no fixture can provoke is still checked.
+fn remedy_bodies() -> Vec<(String, String)> {
+  let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+    .join("..")
+    .join("intentsvcs")
+    .join("src");
+  let mut out = Vec::new();
+  let mut files: Vec<std::path::PathBuf> = std::fs::read_dir(&dir)
+    .unwrap_or_else(|e| panic!("intentsvcs/src is unreadable at {}: {e}", dir.display()))
+    .filter_map(|e| e.ok().map(|e| e.path()))
+    .filter(|p| p.extension().is_some_and(|x| x == "rs"))
+    .collect();
+  files.sort();
+  for path in files {
+    let Ok(src) = std::fs::read_to_string(&path) else {
+      continue;
+    };
+    for (at, line) in src.match_indices("impl").map(|(i, _)| (i, &src[i..])) {
+      let Some(head_end) = line.find('{') else {
+        continue;
+      };
+      let head = &line[..head_end];
+      if !head.contains("Remedy for") || head.contains('\n') {
+        continue;
+      }
+      let name = head
+        .split("Remedy for")
+        .nth(1)
+        .unwrap_or("")
+        .trim()
+        .split_whitespace()
+        .next()
+        .unwrap_or("")
+        .to_string();
+      // Brace-matched rather than line-counted: a `remedy()` arm in this
+      // estate routinely spans a `format!` with nested braces, and a
+      // heuristic that stopped at the first `}` would truncate the body and
+      // silently shrink the corpus -- the same defect one level down.
+      let body_start = at + head_end;
+      let mut depth = 0usize;
+      let mut end = body_start;
+      for (i, c) in src[body_start..].char_indices() {
+        match c {
+          '{' => depth += 1,
+          '}' => {
+            depth -= 1;
+            if depth == 0 {
+              end = body_start + i + 1;
+              break;
+            }
+          }
+          _ => {}
+        }
+      }
+      if end > body_start {
+        out.push((name, src[body_start..end].to_string()));
+      }
+    }
+  }
+  out
+}
+
+/// The string literals inside a `remedy()` body.
+///
+/// **A SCAN, NOT A PARSE, AND THE LIMIT IS STATED RATHER THAN DISCOVERED**
+/// (`flag_reachability.rs` records the identical trade for the identical
+/// reason). A verb assembled at runtime -- `format!("run `intent {verb}`")` --
+/// is invisible here, because the text this reads has a placeholder where the
+/// command would be. That is a gap between this check and a stronger one, not
+/// between this check and the row: it cannot produce a false GREEN on a literal
+/// reference, only fail to see an interpolated one.
+fn string_literals(body: &str) -> Vec<String> {
+  let mut out = Vec::new();
+  let mut cur = String::new();
+  let mut in_str = false;
+  let mut escaped = false;
+  for c in body.chars() {
+    if !in_str {
+      if c == '"' {
+        in_str = true;
+        cur.clear();
+      }
+      continue;
+    }
+    if escaped {
+      cur.push(c);
+      escaped = false;
+      continue;
+    }
+    match c {
+      '\\' => escaped = true,
+      '"' => {
+        in_str = false;
+        out.push(std::mem::take(&mut cur));
+      }
+      _ => cur.push(c),
+    }
+  }
+  out
+}
+
+/// **THE PROPERTY, OVER THE POPULATION THE DRIVE CANNOT REACH.**
+///
+/// Same claim as [`every_emitted_remedy_names_something_this_build_can_do`] and
+/// the same resolution -- a reference must name a DECLARED path that is WIRED,
+/// and a `--help` reference must name a family with at least one wired verb.
+/// **What differs is only the corpus**: that arm's remedies come from driving a
+/// freshly-`init`ed project, this one's come from every `remedy()` body in the
+/// source, so a remedy that needs a store from another version, a live daemon,
+/// or a v2 estate mid-migration is checked without constructing any of them.
+///
+/// **THE TWO ARMS ARE NOT REDUNDANT AND NEITHER SUBSUMES THE OTHER.** The drive
+/// proves a remedy is really EMITTED and reaches delegated ones that never
+/// appear as a literal (`the_harvest_reaches_a_remedy_the_estate_asserts_elsewhere`
+/// pins exactly such an instance). The scan proves the property holds for
+/// strings no fixture can provoke. Deleting either one silently shrinks the
+/// corpus back, which is the defect this arm was added to repair.
+#[test]
+fn every_remedy_in_the_source_names_something_this_build_can_do() {
+  let fx = Fixture::new();
+  let declared: BTreeSet<String> = crate::common::declared_paths().into_iter().collect();
+  let forbidden: BTreeSet<&str> = FORBIDDEN.iter().map(|(p, _)| *p).collect();
+
+  let bodies = remedy_bodies();
+  let mut refs: BTreeSet<String> = BTreeSet::new();
+  for (_, body) in &bodies {
+    for lit in string_literals(body) {
+      for r in references(&lit) {
+        refs.insert(r);
+      }
+    }
+  }
+
+  let mut unreachable: BTreeSet<String> = BTreeSet::new();
+  for r in &refs {
+    if let Some(family) = r.strip_suffix(" --help") {
+      let verbs: Vec<String> = declared
+        .iter()
+        .filter(|p| p.starts_with(&format!("{family} ")))
+        .cloned()
+        .collect();
+      let any_wired = verbs
+        .iter()
+        .filter(|p| !forbidden.contains(p.as_str()))
+        .any(|p| wiredness(&fx, p) == Wired::Yes);
+      if !verbs.is_empty() && !any_wired {
+        unreachable.insert(r.clone());
+      }
+    } else {
+      // **A FLAG-BEARING REFERENCE IS CHECKED ON ITS VERB, AND THE FLAG IS
+      // DELIBERATELY SOMEONE ELSE'S JOB.** `intent edit --browser` is a real
+      // remedy in this estate, and matching it whole against `declared_paths()`
+      // finds nothing -- so before this stripping it fell out of the corpus in
+      // SILENCE, which is the same defect this arm exists to repair, one level
+      // down. The verb is verified here; whether the FLAG is declared and read
+      // is `flag_reachability.rs` under AC-06.8, and duplicating that check
+      // here would be a second home for it.
+      let verb: String = r
+        .split_whitespace()
+        .take_while(|w| !w.starts_with("--"))
+        .collect::<Vec<_>>()
+        .join(" ");
+      if !verb.is_empty()
+        && declared.contains(&verb)
+        && !forbidden.contains(verb.as_str())
+        && wiredness(&fx, &verb) == Wired::No
+      {
+        unreachable.insert(r.clone());
+      }
+    }
+  }
+
+  // POPULATION / FORMS / REACH, in the OUTPUT and never a comment -- this
+  // estate's rule, because a corpus stated in prose beside a green is the
+  // thing that was wrong here in the first place.
+  println!(
+    "POPULATION: {} `remedy()` bodies read from intentsvcs/src, {} distinct `intent ...` references",
+    bodies.len(),
+    refs.len()
+  );
+  println!(
+    "FORMS: {} verb references, {} verb-SPACE (`--help`) references",
+    refs.iter().filter(|r| !r.ends_with(" --help")).count(),
+    refs.iter().filter(|r| r.ends_with(" --help")).count()
+  );
+  println!(
+    "REACH: COVERS every remedy whose command reference is a LITERAL. \
+    DOES NOT cover a reference assembled at runtime (`format!(\"`intent {{verb}}`\")`), \
+    which has a placeholder where the command would be. \
+    DOES NOT judge whether the named verb is the RIGHT one for that error. \
+    DOES NOT judge a FLAG named in a remedy: the verb is checked here and the flag is `flag_reachability.rs` under AC-06.8."
+  );
+
+  assert!(
+    bodies.len() >= 30,
+    "the source scan found only {} `remedy()` bodies; 32 impls were measured across 27 files on \
+     2026-09-01, so a collapse here means the scan stopped matching rather than that the estate \
+     shrank -- an empty or thin corpus is how this check passes by having nothing to examine",
+    bodies.len()
+  );
+  assert!(
+    !refs.is_empty(),
+    "no command references were extracted from any `remedy()` body, which cannot be right while \
+     the estate asserts elsewhere that the unmigrated refusal names `intent upgrade`"
+  );
+
+  let inherited: BTreeSet<String> = INHERITED_UNREACHABLE
+    .iter()
+    .map(|s| s.to_string())
+    .collect();
+  assert_eq!(
+    unreachable,
+    inherited,
+    "the set of SOURCE remedies that do not reach a working verb has changed.\n  \
+     ADDED (a remedy now sends an operator somewhere they cannot get to): {:?}\n  \
+     FIXED (shrink INHERITED_UNREACHABLE to match): {:?}",
+    unreachable.difference(&inherited).collect::<Vec<_>>(),
+    inherited.difference(&unreachable).collect::<Vec<_>>()
+  );
+}
