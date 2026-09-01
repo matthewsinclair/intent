@@ -1,0 +1,96 @@
+---
+verblock: "01 Sep 2026:v0.1: vc - First technote; the consolidation ruling, its mechanism, and the trap in measuring it"
+---
+
+# TN001 -- One test target per crate: the ruling Intent made and did not apply
+
+**Status: RULED (hv, 2026-08-27, estate-wide). APPLICATION IN FLIGHT IN INTENT AT TIME OF WRITING (dc, 2026-09-01, under hv's authority of the same morning). This note is the pattern and the reasoning; it is NOT a report that Intent is finished.** Every figure below carries the command that regenerates it, because a technote is read at boot and a figure in one goes stale silently.
+
+Written by vc at hv's direction, on dc's census and dc's build. Circulated to every Intent-using project so each can make its own version rather than inherit ours.
+
+## The defect in one line
+
+**Under cargo's default `autotests = true`, every `.rs` file in a crate's `tests/` directory becomes its own test target -- a separate compile and a separate FULL LINK of the crate and all its dependencies.** A crate with 166 test files links 166 binaries to run its tests. Nothing warns you; it is the default, it is invisible in the output, and it grows one file at a time.
+
+## Why this is a technote and not a ticket
+
+**Intent ruled this estate-wide on 2026-08-27 and then did not do it.**
+
+| estate     | consolidated when this was measured                    |
+| ---------- | ------------------------------------------------------ |
+| Laksa      | YES -- and its `Cargo.toml` quotes the ruling verbatim |
+| Lamplight  | 1 crate of 10                                          |
+| **Intent** | **NO -- not one crate**                                |
+
+Intent is the estate that made the ruling. **201 of its test files landed in the same month the ruling was made**, so the cost was accruing fastest exactly where the decision had been taken. A ruling that is not applied where it was authored is not a slow rollout; it is a ruling nobody is enforcing, and the author is the last to notice because they remember deciding it.
+
+**That is the transferable half of this note. The Cargo settings below are mechanical. The failure was that a decision and its application were separately tracked, and only one of them was.**
+
+## The mechanism
+
+Cargo's `autotests` defaults to `true`. Each file directly under `tests/` becomes a `[[test]]` target. A target is not a cheap thing: it is a full link of the crate under test plus its whole dependency graph, and linking dominates the cost -- so the total is roughly linear in FILE COUNT, not in test count or in code volume.
+
+Adding a test file is therefore not a marginal cost. It adds a link.
+
+## The fix, in four parts
+
+Three are per-crate; the fourth is per-repo.
+
+**1. Turn off automatic discovery and declare one target.** In each crate's `Cargo.toml`:
+
+```toml
+autotests = false
+
+[[test]]
+name = "suite"
+path = "tests/suite.rs"
+```
+
+**2. Make the former targets modules of the one target.** `tests/suite.rs` becomes a list of `#[path]` module declarations, one per file that used to be its own target. The test bodies do not move and do not change.
+
+**3. Guard against orphans, because step 2 is hand-maintained and will drift.** A file added to `tests/` after the switch is compiled by nobody and runs in no suite -- **it passes by not existing.** This is the whole reason the guard is not optional: without it, consolidation converts a slow test estate into a quiet one. The guard asserts that every `.rs` under `tests/` appears in the suite, and it must be driven to BOTH verdicts -- plant an unreferenced file and see it go red -- or it is a green that has never been shown able to fail.
+
+**4. Cut debuginfo, once, at the workspace root.**
+
+```toml
+[profile.dev]
+debug = "line-tables-only"
+```
+
+`cargo test` inherits `dev`, so one key here reaches every test target rather than needing a `[profile.test]` beside it. `line-tables-only` keeps the file and line in a backtrace -- what a person actually reads off a failure -- and drops the type and variable detail that only a debugger consumes.
+
+**And separately: pass `--no-fail-fast` at every `cargo test` call site.** With one target, the first failure otherwise stops the whole suite, so consolidation without this trades link time for lost information.
+
+## The trap in measuring it, which cost us a wrong scope
+
+**Test FILES are not cargo TARGETS. They are equal only where `autotests` is default.**
+
+A census that counts files and reports targets will be right for every unconsolidated crate and wrong for every consolidated one -- so it systematically overstates the remaining work, and it overstates it MOST for the estates that already did what you asked. Laksa's 16 test files compile to ONE target; a file count reports Laksa as the second-worst offender in the fleet when it is the only estate that is finished.
+
+**On this fleet, a six-tree scope was taken off a file-count column and the correct scope was three.** Two of the six needed nothing -- one already compliant, one with no test files at all -- and a third was a deliberately frozen fallback checkout whose Rust is a pre-cut snapshot. The caveat had been stated at the top of the census and was not applied to the reading below it.
+
+**So: state the caveat AND apply it, or do not state it. A caveat that sits above a table nobody re-reads is decoration.**
+
+## What each project should do
+
+1. **Count your real targets, not your files.** `grep -c '^\[\[test\]\]' */Cargo.toml` and `grep -rn 'autotests' --include=Cargo.toml .` together tell you where you actually are. If `autotests` is absent, it is `true`.
+2. **Apply the four parts above** to every crate whose test files outnumber its declared targets.
+3. **Build the orphan guard before you consolidate, not after.** It is the only thing standing between a consolidated suite and a silently shrinking one.
+4. **Write your own version of this note.** Not a copy -- your crate layout, your counts, your call sites. A note that describes someone else's estate is read once and never checked.
+5. **If you have no Rust, say so and stop.** Two estates on this fleet declare `rust` in `intent/.config/config.json` while every `Cargo.toml` under them is a dependency's NIF. A language declared but not owned arms a critic over code you did not write.
+
+## Re-deriving Intent's own state
+
+**Do not read a number off this note.** At the time of writing, Intent's four crates hold 263 files under `crates/*/tests/`, `autotests = false` is set in three of them, and `[[test]]` blocks declare four targets -- but the suite files and the call-site flags were still uncommitted work in progress, so the tree did not yet build in that configuration.
+
+To get the current answer:
+
+```
+find native/rust/crates/*/tests -maxdepth 1 -name '*.rs' | wc -l    # files
+grep -c '^\[\[test\]\]' native/rust/crates/*/Cargo.toml             # declared targets
+grep -rn 'autotests' --include=Cargo.toml native/rust               # discovery off?
+```
+
+## Provenance
+
+The ruling is hv's, 2026-08-27, estate-wide. The census, the build and the four-part shape are dc's, 2026-09-01, under hv's direction that fixing this across the host is the most important job in flight. The orphan-guard requirement follows laksa-vc's implementation. The files-are-not-targets caveat is dc's own, stated in the census that the scope was then read from -- which is how it comes to be the most useful paragraph in this note.
