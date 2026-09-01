@@ -36,8 +36,10 @@ enum IntentCLIError: LocalizedError {
 /// per-project DBs, REGISTRY"). When D07's registry lands, the app READS IT and
 /// this local store goes away -- it must never become a parallel home that has
 /// to agree with the registry forever, which is issue 0204's shape. A short-
-/// lived second home that knows it is second is fine; one that forgets is not.
-/// (vc ruling (a) + condition (ii), 2026-08-31.)
+/// lived second home that knows it is second is fine; one that forgets is not --
+/// the two would then diverge silently, and the disagreement never announces
+/// itself (0206), so the exit is to READ the registry when it lands, never to
+/// keep this store in sync with it. (vc ruling (a) + condition (ii), 2026-08-31.)
 ///
 /// Per-app-instance is the right scope regardless of D07: a machine holds many
 /// Intent projects, so "which project is this app controlling" is app state,

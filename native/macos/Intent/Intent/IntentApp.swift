@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   private var statusItem: NSStatusItem?
   private let daemon = DaemonService.shared
+  private let project = ProjectService.shared
   private var observation: ContinuousObservation?
 
   static let firstRunKey = "FirstRunDone"
@@ -43,6 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
 
     daemon.startPolling()
+    project.startPolling()  // one real GraphQL read every 5s, through `intent graphql` (AC-01.3)
     startObserving()  // renders the current state immediately, then on every change
 
     if !UserDefaults.standard.bool(forKey: Self.firstRunKey) {
@@ -53,6 +55,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   func applicationWillTerminate(_ notification: Notification) {
     daemon.stopPolling()
+    project.stopPolling()
     observation?.stop()
   }
 
@@ -104,7 +107,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     observation = ContinuousObservation(
       track: { [weak self] in
         guard let self else { return }
-        _ = (self.daemon.health, self.daemon.busy)
+        _ = (self.daemon.health, self.daemon.busy, self.project.threadCount)
       },
       onChange: { [weak self] in
         guard let self else { return }
@@ -144,6 +147,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let summary = NSMenuItem(title: statusSummary(), action: nil, keyEquivalent: "")
     summary.isEnabled = false
     menu.addItem(summary)
+
+    // A real datum read through `intent graphql` (AC-01.3), rendered not derived:
+    // shown only when a project is configured and the query has answered.
+    if let count = project.threadCount {
+      let threads = NSMenuItem(
+        title: "\(count) steel thread\(count == 1 ? "" : "s")", action: nil, keyEquivalent: "")
+      threads.isEnabled = false
+      menu.addItem(threads)
+    }
+
     menu.addItem(.separator())
 
     if let busy = daemon.busy {
@@ -200,6 +213,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !path.isEmpty else {
           return showAlert("Could not open \(address)", message: "the resolver returned no path")
         }
+        Self.logger.info("resolved \(address, privacy: .public) -> \(path, privacy: .public)")
         NSWorkspace.shared.open(URL(fileURLWithPath: path))
       } catch {
         showAlert("Could not open \(address)", message: error.localizedDescription)
