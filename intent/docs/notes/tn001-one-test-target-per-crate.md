@@ -1,5 +1,5 @@
 ---
-verblock: "01 Sep 2026:v0.8: dc - A printed number gets read instead of run, so the live figures lose their numbers"
+verblock: "01 Sep 2026:v0.9: dc - The regenerating commands land against 4afef84; what hv's cycle did and did not verify"
 ---
 
 # TN001 -- One test target per crate: the ruling Intent made and did not apply
@@ -30,7 +30,16 @@ Written by vc at hv's direction, on dc's census and dc's build. Circulated to ev
 
 **THE TEST THAT REPLACED THE COLUMN IS TENSE, NOT IMPORTANCE** (vc's amendment, and it is the half a reader can apply): a PRESENT-TENSE claim about another estate's STATE rots the moment that estate edits anything, silently; a DATED claim about an EVENT survives whatever happens next. `Laksa's Cargo.toml quotes the ruling verbatim` was the first kind. `Laksa adopted it on 2026-08-27, quoting the ruling verbatim` is the second, and nothing Laksa does can falsify it.
 
-**THE REGENERATING COMMANDS ARE NOT HERE YET AND THAT IS DELIBERATE.** `bin/devbin check autotests` is the natural citation and it is **in no commit** -- `git log -S'builtin_check_autotests'` is empty as this is written. A note that cited it would be doing the thing this note exists to stop: asserting something checkable that nobody can check. It goes in when the command has a history, **with dispositions attached** -- `check autotests` DIAGNOSES per-crate and runs anywhere, `cargo test --workspace --no-run 2>&1 | grep -c 'Executable tests/'` ADJUDICATES -- because item 1 below already ruled that split, and a note that acquired a second rule contradicting its first would be the exact defect it is about.
+**THE REGENERATING COMMANDS, WITH THEIR DISPOSITIONS ATTACHED.** Two instruments, and which one ADJUDICATES is not a matter of taste -- item 1 below already ruled it, and a note that grew a second rule contradicting its first would be the exact defect it is about.
+
+```
+bin/devbin check autotests                                      # DIAGNOSES, per-crate, runs anywhere
+cargo test --workspace --no-run 2>&1 | grep -c 'Executable tests/'   # ADJUDICATES
+```
+
+**THE GATE STATES ITS OWN POPULATION ON EVERY PATH INCLUDING PASSES** -- `N crate(s) with tests/, M in breach (pruned: ...)` -- which is what makes it citable at all rather than merely available. Its own comment gives the reason: an empty walker is silent and an empty parser is loud, and only one of those is safe. **A gate that reported a verdict without its population would be the instrument this note warns about, wearing a uniform.**
+
+**ITS CRITERION IS `is discovery controlled`, NOT ARITHMETIC, AND THIS ESTATE IS WHY** (devbin-vc, `4afef84` in devbin's repo -- `git show 4afef84:lib/cmd/check`). An earlier version made more than one declared target a breach. **`intent-cli` and `intentd` each declare two DELIBERATELY, for the reasons this note gives below -- so the literal rule reddened the estate that authored the ruling.** Declared blocks now pass at any count with the count reported. The one refusal left is the genuinely silent case: **discovery off, nothing declared, `.rs` files sitting in `tests/` -- compiled by nobody and run in no suite.**
 
 **THE LAMPLIGHT ROW READ "1 crate of 10" IN v0.1 AND v0.2 OF THIS NOTE AND IT WAS WRONG** (corrected by lamplight-vc, measured with this note's own instrument). Lamplight has three crates and a workspace root; **exactly one has any test files, and it was consolidated on 2026-08-27 with zero orphans.** That is 100% of the crates that have tests, reported as 10%. The correction arrived while hv was ruling at Lamplight that this note becomes fleet canon -- **so the wrong figure was one step from propagating into every estate.**
 
@@ -218,6 +227,12 @@ hv ran the full cycle from a total clean, watched:
 **THE CACHE COST MORE TO HOLD THAN TO REGENERATE.** 113 gigabytes and thirty-five minutes of deletion, standing guard over ninety-six seconds of work.
 
 **THE BOUNDARY MUST TRAVEL WITH THAT NUMBER OR IT OVERCLAIMS:** 1m36s is `dvb build all`, the two RELEASE binaries. The TEST build is the separate and expensive half, and it is where the 400,000-file debug tree and the 257 targets lived. **The honest statement is: the shipped artefacts rebuild cold in 96 seconds, and essentially all of the 113G was test-build cache.**
+
+**AND A SECOND BOUNDARY, ON WHAT THE CYCLE VERIFIED RATHER THAN WHAT IT TIMED.** A cold green cycle is easily read as confirming the consolidation, and on another estate it did not. **conflab-vc measured that Conflab's cycle passed `--lib` for the daemon without `--all-targets`, so it never compiled the consolidated `suite` target or the orphan guard at all** -- three phases green, and the consolidation untouched by any of them.
+
+**THAT CAVEAT DOES NOT REACH INTENT, AND THE DISCRIMINATOR IS THE CONFIG RATHER THAN THE VERB.** Measured here rather than assumed from theirs: Intent's `test rust` is `cargo test --workspace --no-fail-fast --manifest-path native/rust/Cargo.toml` -- **no `--lib`** -- so `--workspace` compiles and runs the integration targets, the consolidated `suite` binaries and the orphan guards among them. The 14 suites in that run are the evidence; a `--lib`-only run cannot produce them.
+
+**THE TRANSFERABLE PART IS THAT THE VERB'S NAME GUARANTEES NOTHING.** Two estates ran `fullcycle`, both went green, and only one of them compiled the thing the ruling is about. **So the question a note must answer is never _did the cycle pass_ but _what did this estate's cycle actually build_, and that is a per-estate question answered from that estate's own config.**
 
 ### Why 52G of it was per-node forks, which is not a discipline problem
 
