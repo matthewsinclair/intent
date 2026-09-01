@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-09-01 17:52Z
+heartbeat_at: 2026-09-01 17:58Z
 status: active
-focus: "THE BOUNCE LANDED 2026-09-01 17:21Z -- devbin-vc reported; the rollout is ON DISK IN THIS TREE AND UNCOMMITTED, and `08f51b7` is not an object here. HOLD STILL STANDS: its condition is hv says so, and devbin-vc landing is explicitly NOT that signal. Every expiry I named has been RE-DRIVEN, not recalled. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
+focus: "HOLD RELEASED 2026-09-01 17:58Z by hv, first-hand and unqualified; relayed to cc/dc/ic with the build facts as COMMANDS. NOW ON ITEM 8, AND IT IS CONFIRMED: the acceptance gate CANNOT GO RED FROM CODE CHANGING -- every writer of AtStatus::Green is a human verb. Every gate figure this project quotes, 110/135 included, is a claim about what someone TYPED. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
@@ -16,6 +16,20 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 **AND THE RULE THAT GOVERNS THIS BOARD, ESTABLISHED 2026-09-01 AND THE MOST IMPORTANT THING ON IT: PRINTING THE COMMAND IS NOT RUNNING IT.** A figure with its regenerating command beside it is AUDITABLE, not CURRENT, and no reader can tell which they are holding -- **proved by TN001's crate table going stale UNDER a caption boasting it was cargo-verified, with three revisions reading past it.** **SO: A LIVE FIGURE APPEARS HERE AS THE COMMAND ALONE, WITH THE NUMBER DELETED** -- a printed number gets read instead of run. **A HISTORICAL FIGURE IS DATED, and stops being a live claim.** Every entry below is written to that rule or is owed a fold.
 
 ## DOING
+
+### THE ACCEPTANCE GATE CANNOT GO RED FROM CODE CHANGING -- baize-vc's FINDING A REPLICATES HERE, AND THE PROOF IS STRONGER THAN THEIRS
+
+**(vc, 2026-09-01 17:58Z, driven at HEAD. TODO item 8 discharged, and item 8 said it was bigger than anything else on this board. It was.)**
+
+**baize-vc falsified this in Baize on 2026-08-27 with ONE positive control** -- broke a test `AT-02.1` covers, proved the mutation real, and the gate still returned `15/15 PASS` with the covered test RED. **I did not re-run their control. I established the WRITER SET instead, which is exhaustive where a single control is one instance.**
+
+**THE CHAIN, EVERY LINK DRIVEN:** `intent ac gate <ST>` resolves a test-backed criterion at `crates/intentsvcs/src/contract.rs:137` -- `if covering.iter().all(|t| t.status == AtStatus::Green)`. **That is the entire computation.** `t.status` is a stored column in the `tests` table (`store.rs:1968`). **Every writer of `AtStatus::Green` in the tree is a human verb parsing the literal string `"green"`** -- `render.rs:2615` and `:2706`, their MCP twins at `mcp.rs:842` and `:866`, plus the v2 importer at `legacy.rs:1909`; the remainder are `contract.rs`'s own unit fixtures. **And `intent at` offers `list/lint/green/red/na/new/edit` -- NO verify, NO run.** Re-drive with `intent at --help` and the greps above; do not read this off the board.
+
+**SO NO CODE CHANGE CAN TURN THE GATE RED. It goes red when a person types `intent at red`, and at no other time.** Every gate figure this project has quoted is a claim about what someone typed -- **including the `110/135 satisfied` on hv's board, which is the number the v3.0.1 cut is being measured by.**
+
+**WHAT THE GATE DOES DO, because the finding is not _the gate is worthless_ and must not be reported as that.** It enforces real contract invariants: an AT must cover a criterion that exists; a non-test AT can never be green so it can never satisfy a test-backed criterion (`contract.rs:716`); a test-backed criterion recording its own satisfaction is refused as double truth (`doctor.rs:707`); an AT covering nothing is flagged as unable to satisfy anything (`doctor.rs:569`). **It is a CONTRACT-CONSISTENCY gate and it is a good one. It is not a BEHAVIOUR gate, and both its name and this project's use of it say it is.**
+
+**FOR hv, AND IT BEARS ON WHAT _FEATURE COMPLETE_ MEANS:** the 3.0.1 finish line is measured by a gate that cannot detect a regression. That is a scope question, not a defect vc may fix.
 
 ### THE CUT -- RUN THE VERBS, NEVER READ A FIGURE OFF THIS BOARD
 
@@ -44,20 +58,7 @@ The per-property union exists. **What keeps it red is that the criterion's first
 
 **Each carries the CONDITION that releases it. A hold with no condition is an abandonment.**
 
-- **FULL HOLD -- hv, 2026-09-01 13:55Z, first-hand and verbatim: _everyone is on hold while we roll out a devbin change to the way rust code is built and managed. We will let you know when its safe to take the foil off the windows and come back out to play._** **CONDITION: hv says so. NO OTHER SIGNAL RELEASES IT** -- not a green suite, not devbin-vc landing, not a peer reporting they are unblocked. I have started nothing and will start nothing.
-
-  **WHAT THIS ROLLOUT EXPIRES, SO I DO NOT RE-DRIVE STALE FIGURES ON THE BOUNCE:** the subject is HOW RUST IS BUILT AND MANAGED, so every figure on this board that came out of that path is provisional until re-measured. Named, not guessed: **the currency command itself** (`git rev-list -1 HEAD -- native/rust surface docs/design` -- its PATH SET is a build-layout claim and the layout is what is moving); **the shared-artefact build guard's 15 arms** and their `bin/.devbin` census; **`dvb test rust`**, which had never run since the consolidation and may not be the same verb afterwards; **the 257-to-5 target consolidation figures** and TN001's four-part fix, which is advice about `Cargo.toml` shape. **A rollout that changes the build is exactly the event that turns a driven figure into a recalled one.**
-
-  **THE BOUNCE LANDED 2026-09-01 17:21Z AND EVERY EXPIRY ABOVE IS RE-DRIVEN RATHER THAN RECALLED. THE HOLD IS UNCHANGED** -- its condition is hv, and this entry's own text says devbin-vc landing is not that signal, so nothing here starts work. **The currency command SURVIVED the rollout**: `git rev-list -1 HEAD -- native/rust surface docs/design` still names a build-input commit, its path set was not moved, and it equals the sha `intent --version` reports -- **so the binary is CURRENT and no rebuild is owed.** Run both, do not read them here.
-
-  **THE ROLLOUT IS ON DISK AND NOT IN GIT, WHICH IS A STATE FACT FOR hv AND NOT A DEFECT I MAY FIX.** `git status --porcelain -- bin/` and `git cat-file -t 08f51b7` are the two verbs; the second fails here. Untouched, and put to hv rather than acted on.
-
-  **`bin/devbin check autotests` READS CLEAN ON THIS ESTATE and the manifest proxy AGREES WITH THE ADJUDICATOR** -- its per-crate partition sums to the same total intent-dc got from `cargo test --workspace --no-run | grep -c 'Executable tests/'`. **That is a datapoint about this tree, NOT a licence to trust the proxy generally**, which is the distinction my own amendment 2 asked devbin-vc to preserve and their two-disposition output does preserve. Run the verb.
-
-  **DEVBIN'S VERDICT LINE IS ADOPTED HERE AS A GENERAL FORM, AND IT IS THE CURE FOR MY OWN 8h.** It closes with `measured: <sha> +N dirty -- THIS VERDICT DESCRIBES NO COMMIT`. **An instrument applying the day's rule to ITSELF** rather than only to the corpus it judges -- which is exactly the failure 8h names, a document applying its own rule to claims about other people and not to claims about itself. **Every verb that emits a verdict over a working tree owes that line.**
-
-  **AND THE VERSION FIELD IS TWO QUANTITIES WEARING ONE RENDERING.** `intent --version` reports the commit the BINARY WAS BUILT FROM; `bin/devbin --version` reports WHAT THE CHECKOUT IS AT NOW, dirty flag included. Both correct, both `intent 3.0.0 (<sha>)`, and they coincide only in a tree nobody has committed to since the last build. **The comparison the identical rendering invites is wrong in the direction that manufactures alarm** -- it reads a current binary as a stale one, which is precisely the steady state this board defends. Sent to devbin-vc 2026-09-01 17:21Z as a correction to their packet's _matching_ claim.
-
+- **RELEASED 2026-09-01 17:58Z. hv, first-hand in vc's session, unqualified: _"devbin-vc is done. The hold is released."_** The hold ran from hv's 13:55Z _foil off the windows_ directive; its condition was always hv and nothing else, and hv said so. **Relayed to cc, dc and ic with the build facts as COMMANDS rather than answers**, because all three had parked values against this bounce and cc's board carried a standing instruction to re-drive every one. **Every expiry the hold named was re-driven, not recalled** -- the currency command survived with its path set intact, the shared-artefact guard's arms re-drove themselves against the post-rollout devbin, and hv's `03d40d30` went in pathspec-clean with four sessions live in the checkout.
 - **`ST0068` AC-02.1 -- and the thread prefix is NOT decoration: `ST0056` ALSO has an `AC-02.1`.** I read my own bare note onto the wrong thread. **CONDITION: A RELEASE, NOT A BUILD.** `--note` landed `6fa22a79`; `docs/getting-started.md:124,126,135` instruct it; the keg has none.
 - **`AT-07.5`'s behavioural arm is not re-verifiable while a daemon runs**, and one always is. Green with the caveat; the tool REFUSES rather than fails. **Condition: hv authorises a daemon-down window. A node must not take one.**
 
