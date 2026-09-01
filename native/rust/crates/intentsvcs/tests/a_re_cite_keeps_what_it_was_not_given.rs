@@ -231,7 +231,7 @@ fn the_create_door_can_no_longer_reach_a_stored_row_at_all() {
     .expect_err("a create on a taken id must refuse");
 
   assert!(
-    matches!(&err, FacadeError::TestExists { st, at } if st == "ST0001" && at == "AT-03.1"),
+    matches!(&err, FacadeError::TestExists { st, at, .. } if st == "ST0001" && at == "AT-03.1"),
     "the refusal must name the key that is taken, not a generic write failure: {err}"
   );
   assert_eq!(

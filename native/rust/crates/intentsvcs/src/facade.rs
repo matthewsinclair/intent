@@ -519,7 +519,24 @@ pub enum FacadeError {
   /// different verb, and because what a replace destroyed here was measured:
   /// six ST0061 notes, eaten by a re-cite through `at new`.
   #[error("{st} already has acceptance test {at}, and a create must not replace it")]
-  TestExists { st: String, at: String },
+  TestExists {
+    st: String,
+    at: String,
+    /// The kind of the row already sitting on that id, carried SO THE REMEDY
+    /// CAN NAME THE FLAG THAT APPLIES TO IT.
+    ///
+    /// **Not decoration: this field is the fix for issue 0146.** `at edit`
+    /// takes `--file` on a test row and `--prose` on a non-test one and
+    /// enforces neither, so a remedy naming `--file` unconditionally returns
+    /// rc=0 on a non-test row and leaves it carrying BOTH -- a state whose
+    /// vocabulary says the two are alternatives, and which no verb can undo
+    /// because `kind` is settable at mint and changeable nowhere. **The
+    /// operator most likely to reach it is the one who did what this sentence
+    /// told them to.** The kind is in hand at the only construction site, so
+    /// carrying it costs a field and not carrying it is what made the advice
+    /// wrong.
+    kind: AtKind,
+  },
   /// **AN EDIT THAT NAMED NOTHING TO EDIT.**
   ///
   /// Its own small class, and not a member of the `*Required` family beside it:
@@ -982,17 +999,36 @@ impl crate::remedy::Remedy for FacadeError {
          its satisfaction alone, where a create would have reset both. To add a new one, \
          `intent ac list {st}` shows which ids are taken"
       ),
-      Self::TestExists { st, at } => format!(
-        "nothing was written and {at} still holds its file, coverage, status and note. To \
-         re-cite it, `intent at edit {st} {at} --file <path>` -- which keeps the note that a \
-         create would have eaten. To add a new one, `intent at list {st}` shows which ids are \
-         taken"
-      ),
+      Self::TestExists { st, at, kind } => {
+        // **THE REMEDY READS THE ROW'S KIND BECAUSE `at edit` DOES NOT.** Both
+        // halves of that sentence are load-bearing: `at edit` accepts either
+        // field on either kind and warns about neither (0146), so the only
+        // thing standing between an operator and a row carrying both `file`
+        // and `prose` is whether this string named the right flag.
+        let (held, flag) = match kind {
+          AtKind::Test => ("its file", "--file <path>"),
+          AtKind::NonTest => ("its prose", "--prose \"...\""),
+        };
+        format!(
+          "nothing was written and {at} still holds {held}, coverage, status and note. To \
+           re-cite it, `intent at edit {st} {at} {flag}` -- which keeps the note that a create \
+           would have eaten. To add a new one, `intent at list {st}` shows which ids are taken"
+        )
+      }
       Self::GateBlocked { .. } => {
         "satisfy or formally descope the remaining criteria, then close again".to_string()
       }
       Self::ComputedSatisfaction { ac } => format!(
-        "set the covering test green instead -- `intent at set <AT> green` -- or make {ac} a non-test criterion with named evidence"
+        // **`at set` NEVER EXISTED IN v3.** The family is
+        // list/lint/green/red/na/new/edit, and every one of those verbs takes
+        // `<STID> <ATID>` -- so the old string was wrong twice, naming a verb
+        // the binary does not have and a grammar carrying neither argument.
+        // Reached from `ac satisfy` on any test-backed criterion, which is a
+        // shipped path rather than dead prose. Found by dc and verified
+        // independently by cc, 2026-09-01; the corpus gap that let it stand is
+        // AC-06.11's and is cc's to close.
+        "set the covering test green instead -- `intent at green <STID> <ATID>` -- or make \
+         {ac} a non-test criterion with named evidence"
       ),
       Self::NotOffScope { verb, wanted, .. } => {
         format!("{verb} applies only to a {wanted} criterion")
@@ -5058,10 +5094,11 @@ impl Facade {
     // on its own. It was that the safe route (a canon edit plus
     // `sync --to-store`) was the undocumented one and the verb built for the
     // job was the one that lost the note.
-    if self.st_show(st)?.tests.iter().any(|t| t.id == at) {
+    if let Some(existing) = self.st_show(st)?.tests.iter().find(|t| t.id == at) {
       return Err(FacadeError::TestExists {
         st: st.to_string(),
         at: at.to_string(),
+        kind: existing.kind,
       });
     }
 
