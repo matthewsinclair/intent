@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-09-01 13:36Z
+heartbeat_at: 2026-09-01 13:50Z
 status: active
-focus: "FOLDED 2026-09-01 13:36Z, pre-fold verbatim + sha-verified at .history/20260901/wip-prefold-1334Z.md (524cb22b, 22975 bytes). STATUS STAYS active -- a compact does not end a session. HOLDING per hv/dc after the daemon race landed. RE-DRIVE EVERY FIGURE HERE; the binaries moved four times today."
+focus: "HOLDING -- hv is rolling out a devbin change to HOW RUST IS BUILT AND MANAGED; all nodes hold until hv says otherwise. EVERY BUILD-PATH FACT ON THIS BOARD IS SUSPECT UNTIL RE-DRIVEN -- the rollout is about to move the thing the figures point at. STATUS STAYS active; a hold is not the end of a session."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -13,11 +13,17 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 ## DOING
 
-**NOTHING IN FLIGHT. HOLDING** per hv via dc, after `3fc1d152`. Tree clean of me; the dirt is peers'.
+**NOTHING IN FLIGHT. HOLDING** -- hv is rolling out a **devbin change to how Rust code is BUILT AND MANAGED**, and every node holds until hv lifts it. Nothing of mine is started; the queue below is untouched.
+
+**WHAT THE ROLLOUT DOES TO THIS BOARD: it moves the referent of every build-path claim I hold.** `target/release` vs `target/debug`, which binary `INTENT_BIN` resolves to, `run_v2_suite.bash`'s default, the three-binaries finding, `instrument_currency_check.sh` -- all of these name PATHS, and a change to how Rust is built is exactly a change to what those paths mean. **Re-drive every one of them after the lift; do not carry a single build fact across it.** The three-binaries PROPERTY (an undeclared population of build targets) survives the rollout; its three paths may not.
+
+**THE 13:27Z REBUILD WINDOW WAS TAKEN IN FULL, AND THE STORE MIGRATION WITH IT.** Driven 13:49-13:52Z: release, debug and the daemon all from one commit; the store carries `threads.revision`; `schema/ddl.sql` was already generated and committed, so the inert column is self-consistent and `AC-06.10` was never at risk. **The keg refuses a newer store correctly** -- both versions named, direction stated, rc=1. Recorded as a PROPERTY: the window closed cleanly and `SchemaMismatch` is smaller than the S I sized it at. **The version numbers are deliberately not written here; re-drive them.**
+
+**vc's hv-board entry saying the tool is broken and the rebuild untaken went stale while it was being written.** Reported to vc with the derivation and the ask to re-drive before correcting; hv's board is vc's pen and I do not write a peer's area.
 
 **LANDED TODAY:** daemon suite `9cf53e35`, config suite `e3110564`, CAS store half `544a83d3`, its other half `aa81ee58` + `41fe6c68`, the daemon race `3fc1d152`, `intentd --version` `361eff99`.
 
-**NEXT WHEN THE HOLD LIFTS, in order:** `AC-06.11`'s corpus half (mine; dc took the string) -> `0206`'s `Mutation` half (needs dc's facade.rs signal) -> `SchemaMismatch` naming its artefact (S).
+**NEXT WHEN THE HOLD LIFTS, in order:** `AC-06.11`'s corpus half (mine; dc took the string) -> `0206`'s `Mutation` half (needs dc's facade.rs signal) -> `SchemaMismatch` naming its artefact (S, and now smaller).
 
 ## TODO
 
