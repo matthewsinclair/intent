@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-01 18:37Z
+heartbeat_at: 2026-09-01 20:05Z
 status: active
 focus: "HOLD OFF, ROLLOUT LANDED (03d40d30), and hv drove `dvb fullcycle --force` to rc=0. TN001 v0.9 stands; re-cite ONLY if 4afef84 moves. TODAY CLOSED THREE THINGS AGAINST ME: I invented a mechanism for cc's 23 rather than reading the assertion (W44), denied publishing a figure sitting in my own .history (W45), and the day's general form is devbin-vc's -- a wrong mechanism producing the right symptom has no natural corrective. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
@@ -132,6 +132,9 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 - **W46 -- A METER'S ONLY SELF-CHECK FIRES IN THE DIRECTION THAT MEANS "MY MODEL BROKE" AND IS SILENT IN THE DIRECTION THAT MEANS "ALARM".** `print_run_overhead` (`runlog:1027`) divides wall by the runner's own summed time; its published scale reads 1.14x quiet, 80x eating the machine. hv's `fullcycle` printed **`overhead: 4.87x -- 170s wall against 34.91s of reported test time`**, and the arithmetic is exact. **IT IS ALSO ABOUT THE WRONG SUBJECT.** `DEVBIN_RUN_T0` is set at the top of the CYCLE, so the wall includes `clean rust` 2s and `build all` 1m41s -- 103 of 170 seconds that were never going to be tests. The test phase alone is 61s against 34.91s = **1.75x, a quiet apparatus.** The meter declares three limits in its own code and this is a fourth: **it assumes the wall it measures is a TEST RUN**, which was true of every verb that existed when it was written and stopped being true when `fullcycle` wrapped other verbs around it. **The sub-1 UNDEFINED guard cannot catch this**, because non-test work pushes the ratio UP -- into the range that looks like a finding. **CURE: a ratio meter must measure the phase it names, not the process it runs in; when a wrapper verb is added, ask what its `T0` now spans.** Same family as everything else today: correct arithmetic about a different subject.
 
 ## Decisions
+
+- **2026-09-01, hv, first-hand in this session -- devbin `0047` RULED: option 3, the split.** `fullcycle`'s clean phase forces **only** the blocked-binaries arm (`clean:486`); `_clean_confirm`'s removal prompt **stays**. Ground: `--force` merges two consents and `fullcycle` discharges one of them. It answers for _the PATH binaries going dark_ -- it rebuilds them and verifies the rebuild fails RED -- and answers not at all for _deleting the build tree_. **The against-case survives and is not ceremony: the damage detector DETECTS a clean-succeeded-build-failed run, it does not PREVENT one, and Conflab hit exactly that.** Relayed to devbin-vc (they own `bin/.devbin/lib/`; the vendored copy here is clobbered on upgrade, so this is NEVER mine to implement). **I put the options to hv with a recommendation attached, so the provenance carries that.**
+- **AND THE RULING SETS THE TRAP IT WAS JUST FIXED FOR, WHICH I FLAGGED WITH IT.** Option 3 changes WHICH refusal a non-interactive run reaches: today headless `fullcycle` dies at the blocked arm, after the split it sails past and dies at `_clean_confirm`'s no-tty refusal. **The notice fixed at `bd323ea` names both refusals and predicts neither -- correct then, and the REACHABLE SET changes under this ruling.** Same class arriving through the fix for it.
 
 **hv PROVENANCE ENTRIES ARE VERBATIM AND ARE NEVER COMPRESSED** -- a ruling's own words cannot be re-derived.
 
