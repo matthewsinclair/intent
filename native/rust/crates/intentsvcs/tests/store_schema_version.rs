@@ -245,8 +245,14 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // every upgraded project's egest at once. So the rung creates and stops, and
   // `Store::last_ingest` returning `None` carries "no evidence either way"
   // rather than either invented answer.
-  const PINNED_SCHEMA_HASH: u64 = 0xc534_88c5_3a6a_9564;
-  const PINNED_FOR_VERSION: i32 = 16;
+  // 17 is `threads.revision`, the compare-and-swap token for issue 0206. An
+  // `ALTER TABLE ADD COLUMN` rather than a rebuild -- the one column-adding
+  // rung that could take the cheap form, because its default is CONSTANT where
+  // every earlier one defaulted to `strftime(...)` and SQLite refuses those.
+  // Existing rows start at 0, which says this store has recorded no revisions
+  // rather than claiming no writes happened.
+  const PINNED_SCHEMA_HASH: u64 = 0x9963_40a7_19e9_8fa8;
+  const PINNED_FOR_VERSION: i32 = 17;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

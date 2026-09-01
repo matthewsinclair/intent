@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.0
--- SCHEMA_DDL_VER: 13
+-- SCHEMA_DDL_VER: 14
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -77,7 +77,25 @@ CREATE TABLE IF NOT EXISTS threads (
   -- must not name.
   fiat TEXT,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  -- The compare-and-swap token for issue 0206: a monotonic counter bumped by
+  -- the change door on every write, so a caller can say which version of this
+  -- record its write was derived from and the DATABASE can refuse a write
+  -- derived from a stale one.
+  --
+  -- **A COUNTER RATHER THAN `updated_at`, AND NOT FOR PRECISION.** A clock is
+  -- not a version: its adequacy as a token depends on two writes never sharing
+  -- a millisecond, which is a property of process scheduling rather than of
+  -- this design -- and the daemon path puts both writes in ONE process. The
+  -- other candidate, comparing the reconstructed record field by field, is a
+  -- HAND-MAINTAINED POPULATION: it agrees the day it is written and silently
+  -- fails OPEN for every column added after it. A counter enumerates nothing,
+  -- so it cannot be too narrow.
+  --
+  -- Its scope is the whole thread SUBTREE, not this row: `write_thread`
+  -- deletes and re-inserts criteria, tests, related and wps, so every mutation
+  -- to any of them passes through the bump below.
+  revision INTEGER NOT NULL DEFAULT 0
 );
 -- openness: carried by intent/.canon/st/<ID>.json
 CREATE TABLE IF NOT EXISTS related (

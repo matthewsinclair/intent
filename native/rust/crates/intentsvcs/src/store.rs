@@ -497,6 +497,25 @@ pub const SCHEMA_VERSION: i32 = 17;
 /// table added tomorrow is covered without anyone remembering to add it here.
 pub const RECORD_TIMESTAMPS: &[&str] = &["created_at", "updated_at", "written_at", "taken_at"];
 
+/// Per-machine write metadata that is NOT modelled content, and is not a
+/// timestamp either.
+///
+/// **A SEPARATE LIST RATHER THAN A FOURTH ENTRY IN [`RECORD_TIMESTAMPS`], and
+/// the reason is that the other list's NAME is load-bearing.** Two tests read
+/// it as "the columns that are record timestamps" and assert a property that
+/// only timestamps have -- `one_clock` checks each carries a `strftime`
+/// DEFAULT. `revision` is an INTEGER counter with a constant default, so
+/// adding it there would either break those tests or force them to special-case
+/// a member, which is how a list stops meaning its own name.
+///
+/// The EXCLUSION reasoning is shared, and it is [`RECORD_TIMESTAMPS`]'s
+/// verbatim: `derived_dump` answers "is the modelled CONTENT identical", and a
+/// value that is re-stamped by the act of writing makes that property false by
+/// construction. `revision` moves on every write through the change door,
+/// including a write that changes nothing else -- a sync round trip being the
+/// case that found this.
+pub const RECORD_WRITE_METADATA: &[&str] = &["revision"];
+
 /// **The migration ladder: one rung per version step, applied in order.**
 ///
 /// `MIGRATIONS ARE NORMAL` had a stamp and a refusal and no ladder, which was
@@ -3227,7 +3246,9 @@ impl Store {
         // the same test usually land in the same second, so it would pass on
         // this machine and fail on a slow one. Excluded here, once, rather
         // than worked around at each assertion.
-        if RECORD_TIMESTAMPS.contains(&name.as_str()) {
+        if RECORD_TIMESTAMPS.contains(&name.as_str())
+          || RECORD_WRITE_METADATA.contains(&name.as_str())
+        {
           continue;
         }
         let value = match row.get_ref(idx)? {
