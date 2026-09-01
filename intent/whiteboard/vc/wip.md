@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-09-01 17:08Z
+heartbeat_at: 2026-09-01 17:21Z
 status: active
-focus: "FOLDED 2026-09-01 17:08Z, pre-fold verbatim + sha-verified at .history/20260901/wip-fold-1706Z.md (a2b6eff6, 38587 bytes). ID diff 65 -> 62, all four drops discharged, nothing restored. FULL HOLD per hv 13:55Z -- devbin rollout; CONDITION is hv says so. Waiting on devbin-vc to report back on the bounce. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
+focus: "THE BOUNCE LANDED 2026-09-01 17:21Z -- devbin-vc reported; the rollout is ON DISK IN THIS TREE AND UNCOMMITTED, and `08f51b7` is not an object here. HOLD STILL STANDS: its condition is hv says so, and devbin-vc landing is explicitly NOT that signal. Every expiry I named has been RE-DRIVEN, not recalled. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
@@ -47,6 +47,16 @@ The per-property union exists. **What keeps it red is that the criterion's first
 - **FULL HOLD -- hv, 2026-09-01 13:55Z, first-hand and verbatim: _everyone is on hold while we roll out a devbin change to the way rust code is built and managed. We will let you know when its safe to take the foil off the windows and come back out to play._** **CONDITION: hv says so. NO OTHER SIGNAL RELEASES IT** -- not a green suite, not devbin-vc landing, not a peer reporting they are unblocked. I have started nothing and will start nothing.
 
   **WHAT THIS ROLLOUT EXPIRES, SO I DO NOT RE-DRIVE STALE FIGURES ON THE BOUNCE:** the subject is HOW RUST IS BUILT AND MANAGED, so every figure on this board that came out of that path is provisional until re-measured. Named, not guessed: **the currency command itself** (`git rev-list -1 HEAD -- native/rust surface docs/design` -- its PATH SET is a build-layout claim and the layout is what is moving); **the shared-artefact build guard's 15 arms** and their `bin/.devbin` census; **`dvb test rust`**, which had never run since the consolidation and may not be the same verb afterwards; **the 257-to-5 target consolidation figures** and TN001's four-part fix, which is advice about `Cargo.toml` shape. **A rollout that changes the build is exactly the event that turns a driven figure into a recalled one.**
+
+  **THE BOUNCE LANDED 2026-09-01 17:21Z AND EVERY EXPIRY ABOVE IS RE-DRIVEN RATHER THAN RECALLED. THE HOLD IS UNCHANGED** -- its condition is hv, and this entry's own text says devbin-vc landing is not that signal, so nothing here starts work. **The currency command SURVIVED the rollout**: `git rev-list -1 HEAD -- native/rust surface docs/design` still names a build-input commit, its path set was not moved, and it equals the sha `intent --version` reports -- **so the binary is CURRENT and no rebuild is owed.** Run both, do not read them here.
+
+  **THE ROLLOUT IS ON DISK AND NOT IN GIT, WHICH IS A STATE FACT FOR hv AND NOT A DEFECT I MAY FIX.** `git status --porcelain -- bin/` and `git cat-file -t 08f51b7` are the two verbs; the second fails here. Untouched, and put to hv rather than acted on.
+
+  **`bin/devbin check autotests` READS CLEAN ON THIS ESTATE and the manifest proxy AGREES WITH THE ADJUDICATOR** -- its per-crate partition sums to the same total intent-dc got from `cargo test --workspace --no-run | grep -c 'Executable tests/'`. **That is a datapoint about this tree, NOT a licence to trust the proxy generally**, which is the distinction my own amendment 2 asked devbin-vc to preserve and their two-disposition output does preserve. Run the verb.
+
+  **DEVBIN'S VERDICT LINE IS ADOPTED HERE AS A GENERAL FORM, AND IT IS THE CURE FOR MY OWN 8h.** It closes with `measured: <sha> +N dirty -- THIS VERDICT DESCRIBES NO COMMIT`. **An instrument applying the day's rule to ITSELF** rather than only to the corpus it judges -- which is exactly the failure 8h names, a document applying its own rule to claims about other people and not to claims about itself. **Every verb that emits a verdict over a working tree owes that line.**
+
+  **AND THE VERSION FIELD IS TWO QUANTITIES WEARING ONE RENDERING.** `intent --version` reports the commit the BINARY WAS BUILT FROM; `bin/devbin --version` reports WHAT THE CHECKOUT IS AT NOW, dirty flag included. Both correct, both `intent 3.0.0 (<sha>)`, and they coincide only in a tree nobody has committed to since the last build. **The comparison the identical rendering invites is wrong in the direction that manufactures alarm** -- it reads a current binary as a stale one, which is precisely the steady state this board defends. Sent to devbin-vc 2026-09-01 17:21Z as a correction to their packet's _matching_ claim.
 
 - **`ST0068` AC-02.1 -- and the thread prefix is NOT decoration: `ST0056` ALSO has an `AC-02.1`.** I read my own bare note onto the wrong thread. **CONDITION: A RELEASE, NOT A BUILD.** `--note` landed `6fa22a79`; `docs/getting-started.md:124,126,135` instruct it; the keg has none.
 - **`AT-07.5`'s behavioural arm is not re-verifiable while a daemon runs**, and one always is. Green with the caveat; the tool REFUSES rather than fails. **Condition: hv authorises a daemon-down window. A node must not take one.**
