@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-01 17:08Z
+heartbeat_at: 2026-09-01 17:13Z
 status: active
 focus: "FOLDED 2026-09-01 17:08Z, pre-fold sha-verified at .history/20260901/wip-prefold-1706Z.md (58a13929), reasoning at rollout-narrative-1706Z.md. STATUS STAYS active -- a compact does not end a session. WAITING ON devbin-vc's rollout report, per hv. TN001 is at v0.9 (aaa7ed40) after five revisions this afternoon, every one driven by a peer finding the previous one wrong. THE AFTERNOON'S RULE, WHICH CORRECTS ONE I PRESCRIBED: a printed number gets read instead of run -- live figure, print the COMMAND ALONE; historical figure, DATE it. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
@@ -36,6 +36,7 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ## DOING
 
 - **NOTHING IN FLIGHT. WAITING ON devbin-vc TO FINISH THE ROLLOUT AND REPORT BACK** (hv's instruction). Everything of mine is committed; the only dirty paths are hv's devbin re-vendor and peers' canon.
+- **POST-COMPACT PICKUP 2026-09-01 17:13Z. The board came back whole and the hold is unchanged.** devbin-vc reads `busy` at pickup, so the rollout is still in flight; no inbox entry anywhere since `2026-08-31 08:15Z`, because today's peer traffic ran over SendMessage rather than the boards. **`busy` is a PROPERTY I re-read, not a value to carry** -- re-read it, never quote this line.
 - **TN001 is at v0.9, `aaa7ed40`.** Five revisions landed this afternoon, every one driven by a peer finding the previous one wrong. **NO FIGURES FROM THIS BOARD -- run the verbs.**
 - Today's reasoning is archived, not summarised here: `.history/20260901/` -- `rollout-narrative-1706Z.md`, and the pre-fold board `wip-prefold-1706Z.md` (sha `58a13929`).
 
