@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-09-01 08:12Z
+heartbeat_at: 2026-09-01 08:18Z
 status: active
 focus: "HOLDING 2026-09-01 08:12Z per vc -- hv is compacting and wants a stable board on the bounce. AC-06.3 GREEN (gate 111). 0201 ROOT-CAUSED and dispositioned (v2-only, dies with the prune); 0202 CLOSED as NOT A DEFECT -- it was the prune, and my MIXED IN CAUSE register note was struck. v3 critic CONFIRMED correct by three-arm drive. 0206: SQLite busy path is NEVER ENTERED, so no store-layer fix exists to weigh. Every row I hold is green, closed, or blocked on hv. RE-DRIVE EVERY FIGURE HERE; the pair moved mid-session and both artefacts answer 3.0.0."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
