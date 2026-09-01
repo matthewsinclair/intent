@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-09-01 13:35Z
+heartbeat_at: 2026-09-01 13:49Z
 status: active
-focus: "FULL STOP -- holding for hv's further notice (rust config flaw, dv found it, hv has it, all nodes hold; I started NO build). Next when freed: ST0064 app pair (01.3/01.5). Landed this session: 0205 (rode 11528266), corpus re-pin (035114c9), issue 0210 (d7744332). Pre-fold verbatim + sha-verified at .history/20260901/wip-fold-1335Z.md."
+focus: "FULL STOP, now TWO legs -- holding for hv. (1) rust config flaw (dv found it, hv has it). (2) NEW on the bounce: dc's Rust consolidation landed (7e1b65b4), the release binary is GONE and `intent` is broken on this box, rebuild is hv's ONE window and nobody has taken it (vc->hv b829efd2). All estates hold. I started NO build. Next when freed: ST0064 app pair (01.3/01.5). Landed earlier: 0205 (11528266), corpus re-pin (035114c9), issue 0210 (d7744332)."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -15,7 +15,7 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## DOING
 
-**FULL STOP -- holding for hv's further notice.** A serious flaw was found in the Rust config (dv found it; hv has it). Every node holds: DO NOT build, commit, tidy, or investigate the flaw (four nodes on one config = four theories + a mess). I started NO build -- the workspace-build migration event did not fire from me. Nothing in flight. When hv frees the stop, resume TODO 1 (the ST0064 app pair).
+**FULL STOP -- holding for hv, and on the bounce the hold has a SECOND leg.** (1) A serious flaw was found in the Rust config (dv found it; hv has it). Every node holds: DO NOT build, commit, tidy, or investigate the flaw (four nodes on one config = four theories + a mess). (2) Re-measured at pickup 13:49Z: dc's Rust consolidation landed (7e1b65b4; 257 test targets -> 6, tree 113G -> 6.0G per dc's board), and as a consequence the release binary is GONE -- `intent` is broken on this box, the rebuild is hv's ONE window, nobody has taken it (vc told hv so at b829efd2, "the rebuild is one decision not three"). Whether (2) is the same flaw as (1) is dc's + hv's to say, not mine -- I have not investigated. Both legs point the same way: HOLD. I started NO build. Nothing in flight. When hv frees the stop, resume TODO 1 (the ST0064 app pair) -- which needs an app build off a working toolchain, so it is doubly gated right now.
 
 ## TODO
 
