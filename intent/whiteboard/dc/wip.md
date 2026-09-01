@@ -48,6 +48,18 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 - **Gate 1's cost class.** `cargo test --no-run` BUILDS the test targets, so the authoritative count is not check-speed.
 - **Gate 4 is NOT devbin's** -- verified here: the dangling-symlink refusal is `lib/templates/hooks/pre-commit.sh`, an Intent template; no devbin vendored file carries it. And devbin's shipped hook FAILS OPEN by design, so "the fix is blocked BY the outage" does not reproduce there. **Either Intent's hook has diverged from the shipped one, or my refusal is a different check -- and if it diverged, that is bigger than gate 4.** Unresolved; needs a read of both hooks side by side.
 
+**LANDED DURING THE HOLD 2026-09-01 13:57Z -- measurement and replies only, nothing started:**
+
+- **devbin-vc WAS RIGHT AND MY AUTOLOAD DIAGNOSIS WAS WRONG. THE DISCRIMINATOR IS SHELL-FUNCTION vs FORKED JOB, NOT AUTOLOADED vs PLAIN.** Their arm B -- a plain, freshly-defined, never-autoloaded function -- is just as silent under `time` as the autoload stub. **Reproduced here in both `zsh -c` and `zsh -ic` without a pty**, so it is neither pty- nor interactivity-dependent. I added **arm B2**: `pg() { command sleep 0.3 }` is STILL silent, which removes "the body resolved to a builtin so nothing forked" as a competing mechanism and leaves only their discriminator. **THE LOAD-BEARING CONSEQUENCE:** anyone told "it is the autoload stub" concludes that moving to devbin's documented `eval "$(devbin shell-init zsh)"` restores `time`. **It does not** -- that IS arm B. The staleness fix and the timing fix are different fixes. Correct statement: `time` reports nothing for ANY zsh function, however defined.
+- **My own fault here is the seventh instance of the day's one class, and worse than devbin-vc put it.** I had already "positive-controlled" the pattern with a subshell and an external command -- which are arms D and A -- and **both controls were incapable of exhibiting the failure.** I then proposed job control, a mechanism I could not test, rather than running the one command that separates the variables.
+- **devbin-vc's message was stamped an hour ahead** (14:55Z against a same-turn `date -u` of 13:55Z; local is BST). The documented +1h error, from the node writing fleet canon right now. Flagged to them.
+- **vc's TN001 finding is STALE and TN001 needs no change.** They reported line 118 item 1 still leading with `grep -c '^[[test]]'`. Measured: line 118 IS item 1, it opens with the cargo command, demotes the greps to DIAGNOSE-not-ADJUDICATE, and already names the undercount by crate (`testkit`, grep 0 / cargo 1). Committed at `73857a72` -- the sha I gave them. **A claim about a FILE is a claim about a REVISION and goes stale exactly like a claim about a binary.**
+- **cc's LockHeld blocker is gone and cc has been told, with the non-lift stated twice** (`32a9bb07` + live). Verified the artefact first-hand rather than relaying vc's reading.
+
+**OWED, AND hv'S CALL -- raised by vc, recorded here so it outlives both our sessions:**
+
+- **A v3.0.0 user upgrading to v3.0.1 migrates the store 16 -> 17 IRREVERSIBLY and cannot roll back to the tag they came from.** Local exposure is nil (the keg is unlinked and pinned), and **that is not the finding** -- this is a shipped-artefact obligation that does not depend on this box at all. hv's call whether it is a release note, a refusal message, or a backup step.
+
 **Corrections devbin-vc made that I verified:**
 
 - `/usr/bin/time` on this fleet is **BSD, not GNU** -- `-f` is an illegal option, portable form is `-p`/`-o`. I offered `-f` unqualified; it would fail on every machine here.
