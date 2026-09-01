@@ -2,7 +2,7 @@
 wp_id: WP-09
 title: MCP server and agent guide
 scope: L
-status: WIP
+status: Done
 ---
 
 # WP-09: MCP server and agent guide
