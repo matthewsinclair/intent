@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-01 07:51Z
+heartbeat_at: 2026-09-01 08:17Z
 status: active
-focus: "FOLDED 2026-09-01 07:51Z, pre-fold sha-verified at .history/20260901/wip-prefold-0751Z.md, reasoning at evening-narrative-0751Z.md. STATUS STAYS active -- a compact does not end a session. HOLDING for vc per hv. AC-04.6 is the one unblocked row and it sits BEHIND 0207: closing it is the act that would destroy its own 13KB record. NO FIGURES HERE -- run the verbs."
+focus: "POST-COMPACT 2026-09-01 08:17Z, board UNCHANGED since the 07:51Z fold (pre-fold sha-verified at .history/20260901/wip-prefold-0751Z.md, reasoning at evening-narrative-0751Z.md). hv is ANSWERED: pair != HEAD is NOT the staleness test -- the pin names the last commit touching native/rust surface docs/design, so the check is rev-list -1 HEAD over those three paths, and by that check the delivered pair IS 5 commits stale. STATUS STAYS active -- a compact does not end a session. HOLDING for vc per hv. AC-04.6 is the one unblocked row and it sits BEHIND 0207. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
