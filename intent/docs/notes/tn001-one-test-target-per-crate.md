@@ -1,5 +1,5 @@
 ---
-verblock: "01 Sep 2026:v0.7: dc - The crate table said 5 and cargo says 6; a printed command is not a run one"
+verblock: "01 Sep 2026:v0.8: dc - A printed number gets read instead of run, so the live figures lose their numbers"
 ---
 
 # TN001 -- One test target per crate: the ruling Intent made and did not apply
@@ -169,21 +169,32 @@ Merging removes a file's `mod common;` and rewrites its paths to `crate::common:
 
 ## What it cost Intent, and what holding the cache cost instead
 
-**Applied at `71a96213`. 257 targets became 6.**
+**Applied at `71a96213`. 257 targets became 6, MEASURED 2026-09-01 AT `a4465d66`.**
 
-| crate      | targets before | after |
-| ---------- | -------------- | ----- |
-| intentsvcs | 164            | 1     |
-| intent-cli | 84             | 2     |
-| intentd    | 8              | 2     |
-| testkit    | 1              | 1     |
-| **total**  | **257**        | **6** |
+**THE `after` COLUMN IS A DATED MEASUREMENT AND NOT A CURRENT STATE, WHICH IS THE WHOLE POINT OF THE DATE.** It was a current state until v0.7 and that is exactly how it went wrong.
+
+| crate      | targets before | after, at `a4465d66` |
+| ---------- | -------------- | -------------------- |
+| intentsvcs | 164            | 1                    |
+| intent-cli | 84             | 2                    |
+| intentd    | 8              | 2                    |
+| testkit    | 1              | 1                    |
+| **total**  | **257**        | **6**                |
 
 **Verified by asking cargo, not by counting files** -- which is this note's own trap, so the verification must not walk into it:
 
 ```
-cargo test --workspace --no-run 2>&1 | grep -c 'Executable tests/'    # -> 6
+cargo test --workspace --no-run 2>&1 | grep -c 'Executable tests/'
 ```
+
+**THAT COMMAND CARRIED ITS ANSWER AS A `# -> 5` COMMENT UNTIL v0.8 AND THE COMMENT IS NOW GONE ON PURPOSE** (vc's amendment, and it corrects a rule this note had been prescribing to the whole fleet). **A PRINTED NUMBER GETS READ INSTEAD OF RUN.** Stating a figure with its regenerating command beside it makes the figure AUDITABLE and does nothing whatever for its CURRENCY -- this table proved it by going stale with the command printed directly underneath. So the rule this note now holds, and the one it failed:
+
+- **A LIVE figure: print the COMMAND ALONE. Delete the number.** The reader runs it and gets today's answer, which is the only answer that was ever true.
+- **A HISTORICAL figure: DATE IT.** A dated event is not a live claim and cannot rot.
+
+**THE SECOND HALF IS THE TENSE TEST FROM THE ESTATE TABLE ABOVE, ARRIVING BY A DIFFERENT ROUTE** -- one argument started from what other estates do to a document, the other from what the authoring estate does to itself, converging on the same place: **the only figures that belong on a page are ones that already happened.**
+
+**AND IT VINDICATES THE ORIGINAL ASK MORE THAN ANY OF THE REFINEMENTS DID.** devbin-vc asked for the verdicts to be dropped so a reader would run the command and get their own answer. Three of us then improved that into a scheme for printing better figures. **The thing that failed was the scheme.**
 
 **THIS TABLE READ `intentd 1` AND `total 5` UNTIL v0.7, AND THE NUMBER WAS TRUE WHEN IT WAS WRITTEN** (caught by vc, adjudicated here with the command above). `33ac4348` gave `intentd` a SECOND declared target back -- `daemon_subscriptions`, which earned it by failing -- **1h37m after `71a96213` recorded the 5.** Three revisions then passed over the table without touching it, **including `73857a72`, whose own subject line names `33ac4348`.**
 
