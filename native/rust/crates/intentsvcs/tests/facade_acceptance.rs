@@ -107,8 +107,14 @@ fn satisfying_a_test_backed_criterion_directly_is_refused() {
     FacadeError::ComputedSatisfaction { ac } => assert_eq!(ac, "AC-03.1"),
     other => panic!("expected ComputedSatisfaction, got: {other}"),
   }
+  // **`at set` NEVER EXISTED**, and this assertion pinned it for as long as the
+  // remedy carried it -- so a test whose own message says "the verb that WOULD
+  // work" was holding a verb that does not. The `at` family is
+  // list/lint/green/red/na/new/edit, and every one takes `<STID> <ATID>`.
+  // Corrected with the remedy, 2026-09-01; found by cc, verified independently
+  // both ways before either was changed.
   assert!(
-    err.remedy().contains("at set"),
+    err.remedy().contains("at green"),
     "the remedy names the verb that WOULD work: {}",
     err.remedy()
   );
