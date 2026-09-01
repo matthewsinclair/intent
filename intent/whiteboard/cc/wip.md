@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-09-01 17:08Z
+heartbeat_at: 2026-09-01 17:57Z
 status: active
-focus: "FOLDED 2026-09-01 17:08Z, pre-fold verbatim + sha-verified at .history/20260901/wip-prefold-1707Z.md (bccae1d1, 22599 bytes). HOLDING -- the devbin rust-build rollout is LIVE IN THIS TREE (bin/.devbin/lib/* dirty, cmd/fullcycle new, manifest.sha256 moved); waiting on devbin-vc. RE-DRIVE EVERY BUILD FACT ON THE BOUNCE. STATUS STAYS active."
+focus: "hv RELEASED THE HOLD (relayed by vc, first-hand in their session, unqualified). Rollout is COMMITTED at 03d40d30, not dirty. Re-drove the build facts post-rollout at 17:56-17:57Z: currency command intact, pair CURRENT, both scope homes agreeing. AWAITING MY OWN OPERATOR before starting WP work -- the standing instruction to me was wait for devbin-vc and REPORT BACK. WP-06/08/10 unblocked and queued."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -13,13 +13,16 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 ## DOING
 
-**NOTHING IN FLIGHT. HOLDING** per hv. Tree clean of me.
+**HOLD RELEASED, RE-DRIVEN, NOT YET STARTED.** hv lifted it first-hand to vc, who relayed it marked as relayed rather than ruled. **I am not starting WP work on a peer's relay:** my operator's standing instruction was to wait for devbin-vc and REPORT BACK, and reporting back is the step that is mine. WP-06/08/10 are unblocked and queued behind that word.
 
-**THE ROLLOUT IS LIVE IN THIS TREE AS OF 17:07Z AND IT IS NOT MINE TO TOUCH.** `bin/.devbin/lib/*` dirty across 9 paths, `bin/.devbin/lib/cmd/fullcycle` untracked and new, **and `bin/.devbin/manifest.sha256` moved -- that is the VENDORED tree under an integrity manifest.** Waiting on devbin-vc to finish and report. **Nothing of mine gets committed while their bytes are in the index; path-scope every write.**
+**POST-ROLLOUT RE-DRIVE, 17:56-17:57Z, EVERY BUILD FACT I MARKED FOR IT:**
 
-**RE-DRIVEN AT THE FOLD, 17:07-17:10Z, both pairs UNCHANGED:** tree `98ccc62c` naming `361eff99`, keg `04e7dda8` naming `80d8b2ca`; pin still equals `git rev-list -1 HEAD -- native/rust surface docs/design`, so the pair is CURRENT rather than trailing. The contingent `close --note` ruling holds on its own numbers.
+- **The currency command SURVIVED with its path set intact** -- the expiry most likely to fire, since its path set is itself a build-layout claim and the layout is what moved. `git rev-list -1 HEAD -- native/rust surface docs/design` still resolves, and equals the binary's pin, so **the pair is CURRENT, not trailing.**
+- **Both scope homes exist and agree** -- `source_commit.rs:174` and `sharedtarget.lib:124` both read `:(top)native/rust :(top)surface :(top)docs/design`. Equality satisfies the required CONTAINMENT; it must not be tightened to equality in the arm.
+- **The rollout is COMMITTED (`03d40d30`), not dirty** -- my pre-compact board said dirty and was stale in the safe direction.
+- **The vendored tree is INTACT.** The one path still uncommitted is `bin/.devbin/manifest.sha256`, and the delta is ONE LINE: `source_commit` moved `e39fba7a` -> `0b7b1b35` with all 31 file hashes unchanged, and the tree matches them (31 OK / 0 FAILED, checker positive-controlled with a well-formed wrong hash). **Byte-identical vendoring from a newer upstream commit -- a provenance update, not drift. Not mine, not touched.**
 
-**NEXT WHEN THE HOLD LIFTS, in order:** re-drive every build fact FIRST (the rollout moves what the paths mean) -> `AC-06.11`'s corpus half (mine; dc took the string) -> `0206`'s `Mutation` half (needs dc's facade.rs signal) -> `SchemaMismatch` naming its artefact (S, and smaller than sized: the keg's refusal already names both versions and the direction).
+**NEXT, in order:** re-drive nothing further (it is done and stamped above) -> `AC-06.11`'s corpus half (mine; dc took the string) -> `0206`'s `Mutation` half (needs dc's facade.rs signal) -> `SchemaMismatch` naming its artefact (S, and smaller than sized).
 
 ## TODO
 
@@ -70,7 +73,7 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 **AN OPEN ESCALATION AGES INTO AN ASSERTION** (vc). True when written, never re-read because it is _already asked_, accruing authority it never earned. **Before anyone budgets against an escalation, its AUTHOR re-drives it.** Same family: **CONSTRUCTING BEATS READING, MEASURING BEATS BOTH, AND THE DISPROOF IS USUALLY ALREADY IN HAND** -- `0082` held `0199`'s mechanism, `sync.rs:148` refuted `0183` at the site.
 
-**FACTS THAT LOOK LIKE OPINIONS.** `intent st attach` writes the store AND the canon extract and NEVER the disk file (`0082`); the daemon watches DISK, so a disk edit converges everything and a store-side write renders nothing back. A thread must be REALISED or it has no cover. `intent ac show` is not a verb. `intent init --name` is not a flag. **`--version` names WHICH BUILD and the version names only WHICH LINE** -- but a matching marker proves a pair agree only when neither is `dirty-`; under dirt, pin by the hash.
+**FACTS THAT LOOK LIKE OPINIONS.** `intent st attach` writes the store AND the canon extract and NEVER the disk file (`0082`); the daemon watches DISK, so a disk edit converges everything and a store-side write renders nothing back. A thread must be REALISED or it has no cover. `intent ac show` is not a verb. `intent init --name` is not a flag. **TWO `--version` OUTPUTS THAT LOOK IDENTICAL CAN BE TWO DIFFERENT QUANTITIES** (vc, and it cost this estate a morning). `intent --version` and `bin/devbin --version` both render `intent 3.0.0 (<sha>)`, but one names **the commit the binary was BUILT FROM** and the other **what the CHECKOUT IS AT NOW**. They coincide only in a tree nobody has committed to since the last build, so **the diff the rendering invites reads a CURRENT binary as a stale one.** Do not diff them; ask the currency question instead. **`--version` names WHICH BUILD and the version names only WHICH LINE** -- but a matching marker proves a pair agree only when neither is `dirty-`; under dirt, pin by the hash.
 
 ## Decisions
 
