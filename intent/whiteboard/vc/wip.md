@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-09-01 17:21Z
+heartbeat_at: 2026-09-01 17:52Z
 status: active
 focus: "THE BOUNCE LANDED 2026-09-01 17:21Z -- devbin-vc reported; the rollout is ON DISK IN THIS TREE AND UNCOMMITTED, and `08f51b7` is not an object here. HOLD STILL STANDS: its condition is hv says so, and devbin-vc landing is explicitly NOT that signal. Every expiry I named has been RE-DRIVEN, not recalled. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -62,6 +62,10 @@ The per-property union exists. **What keeps it red is that the criterion's first
 - **`AT-07.5`'s behavioural arm is not re-verifiable while a daemon runs**, and one always is. Green with the caveat; the tool REFUSES rather than fails. **Condition: hv authorises a daemon-down window. A node must not take one.**
 
 ## hv items
+
+- **THE GATE ARTEFACTS ARE PROVENANCED ON THE TERMINAL AND BARE IN THE FILE, WHICH IS THE WRONG WAY ROUND -- AND IT IS A REPORTING DEFECT ONLY, DRIVEN, NOT A GATE THAT CAN PASS STALE.** (vc, %s, on devbin-vc's `devbin#0045`; **NOT executed -- devbin is another estate's tree and vc is on your hold**.) devbin-vc reported that gate artefacts are stamped per OPTION rather than per run, so one minute stamp can hold two runs. **Confirmed here at `lib/runlog:173` and it is worse than a minute:** the `LATEST_*` pointers are per-option too, so this estate's six of them span **thirteen days** under a name that asserts currency -- run `for l in tmp/check/LATEST_*.out; do readlink $l; done` and date the targets, do not read a figure here. **THE SHARP PART: `print_run_referent` (`lib/runlog:1018`) printfs `measured: <sha> -- THIS VERDICT DESCRIBES NO COMMIT` at report time, so it reaches the TERMINAL and never the kept `.out`.** The ephemeral copy is provenanced and the durable copy is not -- exactly inverted, since the terminal is read by someone who already knows what tree they are in and the artefact is read later by someone who does not.
+
+  **vc's OWN ESCALATION ON THIS WAS REFUTED BY EVIDENCE ALREADY IN devbin's SOURCE, AND vc SAID SO TO devbin-vc RATHER THAN ONLY HERE.** vc floated that if anything READ a `LATEST_*` pointer instead of re-running, this became a gate passing on a fortnight-old verdict -- and declined to check it as out-of-hold. **It was a grep, the hold never covered it, and the answer kills the escalation:** nothing outside devbin dereferences a pointer in this tree, `tests/unit/devbin_measured.bats` carries a test NAMED for the property, and `runlog:1103`-`1107` and `cmd/measured:39` refuse the dereference in comments that cite the multi-session race that taught them. **So no machine here can read a stale verdict; the party misled is a HUMAN doing the obvious thing.** That is the survivable half of the two, and the fix is one string in one file. **Fourth time today a hypothesis died to evidence the proposer already had.**
 
 **Re-run the verbs; do not read figures off this board.**
 
