@@ -57,3 +57,20 @@ intentsvcs = { path = "../intentsvcs" }
 [[test]]
 name = "suite"
 path = "tests/suite.rs"
+
+# **KEEPS ITS OWN TARGET, AND IT EARNED IT BY FAILING.** These rows drive the
+# file watcher, whose machinery -- fsevents plus the debouncer -- is PER
+# PROCESS, not per test. Merged into `suite` they went from ~5 rows sharing a
+# process to 28, and under full-workspace CPU contention two of them began
+# receiving each other's events: "the first subscriber was told about
+# /private/tmp/intentd-proj-79902-15/intent rather than the file that changed",
+# both failures carrying the SAME pid.
+#
+# **THE TEMPDIRS WERE NEVER THE PROBLEM AND THAT IS THE TRAP.** Every row has
+# its own directory, so the isolation looks complete by inspection; what is
+# shared is the watcher observing them. Separate binaries are separate
+# processes and separate event streams, which is the isolation these rows
+# always had and nobody had to name until it was taken away.
+[[test]]
+name = "daemon_subscriptions"
+path = "tests/daemon_subscriptions.rs"

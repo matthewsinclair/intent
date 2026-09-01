@@ -34,8 +34,6 @@ mod common;
 mod arguments_do_not_start_a_daemon;
 #[path = "daemon_stops_when_asked.rs"]
 mod daemon_stops_when_asked;
-#[path = "daemon_subscriptions.rs"]
-mod daemon_subscriptions;
 #[path = "daemon_watch.rs"]
 mod daemon_watch;
 #[path = "graphql_answers_through_the_store_door.rs"]

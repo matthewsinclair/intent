@@ -22,6 +22,16 @@
 //! catastrophic and silent. The defect is invisible at the size everybody tests
 //! at.
 
+// **ITS OWN TARGET, SO IT DECLARES ITS OWN HELPER.** Inside `suite.rs` this
+// file was a module and `crate::common` resolved to the suite's declaration.
+// Pulled back out it is a crate root again, so the declaration has to come
+// with it. **The consolidation transform is NOT symmetric** -- merging removes
+// a `mod common;` and rewrites the paths, and un-merging must put it back or
+// the file stops compiling with an error that names the helper rather than the
+// move that broke it.
+#[path = "common/mod.rs"]
+mod common;
+
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
