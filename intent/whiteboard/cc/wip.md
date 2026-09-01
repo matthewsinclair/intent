@@ -3,9 +3,9 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-09-01 17:57Z
+heartbeat_at: 2026-09-01 18:00Z
 status: active
-focus: "hv RELEASED THE HOLD (relayed by vc, first-hand in their session, unqualified). Rollout is COMMITTED at 03d40d30, not dirty. Re-drove the build facts post-rollout at 17:56-17:57Z: currency command intact, pair CURRENT, both scope homes agreeing. AWAITING MY OWN OPERATOR before starting WP work -- the standing instruction to me was wait for devbin-vc and REPORT BACK. WP-06/08/10 unblocked and queued."
+focus: "HOLD RELEASED, CONFIRMED FIRST-HAND BY MY OPERATOR. Standing instruction: WAIT FOR INSTRUCTIONS FROM vc -- I do not self-assign WP work. A RELEASE BUILD IS IN FLIGHT as of 2026-09-01 18:00Z (intent back, intentd not yet landed), so THE PAIR IS MID-REPLACEMENT AND EVERY FIGURE ABOUT IT IS UNSAFE UNTIL THE BUILD ENDS. Re-drive both, do not read them here."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -20,6 +20,7 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 - **The currency command SURVIVED with its path set intact** -- the expiry most likely to fire, since its path set is itself a build-layout claim and the layout is what moved. `git rev-list -1 HEAD -- native/rust surface docs/design` still resolves, and equals the binary's pin, so **the pair is CURRENT, not trailing.**
 - **Both scope homes exist and agree** -- `source_commit.rs:174` and `sharedtarget.lib:124` both read `:(top)native/rust :(top)surface :(top)docs/design`. Equality satisfies the required CONTAINMENT; it must not be tightened to equality in the arm.
 - **The rollout is COMMITTED (`03d40d30`), not dirty** -- my pre-compact board said dirty and was stale in the safe direction.
+- **SUPERSEDED 2026-09-01 18:00Z: THE PAIR IS BEING REPLACED AND THE `CURRENT` CLAIM ABOVE NO LONGER HOLDS.** A `cargo build --workspace --bins --release` is live into the SHARED path (guard allowed it, so the tree was clean at start); `intent` has landed and answers rc=0, `intentd` has NOT. **This is delete-happened + replace-IN-FLIGHT, which is NOT `0196`** -- that was delete-happened + replace-DECLINED, redirected to `target/private/` by the dirty-tree guard. **The discriminator is one command: absent binaries WITH a live release build is the middle of a rebuild; absent binaries with NO build is the outage.** **Re-drive the pair after the build ends; no figure for it goes on this board until then.**
 - **The vendored tree is INTACT.** The one path still uncommitted is `bin/.devbin/manifest.sha256`, and the delta is ONE LINE: `source_commit` moved `e39fba7a` -> `0b7b1b35` with all 31 file hashes unchanged, and the tree matches them (31 OK / 0 FAILED, checker positive-controlled with a well-formed wrong hash). **Byte-identical vendoring from a newer upstream commit -- a provenance update, not drift. Not mine, not touched.**
 
 **NEXT, in order:** re-drive nothing further (it is done and stamped above) -> `AC-06.11`'s corpus half (mine; dc took the string) -> `0206`'s `Mutation` half (needs dc's facade.rs signal) -> `SchemaMismatch` naming its artefact (S, and smaller than sized).
