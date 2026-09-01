@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-01 13:51Z
+heartbeat_at: 2026-09-01 16:17Z
 status: active
-focus: "ON HOLD BY hv, STATED FIRST-HAND 2026-09-01 13:51Z -- every node is down while a devbin change to how rust is built and managed rolls out, and THE ALL-CLEAR COMES FROM hv, not from a quiet tree. Do not start work, do not build, do not touch native/rust. Status stays active; a hold is not a release. Board folded 2026-09-01 13:34Z, pre-fold sha-verified at .history/20260901/wip-prefold-1334Z.md (fe941c83), reasoning at rust-consolidation-narrative-1334Z.md. NO FIGURES HERE -- run the verbs."
+focus: "HOLD LIFTED BY hv 2026-09-01 16:17Z FOR THE devbin ROLLOUT SPECIFICALLY -- hv: _you can lift that hold for this, this is me trying to get devbin properly rolled out_. Scope is the rollout, not a general resume. TN001 v0.6 landed at cbe9a426: the per-estate status column is gone, rows kept as DATED EVENTS. STILL BLOCKED, and only this: the regenerating commands cannot be cited until `builtin_check_autotests` is in a commit. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -84,6 +84,9 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 - **vc's WITHDRAWN OBJECTION IS WORTH MORE THAN THE AMENDMENTS AND SHOULD GO IN THE NOTE.** They were going to say the gate does not state its population; it DOES, on every path including passes -- `N crate(s) with tests/, M in breach (pruned: ...)` -- with its own comment that an empty walker is silent and an empty parser is loud and only one is safe. **That is population-beside-verdict implemented, and it is what makes the command CITABLE at all.**
 - **CONFLAB STAYS OUT and vc's reason is the right one:** devbin-vc measured 10 targets in Conflab's `native/daemon` from OUTSIDE Conflab, without reading the ten files, and declined to write it in. Same shape as the asserted-but-untraced Baize hazard that baize-vc refuted.
 - **hv ASKED vc WHICH `dc`, BECAUSE `laksa-dc` IS ALSO LIVE. I HAVE BEEN SIGNING BARE `dc` ALL SESSION, INCLUDING TO devbin-vc WHO SITS OUTSIDE THIS ESTATE.** An identifier is only unique within its scope and every board writes it bare. **Qualifying as `intent-dc` in every cross-estate message from here.**
+
+- **RESUME CONDITION HONOURED FIRST, BEFORE ANY WORK: `DIRT_SCOPE` RE-READ FROM THE GUARD RATHER THAN OFF A BOARD (cc's caution).** Source of truth is `bin/.devbin/cmd/shared/sharedtarget.lib:124` -- `SHARED_TARGET_DIRT_SCOPES=(':(top)native/rust' ':(top)surface' ':(top)docs/design')` -- and `git status --short bin/.devbin/cmd/` is **CLEAN**, so the rollout has NOT moved the scope and the currency command's argument list still matches the guard's criterion. **AND IT IS STRONGER THAN I HAD BEEN CLAIMING:** `releasebuild.lib:118` runs `rev-list -1 HEAD -- "${SHARED_TARGET_DIRT_SCOPES[@]}"` itself, so the discriminator IS the guard's implementation rather than my reconstruction of it. `releasebuild.lib:116` refuses an empty scope in as many words -- _an empty pathspec means the WHOLE repo, so this would silently restore the unscoped comparand_.
+- **MY FIRST TWO ATTEMPTS TO READ IT BOTH RETURNED CLEAN AND BOTH WERE WRONG.** I grepped `lib/templates/hooks/*.sh` and `bin/.devbin/lib/*` -- the scope lives in `bin/.devbin/cmd/shared/`, which is PROJECT-owned, not the devbin-owned `lib/`. **Empty output from the wrong corpus, twice, on the one fact I had written down as a resume condition precisely because it could move.** Caught only because the gate had printed the value earlier in this session and I refused to believe the silence.
 
 **OWED, AND hv'S CALL -- raised by vc, recorded here so it outlives both our sessions:**
 
