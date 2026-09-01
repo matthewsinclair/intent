@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-01 13:34Z
+heartbeat_at: 2026-09-01 13:49Z
 status: active
-focus: "FOLDED 2026-09-01 13:34Z, pre-fold sha-verified at .history/20260901/wip-prefold-1334Z.md (fe941c83), reasoning at rust-consolidation-narrative-1334Z.md. TODAY WAS THE RUST CONSOLIDATION: 257 test targets to 6, tree 113G to 6.0G, suite 2022/0, and hv watched a full clean cycle. STATUS STAYS active -- a compact does not end a session. NO FIGURES HERE -- run the verbs. Holding while hv drives devbin-vc; every other estate holds too."
+focus: "BACK FROM COMPACT 2026-09-01 13:49Z -- status stays active, a compact does not end a session. Board folded 2026-09-01 13:34Z; pre-fold sha-verified at .history/20260901/wip-prefold-1334Z.md (fe941c83), reasoning at rust-consolidation-narrative-1334Z.md. TODAY WAS THE RUST CONSOLIDATION -- NO FIGURES HERE, run the verbs. HOLDING while hv drives devbin-vc; every other estate holds too. Three hv rulings open: seam scope, gate 1 cost class, gate 4 ownership/divergence."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
