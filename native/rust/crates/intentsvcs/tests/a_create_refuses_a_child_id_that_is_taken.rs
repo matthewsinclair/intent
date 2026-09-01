@@ -45,9 +45,7 @@
 //! either writes can still both add `AC-01.1`. Filed on vc's word rather than
 //! left in a comment.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::facade::{Facade, FacadeError, Outcome};
 use intentsvcs::model::{AcKind, AcState, AtKind, AtStatus, Criterion, Thread};
 use intentsvcs::remedy::Remedy;

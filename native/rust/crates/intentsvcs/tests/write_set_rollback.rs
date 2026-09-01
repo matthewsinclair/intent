@@ -29,9 +29,7 @@
 //! `Applied` exists. Both are recorded below, the narrow claim kept where it is
 //! true and the wider one withdrawn.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::write_set::{WriteError, WriteSet};
 
 #[cfg(unix)]

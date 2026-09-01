@@ -12,9 +12,7 @@
 //! then a caller-supplied `FacadeContext.today`, then `Store::now()` read into
 //! a variable and written into the record. **Asking is the act being ruled on.**
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::event::{Envelope, LOCAL_PRINCIPAL, Subject};
 use intentsvcs::store::{SCHEMA_VERSION, Store};
 use rusqlite::Connection;

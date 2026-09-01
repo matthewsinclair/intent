@@ -57,8 +57,7 @@
 //! reach -- **a near-miss classified in a node's head is an exclusion recorded
 //! nowhere**.
 
-mod common;
-use common::{declared_paths, shipped_sources, string_literals};
+use crate::common::{declared_paths, shipped_sources, string_literals};
 
 /// Why a shipped source file is allowed to spell a command path exactly.
 #[derive(Debug)]

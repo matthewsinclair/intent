@@ -7,9 +7,7 @@
 //! part-way through a batch that has already written other files. A synthetic
 //! seam the production code knows about would prove the seam works.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::contract::Scope;
 use intentsvcs::facade::FacadeError;
 use intentsvcs::model::{AtStatus, TShirt, ThreadStatus, WpStatus};

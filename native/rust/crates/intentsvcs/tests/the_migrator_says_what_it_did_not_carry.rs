@@ -20,9 +20,7 @@
 //!   Closes on its own when the work lands. **A gap that expires is worth more
 //!   than a zero that never does** (vc, 2026-08-31).
 
-mod common;
-
-use common::{data_model_text, out_of_model_enumeration, out_of_model_section};
+use crate::common::{data_model_text, out_of_model_enumeration, out_of_model_section};
 
 /// **THE ARM THAT WOULD HAVE CAUGHT THE NEAR-MISS.**
 ///

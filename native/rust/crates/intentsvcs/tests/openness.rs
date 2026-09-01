@@ -36,9 +36,7 @@
 //! forms passes on the defect -- which is exactly how `event_log` survived a
 //! whole AC with a schema face and no artefact.
 
-mod common;
-
-use common::{Fixture, sample_issue, sample_thread};
+use crate::common::{Fixture, sample_issue, sample_thread};
 use intentsvcs::store::{DDL, Store};
 use serde_json::Value;
 use std::path::{Path, PathBuf};

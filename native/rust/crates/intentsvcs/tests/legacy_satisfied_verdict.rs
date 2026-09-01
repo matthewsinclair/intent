@@ -29,9 +29,7 @@
 //! writing a test for `satisfied:` writes `satisfied: yes`. That is precisely
 //! the spelling that WORKED.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::finding::FindingClass;
 use intentsvcs::legacy;
 use intentsvcs::model::{AcKind, AcState};

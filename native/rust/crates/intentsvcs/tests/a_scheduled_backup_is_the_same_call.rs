@@ -13,9 +13,7 @@
 //! store, which is what makes the daemon's policy testable without a daemon --
 //! and is the same split that keeps `intentd` holding no backup policy at all.
 
-mod common;
-
-use common::{Fixture, ctx};
+use crate::common::{Fixture, ctx};
 use intentsvcs::backup::{self, Due};
 use intentsvcs::finding::FindingClass;
 use intentsvcs::store::{SnapshotOutcome, Store};

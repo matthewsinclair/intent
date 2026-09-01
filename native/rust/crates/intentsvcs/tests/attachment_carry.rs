@@ -21,9 +21,7 @@
 //! the derived fields cannot drift from the content, and that the partition
 //! puts every file in exactly one place.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::legacy;
 use intentsvcs::model::Attachment;
 use intentsvcs::project::{Project, ThreadFile};

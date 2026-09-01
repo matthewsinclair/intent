@@ -13,12 +13,10 @@
 //! thing `organize` is forbidden to decide, and stopping the whole verb over it
 //! would make an unrelated hydration hostage to a human's unread report.
 
-mod common;
-
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use common::{Fixture, ctx, sample_thread};
+use crate::common::{Fixture, ctx, sample_thread};
 use intentsvcs::ingest::Canon;
 use intentsvcs::intentfiles;
 use intentsvcs::model::Attachment;

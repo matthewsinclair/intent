@@ -26,13 +26,11 @@
 //! `organize`'s removals are refused while any of AC-00.1's declared
 //! preconditions is unmet, and there is no bypass -- `Verdict`'s fields are
 //! private and `preconditions::check` is its only constructor. So the fixture
-//! SATISFIES the real declaration through `common::gate_open`, which is the
+//! SATISFIES the real declaration through `crate::common::gate_open`, which is the
 //! same work the estate has to do. **A test that reached this state by
 //! side-stepping the gate would be measuring the side-step.**
 
-mod common;
-
-use common::{Fixture, gate_open, sample_thread};
+use crate::common::{Fixture, gate_open, sample_thread};
 use intentsvcs::model::ThreadStatus;
 use intentsvcs::organize::Mode;
 use intentsvcs::sync::Scope;

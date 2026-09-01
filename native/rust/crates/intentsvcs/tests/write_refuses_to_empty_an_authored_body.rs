@@ -25,9 +25,7 @@
 //! **Asking about the field distinguishes an author shortening prose from a
 //! field being erased; asking about the size never can.**
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 
 const BODY: &str =
   "# The issue\n\nProse an author wrote, which no verb here was asked to remove.\n";

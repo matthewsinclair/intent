@@ -33,9 +33,7 @@
 //! the quotes, every issue in the estate fails and the migration reports an
 //! empty tracker with every count agreeing against zero.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::finding::FindingClass;
 use intentsvcs::legacy;
 use intentsvcs::model::IssueStatus;

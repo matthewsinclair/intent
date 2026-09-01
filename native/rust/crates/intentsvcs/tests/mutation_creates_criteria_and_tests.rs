@@ -80,9 +80,7 @@
 // would be a second home for it -- read it there.
 #![allow(clippy::result_large_err)]
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::contract;
 use intentsvcs::facade::FacadeError;
 use intentsvcs::model::{AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion};

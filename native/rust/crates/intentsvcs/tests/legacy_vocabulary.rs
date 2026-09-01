@@ -75,9 +75,7 @@
 //! and both of the fleet's two live instances sit in a `COMPLETED/` bucket
 //! whose name the migrator deliberately does not trust.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::finding::FindingClass;
 use intentsvcs::legacy;
 use intentsvcs::model::{ThreadStatus, WpStatus};

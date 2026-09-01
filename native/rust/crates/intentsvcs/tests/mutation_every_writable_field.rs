@@ -65,9 +65,7 @@
 //! measurement taken against the live fixture is blind to exactly the two
 //! fields nobody has ever set.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::address::{Address, parse};
 use intentsvcs::facade::Facade;
 use intentsvcs::model::{AcceptanceTest, AtKind, AtStatus, FiatRecord, Invoker, Legacy, Thread};
@@ -2195,7 +2193,7 @@ fn declared_fields(model: &str) -> BTreeSet<String> {
     "Criterion" => serde_json::to_value(fully_populated_criterion()),
     "AcceptanceTest" => serde_json::to_value(fully_populated_row()),
     "Attachment" => serde_json::to_value(fully_populated_attachment()),
-    "Issue" => serde_json::to_value(common::sample_issue(21)),
+    "Issue" => serde_json::to_value(crate::common::sample_issue(21)),
     other => panic!("`{other}` is in FIELD_CARRYING_MODELS with no fully-populated instance"),
   }
   .expect("a model serialises");
@@ -2346,7 +2344,7 @@ fn true_fields(model: &str) -> Vec<&'static str> {
         closed: _,
         reporter: _,
         body: _,
-      } = common::sample_issue(21);
+      } = crate::common::sample_issue(21);
       vec![
         "schema", "number", "slug", "title", "status", "severity", "created", "closed", "reporter",
         "body",
@@ -2453,7 +2451,7 @@ fn the_field_axis_population_is_pinned_and_announces_its_own_growth() {
 fn every_declared_field_of_every_model_is_settable_or_refused_by_name() {
   let fx = Fixture::new();
   fx.write_thread(&fully_populated_thread("ST0001"));
-  fx.write_issue(&common::sample_issue(21));
+  fx.write_issue(&crate::common::sample_issue(21));
 
   // The probe value is never parsed on the path this test drives. `Facade::set`
   // checks the field NAME before the VALUE (`facade.rs:4470`, and the comment

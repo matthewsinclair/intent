@@ -12,9 +12,8 @@
 //! the first arm is that baseline reporting nothing -- the positive control
 //! without which "healthy after adding an advisory" would also pass on a
 //! doctor that reports nothing at all.
-mod common;
 
-use common::{Fixture, ctx};
+use crate::common::{Fixture, ctx};
 use intentsvcs::finding::FindingClass;
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceTest, AtKind, AtStatus, Criterion, Legacy, THREAD_SCHEMA, TShirt,

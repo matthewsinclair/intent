@@ -62,11 +62,9 @@
 //! 54 dehydrated threads would make them a fixture, and the estate could not
 //! then be repaired without reddening this file.
 
-mod common;
-
 use std::collections::BTreeSet;
 
-use common::{Fixture, facade_ctx, gate_open, sample_issue, sample_thread};
+use crate::common::{Fixture, facade_ctx, gate_open, sample_issue, sample_thread};
 use intentsvcs::model::ThreadStatus;
 use intentsvcs::organize::Mode;
 use intentsvcs::project::Project;

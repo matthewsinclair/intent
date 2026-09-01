@@ -9,6 +9,15 @@ description = "Intent v3 daemon: one per machine, N projects; socket GraphQL + m
 # NOTE (design.md D06): this crate must NEVER depend on rusqlite -- the daemon
 # reaches data only through the intentsvcs facade. dep_graph_guard.rs enforces.
 
+# Declared, not left to convention. Cargo's default makes every `.rs` directly under
+# `tests/` its own separately linked binary, and that default is silent BOTH ways: it
+# grew this workspace to 257 targets, and a `tests/quick.rs` dropped in by anyone in a
+# hurry would silently become another. Per hv's estate-wide ruling of 2026-08-27, which
+# Laksa took the same day and this workspace -- the one that made it -- never did.
+# The single target is `tests/suite.rs`; a new suite is declared there as a module, and
+# `no_orphan_suite_member.rs` fails if one is not.
+autotests = false
+
 [[bin]]
 name = "intentd"
 path = "src/main.rs"
@@ -44,3 +53,7 @@ notify-debouncer-full.workspace = true
 # rule with a hand-rolled probe instead would make the test a second home for
 # the predicate, which is the one thing this seam cannot afford.
 intentsvcs = { path = "../intentsvcs" }
+
+[[test]]
+name = "suite"
+path = "tests/suite.rs"

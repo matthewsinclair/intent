@@ -65,7 +65,6 @@
 //! back plausibly wrong would have been written down.
 
 use std::io::Write as _;
-mod common;
 
 use std::path::Path;
 use std::process::{Command, Output, Stdio};
@@ -82,7 +81,7 @@ use std::process::{Command, Output, Stdio};
 /// stdout to avoid deadlocking against the prompt, and a thread is a second
 /// thing that can go wrong in a harness whose whole job is to be trustworthy.
 fn intent_on_a_tty(dir: &Path, args: &[&str], answer: &str) -> Output {
-  let (mut master, slave) = common::pty_pair();
+  let (mut master, slave) = crate::common::pty_pair();
   master
     .write_all(answer.as_bytes())
     .expect("type the answer into the terminal");

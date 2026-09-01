@@ -54,11 +54,9 @@
 //! the same test as the bytes rather than beside it**, because *the hook estate
 //! did not change* is equally what a migration that never ran produces.
 
-mod common;
-
 use std::path::PathBuf;
 
-use common::{Fixture, changed, facade_ctx, tree, v2_estate, v2_thread};
+use crate::common::{Fixture, changed, facade_ctx, tree, v2_estate, v2_thread};
 use intentsvcs::facade::Facade;
 use intentsvcs::{legacy, migrate};
 

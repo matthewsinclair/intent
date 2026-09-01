@@ -46,8 +46,7 @@
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-mod common;
-use common::{RealDaemon, short_dir};
+use crate::common::{RealDaemon, short_dir};
 
 /// The title minted into the fixture project.
 ///

@@ -45,9 +45,7 @@
 //! through **and the tree must change** -- the closed/live split is hv's ruling
 //! and it is what makes an unchanged tree evidence rather than a tautology.
 
-mod common;
-
-use common::{Fixture, changed, facade_ctx, tree, v2_estate, v2_thread};
+use crate::common::{Fixture, changed, facade_ctx, tree, v2_estate, v2_thread};
 use intentsvcs::facade::Facade;
 use intentsvcs::finding::Finding;
 use intentsvcs::legacy;

@@ -28,9 +28,7 @@
 //! deliberately still refused; re-ruling it is a separate decision, which is
 //! what that test asked for in as many words.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::legacy;
 
 fn estate(fixture: &Fixture, acceptance: &str) {

@@ -14,9 +14,7 @@
 //! itself. The tautology arm below is the whole reason `Counts::of` reads canon
 //! rather than accumulating while writing.
 
-mod common;
-
-use common::{Fixture, ctx, sample_thread};
+use crate::common::{Fixture, ctx, sample_thread};
 use intentsvcs::ingest::Canon;
 use intentsvcs::model::Attachment;
 use intentsvcs::realise::{self, Counts, RealiseError};

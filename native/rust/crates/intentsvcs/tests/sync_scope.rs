@@ -40,9 +40,7 @@
 //! zero is not a result until the check has produced a non-zero, applied to a
 //! feature rather than to a guard.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::sync::Scope;
 
 const MINE: &str = "ST0056";

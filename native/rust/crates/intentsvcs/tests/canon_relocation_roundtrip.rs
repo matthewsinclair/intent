@@ -38,9 +38,7 @@
 //! fixture would be built by someone who already knew which fields to worry
 //! about, which is the sampling error this thread has paid for before.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::export::{self, Bundle};
 use intentsvcs::ingest;
 use intentsvcs::project::Project;

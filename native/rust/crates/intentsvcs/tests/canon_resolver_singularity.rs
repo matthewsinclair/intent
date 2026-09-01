@@ -50,12 +50,10 @@
 //! entirely. There is no honest single denominator, so the criterion is the
 //! discrimination.
 
-mod common;
-
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::model::{ISSUE_SCHEMA, Issue, IssueStatus};
 
 /// Deliberately not `intent`, and deliberately not a name that appears

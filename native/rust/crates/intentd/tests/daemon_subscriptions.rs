@@ -22,14 +22,12 @@
 //! catastrophic and silent. The defect is invisible at the size everybody tests
 //! at.
 
-mod common;
-
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use common::RunningDaemon;
+use crate::common::RunningDaemon;
 use intentsvcs::wire::{self, Event, Op, Request, Response};
 
 /// How long a read waits before the test gives up rather than hanging.
@@ -169,7 +167,7 @@ fn write_thread(root: &Path, id: &str) {
 #[test]
 fn a_subscriber_learns_the_project_id_before_any_event_arrives() {
   let daemon = RunningDaemon::start();
-  let root = common::project("Subscribed");
+  let root = crate::common::project("Subscribed");
 
   let feed = Feed::open(&daemon, &root);
 
@@ -198,7 +196,7 @@ fn a_subscriber_learns_the_project_id_before_any_event_arrives() {
 #[test]
 fn an_external_edit_delivers_both_d20_events_in_layer_order() {
   let daemon = RunningDaemon::start();
-  let root = common::project("Delivered");
+  let root = crate::common::project("Delivered");
 
   let mut feed = Feed::open(&daemon, &root);
   feed.settle();
@@ -240,7 +238,7 @@ fn every_subscriber_receives_every_event() {
   // with two -- and the failure is silent: each subscriber sees a plausible
   // subset and neither can tell.
   let daemon = RunningDaemon::start();
-  let root = common::project("Fanout");
+  let root = crate::common::project("Fanout");
 
   let mut first = Feed::open(&daemon, &root);
   let mut second = Feed::open(&daemon, &root);
@@ -274,7 +272,7 @@ fn a_change_outside_the_sync_scope_delivers_nothing() {
   // daemon's own store writes, which land in `intent/.cache/` inside the
   // watched tree.
   let daemon = RunningDaemon::start();
-  let root = common::project("Scoped");
+  let root = crate::common::project("Scoped");
 
   let mut feed = Feed::open(&daemon, &root);
   // **THE ABSENCE CLAIM BELOW IS ONLY MEANINGFUL FROM A QUIET FEED.** An event

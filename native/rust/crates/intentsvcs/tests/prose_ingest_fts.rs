@@ -31,9 +31,7 @@
 //! fenced code blocks, and the `#` characters that are content rather than
 //! headings.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::ingest;
 use intentsvcs::prose;
 use intentsvcs::store::Store;
@@ -62,7 +60,7 @@ Deterministic and idempotent.
 #[test]
 fn a_prose_body_round_trips_byte_identical() {
   let fx = Fixture::new();
-  let mut issue = common::sample_issue(56);
+  let mut issue = crate::common::sample_issue(56);
   issue.body = DESIGN.to_string();
   fx.write_issue(&issue);
 
@@ -83,7 +81,7 @@ fn a_prose_body_round_trips_byte_identical() {
 #[test]
 fn a_fenced_hash_does_not_split_a_section() {
   let fx = Fixture::new();
-  let mut issue = common::sample_issue(56);
+  let mut issue = crate::common::sample_issue(56);
   issue.body = DESIGN.to_string();
   fx.write_issue(&issue);
 
@@ -106,10 +104,10 @@ fn a_fenced_hash_does_not_split_a_section() {
 #[test]
 fn a_body_is_retrievable_by_full_text_query() {
   let fx = Fixture::new();
-  let mut issue = common::sample_issue(56);
+  let mut issue = crate::common::sample_issue(56);
   issue.body = DESIGN.to_string();
   fx.write_issue(&issue);
-  let mut other = common::sample_issue(57);
+  let mut other = crate::common::sample_issue(57);
   other.body = "# Implementation\n\nNothing built yet.\n".to_string();
   fx.write_issue(&other);
 
@@ -138,7 +136,7 @@ fn a_body_is_retrievable_by_full_text_query() {
 #[test]
 fn a_heading_is_searchable_as_well_as_a_body() {
   let fx = Fixture::new();
-  let mut issue = common::sample_issue(56);
+  let mut issue = crate::common::sample_issue(56);
   issue.body = DESIGN.to_string();
   fx.write_issue(&issue);
 
@@ -192,7 +190,7 @@ fn generated_views_are_not_indexed_as_prose() {
 #[test]
 fn an_issue_body_is_indexed_against_its_issue() {
   let fx = Fixture::new();
-  let mut issue = common::sample_issue(21);
+  let mut issue = crate::common::sample_issue(21);
   issue.body = "# 0021\n\nThe credo_checks mechanism was a second enforcement path.\n".to_string();
   fx.write_issue(&issue);
 
@@ -218,7 +216,7 @@ fn an_issue_body_is_indexed_against_its_issue() {
 #[test]
 fn a_markdown_file_beside_the_issue_canon_is_not_indexed() {
   let fx = Fixture::new();
-  let mut issue = common::sample_issue(21);
+  let mut issue = crate::common::sample_issue(21);
   issue.body = "# 0021\n\nThe modelled prose.\n".to_string();
   fx.write_issue(&issue);
   fx.write_file("intent/issues/0021.md", "# 0021\n\nA quokka wrote this.\n");
@@ -253,7 +251,7 @@ fn a_markdown_file_beside_the_issue_canon_is_not_indexed() {
 #[test]
 fn a_heading_repeated_in_one_file_yields_two_sections_rather_than_one() {
   let fx = Fixture::new();
-  let mut issue = common::sample_issue(26);
+  let mut issue = crate::common::sample_issue(26);
   issue.body = "# Impl\n\n## Test Status\n\nThe first pass, red.\n\n## Notes\n\nBetween.\n\n## Test Status\n\nThe second pass, green.\n".to_string();
   fx.write_issue(&issue);
 

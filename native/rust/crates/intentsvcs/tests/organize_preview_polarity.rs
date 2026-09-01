@@ -20,11 +20,9 @@
 //! would report every candidate as a removal, including the ones the run will
 //! refuse -- the exact number the operator consults the preview to learn.
 
-mod common;
-
 use std::cell::Cell;
 
-use common::{Fixture, ctx, declaring_thread, gate_open, sample_thread};
+use crate::common::{Fixture, ctx, declaring_thread, gate_open, sample_thread};
 use intentsvcs::ingest::Canon;
 use intentsvcs::intentfiles;
 use intentsvcs::model::{AcKind, AcState, Thread};

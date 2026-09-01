@@ -39,9 +39,7 @@
 //! matches anything.** `an_edited_acceptance_section_is_carried_not_dropped` is
 //! the only test here that can tell those two apart.
 
-mod common;
-
-use common::{Fixture, ctx};
+use crate::common::{Fixture, ctx};
 use intentsvcs::legacy::Verdict;
 use intentsvcs::{legacy, views};
 

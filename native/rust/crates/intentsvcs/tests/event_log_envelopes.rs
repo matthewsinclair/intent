@@ -10,9 +10,7 @@
 //! fourth quietly wrote nothing, and "every mutation path" is precisely the
 //! claim that cannot be sampled.
 
-mod common;
-
-use common::{Fixture, PROJECT_ID, sample_thread};
+use crate::common::{Fixture, PROJECT_ID, sample_thread};
 use intentsvcs::model::{AtStatus, TShirt};
 
 /// Every op recorded, in order.

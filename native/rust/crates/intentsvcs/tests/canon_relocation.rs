@@ -30,9 +30,7 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::model::{ISSUE_SCHEMA, Issue, IssueStatus};
 use intentsvcs::project::{canon_issue_rel, canon_thread_rel};
 

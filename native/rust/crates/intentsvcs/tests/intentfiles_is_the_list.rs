@@ -44,9 +44,7 @@
 //! asserted the strong way: byte-for-byte equality of the whole file across a
 //! run that moved files in both directions.
 
-mod common;
-
-use common::{Fixture, gate_open, sample_thread};
+use crate::common::{Fixture, gate_open, sample_thread};
 use intentsvcs::organize::Mode;
 use intentsvcs::sync::Scope;
 

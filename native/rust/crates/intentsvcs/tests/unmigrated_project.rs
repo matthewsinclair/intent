@@ -38,9 +38,7 @@
 //! project created natively under v3 was never migrated at all, so gating on
 //! it would refuse every project that never needed migrating.
 
-mod common;
-
-use common::{Fixture, facade_ctx};
+use crate::common::{Fixture, facade_ctx};
 use intentsvcs::facade::{Facade, FacadeError};
 use intentsvcs::project::{Migration, Project};
 use intentsvcs::remedy::Remedy;

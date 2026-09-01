@@ -23,12 +23,10 @@
 //! only the rendering of that one variant, and its key is pinned below from the
 //! same source as the other two.
 
-mod common;
-
 use std::path::Path;
 use std::process::Command;
 
-use common::RealDaemon;
+use crate::common::RealDaemon;
 
 fn bin() -> std::path::PathBuf {
   std::path::PathBuf::from(env!("CARGO_BIN_EXE_intent"))

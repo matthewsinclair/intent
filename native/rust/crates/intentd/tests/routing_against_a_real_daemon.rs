@@ -21,9 +21,7 @@
 //! verdict could come from anything at that address, and the point is that it
 //! came from this process.
 
-mod common;
-
-use common::RunningDaemon;
+use crate::common::RunningDaemon;
 use intentsvcs::daemon::Route;
 
 #[test]

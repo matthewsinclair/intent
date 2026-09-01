@@ -21,9 +21,7 @@
 //! rewriting is worse than the refusal, because a block is loud and a rewrite
 //! is not. `authored_row_round_trip` caught it; this file pins it.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::legacy;
 use intentsvcs::model::AtStatus;
 

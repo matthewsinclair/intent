@@ -20,13 +20,11 @@
 //! move mtimes, and that arm has to fail-if-quiet for the quiet arm to mean
 //! anything.
 
-mod common;
-
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::time::SystemTime;
 
-use common::{Fixture, ctx, sample_thread};
+use crate::common::{Fixture, ctx, sample_thread};
 use intentsvcs::ingest::Canon;
 use intentsvcs::intentfiles;
 use intentsvcs::model::Attachment;

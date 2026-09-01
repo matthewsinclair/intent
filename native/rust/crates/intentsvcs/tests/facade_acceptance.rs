@@ -7,9 +7,7 @@
 //! what makes it correct is that the flag has no effect on a test-backed
 //! criterion and the facade refuses to pretend otherwise.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::contract::{Resolved, resolve};
 use intentsvcs::facade::{FacadeError, Outcome};
 use intentsvcs::model::{AcState, AtStatus};

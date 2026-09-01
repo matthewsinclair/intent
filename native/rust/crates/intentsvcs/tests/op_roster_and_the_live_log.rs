@@ -68,9 +68,7 @@
 //! nearly written into the roster's own doc comment as though it described the
 //! code.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::doctor;
 use intentsvcs::event::{Envelope, KNOWN_OPS, Subject};
 use intentsvcs::finding::FindingClass;
@@ -81,7 +79,7 @@ use std::collections::BTreeSet;
 fn undeclared(fx: &Fixture) -> Vec<String> {
   let facade = fx.facade_on_disk();
   let project = fx.project();
-  let ctx = common::ctx();
+  let ctx = crate::common::ctx();
   let report = doctor::diagnose(&project, &ctx, Some(facade.store()));
   report
     .findings
@@ -104,11 +102,11 @@ fn plant(fx: &Fixture, op: &str) {
   let facade = fx.facade_on_disk();
   let envelope = Envelope::minted(
     "local",
-    common::PROJECT_ID,
+    crate::common::PROJECT_ID,
     op,
     Subject {
       kind: "paths".to_string(),
-      id: common::PROJECT_ID.to_string(),
+      id: crate::common::PROJECT_ID.to_string(),
     },
     serde_json::json!({}),
   );
@@ -198,13 +196,18 @@ fn an_undeclared_op_adds_nothing_to_the_verdict() {
   let clean = Fixture::new();
   let before = {
     let facade = clean.facade_on_disk();
-    doctor::diagnose(&clean.project(), &common::ctx(), Some(facade.store())).actionable()
+    doctor::diagnose(
+      &clean.project(),
+      &crate::common::ctx(),
+      Some(facade.store()),
+    )
+    .actionable()
   };
 
   let fx = Fixture::new();
   plant(&fx, "st.invented");
   let facade = fx.facade_on_disk();
-  let report = doctor::diagnose(&fx.project(), &common::ctx(), Some(facade.store()));
+  let report = doctor::diagnose(&fx.project(), &crate::common::ctx(), Some(facade.store()));
 
   assert!(
     report

@@ -68,9 +68,7 @@
 //! still come back formattable: that proves the rule discriminates by file
 //! rather than by tree, which is the whole point of one-writer-per-file.
 
-mod common;
-
-use common::ctx;
+use crate::common::ctx;
 use intentsvcs::project::Project;
 use intentsvcs::{ingest, views};
 use std::path::Path;

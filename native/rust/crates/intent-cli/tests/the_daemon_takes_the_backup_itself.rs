@@ -25,8 +25,7 @@
 use std::path::Path;
 use std::process::Command;
 
-mod common;
-use common::RealDaemon;
+use crate::common::RealDaemon;
 
 use intentsvcs::wire::{self, Op, Request, Response};
 

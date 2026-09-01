@@ -28,9 +28,7 @@
 //! asserting this file's own idea of the source. It is declared in
 //! `Facade::issue_edit` beside the code that holds it.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 
 const ORIGINAL: &str = "the original premise, which measurement later disproved";
 

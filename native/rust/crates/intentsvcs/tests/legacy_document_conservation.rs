@@ -25,9 +25,7 @@
 //! would have closed a genuine 178-section hole while propagating this defect,
 //! and made the section counts reconcile on the way.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::legacy;
 use intentsvcs::model::to_canonical_json;
 

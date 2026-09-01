@@ -17,9 +17,7 @@
 //! stamp is preserving history; asking what time it is would be the violation,
 //! and nothing here asks.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::backup::{self, Retention};
 use intentsvcs::store::Store;
 use rusqlite::Connection;
@@ -289,7 +287,7 @@ fn retention_settings_fall_back_to_the_default_rather_than_to_zero() {
 // inside the clause written to prevent it.
 // ---------------------------------------------------------------------------
 
-use common::ctx;
+use crate::common::ctx;
 use intentsvcs::finding::FindingClass;
 
 fn backup_findings(fx: &Fixture, store: &Store) -> Vec<String> {

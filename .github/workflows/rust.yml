@@ -68,4 +68,4 @@ jobs:
       - name: clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
       - name: test (includes the schema-face drift check and the dep-graph guard)
-        run: cargo test --workspace
+        run: cargo test --workspace --no-fail-fast

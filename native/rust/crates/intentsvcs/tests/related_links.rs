@@ -10,9 +10,7 @@
 //! bullets across 52 files, and each has its own arm here because each was a
 //! decision that could have gone the other way.
 
-mod common;
-
-use common::{Fixture, ctx};
+use crate::common::{Fixture, ctx};
 use intentsvcs::legacy;
 use intentsvcs::views;
 

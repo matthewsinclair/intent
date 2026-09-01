@@ -24,9 +24,7 @@
 //! of them is a state where the honest thing to return is "I do not know", and
 //! "I do not know" is the answer that has to mean no.
 
-mod common;
-
-use common::{Fixture, ctx, declaring_thread, gate_open, sample_thread};
+use crate::common::{Fixture, ctx, declaring_thread, gate_open, sample_thread};
 use intentsvcs::ingest::Canon;
 use intentsvcs::intentfiles;
 use intentsvcs::model::{AcKind, AcState, Criterion, Thread};

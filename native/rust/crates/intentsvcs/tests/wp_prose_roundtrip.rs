@@ -21,9 +21,7 @@
 //! through the real CLI, which is a different question (does the wiring reach
 //! it) from this one (does the rendering preserve it).
 
-mod common;
-
-use common::{Fixture, ctx, sample_thread};
+use crate::common::{Fixture, ctx, sample_thread};
 use intentsvcs::model::to_canonical_json;
 use intentsvcs::views;
 

@@ -77,9 +77,7 @@
 //! is how the harmful case (`ac list`) stayed invisible: nobody re-reads a
 //! sentence they have already accepted.
 
-mod common;
-
-use common::{Fixture, ctx, sample_thread};
+use crate::common::{Fixture, ctx, sample_thread};
 use intentsvcs::contract::{Scope, Verdict};
 use intentsvcs::facade::Note;
 use intentsvcs::finding::FindingClass;

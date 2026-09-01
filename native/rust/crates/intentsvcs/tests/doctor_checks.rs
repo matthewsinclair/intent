@@ -15,9 +15,7 @@
 //! running `intent doctor`. A doctor that only works on healthy projects is
 //! not a doctor.
 
-mod common;
-
-use common::{Fixture, VERSION, ctx};
+use crate::common::{Fixture, VERSION, ctx};
 use intentsvcs::finding::{Finding, FindingClass};
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Criterion, THREAD_SCHEMA,
@@ -439,7 +437,8 @@ fn doctor_runs_on_a_project_that_cannot_be_opened() {
 
   // The control: the ordinary path genuinely cannot open this estate, so the
   // test below is not passing because the fault was too mild to matter.
-  let opened = intentsvcs::facade::Facade::open_in_memory(fx.project(), common::facade_ctx());
+  let opened =
+    intentsvcs::facade::Facade::open_in_memory(fx.project(), crate::common::facade_ctx());
   assert!(
     opened.is_err(),
     "precondition: a duplicate criterion id must defeat the normal open path"
@@ -480,7 +479,8 @@ fn a_cold_cache_is_healthy_and_a_stale_one_is_not() {
   );
 
   // Populate the on-disk cache, then move the canon out from under it.
-  intentsvcs::facade::Facade::open(fx.project(), common::facade_ctx()).expect("populate the cache");
+  intentsvcs::facade::Facade::open(fx.project(), crate::common::facade_ctx())
+    .expect("populate the cache");
   let mut moved = clean_thread("ST0001");
   moved.title = "A different title entirely".to_string();
   fx.write_thread(&moved);

@@ -20,11 +20,9 @@
 //! an attachment", and reading it as "anything the renderer did not make" makes
 //! the common case look broken while the rare one goes unexercised.
 
-mod common;
-
 use std::path::PathBuf;
 
-use common::{Fixture, ctx, sample_thread};
+use crate::common::{Fixture, ctx, sample_thread};
 use intentsvcs::ingest::Canon;
 use intentsvcs::intentfiles;
 use intentsvcs::organize::{Action, Step, TreeState, plan};

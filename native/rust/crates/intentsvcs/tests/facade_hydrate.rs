@@ -15,9 +15,7 @@
 //! each to be hydratable or refused BY NAME, so a tenth form cannot arrive and
 //! be quietly dropped.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::address::{Address, Entity, Format};
 use intentsvcs::facade::FacadeError;
 use intentsvcs::intentfiles;

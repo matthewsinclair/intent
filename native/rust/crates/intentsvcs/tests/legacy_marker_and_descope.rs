@@ -55,9 +55,7 @@
 //! alone never fires because arm 1 never lets a row reach it. Neither half is
 //! shippable without the other.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::legacy;
 use intentsvcs::model::{AcKind, AcState};
 

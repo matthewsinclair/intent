@@ -14,12 +14,10 @@
 //! not that a stale digest returns an error -- it is that the file is STILL THERE
 //! afterwards.
 
-mod common;
-
 use std::cell::Cell;
 use std::path::PathBuf;
 
-use common::{Fixture, ctx, gate_open, sample_thread};
+use crate::common::{Fixture, ctx, gate_open, sample_thread};
 use intentsvcs::ingest::Canon;
 use intentsvcs::intentfiles;
 use intentsvcs::organize::{Action, Mode, OrganizeError, Plan, Step, TreeState, plan};

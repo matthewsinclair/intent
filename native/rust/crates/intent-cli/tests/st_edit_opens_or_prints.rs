@@ -44,13 +44,11 @@
 //!
 //! The default branch is decided by `IsTerminal` on STDOUT, and every ordinary
 //! test captures stdout -- so a test harness sees the pipe branch and can say
-//! nothing at all about the terminal one. `common::pty_pair` puts a real
+//! nothing at all about the terminal one. `crate::common::pty_pair` puts a real
 //! terminal there. **The reader is its own control:** the `--path`-on-a-terminal
 //! arm asserts the path DOES come back through the same drain that the launch
 //! arm asserts is empty, so an empty read cannot be mistaken for a broken
 //! reader.
-
-mod common;
 
 use std::path::Path;
 use std::process::{Command, Output, Stdio};
@@ -279,7 +277,7 @@ fn path_forces_the_path_and_editor_forces_the_launch_off_a_terminal() {
 fn on_a_terminal(dir: &Path, args: &[&str], editor: Option<&str>) -> (bool, String, String) {
   use std::io::Read;
 
-  let (master, slave) = common::pty_pair();
+  let (master, slave) = crate::common::pty_pair();
   let mut child = {
     let mut command = Command::new(env!("CARGO_BIN_EXE_intent"));
     command
@@ -299,7 +297,7 @@ fn on_a_terminal(dir: &Path, args: &[&str], editor: Option<&str>) -> (bool, Stri
       .expect("run the v3 binary against a terminal")
   };
 
-  let reader = std::thread::spawn(move || common::drain(master));
+  let reader = std::thread::spawn(move || crate::common::drain(master));
 
   let mut stderr = String::new();
   if let Some(mut handle) = child.stderr.take() {

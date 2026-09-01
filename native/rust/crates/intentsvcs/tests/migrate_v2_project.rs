@@ -43,9 +43,7 @@
 //! that it is right, **passing on a stamp of `banana`**. That is the
 //! five-limbs argument arriving inside a single limb.
 
-mod common;
-
-use common::{Fixture, facade_ctx, v2_estate, v2_thread};
+use crate::common::{Fixture, facade_ctx, v2_estate, v2_thread};
 use intentsvcs::facade::Facade;
 
 /// A clean v2 estate, converted. Panics rather than returning a Result: every

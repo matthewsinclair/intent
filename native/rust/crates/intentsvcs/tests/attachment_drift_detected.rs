@@ -30,9 +30,7 @@
 //! criterion's own wording. So the clean-thread arm is what makes the detection
 //! arm mean anything, and both drive the same real `diagnose`.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::finding::{Finding, FindingClass};
 use intentsvcs::model::{Attachment, Thread};
 use intentsvcs::project::Project;
@@ -60,7 +58,7 @@ fn seeded() -> Fixture {
 }
 
 fn drift(fx: &Fixture) -> Vec<Finding> {
-  intentsvcs::doctor::diagnose(&fx.project(), &common::ctx(), None)
+  intentsvcs::doctor::diagnose(&fx.project(), &crate::common::ctx(), None)
     .findings
     .into_iter()
     .filter(|f| f.class == FindingClass::AttachmentDrift)
@@ -220,7 +218,7 @@ fn the_remedy_leads_with_the_step_that_cannot_lose_anything() {
 fn every_realised_attachment_in_the_estate_still_matches_canon() {
   let root = repo_root();
   let project = Project::open(&root).expect("the real project opens");
-  let report = intentsvcs::doctor::diagnose(&project, &common::ctx(), None);
+  let report = intentsvcs::doctor::diagnose(&project, &crate::common::ctx(), None);
   let canon = intentsvcs::ingest::read(&project).expect("canon reads");
 
   let realised = canon

@@ -22,9 +22,7 @@
 //! bug: the interesting values are the ones carrying pipes, newlines, quotes
 //! and JSON-in-TEXT columns.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::model::{
   AcState, AcceptanceTest, AtKind, AtStatus, ISSUE_SCHEMA, Issue, IssueStatus, Legacy,
 };

@@ -7,6 +7,15 @@ license.workspace = true
 description = "Intent v3 services: the reified model, schema faces, SQLite store, sync and facade"
 build = "build.rs"
 
+# Declared, not left to convention. Cargo's default makes every `.rs` directly under
+# `tests/` its own separately linked binary, and that default is silent BOTH ways: it
+# grew this workspace to 257 targets, and a `tests/quick.rs` dropped in by anyone in a
+# hurry would silently become another. Per hv's estate-wide ruling of 2026-08-27, which
+# Laksa took the same day and this workspace -- the one that made it -- never did.
+# The single target is `tests/suite.rs`; a new suite is declared there as a module, and
+# `no_orphan_suite_member.rs` fails if one is not.
+autotests = false
+
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
@@ -53,3 +62,7 @@ libc = "0.2"
 # dev-dependency cannot reach a dependent's build graph, which is why this is
 # the right section for it and `[dependencies]` never would be.
 tokio.workspace = true
+
+[[test]]
+name = "suite"
+path = "tests/suite.rs"

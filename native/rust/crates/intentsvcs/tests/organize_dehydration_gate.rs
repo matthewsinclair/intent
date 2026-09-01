@@ -13,9 +13,7 @@
 //! no proof. Passing there would make the gate strictest exactly when it knows
 //! most and silent exactly when it knows nothing.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::organize::{Action, OrganizeError, Step, gate};
 
 const RENDERED: &str = "# ST0001\n\nRendered by the model.\n";

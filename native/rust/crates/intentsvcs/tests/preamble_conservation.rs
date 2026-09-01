@@ -33,9 +33,7 @@
 //! and the 20 regions land as `NORMALISED-PROSE` rather than `CONSERVED`. A
 //! reported, counted, non-finding.
 
-mod common;
-
-use common::{Fixture, ctx};
+use crate::common::{Fixture, ctx};
 use intentsvcs::legacy;
 use intentsvcs::views;
 

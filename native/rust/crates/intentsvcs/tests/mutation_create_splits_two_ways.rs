@@ -23,9 +23,7 @@
 //! door is not the same as opening the right one, and a criterion naming two
 //! capabilities is not satisfied by one of them plus a refusal.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::address::parse;
 
 const NEW_AT: &str = r#"{"id":"AT-09.1","kind":"test",

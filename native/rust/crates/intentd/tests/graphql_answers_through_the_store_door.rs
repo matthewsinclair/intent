@@ -6,11 +6,9 @@
 //! thread and the test reads `dispatched` before and after: a served op moves
 //! it by exactly one, which is the same proof `AC-08.2`'s harness rests on.
 
-mod common;
-
 use std::path::Path;
 
-use common::{RunningDaemon, project};
+use crate::common::{RunningDaemon, project};
 use intentsvcs::wire::{Op, Request, Response};
 
 const MINTED: &str = "Minted for the hatch";

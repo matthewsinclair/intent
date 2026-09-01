@@ -56,9 +56,7 @@
 //! otherwise tell them from criteria that drove it -- and that difference is
 //! the whole of their evidential value.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::event;
 use intentsvcs::model::{AcceptanceMode, Thread, ThreadStatus, WpStatus};
 
@@ -205,7 +203,7 @@ fn doctor_does_not_report_a_flushed_view_as_hand_edited() {
     .expect("sync");
 
   let skew = |dir: &Fixture, store: Option<&intentsvcs::store::Store>| -> Vec<String> {
-    intentsvcs::facade::Facade::doctor(&dir.project(), &common::facade_ctx(), store)
+    intentsvcs::facade::Facade::doctor(&dir.project(), &crate::common::facade_ctx(), store)
       .findings
       .iter()
       .filter(|f| f.file.contains("todo.md"))

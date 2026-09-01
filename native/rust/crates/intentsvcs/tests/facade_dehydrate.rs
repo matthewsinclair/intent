@@ -17,9 +17,7 @@
 //! against is decoration; the ones here differ from their refusing arm by
 //! exactly the one fact under test and nothing else.
 
-mod common;
-
-use common::{Fixture, declaring_thread, gate_open, sample_thread};
+use crate::common::{Fixture, declaring_thread, gate_open, sample_thread};
 use intentsvcs::address::{Address, Entity};
 use intentsvcs::facade::FacadeError;
 use intentsvcs::model::{AcKind, AcState};

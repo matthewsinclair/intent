@@ -39,8 +39,6 @@
 //! the content is somebody else's. So the assertion is byte equality against
 //! the file on disk, not membership.
 
-mod common;
-
 use intentsvcs::ingest;
 use intentsvcs::project::{Project, ThreadFile};
 use std::path::{Path, PathBuf};

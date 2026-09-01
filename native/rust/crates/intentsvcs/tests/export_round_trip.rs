@@ -14,9 +14,7 @@
 //! `every_format_that_claims_to_round_trip_...` is a coverage claim asserted by
 //! its own name.
 
-mod common;
-
-use common::{PROJECT_ID, sample_issue, sample_thread};
+use crate::common::{PROJECT_ID, sample_issue, sample_thread};
 use intentsvcs::event::Envelope;
 use intentsvcs::export::{
   self, Bundle, DEFAULT_FORMAT, ExportRefusal, FORMATS, Format, Projected, Projection,
@@ -151,7 +149,7 @@ fn adversarial_issue(number: u32) -> Issue {
 /// fixture confects no time at all. It also means the event rows in the bundle
 /// are the shape the product produces, not the shape a test author assumed.
 fn bundle() -> Bundle {
-  let fixture = common::Fixture::new();
+  let fixture = crate::common::Fixture::new();
   let mut facade = fixture.facade();
   facade
     .st_new("a thread, so the log has a real record in it")

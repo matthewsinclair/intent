@@ -22,9 +22,7 @@
 //! `created_at` quietly becomes `updated_at` under the wrong name, which is
 //! precisely the defect AC-02.8 was raised to remove.
 
-mod common;
-
-use common::{Fixture, sample_issue, sample_thread};
+use crate::common::{Fixture, sample_issue, sample_thread};
 use intentsvcs::store::{DDL, RECORD_TIMESTAMPS};
 use rusqlite::Connection;
 

@@ -127,7 +127,15 @@ commands:
       # so keep the flags identical and the drift stays visible.
       rust:
         summary: the workspace suite (native/rust -- the catalogue assumes a root manifest)
-        run: bin/.devbin/cmd/measured --exec cargo test --workspace --manifest-path native/rust/Cargo.toml
+        # `--no-fail-fast` because WITHOUT IT ONE EARLY FAILURE ABORTS EVERY
+        # REMAINING TARGET while the run still prints a total that reads like a
+        # whole-workspace number. conflab-vc measured it on their own tree
+        # (2026-08-10): a lib-target failure left 12 of 13 targets unrun and the
+        # suite reported 1189 tests where the crate holds 1201. This workspace
+        # was exposed further and nobody here had checked. Kept identical to
+        # .github/workflows/rust.yml per the note above, so the drift stays
+        # visible.
+        run: bin/.devbin/cmd/measured --exec cargo test --workspace --no-fail-fast --manifest-path native/rust/Cargo.toml
 
   check:
     options:

@@ -9,11 +9,9 @@
 //! hash on stat again and `a_same_size_same_mtime_rewrite_is_detected` goes
 //! red immediately.
 
-mod common;
-
 use std::fs::{File, FileTimes};
 
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::sync::{self, FileState};
 
 fn state_of(entries: &[sync::FileEntry], path: &str) -> FileState {

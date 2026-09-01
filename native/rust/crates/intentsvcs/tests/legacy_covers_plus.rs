@@ -38,9 +38,7 @@
 //! cost `ST0056 AC-03.17` a silent kind-flip one commit ago. An id inside a
 //! sentence is a mention, not a reference.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::legacy;
 
 fn estate(fixture: &Fixture, acceptance: &str) {

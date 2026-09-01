@@ -88,8 +88,6 @@
 //! because templates grow, and disagrees only on an edit that changes what the
 //! guards do without changing how long the file is.
 
-mod common;
-
 use intentsvcs::doctor::{self, CarrierShape, GateState, GateTemplates, carrier_shape, gate_state};
 use intentsvcs::finding::FindingClass;
 
@@ -346,9 +344,9 @@ fn a_monolithic_carrier_still_has_to_name_its_runner() {
 /// severity split exists to avoid, arriving through a different door.
 #[test]
 fn a_tree_that_is_not_a_repository_says_nothing_about_hooks() {
-  let fx = common::Fixture::new();
+  let fx = crate::common::Fixture::new();
   let facade = fx.facade_on_disk();
-  let report = doctor::diagnose(&fx.project(), &common::ctx(), Some(facade.store()));
+  let report = doctor::diagnose(&fx.project(), &crate::common::ctx(), Some(facade.store()));
   let hooks: Vec<&str> = report
     .findings
     .iter()
@@ -369,14 +367,14 @@ fn a_tree_that_is_not_a_repository_says_nothing_about_hooks() {
 /// from an edge that correctly says nothing about a tempdir.
 #[test]
 fn a_repository_carrying_an_unwired_carrier_is_reported_through_the_io() {
-  let fx = common::Fixture::new();
+  let fx = crate::common::Fixture::new();
   fx.git_init();
   let hooks = fx.root().join(".git/hooks");
   std::fs::create_dir_all(&hooks).expect("mkdir hooks");
   std::fs::write(hooks.join("pre-commit.intent"), UNWIRED).expect("plant the carrier");
 
   let facade = fx.facade_on_disk();
-  let report = doctor::diagnose(&fx.project(), &common::ctx(), Some(facade.store()));
+  let report = doctor::diagnose(&fx.project(), &crate::common::ctx(), Some(facade.store()));
   let found: Vec<&str> = report
     .findings
     .iter()
@@ -419,7 +417,7 @@ fn a_repository_carrying_an_unwired_carrier_is_reported_through_the_io() {
 /// repository, and report a broken gate that does not exist.
 #[test]
 fn a_root_level_file_named_pre_commit_is_not_mistaken_for_a_hook() {
-  let fx = common::Fixture::new();
+  let fx = crate::common::Fixture::new();
   // NOT a git repo, and carrying the two names at its root.
   std::fs::write(
     fx.root().join("pre-commit"),
@@ -428,7 +426,7 @@ fn a_root_level_file_named_pre_commit_is_not_mistaken_for_a_hook() {
   .expect("write a root-level pre-commit");
 
   let facade = fx.facade_on_disk();
-  let report = doctor::diagnose(&fx.project(), &common::ctx(), Some(facade.store()));
+  let report = doctor::diagnose(&fx.project(), &crate::common::ctx(), Some(facade.store()));
   let found: Vec<&str> = report
     .findings
     .iter()
@@ -464,7 +462,7 @@ fn a_root_level_file_named_pre_commit_is_not_mistaken_for_a_hook() {
 /// was never measured against.
 #[test]
 fn an_unmigrated_estate_is_never_reached_and_that_is_the_limit_not_a_pass() {
-  let fx = common::Fixture::new();
+  let fx = crate::common::Fixture::new();
   fx.git_init();
   // Declare v2, which is what an unported estate carries.
   let config = fx.root().join("intent/.config/config.json");
@@ -482,7 +480,7 @@ fn an_unmigrated_estate_is_never_reached_and_that_is_the_limit_not_a_pass() {
   // unmigrated estate is exactly the one whose store a caller cannot open, which
   // is why `diagnose` takes an `Option` at all -- so passing `None` is what a
   // real `intent doctor` does on Conflab tonight, not a fixture shortcut.
-  let report = doctor::diagnose(&fx.project(), &common::ctx(), None);
+  let report = doctor::diagnose(&fx.project(), &crate::common::ctx(), None);
 
   assert!(
     report

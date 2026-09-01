@@ -29,9 +29,7 @@
 //! v3 view. That is the damage class arriving through the door built to stop
 //! it, which is why this reader is a CLOSED allow-list.
 
-mod common;
-
-use common::{ctx, sample_thread};
+use crate::common::{ctx, sample_thread};
 use intentsvcs::views::{self, INFO_ROUND_TRIP_SECTIONS};
 
 /// The control every other arm depends on: an UNEDITED render reads back to

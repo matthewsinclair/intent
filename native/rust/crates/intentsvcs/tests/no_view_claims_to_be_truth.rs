@@ -78,9 +78,7 @@
 //! estate arm proves the estate is clean, and the string arm proves the
 //! checker can still see the thing.
 
-mod common;
-
-use common::ctx;
+use crate::common::ctx;
 use intentsvcs::model::Thread;
 use intentsvcs::project::Project;
 use intentsvcs::{ingest, views};

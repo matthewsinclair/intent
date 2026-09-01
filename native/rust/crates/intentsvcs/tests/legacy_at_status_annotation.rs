@@ -31,9 +31,7 @@
 //! Rows 1-5 are arca_cli `ST0011`, byte for byte. Rows 6-9 reproduce the
 //! Lamplight shapes vc quoted; they are constructed, and say so.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::legacy;
 use intentsvcs::model::AtStatus;
 

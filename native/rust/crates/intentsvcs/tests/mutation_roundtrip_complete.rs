@@ -24,9 +24,7 @@
 //! the moved value -- so each case asserts three things: the field changed,
 //! it changed to the value asked for, and no sibling field moved with it.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::address::parse;
 use serde_json::{Value, json};
 

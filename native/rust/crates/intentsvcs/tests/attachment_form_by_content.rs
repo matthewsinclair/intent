@@ -29,9 +29,7 @@
 //! the corpus. A single count over "attachments checked" would have hidden
 //! that behind a number that looks like coverage.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::ingest;
 use intentsvcs::model::Attachment;
 use intentsvcs::project::{Project, canon_blob_rel};

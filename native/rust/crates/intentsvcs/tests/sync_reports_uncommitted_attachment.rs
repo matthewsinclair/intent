@@ -29,8 +29,6 @@
 //! at the COMMIT, which is AC-03.6's gate. Refusing here would block the
 //! ordinary act of saving your own in-flight work.
 
-mod common;
-
 use intentsvcs::sync::{NotInIndex, Uncommitted, uncommitted};
 use std::path::Path;
 use std::process::Command;

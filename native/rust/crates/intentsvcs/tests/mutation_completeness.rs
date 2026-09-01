@@ -29,9 +29,7 @@
 // would be a second home for it -- read it there.
 #![allow(clippy::result_large_err)]
 
-mod common;
-
-use common::{Fixture, sample_issue, sample_thread};
+use crate::common::{Fixture, sample_issue, sample_thread};
 use intentsvcs::facade::{Facade, FacadeError, Outcome};
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceMode, AtKind, AtStatus, Criterion, Issue, Thread, ThreadStatus,

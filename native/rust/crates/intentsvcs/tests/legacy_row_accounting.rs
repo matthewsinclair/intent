@@ -17,9 +17,7 @@
 //! `carried`, and carried does not block. The carry policy is for rows an
 //! author wrote badly; it never covered rows the reader could not account for.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::legacy;
 
 fn estate(fixture: &Fixture, acceptance: &str) {

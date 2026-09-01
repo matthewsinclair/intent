@@ -28,9 +28,7 @@
 //!   binary predating that fix -- which is the whole argument for re-converting
 //!   `ST0011` from source rather than repairing the reader again.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::legacy;
 
 fn estate(fixture: &Fixture, acceptance: &str) {

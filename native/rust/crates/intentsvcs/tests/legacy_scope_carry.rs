@@ -25,9 +25,7 @@
 //! one is no less likely to break, only less likely to be looked at** -- and
 //! the file was named after the instance that happened to be built first.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::finding::FindingClass;
 use intentsvcs::legacy;
 use intentsvcs::model::{Legacy, TShirt};
@@ -184,7 +182,7 @@ fn the_three_scope_states_render_as_three_different_things() {
 #[test]
 fn rescoping_a_carried_work_package_clears_the_legacy_value() {
   let fixture = Fixture::new();
-  let mut thread = common::sample_thread("ST0001");
+  let mut thread = crate::common::sample_thread("ST0001");
   thread.wps[0].scope = None;
   thread.wps[0].scope_legacy = Some(Legacy {
     raw: "Medium-Large".to_string(),
@@ -236,7 +234,7 @@ fn the_self_loop_is_decidable_from_the_states_except_where_the_model_contradicts
   // 1. SETTLED -- a size, no carry. The same size is a no-op, and it names the
   //    size rather than the work package's status.
   let fixture = Fixture::new();
-  let mut thread = common::sample_thread("ST0001");
+  let mut thread = crate::common::sample_thread("ST0001");
   thread.wps[0].scope = Some(TShirt::L);
   thread.wps[0].scope_legacy = None;
   fixture.write_thread(&thread);
@@ -255,7 +253,7 @@ fn the_self_loop_is_decidable_from_the_states_except_where_the_model_contradicts
   //    is a movement whatever size is asked for. There is no same-state case to
   //    reach: the carry is not one of the six.
   let fixture = Fixture::new();
-  let mut thread = common::sample_thread("ST0001");
+  let mut thread = crate::common::sample_thread("ST0001");
   thread.wps[0].scope = None;
   thread.wps[0].scope_legacy = Some(Legacy {
     raw: "Medium-Large".to_string(),
@@ -275,7 +273,7 @@ fn the_self_loop_is_decidable_from_the_states_except_where_the_model_contradicts
   //    `scope_legacy.is_none()` half of the guard. Same size in, same size out,
   //    and it is still a movement because the carry goes.
   let fixture = Fixture::new();
-  let mut thread = common::sample_thread("ST0001");
+  let mut thread = crate::common::sample_thread("ST0001");
   thread.wps[0].scope = Some(TShirt::L);
   thread.wps[0].scope_legacy = Some(Legacy {
     raw: "Medium-Large".to_string(),
@@ -309,7 +307,7 @@ fn the_self_loop_is_decidable_from_the_states_except_where_the_model_contradicts
 #[test]
 fn a_work_package_carrying_both_a_scope_and_a_legacy_one_is_reported() {
   let fixture = Fixture::new();
-  let mut thread = common::sample_thread("ST0001");
+  let mut thread = crate::common::sample_thread("ST0001");
   thread.status = intentsvcs::model::ThreadStatus::Completed;
   thread.completed = Some("2026-08-16".to_string());
   thread.wps[0].scope = Some(TShirt::L);
@@ -319,7 +317,7 @@ fn a_work_package_carrying_both_a_scope_and_a_legacy_one_is_reported() {
   fixture.write_thread(&thread);
 
   let project = fixture.project();
-  let report = intentsvcs::facade::Facade::doctor(&project, &common::facade_ctx(), None);
+  let report = intentsvcs::facade::Facade::doctor(&project, &crate::common::facade_ctx(), None);
   assert!(
     report
       .findings
@@ -339,7 +337,7 @@ fn a_work_package_carrying_both_a_scope_and_a_legacy_one_is_reported() {
 #[test]
 fn a_carried_scope_on_a_live_thread_is_reported() {
   let fixture = Fixture::new();
-  let mut thread = common::sample_thread("ST0001");
+  let mut thread = crate::common::sample_thread("ST0001");
   thread.status = intentsvcs::model::ThreadStatus::Wip;
   thread.completed = None;
   thread.wps[0].scope = None;
@@ -349,7 +347,7 @@ fn a_carried_scope_on_a_live_thread_is_reported() {
   fixture.write_thread(&thread);
 
   let project = fixture.project();
-  let report = intentsvcs::facade::Facade::doctor(&project, &common::facade_ctx(), None);
+  let report = intentsvcs::facade::Facade::doctor(&project, &crate::common::facade_ctx(), None);
   assert!(
     report
       .findings
@@ -375,7 +373,7 @@ fn a_carried_scope_on_a_live_thread_is_reported() {
 #[test]
 fn an_acceptance_test_carrying_both_a_file_and_a_legacy_reference_is_reported() {
   let fixture = Fixture::new();
-  let mut thread = common::sample_thread("ST0001");
+  let mut thread = crate::common::sample_thread("ST0001");
   thread.status = intentsvcs::model::ThreadStatus::Completed;
   thread.completed = Some("2026-08-15".to_string());
   let at = thread
@@ -390,7 +388,7 @@ fn an_acceptance_test_carrying_both_a_file_and_a_legacy_reference_is_reported() 
   fixture.write_thread(&thread);
 
   let project = fixture.project();
-  let report = intentsvcs::facade::Facade::doctor(&project, &common::facade_ctx(), None);
+  let report = intentsvcs::facade::Facade::doctor(&project, &crate::common::facade_ctx(), None);
   assert!(
     report
       .findings
@@ -412,7 +410,7 @@ fn an_acceptance_test_carrying_both_a_file_and_a_legacy_reference_is_reported() 
 #[test]
 fn a_carried_reference_on_a_live_thread_is_reported() {
   let fixture = Fixture::new();
-  let mut thread = common::sample_thread("ST0001");
+  let mut thread = crate::common::sample_thread("ST0001");
   thread.status = intentsvcs::model::ThreadStatus::Wip;
   thread.completed = None;
   let at = thread
@@ -428,7 +426,7 @@ fn a_carried_reference_on_a_live_thread_is_reported() {
   fixture.write_thread(&thread);
 
   let project = fixture.project();
-  let report = intentsvcs::facade::Facade::doctor(&project, &common::facade_ctx(), None);
+  let report = intentsvcs::facade::Facade::doctor(&project, &crate::common::facade_ctx(), None);
   assert!(
     report
       .findings

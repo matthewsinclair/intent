@@ -24,9 +24,7 @@
 //! `at` is the empty string it was handed in as; replace it with a Rust clock
 //! and the two values differ. There is no third way to pass.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::model::AcState;
 use intentsvcs::remedy::Remedy;
 

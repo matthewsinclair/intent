@@ -25,11 +25,9 @@
 //! fixture's canon -- which means adding a field to the model without adding
 //! it here is a failing test, not a silent hole.
 
-mod common;
-
 use std::collections::BTreeSet;
 
-use common::{Fixture, PROJECT_ID, sample_thread};
+use crate::common::{Fixture, PROJECT_ID, sample_thread};
 use intentsvcs::model::{
   AcceptanceMode, AcceptanceTest, AtKind, AtStatus, FiatRecord, ISSUE_SCHEMA, Invoker, Issue,
   IssueStatus, Thread, to_canonical_json,

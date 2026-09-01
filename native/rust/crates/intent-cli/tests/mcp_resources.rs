@@ -23,12 +23,10 @@
 //! read cannot serve is the tool-roster defect on the resource surface, one
 //! surface over.
 
-mod common;
-
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use common::{mcp_session, short_dir};
+use crate::common::{mcp_session, short_dir};
 use serde_json::{Value, json};
 
 struct Fixture(PathBuf);

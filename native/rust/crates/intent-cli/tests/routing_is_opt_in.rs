@@ -45,8 +45,7 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 use intentsvcs::daemon;
 
-mod common;
-use common::{RealDaemon, short_dir};
+use crate::common::{RealDaemon, short_dir};
 
 /// A listener that answers the liveness probe, stopped when dropped.
 ///

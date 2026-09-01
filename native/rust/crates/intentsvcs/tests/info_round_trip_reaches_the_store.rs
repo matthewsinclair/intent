@@ -7,9 +7,7 @@
 //! nobody drove is the shape where every unit arm is green and the feature does
 //! not exist -- and the unit arms cannot tell you which of the two you have.
 
-mod common;
-
-use common::{Fixture, ctx, sample_thread};
+use crate::common::{Fixture, ctx, sample_thread};
 use intentsvcs::store::Store;
 use intentsvcs::sync::Scope;
 use intentsvcs::views;

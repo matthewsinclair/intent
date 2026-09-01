@@ -23,8 +23,7 @@
 use std::io::{BufRead, BufReader, Write};
 use std::net::TcpStream;
 
-mod common;
-use common::RealDaemon;
+use crate::common::RealDaemon;
 
 /// The loopback address this daemon published.
 ///

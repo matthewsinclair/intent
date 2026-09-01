@@ -21,8 +21,7 @@
 //! by every observation except the one nobody makes.** So each arm here reads
 //! canon back.
 
-mod common;
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::address::parse;
 use intentsvcs::model::Attachment;
 

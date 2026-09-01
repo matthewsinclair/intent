@@ -12,9 +12,7 @@
 //!
 //! Every test here therefore holds the facade alive across the snapshot.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::store::Store;
 
 /// Copy `intent.db` the way a plausible implementation would -- and only that

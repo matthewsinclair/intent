@@ -15,9 +15,7 @@
 //! the instance and left the class open. **An allowlist can only ever know the
 //! conventions that existed when it was written.**
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::legacy;
 
 fn estate(fixture: &Fixture, acceptance: &str) {

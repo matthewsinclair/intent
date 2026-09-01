@@ -51,9 +51,7 @@
 //! with the same symptom is worse, because it looks like coverage.** Two nodes
 //! running `intent` share one on-disk store; that is the population.
 
-mod common;
-
-use common::{Fixture, sample_issue, sample_thread};
+use crate::common::{Fixture, sample_issue, sample_thread};
 use intentsvcs::facade::FacadeError;
 use intentsvcs::model::IssueStatus;
 

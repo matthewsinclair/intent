@@ -7,9 +7,7 @@
 //! the caller CANNOT proceed. So the assertions are about the refusal reaching
 //! the caller, not merely about a row in a table.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::finding::FindingClass;
 use intentsvcs::ingest::{self, IngestError};
 use intentsvcs::store::Store;

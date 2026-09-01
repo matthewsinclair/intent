@@ -16,9 +16,7 @@
 //! file pins the unchanged address deliberately so the next reader meets the
 //! fact before they design against it.
 
-mod common;
-
-use common::RealDaemon;
+use crate::common::RealDaemon;
 
 #[test]
 fn a_restart_replaces_the_process_and_keeps_the_address() {

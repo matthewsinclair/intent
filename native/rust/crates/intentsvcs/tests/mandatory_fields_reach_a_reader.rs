@@ -42,9 +42,7 @@
 //! constructed, and the estate zero is asserted as a zero rather than left to
 //! look like coverage.
 
-mod common;
-
-use common::{ctx, sample_thread};
+use crate::common::{ctx, sample_thread};
 use intentsvcs::facade::FacadeError;
 use intentsvcs::model::{AcKind, AcState, Criterion, Thread, ThreadStatus};
 use intentsvcs::views;

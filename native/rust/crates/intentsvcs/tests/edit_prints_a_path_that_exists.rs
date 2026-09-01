@@ -23,9 +23,7 @@
 //! silence, which is exactly how `issue` moved from hydratable to refused
 //! without anyone noticing until a declared list said so.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::address::{Address, Entity};
 use intentsvcs::facade::FacadeError;
 

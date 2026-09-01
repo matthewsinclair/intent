@@ -85,7 +85,7 @@
 //!
 //! This file used to declare `UnsyncedAttachments` undriven, and the reason
 //! was never a judgement -- it was that reaching the arm needs a real
-//! repository with a real index and `common::Fixture` was a bare temp
+//! repository with a real index and `crate::common::Fixture` was a bare temp
 //! directory. **[`Fixture::git_init`] closes that**, so AC-05.2's second limb
 //! -- *WARN, NAMING THE PATHS, when the artefact holds on-disk bytes the store
 //! has never seen* -- is now driven at its PAYLOAD and not only at its wiring.
@@ -103,9 +103,7 @@
 //! plausible wrong one, since canon has the list sitting right there -- passes
 //! any test that merely asks whether a path was named. It names two here.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::facade::{ListEdit, Note};
 use intentsvcs::intentfiles::realised_from;
 use intentsvcs::model::ThreadStatus;

@@ -9,6 +9,15 @@ description = "Intent v3 CLI: a thin coordinator over the intentsvcs facade (in-
 # NOTE (design.md D06): this crate must NEVER depend on rusqlite -- the CLI
 # reaches data only through the intentsvcs facade. dep_graph_guard.rs enforces.
 
+# Declared, not left to convention. Cargo's default makes every `.rs` directly under
+# `tests/` its own separately linked binary, and that default is silent BOTH ways: it
+# grew this workspace to 257 targets, and a `tests/quick.rs` dropped in by anyone in a
+# hurry would silently become another. Per hv's estate-wide ruling of 2026-08-27, which
+# Laksa took the same day and this workspace -- the one that made it -- never did.
+# The single target is `tests/suite.rs`; a new suite is declared there as a module, and
+# `no_orphan_suite_member.rs` fails if one is not.
+autotests = false
+
 [dependencies]
 clap.workspace = true
 serde.workspace = true
@@ -66,3 +75,13 @@ tempfile.workspace = true
 # arm uncovered.
 libc = "0.2"
 
+[[test]]
+name = "suite"
+path = "tests/suite.rs"
+
+# Keeps its OWN target: it mutates process-global state, and merged targets are
+# threads in one process rather than separate ones, so folding it in would turn a
+# clean failure into flakiness blamed on whatever ran beside it.
+[[test]]
+name = "dual_path_conformance"
+path = "tests/dual_path_conformance.rs"

@@ -57,9 +57,7 @@
 //! that is real, and UNFALSIFIED by this suite** -- which is a different claim
 //! from covered, and is made in those words on purpose.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::model::{AcKind, AcState, Criterion, Thread};
 use intentsvcs::sync::Scope;
 

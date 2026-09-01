@@ -52,11 +52,9 @@
 //! into a silent pass -- **so it says NOT RUN, in every run, where a reader
 //! sees it.** The row is RED until that arm runs.
 
-mod common;
-
 use std::collections::BTreeMap;
 
-use common::{
+use crate::common::{
   DATA_MODEL, Fixture, OUT_OF_MODEL_HEADING, changed, data_model_text, out_of_model_enumeration,
   out_of_model_section, sample_issue, sample_thread, tree,
 };

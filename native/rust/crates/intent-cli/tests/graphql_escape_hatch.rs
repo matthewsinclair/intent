@@ -8,12 +8,10 @@
 //! proof the `AC-08.2` harness rests on. **The bound is READS ONLY** (vc under
 //! hv's pen, 2026-08-31): the mutation arm below is that bound, driven.
 
-mod common;
-
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-use common::{RealDaemon, mcp_session, short_dir};
+use crate::common::{RealDaemon, mcp_session, short_dir};
 use serde_json::Value;
 
 const MINTED: &str = "Minted for the hatch";

@@ -440,7 +440,7 @@ preflight() {
       abort "cargo not found in PATH and $NATIVE_MANIFEST_REL is present -- refusing to release a native tree this machine cannot test"
     fi
     log_info "running cargo test --workspace (this may take several minutes)"
-    if ! (cd "$PROJECT_ROOT/$(dirname "$NATIVE_MANIFEST_REL")" && cargo test --workspace >/dev/null 2>&1); then
+    if ! (cd "$PROJECT_ROOT/$(dirname "$NATIVE_MANIFEST_REL")" && cargo test --workspace --no-fail-fast >/dev/null 2>&1); then
       abort "cargo test --workspace failed -- fix before releasing (re-run it directly to see which test)"
     fi
     log_info "cargo test green"

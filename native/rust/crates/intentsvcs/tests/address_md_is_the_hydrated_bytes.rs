@@ -22,9 +22,7 @@
 //! about the bytes `organize` would write HERE. A fixture would prove the
 //! selection works on a fixture.
 
-mod common;
-
-use common::ctx;
+use crate::common::ctx;
 use intentsvcs::address::{Entity, ServeError, parse, serve_md};
 use intentsvcs::project::Project;
 use intentsvcs::{ingest, views};

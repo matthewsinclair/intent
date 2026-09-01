@@ -14,9 +14,7 @@
 //! yet BY DESIGN, so a check that the path resolves would refuse the rows the
 //! grammar exists to carry. Widen what parses, never what refuses.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::legacy;
 use intentsvcs::model::AtStatus;
 

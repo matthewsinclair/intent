@@ -19,12 +19,10 @@
 //! startup would be talking to a dead socket; per-request resolution reaches
 //! the live one.
 
-mod common;
-
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-use common::{RealDaemon, short_dir};
+use crate::common::{RealDaemon, short_dir};
 use serde_json::Value;
 
 const MINTED: &str = "Minted for the restart";

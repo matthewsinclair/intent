@@ -57,8 +57,7 @@ use std::process::Command;
 
 use testkit::repo_root;
 
-mod common;
-use common::{declared_paths, shipped_sources, string_literals};
+use crate::common::{declared_paths, shipped_sources, string_literals};
 
 // ---------------------------------------------------------------------------
 // The referent rule

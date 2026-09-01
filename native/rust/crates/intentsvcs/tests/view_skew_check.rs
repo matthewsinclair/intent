@@ -6,9 +6,7 @@
 //! has no way to learn it was discarded. The check exists so the tool can say
 //! "you edited a generated file" instead of quietly winning.
 
-mod common;
-
-use common::{Fixture, ctx, sample_thread};
+use crate::common::{Fixture, ctx, sample_thread};
 use intentsvcs::finding::FindingClass;
 use intentsvcs::ingest::Canon;
 use intentsvcs::views;

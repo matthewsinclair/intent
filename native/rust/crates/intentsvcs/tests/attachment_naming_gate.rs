@@ -32,9 +32,7 @@
 //! delete it" is the kind of promise that survives a refactor only if something
 //! checks.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::project::{BadName, Project, attachment_name, canon_blob_rel};
 use testkit::repo_root;
 

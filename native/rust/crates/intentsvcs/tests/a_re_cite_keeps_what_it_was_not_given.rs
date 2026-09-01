@@ -41,9 +41,7 @@
 //! carrying one. A preservation test whose fixture has nothing to preserve
 //! passes vacuously and reads identically to one that works.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::facade::{Facade, FacadeError};
 use intentsvcs::model::{AtKind, AtStatus};
 

@@ -61,9 +61,7 @@
 //! under the new one, and would have shipped as evidence for a property it
 //! could not see. **The mutation table caught it; review would not have.**
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 
 /// Every op in the log, read straight from the file rather than through the
 /// facade -- the facade is the thing under test.

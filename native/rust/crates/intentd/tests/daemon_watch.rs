@@ -21,11 +21,9 @@
 //! question correctly the whole time.** Nothing in the store's contents can
 //! distinguish that from a healthy daemon.
 
-mod common;
-
 use std::path::Path;
 
-use common::{ATTEMPTS, PAUSE, RunningDaemon};
+use crate::common::{ATTEMPTS, PAUSE, RunningDaemon};
 use intentsvcs::wire::{Op, Request, Response};
 
 /// The count of ingests the daemon has run for this project.
@@ -146,7 +144,7 @@ fn settle(daemon: &RunningDaemon, root: &Path) -> u64 {
 #[test]
 fn an_external_edit_reaches_the_store_with_nobody_running_sync() {
   let daemon = RunningDaemon::start();
-  let root = common::project("Watched");
+  let root = crate::common::project("Watched");
 
   // First contact registers the project AND starts its watch -- there is no
   // separate `watch` verb, deliberately, so this is the whole setup.
@@ -198,7 +196,7 @@ fn one_external_edit_costs_a_bounded_number_of_ingests() {
   // So the claim is stated as the bound it actually is, and `settle` carries
   // the unbounded case.
   let daemon = RunningDaemon::start();
-  let root = common::project("Quiet");
+  let root = crate::common::project("Quiet");
 
   let _ = thread_ids(&daemon, &root);
   write_thread(&root, "ST0043");
@@ -229,7 +227,7 @@ fn a_change_to_a_path_outside_the_sync_scope_drives_no_ingest() {
   // The gitignore-aware half, driven at both of its mechanisms: a
   // `SKIPPED_DIRS` member and a real gitignore rule in a real repository.
   let daemon = RunningDaemon::start();
-  let root = common::project("Scoped");
+  let root = crate::common::project("Scoped");
 
   let _ = thread_ids(&daemon, &root);
   write_thread(&root, "ST0044");
@@ -294,7 +292,7 @@ fn a_burst_of_edits_is_debounced_into_far_fewer_ingests() {
   const WRITES: u64 = 12;
 
   let daemon = RunningDaemon::start();
-  let root = common::project("Burst");
+  let root = crate::common::project("Burst");
 
   let _ = thread_ids(&daemon, &root);
   let before = settle(&daemon, &root);

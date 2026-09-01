@@ -47,8 +47,6 @@
 //! reachable by satisfying clap first. That trap is encoded in [`wiredness`]
 //! rather than remembered.
 
-mod common;
-
 use std::collections::BTreeSet;
 use std::process::Command;
 
@@ -265,7 +263,7 @@ impl Fixture {
 fn emitted_remedies(fx: &Fixture) -> BTreeSet<String> {
   let forbidden: BTreeSet<&str> = FORBIDDEN.iter().map(|(p, _)| *p).collect();
   let mut out = BTreeSet::new();
-  for path in common::declared_paths() {
+  for path in crate::common::declared_paths() {
     if forbidden.contains(path.as_str()) {
       continue;
     }
@@ -330,7 +328,7 @@ fn references(remedy: &str) -> Vec<String> {
 #[test]
 fn every_emitted_remedy_names_something_this_build_can_do() {
   let fx = Fixture::new();
-  let declared: BTreeSet<String> = common::declared_paths().into_iter().collect();
+  let declared: BTreeSet<String> = crate::common::declared_paths().into_iter().collect();
   let forbidden: BTreeSet<&str> = FORBIDDEN.iter().map(|(p, _)| *p).collect();
 
   let mut unreachable: BTreeSet<String> = BTreeSet::new();
@@ -461,7 +459,7 @@ fn the_remedy_a_family_emits_matches_the_verbs_it_actually_wires() {
   let forbidden: BTreeSet<&str> = FORBIDDEN.iter().map(|(p, _)| *p).collect();
 
   let mut families: BTreeSet<String> = BTreeSet::new();
-  for path in common::declared_paths() {
+  for path in crate::common::declared_paths() {
     if let Some((family, _)) = path.split_once(' ') {
       families.insert(family.to_string());
     }
@@ -471,7 +469,7 @@ fn the_remedy_a_family_emits_matches_the_verbs_it_actually_wires() {
     (Vec::new(), Vec::new(), Vec::new(), Vec::new());
 
   for family in &families {
-    let verbs: Vec<String> = common::declared_paths()
+    let verbs: Vec<String> = crate::common::declared_paths()
       .into_iter()
       .filter(|p| p.starts_with(&format!("{family} ")) && !forbidden.contains(p.as_str()))
       .collect();
@@ -546,7 +544,7 @@ fn the_wiredness_probe_separates_a_built_verb_from_a_declared_one() {
 /// so the set cannot quietly grow into a way of making the sweep green.
 #[test]
 fn every_refused_path_is_declared_and_carries_its_reason() {
-  let declared: BTreeSet<String> = common::declared_paths().into_iter().collect();
+  let declared: BTreeSet<String> = crate::common::declared_paths().into_iter().collect();
   for (path, why) in FORBIDDEN {
     assert!(
       declared.contains(*path),

@@ -35,11 +35,9 @@
 //! the contract with v2, so it has to be written twice, in two files, and this
 //! is the second place.
 
-mod common;
-
 use std::collections::BTreeSet;
 
-use common::{Fixture, ctx, sample_thread};
+use crate::common::{Fixture, ctx, sample_thread};
 use intentsvcs::ingest::Canon;
 use intentsvcs::model::{ThreadStatus, WorkPackage, WpStatus};
 use intentsvcs::views;

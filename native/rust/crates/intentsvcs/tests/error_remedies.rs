@@ -17,9 +17,7 @@
 //! `every_variant_is_provoked_or_declared_elsewhere`, and the exemptions are
 //! declared rather than implied.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::facade::{FacadeError, ListEdit};
 use intentsvcs::model::{AcKind, AtKind, AtStatus};
 use intentsvcs::organize::Mode;
@@ -448,7 +446,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   // store is COLD and warms itself from the files on the next open.
   let emptied = Fixture::new();
   emptied.write_thread(&sample_thread("ST0056"));
-  emptied.write_issue(&common::sample_issue(21));
+  emptied.write_issue(&crate::common::sample_issue(21));
   emptied
     .facade_on_disk()
     .sync_to_disk(&intentsvcs::sync::Scope::All)

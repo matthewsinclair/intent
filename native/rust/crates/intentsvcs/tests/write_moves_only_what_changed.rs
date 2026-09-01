@@ -34,13 +34,11 @@
 //! which is the very failure this criterion detects, so the instrument must
 //! not be able to fail that way itself.
 
-mod common;
-
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::model::{AtStatus, TShirt};
 
 /// 2001-09-09, and obviously synthetic on sight. An absolute constant makes

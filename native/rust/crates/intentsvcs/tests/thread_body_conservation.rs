@@ -17,9 +17,7 @@
 //! heading on 8 threads the day it landed, which is exactly what shipped at the
 //! work-package level and had to be fixed after the fact.
 
-mod common;
-
-use common::{Fixture, ctx};
+use crate::common::{Fixture, ctx};
 use intentsvcs::legacy::{self, Verdict};
 use intentsvcs::views;
 

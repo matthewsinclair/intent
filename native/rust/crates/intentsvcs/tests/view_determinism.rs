@@ -15,16 +15,14 @@
 //! inherited it. A guard scoped to what is already clean certifies the status
 //! quo, so this one is scoped to the capability.
 
-mod common;
-
-use common::{Fixture, ctx, sample_thread};
+use crate::common::{Fixture, ctx, sample_thread};
 use intentsvcs::ingest::Canon;
 use intentsvcs::views;
 
 fn canon() -> Canon {
   Canon {
     threads: vec![sample_thread("ST0056"), sample_thread("ST0043")],
-    issues: vec![common::sample_issue(21)],
+    issues: vec![crate::common::sample_issue(21)],
     sections: Vec::new(),
   }
 }

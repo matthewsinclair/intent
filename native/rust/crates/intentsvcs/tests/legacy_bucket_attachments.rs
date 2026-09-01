@@ -26,9 +26,7 @@
 //! carries, and [`a_phrase_never_written_is_carried_by_nothing`] pins that the
 //! probe can still return zero -- a probe that finds everything proves nothing.
 
-mod common;
-
-use common::{Fixture, facade_ctx};
+use crate::common::{Fixture, facade_ctx};
 use intentsvcs::{legacy, migrate};
 
 /// `(bucket, id, file, phrase)` -- the phrase appears in exactly one file, so

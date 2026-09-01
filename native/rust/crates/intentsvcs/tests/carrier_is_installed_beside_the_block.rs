@@ -36,8 +36,6 @@
 //!   git will not execute is a gate that never runs, and the "block already
 //!   present" report is what made that invisible.
 
-mod common;
-
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
@@ -62,20 +60,20 @@ fn mode(path: &Path) -> u32 {
 }
 
 /// One `apply` against a fixture project, with the hooks directory handed in.
-fn apply(fx: &common::Fixture, hooks: &Path) -> canon::Applied {
+fn apply(fx: &crate::common::Fixture, hooks: &Path) -> canon::Applied {
   let project = fx.project();
   canon::apply(
     fx.root(),
     &home(),
     project.config(),
-    &common::ctx(),
+    &crate::common::ctx(),
     Some(hooks),
     false,
   )
   .expect("canon apply")
 }
 
-fn hooks_dir(fx: &common::Fixture) -> std::path::PathBuf {
+fn hooks_dir(fx: &crate::common::Fixture) -> std::path::PathBuf {
   let hooks = fx.root().join(".git/hooks");
   std::fs::create_dir_all(&hooks).expect("mkdir hooks");
   hooks
@@ -94,7 +92,7 @@ fn hooks_dir(fx: &common::Fixture) -> std::path::PathBuf {
 /// negative control is for.
 #[test]
 fn the_block_alone_passes_every_commit_in_silence() {
-  let fx = common::Fixture::new();
+  let fx = crate::common::Fixture::new();
   fx.git_init();
   let hooks = hooks_dir(&fx);
 
@@ -132,7 +130,7 @@ fn the_block_alone_passes_every_commit_in_silence() {
 /// The carrier lands, executable, and its bytes are the install root's own.
 #[test]
 fn apply_installs_the_carrier_from_the_resolved_install_root() {
-  let fx = common::Fixture::new();
+  let fx = crate::common::Fixture::new();
   fx.git_init();
   let hooks = hooks_dir(&fx);
 
@@ -166,7 +164,7 @@ fn apply_installs_the_carrier_from_the_resolved_install_root() {
 /// run.
 #[test]
 fn a_correct_carrier_that_is_not_executable_is_repaired() {
-  let fx = common::Fixture::new();
+  let fx = crate::common::Fixture::new();
   fx.git_init();
   let hooks = hooks_dir(&fx);
   let carrier = hooks.join("pre-commit.intent");
@@ -196,7 +194,7 @@ fn a_correct_carrier_that_is_not_executable_is_repaired() {
 /// report is exactly what kept this state invisible.
 #[test]
 fn a_hook_already_carrying_the_block_is_made_executable() {
-  let fx = common::Fixture::new();
+  let fx = crate::common::Fixture::new();
   fx.git_init();
   let hooks = hooks_dir(&fx);
   let hook = hooks.join("pre-commit");
@@ -222,7 +220,7 @@ fn a_hook_already_carrying_the_block_is_made_executable() {
 /// claims for the whole verb.
 #[test]
 fn a_second_run_reports_the_carrier_already_canonical() {
-  let fx = common::Fixture::new();
+  let fx = crate::common::Fixture::new();
   fx.git_init();
   let hooks = hooks_dir(&fx);
   let carrier = hooks.join("pre-commit.intent");
@@ -250,13 +248,13 @@ fn a_second_run_reports_the_carrier_already_canonical() {
 /// not fail on the way past.
 #[test]
 fn no_repository_means_no_carrier_and_no_error() {
-  let fx = common::Fixture::new();
+  let fx = crate::common::Fixture::new();
   let project = fx.project();
   let applied = canon::apply(
     fx.root(),
     &home(),
     project.config(),
-    &common::ctx(),
+    &crate::common::ctx(),
     None,
     false,
   )

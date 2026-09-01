@@ -20,9 +20,7 @@
 //! anything. So each arm below pairs a real act with a call of the same verb
 //! that changes nothing.
 
-mod common;
-
-use common::{Fixture, gate_open, sample_thread};
+use crate::common::{Fixture, gate_open, sample_thread};
 use intentsvcs::address::{Address, Entity};
 use intentsvcs::organize;
 

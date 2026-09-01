@@ -8,9 +8,7 @@
 //! whole of the bound. The one place the schema IS driven bare, below, exists
 //! to prove that door is the only one.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use serde_json::{Value, json};
 
 #[tokio::test]

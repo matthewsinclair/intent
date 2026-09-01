@@ -32,9 +32,7 @@
 //! authored bytes. Three were; the fourth is covered only by the transcription
 //! in `view_determinism.rs`.
 
-mod common;
-
-use common::{Fixture, ctx};
+use crate::common::{Fixture, ctx};
 use intentsvcs::ingest::Canon;
 use intentsvcs::{legacy, views};
 

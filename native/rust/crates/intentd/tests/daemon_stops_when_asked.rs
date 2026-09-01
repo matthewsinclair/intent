@@ -15,9 +15,7 @@
 //! daemon stops ITSELF, so the thing acting and the thing acted on are one
 //! process and there is no window in which a pid stops meaning what it meant.
 
-mod common;
-
-use common::RunningDaemon;
+use crate::common::RunningDaemon;
 use intentsvcs::daemon::Route;
 use intentsvcs::wire::{Op, Request, Response};
 
@@ -41,7 +39,7 @@ fn settle_to_in_process(daemon: &RunningDaemon) -> bool {
 #[test]
 fn the_daemon_answers_first_and_then_stops() {
   let daemon = RunningDaemon::start();
-  let project = common::project("stopped");
+  let project = crate::common::project("stopped");
 
   // **ANTI-VACUITY: IT MUST BE ANSWERING BEFORE IT IS ASKED TO STOP.** A
   // daemon that never came up would satisfy "it is not answering afterwards"

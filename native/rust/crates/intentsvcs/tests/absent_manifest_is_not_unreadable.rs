@@ -15,9 +15,7 @@
 //! `intent organize` -- the first two commands anybody types -- answered rc=1
 //! with `could not read .../intent/.intentfiles`.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::organize::Mode;
 use intentsvcs::sync::Scope;
 

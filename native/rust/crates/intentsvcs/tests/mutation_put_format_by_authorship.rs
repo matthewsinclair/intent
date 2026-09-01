@@ -13,9 +13,7 @@
 //! accepting one back inverts the dependency and lets a regeneration lose
 //! whatever the writer thought they were saving.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::address::parse;
 
 fn body_for(at: &str) -> String {

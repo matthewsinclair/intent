@@ -57,11 +57,9 @@
 //! agree TODAY. It never says they always did**, and a reader who takes it for
 //! the stronger claim is reading something this file cannot support.
 
-mod common;
-
 use std::collections::BTreeMap;
 
-use common::{Fixture, facade_ctx, tree, v2_estate, v2_thread};
+use crate::common::{Fixture, facade_ctx, tree, v2_estate, v2_thread};
 use intentsvcs::facade::Facade;
 
 /// The issue numbers this fixture plants, in both v2 buckets.

@@ -16,9 +16,7 @@
 //! asserts what I believe v2 says; the differential asserts what it actually
 //! says, and only the second can catch a misremembered format.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::contract::{AllResolve, RepoFiles, Scope, gate};
 use intentsvcs::model::{
   AcKind, AcState, AcceptanceMode, AcceptanceTest, AtKind, AtStatus, Criterion, THREAD_SCHEMA,

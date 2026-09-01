@@ -202,6 +202,22 @@ tempfile = "3"
 # The build cost is +20s over baseline and it is paid in CI at tag time, never
 # in the dev loop -- and it does NOT touch `target/debug`, so nobody sharing
 # this tree pays a rebuild for it.
+[profile.dev]
+# **`cargo test` INHERITS THIS**, which is the whole reason it is worth setting: the
+# test profile derives from `dev`, so one key here reaches every test target rather
+# than needing a `[profile.test]` beside it.
+#
+# Default `dev` is `debug = true` -- FULL debuginfo, emitted and linked into every
+# target. `line-tables-only` keeps what a person actually reads off a failure (file and
+# line in the backtrace) and drops the type and variable detail that only an
+# interactive debugger consumes. Conflab has run this setting since before we measured
+# it; Intent had no dev or test profile at all.
+#
+# **BOOK IT AS DEBUGINFO, NOT AS A BUILD-TIME CLAIM.** It cuts what is generated and
+# linked per target; it does not change how many targets there are, which was the
+# dominant cost here and is fixed by `autotests = false` in each crate instead.
+debug = "line-tables-only"
+
 [profile.release]
 lto = "fat"
 codegen-units = 1

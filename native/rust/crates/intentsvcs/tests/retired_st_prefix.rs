@@ -19,9 +19,7 @@
 //! is silent on every one of them. It exists for the reader outside the fleet,
 //! who is the only person the retirement could ever have hurt.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::finding::FindingClass;
 use intentsvcs::legacy;
 use intentsvcs::model::{THREAD_PREFIX, is_thread_id, thread_id, thread_seq};

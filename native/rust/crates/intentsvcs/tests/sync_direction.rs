@@ -18,9 +18,7 @@
 //! the right one): a store that holds a change the files do not, restored from
 //! those files. Everything else here is a property; that one is the loss.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::model::ThreadStatus;
 
 /// Put the store ahead of the files: mutate with the tree read-only, so the

@@ -58,11 +58,9 @@
 //! because the server is driven as a real host would drive it; nothing here
 //! calls a tool.
 
-mod common;
-
 use std::collections::BTreeSet;
 
-use common::{mcp_session, short_dir};
+use crate::common::{mcp_session, short_dir};
 use intent_cli::dispatch;
 use intent_cli::mcp::{self, SERVED, Tool};
 

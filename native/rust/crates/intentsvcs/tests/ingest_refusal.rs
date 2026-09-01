@@ -6,9 +6,7 @@
 //! decides whether a failed ingest leaves a project queryable-but-wrong, and
 //! it is invisible unless a test looks at the store AFTER the refusal.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::finding::FindingClass;
 use intentsvcs::ingest::{self, IngestError};
 use intentsvcs::store::Store;
@@ -161,7 +159,7 @@ fn a_refusal_loads_nothing_into_the_store() {
 fn a_valid_estate_ingests() {
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0056"));
-  fx.write_issue(&common::sample_issue(21));
+  fx.write_issue(&crate::common::sample_issue(21));
 
   let canon = ingest::read(&fx.project()).expect("a valid estate ingests");
   assert_eq!(canon.threads.len(), 1);

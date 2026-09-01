@@ -21,9 +21,7 @@
 //! holding an unrelated file SURVIVES, the estate root itself survives, and the
 //! prune cascades no further than the run's own removals reach.
 
-mod common;
-
-use common::{Fixture, gate_open, sample_thread};
+use crate::common::{Fixture, gate_open, sample_thread};
 use intentsvcs::organize::Mode;
 use intentsvcs::sync::Scope;
 

@@ -11,9 +11,7 @@
 //!
 //! These arms separate them by putting the SAME defective row in each location.
 
-mod common;
-
-use common::Fixture;
+use crate::common::Fixture;
 use intentsvcs::legacy;
 
 const ROW: &str = "# Acceptance\n\n## Criteria\n\n\

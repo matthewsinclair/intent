@@ -7,9 +7,7 @@
 //! all properties of the registry's state over time, and none of them is
 //! visible to a unit test of any single call.
 
-mod common;
-
-use common::{RunningDaemon, project};
+use crate::common::{RunningDaemon, project};
 use intentsvcs::wire::{Op, Request, Response};
 
 fn ask(op: Op, root: &std::path::Path) -> Request {
@@ -187,7 +185,7 @@ fn a_root_that_moves_surfaces_in_the_listing_and_does_not_take_the_daemon_with_i
 #[test]
 fn a_root_that_was_never_a_project_is_refused_with_a_remedy() {
   let daemon = RunningDaemon::start();
-  let empty = common::short_dir("intentd-notaproject");
+  let empty = crate::common::short_dir("intentd-notaproject");
 
   match daemon.ask(ask(Op::ThreadList, &empty)) {
     Response::Error { message, remedy } => {

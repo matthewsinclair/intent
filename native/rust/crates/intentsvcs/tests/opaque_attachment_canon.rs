@@ -34,9 +34,7 @@
 //! below is byte equality against the bytes that went in, and the sidecar's
 //! own on-disk bytes are compared to the source file directly.
 
-mod common;
-
-use common::{Fixture, sample_thread};
+use crate::common::{Fixture, sample_thread};
 use intentsvcs::export::{self, Bundle};
 use intentsvcs::ingest;
 use intentsvcs::model::Attachment;

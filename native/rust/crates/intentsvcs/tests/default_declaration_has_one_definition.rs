@@ -104,9 +104,7 @@
 //! to what it was before the run. **The residue is AC-11.4's state, not a
 //! hole**, and `organize` reports it as to-remove-and-blocked.
 
-mod common;
-
-use common::{Fixture, facade_ctx, sample_thread, v2_estate, v2_thread};
+use crate::common::{Fixture, facade_ctx, sample_thread, v2_estate, v2_thread};
 use intentsvcs::facade::Facade;
 use intentsvcs::intentfiles::default_declaration;
 use intentsvcs::model::{Thread, ThreadStatus};
@@ -337,11 +335,11 @@ fn upgrade_over_a_present_manifest_changes_not_one_byte() {
 #[test]
 fn the_migration_realises_only_what_it_declares() {
   let converted = v2_corpus();
-  let before = common::tree(converted.root());
+  let before = crate::common::tree(converted.root());
 
   Facade::upgrade(&converted.project(), &facade_ctx()).expect("a clean v2 estate converts");
 
-  let after = common::tree(converted.root());
+  let after = crate::common::tree(converted.root());
   let migrated =
     Facade::open(converted.project(), facade_ctx()).expect("open the converted estate");
 
