@@ -183,6 +183,7 @@ pub fn screen_for(app: &App, rows: &[Row], width: usize) -> Screen {
       .and_then(|r| r.detail.as_ref())
       .map(|d| layout::plan(d, width)),
     omnibox: omnibox_row(app),
+    caret: caret_at(app),
     hint: hint_row(app, rows),
     dropdown: dropdown(app),
     mode: app.mode,
@@ -231,22 +232,41 @@ fn omnibox_row(app: &App) -> String {
     // the cursor rather than standing dim waiting to be selected. **MENU
     // carries it too, because the palette COLLECTS**: the sigil in the buffer
     // is what tells the two apart, not the presence of a cursor.
+    // **THE CARET IS NOT IN THIS STRING, AND THAT IS THE FIX FOR A REAL
+    // DEFECT hv DROVE INTO.** It used to be a glyph SPLICED INTO the buffer at
+    // the cursor, which reads correctly at the end of the line -- where it
+    // lands after the last character -- and is wrong everywhere else: the
+    // glyph occupies a column, so every character after the cursor is pushed
+    // one to the right. `C-a` therefore appeared to insert a space in front of
+    // the text. **A cursor is a PROPERTY OF A CELL, not a character in the
+    // line**, so it is carried as [`layout::Screen::caret`] and painted as an
+    // overlay, exactly as the dropdown's pick already is.
+    //
+    // The trailing space is the cell the caret sits on when it is at the end
+    // of the buffer, where there is no character to reverse. That column is
+    // spent at the END of the line, where it costs nothing and is what every
+    // terminal does.
     super::mode::Mode::Omni | super::mode::Mode::Menu => {
-      // **THE CARET IS DRAWN WHERE IT IS, NOT AT THE END.** It was appended
-      // while the buffer had no cursor; with one, appending would paint the
-      // caret in a place the next keystroke does not land -- an input that
-      // lies about where you are typing.
-      let buffer = &app.omnibox.buffer;
-      let at = buffer
-        .char_indices()
-        .nth(app.omnibox.cursor())
-        .map(|(i, _)| i)
-        .unwrap_or(buffer.len());
-      format!("\u{276f} {}\u{258f}{}", &buffer[..at], &buffer[at..])
+      format!("{PROMPT}{} ", app.omnibox.buffer)
     }
-    _ => format!("\u{276f} {}", app.omnibox.buffer),
+    _ => format!("{PROMPT}{}", app.omnibox.buffer),
   }
 }
+
+/// Which cell of [`omnibox_row`] the cursor is on, or `None` where the
+/// composer does not hold the keyboard.
+///
+/// **THE OFFSET IS THE PROMPT'S WIDTH PLUS THE CURSOR, IN CHARACTERS**, and it
+/// is computed here beside the string it indexes into. A second spelling of
+/// `❯ ` anywhere else would be a caret that drifts off the character it claims
+/// to be on the day the prompt changes.
+fn caret_at(app: &App) -> Option<usize> {
+  matches!(app.mode, super::mode::Mode::Omni | super::mode::Mode::Menu)
+    .then(|| PROMPT.chars().count() + app.omnibox.cursor())
+}
+
+/// The composer's prompt. One home, read by both functions above.
+const PROMPT: &str = "\u{276f} ";
 
 /// `TAB detail` from the list, `TAB list` from the detail pane, and nothing at
 /// all where the row carries none.
@@ -767,6 +787,94 @@ mod tests {
       );
       seen.push(line);
     }
+  }
+
+  /// **hv's DEFECT, DRIVEN: `C-a` APPEARED TO INSERT A SPACE IN FRONT OF THE
+  /// TEXT.** The caret was a glyph spliced into the buffer at the cursor, so it
+  /// occupied a column and pushed everything after it one to the right. At the
+  /// END of the line -- where the caret sits while you type, and where every
+  /// earlier test happened to leave it -- there is nothing after it to push, so
+  /// the defect was invisible for the whole life of the feature.
+  ///
+  /// **THE PROPERTY IS THAT MOVING THE CARET MOVES NOTHING ELSE**, held over
+  /// every cursor position rather than over the two hv happened to drive. It is
+  /// asserted against the LINE, which is data this seam can see -- the caret's
+  /// colour is not, and is asserted separately below as an offset.
+  #[test]
+  fn moving_the_caret_never_moves_the_text_it_sits_in() {
+    let typed = "Help System";
+    let mut at_end = App::explore();
+    for c in typed.chars() {
+      at_end.on_key(key(KeyCode::Char(c)), &[]);
+    }
+    let expected = screen_for(&at_end, &[], 80).omnibox;
+    assert!(
+      expected.contains(typed),
+      "the fixture never got the text into the composer: {expected:?}"
+    );
+
+    for back in 1..=typed.chars().count() {
+      let mut app = at_end.clone();
+      for _ in 0..back {
+        app.on_key(
+          crossterm::event::KeyEvent::new(KeyCode::Left, crossterm::event::KeyModifiers::NONE),
+          &[],
+        );
+      }
+      assert_eq!(
+        screen_for(&app, &[], 80).omnibox,
+        expected,
+        "with the caret {back} char(s) from the end the composer line CHANGED -- the caret is \
+         taking a column and shifting the text, which is what `C-a` looked like"
+      );
+    }
+
+    // The control: `C-a` itself, which is the key hv pressed.
+    let mut app = at_end.clone();
+    app.on_key(
+      crossterm::event::KeyEvent::new(KeyCode::Char('a'), crossterm::event::KeyModifiers::CONTROL),
+      &[],
+    );
+    assert_eq!(app.omnibox.cursor(), 0, "`C-a` did not reach the start");
+    assert_eq!(
+      screen_for(&app, &[], 80).omnibox,
+      expected,
+      "`C-a` moved the text"
+    );
+  }
+
+  /// **THE CARET IS STILL WHERE THE NEXT KEYSTROKE LANDS**, which is the half
+  /// the line-equality test above cannot see: a caret painted nowhere at all
+  /// would satisfy it perfectly.
+  #[test]
+  fn the_caret_marks_the_cell_the_next_keystroke_lands_in() {
+    let mut app = App::explore();
+    for c in "56".chars() {
+      app.on_key(key(KeyCode::Char(c)), &[]);
+    }
+    let prompt = PROMPT.chars().count();
+    for expected_cursor in [2usize, 1, 0] {
+      while app.omnibox.cursor() > expected_cursor {
+        app.on_key(
+          crossterm::event::KeyEvent::new(KeyCode::Left, crossterm::event::KeyModifiers::NONE),
+          &[],
+        );
+      }
+      assert_eq!(
+        screen_for(&app, &[], 80).caret,
+        Some(prompt + expected_cursor),
+        "the caret is not on the cell the cursor is in"
+      );
+    }
+
+    // A mode that does not hold the keyboard has no caret to paint.
+    let mut app = App::explore();
+    app.mode = Mode::Embed;
+    assert_eq!(
+      screen_for(&app, &[], 80).caret,
+      None,
+      "a caret was painted in a mode where the child owns the terminal"
+    );
   }
 
   /// **THE SPLIT FOLLOWS THE CURSOR WITHIN ONE VIEW, WHICH IS WHAT MAKES IT

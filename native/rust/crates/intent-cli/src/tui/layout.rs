@@ -364,6 +364,26 @@ impl Plan {
   }
 }
 
+/// Add the one-cell cursor overlay to a composer line's ink.
+///
+/// **LAST IN THE INK, BECAUSE THE PRINTER APPLIES SPANS IN ORDER** -- the
+/// composer's own role already covers this cell, and a caret painted before it
+/// would be overwritten by the thing it sits on top of. That is the same rule
+/// the dropdown's `Role::Selected` follows, and it is one line away from being
+/// silently wrong.
+///
+/// **A CARET PAST `limit` IS DROPPED RATHER THAN CLAMPED.** The line is
+/// clipped to the viewport, so a cursor scrolled off the right-hand end has no
+/// cell to sit on; clamping would park it on the last visible character and
+/// claim the operator is typing there.
+fn caret_ink(ink: &mut Ink, at: Option<usize>, limit: usize) {
+  if let Some(at) = at
+    && at < limit
+  {
+    ink.push((at, at + 1, Role::Selected));
+  }
+}
+
 /// The whole screen: five sections, composed at a fixed size.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Screen {
@@ -379,8 +399,22 @@ pub struct Screen {
   /// the guarantee is about; a shared gutter would be a promise neither pane
   /// made.
   pub detail: Option<Plan>,
-  /// The omnibox line: caret + buffer, or the menu bar in MENU.
+  /// The omnibox line: prompt + buffer. **The caret is NOT in it** -- see
+  /// [`Screen::caret`].
   pub omnibox: String,
+  /// Which cell of [`Screen::omnibox`] the text cursor is on, in characters
+  /// from the start of the line.
+  ///
+  /// **A CURSOR IS A PROPERTY OF A CELL, NOT A CHARACTER IN THE LINE**, and
+  /// this field is a defect hv drove into. The caret used to be a glyph
+  /// spliced into the buffer at the cursor: correct-looking at the END of the
+  /// line, where it lands after the last character, and wrong everywhere else
+  /// -- the glyph takes a column, so everything after the cursor shifts one
+  /// right, and `C-a` appeared to insert a space in front of the text.
+  ///
+  /// Painted as an overlay, the way the dropdown's pick already is. `None`
+  /// where the composer does not hold the keyboard.
+  pub caret: Option<usize>,
   /// The hint line: mode chip + whatever helps RIGHT NOW. A notice takes it.
   pub hint: String,
   /// Dropdown lines composed by the caller, painted ABOVE the bottom rule,
@@ -571,16 +605,20 @@ impl Screen {
       let text = clip(&omnibox, inner);
       let pad = inner.saturating_sub(text.chars().count());
       let line = format!("{BOX_V} {text}{} {BOX_V}", " ".repeat(pad));
-      let ink: Ink = vec![
+      let mut ink: Ink = vec![
         (0, 2, Role::Frame),
         (2, 2 + text.chars().count(), omnibox_role),
         (w - 2, w, Role::Frame),
       ];
+      // The frame and its space push the text two columns in, so the caret's
+      // offset within the LINE is two more than its offset within the text.
+      caret_ink(&mut ink, self.caret.map(|c| c + 2), 2 + inner);
       out.push((top, edge.clone()));
       out.push((line, ink));
       out.push((bottom, edge));
     } else {
-      let omnibox_ink = whole(&omnibox, omnibox_role);
+      let mut omnibox_ink = whole(&omnibox, omnibox_role);
+      caret_ink(&mut omnibox_ink, self.caret, omnibox.chars().count());
       out.push((omnibox, omnibox_ink));
     }
     // The mode chip leads the hint line and is coloured PER MODE -- hv's
@@ -721,6 +759,7 @@ mod tests {
       app: "ST0056   Add a Rust-based CLI".into(),
       body: plan(&hard_rows(), NARROW),
       omnibox: "\u{276f}".into(),
+      caret: Some(1),
       hint: "NAV  1/4  \u{23ce} edit".into(),
       dropdown: Vec::new(),
       mode: super::super::mode::Mode::Omni,

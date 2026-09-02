@@ -135,6 +135,7 @@ mod tests {
       app: "ST0056   Add a Rust-based CLI".into(),
       body: plan(&rows(), W as usize),
       omnibox: "\u{276f}".into(),
+      caret: Some(1),
       hint: "OMNI  1/4  \u{23ce} edit".into(),
       dropdown: Vec::new(),
       mode: crate::tui::mode::Mode::Omni,
