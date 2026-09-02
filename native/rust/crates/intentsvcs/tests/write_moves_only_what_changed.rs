@@ -635,7 +635,19 @@ const UNPROVEN: &[&str] = &[
   // than into a roster that quietly outlived its subject.
   "init",
   "learn",
-  "llm usage_rules",
+  // **`llm usage_rules` LEFT THIS ROSTER ON 2026-09-02 BY BEING RECLASSIFIED,
+  // NOT BY BEING PROVEN** -- the same way `fileindex` left it by being retired,
+  // and caught the same way, by the EQUALITY arm rather than by anyone
+  // remembering. `--symlink` was the only thing on that row that ever wrote;
+  // vc withdrew it under the pen (issue 0181), so `read_or_mutate` moved
+  // `mutate` -> `read` and the entry is no longer a shipped mutator. An entry
+  // that is not a shipped mutator cannot be an unproven one.
+  //
+  // **THE RECLASSIFICATION AND THIS LINE ARE ONE LANDING** (0210): the
+  // withdrawal was made in `surface/dispatch-table.json`, `gen_dispatch_table.sh`
+  // refused the `mutate`-with-no-writer pair, and THIS test then refused the
+  // roster that still named it. **Two instruments caught two different halves
+  // of one edit, and neither was looking for the other.**
   "mcp",
 ];
 

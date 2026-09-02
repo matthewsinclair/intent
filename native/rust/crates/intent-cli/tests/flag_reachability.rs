@@ -709,10 +709,29 @@ const INHERITED_UNREAD: &[&str] = &[
   // so the flag was a false claim in two directions, advertising templating
   // that does not happen AND accepting a template name that does not exist
   // where v2 refused an unknown one by name. It now refuses at clap.
-  // `llm usage_rules --symlink` (WP-09) is unchanged and stands on the same
-  // reasoning, awaiting the same single question: did the capability move, or
-  // was it never built.
-  "`llm usage_rules` --symlink (id `symlink`)",
+  // **`llm usage_rules` --symlink LEFT THIS LIST ON 2026-09-02 THE SAME WAY,
+  // AND THE SINGLE QUESTION HAD A THIRD ANSWER.** The line above used to end
+  // *awaiting the same single question: did the capability move, or was it
+  // never built* -- kept here because the answer is what makes this entry's
+  // departure legible. **Driven (dc), v2 in three arms: neither. It was BUILT
+  // and it does not do what its help says.** `--symlink <ABSOLUTE dir>` works;
+  // `--symlink` BARE does not use the current directory, because
+  // `bin/intent:284` cds to PROJECT_ROOT and exports `INTENT_ORIG_CWD` that
+  // `bin/intent_llm` never reads, so a fresh empty directory stays empty under
+  // a `created:` line at rc=0; `--symlink <RELATIVE dir>` refuses a directory
+  // that exists. **A SOURCE READ COULD NOT HAVE SEEN ANY OF IT, BECAUSE THE
+  // `cd` IS IN A DIFFERENT FILE** -- and the roster row's own `evidence_class`
+  // is `read`, so the population could not contain the defect. vc ruled it
+  // WITHDRAWN within the pen on the ground that the SUBJECT HAS MOVED: v2's
+  // flag linked the INSTALL's `usage-rules.md`, v3's verb is about the
+  // PROJECT's. Issue 0181; `disposition: retire` with the basis at the site.
+  //
+  // **THIS IS THE THIRD HALF OF THAT ONE LANDING** (0210), and each half was
+  // found by a different instrument that was not looking for the others:
+  // `gen_dispatch_table.sh` refused the row left `mutate` with its only writer
+  // withdrawn, `write_moves_only_what_changed.rs` refused the UNPROVEN roster
+  // that still named it, and this ratchet would have refused an entry whose
+  // flag no longer ships.
   // **REMOVED BECAUSE THE DETECTION SAYS SO, AND THE DETECTION IS IMPRECISE
   // HERE -- recorded rather than absorbed.** `claude subagents` is NOT wired;
   // nothing reads its `-v`. It left this list because wiring `claude skills`
