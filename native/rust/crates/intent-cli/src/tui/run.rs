@@ -860,8 +860,12 @@ mod tests {
 
     // The lines reach the composed screen directly above the bottom rule.
     let lines = screen.compose(0, 20);
+    // Derived from the declared foot rather than counted back by hand: the
+    // bottom rule sits at `20 - foot`, and the dropdown fills the body rows
+    // directly above it, best match nearest the input.
+    let foot = layout::FOOT + layout::FRAME_COST;
     assert!(
-      lines[20 - 4].contains("0056") && lines[20 - 5].contains("ST0056"),
+      lines[20 - foot - 1].contains("0056") && lines[20 - foot - 2].contains("ST0056"),
       "the dropdown must sit above the bottom rule, best match nearest the input:\n{lines:#?}"
     );
 

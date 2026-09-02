@@ -15,12 +15,15 @@
 //! [`super::layout::Screen::compose`], where it can be asserted without a
 //! terminal.
 //!
-//! # No borders, no decoration
+//! # One border, and no decoration
 //!
-//! There is no `Block`, no border, no title bar and no padding widget here.
-//! `tui-design.md` §2 allows exactly two rules and calls them *the only
-//! chrome*; the cheapest way to keep it that way is to never reach for a widget
-//! that draws one. This module writes strings at coordinates and nothing else.
+//! There is no `Block`, no title bar and no padding widget here. `tui-design.md`
+//! §2 allowed exactly two rules and called them *the only chrome* until hv
+//! ratified the framed composer (O1, 2026-09-02); the rule is now **borders on
+//! the composer and nowhere else**. Even that box is drawn the same way as
+//! everything else -- **strings at coordinates**, assembled by
+//! [`super::layout`] -- because reaching for a bordering widget is how the
+//! second border arrives.
 
 use ratatui::buffer::Buffer;
 use ratatui::layout::Rect;
@@ -44,6 +47,11 @@ fn style(role: Role) -> Style {
   let d = Style::default();
   match role {
     Role::Chrome | Role::Name | Role::Muted => d.fg(Color::DarkGray),
+    // **THE COMPOSER'S BOX IS THE ONE BORDER THE DESIGN ALLOWS**, and it is
+    // drawn in chrome dim rather than in the accent: the frame's job is to say
+    // *this is where you type*, which the position already says. A bright box
+    // would make the least informative line on the screen the loudest.
+    Role::Frame => d.fg(Color::DarkGray),
     Role::Value => d,
     Role::Door => d.fg(Color::Cyan),
     Role::Ok => d.fg(Color::Green),
@@ -193,23 +201,46 @@ mod tests {
   /// `tui-design.md` §2's shape, verified on the painted cells rather than on
   /// the composed strings -- a printer that dropped the foot would still have
   /// been handed a correct plan.
+  ///
+  /// **POSITIONS DERIVE FROM THE DECLARED CONSTANTS.** The foot grew when hv's
+  /// framed composer landed and will grow again with the status segments;
+  /// hardcoded offsets would have to be edited on each, and editing an
+  /// assertion to match what the code now does is how a check stops being one.
   #[test]
-  fn the_five_sections_reach_the_screen_in_their_declared_positions() {
+  fn the_sections_reach_the_screen_in_their_declared_positions() {
     let s = screen();
     let painted_lines = painted(&s, 0, H);
+    let h = H as usize;
     let rule: String = std::iter::repeat_n(RULE, W as usize).collect();
+    let framed = (W as usize) > 4 && h >= CHROME + layout::FRAME_COST + 1;
+    assert!(framed, "this fixture is meant to exercise the FRAMED foot");
+    let foot = layout::FOOT + layout::FRAME_COST;
     assert_eq!(painted_lines[0], s.app, "the APP row must be painted first");
     assert_eq!(
       painted_lines[1], rule,
       "a rule must be painted under the APP row"
     );
     assert_eq!(
-      painted_lines[H as usize - 3],
+      painted_lines[h - foot],
       rule,
       "a rule must be painted above the foot"
     );
-    assert_eq!(painted_lines[H as usize - 2], s.omnibox);
-    assert_eq!(painted_lines[H as usize - 1], s.hint);
+    assert!(
+      painted_lines[h - 4].starts_with(layout::BOX_TL),
+      "the composer's box must open under the rule: {:?}",
+      painted_lines[h - 4]
+    );
+    assert!(
+      painted_lines[h - 3].contains(s.omnibox.trim()),
+      "the composer's text must be painted inside its box: {:?}",
+      painted_lines[h - 3]
+    );
+    assert!(
+      painted_lines[h - 2].starts_with(layout::BOX_BL),
+      "the composer's box must close above the hint: {:?}",
+      painted_lines[h - 2]
+    );
+    assert_eq!(painted_lines[h - 1], s.hint);
   }
 
   /// Scrolling moves the WINDOW and leaves the chrome alone -- the two
@@ -266,11 +297,20 @@ mod tests {
        nothing this test could not already see"
     );
 
-    for (what, s, rule_lines) in [
-      ("unsplit", screen(), vec![1usize, H as usize - 3]),
-      ("split", split_screen(), vec![1usize, 1 + 4, H as usize - 3]),
-    ] {
+    let h = H as usize;
+    let foot = layout::FOOT + layout::FRAME_COST;
+    // The composer's three lines: the ONLY place a border may appear.
+    let framed_lines = [h - 4, h - 3, h - 2];
+    for (what, s) in [("unsplit", screen()), ("split", split_screen())] {
       let painted_lines = painted(&s, 0, H);
+      // **THE LABELLED RULE IS LOCATED, NOT COUNTED.** Its line depends on how
+      // the body divides, which the framed composer changed by taking two rows
+      // -- so a hardcoded index here reports "a border appeared" when all that
+      // moved was the split.
+      let mut rule_lines = vec![1usize, h - foot];
+      if let Some(at) = painted_lines.iter().position(|l| *l == labelled) {
+        rule_lines.push(at);
+      }
       for (y, line) in painted_lines.iter().enumerate() {
         if rule_lines.contains(&y) {
           assert!(
@@ -279,11 +319,21 @@ mod tests {
           );
           continue;
         }
+        if framed_lines.contains(&y) {
+          // **THE ONE RELAXATION, AND IT IS BOUNDED BY POSITION.** hv ruled
+          // the framed composer in on 2026-09-02, so `no borders anywhere`
+          // becomes BORDERS ON THE COMPOSER AND NOWHERE ELSE. Checking it by
+          // POSITION rather than by exempting the characters globally is what
+          // keeps the rest of the screen under the original rule -- an
+          // exemption written as "these glyphs are allowed" would have
+          // retired the property everywhere at once.
+          continue;
+        }
         for ch in line.chars() {
           assert!(
-            !"|+\u{2502}\u{250c}\u{2510}\u{2514}\u{2518}\u{251c}\u{2524}\u{252c}\u{2534}\u{253c}"
+            !"|+\u{2502}\u{250c}\u{2510}\u{2514}\u{2518}\u{251c}\u{2524}\u{252c}\u{2534}\u{253c}\u{256d}\u{256e}\u{2570}\u{256f}"
               .contains(ch),
-            "{what}: a border character reached the screen on line {y}: {line:?}"
+            "{what}: a border character reached the screen OFF the composer, on line {y}: {line:?}"
           );
           assert!(
             ch != RULE,

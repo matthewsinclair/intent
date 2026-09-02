@@ -13,7 +13,7 @@
 //! [`super::terminal`] and [`super::focus`] carry no terminal: the realiser is
 //! what these invariants CHECK.
 //!
-//! # Five sections, two rules, and where that came from
+//! # The foot, and where its shape came from
 //!
 //! `AC-17.11` originally said *one modeline at the foot above a single rule*.
 //! `tui-design.md` §2 -- ratified with hv on 2026-08-29, a day later, by
@@ -34,6 +34,12 @@
 //! - **COMMAND** -- the command in play, the `:` line while composing, the menu
 //!   in MENU, the child's name in EMBED.
 //! - **INFO** -- help for whatever is under the cursor, changing per row.
+//!
+//! **REVISED AGAIN 2026-09-02 (hv's O1): THE COMPOSER IS FRAMED**, and it is
+//! the one bordered element on the screen. The frame is paid for out of the
+//! BODY rather than the chrome, so every degradation guarantee here is
+//! unchanged and a viewport that cannot afford it renders exactly what it
+//! rendered before -- see [`FRAME_COST`].
 //!
 //! **THE CHROME SITS AT FIXED VIEWPORT POSITIONS, NEVER AT THE END OF THE
 //! CONTENT.** A screen laid out top-down puts the status row wherever the rows
@@ -79,9 +85,34 @@ pub const MIN_VALUE_COLS: usize = 8;
 /// Marks a value that lost its tail.
 pub const CLIPPED: char = '\u{2026}';
 
-/// The rule. `tui-design.md` §2 specifies unicode box-drawing, and these two
-/// rules are the only chrome on the screen -- there are no borders anywhere.
+/// The rule. `tui-design.md` §2 specifies unicode box-drawing. These two rules
+/// were *the only chrome on the screen* until hv ratified the framed composer
+/// (O1, 2026-09-02); the rule now reads **borders on the composer and nowhere
+/// else** -- see [`BOX_TL`]. They remain the only FULL-WIDTH chrome, which is
+/// what the two-rules assertions actually pin.
 pub const RULE: char = '\u{2500}';
+
+/// The composer's box: the ONE bordered element on the screen (hv's O1,
+/// ratified 2026-09-02). `tui-design.md` §2's *two rules are the only chrome*
+/// is relaxed to exactly this and no further -- **borders are allowed on the
+/// composer and nowhere else**, stated as a positive rule so a later reader
+/// does not read the relaxation as open season.
+pub const BOX_TL: char = '\u{256d}';
+pub const BOX_TR: char = '\u{256e}';
+pub const BOX_BL: char = '\u{2570}';
+pub const BOX_BR: char = '\u{256f}';
+pub const BOX_V: char = '\u{2502}';
+
+/// What framing the composer costs: one line above it and one below.
+///
+/// **THE FRAME IS ADDITIVE AND IT IS THE FIRST THING A SHORT VIEWPORT GIVES
+/// UP.** It is paid for out of the BODY rather than out of the chrome, so
+/// every degradation guarantee below is unchanged: a terminal that cannot
+/// afford it renders the composer exactly as it did before the frame existed.
+/// **A border is the least informative line on the screen** -- it carries no
+/// text at all -- so it is the correct thing to lose first, and losing it
+/// costs the operator nothing but the look.
+pub const FRAME_COST: usize = 2;
 
 /// Lines above the body: the APP row and the rule under it.
 pub const HEAD: usize = 2;
@@ -273,6 +304,8 @@ pub enum Role {
   Match,
   /// The mode chip -- coloured PER MODE by the printer.
   ModeChip(super::mode::Mode),
+  /// The composer's box: the one border the design allows.
+  Frame,
   /// The omnibox line while the omnibox has the keyboard.
   OmniActive,
   /// The APP row's identity.
@@ -425,6 +458,13 @@ impl Screen {
         .collect();
     }
 
+    // **THE FRAME IS AFFORDED OUT OF THE BODY, AND ONLY IF A BODY ROW
+    // SURVIVES IT.** A screen that spent its last two lines on a border would
+    // have traded the content for the decoration, which is the opposite of the
+    // degradation order this module already declares.
+    let framed = w > 4 && height >= CHROME + FRAME_COST + 1;
+    let frame_cost = if framed { FRAME_COST } else { 0 };
+
     let rule: String = std::iter::repeat_n(RULE, w).collect();
     let rule_ink: Ink = vec![(0, rule.chars().count(), Role::Chrome)];
     let whole = |line: &str, role: Role| -> Ink { vec![(0, line.chars().count(), role)] };
@@ -442,8 +482,8 @@ impl Screen {
     // both routes land on the unsplit body below rather than on a rule with
     // nothing beneath it.
     let split = match &self.detail {
-      Some(d) if height >= SPLIT_CHROME => {
-        let body_h = height - SPLIT_CHROME;
+      Some(d) if height >= SPLIT_CHROME + frame_cost => {
+        let body_h = height - SPLIT_CHROME - frame_cost;
         let (list_h, detail_h) = divide(body_h, d.rows.len());
         (detail_h > 0).then_some((list_h, detail_h, d))
       }
@@ -476,7 +516,7 @@ impl Screen {
         body_rows(&mut out, detail, 0, detail_h, false);
       }
       None => {
-        let body_h = height - CHROME;
+        let body_h = height - CHROME - frame_cost;
         body_rows(&mut out, &self.body, first, body_h, true);
       }
     }
@@ -501,8 +541,29 @@ impl Screen {
     } else {
       Role::Muted
     };
-    let omnibox_ink = whole(&omnibox, omnibox_role);
-    out.push((omnibox, omnibox_ink));
+    if framed {
+      // `╭──╮` / `│ text │` / `╰──╯`, each exactly `w` columns so the printer
+      // never has to reason about width.
+      let bar: String = std::iter::repeat_n(RULE, w - 2).collect();
+      let top: String = format!("{BOX_TL}{bar}{BOX_TR}");
+      let bottom: String = format!("{BOX_BL}{bar}{BOX_BR}");
+      let edge: Ink = vec![(0, w, Role::Frame)];
+      let inner = w - 4;
+      let text = clip(&omnibox, inner);
+      let pad = inner.saturating_sub(text.chars().count());
+      let line = format!("{BOX_V} {text}{} {BOX_V}", " ".repeat(pad));
+      let ink: Ink = vec![
+        (0, 2, Role::Frame),
+        (2, 2 + text.chars().count(), omnibox_role),
+        (w - 2, w, Role::Frame),
+      ];
+      out.push((top, edge.clone()));
+      out.push((line, ink));
+      out.push((bottom, edge));
+    } else {
+      let omnibox_ink = whole(&omnibox, omnibox_role);
+      out.push((omnibox, omnibox_ink));
+    }
     // The mode chip leads the hint line and is coloured PER MODE -- hv's
     // "the state changes between modes are not obvious", answered where the
     // state is written.
@@ -785,21 +846,52 @@ mod tests {
         "the APP row is the first line"
       );
       assert_eq!(lines[1], rule, "a rule sits directly under the APP row");
+      // **POSITIONS ARE DERIVED FROM THE DECLARED CONSTANTS, NEVER COUNTED
+      // BACK FROM THE BOTTOM BY HAND.** The foot grew when hv's framed
+      // composer landed and it will grow again when the status segments do;
+      // a test that hardcodes `height - 3` has to be rewritten on each of
+      // those, and rewriting an assertion to match what the code now does is
+      // how a check stops being one.
+      let framed = NARROW > 4 && height >= CHROME + FRAME_COST + 1;
+      let foot = if framed { FOOT + FRAME_COST } else { FOOT };
       assert_eq!(
-        lines[height - 3],
+        lines[height - foot],
         rule,
-        "a rule sits directly above the foot"
+        "a rule sits directly above the foot (framed: {framed})"
       );
-      assert_eq!(
-        lines[height - 2],
-        s.omnibox,
-        "the OMNIBOX line is second from the bottom"
-      );
+      if framed {
+        assert!(
+          lines[height - foot + 1].starts_with(BOX_TL),
+          "the composer's box opens under the rule: {:?}",
+          lines[height - foot + 1]
+        );
+        assert!(
+          lines[height - 3].contains(s.omnibox.trim()),
+          "the composer's text sits inside its box: {:?}",
+          lines[height - 3]
+        );
+        assert!(
+          lines[height - 2].starts_with(BOX_BL),
+          "the composer's box closes above the hint: {:?}",
+          lines[height - 2]
+        );
+      } else {
+        assert_eq!(
+          lines[height - 2],
+          s.omnibox,
+          "unframed, the composer line is second from the bottom"
+        );
+      }
       assert_eq!(lines[height - 1], s.hint, "the HINT line is the last line");
+      // **STILL EXACTLY TWO FULL-WIDTH RULES.** The box's own horizontals are
+      // not rules: they open and close with corners, so they never equal this
+      // string. The relaxation `tui-design.md` §2 takes is BORDERS ON THE
+      // COMPOSER AND NOWHERE ELSE, and this is the half of that which is
+      // checkable here.
       assert_eq!(
         lines.iter().filter(|l| **l == rule).count(),
         2,
-        "exactly two rules, which are the only chrome on the screen"
+        "exactly two rules; the composer's box is a border and not a third rule"
       );
     }
   }
@@ -1023,7 +1115,11 @@ mod tests {
     let label = DETAIL_LABEL.trim();
     let mut split_at = 0usize;
     let mut flat_at = 0usize;
-    for height in CHROME..=(SPLIT_CHROME + 2) {
+    // **THE SWEEP WIDENS WITH THE FOOT.** The framed composer takes two lines
+    // out of the body, so the height at which a split becomes affordable moved
+    // up by exactly that -- a sweep pinned to the old range stops straddling
+    // the boundary and silently tests one side twice.
+    for height in CHROME..=(SPLIT_CHROME + FRAME_COST + 2) {
       let lines = split().compose(0, height);
       assert_eq!(lines.len(), height);
       if lines.iter().any(|l| l.contains(label)) {
@@ -1139,7 +1235,11 @@ mod tests {
         Some(&(0, mode.lamp().chars().count(), Role::ModeChip(mode))),
         "the hint line must LEAD with a chip naming {mode:?}: {hint:?} {hint_ink:?}"
       );
-      let (_, command_ink) = &painted[painted.len() - 2];
+      // **THE COMPOSER IS INSIDE ITS BOX NOW, so its ink is the span AFTER the
+      // left border rather than the first on the line.** At 24 rows the frame
+      // is affordable, so the last three lines are box-bottom, hint -- and the
+      // composer sits above them.
+      let (_, command_ink) = &painted[painted.len() - 3];
       let want = if mode == Mode::Omni {
         Role::OmniActive
       } else {
@@ -1147,8 +1247,13 @@ mod tests {
       };
       assert_eq!(
         command_ink.first().map(|&(_, _, r)| r),
+        Some(Role::Frame),
+        "the composer line must OPEN with its border in {mode:?}: {command_ink:?}"
+      );
+      assert_eq!(
+        command_ink.get(1).map(|&(_, _, r)| r),
         Some(want),
-        "the omnibox line must read {want:?} in {mode:?} -- brightness IS the focus signal"
+        "the composer's TEXT must read {want:?} in {mode:?} -- brightness IS the focus signal"
       );
     }
   }
