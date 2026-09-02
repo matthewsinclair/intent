@@ -68,15 +68,22 @@ Three sections, named by hv, separated by two rules. **There are no borders anyw
 | OMNI  | `/`                | MENU  | open the palette, one press, empty buffer only       |
 | OMNI  | Esc                | OMNI  | clear the query; a no-op when already empty          |
 | OMNI  | Back               | OMNI  | pop the view stack, empty buffer only                |
-| MENU  | Hotkey / Move      | MENU  | select or drill in                                   |
-| MENU  | Enter              | OMNI  | run the command or land its view                     |
-| MENU  | Back               | OMNI  | up a level, or close at the root                     |
+| MENU  | Typing / Move      | MENU  | filter the palette; pick among the hits              |
+| MENU  | Enter              | OMNI  | run the picked command                               |
 | MENU  | Esc / Cancel / `/` | OMNI  | close the palette                                    |
 | FIELD | Typing             | FIELD | in-place edit, one keymap                            |
 | FIELD | Enter              | OMNI  | commit                                               |
 | FIELD | Esc                | OMNI  | discard                                              |
 | EMBED | Typing             | EMBED | forwarded to the child                               |
 | EMBED | ChildExit          | OMNI  | read the file back                                   |
+
+**MENU'S ROWS WERE REVISED AGAIN ON 2026-09-02, AFTER hv DROVE THE BUILD, AND THE TWO RETIREMENTS ARE STATED AS BEHAVIOURS RATHER THAN AS ABSENCES.**
+
+- **`MENU Typing -> MENU` is ADDED**: the palette filters as you type. This is the row that makes `/quit` reach quit.
+- **`MENU Hotkey -> MENU` is RETIRED, removed rather than rehomed.** It was the Lotus bar's accelerator, and it was **declared, emitted by the keymap, answered by this table, and consumed by no realiser for its entire life** -- a bound, reachable, inert key. In a palette a letter has an obvious job, so the trigger is gone rather than given a handler. A dead trigger rehomed is a dead trigger with an alibi.
+- **`MENU Back -> OMNI` is RETIRED, and what replaces it is affirmative: `Backspace` ERASES in the palette, and erasing back past the `/` IS the exit.** The palette therefore needs no exit key of its own. Stated this way round because a retirement recorded only as a missing row is indistinguishable from one nobody noticed dropping.
+
+**LEAVABILITY SURVIVES THE RETIREMENT, AND IT IS ASSERTED HERE SO THE NEXT READER DOES NOT HAVE TO RE-DERIVE IT.** Removing `MENU Back` removes one of MENU's exits, so the invariant is worth re-checking rather than assuming: MENU still leaves by `Esc`, `Cancel` and `/`, all three landing in OMNI, so **every state that owns its escape still reaches the home mode in ONE press**, and EMBED remains the single named exemption.
 
 **FOUR MACHINE STATES, THREE LAMPS.** `FIELD` and `EMBED` stay distinct in the machine because their EXITS differ -- `EMBED`'s is the child exiting -- but the chip shows both as `EDIT`, because which of the two you are in is a fact about who owns the terminal and not something the operator can act on. Showing a lamp per internal state would advertise a distinction nobody can use.
 
@@ -116,27 +123,36 @@ Three sections, named by hv, separated by two rules. **There are no borders anyw
 
 **`C-w` is retired with the vi field keymap** (hv, 2026-08-30: _we're handing the text off to a dedicated editor, not trying to recreate it inside_). In-place editing keeps ONE keymap — readline defaults — and everything longer goes to `$EDITOR`.
 
-## 5. Menus — Lotus 1-2-3
+## 5. The command palette
 
-**REACHED BY ONE `/` FROM THE COMPOSER, and that is the only change the collapse makes to this section.** The menu used to be a stop on the `/` ring, two presses from NAV; it is now one press from home, and `/` closes it again. Everything below is unchanged.
-
-Menus **nest**. The accelerator letter is **coloured in place, not bracketed**, and is **found by position** in the label rather than assumed to be the first character — a hotkey that is not the initial otherwise marks the wrong letter, which happens the first time two entries at one level share a first letter.
+**RULED BY hv 2026-09-02, AFTER DRIVING THE BUILD, SUPERSEDING THE LOTUS 1-2-3 MENU.** `/` opens a FILTERED LIST of commands: typing narrows it, the arrows pick, `⏎` runs, `esc` closes. The Lotus tree survives as the GROUPING of the vocabulary and not as a widget.
 
 ```
- Go: [←]  Back  Threads  Issues  Packages  Criteria  [X]
+╭──────────────────────────────────────────────────────────╮
+│ ❯ /qu▏                                                   │
+╰──────────────────────────────────────────────────────────╯
+  File   quit   leave explore
+
+ MENU   type to filter · ↑↓ pick · ⏎ run · esc close
 ```
 
-- **`[←]` and `[X]` are selectable POSITIONS**, not decorations. The arrows land on them and `⏎` does what the glyph says. A control you can see and cannot select is a label pretending to be a button.
-- **Accelerators are unique within a level, asserted at startup**, not left to whoever adds the next entry.
-- The INFO row describes whichever position is selected, including `[←]` and `[X]`.
+**WHAT WAS HERE, AND WHY IT WENT.** This section specified a nested horizontal bar -- `Go: [←] Back Threads Issues Packages Criteria [X]`, arrows moving along it, the accelerator letter **coloured in place, not bracketed** and **found by position** rather than assumed to be the first character, `[←]` and `[X]` as **selectable POSITIONS** rather than decorations, accelerators **unique within a level, asserted at startup**, and entries naming **DESTINATIONS, never DIRECTIONS** (`Up`/`Down` were removed because `[←]` already moves up the MENU tree while `Up` would mean up the MODEL tree -- one word, two motions). **None of that was wrong, and none of it was ever built.** hv rebuilt at `a8981480`, opened the menu and found three things: the arrows did nothing, `:q` was still the only way out, and `/quit` did not work. All three were one defect -- **the bar was a hardcoded string with no model behind it**, so there was nothing to select, nothing to move, and no command vocabulary in the program at all.
 
-**Menu entries name DESTINATIONS, never DIRECTIONS.** `Up` and `Down` were removed: `[←]` already moves up the MENU tree, so a menu item called `Up` reads as the same motion while meaning up the MODEL tree — one word, two motions. Naming the destination loses nothing, because a thread's parent _is_ `Threads`.
+**THE PALETTE IS PREFERRED FOR A REASON, NOT MERELY BECAUSE IT IS EASIER.** It puts the operator's own spelling first: hv reached for `/quit` unprompted, which is what a filtered list rewards and what a bar cannot answer. It reuses the fuzzy matcher, the pick, the dropdown and the composer that already exist, so the palette is a second VOCABULARY rather than a second WIDGET. And it makes discovery cheap in the one place a menu is supposed to be good: pressing `/` shows the whole vocabulary.
 
-**`Go > Back` is history, not a direction** — the same act as `Backspace`, and it does not reintroduce the confusion `Up`/`Down` caused.
+### `/` is for things to DO; typing is for places to GO
 
-Current tree: `Go` (Back, Threads, Issues, Packages, Criteria) · `Docs` (Browse, Open, New) · `File` (Write, Reload, Quit) · `Help`.
+**Navigation is deliberately NOT in the palette**, which is hv's own frame: _`/commands` fire up the menus, and anything else is omni-dispatched from the Omni._
 
-**There is no `Edit` submenu.** Editing a field is `⏎` on the row; reaching it through a menu was scope that did not belong there.
+The retired bar had a `Go` group listing the entity kinds, and rebuilding it here was the obvious move. **The code refused it**: the omnibox index already carries one entry per declared kind, so `thread` reaches the threads collection by typing today. A `Go` group would be a second route to a destination the composer reaches better -- **and it would bury the commands that have no other route under a list of ones that do.**
+
+### Only what is wired is offered
+
+**A COMMAND THAT CANNOT RUN MUST NOT APPEAR.** The retired tree also listed `Docs` (Browse, Open, New), `File` (Write, Reload) and `Help`; **none has a realiser**, and declaring them would ship a palette advertising a menu of errors -- which is the defect hv drove into, one layer up. So the vocabulary is `quit` and `back`, and **the small honest set beats the large one with holes**. It grows when an act lands, never before; there is deliberately no `Unimplemented` state for an offer to sit in.
+
+**The resting palette lists its whole vocabulary**, which is the opposite of the composer at rest and deliberate: the body is already the listing of the model, but nothing else lists the ACTS.
+
+**There is still no `Edit` entry.** Editing a field is `⏎` on the row; reaching it through a menu was scope that did not belong there, and that survives the change unaltered.
 
 ## 6. Navigation and views
 

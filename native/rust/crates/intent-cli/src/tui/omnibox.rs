@@ -97,32 +97,55 @@ fn score(needle: &str, hay: &str, id_len: usize) -> Option<(i64, Vec<usize>)> {
   Some((s, positions))
 }
 
-/// Every entry `buffer` hits, best first, at most `cap`.
+/// Rank `needle` over already-built haystacks, best first, at most `cap`.
 ///
-/// An empty buffer returns nothing: the omnibox at rest shows the model, not
-/// a preemptive listing of it -- the body is already the listing.
-pub fn matches(index: &[Entry], buffer: &str, cap: usize) -> Vec<Match> {
-  let needle = buffer.trim();
-  if needle.is_empty() || needle.starts_with(':') {
-    return Vec::new();
-  }
-  let mut out: Vec<Match> = index
+/// **THE ONE SCORING PATH, AND IT IS SHARED ON PURPOSE.** Two vocabularies
+/// come through here -- the ENTITY index below, and the command palette in
+/// [`super::commands`] -- and they must rank the same way or `/qu` and `56`
+/// would feel like two different programs wearing one input. A second matcher
+/// for commands was the obvious shape and it is the Highlander defect: the
+/// scoring weights, the run bonus and the tie-break are one behaviour, not two.
+///
+/// Each haystack carries the width of its BOOSTED PREFIX -- the id column for
+/// an entity, the command's own name for a command -- because "a hit in the
+/// name beats a hit in the description" is the same rule in both vocabularies
+/// and only the boundary moves.
+pub fn rank(needle: &str, hays: &[(String, usize)], cap: usize) -> Vec<Match> {
+  let mut out: Vec<Match> = hays
     .iter()
     .enumerate()
-    .filter_map(|(i, e)| {
-      let hay = haystack(e);
-      score(needle, &hay, e.id.chars().count()).map(|(score, positions)| Match {
+    .filter_map(|(i, (hay, boost))| {
+      score(needle, hay, *boost).map(|(score, positions)| Match {
         entry: i,
         score,
         positions,
       })
     })
     .collect();
-  // Stable order under equal scores: the index's own order, which the source
-  // built deliberately (threads before issues, each newest-ish first).
+  // Stable order under equal scores: the caller's own order, which every
+  // caller builds deliberately.
   out.sort_by(|a, b| b.score.cmp(&a.score).then(a.entry.cmp(&b.entry)));
   out.truncate(cap);
   out
+}
+
+/// Every entry `buffer` hits, best first, at most `cap`.
+///
+/// An empty buffer returns nothing: the omnibox at rest shows the model, not
+/// a preemptive listing of it -- the body is already the listing. **The
+/// command palette deliberately differs and says so at its own door**: a
+/// palette at rest must show its vocabulary, because discovery is the whole
+/// reason it exists.
+pub fn matches(index: &[Entry], buffer: &str, cap: usize) -> Vec<Match> {
+  let needle = buffer.trim();
+  if needle.is_empty() || needle.starts_with(':') {
+    return Vec::new();
+  }
+  let hays: Vec<(String, usize)> = index
+    .iter()
+    .map(|e| (haystack(e), e.id.chars().count()))
+    .collect();
+  rank(needle, &hays, cap)
 }
 
 /// The input's state: what has been typed, and which match is picked.

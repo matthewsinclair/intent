@@ -35,6 +35,7 @@
 
 use crossterm::event::{KeyCode, KeyEvent};
 
+use super::commands::{self, Act, Command};
 use super::edit::Handoff;
 use super::focus::Focus;
 use super::keys;
@@ -135,6 +136,10 @@ pub struct App {
   /// Every addressable entity, for the omnibox's matcher. Handed in by the
   /// run loop at startup, because the app deliberately holds no facade.
   pub index: Vec<Entry>,
+  /// What `/` offers. Handed in beside [`App::index`] and for the same
+  /// reason: the `Go` half is DERIVED from the declared entity kinds, which
+  /// is a fact about the schema and therefore not this module's to know.
+  pub commands: Vec<Command>,
   /// The in-place edit in flight, while the mode is FIELD.
   pub editing: Option<FieldEdit>,
 }
@@ -162,6 +167,7 @@ impl App {
       notice: String::new(),
       omnibox: Omnibox::default(),
       index: Vec::new(),
+      commands: Vec::new(),
       editing: None,
     }
   }
@@ -309,6 +315,16 @@ impl App {
         // behaviour, not a case nobody got round to. It never navigates --
         // popping the stack is `Back`'s job, and the collapse deliberately did
         // not overload Esc with it.
+        // **`/` SEEDS THE COMPOSER WITH THE SIGIL AND OPENS THE PALETTE.**
+        // Reached only on an empty buffer, since the guard above turned a
+        // mid-query slash into a character. The sigil STAYS in the buffer:
+        // it is what tells the operator which vocabulary is being searched,
+        // and it gives Backspace an exit that needs no special case.
+        "/" => {
+          self.omnibox.type_char(commands::SIGIL);
+          self.mode = Mode::Menu;
+          return Step::Continue;
+        }
         "Esc" => {
           self.omnibox.clear();
           return Step::Continue;
@@ -340,6 +356,63 @@ impl App {
             }
             Go::Spelling(s) => Step::Land(s),
           };
+        }
+        _ => {}
+      }
+    }
+
+    // **THE PALETTE: ONE INPUT, A SECOND VOCABULARY.** It reuses the
+    // composer's own buffer and pick because it IS the composer -- the sigil
+    // is what says which vocabulary is being searched, and sharing the input
+    // is why `/qu` and `56` cannot drift into feeling like two programs.
+    //
+    // **EVERY TRIGGER MENU DECLARES IS ANSWERED HERE AND RETURNS.** That is
+    // load-bearing rather than tidy: the generic `Move` handler at the tail
+    // moves the BODY cursor, so a MENU trigger falling through to it scrolls
+    // the list invisibly behind the palette. That is exactly what hv drove
+    // into -- arrows in the menu appearing to do nothing while silently
+    // moving something else.
+    if self.mode == Mode::Menu {
+      match trigger {
+        "Typing" => {
+          match key.code {
+            KeyCode::Char(c) => self.omnibox.type_char(c),
+            KeyCode::Backspace => self.omnibox.erase(),
+            _ => {}
+          }
+          // **ERASING THE SIGIL LEAVES THE PALETTE**, which is why MENU needs
+          // no exit key of its own and why `Back` was retired from its edges.
+          if commands::query_of(&self.omnibox.buffer).is_none() {
+            self.omnibox.clear();
+            self.mode = Mode::Omni;
+          }
+          return Step::Continue;
+        }
+        "Move" => {
+          let n = self.palette().len();
+          self.omnibox.pick_move(key.code == KeyCode::Down, n);
+          return Step::Continue;
+        }
+        "Enter" => {
+          let hits = self.palette();
+          let picked = self.omnibox.picked(hits.len()).map(|p| hits[p].entry);
+          self.omnibox.clear();
+          self.mode = Mode::Omni;
+          let Some(at) = picked else {
+            return Step::Continue;
+          };
+          return match self.commands[at].act.clone() {
+            Act::Quit => Step::Quit,
+            Act::Back => {
+              self.pop_view();
+              Step::Continue
+            }
+          };
+        }
+        "Esc" | "Cancel" | "/" => {
+          self.omnibox.clear();
+          self.mode = Mode::Omni;
+          return Step::Continue;
         }
         _ => {}
       }
@@ -456,9 +529,7 @@ impl App {
     // the one key that walks up the model. At the root it is a no-op rather
     // than a quit -- `tui-design.md` §3 retired the accident.
     if self.mode == Mode::Omni && trigger == "Back" {
-      if self.stack.pop() {
-        self.scroll = 0;
-      }
+      self.pop_view();
       return Step::Continue;
     }
 
@@ -496,6 +567,27 @@ impl App {
   /// How many entries the current buffer matches, for the pick's bounds.
   pub fn match_count(&self) -> usize {
     super::omnibox::matches(&self.index, &self.omnibox.buffer, MATCH_CAP).len()
+  }
+
+  /// The commands the current palette query hits, best first.
+  ///
+  /// **ONE FUNCTION, because three callers need the SAME list**: the pick's
+  /// bounds, the command Enter runs, and the dropdown the operator is reading.
+  /// If Enter recomputed the hits differently from the renderer, it would run
+  /// whichever command the two happened to disagree about -- and the operator
+  /// would have watched a correct list the whole time.
+  pub fn palette(&self) -> Vec<super::omnibox::Match> {
+    let query = commands::query_of(&self.omnibox.buffer).unwrap_or("");
+    commands::matches(&self.commands, query, MATCH_CAP)
+  }
+
+  /// Pop the view stack. **ONE HOME for an act two doors reach** -- the `Back`
+  /// trigger and the palette's own `back` command -- because a second copy is
+  /// how the scroll reset gets forgotten in one of them.
+  fn pop_view(&mut self) {
+    if self.stack.pop() {
+      self.scroll = 0;
+    }
   }
 
   /// Point the cursor at a view of `n` rows.
@@ -1383,5 +1475,266 @@ mod tests {
       "a new row set kept the old pane"
     );
     assert!(app.detail_focus.is_none());
+  }
+
+  /// **hv's THREE FINDINGS, DRIVEN AS THE OPERATOR DROVE THEM.** hv rebuilt at
+  /// `a8981480`, opened the menu, and reported: the arrows do nothing, `:q` is
+  /// still the only way out, and `/quit` does not work because the composer
+  /// only searches entities. All three were one defect -- MENU was a painted
+  /// string with no model -- and these are the three keystroke sequences hv
+  /// actually typed.
+  #[test]
+  fn hv_can_open_the_palette_filter_it_and_quit_without_typing_a_colon() {
+    let mut app = App::explore();
+    app.commands = commands::vocabulary();
+
+    // 1. `/` opens the palette, ONE press, and seeds the sigil so the operator
+    //    can see which vocabulary is being searched.
+    assert_eq!(app.on_key(key(KeyCode::Char('/')), &[]), Step::Continue);
+    assert_eq!(app.mode, Mode::Menu, "`/` did not open the palette");
+    assert_eq!(app.omnibox.buffer, "/", "the sigil must stay visible");
+
+    // 2. The palette at REST offers its whole vocabulary -- discovery is the
+    //    reason it exists, so an empty query must not mean an empty list.
+    assert_eq!(
+      app.palette().len(),
+      app.commands.len(),
+      "the palette opened empty, so it teaches the operator nothing"
+    );
+
+    // 3. Typing FILTERS commands. This is the half hv found missing: the
+    //    composer searched entities and had no command vocabulary at all.
+    for c in "quit".chars() {
+      assert_eq!(app.on_key(key(KeyCode::Char(c)), &[]), Step::Continue);
+    }
+    assert_eq!(app.omnibox.buffer, "/quit");
+    let hits = app.palette();
+    assert!(!hits.is_empty(), "`/quit` matched no command");
+    assert_eq!(
+      app.commands[hits[0].entry].act,
+      Act::Quit,
+      "`/quit` did not rank quit first"
+    );
+
+    // 4. Enter RUNS it -- hv's finding 2, that `:q` was the only way out.
+    assert_eq!(
+      app.on_key(key(KeyCode::Enter), &[]),
+      Step::Quit,
+      "Enter on the picked command did not run it"
+    );
+  }
+
+  /// **THE ARROWS MOVE THE PALETTE AND MUST NOT MOVE THE BODY.** hv reported
+  /// them as doing nothing; they were doing something WORSE -- the generic
+  /// `Move` handler is not mode-guarded, so in MENU they scrolled the list
+  /// cursor invisibly behind the menu bar. **The body cursor is asserted
+  /// UNMOVED**, because "the palette pick changed" alone would pass just as
+  /// well if the body moved too.
+  #[test]
+  fn arrows_in_the_palette_move_the_pick_and_leave_the_body_alone() {
+    let r = item_rows();
+    let mut app = App::explore();
+    app.commands = commands::vocabulary();
+    app.point_at(r.len());
+    let body_before = app.focus.map(Focus::index);
+    assert!(
+      app.commands.len() >= 2,
+      "a one-command palette cannot exhibit a moving pick"
+    );
+
+    app.on_key(key(KeyCode::Char('/')), &r);
+    let pick_before = app.omnibox.picked(app.palette().len());
+    app.on_key(key(KeyCode::Down), &r);
+
+    assert_ne!(
+      app.omnibox.picked(app.palette().len()),
+      pick_before,
+      "the arrow did not move the palette pick"
+    );
+    assert_eq!(
+      app.focus.map(Focus::index),
+      body_before,
+      "the arrow moved the BODY cursor behind the palette -- the silent defect hv drove into"
+    );
+    assert_eq!(app.mode, Mode::Menu, "moving the pick left the palette");
+  }
+
+  /// Erasing back past the sigil leaves the palette, which is why MENU needs
+  /// no exit key of its own and why `Back` was retired from its edges.
+  #[test]
+  fn erasing_the_sigil_leaves_the_palette() {
+    let mut app = App::explore();
+    app.commands = commands::vocabulary();
+    app.on_key(key(KeyCode::Char('/')), &[]);
+    app.on_key(key(KeyCode::Char('q')), &[]);
+    assert_eq!(app.mode, Mode::Menu);
+    app.on_key(key(KeyCode::Backspace), &[]);
+    assert_eq!(app.mode, Mode::Menu, "erasing the query is not leaving");
+    app.on_key(key(KeyCode::Backspace), &[]);
+    assert_eq!(
+      app.mode,
+      Mode::Omni,
+      "erasing the sigil must return to the composer"
+    );
+    assert!(app.omnibox.buffer.is_empty());
+  }
+
+  /// **REACHABILITY INTO THE MACHINE AND REACHABILITY OUT OF IT ARE TWO
+  /// PROPERTIES, AND UNTIL NOW WE TESTED ONE.**
+  ///
+  /// `keys::every_declared_trigger_is_reachable_from_some_key` proves a key
+  /// PRODUCES each trigger.
+  /// `keys::every_key_the_map_binds_moves_the_machine_from_the_mode_it_was_pressed_in`
+  /// proves the machine ANSWERS it. **Neither asks whether anything ACTS**, so
+  /// both passed for the whole life of `Hotkey` -- declared, emitted,
+  /// reachable, answered by an edge, and consumed by no realiser. It was a
+  /// dead key with a clean bill of health, and it was found by hv pressing a
+  /// letter at a menu and watching the body scroll behind it. **That is not a
+  /// detection mechanism.**
+  ///
+  /// So this closes the third side: every `(mode, trigger)` the machine
+  /// declares is DRIVEN through [`App::on_key`] in a state where it is
+  /// meaningful, and something observable must happen -- a returned [`Step`]
+  /// other than `Continue`, or a changed `App`. **Comparing the whole `App`
+  /// rather than a chosen field is what stops this from being the next test
+  /// that only looks like it checks something.**
+  ///
+  /// The exemptions are DECLARED with reasons, for the same purpose
+  /// [`mode::ESC_NOT_OURS`] is declared: a predicate that skipped pairs which
+  /// happen to do nothing would have skipped `Hotkey` too.
+  ///
+  /// **DRIVEN TO RED BEFORE BEING TRUSTED.** Un-exempting `EMBED + Typing` --
+  /// a pair known to be inert here because the run loop forwards it -- and
+  /// arming it makes this fail with the message below. A test of this shape
+  /// that has never been seen to fail is decoration.
+  ///
+  /// **WHAT IT DOES NOT CATCH, STATED SO NOBODY READS IT AS MORE:** a
+  /// MIS-ROUTED key, which changes something wrong rather than nothing at all.
+  /// `MENU + Move` leaking into the body cursor would still change the `App`
+  /// and still pass here -- and that was a real defect, so it has a real test
+  /// of its own in
+  /// `arrows_in_the_palette_move_the_pick_and_leave_the_body_alone`. This one
+  /// is the DEAD-key check; routing is asserted per pair, where the right
+  /// answer is known.
+  #[test]
+  fn every_trigger_the_machine_answers_is_acted_on_by_the_realiser() {
+    const NOT_THE_APPS_TO_ACT_ON: &[(Mode, &str, &str)] = &[
+      (
+        Mode::Embed,
+        "Typing",
+        "the child owns the terminal and `run` forwards the keystroke to it; acting here would \
+         mean the TUI and $EDITOR both consumed one key",
+      ),
+      (
+        Mode::Embed,
+        "ChildExit",
+        "no key produces it (`keys::NOT_FROM_A_KEY`) -- the run loop calls `child_exited` when \
+         the process ends",
+      ),
+    ];
+
+    let mut examined = 0usize;
+    let mut exempted = 0usize;
+    for &m in Mode::ALL {
+      for trigger in mode::EDGES.iter().filter(|e| e.from == m).map(|e| e.on) {
+        if let Some((_, _, why)) = NOT_THE_APPS_TO_ACT_ON
+          .iter()
+          .find(|(em, et, _)| *em == m && *et == trigger)
+        {
+          assert!(
+            !why.trim().is_empty(),
+            "an exemption with no reason forgives nothing"
+          );
+          exempted += 1;
+          continue;
+        }
+        let Some((mut app, rows, k)) = armed(m, trigger) else {
+          panic!(
+            "{m:?} + {trigger:?} is declared by the machine and has no armed state here, so the \
+             pair is DECLARED and UNDRIVEN -- the hole this test exists to close, reopened by \
+             omission"
+          );
+        };
+        let before = app.clone();
+        let step = app.on_key(k, &rows);
+        assert!(
+          step != Step::Continue || app != before,
+          "{m:?} + {trigger:?} is declared by the machine and the realiser does NOTHING with it: \
+           bound, reaching the machine, and inert. This is the `Hotkey` shape"
+        );
+        examined += 1;
+      }
+    }
+    assert!(
+      examined > 0,
+      "no pair was driven, so this test asserted nothing"
+    );
+    assert_eq!(
+      exempted,
+      NOT_THE_APPS_TO_ACT_ON.len(),
+      "an exemption was declared and never reached, so it is excusing nothing"
+    );
+  }
+
+  /// A state in which `(mode, trigger)` is MEANINGFUL, and the key that fires
+  /// it. **Armed deliberately per pair**: driving `Esc` on an empty composer
+  /// or `Back` at the root would find a no-op that IS the design, and a test
+  /// that accepted those would accept a dead key too.
+  fn armed(m: Mode, trigger: &str) -> Option<(App, Vec<Row>, KeyEvent)> {
+    let mut app = App::explore();
+    app.commands = commands::vocabulary();
+    let rows = item_rows();
+    app.point_at(rows.len());
+    Some(match (m, trigger) {
+      (Mode::Omni, "Typing") => (app, rows, key(KeyCode::Char('a'))),
+      (Mode::Omni, "Move") => (app, rows, key(KeyCode::Down)),
+      (Mode::Omni, "Enter") => {
+        app.omnibox.type_char('z');
+        (app, rows, key(KeyCode::Enter))
+      }
+      (Mode::Omni, "/") => (app, rows, key(KeyCode::Char('/'))),
+      (Mode::Omni, "Esc") => {
+        app.omnibox.type_char('z');
+        (app, rows, key(KeyCode::Esc))
+      }
+      (Mode::Omni, "Back") => {
+        app.push(View::Collection {
+          kind: "thread".into(),
+        });
+        (app, rows, key(KeyCode::Backspace))
+      }
+      (Mode::Menu, t) => {
+        app.on_key(key(KeyCode::Char('/')), &rows);
+        let k = match t {
+          "Typing" => key(KeyCode::Char('q')),
+          "Move" => key(KeyCode::Down),
+          "Enter" => key(KeyCode::Enter),
+          "Esc" => key(KeyCode::Esc),
+          "Cancel" => KeyEvent::new(KeyCode::Char('g'), KeyModifiers::CONTROL),
+          "/" => key(KeyCode::Char('/')),
+          _ => return None,
+        };
+        (app, rows, k)
+      }
+      (Mode::Field, t) => {
+        app.mode = Mode::Field;
+        app.begin_edit(
+          Handoff {
+            kind: "thread".into(),
+            id: "ST0056".into(),
+            field: "title".into(),
+          },
+          "seed".into(),
+        );
+        let k = match t {
+          "Typing" => key(KeyCode::Char('x')),
+          "Enter" => key(KeyCode::Enter),
+          "Esc" => key(KeyCode::Esc),
+          _ => return None,
+        };
+        (app, rows, k)
+      }
+      _ => return None,
+    })
   }
 }

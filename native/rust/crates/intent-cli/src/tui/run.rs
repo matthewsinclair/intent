@@ -179,18 +179,25 @@ fn app_row(app: &App) -> String {
   }
 }
 
-/// The omnibox line: the caret and the buffer -- or the menu bar in MENU,
-/// which borrows the line because both are "the thing you are choosing from".
+/// The composer line: the caret and the buffer, in OMNI and in MENU alike.
+///
+/// **THE PALETTE DOES NOT BORROW THIS LINE; IT IS THIS LINE.** Until hv ruled
+/// the filtered palette (2026-09-02) this returned a HARDCODED Lotus menu bar
+/// -- `Go: [<-] Back Threads ...` -- a string with no model behind it, whose
+/// entries could not be selected and did nothing when chosen. The palette
+/// types into the composer like everything else; the leading `/` is what says
+/// which vocabulary the dropdown below is showing.
 fn omnibox_row(app: &App) -> String {
   match app.mode {
-    super::mode::Mode::Menu => {
-      "Go: [<-]  Back  Threads  Issues  Packages  Criteria  [X]".to_string()
-    }
     super::mode::Mode::Embed => "editor running -- returns when the child exits".to_string(),
     // **ALWAYS THERE, AND NOW ALWAYS LIT** -- the one home's whole point: the
     // composer holds the keyboard in every state the TUI owns, so it carries
-    // the cursor rather than standing dim waiting to be selected.
-    super::mode::Mode::Omni => format!("\u{276f} {}\u{258f}", app.omnibox.buffer),
+    // the cursor rather than standing dim waiting to be selected. **MENU
+    // carries it too, because the palette COLLECTS**: the sigil in the buffer
+    // is what tells the two apart, not the presence of a cursor.
+    super::mode::Mode::Omni | super::mode::Mode::Menu => {
+      format!("\u{276f} {}\u{258f}", app.omnibox.buffer)
+    }
     _ => format!("\u{276f} {}", app.omnibox.buffer),
   }
 }
@@ -258,9 +265,9 @@ fn hint_row(app: &App, rows: &[Row]) -> String {
         parts.push(hint);
       }
     }
-    super::mode::Mode::Menu => {
-      parts.push("letter picks \u{b7} \u{23ce} go \u{b7} esc close \u{b7} / close".into())
-    }
+    super::mode::Mode::Menu => parts.push(
+      "type to filter \u{b7} \u{2191}\u{2193} pick \u{b7} \u{23ce} run \u{b7} esc close".into(),
+    ),
     super::mode::Mode::Field => parts.push("\u{23ce} commit \u{b7} esc discard".into()),
     super::mode::Mode::Embed => {}
   }
@@ -274,28 +281,54 @@ fn hint_row(app: &App, rows: &[Row]) -> String {
 /// **THE LINE IS THE HAYSTACK, VERBATIM, TWO COLUMNS IN** -- built from
 /// `omnibox::haystack` so `Match::positions` map by a constant offset and
 /// cannot drift from the text they highlight.
+/// **ONE RENDERER, TWO VOCABULARIES.** The entity index and the command
+/// palette differ only in what the haystack says and where its boosted prefix
+/// ends -- exactly the two things [`super::omnibox::rank`] already takes. A
+/// second dropdown for commands would have been the obvious shape and it is
+/// the Highlander defect: the pick marker, the reversed order, the
+/// matched-letter highlighting and the offset arithmetic are one behaviour.
 fn dropdown(app: &App) -> Vec<(String, layout::Ink)> {
   use super::layout::Role;
-  if app.mode != super::mode::Mode::Omni {
-    return Vec::new();
-  }
-  let m = super::omnibox::matches(&app.index, &app.omnibox.buffer, super::app::MATCH_CAP);
-  let picked = app.omnibox.picked(m.len());
+  // (hit, haystack, boosted-prefix length) for whichever vocabulary is live.
+  let listed: Vec<(super::omnibox::Match, String, usize)> = match app.mode {
+    super::mode::Mode::Omni => {
+      super::omnibox::matches(&app.index, &app.omnibox.buffer, super::app::MATCH_CAP)
+        .into_iter()
+        .map(|hit| {
+          let e = &app.index[hit.entry];
+          let hay = super::omnibox::haystack(e);
+          let boost = e.id.chars().count();
+          (hit, hay, boost)
+        })
+        .collect()
+    }
+    super::mode::Mode::Menu => app
+      .palette()
+      .into_iter()
+      .map(|hit| {
+        let c = &app.commands[hit.entry];
+        let hay = super::commands::haystack(c);
+        let boost = c.name.chars().count();
+        (hit, hay, boost)
+      })
+      .collect(),
+    _ => return Vec::new(),
+  };
+  let picked = app.omnibox.picked(listed.len());
   // **RENDER ORDER IS REVERSED: BEST LAST, NEAREST THE INPUT.** The input
   // sits at the bottom, so the adjacent line is where the eye rests -- the
   // television idiom for a bottom prompt. `Up` walking toward worse matches
   // is then also literally up the screen.
-  m.iter()
+  listed
+    .iter()
     .enumerate()
     .rev()
-    .map(|(i, hit)| {
-      let entry = &app.index[hit.entry];
-      let hay = super::omnibox::haystack(entry);
+    .map(|(i, (hit, hay, boost))| {
       let mark = if picked == Some(i) { "\u{276f} " } else { "  " };
       let line = format!("{mark}{hay}");
       let offset = 2;
       let mut ink: layout::Ink = vec![(0, line.chars().count(), Role::Muted)];
-      ink.push((offset, offset + entry.id.chars().count(), Role::Door));
+      ink.push((offset, offset + boost, Role::Door));
       for &p in &hit.positions {
         ink.push((offset + p, offset + p + 1, Role::Match));
       }
@@ -327,6 +360,7 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
   let mut rows = source.rows(app.stack.current());
   app.point_at(rows.len());
   app.index = source.index();
+  app.commands = super::commands::vocabulary();
 
   loop {
     let area = term.size()?;
@@ -594,15 +628,34 @@ mod tests {
     );
   }
 
-  /// The omnibox line is the one place four different modes each say
+  /// The composer line is the one place four different modes each say
   /// something different, so it is asserted as four distinct strings rather
   /// than as "non-empty".
+  ///
+  /// **MENU IS REACHED BY PRESSING THE KEY, NOT BY ASSIGNING THE MODE, and
+  /// that is the point rather than the ceremony.** This test used to set
+  /// `app.mode = Menu` with an empty buffer -- a state the machine cannot
+  /// produce, since the only door into MENU types the sigil on the way in. It
+  /// then failed when MENU stopped having a hardcoded line of its own, which
+  /// read as a collision and was really the fixture asserting about a screen
+  /// no operator can ever be looking at. **A test that builds an unreachable
+  /// state can only tell you about a program that does not exist.**
   #[test]
-  fn the_omnibox_line_says_something_different_in_every_mode_that_uses_it() {
+  fn the_composer_line_says_something_different_in_every_mode_that_uses_it() {
     let mut seen: Vec<String> = Vec::new();
     for mode in [Mode::Omni, Mode::Menu, Mode::Field, Mode::Embed] {
       let mut app = App::explore();
-      app.mode = mode;
+      if mode == Mode::Menu {
+        app.commands = super::super::commands::vocabulary();
+        assert_eq!(
+          app.on_key(key(KeyCode::Char('/')), &[]),
+          Step::Continue,
+          "`/` did not open the palette"
+        );
+        assert_eq!(app.mode, Mode::Menu, "`/` did not reach MENU");
+      } else {
+        app.mode = mode;
+      }
       let line = screen_for(&app, &[], 80).omnibox;
       assert!(
         !line.is_empty(),

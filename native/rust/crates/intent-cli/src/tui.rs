@@ -14,6 +14,7 @@
 //! `ratatui` until I read the criterion instead of my summary of it.
 
 pub mod app;
+pub mod commands;
 pub mod draw;
 pub mod edit;
 pub mod focus;

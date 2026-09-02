@@ -120,18 +120,23 @@ pub fn trigger(mode: Mode, key: KeyEvent) -> Option<&'static str> {
     // key.
     (Mode::Omni, KeyCode::Backspace) => Some("Back"),
     (Mode::Omni, KeyCode::Char(_)) => Some("Typing"),
-    (Mode::Menu, KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right) => Some("Move"),
-    (Mode::Menu, KeyCode::Backspace) => Some("Back"),
+    // **ONLY THE VERTICAL PAIR, because the palette is a LIST and not a bar.**
+    // The Lotus design moved along a horizontal menu, so it bound all four;
+    // hv ruled the filtered palette in its place on 2026-09-02 and a list has
+    // no left or right.
+    (Mode::Menu, KeyCode::Up | KeyCode::Down) => Some("Move"),
     // **`/` CLOSES THE PALETTE**, which is the whole of its meaning now that
     // the three-way ring is retired: one key, one job, from either side.
-    // Bound before the accelerator arm so a menu never reads it as a hotkey
-    // letter.
+    // Bound before the text arm so the sigil never lands in its own query.
     (Mode::Menu, KeyCode::Char('/')) => Some("/"),
-    // A menu accelerator. Found by POSITION in the label rather than assumed to
-    // be the first character, which is the menu's own rule -- but which letter
-    // is live is the menu's business, so any character offers itself here and
-    // the menu refuses the ones it does not bind.
-    (Mode::Menu, KeyCode::Char(_)) => Some("Hotkey"),
+    // **A LETTER FILTERS; IT IS NOT AN ACCELERATOR.** The retired bar bound
+    // letters to `Hotkey`, which nothing ever consumed -- bound, reaching the
+    // machine, and inert, because the invariant that guards this only asks
+    // whether the MACHINE has an edge and not whether the app does anything.
+    // In a palette the letter has an obvious job, so the dead trigger is
+    // RETIRED rather than given a handler. Backspace erases, and erasing back
+    // past the sigil is how you leave -- no separate exit key to declare.
+    (Mode::Menu, KeyCode::Char(_) | KeyCode::Backspace) => Some("Typing"),
     (Mode::Field, KeyCode::Char(_) | KeyCode::Backspace) => Some("Typing"),
     _ => None,
   }
@@ -344,9 +349,9 @@ mod tests {
     );
   }
 
-  /// Typing must reach the collector in every mode that collects. MENU is the
-  /// one mode where a bare letter means something else (an accelerator), so it
-  /// is asserted as the exception by name.
+  /// Typing must reach the collector in **every** mode that collects -- and
+  /// since hv ruled the filtered palette (2026-09-02) that includes `MENU`,
+  /// which used to be the one exception.
   ///
   /// **THE `NAV` SEED IS GONE BECAUSE WHAT IT COMPENSATED FOR IS GONE.** While
   /// the cursor could live outside the input, a printable had to be CARRIED
@@ -355,14 +360,20 @@ mod tests {
   /// composer permanently holding the keyboard there is nothing to seed FROM:
   /// typing lands where the cursor already is. **The affordance survives; the
   /// machinery under it does not, which is the point of the collapse.**
+  ///
+  /// **AND `MENU` STOPPED BEING AN EXCEPTION FOR A BETTER REASON THAN
+  /// CONVENIENCE.** Its letters used to emit `Hotkey`, a trigger the machine
+  /// declared and no realiser consumed -- a bound, reachable, inert key. The
+  /// palette gives every letter an obvious job, so the exception is gone and
+  /// so is the dead trigger.
   #[test]
-  fn typing_reaches_every_collector_and_a_menu_letter_is_the_one_exception() {
+  fn typing_reaches_every_collector_including_the_palette() {
     let a = KeyEvent::new(KeyCode::Char('a'), KeyModifiers::NONE);
-    for mode in [Mode::Field, Mode::Embed, Mode::Omni] {
+    for mode in Mode::ALL {
       assert_eq!(
-        trigger(mode, a),
+        trigger(*mode, a),
         Some("Typing"),
-        "{mode:?} must collect text"
+        "{mode:?} must collect text -- every mode is a collector now that the palette filters"
       );
     }
     assert_eq!(
@@ -372,10 +383,38 @@ mod tests {
        off the one home on every keystroke"
     );
     assert_eq!(
-      trigger(Mode::Menu, a),
-      Some("Hotkey"),
-      "a letter in MENU is an accelerator, the one deliberate exception"
+      super::super::mode::step(Mode::Menu, "Typing"),
+      Some(Mode::Menu),
+      "Typing in the palette must SELF-LOOP -- filtering is not leaving"
     );
+  }
+
+  /// **NO TRIGGER MAY BE DECLARED THAT NOTHING CONSUMES, and `Hotkey` is the
+  /// proof this was worth asserting.** It was emitted by this keymap, declared
+  /// as an edge, and handled by no realiser: every existing invariant passed
+  /// while the key did nothing, because they all ask whether the MACHINE
+  /// answers and none asks whether anything ACTS. hv found it by pressing a
+  /// letter at a menu and watching the body scroll behind it.
+  ///
+  /// A full realiser-side check is not available from here -- this module
+  /// cannot see `app.rs` -- so this pins the narrow, checkable half: the
+  /// retired trigger is gone from the vocabulary entirely, in both directions.
+  #[test]
+  fn the_retired_accelerator_trigger_is_gone_from_the_vocabulary() {
+    assert!(
+      !declared_triggers().contains(&"Hotkey"),
+      "`Hotkey` is declared again. It had no consumer for the whole life of the Lotus bar; if it \
+       is back, something must ACT on it and not merely answer it"
+    );
+    for &mode in Mode::ALL {
+      for key in every_key() {
+        assert_ne!(
+          trigger(mode, key),
+          Some("Hotkey"),
+          "{mode:?} still emits the retired accelerator trigger"
+        );
+      }
+    }
   }
 
   /// **THE WHOLE KEYMAP, DRIVEN THROUGH THE MACHINE.** A trigger being declared
