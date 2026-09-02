@@ -4,7 +4,7 @@ name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
 commit_session_id: 019sc6GaHacHLr4F9nBkP9mE -- the Claude-Session id carried by commits authored from THIS session (0208). POINT-IN-TIME: it names one session, not a table -- a restart mints a new one, and .history/ is where the mapping accumulates as each fold archives the header that was live.
-heartbeat_at: 2026-09-02 21:30Z
+heartbeat_at: 2026-09-02 22:57Z
 status: active
 focus: "BOUNCED. Re-picked-up 2026-09-02 21:30Z; status stays active. Pre-fold verbatim + sha-verified at .history/20260902/wip-prefold-2118Z.md (707b6622, 75510 bytes), reasoning beside it in night-narrative-2118Z.md. NOTHING OF MINE OPEN and NOTHING NEW INBOUND -- all four inboxes re-read this turn, newest live entry is 2026-08-31. HOLDING FOR hv. The shipped binary pair lags source by three landings; a rebuild wants a QUIET TREE, not hv permission -- 0196 is a DEFECT, not an authority constraint, and I originated the false line that said otherwise. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
@@ -36,11 +36,15 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-- **NOTHING IN FLIGHT. FOLDED 2026-09-02 21:18Z; THE BOUNCE LANDED AND PICKUP WAS RE-TAKEN AT 21:30Z. HOLDING FOR hv.** All four of my inboxes were re-read at that pickup and **nothing new is inbound** -- the newest live entry in any of them is `2026-08-31 08:15Z`, already handled. Pre-fold verbatim + sha-verified at `.history/20260902/wip-prefold-2118Z.md` (`707b6622`, 75,510 bytes), reasoning beside it in `night-narrative-2118Z.md`. **STATUS STAYS `active` -- a fold is not the end of a session.**
+- **THE SHARED PAIR IS REBUILT AND THE ESTATE IS OFF HOLD (2026-09-02 22:40Z-ish; run the verbs for the current sha).** cc and ic both cleared the window and held commits entirely. Backup of the outgoing pair was taken OUTSIDE the release directory and `cmp`-verified BOTH halves first -- cc's correction, and the ask was not honest until it existed: a failed build is an indefinite estate-wide outage, not a window, because the gate shells out to `intent` so nobody can commit a repair. **THE BACKUP IS STILL HELD in this session's scratchpad; it dies with the session, so a later node must re-take its own.** The gate's `self-provenance` currency arm went REFUSING -> `ok`.
+- **FOLDED 2026-09-02 21:18Z; the bounce landed and pickup was re-taken at 21:30Z.** All four of my inboxes were re-read at that pickup and **nothing new is inbound** -- the newest live entry in any of them is `2026-08-31 08:15Z`, already handled. Pre-fold verbatim + sha-verified at `.history/20260902/wip-prefold-2118Z.md` (`707b6622`, 75,510 bytes), reasoning beside it in `night-narrative-2118Z.md`. **STATUS STAYS `active` -- a fold is not the end of a session.**
 - **CHECKIN CLEAN: nothing of mine dirty.** The only uncommitted path in the tree is `bin/.devbin/manifest.sha256`, which devbin regenerates.
 - **THE TREE IS GREEN.** intent-cli 463 + 252 + 1, intentsvcs 1183 + 170, 0 fail; `cargo check --workspace --all-targets` clean; rustfmt clean. **Run the verbs -- these are a HISTORICAL reading from my 21:08Z run, not a live claim.**
 
 ## TODO
+
+- **RELEASE NOTE FOR v3.0.1 CARRIES TWO OBLIGATIONS TO PEOPLE WHO ARE NOT ON THIS BOX, AND BOTH ARE MINE (WP-11/WP-12).** (i) The **PFIC fleet limb**: `IN-AG-PFIC-001` has canon-set homes stating a DIFFERENT RULE from the one the library owns, and one of them is `lib/templates/llm/_AGENTS.md`, **so every Intent project inherits the fork on its next canon apply**. ic owns the fix; the DELIVERY consequence is mine and belongs in the note, not only in the thread. (ii) The **`13 -> 17` schema note**, still owed. **These are the same class -- what an upgrade DOES to a project that is not this one -- so they are one paragraph, not two.**
+- **DO NOT RE-DERIVE THE PFIC SCOPE FROM THIS BULLET.** It was handed to me by vc as ruled `authority: hv`, 2026-09-02, first-hand rather than delegated. Re-read the thread before writing the note; a scope line on a board is exactly the artefact that goes stale between the ruling and the release.
 
 **MINE, OPEN: NONE.** Every item routed to me today is disposed. What follows is what a peer or hv needs from this board, not a work queue of mine.
 
