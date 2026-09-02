@@ -18,11 +18,17 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ## DOING
 
-**ROUTING AND ADJUDICATING; nothing of vc's uncommitted; canon window FREE.** hv delegated the open set (_"go with your recs"_) so **every ruling since is a vc ruling under hv's pen, NOT an hv ruling** -- `ratified_in: "vc, 2026-09-02, under hv's pen granted 2026-08-22"`.
+**ROUTING AND ADJUDICATING. Nothing of vc's is uncommitted; the canon window is FREE.** Today's shape: hv delegated the whole open set to vc's recommendations (_"Just do it order, and go with your recs"_), so **every ruling since is a vc ruling under hv's pen, not an hv ruling** -- `ratified_in: "vc, 2026-09-02, under hv's pen granted 2026-08-22"`.
 
-**vc's OWN WORK, UNSTARTED: `WP-15` skills-catalogue triage** (KEEP / UPDATE / RETIRE every Intent2-era skill -- **`ST0065`'s seven criteria are now the bar it works to**, which is why the contract came first); **the estate-tree question**, unsourced and born in a fold; and **`hv/inbox.vc.md`'s lifecycle**, which hv handed over.
+**vc's OWN WORK, NOT STARTED:** `WP-15` skills-catalogue triage (KEEP / UPDATE / RETIRE every Intent2-era skill -- triage IS vc's role and vc has been routing rather than doing); `AC-00.16`'s amendment, to **RE-DERIVE before ruling** because vc has been carrying _an amendment is owed_ without its content; the **estate-tree question**, unsourced and born in a fold; and `hv/inbox.vc.md`'s lifecycle, which hv handed over.
 
-**DISCHARGED TODAY: `AC-00.16`'s amendment** (`54ea0cc6`) -- re-derived on dc's census rather than inherited, after vc carried _an amendment is owed_ for weeks without its content.
+## TODO
+
+1. **`AT-00.2`, `AC-00.8`, `AC-00.10`** -- behind cc's WP-10, behind WP-06 and WP-07. Sequence around it.
+2. **`0136`** (hv ruled: after the tag); **`intent/wip.md`** before the tag.
+3. **`coverage_map.sh` REFUSES TO PUBLISH and states its own remedy: re-run `burn.sh` over the current estate.** Partial repair is REFUSED BY NAME -- _do not hand-patch the TSV; a baseline stitched from several revisions is the drift this check exists to catch._ **That is the full-suite class and it is hv's hand.** Ordering is unchanged and still correct: **flip, then fresh burn, then UNSTABLE drops, then regenerate** -- `gen_register.sh` reads the COMMITTED baseline, so regenerating first would refresh the _Measured at_ line over 2026-08-15 classifications, laundering the staleness rather than fixing it.
+4. **`design.md:88`** still says `rmcp (official SDK): stdio ... now`, which vc's ruling reversed. Design prose is hv's hand -- **a flag, not an edit.**
+5. **OWED, DELIBERATELY NOT FILED: the INDEX layer of the three-layer property has neither a row nor a name.** One observed instance, no measurement. **Filing it now would give it a row before anyone drove it.**
 
 ## Holds
 
@@ -34,37 +40,42 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ## hv items
 
-**FOLDED 2026-09-02 21:19Z; pre-fold verbatim + `cmp`-verified at `.history/20260902/wip-fold-2119Z.md` (sha `8393dc61`, 62396 bytes). Executed and withdrawn items archived there with their reasoning.**
+**FOLDED 2026-09-02 17:40Z; pre-fold verbatim + `cmp`-verified at `.history/20260902/wip-fold-1740Z.md` (sha `88ef2afc`, 79619 bytes). EXECUTED rulings archived there with their reasoning; a fold never archives an UNEXECUTED one.**
 
-### hv's HANDS -- four, and nothing else blocks on hv
+**TWO-SIDED CENSUS PER 8u. The cut ate THREE live ids and they are restored above: `AC-10.5` (chains behind `WP-14`), `WP-05` (unblocked by `0203`), and `AC-08.5`'s non-verification.** Six deliberate drops, each with a home: `AC-17.4` was an unaffected-by-the-redesign list, `ST0058` rode the discharged delivered-pair item, `WP-17` lives on ic's board, `AC-00.12`/`AC-11.7`/`AT-02.1` are restored as supporting facts rather than as items. **Two ids APPEARED -- `AC-17.9` and `AC-17.14` -- and their source is ic's window request, which is where they are cited.**
 
-1. **`flip` THEN `burn`, ONE SITTING, IN THAT ORDER.** `flip` = rebind the default `INTENT_BIN` off `bin/intent`, the v2 SHELL SCRIPT (`tests/lib/test_helper.bash:21`); three binaries under one default. `burn` = re-run `burn.sh`, every `.bats` twice, classifying by the delta; hung 3.5h once. **A burn before the flip produces a baseline the flip invalidates.** **NEITHER NEEDS A BUILD.** This is also `AC-06.1`'s remaining coverage limb.
-2. **`ST0057 AT-07.5` NEEDS A STOP-THE-DAEMON WINDOW.** Arm A REFUSES rather than fails while an intentd is up, **so the green rests on a moment nobody can reproduce on demand.**
-3. **`ST0064` 01.7 SIGNING NEEDS hv's ADC.**
-4. **THE DOC GATE -- RE-RULE ON CORRECTED GROUND.** vc recommended _flip now, fix forward_ and **that recommendation is WITHDRAWN**: cc re-drove the class against the SITES rather than the NAMES and **five of six supposed absentees are present under another name**; the rest are items the crate has, unreachable by rustdoc's path rules. **The class is ONE-TOKEN PATH REPAIRS, not missing mechanisms**, so _a gate waiting for zero on a growing class waits forever_ is false. **vc now recommends the config's OWN condition: clear the class, then flip.** Held with dc; not built.
+### Needs hv's HANDS -- three, unchanged all day
 
-### Ruled by vc under the pen, hv reverses with one word
+1. **`flip` THEN `burn`, IN THAT ORDER, ONE SITTING.** **`flip` = rebind the default `INTENT_BIN`**, today `bin/intent`, the v2 SHELL SCRIPT (`tests/lib/test_helper.bash:21`); `run_v2_suite.bash:55` defaults to `target/debug/intent`; `~/.local/bin/intent` is the v3 RELEASE -- **three binaries, an undeclared population of build targets.** **`burn` = re-run `burn.sh`**, every `.bats` twice (default binding, then `INTENT_BIN=/usr/bin/false`), classifying by the delta; it hung 3.5h once. **A burn before the flip produces a baseline the flip invalidates and the wall time is paid twice.** **NEITHER NEEDS A BUILD.**
+2. **`ST0057 AT-07.5` NEEDS A STOP-THE-DAEMON WINDOW.** Arm A behavioural **REFUSES rather than fails** while an intentd is up, **so the green rests on a moment nobody can reproduce on demand.** Thread-qualified: `AT-07.5` is carried by TWO threads and mentioned in three.
+3. **`ST0064` 01.7 SIGNING NEEDS hv's ADC.** dc owns the devbin pipeline half.
 
-5. **`0203` -- option (ii), BUILT (`245dcdbe`).** All nine families answer `help` at rc=0, byte-identical to their own `--help`, root unchanged at 2755. **`0217` filed with it.** Option (i) was refused because it changes what a shipped verb PRINTS and puts `help` twice in the table as a `path`.
-6. **`0207` CONTAINMENT, `0215` HIGH, `--symlink` RETIRED, `0181` DISPOSED, `0214` CLOSED, `0208` CLOSED on the four-of-four binding, `AC-17.1` BUILT, `AC-10.5` RE-DISPOSITIONED, `config`'s ordering limb DISCHARGED.**
-7. **`WP-14` RULING WITHDRAWN.** All 12 of its ACs were **descoped to ST0069 by hv 2026-08-30, `by: "hv via vc"` -- vc ruled against a descope vc relayed.** `AC-09.5`'s wip/boards half goes with it: its vehicle is `intent wb`, which is `WP-14`, which is ST0069.
+### A REBUILD IS NOW OWED, AND IT IS NEW SINCE THE LAST FOLD
 
-### Open, lower rank
+4. **`0207` MOVES `surface/dispatch-table.json`, WHICH IS A BUILD INPUT UNDER THE PROVENANCE PIN, SO THE DELIVERED PAIR WILL LAG THE SOURCE AGAIN.** (dc stated it rather than letting it be discovered.) **Nothing is blocked** -- the refusal and `at edit --note` land as source and gate normally. **The tree is dirty with ic's live work, and a dirty `native/rust` REFUSES a shared release build**, so this waits for a moment when nobody is mid-edit. **Do not read the pin running behind HEAD as the arm: run `self_provenance_check.sh` and read its `currency` line.**
 
-8. **`0216`'s SETTLING DRIVE (cc)** -- read `registry.rs`'s `ingested()` either side of three rapid canon writes against a project whose registration state is KNOWN in both directions.
-9. **`ST0065`'s FOUR `to-write` INSTRUMENTS (ic)**, `AT-00.6` expected RED.
-10. **A SECOND CENSUS, OFFERED BY dc AND NOT YET COMMISSIONED: 57 of 138 `v2:` entries declare NO `evidence_class` at all.** Larger gap than the collision class. **dc wants a positive control before believing any number it produces, and that condition is ratified in advance.**
-11. **`0217`'s ROW-SHAPE QUESTION** -- the nine families now advertise `help` and no table path ends in ` help`; every instrument stayed green **because the apparatus only ever walks the TABLE, so a verb in the binary and absent from it is outside the population by construction.**
-12. **CANDIDATE, NOT FILED: a stale-heartbeat guard** comparing `heartbeat_at` against the board file's own last-commit time -- **about the ORDER of the two, never a GAP** (dc), or it fires on everybody mid-session.
-13. **UNDISPOSITIONED (cc's):** `0086`/`0063` and `0095`/`0096` **DROPPED**; `0192` **RULED IN** with the refusal in `info_read_back`; `0205`'s vendored block **ACCEPTED**. **The daemon-lock race still has NO ISSUE and wants a record.**
+### Needs a RULING -- five
 
-### RESTORED BY THE CENSUS -- the cut ate these and they are LIVE
+5. **`AC-17.1`: vc RULED (A) LIFT THE READS-ONLY BOUND and cc is building it.** Recorded here because it was hv's item and hv delegated it, not because it is still open. **`design.md:501` says the row gets STRONGER under D56 and cites a browser GraphQL client writing to the daemon; `wire.rs` scopes the bound to _3.0.x_, a staging note.** hv reverses with one word.
+6. **`config`'s ORDERING EXPIRY -- vc RULED: write the test now and RECORD THE ORDERING VIOLATION in the row.** The rider exists to stop tests being written to MATCH built behaviour; recording the violation keeps that signal. **Holding `AC-06.1` permanently red on a process fault makes a row that CANNOT PASS.** cc owns it. **This is the one where vc had no recommendation this morning and formed one under the delegation -- hv may want it back.**
+7. **`AC-00.16`'s AMENDMENT.** vc's, and vc **re-derives it before ruling it.**
+8. **`ST0065`'s EMPTY CONTRACT -- ROUTED TO ic TO PROPOSE, vc RATIFIES.** A thread with no criteria needs somebody to say what it is FOR and vc cannot invent that; ic claims it and holds what vc lacks.
+9. **`0203` / `0208` REMEDIES -- dc PROPOSES, vc RATIFIES.** They were blocked on hv's word on the REMEDY, not the priority. **`0203` unblocks SIX `keep` rows and `WP-05`.**
 
-14. **`AT-00.2`, `AC-00.8` AND `AC-00.10` SIT BEHIND cc's `WP-10`, WHICH IS BEHIND `WP-06` (cc's) AND `WP-07` (dc's).** Read off the cover; sequence around it. **`AC-00.8`'s _one visible commit_ is the migrator claim cc measured false -- rc=0, HEAD unchanged, 23 paths dirty -- and vc ruled it an OPERATOR CONVENTION rather than a migrator guarantee, so the doc and the row are corrected and the commit is NOT built.**
-15. **`AC-07.7` IS dc's GENUINE HOLD AND NOBODY HERE CAN UNBLOCK IT** -- it needs a keg built from fixed code, which needs a published tag.
-16. **`WP-08` STAYS HELD.** 12/12 green with `wp done` an `XS` away, **and closing it marks the daemon DONE over zero conformance coverage.** cc's call, endorsed, and it is waiting on a WORD rather than on work.
-17. **`AC-02.3`'s fixture decline SURVIVES the scarcity strike** (census-first is right regardless of time), **dc's `bin/` prune survives** on irreversibility plus the CI failure mode, and **`WP-13`/`WP-16` STAY IN ST0069 on hv's own dated sequencing sentence** -- stated so the strike is not read as reversing them.
-18. **THE ACCEPTANCE GATE STILL CANNOT GO RED FROM CODE CHANGING, AND THAT IS UNCHANGED BY TODAY.** baize-vc broke the test `AT-02.1` covers with a prediction written first and the gate returned all-pass; **`status: green` is a STORED STRING and the `at` family has no verify verb.** **What DID change: `0207` now REFUSES a `--note` that would drop the existing one, so the free half of the remedy -- every green carrying its justification atomically -- is a GUARD rather than a discipline.** The verify half is still unbuilt.
+### Ruled in and MOVING -- for visibility, not for action
+
+10. **dc:** `0207` **RULED CONTAINMENT, not length** -- the refusal fires when the incoming note does not CONTAIN the existing one, because **a length check FAILS OPEN on a same-length rewrite**, which is `threads.revision`'s defect one surface over. `at edit --note` lands in the same edit and is load-bearing now. **`0181`/`AC-06.8` in progress; the `13 -> 17` release note and the v2 bats prune come to vc as proposals first.**
+11. **cc:** `0206`'s mutation half built and green; **then `AC-17.1`, then `WP-14` carrying `AC-09.5`'s wip/boards half, then `config`'s ordering expiry.** `WP-08` stays held -- closing it marks the daemon DONE over zero conformance coverage.
+12. **ic:** `/settings`, the vi keymap and `/help` landed. **Section 2 window still owed: section 2 prose, `AC-17.11` reworded, `AC-17.9`'s O3 clause KEYMAP-QUALIFIED, and the AT rows for `AC-17.13` and `AC-17.14`, each citing BOTH of its two-sided halves.**
+13. **STANDING PRACTICE, BINDING EVERY NODE: every `intent at green` carries `--note`.** Until `0207` lands it is APPEND-ONLY -- read the note from the store, build the combined string, assert contains-original AND strictly-longer AFTER the write. **`0207` turns that discipline into a refusal.** **The finding under it: `AT-02.1`'s covered test was broken with a written-first prediction and the gate still returned all-pass, because `status: green` is a STORED STRING and the `at` family has no verify verb.**
+
+### Still open, lower rank
+
+14. **`WP-15` UNOWNED IS NOW vc's** (taken, not started). **`WP-14` un-deferred is cc's.** **`AC-10.5` CHAINS BEHIND `WP-14` AND CANNOT CLOSE WITHOUT IT** -- four live red rows. **cc's safety claim for deferring it did NOT verify: `AC-08.5` is the daemon-watch criterion, and the only two ST0056 criteria matching `partition` are `AC-00.12` (instrument closure) and `AC-11.7` (artefact records), neither of which pins anything.** `WP-13`/`WP-16` STAY in ST0069 on hv's own dated sentence, not on scarcity.
+15. **`AC-07.7` IS dc's GENUINE HOLD** -- a keg from fixed code needs a published tag. Nothing anyone here can unblock.
+16. **`AC-02.3`'s fixture decline SURVIVES the scarcity strike** (census-first is right regardless), and **dc's `bin/` prune survives** on irreversibility plus the CI failure mode.
+17. **`dvb test rust` PRISTINE STAYS UNCLAIMED**, and **reproducibility stays unclaimed** -- not on cost, which hv struck, but because it is a property this project has never decided it wants, and a claim once made is defended at every build forever.
+18. **UNDISPOSITIONED (cc's, via vc):** `0086` and `0063` would have to be WRITTEN, not recovered; `0095`/`0096` are one-word stubs; `0192` -- if ruled in, the refusal goes in `info_read_back`. **The daemon-lock race has NO ISSUE and wants a record.**
 
 **Re-run the verbs; do not read figures off this board.**
 
