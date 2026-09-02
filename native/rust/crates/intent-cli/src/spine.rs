@@ -359,6 +359,28 @@ pub fn build(table: &Table) -> Command {
       cmd = cmd.subcommand(leaf(entry));
     }
     if !verbs.is_empty() {
+      // **`intent <family> help`, ADDED EXPLICITLY RATHER THAN BY CLEARING
+      // `disable_help_subcommand`** (issue 0203, vc ruled (ii) 2026-09-02).
+      // v2 answers this on six of nine families and v3 answered it on none,
+      // which `parity.md:7` puts in scope as command grammar.
+      //
+      // **THE OBVIOUS FIX IS THE ONE THAT CANNOT BE TAKEN, AND ITS FAILURE
+      // MODE IS WHY THIS COMMENT IS HERE.** Clearing the root's
+      // `.disable_help_subcommand(true)` would give clap a generated `help` on
+      // every family -- and a SECOND one at the root, which already ships an
+      // explicit `help` entry from the table served by `render::help_root`.
+      // clap answers a duplicate with a DEBUG assertion, so, driven both ways:
+      // debug panics at rc=101 on EVERY invocation including `--help`, while
+      // release returns rc=0 and works, because `debug_assert` is compiled
+      // out. **Loud in the profile nobody ships, silent in the profile
+      // everybody runs.** Verifying against the shipped binary -- the natural
+      // thing to reach for -- would have reported success.
+      //
+      // **AND THE SETTING PROPAGATES FROM THE ROOT AND OVERRIDES THE
+      // FAMILIES**, so `disable_help_subcommand(false)` per family leaves all
+      // nine still refusing: there is no surgical form of the obvious fix.
+      // Adding the verb here costs a line and hands nothing to clap.
+      cmd = cmd.subcommand(help_verb());
       // **THE FAMILY'S OWN FLAGS AND POSITIONALS ARE ATTACHED HERE**, and
       // before this they were not: `with_args` was called only on the verbless
       // branch, so a flag declared on the family row existed on every leaf and
@@ -427,6 +449,16 @@ pub fn build(table: &Table) -> Command {
   root
 }
 
+/// `<family> help` -- the per-family spelling of `--help`, built explicitly.
+///
+/// **NOT `Command::new("help")` AT THE ROOT.** The root's `help` is a table
+/// entry with a renderer arm; this is a sibling verb on each family, and the
+/// two must not be made one thing -- see the call site for what clap does with
+/// a duplicate.
+fn help_verb() -> Command {
+  Command::new("help").about("Print this command's help")
+}
+
 /// A clap command built from a table entry: its name, its help, and the v2
 /// spellings it still has to answer to.
 ///
@@ -443,7 +475,9 @@ pub fn build(table: &Table) -> Command {
 /// would bring a withdrawn command back through its old spelling while the
 /// canonical one stays gone.
 fn command_for(name: &str, entry: &Entry) -> Command {
-  let mut cmd = Command::new(name.to_string()).about(entry.help.clone());
+  let mut cmd = Command::new(name.to_string())
+    .about(entry.help.clone())
+    .disable_help_subcommand(true);
   for alias in entry.alias_verbs() {
     // VISIBLE, because v2 lists them: `done|notdone <stid> <atid>  Aliases for
     // green | red`. A hidden alias would work and be undiscoverable, which is

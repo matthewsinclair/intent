@@ -52,6 +52,23 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     }
   }
 
+  // **`intent <family> help`, SERVED ONCE HERE FOR EVERY FAMILY** (issue 0203,
+  // vc ruled (ii) 2026-09-02). Here for the reason the `--daemon` guard above
+  // is here: this is the only place that sees every invocation and knows what
+  // was asked. The alternative was a `help` arm inside each of the nine family
+  // functions -- one rule, nine implementations, and the tenth family added
+  // later would have had none.
+  //
+  // The spine gives each family an explicit `help` verb, so clap PARSES it and
+  // it arrives here as an ordinary subcommand; nothing is intercepted before
+  // parsing. See `spine::help_verb` for why it is explicit rather than clap's
+  // generated one.
+  if let Some((family, m)) = matches.subcommand()
+    && let Some(("help", _)) = m.subcommand()
+  {
+    return family_help(family);
+  }
+
   match matches.subcommand() {
     Some(("st", m)) => st(m),
     Some(("wp", m)) => wp(m),
@@ -6044,6 +6061,42 @@ fn version() -> Result<(), Failure> {
 /// Per-command help already answers as `intent <cmd> --help`; hv's post-tag
 /// `<cmd> help` is a different surface carrying different content, so declaring
 /// a `command` argument here would ship a promise that ruling has to unmake.
+/// `intent <family> help` -- that family's help, rendered from the same built
+/// spine `--help` renders from.
+///
+/// **RENDERED, NEVER TRANSCRIBED.** The text is `render_help()` on the family's
+/// own `Command` inside the built tree, so it cannot drift from what
+/// `intent <family> --help` prints -- they are one Command asked twice.
+///
+/// **A FAMILY THAT DOES NOT EXIST IS A BUILD DEFECT, NOT USER INPUT.** clap has
+/// already matched the name to reach this function, so a miss here means the
+/// tree `run` parsed against and the tree this rebuilds have come apart.
+fn family_help(family: &str) -> Result<(), Failure> {
+  let mut root = crate::spine::build(&dispatch::table());
+  // **`build()` BEFORE READING A CHILD, AND THIS LINE IS THE WHOLE DIFFERENCE
+  // BETWEEN IDENTICAL AND NEARLY-IDENTICAL OUTPUT.** clap finalises a tree
+  // lazily: it propagates the display name and every `global` arg into the
+  // subcommands only when the Command is built. Without this, a child pulled
+  // straight out of `spine::build` renders `Usage: lang [COMMAND]` instead of
+  // `Usage: intent lang [OPTIONS] [COMMAND]` and omits `--daemon`, which is
+  // global. **Two small, plausible, entirely wrong lines** -- measured, not
+  // reasoned: the criterion is byte-identity with `<family> --help`, and it
+  // failed until this call was added.
+  root.build();
+  match root.find_subcommand_mut(family) {
+    Some(cmd) => {
+      // `print!`, not `println!` -- `render_help()` already ends in a newline
+      // and the byte-identity against `<family> --help` is the criterion.
+      print!("{}", cmd.render_help());
+      Ok(())
+    }
+    None => panic!(
+      "`{family}` parsed as a subcommand and is absent from the rebuilt spine; the parse tree and \
+       the render tree disagree, which is a build defect rather than anything a user did"
+    ),
+  }
+}
+
 fn help_root() -> Result<(), Failure> {
   // `print!` for the reason `version()` gives one screen up: `render_help()`
   // already ends in a newline, and the byte-identity property against `--help`
