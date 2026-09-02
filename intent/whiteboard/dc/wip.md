@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-02 16:38Z
+heartbeat_at: 2026-09-02 17:13Z
 status: active
-focus: "FOLDED 2026-09-02 16:31Z; pre-fold verbatim + sha-verified at .history/20260902/wip-prefold-1629Z.md (59ea73d9, 54899 bytes), reasoning beside it. STATUS STAYS active -- a fold is not the end of a session. LANDED TODAY: the ruled pipefail sweep (7f1bfb53) and the GATED guard that found 13 sites the sweep could not see (70e2e48c). THE DAY IS ONE LESSON ABOUT POPULATIONS -- W47 through W50, three of the four mine. NAME THE MECHANISM, NEVER THE INSTANCE. NO FIGURES HERE -- run the verbs."
+focus: "SEVEN ITEMS ASSIGNED BY vc UNDER hv's PEN 17:04Z -- all vc rulings, not hv rulings; hv reverses any with one word. TWO LANDED: inbox logs out of the formatter WIDE (d7e91893) and declared-kind attributing the in-flight landing (eff993b2). FIVE OPEN: 0207 refusal, v2 bats prune with the trunk, the 13-to-17 release note, AC-06.8/0181 disposition, 0203+0208 remedies to propose. STANDING PRACTICE NOW BINDING EVERY NODE: every `intent at green` carries --note. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -35,9 +35,25 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-- **NOTHING IN FLIGHT. FOLDED 2026-09-02 16:31Z, AWAITING hv ON THE BOUNCE.** Nothing of mine was dirty at checkin; every uncommitted path belonged to a peer (ic's TUI and `settings.rs`, the devbin manifest drift, `MODULES.md`, issue `0213`).
-- **THE GUARD IS LIVE AND GATES.** `pipefail_sigpipe_check.sh` (`70e2e48c`) runs on every commit, prints its own two-sided control, and refuses to report when either arm fails to fire. It found 13 sites the ruled sweep could not see, which is the whole argument for it.
-- Today's reasoning is archived, not retold here: `.history/20260902/afternoon-narrative-1629Z.md`, beside `wip-prefold-1629Z.md` (sha `59ea73d9`, `cmp` identical). The morning is in `evening-narrative-0809Z.md` and `wip-prefold-0809Z.md`.
+- **SEVEN ITEMS FROM vc AT 17:04Z, UNDER hv's PEN.** hv's words to vc, relayed: _"Just do it order, and go with your recs."_ **These are vc rulings made under a delegated pen, NOT hv rulings** -- the distinction is structural (ic's ruling, adopted verbatim by vc) and hv reverses any of them with one word. **Order: ic's section 2 window goes first; everything else runs in parallel by owner. `AT-07.5`'s daemon-down slot and flip/burn STAY WITH hv.**
+
+**LANDED:**
+
+- **1. INBOX MESSAGE LOGS ARE OUT OF THE FORMATTER** (`d7e91893`). **RULED NARROW (`hv/inbox.*`) AND I MEASURED BEFORE BUILDING, WHICH WIDENED IT.** Positive control first -- the protocol's own heading form through `prettier --write` at the binary the gate resolves, which collapses both separators. **Then the corpus: 39 headings carry a `Re:`/`FYI` field, ZERO retain the three-space separator the skill specifies, across 11 files and every node directory.** 24 in `hv/inbox.*`, **15 in peer-to-peer inboxes the narrow ruling did not reach.** vc ruled WIDE on that number and named their own narrowing as W50 arriving from the other side. **I DID NOT WIDEN IT MYSELF -- that is W49, four hours old, and the convenient direction is still the wrong one to take unilaterally.** Two defects fixed: the append-only surface stops being rewritten, and **the spec moved to one-or-more spaces rather than the 39 files being mass-edited** -- nothing parses the separator (the clock guard keys on the STAMP), so rewriting them would be a bulk byte-change across append-only surfaces to satisfy a cosmetic field. `.prettierignore`'s header said NOTHING ELSE IS EXCLUDED and named the whiteboard as formatted; **amended in the same commit with a CRITERION rather than a list** -- single writer AND existing content is evidence, both halves required.
+- **2 (C). `declared_kind_check.sh` NAMES THE IN-FLIGHT LANDING** (`eff993b2`). It reads COMMITTED canon against a WORKING-TREE roster, so a half-landed citation red-gates the tree for nodes with no part in it -- **it caught me at 08:26Z and vc at 08:28Z, four minutes apart, and we both went hunting a defect in our own change.** The findings block now names the commit that last moved the citing canon, says whether the roster is uncommitted RIGHT NOW, and states `0210` with the instruction to tell its author rather than repair it. **Pure attribution: the finding stands, the exit code stays 1.** **DRIVEN BOTH WAYS, because a clean estate never reaches that path** -- a planted unrostered tool under a scratch ROOT, once with no git and once as a repo with the canon committed and the roster uncommitted.
+
+**OPEN, IN THIS ORDER:**
+
+- **2 (D). LET THE GUARD SEE THE WORKING TREE.** Widens what it SEES rather than narrowing what it CHECKS, so inherited-breakage detection is untouched. **The residual hole vc stated and I am not to forget: under (D) an artefact could sit uncommitted indefinitely with its citation passing.** `runner_roster_check` covers it from the other side.
+- **3. `0207` -- BUILD THE REFUSAL.** `--note` replaces a note wholesale and silently on the verb you reach for AT CLOSE. **The new standing practice makes it sharp rather than cosmetic.**
+- **4. PRUNE THE v2 BATS SUITE WITH THE TRUNK.** Port is XL and most of it tests a dispatcher that will not exist. **Dissolves the `AC-12.1` deadlock** -- that row gates the tag, hv ruled the `bin/` prune happens AFTER the tag, and one of that ruling's two grounds is a CI failure mode that disappears if the suite goes with the trunk.
+- **5. THE `13 -> 17` MIGRATION OWES A RELEASE NOTE** -- note, plus the existing refusal, plus `SchemaMismatch` naming its artefact so the refusal says what to do next. **Endpoints measured; the rung count stays unmeasured and unclaimed.**
+- **6. `AC-06.8` / `0181` -- READ IT AND DISPOSE.** `llm usage_rules --symlink` has sat `keep`-and-UNREAD. **A disposition nobody has read is not a decision.**
+- **7. `0203` AND `0208`: I PROPOSE THE REMEDY, vc RATIFIES.** They were blocked on hv's word on the REMEDY, not the priority, and a remedy review is inside the pen -- so the block dissolves. Unblocks six `keep` rows and `WP-05`.
+
+**THE STANDING PRACTICE, BINDING EVERY NODE FROM 17:04Z:**
+
+- **EVERY `intent at green` CARRIES `--note`.** No build required; the verb lands assertion and justification atomically, so no row is ever green and unexplained. **Item 3 is precisely why this needs building first -- until `0207` lands, the practice quietly destroys provenance on the verb it runs on.**
 
 ## TODO
 
