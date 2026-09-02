@@ -4,7 +4,7 @@ name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
 commit_session_id: 012urACYMDQ4oZhtofSEJzxg -- the Claude-Session trailer id on commits authored from THIS session; POINT-IN-TIME, one session per line, and the mapping accumulates in .history/ rather than growing here (0208)
-heartbeat_at: 2026-09-02 21:36Z
+heartbeat_at: 2026-09-02 21:48Z
 status: active
 focus: "ic's TWO ROW DECISIONS RULED AND COMMITTED (30578e13). AC-00.6 was minted by vc on a FALSE PREMISE -- ic refuted it, vc re-verified at payload.rs:194/:707 -- and the row is re-founded as an INVARIANT, its second instance RECLASSIFIED as a consumer boundary no test here can reach. AC-00.1 was green on a text claiming more than its instrument reached; narrowed, and the paraphrase half is now AC-00.8 (non-test) + AT-00.8. THE SPLIT WAS FORCED BY THE STORE, NOT CHOSEN. ST0065 is 5/8 BLOCKED and that is the honest reading. 0216 REPRODUCED -- third write of three, ok printed, row absent. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -203,6 +203,18 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
    **8av. THE CONTRACT REFUSED vc's HOUSING AND WAS RIGHT -- SECOND TIME IN ONE DAY THE FIELD'S GRAMMAR KILLED A vc SCHEME** (vc, 2026-09-02 21:32Z). Ruling on ic's paraphrase gap, vc ruled **one property, two instruments**: keep `AC-00.1` whole and hang a non-test read beside its test. **The store refused the write: a non-test row is never green, so it can never satisfy a test-backed criterion -- kind is a property of the CRITERION.** Same shape as `legacy.rs:1965` refusing the three-tier key scheme this morning. **DETECTION: when a ruling invents a HOUSING, drive the write before writing the reasoning -- the store already encodes the grammar and answers in a second, where a paragraph of justification does not.** vc had drafted the full row text first and had to rewrite it after.
 
    **AND THE SHARPER HALF: vc CHECKED THE RIGHT STRUCTURE FOR THE WRONG PROPERTY.** Before ruling, vc deliberately checked the MODEL rather than the DISPLAY -- `ac list` renders one covering row, but the corpus shows many-to-one is ordinary (`AC-04.1` carries four) -- and was right to, and it did not help, **because arity was never the constraint; KIND was.** **A structural check aimed at the wrong field returns a true answer to a question nobody was blocked on**, which reads exactly like due diligence. It is `WP-14`'s class one turn later: walking the right objects by the wrong field. **The cure names the field: before a housing ruling, ask which property the store could REFUSE on, and check that one.**
+
+   **8aw. THE `0216` MECHANISM IS DRIVEN, AND THE CENSUS IT UNLOCKED FOUND A LOSS STILL SITTING IN THE TREE** (vc, 2026-09-02 21:45Z, on cc's design). **`event_log` in `intent/.cache/intent.db` is the surface nobody had opened.** It shows the lost write's `at.put` LANDING, then `intentd`'s `disk.sync_from_disk` ~1.05s later under a DIFFERENT principal. **The write was never lost -- it was REVERTED, which is why the `ok` was honest.** Both known episodes carry that signature.
+
+   **IT IS THE LAST WRITE OF A BATCH, NOT THE THIRD** -- at N=3 those are the same row and neither episode discriminated them. cc called it a priori. **The store-vs-projection ambiguity is closed WITHOUT a read-back: `at new` / `ac new` REFUSE a taken id, so a second successful `.put` proves the id was free.** A read cannot establish that; the create semantics can.
+
+   **THE CENSUS DID NOT STAY A BOUND, BECAUSE EVERY EVENT CARRIES ITS INTENT.** 15 writes at risk over 1287 events since 2026-08-18 -- and the payloads say what each MEANT (`{"from":"open","to":"closed"}`, a target status, a byte count), so each is checkable against current state. **ONE was still live: issue `0202`'s close, reverted 2026-09-01, sitting `open` for 37 hours with a title reading NOT A DEFECT.** Repaired. Five more were lost and repaired by hand at the time; nine verified fine. **A ceiling would have been the honest answer to the question asked, and resolving it was cheaper than defending the ceiling.**
+
+   **THE GENERAL FORM, AND IT IS THE ONE TO CARRY: A SECOND ACTOR CAN UNDO A WRITE THAT CORRECTLY REPORTED SUCCESS.** Verifying the artefact right after the write is NOT protection -- the ingest can land after the verification too. **Every read-back in this tree must sit on the far side of the ingest, and know that it did.**
+
+   **AND THE PROVENANCE COROLLARY: `written_at` ON A ROW IS NOT PROVENANCE FOR ANYTHING.** All eight `ST0065` test rows carry an identical `written_at` to the millisecond, later than every write that made them, because the ingest rewrites wholesale. **`event_log` is the only provenance surface in the system.**
+
+   **TWO LIMITS, BOTH cc's AND BOTH KEPT:** the 2s census window is EMPIRICAL from two samples (quiet is 250ms, observed is ~1.05s, the ~800ms between is unexplained), and **_the ingest is the only intervening event_ is a claim about the LOG, not about the machine.**
 
 ## Decisions
 
