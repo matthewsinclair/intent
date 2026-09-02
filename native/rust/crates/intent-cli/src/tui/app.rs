@@ -1657,10 +1657,23 @@ mod tests {
         };
         let before = app.clone();
         let step = app.on_key(k, &rows);
+        // **THE MODE TRANSITION IS BOOKKEEPING, SO IT IS GRANTED TO THE
+        // BASELINE FOR FREE.** `on_key`'s tail applies the declared transition
+        // itself, so for any edge that CHANGES mode a completely dead trigger
+        // still moves the `App` and would pass a naive before/after check.
+        // **The first version of this test did exactly that, and only caught
+        // `Hotkey` because `MENU Hotkey -> MENU` happens to be a self-loop --
+        // luck, not a property.** vc asked the question; a planted dead
+        // trigger declaring `OMNI -> MENU` passed, which is how it was
+        // confirmed rather than reasoned. This is 8x turned back on the test
+        // written an hour before the class was named.
+        let mut only_the_transition = before.clone();
+        only_the_transition.mode = app.mode;
         assert!(
-          step != Step::Continue || app != before,
-          "{m:?} + {trigger:?} is declared by the machine and the realiser does NOTHING with it: \
-           bound, reaching the machine, and inert. This is the `Hotkey` shape"
+          step != Step::Continue || app != only_the_transition,
+          "{m:?} + {trigger:?} is declared by the machine and the realiser does NOTHING with it \
+           beyond taking the mode transition: bound, reaching the machine, and inert. This is the \
+           `Hotkey` shape"
         );
         examined += 1;
       }
