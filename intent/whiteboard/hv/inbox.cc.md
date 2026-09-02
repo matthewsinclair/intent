@@ -73,7 +73,8 @@ Nothing is burning and I am not blocked on this: my lanes are clean and I am hol
 **I HAVE NOT TOUCHED `~/.intent/home`.** It is machine-global, it points into another node's session, and rewriting it would be choosing an install root on your behalf -- the one act the shim's design refuses. vc has it for sequencing; ic has the mechanism; dc has the consequence for `gate_currency`, which will call a correctly-installed shim `dispatcher STALE` because it compares against the gate body.
 
 **ONE ASSUMPTION I MADE RATHER THAN BLOCKING ON, STATED SO YOU CAN REVERSE IT.** vc named the tracked-hooks question and deliberately left it unruled. I found the estate had already answered it -- `.gitignore:156` ignores `.githooks/pre-commit.intent` while `.githooks/` itself is tracked, with the reason in MODULES.md: tracking it would be a second home for canon. **So my next commit REPORTS when the carrier lands somewhere tracked rather than refusing to write it.** Refusing would leave Laksa with no gate at all, which is strictly worse than today, and reporting is the reversible choice. Say the word and I will invert it.
-## (2026-08-29 18:45Z)   FYI only -- no response needed.
+
+## (2026-08-29 18:45Z) FYI only -- no response needed.
 
 **ANNOUNCE -- I AM REFRESHING THE MACHINE STORE, AND I HAVE 0144.** Both on hv's word, first-hand in my session at 18:4xZ: I put two questions and hv answered _"1: Do it / 2: Yes"_.
 
@@ -84,3 +85,19 @@ Nothing is burning and I am not blocked on this: my lanes are clean and I am hol
 **AND I HAVE 0144, SO WE DO NOT BOTH TAKE IT.** vc: your bounce focus names it and it is routed to cc in `intent/wip.md`, so I read yours as follow-up rather than as a claim -- **but I am saying so rather than assuming it.** hv confirmed the ordering explicitly: 0144 BEFORE the `info.md` round-trip. If you were about to start it, say so and I will stand down.
 
 **ONE CORRECTION AGAINST MYSELF, since it was load-bearing for a day.** My 17:58Z fold said `native/rust` was held at 0 dirty for vc's rebuild. **ic recorded that window closing at 17:31Z -- 27 minutes BEFORE I wrote it.** The hold was already lifted when I asserted it. Pair measured current at boot; `intent` names `f4a2271f` and `git diff --name-only f4a2271f..HEAD -- native/rust surface` is empty. **I could not check it as a SET: `intentd --version` prints no commit**, so only the commit gate compares the two markers.
+
+## (2026-09-02 13:56Z) THREE OF MY OWN ENTRIES ABOVE ARE DEAD -- DISCHARGE NOTICE, NOTHING NEEDED FROM YOU
+
+**APPENDED, NOT EDITED IN PLACE.** The entries above stay exactly as delivered, wrong premises included, because a rewritten escalation loses the evidence of what someone was told at the time. Your ruling via vc, and the shape is vc's.
+
+**I re-drove all five of my entries before routing anything to you today. Measurement killed three, and one of those was my largest.**
+
+**[1] `sync` SKIPPING UNTRACKED BYTES (2026-08-25) -- LANDED, AND MY FRAMING WAS WRONG RATHER THAN MERELY STALE.** I put it to you as a scope question with **no cheap middle**: either build the staged-but-untracked vs untracked-and-unstaged distinction, or drop the skip from 3.0.0. **The code took a third option I said did not exist.** `sync.rs:506`, in its own words: _it keys on IGNORED, never on untracked. A `thread.json` you just created and have not committed must still ingest -- that is what most of a working session looks like._ Keying on ignored **dissolves** the discriminator instead of implementing it, so the silent no-op I asked you to rule on has no subject. **You were asked to choose between two options when a better third existed. That is on me.**
+
+**[5] `~/.intent/home` POINTING AT A DELETED TEMP WORKTREE (2026-08-27) -- GONE, AND NOBODY TOLD ME.** This was the largest thing I ever escalated to you: the pointer named a vanished scratchpad worktree under a peer's session, and I argued **the 17-estate sweep could not run until it was sound**. Driven today: the pointer resolves to `/Users/matts/Devel/prj/Intent`, the directory exists, and the shim answers `state: OK`, rc=0. **Had I not re-driven it, I would have handed you a dead blocker with a sweep still parked behind it.**
+
+**[4, SECOND HALF] `autotests = false` SET EXPLICITLY -- RULED AND EXECUTED.** All three crates carry it (`intent-cli`, `intentd`, `intentsvcs`). Nothing outstanding.
+
+**WHAT IS STILL LIVE FROM THOSE ENTRIES:** the AT row-keying convention (**you have now ruled it: cite the TEST NAME**, and I am executing) and `Node`'s model / WP-14, whose **safety claim I have retracted** -- I told you the deferral was safe because `AC-08.5` pinned the partition sizes in both directions, and it does not; `AC-08.5` is the daemon-watch criterion. vc drove it independently and found no pin anywhere in ST0056. **The property that made that deferral ignorable is one I can no longer stand behind**, which is why it is back in front of you rather than sitting quietly on my board.
+
+-- cc
