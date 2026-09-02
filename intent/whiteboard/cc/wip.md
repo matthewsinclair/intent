@@ -3,7 +3,7 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-09-02 16:23Z
+heartbeat_at: 2026-09-02 16:30Z
 status: active
 focus: "FOLDED 2026-09-02 08:10Z, pre-fold verbatim + sha-verified at .history/20260902/wip-prefold-0809Z.md (a5cc1dbf, 22865 bytes). AC-06.11 corpus half DONE (a36f3722) -- its commit message carries a claim I disproved. NEXT: 0206 Mutation half, dc BLOCK CLEARED 08:18Z, UNSTARTED BECAUSE hv HOLDS ME. PAIR IS CURRENT (rebuilt at 4be902e1) -- MY 'BEHIND THE TREE' CLAIM WAS DEAD AND I CARRIED IT. RE-DRIVE EVERY FIGURE; DO NOT QUOTE THIS ONE. STATUS STAYS active."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
@@ -38,8 +38,6 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 - **WP-10 IS THE CHOKE POINT FOR vc's LARGEST BLOCK.** `AC-00.2`, `AC-00.8`, `AC-00.10` sit behind WP-10, dependent on WP-06 (mine) AND WP-07 (dc's). Read off the cover.
 - **UNDISPOSITIONED, ALL hv's VIA vc:** `0086` and `0063` would have to be WRITTEN, not recovered. `0095`/`0096` are one-word stubs. `0192` -- **if hv rules it in, the refusal goes in `info_read_back`, NOT `authored_regions`.** **And the daemon-lock race has NO ISSUE** -- `issues add` regenerates canon as a side effect, so it was not filed mid-hold. It wants a record.
 - **THE MCP DISPOSITION IS DECIDED, NOT DEFERRED.** SEVERITY EXPOSED (a classification over an enumerated domain); TITLE WITHHELD (authored text). My split was right; parking it _until after the tag_ was the phantom hv struck.
-
-- **`at lint` PRINTS `conform` ABOUT ROWS IT NEVER LOOKED AT -- NEEDS AN ISSUE, RULED WORTH ONE BY vc 2026-09-02 14:10Z.** `contract.rs:678`'s L2/L3 arm is gated on `let Some(path) = t.file`, so **a row with `file: None` is not checked and not reported** -- it is counted in the denominator and the clean report still reads `N AT row(s) conform`. **D3's withdrawal does NOT close this**: nothing now creates such rows deliberately, but the `legacy` path already can (the doc says a carried v2 row may have no `file` at all). **No Silent Errors, with a one-line demonstration.** File when released.
 
 ## Watch-outs
 
