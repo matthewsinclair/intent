@@ -17,10 +17,10 @@
 //!
 //! **WHAT IT COMPARES TODAY, STATED SO NOBODY READS MORE INTO A GREEN.** The
 //! two live routes are the real `intent` binary in its own process, and
-//! `spine::parse` + `render::run` called in this one. They are genuinely
-//! different -- separate compilation unit, separate process, separate
-//! environment and working directory, and only the binary goes through
-//! `main`'s failure-to-exit-code mapping. What they are NOT is a client and a
+//! `intent_cli::dispatch` called in this one. They are genuinely different --
+//! separate compilation unit, separate process, separate environment and
+//! working directory, and only the binary goes through `main`'s
+//! outcome-to-exit-code mapping. What they are NOT is a client and a
 //! server, so this file does not yet prove anything about a socket. It proves
 //! that the library and the shipped binary answer identically, which is the
 //! invariant the daemon will be held to when it exists.
@@ -76,7 +76,7 @@ use std::collections::BTreeSet;
 use std::path::Path;
 use std::process::Command;
 
-use intent_cli::{dispatch, render, spine};
+use intent_cli::dispatch;
 
 /// One way of reaching the implementation.
 ///
@@ -88,7 +88,7 @@ use intent_cli::{dispatch, render, spine};
 enum Route {
   /// The shipped `intent` binary, in its own process.
   Binary,
-  /// `spine::parse` + `render::run`, in this process.
+  /// `intent_cli::dispatch`, in this process -- the entry point `main` calls.
   InProcess,
 }
 
@@ -199,20 +199,23 @@ fn via_library(root: &Path, argv: &[String]) -> Answer {
   std::env::set_current_dir(root).expect("cd into the fixture");
   let mut full = vec!["intent".to_string()];
   full.extend(argv.iter().cloned());
-  match spine::parse(full) {
-    Err(code) => Answer {
-      code: code as i32,
+  // **THE LIBRARY ROUTE IS `intent_cli::dispatch`, WHICH IS WHAT `main` CALLS
+  // -- IT USED TO BE A HAND-ROLLED `spine::parse` + `render::run` HERE, AND
+  // THAT MATTERED MORE THAN A DUPLICATED SEQUENCE.** This file exists to prove
+  // the library and the shipped binary answer identically. While the sequence
+  // was written out here, the thing being compared against the binary was a
+  // route NOTHING SHIPPED: a third copy that agreed with `main` only for as
+  // long as nobody changed either. Calling the real entry point is what makes
+  // the conformance claim about the code an operator runs. (`AC-17.15`.)
+  let outcome = dispatch(full);
+  match outcome.message {
+    None => Answer {
+      code: outcome.code,
       message: String::new(),
     },
-    Ok(matches) => match render::run(&matches) {
-      Ok(()) => Answer {
-        code: spine::EXIT_OK as i32,
-        message: String::new(),
-      },
-      Err(failure) => Answer {
-        code: failure.code() as i32,
-        message: failure.message().unwrap_or_default().trim_end().to_string(),
-      },
+    Some(message) => Answer {
+      code: outcome.code,
+      message: message.trim_end().to_string(),
     },
   }
 }
