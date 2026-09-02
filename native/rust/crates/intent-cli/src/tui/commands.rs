@@ -499,6 +499,8 @@ mod tests {
     }
   }
 
+  /// `AT-17.16` / `AC-17.16` -- the admission half.
+  ///
   /// **EVERY ROSTER NAME IS A REAL COMMAND ON THE SHIPPED SURFACE.**
   ///
   /// [`vocabulary`] drops an unknown one rather than offering a palette entry
@@ -524,6 +526,8 @@ mod tests {
     }
   }
 
+  /// `AT-17.16` -- the allow-list half, with its positive control.
+  ///
   /// **THE ROSTER IS AN ALLOW-LIST, AND THIS IS THE ASSERTION THAT SAYS SO.**
   ///
   /// The first half is the property; **the second half is the positive control
@@ -564,6 +568,8 @@ mod tests {
     }
   }
 
+  /// `AT-17.16` -- the collision half.
+  ///
   /// **THE TUI's VOCABULARY WINS A COLLISION, AND THE GUARD THAT MAKES IT WIN
   /// HAS NO WORK TO DO.**
   ///
@@ -597,6 +603,9 @@ mod tests {
     }
   }
 
+  /// `AT-17.15` / `AC-17.15` -- the derivation half; the one-dispatch-home
+  /// half is `tests/one_dispatch_home.rs`.
+  ///
   /// **hv's OWN REQUIREMENT AS A TEST: THE PALETTE DOES NOT DUPE `--help`.**
   ///
   /// *It would be good if we didn't dupe it, but rather got it from the same

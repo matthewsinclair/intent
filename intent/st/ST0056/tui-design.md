@@ -14,7 +14,9 @@ Covers steel threads, work packages and issues.
 
 ## 2. Screen layout
 
-Three sections, named by hv, separated by two rules. **There are no borders anywhere; those two rules are the only chrome.** _(Revised with the omnibox machine, hv 2026-08-30: the foot collapsed from three standing rows to two — the omnibox line and one mode-chipped hint line — on the minimal-chrome ruling, and the screen boots into the threads list rather than a kind lobby.)_
+**Four standing sections — APP ROW, BODY, OMNIBOX ROW, HINT ROW — separated by two rules, with a third LABELLED rule appearing only when the body splits.** _(Revised with the omnibox machine, hv 2026-08-30: the foot collapsed from three standing rows to two — the omnibox line and one mode-chipped hint line — on the minimal-chrome ruling, and the screen boots into the threads list rather than a kind lobby.)_
+
+**THIS PARAGRAPH SAID _three sections … separated by two rules_ AND _there are no borders anywhere; those two rules are the only chrome_ UNTIL 2026-09-02, AND BOTH HALVES HAD GONE STALE IN DIFFERENT DIRECTIONS.** The count was never reconciled after the foot collapse — the same revision note that records the collapse sits in a sentence still saying three, while the bullet list immediately below it names four. And the borders clause was overtaken by hv's own ratification of the framed composer (O1, 2026-09-02), which is a border; `draw.rs` had already been corrected to _borders on the composer, nowhere else_ and this section had not. **A design document disagreeing with itself one line apart is the version a reader trusts least, because there is no way to tell which half is current** — and `AC-17.11` was corrected to this section on 2026-08-30, so a stale sentence here propagates into the register rather than staying local.
 
 ```
  ST0056   Add a Rust-based CLI with a local SQLite DB with bidirectional sync…   /thread/ST0056   ESC back
@@ -66,7 +68,7 @@ Three sections, named by hv, separated by two rules. **There are no borders anyw
 | OMNI  | Enter              | FIELD | edit in place -- editable rows                       |
 | OMNI  | Enter              | EMBED | hand off -- prose rows to `$EDITOR`                  |
 | OMNI  | `/`                | MENU  | open the palette, one press, empty buffer only       |
-| OMNI  | Esc                | OMNI  | clear the query; a no-op when already empty          |
+| OMNI  | Esc                | OMNI  | clear the query; under emacs a no-op when empty      |
 | OMNI  | Back               | OMNI  | pop the view stack, empty buffer only                |
 | MENU  | Typing / Move      | MENU  | filter the palette; pick among the hits              |
 | MENU  | Enter              | OMNI  | run the picked command                               |
@@ -101,6 +103,8 @@ Three sections, named by hv, separated by two rules. **There are no borders anyw
 **Pane focus (list / detail) is a GUARD on OMNI's edges, not a fifth mode.** It changes where Move and Enter land; it does not change what the keys mean. The buffer condition is the same species, and it now governs three keys: mid-query `/` is a character (`st/ST0056` is a legal spelling), `Backspace` deletes rather than walking up the model, and the arrows pick among matches rather than browsing the body. **One rule asked at three keystrokes, never three rules.**
 
 **vi's NORMAL MODE IS THE THIRD GUARD OF THAT SPECIES**, added when `explorer.editing.mode` landed — see section 7. It governs Esc and every letter, over OMNI and MENU alike, and it is a guard rather than a mode for exactly the reason the other two are: a `ViNormal` state would duplicate every edge those two modes already carry in order to say nothing the table does not already say. **Esc's invariant survives it and is asserted under both keymaps** — see there.
+
+**AND THE `OMNI + Esc` NOTE IS KEYMAP-QUALIFIED BECAUSE THE vi GUARD MADE IT FALSE, WHICH IS THE COST OF A GUARD NOBODY BILLED FOR.** That cell read _a no-op when already empty_ and now reads _under emacs a no-op when empty_: under vi the first Esc on an empty composer ENTERS NORMAL MODE, and only the second one is inert. **The row is unchanged in its from/trigger/to columns, so nothing about the machine moved** — the falsehood was entirely in a notes cell that predated the keymap and was never revisited when it landed. **A guard added over a whole mode changes every affirmative sentence written about that mode's keys, and the sentences do not announce themselves**: this one was found by vc reading the table against the ruling rather than by anything failing, because a notes column is prose and no invariant reads it.
 
 ## 4. Keys
 

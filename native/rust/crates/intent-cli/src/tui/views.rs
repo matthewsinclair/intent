@@ -195,6 +195,8 @@ mod tests {
     );
   }
 
+  /// `AT-17.14` (the renderer half; the writer half is in `tui/app.rs`).
+  ///
   /// **`AC-17.14`, DRIVEN AT THE SURFACE: what the file contains does not
   /// decide what the screen offers.** The fixture is a config carrying the
   /// migration marker, the structural key, the author and a key nobody

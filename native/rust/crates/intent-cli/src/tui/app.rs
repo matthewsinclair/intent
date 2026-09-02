@@ -1849,6 +1849,8 @@ mod tests {
     assert!(app.omnibox.buffer.is_empty());
   }
 
+  /// `AT-17.13` (one of its two halves) / `AC-17.13`.
+  ///
   /// **REACHABILITY INTO THE MACHINE AND REACHABILITY OUT OF IT ARE TWO
   /// PROPERTIES, AND UNTIL NOW WE TESTED ONE.**
   ///
@@ -2021,6 +2023,8 @@ mod tests {
     })
   }
 
+  /// `AT-17.13` (its other half) / `AC-17.13`.
+  ///
   /// **`AC-17.13`'s SECOND SIDE: THE VOCABULARY DECLARES NOTHING IT CANNOT
   /// PERFORM.** The first side -- every trigger the machine answers is acted
   /// on -- is the sibling test above. This is the one that had no test, and it
@@ -2222,6 +2226,8 @@ mod tests {
     }
   }
 
+  /// `AT-17.14` (the writer half; the renderer half is in `tui/views.rs`).
+  ///
   /// **`AC-17.14`'s REFUSAL, WITH A POSITIVE CONTROL ON THE GUARD.**
   ///
   /// The renderer builds rows from the allow-list, so no undeclared row can
