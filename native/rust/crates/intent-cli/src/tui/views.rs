@@ -114,7 +114,8 @@ pub fn app_line(view: &View) -> String {
     View::Item { kind, id } => format!("{kind}  {id}"),
     View::Children { kind, id, field } => format!("{kind}  {id}  {field}"),
     View::Settings => format!("settings  {}", intentsvcs::settings::SECTION),
-    View::Help => "help".to_string(),
+    View::Help { of: None } => "help".to_string(),
+    View::Help { of: Some(name) } => format!("help  intent {name}"),
   }
 }
 
@@ -262,7 +263,10 @@ mod tests {
         field: "wps".into(),
       },
       View::Settings,
-      View::Help,
+      View::Help { of: None },
+      View::Help {
+        of: Some("st".into()),
+      },
     ];
     let mut seen: Vec<String> = Vec::new();
     for v in &views {

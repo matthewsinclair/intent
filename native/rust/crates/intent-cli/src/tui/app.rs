@@ -462,8 +462,14 @@ impl App {
             // `/settings editing.mode` says what that one is. The read is a
             // `Step` because the value is on disk and this module holds no
             // reader -- the same rule that makes `Land` a step.
+            // **`/help` AND `/help st` ARE THE SAME ACT WITH AND WITHOUT AN
+            // ARGUMENT**, which is why the argument is not a second command:
+            // the page is the same view at two depths, so Backspace walks back
+            // up it the way it walks back up anything else.
             Act::Help => {
-              self.push(View::Help);
+              self.push(View::Help {
+                of: (!argument.is_empty()).then_some(argument),
+              });
               Step::Continue
             }
             Act::Settings if argument.is_empty() => {
@@ -2424,11 +2430,15 @@ mod tests {
     assert_eq!(app.on_key(key(KeyCode::Enter), &rows), Step::Continue);
     assert_eq!(
       app.stack.current(),
-      &View::Help,
+      &View::Help { of: None },
       "`/help` did not open the help view"
     );
 
-    let page = super::super::help::rows(keys::Keymap::Emacs);
+    let page = super::super::help::rows(
+      keys::Keymap::Emacs,
+      &crate::spine::build(&crate::dispatch::table()),
+      None,
+    );
     assert!(!page.is_empty(), "the help view opened on nothing");
 
     // **ENTER ON A REFERENCE ROW IS A DECLARED NO-OP, NOT A BROKEN DOOR.**
@@ -2452,7 +2462,7 @@ mod tests {
     app.on_key(key(KeyCode::Backspace), &page);
     assert_ne!(
       app.stack.current(),
-      &View::Help,
+      &View::Help { of: None },
       "the help view could be entered and not left"
     );
   }

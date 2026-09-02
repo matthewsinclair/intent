@@ -28,7 +28,14 @@ fn loaded() -> Loaded {
 /// Every view the real declaration can produce, so the round trip below is held
 /// over the corpus rather than over three hand-picked examples.
 fn every_view(l: &Loaded) -> Vec<View> {
-  let mut out = vec![View::Entities, View::Settings, View::Help];
+  let mut out = vec![
+    View::Entities,
+    View::Settings,
+    View::Help { of: None },
+    View::Help {
+      of: Some("st".into()),
+    },
+  ];
   for kind in kinds(l) {
     out.push(View::Collection { kind: kind.clone() });
     out.push(View::Item {

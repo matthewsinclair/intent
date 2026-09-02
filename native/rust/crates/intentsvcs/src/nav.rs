@@ -82,7 +82,10 @@ pub enum View {
   /// [`View::Settings`] PAYS** -- `no_declared_entity_kind_is_reserved` holds
   /// both against the real declaration, so a form named `help` fails the suite
   /// rather than disappearing from the browser.
-  Help,
+  Help {
+    /// The command whose usage to show, or `None` for the whole surface.
+    of: Option<String>,
+  },
   /// The operator's own settings: [`crate::settings::DECLARED`], not the model.
   ///
   /// **THE ONE VIEW THAT IS NOT DERIVED FROM THE DECLARATION, AND IT IS HERE
@@ -110,7 +113,8 @@ impl View {
       View::Item { kind, id } => format!("/{kind}/{id}"),
       View::Children { kind, id, field } => format!("/{kind}/{id}/{field}"),
       View::Settings => format!("/{SETTINGS_SEGMENT}"),
-      View::Help => format!("/{HELP_SEGMENT}"),
+      View::Help { of: None } => format!("/{HELP_SEGMENT}"),
+      View::Help { of: Some(name) } => format!("/{HELP_SEGMENT}/{name}"),
     }
   }
 
@@ -131,7 +135,14 @@ impl View {
       // WHAT MAKES IT A RESERVATION.** Checking it after would make the winner
       // depend on whether a form happened to be declared with this name.
       [seg] if *seg == SETTINGS_SEGMENT => Some(View::Settings),
-      [seg] if *seg == HELP_SEGMENT => Some(View::Help),
+      [seg] if *seg == HELP_SEGMENT => Some(View::Help { of: None }),
+      // **THE RESERVATION REACHES THE SECOND SEGMENT TOO**, or `/help/st`
+      // would parse as the ITEM `st` of an entity kind called `help` -- the
+      // same collision one level down, and the one that would arrive the day
+      // `/help <command>` was added without anyone re-reading this arm.
+      [seg, name] if *seg == HELP_SEGMENT => Some(View::Help {
+        of: Some((*name).to_string()),
+      }),
       [kind] => Some(View::Collection {
         kind: (*kind).to_string(),
       }),

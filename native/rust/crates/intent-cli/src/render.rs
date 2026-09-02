@@ -3243,7 +3243,7 @@ fn present(facade: &Facade, view: &intentsvcs::nav::View) -> bool {
     // every one of them in force at its default -- see
     // `intentsvcs::settings::read_all`. Answering `false` here would refuse the
     // one screen that tells the operator what is in force.
-    View::Settings | View::Help => true,
+    View::Settings | View::Help { .. } => true,
     View::Item { kind, id } | View::Children { kind, id, .. } => {
       entity_json(facade, kind, id).is_some()
     }
@@ -3545,7 +3545,11 @@ fn rows_for(
     // Neither the facade nor the store is consulted: help is a fact about the
     // PROGRAM, not about the model. The keymap is read because the vi section
     // must not be shown to an operator who cannot use it.
-    View::Help => tui::help::rows(keymap_in_force()),
+    View::Help { of } => tui::help::rows(
+      keymap_in_force(),
+      &crate::spine::build(table),
+      of.as_deref(),
+    ),
     View::Settings => match intentsvcs::userstate::global_config() {
       Ok(path) => tui::views::settings_rows(&path),
       // **A VIEW THAT CANNOT LOAD RENDERS AN ERROR ROW, NEVER AN EMPTY FORM**
