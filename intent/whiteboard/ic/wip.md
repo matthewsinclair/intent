@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-09-02 16:08Z
+heartbeat_at: 2026-09-02 16:12Z
 status: active
-focus: "TUI redesign (WP-17), 7 commits landed and hv has driven it twice. ON THE BOUNCE: build `/settings` -- hv RULED it, full spec in DOING (file is ~/.intent/config.json, SCOPED to an explorer: section, paths relative, refuse-as-a-spelling). Then the vi keymap behind explorer.editing.mode. Then section 2 prose + AC-17.11 + AC-17.13 AT row in ONE vc window. O4 status segments still wait on hv. 215 passed at 4be902e1. RE-MEASURE every figure at pickup."
+focus: "TUI redesign (WP-17), 7 commits landed and hv has driven it twice. ON THE BOUNCE: build `/settings` -- hv RULED it, full spec in DOING (file is ~/.intent/config.json, SCOPED to an explorer: section, paths relative, refuse-as-a-spelling) against AC-17.14, ALREADY MINTED by vc at d2d5ae00 and mine to satisfy. Then the vi keymap behind explorer.editing.mode. Then section 2 prose + AC-17.11 + AC-17.13 AT row in ONE vc window. O4 status segments still wait on hv. 215 passed at 4be902e1. RE-MEASURE every figure at pickup."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -26,7 +26,9 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 3. **Paths resolve RELATIVE to `explorer.`** -- `/settings editing.mode`, never `/settings explorer.editing.mode`. One resolution rule, not two.
 4. **`/settings author` must be REFUSED AS A SPELLING** (section 8's existing rule), saying what was tried and that `/settings` governs the explorer section -- which teaches the scope instead of reading as broken.
 5. **The first setting is `explorer.editing.mode`: `emacs` (default) or `vi`.** The section is not in the file yet -- it is created on first write.
-6. **TWO THINGS FLAGGED TO hv AS POSSIBLY AWKWARD, surface rather than guess if they bite:** the palette has NO ARGUMENT SUPPORT (commands are name-only, so `/settings x.y` is a real extension to the vocabulary), and a settings row is **the first thing in the TUI that writes OUTSIDE the store**, so it needs its own write path rather than borrowing the facade's.
+6. **`AC-17.14` IS ALREADY MINTED FOR THIS (vc, `d2d5ae00`, `to-write`, MINE when I build it) -- WRITTEN BEFORE THE CODE, which is the order this project asks for and `AC-06.1`'s rider makes binding on `config`.** It is NOT `AC-17.13` one surface over and the distinction is the whole point: **17.13 refuses to offer what cannot be ACTED ON; 17.14 refuses to offer what CAN be acted on and MUST NOT BE.** A dead key does nothing; a live setting over `intent_version` SUCCEEDS and breaks the install -- a broken promise versus a working weapon. **WRITABILITY IS NOT PERMISSION.** The row demands: the exposed set is an **ALLOW-LIST the surface declares**, never a deny-list (a deny-list inverts the failure -- a key added to the config later becomes editable the moment somebody writes it, by nobody's decision, which is exactly how `intent_version` and `intent_dir` would have arrived); and the refusal is **STRUCTURAL, not advisory** -- state outside the declared section is ABSENT, not greyed, because a row an operator can see is a row an operator will eventually try. `intent_version` is named in the row as a MIGRATION MARKER: editing it tells the migrator a lie it has no way to detect, which is `IN-AG-NO-SILENT-001` at a surface where the silent failure is a SUCCESSFUL WRITE.
+
+7. **TWO THINGS FLAGGED TO hv AS POSSIBLY AWKWARD, surface rather than guess if they bite:** the palette has NO ARGUMENT SUPPORT (commands are name-only, so `/settings x.y` is a real extension to the vocabulary), and a settings row is **the first thing in the TUI that writes OUTSIDE the store**, so it needs its own write path rather than borrowing the facade's.
 
 **THEN: the vi keymap, behind that setting.** `keys::edit` is the emacs map and is what the default resolves to. **`set -o vi` IS NOT DETECTABLE FROM A CHILD PROCESS -- measured, not assumed:** `SHELLOPTS` is bash-only and absent under zsh, nothing in the environment carries it, `~/.inputrc` is readline's file which zsh never reads. Declared-not-detected is ST0037's ruling one surface over.
 
