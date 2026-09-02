@@ -1526,6 +1526,14 @@
       }
     },
     {
+      "id": "AC-17.17",
+      "text": "**A LEND RETURNS THE TERMINAL ONLY WHEN THE BORROWER IS DONE WITH THE SCREEN, AND FOR A COMMAND THAT PRINTS AND EXITS THAT MEANS AN OPERATOR SIGNAL.** (hv ruled `/{cmd}` 2026-09-02; scoped by ic, minted by vc under hv's pen.) `Hand` and `Open` need no pause because the child HOLDS the screen until the operator quits it; **a CLI command prints and returns instantly, so an unguarded lend repaints over its own output and the operator experiences a NO-OP.** That is `AC-17.13`'s defect -- an offered act that appears not to perform -- arriving through the terminal rather than through the vocabulary, **which is why it is a contract and not an implementation detail.** **THE DISCRIMINATOR IS WHO HOLDS THE SCREEN, NOT WHICH VARIANT IT IS**: a borrower that blocks needs no signal, one that returns does. **REACH, DECLARED BECAUSE THE SEAM PUTS THIS OUT OF ITS OWN REACH: the `tui` tree is built so the screen is provable WITHOUT a terminal, and this behaviour exists only INSIDE one -- no test in the module can witness it**, which is the same blindness that let a page return unpainted from an editor handoff until a human drove it. The row is satisfied by a driven demonstration and says so; **it must not be reported as covered by the module's own suite.**",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
       "id": "AC-17.2",
       "text": "**THE DSL DECLARES LAYOUT AND WIDGET, NEVER THE FIELD SET.** Every field in a form declaration resolves to a property of the entity schema face, and a field naming a property that does not exist is REFUSED by name at load. **A hand-authored list of fields is a second home for what `schema/*.json` already declares, and it goes stale exactly the way `populations.shipped` did** -- so the form carries order, label, widget and editability, and takes existence and type from the schema. Held to the converse too: an editable property appearing in NO form is named in the output rather than silently unreachable.",
       "kind": "test",
