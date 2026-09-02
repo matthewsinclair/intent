@@ -296,7 +296,7 @@ cmd_verify() {
   # newline, quote or backslash. Those are rare and they are REFUSED rather than
   # misreported, because the failure mode is a false MISSING+EXTRA pair that
   # looks like data loss -- the one reading nobody should have to guess at.
-  if printf '%s\n' "$listing" | cut -f2- | grep -q '^"'; then
+  if grep -q '^"' <<<"$(cut -f2- <<<"$listing")"; then
     die "tree $rev holds path(s) git still quotes (embedded newline, quote or backslash) -- this reader compares raw paths and would report them as both MISSING and EXTRA"
   fi
 

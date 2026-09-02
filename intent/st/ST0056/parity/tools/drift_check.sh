@@ -79,7 +79,7 @@ EOF
 )"
 
 is_explained() { # family token
-  printf '%s\n' "$EXPLAINED" | grep -qF "$1:$2|"
+  grep -qF "$1:$2|" <<<"$EXPLAINED"
 }
 
 # Filter a NEWLINE-separated token list down to those with no explanation.

@@ -210,7 +210,7 @@ while IFS=$'\t' read -r path disp arity nflags flagjson; do
   # place this script confirms a negative -- `treeindex` being absent is the
   # entry-level disposition working, and worth counting as a pass rather than
   # skipping in silence.
-  if [ $rc -ne 0 ] || printf '%s' "$out" | grep -q 'unrecognized subcommand'; then
+  if [ $rc -ne 0 ] || grep -q 'unrecognized subcommand' <<<"$out"; then
     if [ "$disp" = "retire" ]; then
       NOTE="$NOTE
   ok(retire): \`$path\` is absent from the surface, as declared"
@@ -254,7 +254,7 @@ while IFS=$'\t' read -r path disp arity nflags flagjson; do
     fseen=$((fseen + 1))
     present=no
     for s in $spellings; do
-      if printf '%s' "$out" | grep -qE "(^|[[:space:],])$(printf '%s' "$s" | sed 's/[^a-zA-Z0-9-]/\\&/g')([[:space:],=]|$)"; then
+      if grep -qE "(^|[[:space:],])$(printf '%s' "$s" | sed 's/[^a-zA-Z0-9-]/\\&/g')([[:space:],=]|$)" <<<"$out"; then
         present=yes; break
       fi
     done
@@ -426,7 +426,7 @@ while IFS= read -r p; do
   INV-04    \`$p\` -- exit $irc is outside the observed set {0, 1, 2}" ;; esac
   { [ "$irc" != "0" ] && [ -n "$iout" ]; } && INV_VIOL="$INV_VIOL
   INV-06    \`$p\` -- writes to STDOUT on a failing invocation"
-  { [ -n "$iline" ] && ! printf '%s' "$iline" | grep -qE '^error: '; } && INV_VIOL="$INV_VIOL
+  { [ -n "$iline" ] && ! grep -qE '^error: ' <<<"$iline"; } && INV_VIOL="$INV_VIOL
   INV-01    \`$p\` -- first stderr line is not the lowercase \`error: \` voice: $(printf '%s' "$iline" | cut -c1-50)"
 done < <(surface_shipped)
 

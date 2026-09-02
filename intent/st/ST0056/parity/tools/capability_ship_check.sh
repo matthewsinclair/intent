@@ -208,7 +208,7 @@ absent=(); weak=()
 
 # 1 -------------------------------------------------------- project registry
 r="$(ask '"registry"')"
-if printf '%s' "$r" | grep -q '"result":"registry"'; then
+if grep -q '"result":"registry"' <<<"$r"; then
   n="$(printf '%s' "$r" | grep -o '"root":' | grep -c .)"
   printf '    %-28s DRIVEN     registry answered with %s project(s)\n' "project registry" "$n"
 else
@@ -217,7 +217,7 @@ fi
 
 # 2 --------------------------------------------------------------- GraphQL
 g="$("$BIN" graphql '{ threads { id } }' 2>&1)"
-if printf '%s' "$g" | grep -q '"data"'; then
+if grep -q '"data"' <<<"$g"; then
   printf '    %-28s DRIVEN     intent graphql returned data, and `graphql` is in the roster\n' "GraphQL"
   declared graphql || { printf '    %-28s NOTE       driven but NOT in the roster -- the two reads disagree\n' ""; absent+=("GraphQL roster"); }
 else
@@ -238,7 +238,7 @@ fi
 # 4 ------------------------------------------------------- debounced watching
 # **The registry publishes a LIVE witness that beats the declaration**: `watched`
 # is the daemon's own answer about this project, not a claim about the binary.
-if printf '%s' "$r" | grep -q '"watched":true'; then
+if grep -q '"watched":true' <<<"$r"; then
   printf '    %-28s DRIVEN     registry reports watched=true for this project; `subscribe` in roster. NOT DRIVEN: registering a subscriber perturbs the event delta another node measures\n' "debounced watching"
 elif declared subscribe; then
   printf '    %-28s DECLARED   `subscribe` in the roster, but the registry does not report this project watched\n' "debounced watching"

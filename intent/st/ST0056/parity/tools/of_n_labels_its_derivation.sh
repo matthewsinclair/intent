@@ -157,7 +157,7 @@ classify_operand() {
   assigns="$(grep -oE "(^|[^A-Za-z_])${name}=[^ ;]*" "$file" 2>/dev/null | sed "s/^.*${name}=//")"
   [ -n "$assigns" ] || { echo UNCLASSIFIABLE; return; }
   # DERIVED if ANY assignment counts something; LAUNDERED only if EVERY one is a literal
-  if printf '%s\n' "$assigns" | grep -qE '\$\(|\$\(\(|`'; then echo DERIVED; return; fi
+  if grep -qE '\$\(|\$\(\(|`' <<<"$assigns"; then echo DERIVED; return; fi
   lit_only="$(printf '%s\n' "$assigns" | grep -vE '^"?[0-9]+"?$' | grep -c . || true)"
   if [ "${lit_only:-1}" -eq 0 ]; then echo LAUNDERED; else echo UNCLASSIFIABLE; fi
 }

@@ -244,11 +244,11 @@ else
     sed 's://.*::')"
   if [ -z "$emit_body" ]; then
     fail "arm 6c -- could not extract emit_source_commit from $MARKER_SRC; an unread body is not a scoped one"
-  elif printf '%s' "$emit_body" | grep -q 'rev-parse'; then
+  elif grep -q 'rev-parse' <<<"$emit_body"; then
     fail "arm 6c -- emit_source_commit still asks identity with rev-parse, which is UNSCOPED. The stamp would mean 'the repo's HEAD, annotated with whether the artefact was dirty' -- two subjects in one string."
-  elif ! printf '%s' "$emit_body" | grep -q 'rev-list'; then
+  elif ! grep -q 'rev-list' <<<"$emit_body"; then
     fail "arm 6c -- emit_source_commit asks identity with neither rev-parse nor rev-list; the call changed shape and this arm cannot say what subject it names"
-  elif ! printf '%s' "$emit_body" | grep -q 'DIRT_SCOPE'; then
+  elif ! grep -q 'DIRT_SCOPE' <<<"$emit_body"; then
     fail "arm 6c -- emit_source_commit's identity call does not reach DIRT_SCOPE, so identity and dirt describe different subjects again"
   else
     ok "arm 6c -- the marker asks identity AND dirt over DIRT_SCOPE"

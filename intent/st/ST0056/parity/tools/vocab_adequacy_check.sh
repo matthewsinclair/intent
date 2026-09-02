@@ -104,13 +104,15 @@ pairs() {
 # unnoticed sentence becomes seven findings. The prediction is the only thing
 # that caught it; the run is well-formed and internally consistent at 8.
 hedged() {
-  printf '%s' "$1"     | grep -oiE '(ratification|ruling)[^.]{0,40}(is )?(still )?(outstanding|pending|awaiting|not yet)|(outstanding|pending|awaiting)[^.]{0,20}(ratification|ruling)'     | grep -qivE '\b(not|no longer|never|isn.t|nothing)\b'
+  local hits=""
+  hits="$(grep -oiE '(ratification|ruling)[^.]{0,40}(is )?(still )?(outstanding|pending|awaiting|not yet)|(outstanding|pending|awaiting)[^.]{0,20}(ratification|ruling)' <<<"$1")" || true
+  [ -n "$hits" ] && grep -qivE '\b(not|no longer|never|isn.t|nothing)\b' <<<"$hits"
 }
 
 # AND HISTORY IS NOT A HEDGE. A row narrating a state it has left is the
 # opposite of this defect -- it is the record working.
 is_history() {
-  printf '%s' "$1" | grep -qiE '(was|were) `?(pending|provisional|outstanding)|is now answered|-> `?corrected'
+  grep -qiE '(was|were) `?(pending|provisional|outstanding)|is now answered|-> `?corrected' <<<"$1"
 }
 
 HITS=0

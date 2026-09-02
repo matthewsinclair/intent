@@ -51,7 +51,7 @@ PATHS="$(jq -r '[.families[].entries[], .new_surface[]] | .[].path' "$TABLE" | s
 ALIASES="$(jq -r '[.families[].entries[], .new_surface[]] | .[] | (.aliases // [])[]' "$TABLE" | sort -u)"
 KNOWN="$(printf '%s\n%s\n' "$PATHS" "$ALIASES" | sed '/^$/d' | sort -u)"
 
-is_known() { printf '%s\n' "$KNOWN" | grep -qxF "$1"; }
+is_known() { grep -qxF "$1" <<<"$KNOWN"; }
 
 # A REFERENCE THAT RESOLVES CAN STILL BE DEAD, and this check said otherwise for
 # as long as it has existed. `KNOWN` is every DECLARED path, and **the dispatch
@@ -73,7 +73,7 @@ is_known() { printf '%s\n' "$KNOWN" | grep -qxF "$1"; }
 # its own message, so the two failures stay distinguishable: "no such command"
 # is a rename or a typo, "declared, but retired" is a command that was ruled on.
 RETIRED="$(jq -r '[.families[].entries[], .new_surface[]] | .[] | select(.disposition == "retire" or .target.state == "retire") | .path' "$TABLE" | sort -u)"
-is_retired() { [ -n "$RETIRED" ] && printf '%s\n' "$RETIRED" | grep -qxF "$1"; }
+is_retired() { [ -n "$RETIRED" ] && grep -qxF "$1" <<<"$RETIRED"; }
 
 # A command that HAS declared subcommands is a family, and a second word after
 # one is a subcommand claim that must resolve. A command with none is a leaf, and
@@ -90,7 +90,7 @@ is_retired() { [ -n "$RETIRED" ] && printf '%s\n' "$RETIRED" | grep -qxF "$1"; }
 # Derived from the table, never listed: a family is anything with at least one
 # declared `<name> <sub>` path, so a command that gains its first subcommand
 # starts being checked strictly on the same commit.
-is_family() { printf '%s\n' "$KNOWN" | grep -qE "^$1 [a-z_]+$"; }
+is_family() { grep -qE "^$1 [a-z_]+$" <<<"$KNOWN"; }
 
 rc=0
 for f in "$@"; do

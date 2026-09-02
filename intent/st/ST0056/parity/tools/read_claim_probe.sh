@@ -157,8 +157,8 @@ UNCOVERED=""; SKIPPED=""
 # than by word-splitting -- `st list` is ONE row, not two.
 for p in $(printf '%s\n' "$DECLARED" | tr ' ' '\036'); do
   path="$(printf '%s' "$p" | tr '\036' ' ')"
-  printf '%s' "$COVERED" | tr '|' '\n' | grep -qxF "$path" && continue
-  printf '%s' "$NO_V2"   | tr '|' '\n' | grep -qxF "$path" && { SKIPPED="$SKIPPED $path"; continue; }
+  grep -qxF "$path" <<<"$(tr '|' '\n' <<<"$COVERED")" && continue
+  grep -qxF "$path" <<<"$(tr '|' '\n' <<<"$NO_V2")" && { SKIPPED="$SKIPPED $path"; continue; }
   UNCOVERED="$UNCOVERED $path"
 done
 

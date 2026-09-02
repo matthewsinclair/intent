@@ -108,7 +108,7 @@ fail=0
 # Each thread must name its OWN path, which a bare count cannot show: two edits
 # landing in one shared file plus one unrelated change also totals two.
 for id in "$A" "$B"; do
-  printf '%s\n' "$CHANGED" | grep -q "$id" \
+  grep -q "$id" <<<"$CHANGED" \
     || { echo "  $id has no changed path naming it -- no write landed in that thread's own file." >&2; fail=1; }
 done
 pa="$(printf '%s\n' "$CHANGED" | grep "$A" | head -1)"

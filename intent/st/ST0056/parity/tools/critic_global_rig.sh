@@ -147,7 +147,7 @@ run() {
 # ---- 1. The control reproduces the defect --------------------------------
 
 run "$SCRATCH/intent.orig" critic elixir --staged
-if [ "$RUN_RC" -eq 2 ] && printf '%s' "$RUN_OUT" | grep -q 'declares Intent v3.0.0-dev'; then
+if [ "$RUN_RC" -eq 2 ] && grep -q 'declares Intent v3.0.0-dev' <<<"$RUN_OUT"; then
   report PASS "1 control: critic refused by version guard" "rc=2, guard message present"
 else
   report FAIL "1 control: critic refused by version guard" "rc=$RUN_RC (expected 2 + guard message)"
@@ -157,7 +157,7 @@ fi
 
 git -C "$FIX" add test/violation_test.exs
 run "$SUBJECT" critic elixir --staged --format text
-if [ "$RUN_RC" -eq 1 ] && printf '%s' "$RUN_OUT" | grep -q 'IN-EX-TEST-002'; then
+if [ "$RUN_RC" -eq 1 ] && grep -q 'IN-EX-TEST-002' <<<"$RUN_OUT"; then
   report PASS "2 subject: staged violation -> rc=1, named rule" "rc=1, IN-EX-TEST-002"
 else
   report FAIL "2 subject: staged violation -> rc=1, named rule" "rc=$RUN_RC out=$(printf '%s' "$RUN_OUT" | head -1)"
@@ -177,7 +177,7 @@ fi
 
 for verb in st wp; do
   run "$SUBJECT" "$verb" list
-  if [ "$RUN_RC" -eq 2 ] && printf '%s' "$RUN_OUT" | grep -q 'declares Intent v3.0.0-dev'; then
+  if [ "$RUN_RC" -eq 2 ] && grep -q 'declares Intent v3.0.0-dev' <<<"$RUN_OUT"; then
     report PASS "4/5 subject: '$verb list' STILL refused at rc=2" "guard intact"
   else
     report FAIL "4/5 subject: '$verb list' STILL refused at rc=2" "rc=$RUN_RC (expected 2)"
@@ -201,7 +201,7 @@ COMMIT_OUT="$(cd "$FIX" && PATH="$SCRATCH/path:$PATH" INTENT_HOME="$REAL_TREE" g
 COMMIT_RC=$?
 set -e
 
-if [ "$COMMIT_RC" -ne 0 ] && printf '%s' "$COMMIT_OUT" | grep -q 'commit blocked by findings'; then
+if [ "$COMMIT_RC" -ne 0 ] && grep -q 'commit blocked by findings' <<<"$COMMIT_OUT"; then
   report PASS "6 END-TO-END: hook BLOCKED the commit" "rc=$COMMIT_RC, gate message present"
 else
   report FAIL "6 END-TO-END: hook BLOCKED the commit" "rc=$COMMIT_RC (expected non-zero + block message)"

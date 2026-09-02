@@ -83,7 +83,7 @@ drive_build() {
            "$bin" claude ws "${parts[@]}" </dev/null 2>&1 )
     rc=$?
     seen=$((seen+1))
-    if [ "$rc" -eq 2 ] && printf '%s' "$out" | grep -qF -- "$UNWIRED"; then
+    if [ "$rc" -eq 2 ] && grep -qF -- "$UNWIRED" <<<"$out"; then
       unreach=$((unreach+1)); note "    UNREACHABLE  claude ws $verb"
     else
       reach=$((reach+1));     note "    reachable    claude ws $verb   (rc=$rc)"
@@ -97,7 +97,7 @@ drive_build() {
          "$bin" claude start probe </dev/null 2>&1 )
   rc=$?
   seen=$((seen+1))
-  if [ "$rc" -eq 2 ] && printf '%s' "$out" | grep -qF -- "$UNWIRED"; then
+  if [ "$rc" -eq 2 ] && grep -qF -- "$UNWIRED" <<<"$out"; then
     unreach=$((unreach+1)); note "    UNREACHABLE  claude start"
   else
     reach=$((reach+1))
@@ -111,7 +111,7 @@ drive_build() {
            "$bin" claude ws "${parts[@]}" </dev/null 2>&1 )
     rc=$?
     seen=$((seen+1))
-    if [ "$rc" -eq 2 ] && printf '%s' "$out" | grep -qF -- "$UNWIRED"; then
+    if [ "$rc" -eq 2 ] && grep -qF -- "$UNWIRED" <<<"$out"; then
       unreach=$((unreach+1)); note "    UNREACHABLE  claude ws $verb"
     else
       reach=$((reach+1));     note "    reachable    claude ws $verb   (rc=$rc)"

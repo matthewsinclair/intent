@@ -210,7 +210,7 @@ J
     answer="$( cd "$p" && HOME="$work" "$BIN" $probe 2>&1 )"; rc=$?
     if [ "$rc" -ne 0 ]; then
       fail "arm A: \`$probe\` exited $rc from a dehydrated estate -- $(printf '%s' "$answer" | head -1)"
-    elif ! printf '%s' "$answer" | grep -q "$expect"; then
+    elif ! grep -q "$expect" <<<"$answer"; then
       fail "arm A: \`$probe\` exited 0 but did not resolve -- expected /$expect/, said: $(printf '%s' "$answer" | head -1)"
     else
       n_ok=$((n_ok + 1))
@@ -252,7 +252,7 @@ ROSTER
   local view="$p/intent/st/ST0001/info.md"
   if [ -e "$view" ]; then
     fail "arm A: $view still exists, so the export may have been served by a file"
-  elif ! printf '%s' "$dumped" | grep -q "$marker"; then
+  elif ! grep -q "$marker" <<<"$dumped"; then
     fail "arm A: export did not serve the objective with no file under it -- $(printf '%s' "$dumped" | head -1)"
   else
     say "  ok: export served \`$marker\` while intent/st/ST0001/info.md does not exist"

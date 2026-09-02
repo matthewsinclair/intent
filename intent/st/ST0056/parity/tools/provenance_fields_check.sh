@@ -112,23 +112,23 @@ check_record() {
   body="$(cat "$f")"
 
   # 1. IDENTITY -- the artefact hash, and a label saying it answers identity.
-  if ! printf '%s' "$body" | grep -qE '^artefact_sha256:'; then
+  if ! grep -qE '^artefact_sha256:' <<<"$body"; then
     printf '  MISSING FIELD artefact_sha256 -- nothing answers IDENTITY.\n'
     printf '    Without it, one source commit covers structurally different artefacts:\n'
     printf '    dirty-18197aaf was carried by intent at 9008848 bytes and intentd at 373136.\n'
     bad=1
-  elif ! printf '%s' "$body" | grep -qE '^ *answers: IDENTITY'; then
+  elif ! grep -qE '^ *answers: IDENTITY' <<<"$body"; then
     printf '  UNLABELLED artefact_sha256 -- present, but does not name the question it answers.\n'
     bad=1
   fi
 
   # 2. CURRENCY -- the source commit, and a label saying it answers currency.
-  if ! printf '%s' "$body" | grep -qE '^(commit|source_commit):'; then
+  if ! grep -qE '^(commit|source_commit):' <<<"$body"; then
     printf '  MISSING FIELD source commit -- nothing answers CURRENCY.\n'
     printf '    Without it, a correct hash certifies a stale artefact:\n'
     printf '    f2e4d1f9005d0334 matched its record exactly for ten hours, 158 commits behind.\n'
     bad=1
-  elif ! printf '%s' "$body" | grep -qE '^ *answers: CURRENCY'; then
+  elif ! grep -qE '^ *answers: CURRENCY' <<<"$body"; then
     printf '  UNLABELLED source commit -- present, but does not name the question it answers.\n'
     bad=1
   fi
@@ -137,15 +137,15 @@ check_record() {
   #    A hold with a named condition is a covered property; a hold without one is
   #    a permanent exemption with no work-list. Omitting it entirely is worse than
   #    either, because a two-field record reads as a CLOSED partition.
-  if ! printf '%s' "$body" | grep -qE '^drift:'; then
+  if ! grep -qE '^drift:' <<<"$body"; then
     printf '  MISSING FIELD drift -- the partition reads as CLOSED over two properties.\n'
     printf '    Neither primary expresses how much uncommitted code the artefact holds.\n'
     bad=1
-  elif ! printf '%s' "$body" | grep -qiE '^drift: *HELD'; then
+  elif ! grep -qiE '^drift: *HELD' <<<"$body"; then
     printf '  drift is present but not declared HELD -- this tool cannot verify drift,\n'
     printf '    so a record CLAIMING it is asserting a property nothing here measured.\n'
     bad=1
-  elif ! printf '%s' "$body" | grep -qE '^ *release condition:'; then
+  elif ! grep -qE '^ *release condition:' <<<"$body"; then
     printf '  drift is HELD with NO RELEASE CONDITION -- that is a permanent exemption.\n'
     bad=1
   fi
