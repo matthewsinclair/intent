@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-02 16:31Z
+heartbeat_at: 2026-09-02 08:14Z
 status: active
-focus: "FOLDED 2026-09-02 16:31Z; pre-fold verbatim + sha-verified at .history/20260902/wip-prefold-1629Z.md (59ea73d9, 54899 bytes), reasoning beside it. STATUS STAYS active -- a fold is not the end of a session. LANDED TODAY: the ruled pipefail sweep (7f1bfb53) and the GATED guard that found 13 sites the sweep could not see (70e2e48c). THE DAY IS ONE LESSON ABOUT POPULATIONS -- W47 through W50, three of the four mine. NAME THE MECHANISM, NEVER THE INSTANCE. NO FIGURES HERE -- run the verbs."
+focus: "FOLDED 2026-09-02 08:09Z; pre-fold verbatim + sha-verified at .history/20260902/wip-prefold-0809Z.md (e4ca7e5c), reasoning beside it. STATUS STAYS active -- a fold is not the end of a session. NOTHING IN FLIGHT, awaiting hv on the bounce; hv-owed items ROUTED TO vc per hv. TN001 v0.9 stands, both hv-board asks discharged. Yesterday closed three classes against me: an invented mechanism where the assertion carried the diagnosis (W44), a denial of a figure sitting in my own .history (W45), and a meter exact about the wrong subject (W46). NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -35,34 +35,27 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-- **NOTHING IN FLIGHT. FOLDED 2026-09-02 16:31Z, AWAITING hv ON THE BOUNCE.** Nothing of mine was dirty at checkin; every uncommitted path belonged to a peer (ic's TUI and `settings.rs`, the devbin manifest drift, `MODULES.md`, issue `0213`).
-- **THE GUARD IS LIVE AND GATES.** `pipefail_sigpipe_check.sh` (`70e2e48c`) runs on every commit, prints its own two-sided control, and refuses to report when either arm fails to fire. It found 13 sites the ruled sweep could not see, which is the whole argument for it.
-- Today's reasoning is archived, not retold here: `.history/20260902/afternoon-narrative-1629Z.md`, beside `wip-prefold-1629Z.md` (sha `59ea73d9`, `cmp` identical). The morning is in `evening-narrative-0809Z.md` and `wip-prefold-0809Z.md`.
+- **NOTHING IN FLIGHT. FOLDED 2026-09-02 08:09Z, AWAITING hv's NEXT STEPS ON THE BOUNCE.** Nothing of mine was dirty at checkin; the only uncommitted paths were the devbin manifest's `source_commit` drift and peers' canon and archives.
+- **TN001 STANDS AT v0.9 (`aaa7ed40`) AND BOTH hv-BOARD ASKS AGAINST IT ARE DISCHARGED** (`821e4a68`, under the pen) -- the status column went at v0.6 and the consolidation table was corrected and revision-pinned at v0.7, both by me, both verified in the file rather than taken from the thread. **The one live condition: if `4afef84` moves, RE-READ the note** -- it cites that sha for its BEHAVIOUR, so a criterion change is a re-read and never just a new number.
+- Yesterday evening's reasoning is archived, not retold here: `.history/20260902/evening-narrative-0809Z.md`, beside the pre-fold board `wip-prefold-0809Z.md` (sha `e4ca7e5c`, `cmp` identical).
 
 ## TODO
 
-**ROUTED TO hv DIRECTLY FOR REVIEW (hv's instruction, 2026-09-02) -- NOT MINE TO CLOSE. Written also to `hv/inbox.dc.md`, because a live channel is not a durable one:**
+**ROUTED TO vc FOR hv'S REVIEW (hv's instruction, 2026-09-02) -- NOT MINE TO CLOSE:**
 
-- **`ST0057 AT-07.5`'s behavioural arm needs a stop-the-daemon window, and it is the only open item that is MINE TO WANT.** THE THREAD QUALIFIER IS LOAD-BEARING: two threads carry a row with that id, and ST0056's is a green `agents_sync_parity` row about heading structure that flatly contradicts the item. The real row is `intent/st/ST0057/parity/tools/no_daemon_required.sh`: arm B (structural) passes, arm A (behavioural) REFUSES rather than fails while an intentd is up, **so the green rests on a moment nobody can reproduce on demand.** Stopping the daemon costs every live session, which is why no node may take it.
-- **A v3.0.0 user upgrading to v3.0.1 migrates the store 13 -> 17 IRREVERSIBLY with no path back to the tag.** Endpoints measured by me, not inherited: `80d8b2ca` IS `v3.0.0` and reads `SCHEMA_VERSION: i32 = 13`; the tree reads 17. **The rung count between them is NOT measured and is NOT claimed.** Local exposure nil, and that is not the finding -- it is a shipped-artefact obligation independent of this box. Release note, refusal message, or backup step.
+- **A v3.0.0 user upgrading to v3.0.1 migrates the store 13 -> 17 IRREVERSIBLY with no path back to the tag.** **ENDPOINTS MEASURED BY ME 2026-09-02 at vc's correction**, not inherited: `80d8b2ca` IS `v3.0.0` (`git tag --points-at`) and its `store.rs` reads `SCHEMA_VERSION: i32 = 13`; the tree reads 17. **The board said 16 -> 17 until now** -- vc's inference from ancestry, which they withdrew and I had already recorded. **THE INTERMEDIATE RUNG COUNT IS NOT MEASURED AND IS NOT CLAIMED HERE**; `git log -S` cannot count rungs, since a substring does not change when a value does. Local exposure nil (keg unlinked and pinned) and **that is not the finding** -- it is a shipped-artefact obligation independent of this box. Release note, refusal message, or backup step.
+- **The `overhead` meter reports a figure about the wrong subject** (W46). Filed to devbin-vc; hv has not weighed in and it is the kind of number that will be quoted at somebody.
 - **`0207`** (`at green/red/na --note` replaces wholesale), **`0203`'s remedy, `0208`'s remedy** -- all hv's. AC-04.6 sits behind `0207`; AC-07.7 needs a published artefact.
-- **The `overhead` meter reports a figure about the wrong subject** (W46), with devbin-vc. Filed rather than escalated, and hv has still not weighed in; it is the kind of number that gets quoted at somebody.
-- **FLIP-THEN-BURN, decomposed by vc at `821e7268` after I relayed the compound to hv unexamined.** `flip` = rebind the default `INTENT_BIN` (today the v2 shell script, with two other bindings live); `burn` = re-run `burn.sh`, which has hung 3.5h once. **The order is load-bearing -- `burn.sh` classifies RELATIVE TO the binding, so a burn before the flip is wall time paid twice.** hv's, on wall time alone.
-
-**CLOSED TODAY, RECORDED SO NOBODY RE-OPENS THEM:**
-
-- **The rebuild window is DISCHARGED.** The pair was rebuilt at ic's `4be902e1`; `currency ok`, zero non-test files under `native/rust` changed since. **I reported it as outstanding from a stale line on my own board** and vc was carrying the same claim.
-- **The ruled pipefail sweep is landed** (`7f1bfb53`, 36 sites) and **the guard that supersedes it is gated** (`70e2e48c`, 13 more).
+- **`ST0057 AT-07.5`'s behavioural arm still needs a stop-the-daemon window.** **THE THREAD QUALIFIER IS LOAD-BEARING AND I ROUTED IT WITHOUT ONE:** TWO threads carry a ROW with that id (ST0056, ST0057; vc's sweep, and my `grep -l` said three because ST0065 MENTIONS the id in prose -- a file that names an id is not a thread that carries one), and ST0056's is a GREEN `agents_sync_parity` row about heading structure with no daemon in it -- so a reader resolving the bare id the wrong way gets a row that contradicts the item. The real row is `intent/st/ST0057/parity/tools/no_daemon_required.sh`, green, and its note carries the reason: arm B (structural) passes, arm A (behavioural) REFUSES rather than fails while an intentd is up, so **the green rests on a moment nobody can reproduce on demand** and re-establishing it needs a scheduled daemon-down window, which is hv's to authorise. It no longer has a second reason bundled onto it -- that bundling was vc's and they withdrew it once cc's 23 were explained.
 
 **OPEN, NOT MINE, NOT hv'S:**
 
 - `daemon_subscriptions` event bleed across test boundaries -- characterised, unfixed, with cc. Its own `[[test]]` target is isolation and not a fix; the manifest says so in its own comment.
 - **devbin `0047` is RULED and with devbin-vc** (option 3, hv first-hand). `bin/.devbin/lib/` is theirs and the vendored copy here is clobbered on upgrade, so implementation is never mine.
 
-**THE TWO STANDING RULES THIS BOARD OBEYS:**
+**THE STANDING RULE, WHICH CORRECTS ONE I HAD BEEN PRESCRIBING:**
 
-- **A PRINTED NUMBER GETS READ INSTEAD OF RUN.** A figure with its regenerating command beside it buys AUDITABILITY and nothing for CURRENCY. **LIVE figure: print the COMMAND ALONE. HISTORICAL figure: DATE it and name whose run.** Broken today in my own environment section, which is why the currency line now carries a command.
-- **NAME THE MECHANISM, NEVER THE INSTANCE** (W50). _An early-exiting reader downstream of a writer under pipefail_, not _printf piped into grep -q_. A mechanism cannot be narrowed by repetition; an instance-name already had been, before it reached hv.
+- **A PRINTED NUMBER GETS READ INSTEAD OF RUN.** A figure with its regenerating command beside it buys AUDITABILITY and buys NOTHING for CURRENCY -- TN001's cost table went stale with the command printed directly underneath it. **LIVE figure: print the COMMAND ALONE. HISTORICAL figure: DATE it and name whose run.** This board obeys it.
 
 ## Watch-outs
 

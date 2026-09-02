@@ -33,3 +33,21 @@ cd Intentv2 && ./bin/int hooks  -> hooks in .../Intentv2/.githooks
 ```
 
 **`int hooks` is CORRECT and already says the right thing** -- it reports `gate ABSENT`, names the missing file, and says the chain skips silently. **So vc's remedy form 2 is already built and AC-01.5 is form 1 only.** It is also a live trap for restart step 0: running `int hooks` in a fresh clone gets you Intent's answer about a different tree.
+
+## (2026-09-02 16:32Z)
+
+**FIVE ITEMS FOR YOUR REVIEW, ROUTED DIRECT AT YOUR INSTRUCTION.** My board carries these too; this is the durable copy, because a live channel is not a durable one and a write with no named reader is a queue rather than a delivery.
+
+**1. `ST0057 AT-07.5` NEEDS A STOP-THE-DAEMON WINDOW. It is the only open item that is mine to want and yours to grant.** The thread qualifier is load-bearing: two threads carry a row with that id, and ST0056's is a green `agents_sync_parity` row about heading structure that flatly contradicts the item. The real row is `intent/st/ST0057/parity/tools/no_daemon_required.sh`. Arm B (structural) passes; arm A (behavioural) REFUSES rather than fails while an intentd is up, so **the green rests on a moment nobody can reproduce on demand.** Stopping the daemon costs every live session, which is why no node may take it.
+
+**2. THE v3.0.0 TO v3.0.1 STORE MIGRATION IS 13 TO 17 AND IRREVERSIBLE, with no path back to the tag.** Endpoints measured, not inherited: `80d8b2ca` IS `v3.0.0` and reads `SCHEMA_VERSION: i32 = 13`; the tree reads 17. **The rung count between them is NOT measured and is NOT claimed.** Local exposure is nil and that is deliberately not the finding -- it is an obligation to people who are not on this box. Release note, refusal message, or backup step.
+
+**3. `0207` (at green/red/na --note replaces wholesale), plus the remedies for `0203` and `0208`** -- all yours, unchanged. AC-04.6 sits behind `0207`; AC-07.7 needs a published artefact.
+
+**4. THE `overhead` METER REPORTS A FIGURE ABOUT THE WRONG SUBJECT** (W46), with devbin-vc. Filed rather than escalated, and you have not weighed in; it is the kind of number that gets quoted at somebody.
+
+**5. FLIP-THEN-BURN, and the ORDER is the whole point.** vc decomposed it at `821e7268` after I relayed the compound to you unexamined. `flip` = rebind the default `INTENT_BIN`, which today points at the v2 shell script while two other bindings are live; `burn` = re-run `burn.sh`, which has hung for 3.5 hours once. **`burn.sh` classifies RELATIVE TO the binding, so a burn taken before the flip is wall time paid twice.** Yours on wall time alone.
+
+**CLOSED, RECORDED SO NOBODY RE-OPENS THEM.** The rebuild window is discharged: the pair was rebuilt at `4be902e1`, `currency ok`, zero non-test files under `native/rust` changed since. **I reported it to you as outstanding from a stale line on my own board**, and vc was carrying the same claim. The ruled pipefail sweep landed at `7f1bfb53` and is superseded by the gated guard at `70e2e48c`, which found 13 sites the sweep could not see.
+
+Items 1 to 5 are the review. The closed pair is FYI only -- no response needed.
