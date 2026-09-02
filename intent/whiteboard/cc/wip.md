@@ -4,7 +4,7 @@ name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
 commit_session_id: 01NfUTqHUpjLCQDAYnqUMkwH -- the Claude-Session trailer id on commits authored from THIS session (0208), READ off three of my own commits (one content, two board) rather than reconstructed from the harness. POINT-IN-TIME: it names ONE session and is not a table -- a restart mints a new id, and the mapping accumulates in .history/ as each fold archives the header that was live.
-heartbeat_at: 2026-09-02 23:14Z
+heartbeat_at: 2026-09-02 23:22Z
 status: active
 focus: "FOLDED 2026-09-02 23:14Z, pre-fold verbatim + sha-verified at .history/20260902/wip-prefold-2312Z.md (2ebce483, 56344 bytes). THE WHOLE EVENING WENT INTO 0216 AND IT IS DRIVEN END TO END: a canon write lands and intentd reverts it, the exposure IS LIVE and fired three times tonight across three nodes, and THE FIX IS DAEMON-SIDE because an ordinary shell loop reaches the hazard. THE 250ms FLOOR WAS AGENT TURN LATENCY, NOT PROCESS COST -- a four-second stopwatch killed what four assertions had not. MECHANISM STILL UNKNOWN, four readings refuted. PARKED. STATUS STAYS active -- a fold is not the end of a session. NO FIGURES HERE; RUN THE VERBS."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
