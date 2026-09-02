@@ -56,6 +56,17 @@ Three things a hand-rolled scanner gets wrong, and each of them is worth more th
 
 **One of the eight lies to you about its replacement** (`intent#0086`). On `v3.0.0`, `intent help` refuses at exit 2 with `` `intent help` was retired in Intent v3 and is not a command in this build ``, and offers the remedy `there is no v3 replacement -- remove it from any script that calls it`. **That remedy is false.** `intent --help` answers on the same build at exit 0 and prints the command list. The capability is present by one spelling and absent by the other, and **the refusal tells you to delete the call when changing one character would have worked**. At `HEAD` the retirement is reversed and `intent help` answers again, so this is a defect of the published tag rather than of v3 as such.
 
+**`intent llm usage_rules` answers about a different file in v3, and its exit code flips when you have no project-owned rules** (`intent#0215`). v2 printed `$INTENT_HOME/usage-rules.md` -- **the copy inside the Intent install** -- so every project on a machine got the same bytes. v3 prints **your project's own root `usage-rules.md`**, which is what an operator asking _what are the rules here_ means, and is the only answer that cannot silently print rules your project has edited away from. The consequence to script against:
+
+| your project                | v2                         | v3                                      |
+| --------------------------- | -------------------------- | --------------------------------------- |
+| has a root `usage-rules.md` | exit 0, the INSTALL's copy | exit 0, YOUR file                       |
+| has none                    | exit 0, the INSTALL's copy | **exit 1**, with a remedy and no output |
+
+If you have a consumer that pipes this verb, the second row is the one that will bite: seed the file with `intent claude upgrade --apply`, which writes it only when absent and never touches it afterwards.
+
+**This was labelled `v2 parity` in our own source until 2026-09-02, and the reason it survived is worth more to you than the fix.** Intent is developed in a checkout of itself, and **in a self-hosted checkout the install root and the project root are the same directory** -- so `$INTENT_HOME/usage-rules.md` and `<project>/usage-rules.md` are one file, and every comparison we ran agreed. The divergence exists only in a project that is not Intent, which is every project except ours. If you are checking our parity claims against your own tree, that is the class to check first.
+
 ## Doing the hop
 
 ```

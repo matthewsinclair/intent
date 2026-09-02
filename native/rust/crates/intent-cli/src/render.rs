@@ -6777,8 +6777,34 @@ fn llm(m: &ArgMatches) -> Result<(), Failure> {
   }
 }
 
-/// `intent llm usage_rules` -- v2 parity: the project's root `usage-rules.md`,
-/// verbatim, on stdout (AC-00.3).
+/// `intent llm usage_rules` -- the PROJECT's root `usage-rules.md`, verbatim,
+/// on stdout (AC-00.3).
+///
+/// # This is a DELIBERATE DIVERGENCE from v2, not parity with it (issue `0215`)
+///
+/// **THIS LINE SAID `v2 parity` AND v2 DOES NOT READ THIS FILE.** `bin/intent_llm`
+/// reads `$INTENT_HOME/usage-rules.md` -- the INSTALL's copy -- and `$INTENT_HOME`
+/// is the directory above `bin/`, never `PROJECT_ROOT`. Driven by dc on
+/// 2026-09-02 in two scratch projects against both binaries:
+///
+/// - with a project-owned root file: v2 prints the INSTALL's ~20KB, v3 prints
+///   the PROJECT's. Same command, same directory, different file.
+/// - with no project-owned root file: **v2 exits 0 with the install's rules; v3
+///   exits 1 with nothing.** That is an exit-code flip on a shipped verb, and a
+///   consumer scripting this gets a non-zero where v2 gave zero.
+///
+/// **THE v3 BEHAVIOUR IS THE RIGHT ONE AND THE REASONING BELOW IS WHY; ONLY THE
+/// LABEL WAS WRONG.** Answering about the project is what an operator asking
+/// *what are the rules here* actually means, and it is the only answer that
+/// cannot silently print rules a project has edited away from.
+///
+/// **WHY IT SURVIVED, WHICH IS WORTH MORE THAN THE FINDING: IN A SELF-HOSTED
+/// CHECKOUT THE INSTALL ROOT AND THE PROJECT ROOT ARE ONE DIRECTORY.** So
+/// `$INTENT_HOME/usage-rules.md` and `<project>/usage-rules.md` are the same
+/// file, and **every drive taken in this tree agrees BY CONSTRUCTION.** The
+/// divergence exists only in a project that is not Intent -- which is every
+/// consumer. No amount of care at the instrument would have found it here;
+/// the bound is a property of the ENVIRONMENT, not of any tool.
 ///
 /// **Read from the PROJECT ROOT, never rendered from the template, because this
 /// file is user-owned.** `canon::seed` writes it only when it is absent and
