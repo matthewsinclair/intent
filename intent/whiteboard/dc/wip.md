@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-02 17:42Z
+heartbeat_at: 2026-09-02 18:09Z
 status: active
-focus: "FOLDED 2026-09-02 17:42Z; pre-fold verbatim + sha-verified at .history/20260902/wip-prefold-1742Z.md (39be64e6, 59327 bytes), reasoning beside it. STATUS STAYS active. FOUR OF vc's SEVEN LANDED, THREE OPEN. THE EVENING IS THE AFTERNOON'S LESSON ARRIVING FOUR MORE TIMES: a ruling named after its instance (item 1), a predicate named after its symptom (0207 materially), and an instrument that cannot see its own class (--workspace vs --all-targets). NO FIGURES HERE -- run the verbs."
+focus: "ITEM 6 DISPOSED 18:09Z: `0181` was never a wiring job -- driven, v2 BUILT the capability and it does not do what its help says, in two of three arms, and a source read could not see it because the `cd` is in another file. Recommended WITHDRAW, routed to vc+ic. `0215` filed: `llm usage_rules` is labelled v2 PARITY and answers about a different file than v2 -- INVISIBLE HERE, because a self-hosted checkout makes install root and project root one directory. TWO OF vc's SEVEN LEFT: 2(D), then the 0203/0208 remedies. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -35,7 +35,8 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-- **NOTHING IN FLIGHT. FOLDED 2026-09-02 17:42Z, AWAITING hv ON THE BOUNCE.** Nothing of mine was dirty at checkin; every uncommitted path belonged to a peer (the devbin manifest, ic's and vc's boards, three peers' own fold archives).
+- **ITEM 6 IS READ AND DISPOSED (2026-09-02 18:09Z).** `0181` amended with the drive; `0215` filed for the finding the drive produced. **The recommendation is WITHDRAW and it is not mine to write** -- WP-09 is ic's and a retire is a pen call, so it is routed rather than landed.
+- **PICKED UP 2026-09-02 18:02Z ON THE BOUNCE. FOLDED 1742Z; hv HAS NOT YET GIVEN NEXT STEPS, so I am taking vc's open three in order.** Nothing of mine was dirty at pickup; every uncommitted path belonged to a peer (the devbin manifest, ic's and vc's boards, three peers' own fold archives).
 - **THE TREE IS GREEN AND STILL.** `intentsvcs` 1182 pass / 0 fail, `--workspace --all-targets` clean, `cargo fmt` clean, at `e331b7c8`. cc is told; `facade.rs` is theirs again.
 - Today's reasoning is archived, not retold here: `.history/20260902/evening-narrative-1742Z.md` beside `wip-prefold-1742Z.md` (sha `39be64e6`). The afternoon is in `afternoon-narrative-1629Z.md`, the morning in `evening-narrative-0809Z.md`.
 
@@ -46,12 +47,13 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 - **1. INBOX MESSAGE LOGS ARE OUT OF THE FORMATTER** (`d7e91893`), **WIDE** -- ruled narrow, and the corpus widened it. 39 headings carrying a `Re:`/`FYI` field, **ZERO retaining the spec's three-space separator**, 15 of them outside the ruled scope. **The spec moved rather than the 39 files.** `.prettierignore`'s header now carries a CRITERION, not a list: single writer AND existing content is evidence, both halves required.
 - **2 (C). `declared_kind_check.sh` NAMES THE IN-FLIGHT LANDING** (`eff993b2`) -- the commit that moved the citing canon, whether the roster is uncommitted right now, and `0210` with the instruction to tell its author rather than repair it. **Driven both ways on planted fixtures, because a clean estate never reaches that path.**
 - **3. `0207` IS BUILT** (`e331b7c8`). **The status verbs EXTEND a note; `at edit --note` REPLACES it.** Containment, not length -- **a length check FAILS OPEN on a same-length rewrite.** No threshold, and that is a measurement: 313 notes run near-continuously from 150 to 1200 bytes with a largest gap of about 30, so there was never a valley to put a line in.
+- **6. `0181` IS READ, AND THE SINGLE QUESTION HAD A THIRD ANSWER.** The ratchet asks _did the capability move, or was it never built_; driven, **neither -- it was built and it does not do what its help says.** v2: the absolute-dir arm works, the BARE arm does not use the current directory (`bin/intent:284` cds to `PROJECT_ROOT` and exports `INTENT_ORIG_CWD`, which `intent_llm` never reads -- a fresh empty dir stays empty at rc=0 under a `created:` line), and a RELATIVE dir is refused while it exists. v3: bare is refused by clap, so **the table's own note about an optional-value flag describes something not implemented**; valued is silently inert and does not even keep v2's rc=1 validation. **A source read could not have seen any of it, because the `cd` is in a different file** -- and the roster row's `evidence_class` is `read`. Recommended **WITHDRAW**, routed to vc and ic.
+- **`0215` IS THE FINDING THE DRIVE PRODUCED, AND IT IS BIGGER THAN THE FLAG.** `render.rs:6780` says _v2 parity_ and v2 reads the INSTALL's `usage-rules.md` while v3 reads the PROJECT's. Same project, same verb: with a root file, v2 rc=0 at 20,220 bytes and v3 rc=0 at 78; **without one, v2 rc=0 and v3 rc=1.** The v3 behaviour is RIGHT and its reasoning is written out -- **the word `parity` is what is wrong, and nothing had compared the two.** **INVISIBLE HERE BY CONSTRUCTION: in a self-hosted checkout the install root and the project root are one directory**, so every drive taken in this tree agrees.
 - **THE STANDING PRACTICE IS NOW A PROPERTY RATHER THAN A RULE.** Every `at green` carries `--note`; under `0207` an append is enforced by the system instead of remembered by the node. **vc's prose append-discipline is retired by the build.**
 
 **OPEN, MINE, IN ORDER:**
 
 - **2 (D). LET THE GUARD SEE THE WORKING TREE.** Widens what it SEES, not what it CHECKS, so inherited-breakage detection is untouched. **The residual hole, stated by vc and not to be forgotten: under (D) an artefact could sit uncommitted indefinitely with its citation passing.** `runner_roster_check` covers it from the other side.
-- **6. `AC-06.8` / `0181` -- READ IT AND DISPOSE.** `llm usage_rules --symlink` has sat `keep`-and-UNREAD. **A disposition nobody has read is not a decision.** Nothing needed from vc.
 - **7. `0203` AND `0208`: I PROPOSE THE REMEDY, vc RATIFIES.** Blocked on the REMEDY rather than the priority, and a remedy review is inside the pen. Unblocks six `keep` rows and `WP-05`.
 
 **ROUTED TO vc FOR hv (hv's instruction, 2026-09-02 -- via vc this time, not direct):**
