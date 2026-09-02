@@ -3,7 +3,8 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-09-02 19:04Z
+commit_session_id: 01NWtGVYUAFbTUS28AZsnzq9 -- the Claude-Session trailer id on commits authored from THIS session (0208). POINT-IN-TIME: one session per line, never a table -- a restart mints a new id, and the mapping accumulates in .history/ as folds archive the header that was live. Read off my own commit, not reconstructed.
+heartbeat_at: 2026-09-02 20:00Z
 status: active
 focus: "TUI redesign (WP-17). `/{cmd} ...` BUILT AND LANDED (2b77ce45) with hv's ruling honoured in full, mutation included; criterion proposed to vc BEFORE the code. vc's CANON WINDOW TAKEN AND LANDED (96fd9f9d) -- all five items plus AT-17.13/14/15/16, AC-17.13/15/16 now satisfied. DELIVERED PAIR REBUILT to 96fd9f9d and sha-verified. BLOCKED ON vc, ONE THING: AC-17.17 is minted TEST-BACKED and its own reach clause says no test can witness it -- the contract refused the pair and the kind is vc's pen; I offered the wait_for_operator seam that WOULD witness the ordering half. 0215 LANDED (2d41e929) and ST0065's contract is PROPOSED (six mechanisms, vc rules). MY QUEUE IS EMPTY OF THINGS I CAN START: AT-17.18 waits on hv at a terminal, ST0065 waits on vc, the v2-label census waits on dc being released from hv's hold -- do not ask them to break it. RE-MEASURE EVERY FIGURE AT PICKUP."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
