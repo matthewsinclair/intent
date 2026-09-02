@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-09-02 18:41Z
+heartbeat_at: 2026-09-02 18:59Z
 status: active
-focus: "TUI redesign (WP-17). `/{cmd} ...` BUILT AND LANDED (2b77ce45) with hv's ruling honoured in full, mutation included; criterion proposed to vc BEFORE the code. vc's CANON WINDOW TAKEN AND LANDED (96fd9f9d) -- all five items plus AT-17.13/14/15/16, AC-17.13/15/16 now satisfied. DELIVERED PAIR REBUILT to 96fd9f9d and sha-verified. BLOCKED ON vc, ONE THING: AC-17.17 is minted TEST-BACKED and its own reach clause says no test can witness it -- the contract refused the pair and the kind is vc's pen; I offered the wait_for_operator seam that WOULD witness the ordering half. THEN 0215 (mine, WP-09: the word `parity` is wrong, and it survived because self-hosting makes install root == project root). THEN ST0065's contract. RE-MEASURE EVERY FIGURE AT PICKUP."
+focus: "TUI redesign (WP-17). `/{cmd} ...` BUILT AND LANDED (2b77ce45) with hv's ruling honoured in full, mutation included; criterion proposed to vc BEFORE the code. vc's CANON WINDOW TAKEN AND LANDED (96fd9f9d) -- all five items plus AT-17.13/14/15/16, AC-17.13/15/16 now satisfied. DELIVERED PAIR REBUILT to 96fd9f9d and sha-verified. BLOCKED ON vc, ONE THING: AC-17.17 is minted TEST-BACKED and its own reach clause says no test can witness it -- the contract refused the pair and the kind is vc's pen; I offered the wait_for_operator seam that WOULD witness the ordering half. 0215 LANDED (2d41e929) and ST0065's contract is PROPOSED (six mechanisms, vc rules). MY QUEUE IS EMPTY OF THINGS I CAN START: AT-17.18 waits on hv at a terminal, ST0065 waits on vc, the v2-label census waits on dc being released from hv's hold -- do not ask them to break it. RE-MEASURE EVERY FIGURE AT PICKUP."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -52,13 +52,20 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## TODO
 
-1. **`AT-17.17` -- WAITING ON vc's RULING ON `AC-17.17`'s KIND.** Three coherent outcomes: split the row, narrow the reach clause to the painting half, or flip the kind and take the driven demonstration. **If vc wants the ordering half test-backed, I build the `wait_for_operator` seam** -- medium, squarely mine, and the property most likely to be tidied away later because a `read_line` under a `println!` reads as leftover scaffolding.
-2. **`0215` -- MINE (WP-09, the `llm` family), dc routed it.** `render.rs:6780` labels itself _v2 parity_ and v2 reads `$INTENT_HOME/usage-rules.md` -- the INSTALL's copy -- where v3 reads the PROJECT's. **v3's behaviour is RIGHT and the word `parity` is what is wrong**; remedy is a label + a migration note for the rc flip (v2 rc=0 with the install's rules where v3 rc=1 with nothing). **THE REASON IT SURVIVED IS THE KEEPER AND IT IS NOT ABOUT THIS ROW: in a SELF-HOSTED checkout the install root and the project root are ONE DIRECTORY**, so every drive taken in this tree agrees and the divergence exists only for consumers. dc has offered the census of which `v2:`-labelled rows rest on that distinction -- **worth saying yes to**, it is a class not an instance.
-3. **PROPOSE `ST0065`'s CONTRACT** -- routed to me by vc; mechanism not instance.
-4. **`0181`** -- dc disposed it, recommendation WITHDRAW, vc to rule. **Nothing of mine moves until vc rules**; if ruled, the retire is a WP-09 write and therefore mine.
-5. **ST0064 remaining (5/9), not mine to start:** 01.2/01.6 cc-gated; 01.7 dc pipeline + hv's ADC signing; 01.4 cc console.
-6. **Explorer/Lotus menu SELECTION (hv item, A1 on vc's list)** -- needs hv at the keys; not answerable here.
-7. **`intent app start|stop|restart`** (hv, new user verb): controls the INSTALLED app; new_surface `app` family; coord cc.
+**MY QUEUE IS EMPTY OF THINGS I CAN START. EVERYTHING BELOW WAITS ON SOMEONE ELSE, AND THAT IS THE STATE, NOT A COMPLAINT.**
+
+1. **`AT-17.18` WAITS ON hv AT A TERMINAL, AND IT STAYS `to-write` UNTIL THEY DRIVE IT.** Not green on 2100 passing tests -- **the suite being green over that surface is the exact reading the row was minted to refuse.** Run `intent explore`, `/`, `/st list`, and judge whether the output is LEGIBLE before pressing enter. hv has been told.
+2. **`ST0065`'s CONTRACT IS PROPOSED (18:57Z), SIX MECHANISMS, vc RULES.** One home per rule; every instruction executable AND its compliance distinguishable (hv's MISGUIDED class made mechanical); no canon doc asserting tool behaviour the tool reports; a surviving skill has a consumer and a retired one is gone from all THREE locations (**measured: `skills.rs:690-697` -- sync never prunes a vanished canon source, and upgrade's skill step IS that sync, so a canon-only delete strands the skill on every machine while it goes on loading**); a change that must reach every machine is verified AT THE MACHINE; the population is derived, never listed. **I named the two I am least sure of rather than letting vc find them.**
+3. **`0215` REMEDY LANDED (`2d41e929`) AND THE ISSUE STAYS OPEN DELIBERATELY.** vc has severity; **hv has the product call dc named -- whether to close the divergence toward v2 instead** -- and closing on the strength of a fixed label would bury the question an operator scripting the verb actually cares about.
+4. **THE `v2:`-LABEL CENSUS IS RATIFIED (vc, 18:53Z) AND IS dc's WHEN hv RELEASES THEIR HOLD.** **Do not ask them to break it.** It is now load-bearing for more than `0215`: vc is carrying it as the candidate `AC-00.16` amendment -- _an instrument's reach is bounded not only by what it checks but by what the ESTATE CAN EXHIBIT, and that bound is declared nowhere because it is a property of the ENVIRONMENT rather than of any tool._
+5. **`0181`** -- dc disposed it, recommendation WITHDRAW, vc to rule. If ruled, the retire is a WP-09 write and therefore mine.
+6. **SUPERSEDED: `AT-17.17`'s kind question.** Three coherent outcomes: split the row, narrow the reach clause to the painting half, or flip the kind and take the driven demonstration. **If vc wants the ordering half test-backed, I build the `wait_for_operator` seam** -- medium, squarely mine, and the property most likely to be tidied away later because a `read_line` under a `println!` reads as leftover scaffolding.
+7. **`0215` -- MINE (WP-09, the `llm` family), dc routed it.** `render.rs:6780` labels itself _v2 parity_ and v2 reads `$INTENT_HOME/usage-rules.md` -- the INSTALL's copy -- where v3 reads the PROJECT's. **v3's behaviour is RIGHT and the word `parity` is what is wrong**; remedy is a label + a migration note for the rc flip (v2 rc=0 with the install's rules where v3 rc=1 with nothing). **THE REASON IT SURVIVED IS THE KEEPER AND IT IS NOT ABOUT THIS ROW: in a SELF-HOSTED checkout the install root and the project root are ONE DIRECTORY**, so every drive taken in this tree agrees and the divergence exists only for consumers. dc has offered the census of which `v2:`-labelled rows rest on that distinction -- **worth saying yes to**, it is a class not an instance.
+8. **PROPOSE `ST0065`'s CONTRACT** -- routed to me by vc; mechanism not instance.
+9. **`0181`** -- dc disposed it, recommendation WITHDRAW, vc to rule. **Nothing of mine moves until vc rules**; if ruled, the retire is a WP-09 write and therefore mine.
+10. **ST0064 remaining (5/9), not mine to start:** 01.2/01.6 cc-gated; 01.7 dc pipeline + hv's ADC signing; 01.4 cc console.
+11. **Explorer/Lotus menu SELECTION (hv item, A1 on vc's list)** -- needs hv at the keys; not answerable here.
+12. **`intent app start|stop|restart`** (hv, new user verb): controls the INSTALLED app; new_surface `app` family; coord cc.
 
 ## Watch-outs -- mechanisms only
 
