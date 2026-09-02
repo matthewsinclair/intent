@@ -174,4 +174,4 @@ Two keys pointing to one function is cleaner than two near-duplicate `if` branch
 - Programming in Lua (Ierusalimschy), ch. 5.2 "Functions as First-Class Values" — the dispatch-table idiom (<https://www.lua.org/pil/5.2.html>)
 - Lua-users wiki, "Function Tables" (<http://lua-users.org/wiki/FunctionTables>)
 - IN-EX-CODE-001 — Elixir sister rule (multi-head function dispatch via pattern matching); same spirit, different language affordances.
-- IN-AG-PFIC-001 — agnostic principle (Pure-Functional-Idiomatic-Coordination); declarative composition over imperative branching.
+- IN-AG-PFIC-001 — agnostic principle (Pure Function, Impure Coordination); declarative composition over imperative branching.

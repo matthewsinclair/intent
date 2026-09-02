@@ -7,7 +7,7 @@ Project-specific rules for Intent. Extends -- never replaces -- the four agnosti
 Every Intent project enforces these. Full rule files at `intent/plugins/claude/rules/agnostic/<slug>/RULE.md`.
 
 - **Highlander** (`IN-AG-HIGHLANDER-001`) -- there can be only one; no divergent copies of the same concern.
-- **PFIC** (`IN-AG-PFIC-001`) -- Pure-Functional-Idiomatic-Coordination; pattern match, pipe, tag, compose.
+- **PFIC** (`IN-AG-PFIC-001`) -- Pure Function, Impure Coordination. Read it with `intent claude rules show IN-AG-PFIC-001`.
 - **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- coordinators parse to call to render; business logic lives elsewhere.
 - **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- every failure surfaces; rescue-and-swallow is forbidden.
 
@@ -62,10 +62,10 @@ These extend the canon for Intent itself (a Bash CLI). Each one concretises one 
 
 <!-- intent-lang-packs:start -->
 
-
 - **elixir** -- rules via `intent claude rules list --lang elixir` (served by the installed Intent tool, not vendored into this project); concretised RULES at `intent/llm/RULES-elixir.md`.
 - **author** -- rules via `intent claude rules list --lang author` (served by the installed Intent tool, not vendored into this project); concretised RULES at `intent/llm/RULES-author.md`.
 - **content** -- rules via `intent claude rules list --lang content` (served by the installed Intent tool, not vendored into this project); concretised RULES at `intent/llm/RULES-content.md`.
 - **rust** -- rules via `intent claude rules list --lang rust` (served by the installed Intent tool, not vendored into this project); concretised RULES at `intent/llm/RULES-rust.md`.
 - **shell** -- rules via `intent claude rules list --lang shell` (served by the installed Intent tool, not vendored into this project); concretised RULES at `intent/llm/RULES-shell.md`.
+
 <!-- intent-lang-packs:end -->
