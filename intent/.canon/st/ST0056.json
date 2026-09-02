@@ -1510,6 +1510,22 @@
       }
     },
     {
+      "id": "AC-17.15",
+      "text": "**THE PALETTE'S CLI ARM HAS ONE DISPATCH HOME AND ONE BLURB SOURCE, AND BOTH ARE THE CLI'S OWN.** (hv ruled `/{cmd} ...` in full 2026-09-02 17:40Z, mutation included; scoped by ic, minted by vc under hv's pen.) The arm calls `spine::parse(argv)` then `render::run(&matches)` and nothing else, **so there is no second argv parser and no second dispatch table**; each offered verb resolves to a real `clap` subcommand and takes its description from that subcommand's own `get_about()`, the same source `/help` walks. **THE FAILURE MODE IS DRIFT, NOT ABSENCE: a hand-typed blurb agrees with `--help` on the day it is written and disagrees thereafter**, and disagreement is invisible because both sides render fine. **DERIVED, NEVER TRANSCRIBED** -- this concretises `IN-AG-HIGHLANDER-001` at the surface where a copy is cheapest to make and hardest to notice.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-17.16",
+      "text": "**WHAT THE PALETTE WILL RUN IS AN ALLOW-LIST, A COLLISION IS REFUSED AT CONSTRUCTION, AND THE OPERATOR CAN SEE WHICH IS WHICH.** (hv ruled the feature 2026-09-02; scoped by ic, minted by vc under hv's pen.) **A verb becomes palette-runnable only by a decision recorded in the roster.** A deny-list makes a verb added next year runnable **by nobody's decision** -- which is exactly how `intent_version` would have become editable, so this is `AC-17.14`'s reason one surface over and the rows must be read together. Named hazards it exists to exclude: `/explore` from inside explore is recursion, and `/edit` launches `$EDITOR` inside a lend that is already a lend. **THE PROPERTY IS TWO-SIDED AND THE SECOND HALF IS THE POSITIVE CONTROL ON THE INSTRUMENT: every roster name resolves to a real subcommand (no dead entries), AND THE ROSTER IS STRICTLY SMALLER THAN THE DISPATCH TABLE'S SUBCOMMAND SET.** Without that second assertion, somebody \"simplifying\" the roster into *every subcommand* passes the test while deleting the criterion. **A COLLISION WITH THE TUI's OWN VOCABULARY IS A BUILD-TIME REFUSAL, NOT A MATCH-TIME PRECEDENCE RULE** -- `/help` is the TUI act and the act takes the spelling, but the refusal is what stops a second reading existing at all. **AND THE DISTINCTION IS RENDERED: a rule the operator cannot see is a guess**, so CLI rows carry a visible marker.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
       "id": "AC-17.2",
       "text": "**THE DSL DECLARES LAYOUT AND WIDGET, NEVER THE FIELD SET.** Every field in a form declaration resolves to a property of the entity schema face, and a field naming a property that does not exist is REFUSED by name at load. **A hand-authored list of fields is a second home for what `schema/*.json` already declares, and it goes stale exactly the way `populations.shipped` did** -- so the form carries order, label, widget and editability, and takes existence and type from the schema. Held to the converse too: an editable property appearing in NO form is named in the output rather than silently unreachable.",
       "kind": "test",
