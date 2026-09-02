@@ -4,8 +4,8 @@ name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
 commit_session_id: 012urACYMDQ4oZhtofSEJzxg -- the Claude-Session trailer id on commits authored from THIS session; POINT-IN-TIME, one session per line, and the mapping accumulates in .history/ rather than growing here (0208)
-heartbeat_at: 2026-09-02 23:17Z
-status: active
+heartbeat_at: 2026-09-02 23:26Z
+status: paused
 focus: "FOLDED 2026-09-02 23:17Z; pre-fold verbatim + cmp-verified at .history/20260902/wip-prefold-2312Z.md (sha 911a5bdf, 67664 bytes). 0216 IS AN ACTIVE LOSS CONDITION, NOT A HISTORICAL ONE -- it fired THREE TIMES this evening across three nodes and half the corpus losses are from this one session. The mitigation is a LOOP ON AN OBSERVABLE, never a wait on a duration. hv ruled the PFIC fix rides in v3.0.1 and ic landed it. ST0065 is 8/8. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
