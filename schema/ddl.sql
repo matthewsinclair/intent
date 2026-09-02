@@ -78,23 +78,31 @@ CREATE TABLE IF NOT EXISTS threads (
   fiat TEXT,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  -- The compare-and-swap token for issue 0206: a monotonic counter bumped by
-  -- the change door on every write, so a caller can say which version of this
-  -- record its write was derived from and the DATABASE can refuse a write
-  -- derived from a stale one.
+  -- A per-record write counter, bumped by the change door on every write. Its
+  -- scope is the whole thread SUBTREE, not this row: `write_thread` deletes and
+  -- re-inserts criteria, tests, related and wps, so every mutation to any of
+  -- them passes through the bump below.
   --
-  -- **A COUNTER RATHER THAN `updated_at`, AND NOT FOR PRECISION.** A clock is
-  -- not a version: its adequacy as a token depends on two writes never sharing
-  -- a millisecond, which is a property of process scheduling rather than of
-  -- this design -- and the daemon path puts both writes in ONE process. The
-  -- other candidate, comparing the reconstructed record field by field, is a
-  -- HAND-MAINTAINED POPULATION: it agrees the day it is written and silently
-  -- fails OPEN for every column added after it. A counter enumerates nothing,
-  -- so it cannot be too narrow.
+  -- **THIS SHIPPED DESCRIBED AS ISSUE 0206's COMPARE-AND-SWAP TOKEN AND IT IS
+  -- NOT ONE. CORRECTED HERE RATHER THAN REWRITTEN.** It is not monotonic across
+  -- a sync: `rebuild` DELETEs every row before re-inserting it, so the upsert
+  -- never hits a conflict, the clause below never fires, and the counter comes
+  -- back at this DEFAULT. **It does not go up across a sync; it goes back to
+  -- zero** -- measured, after the first version of this argument claimed a bump
+  -- and the test's own non-vacuity control said `0 -> 0`.
   --
-  -- Its scope is the whole thread SUBTREE, not this row: `write_thread`
-  -- deletes and re-inserts criteria, tests, related and wps, so every mutation
-  -- to any of them passes through the bump below.
+  -- A CAS on it would therefore FAIL OPEN on the case it was built for: a
+  -- facade loaded at 0, a peer write taking the record to 1, a sync resetting
+  -- it to 0, and the stale facade seeing `0 == 0` and writing straight over the
+  -- peer. `Store::refuse_if_the_record_moved` compares CONTENT and carries the
+  -- whole reasoning.
+  --
+  -- The argument this comment used to make against content -- that it is a
+  -- HAND-MAINTAINED POPULATION which fails open for every column added after
+  -- it -- was the reason to prefer a counter, and it was **wrong about the
+  -- mechanism actually available**: `Thread` derives `PartialEq`, so the
+  -- comparison enumerates no more than the counter does. The argument was
+  -- sound against a hand-written field list, and nobody was proposing one.
   revision INTEGER NOT NULL DEFAULT 0
 );
 -- openness: carried by intent/.canon/st/<ID>.json

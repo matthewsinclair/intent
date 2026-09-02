@@ -38,6 +38,8 @@ mod a_create_refuses_a_key_that_is_taken;
 mod a_re_cite_keeps_what_it_was_not_given;
 #[path = "a_scheduled_backup_is_the_same_call.rs"]
 mod a_scheduled_backup_is_the_same_call;
+#[path = "a_write_refuses_a_record_that_moved_under_it.rs"]
+mod a_write_refuses_a_record_that_moved_under_it;
 #[path = "absent_manifest_is_not_unreadable.rs"]
 mod absent_manifest_is_not_unreadable;
 #[path = "ac_kind_state_invariant.rs"]

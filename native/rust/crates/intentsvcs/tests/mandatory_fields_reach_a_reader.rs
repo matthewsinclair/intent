@@ -161,7 +161,11 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // caller supplied nothing and left nothing out; there is no authored value
     // behind either to carry to a reader.
     | FacadeError::Install(_)
-    | FacadeError::RootFile(_) => None,
+    | FacadeError::RootFile(_)
+    // Issue 0206's refusal. It reports that the RECORD moved, so there is no
+    // field the caller failed to supply -- the remedy is to re-run, not to
+    // make a fuller call.
+    | FacadeError::RecordMovedUnderTheWrite { .. } => None,
   }
 }
 

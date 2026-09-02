@@ -513,6 +513,26 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("absent means nobody has said, so there is no list to remove an entry from"),
   ));
 
+  // **ISSUE 0206's REFUSAL, AND IT NEEDS A FIXTURE OF ITS OWN.** Every
+  // provocation above runs against `fx.facade()`, which is an IN-MEMORY store;
+  // two of those share no database, so the record cannot move under one of them
+  // and this variant is unreachable there. A second on-disk fixture is the
+  // cheapest honest provocation -- and a fixture that cannot exhibit the defect
+  // could not have provoked its refusal.
+  let shared = Fixture::new();
+  shared.write_thread(&sample_thread("ST0056"));
+  let mut first = shared.facade_on_disk();
+  let mut second = shared.facade_on_disk();
+  first
+    .ac_edit("ST0056", "AC-03.1", "the edit that lands")
+    .expect("the first write is ordinary");
+  out.push((
+    "a record that moved under the write",
+    second
+      .ac_edit("ST0056", "AC-03.2", "the edit derived from a stale record")
+      .expect_err("the second facade holds a snapshot the first has already superseded"),
+  ));
+
   out
 }
 
@@ -587,6 +607,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::ValueNotRecordable { .. } => "ValueNotRecordable",
     FacadeError::Install(_) => "Install",
     FacadeError::RootFile(_) => "RootFile",
+    FacadeError::RecordMovedUnderTheWrite { .. } => "RecordMovedUnderTheWrite",
   }
 }
 
@@ -649,6 +670,7 @@ const ALL_VARIANTS: &[&str] = &[
   "Realise",
   "Install",
   "RootFile",
+  "RecordMovedUnderTheWrite",
 ];
 
 /// Variants that need a broken world rather than a bad call, and are covered by

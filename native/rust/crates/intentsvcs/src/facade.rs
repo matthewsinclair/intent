@@ -862,6 +862,15 @@ pub enum FacadeError {
   /// machine, and one message for both tells them to guess.
   #[error("issue {number:04} already exists, and a create must not replace it")]
   IssueExists { number: u32 },
+  /// **THE WRITE WAS DERIVED FROM A RECORD THAT HAS SINCE MOVED** (issue 0206,
+  /// vc ruled 2026-09-01: refuse and name, never retry).
+  ///
+  /// Lifted out of `StoreError` for the reason the whole of this vocabulary
+  /// exists: as [`Self::Store`] it would render "could not update the runtime
+  /// store" and drop its source, telling an operator to look at their disk over
+  /// what is in fact two sessions working the same thread.
+  #[error("{subject} changed while this command was running -- nothing was written")]
+  RecordMovedUnderTheWrite { subject: String },
   #[error("could not update the runtime store")]
   Store(#[from] StoreError),
   #[error("could not read the committed canon")]
@@ -1154,6 +1163,21 @@ impl crate::remedy::Remedy for FacadeError {
          issues add` to take the next free number, or `intent issues show {number:04}` to see \
          what is already there -- a create that overwrote would have destroyed that record \
          silently, which is what this refuses"
+      ),
+      // **NO RETRY FLAG IS OFFERED, AND THAT IS THE RULING RATHER THAN AN
+      // OMISSION** (vc, 2026-09-01). Re-applying the edit automatically would
+      // derive it from a record the operator never saw, which is issue 0206
+      // wearing a success message -- a fix must not be observationally
+      // identical to the defect.
+      //
+      // **AND IT NAMES NO COMMAND TO INSPECT THE RECORD, DELIBERATELY.** The
+      // subject reads "thread ST0056", and the verb for that is `intent st
+      // show` -- a mapping this arm would have to keep, and get wrong for every
+      // entity added later. A refusal owes the operator their next MOVE, which
+      // is here, not a command it half-remembers.
+      Self::RecordMovedUnderTheWrite { subject } => format!(
+        "nothing was written, so nothing needs undoing -- {subject} still holds what the other \
+         write put there. Re-run the command: it reads the current record first"
       ),
       Self::NothingToChange { offered, .. } => format!(
         "name at least one of {} -- nothing was written, so nothing needs undoing",
@@ -7783,6 +7807,35 @@ impl Facade {
       .map(|i| i.number)
       .collect();
 
+    // **AND WHAT EACH CHANGE WAS DERIVED FROM** (issue 0206, vc ruled
+    // 2026-09-01). The store compares these against what it holds, inside the
+    // mutation's own transaction, and refuses a write whose record has moved.
+    //
+    // **TAKEN FROM `self.canon`, WHICH IS THE DEFINITION OF "DERIVED FROM".**
+    // Every canon verb clones this snapshot, edits a field and writes the whole
+    // record back, so `self.canon` is exactly the copy the write assumes is
+    // still true -- and the copy that is stale when somebody else has written
+    // since this facade opened.
+    //
+    // **FILTERING `self.canon` IS ALSO WHAT EXCLUDES THE CREATES, WITHOUT
+    // SAYING SO TWICE.** A created id is by construction one `self.canon` does
+    // not hold -- that is how `created_threads` above is computed -- so it
+    // cannot appear here. A second `!created_threads.contains(...)` clause
+    // would read as a safety net and would in fact be a second definition of
+    // "new", free to disagree with the first.
+    let expected_threads: Vec<&Thread> = self
+      .canon
+      .threads
+      .iter()
+      .filter(|c| changed_thread_ids.contains(&c.id))
+      .collect();
+    let expected_issues: Vec<&crate::model::Issue> = self
+      .canon
+      .issues
+      .iter()
+      .filter(|c| changed_issue_numbers.contains(&c.number))
+      .collect();
+
     let dates = self
       .store
       .commit_mutation(crate::store::Mutation {
@@ -7792,6 +7845,8 @@ impl Facade {
         removed_issues: &removed_issues,
         created_threads: &created_threads,
         created_issues: &created_issues,
+        expected_threads: &expected_threads,
+        expected_issues: &expected_issues,
         sections: &sections,
         envelopes: &envelopes.iter().collect::<Vec<_>>(),
         project_state,
@@ -7808,6 +7863,18 @@ impl Facade {
             number: key.parse().unwrap_or_default(),
           },
         },
+        // **ONE VARIANT FOR BOTH ENTITIES, WHICH IS A DEPARTURE FROM THE
+        // SIBLINGS ABOVE AND IS REASONED RATHER THAN LAZY.** `ThreadExists` and
+        // `IssueExists` are split because the operator's NEXT MOVE differs --
+        // one sends them to `intent st new`, the other to `intent issues add`.
+        // A record that moved has one next move whichever kind it is: re-run,
+        // and the command reads the current record. Splitting on a distinction
+        // that changes nothing is how a vocabulary grows without meaning more.
+        crate::store::StoreError::RecordMovedUnderTheWrite { kind, key } => {
+          FacadeError::RecordMovedUnderTheWrite {
+            subject: format!("{kind} {key}"),
+          }
+        }
         other => FacadeError::Store(other),
       })?;
     drop(changed_threads);

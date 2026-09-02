@@ -161,23 +161,31 @@ CREATE TABLE IF NOT EXISTS threads (
   fiat TEXT,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-  -- The compare-and-swap token for issue 0206: a monotonic counter bumped by
-  -- the change door on every write, so a caller can say which version of this
-  -- record its write was derived from and the DATABASE can refuse a write
-  -- derived from a stale one.
+  -- A per-record write counter, bumped by the change door on every write. Its
+  -- scope is the whole thread SUBTREE, not this row: `write_thread` deletes and
+  -- re-inserts criteria, tests, related and wps, so every mutation to any of
+  -- them passes through the bump below.
   --
-  -- **A COUNTER RATHER THAN `updated_at`, AND NOT FOR PRECISION.** A clock is
-  -- not a version: its adequacy as a token depends on two writes never sharing
-  -- a millisecond, which is a property of process scheduling rather than of
-  -- this design -- and the daemon path puts both writes in ONE process. The
-  -- other candidate, comparing the reconstructed record field by field, is a
-  -- HAND-MAINTAINED POPULATION: it agrees the day it is written and silently
-  -- fails OPEN for every column added after it. A counter enumerates nothing,
-  -- so it cannot be too narrow.
+  -- **THIS SHIPPED DESCRIBED AS ISSUE 0206's COMPARE-AND-SWAP TOKEN AND IT IS
+  -- NOT ONE. CORRECTED HERE RATHER THAN REWRITTEN.** It is not monotonic across
+  -- a sync: `rebuild` DELETEs every row before re-inserting it, so the upsert
+  -- never hits a conflict, the clause below never fires, and the counter comes
+  -- back at this DEFAULT. **It does not go up across a sync; it goes back to
+  -- zero** -- measured, after the first version of this argument claimed a bump
+  -- and the test's own non-vacuity control said `0 -> 0`.
   --
-  -- Its scope is the whole thread SUBTREE, not this row: `write_thread`
-  -- deletes and re-inserts criteria, tests, related and wps, so every mutation
-  -- to any of them passes through the bump below.
+  -- A CAS on it would therefore FAIL OPEN on the case it was built for: a
+  -- facade loaded at 0, a peer write taking the record to 1, a sync resetting
+  -- it to 0, and the stale facade seeing `0 == 0` and writing straight over the
+  -- peer. `Store::refuse_if_the_record_moved` compares CONTENT and carries the
+  -- whole reasoning.
+  --
+  -- The argument this comment used to make against content -- that it is a
+  -- HAND-MAINTAINED POPULATION which fails open for every column added after
+  -- it -- was the reason to prefer a counter, and it was **wrong about the
+  -- mechanism actually available**: `Thread` derives `PartialEq`, so the
+  -- comparison enumerates no more than the counter does. The argument was
+  -- sound against a hand-written field list, and nobody was proposing one.
   revision INTEGER NOT NULL DEFAULT 0
 );
 -- openness: carried by intent/.canon/st/<ID>.json
@@ -512,8 +520,9 @@ pub const RECORD_TIMESTAMPS: &[&str] = &["created_at", "updated_at", "written_at
 /// verbatim: `derived_dump` answers "is the modelled CONTENT identical", and a
 /// value that is re-stamped by the act of writing makes that property false by
 /// construction. `revision` moves on every write through the change door,
-/// including a write that changes nothing else -- a sync round trip being the
-/// case that found this.
+/// including a write that changes nothing else. **A sync does not bump it, it
+/// RESETS it** -- `rebuild` deletes before it inserts, so the conflict clause
+/// never runs. Either way the value is not modelled content.
 pub const RECORD_WRITE_METADATA: &[&str] = &["revision"];
 
 /// **The migration ladder: one rung per version step, applied in order.**
@@ -1124,7 +1133,11 @@ const MIGRATIONS: &[(i32, &str)] = &[(
   ),
   (
     17,
-    // 16 -> 17: `threads.revision`, the compare-and-swap token for issue 0206.
+    // 16 -> 17: `threads.revision`, a per-record write counter. It shipped
+    // named as issue 0206's compare-and-swap token; see the DDL for why it is
+    // not one -- it is not monotonic across a sync -- and what replaced it. The
+    // RUNG is unaffected either way: the column is still there and still counts
+    // writes between rebuilds.
     //
     // **NO TABLE REBUILD, because the default is CONSTANT.** Every rung above
     // that added a column rebuilt its table, and the reason was always the
@@ -1194,6 +1207,29 @@ pub enum StoreError {
   /// extract with nothing saying so.
   #[error("{kind} {key} already exists, and a create must not replace it")]
   CreateHitAnExistingKey { kind: EntityKind, key: String },
+  /// **THE RECORD THIS WRITE WAS DERIVED FROM HAS MOVED** (issue 0206, vc
+  /// ruled 2026-09-01: refuse and name, never retry).
+  ///
+  /// A canon verb is a read-modify-write over a snapshot loaded when the facade
+  /// opened. Two sessions editing DIFFERENT fields of one thread each write the
+  /// whole record back, and the second silently carries the first's field at
+  /// its pre-edit value. Measured on the shipping binary: **9 of 15 concurrent
+  /// pairs lost a write, every one of them `rc=0` with no error text.**
+  ///
+  /// **RAISED INSIDE THE MUTATION'S OWN TRANSACTION**, which is what makes it a
+  /// compare-and-swap rather than a check. Comparing in the facade before the
+  /// call would narrow the window and leave it open; shipping that as a CAS
+  /// would overclaim.
+  ///
+  /// **IT CARRIES NO WRITE COUNT, AND THE OMISSION IS DELIBERATE.** The obvious
+  /// field is "how many writes landed under you", which needs the revision this
+  /// session LOADED at -- state the facade would have to carry and keep in step
+  /// at five assignment sites. The count is worth less than that invariant
+  /// costs, and a number nobody can derive is how a message starts lying.
+  #[error(
+    "{kind} {key} changed while this command was running, and this write was derived from the copy it held before that"
+  )]
+  RecordMovedUnderTheWrite { kind: EntityKind, key: String },
 }
 
 /// Which estate a key belongs to.
@@ -1236,6 +1272,19 @@ impl crate::remedy::Remedy for StoreError {
          next free key. If you meant to CHANGE {kind} {key}, use the verb that changes it -- a \
          create that silently overwrote would have destroyed the record already there, which is \
          what this refuses"
+      ),
+      // **NAMES THE OTHER WRITE AS A FACT ABOUT THE WORLD, NOT AS A FAULT.**
+      // Two people working one thread is what this project does; the remedy is
+      // to re-read and re-apply, and it says so in those words rather than
+      // implying the operator did something wrong.
+      //
+      // **IT DOES NOT OFFER A RETRY FLAG, DELIBERATELY** (vc, 2026-09-01). An
+      // automatic retry re-derives the edit from a snapshot the operator never
+      // saw, which is the original defect wearing a success message.
+      Self::RecordMovedUnderTheWrite { kind, key } => format!(
+        "nothing was written. Somebody else changed {kind} {key} while this command was running -- \
+         re-run it and it will read the current record first. If you are running two sessions \
+         against one project, this is that, working"
       ),
       Self::SchemaMismatch { .. } => {
         "run `intent doctor` -- it names the store's version against this build's, and reports whether a migration for it has shipped".to_string()
@@ -1498,6 +1547,19 @@ pub struct Mutation<'a> {
   /// whether the key was really free (issue 0131).
   pub created_threads: &'a [String],
   pub created_issues: &'a [u32],
+  /// The stored records this mutation's changes were DERIVED FROM, for the
+  /// entities it is CHANGING rather than creating (issue 0206).
+  ///
+  /// **THIS IS THE OTHER HALF OF [`Door`], and the split is exact.** A create
+  /// asks the database whether the key was free; a change asks it whether the
+  /// record still says what the writer thought it said. Anything named in
+  /// `created_*` has no prior copy by definition and appears in neither of
+  /// these.
+  ///
+  /// Diffed by the caller against the canon it loaded, never declared by the
+  /// verb -- the same rule `created_threads` states, for the same reason.
+  pub expected_threads: &'a [&'a Thread],
+  pub expected_issues: &'a [&'a Issue],
   pub sections: &'a [DocSection],
   /// The events this mutation records, written inside its own transaction.
   ///
@@ -2145,6 +2207,13 @@ impl Store {
 
   pub fn commit_mutation(&mut self, change: Mutation<'_>) -> Result<StoredDates, StoreError> {
     let tx = self.conn.transaction()?;
+    // **THE COMPARE-AND-SWAP, AND ITS BEING INSIDE THIS TRANSACTION IS THE
+    // WHOLE DIFFERENCE BETWEEN A CAS AND A CHECK** (issue 0206, vc ruled
+    // 2026-09-01). The same comparison in `apply_envelopes` would narrow the
+    // window and leave it open, and shipping that as a compare-and-swap would
+    // overclaim. Here there is no window: the read and the write are one
+    // serialised transaction.
+    Self::refuse_if_the_record_moved(&tx, &change)?;
     for id in change.removed_threads {
       tx.execute("DELETE FROM tests WHERE thread_id = ?1", params![id])?;
       tx.execute("DELETE FROM criteria WHERE thread_id = ?1", params![id])?;
@@ -2246,6 +2315,87 @@ impl Store {
     Ok(StoredDates { event_ts, ..dates })
   }
 
+  /// **DID THE RECORD MOVE UNDER THE WRITE?** (issue 0206.)
+  ///
+  /// # It compares CONTENT, and `threads.revision` is not the test
+  ///
+  /// `revision` shipped at `544a83d3` described as the compare-and-swap token,
+  /// and **driving the rest of the path showed it cannot be one.**
+  ///
+  /// The first version of this argument said a sync BUMPS every revision in the
+  /// estate, which would have made a counter-based CAS merely noisy. **The
+  /// test's own non-vacuity control said `0 -> 0`, and the real mechanism is
+  /// worse.** `rebuild` DELETEs every row before re-inserting it, so the upsert
+  /// never hits a conflict and [`Door::Change`]'s `revision + 1` never fires:
+  /// **the counter RESETS to its default on every sync.**
+  ///
+  /// A CAS on it would then fail OPEN on the case it exists for -- a facade
+  /// loaded at 0, a peer write taking the record to 1, a sync putting it back
+  /// to 0, and the stale facade seeing `0 == 0` and writing over the peer.
+  /// `a_write_refuses_a_record_that_moved_under_it.rs` drives that reset. That
+  /// commit's framing is corrected here rather than rewritten; the column stays
+  /// as what it honestly is, a per-record write counter.
+  ///
+  /// # Comparing content DOMINATES comparing a counter -- it is not a trade
+  ///
+  /// It does not fire when nothing was lost: a rebuild that rewrites identical
+  /// bytes leaves the comparison equal and the write proceeds. It fires
+  /// whenever something would be lost: any real divergence between the stored
+  /// record and the snapshot this write derives from means the write is about
+  /// to carry a stale field back over a newer one. And it is right about ABA,
+  /// where a counter is wrong -- a record edited and then restored is, at the
+  /// moment of this write, exactly what the writer assumed, so there is nothing
+  /// to refuse.
+  ///
+  /// # Why the comparison cannot rot
+  ///
+  /// [`Thread`] and [`Issue`] derive `PartialEq`, so this compares the whole
+  /// model rather than a list somebody maintains. A field added tomorrow is
+  /// compared tomorrow, with nobody remembering to add it -- which matters
+  /// because the drift direction here is the dangerous one: a comparison
+  /// blind to a column calls the record unchanged and lets the write through.
+  ///
+  /// # What it does NOT cover, said rather than implied
+  ///
+  /// **Deletions.** `removed_threads` and `removed_issues` are not checked, so
+  /// deleting a record somebody else has just edited still succeeds. That is a
+  /// scope line, not an oversight: 0206 is about a read-modify-write silently
+  /// carrying a stale field, and an operator who asked to delete a record is
+  /// not surprised that it is gone. Refusing a delete on a concurrent edit is
+  /// a different ruling and nobody has made it.
+  fn refuse_if_the_record_moved(
+    tx: &rusqlite::Transaction<'_>,
+    change: &Mutation<'_>,
+  ) -> Result<(), StoreError> {
+    for expected in change.expected_threads {
+      // ABSENT IS NOT MOVED. A record that is gone is either being removed by
+      // this same mutation or was removed by somebody else, and inventing a
+      // refusal from a missing row would refuse the ordinary path -- which is
+      // how a guard gets disabled rather than fixed.
+      let Some(stored) = Self::hydrate_threads(tx, Some(&expected.id))?.pop() else {
+        continue;
+      };
+      if &stored != *expected {
+        return Err(StoreError::RecordMovedUnderTheWrite {
+          kind: EntityKind::Thread,
+          key: expected.id.clone(),
+        });
+      }
+    }
+    for expected in change.expected_issues {
+      let Some(stored) = Self::hydrate_issues(tx, Some(expected.number))?.pop() else {
+        continue;
+      };
+      if &stored != *expected {
+        return Err(StoreError::RecordMovedUnderTheWrite {
+          kind: EntityKind::Issue,
+          key: format!("{:04}", expected.number),
+        });
+      }
+    }
+    Ok(())
+  }
+
   /// Rebuild the whole store from canon -- the DISK -> DB sync direction.
   ///
   /// Wholesale by design: this is the operation that makes the DB agree with
@@ -2303,11 +2453,34 @@ impl Store {
   /// `store_round_trip` asserts it against the markup-bearing fixture rather
   /// than a tame one.
   pub fn load_canon(&self) -> Result<(Vec<Thread>, Vec<Issue>), StoreError> {
+    Ok((
+      Self::hydrate_threads(&self.conn, None)?,
+      Self::hydrate_issues(&self.conn, None)?,
+    ))
+  }
+
+  /// Hydrate threads out of the store -- the whole estate, or exactly one.
+  ///
+  /// **ONE HYDRATION PATH SCOPED BY ARGUMENT, AND THE COLUMN LIST IS THE WHOLE
+  /// REASON.** [`Store::commit_mutation`]'s compare-and-swap reads one stored
+  /// thread and compares it against the snapshot the write was derived from. A
+  /// second SELECT written beside this one would agree with it on the day it
+  /// was written and then **FAIL OPEN for every column added afterwards** --
+  /// the comparison would not see the new field, would call the record
+  /// unchanged, and would wave through the exact write it exists to refuse.
+  /// **That is the failing direction, so it does not get a second home.** A
+  /// scope argument cannot drift from itself.
+  fn hydrate_threads(
+    conn: &rusqlite::Connection,
+    only: Option<&str>,
+  ) -> Result<Vec<Thread>, StoreError> {
     let mut threads = Vec::new();
-    let mut stmt = self.conn.prepare(
-      "SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble, fiat FROM threads ORDER BY id",
+    // `?1 IS NULL OR id = ?1` rather than two statements, for the reason in
+    // the doc above: two statements is two column lists.
+    let mut stmt = conn.prepare(
+      "SELECT id, title, slug, status, status_reason, created, completed, acceptance, objective, context, body, preamble, fiat FROM threads WHERE (?1 IS NULL OR id = ?1) ORDER BY id",
     )?;
-    let rows = stmt.query_map([], |row| {
+    let rows = stmt.query_map(params![only], |row| {
       Ok((
         row.get::<_, String>(0)?,
         row.get::<_, String>(1)?,
@@ -2350,11 +2523,11 @@ impl Store {
         schema: THREAD_SCHEMA.to_string(),
         body,
         preamble,
-        related: self.related_of(&id)?,
-        attachments: self.attachments_of(&id)?,
-        wps: self.wps_of(&id)?,
-        criteria: self.criteria_of(&id)?,
-        tests: self.tests_of(&id)?,
+        related: Self::related_of(conn, &id)?,
+        attachments: Self::attachments_of(conn, &id)?,
+        wps: Self::wps_of(conn, &id)?,
+        criteria: Self::criteria_of(conn, &id)?,
+        tests: Self::tests_of(conn, &id)?,
         id,
         title,
         slug,
@@ -2368,12 +2541,22 @@ impl Store {
         context,
       });
     }
+    Ok(threads)
+  }
 
-    let mut stmt = self.conn.prepare(
-      "SELECT number, slug, title, status, severity, created, closed, reporter, body FROM issues ORDER BY number",
+  /// Hydrate issues out of the store -- the whole estate, or exactly one.
+  ///
+  /// The sibling of [`Store::hydrate_threads`], scoped the same way and for the
+  /// same reason.
+  fn hydrate_issues(
+    conn: &rusqlite::Connection,
+    only: Option<u32>,
+  ) -> Result<Vec<Issue>, StoreError> {
+    let mut stmt = conn.prepare(
+      "SELECT number, slug, title, status, severity, created, closed, reporter, body FROM issues WHERE (?1 IS NULL OR number = ?1) ORDER BY number",
     )?;
     let issues = stmt
-      .query_map([], |row| {
+      .query_map(params![only], |row| {
         Ok((
           row.get::<_, u32>(0)?,
           row.get::<_, String>(1)?,
@@ -2388,7 +2571,7 @@ impl Store {
       })?
       .collect::<Result<Vec<_>, _>>()?;
 
-    let issues = issues
+    issues
       .into_iter()
       .map(
         |(number, slug, title, status, severity, created, closed, reporter, body)| {
@@ -2406,19 +2589,19 @@ impl Store {
           })
         },
       )
-      .collect::<Result<Vec<_>, StoreError>>()?;
-
-    Ok((threads, issues))
+      .collect::<Result<Vec<_>, StoreError>>()
   }
-
   /// One thread's attachments, in the order they were written.
   ///
   /// `bytes` and `sha256` are read back rather than recomputed from `text`.
   /// Recomputing would make the round trip agree with itself by construction
   /// and pin nothing -- the point of storing them is that a later read can
   /// disagree with the content and say so.
-  fn attachments_of(&self, thread: &str) -> Result<Vec<crate::model::Attachment>, StoreError> {
-    let mut stmt = self.conn.prepare(
+  fn attachments_of(
+    conn: &rusqlite::Connection,
+    thread: &str,
+  ) -> Result<Vec<crate::model::Attachment>, StoreError> {
+    let mut stmt = conn.prepare(
       "SELECT path, text, bytes, sha256, blob FROM attachments WHERE thread_id = ?1 ORDER BY seq",
     )?;
     let rows = stmt.query_map(params![thread], |row| {
@@ -2437,10 +2620,9 @@ impl Store {
     Ok(rows.collect::<Result<Vec<_>, _>>()?)
   }
 
-  fn related_of(&self, thread: &str) -> Result<Vec<Related>, StoreError> {
-    let mut stmt = self
-      .conn
-      .prepare("SELECT id, note FROM related WHERE thread_id = ?1 ORDER BY seq")?;
+  fn related_of(conn: &rusqlite::Connection, thread: &str) -> Result<Vec<Related>, StoreError> {
+    let mut stmt =
+      conn.prepare("SELECT id, note FROM related WHERE thread_id = ?1 ORDER BY seq")?;
     let rows = stmt.query_map(params![thread], |row| {
       Ok(Related {
         id: row.get(0)?,
@@ -2450,9 +2632,8 @@ impl Store {
     Ok(rows.collect::<Result<Vec<_>, _>>()?)
   }
 
-  fn wps_of(&self, thread: &str) -> Result<Vec<WorkPackage>, StoreError> {
-    let mut stmt = self
-      .conn
+  fn wps_of(conn: &rusqlite::Connection, thread: &str) -> Result<Vec<WorkPackage>, StoreError> {
+    let mut stmt = conn
       .prepare("SELECT seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble, fiat FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
     let raw = stmt
       .query_map(params![thread], |row| {
@@ -2502,9 +2683,8 @@ impl Store {
       .collect()
   }
 
-  fn criteria_of(&self, thread: &str) -> Result<Vec<Criterion>, StoreError> {
-    let mut stmt = self
-      .conn
+  fn criteria_of(conn: &rusqlite::Connection, thread: &str) -> Result<Vec<Criterion>, StoreError> {
+    let mut stmt = conn
       .prepare("SELECT id, text, kind, state FROM criteria WHERE thread_id = ?1 ORDER BY rowid")?;
     let raw = stmt
       .query_map(params![thread], |row| {
@@ -2529,8 +2709,11 @@ impl Store {
       .collect()
   }
 
-  fn tests_of(&self, thread: &str) -> Result<Vec<AcceptanceTest>, StoreError> {
-    let mut stmt = self.conn.prepare(
+  fn tests_of(
+    conn: &rusqlite::Connection,
+    thread: &str,
+  ) -> Result<Vec<AcceptanceTest>, StoreError> {
+    let mut stmt = conn.prepare(
       "SELECT id, kind, file, prose, covers, status, note, legacy, fiat FROM tests WHERE thread_id = ?1 ORDER BY rowid",
     )?;
     let raw = stmt
