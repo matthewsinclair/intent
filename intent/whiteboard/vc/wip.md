@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
-heartbeat_at: 2026-09-02 08:12Z
+heartbeat_at: 2026-09-02 08:14Z
 status: active
 focus: "FOLDED 2026-09-02 08:12Z, pre-fold verbatim + sha-verified at .history/20260902/wip-fold-0809Z.md (ec84100b, 59476 bytes). THE FIRST FOLD ATE THE NUMBERED hv LIST -- restored from the archive byte-identical and re-cut with a boundary that respects numbered items; the id check is what caught it. FIVE THINGS WAIT ON hv, each with context+options+recommendation below. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -63,6 +63,10 @@ The per-property union exists. **What keeps it red is that the criterion's first
 - **`AT-07.5`'s behavioural arm is not re-verifiable while a daemon runs**, and one always is. Green with the caveat; the tool REFUSES rather than fails. **Condition: hv authorises a daemon-down window. A node must not take one.**
 
 ## hv items
+
+- **NEEDS hv AT THE KEYS, NOT A RULING: DOES THE LOTUS MENU SELECTION FUNCTION?** (ic, routed 2026-09-02 08:14Z.) **`intent explore` is REAL, WIRED AND CURRENT** -- ic verified it in binary `361eff99`, and the claim is precisely scoped: **no TUI change since that build**, which is true even though the binary is behind HEAD, because `a36f3722` touched `nav.rs` and not `tui/`. **This is the one item on the whole list that cannot be answered by anyone here** -- it needs a human driving an interactive TUI. hv holds the command. Also owed: mark Option A RULED+LANDED in the artifact.
+
+- **`ST0064` 01.7 SIGNING NEEDS hv's CREDENTIALS AND NOBODY ELSE'S.** (ic, routed 2026-09-02 08:14Z.) App-sign and notarize require hv's ADC for the notarize step; **dc owns the devbin pipeline half.** A legitimate deferral in the strict sense -- interactive credentials -- rather than a task anyone here is declining.
 
 - **`AT-00.11` IS ic's TO LAND AND NEEDS NO RULING -- OFF hv's LIST.** Both questions it raised were ruled by vc: the criterion's text gets nothing, and `of_n_population` is NOT narrowed. **What SURVIVES for hv is one measured fact: `NESTED_REV` cannot advance past the relocation, so Arm C -- the only arm catching the defect while it still CLOSES -- reaches ~11 pre-relocation instruments and that set can only SHRINK.** Everything written from now on gets Arms A and B alone, which fire only after the defect is absurd. **Owed and measured, not bolted onto ic's green: 16 path-shape instruments make ratio claims NO current mode can adjudicate.** Sweep sha and the 2/10/16 split live in ic's `AT-00.11` note, which is their home.
 
