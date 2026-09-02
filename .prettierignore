@@ -39,12 +39,39 @@
 # formatted, because a `.prettierignore` of `*` would satisfy the first arm
 # completely.
 #
-# NOTHING ELSE IS EXCLUDED. Authored ST prose (design.md, impl.md, tasks.md),
-# the whiteboard, docs and the root canon are hand-written and keep their
-# formatting.
+# THE SECOND EXCLUSION IS APPEND-ONLY MESSAGE LOGS, AND IT IS A DIFFERENT
+# ARGUMENT FROM THE ONE ABOVE. The generated views are excluded because they
+# have one writer. The whiteboard inboxes are excluded because they have one
+# writer AND NO REWRITER: `<node>/inbox.<sender>.md` is appended by its sender
+# and never edited, so the entries already in it are a record of what a peer
+# was actually told at the time.
+#
+# THE FORMATTER REWRITES THE WHOLE FILE, NOT THE APPENDED REGION. So appending
+# one entry forces byte changes to entries delivered days earlier, by a node
+# who did not write them, in the same commit -- and the gate refuses the commit
+# until it happens. cc hit this at `ab4b1733` and had to disclose a byte change
+# to a delivered entry inside a commit whose whole point was that prior entries
+# stay untouched. An append-only surface and a normalising formatter cannot
+# both be absolute.
+#
+# MEASURED BEFORE THE SCOPE WAS SET (dc, 2026-09-02). The protocol's own
+# message heading separates its fields with three spaces. Across the estate 39
+# headings carry a `Re:` or `FYI` field and ZERO retain that separator: every
+# node wrote the documented format and every one was normalised on the way in.
+# 24 sat in `hv/inbox.*` and 15 in peer-to-peer inboxes, which is why the
+# pattern is `*/inbox.*.md` and not `hv/inbox.*.md` -- vc's first ruling named
+# the instance cc happened to hit, and the corpus named the mechanism.
+#
+# THE CRITERION, so the next person widening this has one rather than a list:
+# a path belongs here when it has a single writer AND its existing content is
+# evidence. Both halves are required. Authored ST prose (design.md, impl.md,
+# tasks.md), the boards themselves, docs and the root canon are hand-written
+# and REWRITTEN by their authors, so they keep their formatting.
 
 intent/st/*/info.md
 intent/st/*/acceptance.md
 intent/st/*/WP/*/info.md
 intent/st/steel_threads.md
 intent/todo.md
+
+intent/whiteboard/*/inbox.*.md

@@ -144,12 +144,14 @@ The `# inbox: <sender> -> <recipient>` header restates the single-writer routing
 Each entry appended by `ask` / `announce`:
 
 ```
-## (YYYY-MM-DD HH:MM)   [Re: <prior-anchor>]   [FYI only -- no response needed.]
+## (YYYY-MM-DD HH:MM) [Re: <prior-anchor>] [FYI only -- no response needed.]
 
 <text>
 ```
 
 Required fields: the `## (YYYY-MM-DD HH:MMZ)` timestamp heading (minute granularity -- it doubles as the anchor a reply threads against) and the `<text>` body. Recommended / optional: `Re: <prior-anchor>` (present only when threading a reply to a prior entry's timestamp) and `FYI only -- no response needed.` (present only when no reply is expected; absent means the sender expects a reply). A reply is a new entry in the opposite-direction inbox (`<original-sender>/inbox.<you>.md`), carrying `Re:` the entry it answers.
+
+**THE SEPARATOR BETWEEN THOSE FIELDS IS NOT SIGNIFICANT -- one or more spaces, both legal.** This spec said three spaces until 2026-09-02, and **a corpus read found 39 headings carrying a `Re:` or `FYI` field and ZERO retaining them**: the pre-commit gate refuses unformatted markdown and the formatter collapses runs of spaces, so every node wrote the documented form and every one was rewritten on the way in. **A format nobody can write is not a format.** Nothing parses the separator -- `whiteboard-clock-guard.sh` keys on the STAMP and mentions `Re:` only in prose, and no other tool reads these fields at all -- so the spec moved rather than the files. **The existing 39 are deliberately NOT rewritten**: a bulk byte-change across append-only surfaces to satisfy a cosmetic field nothing reads is the exact harm the `.prettierignore` exemption exists to prevent.
 
 ### Every timestamp is READ FROM A CLOCK, never written from memory
 
@@ -222,7 +224,7 @@ The moniker is durable; subsequent sessions of that node inherit it via the exis
 1. Your `inbox.<you>.md` in `<node>/` usually already exists (`ws new` pre-seeds it); if it is absent (a hand-added node), create it with its `# inbox: <you> -> <node>` header + `_(empty)_` sentinel (see inbox shape). Append a message entry (see Message-entry format) -- the path encodes sender -> recipient, so the 2.0 `to:`/`from:` line is implicit:
 
    ```
-   ## (YYYY-MM-DD HH:MM)   [Re: <prior-anchor>]   [FYI only -- no response needed.]
+   ## (YYYY-MM-DD HH:MM) [Re: <prior-anchor>] [FYI only -- no response needed.]
 
    <text>
    ```
