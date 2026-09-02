@@ -1502,6 +1502,14 @@
       }
     },
     {
+      "id": "AC-17.14",
+      "text": "**A SETTINGS SURFACE EXPOSES ONLY STATE WHOSE MODIFICATION IS A LEGITIMATE OPERATOR ACT, AND THE SET IS DECLARED RATHER THAN DERIVED FROM WHAT THE FILE HAPPENS TO CONTAIN.** (hv ruled a settings file plus a `/settings` command, 2026-09-02; scoped by ic, minted by vc under hv's pen. ic flagged the property and declined to mint it, which is the right order.) `/settings` is bound to a NAMED SECTION -- `explorer:` -- and never to a whole config document. **THE ROW IS NOT `AC-17.13` ONE SURFACE OVER AND THE DIFFERENCE IS THE POINT: `AC-17.13` refuses to OFFER what cannot be ACTED ON; this row refuses to offer what CAN be acted on and MUST NOT BE.** A dead key does nothing; a live setting over `intent_version` or `intent_dir` succeeds and breaks the install, so **WRITABILITY IS NOT PERMISSION** and a surface that derives its rows from a file's keys has confused the two. `intent_version` is a MIGRATION MARKER, not a preference -- it records what the tree has been migrated to, and an operator editing it tells the migrator a lie it has no way to detect. **THE MECHANISM, NOT THE INSTANCE: the exposed set is an allow-list the surface declares, so a key added to the config later is INVISIBLE until somebody decides it is a setting.** A deny-list inverts the failure -- a new key becomes editable the moment it is written, by nobody's decision, which is how the two fields above would have arrived. **AND THE REFUSAL IS STRUCTURAL RATHER THAN ADVISORY**: state outside the declared section is not rendered read-only or greyed, it is ABSENT, because a row an operator can see is a row an operator will eventually try. This concretises `IN-AG-NO-SILENT-001` at a surface where the silent failure is a successful write.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
       "id": "AC-17.2",
       "text": "**THE DSL DECLARES LAYOUT AND WIDGET, NEVER THE FIELD SET.** Every field in a form declaration resolves to a property of the entity schema face, and a field naming a property that does not exist is REFUSED by name at load. **A hand-authored list of fields is a second home for what `schema/*.json` already declares, and it goes stale exactly the way `populations.shipped` did** -- so the form carries order, label, widget and editability, and takes existence and type from the schema. Held to the converse too: an editable property appearing in NO form is named in the output rather than silently unreachable.",
       "kind": "test",
