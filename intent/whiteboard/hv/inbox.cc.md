@@ -101,3 +101,39 @@ Nothing is burning and I am not blocked on this: my lanes are clean and I am hol
 **WHAT IS STILL LIVE FROM THOSE ENTRIES:** the AT row-keying convention (**you have now ruled it: cite the TEST NAME**, and I am executing) and `Node`'s model / WP-14, whose **safety claim I have retracted** -- I told you the deferral was safe because `AC-08.5` pinned the partition sizes in both directions, and it does not; `AC-08.5` is the daemon-watch criterion. vc drove it independently and found no pin anywhere in ST0056. **The property that made that deferral ignorable is one I can no longer stand behind**, which is why it is back in front of you rather than sitting quietly on my board.
 
 -- cc
+
+## (2026-09-02 17:44Z) NINE ITEMS THAT ARE YOURS TO RULE, CONSOLIDATED AT THE END OF A BUILD DAY
+
+**APPENDED, NOT EDITED IN PLACE**, as before. **Routed live to vc the same minute**, because a write here is the durable half and never the delivery. Nothing below is a request to act tonight; it is the set of things I am NOT free to decide, gathered so you can see them together rather than as they surface.
+
+**Four landed today and none of them is on this list** -- `0206`'s mutation half, both schema refusals naming their artefact, `0196`'s cross-repo half, and issue `0214`. Those needed no ruling.
+
+### A. BLOCKING SOMETHING, WITH A NAMED COST
+
+**[1] `AC-06.1`'s COVERAGE HALF NEEDS `burn.sh` RE-RUN, AND I DO NOT LAUNCH IT.** `coverage_map.sh` refuses to publish and is RIGHT to: the burn TSV no longer covers the estate. The remedy is a DOUBLE full-estate sweep that hung for 3.5 hours once. **Full-suite runs are yours, so this one cannot move without you.**
+
+**[2] THE `INTENT_BIN` FLIP MUST HAPPEN BEFORE THAT RE-BASELINE OR THE WALL TIME IS PAID TWICE.** The estate's default `INTENT_BIN` is `bin/intent`, **the v2 SHELL SCRIPT**. It is THREE binaries, not two: `test_helper.bash:21` -> v2 shell, `run_v2_suite.bash:55` -> v3 DEBUG, `~/.local/bin/intent` -> v3 RELEASE. An undeclared population of build targets. **Flip THEN re-baseline. Sequencing is the whole of the decision and it is not mine to take.**
+
+**[3] WP-08 IS 12/12 GREEN AND `wp done` IS AN XS AWAY. I AM NOT TAKING IT.** Closing it marks the daemon DONE while its family carries zero conformance coverage -- a green over an uncovered surface. vc endorses the hold. **What it is waiting for is your word, not more work.**
+
+### B. A CONTRADICTION BETWEEN A DOCUMENT AND THE CODE
+
+**[4] THE MIGRATOR DOES NOT COMMIT, SO THE DOCUMENTED ROLLBACK HAS NO SUBJECT.** `migration.md` Phase B step 7 says _one commit_ and `AC-00.8` says _one visible commit_. Measured: `intent upgrade` returns rc=0 with HEAD unchanged and 23 paths dirty. **_One visible commit_ is an OPERATOR CONVENTION, not a migrator guarantee.** Either the migrator commits or the doc and the row stop saying it does. **Both are defensible and I will not pick.**
+
+### C. DISPOSITIONS -- ISSUES NOBODY HAS RULED IN OR OUT
+
+**[5] `0086` AND `0063` WOULD HAVE TO BE WRITTEN, NOT RECOVERED**, and `0095` / `0096` are one-word stubs. Four rows that cost real work or should be closed as never-specified.
+
+**[6] `0192` -- AND IF YOU RULE IT IN, THE REFUSAL GOES IN `info_read_back`, NOT `authored_regions`.** The placement is decided; only the in-or-out is not.
+
+**[7] THE DAEMON-LOCK RACE HAS NO ISSUE AT ALL.** It was found mid-hold and never filed. **It wants a record whatever you decide about fixing it**, and that part I can do on one word.
+
+**[8] `0205`'s FOURTH BLOCK IS VENDORED.** `bin/.devbin/lib/builtins:66` sits under an integrity manifest, so it goes UPSTREAM or is ACCEPTED. The other three are ic's and are ordinary.
+
+**[9] `0214`, FILED TODAY, NEEDS A CUT DECISION.** `form::Field::editable`'s doc names a guard -- `offers_an_edit_the_surface_refuses` -- that appears exactly once in the tree, in that comment. **It is on `AC-17.1`'s path rather than beside it:** two realisers agreeing about which fields are editable is a precondition for _the same edit reaches an identical store state_. Small to build. In or out of 3.0.1.
+
+### AND ONE THING I AM NOT ASKING YOU TO RULE, RECORDED BECAUSE IT REACHED ANOTHER PROJECT
+
+**`0196` NOW CARRIES A CROSS-REPOSITORY DATA-INTEGRITY HALF**, measured by lamplight-cc from outside this tree while a release build ran here: six `intent` verbs in one script, **verb 1 wrote, verbs 2-6 died on `command not found`, and `set -e` did not catch it** -- leaving a half-written acceptance contract in Lamplight's git-tracked canon with no exit status describing it. The remedy is recorded (build to a staging target and `mv` in; a rename is atomic). **`bin/.devbin` is dc's, so I have filed the evidence and taken nothing.** Flagging it here only because its blast radius is every project on this machine and the next one caught by it may be mid-ingest across hundreds of threads rather than mid-six-verb-script.
+
+-- cc
