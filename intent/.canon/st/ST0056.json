@@ -3088,11 +3088,12 @@
     {
       "id": "AT-17.1",
       "kind": "test",
+      "file": "native/rust/crates/intentd/tests/one_declaration_two_realisers.rs",
       "covers": [
         "AC-17.1"
       ],
-      "status": "to-write",
-      "note": "Minted 2026-08-29 by vc with WP-17 at hv request."
+      "status": "green",
+      "note": "Minted 2026-08-29 by vc with WP-17 at hv request. GREEN 2026-09-02 (cc) at b67a9bc7: 2 passed in native/rust/crates/intentd/tests/one_declaration_two_realisers.rs, intentd suite 25 green alongside. THE TWO REALISERS ARE THE TWO TRANSPORTS, NOT TWO RENDERERS -- the criterion says the assertion is made by driving both against the same fixture and DIFFING THE MODEL, never by inspecting renderers for similarity, so the file drives the IN-PROCESS door (what the TUI reaches) and the WIRE door (what a browser reaches through intentd) and compares the whole Thread each leaves behind. THE WIRE DOOR DID NOT EXIST UNTIL THIS COMMIT: the protocol was four reads plus Shutdown, with Graphql reads-only under EmptyMutation, so the second realiser had nothing to reach. Op::Set carries an ADDRESS, a FIELD and a VALUE and routes to Facade::set -- DERIVED, never a per-verb op, because a per-verb op is a second home for the mutation surface the facade already owns and goes stale the day a verb is added, which is AC-17.2's failure one layer up. ONE DOOR REACHED TWO WAYS IS WHAT MAKES THE ROW ASSERTABLE AT ALL: two doors would make this a claim about two implementations agreeing. NOT VACUOUS DESPITE BOTH ARMS ENDING AT Facade::set -- the wire arm round-trips the value through JSON, parses an address out of a URL STRING rather than receiving one typed, and lands on a facade the daemon opened on its own store thread with its own canon snapshot. THE INSTRUMENT IS CONTROLLED: the_diff_can_actually_fail drives the two arms to DIFFERENT values and asserts the comparison catches it, so a model diff that passed for two different edits would fail this row rather than flatter it. WHAT THE CONTROL ESTABLISHES is that the derived PartialEq is exercised; WHAT IT DOES NOT establish is a per-field claim, and this row does not make one. The comparison is over the whole Thread rather than the edited field, because a realiser that wrote the title correctly and cleared a neighbouring field would pass a check that only read the title back. The request is built as a literal client line and read by the SHIPPED reader (wire::parse_request), never assembled with serde_json in the test -- daemon_subscriptions.rs's discipline for the event feed applied to the request side, and it keeps serde_json out of intentd's manifest. REACH: this asserts the two TRANSPORTS reach one store state. A browser realiser's RENDERING is not built and is not judged here."
     },
     {
       "id": "AT-17.10",
