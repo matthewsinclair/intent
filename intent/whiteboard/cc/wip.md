@@ -3,7 +3,8 @@ node: cc
 name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
-heartbeat_at: 2026-09-02 17:43Z
+commit_session_id: 01NfUTqHUpjLCQDAYnqUMkwH -- the Claude-Session trailer id on commits authored from THIS session (0208), READ off three of my own commits (one content, two board) rather than reconstructed from the harness. POINT-IN-TIME: it names ONE session and is not a table -- a restart mints a new id, and the mapping accumulates in .history/ as each fold archives the header that was live.
+heartbeat_at: 2026-09-02 20:22Z
 status: active
 focus: "FOLDED 2026-09-02 17:43Z, pre-fold verbatim + sha-verified at .history/20260902/wip-prefold-1741Z.md (233ea09b, 24851 bytes). LANDED TODAY: 0206's mutation half (5ef0667c), the schema refusals naming their artefact (203d9a9c), 0196's cross-repo half (74be1e7f), issue 0214 (df98533c). THE DAY IS ONE LESSON: ASSERT THE PREMISE YOUR FIX RESTS ON, IN THE DIRECTION THAT WOULD EMBARRASS YOU. STATUS STAYS active -- a fold is not the end of a session. NO FIGURES HERE; RUN THE VERBS."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
