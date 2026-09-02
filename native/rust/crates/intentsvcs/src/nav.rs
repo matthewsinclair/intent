@@ -47,8 +47,18 @@ use serde::{Deserialize, Serialize};
 use crate::address::Entity;
 use crate::form::Loaded;
 
-/// The one path segment that is not an entity kind. See [`View::Settings`].
+/// The path segments that are not entity kinds. See [`View::Settings`] and
+/// [`View::Help`].
 pub const SETTINGS_SEGMENT: &str = "settings";
+pub const HELP_SEGMENT: &str = "help";
+
+/// Every segment the entity namespace may not use.
+///
+/// **ONE LIST, so the reservation test cannot fall behind the reservations.**
+/// A third reserved view added without a row here would be a collision nothing
+/// checks -- which is the whole failure the first reservation was written to
+/// make impossible.
+pub const RESERVED: &[&str] = &[SETTINGS_SEGMENT, HELP_SEGMENT];
 
 /// One level of the ladder `AC-17.7` names: entity-kind, collection, item,
 /// child.
@@ -66,6 +76,13 @@ pub enum View {
     id: String,
     field: String,
   },
+  /// The whole key/command reference. Derived, never written out.
+  ///
+  /// **A SECOND RESERVED SEGMENT, AND THE COST IS THE SAME ONE
+  /// [`View::Settings`] PAYS** -- `no_declared_entity_kind_is_reserved` holds
+  /// both against the real declaration, so a form named `help` fails the suite
+  /// rather than disappearing from the browser.
+  Help,
   /// The operator's own settings: [`crate::settings::DECLARED`], not the model.
   ///
   /// **THE ONE VIEW THAT IS NOT DERIVED FROM THE DECLARATION, AND IT IS HERE
@@ -93,6 +110,7 @@ impl View {
       View::Item { kind, id } => format!("/{kind}/{id}"),
       View::Children { kind, id, field } => format!("/{kind}/{id}/{field}"),
       View::Settings => format!("/{SETTINGS_SEGMENT}"),
+      View::Help => format!("/{HELP_SEGMENT}"),
     }
   }
 
@@ -113,6 +131,7 @@ impl View {
       // WHAT MAKES IT A RESERVATION.** Checking it after would make the winner
       // depend on whether a form happened to be declared with this name.
       [seg] if *seg == SETTINGS_SEGMENT => Some(View::Settings),
+      [seg] if *seg == HELP_SEGMENT => Some(View::Help),
       [kind] => Some(View::Collection {
         kind: (*kind).to_string(),
       }),

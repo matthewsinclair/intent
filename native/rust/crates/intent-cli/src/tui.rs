@@ -18,6 +18,7 @@ pub mod commands;
 pub mod draw;
 pub mod edit;
 pub mod focus;
+pub mod help;
 pub mod keys;
 pub mod layout;
 pub mod mode;

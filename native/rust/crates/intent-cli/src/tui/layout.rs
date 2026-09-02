@@ -364,6 +364,91 @@ impl Plan {
   }
 }
 
+/// The tool's name, top-right of the APP row. hv's ask, 2026-09-02.
+///
+/// **THE TURTLE IS THE SAME MARK THE MENUBAR APP WEARS** (`AC-01.8`), so the
+/// two faces of Intent are recognisable as one thing. It is the only emoji on
+/// the screen and it is here rather than anywhere else for that reason.
+pub const BRAND: &str = "\u{1f422} Intent";
+
+/// What [`BRAND`] costs in COLUMNS, which is not what it costs in characters.
+///
+/// **THIS MODULE COUNTS CHARACTERS EVERYWHERE ELSE AND SAYS SO IN ITS OWN
+/// HEADER**, which is right for text and wrong for an emoji: `🐢` is ONE char
+/// and TWO columns. Every other string here is prose the operator or the model
+/// wrote, and none of it has ever contained one. So the cost is DECLARED for
+/// this one string rather than the module learning a general width model it
+/// would then have to be right about everywhere.
+///
+/// **IT IS A RULE, NOT A MAGIC NUMBER**, and
+/// [`the_brand_costs_what_it_says_it_costs`] holds it: ASCII is one column,
+/// anything else is two. **The caveat is real and stated: a terminal that
+/// renders the turtle single-width shifts the brand one column right.** That
+/// is a display wart, not a correctness failure -- nothing is clipped by it,
+/// because the brand is the LAST thing composed and the first thing dropped.
+pub fn brand_cols() -> usize {
+  BRAND
+    .chars()
+    .map(|c| if c.is_ascii() { 1 } else { 2 })
+    .sum()
+}
+
+/// The APP row with [`BRAND`] set against its right edge.
+///
+/// **THE BRAND IS DROPPED, NEVER CLIPPED, AND NEVER ALLOWED TO EAT THE TEXT.**
+/// It is the least informative thing on the screen -- the operator knows which
+/// program they are running -- so on a viewport too narrow to carry both, the
+/// row says where you ARE and the brand goes, which is the same degradation
+/// order this module already applies to the composer's frame.
+fn branded(left: &str, w: usize) -> (String, Ink) {
+  let cost = brand_cols();
+  let text = clip(left, w);
+  let used = text.chars().count();
+  // One column of air between the two, minimum, or they read as one string.
+  if used + 1 + cost > w {
+    let n = text.chars().count();
+    return (text, vec![(0, n, Role::Title)]);
+  }
+  let pad = w - used - cost;
+  let line = format!("{text}{}{BRAND}", " ".repeat(pad));
+  // **THE INK IS IN CHARACTERS BECAUSE THE PRINTER INDEXES CHARACTERS**, so
+  // the brand's span is its char count and not its column cost. The two differ
+  // by exactly the emoji, and using the wrong one here would colour one
+  // character too many and bleed the brand's role into nothing.
+  let start = used + pad;
+  (
+    line,
+    vec![
+      (0, used, Role::Title),
+      (start, start + BRAND.chars().count(), Role::Door),
+    ],
+  )
+}
+
+/// The first body row to paint so that `selected` is on screen.
+///
+/// **THE SCROLL IS DERIVED, NEVER STORED, AND THAT IS A DEFECT FIX RATHER THAN
+/// A REFACTOR.** `App` carried a `scroll` field that was assigned `0` in three
+/// places and incremented in NONE -- so a body taller than the viewport could
+/// not be reached past the fold, and the cursor walked off the bottom with the
+/// selection painted nowhere. It is the `Command::group` class one field over:
+/// declared, plausible, and read by something that could never see it move.
+///
+/// Derived, the reset rule the design states -- *cursor and scroll reset with
+/// the view* -- holds by construction, because the cursor resets and the
+/// scroll is a function of it.
+pub fn scroll_to(selected: Option<usize>, height: usize) -> usize {
+  match selected {
+    // **NO CURSOR MEANS THE TOP, NOT WHEREVER IT WAS.** An empty view has no
+    // focus (`AC-17.5`), and a remembered offset into rows that are gone is an
+    // offset into nothing.
+    None => 0,
+    Some(at) if height == 0 => at,
+    // The window is the last `height` rows ending at the cursor, or the top.
+    Some(at) => at.saturating_sub(height - 1),
+  }
+}
+
 /// Add the one-cell cursor overlay to a composer line's ink.
 ///
 /// **LAST IN THE INK, BECAUSE THE PRINTER APPLIES SPANS IN ORDER** -- the
@@ -436,6 +521,15 @@ impl Screen {
     height.saturating_sub(CHROME)
   }
 
+  /// The first body row to paint at `height`, so the cursor stays on screen.
+  ///
+  /// **THE SCREEN ANSWERS THIS, NOT THE APP**, because the answer needs the
+  /// viewport height and the app has never had one -- which is exactly why the
+  /// stored `scroll` could not move. See [`scroll_to`].
+  pub fn first_row(&self, height: usize) -> usize {
+    scroll_to(self.selected, Self::body_height(height))
+  }
+
   /// Compose exactly `height` lines, scrolled so body row `first` is at the top
   /// of the body.
   ///
@@ -503,8 +597,7 @@ impl Screen {
     let rule_ink: Ink = vec![(0, rule.chars().count(), Role::Chrome)];
     let whole = |line: &str, role: Role| -> Ink { vec![(0, line.chars().count(), role)] };
     let mut out: Vec<(String, Ink)> = Vec::with_capacity(height);
-    let app = clip(&self.app, w);
-    let app_ink = whole(&app, Role::Title);
+    let (app, app_ink) = branded(&self.app, w);
     out.push((app, app_ink));
     out.push((rule.clone(), rule_ink.clone()));
 
@@ -766,6 +859,97 @@ mod tests {
       selected: None,
       noticed: false,
     }
+  }
+
+  /// **THE BRAND'S COLUMN COST IS A RULE, NOT A NUMBER**, and this is the
+  /// rule: ASCII is one column, anything else is two. Asserted because the
+  /// module counts CHARACTERS everywhere else and would be off by one here --
+  /// `🐢` is one char and two columns.
+  #[test]
+  fn the_brand_costs_what_it_says_it_costs() {
+    let chars = BRAND.chars().count();
+    let cols = brand_cols();
+    assert!(
+      cols > chars,
+      "the brand is pure ASCII, so nothing here needed a column model at all -- either the \
+       turtle went missing or this rule is now dead weight"
+    );
+    assert_eq!(
+      cols - chars,
+      BRAND.chars().filter(|c| !c.is_ascii()).count(),
+      "the column cost and the character count disagree by something other than the emoji"
+    );
+  }
+
+  /// hv's ask: the tool names itself, top-right, above the rule.
+  #[test]
+  fn the_app_row_carries_the_brand_against_its_right_edge() {
+    let w = 60;
+    let (line, ink) = branded("thread", w);
+    assert!(
+      line.ends_with(BRAND),
+      "the brand is not against the right edge: {line:?}"
+    );
+    assert!(
+      line.starts_with("thread"),
+      "the brand displaced the view name"
+    );
+    assert_eq!(
+      line.chars().count() + brand_cols() - BRAND.chars().count(),
+      w,
+      "the row does not fill the width once the emoji's second column is counted"
+    );
+    assert!(
+      ink.iter().any(|&(_, _, r)| r == Role::Door),
+      "the brand carries no ink of its own"
+    );
+  }
+
+  /// **THE BRAND IS DROPPED, NEVER CLIPPED**, and never at the cost of the
+  /// text that says where you are.
+  #[test]
+  fn a_viewport_too_narrow_for_both_keeps_the_view_name_and_drops_the_brand() {
+    for w in 1..=(brand_cols() + 6) {
+      let (line, _) = branded("thread", w);
+      assert!(
+        !line.contains('\u{1f422}') || line.ends_with(BRAND),
+        "at width {w} the brand was clipped rather than dropped: {line:?}"
+      );
+      assert!(
+        line.chars().count() <= w,
+        "at width {w} the row overflowed: {line:?}"
+      );
+    }
+    let (line, _) = branded("thread", 8);
+    assert!(
+      line.starts_with("thread") && !line.contains('\u{1f422}'),
+      "a narrow row lost the view name rather than the brand: {line:?}"
+    );
+  }
+
+  /// The window follows the cursor, and at the top it does not move.
+  #[test]
+  fn the_window_holds_the_cursor_wherever_the_cursor_is() {
+    let height = 10;
+    for at in 0..40usize {
+      let first = scroll_to(Some(at), height);
+      assert!(
+        at >= first && at < first + height,
+        "row {at} is outside the window {first}..{}",
+        first + height
+      );
+      if at < height {
+        assert_eq!(
+          first, 0,
+          "the window scrolled while the cursor was on screen"
+        );
+      }
+    }
+    assert_eq!(
+      scroll_to(None, height),
+      0,
+      "a view with no cursor did not start at the top"
+    );
   }
 
   #[test]

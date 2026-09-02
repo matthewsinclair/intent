@@ -443,7 +443,11 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
   loop {
     let area = term.size()?;
     let screen = screen_for(app, &rows, area.width as usize);
-    term.draw(|f| draw::render(&screen, app.scroll, f.area(), f.buffer_mut()))?;
+    // **THE SCROLL IS DERIVED FROM THE CURSOR AND THIS HEIGHT**, which is the
+    // one place both are known. It used to be `app.scroll`, a stored field
+    // nothing ever advanced -- see `layout::scroll_to`.
+    let first = screen.first_row(area.height as usize);
+    term.draw(|f| draw::render(&screen, first, f.area(), f.buffer_mut()))?;
     let mut lent_the_terminal = false;
 
     // Only key presses move the machine. A resize repaints on the next pass
@@ -639,7 +643,7 @@ mod tests {
       app.point_at(r.len());
       for height in [layout::CHROME, layout::CHROME + 4, 24] {
         let screen = screen_for(&app, &r, 60);
-        let lines = screen.compose(app.scroll, height);
+        let lines = screen.compose(screen.first_row(height), height);
         assert!(
           lines.iter().any(|l| l.contains(mode.lamp())),
           "{mode:?} is not on screen at height {height}; a modal interface whose mode is not \

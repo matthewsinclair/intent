@@ -3243,7 +3243,7 @@ fn present(facade: &Facade, view: &intentsvcs::nav::View) -> bool {
     // every one of them in force at its default -- see
     // `intentsvcs::settings::read_all`. Answering `false` here would refuse the
     // one screen that tells the operator what is in force.
-    View::Settings => true,
+    View::Settings | View::Help => true,
     View::Item { kind, id } | View::Children { kind, id, .. } => {
       entity_json(facade, kind, id).is_some()
     }
@@ -3265,6 +3265,28 @@ struct Live {
   /// attachments could never have offered the operator the thing the criterion
   /// requires them to be refused for.
   table: crate::dispatch::Table,
+}
+
+/// Which composer keymap the operator has declared.
+///
+/// **ONE HOME, TWO CALLERS, AND THE SECOND IS WHY IT IS A FREE FUNCTION**: the
+/// loop asks it through [`tui::run::Source`], and the help page asks it while
+/// building rows, where there is no `Source` in hand. Two spellings of this
+/// read would be a help page teaching vi to an operator the composer has in
+/// emacs -- a disagreement about a setting, on the screen that documents it.
+///
+/// **EVERY FAILURE IS THE DEFAULT AND THAT IS NOT SWALLOWING AN ERROR**: the
+/// question is *which keymap is in force*, and no config, an unreadable one,
+/// and one with no such key are all honestly answered `emacs`. The fallback
+/// itself lives once, in `settings::read_all`.
+fn keymap_in_force() -> tui::keys::Keymap {
+  let Ok(config) = intentsvcs::userstate::global_config() else {
+    return tui::keys::Keymap::default();
+  };
+  match intentsvcs::settings::read_one(&config, "editing.mode") {
+    Ok(value) => tui::keys::Keymap::named(&value),
+    Err(_) => tui::keys::Keymap::default(),
+  }
 }
 
 /// Where the operator's settings live, or a refusal in the resolver's words.
@@ -3308,13 +3330,7 @@ impl tui::run::Source for Live {
   /// disagree -- and an unreadable config falls back exactly once, in
   /// `settings::read_all`, rather than once here as well.
   fn keymap(&mut self) -> tui::keys::Keymap {
-    let Ok(config) = intentsvcs::userstate::global_config() else {
-      return tui::keys::Keymap::default();
-    };
-    match intentsvcs::settings::read_one(&config, "editing.mode") {
-      Ok(value) => tui::keys::Keymap::named(&value),
-      Err(_) => tui::keys::Keymap::default(),
-    }
+    keymap_in_force()
   }
 
   fn set_setting(&mut self, path: &str, value: &str) -> Result<(), tui::edit::Refused> {
@@ -3525,6 +3541,11 @@ fn rows_for(
     // the MODEL, and the operator's own configuration is not part of it -- it
     // lives at `~/.intent/config.json` and is the same on every project. A
     // settings row reaching for the facade would be asking the wrong authority.
+    // **DERIVED FROM THE DECLARATIONS IT DESCRIBES, SO IT CANNOT GO STALE.**
+    // Neither the facade nor the store is consulted: help is a fact about the
+    // PROGRAM, not about the model. The keymap is read because the vi section
+    // must not be shown to an operator who cannot use it.
+    View::Help => tui::help::rows(keymap_in_force()),
     View::Settings => match intentsvcs::userstate::global_config() {
       Ok(path) => tui::views::settings_rows(&path),
       // **A VIEW THAT CANNOT LOAD RENDERS AN ERROR ROW, NEVER AN EMPTY FORM**

@@ -219,6 +219,59 @@ pub fn vi(key: KeyEvent) -> Option<Vi> {
   })
 }
 
+/// The composer's control chords, for `/help`.
+///
+/// **A ROSTER IS A SECOND HOME AND THIS ONE IS HELD TWO-SIDED, WHICH IS WHAT
+/// MAKES IT SAFE.** `edit` is a function, so it cannot be read out; a help page
+/// that listed the bindings from memory would go stale the first time one moved
+/// -- silently, because nothing reads help. The population here is ENUMERABLE:
+/// every printable ASCII character with `CONTROL` held. So
+/// [`the_chord_roster_and_the_keymap_agree_in_both_directions`] drives all of
+/// them and asserts the roster and the map name exactly the same set. A chord
+/// added to `edit` without a row here FAILS, and a row naming a chord `edit`
+/// does not bind fails too.
+pub const CHORDS: &[(char, &str)] = &[
+  ('a', "to the start of the line"),
+  ('e', "to the end of the line"),
+  ('b', "back one character"),
+  ('f', "forward one character"),
+  ('d', "delete the character under the caret"),
+  ('h', "delete the character before it"),
+  ('k', "kill to the end of the line"),
+  ('u', "kill to the start of the line"),
+  ('w', "kill the word before the caret"),
+  ('g', "close the palette"),
+  ('c', "leave explore"),
+];
+
+/// **`C-g` AND `C-c` ARE IN [`CHORDS`] AND ARE NOT [`edit`]'s.** `C-g` is
+/// MENU's `Cancel` trigger and `C-c` is answered by the run loop ahead of the
+/// machine, so neither reaches the editing keymap -- but both are chords an
+/// operator presses in the composer, and a help page that omitted them would be
+/// documenting an implementation boundary rather than a keyboard. They are
+/// declared here so the two-sided check can exclude exactly them, by name,
+/// rather than by a rule that would quietly forgive a third.
+pub const CHORDS_NOT_EDITING: &[char] = &['g', 'c'];
+
+/// vi's normal-mode keys, for `/help`. Held two-sided against [`vi`] over the
+/// whole printable-ASCII population, for [`CHORDS`]'s reason.
+pub const VI_KEYS: &[(char, &str)] = &[
+  ('h', "left"),
+  ('l', "right"),
+  ('0', "to the start of the line"),
+  ('^', "to the start of the line"),
+  ('$', "to the end of the line"),
+  ('w', "forward a word"),
+  ('b', "back a word"),
+  ('x', "delete the character under the caret"),
+  ('D', "kill to the end of the line"),
+  ('i', "insert here"),
+  ('a', "insert after the caret"),
+  ('I', "insert at the start"),
+  ('A', "insert at the end"),
+  ('C', "kill to the end and insert"),
+];
+
 /// The trigger `key` produces in `mode`, or `None` when the keymap says nothing.
 ///
 /// **`None` MEANS "NOT A KEY WE BIND", and the caller must not invent a
@@ -598,5 +651,75 @@ mod tests {
       moved > 0,
       "no key moved the machine, so this test asserted nothing"
     );
+  }
+
+  /// **THE ROSTER AND THE KEYMAP NAME THE SAME SET, DRIVEN OVER THE WHOLE
+  /// POPULATION.** Every printable ASCII character with `CONTROL` held is a
+  /// closed set, so this is a proof rather than a sample: a chord `edit` binds
+  /// with no roster row is undocumented, and a roster row `edit` does not bind
+  /// is a help page teaching a key that does nothing.
+  #[test]
+  fn the_chord_roster_and_the_keymap_agree_in_both_directions() {
+    let bound: Vec<char> = (' '..='~')
+      .filter(|c| edit(KeyEvent::new(KeyCode::Char(*c), KeyModifiers::CONTROL)).is_some())
+      .collect();
+    assert!(
+      !bound.is_empty(),
+      "no chord is bound, so this asserts nothing"
+    );
+
+    for c in &bound {
+      assert!(
+        CHORDS.iter().any(|(r, _)| r == c),
+        "`C-{c}` edits the composer and `/help` does not mention it"
+      );
+    }
+    for (c, says) in CHORDS {
+      assert!(
+        !says.trim().is_empty(),
+        "`C-{c}` is listed with no explanation"
+      );
+      if CHORDS_NOT_EDITING.contains(c) {
+        assert!(
+          !bound.contains(c),
+          "`C-{c}` is declared as NOT an editing chord and the keymap binds it anyway"
+        );
+        continue;
+      }
+      assert!(
+        bound.contains(c),
+        "`/help` teaches `C-{c}` and the composer does not bind it"
+      );
+    }
+  }
+
+  /// The same two-sided proof for vi's normal mode, over the same closed
+  /// population.
+  #[test]
+  fn the_vi_roster_and_the_vi_keymap_agree_in_both_directions() {
+    let bound: Vec<char> = (' '..='~')
+      .filter(|c| vi(KeyEvent::new(KeyCode::Char(*c), KeyModifiers::NONE)).is_some())
+      .collect();
+    assert!(
+      !bound.is_empty(),
+      "vi binds nothing, so this asserts nothing"
+    );
+
+    for c in &bound {
+      assert!(
+        VI_KEYS.iter().any(|(r, _)| r == c),
+        "vi's normal mode binds `{c}` and `/help` does not mention it"
+      );
+    }
+    for (c, says) in VI_KEYS {
+      assert!(
+        !says.trim().is_empty(),
+        "`{c}` is listed with no explanation"
+      );
+      assert!(
+        bound.contains(c),
+        "`/help` teaches vi `{c}` and normal mode does not bind it"
+      );
+    }
   }
 }

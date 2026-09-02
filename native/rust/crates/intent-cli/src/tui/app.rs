@@ -128,8 +128,6 @@ pub enum Pane {
 pub struct App {
   pub stack: Stack,
   pub mode: Mode,
-  /// The first body row on screen.
-  pub scroll: usize,
   /// Which row the cursor is on. `None` for a view with no rows -- an empty
   /// form has no focus rather than a focus on nothing (`AC-17.5`).
   pub focus: Option<Focus>,
@@ -188,7 +186,6 @@ impl App {
     Self {
       stack: Stack::rooted_at(bottom),
       mode: mode::REST,
-      scroll: 0,
       focus: None,
       wants_detail: false,
       detail_focus: None,
@@ -465,6 +462,10 @@ impl App {
             // `/settings editing.mode` says what that one is. The read is a
             // `Step` because the value is on disk and this module holds no
             // reader -- the same rule that makes `Land` a step.
+            Act::Help => {
+              self.push(View::Help);
+              Step::Continue
+            }
             Act::Settings if argument.is_empty() => {
               self.push(View::Settings);
               Step::Continue
@@ -551,6 +552,18 @@ impl App {
           path: row.name.clone(),
           value: setting.next_after(&row.value).to_string(),
         };
+      }
+      // **ENTER ON A `label` IS A DECLARED NO-OP, STATED AFFIRMATIVELY.** A
+      // label is reference text -- the `/help` page is nothing else -- so there
+      // is no door to open and there never will be one. It claims the door arm
+      // in `mode::BY_ROW_KIND` precisely so it does NOT fall through to the
+      // default, which is FIELD and would open a collector over a row nothing
+      // can write; and it returns here rather than reaching the message below,
+      // because *this row opens nothing YET* promises a future that is not
+      // coming. Same shape as section 3's Esc-on-an-empty-composer: the no-op
+      // is the behaviour, not a case nobody got round to.
+      if self.focused_row(rows).is_some_and(|r| r.kind == "label") {
+        return Step::Continue;
       }
       match self.focused_row(rows).and_then(|r| r.door.clone()) {
         Some(view) => self.push(view),
@@ -726,9 +739,7 @@ impl App {
   /// trigger and the palette's own `back` command -- because a second copy is
   /// how the scroll reset gets forgotten in one of them.
   fn pop_view(&mut self) {
-    if self.stack.pop() {
-      self.scroll = 0;
-    }
+    self.stack.pop();
   }
 
   /// Point the cursor at a view of `n` rows.
@@ -739,7 +750,6 @@ impl App {
   /// anything the operator chose.
   pub fn point_at(&mut self, n: usize) {
     self.focus = Focus::first(n);
-    self.scroll = 0;
     self.wants_detail = false;
     self.detail_focus = None;
   }
@@ -796,7 +806,6 @@ impl App {
   /// index means nothing once the row set changes*.
   pub fn push(&mut self, view: View) {
     self.stack.push(view);
-    self.scroll = 0;
   }
 }
 
@@ -1041,24 +1050,74 @@ mod tests {
 
   /// Cursor and scroll reset with the view, *because a row index means nothing
   /// once the row set changes*.
+  ///
+  /// **THIS USED TO ASSERT `app.scroll == 0` AND WAS PASSING FOR A REASON THAT
+  /// HAD NOTHING TO DO WITH THE VIEW CHANGING.** The field was assigned `0` in
+  /// three places and incremented in none, so it read zero after every
+  /// keystroke ever pressed -- the test would have passed with `push` deleted.
+  /// **The scroll is now DERIVED from the cursor** (`layout::scroll_to`), so
+  /// the property is asserted where it lives: the CURSOR resets with the view,
+  /// and the scroll follows it because it is a function of it.
   #[test]
-  fn scroll_resets_when_the_view_changes_in_either_direction() {
+  fn the_cursor_resets_when_the_view_changes_in_either_direction() {
     let mut app = App::explore();
     app.mode = Mode::Omni;
-    app.scroll = 17;
+    app.point_at(40);
+    app.focus = Focus::first(40).and_then(|f| f.at(30));
+    assert_eq!(
+      super::super::layout::scroll_to(app.focus.map(Focus::index), 10),
+      21,
+      "the fixture's cursor is not below the fold, so this test cannot see a scroll at all"
+    );
+
     app.push(View::Collection {
       kind: "thread".into(),
     });
+    app.point_at(3);
     assert_eq!(
-      app.scroll, 0,
-      "descending kept a scroll position from the view above"
+      app.focus.map(Focus::index),
+      Some(0),
+      "descending kept a cursor from the view above"
     );
-    app.scroll = 9;
-    app.on_key(key(KeyCode::Backspace), &[]);
     assert_eq!(
-      app.scroll, 0,
+      super::super::layout::scroll_to(app.focus.map(Focus::index), 10),
+      0
+    );
+
+    app.focus = Focus::first(3).and_then(|f| f.at(2));
+    app.on_key(key(KeyCode::Backspace), &[]);
+    app.point_at(3);
+    assert_eq!(
+      super::super::layout::scroll_to(app.focus.map(Focus::index), 10),
+      0,
       "popping kept a scroll position from the view below"
     );
+  }
+
+  /// **THE SCROLL FOLLOWS THE CURSOR PAST THE FOLD, WHICH IS THE DEFECT THE
+  /// STORED FIELD HID.** Driven over a body far taller than the viewport: the
+  /// cursor walks to the last row and the window must have moved with it, or
+  /// the operator is looking at rows 1..n while the selection is on row 60.
+  #[test]
+  fn walking_below_the_fold_brings_the_window_with_it() {
+    let height = 10usize;
+    let rows = 60usize;
+    let mut app = App::explore();
+    app.point_at(rows);
+    let body: Vec<Row> = (0..rows)
+      .map(|i| Row::new(format!("r{i}"), String::new(), "label"))
+      .collect();
+
+    for step in 0..rows {
+      let at = app.focus.map(Focus::index).expect("a cursor");
+      let first = super::super::layout::scroll_to(Some(at), height);
+      assert!(
+        at >= first && at < first + height,
+        "at step {step} the cursor is on row {at} and the window shows {first}..{}",
+        first + height
+      );
+      app.on_key(key(KeyCode::Down), &body);
+    }
   }
 
   /// **THE CURSOR MOVES BOTH WAYS AND WRAPS**, which is `AC-17.5` reaching the
@@ -2344,6 +2403,57 @@ mod tests {
       app.mode,
       Mode::Omni,
       "the second Esc did not close the palette"
+    );
+  }
+
+  /// **`/help` OPENS THE REFERENCE IN THE BODY AND CAN BE LEFT.** hv asked
+  /// whether `$EDITOR` in read-only mode would do it; it would not -- there is
+  /// no portable read-only flag -- and help is a table rather than prose, so
+  /// the body is where it belongs. See `super::help`.
+  #[test]
+  fn the_help_command_opens_the_reference_in_the_body() {
+    let rows = item_rows();
+    let mut app = App::explore();
+    app.commands = commands::vocabulary();
+    app.point_at(rows.len());
+
+    app.on_key(key(KeyCode::Char('/')), &rows);
+    for c in "help".chars() {
+      app.on_key(key(KeyCode::Char(c)), &rows);
+    }
+    assert_eq!(app.on_key(key(KeyCode::Enter), &rows), Step::Continue);
+    assert_eq!(
+      app.stack.current(),
+      &View::Help,
+      "`/help` did not open the help view"
+    );
+
+    let page = super::super::help::rows(keys::Keymap::Emacs);
+    assert!(!page.is_empty(), "the help view opened on nothing");
+
+    // **ENTER ON A REFERENCE ROW IS A DECLARED NO-OP, NOT A BROKEN DOOR.**
+    // Without the label arm it reaches *this row opens nothing yet*, which
+    // promises a future that is not coming.
+    let mut app = app.clone();
+    app.point_at(page.len());
+    let before = app.clone();
+    assert_eq!(app.on_key(key(KeyCode::Enter), &page), Step::Continue);
+    assert_eq!(
+      app, before,
+      "Enter on a reference row changed something -- it must do nothing at all"
+    );
+    assert!(
+      app.notice.is_empty(),
+      "Enter on a reference row left a notice: {:?}",
+      app.notice
+    );
+
+    // And it leaves the way every view leaves.
+    app.on_key(key(KeyCode::Backspace), &page);
+    assert_ne!(
+      app.stack.current(),
+      &View::Help,
+      "the help view could be entered and not left"
     );
   }
 

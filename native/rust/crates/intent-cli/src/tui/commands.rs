@@ -52,6 +52,13 @@ pub enum Act {
   Quit,
   /// Pop the view stack -- the same act as `Backspace` on an empty composer.
   Back,
+  /// The whole reference, in the body. hv asked for it 2026-09-02.
+  ///
+  /// **IT IS A VIEW RATHER THAN A HANDOFF TO `$EDITOR -R`, and the reason is
+  /// measured**: there is no portable read-only flag for an editor -- `vim`
+  /// takes `-R`, `nano` takes `-v`, `emacs` needs an `--eval`, `code` has
+  /// none -- and `$EDITOR` is whatever the operator set. See [`super::help`].
+  Help,
   /// The operator's own settings: the view with no argument, one value with
   /// one. `AC-17.14`.
   ///
@@ -98,6 +105,11 @@ pub fn vocabulary() -> Vec<Command> {
       name: "back".into(),
       blurb: "up one view".into(),
       act: Act::Back,
+    },
+    Command {
+      name: "help".into(),
+      blurb: "every key, command and setting".into(),
+      act: Act::Help,
     },
     Command {
       name: "settings".into(),

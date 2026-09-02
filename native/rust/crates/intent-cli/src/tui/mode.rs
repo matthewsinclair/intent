@@ -213,6 +213,13 @@ pub const BY_ROW_KIND: &[(&str, Mode)] = &[
   ("artefact", Mode::Embed),
   ("button", Mode::Omni),
   ("setting", Mode::Omni),
+  // **A `label` IS REFERENCE TEXT AND ENTER ON ONE IS A DECLARED NO-OP.** It
+  // claims the door arm so that it does NOT fall through to the default --
+  // which is FIELD, and would open a collector over a row nothing can write.
+  // The app then answers it with nothing, affirmatively, the way section 3
+  // states Esc-on-an-empty-composer as a behaviour rather than leaving it as a
+  // case nobody got round to.
+  ("label", Mode::Omni),
 ];
 
 /// Every edge `on` offers from `mode`.

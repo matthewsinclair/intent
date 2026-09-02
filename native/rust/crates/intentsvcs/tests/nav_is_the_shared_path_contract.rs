@@ -28,7 +28,7 @@ fn loaded() -> Loaded {
 /// Every view the real declaration can produce, so the round trip below is held
 /// over the corpus rather than over three hand-picked examples.
 fn every_view(l: &Loaded) -> Vec<View> {
-  let mut out = vec![View::Entities, View::Settings];
+  let mut out = vec![View::Entities, View::Settings, View::Help];
   for kind in kinds(l) {
     out.push(View::Collection { kind: kind.clone() });
     out.push(View::Item {
@@ -64,14 +64,28 @@ fn the_declaration_is_not_empty_and_neither_is_the_root() {
 /// with that name would become unaddressable -- silently, since `View::parse`
 /// would keep returning a perfectly good `View::Settings`. This is the alarm.
 #[test]
-fn no_declared_entity_kind_is_called_settings() {
+fn no_declared_entity_kind_is_reserved() {
   let l = loaded();
+  let declared = kinds(&l);
   assert!(
-    !kinds(&l).contains(&intentsvcs::nav::SETTINGS_SEGMENT.to_string()),
-    "a form is declared with the one name `/{}` reserves, so its collection is \
-     now unreachable by path in both faces; rename one of them",
-    intentsvcs::nav::SETTINGS_SEGMENT
+    !intentsvcs::nav::RESERVED.is_empty(),
+    "nothing is reserved, so this test asserts nothing"
   );
+  for reserved in intentsvcs::nav::RESERVED {
+    assert!(
+      !declared.contains(&reserved.to_string()),
+      "a form is declared as `{reserved}`, which `/{reserved}` reserves, so its collection is \
+       now unreachable by path in both faces; rename one of them"
+    );
+    // The reservation is only a reservation if it actually wins.
+    assert_ne!(
+      View::parse(&format!("/{reserved}")),
+      Some(View::Collection {
+        kind: (*reserved).to_string()
+      }),
+      "`/{reserved}` parsed as an entity collection, so it is not reserved at all"
+    );
+  }
 }
 
 /// **THE PROPERTY `AC-17.12` NAMES.** Held as a round trip over every
