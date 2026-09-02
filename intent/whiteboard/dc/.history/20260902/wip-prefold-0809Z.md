@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-02 08:10Z
+heartbeat_at: 2026-09-01 20:05Z
 status: active
-focus: "FOLDED 2026-09-02 08:09Z; pre-fold verbatim + sha-verified at .history/20260902/wip-prefold-0809Z.md (e4ca7e5c), reasoning beside it. STATUS STAYS active -- a fold is not the end of a session. NOTHING IN FLIGHT, awaiting hv on the bounce; hv-owed items ROUTED TO vc per hv. TN001 v0.9 stands, both hv-board asks discharged. Yesterday closed three classes against me: an invented mechanism where the assertion carried the diagnosis (W44), a denial of a figure sitting in my own .history (W45), and a meter exact about the wrong subject (W46). NO FIGURES HERE -- run the verbs."
+focus: "HOLD OFF, ROLLOUT LANDED (03d40d30), and hv drove `dvb fullcycle --force` to rc=0. TN001 v0.9 stands; re-cite ONLY if 4afef84 moves. TODAY CLOSED THREE THINGS AGAINST ME: I invented a mechanism for cc's 23 rather than reading the assertion (W44), denied publishing a figure sitting in my own .history (W45), and the day's general form is devbin-vc's -- a wrong mechanism producing the right symptom has no natural corrective. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -35,27 +35,38 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-- **NOTHING IN FLIGHT. FOLDED 2026-09-02 08:09Z, AWAITING hv's NEXT STEPS ON THE BOUNCE.** Nothing of mine was dirty at checkin; the only uncommitted paths were the devbin manifest's `source_commit` drift and peers' canon and archives.
-- **TN001 STANDS AT v0.9 (`aaa7ed40`) AND BOTH hv-BOARD ASKS AGAINST IT ARE DISCHARGED** (`821e4a68`, under the pen) -- the status column went at v0.6 and the consolidation table was corrected and revision-pinned at v0.7, both by me, both verified in the file rather than taken from the thread. **The one live condition: if `4afef84` moves, RE-READ the note** -- it cites that sha for its BEHAVIOUR, so a criterion change is a re-read and never just a new number.
-- Yesterday evening's reasoning is archived, not retold here: `.history/20260902/evening-narrative-0809Z.md`, beside the pre-fold board `wip-prefold-0809Z.md` (sha `e4ca7e5c`, `cmp` identical).
+- **THE HOLD IS OFF. hv released it generally, and the devbin rollout landed and was DRIVEN, not just vendored.** Intent's copy is committed at `03d40d30`; `fullcycle`, `check autotests` and `check targetdir` all shipped from my TN001 packet.
+- **THE CONSOLIDATION'S FIRST FULL GREEN, AND IT DESCRIBES NO COMMIT.** hv ran `dvb fullcycle --force` (take 2) at 2026-09-01 18:58 local; all three phases rc=0 and the darkening check stayed silent. **DATED BECAUSE IT IS HISTORICAL, AND ATTRIBUTED BECAUSE IT IS NOT MINE:** whose run, and what the tree was at -- HEAD `04f31ad2`, 5 dirty at the header and 7 by the clean, so the gate's own footer is right that **THIS VERDICT DESCRIBES NO COMMIT**. Log kept at `tmp/fullcycle/20260901-1858.FULLCYC.out`. Re-run the verb; do not quote this.
+- **THE 23 FAILURES ARE CLOSED AND THEY WERE NEVER A REGRESSION.** cc convicted themselves: `intent-cli/tests/common/mod.rs:782` guards `built >= newest` over `intentd`/`intentsvcs` source, cc had edited `nav.rs`, so the sibling daemon was older than the code it would run and the guard fired on every daemon-family row. `cargo build -p intentd` then re-run: **461/0**. My run passed because `build all` had just refreshed the sibling -- **same code, different sibling freshness**, and no daemon window was needed. See W44 for the mechanism I invented instead of reading the failure.
+- **WHAT THE GREEN DOES NOT ESTABLISH, WHICH IS THE HALF WORTH KEEPING.** `daemon_subscriptions` ran and all its rows passed. **THAT IS NOT EVIDENCE THE EVENT BLEED IS FIXED** -- it is the known intermittent, it fails WORSE serially than in parallel, and a clean run against an uncharacterised intermittent is exactly what got written into `intentd/Cargo.toml` as a fix and then refuted by hv on the next cold run. The manifest already says so in its own comment. Still open, still cc's.
+- **POST-COMPACT PICKUP 2026-09-01 17:13Z. The board came back whole and the hold is unchanged.** devbin-vc reads `busy` at pickup, so the rollout is still in flight; no inbox entry anywhere since `2026-08-31 08:15Z`, because today's peer traffic ran over SendMessage rather than the boards. **`busy` is a PROPERTY I re-read, not a value to carry** -- re-read it, never quote this line.
+- **TN001 is at v0.9, `aaa7ed40`.** Five revisions landed this afternoon, every one driven by a peer finding the previous one wrong. **NO FIGURES FROM THIS BOARD -- run the verbs.**
+- Today's reasoning is archived, not summarised here: `.history/20260901/` -- `rollout-narrative-1706Z.md`, and the pre-fold board `wip-prefold-1706Z.md` (sha `58a13929`).
 
 ## TODO
 
-**ROUTED TO vc FOR hv'S REVIEW (hv's instruction, 2026-09-02) -- NOT MINE TO CLOSE:**
+**WAITING, NOT WORKING:**
 
-- **A v3.0.0 user upgrading to v3.0.1 migrates the store 16 -> 17 IRREVERSIBLY with no path back to the tag.** Local exposure nil (keg unlinked and pinned) and **that is not the finding** -- it is a shipped-artefact obligation independent of this box. Release note, refusal message, or backup step.
-- **The `overhead` meter reports a figure about the wrong subject** (W46). Filed to devbin-vc; hv has not weighed in and it is the kind of number that will be quoted at somebody.
-- **`0207`** (`at green/red/na --note` replaces wholesale), **`0203`'s remedy, `0208`'s remedy** -- all hv's. AC-04.6 sits behind `0207`; AC-07.7 needs a published artefact.
-- **`AT-07.5`'s behavioural arm still needs a stop-the-daemon window.** It no longer has a second reason bundled onto it -- that bundling was vc's and they withdrew it once cc's 23 were explained.
+- **DISCHARGED -- the rollout landed and the hold is off.** The TN001 re-cite condition still stands and is now the live one: **if `4afef84` moves, re-read it.** The note cites that sha for its BEHAVIOUR, so a criterion change is a re-read and never just a new number. devbin-vc's shipped gate reads `autotests = false` and counts `.rs` under `tests/` -- a MANIFEST PROXY -- so TN001's split holds: the gate DIAGNOSES, `cargo test --workspace --no-run` ADJUDICATES.
 
-**OPEN, NOT MINE, NOT hv'S:**
+**THE THREE hv RULINGS FROM THIS MORNING ARE ALL CLOSED, AND TWO CLOSED AGAINST ME:**
 
-- `daemon_subscriptions` event bleed across test boundaries -- characterised, unfixed, with cc. Its own `[[test]]` target is isolation and not a fix; the manifest says so in its own comment.
-- **devbin `0047` is RULED and with devbin-vc** (option 3, hv first-hand). `bin/.devbin/lib/` is theirs and the vendored copy here is clobbered on upgrade, so implementation is never mine.
+- **Seam scope -- RULED.** `fullcycle` is a TOP-LEVEL command, structurally outside every `all`, which beats the `in_all` column I was reasoning toward. I was working out how to make the sweep safe; hv moved the verb out of the sweep.
+- **Gate 1's cost class -- SETTLED, devbin-vc's split accepted.** Their gate asks a narrower question than TN001's census and both halves are exact from the manifest, so it stays at check speed. `testkit` proves the split rather than threatening it.
+- **Gate 4's ownership -- ANSWERED, AND THERE IS NO DIVERGENCE.** The gate's own `guard-home` arm reports it: this tree is SELF-HOSTED and reads its guards from `lib/templates/hooks` rather than `$INTENT_HOME`, and the installed shim is byte-identical to the shipped template. So the dangling-symlink refusal being Intent's and devbin's hook failing open are two different files doing two different jobs, not one file that drifted. **The bigger worry I flagged does not exist.**
 
-**THE STANDING RULE, WHICH CORRECTS ONE I HAD BEEN PRESCRIBING:**
+**OWED, AND hv'S CALL -- raised by vc, recorded here so it outlives both sessions:**
 
-- **A PRINTED NUMBER GETS READ INSTEAD OF RUN.** A figure with its regenerating command beside it buys AUDITABILITY and buys NOTHING for CURRENCY -- TN001's cost table went stale with the command printed directly underneath it. **LIVE figure: print the COMMAND ALONE. HISTORICAL figure: DATE it and name whose run.** This board obeys it.
+- **A v3.0.0 user upgrading to v3.0.1 migrates the store 16 -> 17 IRREVERSIBLY and cannot roll back to the tag they came from.** Local exposure is nil (keg unlinked and pinned) and **that is not the finding** -- it is a shipped-artefact obligation independent of this box. A release note, a refusal message, or a backup step.
+
+**OPEN, NOT MINE TO CLOSE:**
+
+- `daemon_subscriptions` event bleed across test boundaries -- characterised, unfixed, with cc. Its own `[[test]]` target is isolation, not a fix, and the manifest says so.
+- `0207` (`at green/red/na --note` replaces wholesale), `0203`'s remedy, `0208`'s remedy -- all hv's. AC-04.6 sits behind `0207`; AC-07.7 needs a published artefact.
+
+**THE ONE RULE THIS AFTERNOON PRODUCED, AND IT CORRECTS ONE I HAD BEEN PRESCRIBING:**
+
+- **A PRINTED NUMBER GETS READ INSTEAD OF RUN.** Stating a figure with its regenerating command beside it buys AUDITABILITY and buys NOTHING for CURRENCY -- TN001's cost table went stale with the command printed directly underneath it, and neither of the two people who wrote that rule ran it. **LIVE figure: print the COMMAND ALONE, delete the number. HISTORICAL figure: DATE it.** This board obeys it.
 
 ## Watch-outs
 
