@@ -53,13 +53,17 @@ fn style(role: Role) -> Style {
     Role::Match => d.fg(Color::Cyan).add_modifier(Modifier::BOLD),
     Role::Title => d.add_modifier(Modifier::BOLD),
     Role::OmniActive => d.fg(Color::Cyan).add_modifier(Modifier::BOLD),
+    // **THE COLOUR FOLLOWS THE LAMP, NOT THE MODE, and that is why `Field` and
+    // `Embed` share one.** [`Mode::lamp`] shows both as `EDIT`; painting them
+    // different colours would put one word on screen in two colours, which
+    // reads as a distinction the operator is meant to act on and there is
+    // none -- who owns the terminal is the machine's business, and `EMBED`
+    // announces itself in the composer row instead.
     Role::ModeChip(mode) => {
       let fg = match mode {
-        Mode::Omnibox => Color::Cyan,
-        Mode::Nav => Color::Green,
+        Mode::Omni => Color::Cyan,
         Mode::Menu => Color::Magenta,
-        Mode::Field => Color::Yellow,
-        Mode::Embed => Color::Red,
+        Mode::Field | Mode::Embed => Color::Yellow,
       };
       d.fg(fg).add_modifier(Modifier::REVERSED | Modifier::BOLD)
     }
@@ -123,9 +127,9 @@ mod tests {
       app: "ST0056   Add a Rust-based CLI".into(),
       body: plan(&rows(), W as usize),
       omnibox: "\u{276f}".into(),
-      hint: "NAV  1/4  \u{23ce} edit".into(),
+      hint: "OMNI  1/4  \u{23ce} edit".into(),
       dropdown: Vec::new(),
-      mode: crate::tui::mode::Mode::Nav,
+      mode: crate::tui::mode::Mode::Omni,
       selected: None,
       noticed: false,
     }
@@ -325,8 +329,8 @@ mod tests {
       body: layout::plan(&[Row::new("status", "wip", "select")], W as usize),
       ..screen()
     };
-    sc.mode = crate::tui::mode::Mode::Nav;
-    sc.hint = "NAV   status".into();
+    sc.mode = crate::tui::mode::Mode::Omni;
+    sc.hint = "OMNI   status".into();
     let mut term = Terminal::new(TestBackend::new(W, H)).expect("TestBackend must build");
     term
       .draw(|f| {
@@ -336,12 +340,13 @@ mod tests {
       .expect("a draw into an in-memory backend cannot fail");
     let buf = term.backend().buffer().clone();
 
-    // The chip leads the HINT line -- the last row. NAV in Nav's green, reversed.
+    // The chip leads the HINT line -- the last row. OMNI in the composer's
+    // cyan, reversed.
     let chip = &buf[(0, H - 1)];
-    assert_eq!(chip.symbol(), "N");
+    assert_eq!(chip.symbol(), "O");
     assert_eq!(
       chip.style().fg,
-      Some(Color::Green),
+      Some(Color::Cyan),
       "the chip must wear the mode's colour"
     );
     assert!(

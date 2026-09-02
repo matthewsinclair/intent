@@ -496,7 +496,7 @@ impl Screen {
 
     out.push((rule, rule_ink));
     let omnibox = clip(&self.omnibox, w);
-    let omnibox_role = if self.mode == super::mode::Mode::Omnibox {
+    let omnibox_role = if self.mode == super::mode::Mode::Omni {
       Role::OmniActive
     } else {
       Role::Muted
@@ -507,7 +507,12 @@ impl Screen {
     // "the state changes between modes are not obvious", answered where the
     // state is written.
     let hint = clip(&self.hint, w);
-    let chip = self.mode.name().chars().count().min(hint.chars().count());
+    // **THE CHIP SPANS THE LAMP, NOT THE MACHINE'S NAME**, because the lamp is
+    // what `run::hint_row` actually writes there. They agree for OMNI and MENU
+    // and differ for FIELD/EMBED, both of which show `EDIT` -- so measuring the
+    // name would have coloured five characters of a four-character word and
+    // bled the chip into the hint after it.
+    let chip = self.mode.lamp().chars().count().min(hint.chars().count());
     let mut hint_ink: Ink = vec![(0, chip, Role::ModeChip(self.mode))];
     let tail_role = if self.noticed {
       Role::Warn
@@ -638,7 +643,7 @@ mod tests {
       omnibox: "\u{276f}".into(),
       hint: "NAV  1/4  \u{23ce} edit".into(),
       dropdown: Vec::new(),
-      mode: super::super::mode::Mode::Nav,
+      mode: super::super::mode::Mode::Omni,
       selected: None,
       noticed: false,
     }
@@ -1123,19 +1128,19 @@ mod tests {
   #[test]
   fn the_mode_chip_and_omnibox_line_change_ink_with_the_mode() {
     use super::super::mode::Mode;
-    for mode in [Mode::Omnibox, Mode::Nav, Mode::Menu] {
+    for mode in [Mode::Omni, Mode::Menu, Mode::Field] {
       let mut sc = screen();
       sc.mode = mode;
-      sc.hint = format!("{}   title", mode.name());
+      sc.hint = format!("{}   title", mode.lamp());
       let painted = sc.painted(0, 24);
       let (hint, hint_ink) = &painted[painted.len() - 1];
       assert_eq!(
         hint_ink.first(),
-        Some(&(0, mode.name().chars().count(), Role::ModeChip(mode))),
+        Some(&(0, mode.lamp().chars().count(), Role::ModeChip(mode))),
         "the hint line must LEAD with a chip naming {mode:?}: {hint:?} {hint_ink:?}"
       );
       let (_, command_ink) = &painted[painted.len() - 2];
-      let want = if mode == Mode::Omnibox {
+      let want = if mode == Mode::Omni {
         Role::OmniActive
       } else {
         Role::Muted

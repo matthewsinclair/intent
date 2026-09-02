@@ -163,12 +163,19 @@ pub fn screen_for(app: &App, rows: &[Row], width: usize) -> Screen {
 ///
 /// *A way back that is wired and unlabelled is a way back nobody finds* -- a
 /// real strawman defect, where `Backspace` worked and nothing on screen said so.
+///
+/// **AND IT SAID `ESC back` UNTIL THE COLLAPSE, WHICH IS THE SAME DEFECT
+/// INVERTED.** Esc used to leave the omnibox for NAV, which read as *back*
+/// from inside the input; it now clears the query and never navigates, so the
+/// label named a key that no longer does the thing. **A way back labelled with
+/// the WRONG key is worse than an unlabelled one** -- the operator presses it,
+/// something else happens, and the screen told them to.
 fn app_row(app: &App) -> String {
   let here = views::app_line(app.stack.current());
   if app.stack.at_root() {
     here
   } else {
-    format!("{here}   {}   ESC back", app.stack.trail())
+    format!("{here}   {}   \u{232b} back", app.stack.trail())
   }
 }
 
@@ -180,10 +187,10 @@ fn omnibox_row(app: &App) -> String {
       "Go: [<-]  Back  Threads  Issues  Packages  Criteria  [X]".to_string()
     }
     super::mode::Mode::Embed => "editor running -- returns when the child exits".to_string(),
-    // **ALWAYS THERE** -- the rest state's whole point: carrying the caret
-    // while it has the keyboard, standing dim and one keystroke away when
-    // it does not.
-    super::mode::Mode::Omnibox => format!("\u{276f} {}\u{258f}", app.omnibox.buffer),
+    // **ALWAYS THERE, AND NOW ALWAYS LIT** -- the one home's whole point: the
+    // composer holds the keyboard in every state the TUI owns, so it carries
+    // the cursor rather than standing dim waiting to be selected.
+    super::mode::Mode::Omni => format!("\u{276f} {}\u{258f}", app.omnibox.buffer),
     _ => format!("\u{276f} {}", app.omnibox.buffer),
   }
 }
@@ -208,18 +215,26 @@ fn pane_hint(app: &App, rows: &[Row]) -> Option<String> {
 /// is standing, else what the keys do RIGHT NOW -- position, and the one
 /// verb Enter means on this row.
 fn hint_row(app: &App, rows: &[Row]) -> String {
-  let mut parts = vec![app.mode.name().to_string()];
+  // **THE LAMP, NOT THE MACHINE'S NAME.** `AC-17.9` asks that the mode be
+  // visible to the OPERATOR, and `FIELD`/`EMBED` is a distinction they cannot
+  // act on -- see [`super::mode::Mode::lamp`]. It stays FIRST on the row so it
+  // survives clipping at any width.
+  let mut parts = vec![app.mode.lamp().to_string()];
   if !app.notice.is_empty() {
     parts.push(app.notice.clone());
     return parts.join("  ");
   }
   match app.mode {
-    super::mode::Mode::Omnibox => {
+    // **ONE MODE, TWO HINT SETS, GUARDED ON THE BUFFER** -- the same guard
+    // that routes the keys. Browsing and querying were two MODES with two hint
+    // rows before the collapse; they are now two states of one row, and the
+    // hints have to follow the keys or the foot lies about what Enter does.
+    super::mode::Mode::Omni if !app.omnibox.is_empty() => {
       parts.push(
-        "type an address or a few letters \u{b7} \u{23ce} go \u{b7} ESC nav \u{b7} / menu".into(),
+        "\u{23ce} go \u{b7} \u{2191}\u{2193} pick \u{b7} esc clear \u{b7} \u{232b} delete".into(),
       );
     }
-    super::mode::Mode::Nav => {
+    super::mode::Mode::Omni => {
       if let Some(f) = app.focus
         && let Some(row) = rows.get(f.index())
       {
@@ -237,17 +252,16 @@ fn hint_row(app: &App, rows: &[Row]) -> String {
         }
       }
       parts.push(
-        "\u{2190}\u{2192}\u{2191}\u{2193} move \u{b7} \u{232b} back \u{b7} type to find \u{b7} / omnibox"
-          .into(),
+        "\u{2191}\u{2193} browse \u{b7} / menu \u{b7} \u{232b} back \u{b7} type to find".into(),
       );
       if let Some(hint) = pane_hint(app, rows) {
         parts.push(hint);
       }
     }
     super::mode::Mode::Menu => {
-      parts.push("letter picks \u{b7} \u{23ce} go \u{b7} ESC close \u{b7} / nav".into())
+      parts.push("letter picks \u{b7} \u{23ce} go \u{b7} esc close \u{b7} / close".into())
     }
-    super::mode::Mode::Field => parts.push("\u{23ce} commit \u{b7} ESC discard".into()),
+    super::mode::Mode::Field => parts.push("\u{23ce} commit \u{b7} esc discard".into()),
     super::mode::Mode::Embed => {}
   }
   parts.join("  ")
@@ -262,7 +276,7 @@ fn hint_row(app: &App, rows: &[Row]) -> String {
 /// cannot drift from the text they highlight.
 fn dropdown(app: &App) -> Vec<(String, layout::Ink)> {
   use super::layout::Role;
-  if app.mode != super::mode::Mode::Omnibox {
+  if app.mode != super::mode::Mode::Omni {
     return Vec::new();
   }
   let m = super::omnibox::matches(&app.index, &app.omnibox.buffer, super::app::MATCH_CAP);
@@ -456,6 +470,11 @@ mod tests {
   /// COMPOSED lines rather than on the status string -- a status row that is
   /// correct and never reaches the screen is exactly the silent failure the
   /// criterion names.
+  ///
+  /// **IT LOOKS FOR THE LAMP, NOT THE MACHINE'S NAME, because the lamp is what
+  /// the operator can see.** `FIELD` and `EMBED` both show `EDIT`; asserting
+  /// `name()` here would demand the screen print a word it deliberately does
+  /// not, and the criterion is about what is VISIBLE.
   #[test]
   fn the_current_mode_is_on_screen_in_every_mode() {
     let r = rows();
@@ -468,7 +487,7 @@ mod tests {
         let screen = screen_for(&app, &r, 60);
         let lines = screen.compose(app.scroll, height);
         assert!(
-          lines.iter().any(|l| l.contains(mode.name())),
+          lines.iter().any(|l| l.contains(mode.lamp())),
           "{mode:?} is not on screen at height {height}; a modal interface whose mode is not \
            visible sends keystrokes somewhere the operator did not intend and says nothing"
         );
@@ -490,10 +509,10 @@ mod tests {
       let mut app = App::explore();
       app.mode = mode;
       app.point_at(r.len());
-      let screen = screen_for(&app, &r, mode.name().len() + 2);
+      let screen = screen_for(&app, &r, mode.lamp().len() + 2);
       let lines = screen.compose(0, 20);
       assert!(
-        lines.iter().any(|l| l.contains(mode.name())),
+        lines.iter().any(|l| l.contains(mode.lamp())),
         "{mode:?} was clipped off its own status row"
       );
     }
@@ -506,7 +525,7 @@ mod tests {
   fn the_hint_line_follows_the_cursor() {
     let r = rows();
     let mut app = App::explore();
-    app.mode = Mode::Nav;
+    app.mode = Mode::Omni;
     app.point_at(r.len());
     let first = screen_for(&app, &r, 60);
     assert!(
@@ -535,12 +554,12 @@ mod tests {
   #[test]
   fn an_empty_view_still_carries_its_chrome_and_its_mode() {
     let mut app = App::explore();
-    app.mode = Mode::Nav;
+    app.mode = Mode::Omni;
     app.point_at(0);
     let screen = screen_for(&app, &[], 40);
     let lines = screen.compose(0, 12);
     assert_eq!(lines.len(), 12);
-    assert!(lines.iter().any(|l| l.contains(app.mode.name())));
+    assert!(lines.iter().any(|l| l.contains(app.mode.lamp())));
     assert!(
       !screen.hint.contains("\u{23ce}"),
       "an empty view must not offer a verb about a row that is absent: {:?}",
@@ -557,7 +576,7 @@ mod tests {
     app.point_at(r.len());
     let root = screen_for(&app, &r, 80);
     assert!(
-      !root.app.contains("ESC back"),
+      !root.app.contains("\u{232b} back"),
       "the root offered a way back to nowhere"
     );
 
@@ -566,7 +585,7 @@ mod tests {
     });
     let nested = screen_for(&app, &r, 80);
     assert!(
-      nested.app.contains("ESC back"),
+      nested.app.contains("\u{232b} back"),
       "a nested view did not say how to leave"
     );
     assert!(
@@ -581,7 +600,7 @@ mod tests {
   #[test]
   fn the_omnibox_line_says_something_different_in_every_mode_that_uses_it() {
     let mut seen: Vec<String> = Vec::new();
-    for mode in [Mode::Omnibox, Mode::Nav, Mode::Menu, Mode::Embed] {
+    for mode in [Mode::Omni, Mode::Menu, Mode::Field, Mode::Embed] {
       let mut app = App::explore();
       app.mode = mode;
       let line = screen_for(&app, &[], 80).omnibox;
@@ -690,7 +709,7 @@ mod tests {
       Row::new("status", "wip", "select").expanding_to(vec![Row::new("legal", "done", "text")]),
     ];
     let mut app = App::explore();
-    app.mode = Mode::Nav;
+    app.mode = Mode::Omni;
     app.point_at(rows.len());
 
     let plain = screen_for(&app, &rows, 80).hint;
@@ -809,7 +828,7 @@ mod tests {
   #[test]
   fn a_standing_notice_reaches_the_hint_line() {
     let mut app = App::explore();
-    app.mode = Mode::Nav;
+    app.mode = Mode::Omni;
     app.notice = "title saved".into();
     let hint = screen_for(&app, &[], 80).hint;
     assert!(

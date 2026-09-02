@@ -48,71 +48,77 @@ Three sections, named by hv, separated by two rules. **There are no borders anyw
 
 **Declared as a table; the controller reads it.** This is the estate's own idiom — `transitions.rs` declares edge tables and a machine check holds the code to them — applied to the controller, because a controller finagled into life by trial and error has no table anyone can review.
 
-**Revised by hv 2026-08-30 (in conversation, superseding the NORMAL-rest machine below at the same provenance strength — driven, then ruled).** hv's frame, verbatim: _an omnibox style input that autonavigates to entity by its address_ ... _the omnibox is the starting point, but pressing ESC or / takes you into those other modes._ So: **OMNIBOX is the rest state** — the input is where a session opens, where addresses are typed, and where `:` commands live (COMMAND is gone; the omnibox absorbed it, because a `:` line beside an always-present input is two prompts for one keyboard). NORMAL is renamed **NAV**, hv's own word for it.
+**Revised by hv 2026-09-02, superseding the five-mode omnibox machine at the same provenance strength -- driven, then ruled.** hv's instruction was to make `explore` read like Claude Code, aimed at the lower bar: _I see two modes: Omnibox and Menu. And in OMNI mode, /commands fire up the menus, and anything else is omni-dispatched from the Omni._ On the mode model specifically: _'cleverer' isn't necessarily 'betterer'._
 
-| from    | trigger   | to      | notes                             |
-| ------- | --------- | ------- | --------------------------------- |
-| OMNIBOX | Typing    | OMNIBOX | the address buffer                |
-| OMNIBOX | Move      | OMNIBOX | pick among matches                |
-| OMNIBOX | Enter     | NAV     | go — address, pick or `:` command |
-| OMNIBOX | Esc       | NAV     | leave the input as it is          |
-| OMNIBOX | `/`       | MENU    | empty buffer only                 |
-| NAV     | Move      | NAV     | in the focused pane               |
-| NAV     | Enter     | NAV     | descend — rows with a door        |
-| NAV     | Enter     | FIELD   | editable rows                     |
-| NAV     | Enter     | EMBED   | prose rows -> `$EDITOR`           |
-| NAV     | Back      | NAV     | pop the view stack                |
-| NAV     | Esc       | OMNIBOX | home to the input                 |
-| NAV     | `:`       | OMNIBOX | seed the buffer with `:`          |
-| NAV     | Typing    | OMNIBOX | a printable seeds the buffer      |
-| NAV     | `/`       | OMNIBOX | advance the ring — hv Option A    |
-| MENU    | Hotkey    | MENU    | select or drill in                |
-| MENU    | Move      | MENU    | select or drill in                |
-| MENU    | Enter     | NAV     |                                   |
-| MENU    | Back      | NAV     |                                   |
-| MENU    | Cancel    | NAV     |                                   |
-| MENU    | Esc       | NAV     |                                   |
-| MENU    | `/`       | NAV     | advance the ring — hv Option A    |
-| FIELD   | Typing    | FIELD   |                                   |
-| FIELD   | Enter     | NAV     | commit                            |
-| FIELD   | Esc       | NAV     | discard                           |
-| EMBED   | Typing    | EMBED   | forwarded to the child            |
-| EMBED   | ChildExit | NAV     | read the file back                |
+**THE COMPOSER IS THE ONE HOME, AND `NAV` IS GONE.** Claude Code's coherence comes from three things the five-mode machine traded away: ONE input that is always home, ONE meaning for `/`, and editing being a place you go and return from rather than a mode you steer between. So `OMNIBOX` and `NAV` collapse into **OMNI**: the composer always holds the text cursor, and the body is BROWSED rather than entered.
 
-**hv Option A (2026-08-31, ruled in conversation): `/` is the single mode-advance key, cycling NAV → OMNIBOX → MENU → NAV.** hv's frame: _`/` just cycles thru the three_. It supersedes the earlier `/`-jumps-straight-to-MENU binding for NAV, so the Lotus MENU is now two `/` from NAV — the trade for one predictable advance key on the least-frequent of the three destinations. **The empty-buffer guard is unchanged and is what makes it safe:** `/` only advances from OMNIBOX when the buffer is empty, because `st/ST0056` is a legal address; mid-address it is a character. **Esc is unchanged too:** it still toggles the two home modes {OMNIBOX, NAV} and never quits, so `/` advances the ring forward and Esc is always the non-cyclic way back.
+**WHAT WAS A MODE IS NOW A GUARD, WHICH IS WHY THE TABLE DID NOT GROW.** The superseded machine told _arrows pick matches_ from _arrows move the cursor_ by being in two different modes. One guard replaces it -- **is the composer buffer empty?** -- and it is the same species of guard as pane focus: it changes what a key DOES without changing which mode you are in.
+
+**SUPERSEDED, KEPT INLINE SO A LATER READER MEETS THE ARGUMENT RATHER THAN RE-RUNNING IT.** The machine this replaces read: _OMNIBOX is the rest state ... NORMAL is renamed NAV, hv's own word for it_ (hv, 2026-08-30); **`/` was the single mode-advance key cycling NAV -> OMNIBOX -> MENU -> NAV** (hv Option A, 2026-08-31, _`/` just cycles thru the three_); and **Esc toggled the two home modes {OMNIBOX, NAV} and never quit**. All three are retired together, and they fell together for one reason: each was a device for moving between places the operator now never leaves. The ring cost the Lotus menu two keystrokes and gave `/` a meaning that depended on where you already were; the toggle gave Esc a second job.
+
+**THE TRIGGER COLUMN'S SPELLING CHANGED AFTER hv RATIFIED IT, AND HERE IS WHY.** The accepted proposal wrote the buffer guard INTO the trigger cell -- `Enter (buffer set)`, `Enter (buffer empty)`, `Move (buffer empty)`. **That cannot be built.** `keys.rs` rests on a stated invariant -- the keymap cannot see the buffer -- so it emits a bare trigger and the app applies the guard, which is how `/` has always worked here. A guarded trigger is one no keystroke can ever produce: `step(OMNI, "Enter")` would answer _nothing_ on the commonest key on the screen. So **triggers are BARE in this table and the guard is stated in the notes column**; the SEMANTICS hv ratified are unchanged in every particular. The correction also keeps the invariants simpler, which is the argument for it rather than a consolation: spelling the guard in would have split the one guarded pair into two and made _exactly one guarded ambiguity_ stop meaning anything.
+
+| from  | trigger            | to    | notes                                                |
+| ----- | ------------------ | ----- | ---------------------------------------------------- |
+| OMNI  | Typing             | OMNI  | into the composer -- it always holds the keyboard    |
+| OMNI  | Move               | OMNI  | empty buffer browses the body; a query picks matches |
+| OMNI  | Enter              | OMNI  | go to the picked match, or descend a door row        |
+| OMNI  | Enter              | FIELD | edit in place -- editable rows                       |
+| OMNI  | Enter              | EMBED | hand off -- prose rows to `$EDITOR`                  |
+| OMNI  | `/`                | MENU  | open the palette, one press, empty buffer only       |
+| OMNI  | Esc                | OMNI  | clear the query; a no-op when already empty          |
+| OMNI  | Back               | OMNI  | pop the view stack, empty buffer only                |
+| MENU  | Hotkey / Move      | MENU  | select or drill in                                   |
+| MENU  | Enter              | OMNI  | run the command or land its view                     |
+| MENU  | Back               | OMNI  | up a level, or close at the root                     |
+| MENU  | Esc / Cancel / `/` | OMNI  | close the palette                                    |
+| FIELD | Typing             | FIELD | in-place edit, one keymap                            |
+| FIELD | Enter              | OMNI  | commit                                               |
+| FIELD | Esc                | OMNI  | discard                                              |
+| EMBED | Typing             | EMBED | forwarded to the child                               |
+| EMBED | ChildExit          | OMNI  | read the file back                                   |
+
+**FOUR MACHINE STATES, THREE LAMPS.** `FIELD` and `EMBED` stay distinct in the machine because their EXITS differ -- `EMBED`'s is the child exiting -- but the chip shows both as `EDIT`, because which of the two you are in is a fact about who owns the terminal and not something the operator can act on. Showing a lamp per internal state would advertise a distinction nobody can use.
 
 **Two invariants, asserted at startup and checkable headlessly:**
 
 - **Every mode is leavable.** A mode you can enter and not leave is the trap `no_state_can_be_entered_and_not_left` already refuses for entities.
-- **Every mode is reachable from OMNIBOX.** An unreachable mode is dead code that reads as a feature.
+- **Every mode is reachable from OMNI.** An unreachable mode is dead code that reads as a feature.
 
-**ESC LANDS IN A HOME MODE IN ONE PRESS AND NEVER QUITS.** Home is the pair {OMNIBOX, NAV} — the omnibox is home for the keyboard, NAV is home for the cursor, and Esc toggles between them. This retires the ratified _at the root it QUITS_ deliberately: **quitting is now an act, never an accident** — `Ctrl-C` from anywhere, `:q` from the omnibox. The modern agent idiom (Claude Code's own Esc never quits) is exactly this shape, and it keeps what the old invariant was for: an operator who does not know where they are presses Esc and lands somewhere fully operable, every time. Save protection still names its own escape: `unsaved edits -- :w to write, :q! to discard`.
+**ESC IS TOTAL, WITH EMBED AS THE ONE NAMED EXEMPTION, AND IT LANDS IN THE HOME MODE IN ONE PRESS.** Esc means _back to the composer_: in MENU it closes the palette, in FIELD it discards, with a query typed it clears the buffer. **The exemption is EMBED and it is declared rather than filtered out** -- a child process owns the terminal while it runs, so Esc reaches `$EDITOR` and not us, and EMBED's only exit is the child ending. That is the whole narrowing: `total` still means every state the TUI owns the keyboard in, and the one state it does not is named here rather than dropped silently.
 
-**The `NAV + Enter` triple is the one guarded ambiguity**, resolved by the ROW and never by table order: a row with a door descends, an editable row edits in place, a prose row hands off. The door arm is this revision's fix for the strawman's worst defect — Enter on a `button` row used to reach FIELD, so the one navigation verb on screen navigated nowhere, which is what hv drove into on 2026-08-30.
+**ESC ON AN ALREADY-EMPTY COMPOSER IS A NO-OP, BECAUSE YOU ARE ALREADY HOME.** Stated affirmatively: this is the behaviour, not a case nobody got round to. Esc never navigates -- popping the view stack is `Back`'s job, and overloading Esc with it would give it the second job the retired toggle was retired for. **Home is now ONE mode**, so Esc converges rather than oscillating between two rooms. **Quitting stays an act, never an accident** -- `Ctrl-C` from anywhere. Save protection still names its own escape: `unsaved edits -- :w to write, :q! to discard`.
 
-**Pane focus (list / detail) is a GUARD on NAV's edges, not a sixth mode.** It changes where Move and Enter land; it does not change what the keys mean. The omnibox's empty-buffer condition on `/` is the same species of guard: mid-address, `/` is a character (`st/ST0056` is a legal spelling), so the menu key fires only when there is nothing it could be part of.
+**The `OMNI + Enter` triple is the one guarded ambiguity**, resolved by the ROW and never by table order: a row with a door descends, an editable row edits in place, a prose row hands off. The door arm is the strawman's worst defect fixed -- Enter on a `button` row used to reach FIELD, so the one navigation verb on screen navigated nowhere, which is what hv drove into on 2026-08-30. **That it is still exactly ONE guarded pair after the collapse is the evidence that folding NAV in removed a mode rather than smuggling a second ambiguity in behind it.**
+
+**Pane focus (list / detail) is a GUARD on OMNI's edges, not a fifth mode.** It changes where Move and Enter land; it does not change what the keys mean. The buffer condition is the same species, and it now governs three keys: mid-query `/` is a character (`st/ST0056` is a legal spelling), `Backspace` deletes rather than walking up the model, and the arrows pick among matches rather than browsing the body. **One rule asked at three keystrokes, never three rules.**
 
 ## 4. Keys
 
-| key         | in OMNIBOX                        | in NAV                                |
-| ----------- | --------------------------------- | ------------------------------------- |
-| printable   | the buffer                        | seeds the omnibox with that character |
-| `⏎`         | go: address, pick, or `:` command | descend / edit / hand off, by the row |
-| arrows      | `↑↓` pick among matches           | move within the focused pane          |
-| `Tab`       | —                                 | switch panes (list ⟷ detail)          |
-| `Backspace` | delete                            | pop the view stack                    |
-| `ESC`       | to NAV, buffer kept               | to OMNIBOX                            |
-| `:`         | (a character)                     | to OMNIBOX, seeded with `:`           |
-| `/`         | MENU when the buffer is empty     | advance the ring → OMNIBOX            |
-| `Ctrl-C`    | quit                              | quit                                  |
+**ONE HOME MEANS THE COLUMNS ARE NO LONGER MODES.** The superseded table split every key by _in OMNIBOX_ against _in NAV_. There is one mode now, so what a key does depends on the composer's BUFFER -- the same guard the machine's notes column states, read from the operator's side.
 
-**Typing anywhere in NAV lands in the omnibox** — the Claude Code affordance: you never select an input before typing, the input is simply where unclaimed keystrokes go. The cost is stated: NAV has no single-letter bindings (`e`-to-edit and `hjkl` died for this), because a letter that does something in NAV is a letter the omnibox never receives. Enter on the row already edits; arrows already move.
+| key         | composer empty -- browsing                 | query typed                 |
+| ----------- | ------------------------------------------ | --------------------------- |
+| printable   | into the composer                          | into the composer           |
+| `⏎`         | act on the row: descend, edit, or hand off | go: address or picked match |
+| `↑` `↓`     | browse the body                            | pick among the matches      |
+| `Tab`       | switch panes (list ⟷ detail)               | --                          |
+| `Backspace` | pop the view stack                         | delete a character          |
+| `ESC`       | a no-op -- you are already home            | clear the query             |
+| `/`         | open the MENU, one press                   | (a character)               |
+| `Ctrl-C`    | quit                                       | quit                        |
 
-**`/` is the mode-advance key** (hv Option A, 2026-08-31), cycling NAV → OMNIBOX → MENU → NAV — the Lotus 1-2-3 menu is one stop on that ring. It is guarded in the omnibox by the empty buffer since `st/ST0056` is a legal address: mid-address `/` is a character, so it only advances from a clean prompt. There is ONE typed vocabulary and it lives in the omnibox; `:` survives only as a seed character for it, so `:w` and `:q` keep their vi muscle memory without a COMMAND mode to host them.
+**Typing always lands in the composer** -- the Claude Code affordance: you never select an input before typing, the input is simply where unclaimed keystrokes go. **The superseded machine implemented this as a SEED**, carrying a character out of NAV into the omnibox along with a mode change; with the composer permanently focused there is nothing to seed FROM, so the affordance survives and the machinery under it does not. The cost is stated and unchanged: **no single-letter bindings outside MENU** (`e`-to-edit and `hjkl` died for this), because a letter bound to a verb is a letter the composer never receives.
+
+**`/` OPENS THE MENU IN ONE PRESS AND THAT IS ITS ONLY MEANING**, superseding hv Option A's three-way ring (`NAV -> OMNIBOX -> MENU -> NAV`, 2026-08-31), under which the Lotus menu was two `/` away and `/` meant different things from different places. The empty-buffer guard is unchanged and is what keeps it safe: `st/ST0056` is a legal address, so mid-address `/` is a character.
+
+**`:` IS RETIRED AS A LIVE SIGIL** (hv's `/commands`). `:q`, `:w` and `:q!` survive as **hidden aliases** -- typed into the composer like any other text, honoured by the resolver, and advertised nowhere. The vi muscle memory keeps working for the people who have it; the surface teaches only `/`.
 
 **`C-w` is retired with the vi field keymap** (hv, 2026-08-30: _we're handing the text off to a dedicated editor, not trying to recreate it inside_). In-place editing keeps ONE keymap — readline defaults — and everything longer goes to `$EDITOR`.
 
 ## 5. Menus — Lotus 1-2-3
+
+**REACHED BY ONE `/` FROM THE COMPOSER, and that is the only change the collapse makes to this section.** The menu used to be a stop on the `/` ring, two presses from NAV; it is now one press from home, and `/` closes it again. Everything below is unchanged.
 
 Menus **nest**. The accelerator letter is **coloured in place, not bracketed**, and is **found by position** in the label rather than assumed to be the first character — a hotkey that is not the initial otherwise marks the wrong letter, which happens the first time two entries at one level share a first letter.
 

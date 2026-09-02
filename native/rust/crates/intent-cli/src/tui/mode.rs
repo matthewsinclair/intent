@@ -13,44 +13,54 @@
 //! so a machine only exercisable through a terminal library would be tested by
 //! the thing it exists to constrain.
 //!
-//! # The omnibox machine (hv, ruled 2026-08-30, superseding the NORMAL-rest design)
+//! # The collapsed machine (hv, ruled 2026-09-02, superseding the five-mode omnibox design)
 //!
-//! **THE OMNIBOX IS THE REST STATE.** hv's ruling, in hv's own frame: *the
-//! omnibox is the starting point, but pressing ESC or `/` takes you into those
-//! other modes.* The input is where a session opens and where Esc converges;
-//! an address typed there autonavigates, which makes the one typed vocabulary
-//! also the primary navigation device. `COMMAND` is gone -- the omnibox
-//! absorbed it, because a `:` line beside an always-present input is two
-//! prompts for one keyboard.
+//! **THE COMPOSER IS THE ONE HOME, AND `NAV` IS GONE.** hv's instruction was to
+//! make `explore` read like Claude Code, whose coherence comes from three
+//! things the five-mode machine traded away: ONE input that is always home, ONE
+//! meaning for `/`, and editing being a place you go and return from rather
+//! than a mode you steer between. So `OMNIBOX` and `NAV` collapse into
+//! [`Mode::Omni`]: the composer always holds the text cursor, and the body is
+//! BROWSED rather than entered.
 //!
-//! **ESC TOGGLES BETWEEN THE TWO HOME MODES AND NEVER QUITS.** `OMNIBOX -> NAV`
-//! leaves the input; `NAV -> OMNIBOX` returns to it. Repeated Esc therefore
-//! converges to [`HOME`] from anywhere in one press (Embed excepted, below) and
-//! then oscillates between two fully-operable states -- which keeps the
-//! property that makes a modal UI safe to be lost in, without the property
-//! that made it dangerous to lean on: **quitting is now an act, never an
-//! accident.** `Ctrl-C` quits from anywhere and `:q` quits from the omnibox;
-//! the modern agent idiom (Claude Code's own) is exactly this shape.
+//! **WHAT WAS A MODE IS NOW A GUARD, WHICH IS WHY THE TABLE DID NOT GROW.**
+//! The old machine distinguished *arrows pick matches* from *arrows move the
+//! cursor* by being in two different modes. One guard replaces it -- **is the
+//! composer buffer empty?** -- and it is the same species of guard that already
+//! governs `/` and pane focus: it changes what a key DOES without changing
+//! which mode you are in, so it belongs to the realiser and not to the graph.
+//! **The triggers here stay BARE for exactly that reason.** Spelling the guard
+//! into the trigger (`Enter (buffer empty)`) was drafted and refused: the
+//! keymap cannot see the buffer -- it says so in its own module doc -- so a
+//! guarded trigger is one no keystroke can ever produce, and `step` would
+//! answer `None` for the commonest key on the screen.
 //!
-//! **`/` IS THE MODE-ADVANCE KEY (hv Option A, 2026-08-31).** It cycles
-//! `NAV -> OMNIBOX -> MENU -> NAV` -- the one key that always means *the next
-//! place I can stand*. It supersedes `/`-jumps-to-MENU from NAV, so the Lotus
-//! menu is two `/` from NAV, the trade for a single predictable advance key.
-//! The Esc toggle above is UNCHANGED and deliberately so: `/` advances the ring
-//! forward, Esc is the non-cyclic way back between the two home modes, and the
-//! empty-buffer guard on `OMNIBOX + /` keeps the ring off a typed address.
+//! **ESC MEANS "BACK TO THE COMPOSER", NEVER A MODE TOGGLE AND NEVER QUIT.**
+//! In `MENU` it closes the palette; in `FIELD` it discards; with a query typed
+//! it clears the buffer; and **on an already-empty composer it is a no-op,
+//! affirmatively, because you are already home.** The old {OMNIBOX, NAV} toggle
+//! is retired with `NAV` itself -- [`HOME`] is now a single mode, so Esc
+//! converges rather than oscillates. What survives unchanged is the property
+//! the toggle existed to serve: an operator who does not know where they are
+//! presses Esc and lands somewhere fully operable. **Quitting stays an act,
+//! never an accident** -- `Ctrl-C` from anywhere.
+//!
+//! **`/` OPENS THE MENU IN ONE PRESS, AND THAT IS ITS ONLY MEANING.** The
+//! three-way ring (`NAV -> OMNIBOX -> MENU`) is retired: it cost the Lotus menu
+//! two keystrokes and gave `/` a meaning that depended on where you already
+//! were. The empty-buffer guard is unchanged and is what keeps it safe --
+//! `st/ST0056` is a legal address, so mid-address `/` is a character.
 
-/// The modes. hv's word for the second one -- *edit/nav mode distinction* --
-/// is the name used, in place of vi's NORMAL: the rest state moved to the
-/// omnibox, so vi coherence stopped being a naming constraint the day the
-/// input became home.
+/// The modes. Four, since `NAV` folded into the composer -- and the composer
+/// is named `Omni` rather than `Omnibox` because it is no longer one widget
+/// among several: it is the whole home state, and the body is something it
+/// browses.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Mode {
-  /// The rest state: the input. Addresses, fuzzy picks, and `:` commands.
-  Omnibox,
-  /// Walking the model: the cursor is in the body.
-  Nav,
-  /// The `/` menu.
+  /// The one home: the composer holds the keyboard, the body is browsed.
+  /// Addresses, fuzzy picks and commands are all typed here.
+  Omni,
+  /// The `/` command palette.
   Menu,
   /// Editing one text or select row in place.
   Field,
@@ -59,21 +69,36 @@ pub enum Mode {
 }
 
 impl Mode {
-  pub const ALL: &'static [Mode] = &[
-    Mode::Omnibox,
-    Mode::Nav,
-    Mode::Menu,
-    Mode::Field,
-    Mode::Embed,
-  ];
+  pub const ALL: &'static [Mode] = &[Mode::Omni, Mode::Menu, Mode::Field, Mode::Embed];
 
+  /// The MACHINE's name for the mode, and the vocabulary `tui-design.md`
+  /// section 3 is transcribed in. `the_transcription_carries_every_row_the_design_ratifies`
+  /// compares these strings to that table, so this is not a display concern
+  /// and must not be bent to suit one.
   pub fn name(self) -> &'static str {
     match self {
-      Mode::Omnibox => "OMNIBOX",
-      Mode::Nav => "NAV",
+      Mode::Omni => "OMNI",
       Mode::Menu => "MENU",
       Mode::Field => "FIELD",
       Mode::Embed => "EMBED",
+    }
+  }
+
+  /// The OPERATOR's name for the mode -- the chip on the foot, and three
+  /// lamps rather than four.
+  ///
+  /// **`FIELD` AND `EMBED` SHARE THE `EDIT` LAMP BECAUSE THE DIFFERENCE
+  /// BETWEEN THEM IS NOT THE OPERATOR'S.** Both mean *you are editing this
+  /// row*; which one you are in is a fact about who owns the terminal, and the
+  /// machine keeps them apart because their EXITS differ -- `EMBED`'s is the
+  /// child ending, and that exemption ([`ESC_NOT_OURS`]) is real. Showing a
+  /// lamp per internal state would advertise a distinction the operator cannot
+  /// act on, which is the same defect as hiding one they can.
+  pub fn lamp(self) -> &'static str {
+    match self {
+      Mode::Omni => "OMNI",
+      Mode::Menu => "MENU",
+      Mode::Field | Mode::Embed => "EDIT",
     }
   }
 }
@@ -97,61 +122,44 @@ impl Edge {
 }
 
 /// Where a session opens and where Esc converges.
-pub const REST: Mode = Mode::Omnibox;
+pub const REST: Mode = Mode::Omni;
 
-/// The two fully-operable states Esc oscillates between once it has walked
-/// out of everything nested. **A pair, deliberately**: the omnibox is home for
-/// the keyboard and NAV is home for the cursor, and hv's ruling makes Esc the
-/// road between them rather than the way out of the building.
-pub const HOME: &[Mode] = &[Mode::Omnibox, Mode::Nav];
+/// The fully-operable state Esc walks toward from everywhere.
+///
+/// **A LIST OF ONE, AND IT USED TO BE A PAIR.** {OMNIBOX, NAV} was home while
+/// the cursor and the keyboard lived in different modes; folding NAV into the
+/// composer left one place that is both. The shape stays a slice so the
+/// invariant below keeps reading `HOME.contains(..)` rather than an equality
+/// -- the question *did Esc land somewhere operable* is the durable one, and a
+/// design that grows a second home should not have to rewrite the check.
+pub const HOME: &[Mode] = &[Mode::Omni];
 
 pub const EDGES: &[Edge] = &[
-  Edge::new(Mode::Omnibox, "Typing", Mode::Omnibox, "the address buffer"),
-  Edge::new(Mode::Omnibox, "Move", Mode::Omnibox, "pick among matches"),
+  Edge::new(Mode::Omni, "Typing", Mode::Omni, "into the composer"),
+  Edge::new(Mode::Omni, "Move", Mode::Omni, "browse body / pick matches"),
+  Edge::new(Mode::Omni, "Enter", Mode::Omni, "go, or descend a door row"),
+  Edge::new(Mode::Omni, "Enter", Mode::Field, "editable rows"),
+  Edge::new(Mode::Omni, "Enter", Mode::Embed, "prose rows -> $EDITOR"),
+  Edge::new(Mode::Omni, "/", Mode::Menu, "one press, empty buffer only"),
   Edge::new(
-    Mode::Omnibox,
-    "Enter",
-    Mode::Nav,
-    "go -- address, pick or :cmd",
+    Mode::Omni,
+    "Esc",
+    Mode::Omni,
+    "clear the buffer, else no-op",
   ),
-  Edge::new(Mode::Omnibox, "Esc", Mode::Nav, "leave the input as it is"),
-  Edge::new(Mode::Omnibox, "/", Mode::Menu, "empty buffer only"),
-  Edge::new(Mode::Nav, "Move", Mode::Nav, "in the focused pane"),
-  Edge::new(Mode::Nav, "Enter", Mode::Nav, "descend -- rows with a door"),
-  Edge::new(Mode::Nav, "Enter", Mode::Field, "editable rows"),
-  Edge::new(Mode::Nav, "Enter", Mode::Embed, "prose rows -> $EDITOR"),
-  Edge::new(Mode::Nav, "Back", Mode::Nav, "pop the view stack"),
-  Edge::new(Mode::Nav, "Esc", Mode::Omnibox, "home to the input"),
-  Edge::new(Mode::Nav, ":", Mode::Omnibox, "seed the buffer with `:`"),
-  Edge::new(
-    Mode::Nav,
-    "Typing",
-    Mode::Omnibox,
-    "a printable seeds the buffer",
-  ),
-  Edge::new(
-    Mode::Nav,
-    "/",
-    Mode::Omnibox,
-    "advance the ring -- hv Option A",
-  ),
+  Edge::new(Mode::Omni, "Back", Mode::Omni, "pop the view stack"),
   Edge::new(Mode::Menu, "Hotkey", Mode::Menu, "select or drill in"),
   Edge::new(Mode::Menu, "Move", Mode::Menu, "select or drill in"),
-  Edge::new(Mode::Menu, "Enter", Mode::Nav, ""),
-  Edge::new(Mode::Menu, "Back", Mode::Nav, ""),
-  Edge::new(Mode::Menu, "Cancel", Mode::Nav, ""),
-  Edge::new(Mode::Menu, "Esc", Mode::Nav, ""),
-  Edge::new(
-    Mode::Menu,
-    "/",
-    Mode::Nav,
-    "advance the ring -- hv Option A",
-  ),
-  Edge::new(Mode::Field, "Typing", Mode::Field, ""),
-  Edge::new(Mode::Field, "Enter", Mode::Nav, "commit"),
-  Edge::new(Mode::Field, "Esc", Mode::Nav, "discard"),
+  Edge::new(Mode::Menu, "Enter", Mode::Omni, "run it / land its view"),
+  Edge::new(Mode::Menu, "Back", Mode::Omni, "up a level, else close"),
+  Edge::new(Mode::Menu, "Cancel", Mode::Omni, "close the palette"),
+  Edge::new(Mode::Menu, "Esc", Mode::Omni, "close the palette"),
+  Edge::new(Mode::Menu, "/", Mode::Omni, "close the palette"),
+  Edge::new(Mode::Field, "Typing", Mode::Field, "one keymap"),
+  Edge::new(Mode::Field, "Enter", Mode::Omni, "commit"),
+  Edge::new(Mode::Field, "Esc", Mode::Omni, "discard"),
   Edge::new(Mode::Embed, "Typing", Mode::Embed, "forwarded to the child"),
-  Edge::new(Mode::Embed, "ChildExit", Mode::Nav, "read the file back"),
+  Edge::new(Mode::Embed, "ChildExit", Mode::Omni, "read the file back"),
 ];
 
 /// The modes whose Esc key the TUI does NOT own, with the reason.
@@ -177,22 +185,27 @@ pub fn out_of(mode: Mode) -> impl Iterator<Item = &'static Edge> {
 
 /// **THE ONE AMBIGUITY THE DESIGN GUARDS, AND WHAT RESOLVES IT.**
 ///
-/// `tui-design.md` section 3 declares THREE arms of `NAV + Enter` -- to NAV for
-/// *rows with a door* (descend), to FIELD for *editable rows*, to EMBED for
-/// *prose rows*. The machine is right to carry all three and cannot choose
-/// among them: **which arm a keystroke takes is a fact about the ROW, and the
-/// machine has never seen a row.**
+/// `tui-design.md` section 3 declares THREE arms of `OMNI + Enter` -- back to
+/// OMNI for *rows with a door* (descend), to FIELD for *editable rows*, to
+/// EMBED for *prose rows*. The machine is right to carry all three and cannot
+/// choose among them: **which arm a keystroke takes is a fact about the ROW,
+/// and the machine has never seen a row.**
 ///
 /// So the discriminator is DECLARED here, beside [`ESC_NOT_OURS`] and for the
 /// same reason. `AC-17.4` is the sentence the EMBED half encodes: *`prose` IS
 /// NOT AN INLINE MULTI-LINE WIDGET -- it is a HANDOFF to the external editor*.
-/// The NAV half is the omnibox design's own fix for the strawman's worst
+/// The door half is the omnibox design's own fix for the strawman's worst
 /// defect: Enter on a `button` row used to reach FIELD, so the one navigation
 /// verb on screen edited a row nobody could edit and descended into nothing.
+///
+/// **THE DOOR ARM NOW TARGETS `Omni` RATHER THAN `Nav`, AND THAT IS A RENAME
+/// AND NOT A BEHAVIOUR CHANGE.** Descending has always been *stay where you
+/// are and push a view*; it only looked like a mode change while the place you
+/// stayed was called NAV.
 pub const BY_ROW_KIND: &[(&str, Mode)] = &[
   ("prose", Mode::Embed),
   ("artefact", Mode::Embed),
-  ("button", Mode::Nav),
+  ("button", Mode::Omni),
 ];
 
 /// Every edge `on` offers from `mode`.
@@ -301,13 +314,21 @@ mod tests {
   }
 
   /// **ONE ESC FROM ANYWHERE LANDS IN A HOME MODE, WHICH IS THE PROPERTY THAT
-  /// MAKES A MODAL UI SAFE TO BE LOST IN** -- restated for the omnibox
+  /// MAKES A MODAL UI SAFE TO BE LOST IN** -- restated for the collapsed
   /// machine, where the old form (*repeated Esc terminates*) was retired
   /// deliberately: **quitting became an act rather than a convergence point**,
   /// so what Esc owes the lost operator is a fully-operable state, not an
-  /// exit. Between the two home modes Esc toggles, and both directions are
-  /// asserted so home stays a pair rather than quietly becoming a trap with
-  /// two rooms.
+  /// exit.
+  ///
+  /// **THE TWO-HOME TOGGLE IS RETIRED WITH `NAV`, AND ITS ASSERTION IS
+  /// REPLACED RATHER THAN DELETED.** While home was {OMNIBOX, NAV} this test
+  /// pinned both directions of the toggle so home could not quietly become a
+  /// trap with two rooms. With one home there is no toggle to pin, so the
+  /// assertion below pins the thing that took its place: Esc in the composer
+  /// is a SELF-LOOP -- it clears a query, and on an empty buffer it is a
+  /// no-op **because you are already home**. Stated affirmatively, since a
+  /// retired behaviour that survives only as an absent clause is
+  /// indistinguishable from one nobody noticed dropping.
   ///
   /// The check is per-mode and names the exemption rather than skipping it, so
   /// a mode that LOST its Esc edge fails while the one that never had it
@@ -336,9 +357,14 @@ mod tests {
       );
     }
     assert_eq!(
-      (step(Mode::Omnibox, "Esc"), step(Mode::Nav, "Esc")),
-      (Some(Mode::Nav), Some(Mode::Omnibox)),
-      "the two home modes must toggle -- hv's ruling: the omnibox is the starting point and ESC takes you into the other modes"
+      HOME,
+      &[Mode::Omni],
+      "home is the composer ALONE now that NAV is folded into it -- a second home mode would mean Esc oscillates again, which is the thing the collapse retired"
+    );
+    assert_eq!(
+      step(Mode::Omni, "Esc"),
+      Some(Mode::Omni),
+      "Esc in the composer must SELF-LOOP: it clears a query, and on an empty buffer it is a no-op because you are already home. An Esc that left OMNI would be navigating, which is Back's job"
     );
   }
 
@@ -363,11 +389,18 @@ mod tests {
   /// `step` WOULD RESOLVE IT BY TABLE ORDER** -- silently, and differently
   /// from whatever the realiser did.
   ///
-  /// `NAV + Enter` is the deliberate exception and it is NOT a contradiction:
+  /// `OMNI + Enter` is the deliberate exception and it is NOT a contradiction:
   /// the design says a row with a door descends, an editable row goes to
   /// FIELD, and a prose row goes to EMBED, so the triple is disambiguated by
   /// the ROW, which is a guard rather than an input. It is named here so the
   /// check stays exact instead of being relaxed to allow any duplicate.
+  ///
+  /// **THE TRIPLE MOVED FROM `NAV` TO `OMNI` AND DID NOT OTHERWISE CHANGE.**
+  /// That it is still exactly ONE guarded pair is the evidence that folding
+  /// NAV into the composer collapsed a mode rather than smuggling a second
+  /// ambiguity in behind it -- and it is the reason the buffer guard was kept
+  /// OUT of the trigger: spelling it in would have split this one pair into
+  /// two and made the count stop meaning anything.
   #[test]
   fn no_input_leads_two_ways_from_one_mode_except_the_one_the_design_guards() {
     let mut pairs: Vec<(&str, &str)> = EDGES.iter().map(|e| (e.from.name(), e.on)).collect();
@@ -381,8 +414,8 @@ mod tests {
     ambiguous.dedup();
     assert_eq!(
       ambiguous,
-      ["NAV + Enter"],
-      "an input leading two ways from one mode is resolved by TABLE ORDER, which no realiser can be expected to match. `NAV + Enter` is the design's own guarded triple -- door rows descend, editable rows to FIELD, prose rows to EMBED"
+      ["OMNI + Enter"],
+      "an input leading two ways from one mode is resolved by TABLE ORDER, which no realiser can be expected to match. `OMNI + Enter` is the design's own guarded triple -- door rows descend, editable rows to FIELD, prose rows to EMBED"
     );
   }
 
@@ -535,14 +568,14 @@ mod tests {
   /// **THE GUARDED AMBIGUITY IS RESOLVED BY THE ROW, AND THE PROOF IS THAT THE
   /// ANSWER DOES NOT MOVE WHEN THE EDGES DO.** `AT-17.10` / `AC-17.10`.
   ///
-  /// The sibling test above records that `NAV + Enter` leads three ways and
+  /// The sibling test above records that `OMNI + Enter` leads three ways and
   /// says table order is *not an answer a realiser can be expected to match*.
   /// This is the other half: given the arms in EITHER order, the row kind
   /// picks the same one. Reversing is the whole control -- an implementation
   /// that took `edges[0]` passes every assertion below in one direction.
   #[test]
   fn the_guarded_ambiguity_is_resolved_by_the_row_and_never_by_table_order() {
-    let mut edges = steps(Mode::Nav, "Enter");
+    let mut edges = steps(Mode::Omni, "Enter");
     assert_eq!(
       edges.len(),
       3,
@@ -558,7 +591,7 @@ mod tests {
       );
       assert_eq!(
         arm(&edges, "button"),
-        Some(Mode::Nav),
+        Some(Mode::Omni),
         "pass {pass}: a door row must DESCEND -- Enter routed to FIELD on a button is the \
          strawman defect hv drove: the one navigation verb on screen navigated nowhere"
       );
@@ -628,17 +661,24 @@ mod tests {
   /// property that only holds because the corpus cannot exhibit it is not a
   /// property.
   ///
-  /// The planted pair moved when `button` claimed `NAV`: the old pair's `MENU
-  /// Enter -> NORMAL` arm became a claimed target, so the plant would have
-  /// stopped exhibiting the case it names. `NAV`'s `:` and `/` edges both
-  /// target `OMNIBOX` under Option A (they were `OMNIBOX` and `MENU` before),
-  /// and neither is claimed by a row kind -- two unclaimed arms whatever their
-  /// target, so `arm` refuses rather than guessing.
+  /// **THE PLANT HAS MOVED TWICE NOW, AND BOTH TIMES BECAUSE A ROW KIND
+  /// CLAIMED ITS TARGET.** It was `MENU Enter -> NORMAL` until `button`
+  /// claimed the door arm; it was then `NAV`'s `:` and `/` until the collapse
+  /// retired both edges with the mode they left from. The lesson is in the
+  /// selection rather than in either pair: **the plant must be chosen by the
+  /// PROPERTY it needs -- two arms no row kind claims -- and never named as a
+  /// fixed pair**, or it goes on compiling long after it has stopped
+  /// exhibiting the case it is named for.
+  ///
+  /// So it is selected by that property here. [`BY_ROW_KIND`] claims `Embed`
+  /// and `Omni`; `Menu` and `Field` are what is left, and `OMNI`'s edges to
+  /// them are real edges from the shipped table rather than a fixture.
   #[test]
   fn two_unclaimed_arms_are_refused_rather_than_guessed() {
+    let claimed: Vec<Mode> = BY_ROW_KIND.iter().map(|(_, m)| *m).collect();
     let planted: Vec<&'static Edge> = EDGES
       .iter()
-      .filter(|e| e.from == Mode::Nav && (e.on == ":" || e.on == "/"))
+      .filter(|e| e.from == Mode::Omni && !claimed.contains(&e.to))
       .collect();
     assert_eq!(
       planted.len(),
@@ -673,7 +713,8 @@ mod tests {
   /// states it by having no edge at all from `FIELD` to `EMBED`: a handoff
   /// cannot be reached from inside an in-place edit, so there is no
   /// interleaving to define. `FIELD` leaves by `Enter` (commit) or `Esc`
-  /// (discard) and the operator is in `NAV` before any editor exists.
+  /// (discard) and the operator is back in the composer before any editor
+  /// exists.
   ///
   /// **A PROSE HANDOFF SHARES ITS TRIGGER WITH THE IN-PLACE EDIT**, so this is
   /// exactly the pair somebody would be tempted to wire straight through -- and
@@ -689,7 +730,7 @@ mod tests {
     );
     let out: Vec<(&str, Mode)> = out_of(Mode::Field).map(|e| (e.on, e.to)).collect();
     assert!(
-      out.contains(&("Enter", Mode::Nav)) && out.contains(&("Esc", Mode::Nav)),
+      out.contains(&("Enter", Mode::Omni)) && out.contains(&("Esc", Mode::Omni)),
       "FIELD must offer both a commit and a discard, or the fate above is unreachable rather \
        than stated: {out:?}"
     );

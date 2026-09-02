@@ -22,11 +22,22 @@
 //!
 //! # What is deliberately NOT here
 //!
-//! **`Tab` produces no trigger.** *Pane focus is a GUARD on NAV's edges, not a
-//! sixth mode* -- it changes where Move and Enter land and not what the keys
+//! **`Tab` produces no trigger.** *Pane focus is a GUARD on OMNI's edges, not
+//! a fifth mode* -- it changes where Move and Enter land and not what the keys
 //! mean, so it is the app's state and not the machine's.
 //!
-//! **`Enter` from NAV is ambiguous by design and stays that way here.** The
+//! **THE BUFFER GUARD IS NOT HERE EITHER, AND THAT IS THE LOAD-BEARING
+//! OMISSION.** Since `NAV` folded into the composer, three keys mean two
+//! things apiece depending on whether the buffer is empty: `/` opens the menu
+//! or types a slash, `Backspace` pops the view or deletes a character, and
+//! arrows browse the body or pick among matches. **This module cannot see the
+//! buffer**, so in every case it emits the MODE-SIGNIFICANT trigger and the
+//! app downgrades it -- the rule `/` has always followed here. Spelling the
+//! guard into the trigger instead (`Enter (buffer empty)`) was drafted and
+//! refused for this exact reason: it would name a trigger no keystroke can
+//! produce.
+//!
+//! **`Enter` from OMNI is ambiguous by design and stays that way here.** The
 //! machine declares three edges -- descend for door rows, FIELD for editable
 //! rows, EMBED for prose rows -- and `tui-design.md` §3 guards the triple on
 //! the ROW, which this module cannot see. Resolving it here would put the
@@ -37,11 +48,11 @@
 //! `tui-design.md` §3: *quitting is now an act, never an accident*, and an
 //! edge for it would put QUIT in the graph as a mode.
 //!
-//! **NAV has no single-letter bindings, and that is a design cost the design
-//! pays on purpose** (`tui-design.md` §4): a printable in NAV SEEDS the
-//! omnibox, which is the Claude Code affordance -- you never select the input
-//! before typing, the input is where unclaimed keystrokes go. A letter that
-//! did something in NAV would be a letter the omnibox never receives.
+//! **THERE ARE NO SINGLE-LETTER BINDINGS OUTSIDE `MENU`, and that is a design
+//! cost the design pays on purpose** (`tui-design.md` §4): the composer always
+//! holds the keyboard, which is the Claude Code affordance -- you never select
+//! the input before typing. A letter bound to a verb would be a letter the
+//! composer never receives.
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
@@ -88,30 +99,33 @@ pub fn trigger(mode: Mode, key: KeyEvent) -> Option<&'static str> {
     (Mode::Menu, KeyCode::Char('g')) if ctrl => Some("Cancel"),
     (_, KeyCode::Esc) => Some("Esc"),
     (_, KeyCode::Enter) => Some("Enter"),
-    // **THE OMNIBOX'S ARROWS PICK AMONG MATCHES, so only the vertical pair is
-    // bound** -- Left and Right are reserved against a cursor the buffer does
-    // not yet have, and binding them to `Move` today would teach operators a
-    // meaning tomorrow's cursor contradicts.
-    (Mode::Omnibox, KeyCode::Up | KeyCode::Down) => Some("Move"),
+    // **ONLY THE VERTICAL PAIR IS BOUND, and it now does both jobs**: on an
+    // empty buffer the arrows browse the body, with a query typed they pick
+    // among the matches. One trigger covers both because both are `OMNI Move
+    // -> OMNI` -- the difference is the app's guard, not the machine's edge.
+    // Left and Right stay reserved against a cursor the buffer does not yet
+    // have; binding them today would teach a meaning tomorrow's cursor
+    // contradicts.
+    (Mode::Omni, KeyCode::Up | KeyCode::Down) => Some("Move"),
     // `/` is the MENU key ONLY on an empty buffer -- `st/ST0056` is a legal
     // address (`tui-design.md` §3). The guard is the app's, the way the pane
     // guard is: this map cannot see the buffer, so it offers the trigger and
     // the app reroutes a mid-address `/` to `Typing`.
-    (Mode::Omnibox, KeyCode::Char('/')) => Some("/"),
-    (Mode::Omnibox, KeyCode::Char(_) | KeyCode::Backspace) => Some("Typing"),
-    (Mode::Nav, KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right) => Some("Move"),
-    (Mode::Nav, KeyCode::Char(':')) => Some(":"),
-    (Mode::Nav, KeyCode::Char('/')) => Some("/"),
-    (Mode::Nav, KeyCode::Backspace) => Some("Back"),
-    // A printable in NAV seeds the omnibox -- the machine's `NAV + Typing ->
-    // OMNIBOX` edge. The seed character itself is the app's to carry across.
-    (Mode::Nav, KeyCode::Char(_)) => Some("Typing"),
+    (Mode::Omni, KeyCode::Char('/')) => Some("/"),
+    // **Backspace FOLLOWS `/`'s RULE, and it has to.** With NAV folded in, one
+    // key must both pop the view stack and delete a character. The
+    // mode-significant reading is offered here and the app downgrades it to
+    // `Typing` while the buffer holds anything -- the same shape as `/`,
+    // deliberately, so there is ONE rule for guarded keys rather than one per
+    // key.
+    (Mode::Omni, KeyCode::Backspace) => Some("Back"),
+    (Mode::Omni, KeyCode::Char(_)) => Some("Typing"),
     (Mode::Menu, KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right) => Some("Move"),
     (Mode::Menu, KeyCode::Backspace) => Some("Back"),
-    // **`/` ADVANCES THE MODE RING FROM MENU** (hv Option A, 2026-08-31): the one
-    // key that always means "the next place I can stand" carries MENU -> NAV,
-    // completing NAV -> OMNIBOX -> MENU -> NAV. Bound before the accelerator arm
-    // so a menu never reads it as a hotkey letter.
+    // **`/` CLOSES THE PALETTE**, which is the whole of its meaning now that
+    // the three-way ring is retired: one key, one job, from either side.
+    // Bound before the accelerator arm so a menu never reads it as a hotkey
+    // letter.
     (Mode::Menu, KeyCode::Char('/')) => Some("/"),
     // A menu accelerator. Found by POSITION in the label rather than assumed to
     // be the first character, which is the menu's own rule -- but which letter
@@ -301,7 +315,7 @@ mod tests {
     );
   }
 
-  /// Pane focus is a guard on NAV's edges, not a sixth mode -- so `Tab` must
+  /// Pane focus is a guard on OMNI's edges, not a fifth mode -- so `Tab` must
   /// not reach the machine at all.
   #[test]
   fn tab_is_not_a_mode_trigger_anywhere_the_tui_owns_the_keyboard() {
@@ -330,16 +344,21 @@ mod tests {
     );
   }
 
-  /// Typing must reach the collector in every mode that collects -- and in
-  /// NAV, where nothing collects, **a printable is the SEED**: it emits
-  /// `Typing` and the machine routes it to the omnibox, which is hv's
-  /// you-just-start-typing affordance rather than a swallowed key. MENU is
-  /// the one mode where a bare letter means something else (an accelerator),
-  /// so it is asserted as the exception by name.
+  /// Typing must reach the collector in every mode that collects. MENU is the
+  /// one mode where a bare letter means something else (an accelerator), so it
+  /// is asserted as the exception by name.
+  ///
+  /// **THE `NAV` SEED IS GONE BECAUSE WHAT IT COMPENSATED FOR IS GONE.** While
+  /// the cursor could live outside the input, a printable had to be CARRIED
+  /// from NAV into the omnibox -- hv's you-just-start-typing affordance,
+  /// implemented as a mode change with a character in flight. With the
+  /// composer permanently holding the keyboard there is nothing to seed FROM:
+  /// typing lands where the cursor already is. **The affordance survives; the
+  /// machinery under it does not, which is the point of the collapse.**
   #[test]
-  fn typing_reaches_the_collectors_and_seeds_the_omnibox_from_nav() {
+  fn typing_reaches_every_collector_and_a_menu_letter_is_the_one_exception() {
     let a = KeyEvent::new(KeyCode::Char('a'), KeyModifiers::NONE);
-    for mode in [Mode::Field, Mode::Embed, Mode::Omnibox] {
+    for mode in [Mode::Field, Mode::Embed, Mode::Omni] {
       assert_eq!(
         trigger(mode, a),
         Some("Typing"),
@@ -347,20 +366,15 @@ mod tests {
       );
     }
     assert_eq!(
-      trigger(Mode::Nav, a),
-      Some("Typing"),
-      "a printable in NAV must seed the omnibox, not vanish"
-    );
-    assert_eq!(
-      super::super::mode::step(Mode::Nav, "Typing"),
-      Some(Mode::Omnibox),
-      "the NAV seed must LAND in the omnibox -- Typing that self-looped in NAV would swallow \
-       the character with no input on screen to show it"
+      super::super::mode::step(Mode::Omni, "Typing"),
+      Some(Mode::Omni),
+      "Typing in the composer must SELF-LOOP -- an edge that left OMNI would move the operator \
+       off the one home on every keystroke"
     );
     assert_eq!(
       trigger(Mode::Menu, a),
       Some("Hotkey"),
-      "a letter in MENU is an accelerator, the one deliberate exception to the seed rule"
+      "a letter in MENU is an accelerator, the one deliberate exception"
     );
   }
 

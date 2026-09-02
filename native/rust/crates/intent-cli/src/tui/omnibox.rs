@@ -166,11 +166,20 @@ impl Omnibox {
     self.pick = 0;
   }
 
-  /// Seed the buffer from NAV -- `:` or any printable lands here with its
-  /// character, which is the you-just-start-typing affordance.
-  pub fn seed(&mut self, c: char) {
+  /// Abandon the query.
+  ///
+  /// **THE PICK RESETS WITH THE BUFFER, and this exists so that it does.**
+  /// Every other mutator here resets `pick` for the same reason -- an index
+  /// into a match list that no longer exists points at nothing -- but the two
+  /// callers that abandon a query were both clearing `buffer` directly and
+  /// leaving `pick` behind. [`Omnibox::picked`] clamps, so nothing was visibly
+  /// wrong, which is precisely why it would have stayed wrong.
+  ///
+  /// **IT REPLACES `seed`, WHICH RETIRED WITH `NAV`.** Seeding carried a
+  /// keystroke from a mode that no longer exists into an input that is now
+  /// always focused; there is nothing to carry a character FROM.
+  pub fn clear(&mut self) {
     self.buffer.clear();
-    self.buffer.push(c);
     self.pick = 0;
   }
 
