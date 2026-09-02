@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-09-02 13:28Z
+heartbeat_at: 2026-09-02 14:10Z
 status: active
-focus: "ON THE BOUNCE: implement the TUI redesign (WP-17), ONE coordinated change. hv ACCEPTED the proposal (committed 7b08e8b1, intent/st/ST0056/tui-redesign-proposal.md) with ALL 4 open calls, and ruled the driving posture: CHANGE any AC/AT to match, DO NOT yak-shave old guards/tests -- rewrite them to reality. DONE this session: AT-00.11 green landed 83c512c2 (append-verified, vc-confirmed); proposal written+committed. Pre-fold board at git 07baadc1. RE-MEASURE every figure at pickup."
+focus: "IMPLEMENTING the TUI redesign (WP-17). MODE-MODEL HALF BUILT AND GREEN: 195 passed, 1 failed, and the one red is the DESIGNED coupling -- mode.rs EDGES is ahead of tui-design.md section 3 and goes green when the design lands. NAV folded into the composer; OMNI/MENU/EDIT. UNCOMMITTED, 7 files. vc GRANTED the canon window 14:09Z and RATIFIED my section-3 spelling correction. NEXT: section 2-5 design write + AC-17.9/AC-17.11 in the window, then commit 1; then the lower-bar half. RE-MEASURE every figure at pickup."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
