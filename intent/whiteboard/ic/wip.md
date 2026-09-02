@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-09-02 18:04Z
+heartbeat_at: 2026-09-02 18:41Z
 status: active
-focus: "TUI redesign (WP-17). FIVE landed and hv drove all of them: /settings f00a794c, vi 89f845cb, the caret fix 797f6a83, /help+brand+scroll 63d485de, /help-carries-the-CLI-surface 6a713509. DELIVERED PAIR REBUILT 18:03Z ON A CLEAN native/rust AND IS CURRENT -- the embed is LAST-COMMIT-TOUCHING-native/rust, not HEAD, so HEAD-minus-embed is not staleness (see watch-out 6). NEXT, hv RULED 17:40Z: `/{cmd} ...` runs any intent command from the palette -- LEND the terminal (no capture seam: measured), ALLOW-list not deny, TUI vocabulary wins collisions, MUTATION explicitly wanted, propose a criterion to vc FIRST. THEN vc window of FIVE (AC-17.9 O3 keymap-qualified is vc find). THEN propose ST0065 contract. RE-MEASURE EVERY FIGURE AT PICKUP."
+focus: "TUI redesign (WP-17). `/{cmd} ...` BUILT AND LANDED (2b77ce45) with hv's ruling honoured in full, mutation included; criterion proposed to vc BEFORE the code. vc's CANON WINDOW TAKEN AND LANDED (96fd9f9d) -- all five items plus AT-17.13/14/15/16, AC-17.13/15/16 now satisfied. DELIVERED PAIR REBUILT to 96fd9f9d and sha-verified. BLOCKED ON vc, ONE THING: AC-17.17 is minted TEST-BACKED and its own reach clause says no test can witness it -- the contract refused the pair and the kind is vc's pen; I offered the wait_for_operator seam that WOULD witness the ordering half. THEN 0215 (mine, WP-09: the word `parity` is wrong, and it survived because self-hosting makes install root == project root). THEN ST0065's contract. RE-MEASURE EVERY FIGURE AT PICKUP."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -36,7 +36,15 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 5. **MUTATION IS WANTED, EXPLICITLY.** hv was told `/st done ST0056` would work from a one-line prompt with no confirmation, and said do it. The unconditional re-read after the lend is already the rule (`WriteField`/`Hand`/`Open` all do it) and covers the staleness; cc's `RecordMovedUnderTheWrite` (`5ef0667c`) is the facade-side refusal if it ever races.
 6. **IT WANTS ITS OWN CRITERION AND vc HOLDS THE PEN.** Propose, do not mint. Name the MECHANISM not the instance (vc's standing condition, and my own `Hotkey` self-loop is the proof of why).
 
-**STILL OWED: vc's CANON WINDOW, GRANTED AND SEQUENCED ME FIRST, FIVE ITEMS.** section 2 prose; `AC-17.11` reworded; **`AC-17.9`'s O3 clause KEYMAP-QUALIFIED** (vc found this -- my vi ruling made _Esc on an already-empty composer is a no-op_ FALSE for the first press under vi, in the affirmative sentence vc had me write); `AC-17.13`'s AT row citing BOTH tests in both files; `AC-17.14`'s AT row citing BOTH of its halves (`a_setting_row_the_allow_list_does_not_carry_is_refused_rather_than_written` in app.rs, which carries its own control arm, and `the_settings_view_renders_the_declared_set_and_not_what_the_file_holds` in views.rs -- **the allow-list being right is no evidence the RENDERER asked it**). **vc RATIFIED both decisions I flagged**: `View::Settings` in the shared contract (correct under D56 -- one contract, both transports, equalising DOWNWARD), and Esc-enters-vi-normal (it did NOT need an hv ruling first: the collision was forced by hv's own request and I took the reading that PRESERVES the ratified invariant, which is the narrow choice a node may take).
+**vc's CANON WINDOW IS TAKEN AND LANDED (`96fd9f9d`, 18:38Z), ONE COHERENT COMMIT: all five items plus FOUR of the five AT rows.** §2's _three sections_ vs its own four bullets vs the ratified framed composer; `AC-17.11` reworded (**and the mechanism is the keeper: it was corrected 2026-08-30 to the design as ratified 2026-08-29, and hv's omnibox ruling collapsed the foot THE SAME DAY -- a row corrected to a document is only as current as the READ that corrected it**); the Esc cell keymap-qualified (from/trigger/to untouched, so the triple-comparing conformance test could never have seen it); `AC-17.13` carrying the relocation record on vc's condition; `AT-17.13/14/15/16` each citing EVERY test their criterion needs.
+
+**`AT-17.17` IS BLOCKED ON vc AND THE BLOCK IS A FINDING.** The contract refused it: `AC-17.17` is minted TEST-BACKED, its own reach clause says no test in the module can witness it, and a non-test AT can never satisfy a test-backed AC. **The tool caught an incoherent pair.** I put the premise back to vc rather than flipping anything: `Session` is a four-method trait with ONE production call site and `Borrowed` is already driven against a recorder, so a `wait_for_operator` seam WOULD witness the ordering half (restored, ran, waited, retaken) -- and no seam can witness the painting half. **The row may be two properties under one id.** vc rules; I build the seam if they want the ordering half backed.
+
+**AND THE AT CONTRACT IS TWO-SIDED IN A WAY I HAD NOT MET: a cited file must carry its row's literal id.** It refused me twice before I got it right. The markers went into the test doc comments in the same commit -- the row cites the file, the file names the row, so the citation is CHECKABLE rather than asserted.
+
+**LANDED SINCE THE BOUNCE:** `2b77ce45` `/{cmd}` -- `9d1a024c` the by-construction test fix (vc's find) -- `7b699207` the one-dispatch-home guard -- `96fd9f9d` the canon window.
+
+**SUPERSEDED, KEPT FOR THE SHAPE: vc's CANON WINDOW, FIVE ITEMS.** section 2 prose; `AC-17.11` reworded; **`AC-17.9`'s O3 clause KEYMAP-QUALIFIED** (vc found this -- my vi ruling made _Esc on an already-empty composer is a no-op_ FALSE for the first press under vi, in the affirmative sentence vc had me write); `AC-17.13`'s AT row citing BOTH tests in both files; `AC-17.14`'s AT row citing BOTH of its halves (`a_setting_row_the_allow_list_does_not_carry_is_refused_rather_than_written` in app.rs, which carries its own control arm, and `the_settings_view_renders_the_declared_set_and_not_what_the_file_holds` in views.rs -- **the allow-list being right is no evidence the RENDERER asked it**). **vc RATIFIED both decisions I flagged**: `View::Settings` in the shared contract (correct under D56 -- one contract, both transports, equalising DOWNWARD), and Esc-enters-vi-normal (it did NOT need an hv ruling first: the collision was forced by hv's own request and I took the reading that PRESERVES the ratified invariant, which is the narrow choice a node may take).
 
 **ALSO MINE, ROUTED BY vc AFTER THE WINDOW: PROPOSE `ST0065`'s CONTRACT.** It has ZERO criteria and has sat on hv's list for days; vc refused to rule it because they cannot invent what a thread is FOR, and I claim it. Propose, vc ratifies, hv reverses if wrong.
 
@@ -44,12 +52,13 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## TODO
 
-1. **BUILD `/{cmd} ...`** -- hv ruled it, spec in DOING. Propose the criterion to vc BEFORE the code lands, which is the order this project asks for and the order `AC-17.14` was minted in.
-2. **TAKE vc's CANON WINDOW, FIVE ITEMS** -- granted and sequenced me first; nothing is behind me. Gather the evidence OUTSIDE the window and make it ONE coherent commit (watch-out 2).
+1. **`AT-17.17` -- WAITING ON vc's RULING ON `AC-17.17`'s KIND.** Three coherent outcomes: split the row, narrow the reach clause to the painting half, or flip the kind and take the driven demonstration. **If vc wants the ordering half test-backed, I build the `wait_for_operator` seam** -- medium, squarely mine, and the property most likely to be tidied away later because a `read_line` under a `println!` reads as leftover scaffolding.
+2. **`0215` -- MINE (WP-09, the `llm` family), dc routed it.** `render.rs:6780` labels itself _v2 parity_ and v2 reads `$INTENT_HOME/usage-rules.md` -- the INSTALL's copy -- where v3 reads the PROJECT's. **v3's behaviour is RIGHT and the word `parity` is what is wrong**; remedy is a label + a migration note for the rc flip (v2 rc=0 with the install's rules where v3 rc=1 with nothing). **THE REASON IT SURVIVED IS THE KEEPER AND IT IS NOT ABOUT THIS ROW: in a SELF-HOSTED checkout the install root and the project root are ONE DIRECTORY**, so every drive taken in this tree agrees and the divergence exists only for consumers. dc has offered the census of which `v2:`-labelled rows rest on that distinction -- **worth saying yes to**, it is a class not an instance.
 3. **PROPOSE `ST0065`'s CONTRACT** -- routed to me by vc; mechanism not instance.
-4. **ST0064 remaining (5/9), not mine to start:** 01.2/01.6 cc-gated; 01.7 dc pipeline + hv's ADC signing; 01.4 cc console.
-5. **Explorer/Lotus menu SELECTION (hv item, A1 on vc's list)** -- needs hv at the keys; not answerable here.
-6. **`intent app start|stop|restart`** (hv, new user verb): controls the INSTALLED app; new_surface `app` family; coord cc.
+4. **`0181`** -- dc disposed it, recommendation WITHDRAW, vc to rule. **Nothing of mine moves until vc rules**; if ruled, the retire is a WP-09 write and therefore mine.
+5. **ST0064 remaining (5/9), not mine to start:** 01.2/01.6 cc-gated; 01.7 dc pipeline + hv's ADC signing; 01.4 cc console.
+6. **Explorer/Lotus menu SELECTION (hv item, A1 on vc's list)** -- needs hv at the keys; not answerable here.
+7. **`intent app start|stop|restart`** (hv, new user verb): controls the INSTALLED app; new_surface `app` family; coord cc.
 
 ## Watch-outs -- mechanisms only
 
