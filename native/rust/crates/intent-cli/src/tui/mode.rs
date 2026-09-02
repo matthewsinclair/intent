@@ -201,10 +201,18 @@ pub fn out_of(mode: Mode) -> impl Iterator<Item = &'static Edge> {
 /// AND NOT A BEHAVIOUR CHANGE.** Descending has always been *stay where you
 /// are and push a view*; it only looked like a mode change while the place you
 /// stayed was called NAV.
+/// **`setting` TAKES THE DOOR ARM, NOT THE FIELD ARM, AND THE REASON IS THE
+/// SAME ONE THE DOOR ARM EXISTS FOR.** A setting's values are DECLARED
+/// (`intentsvcs::settings::Setting::values`), so Enter PICKS the next one; it
+/// does not open a collector. Typing `emcas` into a mode field is a spelling
+/// error a surface holding the list can make impossible, and refusing it
+/// afterwards is the worse of the two. It stays in OMNI for the same reason
+/// descending does -- the value changes and the operator has not gone anywhere.
 pub const BY_ROW_KIND: &[(&str, Mode)] = &[
   ("prose", Mode::Embed),
   ("artefact", Mode::Embed),
   ("button", Mode::Omni),
+  ("setting", Mode::Omni),
 ];
 
 /// Every edge `on` offers from `mode`.

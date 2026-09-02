@@ -154,6 +154,20 @@ The retired bar had a `Go` group listing the entity kinds, and rebuilding it her
 
 **There is still no `Edit` entry.** Editing a field is `⏎` on the row; reaching it through a menu was scope that did not belong there, and that survives the change unaltered.
 
+### A command may take an argument
+
+**`/settings editing.mode` is one command and one argument, and the split is at the first space.** The palette matches on the FIRST WORD alone, so the command stays under the pick while its argument is being typed — without the split, `/settings editing.mode` searches the vocabulary for the whole phrase, matches nothing, and the list empties out mid-argument while the operator watches a prompt that still looks right.
+
+The argument is **read from the buffer when `⏎` is pressed, and never carried on the command**. `vocabulary()` is a constant list; an argument living on a `Command` would have to be rebuilt on every keystroke to stay in step with what is typed, and a stale copy of it is a command that runs against an argument the operator has already edited.
+
+**The split is unambiguous only while no command name contains a space**, so a test says so rather than the convention being trusted.
+
+### The `group` field is gone, and that is a finding
+
+This section said the Lotus tree _survives as the GROUPING of this vocabulary_, and it was built exactly that way: a `group` label on every command, declared, populated — **and read by nothing, for its whole life.** That is the `Hotkey` defect above, in the module whose own note condemns it, one commit later.
+
+Rendering it was the obvious repair and the ranker refuses it: the boosted prefix the fuzzy matcher scores has to be the NAME, at the front of the haystack, so a group put there would take the boost that belongs to the thing the operator types. **So the field is removed rather than rehomed** — the rule this section already states for offers, applied to a field. It comes back when something reads it.
+
 ## 6. Navigation and views
 
 Navigation is a **stack**: `⏎` pushes, `Backspace`/`ESC` pops. Cursor and scroll reset with the view, because a row index means nothing once the row set changes.
@@ -164,6 +178,7 @@ Views: `Thread`, `Issue`, `Threads`, `Issues`, `Packages`, `Criteria`, `Tests`, 
 - **A row's door is DECLARED on the row, not inferred from its kind.** Working out where `documents` goes from the fact that it looks like a pane is the same guess-from-shape that makes `intent edit st 68` misparse today.
 - **Opening a real file is a separate action from navigating.** Modelling it as a view was wrong and the compiler said so immediately.
 - **When nested, the APP ROW carries the trail and the exit key.** A way back that is wired and unlabelled is a way back nobody finds — this was a real defect in the strawman: `Backspace` worked and nothing on screen said so, so every key a user tried was a reasonable guess and none was the one.
+- **`/settings` is the one view that is not derived from the declaration, and its path segment is RESERVED.** It is a `View` because a `View` is what the stack holds — a settings screen that was not one would need a second place for the face to remember it was there, which is the parallel navigation model `nav.rs` exists to refuse. Being a `View` also buys `AC-17.7`'s no-trap property for free. **The reservation is a real cost, paid deliberately:** `/settings` would otherwise parse as the collection of an entity kind called `settings`, so that kind becomes unaddressable — and silently, since `View::parse` would go on returning a perfectly good view. A test holds the reservation against the REAL declaration, so a form declared with that name fails the suite instead of disappearing from both faces.
 
 ### Documents are not fields
 
@@ -193,6 +208,23 @@ Where the selected row carries detail, the BODY splits: list above, detail below
 **ONE keymap** (hv, 2026-08-30: _we're handing the text off to a dedicated editor, not trying to recreate it inside_): characters and Backspace. The emacs/vi in-field keymaps from the earlier design are retired unbuilt — two keymaps inside one-line fields is recreating an editor inside, and the measured `INTENT_EDIT_MODE`/`~/.inputrc` resolution notes move to the prose-handoff section where the real editor is chosen.
 
 **A `select` row opens the same collector for now and the write door adjudicates** — a status typed against the machine is refused in the store's words. The picker (offering the legal transitions, as the design always intended) is the recorded next step; what ships never silently accepts an illegal state, because `facade.set` will not.
+
+### Settings — a declared allow-list, not the file's keys
+
+**RULED BY hv 2026-09-02: the editing mode becomes a setting, which necessitates a `/settings` command.** `/settings` shows the settings in the body and they are edited in place; `/settings <path>` says what one of them is. The file is `~/.intent/config.json` — the operator's own configuration, global rather than per-project, because a keymap preference does not change when you change directory. `intentsvcs::userstate::global_config()` already resolves that path, so there was no config system to build, only a reader and a writer.
+
+**`/settings` IS BOUND TO THE `explorer:` SECTION AND NEVER TO THE WHOLE DOCUMENT**, and paths resolve RELATIVE to it: `/settings editing.mode`, never `/settings explorer.editing.mode`. One resolution rule beats two — a surface accepting both spellings has to answer what the second one means the day the section is renamed. A spelling the allow-list does not carry is **refused AS A SPELLING** (section 8), saying what was tried and that `/settings` governs the explorer section, which teaches the scope instead of reading as broken.
+
+**`AC-17.14` IS THE ROW, AND IT IS NOT `AC-17.13` ONE SURFACE OVER.** `AC-17.13` refuses to offer what cannot be ACTED ON; this refuses to offer what CAN be acted on and MUST NOT BE. A dead key does nothing; a live setting over `intent_version` succeeds and breaks the install — a broken promise versus a working weapon. **Writability is not permission**, and a surface deriving its rows from the file's keys has confused the two. So:
+
+- **The exposed set is an ALLOW-LIST the surface declares.** A deny-list inverts the failure: a key added to the config later becomes editable the moment somebody writes it, by nobody's decision, which is exactly how `intent_version` (a migration marker) and `intent_dir` (structural) would have arrived.
+- **The refusal is STRUCTURAL, not advisory.** State outside the declared section is not rendered read-only or greyed, it is ABSENT — a row an operator can see is a row an operator will eventually try.
+
+**A SETTING IS PICKED, NOT TYPED.** `⏎` on a settings row cycles to the next DECLARED value, so it takes the door arm of the `OMNI + Enter` triple rather than the field arm. Typing `emcas` into a mode field is a spelling error a surface holding the list can make impossible, and refusing it afterwards is the worse of the two — **this is the picker the `select` row above records as its next step, arriving first on the surface whose whole value set is declared.** Every declared setting must therefore offer at least two values, and a test says so: a free-text setting needs a collector this surface does not have, and declaring one would offer an edit that cannot happen.
+
+**ONE WRITER FOR ONE FILE.** `bootstrap.rs` used to hand-render `config.json` and its note gave the reason — a serialiser is a second writer nobody declared. `/settings` made a second writer inevitable, so the two were made ONE rather than left to agree by hand: `bootstrap` builds the document and `settings::render_doc` emits it, with the known keys in a fixed order, every unknown key surviving, and the trailing newline the operator's editor expects. **`intent bootstrap --force` now keeps the settings section it did not author** — `--force` has always meant _re-record this machine's identity_, never _discard preferences_, and a setup verb silently resetting them would be the one destructive path in a command whose whole job is establishing state.
+
+**The first setting is `explorer.editing.mode`: `emacs` (the default) or `vi`.** It is DECLARED rather than detected because **`set -o vi` is not detectable from a child process — measured, not assumed**: `SHELLOPTS` is bash-only and absent under zsh, nothing else in the environment carries it, and `~/.inputrc` is readline's file, which zsh never reads. Declared-not-detected is `ST0037`'s ruling one surface over. **This does not reopen the in-field keymap retired above**: that retirement was about recreating an editor inside a one-line item field, and it stands. What gets a keymap is the COMPOSER, which is a text input the operator lives in.
 
 ### Prose fields — the external editor
 

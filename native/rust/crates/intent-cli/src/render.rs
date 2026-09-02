@@ -3238,6 +3238,12 @@ fn present(facade: &Facade, view: &intentsvcs::nav::View) -> bool {
   use intentsvcs::nav::View;
   match view {
     View::Entities | View::Collection { .. } => true,
+    // **THE SETTINGS VIEW IS ALWAYS PRESENT, AND ITS ABSENT FILE IS NOT A
+    // MISSING ENTITY.** A machine that has never written a setting still has
+    // every one of them in force at its default -- see
+    // `intentsvcs::settings::read_all`. Answering `false` here would refuse the
+    // one screen that tells the operator what is in force.
+    View::Settings => true,
     View::Item { kind, id } | View::Children { kind, id, .. } => {
       entity_json(facade, kind, id).is_some()
     }
@@ -3261,6 +3267,16 @@ struct Live {
   table: crate::dispatch::Table,
 }
 
+/// Where the operator's settings live, or a refusal in the resolver's words.
+///
+/// **ONE HOME FOR THE PATH ON THIS SIDE TOO.** Both the reader and the writer
+/// need it and each is one line long; two `map_err`s over the same call is how
+/// the reader ends up refusing in different words from the writer.
+fn config_path() -> Result<std::path::PathBuf, tui::edit::Refused> {
+  intentsvcs::userstate::global_config()
+    .map_err(|why| tui::edit::Refused::new(format!("no settings file -- {why}")))
+}
+
 impl tui::run::Source for Live {
   fn rows(&mut self, view: &intentsvcs::nav::View) -> Vec<tui::layout::Row> {
     rows_for(&self.facade, &self.declaration, &self.table, view)
@@ -3275,6 +3291,22 @@ impl tui::run::Source for Live {
         Err(tui::edit::Refused::new(format!("{why} -- {remedy}")))
       }
     }
+  }
+
+  /// One setting's value in force. **The refusal is the settings module's own
+  /// sentence**, carried whole for the reason `locate`'s is: it already names
+  /// the spelling that was tried and the section that governs, and a second
+  /// author here would produce two wordings of one refusal.
+  fn setting(&mut self, path: &str) -> Result<String, tui::edit::Refused> {
+    let config = config_path()?;
+    intentsvcs::settings::read_one(&config, path)
+      .map_err(|why| tui::edit::Refused::new(why.to_string()))
+  }
+
+  fn set_setting(&mut self, path: &str, value: &str) -> Result<(), tui::edit::Refused> {
+    let config = config_path()?;
+    intentsvcs::settings::write_one(&config, path, value)
+      .map_err(|why| tui::edit::Refused::new(why.to_string()))
   }
 
   /// Every addressable destination, id-first so the omnibox's id-weighted
@@ -3474,6 +3506,22 @@ fn rows_for(
   use tui::layout::Row;
   match view {
     View::Entities => tui::views::entity_rows(declaration),
+    // **THE ONE VIEW THAT DOES NOT GO THROUGH THE FACADE, BECAUSE ITS STATE IS
+    // NOT IN THE STORE.** `AC-17.3` says the TUI is a client of the facade for
+    // the MODEL, and the operator's own configuration is not part of it -- it
+    // lives at `~/.intent/config.json` and is the same on every project. A
+    // settings row reaching for the facade would be asking the wrong authority.
+    View::Settings => match intentsvcs::userstate::global_config() {
+      Ok(path) => tui::views::settings_rows(&path),
+      // **A VIEW THAT CANNOT LOAD RENDERS AN ERROR ROW, NEVER AN EMPTY FORM**
+      // (`tui-design.md` section 8). With no `$HOME` there is no config path,
+      // and an empty settings screen would say the operator has no settings.
+      Err(why) => vec![Row::new(
+        "settings",
+        format!("unavailable -- {why}"),
+        "label",
+      )],
+    },
     View::Collection { kind } if kind == "thread" => facade
       .st_list()
       .into_iter()

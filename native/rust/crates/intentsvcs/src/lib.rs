@@ -86,6 +86,7 @@ pub mod remedy;
 pub mod resolve;
 pub mod rootfiles;
 pub mod rules;
+pub mod settings;
 pub mod store;
 pub mod sync;
 pub mod transitions;

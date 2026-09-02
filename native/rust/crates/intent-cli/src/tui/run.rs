@@ -70,6 +70,30 @@ pub trait Source: edit::Model {
   fn index(&mut self) -> Vec<super::omnibox::Entry> {
     Vec::new()
   }
+
+  /// What one declared setting is set to. `AC-17.14`.
+  ///
+  /// **ON THE SOURCE FOR `locate`'s REASON**: the value is on disk, the app
+  /// holds no reader, and the default refuses because a source that has no
+  /// config genuinely cannot answer. Refusing is not the same as reporting a
+  /// default, and reporting one here would be a guess wearing an answer's
+  /// clothes.
+  fn setting(&mut self, path: &str) -> Result<String, Refused> {
+    Err(Refused::new(format!(
+      "`{path}` cannot be read -- this source has no settings"
+    )))
+  }
+
+  /// Put one declared setting to `value`.
+  ///
+  /// **THE DEFAULT REFUSES RATHER THAN SUCCEEDING SILENTLY**, which matters
+  /// more here than on the reader: a test source that accepted writes would let
+  /// every settings test pass without a writer existing.
+  fn set_setting(&mut self, path: &str, _value: &str) -> Result<(), Refused> {
+    Err(Refused::new(format!(
+      "`{path}` cannot be written -- this source has no settings"
+    )))
+  }
 }
 
 /// A [`Session`] wrapped so its child runs with the terminal given back.
@@ -421,6 +445,28 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
       Step::WriteField(h, value) => {
         app.notice = match source.write(&h, &value) {
           Ok(()) => format!("{} saved", h.field),
+          Err(why) => why.to_string(),
+        };
+        rows = source.rows(app.stack.current());
+        app.refocus(rows.len());
+      }
+      // **`/settings <path>` ANSWERS ON THE INFO ROW AND NAVIGATES NOWHERE.**
+      // hv's shape: the bare command shows them in the body, the argument form
+      // reads one. A refusal arrives in the settings module's own words --
+      // `tui-design.md` section 8's rule, and there is no second author for it
+      // here.
+      Step::ShowSetting(path) => {
+        app.notice = match source.setting(&path) {
+          Ok(value) => format!("{}.{path} = {value}", intentsvcs::settings::SECTION),
+          Err(why) => why.to_string(),
+        };
+      }
+      // **THE RE-READ IS UNCONDITIONAL, for `WriteField`'s reason** -- the file
+      // is the authority on what the write did, and a repaint from the rows in
+      // hand is a repaint from before it.
+      Step::SetSetting { path, value } => {
+        app.notice = match source.set_setting(&path, &value) {
+          Ok(()) => format!("{path} = {value}"),
           Err(why) => why.to_string(),
         };
         rows = source.rows(app.stack.current());

@@ -149,9 +149,18 @@ pub fn write_config(
   // file per run in a directory nothing ever prunes. The content is four
   // fields an operator can retype, `--force` is explicit about replacing, and
   // this estate's own rule is that migrations prune rather than preserve.
-  std::fs::write(path, render(author.as_deref())).map_err(|source| BootstrapError::Write {
-    path: path.display().to_string(),
-    source,
+  //
+  // **THE OPERATOR'S SETTINGS ARE NOT AMONG THE FOUR FIELDS THEY CAN RETYPE**,
+  // which is why the section survives a replace. `--force` means *re-record
+  // this machine's identity*; it has never meant *discard preferences*, and a
+  // setup command that silently reset them would be the one destructive path
+  // in a verb whose whole job is establishing state.
+  let kept = kept_settings(path);
+  std::fs::write(path, render(author.as_deref(), kept)).map_err(|source| {
+    BootstrapError::Write {
+      path: path.display().to_string(),
+      source,
+    }
   })?;
 
   Ok(if replacing {
@@ -167,30 +176,54 @@ pub fn write_config(
   })
 }
 
+/// The `explorer` section already on disk, if there is one.
+///
+/// **EVERY FAILURE IS `None` FOR [`recorded_author`]'s REASON**: the question
+/// is *are there settings to carry over*, and "no file", "unreadable file",
+/// "file without the section" are all honestly answered no. This runs on the
+/// replace path, where the file is about to be rewritten from the fields
+/// `bootstrap` owns either way.
+fn kept_settings(path: &Path) -> Option<serde_json::Value> {
+  let text = std::fs::read_to_string(path).ok()?;
+  let parsed: serde_json::Value = serde_json::from_str(&text).ok()?;
+  parsed.get(crate::settings::SECTION).cloned()
+}
+
 /// The config's bytes.
 ///
-/// **Hand-rendered rather than serialised, and the reason is measured rather
-/// than stylistic:** `serde_json` writes a map in whatever order it is given
-/// and offers no trailing newline, and this file is one an operator opens in an
-/// editor. Four fixed fields in a fixed order, with a newline, is a file that
-/// looks the same every time it is written -- and a serialiser is a second
-/// writer nobody declared.
+/// **Hand-BUILT rather than serialised from a struct, and the reason is
+/// measured rather than stylistic:** `serde_json` writes a map in whatever
+/// order it is given and offers no trailing newline, and this file is one an
+/// operator opens in an editor. Fixed fields in a fixed order, with a newline,
+/// is a file that looks the same every time it is written.
+///
+/// **THE RENDERING ITSELF MOVED TO [`crate::settings::render_doc`] AND THAT IS
+/// THE SAME ARGUMENT, NOT A REVERSAL OF IT.** What this note has always
+/// objected to is a SECOND writer of one document; `/settings` made a second
+/// writer inevitable, so the two were made one rather than left to agree by
+/// hand. The order and the trailing newline are still fixed, and they are fixed
+/// in one place now instead of two.
 ///
 /// **AN ABSENT AUTHOR IS OMITTED, NOT WRITTEN AS `null` OR `""`.** A key whose
 /// value is empty reads as a decision someone made; an absent key reads as a
 /// question nobody answered, which is what it is.
-fn render(author: Option<&str>) -> String {
-  let mut out = String::from("{\n");
-  out.push_str(&format!(
-    "  \"intent_version\": \"{}\",\n",
-    env!("CARGO_PKG_VERSION")
-  ));
+fn render(author: Option<&str>, kept: Option<serde_json::Value>) -> String {
+  let mut doc = serde_json::Map::new();
+  doc.insert(
+    "intent_version".into(),
+    serde_json::Value::String(env!("CARGO_PKG_VERSION").to_string()),
+  );
   if let Some(a) = author {
-    out.push_str(&format!("  \"author\": \"{}\",\n", a.replace('"', "\\\"")));
+    doc.insert("author".into(), serde_json::Value::String(a.to_string()));
   }
-  out.push_str("  \"intent_dir\": \"intent\"\n");
-  out.push_str("}\n");
-  out
+  doc.insert(
+    "intent_dir".into(),
+    serde_json::Value::String("intent".to_string()),
+  );
+  if let Some(section) = kept {
+    doc.insert(crate::settings::SECTION.to_string(), section);
+  }
+  crate::settings::render_doc(&doc)
 }
 
 /// The author this machine has recorded, if `bootstrap` has run.
@@ -294,15 +327,39 @@ mod tests {
     assert!(parsed.get("author").is_none());
   }
 
-  /// The rendered file is JSON in both directions, with and without the
-  /// optional key -- the comma placement is the thing that breaks.
+  /// The rendered file is JSON in every direction -- with and without the
+  /// optional key, and with and without a settings section. The comma
+  /// placement is the thing that breaks, and each optional key is another
+  /// comma nobody is watching.
   #[test]
-  fn both_shapes_are_valid_json() {
+  fn every_shape_is_valid_json() {
+    let section = serde_json::json!({ "editing": { "mode": "vi" } });
     for author in [Some("matts"), None] {
-      let text = render(author);
-      serde_json::from_str::<serde_json::Value>(&text)
-        .unwrap_or_else(|e| panic!("invalid json for author={author:?}: {e}\n{text}"));
+      for kept in [Some(section.clone()), None] {
+        let text = render(author, kept.clone());
+        serde_json::from_str::<serde_json::Value>(&text).unwrap_or_else(|e| {
+          panic!("invalid json for author={author:?} kept={kept:?}: {e}\n{text}")
+        });
+      }
     }
+  }
+
+  /// **`--force` RE-RECORDS THE MACHINE AND KEEPS THE OPERATOR'S SETTINGS.**
+  /// Driven rather than reasoned about, because the destructive direction is
+  /// the one that leaves no trace: a reset preference looks exactly like one
+  /// that was never set.
+  #[test]
+  fn forcing_a_rewrite_keeps_the_settings_section_it_did_not_author() {
+    let path = tmp("force-keeps-settings").join("config.json");
+    write_config(&path, Some("matts".into()), false).expect("first write");
+    crate::settings::write_one(&path, "editing.mode", "vi").expect("a declared setting");
+    write_config(&path, Some("matts".into()), true).expect("forced rewrite");
+    assert_eq!(
+      crate::settings::read_one(&path, "editing.mode").expect("declared"),
+      "vi",
+      "`bootstrap --force` reset a preference it never authored:\n{}",
+      std::fs::read_to_string(&path).unwrap_or_default()
+    );
   }
 
   #[test]

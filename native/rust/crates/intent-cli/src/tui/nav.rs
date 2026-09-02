@@ -108,7 +108,7 @@ mod tests {
   /// the corpus rather than over three hand-picked examples.
   fn every_view() -> Vec<View> {
     let l = Loaded::load().expect("the shipped form declaration must load");
-    let mut out = vec![View::Entities];
+    let mut out = vec![View::Entities, View::Settings];
     for kind in kinds(&l) {
       out.push(View::Collection { kind: kind.clone() });
       out.push(View::Item {

@@ -52,13 +52,30 @@ pub enum Act {
   Quit,
   /// Pop the view stack -- the same act as `Backspace` on an empty composer.
   Back,
+  /// The operator's own settings: the view with no argument, one value with
+  /// one. `AC-17.14`.
+  ///
+  /// **THE ARGUMENT IS READ FROM THE BUFFER AT RUN TIME, NOT CARRIED HERE.**
+  /// [`vocabulary`] is a constant list and an act holding an argument would
+  /// have to be rebuilt on every keystroke to stay in step with what is typed
+  /// -- and a stale copy of it is a command that runs against an argument the
+  /// operator has already edited.
+  Settings,
 }
 
 /// One offer in the palette.
+///
+/// **THERE IS NO `group` FIELD, AND ITS REMOVAL IS A FINDING RATHER THAN A
+/// SIMPLIFICATION.** §5 says the Lotus tree *survives as the GROUPING of this
+/// vocabulary*, and it was built that way: a `group` label on every command,
+/// declared, populated -- **and read by nothing, for its whole life.** That is
+/// the `Hotkey` defect exactly, in the module whose own note condemns it, one
+/// commit later. Rendering it would have meant putting the group at the front
+/// of the haystack, where the ranker's boosted prefix has to be the NAME; so
+/// the honest move is the one this module already states for offers, applied to
+/// a field: **it comes back when something reads it.**
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Command {
-  /// §5's tree, surviving as a grouping label rather than as a menu level.
-  pub group: &'static str,
   /// What the operator types. The boosted half of the haystack.
   pub name: String,
   /// What it does, in the operator's words.
@@ -73,16 +90,19 @@ pub struct Command {
 pub fn vocabulary() -> Vec<Command> {
   vec![
     Command {
-      group: "File",
       name: "quit".into(),
       blurb: "leave explore".into(),
       act: Act::Quit,
     },
     Command {
-      group: "Go",
       name: "back".into(),
       blurb: "up one view".into(),
       act: Act::Back,
+    },
+    Command {
+      name: "settings".into(),
+      blurb: "explorer settings -- name one to read it".into(),
+      act: Act::Settings,
     },
   ]
 }
@@ -103,7 +123,32 @@ pub fn haystack(c: &Command) -> String {
 /// from an address. It also gives `Backspace` an exit that needs no special
 /// case: erase back past the `/` and there is no palette left to be in.
 pub fn query_of(buffer: &str) -> Option<&str> {
-  buffer.strip_prefix(SIGIL)
+  parts_of(buffer).map(|(query, _)| query)
+}
+
+/// A palette buffer split into the command query and its argument, or `None`
+/// when this is not a palette buffer at all.
+///
+/// **AN ARGUMENT IS EVERYTHING AFTER THE FIRST SPACE, AND THE COMMAND IS
+/// MATCHED ON THE FIRST WORD ALONE.** Without the split, typing
+/// `/settings editing.mode` would search the vocabulary for the whole phrase
+/// and match nothing -- the palette would empty out mid-argument and Enter
+/// would run nothing, with the operator watching a correct-looking prompt.
+///
+/// **NO COMMAND NAME CONTAINS A SPACE, and [`no_command_name_contains_a_space`]
+/// holds that** -- the split is unambiguous only while that is true, and it is
+/// the sort of thing a two-word command would quietly break.
+pub fn parts_of(buffer: &str) -> Option<(&str, &str)> {
+  let rest = buffer.strip_prefix(SIGIL)?;
+  Some(match rest.split_once(' ') {
+    Some((query, argument)) => (query, argument.trim()),
+    None => (rest, ""),
+  })
+}
+
+/// The argument typed after the command, empty when there is none.
+pub fn argument_of(buffer: &str) -> &str {
+  parts_of(buffer).map(|(_, arg)| arg).unwrap_or("")
 }
 
 /// Every command `query` hits, best first, at most `cap`.
@@ -227,5 +272,48 @@ mod tests {
       None,
       "an address must never be read as a command query"
     );
+  }
+
+  /// **THE COMMAND KEEPS MATCHING WHILE ITS ARGUMENT IS BEING TYPED.** Driven
+  /// through `matches` rather than through the splitter alone: the splitter
+  /// being right is no evidence that the ranker was given its output.
+  #[test]
+  fn an_argument_does_not_stop_the_command_from_matching() {
+    assert_eq!(
+      parts_of("/settings editing.mode"),
+      Some(("settings", "editing.mode"))
+    );
+    assert_eq!(parts_of("/settings"), Some(("settings", "")));
+    assert_eq!(parts_of("/settings   "), Some(("settings", "")));
+    assert_eq!(argument_of("/settings editing.mode"), "editing.mode");
+    assert_eq!(argument_of("ST0056"), "");
+
+    let v = vocabulary();
+    let with_arg = matches(
+      &v,
+      query_of("/settings editing.mode").expect("a palette buffer"),
+      8,
+    );
+    assert!(
+      !with_arg.is_empty(),
+      "the palette emptied out while an argument was being typed"
+    );
+    assert_eq!(
+      v[with_arg[0].entry].act,
+      Act::Settings,
+      "the argument outranked the command it belongs to"
+    );
+  }
+
+  /// The split is unambiguous only while no command name carries a space.
+  #[test]
+  fn no_command_name_contains_a_space() {
+    for c in vocabulary() {
+      assert!(
+        !c.name.contains(' '),
+        "`{}` has a space in its name, so the argument split cuts it in half",
+        c.name
+      );
+    }
   }
 }

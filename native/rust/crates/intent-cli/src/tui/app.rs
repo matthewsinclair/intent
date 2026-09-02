@@ -81,6 +81,22 @@ pub enum Step {
   WriteField(Handoff, String),
   /// `AC-17.10`: hand this field to `$VISUAL`/`$EDITOR`.
   Hand(Handoff),
+  /// `/settings <path>`: say what one setting is, or refuse the spelling.
+  ///
+  /// **A STEP RATHER THAN AN ANSWER, because the value is on disk.** The app
+  /// holds no reader for the same reason it holds no facade, and guessing here
+  /// would report a default as though it were what is in force.
+  ShowSetting(String),
+  /// `AC-17.14`: put one declared setting to its next declared value.
+  ///
+  /// **THE VALUE IS DECIDED HERE AND THE WRITE HAPPENS THERE.** Which value
+  /// comes next is a pure function of the declaration and what the row shows,
+  /// so it stays in the state machine where it can be driven without a disk;
+  /// the write is a side effect and is not.
+  SetSetting {
+    path: String,
+    value: String,
+  },
   /// `AC-17.8`: open one realised artefact of this entity, or refuse it.
   ///
   /// **Its own variant rather than a flag on [`Handoff`]**, because
@@ -390,6 +406,9 @@ impl App {
         "Enter" => {
           let hits = self.palette();
           let picked = self.omnibox.picked(hits.len()).map(|p| hits[p].entry);
+          // **THE ARGUMENT IS TAKEN BEFORE THE BUFFER IS CLEARED**, which is
+          // the whole reason it is read here rather than carried on the `Act`.
+          let argument = commands::argument_of(&self.omnibox.buffer).to_string();
           self.omnibox.clear();
           self.mode = Mode::Omni;
           let Some(at) = picked else {
@@ -401,6 +420,16 @@ impl App {
               self.pop_view();
               Step::Continue
             }
+            // **NO ARGUMENT OPENS THE VIEW; AN ARGUMENT READS ONE VALUE.**
+            // hv's own shape: `/settings` shows them in the body, and
+            // `/settings editing.mode` says what that one is. The read is a
+            // `Step` because the value is on disk and this module holds no
+            // reader -- the same rule that makes `Land` a step.
+            Act::Settings if argument.is_empty() => {
+              self.push(View::Settings);
+              Step::Continue
+            }
+            Act::Settings => Step::ShowSetting(argument),
           };
         }
         "Esc" | "Cancel" | "/" => {
@@ -464,6 +493,25 @@ impl App {
     // guessing. Reached only on an empty composer, since a typed query
     // answered Enter above.
     if self.mode == Mode::Omni && trigger == "Enter" && next == Mode::Omni {
+      // **A SETTING ROW PICKS ITS NEXT DECLARED VALUE**, which is the door
+      // arm's other claimant -- `mode::BY_ROW_KIND` says why the two share it.
+      // Ahead of the door because a setting row has no door, and falling
+      // through would tell the operator it *opens nothing yet* while sitting
+      // on the one screen whose rows are all actionable.
+      if let Some(row) = self.focused_row(rows).filter(|r| r.kind == "setting") {
+        // **THE DECLARATION DECIDES, AND A ROW IT DOES NOT CARRY IS REFUSED.**
+        // The rows come from the allow-list, so this cannot fire today; it is
+        // here because the day something else renders a `setting` row, the
+        // failure must be a refusal and not a write to an undeclared key.
+        let Some(setting) = intentsvcs::settings::find(&row.name) else {
+          self.notice = format!("`{}` is not a declared setting", row.name);
+          return Step::Continue;
+        };
+        return Step::SetSetting {
+          path: row.name.clone(),
+          value: setting.next_after(&row.value).to_string(),
+        };
+      }
       match self.focused_row(rows).and_then(|r| r.door.clone()) {
         Some(view) => self.push(view),
         None => self.notice = "this row opens nothing yet".to_string(),
@@ -1856,6 +1904,180 @@ mod tests {
         command.name
       );
     }
+  }
+
+  /// One row per declared setting, shaped exactly as `views::settings_rows`
+  /// shapes them, so the app is driven against the row kind the real renderer
+  /// emits rather than against one this test invented.
+  fn settings_rows() -> Vec<Row> {
+    intentsvcs::settings::DECLARED
+      .iter()
+      .map(|s| {
+        Row::named(
+          s.path.to_string(),
+          s.label.to_string(),
+          s.default().to_string(),
+          "setting",
+        )
+      })
+      .collect()
+  }
+
+  fn on_settings() -> App {
+    let mut app = App::explore();
+    app.commands = commands::vocabulary();
+    app.push(View::Settings);
+    app.point_at(settings_rows().len());
+    app
+  }
+
+  /// **hv's SHAPE, DRIVEN: `/settings` PUTS THEM IN THE BODY.** The bare
+  /// command navigates; it does not answer on the info row, because the whole
+  /// point of the bare form is that they are all in front of you.
+  #[test]
+  fn the_bare_settings_command_opens_the_settings_view() {
+    let rows = item_rows();
+    let mut app = App::explore();
+    app.commands = commands::vocabulary();
+    app.point_at(rows.len());
+    let before = app.stack.depth();
+
+    app.on_key(key(KeyCode::Char('/')), &rows);
+    for c in "settings".chars() {
+      app.on_key(key(KeyCode::Char(c)), &rows);
+    }
+    assert_eq!(app.on_key(key(KeyCode::Enter), &rows), Step::Continue);
+
+    assert_eq!(
+      app.stack.current(),
+      &View::Settings,
+      "`/settings` did not open the settings view"
+    );
+    assert_eq!(app.stack.depth(), before + 1);
+    assert_eq!(app.mode, Mode::Omni, "running a command left the composer");
+    assert!(
+      app.omnibox.is_empty(),
+      "the palette buffer survived the command"
+    );
+
+    // **AND IT CAN BE LEFT** -- `AC-17.7`'s no-trap property, asked of the one
+    // view that is not derived from the declaration.
+    app.on_key(key(KeyCode::Backspace), &rows);
+    assert_ne!(
+      app.stack.current(),
+      &View::Settings,
+      "the settings view could be entered and not left"
+    );
+  }
+
+  /// **`/settings editing.mode` READS ONE VALUE AND GOES NOWHERE.** The
+  /// argument form is a question, not a destination -- and the depth check is
+  /// what tells the two apart, since both would clear the buffer.
+  #[test]
+  fn a_settings_command_with_an_argument_asks_for_that_one_value() {
+    let rows = item_rows();
+    let mut app = App::explore();
+    app.commands = commands::vocabulary();
+    app.point_at(rows.len());
+    let before = app.stack.depth();
+
+    app.on_key(key(KeyCode::Char('/')), &rows);
+    for c in "settings editing.mode".chars() {
+      app.on_key(key(KeyCode::Char(c)), &rows);
+    }
+    assert_eq!(
+      app.on_key(key(KeyCode::Enter), &rows),
+      Step::ShowSetting("editing.mode".into()),
+      "the argument did not reach the act"
+    );
+    assert_eq!(
+      app.stack.depth(),
+      before,
+      "reading one setting navigated somewhere"
+    );
+  }
+
+  /// **`⏎` ON A SETTING PICKS THE NEXT DECLARED VALUE.** Held over every
+  /// declared setting rather than over the one that exists today, and against
+  /// `next_after` rather than against a literal -- a test naming `vi` here
+  /// would be asserting the declaration back at itself.
+  #[test]
+  fn enter_on_a_setting_row_asks_for_its_next_declared_value() {
+    let rows = settings_rows();
+    for (at, setting) in intentsvcs::settings::DECLARED.iter().enumerate() {
+      let mut app = on_settings();
+      app.focus = Focus::first(rows.len()).and_then(|f| f.at(at));
+      assert_eq!(
+        app.on_key(key(KeyCode::Enter), &rows),
+        Step::SetSetting {
+          path: setting.path.to_string(),
+          value: setting.next_after(setting.default()).to_string(),
+        },
+        "`{}` did not cycle to its next declared value",
+        setting.path
+      );
+      assert_eq!(
+        app.mode,
+        Mode::Omni,
+        "changing a setting left the composer -- a setting row is not a collector"
+      );
+    }
+  }
+
+  /// **`AC-17.14`'s REFUSAL, WITH A POSITIVE CONTROL ON THE GUARD.**
+  ///
+  /// The renderer builds rows from the allow-list, so no undeclared row can
+  /// occur today -- which means the guard against one is unfalsifiable from
+  /// real data, and an unfalsifiable guard is indistinguishable from a missing
+  /// one. So the row is planted: a `setting` row named `intent_version`, the
+  /// exact key the criterion names as a migration marker. **The write must not
+  /// happen, and the control is the row beside it** -- a declared setting on
+  /// the same screen, which must still work, or this test would pass just as
+  /// well against an app that refuses every setting.
+  #[test]
+  fn a_setting_row_the_allow_list_does_not_carry_is_refused_rather_than_written() {
+    let planted = vec![
+      Row::named(
+        "intent_version".to_string(),
+        "intent version".to_string(),
+        "3.0.0".to_string(),
+        "setting",
+      ),
+      Row::named(
+        "editing.mode".to_string(),
+        "editing mode".to_string(),
+        "emacs".to_string(),
+        "setting",
+      ),
+    ];
+
+    let mut app = on_settings();
+    app.point_at(planted.len());
+    app.focus = Focus::first(planted.len());
+    let step = app.on_key(key(KeyCode::Enter), &planted);
+    assert_eq!(
+      step,
+      Step::Continue,
+      "the migration marker was offered a write -- writability is not permission"
+    );
+    assert!(
+      app.notice.contains("intent_version"),
+      "the refusal does not say what was refused: {:?}",
+      app.notice
+    );
+
+    // The control: the guard refuses the undeclared row and NOT every row.
+    let mut app = on_settings();
+    app.point_at(planted.len());
+    app.focus = Focus::first(planted.len()).and_then(|f| f.at(1));
+    assert!(
+      matches!(
+        app.on_key(key(KeyCode::Enter), &planted),
+        Step::SetSetting { .. }
+      ),
+      "the declared setting beside it was refused too, so this test would pass against an app \
+       that simply never writes"
+    );
   }
 
   /// **hv's DEFECT, DRIVEN AS A KEYSTROKE: `C-a` USED TO TYPE AN `a`.**

@@ -47,6 +47,9 @@ use serde::{Deserialize, Serialize};
 use crate::address::Entity;
 use crate::form::Loaded;
 
+/// The one path segment that is not an entity kind. See [`View::Settings`].
+pub const SETTINGS_SEGMENT: &str = "settings";
+
 /// One level of the ladder `AC-17.7` names: entity-kind, collection, item,
 /// child.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -63,6 +66,22 @@ pub enum View {
     id: String,
     field: String,
   },
+  /// The operator's own settings: [`crate::settings::DECLARED`], not the model.
+  ///
+  /// **THE ONE VIEW THAT IS NOT DERIVED FROM THE DECLARATION, AND IT IS HERE
+  /// FOR THE REASON THE REST ARE: `View` IS WHAT A STACK HOLDS.** A settings
+  /// screen that was not a `View` would need a second place for the face to
+  /// remember it was there -- a parallel navigation model, which is the second
+  /// home this module exists to refuse. `AC-17.7`'s no-trap property then
+  /// covers it for free: it can be entered, and it can be left.
+  ///
+  /// **ITS SEGMENT IS RESERVED, WHICH IS A REAL COST AND IS PAID DELIBERATELY.**
+  /// `/settings` would otherwise parse as `Collection { kind: "settings" }`, so
+  /// an entity kind of that name becomes unaddressable. [`reserved_is_free`]
+  /// holds the reservation against the REAL declaration rather than against an
+  /// assumption -- a kind named `settings` fails the suite rather than
+  /// disappearing from the browser.
+  Settings,
 }
 
 impl View {
@@ -73,6 +92,7 @@ impl View {
       View::Collection { kind } => format!("/{kind}"),
       View::Item { kind, id } => format!("/{kind}/{id}"),
       View::Children { kind, id, field } => format!("/{kind}/{id}/{field}"),
+      View::Settings => format!("/{SETTINGS_SEGMENT}"),
     }
   }
 
@@ -89,6 +109,10 @@ impl View {
       return None;
     }
     match parts.as_slice() {
+      // **THE RESERVATION IS ANSWERED BEFORE THE ENTITY NAMESPACE, WHICH IS
+      // WHAT MAKES IT A RESERVATION.** Checking it after would make the winner
+      // depend on whether a form happened to be declared with this name.
+      [seg] if *seg == SETTINGS_SEGMENT => Some(View::Settings),
       [kind] => Some(View::Collection {
         kind: (*kind).to_string(),
       }),

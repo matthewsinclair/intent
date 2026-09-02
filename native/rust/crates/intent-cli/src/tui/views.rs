@@ -86,6 +86,25 @@ pub fn entity_rows(loaded: &Loaded) -> Vec<Row> {
     .collect()
 }
 
+/// The operator's settings, as rows: `AC-17.14`.
+///
+/// **THE ROWS COME FROM THE ALLOW-LIST, NEVER FROM THE FILE'S KEYS**, which is
+/// the criterion in one line. `settings::read_all` walks
+/// [`intentsvcs::settings::DECLARED`] and looks each one up; nothing reaches
+/// this function by being present on disk. **So `intent_version` and
+/// `intent_dir` are not greyed out here, they are ABSENT** -- a row an operator
+/// can see is a row an operator will eventually try, and that one succeeds.
+///
+/// The row's `name` is the setting's own path, which is what the realiser hands
+/// back to the writer, so the operator's spelling and the stored key are the
+/// same string all the way down.
+pub fn settings_rows(config: &std::path::Path) -> Vec<Row> {
+  intentsvcs::settings::read_all(config)
+    .into_iter()
+    .map(|(s, value)| Row::named(s.path.to_string(), s.label.to_string(), value, "setting"))
+    .collect()
+}
+
 /// The APP row's text for a view. **The trail and the exit key belong to the
 /// stack, not to this** -- see [`super::nav::Stack::trail`].
 pub fn app_line(view: &View) -> String {
@@ -94,6 +113,7 @@ pub fn app_line(view: &View) -> String {
     View::Collection { kind } => kind.clone(),
     View::Item { kind, id } => format!("{kind}  {id}"),
     View::Children { kind, id, field } => format!("{kind}  {id}  {field}"),
+    View::Settings => format!("settings  {}", intentsvcs::settings::SECTION),
   }
 }
 
@@ -173,6 +193,55 @@ mod tests {
     );
   }
 
+  /// **`AC-17.14`, DRIVEN AT THE SURFACE: what the file contains does not
+  /// decide what the screen offers.** The fixture is a config carrying the
+  /// migration marker, the structural key, the author and a key nobody
+  /// declared -- four rows a derived surface would render and this one must
+  /// not. Held here rather than only in `intentsvcs::settings` because the
+  /// criterion is about a SURFACE, and the allow-list being right is no
+  /// evidence that the renderer asked it.
+  #[test]
+  fn the_settings_view_renders_the_declared_set_and_not_what_the_file_holds() {
+    let dir = std::env::temp_dir().join("intent-settings-view-rows");
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("fixture dir");
+    let path = dir.join("config.json");
+    std::fs::write(
+      &path,
+      "{\n  \"intent_version\": \"3.0.0\",\n  \"author\": \"matts\",\n  \"intent_dir\": \"intent\",\n  \"something_nobody_declared\": 41,\n  \"explorer\": { \"editing\": { \"mode\": \"vi\" } }\n}\n",
+    )
+    .expect("fixture");
+
+    let rows = settings_rows(&path);
+    assert_eq!(
+      rows.len(),
+      intentsvcs::settings::DECLARED.len(),
+      "the view is not one row per declared setting"
+    );
+    for absent in [
+      "intent_version",
+      "intent_dir",
+      "author",
+      "something_nobody_declared",
+    ] {
+      assert!(
+        !rows
+          .iter()
+          .any(|r| r.name == absent || r.title == absent || r.value == absent),
+        "`{absent}` reached the screen -- it is in the file, and that is not a reason"
+      );
+    }
+    let mode = rows
+      .iter()
+      .find(|r| r.name == "editing.mode")
+      .expect("the one declared setting has no row");
+    assert_eq!(mode.value, "vi", "the row does not show the value in force");
+    assert_eq!(
+      mode.kind, "setting",
+      "a settings row must carry the kind the mode machine resolves Enter with"
+    );
+  }
+
   /// The APP row says where you are, for every view -- *a way back that is
   /// wired and unlabelled is a way back nobody finds*.
   #[test]
@@ -191,6 +260,7 @@ mod tests {
         id: "ST0056".into(),
         field: "wps".into(),
       },
+      View::Settings,
     ];
     let mut seen: Vec<String> = Vec::new();
     for v in &views {

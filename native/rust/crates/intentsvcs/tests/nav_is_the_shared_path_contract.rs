@@ -28,7 +28,7 @@ fn loaded() -> Loaded {
 /// Every view the real declaration can produce, so the round trip below is held
 /// over the corpus rather than over three hand-picked examples.
 fn every_view(l: &Loaded) -> Vec<View> {
-  let mut out = vec![View::Entities];
+  let mut out = vec![View::Entities, View::Settings];
   for kind in kinds(l) {
     out.push(View::Collection { kind: kind.clone() });
     out.push(View::Item {
@@ -56,6 +56,21 @@ fn the_declaration_is_not_empty_and_neither_is_the_root() {
   assert!(
     every_view(&l).len() > kinds(&l).len(),
     "no view beyond the root and its collections, so the round trip asserts almost nothing"
+  );
+}
+
+/// **THE RESERVATION IS HELD AGAINST THE REAL DECLARATION, NOT ASSUMED.**
+/// `/settings` is answered ahead of the entity namespace, so a form declared
+/// with that name would become unaddressable -- silently, since `View::parse`
+/// would keep returning a perfectly good `View::Settings`. This is the alarm.
+#[test]
+fn no_declared_entity_kind_is_called_settings() {
+  let l = loaded();
+  assert!(
+    !kinds(&l).contains(&intentsvcs::nav::SETTINGS_SEGMENT.to_string()),
+    "a form is declared with the one name `/{}` reserves, so its collection is \
+     now unreachable by path in both faces; rename one of them",
+    intentsvcs::nav::SETTINGS_SEGMENT
   );
 }
 
