@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-09-02 15:29Z
+heartbeat_at: 2026-09-02 16:08Z
 status: active
-focus: "TUI redesign (WP-17). LANDED: a8981480 mode collapse (OMNI/MENU/EDIT), 2f0ba5e8 the COMMAND PALETTE (hv drove the build and found MENU was a painted mockup -- no model, arrows silently moved the body, Hotkey was a dead key every invariant passed), 95abeab5 + de5401c3 the AC-17.13 evidence and the dead-key invariant FIX, 02e802ae the framed composer (hv O1). 208 passed. NEXT: section 2 prose + AC-17.11 reword + AC-17.13 AT row in ONE vc window; the STATUS SEGMENTS wait on hv O4 (the data has no source). RE-MEASURE every figure at pickup."
+focus: "TUI redesign (WP-17), 7 commits landed and hv has driven it twice. ON THE BOUNCE: build `/settings` -- hv RULED it, full spec in DOING (file is ~/.intent/config.json, SCOPED to an explorer: section, paths relative, refuse-as-a-spelling). Then the vi keymap behind explorer.editing.mode. Then section 2 prose + AC-17.11 + AC-17.13 AT row in ONE vc window. O4 status segments still wait on hv. 215 passed at 4be902e1. RE-MEASURE every figure at pickup."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -15,15 +15,24 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## DOING
 
-**TUI REDESIGN (WP-17), SPLIT INTO TWO COHERENT HALVES. HALF 1 IS LANDED; HALF 2 IS THE LOWER BAR.** Accepted design: `intent/st/ST0056/tui-redesign-proposal.md` (7b08e8b1), all four open calls accepted -- **O1** framed composer, **O2** `:q`/`:w`/`:q!` as hidden aliases advertising only `/`, **O3** Esc-on-empty = no-op, **O4** binary-currency segment stays. **hv's GOVERNING DIRECTIVE: change any AC/AT needed, DO NOT yak-shave old guards or tests -- rewrite them to reality** (fail-forward; [[feedback_fail_forward_intent]]). **Split because the halves are separable and half 2 carries plumbing half 1 does not need to wait behind; one giant commit would hold a red tree across it for no benefit.**
+**TUI REDESIGN (WP-17). hv HAS DRIVEN THE BUILD TWICE AND IT WORKS; WHAT REMAINS IS `/settings`, THEN vi, THEN THE SECTION 2 PROSE.** Accepted design: `intent/st/ST0056/tui-redesign-proposal.md` (7b08e8b1). **hv's GOVERNING DIRECTIVE: change any AC/AT needed, DO NOT yak-shave old guards or tests -- rewrite them to reality** (fail-forward; [[feedback_fail_forward_intent]]).
 
-**HALF 1 -- DONE, `a8981480`, 196 passed.** Mode machine collapsed to OMNI/MENU/EDIT (4 machine states, 3 lamps: FIELD+EMBED share EDIT). NAV folded into the composer; the 3-way `/` ring and the {OMNIBOX,NAV} Esc toggle retired together. §3/§4/§5 rewritten, `AC-17.9` reworded, `AT-17.9` appended (547->1948, contains-verbatim + longer both asserted AFTER the write). Code: `mode.rs`, `keys.rs`, `app.rs`, `run.rs`, `omnibox.rs` + the mode parts of `layout.rs`/`draw.rs`. Canon window taken and RELEASED.
+**LANDED (re-measure before citing):** `a8981480` mode collapse to OMNI/MENU/EDIT + section 3/4/5 + AC-17.9 reworded + AT-17.9 appended. `2f0ba5e8` the COMMAND PALETTE -- hv drove the build and found MENU was a painted mockup (no model at all; the arrows SILENTLY moved the body behind the bar; `Hotkey` was declared, emitted, reachable and consumed by nothing while every invariant passed). `52b5acf3` vc minted `AC-17.13`; `95abeab5` its second side; `de5401c3` the dead-key invariant FIXED after vc aimed 8x backwards at it. `02e802ae` the framed composer (O1). `94cd1047` repaint-after-edit + the dropdown's rule. `4be902e1` ordinary terminal editing in the composer.
 
-**HALF 2 -- NEXT, THE LOWER BAR.** `tui-design.md` §2 (framed composer + status-segment row + mode/hint line; retire two-rules-no-borders; KEEP the two-aligned-columns guarantee and the pure-data seam), `layout.rs` (FOOT 3 -> ~6, status-segment section, composer-box allowance, degradation order re-examined), `draw.rs` (box-border role; relax the no-border assertion to only-the-composer-is-framed), and **`AC-17.11` reworded via vc's window -- ASK AGAIN when at the §2 write; the window is on request, not held.**
+**NEXT -- `/settings`, RULED BY hv 2026-09-02 AND AGREED IN FULL:**
 
-**HALF 2's UNCOSTED PIECE, FOUND NOT ASSUMED: the O4 status segments need data the TUI HAS NO SOURCE FOR** -- branch, diff stat, gate figure, binary currency. `app.rs` deliberately holds no facade and there is no status module, so the segments need a new seam (via `run.rs`'s `Source`, which is where the store already enters). The proposal costed the pixels at S and the plumbing at zero. Not a deferral -- hv struck scarcity as a class -- just the real shape.
+1. **The file is `~/.intent/config.json`** (NOT the project config): this is a global explorer setting. `intentsvcs::userstate::global_config()` already resolves the path -- **there is no new config system to build**, only a reader/writer. Nothing writes that file today.
+2. **`/settings` is SCOPED TO AN `explorer:` SECTION and shows/edits only that.** The reason is not tidiness: the file holds `intent_version` (a MIGRATION MARKER) and `intent_dir` (structural), so an unscoped settings view would render rows whose edit must not happen -- the palette's own rule (offer only what can be acted on) one surface over, and worse, because those rows DO have a realiser and it breaks the install.
+3. **Paths resolve RELATIVE to `explorer.`** -- `/settings editing.mode`, never `/settings explorer.editing.mode`. One resolution rule, not two.
+4. **`/settings author` must be REFUSED AS A SPELLING** (section 8's existing rule), saying what was tried and that `/settings` governs the explorer section -- which teaches the scope instead of reading as broken.
+5. **The first setting is `explorer.editing.mode`: `emacs` (default) or `vi`.** The section is not in the file yet -- it is created on first write.
+6. **TWO THINGS FLAGGED TO hv AS POSSIBLY AWKWARD, surface rather than guess if they bite:** the palette has NO ARGUMENT SUPPORT (commands are name-only, so `/settings x.y` is a real extension to the vocabulary), and a settings row is **the first thing in the TUI that writes OUTSIDE the store**, so it needs its own write path rather than borrowing the facade's.
 
-**COUPLING, MEASURED:** `mode.rs`'s transcription test READS `tui-design.md` §3 FROM DISK at test time, so §3 and EDGES are gate-locked into one commit (that is why half 1 was one commit). `AC-17.11`'s tests do NOT read the doc -- they assert an in-test shape -- so §2 and `layout.rs`/`draw.rs` are coupled only by the criterion's prose, which is what makes the split legal.
+**THEN: the vi keymap, behind that setting.** `keys::edit` is the emacs map and is what the default resolves to. **`set -o vi` IS NOT DETECTABLE FROM A CHILD PROCESS -- measured, not assumed:** `SHELLOPTS` is bash-only and absent under zsh, nothing in the environment carries it, `~/.inputrc` is readline's file which zsh never reads. Declared-not-detected is ST0037's ruling one surface over.
+
+**THEN: the section 2 half.** `tui-design.md` section 2 prose, `AC-17.11` reworded, and `AC-17.13`'s AT row -- **ALL THREE IN ONE vc WINDOW, on request**. The AT row must say the evidence lives in TWO tests in two files (`every_trigger_the_machine_answers_is_acted_on_by_the_realiser` and `every_offered_command_is_reachable_by_its_name_and_actually_does_something`), because the property is two-sided and a row citing one looks covered. **The STATUS SEGMENTS (O4) still wait on hv's data-source ruling** -- branch, diff, gate and binary-currency have no source the TUI can reach; vc recommends a facade seam over shell-outs in `run.rs`.
+
+**COUPLING, MEASURED:** `mode.rs`'s transcription test READS `tui-design.md` section 3 FROM DISK at test time, so section 3 and EDGES are gate-locked into one commit. `AC-17.11`'s tests do NOT read the doc -- they assert an in-test shape -- so section 2 and `layout.rs`/`draw.rs` are coupled only by the criterion's prose. **The composer's editing keys needed NO canon window at all**: they are all `Typing`, which changes the buffer and not the mode, so the machine table was untouched.
 
 ## TODO
 
