@@ -673,6 +673,14 @@
       }
     },
     {
+      "id": "AC-06.13",
+      "text": "**EVERY SUBCOMMAND THE BUILT BINARY OFFERS RESOLVES TO A PATH THE DISPATCH TABLE DECLARES.** The mirror of `AC-06.8`, and a SEPARATE row because it is a separate instrument over a separate population: checking TABLE -> SURFACE walks the table and asks the binary about each entry, while checking SURFACE -> TABLE must ENUMERATE THE BINARY -- different walk, different denominator, different failure mode. (vc ruled the shape 2026-09-02 on dc's `0217`; a new row rather than an amendment to `AC-17.15`, because putting two populations under one row with one instrument is the shape every reporting failure in `0216` turned out to have.) **THE EVIDENCE IS THE LANDING ITSELF, WHICH IS A TWO-SIDED DEMONSTRATION RATHER THAN AN ARGUMENT: an undeclared subcommand was added to NINE shipped families in `245dcdbe` and every instrument in the estate stayed green** -- both suites, `cargo check --workspace --all-targets`, rustfmt. A verb present in the binary and absent from the table is outside the population of every existing check BY CONSTRUCTION, which is the same ORPHAN direction `declared_kind_check.sh` names one level down for artefacts. **REACH, STATED AT MINT RATHER THAN AT THE FIRST SURPRISE:** an enumeration of the binary sees what the binary OFFERS at the depth it walks, and nothing else. It does not judge whether a declared path is CORRECT, it does not see flags -- that is `AC-06.8`'s population, not this one -- and it must rule EXPLICITLY on aliases and hidden subcommands rather than inheriting an answer: `lang remove` ships the alias `rm`, so an enumeration counting alias spellings as undeclared paths reports a false positive on its first run, and one that drops them silently can never see an alias nobody declared.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
       "id": "AC-06.2",
       "text": "doctor is rebuilt as model/DB integrity queries + file checks including the skew check and unparsed-state reporting",
       "kind": "test",
@@ -2247,6 +2255,16 @@
       ],
       "status": "green",
       "note": "Landed `58979836`; full Rust suite green, no failures. **MUTATION-PROVEN IN SEVEN DIRECTIONS, AND THE HARNESS ITSELF HAD TO BE FIXED FIRST.** Each of width-check, wrong-collection refusal, the s/i branches, case-insensitivity, the ST-before-s tag order, the agnostic door's refusal and the suffix strip was removed in turn and the matching arm read RED; baseline and restore green. **THE FIRST RUN REPORTED `RESTORED -> RED` OVER A CORRECT TREE**: the harness restored with `mv`, which PRESERVES the backup's mtime, so cargo served a binary built from the mutated source -- a control lying in the safe-looking direction, and the same class as `init` reading the embed while `render` reads disk. Fixed to `cp` + `touch` and re-driven clean. **Two arms pin behaviour v2 HAS and this must not**: `foo` must not become `STfoo`, `99999` must not become `ST99999`. They are tested rather than trusted to the port's judgement because the shape of a port is to reproduce, and reproducing was wrong twice. The five-form arm was driven in the v2 checkout BEFORE being pinned, which is what makes it a measurement rather than a reading of the source."
+    },
+    {
+      "id": "AT-06.13",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/surface_is_declared.rs",
+      "covers": [
+        "AC-06.13"
+      ],
+      "status": "to-write",
+      "note": "TO-WRITE. Enumerates the BUILT BINARY and requires every subcommand it offers to resolve to a path the dispatch table declares -- the SURFACE -> TABLE direction, which no existing instrument walks. NOT an arm of flag_reachability.rs: that walks the TABLE and asks the binary about each entry, so its population cannot contain this defect by construction, and folding the two would put two denominators behind one exit code. THE RED IS ALREADY AVAILABLE AND MUST BE DRIVEN BEFORE ANY GREEN IS TRUSTED: 245dcdbe put help on nine families with no table path ending in help, so the instrument written today should FAIL on HEAD and its first green must come from a table change rather than from the check being written to agree. Must rule explicitly on aliases (lang remove ships rm) and on hidden subcommands rather than inheriting an answer from clap. SHA CORRECTED 2026-09-02: this note first cited 245bcdbe, which resolves to nothing -- caught by reading the row back rather than by trusting the create."
     },
     {
       "id": "AT-06.2",
