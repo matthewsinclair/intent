@@ -47,12 +47,43 @@
 #   - CORRECTNESS. A `.rs` carrying `#[test]` that tests the wrong thing is the
 #     right KIND and passes here. Kind is the whole claim.
 #
-# **READS THE COMMITTED CANON EXTRACT, NOT THE STORE, AND THE REASON IS NOT
+# **READS THE CANON EXTRACT RATHER THAN THE STORE, AND THE REASON IS NOT
 # CONVENIENCE.** The store is SSOT and `canon_commit_check.sh` already gates
 # the two agreeing, so either is sound. The extract is the one a FRESH CLONE
 # has: a tool that could only run where a machine-local `.cache/intent.db`
 # exists would refuse in CI and in every clone, which is the population most
 # likely to carry a divergence nobody has looked at.
+#
+# **AND IT READS THAT EXTRACT FROM THE WORKING TREE. IT TAKES NO GIT READ AT
+# ALL FOR ITS VERDICT** -- `jq` over `$ROOT/intent/.canon/st/*.json` on disk,
+# and `[ -e "$ROOT/$file" ]` for the artefact. The only `git` calls in this file
+# are in the attribution block at the bottom, which cannot change a count or an
+# exit code.
+#
+# **THIS SENTENCE USED TO OPEN `READS THE COMMITTED CANON EXTRACT`, AND THE WORD
+# `COMMITTED` WAS NAMING THE ARTEFACT CLASS -- extract rather than store -- WHILE
+# EVERY LATER READER TOOK IT AS A CLAIM ABOUT A GIT READ.** Three nodes did:
+# vc's board diagnosed the blast-radius defect as *this guard reads COMMITTED
+# canon*, cc's board carried the same reading, and dc wrote it into the
+# attribution block below on 2026-09-02. **A whole remedy option was scoped
+# against it** -- vc's option (D), *let the guard see the working tree*, which
+# the measurement below says is already the status quo.
+#
+# **MEASURED 2026-09-02 (dc), TWO-SIDED, ON A SCRATCH REPO WHERE THE COMMITTED
+# AND WORKING-TREE EXTRACTS DISAGREE.** Committed citation agreeing and worktree
+# citation disagreeing -> rc=1, one disagreeing. The inverse, committed
+# disagreeing and worktree agreeing -> rc=0, one agreeing. **The verdict tracks
+# the working tree in both directions and the committed content moves nothing.**
+# The inverse arm is the one that earns it: the first arm alone passes for a
+# tool that reads BOTH.
+#
+# **SO THE BLAST RADIUS IS THE OPPOSITE MECHANISM TO THE ONE THREE BOARDS
+# RECORD.** A guard whose population is the working tree is armed by a CREATE
+# that is neither staged nor committed -- vc measured exactly that on
+# 2026-08-31 (*a create only has to touch disk*) before the committed reading
+# took hold two days later. Narrowing this tool to committed artefacts is a real
+# option and it is the OPPOSITE of what option (D) is named; it is unowned and
+# not taken here.
 #
 # Exit 0 clean, 1 findings, 2 refusal.
 
@@ -88,7 +119,10 @@ if [ -n "$CITES" ]; then
 else
   CANON_DIR="$ROOT/intent/.canon/st"
   [ -d "$CANON_DIR" ] || { echo "declared-kind: no canon extract at $CANON_DIR" >&2; exit 2; }
-  SOURCE_LABEL="committed canon extract: intent/.canon/st/*.json"
+  # **NOT `committed`** -- this is the on-disk extract, verdict-bearing as it
+  # stands in the working tree. See the header: the old label said `committed`
+  # and three nodes read it as a git read.
+  SOURCE_LABEL="canon extract as it stands in the WORKING TREE: intent/.canon/st/*.json"
   # **ONE jq OVER EVERY THREAD, NOT ONE PER THREAD.** The per-file loop spawned
   # 69 processes and was most of a second; `input_filename` carries the thread id
   # that `basename` was being spawned to supply. Cost is a disposition argument,
@@ -225,9 +259,15 @@ if [ "$DISAGREE" -gt 0 ]; then
 
   # -------------------------------------------------------------------------
   # **WHOSE DEFECT IS THIS?** A half-landed citation red-gates the WHOLE TREE,
-  # including for nodes with no part in it. This tool reads COMMITTED canon
-  # against a WORKING-TREE roster, so a commit landing the citation without the
-  # roster row blocks everyone until the other half arrives.
+  # including for nodes with no part in it: the citation and the roster row are
+  # read from the same working tree, so whichever half lands first is visible to
+  # every node while the other is not.
+  #
+  # **THIS COMMENT READ `reads COMMITTED canon against a WORKING-TREE roster`
+  # WHEN IT LANDED AT `eff993b2`, AND THAT WAS FALSE.** Both sides are the
+  # working tree; it was taken from the header's own wording rather than driven,
+  # and it is corrected here with the header. The measured incident below is
+  # unaffected -- it is an observation, not a mechanism.
   #
   # Measured 2026-09-02: it caught dc at 08:26Z and vc at 08:28Z, four minutes
   # apart, neither having touched ST0056's parity tools. Both then went looking

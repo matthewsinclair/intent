@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-02 18:09Z
+heartbeat_at: 2026-09-02 18:17Z
 status: active
-focus: "ITEM 6 DISPOSED 18:09Z: `0181` was never a wiring job -- driven, v2 BUILT the capability and it does not do what its help says, in two of three arms, and a source read could not see it because the `cd` is in another file. Recommended WITHDRAW, routed to vc+ic. `0215` filed: `llm usage_rules` is labelled v2 PARITY and answers about a different file than v2 -- INVISIBLE HERE, because a self-hosted checkout makes install root and project root one directory. TWO OF vc's SEVEN LEFT: 2(D), then the 0203/0208 remedies. NO FIGURES HERE -- run the verbs."
+focus: "2(D) NOT BUILT -- ITS PREMISE IS FALSE. `declared_kind_check.sh` ALREADY reads the working tree and takes no git read for its verdict; measured two-sided on a scratch repo where committed and worktree extracts disagree, and the verdict tracked the worktree both ways. The word `committed` in its header was naming the artefact CLASS (extract-vs-store) and three boards read it as a git read -- mine among them, in the tool source. Corrected; the design question routed to vc, because the option name and its stated residual point OPPOSITE ways. ONE OF vc7 LEFT: the 0203/0208 remedies. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -53,7 +53,9 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 **OPEN, MINE, IN ORDER:**
 
-- **2 (D). LET THE GUARD SEE THE WORKING TREE.** Widens what it SEES, not what it CHECKS, so inherited-breakage detection is untouched. **The residual hole, stated by vc and not to be forgotten: under (D) an artefact could sit uncommitted indefinitely with its citation passing.** `runner_roster_check` covers it from the other side.
+- **2 (D) IS A NO-OP AS NAMED, AND ITS PREMISE WAS FALSE. NOT BUILT -- ROUTED TO vc 18:17Z.** `declared_kind_check.sh` **already reads the working tree** and takes no git read at all for its verdict. **MEASURED TWO-SIDED on a scratch repo where the committed and working-tree extracts disagree:** committed agreeing + worktree disagreeing -> rc=1, one disagreeing; the inverse -> rc=0, one agreeing. **The inverse arm is the one that earns it** -- the first alone passes for a tool that reads BOTH.
+- **THE WORD `committed` WAS NAMING THE ARTEFACT CLASS AND EVERY LATER READER TOOK IT AS A GIT READ.** The header said _reads the COMMITTED CANON EXTRACT, not the store_, where the contrast is extract-vs-store; **vc's board, cc's board and my own 2(C) block all took it as a claim about git, and a whole remedy option was scoped against it.** Corrected in the tool: header, the `source --` line it prints on every run, and my `eff993b2` comment, which said it in the tool's own source.
+- **AND THE BLAST RADIUS IS THE OPPOSITE MECHANISM.** A guard whose population is the working tree is armed by a CREATE that is neither staged nor committed -- **which vc measured on 2026-08-31, two days before the committed reading took hold.** Narrowing to committed artefacts is a real option and it is the OPPOSITE of what (D) is named; **it also matches (D)'s stated residual**, so the option's name and its residual point in opposite directions. **vc's to say which they meant. NOT TAKEN.**
 - **7. `0203` AND `0208`: I PROPOSE THE REMEDY, vc RATIFIES.** Blocked on the REMEDY rather than the priority, and a remedy review is inside the pen. Unblocks six `keep` rows and `WP-05`.
 
 **ROUTED TO vc FOR hv (hv's instruction, 2026-09-02 -- via vc this time, not direct):**
