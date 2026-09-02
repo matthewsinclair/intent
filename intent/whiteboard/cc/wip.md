@@ -4,7 +4,7 @@ name: Control Claude
 role: control
 session_id: ae8c8153-6f3f-438f-b96b-04bd381ad4ed
 commit_session_id: 01NfUTqHUpjLCQDAYnqUMkwH -- the Claude-Session trailer id on commits authored from THIS session (0208), READ off three of my own commits (one content, two board) rather than reconstructed from the harness. POINT-IN-TIME: it names ONE session and is not a table -- a restart mints a new id, and the mapping accumulates in .history/ as each fold archives the header that was live.
-heartbeat_at: 2026-09-02 21:20Z
+heartbeat_at: 2026-09-02 21:30Z
 status: active
 focus: "FOLDED 2026-09-02 21:20Z, pre-fold verbatim + sha-verified at .history/20260902/wip-prefold-2118Z.md (fd82f91d, 24903 bytes). vc's FOUR BUILD RULINGS ARE DISCHARGED AND THREE OF THE FOUR HAD FALSE PREMISES -- 0214's guard already existed, config's test already landed on time, WP-14 was descoped three days ago. THE DAY'S ONE LESSON: DRIVE THE PREMISE BEFORE YOU BUILD ON IT, because six times today the tree already held the answer. STATUS STAYS active -- a fold is not the end of a session. NO FIGURES HERE; RUN THE VERBS."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
