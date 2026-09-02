@@ -1,0 +1,95 @@
+of_n_closes_over_examined -- AT-00.11. Does an emitted `N of M` close over what was EXAMINED?
+
+SUBJECTS -- 28 instrument(s), read from of_n_population.sh's OUTPUT, in its gatedness order.
+  absent_at_check.sh
+  canon_commit_check.sh
+  declared_kind_check.sh
+  provenance_check.sh
+  residue_class_check.sh
+  runner_roster_check.sh
+  stale_at_check.sh
+  view_skew_check.sh
+  conservation_check.sh
+  critic_global_rig.sh
+  docs_defect_disposition_check.sh
+  estate_census.sh
+  fixture_probe.sh
+  instrument_reach_census.sh
+  interrupt_rig.sh
+  of_n_population.sh
+  partition_closes_check.sh
+  v2_estate_fixture.sh
+  v2_estate_issue_carry.sh
+  v2_prose_survival.sh
+  coverage_map.sh
+  gen_cut_surface.sh
+  gen_dispatch_table.sh
+  gen_inventory.sh
+  gen_pertest.sh
+  gen_reference.sh
+  gen_register.sh
+  realise_plan.sh
+
+INSTRUMENTS -- one version, taken from 16048f82, driven against BOTH trees. Only the tree's shape varies.
+TREES -- nested 8bb47e49 (57 thread.json) against flat 16048f82 (57 canon file(s)).
+
+FINDINGS -- 0 instrument(s), 0 emission(s)
+  (none)
+
+EXCEPTIONS -- enumerated rather than the successes, because a reader cannot discover an omission by not finding it.
+  absent_at_check.sh -- UNMEASURED: absent from one of the two trees, so there is nothing to compare.
+  canon_commit_check.sh -- DIVERGED (a NOMINATION, not a finding): nested [0 of 279 ] against flat [279 of 279 ]. Whether M followed the examined population needs a read; this arm cannot decide it.
+  declared_kind_check.sh -- UNMEASURED: absent from one of the two trees, so there is nothing to compare.
+  provenance_check.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=0, flat rc=0). Its ratio may be assembled across statements, which this driver cannot read.
+  residue_class_check.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=0, flat rc=0). Its ratio may be assembled across statements, which this driver cannot read.
+  runner_roster_check.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=0, flat rc=0). Its ratio may be assembled across statements, which this driver cannot read.
+  stale_at_check.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=0, flat rc=0). Its ratio may be assembled across statements, which this driver cannot read.
+  view_skew_check.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=0, flat rc=0). Its ratio may be assembled across statements, which this driver cannot read.
+  conservation_check.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=2, flat rc=2). Its ratio may be assembled across statements, which this driver cannot read.
+  critic_global_rig.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=2, flat rc=2). Its ratio may be assembled across statements, which this driver cannot read.
+  docs_defect_disposition_check.sh -- UNMEASURED: absent from one of the two trees, so there is nothing to compare.
+  estate_census.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=2, flat rc=2). Its ratio may be assembled across statements, which this driver cannot read.
+  fixture_probe.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=0, flat rc=0). Its ratio may be assembled across statements, which this driver cannot read.
+  instrument_reach_census.sh -- UNMEASURED: absent from one of the two trees, so there is nothing to compare.
+  interrupt_rig.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=0, flat rc=0). Its ratio may be assembled across statements, which this driver cannot read.
+  partition_closes_check.sh -- UNMEASURED: absent from one of the two trees, so there is nothing to compare.
+  v2_estate_fixture.sh -- UNMEASURED: absent from one of the two trees, so there is nothing to compare.
+  v2_estate_issue_carry.sh -- UNMEASURED: absent from one of the two trees, so there is nothing to compare.
+  v2_prose_survival.sh -- UNMEASURED: absent from one of the two trees, so there is nothing to compare.
+  coverage_map.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=2, flat rc=2). Its ratio may be assembled across statements, which this driver cannot read.
+  gen_cut_surface.sh -- UNMEASURED: absent from one of the two trees, so there is nothing to compare.
+  gen_dispatch_table.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=0, flat rc=0). Its ratio may be assembled across statements, which this driver cannot read.
+  gen_inventory.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=1, flat rc=1). Its ratio may be assembled across statements, which this driver cannot read.
+  gen_pertest.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=1, flat rc=1). Its ratio may be assembled across statements, which this driver cannot read.
+  gen_reference.sh -- UNMEASURED: absent from one of the two trees, so there is nothing to compare.
+  gen_register.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=1, flat rc=1). Its ratio may be assembled across statements, which this driver cannot read.
+  realise_plan.sh -- UNMEASURED: emitted no `N of M` in either tree (nested rc=2, flat rc=0). Its ratio may be assembled across statements, which this driver cannot read.
+
+DRIVEN 28 of 28 instrument(s): 0 finding + 1 diverged + 1 stable + 26 unmeasured = 28  CLOSES.
+SCORED 2 of 28 -- the denominator is the population, and 26 were NOT examined.
+
+REACH -- what this cannot see, so that no pass is read as coverage:
+  1. ARM C NOMINATES AND DOES NOT ADJUDICATE. A ratio may move between layouts for
+     correct reasons. Divergence is where to look, never a verdict.
+  2. ONLY LITERAL `N of M` IS READ. A verdict assembled across two statements, or
+     built from variables named nothing like `of`, is invisible here. Derivation is
+     of_n_labels_its_derivation.sh's question; this tool drives, it does not parse.
+  3. AN INSTRUMENT WHOSE M CANNOT MOVE UNDER THE RELOCATION IS OUT OF THIS POPULATION
+     BY CONSTRUCTION. Driving it through a two-tree differential is a vacuous pass.
+  4. THE RECORDED `EXAMINED 2 of 1 ... the other -1` IS UNREACHABLE AT ANY COMMITTED
+     REVISION: the defective tool refuses against a fully flat tree, so that figure
+     needs a HALF-MIGRATED tree and none exists in history.
+  5. FILE-SELECTION CORRECTNESS IS NOT DENOMINATOR CORRECTNESS. An instrument that
+     survives this differential on which files it selects can still print a wrong M.
+  6. THE TWO TREES ARE NECESSARILY DIFFERENT REVISIONS, AND THAT CONFOUND CANNOT BE
+     REMOVED. A nested tree and a flat tree are two points in history; no revision
+     exists in both shapes, because the only tree that ever held both was half-migrated
+     and none was committed. So an instrument keyed on HEAD examines a DIFFERENT COMMIT
+     on each side, and ARM C's divergence then has an innocent explanation BY
+     CONSTRUCTION -- the revision moved, not the denominator. Measured on the first real
+     subject: canon_commit_check.sh reports `0 of 279` nested and `87 of 280` flat, and
+     that is fully explained by the two HEADs without any defect at all.
+     THIS IS A PROPERTY OF THE METHOD, NOT A GAP IN THIS BUILD, and it is why ARM C
+     NOMINATES. Only arms A and B are safe alone: an impossible ratio and a negative
+     remainder are wrong at ANY revision. A DIVERGENCE IS NOT EVIDENCE OF A DEFECT AND
+     A NON-DIVERGENCE IS NOT EVIDENCE OF ITS ABSENCE.
