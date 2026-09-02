@@ -72,6 +72,72 @@ pub const NOT_FROM_A_KEY: &[(&str, &str)] = &[(
    `tui-design.md` §7 as the cost of embedding rather than discovered by an operator holding Esc.",
 )];
 
+/// One editing action on the composer's buffer.
+///
+/// **THE COMPOSER IS AN INPUT AND OPERATORS ALREADY KNOW HOW INPUTS WORK.**
+/// hv, 2026-09-02, driving the build: *we need normal terminal editing keys in
+/// the omnibox.* Before this, `C-a` typed an `a`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Edit {
+  Insert(char),
+  Backspace,
+  DeleteForward,
+  Home,
+  End,
+  Left,
+  Right,
+  KillToEnd,
+  KillToStart,
+  KillWordBack,
+}
+
+/// The composer's editing keymap: readline's emacs bindings, which are the
+/// terminal default nearly everywhere.
+///
+/// **THESE ARE NOT MODE TRIGGERS AND MUST NOT BECOME ONE.** Every action here
+/// changes the BUFFER and leaves the mode alone, so [`super::mode`] has
+/// nothing to say about them -- they all arrive as `Typing`, the self-loop
+/// that already means *the composer collects this keystroke*. A trigger per
+/// motion would put ten self-loops into a table whose entire value is being
+/// readable as a graph.
+///
+/// **VI MODE IS NOT HERE, AND ITS ABSENCE IS A DECISION RATHER THAN A GAP.**
+/// hv asked for vi bindings under `set -o vi`; that shell setting is not
+/// visible to a child process at all -- measured, not assumed: `SHELLOPTS` is
+/// bash-only and absent under zsh, nothing in the environment carries it, and
+/// `~/.inputrc` is readline's file which zsh never reads. So the mode has to
+/// be DECLARED rather than detected, which is `ST0037`'s ruling one surface
+/// over: explicit configuration beat filesystem probing for languages and it
+/// beats environment probing here. hv ruled a settings file plus a
+/// `/settings` command; **vi lands when that lands**, and this map is what the
+/// default resolves to.
+pub fn edit(key: KeyEvent) -> Option<Edit> {
+  let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
+  Some(match (key.code, ctrl) {
+    (KeyCode::Left, false) => Edit::Left,
+    (KeyCode::Right, false) => Edit::Right,
+    (KeyCode::Home, _) => Edit::Home,
+    (KeyCode::End, _) => Edit::End,
+    (KeyCode::Backspace, false) => Edit::Backspace,
+    (KeyCode::Delete, _) => Edit::DeleteForward,
+    (KeyCode::Char('a'), true) => Edit::Home,
+    (KeyCode::Char('e'), true) => Edit::End,
+    (KeyCode::Char('b'), true) => Edit::Left,
+    (KeyCode::Char('f'), true) => Edit::Right,
+    (KeyCode::Char('d'), true) => Edit::DeleteForward,
+    (KeyCode::Char('k'), true) => Edit::KillToEnd,
+    (KeyCode::Char('u'), true) => Edit::KillToStart,
+    (KeyCode::Char('w'), true) => Edit::KillWordBack,
+    (KeyCode::Char('h'), true) => Edit::Backspace,
+    // **A CONTROL CHORD THIS MAP DOES NOT KNOW IS SWALLOWED, NEVER TYPED.**
+    // `C-x` inserting an `x` is the defect hv reported, and the arm below is
+    // what stops the next unbound chord doing it again.
+    (KeyCode::Char(_), true) => return None,
+    (KeyCode::Char(c), false) => Edit::Insert(c),
+    _ => return None,
+  })
+}
+
 /// The trigger `key` produces in `mode`, or `None` when the keymap says nothing.
 ///
 /// **`None` MEANS "NOT A KEY WE BIND", and the caller must not invent a
@@ -99,6 +165,15 @@ pub fn trigger(mode: Mode, key: KeyEvent) -> Option<&'static str> {
     (Mode::Menu, KeyCode::Char('g')) if ctrl => Some("Cancel"),
     (_, KeyCode::Esc) => Some("Esc"),
     (_, KeyCode::Enter) => Some("Enter"),
+    // **THE COMPOSER'S EDITING KEYS ALL ARRIVE AS `Typing`**, because they
+    // change the buffer and not the mode -- see [`edit`]. Left and Right were
+    // held unbound by `tui-design.md` §4 *against a cursor the buffer does not
+    // yet have*; the buffer has one now, so the reservation is spent on the
+    // meaning it was reserved for.
+    (
+      Mode::Omni | Mode::Menu,
+      KeyCode::Left | KeyCode::Right | KeyCode::Home | KeyCode::End | KeyCode::Delete,
+    ) => Some("Typing"),
     // **ONLY THE VERTICAL PAIR IS BOUND, and it now does both jobs**: on an
     // empty buffer the arrows browse the body, with a query typed they pick
     // among the matches. One trigger covers both because both are `OMNI Move

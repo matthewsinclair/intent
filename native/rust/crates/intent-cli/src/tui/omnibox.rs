@@ -148,10 +148,41 @@ pub fn matches(index: &[Entry], buffer: &str, cap: usize) -> Vec<Match> {
   rank(needle, &hays, cap)
 }
 
-/// The input's state: what has been typed, and which match is picked.
+/// The input's state: what has been typed, where the caret is, and which match
+/// is picked.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Omnibox {
   pub buffer: String,
+  /// Where the next character lands, as a CHAR index in `0..=len`.
+  ///
+  /// **THE BUFFER USED TO HAVE NO CARET AND THE DESIGN SAID SO.**
+  /// `tui-design.md` §4 left Left and Right unbound *against a cursor the
+  /// buffer does not yet have*, deliberately, so that binding them later could
+  /// not contradict a meaning operators had already learned. hv asked for
+  /// ordinary terminal editing on 2026-09-02; this is that reservation being
+  /// spent.
+  ///
+  /// **CHARS, NEVER BYTES.** The same rule the clipping obeys, for the same
+  /// reason: this estate has paid for the other choice once, and an id typed
+  /// beside a criterion's prose is exactly where a multi-byte character turns
+  /// an index into a panic.
+  cursor: usize,
+  /// The leftmost column the caret may reach: the palette's sigil sits below
+  /// it.
+  ///
+  /// **THE SIGIL IS A PROMPT, NOT CONTENT.** `/` is what tells the operator
+  /// which vocabulary is being searched, and a bulk act should no more eat it
+  /// than `C-u` should eat a shell's `$`. Without a floor, `C-w` on `/quit`
+  /// walks to zero -- there is no whitespace to stop at -- takes the sigil
+  /// with it and SILENTLY CLOSES THE PALETTE, and `C-a` then puts the caret
+  /// where the next character would land in front of the sigil and close it
+  /// too. Found by driving `C-w` in a test rather than by reading.
+  ///
+  /// **BACKSPACE IS DELIBERATELY NOT FLOORED**: erasing back past the sigil is
+  /// the palette's declared exit, and it is a single, visible keystroke. The
+  /// rule is that BULK acts do not cross a boundary the operator cannot see;
+  /// one character at a time is not a bulk act.
+  floor: usize,
   /// Which of the current matches Enter takes. **Always valid by clamping at
   /// read time** ([`Omnibox::picked`]), because the match list changes under
   /// it on every keystroke and a stored index into a vanished list is the
@@ -175,17 +206,128 @@ pub enum Go {
 }
 
 impl Omnibox {
-  /// Append one typed character. `/` arrives here too when the buffer is
-  /// non-empty -- the app's guard routes it -- because `st/ST0056` is a legal
-  /// spelling.
+  /// Where the caret is, in chars.
+  pub fn cursor(&self) -> usize {
+    self.cursor
+  }
+
+  /// How many characters are in the buffer.
+  fn len(&self) -> usize {
+    self.buffer.chars().count()
+  }
+
+  /// The byte offset of char index `at`, or the buffer's end.
+  fn byte_at(&self, at: usize) -> usize {
+    self
+      .buffer
+      .char_indices()
+      .nth(at)
+      .map(|(b, _)| b)
+      .unwrap_or(self.buffer.len())
+  }
+
+  /// Insert one typed character at the caret. `/` arrives here too when the
+  /// buffer is non-empty -- the app's guard routes it -- because `st/ST0056`
+  /// is a legal spelling.
   pub fn type_char(&mut self, c: char) {
-    self.buffer.push(c);
+    let at = self.byte_at(self.cursor);
+    self.buffer.insert(at, c);
+    self.cursor += 1;
     self.pick = 0;
   }
 
-  /// Backspace. Deleting from an empty buffer is a no-op, not an error.
+  /// Backspace: delete the character BEFORE the caret. At the start of the
+  /// buffer it is a no-op, not an error.
   pub fn erase(&mut self) {
-    self.buffer.pop();
+    if self.cursor == 0 {
+      return;
+    }
+    let at = self.byte_at(self.cursor - 1);
+    self.buffer.remove(at);
+    self.cursor -= 1;
+    self.pick = 0;
+  }
+
+  /// `C-d`: delete the character UNDER the caret. At the end, a no-op.
+  pub fn delete_forward(&mut self) {
+    if self.cursor >= self.len() {
+      return;
+    }
+    let at = self.byte_at(self.cursor);
+    self.buffer.remove(at);
+    self.pick = 0;
+  }
+
+  /// Where the caret may not go left of. See [`Omnibox::floor`].
+  pub fn set_floor(&mut self, floor: usize) {
+    self.floor = floor.min(self.len());
+    self.cursor = self.cursor.max(self.floor);
+  }
+
+  /// `C-a` / Home -- to the floor, which is the start unless a sigil holds it.
+  pub fn home(&mut self) {
+    self.cursor = self.floor;
+  }
+
+  /// `C-e` / End.
+  pub fn end(&mut self) {
+    self.cursor = self.len();
+  }
+
+  /// `C-b` / Left.
+  pub fn left(&mut self) {
+    self.cursor = self.cursor.saturating_sub(1).max(self.floor);
+  }
+
+  /// `C-f` / Right.
+  pub fn right(&mut self) {
+    self.cursor = (self.cursor + 1).min(self.len());
+  }
+
+  /// `C-k`: kill from the caret to the end.
+  pub fn kill_to_end(&mut self) {
+    let at = self.byte_at(self.cursor);
+    self.buffer.truncate(at);
+    self.pick = 0;
+  }
+
+  /// `C-u`: kill from the start to the caret.
+  ///
+  /// **THE READLINE MEANING, WHICH IS NOT "CLEAR THE LINE".** `C-u` in emacs
+  /// mode kills backwards to the start and leaves the tail; a version that
+  /// emptied the buffer would be the shell's `kill-whole-line` wearing the
+  /// same key, and an operator who knows the binding would lose text they
+  /// expected to keep.
+  pub fn kill_to_start(&mut self) {
+    let from = self.byte_at(self.floor);
+    let to = self.byte_at(self.cursor);
+    self.buffer.replace_range(from..to, "");
+    self.cursor = self.floor;
+    self.pick = 0;
+  }
+
+  /// `C-w`: kill the word before the caret, whitespace-delimited.
+  ///
+  /// **`C-w` WAS RETIRED FROM THE IN-PLACE FIELD KEYMAP AND IS BACK HERE ON
+  /// PURPOSE.** hv retired it on 2026-08-30 with the vi/emacs field keymaps --
+  /// *we're handing the text off to a dedicated editor, not trying to recreate
+  /// it inside* -- and that reasoning is about FIELD, which has `$EDITOR` one
+  /// keystroke away. **The composer has no such escape**: it is the primary
+  /// input and cannot be handed to anything, so the argument that retired it
+  /// there does not reach here.
+  pub fn kill_word_back(&mut self) {
+    let chars: Vec<char> = self.buffer.chars().collect();
+    let mut at = self.cursor;
+    while at > self.floor && chars[at - 1].is_whitespace() {
+      at -= 1;
+    }
+    while at > self.floor && !chars[at - 1].is_whitespace() {
+      at -= 1;
+    }
+    let from = self.byte_at(at);
+    let to = self.byte_at(self.cursor);
+    self.buffer.replace_range(from..to, "");
+    self.cursor = at;
     self.pick = 0;
   }
 
@@ -203,6 +345,8 @@ impl Omnibox {
   /// always focused; there is nothing to carry a character FROM.
   pub fn clear(&mut self) {
     self.buffer.clear();
+    self.cursor = 0;
+    self.floor = 0;
     self.pick = 0;
   }
 
@@ -454,5 +598,141 @@ mod tests {
     assert_eq!(o.picked(0), None, "an empty list has no pick at all");
     o.type_char('x');
     assert_eq!(o.picked(5), Some(0), "typing resets the pick to the top");
+  }
+
+  /// **THE CARET IS WHERE THE NEXT CHARACTER LANDS**, which is the whole
+  /// property the buffer gained. Driven as an operator drives it: type, go
+  /// home, type again.
+  #[test]
+  fn typing_lands_at_the_caret_and_not_at_the_end() {
+    let mut o = Omnibox::default();
+    for c in "56".chars() {
+      o.type_char(c);
+    }
+    assert_eq!((o.buffer.as_str(), o.cursor()), ("56", 2));
+    o.home();
+    o.type_char('S');
+    assert_eq!(
+      (o.buffer.as_str(), o.cursor()),
+      ("S56", 1),
+      "typing at the caret must insert there, not append"
+    );
+    o.end();
+    o.type_char('!');
+    assert_eq!(o.buffer, "S56!");
+  }
+
+  /// Backspace deletes BEFORE the caret and `C-d` deletes UNDER it -- the two
+  /// are different keys because they are different acts, and an input that
+  /// conflated them would eat the wrong character.
+  #[test]
+  fn backspace_deletes_behind_and_delete_forward_deletes_under() {
+    let mut o = Omnibox::default();
+    for c in "abc".chars() {
+      o.type_char(c);
+    }
+    o.left();
+    o.erase();
+    assert_eq!(
+      (o.buffer.as_str(), o.cursor()),
+      ("ac", 1),
+      "backspace ate the wrong side"
+    );
+    o.delete_forward();
+    assert_eq!(
+      (o.buffer.as_str(), o.cursor()),
+      ("a", 1),
+      "C-d must delete under the caret"
+    );
+    o.delete_forward();
+    assert_eq!(o.buffer, "a", "C-d at the end is a no-op, not a panic");
+    o.home();
+    o.erase();
+    assert_eq!(
+      o.buffer, "a",
+      "backspace at the start is a no-op, not a panic"
+    );
+  }
+
+  /// **`C-u` IS READLINE'S KILL-TO-START, NOT CLEAR-THE-LINE.** An operator who
+  /// knows the binding expects the tail to survive; emptying the buffer would
+  /// be a different command wearing the same key.
+  #[test]
+  fn the_kill_keys_do_what_readline_does() {
+    let mut o = Omnibox::default();
+    for c in "one two three".chars() {
+      o.type_char(c);
+    }
+    o.kill_word_back();
+    assert_eq!(o.buffer, "one two ", "C-w must kill one word, not the line");
+    o.kill_word_back();
+    assert_eq!(o.buffer, "one ");
+
+    let mut o = Omnibox::default();
+    for c in "abcdef".chars() {
+      o.type_char(c);
+    }
+    o.home();
+    o.right();
+    o.right();
+    o.kill_to_end();
+    assert_eq!(
+      (o.buffer.as_str(), o.cursor()),
+      ("ab", 2),
+      "C-k kills forward from the caret"
+    );
+
+    let mut o = Omnibox::default();
+    for c in "abcdef".chars() {
+      o.type_char(c);
+    }
+    o.home();
+    o.right();
+    o.right();
+    o.kill_to_start();
+    assert_eq!(
+      (o.buffer.as_str(), o.cursor()),
+      ("cdef", 0),
+      "C-u kills BACK to the start and keeps the tail -- it is not clear-the-line"
+    );
+  }
+
+  /// **CHARS, NEVER BYTES.** The estate has paid for the other choice once,
+  /// and criterion prose is full of typography.
+  #[test]
+  fn the_caret_walks_characters_and_never_splits_one() {
+    let mut o = Omnibox::default();
+    for c in "aé中z".chars() {
+      o.type_char(c);
+    }
+    assert_eq!(o.cursor(), 4);
+    o.home();
+    o.right();
+    o.delete_forward();
+    assert_eq!(o.buffer, "a中z", "a multi-byte character must delete whole");
+    o.end();
+    o.erase();
+    assert_eq!(o.buffer, "a中");
+    o.erase();
+    assert_eq!(
+      o.buffer, "a",
+      "backspacing a multi-byte character must not split it"
+    );
+  }
+
+  /// Motions do not disturb the pick: moving the caret does not change the
+  /// query, so it does not change what Enter would take.
+  #[test]
+  fn moving_the_caret_leaves_the_pick_alone() {
+    let mut o = Omnibox::default();
+    for c in "st".chars() {
+      o.type_char(c);
+    }
+    o.pick_move(true, 5);
+    let picked = o.picked(5);
+    o.home();
+    o.end();
+    o.left();
+    assert_eq!(o.picked(5), picked, "a caret motion moved the pick");
   }
 }

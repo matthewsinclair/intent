@@ -302,11 +302,7 @@ impl App {
     if self.mode == Mode::Omni {
       match trigger {
         "Typing" => {
-          match key.code {
-            KeyCode::Char(c) => self.omnibox.type_char(c),
-            KeyCode::Backspace => self.omnibox.erase(),
-            _ => {}
-          }
+          self.edit_composer(key);
           return Step::Continue;
         }
         // **ESC CLEARS THE QUERY, AND ON AN ALREADY-EMPTY COMPOSER IT IS A
@@ -322,6 +318,8 @@ impl App {
         // and it gives Backspace an exit that needs no special case.
         "/" => {
           self.omnibox.type_char(commands::SIGIL);
+          // The sigil is a prompt, not content: bulk edits stop at it.
+          self.omnibox.set_floor(1);
           self.mode = Mode::Menu;
           return Step::Continue;
         }
@@ -375,11 +373,7 @@ impl App {
     if self.mode == Mode::Menu {
       match trigger {
         "Typing" => {
-          match key.code {
-            KeyCode::Char(c) => self.omnibox.type_char(c),
-            KeyCode::Backspace => self.omnibox.erase(),
-            _ => {}
-          }
+          self.edit_composer(key);
           // **ERASING THE SIGIL LEAVES THE PALETTE**, which is why MENU needs
           // no exit key of its own and why `Back` was retired from its edges.
           if commands::query_of(&self.omnibox.buffer).is_none() {
@@ -579,6 +573,36 @@ impl App {
   pub fn palette(&self) -> Vec<super::omnibox::Match> {
     let query = commands::query_of(&self.omnibox.buffer).unwrap_or("");
     commands::matches(&self.commands, query, MATCH_CAP)
+  }
+
+  /// Apply one editing keystroke to the composer.
+  ///
+  /// **ONE DISPATCHER FOR BOTH VOCABULARIES.** OMNI and MENU collect into the
+  /// same buffer, so the editing keymap is applied in one place rather than
+  /// copied into each mode's `Typing` arm -- where the two copies would drift
+  /// the first time a binding was added to one of them.
+  ///
+  /// **AN UNKNOWN CHORD DOES NOTHING RATHER THAN TYPING ITSELF.** `keys::edit`
+  /// answers `None` for a control chord it does not bind, and this returns.
+  /// Before it existed, `C-a` inserted an `a`, which is the defect hv drove
+  /// into: a key that appears to be understood and quietly means something
+  /// else.
+  fn edit_composer(&mut self, key: KeyEvent) {
+    let Some(action) = keys::edit(key) else {
+      return;
+    };
+    match action {
+      keys::Edit::Insert(c) => self.omnibox.type_char(c),
+      keys::Edit::Backspace => self.omnibox.erase(),
+      keys::Edit::DeleteForward => self.omnibox.delete_forward(),
+      keys::Edit::Home => self.omnibox.home(),
+      keys::Edit::End => self.omnibox.end(),
+      keys::Edit::Left => self.omnibox.left(),
+      keys::Edit::Right => self.omnibox.right(),
+      keys::Edit::KillToEnd => self.omnibox.kill_to_end(),
+      keys::Edit::KillToStart => self.omnibox.kill_to_start(),
+      keys::Edit::KillWordBack => self.omnibox.kill_word_back(),
+    }
   }
 
   /// Pop the view stack. **ONE HOME for an act two doors reach** -- the `Back`
@@ -1832,5 +1856,91 @@ mod tests {
         command.name
       );
     }
+  }
+
+  /// **hv's DEFECT, DRIVEN AS A KEYSTROKE: `C-a` USED TO TYPE AN `a`.**
+  /// Every control chord fell through the keymap's `Char(_)` arm and was
+  /// inserted, so the composer had no editing keys and silently mistyped
+  /// instead of saying it did not understand.
+  #[test]
+  fn a_control_chord_edits_the_composer_and_never_types_itself() {
+    let ctrl = |c: char| KeyEvent::new(KeyCode::Char(c), KeyModifiers::CONTROL);
+    let mut app = App::explore();
+    for c in "56".chars() {
+      app.on_key(key(KeyCode::Char(c)), &[]);
+    }
+    assert_eq!(app.omnibox.buffer, "56");
+
+    // C-a goes home; it must not insert an `a`.
+    app.on_key(ctrl('a'), &[]);
+    assert_eq!(
+      app.omnibox.buffer, "56",
+      "C-a typed itself into the buffer -- the defect hv reported"
+    );
+    assert_eq!(app.omnibox.cursor(), 0, "C-a must move the caret home");
+
+    // And typing now lands at the caret.
+    app.on_key(key(KeyCode::Char('S')), &[]);
+    assert_eq!(app.omnibox.buffer, "S56");
+
+    app.on_key(ctrl('e'), &[]);
+    assert_eq!(
+      app.omnibox.cursor(),
+      3,
+      "C-e must move the caret to the end"
+    );
+
+    app.on_key(ctrl('u'), &[]);
+    assert_eq!(app.omnibox.buffer, "", "C-u must kill back to the start");
+
+    // **AN UNBOUND CHORD IS SWALLOWED, NOT TYPED.** This is the general form
+    // of the defect rather than the instance: the next chord nobody binds must
+    // also do nothing.
+    for c in "56".chars() {
+      app.on_key(key(KeyCode::Char(c)), &[]);
+    }
+    app.on_key(ctrl('x'), &[]);
+    assert_eq!(
+      app.omnibox.buffer, "56",
+      "an unbound control chord inserted its letter"
+    );
+  }
+
+  /// The palette collects through the SAME editing keymap, because it is the
+  /// same composer -- a second dispatcher would drift the first time a binding
+  /// was added to one of them.
+  #[test]
+  fn the_palette_gets_the_same_editing_keys_as_the_composer() {
+    let ctrl = |c: char| KeyEvent::new(KeyCode::Char(c), KeyModifiers::CONTROL);
+    let mut app = App::explore();
+    app.commands = commands::vocabulary();
+    app.on_key(key(KeyCode::Char('/')), &[]);
+    for c in "quit".chars() {
+      app.on_key(key(KeyCode::Char(c)), &[]);
+    }
+    assert_eq!(app.omnibox.buffer, "/quit");
+    app.on_key(ctrl('a'), &[]);
+    assert_eq!(
+      app.omnibox.cursor(),
+      1,
+      "C-a in the palette must land AFTER the sigil -- at column 0 the next \
+       character would be typed in front of it and close the palette"
+    );
+    assert_eq!(
+      app.mode,
+      Mode::Menu,
+      "a caret motion must not leave the palette"
+    );
+    app.on_key(ctrl('e'), &[]);
+    app.on_key(ctrl('w'), &[]);
+    assert_eq!(
+      app.omnibox.buffer, "/",
+      "C-w must kill the word and leave the sigil"
+    );
+    assert_eq!(
+      app.mode,
+      Mode::Menu,
+      "killing the query is not erasing the sigil"
+    );
   }
 }

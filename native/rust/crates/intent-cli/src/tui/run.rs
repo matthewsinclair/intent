@@ -196,7 +196,17 @@ fn omnibox_row(app: &App) -> String {
     // carries it too, because the palette COLLECTS**: the sigil in the buffer
     // is what tells the two apart, not the presence of a cursor.
     super::mode::Mode::Omni | super::mode::Mode::Menu => {
-      format!("\u{276f} {}\u{258f}", app.omnibox.buffer)
+      // **THE CARET IS DRAWN WHERE IT IS, NOT AT THE END.** It was appended
+      // while the buffer had no cursor; with one, appending would paint the
+      // caret in a place the next keystroke does not land -- an input that
+      // lies about where you are typing.
+      let buffer = &app.omnibox.buffer;
+      let at = buffer
+        .char_indices()
+        .nth(app.omnibox.cursor())
+        .map(|(i, _)| i)
+        .unwrap_or(buffer.len());
+      format!("\u{276f} {}\u{258f}{}", &buffer[..at], &buffer[at..])
     }
     _ => format!("\u{276f} {}", app.omnibox.buffer),
   }
