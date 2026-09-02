@@ -150,6 +150,12 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // it was given, so nothing authored is hidden behind it -- the operator is
     // holding the string this refusal is about.
     | FacadeError::ValueNotRecordable { .. }
+    // **THE CALLER SUPPLIED THE FIELD; THAT IS THE PROBLEM** (issue 0207).
+    // `--note` was given and is perfectly recordable -- the refusal is about
+    // what writing it would DESTROY. There is no omitted value to carry to a
+    // reader, and telling the operator to supply a field they already supplied
+    // is the one remedy that cannot help them.
+    | FacadeError::NoteWouldBeLost { .. }
     // A wrapped realisation failure. It reports that making files exist did not
     // work, not that a value was left out -- no authored prose behind it.
     | FacadeError::Realise(_)

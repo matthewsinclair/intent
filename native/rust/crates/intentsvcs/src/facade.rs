@@ -485,6 +485,34 @@ pub enum FacadeError {
     given: String,
     why: String,
   },
+  /// A `--note` that would DESTROY an existing note rather than extend it.
+  ///
+  /// **DISTINCT FROM [`FacadeError::ValueNotRecordable`], and the difference is
+  /// that the value is perfectly recordable.** That one says *the field is
+  /// yours and that value is not one of its values*; this says *the value is
+  /// fine and writing it discards something you did not mention*. An operator
+  /// told their text was invalid would go and fix the text, which is the one
+  /// thing that cannot help here.
+  ///
+  /// Issue 0207. On this estate an AT's note is where the row's adjudication
+  /// history lives, and `--note` replaced it wholesale and silently -- on the
+  /// three verbs you reach for AT CLOSE, which is exactly when someone writes
+  /// down why. `AT-00.12` went 7803 bytes to 683 and the author did not notice.
+  ///
+  /// **THE DOOR IS IN `remedy()`, NOT IN THIS MESSAGE.** A refusal that names
+  /// no way forward is a worse defect than the one it prevents -- but spelling
+  /// the door in both places is the doubled rendering `IngestError::Refused`
+  /// documents. This says what is at risk; `remedy()` says where to go.
+  #[error(
+    "`{url}` already carries a note of {existing_bytes} byte(s) and this `--note` is {incoming_bytes}, \
+     so it would drop the note rather than extend it. What would be lost begins: {opening}"
+  )]
+  NoteWouldBeLost {
+    url: String,
+    existing_bytes: usize,
+    incoming_bytes: usize,
+    opening: String,
+  },
   #[error("no steel thread {id} in this project")]
   NoSuchThread { id: String },
   #[error("steel thread {id} already exists")]
@@ -975,6 +1003,19 @@ impl crate::remedy::Remedy for FacadeError {
       Self::WriteNotAddressable { .. } => {
         "`PUT` json to a caller-assigned id (an AC or an AT); everything else is a \
          `POST` to the collection address"
+          .to_string()
+      }
+      // **THE ASYMMETRY IS THE MECHANISM, NOT AN OVERSIGHT** (issue 0207, vc
+      // ruled (c) 2026-09-02, rider 1). `at edit --note` is the explicit door
+      // and it carries NO shrinkage refusal, because a door that refuses is
+      // not a door: guarding it too would leave no legal way to fold a bloated
+      // note, which is the build 0207's own evidence disproves. `at edit`'s
+      // published contract is already *a field you do not name is a field it
+      // does not change*, so naming `--note` there IS the deliberate act.
+      Self::NoteWouldBeLost { .. } => {
+        "extend the note instead -- pass a `--note` that contains the existing text -- or, to \
+         replace it deliberately, name the field on the verb that exists for it: `intent at edit \
+         <ST> <AT> --note \"...\"`"
           .to_string()
       }
       Self::ValueNotRecordable { .. } => {
@@ -5324,6 +5365,7 @@ impl Facade {
     file: Option<String>,
     prose: Option<String>,
     covers: Option<Vec<String>>,
+    note: Option<String>,
   ) -> Result<Outcome, FacadeError> {
     // **REFUSED RATHER THAN TREATED AS A NO-OP, AND IT IS REFUSED HERE RATHER
     // THAN IN THE RENDERER.** `at edit ST0001 AT-01.1` with no field named is a
@@ -5332,13 +5374,14 @@ impl Facade {
     // facade is the contract -- a library caller passing three `None`s makes
     // the identical mistake, and a renderer-side guard would protect only the
     // operators who came through the CLI.
-    if file.is_none() && prose.is_none() && covers.is_none() {
+    if file.is_none() && prose.is_none() && covers.is_none() && note.is_none() {
       return Err(FacadeError::NothingToChange {
         subject: format!("{st} {at}"),
         offered: vec![
           "--file".to_string(),
           "--prose".to_string(),
           "--covers".to_string(),
+          "--note".to_string(),
         ],
       });
     }
@@ -5357,10 +5400,25 @@ impl Facade {
     // **Every field not named is READ OFF THE STORED ROW rather than defaulted**
     // -- which is the whole difference between this verb and the create it
     // replaces, and the reason `note` and `legacy` need no special handling.
+    // **`note` CARRIES NO SHRINKAGE REFUSAL HERE, AND THE ASYMMETRY IS THE
+    // MECHANISM RATHER THAN AN OVERSIGHT** (issue 0207, vc ruled (c)
+    // 2026-09-02, rider 1). **A door that refuses is not a door.** The status
+    // verbs refuse a note that does not contain the one it replaces, so this
+    // is the only way to fold a bloated note deliberately -- guarding it too
+    // would leave no legal spelling at all, which is the build 0207's own
+    // evidence disproves (it records one destructive shrink AND three benign
+    // folds the same day).
+    //
+    // **NAMING THE FIELD IS THE DELIBERATE ACT**, which is this verb's
+    // published contract already: *a field you do not name is a field it does
+    // not change*. 0207 records that `at edit` exists precisely so a re-cite
+    // does not eat a row's note -- **the reasoning was applied to this verb
+    // and stopped one field short.**
     let row = AcceptanceTest {
       file: file.or_else(|| existing.file.clone()),
       prose: prose.or_else(|| existing.prose.clone()),
       covers: covers.unwrap_or_else(|| existing.covers.clone()),
+      note: note.or_else(|| existing.note.clone()),
       ..existing.clone()
     };
     if &row == existing {
@@ -5850,6 +5908,48 @@ impl Facade {
         row.fiat = None;
       }
       if let Some(text) = note.as_ref() {
+        // **THE NOTE IS EXTENDED OR IT IS REFUSED** (issue 0207). `--note`
+        // replaced this field wholesale and silently, on the three verbs
+        // someone reaches for at close -- which is the moment they write down
+        // why, and the moment the row's adjudication history is longest.
+        //
+        // **THE TEST IS CONTAINMENT, AND LENGTH IS NOT IN IT** (vc ruled
+        // 2026-09-02 under hv's pen). The contract in one line: **the status
+        // verbs EXTEND; `at edit` REPLACES.** Containment is *extend*
+        // mechanised.
+        //
+        // **A LENGTH TEST FAILS OPEN ON A SAME-LENGTH REWRITE**, which is why
+        // it was refused. Replace 400 bytes of adjudication record with 400
+        // bytes of something else and `shorter` is false, so the guard passes
+        // and the record is gone -- a check failing open on a case inside its
+        // own subject. Containment DOMINATES rather than trades off: anything
+        // longer-by-appending contains the original, so there is nothing a
+        // length test catches that this misses, and it needs no threshold.
+        //
+        // **AND NO THRESHOLD WAS AVAILABLE TO BUILD, WHICH IS A MEASUREMENT
+        // AND NOT AN OPINION.** 0207's remedy sketch said *materially* longer.
+        // Across 313 AT notes carrying content the sizes run near-continuously
+        // -- median 178, p75 1184, max 17485, and the largest gap anywhere
+        // between 150 and 1200 bytes is about 30. There is no valley between
+        // short labels and adjudication records to put a line in, so any
+        // number would have been arbitrary while being described as
+        // data-driven, and its failure mode is the silent one: a 400-byte
+        // record destroyed below the line with the guard green.
+        //
+        // **`materially longer` WAS ITSELF INSTANCE-SHAPED.** It was written
+        // looking at a 7803 -> 683 destruction, where length was the visible
+        // symptom. The mechanism was never length; it is CONTENT LOSS.
+        if let Some(existing) = row.note.as_ref() {
+          if !text.contains(existing.as_str()) {
+            let opening: String = existing.chars().take(120).collect();
+            return Err(FacadeError::NoteWouldBeLost {
+              url: format!("{st}/{at}"),
+              existing_bytes: existing.len(),
+              incoming_bytes: text.len(),
+              opening,
+            });
+          }
+        }
         row.note = Some(text.clone());
       }
     }

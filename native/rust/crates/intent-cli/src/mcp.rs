@@ -891,7 +891,11 @@ pub fn serve(
       // empty vec would silently clear the row's coverage (the arm's contract,
       // kept on this face).
       let covers = strings(path, map, "covers")?;
-      Ok(outcome_json(&f.at_edit(&st, id, file, prose, covers)?, id))
+      let note = opt_s(path, map, "note")?.map(str::to_string);
+      Ok(outcome_json(
+        &f.at_edit(&st, id, file, prose, covers, note)?,
+        id,
+      ))
     }
 
     // ----- issues -----

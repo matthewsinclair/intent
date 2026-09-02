@@ -216,8 +216,52 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   out.push((
     "an edit naming no field",
     facade
-      .at_edit("ST0056", "AT-03.1", None, None, None)
+      .at_edit("ST0056", "AT-03.1", None, None, None, None)
       .expect_err("an edit with nothing to change is refused, not reported unchanged"),
+  ));
+  // **PROVOKED RATHER THAN EXEMPTED, because it is provokable and an exemption
+  // is a claim nobody re-drives** (issue 0207). The refusal needs a row whose
+  // note is longer than the incoming one and not contained in it, so the setup
+  // call lands the long note and the provoker shrinks it. **The setup is an
+  // ASSERTION, not a convenience**: if `at_set` ever stops accepting the long
+  // note, this provoker would fail for a reason that has nothing to do with
+  // the variant, which is the collapse this file records four times already.
+  //
+  // **THE SETUP MUST ITSELF EXTEND, and this is here because it did not.** It
+  // first landed as a bare long string, correct under the `shorter` predicate
+  // and refused under containment -- so the setup failed and took three tests
+  // in this file down with it. **The `expect` is what made that loud**, which
+  // is what its own comment above claimed it would do; a setup written as a
+  // convenience would have provoked the wrong error and this file would have
+  // gone on reporting coverage it did not have.
+  let existing = facade
+    .st_show("ST0056")
+    .expect("the fixture thread is readable")
+    .tests
+    .iter()
+    .find(|t| t.id == "AT-03.1")
+    .and_then(|t| t.note.clone())
+    .unwrap_or_default();
+  facade
+    .at_set(
+      "ST0056",
+      "AT-03.1",
+      AtStatus::Green,
+      Some(format!(
+        "{existing} -- the adjudication history this row carries, at a length that makes the loss unambiguous."
+      )),
+    )
+    .expect("a row must be able to gain a longer note by EXTENDING the one it has");
+  out.push((
+    "a --note that would drop the note it replaces",
+    facade
+      .at_set(
+        "ST0056",
+        "AT-03.1",
+        AtStatus::Green,
+        Some("shorter".to_string()),
+      )
+      .expect_err("a note that does not contain the existing one is refused"),
   ));
   // The two export refusals a bad ARGUMENT can reach. Provoked here rather
   // than declared elsewhere because that is the point of this file: they are
@@ -605,6 +649,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::NoSuchEditable { .. } => "NoSuchEditable",
     FacadeError::FieldNotWritable { .. } => "FieldNotWritable",
     FacadeError::ValueNotRecordable { .. } => "ValueNotRecordable",
+    FacadeError::NoteWouldBeLost { .. } => "NoteWouldBeLost",
     FacadeError::Install(_) => "Install",
     FacadeError::RootFile(_) => "RootFile",
     FacadeError::RecordMovedUnderTheWrite { .. } => "RecordMovedUnderTheWrite",
@@ -619,6 +664,7 @@ fn variant(err: &FacadeError) -> &'static str {
 /// (ST0048's rule).
 const ALL_VARIANTS: &[&str] = &[
   "ValueNotRecordable",
+  "NoteWouldBeLost",
   "NotHydratable",
   "NoManifestToUnlistFrom",
   "DehydrationRefused",

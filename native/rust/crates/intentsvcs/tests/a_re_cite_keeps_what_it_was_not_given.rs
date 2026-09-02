@@ -77,6 +77,7 @@ fn a_re_cite_keeps_the_note_it_was_never_given() {
       None,
       None,
       Some(vec!["AC-03.2".to_string()]),
+      None,
     )
     .expect("re-citing coverage on an existing row is what this verb is for");
 
@@ -115,6 +116,7 @@ fn a_re_cite_keeps_the_legacy_marker_it_was_never_given() {
       None,
       None,
       Some(vec!["AC-03.2".to_string()]),
+      None,
     )
     .expect("re-citing coverage is legal");
 
@@ -149,6 +151,7 @@ fn each_named_field_moves_and_its_neighbours_do_not() {
       "AT-03.2",
       None,
       Some("re-read against the rendered view".to_string()),
+      None,
       None,
     )
     .expect("prose is editable");
@@ -258,21 +261,44 @@ fn a_note_lands_on_a_row_whose_status_does_not_move() {
     "precondition: AT-03.1 starts green, so setting it green is the self-loop this test needs"
   );
 
+  // **THIS NOTE USED TO REPLACE THE STORED ONE; UNDER THE RULING IT EXTENDS
+  // IT** (issue 0207, vc ruled (c) 2026-09-02 under hv's pen granted
+  // 2026-08-22). The contract is now: **the status verbs EXTEND a note and
+  // `at edit --note` REPLACES it**, so a `--note` that does not carry the
+  // existing text verbatim is refused rather than written.
+  //
+  // **THE SUBJECT OF THIS TEST IS UNCHANGED and it is the reason the change is
+  // a contract change rather than an expectation bumped to fit new
+  // behaviour:** it asserts that the flag is NOT INERT on a self-loop -- a
+  // note-only write reaches the row when the status does not move. That is
+  // what it asserted before and what it asserts now. **What changed is the
+  // expectation it carried incidentally**: that the incoming note replaced the
+  // stored one outright.
+  let existing = row(&facade, "AT-03.1")
+    .note
+    .clone()
+    .expect("the fixture row carries a note, which is what makes this an EXTENSION rather than a first write");
+  let extended = format!("{existing} -- green on the first run is not evidence");
+
   facade
-    .at_set(
-      "ST0001",
-      "AT-03.1",
-      AtStatus::Green,
-      Some("green on the first run is not evidence".to_string()),
-    )
+    .at_set("ST0001", "AT-03.1", AtStatus::Green, Some(extended.clone()))
     .expect("a note-only write is legal");
 
   let after = row(&facade, "AT-03.1");
   assert_eq!(
     after.note.as_deref(),
-    Some("green on the first run is not evidence"),
+    Some(extended.as_str()),
     "the note was discarded because the status had not moved -- the flag is inert in exactly the \
      case it is most wanted"
+  );
+  assert!(
+    after
+      .note
+      .as_deref()
+      .unwrap_or_default()
+      .contains(&existing),
+    "an extension keeps the original verbatim; without this the assertion above would pass for a \
+     replacement that happened to be longer"
   );
   assert_eq!(
     after.status,

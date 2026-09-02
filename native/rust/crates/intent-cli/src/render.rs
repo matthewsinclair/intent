@@ -2660,7 +2660,14 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
         a.get_many::<String>("covers").map(|v| v.cloned().collect());
       reported(
         &open()?
-          .at_edit(&st, &id, opt(a, "file"), opt(a, "prose"), covers)
+          .at_edit(
+            &st,
+            &id,
+            opt(a, "file"),
+            opt(a, "prose"),
+            covers,
+            opt(a, "note"),
+          )
           .map_err(fail)?,
         &id,
         "re-cited",

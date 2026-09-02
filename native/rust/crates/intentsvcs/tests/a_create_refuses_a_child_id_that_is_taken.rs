@@ -344,7 +344,7 @@ fn at_edit_refuses_a_call_that_names_nothing_to_change() {
   let mut facade = fx.facade();
 
   let err = facade
-    .at_edit("ST0001", "AT-03.1", None, None, None)
+    .at_edit("ST0001", "AT-03.1", None, None, None, None)
     .expect_err("an edit with no field named must refuse");
 
   assert!(
@@ -401,6 +401,7 @@ fn at_edit_can_repair_a_row_that_already_carries_a_finding() {
       None,
       None,
       Some(vec!["AC-03.2".to_string()]),
+      None,
     )
     .expect("a row's inherited breakage must not make its other fields uneditable");
 
@@ -445,6 +446,7 @@ fn a_re_cite_to_a_live_file_clears_the_finding_the_row_arrived_with() {
       Some("crates/intentsvcs/tests/ingest_refusal_moved.rs".to_string()),
       None,
       None,
+      None,
     )
     .expect("re-citing to a live file is the repair");
 
@@ -483,6 +485,7 @@ fn at_edit_refuses_a_change_that_introduces_a_finding() {
       None,
       None,
       Some(vec!["AC-77.7".to_string()]),
+      None,
     )
     .expect_err("an edit that breaks the contract must refuse");
 
