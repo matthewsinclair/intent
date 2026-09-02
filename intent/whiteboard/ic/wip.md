@@ -4,7 +4,7 @@ name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
 commit_session_id: 01NWtGVYUAFbTUS28AZsnzq9 -- the Claude-Session trailer id on commits authored from THIS session (0208). POINT-IN-TIME: one session per line, never a table -- a restart mints a new id, and the mapping accumulates in .history/ as folds archive the header that was live. Read off my own commit, not reconstructed.
-heartbeat_at: 2026-09-02 22:58Z
+heartbeat_at: 2026-09-02 23:01Z
 status: active
 focus: "TUI redesign (WP-17) and ST0065's contract. WP-17 ROWS 13-18 ARE CLOSED: six covered, SIX satisfied. AC-17.18 was closed by hv DRIVING it -- the only way it could have been, because the suite is silent about painting by construction. ST0065 went from ZERO criteria to a contract of EIGHT and its four to-write instruments are BUILT AND GREEN: 5/8, and the three open rows are all NON-TEST READS blocked on the rationalisation being cut, which is a sequencing call rather than mine. AT-00.6 did NOT land red -- I refuted its premise by driving it, and vc re-drove and struck the instance. ST0065 IS 8/8 -- the three non-test reads landed 22:5xZ as three SETTLED writes. THE CUT THEY WERE BLOCKED ON WAS ALREADY EXECUTED and my board said otherwise for hours (fifth expired premise of the night, mine). AC-00.8 found a real fork: IN-AG-PFIC-001 has SIX canon-set homes stating a different rule than the one that owns it, including the fleet template and in-review's checklist. 0181 closed, 0218 filed. RE-MEASURE EVERY FIGURE AT PICKUP -- five nodes write this tree."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
@@ -44,6 +44,12 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 6. **ST0064 remaining (5/9), not mine to start:** 01.2/01.6 cc-gated; 01.7 dc pipeline + hv's ADC signing; 01.4 cc console.
 7. **Explorer/Lotus menu SELECTION** (hv item, A1 on vc's list) -- needs hv at the keys.
 8. **`intent app start|stop|restart`** (hv, new user verb): controls the INSTALLED app; new_surface `app` family; coord cc.
+
+**hv's THREE RULINGS ARE EXECUTED (2026-09-02 22:5x-23:0xZ), ALL GIVEN FIRST-HAND IN SESSION.** `0219` PFIC fix landed AND SYNCED (`311ca65c`); the two empty `~/.claude/skills/` dirs killed, so canon 23 == installed 23 and the retirement draft's step 4 now passes AS WRITTEN; `0215` closed keeping v3's behaviour.
+
+**THE PROVENANCE REFUSAL IS THE KEEPER, AND vc CONCEDED IT WAS THEIR ERROR.** vc told me to stamp `authority: hv` on the strength of hv's _"YES!"_ relayed to THEM -- **in the same message explaining that the `ratified-in` arm was rebuilt from a regex to declared fields precisely to stop a relayed ruling landing as hv-first-hand.** I declined; hv then answered me directly and numbered, so the stamp rests on direct evidence and the relay is corroboration. **A relayed ruling and a first-hand one are INDISTINGUISHABLE IN THE ARTEFACT, which is the entire reason the arm exists** -- so the refusal cost nothing and the alternative was unfalsifiable forever.
+
+**AND THE SYNC WAS THE STEP THAT ENDED THE DEFECT, NOT THE COMMIT.** A canon commit leaves every node loading the old text out of `~/.claude/skills/` -- **`AC-00.5`'s stranding arriving inside the fix for `AC-00.1`.** Verified by reading the INSTALLED copies, not sync's report.
 
 ## Watch-outs -- mechanisms only
 
