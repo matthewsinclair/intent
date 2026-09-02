@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-heartbeat_at: 2026-09-02 14:19Z
+heartbeat_at: 2026-09-02 15:29Z
 status: active
-focus: "TUI redesign (WP-17), HALF 1 of 2 LANDED at a8981480: mode machine collapsed to OMNI/MENU/EDIT, NAV folded into the composer, section 3-5 rewritten, AC-17.9 reworded + AT-17.9 appended, 196 passed, canon window closed and RELEASED. NEXT = HALF 2, the LOWER BAR: section 2 + framed composer + status segments + AC-17.11. It needs the vc window again (ask when at the section 2 write) and it carries UNCOSTED PLUMBING -- the O4 segments need branch/diff/gate/binary-currency data the TUI has no source for. RE-MEASURE every figure at pickup."
+focus: "TUI redesign (WP-17). LANDED: a8981480 mode collapse (OMNI/MENU/EDIT), 2f0ba5e8 the COMMAND PALETTE (hv drove the build and found MENU was a painted mockup -- no model, arrows silently moved the body, Hotkey was a dead key every invariant passed), 95abeab5 + de5401c3 the AC-17.13 evidence and the dead-key invariant FIX, 02e802ae the framed composer (hv O1). 208 passed. NEXT: section 2 prose + AC-17.11 reword + AC-17.13 AT row in ONE vc window; the STATUS SEGMENTS wait on hv O4 (the data has no source). RE-MEASURE every figure at pickup."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -24,6 +24,8 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 **HALF 2's UNCOSTED PIECE, FOUND NOT ASSUMED: the O4 status segments need data the TUI HAS NO SOURCE FOR** -- branch, diff stat, gate figure, binary currency. `app.rs` deliberately holds no facade and there is no status module, so the segments need a new seam (via `run.rs`'s `Source`, which is where the store already enters). The proposal costed the pixels at S and the plumbing at zero. Not a deferral -- hv struck scarcity as a class -- just the real shape.
 
 **COUPLING, MEASURED:** `mode.rs`'s transcription test READS `tui-design.md` §3 FROM DISK at test time, so §3 and EDGES are gate-locked into one commit (that is why half 1 was one commit). `AC-17.11`'s tests do NOT read the doc -- they assert an in-test shape -- so §2 and `layout.rs`/`draw.rs` are coupled only by the criterion's prose, which is what makes the split legal.
+
+8. **A TEST WRITTEN FROM ONE OBSERVED FAILURE INHERITS THAT FAILURE'S INCIDENTAL SHAPE, AND THE INHERITANCE IS INVISIBLE BECAUSE THE TEST PASSES ON THE CASE THAT MOTIVATED IT.** Live twice today. The dead-key invariant was built from `Hotkey`, whose edge is a SELF-LOOP; a planted dead trigger declaring a MODE CHANGE sailed through, because `on_key`'s tail applies the transition and that alone satisfied "the app changed". **8x generalised (mine, vc's board): ANY STATE THE HARNESS ITSELF MOVES IS NOT EVIDENCE THAT THE THING UNDER TEST MOVED IT** -- and the framework case is the invisible one, since the bookkeeping is nowhere near the code under test. **Cure: a baseline that ALREADY CONTAINS the bookkeeping.** Cheap check: plant a second instance of a DIFFERENT shape and see whether the check still fires. **And the move that finds it is applying a fresh class BACKWARDS to what you wrote before it** -- rare because you only look when you have nothing to celebrate.
 
 ## TODO
 
