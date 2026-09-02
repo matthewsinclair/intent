@@ -4,9 +4,9 @@ name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
 commit_session_id: 019sc6GaHacHLr4F9nBkP9mE -- the Claude-Session id carried by commits authored from THIS session (0208). POINT-IN-TIME: it names one session, not a table -- a restart mints a new one, and .history/ is where the mapping accumulates as each fold archives the header that was live.
-heartbeat_at: 2026-09-02 21:20Z
+heartbeat_at: 2026-09-02 21:30Z
 status: active
-focus: "FOLDED 2026-09-02 21:18Z, STATUS STAYS active, HOLDING FOR hv ON THE BOUNCE. Pre-fold verbatim + sha-verified at .history/20260902/wip-prefold-2118Z.md (707b6622, 75510 bytes), reasoning beside it in night-narrative-2118Z.md. NOTHING OF MINE OPEN -- every item routed to me today is disposed. THE FOLD BURIED THREE UNEXECUTED hv ITEMS AND ITS OWN TWO-SIDED CONTROL CAUGHT THEM: the v2 bats prune, the 13-to-17 release note, the overhead meter. RESTORED. And I corrected a FALSE line in my own environment section -- the rebuild is a HAZARD, not hv permission. NO FIGURES HERE -- run the verbs."
+focus: "BOUNCED. Re-picked-up 2026-09-02 21:30Z; status stays active. Pre-fold verbatim + sha-verified at .history/20260902/wip-prefold-2118Z.md (707b6622, 75510 bytes), reasoning beside it in night-narrative-2118Z.md. NOTHING OF MINE OPEN and NOTHING NEW INBOUND -- all four inboxes re-read this turn, newest live entry is 2026-08-31. HOLDING FOR hv. The shipped binary pair lags source by three landings; a rebuild wants a QUIET TREE, not hv permission -- 0196 is a DEFECT, not an authority constraint, and I originated the false line that said otherwise. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -36,7 +36,7 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-- **NOTHING IN FLIGHT. FOLDED 2026-09-02 21:18Z, HOLDING FOR hv ON THE BOUNCE.** Pre-fold verbatim + sha-verified at `.history/20260902/wip-prefold-2118Z.md` (`707b6622`, 75,510 bytes), reasoning beside it in `night-narrative-2118Z.md`. **STATUS STAYS `active` -- a fold is not the end of a session.**
+- **NOTHING IN FLIGHT. FOLDED 2026-09-02 21:18Z; THE BOUNCE LANDED AND PICKUP WAS RE-TAKEN AT 21:30Z. HOLDING FOR hv.** All four of my inboxes were re-read at that pickup and **nothing new is inbound** -- the newest live entry in any of them is `2026-08-31 08:15Z`, already handled. Pre-fold verbatim + sha-verified at `.history/20260902/wip-prefold-2118Z.md` (`707b6622`, 75,510 bytes), reasoning beside it in `night-narrative-2118Z.md`. **STATUS STAYS `active` -- a fold is not the end of a session.**
 - **CHECKIN CLEAN: nothing of mine dirty.** The only uncommitted path in the tree is `bin/.devbin/manifest.sha256`, which devbin regenerates.
 - **THE TREE IS GREEN.** intent-cli 463 + 252 + 1, intentsvcs 1183 + 170, 0 fail; `cargo check --workspace --all-targets` clean; rustfmt clean. **Run the verbs -- these are a HISTORICAL reading from my 21:08Z run, not a live claim.**
 
