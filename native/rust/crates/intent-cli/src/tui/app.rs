@@ -108,6 +108,30 @@ pub enum Step {
     id: String,
     name: String,
   },
+  /// `/{cmd} ...`: run one allow-listed `intent` command with the terminal
+  /// lent. The payload is a whole argv, `intent` included, ready for
+  /// `spine::parse`.
+  ///
+  /// **A WHOLE ARGV RATHER THAN A VERB PLUS A STRING**, because the split is
+  /// the part that can be got wrong and it is the part this module can prove.
+  /// Handing the realiser a verb and an unparsed tail would move the splitting
+  /// into the one place that needs a terminal to test.
+  Run(Vec<String>),
+}
+
+/// `intent`, the verb, and the operator's arguments -- the argv `spine::parse`
+/// expects, whose first element is the program name.
+///
+/// **SPLIT ON WHITESPACE, AND QUOTING IS DELIBERATELY NOT SUPPORTED YET.** A
+/// half-implemented quote parser is worse than none: it would take
+/// `/st new "a title with spaces"` and pass along the quote characters, so the
+/// thread would be created with a name nobody typed and the operator would see
+/// it succeed. Splitting plainly means that command simply takes the first
+/// word, which is visible in the result rather than hidden in it.
+fn argv_for(verb: &str, argument: &str) -> Vec<String> {
+  let mut argv = vec!["intent".to_string(), verb.to_string()];
+  argv.extend(argument.split_whitespace().map(str::to_string));
+  argv
 }
 
 /// Which pane the cursor is in.
@@ -477,6 +501,12 @@ impl App {
               Step::Continue
             }
             Act::Settings => Step::ShowSetting(argument),
+            // **THE ARGV IS SPLIT HERE AND RUN THERE**, for the reason every
+            // other act splits that way: turning a buffer into `["intent",
+            // "st", "list"]` is a pure function of what was typed and is
+            // driven without a terminal; lending the screen to a command that
+            // prints is a side effect and is not.
+            Act::Cli(verb) => Step::Run(argv_for(&verb, &argument)),
           };
         }
         "Esc" | "Cancel" | "/" => {
@@ -1721,7 +1751,7 @@ mod tests {
   #[test]
   fn hv_can_open_the_palette_filter_it_and_quit_without_typing_a_colon() {
     let mut app = App::explore();
-    app.commands = commands::vocabulary();
+    app.commands = commands::vocabulary(&crate::spine::surface());
 
     // 1. `/` opens the palette, ONE press, and seeds the sigil so the operator
     //    can see which vocabulary is being searched.
@@ -1729,11 +1759,16 @@ mod tests {
     assert_eq!(app.mode, Mode::Menu, "`/` did not open the palette");
     assert_eq!(app.omnibox.buffer, "/", "the sigil must stay visible");
 
-    // 2. The palette at REST offers its whole vocabulary -- discovery is the
-    //    reason it exists, so an empty query must not mean an empty list.
+    // 2. The palette at REST offers a full page -- discovery is the reason it
+    //    exists, so an empty query must not mean an empty list. It read
+    //    `app.commands.len()` while the vocabulary was four acts; the CLI
+    //    roster makes that the whole surface, and a dropdown holding it would
+    //    be the body eaten. `commands::an_empty_query_offers_the_top_of_the_
+    //    vocabulary_in_declared_order` holds the moved guarantee: the top of
+    //    the list, in order, with every act on it.
     assert_eq!(
       app.palette().len(),
-      app.commands.len(),
+      app.commands.len().min(MATCH_CAP),
       "the palette opened empty, so it teaches the operator nothing"
     );
 
@@ -1769,7 +1804,7 @@ mod tests {
   fn arrows_in_the_palette_move_the_pick_and_leave_the_body_alone() {
     let r = item_rows();
     let mut app = App::explore();
-    app.commands = commands::vocabulary();
+    app.commands = commands::vocabulary(&crate::spine::surface());
     app.point_at(r.len());
     let body_before = app.focus.map(Focus::index);
     assert!(
@@ -1799,7 +1834,7 @@ mod tests {
   #[test]
   fn erasing_the_sigil_leaves_the_palette() {
     let mut app = App::explore();
-    app.commands = commands::vocabulary();
+    app.commands = commands::vocabulary(&crate::spine::surface());
     app.on_key(key(KeyCode::Char('/')), &[]);
     app.on_key(key(KeyCode::Char('q')), &[]);
     assert_eq!(app.mode, Mode::Menu);
@@ -1930,7 +1965,7 @@ mod tests {
   /// that accepted those would accept a dead key too.
   fn armed(m: Mode, trigger: &str) -> Option<(App, Vec<Row>, KeyEvent)> {
     let mut app = App::explore();
-    app.commands = commands::vocabulary();
+    app.commands = commands::vocabulary(&crate::spine::surface());
     let rows = item_rows();
     app.point_at(rows.len());
     Some(match (m, trigger) {
@@ -2004,7 +2039,7 @@ mod tests {
   /// its own name.
   #[test]
   fn every_offered_command_is_reachable_by_its_name_and_actually_does_something() {
-    let vocabulary = commands::vocabulary();
+    let vocabulary = commands::vocabulary(&crate::spine::surface());
     assert!(
       !vocabulary.is_empty(),
       "an empty palette cannot exhibit this property"
@@ -2012,7 +2047,7 @@ mod tests {
     for (at, command) in vocabulary.iter().enumerate() {
       let rows = item_rows();
       let mut app = App::explore();
-      app.commands = commands::vocabulary();
+      app.commands = commands::vocabulary(&crate::spine::surface());
       app.point_at(rows.len());
       // Armed so every act has something to do: `back` needs somewhere above.
       app.push(View::Collection {
@@ -2088,7 +2123,7 @@ mod tests {
 
   fn on_settings() -> App {
     let mut app = App::explore();
-    app.commands = commands::vocabulary();
+    app.commands = commands::vocabulary(&crate::spine::surface());
     app.push(View::Settings);
     app.point_at(settings_rows().len());
     app
@@ -2101,7 +2136,7 @@ mod tests {
   fn the_bare_settings_command_opens_the_settings_view() {
     let rows = item_rows();
     let mut app = App::explore();
-    app.commands = commands::vocabulary();
+    app.commands = commands::vocabulary(&crate::spine::surface());
     app.point_at(rows.len());
     let before = app.stack.depth();
 
@@ -2140,7 +2175,7 @@ mod tests {
   fn a_settings_command_with_an_argument_asks_for_that_one_value() {
     let rows = item_rows();
     let mut app = App::explore();
-    app.commands = commands::vocabulary();
+    app.commands = commands::vocabulary(&crate::spine::surface());
     app.point_at(rows.len());
     let before = app.stack.depth();
 
@@ -2384,7 +2419,7 @@ mod tests {
   fn vi_normal_reaches_the_palette_and_respects_the_sigil() {
     let mut app = App::explore();
     app.keymap = keys::Keymap::Vi;
-    app.commands = commands::vocabulary();
+    app.commands = commands::vocabulary(&crate::spine::surface());
     app.on_key(key(KeyCode::Char('/')), &[]);
     for c in "quit".chars() {
       app.on_key(key(KeyCode::Char(c)), &[]);
@@ -2420,7 +2455,7 @@ mod tests {
   fn the_help_command_opens_the_reference_in_the_body() {
     let rows = item_rows();
     let mut app = App::explore();
-    app.commands = commands::vocabulary();
+    app.commands = commands::vocabulary(&crate::spine::surface());
     app.point_at(rows.len());
 
     app.on_key(key(KeyCode::Char('/')), &rows);
@@ -2522,7 +2557,7 @@ mod tests {
   fn the_palette_gets_the_same_editing_keys_as_the_composer() {
     let ctrl = |c: char| KeyEvent::new(KeyCode::Char(c), KeyModifiers::CONTROL);
     let mut app = App::explore();
-    app.commands = commands::vocabulary();
+    app.commands = commands::vocabulary(&crate::spine::surface());
     app.on_key(key(KeyCode::Char('/')), &[]);
     for c in "quit".chars() {
       app.on_key(key(KeyCode::Char(c)), &[]);
@@ -2550,6 +2585,78 @@ mod tests {
       app.mode,
       Mode::Menu,
       "killing the query is not erasing the sigil"
+    );
+  }
+
+  /// **`/{cmd} ...` REACHES THE REALISER AS A WHOLE ARGV, PROGRAM NAME AND
+  /// ALL** -- hv's ruling of 2026-09-02, driven at the keys rather than
+  /// asserted about `argv_for` alone.
+  ///
+  /// The argv is what `spine::parse` receives, and `clap` reads its first
+  /// element as the binary. A caller that forgot it would lose the verb
+  /// silently: `intent` would be parsed as the program, `st` as the command,
+  /// and `done` as its argument -- which is a plausible-looking run of the
+  /// wrong command.
+  ///
+  /// **`/st done ST0056` IS THE FIXTURE ON PURPOSE.** hv was told in as many
+  /// words that a mutation would run from a one-line prompt with no
+  /// confirmation, and ruled do it; the test that stands behind that ruling
+  /// should be the mutation and not a listing.
+  #[test]
+  fn a_cli_command_and_its_arguments_reach_the_realiser_as_one_argv() {
+    let mut app = App::explore();
+    app.commands = commands::vocabulary(&crate::spine::surface());
+    app.on_key(key(KeyCode::Char('/')), &[]);
+    for c in "st done ST0056".chars() {
+      app.on_key(key(KeyCode::Char(c)), &[]);
+    }
+    // The palette must still be offering `st` while the argument is typed --
+    // the same property `/settings <path>` needed, and the reason the query
+    // and the argument are split at the first space.
+    let hits = app.palette();
+    assert!(
+      !hits.is_empty(),
+      "the palette emptied out while the command's arguments were being typed"
+    );
+    assert_eq!(
+      app.commands[hits[0].entry].act,
+      Act::Cli("st".to_string()),
+      "the best match for `/st done ST0056` is not the `st` command"
+    );
+
+    let step = app.on_key(key(KeyCode::Enter), &[]);
+    assert_eq!(
+      step,
+      Step::Run(vec![
+        "intent".to_string(),
+        "st".to_string(),
+        "done".to_string(),
+        "ST0056".to_string()
+      ]),
+      "Enter did not hand the realiser the argv a shell would have produced"
+    );
+    assert_eq!(
+      app.mode,
+      Mode::Omni,
+      "running a command left the operator in the palette"
+    );
+  }
+
+  /// **A COMMAND WITH NO ARGUMENTS IS STILL A WHOLE ARGV**, and the empty tail
+  /// contributes nothing rather than an empty string. An `argv` carrying `""`
+  /// is not the same invocation: `clap` would read it as a positional the
+  /// operator never typed.
+  #[test]
+  fn a_bare_cli_command_carries_no_empty_argument() {
+    assert_eq!(
+      argv_for("todo", ""),
+      vec!["intent".to_string(), "todo".to_string()],
+      "an absent argument became an argument"
+    );
+    assert_eq!(
+      argv_for("st", "   list   "),
+      vec!["intent".to_string(), "st".to_string(), "list".to_string()],
+      "surrounding whitespace became arguments"
     );
   }
 }

@@ -68,7 +68,50 @@ pub enum Act {
   /// -- and a stale copy of it is a command that runs against an argument the
   /// operator has already edited.
   Settings,
+  /// Run `intent <verb> ...` through the CLI's OWN dispatch, with the terminal
+  /// lent. hv ruled this in 2026-09-02: *I should be able to run any `intent
+  /// {cmd} ...` command via `/{cmd} ...` in the explorer.*
+  ///
+  /// **THE VERB ONLY. The arguments are read from the buffer at run time**, for
+  /// the reason [`Act::Settings`] gives one line up.
+  Cli(String),
 }
+
+/// The `intent` verbs the palette will run: **AN ALLOW-LIST, AND THE ONLY
+/// DECISION ABOUT WHAT IS RUNNABLE.**
+///
+/// # Why a roster and not the dispatch table
+///
+/// The table is the whole surface, and reading it here would make every verb
+/// added in future palette-runnable **by nobody's decision** -- which is
+/// `AC-17.14`'s reason one surface over, and exactly how `intent_version` would
+/// have become an editable setting. A deny-list has the same defect with an
+/// extra step: it is a list of what somebody thought of.
+///
+/// **THE EXCLUSIONS ARE THE SUBSTANCE, SO THEY ARE WRITTEN DOWN RATHER THAN
+/// IMPLIED BY ABSENCE**, and hv's ruling was *any* command, so each one is an
+/// exception that has to earn itself:
+///
+/// - `explore` -- the TUI from inside the TUI.
+/// - `mcp` -- a stdio server that never returns; the lend would never come
+///   back and the operator's only exit is killing the process.
+/// - `daemon` -- starts and stops the process that holds this store open,
+///   underneath a running explorer.
+/// - `fc` -- fiat close is the human's verb (`IN-AG-FIAT-001`), and a roster
+///   is the class of thing that rule names: a script, a hook, a menu. hv can
+///   still run it; it does not get to be one keystroke from every session.
+/// - `init` / `bootstrap` / `upgrade` -- one-time or whole-tree setup. `init`
+///   refuses inside a project by design, so offering it is a menu of errors.
+/// - `graphql` / `browse` -- **nothing implements them yet.** vc measured the
+///   GraphQL escape hatch as a schema document with no executor; `browse`
+///   waits on cc's WP-08 stub. This module's own rule: the vocabulary grows
+///   when the act behind it lands.
+/// - `help` -- claimed by [`Act::Help`]. See [`vocabulary`].
+pub const CLI_ROSTER: &[&str] = &[
+  "st", "wp", "ac", "at", "issues", "todo", "info", "config", "doctor", "agents", "claude",
+  "critic", "lang", "llm", "learn", "modules", "plugin", "ext", "version", "search", "sync",
+  "schema", "export", "ingest", "backup", "organize", "edit", "events", "surface",
+];
 
 /// One offer in the palette.
 ///
@@ -90,11 +133,53 @@ pub struct Command {
   pub act: Act,
 }
 
-/// The whole vocabulary.
+/// The whole vocabulary: the TUI's own acts, then the allow-listed `intent`
+/// verbs.
 ///
 /// Order is the palette's resting order, so it is the order a reader meets the
-/// tool in.
-pub fn vocabulary() -> Vec<Command> {
+/// tool in -- **and it is also the collision rule made structural.** The acts
+/// come first and a roster name that collides with one is DROPPED, so `/help`
+/// is the help view and never `intent help`. The drop is a guard rather than a
+/// policy: [`the_roster_never_collides_with_an_act`] holds that it has no work
+/// to do, because a silently-swallowed roster entry is the same defect as a
+/// silently-ignored one.
+///
+/// **THE BLURB COMES FROM `clap`, NEVER FROM A STRING HERE.** It is the same
+/// `get_about()` that `intent <verb> --help` prints and that [`super::help`]
+/// walks -- one home, so the palette cannot describe a command differently
+/// from the CLI. hv asked for exactly this: *it would be good if we didn't
+/// dupe it, but rather got it from the same place that `--help` gets it from.*
+///
+/// A roster name the surface does not carry is dropped too, and
+/// [`every_roster_name_is_a_real_command`] refuses that in a test -- **at run
+/// time an unknown verb must not become a palette entry that fails on Enter**,
+/// and in the suite it must not be tolerated at all.
+pub fn vocabulary(cli: &clap::Command) -> Vec<Command> {
+  let mut out = acts();
+  for name in CLI_ROSTER {
+    if out.iter().any(|c| c.name == *name) {
+      continue;
+    }
+    let Some(sub) = cli
+      .get_subcommands()
+      .find(|s| s.get_name() == *name && !s.is_hide_set())
+    else {
+      continue;
+    };
+    out.push(Command {
+      name: (*name).to_string(),
+      blurb: sub
+        .get_about()
+        .map(|a| a.to_string())
+        .unwrap_or_else(|| format!("run `intent {name}`")),
+      act: Act::Cli((*name).to_string()),
+    });
+  }
+  out
+}
+
+/// The TUI's own acts -- the closed vocabulary that wins every collision.
+fn acts() -> Vec<Command> {
   vec![
     Command {
       name: "quit".into(),
@@ -196,28 +281,53 @@ pub fn matches(cmds: &[Command], query: &str, cap: usize) -> Vec<Match> {
 mod tests {
   use super::*;
 
-  /// **THE PALETTE AT REST SHOWS ITS VOCABULARY**, which is the property that
-  /// makes it a discovery surface rather than a guessing game.
+  /// **THE PALETTE AT REST SHOWS THE TOP OF ITS VOCABULARY, IN DECLARED ORDER,
+  /// AND EVERY ACT IS IN IT.**
+  ///
+  /// This test read *the whole vocabulary* until `/{cmd} ...` landed, and the
+  /// change is a real consequence rather than a test bent to fit. The
+  /// vocabulary was four acts, so *all of it* and *the first
+  /// [`super::app::MATCH_CAP`]* were the same set and the test could not tell
+  /// which one it was asserting. **With the CLI roster on it the vocabulary is
+  /// dozens, and a cap that showed all of them would be the dropdown eating
+  /// the body** -- the defect the cap exists to prevent.
+  ///
+  /// So the discovery guarantee moves rather than weakens. What an operator is
+  /// owed at rest is the CLOSED vocabulary -- the acts, which are the commands
+  /// that exist nowhere else -- and the full CLI list is `/help`, which lists
+  /// every command with clap's own text. **The acts come first in
+  /// [`vocabulary`] and that is what makes this true by construction**, which
+  /// is why the assertion is worth keeping: reorder the vocabulary so an act
+  /// falls past the cap and it fails here rather than in front of hv.
   #[test]
-  fn an_empty_query_offers_the_whole_vocabulary_in_declared_order() {
-    let v = vocabulary();
-    let m = matches(&v, "", 32);
+  fn an_empty_query_offers_the_top_of_the_vocabulary_in_declared_order() {
+    let v = vocabulary(&crate::spine::surface());
+    let cap = super::super::app::MATCH_CAP;
+    let m = matches(&v, "", cap);
     assert_eq!(
       m.len(),
-      v.len(),
-      "the palette at rest hid part of its own vocabulary"
+      v.len().min(cap),
+      "the palette at rest offered neither its whole vocabulary nor a full page of it"
     );
     assert!(
       m.iter().enumerate().all(|(i, hit)| hit.entry == i),
       "the resting palette reordered itself; at rest there is no ranking to apply"
     );
+    for act in acts() {
+      assert!(
+        m.iter().any(|hit| v[hit.entry].name == act.name),
+        "`/{}` is one of the explorer's own commands and the resting palette \
+         does not offer it -- it has been pushed past the cap by the CLI roster",
+        act.name
+      );
+    }
   }
 
   /// hv's own test, as a test: `/quit` must reach quit. hv drove the shipped
   /// build, reached for exactly this, and had to fall back to `:q`.
   #[test]
   fn the_spelling_hv_reached_for_finds_the_command_hv_wanted() {
-    let v = vocabulary();
+    let v = vocabulary(&crate::spine::surface());
     for typed in ["quit", "qui", "qu", "q"] {
       let m = matches(&v, typed, 8);
       assert!(!m.is_empty(), "`/{typed}` matched nothing at all");
@@ -233,7 +343,7 @@ mod tests {
   /// ranker's boosted-prefix rule doing its job over a second vocabulary.
   #[test]
   fn a_name_hit_outranks_a_blurb_hit() {
-    let v = vocabulary();
+    let v = vocabulary(&crate::spine::surface());
     let m = matches(&v, "back", 8);
     assert_eq!(
       v[m[0].entry].name, "back",
@@ -247,7 +357,7 @@ mod tests {
   /// carries a name and a reason a human can read.
   #[test]
   fn every_offer_is_nameable_and_explains_itself() {
-    let v = vocabulary();
+    let v = vocabulary(&crate::spine::surface());
     assert!(!v.is_empty(), "a palette with no commands is a dead key");
     for c in &v {
       assert!(
@@ -267,7 +377,7 @@ mod tests {
   /// everything would read as "these all match".
   #[test]
   fn a_query_that_hits_nothing_offers_nothing() {
-    let v = vocabulary();
+    let v = vocabulary(&crate::spine::surface());
     assert!(
       matches(&v, "zzzznotacommand", 8).is_empty(),
       "a miss fell back to the full vocabulary, which reads as a list of matches"
@@ -300,7 +410,7 @@ mod tests {
     assert_eq!(argument_of("/settings editing.mode"), "editing.mode");
     assert_eq!(argument_of("ST0056"), "");
 
-    let v = vocabulary();
+    let v = vocabulary(&crate::spine::surface());
     let with_arg = matches(
       &v,
       query_of("/settings editing.mode").expect("a palette buffer"),
@@ -320,12 +430,141 @@ mod tests {
   /// The split is unambiguous only while no command name carries a space.
   #[test]
   fn no_command_name_contains_a_space() {
-    for c in vocabulary() {
+    for c in vocabulary(&crate::spine::surface()) {
       assert!(
         !c.name.contains(' '),
         "`{}` has a space in its name, so the argument split cuts it in half",
         c.name
       );
     }
+  }
+
+  /// **EVERY ROSTER NAME IS A REAL COMMAND ON THE SHIPPED SURFACE.**
+  ///
+  /// [`vocabulary`] drops an unknown one rather than offering a palette entry
+  /// that fails on Enter -- **and a drop is exactly the silence this suite
+  /// exists to break.** A verb renamed in the dispatch table would otherwise
+  /// leave the palette quietly one command shorter, which is the `Hotkey`
+  /// class read from the other end: not a thing declared and never read, but a
+  /// thing named and never resolved.
+  #[test]
+  fn every_roster_name_is_a_real_command() {
+    let cli = crate::spine::surface();
+    let offered: Vec<String> = cli
+      .get_subcommands()
+      .filter(|s| !s.is_hide_set())
+      .map(|s| s.get_name().to_string())
+      .collect();
+    assert!(!offered.is_empty(), "an empty surface asserts nothing");
+    for name in CLI_ROSTER {
+      assert!(
+        offered.iter().any(|s| s == name),
+        "`{name}` is on the palette roster and `intent --help` does not offer it"
+      );
+    }
+  }
+
+  /// **THE ROSTER IS AN ALLOW-LIST, AND THIS IS THE ASSERTION THAT SAYS SO.**
+  ///
+  /// The first half is the property; **the second half is the positive control
+  /// on the instrument**, and it is the half worth having. A roster that had
+  /// been "simplified" into *every subcommand* would satisfy every other test
+  /// in this file -- each name resolves, no name collides, every blurb matches
+  /// -- and would have quietly become the deny-list-by-omission that `AC-17.14`
+  /// refuses. Only a strict-subset assertion can tell the two apart.
+  ///
+  /// The named exclusions are spelled out rather than left to the count,
+  /// because a count is satisfied by excluding anything at all: `explore`
+  /// recurses, `mcp` never returns, `daemon` moves the store underneath a
+  /// running explorer, and `fc` is the human's verb by rule.
+  #[test]
+  fn the_roster_is_a_strict_subset_of_the_surface_and_omits_the_hazardous_verbs() {
+    let cli = crate::spine::surface();
+    let offered = cli.get_subcommands().filter(|s| !s.is_hide_set()).count();
+    assert!(
+      CLI_ROSTER.len() < offered,
+      "the roster carries {} of {offered} commands -- a roster that is the whole \
+       surface is not an allow-list, it is the absence of one",
+      CLI_ROSTER.len()
+    );
+    for hazard in [
+      "explore",
+      "mcp",
+      "daemon",
+      "fc",
+      "init",
+      "bootstrap",
+      "upgrade",
+    ] {
+      assert!(
+        !CLI_ROSTER.contains(&hazard),
+        "`{hazard}` reached the palette roster -- see the exclusions on CLI_ROSTER \
+         for why it is not a verb an operator should be one keystroke from"
+      );
+    }
+  }
+
+  /// **THE TUI's VOCABULARY WINS A COLLISION, AND THE GUARD THAT MAKES IT WIN
+  /// HAS NO WORK TO DO.**
+  ///
+  /// Two assertions with different jobs. The first is the operator-facing
+  /// property: one `/help`, and it is the view. The second holds that the
+  /// roster does not contain a colliding name in the first place -- because
+  /// [`vocabulary`]'s drop would otherwise be swallowing a roster entry in
+  /// silence, and a roster whose entries can vanish without a word is a roster
+  /// nobody can read to find out what runs.
+  #[test]
+  fn the_roster_never_collides_with_an_act() {
+    let v = vocabulary(&crate::spine::surface());
+    let act_names: Vec<String> = acts().into_iter().map(|c| c.name).collect();
+    for name in &act_names {
+      let carrying: Vec<&Command> = v.iter().filter(|c| &c.name == name).collect();
+      assert_eq!(
+        carrying.len(),
+        1,
+        "`/{name}` is offered {} times -- the palette is ambiguous about what it runs",
+        carrying.len()
+      );
+      assert!(
+        !matches!(carrying[0].act, Act::Cli(_)),
+        "`/{name}` runs the CLI verb -- the TUI's own act lost its spelling"
+      );
+      assert!(
+        !CLI_ROSTER.contains(&name.as_str()),
+        "`{name}` is on the roster AND is an act, so `vocabulary` is dropping it \
+         silently -- remove it from the roster rather than relying on the drop"
+      );
+    }
+  }
+
+  /// **hv's OWN REQUIREMENT AS A TEST: THE PALETTE DOES NOT DUPE `--help`.**
+  ///
+  /// *It would be good if we didn't dupe it, but rather got it from the same
+  /// place that `--help` gets it from.* So every CLI offer's blurb IS the
+  /// `about` clap prints, character for character -- not merely similar, and
+  /// not a hand-written paraphrase that starts true.
+  #[test]
+  fn every_cli_offer_carries_claps_own_about_text() {
+    let cli = crate::spine::surface();
+    let mut checked = 0usize;
+    for c in vocabulary(&cli) {
+      let Act::Cli(verb) = &c.act else { continue };
+      let sub = cli
+        .get_subcommands()
+        .find(|s| s.get_name() == verb)
+        .unwrap_or_else(|| panic!("`{verb}` is offered and is not on the surface"));
+      if let Some(about) = sub.get_about() {
+        assert_eq!(
+          c.blurb,
+          about.to_string(),
+          "`/{verb}` is described differently in the palette than on `--help`"
+        );
+      }
+      checked += 1;
+    }
+    assert!(
+      checked > 0,
+      "no CLI offer was examined, so this test asserted nothing"
+    );
   }
 }

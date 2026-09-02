@@ -238,6 +238,20 @@ impl From<&str> for Failure {
   }
 }
 
+/// **THE SHIPPED SURFACE: what `intent --help` prints, built from the
+/// committed dispatch table.**
+///
+/// [`build`] takes a table so a test can hand it one; this takes none, and the
+/// distinction is the point. Four callers wanted *the real surface* -- the
+/// help page, the palette's allow-list, the dispatcher, and their tests -- and
+/// each was spelling `build(&dispatch::table())` for itself. That is not a
+/// Highlander violation yet, and it is the shape of one: the day a caller
+/// needs the surface built differently, the other three keep agreeing with
+/// each other and stop agreeing with it.
+pub fn surface() -> Command {
+  build(&crate::dispatch::table())
+}
+
 /// Build the whole surface from the table.
 pub fn build(table: &Table) -> Command {
   let mut root = Command::new("intent")

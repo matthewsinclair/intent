@@ -110,18 +110,32 @@ pub fn cli_rows(root: &clap::Command, of: Option<&str>) -> Vec<Row> {
       .get_about()
       .map(|a| a.to_string())
       .unwrap_or_else(String::new);
+    // **THE SLASH IS THE MARK, AND IT IS THE ONE AN OPERATOR ALREADY KNOWS.**
+    // `/{cmd} ...` runs an ALLOW-LISTED verb, so this page lists commands of
+    // two kinds -- runnable from the palette and not -- and a page that showed
+    // them identically would be advertising `/explore` and `/mcp` as things to
+    // try. Showing the name exactly as it is typed says which is which without
+    // a legend, and a legend is what an operator does not read.
+    //
+    // **ONLY AT THE ROOT**, because the roster is top-level verbs: `/help st`
+    // lists `st`'s subcommands, and `/new` is not a command.
+    let title = if of.is_none() && commands::CLI_ROSTER.contains(&name.as_str()) {
+      format!("/{name}")
+    } else {
+      name.clone()
+    };
     // **A COMMAND WITH CHILDREN IS A DOOR; A LEAF IS NOT.** Descending into a
     // leaf would push a view whose only content is the line already on screen,
     // which is a door that leads back to what you were reading.
     let row = if sub.get_subcommands().next().is_some() {
-      Row::named(name.clone(), name.clone(), says, "button").opening(View::Help {
+      Row::named(name.clone(), title, says, "button").opening(View::Help {
         of: Some(match of {
           Some(parent) => format!("{parent} {name}"),
           None => name.clone(),
         }),
       })
     } else {
-      Row::named(name.clone(), name, says, "label")
+      Row::named(name.clone(), title, says, "label")
     };
     out.push(row);
   }
@@ -199,7 +213,17 @@ pub fn rows(keymap: keys::Keymap, cli: &clap::Command, of: Option<&str>) -> Vec<
 
   out.push(gap());
   out.push(heading("commands -- press / to open the palette"));
-  for c in commands::vocabulary() {
+  // **THE EXPLORER'S OWN ACTS ONLY, AND THE CLI VERBS ARE LEFT TO THE SECTION
+  // THAT ALREADY LISTS THEM.** Since `/{cmd} ...` landed the palette offers
+  // both, and walking the whole vocabulary here put every `intent` command on
+  // this page TWICE -- once with a slash and once without, a few rows apart,
+  // with the same text. A reference that says everything twice teaches an
+  // operator that the two lists differ somehow, and then they go looking for
+  // the difference.
+  for c in commands::vocabulary(&crate::spine::surface()) {
+    if matches!(c.act, commands::Act::Cli(_)) {
+      continue;
+    }
     out.push(entry(format!("/{}", c.name), c.blurb));
   }
 
@@ -214,7 +238,7 @@ pub fn rows(keymap: keys::Keymap, cli: &clap::Command, of: Option<&str>) -> Vec<
 
   out.push(gap());
   out.push(heading(
-    "intent commands -- /help <name>, or press enter on a row",
+    "intent commands -- run one with /<name>, /help <name> for its own page",
   ));
   out.extend(cli_rows(cli, None));
 
@@ -258,7 +282,7 @@ mod tests {
   #[test]
   fn every_command_and_every_setting_is_on_the_page() {
     let page = rows(keys::Keymap::Emacs, &cli(), None);
-    for c in commands::vocabulary() {
+    for c in commands::vocabulary(&crate::spine::surface()) {
       assert!(
         page.iter().any(|r| r.title == format!("/{}", c.name)),
         "`/{}` is offered by the palette and `/help` does not mention it",

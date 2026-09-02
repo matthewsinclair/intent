@@ -437,7 +437,7 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
   let mut rows = source.rows(app.stack.current());
   app.point_at(rows.len());
   app.index = source.index();
-  app.commands = super::commands::vocabulary();
+  app.commands = super::commands::vocabulary(&crate::spine::surface());
   app.keymap = source.keymap();
 
   loop {
@@ -546,6 +546,72 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
         }
         app.child_exited();
         lent_the_terminal = true;
+        rows = source.rows(app.stack.current());
+        app.refocus(rows.len());
+      }
+      // **`/{cmd} ...`: THE TERMINAL IS LENT AND THE COMMAND PRINTS TO THE REAL
+      // SCREEN, EXACTLY AS IT WOULD FROM A SHELL** (hv, 2026-09-02).
+      //
+      // **THE ROUTE WAS DECIDED BY A MEASUREMENT, NOT A PREFERENCE.** `intent`
+      // writes to stdout in hundreds of places and `intentsvcs::output::Output`
+      // is a FORMATTER, not a sink -- so there is no seam to capture through,
+      // and rendering the output in the body would mean routing every one of
+      // those sites through a new one. The lend already exists, is proven by
+      // the two handoffs below, and costs nothing.
+      //
+      // It runs IN THIS PROCESS through [`crate::dispatch`] -- the same
+      // function `main` calls -- so there is no subprocess and no second copy
+      // of what a command is.
+      //
+      // **IT IS A SECOND STORE CONNECTION, THOUGH, AND THAT IS WORTH BEING
+      // EXACT ABOUT RATHER THAN WAVING AT.** `render::run` opens its own
+      // facade, so a mutation here contends with the one this explorer holds
+      // open. cc measured the contended case for issue `0152`: readers never
+      // block, and a second writer waits `Store::BUSY_TIMEOUT_MS` and is then
+      // refused CLEANLY with the store intact. This loop is not inside a write
+      // when it lends -- it has painted and is blocked on an event -- so the
+      // contention window is other processes, not this one. **If it ever does
+      // contend the operator sees a five-second pause and then a refusal, not
+      // a corrupt record**, and the refusal reaches the INFO row through the
+      // exit code below rather than disappearing.
+      Step::Run(argv) => {
+        let said = argv.join(" ");
+        let lent = borrowed.lend(|| {
+          let outcome = crate::dispatch(argv);
+          if let Some(message) = &outcome.message {
+            eprintln!("{message}");
+          }
+          // **THE PAUSE IS THE WHOLE DIFFERENCE FROM AN EDITOR HANDOFF, AND IT
+          // IS NOT A COURTESY.** `$EDITOR` holds the screen until the operator
+          // quits it; a command prints and returns in the same breath, so
+          // without a wait here the TUI repaints over the answer before it can
+          // be read and the operator sees a flicker where the output was.
+          //
+          // A LINE READ RATHER THAN A KEY EVENT: `lend` has already left raw
+          // mode, so this is a cooked terminal and `crossterm::event::read`
+          // would be reading through a discipline nobody set.
+          println!();
+          println!("-- press enter to return to explore --");
+          let mut sink = String::new();
+          let _ = std::io::stdin().read_line(&mut sink);
+          outcome
+        });
+        app.notice = match lent {
+          // **THE EXIT CODE IS REPORTED, NOT SWALLOWED** (`IN-AG-NO-SILENT-001`).
+          // The message has already gone to the screen the operator just read;
+          // what the INFO row owes them is whether it worked, because by the
+          // time they are looking at it the output is gone.
+          Ok(outcome) if outcome.code == crate::spine::EXIT_OK => format!("{said} ok"),
+          Ok(outcome) => format!("{said} exited {}", outcome.code),
+          Err(e) => format!("the terminal would not come back: {e}"),
+        };
+        app.child_exited();
+        lent_the_terminal = true;
+        // **THE RE-READ IS UNCONDITIONAL, FOR `AC-17.10`'s REASON.** hv ruled
+        // mutation IN -- `/st done ST0056` is a command an operator will run
+        // from here -- so the model on screen may have moved under the view,
+        // and a repaint from the rows we walked in with would show the operator
+        // a record their own keystroke has already changed.
         rows = source.rows(app.stack.current());
         app.refocus(rows.len());
       }
@@ -770,7 +836,7 @@ mod tests {
     for mode in [Mode::Omni, Mode::Menu, Mode::Field, Mode::Embed] {
       let mut app = App::explore();
       if mode == Mode::Menu {
-        app.commands = super::super::commands::vocabulary();
+        app.commands = super::super::commands::vocabulary(&crate::spine::surface());
         assert_eq!(
           app.on_key(key(KeyCode::Char('/')), &[]),
           Step::Continue,

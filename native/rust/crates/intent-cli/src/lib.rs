@@ -20,6 +20,58 @@ pub mod show;
 pub mod spine;
 pub mod tui;
 
+/// What one `intent` invocation came to: the exit code, and the message that
+/// belongs on stderr if there is one.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Outcome {
+  pub code: i32,
+  pub message: Option<String>,
+}
+
+/// **ONE `intent` INVOCATION, FROM ARGV TO AN EXIT CODE. THE ONLY PLACE THAT
+/// SEQUENCE LIVES.**
+///
+/// It was `main`'s body until the explorer needed to run a command too
+/// (`/{cmd} ...`, hv 2026-09-02). Writing those four lines again in the TUI
+/// realiser would have been a second home for *how you run an intent command*
+/// -- and the copies would agree right up until one of them learned something
+/// about exit codes that the other did not (`IN-AG-HIGHLANDER-001`). So the
+/// palette does not re-implement dispatch, it CALLS it, and the command an
+/// operator runs from the explorer is by construction the command they would
+/// have got from a shell.
+///
+/// **THE ARGV CARRIES THE PROGRAM NAME**, because `clap` reads argv[0] as the
+/// binary and a caller that forgets it loses its first real argument silently.
+///
+/// Printing is NOT done here. The two callers want different things -- `main`
+/// exits, and the TUI is mid-repaint with a terminal it has lent -- and a
+/// function that both dispatches and reports would force one of them to work
+/// around the other's choice.
+pub fn dispatch(argv: Vec<String>) -> Outcome {
+  let matches = match spine::parse(argv) {
+    Ok(matches) => matches,
+    // `parse` has already written clap's own error or help text to the
+    // stream clap chose; there is nothing left to say and saying it twice
+    // would be worse than saying it once.
+    Err(code) => {
+      return Outcome {
+        code,
+        message: None,
+      };
+    }
+  };
+  match render::run(&matches) {
+    Ok(()) => Outcome {
+      code: spine::EXIT_OK,
+      message: None,
+    },
+    Err(failure) => Outcome {
+      code: failure.code(),
+      message: failure.message().map(str::to_string),
+    },
+  }
+}
+
 /// The commit this binary was built from, embedded by `build.rs` (AC-11.5).
 ///
 /// `dirty-<sha>` when the tree had uncommitted changes and `unknown` when git
