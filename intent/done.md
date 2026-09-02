@@ -1,11 +1,18 @@
 ---
-verblock: "29 Aug 2026:v0.22: vc - the v3 era enters the ledger: 3.0.0 shipped, the port closed, the doc set landed"
+verblock: "02 Sep 2026:v0.23: vc - 0216 driven and one live loss repaired; PFIC fixed in six homes; ST0065 closed"
 intent_version: 3.0.0
 ---
 
 NOTE: This file is the terse DONE ledger, newest first. Older entries roll into `./history/YYYYMM-done.md` month-by-month; verbose per-release narratives live at `./history/<version>.md`. DOING/TODO work lives in `./wip.md`.
 
 # Done
+
+## 2026-09-02 -- a live data-loss condition found, a rule that six documents stated wrong, and ST0065 closed
+
+- **`0216` IS DRIVEN AND IT IS NOT WHAT IT WAS FILED AS.** `event_log` shows the "lost" write LANDING and `intentd`'s `disk.sync_from_disk` reverting it ~1s later under a different principal -- so the `ok` was honest and a second actor undid it. It is the LAST write of a burst, not the third; at N=3 those are the same row and neither sample discriminated them. **A census over the store's whole life resolved the population rather than bounding it: 26 candidates, 6 losses, 20 survivors, zero unreachable.** One loss was STILL LIVE -- issue `0202`'s close, reverted 2026-09-01 and sitting `open` for 37.7 hours with a title reading NOT A DEFECT. **Repaired.** Migrators and the test suites are structurally safe; **the fix is daemon-side and unbuilt.** Four candidate mechanisms were killed from data already in hand, and the mechanism remains unknown.
+- **`IN-AG-PFIC-001` HAD SIX CANON HOMES STATING A DIFFERENT RULE FROM THE ONE THE LIBRARY OWNS**, diverged at birth (`1743fa88`, never renamed) -- the library says _Pure Function, Impure Coordination_, six homes said an idiom gloss. **`in-review/SKILL.md` checked for the gloss, so a reviewer recorded the rule CHECKED while passing I/O three calls deep in a domain core.** hv ruled it rides in v3.0.1; ic fixed all six by POINTER rather than by corrected copy, and **synced**, which is the step that stops every node loading the fork from `~/.claude/skills/`. `311ca65c`.
+- **`ST0065` IS 8/8.** `AC-00.6` was minted on a false v2-era premise and re-founded as an invariant after ic refuted it; `AC-00.1` was green on a text claiming more than its instrument reached, so it was narrowed and **`AC-00.8` minted for the paraphrase half -- a split the STORE forced, since kind is a property of the criterion.** The three non-test reads landed as settled writes.
+- **`0203` LANDED** (all nine families answer `help` at rc=0), **`0217` SITED** at `AC-06.13`/`AT-06.13` under WP-06, **`0181` and `0215` CLOSED**, **`0218` and `0219` FILED**, the delivered binary pair **REBUILT** with the currency arm green, and `0196` corrected from an authority constraint to a quiet-tree requirement.
 
 ## 2026-08-30 — the daemon's routing seam, fiat close end to end, and four boards folded
 
