@@ -281,6 +281,19 @@ pub fn matches(cmds: &[Command], query: &str, cap: usize) -> Vec<Match> {
 mod tests {
   use super::*;
 
+  /// Is every act on the resting palette, at this cap?
+  ///
+  /// **A PREDICATE RATHER THAN AN INLINE ASSERTION, SO IT CAN BE RUN AGAINST A
+  /// VOCABULARY WHERE THE ANSWER IS NO.** An assertion can only be observed
+  /// passing; a predicate can be driven to both answers in one test, which is
+  /// the only way to show it discriminates.
+  fn every_act_is_offered(v: &[Command], cap: usize) -> bool {
+    let offered = matches(v, "", cap);
+    acts()
+      .iter()
+      .all(|a| offered.iter().any(|hit| v[hit.entry].name == a.name))
+  }
+
   /// **THE PALETTE AT REST SHOWS THE TOP OF ITS VOCABULARY, IN DECLARED ORDER,
   /// AND EVERY ACT IS IN IT.**
   ///
@@ -313,14 +326,61 @@ mod tests {
       m.iter().enumerate().all(|(i, hit)| hit.entry == i),
       "the resting palette reordered itself; at rest there is no ranking to apply"
     );
-    for act in acts() {
-      assert!(
-        m.iter().any(|hit| v[hit.entry].name == act.name),
-        "`/{}` is one of the explorer's own commands and the resting palette \
-         does not offer it -- it has been pushed past the cap by the CLI roster",
-        act.name
-      );
-    }
+    assert!(
+      every_act_is_offered(&v, cap),
+      "an act is not on the resting palette -- it has been pushed past the cap"
+    );
+    // **AND THE CHECK ABOVE IS SHOWN TO HAVE TEETH, IN THE SAME TEST.**
+    // Against the shipped vocabulary it passes because acts sort first, which
+    // is the very thing that makes it pass rather than something it proves --
+    // vc's finding, and the same undecided-assertion shape this test was
+    // rewritten to remove. So the predicate is also run against a vocabulary
+    // that pushes the acts past the cap, where it MUST fail. Without this arm,
+    // `every_act_is_offered` returning `true` unconditionally would satisfy
+    // everything above.
+    let mut buried = vec![
+      Command {
+        name: "filler".into(),
+        blurb: String::new(),
+        act: Act::Cli("filler".into()),
+      };
+      cap
+    ];
+    buried.extend(acts());
+    assert!(
+      !every_act_is_offered(&buried, cap),
+      "the visibility check passes even when every act is past the cap, so it \
+       is not checking visibility"
+    );
+  }
+
+  /// **THE CONSTRUCTION THE PROPERTY ABOVE RESTS ON: EVERY ACT SORTS AHEAD OF
+  /// EVERY CLI VERB.**
+  ///
+  /// *Every act is visible at rest* is a CONSEQUENCE of this and of the cap,
+  /// and asserting a consequence that holds by construction is an assertion
+  /// that cannot go red. This one can: [`vocabulary`] happens to start from
+  /// [`acts`] and append, which is a single line anybody could write the other
+  /// way round without seeing what it was holding up. **It is cheap to pin now
+  /// and archaeology later.**
+  #[test]
+  fn every_act_sorts_ahead_of_every_cli_verb() {
+    let v = vocabulary(&crate::spine::surface());
+    let last_act = v
+      .iter()
+      .rposition(|c| !matches!(c.act, Act::Cli(_)))
+      .expect("the vocabulary carries no acts at all");
+    let first_cli = v
+      .iter()
+      .position(|c| matches!(c.act, Act::Cli(_)))
+      .expect("the vocabulary carries no CLI verbs, so this asserts nothing");
+    assert!(
+      last_act < first_cli,
+      "`{}` is an act sitting behind the CLI verb `{}` -- the resting palette's \
+       act visibility rests on acts coming first, and it no longer does",
+      v[last_act].name,
+      v[first_cli].name
+    );
   }
 
   /// hv's own test, as a test: `/quit` must reach quit. hv drove the shipped
