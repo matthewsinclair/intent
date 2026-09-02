@@ -1494,6 +1494,14 @@
       }
     },
     {
+      "id": "AC-17.13",
+      "text": "**THE COMMAND SURFACE OFFERS ONLY ACTS THAT CAN RUN, AND EVERY OFFERED ACT HAS A REALISER.** (hv ruled the filtered palette over the Lotus bar, 2026-09-02, from three options ic authored; minted by vc under hv's pen the same day, because the behaviour hv asked for was built and nothing in the register would have noticed it regressing.) `/` opens the act vocabulary from the composer in one press; typing narrows it; the pick runs on Enter. **THE ROW IS ABOUT THE ACTS, NOT THE WIDGET** -- a rendering claim belongs to `AC-17.11` and mode visibility to `AC-17.9`, and this row is the one that fails if the palette offers something that cannot happen. **AN ADVERTISED ACT WITH NO REALISER IS THE DEFECT, NOT A PLACEHOLDER**: `MENU` shipped as a painted bar over no model at all, `Hotkey` was declared, emitted, reachable and consumed by nothing, and every existing invariant passed it -- because they all asked whether the MACHINE ANSWERS and none asked whether ANYTHING ACTS. **SO THE PROPERTY IS TWO-SIDED AND BOTH SIDES ARE ASSERTED: every trigger the machine answers is acted on (`every_trigger_the_machine_answers_is_acted_on_by_the_realiser`, whole-`App` comparison, exemptions asserted by count), and the vocabulary declares nothing it cannot perform.** **THE HONEST-SET RULE IS PART OF THE CRITERION AND NOT A NOTE ON IT:** a smaller vocabulary that runs beats a larger one advertising a menu of errors, so `Act` carries no `Unimplemented` arm to park an intention in. **NAVIGATION IS NOT AN ACT AND MUST NOT APPEAR HERE** -- one entry per declared kind already reaches its collection by typing, so a `Go` group would be a second route to a destination the composer reaches better and would bury the acts that have no other route. `/` is for things to DO; typing is for places to GO.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
       "id": "AC-17.2",
       "text": "**THE DSL DECLARES LAYOUT AND WIDGET, NEVER THE FIELD SET.** Every field in a form declaration resolves to a property of the entity schema face, and a field naming a property that does not exist is REFUSED by name at load. **A hand-authored list of fields is a second home for what `schema/*.json` already declares, and it goes stale exactly the way `populations.shipped` did** -- so the form carries order, label, widget and editability, and takes existence and type from the schema. Held to the converse too: an editable property appearing in NO form is named in the output rather than silently unreachable.",
       "kind": "test",
