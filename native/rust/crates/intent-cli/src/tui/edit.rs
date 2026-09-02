@@ -140,14 +140,40 @@ pub trait Model {
   fn artefact(&mut self, kind: &str, id: &str, name: &str) -> Result<PathBuf, Refused>;
 }
 
-/// The outside world: a scratch file, and a child that owns the terminal while
-/// it runs.
+/// The outside world: a scratch file, a child that owns the terminal while it
+/// runs, and the two halves of running a command that does NOT own it.
+///
+/// **THE LAST TWO ARE HERE RATHER THAN IN A TRAIT OF THEIR OWN BECAUSE THIS IS
+/// ALREADY THE OBJECT THE LOOP DELEGATES ITS IMPURITY TO**, and [`super::run`]
+/// takes exactly one of them. A second trait would mean a second parameter
+/// threaded through the whole loop for the sake of one arm.
+///
+/// **AND THEY ARE REQUIRED METHODS RATHER THAN DEFAULTED ONES, DELIBERATELY.**
+/// A default here would be silently WRONG for every forwarding implementation
+/// that forgot it: [`Session for &mut S`] below and `Lending` in
+/// [`super::run`] both wrap another session, and a forwarder that inherited a
+/// default would quietly read the real stdin from inside a test instead of
+/// forwarding to the recorder it was given. **That is the dead-field class
+/// inverted -- not a thing declared and never read, but a thing inherited
+/// where it should have been passed on** -- and the compiler cannot see it
+/// while a default exists. Required, it finds every one.
 pub trait Session {
   fn scratch(&mut self, h: &Handoff, value: &str) -> Result<PathBuf, Refused>;
   fn launch(&mut self, path: &Path) -> Result<(), Refused>;
   fn read_back(&mut self, path: &Path) -> Result<String, Refused>;
   /// Remove a scratch file whose bytes are already safe somewhere else.
   fn discard(&mut self, path: &Path);
+  /// Run one `intent` command in this process, through the CLI's own dispatch
+  /// (`AC-17.15`). The argv carries the program name.
+  fn run_command(&mut self, argv: Vec<String>) -> crate::Outcome;
+  /// Wait for the operator to say they have read what the command printed.
+  ///
+  /// **`AC-17.17`: A BORROWER THAT RETURNS NEEDS A SIGNAL AND ONE THAT BLOCKS
+  /// DOES NOT.** `$EDITOR` holds the screen until the operator quits it; a
+  /// command prints and returns in the same breath, so without this the loop
+  /// repaints over the answer and the operator sees a flicker where the output
+  /// was -- an act that offers and appears not to perform.
+  fn wait_for_operator(&mut self);
 }
 
 /// What the handoff did. **The caller re-reads either way** -- see
@@ -273,6 +299,25 @@ mod tests {
     }
     fn discard(&mut self, _path: &Path) {
       self.log.borrow_mut().push("discard".to_string());
+    }
+    // **RECORDED RATHER THAN PANICKING, EVEN THOUGH NO TEST IN THIS MODULE
+    // DRIVES THEM.** A `unimplemented!()` here would be correct today and
+    // would turn into a crash the first time a handoff test grew a command in
+    // it -- and the log is what every assertion in this module reads, so a
+    // fake that stayed silent would be the one place a call could happen and
+    // leave no trace.
+    fn run_command(&mut self, argv: Vec<String>) -> crate::Outcome {
+      self
+        .log
+        .borrow_mut()
+        .push(format!("run<{}>", argv.join(" ")));
+      crate::Outcome {
+        code: 0,
+        message: None,
+      }
+    }
+    fn wait_for_operator(&mut self) {
+      self.log.borrow_mut().push("wait".to_string());
     }
   }
 
@@ -488,6 +533,12 @@ impl<S: Session + ?Sized> Session for &mut S {
   fn discard(&mut self, path: &Path) {
     (**self).discard(path);
   }
+  fn run_command(&mut self, argv: Vec<String>) -> crate::Outcome {
+    (**self).run_command(argv)
+  }
+  fn wait_for_operator(&mut self) {
+    (**self).wait_for_operator();
+  }
 }
 
 /// The shipped [`Session`]: a scratch file on disk and an INJECTED launcher.
@@ -559,5 +610,30 @@ impl<L: FnMut(&Path) -> Result<(), Refused>> Session for Files<L> {
     // where the bytes are already somewhere else, so there is nothing to
     // report and nothing the operator would do about it.
     let _ = std::fs::remove_file(path);
+  }
+
+  fn run_command(&mut self, argv: Vec<String>) -> crate::Outcome {
+    // **THE CLI's OWN DISPATCH, WHICH IS THE WHOLE OF `AC-17.15`'s FIRST
+    // HALF.** No second argv parser and no second dispatch table -- this is
+    // the same function `main` calls, so a command run from the palette IS the
+    // command a shell would have run.
+    crate::dispatch(argv)
+  }
+
+  fn wait_for_operator(&mut self) {
+    // **A LINE READ RATHER THAN A KEY EVENT.** `Borrowed::lend` has already
+    // left raw mode by the time this runs, so `crossterm::event::read` would
+    // be reading through a discipline nobody set.
+    //
+    // **THIS LOOKS LIKE DEBUG SCAFFOLDING AND IT IS THE CRITERION.** A
+    // `read_line` under a `println!` is exactly the shape somebody deletes
+    // while tidying, which is why `AC-17.17` contracts the ORDER rather than
+    // leaving it to a demonstration nobody re-runs: a demonstration protects a
+    // property against being wrong, and only a test protects it against being
+    // removed.
+    println!();
+    println!("-- press enter to return to explore --");
+    let mut sink = String::new();
+    let _ = std::io::stdin().read_line(&mut sink);
   }
 }

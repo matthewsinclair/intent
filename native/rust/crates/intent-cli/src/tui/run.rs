@@ -140,6 +140,47 @@ impl<S: Session, T: terminal::Screen> Session for Lending<'_, S, T> {
   fn discard(&mut self, path: &std::path::Path) {
     self.inner.discard(path);
   }
+
+  fn run_command(&mut self, argv: Vec<String>) -> crate::Outcome {
+    self.inner.run_command(argv)
+  }
+
+  fn wait_for_operator(&mut self) {
+    self.inner.wait_for_operator();
+  }
+}
+
+/// **`AC-17.17`: LEND, RUN, WAIT FOR THE OPERATOR, TAKE IT BACK -- IN THAT
+/// ORDER.**
+///
+/// Extracted from [`run`]'s `Step::Run` arm so the ORDER can be asserted
+/// without a terminal, which is the same split this module applies everywhere
+/// else: the part with a property worth proving takes no terminal.
+/// [`Borrowed`] is already driven against a recording screen, and both halves
+/// of the work are now on [`Session`], so a test holding one log can watch the
+/// screen and the session interleave.
+///
+/// **WHAT THIS STILL CANNOT WITNESS, AND `AC-17.18` IS THE ROW FOR IT:** that
+/// the output is LEGIBLE -- that the operator can actually read what was
+/// printed before the explorer repaints. That is a fact about a real terminal
+/// and a human, and the seam that makes everything above provable is the same
+/// seam that puts painting permanently outside it.
+fn run_one_command<S: terminal::Screen>(
+  borrowed: &mut Borrowed<S>,
+  session: &mut impl Session,
+  argv: Vec<String>,
+) -> Result<crate::Outcome, io::Error> {
+  borrowed.lend(|| {
+    let outcome = session.run_command(argv);
+    // **THE MESSAGE GOES TO THE REAL STDERR, NOT TO THE INFO ROW**, because at
+    // this moment the terminal belongs to the command and the operator is
+    // reading a shell, not an explorer.
+    if let Some(message) = &outcome.message {
+      eprintln!("{message}");
+    }
+    session.wait_for_operator();
+    outcome
+  })
 }
 
 /// Compose the whole screen for `app` showing `rows`, at `width`.
@@ -576,26 +617,10 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
       // exit code below rather than disappearing.
       Step::Run(argv) => {
         let said = argv.join(" ");
-        let lent = borrowed.lend(|| {
-          let outcome = crate::dispatch(argv);
-          if let Some(message) = &outcome.message {
-            eprintln!("{message}");
-          }
-          // **THE PAUSE IS THE WHOLE DIFFERENCE FROM AN EDITOR HANDOFF, AND IT
-          // IS NOT A COURTESY.** `$EDITOR` holds the screen until the operator
-          // quits it; a command prints and returns in the same breath, so
-          // without a wait here the TUI repaints over the answer before it can
-          // be read and the operator sees a flicker where the output was.
-          //
-          // A LINE READ RATHER THAN A KEY EVENT: `lend` has already left raw
-          // mode, so this is a cooked terminal and `crossterm::event::read`
-          // would be reading through a discipline nobody set.
-          println!();
-          println!("-- press enter to return to explore --");
-          let mut sink = String::new();
-          let _ = std::io::stdin().read_line(&mut sink);
-          outcome
-        });
+        // **THE PAUSE IS THE WHOLE DIFFERENCE FROM AN EDITOR HANDOFF, AND IT IS
+        // NOT A COURTESY** -- `AC-17.17`. The sequence lives in
+        // [`run_one_command`] so the ORDER is provable without a terminal.
+        let lent = run_one_command(&mut borrowed, &mut session, argv);
         app.notice = match lent {
           // **THE EXIT CODE IS REPORTED, NOT SWALLOWED** (`IN-AG-NO-SILENT-001`).
           // The message has already gone to the screen the operator just read;
@@ -1178,6 +1203,108 @@ mod tests {
     assert!(
       hint.contains("title saved"),
       "the notice did not reach the hint line: {hint:?}"
+    );
+  }
+
+  /// `AT-17.17` / `AC-17.17`: **LEND, RUN, WAIT FOR THE OPERATOR, TAKE IT BACK
+  /// -- AND THE ASSERTION IS THE ORDER, NOT THE PRESENCE.**
+  ///
+  /// **ONE LOG, WRITTEN BY BOTH THE SCREEN AND THE SESSION**, which is what
+  /// makes the interleaving visible at all: the recording screen already
+  /// appends its `leave_raw` / `enter_raw` steps, and this session appends
+  /// `run` and `wait` into the same vector. A test holding two separate logs
+  /// could prove both things happened and nothing about their order, which is
+  /// the entire property.
+  ///
+  /// **THE PAUSE MUST FALL INSIDE THE LEND, NOT AFTER IT.** A `wait` that
+  /// landed after the re-take would be the operator being asked to press enter
+  /// at a screen the explorer had already repainted -- which is the defect
+  /// with an extra keystroke bolted on, and it reads as correct in a diff.
+  #[test]
+  fn a_command_that_returns_waits_for_the_operator_before_the_terminal_comes_back() {
+    use super::super::terminal::tests::Recorder;
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    /// A session that records into the SHARED log and does no I/O at all.
+    struct Watcher {
+      log: Rc<RefCell<Vec<&'static str>>>,
+    }
+
+    impl Session for Watcher {
+      fn scratch(&mut self, _h: &Handoff, _value: &str) -> Result<std::path::PathBuf, Refused> {
+        unreachable!("the command arm never writes a scratch file")
+      }
+      fn launch(&mut self, _path: &std::path::Path) -> Result<(), Refused> {
+        unreachable!("the command arm never launches an editor")
+      }
+      fn read_back(&mut self, _path: &std::path::Path) -> Result<String, Refused> {
+        unreachable!("the command arm never reads a scratch file back")
+      }
+      fn discard(&mut self, _path: &std::path::Path) {
+        unreachable!("the command arm has no scratch file to discard")
+      }
+      fn run_command(&mut self, _argv: Vec<String>) -> crate::Outcome {
+        self.log.borrow_mut().push("run");
+        crate::Outcome {
+          code: 0,
+          message: None,
+        }
+      }
+      fn wait_for_operator(&mut self) {
+        self.log.borrow_mut().push("wait");
+      }
+    }
+
+    let log: Rc<RefCell<Vec<&'static str>>> = Rc::new(RefCell::new(Vec::new()));
+    let mut borrowed = Borrowed::take(Recorder::new(&log)).expect("take the terminal");
+    let mut watcher = Watcher {
+      log: Rc::clone(&log),
+    };
+    // **THE INITIAL TAKE IS SETUP, SO IT IS CLEARED OUT OF THE LOG BEFORE THE
+    // SUBJECT RUNS.** It logs its own `enter_raw`, and the assertions below
+    // locate the FIRST occurrence of each step -- so leaving it in makes
+    // `enter_raw` resolve to the take rather than to the re-take, and the
+    // final assertion fails against a correct implementation. Driven: it did.
+    // **The bookkeeping the harness itself performs is not evidence about the
+    // thing under test, in either direction.**
+    log.borrow_mut().clear();
+
+    let outcome = run_one_command(
+      &mut borrowed,
+      &mut watcher,
+      vec!["intent".to_string(), "st".to_string(), "list".to_string()],
+    )
+    .expect("the terminal came back");
+    assert_eq!(outcome.code, 0, "the command's outcome was not carried out");
+
+    let seen = log.borrow().clone();
+    let at = |what: &str| {
+      seen
+        .iter()
+        .position(|step| *step == what)
+        .unwrap_or_else(|| panic!("`{what}` never happened at all: {seen:?}"))
+    };
+
+    // The terminal is GIVEN BACK before the command runs -- a command printing
+    // into somebody else's raw mode and alternate screen is the defect this
+    // whole seam exists to avoid.
+    assert!(
+      at("leave_raw") < at("run"),
+      "the command ran while the terminal was still borrowed: {seen:?}"
+    );
+    // The command runs before the operator is asked to acknowledge it. The
+    // reverse would be a prompt to read output that had not been printed.
+    assert!(
+      at("run") < at("wait"),
+      "the operator was asked to acknowledge output before it was produced: {seen:?}"
+    );
+    // **AND THE PROPERTY THE ROW IS ACTUALLY ABOUT.** The re-take is what
+    // repaints over the output, so the wait must precede it.
+    assert!(
+      at("wait") < at("enter_raw"),
+      "the terminal was taken back before the operator signalled, so the \
+       explorer repaints over the command's own output: {seen:?}"
     );
   }
 }

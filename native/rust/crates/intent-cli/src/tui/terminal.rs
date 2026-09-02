@@ -231,7 +231,7 @@ pub mod real {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
   use super::*;
   use std::cell::RefCell;
   use std::rc::Rc;
@@ -239,7 +239,7 @@ mod tests {
   /// A screen that records what it was asked to do, and can be told to fail at
   /// a chosen step.
   #[derive(Default)]
-  struct Recorder {
+  pub(crate) struct Recorder {
     log: Rc<RefCell<Vec<&'static str>>>,
     fail_on: Option<&'static str>,
     /// How many times `fail_on` is let through before it starts failing.
@@ -250,7 +250,7 @@ mod tests {
   }
 
   impl Recorder {
-    fn new(log: &Rc<RefCell<Vec<&'static str>>>) -> Self {
+    pub(crate) fn new(log: &Rc<RefCell<Vec<&'static str>>>) -> Self {
       Self {
         log: Rc::clone(log),
         fail_on: None,
