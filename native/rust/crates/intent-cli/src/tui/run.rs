@@ -366,6 +366,7 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
     let area = term.size()?;
     let screen = screen_for(app, &rows, area.width as usize);
     term.draw(|f| draw::render(&screen, app.scroll, f.area(), f.buffer_mut()))?;
+    let mut lent_the_terminal = false;
 
     // Only key presses move the machine. A resize repaints on the next pass
     // because the loop re-reads the size every time rather than caching it.
@@ -434,13 +435,9 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
           }
         }
         app.child_exited();
+        lent_the_terminal = true;
         rows = source.rows(app.stack.current());
         app.refocus(rows.len());
-        if borrowed.outstanding().is_empty() {
-          return Err(io::Error::other(
-            "the terminal was lent to the editor and could not be taken back",
-          ));
-        }
       }
       Step::Hand(hand) => {
         let mut lending = Lending {
@@ -462,14 +459,31 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
           Ok(Landed::Unchanged) => format!("{} unchanged", hand.field),
           Err(why) => why.to_string(),
         };
-        // A terminal that would not come back is not survivable: the loop is
-        // about to paint into a screen it does not own.
-        if borrowed.outstanding().is_empty() {
-          return Err(io::Error::other(
-            "the terminal was lent to the editor and could not be taken back",
-          ));
-        }
+        lent_the_terminal = true;
       }
+    }
+
+    // **COMING BACK FROM A CHILD IS ONE SITUATION, SO IT IS HANDLED IN ONE
+    // PLACE.** Both handoff paths lend the terminal and both owe the same two
+    // things on return; they were carrying one of them as a copy apiece.
+    if lent_the_terminal {
+      // A terminal that would not come back is not survivable: the loop is
+      // about to paint into a screen it does not own.
+      if borrowed.outstanding().is_empty() {
+        return Err(io::Error::other(
+          "the terminal was lent to the editor and could not be taken back",
+        ));
+      }
+      // **THE SCREEN COMES BACK BLANK AND `ratatui` DOES NOT KNOW IT.** The
+      // editor drew over the alternate screen and `lend` re-entered it, so the
+      // cells are empty -- but the terminal still holds the buffer it painted
+      // BEFORE the handoff, and the next draw is a diff against that. Every
+      // cell matches, almost nothing is emitted, and the operator gets an
+      // unpainted page. `clear` drops the remembered buffer so the next draw
+      // paints in full. **Found by hv driving it, and invisible to every test
+      // here** -- the whole module is built to be provable without a terminal,
+      // and this is a defect that only exists inside one.
+      term.clear()?;
     }
     // **THE VIEW CHANGED, SO THE ROWS MUST BE RE-READ BEFORE ANYTHING DERIVED
     // FROM THEM IS PAINTED.** Repainting a new view from the old rows is the
@@ -867,6 +881,15 @@ mod tests {
     assert!(
       lines[20 - foot - 1].contains("0056") && lines[20 - foot - 2].contains("ST0056"),
       "the dropdown must sit above the bottom rule, best match nearest the input:\n{lines:#?}"
+    );
+    // **A RULE DELIMITS THE OFFERS FROM THE BODY** (hv, 2026-09-02, driving
+    // it): without one they sit flush against rows they are not part of and
+    // read as more body. Two matches here, so the rule is the line above them.
+    let rule: String = std::iter::repeat_n(layout::RULE, 80).collect();
+    assert_eq!(
+      lines[20 - foot - 3],
+      rule,
+      "a rule must separate the dropdown from the body:\n{lines:#?}"
     );
 
     // And Esc to NAV clears it.

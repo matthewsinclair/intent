@@ -527,9 +527,28 @@ impl Screen {
     // already is. Clipped to the body it can actually eat.
     if !self.dropdown.is_empty() {
       let body_len = out.len().saturating_sub(HEAD);
-      let take = self.dropdown.len().min(body_len);
+      // **THE DROPDOWN IS DELIMITED FROM THE BODY BY A RULE** (hv, 2026-09-02,
+      // driving it): without one the offers sit flush against the rows they
+      // are not part of, and the eye reads them as more body. It is the SAME
+      // rule the composer's box sits under -- one chrome vocabulary, not a
+      // second separator invented for this list.
+      //
+      // **THE RULE IS THE FIRST THING THE BLOCK GIVES UP.** Where the body can
+      // pay for offers but not for offers-plus-a-separator, the OFFERS win: a
+      // separator with nothing to separate is the chrome-delimiting-nothing
+      // the design already refuses, and the match is the thing the operator
+      // asked for.
+      let take = (self.dropdown.len() + 1).min(body_len);
+      let (rows, ruled) = if take > 1 {
+        (take - 1, true)
+      } else {
+        (take, false)
+      };
       out.truncate(out.len() - take);
-      for (line, ink) in self.dropdown.iter().take(take) {
+      if ruled {
+        out.push((rule.clone(), rule_ink.clone()));
+      }
+      for (line, ink) in self.dropdown.iter().take(rows) {
         out.push((clip(line, w), ink.clone()));
       }
     }
