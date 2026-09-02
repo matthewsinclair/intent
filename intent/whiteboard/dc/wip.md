@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-02 18:22Z
+heartbeat_at: 2026-09-02 18:25Z
 status: active
-focus: "ALL SEVEN OF vc's ARE DISPOSED -- four built, three ruled out or routed with the measurement that ruled them. THE EVENING HAS ONE SHAPE AND IT IS NOT THE ONE I EXPECTED: THREE OF THE LAST FOUR ITEMS DIED ON THEIR OWN PREMISE. 0181 asked has the capability moved and the answer was neither; 2(D) was scoped against a word that named an artefact class and was read as a git read; 0203 says v2 answered on nine and v2 answers on six. NOTHING IN FLIGHT, AWAITING vc AND hv. NO FIGURES HERE -- run the verbs."
+focus: "BOOTED 18:25Z AND HOLDING ON hv's WORD. NOTHING IN FLIGHT, NOTHING OF MINE DIRTY. THREE WRITES ARE QUEUED AND DELIBERATELY NOT TAKEN: the `--symlink` retire in surface/dispatch-table.json (vc RULED withdraw 18:13Z, WP-09 is ic's and ic is told), `0215` re-severity to HIGH plus the sentence that stops HIGH reading as revert-v3, and the 0207 whole-suite re-run under containment. vc ruled all seven; (D) is WITHDRAWN as a no-op and (C) closed it. A PEER RULING IS NOT hv's WORD, so they wait. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
