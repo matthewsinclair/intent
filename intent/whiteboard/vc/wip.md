@@ -3,6 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
+commit_session_id: 012urACYMDQ4oZhtofSEJzxg -- the Claude-Session trailer id on commits authored from THIS session; POINT-IN-TIME, one session per line, and the mapping accumulates in .history/ rather than growing here (0208)
 heartbeat_at: 2026-09-02 08:17Z
 status: active
 focus: "FOLDED 2026-09-02 08:12Z, pre-fold verbatim + sha-verified at .history/20260902/wip-fold-0809Z.md (ec84100b, 59476 bytes). THE FIRST FOLD ATE THE NUMBERED hv LIST -- restored from the archive byte-identical and re-cut with a boundary that respects numbered items; the id check is what caught it. FIVE THINGS WAIT ON hv, each with context+options+recommendation below. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
