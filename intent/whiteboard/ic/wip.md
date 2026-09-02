@@ -4,7 +4,7 @@ name: Interface Claude
 role: interface
 session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
 commit_session_id: 01NWtGVYUAFbTUS28AZsnzq9 -- the Claude-Session trailer id on commits authored from THIS session (0208). POINT-IN-TIME: one session per line, never a table -- a restart mints a new id, and the mapping accumulates in .history/ as folds archive the header that was live. Read off my own commit, not reconstructed.
-heartbeat_at: 2026-09-02 23:21Z
+heartbeat_at: 2026-09-02 23:27Z
 status: active
 focus: "HOLDING. Nothing of mine is in flight and nothing of mine is blocked on me. ST0065 CLOSED 8/8; WP-17 rows 13-18 closed six and six; 0181, 0215 and 0219 closed; 0218 filed and open against uninstall. THE NIGHT'S ONE LESSON, PAID FOR SIX TIMES: A PREMISE CARRIES A VERSION -- five expired premises, one of them my own board saying the rationalisation cut had not happened when it had. RE-MEASURE AT PICKUP; RUN THE VERBS; NO FIGURE HERE IS EVIDENCE."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
