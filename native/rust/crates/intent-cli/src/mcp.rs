@@ -61,7 +61,7 @@
 use crate::dispatch::{Arg, Entry, Flag, Table};
 use intentsvcs::contract::{Scope, Verdict};
 use intentsvcs::facade::{
-  EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, Note, Outcome,
+  EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, outcome_json,
 };
 use intentsvcs::model::{AcKind, AtStatus, IssueStatus, ThreadStatus};
 use intentsvcs::remedy::Remedy;
@@ -1274,32 +1274,6 @@ fn val<T: serde::Serialize + ?Sized>(path: &str, value: &T) -> Result<Value, Ser
       path,
       format!("build defect -- the result could not be serialised: {e}"),
     )
-  })
-}
-
-/// What a mutating verb DID, in the projection the board ruled:
-/// `moved` / `already` / `notes[]`, each note structural rather than prose.
-/// The notes TRAVEL -- `Outcome::MovedWith` exists precisely so a non-CLI
-/// caller cannot skip them in silence.
-fn outcome_json(outcome: &Outcome, subject: &str) -> Value {
-  let notes: Vec<Value> = outcome
-    .notes()
-    .iter()
-    .map(|note| match note {
-      Note::UnsyncedAttachments(paths) => json!({
-        "kind": "unsynced-attachments", "paths": paths,
-      }),
-      Note::FiatClosedSoleCover(acs) => json!({
-        "kind": "fiat-closed-sole-cover", "criteria": acs,
-      }),
-      Note::UnsyncedUnknown => json!({ "kind": "unsynced-unknown" }),
-    })
-    .collect();
-  json!({
-    "subject": subject,
-    "moved": outcome.moved(),
-    "already": outcome.already(),
-    "notes": notes,
   })
 }
 

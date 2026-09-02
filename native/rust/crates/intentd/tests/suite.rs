@@ -40,6 +40,8 @@ mod daemon_watch;
 mod graphql_answers_through_the_store_door;
 #[path = "no_orphan_suite_member.rs"]
 mod no_orphan_suite_member;
+#[path = "one_declaration_two_realisers.rs"]
+mod one_declaration_two_realisers;
 #[path = "one_store_door.rs"]
 mod one_store_door;
 #[path = "registry_serves_n_projects.rs"]

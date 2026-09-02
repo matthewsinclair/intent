@@ -605,6 +605,26 @@ fn open_facade(root: &Path) -> Result<(Facade, String), Response> {
 /// second executor.
 fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Response {
   match op {
+    // **THE ARM IS THIN BECAUSE THE DOOR IS ELSEWHERE, WHICH IS THE POINT OF
+    // THE OP.** Parse the address, hand the field and value to the facade,
+    // project what it did. Every question about what may be written -- does
+    // the field exist, is it settable, does the value re-parse, does a null
+    // clear it -- is answered by `Facade::set` and is not re-asked here. A
+    // second opinion in this arm is the second home `AC-17.1` is about.
+    //
+    // **THE REFUSALS CARRY THE FACADE'S OWN REMEDY** rather than a wire-local
+    // one: an operator who reaches this door through a browser gets the same
+    // sentence they would get in the terminal, because it is the same error
+    // rendered by the same `Remedy` impl.
+    Op::Set { url, field, value } => match intentsvcs::address::parse(&url) {
+      Err(e) => Response::error(e.to_string(), e.remedy()),
+      Ok(address) => match facade.set(&address, &field, value) {
+        Ok(outcome) => Response::Set {
+          outcome: intentsvcs::facade::outcome_json(&outcome, &url),
+        },
+        Err(e) => Response::error(e.to_string(), e.remedy()),
+      },
+    },
     Op::ThreadList => Response::Threads {
       threads: facade
         .st_list()

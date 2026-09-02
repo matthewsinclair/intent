@@ -1530,6 +1530,43 @@ impl Outcome {
   }
 }
 
+/// What a mutating verb DID, in the projection the board ruled:
+/// `moved` / `already` / `notes[]`, each note structural rather than prose.
+///
+/// **THE NOTES TRAVEL, AND THAT IS WHY THIS LIVES BESIDE `Outcome` RATHER THAN
+/// INSIDE ONE FACE.** [`Outcome::MovedWith`] exists precisely so a non-CLI
+/// caller cannot skip them in silence -- and a projection that lives in one
+/// face protects only that face's callers. It was written in `mcp.rs` and
+/// moved here when the wire became the SECOND machine face needing it: two
+/// machine faces answering the same question from two mappings is how they
+/// come to disagree about what a note is.
+///
+/// **THE HUMAN RENDERING IS NOT A THIRD COPY OF THIS AND MUST NOT BE FOLDED
+/// IN.** `render.rs` turns the same notes into sentences with remedies in
+/// them; that is a different concern with a different reader, not a divergent
+/// spelling of this one.
+pub fn outcome_json(outcome: &Outcome, subject: &str) -> serde_json::Value {
+  let notes: Vec<serde_json::Value> = outcome
+    .notes()
+    .iter()
+    .map(|note| match note {
+      Note::UnsyncedAttachments(paths) => serde_json::json!({
+        "kind": "unsynced-attachments", "paths": paths,
+      }),
+      Note::FiatClosedSoleCover(acs) => serde_json::json!({
+        "kind": "fiat-closed-sole-cover", "criteria": acs,
+      }),
+      Note::UnsyncedUnknown => serde_json::json!({ "kind": "unsynced-unknown" }),
+    })
+    .collect();
+  serde_json::json!({
+    "subject": subject,
+    "moved": outcome.moved(),
+    "already": outcome.already(),
+    "notes": notes,
+  })
+}
+
 /// Whether a lifecycle transition makes its declared edit to `.intentfiles`,
 /// or the operator has suppressed it (AC-05.2).
 ///

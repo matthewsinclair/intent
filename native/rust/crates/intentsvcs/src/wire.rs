@@ -108,6 +108,41 @@ pub enum Op {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     variables: Option<serde_json::Value>,
   },
+  /// Set one field of one addressed entity (`AC-17.1`).
+  ///
+  /// **THE WRITE DOOR IS DERIVED, NOT ENUMERATED, AND THAT IS THE WHOLE
+  /// DESIGN.** There is no `Op::StDone`, no `Op::WpStart`, and there must not
+  /// be: a per-verb op is a second home for the mutation surface
+  /// [`crate::facade::Facade::set`] already owns, and it goes stale the day a
+  /// verb is added -- the failure `AC-17.2` names one layer up for the form's
+  /// field set. This op carries an ADDRESS, a FIELD and a VALUE, and what may
+  /// be written is decided where it was always decided.
+  ///
+  /// **IT IS THE SAME DOOR THE IN-PROCESS REALISER USES, WHICH IS WHAT MAKES
+  /// `AC-17.1` ASSERTABLE AT ALL.** The criterion wants an edit through EACH
+  /// realiser to reach an identical store state. Two doors would make that a
+  /// claim about two implementations agreeing; one door makes it a claim about
+  /// one implementation reached two ways, and the test diffs the model rather
+  /// than comparing renderers for similarity.
+  ///
+  /// **THE READS-ONLY BOUND WAS NEVER ABOUT WRITES BEING UNWANTED -- IT IS
+  /// [`Op::Graphql`]'s BOUND AND IT STAYS.** `EmptyMutation` keeps the
+  /// document face reads-only as a property of the SCHEMA, and vc's 2026-08-31
+  /// ruling put GraphQL mutations out of 3.0.1. This op is why that ruling
+  /// costs nothing: the escape hatch does not become the write path, and the
+  /// write path is not a document.
+  ///
+  /// **`value` IS `serde_json::Value` BECAUSE THE FIELD'S TYPE IS THE
+  /// ENTITY'S, NOT THE WIRE'S.** The facade re-parses it against the schema
+  /// face and refuses by name; typing it here would put a second copy of the
+  /// model's field types on the wire. **A null CLEARS an optional field** and
+  /// is refused by name on a required one -- the facade's rule, not a
+  /// convention this op invents.
+  Set {
+    url: String,
+    field: String,
+    value: serde_json::Value,
+  },
   /// The projects this daemon has opened, and whether their roots still exist.
   ///
   /// **NOT SCOPED TO ONE PROJECT, WHICH IS WHY IT IS ANSWERED WITHOUT BINDING
@@ -284,6 +319,21 @@ pub enum Response {
   /// the spec's own channel: it is an answer about the document, not a failure
   /// to serve, so it is never [`Response::Error`].
   Graphql { response: serde_json::Value },
+  /// What a [`Op::Set`] DID, in the projection
+  /// [`crate::facade::outcome_json`] renders.
+  ///
+  /// **THE NOTES TRAVEL WITH THE ACT, WHICH IS WHY THIS IS NOT A BARE
+  /// BOOLEAN.** `Outcome::MovedWith` exists so a non-CLI caller cannot skip a
+  /// warning in silence, and a wire response carrying only *did it move* would
+  /// be exactly that caller. The projection is the one the MCP face already
+  /// answers with, shared rather than re-spelled: two machine faces mapping
+  /// one `Outcome` from two places is how they come to disagree about what a
+  /// note is.
+  ///
+  /// **UNTYPED HERE ON PURPOSE.** The alternative is a wire-local mirror of
+  /// `Outcome` and `Note`, which is a second home for both, in the crate whose
+  /// job is to not have one.
+  Set { outcome: serde_json::Value },
   /// The projects a [`Op::Registry`] found.
   Registry { projects: Vec<RegisteredProject> },
   /// This connection is now a feed (`AC-08.6`).
