@@ -618,7 +618,10 @@ EOF
   cd "$project_dir"
 
   run run_intent wp help
-  # help exits with 1 (usage pattern)
+  # rc=0, deliberately. v2 answered this at rc=1; v3 declines to port that at the
+  # family level for the same reason INV-07 declined it at the root -- a help
+  # request that succeeds is not a failure. See issue 0203.
+  assert_success
   assert_output_contains "Usage: intent wp"
   assert_output_contains "new"
   assert_output_contains "done"
