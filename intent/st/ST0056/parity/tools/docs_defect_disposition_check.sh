@@ -50,7 +50,7 @@ for f in "$REG"/*.json; do
   all=$((all+1)); id=$(basename "$f" .json)
   if git cat-file -e "$CUT:$f" 2>/dev/null \
      && [ "$(git show "$CUT:$f" | jq -r '.status')" = "closed" ] \
-     && ! git show "$CUT:$f" | jq -r '.body // ""' | grep -qiE "$NONFIX"; then
+     && ! grep -qiE "$NONFIX" <<<"$(git show "$CUT:$f" | jq -r '.body // ""')"; then
     excl=$((excl+1)); continue
   fi
   echo "$id" >> "$pop_file"
@@ -135,7 +135,7 @@ while IFS= read -r id; do
         # A verb may be multi-word ("at lint"), so it must reach argv as TWO
         # tokens. An array says that; a bare $verb would only do it by accident.
         read -r -a verb_parts <<< "${where#--help:}"
-        if ! intent "${verb_parts[@]}" --help 2>&1 | grep -qF -- "$quote"; then
+        if ! grep -qF -- "$quote" <<<"$(intent "${verb_parts[@]}" --help 2>&1)"; then
           note "  QUOTE ABSENT: $id -- '$quote' is not in \`intent ${where#--help:} --help\`"; badquote=$((badquote+1)); continue
         fi
       elif [ ! -f "$where" ]; then

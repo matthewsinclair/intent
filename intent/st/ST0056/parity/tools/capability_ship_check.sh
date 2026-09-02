@@ -264,7 +264,7 @@ fi
 #              CLI-OWNED lifecycle, so a plist writer nothing calls would not
 #              satisfy it, and a plist on disk proves only that something did.
 flag=0
-for v in start stop; do "$BIN" daemon "$v" --help 2>/dev/null | grep -q -- '--at-login' && flag=$((flag + 1)); done
+for v in start stop; do grep -q -- '--at-login' <<<"$("$BIN" daemon "$v" --help 2>/dev/null)" && flag=$((flag + 1)); done
 edges="$(grep -c 'launchagent::' "$ROOT"/native/rust/crates/intent-cli/src/render.rs 2>/dev/null || echo 0)"
 if [ "$flag" -eq 2 ] && [ "$edges" -gt 0 ]; then
   printf '    %-28s DRIVEN     --at-login published on start AND stop; %s launchagent:: call site(s) in the CLI crate. NOT DRIVEN: enrolling installs a launch agent on the operator machine\n' "CLI-owned launchd" "$edges"

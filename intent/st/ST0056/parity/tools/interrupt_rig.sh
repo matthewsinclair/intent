@@ -580,8 +580,8 @@ if ! ROOT="$ROOT" "$CORPUS" capture "$MEMBER" "$TEMPLATE" >/dev/null; then
   # This costs one `grep` on a path that has already failed, and it turns a
   # two-minute confusion into a sentence naming the fix.
   if [ "$CORPUS" != "$HERE/estate_corpus.sh" ] && [ -x "$HERE/estate_corpus.sh" ] &&
-     ! ROOT="$ROOT" "$CORPUS" list 2>/dev/null | grep -q "^$MEMBER[[:space:]]" &&
-     ROOT="$ROOT" "$HERE/estate_corpus.sh" list 2>/dev/null | grep -q "^$MEMBER[[:space:]]"; then
+     ! grep -q "^$MEMBER[[:space:]]" <<<"$(ROOT="$ROOT" "$CORPUS" list 2>/dev/null)" &&
+     grep -q "^$MEMBER[[:space:]]" <<<"$(ROOT="$ROOT" "$HERE/estate_corpus.sh" list 2>/dev/null)"; then
     die "the member '$MEMBER' EXISTS IN THE WORKTREE CORPUS AND NOT IN THE PINNED ONE. The instruments come from $INSTR_SHORT, not from your working copy -- so a corpus row you added and committed AFTER that revision is not in this run. Point --instruments-rev (or --rev) at a commit that contains the row, verified with \`git merge-base --is-ancestor <row-commit> <rev>\` rather than by assuming HEAD has moved forward. Nothing here is a statement about the estate."
   fi
   die "estate_corpus.sh could not capture $MEMBER -- run '$CORPUS list' to see why. That is the PINNED copy at $INSTR_SHORT, not the one in your worktree."

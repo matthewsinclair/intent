@@ -187,13 +187,13 @@ record_resolves() {
       [ -f "$ST_DIR/parity.md" ]
       ;;
     "issue "[0-9]*)
-      echo "$RESOLVABLE" | grep -qx "$(echo "$rec" | grep -Eo '[0-9]{3,4}')"
+      grep -qx "$(grep -Eo '[0-9]{3,4}' <<<"$rec")" <<<"$RESOLVABLE"
       ;;
     *.md|*.rs|*.sh|*.json|*.toml|*.txt|*.md:*|*.rs:*|*.sh:*|*.json:*|*.toml:*|*.txt:*)
       [ -e "$REPO_ROOT/${rec%%:*}" ] || [ -e "$ST_DIR/${rec%%:*}" ]
       ;;
     *)
-      if echo "$rec" | grep -Eq '^[0-9a-f]{7,40}$'; then
+      if grep -Eq '^[0-9a-f]{7,40}$' <<<"$rec"; then
         git -C "$REPO_ROOT" cat-file -e "${rec}^{commit}" 2>/dev/null
       else
         return 1
@@ -218,9 +218,9 @@ while IFS=$'\t' read -r id state authority date record; do
 
   # --- schema arm: is the DECLARATION well formed? -------------------------
   bad=""
-  echo "$STATES"      | grep -qw -- "$state"     || bad="$bad state=<$state>"
-  echo "$AUTHORITIES" | grep -qw -- "$authority" || bad="$bad authority=<$authority>"
-  echo "$date" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' || bad="$bad date=<$date>"
+  grep -qw -- "$state"     <<<"$STATES"      || bad="$bad state=<$state>"
+  grep -qw -- "$authority" <<<"$AUTHORITIES" || bad="$bad authority=<$authority>"
+  grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' <<<"$date" || bad="$bad date=<$date>"
 
   # A NULL RECORD IS LEGAL FOR `hv` AND FOR NOBODY ELSE, and it is a schema rule
   # rather than a convention so that the unverifiable-by-construction count is a

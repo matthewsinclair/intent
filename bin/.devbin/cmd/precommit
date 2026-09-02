@@ -88,6 +88,7 @@ G_SKEWTHREAD="thread views: a generated thread view this commit touches still ma
 G_MACHINE="ratified machines: transitions.rs implements data-model.md exactly (entry states and every expanded from-to-verb edge)"
 G_DECLKIND="declared kind: every AT row whose cited artefact EXISTS cites the kind of thing the row declared"
 G_ABSENTAT="absent citation: every AT row claiming a VERDICT (green or red) cites an artefact that is actually there"
+G_PIPEFAIL="pipefail/SIGPIPE: no instrument ends a pipeline in an early-exiting reader (it reads FALSE on a TRUE input)"
 
 # THE WHITEBOARD HEADER GUARD IS NO LONGER LISTED HERE, and the precondition
 # this file wrote for its own removal has been met. It read: "WHEN THIS BLOCK
@@ -124,6 +125,7 @@ if [ "${1:-}" = "--list-guards" ]; then
   printf '%s\t%s\n' "$G_MACHINE" "intent/st/ST0056/parity/tools/machine_table_check.sh"
   printf '%s\t%s\n' "$G_DECLKIND" "intent/st/ST0056/parity/tools/declared_kind_check.sh"
   printf '%s\t%s\n' "$G_ABSENTAT" "intent/st/ST0056/parity/tools/absent_at_check.sh"
+  printf '%s\t%s\n' "$G_PIPEFAIL" "intent/st/ST0056/parity/tools/pipefail_sigpipe_check.sh"
   exit 0
 fi
 
@@ -369,6 +371,25 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   if ! bash "$TOOLS/class_vocab_check.sh"; then
     rc=1
     failed="${failed}  class_vocab_check.sh -- could not measure the class vocabulary (exit 2; its findings never gate)
+"
+  fi
+
+  # The pipefail/SIGPIPE class in our own instruments. IT GATES, unlike the two
+  # above: a finding here is a live defect in a checker, and the reason it needs
+  # a gate rather than a sweep is that it is invisible to every other instrument
+  # -- a lost race has the same exit code, the same silence and the same green
+  # as a clean run. Exit 2 is the tool refusing to report (its own two-sided
+  # control did not fire), which is not a finding and must not read as one.
+  step "$G_PIPEFAIL"
+  bash "$TOOLS/pipefail_sigpipe_check.sh"
+  pf_rc=$?
+  if [ "$pf_rc" -eq 1 ]; then
+    rc=1
+    failed="${failed}  pipefail_sigpipe_check.sh -- an instrument ends a pipeline in grep with -q, which reads FALSE on a TRUE input under pipefail; the finding above names the file and line
+"
+  elif [ "$pf_rc" -ne 0 ]; then
+    rc=1
+    failed="${failed}  pipefail_sigpipe_check.sh -- could not measure (exit $pf_rc): its two-sided control did not fire, so it offered no verdict
 "
   fi
 

@@ -638,7 +638,7 @@ step_cargo_census() {
         *) continue ;;
       esac
       total=$((total + 1))
-      if guard_evidence "$f" "$lineno" | grep -q 'clone_workspace\|CARGO_TARGET_DIR\|refuse_single_package_release\|guarded_release_build'; then
+      if grep -q 'clone_workspace\|CARGO_TARGET_DIR\|refuse_single_package_release\|guarded_release_build' <<<"$(guard_evidence "$f" "$lineno")"; then
         continue
       fi
       bad="$bad       $f: ${line#"${line%%[![:space:]]*}"}

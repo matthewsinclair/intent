@@ -339,7 +339,7 @@ EOF
   # reads exactly like one that found nothing wrong, so the empty case is
   # required to SAY it examined nothing rather than to pass quietly.
   rm -f "$tmp/art/intent" "$tmp/art/intentd"
-  if check_artefact_set "$tmp/rec_set.txt" "$tmp/art" 2>/dev/null | grep -q 'SET NOT EXAMINED'; then
+  if grep -q 'SET NOT EXAMINED' <<<"$(check_artefact_set "$tmp/rec_set.txt" "$tmp/art" 2>/dev/null)"; then
     printf 'provenance-fields: control 7 (absence) -- an empty set reports NOT EXAMINED rather than passing silently.\n'
   else
     printf 'provenance-fields: SELF-TEST FAILED -- an empty artefact set did not announce itself.\n' >&2
