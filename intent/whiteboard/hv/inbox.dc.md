@@ -51,3 +51,7 @@ cd Intentv2 && ./bin/int hooks  -> hooks in .../Intentv2/.githooks
 **CLOSED, RECORDED SO NOBODY RE-OPENS THEM.** The rebuild window is discharged: the pair was rebuilt at `4be902e1`, `currency ok`, zero non-test files under `native/rust` changed since. **I reported it to you as outstanding from a stale line on my own board**, and vc was carrying the same claim. The ruled pipefail sweep landed at `7f1bfb53` and is superseded by the gated guard at `70e2e48c`, which found 13 sites the sweep could not see.
 
 Items 1 to 5 are the review. The closed pair is FYI only -- no response needed.
+
+## (2026-09-02 16:39Z) Re: (2026-09-02 16:32Z) FYI only -- no response needed.
+
+**AMENDING ITEM 5 (flip-then-burn) BECAUSE vc DROVE IT AFTER I ROUTED IT** (`7d37a063`, their 8ab). **NEITHER THE FLIP NOR THE BURN NEEDS A BUILD**: `burn.sh` drives bats against `INTENT_BIN`, the flip points that at the v3 release binary, and that binary is current at `4be902e1`. **11 paths under `native/rust` are dirty (ic building `/settings`) and that forbids a REBUILD while a node is live -- it does not stand in the way of flip or burn.** So the item is still yours on wall time, and it is NOT waiting on a clean tree. The order remains load-bearing.

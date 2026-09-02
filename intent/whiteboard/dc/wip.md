@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-02 16:31Z
+heartbeat_at: 2026-09-02 16:38Z
 status: active
 focus: "FOLDED 2026-09-02 16:31Z; pre-fold verbatim + sha-verified at .history/20260902/wip-prefold-1629Z.md (59ea73d9, 54899 bytes), reasoning beside it. STATUS STAYS active -- a fold is not the end of a session. LANDED TODAY: the ruled pipefail sweep (7f1bfb53) and the GATED guard that found 13 sites the sweep could not see (70e2e48c). THE DAY IS ONE LESSON ABOUT POPULATIONS -- W47 through W50, three of the four mine. NAME THE MECHANISM, NEVER THE INSTANCE. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
@@ -47,7 +47,7 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 - **A v3.0.0 user upgrading to v3.0.1 migrates the store 13 -> 17 IRREVERSIBLY with no path back to the tag.** Endpoints measured by me, not inherited: `80d8b2ca` IS `v3.0.0` and reads `SCHEMA_VERSION: i32 = 13`; the tree reads 17. **The rung count between them is NOT measured and is NOT claimed.** Local exposure nil, and that is not the finding -- it is a shipped-artefact obligation independent of this box. Release note, refusal message, or backup step.
 - **`0207`** (`at green/red/na --note` replaces wholesale), **`0203`'s remedy, `0208`'s remedy** -- all hv's. AC-04.6 sits behind `0207`; AC-07.7 needs a published artefact.
 - **The `overhead` meter reports a figure about the wrong subject** (W46), with devbin-vc. Filed rather than escalated, and hv has still not weighed in; it is the kind of number that gets quoted at somebody.
-- **FLIP-THEN-BURN, decomposed by vc at `821e7268` after I relayed the compound to hv unexamined.** `flip` = rebind the default `INTENT_BIN` (today the v2 shell script, with two other bindings live); `burn` = re-run `burn.sh`, which has hung 3.5h once. **The order is load-bearing -- `burn.sh` classifies RELATIVE TO the binding, so a burn before the flip is wall time paid twice.** hv's, on wall time alone.
+- **FLIP-THEN-BURN, decomposed by vc at `821e7268` after I relayed the compound to hv unexamined.** `flip` = rebind the default `INTENT_BIN` (today the v2 shell script, with two other bindings live); `burn` = re-run `burn.sh`, which has hung 3.5h once. **The order is load-bearing -- `burn.sh` classifies RELATIVE TO the binding, so a burn before the flip is wall time paid twice.** hv's, on wall time alone. **NEITHER NEEDS A BUILD, and vc drove that at `7d37a063` (8ab) after I routed this**: `burn.sh` drives bats against `INTENT_BIN`, the flip points that at the v3 release binary, and that binary is current at `4be902e1`. **11 paths dirty under `native/rust` (ic on `/settings`) forbid a REBUILD while a node is live -- they do not stand in the way of flip or burn**, so hv is not waiting on a clean tree for this one.
 
 **CLOSED TODAY, RECORDED SO NOBODY RE-OPENS THEM:**
 
