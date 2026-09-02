@@ -103,6 +103,16 @@ CREATE TABLE IF NOT EXISTS threads (
   -- mechanism actually available**: `Thread` derives `PartialEq`, so the
   -- comparison enumerates no more than the counter does. The argument was
   -- sound against a hand-written field list, and nobody was proposing one.
+  --
+  -- **SO NOTHING READS THIS COLUMN, AND THAT IS SAID HERE RATHER THAN LEFT FOR
+  -- THE NEXT READER TO DISCOVER** (vc, 2026-09-02). It is WRITTEN by the clause
+  -- below and NAMED by `RECORD_WRITE_METADATA`, whose only use is to EXCLUDE it
+  -- from `derived_dump`'s content comparison -- so its one consumer exists in
+  -- order to ignore it. There is no `SELECT` of it in any crate. It is retained
+  -- rather than dropped because removing a column costs an irreversible
+  -- migration rung, which is a worse trade than a harmless counter; **silence
+  -- here would send the next reader hunting for a consumer that does not
+  -- exist.**
   revision INTEGER NOT NULL DEFAULT 0
 );
 -- openness: carried by intent/.canon/st/<ID>.json

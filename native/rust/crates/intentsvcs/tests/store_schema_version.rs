@@ -89,7 +89,7 @@ fn an_unstamped_store_is_refused_at_open_not_at_the_first_query() {
     Err(e) => e,
   };
   assert!(
-    matches!(err, StoreError::SchemaUnstamped),
+    matches!(err, StoreError::SchemaUnstamped { .. }),
     "got: {err:?} -- an unstamped store is its own case, not a version mismatch"
   );
   // The message an operator reads has to say what happened without them
@@ -132,10 +132,22 @@ fn a_store_from_a_newer_build_is_refused_at_open() {
     Ok(_) => panic!("a store stamped {stamp} must be refused, and it opened"),
     Err(e) => e,
   };
-  let StoreError::SchemaMismatch { found, expected } = err else {
+  let StoreError::SchemaMismatch {
+    store,
+    found,
+    expected,
+  } = err
+  else {
     panic!("expected a version mismatch at stamp {stamp}, got: {err:?}");
   };
   assert_eq!((found, expected), (stamp, SCHEMA_VERSION));
+  // **THE REFUSAL NAMES THE FILE IT IS ABOUT.** "the runtime store" leaves an
+  // operator with two checkouts open guessing which one is being refused.
+  assert_eq!(
+    store,
+    path.display().to_string(),
+    "the refusal must name the database it refused"
+  );
 }
 
 /// The two directions of a version mismatch read differently.
@@ -147,11 +159,13 @@ fn a_store_from_a_newer_build_is_refused_at_open() {
 #[test]
 fn the_mismatch_remedy_points_at_the_end_that_can_actually_move() {
   let ahead = StoreError::SchemaMismatch {
+    store: "/tmp/a/intent.db".to_string(),
     found: SCHEMA_VERSION + 1,
     expected: SCHEMA_VERSION,
   }
   .remedy();
   let behind = StoreError::SchemaMismatch {
+    store: "/tmp/a/intent.db".to_string(),
     found: SCHEMA_VERSION,
     expected: SCHEMA_VERSION + 1,
   }
@@ -245,7 +259,15 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // every upgraded project's egest at once. So the rung creates and stops, and
   // `Store::last_ingest` returning `None` carries "no evidence either way"
   // rather than either invented answer.
-  // 17 is `threads.revision`, the compare-and-swap token for issue 0206. An
+  // 17 is `threads.revision`, a per-record write counter. **It shipped named as
+  // issue 0206's compare-and-swap token and it is not one** -- `rebuild` deletes
+  // before it inserts, so the counter RESETS on every sync rather than rising,
+  // and a CAS on it would fail open on the case it was built for. 0206's fix
+  // compares content; see the DDL, and
+  // `a_write_refuses_a_record_that_moved_under_it.rs` drives the reset. The
+  // column is retained because dropping it costs another irreversible rung, and
+  // nothing reads it. **This file is where the next person comes to find out
+  // what a rung MEANT, which is why the stale claim was worth chasing here.** An
   // `ALTER TABLE ADD COLUMN` rather than a rebuild -- the one column-adding
   // rung that could take the cheap form, because its default is CONSTANT where
   // every earlier one defaulted to `strftime(...)` and SQLite refuses those.

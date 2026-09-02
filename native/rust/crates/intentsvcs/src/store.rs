@@ -186,6 +186,16 @@ CREATE TABLE IF NOT EXISTS threads (
   -- mechanism actually available**: `Thread` derives `PartialEq`, so the
   -- comparison enumerates no more than the counter does. The argument was
   -- sound against a hand-written field list, and nobody was proposing one.
+  --
+  -- **SO NOTHING READS THIS COLUMN, AND THAT IS SAID HERE RATHER THAN LEFT FOR
+  -- THE NEXT READER TO DISCOVER** (vc, 2026-09-02). It is WRITTEN by the clause
+  -- below and NAMED by `RECORD_WRITE_METADATA`, whose only use is to EXCLUDE it
+  -- from `derived_dump`'s content comparison -- so its one consumer exists in
+  -- order to ignore it. There is no `SELECT` of it in any crate. It is retained
+  -- rather than dropped because removing a column costs an irreversible
+  -- migration rung, which is a worse trade than a harmless counter; **silence
+  -- here would send the next reader hunting for a consumer that does not
+  -- exist.**
   revision INTEGER NOT NULL DEFAULT 0
 );
 -- openness: carried by intent/.canon/st/<ID>.json
@@ -1182,11 +1192,15 @@ pub enum StoreError {
   /// The store holds a schema this binary does not speak. **Refused at open**,
   /// which is the whole point: the alternative is answering questions from a
   /// database whose shape disagrees with the queries.
-  #[error("the runtime store holds schema version {found}; this build of intent speaks {expected}")]
-  SchemaMismatch { found: i32, expected: i32 },
+  #[error("{store} holds schema version {found}; this build of intent speaks {expected}")]
+  SchemaMismatch {
+    store: String,
+    found: i32,
+    expected: i32,
+  },
   /// The store predates schema versioning altogether.
-  #[error("the runtime store predates schema versioning and does not record which shape it holds")]
-  SchemaUnstamped,
+  #[error("{store} predates schema versioning and does not record which shape it holds")]
+  SchemaUnstamped { store: String },
   /// A migration rebuilt a table and left rows pointing at a parent that is no
   /// longer there. Foreign keys are off for the rebuild and re-checked inside
   /// the same transaction, so this is the check firing and rolling the rung
@@ -1264,8 +1278,21 @@ impl crate::remedy::Remedy for StoreError {
   /// promise a migration for the case that cannot have one.
   fn remedy(&self) -> String {
     match self {
-      Self::SchemaMismatch { found, expected } if found > expected => format!(
-        "this store was written by a NEWER intent than the one you are running -- upgrade intent rather than migrating the store down; it holds version {found} and this build speaks {expected}"
+      // **IT NAMES THE FILE AND BOTH VERSIONS, AND THEN POINTS AT `--version`
+      // FOR THE BUILD RATHER THAN INLINING IT.** A refusal that says only "the
+      // runtime store" leaves an operator with two projects to guess between,
+      // and a version number alone does not say WHICH BINARY is the old one --
+      // `intent --version` names the commit the running binary was built from,
+      // which is the question, and it now has exactly one home. Inlining the
+      // commit here would be a second.
+      Self::SchemaMismatch {
+        store,
+        found,
+        expected,
+      } if found > expected => format!(
+        "{store} was written by a NEWER intent than the one you are running -- upgrade intent \
+         rather than migrating the store down; it holds version {found} and this build speaks \
+         {expected}. `intent --version` names the build you are on"
       ),
       Self::CreateHitAnExistingKey { kind, key } => format!(
         "nothing was written and nothing was replaced. If you meant to CREATE, re-run and take the \
@@ -1286,10 +1313,11 @@ impl crate::remedy::Remedy for StoreError {
          re-run it and it will read the current record first. If you are running two sessions \
          against one project, this is that, working"
       ),
-      Self::SchemaMismatch { .. } => {
-        "run `intent doctor` -- it names the store's version against this build's, and reports whether a migration for it has shipped".to_string()
-      }
-      Self::SchemaUnstamped => {
+      Self::SchemaMismatch { store, .. } => format!(
+        "run `intent doctor` -- it names {store}'s version against this build's, and reports \
+         whether a migration for it has shipped"
+      ),
+      Self::SchemaUnstamped { store } => {
         // NO RECOVERY COMMAND, because there is none and inventing one is
         // worse than admitting it. The database was written on the day the
         // schema moved several times without a stamp, so its shape is not
@@ -1297,7 +1325,11 @@ impl crate::remedy::Remedy for StoreError {
         // said honestly is where the work is: the committed extract carries
         // everything that was ever synced out (D34), which for a project under
         // version control is a `git status` away from being checked.
-        "this database cannot be migrated -- nothing recorded which shape it holds. Check what your committed extract carries before replacing it; anything never synced out of this store exists only here".to_string()
+        format!(
+          "{store} cannot be migrated -- nothing recorded which shape it holds. Check what your \
+           committed extract carries before replacing it; anything never synced out of this store \
+           exists only here"
+        )
       }
       // CARRIES THE WARNING THE FACADE USED TO SHOW FOR EVERY STORE FAILURE,
       // because this is the variant it was written for: an unclassified
@@ -1710,12 +1742,12 @@ impl Store {
     let conn = Connection::open(path)?;
     conn.pragma_update(None, "journal_mode", "WAL")?;
     conn.pragma_update(None, "busy_timeout", Self::BUSY_TIMEOUT_MS)?;
-    Self::init(conn)
+    Self::init(conn, Some(path))
   }
 
   /// An in-memory store, for tests.
   pub fn open_in_memory() -> Result<Self, StoreError> {
-    Self::init(Connection::open_in_memory()?)
+    Self::init(Connection::open_in_memory()?, None)
   }
 
   /// Apply the schema and refuse a store whose shape this binary does not
@@ -1728,7 +1760,20 @@ impl Store {
   /// (idempotent) DDL and completes the job. DDL-then-stamp would leave tables
   /// at `version = 0` -- indistinguishable from the unstamped past, and refused
   /// forever for a crash that cost nothing.
-  fn init(mut conn: Connection) -> Result<Self, StoreError> {
+  fn init(mut conn: Connection, at: Option<&std::path::Path>) -> Result<Self, StoreError> {
+    // **THE NAME OF THE THING BEING REFUSED, RESOLVED ONCE AT THE ONLY PLACE
+    // THAT KNOWS IT.** Both schema refusals travel out of a process that has
+    // long since forgotten which project it was in -- an operator with two
+    // checkouts open reads "the runtime store" and has to guess.
+    //
+    // The in-memory rendering is currently UNREACHABLE and is written honestly
+    // rather than omitted: an in-memory database is always fresh, so it takes
+    // the create arm below and can reach neither refusal. That may stop being
+    // true, and a `None` that panicked or lied would be worse than a sentence.
+    let store = at.map_or_else(
+      || "an in-memory store".to_string(),
+      |p| p.display().to_string(),
+    );
     conn.pragma_update(None, "foreign_keys", "ON")?;
     let found: i32 = conn.pragma_query_value(None, "user_version", |row| row.get(0))?;
 
@@ -1741,7 +1786,7 @@ impl Store {
         tx.commit()?;
       }
       // Written before the stamp existed, so its shape is not knowable.
-      0 => return Err(StoreError::SchemaUnstamped),
+      0 => return Err(StoreError::SchemaUnstamped { store }),
       v if v == SCHEMA_VERSION => {
         // Same shape. The apply is a genuine no-op here, and it is what
         // finishes an interrupted create -- see the ordering note above.
@@ -1757,6 +1802,7 @@ impl Store {
       // remedy is to move the TOOL forward, never the data back.
       found => {
         return Err(StoreError::SchemaMismatch {
+          store,
           found,
           expected: SCHEMA_VERSION,
         });
