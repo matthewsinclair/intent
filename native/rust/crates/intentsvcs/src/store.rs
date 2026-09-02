@@ -1904,7 +1904,7 @@ impl Store {
   /// Write ONE thread and its child rows inside an open transaction.
   ///
   /// THE ONLY PLACE A THREAD BECOMES ROWS. `rebuild` (disk -> db sync) and
-  /// `apply_changes` (the mutation write path) both go through it, so the two
+  /// `commit_mutation` (the mutation write path) both go through it, so the two
   /// cannot drift into disagreeing about what a thread looks like in the
   /// store -- which is the divergent-copy failure with a transaction wrapped
   /// round it.
@@ -2446,7 +2446,7 @@ impl Store {
   ///
   /// Wholesale by design: this is the operation that makes the DB agree with
   /// the tree, so replacing everything is what it means. It is no longer on
-  /// the mutation path (see [`Store::apply_changes`]).
+  /// the mutation path (see [`Store::commit_mutation`]).
   pub fn rebuild(&mut self, threads: &[Thread], issues: &[Issue]) -> Result<(), StoreError> {
     let tx = self.conn.transaction()?;
     tx.execute_batch("DELETE FROM tests; DELETE FROM criteria; DELETE FROM related; DELETE FROM attachments; DELETE FROM wps; DELETE FROM threads; DELETE FROM issues;")?;

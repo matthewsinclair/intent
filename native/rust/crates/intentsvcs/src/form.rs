@@ -111,7 +111,7 @@ pub struct Field {
   /// **A DECLARATION, NOT AN AUTHORITY.** The mutation surface decides what
   /// can actually be written; this says whether the form OFFERS it. A row
   /// declaring `true` for a field the surface refuses is a form that invites
-  /// an edit the store will reject, so [`Loaded::offers_an_edit_the_surface_refuses`]
+  /// an edit the store will reject, so [`Loaded::offers_an_edit_that_cannot_land`]
   /// reports the disagreement rather than letting the realiser discover it
   /// after the keystroke.
   pub editable: bool,
