@@ -1737,4 +1737,87 @@ mod tests {
       _ => return None,
     })
   }
+
+  /// **`AC-17.13`'s SECOND SIDE: THE VOCABULARY DECLARES NOTHING IT CANNOT
+  /// PERFORM.** The first side -- every trigger the machine answers is acted
+  /// on -- is the sibling test above. This is the one that had no test, and it
+  /// is the side that shipped broken: a menu bar advertising `Docs > Browse`,
+  /// `File > Write` and `Help`, none of which had a realiser, offering the
+  /// operator a list of things that could only fail.
+  ///
+  /// **EACH COMMAND IS RUN THE WAY AN OPERATOR RUNS IT** -- open the palette,
+  /// type its name, press Enter -- rather than by calling its act directly.
+  /// Calling the act would prove the realiser works and say nothing about
+  /// whether the command is REACHABLE, which is half of what "offered" means.
+  ///
+  /// **THE PICK IS ASSERTED BEFORE IT IS RUN.** Without that, a command whose
+  /// name ranked second would still produce an observable effect -- by running
+  /// something else -- and the test would pass while proving the opposite of
+  /// its own name.
+  #[test]
+  fn every_offered_command_is_reachable_by_its_name_and_actually_does_something() {
+    let vocabulary = commands::vocabulary();
+    assert!(
+      !vocabulary.is_empty(),
+      "an empty palette cannot exhibit this property"
+    );
+    for (at, command) in vocabulary.iter().enumerate() {
+      let rows = item_rows();
+      let mut app = App::explore();
+      app.commands = commands::vocabulary();
+      app.point_at(rows.len());
+      // Armed so every act has something to do: `back` needs somewhere above.
+      app.push(View::Collection {
+        kind: "thread".into(),
+      });
+
+      assert_eq!(
+        app.on_key(key(KeyCode::Char('/')), &rows),
+        Step::Continue,
+        "`/` did not open the palette"
+      );
+      for c in command.name.chars() {
+        app.on_key(key(KeyCode::Char(c)), &rows);
+      }
+
+      // Reachable BY ITS OWN NAME, and it is the one under the pick.
+      let hits = app.palette();
+      let picked = app
+        .omnibox
+        .picked(hits.len())
+        .map(|p| hits[p].entry)
+        .unwrap_or_else(|| {
+          panic!(
+            "typing `/{}` left nothing under the pick, so the command is declared and unreachable",
+            command.name
+          )
+        });
+      assert_eq!(
+        picked, at,
+        "typing `/{}` picked `{}` instead -- a command that cannot be reached by its own name is \
+         offered in name only",
+        command.name, app.commands[picked].name
+      );
+
+      // **THE BASELINE IS THE PALETTE CLOSING, NOT THE STATE BEFORE IT
+      // OPENED, AND THE CONTROL IS WHAT FOUND THAT.** Running any command
+      // clears the buffer and returns to OMNI, so comparing against the
+      // pre-Enter state counts that bookkeeping as an effect -- and the test
+      // passes for a command whose act does nothing whatever. Driving the
+      // control proved it: un-arming the view stack makes `/back` a true
+      // no-op at the root, and the first version of this test stayed green.
+      // So the comparison is against an app that CLOSED THE PALETTE WITHOUT
+      // RUNNING ANYTHING, which isolates the act from the closing.
+      let mut escaped = app.clone();
+      escaped.on_key(key(KeyCode::Esc), &rows);
+      let step = app.on_key(key(KeyCode::Enter), &rows);
+      assert!(
+        step != Step::Continue || app != escaped,
+        "`/{}` is offered by the palette and running it does NOTHING the palette would not have \
+         done by closing. An offer that cannot perform is a menu of errors -- the defect the \
+         Lotus bar shipped",
+        command.name
+      );
+    }
+  }
 }
