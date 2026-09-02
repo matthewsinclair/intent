@@ -87,6 +87,78 @@
       }
     }
   ],
+  "tests": [
+    {
+      "id": "AT-00.1",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/canon_states_a_rule_once.rs",
+      "covers": [
+        "AC-00.1"
+      ],
+      "status": "to-write",
+      "note": "INSTRUMENT NOT BUILT. What it must do: for each rule the canon set states, establish that exactly one document states it and the others POINT. The tractable form is not \"detect duplicated meaning\" -- that is a read -- but a two-sided check on the rules that carry IDS: for every `IN-*` rule id, the document that OWNS it is the rule library, and a canon document mentioning that id must cite it rather than reproduce its text. THE POSITIVE CONTROL IS THE HALF THAT MATTERS: plant a paraphrase of an owned rule in a canon document and the check must fire, because a checker that only catches VERBATIM copies passes the case that actually happens -- prose forks by rewording, not by duplication."
+    },
+    {
+      "id": "AT-00.2",
+      "kind": "non-test",
+      "prose": "A READ OF THE SURVIVING CANON SET, ONE INSTRUCTION AT A TIME, ASKING TWO QUESTIONS OF EACH: can an agent execute this with the tools it has, and would following it leave a trace that distinguishes compliance from non-compliance? NON-TEST BECAUSE BOTH QUESTIONS ARE JUDGEMENTS ABOUT MEANING. Whether \"check the registry first\" is executable depends on how large the registry is and what reading costs -- a grep can find the sentence and cannot weigh it. The verdict vocabulary is hv's own: keep / correct / retire / MISGUIDED. THE EXEMPLAR IS ALREADY IN CANON AND IS THE CALIBRATION FOR THE REST: `MODULES.md` runs to hundreds of kilobytes across hundreds of rows, so \"read it first\" is not an instruction anyone can follow, and every agent told to read it did something else instead -- silently, because an approximation does not report itself. WHAT THE READER MUST NOT DO IS ACCEPT AN INSTRUCTION BECAUSE IT IS FOLLOWED IN PRACTICE: an instruction that is approximated looks obeyed from the outside, and the approximation is what has actually been learned.",
+      "covers": [
+        "AC-00.2"
+      ],
+      "status": "to-write",
+      "note": "NOT YET DONE. The WP-02 catalogue read all 25 skills against hv's vocabulary on 2026-08-28, so the raw material exists -- but it was a review of the set AS IT WAS, and this row is about the set that SURVIVES the rationalisation, which has not been cut yet. Citing the catalogue for it would be evidence about a different population."
+    },
+    {
+      "id": "AT-00.3",
+      "kind": "non-test",
+      "prose": "A READ OF THE SURVIVING CANON SET FOR CLAIMS ABOUT TOOL BEHAVIOUR -- a flag, an exit code, a spelling, a default -- ASKING OF EACH WHETHER THE TOOL ITSELF ANSWERS THE SAME QUESTION. Where it does, the document must point at the answering verb rather than restate the answer. NON-TEST BECAUSE THE JUDGEMENT IS WHETHER A SENTENCE IS A CLAIM ABOUT THE BUILD AT ALL, which is a reading, not a pattern: \"run `intent upgrade` to convert\" is a claim about a verb existing, \"`--skip-settings` was not carried into v3\" is a claim about a build, and no grep separates them. THE READ IS AGAINST A NAMED BUILD AND SAYS WHICH, because a claim about the tool is a claim about a REVISION and this estate is a port -- a v2-true sentence reads identically after it stops being true of v3, and a re-drive aimed at its CITATION passes. WHAT MAKES A SURVIVING CLAIM ACCEPTABLE IS NOT THAT IT IS CURRENTLY TRUE: it is that something other than a human's memory will notice when it stops being.",
+      "covers": [
+        "AC-00.3"
+      ],
+      "status": "to-write",
+      "note": "NOT YET DONE, and it needs a BUILD named at the time of the read rather than a date. The WP-01 catalogue measured against `intent 3.0.0 (4479264f)` on 2026-08-28, with a scratch `intent init` in an empty directory as its control -- which is the right shape -- but that build is many commits behind and the surviving set has not been cut yet. THIS NOTE WAS WRITTEN TWICE: the first attempt passed it as an inline double-quoted shell argument, and zsh executed every backticked span in it as a command. Both citations were replaced with nothing, the row was created, and the tool printed `ok`. The note read plausibly and had silently lost the two facts it existed to carry."
+    },
+    {
+      "id": "AT-00.4",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/every_skill_has_a_live_caller.rs",
+      "covers": [
+        "AC-00.4"
+      ],
+      "status": "to-write",
+      "note": "INSTRUMENT NOT BUILT. What it must do: for every skill in the derived canon set, establish that something reaches it -- the `/in-session` language table, a `chains_to:` from another skill, or a documented invocation by name -- and that what it chains TO exists. LIVENESS IS TRANSITIVE AND THAT IS THE DIRECTION NOBODY CHECKS: a skill with a live caller is still dead if the thing it chains to was retired, and the caller looks healthy throughout. vc split this off `AC-00.5` for exactly that reason -- buried under the retirement half, the transitive direction had no instrument and would have been swept. THE POSITIVE CONTROL: plant a `chains_to:` naming a skill that does not exist and the check must fire; plant an orphan skill nothing references and it must fire too. A checker that only walks FROM the roster finds the second and never the first."
+    },
+    {
+      "id": "AT-00.5",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/skills_sync.rs",
+      "covers": [
+        "AC-00.5"
+      ],
+      "status": "green",
+      "note": "`a_canon_delete_strands_the_skill_and_only_uninstall_prunes_it` in `native/rust/crates/intentsvcs/tests/skills_sync.rs`, driven in that file's own disposable tempdir fixture -- install tree, Claude target and manifest all throwaway, no real user state touched. TWO ARMS, AND THE SECOND IS WHY THE FIRST IS A FINDING RATHER THAN A COMPLAINT. Arm one deletes the canon source and syncs: outcome `SourceMissing`, the installed payload still present, the manifest entry still present. Arm two uninstalls WITH THE CANON SOURCE ALREADY GONE -- which is the ordering claim the retirement sequence rests on, since uninstall does not read canon -- and both remaining locations are reached. WITHOUT ARM TWO THE ROW READS AS `the tool cannot prune`, WHICH IS FALSE and would send the next reader to build a pruner that already exists. THE VERSION IS NAMED IN THE TEST BECAUSE IN A PORT A DATE IS NOT A VERSION: this drives v3's `intentsvcs::payload`; v2's `bin/intent_upgrade` ran a skills sync on every upgrade so the orphan was at least reported there, and that line is still present and still accurate AND IS NOT A FACT ABOUT THE SHIPPED TOOL. WHAT UNINSTALL LEAVES, MEASURED RATHER THAN ASSUMED: it removes the files it wrote and leaves the now-empty directory, which is INERT -- `installed()` does not list it and a following sync reports no step for it at all. The first draft asserted the directory was gone, which was stronger than the criterion and turned an accurate result into an alarming one. BOTH ARMS DRIVEN RED: simulating a sync that prunes fails arm one with a message telling the reader to reword the ROW rather than relax the test, because if sync ever learns to prune, this criterion's second half is obsolete rather than violated."
+    },
+    {
+      "id": "AT-00.6",
+      "kind": "test",
+      "file": "native/rust/crates/intentsvcs/tests/skills_sync.rs",
+      "covers": [
+        "AC-00.6"
+      ],
+      "status": "to-write",
+      "note": "INSTRUMENT NOT BUILT, AND IT IS EXPECTED TO LAND RED. What it must do: change a skill's `scripts/` WITHOUT touching its `SKILL.md`, sync, and establish that the change reached the installed tree. The checksum covers `SKILL.md` alone, so the sync reports a clean run and the script does not propagate -- the criterion is not satisfied today and the row should not be minted green by a test that avoids the case. THE FIXTURE ALREADY EXISTS: `intentsvcs/tests/skills_sync.rs` carries a disposable install tree, Claude target and manifest, which is where `AT-00.5` was driven. THE SECOND INSTANCE, THE `$N` STRIP, NEEDS ITS OWN ARM: a `SKILL.md` carrying an `awk` field reference must arrive at the machine with that reference intact, and today it arrives as an empty pipeline. BOTH ARMS ARE THE SAME MECHANISM -- the source is right, the surface reports success, and the delivered thing differs -- so they belong to one row. The stranding is the third instance and lives in `AC-00.5`, not here."
+    },
+    {
+      "id": "AT-00.7",
+      "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/the_canon_set_is_derived.rs",
+      "covers": [
+        "AC-00.7"
+      ],
+      "status": "to-write",
+      "note": "INSTRUMENT NOT BUILT. What it must do: derive the canon set -- bootstrap documents and skills -- from the tree and the canon, and establish that no consumer of that set carries a hand-written list of its members. THE ROW IS ABOUT THE SET, NOT ABOUT ANY REVIEW, so the check is live at any moment and does not depend on a review having happened. THE POSITIVE CONTROL IS THE WHOLE INSTRUMENT: add a document or a skill to the tree and every derived enumeration must grow without an edit. A check that merely asserts \"the list matches the tree today\" passes on a hand-written list that happens to be current, which is the state this row exists to make impossible rather than to detect -- and it is the state a list is in right up until the moment it is wrong."
+    }
+  ],
   "attachments": [
     {
       "path": "_sources/mastering-claude-code-in-30-minutes-code-w-claude-companion--boris-cherny-anthropic.md",

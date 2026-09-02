@@ -836,3 +836,99 @@ fn the_discarded_checksum_moves_with_the_content_when_no_baseline_exists() {
     "a checksum that does not move with the content is a constant wearing a remedy's name"
   );
 }
+
+/// `AT-00.5` (ST0065) / `AC-00.5`: **a retired skill is gone from every
+/// location its lifecycle touches, and a canon-only delete reaches ONE OF
+/// THREE.**
+///
+/// **THE TWO ARMS ARE THE WHOLE INSTRUMENT, AND THE SECOND IS WHY THE FIRST IS
+/// A FINDING RATHER THAN A COMPLAINT.** Arm one shows the canon delete leaving
+/// the installed tree and the manifest entry behind; arm two shows `uninstall`
+/// reaching both. **Removal is MODELLED AND REACHABLE, and the canon delete
+/// does not reach it** -- without the second arm this reads as *the tool cannot
+/// prune*, which is false and would send the next reader to build a pruner that
+/// already exists.
+///
+/// **THE VERSION IS NAMED BECAUSE IN A PORT A DATE IS NOT A VERSION.** This
+/// drives v3's `intentsvcs::payload`. v2's `bin/intent_upgrade` ran a skills
+/// sync on every upgrade, so the orphan was at least REPORTED there; that line
+/// is still present and still accurate **and it is not a fact about the shipped
+/// tool.** In v3 `Payload::sync` has one caller -- the explicit verb -- so
+/// nothing automatic ever revisits the orphan, while `~/.claude/skills/`, which
+/// is what Claude Code actually reads, goes on loading it.
+///
+/// # What `uninstall` leaves, measured rather than assumed
+///
+/// It removes the FILES it wrote and leaves the now-empty directory. **That is
+/// inert and is asserted as such rather than failed on**: `installed()` does
+/// not list it and a following `sync` reports no step for it at all, so the
+/// tool does not read an empty directory as a skill and Claude Code has no
+/// `SKILL.md` to load. **The first draft of this test asserted the directory
+/// was gone, which was stronger than the criterion and turned an accurate
+/// result into an alarming one** -- `uninstall left the installed tree` reads
+/// as a pruner that does not prune.
+#[test]
+fn a_canon_delete_strands_the_skill_and_only_uninstall_prunes_it() {
+  let f = Fixture::new();
+  f.source("in-doomed", &[("SKILL.md", "# doomed\n")]);
+  f.skills()
+    .install(&["in-doomed".to_string()], false)
+    .expect("install");
+
+  let installed = f.target.join("in-doomed");
+  let recorded = |f: &Fixture| {
+    f.skills()
+      .manifest()
+      .expect("the manifest reads back")
+      .installed
+      .iter()
+      .any(|e| e.name == "in-doomed")
+  };
+  assert!(
+    installed.join("SKILL.md").is_file() && recorded(&f),
+    "precondition: the skill did not install, so nothing below is about retirement"
+  );
+
+  // **ARM ONE: THE CANON SOURCE VANISHES.** This is what *retiring a skill by
+  // deleting its canon file* actually does.
+  fs::remove_dir_all(f.canon().join("in-doomed")).unwrap();
+  let report = f.skills().sync(false).expect("sync");
+  assert_eq!(
+    outcome(&report.steps, "in-doomed"),
+    Outcome::SourceMissing,
+    "sync did not even notice the orphan"
+  );
+  assert!(
+    installed.join("SKILL.md").is_file(),
+    "sync pruned the installed payload -- if this ever fails, AC-00.5's second \
+     half is obsolete and the ROW should be reworded rather than this test relaxed"
+  );
+  assert!(recorded(&f), "sync pruned the manifest entry");
+
+  // **ARM TWO, THE CONTROL: `uninstall` REACHES BOTH REMAINING LOCATIONS**, and
+  // it does so with the canon source ALREADY GONE -- which is the ordering
+  // claim the retirement sequence rests on: uninstall does not read canon, so
+  // it works before or after the delete.
+  let report = f
+    .skills()
+    .uninstall(&["in-doomed".to_string()])
+    .expect("uninstall");
+  assert!(
+    matches!(outcome(&report.steps, "in-doomed"), Outcome::Removed { .. }),
+    "uninstall did not report a removal: {:?}",
+    outcome(&report.steps, "in-doomed")
+  );
+  assert!(
+    !installed.join("SKILL.md").exists(),
+    "uninstall left the payload it wrote"
+  );
+  assert!(!recorded(&f), "uninstall left the manifest entry");
+  assert!(
+    !f.skills()
+      .installed()
+      .expect("the installed set reads")
+      .contains(&"in-doomed".to_string()),
+    "the leftover empty directory is read as an installed skill, which would \
+     make it a state the tool misreads rather than inert litter"
+  );
+}
