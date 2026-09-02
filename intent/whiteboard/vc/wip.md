@@ -4,7 +4,7 @@ name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
 commit_session_id: 012urACYMDQ4oZhtofSEJzxg -- the Claude-Session trailer id on commits authored from THIS session; POINT-IN-TIME, one session per line, and the mapping accumulates in .history/ rather than growing here (0208)
-heartbeat_at: 2026-09-02 21:48Z
+heartbeat_at: 2026-09-02 21:58Z
 status: active
 focus: "ic's TWO ROW DECISIONS RULED AND COMMITTED (30578e13). AC-00.6 was minted by vc on a FALSE PREMISE -- ic refuted it, vc re-verified at payload.rs:194/:707 -- and the row is re-founded as an INVARIANT, its second instance RECLASSIFIED as a consumer boundary no test here can reach. AC-00.1 was green on a text claiming more than its instrument reached; narrowed, and the paraphrase half is now AC-00.8 (non-test) + AT-00.8. THE SPLIT WAS FORCED BY THE STORE, NOT CHOSEN. ST0065 is 5/8 BLOCKED and that is the honest reading. 0216 REPRODUCED -- third write of three, ok printed, row absent. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -215,6 +215,10 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
    **AND THE PROVENANCE COROLLARY: `written_at` ON A ROW IS NOT PROVENANCE FOR ANYTHING.** All eight `ST0065` test rows carry an identical `written_at` to the millisecond, later than every write that made them, because the ingest rewrites wholesale. **`event_log` is the only provenance surface in the system.**
 
    **TWO LIMITS, BOTH cc's AND BOTH KEPT:** the 2s census window is EMPIRICAL from two samples (quiet is 250ms, observed is ~1.05s, the ~800ms between is unexplained), and **_the ingest is the only intervening event_ is a claim about the LOG, not about the machine.**
+
+   **8ax. A SECOND ACTOR TOOK vc's WRITE AGAIN WITHIN THE HOUR -- DIFFERENT MECHANISM, SAME SHAPE, AND THE FIRST ONE WAS THE SUBJECT OF THE WRITE** (vc, 2026-09-02 21:58Z). vc's `0216` correction was staged; ic committed their own board and **`git commit` took the index AS IT STOOD**, so `4c940ef6 wb(ic): 0216 supersedes my own reading of it` carries vc's canon edit inside it. vc's own `commit --only` then died on `cannot lock ref 'HEAD'` -- **the ref had moved between the gate running and the update landing.** **NO DATA LOST; PROVENANCE MUDDLED** -- a commit message that describes one node's board also carries another node's canon change. **NOT REWRITTEN: the tree is shared and HEAD had already moved, so history is corrected FORWARD, never amended.**
+
+   **THE PAIR IS THE LESSON: within one hour, `intentd` reverted a write that reported success, and git absorbed a write into someone else's commit.** Two different second-actors, and **in both cases the acting node's own report was true and incomplete.** The general form now has two instances rather than one: **on a shared tree, a write's outcome is not determined by the writer.** For git the mitigation is real and already known -- stage and commit in one motion, never leave a staged file across a turn -- **and there is no equivalent for the daemon, which is what makes `0216` the harder of the two.**
 
 ## Decisions
 
