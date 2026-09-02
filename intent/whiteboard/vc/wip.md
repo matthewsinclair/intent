@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
 commit_session_id: 012urACYMDQ4oZhtofSEJzxg -- the Claude-Session trailer id on commits authored from THIS session; POINT-IN-TIME, one session per line, and the mapping accumulates in .history/ rather than growing here (0208)
-heartbeat_at: 2026-09-02 08:17Z
+heartbeat_at: 2026-09-02 19:58Z
 status: active
-focus: "FOLDED 2026-09-02 08:12Z, pre-fold verbatim + sha-verified at .history/20260902/wip-fold-0809Z.md (ec84100b, 59476 bytes). THE FIRST FOLD ATE THE NUMBERED hv LIST -- restored from the archive byte-identical and re-cut with a boundary that respects numbered items; the id check is what caught it. FIVE THINGS WAIT ON hv, each with context+options+recommendation below. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
+focus: "FOLDED 2026-09-02 17:40Z and again at 18:00Z; archives cmp-verified in .history/20260902/. THE HEARTBEAT AND THIS LINE WERE ELEVEN HOURS STALE while vc routed all day -- vc's own class on vc's own board. hv DELEGATED THE OPEN SET (go with your recs) so every ruling since is a vc ruling under hv's pen, NOT an hv ruling. Minted this session: AC-17.13/14/15/16/17/18 and ST0065's seven. Filed 0216 -- a canon write reports ok and is silently lost as the third of three. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
