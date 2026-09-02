@@ -160,7 +160,7 @@ judged_kind() {
 }
 
 TOTAL=0; ABSENT=0; AGREE=0; DISAGREE=0; UNJUDGED=0
-FINDINGS=""; UNJUDGED_ROWS=""
+FINDINGS=""; UNJUDGED_ROWS=""; FINDING_THREADS=""
 
 while IFS=$'\t' read -r thread at status file; do
   [ -n "${file:-}" ] || continue
@@ -177,6 +177,8 @@ while IFS=$'\t' read -r thread at status file; do
   reason="$(kind_disagreement "$file")"
   if [ -n "$reason" ]; then
     DISAGREE=$((DISAGREE + 1))
+    FINDING_THREADS="$FINDING_THREADS$thread
+"
     FINDINGS="$FINDINGS
     $thread $at ($status) -- $file
       $reason"
@@ -219,6 +221,45 @@ if [ "$DISAGREE" -gt 0 ]; then
   echo
   echo "  A row declares its artefact's KIND by the path it cites. Repoint the row"
   echo "  at what actually satisfies it, or build the kind the row declared."
+  echo
+
+  # -------------------------------------------------------------------------
+  # **WHOSE DEFECT IS THIS?** A half-landed citation red-gates the WHOLE TREE,
+  # including for nodes with no part in it. This tool reads COMMITTED canon
+  # against a WORKING-TREE roster, so a commit landing the citation without the
+  # roster row blocks everyone until the other half arrives.
+  #
+  # Measured 2026-09-02: it caught dc at 08:26Z and vc at 08:28Z, four minutes
+  # apart, neither having touched ST0056's parity tools. Both then went looking
+  # for a defect in their own change. **That search is the cost this block
+  # exists to remove**, and it is pure attribution -- the finding above stands
+  # either way, and nothing here excuses it or changes the exit code.
+  # -------------------------------------------------------------------------
+  echo "declared-kind: WHOSE CHANGE PUT THESE ROWS HERE -- read this before diagnosing your own:"
+  DEDUPED_THREADS="$(printf '%s\n' "$FINDING_THREADS" | awk 'NF && !seen[$0]++')"
+  while IFS= read -r t; do
+    [ -n "$t" ] || continue
+    last="$(git -C "$ROOT" log -1 --format='%h  %an, %ar -- %s' -- "intent/.canon/st/$t.json" 2>/dev/null)"
+    [ -n "$last" ] || last="(no git history readable for intent/.canon/st/$t.json)"
+    echo "    $t -- citing canon last moved at $last"
+  done <<< "$DEDUPED_THREADS"
+
+  ROSTER_REL="intent/st/ST0056/parity/tools/runner_roster_check.sh"
+  ROSTER_DIRT="$(git -C "$ROOT" status --porcelain -- "$ROSTER_REL" 2>/dev/null)"
+  if [ -n "$ROSTER_DIRT" ]; then
+    echo "    THE ROSTER IS UNCOMMITTED IN THE SHARED TREE right now:"
+    echo "      $ROSTER_DIRT"
+    echo "    -- a landing is IN FLIGHT through it, and this is very likely its other half."
+  else
+    echo "    the roster is clean in the shared tree, so no landing is in flight through it."
+  fi
+
+  echo
+  echo "  0210: a new parity file needs its BYTES, its ROSTER ROW and its RUNNER"
+  echo "  DISPATCH in ONE commit, or the tree red-gates for nodes who touched none"
+  echo "  of it. **If the commit named above is not yours, this is that landing in"
+  echo "  flight: tell its author, do not repair it** -- two nodes fixing one"
+  echo "  half-landing from opposite ends is worse than the block."
   exit 1
 fi
 
