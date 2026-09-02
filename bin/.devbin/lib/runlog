@@ -70,6 +70,46 @@ _create_exclusive() {
 # tag is for.
 _DEVBIN_INVOKE_TAG='devbin| '
 
+# run_id -- an identity for THIS invocation of devbin, computed once (0045).
+#
+# THE MINUTE STAMP IS NOT A RUN IDENTIFIER AND WAS BEING READ AS ONE. `run_gate`
+# stamped each option at the moment THAT OPTION started, so a `check all`
+# beginning at 18:34:58 wrote `20260901-1834.{SYNTAX,LINT}` and then
+# `20260901-1835.{CRITIC,FORMAT,TOOLCHAIN}` -- one run across two stamps. The
+# other direction is worse: `20260901-1835` also held `LINT`/`SYNTAX` from the
+# NEXT run, so grouping by stamp prefix paired a failing run's three gates with
+# a passing run's two and produced a GREEN verdict out of five honest files.
+#
+# Grouping by prefix is the obvious thing to do, the minute is the only run-key
+# candidate present, and both directions of the mistake yield a wrong verdict
+# from correct artefacts. So the fix is in two parts and this is the exact half:
+# a token written INTO every artefact of one invocation, which makes
+# `grep -l "run: <id>" tmp/check/*.out` an enumeration rather than an inference.
+# `open_run_log`'s single stamp below is the readable half.
+#
+# NOT EXPORTED. A child devbin -- fullcycle spawning clean, build and test -- is
+# a different invocation and gets its own id, which is the honest answer: those
+# are three runs that a fourth thing sequenced. Exporting it would make one id
+# span processes that seal independently, which is the defect this closes,
+# arrived at from the other side.
+# MINTED BY THE DISPATCHER AND READ HERE, and two wrong homes were tried first.
+#
+# A memoising `run_id()` in this file, called as `$(run_id)`, put the assignment
+# inside a COMMAND SUBSTITUTION, where it died with its subshell. Moving it out
+# of the substitution did not help either, and THAT is the finding: every option
+# of a synthesised `all` runs as a SEPARATE PROCESS -- run_all says so where it
+# explains why the seal ledger is a file rather than a variable -- so nothing
+# memoised in this library can be shared between two gates of one run. Measured
+# both times: one `check all`, five artefacts, five different ids.
+#
+# `bin/devbin` mints and EXPORTS it, because that is the only code path that
+# runs exactly once per operator command. Absent -- a gate driven straight out
+# of a test, without the dispatcher -- this falls back to the pid, which is
+# still one value per process and is honest about being less.
+run_identity() {
+  printf '%s' "${DEVBIN_RUN_ID:-pid-$$}"
+}
+
 # inflight_marker -- the single line `open_run_log` seeds a fresh `.errors` with.
 #
 # ONE HOME, because there are now two consumers and they are in different files:
@@ -170,7 +210,13 @@ open_run_log() {
   DEVBIN_RUN_T0="$(date +%s)"
   if [ "$keep" = 1 ]; then
     mkdir -p "$dir"
-    stamp="$(date +%Y%m%d-%H%M)"
+    # ONE STAMP FOR THE WHOLE INVOCATION (issue 0045). Read from the clock on
+    # the first gate and reused by every later one, so a five-option `check all`
+    # that straddles a minute boundary does not scatter itself across two
+    # prefixes. The ladder below still runs for the FIRST gate, because two
+    # invocations really can start in the same minute; once a prefix is
+    # resolved, the rest of this run takes it.
+    stamp="${DEVBIN_RUN_STAMP:-$(date +%Y%m%d-%H%M)}"
     # Collision ladder: minute, then second, then a bounded counter -- each name
     # created ATOMICALLY.
     #
@@ -208,6 +254,15 @@ open_run_log() {
     done
     unset _cand _stamp_s _n
     [ -n "$log" ] || die "could not create a run log in $dir (200 candidate names taken)"
+    # THE PREFIX THIS RUN ACTUALLY WON, remembered for the rest of the
+    # invocation. Derived from the name rather than from the candidate it was
+    # built out of, so whichever rung of the ladder answered is the one every
+    # later gate inherits -- including the second and third rungs, which is the
+    # case that matters: an invocation pushed to `-SS` by a racer must not put
+    # its remaining gates back on the contended prefix.
+    _resolved="$(basename "$log")"
+    DEVBIN_RUN_STAMP="${_resolved%".$suffix.out"}"
+    unset _resolved
     printf '%s\n' "$log"
     errors="${log%.out}.errors"
     inflight_marker >"$errors"
@@ -316,6 +371,16 @@ note_invocation() {
   shift 2
   {
     printf '%sinvocation, one argument per line:\n' "$_DEVBIN_INVOKE_TAG"
+    # WHICH MACHINE, written into the ARTEFACT and not only onto a terminal
+    # (issue 0052). An operator reading their own scrollback knows what they
+    # are standing on; the person reading a kept `.out` a week later, or
+    # assembling a release note out of a set of them, does not -- and that is
+    # exactly how a macOS-only green became a published claim about devbin.
+    printf '%s  platform: %s\n' "$_DEVBIN_INVOKE_TAG" "$(platform_identity)"
+    # WHICH RUN, exactly, rather than which minute (issue 0045). This is the
+    # field a reader should group on; the stamp in the filename is for reading,
+    # not for keying.
+    printf '%s  run: %s\n' "$_DEVBIN_INVOKE_TAG" "$(run_identity)"
     [ -z "$source" ] ||
       printf '%s  from: %s\n' "$_DEVBIN_INVOKE_TAG" "$source"
     for a in "$@"; do
@@ -1019,9 +1084,59 @@ warn_if_tee_failed() {
 # run START describes what was measured; composing it at report time describes
 # the tree the verdict was formed against. Both are defensible, they are not the
 # same claim, and devbin cannot choose between them without parsing.
-print_run_referent() {
-  [ -n "${DEVBIN_RUN_REFERENT:-}" ] || return 0
+# _referent_line -- the line's ONE spelling, or rc 1 when there is no referent.
+#
+# Two sinks read it now -- the terminal, through print_run_referent, and the
+# run's own log, through note_referent -- and a second `printf 'measured: %s'`
+# anywhere is how two copies of a string devbin is FORBIDDEN TO PARSE start
+# disagreeing about it. Composition here; delivery in the two callers.
+_referent_line() {
+  [ -n "${DEVBIN_RUN_REFERENT:-}" ] || return 1
   printf 'measured: %s\n' "$DEVBIN_RUN_REFERENT"
+}
+
+print_run_referent() {
+  _referent_line || return 0
+}
+
+# note_referent <log> -- put the referent in the ARTEFACT, before it is sealed
+# (issue 0046).
+#
+# THE ORDERING WAS THE DEFECT, NOT THE ROUTING, and the issue was first filed on
+# the wrong one. `print_run_referent` fires from `print_run_verdict`, which
+# run_gate calls after the tee has closed and after write_errors_file has
+# sealed -- so the line reached stdout and nothing else. A NESTED gate's
+# referent was captured by its PARENT's log; a TOP-LEVEL gate's reached the
+# terminal and no file at all. Measured across two real `fullcycle` runs:
+# clean's own `.out` carried no `measured:` line, and the parent's carried
+# clean's twice while carrying none of its own.
+#
+# That is the wrong way round. The terminal copy is read once, immediately, by
+# someone who already knows which tree they are standing in and whether it was
+# dirty; they need it least. The artefact is the copy read a fortnight later by
+# someone who knows neither -- and a top-level gate, the one an operator runs
+# and a `LATEST_*` pointer names, was exactly the class that lost it.
+#
+# APPENDED LAST, IMMEDIATELY BEFORE THE SEAL, and the position is load-bearing
+# in one direction: write_errors_file falls back to a log TAIL when a red run
+# has nothing parseable, so from here the referent reaches the `.errors` extract
+# as well. Written beside note_invocation at the top of the log it would reach
+# the `.out` and never that tail.
+#
+# TAGGED, because it is written on EVERY run, which is precisely the condition
+# _DEVBIN_INVOKE_TAG exists for: two grammars match on unanchored patterns and
+# the referent is arbitrary consumer text, so an unfiltered `[deadbeef] +2
+# dirty` reads as a credo issue tag and seals a verdict assembled out of
+# devbin's own annotation. note_promotion needs no tag and says why in its own
+# comment -- it fires only after a GREEN exit, where the extraction is empty by
+# construction. That reasoning does not extend to a line written every time.
+note_referent() {
+  local log="$1" line
+  [ -n "$log" ] || return 0
+  line="$(_referent_line)" || return 0
+  printf '%s%s\n' "$_DEVBIN_INVOKE_TAG" "$line" >>"$log" ||
+    warn "could not record the referent in $log -- the kept artefact will not say which tree was measured"
+  return 0
 }
 
 # print_run_overhead <log> -- how much of this run was NOT the tests.
@@ -1059,6 +1174,23 @@ print_run_referent() {
 #      That gives the meter a free self-check: it detects its own obsolescence,
 #      and it announces it to the one person who will never read a note about a
 #      ratio -- whoever changed the runner underneath it.
+#   4. **It assumes THE WALL IT IS MEASURING IS A TEST RUN.** T0 is set in
+#      open_run_log, so the wall is the GATE's, and a gate that wraps other
+#      verbs charges their time to a denominator made only of test suites.
+#      `fullcycle` does exactly that: intent/dc measured `4.87x -- 170s wall
+#      against 34.91s` on hv's run, where 103 of those seconds were a cold
+#      release build and `clean`, and the test phase alone was 1.75x -- quiet
+#      on the scale above. The arithmetic was exact and the SUBJECT was wrong.
+#
+#      **AND LIMIT 3's SELF-CHECK CANNOT REACH THIS ONE, BY CONSTRUCTION.**
+#      Sub-1 catches parallelism, which pushes the ratio DOWN. Non-test work
+#      pushes it UP, into the range that reads as a real finding. So the
+#      meter's only alarm fires in the direction meaning "my model broke" and
+#      is silent in the direction meaning "your machine is loud" -- and that
+#      is the direction nobody audits. The line below therefore names its
+#      numerator as the GATE's wall rather than letting "overhead" imply the
+#      tests; whether such a gate should time only its test phase is issue
+#      0049 and is not settled here.
 #
 # Granularity is whole seconds (`date +%s`; perl is not assumable -- see the
 # shasum note in lib/helpers). That is ample for a meter whose job is separating
@@ -1090,7 +1222,7 @@ print_run_overhead() {
       if (w < s) {
         printf "overhead: UNDEFINED -- wall %ds is BELOW the %ss the runner reports for %d suite(s), so the binaries are not running sequentially and this meter'"'"'s model does not hold.\n", w, s, n
       } else {
-        printf "overhead: %.2fx -- %ds wall against %ss of reported test time across %d suite(s).\n", w / s, w, s, n
+        printf "overhead: %.2fx -- %ds of GATE wall against %ss of reported test time across %d suite(s). The wall covers everything this gate ran, tests or not.\n", w / s, w, s, n
       }
     }'
 }
@@ -1552,6 +1684,12 @@ run_gate() {
       fi
     fi
   fi
+
+  # BEFORE THE SEAL, deliberately, and that ordering IS the fix for issue 0046.
+  # write_errors_file is about to read this log; everything printed after this
+  # point goes to a terminal or to a parent's tee and never to this run's own
+  # kept artefact.
+  note_referent "$log"
 
   write_errors_file "$rc" "$log" "$errors" "$(grammar_for "$grammar")"
 

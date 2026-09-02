@@ -70,6 +70,7 @@ cli              elixir  -           -          Surfaces  @builtin | Run this pr
 repl             elixir  -           -          Surfaces  @builtin | Interactive REPL, with readline history
 build            any     -           -          Build     - | Build this project's targets, which it declares itself
 fullcycle        rust    -           -          Build     @builtin | From a total clean: remove the cargo trees, rebuild, test. DESTRUCTIVE
+dormancy         rust    -           -          Test      @builtin | How many tests this project does NOT run: the delta against --all-features
 fmt              any     -           -          Build     - | Format sources in place
 clean            any     -           -          Build     - | Remove build artefacts this project can regenerate
 test             any     -           -          Test      - | Run this project's test gates

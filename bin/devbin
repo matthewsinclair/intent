@@ -216,6 +216,48 @@ if [ -n "$_devbin_referent_cmd" ]; then
 fi
 unset _devbin_referent_cmd
 
+# ONE INVOCATION, ONE IDENTITY (issue 0045). Minted HERE and exported, because
+# this is the only point that runs exactly once per operator command.
+#
+# IT CANNOT LIVE IN lib/runlog AND THAT WAS MEASURED RATHER THAN ASSUMED. Every
+# option of a synthesised `all` runs as a SEPARATE PROCESS -- run_all says so
+# where it explains why the seal ledger is a file and not a variable -- so a
+# token memoised inside the library is minted once per gate, not once per run.
+# A first attempt did exactly that and produced FIVE ids under one shared
+# stamp for one `check all`: an artefact set whose filename said "one run" and
+# whose contents said "five", which is worse than the ambiguity it replaced.
+#
+# WHY A STAMP WAS NOT ENOUGH. run_gate stamped each option as that option
+# STARTED, so a run beginning at 18:34:58 wrote `1834.{SYNTAX,LINT}` then
+# `1835.{CRITIC,FORMAT,TOOLCHAIN}` -- one run, two prefixes -- while `1835` also
+# held the NEXT run's LINT and SYNTAX. Grouping by prefix, which is the obvious
+# thing to do because the minute is the only key present, then paired a failing
+# run's three gates with a passing run's two and produced a GREEN verdict out of
+# five entirely honest files.
+#
+# INHERITED BY CHILD devbins ON PURPOSE. `fullcycle` spawns clean, build and
+# test as separate devbin processes; sharing the id makes the whole cycle
+# addressable as the one thing the operator actually asked for. `[ -n ... ] ||`
+# rather than an unconditional assignment is what makes that inheritance work.
+#
+# THE STAMP IS THE READABLE HALF AND THE ID IS THE EXACT ONE, and the residual
+# is worth naming rather than leaving to be discovered. Two invocations starting
+# in the SAME MINUTE still contend for the prefix, and each gate resolves the
+# collision ladder on its own clock -- so the second run's five artefacts can
+# carry several different `-SS` suffixes. Their `run:` field is one value, so
+# they remain exactly enumerable; it is only the FILENAME that stays
+# approximate. The ladder was left alone deliberately: folding the id into the
+# name would break `newest_run_stems`, which orders same-minute runs by their
+# time-ordered `-SS` segment and cannot order a hex token.
+# NO HASH AND NO EXTERNAL TOOL. The pid is unique among live processes and the
+# clock separates reuses of it, so eight hex of the two is an identifier without
+# a dependency -- and this runs before lib/helpers is in scope, where
+# `sha256_stdin` would not be.
+[ -n "${DEVBIN_RUN_ID:-}" ] ||
+  DEVBIN_RUN_ID="$(printf '%04x%04x' "$(($$ & 0xffff))" "$(($(date +%s) & 0xffff))")"
+[ -n "${DEVBIN_RUN_STAMP:-}" ] || DEVBIN_RUN_STAMP="$(date +%Y%m%d-%H%M)"
+export DEVBIN_RUN_ID DEVBIN_RUN_STAMP
+
 # Identity comes from config, never from $0. That is what lets a project keep a
 # short alias -- bin/cf, a soft local convention pointing DIRECT at this file --
 # while `conflab -v` still says conflab. The project-named form (bin/conflab) is

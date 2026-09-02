@@ -265,6 +265,14 @@ case "${1:-}" in
     # Rendered by lib/helpers, NOT here. This arm and the `--version` flag in
     # bin/devbin answer the same question and used to print two different
     # things; see version_identity for what that cost and why show stays bare.
+    #
+    # The suppression sits HERE, at the call site, which is the lesson from the
+    # day this call was created: the same directive was left behind in
+    # bin/devbin when the printf moved out of it, suppressing nothing while
+    # still reading as a considered decision. It was deleted there rather than
+    # copied. CI has been red on this exact line since -- local lint runs at a
+    # higher severity floor and never saw it. devbin issue 0052.
+    # shellcheck disable=SC2119  # the bare call IS the point: project-root role.
     version_identity
     ;;
   show)

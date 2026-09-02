@@ -30,6 +30,17 @@ help/ -- those are yours.
 EOF
 }
 
+# _upgrade_provenance_lines <dstroot> <srcroot> -- the two lines every arm of
+# the notice prints: where these bytes came from, and where they are going.
+#
+# ONE HOME. There were two copies before issue 0053 and the fix would have made
+# four, which is how the pair drifts into saying different things in the two
+# arms a reader compares.
+_upgrade_provenance_lines() {
+  warn "  vendored from: $(manifest_source_commit "$1" 2>/dev/null || printf 'unrecorded')"
+  warn "  upgrading to:  $(git -C "$2" rev-parse HEAD 2>/dev/null || printf 'unknown')"
+}
+
 main() {
   local from="" force="" dstroot srcroot version states paths rel src state
   local added=0 updated=0 unchanged=0 skipped=0 removed=0 converged=0 sum_src sum_dst
@@ -105,17 +116,37 @@ main() {
   # to do -- pinning a consumer while a regression is investigated is the
   # obvious case -- and a tool that refused it would just be run with a flag
   # nobody reads. What was missing was never permission; it was being told.
+  #
+  # AND THE CONSEQUENCE IS GATED ON BYTES, NOT ON COMMITS (issue 0053). The
+  # direction above is a fact about history; `will REVERT the runtime` is a
+  # claim about this tree, and the two came apart the moment a commit touched
+  # no vendored file. Measured: an estate installed from `49e8bb2`, upgraded
+  # from its parent `08aa004` -- zero seam paths differ between them -- was told
+  # the runtime would be REVERTED, and then told `No vendored file differs` by
+  # the same command four lines later. A loud line that fires when nothing will
+  # change is how the loud line stops being read, and this one guards a real
+  # defect (0021) that needs to be heard.
   case "$(source_direction "$dstroot" "$srcroot")" in
     backward)
-      warn "this source is BEHIND what is vendored here -- upgrading will REVERT the runtime"
-      warn "  vendored from: $(manifest_source_commit "$dstroot" 2>/dev/null || printf 'unrecorded')"
-      warn "  upgrading to:  $(git -C "$srcroot" rev-parse HEAD 2>/dev/null || printf 'unknown')"
-      warn "  run '$DEVBIN_INVOKE vendor' first if that is not what you meant"
+      if seam_is_level "$dstroot" "$srcroot"; then
+        warn "this source is BEHIND what is vendored here, but NO vendored file would change"
+        _upgrade_provenance_lines "$dstroot" "$srcroot"
+        warn "  only the recorded provenance moves -- the runtime here is byte-identical"
+      else
+        warn "this source is BEHIND what is vendored here -- upgrading will REVERT the runtime"
+        _upgrade_provenance_lines "$dstroot" "$srcroot"
+        warn "  run '$DEVBIN_INVOKE vendor' first if that is not what you meant"
+      fi
       ;;
     unrelated)
-      warn "this source shares NO history with what is vendored here"
-      warn "  vendored from: $(manifest_source_commit "$dstroot" 2>/dev/null || printf 'unrecorded')"
-      warn "  upgrading to:  $(git -C "$srcroot" rev-parse HEAD 2>/dev/null || printf 'unknown')"
+      if seam_is_level "$dstroot" "$srcroot"; then
+        warn "this source shares NO history with what is vendored here, but NO vendored file would change"
+        _upgrade_provenance_lines "$dstroot" "$srcroot"
+        warn "  only the recorded provenance moves -- the runtime here is byte-identical"
+      else
+        warn "this source shares NO history with what is vendored here"
+        _upgrade_provenance_lines "$dstroot" "$srcroot"
+      fi
       ;;
   esac
 

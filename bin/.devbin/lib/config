@@ -404,7 +404,17 @@ _cfg_path_known() {
         # `args` is help's usage hint -- the `[--iex]` in `server [--iex]`. It
         # carries what the corpus put in column one beside the command name,
         # which is information no generator can derive.
-        case "${p[2]}" in enabled | summary | group | args | run | handler | log | grammar) return 0 ;; esac
+        #
+        # `restore` is `fullcycle`'s and only `fullcycle` reads it: the command
+        # line that puts back release artefacts the cycle deleted. It is here
+        # the same day it was added, which is not how the last two went --
+        # `referent` and the `log`/`grammar` pair both shipped READABLE BY THE
+        # RUNTIME AND UNKNOWN TO THIS LIST, so `doctor` reported correct config
+        # as an unknown key while the feature worked perfectly. This one was
+        # caught by the reference config failing its own validation test, which
+        # is the control that exists for exactly this and had to fire twice
+        # before anyone put the third key in on time.
+        case "${p[2]}" in enabled | summary | group | args | run | handler | log | grammar | restore) return 0 ;; esac
         return 1
       fi
       if [ "$n" -eq 5 ] && [ "${p[2]}" = options ]; then

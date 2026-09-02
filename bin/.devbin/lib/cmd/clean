@@ -163,7 +163,8 @@ _clean_live_binaries() {
   for sub in "$dir"/debug "$dir"/release "$dir"; do
     [ -d "$sub" ] || continue
     for f in "$sub"/*; do
-      [ -f "$f" ] && [ -x "$f" ] || continue
+      [ -f "$f" ] || continue
+      [ -x "$f" ] || continue
       base="$(basename "$f")"
       found="$(command -v "$base" 2>/dev/null)" || continue
       [ -n "$found" ] || continue
@@ -408,11 +409,34 @@ _clean_run() {
   local label="$1" name="$2" manifest="$3"
   shift 3
 
-  local force=0 arg
+  # TWO CONSENTS, TWO FLAGS (issue 0047, hv's ruling: option 3, the split).
+  #
+  # `--force` used to be the only way past EITHER refusal, and they are not the
+  # same question. The blocked-binaries refusal asks "do you accept these
+  # binaries going dark". The removal prompt asks "do you accept deleting these
+  # trees at all". An operator who needed the first was silently made to give
+  # the second as well, and `fullcycle` is the caller that made this bite: its
+  # contract INCLUDES the rebuild, so it can answer the first honestly and has
+  # no business answering the second on anybody's behalf.
+  #
+  # `--force` still implies both, unchanged, because it is what every existing
+  # caller and every piece of documentation says.
+  #
+  # AND A THIRD FLAG THAT GIVES NEITHER CONSENT (issue 0042, hv's ruling).
+  # `clean` could tell you what it would remove, or remove it, but not the
+  # first without a terminal: in CI, a script, or any non-interactive context
+  # the only two reachable states were REFUSE and DELETE. The scan is the
+  # valuable half and it was gated entirely behind a prompt.
+  #
+  # The spelling follows `fullcycle --dry-run`, which is in this tree already.
+  # A second word for one idea in one runtime is how a reader learns to guess.
+  local force=0 force_blocked=0 dry=0 arg
   for arg in "$@"; do
     case "$arg" in
-      --force) force=1 ;;
-      *) die "clean $label: unknown argument '$arg' (only --force is accepted)" ;;
+      --dry-run) dry=1 ;;
+      --force) force=1 ; force_blocked=1 ;;
+      --force-blocked) force_blocked=1 ;;
+      *) die "clean $label: unknown argument '$arg' (only --dry-run, --force and --force-blocked are accepted)" ;;
     esac
   done
 
@@ -483,11 +507,25 @@ _clean_run() {
       warn "PATH resolves into ${b%%$'\n'*}:"
       printf '%s\n' "${b#*$'\n'}" | sed 's/^/      /'
     done
-    if [ "$force" = 0 ]; then
-      die "refusing: removing these trees would darken the binaries listed above, machine-wide.
-       Rebuild and re-point them first, or pass --force to proceed knowing what goes dark."
+    if [ "$force_blocked" = 0 ]; then
+      # A DRY RUN REPORTS THE REFUSAL RATHER THAN PERFORMING IT. Dying here
+      # would make `--dry-run` unable to answer the one question it exists for
+      # on exactly the trees where the answer matters most -- and it would exit
+      # non-zero, which a caller reads as "the scan failed".
+      if [ "$dry" = 1 ]; then
+        warn "a real run would REFUSE here: these binaries would go dark, machine-wide."
+        warn "  --force-blocked accepts THAT risk alone and still asks before removing."
+        warn "  --force accepts it and skips the asking."
+      else
+        die "refusing: removing these trees would darken the binaries listed above, machine-wide.
+       Rebuild and re-point them first, or pass --force to proceed knowing what goes dark.
+       --force-blocked accepts THIS risk alone and still asks before removing."
+      fi
+    elif [ "$dry" = 1 ]; then
+      warn "a real run would PROCEED. THE BINARIES LISTED ABOVE WOULD STOP RESOLVING until rebuilt."
+    else
+      warn "proceeding anyway. THE BINARIES LISTED ABOVE WILL STOP RESOLVING until rebuilt."
     fi
-    warn "--force: proceeding anyway. THE BINARIES LISTED ABOVE WILL STOP RESOLVING until rebuilt."
   fi
 
   printf '  %s: %s %s tree(s)\n\n' "$label" "${#dirs[@]}" "$name"
@@ -515,6 +553,23 @@ _clean_run() {
 
   printf '\n  This takes release/ as well as debug/ -- that is what makes it a release\n'
   printf '  verb rather than a cache sweep. The next build is cold.\n\n'
+
+  # THE PREVIEW STOPS HERE, HAVING PRINTED EVERYTHING AND CHANGED NOTHING, and
+  # it names which of the three states a real run would reach. A dry run that
+  # said only "nothing was removed" would answer the easy half of the question
+  # and leave the asked half -- would this have worked? -- unanswered.
+  if [ "$dry" = 1 ]; then
+    printf '  --dry-run: nothing was removed.\n'
+    if [ "${#blocked[@]}" -gt 0 ] && [ "$force_blocked" = 0 ]; then
+      printf '  A real run would REFUSE: PATH resolves into the tree(s) above.\n'
+    elif [ "$force" = 0 ]; then
+      printf '  A real run would ask on the tty before removing %s tree(s), and refuse without one.\n' \
+        "${#dirs[@]}"
+    else
+      printf '  A real run would remove %s tree(s) without asking.\n' "${#dirs[@]}"
+    fi
+    return 0
+  fi
 
   if [ "$force" = 0 ]; then
     _clean_confirm "${#dirs[@]}" "$name tree(s)" || return 0

@@ -264,6 +264,39 @@ options:
 # or to map a differently-named file to a command.
 
 commands:
+  # `fullcycle` takes ONE key of its own, and it is the only way that verb will
+  # ever run a release build.
+  #
+  # `fullcycle` is destructive: `clean rust` removes `target/` INCLUDING
+  # `release/`, and `test rust` builds debug binaries only. So on an estate
+  # where something on PATH resolves through `target/release/`, the cycle
+  # darkens it. The verb watches for exactly that and reports what it could not
+  # put back -- and with this key declared, it puts it back first.
+  #
+  # DEVBIN WILL NOT GUESS THE COMMAND, and the reason is a measurement rather
+  # than caution. It shipped for one day running `cargo build --release` at the
+  # project root, which is correct on most estates and is a new UNGUARDED
+  # ENTRANCE on one: Intent guards its release path because several nodes
+  # invoke that artefact and a build from a dirty tree poisons it for all of
+  # them. Intent's own guard named the line on the first commit that carried
+  # it. `build release` is not the portable spelling either -- at that estate
+  # the arm is interactive and pushes, so guessing a verb by NAME would turn a
+  # restore into a publish.
+  #
+  # Undeclared, the restore phase does not run and the cycle says so. That is
+  # the fail-closed direction, and it is the same rule fullcycle already
+  # applies when a project declares no build verb at all: it refuses rather
+  # than proceeding without one.
+  # THE EXAMPLE IS A PLACEHOLDER AND NOT A CARGO LINE, WHICH IS ITSELF THE
+  # POINT. This file is a reference meant to be copied, and the estate that
+  # most needs this key is the one where `cargo build --release` is exactly the
+  # wrong answer -- its guard refused a vendored devbin carrying that literal
+  # here, in a YAML file nothing executes, precisely because a reference gets
+  # copied into a live config. Naming one estate's answer as THE answer teaches
+  # the opposite of what the key exists for.
+  fullcycle:
+    restore: <this project's own release build -- the verb, not a raw toolchain call>
+
   # A built-in, enabled and parameterised.
   #
   # A command-level `run:` is the same rig as an option-level one, one level up

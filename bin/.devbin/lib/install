@@ -604,6 +604,45 @@ EOF
   return 0
 }
 
+# seam_is_level <dstroot> <srcroot> -- rc 0 when NO vendored byte would change.
+#
+# THE QUESTION `source_direction` CANNOT ANSWER, and issue 0053 is what happens
+# when the two are confused. `source_direction` compares COMMITS; this compares
+# BYTES. A source can be behind in commit order and byte-identical under the
+# seam -- two commits that touched only documentation put every consumer in
+# exactly that state -- and `upgrade` was warning `will REVERT the runtime`
+# about it, four lines before its own summary said `No vendored file differs`.
+#
+# FAILS CLOSED, DELIBERATELY. An unreadable comparison returns "not level", so
+# the caller keeps its warning. The opposite default would silence a real
+# revert warning whenever the check itself broke, which is the one direction
+# that costs something.
+#
+# `converged` counts as level: the bytes match the source exactly, and it is
+# only the manifest that still records the pre-patch checksum. `unlisted` too --
+# it is on devbin's side of the seam, owned by nobody, and upgrade never
+# touches it. Every other state means a file moves.
+#
+# Costs two checksum passes over the vendored set. Called only where the answer
+# changes what is printed, which is the backward and unrelated arms of
+# upgrade's notice -- not on the ordinary forward path.
+seam_is_level() {
+  local dstroot="$1" srcroot="$2" states line state
+  states="$(vendor_states "$dstroot" "$srcroot")" || return 1
+  [ -n "$states" ] || return 1
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    state="${line%%	*}"
+    case "$state" in
+      level | converged | unlisted) ;;
+      *) return 1 ;;
+    esac
+  done <<EOF
+$states
+EOF
+  return 0
+}
+
 # _source_rels <srcroot> <paths> -- the same file list, spelled the way it is
 # spelled INSIDE the source, so one batch checksum can be taken from that root.
 #

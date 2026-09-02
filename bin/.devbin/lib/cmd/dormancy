@@ -1,0 +1,222 @@
+#!/usr/bin/env bash
+#
+# The built-in `dormancy` -- HOW MANY TESTS THIS PROJECT DOES NOT RUN.
+#
+# THE QUESTION. A cargo suite's declared invocation runs the tests its feature
+# set reaches. Tests behind a feature the declared invocation does not enable
+# still compile, still live in the tree, and are still counted by a human
+# reading `cargo test` output as "the suite". They are DORMANT: not deleted, not
+# failing, not reported -- and a stale test does not misinform, it CERTIFIES.
+#
+# WHY A DELTA AND NOT A STATIC GATE. The first design was a check arm that read
+# `#[cfg(feature = ...)]` attributes and counted them. `intent/vc` adjudicated
+# it down and replaced it with this, and the replacement is better on three
+# counts rather than one:
+#
+#   - it ADJUDICATES rather than proxies. An attribute count is a guess about
+#     what would run; this runs it.
+#   - it produces THE MOTIVATING NUMBER. "Seventeen tests do not run" is the
+#     sentence someone acts on; "four cfg attributes" is not.
+#   - it dissolves the undecidable third term. Enumerating every invocation
+#     site a project might use is not decidable; comparing against a MAXIMUM is.
+#
+# WHY A VERB AND NOT A CHECK ARM. It costs two full builds. `check` is the
+# read-only family and every arm of it is cheap enough to run on every commit;
+# a member that took ten minutes would be disabled within a week, and a disabled
+# gate is worse than an absent one because its name still appears in the list.
+# So this is a thing someone runs, deliberately, when they want the number.
+#
+# ONE AXIS, DELIBERATELY. The maximum is the declared line PLUS
+# `--all-features`, and nothing else. Adding `--workspace` would have folded a
+# second axis into one number, and the resulting delta would answer neither
+# question -- which is the exact confusion already on this project's record,
+# where one crate's `--lib` was reported as another's `--workspace`.
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/config
+. "$DEVBIN_LIB/config"
+# shellcheck source=lib/builtins
+. "$DEVBIN_LIB/builtins"
+# shellcheck source=lib/runlog
+. "$DEVBIN_LIB/runlog"
+
+_dormancy_usage() {
+  printf 'usage: %s dormancy\n\n' "${DEVBIN_INVOKE:-bin/devbin}"
+  printf '  Run the declared cargo test invocation and the same invocation with\n'
+  printf '  --all-features, and report the difference in tests EXECUTED.\n\n'
+  printf '  Costs two builds. It is a verb you run, not a gate that runs itself.\n'
+}
+
+# _dormancy_declared -- the command line this project runs for `test rust`.
+#
+# Config first and the catalogue second, which is the order every other
+# resolution in this tree uses: config is more specific than anything devbin
+# ships. Reading only the catalogue would report a default the project has
+# overridden, which is a true sentence about devbin and a false one about here.
+# THE CONFIG CACHE DOES NOT CROSS INTO A HANDLER. A built-in handler is a
+# SEPARATE PROCESS -- doctor says the same thing in its own header -- so the
+# dispatcher's `cfg_load` is not in scope here and the accessors would answer
+# empty for every key. Answering empty is the dangerous shape rather than a
+# loud one: it would silently fall through to the catalogue default and report
+# a delta about `cargo test` in a project that runs something else entirely.
+_dormancy_load_config() {
+  [ -n "${DEVBIN_DIR:-}" ] || return 0
+  [ -f "$DEVBIN_DIR/config.yaml" ] || return 0
+  cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 || return 0
+  return 0
+}
+
+_dormancy_declared() {
+  local run
+  _dormancy_load_config
+  run="$(cfg_get "commands.test.options.rust.run")"
+  [ -n "$run" ] || run="$(builtin_option_run test rust)" || return 1
+  printf '%s' "$run"
+}
+
+# _dormancy_count <output> -- tests EXECUTED in a captured cargo run.
+#
+# The cargo counter from lib/runlog, unchanged and not re-spelled here. It sums
+# passed and failed across every `test result:` trailer, so a multi-target run
+# counts every target. Prints nothing when the log carries no trailer at all,
+# and the caller must treat that as "not measured" rather than as zero -- a
+# build that never reached a test binary produces exactly that shape.
+_dormancy_count() {
+  printf '%s\n' "$1" | awk "$(count_for rust)" 2>/dev/null || true
+}
+
+# _dormancy_leg <label> <extra-args...> -- run one leg and echo its output.
+#
+# RUNLOG_WITNESS_RUN=1 IS LOAD-BEARING AND IS NOT TIDINESS. Both legs are
+# ordinary `test rust` gates, so both seal a RUST pair -- and without this the
+# second one would re-point LATEST_RUST at a run made to answer a question about
+# feature flags. `LATEST_RUST` means "the newest DELIBERATE full run of this
+# gate", and a dormancy probe is not one. The dated pair is still written, so
+# either leg stays quotable by name.
+_dormancy_leg() {
+  local launcher="$1"
+  shift
+  RUNLOG_WITNESS_RUN=1 "$launcher" test rust "$@" 2>&1
+}
+
+cmd_dormancy() {
+  local arg declared launcher out_dec out_max rc_dec=0 rc_max=0 n_dec n_max delta
+
+  for arg in "$@"; do
+    case "$arg" in
+      -h | --help)
+        _dormancy_usage
+        return 0
+        ;;
+      *) die "dormancy: unknown argument '$arg' (it takes none)" ;;
+    esac
+  done
+
+  # REACHED ONLY BY A DIRECT INVOCATION, and kept for exactly that. Through the
+  # dispatcher, D11 language scoping refuses this command first and with a
+  # better message -- `'bin/devbin dormancy' is not available here: this project
+  # does not declare the 'rust' language`. The handler is still executable on
+  # its own path, as the clean suite demonstrates, and a verb that ran two cargo
+  # builds in a project with no cargo would be a worse answer than a refusal.
+  case " ${DEVBIN_LANGUAGES:-} " in
+    *" rust "*) ;;
+    *) die "dormancy: this project does not declare rust, and --all-features is a cargo idea." ;;
+  esac
+
+  launcher="$PROJECT_ROOT/bin/devbin"
+  [ -x "$launcher" ] ||
+    die "dormancy: no launcher at $launcher -- it drives devbin's own verbs and cannot find it."
+
+  declared="$(_dormancy_declared)" ||
+    die "dormancy: this project declares no rust test invocation to compare against."
+
+  # REFUSING AN UNDEFINED COMPARISON RATHER THAN FORMING ONE. `--all-features`
+  # is cargo's flag. Appending it to a project's own script produces a command
+  # nobody wrote, and the delta between it and the declared line would be a
+  # number about an invocation that does not exist -- which is worse than no
+  # number, because it is a number.
+  case "$declared" in
+    *"cargo test"*) ;;
+    *)
+      die "dormancy: the declared rust test invocation is not a cargo test line, so
+       there is no --all-features form of it to compare against.
+         declared: $declared
+       Nothing is wrong here; the comparison is simply undefined."
+      ;;
+  esac
+  case "$declared" in
+    *--all-features*)
+      printf 'dormancy: the declared invocation ALREADY passes --all-features.\n'
+      printf '  declared: %s\n\n' "$declared"
+      printf '  It is its own maximum, so the delta is zero BY CONSTRUCTION and\n'
+      printf '  measuring it would prove nothing. No tests are dormant behind a\n'
+      printf '  feature flag in this project.\n'
+      return 0
+      ;;
+  esac
+
+  printf 'devbin dormancy -- rust\n\n'
+  printf '  declared  %s\n' "$declared"
+  printf '  maximum   %s --all-features\n\n' "$declared"
+  printf '  Two full runs. Neither re-points LATEST_RUST: a probe about feature\n'
+  printf '  flags is not this gate%s current verdict.\n\n' "'s"
+
+  printf '  --- leg 1 of 2: the declared invocation ---\n'
+  out_dec="$(_dormancy_leg "$launcher")" || rc_dec=$?
+  printf '%s\n' "$out_dec"
+
+  printf '\n  --- leg 2 of 2: the same invocation with --all-features ---\n'
+  out_max="$(_dormancy_leg "$launcher" --all-features)" || rc_max=$?
+  printf '%s\n' "$out_max"
+
+  n_dec="$(_dormancy_count "$out_dec")"
+  n_max="$(_dormancy_count "$out_max")"
+
+  printf '\n'
+  # A COUNT FROM A RUN THAT DID NOT FINISH IS NOT A COUNT OF TESTS. A feature
+  # that does not compile produces a leg with no `test result:` trailer at all,
+  # and calling that zero would report the whole suite as dormant. A leg that
+  # ran and FAILED is equally uncomparable: its trailer is real, but the
+  # difference between two suites of which one is broken says nothing about
+  # feature flags.
+  if [ -z "$n_dec" ] || [ -z "$n_max" ] || [ "$rc_dec" -ne 0 ] || [ "$rc_max" -ne 0 ]; then
+    printf '  DORMANCY INCONCLUSIVE -- one of the two legs is not a count of tests.\n'
+    printf '    declared:  %s (exit %s)\n' "${n_dec:-no test trailer at all}" "$rc_dec"
+    printf '    maximum:   %s (exit %s)\n' "${n_max:-no test trailer at all}" "$rc_max"
+    printf '    A leg that failed to build reaches no test binary, and a leg that\n'
+    printf '    ran red is a different suite rather than a larger one. Neither\n'
+    printf '    difference would be about feature flags, so none is reported.\n'
+    return 1
+  fi
+
+  delta=$((n_max - n_dec))
+  printf '  declared  %s test(s)\n' "$n_dec"
+  printf '  maximum   %s test(s)\n\n' "$n_max"
+
+  # A NEGATIVE DELTA IS A REAL STATE AND IT IS NOT DORMANCY. Enabling a feature
+  # can REPLACE an implementation, and a smaller maximum means the two
+  # invocations run different suites rather than nested ones. Reporting that as
+  # "-3 dormant tests" would be arithmetic standing in for a finding.
+  if [ "$delta" -lt 0 ]; then
+    printf '  NOT NESTED: --all-features runs %s FEWER test(s) than the declared line.\n' "$((0 - delta))"
+    printf '  A feature that replaces an implementation does this. The two are\n'
+    printf '  different suites rather than a suite and a superset of it, so no\n'
+    printf '  dormancy figure follows from the difference.\n'
+    return 0
+  fi
+
+  if [ "$delta" -eq 0 ]; then
+    printf '  NO DORMANCY: both invocations execute the same %s test(s).\n' "$n_dec"
+    printf '  A determinate zero, measured -- not an absence of evidence.\n'
+    return 0
+  fi
+
+  printf '  DORMANT: %s test(s) run ONLY under --all-features.\n\n' "$delta"
+  printf '  They are not failing and they are not deleted. They CERTIFY, and\n'
+  printf '  nothing in an ordinary run says they were not part of the number.\n'
+  return 0
+}
+
+cmd_dormancy "$@"

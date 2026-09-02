@@ -251,8 +251,18 @@ read_version() {
 # MANY files rather than one, because the caller is always checksumming a whole
 # manifest. Per-file it was 26 forks per install and half the wall clock of the
 # test suite, which runs an install per fixture.
-sha256_files() {
-  [ $# -gt 0 ] || return 0
+# sha256_run [file]... -- THE one place that knows how this tool is spelled.
+#
+# EXTRACTED 2026-09-02 BECAUSE A SECOND COPY HAD ALREADY DIVERGED. `seam_digest`
+# in the fleet command called `shasum -a 256` directly, and `shasum` is the name
+# that does NOT exist on a minimal Linux image -- the exact case the comment
+# below was written to cover. The knowledge was documented in one place and
+# re-implemented in another: the Highlander failure in its ordinary form, not
+# two algorithms but two copies of one DECISION, only one carrying the fix.
+#
+# Both tools read stdin when given no operands, which is what makes one dispatch
+# serve the file case and the stream case.
+sha256_run() {
   if command -v shasum >/dev/null 2>&1; then
     shasum -a 256 "$@"
   elif command -v sha256sum >/dev/null 2>&1; then
@@ -260,6 +270,115 @@ sha256_files() {
   else
     die "no sha256 tool found (looked for shasum and sha256sum)"
   fi
+}
+
+sha256_files() {
+  [ $# -gt 0 ] || return 0
+  sha256_run "$@"
+}
+
+# sha256_stdin -- SHA256 of stdin, bare hex, no trailing path field.
+#
+# `sha256_files` deliberately refuses an empty argument list rather than falling
+# through to this behaviour, and the two are separate names for that reason: a
+# checksum of nothing is a valid-looking hex string that no downstream reader
+# can distinguish from a checksum of something.
+sha256_stdin() {
+  sha256_run | cut -d' ' -f1
+}
+
+# cargo_target_dirs -- every cargo build tree under this project, discovered.
+#
+# NOT `$PROJECT_ROOT/target`, WHICH IS THE ASSUMPTION THIS FUNCTION EXISTS TO
+# REPLACE. A cargo tree sits at the WORKSPACE root, and a workspace is very
+# often nested: Laksa builds into `native/cli/target`, Intent into
+# `native/rust/target`. A checker that looks only at the project root finds
+# nothing on those estates, concludes nothing is wrong, and reports a clean
+# result -- which is the same shape as the defect it was written to catch, and
+# was the first draft of exactly that check.
+#
+# DELIBERATELY NOT SHARED WITH `_clean_roots`, and the reason is what each one
+# is FOR rather than what each one does. Clean discovers trees it is about to
+# DELETE, so it demands cargo's own markers (CACHEDIR.TAG, .rustc_info.json, a
+# profile .fingerprint) before touching a directory that merely has the right
+# name -- the cost of being wrong there is removing somebody's source tree. This
+# only READS, across several languages' worth of layouts, and a directory named
+# `target` holding an executable is the thing being asked about whether or not
+# cargo has stamped it yet. Sharing one function would force one of those two
+# risk postures onto the other.
+#
+# CARGO_TARGET_DIR wins outright when set: cargo writes there and nowhere else,
+# so a discovered tree would be a stale one.
+#
+# DEPENDENCY TREES ARE PRUNED, AND THE POPULATION IS THE POINT (laksa/dc,
+# 2026-09-02). Laksa carries five Cargo.toml files and exactly one is its own:
+# the other four are Elixir NIF crates under `deps/`, built through mix by
+# Rustler rather than by cargo in place. A caller asking "did MY build restore
+# MY artefacts" must not be answered about somebody else's crate. If a dep ever
+# does grow a `target/` -- somebody runs a bare `cargo build` in one for their
+# own reasons -- the populated-debug-empty-release signature appears there with
+# no cycle having caused it, and the check goes red on a tree the project's
+# build never touches.
+#
+# A CHECK THAT CRIES WOLF ON FOUR TREES OUT OF FIVE GETS ITS OUTPUT IGNORED,
+# which is the same end state as the vacuity it replaces, arrived at from the
+# other direction. Same argument that killed the >1-test-target rule.
+#
+# Note what does NOT need pruning: a crate with no `target/` at all -- which is
+# all four of Laksa's -- is invisible here by construction, because this
+# discovers BUILD TREES and never crates. There is nothing to skip.
+cargo_target_dirs() {
+  if [ -n "${CARGO_TARGET_DIR:-}" ]; then
+    printf '%s\n' "${CARGO_TARGET_DIR%/}"
+    return 0
+  fi
+  find "${PROJECT_ROOT:-.}" \
+    \( -name .git -o -name node_modules -o -name .direnv \
+       -o -name deps -o -name _build -o -name .venv \) -prune -o \
+    -type d -name target -prune -print 2>/dev/null | sort
+  return 0
+}
+
+# dir_has_binary <dir> -- true when <dir> holds at least one executable FILE at
+# its top level, which is where cargo puts the binaries it builds.
+#
+# `-type f` and not `-e`: a cargo profile directory always exists once cargo has
+# run in it, carrying `.fingerprint/`, `build/`, `deps/` and `incremental/`
+# whether or not a single binary was produced. So "the directory is there" and
+# "the artefacts are there" are different facts, and the first one is the
+# reading that made a dev-profile cycle look complete.
+dir_has_binary() {
+  local d="$1" f
+  [ -d "$d" ] || return 1
+  for f in "$d"/*; do
+    [ -f "$f" ] || continue
+    [ -x "$f" ] || continue
+    return 0
+  done
+  return 1
+}
+
+# utc_from_epoch <epoch> -- an epoch second rendered `YYYY-MM-DD HH:MMZ`.
+#
+# THE TWO PLATFORMS SPELL THIS INCOMPATIBLY AND ONE OF THE SPELLINGS FAILS
+# QUIETLY. BSD `date -r <epoch>` takes a NUMBER; GNU `date -r <file>` takes a
+# FILE and wants `-d @<epoch>` for a number. Hand GNU an epoch and it errors to
+# stderr and prints nothing, so the field goes EMPTY rather than wrong -- which
+# is the safe direction and is still a column that silently stops existing on
+# one platform.
+#
+# Reading order matters: BSD is tried first because GNU's `-r` would ACCEPT the
+# argument as a filename and fail on it, while BSD's rejection of `-d @...` is
+# clean. Both arms are guarded, so an unparseable value returns 1 rather than
+# emitting a plausible-looking wrong time -- see the clock discipline in
+# `/in-whiteboard`: a fabricated timestamp is indistinguishable from a real one.
+utc_from_epoch() {
+  local e="$1" out
+  [ -n "$e" ] || return 1
+  out="$(date -u -r "$e" +'%Y-%m-%d %H:%MZ' 2>/dev/null)" ||
+    out="$(date -u -d "@$e" +'%Y-%m-%d %H:%MZ' 2>/dev/null)" || return 1
+  [ -n "$out" ] || return 1
+  printf '%s' "$out"
 }
 
 # sha256_of <file> -- one file's SHA256, bare hex, or return 1.
@@ -336,6 +455,69 @@ git_head_sha() {
 # standing in has uncommitted changes -- and borrowing the stronger sentence for
 # it would put a provenance claim on a checkout that never made one. Two claims,
 # two vocabularies, one producer each.
+# platform_identity -- WHICH MACHINE produced this, as one line.
+#
+# THE NARROWING THAT COST THE FIRST TAGGED RELEASE (issue 0052), which names
+# the version -- this file may not, and the guard that says so is right even
+# here: a version literal in a source file is a hazard whether it is a claim or
+# a citation. A local `test all`
+# runs on one machine. Its seal is a true record of a macOS run, and nothing in
+# the `.out`, the `.errors` or the summary named a platform -- so
+# `824 tests, 0 failures` read as a fact about devbin when it was a fact about
+# one OS. CI had been red on Ubuntu for six days and three pushes, one of them
+# the release, and the release note's Verified section was assembled from those
+# local seals. The instrument was sound and aimed one unit wide, and the output
+# said nothing about which unit.
+#
+# BASH IS IN IT ALONGSIDE uname, and not for symmetry: bash >= 5 is this
+# project's floor (issue 0022) and macOS ships 3.2.57 at /bin/bash, so "which
+# bash" is a real axis on which two runs of the same code differ. The two
+# together are what distinguishes a green anyone can rely on from a green about
+# one machine.
+#
+# It says nothing about the analyser versions that were 0052's OTHER narrowing.
+# Those are a property of a gate's TOOL rather than of the run, and pinning
+# them is the analyser's own job -- .github/install-shellcheck.sh does it by
+# asserting the version it installed. Claiming them here would be devbin
+# reporting a fact it did not establish.
+platform_identity() {
+  printf '%s / bash %s' "$(uname -srm 2>/dev/null || printf 'unknown')" \
+    "${BASH_VERSION:-unknown}"
+}
+
+# runtime_digest <launcher> <libdir> -- SHA256 of the RUNTIME BYTES, 12 hex.
+#
+# THE ONE HOME FOR "WHICH BYTES ARE THESE", and it now has two readers: the
+# `--version` line here, and `fleet`'s per-estate seam digest, which had this
+# computation written out inside it. Two copies of a fingerprint is the worst
+# duplication available -- when they drift, the two surfaces report different
+# identities for one tree and neither says which is authoritative.
+#
+# A STAMP IS NOT AN IDENTITY. `git_head_identity` below answers "which commit
+# was this checkout on", which is a different question and can be `<sha> +dirty`
+# -- a value that names no bytes at all. This answers the one a reader comparing
+# two installs actually has: are these the same runtime.
+#
+# PATHS ARE FOLDED IN RELATIVE TO THE LIB DIRECTORY, not to a project root, and
+# the choice is load-bearing. It makes a source checkout (`lib/helpers`) and an
+# install of it (`bin/.devbin/lib/helpers`) digest IDENTICALLY when the bytes
+# match, which is the comparison anyone re-vendoring actually wants. Folding
+# against a root would have made every install differ from its own source by
+# construction, and the difference would have looked like divergence.
+#
+# The paths go in ALONGSIDE the contents so a moved or missing file changes the
+# digest rather than hiding inside a concatenation.
+runtime_digest() {
+  local launcher="$1" libdir="$2" f
+  {
+    cat "$launcher" 2>/dev/null
+    find "$libdir" -type f 2>/dev/null | sort | while IFS= read -r f; do
+      printf '%s\n' "${f#"$libdir"/}"
+      cat "$f"
+    done
+  } | sha256_stdin | cut -c1-12
+}
+
 # version_identity [root] -- the ONE renderer for `<name> <version> (<tree>)`.
 #
 # TWO CALL SITES ASK THE SAME QUESTION AND BEFORE 2026-09-01 THEY ANSWERED IT
@@ -360,8 +542,20 @@ version_identity() {
   # above the printf that moved into this function, and leaving it behind is
   # what reddened lint on the first run of this change -- a suppression is
   # part of its call site, not of the file it was written in.
-  printf '%s %s (%s)\n' "${DEVBIN_NAME:-devbin}" "$(read_version)" \
-    "$(git_head_identity "$root")"
+  # TWO FIELDS BECAUSE THEY ANSWER TWO QUESTIONS AND ONE OF THEM CAN BE EMPTY
+  # OF MEANING. The commit says where this checkout stood; on a dirty tree it
+  # says `+dirty`, which names no bytes at all and is exactly when a reader most
+  # needs an identity. `runtime` is that identity: the same twelve hex `fleet`
+  # reports per estate, so `--version` here and a row in the fleet table can be
+  # compared directly without either side deriving anything.
+  #
+  # NOT CALLED `tree`. hv's ruling used that word and it is the wrong one for
+  # this value: `tree` is a git object, a reader meeting it would go looking for
+  # one, and would not find it -- a wrong mechanism in a provenance line is
+  # actionable in the wrong direction. Rename it if the git object was meant.
+  printf '%s %s (%s, runtime %s)\n' "${DEVBIN_NAME:-devbin}" "$(read_version)" \
+    "$(git_head_identity "$root")" \
+    "$(runtime_digest "$root/bin/devbin" "${DEVBIN_LIB:-$root/lib}")"
 }
 
 git_head_identity() {
