@@ -11,13 +11,13 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 # Interface Claude (ic)
 
-**Aggressive localfold 2026-09-02 17:40Z (hv: checkin + localfold + compact, hv items routed to vc, reconvene on the bounce). Pre-fold board verbatim + sha-verified at `.history/20260902/wip-prefold-1740Z.md` (`823f372623d0cd1c`, 16058 bytes). RE-MEASURE EVERY FIGURE AT PICKUP -- five nodes write this hot tree and the delivered binary lags HEAD.**
+**Localfold 2026-09-02 13:28Z, then built through 16:46Z (hv: agreed the redesign, then localfold+compact, then implement on the bounce -- DONE: `/settings` + vi). Pre-fold board verbatim in git at 07baadc1. RE-MEASURE EVERY FIGURE AT PICKUP -- five nodes write this hot tree and the delivered binary lags HEAD.**
 
 ## DOING
 
 **TUI REDESIGN (WP-17). FIVE COMMITS LANDED THIS SESSION AND hv HAS DRIVEN ALL OF THEM. NEXT, RULED BY hv 2026-09-02 17:40Z: `/{cmd} ...` RUNS ANY `intent` COMMAND FROM THE PALETTE.** Accepted design: `intent/st/ST0056/tui-redesign-proposal.md` (7b08e8b1). **hv's GOVERNING DIRECTIVE STANDS: change any AC/AT needed, DO NOT yak-shave old guards or tests -- rewrite them to reality** (fail-forward; [[feedback_fail_forward_intent]]).
 
-**LANDED THIS SESSION, all gate-green and post-verified (re-measure before citing):** `f00a794c` `/settings` (AC-17.14) -- `89f845cb` the vi keymap -- `797f6a83` the caret is a cell not a character (hv drove it) -- `63d485de` `/help` + the APP-row brand + the scroll that never moved -- `6a713509` `/help` carries the CLI surface, walked out of clap. **Earlier, pre-fold: `a8981480` `2f0ba5e8` `95abeab5` `de5401c3` `02e802ae` `94cd1047` `4be902e1`.**
+**LANDED THIS SESSION (re-measure before citing):** `f00a794c` `/settings` (AC-17.14). `89f845cb` the vi keymap. `797f6a83` the caret fix (hv drove it). `63d485de` `/help` + the APP-row brand + the scroll that never moved. `6a713509` `/help` carries the CLI surface, walked out of clap.
 
 **NEXT -- `/{cmd} ...`, hv RULED IT IN FULL AND EXPLICITLY WANTS THE MUTATION:**
 
@@ -50,7 +50,7 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 3. **The macOS app is `native/macos/Intent/` (Swift, xcodegen, folder-GLOBBED).** `bin/devbin macos app-build` unsigned Debug off-tree; `app-test` the suite. IntentCLI = the one shell-out home. NOT `dvb test rust`.
 4. **A value/claim carried ONE STEP past what it supports is the recurring class, and it is MINE too.** Hand/take PROPERTIES not values; re-measure at pickup; a retraction carries the same burden as the claim it retracts.
 5. **`git commit --only <explicit paths>` is the only safe write** on this 5-writer tree (git add new files first; committed exactly my paths twice this session while cc/dc/vc boards sat staged in the index -- do NOT sweep them). NEVER remove a peer's index.lock (WAIT+retry). cc's POST-VERIFY IS STANDING: `git show --name-only HEAD` == your set. Every stamp from a `date -u` read THIS turn.
-6. **`intent --version` names the commit the BINARY WAS BUILT FROM; CURRENCY is that against `git diff --name-only <that>..HEAD -- native/rust`.** The two are different questions and only the second decides staleness -- the gate's currency arm is the only place a stale delivered pair is reported, and `~/.local/bin/intent` is a symlink straight into the release dir that passes through nothing (ST0058). **NO FIGURE HERE ON PURPOSE: measure it.** A display filter over a tool's own diagnostic is a population filter.
+6. **`intent --version` (commit the BINARY was built from) vs currency (`intent --version` vs `git rev-list -1 HEAD -- native/rust surface docs/design`).** Binary 361eff99 is BEHIND HEAD; the gate's currency arm REFUSES; rebuild owed, NOT mine (racing sessions is 0196/ST0058). A display filter over a tool's own diagnostic is a population filter.
 
 7. **A MARKDOWN ATTACHMENT HAS TWO WRITERS AND THEY RUN AT DIFFERENT TIMES -- ORDER: prettier FIRST, then let the store settle, THEN verify, THEN commit.** Hit live landing `tui-design.md` at a8981480: I wrote the file, the running intentd ingested it (store == disk), then **the pre-commit gate REFUSED on unformatted markdown** and prettier rewrote the file AFTER the store had taken my version -- the [[project_formatter_is_a_second_writer]] divergence arriving in the window between sync and commit. The watcher re-ingested and I verified THREE ways before committing (committed extract == store == disk sha). **AND RE-DRIVE ANY TEST THAT PARSES THE FILE: prettier ALIGNS markdown tables**, so it rewrote the very §3 table `parse_ratified` reads. It survived only because the parser trims each cell -- "it happened to still parse" is a thing to measure, not assume.
 
@@ -68,7 +68,10 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 - **`/{cmd} ...` RULED IN BY hv 2026-09-02 17:40Z, MUTATION AND ALL.** hv was told in as many words that `/st done ST0056` would work from a one-line prompt with no confirmation step, and ruled do it. The allow-list and the collision rule went with it. Spec in DOING.
 - **vc RATIFIED BOTH DECISIONS I FLAGGED (2026-09-02 16:49Z), and the second ratification carries a rule worth keeping:** a decision taken on someone's behalf and RECORDED AS SUCH is delegation; the same decision recorded as a fact is a substitution. What made Esc-enters-vi-normal legitimate was naming the alternative, writing it into section 7 _as_ a decision made on hv's behalf, and telling hv in chat -- not the reasoning behind it.
+- **TUI REDESIGN ACCEPTED by hv 2026-09-02** (all 4 recs; proposal 7b08e8b1). Driving posture RULED: change any AC/AT to match, no yak-shaving old guards/tests. This is the WP-17 divergence rework. Implementation on the bounce -- see DOING.
+- **AT-00.11 GREEN, landed 83c512c2** (mode 1 of AC-00.11). Note APPENDED not replaced: original 4028-char guidance verbatim at offset 0 + green evidence -> 8462; vc verified independently at 83c512c2^. Both attachments present, roster carries the row. WP-09 = 6/6 stays.
 - **RELEASE IS v3.0.1, FEATURE COMPLETE, NUMBER CLOSED** (hv 2026-09-01, via vc). Everything outstanding goes in; no external consumer; scarcity register retired as a class.
+- **TOOLCHAIN CURRENCY: binary 361eff99 BEHIND HEAD** (peer AC-06.11); rebuild owed, NOT mine; routed to vc for hv.
 - **ST0064 WP-01 = 5/9 (ic).** 01.1/01.3/01.5/01.8/01.9 done; 01.2/01.4/01.6/01.7 cc/dc/hv-gated. project-CWD wiring; vc RULED per-app-instance root, D07 registry UNBUILT.
 - **WP-17 STOOD DOWN status is SUPERSEDED by the redesign** -- 17.1 was unsatisfiable-as-written in 3.0.x (D56 equalises downward, EmptyMutation); the redesign reopens the WP-17 rows under the new design, so re-measure WP-17 against the reworded AC-17.9/17.11 once landed. 17.6 still blocked on cc's WP-08 browser-open stub.
-- **ST0065 has ZERO ACs and PROPOSING ITS CONTRACT IS NOW MINE** (vc routed it 2026-09-02 17:05Z: they cannot invent what a thread is FOR, and I claim it). WP-14 (whiteboard+inboxes in the store, L) MAY return from ST0069 -- hv's, not mine.
+- **ST0065 has ZERO ACs** (empty contract, hv-owned). WP-14 (whiteboard+inboxes in the store, L) MAY return from ST0069 -- hv's, not mine.
