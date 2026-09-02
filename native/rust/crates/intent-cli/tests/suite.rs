@@ -42,6 +42,8 @@ mod agents_sync_parity;
 mod bootstrap_door;
 #[path = "canon_keys_are_read.rs"]
 mod canon_keys_are_read;
+#[path = "canon_states_a_rule_once.rs"]
+mod canon_states_a_rule_once;
 #[path = "claude_cwi_door.rs"]
 mod claude_cwi_door;
 #[path = "cli_end_to_end.rs"]
@@ -84,6 +86,8 @@ mod embedded_init;
 mod error_literal_shape;
 #[path = "events_are_queryable.rs"]
 mod events_are_queryable;
+#[path = "every_skill_has_a_live_caller.rs"]
+mod every_skill_has_a_live_caller;
 #[path = "exit_code_consumers.rs"]
 mod exit_code_consumers;
 #[path = "exit_codes.rs"]
@@ -182,6 +186,8 @@ mod sync_to_store_does_not_contradict_itself;
 mod table_driven_tests_fixture_their_home;
 #[path = "the_binary_under_test_is_the_one_cargo_built.rs"]
 mod the_binary_under_test_is_the_one_cargo_built;
+#[path = "the_canon_set_is_derived.rs"]
+mod the_canon_set_is_derived;
 #[path = "the_daemon_harness_can_restart.rs"]
 mod the_daemon_harness_can_restart;
 #[path = "the_daemon_takes_the_backup_itself.rs"]

@@ -932,3 +932,84 @@ fn a_canon_delete_strands_the_skill_and_only_uninstall_prunes_it() {
      make it a state the tool misreads rather than inert litter"
   );
 }
+
+/// `AT-00.6` (ST0065) / `AC-00.6`: **a change that must reach every machine is
+/// verified AT THE MACHINE, never at the source.**
+///
+/// The mechanism the criterion names is *the source is right, the surface
+/// reports success, and the delivered thing differs* -- so the instrument reads
+/// back the INSTALLED bytes rather than trusting sync's own report.
+///
+/// # The premise this row was drafted on is REFUTED, and that is the finding
+///
+/// `AC-00.6` cites *skill sync checksums `SKILL.md` alone, so a change to a
+/// skill's `scripts/` never propagates*, and I carried that into the criterion
+/// from an older note without re-driving it. **DRIVEN HERE: it propagates.**
+/// `Payload::unit_checksum` dispatches on the payload's SHAPE, and a skill is
+/// `Shape::Tree`, so the checksum is `tree_checksum(dir)` over the whole
+/// directory -- `scripts/` included. The blind spot is a v2-era claim that
+/// reads identically after it stopped being true, which is watch-out 13's class
+/// arriving inside the row written to catch that very family.
+///
+/// **SO THIS ROW IS GREEN ON ITS OWN INSTANCE RATHER THAN RED**, and the
+/// criterion's other cited instance -- the skill renderer stripping `$N` -- is
+/// a CONSUMER's behaviour outside anything Intent delivers, so no test here can
+/// reach it. The mechanism is still real and still has a live instance: the
+/// three-location stranding, which `AC-00.5` owns.
+#[test]
+fn a_change_below_skill_md_reaches_the_machine_and_an_unchanged_source_writes_nothing() {
+  let f = Fixture::new();
+  f.source(
+    "in-scripted",
+    &[("SKILL.md", "# s\n"), ("scripts/go.sh", "echo ONE\n")],
+  );
+  f.skills()
+    .install(&["in-scripted".to_string()], false)
+    .expect("install");
+
+  let landed = f.target.join("in-scripted").join("scripts/go.sh");
+  assert_eq!(
+    read(&landed),
+    "echo ONE\n",
+    "precondition: the script did not install, so nothing below is about propagation"
+  );
+
+  // **THE CONTROL COMES FIRST, BECAUSE IT IS WHAT STOPS THE NEXT ARM PASSING
+  // VACUOUSLY.** A sync that rewrote every file unconditionally would satisfy
+  // the propagation arm and tell nobody anything; this asserts sync can tell
+  // that nothing moved.
+  let report = f.skills().sync(false).expect("sync with nothing changed");
+  assert_eq!(
+    outcome(&report.steps, "in-scripted"),
+    Outcome::UpToDate,
+    "an unchanged source reported a write, so the propagation arm below would \
+     pass for a sync that simply rewrites everything every time"
+  );
+
+  // **THE PROPERTY: A CHANGE BELOW `SKILL.md`, WITH `SKILL.md` ITSELF
+  // UNTOUCHED.** Read back from the TARGET -- what the machine got -- rather
+  // than from sync's report, which is the whole of `AC-00.6`.
+  f.source(
+    "in-scripted",
+    &[("SKILL.md", "# s\n"), ("scripts/go.sh", "echo TWO\n")],
+  );
+  let report = f
+    .skills()
+    .sync(false)
+    .expect("sync after a script-only change");
+  assert!(
+    matches!(
+      outcome(&report.steps, "in-scripted"),
+      Outcome::Updated { .. }
+    ),
+    "a script-only change was not even noticed: {:?}",
+    outcome(&report.steps, "in-scripted")
+  );
+  assert_eq!(
+    read(&landed),
+    "echo TWO\n",
+    "sync reported an update and the machine still holds the old script -- the \
+     exact shape AC-00.6 names: the source is right, the surface reports \
+     success, and the delivered thing differs"
+  );
+}
