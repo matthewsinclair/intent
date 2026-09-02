@@ -100,6 +100,8 @@ Three sections, named by hv, separated by two rules. **There are no borders anyw
 
 **Pane focus (list / detail) is a GUARD on OMNI's edges, not a fifth mode.** It changes where Move and Enter land; it does not change what the keys mean. The buffer condition is the same species, and it now governs three keys: mid-query `/` is a character (`st/ST0056` is a legal spelling), `Backspace` deletes rather than walking up the model, and the arrows pick among matches rather than browsing the body. **One rule asked at three keystrokes, never three rules.**
 
+**vi's NORMAL MODE IS THE THIRD GUARD OF THAT SPECIES**, added when `explorer.editing.mode` landed — see section 7. It governs Esc and every letter, over OMNI and MENU alike, and it is a guard rather than a mode for exactly the reason the other two are: a `ViNormal` state would duplicate every edge those two modes already carry in order to say nothing the table does not already say. **Esc's invariant survives it and is asserted under both keymaps** — see there.
+
 ## 4. Keys
 
 **ONE HOME MEANS THE COLUMNS ARE NO LONGER MODES.** The superseded table split every key by _in OMNIBOX_ against _in NAV_. There is one mode now, so what a key does depends on the composer's BUFFER -- the same guard the machine's notes column states, read from the operator's side.
@@ -225,6 +227,20 @@ Where the selected row carries detail, the BODY splits: list above, detail below
 **ONE WRITER FOR ONE FILE.** `bootstrap.rs` used to hand-render `config.json` and its note gave the reason — a serialiser is a second writer nobody declared. `/settings` made a second writer inevitable, so the two were made ONE rather than left to agree by hand: `bootstrap` builds the document and `settings::render_doc` emits it, with the known keys in a fixed order, every unknown key surviving, and the trailing newline the operator's editor expects. **`intent bootstrap --force` now keeps the settings section it did not author** — `--force` has always meant _re-record this machine's identity_, never _discard preferences_, and a setup verb silently resetting them would be the one destructive path in a command whose whole job is establishing state.
 
 **The first setting is `explorer.editing.mode`: `emacs` (the default) or `vi`.** It is DECLARED rather than detected because **`set -o vi` is not detectable from a child process — measured, not assumed**: `SHELLOPTS` is bash-only and absent under zsh, nothing else in the environment carries it, and `~/.inputrc` is readline's file, which zsh never reads. Declared-not-detected is `ST0037`'s ruling one surface over. **This does not reopen the in-field keymap retired above**: that retirement was about recreating an editor inside a one-line item field, and it stands. What gets a keymap is the COMPOSER, which is a text input the operator lives in.
+
+### vi mode — normal is a GUARD, and Esc still walks toward rest
+
+**A SETTING NOTHING READS IS THE `group` DEFECT ONE SURFACE OVER**, so the keymap it names ships with it rather than after it. An operator who can set `vi` and see nothing change has been offered exactly the menu of errors section 5 refuses.
+
+**vi mode ADDS a normal mode; it does not take editing keys away.** readline's vi-insert binds a handful of control chords and drops the rest for reasons that are historical rather than good, and removing `C-a` from someone who asked for vi is a downgrade nobody requested. So insert mode is the same map emacs uses, and the difference is the mode beside it.
+
+**NORMAL MODE IS A GUARD ON OMNI AND MENU, NOT A FIFTH MACHINE STATE** — the same species as pane focus and the buffer condition, and for the reason section 3 already gives: it changes what a key DOES without changing which mode you are in. A `ViNormal` mode would have to duplicate every OMNI and MENU edge to say nothing new, and the chip would start claiming a state the table does not carry.
+
+**ESC IS THE ENTRY, AND THAT IS A DECISION MADE ON hv's BEHALF — flagged, not smuggled.** Esc is load-bearing in section 3 (close the palette, discard, clear the query) and vi needs it, so the two collide. **The resolution keeps the ratified invariant rather than contradicting it:** section 3 requires that repeated Esc always TERMINATES, not that it does so in one press. Normal mode is one step CLOSER to rest than insert, so the first press leaves insert and the second does what Esc always did. Two presses, still converging, and no second job for the key. The escape corpus is now driven under BOTH keymaps with the allowance derived from the keymap rather than widened to cover both — widening it would have stopped saying anything about emacs. **The alternative hv may prefer is a different entry key entirely, leaving Esc single-purpose; that costs the muscle memory of every vi user and is the reason it was not taken.**
+
+**NORMAL MODE GETS A LAMP OF ITS OWN, beside the mode chip and not inside it.** The other two guards are legible from what is drawn — there is a query, or there is a detail pane. Normal mode looks identical to insert and swallows letters, which is the oldest complaint about modal editors and the one thing that would make it a trap rather than a feature.
+
+**The bound set is small and every member has a realiser**: `h l 0 ^ $ w b x D` act, `i a I A C` return to insert, and Backspace MOVES LEFT rather than deleting, which is vi's own behaviour and matters because it is the key an operator presses by reflex. `d`, `c` and `y` take a motion argument and there is no pending-operator state, so they are absent rather than half-bound — `D` and `C` are the whole-line forms vi already provides. `u` is absent because there is no undo stack to pop. **An unbound key in normal mode is swallowed, never typed**, which is the entire point: a stray letter reaching the buffer is how an operator ends up with an address they cannot account for.
 
 ### Prose fields — the external editor
 

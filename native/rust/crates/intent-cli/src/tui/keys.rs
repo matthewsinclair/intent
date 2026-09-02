@@ -86,9 +86,46 @@ pub enum Edit {
   End,
   Left,
   Right,
+  WordForward,
+  WordBack,
   KillToEnd,
   KillToStart,
   KillWordBack,
+}
+
+/// Which composer keymap is in force: `explorer.editing.mode`.
+///
+/// **DECLARED, NEVER DETECTED.** `set -o vi` is invisible to a child process --
+/// measured, not assumed: `SHELLOPTS` is bash-only and absent under zsh,
+/// nothing else in the environment carries it, and `~/.inputrc` is readline's
+/// file which zsh never reads. `ST0037`'s ruling one surface over.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Keymap {
+  #[default]
+  Emacs,
+  Vi,
+}
+
+impl Keymap {
+  /// The keymap a settings value names. **An unrecognised value is `Emacs`,
+  /// which is the same fallback `settings::read_all` applies** -- a hand-edited
+  /// config must not be able to put the composer into a keymap that does not
+  /// exist, and there is exactly one answer to what happens when it tries.
+  pub fn named(value: &str) -> Self {
+    match value {
+      "vi" => Keymap::Vi,
+      _ => Keymap::Emacs,
+    }
+  }
+}
+
+/// What one keystroke means in vi's NORMAL mode.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Vi {
+  /// Do this and stay in normal mode.
+  Act(Edit),
+  /// Do this, if anything, and go to insert mode.
+  Insert(Option<Edit>),
 }
 
 /// The composer's editing keymap: readline's emacs bindings, which are the
@@ -101,16 +138,12 @@ pub enum Edit {
 /// motion would put ten self-loops into a table whose entire value is being
 /// readable as a graph.
 ///
-/// **VI MODE IS NOT HERE, AND ITS ABSENCE IS A DECISION RATHER THAN A GAP.**
-/// hv asked for vi bindings under `set -o vi`; that shell setting is not
-/// visible to a child process at all -- measured, not assumed: `SHELLOPTS` is
-/// bash-only and absent under zsh, nothing in the environment carries it, and
-/// `~/.inputrc` is readline's file which zsh never reads. So the mode has to
-/// be DECLARED rather than detected, which is `ST0037`'s ruling one surface
-/// over: explicit configuration beat filesystem probing for languages and it
-/// beats environment probing here. hv ruled a settings file plus a
-/// `/settings` command; **vi lands when that lands**, and this map is what the
-/// default resolves to.
+/// **IT IS ALSO VI'S INSERT-MODE MAP, AND SHARING IT IS DELIBERATE.**
+/// readline's vi-insert binds a handful of these chords and not the rest, for
+/// reasons that are historical rather than good. Taking `C-a` away from an
+/// operator who asked for vi is a DOWNGRADE nobody requested: **vi mode here
+/// ADDS a normal mode, it does not remove editing keys.** See [`vi`] for the
+/// half that differs.
 pub fn edit(key: KeyEvent) -> Option<Edit> {
   let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
   Some(match (key.code, ctrl) {
@@ -134,6 +167,54 @@ pub fn edit(key: KeyEvent) -> Option<Edit> {
     // what stops the next unbound chord doing it again.
     (KeyCode::Char(_), true) => return None,
     (KeyCode::Char(c), false) => Edit::Insert(c),
+    _ => return None,
+  })
+}
+
+/// vi's NORMAL mode over the composer, or `None` for a key it does not bind.
+///
+/// **THE SET IS SMALL AND EVERY MEMBER HAS A REALISER**, which is the palette's
+/// own rule applied to a keymap. `d`, `c` and `y` take a motion argument and
+/// there is no pending-operator state here, so they are absent rather than
+/// half-bound -- `D` and `C` are the whole-line forms vi already provides and
+/// they need no argument. `u` is absent because there is no undo stack to pop;
+/// binding it to nothing would be a key that reads as understood.
+///
+/// **AN UNBOUND KEY IN NORMAL MODE IS SWALLOWED, NOT TYPED**, which is the
+/// point of normal mode and the same rule [`edit`] applies to control chords.
+/// The alternative -- falling through to insert -- is how a stray `z` ends up
+/// in an address the operator then cannot explain.
+pub fn vi(key: KeyEvent) -> Option<Vi> {
+  if key.modifiers.contains(KeyModifiers::CONTROL) {
+    return None;
+  }
+  // **BACKSPACE MOVES LEFT IN NORMAL MODE AND DOES NOT DELETE**, which is vi's
+  // own behaviour and not a nicety: routing it through [`edit`] with everything
+  // else would make the one key an operator presses by reflex destructive in
+  // the one mode where nothing else is.
+  if key.code == KeyCode::Backspace {
+    return Some(Vi::Act(Edit::Left));
+  }
+  let KeyCode::Char(c) = key.code else {
+    // Arrows, Home, End and Delete keep working in normal mode: they are not
+    // vi's vocabulary and an operator reaching for one has said exactly what
+    // they want.
+    return edit(key).map(Vi::Act);
+  };
+  Some(match c {
+    'h' => Vi::Act(Edit::Left),
+    'l' => Vi::Act(Edit::Right),
+    '0' | '^' => Vi::Act(Edit::Home),
+    '$' => Vi::Act(Edit::End),
+    'w' => Vi::Act(Edit::WordForward),
+    'b' => Vi::Act(Edit::WordBack),
+    'x' => Vi::Act(Edit::DeleteForward),
+    'D' => Vi::Act(Edit::KillToEnd),
+    'i' => Vi::Insert(None),
+    'a' => Vi::Insert(Some(Edit::Right)),
+    'I' => Vi::Insert(Some(Edit::Home)),
+    'A' => Vi::Insert(Some(Edit::End)),
+    'C' => Vi::Insert(Some(Edit::KillToEnd)),
     _ => return None,
   })
 }

@@ -284,6 +284,44 @@ impl Omnibox {
     self.cursor = (self.cursor + 1).min(self.len());
   }
 
+  /// vi `b`: back to the start of the word before the caret.
+  ///
+  /// **THE MOTION AND [`Omnibox::kill_word_back`] SHARE THEIR BOUNDARY RULE AND
+  /// NOTHING ELSE**, which is why the walk is one function both call: two
+  /// copies of *skip whitespace, then skip word* is how `b` and `C-w` come to
+  /// disagree about where a word starts, in a buffer where the operator can see
+  /// both happen to the same text.
+  pub fn word_back(&mut self) {
+    self.cursor = self.word_start_before(self.cursor);
+  }
+
+  /// vi `w`: forward to the start of the next word.
+  pub fn word_forward(&mut self) {
+    let chars: Vec<char> = self.buffer.chars().collect();
+    let end = chars.len();
+    let mut at = self.cursor;
+    while at < end && !chars[at].is_whitespace() {
+      at += 1;
+    }
+    while at < end && chars[at].is_whitespace() {
+      at += 1;
+    }
+    self.cursor = at;
+  }
+
+  /// The start of the word before `from`, never left of the floor.
+  fn word_start_before(&self, from: usize) -> usize {
+    let chars: Vec<char> = self.buffer.chars().collect();
+    let mut at = from;
+    while at > self.floor && chars[at - 1].is_whitespace() {
+      at -= 1;
+    }
+    while at > self.floor && !chars[at - 1].is_whitespace() {
+      at -= 1;
+    }
+    at
+  }
+
   /// `C-k`: kill from the caret to the end.
   pub fn kill_to_end(&mut self) {
     let at = self.byte_at(self.cursor);
@@ -316,14 +354,7 @@ impl Omnibox {
   /// input and cannot be handed to anything, so the argument that retired it
   /// there does not reach here.
   pub fn kill_word_back(&mut self) {
-    let chars: Vec<char> = self.buffer.chars().collect();
-    let mut at = self.cursor;
-    while at > self.floor && chars[at - 1].is_whitespace() {
-      at -= 1;
-    }
-    while at > self.floor && !chars[at - 1].is_whitespace() {
-      at -= 1;
-    }
+    let at = self.word_start_before(self.cursor);
     let from = self.byte_at(at);
     let to = self.byte_at(self.cursor);
     self.buffer.replace_range(from..to, "");

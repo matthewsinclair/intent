@@ -158,6 +158,18 @@ pub struct App {
   pub commands: Vec<Command>,
   /// The in-place edit in flight, while the mode is FIELD.
   pub editing: Option<FieldEdit>,
+  /// Which composer keymap is in force: `explorer.editing.mode`, handed in
+  /// beside [`App::commands`] and refreshed when the setting is written.
+  pub keymap: keys::Keymap,
+  /// **VI'S NORMAL MODE IS A GUARD ON OMNI, NOT A FIFTH MODE**, and
+  /// `tui-design.md` §3 is what says so: *what was a mode is now a guard* --
+  /// the same species as pane focus and the buffer condition. It changes what
+  /// a key DOES without changing which mode you are in, and a `Mode::ViNormal`
+  /// would have to duplicate every OMNI and MENU edge to say nothing new.
+  ///
+  /// Meaningless while [`App::keymap`] is `Emacs`, and
+  /// [`vi_normal_is_unreachable_under_the_emacs_keymap`] holds that.
+  pub vi_normal: bool,
 }
 
 /// One in-place edit: where it writes, and what has been typed.
@@ -185,6 +197,8 @@ impl App {
       index: Vec::new(),
       commands: Vec::new(),
       editing: None,
+      keymap: keys::Keymap::default(),
+      vi_normal: false,
     }
   }
 
@@ -306,6 +320,32 @@ impl App {
     // sharing one rule should not grow two copies of it.
     if self.mode == Mode::Omni && !self.omnibox.is_empty() && matches!(trigger, "/" | "Back") {
       trigger = "Typing";
+    }
+
+    // **VI'S NORMAL MODE, ONE GUARD OVER TWO MODES AND TWO KEYS.** Placed
+    // beside the buffer guard because it is the same species -- `tui-design.md`
+    // §3: *what was a mode is now a guard* -- and answered here rather than in
+    // each mode's block because OMNI and MENU share the composer, so a copy
+    // apiece would drift the first time one of them learned something.
+    //
+    // **ESC KEEPS WALKING TOWARD REST, WHICH IS WHY IT CAN CARRY THIS.** §3's
+    // invariant is that repeated Esc always terminates; normal mode is one step
+    // CLOSER to rest than insert, so the first press leaves insert and the
+    // second does what Esc always did -- clear the query, or close the palette.
+    // Two presses, still terminating, no second job for the key.
+    if self.keymap == keys::Keymap::Vi && matches!(self.mode, Mode::Omni | Mode::Menu) {
+      if trigger == "Esc" && !self.vi_normal {
+        self.vi_normal = true;
+        return Step::Continue;
+      }
+      if trigger == "Typing" && self.vi_normal {
+        self.vi_key(key);
+        return Step::Continue;
+      }
+      // Any other trigger in normal mode is the mode's own business -- Enter
+      // runs, `/` opens the palette -- and it ends the normal-mode detour, so
+      // the operator is never returned to a composer that swallows letters.
+      self.vi_normal = false;
     }
 
     // The composer's own triggers, resolved before the generic tail because
@@ -636,9 +676,36 @@ impl App {
   /// into: a key that appears to be understood and quietly means something
   /// else.
   fn edit_composer(&mut self, key: KeyEvent) {
-    let Some(action) = keys::edit(key) else {
+    if let Some(action) = keys::edit(key) {
+      self.apply_edit(action);
+    }
+  }
+
+  /// One vi normal-mode keystroke.
+  ///
+  /// **AN UNBOUND KEY IN NORMAL MODE CHANGES NOTHING** -- the same rule as an
+  /// unbound key anywhere else here, and the whole point of a normal mode: a
+  /// stray letter must not reach the buffer, or the operator ends up with an
+  /// address they cannot account for.
+  fn vi_key(&mut self, key: KeyEvent) {
+    let Some(action) = keys::vi(key) else {
       return;
     };
+    match action {
+      keys::Vi::Act(e) => self.apply_edit(e),
+      keys::Vi::Insert(e) => {
+        if let Some(e) = e {
+          self.apply_edit(e);
+        }
+        self.vi_normal = false;
+      }
+    }
+  }
+
+  /// Apply one buffer action. **ONE HOME FOR THE ACTIONS, TWO KEYMAPS ABOVE
+  /// IT** -- emacs and vi differ in which key means what, never in what the
+  /// buffer can do, so the second keymap arrived without a second copy of this.
+  fn apply_edit(&mut self, action: keys::Edit) {
     match action {
       keys::Edit::Insert(c) => self.omnibox.type_char(c),
       keys::Edit::Backspace => self.omnibox.erase(),
@@ -647,6 +714,8 @@ impl App {
       keys::Edit::End => self.omnibox.end(),
       keys::Edit::Left => self.omnibox.left(),
       keys::Edit::Right => self.omnibox.right(),
+      keys::Edit::WordForward => self.omnibox.word_forward(),
+      keys::Edit::WordBack => self.omnibox.word_back(),
       keys::Edit::KillToEnd => self.omnibox.kill_to_end(),
       keys::Edit::KillToStart => self.omnibox.kill_to_start(),
       keys::Edit::KillWordBack => self.omnibox.kill_word_back(),
@@ -745,12 +814,20 @@ mod tests {
     key(KeyCode::Esc)
   }
 
-  /// Every mode, so the walks below start from all of them rather than from the
-  /// rest state that trivially satisfies everything.
+  /// Every keymap the composer can be in.
+  const EVERY_KEYMAP: &[keys::Keymap] = &[keys::Keymap::Emacs, keys::Keymap::Vi];
+
+  /// Every mode UNDER EVERY KEYMAP, so the walks below start from all of them
+  /// rather than from the rest state that trivially satisfies everything.
+  ///
+  /// **THE KEYMAP JOINED THE CORPUS THE DAY VI LANDED, AND THAT IS THE POINT.**
+  /// vi's normal mode is a guard on Esc -- the very key the walk below is about
+  /// -- so a corpus that ran only under emacs would have gone on proving the
+  /// escape property for half the operators.
   fn from_every_mode(depth: usize) -> Vec<App> {
-    Mode::ALL
-      .iter()
-      .map(|&m| {
+    let mut out = Vec::new();
+    for &keymap in EVERY_KEYMAP {
+      for &m in Mode::ALL {
         let mut a = App::explore();
         for i in 0..depth {
           a.push(View::Collection {
@@ -758,18 +835,27 @@ mod tests {
           });
         }
         a.mode = m;
-        a
-      })
-      .collect()
+        a.keymap = keymap;
+        out.push(a);
+      }
+    }
+    out
   }
 
   #[test]
-  fn the_corpus_covers_every_mode_and_more_than_one_depth() {
+  fn the_corpus_covers_every_mode_every_keymap_and_more_than_one_depth() {
     assert!(
       Mode::ALL.len() > 1,
       "one mode makes every walk below trivial"
     );
-    assert_eq!(from_every_mode(3).len(), Mode::ALL.len());
+    assert!(
+      EVERY_KEYMAP.len() > 1,
+      "one keymap makes the keymap half of every walk below trivial"
+    );
+    assert_eq!(
+      from_every_mode(3).len(),
+      Mode::ALL.len() * EVERY_KEYMAP.len()
+    );
     assert_eq!(from_every_mode(3)[0].stack.depth(), 4);
   }
 
@@ -808,6 +894,13 @@ mod tests {
           }
           continue;
         }
+        // **VI SPENDS ONE PRESS LEAVING INSERT, AND THE ALLOWANCE IS DERIVED
+        // FROM THE KEYMAP RATHER THAN WRITTEN AS A NUMBER THAT COVERS BOTH.**
+        // §3's invariant is that repeated Esc always TERMINATES, not that it
+        // does so in one press; normal mode is one step closer to rest, so
+        // under vi the walk settles one press later. Widening the emacs
+        // allowance to match would have stopped saying anything about emacs.
+        let free = if app.keymap == keys::Keymap::Vi { 2 } else { 1 };
         let budget = Mode::ALL.len() + depth + 4;
         for press in 0..budget {
           assert_eq!(
@@ -817,12 +910,17 @@ mod tests {
              never an accident"
           );
           assert!(
-            press == 0 || mode::HOME.contains(&app.mode),
-            "Esc press {press} from {started_in:?} left home for {:?} -- one press lands home \
-             and the rest stay there",
+            press < free || mode::HOME.contains(&app.mode),
+            "Esc press {press} from {started_in:?} under {:?} left home for {:?} -- the walk \
+             settles within {free} press(es) and stays there",
+            app.keymap,
             app.mode
           );
         }
+        assert!(
+          !app.vi_normal || app.keymap == keys::Keymap::Vi,
+          "the emacs keymap ended the walk in vi's normal mode"
+        );
         assert!(
           mode::HOME.contains(&app.mode),
           "the walk from {started_in:?} ended outside home in {:?}",
@@ -2077,6 +2175,175 @@ mod tests {
       ),
       "the declared setting beside it was refused too, so this test would pass against an app \
        that simply never writes"
+    );
+  }
+
+  /// A composer under the vi keymap holding `st/ST0056`, caret at the end.
+  fn in_vi(typed: &str) -> App {
+    let mut app = App::explore();
+    app.keymap = keys::Keymap::Vi;
+    for c in typed.chars() {
+      app.on_key(key(KeyCode::Char(c)), &[]);
+    }
+    app
+  }
+
+  /// **THE SETTING IS THE ONLY DOOR INTO NORMAL MODE**, so an operator who
+  /// never asked for vi cannot be put in a composer that swallows letters.
+  /// Named in [`App::vi_normal`]'s own note, and this is it.
+  #[test]
+  fn vi_normal_is_unreachable_under_the_emacs_keymap() {
+    let mut app = App::explore();
+    assert_eq!(app.keymap, keys::Keymap::Emacs, "the default is not emacs");
+    for c in "56".chars() {
+      app.on_key(key(KeyCode::Char(c)), &[]);
+    }
+    for _ in 0..4 {
+      app.on_key(esc(), &[]);
+      assert!(
+        !app.vi_normal,
+        "Esc reached vi's normal mode under the emacs keymap"
+      );
+    }
+    // The control: Esc under emacs still does its own job.
+    let mut app = App::explore();
+    app.on_key(key(KeyCode::Char('5')), &[]);
+    app.on_key(esc(), &[]);
+    assert!(
+      app.omnibox.is_empty(),
+      "Esc under emacs stopped clearing the query, so the check above proves nothing"
+    );
+  }
+
+  /// **ESC ENTERS NORMAL MODE AND A SECOND ESC STILL DOES WHAT ESC ALWAYS
+  /// DID** -- §3's invariant, at the one key vi wanted to take.
+  #[test]
+  fn esc_under_vi_enters_normal_mode_and_the_next_esc_still_clears() {
+    let mut app = in_vi("56");
+    app.on_key(esc(), &[]);
+    assert!(app.vi_normal, "Esc did not reach normal mode under vi");
+    assert_eq!(
+      app.omnibox.buffer, "56",
+      "the first Esc cleared the query as well as changing mode -- one key, two jobs"
+    );
+    assert_eq!(
+      app.mode,
+      Mode::Omni,
+      "normal mode changed the machine's mode"
+    );
+
+    app.on_key(esc(), &[]);
+    assert!(
+      app.omnibox.is_empty(),
+      "the second Esc did not clear the query"
+    );
+    assert!(
+      !app.vi_normal,
+      "clearing the query left the operator in normal mode with nothing to edit"
+    );
+  }
+
+  /// **A LETTER IN NORMAL MODE MOVES OR DELETES; IT NEVER TYPES ITSELF.**
+  /// Driven over the motions rather than one of them, and each asserts the
+  /// buffer is UNCHANGED -- a normal-mode key that inserted would fail here
+  /// even if the caret happened to land right.
+  #[test]
+  fn a_letter_in_vi_normal_mode_never_reaches_the_buffer() {
+    for motion in ['h', 'l', '0', '$', 'w', 'b', 'z'] {
+      let mut app = in_vi("st ST0056");
+      app.on_key(esc(), &[]);
+      app.on_key(key(KeyCode::Char(motion)), &[]);
+      assert_eq!(
+        app.omnibox.buffer, "st ST0056",
+        "`{motion}` in normal mode reached the buffer"
+      );
+      assert!(
+        app.vi_normal,
+        "`{motion}` in normal mode dropped back to insert"
+      );
+    }
+
+    // The motions actually MOVE, or the check above would pass against a
+    // composer that ignores normal mode entirely.
+    let mut app = in_vi("st ST0056");
+    app.on_key(esc(), &[]);
+    let end = app.omnibox.cursor();
+    app.on_key(key(KeyCode::Char('0')), &[]);
+    assert_eq!(app.omnibox.cursor(), 0, "`0` did not reach the start");
+    app.on_key(key(KeyCode::Char('$')), &[]);
+    assert_eq!(app.omnibox.cursor(), end, "`$` did not reach the end");
+    app.on_key(key(KeyCode::Char('b')), &[]);
+    assert_eq!(
+      app.omnibox.cursor(),
+      3,
+      "`b` did not land on the start of the last word"
+    );
+  }
+
+  /// `x` deletes under the caret and stays in normal mode; `i`/`a`/`A` return
+  /// to insert and land the caret where vi lands it.
+  #[test]
+  fn the_insert_commands_return_to_insert_and_the_edit_commands_do_not() {
+    let mut app = in_vi("abc");
+    app.on_key(esc(), &[]);
+    app.on_key(key(KeyCode::Char('0')), &[]);
+    app.on_key(key(KeyCode::Char('x')), &[]);
+    assert_eq!(
+      app.omnibox.buffer, "bc",
+      "`x` did not delete under the caret"
+    );
+    assert!(app.vi_normal, "`x` left normal mode");
+
+    app.on_key(key(KeyCode::Char('A')), &[]);
+    assert!(!app.vi_normal, "`A` did not return to insert");
+    app.on_key(key(KeyCode::Char('d')), &[]);
+    assert_eq!(
+      app.omnibox.buffer, "bcd",
+      "after `A` the composer did not take the letter at the end"
+    );
+
+    let mut app = in_vi("abc");
+    app.on_key(esc(), &[]);
+    app.on_key(key(KeyCode::Char('I')), &[]);
+    app.on_key(key(KeyCode::Char('z')), &[]);
+    assert_eq!(
+      app.omnibox.buffer, "zabc",
+      "`I` did not insert at the start"
+    );
+  }
+
+  /// **THE PALETTE GETS NORMAL MODE TOO**, because it is the same composer --
+  /// and its sigil floor still holds, so `0` cannot park the caret before the
+  /// `/` and a following insert cannot break the palette out of MENU.
+  #[test]
+  fn vi_normal_reaches_the_palette_and_respects_the_sigil() {
+    let mut app = App::explore();
+    app.keymap = keys::Keymap::Vi;
+    app.commands = commands::vocabulary();
+    app.on_key(key(KeyCode::Char('/')), &[]);
+    for c in "quit".chars() {
+      app.on_key(key(KeyCode::Char(c)), &[]);
+    }
+    app.on_key(esc(), &[]);
+    assert!(
+      app.vi_normal,
+      "Esc in the palette did not reach normal mode"
+    );
+    assert_eq!(app.mode, Mode::Menu, "the first Esc closed the palette");
+
+    app.on_key(key(KeyCode::Char('0')), &[]);
+    assert_eq!(
+      app.omnibox.cursor(),
+      1,
+      "`0` crossed the sigil floor, so the palette could be typed out of"
+    );
+
+    // And the second Esc still closes it, as it always did.
+    app.on_key(esc(), &[]);
+    assert_eq!(
+      app.mode,
+      Mode::Omni,
+      "the second Esc did not close the palette"
     );
   }
 

@@ -84,6 +84,18 @@ pub trait Source: edit::Model {
     )))
   }
 
+  /// Which composer keymap is in force. Default: the default.
+  ///
+  /// **A SEPARATE QUESTION FROM [`Source::setting`] BECAUSE IT HAS A DEFAULT
+  /// AND THAT ONE DOES NOT.** Reading one setting by name can fail -- the
+  /// spelling may not be a setting at all -- and *which keymap is in force* is
+  /// a question with an answer on every machine, including one with no config
+  /// file. A `Result` here would make the loop invent a fallback, which is a
+  /// second home for the default that `settings::read_all` already owns.
+  fn keymap(&mut self) -> super::keys::Keymap {
+    super::keys::Keymap::default()
+  }
+
   /// Put one declared setting to `value`.
   ///
   /// **THE DEFAULT REFUSES RATHER THAN SUCCEEDING SILENTLY**, which matters
@@ -261,6 +273,17 @@ fn hint_row(app: &App, rows: &[Row]) -> String {
   // act on -- see [`super::mode::Mode::lamp`]. It stays FIRST on the row so it
   // survives clipping at any width.
   let mut parts = vec![app.mode.lamp().to_string()];
+  // **VI'S NORMAL MODE IS THE ONE GUARD AN OPERATOR CANNOT SEE FROM THE
+  // SCREEN, SO IT GETS A LAMP OF ITS OWN.** The buffer guard and pane focus
+  // are both legible from what is drawn -- there is a query, or there is a
+  // detail pane. Normal mode looks identical to insert and swallows letters,
+  // which is the oldest complaint about modal editors and the one thing that
+  // makes it a trap rather than a feature. It sits beside the mode lamp rather
+  // than inside it: the machine is still in OMNI, and the chip must not claim
+  // a mode the table does not carry.
+  if app.vi_normal {
+    parts.push("NORMAL".into());
+  }
   if !app.notice.is_empty() {
     parts.push(app.notice.clone());
     return parts.join("  ");
@@ -395,6 +418,7 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
   app.point_at(rows.len());
   app.index = source.index();
   app.commands = super::commands::vocabulary();
+  app.keymap = source.keymap();
 
   loop {
     let area = term.size()?;
@@ -471,6 +495,12 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
         };
         rows = source.rows(app.stack.current());
         app.refocus(rows.len());
+        // **A SETTING THAT CHANGES THE KEYMAP TAKES EFFECT ON THE NEXT
+        // KEYSTROKE, NOT ON THE NEXT RUN.** Re-read unconditionally rather
+        // than only when the write reported success: the file is the
+        // authority, exactly as it is for a field, and a setting that needs a
+        // restart to be believed is one an operator cannot test.
+        app.keymap = source.keymap();
       }
       // **`AC-17.8`: THE ARTEFACT IS OPENED IN PLACE, AND A GENERATED VIEW IS
       // REFUSED BY NAME.** No scratch file and no read-back -- the editor

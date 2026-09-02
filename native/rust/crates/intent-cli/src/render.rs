@@ -3303,6 +3303,20 @@ impl tui::run::Source for Live {
       .map_err(|why| tui::edit::Refused::new(why.to_string()))
   }
 
+  /// **THE KEYMAP COMES FROM THE SAME READER AS THE ROW THAT SHOWS IT**, so
+  /// what the settings screen displays and what the composer obeys cannot
+  /// disagree -- and an unreadable config falls back exactly once, in
+  /// `settings::read_all`, rather than once here as well.
+  fn keymap(&mut self) -> tui::keys::Keymap {
+    let Ok(config) = intentsvcs::userstate::global_config() else {
+      return tui::keys::Keymap::default();
+    };
+    match intentsvcs::settings::read_one(&config, "editing.mode") {
+      Ok(value) => tui::keys::Keymap::named(&value),
+      Err(_) => tui::keys::Keymap::default(),
+    }
+  }
+
   fn set_setting(&mut self, path: &str, value: &str) -> Result<(), tui::edit::Refused> {
     let config = config_path()?;
     intentsvcs::settings::write_one(&config, path, value)
