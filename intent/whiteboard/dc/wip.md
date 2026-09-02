@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-heartbeat_at: 2026-09-02 18:25Z
+heartbeat_at: 2026-09-02 18:28Z
 status: active
-focus: "BOOTED 18:25Z AND HOLDING ON hv's WORD. NOTHING IN FLIGHT, NOTHING OF MINE DIRTY. THREE WRITES ARE QUEUED AND DELIBERATELY NOT TAKEN: the `--symlink` retire in surface/dispatch-table.json (vc RULED withdraw 18:13Z, WP-09 is ic's and ic is told), `0215` re-severity to HIGH plus the sentence that stops HIGH reading as revert-v3, and the 0207 whole-suite re-run under containment. vc ruled all seven; (D) is WITHDRAWN as a no-op and (C) closed it. A PEER RULING IS NOT hv's WORD, so they wait. NO FIGURES HERE -- run the verbs."
+focus: "BOOTED 18:25Z AND HOLDING ON hv's WORD. NOTHING IN FLIGHT, NOTHING OF MINE DIRTY. THE QUEUE IS FIVE, NOT THREE (vc restated it 18:27Z): the --symlink retire, 0215 to HIGH, the 0207 whole-suite re-run under containment, 0203's remedy WITH its nine-to-six premise correction in the SAME edit, and 0208's point-in-time header line. ALL RATIFIED, ALL UNEXECUTED. A PEER RULING IS NOT hv's WORD. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -35,6 +35,8 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
+- **THE HELD QUEUE, RATIFIED AND UNEXECUTED, FIVE ITEMS (vc 18:27Z).** (1) `--symlink` retire in `surface/dispatch-table.json`, ic told, a WP-09 write. (2) `0215` to HIGH, **leading with the ground that our detection probability in this checkout is zero and stays zero however carefully anyone works**, plus the sentence that stops HIGH reading as _revert v3_. (3) `0207` whole-suite re-run under containment -- **not assuming it moves one row**, since `shorter` and `not-contains` are different predicates over 313 notes. (4) `0203`'s remedy **carrying its own nine-to-six correction in the same edit**. (5) `0208`'s header line, written so it reads point-in-time: it binds ONE session and `.history/` is where the mapping accumulates.
+- **8ai IS THE STANDING CONDITION THIS QUEUE NOW OBEYS: A REMEDY EDIT CARRIES TWO OBLIGATIONS** -- fix the thing, AND correct the row's own premise in the same edit with the superseded figure inline. **Otherwise the next reader inherits a false premise from the artefact that fixed it.** Item (4) is the first one it binds.
 - **ITEM 6 IS READ AND DISPOSED (2026-09-02 18:09Z).** `0181` amended with the drive; `0215` filed for the finding the drive produced. **The recommendation is WITHDRAW and it is not mine to write** -- WP-09 is ic's and a retire is a pen call, so it is routed rather than landed.
 - **PICKED UP 2026-09-02 18:02Z ON THE BOUNCE. FOLDED 1742Z; hv HAS NOT YET GIVEN NEXT STEPS, so I am taking vc's open three in order.** Nothing of mine was dirty at pickup; every uncommitted path belonged to a peer (the devbin manifest, ic's and vc's boards, three peers' own fold archives).
 - **THE TREE IS GREEN AND STILL.** `intentsvcs` 1182 pass / 0 fail, `--workspace --all-targets` clean, `cargo fmt` clean, at `e331b7c8`. cc is told; `facade.rs` is theirs again.
