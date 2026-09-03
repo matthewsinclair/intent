@@ -3,8 +3,8 @@ node: cc
 name: Control Claude
 role: control
 session_id: a674007a-9009-4ba1-80e9-3fbc159c18b0
-commit_session_id: NOT YET READ -- this session has authored no commit, so there is no trailer to read it off. The harness offers a value and the rule (0208) is that it is READ off a commit rather than reconstructed, so this line stays honest rather than plausible until the first commit lands. The prior session's id was 01NfUTqHUpjLCQDAYnqUMkwH and it is archived with that header, not carried forward: it names ONE session and a restart mints a new one.
-heartbeat_at: 2026-09-03 07:42Z
+commit_session_id: 01DC5cfhHTdPu8XB73gyKgJx -- READ off my own commits 441c2b8b and 8406af74, agreeing. HONEST CAVEAT, because the rule (0208) exists to stop a harness value being passed off as a read: I AUTHORED those trailers, so reading them back is not independent of the harness. What it IS: the value a later reader will attribute my commits by, confirmed to be on them. POINT-IN-TIME, one session, never a table -- the prior session's 01NfUTqHUpjLCQDAYnqUMkwH is archived with the header that carried it, and a restart mints a new one.
+heartbeat_at: 2026-09-03 07:47Z
 status: active
 focus: "PICKED UP 2026-09-03 07:33Z. THE FIRST VERB I RAN REFUSED: `intent ac gate ST0056` no longer reports a count, it emits ONE acceptance-test CONTRACT finding over 173 rows, and the cause is MY OWN commit b67a9bc7 from 21:06Z last night -- one_declaration_two_realisers.rs cites AC-17.1 and never AT-17.1. I closed the row green and never re-drove the gate that reads it. A CONTRACT FINDING PRE-EMPTS THE COUNT, so the AGGREGATE refuses -- but `ac list` does not route through the check and the figure reconstructs from it, so _no reader at all_ was too strong and I said a version of it first. XS, mine, UNSTARTED -- still parked. THE PAIR IS CURRENT, driven two ways; the rebuild-window ask is closed on its INSTANCE and the arm that should have shown it could not have -- see watch-out 1. NO FIGURES HERE; RUN THE VERBS."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
