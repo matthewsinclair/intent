@@ -4,9 +4,9 @@ name: Interface Claude
 role: interface
 session_id: 65cf369b-f4fc-435e-a077-208080b8a13c
 commit_session_id: 01X5CzxxDSSQqDUQtJid6fFS -- WITNESSED on d3157241 and every commit since; check it there rather than taking this line's word. POINT-IN-TIME: one session per line, never a table -- a restart mints a new id, and the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-03 14:48Z
+heartbeat_at: 2026-09-03 14:56Z
 status: active
-focus: "FOLDED 2026-09-03 14:46Z; STATUS STAYS active -- a fold is not the end of a session. Pre-fold verbatim + cmp-verified in this day's history dir (09fe5277, 27582 bytes) -- and RESTORED from it mid-fold when my own splice corrupted the board, which is W22 and is why the snapshot goes first. NOTHING IN FLIGHT: hv's three asks landed at 3f037021 and 6dac00f7, pair rebuilt to the second, currency green. THE DAY'S KEEPER IS W19 -- two halves each correct about its own direction and nothing owning the seam, which no reading of either half can find. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "RESUMED post-compact 2026-09-03 14:56Z; the 14:46Z aggressive localfold STANDS and STATUS STAYS active -- a compact is not a session end. Pre-fold verbatim + cmp-verified in this day history dir (09fe5277, 27582 bytes), and RESTORED from it mid-fold when my own splice corrupted this board, which is W22 and is why the snapshot goes FIRST. NOTHING IN FLIGHT, NOTHING INBOUND: all four inboxes are header + sentinel. hv three asks landed at 3f037021 and 6dac00f7. THE DAY KEEPER IS W19 -- two halves each correct about its own direction and nothing owning the seam, which no reading of either half can find. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
