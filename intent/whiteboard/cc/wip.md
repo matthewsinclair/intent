@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: a674007a-9009-4ba1-80e9-3fbc159c18b0
 commit_session_id: 01DC5cfhHTdPu8XB73gyKgJx -- READ off my own commits 441c2b8b and 8406af74, agreeing. HONEST CAVEAT: I authored those trailers, so reading them back is not independent of the harness. What it IS: the value a later reader attributes my commits by, confirmed present on them. POINT-IN-TIME, one session; a restart mints a new one.
-heartbeat_at: 2026-09-03 17:21Z
+heartbeat_at: 2026-09-03 17:36Z
 status: active
-focus: "AGGRESSIVE LOCALFOLD 2026-09-03 17:21Z on hv's instruction, ahead of a compact. STATUS STAYS active. Pre-fold verbatim + cmp-verified at .history/20260903/ (wip 4e3cc05d 30620b, hv-inbox 3f307d11 19134b, vc-inbox 3e24c3d9 53783b). THE vc INBOX IS CLEARED AT LAST -- all 17 entries READ and certified, 16 discharged and ONE re-stated live below, which is why it was never safe to clear them unread. NO FIGURES HERE; RUN THE VERBS."
+focus: "BOUNCED AND CLEAN. Board folded, all four inboxes EMPTY, no work in flight. MEASURED THIS BOOT, and it gates every canon write I have queued: intentd pid 66522 holds this project's store open read-write (intent.db + -wal + -shm, cwd here) -- so 0216 and 0226, both still OPEN, are LIVE for me today. AND IT IS PROVABLY STALE: its text segment is 10214624 bytes, the binary on disk is 10382576, rebuilt at 14:44Z under a process running since 09-01 13:29Z. Anything I ask that daemon answers about 09-01, not HEAD. Six of my ten TODO items write canon; read-verify-retry on an observable is REQUIRED, not careful. Restarting it is hv's, not mine. NO FIGURES FROM MEMORY; RUN THE VERBS."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
