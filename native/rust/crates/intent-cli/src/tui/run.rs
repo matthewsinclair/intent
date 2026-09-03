@@ -213,6 +213,7 @@ pub fn screen_for(app: &App, rows: &[Row], width: usize) -> Screen {
   };
   Screen {
     app: app_row(app),
+    project: app.project.clone(),
     body: layout::plan(rows, width),
     // **THE SELECTED ROW DECIDES, AND NOTHING ELSE DOES.** No view kind is
     // consulted here and none should be: `tui-design.md` section 6 says the
@@ -363,7 +364,13 @@ fn hint_row(app: &App, rows: &[Row]) -> String {
       if let Some(f) = app.focus
         && let Some(row) = rows.get(f.index())
       {
-        parts.push(format!("{}/{}", f.index() + 1, f.len()));
+        // **THE POSITION IS AMONG THINGS, NOT AMONG LINES.** Boundary rows
+        // are drawn in the body but are not items, so counting them would
+        // report eleven threads where the operator can reach ten -- and the
+        // discrepancy is invisible unless you count the screen by hand.
+        let rank = rows.iter().take(f.index()).filter(|r| !r.is_rule()).count() + 1;
+        let total = rows.iter().filter(|r| !r.is_rule()).count();
+        parts.push(format!("{rank}/{total}"));
         let verb = match row.kind.as_str() {
           "prose" => "\u{23ce} $EDITOR",
           "artefact" => "\u{23ce} open file",
@@ -433,14 +440,15 @@ fn dropdown(app: &App) -> Vec<(String, layout::Ink)> {
     _ => return Vec::new(),
   };
   let picked = app.omnibox.picked(listed.len());
-  // **RENDER ORDER IS REVERSED: BEST LAST, NEAREST THE INPUT.** The input
-  // sits at the bottom, so the adjacent line is where the eye rests -- the
-  // television idiom for a bottom prompt. `Up` walking toward worse matches
-  // is then also literally up the screen.
-  listed
+  // **RENDER ORDER IS THE OMNIBOX'S DECLARATION, NOT THIS FUNCTION'S OPINION**
+  // -- `BEST_IS_NEAREST_THE_INPUT`, which `Omnibox::pick_screen` converts the
+  // arrows through. It said *`Up` walking toward worse matches is then also
+  // literally up the screen* and reversed here alone, while the pick kept
+  // counting best-first: the invariant was written down, never derived, and
+  // the arrows ran backwards in both vocabularies until hv drove it.
+  let mut lines: Vec<(String, layout::Ink)> = listed
     .iter()
     .enumerate()
-    .rev()
     .map(|(i, (hit, hay, boost))| {
       let mark = if picked == Some(i) { "\u{276f} " } else { "  " };
       let line = format!("{mark}{hay}");
@@ -455,7 +463,11 @@ fn dropdown(app: &App) -> Vec<(String, layout::Ink)> {
       }
       (line, ink)
     })
-    .collect()
+    .collect();
+  if super::omnibox::BEST_IS_NEAREST_THE_INPUT {
+    lines.reverse();
+  }
+  lines
 }
 
 /// Drive the TUI until the operator quits.
@@ -1190,6 +1202,106 @@ mod tests {
       "the dropdown outlived the omnibox"
     );
   }
+  /// The caret's line on the dropdown, top line 0.
+  ///
+  /// **READ OFF THE COMPOSED SCREEN, NEVER OFF `omnibox.pick`.** The pick is an
+  /// INDEX into a best-FIRST list and the dropdown is drawn best-LAST, so an
+  /// assertion over the index agrees with the code by construction and says
+  /// nothing about what the operator sees. The seam being tested is exactly the
+  /// one between those two orders.
+  fn caret_line(screen: &Screen) -> usize {
+    screen
+      .dropdown
+      .iter()
+      .position(|(line, _)| line.starts_with("\u{276f} "))
+      .expect("no line wears the caret, so there is nothing to move")
+  }
+
+  /// **AN ARROW MOVES THE PICK THE WAY THE SCREEN READS, AND IT IS ONE
+  /// BEHAVIOUR IN BOTH VOCABULARIES** -- `dropdown` says so in its own header,
+  /// so a fix proved in MENU alone would leave the identical defect in OMNI.
+  ///
+  /// hv reported it in MENU: *the arrow keys for moving the selection are
+  /// backwards*. The cause is not in the menu at all -- `pick_move` walks a
+  /// best-FIRST index while `dropdown` renders best-LAST, so every screen-down
+  /// keypress walked the caret up. Both arms are driven here because both are
+  /// served by the one renderer.
+  #[test]
+  fn the_arrows_move_the_pick_the_way_the_screen_reads() {
+    use super::super::omnibox::Entry;
+
+    // MENU: the vocabulary hv was in when they hit it.
+    let mut app = App::explore();
+    app.commands = super::super::commands::vocabulary(&crate::spine::surface());
+    app.on_key(key(KeyCode::Char('/')), &[]);
+    let menu = screen_for(&app, &[], 80);
+    assert!(
+      menu.dropdown.len() >= 2,
+      "the palette offers fewer than two commands, so a move cannot be observed"
+    );
+    // **THE PICK OPENS ON THE BEST MATCH, WHICH IS THE BOTTOM LINE**, so `Down`
+    // is correctly a no-op here and starting with it would test the clamp
+    // rather than the direction. Asserted rather than assumed: it is the
+    // premise the rest of this arm rests on.
+    let bottom = menu.dropdown.len() - 1;
+    assert_eq!(
+      caret_line(&menu),
+      bottom,
+      "the palette must open on the best match, drawn nearest the input"
+    );
+    app.on_key(key(KeyCode::Up), &[]);
+    assert_eq!(
+      caret_line(&screen_for(&app, &[], 80)),
+      bottom - 1,
+      "MENU: `Up` must walk the caret one line UP the screen"
+    );
+    app.on_key(key(KeyCode::Down), &[]);
+    assert_eq!(
+      caret_line(&screen_for(&app, &[], 80)),
+      bottom,
+      "MENU: `Down` must bring the caret back down to where it started"
+    );
+    app.on_key(key(KeyCode::Down), &[]);
+    assert_eq!(
+      caret_line(&screen_for(&app, &[], 80)),
+      bottom,
+      "MENU: `Down` at the bottom line must clamp, never wrap"
+    );
+
+    // OMNI: the same renderer, the other vocabulary.
+    let mut app = App::explore();
+    app.index = vec![
+      Entry {
+        id: "ST0056".into(),
+        title: "Add a Rust-based CLI".into(),
+        status: "wip".into(),
+        door: View::Item {
+          kind: "thread".into(),
+          id: "ST0056".into(),
+        },
+      },
+      Entry {
+        id: "0056".into(),
+        title: "an issue sharing digits with a thread".into(),
+        status: "open".into(),
+        door: View::Item {
+          kind: "issue".into(),
+          id: "0056".into(),
+        },
+      },
+    ];
+    for c in "56".chars() {
+      app.on_key(key(KeyCode::Char(c)), &[]);
+    }
+    let before = caret_line(&screen_for(&app, &[], 80));
+    app.on_key(key(KeyCode::Up), &[]);
+    assert_eq!(
+      caret_line(&screen_for(&app, &[], 80)),
+      before - 1,
+      "OMNI: `Up` must walk the caret one line UP the screen"
+    );
+  }
+
   /// **A NOTICE THAT NEVER REACHES THE SCREEN IS A SILENT FAILURE WEARING A
   /// GREEN'S CLOTHES** -- driven after a pty run showed three write-path
   /// notices vanishing. The hint line must carry a standing notice in every

@@ -169,6 +169,12 @@ pub struct App {
   /// whether the save landed, was declined, or was refused by the store. A
   /// silent return is indistinguishable from a silent failure.
   pub notice: String,
+  /// The project's DIRECTORY name, for the APP row's right-hand group.
+  ///
+  /// **SET BY THE LAUNCHER, EMPTY EVERYWHERE ELSE.** The app is driven headless
+  /// in tests with no store behind it, and an empty label composes the brand
+  /// alone -- so nothing here has to invent a project it does not have.
+  pub project: String,
   /// The rest state's input: buffer and pick. See [`super::omnibox`].
   pub omnibox: Omnibox,
   /// Every addressable entity, for the omnibox's matcher. Handed in by the
@@ -214,6 +220,7 @@ impl App {
       wants_detail: false,
       detail_focus: None,
       notice: String::new(),
+      project: String::new(),
       omnibox: Omnibox::default(),
       index: Vec::new(),
       commands: Vec::new(),
@@ -235,6 +242,12 @@ impl App {
     self
   }
 
+  /// Name the project whose directory this run is browsing.
+  pub fn in_project(mut self, name: impl Into<String>) -> Self {
+    self.project = name.into();
+    self
+  }
+
   /// `intent explore` -- rooted where [`Stack::explore`] roots: the threads
   /// list. One home for the root; this constructor only borrows it.
   pub fn explore() -> Self {
@@ -247,6 +260,29 @@ impl App {
       kind: kind.into(),
       id: id.into(),
     })
+  }
+
+  /// Step on until the cursor is off a boundary row.
+  ///
+  /// **A SEPARATOR THE CURSOR CAN REST ON IS AN ITEM, WHICH IS THE ONE THING IT
+  /// IS NOT.** The arrow keeps travelling in the direction it was already
+  /// going, so a rule costs the operator nothing and never reverses them.
+  ///
+  /// It gives up rather than looping where the step stops changing anything --
+  /// a rule against the end of the list. Nothing produces that today (a
+  /// boundary sits BETWEEN groups, so both sides are non-empty by
+  /// construction), and a cursor resting on a rule is a wart where a hang is
+  /// not.
+  fn past_rules(f: Focus, step: fn(Focus) -> Focus, rows: &[Row]) -> Focus {
+    let mut cur = f;
+    while rows.get(cur.index()).is_some_and(Row::is_rule) {
+      let next = step(cur);
+      if next.index() == cur.index() {
+        break;
+      }
+      cur = next;
+    }
+    cur
   }
 
   /// The row under the cursor, if there is one.
@@ -406,7 +442,7 @@ impl App {
         }
         "Move" if !self.omnibox.is_empty() => {
           let n = self.match_count();
-          self.omnibox.pick_move(key.code == KeyCode::Down, n);
+          self.omnibox.pick_screen(key.code == KeyCode::Down, n);
           return Step::Continue;
         }
         "Enter" if !self.omnibox.is_empty() => {
@@ -461,7 +497,7 @@ impl App {
         }
         "Move" => {
           let n = self.palette().len();
-          self.omnibox.pick_move(key.code == KeyCode::Down, n);
+          self.omnibox.pick_screen(key.code == KeyCode::Down, n);
           return Step::Continue;
         }
         "Enter" => {
@@ -681,7 +717,10 @@ impl App {
       match self.pane(rows) {
         Pane::Detail => self.detail_focus = self.detail_focus.map(step),
         Pane::List => {
-          self.focus = self.focus.map(step);
+          self.focus = self
+            .focus
+            .map(step)
+            .map(|f| Self::past_rules(f, step, rows));
           // **LEAVING THE ROW LEAVES ITS PANE.** The detail belonged to the row
           // that opened it, so carrying the request onto the next row would
           // reopen a pane over somebody else's detail -- or over none.
@@ -1794,6 +1833,52 @@ mod tests {
     );
   }
 
+  /// **A BOUNDARY IS DRAWN, STEPPED OVER, AND NOT COUNTED** -- hv's ask,
+  /// 2026-09-03: open threads at the top, a dividing line, then the rest.
+  ///
+  /// Three properties, because a separator that fails any one of them is worse
+  /// than none: it must be VISIBLE (a line across the body), it must not hold
+  /// the cursor (it is not a thing you can open), and it must not enter the
+  /// position count (a list of two must not report three). The first is
+  /// `layout`'s; the other two are this file's and are what this drives.
+  #[test]
+  fn the_cursor_steps_over_a_boundary_row_and_never_rests_on_one() {
+    let rows = vec![
+      Row::new("ST0011", "open one", "button").opening(View::Item {
+        kind: "thread".into(),
+        id: "ST0011".into(),
+      }),
+      Row::rule(),
+      Row::new("ST0009", "closed one", "button").opening(View::Item {
+        kind: "thread".into(),
+        id: "ST0009".into(),
+      }),
+    ];
+    let mut app = App::explore();
+    app.point_at(rows.len());
+    assert_eq!(app.focus.map(Focus::index), Some(0));
+
+    // Down from the last open row lands on the first CLOSED row, not the rule.
+    app.on_key(key(KeyCode::Down), &rows);
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(2),
+      "the cursor came to rest on the boundary instead of stepping over it"
+    );
+    assert!(
+      app.focused_row(&rows).is_some_and(|r| !r.is_rule()),
+      "the focused row is a boundary, which is not a thing the operator can open"
+    );
+
+    // And back up, in the direction the arrow was already going.
+    app.on_key(key(KeyCode::Up), &rows);
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(0),
+      "stepping back over the boundary did not reach the row above it"
+    );
+  }
+
   /// **THE ARROWS MOVE THE PALETTE AND MUST NOT MOVE THE BODY.** hv reported
   /// them as doing nothing; they were doing something WORSE -- the generic
   /// `Move` handler is not mode-guarded, so in MENU they scrolled the list
@@ -1814,7 +1899,14 @@ mod tests {
 
     app.on_key(key(KeyCode::Char('/')), &r);
     let pick_before = app.omnibox.picked(app.palette().len());
-    app.on_key(key(KeyCode::Down), &r);
+    // **`Up`, NOT `Down`, AND THE SWAP IS THE POINT.** The palette opens on the
+    // best match, which is drawn NEAREST THE INPUT -- the bottom line -- so
+    // `Down` is correctly a no-op and this test would be asserting the clamp.
+    // It drove `Down` and passed until 2026-09-03, which it could only do while
+    // the arrows ran backwards: the assertion was satisfied BY the defect hv
+    // then reported. A test that only moves while something is broken is worth
+    // less than no test, because it reads as cover.
+    app.on_key(key(KeyCode::Up), &r);
 
     assert_ne!(
       app.omnibox.picked(app.palette().len()),
@@ -1992,7 +2084,9 @@ mod tests {
         app.on_key(key(KeyCode::Char('/')), &rows);
         let k = match t {
           "Typing" => key(KeyCode::Char('q')),
-          "Move" => key(KeyCode::Down),
+          // `Up`: the palette opens on the bottom line, so `Down` clamps and
+          // this trigger would read as inert. See the palette arrow test.
+          "Move" => key(KeyCode::Up),
           "Enter" => key(KeyCode::Enter),
           "Esc" => key(KeyCode::Esc),
           "Cancel" => KeyEvent::new(KeyCode::Char('g'), KeyModifiers::CONTROL),

@@ -133,6 +133,7 @@ mod tests {
     Screen {
       detail: None,
       app: "ST0056   Add a Rust-based CLI".into(),
+      project: String::new(),
       body: plan(&rows(), W as usize),
       omnibox: "\u{276f}".into(),
       caret: Some(1),

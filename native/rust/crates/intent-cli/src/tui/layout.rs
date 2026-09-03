@@ -186,7 +186,29 @@ pub struct Row {
   pub door: Option<super::nav::View>,
 }
 
+/// The kind of a row that is a BOUNDARY rather than a thing.
+///
+/// **A SEPARATOR IS NOT AN ITEM, AND THE ROW MODEL HAD NO WAY TO SAY SO.**
+/// Every other row is something the operator can select and open; this one is
+/// chrome that happens to live in the body, because the body is the only place
+/// a boundary BETWEEN rows can be drawn. So it is declared as a kind, the
+/// cursor steps over it ([`super::app::App`]'s `Move`) and the position
+/// indicator does not count it -- three places, because a separator that can be
+/// selected, or that makes a list of ten report eleven, is worse than no
+/// separator at all.
+pub const RULE_KIND: &str = "rule";
+
 impl Row {
+  /// A horizontal rule across the body: a boundary between groups of rows.
+  pub fn rule() -> Self {
+    Row::new("", "", RULE_KIND)
+  }
+
+  /// Is this row a boundary rather than a thing the operator can act on?
+  pub fn is_rule(&self) -> bool {
+    self.kind == RULE_KIND
+  }
+
   /// A row whose identity IS what it displays -- a thread id, an entity kind.
   pub fn new(title: impl Into<String>, value: impl Into<String>, kind: impl Into<String>) -> Self {
     let title = title.into();
@@ -387,30 +409,59 @@ pub const BRAND: &str = "\u{1f422} Intent";
 /// is a display wart, not a correctness failure -- nothing is clipped by it,
 /// because the brand is the LAST thing composed and the first thing dropped.
 pub fn brand_cols() -> usize {
-  BRAND
-    .chars()
-    .map(|c| if c.is_ascii() { 1 } else { 2 })
-    .sum()
+  cols(BRAND)
 }
 
-/// The APP row with [`BRAND`] set against its right edge.
+/// What a string costs in COLUMNS under the declared rule: ASCII is one,
+/// anything else is two.
 ///
-/// **THE BRAND IS DROPPED, NEVER CLIPPED, AND NEVER ALLOWED TO EAT THE TEXT.**
-/// It is the least informative thing on the screen -- the operator knows which
-/// program they are running -- so on a viewport too narrow to carry both, the
-/// row says where you ARE and the brand goes, which is the same degradation
-/// order this module already applies to the composer's frame.
-fn branded(left: &str, w: usize) -> (String, Ink) {
-  let cost = brand_cols();
+/// **THE RULE WAS DECLARED FOR ONE STRING AND NOW SERVES TWO**, because the
+/// APP row carries the project's directory name beside the brand and a
+/// directory name is the operator's, not ours. The rule stays a rule rather
+/// than becoming a width model: a name in a script this over-counts reserves a
+/// column too many and shifts the group one left, which is the same display
+/// wart [`BRAND`] already documents for a single-width turtle, and it errs
+/// toward reserving rather than clipping.
+pub fn cols(s: &str) -> usize {
+  s.chars().map(|c| if c.is_ascii() { 1 } else { 2 }).sum()
+}
+
+/// What separates the project from the brand on the APP row.
+pub const BRAND_SEP: &str = " | ";
+
+/// The APP row with the project and [`BRAND`] against its right edge:
+/// `Utilz | \u{1f422} Intent`.
+///
+/// **THE RIGHT GROUP DEGRADES RIGHT-TO-LEFT, AND THE ORDER IS THE WHOLE
+/// POINT** (hv, 2026-09-03). This said the brand *is the least informative
+/// thing on the screen -- the operator knows which program they are running*,
+/// which is true of the brand and FALSE of the project name: that one answers
+/// *which checkout am I in*, and it is the question that bites hardest on a
+/// machine carrying two of them. So the turtle goes first and the project name
+/// is held longest; a narrowing viewport must never silently take away the one
+/// fact this row was widened to carry.
+///
+/// **THE TEXT STILL OUTRANKS BOTH.** Where even the project name cannot be
+/// afforded, the row says where you ARE and the group goes entirely -- the
+/// same degradation order this module applies to the composer's frame.
+///
+/// An empty `project` composes the brand alone, which is what every caller
+/// without a store on the other end gets.
+fn branded(left: &str, project: &str, w: usize) -> (String, Ink) {
   let text = clip(left, w);
   let used = text.chars().count();
-  // One column of air between the two, minimum, or they read as one string.
-  if used + 1 + cost > w {
-    let n = text.chars().count();
-    return (text, vec![(0, n, Role::Title)]);
-  }
-  let pad = w - used - cost;
-  let line = format!("{text}{}{BRAND}", " ".repeat(pad));
+  // One column of air between the text and the group, minimum, or they read as
+  // one string. Right-to-left: the fullest group that still fits wins.
+  let full = format!("{project}{BRAND_SEP}{BRAND}");
+  let Some(right) = [full.as_str(), project, BRAND]
+    .into_iter()
+    .filter(|c| !c.is_empty())
+    .find(|c| used + 1 + cols(c) <= w)
+  else {
+    return (text, vec![(0, used, Role::Title)]);
+  };
+  let pad = w - used - cols(right);
+  let line = format!("{text}{}{right}", " ".repeat(pad));
   // **THE INK IS IN CHARACTERS BECAUSE THE PRINTER INDEXES CHARACTERS**, so
   // the brand's span is its char count and not its column cost. The two differ
   // by exactly the emoji, and using the wrong one here would colour one
@@ -420,7 +471,7 @@ fn branded(left: &str, w: usize) -> (String, Ink) {
     line,
     vec![
       (0, used, Role::Title),
-      (start, start + BRAND.chars().count(), Role::Door),
+      (start, start + right.chars().count(), Role::Door),
     ],
   )
 }
@@ -473,6 +524,14 @@ fn caret_ink(ink: &mut Ink, at: Option<usize>, limit: usize) {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Screen {
   pub app: String,
+  /// The project's DIRECTORY name, shown left of the brand on the APP row.
+  ///
+  /// **THE DIRECTORY, NOT `config.project_name`**, ruled by hv 2026-09-03 and
+  /// it is the discriminating one: `~/Devel/prj/Intentv2` declares
+  /// `project_name: "Intent"`, so the configured name cannot tell two checkouts
+  /// of one project apart and the directory can. Empty where there is no
+  /// project on the other end, which composes the brand alone.
+  pub project: String,
   pub body: Plan,
   /// The lower pane, when the selected row carries detail.
   ///
@@ -597,7 +656,7 @@ impl Screen {
     let rule_ink: Ink = vec![(0, rule.chars().count(), Role::Chrome)];
     let whole = |line: &str, role: Role| -> Ink { vec![(0, line.chars().count(), role)] };
     let mut out: Vec<(String, Ink)> = Vec::with_capacity(height);
-    let (app, app_ink) = branded(&self.app, w);
+    let (app, app_ink) = branded(&self.app, &self.project, w);
     out.push((app, app_ink));
     out.push((rule.clone(), rule_ink.clone()));
 
@@ -771,6 +830,17 @@ pub fn plan(rows: &[Row], width: usize) -> Plan {
   let mut lines = Vec::with_capacity(rows.len());
   let mut inks = Vec::with_capacity(rows.len());
   for r in rows {
+    // **A RULE ROW IS ONE LINE LIKE ANY OTHER**, which is what keeps the row
+    // index and the line index the same number -- the selected overlay and the
+    // scroll window both address rows by position, so a row rendering as two
+    // lines (or none) would silently move the highlight off the row it names.
+    if r.is_rule() {
+      let line: String = std::iter::repeat_n(RULE, width).collect();
+      let n = line.chars().count();
+      inks.push(vec![(0, n, Role::Chrome)]);
+      lines.push(line);
+      continue;
+    }
     let name = clip(&r.title, name_width);
     let pad = name_width - name.chars().count();
     let value = clip(&r.value, value_width);
@@ -850,6 +920,7 @@ mod tests {
     Screen {
       detail: None,
       app: "ST0056   Add a Rust-based CLI".into(),
+      project: String::new(),
       body: plan(&hard_rows(), NARROW),
       omnibox: "\u{276f}".into(),
       caret: Some(1),
@@ -885,7 +956,7 @@ mod tests {
   #[test]
   fn the_app_row_carries_the_brand_against_its_right_edge() {
     let w = 60;
-    let (line, ink) = branded("thread", w);
+    let (line, ink) = branded("thread", "", w);
     assert!(
       line.ends_with(BRAND),
       "the brand is not against the right edge: {line:?}"
@@ -910,7 +981,7 @@ mod tests {
   #[test]
   fn a_viewport_too_narrow_for_both_keeps_the_view_name_and_drops_the_brand() {
     for w in 1..=(brand_cols() + 6) {
-      let (line, _) = branded("thread", w);
+      let (line, _) = branded("thread", "", w);
       assert!(
         !line.contains('\u{1f422}') || line.ends_with(BRAND),
         "at width {w} the brand was clipped rather than dropped: {line:?}"
@@ -920,10 +991,68 @@ mod tests {
         "at width {w} the row overflowed: {line:?}"
       );
     }
-    let (line, _) = branded("thread", 8);
+    let (line, _) = branded("thread", "", 8);
     assert!(
       line.starts_with("thread") && !line.contains('\u{1f422}'),
       "a narrow row lost the view name rather than the brand: {line:?}"
+    );
+  }
+
+  /// **THE PROJECT SITS LEFT OF THE BRAND AND OUTLIVES IT WHEN SPACE RUNS
+  /// OUT** -- hv's ask, 2026-09-03, and the ORDER is the half worth testing.
+  ///
+  /// Dropping right-to-left is what makes the row worth widening: the brand is
+  /// decoration the operator can infer, and the project name answers *which
+  /// checkout am I in*. A degradation that took them in the other order, or
+  /// together, would remove the new fact first and leave the old decoration --
+  /// and it would look completely fine at full width, which is where a screen
+  /// is always read when it is being checked.
+  #[test]
+  fn the_project_sits_beside_the_brand_and_is_the_last_of_the_two_to_go() {
+    let w = 60;
+    let (line, ink) = branded("thread", "Utilz", w);
+    assert!(
+      line.ends_with(&format!("Utilz{BRAND_SEP}{BRAND}")),
+      "the project must sit immediately left of the brand: {line:?}"
+    );
+    assert!(
+      line.starts_with("thread"),
+      "the group displaced the view name"
+    );
+    assert!(
+      ink.iter().any(|&(_, _, r)| r == Role::Door),
+      "the right-hand group carries no ink of its own"
+    );
+
+    // Narrow until each piece goes, and assert the ORDER rather than the widths
+    // -- the widths are arithmetic, the order is the ruling.
+    let full = cols("Utilz") + cols(BRAND_SEP) + cols(BRAND);
+    let mut seen_project_alone = false;
+    for w in 1..=(full + "thread".len() + 2) {
+      let (line, _) = branded("thread", "Utilz", w);
+      assert!(
+        line.chars().count() <= w,
+        "at width {w} the row overflowed: {line:?}"
+      );
+      let has_brand = line.contains('\u{1f422}');
+      let has_project = line.contains("Utilz");
+      assert!(
+        !has_brand || has_project,
+        "at width {w} the BRAND survived and the project did not -- the drop ran \
+         left-to-right: {line:?}"
+      );
+      if has_project && !has_brand {
+        seen_project_alone = true;
+      }
+      assert!(
+        line.starts_with("thread") || w < "thread".len(),
+        "at width {w} the row lost the view name before the group: {line:?}"
+      );
+    }
+    assert!(
+      seen_project_alone,
+      "no width dropped the brand and kept the project, so the ordering this test \
+       exists for was never exercised"
     );
   }
 

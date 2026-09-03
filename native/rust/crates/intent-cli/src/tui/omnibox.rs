@@ -205,6 +205,17 @@ pub enum Go {
   Spelling(String),
 }
 
+/// Is the BEST offer drawn nearest the input, at the bottom of the dropdown?
+///
+/// **THE ONE HOME FOR THE OFFER LIST'S DIRECTION.** The renderer reverses on
+/// it ([`super::run`]'s `dropdown`) and the motion converts through it
+/// ([`Omnibox::pick_screen`]), so the arrows and the picture cannot drift
+/// apart -- which they had, silently, for as long as both existed.
+///
+/// True because the input sits at the BOTTOM: the adjacent line is where the
+/// eye rests, which is the television idiom for a bottom prompt.
+pub const BEST_IS_NEAREST_THE_INPUT: bool = true;
+
 impl Omnibox {
   /// Where the caret is, in chars.
   pub fn cursor(&self) -> usize {
@@ -394,7 +405,30 @@ impl Omnibox {
     }
   }
 
+  /// Move the pick by a SCREEN direction, which is the only direction an
+  /// operator has.
+  ///
+  /// **THIS EXISTS BECAUSE THE PICK AND THE PICTURE COUNT IN OPPOSITE
+  /// DIRECTIONS, AND NOTHING USED TO RECONCILE THEM.** `pick_move` walks an
+  /// index over a best-FIRST list; the dropdown is drawn best-LAST
+  /// ([`BEST_IS_NEAREST_THE_INPUT`]). Both were correct about their own half
+  /// and no code owned the relationship, so every `Down` walked the caret up
+  /// the screen -- in the palette AND in the omnibox, because one renderer
+  /// serves both. hv reported it in the palette on 2026-09-03.
+  ///
+  /// **THE CONVERSION IS DERIVED FROM THE RENDER ORDER RATHER THAN WRITTEN
+  /// OUT**, so flipping [`BEST_IS_NEAREST_THE_INPUT`] moves the arrows with
+  /// the picture and cannot leave them disagreeing again. A hand-inverted
+  /// boolean at each call site would have fixed the symptom and rebuilt the
+  /// defect: two places obliged to agree, with nothing holding them to it.
+  pub fn pick_screen(&mut self, screen_down: bool, n: usize) {
+    self.pick_move(screen_down != BEST_IS_NEAREST_THE_INPUT, n);
+  }
+
   /// Move the pick. `down` walks toward worse matches; the list is best-first.
+  ///
+  /// **THIS IS INDEX SPACE, NOT SCREEN SPACE.** Callers holding a keystroke
+  /// want [`pick_screen`](Self::pick_screen).
   pub fn pick_move(&mut self, down: bool, n: usize) {
     let Some(cur) = self.picked(n) else { return };
     self.pick = if down {

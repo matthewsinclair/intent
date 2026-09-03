@@ -3183,6 +3183,17 @@ fn explore(address: Option<&str>) -> Result<(), Failure> {
   // **THE ADDRESS IS RESOLVED BEFORE THE TERMINAL IS TAKEN**, so a spelling
   // this tool cannot read is reported on the info row of a screen the operator
   // can read, rather than behind a raw-mode switch.
+  // **THE DIRECTORY NAME, NOT `config.project_name`** (hv, 2026-09-03). The
+  // configured name cannot discriminate two checkouts of one project --
+  // `Intentv2` declares itself `Intent` -- and telling them apart is the
+  // question the operator has when they look at this row.
+  let project = live
+    .facade
+    .project()
+    .root()
+    .file_name()
+    .map(|n| n.to_string_lossy().into_owned())
+    .unwrap_or_default();
   let mut app = match address {
     None => tui::app::App::explore(),
     Some(spelling) => match nav::land(spelling, |v| present(&live.facade, v)) {
@@ -3199,6 +3210,7 @@ fn explore(address: Option<&str>) -> Result<(), Failure> {
       }
     },
   };
+  app = app.in_project(project);
   tui::run::run(&mut app, &mut live, session)
     .map_err(|e| Failure::Error(format!("error: the terminal would not co-operate: {e}")))
 }
@@ -3585,16 +3597,42 @@ fn rows_for(
         "label",
       )],
     },
-    View::Collection { kind } if kind == "thread" => facade
-      .st_list()
-      .into_iter()
-      .map(|t| {
-        Row::new(t.id.clone(), t.title.clone(), "button").opening(View::Item {
-          kind: "thread".into(),
-          id: t.id.clone(),
-        })
-      })
-      .collect(),
+    // **THE ORDER WAS ALREADY RIGHT AND THE SEAM WAS INVISIBLE** (hv,
+    // 2026-09-03, asking for open threads at the top with a line under them).
+    // `index_order` has sorted open-before-closed all along, so nothing here
+    // sorts: what was missing is a boundary the eye can find, and drawing one
+    // is all this does.
+    //
+    // **STATUS, CREATED AND COMPLETED ARE NOT HERE YET, DELIBERATELY.** hv
+    // asked for them alongside this and they do not fit: `Row` carries one
+    // name and one value, so five columns need the row type to grow, and the
+    // collection arm is the ONE view that does not go through
+    // `form::triples` -- adding a hand-kept column set here would give the
+    // terminal columns the web face has no way to learn about, which is the
+    // divergence `AC-17.1` exists to refuse. hv ruled it rides with WP-17,
+    // where the row type is already being opened up. Ordering and the seam
+    // are shared today (`views::open_run`), so nothing diverges in the
+    // meantime.
+    View::Collection { kind } if kind == "thread" => {
+      let threads = facade.st_list();
+      let open = intentsvcs::views::open_run(&threads);
+      let mut rows: Vec<Row> = Vec::with_capacity(threads.len() + 1);
+      for (i, t) in threads.iter().enumerate() {
+        // **A RULE SEPARATING NOTHING FROM SOMETHING IS DECORATION**, which
+        // this module refuses elsewhere in as many words: no open threads, or
+        // no closed ones, and there are not two groups to divide.
+        if i == open && open > 0 {
+          rows.push(Row::rule());
+        }
+        rows.push(
+          Row::new(t.id.clone(), t.title.clone(), "button").opening(View::Item {
+            kind: "thread".into(),
+            id: t.id.clone(),
+          }),
+        );
+      }
+      rows
+    }
     View::Collection { kind } if kind == "issue" => facade
       .issue_list()
       .into_iter()

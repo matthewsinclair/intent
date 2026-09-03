@@ -910,6 +910,22 @@ fn test_line(t: &AcceptanceTest) -> String {
 /// `tests/unit/output_width.bats` asserts `st list --status all` and `st sync`
 /// render byte-identically, and two sorts that happen to match today would
 /// satisfy it until one of them changed.
+/// How many of an [`index_order`] run are still OPEN -- the index the closed
+/// ones begin at, and so the boundary between the two groups.
+///
+/// **DECLARED HERE BECAUSE IT IS A FACT ABOUT THE ORDER, NOT ABOUT A SCREEN.**
+/// `index_order` already sorts open-before-closed; that grouping is invisible
+/// until something draws the seam, and every face that draws it must put it in
+/// the same place. Computing it in a renderer would make the terminal and the
+/// web agree by two people reading this function rather than by calling it.
+///
+/// **IT IS A COUNT, NOT A LINE.** Whether a boundary is worth drawing at all --
+/// it is not, with nothing on one side of it -- is the renderer's call, because
+/// that is a question about a picture.
+pub fn open_run(ordered: &[&Thread]) -> usize {
+  ordered.iter().take_while(|t| !t.status.is_closed()).count()
+}
+
 pub fn index_order(threads: &[Thread]) -> Vec<&Thread> {
   let mut ordered: Vec<&Thread> = threads.iter().collect();
   ordered.sort_by(|a, b| {
@@ -1488,6 +1504,47 @@ pub fn skew(
 
 #[cfg(test)]
 mod tests {
+  /// **`open_run` MARKS THE SEAM `index_order` ALREADY SORTS TO**, so the two
+  /// cannot disagree about where the open threads stop.
+  ///
+  /// Driven over the WHOLE status enum rather than over WIP and Completed:
+  /// `is_closed` covers Completed AND Cancelled, and Triage / NotStarted / Hold
+  /// are all open -- a test naming two of the six would pass while treating
+  /// four of them as unexamined, and would go stale by being right.
+  #[test]
+  fn the_open_run_ends_exactly_where_the_closed_threads_begin() {
+    let threads: Vec<Thread> = crate::model::ThreadStatus::ALL
+      .iter()
+      .enumerate()
+      .map(|(i, &status)| {
+        // The WIRE spelling, taken from the type rather than typed out -- the
+        // serde name is the one `thread()` parses, and hand-copying six of them
+        // is how a fixture starts disagreeing with the model it fixtures.
+        let spelling = serde_json::to_value(status).expect("a status serialises");
+        thread(
+          &format!("ST{:04}", i + 1),
+          spelling.as_str().expect("a status is a JSON string"),
+        )
+      })
+      .collect();
+    let ordered = index_order(&threads);
+    let open = open_run(&ordered);
+
+    assert!(
+      ordered[..open].iter().all(|t| !t.status.is_closed()),
+      "a closed thread sits above the seam"
+    );
+    assert!(
+      ordered[open..].iter().all(|t| t.status.is_closed()),
+      "an open thread sits below the seam"
+    );
+    assert_eq!(
+      open,
+      threads.iter().filter(|t| !t.status.is_closed()).count(),
+      "the seam does not account for every open thread"
+    );
+  }
+
   use super::*;
   use crate::model::{THREAD_SCHEMA, ThreadStatus, WpStatus};
 
