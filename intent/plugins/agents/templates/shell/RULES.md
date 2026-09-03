@@ -5,7 +5,7 @@ Mandatory shell (bash + zsh) coding rules for this project. Concretises the four
 ## Canon Concretisations
 
 - **Highlander** (`IN-AG-HIGHLANDER-001`) -- one canonical implementation per concern. No divergent helper scripts. Source shared functions from `lib/` or a `helpers` script. Concretised by `IN-SH-CODE-001`.
-- **PFIC** (`IN-AG-PFIC-001`) -- prefer `case` for branching, pipelines for composition, parameter expansion over awk/sed when possible. Concretised by `IN-SH-CODE-002`.
+- **PFIC** (`IN-AG-PFIC-001`) -- Pure Function, Impure Coordination. Read it with `intent claude rules show IN-AG-PFIC-001`.
 - **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- top-level scripts parse to call to render; business logic in sourced functions. Concretised by `IN-SH-CODE-003`.
 - **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- always `set -euo pipefail` (or document why not). Check exit codes; never `cmd || true` to suppress failures unless the failure is genuinely benign. Concretised by `IN-SH-CODE-004`.
 

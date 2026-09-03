@@ -5,7 +5,7 @@ Mandatory Swift coding rules for this project. Concretises the four agnostic pri
 ## Canon Concretisations
 
 - **Highlander** (`IN-AG-HIGHLANDER-001`) -- one canonical implementation per concern. No divergent helper modules. Concretised by `IN-SW-CODE-001`.
-- **PFIC** (`IN-AG-PFIC-001`) -- prefer pattern matching with `switch`, value types, `Result<Success, Failure>` propagation. Concretised by `IN-SW-CODE-002`.
+- **PFIC** (`IN-AG-PFIC-001`) -- Pure Function, Impure Coordination. Read it with `intent claude rules show IN-AG-PFIC-001`.
 - **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- view models / view controllers parse to call to render; business logic in dedicated services. Concretised by `IN-SW-CODE-003`.
 - **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- never swallow `try?` or `try!` for fallible work outside tests. Surface errors via `do/catch`, `Result`, or thrown propagation. Concretised by `IN-SW-CODE-004`.
 
