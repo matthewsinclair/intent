@@ -4,9 +4,9 @@ name: DevX Claude
 role: worker
 session_id: 1632d4ac-829b-4990-b3cb-67cb95f92204
 commit_session_id: 01WkA5QasnHyFRoRC592WbXW -- READ OFF MY OWN COMMIT fa4f8f1c's TRAILER, not off the harness announcement that also carries it. The two agreed here; they are still different sources and only one of them is the artefact. POINT-IN-TIME, one session, never a table -- the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-03 14:50Z
+heartbeat_at: 2026-09-03 14:59Z
 status: active
-focus: "LOCALFOLD 2026-09-03 14:46Z, AGGRESSIVE, on hv's instruction ahead of a compact. STATUS STAYS active. Pre-fold verbatim + cmp-verified at .history/20260903/wip-prefold-1446Z.md (sha 0a07d12a, 64,829 bytes); reasoning in day-narrative-1446Z.md. THE CUT WAS Watch-outs -- 70% of the board -- rules kept and worked examples archived; 61 W-numbers before, 61 after. Decisions was NOT compressed, deliberately: hv provenance entries are verbatim and are never compressed. TODAY: hv's dvb fullcycle review delivered (nothing broken, devbin 0049 residue); the v3.0.1 release note DONE both limbs after three corrections, two of them mine; the four PFIC language templates fixed. MINE AND OPEN: the currency-arm reach row, not started. NO FIGURES HERE -- run the verbs."
+focus: "BOUNCED 2026-09-03 14:59Z after the localfold + compact hv called. PICKED UP CLEAN -- four inboxes at the empty sentinel, my dir clean, 61 W-numbers intact. STATUS STAYS active. NOTHING IN FLIGHT. THE PICKUP'S FIND, AND IT CAME OFF hv's BOARD RATHER THAN MINE: hv's AC-02.3 fixture-coverage census, ruled 2026-08-31 14:41Z with OWNER dc, has NEVER been on this board and appears in NO inbox I hold -- a ruling that never arrived rather than one I dropped -- and the ground its sibling decline rested on was retired by the scarcity strike. MINE AND OPEN: that census, and the currency-arm reach row. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -36,12 +36,14 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-- **NOTHING IN FLIGHT. LOCALFOLD 2026-09-03 14:46Z, aggressive, on hv's instruction ahead of a compact.** Pre-fold verbatim + `cmp`-verified at `.history/20260903/wip-prefold-1446Z.md` (sha `0a07d12a`, 64,829 bytes); reasoning beside it in `day-narrative-1446Z.md`. **STATUS STAYS `active` -- a fold is not the end of a session.**
-- **THE CUT WAS Watch-outs, WHICH WAS 45,521 OF 64,829 BYTES -- 70% OF THE BOARD.** Rules kept, worked examples archived. **Control: 61 W-numbers entered before, 61 after, W1-W60 plus W4a.**
+- **NOTHING IN FLIGHT. BOUNCED 2026-09-03 14:59Z after the localfold + compact hv called.** Picked up clean at `ebc728db`: four inboxes at the `_(empty)_` sentinel, my dir clean, 61 W-numbers intact, board 42,267 bytes. **STATUS STAYS `active`.** Pre-fold verbatim + `cmp`-verified at `.history/20260903/wip-prefold-1446Z.md` (sha `0a07d12a`, 64,829 bytes); reasoning beside it in `day-narrative-1446Z.md`.
+- **THE PICKUP FOUND AN hv RULING WITH MY NAME ON IT THAT HAS NEVER BEEN ON THIS BOARD -- SEE TODO.** It came off **hv's** board, and it could only have come off hv's board: **mine is the one place in the estate where its absence is the whole defect**, so no amount of reading my own board finds it. **A pickup that reads only your own board and your own inboxes cannot detect work assigned to you that never arrived.**
 
 ## TODO
 
-**MINE AND OPEN -- ONE, AND IT IS NOT STARTED:**
+**MINE AND OPEN -- TWO, NEITHER STARTED:**
+
+- **THE `AC-02.3` FIXTURE-COVERAGE CENSUS. hv RULED IT 2026-08-31 14:41Z, OWNER dc, AND IT NEVER REACHED ME.** Menu: census first **CHOSEN**; build the fixtures now (declined -- _real work in a tag window on a docs thread_); ship `AC-02.3` red (declined, **explicitly not off the table** -- it is what happens if the census says the work is large). **ZERO hits across every archived inbox and every pre-fold board I hold, back to 20260815.** So this is not a ruling I dropped; **it is one that never arrived, and the only surface that records it is the board of the node who made it.** hv's board has read _no action needed until dc's census returns a number_ since 2026-09-01 08:38Z. **AND THE BAR HAS MOVED SINCE THE RULING**: the decline's ground was scarcity, hv struck that register as a class on 2026-09-01 08:32Z, and hv's own entry records this one as **(iii) HALF-AFFECTED -- the CHOSEN option untouched, the DECLINE no longer able to rest on cost.** **So the census is not merely late: it is now what re-derives the build option on its merits.** Subject: the 27 undispositioned members, and how few fixtures cover them given they share preconditions -- a migrated v2 estate, a running daemon, an installed skill, a bucketed thread. **A CENSUS, NOT A BUILD**, and the number is read against a bar with no schedule in it.
 
 - **THE CURRENCY ARM'S REACH IS ONE PATH WHERE THE PROPERTY IS THREE.** `_rust_source_changed` (`currency.lib:108`) diffs `-- native/rust` alone; the dirt side's scope is `native/rust surface docs/design`, and three `include_str!` sites reach outside the arm. **The row is a DERIVATION, two limbs**: (i) bind the currency arm's population to `DIRT_SCOPE` the way the dirt arm's already is -- the containment arm exists for dirt and has no counterpart for currency; (ii) **whatever binds the diff must also SUPPLY THE SENTENCE** at `self_provenance_check.sh:388`, or the prose is a fifth home the day the pathspec moves. **NOT FIRING TODAY and not to be sized as an outage** -- three nodes drove the range separately and got zero. **It agrees with the truth by luck, and nothing distinguishes luck from construction.** Direction sets the priority: **an UNCOMMITTED `surface/` edit is caught and a COMMITTED one is not.** Mine: `cmd/` is Intent's own, not vendored (W59).
 
