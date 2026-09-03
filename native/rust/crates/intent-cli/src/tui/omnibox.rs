@@ -25,6 +25,8 @@
 
 use intentsvcs::nav::View;
 
+use super::focus::Motion;
+
 /// One addressable destination, as the omnibox sees it.
 ///
 /// **THE DOOR IS DECLARED, NOT DERIVED** -- the same rule rows follow
@@ -421,8 +423,32 @@ impl Omnibox {
   /// the picture and cannot leave them disagreeing again. A hand-inverted
   /// boolean at each call site would have fixed the symptom and rebuilt the
   /// defect: two places obliged to agree, with nothing holding them to it.
-  pub fn pick_screen(&mut self, screen_down: bool, n: usize) {
-    self.pick_move(screen_down != BEST_IS_NEAREST_THE_INPUT, n);
+  pub fn pick_screen(&mut self, motion: Motion, n: usize, page: usize) {
+    let Some(cur) = self.picked(n) else { return };
+    // **THE WHOLE MOTION IS FLIPPED, NOT JUST THE ARROWS.** `Home` means the
+    // TOP LINE, and with the best match drawn at the bottom the top line is the
+    // WORST match -- so screen-first is index-last. Flipping only the step pair
+    // and leaving the jumps alone is the same defect this function exists to
+    // close, rebuilt in the two keys nobody would think to check.
+    let m = if BEST_IS_NEAREST_THE_INPUT {
+      motion.flipped()
+    } else {
+      motion
+    };
+    let last = n - 1;
+    // **THE PICK CLAMPS WHERE THE BODY CURSOR WRAPS**, and the two are not
+    // being made consistent. A body list is a place you browse, so a total
+    // order earns its wrap; the offers under a query are RANKED, and walking
+    // off the best match onto the worst is not a continuation of the same
+    // gesture -- it is the opposite of what was asked for.
+    self.pick = match m {
+      Motion::Back => cur.saturating_sub(1),
+      Motion::Forward => cur.saturating_add(1).min(last),
+      Motion::PageBack => cur.saturating_sub(page),
+      Motion::PageForward => cur.saturating_add(page).min(last),
+      Motion::First => 0,
+      Motion::Last => last,
+    };
   }
 
   /// Move the pick. `down` walks toward worse matches; the list is best-first.

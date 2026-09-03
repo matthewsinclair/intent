@@ -42,6 +42,55 @@
 /// alternative -- a bare `usize` plus whatever length the caller had to hand --
 /// is the shape where the wrap arithmetic is written at each call site and one
 /// of them gets the `- 1` wrong.
+/// Where a movement key asks the cursor to go.
+///
+/// **THE VOCABULARY IS HERE, WITH THE CURSOR, RATHER THAN IN THE KEY MAP.**
+/// `keys` says a keystroke is a `Move`; the machine deliberately knows nothing
+/// of direction -- four near-identical self-loops would cost the EDGES table
+/// the readability that is its whole value -- and DISTANCE is the same argument
+/// one step further. So the key map answers *is this a move* and this type
+/// answers *what kind*.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Motion {
+  Back,
+  Forward,
+  /// A viewport's worth, toward the start.
+  PageBack,
+  /// A viewport's worth, toward the end.
+  PageForward,
+  First,
+  Last,
+}
+
+impl Motion {
+  /// Which way this motion travels, for a caller that must keep going -- eg
+  /// stepping off a row the cursor may not rest on.
+  ///
+  /// **`First` TRAVELS FORWARD AND `Last` TRAVELS BACK**, which reads backwards
+  /// until you ask what it is for: having jumped to the top, the only way off
+  /// an unlandable first row is DOWN. The direction that matters is the one out
+  /// of where you arrived, not the one you arrived by.
+  /// The same motion, reflected -- for a list drawn in the opposite order to
+  /// the one its index counts in.
+  pub fn flipped(self) -> Self {
+    match self {
+      Motion::Back => Motion::Forward,
+      Motion::Forward => Motion::Back,
+      Motion::PageBack => Motion::PageForward,
+      Motion::PageForward => Motion::PageBack,
+      Motion::First => Motion::Last,
+      Motion::Last => Motion::First,
+    }
+  }
+
+  pub fn onward(self) -> Self {
+    match self {
+      Motion::Back | Motion::PageBack | Motion::Last => Motion::Back,
+      Motion::Forward | Motion::PageForward | Motion::First => Motion::Forward,
+    }
+  }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Focus {
   at: usize,
@@ -77,6 +126,32 @@ impl Focus {
   /// valid row would put the one shape back that the type exists to refuse.
   pub fn at(self, at: usize) -> Option<Self> {
     (at < self.n).then_some(Self { at, n: self.n })
+  }
+
+  /// The cursor after `motion`, given how many rows a page is worth.
+  ///
+  /// **A STEP WRAPS AND A JUMP DOES NOT, AND THE DIFFERENCE IS DELIBERATE.**
+  /// Wrapping is what makes the single-step order TOTAL -- see
+  /// [`Focus::forward`] -- so an operator holding one arrow can always reach
+  /// every row. A PAGE that wrapped would answer a request to move a screenful
+  /// by teleporting across the whole list, which is disorienting rather than
+  /// total: the operator asked for a bounded distance and would land somewhere
+  /// unbounded. `First` and `Last` are absolute and have nothing to wrap.
+  ///
+  /// **`page` OF ZERO IS A REAL VIEWPORT, NOT A BUG** -- a terminal too short
+  /// for any body row -- and a page move on it correctly does nothing rather
+  /// than dividing by it.
+  pub fn moved(self, motion: Motion, page: usize) -> Self {
+    let last = self.n - 1;
+    let at = match motion {
+      Motion::Back => return self.back(),
+      Motion::Forward => return self.forward(),
+      Motion::PageBack => self.at.saturating_sub(page),
+      Motion::PageForward => self.at.saturating_add(page).min(last),
+      Motion::First => 0,
+      Motion::Last => last,
+    };
+    Self { at, n: self.n }
   }
 
   /// The next row, wrapping past the end to the first.

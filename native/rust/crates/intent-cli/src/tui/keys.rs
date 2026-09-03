@@ -304,10 +304,28 @@ pub fn trigger(mode: Mode, key: KeyEvent) -> Option<&'static str> {
     // held unbound by `tui-design.md` §4 *against a cursor the buffer does not
     // yet have*; the buffer has one now, so the reservation is spent on the
     // meaning it was reserved for.
-    (
-      Mode::Omni | Mode::Menu,
-      KeyCode::Left | KeyCode::Right | KeyCode::Home | KeyCode::End | KeyCode::Delete,
-    ) => Some("Typing"),
+    (Mode::Omni | Mode::Menu, KeyCode::Left | KeyCode::Right | KeyCode::Delete) => Some("Typing"),
+    // **`Home` AND `End` ARE GUARDED KEYS, WHICH IS THE RULE THIS FILE ALREADY
+    // HAS RATHER THAN A NEW ONE FOR THEM.** They mean the ends of the LIST while
+    // the composer is empty and the ends of the LINE once there is a line, the
+    // same way `/` means the menu on an empty buffer and a character inside an
+    // address. The mode-significant reading is offered here and the app
+    // downgrades it -- one rule for guarded keys, not one per key.
+    //
+    // **THE LINE MEANING IS NOT BEING TAKEN AWAY.** It was granted deliberately
+    // when the buffer got a cursor; a buffer with text in it still answers
+    // these, and it is only the empty composer -- where there is no line to go
+    // to the end of -- that spends them on the list.
+    //
+    // **CONSEQUENCE, STATED RATHER THAN LEFT TO BE FOUND: in MENU the sigil
+    // means the buffer is never empty, so these stay line keys there** and the
+    // palette is jumped with `PageUp`/`PageDown` instead.
+    (Mode::Omni | Mode::Menu, KeyCode::Home | KeyCode::End) => Some("Move"),
+    // **A PAGE HAS NO MEANING IN A TEXT BUFFER, SO IT IS NOT GUARDED.** There is
+    // nothing for it to collide with: the composer is one line, and a screenful
+    // of a one-line buffer is the line. It moves whatever list is live --
+    // the body while browsing, the offers under a query, the palette in MENU.
+    (Mode::Omni | Mode::Menu, KeyCode::PageUp | KeyCode::PageDown) => Some("Move"),
     // **ONLY THE VERTICAL PAIR IS BOUND, and it now does both jobs**: on an
     // empty buffer the arrows browse the body, with a query typed they pick
     // among the matches. One trigger covers both because both are `OMNI Move

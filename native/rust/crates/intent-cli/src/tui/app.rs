@@ -37,7 +37,7 @@ use crossterm::event::{KeyCode, KeyEvent};
 
 use super::commands::{self, Act, Command};
 use super::edit::Handoff;
-use super::focus::Focus;
+use super::focus::{Focus, Motion};
 use super::keys;
 use super::layout::Row;
 use super::mode::{self, Mode};
@@ -175,6 +175,21 @@ pub struct App {
   /// in tests with no store behind it, and an empty label composes the brand
   /// alone -- so nothing here has to invent a project it does not have.
   pub project: String,
+  /// How many body rows the LAST DRAWN frame carried -- what a page is worth.
+  ///
+  /// **A STORED VIEWPORT IS THE SHAPE THAT ALREADY FAILED HERE ONCE**, and this
+  /// is not that shape. `layout` says it in as many words: the scroll used to
+  /// be a stored `app.scroll` that nothing ever advanced, because the app has
+  /// never had a height. The difference is WHEN it is written: the run loop
+  /// re-reads the terminal size and sets this immediately before it blocks on
+  /// the keystroke, so the value is always the height of the frame on screen
+  /// when the key was pressed. It cannot be stale, because a resize repaints
+  /// before the next key can arrive.
+  ///
+  /// **ZERO IS HONEST AND IS THE DEFAULT.** Nothing headless has a viewport, so
+  /// a page move in a test does nothing until a test says what a page is --
+  /// which is better than inheriting a plausible number no frame ever had.
+  pub page_rows: usize,
   /// The rest state's input: buffer and pick. See [`super::omnibox`].
   pub omnibox: Omnibox,
   /// Every addressable entity, for the omnibox's matcher. Handed in by the
@@ -221,6 +236,7 @@ impl App {
       detail_focus: None,
       notice: String::new(),
       project: String::new(),
+      page_rows: 0,
       omnibox: Omnibox::default(),
       index: Vec::new(),
       commands: Vec::new(),
@@ -273,16 +289,35 @@ impl App {
   /// boundary sits BETWEEN groups, so both sides are non-empty by
   /// construction), and a cursor resting on a rule is a wart where a hang is
   /// not.
-  fn past_rules(f: Focus, step: fn(Focus) -> Focus, rows: &[Row]) -> Focus {
+  fn past_rules(f: Focus, onward: Motion, rows: &[Row]) -> Focus {
     let mut cur = f;
     while rows.get(cur.index()).is_some_and(Row::is_rule) {
-      let next = step(cur);
+      // A SINGLE step, whatever the motion that got here was. Having landed on
+      // a boundary, the question is only how to get off it -- continuing by a
+      // PAGE would turn a rule under the cursor into a second page of travel
+      // the operator never asked for.
+      let next = cur.moved(onward, 0);
       if next.index() == cur.index() {
         break;
       }
       cur = next;
     }
     cur
+  }
+
+  /// Which motion a keystroke asks for. `None` for a key that is not a move --
+  /// `Move` is offered by the map for a whole family, and the tail must not
+  /// invent a direction for a member it does not recognise.
+  fn motion_of(code: KeyCode) -> Option<Motion> {
+    match code {
+      KeyCode::Up | KeyCode::Left => Some(Motion::Back),
+      KeyCode::Down | KeyCode::Right => Some(Motion::Forward),
+      KeyCode::PageUp => Some(Motion::PageBack),
+      KeyCode::PageDown => Some(Motion::PageForward),
+      KeyCode::Home => Some(Motion::First),
+      KeyCode::End => Some(Motion::Last),
+      _ => None,
+    }
   }
 
   /// The row under the cursor, if there is one.
@@ -379,6 +414,26 @@ impl App {
       trigger = "Typing";
     }
 
+    // **THE SAME GUARD, FOR THE SAME REASON, OVER THE OTHER TWO KEYS.** `Home`
+    // and `End` mean the ends of the LIST while the composer is empty and the
+    // ends of the LINE once there is one -- see `keys`. Written separately from
+    // the line above rather than folded into it because the condition is
+    // genuinely different: that one keys on the TRIGGER alone, this one needs
+    // the keystroke, since `Move` also carries the arrows and the pages and
+    // NEITHER of those may be downgraded.
+    //
+    // **MENU IS INCLUDED AND OMNI'S GUARD ABOVE IS NOT.** The palette's sigil
+    // means its buffer is never empty, so this always fires there -- which is
+    // what keeps one rule from reading two ways in the two modes that share the
+    // composer.
+    if matches!(self.mode, Mode::Omni | Mode::Menu)
+      && !self.omnibox.is_empty()
+      && trigger == "Move"
+      && matches!(key.code, KeyCode::Home | KeyCode::End)
+    {
+      trigger = "Typing";
+    }
+
     // **VI'S NORMAL MODE, ONE GUARD OVER TWO MODES AND TWO KEYS.** Placed
     // beside the buffer guard because it is the same species -- `tui-design.md`
     // §3: *what was a mode is now a guard* -- and answered here rather than in
@@ -441,8 +496,11 @@ impl App {
           return Step::Continue;
         }
         "Move" if !self.omnibox.is_empty() => {
+          let Some(m) = Self::motion_of(key.code) else {
+            return Step::Continue;
+          };
           let n = self.match_count();
-          self.omnibox.pick_screen(key.code == KeyCode::Down, n);
+          self.omnibox.pick_screen(m, n, self.page_rows);
           return Step::Continue;
         }
         "Enter" if !self.omnibox.is_empty() => {
@@ -496,8 +554,11 @@ impl App {
           return Step::Continue;
         }
         "Move" => {
+          let Some(m) = Self::motion_of(key.code) else {
+            return Step::Continue;
+          };
           let n = self.palette().len();
-          self.omnibox.pick_screen(key.code == KeyCode::Down, n);
+          self.omnibox.pick_screen(m, n, self.page_rows);
           return Step::Continue;
         }
         "Enter" => {
@@ -707,20 +768,34 @@ impl App {
     // near-identical self-loops in a table whose whole value is being readable
     // as a graph. The app has the keystroke and reads it here.
     if trigger == "Move" {
-      let step: fn(Focus) -> Focus = match key.code {
-        KeyCode::Up | KeyCode::Left => Focus::back,
-        KeyCode::Down | KeyCode::Right => Focus::forward,
-        _ => return Step::Continue,
+      let Some(motion) = Self::motion_of(key.code) else {
+        return Step::Continue;
       };
+      let page = self.page_rows;
+      let step = |f: Focus| f.moved(motion, page);
       // **THE ARROWS MOVE THE PANE THE CURSOR IS IN**, which is the whole
       // meaning of section 4's *move within the focused pane*.
       match self.pane(rows) {
-        Pane::Detail => self.detail_focus = self.detail_focus.map(step),
+        // **THE DETAIL PANE'S PAGE IS THE DETAIL PANE'S HEIGHT, TAKEN FROM THE
+        // FUNCTION THAT SIZES IT.** `divide` caps the lower pane at half the
+        // body, so paging it by the BODY's height would overshoot by exactly
+        // two in the only case it can scroll at all -- and land clamped, so
+        // `PageDown` would quietly behave as `End` and look like it worked.
+        // Asking `divide` rather than halving `page_rows` keeps one home for
+        // how the split is sized.
+        Pane::Detail => {
+          let shown = self
+            .focused_row(rows)
+            .and_then(|r| r.detail.as_ref())
+            .map_or(0, |d| d.len());
+          let (_, pane) = super::layout::divide(self.page_rows, shown);
+          self.detail_focus = self.detail_focus.map(|f| f.moved(motion, pane));
+        }
         Pane::List => {
           self.focus = self
             .focus
             .map(step)
-            .map(|f| Self::past_rules(f, step, rows));
+            .map(|f| Self::past_rules(f, motion.onward(), rows));
           // **LEAVING THE ROW LEAVES ITS PANE.** The detail belonged to the row
           // that opened it, so carrying the request onto the next row would
           // reopen a pane over somebody else's detail -- or over none.
@@ -1830,6 +1905,154 @@ mod tests {
       app.on_key(key(KeyCode::Enter), &[]),
       Step::Quit,
       "Enter on the picked command did not run it"
+    );
+  }
+
+  /// A list long enough that a page is a real distance rather than the whole
+  /// thing -- a fixture that fits on one screen cannot tell a page from an end.
+  fn long_list(n: usize) -> Vec<Row> {
+    (0..n)
+      .map(|i| {
+        Row::new(format!("ST{i:04}"), format!("thread {i}"), "button").opening(View::Item {
+          kind: "thread".into(),
+          id: format!("ST{i:04}"),
+        })
+      })
+      .collect()
+  }
+
+  /// **PAGE AND HOME/END MOVE THE BODY LIST** -- hv, 2026-09-03: they must work
+  /// anywhere there is a vertical scrolling list to browse.
+  ///
+  /// `PageUp`/`PageDown` were bound by NOTHING before this: the key map
+  /// returned no trigger, the machine never saw them, and the press was
+  /// swallowed in silence. `Home`/`End` reached the composer as `Typing`, so on
+  /// an empty buffer they were an edit to a line with no characters -- also
+  /// nothing. Both classes look identical to the operator and neither left a
+  /// trace, which is why this drives the OUTCOME rather than the binding.
+  #[test]
+  fn page_and_home_and_end_move_the_body_list() {
+    let rows = long_list(50);
+    let mut app = App::explore();
+    app.point_at(rows.len());
+    app.page_rows = 10;
+
+    app.on_key(key(KeyCode::PageDown), &rows);
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(10),
+      "PageDown did not move a page"
+    );
+    app.on_key(key(KeyCode::PageDown), &rows);
+    assert_eq!(app.focus.map(Focus::index), Some(20));
+    app.on_key(key(KeyCode::PageUp), &rows);
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(10),
+      "PageUp did not move a page back"
+    );
+
+    app.on_key(key(KeyCode::End), &rows);
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(49),
+      "End did not reach the last row"
+    );
+    app.on_key(key(KeyCode::Home), &rows);
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(0),
+      "Home did not reach the first row"
+    );
+
+    // **A PAGE CLAMPS WHERE A STEP WRAPS.** The arrows make the order total on
+    // purpose; a page that wrapped would answer "move me a screenful" by
+    // throwing the operator to the far end of the list.
+    app.on_key(key(KeyCode::PageUp), &rows);
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(0),
+      "PageUp at the top wrapped instead of clamping"
+    );
+    app.on_key(key(KeyCode::End), &rows);
+    app.on_key(key(KeyCode::PageDown), &rows);
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(49),
+      "PageDown at the bottom wrapped instead of clamping"
+    );
+  }
+
+  /// **A PAGE IS THE VIEWPORT'S HEIGHT, AND WITH NO VIEWPORT IT IS NOTHING.**
+  ///
+  /// The distance comes from the frame last drawn, so anything headless has no
+  /// page. Asserted rather than left implicit: the tempting default is a
+  /// plausible constant, and a page that moved 20 rows on a terminal showing 8
+  /// would scroll past what the operator was reading -- silently, and only on
+  /// their machine.
+  #[test]
+  fn a_page_with_no_viewport_behind_it_moves_nothing() {
+    let rows = long_list(50);
+    let mut app = App::explore();
+    app.point_at(rows.len());
+    assert_eq!(app.page_rows, 0, "a fresh app must not invent a viewport");
+    app.on_key(key(KeyCode::PageDown), &rows);
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(0),
+      "a page moved without a viewport to measure it against"
+    );
+    // Home and End need no viewport, so they still work.
+    app.on_key(key(KeyCode::End), &rows);
+    assert_eq!(app.focus.map(Focus::index), Some(49));
+  }
+
+  /// **HOME AND END ARE GUARDED KEYS: the list while the composer is empty, the
+  /// line once there is a line.**
+  ///
+  /// This is the rule `/` and `Backspace` already follow, and the reason it is
+  /// driven is that the two meanings are indistinguishable from the key alone --
+  /// a regression here silently takes away line editing that was granted
+  /// deliberately when the buffer got a cursor.
+  #[test]
+  fn home_and_end_edit_the_line_once_there_is_one_and_move_the_list_when_there_is_not() {
+    let rows = long_list(50);
+    let mut app = App::explore();
+    app.point_at(rows.len());
+
+    // Empty composer: the list.
+    app.on_key(key(KeyCode::End), &rows);
+    assert_eq!(
+      app.focus.map(Focus::index),
+      Some(49),
+      "End on an empty composer must move the list"
+    );
+
+    // With an address typed: the LINE, and the list must not move.
+    for c in "st/ST00".chars() {
+      app.on_key(key(KeyCode::Char(c)), &rows);
+    }
+    let parked = app.focus.map(Focus::index);
+    app.on_key(key(KeyCode::Home), &rows);
+    assert_eq!(
+      app.focus.map(Focus::index),
+      parked,
+      "Home moved the body list out from under a typed query"
+    );
+    assert_eq!(
+      app.omnibox.buffer, "st/ST00",
+      "Home must not have altered the text itself"
+    );
+    assert_eq!(
+      app.omnibox.cursor(),
+      0,
+      "Home did not take the caret to the start of the line"
+    );
+    app.on_key(key(KeyCode::End), &rows);
+    assert_eq!(
+      app.omnibox.cursor(),
+      "st/ST00".chars().count(),
+      "End did not take the caret to the end of the line"
     );
   }
 

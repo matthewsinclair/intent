@@ -500,6 +500,14 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
     // one place both are known. It used to be `app.scroll`, a stored field
     // nothing ever advanced -- see `layout::scroll_to`.
     let first = screen.first_row(area.height as usize);
+    // **WHAT A PAGE IS WORTH, TAKEN FROM THE FRAME ABOUT TO BE DRAWN.** The app
+    // has never had a viewport -- which is why the old stored `scroll` could not
+    // move -- so `PageUp`/`PageDown` need one handed to them. Set HERE, one
+    // statement before the draw and two before the blocking read, so the value
+    // is the height of the frame the operator is looking at when they press the
+    // key. A resize repaints through this same line before another keystroke
+    // can arrive, so it has no window in which to go stale.
+    app.page_rows = Screen::body_height(area.height as usize);
     term.draw(|f| draw::render(&screen, first, f.area(), f.buffer_mut()))?;
     let mut lent_the_terminal = false;
 
@@ -1299,6 +1307,45 @@ mod tests {
       caret_line(&screen_for(&app, &[], 80)),
       before - 1,
       "OMNI: `Up` must walk the caret one line UP the screen"
+    );
+  }
+
+  /// **THE PALETTE PAGES AND THE PAGE IS FLIPPED WITH EVERYTHING ELSE.**
+  ///
+  /// The offers are drawn best-LAST, so screen-down is index-back for a page
+  /// exactly as it is for an arrow. Driven because a fix that flipped only the
+  /// arrow pair would leave `PageUp`/`PageDown` running backwards in the two
+  /// keys nobody thinks to check -- the original defect, rebuilt in its own
+  /// blind spot.
+  #[test]
+  fn the_palette_pages_the_way_the_screen_reads() {
+    let mut app = App::explore();
+    app.commands = super::super::commands::vocabulary(&crate::spine::surface());
+    app.page_rows = 3;
+    app.on_key(key(KeyCode::Char('/')), &[]);
+    let open = screen_for(&app, &[], 80);
+    let bottom = open.dropdown.len() - 1;
+    assert!(
+      open.dropdown.len() > 4,
+      "the palette is too short for a page to differ from an end"
+    );
+    assert_eq!(
+      caret_line(&open),
+      bottom,
+      "the palette opens on the best match"
+    );
+
+    app.on_key(key(KeyCode::PageUp), &[]);
+    assert_eq!(
+      caret_line(&screen_for(&app, &[], 80)),
+      bottom - 3,
+      "PageUp did not move the pick a page UP the screen"
+    );
+    app.on_key(key(KeyCode::PageDown), &[]);
+    assert_eq!(
+      caret_line(&screen_for(&app, &[], 80)),
+      bottom,
+      "PageDown did not bring the pick back down a page"
     );
   }
 
