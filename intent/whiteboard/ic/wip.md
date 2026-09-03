@@ -3,10 +3,10 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: 65cf369b-f4fc-435e-a077-208080b8a13c
-commit_session_id: 01X5CzxxDSSQqDUQtJid6fFS -- DECLARED BY THE HARNESS for THIS session and NOT YET WITNESSED on a commit; re-read it off my first commit of the day before anyone relies on it. POINT-IN-TIME: one session per line, never a table -- a restart mints a new id, and the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-03 07:35Z
+commit_session_id: 01X5CzxxDSSQqDUQtJid6fFS -- WITNESSED on d3157241 and every commit since; check it there rather than taking this line's word. POINT-IN-TIME: one session per line, never a table -- a restart mints a new id, and the mapping accumulates in .history/ as folds archive the header that was live.
+heartbeat_at: 2026-09-03 13:20Z
 status: active
-focus: "PICKUP 07:35Z, RE-MEASURED NOT RECALLED, AND TWO OF MY OWN FIGURES WERE EXPIRED. AC-17.1 IS SATISFIED -- cc built Op::Set overnight, so it is NOT hv's to unblock and it comes OFF the hv list. WP-17 is 17/18 by AC, not 10/12; the one open row is AC-17.6, still gated on cc. AND THE ST0056 RELEASE GATE IS BLOCKED ON A CONTRACT FINDING IN MY SCOPE: AT-17.1's cited artefact does not carry the literal id. 118/142 satisfied behind it -- the finding SHORT-CIRCUITS the satisfaction report, so BLOCKED here is not one literal from PASS. HOLDING for hv. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "THREE OF hv's LANDED AT 3f037021 AND THE SHARED PAIR IS REBUILT TO IT. The arrow bug was TWO CORRECT HALVES AND NO OWNER OF THE RELATIONSHIP -- pick_move counts best-first, dropdown renders best-last, and one renderer serves BOTH vocabularies, so the defect hv found in the palette was also in the omnibox. TWO EXISTING TESTS WERE GREEN BECAUSE OF IT. Columns deferred to WP-17 as 0222. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -17,6 +17,16 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 **FOLDED ON EXECUTION, NEVER ON DATE.** Everything removed was DONE. Every unexecuted ruling is still here, and the gated work moved to `## Holds` WITH ITS RELEASING CONDITION rather than sitting in TODO looking like work I am declining to start.
 
 ## DOING
+
+**NOTHING IN FLIGHT. Today's three hv asks are landed, built and delivered** -- `3f037021` (explorer) and `d61ab304` (issue 0222). The shared pair embeds `3f037021` on both halves; the currency arm was green after, and the insurance copies were discarded only once the new pair had answered in two projects.
+
+**THE ONE THING I WOULD HAND ANYONE FROM TODAY: TWO CORRECT HALVES AND NO OWNER OF THE RELATIONSHIP BETWEEN THEM.** `Omnibox::pick_move` walks an index over a best-FIRST list. `run::dropdown` renders best-LAST. Each is right about its own half, each documents itself accurately, and nothing reconciled them -- so every screen-down keypress walked the caret up, in BOTH vocabularies, because one renderer serves both and says so in its own header. **Neither half looks wrong when you read it. The defect is only visible from the seam**, which is the same shape as a value carried one step past what it supports, one level up in the code rather than in a claim. Cure was a single declaration both sides derive from, not a boolean inverted at each call site -- that would have fixed the symptom and rebuilt the defect.
+
+**AND TWO EXISTING TESTS WERE GREEN BECAUSE OF THE BUG.** Both armed `MENU + Move` with `Down`, which only appeared to move while the mapping was inverted -- the palette opens on the best match, which is the BOTTOM line, so `Down` is correctly a no-op there. **A test that only moves while something is broken reads as cover, and neither of these looked wrong.** Rewritten to reality under hv's standing directive.
+
+**METHOD, BECAUSE IT NEARLY CAUGHT ME: MY OWN RED-THEN-GREEN PROVED NOTHING.** The test was RED before the fix and GREEN after -- and I had CHANGED the test between the two runs, because my first version pressed `Down` from a position where `Down` is correctly inert. A red and a green either side of two edits is not a control. Drove the corrected form against the pre-fix behaviour to confirm it still failed there. **Same family as watch-out 8: the harness moved, so the reading was not about the subject.**
+
+**I ALSO NEARLY BUILT A SORT THAT ALREADY EXISTED.** hv asked for open threads at the top; `index_order` has sorted open-before-closed all along, and what was actually missing was a visible boundary. Measuring the existing order before writing one is the whole of what stopped it. **The ask named a symptom and I had started costing the wrong cause.**
 
 **HOLDING for hv, and the hold is now an INFORMED one: I re-measured at 07:35Z and two figures I handed forward last night were already expired.**
 
