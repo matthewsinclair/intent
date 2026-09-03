@@ -20,6 +20,20 @@
 
 **That distinction is worth stating plainly, because the defect was first recorded as ingest damage and it is not.** Ingest damage is a migration artefact you survey and repair once. A state the model cannot represent destroys the same data every time anything hops, including hops that have not happened yet. The earlier framing survives in the issue record because Intent has no verb that can rewrite an issue body, which is itself an open defect.
 
+**`IN-AG-PFIC-001` said one thing in the rule library and a different thing in six places your project inherits.** The library owns the rule and titles it _Pure Function, Impure Coordination_: keep the domain core deterministic and push I/O, time and external calls to the boundary. Six canon-set homes glossed it instead as an idiom list -- _pattern match, pipe, tag, compose_ -- most of them under the name _Pure-Functional-Idiomatic-Coordination_. **That is a different rule, not a looser wording of the same one**: code can be fully idiomatic and still bury I/O three calls deep in a domain core, which is the violation the owning rule exists to name. The six are the `_AGENTS.md` and `_default/RULES.md` templates every project is generated from, `intent/llm/RULES.md`, the `in-standards` and `in-review` skills, and one rule-pack cross-reference.
+
+**The cost was a reviewer's false green, and it was reachable in v3.0.0.** `in-review`'s checklist checked for the idiom gloss, found it, and recorded `IN-AG-PFIC-001` as examined while the violation walked past. **A check that cannot fail on its own subject is worse than no check at all**, because it leaves behind a record saying the rule was applied. The fork dates from the rule's first commit and was never reconciled, so no release ever shipped these six in agreement.
+
+**Every home now names the rule and points at the verb that serves it rather than restating it.** A corrected copy would have been right until the first release nobody remembered it during; a pointer cannot drift from what it points at.
+
+**If you are running v3.0.0 the fork is in your project, and installing v3.0.1 does not by itself replace it.** `intent upgrade` is the v2-to-v3 migration door rather than a canon refresh, so a project already on v3 does not pick these files up from a tool upgrade. **Search for the rule id and read what each hit says**, rather than matching a phrase or checking one file:
+
+```
+  $ grep -rn 'IN-AG-PFIC-001' . ~/.claude/skills
+```
+
+**Any line glossing the rule as an idiom list -- _pattern match, pipe, tag, compose_ -- instead of naming _Pure Function, Impure Coordination_ is the fork.** It is worth reading rather than matching because **the fork shipped in two spellings**: five homes carried the name `Pure-Functional-Idiomatic-Coordination`, and the sixth -- `in-review`'s checklist, the one that produced the false green -- carried the idiom list with no name at all. **A search for the name alone finds five of six and misses the one that mattered.** `intent claude rules show IN-AG-PFIC-001` prints the text every home should agree with. `intent claude upgrade --apply` rewrites the project canon and `intent claude skills sync` rewrites the skills; re-run the search afterwards rather than trusting either to have covered everything. **Run the skills sync even if the canon apply reports nothing to do.** The false green lived in a skill, and skills are installed under your home directory rather than in the project, so a project-level fix leaves every session still loading the old checklist.
+
 ## Added
 
 **`intent ac edit`** — change a criterion's text without touching its satisfaction. This is the verb `ac new` now points at, and its absence is what made the destructive create reachable.
@@ -48,6 +62,10 @@
 
 **The third line is the check that the support tree actually arrived**, which is the fault this release exists to fix. It is the direct test rather than a proxy: that command reads the rule library out of the install, so it fails on exactly the packaging fault described above and succeeds only if the tree is there. Run it once rather than assuming.
 
-**No migration is required and no project data changes.** A project already readable by v3.0.0 is readable by v3.0.1.
+**Your runtime store is migrated on first open, and the upgrade is a ONE-WAY DOOR.** v3.0.0 wrote schema version 13 and v3.0.1 speaks 17. The first v3.0.1 command to touch a project migrates its store in place, without asking -- and **nothing migrates it back.** A store written by a newer `intent` than the one you are running is refused outright, with the remedy stated as _upgrade intent rather than migrating the store down_. Forward is implemented; backward is not.
+
+**The reassuring half of that is true, which is why it is worth stating the other half.** A project readable by v3.0.0 is indeed readable by v3.0.1 -- by being migrated. **What changes is the converse: once migrated, it is not readable by v3.0.0 again.** So if you run more than one v3 install -- an older one on another machine, a colleague who has not upgraded, a pinned CI image -- **the first v3.0.1 command to touch a shared project ends the older install's access to it.** The refusal that install then gives names the store and both version numbers, which is enough to diagnose and does not say that an upgrade elsewhere caused it.
+
+**Your project's files are not touched by this.** Steel threads, work packages and criteria on disk are unchanged; what moves is the runtime store under `intent/.cache/`, which is derived from them.
 
 **Evidence already destroyed by the third fault is not recovered by upgrading.** The fix stops the loss; it cannot reconstruct text the store never held. If you migrated an estate under v3.0.0 and criteria authored unsatisfied carried evidence clauses, that text is in your v2 history and not in your store.

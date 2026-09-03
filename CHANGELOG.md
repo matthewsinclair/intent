@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **A criterion authored unsatisfied lost its evidence clause on migration, by construction, while exiting 0.** `AcState::Unsatisfied` was a unit variant with nowhere to put the text, so a wildcard arm routed the case to a state that could not represent it. **No parsing fix could have reached it.** The state now carries the note and the match is three explicit arms rather than two and a catch-all, so a fourth case cannot be added without someone deciding what happens to the prose. Recorded first as ingest damage, which is the wrong class: a migration artefact is surveyed and repaired once, where an unrepresentable state destroys the same data on every hop.
 
+- **`IN-AG-PFIC-001` stated a different rule in six canon homes than the one the rule library owns.** The library titles it _Pure Function, Impure Coordination_ -- keep the domain core deterministic, push I/O to the boundary -- while `AGENTS.md`, `intent/llm/RULES.md`, the `in-standards` and `in-review` skills and two rule-pack references glossed it as an idiom list. Code can be fully idiomatic and still bury I/O deep in a domain core, so `in-review`'s checklist recorded the rule as examined while the violation passed. Each home now points at the owning rule instead of restating it. **A project already on v3.0.0 does not pick this up from a tool upgrade** -- see the release notes for the check and the two verbs that rewrite it.
+
 ### Added
 
 - **`intent ac edit`** — change a criterion's text without touching its satisfaction. Its absence is what made the destructive create reachable.
