@@ -246,16 +246,33 @@ unset _devbin_referent_cmd
 # collision ladder on its own clock -- so the second run's five artefacts can
 # carry several different `-SS` suffixes. Their `run:` field is one value, so
 # they remain exactly enumerable; it is only the FILENAME that stays
-# approximate. The ladder was left alone deliberately: folding the id into the
-# name would break `newest_run_stems`, which orders same-minute runs by their
-# time-ordered `-SS` segment and cannot order a hex token.
+# approximate. The ladder was left alone deliberately, but NOT for the reason
+# this comment used to give. It said folding the id into the name would break
+# `newest_run_stems`, "which orders same-minute runs by their time-ordered -SS
+# segment" -- and `lib/runlog` says the opposite four hundred lines away, in as
+# many words: ORDERING IS BY MTIME, NEVER BY NAME, and the -SS suffix sorts
+# lexically BEFORE the plain stamp while being newer, which is why `-nt` is
+# used. Driven 2026-09-03 with the two orders opposed: the older NAME with the
+# newer mtime came back first. `lib/runlog` owns this fact; this file no longer
+# restates it. The ladder stays because it is a COLLISION device and the names
+# are read by humans -- neither of which is an ordering claim.
+#
+# It is worth knowing what the wrong copy cost, because it was not nothing. It
+# was quoted into issue 0055 as the blocker, and 0055 sat unfixed and escalated
+# on the strength of it. Two comments disagreeing about one function is benign
+# until somebody acts on the wrong one.
 # NO HASH AND NO EXTERNAL TOOL. The pid is unique among live processes and the
 # clock separates reuses of it, so eight hex of the two is an identifier without
 # a dependency -- and this runs before lib/helpers is in scope, where
 # `sha256_stdin` would not be.
 [ -n "${DEVBIN_RUN_ID:-}" ] ||
   DEVBIN_RUN_ID="$(printf '%04x%04x' "$(($$ & 0xffff))" "$(($(date +%s) & 0xffff))")"
-[ -n "${DEVBIN_RUN_STAMP:-}" ] || DEVBIN_RUN_STAMP="$(date +%Y%m%d-%H%M)"
+# UTC, read with `date -u` (issue 0055). This stamp is read side by side with
+# `fleet audit`, which renders UTC with a trailing `Z`; an unmarked local stamp
+# compared against one of those is wrong by the local offset for half the year
+# and exactly right for the other half, which is the worst available shape. The
+# zone change cannot disturb retention or ordering -- both go through mtime.
+[ -n "${DEVBIN_RUN_STAMP:-}" ] || DEVBIN_RUN_STAMP="$(date -u +%Y%m%d-%H%M)"
 export DEVBIN_RUN_ID DEVBIN_RUN_STAMP
 
 # Identity comes from config, never from $0. That is what lets a project keep a

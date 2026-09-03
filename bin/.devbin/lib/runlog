@@ -216,7 +216,7 @@ open_run_log() {
     # prefixes. The ladder below still runs for the FIRST gate, because two
     # invocations really can start in the same minute; once a prefix is
     # resolved, the rest of this run takes it.
-    stamp="${DEVBIN_RUN_STAMP:-$(date +%Y%m%d-%H%M)}"
+    stamp="${DEVBIN_RUN_STAMP:-$(date -u +%Y%m%d-%H%M)}"
     # Collision ladder: minute, then second, then a bounded counter -- each name
     # created ATOMICALLY.
     #
@@ -237,7 +237,10 @@ open_run_log() {
     # same "unique" name and all but one fail to create it. Counting up is
     # portable, terminates, and keeps the naming convention that purge globs on.
     log=""
-    _stamp_s="$stamp-$(date +%S)"
+    # `date -u` for the seconds too. Seconds are zone-invariant so this is not a
+    # correctness fix; it is so the whole stamp has ONE stated provenance and a
+    # later reader is never invited to "restore" the local call beside it.
+    _stamp_s="$stamp-$(date -u +%S)"
     for _cand in "$dir/$stamp.$suffix.out" "$dir/$_stamp_s.$suffix.out"; do
       if _create_exclusive "$_cand"; then
         log="$_cand"
