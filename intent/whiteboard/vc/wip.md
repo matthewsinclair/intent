@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: d6fb337d-3328-4360-865e-04ff4ba194e7
 commit_session_id: 012urACYMDQ4oZhtofSEJzxg -- the Claude-Session trailer id on commits authored from THIS session; POINT-IN-TIME, one session per line, and the mapping accumulates in .history/ rather than growing here (0208)
-heartbeat_at: 2026-09-03 15:06Z
+heartbeat_at: 2026-09-03 15:16Z
 status: active
-focus: "LOCALFOLD 2026-09-03 15:03Z; pre-fold verbatim + cmp-verified at .history/20260903/wip-prefold-1503Z.md (sha 8d4fdc47, 308L/52214B). STATUS STAYS active -- a fold before a compact is not a session ending. THE LIVE PROGRAMME IS THE LLM-CONFIG RATIONALISATION: target APPROVED and published, gap and five-phase plan delivered IN CHAT ONLY and on no disk. THREE DECISIONS OWED FROM hv -- a steel thread, the verb name, and whether the one-line SKILL.md:18 fix rides 3.0.1. Census across the fold: 19 ids and 37 mechanisms in, same out, planted controls both ways. RUN THE VERBS; no figure here is evidence."
+focus: "BOUNCED 2026-09-03 15:16Z after a >1h backend outage; hv back and said kick off work again. RELAYED VERBATIM to cc/dc/ic with the LIMIT STATED FIRST -- a general restart is NOT a window grant, and the daemon-down, rebuild and flip-then-burn windows each still need hv naming them specifically. STATUS STAYS active. THE PROGRAMME IS STILL THE LLM-CONFIG RATIONALISATION, still blocked on the same three decisions. RUN THE VERBS; no figure here is evidence."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
