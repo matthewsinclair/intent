@@ -12,4 +12,4 @@
 
 2. **Read `intent/wip.md`, then `intent/restart.md`.**
 
-3. **Do not transcribe the gate figure from anywhere. Run the verb calls `intent/wip.md` names** -- and note it names them without a count, deliberately: **a pointer that carries a number rots when the list grows, and this line said _three_ while the list held five.**
+3. **Do not transcribe the gate figure from anywhere. Run the three verb calls** -- `intent/wip.md` names them.
