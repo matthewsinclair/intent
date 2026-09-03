@@ -19,6 +19,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 | ST0057 | Disk as a sparse projection of the store                                                                                                        | WIP         | 2026-08-18 |                      |
 | ST0056 | Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files that exposes an MCP server with full API access to Intent | WIP         | 2026-08-14 |                      |
 | ST0046 | Add modules (properly) to the intent cli                                                                                                        | Not Started | 2026-06-15 |                      |
+| ST0071 | help                                                                                                                                            | Cancelled   | 2026-09-03 | 2026-09-03           |
 | ST0067 | Build out 'intent llm' so that LLMs can work out how to work with Intent                                                                        | Completed   | 2026-08-28 | 2026-08-28           |
 | ST0055 | Add `intent issues` command                                                                                                                     | Completed   | 2026-07-10 | 2026-07-10T17:02:28Z |
 | ST0054 | Update Intent for latest usage-rules.md format                                                                                                  | Completed   | 2026-07-09 | 2026-07-09T09:11:14Z |

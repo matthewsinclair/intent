@@ -1,0 +1,14 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0071",
+  "title": "help",
+  "slug": "help",
+  "status": "cancelled",
+  "status_reason": "probe: measuring whether this transition is legal and whether a refusal reports ok",
+  "created": "2026-09-03",
+  "completed": "2026-09-03",
+  "objective": "",
+  "context": "",
+  "body": "",
+  "preamble": ""
+}

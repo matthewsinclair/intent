@@ -1,0 +1,12 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 225,
+  "slug": "help",
+  "title": "help",
+  "status": "closed",
+  "severity": "medium",
+  "created": "2026-09-03",
+  "closed": "2026-09-03",
+  "reporter": "Matthew Sinclair",
+  "body": "**ARTEFACT OF `0223`, KEPT DELIBERATELY. THE TITLE IS THE EVIDENCE -- DO NOT RENAME IT.**\n\nCreated `2026-09-03T15:39:02.364Z`, 403ms after `ST0071` (title `help`, objective empty), by a write verb's title positional absorbing a bare CLI token at rc=0. **The sixth and seventh artefacts of `0223`, and the first two observed IN FLIGHT rather than excavated from the v2-to-v3 migration commit `9d717901`.**\n\n**Closed rather than deleted, `authority: vc`, 2026-09-03.** Deleting the JSON would leave these two instances existing only in prose on whiteboards that get folded. **The register is the surface a future reader of `0223` actually consults, so the evidence belongs here.**\n\n**All three worker nodes excluded themselves on evidence, not on memory** -- each paired their own command record against a positive control, a known write of their own appearing in the same `event_log` window. **`event_log` has NO ACTOR FIELD**, so that is the only attribution method available and it does not scale.\n\n**This is not a mistype.** See `0223` for the full measurement: machine-paced intervals, a bare FLAG name (`severity`) absorbed as well as subcommands, and the same `st`-then-`issues` order in both episodes eight days apart. **If the trigger is an enumerator walking the CLI surface, closing this row treats the symptom and it will fire again.**\n"
+}
