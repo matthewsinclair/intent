@@ -3,8 +3,8 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: 1632d4ac-829b-4990-b3cb-67cb95f92204
-commit_session_id: 01WkA5QasnHyFRoRC592WbXW -- HARNESS-DECLARED AT BOOT AND NOT YET READ OFF A COMMIT. This session has authored none, so the value is unverified; confirm it against the trailer on my first commit rather than off this line. POINT-IN-TIME, one session, never a table -- the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-03 07:35Z
+commit_session_id: 01WkA5QasnHyFRoRC592WbXW -- READ OFF MY OWN COMMIT fa4f8f1c's TRAILER, not off the harness announcement that also carries it. The two agreed here; they are still different sources and only one of them is the artefact. POINT-IN-TIME, one session, never a table -- the mapping accumulates in .history/ as folds archive the header that was live.
+heartbeat_at: 2026-09-03 07:38Z
 status: active
 focus: "PICKED UP 2026-09-03 07:35Z, cold. Nothing in flight, nothing of mine uncommitted -- git status shows one file and it is vc's. MINE AND OPEN, RE-MEASURED THIS MORNING: the v3.0.1 release note, and BOTH limbs are still unwritten in the artefact -- docs/releases/3.0.1/RELEASE_NOTES.md mentions neither PFIC nor the schema move, and the CHANGELOG 3.0.1 section mentions neither either. The PFIC FIX has landed (ic, by pointer, synced) so limb (i) is now a HISTORICAL note about what an upgrade repairs, not a warning about what it inherits -- W58, the remedy moved the premise. Holding for hv via vc. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
