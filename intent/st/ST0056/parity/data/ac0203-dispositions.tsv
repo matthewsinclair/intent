@@ -170,3 +170,5 @@
 0211	stated	docs/known-defects.md	intent#0211
 0224	stated	docs/known-defects.md	intent#0224
 0225	not-reader-reachable	artefact-not-defect -- title "help", body empty, created 2026-09-03 16:39 and UNTRACKED at the time of writing. The sixth register artefact of 0223 and the first observed live: it appeared while 0223 was being documented, from an actor that is not this node. Evidence for 0223, not a claim of its own.	
+0206	stated	docs/known-defects.md	intent#0206
+0213	stated	docs/known-defects.md	intent#0213

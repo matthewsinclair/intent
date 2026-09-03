@@ -54,9 +54,17 @@ The refusal also names an escape, `declare 'acceptance: exempt'`, and **there is
 
 **A criterion cannot record what would discharge it until it is discharged** (`intent#0211`). `intent ac satisfy` is the only verb that takes evidence and `--evidence <ref>` is required on it, so there is no way to write down what a criterion is waiting for while it is still open. Driven on v3.0.0: `ac satisfy --help` reads `Usage: intent ac satisfy --evidence <ref> <STID> <ACID>`. Planning notes for an open criterion have to live outside the tool.
 
+**`at lint` reports a test row as conforming when the row cites no test at all** (`intent#0213`). Driven on v3.0.0: create an AT with `--kind test` and no `--file`, drive it to green, and `intent at lint` answers `ok -- 1 AT row(s) conform`. The row asserts a passing test and names nothing that could have passed.
+
+**The refusal that does exist makes this worse, not better.** `at new --file tests/does_not_exist.rs` is refused outright at exit 1 -- `cites a file that does not exist` -- so the tool checks the path when you give one and checks nothing when you do not. **Citing a wrong file is caught; citing no file is blessed.** If you use `at lint` as a gate, treat a `conform` count that is lower than your row count as the real signal.
+
 **`intent at lint --fix` is advertised and refuses** (`intent#0139`). `at lint --help` documents it as _Migrate the mechanical part of a legacy row_; calling it exits non-zero without doing so.
 
 ## Editing
+
+**Two Intent commands writing to the same thread at once lose one of the writes, and both report success** (`intent#0206`). Driven on v3.0.0: three `intent ac new` calls launched concurrently against one thread each print `ok: AC-01.n created` at exit 0, and afterwards the thread holds two of the three. Run the same three sequentially and all three survive, so this is contention and not a broken verb. The canon left behind is valid, so nothing downstream reports a problem either.
+
+This bites hardest where it is least visible: a script, a `Makefile` target, or two terminals working the same thread. Serialise anything that writes canon, and if a row you created is missing, re-run the command rather than assuming you mistyped it.
 
 **No verb writes a thread's title, objective, context, body or preamble** (`intent#0185`). Driven: `intent st edit ST0001 info` refuses with `is generated from the model, so an edit here is lost at the next render`, and its remedy says to author it with `intent st` — which has no verb that writes those fields. Edit `intent/.canon/st/<ID>.json`, then `intent sync --to-store`, then `intent sync --to-disk`.
 
