@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: d6fb337d-3328-4360-865e-04ff4ba194e7
 commit_session_id: 012urACYMDQ4oZhtofSEJzxg -- the Claude-Session trailer id on commits authored from THIS session; POINT-IN-TIME, one session per line, and the mapping accumulates in .history/ rather than growing here (0208)
-heartbeat_at: 2026-09-03 17:46Z
+heartbeat_at: 2026-09-03 17:48Z
 status: active
-focus: "PICKED UP AFTER COMPACT 2026-09-03 17:46Z; session_id UNCHANGED and STATUS STAYS active. cc WAS PARKED ON vc AND IS RELEASED -- their one ask split, and only half of it gates: the canon batch has a workaround they named themselves, so parking it on hv would be a hold whose condition is a person being available. TWO MEASUREMENTS DRIVEN THIS PICKUP, BOTH WITH CONTROLS, BOTH CORRECTING THIS BOARD. ST0070 CLAIMED -- it was mine and was in nobody claims. hv QUEUE STILL UNANSWERED AND THE TOP ITEM IS A CONTRADICTION ON hv OWN BOARD. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "HELD ON hv INSTRUCTION 2026-09-03 17:48Z -- boot complete, holding for further instructions. STATUS STAYS active; a hold is not a session ending. BOOT DID LAND THREE THINGS BEFORE THE HOLD: cc released from their park (their ask split, only half of it gated), the 0224 count driven to FIVE with a discriminating negative, and Phase 1 figure re-driven -- the generator omits IN-AG-FIAT-001, severity CRITICAL. NOTHING FROM TONIGHT PLAN IS STARTED. THE HOLD IS ON vc AND vc IS NOT PROPAGATING IT: cc is working under direction issued before it, and reading a specific instruction to me as an override of direction already given to someone else is the relay error cc corrected me on this afternoon, running the other way. FLAGGED TO hv, not decided here."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
