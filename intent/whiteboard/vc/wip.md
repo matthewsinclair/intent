@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: d6fb337d-3328-4360-865e-04ff4ba194e7
 commit_session_id: 012urACYMDQ4oZhtofSEJzxg -- the Claude-Session trailer id on commits authored from THIS session; POINT-IN-TIME, one session per line, and the mapping accumulates in .history/ rather than growing here (0208)
-heartbeat_at: 2026-09-03 15:22Z
+heartbeat_at: 2026-09-03 15:26Z
 status: active
-focus: "hv GAVE TWO DIFFERENT INSTRUCTIONS AND cc AND ic ARE BOTH HOLDING -- hold to them, kick-off to vc, and vc cannot order the two. ESCALATED as the top hv item; one word resolves it. vc RELAYED AND WAS WRONG about what a relay carries: a general restart through a peer is not a specific override, which is vc's own window-grant warning one rung up. RECOVERED the gap analysis and the SIX-phase plan verbatim from the pre-compact transcript into .history/20260903/ -- the on-no-disk gap is discharged by recovery, not re-statement. ic REFUTED hv item 5 and vc verified at source. STATUS STAYS active. RUN THE VERBS."
+focus: "RELAY DIVERGENCE STILL UNRESOLVED and it now blocks cc and ic; dc read hv's board instead of waiting and DELIVERED -- AC-02.3 census done at 1fd248ae, answer ZERO fixtures, no window taken. vc's item 16 was WRONG UNDER hv's PEN in both directions (survives vs half-affected; dropped hv's own until-the-census clause) -- corrected against hv/wip.md:244. A FIFTH decision surfaced: the 20-empty-bodies clause has a LIVE population of FOUR, re-driven independently. Holds AUDITED under ic's W23, not trusted: one rewritten twice, and the act form was HIDING AN UNCHECKED ROUTE. RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
@@ -30,8 +30,11 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 **Each carries the CONDITION that releases it. A hold with no condition is an abandonment.**
 
+**AND THIS PARAGRAPH IS NOT EVIDENCE ABOUT WHAT IS BELOW IT.** ic's third W23 instance is their own Holds lead asserting exactly this discipline while three of the four entries under it violated it -- **a rule stated at the top of a list is read as a property of the list**, which is the document-scale twin of a test passing BECAUSE of the bug. **AUDITED UNDER IT 2026-09-03 rather than trusted: two holds, both re-read, one rewritten twice.**
+
 - **`ST0068` AC-02.1 -- and the thread prefix is NOT decoration: `ST0056` ALSO has an `AC-02.1`.** vc read a bare note onto the wrong thread. **CONDITION: A RELEASE, NOT A BUILD.** `--note` landed `6fa22a79`; `docs/getting-started.md:124,126,135` instruct it; the keg has none.
-- **`AT-07.5`'s behavioural arm is not re-verifiable while a daemon runs**, and one always is. Green with the caveat; the tool REFUSES rather than fails. **CONDITION: NO intentd IS RUNNING** -- a STATE vc can check at every pickup, not an act. **RECONDITIONED 2026-09-03 UNDER ic's W23**: it read _hv authorises a daemon-down window_, which made every pickup check availability-of-a-person and never re-check the claim. Taking the window is still hv's and still not a node's; that is a separate fact and it is not the condition.
+- **`AT-07.5`'s behavioural arm is not re-verifiable while a daemon runs**, and one always is. Green with the caveat; the tool REFUSES rather than fails. **CONDITION -- THE CLAIM, NOT THE STATE AND NOT THE ACT: the arm needs a moment when nothing holds the socket it probes.** **RECONDITIONED TWICE ON 2026-09-03 UNDER ic's W23.** It first read _hv authorises a daemon-down window_, which made every pickup check availability-of-a-person and never re-check the claim. vc's first rewrite made it the state _no intentd is running_; **ic's third limb then showed the state form is still not the condition** -- where the act really is the gate, write THE CLAIM THE ACT IS PROTECTING, because the reason is the part that goes stale.
+  - **AND THE ACT FORM WAS HIDING A ROUTE, WHICH IS A SEPARATE HARM FROM BEING UNCHECKABLE.** _hv authorises a window_ presented hv as the only path. **It is not obviously the only path and vc has NOT checked the alternative: an isolated instance -- its own `INTENT_HOME`, its own socket, no shared daemon -- may satisfy the claim without stopping anything anybody is using.** That is an unmeasured route, stated as unmeasured. If it works the hold releases with no window at all; if it does not, the reason why becomes the real condition. **Taking a window on the SHARED daemon is still hv's and still not a node's** -- that fact is unchanged and it is not the condition.
 
 ## hv items
 
@@ -70,19 +73,25 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ### Open, lower rank
 
-7. **`0216`'s PROVOCATION ARM (cc)** -- see `9a`. **It needs nothing hv has to grant**, but it must be FENCED: scratch entity, peers quiet and told, repair loop armed. **Provoking an ingest is firing the loss mechanism on purpose on a live tree.**
-8. **A SECOND CENSUS, OFFERED BY dc AND NOT COMMISSIONED: 57 of 138 `v2:` entries declare NO `evidence_class`.** Larger gap than the collision class. **dc wants a positive control before believing any number it produces, and that condition is ratified in advance.**
-9. **CANDIDATE, NOT FILED: a stale-heartbeat guard** comparing `heartbeat_at` against the board file's own last-commit time -- **about the ORDER of the two, never a GAP** (dc), or it fires on everybody mid-session.
-10. **THE DAEMON-LOCK RACE STILL HAS NO ISSUE AND WANTS A RECORD** (cc's).
-11. **`AC-10.5`'s RE-DISPOSITION IS RATIFIED AND UNSTARTED (cc's).** _Modelled in ST0069, not in this release._ **Second in cc's order, ahead of the `0216` arm** -- it should not queue behind work that waits on a window.
-12. **`intent_agents.bats` STAYS `pending`** -- its failures are v2 WORDING, which the narrowed contract excludes. **If it is to go green the path is `wp_commands`': assert the CONTRACT, not the string.** Separate work; does not ride `0203`.
+0. **A FIFTH DECISION, FOUND INSIDE THE CENSUS AND ON A DIFFERENT UNEXECUTED RULING (dc).** The ISSUE WRITE PATH package ends _restore the 20 empty bodies from commit archaeology_. **Live population is FOUR** -- `0063`, `0086`, `0095`, `0096` -- **and vc re-drove it independently: 201 register files, exactly those four empty.** THREE were BORN EMPTY at the v2-to-v3 migration commit `9d717901`, no revision anywhere ever carrying a body, so **archaeology cannot restore what never existed**. Only `0086` is recoverable, and it is one of `AC-02.3`'s own five named control members. The clause is therefore **one row of archaeology plus three rewrites from knowledge**. **NOT a claim the ruling was wrong when made** -- 20 may have been true then; this is a re-measure, and the partition closes 1 + 3 = 4 of 4. `0095` and `0096` are also the two census members that are BLOCKED, **so the two rulings touch the same two rows.**
+
+1. **`0216`'s PROVOCATION ARM (cc)** -- see `9a`. **It needs nothing hv has to grant**, but it must be FENCED: scratch entity, peers quiet and told, repair loop armed. **Provoking an ingest is firing the loss mechanism on purpose on a live tree.**
+2. **A SECOND CENSUS, OFFERED BY dc AND NOT COMMISSIONED: 57 of 138 `v2:` entries declare NO `evidence_class`.** Larger gap than the collision class. **dc wants a positive control before believing any number it produces, and that condition is ratified in advance.**
+3. **CANDIDATE, NOT FILED: a stale-heartbeat guard** comparing `heartbeat_at` against the board file's own last-commit time -- **about the ORDER of the two, never a GAP** (dc), or it fires on everybody mid-session.
+4. **THE DAEMON-LOCK RACE STILL HAS NO ISSUE AND WANTS A RECORD** (cc's).
+5. **`AC-10.5`'s RE-DISPOSITION IS RATIFIED AND UNSTARTED (cc's).** _Modelled in ST0069, not in this release._ **Second in cc's order, ahead of the `0216` arm** -- it should not queue behind work that waits on a window.
+6. **`intent_agents.bats` STAYS `pending`** -- its failures are v2 WORDING, which the narrowed contract excludes. **If it is to go green the path is `wp_commands`': assert the CONTRACT, not the string.** Separate work; does not ride `0203`.
 
 ### Standing, and not vc's to unblock
 
 13. **`AT-00.2`, `AC-00.8` AND `AC-00.10` SIT BEHIND cc's `WP-10`, WHICH IS BEHIND `WP-06` (cc's) AND `WP-07` (dc's).** Read off the cover; sequence around it.
 14. **`AC-07.7` IS dc's GENUINE HOLD AND NOBODY HERE CAN UNBLOCK IT** -- it needs a keg built from fixed code, which needs a published tag.
 15. **`WP-08` STAYS HELD.** 12/12 green with `wp done` an `XS` away, **and closing it marks the daemon DONE over zero conformance coverage.** cc's call, endorsed, waiting on a WORD rather than on work.
-16. **`AC-02.3`'s fixture decline SURVIVES the scarcity strike**, **dc's `bin/` prune survives** on irreversibility plus the CI failure mode, and **`WP-13`/`WP-16` STAY IN ST0069 on hv's own dated sequencing sentence.**
+16. **`AC-02.3` -- CORRECTED 2026-09-03, AND THE ERROR WAS vc's UNDER hv's PEN.** This line read _the fixture decline SURVIVES the scarcity strike_, beside two items that genuinely survive. **hv's own entry (`hv/wip.md:244`) records it as `(iii) HALF-AFFECTED`** -- the CHOSEN option (census first) untouched, the DECLINE no longer able to rest on cost -- **and carries a clause this line dropped: _No action needed until dc's census returns a number._** So it was stale in both directions at once: wrong where the source is explicit, and silent where hv was waiting. dc found it by reading hv's board; vc verified at `hv/wip.md:244` before correcting.
+
+- **THE CENSUS HAS NOW RETURNED, `1fd248ae` (dc), AND THE ANSWER IS ZERO FIXTURES.** It needed NO window -- no rebuild, no daemon stop, no flip -- and that is structural rather than restraint: **a disposition is a claim about REACHABILITY, not a REPRODUCTION**, so neither arm of `docs_defect_disposition_check.sh` puts an environment on the critical path. **This retires hv's middle option** (build the fixtures) rather than pricing it, and undercuts the third (_ship red if the work is large_): population is **28, not the 27 hv ruled on** -- the register grew -- and the cost is **S-M of WRITING**. dc names the member its keyword proxy missed (`0071`) rather than reporting the clean count.
+- **dc's `bin/` prune survives** on irreversibility plus the CI failure mode, and **`WP-13`/`WP-16` STAY IN ST0069 on hv's own dated sequencing sentence.** Those two were right and are untouched by the correction above.
+
 17. **THE ACCEPTANCE GATE STILL CANNOT GO RED FROM CODE CHANGING.** baize-vc broke the test `AT-02.1` covers with a prediction written first and the gate returned all-pass; **`status: green` is a STORED STRING and the `at` family has no verify verb.** **`0207` now REFUSES a `--note` that would drop the existing one, so the free half is a GUARD rather than a discipline.** The verify half is unbuilt.
 18. **`WP-14` RULING WITHDRAWN.** All 12 ACs were **descoped to ST0069 by hv 2026-08-30, `by: "hv via vc"` -- vc ruled against a descope vc relayed.** `AC-09.5`'s wip/boards half goes with it.
 
