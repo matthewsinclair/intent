@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: d6fb337d-3328-4360-865e-04ff4ba194e7
 commit_session_id: 012urACYMDQ4oZhtofSEJzxg -- the Claude-Session trailer id on commits authored from THIS session; POINT-IN-TIME, one session per line, and the mapping accumulates in .history/ rather than growing here (0208)
-heartbeat_at: 2026-09-03 15:16Z
+heartbeat_at: 2026-09-03 15:22Z
 status: active
-focus: "BOUNCED 2026-09-03 15:16Z after a >1h backend outage; hv back and said kick off work again. RELAYED VERBATIM to cc/dc/ic with the LIMIT STATED FIRST -- a general restart is NOT a window grant, and the daemon-down, rebuild and flip-then-burn windows each still need hv naming them specifically. STATUS STAYS active. THE PROGRAMME IS STILL THE LLM-CONFIG RATIONALISATION, still blocked on the same three decisions. RUN THE VERBS; no figure here is evidence."
+focus: "hv GAVE TWO DIFFERENT INSTRUCTIONS AND cc AND ic ARE BOTH HOLDING -- hold to them, kick-off to vc, and vc cannot order the two. ESCALATED as the top hv item; one word resolves it. vc RELAYED AND WAS WRONG about what a relay carries: a general restart through a peer is not a specific override, which is vc's own window-grant warning one rung up. RECOVERED the gap analysis and the SIX-phase plan verbatim from the pre-compact transcript into .history/20260903/ -- the on-no-disk gap is discharged by recovery, not re-statement. ic REFUTED hv item 5 and vc verified at source. STATUS STAYS active. RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
@@ -20,7 +20,7 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 **ROUTING AND ADJUDICATING; nothing of vc's uncommitted.** hv delegated the open set (_"go with your recs"_), so **a vc ruling under hv's pen declares `authority: vc`, NEVER `authority: hv`** -- and see `9c`, which is vc getting that exactly wrong in the message that explained it.
 
-**THE LLM-CONFIG RATIONALISATION IS THE LIVE PROGRAMME AND IT IS UNBUILT.** Target APPROVED by hv 2026-09-03 and published: **https://claude.ai/code/artifact/d3da2edf-23fd-42b1-bc92-05c33bf1a3a8** -- twelve invariants, three mechanisms (DERIVED / TESTED / POINTED), the artefact table, and the `intent llm` verb. **THE ARTEFACT IS THE NARRATIVE'S ONE HOME; this board carries only what is UNEXECUTED.** Gap analysis and the five-phase transformation plan are both delivered to hv in chat and are NOT on disk anywhere -- **if hv wants them durable they must be re-stated, and that is a gap in this fold, named rather than hidden.**
+**THE LLM-CONFIG RATIONALISATION IS THE LIVE PROGRAMME AND IT IS UNBUILT.** Target APPROVED by hv 2026-09-03 and published: **https://claude.ai/code/artifact/d3da2edf-23fd-42b1-bc92-05c33bf1a3a8** -- twelve invariants, three mechanisms (DERIVED / TESTED / POINTED), the artefact table, and the `intent llm` verb. **THE ARTEFACT IS THE NARRATIVE'S ONE HOME; this board carries only what is UNEXECUTED.** **THAT GAP IS NOW CLOSED BY RECOVERY RATHER THAN RE-STATEMENT** (2026-09-03 15:20Z): both documents are at `.history/20260903/llm-config-gap-and-plan-RECOVERED.md`, extracted verbatim from the pre-compact transcript at named JSONL indices. **Recovery beats re-statement because a re-statement is a second authoring and would drift from what hv actually read.** The file is CONTENT-faithful and NOT byte-faithful -- `.history/` is not in `.prettierignore`, so the formatter normalises it -- and it declares that plus a known `IN-PR-STYLE-003` heading exemption on its own face. **AND IT CORRECTS THIS BOARD: the plan has SIX phases, 0 through 5, not five.**
 
 **THE PROGRAMME'S LOAD-BEARING FIGURE, RE-DRIVEN 2026-09-03 AGAINST `3f037021`: the generator emits FOUR `IN-AG-*` ids and the library holds SIX.** Do not transcribe that; the commands are `intent agents generate | grep -oE 'IN-AG-[A-Z-]+-001' | sort -u` and `intent claude rules list --lang agnostic`. **The ordering constraint is the whole plan: DERIVE THE INDEX BEFORE SHIPPING ANY SYNC**, or the sync distributes the wrong index to ten estates faithfully and reports green.
 
@@ -31,20 +31,30 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 **Each carries the CONDITION that releases it. A hold with no condition is an abandonment.**
 
 - **`ST0068` AC-02.1 -- and the thread prefix is NOT decoration: `ST0056` ALSO has an `AC-02.1`.** vc read a bare note onto the wrong thread. **CONDITION: A RELEASE, NOT A BUILD.** `--note` landed `6fa22a79`; `docs/getting-started.md:124,126,135` instruct it; the keg has none.
-- **`AT-07.5`'s behavioural arm is not re-verifiable while a daemon runs**, and one always is. Green with the caveat; the tool REFUSES rather than fails. **Condition: hv authorises a daemon-down window. A node must not take one.**
+- **`AT-07.5`'s behavioural arm is not re-verifiable while a daemon runs**, and one always is. Green with the caveat; the tool REFUSES rather than fails. **CONDITION: NO intentd IS RUNNING** -- a STATE vc can check at every pickup, not an act. **RECONDITIONED 2026-09-03 UNDER ic's W23**: it read _hv authorises a daemon-down window_, which made every pickup check availability-of-a-person and never re-check the claim. Taking the window is still hv's and still not a node's; that is a separate fact and it is not the condition.
 
 ## hv items
 
 **FOLDED 2026-09-02 23:17Z; pre-fold verbatim at `.history/20260902/wip-prefold-2312Z.md`. Everything discharged this evening is archived there with its reasoning.**
 
+### BLOCKING TWO NODES RIGHT NOW -- ONE WORD FROM hv RESOLVES IT
+
+**hv GAVE TWO DIFFERENT INSTRUCTIONS TO DIFFERENT NODES AND vc CANNOT ORDER THEM.** Into cc's session and into ic's session, hv's own hand: _"Boot, then hold."_ Into vc's session, hv's own hand: _"Boot, then kick off work again. Claude's back end has been down for >1hr. You'll need to ping the other Claudes here to get them back into action."_ vc relayed the second verbatim; **cc and ic each independently declined to start on it and are holding on the first.**
+
+**BOTH ARE RIGHT AND vc WAS WRONG.** cc's statement of it is the keeper: _a general restart relayed through a peer is not a specific override of a direct instruction_ -- the same shape as vc's own warning in the same message that a general restart is not a window grant, one rung up, and vc did not see it while writing the paragraph that names the shape. **vc has no timestamp on hv's word to cc or ic, and they have none on hv's word to vc; inventing an order to resolve it would be the fabrication class the boards are guarded against.** So it goes up rather than sideways.
+
+- **cc:** parked, `c8f714b6`, nothing started. Confirms `AC-10.5` ordering derived independently and agreeing; the `0216` arm stays fenced-first and vc will hold the fleet still when cc calls for it.
+- **ic:** holding. Landed CORRECTION ONLY at `38e74e46` (a rewrite of its own hold, not new work). `ST0065` remedy 2 is startable, one file, clear of cc and dc -- **and is NOT started.** vc will not report ic as working.
+- **dc:** not yet heard from at the time of writing.
+
 ### THE LLM-CONFIG PROGRAMME -- THREE DECISIONS OWED, ALL UNEXECUTED
 
-**hv APPROVED THE TARGET 2026-09-03** (_"Yep, love it. Lets do it."_). Published: **https://claude.ai/code/artifact/d3da2edf-23fd-42b1-bc92-05c33bf1a3a8**. Gap analysis and the five-phase plan were delivered IN CHAT ONLY.
+**hv APPROVED THE TARGET 2026-09-03** (_"Yep, love it. Lets do it."_). Published: **https://claude.ai/code/artifact/d3da2edf-23fd-42b1-bc92-05c33bf1a3a8**. **The gap analysis and the six-phase plan are NO LONGER chat-only** -- recovered verbatim to `.history/20260903/llm-config-gap-and-plan-RECOVERED.md`.
 
 - **(a) A STEEL THREAD.** vc proposed rather than created it -- `st new` is a write and the scope is hv's. **Nothing is buildable until this exists.**
 - **(b) THE VERB NAME.** `intent llm` recommended; `intent canon` reads better and collides with `intent/.canon/`. hv's call.
 - **(c) DOES PHASE 0 RIDE v3.0.1?** `in-standards/SKILL.md:18` states a writer v3 retired -- **false in canon AND in every installed copy, in the skill every session loads at boot**, and it has already caused a peer estate to design the wrong fleet-wide fix. **XS, one line.** The rest of the programme is a NEW THREAD AFTER THE TAG -- hv's 3.0.1 scope is ST0056 + feeders and this is wider.
-- **AND A GAP IN THIS FOLD, NAMED RATHER THAN HIDDEN: the gap analysis and the transformation plan are on NO DISK.** They survive only in the pre-compact transcript. **If hv wants them durable, vc must re-state them into the thread once (a) lands.**
+- **THE ON-NO-DISK GAP IS DISCHARGED.** Recovered verbatim from the transcript, not re-stated. When (a) lands the content moves into the thread and the `.history/` copy becomes a dated record rather than a live claim.
 
 ### hv's HANDS -- four
 
@@ -55,7 +65,7 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ### For hv's morning, narrowed rather than guessed
 
-5. **`intent claude skills sync` REPORTS `4 need a decision` ON EVERY RUN, AND NOBODY KNOWS WHAT THE FOUR ARE.** `list` shows all 23 `installed canon`. **vc narrowed it and did NOT resolve it: it is NOT extra installed skills and NOT orphans** -- `~/.claude/skills/` holds exactly 23 and the set difference against canon is empty both ways. **So it is a different population from the one `list` renders.** Seeing the message needs a `sync`, which is a WRITE. **ic flagged it and refused to guess; vc removed two candidates and did not improve on that.** **A standing count with no visible subject is the shape this whole day was spent catching.**
+5. **`intent claude skills sync`'s `4 need a decision` -- THE ASK IS NOW SMALL AND SPECIFIC: one supervised `sync`, then READ THE PER-SKILL LINES.** **vc's earlier framing (_a standing count with no visible subject_) WAS FALSE and is withdrawn.** ic refuted it from source and vc verified at the source rather than on ic's word: `render.rs:7411` is the total, and the line above it inside the loop prints ONE NAMED LINE PER SKILL with its own reason, every run. The subject prints; nobody read it. **Five `needs_decision` arms** -- `AlreadyInstalled`, `ModifiedLocally`, `Conflicted`, `Undecidable`, `SourceMissing` -- so the population is SYNC OUTCOMES where `list` renders INSTALLED STATE, which is why no set difference against canon could ever exhibit it. **RISK RE-PRICED: a bare `sync` with no `--force` HOLDS on these** (`ModifiedLocally` and `Conflicted` say HELD in their own text), so the run that names them cannot destroy them. It is still a mutation in hv's environment and still not a node's to take. **vc dressed an unread output as an unprintable one; that dressing is vc's and is recorded as such.**
 6. **`0218` -- `uninstall` LEAVES AN EMPTY DIRECTORY**, so a directory count disagrees with a skill count. hv killed the two residues; the tool is unchanged. ic filed at LOW.
 
 ### Open, lower rank
