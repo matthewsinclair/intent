@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: d6fb337d-3328-4360-865e-04ff4ba194e7
 commit_session_id: 012urACYMDQ4oZhtofSEJzxg -- the Claude-Session trailer id on commits authored from THIS session; POINT-IN-TIME, one session per line, and the mapping accumulates in .history/ rather than growing here (0208)
-heartbeat_at: 2026-09-03 07:33Z
+heartbeat_at: 2026-09-03 15:06Z
 status: active
-focus: "STATUS ROUND TAKEN 2026-09-03 07:34-07:40Z, all three peers replied, all three clean and holding. THREE PREMISES DIED OVERNIGHT AND EVERY ONE WAS ON AN hv LIST: AC-17.1 (cc built Op::Set, so the reword-vs-descope menu has no subject), the built-pair lag (rebuilt, at edit --note is in the binary), and AT-07.5's window (an observable, not a consent). ONE NEW AND IT IS THE WORST KIND -- a SHIPPED-SHAPED artefact carrying a FALSE claim, dc's find, verified here. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
+focus: "LOCALFOLD 2026-09-03 15:03Z; pre-fold verbatim + cmp-verified at .history/20260903/wip-prefold-1503Z.md (sha 8d4fdc47, 308L/52214B). STATUS STAYS active -- a fold before a compact is not a session ending. THE LIVE PROGRAMME IS THE LLM-CONFIG RATIONALISATION: target APPROVED and published, gap and five-phase plan delivered IN CHAT ONLY and on no disk. THREE DECISIONS OWED FROM hv -- a steel thread, the verb name, and whether the one-line SKILL.md:18 fix rides 3.0.1. Census across the fold: 19 ids and 37 mechanisms in, same out, planted controls both ways. RUN THE VERBS; no figure here is evidence."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
@@ -18,13 +18,13 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ## DOING
 
-**ROUTING AND ADJUDICATING; nothing of vc's uncommitted.** hv delegated the open set (_"go with your recs"_), so **a vc ruling under hv's pen declares `authority: vc`, NEVER `authority: hv`** -- and see `9c` below, which is vc getting that exactly wrong in the message that explained it.
+**ROUTING AND ADJUDICATING; nothing of vc's uncommitted.** hv delegated the open set (_"go with your recs"_), so **a vc ruling under hv's pen declares `authority: vc`, NEVER `authority: hv`** -- and see `9c`, which is vc getting that exactly wrong in the message that explained it.
 
-**STATUS ROUND 2026-09-03 07:34-07:40Z: cc, dc, ic ALL replied, ALL clean, ALL holding.** Tree carried exactly one dirty path all morning and it was this file. cc is PARKED and the condition is hv's word, in hv's own voice -- not a peer's, not an idle tree, not a green gate. dc's whole open queue is the v3.0.1 release note. ic is the only node with an unsatisfied row still in its own scope (`AC-17.6`, gated on cc's WP-08).
+**THE LLM-CONFIG RATIONALISATION IS THE LIVE PROGRAMME AND IT IS UNBUILT.** Target APPROVED by hv 2026-09-03 and published: **https://claude.ai/code/artifact/d3da2edf-23fd-42b1-bc92-05c33bf1a3a8** -- twelve invariants, three mechanisms (DERIVED / TESTED / POINTED), the artefact table, and the `intent llm` verb. **THE ARTEFACT IS THE NARRATIVE'S ONE HOME; this board carries only what is UNEXECUTED.** Gap analysis and the five-phase transformation plan are both delivered to hv in chat and are NOT on disk anywhere -- **if hv wants them durable they must be re-stated, and that is a gap in this fold, named rather than hidden.**
 
-**THE MORNING'S FOUR MEASUREMENTS, DRIVEN NOT RECALLED.** (1) The currency arm reads **ok** -- `intent --version` and the build-input rev-list name the same commit; **dc's 62-commits-behind figure is a count of differences, not of damage, and 0 of the 62 touch a build input.** (2) `intent ac gate ST0056` **REFUSES rather than counts** -- a contract finding short-circuits the satisfaction report, so `ac status` emits no `N/M` at all; `ac list` reads past it. **BLOCKED here does NOT mean one literal from PASS, and ic nearly reported that it did.** (3) `doctor` puts WP-05 AND WP-08 in status-gate-disagreement -- both WIP, both gates PASS, driven per-WP. (4) `intentd` is up (pid 66522), so **`0216` exposure is live for anything canon-touching today.**
+**THE PROGRAMME'S LOAD-BEARING FIGURE, RE-DRIVEN 2026-09-03 AGAINST `3f037021`: the generator emits FOUR `IN-AG-*` ids and the library holds SIX.** Do not transcribe that; the commands are `intent agents generate | grep -oE 'IN-AG-[A-Z-]+-001' | sort -u` and `intent claude rules list --lang agnostic`. **The ordering constraint is the whole plan: DERIVE THE INDEX BEFORE SHIPPING ANY SYNC**, or the sync distributes the wrong index to ten estates faithfully and reports green.
 
-**vc's OWN WORK, UNSTARTED: `WP-15` skills-catalogue triage** (`ST0065`'s criteria are the bar it works to); **the estate-tree question**, unsourced and born in a fold; and **`hv/inbox.vc.md`'s lifecycle**.
+**vc's OWN WORK, UNSTARTED: `WP-15` skills-catalogue triage** (`ST0065`'s criteria are the bar); **the estate-tree question**, unsourced and born in a fold; **`hv/inbox.vc.md`'s lifecycle**; and **lamplight-vc's four tool defects are still UNFILED pending hv's word on issue numbers** -- `acceptance: exempt` is the one with a live cost, blocking three Lamplight WPs.
 
 ## Holds
 
@@ -36,6 +36,15 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ## hv items
 
 **FOLDED 2026-09-02 23:17Z; pre-fold verbatim at `.history/20260902/wip-prefold-2312Z.md`. Everything discharged this evening is archived there with its reasoning.**
+
+### THE LLM-CONFIG PROGRAMME -- THREE DECISIONS OWED, ALL UNEXECUTED
+
+**hv APPROVED THE TARGET 2026-09-03** (_"Yep, love it. Lets do it."_). Published: **https://claude.ai/code/artifact/d3da2edf-23fd-42b1-bc92-05c33bf1a3a8**. Gap analysis and the five-phase plan were delivered IN CHAT ONLY.
+
+- **(a) A STEEL THREAD.** vc proposed rather than created it -- `st new` is a write and the scope is hv's. **Nothing is buildable until this exists.**
+- **(b) THE VERB NAME.** `intent llm` recommended; `intent canon` reads better and collides with `intent/.canon/`. hv's call.
+- **(c) DOES PHASE 0 RIDE v3.0.1?** `in-standards/SKILL.md:18` states a writer v3 retired -- **false in canon AND in every installed copy, in the skill every session loads at boot**, and it has already caused a peer estate to design the wrong fleet-wide fix. **XS, one line.** The rest of the programme is a NEW THREAD AFTER THE TAG -- hv's 3.0.1 scope is ST0056 + feeders and this is wider.
+- **AND A GAP IN THIS FOLD, NAMED RATHER THAN HIDDEN: the gap analysis and the transformation plan are on NO DISK.** They survive only in the pre-compact transcript. **If hv wants them durable, vc must re-state them into the thread once (a) lands.**
 
 ### hv's HANDS -- four
 
@@ -79,148 +88,27 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ## Watch-outs
 
-### 9s. `intent/llm/` IS WRITTEN ONCE AT INIT AND OWNED BY NO REFRESH VERB, IN EVERY ESTATE
-
-**DRIVEN HERE, REPORT-ONLY, TREE UNCHANGED.** `intent claude upgrade` names its whole canon set: `.claude/settings.json`, `CLAUDE.md`, `AGENTS.md`, `usage-rules.md` (if absent), `.intent_critic.yml` (if absent), two githooks. **`intent/llm/` is not in it.** And `intent lang show rust` says `lang init` _declares the language in config.json and installs nothing into the project_ -- `rules.rs:67` states the retirement in code. **So `intent/llm/RULES.md`, any `RULES-<lang>.md` beside it, `MODULES.md` and `DECISION_TREE.md` are laid down once and never refreshed by anything.** Not a v2-residue edge case: the whole directory, every estate, this one included.
-
-**THE COST IS NOT THE STALENESS, IT IS THAT THREE OUTCOMES COLLAPSE INTO ONE OUTPUT** (dc's framing, and the reason it earned a paragraph in the release rather than a clause): **a false positive, a fork a verb repairs, and a fork no verb owns all read to a reader as _the remediation is not working_.** A remediation that is correct for the files it names and SILENT about a class it cannot reach produces a reader who runs both verbs, re-greps, still sees hits, and has no way to tell which of the three they are holding.
-
-**WORKED CASE -- THE PFIC FORK, AND IT COST FOUR OF FIVE HOMES IN A CONSUMER.** Lamplight carries five forked homes; **`intent claude upgrade --apply` reaches exactly one** (`AGENTS.md:131`). The other four are `intent/llm/RULES-{rust,lua,shell,swift}.md` -- hand edit or nothing. **Their estate has the TRUE rule in a log nobody reads** (`202605-done.md:3740`, a `DateTime.utc_now()` mid-pipeline finding **no idiom gloss could have produced**) **and the WRONG one in four files agents load at boot.**
-
-**AND FOUR CANON TEMPLATES STILL CARRY THE FORK HERE:** `intent/plugins/agents/templates/{rust,lua,shell,swift}/RULES.md`, glossing PFIC as iterator chains / table destructuring / `case` branching / `switch`, **none naming I/O placement, determinism or the boundary**. `_default` is fixed. **Dead in v3 -- the consuming mechanism is retired -- which is exactly the argument that lets defective canon sit until somebody revives it intact.** ic's (`0219`); dc recommends fixing, four one-line edits; **vc concurs: low severity is not zero and the fix costs four lines.**
-
-**A THEORY OF MINE KILLED BY ONE COMMAND, RECORDED AS A NEAR-MISS RATHER THAN A TIDY RESULT.** _The remediation re-installs the fork for four languages_ was half-written when `intent lang show rust` refuted it. **Third time in one morning a bad escalation was stopped by driving the disproof instead of writing the paragraph** -- and dc's version of the same defect had ALREADY SHIPPED: they held the four templates in their own opening grep, then took `six` out of ic's commit message and never reconciled the two. **A figure transcribed from a NARRATIVE into a shipped artefact, inside a release note whose subject is a claim that drifted from its owner.** The count is now DELETED rather than corrected -- ten would rot as six did -- because **a count in a release note is a claim about a corpus at a moment, and the reader's instrument is the grep, not the author's arithmetic.**
-
-**AND THE DISCRIMINATOR NEEDED TWO ROUNDS, WHICH IS THE INSTRUMENT LESSON.** vc found the repaired file trips its own instruction (it QUOTES the gloss to explain the repair); **dc found a second innocent shape vc could not see -- `in-standards:61`, a red-flag row that was never defective.** The rule that covers both is about what a line CLAIMS TO BE: **a hit is the fork when it purports to say what the rule IS.** dc's control had been run against the BROKEN corpus only, which **cannot exhibit a false positive on the fix by construction** -- so the cure was not the positive control, it was controlling on BOTH populations.
-
-### 9r. A GATE VERDICT READ FROM THE WORKING TREE IS NOT A PROPERTY OF A REVISION -- AND THE SIGN FLIP IS WHAT MAKES IT DANGEROUS
-
-**`intent at lint` READS THE WORKING TREE, SO `ac gate`'s CONTRACT ARM CAN GO GREEN ON BYTES IN NOBODY'S GIT, AND NOTHING IN THE OUTPUT SAYS WHICH TREE IT READ.** Measured 2026-09-03 07:51Z: `gate: ST0056 118/142` and `lint: ok -- 173 conform` both read clean while `one_declaration_two_realisers.rs` was still uncommitted -- `git log` on that path ended at `b67a9bc7` and the citation existed only on disk. **A `git stash` or a checkout of that one path would have put the gate back to refusing.**
-
-**vc HAD THE TWO CLEAN READINGS AND WAS COMPOSING THEM FOR hv.** What stopped it was `git status`, run for an unrelated reason. **Nothing in either verdict would ever have said so.**
-
-**THE SIGN FLIP IS THE WHOLE FINDING.** `8ab+8ae` says _in a shared checkout, one node's ordinary in-progress state is another node's OUTAGE_ -- **and an outage gets investigated.** This is the same seam inverted: **one node's in-progress state is another node's GREEN, and a green gets RECORDED.** The failure direction that produces work has a natural corrective; the one that produces a durable figure has none. **RULE: before a gate figure goes anywhere durable, confirm the paths it read are COMMITTED.** Resolved at `e95ebcf0` -- verified here: HEAD carries the citation, `git status -- native/rust` is empty, and the verdict is a property of a revision again.
-
-**AND ITS COMPANION, cc's, SELF-REPORTED: AN MTIME REPORTED AS AN ELAPSED TIME.** cc told hv a lock was _held since 08:50 local_; the real hold was about a minute. **`ls -la` answers _when was this last written_ and never _how long has this been held_.** Same family as the stamp rule and a NEW member of it: the existing entries are about a value carrying the wrong ZONE, this one carries the wrong QUESTION. **A time out of a tool answers that tool's question, and the sentence you put it in is where the substitution happens.**
-
-### 9p. FOUR TOOL DEFECTS FOUND FROM OUTSIDE THE ESTATE (lamplight-vc), THREE CONFIRMED HERE
-
-**A CONSUMER ESTATE IS AN INSTRUMENT THIS ONE DOES NOT HAVE.** All four arrived measured against `intent 3.0.0 (1c80a627)`, the build we ship.
-
-- **`acceptance: exempt` HAS NO SETTER AND THE REFUSAL NAMES IT AS THE REMEDY.** `st` has 18 subcommands, `ac` has 11, neither carries `exempt`; no clap arg in `intent-cli/src/` spells it; `AcceptanceMode::Exempt` is reachable only by direct model mutation in tests. **And `acceptance_surface.rs:231` ASSERTS the refusal string**, so the dead end is pinned as correct behaviour by a test. **`intent#0145`'s vacuous-remedy class with a test holding the door shut.** BLOCKING three WPs in Lamplight.
-- **A GREEN GATE OVER ROWS THE ENUMERATOR CANNOT READ.** Their `legacy.raw` bucket does NOT reproduce here. Ours: **406 test rows, 57 without `file`, of which 45 carry `prose`** (the declared non-test form) **and 12 carry NEITHER** -- 45+12=57, 57+349=406. **The claim generalises past their bucket and is the SECOND HALF of our own standing gate item:** ours cannot go red from code changing, and theirs shows it also passes silently over rows it structurally cannot see. **An enumerator's scope is part of its claim.**
-- **THE FOUR-FIELDS GAP CONFIRMED IDENTICALLY: 505 criteria, ONE key-set, `['id','kind','state','text']`, reconstructing 505 = 505; `on` / `control` / `red-first` / `evidence` ZERO each.** So any ruling of the form _record X as evidence on a criterion_ has no slot to land in. **They retracted their own earlier `830 of 2616` figure as unreproducible; recorded as retracted, not dropped.**
-- **THE SHELL CRITIC SCOPES ON A DIRECTORY, AND IT IS FIVE RULES NOT ONE.** `applies_to` carries a bare `"bin/*"` with no extension constraint, so a `.md` in any `bin/` matches -- `quote-expansions` (CRITICAL), `no-silent-exit-codes` (CRITICAL), `set-euo-pipefail`, `no-parse-ls`, `module-highlander`. **Canon, so the whole fleet inherits it.** The fix is not deleting the glob -- it arms extensionless scripts like `bin/intent` -- it wants an extension exclusion or a shebang test. **AND THE RUST PACK ALREADY WROTE THE CONFESSION: `error-types-thiserror-anyhow/RULE.md:68` states its own over-reach as measured. One pack states the cost, its neighbour does not.**
-
-### 9q. A `cd` FROM AN EARLIER CALL VOIDED TWO PROBES AND BOTH RETURNED CLEAN ZEROS
-
-**`cd` persists between Bash calls (8a), and a probe run from the wrong root does not error -- it AGREES WITH YOU.** Verifying lamplight's four, two probes returned `0` and `AC rows examined: 0`; both would have read as CONFIRMING the reporter. **A wrong-cwd probe and a true negative are the same bytes.** Caught only by positive-controlling on a row known to exist (`AC-17.1` -> `$.criteria[151]`). **lamplight-vc hit the identical shape the same morning on `0133` -- _my first grep returned nothing on a wrong path and I nearly read it as clean_ -- so this is two estates, one hour, one class.** **DETECTION: a probe whose failure mode is SILENCE must fire on a known positive before its zero is quoted.**
-
-### 9m. A MENU PUT TO hv IS A CLAIM ABOUT THE OPTION SET, AND THE OPTION SET IS THE PART THAT EXPIRES
-
-**`AC-17.1` went to hv as _reword or descope, both weak, one of them moves_. Neither moved. cc built a THIRD door while the menu sat unread**, and the menu was still the top item on `intent/wip.md`, on this board and in ic's hands this morning. **`Op` is now SIX variants -- `ThreadList`, `Graphql`, `Set`, `Registry`, `Subscribe`, `Shutdown` -- and `Set` is the write door.** `EmptyMutation` still ships, so **hv's reads-only GraphQL ruling was never in tension with the row: the mutation went on the WIRE, not into the schema.** The two things the estate spent a week calling incompatible were never competing for the same seam.
-
-**AND THIS IS THE SECOND TIME IN TWO DAYS.** cc's own discharge notice [1] says it in cc's words about `sync`: _I put it to you as a scope question with no cheap middle... the code took a third option I said did not exist._ **Same author class, same shape, and the first one cc caught and this one nobody did.**
-
-**DETECTION, AND IT IS NOT _RE-DRIVE THE RECOMMENDATION_.** A menu's recommendation and its grounds both get re-read, because they are the argued part. **The OPTION SET is the unargued part -- it reads as the statement of the problem rather than as a finding -- so it is the half that ages silently.** Before putting a menu in front of hv, or acting on one already there, drive the EXHAUSTIVENESS claim: ask what would have to exist for a third option, then look for it. **`grep` the enum, not the prose about the enum.**
-
-**AND THE GREEN WAS REAL, WHICH IS NOT THE USUAL FINDING HERE.** `at` has no verify verb and `AtStatus::Green` is a stored string, so vc RAN it: `cargo test -p intentd --test suite one_declaration_two_realisers` -> **2 passed**, and the second is `the_diff_can_actually_fail`, a working negative control. **A green that survives being driven is worth recording precisely because this board mostly records the other outcome.**
-
-### 9o. AN INSTRUMENT WITH THE HUMILITY AND NOT THE POPULATION LINE -- `currency.lib`'s REACH
-
-**`_rust_source_changed` diffs `"$base..HEAD" -- native/rust` AND NOTHING ELSE. `intent/wip.md` documents the WIDER check** -- `git rev-list -1 HEAD -- native/rust surface docs/design`, three paths. **Three `include_str!` sites reach outside the arm**: `intent-cli/src/dispatch.rs:45` -> `surface/dispatch-table.json`, `intentsvcs/src/form.rs:79` -> `surface/forms.json`, `intentd/src/web.rs:57` -> `docs/design/intent-logo.svg`. `surface/` is at the REPO ROOT, measured (`ls -d native/rust/surface` -> No such file). **So a commit to `surface/dispatch-table.json` leaves the verdict `ok` while the binary carries stale compiled-in bytes.**
-
-**NOT FIRING TODAY AND THAT IS THE PART TO STATE: the arm agrees with the truth BY LUCK.** `1c80a627..HEAD` is 63 commits; non-test under `native/rust` = 0; under `surface` + `docs/design` = 0. Both readings say current.
-
-**CORRECTED 2026-09-03 (cc caught it, vc drove it): THE REACH _IS_ STATED, IN A FOURTH HOME, BY A DIFFERENT FILE.** `artefact_currency_verdict`'s success path is `printf 'ok'` -- bare (`currency.lib:181`). The sentence a reader sees -- _no non-test file under native/rust has changed_ -- lives at **`self_provenance_check.sh:388`**, a CALLER, hardcoding the scope in its own prose. **So the implementation and the claim about it are two hand-kept copies agreeing by coincidence: move the pathspec and the sentence keeps saying the old scope, correctly formatted, with nothing red.**
-
-**FOUR HOMES FOR _WHAT IS A BUILD INPUT_, AND ARM 6 BINDS ONLY THE FIRST TWO:** `source_commit.rs:174` (3 paths, marker identity AND dirt), `sharedtarget.lib:124` (3 paths), `currency.lib:108` (1 path, the diff), `self_provenance_check.sh:388` (1 path, the prose). **The marker derives its BASE over three paths and currency diffs ONE against it -- not a narrow guard, a comparison whose two sides answer different questions** (cc's statement, verified here).
-
-**THE EMBED CLASS IS RECOGNISED, ARMED AND CONTROLLED -- ON THE DIRT SIDE ONLY.** `shared_artefact_build_guard.sh:294-320` (arm 6b) enumerates every embed climbing out of `native/rust` and asserts scope coverage; **its control is real and was read: finding NO outside embeds is a FAIL**, on the stated ground that `dispatch.rs` is known to carry one. It states its own residual and names the safe failure direction. **Arm 6b checks SCOPE COVERAGE and never CURRENCY.** So a COMMITTED `surface/` edit passes every guard green while the binary carries stale bytes -- **and an UNCOMMITTED one is caught. The direction is inverted: committing is what makes a change shared, and it is the act the guard stops seeing.**
-
-**ROUTING, dc's, AND IT IS THE REUSABLE PART: `bin/.devbin/lib/` IS VENDORED AND `bin/.devbin/cmd/` IS INTENT'S OWN.** One directory, two ownerships; `currency.lib` exists nowhere in `~/Devel/prj/devbin`. **A clobbered-on-upgrade rule applied to the whole path is wrong for half of it -- exactly the belief that makes someone decline to fix a file they own.** The row dc is filing: bind currency's population to `DIRT_SCOPE` as the dirt arm's already is, and make whatever binds the diff also supply the sentence, or the prose becomes home five.
-
-**THE FILE SPENDS THREE PARAGRAPHS REFUSING TO OVERCLAIM ITS DISTANCE AND NONE BINDING ITS SCOPE** -- the `dirty-` floor note, the `grep`-exit-status note, the fail-open note. **A careful instrument is not a scoped one, and care is what stops anyone looking.**
-
-**AND THE CLASS THE EXCHANGE ACTUALLY PRODUCED, cc's OWN WORDS, EARNED THREE TIMES IN ONE HOUR BETWEEN US: I ASSERTED WHAT AN INSTRUMENT COVERS WITHOUT OPENING IT.** cc twice (the population claim, then _nothing else covers this_ -- refuted by cc's own commit output eight minutes later), vc once (the committed-range claim). **In every case the disproof was already in hand or one command away.** cc's discharge of the `include_str!` lag was CORRECTLY GROUNDED and it is worth recording why: they drove the three-path command by hand and drove `at edit --help`, and neither depends on the population claim they bolted on. **The instance was genuinely closed; what was wrong was certifying an instrument they had not read** -- so the cost is not a withdrawn escalation, it is that the class was never visible to the thing meant to show it.
-
-### 9n. A RELEASE NOTE IS AN INSTRUMENT WHOSE POPULATION IS THE TREE AT THE MOMENT OF WRITING (dc)
-
-**`docs/releases/3.0.1/RELEASE_NOTES.md:51` says _No migration is required and no project data changes_, and it is FALSE.** Verified here rather than taken from dc: `v3.0.0` (`80d8b2ca`) reads `SCHEMA_VERSION: i32 = 13`, HEAD reads **17**, and `store.rs:1796` dispatches `v if v < SCHEMA_VERSION => Self::migrate(...)` -- **an older store is migrated, not refused.** The line was TRUE when written on 2026-08-29 and went false when the schema moved. **Nothing re-read it, and nothing could: a prose claim about code sits under no guard.**
-
-**THE SENTENCE'S SECOND CLAUSE IS THE DANGEROUS HALF BECAUSE IT IS TRUE.** _A project already readable by v3.0.0 is readable by v3.0.1_ holds -- v3.0.1 reads a v13 store, by migrating it. **The converse is what breaks and the sentence does not mention it: `store.rs:1801` refuses a NEWER store outright, in its own words _there is no rung that could help... move the TOOL forward, never the data back_.** So the upgrade is a ONE-WAY DOOR and the note's own words tell a reader it is not a door at all. **A reader who CHECKS the stated direction confirms it and walks through anyway** -- which is worse than a plain falsehood, because verification rewards the wrong conclusion.
-
-**THE RUNG COUNT BETWEEN 13 AND 17 IS NOT MEASURED AND IS NOT CLAIMED HERE** (dc's discipline, kept). **Local exposure is nil and that is deliberately not the finding** -- the obligation is to people who are not on this box.
-
-**9-series is 2026-09-02's, folded into families. The 8-series below is older and already merged; full narrative for anything dated 2026-08-31 or earlier is in `.history/`.**
-
-### 9a. `0216` IS AN ACTIVE LOSS CONDITION AND THE MITIGATION IS A LOOP, NOT A WAIT
-
-**A canon write reports `ok`, LANDS, and `intentd`'s disk ingest REVERTS it ~1s later.** Not a failed write -- a second actor undoing a successful one, which is why the `ok` was honest. **IT FIRED THREE TIMES ON 2026-09-02: `AC-17.17` 18:07 (vc), `AT-00.7` 19:12 (ic), `AT-00.8` 21:34 (vc). Half the losses in the eight-day corpus are from that one session** -- the session spent analysing it.
-
-**THE MITIGATION IS `READ THE TARGET BACK, COMPARE TO INTENT, RE-WRITE IF IT DIFFERS, REPEAT UNTIL IT HOLDS`.** **NOT `verify past the ingest`, which smuggles a constant nobody has** -- past WHICH ingest, and how long is past? With cross-node writes the debouncer keeps resetting, so the delay is bounded by nothing measured. **AND NOT `one verb at a time`, which is INSUFFICIENT: the debouncer sees WRITES, NOT AUTHORS, so a peer writing 2s before you puts YOUR write in the exposed position and you cannot see it in your own transcript.**
-
-**THE ARM WANTS THE DAEMON RUNNING, WHICH INVERTS THE OLD ASK.** The gate is whether an ingest FIRES; 284 of 299 logged ingests were disk-edit triggered, so an ordinary disk touch arms it. **Fenced: scratch entity, peers told, repair loop armed** -- otherwise the experiment is indistinguishable from the defect.
-
-**WHAT IS KNOWN AND WHAT IS NOT: the phenomenon is PROVEN, the population is COMPLETE, four readings are KILLED, and the MECHANISM IS UNKNOWN.** Killed: the flush-window (lost and survived gaps interleave completely), coalescing (no recorded loss happened inside one quiet period), writes-during-a-running-ingest (ingests essentially never overlap -- 252 of 298 gaps over a minute), and concurrency-manufactures-depth. **Count correlates -- depth 1 lost 0 of 5, depth 3 lost 5 of 5 -- and nothing measured explains why the LAST write.**
-
-**AND IT IS REACHABLE BY AN ORDINARY SHELL LOOP, SO THE FIX CANNOT BE DISCIPLINE.** An `intent` invocation costs **23-26ms**; the 250ms floor observed all evening is **AGENT TURN LATENCY**, a property of who is driving. A shell loop over a shipped verb sits deep inside the debounce, and the 2026-08-18 burst was exactly that. **The fix is daemon-side: an ingest must not revert store state newer than the disk it read** -- and that collides with this board's own provenance finding, because `written_at` is the field the ingest REWRITES WHOLESALE, so it needs a monotonic version the ingest does not own. **MIGRATORS ARE SAFE and structurally so** (`migrate.rs`: the uncommitted return IS the atomicity, `AC-10.2`), **and the test suites are safe** -- watched iff the daemon opened it, and the suites never pass `--daemon`.
-
-### 9b. THE BASE RATE IS NOT THE CONDITIONAL, AND FOUR MEASUREMENTS WENT TO THE WRONG ONE
-
-**Both of cc's hypotheses and both of vc's measurements asked _how often does the risky shape occur_ when the question that decides a mechanism is _GIVEN it occurs, what happens_.** Tonight's rate of risky bursts is genuinely LOWER than the corpus and **that reassuring proportion was worthless while three writes were being eaten.** **A base rate tells you how worried to be; a conditional tells you what the mechanism IS.** The conditional sat in the same table every time and is nearly deterministic. **The base rate kept being asked because it LOOKED like the safety question.**
-
-### 9c. vc TOLD ic TO STAMP `authority: hv` ON THE STRENGTH OF A RELAY, IN THE MESSAGE EXPLAINING WHY THAT IS THE SHAPE THE ARM PREVENTS
-
-**ic REFUSED and got hv's word first-hand instead.** A relayed ruling stamped hv-first-hand is **indistinguishable in the artefact** from a delegated one wearing hv's name -- which is exactly why `ratified-in` was rebuilt from a regex to declared fields. **vc walked into it while citing it.** **DETECTION: the authority field records WHERE THE WORD CAME FROM, not whether it is true. A true relay is still a relay.**
-
-### 9d. A DISPLAY FILTER IS A CLAIM ABOUT THE POPULATION, AND IT IS THE ONE NOBODY REVIEWS
-
-**vc reported a "complete" sweep off a filtered view TWICE.** First a `d<1800` print filter described as a _repair-shaped interval_, which **dropped `0202`, the only live loss and the sweep's own positive control**; then an `if after` gate that **made every NEVER-REPAIRED candidate invisible -- 16 of 26.** **The query was argued, defended and re-run at four window sizes; both filters sat in the loop that PRINTED it.** So **THE REVIEWED ARTEFACT AND THE REPORTED ARTEFACT WERE DIFFERENT OBJECTS, and every review looked at the one that was right.**
-
-**AND BOTH FILTERS ENCODED THE SAME HIDDEN ASSUMPTION -- THAT A LOSS GETS NOTICED -- WHICH IS THE VARIABLE UNDER STUDY.** A loss repaired in 30 minutes is one somebody noticed; `0202` sat 37.7 hours because nobody did. **A filter that operationalises `real` as `repaired` cannot see the population it was built to find.**
-
-**THE CURE IS CHEAPER THAN A REVIEW PROCESS: MAKE THE SUMMARY RECONSTRUCT, AND SHOW IT RECONSTRUCTING FROM TWO DIRECTIONS.** 16 + 10 = 26 and 20 + 6 = 26, both stated. **A total that is PRINTED hides a miscount; a total shown CLOSING cannot.** Both of vc's summary failures were caught from outside by a reader adding up categories, never by re-running anything -- **and a summary that does not reconstruct is a defect in its own right, because it is the only artefact most readers ever see.**
-
-### 9e. A CLAIM THAT SOUNDS LIKE PHYSICS IS EXEMPT FROM THE STOPWATCH
-
-**_A process spawn costs more than 250ms_ survived FOUR assertions, two of them to peers as a system property, and died to a four-second measurement: 23-26ms.** **It reads as a fact about computers, so nobody measures it** -- where _our writes are 250ms apart_ reads as a fact about us and invites the question. **It was LLM turn latency wearing an operating system's clothes.**
-
-**AND IT IS THE THIRD TIME THE SAME AUTHOR RESTATED A CONTINGENCY AS A PROPERTY** -- flagged as contingent in refinement 1, asserted absolutely one message later, corrected by ic, then re-asserted to cc as _process spawn cost settles it_. **A CONSTRUCTED VARIABLE STOPS BEING LABELLED CONSTRUCTED THE MOMENT IT IS QUOTED, INCLUDING BY ITS AUTHOR.** The label lives in the prose and the number travels alone; cc's crossed a session boundary, vc's crossed two paragraphs, **and the mechanism did not care about the distance.**
-
-### 9f. A SURVIVAL IS NOT EVIDENCE THE DISCIPLINE WORKS WHEN THE MECHANISM WAS NOT ARMED (ic)
-
-**ic's `issues.close 0181` sat 2.3s after a peer's write, in the exposed position, and lived because no ingest fired.** Reporting _verified, discipline holds_ from that would have been **a false confirmation built out of a true observation** -- the vacuous-instrument shape arriving inside a report about it.
-
-**AND ITS INVERSE, WHICH ic NAMED BEFORE IT COST ANYTHING: A MECHANISM CORRECTION IS NOT A REFUTATION OF THE CONCLUSION IT SITS UNDER.** Three times in one evening someone was right about what to DO and wrong about WHY. **Tonight trained everyone to expect a broken premise to take its conclusion with it -- which is why the next one that does not will be mis-read.**
-
-### 9g. A GUESSED FIELD NAME RETURNS `absent` FOR BOTH _NOT THERE_ AND _NOT WHERE I LOOKED_ (ic)
-
-**ic read `c["satisfied"]` out of the extract, got `None`, and had a `0216` loss report half-written against a store saying `yes`.** The real path is `c["state"]["is"]`. **It produced the exact signature of the revert they were primed to find.** **Same class as vc ruling on `WP-14` after querying `text` when the descope lived in `state`** -- so the cure is stated once for both: **walk the objects AND NAME THE FIELD, and before ruling on any row, query its `state`.**
-
-### 9h. A REFUSAL-AND-RETRY IS WHERE A DISCIPLINE GETS DROPPED (ic)
-
-**The retry FEELS like a continuation and is a FRESH COMMAND.** ic used `git commit --only` correctly, was refused on FORMATTING, fixed the format, and **rebuilt the command from scratch as a plain `git commit` -- which took vc's staged canon file into ic's commit.** vc hit the same trap on the clock guard minutes later. **The gate's refusal is what puts you on the unsafe path**, and it generalises past git to every guarded verb here. **RE-ISSUE THE SAME COMMAND, never recompose it.**
-
-### 9i. TWO MORE SECOND-ACTORS, AND THE ACTING NODE'S REPORT WAS TRUE AND INCOMPLETE EVERY TIME
-
-**A plain `git commit` takes the index AS IT STANDS**, so one node's commit absorbed another's staged canon edit -- no data lost, provenance muddled, **corrected FORWARD because the tree is shared and HEAD had moved.** **And a shared gate reads a PEER's live working tree**, so two nodes asking minutes apart get different verdicts with nothing in either result saying so. **vc asserted the mechanism (a guard that cannot vouch for itself) WITHOUT OPENING THE GUARD; devbin-vc drove it and found a real new unguarded `cargo build --release` from that day.** The guard was working precisely. **On a shared tree a write's outcome is not determined by the writer.**
-
-### 9j. THE STORE'S GRAMMAR REFUSES SCHEMES FASTER THAN A PARAGRAPH DEFENDS THEM
-
-**`kind` is a property of the CRITERION, so a non-test row can never satisfy a test-backed AC** -- the store refused vc's _one property, two instruments_ housing after vc had written the full row text justifying it. **Second time in one day a vc scheme met the field's own grammar** (`legacy.rs:1965` killed the three-tier key scheme that morning). **DETECTION: when a ruling invents a HOUSING, drive the write BEFORE writing the reasoning.**
-
-**WITHDRAWN 2026-09-03, MINE: _the pair will still read ok until someone rebuilds_ was wrong.** The arm diffs a COMMITTED range, so a committed source change turns it red; the real gap is REACH (`9o`), not staleness. cc had the mechanism right and vc asserted against it without opening the file -- **the third time this board records asserting a mechanism without opening it (`9i`).**
-
-**AND THE SHARPER HALF: vc CHECKED THE RIGHT STRUCTURE FOR THE WRONG PROPERTY.** Many-to-one coverage is ordinary here (`AC-04.1` carries four), so vc checked the MODEL rather than the DISPLAY and was right to -- **and it did not help, because arity was never the constraint; KIND was.** **A structural check aimed at the wrong field returns a true answer to a question nobody was blocked on, and reads exactly like due diligence.**
-
-### 9k. A PREMISE EXPIRES BETWEEN BEING FORMED AND BEING ACTED ON -- SIX TIMES IN ONE EVENING
-
-`AT-00.6`'s v2-era checksum claim; vc's `WP-14` descope; `config`'s ordering limb; vc's `0181` ruling handed to ic two hours after dc had landed it; ic's own board reporting a cut that was already executed; and `0203`'s `WHAT IT UNBLOCKS` paragraph, **written by dc before the remedy existed and ruled on by vc without re-driving it -- the writing dc's, the not-checking vc's.** **EVERY ONE WAS CAUGHT BY THE PERSON ABOUT TO ACT ON IT, WHICH IS THE CONTROL WORKING RATHER THAN A NEAR MISS.** **AND A RULING WHOSE PREDICATE DISSOLVES WHILE ITS PRINCIPLE HOLDS MUST BE RECORDED AS SUCH, or it reads as a reversal.**
-
-### 9l. AN ASSERTION THAT LIVES IN A COMMENT CANNOT BE CHECKED (dc)
-
-**`wp_commands.bats` asserted usage strings and NOTHING about the exit code, under `# help exits with 1 (usage pattern)`.** **The only row with an opinion about rc carried it where nothing could check it, and it had been false since `245dcdbe` with no symptom.** **`AC-00.2`'s class landing in a TEST FILE -- the last place you would expect an unenforceable claim, which is precisely why it survived.**
+**FOLDED 2026-09-03 15:03Z. Pre-fold verbatim + cmp-verified at `.history/20260903/wip-prefold-1503Z.md` (sha `8d4fdc47`, 308 lines / 52214 bytes).** The 9-series below is compressed to CLAIM + DETECTION; every incident narrative is in that snapshot. Census across the fold: **19 nine-series ids and 37 eight-series mechanisms in, same out**, with a planted positive (`9m` found) and a planted negative (`9zz` absent) proving the census discriminates.
+
+- **9a. `0216` IS AN ACTIVE LOSS CONDITION.** A canon write reports `ok`, LANDS, and intentd's disk ingest REVERTS it ~1s later. **The mitigation is a LOOP ON AN OBSERVABLE, never a wait on a duration** -- read back, compare, re-write, repeat. Not `verify past the ingest` (smuggles a constant nobody has); not `one verb at a time` (the debouncer sees WRITES, not AUTHORS). Mechanism UNKNOWN, four readings killed. **Reachable by an ordinary shell loop, so the fix cannot be discipline -- it is daemon-side.**
+- **9b. THE BASE RATE IS NOT THE CONDITIONAL.** _How often does the risky shape occur_ is not _given it occurs, what happens_. **DETECTION: the base rate looks like the safety question and answers a different one.**
+- **9c. AN AUTHORITY FIELD RECORDS WHERE THE WORD CAME FROM, NOT WHETHER IT IS TRUE.** A true relay is still a relay. vc walked into it while citing it; ic refused and got hv first-hand.
+- **9d. A DISPLAY FILTER IS A CLAIM ABOUT THE POPULATION, AND IT IS THE ONE NOBODY REVIEWS.** Two filters encoded the same hidden assumption -- that a loss gets NOTICED -- which was the variable under study. **CURE: make the summary RECONSTRUCT from two directions; a printed total hides a miscount, a total shown CLOSING cannot.**
+- **9e. A CLAIM THAT SOUNDS LIKE PHYSICS IS EXEMPT FROM THE STOPWATCH.** _A process spawn costs >250ms_ survived four assertions and died to a four-second measurement (23-26ms). **A CONSTRUCTED VARIABLE STOPS BEING LABELLED CONSTRUCTED THE MOMENT IT IS QUOTED, INCLUDING BY ITS AUTHOR.**
+- **9f. A SURVIVAL IS NOT EVIDENCE THE DISCIPLINE WORKS WHEN THE MECHANISM WAS NOT ARMED** (ic). **And its inverse: a mechanism correction is not a refutation of the conclusion it sits under.**
+- **9g. A GUESSED FIELD NAME RETURNS `absent` FOR BOTH _NOT THERE_ AND _NOT WHERE I LOOKED_** (ic). **CURE: walk the objects AND NAME THE FIELD; before ruling on any row, query its `state`.**
+- **9h. A REFUSAL-AND-RETRY IS WHERE A DISCIPLINE GETS DROPPED.** The retry FEELS like a continuation and is a FRESH COMMAND. **RE-ISSUE THE SAME COMMAND, never recompose it.** Kept twice today: the format-refusal on this board, and cc waiting out an index.lock rather than removing it.
+- **9i. ON A SHARED TREE A WRITE'S OUTCOME IS NOT DETERMINED BY THE WRITER.** A plain `git commit` takes the index AS IT STANDS; a shared gate reads a PEER's live working tree.
+- **9j. THE STORE'S GRAMMAR REFUSES SCHEMES FASTER THAN A PARAGRAPH DEFENDS THEM.** **DETECTION: when a ruling invents a HOUSING, drive the write BEFORE writing the reasoning.** And the sharper half: a structural check aimed at the WRONG FIELD returns a true answer nobody was blocked on and reads exactly like due diligence.
+- **9k. A PREMISE EXPIRES BETWEEN BEING FORMED AND BEING ACTED ON.** Six times 2026-09-02; **three more on 2026-09-03, every one caught by driving rather than reasoning** -- `AC-17.1`'s reads-only menu (cc built `Op::Set`), the built-pair lag (rebuilt), `AT-07.5`'s window (an observable, not a consent). **A RULING WHOSE PREDICATE DISSOLVES WHILE ITS PRINCIPLE HOLDS MUST BE RECORDED AS SUCH, or it reads as a reversal.**
+- **9l. AN ASSERTION THAT LIVES IN A COMMENT CANNOT BE CHECKED** (dc).
+- **9m. A MENU PUT TO hv IS A CLAIM ABOUT THE OPTION SET, AND THE OPTION SET IS THE PART THAT EXPIRES.** The recommendation and grounds get re-read because they are argued; the option set reads as the statement of the problem. **DETECTION: drive the EXHAUSTIVENESS claim -- grep the enum, not the prose about the enum.** Second instance in two days (cc's `sync` discharge was the first).
+- **9n. A RELEASE NOTE IS AN INSTRUMENT WHOSE POPULATION IS THE TREE AT THE MOMENT OF WRITING** (dc). `RELEASE_NOTES.md:51` went false when the schema moved 13 -> 17. **The dangerous half was the clause that was TRUE: a reader who verifies the stated direction confirms it and walks through a one-way door.** Fixed `c9ec5dd7`.
+- **9o. FOUR HOMES FOR _WHAT IS A BUILD INPUT_, AND THE REACH IS STATED IN A DIFFERENT FILE FROM THE IMPLEMENTATION.** `source_commit.rs:174` and `sharedtarget.lib:124` carry 3 paths; `currency.lib:108` diffs 1; `self_provenance_check.sh:388` hardcodes the scope in the PROSE a reader sees. **A COMMITTED `surface/` edit passes every guard green; an UNCOMMITTED one is caught -- the direction is inverted.** dc filing; not started.
+- **9p. FOUR TOOL DEFECTS FOUND FROM OUTSIDE THE ESTATE** (lamplight-vc), three confirmed here: `acceptance: exempt` has no setter and a TEST pins the dead-end refusal; a green gate over rows the enumerator cannot read; **505 criteria, ONE key-set `[id,kind,state,text]`, `on`/`control`/`red-first`/`evidence` ZERO each**; and the shell critic scoping on `bin/*` with no extension constraint across **FIVE** canon rules, two critical.
+- **9q. A PROBE RUN FROM THE WRONG ROOT DOES NOT ERROR -- IT AGREES WITH YOU.** A `cd` persisted between calls and voided two probes; both returned clean zeros that read as CONFIRMING the reporter. **A wrong-cwd probe and a true negative are the same bytes.** Caught only by a planted positive. Five such probes across two estates in one day.
+- **9r. A GATE VERDICT READ FROM THE WORKING TREE IS NOT A PROPERTY OF A REVISION.** `at lint` reads the working tree, so the contract arm can go green on bytes in nobody's git, and nothing in the output says which tree it read. **THE SIGN FLIP IS THE DANGER: `8ab+8ae` says one node's in-progress state is another's OUTAGE, and an outage gets INVESTIGATED; this is another node's GREEN, and a green gets RECORDED.** **RULE: before a gate figure goes anywhere durable, confirm the paths it read are COMMITTED.**
+- **9s. `intent/llm/` IS WRITTEN ONCE AT INIT AND OWNED BY NO REFRESH VERB, IN EVERY ESTATE.** Not in the canon set; `lang init` installs nothing (`rules.rs:67`). **ORPHAN-NESS IS A PROPERTY OF THE CODE, NEVER OF A FILE'S HISTORY -- the test is _does a verb write this_.** Two instruments named and REJECTED: marker-scanning finds only files that already have one; date-cohorting finds only estates where nobody edits (**driven: our four span five months and all four are orphaned**). **The estate's own `in-standards/SKILL.md:18` names a writer v3 retired, and it misled a peer estate into designing the wrong fleet-wide fix.**
 
 ### The 8-series -- claim and detection only; every incident narrative is in `.history/`
 
