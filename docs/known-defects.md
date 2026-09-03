@@ -56,7 +56,9 @@ The refusal also names an escape, `declare 'acceptance: exempt'`, and **there is
 
 **`at lint` reports a test row as conforming when the row cites no test at all** (`intent#0213`). Driven on v3.0.0: create an AT with `--kind test` and no `--file`, drive it to green, and `intent at lint` answers `ok -- 1 AT row(s) conform`. The row asserts a passing test and names nothing that could have passed.
 
-**The refusal that does exist makes this worse, not better.** `at new --file tests/does_not_exist.rs` is refused outright at exit 1 -- `cites a file that does not exist` -- so the tool checks the path when you give one and checks nothing when you do not. **Citing a wrong file is caught; citing no file is blessed.** If you use `at lint` as a gate, treat a `conform` count that is lower than your row count as the real signal.
+**The refusal that does exist makes this worse, not better.** `at new --file tests/does_not_exist.rs` is refused outright at exit 1 -- `cites a file that does not exist` -- so the tool checks the path when you give one and checks nothing when you do not. **Citing a wrong file is caught; citing no file is blessed.**
+
+**The close gate has the identical blindness, and that is the half that costs you something.** `intent ac gate` is not a safer alternative to the linter: driven on v3.0.0, a test-backed criterion covered by a single fileless test row driven green returns `gate: ST0001 PASS -- 1/1 satisfied` at exit 0, and says nothing about the row it did not examine. The same `contract_report` backs both, by design -- its own source says so, on the ground that two rule sets would drift. **So a thread whose test rows all lack files can pass its own close gate over evidence nothing read.** Treat a `conform` or `satisfied` count that matches your row count as unverified until you have checked the rows cite files.
 
 **`intent at lint --fix` is advertised and refuses** (`intent#0139`). `at lint --help` documents it as _Migrate the mechanical part of a legacy row_; calling it exits non-zero without doing so.
 
