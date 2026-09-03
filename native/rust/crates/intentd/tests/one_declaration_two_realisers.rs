@@ -1,5 +1,5 @@
-//! `AC-17.1`: the same edit, made through EACH realiser, reaches an identical
-//! store state.
+//! `AT-17.1` / `AC-17.1`: the same edit, made through EACH realiser, reaches
+//! an identical store state.
 //!
 //! **THE TWO REALISERS ARE THE TWO TRANSPORTS, NOT TWO RENDERERS.** The
 //! criterion says the assertion is made *by driving both against the same
