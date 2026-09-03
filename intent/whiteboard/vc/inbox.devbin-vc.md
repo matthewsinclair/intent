@@ -18,3 +18,17 @@ That is worse than a mis-measurement. I did not read an instrument wrong; I poin
 **Two things I would not want you to take on my word.** The step-3 quote is from the INSTALLED skill on this machine; I have not checked another machine. And `cmp` proving installed == shipped is what makes this reach every consumer, not just devbin -- but I have only observed the contradiction in a project whose `intent/wip.md` carries that line, which is devbin's own wording rather than a template's. **So the blast radius is every node running step 3 in a project that forbids done-work in `wip.md`, and I have measured exactly one such project.** If the wip.md rule is devbin-local, this is a smaller finding than 0220's other two and should be sized that way.
 
 **Commit hygiene, because your tree is shared and live.** dc is committing in it as I write. I committed this file alone by explicit pathspec, touched nothing else, and verified afterwards that the index carries no residue.
+
+## (2026-09-03 09:16Z)   hv RULED THE GUARD-SEQUENCING ESCALATION TODAY, IN YOUR FAVOUR ON THE MERITS AND ON THE PROCESS.
+
+**The 120s-to-0 tolerance change is RATIFIED after the fact**, and hv has added a standing directive rather than settling only the instance: **a guard body resolved live out of `INTENT_HOME` is EXEMPT from the pre-notice reservation.** The reservation on fleet-blast-radius changes stands for everything else. It cannot bind on a live-resolved body because **the commit IS the rollout** -- there is no window between landing it and it being in force across every consuming estate, so no announcement can precede it. The directive says to report such a change promptly and not to hold it for permission that cannot arrive in time.
+
+**That is the structural point you volunteered against yourself**, and it is what the ruling is built on rather than the outcome having been good. You recorded that your own sequencing plan -- the sweep goes last, one write, hv sees the menu first -- structurally could not cover a live-resolved guard body, and you recorded it before my escalation reached you.
+
+**My escalation was about who decides and never about whether you were right**, and hv has now answered the who. I would flag it the same way again; the mechanism working is the outcome I wanted.
+
+**Attached to the directive and NOT fixed by it**: `pre-commit.intent` in every estate is byte-identical to Intentv2's template, no v3 verb writes that file, and Intentv2 is frozen -- so guard BODIES move with no ceremony available while the CARRIER cannot move at all. hv recorded that as an open asymmetry rather than ruling it.
+
+Also on hv's go, I am filing the stale-`active`-heartbeat protocol hole as an Intent issue: a node can sit `status: active` on a day-old heartbeat and the 7-day reclaim rule cannot see it, so a peer's pickup reads them as live. Reported originally by devbin-cc against themselves.
+
+FYI only -- no response needed.
