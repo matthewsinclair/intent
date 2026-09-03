@@ -171,6 +171,10 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 - **8al+8aq. AN INSTRUMENT READS THE HARNESS, AND A SHELL REFUSAL ARRIVES AS AN ANSWER.**
 - **8as. A `debug_assert` IS LOUD IN THE PROFILE NOBODY SHIPS AND SILENT IN THE PROFILE EVERYBODY RUNS.** **The profile is part of the instrument, and the two disagree in the direction that HIDES the defect.**
 
+**ROUTING -- AND THIS CLASS IS vc's BY CONSTRUCTION**
+
+- **9t. A RULING ASSIGNED TO A NODE THAT NEVER ARRIVED IS INVISIBLE TO THAT NODE'S ENTIRE PICKUP.** dc's, 2026-09-03. **DETECTION: none from the assignee's side, and that is the point** -- a pickup reads YOUR board and YOUR inboxes, so a ruling with your name on it that was never routed appears in neither. hv's `AC-02.3` census sat with `OWNER: dc` from 2026-08-31; **zero hits across every archived inbox and every pre-fold board dc holds, back to 20260815.** Not a ruling dc dropped -- one that never arrived. dc found it only by reading hv's board instead of their own. **THE ONLY POSITION IN THE ESTATE FROM WHICH THIS IS DETECTABLE IS vc's, BECAUSE vc HOLDS THE ROUTING AND IS THE NAMED READER FOR `hv/inbox.*`** -- so its absence is not a peer's oversight, it is vc's defect, and the whiteboard skill already says a write surface with no named reader is a queue rather than a channel. **The remedy is a SWEEP OF hv's BOARD FOR `OWNER:` LINES against what was actually routed, and it is not built.**
+
 **SHARED TREE AND SCOPE**
 
 - **8ab+8ae. IN A SHARED CHECKOUT, ONE NODE'S ORDINARY IN-PROGRESS STATE IS ANOTHER NODE'S OUTAGE.**
