@@ -4,7 +4,7 @@ name: Validation Claude
 role: validation
 session_id: d6fb337d-3328-4360-865e-04ff4ba194e7
 commit_session_id: 012urACYMDQ4oZhtofSEJzxg -- the Claude-Session trailer id on commits authored from THIS session; POINT-IN-TIME, one session per line, and the mapping accumulates in .history/ rather than growing here (0208)
-heartbeat_at: 2026-09-03 15:57Z
+heartbeat_at: 2026-09-03 16:01Z
 status: active
 focus: "hv HANDED vc THE PEN 1530Z and the boundary was ruled BEFORE anyone pushed on it -- direction is delegated, hv's environment and the release are NOT. ST0070 IS OPEN with design.md attached and it, not the published page, is the HOME. PHASE 0 DONE (3d68c40a): in-standards stated two mutually-consistent falsehoods, and under them sat 0224 -- init seeds an Elixir decision tree into every project and Destination cannot decline it. All three worker nodes moving; cc dissolved the 0216 fence rather than building it. vc RE-RULED its own empty-bodies call after getting both halves wrong. RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -117,6 +117,12 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ## Watch-outs
 
+**AND THE STANDING JUDGEMENT ON THIS WHOLE SECTION, dc's, 2026-09-03: A RULE YOU HAVE TO REMEMBER AT THE KEYBOARD IS NOT A CONTROL.** dc hit the SAME instrument defect three times in one session with the rule already written down -- _the knowledge lived in a watch-out and not in the shape of the command_. **vc did it too, in the very commit that banked two new instrument watch-outs: `8h-ter` says a stamp typed in the same breath as the read is still typed by feel, and vc typed `15:42Z` off a `15:41Z` read. THE CLOCK GUARD CAUGHT IT; THE WATCH-OUT DID NOT.**
+
+**THIS IS `ST0070`'s OWN TAXONOMY APPLIED TO DISCIPLINES RATHER THAN FILES.** DERIVED cannot drift; TESTED drifts detectably; POINTED says nothing to drift. **A watch-out is none of the three -- it is POINTED AT A HUMAN'S MEMORY, the weakest form, and the one the thread's own evidence says loses.** The estate already holds the conversions and nobody had named them as a class: `whiteboard-clock-guard.sh`, `whiteboard-header-guard.sh`, the shared-artefact guard, the append-only guard -- **every one a discipline that stopped being remembered and became a mechanism, each built after the discipline failed at least once.**
+
+**SO A WATCH-OUT IS A STAGING AREA, NOT A DESTINATION.** A mechanism must be describable before it can be built, and this is where they get described -- **but an entry that has been staging for weeks is an entry nobody converted.** At the next fold, ask of each: could this be a guard, a test, or a command shape? Where it can, that is the work. Where it cannot, say why.
+
 **FOLDED 2026-09-03 15:03Z. Pre-fold verbatim + cmp-verified at `.history/20260903/wip-prefold-1503Z.md` (sha `8d4fdc47`, 308 lines / 52214 bytes).** The 9-series below is compressed to CLAIM + DETECTION; every incident narrative is in that snapshot. Census across the fold: **19 nine-series ids and 37 eight-series mechanisms in, same out**, with a planted positive (`9m` found) and a planted negative (`9zz` absent) proving the census discriminates.
 
 - **9a. `0216` IS AN ACTIVE LOSS CONDITION.** A canon write reports `ok`, LANDS, and intentd's disk ingest REVERTS it ~1s later. **The mitigation is a LOOP ON AN OBSERVABLE, never a wait on a duration** -- read back, compare, re-write, repeat. Not `verify past the ingest` (smuggles a constant nobody has); not `one verb at a time` (the debouncer sees WRITES, not AUTHORS). Mechanism UNKNOWN, four readings killed. **Reachable by an ordinary shell loop, so the fix cannot be discipline -- it is daemon-side.**
@@ -184,6 +190,7 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 - **8h-bis. FOR A WORD-LEVEL CLAIM, COMPARE WORDS** (conflab-vc via devbin-vc).
 - **8a. SHELL QUOTING EATS CONTENT AND THE COMMAND STILL SUCCEEDS.** Under zsh an unquoted glob ABORTS the whole call, an apostrophe inside single quotes runs NOTHING, and `cd` persists into the next call. **AND AN UNQUOTED `$var` HOLDING A PATH LIST DOES NOT WORD-SPLIT** -- `git add $P` was read as ONE pathspec containing spaces and failed with `did not match any files`, 2026-09-03. **That one is loud and therefore cheap; the same non-splitting inside a loop or a test would be silent.** Write the paths out, or use an array.
 - **8au. A LONG SINGLE-QUOTED PYTHON STRING IN A HEREDOC LOSES ITS CLOSING QUOTE AND THE WHOLE SCRIPT DIES ON A SyntaxError.** Twice in one session on `focus:` lines. **The fix is structural, not care: write the long value to a file and read it in.** Cheap because it fails loudly -- but the SECOND occurrence came after the first was diagnosed, which is the tell that a discipline was being asked to do a mechanism's job.
+- **8av. A HASH OF NOTHING IS A PLAUSIBLE HEX STRING, NEVER AN ERROR.** `e3b0c442...` is the sha256 of the EMPTY STRING (dc, 2026-09-03): `head -c -1` is GNU, BSD refused it, and the recompute silently hashed empty input and printed a digest no eye distinguishes from a real one. **Same family as `find` being bfs and `jq -r` appending a newline -- a confident wrong answer rather than a failure.** CONTROL: hash a known-nonempty input in the same breath, or assert the byte count before hashing.
 - **8r. A SUCCESS CHECK THAT PIPES REPORTS THE PIPE'S STATUS.** `if cmd | tail -2; then echo COMMITTED` prints COMMITTED whether or not the commit landed. **Capture the status before anything consumes it: `out=$(cmd 2>&1); rc=$?`. Anything downstream of the thing being tested becomes the thing being tested.**
 - **8al+8aq. AN INSTRUMENT READS THE HARNESS, AND A SHELL REFUSAL ARRIVES AS AN ANSWER.**
 - **8as. A `debug_assert` IS LOUD IN THE PROFILE NOBODY SHIPS AND SILENT IN THE PROFILE EVERYBODY RUNS.** **The profile is part of the instrument, and the two disagree in the direction that HIDES the defect.**
