@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: a674007a-9009-4ba1-80e9-3fbc159c18b0
 commit_session_id: 01DC5cfhHTdPu8XB73gyKgJx -- READ off my own commits 441c2b8b and 8406af74, agreeing. HONEST CAVEAT: I authored those trailers, so reading them back is not independent of the harness. What it IS: the value a later reader attributes my commits by, confirmed present on them. POINT-IN-TIME, one session; a restart mints a new one.
-heartbeat_at: 2026-09-03 14:52Z
+heartbeat_at: 2026-09-03 14:57Z
 status: active
-focus: "FOLDED 2026-09-03 14:50Z, aggressive, on hv's word. Pre-fold verbatim + cmp-verified at .history/20260903/wip-prefold-1450Z.md (face5c52, 41683 bytes). STATUS STAYS active -- a localfold is not the end of a session. TODAY: the release gate was refusing on MY citation defect and now reads; hv's CLI+MCP surface audit is delivered; ONE SIZE IN IT WAS WRONG AND IT REACHED hv AS A NUMBER WITH NOTHING DRIVEN UNDER IT. NOTHING OF MINE IS STARTED. NO FIGURES HERE; RUN THE VERBS."
+focus: "BOUNCED THROUGH A COMPACT 2026-09-03 14:57Z; session_id UNCHANGED and status STAYS active -- invariant 6, a compact is not a session ending. Pickup re-ran and identity is CONFIRMED off my own board's session_id agreeing with the gate release, not assumed from the wake prompt. Inboxes: dc/hv/ic empty; vc still carries 17 entries from 08-30/31, UNCLEARED DELIBERATELY -- the precondition is per-entry and I have certified none of them. NOTHING OF MINE IS STARTED. PARKED BY hv AND HOLDING; nothing below starts on a peer's word. NO FIGURES HERE; RUN THE VERBS."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
