@@ -40,6 +40,12 @@ The row cannot be repaired afterwards: an issue title and body are write-once (`
 
 ## Criteria and tests
 
+**A work package whose criteria are all descoped cannot be closed, and the refusal's remedy cannot be followed** (`intent#0063`). Driven on v3.0.0: give a work package one criterion, descope it, and `intent wp done` refuses at exit 1 with `all 1 in-scope AC(s) are descoped or withdrawn; nothing is left to verify`. The remedy printed underneath reads `satisfy or formally descope the remaining criteria, then close again` — but there are no remaining criteria, which is the whole reason it refused. Following it exactly leaves you where you started.
+
+The refusal also names an escape, `declare 'acceptance: exempt'`, and **there is no way to declare it on a work package**: the WP cover carries `wp_id`, `title`, `scope` and `status`, and nothing else. The exemption exists at thread scope only. A work package emptied one descope at a time has no route to `Done`. Leave one criterion in scope and satisfy it, or leave the package open.
+
+**Note on the register row**: `intent#0063`'s title also asserts that `WpStatus` has no `Cancelled` variant. That part is false — it carries one at v3.0.0 and at `HEAD` — but the behaviour above is real and was driven separately.
+
 **`intent ac new` on an id that already exists replaces the row instead of refusing** (`intent#0119`). Driven: creating `AC-01.1` twice returns `ok: AC-01.1 created` both times. The replacement is a full write, so a field you do not supply is written empty rather than preserved, and there is no verb that edits a criterion in place. Treat `ac new` as create-only and read `ac list` before re-running it on an id you are unsure of. **v3.0.1 closes this**; on v3.0.0 the verb that repairs is the verb that destroys.
 
 **`intent ac list` never prints the criterion text** (`intent#0168`). Driven: a criterion whose text is a distinctive sentence does not have that sentence anywhere in the listing. It prints ids, coverage and satisfaction, so planning from its output means planning from ids. There is no `ac show`.

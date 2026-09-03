@@ -147,7 +147,7 @@
 0203	stated	docs/migrating-from-v2.md	Use `--help` instead: `intent st --help` answers on the same build
 0200	not-reader-reachable	dev-apparatus-only -- rules_lib.sh ships NOWHERE after the cut (its own header: apparatus for critic_runner.sh and the critic_arming_census.bats oracle), and bin/intent_helpers is v2 CLI source, so no v3.0.0 reader reaches either home	
 0208	not-reader-reachable	intent-own-development-only -- driven: the subject is node identity in THIS repo multi-node commit stream (1 git author, 175 of 314 commits today carrying no wb(<node>) tag). A v3.0.0 consumer runs the binary and never meets the whiteboard commit convention, which is Intent internal process rather than shipped behaviour	
-0063	not-reader-reachable	not-exhibited -- the title premise is false at the cut: WpStatus carries a Cancelled variant at v3.0.0 AND at HEAD (git show v3.0.0:...model.rs). The body is empty, so the row claims nothing else.	
+0063	stated	docs/known-defects.md	intent#0063
 0095	not-reader-reachable	artefact-not-defect -- not a defect statement: an artefact of 0223, born empty at 9d717901 with a bare subcommand name as its title. The defect it is evidence OF is dispositioned at 0223.	
 0096	not-reader-reachable	artefact-not-defect -- same shape as 0095: title "severity" is a flag name, body empty, born at 9d717901. Evidence for 0223, not a claim of its own.	
 0196	not-reader-reachable	dev-apparatus-only -- int build all is devbin, this estate own build tool; it is not shipped and no reader invokes it.	
