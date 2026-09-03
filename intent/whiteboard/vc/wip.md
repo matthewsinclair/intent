@@ -79,6 +79,16 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 
 ## Watch-outs
 
+### 9r. A GATE VERDICT READ FROM THE WORKING TREE IS NOT A PROPERTY OF A REVISION -- AND THE SIGN FLIP IS WHAT MAKES IT DANGEROUS
+
+**`intent at lint` READS THE WORKING TREE, SO `ac gate`'s CONTRACT ARM CAN GO GREEN ON BYTES IN NOBODY'S GIT, AND NOTHING IN THE OUTPUT SAYS WHICH TREE IT READ.** Measured 2026-09-03 07:51Z: `gate: ST0056 118/142` and `lint: ok -- 173 conform` both read clean while `one_declaration_two_realisers.rs` was still uncommitted -- `git log` on that path ended at `b67a9bc7` and the citation existed only on disk. **A `git stash` or a checkout of that one path would have put the gate back to refusing.**
+
+**vc HAD THE TWO CLEAN READINGS AND WAS COMPOSING THEM FOR hv.** What stopped it was `git status`, run for an unrelated reason. **Nothing in either verdict would ever have said so.**
+
+**THE SIGN FLIP IS THE WHOLE FINDING.** `8ab+8ae` says _in a shared checkout, one node's ordinary in-progress state is another node's OUTAGE_ -- **and an outage gets investigated.** This is the same seam inverted: **one node's in-progress state is another node's GREEN, and a green gets RECORDED.** The failure direction that produces work has a natural corrective; the one that produces a durable figure has none. **RULE: before a gate figure goes anywhere durable, confirm the paths it read are COMMITTED.** Resolved at `e95ebcf0` -- verified here: HEAD carries the citation, `git status -- native/rust` is empty, and the verdict is a property of a revision again.
+
+**AND ITS COMPANION, cc's, SELF-REPORTED: AN MTIME REPORTED AS AN ELAPSED TIME.** cc told hv a lock was _held since 08:50 local_; the real hold was about a minute. **`ls -la` answers _when was this last written_ and never _how long has this been held_.** Same family as the stamp rule and a NEW member of it: the existing entries are about a value carrying the wrong ZONE, this one carries the wrong QUESTION. **A time out of a tool answers that tool's question, and the sentence you put it in is where the substitution happens.**
+
 ### 9p. FOUR TOOL DEFECTS FOUND FROM OUTSIDE THE ESTATE (lamplight-vc), THREE CONFIRMED HERE
 
 **A CONSUMER ESTATE IS AN INSTRUMENT THIS ONE DOES NOT HAVE.** All four arrived measured against `intent 3.0.0 (1c80a627)`, the build we ship.
