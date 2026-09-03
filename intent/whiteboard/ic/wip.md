@@ -2,11 +2,11 @@
 node: ic
 name: Interface Claude
 role: interface
-session_id: 11cef60b-409e-4bcc-b0f5-808d43639e75
-commit_session_id: 01NWtGVYUAFbTUS28AZsnzq9 -- the Claude-Session trailer id on commits authored from THIS session (0208). POINT-IN-TIME: one session per line, never a table -- a restart mints a new id, and the mapping accumulates in .history/ as folds archive the header that was live. Read off my own commit, not reconstructed.
-heartbeat_at: 2026-09-02 23:30Z
+session_id: 65cf369b-f4fc-435e-a077-208080b8a13c
+commit_session_id: 01X5CzxxDSSQqDUQtJid6fFS -- DECLARED BY THE HARNESS for THIS session and NOT YET WITNESSED on a commit; re-read it off my first commit of the day before anyone relies on it. POINT-IN-TIME: one session per line, never a table -- a restart mints a new id, and the mapping accumulates in .history/ as folds archive the header that was live.
+heartbeat_at: 2026-09-03 07:35Z
 status: active
-focus: "HOLDING. Nothing of mine is in flight and nothing of mine is blocked on me. ST0065 CLOSED 8/8; WP-17 rows 13-18 closed six and six; 0181, 0215 and 0219 closed; 0218 filed and open against uninstall. THE NIGHT'S ONE LESSON, PAID FOR SIX TIMES: A PREMISE CARRIES A VERSION -- five expired premises, one of them my own board saying the rationalisation cut had not happened when it had. RE-MEASURE AT PICKUP; RUN THE VERBS; NO FIGURE HERE IS EVIDENCE."
+focus: "PICKUP 07:35Z, RE-MEASURED NOT RECALLED, AND TWO OF MY OWN FIGURES WERE EXPIRED. AC-17.1 IS SATISFIED -- cc built Op::Set overnight, so it is NOT hv's to unblock and it comes OFF the hv list. WP-17 is 17/18 by AC, not 10/12; the one open row is AC-17.6, still gated on cc. AND THE ST0056 RELEASE GATE IS BLOCKED ON A CONTRACT FINDING IN MY SCOPE: AT-17.1's cited artefact does not carry the literal id. 118/142 satisfied behind it -- the finding SHORT-CIRCUITS the satisfaction report, so BLOCKED here is not one literal from PASS. HOLDING for hv. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -18,7 +18,15 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## DOING
 
-**Nothing. This is a real state, not an empty section** -- ST0065's contract closed at 8/8 tonight and everything else of mine is gated on cc, dc or hv.
+**HOLDING for hv, and the hold is now an INFORMED one: I re-measured at 07:35Z and two figures I handed forward last night were already expired.**
+
+**1. `AC-17.1` IS SATISFIED AND IS NOT hv's TO UNBLOCK.** My board, `intent/wip.md` in two places, and vc's hv list all carried _no mutating op exists on ANY transport_. **Measured: `Op` is `ThreadList`, `Graphql`, `Set { url, field, value }`, `Registry`, `Subscribe`, `Shutdown` (`intentsvcs/src/wire.rs:85`).** cc built the wire door overnight; `AT-17.1` is green and `intent ac list ST0056` reads `AC-17.1 satisfied: yes`. **`EmptyMutation` staying is not a refutation -- it is `Op::Graphql`'s bound and it is deliberate; the mutating door is `Op::Set`, which is a different door.** The reword-or-descope menu vc was about to put in front of hv is a menu for a question that answered itself eight hours ago.
+
+**2. WP-17 IS 17/18 BY AC, NOT 10/12.** Rows were added and one was satisfied; both halves of the old figure moved. The single open row is **`AC-17.6`**, and vc's reading of it is CORRECT and re-measured: `browsed()` at `intent-cli/src/render.rs:1594` returns `Err` unconditionally after the `--editor`/`--path` conflict check, so it refuses with the daemon up. Still gated on cc's WP-08.
+
+**3. THE ST0056 RELEASE GATE IS BLOCKED ON A CONTRACT FINDING IN MY SCOPE AND NOBODY HELD IT.** `intent ac gate ST0056` -> `BLOCKED -- 1 acceptance test contract finding(s) over 173 row(s): native/rust/crates/intentd/tests/one_declaration_two_realisers.rs does not carry the literal id AT-17.1`. The file carries `AC-17.1` in its module doc (line 1) and not the AT id. **The row is mine (WP-17); the file is cc's, authored last night. I have not touched it -- surfaced to vc, and the fix is one line whoever hv gives it to.**
+
+**AND THE FIGURE BEHIND IT IS NOT WHAT THE SHAPE SUGGESTS.** A contract finding **SHORT-CIRCUITS the satisfaction report** -- `ac status ST0056` prints the finding and no `N/M` at all -- so BLOCKED here does NOT mean one literal from PASS. `intent ac list` reads past it: **118 satisfied, 24 not.** I nearly reported the short-circuit as a near-PASS, which is watch-out 18 exactly: a real mechanism supplying a generalisation I had not measured.
 
 **hv's GOVERNING DIRECTIVE STANDS AND IS NOT HISTORY: change any AC/AT needed, DO NOT yak-shave old guards or tests -- rewrite them to reality** (fail-forward; [[feedback_fail_forward_intent]]). Accepted design: `intent/st/ST0056/tui-redesign-proposal.md`; the ratified design doc is `intent/st/ST0056/tui-design.md`.
 
