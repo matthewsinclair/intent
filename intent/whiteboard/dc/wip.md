@@ -2,11 +2,11 @@
 node: dc
 name: DevX Claude
 role: worker
-session_id: 3f2f5de2-d774-44db-8f1f-c85588606969
-commit_session_id: 019sc6GaHacHLr4F9nBkP9mE -- the Claude-Session id carried by commits authored from THIS session (0208). POINT-IN-TIME: it names one session, not a table -- a restart mints a new one, and .history/ is where the mapping accumulates as each fold archives the header that was live.
-heartbeat_at: 2026-09-02 23:25Z
+session_id: 1632d4ac-829b-4990-b3cb-67cb95f92204
+commit_session_id: 01WkA5QasnHyFRoRC592WbXW -- HARNESS-DECLARED AT BOOT AND NOT YET READ OFF A COMMIT. This session has authored none, so the value is unverified; confirm it against the trailer on my first commit rather than off this line. POINT-IN-TIME, one session, never a table -- the mapping accumulates in .history/ as folds archive the header that was live.
+heartbeat_at: 2026-09-03 07:35Z
 status: active
-focus: "FOLDED 2026-09-02 23:12Z; STATUS STAYS active -- a fold is not the end of a session. Pre-fold verbatim + sha-verified at .history/20260902/wip-prefold-2312Z.md (398db1ff, 60086 bytes). THE SHARED PAIR IS REBUILT and the gate currency arm reads ok. MINE AND OPEN: the v3.0.1 RELEASE NOTE (WP-11/WP-12), two limbs -- the PFIC fleet fork and the 13-to-17 schema note. Everything else routed to me today is disposed. THIS FOLD PROMOTED W52/W53/W54 INTO Watch-outs: they were cited in TODO with no entry anywhere, so folding the section would have deleted three rules by moving them. NO FIGURES HERE -- run the verbs."
+focus: "PICKED UP 2026-09-03 07:35Z, cold. Nothing in flight, nothing of mine uncommitted -- git status shows one file and it is vc's. MINE AND OPEN, RE-MEASURED THIS MORNING: the v3.0.1 release note, and BOTH limbs are still unwritten in the artefact -- docs/releases/3.0.1/RELEASE_NOTES.md mentions neither PFIC nor the schema move, and the CHANGELOG 3.0.1 section mentions neither either. The PFIC FIX has landed (ic, by pointer, synced) so limb (i) is now a HISTORICAL note about what an upgrade repairs, not a warning about what it inherits -- W58, the remedy moved the premise. Holding for hv via vc. NO FIGURES HERE -- run the verbs."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
