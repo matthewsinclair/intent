@@ -12,10 +12,10 @@ Load coding discipline into context. Invoke at the start of coding or after any 
 
 - `CLAUDE.md` (project rules) -- always present.
 
-Two more are OPTIONAL and `intent init` creates neither. Read them only if the project has them; their absence is the normal case and is not a gap to fix:
+The other two have OPPOSITE dispositions, and collapsing them into one sentence is what made this passage wrong until 2026-09-03. One is absent unless somebody chose it; the other is written into every project whether it fits or not.
 
-- `intent/llm/MODULES.md` (module registry) -- where a project keeps one, **search it, never read it**: `intent modules find <name>`. A mature registry runs to hundreds of kilobytes, so "check it first" is not an instruction anyone can follow by reading.
-- `intent/llm/DECISION_TREE.md` (code placement) -- laid down by `intent lang init elixir`, and Elixir/Phoenix-specific.
+- `intent/llm/MODULES.md` (module registry) -- **NOT written by `init`**, deliberately (`intentsvcs::init`, `NotByInit`, ruled 2026-08-24: a hand-maintained index of a tree the store already indexes is the thing Highlander forbids). **Its absence is the normal case and is not a gap to fix.** Where a project keeps one anyway, **search it, never read it**: `intent modules find <name>`. A mature registry runs to hundreds of kilobytes, so "check it first" is not an instruction anyone can follow by reading.
+- `intent/llm/DECISION_TREE.md` (code placement) -- **written by `intent init` into EVERY project, unconditionally**, and its body is Elixir/Phoenix-specific. **So a Rust, Swift or Lua project is handed an Elixir decision tree at init, and there is no mechanism to decline it**: `Destination` is `At` or `NotByInit` and has no per-language form. **Read it only if the project is actually Elixir/Phoenix.** Its presence tells you nothing about whether anyone chose it, so in any other project treat it as noise rather than as guidance.
 
 ### 2. Load the agnostic rule pack
 
