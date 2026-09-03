@@ -29,8 +29,51 @@
 //! vulnerable window is [ingest reads disk, ingest writes store], and a write
 //! landing inside it is reverted.
 //!
-//! **SO A NON-REPRODUCTION HERE IS A RESULT ABOUT THAT WINDOW AND NOT A CLEAN
-//! BILL OF HEALTH.** `0216` logs the window at ~1s on the live corpus. The
+//! **REPRODUCED 2026-09-03, AND CONTENTION WAS THE VARIABLE -- NOT SPACING AND
+//! NOT CORPUS SIZE.** A single-writer fixture loses nothing at any spacing or
+//! size tried. Add writers competing for the same store and the reported
+//! signature appears at once, at `baseline` 40:
+//!
+//! ```text
+//! contenders=0  competing=0     ingests=10  REFUSED=0  SILENTLY_LOST=0
+//! contenders=2  competing=490   ingests=85  REFUSED=5  SILENTLY_LOST=1  ["Burst row 7"]
+//! contenders=4  competing=807   ingests=87  REFUSED=4  SILENTLY_LOST=1  ["Burst row 7"]
+//! contenders=8  competing=1010  ingests=97  REFUSED=6  SILENTLY_LOST=0
+//! ```
+//!
+//! **THE LOSS IS STOCHASTIC, SO IT NEEDS A DISTRIBUTION AND NOT AN ANECDOTE.**
+//! Eight runs at `contenders=2`, `baseline=40`, depth 8:
+//!
+//! ```text
+//! losses per run : 0 0 1 1 1 1 1 2
+//! rows lost      : 2, 5, 6, 6, 7, 7, 7
+//! ```
+//!
+//! **THE PREDICTION THIS FILE WAS BUILT TO TEST IS NOT REFUTED, AND THE FIRST
+//! VERSION OF THIS COMMENT SAID IT WAS.** Pre-committed wording: *the
+//! render-queue model predicts MORE THAN ONE lost row at depth 8; if only the
+//! last goes, that model is wrong.* Two early runs each lost exactly `Burst row
+//! 7`, the last row, and this header recorded the model as refuted on that
+//! basis. **The very next run lost `Burst row 2` AND `Burst row 7`, and six more
+//! put the loss at rows 5, 6 and 7.** So the disconfirming condition -- *only
+//! the last goes* -- is FALSE, more than one row does go, and nothing is
+//! refuted.
+//!
+//! **RECORDED AS A MISTAKE RATHER THAN QUIETLY FIXED, BECAUSE THE MISTAKE IS THE
+//! REUSABLE PART: a conclusion drawn from n=2 about a stochastic process,
+//! written into an artefact, and contradicted by the next sample.** The
+//! discipline that produced the good result -- pre-committing the prediction --
+//! is not the same discipline as knowing when you have enough samples to apply
+//! it, and holding the first well says nothing about the second.
+//!
+//! **THE TWO DEFECTS TRADE OFF, WHICH IS WHY BOTH ARE COUNTED SEPARATELY.** As
+//! contention climbs the loud refusal (`0226`) dominates and the silent loss
+//! stops appearing -- at 8 contenders every collision is refused and none is
+//! swallowed. **A single counter would have shown "fewer losses at higher
+//! contention" and read as the defect improving under load.**
+//!
+//! **A NON-REPRODUCTION IS A RESULT ABOUT THE WINDOW AND NOT A CLEAN BILL OF
+//! HEALTH.** `0216` logs the window at ~1s on the live corpus. The
 //! window scales with how long a whole-corpus ingest takes, and a scratch
 //! project with four threads has a window of approximately nothing. That is the
 //! most likely reason the scratch attempt recorded in `0216` lost nothing
@@ -70,6 +113,26 @@ fn baseline() -> usize {
     .ok()
     .and_then(|v| v.parse().ok())
     .unwrap_or(40)
+}
+
+/// Writers competing with the burst, each minting continuously against the same
+/// store through its own facade.
+///
+/// **THE VARIABLE THE FIRST VERSION OF THIS FILE HELD FIXED WHILE THE LIVE TREE
+/// DID NOT** (vc, 2026-09-03, having reproduced `0216` on the live tree twice
+/// inside the hour this harness spent concluding not-reproduced). A scratch
+/// project driven by one test has exactly ONE writer; the live tree had four
+/// nodes committing into one canon all afternoon. **If the mechanism needs a
+/// COMPETING ingest rather than merely a fast one, a single-writer fixture
+/// cannot reach it at any spacing -- and the negative result would then be a
+/// property of the fixture rather than of the debounce.** That is the difference
+/// between *not reproduced here* and *does not reproduce*, and only the first
+/// was ever established.
+fn contenders() -> usize {
+  std::env::var("INTENT_0216_CONTENDERS")
+    .ok()
+    .and_then(|v| v.parse().ok())
+    .unwrap_or(2)
 }
 
 /// Long enough that the debounce has fired and any ingest it started has
@@ -149,15 +212,25 @@ fn lay_a_corpus(root: &Path) {
 }
 
 /// `DEPTH` writes at `SPACING`, returning the titles that reported success.
-fn burst(root: &Path) -> Vec<String> {
-  let mut written = Vec::new();
+fn burst(root: &Path) -> (Vec<String>, usize) {
+  let mut reported_ok = Vec::new();
+  let mut refused = 0;
   for n in 0..DEPTH {
     let title = format!("Burst row {n}");
-    mint(root, &title);
-    written.push(title);
+    // **A REFUSAL AND A SILENT LOSS ARE DIFFERENT DEFECTS AND MUST NOT BE
+    // COUNTED TOGETHER.** A write that returns `Err` is `0226`: loud, visible,
+    // and the operator knows. A write that returns `Ok` and is absent afterwards
+    // is `0216`: the whole point is that nothing told anyone. Panicking on the
+    // first refusal, which this did until contention was added, throws away the
+    // run AND conflates the two.
+    if open(root).st_new(&title).is_ok() {
+      reported_ok.push(title);
+    } else {
+      refused += 1;
+    }
     std::thread::sleep(SPACING);
   }
-  written
+  (reported_ok, refused)
 }
 
 /// The titles that reported `ok` and are not in the store.
@@ -181,7 +254,7 @@ fn an_unwatched_project_loses_nothing_in_the_same_burst() {
   let root = project("Unwatched");
 
   lay_a_corpus(&root);
-  let written = burst(&root);
+  let (written, refused) = burst(&root);
   std::thread::sleep(SETTLE);
 
   // Measured, never assumed. This is the exact variable `0216`'s scratch-project
@@ -192,6 +265,10 @@ fn an_unwatched_project_loses_nothing_in_the_same_burst() {
   );
 
   let lost = lost(&root, &written);
+  assert_eq!(
+    refused, 0,
+    "an UNWATCHED project REFUSED {refused} writes outright, which is 0226 and not this arm's subject"
+  );
   assert!(
     lost.is_empty(),
     "an UNWATCHED project lost {} of {DEPTH} writes ({lost:?}), so the burst harness drops writes on its own and the subject arm below cannot be read as a daemon defect",
@@ -202,7 +279,7 @@ fn an_unwatched_project_loses_nothing_in_the_same_burst() {
 }
 
 #[test]
-#[ignore = "0216 is an OPEN defect: this is the reproduction, so it is red until the ingest stops reverting store state newer than the disk it read. Run with --include-ignored."]
+#[ignore = "0216 is an OPEN defect and this REPRODUCES it, so it is red by design until the ingest stops reverting store state newer than the disk it read. Stochastic: the loss appears in a contention band (1 row at 2-4 contenders, none at 0 or 8), so a single green run is not evidence of a fix. Run with --include-ignored."]
 fn an_ingest_never_reverts_a_newer_store_write() {
   // **THE SUBJECT.** Identical to the control in every respect except that the
   // daemon is made to serve -- and therefore watch -- this root.
@@ -219,8 +296,28 @@ fn an_ingest_never_reverts_a_newer_store_write() {
     .expect("the subject project is NOT registered, so nothing is watching it and this arm would pass for the wrong reason");
 
   lay_a_corpus(&root);
-  let written = burst(&root);
+  // **CONTENTION, RAISED BEFORE THE BURST AND DROPPED AFTER IT.** Each contender
+  // writes through its own facade, which is the door the CLI uses, so this is a
+  // second writer rather than a second opinion about writing.
+  let stop = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+  let mut competing = Vec::new();
+  for c in 0..contenders() {
+    let root = root.clone();
+    let stop = std::sync::Arc::clone(&stop);
+    competing.push(std::thread::spawn(move || {
+      let mut n = 0u32;
+      while !stop.load(std::sync::atomic::Ordering::Relaxed) {
+        let _ = open(&root).st_new(&format!("Contender {c}/{n}"));
+        n += 1;
+      }
+      n
+    }));
+  }
+
+  let (written, refused) = burst(&root);
   std::thread::sleep(SETTLE);
+  stop.store(true, std::sync::atomic::Ordering::Relaxed);
+  let competing: u32 = competing.into_iter().map(|h| h.join().unwrap_or(0)).sum();
 
   let after =
     ingests(&daemon, &root).expect("the subject project stopped being registered mid-test");
@@ -241,8 +338,9 @@ fn an_ingest_never_reverts_a_newer_store_write() {
   // render-queue model predicts more than one loss at depth 8; exactly one loss,
   // and that the last, refutes it.
   println!(
-    "0216 profile: depth={DEPTH} spacing={SPACING:?} baseline={} ingests={} lost={} {lost:?}",
+    "0216 profile: depth={DEPTH} spacing={SPACING:?} baseline={} contenders={} competing_writes={competing} ingests={} REFUSED(0226)={refused} SILENTLY_LOST(0216)={} {lost:?}",
     baseline(),
+    contenders(),
     after - before,
     lost.len()
   );
