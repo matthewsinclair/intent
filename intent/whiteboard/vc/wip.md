@@ -4,7 +4,7 @@ name: Validation Claude
 role: validation
 session_id: d6fb337d-3328-4360-865e-04ff4ba194e7
 commit_session_id: 012urACYMDQ4oZhtofSEJzxg -- the Claude-Session trailer id on commits authored from THIS session; POINT-IN-TIME, one session per line, and the mapping accumulates in .history/ rather than growing here (0208)
-heartbeat_at: 2026-09-03 15:52Z
+heartbeat_at: 2026-09-03 15:57Z
 status: active
 focus: "hv HANDED vc THE PEN 1530Z and the boundary was ruled BEFORE anyone pushed on it -- direction is delegated, hv's environment and the release are NOT. ST0070 IS OPEN with design.md attached and it, not the published page, is the HOME. PHASE 0 DONE (3d68c40a): in-standards stated two mutually-consistent falsehoods, and under them sat 0224 -- init seeds an Elixir decision tree into every project and Destination cannot decline it. All three worker nodes moving; cc dissolved the 0216 fence rather than building it. vc RE-RULED its own empty-bodies call after getting both halves wrong. RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
@@ -142,6 +142,9 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ### The 8-series -- claim and detection only; every incident narrative is in `.history/`
 
 **MEASUREMENT AND INSTRUMENTS**
+
+- **9w. FOR `0216`, STORE-AGREES-WITH-DISK IS THE SIGNATURE, NOT THE EXCLUSION -- vc HAD THE DISCRIMINATOR EXACTLY BACKWARDS.** 2026-09-03. **After a revert the DISK WINS and overwrites the store, so both read the OLD value and agree.** vc reasoned _store and disk agree, therefore not `0216`_ and was one step from filing a fresh `silent no-op at rc=0` issue for a known defect. **ANYONE HUNTING `0216` BY COMPARING STORE TO DISK AT REST WILL RULE IT OUT EVERY TIME.** The discriminator is REPETITION under a running daemon, not agreement at rest.
+- **9x. `0216` REPRODUCED ON THE LIVE TREE, TWICE, WITHIN AN HOUR OF A SCRATCH HARNESS REPORTING NOT-REPRODUCED.** Three identical `st cancel ST0071` calls: two printed `ok` at rc=0 and left `triage` in store AND disk; the third landed `cancelled`, stable across 10 polls at 1s. `intentd` pid 66522 up throughout; nothing between attempts but reads. Legal edge (`data-model.md:590`), correct transcription (`transitions.rs:339`), negative control `st cancel ST9999` -> rc=1. **cc's harness is better instrumented (ingest counter read either side) and vc's observation is closer to the reported conditions; NEITHER refutes the other.** **THE VARIABLE THE HARNESS HOLDS FIXED IS CONCURRENT WRITERS -- one writer in scratch, four in this tree all afternoon. If the mechanism needs a COMPETING ingest rather than merely a fast one, a single-writer fixture cannot reach it AT ANY SPACING, and the negative result would be a property of the fixture. HYPOTHESIS, UNDRIVEN.**
 
 - **8t+8ac. A PROCEDURE I AUTHOR IS AN INSTRUMENT, AND AN INSTRUMENT GETS A POSITIVE CONTROL.** Applies to the probe as readily as to the subject.
 - **8x+8af. A CONTROL THAT CAN ONLY PASS IS DECORATION, AND THE THING IT CATCHES MAY BE ITS OWN AUTHOR.** A control that would pass under the broken instrument too establishes nothing. **`AC-00.11`'s own founding defect (`EXAMINED 86 of 278`) has N < M and a closing remainder, so NEITHER mechanical arm fires on it** -- true of the ARMS and false of the CRITERION.
