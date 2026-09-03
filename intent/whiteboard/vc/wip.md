@@ -2,11 +2,11 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: 1aa05d4a-6da2-4c42-98c6-de024aebab69
+session_id: d6fb337d-3328-4360-865e-04ff4ba194e7
 commit_session_id: 012urACYMDQ4oZhtofSEJzxg -- the Claude-Session trailer id on commits authored from THIS session; POINT-IN-TIME, one session per line, and the mapping accumulates in .history/ rather than growing here (0208)
-heartbeat_at: 2026-09-02 23:26Z
-status: paused
-focus: "FOLDED 2026-09-02 23:17Z; pre-fold verbatim + cmp-verified at .history/20260902/wip-prefold-2312Z.md (sha 911a5bdf, 67664 bytes). 0216 IS AN ACTIVE LOSS CONDITION, NOT A HISTORICAL ONE -- it fired THREE TIMES this evening across three nodes and half the corpus losses are from this one session. The mitigation is a LOOP ON AN OBSERVABLE, never a wait on a duration. hv ruled the PFIC fix rides in v3.0.1 and ic landed it. ST0065 is 8/8. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
+heartbeat_at: 2026-09-03 07:33Z
+status: active
+focus: "STATUS ROUND TAKEN 2026-09-03 07:34-07:40Z, all three peers replied, all three clean and holding. THREE PREMISES DIED OVERNIGHT AND EVERY ONE WAS ON AN hv LIST: AC-17.1 (cc built Op::Set, so the reword-vs-descope menu has no subject), the built-pair lag (rebuilt, at edit --note is in the binary), and AT-07.5's window (an observable, not a consent). ONE NEW AND IT IS THE WORST KIND -- a SHIPPED-SHAPED artefact carrying a FALSE claim, dc's find, verified here. THE BOARD RULE: printing the command is not running it, so a live figure here is the COMMAND ALONE."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ---
 
@@ -19,6 +19,10 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ## DOING
 
 **ROUTING AND ADJUDICATING; nothing of vc's uncommitted.** hv delegated the open set (_"go with your recs"_), so **a vc ruling under hv's pen declares `authority: vc`, NEVER `authority: hv`** -- and see `9c` below, which is vc getting that exactly wrong in the message that explained it.
+
+**STATUS ROUND 2026-09-03 07:34-07:40Z: cc, dc, ic ALL replied, ALL clean, ALL holding.** Tree carried exactly one dirty path all morning and it was this file. cc is PARKED and the condition is hv's word, in hv's own voice -- not a peer's, not an idle tree, not a green gate. dc's whole open queue is the v3.0.1 release note. ic is the only node with an unsatisfied row still in its own scope (`AC-17.6`, gated on cc's WP-08).
+
+**THE MORNING'S FOUR MEASUREMENTS, DRIVEN NOT RECALLED.** (1) The currency arm reads **ok** -- `intent --version` and the build-input rev-list name the same commit; **dc's 62-commits-behind figure is a count of differences, not of damage, and 0 of the 62 touch a build input.** (2) `intent ac gate ST0056` **REFUSES rather than counts** -- a contract finding short-circuits the satisfaction report, so `ac status` emits no `N/M` at all; `ac list` reads past it. **BLOCKED here does NOT mean one literal from PASS, and ic nearly reported that it did.** (3) `doctor` puts WP-05 AND WP-08 in status-gate-disagreement -- both WIP, both gates PASS, driven per-WP. (4) `intentd` is up (pid 66522), so **`0216` exposure is live for anything canon-touching today.**
 
 **vc's OWN WORK, UNSTARTED: `WP-15` skills-catalogue triage** (`ST0065`'s criteria are the bar it works to); **the estate-tree question**, unsourced and born in a fold; and **`hv/inbox.vc.md`'s lifecycle**.
 
@@ -74,6 +78,34 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 - **EVERY PROJECT GETS THE WRAPUP AS ITS OWN TECHNOTE** (2026-09-01). Sequence: pristine -> devbin-vc FIRST -> hv drives the devbin rollout while every other estate chills -> only then do the rust-using estates hear about it.
 
 ## Watch-outs
+
+### 9m. A MENU PUT TO hv IS A CLAIM ABOUT THE OPTION SET, AND THE OPTION SET IS THE PART THAT EXPIRES
+
+**`AC-17.1` went to hv as _reword or descope, both weak, one of them moves_. Neither moved. cc built a THIRD door while the menu sat unread**, and the menu was still the top item on `intent/wip.md`, on this board and in ic's hands this morning. **`Op` is now SIX variants -- `ThreadList`, `Graphql`, `Set`, `Registry`, `Subscribe`, `Shutdown` -- and `Set` is the write door.** `EmptyMutation` still ships, so **hv's reads-only GraphQL ruling was never in tension with the row: the mutation went on the WIRE, not into the schema.** The two things the estate spent a week calling incompatible were never competing for the same seam.
+
+**AND THIS IS THE SECOND TIME IN TWO DAYS.** cc's own discharge notice [1] says it in cc's words about `sync`: _I put it to you as a scope question with no cheap middle... the code took a third option I said did not exist._ **Same author class, same shape, and the first one cc caught and this one nobody did.**
+
+**DETECTION, AND IT IS NOT _RE-DRIVE THE RECOMMENDATION_.** A menu's recommendation and its grounds both get re-read, because they are the argued part. **The OPTION SET is the unargued part -- it reads as the statement of the problem rather than as a finding -- so it is the half that ages silently.** Before putting a menu in front of hv, or acting on one already there, drive the EXHAUSTIVENESS claim: ask what would have to exist for a third option, then look for it. **`grep` the enum, not the prose about the enum.**
+
+**AND THE GREEN WAS REAL, WHICH IS NOT THE USUAL FINDING HERE.** `at` has no verify verb and `AtStatus::Green` is a stored string, so vc RAN it: `cargo test -p intentd --test suite one_declaration_two_realisers` -> **2 passed**, and the second is `the_diff_can_actually_fail`, a working negative control. **A green that survives being driven is worth recording precisely because this board mostly records the other outcome.**
+
+### 9o. AN INSTRUMENT WITH THE HUMILITY AND NOT THE POPULATION LINE -- `currency.lib`'s REACH
+
+**`_rust_source_changed` diffs `"$base..HEAD" -- native/rust` AND NOTHING ELSE. `intent/wip.md` documents the WIDER check** -- `git rev-list -1 HEAD -- native/rust surface docs/design`, three paths. **Three `include_str!` sites reach outside the arm**: `intent-cli/src/dispatch.rs:45` -> `surface/dispatch-table.json`, `intentsvcs/src/form.rs:79` -> `surface/forms.json`, `intentd/src/web.rs:57` -> `docs/design/intent-logo.svg`. `surface/` is at the REPO ROOT, measured (`ls -d native/rust/surface` -> No such file). **So a commit to `surface/dispatch-table.json` leaves the verdict `ok` while the binary carries stale compiled-in bytes.**
+
+**NOT FIRING TODAY AND THAT IS THE PART TO STATE: the arm agrees with the truth BY LUCK.** `1c80a627..HEAD` is 63 commits; non-test under `native/rust` = 0; under `surface` + `docs/design` = 0. Both readings say current.
+
+**THE FILE SPENDS THREE PARAGRAPHS REFUSING TO OVERCLAIM ITS DISTANCE AND STATES ITS REACH NOWHERE** -- the `dirty-` floor note, the `grep`-exit-status note, the fail-open note. **A careful instrument is not a scoped one, and care is what stops anyone looking.** `bin/.devbin` is dc's; routed, not taken.
+
+**AND IT RETIRED A CORRECT ESCALATION.** cc discharged their own `include_str!` lag item on the claim that those sites _sit INSIDE the currency arm's population_. They do not. **cc's original worry was right and a wrong population claim talked them out of it** -- the rebuild closed the instance, and the arm that should have made the instance visible never could have seen it.
+
+### 9n. A RELEASE NOTE IS AN INSTRUMENT WHOSE POPULATION IS THE TREE AT THE MOMENT OF WRITING (dc)
+
+**`docs/releases/3.0.1/RELEASE_NOTES.md:51` says _No migration is required and no project data changes_, and it is FALSE.** Verified here rather than taken from dc: `v3.0.0` (`80d8b2ca`) reads `SCHEMA_VERSION: i32 = 13`, HEAD reads **17**, and `store.rs:1796` dispatches `v if v < SCHEMA_VERSION => Self::migrate(...)` -- **an older store is migrated, not refused.** The line was TRUE when written on 2026-08-29 and went false when the schema moved. **Nothing re-read it, and nothing could: a prose claim about code sits under no guard.**
+
+**THE SENTENCE'S SECOND CLAUSE IS THE DANGEROUS HALF BECAUSE IT IS TRUE.** _A project already readable by v3.0.0 is readable by v3.0.1_ holds -- v3.0.1 reads a v13 store, by migrating it. **The converse is what breaks and the sentence does not mention it: `store.rs:1801` refuses a NEWER store outright, in its own words _there is no rung that could help... move the TOOL forward, never the data back_.** So the upgrade is a ONE-WAY DOOR and the note's own words tell a reader it is not a door at all. **A reader who CHECKS the stated direction confirms it and walks through anyway** -- which is worse than a plain falsehood, because verification rewards the wrong conclusion.
+
+**THE RUNG COUNT BETWEEN 13 AND 17 IS NOT MEASURED AND IS NOT CLAIMED HERE** (dc's discipline, kept). **Local exposure is nil and that is deliberately not the finding** -- the obligation is to people who are not on this box.
 
 **9-series is 2026-09-02's, folded into families. The 8-series below is older and already merged; full narrative for anything dated 2026-08-31 or earlier is in `.history/`.**
 
@@ -132,6 +164,8 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 ### 9j. THE STORE'S GRAMMAR REFUSES SCHEMES FASTER THAN A PARAGRAPH DEFENDS THEM
 
 **`kind` is a property of the CRITERION, so a non-test row can never satisfy a test-backed AC** -- the store refused vc's _one property, two instruments_ housing after vc had written the full row text justifying it. **Second time in one day a vc scheme met the field's own grammar** (`legacy.rs:1965` killed the three-tier key scheme that morning). **DETECTION: when a ruling invents a HOUSING, drive the write BEFORE writing the reasoning.**
+
+**WITHDRAWN 2026-09-03, MINE: _the pair will still read ok until someone rebuilds_ was wrong.** The arm diffs a COMMITTED range, so a committed source change turns it red; the real gap is REACH (`9o`), not staleness. cc had the mechanism right and vc asserted against it without opening the file -- **the third time this board records asserting a mechanism without opening it (`9i`).**
 
 **AND THE SHARPER HALF: vc CHECKED THE RIGHT STRUCTURE FOR THE WRONG PROPERTY.** Many-to-one coverage is ordinary here (`AC-04.1` carries four), so vc checked the MODEL rather than the DISPLAY and was right to -- **and it did not help, because arity was never the constraint; KIND was.** **A structural check aimed at the wrong field returns a true answer to a question nobody was blocked on, and reads exactly like due diligence.**
 
