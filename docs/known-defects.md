@@ -36,7 +36,9 @@ on every verb, including ones that have nothing to do with the stray thread. The
 
 **A mistyped subcommand becomes a thread or an issue, silently** (`intent#0223`). Driven on v3.0.0: `intent st new help` returns `created: ST0001` and `intent issues add help` returns `created: intent/.canon/issues/0001.json`, both at exit 0. The word after the verb is a title positional, so any bare subcommand or flag name typed there -- `help`, `start`, `severity` -- is accepted as the title and written to your project. The two arms that should catch it both work: `--help` prints help, and omitting the argument entirely refuses at exit 1. It is the bare word that lands.
 
-The row cannot be repaired afterwards: an issue title and body are write-once (`intent#0151`, `intent#0090`), so a thread or issue created this way can only be closed, never renamed. **This project's own register carries five of them** -- two issues and three threads, all titled after intent subcommands, all created in one sitting.
+The row cannot be repaired afterwards: an issue title and body are write-once (`intent#0151`, `intent#0090`), so a thread or issue created this way can never be renamed. This project's own register carries several, issues and threads together, all titled after intent subcommands.
+
+**The write-once title is the part that outlasts the mistake, and one of ours proves it.** A thread created this way as `dehydrate` was later adopted and filled in -- it carries a real objective and real context and is genuinely in progress -- and **its title is still the bare subcommand name, because nothing in the tool can change it.** Closing the debris is the answer only while it is debris; once something is adopted, the junk title is permanent. If you hit this, decide early whether the row is worth keeping, because renaming will not be available later.
 
 ## Criteria and tests
 
