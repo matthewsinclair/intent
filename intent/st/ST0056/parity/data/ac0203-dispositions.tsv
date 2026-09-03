@@ -168,3 +168,5 @@
 0215	not-reader-reachable	not-exhibited -- DRIVEN on the keg: llm usage_rules refuses at rc=2, "a known command that is not implemented yet". The stated symptom (answers about a different file than v2) is not exhibited on v3.0.0 because the verb does not answer at all; the family already appears under Declared and not implemented.	
 0223	stated	docs/known-defects.md	intent#0223
 0211	stated	docs/known-defects.md	intent#0211
+0224	stated	docs/known-defects.md	intent#0224
+0225	not-reader-reachable	artefact-not-defect -- title "help", body empty, created 2026-09-03 16:39 and UNTRACKED at the time of writing. The sixth register artefact of 0223 and the first observed live: it appeared while 0223 was being documented, from an actor that is not this node. Evidence for 0223, not a claim of its own.	

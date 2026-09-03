@@ -22,6 +22,10 @@ on every verb, including ones that have nothing to do with the stray thread. The
 
 **A second route reaches the same wall.** A thread placed under an `_inbox/` status directory produces the identical stop (`intent#0066`), rather than the invisibility that issue records. Two different stray-directory shapes, one symptom, and in both cases the message names a thread the operator never created.
 
+## Starting a project
+
+**`intent init` writes an Elixir/Phoenix decision tree into every project, whatever language you work in** (`intent#0224`). Driven on v3.0.0 in an empty directory: `intent init` leaves `intent/llm/DECISION_TREE.md` at 3 KB while the project's declared languages are `[]`. The file routes code placement through Phoenix contexts, LiveViews and Ash resources, so a Rust or Swift project gets guidance for a stack it does not use. Nothing declines it at init time and no flag suppresses it. Delete the file if it is not yours; nothing regenerates it unless you re-run `init`.
+
 ## Threads
 
 **`intent st list` shows only in-progress threads and discloses the filter nowhere** (`intent#0121`). Driven: two threads, one `WIP` and one `Triage`; the default listing shows one row and `--status all` shows both, with nothing in the default output indicating that anything was filtered. A short list reads as a short project.
