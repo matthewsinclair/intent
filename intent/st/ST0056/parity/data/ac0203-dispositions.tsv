@@ -147,3 +147,24 @@
 0203	stated	docs/migrating-from-v2.md	Use `--help` instead: `intent st --help` answers on the same build
 0200	not-reader-reachable	dev-apparatus-only -- rules_lib.sh ships NOWHERE after the cut (its own header: apparatus for critic_runner.sh and the critic_arming_census.bats oracle), and bin/intent_helpers is v2 CLI source, so no v3.0.0 reader reaches either home	
 0208	not-reader-reachable	intent-own-development-only -- driven: the subject is node identity in THIS repo multi-node commit stream (1 git author, 175 of 314 commits today carrying no wb(<node>) tag). A v3.0.0 consumer runs the binary and never meets the whiteboard commit convention, which is Intent internal process rather than shipped behaviour	
+0063	not-reader-reachable	not-exhibited -- the title premise is false at the cut: WpStatus carries a Cancelled variant at v3.0.0 AND at HEAD (git show v3.0.0:...model.rs). The body is empty, so the row claims nothing else.	
+0095	not-reader-reachable	artefact-not-defect -- not a defect statement: an artefact of 0223, born empty at 9d717901 with a bare subcommand name as its title. The defect it is evidence OF is dispositioned at 0223.	
+0096	not-reader-reachable	artefact-not-defect -- same shape as 0095: title "severity" is a flag name, body empty, born at 9d717901. Evidence for 0223, not a claim of its own.	
+0196	not-reader-reachable	dev-apparatus-only -- int build all is devbin, this estate own build tool; it is not shipped and no reader invokes it.	
+0198	not-reader-reachable	internal-tooling -- an as-observed parity register row; the register is maintainer apparatus and no published page routes a reader to it.	
+0199	not-reader-reachable	internal-tooling -- canon_commit_check.sh is this repository pre-commit gate; a reader of the published build never runs it.	
+0201	not-reader-reachable	not-in-published-build -- the critic needs the rule library, and the 3.0.0_1 keg ships no rules directory under libexec/lib/templates, so .intent_critic.yml disabled: is never exercised.	
+0202	not-reader-reachable	internal-tooling -- a scaffolding test against the pruned v2 intent_claude_upgrade; the row own title records NOT A DEFECT.	
+0204	not-reader-reachable	internal-tooling -- register-versus-dispatch-table vocabulary agreement is apparatus; no reader meets either artefact.	
+0205	not-reader-reachable	internal-tooling -- apparatus data-tables in lib_classify.sh; a quoting hazard for a maintainer editing the table, not for a reader.	
+0210	not-reader-reachable	multi-node -- a shared-thread canon commit across concurrent nodes is the five-node protocol, not a single-user workflow.	
+0214	not-reader-reachable	post-cut-subject -- form::Field::editable and its guard were introduced 2026-08-30 at 771cc847, after the 2026-08-26 cut; v3.0.0 has neither the carrier nor the dead link.	
+0217	not-reader-reachable	internal-tooling -- the parity apparatus table-to-surface direction; the instruments are maintainer-facing and ship to no reader.	
+0218	not-reader-reachable	not-in-published-build -- the keg ships no skills, so a reader on v3.0.0 has none to uninstall and cannot reach the empty-directory residue.	
+0219	not-reader-reachable	not-in-published-build -- the keg ships no rule library (0112b8c1 is not an ancestor of the tag), so none of the six forked PFIC homes is present for a reader to read.	
+0221	not-reader-reachable	multi-node -- whiteboard node liveness is the five-node coordination protocol; a single reader following the docs has no board and no peers.	
+0222	not-reader-reachable	post-cut-subject -- the explorer thread list is unreleased TUI work introduced after the cut; v3.0.0 ships no explorer.	
+0207	not-reader-reachable	post-cut-subject -- the --note flag itself arrived after the cut: DRIVEN on the 3.0.0_1 keg, none of at green/red/na/new accepts --note, while the HEAD binary does. v3.0.0 has no flag to destroy a note with.	
+0215	not-reader-reachable	not-exhibited -- DRIVEN on the keg: llm usage_rules refuses at rc=2, "a known command that is not implemented yet". The stated symptom (answers about a different file than v2) is not exhibited on v3.0.0 because the verb does not answer at all; the family already appears under Declared and not implemented.	
+0223	stated	docs/known-defects.md	intent#0223
+0211	stated	docs/known-defects.md	intent#0211

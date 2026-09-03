@@ -30,11 +30,17 @@ on every verb, including ones that have nothing to do with the stray thread. The
 
 **A migrated v2 project loses some thread slugs** (`intent#0080`). Driven against a real 2.19.0 estate captured from this repository's history and migrated by v3.0.0: 21 of 56 threads come through with no slug. The register records this as affecting every migrated thread and blanking the whole column; it does not. The `Slug` column renders normally and most threads carry one, so the ones that do not are easy to miss.
 
+**A mistyped subcommand becomes a thread or an issue, silently** (`intent#0223`). Driven on v3.0.0: `intent st new help` returns `created: ST0001` and `intent issues add help` returns `created: intent/.canon/issues/0001.json`, both at exit 0. The word after the verb is a title positional, so any bare subcommand or flag name typed there -- `help`, `start`, `severity` -- is accepted as the title and written to your project. The two arms that should catch it both work: `--help` prints help, and omitting the argument entirely refuses at exit 1. It is the bare word that lands.
+
+The row cannot be repaired afterwards: an issue title and body are write-once (`intent#0151`, `intent#0090`), so a thread or issue created this way can only be closed, never renamed. **This project's own register carries five of them** -- two issues and three threads, all titled after intent subcommands, all created in one sitting.
+
 ## Criteria and tests
 
 **`intent ac new` on an id that already exists replaces the row instead of refusing** (`intent#0119`). Driven: creating `AC-01.1` twice returns `ok: AC-01.1 created` both times. The replacement is a full write, so a field you do not supply is written empty rather than preserved, and there is no verb that edits a criterion in place. Treat `ac new` as create-only and read `ac list` before re-running it on an id you are unsure of. **v3.0.1 closes this**; on v3.0.0 the verb that repairs is the verb that destroys.
 
 **`intent ac list` never prints the criterion text** (`intent#0168`). Driven: a criterion whose text is a distinctive sentence does not have that sentence anywhere in the listing. It prints ids, coverage and satisfaction, so planning from its output means planning from ids. There is no `ac show`.
+
+**A criterion cannot record what would discharge it until it is discharged** (`intent#0211`). `intent ac satisfy` is the only verb that takes evidence and `--evidence <ref>` is required on it, so there is no way to write down what a criterion is waiting for while it is still open. Driven on v3.0.0: `ac satisfy --help` reads `Usage: intent ac satisfy --evidence <ref> <STID> <ACID>`. Planning notes for an open criterion have to live outside the tool.
 
 **`intent at lint --fix` is advertised and refuses** (`intent#0139`). `at lint --help` documents it as _Migrate the mechanical part of a legacy row_; calling it exits non-zero without doing so.
 
