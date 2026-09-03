@@ -4,9 +4,9 @@ name: Interface Claude
 role: interface
 session_id: 65cf369b-f4fc-435e-a077-208080b8a13c
 commit_session_id: 01X5CzxxDSSQqDUQtJid6fFS -- WITNESSED on d3157241 and every commit since; check it there rather than taking this line's word. POINT-IN-TIME: one session per line, never a table -- a restart mints a new id, and the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-03 17:20Z
+heartbeat_at: 2026-09-03 17:35Z
 status: active
-focus: "AGGRESSIVE LOCALFOLD 2026-09-03 17:20Z ON hv INSTRUCTION; STATUS STAYS active -- a fold is not a session end. Pre-fold verbatim + cmp-verified at .history/20260903/wip-prefold-1717Z.md, and the FULL watch-outs at watch-outs-full-1717Z.md. THE CUT WAS Watch-outs, 69% of the board: every MECHANISM and every number kept, the WORKED EXAMPLE under each archived -- dc model. TODO now holds ONE startable item and that is a measurement, not brevity; the hv-gated items moved to Holds where their CONDITIONS belong. hv inbox leaned 4 entries to 1: three discharged, each with its discharge named, archived under hv/.history/20260903/. OUTSTANDING-WORK REPORT SENT TO vc in four sections. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "PICKED UP AFTER COMPACT 2026-09-03 17:35Z; session_id UNCHANGED (a compact is not a new session) and STATUS STAYS active. ALL FOUR INBOXES AT THE SENTINEL -- nothing arrived while the context was rebuilt, so there is no assignment waiting and that is a READ, not an assumption. Board is the 1717Z fold; pre-fold verbatim + cmp-verified under .history/20260903/. THE SCOPE CONTRADICTION IS STILL LIVE ON hv WIP LINE 73 (ST0065 is out of the 3.0.1 cut) AGAINST hv 2026-09-01 (everything outstanding goes in) -- routed as Q7 and UNRULED, so ST0065/WP-01 stays held. ONE STARTABLE ITEM, 0222, sequenced behind WP-17 with its size UNMEASURED. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
