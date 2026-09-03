@@ -4,10 +4,10 @@ name: Validation Claude
 role: validation
 session_id: d6fb337d-3328-4360-865e-04ff4ba194e7
 commit_session_id: 012urACYMDQ4oZhtofSEJzxg -- the Claude-Session trailer id on commits authored from THIS session; POINT-IN-TIME, one session per line, and the mapping accumulates in .history/ rather than growing here (0208)
-heartbeat_at: 2026-09-03 17:25Z
+heartbeat_at: 2026-09-03 17:46Z
 status: active
-focus: "FOLDED 1723Z, pre-fold verbatim + cmp-verified at .history/20260903/wip-prefold-1723Z.md (sha 5f343d07, 246L/54756B). LIGHT FOLD ON PURPOSE -- the bulk of this board is LIVE hv decisions that cannot be cut until ruled, and three mechanisms were ADDED during it. Census 25->28 nine-series (+3, exactly the additions) and 46->46 eight-series, controls both discriminating after the negative one was REPLACED for being named in its own documentation (9z). vc HOLDS THE PEN. Consolidated four-node report is with hv; the top item is a SCOPE CONTRADICTION on hv's own board. STATUS STAYS active. RUN THE VERBS."
-claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
+focus: "PICKED UP AFTER COMPACT 2026-09-03 17:46Z; session_id UNCHANGED and STATUS STAYS active. cc WAS PARKED ON vc AND IS RELEASED -- their one ask split, and only half of it gates: the canon batch has a workaround they named themselves, so parking it on hv would be a hold whose condition is a person being available. TWO MEASUREMENTS DRIVEN THIS PICKUP, BOTH WITH CONTROLS, BOTH CORRECTING THIS BOARD. ST0070 CLAIMED -- it was mine and was in nobody claims. hv QUEUE STILL UNANSWERED AND THE TOP ITEM IS A CONTRADICTION ON hv OWN BOARD. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
 # Validation Claude (vc)
@@ -33,6 +33,13 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068]
 **DECISIONS TAKEN UNDER THE PEN: the verb is `intent llm`** (`intent canon` collides with `intent/.canon/` and would be a second home for a word, which is the defect the thread exists to remove); **Phase 0 is a defect fix, not a scope expansion** -- whether it rides the v3.0.1 tag remains hv's, and the fix is in canon either way.
 
 **vc's OWN WORK, UNSTARTED: `WP-15` skills-catalogue triage** (`ST0065`'s criteria are the bar); **the estate-tree question**, unsourced and born in a fold; **`hv/inbox.vc.md`'s lifecycle**; **lamplight-vc's four are DISCHARGED** -- `0227` and `0228` filed, one withdrawn, one awaiting detail; see `9p`. **They were deferred for days on _hv's word on issue numbers_, a decision that never needed hv at all: the register assigns numbers.** A blocker that dissolves the moment it is stated is a blocker nobody stated.
+
+**PICKUP 2026-09-03: TWO MEASUREMENTS, BOTH WITH CONTROLS, AND BOTH CORRECT THIS BOARD RATHER THAN EXTEND IT.**
+
+- **`0224` IS NO LONGER AN UNPRICED DESIGN QUESTION. THE COUNT THIS BOARD SAID NOBODY HAD IS FIVE.** Across 18 estates carrying `intent/.config/config.json`, **every one has `intent/llm/DECISION_TREE.md`**; five declare NO elixir and carry the byte-identical init template (sha `4dce07ca`, 3056 bytes, 9 Elixir tells): **Devbin, Molt, Molt-flynn, Molt-matts, Utilz.** **THE INSTRUMENT HAS A DISCRIMINATING NEGATIVE AND THAT IS WHY THE FIVE IS BELIEVABLE: Cdsync also declares only shell, and its tree is 4809 bytes, sha `075d0b48`, ZERO Elixir tells -- somebody wrote their own.** So the check separates an authored tree from a seeded one instead of counting every file alike, and Cdsync is NOT a victim. Positive control: two declared-elixir estates (Anvil, Riffle) carry the SAME sha, so the file is the template in both populations. **hv menu can now be priced instead of argued.**
+- **PHASE 1 FIGURE RE-DRIVEN, AND `4 vs 6` UNDERSTATES IT.** The generator emits four `IN-AG-*` ids; the library serves six. **The two it omits are `IN-AG-FIAT-001` -- severity CRITICAL, the rule that says fiat close is the human verb -- and `IN-AG-RED-CONTROL-001`.** So the shipped tool-agnostic contract omits the one agnostic rule whose severity is critical. **That is not a symmetry defect, it is a safety one**, and it is the argument for Phase 1 rather than a tidy-up note. Commands, not numbers: `intent agents generate | grep -oE 'IN-AG-[A-Z-]+-001' | sort -u` against `intent claude rules list --lang agnostic`.
+- **AND A THIRD, WHICH KILLS A LIVE LIMB OF THIS BOARD RATHER THAN ADDING ONE: `AC-15.3`'s ORPHAN HALF IS GONE.** This board said canon 23, installed 25, two empty orphans. **It is 23 and 23, name-for-name identical, and `intent claude skills list` agrees** -- hv killed the residues (`0218`). **The orphan ask is discharged; what remains of `WP-15` is the actual triage.**
+- **SEQUENCING FINDING, AND IT IS hv's TO RULE RATHER THAN vc's TO TAKE: BUILDING `ST0070` PHASE 1 IS DECIDING THAT IT RIDES THE TAG.** The tag is cut from main, so there is no state in which Phase 1 lands and the release does not carry it. **This board has been recording _whether Phase 0 rides the tag is still hv's_ as though the question could wait for the build; it cannot.** Phase 1 is NOT started for that reason and not for lack of a plan.
 
 ## Holds
 
