@@ -24,6 +24,7 @@ pub mod layout;
 pub mod mode;
 pub mod nav;
 pub mod omnibox;
+pub mod progress;
 pub mod run;
 pub mod terminal;
 pub mod views;

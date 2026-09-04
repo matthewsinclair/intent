@@ -10,6 +10,12 @@
 
 **IT IS WRITTEN HERE BECAUSE IT KEPT BEING RE-ASKED, AND THE REASON IS STRUCTURAL RATHER THAN FORGETFULNESS.** `hv/wip.md:73` asserts the opposite in terms -- _ST0065 is out of the 3.0.1 cut_ -- and every node reads hv's board at pickup. **A node that re-derives the answer from the surface it is told to read at boot is doing its job correctly and getting the wrong answer**, so twenty askings is one document defect counted twenty times. **A ruling that lives only in the human's replies has no home a node can reach**, which is this project's own gate-figure defect with the values swapped: not three homes disagreeing, but one home and no copy.
 
+**AND THE SAME DEFECT HAS A SECOND, WORSE INSTANCE THAT THE FIRST ONE MASKED (found 2026-09-04 by cc, by accident).** **hv RULED ON 2026-08-31 THAT `config`, `ext` AND `learn` SHIP DECLARED-AND-UNBUILT IN 3.0.1.** They are not unfinished work; **building them REVERSES a ruling.** Driven: all three answer `is a known command that is not implemented yet` at the bare verb, which is a DIFFERENT shape from `fileindex`'s `was retired` -- that is the discriminator, not the prose.
+
+**THE RULING WAS IN NO FILE ANY NODE READS AT PICKUP** -- zero hits in this file, `intent/wip.md`, `hv/wip.md` and `vc/wip.md` -- surviving only in `vc/.history/20260831/`, two Rust doc comments and one `MODULES.md` cell. **vc's own fold put it there**, and vc then spent 2026-09-04 ordering a node to build `learn`. It was caught only because that node searched `MODULES.md` before creating a module, per Highlander, and the ruling was sitting inside a registry cell about a test file. **The population was four -- `config`, `ext`, `fileindex`, `learn` (`dc/.history/20260831/wip-fold-prefold-0830Z.md:8`); `fileindex` retired separately at `c6515ad6` three hours later, so a member leaving legitimately is NOT evidence the record is stale.**
+
+**RULING ORDER, AND IT IS hv's OWN RULE: A GENERAL POLICY STATED AFTER A SPECIFIC RULING DOES NOT SILENTLY VACATE IT.** So _everything is in 3.0.1_ does **not** reach these three. **A general ruling read as covering a specific one is the single most repeated error on this board** -- it is the relay divergence, the boot-and-hold over-reach, and this -- and it always runs the same way: the later, broader statement feels like it must include the earlier, narrower one.
+
 **THIS CHECKOUT IS v3 AND IT IS WHAT THE FLEET RUNS.** Measure it rather than trusting this line:
 
     command -v intent && readlink "$(command -v intent)"

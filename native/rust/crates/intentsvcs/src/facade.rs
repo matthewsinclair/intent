@@ -3298,14 +3298,7 @@ impl Facade {
       // shape exactly -- content present and findable by nothing -- so rebuilding
       // the thread sections is part of the carry rather than a tidy-up after it.
       if !canon.threads.is_empty() {
-        canon
-          .sections
-          .retain(|s| s.owner_type != "thread" && s.owner_type != "work-package");
-        let mut rebuilt = Vec::new();
-        for thread in &canon.threads {
-          ingest::collect_wp_text(project, &mut rebuilt, thread);
-        }
-        canon.sections.append(&mut rebuilt);
+        canon.sections = ingest::sections_of(project, &canon.threads, &canon.issues);
         store.replace_doc_sections(&canon.sections)?;
       }
 
@@ -7874,22 +7867,19 @@ impl Facade {
     // retried or deferred inside.
     // The prose index is refreshed with the derived tables, not left behind.
     //
-    // Work-package text is DERIVED FROM CANON (D28), so a mutation that
-    // rebuilt the model and left `doc_sections` alone would leave `intent
-    // search` answering from the previous model -- silently, since a search
-    // that finds nothing looks exactly like a search with no matches. The
-    // file-derived sections are kept as they were; only the canon-derived ones
-    // are recomputed, because nothing here read a file.
-    let mut sections: Vec<crate::prose::DocSection> = self
-      .canon
-      .sections
-      .iter()
-      .filter(|s| s.owner_type != "work-package")
-      .cloned()
-      .collect();
-    for thread in &next.threads {
-      ingest::collect_wp_text(&self.project, &mut sections, thread);
-    }
+    // Prose is DERIVED FROM CANON (D28), so a mutation that rebuilt the model
+    // and left `doc_sections` alone would leave `intent search` answering from
+    // the previous model -- silently, since a search that finds nothing looks
+    // exactly like a search with no matches.
+    //
+    // **THE WHOLE INDEX, FROM THE WHOLE POST-MUTATION MODEL** (issue 0234).
+    // This used to keep part of the previous index and recompute the rest, and
+    // naming the part to keep is what went wrong: the filter excluded
+    // `work-package` while the emitter also produced two kinds of `thread`
+    // section, so every mutation left one more copy of a thread's prose
+    // behind, and issue prose was never derived here at all. `sections_of` has
+    // no set to name.
+    let sections = ingest::sections_of(&self.project, &next.threads, &next.issues);
 
     // THE DATABASE IS THE MUTATION (D01, reversed by hv 2026-08-15: the DB is
     // the SSOT and the files are re-creatable).

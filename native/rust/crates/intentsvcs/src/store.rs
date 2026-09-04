@@ -3398,6 +3398,31 @@ impl Store {
     sections: &[DocSection],
   ) -> Result<(), StoreError> {
     conn.execute("DELETE FROM doc_sections", [])?;
+    // **THE `DELETE` EMPTIES THE ROWS AND LEAVES THE INDEX BEHIND** (issue
+    // 0234, second mechanism). Deleting from an FTS5 table does not remove a
+    // row's terms from the inverted index; it writes a DELETE MARKER for each
+    // one into `doc_sections_data`. Wholesale replacement is this table's only
+    // write pattern, so those markers accumulate on every mutation for the
+    // life of the store, and nothing reports it: the row count is correct, the
+    // content table is the right size, `VACUUM` reclaims nothing because
+    // tombstones are live data rather than free pages, and searches keep
+    // answering correctly the whole time.
+    //
+    // Measured on the worst project in the estate: 859 sections holding 5 MB
+    // of content, against 589 MB of `doc_sections_data`. After the rebuild
+    // below the same store is 14.8 MB, down from 2.3 GB, with search intact.
+    //
+    // **`'rebuild'` RATHER THAN `'delete-all'`, AND THIS WAS DRIVEN, NOT
+    // ASSUMED.** `delete-all` is the idiom that first suggests itself and
+    // SQLite refuses it here -- *"'delete-all' may only be used with a
+    // contentless or external content fts5 table"* -- so it would have failed
+    // at runtime on a path with no test. `rebuild` re-derives the index from
+    // the content table, which the line above just emptied, so it costs
+    // nothing here and truncates what it replaces.
+    conn.execute(
+      "INSERT INTO doc_sections(doc_sections) VALUES('rebuild')",
+      [],
+    )?;
     for s in sections {
       conn.execute(
         "INSERT INTO doc_sections (owner_type, owner_id, file, seq, heading, level, body) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",

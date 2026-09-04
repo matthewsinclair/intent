@@ -114,7 +114,6 @@ intent claude subagents install --all
 intent claude subagents sync
 intent claude subagents uninstall <name>
 intent claude subagents show <name>
-intent claude subagents status
 ```
 
 Installs to `~/.claude/agents/<name>.md`. Mid-session installs are not visible to `Task()` until the next Claude Code session starts — the subagent registry is read once at startup.
@@ -138,7 +137,6 @@ Installs to `~/.claude/skills/<name>/SKILL.md`. Skills auto-load into every Clau
 intent claude rules list                        # Enumerate all rules (canon + extensions)
 intent claude rules show <id>                   # Print full RULE.md for an ID
 intent claude rules validate                    # Schema + attribution + runnable-example check
-intent claude rules index                       # Regenerate rules/index.json
 ```
 
 Rule IDs use the form `IN-<LANG>-<CAT>-<NNN>` (eg `IN-EX-CODE-006`, `IN-AG-HIGHLANDER-001`). Library root: `intent/plugins/claude/rules/`.

@@ -34,6 +34,8 @@ mod common;
 mod a_create_refuses_a_child_id_that_is_taken;
 #[path = "a_create_refuses_a_key_that_is_taken.rs"]
 mod a_create_refuses_a_key_that_is_taken;
+#[path = "a_mutation_does_not_duplicate_the_prose_index.rs"]
+mod a_mutation_does_not_duplicate_the_prose_index;
 #[path = "a_re_cite_keeps_what_it_was_not_given.rs"]
 mod a_re_cite_keeps_what_it_was_not_given;
 #[path = "a_scheduled_backup_is_the_same_call.rs"]
@@ -294,6 +296,8 @@ mod refused_ingest_blocks_egest;
 mod related_links;
 #[path = "remedy_coverage.rs"]
 mod remedy_coverage;
+#[path = "replacing_the_prose_index_truncates_it.rs"]
+mod replacing_the_prose_index_truncates_it;
 #[path = "retired_st_prefix.rs"]
 mod retired_st_prefix;
 #[path = "root_files_generated.rs"]

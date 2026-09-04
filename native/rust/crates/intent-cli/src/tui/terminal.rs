@@ -100,9 +100,25 @@ impl<S: Screen> fmt::Debug for Borrowed<S> {
 
 impl<S: Screen> Borrowed<S> {
   /// Take the terminal, unwinding whatever was taken if a later step fails.
-  pub fn take(mut screen: S) -> Result<Self, io::Error> {
+  pub fn take(screen: S) -> Result<Self, io::Error> {
+    Self::take_only(screen, Step::ORDER)
+  }
+
+  /// Take SOME of the steps -- the same unwind, over a chosen subset.
+  ///
+  /// **THE SUBSET IS NOT A NEW CONCEPT, IT IS THE ONE THIS GUARD ALREADY
+  /// MODELS.** `taken` exists so a partial borrow can be given back exactly,
+  /// and [`Borrowed::lend`] already re-enters only what was outstanding rather
+  /// than all of [`Step::ORDER`]. Taking a subset deliberately is the same
+  /// property, entered from the front instead of the middle.
+  ///
+  /// **WHAT NEEDS IT: THE LOAD INDICATOR** (`super::progress`). Detecting a
+  /// bare `Esc` requires raw mode and nothing else -- the alternate screen is
+  /// precisely what must NOT be entered, because the indicator is drawn on the
+  /// operator's real screen, before the TUI exists.
+  pub fn take_only(mut screen: S, steps: &[Step]) -> Result<Self, io::Error> {
     let mut taken: Vec<Step> = Vec::new();
-    for &step in Step::ORDER {
+    for &step in steps {
       if let Err(e) = step.enter(&mut screen) {
         // **THE FAILING BORROW GIVES BACK WHAT IT TOOK, AND REPORTS THE
         // ORIGINAL ERROR.** An undo that fails here is swallowed on purpose:
@@ -562,5 +578,53 @@ pub(crate) mod tests {
         "the verdict must follow the rig, or this loop is running one case twice"
       );
     }
+  }
+}
+
+#[cfg(test)]
+mod subset_tests {
+  use super::tests::Recorder;
+  use super::*;
+  use std::cell::RefCell;
+  use std::rc::Rc;
+
+  /// **RAW WITHOUT THE ALTERNATE SCREEN, AND THE ABSENCE IS THE ASSERTION.**
+  /// The load indicator draws on the operator's real screen; entering the
+  /// alternate screen would blank it and take the indicator with it.
+  #[test]
+  fn a_subset_take_enters_only_what_it_was_asked_for() {
+    let log = Rc::new(RefCell::new(Vec::new()));
+    {
+      let borrowed = Borrowed::take_only(Recorder::new(&log), &[Step::Raw]).expect("take raw");
+      assert_eq!(
+        borrowed.outstanding(),
+        [Step::Raw],
+        "a subset borrow must report holding only what it took"
+      );
+    }
+    assert_eq!(
+      *log.borrow(),
+      ["enter_raw", "leave_raw"],
+      "the alternate screen was never entered, so it must never be left"
+    );
+  }
+
+  /// The whole-terminal take is the subset take over every step, so this pins
+  /// that routing one through the other did not change what `take` does.
+  #[test]
+  fn the_full_take_is_still_every_step_in_order() {
+    let log = Rc::new(RefCell::new(Vec::new()));
+    {
+      let _borrowed = Borrowed::take(Recorder::new(&log)).expect("take the terminal");
+    }
+    assert_eq!(
+      *log.borrow(),
+      [
+        "enter_raw",
+        "enter_alternate",
+        "leave_alternate",
+        "leave_raw"
+      ]
+    );
   }
 }

@@ -267,7 +267,6 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
         // has between the two (`model::Attachment::blob`). A `Canon` handed out
         // of here holds bytes for every opaque attachment or refuses.
         findings.append(&mut load_blobs(project, &mut thread));
-        collect_wp_text(project, &mut canon.sections, &thread);
         canon.threads.push(thread);
       }
       Err(mut found) => findings.append(&mut found),
@@ -276,33 +275,18 @@ pub fn read(project: &Project) -> Result<Canon, IngestError> {
 
   for number in project.issue_numbers()? {
     let path = project.issue_json(number);
-    let rel = project.relative(&path);
     match read_issue(project, number, &read_to_string(&path)?) {
-      Ok(issue) => {
-        // **FROM THE FIELD, NOT FROM A SIBLING FILE, and the swap is the point
-        // of the field.** This read `issues/<nnnn>.md` if one existed. None
-        // ever did -- nothing wrote one -- so the branch indexed nothing here
-        // while all 40 bodies sat in the v2 estate the migration reads, and a
-        // search for an issue's own words returned an empty match.
-        //
-        // Keeping both would give one issue's prose two homes, which is the
-        // Highlander violation vc named as rule 1 of the attachment spec: a
-        // file is a typed doc OR carried content, never both.
-        if !issue.body.is_empty() {
-          canon.sections.append(&mut prose::split(
-            "issue",
-            &number.to_string(),
-            &rel,
-            &issue.body,
-          ));
-        }
-        canon.issues.push(issue);
-      }
+      Ok(issue) => canon.issues.push(issue),
       Err(mut found) => findings.append(&mut found),
     }
   }
 
   if findings.is_empty() {
+    // **DERIVED FROM THE ASSEMBLED CANON, NOT ACCUMULATED DURING THE WALK.**
+    // Attachment bytes arrive with `load_blobs` and a caller may carry more in
+    // afterwards, so the index is taken from the finished model through the
+    // one derivation every other caller uses.
+    canon.sections = sections_of(project, &canon.threads, &canon.issues);
     Ok(canon)
   } else {
     Err(Refusal::new(findings).into())
@@ -932,7 +916,61 @@ impl Validated for Issue {
 /// projections rebuilt from `thread.json` on every load, so this is one truth
 /// carrying two indexes, which is what an index is. The authored/generated
 /// line D02 protects is untouched: nothing here is written back to a file.
-pub fn collect_wp_text(project: &Project, out: &mut Vec<DocSection>, thread: &Thread) {
+/// **THE PROSE INDEX, DERIVED FROM A CANON. THE ONLY PLACE THAT HAPPENS**
+/// (issue 0234, and the Highlander rule this file already keeps for rows).
+///
+/// Three callers used to derive it separately and all three disagreed, in both
+/// directions at once:
+///
+/// - `read` derived every kind and was correct.
+/// - The restore path dropped `thread` and `work-package` sections before
+///   re-deriving them, and was correct.
+/// - **The mutation path dropped only `work-package`.** `collect_thread_prose`
+///   was then called `collect_wp_text` and emits three kinds of section, only
+///   one of which is a work package -- so a filter written against the name
+///   kept every thread-owned section AND re-derived it. **Each mutation left
+///   one more copy of every thread's objective, context and attachment prose,
+///   for the life of the store**: 56.6x on the worst project measured, whose
+///   store had reached 2.3 GB for 6.4 MB of canon.
+/// - **The same path never derived issue prose at all**, because nothing
+///   outside `read` split an issue body. A body written by `issues add` was in
+///   the model, rendered everywhere a human looks, and findable by `intent
+///   search` only after the next full ingest -- AC-06.4's failure shape, where
+///   an unpopulated index answers byte-identically to a genuine miss.
+///
+/// Both defects are the same defect: a partial re-derivation has to name what
+/// it is replacing, and a name that drifts from what the emitter emits is
+/// invisible. **This function replaces the whole index from the whole model**,
+/// so there is no set to name and nothing to drift.
+pub fn sections_of(project: &Project, threads: &[Thread], issues: &[Issue]) -> Vec<DocSection> {
+  let mut out = Vec::new();
+  for thread in threads {
+    collect_thread_prose(project, &mut out, thread);
+  }
+  for issue in issues {
+    // **FROM THE FIELD, NOT FROM A SIBLING FILE, and the swap is the point of
+    // the field.** This read `issues/<nnnn>.md` if one existed. None ever did
+    // -- nothing wrote one -- so the branch indexed nothing here while all 40
+    // bodies sat in the v2 estate the migration reads, and a search for an
+    // issue's own words returned an empty match.
+    //
+    // Keeping both would give one issue's prose two homes, which is the
+    // Highlander violation vc named as rule 1 of the attachment spec: a file
+    // is a typed doc OR carried content, never both.
+    if issue.body.is_empty() {
+      continue;
+    }
+    out.append(&mut prose::split(
+      "issue",
+      &issue.number.to_string(),
+      &project.relative(&project.issue_json(issue.number)),
+      &issue.body,
+    ));
+  }
+  out
+}
+
+pub fn collect_thread_prose(project: &Project, out: &mut Vec<DocSection>, thread: &Thread) {
   let file = project.relative(&project.thread_json(&thread.id));
 
   // D22 reified the THREAD's own prose into `thread.json` -- `objective` and

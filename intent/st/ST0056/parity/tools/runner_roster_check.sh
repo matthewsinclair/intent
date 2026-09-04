@@ -123,6 +123,7 @@ DISPATCH="$ROOT/bin/int"
 # author: the 263ms dispatcher component of runner_roster_check.sh.
 ROSTER='
 capability_ship_check.sh   manual  new 2026-08-31 (vc), covering AC-00.3 via AT-00.3. MANUAL BECAUSE IT NEEDS A RUNNING DAEMON: four of the five capabilities in AC-00.3 have no surface to ask when intentd is down, and a gated row would refuse every node commit whenever the daemon is stopped -- a gate whose verdict depends on a process nobody committed. Same precedent as inert_arg_check.sh: it drives the binary against the live project. IT EXITS 2 AS NOT EVALUABLE rather than passing on the one capability that remains reachable, because a criterion scored over the members that happened to be up is the wrong-M of AC-00.11. THE OP ROSTER IS DERIVED FROM THE RUNNING DAEMON, never kept here: serde enumerates the accepted variants in its unknown-variant refusal, so an op added later cannot fall silently out of the census -- and that read carries a TWO-SIDED in-band control, a name that must be present and a name that must be absent, because a containment test over an empty haystack reports presence or absence depending only on which way the grep falls. THREE ARMS ARE NOT DRIVEN AND EACH NAMES ITS OWN REASON: shutdown is destructive to the peer sessions sharing this daemon, subscribe perturbs the event delta another node measures (wire.rs:155), and enrolling the launch agent mutates the machine of the operator. DRIVEN TO TWO PLANTED NEGATIVES on the day it was written -- an unreachable binary giving rc=2 NOT EVALUABLE, and an empty ROOT giving rc=1 RED with the launchd arm ABSENT -- and the header says those two are PROSE rather than live arms. ITS LAUNCHD ARM WAS A MENTION TEST IN ITS FIRST VERSION and passed for the wrong reason, counting source files matching /launchd/ where a doc comment would have counted; it is now a call-SITE edge plus a driven --at-login surface, found by opening the four files the count rested on. NOTE THE APOSTROPHE: this block is a SINGLE-QUOTED shell string, so a possessive terminates it and breaks the tool while declared_kind_check.sh, which reads the block with sed, keeps working -- two readers of one home disagreeing in silence.
+canon_mandated_verbs_check.sh  manual  new 2026-09-04 (dc), covering AC-00.3 via AT-00.3. MANUAL ON TWO GROUNDS AND THE SECOND DECIDES IT. It drives the DELIVERED binary against the live project, and that binary is a symlink into target/release which goes transiently ABSENT during any rebuild -- precedent inert_arg_check.sh and capability_ship_check.sh -- so a gated row would refuse every node commit for the length of another nodes build. AND IT IS RED BY DESIGN TODAY: three canon-named verbs still refuse (claude rules validate, claude subagents list, claude subagents show), so gating it now would block every commit in the estate until A1 lands and hv rules on rules validate. IT EXISTS BECAUSE THE ROW SAID IT ALREADY DID: AC-00.3 records that the instrument now extracts the verbs from the shipped canon and runs what it extracts, and no such instrument was ever committed -- so three re-drives inherited a fixed list of five and the next reader inherited a hand-picked four. Deriving the population found the missing member, claude subagents show, on the first run. REFUSES AT rc=2 RATHER THAN REPORTING A CLEAN ZERO when it extracts nothing, and that is driven rather than claimed: its own first run resolved its root one directory short, examined 0, and refused. TWO-SIDED IN ONE INVOCATION -- 41 canon-named verbs answer and 5 refused -- so both verdicts are exercised every run rather than needing a planted fixture. LIMIT IN ITS OWN HEADER: the predicate is rc==2 AND the phrase, and the phrase clause currently excludes ZERO verbs, so no mutation of it can fail. It is kept for the recorded opposite case, intent llm printing the marker at rc=0, which no shipped canon file names today.
 canon_race_check.sh        manual  new 2026-08-31 (cc), issue 0206 rather than an AC -- it cites no AT and covers no criterion. MANUAL ON COST AND ON SHAPE: it spawns concurrent processes and builds a throwaway project per iteration, so a per-commit run is waste; and it measures a RATE over trials, which is not a pass/fail a gate can read. Bare invocation is safe and defaults to the release binary with a short run. Exists because a defect demonstrated once and not re-drivable is a claim rather than evidence: 0206 carries the result, this carries the method, and a fix must change a verdict this can produce.
 class_vocab_check.sh       gated   30-40ms, two committed files, one-line verdict
 claude_doors_installed_check.sh  manual  new 2026-08-31 (dc), covering AC-07.7 via AT-07.7. MANUAL ON TWO STRUCTURAL GROUNDS, NEITHER OF THEM COST -- it runs in 420-450ms, which would be cheap enough to gate. FIRST, IT DRIVES TWO BINARIES THAT ARE NOT COMMITTED ARTEFACTS: the published keg exists only on a machine that has run brew install, and the tree binary is a SYMLINK INTO A BUILD OUTPUT that goes absent mid-rebuild at rc=127 with empty stdout, so a gated row would refuse every node commit during any release build and on every machine without the tap. Same precedent as inert_arg_check.sh and capability_ship_check.sh, which drive the binary against the live environment rather than reading committed bytes. SECOND, ITS SUBJECT FAILS TODAY AND IS MEANT TO: AC-07.7 is satisfiable only against the NEXT published artefact, so gating it would deliver a permanently-red gate for a defect whose fix is a release rather than a commit -- precedent inert_arg_check.sh. THE PREDICATE IS THE UNWIRED MARKER, NEVER THE EXIT CODE: claude ws list in a project with no whiteboard exits 1 and that is the door WORKING, so an rc-based check reports a broken estate in the one direction that looks like diligence. THE CONTROL IS IN-BAND AND TWO-SIDED: the dev tree runs in the same pass and the tool REFUSES to report any verdict on the keg unless the tree arm shows all five doors reachable, because an instrument that cannot produce the other answer has not measured anything by returning unreachable five times. ORDER IS LOAD-BEARING: ws new runs before start, so start meets a node that EXISTS and reaches the dry-run exec rather than a not-found refusal, which this predicate would score reachable -- true, and the weakest true thing available. SAFETY IS NOT OPTIONAL: claude start invoked bare LAUNCHES A REAL CLAUDE CODE SESSION and hung a drive for two minutes before this file existed. It is a declared member of populations.not_probed for that reason; every arm goes through the documented CWI_DRY_RUN=1 seam, and CWI_WB redirects the whiteboard root so no real board is written. DRIVES A THROWAWAY PROJECT WITH ITS OWN HOME per build, never the live one. FIRST DRIVE FOUND: all five doors UNREACHABLE on the 3.0.0 keg (80d8b2ca) at rc=2 against all five reachable on the tree, which is the AC-07.7 falsifier met exactly -- the doors shipped declared and refusing and no WP-07 criterion went red at the cut. cwi IS NOT A DOOR AND IS NOT CHECKED: intent_claude_cwi is the SCRIPT implementing claude start and claude ws, so intent claude cwi is unrecognized on BOTH builds, correctly, and calling it a missing door was a shorthand of mine that read as a finding. THE ROW IS APOSTROPHE-FREE BECAUSE ROSTER IS A SINGLE-QUOTED SHELL STRING.
@@ -360,6 +361,38 @@ in_flight() {
       | sed 's|.*/||')" )
 }
 
+# IS IT ON DISK BUT NEVER `git add`ED? (dc, 2026-09-04 -- the state the fix
+# above left standing.)
+#
+# **`in_flight` ASKS `git ls-files`, WHICH LISTS TRACKED FILES ONLY.** A tool
+# that exists on disk and has never been staged is invisible to it AND to
+# `PRESENT`, so it falls past both arms to the final `else` and is reported as a
+# roster row that outlived its instrument. **That is the destructive wording the
+# fix above removed from the STAGED arm, still standing one state over.** The
+# comment above documents the CLASS and the change closed the INSTANCE that
+# prompted it -- the tell being that its measurement is the two commits it was
+# found on.
+#
+# **WHAT MAKES IT WORSE THAN A WRONG ANSWER IS THAT IT NAMES A REPAIR.** "Fix
+# the row or fix the runner, whichever is lying" reaches a reader who is already
+# blocked and hunting the shortest way to green, and the shortest way is to
+# delete a roster row for a tool sitting in front of them. A guard that is
+# merely wrong wastes time; **a guard that is wrong AND prescribes the
+# destructive repair recruits the reader into the damage.**
+#
+# **AN INSTRUMENT THAT CANNOT SEE A STATE MUST REFUSE TO JUDGE IT RATHER THAN
+# GUESS**, and this one resolved the ambiguity in the destructive direction.
+#
+# Found by unstaging a staged pair to let a peer's path-scoped commit through --
+# not a state anybody reaches on purpose, which is why it survived the fix above.
+on_disk() {
+  local f
+  for f in "$ROOT"/intent/st/*/parity/tools/"$1"; do
+    [ -f "$f" ] && return 0
+  done
+  return 1
+}
+
 # ---------------------------------------------------------------------------
 # A. Every tool on disk is rostered, and every rostered tool is on disk.
 # ---------------------------------------------------------------------------
@@ -378,8 +411,11 @@ while IFS= read -r t; do
   elif in_flight "$t"; then
     inflight=1
     add "$t has a roster row and its file is STAGED but not in the tree being committed -- the two halves are IN FLIGHT, not severed. DO NOT DELETE THE ROW. Land the tool and its roster row in ONE commit: \`git commit --only\` builds HEAD plus the named paths, so a path-scoped commit by ANY node drops a staged sibling it did not name. If the tool is not yours, its author is mid-landing -- wait."
+  elif on_disk "$t"; then
+    inflight=1
+    add "$t has a roster row and its file is ON DISK BUT NEVER STAGED -- \`git ls-files\` cannot see an untracked file, so this is NOT a roster that outlived its instrument. DO NOT DELETE THE ROW. Stage the tool and land it with its row in ONE commit."
   else
-    add "$t has a roster row and NO file anywhere -- absent from the tree being committed AND unstaged. The roster has outlived the instrument."
+    add "$t has a roster row and NO file anywhere -- not in the tree being committed, not staged, and not on disk. The roster has outlived the instrument."
   fi
 done <<EOF
 $ROSTERED
