@@ -2,11 +2,11 @@
 node: dc
 name: DevX Claude
 role: worker
-session_id: 1632d4ac-829b-4990-b3cb-67cb95f92204
-commit_session_id: 01WkA5QasnHyFRoRC592WbXW -- READ OFF MY OWN COMMIT fa4f8f1c's TRAILER, not off the harness announcement that also carries it. The two agreed here; they are still different sources and only one of them is the artefact. POINT-IN-TIME, one session, never a table -- the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-03 17:37Z
+session_id: 8ef84e7a-4585-4b04-aae7-a2e58b6be0eb
+commit_session_id: 01KJiLhhcanvdaveAtLRkKoH -- FROM THE HARNESS ANNOUNCEMENT ALONE AND NOT YET WITNESSED ON A COMMIT OF MINE, which is the weaker of the two sources this line has ever carried. My own rule is to read it off my own commit's trailer; I have authored none this session, so treat it as UNCONFIRMED until one lands and then re-read it there. POINT-IN-TIME, one session, never a table.
+heartbeat_at: 2026-09-04 07:01Z
 status: active
-focus: "COLD PICKUP AFTER THE COMPACT, 2026-09-03 17:37Z. Inboxes all four EMPTY. TWO HOLD CONDITIONS CHECKED RATHER THAN RECALLED, AND ONE IS RELEASED: cc landed an intentd integration fixture today (19a14836e + c5db8b8ac) that spins its OWN RunningDaemon and separates 0216 SILENTLY_LOST from 0226 REFUSED, so the isolation condition on 0212/0216/0226 is met and those three leave Blocked. NEW AND MINE: AC-00.3 blocks ST0058, ST0058 binds the cut, and every remaining falsifier is in WP-07 -- claude rules index|validate and the whole claude subagents family, all named in canon, all rc=2 unwired. ext IS discharged; no canon file names it. AC-02.3 is 167 of 177 with TEN undispositioned, 0209 being new. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "COLD PICKUP 2026-09-04 07:01Z. BOOTED AND HOLDING ON hv INSTRUCTION -- boot, hold, wait for direction from vc. ALL FOUR INBOXES EMPTY, nothing in flight, nothing started, no claim moved. STATUS STAYS active; a hold is not a session ending. THE QUIET IS THE ESTATE AND NOT A DELAY AIMED AT ME: cc 17:40Z, vc 17:48Z and ic 17:50Z all beat last night and all three boards say held or parked, vc explicitly held by hv. NOTHING WAS RE-MEASURED AT THIS PICKUP -- the released hold on 0212/0216/0226, the AC-00.3 WP-07 finding and every count in my TODO are yesterday reads, and they get re-driven before they are quoted to anyone. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -36,6 +36,7 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
+- **BOOTED AND HOLDING, 2026-09-04 07:01Z, ON hv's INSTRUCTION: boot, hold, wait for direction from vc.** Full pickup done -- four inboxes read and all four EMPTY, four peer boards read, header updated, claims untouched. **NOTHING STARTED AND NOTHING RE-MEASURED**, which is the part worth writing down: everything below this line is a read from YESTERDAY, and W2 says a `git status` expires in minutes here, so a hold condition or a count is re-driven at the moment it is quoted rather than carried out of this section.
 - **NOTHING IN FLIGHT. AGGRESSIVE LOCALFOLD 2026-09-03 17:20Z, on hv's instruction, ahead of a compact.** Pre-fold verbatim + `cmp`-verified at `.history/20260903/wip-prefold-1718Z.md` (sha `12a4a0ec`, 49,082 bytes). **Two folds today**: the morning pair is `wip-prefold-1446Z.md` / `day-narrative-1446Z.md`, the afternoon's reasoning is `day-narrative-1718Z.md`. **STATUS STAYS `active`.**
 - **CONTROL: 64 W-numbers entered, 64 after** (W1-W63 plus W4a). **The section's standing rule held -- a rule is never dropped here, only its narrative.**
 
@@ -58,6 +59,10 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 **NEW AND MINE, FOUND AT THIS PICKUP AND NOT ON ANY BOARD: `AC-00.3` BLOCKS `ST0058`, `ST0058` BINDS THE CUT (hv's option A, all six), AND EVERY REMAINING FALSIFIER IS IN WP-07.** Driven on the delivered binary, bare -- **NOT with `--help`, which returns rc=0 for every verb clap knows about including the unwired ones, and which I ran first**: `claude rules index`, `claude rules validate`, `claude subagents list`, `claude subagents status` all return **rc=2 AND the unwired phrase**, and canon names every one of them (`usage-rules.md:111-117,140,141,212,313`, `AGENTS.md:113,144`). **`ext` IS DISCHARGED -- no canon file names it**, so its rc=2 is not a falsifier. `fn claude` at `render.rs:6945` has **no `subagents` arm at all**; its arms are `hook rules skills upgrade start ws`. **The `ext` precedent is a RULING, not a template**: hv de-canoned one verb with no capability behind it; `subagents` is seven spellings fronting a live capability, so the same move is a different decision and it is hv's. **Question, context, options, recommendation -- not a fix I pick.**
 
 **THE REMAINDER SITS IN BLOCKED, AND THAT IS A CORRECTION TO MY OWN CENSUS.** I priced the remainder as WRITING; `docs/known-defects.md` opens by promising every entry was **DRIVEN** against v3.0.0, so a `stated` row is a drive. **And the page's own `## What this page does not cover` names hv's four candidate fixtures VERBATIM -- hv read them off a page I wrote.**
+
+## Holds
+
+- **HELD -- ALL WORK ON THIS BOARD** | **CONDITION: vc sends me direction.** hv's instruction at boot, 2026-09-04 07:01Z, in the live channel: boot and hold, then wait for instructions from vc. **The condition is vc's message arriving, not hv returning** -- naming hv would record a dependency I cannot check, where this one I can check at every pickup by reading `dc/inbox.vc.md`. **It covers the startable XS items too** (`0063`, the four `AC-02.3` dispositions, the currency arm's reach): they are unblocked by their own conditions and held by this one, and those are different facts. **STATUS STAYS `active`** -- invariant 6, and a hold is not a session ending.
 
 ## Watch-outs
 
