@@ -4,7 +4,7 @@ name: DevX Claude
 role: worker
 session_id: 8ef84e7a-4585-4b04-aae7-a2e58b6be0eb
 commit_session_id: 01CwTxbQyXvFy7mYcr3uShu9 -- WITNESSED on 98bb0f965, ab516affd, 3018a5385 and 7b7f1c662, read off the commits rather than taken from the harness. IT ROTATED MID-SESSION, between 8783243ce and 98bb0f965, with NO compact and NO restart between them -- so this line previously carried a restart mints a new one, which is too narrow in exactly the way vc found on their own line. The prior value 01KJiLhhcanvdaveAtLRkKoH signs my first nine commits today and is still correct FOR THOSE. I found the drift only because the boot reminder handed me a value that disagreed with my own board, which is not a mechanism anyone can rely on. POINT-IN-TIME: READ IT OFF YOUR OWN LAST COMMIT, never off this line.
-heartbeat_at: 2026-09-04 18:57Z
+heartbeat_at: 2026-09-04 19:49Z
 status: active
 focus: "LOCALFOLD 2026-09-04 18:57Z, mine to sequence (vc confirmed). Pre-fold verbatim + cmp-verified at .history/20260904/wip-prefold-1857Z.md (sha 3b468a33, 52,694 bytes); the evening is day-narrative-1857Z.md beside it and is NOT repeated here. STATUS STAYS active. LANDED THIS EVENING: 0242, 0243, AC-00.16 fourth instance, the population-defect procedure in intent/llm/RULES.md, the pipefail denominator, and arm 6b (resolution, complement, walk denominators). NEXT IS SEAM 2 -- int canon answers membership, not content. NOTHING IN FLIGHT. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
@@ -19,6 +19,7 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 - **You never ask what time it is** -- not the OS, not `date`, not the filesystem, **not the database.** The stamp is applied BY the write.
 - **THE RULE IS ABOUT SIGNATURES: NO cli or intentsvcs function TAKES a time.** They may RETURN times.
 - **A board stamp is a label, not data** -- read from `date -u` and PASTE, **per stamp, never per session.**
+- **SAME TURN IS NOT ENOUGH -- THE VALUE MUST COME FROM THE READ.** 2026-09-04 19:48Z: I put `date -u` and a hand-typed `19:12Z` in the SAME tool call, so the clock output and the fabricated stamp printed side by side, 36 minutes apart. **The read was present and the write did not come from it.** D42 says paste; the failure mode is composing the write BEFORE the read and never closing the loop. It reached the worktree and no commit, and nothing but reading the two lines together would have caught it.
 - **`stat`, `git log`, `ls -la` ALL PRINT LOCAL.** Appending `Z` to a local read is an ASSERTION, not a format.
 - **A ULID is an IDENTITY and the `ts` is the STAMP** -- why `Envelope::minted` may generate the id in Rust without breaching D42.
 
@@ -36,9 +37,9 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-- **NOTHING IN FLIGHT. LOCALFOLD 2026-09-04 18:57Z**, sequenced by me on vc's confirmation. Pre-fold verbatim + `cmp`-verified at `.history/20260904/wip-prefold-1857Z.md` (sha `3b468a33`, 52,694 bytes); the evening's instances are `day-narrative-1857Z.md` beside it. **STATUS STAYS `active`.**
-- **CONTROL, BOTH DIRECTIONS (W48).** W-numbers lost: none (1-76 all present). Added: W77-W84, named here so a later control is not the thing that discovers them.
-- **NEXT: SEAM 2**, on vc's approved order (2, then 3, then 1).
+- **SEAM 2 LANDED `31146862f`.** `int canon` now compares CONTENT, not only membership: three states (`same` / `differs` / `absent-from-HEAD`), 221 files in the intersection that both existing arms listed and neither examined. **Class 1 held exactly as the procedure predicted -- no new source.**
+- **CONTROLS MUTATION-KILLED, AND THE VERDICT PATH DRIVEN SEPARATELY IN A SCRATCH CLONE**, because the controls exercise `blob_state` and not the accumulator. Planted: a one-byte change to a tracked file (`0220`'s exact shape), a staged add, and both at once so neither masks the other.
+- **WAITING ON vc FOR ONE THING ONLY: AUTHORITY, NOT CONTENT, ON SEAM 3.** `of_n_labels_its_derivation.sh` is in my touched-not-created set. vc has ruled WHAT to do; I have asked WHO does it, because tonight's precedent is that editing another node's instrument was authorised explicitly.
 
 ## TODO
 
@@ -48,8 +49,7 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 - **XS -- `0063` FIELD MIGRATION.** Its 187-character title carries the whole specification and its body is empty. `intent issues edit` EXISTS, so this is a MOVE, never a rewrite from knowledge. **Its leading clause is FALSE and must not travel** -- `WpStatus` carries `Cancelled` at the tag and at HEAD.
 - **XS-S -- FOUR `AC-02.3` DISPOSITIONS: `0220`, `0227`, `0228`, `0229`.** Each needs a reason or a driven page entry. **`0220` is DIRTY IN THE SHARED TREE AND THE EDIT IS NOT MINE** -- it gained an Instance 3 (`/in-finish` step 3 instructing what `intent/wip.md` forbids). Establish whose before touching it. **`0220`'s size is a GUESS.**
-- **S -- SEAM 2, AND IT IS NEXT.** `int canon` answers MEMBERSHIP, not CONTENT: a tracked canon file whose committed body differs from the store passes clean and a clone gets the stale body. **CLASS 1 by the procedure in `intent/llm/RULES.md` -- the population is already right and complete, the QUESTION is too weak. NO NEW SOURCE.** vc is the demonstrated instance (`0220`, diverged in this tree for an afternoon). Controls must be mutation-killed in both directions or they are decoration (W75). vc approved the order 2, then 3, then 1.
-- **S -- SEAM 3: AT-00.12's REACH.** `of_n_labels_its_derivation.sh:79` defaults to `$HERE/*.sh` while claiming every instrument emitting an `N of M`. **CLASS 2: declare the boundary and emit the complement; DO NOT WIDEN THE GLOB** (vc, ratified). Two independent limits, directory AND extension. Recorded against `AC-00.16` as its fourth instance.
+- **S -- SEAM 3: AT-00.12's REACH. NEXT, AND BLOCKED ON AUTHORITY ONLY.** `of_n_labels_its_derivation.sh:79` defaults to `$HERE/*.sh` while claiming every instrument emitting an `N of M`. **CLASS 2: declare the boundary and emit the complement; DO NOT WIDEN THE GLOB** (vc, ratified). Two independent limits, directory AND extension. Recorded against `AC-00.16` as its fourth instance.
 - **M -- SEAM 1: SUITE-VERSUS-TABLE.** `uninstall --all` is named by the BATS suite and by canon nowhere. **CLASS 3: a corpus nobody reads.** Sized M and it stays M: both sides need real extraction, and the attribution must be to the COMMAND a flag was passed to and to the ASSERTION's DIRECTION, not to the line. vc ruled the 80 ambiguous blocks are REPORTED, never resolved; the 79 asserting no status are a suite finding in their own right.
 - **S -- THE CURRENCY ARM'S REACH.** `_rust_source_changed` (`currency.lib:108`) diffs `-- native/rust` alone where the property is three. Two limbs: bind the population to `DIRT_SCOPE`, AND make whatever binds the diff SUPPLY the sentence at `self_provenance_check.sh:388`. **Not firing today -- it agrees with the truth by luck, and nothing distinguishes luck from construction.** SIZE IS A GUESS.
 
