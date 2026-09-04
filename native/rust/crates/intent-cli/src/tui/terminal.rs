@@ -579,14 +579,6 @@ pub(crate) mod tests {
       );
     }
   }
-}
-
-#[cfg(test)]
-mod subset_tests {
-  use super::tests::Recorder;
-  use super::*;
-  use std::cell::RefCell;
-  use std::rc::Rc;
 
   /// **RAW WITHOUT THE ALTERNATE SCREEN, AND THE ABSENCE IS THE ASSERTION.**
   /// The load indicator draws on the operator's real screen; entering the

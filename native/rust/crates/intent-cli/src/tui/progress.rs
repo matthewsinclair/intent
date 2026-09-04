@@ -206,7 +206,7 @@ where
 {
   use super::terminal::{Borrowed, Step, real::Crossterm};
   use std::io::Write;
-  use std::sync::mpsc::{self, TryRecvError};
+  use std::sync::mpsc::{self, RecvTimeoutError};
 
   let (tx, rx) = mpsc::channel();
   let worker = std::thread::spawn(move || {
@@ -217,18 +217,25 @@ where
     return Outcome::Done(collect(worker, &rx));
   };
 
-  // **THE POLL IS THE TIMER, BECAUSE THIS WORKSPACE HAS NO CLOCK IN IT** (D42,
-  // and `intentsvcs/tests/one_clock.rs` enforces it -- `Instant::now` is on the
-  // banned list by name, with an exempt list documented as having to stay
-  // empty). Each timed-out poll is [`POLL`] of waiting, so counting them
-  // measures the wait without asking anything what time it is.
+  // **THE CHANNEL'S TIMEOUT IS THE TIMER, BECAUSE THIS WORKSPACE HAS NO CLOCK
+  // IN IT** (D42, and `intentsvcs/tests/one_clock.rs` enforces it -- `Instant::now`
+  // is on the banned list by name, with an exempt list documented as having to
+  // stay empty). `recv_timeout` blocks for the full interval unless a value
+  // arrives, so counting expiries measures real elapsed time without asking
+  // anything what time it is.
   //
-  // **IT UNDER-READS WHEN KEYS ARRIVE, AND THAT IS THE SAFE DIRECTION.** A poll
-  // cut short by a keypress contributes nothing, so an operator typing during a
-  // load delays the indicator rather than summoning one on a fast project. The
-  // cancel check does not go through this estimate at all -- `Esc` is tested on
-  // every iteration -- so the degradation is cosmetic and the responsive half
-  // is exact.
+  // **IT WAS THE KEYBOARD POLL, AND THAT DID NOT MEASURE TIME AT ALL.** Crediting
+  // [`POLL`] to every `crossterm::event::poll` that did not yield an event
+  // credits it to the ERROR return too, which does not wait -- so the loop spun
+  // and the estimate became a count of iterations wearing milliseconds. Driven
+  // under a pty: Lamplight painted NINE frames, needing 2,250 ms by the
+  // estimate, inside a real 257 ms; Intent drew an indicator at all with a
+  // 54 ms time-to-first-frame. **An instrument that is only consulted when it
+  // is about to be believed, reporting a plausible number instead of an
+  // answer.**
+  //
+  // The keyboard is now checked NON-BLOCKING, after the wait rather than as the
+  // wait, so it cannot distort the measurement however it fails.
   let mut waited = Duration::ZERO;
   let mut ticker = Ticker::new();
   let mut out = std::io::stderr();
@@ -240,7 +247,7 @@ where
   };
 
   loop {
-    match rx.try_recv() {
+    match rx.recv_timeout(POLL) {
       Ok(loaded) => {
         show(ticker.clear());
         return Outcome::Done(loaded);
@@ -249,27 +256,26 @@ where
       // off the screen and give the terminal back BEFORE the panic is re-raised
       // -- a backtrace printed into raw mode staircases across the screen,
       // which is the state the operator has to read the bug report out of.
-      Err(TryRecvError::Disconnected) => {
+      Err(RecvTimeoutError::Disconnected) => {
         show(ticker.clear());
         drop(_borrowed);
         return Outcome::Done(collect(worker, &rx));
       }
-      Err(TryRecvError::Empty) => {}
+      Err(RecvTimeoutError::Timeout) => waited += POLL,
     }
 
-    match crossterm::event::poll(POLL) {
-      Ok(true) => {
-        if let Ok(event) = crossterm::event::read() {
-          if is_cancel(&event) {
-            show(ticker.clear());
-            return Outcome::Cancelled;
-          }
+    // **DRAINED, NOT SAMPLED.** Keystrokes arrive while the wait above is
+    // blocking, so more than one can be pending; reading a single event per
+    // iteration would let an `Esc` sit behind whatever was typed before it.
+    while crossterm::event::poll(Duration::ZERO).unwrap_or(false) {
+      match crossterm::event::read() {
+        Ok(event) if is_cancel(&event) => {
+          show(ticker.clear());
+          return Outcome::Cancelled;
         }
+        Ok(_) => {}
+        Err(_) => break,
       }
-      // A poll that timed out waited the whole interval; one that failed is a
-      // terminal that has stopped answering, and counting it keeps the loop
-      // from becoming a busy spin that never reaches the threshold.
-      _ => waited += POLL,
     }
 
     show(ticker.frame(waited));
@@ -294,187 +300,251 @@ fn collect<T>(worker: std::thread::JoinHandle<()>, rx: &std::sync::mpsc::Receive
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  //! **ONE TEST MODULE PER FILE, AND THAT IS A SHIPPED-SOURCE SCANNER'S
+  //! PRECONDITION RATHER THAN A STYLE.** `tests/common/mod.rs` truncates a file
+  //! at its first test-gate attribute so it scans only shipped code, and REFUSES
+  //! outright when a file carries a second one -- correctly, because scanning
+  //! half a file silently is the worse failure. Three gates in this file turned
+  //! four unrelated tests red on main (censused by dc). The grouping is kept as
+  //! inner modules, which costs nothing and leaves the precondition true.
+  //!
+  //! **THE PROSE MUST NOT SPELL THE ATTRIBUTE EITHER.** The scanner counts a
+  //! literal, so a comment explaining the rule breaks it exactly as a second
+  //! gate would -- which cost one round trip here.
 
-  #[test]
-  fn nothing_is_shown_before_the_threshold() {
-    assert_eq!(line(Duration::ZERO), None);
-    assert_eq!(
-      line(Duration::from_millis(10)),
-      None,
-      "Baize starts in ~10ms"
-    );
-    assert_eq!(
-      line(Duration::from_millis(83)),
-      None,
-      "Conflab starts in ~83ms"
-    );
-    assert_eq!(
-      line(Duration::from_millis(149)),
-      None,
-      "one millisecond under the threshold is still silence"
-    );
-  }
+  mod line_tests {
+    use crate::tui::progress::*;
 
-  #[test]
-  fn the_indicator_appears_exactly_at_the_threshold() {
-    assert_eq!(line(THRESHOLD), Some(format!("{MARK} .")));
-  }
+    #[test]
+    fn nothing_is_shown_before_the_threshold() {
+      assert_eq!(line(Duration::ZERO), None);
+      assert_eq!(
+        line(Duration::from_millis(10)),
+        None,
+        "Baize starts in ~10ms"
+      );
+      assert_eq!(
+        line(Duration::from_millis(83)),
+        None,
+        "Conflab starts in ~83ms"
+      );
+      assert_eq!(
+        line(Duration::from_millis(149)),
+        None,
+        "one millisecond under the threshold is still silence"
+      );
+    }
 
-  #[test]
-  fn the_dots_advance_with_time_and_wrap_rather_than_growing_without_bound() {
-    let at = |ms: u64| line(Duration::from_millis(ms)).expect("past the threshold");
-    assert_eq!(at(150), format!("{MARK} ."));
-    assert_eq!(at(400), format!("{MARK} .."));
-    assert_eq!(at(650), format!("{MARK} ..."));
-    assert_eq!(at(900), format!("{MARK} ...."));
-    // **THE WRAP IS THE ASSERTION THAT MATTERS.** A five-second load must not
-    // write twenty dots across the operator's line.
-    assert_eq!(at(1150), format!("{MARK} ."), "the run must wrap, not grow");
-    assert_eq!(at(5000), format!("{MARK} ...."));
-  }
+    #[test]
+    fn the_indicator_appears_exactly_at_the_threshold() {
+      assert_eq!(line(THRESHOLD), Some(format!("{MARK} .")));
+    }
 
-  #[test]
-  fn no_line_is_ever_wider_than_the_eraser() {
-    // Driven across the whole first ten seconds rather than at a few points,
-    // because `erase` leaving one dot behind is exactly the defect that would
-    // survive a spot check.
-    for ms in (0..10_000).step_by(7) {
-      if let Some(rendered) = line(Duration::from_millis(ms)) {
-        // The mark occupies two columns and every other character one, so the
-        // width is the char count plus one for the mark's second column.
-        let columns = rendered.chars().count() + 1;
-        assert!(
-          columns <= widest(),
-          "at {ms}ms the line is {columns} columns and the eraser clears {}",
-          widest()
-        );
+    #[test]
+    fn the_dots_advance_with_time_and_wrap_rather_than_growing_without_bound() {
+      let at = |ms: u64| line(Duration::from_millis(ms)).expect("past the threshold");
+      assert_eq!(at(150), format!("{MARK} ."));
+      assert_eq!(at(400), format!("{MARK} .."));
+      assert_eq!(at(650), format!("{MARK} ..."));
+      assert_eq!(at(900), format!("{MARK} ...."));
+      // **THE WRAP IS THE ASSERTION THAT MATTERS.** A five-second load must not
+      // write twenty dots across the operator's line.
+      assert_eq!(at(1150), format!("{MARK} ."), "the run must wrap, not grow");
+      assert_eq!(at(5000), format!("{MARK} ...."));
+    }
+
+    #[test]
+    fn no_line_is_ever_wider_than_the_eraser() {
+      // Driven across the whole first ten seconds rather than at a few points,
+      // because `erase` leaving one dot behind is exactly the defect that would
+      // survive a spot check.
+      for ms in (0..10_000).step_by(7) {
+        if let Some(rendered) = line(Duration::from_millis(ms)) {
+          // The mark occupies two columns and every other character one, so the
+          // width is the char count plus one for the mark's second column.
+          let columns = rendered.chars().count() + 1;
+          assert!(
+            columns <= widest(),
+            "at {ms}ms the line is {columns} columns and the eraser clears {}",
+            widest()
+          );
+        }
       }
     }
+
+    /// **THE LITERAL, BECAUSE THE VERSION WRITTEN IN TERMS OF `THRESHOLD` WAS
+    /// DECORATION AND A MUTATION PROVED IT.** The first form asserted
+    /// `line(THRESHOLD - 1ms)` is `None` and `line(THRESHOLD)` is `Some`, which
+    /// is true for EVERY value the constant could hold -- so when the threshold
+    /// was mutated from 150 ms to 50 ms it passed, while the test that named a
+    /// real number caught it. **A test phrased in the terms of the thing it
+    /// checks cannot detect a change to it.**
+    ///
+    /// The number is here rather than only in the constant because the constant
+    /// is a MEASUREMENT (the gap between this estate's fast and slow startup
+    /// clusters). Changing it should require changing a test that says so.
+    #[test]
+    fn the_threshold_is_150ms_and_a_change_to_it_must_break_a_test() {
+      assert_eq!(THRESHOLD, Duration::from_millis(150));
+      assert_eq!(line(Duration::from_millis(149)), None);
+      assert!(line(Duration::from_millis(150)).is_some());
+    }
   }
 
-  /// **THE LITERAL, BECAUSE THE VERSION WRITTEN IN TERMS OF `THRESHOLD` WAS
-  /// DECORATION AND A MUTATION PROVED IT.** The first form asserted
-  /// `line(THRESHOLD - 1ms)` is `None` and `line(THRESHOLD)` is `Some`, which
-  /// is true for EVERY value the constant could hold -- so when the threshold
-  /// was mutated from 150 ms to 50 ms it passed, while the test that named a
-  /// real number caught it. **A test phrased in the terms of the thing it
-  /// checks cannot detect a change to it.**
+  mod ticker_tests {
+    use crate::tui::progress::*;
+    use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifiers};
+
+    /// **THE PROPERTY THE WHOLE MODULE EXISTS TO PRESERVE.** After the store fix
+    /// every project on this estate loads in tens of milliseconds, so this is not
+    /// an edge case -- it is what happens on essentially every invocation. A
+    /// single stray carriage return here would put a cosmetic defect on every
+    /// `intent explore` on every machine.
+    #[test]
+    fn a_load_that_beats_the_threshold_writes_nothing_at_all() {
+      let mut ticker = Ticker::new();
+      for ms in [0, 1, 10, 54, 83, 149] {
+        assert_eq!(
+          ticker.frame(Duration::from_millis(ms)),
+          None,
+          "{ms}ms is inside the threshold and must draw nothing"
+        );
+      }
+      assert_eq!(
+        ticker.clear(),
+        None,
+        "nothing was drawn, so nothing may be erased -- not even an empty erase"
+      );
+    }
+
+    /// A 50 ms poll against a 250 ms tick means the loop asks five times per
+    /// visible change. Redrawing on every ask is five times the terminal traffic
+    /// for the same picture.
+    #[test]
+    fn the_line_is_written_only_when_it_changes() {
+      let mut ticker = Ticker::new();
+      assert!(
+        ticker.frame(Duration::from_millis(150)).is_some(),
+        "the first frame past the threshold has to be drawn"
+      );
+      for ms in [160, 200, 250, 300, 399] {
+        assert_eq!(
+          ticker.frame(Duration::from_millis(ms)),
+          None,
+          "at {ms}ms the line still reads the same, so it must not be rewritten"
+        );
+      }
+      assert!(
+        ticker.frame(Duration::from_millis(400)).is_some(),
+        "the second dot is a real change and has to be drawn"
+      );
+    }
+
+    #[test]
+    fn a_frame_is_written_from_column_zero_and_erased_exactly_once() {
+      let mut ticker = Ticker::new();
+      let drawn = ticker.frame(Duration::from_millis(150)).expect("drawn");
+      assert!(
+        drawn.starts_with('\r'),
+        "the line has to start at column zero or it walks across the prompt: {drawn:?}"
+      );
+      assert_eq!(ticker.clear(), Some(erase(widest())));
+      assert_eq!(
+        ticker.clear(),
+        None,
+        "clearing twice must be a no-op -- the loop and a later error path can both reach it"
+      );
+    }
+
+    fn press(code: KeyCode, modifiers: KeyModifiers) -> Event {
+      Event::Key(KeyEvent::new(code, modifiers))
+    }
+
+    #[test]
+    fn escape_stops_the_load() {
+      assert!(is_cancel(&press(KeyCode::Esc, KeyModifiers::NONE)));
+    }
+
+    /// **THE REGRESSION GUARD, NOT A NICETY.** Entering raw mode to watch for
+    /// `Esc` is what takes `SIGINT` away; without this arm the indicator would
+    /// make a slow load impossible to abandon, which is strictly worse than the
+    /// silence it replaced.
+    #[test]
+    fn ctrl_c_stops_the_load_because_raw_mode_took_sigint_away() {
+      assert!(is_cancel(&press(KeyCode::Char('c'), KeyModifiers::CONTROL)));
+    }
+
+    #[test]
+    fn ordinary_typing_does_not_stop_the_load() {
+      assert!(!is_cancel(&press(KeyCode::Char('c'), KeyModifiers::NONE)));
+      assert!(!is_cancel(&press(KeyCode::Char('q'), KeyModifiers::NONE)));
+      assert!(!is_cancel(&press(KeyCode::Enter, KeyModifiers::NONE)));
+      assert!(!is_cancel(&Event::Resize(80, 24)));
+    }
+
+    /// Terminals that report releases send the same physical press twice. Acting
+    /// on the second one cancels on the key coming back UP, after this loop has
+    /// already handled it going down.
+    #[test]
+    fn a_key_release_is_not_a_second_press() {
+      let release = Event::Key(KeyEvent {
+        code: KeyCode::Esc,
+        modifiers: KeyModifiers::NONE,
+        kind: KeyEventKind::Release,
+        state: KeyEventState::NONE,
+      });
+      assert!(!is_cancel(&release));
+    }
+  }
+
+  /// **THE WIRING, ASSERTED ON THE SOURCE BECAUSE NOTHING ELSE CAN SEE IT**
+  /// (cc's finding, 2026-09-04).
   ///
-  /// The number is here rather than only in the constant because the constant
-  /// is a MEASUREMENT (the gap between this estate's fast and slow startup
-  /// clusters). Changing it should require changing a test that says so.
-  #[test]
-  fn the_threshold_is_150ms_and_a_change_to_it_must_break_a_test() {
-    assert_eq!(THRESHOLD, Duration::from_millis(150));
-    assert_eq!(line(Duration::from_millis(149)), None);
-    assert!(line(Duration::from_millis(150)).is_some());
-  }
-}
+  /// Every other test in this file proves the indicator's LOGIC is correct. None
+  /// of them can tell whether `explore()` still calls it, and that is the half
+  /// that rots: a refactor that dropped the call would leave every assertion above
+  /// green.
+  ///
+  /// **AND THE FIELD CANNOT REPORT IT EITHER, WHICH IS WHAT MAKES THIS WORTH A
+  /// TEST RATHER THAN A NOTE.** [`THRESHOLD`] is 150 ms and the store fix took the
+  /// worst project on the estate from 1536 ms to 40 ms, so this indicator now
+  /// fires on nothing anybody can observe. **Two independent silences** -- invisible
+  /// in the suite and invisible in use -- and a feature with both is one nobody
+  /// would ever discover was gone.
+  ///
+  /// The precedent is `the_renderer_calls_the_edit_door_exactly_once`, and so is
+  /// the reasoning: a count is the only thing that can go red when a call site
+  /// disappears, because behaviour that no longer happens has no behaviour to test.
+  mod wiring_tests {
+    #[test]
+    fn explore_still_reaches_this_module() {
+      let src = std::fs::read_to_string(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/render.rs"),
+      )
+      .expect("read the renderer beside this module");
 
-#[cfg(test)]
-mod ticker_tests {
-  use super::*;
-  use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifiers};
-
-  /// **THE PROPERTY THE WHOLE MODULE EXISTS TO PRESERVE.** After the store fix
-  /// every project on this estate loads in tens of milliseconds, so this is not
-  /// an edge case -- it is what happens on essentially every invocation. A
-  /// single stray carriage return here would put a cosmetic defect on every
-  /// `intent explore` on every machine.
-  #[test]
-  fn a_load_that_beats_the_threshold_writes_nothing_at_all() {
-    let mut ticker = Ticker::new();
-    for ms in [0, 1, 10, 54, 83, 149] {
+      // **THE CALL, NOT ONE SPELLING OF ITS ARGUMENT** -- the trap ST0039 names
+      // and `the_renderer_calls_the_edit_door_exactly_once` was bitten by: a
+      // pattern carrying anything about the caller stops matching when the caller
+      // is tidied, and then reports the tidy-up as the violation.
+      let calls = src.matches("while_loading(").count();
       assert_eq!(
-        ticker.frame(Duration::from_millis(ms)),
-        None,
-        "{ms}ms is inside the threshold and must draw nothing"
+        calls, 1,
+        "the load indicator is reached from {calls} places in the renderer. Zero means a \
+       refactor dropped the wiring, which no other test here can see and no operator \
+       can notice; more than one means the slow path has been split and one of them \
+       is now silent."
+      );
+
+      // **INSIDE `explore()` SPECIFICALLY.** A call that survives a refactor by
+      // landing somewhere harmless satisfies the count and protects nothing.
+      let body = &src[src.find("fn explore(").expect("explore() exists")..];
+      let end = body[1..].find("\nfn ").map(|i| i + 1).unwrap_or(body.len());
+      assert!(
+        body[..end].contains("while_loading("),
+        "the indicator is called somewhere in the renderer but NOT inside explore(), so the \
+       one command that waits is the one command that shows nothing"
       );
     }
-    assert_eq!(
-      ticker.clear(),
-      None,
-      "nothing was drawn, so nothing may be erased -- not even an empty erase"
-    );
-  }
-
-  /// A 50 ms poll against a 250 ms tick means the loop asks five times per
-  /// visible change. Redrawing on every ask is five times the terminal traffic
-  /// for the same picture.
-  #[test]
-  fn the_line_is_written_only_when_it_changes() {
-    let mut ticker = Ticker::new();
-    assert!(
-      ticker.frame(Duration::from_millis(150)).is_some(),
-      "the first frame past the threshold has to be drawn"
-    );
-    for ms in [160, 200, 250, 300, 399] {
-      assert_eq!(
-        ticker.frame(Duration::from_millis(ms)),
-        None,
-        "at {ms}ms the line still reads the same, so it must not be rewritten"
-      );
-    }
-    assert!(
-      ticker.frame(Duration::from_millis(400)).is_some(),
-      "the second dot is a real change and has to be drawn"
-    );
-  }
-
-  #[test]
-  fn a_frame_is_written_from_column_zero_and_erased_exactly_once() {
-    let mut ticker = Ticker::new();
-    let drawn = ticker.frame(Duration::from_millis(150)).expect("drawn");
-    assert!(
-      drawn.starts_with('\r'),
-      "the line has to start at column zero or it walks across the prompt: {drawn:?}"
-    );
-    assert_eq!(ticker.clear(), Some(erase(widest())));
-    assert_eq!(
-      ticker.clear(),
-      None,
-      "clearing twice must be a no-op -- the loop and a later error path can both reach it"
-    );
-  }
-
-  fn press(code: KeyCode, modifiers: KeyModifiers) -> Event {
-    Event::Key(KeyEvent::new(code, modifiers))
-  }
-
-  #[test]
-  fn escape_stops_the_load() {
-    assert!(is_cancel(&press(KeyCode::Esc, KeyModifiers::NONE)));
-  }
-
-  /// **THE REGRESSION GUARD, NOT A NICETY.** Entering raw mode to watch for
-  /// `Esc` is what takes `SIGINT` away; without this arm the indicator would
-  /// make a slow load impossible to abandon, which is strictly worse than the
-  /// silence it replaced.
-  #[test]
-  fn ctrl_c_stops_the_load_because_raw_mode_took_sigint_away() {
-    assert!(is_cancel(&press(KeyCode::Char('c'), KeyModifiers::CONTROL)));
-  }
-
-  #[test]
-  fn ordinary_typing_does_not_stop_the_load() {
-    assert!(!is_cancel(&press(KeyCode::Char('c'), KeyModifiers::NONE)));
-    assert!(!is_cancel(&press(KeyCode::Char('q'), KeyModifiers::NONE)));
-    assert!(!is_cancel(&press(KeyCode::Enter, KeyModifiers::NONE)));
-    assert!(!is_cancel(&Event::Resize(80, 24)));
-  }
-
-  /// Terminals that report releases send the same physical press twice. Acting
-  /// on the second one cancels on the key coming back UP, after this loop has
-  /// already handled it going down.
-  #[test]
-  fn a_key_release_is_not_a_second_press() {
-    let release = Event::Key(KeyEvent {
-      code: KeyCode::Esc,
-      modifiers: KeyModifiers::NONE,
-      kind: KeyEventKind::Release,
-      state: KeyEventState::NONE,
-    });
-    assert!(!is_cancel(&release));
   }
 }
