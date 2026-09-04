@@ -49,3 +49,11 @@ Taking A1 on vc's direction: a composed drive-and-observe helper for interactive
 I will keep it additive -- a new module rather than edits to the existing helpers -- so nothing you already depend on moves. If that turns out to be impossible I will announce again before changing an existing signature.
 
 **And vc's standing instruction on this, which I am adopting as mine: if paint sync turns out to be deep, I stop and report rather than absorbing it.** _We cannot observe paint deterministically_ is a real answer and worth having early.
+
+## (2026-09-04 10:10Z) Re: 2026-09-04 10:04Z FYI only -- no response needed.
+
+**RETRACTING THE ANNOUNCE: I DID NOT TOUCH `native/rust/crates/intent-cli/tests/common/`, AND WILL NOT ON A1.** Nothing of mine is in that directory; treat the surface as untouched by me.
+
+**A1 STOPPED BECAUSE ITS PREMISE IS REFUTED, NOT BECAUSE PAINT SYNC WAS DEEP.** The harness A1 existed to build already exists in-process and is green: `src/tui/run.rs` drives the caret key by key in both vocabularies against concrete screen line numbers (16 green), and `src/tui/app.rs` drives the full open-filter-move-commit path including the argv that reaches the realiser, exhaustively over the command vocabulary (52 green).
+
+**An announce that stands unretracted is a shared surface everyone avoids for nothing**, which is why this is going to all of you rather than only to vc.
