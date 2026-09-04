@@ -1564,13 +1564,44 @@ pub(crate) fn artefact_path(
 
 /// `--browser`: open the ENTITY in a browser served by `intentd`.
 ///
-/// **IT REFUSES WHEN THE DAEMON IS NOT RUNNING, NAMING `intent daemon start`,
-/// AND THAT REFUSAL IS THE SPECIFIED BEHAVIOUR RATHER THAN A STUB.**
-/// `tui-design.md` §9 rules it explicitly: the verb does not spawn a process
-/// the operator did not ask for. No daemon runs today, so this path is
-/// complete for every case that currently exists -- and when WP-08's daemon
-/// lands, this arm ASKS it instead of assuming, which is cc's edge to own
-/// rather than mine to guess at.
+/// **IT REFUSES UNCONDITIONALLY, AND UNTIL 2026-09-04 IT BLAMED A MISSING
+/// DAEMON FOR DOING SO.** There is no success path in this function. Whatever
+/// the daemon is doing, nothing here opens a page.
+///
+/// **AND THE SERVING HALF IS NOT WP-08's, WHICH THIS COMMENT ASSERTED UNTIL ic
+/// CHECKED IT.** All twelve `AC-08.*` rows read satisfied; WP-08's contract is
+/// complete. The page `--browser` would open is required by **`AC-17.6`**
+/// (`edit` and `browse` reach ONE MODEL through ONE SERVICE), which is a
+/// different row with a different owner. *WP-08 and unbuilt* conflated a work
+/// package with an area, and a satisfied criterion sitting under an in-flight
+/// comment calling the same ground unbuilt is the two-homes shape this thread
+/// keeps finding.
+///
+/// **THE OLD MESSAGE WAS FALSE IN BOTH ITS CLAUSES BY THE TIME ANYONE READ
+/// IT.** It said `--browser` needs a running daemon and none is running: one
+/// WAS running (`intent daemon status`, rc=0, same minute), and a running one
+/// would not have helped anyway. **The premise that rotted is recorded here
+/// rather than quietly dropped** -- this comment read *no daemon runs today, so
+/// this path is complete for every case that currently exists*, which was true
+/// when written. WP-08 then shipped enough daemon to run continuously, and
+/// nothing watched the join: the reason and the refusal sat four lines apart
+/// and only the reason expired.
+///
+/// **SO THE MESSAGE NAMES WHAT THIS BUILD DOES NOT DO, NEVER WHAT THE WORLD
+/// IS.** A refusal asserting an unmeasured state eventually asserts a false
+/// one, and this one also carried an unkeepable remedy: it told the operator to
+/// run `intent daemon start` while one was already running, so doing the single
+/// thing they were told to do changed nothing.
+///
+/// **THE PROBE IS DELIBERATELY NOT CALLED YET AND THAT IS NOT AN OVERSIGHT.**
+/// [`running_daemon_pid`] is in this file and would answer correctly, but with
+/// no serving half BOTH of its branches refuse identically -- so calling it
+/// today computes an answer this function discards, which is machinery
+/// pretending to be a check. It goes in with the arm that can act on it.
+///
+/// **`tui-design.md` §9 still governs the shape WP-08 must land**: the verb does
+/// not spawn a process the operator did not ask for. When it lands, this arm
+/// ASKS the daemon and serves, and its no-daemon branch says what it TRIED.
 ///
 /// **INV-10 lives here in its pairwise form.** The four output modes -- the
 /// terminal's default, `--editor`, `--browser`, `--path` -- are mutually
@@ -1593,9 +1624,9 @@ fn browsed(m: &ArgMatches) -> Result<(), Failure> {
 
   Err(Failure::Error(
     concat!(
-      "error: `--browser` needs a running daemon and none is running\n",
-      "  remedy: run `intent daemon start`, then try again -- this verb opens a page the \
-daemon serves and will not start one on your behalf",
+      "error: `--browser` is not implemented in this build\n",
+      "  remedy: nothing here opens a page yet -- `--editor` opens the file, and no \
+flag at all prints its path",
     )
     .to_string(),
   ))
