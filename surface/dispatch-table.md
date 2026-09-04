@@ -2575,7 +2575,7 @@ Manage Claude Code subagents
 
 - **v2:** bin/intent claude arm -> plugin
 - **Arguments:**
-  - `verb` (subcommand, arity `1`) -- one of: `init`, `list`, `install`, `sync`, `uninstall`, `show`, `status`
+  - `verb` (subcommand, arity `1`) -- one of: `list`, `install`, `sync`, `uninstall`, `show`
   - `name` (string, arity `0..n`)
 - **Flags:**
   - `-v` (bool) -- Show full descriptions in `list`
@@ -2590,7 +2590,12 @@ Manage Claude Code subagents
 - **stdout:** the subagent table or detail
 - **stderr:** `error: ...` on stderr (INV-01)
 - **Observed notes:** `intent/plugins/claude/subagents/.manifest/` tracks global-agents.json but NOT its sibling installed-agents.json, and .gitignore names neither, so running `install` inside a project leaves a permanent untracked file holding absolute machine paths. Pre-existing; wants an issue.
-- **Target:** `as-observed`
+- **Target:** `corrected` -- ratified: **vc, 2026-09-04, ONE RULE OVER THREE OPEN QUESTIONS: canon names it -> it stays declared and refuses at rc=2; canon does not name it -> it comes OFF the table.** `status` left canon under dc's B1 the same day, so it comes off here. `init` was never in canon at all -- it survives only in `lib/help/claude.help.md` and an example README, and `lib/help/` is a v2 artefact the v3 binary does not read (verified: the only reference in the Rust tree is a prose comment in `guide.rs`). **Both rows removed rather than left to fall through to `unwired`** -- there is nothing to explain once the row is gone, which is why the deliberate-oversight comment dc had planned is NOT written. After A1 both families are exactly `list / install / sync / uninstall / show`. **NOT A DE-SCOPING OF `rules validate`, which canon DOES name (`usage-rules.md:140`) and which therefore stays declared and refuses honestly.**
+- **rulings:**
+  - `0.state`: ratified
+  - `0.authority`: vc
+  - `0.date`: 2026-09-04
+  - `0.record`: f02f9a614
 - **MCP:** not exposed -- **mutates**
 - **recoverability:** idempotent
 - **recoverability anomaly:** WITHHELD FOR WIREDNESS, NOT FOR DANGER -- and the distinction is why this field is filled in rather than the label adjusted. The MCP withhold list is derived from `recoverability` because MCP withholds a mutation the surface cannot undo; this row is recoverable and is withheld anyway, because on a CURRENT build it answers `is a known command that is not implemented yet` at rc=2 and there is no mutation to recover from. Narrowed 2026-08-31 (hv-directed) with ten others as one flip, on the principle that the flag tracks the BINARY and not the roadmap. THIS ANOMALY IS SELF-EXPIRING AND MUST BE DELETED WITH THE RE-EXPOSURE: arm 2 of gen_dispatch_table.sh refuses a stale anomaly, so the wiring commit that flips `exposed_on_mcp` back must drop this string in the same act or the generator refuses. That is the guard working -- a reason for a withhold outliving the withhold is the record-outliving-its-premise class, and here it cannot.

@@ -6992,7 +6992,8 @@ fn claude(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("hook", a)) => hook(a),
     Some(("rules", a)) => rules(a),
-    Some(("skills", a)) => skills(a),
+    Some(("skills", a)) => payload_family(a, intentsvcs::payload::Kind::Skills),
+    Some(("subagents", a)) => payload_family(a, intentsvcs::payload::Kind::Agents),
     Some(("upgrade", a)) => claude_upgrade(a),
     Some(("start", a)) => claude_cwi(a, CwiVerb::Start),
     Some(("ws", a)) => claude_cwi(a, CwiVerb::Ws),
@@ -7247,20 +7248,78 @@ fn rel(root: &std::path::Path, p: &std::path::Path) -> String {
 /// `claude skills --help` has been listing commands that answered `2` -- which
 /// is the table-says-it-ships / binary-says-no shape the spine's own comment
 /// records for three short-only flags.
-fn skills(m: &ArgMatches) -> Result<(), Failure> {
+/// `claude skills` and `claude subagents` -- ONE dispatcher, both kinds.
+///
+/// **THE MIRROR IS A PARAMETERISATION, NOT A SECOND COPY** (vc's ruling,
+/// 2026-09-04: *mirror `fn skills` with `Kind::Agents`*). A `fn subagents`
+/// beside a `fn skills` would be two dispatchers over one contract, which is
+/// the violation [`payload_change`]'s own comment already refuses for the three
+/// change verbs -- *three copies of the tally would agree the day they were
+/// written*. A fourth copy would agree the day this one was written too.
+///
+/// **THE TWO FAMILIES ARE NOW THE SAME FIVE VERBS, AND THAT SYMMETRY IS
+/// RATIFIED RATHER THAN INCIDENTAL.** The table declared seven for `subagents`
+/// -- `init` and `status` besides these five. vc ruled the discriminator on
+/// 2026-09-04: **canon names it, it stays declared and refuses at rc=2; canon
+/// does not name it, it comes off the table.** `status` left canon under B1 the
+/// same day and `init` was never in canon at all -- it survived only in
+/// `lib/help/`, a v2 artefact this binary does not read. Both rows are gone, so
+/// there is no verb here deliberately falling through to `unwired`.
+fn payload_family(m: &ArgMatches, kind: intentsvcs::payload::Kind) -> Result<(), Failure> {
+  let path = words(kind).verb;
   match m.subcommand() {
-    Some(("list", a)) => skills_list(a),
-    Some(("install", a)) => skills_change(a, SkillVerb::Install),
-    Some(("sync", a)) => skills_change(a, SkillVerb::Sync),
-    Some(("uninstall", a)) => skills_change(a, SkillVerb::Uninstall),
-    Some(("show", a)) => skills_show(a),
-    Some((verb, _)) => unwired("claude", &format!("skills {verb}")),
-    None => unwired("claude", "skills"),
+    Some(("list", a)) => payload_list(a, kind),
+    Some(("install", a)) => payload_change(a, kind, ChangeVerb::Install),
+    Some(("sync", a)) => payload_change(a, kind, ChangeVerb::Sync),
+    Some(("uninstall", a)) => payload_change(a, kind, ChangeVerb::Uninstall),
+    Some(("show", a)) => payload_show(a, kind),
+    Some((verb, _)) => unwired("claude", &format!("{path} {verb}")),
+    None => unwired("claude", path),
   }
 }
 
+/// The CLI vocabulary for a payload kind: the verb path an operator types and
+/// the singular noun the messages use.
+///
+/// **RENDERER-LOCAL, AND DELIBERATELY NOT A METHOD ON [`intentsvcs::payload::Kind`].**
+/// `Kind` carries what the ENGINE needs -- `canon_subdir`, `marker`,
+/// `target_subdir`, `manifest_relative`, `shape`, `scope_token`. A CLI spelling
+/// is not one of those: the service layer has no business knowing what an
+/// operator types.
+///
+/// **AND `canon_subdir()` IS NOT REUSED HERE EVEN THOUGH IT RETURNS THE RIGHT
+/// TWO STRINGS.** It would work today by coincidence. It is a DISK fact whose
+/// own doc comment says the `subagents`-on-disk / `agents`-in-Claude-Code
+/// mismatch is real and deliberately not tidied -- so one value would be
+/// carrying three meanings, and the day Claude Code renames its directory is
+/// the day the CLI path silently follows it.
+struct Words {
+  /// `skills` / `subagents` -- the verb path under `intent claude`.
+  verb: &'static str,
+  /// `skill` / `subagent` -- the singular noun in operator-facing messages.
+  noun: &'static str,
+}
+
+fn words(kind: intentsvcs::payload::Kind) -> Words {
+  match kind {
+    intentsvcs::payload::Kind::Skills => Words {
+      verb: "skills",
+      noun: "skill",
+    },
+    intentsvcs::payload::Kind::Agents => Words {
+      verb: "subagents",
+      noun: "subagent",
+    },
+  }
+}
+
+/// The three verbs [`payload_change`] fronts, for EITHER kind.
+///
+/// Named `ChangeVerb` rather than `SkillVerb` since 2026-09-04: it serves
+/// `subagents` as well, and a type whose name says `Skill` while dispatching a
+/// subagent is the kind of drift that reads as correct forever.
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum SkillVerb {
+enum ChangeVerb {
   Install,
   Sync,
   Uninstall,
@@ -7293,7 +7352,9 @@ fn payload_lib(kind: intentsvcs::payload::Kind) -> Result<intentsvcs::payload::P
   ))
 }
 
-fn skill_names(a: &ArgMatches) -> Vec<String> {
+/// The positional names, for either kind -- `named_units` rather than
+/// `skill_names` since 2026-09-04, when `subagents` began reaching it too.
+fn named_units(a: &ArgMatches) -> Vec<String> {
   a.get_many::<String>("name")
     .map(|v| v.cloned().collect())
     .unwrap_or_default()
@@ -7306,10 +7367,15 @@ fn payload_fail(e: intentsvcs::payload::PayloadError) -> Failure {
 /// install / sync / uninstall -- one renderer, because they report the same
 /// thing about the same objects (IN-AG-HIGHLANDER-001). Three copies of the
 /// tally would agree the day they were written.
-fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
+fn payload_change(
+  a: &ArgMatches,
+  kind: intentsvcs::payload::Kind,
+  verb: ChangeVerb,
+) -> Result<(), Failure> {
   use intentsvcs::payload::Outcome;
-  let lib = payload_lib(intentsvcs::payload::Kind::Skills)?;
-  let names = skill_names(a);
+  let lib = payload_lib(kind)?;
+  let w = words(kind);
+  let names = named_units(a);
   // **`--force` NOW REACHES THIS SURFACE**, declared on the `claude skills` row
   // and read here. It was wired as a hard `false` until 2026-08-23, which left
   // every held skill with no CLI remedy at all -- so the messages below could
@@ -7341,10 +7407,11 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
   // "handled everywhere".** If the table ever grows per-verb entries, this is
   // the asymmetry to close.
   let dry_run = given(a, "dry-run");
-  if dry_run && verb != SkillVerb::Sync {
+  if dry_run && verb != ChangeVerb::Sync {
     return Err(Failure::Error(format!(
-      "error: `--dry-run` is only available on `sync`\n  remedy: `intent claude skills sync --dry-run` shows what a sync would change without writing; {} has no preview",
-      if verb == SkillVerb::Install {
+      "error: `--dry-run` is only available on `sync`\n  remedy: `intent claude {} sync --dry-run` shows what a sync would change without writing; {} has no preview",
+      w.verb,
+      if verb == ChangeVerb::Install {
         "install"
       } else {
         "uninstall"
@@ -7352,22 +7419,24 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
     )));
   }
 
-  if names.is_empty() && verb != SkillVerb::Sync {
+  if names.is_empty() && verb != ChangeVerb::Sync {
     return Err(Failure::Error(format!(
-      "error: name at least one skill to {}\n  remedy: `intent claude skills list` prints what this install carries",
-      if verb == SkillVerb::Install {
+      "error: name at least one {} to {}\n  remedy: `intent claude {} list` prints what this install carries",
+      w.noun,
+      if verb == ChangeVerb::Install {
         "install"
       } else {
         "uninstall"
-      }
+      },
+      w.verb
     )));
   }
 
   let report = match verb {
-    SkillVerb::Install => lib.install(&names, force),
-    SkillVerb::Sync if dry_run => lib.sync_preview(force),
-    SkillVerb::Sync => lib.sync(force),
-    SkillVerb::Uninstall => lib.uninstall(&names),
+    ChangeVerb::Install => lib.install(&names, force),
+    ChangeVerb::Sync if dry_run => lib.sync_preview(force),
+    ChangeVerb::Sync => lib.sync(force),
+    ChangeVerb::Uninstall => lib.uninstall(&names),
   }
   .map_err(payload_fail)?;
 
@@ -7518,13 +7587,14 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
   Ok(())
 }
 
-fn skills_list(a: &ArgMatches) -> Result<(), Failure> {
-  let lib = payload_lib(intentsvcs::payload::Kind::Skills)?;
+fn payload_list(a: &ArgMatches, kind: intentsvcs::payload::Kind) -> Result<(), Failure> {
+  let lib = payload_lib(kind)?;
+  let w = words(kind);
   let available = lib.available().map_err(payload_fail)?;
   let verbose = given(a, "v");
 
   if available.is_empty() {
-    println!("no skills in this install");
+    println!("no {} in this install", w.verb);
     return Ok(());
   }
   for origin in &available {
@@ -7548,22 +7618,31 @@ fn skills_list(a: &ArgMatches) -> Result<(), Failure> {
   Ok(())
 }
 
-fn skills_show(a: &ArgMatches) -> Result<(), Failure> {
-  let lib = payload_lib(intentsvcs::payload::Kind::Skills)?;
-  let Some(name) = skill_names(a).into_iter().next() else {
-    return Err(Failure::Error(
-      "error: name a skill to show\n  remedy: `intent claude skills list` prints what this install carries".to_string(),
-    ));
+/// **THE MARKER COMES FROM [`intentsvcs::payload::Kind::marker`], NOT FROM A
+/// LITERAL.** A skill's body is `SKILL.md` and a subagent's is `agent.md`; the
+/// engine already owns that fact and a second copy here would be a second home
+/// for it.
+fn payload_show(a: &ArgMatches, kind: intentsvcs::payload::Kind) -> Result<(), Failure> {
+  let lib = payload_lib(kind)?;
+  let w = words(kind);
+  let marker = kind.marker();
+  let Some(name) = named_units(a).into_iter().next() else {
+    return Err(Failure::Error(format!(
+      "error: name a {} to show\n  remedy: `intent claude {} list` prints what this install carries",
+      w.noun, w.verb
+    )));
   };
   let Some(origin) = lib.resolve(&name).map_err(payload_fail)? else {
     return Err(Failure::Error(format!(
-      "error: no skill named `{name}` in this install\n  remedy: `intent claude skills list` prints what there is"
+      "error: no {} named `{name}` in this install\n  remedy: `intent claude {} list` prints what there is",
+      w.noun, w.verb
     )));
   };
-  let body = std::fs::read_to_string(origin.dir.join("SKILL.md")).map_err(|e| {
+  let body = std::fs::read_to_string(origin.dir.join(marker)).map_err(|e| {
     Failure::Error(format!(
-      "error: cannot read {}: {e}\n  remedy: the skill resolved but its SKILL.md could not be read -- check the install tree",
-      origin.dir.display()
+      "error: cannot read {}: {e}\n  remedy: the {} resolved but its {marker} could not be read -- check the install tree",
+      origin.dir.display(),
+      w.noun
     ))
   })?;
   print!("{body}");

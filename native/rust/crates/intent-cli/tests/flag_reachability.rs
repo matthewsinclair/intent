@@ -1023,8 +1023,23 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
 ///   2026-08-31, `intent claude skills list` answers rc=0 with the canon
 ///   roster in an empty directory. **This is the other direction -- flags never
 ///   graded because the root refused.**
-/// - `claude subagents` is UNWIRED (cc, 2026-08-22: nothing reads its `-v`),
-///   which is why its flags belong in DEFERRED and not in the ratchet.
+/// - `claude subagents` WAS the second instance of the first direction and is
+///   now the REGRESSION GUARD for it. **THE PIN EXPIRED ON 2026-09-04 WHEN A1
+///   WIRED ALL FIVE OF ITS VERBS**, and the assertion below was inverted rather
+///   than deleted: it now holds `claude subagents` WIRED, so a dispatch arm
+///   that regresses is caught by the row that used to record its absence.
+///   cc's 2026-08-22 note -- *nothing reads its `-v`* -- is discharged: `-v`
+///   reaches `payload_list` and `--force` reaches `payload_change` for both
+///   kinds, which is why its flags left DEFERRED for the gate with no edit to
+///   either list.
+///
+///   **AND THE FIRST DIRECTION IS NOW DOWN TO ONE REAL INSTANCE, WHICH IS
+///   STATED RATHER THAN LEFT TO BE DISCOVERED.** `st bootstrap` is the only
+///   unwired leaf under a wired root left on the surface: the
+///   `DECLARED_BUT_UNWIRED` roster's other members (`browse`, `fc`) are
+///   top-level entries, so they cannot exhibit leaf-under-wired-root at all.
+///   When `st bootstrap` is wired there is no real instance left and the
+///   synthetic subject named below is not optional.
 /// - `daemon run` and `mcp` are NOT PROBED, from the table's own list.
 ///
 /// **WHEN `st bootstrap` IS WIRED THIS CONTROL EXPIRES, AND THE MESSAGE SAYS
@@ -1048,8 +1063,8 @@ fn the_wiredness_probe_asks_about_the_entry_and_not_its_parent() {
     "`claude skills` was classed unwired -- the verb-slot expansion is not driving its declared values, so every flag under a refusing root would be deferred again"
   );
   assert!(
-    probed.unwired.contains("claude subagents"),
-    "`claude subagents` was classed WIRED. If it has been wired, its flags move from DEFERRED to the gate and this pin moves with them; if not, the expansion is mistaking a clap usage error for an arm"
+    !probed.unwired.contains("claude subagents"),
+    "`claude subagents` was classed UNWIRED. A1 wired all five of its verbs on 2026-09-04 (`list`, `install`, `sync`, `uninstall`, `show`, all driven rc=0), so this is a regression in the dispatch arm or in the verb-slot expansion -- not an expired pin. This assertion is INVERTED from the one it replaced, which held the same verb unwired."
   );
   for path in ["daemon run", "mcp"] {
     assert!(

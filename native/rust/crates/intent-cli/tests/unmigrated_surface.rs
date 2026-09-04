@@ -127,6 +127,26 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     // (Exemption added by cc with the wiring that made it reachable; ic owns
     // this list and should reword if the framing is wrong.)
     "claude skills" => Some("serves install assets into per-user state; it never reads a project"),
+    // **THE SAME EXEMPTION, AND SINCE A1 IT IS NOT MERELY THE SAME CLASS BUT
+    // THE SAME CODE PATH.** `claude subagents` was wired on 2026-09-04 by
+    // parameterising the skills renderer over `payload::Kind` rather than
+    // copying it, so `payload_lib` -- the function the entry above is exempted
+    // for -- is literally the one both families call. It takes its roots from
+    // `install::home()` and its per-user paths from `userstate`, touches no
+    // facade and opens no project.
+    //
+    // **AND THE FRESH-MACHINE ARGUMENT IS STRONGER HERE THAN FOR SKILLS.** The
+    // subagents this installs include the `critic-<lang>` family, which is what
+    // reviews the migration an operator is standing in an unmigrated project to
+    // perform. Refusing would withhold the reviewer from the only state that
+    // needs it. Fourth member of the class `schema`, `llm guide`,
+    // `claude rules` and `claude skills` already hold.
+    // (Exemption added by dc with the A1 wiring that made it reachable, on the
+    // pattern of the skills entry above; ic owns this list and should reword if
+    // the framing is wrong.)
+    "claude subagents" => {
+      Some("serves install assets into per-user state; it never reads a project")
+    }
     // Plugin manifests belong to the INSTALL -- `<install>/intent/plugins/*/
     // plugin.json` -- so this is the same class as `schema`, `llm guide`,
     // `claude rules` and `claude skills`, and it is verified rather than

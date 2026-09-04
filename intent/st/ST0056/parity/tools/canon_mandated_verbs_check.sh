@@ -30,7 +30,11 @@
 # canon-named verb answering rc=2 with the marker, so if a canon file ever names
 # one of those three it will report a state hv has explicitly blessed. None of
 # them appears in the six files below today, which is why the current red set is
-# `rules validate` and `claude subagents list|show`. **A reader meeting a red
+# `rules validate` ALONE, since A1 wired `claude subagents` on 2026-09-04 -- and
+# `rules validate` is itself a RULING rather than a defect: vc ruled the same day
+# that a verb canon NAMES stays declared and refuses at rc=2, and
+# `usage-rules.md:140` names it. **So this tool's steady state is RED-AT-ONE, and
+# a reader who "fixes" that red is undoing a ruling.** **A reader meeting a red
 # should ask whether it is a defect or a ruling before treating it as the
 # former** -- and the reason this warning is here rather than in a note
 # elsewhere is that hv's ruling lived in a MODULES.md cell no node reads at
@@ -109,6 +113,20 @@ for verb in "${mapfile_replacement[@]}"; do
 done
 
 echo "canon-verbs: examined $total canon-named verb(s), $skipped declared skipped (they write)"
+
+# **THE REACH NOTE PRINTS ON EVERY RUN, GREEN OR RED, AND IT IS NOT DECORATION**
+# (vc, 2026-09-04: *write that into the instrument own output, not just your
+# board -- a caveat that lives beside the finding travels, and one that lives on
+# a board does not*). This tool went from 3 red to 1 the day `claude subagents`
+# was wired, and the tempting reading of that green -- the subagents family now
+# matches canon -- is FALSE. Stated here so the next reader meets it beside the
+# number rather than in a whiteboard archive.
+cat <<'REACH'
+canon-verbs: REACH -- what a green here does NOT say. Two independent blind spots, so closing either one alone changes nothing:
+canon-verbs:   (1) THE PREDICATE IS rc==2 AND THE MARKER. That conjunct is deliberate -- `intent llm` prints the marker at rc=0 while working, so the marker alone would false-positive. The cost is that NO OTHER REFUSAL CAN BE CLASSIFIED. A clap parse error is rc=1 with no marker at all, so a flag that canon documents and the dispatch table does not declare reads as perfectly fine here. Measured 2026-09-04: `install --all` and `uninstall --all` are refused at rc=1 and this tool called that run green (issue 0236).
+canon-verbs:   (2) THE WRITE VERBS ARE SKIPPED, listed above by name. A green says nothing whatever about `install`, `sync` or `uninstall` for ANY family -- only about the verbs this tool actually ran.
+canon-verbs:   SO A GREEN MEANS: the canon-named verbs this tool RAN answer. It is not a statement about a family, and it is not a statement about flags. The defect class it cannot hold lives in the DISAGREEMENT between canon and the dispatch table, which is a comparison no instrument here makes.
+REACH
 
 # **THE POSITIVE CONTROL, AND unwired=0 IS EXACTLY WHAT A BROKEN PROBE
 # RETURNS.** An absence-shaped defect and a clean estate produce the same
