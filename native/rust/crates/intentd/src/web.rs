@@ -77,6 +77,24 @@ pub fn router(face: Face) -> Router {
     .route("/", get(shell))
     .route("/intent-logo.svg", get(turtle))
     .route("/op", post(op))
+    // **THE SHELL ANSWERS EVERY UNMATCHED PATH, BECAUSE THE ROUTES LIVE IN THE
+    // CLIENT AND NOT HERE.** `nav::View::path()` is the ratified contract
+    // (`AC-17.12`) and it produces `/thread/ST0056` and `/thread/ST0056/wps`.
+    // Without this, a deep link -- or a reload, or a bookmark -- 404s on a page
+    // the client would have rendered perfectly. **This one line is what makes
+    // client-side routing real**, and it is a fallback rather than a route per
+    // shape because an axum pattern per view would be a second home for a
+    // grammar `nav.rs` already owns.
+    //
+    // **GET ONLY, WHICH IS WHY IT IS `get(shell)` AND NOT `shell`.** A bare
+    // handler answers every method, so a mistyped `POST /opp` would receive the
+    // HTML shell at 200 -- an answer that reads as success to a client that
+    // asked for JSON. Wrapped in `get`, anything else is 405 and says so.
+    //
+    // **IT CANNOT SHADOW THE ROUTES ABOVE**: a fallback runs only where no
+    // route matched, so `/op` and `/intent-logo.svg` keep their handlers. That
+    // is a property of the router, not of the order written here.
+    .fallback(get(shell))
     .with_state(face)
 }
 

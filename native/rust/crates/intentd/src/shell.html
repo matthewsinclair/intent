@@ -80,7 +80,30 @@
   .copy.ok { color: var(--accent); border-color: var(--accent); }
   .copy.failed { color: #b4453a; border-color: #b4453a; }
 
-    .build {
+  /* **THE FORM IS A TWO-COLUMN GRID AND THE ALIGNMENT IS THE DESIGN.**
+     `AC-17.11` asks that field names align in one column and values in
+     another across the whole form; `max-content` gives every row the same
+     name column without anyone measuring anything. The browser splits
+     VERTICALLY where the terminal splits horizontally (section 10a) -- a
+     window is tall where a terminal is short and wide. */
+  .form { display: grid; grid-template-columns: max-content 1fr; gap: .55rem 1.5rem; margin: 0; }
+  .fname { color: var(--muted); font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; padding-top: .2rem; }
+  .fval { margin: 0; min-width: 0; }
+  /* A `prose` value is LONG -- that is all the widget means -- so it keeps its
+     newlines and wraps. Every other widget is one line and is TRUNCATED rather
+     than wrapped, because a wrapped value breaks the row alignment above. */
+  .fval.prose { white-space: pre-wrap; }
+  .fval.line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fval.blank { color: var(--muted); font-style: italic; }
+  .crumbs { margin: 0 0 1.25rem; font-size: .9rem; }
+  .crumbs a { text-decoration: none; }
+  .failed {
+    border: 1px solid #b4453a; border-radius: 6px; padding: .9rem 1rem;
+    margin: 0 0 1.5rem; background: var(--card);
+  }
+  .failed h2 { margin: 0 0 .4rem; font-size: 1rem; color: #b4453a; }
+  .failed p { margin: 0; color: var(--muted); font-size: .93rem; }
+  .build {
       color: #8a8a85;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 0.75rem;
@@ -89,6 +112,13 @@
   </style>
 
 <main>
+  <!-- **THE ENTITY VIEW AND THE STATUS PAGE ARE ONE DOCUMENT, BECAUSE D56
+       ALLOWS EXACTLY ONE.** The daemon serves this shell for every unmatched
+       path and renders no domain HTML at all; which of these two is shown is
+       decided in the browser, from the path, after asking `/op` for JSON. -->
+  <div id="entity" hidden></div>
+
+  <div id="home">
   <div class="mark"><img src="/intent-logo.svg" alt="The Intent turtle"></div>
 
   <h1>intentd</h1>
@@ -132,6 +162,8 @@
     <pre><code>curl -s http://127.0.0.1:$PORT/op \
   -H "Authorization: Bearer $(cat ~/.local/share/intent/intentd.token)" \
   -d '{"root":"'"$PWD"'","op":"registry"}'</code></pre>
+  </div>
+
   </div>
 
   <hr class="rule">
@@ -196,4 +228,193 @@
       );
     });
   });
+</script>
+
+<script>
+  // ==========================================================================
+  // THE CLIENT. **IT NEVER LEARNS THE DOMAIN, AND THAT IS ENFORCED BY THE WIRE
+  // RATHER THAN BY DISCIPLINE** (tui-design.md section 10a). Nothing below
+  // knows what a steel thread is, what a criterion is, or which fields exist.
+  // It asks `/op` for `{entity, title, fields}` and draws `{label, value,
+  // widget}` rows. The day a form gains a field, this file does not change.
+  // ==========================================================================
+
+  (function () {
+    var KEY_TOKEN = "intentd.token";
+    var KEY_ROOT = "intentd.root";
+
+    // **THE FRAGMENT IS READ ONCE AND ERASED.** `intent browse` puts the
+    // secret and the project root here because a fragment is never sent to the
+    // server and never logged -- but that says nothing about the ADDRESS BAR,
+    // the history entry, or a URL copied out to send someone. `replaceState`
+    // closes the half the fragment does not (vc, 2026-09-04, authority: vc).
+    //
+    // **localStorage, NOT sessionStorage**, from section 10a's own operational
+    // note: sessionStorage is per-tab and made Safari re-prompt on every
+    // cross-link. Stored so a reload or an in-page navigation still works;
+    // a bookmark opened cold has neither and is told to re-run the verb.
+    function takeFragment() {
+      if (!window.location.hash) {
+        return;
+      }
+      var params = new URLSearchParams(window.location.hash.slice(1));
+      var token = params.get("token");
+      var root = params.get("root");
+      try {
+        if (token) { window.localStorage.setItem(KEY_TOKEN, token); }
+        if (root) { window.localStorage.setItem(KEY_ROOT, root); }
+      } catch (e) {
+        // **A BROWSER THAT REFUSES STORAGE IS NOT A BROKEN PAGE.** Private
+        // windows throw on write. The values stay in memory for this render,
+        // which is enough to show the entity the operator asked for; only the
+        // next navigation will ask them to re-run the verb.
+        memory.token = token;
+        memory.root = root;
+      }
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+
+    var memory = {};
+
+    function stored(key, fallback) {
+      try {
+        return window.localStorage.getItem(key) || fallback || null;
+      } catch (e) {
+        return fallback || null;
+      }
+    }
+
+    // **ONE CALL, AND EVERY FAILURE IS NAMED RATHER THAN RETURNED AS NOTHING.**
+    // A renderer that answers an error with an empty form draws a complete,
+    // correctly-ordered, entirely blank entity -- which is exactly what a
+    // MISSING entity looks like, and the two must never be the same picture.
+    function call(op, done, failed) {
+      var token = stored(KEY_TOKEN, memory.token);
+      var root = stored(KEY_ROOT, memory.root);
+      if (!token || !root) {
+        failed(
+          "This page has no credentials",
+          "Run `intent browse` again from your project. The token and project root arrive in the link that verb opens, and are not part of the address you can bookmark."
+        );
+        return;
+      }
+      var body = { root: root };
+      for (var k in op) { if (Object.prototype.hasOwnProperty.call(op, k)) { body[k] = op[k]; } }
+
+      fetch("/op", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      }).then(function (response) {
+        return response.json().then(function (parsed) { return { status: response.status, body: parsed }; });
+      }).then(function (answer) {
+        // The daemon reports its own refusals INSIDE a well-formed response,
+        // so a 200 is not on its own a success and the body is what decides.
+        if (answer.body && answer.body.error) {
+          failed(answer.body.error, answer.body.remedy || "");
+          return;
+        }
+        if (answer.status !== 200) {
+          failed("The daemon answered " + answer.status, "");
+          return;
+        }
+        done(answer.body);
+      }).catch(function (e) {
+        failed(
+          "The daemon stopped answering",
+          "It was running when this page opened. Check `intent daemon status`. (" + e + ")"
+        );
+      });
+    }
+
+    var entity = document.getElementById("entity");
+    var home = document.getElementById("home");
+
+    function show(node) {
+      entity.replaceChildren(node);
+      entity.hidden = false;
+      home.hidden = true;
+    }
+
+    function refuse(what, remedy) {
+      var box = document.createElement("div");
+      box.className = "failed";
+      var h = document.createElement("h2");
+      h.textContent = what;
+      box.appendChild(h);
+      if (remedy) {
+        var p = document.createElement("p");
+        p.textContent = remedy;
+        box.appendChild(p);
+      }
+      show(box);
+    }
+
+    // **BUILT WITH `textContent`, NEVER WITH INNERHTML.** Every value here is
+    // somebody's prose out of their own estate -- a title with a `<` in it is
+    // ordinary, not an attack -- and string-built markup would render it as
+    // tags. This is also why the page needs no escaping helper: there is no
+    // markup to escape into.
+    function renderForm(form) {
+      var wrap = document.createDocumentFragment();
+
+      var crumbs = document.createElement("p");
+      crumbs.className = "crumbs";
+      var up = document.createElement("a");
+      up.href = "/";
+      up.textContent = "intentd";
+      crumbs.appendChild(up);
+      crumbs.appendChild(document.createTextNode(" / " + form.entity));
+      wrap.appendChild(crumbs);
+
+      var title = document.createElement("h1");
+      title.textContent = form.title || form.entity;
+      wrap.appendChild(title);
+
+      var rule = document.createElement("hr");
+      rule.className = "rule";
+      wrap.appendChild(rule);
+
+      var grid = document.createElement("dl");
+      grid.className = "form";
+      (form.fields || []).forEach(function (field) {
+        var name = document.createElement("dt");
+        name.className = "fname";
+        name.textContent = field.label;
+        grid.appendChild(name);
+
+        var value = document.createElement("dd");
+        // The ONLY place a widget is consulted, and it decides presentation
+        // and nothing else: `prose` means THIS FIELD IS LONG. Section 10a --
+        // renderers differ in the widget, never in the model.
+        value.className = "fval " + (field.widget === "prose" ? "prose" : "line");
+        if (field.value === "" || field.value === null || field.value === undefined) {
+          // **AN EMPTY FIELD IS DRAWN AS EMPTY, NOT DROPPED.** Declaration
+          // order is tab order, so a skipped row moves every row after it.
+          value.className += " blank";
+          value.textContent = "not set";
+        } else {
+          value.textContent = field.value;
+        }
+        grid.appendChild(value);
+      });
+      wrap.appendChild(grid);
+
+      var div = document.createElement("div");
+      div.appendChild(wrap);
+      show(div);
+      document.title = form.entity + " -- intentd";
+    }
+
+    takeFragment();
+
+    // **THE ROOT PATH KEEPS THE STATUS PAGE.** Everything else is a view, and
+    // the daemon serves this same document for all of them -- so the router is
+    // one comparison, and the daemon owns the grammar.
+    if (window.location.pathname === "/") {
+      return;
+    }
+
+    call({ op: "form", view: window.location.pathname }, renderForm, refuse);
+  })();
 </script>

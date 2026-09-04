@@ -146,11 +146,18 @@ pub enum Op {
   /// One addressed entity as the generic form description every renderer
   /// consumes (`AC-17.6`, `tui-design.md` §10a).
   ///
-  /// **THE READ THAT PAIRS WITH [`Op::Set`], AND IT TAKES THE SAME ADDRESS FOR
-  /// THE SAME REASON.** One url grammar reaches one entity whether the caller
-  /// is reading its fields or writing one of them, so a renderer that can show
-  /// a form can edit it without learning a second way to name what it is
-  /// looking at.
+  /// **IT TAKES A `nav` PATH AND NOT AN `intent://` ADDRESS, WHICH IS THE
+  /// OPPOSITE OF [`Op::Set`] AND IS DELIBERATE.** The asymmetry buys the
+  /// property `AC-17.12` actually asks for. `Op::Set`'s caller is the thing
+  /// doing the editing and already holds an address; **this op's caller is a
+  /// BROWSER, and all a browser has is its own URL.** Handing it an address
+  /// instead would mean the page turning `/thread/ST0056` into
+  /// `intent:///threads/ST0056` itself -- a singular-to-plural mapping, which
+  /// is DOMAIN KNOWLEDGE, in the renderer, which is the one thing §10a says a
+  /// renderer must never acquire. The daemon resolves the path with
+  /// [`crate::nav::View::parse`] and [`crate::nav::entity_for_item`], **the
+  /// same two functions the terminal walks**, so the two faces agree about what
+  /// a path names by construction rather than by two people reading §9.
   ///
   /// **IT EXISTS BECAUSE THE ESCAPE HATCH STRUCTURALLY CANNOT SERVE IT.**
   /// §10a's diagram says *GraphQL / JSON, one output contract*, which reads as
@@ -174,7 +181,7 @@ pub enum Op {
   /// renderer receives `{entity, title, fields}` and never sees the form DSL,
   /// so what makes a renderer generic is the wire boundary rather than the
   /// discipline of whoever writes the next one.
-  Form { url: String },
+  Form { view: String },
   /// The projects this daemon has opened, and whether their roots still exist.
   ///
   /// **NOT SCOPED TO ONE PROJECT, WHICH IS WHY IT IS ANSWERED WITHOUT BINDING

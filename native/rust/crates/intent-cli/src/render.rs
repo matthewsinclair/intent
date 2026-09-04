@@ -99,6 +99,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("agents", m)) => agents(m),
     Some(("critic", m)) => critic(m),
     Some(("edit", m)) => edited(m),
+    Some(("browse", m)) => browse_verb(m),
     Some(("events", m)) => events(m),
     Some(("fc", m)) => fc(m),
     Some(("surface", m)) => surface(m),
@@ -1519,7 +1520,7 @@ fn edited(m: &ArgMatches) -> Result<(), Failure> {
   // file. Mixing the two is what makes the current argument shape misparse, so
   // the branch that does not want a path must not walk the code that finds one.
   if given(m, "browser") {
-    return browsed(m);
+    return browsed(m, &address);
   }
 
   let mut facade = open()?;
@@ -1609,7 +1610,7 @@ pub(crate) fn artefact_path(
 /// state it. Two of them together is not a precedence question: it is a
 /// caller reaching for an explicit spelling precisely so they do not have to
 /// guess which one wins, and answering with a guess defeats the reach.
-fn browsed(m: &ArgMatches) -> Result<(), Failure> {
+fn browsed(m: &ArgMatches, address: &intentsvcs::address::Address) -> Result<(), Failure> {
   // `--editor` takes an optional value and `--path` does not, so presence is
   // asked two ways. Both go through the file's own accessors rather than a
   // third spelling of the same question.
@@ -1622,14 +1623,234 @@ fn browsed(m: &ArgMatches) -> Result<(), Failure> {
     }
   }
 
-  Err(Failure::Error(
-    concat!(
-      "error: `--browser` is not implemented in this build\n",
-      "  remedy: nothing here opens a page yet -- `--editor` opens the file, and no \
-flag at all prints its path",
+  open_in_browser(address)
+}
+
+/// `intent browse <kind> <id>` -- the subcommand spelling of `edit --browser`.
+///
+/// **IT RESOLVES ITS ADDRESS THROUGH [`address_of`], WHICH IS THE FUNCTION
+/// `edit` USES**, so the two spellings cannot come to disagree about what an id
+/// names. `INV-09` asks that every spelling of one capability agrees about
+/// whether it exists; a shared DOOR is what makes that structural instead of a
+/// promise, and the agreement this row needs is about behaviour as well as
+/// presence.
+fn browse_verb(m: &ArgMatches) -> Result<(), Failure> {
+  let kind = opt(m, "kind").ok_or_else(|| {
+    Failure::Error(
+      "error: `browse` needs a kind and an id\n  remedy: `intent browse <st|wp|issue> <id>`"
+        .to_string(),
     )
-    .to_string(),
+  })?;
+  let kind = check_enum(&kind, "browse", "kind")?;
+  let id = opt(m, "id").ok_or_else(|| {
+    Failure::Error(format!(
+      "error: `{kind}` names a kind and nothing to open\n  remedy: `intent browse {kind} <id>`"
+    ))
+  })?;
+  open_in_browser(&address_of(Some(&kind), &id)?)
+}
+
+/// Open one addressed entity in the operator's browser, served by `intentd`.
+///
+/// **THE ONE IMPLEMENTATION BEHIND BOTH SPELLINGS.** `intent browse <kind>
+/// <id>` and `intent edit <kind> <id> --browser` are `INV-09` twins, and
+/// `twin_spellings_agree.rs` holds the pair. **Until 2026-09-04 they agreed by
+/// BOTH REFUSING**, which is a real way for that invariant to hold and a
+/// fragile one -- wiring either alone would have broken it by neither holding,
+/// and it would have read green the whole time. They are wired together, from
+/// here, for that reason.
+///
+/// **IT REFUSES WHEN NO DAEMON IS ANSWERING, RATHER THAN STARTING ONE.**
+/// `tui-design.md` §9: the verb does not spawn a process the operator did not
+/// ask for. And the probe is a COMPLETED ROUND TRIP, never the presence of the
+/// address file -- `Published`'s own doc says a hard kill leaves a stale file,
+/// so trusting it would open a browser at a port nothing is listening on and
+/// blame the browser.
+fn open_in_browser(address: &intentsvcs::address::Address) -> Result<(), Failure> {
+  let url = browser_url(address)?;
+  open_url(&url)
+}
+
+/// The URL a browser should be sent to for one address.
+///
+/// **THE PATH IS `nav::View::path()`, WHICH IS THE RATIFIED CONTRACT
+/// (`AC-17.12`), NOT A SPELLING INVENTED HERE.** The TUI's sequence and the
+/// browser's URL are the same ladder, so a path composed in this function would
+/// be the second home that criterion exists to refuse.
+///
+/// **THE TOKEN TRAVELS IN THE FRAGMENT, AND THAT IS A RULING** (vc,
+/// 2026-09-04, `authority: vc`). `/op` requires the secret `intentd` publishes
+/// and the shell page is deliberately ungated, so the page has no way to obtain
+/// it -- and serving it INTO the page would let any process on the machine
+/// `curl /` for it, which destroys the stated reason the shell is ungated. A
+/// fragment is never sent to the server and never logged. **The page strips it
+/// with `history.replaceState` on load**, which closes the exposure a fragment
+/// does not cover: the address bar, the history entry, and a URL copied out to
+/// send someone.
+///
+/// **A WORK PACKAGE LANDS ON ITS THREAD'S `wps` COLLECTION, AND THAT IS A
+/// DECISION RECORDED AS ONE RATHER THAN A FACT.** `nav::view_for` answers
+/// `None` for `Entity::Wp` deliberately -- `/wp/ST0056/17` would parse as
+/// `Children { kind: "wp", id: "ST0056", field: "17" }` under the positional
+/// `/{kind}/{id}/{field}` grammar, so the ratified path contract CANNOT express
+/// a work-package item view. The alternative was to refuse `browse wp`
+/// outright; that was rejected because `AC-17.6` says both verbs cover ST, WP
+/// and ISSUE, and because the collection is where the TUI already renders a
+/// work package's own form triples, so the operator arrives at the same
+/// derivation by the same route. **The third option -- giving `wp` an item
+/// shape in `nav.rs` -- is a change to the ratified contract and is vc's, not
+/// this function's.**
+fn browser_url(address: &intentsvcs::address::Address) -> Result<String, Failure> {
+  use intentsvcs::address::Entity;
+
+  let view = match &address.entity {
+    // **A WORK PACKAGE IS REFUSED HERE, AND THE REFUSAL IS THE HONEST ANSWER
+    // RATHER THAN A GAP I DECLINED TO FILL.** `nav.rs` REFUSES TO PRODUCE THIS
+    // VIEW IN TWO SEPARATE FUNCTIONS, both deliberately and both documented:
+    // `view_for` answers `None` for `Entity::Wp` (*a declared kind whose item
+    // view nothing reaches*), and `entity_for_item` answers `None` for the
+    // `wp` kind. The cause is the path grammar, not an oversight --
+    // `/wp/ST0056/17` parses as `Children { kind: "wp", id: "ST0056", field:
+    // "17" }` under the positional `/{kind}/{id}/{field}` shape, so the
+    // RATIFIED contract cannot express a work-package item at all.
+    //
+    // **THREE ROUTES WERE CONSIDERED AND TWO WERE REJECTED FOR REASONS THAT
+    // BELONG ON THE RECORD.** Landing on the thread's `wps` collection is
+    // expressible and was rejected because nothing serves a children
+    // collection -- `Op::Form` addresses ONE entity, so the page would render
+    // a view it cannot populate, which is the blank-form failure `nav.rs`
+    // already warns about wearing a different hat. Percent-encoding the id
+    // into one segment works at the transport layer and was rejected because
+    // it requires CONSTRUCTING a `View` that two functions in `nav.rs`
+    // deliberately refuse to construct -- overriding a ratified decision from
+    // a renderer.
+    //
+    // **SO THE THIRD ROUTE IS THE ONE NOT TAKEN HERE: give `wp` a shape in
+    // `nav.rs`. That is a change to the `AC-17.12` contract and is vc's.**
+    // `AC-17.6` requires both verbs to cover ST, WP and ISSUE, so this row does
+    // not close until that ruling lands -- and saying so is the point of
+    // refusing by name instead of opening something plausible.
+    Entity::Wp { .. } => {
+      return Err(Failure::Error(
+        "error: this build cannot open a work package in a browser\n  \
+         remedy: open its thread and read the work package there -- \
+         `intent browse st <thread>`. A work package has no address of its own \
+         in the browser's path contract yet, and inventing one here would \
+         disagree with the terminal"
+          .to_string(),
+      ));
+    }
+    other => intentsvcs::nav::view_for(other).ok_or_else(|| {
+      Failure::Error(format!(
+        "error: `{}` is not something this build opens in a browser\n  \
+         remedy: `browse` opens a steel thread or an issue",
+        other.form()
+      ))
+    })?,
+  };
+
+  let root = intentsvcs::userstate::home().map_err(|e| {
+    Failure::Error(format!(
+      "error: cannot find your Intent state directory -- {e}\n  \
+       remedy: `--browser` needs the address and token a running `intentd` publishes there"
+    ))
+  })?;
+
+  let candidates =
+    intentsvcs::daemon::candidates_under(&root).map_err(|e| Failure::Error(e.render()))?;
+  let answering = candidates
+    .iter()
+    .find(|e| matches!(e, intentsvcs::daemon::Endpoint::Tcp(_)) && e.answers());
+  let Some(intentsvcs::daemon::Endpoint::Tcp(addr)) = answering else {
+    return Err(Failure::Error(
+      concat!(
+        "error: no `intentd` is answering, and a browser cannot be sent to a page ",
+        "nothing serves\n",
+        "  remedy: run `intent daemon start`, then this command again. It is not ",
+        "started for you, because a verb that opens a page should not also leave a ",
+        "process running",
+      )
+      .to_string(),
+    ));
+  };
+
+  let secret = intentsvcs::daemon::Token::read_under(&root).map_err(|e| {
+    Failure::Error(format!(
+      "error: a daemon is answering but its token could not be read -- {e}\n  \
+       remedy: the page needs it to ask for anything. Restarting the daemon republishes it"
+    ))
+  })?;
+
+  // **THE PROJECT ROOT TRAVELS WITH THE TOKEN, BECAUSE EVERY REQUEST NAMES A
+  // PROJECT AND A BROWSER HAS NO IDEA WHICH ONE IT IS LOOKING AT.**
+  // `wire::Request` carries `root` on every op -- the daemon serves many
+  // projects at once and binds per request -- and a page opened at
+  // `/thread/ST0056` cannot know which estate that `ST0056` belongs to. The
+  // CLI does: it is standing in it.
+  //
+  // **IT GOES IN THE FRAGMENT FOR THE TOKEN'S REASON AND KEEPS THE TOKEN'S
+  // PROPERTIES**: never sent to the server, never logged, and stripped from
+  // the address bar on load. A path is not a secret, but a URL that carries
+  // one and gets copied out to somebody is still leaking where this operator
+  // keeps their work.
+  let (project, _) = context()?;
+  Ok(format!(
+    "http://{addr}{}#token={secret}&root={}",
+    view.path(),
+    urlencode(&project.root().to_string_lossy())
   ))
+}
+
+/// Percent-encode one value for a URL fragment.
+///
+/// **HAND-ROLLED BECAUSE THE ALTERNATIVE IS A DEPENDENCY FOR SIX LINES**, and
+/// this crate's manifest is audited by `dependency_rationale.rs`. The
+/// unreserved set is RFC 3986's, written out rather than inverted from a list
+/// of specials -- an allow-list cannot forget a character, and a deny-list
+/// forgets `&` on the day someone's project lives in a directory with one.
+fn urlencode(raw: &str) -> String {
+  let mut out = String::with_capacity(raw.len());
+  for byte in raw.bytes() {
+    match byte {
+      b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' | b'/' => {
+        out.push(byte as char);
+      }
+      other => out.push_str(&format!("%{other:02X}")),
+    }
+  }
+  out
+}
+
+/// Hand a URL to whatever this desktop opens URLs with.
+///
+/// **NOT A BROWSER NAMED BY US.** The operator's default is a setting they have
+/// already made, and a tool that names `open -a Safari` overrides a preference
+/// it was never asked about. `open` and `xdg-open` are the two spellings of
+/// *ask the desktop*, and there is no third to guess at.
+///
+/// **A FAILURE PRINTS THE URL RATHER THAN SWALLOWING IT**, because the work the
+/// operator wanted is reachable by hand and a refusal that hides the address
+/// makes them re-derive it.
+fn open_url(url: &str) -> Result<(), Failure> {
+  let opener = if cfg!(target_os = "macos") {
+    "open"
+  } else {
+    "xdg-open"
+  };
+  let status = std::process::Command::new(opener).arg(url).status();
+  match status {
+    Ok(code) if code.success() => Ok(()),
+    Ok(code) => Err(Failure::Error(format!(
+      "error: `{opener}` exited {} without opening the page\n  remedy: open it yourself -- {url}",
+      code
+        .code()
+        .map(|c| c.to_string())
+        .unwrap_or_else(|| "on a signal".to_string())
+    ))),
+    Err(e) => Err(Failure::Error(format!(
+      "error: cannot run `{opener}` to open a browser -- {e}\n  remedy: open it yourself -- {url}"
+    ))),
+  }
 }
 
 /// Does this run OPEN the file, or PRINT its path?

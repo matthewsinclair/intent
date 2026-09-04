@@ -23,7 +23,7 @@
 use std::io::{BufRead, BufReader, Write};
 use std::net::TcpStream;
 
-use crate::common::RealDaemon;
+use crate::common::{RealDaemon, get, http, published, token};
 
 /// The loopback address this daemon published.
 ///
@@ -36,62 +36,6 @@ use crate::common::RealDaemon;
 ///
 /// `RealDaemon::endpoint` is deliberately not used: it returns the first
 /// candidate, which is the unix socket, and no browser can reach one.
-fn published(daemon: &RealDaemon) -> String {
-  let path = intentsvcs::userstate::daemon_address_file_under(daemon.home());
-  std::fs::read_to_string(&path)
-    .unwrap_or_else(|e| panic!("no address published at {}: {e}", path.display()))
-    .trim()
-    .to_string()
-}
-
-/// This run's secret, read the way a client reads it.
-fn token(daemon: &RealDaemon) -> String {
-  intentsvcs::daemon::Token::read_under(daemon.home()).expect("the daemon published a token")
-}
-
-/// One HTTP request over a bare socket, as `(status_line, body)`.
-///
-/// **HAND-ROLLED RATHER THAN THROUGH A CLIENT CRATE, AND THE REASON IS THE
-/// SUBJECT.** This file's claim is about what the daemon does with the FIRST
-/// BYTE of a connection; a client library would be free to reuse connections,
-/// upgrade, or pipeline, and any of those would put something between the test
-/// and the thing it measures. It also adds no dependency to assert a property
-/// of a protocol this simple.
-fn http(addr: &str, request: &str) -> (String, String) {
-  let mut socket = TcpStream::connect(addr).expect("connect to the published port");
-  socket
-    .write_all(request.as_bytes())
-    .expect("write the request");
-  socket.flush().expect("flush");
-  let mut reader = BufReader::new(socket);
-  let mut status = String::new();
-  reader.read_line(&mut status).expect("a status line");
-
-  let mut length = 0usize;
-  loop {
-    let mut header = String::new();
-    reader.read_line(&mut header).expect("a header line");
-    if header.trim().is_empty() {
-      break;
-    }
-    if let Some(value) = header.to_ascii_lowercase().strip_prefix("content-length:") {
-      length = value.trim().parse().unwrap_or(0);
-    }
-  }
-  let mut body = vec![0u8; length];
-  std::io::Read::read_exact(&mut reader, &mut body).expect("the whole body");
-  (
-    status.trim().to_string(),
-    String::from_utf8_lossy(&body).to_string(),
-  )
-}
-
-fn get(addr: &str, path: &str) -> (String, String) {
-  http(
-    addr,
-    &format!("GET {path} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n"),
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Condition 1, first side: an HTTP request is answered as HTTP.

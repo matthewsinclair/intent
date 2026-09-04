@@ -603,6 +603,38 @@ fn open_facade(root: &Path) -> Result<(Facade, String), Response> {
 /// the store thread is a plain `std::thread`, so a future produced by the
 /// facade has to be driven by something, and the something must not be a
 /// second executor.
+/// One `nav` path as the address it names.
+///
+/// **BOTH STEPS ARE `nav`'s, AND NEITHER IS RE-SPELLED HERE.** `View::parse`
+/// owns the path grammar and `entity_for_item` owns the view-to-entity
+/// mapping; a `match` on path segments in this file would be a second copy of
+/// both, and the browser would drift from the terminal one segment at a time.
+///
+/// **THE TWO REFUSALS ARE DIFFERENT FACTS AND SAY SO.** A path that parses to
+/// nothing is a spelling error; a path that parses to a view with no entity
+/// behind it is a real view the FORM op does not answer -- a collection, or
+/// the settings screen. Collapsing them into *not found* would send someone
+/// checking an id that was never the problem.
+fn resolve_view(path: &str) -> Result<intentsvcs::address::Address, Response> {
+  let view = intentsvcs::nav::View::parse(path).ok_or_else(|| {
+    Response::error(
+      format!("`{path}` is not a path this project can name"),
+      "paths are `/{kind}/{id}` -- `/thread/ST0056`, `/issue/0021`. A spelling that names nothing is refused as a spelling rather than resolved to something near it.".to_string(),
+    )
+  })?;
+  let entity = intentsvcs::nav::entity_for_item(&view).ok_or_else(|| {
+    Response::error(
+      format!("`{path}` does not name a single entity with a form"),
+      "a form is one item: `/thread/ST0056` or `/issue/0021`. A collection, a child collection and the settings screen are views this operation does not answer.".to_string(),
+    )
+  })?;
+  Ok(intentsvcs::address::Address {
+    authority: None,
+    entity,
+    format: None,
+  })
+}
+
 fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Response {
   match op {
     // **THE ARM IS THIN BECAUSE THE DOOR IS ELSEWHERE, WHICH IS THE POINT OF
@@ -636,8 +668,8 @@ fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Respo
     // **THE REFUSALS CARRY THE FACADE'S OWN REMEDY**, so an operator who
     // mistypes an id in a browser reads the same sentence the terminal would
     // have given them.
-    Op::Form { url } => match intentsvcs::address::parse(&url) {
-      Err(e) => Response::error(e.to_string(), e.remedy()),
+    Op::Form { view } => match resolve_view(&view) {
+      Err(response) => response,
       Ok(address) => {
         // **THE DECLARATION IS LOADED PER REQUEST AND THAT IS NOT A COST WORTH
         // REMOVING YET.** It is an `include_str!` parsed into a few hundred

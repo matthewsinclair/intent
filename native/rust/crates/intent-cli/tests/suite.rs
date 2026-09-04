@@ -78,6 +78,8 @@ mod default_declaration_help;
 mod dispatch_ssot;
 #[path = "doctor_advisory_summary.rs"]
 mod doctor_advisory_summary;
+#[path = "edit_and_browse_reach_one_model.rs"]
+mod edit_and_browse_reach_one_model;
 #[path = "edit_answers_about_the_entity_you_named.rs"]
 mod edit_answers_about_the_entity_you_named;
 #[path = "embedded_init.rs"]

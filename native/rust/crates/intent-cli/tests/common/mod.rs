@@ -106,6 +106,8 @@ pub fn drain(mut master: std::fs::File) -> String {
 // exactly the parts a copied fixture keeps while the original is fixed.
 // ---------------------------------------------------------------------------
 
+use std::io::{BufRead, BufReader, Write};
+use std::net::TcpStream;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicU32, Ordering};
@@ -814,4 +816,91 @@ fn newest_source(
       *newest_path = path;
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// The HTTP face, as a client sees it.
+//
+// **THESE LIVED IN `the_web_face_answers_on_the_published_port.rs` UNTIL
+// 2026-09-04, AND MOVED THE MOMENT A SECOND FILE NEEDED THEM.** `AT-17.6` asks
+// the same daemon the same way, and a private copy of `http` in each file is
+// two answers to *what does this port say* that agree until one of them is
+// edited. Moved rather than copied, on the same reasoning `form::triples` was
+// moved down a crate.
+// ---------------------------------------------------------------------------
+
+pub fn published(daemon: &RealDaemon) -> String {
+  let path = intentsvcs::userstate::daemon_address_file_under(daemon.home());
+  std::fs::read_to_string(&path)
+    .unwrap_or_else(|e| panic!("no address published at {}: {e}", path.display()))
+    .trim()
+    .to_string()
+}
+
+/// This run's secret, read the way a client reads it.
+pub fn token(daemon: &RealDaemon) -> String {
+  intentsvcs::daemon::Token::read_under(daemon.home()).expect("the daemon published a token")
+}
+
+/// One HTTP request over a bare socket, as `(status_line, body)`.
+///
+/// **HAND-ROLLED RATHER THAN THROUGH A CLIENT CRATE, AND THE REASON IS THE
+/// SUBJECT.** This file's claim is about what the daemon does with the FIRST
+/// BYTE of a connection; a client library would be free to reuse connections,
+/// upgrade, or pipeline, and any of those would put something between the test
+/// and the thing it measures. It also adds no dependency to assert a property
+/// of a protocol this simple.
+pub fn http(addr: &str, request: &str) -> (String, String) {
+  let mut socket = TcpStream::connect(addr).expect("connect to the published port");
+  socket
+    .write_all(request.as_bytes())
+    .expect("write the request");
+  socket.flush().expect("flush");
+  let mut reader = BufReader::new(socket);
+  let mut status = String::new();
+  reader.read_line(&mut status).expect("a status line");
+
+  let mut length = 0usize;
+  loop {
+    let mut header = String::new();
+    reader.read_line(&mut header).expect("a header line");
+    if header.trim().is_empty() {
+      break;
+    }
+    if let Some(value) = header.to_ascii_lowercase().strip_prefix("content-length:") {
+      length = value.trim().parse().unwrap_or(0);
+    }
+  }
+  let mut body = vec![0u8; length];
+  std::io::Read::read_exact(&mut reader, &mut body).expect("the whole body");
+  (
+    status.trim().to_string(),
+    String::from_utf8_lossy(&body).to_string(),
+  )
+}
+
+pub fn get(addr: &str, path: &str) -> (String, String) {
+  http(
+    addr,
+    &format!("GET {path} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n"),
+  )
+}
+
+/// One `/op` call over HTTP, authorised the way a browser is.
+///
+/// **THE TOKEN IS PRESENTED AS A CLIENT PRESENTS IT**, because a test that
+/// reached past the header would assert the daemon answers requests nobody can
+/// actually make. `body` is the whole envelope including `root`, since every
+/// op names its project.
+pub fn ask_op(daemon: &RealDaemon, body: &str) -> (String, String) {
+  let addr = published(daemon);
+  let secret = token(daemon);
+  http(
+    &addr,
+    &format!(
+      "POST /op HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer {secret}\r\n\
+       Content-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+      body.len()
+    ),
+  )
 }
