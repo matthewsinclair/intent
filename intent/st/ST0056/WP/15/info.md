@@ -9,9 +9,11 @@ status: Not Started
 
 ## Objective
 
-Reach a recorded KEEP / UPDATE / RETIRE decision for **every one of the 25 skills** in `intent/plugins/claude/skills/`, and carry each decision out. hv's framing (2026-08-17): _"There are a lot of skills that I can see that don't make sense anymore, and it's been forever since the skills catalog (for Claude) had anyone look at it."_
+Reach a recorded KEEP / UPDATE / RETIRE decision for **every skill in `intent/plugins/claude/skills/`**, and carry each decision out. hv's framing (2026-08-17): _"There are a lot of skills that I can see that don't make sense anymore, and it's been forever since the skills catalog (for Claude) had anyone look at it."_
 
-**The denominator is 26 and it is stated here on purpose.** A triage that reports "the obviously dead ones were removed" has an unmeasured arm, and the unmeasured arm is the skills nobody looked at -- which is the condition this WP exists to end. The deliverable is 26 decisions, not a shorter catalogue.
+**THE DENOMINATOR IS ENUMERATED AT CLOSE AND IS DELIBERATELY NOT WRITTEN HERE.** A triage that reports "the obviously dead ones were removed" has an unmeasured arm, and the unmeasured arm is the skills nobody looked at -- which is the condition this WP exists to end. The deliverable is a decision per skill, not a shorter catalogue. **COUNT IT: `ls -1d intent/plugins/claude/skills/*/ | wc -l`.**
+
+**THE NUMBER IS ABSENT ON PURPOSE, BECAUSE IT WAS WRONG FOR MOST OF THIS DOCUMENT'S LIFE AND TWO CORRECTIONS DID NOT FIX IT.** It was right at authoring; it went stale when `in-handoff` retired; it was corrected IN THE VIEW and then silently reverted by a regeneration that restored canon's older text; it was corrected again IN CANON, in this very field -- **which carried the figure TWICE, so the fix repaired one occurrence and left the other contradicting it**; and it went stale a third time when `in-next` and `in-start` retired and nobody updated anything. **A DENOMINATOR IN PROSE GOES STALE BY CONSTRUCTION. `AT-15.1` ALREADY RULES IT: the row count is asserted against the catalogue enumerated at close, never against a figure carried from when the WP was written.** Restoring a number here would be the fourth instance.
 
 ## Why now, and why this is the rollout's job rather than a tidy-up
 
@@ -23,15 +25,15 @@ v3 changes what the tool does and how it does it, so a skill written against v2 
 
 ## Deliverables
 
-- A triage table: one row per skill, its verdict (KEEP / UPDATE / RETIRE), and the reason. **All 26 rows present**, including the ones whose verdict is KEEP with no change -- an absent row and an unexamined skill are the same absence.
+- A triage table: one row per skill, its verdict (KEEP / UPDATE / RETIRE), and the reason. **A row for every skill the enumeration returns**, including the ones whose verdict is KEEP with no change -- an absent row and an unexamined skill are the same absence.
 - UPDATE skills brought current against v3's actual surface, verified against the dispatch table rather than against memory of it.
-- RETIRE skills removed through `intent claude skills` rather than by hand, with the removal reaching consumers (the sync blind spot in [feedback_skill_sync_script_blind_spot] applies: `intent claude skills sync` checksums `SKILL.md` only).
+- RETIRE skills removed through `intent claude skills` rather than by hand, with the removal reaching consumers -- **asserted by driving a consumer install, never by observing that the source directory is clean**. (The v2 blind spot -- `skills sync` checksumming `SKILL.md` alone -- no longer describes this build: v3 declares a `checksum_scope` token and bumped its manifest version because the scope changed. The requirement stands; only its old justification is retired.).
 - A check that the catalogue's cross-references still resolve -- `chains_to:` frontmatter, the `/in-*` names skills cite in each other's prose, and the rule IDs they name.
 
 ## Dependencies
 
 - **Sequenced AFTER the hoist, and hv said so explicitly**: _"It's not a higher priority than getting Intent self-hosted on Intent3, but it needs to be part of the final Intent3 rollout."_
-- **A precondition of WP-12 (Cutover and v3.0.0 release) closing**, not a follow-on to it. Shipping v3 with 26 unreviewed v2-era skills ships the drift into every consumer's next `intent upgrade`.
+- **A precondition of WP-12 (Cutover and v3.0.0 release) closing**, not a follow-on to it. Shipping v3 with an unreviewed v2-era catalogue ships the drift into every consumer's next `intent upgrade`.
 - The v3 surface must be settled enough to update against. WP-06 (CLI parity long tail) and WP-07 (canon and claude subsystem) are where the names these skills cite become final.
 
 ## Acceptance
