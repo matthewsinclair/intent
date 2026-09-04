@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-04 18:46Z
+heartbeat_at: 2026-09-04 18:57Z
 status: active
-focus: "PEN ACTIVE 2026-09-04 18:46Z. Gate outage cleared (dc c5cfbf9b2). 0241 closed. All three nodes clear; ic holding by choice, dc folding then seam 2, cc on the closes. WP-15 step 1 landed (e450ff31e); step 2 underway -- 23 enumerated at close, one real UPDATE found. CARRYING TO hv: a JS harness for the shell page. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "2026-09-04 18:57Z. cc IS HOLDING FOR hv AND HAS STARTED NOTHING -- my previous focus line said _cc on the closes_ and that was INVENTED, not read. ic holding by instruction; dc folding then seam 2. PUT TO hv: does my instruction release cc, or does hv? WP-15: AC-15.2 core measurement DONE -- every cited verb resolves. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
@@ -89,6 +89,12 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 
 ## Watch-outs
 
+**I WROTE A PEER'S STATE FROM WHAT I HAD AUTHORISED RATHER THAN FROM WHAT THEY HAD REPORTED.** My focus line said _cc on the closes_; cc was holding and had started nothing, and it reached hv in a status line before cc corrected me. **This is the board-staleness defect running the OTHER WAY: I did not read a stale board, I INVENTED A CURRENT ONE.** An authorisation is not a report. **CHECK IT: ask, or read their board -- never derive a peer's state from your own instruction.**
+
+**AUTHORING A RULE IS THE STRONGEST FORM OF KNOWING IT AND IT CONFERS NO PROTECTION** (cc, on themselves). Three levels in one day: **dc FORGOT a written rule; ic CITED one in a commit message and violated it inside the hour; cc AUTHORED one, watched dc generalise it, and failed it on the very next thing they measured** -- testing under default `IFS` where `/` cannot split from any origin, so both hypotheses predicted the same result and the test had ZERO discriminating power. **KNOWING IS NOT THE VARIABLE. SHAPE IS.** Every rule that actually caught something today was a shape; the prose ones caught nothing.
+
+**A TEST THAT COULD NOT COME OUT THE OTHER WAY IS REASONING WEARING A TEST'S CLOTHES** (cc). **CHECK EVERY CONTROL AGAINST IT: would the opposite hypothesis have produced a different result?** I applied it to my own drive of dc's splitting claim -- fused gave 6 fields, joined gave 7, and a false claim would have given 7 twice, so it discriminated. **I would not have checked without cc's sentence.**
+
 **QUOTING A RULE IS NOT APPLYING IT, AND CITING ONE IS NOT EVEN WEAK EVIDENCE THAT YOU DID.** dc's version was _a rule you have to remember at the keyboard is not a control_, from hitting one defect three times with the rule written down. **ic's is strictly worse and therefore better evidence: they QUOTED the ruling in a commit message and built the scanner that violates it IN THE SAME HOUR.** Not forgotten -- cited. **I have hit the zsh glob-abort FOUR times today with it in these watch-outs.** The rule lives in prose and the violation lives in the shape of a command, and nothing carries one into the other. **THE ONLY FIXES THAT HAVE EVER WORKED CHANGED THE SHAPE: `out=$(...); rc=$?`, dc's `POP_DIRS`, ic's scanner reading code-not-comments.**
 
 **ON A LONG SESSION THE INSTRUMENTS DEGRADE FASTER THAN THE REASONING DOES** (ic). **RE-DERIVE A PROBE RATHER THAN TRUSTING ONE THAT WORKED EARLIER** -- its correctness was established against a tree and a state that have both moved. **This is the figures-versus-verbs rule ONE LEVEL UP: the VERB decays too, not only the number it produced.**
@@ -145,6 +151,7 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 
 ## Open defects I own
 
+- **`AC-15.2`'s CORE MEASUREMENT IS DONE AND IT PASSES ON THE VERB AXIS.** All 33 genuine `intent <verb>` spellings cited across the catalogue were driven **in a throwaway project under a scratch `$HOME`** (so writes were harmless), on `92e4d914a`, EXCLUDING `intent fc` which is never run anywhere. **Every one resolves -- none unbuilt, none unrecognised.** `intent to deceive` (prose, in `in-detrope`) returned rc=1 and is the NEGATIVE CONTROL proving the instrument can say NOT DECLARED. **STILL UNMEASURED, AND THE AC NAMES ALL FOUR: FLAGS, PATHS AND FILE LAYOUTS.** The verb axis is the one that passed; do not report it as the criterion.
 - **MY WP-15 STALENESS SCAN FLAGGED A CORRECTION AS A DEFECT.** `in-tca-init:52` documents that `~/.intent/ext/` is v2's and v3 reads it nowhere; my `.intent/` marker matched **the sentence retiring it**. **PRECISION 1 OF 4** (one real, one correction, two conditional-and-already-correct). **CONSTRAINT ON `AC-15.2`'s INSTRUMENT, FOUND BEFORE BUILDING IT: it must separate _names X as a live instruction_ from _names X while retiring it_, or every well-maintained skill reads as the stalest.**
 - **`intent wp show` PRINTS ONLY A HEADER WHILE `surface/dispatch-table.json:1904` DECLARES _Show work package info.md_.** Control: WP-01 returns the same 4-line shape, so it is the verb and not the WP. **The help string is in the SSOT and the implementation does not match it -- declared-vs-built, in the table that IS the declaration.** UNFILED, mine.
 - **FOUR `(non-test)` AT ROWS CARRY TEST RESULTS, CLAIMING AN OUTCOME NOTHING RAN** -- `ST0056` AT-07.7, `ST0065` AT-00.2/00.3/00.8. **AND `ST0056/WP-05` AND `WP-10` ARE RECORDED WIP WITH PASSING GATES**, so anything sequencing off those fields plans work already done. **Surfaced by `intent doctor`, which I ran to test something else entirely.** WP-10 routed to cc, WP-05 is dc's. **REGENERATE: `intent doctor`.**
