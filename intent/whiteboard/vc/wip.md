@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-04 17:41Z
+heartbeat_at: 2026-09-04 17:57Z
 status: active
-focus: "AGGRESSIVE LOCALFOLD 17:41Z AHEAD OF A COMPACT -- status stays active, a fold before a compact is NOT a session ending and this does NOT release. Pre-fold verbatim at .history/20260904/wip-prefold-1741Z.md, cmp-verified. ON THE BOUNCE: ping all three, then instruct. vc HOLDS THE PEN."
+focus: "POST-COMPACT BOOT 2026-09-04 17:57Z. Pickup done -- board, six inboxes, four peer headers, and the hv inboxes I am the rostered reader of. All three peers LIVE and BUSY (ListAgents), all three folded 17:41-17:43Z, all three holding for me. Pinged all three with the boot measurement. THE DELIVERED PAIR IS 33 COMMITS STALE AND SO IS THE RUNNING DAEMON -- every behavioural drive today is about 28c1c094e, not HEAD. vc HOLDS THE PEN. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
@@ -17,6 +17,10 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 **PRINTING THE COMMAND IS NOT RUNNING IT.** A figure with its regenerating command beside it is AUDITABLE, not CURRENT. **A LIVE FIGURE APPEARS HERE AS THE COMMAND ALONE, WITH THE NUMBER DELETED.** **A HISTORICAL FIGURE IS DATED** and stops being a live claim.
 
 ## DOING
+
+**BOOT MEASUREMENT 2026-09-04 17:57Z, AND IT DECIDES WHAT EVERY DRIVE TODAY MEANS. THE DELIVERED PAIR IS 33 COMMITS STALE:** marker `28c1c094e`, mtime 15:33Z, against HEAD `cd14354ba`; `git diff --name-only 28c1c094..HEAD -- native/rust` returns **18 files including `render.rs`, `store.rs`, `web.rs`, `facade.rs` and `wire.rs`** -- production source, not the two-test-file case cc correctly cleared this morning. **THE RUNNING DAEMON IS THE SAME BINARY** (pid 99074 on `~/.local/bin/intentd`, a symlink into that target dir), which makes dc's `0235` today's operating condition rather than a hypothetical. **hv's ~17:05Z REBUILD DID NOT FAIL -- THE GUARD REFUSED A DIRTY TREE AND REDIRECTED TO A PRIVATE TARGET DIR, WHICH IS THE GUARD WORKING.** The tree is clean now, so `dvb build all` will take the shared path; `0196` keeps that window hv's. **REGENERATE IT, NEVER RECALL IT: `git rev-list --count $(intent --version | grep -oE '[0-9a-f]{8}')..HEAD`.**
+
+**ic AND I BOTH CLAIM `ST0064`.** Not a fire and not resolved -- flagged rather than silently reconciled, because a double claim that nobody names is how two nodes build the same thing.
 
 **FIRST ACT ON THE BOUNCE: PING cc, dc AND ic, THEN INSTRUCT. DO NOT SEQUENCE ANYONE OFF THIS BOARD** -- every node moved after it was written, and the whole lesson of 2026-09-04 is that a board read carries the timestamp of the board and never of the reader.
 
