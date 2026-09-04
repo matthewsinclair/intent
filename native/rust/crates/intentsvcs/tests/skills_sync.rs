@@ -1013,3 +1013,148 @@ fn a_change_below_skill_md_reaches_the_machine_and_an_unchanged_source_writes_no
      success, and the delivered thing differs"
   );
 }
+
+// ---------------------------------------------------------------------------
+// `sync_preview` -- the same decisions, reported without being performed.
+// ---------------------------------------------------------------------------
+
+/// Whether the manifest holds an entry for `name`, without panicking when it
+/// does not -- which is the question every arm below actually asks.
+fn recorded(f: &Fixture, name: &str) -> bool {
+  f.skills()
+    .manifest()
+    .expect("the manifest reads back")
+    .installed
+    .iter()
+    .any(|e| e.name == name)
+}
+
+/// **THE ONE PROPERTY THAT MAKES A PREVIEW WORTH HAVING: IT NAMES THE RUN IT IS
+/// A PREVIEW OF.** A preview that merely reports something plausible is worse
+/// than none, because it is consulted exactly when nobody is in a position to
+/// check it against the run.
+///
+/// Driven over BOTH counts in one arm -- a changed file and a retired one -- so
+/// a `written` that agreed while `removed` drifted could not pass.
+#[test]
+fn a_preview_names_the_run_it_previews() {
+  let f = Fixture::new();
+  f.source(
+    "in-probe",
+    &[
+      ("SKILL.md", "# probe\n"),
+      ("scripts/run.sh", "ORIGINAL\n"),
+      ("scripts/gone.sh", "RETIRED\n"),
+    ],
+  );
+  let s = f.skills();
+  s.install(&one("in-probe"), false).unwrap();
+
+  fs::write(f.canon().join("in-probe/scripts/run.sh"), "CHANGED\n").unwrap();
+  fs::remove_file(f.canon().join("in-probe/scripts/gone.sh")).unwrap();
+
+  let predicted = outcome(&s.sync_preview(false).unwrap().steps, "in-probe");
+  let performed = outcome(&s.sync(false).unwrap().steps, "in-probe");
+
+  assert_eq!(
+    predicted, performed,
+    "the preview must name the run it previews"
+  );
+  assert_eq!(
+    predicted,
+    Outcome::Updated {
+      written: 2,
+      removed: vec!["scripts/gone.sh".to_string()],
+    },
+    "and both counts must be the real ones, not merely equal to each other"
+  );
+}
+
+/// **A PREVIEW THAT WRITES IS THE WORST DEFECT THIS FLAG COULD HAVE**, because
+/// the operator reached for it precisely to avoid the write. Both halves are
+/// checked -- the file that would be copied and the baseline that would move --
+/// and each is followed by the control that proves a real run does it.
+#[test]
+fn a_preview_copies_nothing_and_moves_no_baseline() {
+  let f = Fixture::new();
+  f.source(
+    "in-probe",
+    &[("SKILL.md", "# probe\n"), ("scripts/run.sh", "ORIGINAL\n")],
+  );
+  let s = f.skills();
+  s.install(&one("in-probe"), false).unwrap();
+  fs::write(f.canon().join("in-probe/scripts/run.sh"), "CHANGED\n").unwrap();
+  let baseline = f.manifest_checksum("in-probe");
+
+  assert!(matches!(
+    outcome(&s.sync_preview(false).unwrap().steps, "in-probe"),
+    Outcome::Updated { .. }
+  ));
+  assert_eq!(
+    read(&f.target.join("in-probe/scripts/run.sh")),
+    "ORIGINAL\n",
+    "a preview must not copy"
+  );
+  assert_eq!(
+    f.manifest_checksum("in-probe"),
+    baseline,
+    "a preview must not move the baseline"
+  );
+
+  // The controls. Without these the arm above passes for a `sync_preview` that
+  // does nothing at all, including reporting nothing.
+  s.sync(false).unwrap();
+  assert_eq!(read(&f.target.join("in-probe/scripts/run.sh")), "CHANGED\n");
+  assert_ne!(f.manifest_checksum("in-probe"), baseline);
+}
+
+/// **THE ADOPTION IS A MANIFEST WRITE WITH NO FILE WRITE, AND IT IS THE ONE A
+/// PREVIEW IS MOST LIKELY TO LEAK.** Nothing is copied, so an implementation
+/// that withheld only the copies would pass every other arm here and still
+/// record a baseline -- changing what the NEXT sync decides, from a command the
+/// operator ran to avoid changing anything.
+#[test]
+fn a_preview_does_not_adopt_an_unrecorded_tree() {
+  let f = Fixture::new();
+  f.source("in-probe", &[("SKILL.md", "# same\n")]);
+  write_tree(&f.target.join("in-probe"), &[("SKILL.md", "# same\n")]);
+  let s = f.skills();
+
+  assert_eq!(
+    outcome(&s.sync_preview(false).unwrap().steps, "in-probe"),
+    Outcome::UpToDate
+  );
+  assert!(
+    !recorded(&f, "in-probe"),
+    "a preview must not adopt an unrecorded tree"
+  );
+
+  // The control: the real run DOES adopt, so the arm above is about the
+  // preview rather than about adoption never happening.
+  s.sync(false).unwrap();
+  assert!(recorded(&f, "in-probe"));
+}
+
+/// The control for the whole section: a held skill reports identically either
+/// way. A `sync_preview` that reported everything as untouched would pass the
+/// no-write arms above and be useless, and this is the arm that fails for it.
+#[test]
+fn a_preview_reports_a_held_skill_exactly_as_the_run_does() {
+  let f = Fixture::new();
+  f.source("in-probe", &[("SKILL.md", "# base\n")]);
+  let s = f.skills();
+  s.install(&one("in-probe"), false).unwrap();
+
+  // Both sides move: a conflict, which neither a run nor a preview may resolve.
+  fs::write(f.canon().join("in-probe/SKILL.md"), "# upstream\n").unwrap();
+  fs::write(f.target.join("in-probe/SKILL.md"), "# mine\n").unwrap();
+
+  assert_eq!(
+    outcome(&s.sync_preview(false).unwrap().steps, "in-probe"),
+    Outcome::Conflicted
+  );
+  assert_eq!(
+    outcome(&s.sync(false).unwrap().steps, "in-probe"),
+    Outcome::Conflicted
+  );
+}

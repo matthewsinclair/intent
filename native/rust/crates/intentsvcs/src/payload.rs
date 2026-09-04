@@ -532,6 +532,25 @@ pub struct Report {
 /// Every path is supplied. See the module note on why that is a contract rather
 /// than a convenience.
 #[derive(Debug, Clone)]
+/// What a [`Payload::materialise`] would write and remove, computed without
+/// writing anything.
+///
+/// **ONE COMPUTATION WITH TWO CALLERS, RATHER THAN TWO THAT AGREE TODAY.**
+/// `materialise` asks for this and then executes it, and the dry run reports it
+/// unexecuted. The alternative -- a preview that derives "what would change" its
+/// own way -- is the drift IN-AG-HIGHLANDER-001 names, and it fails in the worst
+/// direction available: a preview is trusted precisely when nobody is in a
+/// position to check it against the run.
+struct Planned {
+  /// The unit's files after the run, relative and deterministic. This is what
+  /// the manifest `Entry` records, and its length is the count the renderer
+  /// prints as `written`.
+  files: BTreeSet<String>,
+  /// Files a previous run of THIS tool recorded writing, that the source no
+  /// longer carries, and that are still on disk to remove. Ruling 5.
+  removed: Vec<String>,
+}
+
 pub struct Payload {
   kind: Kind,
   canon: PathBuf,
@@ -894,7 +913,39 @@ impl Payload {
   /// The comparison is v2's three-way -- source against the manifest's record,
   /// and the installed tree against the same record -- with the two corrections
   /// named on [`Outcome::Conflicted`] and [`Outcome::Undecidable`].
+  /// **`dry_run` PREDICTS THIS EXACT RUN RATHER THAN DESCRIBING A SIMILAR
+  /// ONE.** Every arm below reaches the same decision it would otherwise; only
+  /// the write is withheld, and the counts it reports come from [`Self::plan`],
+  /// which is the computation [`Self::materialise`] itself executes. A preview
+  /// derived a second way would agree on the day it was written
+  /// (IN-AG-HIGHLANDER-001), and the one thing an operator needs from a preview
+  /// is that it is not a different question.
+  ///
+  /// **THE FIVE HELD OUTCOMES ARE UNAFFECTED AND THAT IS NOT AN OVERSIGHT.** A
+  /// sync without `--force` already writes nothing for them, so a dry run
+  /// changes nothing about what they report; what it adds is the installs and
+  /// updates, which a real run has already performed by the time it prints.
   pub fn sync(&self, force: bool) -> Result<Report, PayloadError> {
+    self.run_sync(force, false)
+  }
+
+  /// The same decisions as [`Self::sync`], reported without being performed.
+  ///
+  /// **TWO VERBS, ONE IMPLEMENTATION, AND THE NAMES SAY WHICH IS WHICH.** They
+  /// are not an overload: they differ in the only way an operator cares about,
+  /// and a caller cannot reach the preview by forgetting an argument or reach
+  /// the write by supplying one. The shared body is private precisely so that
+  /// no third caller can invent a mode between them.
+  ///
+  /// **WHAT A PREVIEW IS FOR HERE.** A sync without `--force` already holds on
+  /// everything it cannot decide, so the held units are not what this reveals.
+  /// It reveals the installs and the updates -- the writes a real run has
+  /// already made by the time it prints them.
+  pub fn sync_preview(&self, force: bool) -> Result<Report, PayloadError> {
+    self.run_sync(force, true)
+  }
+
+  fn run_sync(&self, force: bool, dry_run: bool) -> Result<Report, PayloadError> {
     let mut manifest = self.manifest()?;
     let scope = manifest.scope();
     // **THE UNION, NOT THE MANIFEST.** A skill present on disk that this build
@@ -948,9 +999,7 @@ impl Payload {
         // Nothing installed: this is an install, whatever the manifest says.
         (_, None) => {
           let prior = manifest.find(&name).cloned();
-          let (entry, removed) = self.materialise(&origin, prior.as_ref())?;
-          let written = entry.files.len();
-          manifest.upsert(entry);
+          let (written, removed) = self.apply(&origin, prior.as_ref(), dry_run, &mut manifest)?;
           Outcome::Updated { written, removed }
         }
         (Some(old), Some(target)) => {
@@ -969,9 +1018,8 @@ impl Payload {
               // actually happened, and only the second is worth reporting.
               let discarded = target_moved.then(|| target.clone());
               let prior = manifest.find(&name).cloned();
-              let (entry, removed) = self.materialise(&origin, prior.as_ref())?;
-              let written = entry.files.len();
-              manifest.upsert(entry);
+              let (written, removed) =
+                self.apply(&origin, prior.as_ref(), dry_run, &mut manifest)?;
               match discarded {
                 Some(discarded) => Outcome::Forced {
                   written,
@@ -998,6 +1046,15 @@ impl Payload {
             // distinction to discard: the installed tree and the source agree
             // exactly, so recording it loses nothing and gives the next sync a
             // baseline to work from instead of refusing forever.
+            // **NO `dry_run` TEST HERE, DELIBERATELY, AND IT WAS HERE UNTIL
+            // I DROVE IT.** The adoption is a manifest write with no file
+            // write, so withholding it under a preview reads as obviously
+            // right -- and a mutation test showed the guard could be deleted
+            // with every arm still green, because persistence has exactly one
+            // door and it is guarded there. Two sufficient guards mean neither
+            // can be killed by a test, which is how a guard that protects
+            // nothing survives review looking load-bearing
+            // (IN-AG-HIGHLANDER-001).
             let installed_at = mtime_rfc3339(&self.installed_marker(&name))?;
             manifest.upsert(Entry {
               name: name.clone(),
@@ -1038,9 +1095,7 @@ impl Payload {
             // baseline and make the next sync report an update where nobody
             // knows one happened.
             let prior = manifest.find(&name).cloned();
-            let (entry, removed) = self.materialise(&origin, prior.as_ref())?;
-            let written = entry.files.len();
-            manifest.upsert(entry);
+            let (written, removed) = self.apply(&origin, prior.as_ref(), dry_run, &mut manifest)?;
             Outcome::Forced {
               written,
               removed,
@@ -1060,7 +1115,12 @@ impl Payload {
       });
     }
 
-    self.write_manifest(&manifest)?;
+    // **THE MANIFEST IS THE LAST WRITE AND THE DRY RUN'S LAST REFUSAL.**
+    // Every arm above has already withheld its own write; this is the one that
+    // would otherwise record a run that did not happen.
+    if !dry_run {
+      self.write_manifest(&manifest)?;
+    }
     Ok(Report { steps, scope })
   }
 
@@ -1153,12 +1213,74 @@ impl Payload {
   /// the tree, prune what we wrote and source no longer has, record what we
   /// wrote" would agree on the day they were written and drift the first time
   /// either verb changed (IN-AG-HIGHLANDER-001).
+  /// What [`Self::materialise`] would do, without doing it.
+  ///
+  /// **IT READS THE TARGET AND WRITES NOTHING.** Reading is not incidental: the
+  /// removal set depends on what is actually on disk, because a recorded file
+  /// the operator has already deleted is not a removal this run performs, and a
+  /// prediction that counted it would over-report every time.
+  fn plan(&self, origin: &Origin, prior: Option<&Entry>) -> Result<Planned, PayloadError> {
+    // **THE SINGLE-FILE SHAPE OWNS ONE PATH AND PRUNES NOTHING** -- the
+    // asymmetry `materialise` documents at length. Stated here as the same
+    // early return so the two shapes cannot diverge between predicting and
+    // doing.
+    if self.kind.shape() == Shape::SingleFile {
+      return Ok(Planned {
+        files: self.installed_files(&origin.name)?.into_iter().collect(),
+        removed: Vec::new(),
+      });
+    }
+
+    let files: BTreeSet<String> = relative_files(&origin.dir)?
+      .iter()
+      .map(|p| display(p))
+      .collect();
+
+    let dest = self.installed_dir(&origin.name);
+    let mut removed = Vec::new();
+    if let Some(prior) = prior {
+      for stale in prior.files.iter().filter(|f| !files.contains(*f)) {
+        if dest.join(stale).is_file() {
+          removed.push(stale.clone());
+        }
+      }
+      removed.sort();
+    }
+
+    Ok(Planned { files, removed })
+  }
+
+  /// Perform one unit's write, or predict it -- the single place [`Self::sync`]
+  /// chooses between the two.
+  ///
+  /// **THE CHOICE LIVES HERE RATHER THAN AT EACH CALL SITE.** `sync` reaches
+  /// this from three arms; a `dry_run` test repeated in three places is three
+  /// chances for one of them to be forgotten, and the one that was forgotten
+  /// would write during a preview.
+  fn apply(
+    &self,
+    origin: &Origin,
+    prior: Option<&Entry>,
+    dry_run: bool,
+    manifest: &mut Manifest,
+  ) -> Result<(usize, Vec<String>), PayloadError> {
+    if dry_run {
+      let planned = self.plan(origin, prior)?;
+      return Ok((planned.files.len(), planned.removed));
+    }
+    let (entry, removed) = self.materialise(origin, prior)?;
+    let written = entry.files.len();
+    manifest.upsert(entry);
+    Ok((written, removed))
+  }
+
   fn materialise(
     &self,
     origin: &Origin,
     prior: Option<&Entry>,
   ) -> Result<(Entry, Vec<String>), PayloadError> {
     let dest = self.installed_dir(&origin.name);
+    let planned = self.plan(origin, prior)?;
 
     // **THE SINGLE-FILE SHAPE RETURNS EARLY RATHER THAN THREADING BRANCHES
     // THROUGH THE TREE WALK.** Everything below this point -- the prune of
@@ -1188,14 +1310,13 @@ impl Payload {
           source_path: origin.dir.display().to_string(),
           installed_at,
           checksum,
-          files: self.installed_files(&origin.name)?,
+          files: planned.files.into_iter().collect(),
         },
-        Vec::new(),
+        planned.removed,
       ));
     }
 
     let sources = relative_files(&origin.dir)?;
-    let written: BTreeSet<String> = sources.iter().map(|p| display(p)).collect();
 
     for rel in &sources {
       let from = origin.dir.join(rel);
@@ -1214,16 +1335,12 @@ impl Payload {
 
     // Ruling 5: remove only what a previous run of THIS tool recorded writing
     // and that source no longer carries. An unrecorded file is the operator's.
-    let mut removed = Vec::new();
-    if let Some(prior) = prior {
-      for stale in prior.files.iter().filter(|f| !written.contains(*f)) {
-        let path = dest.join(stale);
-        if path.is_file() {
-          remove_file(&path)?;
-          removed.push(stale.clone());
-        }
-      }
-      removed.sort();
+    //
+    // **THE SET IS DECIDED IN `plan` AND MERELY EXECUTED HERE.** That split is
+    // what lets `--dry-run` name these files without deleting them, and it is
+    // why the `is_file` test lives there rather than in this loop.
+    for stale in &planned.removed {
+      remove_file(&dest.join(stale))?;
     }
     prune_empty_dirs(&dest)?;
 
@@ -1235,9 +1352,9 @@ impl Payload {
         source_path: origin.dir.display().to_string(),
         installed_at,
         checksum,
-        files: written.into_iter().collect(),
+        files: planned.files.into_iter().collect(),
       },
-      removed,
+      planned.removed,
     ))
   }
 }
