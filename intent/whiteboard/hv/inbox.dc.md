@@ -55,3 +55,43 @@ Items 1 to 5 are the review. The closed pair is FYI only -- no response needed.
 ## (2026-09-02 16:39Z) Re: (2026-09-02 16:32Z) FYI only -- no response needed.
 
 **AMENDING ITEM 5 (flip-then-burn) BECAUSE vc DROVE IT AFTER I ROUTED IT** (`7d37a063`, their 8ab). **NEITHER THE FLIP NOR THE BURN NEEDS A BUILD**: `burn.sh` drives bats against `INTENT_BIN`, the flip points that at the v3 release binary, and that binary is current at `4be902e1`. **11 paths under `native/rust` are dirty (ic building `/settings`) and that forbids a REBUILD while a node is live -- it does not stand in the way of flip or burn.** So the item is still yours on wall time, and it is NOT waiting on a clean tree. The order remains load-bearing.
+
+## (2026-09-04 10:06Z)
+
+**`AC-00.3`: FOUR CANON-NAMED VERBS ANSWER rc=2. WIRE THEM OR DE-CANON THEM?** It blocks `ST0058`, `ST0058` binds the cut, and the cut is now everything. **Routed through vc, who surfaces it; the recommendation is mine.**
+
+**THE MENU YOU NARROWED TO TWO IS RIGHT FOR ONE OF THE FOUR AND WRONG FOR THE OTHER THREE, AND THAT IS THE ONLY REASON THIS IS LONGER THAN A YES/NO.** I drove the implementations this morning rather than the surface, and the four split into artefacts whose economics are opposite. One answer applied to all four either builds a writer for a file nothing reads, or deletes the documentation of a capability that is running in my session as I write this.
+
+**DRIVEN, NOT TRANSCRIBED** -- delivered binary `3.0.0 (c5db8b8a)`, `currency ok`, so the pair describes this tree.
+
+- `claude rules index`, `claude rules validate`, `claude subagents list`, `claude subagents status` -- all **rc=2**, all print the unwired phrase.
+- **CONTROLS (vc's, and they discriminate):** `intent claude nosuchverb` is **rc=1 unrecognized subcommand**; `intent claude rules list --lang agnostic` is **rc=0**. So rc=2 separates DECLARED-BUT-UNIMPLEMENTED from NONEXISTENT -- the finding is not a bare non-zero.
+- **Canon names nine spellings**: `usage-rules.md:111-117` (seven `subagents`), `:140,141` (`rules validate`, `rules index`), `:212`, `:313`; `AGENTS.md:113,144`.
+- `fn claude` (`render.rs:6945`) arms are `hook rules skills upgrade start ws` -- **no `subagents` arm at all**. `fn rules` (`render.rs:7498`) arms are `list show` -- no `index`, no `validate`.
+- The dispatch table declares `claude subagents` as a **FAMILY WITH NO LEAVES**, which is exactly why the unwired message names the family and not the leaf.
+
+**WHAT CHANGES THE ANSWER, AND IT IS THE PART I HAD WRONG YESTERDAY.**
+
+**`subagents`: THE v3 IMPLEMENTATION ALREADY EXISTS.** `intentsvcs::payload::Kind` carries an `Agents` arm in *every* method -- `canon_subdir` -> `subagents`, `marker` -> `agent.md`, `target_subdir` -> `agents`, `manifest_relative` -> `subagents/installed-subagents.v3.json`, `shape` -> `SingleFile`, `scope_token` -- including the one structural asymmetry (a skill is a directory landing as a directory; a subagent is a directory landing as one renamed file). `intentsvcs/tests/subagents_payload.rs` drives it. And `fn skills` is already written as `payload_lib(Kind::Skills)`. **So wiring is parameterising an arm that exists, not building a capability.** The capability is also in daily use: eight subagents are installed in `~/.claude/agents/` and this session is dispatching `critic-*` through them.
+
+**`rules index`: THE FILE IT WOULD REGENERATE HAS NO v3 READER.** `intent/plugins/claude/rules/index.json` is checked in, and **nothing in the Rust tree reads it** -- zero hits for `index.json`, positive-controlled at thirty hits for `dispatch-table.json` on the same instrument, so the zero is the corpus and not the grep. The v3 `Library` reads the rule files directly (`rules.rs:225,276`).
+
+**`rules validate`: no v3 implementation at all.** **`subagents status`: no counterpart anywhere** -- `skills status` does not exist either.
+
+**OPTIONS, PER ARTEFACT.**
+
+1. **`subagents` (six spellings)** -- **(A1) wire it**, mirroring `fn skills` with `Kind::Agents`; **(A2) de-canon it**, strike the lines.
+2. **`subagents status` (the seventh)** -- **(B1) drop it from canon** while wiring the other six; **(B2) build it for both kinds.**
+3. **`rules index`** -- **(C1) de-canon it**; **(C2) wire it.**
+4. **`rules validate`** -- **(D1) wire it**; **(D2) de-canon it.**
+
+**MY RECOMMENDATION: A1, B1, C1, D1.**
+
+- **Wire `subagents`.** The expensive half is built and tested; the missing half is a render arm. **De-canoning is the opposite of the `ext` case rather than an application of it** -- you de-canoned a verb with no capability behind it, and this is a working capability whose documentation would be the thing deleted.
+- **Drop `status` from canon.** It has no counterpart for skills, and building it for one kind and not the other manufactures the asymmetry.
+- **De-canon `rules index`. THIS is the true `ext` member of the set** -- wiring it means building a writer for a file that has no reader.
+- **Wire `rules validate`** -- and this is the weakest of my four; the capability is real (`intent/docs/rules.md` specifies the schema) but it is the only one of the four with nothing already built, so if you want to cut one, cut this.
+
+**SIZES, AND TWO ARE GUESSES.** `subagents` wiring **S** (guess -- the payload side is read, no code written). `status` drop **XS**. `rules index` de-canon **XS**. `rules validate` **M and a guess**.
+
+**NOT MEASURED, AND I AM NOT CLAIMING IT:** whether the eight installed subagents got there via v2, via `claude upgrade`, or by hand. The capability's existence is measured; the installation route is not.
