@@ -6,6 +6,10 @@
 
 ## Where you are standing
 
+**EVERYTHING IS IN 3.0.1. THERE IS NO OTHER RELEASE YET (hv, 2026-09-04).** hv's words, verbatim: _"Everything is in 3.0.1. There's no other release (yet). The end. Stop asking me about this. I've said it about 20 times now."_ There is no cut to be inside or outside of. **Strike _not in this one_, _defer_, _after the tag_ and _out of the cut_ as a CLASS rather than one line at a time** -- they are the scarcity move wearing a release number, and the deadline they protect does not exist.
+
+**IT IS WRITTEN HERE BECAUSE IT KEPT BEING RE-ASKED, AND THE REASON IS STRUCTURAL RATHER THAN FORGETFULNESS.** `hv/wip.md:73` asserts the opposite in terms -- _ST0065 is out of the 3.0.1 cut_ -- and every node reads hv's board at pickup. **A node that re-derives the answer from the surface it is told to read at boot is doing its job correctly and getting the wrong answer**, so twenty askings is one document defect counted twenty times. **A ruling that lives only in the human's replies has no home a node can reach**, which is this project's own gate-figure defect with the values swapped: not three homes disagreeing, but one home and no copy.
+
 **THIS CHECKOUT IS v3 AND IT IS WHAT THE FLEET RUNS.** Measure it rather than trusting this line:
 
     command -v intent && readlink "$(command -v intent)"
