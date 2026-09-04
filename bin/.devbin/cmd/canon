@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+#
+# devbin: summary = Report canon the store holds and git does not, in both directions
+#
+# intent canon        -- REPORT canon issues that disagree between disk and git.
+#
+# THE CLASS, in cc's words, and the wording decides the remedy: **filing an issue
+# writes the store and the disk atomically and correctly. Git is a separate,
+# human-gated act, and nothing reports the divergence.** The earlier framing --
+# *the store and git disagree* -- pointed a fix at consistency machinery that is
+# already sound: store-versus-disk was driven at 214/214, perfect both ways. What
+# is missing is not consistency, it is the git step and any report of its absence.
+#
+# So an issue is filed, resolvable by every verb, present on disk, and absent
+# from git -- and behaves entirely normally until someone clones, or a fold goes
+# looking.
+#
+# MEASURED 2026-09-04: four instances in one day. 0230 and 0231 (ic), 0232 (cc),
+# 0233 (vc). **All four were found BY HAND.** Three reached git only through
+# remediation commits whose subject lines say *was never in git*. A class that
+# has only ever been detected by hand is the strongest available evidence that
+# nothing automatic is watching.
+#
+# THE MECHANISM IS *WHETHER*, NOT *WHEN*, AND THE IDS INVITE THE WRONG STORY.
+# The four ids ran consecutively, which reads as *something about that window*.
+# It is refuted: all six issues in 0230-0235 carry `created: 2026-09-04`, and
+# 0234 and 0235 landed from inside the same window. **The discriminator is
+# whether the issue was the SUBJECT of a commit or a side-artefact of one** --
+# 0234 and 0235 are named in their commits' subject lines because they WERE the
+# work; the other four were filed while doing something else, so no commit was
+# ever about them and nothing swept them in.
+#
+# CONSEQUENCE, and it is the argument for running this on a schedule rather than
+# remembering it: **the exposure is a HABIT, not a date.** Every node files
+# issues in passing, so the rate does not decay. A remedy keyed to a window, a
+# session, or a node would have missed every instance.
+#
+# WHY A SWEEP AND NOT A COMMIT GATE (ic's argument, and it is unanswerable): a
+# commit guard can only judge what the commit in front of it touches, and **every
+# one of the four slipped by NOT being in a commit.** The population is the
+# estate, so this is a sweep run on demand and at a fold. It is also why this is
+# not an arm of `runner_roster_check.sh`, whose name and contract are parity
+# instruments -- this repo already ruled that question when it kept the whiteboard
+# clock guard and header guard as two files, so that a guard's name never comes
+# to cover a check it does not describe.
+#
+# BOTH DIRECTIONS, because ic asked and the second one is the one nobody has been
+# bitten by yet. Disk-has/git-lacks is what we keep hitting. Git-has/disk-lacks is
+# what bites ON A CLONE, and it is unexercised in anger rather than hypothetical.
+#
+# IT CARRIES ITS OWN CONTROLS AND REFUSES IF THEY DO NOT BOTH FIRE. The estate
+# normally agrees, and **an all-green sweep over an agreeing population cannot
+# tell a working comparison from a broken one** -- which is exactly how two
+# independently controlled instruments both called `--all` fine (issue 0236). So
+# a synthetic disk-only name must be DETECTED and a name present in both must NOT
+# be, on every run, before any verdict here is allowed to mean anything.
+#
+# THE DURABLE HOME IS `intent doctor`, NOT HERE -- issue 0237. Every Intent
+# project has this exposure, because `issues add` writes store and disk
+# everywhere and git is a separate act everywhere; `bin/.devbin/` reaches this
+# estate alone. This is the reachable version, not the right one.
+#
+# IT REPORTS AND DOES NOT GATE. A newly filed issue is legitimately untracked for
+# the minutes before it is committed, so refusing would be noise. Exit 1 on
+# divergence so a fold can key on it; exit 2 only if the controls fail.
+#
+set -euo pipefail
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+. "$DEVBIN_LIB/helpers"
+
+case "${1:-}" in
+  -h | --help | help)
+    sed -n '3,8p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+    exit 0
+    ;;
+  "") ;;
+  *) die "unknown argument: $1 (this command takes none)" ;;
+esac
+
+ROOT="$(git rev-parse --show-toplevel)" || die "not in a git working tree"
+cd "$ROOT"
+
+DIR=intent/.canon/issues
+
+[ -d "$DIR" ] || die "$DIR does not exist -- this estate keeps no canon issues, so there is nothing to compare"
+
+in_git="$(git ls-files "$DIR/*.json" | xargs -n1 basename | sort)"
+on_disk="$(find "$DIR" -maxdepth 1 -name '*.json' -exec basename {} \; | sort)"
+
+# ONE function computes the divergence, and BOTH the verdict and the controls
+# call it. **THIS IS NOT STYLE. The first version of this file ran the controls
+# over their OWN parallel `comm`, and mutation testing killed it: replacing the
+# verdict's `only_disk=` with `only_disk=""` still printed *positive fired,
+# negative held* and exited 0.** Controls that do not traverse the code path
+# producing the answer prove only that `comm` works. Same defect as W64 -- a
+# check nothing can kill reads as load-bearing forever -- caught here by
+# mutating the file rather than by reading it.
+#
+# `$1` = direction (`disk-only` or `git-only`), `$2` = git list, `$3` = disk list.
+divergence() {
+  case "$1" in
+    disk-only) comm -13 <(printf '%s\n' "$2") <(printf '%s\n' "$3") ;;
+    git-only) comm -23 <(printf '%s\n' "$2") <(printf '%s\n' "$3") ;;
+    *) die "divergence: unknown direction $1" ;;
+  esac
+}
+
+only_disk="$(divergence disk-only "$in_git" "$on_disk")"
+only_git="$(divergence git-only "$in_git" "$on_disk")"
+
+# --- the controls, BEFORE the verdict, THROUGH THE SAME FUNCTION -------------
+# Positive: a synthetic disk-only name must be seen. Negative: a name present in
+# BOTH must not be. One proves the comparison can fire; the other proves it is
+# not simply firing on everything, which a positive control alone cannot
+# establish. Both go through `divergence`, so a mutation of it kills them.
+ctl_pos="$(divergence disk-only "$in_git" "$(printf '%s\n%s\n' "$on_disk" "ZZZZ-control.json" | sort)")"
+grep -qx 'ZZZZ-control.json' <<<"$ctl_pos" ||
+  die "positive control FAILED -- an injected disk-only name was not detected through the same comparison the verdict uses, so this run's green would be worthless"
+
+# **THE MIRROR CONTROL, ADDED BECAUSE ITS ABSENCE WAS AN ASYMMETRY I ONLY SAW
+# BY MUTATING.** Mutating the `git-only` branch left the positive control above
+# perfectly green -- it only ever exercises `disk-only`. A direction with no
+# control is a direction whose verdict nobody has checked, and this file already
+# shipped one round of controls that turned out to be decoration.
+ctl_git="$(divergence git-only "$(printf '%s\n%s\n' "$in_git" "ZZZZ-gitonly.json" | sort)" "$on_disk")"
+grep -qx 'ZZZZ-gitonly.json' <<<"$ctl_git" ||
+  die "positive control FAILED for the git-only direction -- an injected git-only name was not detected, so the clone-facing arm's green would be worthless"
+
+first_both="$(comm -12 <(printf '%s\n' "$in_git") <(printf '%s\n' "$on_disk") | head -1)"
+if [ -n "$first_both" ]; then
+  ctl_neg="$(divergence disk-only "$in_git" "$on_disk")"
+  grep -qx "$first_both" <<<"$ctl_neg" &&
+    die "negative control FAILED -- \`$first_both\` is in git AND on disk and was still reported as divergent"
+fi
+
+step "canon vs git -- $(grep -c . <<<"$in_git") in git, $(grep -c . <<<"$on_disk") on disk"
+printf '    controls: both directions fired, negative held.\n'
+
+rc=0
+if [ -n "$only_disk" ]; then
+  warn "ON DISK, NEVER IN GIT -- filed, resolvable by every verb, invisible to a clone:"
+  printf '      %s\n' $only_disk
+  rc=1
+fi
+if [ -n "$only_git" ]; then
+  warn "IN GIT, ABSENT FROM DISK -- the direction that bites on a clone:"
+  printf '      %s\n' $only_git
+  rc=1
+fi
+
+[ "$rc" -eq 0 ] && ok
+exit "$rc"
