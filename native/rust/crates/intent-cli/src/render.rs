@@ -8889,7 +8889,28 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
       }
     }
     Some((verb, _)) => unwired("agents", verb),
-    None => unwired("agents", ""),
+    // **BARE `intent agents` RENDERS THE FAMILY HELP AT rc=0, AS v2 DOES**
+    // (`0175`, filed by dc 2026-08-30; `0239` carries the measurement). It
+    // answered the unwired refusal, which is FALSE about a family whose six
+    // verbs run -- `agents sync` is the spelling `in-essentials` rule 2 orders
+    // every agent to use.
+    //
+    // **THIS IS A v2-TO-v3 REGRESSION, NOT AN EXIT-CODE CHOICE, AND THE
+    // DECLARATION ALREADY SAID SO.** The table gives this family
+    // `arity: "0..1"` on its subcommand slot -- the spelling `spine.rs` reads
+    // to make a bare form LEGAL -- and records its own observed v2 behaviour as
+    // `bare -- prints 984B usage, exit 0`. Driven side by side, five sibling
+    // `0..1` families (`lang`, `modules`, `plugin`, `llm`, `issues`) match v2
+    // at rc=0 and `agents` alone diverged. **A legal invocation that succeeds
+    // never enters the rc=1-versus-rc=2 question**, so this settles nothing
+    // about the exit-code convention for the `arity: 1` families.
+    //
+    // **`family_help`, NOT A THIRD `*_usage` COPY.** `lang_usage` and
+    // `modules_usage` are byte-identical but for the family name, and they
+    // already disagree with `family_help` on the absent-family policy -- they
+    // return a `Failure`, it panics. Adding a third spelling here would have
+    // made the drift a majority.
+    None => family_help("agents"),
   }
 }
 
