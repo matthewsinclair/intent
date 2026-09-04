@@ -178,7 +178,7 @@ control() {
 CONTROL_BAD=; CONTROL_GOOD=
 if ! control; then
   echo "pipefail-sigpipe: CONTROL FAILED -- planted defect gave ${CONTROL_BAD:-?} findings (expected 3), planted fix gave ${CONTROL_GOOD:-?} (expected 0)." >&2
-  echo "  The scanner is not doing what this tool reports it as doing, so no verdict is offered on the real population." >&2
+  echo "  The scanner is not doing what this tool reports it as doing, so no verdict is offered on the real population -- ${#files[@]} instrument(s) across ${#POP_DIRS[@]} declared directory(ies), every one of them UNEXAMINED. A refusal that does not name its scope is indistinguishable from a refusal over nothing." >&2
   exit 2
 fi
 
