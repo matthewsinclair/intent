@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-04 19:45Z
+heartbeat_at: 2026-09-04 19:51Z
 status: active
-focus: "2026-09-04 19:45Z. hv RULED (relayed by cc, first-hand to them): my instructions ARE cc's release. cc running the sequence; ic holding by instruction; dc folding then seam 2. BOARD RESTRUCTURED ON cc's REFRAME -- a watch-out is a CONFESSION, a shape is a CONTROL, and only shapes have ever caught anything. WP-15: AC-15.2 verb axis green; flags/paths/layouts unmeasured."
+focus: "2026-09-04 19:51Z. PEER STATE IS NO LONGER CARRIED ON THIS LINE -- it decayed twice today and both peers corrected me; ask them or read their board. Filed 0244 (remedy-test hole, routed to ic) and 0245 (wp show vs the dispatch table). CORRECTION OWED hv: the rc=1->rc=2 migration is WIDER than the four verbs I routed. WP-15 AC-15.2 verb axis green."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
@@ -99,9 +99,15 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 - **A CONTROL:** name the AXIS the claim is about, then confirm the two arms DIFFER on it. If they cannot differ, there is no test (cc: _reasoning wearing a test's clothes_). This is a step taken BEFORE, not a diagnosis after.
 - **ANY STAMP:** `date -u +'%Y-%m-%d %H:%MZ'` present in THIS turn's tool output, copied verbatim.
 - **THE SHARED INDEX:** `git add <paths>` then `git commit --only <paths>`, message from a FILE so every retry is byte-identical. On a lock: WAIT, never remove it -- a peer may be mid-commit.
+- **A BYTE COMPARISON:** never through `$( )` -- **command substitution STRIPS TRAILING NEWLINES**, so a comparison built on it calls two files identical when the only difference is a final newline, and canon JSON is exactly that file class (dc).
+- **A CONTROL'S PATH:** the control must travel **THE DEFECT'S OWN MACHINERY**. Varying the axis is not enough if the arms take different routes -- cc wrote a negative control literally while the subject went through a variable, so it could not have caught the word-split no matter what it returned. **Arms share the machinery and differ ONLY on the axis** (cc).
+- **A MULTI-WORD COMMAND:** build the argv as an array, or `eval` a single quoted string. **NEVER interpolate a multi-word command into one unquoted variable** -- zsh does not word-split it and you invoke one long argument. cc twice, me four times on the sibling glob trap.
+- **PEER STATE IN MY FOCUS LINE:** do not put it there at all. It decayed twice on 2026-09-04 and both peers corrected me. **The focus line has no stamp of its own; a peer's state is a VALUE and values do not travel.**
 - **A PUBLISHED FIGURE:** `git show <sha>:<path> | wc -c`, measured off the COMMIT. Three of four fold figures published today disagreed with the artefact.
 
 ## Watch-outs
+
+**A CATEGORY DERIVED FROM ONE QUESTION AND LABELLED WITH A PHRASE THAT ANSWERS A DIFFERENT ONE. THREE INSTANCES IN ONE EVENING AND EVERY CONTROL PASSED, BECAUSE THE CONTROLS TESTED THE DERIVATION AND NEVER THE LABEL.** (1) My exit-code key merged _ran-and-found_ with _you typed it wrong_. (2) cc's read-back counter answered CHARACTERS while claiming bytes. (3) **`register.md` classifies `skills_commands.bats` `keep` on `burn 39/39` -- burn asks whether a test REACHES the CLI, `keep`'s wording promises it RUNS UNMODIFIED, and it fails 37 of 39.** Both instruments correct; the LABEL is the defect. **AND THE THIRD ONE IS LOAD-BEARING FOR THE CUT: nobody prunes the v2 trunk against `burn 39/39`, they prune against the word `keep`.**
 
 **THESE ARE THE CONFESSIONS. WHERE ONE HAS A SHAPE, THE SHAPE IS ABOVE AND IS THE OPERATIVE FORM; AN ENTRY WITH NO SHAPE IS AN OPEN QUESTION, NOT A CONTROL.**
 
@@ -167,6 +173,8 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 
 ## Open defects I own
 
+- **FILED 2026-09-04: `0244`** (the remedy test asserts wiredness, never that following the remedy changes anything -- 186 emissions, 24 with a possibly-satisfied precondition; **the open question, stated unmeasured: does ANYTHING drive a remedy and re-check the original error?** routed to ic) and **`0245`** (`wp show` prints a header while `dispatch-table.json:1904` declares it shows `info.md`; **the fix choice, help or code, is deliberately NOT decided in the filing**). Both had been unfiled all day.
+- **MY rc=1 -> rc=2 SIZING TO hv WAS SHORT AND I TOLD hv BEFORE THEY RULED.** I routed it as _four shipped exit codes_ (`st`/`wp`/`ac`/`at`). **`intent claude skills` bare is a thirteenth**, and cc's census did not reach NESTED families. **The convention is about MEANING and is unaffected; the MIGRATION is wider than the number attached to it.**
 - **`AC-15.2`'s CORE MEASUREMENT IS DONE AND IT PASSES ON THE VERB AXIS.** All 33 genuine `intent <verb>` spellings cited across the catalogue were driven **in a throwaway project under a scratch `$HOME`** (so writes were harmless), on `92e4d914a`, EXCLUDING `intent fc` which is never run anywhere. **Every one resolves -- none unbuilt, none unrecognised.** `intent to deceive` (prose, in `in-detrope`) returned rc=1 and is the NEGATIVE CONTROL proving the instrument can say NOT DECLARED. **STILL UNMEASURED, AND THE AC NAMES ALL FOUR: FLAGS, PATHS AND FILE LAYOUTS.** The verb axis is the one that passed; do not report it as the criterion.
 - **MY WP-15 STALENESS SCAN FLAGGED A CORRECTION AS A DEFECT.** `in-tca-init:52` documents that `~/.intent/ext/` is v2's and v3 reads it nowhere; my `.intent/` marker matched **the sentence retiring it**. **PRECISION 1 OF 4** (one real, one correction, two conditional-and-already-correct). **CONSTRAINT ON `AC-15.2`'s INSTRUMENT, FOUND BEFORE BUILDING IT: it must separate _names X as a live instruction_ from _names X while retiring it_, or every well-maintained skill reads as the stalest.**
 - **`intent wp show` PRINTS ONLY A HEADER WHILE `surface/dispatch-table.json:1904` DECLARES _Show work package info.md_.** Control: WP-01 returns the same 4-line shape, so it is the verb and not the WP. **The help string is in the SSOT and the implementation does not match it -- declared-vs-built, in the table that IS the declaration.** UNFILED, mine.
