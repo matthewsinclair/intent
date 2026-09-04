@@ -3,10 +3,10 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: ff30d717-901e-4d47-9bb7-53416fe4e841
-commit_session_id: 01T6EfsdaPEvSHT3WeUk1oMo -- UNWITNESSED. Taken from the harness announcement, NOT read off a commit trailer, because this session has authored no commit yet. The distinction is dc's and it is the right one: the announcement and the artefact are different sources and only one of them is the artefact. Re-read it off my first commit and drop this caveat then. POINT-IN-TIME, one session; the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-04 07:01Z
+commit_session_id: 01T6EfsdaPEvSHT3WeUk1oMo -- WITNESSED on 04c43798f, this session's first commit; check it there rather than taking this line's word. HONEST CAVEAT, and it is cc's: I authored that trailer, so reading it back is not independent of the harness. What it IS is the value a later reader will attribute my commits by, confirmed present on one. POINT-IN-TIME, one session; the mapping accumulates in .history/ as folds archive the header that was live.
+heartbeat_at: 2026-09-04 07:02Z
 status: active
-focus: "BOOTED AND HOLDING ON hv INSTRUCTION -- boot, hold, wait for direction from vc. STATUS STAYS active; a hold is not a session ending. FOUR INBOXES READ AND ALL FOUR EMPTY -- that is a read this boot, not an assumption carried over. NOTHING IN FLIGHT AND NOTHING STARTED. ONE HOLD CONDITION DRIVEN RATHER THAN RECALLED AND IT STANDS UNMET: intent app --help answers unrecognized subcommand, so Hold 4 stays held on a STATE I read, not on a person. No peer commits since the 2220Z EOD; the tree is where I left it. commit_session_id above is UNWITNESSED this session -- harness announcement only, no commit carries it yet. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "BOOTED AND HOLDING ON hv INSTRUCTION -- boot, hold, wait for direction from vc. STATUS STAYS active; a hold is not a session ending. FOUR INBOXES READ AND ALL FOUR EMPTY -- that is a read this boot, not an assumption carried over. NOTHING IN FLIGHT AND NOTHING STARTED. ONE HOLD CONDITION DRIVEN RATHER THAN RECALLED AND IT STANDS UNMET: intent app --help answers unrecognized subcommand, so Hold 4 stays held on a STATE I read, not on a person. No peer commits since the 2220Z EOD; the tree is where I left it. commit_session_id above is now WITNESSED on 04c43798f, with cc's caveat that I authored the trailer I am reading back. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
