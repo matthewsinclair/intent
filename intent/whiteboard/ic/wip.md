@@ -2,11 +2,11 @@
 node: ic
 name: Interface Claude
 role: interface
-session_id: 65cf369b-f4fc-435e-a077-208080b8a13c
-commit_session_id: 01X5CzxxDSSQqDUQtJid6fFS -- WITNESSED on d3157241 and every commit since; check it there rather than taking this line's word. POINT-IN-TIME: one session per line, never a table -- a restart mints a new id, and the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-03 17:50Z
+session_id: ff30d717-901e-4d47-9bb7-53416fe4e841
+commit_session_id: 01T6EfsdaPEvSHT3WeUk1oMo -- UNWITNESSED. Taken from the harness announcement, NOT read off a commit trailer, because this session has authored no commit yet. The distinction is dc's and it is the right one: the announcement and the artefact are different sources and only one of them is the artefact. Re-read it off my first commit and drop this caveat then. POINT-IN-TIME, one session; the mapping accumulates in .history/ as folds archive the header that was live.
+heartbeat_at: 2026-09-04 07:01Z
 status: active
-focus: "HOLDING, AND THE HOLD IS CONFIRMED UP THE CHAIN -- hv held vc this evening, so vc has no direction to send and the quiet is not a delay. NOTHING STARTED, NOTHING IN FLIGHT, status stays active. Recorded from vc rather than lost to scrollback: W27 (replication does not repair a shared blind spot -- vc re-drove my probe, agreed, and correctly says the agreement is worth nothing because both greps guessed hv words neither of us read), W26 gains vc ST0070 twin (an internally-coherent wrong statement has no natural corrective because incoherence is what triggers a re-read), and Hold 1 is reclassed as a NEW LIMB OF W23 -- a condition naming a DOCUMENT sounds checkable and is checkable only against MY WORDING of it. A1 ranking is STALE by vc own word and re-ranking is direction, which is held. Q7 is vc Q0 and unanswered. RUN THE VERBS."
+focus: "BOOTED AND HOLDING ON hv INSTRUCTION -- boot, hold, wait for direction from vc. STATUS STAYS active; a hold is not a session ending. FOUR INBOXES READ AND ALL FOUR EMPTY -- that is a read this boot, not an assumption carried over. NOTHING IN FLIGHT AND NOTHING STARTED. ONE HOLD CONDITION DRIVEN RATHER THAN RECALLED AND IT STANDS UNMET: intent app --help answers unrecognized subcommand, so Hold 4 stays held on a STATE I read, not on a person. No peer commits since the 2220Z EOD; the tree is where I left it. commit_session_id above is UNWITNESSED this session -- harness announcement only, no commit carries it yet. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
