@@ -247,3 +247,83 @@ fn a_work_package_is_refused_by_both_spellings_and_says_why() {
     "INV-09 covers the refusals too, or the twins drift on the case neither can serve"
   );
 }
+
+/// **AN ENTITY THAT DOES NOT EXIST IS REFUSED AT THE TERMINAL, NOT IN A
+/// BROWSER** -- the browse half of `0238`.
+///
+/// Before this, nothing on the browse path asked whether the addressed entity
+/// existed: a URL was composed for `ST9999` and a browser opened at a page that
+/// then errored, so the operator left the terminal they were standing in to be
+/// told by a different program about a typo they had just made.
+///
+/// **THE `no daemon` ARM IS A VACUITY GUARD AND IT IS THE POINT OF THE TEST.**
+/// No daemon runs here either, so *it refused* is true with or without the
+/// check and an assertion that stopped there would pass against the defect it
+/// exists to catch. What discriminates is WHICH refusal arrives: a missing
+/// entity must be reported as a missing entity, and never as a missing daemon,
+/// because a fact about the machine must not stand in for a fact about the
+/// argument.
+///
+/// **THE THIRD ARM IS THE CONTROL AGAINST OVER-REFUSAL.** A thread that DOES
+/// exist has to get past the check and reach the daemon probe -- so a check
+/// that refused everything would fail here rather than read as a pass.
+#[test]
+fn an_entity_that_does_not_exist_is_refused_before_a_browser_is_opened() {
+  let root = an_estate();
+  let home = short_dir("browse-absent");
+  std::fs::create_dir_all(&home).expect("an isolated home");
+
+  let (verb, verb_code) = cli(&root, &home, &["browse", "st", "ST9999"]);
+  let (flag, flag_code) = cli(&root, &home, &["edit", "st", "ST9999", "--browser"]);
+
+  assert!(
+    verb.contains("no steel thread ST9999"),
+    "a missing thread must be named as missing, and said: {verb}"
+  );
+  assert!(
+    !verb.contains("no `intentd` is answering"),
+    "the entity is absent whatever the daemon is doing -- reporting the daemon \
+     here makes a fact about the machine stand in for a fact about the \
+     argument, and said: {verb}"
+  );
+  assert_eq!(
+    verb, flag,
+    "INV-09: the two spellings must not refuse differently for a missing entity"
+  );
+  assert_eq!(verb_code, flag_code, "and must not exit differently");
+
+  // The control: a real thread must reach PAST the check.
+  let (real, _) = cli(&root, &home, &["browse", "st", "ST0001"]);
+  assert!(
+    real.contains("no `intentd` is answering"),
+    "a thread that exists must pass the existence check and reach the daemon \
+     probe, or the check is refusing things it should admit, and said: {real}"
+  );
+}
+
+/// **THE WORK-PACKAGE REFUSAL STILL COMES FIRST, AND THE ORDER IS A DECISION.**
+///
+/// `0238`'s check sits AFTER the `Entity::Wp` refusal deliberately. A real
+/// WP-01 cannot be browsed either, so answering *no such work package* for
+/// WP-99 would tell the operator that WP-01 would have worked -- which is
+/// false. Both a present and an absent work package must therefore get the
+/// same answer, and it must be the one naming what this build cannot do.
+#[test]
+fn an_absent_work_package_is_refused_as_a_work_package_and_not_as_a_typo() {
+  let root = an_estate();
+  let home = short_dir("browse-wp-absent");
+  std::fs::create_dir_all(&home).expect("an isolated home");
+
+  let (absent, _) = cli(&root, &home, &["browse", "wp", "ST0001/99"]);
+  let (present, _) = cli(&root, &home, &["browse", "wp", "ST0001/01"]);
+
+  assert!(
+    absent.contains("cannot open a work package in a browser"),
+    "an absent work package must be refused as a work package, and said: {absent}"
+  );
+  assert_eq!(
+    absent, present,
+    "a present and an absent work package must get the SAME answer here, or the \
+     refusal implies the present one would have opened"
+  );
+}

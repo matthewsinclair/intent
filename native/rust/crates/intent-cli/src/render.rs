@@ -1749,6 +1749,29 @@ fn browser_url(address: &intentsvcs::address::Address) -> Result<String, Failure
     })?,
   };
 
+  // **THE ENTITY IS CHECKED BEFORE A URL IS COMPOSED, AND THIS IS THE BROWSE
+  // HALF OF `0238`.** Nothing here asked whether the addressed entity existed,
+  // so `intent browse st ST9999` composed a URL and opened a browser at a page
+  // that then errored -- taking the operator AWAY from the terminal they were
+  // standing in, to be told by a different program about a typo they had just
+  // made. The terminal is where the refusal belongs.
+  //
+  // **IT IS `entity_json` RATHER THAN A BARE EXISTENCE PROBE, AND THE
+  // DIFFERENCE IS THE POINT.** The page this URL opens renders that entity's
+  // FORM, so the question worth answering is not *does it exist* but *will the
+  // page have anything in it*. `entity_json` is the same door `Op::Form`
+  // answers the browser with, so a refusal here and a blank page there cannot
+  // come to disagree -- which a bare existence check would have allowed.
+  //
+  // **THE POSITION IS LOAD-BEARING IN BOTH DIRECTIONS.** It is AFTER the
+  // work-package refusal above, because a real WP-17 cannot be browsed either:
+  // answering *no such work package* for WP-99 would imply WP-17 would have
+  // worked. It is BEFORE the daemon probe below, because otherwise a mistyped
+  // id is reported as a missing daemon whenever none happens to be running --
+  // a fact about the machine standing in for a fact about the argument.
+  let facade = open()?;
+  facade.entity_json(&address.entity).map_err(fail)?;
+
   let root = intentsvcs::userstate::home().map_err(|e| {
     Failure::Error(format!(
       "error: cannot find your Intent state directory -- {e}\n  \
