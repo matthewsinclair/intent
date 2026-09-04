@@ -3189,11 +3189,26 @@ fn explore(address: Option<&str>) -> Result<(), Failure> {
         .to_string(),
     ));
   }
-  let mut live = Live {
-    facade: open()?,
-    declaration: intentsvcs::form::Loaded::load()
-      .map_err(|e| Failure::Error(format!("error: the form declaration would not load: {e}")))?,
-    table: crate::dispatch::table(),
+  // **THE INDICATOR WRAPS THE SLOW WORK, WHICH IS ALL OF IT.** Measured across
+  // five projects: the gap between the terminal being taken and the first frame
+  // is ONE MILLISECOND, even on a run that took 4,916 ms to get here. The wait
+  // is entirely in these three calls, so this is the only place an indicator
+  // can live -- see `tui::progress` for why that rules out a TUI spinner.
+  //
+  // **`Esc` DURING THE LOAD RETURNS WITHOUT OPENING ANYTHING**, which is a
+  // plain success: the operator asked for the wait to stop and it stopped.
+  // Nothing has been taken, drawn or written at that point, so there is nothing
+  // to report and no failure to name.
+  let mut live = match tui::progress::while_loading(|| -> Result<Live, Failure> {
+    Ok(Live {
+      facade: open()?,
+      declaration: intentsvcs::form::Loaded::load()
+        .map_err(|e| Failure::Error(format!("error: the form declaration would not load: {e}")))?,
+      table: crate::dispatch::table(),
+    })
+  }) {
+    tui::progress::Outcome::Cancelled => return Ok(()),
+    tui::progress::Outcome::Done(loaded) => loaded?,
   };
   // **THE ONE LAUNCHER, PASSED IN** (`AC-17.10`). `tui::edit` cannot read
   // `$VISUAL`, cannot fall back and cannot decide that `vi` will do, because it
@@ -7307,6 +7322,36 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
   // PANICS, and a panic here would turn a correct absence into a crash.
   let force = given(a, "force");
 
+  // **DECLARED ON THE FAMILY, HONOURED BY `sync`, REFUSED BY THE TWO VERBS THAT
+  // WRITE, AND -- STATED PLAINLY -- SILENTLY ACCEPTED BY THE TWO THAT DO NOT.**
+  // `--dry-run` sits on the `claude skills` row because the family has exactly
+  // one entry and there is no `claude skills sync` row to hang a per-verb flag
+  // on, so clap accepts it on every verb.
+  //
+  // `install` and `uninstall` REFUSE it here: **a `--dry-run` that silently
+  // performs the write is the worst failure available to this flag**, because
+  // the operator typed it precisely to avoid writing and a successful-looking
+  // run then confirms the opposite of what happened (IN-AG-NO-SILENT-001).
+  //
+  // `list` and `show` do not reach this function and therefore IGNORE it. That
+  // is a real inconsistency and it is written down rather than papered over:
+  // they are read-only, so the flag's promise -- nothing is written -- holds
+  // trivially, and the operator's expectation is met even though nothing read
+  // the flag. **The honest description is "ignored where it cannot lie", not
+  // "handled everywhere".** If the table ever grows per-verb entries, this is
+  // the asymmetry to close.
+  let dry_run = given(a, "dry-run");
+  if dry_run && verb != SkillVerb::Sync {
+    return Err(Failure::Error(format!(
+      "error: `--dry-run` is only available on `sync`\n  remedy: `intent claude skills sync --dry-run` shows what a sync would change without writing; {} has no preview",
+      if verb == SkillVerb::Install {
+        "install"
+      } else {
+        "uninstall"
+      }
+    )));
+  }
+
   if names.is_empty() && verb != SkillVerb::Sync {
     return Err(Failure::Error(format!(
       "error: name at least one skill to {}\n  remedy: `intent claude skills list` prints what this install carries",
@@ -7320,6 +7365,7 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
 
   let report = match verb {
     SkillVerb::Install => lib.install(&names, force),
+    SkillVerb::Sync if dry_run => lib.sync_preview(force),
     SkillVerb::Sync => lib.sync(force),
     SkillVerb::Uninstall => lib.uninstall(&names),
   }
@@ -7328,6 +7374,15 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
   if report.steps.is_empty() {
     println!("ok: nothing installed by this build yet");
     return Ok(());
+  }
+
+  // **SAID BEFORE THE LINES IT QUALIFIES, NOT AFTER.** The per-skill outcomes
+  // below are the SAME strings a real run prints -- deliberately, because a
+  // second vocabulary for the preview would be a second home for the outcome
+  // names and would drift from the run it predicts. What separates them is this
+  // line, and it leads so that a reader who stops scrolling has already met it.
+  if dry_run {
+    println!("dry run: nothing below is written");
   }
 
   // **A STEP THAT NEEDS A DECISION IS COUNTED SEPARATELY FROM ONE THAT FAILED,
@@ -7439,7 +7494,10 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
     }
   }
 
-  println!("ok: {moved} changed, {settled} already settled, {needs_decision} need a decision");
+  println!(
+    "ok: {moved} {}, {settled} already settled, {needs_decision} need a decision",
+    if dry_run { "would change" } else { "changed" }
+  );
 
   // **EXIT 1 WHEN SOMETHING NEEDS A DECISION, AND THIS IS A CHOICE RATHER THAN
   // AN INHERITANCE.** v2 exits 0 unless EVERYTHING failed, so a held skill is
@@ -7447,6 +7505,13 @@ fn skills_change(a: &ArgMatches, verb: SkillVerb) -> Result<(), Failure> {
   // decision the operator has not made is not a success, and `Verdict` is the
   // right shape: the detail is already on stdout where it can be read or
   // parsed, so a second copy on stderr would be noise.
+  //
+  // **A PREVIEW RETURNS THE SAME VERDICT AS THE RUN IT PREVIEWS, INCLUDING
+  // HERE.** Softening the exit for `--dry-run` is tempting -- nothing was
+  // written, so nothing failed -- and it would make the preview and the run
+  // disagree about the state of the estate, which is the one thing a preview
+  // must never do. The decisions are outstanding either way; only the writing
+  // is withheld.
   if needs_decision > 0 {
     return Err(Failure::Verdict);
   }
