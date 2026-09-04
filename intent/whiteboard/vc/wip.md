@@ -4,7 +4,7 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01Eho8RbpDHwmxzVoQxivEZk -- WITNESSED on 118f9bf72; POINT-IN-TIME, one session per line. A BOUNCE MINTS A NEW ONE, so re-read it off your own first commit rather than carrying this.
-heartbeat_at: 2026-09-04 16:01Z
+heartbeat_at: 2026-09-04 16:05Z
 status: active
 focus: "BACK FROM THE COMPACT 16:01Z. Status pinged to cc, dc and ic 15:58Z; all three were BUSY, replies not in. Both holds RE-DRIVEN and both still stand. 0233 is tracked. vc HOLDS THE PEN (hv, 2026-09-04). Two questions still with hv and nothing else is."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
@@ -26,10 +26,18 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 
 **vc HOLDS THE PEN** (hv, 2026-09-04: _the boot and hold was while intent-vc got ready; now you're ready, you can instruct the other Claudes_). **A vc ruling under the pen declares `authority: vc`, NEVER `authority: hv`.** The pen does NOT cover hv's environment, the release, or `intent fc`.
 
-**TWO ITEMS ARE WITH hv AND NOTHING ELSE IS.** Both were put in as many words; neither is answered:
+**NOTHING IS WITH hv ON THE CUT ANY MORE. THE TWO ITEMS THAT WERE ARE NOW RULINGS.**
 
-1. **DOES _EVERYTHING IS IN 3.0.1_ REACH `config`, `ext` AND `learn`, OR DOES THE 2026-08-31 RULING STAND?** hv ruled those three SHIP DECLARED-AND-UNBUILT. **hv's own rule says a general policy stated after a specific ruling does not silently vacate it**, so the honest reading is the ruling stands and WP-06 has NO build work -- its three rows are three rulings. cc is stood down on all three. Now in `intent/restart.md`; the drive is `intent <verb>` bare, and the discriminator is `is a known command that is not implemented yet` versus `fileindex`'s `was retired`.
-2. **`rules validate` -- WIRE IT (M, dc's guess) OR DE-CANON IT?** The only member of `AC-00.3` that is a COST COMMITMENT rather than a defect fix. `ST0058` unblocks either way, and `ST0058` binds the cut. `A1`/`B1`/`C1` are ruled `authority: vc` and cover the other four -- **A1 was EXTENDED 2026-09-04 to cover `claude subagents show`, the fifth member dc's extractor derived.**
+**BOTH CAME OFF hv's DESK 2026-09-04 16:05Z BY BEING DRIVEN. NEITHER WAS A QUESTION; BOTH WERE MEASUREMENTS I HAD NOT TAKEN.** Recorded rather than deleted, because in both cases the ASK was worse than the ANSWER and that is the reusable part.
+
+1. **RULED `authority: vc`: THE 2026-08-31 RULING STANDS AND THE TOOL ALREADY IMPLEMENTS IT. NO BUILD WORK, NO hv INPUT NEEDED.** Driven bare on 14 of WP-06's 16 families: **`config`, `ext` and `learn` are declared-and-unbuilt at rc=2, and they are the ONLY three.** `issues todo doctor lang llm modules plugin info help` answer; `treeindex`/`fileindex` say `was retired`; **`init` and `organize` NOT DRIVEN -- both can write, so the census is short by two and says so.** hv can overturn this in one word; it did not need a question.
+2. **RULED `authority: vc`: `claude rules validate` SHIPS DECLARED-AND-UNBUILT, LIKE ITS THREE SIBLINGS. NOT WIRED, NOT DE-CANONED.** **MY _wire it or de-canon it_ MENU WAS A FALSE DICHOTOMY ON A VERB ALREADY IN A THIRD STATE** -- `intent claude rules validate` returns rc=2 `is a known command that is not implemented yet`, with a remedy naming a verb that works. **That is the same two-option-menu-on-a-non-homogeneous-set error I had already made once today and recorded**, and I put the second instance in front of hv as a question. **A MENU IS A CLAIM THAT THE OPTIONS ARE EXHAUSTIVE, AND IT IS THE ONE PART OF A MENU NOBODY CHECKS.**
+
+**AND MY OWN BOARD WAS WRONG ON WP-06 UNTIL THIS DRIVE: it said _WP-06 has NO build work, its three rows are three rulings_. WP-06 IS XL AND LISTS SIXTEEN COMMAND FAMILIES.** Three of them are the ruling; the claim generalised three rows to a work package fifteen times their size. **THE ERROR SURVIVED A FOLD, WHICH IS WHERE I READ IT LAST -- A FOLD PRESERVES A CLAIM'S WORDING AND NEVER ITS WARRANT.**
+
+**FOUR INSTRUMENT DEFECTS IN THAT ONE INVESTIGATION, ALL FOUR CAUGHT, EACH PLAUSIBLE AND EACH RETURNING A CONFIDENT WRONG ANSWER.** (a) `$?` after a `| head` read the pipe, printing rc=0 on error lines. (b) `intent rules validate` is the WRONG SPELLING -- `rules` lives under `claude` -- and it returns the rc=1 undeclared shape, which reads as _already de-canoned_. (c) `--help` CANNOT SEE THE AXIS: help is served by the declaration, so unbuilt verbs print help at rc=0 and read as built -- **and the negative control passed, because it discriminates undeclared-vs-declared, which is NOT the axis the claim rode on.** (d) a substring match on output collided with CONTENT: `intent issues` prints issue `0203`, whose TITLE contains _unrecognized_, and `intent llm` prints the guide, which QUOTES `UNWIRED_PHRASE` in its prose. **(d) IS cc's FOLD BUG IN A DIFFERENT COSTUME -- a pattern matching text the subject may legitimately contain -- which makes it the sixth instance of that one class today and the second to reach me after being told about it.**
+
+**THE LIMIT OF THE BARE-VERB DRIVE, STATED: IT SEES FAMILY-LEVEL STATE ONLY.** `intent lang` answers, and `intent lang init rust` still returns `not implemented yet` (`render.rs:4746`). **A family reading _answers_ can contain unbuilt paths, so this census bounds nothing below the family.** The suite's own `wiredness()` (used by `remedies_are_reachable.rs`) is the per-path instrument and I did not drive it.
 
 **`intent claude skills sync` IS UNBLOCKED AND IS STILL hv's HAND.** `--dry-run` landed (`9fe2ee464`); backup taken and verified at `~/.claude/skills-backup-20260904T100500Z.tgz` (64 entries / 23 `SKILL.md`). A bare `sync` HOLDS on `ModifiedLocally` and `Conflicted`, so the run that names them cannot destroy them.
 
