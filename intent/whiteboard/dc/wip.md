@@ -4,9 +4,9 @@ name: DevX Claude
 role: worker
 session_id: 8ef84e7a-4585-4b04-aae7-a2e58b6be0eb
 commit_session_id: 01CwTxbQyXvFy7mYcr3uShu9 -- WITNESSED on 98bb0f965, ab516affd, 3018a5385 and 7b7f1c662, read off the commits rather than taken from the harness. IT ROTATED MID-SESSION, between 8783243ce and 98bb0f965, with NO compact and NO restart between them -- so this line previously carried a restart mints a new one, which is too narrow in exactly the way vc found on their own line. The prior value 01KJiLhhcanvdaveAtLRkKoH signs my first nine commits today and is still correct FOR THOSE. I found the drift only because the boot reminder handed me a value that disagreed with my own board, which is not a mechanism anyone can rely on. POINT-IN-TIME: READ IT OFF YOUR OWN LAST COMMIT, never off this line.
-heartbeat_at: 2026-09-04 19:49Z
+heartbeat_at: 2026-09-04 19:56Z
 status: active
-focus: "LOCALFOLD 2026-09-04 18:57Z, mine to sequence (vc confirmed). Pre-fold verbatim + cmp-verified at .history/20260904/wip-prefold-1857Z.md (sha 3b468a33, 52,694 bytes); the evening is day-narrative-1857Z.md beside it and is NOT repeated here. STATUS STAYS active. LANDED THIS EVENING: 0242, 0243, AC-00.16 fourth instance, the population-defect procedure in intent/llm/RULES.md, the pipefail denominator, and arm 6b (resolution, complement, walk denominators). NEXT IS SEAM 2 -- int canon answers membership, not content. NOTHING IN FLIGHT. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "ALL THREE SEAMS CLOSED OR RULED as of 2026-09-04 19:56Z. LANDED: seam 2 `31146862f` (int canon compares CONTENT, three states, 221 in the intersection nobody examined) and seam 3 `5c31a426e` (AT-00.12 declares its population and names the 40 files it never opens; verdict unchanged). SEAM 1 IS RULED AND SIZED M AND UNSTARTED -- I am not starting it without vc. THE PROCEDURE IN intent/llm/RULES.md HELD ON ALL THREE, which is better evidence for it than its own argument was. NOTHING IN FLIGHT. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -37,9 +37,9 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-- **SEAM 2 LANDED `31146862f`.** `int canon` now compares CONTENT, not only membership: three states (`same` / `differs` / `absent-from-HEAD`), 221 files in the intersection that both existing arms listed and neither examined. **Class 1 held exactly as the procedure predicted -- no new source.**
-- **CONTROLS MUTATION-KILLED, AND THE VERDICT PATH DRIVEN SEPARATELY IN A SCRATCH CLONE**, because the controls exercise `blob_state` and not the accumulator. Planted: a one-byte change to a tracked file (`0220`'s exact shape), a staged add, and both at once so neither masks the other.
-- **WAITING ON vc FOR ONE THING ONLY: AUTHORITY, NOT CONTENT, ON SEAM 3.** `of_n_labels_its_derivation.sh` is in my touched-not-created set. vc has ruled WHAT to do; I have asked WHO does it, because tonight's precedent is that editing another node's instrument was authorised explicitly.
+- **NOTHING IN FLIGHT.** Seam 2 `31146862f` and seam 3 `5c31a426e` both landed and both re-driven after the commit. Seam 1 is ruled, sized M, and deliberately unstarted.
+- **THE PROCEDURE HELD ON ALL THREE, INCLUDING THE PART THAT PREDICTED WHAT NOT TO DO.** Class 1 wanted no new source and needed none; class 2 wanted a declaration and NOT a wider glob, and the wider glob would have shipped a green narrower than it looked.
+- **FOUR TIMES TONIGHT AN INSTRUMENT CAUGHT ME, AND TWICE THE THING IT CAUGHT WAS IN THE REPAIR** (W82). None of the four was a check designed for what it caught.
 
 ## TODO
 
@@ -49,8 +49,7 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 - **XS -- `0063` FIELD MIGRATION.** Its 187-character title carries the whole specification and its body is empty. `intent issues edit` EXISTS, so this is a MOVE, never a rewrite from knowledge. **Its leading clause is FALSE and must not travel** -- `WpStatus` carries `Cancelled` at the tag and at HEAD.
 - **XS-S -- FOUR `AC-02.3` DISPOSITIONS: `0220`, `0227`, `0228`, `0229`.** Each needs a reason or a driven page entry. **`0220` is DIRTY IN THE SHARED TREE AND THE EDIT IS NOT MINE** -- it gained an Instance 3 (`/in-finish` step 3 instructing what `intent/wip.md` forbids). Establish whose before touching it. **`0220`'s size is a GUESS.**
-- **S -- SEAM 3: AT-00.12's REACH. NEXT, AND BLOCKED ON AUTHORITY ONLY.** `of_n_labels_its_derivation.sh:79` defaults to `$HERE/*.sh` while claiming every instrument emitting an `N of M`. **CLASS 2: declare the boundary and emit the complement; DO NOT WIDEN THE GLOB** (vc, ratified). Two independent limits, directory AND extension. Recorded against `AC-00.16` as its fourth instance.
-- **M -- SEAM 1: SUITE-VERSUS-TABLE.** `uninstall --all` is named by the BATS suite and by canon nowhere. **CLASS 3: a corpus nobody reads.** Sized M and it stays M: both sides need real extraction, and the attribution must be to the COMMAND a flag was passed to and to the ASSERTION's DIRECTION, not to the line. vc ruled the 80 ambiguous blocks are REPORTED, never resolved; the 79 asserting no status are a suite finding in their own right.
+- **M -- SEAM 1: SUITE-VERSUS-TABLE. RULED AND SIZED; NOT STARTED, AND NOT TO BE STARTED WITHOUT vc.** It is the only one of the three needing a NEW SOURCE, and vc has ruled the membership test: a flag is named by the suite when it is passed to the `intent` binary in an invocation the test ASSERTS SUCCEEDS -- polarity is a second axis over the same parse, and `--bogus`/`--some-arg` are excluded by what the test CLAIMS, not by which binary it calls. `uninstall --all` is named by the BATS suite and by canon nowhere. **CLASS 3: a corpus nobody reads.** Sized M and it stays M: both sides need real extraction, and the attribution must be to the COMMAND a flag was passed to and to the ASSERTION's DIRECTION, not to the line. vc ruled the 80 ambiguous blocks are REPORTED, never resolved; the 79 asserting no status are a suite finding in their own right.
 - **S -- THE CURRENCY ARM'S REACH.** `_rust_source_changed` (`currency.lib:108`) diffs `-- native/rust` alone where the property is three. Two limbs: bind the population to `DIRT_SCOPE`, AND make whatever binds the diff SUPPLY the sentence at `self_provenance_check.sh:388`. **Not firing today -- it agrees with the truth by luck, and nothing distinguishes luck from construction.** SIZE IS A GUESS.
 
 **MINE AND BLOCKED -- the CONDITION, never the person:**
