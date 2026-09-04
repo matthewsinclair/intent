@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01Eho8RbpDHwmxzVoQxivEZk -- WITNESSED on 118f9bf72; POINT-IN-TIME, one session per line. A BOUNCE MINTS A NEW ONE, so re-read it off your own first commit rather than carrying this.
-heartbeat_at: 2026-09-04 15:50Z
+heartbeat_at: 2026-09-04 16:01Z
 status: active
-focus: "LOCALFOLD 2026-09-04 15:50Z AHEAD OF A COMPACT. STATUS STAYS active -- a fold before a compact is NOT a session ending and this fold does NOT release. Pre-fold verbatim at .history/20260904/wip-prefold-1549Z.md. vc HOLDS THE PEN (hv, 2026-09-04). ON THE BOUNCE: ping cc, dc and ic for status FIRST, then coordinate -- do not issue direction off this board, every node moved after it was written."
+focus: "BACK FROM THE COMPACT 16:01Z. Status pinged to cc, dc and ic 15:58Z; all three were BUSY, replies not in. Both holds RE-DRIVEN and both still stand. 0233 is tracked. vc HOLDS THE PEN (hv, 2026-09-04). Two questions still with hv and nothing else is."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
@@ -18,7 +18,11 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 
 ## DOING
 
-**FIRST ACT ON THE BOUNCE: PING cc, dc AND ic FOR STATUS, THEN COORDINATE. DO NOT SEQUENCE ANYONE OFF THIS BOARD.** Every node moved after it was written, the tree unfroze mid-fold, and the whole lesson of 2026-09-04 is that a board read carries the timestamp of the board and never of the reader. **hv asked for exactly this order.**
+**BOUNCE DONE 15:58Z: pinged cc, dc and ic for status, no direction attached. All three were BUSY. Replies not yet in -- DO NOT SEQUENCE ANYONE OFF THIS BOARD UNTIL THEY ARE.**
+
+**THE BOUNCE FOUND AN ASK OF cc's I HAD LEFT UNANSWERED FOR FIVE HOURS, AND cc ANSWERED IT THEMSELVES.** cc asked at 10:03Z whether to take the `browsed()` honest-refusal fix as an XS; _say go and it is the next thing I write_. Zero hits for `browsed` in anything I ever wrote. **cc shipped their own recommendation at `eaef2a04f` (15:09Z), before my bounce instruction even went out.** The message that was false in both clauses is gone. **THE MECHANISM IS NOT cc ACTING UNASKED; IT IS THAT A DIRECT QUESTION TO ME LEFT NO TRACE ON MY OWN BOARD.** It arrived in an inbox my fold did not sweep and my board did not carry, so every later reading of my own state was silently short one open decision. **AN ASK THAT IS NOT ON THE BOARD IS AN ASK THAT WILL BE ANSWERED BY SOMEBODY ELSE OR NOT AT ALL.**
+
+**AND I RE-DROVE cc's MEASUREMENT BEFORE RULING ON IT, WHICH IS THE ONLY REASON I DID NOT RULE _GO_ ON WORK ALREADY IN THE TREE.** cc's own 10:03Z message is the exemplar of the class -- it relayed a three-hour-old pid as current. The rule holds in both directions: **a peer's finding is re-drivable evidence, and re-driving it is cheaper than the ruling it would otherwise buy.**
 
 **vc HOLDS THE PEN** (hv, 2026-09-04: _the boot and hold was while intent-vc got ready; now you're ready, you can instruct the other Claudes_). **A vc ruling under the pen declares `authority: vc`, NEVER `authority: hv`.** The pen does NOT cover hv's environment, the release, or `intent fc`.
 
@@ -31,14 +35,14 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 
 **vc's OWN UNSTARTED WORK, UNCHANGED BY TODAY:** `WP-15` skills-catalogue triage (`ST0065`'s criteria are the bar); the estate-tree question, unsourced and born in a fold; `hv/inbox.vc.md`'s lifecycle; `0224`'s disposition (priced at FIVE estates with a discriminating negative -- hv menu can be priced, not argued).
 
-**UNCOMMITTED AND UNTRACKED AT FOLD TIME -- CHECK IT, DO NOT ASSUME IT LANDED: `intent/.canon/issues/0233.json`.** `git ls-files` returned nothing for it. The issue is CLOSED in the store and its canon file may still be outside git.
+**`0233.json` IS TRACKED -- CHECKED 16:01Z, `git ls-files` rc=0. Discharged.** It went in with the fold commit. **The CLASS is not discharged and is not mine alone: cc had the same on `0232` an hour earlier. The canon store and git disagree, and nothing reports the disagreement.**
 
 ## Holds
 
 **Each carries the CONDITION that releases it, and the COMMAND that checks the condition. A hold with no condition is an abandonment; a condition with no check gets recalled instead of driven.**
 
-- **`ST0068` AC-02.1 -- and the thread prefix is NOT decoration: `ST0056` ALSO has an `AC-02.1`.** **CONDITION: A RELEASE, NOT A BUILD.** **CHECK IT: `git tag --sort=-v:refname | head -1`** -- met when it reads past `v3.0.0`; the number is deliberately not written here.
-- **`AT-07.5`'s behavioural arm is not re-verifiable while a daemon runs. CONDITION -- THE CLAIM, NOT THE STATE AND NOT THE ACT: the arm needs a moment when nothing holds the socket it probes.** **CHECK IT: `pgrep -fl intentd`** -- silence is the condition met; a pid is not, and **A RESTART IS NOT A STOP** (hv rebuilt and restarted 2026-09-04 and the hold did NOT release).
+- **`ST0068` AC-02.1 -- and the thread prefix is NOT decoration: `ST0056` ALSO has an `AC-02.1`.** **CONDITION: A RELEASE, NOT A BUILD.** **CHECK IT: `git tag --sort=-v:refname | head -1`** -- met when it reads past `v3.0.0`; the number is deliberately not written here. **RE-DRIVEN 16:01Z: NOT MET.**
+- **`AT-07.5`'s behavioural arm is not re-verifiable while a daemon runs. CONDITION -- THE CLAIM, NOT THE STATE AND NOT THE ACT: the arm needs a moment when nothing holds the socket it probes.** **CHECK IT: `pgrep -fl intentd`** -- silence is the condition met; a pid is not, and **A RESTART IS NOT A STOP** (hv rebuilt and restarted 2026-09-04 and the hold did NOT release). **RE-DRIVEN 16:01Z: NOT MET, and it is now the THIRD pid today -- 66522, 17087, 99321. Three restarts, zero stops observed, and a pid that keeps changing is evidence of stopping that I still cannot convert into the socket-free MOMENT the arm needs.**
   - **AN UNMEASURED ROUTE THAT WOULD RETIRE THE WINDOW ENTIRELY: an isolated instance -- its own `INTENT_HOME`, its own socket, no shared daemon -- may satisfy the claim without stopping anything anybody is using.** Stated as unmeasured. Taking a window on the SHARED daemon remains hv's and is NOT the condition.
 
 ## hv items
@@ -60,6 +64,8 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 - **EVERY PROJECT GETS THE WRAPUP AS ITS OWN TECHNOTE** (2026-09-01). Sequence: pristine -> devbin-vc FIRST -> hv drives the devbin rollout while every other estate chills -> only then do the rust-using estates hear about it.
 
 ## Watch-outs
+
+**A TEST WHOSE NAME CLAIMS MORE THAN ITS BODY CHECKS -- `every_emitted_remedy_names_something_this_build_can_do` (`intent-cli/tests/remedies_are_reachable.rs`). cc's finding, surfaced in `eaef2a04f`'s body, and it is a VALIDATION hole so it is mine to carry.** It asserts the verb a remedy names is WIRED. **It never asks whether following the remedy changes the situation the remedy was emitted for**, so it passed on `--browser`'s false remedy (`intent daemon start`, while one was running) and passes on the fix. **MEASURED 2026-09-04: 186 remedy emissions; 24 name a verb whose precondition may already be satisfied** -- `intent init` 10, `intent daemon start` 9, the `new` family plus `daemon stop` 5. **UNMEASURED, AND STATED AS SUCH: whether anything anywhere drives a remedy and re-checks the original error.** The grep that would answer it lists files MENTIONING the word, which cannot tell driving from mentioning. **NOT FILED YET, DELIBERATELY: it is cc's finding and cc is mid-turn; filing it now buys two issues for one defect, which is the Highlander shape the issue would be about.** Regenerate the figures: `grep -rc remedy native/rust/crates/intent-cli/src/*.rs`.
 
 **AND THE STANDING JUDGEMENT ON THIS WHOLE SECTION, dc's, 2026-09-03: A RULE YOU HAVE TO REMEMBER AT THE KEYBOARD IS NOT A CONTROL.** dc hit the SAME instrument defect three times in one session with the rule already written down -- _the knowledge lived in a watch-out and not in the shape of the command_. **vc did it too, in the very commit that banked two new instrument watch-outs: `8h-ter` says a stamp typed in the same breath as the read is still typed by feel, and vc typed `15:42Z` off a `15:41Z` read. THE CLOCK GUARD CAUGHT IT; THE WATCH-OUT DID NOT.**
 
