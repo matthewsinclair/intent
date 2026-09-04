@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01Eho8RbpDHwmxzVoQxivEZk -- WITNESSED on 118f9bf72; POINT-IN-TIME, one session per line. A BOUNCE MINTS A NEW ONE, so re-read it off your own first commit rather than carrying this.
-heartbeat_at: 2026-09-04 16:16Z
+heartbeat_at: 2026-09-04 16:41Z
 status: active
-focus: "RULED SEVEN THINGS 16:16Z AND UNBLOCKED ALL THREE NODES. hv HAS THE hv-ITEM LIST WITH CONTEXT, OPTIONS AND A REC. THE FAILURE THAT PRODUCED MOST OF IT: I HAD NEVER READ hv INBOXES I AM THE ROSTERED READER OF."
+focus: "NAME THE BINARY IN EVERY DRIVE -- bare `intent` is 17 commits behind and misses A1 and Op::Form. The rebuild is hv's to time (0196 + a symlink on hv's own PATH). Three of my claims to hv today were wrong and are corrected."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
@@ -55,6 +55,18 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 - **THE canon-git SWEEP LANDS AT `bin/.devbin/cmd/`** -- repo-level, dc's ruled lane, and **it outlives `ST0056`, which `st/ST0056/parity/tools/` does not.** **RECORDED AND NOT BUILT: the durable home is `intent doctor`, because EVERY Intent project has this exposure and `bin/.devbin/` reaches us alone.**
 - **ic's TOKEN DELIVERY: URL FRAGMENT, AND THE PAGE STRIPS IT WITH `history.replaceState` ON LOAD.** ic's argument -- never sent to the server, never logged -- is about THE WIRE and is true. **It says nothing about the address bar, the history entry, or a URL copied out of the bar.** Flagged to hv as a posture they may overturn; ic is not held behind it.
 - **`at green` L3 arm and the rustdoc gate are MINE, not hv's** -- tooling posture, inside the pen. Taken off cc's hv list.
+
+## Watch-outs (added 2026-09-04 16:41Z)
+
+**IS THE CLAIM ABOUT THE STORE, OR ABOUT THE BINARY? cc's discriminator, and the most useful rule of the day -- it applies AT THE MOMENT OF WRITING A FINDING rather than after.** Store reads survived a stale binary all day because the schema had not moved in the interval; **every binary-BEHAVIOUR claim did not, and mine was the one that failed.** A read of an SSOT file -- `dispatch-table.json`, `wire.rs`, `register.md` -- is not a claim about any binary at all, which is why dc's `--all` static leg and ic's `wire.rs:85` Op-list held up all day while my drives did not.
+
+**NAME THE BINARY IN EVERY REPORTED DRIVE. A BARE `intent` IN A REPORT IS A CLAIM NOBODY CAN REPRODUCE.** `~/.local/bin/intent` is a SYMLINK into `native/rust/target/release/intent`. **CHECK IT: `stat -Lf '%m'` (the `-L` is the whole point) and `git rev-list --count <marker>..HEAD`** -- the figures are deliberately not written here. **THE REBUILD IS hv's TO TIME AND THE REASON IS NOT AUTHORITY: `0196` says `guarded_release_build` DELETES the shared pair before it builds with no restoring failure path, and the PATH entry is a symlink INTO that directory -- so a failed build leaves a DANGLING SYMLINK ON hv's OWN PATH.** That reaches hv's environment, which the pen does not cover.
+
+**AND THREE CLAIMS I PUBLISHED TO hv TODAY WERE WRONG, TWO OF THEM FLATTERING TO ME.** (1) _the binary is nine days old_ -- **I ran `stat` on the SYMLINK, which does not follow on macOS, and read the LINK'S creation date as the binary's age.** It is about an hour old. (2) _its mtime and marker disagree without saying so_ -- **THEY AGREE EXACTLY**, built five minutes after the commit they name; **I manufactured the disagreement by reading two different inodes and then wrote the artefact up as a finding sharper than the true one.** (3) _add a binary-currency check, none of us was checking_ -- **`self_provenance_check` EXISTS, it is dc's, and dc QUOTED IT FIRING CORRECTLY IN THE MESSAGE I WAS ANSWERING.**
+
+**THAT IS THE DISPROOF-ALREADY-IN-HAND CLASS, THIRD INSTANCE TODAY AND THE WORST OF THE THREE.** cc cited `register.md` past the paragraph that answered them; dc nearly adopted cc's instrument without driving it against their own case; **I recommended building a thing that was on my screen.** **AND MINE PROPAGATED: cc adopted _nine days old_ from me and quoted it back inside one exchange.** **AN OVERSTATED FINDING TRAVELS FASTER THAN A CORRECT ONE, BECAUSE IT IS MORE INTERESTING.**
+
+**I ALSO NEARLY TOLD dc THEIR COMMIT DID NOT WORK.** A1 measured as all-five-still-rc=2 -- against the pre-A1 binary. **THE NEAR-MISS IS THE FINDING: an accusation aimed at a peer is exactly where a stale instrument does the most damage, and nothing in the drive itself said the binary was old.**
 
 ## Watch-outs (added 2026-09-04)
 
