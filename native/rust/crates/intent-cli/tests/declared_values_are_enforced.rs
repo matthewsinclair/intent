@@ -185,14 +185,24 @@ const DECLARED: &[Slot] = &[
     disposition: Disposition::Enforced,
   },
   Slot {
-    // The twin (INV-09). Unbuilt today -- `intent browse st ST0056` answers
-    // rc=2 -- so there is nothing to hand a bad value to yet, and this reds
-    // when the verb is wired.
+    // **THE TWIN (INV-09), AND IT RE-BUCKETED ON SCHEDULE.** This row read
+    // `Unwired` until 2026-09-04 and its own comment said *this reds when the
+    // verb is wired* -- which is exactly what happened the hour `browse` got a
+    // dispatch arm. **The assertion was not relaxed; the row moved**, which is
+    // the whole point of recording a disposition rather than an expected exit
+    // code: a verb that starts working must FAIL this test on its way to being
+    // reclassified, or nothing would mark the change.
+    //
+    // Its twin `edit --browser` is `Enforced` above and always was, because
+    // `edit` shipped first. **The two rows now agree, which is INV-09 reaching
+    // the roster** -- a capability present by one spelling and absent by the
+    // other would show up here as two dispositions before it showed up
+    // anywhere a user could see.
     path: "browse",
     arg: "kind",
     lead: &[],
     trail: &["ST0001"],
-    disposition: Disposition::Unwired,
+    disposition: Disposition::Enforced,
   },
   Slot {
     path: "wp rescope",

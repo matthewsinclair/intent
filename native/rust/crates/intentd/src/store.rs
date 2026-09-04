@@ -619,13 +619,13 @@ fn resolve_view(path: &str) -> Result<intentsvcs::address::Address, Response> {
   let view = intentsvcs::nav::View::parse(path).ok_or_else(|| {
     Response::error(
       format!("`{path}` is not a path this project can name"),
-      "paths are `/{kind}/{id}` -- `/thread/ST0056`, `/issue/0021`. A spelling that names nothing is refused as a spelling rather than resolved to something near it.".to_string(),
+      "paths are `/{kind}/{id}` -- `/thread/ST0000`, `/issue/0021`. A spelling that names nothing is refused as a spelling rather than resolved to something near it.".to_string(),
     )
   })?;
   let entity = intentsvcs::nav::entity_for_item(&view).ok_or_else(|| {
     Response::error(
       format!("`{path}` does not name a single entity with a form"),
-      "a form is one item: `/thread/ST0056` or `/issue/0021`. A collection, a child collection and the settings screen are views this operation does not answer.".to_string(),
+      "a form is one item: `/thread/ST0000` or `/issue/0021`. A collection, a child collection and the settings screen are views this operation does not answer.".to_string(),
     )
   })?;
   Ok(intentsvcs::address::Address {
