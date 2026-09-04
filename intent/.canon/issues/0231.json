@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 231,
+  "slug": "tui-repaints-declare-no-frame-boundary-so-real-t",
+  "title": "TUI repaints declare no frame boundary, so real terminals can tear -- crossterm ships the fix",
+  "status": "open",
+  "severity": "medium",
+  "created": "2026-09-04",
+  "reporter": "Matthew Sinclair",
+  "body": "`intent tui` repaints without declaring a frame boundary, so a real terminal can present a half-drawn frame. Wrapping the draw in a synchronised update fixes it, and costs one call site.\n\nWHAT IS TRUE TODAY, read at source rather than inferred from type names:\n\n- crossterm 0.29 SHIPS the primitive: `BeginSynchronizedUpdate` writes `ESC[?2026h` and `EndSynchronizedUpdate` writes `ESC[?2026l` (`crossterm-0.29.0/src/terminal.rs:437` and `:490`).\n- ratatui 0.30.2's backend emits NEITHER -- nothing under its `src/backend/` mentions synchronised update or 2026.\n- Our code emits neither.\n\nSo no layer in the stack declares a frame boundary, and each repaint reaches the terminal as an undelimited stream of writes. A terminal that supports DEC 2026 will hold the frame and present it atomically once told to; without the markers it presents whatever has arrived, which is what tearing and flicker are.\n\nTHE CHANGE IS ONE CALL SITE: wrap `term.draw(|f| ...)` at `src/tui/run.rs:511`.\n\nWHY THIS IS FILED AS UX AND NOT AS TEST INFRASTRUCTURE. It was FOUND while asking whether a pty harness could know when a frame had landed, and the same markers would answer that -- a countable, content-free frame delimiter. But the anti-flicker win stands on its own, needs no harness to justify it, and benefits every operator on every repaint. Filed as test infrastructure it would have died with the harness question that surfaced it. (vc's call, 2026-09-04.)\n\nWORTH CHECKING BEFORE BUILDING: whether ratatui 0.30 has its own opinion about who owns the frame boundary, and whether wrapping its `draw` from outside conflicts with anything it does internally. The grep above establishes it emits no markers; it does NOT establish that wrapping is the shape ratatui expects.\n"
+}
