@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 98a46c38-f370-4d67-b2c5-c2536e0ae8f9
 commit_session_id: 0167bZhMQsEXFM5JZUZxL5g7 -- NOW WITNESSED on cd6d36d96, my own last commit, so this line is no longer the harness's word for it. READ IT WITH grep, NOT WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse BOTH return EMPTY on every commit in this repo (55 of today's 58 carry the line; the parser finds 0), because the (C) attribution line above it is a non-trailer line in the final paragraph and git therefore rejects the whole paragraph as a trailer block. Verified by positive control (a synthesised body parses) and by discriminator (drop the (C) line and the same body parses). The working read is: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. ROTATED THIS SESSION (time NOT read off a clock, so NOT stated -- an invented stamp is worse than an admitted gap) and NOT witnessed on a commit of mine yet; the harness announced it. The prior value 01XYetoGJWvBxvL4PE8sGZTu was witnessed on eaef2a04f, 0b5d46c96 and 018016241 and SURVIVED A COMPACT unchanged at 15:55Z. So: a compact does NOT rotate it, and something else does. Read it off your own first commit rather than trusting this line. POINT-IN-TIME.
-heartbeat_at: 2026-09-04 18:45Z
+heartbeat_at: 2026-09-04 20:19Z
 status: active
-focus: "BOOT COMPLETE 2026-09-04 18:18Z. HOLDING FOR hv. All four inboxes empty; peers reach me over SendMessage and all three have. vc AUTHORISED FOUR CLOSES (0090, 0151, 0095, 0096) authority: vc, and set a four-item sequence -- NOT STARTED, hv said hold. agents message fix HELD by vc until they rule the twelve-verb convention off 0239. ic is OUT of render.rs (5a3b22fd). MY F4 MECHANISM WAS REFUTED TWICE AND dc HAS IT RIGHT: THE GATE REWRITES NOTHING, THE SECOND WRITER WAS MY OWN HANDS. 0239.json STILL UNTRACKED -- the one thing needing hv. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "vc's SEQUENCE ITEMS 1-3 DONE 2026-09-04 20:19Z. 0175 FIXED AND SHIPPED at 99a66928f -- bare `intent agents` renders family help at rc=0, matching v2. CLOSED 0090 0151 0095 0096 and 0239 (duplicate of 0175, filed without searching -- mine). FILED 0246 (high) 0247 0248. AMENDED 0175 0218. TEN CANON ROWS UNCOMMITTED AND AWAITING hv. Remaining: implemented_check FP class, then SIZE 0063 for a schema rung. NINE self-caught wrong claims today, one shape: an instrument answering the neighbouring question. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/06, ST0056/10, ST0057/00]
 ---
 
@@ -14,7 +14,15 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 
 ## DOING
 
-**BOUNCED. `0239` FILED; NOTHING ELSE IN FLIGHT.** Pre-fold verbatim: `.history/20260904/wip-prefold-1741Z.md`.
+**vc's SEQUENCE 1-3 DONE. `render.rs` COMMITTED AND CLEAN (`99a66928f`); TEN CANON ROWS UNCOMMITTED, ALL AWAITING hv.**
+
+**WHAT SHIPPED:** `0175` -- bare `intent agents` renders the family help at rc=0, as v2 does. **One line**, `family_help("agents")`, using the helper that already existed at `render.rs:6415` rather than a third `*_usage` copy. 76 tests green. **The dispatch table needed no change: its `observed` block is the v2 baseline, so the table was right and the code was wrong.**
+
+**WHAT I GOT WRONG AND CAUGHT, ALL ONE SHAPE -- an instrument answering the NEIGHBOURING question correctly:** a byte count for a content claim; a file count for a directory claim; default `IFS` for an origin rule; a `--help` count of DECLARED verbs for an IMPLEMENTED-verb claim; a call-site count for a REACHED-site claim; a past-tense code comment read as a live mechanism; **and a probe written to verify a retraction that matched my own quotation of the retracted phrase.** **Every measurement executed correctly. The SUBJECT was wrong each time.**
+
+**WHAT PEERS GOT WRONG AND I REFUSED TO RELAY:** vc instructed me to file _the issue register cannot be searched_ -- `intent search` finds the exact row first hit, and filing it would have put a fabricated defect in the register sourced to a peer. ic offered an absolution for my duplicate -- the counterfactual refuted it six ways.
+
+~~**BOUNCED. `0239` FILED; NOTHING ELSE IN FLIGHT.**~~ Pre-fold verbatim: `.history/20260904/wip-prefold-1741Z.md`.
 
 **THREE THINGS THE BOUNCE SETTLED, EACH BY DRIVING IT RATHER THAN RECALLING IT:**
 
@@ -95,6 +103,8 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 **D2. A MEASUREMENT IS RE-TAKEN AT THE MOMENT IT IS QUOTED, AND THE RELAY IS WHERE IT ROTS.** **The tell is a possessive tense:** _the daemon IS stale_ is a claim about now sourced from a reading about then, and nothing in the sentence marks the gap. **RULE: a figure crossing into a message gets re-driven in the turn that sends it.**
 
 **D3. AN OBJECTION HAS A PREMISE TOO, AND MINE GO UNDRIVEN BECAUSE THEY FEEL LIKE CAUTION.** Twice today I reasoned from D56's PRINCIPLE against a §10a DETAIL I had not read, with ic having read it both times -- and the second time the refuting text was **a doc comment I wrote myself** (`intentd/src/web.rs:28-37`). **The tell is that an objection does not feel like a claim; it feels like diligence, so its premise is never stated and therefore never driven.** **RULE: before an objection leaves this session, name its premise as a sentence and drive THAT.** When the premise is _the design does not permit X_, the drive is opening the design document.
+
+**D5. AN EXCULPATORY CLAIM CARRIES THE SAME BURDEN AS AN ACCUSATORY ONE, AND THE TELL IS THAT YOU RAN NOTHING (ic, against themselves).** ic argued my duplicate filing was not my fault -- that the search verb was broken on the query that would have found the row -- **asserted without driving it, in the same message where they corrected me on something they HAD driven.** Their diagnosis: _my evidence bar dropped because the claim was in your favour; a generous claim does not feel like a claim, so nothing prompted the drive._ **THE COUNTERFACTUAL KILLED IT IN ONE COMMAND** -- six subject-shaped queries all find the row -- **which is exactly what the assertion should have cost.** **THIS IS D3's MIRROR AND THEY BELONG TOGETHER:** an objection escapes its evidence bar by feeling like caution; a generosity escapes it by feeling like fairness. **RULE: a claim that does not feel like a claim is the one to drive.** **AND IT CUT BOTH WAYS -- their wrong argument made me test a sentence in my OWN filed issue, which was also an overclaim, and I retracted it.**
 
 **D4. _I DECLINED TO MEASURE BECAUSE OF SIDE EFFECTS_ IS ONLY HONEST IF I CHECKED WHETHER THEY WERE CONTAINABLE.** Unchecked, restraint produces an unmeasured claim wearing the costume of rigour -- and I then reasoned forward from the gap using **v2 evidence about a v3 binary**. **RULE: name the mechanism by which the side effect reaches the operator and ask whether it can be contained.** A scratch `HOME`, a tempdir root and a detached worktree are the three that work here.
 
