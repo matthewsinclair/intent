@@ -3587,18 +3587,31 @@ fn handed_address(
 /// and the field the editor opened would not have to be the field the screen
 /// showed.
 fn entity_json(facade: &Facade, kind: &str, id: &str) -> Option<serde_json::Value> {
-  match kind {
-    "thread" => facade
-      .st_show(id)
-      .ok()
-      .and_then(|t| serde_json::to_value(t).ok()),
-    "issue" => id
-      .parse::<u32>()
-      .ok()
-      .and_then(|n| facade.issue_show(n).ok())
-      .and_then(|i| serde_json::to_value(i).ok()),
-    _ => None,
-  }
+  // **A THIN ADAPTER NOW, AND IT USED TO BE THE HOME.** This function held its
+  // own `match kind` over `thread` and `issue` until 2026-09-04. That was one
+  // crate too high: `intentd` depends on `intentsvcs` and NOT on the CLI, so
+  // the daemon could not call it, and the form op would have had to write the
+  // same lookup again -- the identical mistake `form::triples` was moved down
+  // to fix, arriving by the identical door one layer along.
+  //
+  // **THE `_ => None` THAT USED TO LIVE HERE WAS ALSO THE `wp` GAP**, which
+  // `nav.rs` describes the consequence of in as many words. It is now
+  // [`intentsvcs::facade::Facade::entity_json`]'s arm and resolves.
+  //
+  // **THE `None` THIS STILL RETURNS IS THE VIEW CONTRACT'S, NOT THE LOOKUP'S.**
+  // `entity_for_item` answers `None` for a kind the TUI's path grammar cannot
+  // express an item view for -- a work package among them, because
+  // `/wp/ST0056/17` would parse as a CHILDREN view under the positional
+  // `/{kind}/{id}/{field}` shape. The wire reaches work packages through
+  // `intent://` addresses, which are not positional in that way. Two path
+  // contracts, one entity vocabulary, and this is where they meet.
+  let view = intentsvcs::nav::View::Item {
+    kind: kind.to_string(),
+    id: id.to_string(),
+  };
+  facade
+    .entity_json(&intentsvcs::nav::entity_for_item(&view)?)
+    .ok()
 }
 
 /// Read the rows one view shows.
