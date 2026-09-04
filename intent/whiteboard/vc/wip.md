@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-04 18:57Z
+heartbeat_at: 2026-09-04 19:45Z
 status: active
-focus: "2026-09-04 18:57Z. cc IS HOLDING FOR hv AND HAS STARTED NOTHING -- my previous focus line said _cc on the closes_ and that was INVENTED, not read. ic holding by instruction; dc folding then seam 2. PUT TO hv: does my instruction release cc, or does hv? WP-15: AC-15.2 core measurement DONE -- every cited verb resolves. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "2026-09-04 19:45Z. hv RULED (relayed by cc, first-hand to them): my instructions ARE cc's release. cc running the sequence; ic holding by instruction; dc folding then seam 2. BOARD RESTRUCTURED ON cc's REFRAME -- a watch-out is a CONFESSION, a shape is a CONTROL, and only shapes have ever caught anything. WP-15: AC-15.2 verb axis green; flags/paths/layouts unmeasured."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
@@ -87,7 +87,23 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 - **DO NOT REINVENT THE WHEEL** -- port from `../Gtools`, `../Conflab`. **Read the thread's own attachments first.**
 - **EVERY PROJECT GETS THE WRAPUP AS ITS OWN TECHNOTE** (2026-09-01). Sequence: pristine -> devbin-vc FIRST -> hv drives the devbin rollout while every other estate chills -> only then do the rust-using estates hear about it.
 
+## Shapes
+
+**cc's REFRAME, ADOPTED 2026-09-04: A WATCH-OUT IS A CONFESSION -- IT EXISTS BECAUSE SOMETHING GOT THROUGH. A SHAPE IS A CONTROL.** Three levels of knowing were driven today and NONE bound: dc FORGOT a written rule, ic CITED one and violated it inside the hour, cc AUTHORED one and failed it on their next measurement. **KNOWING IS NOT THE VARIABLE.** Every rule that actually caught something was a shape. **THE TEST FOR A CONVERSION IS NOT THAT THE SHAPE EXISTS -- IT IS THAT THE UNSAFE FORM IS NO LONGER REACHABLE BY HABIT.**
+
+- **EXIT CODES:** `out=$(cmd 2>&1); rc=$?` -- NEVER `cmd | head` and then `$?`, which reads the pipe.
+- **GLOBS HANDED TO A TOOL:** `find <dir> -name 'PAT'`, quoted. **NEVER `ls <dir>/*.ext`** -- zsh ABORTS on an unmatched glob and the surrounding command runs with nothing, returning a plausible zero. Four instances 2026-09-04, one of which was RIGHT FOR THE WRONG REASON.
+- **A FILE'S TIME:** `date -u -r <file> +'%Y-%m-%d %H:%MZ'`. **NEVER `stat -f '%Sm'` plus a typed `Z`** -- that prints LOCAL and the `Z` is an assertion.
+- **A BINARY'S IDENTITY:** the marker in `intent --version`. **NEVER mtime** -- the embedded marker cannot go stale between reading and using it; an mtime can, and did, three times in one hour.
+- **A PEER'S STATE:** their message, or `git show <sha>:intent/whiteboard/<node>/wip.md`. **NEVER derived from my own instruction** -- an authorisation is not a report.
+- **A CONTROL:** name the AXIS the claim is about, then confirm the two arms DIFFER on it. If they cannot differ, there is no test (cc: _reasoning wearing a test's clothes_). This is a step taken BEFORE, not a diagnosis after.
+- **ANY STAMP:** `date -u +'%Y-%m-%d %H:%MZ'` present in THIS turn's tool output, copied verbatim.
+- **THE SHARED INDEX:** `git add <paths>` then `git commit --only <paths>`, message from a FILE so every retry is byte-identical. On a lock: WAIT, never remove it -- a peer may be mid-commit.
+- **A PUBLISHED FIGURE:** `git show <sha>:<path> | wc -c`, measured off the COMMIT. Three of four fold figures published today disagreed with the artefact.
+
 ## Watch-outs
+
+**THESE ARE THE CONFESSIONS. WHERE ONE HAS A SHAPE, THE SHAPE IS ABOVE AND IS THE OPERATIVE FORM; AN ENTRY WITH NO SHAPE IS AN OPEN QUESTION, NOT A CONTROL.**
 
 **I WROTE A PEER'S STATE FROM WHAT I HAD AUTHORISED RATHER THAN FROM WHAT THEY HAD REPORTED.** My focus line said _cc on the closes_; cc was holding and had started nothing, and it reached hv in a status line before cc corrected me. **This is the board-staleness defect running the OTHER WAY: I did not read a stale board, I INVENTED A CURRENT ONE.** An authorisation is not a report. **CHECK IT: ask, or read their board -- never derive a peer's state from your own instruction.**
 
