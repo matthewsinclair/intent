@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-04 19:51Z
+heartbeat_at: 2026-09-04 19:54Z
 status: active
-focus: "2026-09-04 19:51Z. PEER STATE IS NO LONGER CARRIED ON THIS LINE -- it decayed twice today and both peers corrected me; ask them or read their board. Filed 0244 (remedy-test hole, routed to ic) and 0245 (wp show vs the dispatch table). CORRECTION OWED hv: the rc=1->rc=2 migration is WIDER than the four verbs I routed. WP-15 AC-15.2 verb axis green."
+focus: "2026-09-04 19:54Z. THE NIGHT'S DOMINANT FAILURE MODE IS NAMED AND SHAPED: a correct measurement of the WRONG SUBJECT, seven instances across four nodes, not one of them a wrong measurement. Two pre-run shapes now cover it -- the NOUN check and the AXIS check. WP-15 AC-15.2 verb axis green, triage table still unwritten."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
@@ -99,6 +99,8 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 - **A CONTROL:** name the AXIS the claim is about, then confirm the two arms DIFFER on it. If they cannot differ, there is no test (cc: _reasoning wearing a test's clothes_). This is a step taken BEFORE, not a diagnosis after.
 - **ANY STAMP:** `date -u +'%Y-%m-%d %H:%MZ'` present in THIS turn's tool output, copied verbatim.
 - **THE SHARED INDEX:** `git add <paths>` then `git commit --only <paths>`, message from a FILE so every retry is byte-identical. On a lock: WAIT, never remove it -- a peer may be mid-commit.
+- **BEFORE ANY INSTRUMENT RUNS -- THE NOUN CHECK: DOES ITS OUTPUT UNIT MATCH THE CLAIM'S SUBJECT NOUN?** Write the claim, underline the noun, look at what the instrument counts. **Every count-shaped failure tonight dies here instantly:** _does uninstall leave the DIRECTORY_ measured with `find -type f`; _do the BYTES differ_ measured by `len()` on decoded text; _is this file in GIT_ answered by `git ls-files`, which is MEMBERSHIP where the claim was CONTENT. **Checkable with no second arm and before anything runs.**
+- **BEFORE ANY CONTROL RUNS -- THE AXIS CHECK (cc): the two arms must DIFFER ON THE AXIS and TRAVEL THE SAME MACHINERY.** Distinct from the noun check and neither covers the other: cc's `IFS` failure had the right NOUN and a collapsed AXIS; the file-count failure had a live axis and the wrong NOUN.
 - **A BYTE COMPARISON:** never through `$( )` -- **command substitution STRIPS TRAILING NEWLINES**, so a comparison built on it calls two files identical when the only difference is a final newline, and canon JSON is exactly that file class (dc).
 - **A CONTROL'S PATH:** the control must travel **THE DEFECT'S OWN MACHINERY**. Varying the axis is not enough if the arms take different routes -- cc wrote a negative control literally while the subject went through a variable, so it could not have caught the word-split no matter what it returned. **Arms share the machinery and differ ONLY on the axis** (cc).
 - **A MULTI-WORD COMMAND:** build the argv as an array, or `eval` a single quoted string. **NEVER interpolate a multi-word command into one unquoted variable** -- zsh does not word-split it and you invoke one long argument. cc twice, me four times on the sibling glob trap.
@@ -106,6 +108,10 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 - **A PUBLISHED FIGURE:** `git show <sha>:<path> | wc -c`, measured off the COMMIT. Three of four fold figures published today disagreed with the artefact.
 
 ## Watch-outs
+
+**A CORRECT MEASUREMENT OF THE WRONG SUBJECT IS THIS ESTATE'S DOMINANT FAILURE MODE. SEVEN INSTANCES ON 2026-09-04, ACROSS ALL FOUR NODES, AND NOT ONE WAS A WRONG MEASUREMENT** -- every one executed correctly and returned a true answer about something else. cc's three (byte-for-character, file-for-directory, default-`IFS` for an origin rule), my three (the exit-code key; a `.intent/` scan that matched the sentence RETIRING the thing; a `find` scoped to a directory the dispatch table does not live in), and `register.md`'s `keep` label answering reachability while promising runnability. **ic's earlier form is the diagnosis and it is still exactly right: A WELL-FORMED ANSWER ABOUT THE WRONG SUBJECT HAS NO TELL AT ALL.** The two pre-run shapes above are the response; nothing after the fact has ever caught one.
+
+**I AMPLIFIED A PEER'S CLAIM INSTEAD OF DRIVING IT.** cc reported a `0218` discriminator; I called it _stronger than either path being wrong_ and instructed them to record it. It was false -- both uninstall paths leave the skill roots. **I made a borrowed claim MORE load-bearing without driving one thing, and it did not reach hv only by luck.** Being wrong costs the courier nothing, which is why the courier is where the discipline is cheapest to skip.
 
 **A CATEGORY DERIVED FROM ONE QUESTION AND LABELLED WITH A PHRASE THAT ANSWERS A DIFFERENT ONE. THREE INSTANCES IN ONE EVENING AND EVERY CONTROL PASSED, BECAUSE THE CONTROLS TESTED THE DERIVATION AND NEVER THE LABEL.** (1) My exit-code key merged _ran-and-found_ with _you typed it wrong_. (2) cc's read-back counter answered CHARACTERS while claiming bytes. (3) **`register.md` classifies `skills_commands.bats` `keep` on `burn 39/39` -- burn asks whether a test REACHES the CLI, `keep`'s wording promises it RUNS UNMODIFIED, and it fails 37 of 39.** Both instruments correct; the LABEL is the defect. **AND THE THIRD ONE IS LOAD-BEARING FOR THE CUT: nobody prunes the v2 trunk against `burn 39/39`, they prune against the word `keep`.**
 
