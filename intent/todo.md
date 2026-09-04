@@ -12,7 +12,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 05: CLI in-process mode and BATS conformance harness
   - [-] 06: CLI parity long tail
   - [-] 07: Canon and claude subsystem
-  - [-] 08: intentd daemon
+  - [x] 08: intentd daemon
   - [x] 09: MCP server and agent guide
   - [-] 10: Migration and fleet ingest harness
   - [-] 11: Distribution: cargo-dist, Homebrew, signing
@@ -22,6 +22,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [ ] 15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
   - [ ] 16: Contract drift: a shipped field with no model row is refused
   - [-] 17: Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs
+  - [-] 18: Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator
 - [-] ST0057: Disk as a sparse projection of the store
   - [x] 01: Canon relocation to intent/.canon/
   - [x] 02: .intentfiles: the manifest and its refusing grammar
@@ -64,9 +65,9 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [?] ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
 - [ ] ST0070: LLM config rationalisation -- one home per fact
 
-## DONE:2026-08-30T08:49:54Z
+## DONE:2026-09-04T15:03:13Z
 
-- [~] ST0071: help
+_(none)_
 
 ---
 
