@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-04 19:57Z
+heartbeat_at: 2026-09-04 20:02Z
 status: active
-focus: "2026-09-04 19:57Z. dc: all three seams closed or ruled -- seam 1 SPECIFIED AND PARKED for a fresh session on measured instrument decay, not on tiredness. cc on item 3. ic on 0244. WP-15 AC-15.2 verb axis green; the 23-row triage table is the remaining bulk and is unwritten. PEER STATE IS NOT CARRIED ON THIS LINE -- ask them."
+focus: "WRAP 2026-09-04 20:02Z. dc PARKED CLEAN (seams 2+3 landed, seam 1 specified at 0d8426ed4). ic sizing 0244 into the issue then stopping. cc implementing the agents REGRESSION fix. MY agents RULING WAS WRONG AND cc INVERTED IT -- arity 0..1 means the bare form is LEGAL. WP-15: verb axis green, 23-row triage table UNWRITTEN and it is judgement work. PEER STATE IS NOT CARRIED ON THIS LINE."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
@@ -22,7 +22,11 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 
 **ic AND I BOTH CLAIM `ST0064`.** Not a fire and not resolved -- flagged rather than silently reconciled, because a double claim that nobody names is how two nodes build the same thing.
 
-**FIRST ACT ON THE BOUNCE: PING cc, dc AND ic, THEN INSTRUCT. DO NOT SEQUENCE ANYONE OFF THIS BOARD** -- every node moved after it was written, and the whole lesson of 2026-09-04 is that a board read carries the timestamp of the board and never of the reader.
+**FIRST ACT ON THE NEXT BOUNCE: PING ALL THREE AND ASK, DO NOT READ THEIR STATE OFF THIS BOARD.** It went wrong TWICE on 2026-09-04 -- once INVENTED from my own authorisation (cc were holding, not working) and once DECAYED (ic released while the line still said held). **Both peers corrected me; nothing in the tooling would have.**
+
+**WP-15 IS THE WORK AND ITS REMAINING BULK IS JUDGEMENT, NOT MEASUREMENT.** Step 1 landed (`e450ff31e`, the denominator DELETED). `AC-15.2`'s VERB axis is green -- 33 spellings driven in a throwaway project, negative control held. **FLAGS, PATHS AND LAYOUTS ARE THREE AXES UNMEASURED AND THE CRITERION NAMES ALL FOUR.** The 23-row triage table is unwritten. **DO NOT REPORT THE VERB AXIS AS THE ROW.**
+
+**PARKED DELIBERATELY, BOTH ON A MEASURED DECAY CURVE RATHER THAN ON TIREDNESS:** dc's seam 1 (specified, sized M, polarity ruled) and ic's `0244` harness. **THE DISCRIMINATOR IS dc's W88 AND IT SAYS WHICH WORK TO STOP, NOT WHETHER TO STOP: a decayed harness on seam 3 REFUSED; on seam 1 it would have REPORTED.** Both parked items fail by emitting a confident number.
 
 **vc HOLDS THE PEN** (hv, 2026-09-04). **A vc ruling declares `authority: vc`, NEVER `authority: hv`.** The pen does NOT cover hv's environment, the release, or `intent fc`.
 
@@ -67,6 +71,8 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 
 ## hv items
 
+- **NOTHING IS PUSHED. 38 COMMITS AHEAD OF BOTH `local` AND `upstream`, ZERO BEHIND**, last pushed tip `a82cc2bb1` (hv's own safety checkin); 95 commits on main today. **Raised by dc as a direction, measured by me into a number.** Outward-facing, hv's, and **the only item no node owns.** REGENERATE: `git rev-list --count upstream/main..HEAD`.
+- **`agents` BARE IS A v2-TO-v3 REGRESSION, NOT A CONVENTION QUESTION -- AND THIS CORRECTS MY OWN RULING.** `arity: "0..1"` makes the bare form LEGAL by declaration and the table's own `observed` block records v2 at `exit 0, 984B`. **cc refuted me; I drove it before accepting.** Authorised as a regression fix, same class as `0236`. **AND MY MIGRATION FIGURE WAS WRONG TWICE (four, then thirteen): the top-level set is the SIX `arity: 1` families, and NESTED families are UNMEASURED rather than absent.**
 - **THE REBUILD.** Guarded scope is clean and `dvb build all` will take the shared path. **The delivered pair misses `Op::Form`, A1 and `0236`.** `0196` is why the timing is hv's: `guarded_release_build` DELETES the shared pair before it builds with no restoring failure path, and `~/.local/bin/{intent,intentd}` are symlinks INTO that directory -- **so a failed build leaves a dangling symlink on hv's own PATH.** ic inflicted exactly that earlier today.
 - **THE STORE MIGRATION.** 13 -> 17, ladder complete, each rung transactional with an FK check INSIDE it before `user_version` moves. **The refusal already exists** (`SchemaMismatch` names the remedy and points at `intent doctor`), so only the backup step is missing. **FIX: wire the existing `intent backup` into `migrate()`. XS, not M** -- the verb exists and the backup-log table has been in the schema since rung 3->4.
 - **DOES ic's `wp` ADDRESSING SHAPE RIDE 3.0.1?** Build it / reword `AC-17.6` / ship the row unsatisfied and say so. **Not the reword** -- rewording an acceptance row to match what got built is how a contract stops being one.
