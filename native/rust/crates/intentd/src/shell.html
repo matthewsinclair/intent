@@ -310,12 +310,51 @@
       }).then(function (answer) {
         // The daemon reports its own refusals INSIDE a well-formed response,
         // so a 200 is not on its own a success and the body is what decides.
-        if (answer.body && answer.body.error) {
-          failed(answer.body.error, answer.body.remedy || "");
+        //
+        // **THE TAG DECIDES. KEYING ON A FIELD'S PRESENCE MADE THIS BRANCH DEAD
+        // (`0241`).** `wire::Response` is `#[serde(tag = "result")]`, so a
+        // refusal is `{result: "error", message, remedy}` and there is NO
+        // `error` key anywhere in the enum. This read `answer.body.error`,
+        // which is `undefined` for every refusal the daemon can produce, so the
+        // guard never fired -- and the `status !== 200` guard below cannot
+        // catch it either, because refusals are 200 BY DESIGN, which is exactly
+        // what the comment above says. A refusal was therefore handed to the
+        // SUCCESS renderer, which looked for `title` and `fields` on
+        // `{result, message, remedy}`, found neither, and painted "undefined"
+        // over an empty form while a precise message and its remedy were
+        // discarded.
+        //
+        // **HALF THE GUESS TYPE-CHECKED AGAINST REALITY, WHICH IS HOW IT
+        // SURVIVED A READ** (cc's finding): `remedy` IS a real field on the
+        // variant, so the wrong key sat beside a correct sibling and the line
+        // read as checked.
+        //
+        // **A CORRECT COMMENT ON TOP OF CODE THAT CONTRADICTS IT IS WORSE THAN
+        // NO COMMENT**, because it tells the next reader the case is handled.
+        // The comment above was right the whole time.
+        if (answer.body && answer.body.result === "error") {
+          failed(answer.body.message, answer.body.remedy || "");
           return;
         }
+        // **AFTER the refusal check and not before it**: a refusal arrives at
+        // 200, so testing the status first would let it through; but a
+        // transport failure like a 401 carries no `result` tag at all, so it
+        // has to be named by its status rather than by its shape.
         if (answer.status !== 200) {
           failed("The daemon answered " + answer.status, "");
+          return;
+        }
+        // **AN UNREADABLE 200 IS A FAULT, NOT SOMETHING TO RENDER.** Every
+        // `wire::Response` carries a `result` tag naming its kind. Without one
+        // this page would hand an unknown object to the success renderer and
+        // paint `undefined` -- which is the whole symptom `0241` was, reached
+        // by a different route. Refusing here closes that route as a class
+        // rather than only closing the one instance that was found.
+        if (typeof answer.body.result !== "string") {
+          failed(
+            "The daemon sent an answer this page cannot read",
+            "Every response carries a `result` tag naming its kind, and this one carried none. Check `intent daemon status`, and the daemon log beside the socket."
+          );
           return;
         }
         done(answer.body);

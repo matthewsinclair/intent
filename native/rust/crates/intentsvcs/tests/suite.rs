@@ -336,6 +336,8 @@ mod the_backup_cycle_has_one_home;
 mod the_editor_gets_the_model_bytes;
 #[path = "the_migrator_says_what_it_did_not_carry.rs"]
 mod the_migrator_says_what_it_did_not_carry;
+#[path = "the_shell_page_reads_the_fields_the_wire_sends.rs"]
+mod the_shell_page_reads_the_fields_the_wire_sends;
 #[path = "thread_body_conservation.rs"]
 mod thread_body_conservation;
 #[path = "thread_prose_carried.rs"]
