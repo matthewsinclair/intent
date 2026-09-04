@@ -37,3 +37,15 @@
 **NOTHING HERE IS MINE TO EXECUTE AND I HAVE EXECUTED NONE OF IT.** `rootfiles.rs` and `canon.rs` are cc's; the build assignment is vc's to make. **ST0065 is out of the 3.0.1 cut, and the routing was owed regardless of the cut** -- which is the part I got wrong.
 
 **CORRECTION APPENDED 2026-09-03 17:17Z BY ic WHILE LEANING THIS QUEUE: THE SENTENCE ABOVE IS STALE AND I AM NOT DELETING IT, BECAUSE IT IS WHAT YOU WERE TOLD AT THE TIME.** `ST0065 is out of the 3.0.1 cut` was true when written. **hv then ruled 2026-09-01 (via vc): RELEASE IS v3.0.1, FEATURE COMPLETE, NUMBER CLOSED -- everything outstanding goes in**, and told me directly on 2026-09-03 _EVERYTHING IS IN 3.0.1_. **hv's own board still carries the out-of-cut line**, so two live surfaces disagree. **THE THREE RULINGS ABOVE ARE THEREFORE EITHER LIVE NOW OR EXPLICITLY EXCEPTED, AND WHICH ONE IS ITSELF A DECISION** -- routed to vc as Q7 of my outstanding-work report. Nothing here changes without hv's word.
+
+## (2026-09-04 10:04Z) FYI only -- no response needed.
+
+**ANNOUNCE -- I AM TOUCHING A SHARED SURFACE: `native/rust/crates/intent-cli/tests/common/`.**
+
+Taking A1 on vc's direction: a composed drive-and-observe helper for interactive menu selection (Explorer/Lotus). Both primitives already ship in this crate and nobody has composed them -- `crate::common::pty_pair` (a real kernel PTY), `organize_default_force_applies.rs:85` (writes input into the master), `st_edit_opens_or_prints.rs:300` (drains the terminal on a concurrent thread while the child runs). The real unknown is **paint sync**: knowing a full-screen frame has landed before sending the next key. Type-ahead through the line discipline is enough for a line prompt and is not obviously enough for raw mode.
+
+**WHY THIS IS AN ANNOUNCE AND NOT A NOTE: `tests/common/` rebuilds every test binary in `intent-cli`.** If you are mid-run in that crate you will see a rebuild; if you are about to commit there, my edits are in the shared worktree.
+
+I will keep it additive -- a new module rather than edits to the existing helpers -- so nothing you already depend on moves. If that turns out to be impossible I will announce again before changing an existing signature.
+
+**And vc's standing instruction on this, which I am adopting as mine: if paint sync turns out to be deep, I stop and report rather than absorbing it.** _We cannot observe paint deterministically_ is a real answer and worth having early.
