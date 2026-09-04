@@ -4,9 +4,9 @@ name: DevX Claude
 role: worker
 session_id: 8ef84e7a-4585-4b04-aae7-a2e58b6be0eb
 commit_session_id: 01KJiLhhcanvdaveAtLRkKoH -- FROM THE HARNESS ANNOUNCEMENT ALONE AND NOT YET WITNESSED ON A COMMIT OF MINE, which is the weaker of the two sources this line has ever carried. My own rule is to read it off my own commit's trailer; I have authored none this session, so treat it as UNCONFIRMED until one lands and then re-read it there. POINT-IN-TIME, one session, never a table.
-heartbeat_at: 2026-09-04 07:01Z
+heartbeat_at: 2026-09-04 10:00Z
 status: active
-focus: "COLD PICKUP 2026-09-04 07:01Z. BOOTED AND HOLDING ON hv INSTRUCTION -- boot, hold, wait for direction from vc. ALL FOUR INBOXES EMPTY, nothing in flight, nothing started, no claim moved. STATUS STAYS active; a hold is not a session ending. THE QUIET IS THE ESTATE AND NOT A DELAY AIMED AT ME: cc 17:40Z, vc 17:48Z and ic 17:50Z all beat last night and all three boards say held or parked, vc explicitly held by hv. NOTHING WAS RE-MEASURED AT THIS PICKUP -- the released hold on 0212/0216/0226, the AC-00.3 WP-07 finding and every count in my TODO are yesterday reads, and they get re-driven before they are quoted to anyone. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "HOLD RELEASED BY hv 2026-09-04 09:58Z AND DIRECTION ROUTED THROUGH vc -- released to work, waiting on vc to say what. Told vc so; two messages sent, the second CORRECTING the first. GROUND TRUTH RE-DRIVEN RATHER THAN CARRIED: currency ok, the pair describes this tree, four gates and doctor driven on the delivered binary. TWO FINDINGS FELL OUT AND BOTH ARE MINE. ST0056/WP-05 is recorded WIP and its gate PASSES -- doctor calls it a status-gate-disagreement, cc has the same shape on WP-08 and WP-10, and I am NOT touching the status because which of the two is wrong is a judgement doctor explicitly leaves to a person. AND doctor names AT-07.7 model-inconsistent while AC-07.7 is exactly what blocks my WP-07 -- looks like one fact, NOT ASSERTED, artefact unread. I RETRACTED A POINT TO vc WITHIN THREE MINUTES OF SENDING IT: I led with cc is parked behind my UNWIRED_PHRASE item, flagged it as yesterday, then measured it -- cc board does not corroborate it today. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -62,7 +62,9 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## Holds
 
-- **HELD -- ALL WORK ON THIS BOARD** | **CONDITION: vc sends me direction.** hv's instruction at boot, 2026-09-04 07:01Z, in the live channel: boot and hold, then wait for instructions from vc. **The condition is vc's message arriving, not hv returning** -- naming hv would record a dependency I cannot check, where this one I can check at every pickup by reading `dc/inbox.vc.md`. **It covers the startable XS items too** (`0063`, the four `AC-02.3` dispositions, the currency arm's reach): they are unblocked by their own conditions and held by this one, and those are different facts. **STATUS STAYS `active`** -- invariant 6, and a hold is not a session ending.
+- **RELEASED 2026-09-04 09:58Z, AND WHAT REPLACED IT IS A ROUTING, NOT A SECOND HOLD** | **CONDITION: vc sends me direction.** hv, live channel, verbatim: _Hold released BUT wait for instructions from VC and then follow as advised._ **The two halves are different facts and collapsing them loses the one that matters**: the stop-work is LIFTED, so nothing here is blocked any more; what remains is that my ASSIGNMENT comes from vc rather than from me picking off my own TODO. **I am not free to start the startable XS items on my own judgement** -- _follow as advised_ is an instruction about who chooses, and choosing for myself while the words say otherwise is the relay error running in the cheapest possible direction.
+- **CHECKABLE THE SAME WAY IT WAS BEFORE** -- read `dc/inbox.vc.md`, or the live channel. The condition names a MESSAGE, not a person returning, so I can discharge it at every pickup without asking anyone.
+- **STATUS STAYS `active`** -- invariant 6.
 
 ## Watch-outs
 
