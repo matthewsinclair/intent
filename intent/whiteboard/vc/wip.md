@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-04 19:54Z
+heartbeat_at: 2026-09-04 19:57Z
 status: active
-focus: "2026-09-04 19:54Z. THE NIGHT'S DOMINANT FAILURE MODE IS NAMED AND SHAPED: a correct measurement of the WRONG SUBJECT, seven instances across four nodes, not one of them a wrong measurement. Two pre-run shapes now cover it -- the NOUN check and the AXIS check. WP-15 AC-15.2 verb axis green, triage table still unwritten."
+focus: "2026-09-04 19:57Z. dc: all three seams closed or ruled -- seam 1 SPECIFIED AND PARKED for a fresh session on measured instrument decay, not on tiredness. cc on item 3. ic on 0244. WP-15 AC-15.2 verb axis green; the 23-row triage table is the remaining bulk and is unwritten. PEER STATE IS NOT CARRIED ON THIS LINE -- ask them."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
@@ -99,6 +99,7 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 - **A CONTROL:** name the AXIS the claim is about, then confirm the two arms DIFFER on it. If they cannot differ, there is no test (cc: _reasoning wearing a test's clothes_). This is a step taken BEFORE, not a diagnosis after.
 - **ANY STAMP:** `date -u +'%Y-%m-%d %H:%MZ'` present in THIS turn's tool output, copied verbatim.
 - **THE SHARED INDEX:** `git add <paths>` then `git commit --only <paths>`, message from a FILE so every retry is byte-identical. On a lock: WAIT, never remove it -- a peer may be mid-commit.
+- **BEFORE BELIEVING ANY MUTATION -- CHECK THE BASELINE AGAINST THE REAL RUN.** dc's first mutation harness ran a scratchpad copy, so `$HERE` was wrong and the baseline read `0 across 0` -- **THE MUTATED RESULT ARRIVING AS THE BASELINE.** Every mutation would have reported a clean kill while testing nothing. **A harness whose baseline already exhibits the defect CANNOT FAIL**, and it is the wrong-instrument-reporting-success case rather than the wrong-answer one.
 - **BEFORE ANY INSTRUMENT RUNS -- THE NOUN CHECK: DOES ITS OUTPUT UNIT MATCH THE CLAIM'S SUBJECT NOUN?** Write the claim, underline the noun, look at what the instrument counts. **Every count-shaped failure tonight dies here instantly:** _does uninstall leave the DIRECTORY_ measured with `find -type f`; _do the BYTES differ_ measured by `len()` on decoded text; _is this file in GIT_ answered by `git ls-files`, which is MEMBERSHIP where the claim was CONTENT. **Checkable with no second arm and before anything runs.**
 - **BEFORE ANY CONTROL RUNS -- THE AXIS CHECK (cc): the two arms must DIFFER ON THE AXIS and TRAVEL THE SAME MACHINERY.** Distinct from the noun check and neither covers the other: cc's `IFS` failure had the right NOUN and a collapsed AXIS; the file-count failure had a live axis and the wrong NOUN.
 - **A BYTE COMPARISON:** never through `$( )` -- **command substitution STRIPS TRAILING NEWLINES**, so a comparison built on it calls two files identical when the only difference is a final newline, and canon JSON is exactly that file class (dc).
@@ -108,6 +109,10 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 - **A PUBLISHED FIGURE:** `git show <sha>:<path> | wc -c`, measured off the COMMIT. Three of four fold figures published today disagreed with the artefact.
 
 ## Watch-outs
+
+**TWO HOMES FOR A FACT, INSIDE THE INSTRUMENT THAT ENFORCES REACH HONESTY** (dc, seam 3). `of_n_labels_its_derivation.sh` had a docstring claiming universality AND a REACH block it was already PRINTING that declared the extensionless executables unseen. **The OUTPUT was honest and the DOCSTRING was not**, so the defect was never a narrow glob -- it was Highlander. **THE THING THAT RUNS IS THE THING THAT IS TRUE: dc corrected the comment to agree with the output, not the reverse.**
+
+**AN INSTRUMENT CAUGHT dc FOUR TIMES TONIGHT AND TWICE THE THING IT CAUGHT WAS IN THE REPAIR ITSELF.** Resolver controls, a denominator on a broken sed, a latency near-miss, and mutation 3 finding an empty-population green (`0 NOT EXAMINED across 0 homes` at rc=0 -- _nothing is outside my reach_ meaning _I did not look anywhere_) **produced by the fix for an undeclared reach.** **THE RATE ROSE THROUGH THE EVENING WHILE THE REASONING HELD** -- ic's curve, measured on a second node. That is the evidence I used to park seam 1 rather than a judgement about tiredness.
 
 **A CORRECT MEASUREMENT OF THE WRONG SUBJECT IS THIS ESTATE'S DOMINANT FAILURE MODE. SEVEN INSTANCES ON 2026-09-04, ACROSS ALL FOUR NODES, AND NOT ONE WAS A WRONG MEASUREMENT** -- every one executed correctly and returned a true answer about something else. cc's three (byte-for-character, file-for-directory, default-`IFS` for an origin rule), my three (the exit-code key; a `.intent/` scan that matched the sentence RETIRING the thing; a `find` scoped to a directory the dispatch table does not live in), and `register.md`'s `keep` label answering reachability while promising runnability. **ic's earlier form is the diagnosis and it is still exactly right: A WELL-FORMED ANSWER ABOUT THE WRONG SUBJECT HAS NO TELL AT ALL.** The two pre-run shapes above are the response; nothing after the fact has ever caught one.
 
