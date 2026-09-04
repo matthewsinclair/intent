@@ -4,9 +4,9 @@ name: Interface Claude
 role: interface
 session_id: ff30d717-901e-4d47-9bb7-53416fe4e841
 commit_session_id: 01T6EfsdaPEvSHT3WeUk1oMo -- WITNESSED on 04c43798f, this session's first commit; check it there rather than taking this line's word. HONEST CAVEAT, and it is cc's: I authored that trailer, so reading it back is not independent of the harness. What it IS is the value a later reader will attribute my commits by, confirmed present on one. POINT-IN-TIME, one session; the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-04 07:02Z
+heartbeat_at: 2026-09-04 09:59Z
 status: active
-focus: "BOOTED AND HOLDING ON hv INSTRUCTION -- boot, hold, wait for direction from vc. STATUS STAYS active; a hold is not a session ending. FOUR INBOXES READ AND ALL FOUR EMPTY -- that is a read this boot, not an assumption carried over. NOTHING IN FLIGHT AND NOTHING STARTED. ONE HOLD CONDITION DRIVEN RATHER THAN RECALLED AND IT STANDS UNMET: intent app --help answers unrecognized subcommand, so Hold 4 stays held on a STATE I read, not on a person. No peer commits since the 2220Z EOD; the tree is where I left it. commit_session_id above is now WITNESSED on 04c43798f, with cc's caveat that I authored the trailer I am reading back. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "SESSION-LEVEL HOLD RELEASED BY hv 2026-09-04 ~09:5xZ, AND THE RELEASE IS NARROWER THAN THE WORD. hv lifted the boot-and-hold POSTURE and directed me to wait for vc and follow as advised -- so the pen for my sequencing is vc's, and I do not start work on my own read. IT IS NOT A RULING ON THE EIGHT ITEM-LEVEL HOLDS: not one of their conditions has been shown met, and reading a posture release as a blanket release is the value-carried-one-step-past-what-it-supports class (W4), mine. THE ONE FACT THAT COULD MAKE THIS WAIT UNBOUNDED, SURFACED TO hv RATHER THAN SAT ON: vc's last COMMITTED board (07:05Z, tree clean, nothing newer on disk) says vc is HELD ON hv INSTRUCTION 07:02Z and waiting for instructions. If that hold still stands, vc has no direction to send and I wait on someone who cannot answer. I cannot see vc's live session, so 07:05Z is a read with a known staleness bound, not a claim about now. This is vc's own relay shape a fourth way. NOTHING IN FLIGHT. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 ---
 
@@ -18,7 +18,9 @@ claims: [ST0065, ST0056/09, ST0056/17, ST0064]
 
 ## DOING
 
-**Nothing in flight. This is a real state, not an empty section.** Everything else of mine is gated on cc, dc or hv, and each one is held below with its condition.
+**HOLD STATE, 2026-09-04 09:59Z: hv RELEASED THE SESSION-LEVEL HOLD AND POINTED ME AT vc -- _wait for instructions from vc and then follow as advised_.** **THE RELEASE IS OF A POSTURE, NOT OF THE EIGHT HOLDS BELOW.** Their conditions are unchanged and none has been shown met; treating one instruction as clearing a list it never mentioned is W4 running in my own favour, which is the direction it is hardest to catch. **So: still nothing in flight, and the reason is now vc's sequencing rather than hv's hold.**
+
+**Nothing in flight. This is a real state, not an empty section.** The eight items below are gated on cc, dc or hv, each with its condition; my SEQUENCING is now gated on vc, which is a different gate and is why the line above exists rather than a banner saying it supersedes this one.
 
 **hv's GOVERNING DIRECTIVE STANDS AND IS NOT HISTORY: change any AC/AT needed, DO NOT yak-shave old guards or tests -- rewrite them to reality** (fail-forward; [[feedback_fail_forward_intent]]). Accepted design: `intent/st/ST0056/tui-redesign-proposal.md`; the ratified design doc is `intent/st/ST0056/tui-design.md`.
 
