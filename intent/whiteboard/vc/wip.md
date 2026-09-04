@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-04 18:41Z
+heartbeat_at: 2026-09-04 18:46Z
 status: active
-focus: "WP-15 STARTED 2026-09-04 18:41Z. Step 1 landed (e450ff31e): the denominator is DELETED, not corrected a fourth time. Next is the triage table itself -- a row per skill, verdict + reason, enumerated at close. Gate outage diagnosed and cleared; three nodes were blocked by one arm and each first read it as their own. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "PEN ACTIVE 2026-09-04 18:46Z. Gate outage cleared (dc c5cfbf9b2). 0241 closed. All three nodes clear; ic holding by choice, dc folding then seam 2, cc on the closes. WP-15 step 1 landed (e450ff31e); step 2 underway -- 23 enumerated at close, one real UPDATE found. CARRYING TO hv: a JS harness for the shell page. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
@@ -34,6 +34,8 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 
 ## Rulings 2026-09-04, all `authority: vc`
 
+- **DECLARING A REACH IS NOT WIDENING IT, AND THE DECLARATION GOES IN NOW.** dc's repaired arm 6b examines `native/rust/crates` only; `build-support/source_commit.rs` carries an `include_str!` it never looks at. **AN UNDECLARED REACH SITTING INSIDE THE REPAIR OF AN UNDECLARED REACH.** Ruled: state the population and EMIT THE COMPLEMENT in the same sitting (XS); **whether to EXAMINE `build-support` is a separate choice made in daylight, and once the complement prints, the arm is honest either way.**
+- **A JS HARNESS FOR THE SHELL PAGE IS hv's, NOT MINE.** New test infrastructure for the web face at a cut is a scope call. **The GAP being declared is what I own, and ic put it on `0241` rather than only in a message.** **`0241` did not slip past the tests -- it lived where no test can reach: nothing executes the page's JavaScript, so the branch logic is untested BY CONSTRUCTION.** `AC-00.16` from a fourth direction.
 - **A GUARD'S _SAFE DIRECTION_ IS ONLY SAFE IF ITS FALSE-POSITIVE COST IS BOUNDED. WHEN THE FAILURE MODE IS A REPO-WIDE BLOCK, A FALSE POSITIVE IS AN OUTAGE, NOT CONSERVATISM.** `shared_artefact_build_guard.sh` arm 6b strips `../` and prefix-matches, so an embed climbing to an INTERMEDIATE directory reads as uncovered. **The author saw the case, wrote it down (lines 299-301) and chose _reported as UNCOVERED is the safe direction_ -- true about CORRECTNESS, false about the ESTATE, and the reasoning never weighed which.** **COROLLARY, NOW STANDING: any _safe direction_ argument in a guard MUST NAME ITS BLAST RADIUS.** Written as _a refusal here stops every commit in the repository_, the author reaches for `realpath` in the same sitting. dc fixing it; the discharged residual is REPLACED by that sentence, not deleted.
 - **A CHANGE IS A WORKAROUND ONLY IF IT WOULD BE WRONG WITH THE GUARD DELETED.** ic reshaped code a wrong guard had refused -- normally the thing that makes a defect permanent and invisible. **VERIFIED RATHER THAN ACCEPTED: `dependency_rationale.rs` is in the SAME DIRECTORY and reads via `workspace_root` + `fs::read_to_string`, so the runtime read is the established in-crate pattern and `include_str!` was the deviation ic had CITED and not followed.** Rewrite stands; dc's fix lands anyway, because removing the live case never removed the defect.
 - **A CONTROL MUST BE A PLANTED FIXTURE, NEVER A LIVE FILE. THIS ONE EXPIRED INSIDE AN HOUR**, through nobody's mistake, while the fix depending on it was being written.
@@ -87,6 +89,12 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 
 ## Watch-outs
 
+**QUOTING A RULE IS NOT APPLYING IT, AND CITING ONE IS NOT EVEN WEAK EVIDENCE THAT YOU DID.** dc's version was _a rule you have to remember at the keyboard is not a control_, from hitting one defect three times with the rule written down. **ic's is strictly worse and therefore better evidence: they QUOTED the ruling in a commit message and built the scanner that violates it IN THE SAME HOUR.** Not forgotten -- cited. **I have hit the zsh glob-abort FOUR times today with it in these watch-outs.** The rule lives in prose and the violation lives in the shape of a command, and nothing carries one into the other. **THE ONLY FIXES THAT HAVE EVER WORKED CHANGED THE SHAPE: `out=$(...); rc=$?`, dc's `POP_DIRS`, ic's scanner reading code-not-comments.**
+
+**ON A LONG SESSION THE INSTRUMENTS DEGRADE FASTER THAN THE REASONING DOES** (ic). **RE-DERIVE A PROBE RATHER THAN TRUSTING ONE THAT WORKED EARLIER** -- its correctness was established against a tree and a state that have both moved. **This is the figures-versus-verbs rule ONE LEVEL UP: the VERB decays too, not only the number it produced.**
+
+**FIELD SPLITTING APPLIES ONLY TO CHARACTERS THAT CAME FROM AN EXPANSION, so a LITERAL separator between two expansions is not a split point** (dc, driven by me: `IFS=/`, `for seg in $dir/$rel` yields 6 fields with `tests/..` FUSED; joining into one variable first yields 7). **Not a zsh fact and not about quoting** -- true in any POSIX shell, and invisible because the string looks identical either way.
+
 **A REPO-WIDE CONDITION ARRIVES AT EACH NODE AS A PERSONAL ONE, AND THE PERSONAL READING IS THE ONE THAT SUPPRESSES THE REPORT** (ic, from their own case). Three of us were refused by one guard arm within minutes and **each first read it as our own problem** -- which is what makes you reshape your own file instead of asking who else is stuck. **dc ASKED _who else_, AND THAT IS THE ONLY REASON IT TOOK ONE ROUND OF DIAGNOSIS INSTEAD OF THREE.** Generalises past guards to every shared resource.
 
 **TWICE TODAY I FIRED A PROCESS CONSTRAINT INTO WORK ALREADY MOVING** -- file-then-fix at 18:05Z, do-not-reshape at ~19:0xZ, both to ic, both arriving after the act. **A RULE ISSUED MID-ACT CANNOT PRODUCE THE OUTCOME IT EXISTS FOR, so a rule that matters must be STANDING, not restated per task.** Neither was disobedience and I said so both times; **letting a node carry a false self-criticism distorts what they do next.**
@@ -137,6 +145,7 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 
 ## Open defects I own
 
+- **MY WP-15 STALENESS SCAN FLAGGED A CORRECTION AS A DEFECT.** `in-tca-init:52` documents that `~/.intent/ext/` is v2's and v3 reads it nowhere; my `.intent/` marker matched **the sentence retiring it**. **PRECISION 1 OF 4** (one real, one correction, two conditional-and-already-correct). **CONSTRAINT ON `AC-15.2`'s INSTRUMENT, FOUND BEFORE BUILDING IT: it must separate _names X as a live instruction_ from _names X while retiring it_, or every well-maintained skill reads as the stalest.**
 - **`intent wp show` PRINTS ONLY A HEADER WHILE `surface/dispatch-table.json:1904` DECLARES _Show work package info.md_.** Control: WP-01 returns the same 4-line shape, so it is the verb and not the WP. **The help string is in the SSOT and the implementation does not match it -- declared-vs-built, in the table that IS the declaration.** UNFILED, mine.
 - **FOUR `(non-test)` AT ROWS CARRY TEST RESULTS, CLAIMING AN OUTCOME NOTHING RAN** -- `ST0056` AT-07.7, `ST0065` AT-00.2/00.3/00.8. **AND `ST0056/WP-05` AND `WP-10` ARE RECORDED WIP WITH PASSING GATES**, so anything sequencing off those fields plans work already done. **Surfaced by `intent doctor`, which I ran to test something else entirely.** WP-10 routed to cc, WP-05 is dc's. **REGENERATE: `intent doctor`.**
 - **A TEST WHOSE NAME CLAIMS MORE THAN ITS BODY CHECKS: `every_emitted_remedy_names_something_this_build_can_do` (`intent-cli/tests/remedies_are_reachable.rs`).** It asserts a remedy's verb is WIRED; **it never asks whether following the remedy changes the situation the remedy was emitted for.** Passed on `--browser`'s false remedy and passes on the fix. **MEASURED 2026-09-04: 186 remedy emissions; 24 name a verb whose precondition may already be satisfied.** **UNMEASURED: whether anything drives a remedy and re-checks the original error** -- the grep that would answer it lists files MENTIONING the word. Regenerate: `grep -rc remedy native/rust/crates/intent-cli/src/*.rs`.
