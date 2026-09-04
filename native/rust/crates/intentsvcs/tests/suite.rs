@@ -134,6 +134,8 @@ mod egest_refuses_to_empty_the_estate;
 mod error_remedies;
 #[path = "event_log_envelopes.rs"]
 mod event_log_envelopes;
+#[path = "every_declared_form_resolves_to_an_entity.rs"]
+mod every_declared_form_resolves_to_an_entity;
 #[path = "every_st_op_has_a_declared_list_answer.rs"]
 mod every_st_op_has_a_declared_list_answer;
 #[path = "explore_lands_where_the_address_names.rs"]

@@ -653,6 +653,8 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::Install(_) => "Install",
     FacadeError::RootFile(_) => "RootFile",
     FacadeError::RecordMovedUnderTheWrite { .. } => "RecordMovedUnderTheWrite",
+    FacadeError::NoFormForEntity { .. } => "NoFormForEntity",
+    FacadeError::EntityUnserialisable { .. } => "EntityUnserialisable",
   }
 }
 

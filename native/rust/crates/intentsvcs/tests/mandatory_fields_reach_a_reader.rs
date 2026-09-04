@@ -171,7 +171,13 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // Issue 0206's refusal. It reports that the RECORD moved, so there is no
     // field the caller failed to supply -- the remedy is to re-run, not to
     // make a fuller call.
-    | FacadeError::RecordMovedUnderTheWrite { .. } => None,
+    | FacadeError::RecordMovedUnderTheWrite { .. }
+    // Neither demands a field of the caller. `NoFormForEntity` is a fact about
+    // the DECLARATION -- this kind has no form -- and no fuller call fixes it;
+    // `EntityUnserialisable` is a fault in this process, where the caller
+    // supplied nothing wrong and can supply nothing better.
+    | FacadeError::NoFormForEntity { .. }
+    | FacadeError::EntityUnserialisable { .. } => None,
   }
 }
 

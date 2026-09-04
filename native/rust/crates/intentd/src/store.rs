@@ -625,6 +625,82 @@ fn serve(facade: &mut Facade, op: Op, runtime: &tokio::runtime::Handle) -> Respo
         Err(e) => Response::error(e.to_string(), e.remedy()),
       },
     },
+    // **THE ARM IS THIN FOR THE SAME REASON `Op::Set`'s IS.** It parses the
+    // address, asks the facade for the entity, asks the shared derivation for
+    // the rows, and names the answer. Every question about WHAT A FORM IS --
+    // which fields, in what order, with which widget, editable or not -- is
+    // answered by `surface/forms.json` through `form::triples`, and re-asking
+    // any of it here would be the second home that makes `AC-17.12`'s
+    // *terminal and browser agree* a coincidence instead of a property.
+    //
+    // **THE REFUSALS CARRY THE FACADE'S OWN REMEDY**, so an operator who
+    // mistypes an id in a browser reads the same sentence the terminal would
+    // have given them.
+    Op::Form { url } => match intentsvcs::address::parse(&url) {
+      Err(e) => Response::error(e.to_string(), e.remedy()),
+      Ok(address) => {
+        // **THE DECLARATION IS LOADED PER REQUEST AND THAT IS NOT A COST WORTH
+        // REMOVING YET.** It is an `include_str!` parsed into a few hundred
+        // bytes of structs; caching it would add a lifetime to this thread's
+        // state to save microseconds, and the measurement that would justify
+        // it has not been taken. Recorded so the next reader knows it was a
+        // choice rather than an oversight.
+        let declaration = match intentsvcs::form::Loaded::load() {
+          Ok(loaded) => loaded,
+          Err(e) => {
+            return Response::error(
+              format!("the form declaration will not load: {e}"),
+              "this is a fault in Intent rather than in the address: `surface/forms.json` ships inside the binary, so no project state can cause it."
+                .to_string(),
+            );
+          }
+        };
+        let kind = address.entity.form();
+        let Some(form) = declaration.form(kind) else {
+          return Response::error(
+            format!("`{kind}` is not an entity this project renders a form for"),
+            format!(
+              "this project declares forms for {}. A criterion, a test or an attachment is read through its thread.",
+              declaration
+                .forms()
+                .iter()
+                .map(|f| format!("`{}`", f.entity))
+                .collect::<Vec<_>>()
+                .join(", ")
+            ),
+          );
+        };
+        match facade.entity_json(&address.entity) {
+          Err(e) => Response::error(e.to_string(), e.remedy()),
+          Ok(entity) => {
+            use intentsvcs::address::Entity;
+            // **THE INSTANCE NAME IS SPELLED THE WAY THE OPERATOR SPELLS IT**
+            // -- `ST0056/17` for a work package, because that is what
+            // `intent edit wp` refuses with when you get it wrong. The
+            // catch-all cannot be reached today (`entity_json` refused every
+            // other form above) and falls back to the address's own form name
+            // rather than inventing one, so a fourth declared form degrades
+            // instead of lying.
+            let instance = match &address.entity {
+              Entity::Thread { id } => id.clone(),
+              Entity::Wp { thread, wp } => format!("{thread}/{wp}"),
+              Entity::Issue { id } => id.clone(),
+              other => other.form().to_string(),
+            };
+            // **THE TITLE IS READ THE WAY EVERY OTHER VALUE IS READ.** Going
+            // through `form::field` rather than indexing the JSON keeps one
+            // rule for turning a stored value into a displayed one -- the same
+            // reason `children_of` routes its detail rows through it.
+            let title = intentsvcs::form::field(&entity, "title");
+            Response::Form {
+              entity: instance,
+              title,
+              fields: intentsvcs::form::triples(form, &entity),
+            }
+          }
+        }
+      }
+    },
     Op::ThreadList => Response::Threads {
       threads: facade
         .st_list()

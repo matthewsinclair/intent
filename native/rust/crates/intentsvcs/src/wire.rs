@@ -143,6 +143,38 @@ pub enum Op {
     field: String,
     value: serde_json::Value,
   },
+  /// One addressed entity as the generic form description every renderer
+  /// consumes (`AC-17.6`, `tui-design.md` §10a).
+  ///
+  /// **THE READ THAT PAIRS WITH [`Op::Set`], AND IT TAKES THE SAME ADDRESS FOR
+  /// THE SAME REASON.** One url grammar reaches one entity whether the caller
+  /// is reading its fields or writing one of them, so a renderer that can show
+  /// a form can edit it without learning a second way to name what it is
+  /// looking at.
+  ///
+  /// **IT EXISTS BECAUSE THE ESCAPE HATCH STRUCTURALLY CANNOT SERVE IT.**
+  /// §10a's diagram says *GraphQL / JSON, one output contract*, which reads as
+  /// though a `form(url:)` field on the schema would do -- and it would have
+  /// cost nothing to add. [`Op::Graphql`] has NO IN-PROCESS TWIN, which is why
+  /// it is `DAEMON_ONLY` and not a member of the CLI's `SERVED_BY_DAEMON`;
+  /// `AC-17.6` asks that `edit` and `browse` reach ONE MODEL through ONE
+  /// SERVICE, and a door with one path cannot carry a claim about two agreeing.
+  /// **This op is answered by the same [`crate::form::triples`] the in-process
+  /// realiser already calls**, so the agreement is one function reached two
+  /// ways rather than two implementations that match today.
+  ///
+  /// **NOT A MEMBER OF `SERVED_BY_DAEMON`, AND IT COULD NOT BE.** That table
+  /// is a `const` mapping a CLI verb path to a payload-free op; a `String`
+  /// field is not const-constructible, and there is no `intent form` verb for
+  /// the left column anyway. Its consumers are the browser and the menubar,
+  /// which reach the daemon directly. [`Op::Set`] is absent for both reasons
+  /// too, which is the check that this one is not special.
+  ///
+  /// **THE DESCRIPTION IS RESOLVED SERVER-SIDE AND CARRIES NO DOMAIN.** The
+  /// renderer receives `{entity, title, fields}` and never sees the form DSL,
+  /// so what makes a renderer generic is the wire boundary rather than the
+  /// discipline of whoever writes the next one.
+  Form { url: String },
   /// The projects this daemon has opened, and whether their roots still exist.
   ///
   /// **NOT SCOPED TO ONE PROJECT, WHICH IS WHY IT IS ANSWERED WITHOUT BINDING
@@ -334,6 +366,23 @@ pub enum Response {
   /// `Outcome` and `Note`, which is a second home for both, in the crate whose
   /// job is to not have one.
   Set { outcome: serde_json::Value },
+  /// The generic form description an [`Op::Form`] resolved.
+  ///
+  /// **`fields` IS [`crate::form::Triple`] ITSELF, NOT A WIRE-LOCAL MIRROR OF
+  /// IT.** A second struct with the same five members is the exact shape this
+  /// crate exists to refuse: the renderers agree because ONE derivation feeds
+  /// them, and re-declaring its output here would put a copy of the row
+  /// vocabulary on the wire that could drift from the one the TUI reads.
+  ///
+  /// **`entity` IS THE INSTANCE, NOT THE KIND** -- `ST0056`, not `thread` --
+  /// which is §10a's own example and is what a heading needs. The KIND is
+  /// deliberately absent: the caller named it in the url it sent, so putting
+  /// it in the answer would be the response restating the question.
+  Form {
+    entity: String,
+    title: String,
+    fields: Vec<crate::form::Triple>,
+  },
   /// The projects a [`Op::Registry`] found.
   Registry { projects: Vec<RegisteredProject> },
   /// This connection is now a feed (`AC-08.6`).

@@ -660,6 +660,35 @@ pub enum FacadeError {
   NoSuchFace { face: String },
   #[error("no issue {number:04} in this project")]
   NoSuchIssue { number: u32 },
+  /// An address whose form names no entity a renderer can resolve.
+  ///
+  /// **THE ADDRESS GRAMMAR IS WIDER THAN THE FORM DECLARATION, AND THAT IS
+  /// DELIBERATE ON BOTH SIDES.** `Entity::form()` answers thirteen names;
+  /// `surface/forms.json` declares three. A criterion, a test and an
+  /// attachment are ROWS INSIDE a collection a renderer draws, not entities
+  /// with forms of their own, and a collection is not a thing with fields at
+  /// all -- so the gap is not a backlog, it is the two vocabularies meaning
+  /// different things.
+  ///
+  /// **REFUSED BY NAME RATHER THAN ANSWERED EMPTY**, which is the same rule
+  /// `form::Loaded` applies to an unknown widget. An empty field list is a
+  /// legal answer -- it means *this entity has no declared fields* -- so
+  /// returning one here would make *no form for this kind* indistinguishable
+  /// from *a form with nothing in it*, at the one layer that could still tell
+  /// them apart.
+  #[error("`{form}` is not an entity this project renders a form for")]
+  NoFormForEntity { form: String },
+  /// A stored entity that will not serialise.
+  ///
+  /// **SEPARATE FROM [`FacadeError::NoFormForEntity`] BECAUSE THE TWO SEND THE
+  /// READER TO DIFFERENT PLACES.** *This kind has no form* is a fact about the
+  /// declaration and the operator can act on it; *this entity will not
+  /// serialise* is a fault in this process, and the model types derive
+  /// `Serialize`, so reaching it means something structural broke. Folding it
+  /// into the first would hand someone a *check which kinds are declared*
+  /// remedy for a defect no spelling of the address can avoid.
+  #[error("the stored `{form}` will not serialise: {why}")]
+  EntityUnserialisable { form: String, why: String },
   // The ratified machines have no terminal states, so every refusal here is
   // about ORDER rather than about a dead end -- there is always a route, and
   // the remedy names where it starts.
@@ -1168,6 +1197,25 @@ impl crate::remedy::Remedy for FacadeError {
       Self::NoSuchIssue { .. } => {
         "run `intent issues list --kind all` to see every issue this project has, closed ones included".to_string()
       }
+      // The remedy names the three that DO resolve rather than the ten that
+      // do not: a caller here asked for something reasonable and needs the
+      // set they can ask for, and the refusing set is both longer and less
+      // useful. Derived from the declaration so it cannot drift from it.
+      Self::EntityUnserialisable { .. } => {
+        "this is a fault in Intent rather than in the address or the project; the id is not the problem and retyping it will not help"
+          .to_string()
+      }
+      Self::NoFormForEntity { .. } => format!(
+        "this project declares forms for {}. A criterion, a test or an attachment is read through its thread",
+        crate::form::Loaded::load()
+          .map(|l| l
+            .forms()
+            .iter()
+            .map(|f| format!("`{}`", f.entity))
+            .collect::<Vec<_>>()
+            .join(", "))
+          .unwrap_or_else(|_| "no entity, because the form declaration itself will not load".to_string())
+      ),
       // Delegated for the same reason the message is: the arithmetic that
       // names the two honourable values either side belongs with the rule.
       // Delegated, because the remedy DIFFERS by state: below the v2.19.0
@@ -2022,6 +2070,74 @@ impl Facade {
         st: st.to_string(),
         seq,
       })
+  }
+
+  /// The entity behind one address, as the JSON a form is resolved against.
+  ///
+  /// **THE OTHER HALF OF THE SHARED DERIVATION, AND IT WAS THE HALF LEFT
+  /// BEHIND.** [`crate::form::triples`] was moved down here in 2026-08-30
+  /// because `intentd` depends on `intentsvcs` and NOT on the CLI, so a daemon
+  /// emitter would have had to write the walk a second time. **The entity
+  /// LOOKUP that feeds it stayed in `intent-cli`, where the daemon still could
+  /// not reach it** -- so the correction was half made, and the missing half
+  /// only became visible when something outside the CLI first needed a form.
+  ///
+  /// **AND IT HAD ALREADY GROWN ITS SECOND HOME BEFORE ANYONE LOOKED.** The
+  /// CLI resolved `thread` and `issue` in one function and work packages in a
+  /// DIFFERENT one -- an inline `serde_json::to_value` inside the children
+  /// walk -- so two spellings of *turn this entity into form JSON* were live in
+  /// one file. Both now call this.
+  ///
+  /// **THE `wp` ARM IS THE POINT OF THE MOVE AND NOT A BONUS.** The function
+  /// this replaces answered `_ => None` for a work package while
+  /// `surface/forms.json` declared a `wp` form, and `nav.rs` records what that
+  /// pairing produces: *a form whose every value is blank, for every work
+  /// package, not just a missing one.* It was unreachable, so it was latent --
+  /// and `AC-17.6` requires both verbs to cover ST, WP and ISSUE, which is
+  /// precisely what makes it reachable. Carrying the catch-all down here would
+  /// have moved the bug rather than fixed it.
+  ///
+  /// **A NUMBER THAT WILL NOT PARSE IS *NO SUCH ENTITY*, NOT A THIRD ERROR.**
+  /// `intent://.../wp/banana` names no work package for the same reason
+  /// `.../wp/9999` names none, and an operator who mistyped needs the same
+  /// sentence either way.
+  pub fn entity_json(
+    &self,
+    entity: &crate::address::Entity,
+  ) -> Result<serde_json::Value, FacadeError> {
+    use crate::address::Entity;
+    let value = match entity {
+      Entity::Thread { id } => serde_json::to_value(self.st_show(id)?),
+      Entity::Wp { thread, wp } => {
+        let seq = wp
+          .parse::<u32>()
+          .map_err(|_| FacadeError::NoSuchWorkPackage {
+            st: thread.clone(),
+            seq: 0,
+          })?;
+        serde_json::to_value(self.wp_show(thread, seq)?)
+      }
+      Entity::Issue { id } => {
+        let number = id
+          .parse::<u32>()
+          .map_err(|_| FacadeError::NoSuchIssue { number: 0 })?;
+        serde_json::to_value(self.issue_show(number)?)
+      }
+      other => {
+        return Err(FacadeError::NoFormForEntity {
+          form: other.form().to_string(),
+        });
+      }
+    };
+    // **A SERIALISATION FAULT IS THIS PROCESS'S, NOT THE OPERATOR'S**, and it
+    // gets its own variant rather than being folded into `NoFormForEntity` --
+    // the model types derive `Serialize`, so reaching here means something
+    // structural broke, and a *check which kinds are declared* remedy would
+    // send someone hunting a typo that is not there.
+    value.map_err(|why| FacadeError::EntityUnserialisable {
+      form: entity.form().to_string(),
+      why: why.to_string(),
+    })
   }
 
   /// Every criterion with its COMPUTED state and its covering tests.
