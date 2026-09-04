@@ -5,8 +5,18 @@
 # 2026-08-18). AT-00.11 drives instruments across a nested and a flat tree and asks
 # whether M follows the EXAMINED population. That reaches only instruments whose M can
 # MOVE under the relocation -- the ten dc nominated by a path-shape proxy. This row's
-# population is every instrument that emits an `N of M` AT ALL, path shape or not, and
-# it asks a different question: IS EACH OPERAND DERIVED, AND IF NOT, IS THAT VISIBLE?
+# population is every instrument in THIS DIRECTORY that emits an `N of M` AT ALL, path
+# shape or not, and it asks a different question: IS EACH OPERAND DERIVED, AND IF NOT,
+# IS THAT VISIBLE?
+#
+# **THE WORDS `IN THIS DIRECTORY` WERE ADDED 2026-09-04 (dc, vc ruling) BECAUSE THIS
+# FILE CARRIED TWO HOMES FOR ITS OWN REACH AND THEY DISAGREED.** The sentence above
+# read as universal -- `path shape or not` was contrasting with mode 1's path-shape
+# proxy, and a reader takes it as *every instrument anywhere*; two nodes did. Meanwhile
+# the REACH block this tool PRINTS already declared `the extensionless executables under
+# bin/` as not seen. **The output was honest and the docstring was not, which is the
+# second-home defect inside the instrument that enforces reach honesty.** The output is
+# the surviving home; this comment now agrees with it.
 #
 # WHY THE TWO CANNOT BE ONE ROW: bundled, a green over ten would stand for a
 # denominator of eleven-plus -- AC-00.11's own defect committed by the row enforcing
@@ -101,6 +111,92 @@ echo "  population, or a LITERAL? A literal is reported and never failed. THE FI
 echo "  LITERAL LAUNDERED THROUGH A VARIABLE: it reads as derived at the emission site and"
 echo "  in the output, and it is neither."
 echo "of-n-labels: SUBJECTS -- $CANDIDATE_FILES file(s), named below before any verdict."
+
+# ---------------------------------------------------------------------------------
+# DECLARED POPULATION AND ITS COMPLEMENT (dc 2026-09-04, on vc's ruling).
+# ---------------------------------------------------------------------------------
+# **DO NOT WIDEN THE GLOB. A REACH THAT CAN BE WIDENED SILENTLY IS A REACH THAT WAS
+# NEVER DECLARED** -- moving the boundary while keeping the silence reproduces the
+# defect one directory over. Declaring costs a line and stops this tool overclaiming;
+# EXAMINING more is a scope decision and belongs in daylight, which is what printing
+# the complement makes possible.
+#
+# **TWO LIMITS, INDEPENDENT, AND ONLY THE FIRST IS A DIRECTORY: DIRECTORY AND
+# EXTENSION.** Measured 2026-09-04: 15 `.sh` instruments sit in the two sibling homes
+# a widened glob would reach, and 24 extensionless executables under `bin/.devbin/`
+# would still be missed by it, because `*.sh` matches none of them. **A directory-only
+# fix therefore ships a green that is narrower than it looks.**
+#
+# **THE COMPLEMENT NAMES FILES, NOT RATIOS, AND THAT IS DELIBERATE.** Deciding whether
+# an unexamined file emits a ratio means running this tool's own operand parser over
+# it, and a second copy of that parser here would be the Highlander violation this
+# estate names first. So the complement reports WHAT WAS NOT LOOKED AT and hands the
+# reader the verb that looks: this tool already takes explicit TARGETS.
+#
+# THE COMPLEMENT'S OWN BOUNDARY IS DECLARED TOO, because a complement computed over an
+# undeclared sweep is a second undeclared reach. It is the four homes below; a file
+# outside them is in neither the population nor the complement and nothing here reports
+# it.
+ROOT_DIR="$(cd "$HERE/../../../../.." && pwd)"
+COMPLEMENT_HOMES="$ROOT_DIR/intent/st/ST0057/parity/tools $ROOT_DIR/lib/templates/hooks $ROOT_DIR/bin/.devbin/cmd $ROOT_DIR/bin/.devbin/lib"
+
+# ONE function decides membership, and the complement listing AND both controls call
+# it, so a mutation of it kills all three. Same rule this estate learned on
+# `divergence` and again on `blob_state`: a control that does not traverse the code
+# path producing the answer proves only that the shell works.
+in_population() {
+  _p="$1"
+  for _t in $TARGETS; do [ "$_t" = "$_p" ] && return 0; done
+  return 1
+}
+
+# **A SWEEP THAT RESOLVES NO HOME MUST REFUSE, NOT REPORT AN EMPTY COMPLEMENT.**
+# Found by mutating this block the hour it was written: emptying `COMPLEMENT_HOMES`
+# printed `0 file(s) NOT EXAMINED across 0 declared sibling home(s)` at rc=0, which
+# reads as *nothing is outside my reach* and means *I did not look anywhere*. That is
+# the empty-population green this tool exists to catch, committed by the code added to
+# declare its own reach. The default `ls "$HERE"/*.sh` above already refuses for the
+# same reason, in its own words; this is the same rule for the second population.
+COMPLEMENT_FILES=""; COMPLEMENT_WALK=0; COMPLEMENT_N=0; COMPLEMENT_HOMES_SEEN=0
+for _d in $COMPLEMENT_HOMES; do
+  [ -d "$_d" ] || continue
+  COMPLEMENT_HOMES_SEEN=$((COMPLEMENT_HOMES_SEEN + 1))
+  for _c in "$_d"/*; do
+    [ -f "$_c" ] || continue
+    COMPLEMENT_WALK=$((COMPLEMENT_WALK + 1))
+    in_population "$_c" || { COMPLEMENT_FILES="$COMPLEMENT_FILES $_c"; COMPLEMENT_N=$((COMPLEMENT_N + 1)); }
+  done
+done
+
+[ "$COMPLEMENT_HOMES_SEEN" -gt 0 ] ||
+  die "the complement sweep resolved NO declared home -- \$ROOT_DIR=$ROOT_DIR. A zero complement here means the sweep failed, not that this tool's population covers the estate."
+
+# CONTROLS, BEFORE THE DECLARATION IS PRINTED, THROUGH THE SAME FUNCTION.
+# THE FIRST TARGET IS TAKEN BY THE SAME `for ... in $TARGETS` SPLIT EVERYTHING ELSE
+# IN THIS FILE USES, and that is the second correction this one line has needed.
+# First: `printf '%s' "$TARGETS" | awk '{print $1}'` returned the first field of EVERY
+# line, because TARGETS is newline-separated from the default `ls` and space-separated
+# from arguments -- the control refused rather than passing, which is the arm working
+# on its own setup. Then the pipeline form tripped `IN-SH-CODE-001` CRITICAL at the
+# gate on the unquoted expansion inside the substitution. **A THIRD SPELLING OF A
+# SPLIT THIS FILE ALREADY PERFORMS TWICE IS A SECOND HOME FOR THE SAME DECISION**, so
+# the loop is not merely the quiet form, it is the correct one: no subshell, no
+# pipeline, and it handles both separators exactly as the examine loop does.
+_ctl_in=""
+for _t in $TARGETS; do _ctl_in="$_t"; break; done
+[ -n "$_ctl_in" ] || die "no first target to control with -- refusing rather than printing an uncontrolled reach declaration"
+in_population "$_ctl_in" ||
+  die "population control FAILED -- a file this run is examining did not test as in-population, so the complement below would be manufactured"
+in_population "$ROOT_DIR/lib/templates/hooks/pre-commit.sh" &&
+  die "complement control FAILED -- a file outside \$HERE tested as in-population, so the complement would silently omit what it exists to name"
+
+echo "of-n-labels: DECLARED POPULATION -- \$HERE only, \`*.sh\` only: $HERE"
+echo "of-n-labels: COMPLEMENT -- $COMPLEMENT_N file(s) NOT EXAMINED across $COMPLEMENT_HOMES_SEEN declared sibling home(s)"
+echo "  ($COMPLEMENT_WALK file(s) walked). Whether they emit a ratio is NOT assessed here; running this"
+echo "  tool with them as arguments is the verb that assesses it. Both controls fired."
+if [ "$COMPLEMENT_N" -gt 0 ]; then
+  for _c in $COMPLEMENT_FILES; do echo "    ${_c#$ROOT_DIR/}"; done
+fi
 echo "of-n-labels: REACH -- shell only, and only a ratio EMITTED ON ONE LINE by echo/printf/say"
 echo "  with numeric-ish tokens both sides of \` of \`, where numeric-ish now includes a \`%d\`/\`%s\`"
 echo "  format specifier RESOLVED TO ITS printf ARGUMENT. A WHOLE-LINE COMMENT IS SKIPPED -- the"
