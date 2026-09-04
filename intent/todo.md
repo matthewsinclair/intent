@@ -65,7 +65,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [?] ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
 - [ ] ST0070: LLM config rationalisation -- one home per fact
 
-## DONE:2026-09-04T15:03:13Z
+## DONE:2026-09-04T17:10:36Z
 
 _(none)_
 
