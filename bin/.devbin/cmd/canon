@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 #
-# devbin: summary = Report canon the store holds and git does not, in both directions
+# devbin: summary = Report canon that disagrees with git -- membership both ways, and content
 #
-# intent canon        -- REPORT canon issues that disagree between disk and git.
+# intent canon        -- REPORT canon issues that disagree between disk and git,
+#                        by MEMBERSHIP in both directions and by CONTENT for
+#                        every file present in both.
 #
 # THE CLASS, in cc's words, and the wording decides the remedy: **filing an issue
 # writes the store and the disk atomically and correctly. Git is a separate,
@@ -59,6 +61,39 @@
 # project has this exposure, because `issues add` writes store and disk
 # everywhere and git is a separate act everywhere; `bin/.devbin/` reaches this
 # estate alone. This is the reachable version, not the right one.
+#
+# MEMBERSHIP IS NOT CONTENT, AND THE SECOND QUESTION WAS MISSING FOR A DAY.
+# The arms above compare `git ls-files` against the disk listing, which answers
+# WHETHER A NAME EXISTS. **A canon file that is TRACKED BUT MODIFIED passes both
+# of them cleanly, and a clone still gets the stale body** -- the same consumer
+# harm, reached by a different route. vc is the instance and found it by running
+# this sweep on themselves: it reported `0232` correctly and said nothing about
+# `0220`, whose committed body lacked instance 3 for an entire afternoon while
+# every verb in this tree resolved the version with it.
+#
+# **WHY THE ORIGINAL POPULATION COULD NOT SEE IT, AND IT IS NOT THE DIRECTION.**
+# Both founding instances were untracked, and both were untracked BECAUSE THEY
+# WERE NEWLY FILED. `0220` was an EDIT to an existing issue -- a different
+# lifecycle reaching the same harm -- and nothing in a population drawn from
+# filings points at it. The confound was the LIFECYCLE, not the direction.
+#
+# **THIS ARM ADDS NO SOURCE. The population was already right and complete; the
+# QUESTION was too weak.** That is class 1 of the three in `intent/llm/RULES.md`
+# -- the cheapest class to fix and the hardest to notice, because every count
+# the instrument printed was correct.
+#
+# THREE STATES, NEVER TWO, because conflating the third would hide it: a file
+# present in both is `same`, `differs`, or `absent` from HEAD entirely (staged
+# as an add and not yet committed). **A clone takes HEAD**, so `absent` carries
+# the same harm as the disk-only case and is reported separately rather than
+# folded into `differs`.
+#
+# THE CONTROLS COMPARE REAL BLOBS AND WRITE NOTHING. Positive: two DIFFERENT
+# committed files must compare as differing. Negative: a file against a
+# byte-exact copy of its own committed blob must compare as same. Third: a path
+# that is not in HEAD must report `absent` rather than `differs`. All three go
+# through `blob_state`, so a mutation of it kills all three -- the rule this
+# file already learned the hard way for `divergence`.
 #
 # IT REPORTS AND DOES NOT GATE. A newly filed issue is legitimately untracked for
 # the minutes before it is committed, so refusing would be noise. Exit 1 on
@@ -133,8 +168,46 @@ if [ -n "$first_both" ]; then
     die "negative control FAILED -- \`$first_both\` is in git AND on disk and was still reported as divergent"
 fi
 
-step "canon vs git -- $(grep -c . <<<"$in_git") in git, $(grep -c . <<<"$on_disk") on disk"
-printf '    controls: both directions fired, negative held.\n'
+# --- THE CONTENT ARM: for every file in BOTH, do the bytes agree with HEAD? ----
+# `$1` = path as HEAD knows it, `$2` = path on disk. Prints `same`, `differs` or
+# `absent`. No command substitution around the blob: `$( )` strips trailing
+# newlines, so a byte comparison built on it would call a file identical that
+# differs only in its final newline.
+blob_state() {
+  git cat-file -e "HEAD:$1" 2>/dev/null || { printf 'absent'; return 0; }
+  if git show "HEAD:$1" | cmp -s - "$2"; then printf 'same'; else printf 'differs'; fi
+}
+
+both="$(comm -12 <(printf '%s\n' "$in_git") <(printf '%s\n' "$on_disk"))"
+
+ctl_a="$(head -1 <<<"$both")"
+ctl_b="$(sed -n '2p' <<<"$both")"
+[ -n "$ctl_a" ] && [ -n "$ctl_b" ] ||
+  die "the content arm needs two committed files to control with and found fewer -- refusing rather than reporting a green over an uncontrolled comparison"
+[ "$(blob_state "$DIR/$ctl_a" "$DIR/$ctl_b")" = differs ] ||
+  die "content positive control FAILED -- two different committed files did not compare as differing, so this run's content green would be worthless"
+ctl_copy="$(mktemp)"
+git show "HEAD:$DIR/$ctl_a" > "$ctl_copy"
+[ "$(blob_state "$DIR/$ctl_a" "$ctl_copy")" = same ] ||
+  die "content negative control FAILED -- a file did not match a byte-exact copy of its own committed blob, so the comparison is firing on everything"
+rm -f "$ctl_copy"
+[ "$(blob_state "$DIR/ZZZZ-not-in-head.json" "$DIR/$ctl_a")" = absent ] ||
+  die "content third-state control FAILED -- a path absent from HEAD did not report \`absent\`, so a staged-but-uncommitted file would be miscounted as merely modified"
+
+n_compared=0
+diverged=""
+not_in_head=""
+while IFS= read -r f; do
+  [ -n "$f" ] || continue
+  n_compared=$((n_compared + 1))
+  case "$(blob_state "$DIR/$f" "$DIR/$f")" in
+    differs) diverged="$diverged $f" ;;
+    absent) not_in_head="$not_in_head $f" ;;
+  esac
+done <<<"$both"
+
+step "canon vs git -- $(grep -c . <<<"$in_git") in git, $(grep -c . <<<"$on_disk") on disk, $n_compared compared byte-for-byte against HEAD"
+printf '    controls: membership both directions fired, negative held; content positive, negative and third-state all fired.\n'
 
 rc=0
 if [ -n "$only_disk" ]; then
@@ -145,6 +218,16 @@ fi
 if [ -n "$only_git" ]; then
   warn "IN GIT, ABSENT FROM DISK -- the direction that bites on a clone:"
   printf '      %s\n' $only_git
+  rc=1
+fi
+if [ -n "$diverged" ]; then
+  warn "TRACKED BUT DIVERGED -- present in git and on disk, and the committed body is NOT the body every verb here resolves. A clone gets the stale one:"
+  printf '      %s\n' $diverged
+  rc=1
+fi
+if [ -n "$not_in_head" ]; then
+  warn "STAGED, NOT YET IN HEAD -- tracked in the index and absent from the commit a clone would take:"
+  printf '      %s\n' $not_in_head
   rc=1
 fi
 
