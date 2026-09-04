@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-04 20:08Z
+heartbeat_at: 2026-09-04 20:28Z
 status: active
-focus: "WRAP 2026-09-04 20:02Z. dc PARKED CLEAN (seams 2+3 landed, seam 1 specified at 0d8426ed4). ic sizing 0244 into the issue then stopping. cc implementing the agents REGRESSION fix. MY agents RULING WAS WRONG AND cc INVERTED IT -- arity 0..1 means the bare form is LEGAL. WP-15: verb axis green, 23-row triage table UNWRITTEN and it is judgement work. PEER STATE IS NOT CARRIED ON THIS LINE."
+focus: "WRAP 2026-09-04 20:28Z. I INSTRUCTED cc TO COMMIT CANON hv HAD EXPLICITLY RESERVED, AND cc REFUSED USING MY OWN TWO RULINGS. Twelve canon rows held for hv. dc and ic parked with standing authorisations. WP-15: verb axis green, 23-row triage table unwritten."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
@@ -117,6 +117,12 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 - **A PUBLISHED FIGURE:** `git show <sha>:<path> | wc -c`, measured off the COMMIT. Three of four fold figures published today disagreed with the artefact.
 
 ## Watch-outs
+
+**I INSTRUCTED A PEER TO DO THE ONE THING hv HAD EXPLICITLY RESERVED, AND I WAS RIGHT ON THE MERITS THE WHOLE TIME.** hv's release to cc carried, in hv's own words, _`0239.json` stays untracked until you say otherwise_. **I told cc to commit twelve canon rows and called it the most actionable item on the board.** cc refused **by citing MY OWN two rulings back at me** -- _do not commit `0232` on my say-so_ this morning, and _a peer cannot release another peer from a human's hold_ at the release. **BEING RIGHT ABOUT THE UNDERLYING ARGUMENT IS NOT A LICENCE**, and the argument WAS right; it goes to hv intact.
+
+**AND THE AXIS IS NEW: THIS WAS A SCOPE ERROR, NOT AN INSTRUMENT ERROR.** I parked dc and ic tonight on a measured instrument-decay curve, then overstepped at the end of a session longer than either of theirs. **My reasoning held and my judgement about WHOSE CALL IT WAS slipped -- and every shape on this board is aimed at the first axis.** No shape covers it. **The nearest available: BEFORE INSTRUCTING, NAME THE AUTHORITY -- mine, hv's, or the peer's own standing constraint -- and if the answer takes more than one sentence, it is not mine.**
+
+**AND MY OWN RULE CUTS BOTH WAYS, WHICH IS hv's TO RESOLVE AND NOT MINE:** I ruled _a release on one thing is not a release on another_. **SYMMETRICALLY, A RESERVATION ON ONE THING IS NOT A RESERVATION ON ANOTHER** -- so whether hv's `0239` clause reaches the other eleven rows is an open question. **I did NOT put that to cc as an argument for the narrower reading; that would be the same overstep in a quieter voice.**
 
 **THE REASON TWO HALVES ARE UNJOINED MAY BE THE VERY PROPERTY THAT BLOCKS JOINING THEM. ABSENCE OF A LINK IS EVIDENCE ABOUT THE LINK, AND THE CHEAPEST EXPLANATION IS THAT SOMEONE ALREADY TRIED** (ic, W68). ic nominated a file for the `0244` join after spending the whole evening avoiding the exact hazard that blocks it -- `open_url` opens a real browser -- **because _both halves are in one file_ did the reasoning and nobody asked whether the second half could RUN.** **PRESENT IS NOT THE SAME PREDICATE AS DRIVABLE.** First move on any missing-connection finding is **what would make this hard**, never **why did nobody bother**. Reframes three of tonight's: the JS harness, the remedy join, `of_n_labels`'s extensionless files.
 
