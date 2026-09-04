@@ -28,25 +28,26 @@ Stretch goals are parked as their own 3.x steel threads: TUI dashboard, the agen
 
 ## Work Packages
 
-| WP    | Title                                                                       | Size | Status      |
-| ----- | --------------------------------------------------------------------------- | ---- | ----------- |
-| WP-01 | Design canon: architecture, data model, migration and parity specs          | L    | Done        |
-| WP-02 | Workspace and reified model: intentsvcs types, schema faces, store          | L    | Done        |
-| WP-03 | Ingest, views and sync engine                                               | L    | Done        |
-| WP-04 | intentsvcs facade: core command families                                    | XL   | WIP         |
-| WP-05 | CLI in-process mode and BATS conformance harness                            | L    | WIP         |
-| WP-06 | CLI parity long tail                                                        | XL   | WIP         |
-| WP-07 | Canon and claude subsystem                                                  | L    | WIP         |
-| WP-08 | intentd daemon                                                              | XXL  | WIP         |
-| WP-09 | MCP server and agent guide                                                  | L    | Done        |
-| WP-10 | Migration and fleet ingest harness                                          | XL   | WIP         |
-| WP-11 | Distribution: cargo-dist, Homebrew, signing                                 | M    | WIP         |
-| WP-12 | Cutover and v3.0.0 release                                                  | L    | Not Started |
-| WP-13 | Project search: full-text, structural, and the agent search surface         | XL   | Not Started |
-| WP-14 | Coordination model: whiteboard and inboxes in the store, with a bounded API | L    | Not Started |
-| WP-15 | Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill     | L    | Not Started |
-| WP-16 | Contract drift: a shipped field with no model row is refused                | S    | Not Started |
-| WP-17 | Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs   | XL   | WIP         |
+| WP    | Title                                                                                                   | Size | Status      |
+| ----- | ------------------------------------------------------------------------------------------------------- | ---- | ----------- |
+| WP-01 | Design canon: architecture, data model, migration and parity specs                                      | L    | Done        |
+| WP-02 | Workspace and reified model: intentsvcs types, schema faces, store                                      | L    | Done        |
+| WP-03 | Ingest, views and sync engine                                                                           | L    | Done        |
+| WP-04 | intentsvcs facade: core command families                                                                | XL   | WIP         |
+| WP-05 | CLI in-process mode and BATS conformance harness                                                        | L    | WIP         |
+| WP-06 | CLI parity long tail                                                                                    | XL   | WIP         |
+| WP-07 | Canon and claude subsystem                                                                              | L    | WIP         |
+| WP-08 | intentd daemon                                                                                          | XXL  | Done        |
+| WP-09 | MCP server and agent guide                                                                              | L    | Done        |
+| WP-10 | Migration and fleet ingest harness                                                                      | XL   | WIP         |
+| WP-11 | Distribution: cargo-dist, Homebrew, signing                                                             | M    | WIP         |
+| WP-12 | Cutover and v3.0.0 release                                                                              | L    | Not Started |
+| WP-13 | Project search: full-text, structural, and the agent search surface                                     | XL   | Not Started |
+| WP-14 | Coordination model: whiteboard and inboxes in the store, with a bounded API                             | L    | Not Started |
+| WP-15 | Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill                                 | L    | Not Started |
+| WP-16 | Contract drift: a shipped field with no model row is refused                                            | S    | Not Started |
+| WP-17 | Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs                               | XL   | WIP         |
+| WP-18 | Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator | S    | Done        |
 
 ## Acceptance
 

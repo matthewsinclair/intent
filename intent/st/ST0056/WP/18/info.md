@@ -2,7 +2,7 @@
 wp_id: WP-18
 title: Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-18: Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator

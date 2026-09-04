@@ -168,7 +168,7 @@
       "seq": 18,
       "title": "Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "",
       "body": "",
       "preamble": ""
