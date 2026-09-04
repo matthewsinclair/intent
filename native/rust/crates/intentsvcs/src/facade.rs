@@ -2072,6 +2072,28 @@ impl Facade {
       })
   }
 
+  /// **ONE HOME FOR *WHICH WORK PACKAGE DOES THIS ENTITY NAME*.**
+  ///
+  /// A `Wp` entity carries its sequence as TEXT, because an address is text;
+  /// every caller that wants the work package has to parse it and decide what
+  /// an unparseable one means. That decision was about to exist twice --
+  /// [`Self::entity_json`] had it and [`Self::edit`] needed the same answer --
+  /// so it lives here and both call it.
+  ///
+  /// **A NUMBER THAT WILL NOT PARSE IS *NO SUCH ENTITY*, NOT A THIRD ERROR.**
+  /// `intent://.../wp/banana` names no work package for the same reason
+  /// `.../wp/9999` names none, and an operator who mistyped needs the same
+  /// sentence either way.
+  fn wp_of(&self, thread: &str, wp: &str) -> Result<&WorkPackage, FacadeError> {
+    let seq = wp
+      .parse::<u32>()
+      .map_err(|_| FacadeError::NoSuchWorkPackage {
+        st: thread.to_string(),
+        seq: 0,
+      })?;
+    self.wp_show(thread, seq)
+  }
+
   /// The entity behind one address, as the JSON a form is resolved against.
   ///
   /// **THE OTHER HALF OF THE SHARED DERIVATION, AND IT WAS THE HALF LEFT
@@ -2097,10 +2119,9 @@ impl Facade {
   /// precisely what makes it reachable. Carrying the catch-all down here would
   /// have moved the bug rather than fixed it.
   ///
-  /// **A NUMBER THAT WILL NOT PARSE IS *NO SUCH ENTITY*, NOT A THIRD ERROR.**
-  /// `intent://.../wp/banana` names no work package for the same reason
-  /// `.../wp/9999` names none, and an operator who mistyped needs the same
-  /// sentence either way.
+  /// **THE `wp` ARM RESOLVES THROUGH [`Self::wp_of`]**, which is also what
+  /// [`Self::edit`] checks existence with, so a work package that this door
+  /// can describe and a work package that door will open are the same set.
   pub fn entity_json(
     &self,
     entity: &crate::address::Entity,
@@ -2108,15 +2129,7 @@ impl Facade {
     use crate::address::Entity;
     let value = match entity {
       Entity::Thread { id } => serde_json::to_value(self.st_show(id)?),
-      Entity::Wp { thread, wp } => {
-        let seq = wp
-          .parse::<u32>()
-          .map_err(|_| FacadeError::NoSuchWorkPackage {
-            st: thread.clone(),
-            seq: 0,
-          })?;
-        serde_json::to_value(self.wp_show(thread, seq)?)
-      }
+      Entity::Wp { thread, wp } => serde_json::to_value(self.wp_of(thread, wp)?),
       Entity::Issue { id } => {
         let number = id
           .parse::<u32>()
@@ -4010,6 +4023,43 @@ impl Facade {
     // once, in `st_show`; this is a second CALLER, not a second answer.
     if let Some((_, id)) = address.entity.artefact() {
       self.st_show(id)?;
+
+      // **AND THE ARTEFACT IS NOT THE ENTITY, WHICH IS THE WHOLE OF `0238`.**
+      // `Entity::artefact()` collapses SIX variants onto their THREAD -- a
+      // `Wp`, an `Ac`, an `At`, an `Attachment` and both collections all answer
+      // with the thread that carries them -- so the line above verifies the
+      // THREAD and never the thing the operator actually named.
+      //
+      // **THE HOLE IS IN THIS DOOR, NOT IN ONE ARM.** `--path`, `--editor` and
+      // the bare spelling all arrive here, and all three printed the thread's
+      // `info.md` at rc=0 for `wp ST0056/99`. It was reported as a `--path`
+      // defect; `--path` is just where someone happened to be standing.
+      //
+      // **THE ANSWER WAS INVARIANT OVER THE ID, WHICH IS WHY NOTHING CAUGHT
+      // IT.** A real WP-01 and an absent WP-99 printed the SAME BYTES -- so no
+      // comparison of outputs could ever have separated them, and refusing
+      // before answering is the only available fix rather than the chosen one.
+      // The path itself is right either way: `artefact()` rules that a work
+      // package has no files of its own, and that ruling is not in question.
+      //
+      // **THREE SIBLINGS ARE STILL OPEN, AND ARE NAMED HERE RATHER THAN LEFT
+      // SILENT.** `Ac`, `At` and `Attachment` reach this door through the
+      // `intent://` address grammar -- which bypasses the `kind` enum that
+      // bounds the `<kind> <id>` spelling, so bounding the surface by that enum
+      // (as this author first did) misses them. Driven: `edit
+      // intent:///threads/ST0001/ac/1 --path` is rc=0, and so is an
+      // `attachments/` path for a file that was never created. They are NOT
+      // fixed because the facade has no `ac_show`, no `at_show` and no
+      // attachment resolver to check them with; minting three model doors is a
+      // different piece of work from a contained check.
+      //
+      // **THE TWO COLLECTION VARIANTS ARE DELIBERATELY ABSENT FROM THAT LIST.**
+      // The `ac` or `wp` collection of a thread that exists also exists, empty
+      // or not, so `st_show` above is already the right and complete check for
+      // them. Listing them as gaps would invent two defects.
+      if let crate::address::Entity::Wp { thread, wp } = &address.entity {
+        self.wp_of(thread, wp)?;
+      }
     }
 
     if let Some((_, id)) = address.entity.artefact()
