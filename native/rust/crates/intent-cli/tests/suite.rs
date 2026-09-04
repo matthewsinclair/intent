@@ -27,6 +27,8 @@
 //! to that, so an undeclared file is silently never compiled. That inverted failure is
 //! the trade, and it is guarded -- see `tests/no_orphan_suite_member.rs`.
 
+#[path = "all_flag_reaches_every_unit.rs"]
+mod all_flag_reaches_every_unit;
 #[path = "common/mod.rs"]
 mod common;
 

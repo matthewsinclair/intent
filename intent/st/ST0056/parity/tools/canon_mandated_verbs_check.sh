@@ -143,7 +143,113 @@ if [ "$total" -eq 0 ]; then
   exit 2
 fi
 
-if [ "$unwired" -gt 0 ]; then
+# =============================================================================
+# THE STATIC ARM -- does every FLAG spelling canon names exist in the table?
+# =============================================================================
+#
+# **ITS SUBJECT IS THE BOUNDARY BETWEEN TWO POPULATIONS, WHICH IS THE ONLY PLACE
+# ISSUE 0236 COULD HAVE BEEN SEEN FROM.** `implemented_check.sh` draws its
+# population from `surface/dispatch-table.json`, so a flag absent there is not a
+# subject it can probe. The dynamic arm above draws its population from canon and
+# classifies on `rc==2 AND the marker`, so a clap parse error at rc=1 carries no
+# marker and cannot be classified. **The defect CONSISTED of the disagreement
+# between those populations, so it was invisible to both, and no predicate change
+# reaches it.** Two sound instruments with a seam, and the defect is the seam.
+#
+# **STATIC: no execution, no exit codes, no scratch HOME, no binary.** It would
+# have caught `--all` the day the canon line was written, which is four months
+# before anyone typed the flag.
+#
+# **AND ITS REACH IS SHORTER THAN ITS NAME SUGGESTS -- STATED HERE BECAUSE 0236
+# RECORDS IT AS THE ARM'S OWN LIMIT.** The seam is three-way, not two: canon,
+# the table, and the parity BATS suite. `uninstall --all` is named by the SUITE
+# and never by canon, so it lives in the suite-versus-table gap and **this arm
+# cannot see it.** A green here closes one pairing of three.
+
+# `--daemon` is injected by `spine.rs:336` as a global and appears on NO table
+# row. Excluded here so it is not reported for every entry -- and that absence
+# is itself a table-versus-code gap, recorded rather than fixed by this tool.
+SPINE_GLOBALS="--daemon"
+INTRINSIC="$(jq -r '[.families[].entries[].flags[]? | select(.disposition=="intrinsic") | .spellings[]] | unique | join(" ")' "$TABLE_JSON")"
+
+# ONE function for the verdict AND both controls. **A control running its own
+# parallel comparison proves only that the comparison works** -- mutation
+# testing killed exactly that design in `bin/.devbin/cmd/canon` today.
+# $1 = a file of canon-style lines. Prints "<entry path>\t<flag>" per gap.
+undeclared_spellings() {
+  local corpus="$1" line words flags path best
+  local -a cmd
+  while IFS= read -r line; do
+    case "$line" in "intent "*) ;; *) continue ;; esac
+    line="${line#intent }"
+    cmd=()
+    flags=""
+    for w in $line; do
+      case "$w" in
+        --*) flags="$flags $w" ;;
+        -*) flags="$flags $w" ;;
+        '<'*|'['*|'#'*) break ;;
+        *[!a-z0-9-]*) break ;;
+        *) [ -z "$flags" ] && cmd+=("$w") ;;
+      esac
+    done
+    [ -n "$flags" ] || continue
+    [ ${#cmd[@]} -gt 0 ] || continue
+    # Longest table entry path that prefixes this command.
+    best=""
+    for path in $ENTRY_PATHS_BY_LENGTH; do
+      local dotted="${path//./ }"
+      case "${cmd[*]} " in
+        "${dotted//_/ } "*) best="$dotted"; break ;;
+      esac
+    done
+    [ -n "$best" ] || continue
+    local declared
+    declared="$(jq -r --arg p "$best" '[.families[].entries[] | select(.path==$p) | .flags[]?.spellings[]?] | join(" ")' "$TABLE_JSON")"
+    for f in $flags; do
+      case " $declared $INTRINSIC $SPINE_GLOBALS " in
+        *" $f "*) ;;
+        *) printf '%s\t%s\n' "$best" "$f" ;;
+      esac
+    done
+  done <"$corpus"
+}
+
+TABLE_JSON="${TABLE_JSON:-$root/surface/dispatch-table.json}"
+[ -f "$TABLE_JSON" ] || { echo "canon-verbs: REFUSING -- no dispatch table at $TABLE_JSON" >&2; exit 2; }
+ENTRY_PATHS_BY_LENGTH="$(jq -r '.families[].entries[].path' "$TABLE_JSON" | awk '{print gsub(/ /," ")" "$0}' | sort -rn | cut -d' ' -f2- | tr ' ' '.' | tr '\n' ' ')"
+
+CORPUS="$(mktemp)"; trap 'rm -f "$CORPUS"' EXIT
+for f in "${CANON[@]}"; do
+  [ -f "$f" ] && sed -n 's/^[[:space:]]*\(intent [a-z].*\)$/\1/p' "$f"
+done >"$CORPUS"
+
+GAPS="$(undeclared_spellings "$CORPUS" | sort -u)"
+
+# --- CONTROLS, both through the SAME function (vc's instruction) -------------
+CTL="$(mktemp)"; trap 'rm -f "$CORPUS" "$CTL"' EXIT
+cp "$CORPUS" "$CTL"
+echo "intent claude skills install --zzzz-control" >>"$CTL"
+echo "intent claude skills install --force" >>"$CTL"
+CTL_OUT="$(undeclared_spellings "$CTL" | sort -u)"
+
+grep -q -- '--zzzz-control' <<<"$CTL_OUT" ||
+  { echo "canon-verbs: REFUSING -- static arm POSITIVE control failed: an injected canon line naming a spelling absent from the table was NOT reported, so this arm's green is worthless" >&2; exit 2; }
+grep -q -- '--force' <<<"$CTL_OUT" &&
+  { echo "canon-verbs: REFUSING -- static arm NEGATIVE control failed: '--force' IS declared on that row and was still reported as a gap, so this arm reports everything" >&2; exit 2; }
+
+echo "canon-verbs: STATIC -- $(wc -l <"$CORPUS" | tr -d " ") canon command line(s) read; controls both fired."
+if [ -n "$GAPS" ]; then
+  echo "canon-verbs: RED (static) -- canon names flag spelling(s) the dispatch table does not declare:" >&2
+  while IFS=$'\t' read -r p f; do echo "  intent $p ... $f" >&2; done <<<"$GAPS"
+  echo "canon-verbs:   these refuse at rc=1 'unexpected argument', which reads to an operator as their own typo. See issue 0236." >&2
+  static_red=1
+else
+  echo "canon-verbs: static ok -- every flag spelling canon names is declared on the entry that owns it"
+  static_red=0
+fi
+
+if [ "$unwired" -gt 0 ] || [ "${static_red:-0}" -eq 1 ]; then
   echo "canon-verbs: RED -- $unwired canon-named verb(s) refuse in a switched project:" >&2
   for v in "${UNWIRED_LIST[@]}"; do echo "  intent $v" >&2; done
   exit 1

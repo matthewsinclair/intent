@@ -7609,7 +7609,7 @@ fn payload_change(
   use intentsvcs::payload::Outcome;
   let lib = payload_lib(kind)?;
   let w = words(kind);
-  let names = named_units(a);
+  let mut names = named_units(a);
   // **`--force` NOW REACHES THIS SURFACE**, declared on the `claude skills` row
   // and read here. It was wired as a hard `false` until 2026-08-23, which left
   // every held skill with no CLI remedy at all -- so the messages below could
@@ -7653,9 +7653,71 @@ fn payload_change(
     )));
   }
 
+  // **`--all` IS RESTORED, NOT INVENTED** (issue 0236, high). v2 shipped it
+  // working and `usage-rules.md` instructs it four times; v3 declared it on no
+  // row, so clap refused it at rc=1 `unexpected argument` -- telling operators
+  // they mistyped the thing root canon told them to type.
+  //
+  // **IT RESOLVES TO NAMES HERE RATHER THAN BECOMING AN ENGINE MODE.** The
+  // engine already answers both halves, so a `--all` threaded into
+  // `payload::install` would be a second way to express a list it already
+  // takes (IN-AG-HIGHLANDER-001).
+  //
+  // **THE TWO VERBS RESOLVE IT AGAINST DIFFERENT POPULATIONS AND THE ASYMMETRY
+  // IS LOAD-BEARING.** `install --all` means everything this install CARRIES;
+  // `uninstall --all` means everything it has INSTALLED. Resolving both against
+  // `available()` would have `uninstall --all` try to remove units never
+  // installed; resolving both against `installed()` would make `install --all`
+  // a no-op on a fresh machine -- **the one machine the flag exists for.**
+  let all = given(a, "all");
+  if all && verb == ChangeVerb::Sync {
+    return Err(Failure::Error(format!(
+      "error: `--all` is not available on `sync`\n  remedy: `intent claude {} sync` already visits every {} this build installed, so `--all` would name the same set twice",
+      w.verb, w.noun
+    )));
+  }
+  if all && !names.is_empty() {
+    return Err(Failure::Error(format!(
+      "error: `--all` and a named {} are mutually exclusive\n  remedy: drop the name to reach every {}, or drop `--all` to reach just that one -- guessing which was meant is how a bulk write happens by accident",
+      w.noun, w.noun
+    )));
+  }
+  if all {
+    names = if verb == ChangeVerb::Install {
+      lib
+        .available()
+        .map_err(payload_fail)?
+        .into_iter()
+        .map(|o| o.name)
+        .collect()
+    } else {
+      lib.installed().map_err(payload_fail)?
+    };
+    // **AN EMPTY `--all` IS REPORTED IN ITS OWN WORDS, NOT LEFT TO THE
+    // NAME-SOMETHING REFUSAL BELOW.** That message says *name at least one* and
+    // would be actively wrong here: the operator did name a set, and the set is
+    // empty. Falling through would blame them for the estate's state.
+    if names.is_empty() {
+      println!(
+        "ok: nothing to {} -- this install {}",
+        if verb == ChangeVerb::Install {
+          "install"
+        } else {
+          "uninstall"
+        },
+        if verb == ChangeVerb::Install {
+          format!("carries no {}", w.verb)
+        } else {
+          format!("has no {} installed", w.verb)
+        }
+      );
+      return Ok(());
+    }
+  }
+
   if names.is_empty() && verb != ChangeVerb::Sync {
     return Err(Failure::Error(format!(
-      "error: name at least one {} to {}\n  remedy: `intent claude {} list` prints what this install carries",
+      "error: name at least one {} to {}, or pass `--all`\n  remedy: `intent claude {} list` prints what this install carries",
       w.noun,
       if verb == ChangeVerb::Install {
         "install"
