@@ -2,11 +2,11 @@
 node: cc
 name: Control Claude
 role: control
-session_id: a674007a-9009-4ba1-80e9-3fbc159c18b0
-commit_session_id: 01DC5cfhHTdPu8XB73gyKgJx -- READ off my own commits 441c2b8b and 8406af74, agreeing. HONEST CAVEAT: I authored those trailers, so reading them back is not independent of the harness. What it IS: the value a later reader attributes my commits by, confirmed present on them. POINT-IN-TIME, one session; a restart mints a new one.
-heartbeat_at: 2026-09-03 17:40Z
+session_id: 98a46c38-f370-4d67-b2c5-c2536e0ae8f9
+commit_session_id: 01XYetoGJWvBxvL4PE8sGZTu -- HARNESS-ANNOUNCED ONLY, NOT WITNESSED. I have authored no commit this session, so there is no trailer to read it off and the honest provenance is the announcement alone. dc reads theirs off the artefact; mine is one source short of that until I commit. POINT-IN-TIME, one session; a restart mints a new one.
+heartbeat_at: 2026-09-04 07:02Z
 status: active
-focus: "PARKED ON hv's INSTRUCTION, WAITING ON vc FOR DIRECTION. Booted clean: folded board, all four inboxes empty, nothing in flight, nothing started. MEASURED THIS BOOT AND IT GATES SIX OF MY TEN TODO ITEMS: intentd pid 66522 holds this project's store open read-write (intent.db + -wal + -shm, cwd here), so 0216 and 0226, both still OPEN, are live for me. lsof is the measurement; 'therefore watched' comes from registry.rs:131 and is a code claim, not a second reading. AND THE DAEMON IS STALE BY MEASUREMENT: text segment 10214624 bytes against 10382576 on disk, rebuilt 14:44Z under a process up since 09-01 13:29Z -- it answers about 09-01, not HEAD. ASK WITH vc at 17:40Z: stop it for the canon batch, restart it onto current code. One ask, two consumers, outside the pen. NO FIGURES FROM MEMORY; RUN THE VERBS."
+focus: "BOOTED AND HOLDING ON hv INSTRUCTION 2026-09-04 07:02Z -- boot complete, waiting on vc for direction. NOTHING STARTED, NOTHING IN FLIGHT; status stays active because a hold is not a session ending. THREE THINGS RE-MEASURED AT THIS BOOT RATHER THAN CARRIED FORWARD FROM MY OWN BOARD. (1) intentd is STILL pid 66522, started 2026-09-01 13:29Z, against a disk binary rebuilt 2026-09-03 14:44Z -- so it still answers about 09-01 and the six daemon-gated TODO items are gated exactly as they were last night. (2) THE DELIVERED PAIR IS CURRENT IN EVERYTHING THAT MATTERS AND THE BARE SHA COMPARISON SAYS OTHERWISE: marker 6dac00f7, and the deciding test -- diff over native/rust surface from marker to HEAD -- returns TWO FILES, both intentd TESTS. Behind HEAD, by nothing that changes what the binary does. (3) vc RELEASE OF 2026-09-03 17:43Z IS UNCONSUMED: both no-canon items AND the canon batch under mandatory read-verify-retry were released to me and I did nothing with them before EOD. NO FIGURES FROM MEMORY; RUN THE VERBS."
 claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 ---
 
@@ -14,7 +14,11 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 
 ## DOING
 
-**NOTHING IN FLIGHT.** The day's work is landed and committed. hv lifted the park; vc holds the pen for DIRECTION and hv is folding and compacting me.
+**NOTHING IN FLIGHT. BOOTED AND HOLDING ON hv INSTRUCTION, WAITING ON vc FOR DIRECTION.** All four of my inboxes are empty of unhandled entries. **The tree is NOT clean and HEAD moved during my boot**: HEAD is `04c43798f` (ic's own boot-and-hold, one file), and four board files are dirty while **`dc/wip.md` is STAGED in the shared index** -- so a bare `git commit` from here carries dc bytes under my signature. `add` + `commit --only` or nothing.
+
+**THE ONE THING THIS BOOT CHANGES ABOUT MY OWN STATE, AND IT IS A RELEASE I NEVER SPENT.** vc released me at 17:43Z yesterday -- both no-canon items and the canon batch, the batch under mandatory read-verify-retry -- and EOD landed before I took any of it. **So I am not blocked on vc for the batch; I am blocked on vc for DIRECTION, which is what hv instructed.** The distinction matters because the first would be a hold with a condition I could check myself, and this is not one.
+
+**WHAT I RE-MEASURED RATHER THAN RECALLED, WITH THE INSTRUMENT NAMED.** The daemon: `ps -o lstart -p 66522` against `ls -l` on the resolved symlink target -- same process as yesterday, still older than the binary beside it. The pair: `intent --version` gives the marker and `git diff --name-only <marker>..HEAD -- native/rust surface` is the DECIDING test, not the sha inequality; it returns two intentd test files. **Reading the differing shas as staleness would have been watch-out A again -- a true reading of provenance offered as a claim about currency.**
 
 **WHAT THE PEN DOES NOT COVER, KEPT BECAUSE I WILL BE TEMPTED TO READ IT WIDER ON THE BOUNCE:** stopping the shared daemon, the rebuild window (`0196`), ADC signing, `intent claude skills sync`, and the tag. **`intent fc` is hv's alone, pen or no pen.** A general instruction is never a specific grant.
 
@@ -66,6 +70,8 @@ claims: [ST0056/06, ST0056/08, ST0056/10, ST0057/00]
 **C. ARITHMETIC AND SAMPLE SIZE.** **n=2 is not a result about a stochastic process** -- I fired a pre-committed disconfirming condition on two samples, into an artefact, with the variance already visible in a sweep I had printed. **A total you did not enumerate is not a total you may publish**, and adding to someone else's total requires reading what is in theirs. **RULE: state n and state the variance; below n=5 on a process you have watched vary, the honest sentence is _observed twice, not characterised_.**
 
 **D. PREMISES.** **Drive a ruling's premise before building on it** -- of four build rulings in one day, THREE had false premises, and today `0086` (closed), `0214` (closed) and `0063` (a field migration, not a rewrite) all moved under rulings that named them. **Assert the premise your fix rests on as a test, in the direction that would embarrass you.**
+
+**A2. THE CLOCK RULE IS A RULE ABOUT IDENTIFIERS, AND I FOUND THAT OUT BY BREAKING IT ON A SHA AT THIS BOOT.** `restart.md` generator 2 is _fabrication with the correct value present_ and it is written up entirely in terms of TIMESTAMPS. **It is not a fact about clocks. It is a fact about any opaque token a reader cannot check by looking at it** -- I typed HEAD as `f1ff2f81` into a message to vc with the real `f1ff2f824` four lines up in my own tool output, and it was caught only because I re-ran `git rev-parse` for an unrelated reason. **A wrong sha is worse than a wrong stamp: a stamp lands in a range a reader can smell, and a sha resolves or it does not, so a plausible one sends the reader to `git cat-file` and not to me.** RULE: **substitute the command, never the value** -- the same remedy the clock rule already gives -- and that covers shas, pids, issue numbers and line numbers, none of which the written rule names.
 
 **E. THIS BOX AND THIS SHELL.** `cmd | head` reports head's status -- **done again today.** The Bash tool's shell is zsh: unquoted `$var` does not word-split and an unmatched glob (`--include=*.md`) aborts the whole command -- **hit again today.** A stale binary cannot answer a question about HEAD. `cargo check --workspace --all-targets` -- the flag is the half memory drops.
 
