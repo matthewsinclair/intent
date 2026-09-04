@@ -4,9 +4,9 @@ name: Interface Claude
 role: interface
 session_id: ff30d717-901e-4d47-9bb7-53416fe4e841
 commit_session_id: 01T6EfsdaPEvSHT3WeUk1oMo -- WITNESSED on 04c43798f, this session's first commit; check it there rather than taking this line's word. HONEST CAVEAT, and it is cc's: I authored that trailer, so reading it back is not independent of the harness. What it IS is the value a later reader will attribute my commits by, confirmed present on one. POINT-IN-TIME, one session; the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-04 18:46Z
+heartbeat_at: 2026-09-04 19:47Z
 status: active
-focus: "HOLDING -- vc has nothing queued and hold is correct; not manufacturing scope. 0238/0240/0241 all recorded, 0241 fixed+closed (033b4c48d) with the JS gap now stated STRUCTURALLY on the issue as AC-00.16 on the web face: a population that CANNOT contain the branch logic, not a missing test. A real page harness is hv's and vc carries it. NOT MINE: 0240, the wp shape, arm 6b (landed, dc c5cfbf9b2), the rebuild window. 0238 + 0241 sit OUTSIDE the delivered pair (92e4d914a) and vc says that is the expected state. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS -- AND RE-DERIVE THE VERB, IT DECAYS TOO."
+focus: "HOLD RELEASED BY hv 19:47Z -- taking instructions from vc, asked and awaiting. NOTHING IN FLIGHT, NOTHING UNCOMMITTED (a7ce7e9b8). 0238 and 0241 both fixed+closed; 0240 filed and NOT mine. LIVE ON THIS BOARD: ST0065/WP-01 held on three unanswered rulings in hv/inbox.ic.md (vc is the rostered reader); 0222 held on ST0056/17 reading done, SIZE UNMEASURED -- do not let me quote one; ST0064 WP-01 4 of 9 remaining, each gated on a peer. 0238 + 0241 SIT OUTSIDE THE DELIVERED PAIR (92e4d914a) -- a confirmation is owed at the next rebuild, which is hv's window and not mine. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS -- AND RE-DERIVE THE VERB, IT DECAYS TOO."
 claims: [ST0065, ST0056/17, ST0064]
 ---
 
