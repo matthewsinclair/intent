@@ -309,11 +309,20 @@ fi
 # pair must resolve without the file existing, and a target that climbs above the
 # repository root is reported rather than silently clamped.
 #
-# **DECLARED LIMIT, so nobody reads this arm wider than it reaches:** the
-# population is `native/rust/crates` only. `native/rust/build-support/` carries
-# an embed and is NOT examined here. That is the narrow-selector class this
-# estate has a name for (`AC-00.16`), it is stated rather than fixed, and
-# widening it silently is the move vc ruled against on 2026-09-04.
+# **DECLARED LIMIT, AND THE COMPLEMENT IS PRINTED RATHER THAN LEFT TO A COMMENT.**
+# This arm EXAMINES `native/rust/crates` only. Embeds elsewhere under
+# `native/rust` are swept for, named, and NOT examined -- so the arm cannot
+# overclaim, and whoever wants them examined makes that choice in daylight.
+# **DECLARING IS NOT WIDENING, and they are different acts** (vc's ruling,
+# 2026-09-04): an undeclared reach is the defect this arm was just repaired for,
+# and leaving one inside the repair is the narrow-selector class (`AC-00.16`)
+# committed by the fix for it. Moving the glob quietly is the move that was
+# ruled against; printing what the glob does not cover is the alternative.
+#
+# **THE COMPLEMENT HAS ITS OWN BOUNDARY AND IT IS STATED TOO**, because a
+# complement computed over an undeclared sweep is the same defect one level up:
+# the sweep is `native/rust`. An embed outside `native/rust` entirely is outside
+# both the population and the complement, and nothing here reports it.
 embed_resolve() {                       # $1 repo-relative embedding file, $2 the embed path
   # **THE JOIN GOES INTO A VARIABLE FIRST AND THAT IS LOAD-BEARING.** Word
   # splitting applies only to characters that CAME FROM an expansion, so in
@@ -382,12 +391,51 @@ while IFS= read -r pair; do
 done <<EOF
 $embeds
 EOF
+# THE COMPLEMENT, EMITTED UNCONDITIONALLY -- green or red, empty or not. A
+# figure that appears only on one path cannot be read as a scope on the other.
+#
+# **THE DENOMINATORS COUNT THE WALK, NOT THE HITS, AND THAT IS THE COST SIGNAL**
+# (vc's ruling, 2026-09-04, on the near-miss below). `3 examined` says nothing
+# about what was traversed to find 3. The walk figures do: this arm sweeps 370
+# files, and the first draft of the complement -- which read all of
+# `native/rust` including `target/` -- would have walked **74,239**, on the
+# first run, in the author's own terminal, before anything landed. No new
+# watcher was needed; the line was already being printed and had the wrong
+# subject.
+#
+# **THE HONEST LIMIT, because a proxy stated as a measure is this estate's
+# recurring defect: FILES-WALKED IS A SMOKE DETECTOR, NOT A BUDGET.** A cheap
+# test over a million paths can be fine and an expensive one over forty can be
+# ruinous. A real budget needs a latency measurement nobody has; this is the
+# cheap signal that would have caught the case that actually happened.
+#
+# **`target/` IS EXCLUDED AND THE EXCLUSION IS DECLARED RATHER THAN ASSUMED.**
+# It is 9.4G of generated output on this machine against 7.8M of `crates`, and
+# this arm runs on every commit -- the first draft of this sweep read the whole
+# of `native/rust` and turned the gate into a multi-minute grep over a build
+# directory. **Nothing in the estate would have reported that**; it surfaced
+# because the guard got slow enough to notice. An embed found under `target/`
+# is a COPY of one in source, so excluding it loses no subject, which is why
+# this exclusion is sound and not merely convenient.
+outside_pop="$(grep -rHo --exclude-dir=target 'include_str!("[^"]*")\|include_bytes!("[^"]*")' "$ROOT/native/rust" 2>/dev/null \
+               | sed -E "s#^${ROOT}/##" \
+               | grep '"\.\./' \
+               | grep -v '^native/rust/crates/' \
+               | sed -E 's#^([^:]+):(include_str|include_bytes)!\("([^"]+)"\)$#\1 -> \3#' \
+               | sort -u)"
+n_outside=0
+[ -n "$outside_pop" ] && n_outside=$(printf '%s\n' "$outside_pop" | grep -c .)
+n_walk_pop=$(find "$ROOT/native/rust/crates" -type f 2>/dev/null | grep -c .)
+n_walk_sweep=$(find "$ROOT/native/rust" -name target -prune -o -type f -print 2>/dev/null | grep -c .)
+printf 'shared-artefact-guard: arm 6b NOT EXAMINED -- population is native/rust/crates (%s file(s) walked); the complement sweep reads native/rust excluding target/ (%s file(s) walked) and found %s embed(s) with a `../` path outside the population, swept for and not examined.\n' "$n_walk_pop" "$n_walk_sweep" "$n_outside"
+[ "$n_outside" -gt 0 ] && printf '    %s\n' "$outside_pop"
+
 if [ -n "$ctl_bad" ]; then
   fail "arm 6b -- CONTROLS FAILED ($ctl_bad); no verdict is offered on the $n_embeds embed(s) this arm examined"
 elif [ -z "$embeds" ]; then
   fail "arm 6b -- found NO outside-the-tree embeds at all across native/rust/crates; dispatch.rs is known to carry one, so the probe is broken rather than the tree being clean"
 elif [ -z "$uncovered" ]; then
-  ok "arm 6b -- every embed reaching outside its crate is covered by the declared scope ($n_embeds examined; both controls fired)"
+  ok "arm 6b -- every embed reaching outside its crate is covered by the declared scope ($n_embeds embed(s) examined over $n_walk_pop file(s) walked; both controls fired)"
 else
   fail "arm 6b -- of $n_embeds embed(s) examined, these resolve outside every declared scope:$uncovered. A build mid-edit in one of them is approved by this guard and baked into the shared binary."
 fi
