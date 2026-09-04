@@ -372,3 +372,124 @@ fn agents_validate_separates_absent_from_symlinked_from_well_formed() {
   assert_eq!(rc, 0, "a symlink is a warning, never a failure: {out}");
   assert!(out.contains("symlink"), "and it names the shape: {out}");
 }
+
+/// **ST0065 Option 2: the four-rule INDEX is byte-identical in every root-file
+/// template that carries it.**
+///
+/// `CLAUDE.md` used to state that the four principles were in `AGENTS.md` and
+/// **not restated here**, on Highlander grounds. The reasoning was sound and
+/// the outcome was wrong: **`AGENTS.md` is the one file the Claude Code agent
+/// never receives**, and a fresh project has none until `intent agents sync`
+/// runs -- so the pointer could not land for its own primary reader.
+///
+/// **THE MECHANISM IS A TEST RATHER THAN A GENERATOR, AND THAT IS A RULING
+/// (vc, 2026-09-04) RATHER THAN AN ACCIDENT.** Single-sourcing was measured and
+/// rejected: `rootfiles::value()` substitutes exactly three tokens
+/// (`PROJECT_NAME`, `AUTHOR`, `INTENT_VERSION`) and every other `[[TOKEN]]`
+/// reaches `Fault::UnknownToken` and REFUSES, while `[[#lang]]` / `[[#nolang]]`
+/// are conditional inclusion of INLINE content -- `Block` is a two-variant enum
+/// whose `keeps()` decides whether to retain lines already in the template.
+/// **There is no file-inclusion form**, so single-sourcing needs a new token
+/// type in the engine and buys only what this arm buys.
+///
+/// **HIGHLANDER GOVERNS IMPLEMENTATIONS, NOT INDEXES.** The rule BODIES live in
+/// the rule library and there is exactly one of each. What is duplicated is a
+/// table of contents, and **a copy that cannot silently diverge is not the
+/// failure mode Highlander names** -- drift is.
+///
+/// **THE POPULATION IS ASSERTED BEFORE THE PROPERTY**, because a scan that
+/// matches nothing passes for free and reports a clean estate -- the failure
+/// this estate has met from four directions. Two templates must carry the
+/// index or this arm has measured nothing.
+#[test]
+fn the_four_rule_index_is_byte_identical_in_every_template_that_carries_it() {
+  const FIRST: &str = "- **Highlander** (`IN-AG-HIGHLANDER-001`)";
+  const LAST: &str = "rescue-and-swallow is forbidden.";
+
+  let dir = testkit::repo_root().join("lib/templates/llm");
+  let mut carriers: Vec<(String, String)> = Vec::new();
+
+  let entries = std::fs::read_dir(&dir)
+    .unwrap_or_else(|e| panic!("the template directory {} reads: {e}", dir.display()));
+  for entry in entries {
+    let path = entry.expect("a directory entry").path();
+    if path.extension().and_then(|e| e.to_str()) != Some("md") {
+      continue;
+    }
+    let text = match std::fs::read_to_string(&path) {
+      Ok(t) => t,
+      Err(e) => panic!("{} reads: {e}", path.display()),
+    };
+    let Some(start) = text.find(FIRST) else {
+      continue;
+    };
+    let end = text[start..]
+      .find(LAST)
+      .map(|i| start + i + LAST.len())
+      .unwrap_or_else(|| {
+        panic!(
+          "{} opens the index and never closes it -- the block is malformed, \
+           which is a worse state than not carrying it",
+          path.display()
+        )
+      });
+    let name = path
+      .file_name()
+      .and_then(|n| n.to_str())
+      .expect("a template file name")
+      .to_string();
+    carriers.push((name, text[start..end].to_string()));
+  }
+
+  carriers.sort();
+
+  // THE POPULATION, FIRST. Zero or one carrier makes the comparison below
+  // vacuous, and a vacuous pass here reads exactly like a real one.
+  assert!(
+    carriers.len() >= 2,
+    "the index must live in at least two root-file templates for this arm to \
+     measure anything -- found {}: {:?}",
+    carriers.len(),
+    carriers.iter().map(|(n, _)| n).collect::<Vec<_>>()
+  );
+
+  // AGENTS.md and CLAUDE.md are the two the ruling names. Naming them is not a
+  // second home for the roster -- it is the assertion that the pair the ruling
+  // was ABOUT is the pair being compared, which a bare count cannot say.
+  let names: Vec<&str> = carriers.iter().map(|(n, _)| n.as_str()).collect();
+  for required in ["_AGENTS.md", "_CLAUDE.md"] {
+    assert!(
+      names.contains(&required),
+      "{required} must carry the four-rule index; carriers are {names:?}"
+    );
+  }
+
+  let (first_name, first_block) = &carriers[0];
+  for (name, block) in &carriers[1..] {
+    assert_eq!(
+      first_block, block,
+      "the four-rule index has DRIFTED between {first_name} and {name}. \
+       These are two copies of one table of contents and they are held \
+       identical by this arm; edit one, edit both."
+    );
+  }
+
+  // The block is the four rules and nothing else -- a guard against the
+  // extraction silently widening if somebody adds a bullet between the ends.
+  for id in [
+    "IN-AG-HIGHLANDER-001",
+    "IN-AG-PFIC-001",
+    "IN-AG-THIN-COORD-001",
+    "IN-AG-NO-SILENT-001",
+  ] {
+    assert!(
+      first_block.contains(id),
+      "the extracted index is missing {id}: {first_block}"
+    );
+  }
+  assert_eq!(
+    first_block.matches("\n- **").count() + 1,
+    4,
+    "the extracted index should be exactly four bullets: {first_block}"
+  );
+}
