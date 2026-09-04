@@ -273,53 +273,123 @@ fi
 # from shell on every invocation, which is a coupling that fails in the dark.
 # This arm is the third option: declare it, and red in the light the day a second
 # outside-the-tree embed appears.
-embeds="$(grep -rho 'include_str!("[^"]*")\|include_bytes!("[^"]*")' "$ROOT/native/rust/crates" 2>/dev/null \
-          | grep -oE '"\.\./[^"]*"' | tr -d '"' | sort -u)"
-uncovered=""
-while read -r rel; do
-  [ -n "$rel" ] || continue
-  # Only paths that climb OUT of native/rust are this arm's business; anything
-  # resolving inside it is already covered by the marker's own scope.
-  # **THE COVERAGE TEST READS THE DECLARED SCOPES; IT USED TO READ A `case`
-  # THAT ONLY KNEW `surface`** (cc, 2026-08-30, on the first embed that was not
-  # one). The arm's own failure message says *the declared scope does NOT cover
-  # them*, and the arm could not answer that question: a hardcoded
-  # `*/surface/*) covered_by=":(top)surface"` mapped exactly one directory, so
-  # every other outside-the-tree embed was uncovered BY CONSTRUCTION and adding
-  # its directory to `SHARED_TARGET_DIRT_SCOPES` changed nothing.
-  #
-  # **THAT IS A THIRD HOME FOR A RULE THE COMMENT ABOVE SAYS IS DECLARED IN
-  # ONE PLACE.** The declaration lived in the list, the mapping lived here, and
-  # only the second one decided the verdict -- so widening the list looked
-  # correct, read correctly, and did nothing.
-  #
-  # An embed climbing out of `native/rust` lands at the repository root, so
-  # stripping the `../` prefix yields the repo-relative path, and a scope
-  # covers it when it is a path prefix of it. **The residual, stated rather
-  # than hidden: this assumes the climb reaches the root and not some directory
-  # between.** Every embed in the tree does, and one that did not would be
-  # reported as UNCOVERED, which is the safe direction.
-  climbed="$rel"
-  while case "$climbed" in ../*) true ;; *) false ;; esac; do
-    climbed="${climbed#../}"
-  done
-  hit=0
-  for sc in "${SHARED_TARGET_DIRT_SCOPES[@]}"; do
-    scope_path="${sc#:(top)}"
-    case "$climbed" in
-      "$scope_path"/*) hit=1 ;;
+#
+# **THE COVERAGE TEST READS THE DECLARED SCOPES; IT USED TO READ A `case` THAT
+# ONLY KNEW `surface`** (cc, 2026-08-30, on the first embed that was not one).
+# The arm's own failure message says *the declared scope does NOT cover them*,
+# and the arm could not answer that question: a hardcoded
+# `*/surface/*) covered_by=":(top)surface"` mapped exactly one directory, so
+# every other outside-the-tree embed was uncovered BY CONSTRUCTION and adding
+# its directory to `SHARED_TARGET_DIRT_SCOPES` changed nothing. **That is a
+# third home for a rule the comment above says is declared in one place.**
+#
+# **THE `../`-STRIPPING RESIDUAL IS DISCHARGED HERE (dc, 2026-09-04) AND THE
+# REASONING THAT WOULD HAVE PREVENTED IT REPLACES IT RATHER THAN THE NOTE BEING
+# DELETED.** The previous form stripped every `../` prefix and treated the
+# remainder as repo-relative, which assumed *the climb reaches the root and not
+# some directory between*. It said so, called UNCOVERED the safe direction, and
+# was correct about correctness. **IT CAME TRUE:** an `include_str!(
+# "../../intentd/src/shell.html")` in `crates/intentsvcs/tests/` climbs to
+# `crates/`, stripped to `intentd/src/shell.html`, matched no scope, and the arm
+# refused. **THE FINDING WAS FALSE AND THE REFUSAL BLOCKED EVERY COMMIT IN THE
+# REPOSITORY ON EVERY PATH** -- confirmed on three nodes, on markdown and canon
+# paths with no relation to Rust.
+#
+# **SO: ANY "SAFE DIRECTION" ARGUMENT IN A GUARD MUST NAME ITS BLAST RADIUS.**
+# Not *this errs toward refusing* -- **this errs toward refusing, and a refusal
+# here stops every commit in the repository on every path.** Written that way,
+# `realpath` gets reached for in the same sitting. Safe-for-the-claim and
+# safe-for-the-people-working are different axes and only the first was on the
+# page (vc's ruling, 2026-09-04).
+#
+# **RESOLUTION IS NOW AGAINST THE EMBEDDING FILE'S OWN DIRECTORY.** `include_str!`
+# resolves relative to the file the macro appears in, so that is the only base
+# that answers the question; a prefix count answers a different one. The
+# resolution is LEXICAL rather than `realpath`, deliberately: a planted control
+# pair must resolve without the file existing, and a target that climbs above the
+# repository root is reported rather than silently clamped.
+#
+# **DECLARED LIMIT, so nobody reads this arm wider than it reaches:** the
+# population is `native/rust/crates` only. `native/rust/build-support/` carries
+# an embed and is NOT examined here. That is the narrow-selector class this
+# estate has a name for (`AC-00.16`), it is stated rather than fixed, and
+# widening it silently is the move vc ruled against on 2026-09-04.
+embed_resolve() {                       # $1 repo-relative embedding file, $2 the embed path
+  # **THE JOIN GOES INTO A VARIABLE FIRST AND THAT IS LOAD-BEARING.** Word
+  # splitting applies only to characters that CAME FROM an expansion, so in
+  # `for seg in $dir/$2` the joining `/` is a literal and is NOT a split point:
+  # `tests` + `/` + `..` arrives as the single field `tests/..`, no `..` case
+  # ever matches, and the function silently returns an unresolved path. The
+  # controls below caught exactly that before this landed.
+  local dir="${1%/*}" out="" seg joined
+  joined="$dir/$2"
+  local IFS=/
+  for seg in $joined; do
+    case "$seg" in
+      ''|.) ;;
+      ..)   if [ -z "$out" ]; then printf '%s' '!ABOVE-ROOT'; return 0; fi; out="${out%/*}" ;;
+      *)    out="$out/$seg" ;;
     esac
   done
-  [ "$hit" -eq 1 ] || uncovered="$uncovered $rel"
+  printf '%s' "${out#/}"
+}
+embed_covered() {                       # $1 repo-relative target; rc 0 covered, 1 not
+  local sc scope_path
+  for sc in "${SHARED_TARGET_DIRT_SCOPES[@]}"; do
+    scope_path="${sc#:(top)}"
+    case "$1" in "$scope_path"/*) return 0 ;; esac
+  done
+  return 1
+}
+embed_covered_OLD() {                   # the stripping form, kept ONLY to prove the control discriminates
+  local climbed="$1"
+  while case "$climbed" in ../*) true ;; *) false ;; esac; do climbed="${climbed#../}"; done
+  embed_covered "$climbed"
+}
+
+# CONTROLS FIRST, AND THE POSITIVE ONE IS PLANTED RATHER THAN POINTED AT.
+# **ITS SUBJECT LEFT THE TREE WHILE THIS FIX WAS BEING WRITTEN** -- ic removed the
+# cross-crate embed at 18:37Z. A control aimed at an absent condition passes
+# because the condition is gone, not because the logic works, and would pass
+# under the broken guard too (cc caught this before it was written).
+ctl_between="$(embed_resolve 'native/rust/crates/intentsvcs/tests/x.rs' '../../intentd/src/shell.html')"
+ctl_outside="$(embed_resolve 'native/rust/crates/x/src/y.rs' '../../../../../CHANGELOG.md')"
+ctl_bad=""
+[ "$ctl_between" = "native/rust/crates/intentd/src/shell.html" ] \
+  || ctl_bad="$ctl_bad between-landing-resolves-to($ctl_between)"
+embed_covered "$ctl_between" \
+  || ctl_bad="$ctl_bad between-landing-not-covered"
+embed_covered_OLD '../../intentd/src/shell.html' \
+  && ctl_bad="$ctl_bad positive-control-has-no-subject(old-logic-also-passes)"
+[ "$ctl_outside" = "CHANGELOG.md" ] \
+  || ctl_bad="$ctl_bad outside-resolves-to($ctl_outside)"
+embed_covered "$ctl_outside" \
+  && ctl_bad="$ctl_bad genuinely-outside-embed-NOT-refused"
+
+embeds="$(grep -rHo 'include_str!("[^"]*")\|include_bytes!("[^"]*")' "$ROOT/native/rust/crates" 2>/dev/null \
+          | sed -E "s#^${ROOT}/##" \
+          | grep '"\.\./' \
+          | sed -E 's#^([^:]+):(include_str|include_bytes)!\("([^"]+)"\)$#\1|\3#' \
+          | sort -u)"
+n_embeds=0
+uncovered=""
+while IFS= read -r pair; do
+  [ -n "$pair" ] || continue
+  n_embeds=$((n_embeds + 1))
+  ef="${pair%%|*}"; rel="${pair#*|}"
+  tgt="$(embed_resolve "$ef" "$rel")"
+  embed_covered "$tgt" || uncovered="$uncovered $ef:$rel(resolves to $tgt)"
 done <<EOF
 $embeds
 EOF
-if [ -z "$embeds" ]; then
-  fail "arm 6b -- found NO outside-the-tree embeds at all; dispatch.rs is known to carry one, so the probe is broken rather than the tree being clean"
+if [ -n "$ctl_bad" ]; then
+  fail "arm 6b -- CONTROLS FAILED ($ctl_bad); no verdict is offered on the $n_embeds embed(s) this arm examined"
+elif [ -z "$embeds" ]; then
+  fail "arm 6b -- found NO outside-the-tree embeds at all across native/rust/crates; dispatch.rs is known to carry one, so the probe is broken rather than the tree being clean"
 elif [ -z "$uncovered" ]; then
-  ok "arm 6b -- every embed reaching outside native/rust is covered by the declared scope"
+  ok "arm 6b -- every embed reaching outside its crate is covered by the declared scope ($n_embeds examined; both controls fired)"
 else
-  fail "arm 6b -- these compile-time embeds reach outside native/rust and the declared scope does NOT cover them:$uncovered. A build mid-edit in one of them is approved by this guard and baked into the shared binary."
+  fail "arm 6b -- of $n_embeds embed(s) examined, these resolve outside every declared scope:$uncovered. A build mid-edit in one of them is approved by this guard and baked into the shared binary."
 fi
 
 # ------------------------------------------- ARM 7: THE VERDICT PRECEDES THE BUILD
