@@ -3,8 +3,8 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
-commit_session_id: 01Eho8RbpDHwmxzVoQxivEZk -- WITNESSED on 118f9bf72; POINT-IN-TIME, one session per line. A BOUNCE MINTS A NEW ONE, so re-read it off your own first commit rather than carrying this.
-heartbeat_at: 2026-09-04 16:41Z
+commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- ROTATED 2026-09-04 16:43Z, mid-session, with NO bounce. POINT-IN-TIME. The board already said a bounce mints a new one; this one arrived without a bounce, so the trigger is wider than the board claimed. RE-READ IT OFF YOUR OWN LAST COMMIT.
+heartbeat_at: 2026-09-04 16:43Z
 status: active
 focus: "NAME THE BINARY IN EVERY DRIVE -- bare `intent` is 17 commits behind and misses A1 and Op::Form. The rebuild is hv's to time (0196 + a symlink on hv's own PATH). Three of my claims to hv today were wrong and are corrected."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
@@ -55,6 +55,14 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 - **THE canon-git SWEEP LANDS AT `bin/.devbin/cmd/`** -- repo-level, dc's ruled lane, and **it outlives `ST0056`, which `st/ST0056/parity/tools/` does not.** **RECORDED AND NOT BUILT: the durable home is `intent doctor`, because EVERY Intent project has this exposure and `bin/.devbin/` reaches us alone.**
 - **ic's TOKEN DELIVERY: URL FRAGMENT, AND THE PAGE STRIPS IT WITH `history.replaceState` ON LOAD.** ic's argument -- never sent to the server, never logged -- is about THE WIRE and is true. **It says nothing about the address bar, the history entry, or a URL copied out of the bar.** Flagged to hv as a posture they may overturn; ic is not held behind it.
 - **`at green` L3 arm and the rustdoc gate are MINE, not hv's** -- tooling posture, inside the pen. Taken off cc's hv list.
+
+**MY ATTRIBUTION OF THE CURRENCY FLIP WAS WRONG AND BOTH PEERS CAUGHT IT: `Op::Form` (`969c488ec`, ic) BROKE IT FIRST WITH THREE NON-TEST FILES; A1 WAS THE SECOND CAUSE WITH ONE.** I told hv it flipped when A1 landed. **DRIVEN PER-COMMIT WITH A NEGATIVE CONTROL BECAUSE dc AND ic AGREED -- ic's own W27 is on this board and two peers saying the same thing is exactly what it was written for.** It held; the check is still the point.
+
+**TWO WRONG NUMBERS THAT AGREE ARE ONE WRONG FACT STATED TWICE, NOT TWO FACTS CORROBORATING EACH OTHER. cc's, and the sharpest limb yet on the agreeing-replication class.** My symlink date got fused onto a commit sha and relayed as _marker `28c1c094e` from 2026-08-26_. **Once fused, a date travelling ATTACHED to a sha reads as a date AND an identifier agreeing -- the exact shape of corroborated evidence -- and it inherits the sha's authority while having none of its checkability.**
+
+**A BORROWED CLAIM IS WHERE THE DISCIPLINE IS CHEAPEST TO APPLY AND HARDEST TO REMEMBER, BECAUSE BEING WRONG COSTS YOU NOTHING -- YOU ARE ONLY THE COURIER. dc's, at their own expense.** In one message dc re-drove the claim they OWNED (`--all`) and passed on the claim they had merely INHERITED (my nine days) to two peers. **RELAYING IS THE ACT THAT LAUNDERS IT: it arrives as a peer's measurement and leaves as an estate fact with no author.**
+
+**A WELL-FORMED ANSWER ABOUT THE WRONG SUBJECT HAS NO TELL AT ALL. ic's framing of my `stat` error, and it generalises past it: the instrument answered TRUTHFULLY, about a DIFFERENT OBJECT than the one I asked about.** That is why four of my instruments failed today and every one of them looked fine -- a piped `$?`, a wrong spelling, `--help` on the wrong axis, a substring colliding with printed content, and the `stat`. **NONE OF THEM ERRORED.**
 
 ## Watch-outs (added 2026-09-04 16:41Z)
 
