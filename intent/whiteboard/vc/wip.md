@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01Eho8RbpDHwmxzVoQxivEZk -- WITNESSED on 118f9bf72; POINT-IN-TIME, one session per line. A BOUNCE MINTS A NEW ONE, so re-read it off your own first commit rather than carrying this.
-heartbeat_at: 2026-09-04 16:05Z
+heartbeat_at: 2026-09-04 16:16Z
 status: active
-focus: "BACK FROM THE COMPACT 16:01Z. Status pinged to cc, dc and ic 15:58Z; all three were BUSY, replies not in. Both holds RE-DRIVEN and both still stand. 0233 is tracked. vc HOLDS THE PEN (hv, 2026-09-04). Two questions still with hv and nothing else is."
+focus: "RULED SEVEN THINGS 16:16Z AND UNBLOCKED ALL THREE NODES. hv HAS THE hv-ITEM LIST WITH CONTEXT, OPTIONS AND A REC. THE FAILURE THAT PRODUCED MOST OF IT: I HAD NEVER READ hv INBOXES I AM THE ROSTERED READER OF."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
@@ -44,6 +44,27 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 **vc's OWN UNSTARTED WORK, UNCHANGED BY TODAY:** `WP-15` skills-catalogue triage (`ST0065`'s criteria are the bar); the estate-tree question, unsourced and born in a fold; `hv/inbox.vc.md`'s lifecycle; `0224`'s disposition (priced at FIVE estates with a discriminating negative -- hv menu can be priced, not argued).
 
 **`0233.json` IS TRACKED -- CHECKED 16:01Z, `git ls-files` rc=0. Discharged.** It went in with the fold commit. **The CLASS is not discharged and is not mine alone: cc had the same on `0232` an hour earlier. The canon store and git disagree, and nothing reports the disagreement.**
+
+## Rulings 2026-09-04, all `authority: vc`
+
+**ONE RULE COVERS THREE OF THEM, AND FINDING IT IS WHY THEY ARE ONE ENTRY RATHER THAN THREE: CANON NAMES IT -> IT STAYS DECLARED AND REFUSES AT rc=2. CANON DOES NOT NAME IT -> IT COMES OFF THE DISPATCH TABLE.**
+
+- **`claude rules validate` STAYS** -- `usage-rules.md:140` names it. **`subagents status` COMES OFF** -- B1 took it out of canon today. **`subagents init` COMES OFF** -- canon never named it; it survives only in `lib/help/`, a v2 artefact the v3 binary does not read. **This reverses the doc-comment dc was about to write explaining `status` as a deliberate oversight: there is nothing to explain once the row is gone.**
+- **`A1` IS ALL FIVE MIRRORED VERBS.** **MEASURED under a scratch `HOME`: ALL SEVEN `subagents` verbs are unwired at rc=2** -- `list show install sync uninstall init status`; control `skills list` rc=0; real `~/.claude/agents` untouched at 8. **dc declined to guess at install/sync/uninstall and was right to; the answer took one drive.** **A VISIBILITY LIMIT IS NOT A SCOPE LIMIT** -- `canon_mandated_verbs_check.sh` skips the write verbs, so a green instrument after A1 says nothing about three of the five, and that caveat belongs in the instrument's OUTPUT, not on a board.
+- **`--all`: FILE IT, THEN FIX IT AFTER A1 AS ITS OWN SIZED ROW.** **It is a v2-to-v3 REGRESSION, not a doc error** -- v2 had it working in `claude_plugin_helpers.sh`. Canon names it 4x; the binary answers **rc=1 `unexpected argument`**, which reads to an operator as their own typo. **THAT IS THE DISHONEST HALF OF THE RULE ABOVE: rc=2 _known command, not implemented yet_ is a coherent shipping state; rc=1 _unexpected argument_ is not.**
+- **THE canon-git SWEEP LANDS AT `bin/.devbin/cmd/`** -- repo-level, dc's ruled lane, and **it outlives `ST0056`, which `st/ST0056/parity/tools/` does not.** **RECORDED AND NOT BUILT: the durable home is `intent doctor`, because EVERY Intent project has this exposure and `bin/.devbin/` reaches us alone.**
+- **ic's TOKEN DELIVERY: URL FRAGMENT, AND THE PAGE STRIPS IT WITH `history.replaceState` ON LOAD.** ic's argument -- never sent to the server, never logged -- is about THE WIRE and is true. **It says nothing about the address bar, the history entry, or a URL copied out of the bar.** Flagged to hv as a posture they may overturn; ic is not held behind it.
+- **`at green` L3 arm and the rustdoc gate are MINE, not hv's** -- tooling posture, inside the pen. Taken off cc's hv list.
+
+## Watch-outs (added 2026-09-04)
+
+**I HAD NEVER READ THE hv INBOXES I AM THE ROSTERED READER OF. `hv/inbox.cc.md` held SEVEN live decisions since 2026-09-03, each carrying cc's own recommendation; `hv/inbox.dc.md` held FIVE including an irreversible-migration warning from 2026-09-02.** Every peer write succeeded. No delivery happened. **NOTHING REPORTED THE DIFFERENCE, WHICH IS THE WHOLE DEFECT THE PROTOCOL SECTION DESCRIBES, WITH ME AS THE NAMED READER IT DESCRIBES FAILING.** **CHECK IT EVERY PICKUP: `for f in intent/whiteboard/hv/inbox.*.md; do grep -c '^## (' $f; done`** -- and the count is deliberately not written here.
+
+**A SEAM BETWEEN TWO SOUND INSTRUMENTS IS INVISIBLE TO BOTH, AND NO AMOUNT OF CONTROL ON EITHER ONE FINDS IT. dc's finding, 2026-09-04, and the best thing produced today.** dc's instrument derives its population from the six canon files and judges by RUNNING; cc's derives its population from `surface/dispatch-table.json` and judges on the OUTPUT MARKER. Both are correct on their own population. **`--all` is named 4x in canon and 0x in the table, so it is not a member of either subject** -- dc's conjunct calls it not-unwired, cc's marker calls it implemented, and **both return the reassuring answer by different routes.** **THE GENERAL FORM: WHEN TWO INSTRUMENTS DRAW THEIR POPULATIONS FROM DIFFERENT SOURCES, THE DEFECTS THAT MATTER COLLECT AT THE BOUNDARY, AND ONLY AN INSTRUMENT WHOSE SUBJECT IS THE BOUNDARY SEES THEM.**
+
+**A LIVE DEFECT, UNFILED, AND NOT WHAT ANYONE WAS ASKING ABOUT: `intent agents` bare answers rc=2 `is a known command that is not implemented yet`, while `agents --help` lists init/generate/sync and `agents sync` is the verb `in-essentials` rule 2 ORDERS EVERY AGENT TO USE.** The family declares itself unbuilt while its leaves work. **Found by taking a census cc had flagged as not taken** -- bare noun verbs split FOUR ways (`st wp ac at` rc=1 needs-a-subcommand; `issues lang modules plugin llm` rc=0; `doctor` runs; `config agents` rc=2), **so cc's three-option menu for hv contained none of the four live states.** Routed to cc/dc to claim.
+
+**AND cc's PREFIX BUG IS STILL LATENT IN MY FOLD SCRIPT. I HAVE NOT FIXED IT.** cc's correction, adopted verbatim: my board carrying one `## Decisions` and no prefixed sibling is a property of MY DATA, not of my fold.
 
 ## Holds
 
