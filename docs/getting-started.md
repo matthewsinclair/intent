@@ -61,9 +61,11 @@ Then write down why. This is the part that matters and the part everything else 
   $ intent sync --to-disk  ST0001
 ```
 
-**You edit the canon extract, not `info.md`.** `info.md` is a generated view — `intent st edit ST0001 info` refuses to hand you its path for exactly that reason, and it is right to. Fill in the `objective` and `context` fields in the JSON, sync them into the store, then render the view back out.
+**You edit the canon extract, not `info.md`.** `info.md` is a generated view: whatever you write into it is gone at the next render. Fill in the `objective` and `context` fields in the JSON, sync them into the store, then render the view back out.
 
-**There is no verb for this yet, and the refusal you get if you try says there is.** It names `intent st` as the place to author thread fields; no `intent st` verb writes `objective` or `context`. The canon route above is the working one.
+**And nothing stops you doing the wrong thing here, so the discipline is yours.** `intent st edit ST0001 info` hands back the path at exit 0 and lets you edit the generated view — driven on this build. The published `3.0.0` tag refused it, which is where the protection people remember comes from; this build lost the refusal (issue `0192`). Until that is back, treat `st edit ... info` as a way to READ where the view lives and never as permission to author into it.
+
+**There is no verb for this yet, and on the published tag the refusal claims there is.** `3.0.0`'s refusal reads _author it with `intent st` for thread fields_ — and no `intent st` verb writes `objective` or `context`, so following it leads nowhere. On a build that has lost the refusal you get no steer at all. **The canon route above is the working one under both.**
 
 **A new thread carries `info.md` and `acceptance.md`, and nothing else.** `design`, `impl` and `tasks` are not created for you and are not made real by creating the file — a thread's file set is a property of the model, not of the directory. They join a thread as attachments: `intent st attach ST0001 design.md --from <your file>` is the writer, and once a thread carries one, `intent st edit ST0001 design` hands back its path. Until then the thread has no design of its own to open, and the reasoning goes in `objective` and `context` above. **Be specific about constraints and about what you ruled out** — that is the information nobody can reconstruct later, and it is what an agent reading this file will act on. "Cache because the upstream API limits us to 100 req/min, and we see 10K req/s at peak" tells a reader something. "Add caching" does not.
 
