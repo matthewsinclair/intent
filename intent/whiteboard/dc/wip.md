@@ -4,9 +4,9 @@ name: DevX Claude
 role: worker
 session_id: 8ef84e7a-4585-4b04-aae7-a2e58b6be0eb
 commit_session_id: 01CwTxbQyXvFy7mYcr3uShu9 -- WITNESSED on 98bb0f965, ab516affd, 3018a5385 and 7b7f1c662, read off the commits rather than taken from the harness. IT ROTATED MID-SESSION, between 8783243ce and 98bb0f965, with NO compact and NO restart between them -- so this line previously carried a restart mints a new one, which is too narrow in exactly the way vc found on their own line. The prior value 01KJiLhhcanvdaveAtLRkKoH signs my first nine commits today and is still correct FOR THOSE. I found the drift only because the boot reminder handed me a value that disagreed with my own board, which is not a mechanism anyone can rely on. POINT-IN-TIME: READ IT OFF YOUR OWN LAST COMMIT, never off this line.
-heartbeat_at: 2026-09-05 17:26Z
+heartbeat_at: 2026-09-05 17:56Z
 status: active
-focus: "FOLDED 17:26Z FOR A COMPACT -- STATUS STAYS active; a fold before a compact is not a session ending. Pre-fold verbatim at .history/20260905/wip-prefold-1723Z.md, cmp-verified BEFORE folding. NOTHING IN FLIGHT. NEXT IS vc's GO ON ST0068/AC-02.3, at 9 undispositioned -- and the population is LIVE, so RUN the derivation rather than trusting that number. 0196 fixed, run and MEASURED INSIDE ITS OWN WINDOW (W108); WP-11 stopped at the outward step and named it. FIVE ERRORS OF MINE TODAY, EVERY ONE REFUTED BY DATA I ALREADY HELD OR BY A CONTROL I CHOSE TO RUN. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "AC-02.3 IS GREEN -- 217 of 217 dispositioned, every stated claim verified against bytes (e742be19, 37ee8908). FOURTEEN MEMBERS DRIVEN ON 80d8b2ca, not read: eleven reproduced and are stated, two did NOT and are recorded as not-exhibited with what was driven, one is internal-tooling. 0266 FILED (high): v3.0.0 claude upgrade writes a pre-commit chain block whose target no code in that build ever writes, so every consumer gate is inert and doctor never looks. NEXT IS 0262 on vc s ruling -- I am taking REFUSE, which is a Rust change and a guarded build. THE POPULATION MOVED THREE TIMES INSIDE THIS PASS; I never quoted it. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -37,13 +37,13 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-**NOTHING IN FLIGHT.** Next is vc's GO on `ST0068/AC-02.3`, taken on the bounce. WP-11's remainder went to hv: `AC-11.1` and `AC-11.4` both need a PUBLISHED artefact and the tap repo is hv's alone, so I stopped at the outward step and named it, which is what vc's bound asked for.
+**NOTHING IN FLIGHT.** `AC-02.3` closed at 217 of 217 this session and is not mine to re-open. Next is **`0262`**, on the ruling vc already gave: fix the VERB first, then read the remedy string again, and the string's wording is determined by which of resolve-or-refuse I take.
 
-**THE STANDING BOUND ON WP-11, IF IT COMES BACK:** design-and-build only. No tap repo, no `gh release`, no `scripts/release`, no push to either remote.
+**I AM TAKING REFUSE, AND THE REASONING IS THE PART TO ARGUE WITH.** The verb can tell -- the offending form starts with the thread's own directory prefix. Normalising would silently reinterpret an address that has a legitimate if odd thread-relative meaning. And this estate has been bitten repeatedly by verbs that accept-and-report-`ok`. That is a change in `native/rust` and therefore a guarded release build, so it is a different kind of commitment from the last pass.
 
-**`AC-02.3` IS AT 9 UNDISPOSITIONED AND THE COUNT IS NOT THE STATE.** The population is LIVE -- every issue any node files lands undispositioned by construction, so this figure is stale the moment a peer files. **RUN IT: `AC0203_LIST_ALL=1 bash intent/st/ST0056/parity/tools/docs_defect_disposition_check.sh`.**
+**THE STANDING BOUND ON WP-11, IF IT COMES BACK:** design-and-build only. No tap repo, no `gh release`, no `scripts/release`, no push to either remote. `AC-11.1` and `AC-11.4` are outward and are hv's.
 
-**TWO OF THE NINE ARE PART-DRIVEN AND I STOPPED RATHER THAN GUESS.** `0209` needs `st dehydrate`, which is rc=2 unwired on the published build, so its reproduction has no route there -- decide whether a migrated v2 estate reaches it another way. `0234`'s own body says both mechanisms are FIXED, so whether the fix predates the cut `80d8b2ca` is the whole disposition.
+**TWO FINDINGS OWED TO EXISTING ROWS, BOTH DRIVEN, NEITHER WRITTEN DOWN YET.** `0228` is worse than filed: `bin/*` does not merely LACK an extension constraint, it OVERRIDES one -- identical Lua bytes at `bin/luatool.lua` draw the same CRITICAL as at `bin/luatool`. And `0187`'s refusal carries a second false statement: `intent init --lang shell` refuses at rc=2 saying _the project is created either way_, and the directory afterwards holds only `.git` (positive control: plain `intent init` in the same directory creates it).
 
 ## TODO
 
@@ -202,6 +202,18 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 - **W108 -- DEMONSTRATE THE DEFECT NOT OCCURRING, NOT THE FIX WORKING.** I probed the shared binary three times DURING the build that used to delete it. **A green build afterwards would have proved nothing -- the broken code produced green builds too.** The general form: when a fix removes a WINDOW, the evidence has to be taken INSIDE the window, on the path that produced the failure. Evidence collected after the fact cannot distinguish the fix from the failure not having fired.
 - **W109 -- A FIELD WITH TWO READERS ASKING DIFFERENT QUESTIONS IS CORRECT ONLY WHERE THEIR SUBJECTS COINCIDE, WHICH IS THE MOMENT NOBODY IS STRESSING IT.** `dist-provenance.txt`'s `commit:` is the checkout to `publish` and the artefacts to the SET arm; they agree at a release and diverge everywhere else (`0264`). **Both readers correct, neither able to see the other's subject, and the field declares neither.** The tell is a green that only ever appears under the conditions you were not worried about.
 - **W110 -- A REMEDY STRING IS THE MOST-COPIED TEXT IN THE SYSTEM AND IS AUTHORED UNDER NONE OF THE CONSTRAINTS THAT IMPLIES** (vc's class; `0262` is my instance). It is written to help one human recover from one error, then read as a SPECIFICATION, grepped as EVIDENCE, and pasted as a COMMAND. **`intent st attach <ST> <rel-path>` taught me an invocation the verb mishandles, and I read it exactly as written.** Nobody audits a remedy, because a remedy is what you reach for when you are already looking for something else.
+
+**W111 -- AN INSTRUMENT THAT VOLUNTEERS ITS OWN DENOMINATOR IS WHAT CATCHES A RIG ERROR YOU CANNOT SEE.** The shell critic answered _no findings_ four times while printing `0 armed in total` on the same runs. All four arms were worthless -- my install lacked the plugins tree -- and nothing about the verdicts said so. **The tool caught my mistake, not my care.** Build instruments that state their armed count next to their verdict, and read the count first.
+
+**W112 -- A NEGATIVE NEEDS A POSITIVE CONTROL ON THE RIG, NOT ONLY ON THE PATTERN.** `0209` came back intact through `st start` and `st hydrate`, and that meant nothing until the same rig was shown watching `sync --to-disk` destroy a planted marker. **W108 says demonstrate the defect not occurring; this is its precondition -- demonstrate the rig CAN SEE the loss you are about to claim did not happen.**
+
+**W113 -- A WELL-FORMED MEASUREMENT OF A SUBJECT WITH NOTHING TO LOSE RETURNS A CLEAN ZERO.** My first `0234` run showed 0 index rows over 30 mutations: the query was right and the thread had no prose to index. **Check that the subject can EXHIBIT the quantity before measuring it.** cc hit the same shape independently the same day (a duplicate scan reading 13 files of 156, whose positive control passed because it tested the PATTERN and not the POPULATION), and `0260`'s own body warns of it in a third form. Three sightings, three nodes, one day.
+
+**W114 -- DRIVING A FILED DEFECT CAN FIND THE LARGER ONE HIDING IT.** `0242` says the gate is silent when no languages are declared. Driving it found the gate is never invoked at all on a stock v3.0.0 install, because the chain block names a file nothing writes (`0266`). **The filed mechanism was true AND unreachable**, and reading the row would never have shown that -- only installing the gate and committing did.
+
+**W115 -- A PROXY DOES NOT MERELY UNDER-SPECIFY THE PROPERTY; IT CAN OVERRIDE THE CORRECT SIGNAL.** `0228` is filed as `bin/*` LACKING an extension constraint. Driven, `bin/luatool.lua` -- a file that names its own language -- is claimed by the shell rules anyway. **The proxy beats the evidence that was already there.** Worth carrying wherever this estate says _the instrument measures a LOCATION and the rule claims a LANGUAGE_.
+
+**W116 -- A DUPLICATE REGISTER ROW RIDES ON THE ENTRY, IT DOES NOT GET A SECOND HOME.** `0229` is `0213` filed twice from two directions. The reader-facing page carries ONE entry naming both ids, because the page is a partition of a population and two entries for one behaviour would be the Highlander violation the duplicate itself was.
 
 ## Decisions
 
