@@ -208,3 +208,14 @@
 0256	stated	docs/known-defects.md	intent#0256
 0263	not-reader-reachable	internal-tooling -- the subject is this repository's own `.prettierignore` header. It is not in `lib/templates/`, so no consumer project receives the file, let alone its rationale comment. Driven: no template ships a `.prettierignore`.	
 0264	not-reader-reachable	dev-apparatus-only -- the subject is `dist-provenance.txt`, written by `int macos stage` under `bin/.devbin/`, which is not shipped to any consumer. Driven: no `lib/templates/` path carries devbin. A reader of the published build has no route to the record or to either of its two readers.	
+0209	not-reader-reachable	not-exhibited -- driven on v3.0.0 in BOTH shapes the corrected predicate names, with a positive control. Files on disk that canon does not model (design.md/impl.md/tasks.md) survive `st start` and `st hydrate` in place; a MODELLED file whose disk copy is richer than canon (1037 bytes, 40 marker lines) survives byte-for-byte through both verbs. CONTROL: the same rig watches `sync --to-disk` destroy a planted marker in info.md, so these negatives are real rather than a blind instrument. The reported instance needs a bucketed or partially-hydrated thread, which on v3.0.0 hits 0011's whole-project stop instead -- a condition a fresh project cannot create, and which the page's own last section already names as out of reach.	
+0220	stated	docs/known-defects.md	intent#0220
+0228	stated	docs/known-defects.md	intent#0228
+0229	stated	docs/known-defects.md	intent#0229
+0234	stated	docs/known-defects.md	intent#0234
+0242	stated	docs/known-defects.md	intent#0242
+0259	not-reader-reachable	not-exhibited -- driven on v3.0.0 in TWO view-skew shapes planted on a SECOND thread (a hand edit appended after the generated banner, and a preamble inserted between the title and `## Objective`), each confirmed present as a `doctor` view-skew finding naming ST0002. In both, a scoped `intent sync --to-store ST0001` WITH real work to write succeeded at rc=0, warned only about ST0001, and named ST0002 zero times. The reported estate additionally carried a stale runtime store and a store copy authored by hand outside the sync path. The half of this row that IS reader-reachable -- a stale store written over a committed correction, and a remedy that discards the edit -- is 0260, which is stated.	
+0260	stated	docs/known-defects.md	intent#0260
+0262	stated	docs/known-defects.md	intent#0262
+0265	stated	docs/known-defects.md	intent#0265
+0266	stated	docs/known-defects.md	intent#0266

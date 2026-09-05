@@ -26,6 +26,10 @@ on every verb, including ones that have nothing to do with the stray thread. The
 
 **`intent init` writes an Elixir/Phoenix decision tree into every project, whatever language you work in** (`intent#0224`). Driven on v3.0.0 in an empty directory: `intent init` leaves `intent/llm/DECISION_TREE.md` at 3 KB while the project's declared languages are `[]`. The file routes code placement through Phoenix contexts, LiveViews and Ash resources, so a Rust or Swift project gets guidance for a stack it does not use. Nothing declines it at init time and no flag suppresses it. Delete the file if it is not yours; nothing regenerates it unless you re-run `init`.
 
+**The `AGENTS.md` a shell project is given documents a test command that finds no tests** (`intent#0220`). Driven on v3.0.0: with `shell` declared, `intent agents sync` writes an `AGENTS.md` whose line 29 reads `bats tests/`. `bats` is not recursive, so a project whose suites live under `tests/unit/` gets `ERROR: Found no tests. (Try \`--allow-empty-suite\`?)`from the documented command, where`bats -r tests/`runs them.`AGENTS.md`is the first file the project tells an agent to read, and it is generated, so a correction written into it is overwritten at the next`intent agents sync`. No per-project override exists for a template value. Run `bats -r tests/`; the flag is correct for a flat layout too.
+
+Declaring the language is its own obstacle on this build: `intent init --lang shell` refuses (`intent#0187`), so the array has to be edited into `intent/.config/config.json` by hand before the generated file says anything about shell at all.
+
 ## Threads
 
 **`intent st list` shows only in-progress threads and discloses the filter nowhere** (`intent#0121`). Driven: two threads, one `WIP` and one `Triage`; the default listing shows one row and `--status all` shows both, with nothing in the default output indicating that anything was filtered. A short list reads as a short project.
@@ -41,6 +45,10 @@ The row cannot be repaired afterwards: an issue title and body are write-once (`
 **The write-once title is the part that outlasts the mistake, and one of ours proves it.** A thread created this way as `dehydrate` was later adopted and filled in -- it carries a real objective and real context and is genuinely in progress -- and **its title is still the bare subcommand name, because nothing in the tool can change it.** Closing the debris is the answer only while it is debris; once something is adopted, the junk title is permanent. If you hit this, decide early whether the row is worth keeping, because renaming will not be available later.
 
 **`intent wp show` prints a short header, not the work package's `info.md`** (`intent#0245`). Driven on v3.0.0: `intent wp show ST0001/01` returns three lines -- the id and title, `status:`, and `scope:` -- while `intent/st/ST0001/WP/01/info.md` exists on disk and is not shown. The dispatch table describes the verb as showing the work package's `info.md`, so the description and the behaviour disagree. Read the file directly if you want its body. **Note on the register row**: `intent#0245` says four lines; it is three at v3.0.0.
+
+**`intent st attach` accepts a repo-relative path and mints a second attachment row for a file that already has one** (`intent#0262`). Driven on v3.0.0: `intent st attach ST0001 parity/probe.txt --from <file>` records `parity/probe.txt`, and running it again with `intent/st/ST0001/parity/probe.txt` -- the same file, addressed from the repository root -- returns `ok:` at exit 0 and leaves canon holding both paths. The verb wants the path relative to the THREAD and says so nowhere. `intent doctor` does not report the duplicate, and there is no `detach`: `intent st` ships no verb that removes an attachment row, so repair means editing `intent/.canon/st/<ID>.json` by hand.
+
+The form that breaks it is the form the tooling invites. A repo-relative path is what `git status` prints at you, and it is what a reader has in hand at the moment something asks for the file.
 
 ## Criteria and tests
 
@@ -62,13 +70,17 @@ The refusal also names an escape, `declare 'acceptance: exempt'`, and **there is
 
 **A criterion cannot record what would discharge it until it is discharged** (`intent#0211`). `intent ac satisfy` is the only verb that takes evidence and `--evidence <ref>` is required on it, so there is no way to write down what a criterion is waiting for while it is still open. Driven on v3.0.0: `ac satisfy --help` reads `Usage: intent ac satisfy --evidence <ref> <STID> <ACID>`. Planning notes for an open criterion have to live outside the tool.
 
-**`at lint` reports a test row as conforming when the row cites no test at all** (`intent#0213`). Driven on v3.0.0: create an AT with `--kind test` and no `--file`, drive it to green, and `intent at lint` answers `ok -- 1 AT row(s) conform`. The row asserts a passing test and names nothing that could have passed.
+**`at lint` reports a test row as conforming when the row cites no test at all** (`intent#0213`). The register carries a second row for the same code site (`intent#0229`), filed from an independent report and closed as the duplicate it is; both describe this behaviour. Driven on v3.0.0: create an AT with `--kind test` and no `--file`, drive it to green, and `intent at lint` answers `ok -- 1 AT row(s) conform`. The row asserts a passing test and names nothing that could have passed.
 
 **The refusal that does exist makes this worse, not better.** `at new --file tests/does_not_exist.rs` is refused outright at exit 1 -- `cites a file that does not exist` -- so the tool checks the path when you give one and checks nothing when you do not. **Citing a wrong file is caught; citing no file is blessed.**
 
 **The close gate has the identical blindness, and that is the half that costs you something.** `intent ac gate` is not a safer alternative to the linter: driven on v3.0.0, a test-backed criterion covered by a single fileless test row driven green returns `gate: ST0001 PASS -- 1/1 satisfied` at exit 0, and says nothing about the row it did not examine. The same `contract_report` backs both, by design -- its own source says so, on the ground that two rule sets would drift. **So a thread whose test rows all lack files can pass its own close gate over evidence nothing read.** Treat a `conform` or `satisfied` count that matches your row count as unverified until you have checked the rows cite files.
 
 **`intent at lint --fix` is advertised and refuses** (`intent#0139`). `at lint --help` documents it as _Migrate the mechanical part of a legacy row_; calling it exits non-zero without doing so.
+
+**The close gate reads your working tree, so a thread can pass on evidence nobody else has** (`intent#0265`). Driven on v3.0.0: a test-backed criterion covered by an AT citing `tests/probe.rs`, with that file present on disk and **not committed**, returns `gate: ST0001 PASS -- 1/1 satisfied` at exit 0 -- and `intent st done` then closes the thread on it. A clone of the same repository does not contain the cited file at all.
+
+Two controls make it sharp. Remove the file from the worktree and the gate flips to `BLOCKED -- AT-01.1 cites a file that does not exist`, so the gate is genuinely reading the tree and the PASS was not indifference. And **the verdict names no tree**, so two people running the identical command in the same repository can get different answers with nothing in either output to explain the difference. Commit the cited files before reading a gate result as a claim about the project; on a shared checkout a PASS is a statement about one person's disk.
 
 ## Editing
 
@@ -124,6 +136,17 @@ This bounds the canon-editing route that [Getting started](getting-started.md) u
 
 The same section inserted **before** the banner is refused, by name, with the text left intact — so this is one hole in a working guard rather than a missing one. `intent doctor` does report the drift as `view-skew`, so the loss is detectable after the fact; what does not report it is the verb you ran to make the edit land. **Append above the banner, or put the text in `## Objective` or `## Context`, which are the two sections that round-trip.**
 
+**`intent sync --to-store` reverts a committed correction on disk, reports success, and leaves the wrong value in the store** (`intent#0260`). Driven on v3.0.0 in a fresh project: correct a thread's objective in `intent/st/ST0001/info.md`, commit it, then run the verb whose documented job is reading the extract into the store.
+
+```
+  note: the store and the extract agree; this restore overwrites nothing
+  ok: store replaced from the extract, 1 thread(s)
+```
+
+Exit 0, and **both lines are false**. The store and the extract did not agree, and the store was not replaced. Afterwards the correction is gone from the working file, the pre-edit text is back in its place, and canon still holds the old value. The safety-sounding first line is the reason the operation did nothing, printed as though it were a guarantee, and the write to your file is not mentioned at all.
+
+**Commit before you sync** -- that is the only thing that makes the loss recoverable -- and change a thread's fields in `intent/.canon/st/<ID>.json` rather than in the extract (`intent#0185`).
+
 ## Searching
 
 **A hyphen in a search query is read as SQL and leaks the error** (`intent#0194`). Driven on both builds: `intent search canon-ignore` exits 1 with `sqlite: no such column: ignore`, while `intent search canon` returns hits normally. The query goes to FTS5 unescaped, so the hyphen is parsed as an operator and the term after it as a column name. Any query containing `-` fails the same way, which includes most of this project's own vocabulary -- `read-back`, `at-lint`, `to-write`. Quote nothing and search a single word; there is no escaping syntax that helps, because the escaping is missing on the tool's side of the call.
@@ -136,6 +159,12 @@ The same issue also reports one file repeating once per hit -- four identical ro
 
 **What search gets right, so this is not read as worse than it is:** an unindexed project says so rather than returning an empty list, in the tool's own words -- `nothing is indexed, so this search could not have matched -- an empty result here does NOT mean <term> is absent`. That is the failure mode that would actually mislead a reader, and it is closed.
 
+## The store grows with every write
+
+**Every mutation appends a full copy of the thread's prose to the search index, and the index it replaces is never truncated** (`intent#0234`). Driven on v3.0.0 in a fresh project holding one thread with two sections of prose: 30 `intent ac new` calls take `doc_sections` from 2 rows to **62**, against **2** distinct `(file, owner_id, seq)` throughout -- two duplicate rows per mutation, of content that never changed. Over the same 30 calls `doc_sections_data` goes from 2,710 bytes to 74,776, and the database file from 114 KB to 250 KB.
+
+The growth tracks how often a project has been written to rather than what it holds, and nothing reports it: the row count is right for the model, searches keep answering correctly, and `VACUUM` reclaims none of the index because the tombstones are live data rather than free pages. What you notice is start-up latency on a heavily-edited project. **Both mechanisms are fixed after the tag**, and on a fixed binary a single `intent sync --to-store` repairs an existing store, so the route out is a newer build rather than a maintenance verb.
+
 ## The daemon
 
 **`intentd --help` starts a daemon instead of printing help** (`intent#0162`). On v3.0.0 the binary inspects argv for `--version` and then serves regardless of what else is there, so any argument it does not recognise -- `--help` and `-h` included -- falls through to starting a real daemon under your real `$HOME`. It binds, it publishes, and it does not return. While it is up, every other Intent session on the machine has its store verbs refused at `rc=2` by a daemon nobody meant to start.
@@ -143,6 +172,20 @@ The same issue also reports one file repeating once per hit -- four identical ro
 Do not type it. If you already have, find the process and stop it: `pgrep -fl intentd`, then `intent daemon stop` or kill the pid. **v3.0.1 closes this** -- the fixed binary prints usage for `--help` and refuses any other argument with a remedy, on the stated ground that starting a daemon by accident takes every session on the machine down together.
 
 **How this entry was established, because the obvious check is the defect.** Running `intentd --help` on the published build to confirm the behaviour would reproduce the outage on the machine doing the checking. So the two binaries were compared statically instead: the v3.0.1 help text is absent from the v3.0.0 binary and present in the current one, with a control string both carry, so an unreadable binary cannot masquerade as an unfixed one. The behaviour itself was driven first-hand on 2026-08-30, once, before it was understood -- which is how it was found.
+
+## The pre-commit gate
+
+**`intent claude upgrade --apply` installs a gate that enforces nothing, and reports that it wrote it** (`intent#0266`). Driven on v3.0.0 from a faithful install tree: the verb prints `written: .git/hooks/pre-commit`, and the hook it writes is a chain block that execs `.git/hooks/pre-commit.intent` **if that file is executable**. Nothing in v3.0.0 ever writes that file -- six candidate verbs were driven and none creates it, and the build ships no template for it. The test is false forever, so every commit passes ungated and in silence.
+
+Three controls separate this from a gate that is merely quiet. The listing sees the file the moment one is planted by hand, so the six negatives are real. Copying the shipped gate body to that path makes the very next commit print `guards: 1 ran, 3 skipped (not applicable)`, so the gate speaks as soon as anything runs it. And `intent doctor` on the same project emits three findings while mentioning the gate, the hook, or `pre-commit` **zero** times -- the absence of a gate finding is the check declining to look, not a healthy project. The function that installs the carrier arrived after the tag. **If you want the gate on this build, put the gate body at `.git/hooks/pre-commit.intent` yourself and make it executable.**
+
+**Behind that sits a second defect you cannot reach until you do** (`intent#0242`). The gate reports which declared languages went unenforced only when that count is non-zero, and `intent init` leaves `languages` at `[]`, so a gate with nothing to enforce is silent and looks identical to one enforcing everything. Driven with the carrier installed by hand: the commit prints its guard line and says nothing about critics or languages at all.
+
+## The rule critics
+
+**The shell critic claims any file in `bin/`, whatever language it is** (`intent#0228`). Five canon shell rules -- two of them `critical` -- carry `applies_to: ["**/*.sh", "**/*.bash", "bin/*"]`, and the third pattern is not extension-constrained. Driven on v3.0.0: a Lua script at `bin/luatool` whose second line is the comment `-- shells out for the legacy path: cat $1 | grep x` returns `[CRITICAL] IN-SH-CODE-001 at bin/luatool:2`. The identical bytes at `src/luatool.lua` return no findings, so the discriminator is the path and not the content.
+
+**And `bin/*` overrides an extension rather than merely lacking one.** The same bytes at `bin/luatool.lua` -- a file that names its own language -- are claimed too, and draw the same critical. The pattern stands in for _an extensionless shell script in `bin/`_, which is a real convention it cannot see directly. Keep non-shell files out of `bin/`, or expect critical findings against a language the rules do not describe.
 
 ## Declared and not implemented
 
