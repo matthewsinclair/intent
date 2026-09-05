@@ -172,3 +172,17 @@
 0225	not-reader-reachable	artefact-not-defect -- title "help", body empty, created 2026-09-03 16:39 and UNTRACKED at the time of writing. The sixth register artefact of 0223 and the first observed live: it appeared while 0223 was being documented, from an actor that is not this node. Evidence for 0223, not a claim of its own.	
 0206	stated	docs/known-defects.md	intent#0206
 0213	stated	docs/known-defects.md	intent#0213
+0230	not-reader-reachable	internal-tooling -- the residual is what the in-process TUI drive does not cover (bytes to KeyEvent, model to cells). It is a statement about our own test reach; no reader meets it by following any page.	
+0232	not-reader-reachable	internal-tooling -- WP-08's conformance instrument is a property of this thread's own acceptance apparatus, not of anything a reader runs.	
+0233	not-reader-reachable	internal-tooling -- runner_roster_check.sh is a parity instrument under intent/st/ST0056/parity/tools/; it ships to nobody and no published page routes a reader to it.	
+0244	not-reader-reachable	internal-tooling -- a conformance test's own assertion strength. The subject is a test in this repo, not a verb, a page or an output a reader can reach.	
+0246	not-reader-reachable	internal-tooling -- register.md and burn-baseline.tsv are the v2-estate parity apparatus; the keep classification drives OUR prune decisions and reaches no consumer.	
+0249	not-reader-reachable	internal-tooling -- implemented_check.sh is a parity instrument; the hardcoded clap strings are its own reach problem and produce no output a reader sees.	
+0250	not-reader-reachable	register-authoring -- the cost of a fixed-but-open row lands on a maintainer citing it. A reader meets the register only through docs/known-defects.md, whose preamble already states that closed does not mean fixed in your build and open does not always mean still broken.	
+0251	not-reader-reachable	register-authoring -- an AT row's citation grammar is authored in canon by a maintainer, on the 0017 precedent already applied on this manifest. A reader following the docs never writes one.	
+0252	not-reader-reachable	register-authoring -- surface/dispatch-table.json is the maintainer-facing command-surface SSOT. It is not published, and no page routes a reader to its rows.	
+0253	not-reader-reachable	register-authoring -- same artefact as 0252. The undeclared flags are a gap in OUR record of the surface; the reader-facing consequence, if any, is whatever the binary does, which is a separate row when driven.	
+0254	not-reader-reachable	internal-tooling -- parity/cmd-*.md are generated inventories under intent/st/ST0056/parity/; they are not published pages and carry their own revision banner.	
+0255	not-reader-reachable	register-authoring -- the v2 field is a maintainer cross-reference inside the dispatch table. No consumer reads it and no instrument that a reader runs depends on it.	
+0257	not-reader-reachable	internal-tooling -- the subject is a conformance test's name versus its predicate. It is our apparatus judging our apparatus.	
+0258	not-reader-reachable	multi-node -- the register carrying an assignment it cannot deliver is the five-node whiteboard protocol's problem, on the 0012 precedent already applied on this manifest. A single-user consumer has nobody to hand work to.	

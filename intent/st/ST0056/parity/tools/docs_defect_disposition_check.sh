@@ -120,7 +120,16 @@ undisposed=0; stale=0; stated=0; notreach=0; badquote=0
 while IFS= read -r id; do
   row=$(awk -F'\t' -v i="$id" '$1==i' "$MANIFEST" | head -1)
   if [ -z "$row" ]; then
-    undisposed=$((undisposed+1)); [ "$undisposed" -le 12 ] && note "  UNDISPOSITIONED: $id  $(jq -r '.title' "$REG/$id.json" | cut -c1-64)"
+    # THE CAP HIDES WORK, IN A CRITERION WHOSE OWN POINT IS BEING AUDITABLE
+    # RATHER THAN ASSERTED. It stays as the default because a gated run should
+    # not print forty lines every commit, but a reader who wants the SET can ask
+    # for it -- and until 2026-09-05 nobody could, so the undispositioned list
+    # was a number plus a sample of twelve, which is exactly the shape this
+    # criterion refuses everywhere else.
+    undisposed=$((undisposed+1))
+    if [ -n "${AC0203_LIST_ALL:-}" ] || [ "$undisposed" -le 12 ]; then
+      note "  UNDISPOSITIONED: $id  $(jq -r '.title' "$REG/$id.json" | cut -c1-64)"
+    fi
     continue
   fi
   disp=$(printf '%s' "$row" | cut -f2)
