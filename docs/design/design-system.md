@@ -310,7 +310,7 @@ The site is a single scroll. The copy below is a **draft to design against**, re
 
 > ### A steel thread is one intention, followed end to end
 >
-> Not a ticket and not a task. A steel thread names something you are trying to achieve, records why it matters, breaks into work packages, and states the acceptance criteria that decide when it is genuinely done. Criteria are not prose promises — each is backed by an acceptance test, and Intent computes whether the thread is satisfied rather than asking you to assert it.
+> Not a ticket and not a task. A steel thread names something you are trying to achieve, records why it matters, breaks into work packages, and states the acceptance criteria that decide when it is genuinely done. Most criteria are backed by an acceptance test and computed from it. The rest — the ones no test can decide — are satisfied by named evidence, which is a claim with an author rather than a green tick. Intent computes the thread's verdict from both and will not let you assert that.
 
 **6. Working with agents.**
 
@@ -321,6 +321,12 @@ The site is a single scroll. The copy below is a **draft to design against**, re
 > The point is not that an agent reads your docs. It is that the docs are generated from something that cannot silently drift.
 
 **7. Install**, with the platforms named and nothing hidden behind a tab that defaults wrong.
+
+**RECONCILIATION AGAINST THE SHIPPED SURFACE, DONE 2026-09-05 (vc), BECAUSE THIS SECTION PROMISED IT AND A PROMISE TO RECONCILE IS NOT A RECONCILIATION.** Two claims above were measured against the estate and the keg rather than read.
+
+**THE MODEL COPY IN 5 WAS WRONG AND IS FIXED ABOVE.** It read _each is backed by an acceptance test, and Intent computes whether the thread is satisfied rather than asking you to assert it_. Measured across this canon: **137 of 505 criteria are `non-test`, and ALL 107 satisfied criteria in the entire estate carry named evidence — every satisfaction in this project was asserted, not computed.** The differentiating claim on the home page was contradicted by every satisfied row in the tool's own repository. **The thread VERDICT is computed; the non-test ROW is asserted, and collapsing the two is how a reader learns the model wrong on the first page.**
+
+**AND 6's RULE-LIBRARY CLAIM IS A LAUNCH PRECONDITION, NOT A COPY DEFECT.** This page offers exactly ONE action — `brew install matthewsinclair/intent/intent` — and 6 promises _it ships a rule library agents can be held to_. **The v3.0.0 keg carries no rules directory (driven; issue `0275`), so today the one action the page recommends produces a build lacking the thing the page's central section promises.** The copy list is fixed and guarded at stage, so this comes true when the next keg carries the trees — **which is `ST0056 AC-00.5`'s job to verify and NOT this document's to assume. If the tag ships without them, this page ships a false promise and the falsity is on the install path, where it is worst.**
 
 **8. Footer.** Docs, GitHub, changelog, licence, author. Mono, `--ink-muted`, on a hairline.
 
