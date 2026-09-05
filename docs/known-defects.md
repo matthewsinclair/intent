@@ -122,6 +122,10 @@ The same section inserted **before** the banner is refused, by name, with the te
 
 **The remedy printed with that refusal names the wrong characters** (`intent#0247`). Driven on v3.0.0: `intent search no-backup` exits 1 and the remedy reads `search takes an FTS5 expression -- quote a phrase, and escape or drop bare punctuation like ':' and '*'`. Neither character it names is the one that failed, and the one that failed is not named. A reader who follows it exactly -- removing colons and asterisks from a query containing neither -- changes nothing and gets the identical error.
 
+**A search hit names the file but not the place in it** (`intent#0195`). Driven on v3.0.0: a file containing a term on lines 1 and 3 comes back as a single row ending `:0`, and so does the register's own `design.md` for a phrase it carries at line 91. **The column that looks like a line number is 0 for every prose hit**, so a result set tells you which files matched and gives you nothing to navigate to -- on a long document that is the difference between an answer and a place to start reading. Structured canon hits do carry a non-zero value in that column, but it is a section ordinal rather than a line, so the two kinds of row are not comparable even though they are printed identically.
+
+The same issue also reports one file repeating once per hit -- four identical rows for a phrase occurring once. **That half did not reproduce on v3.0.0 and is deliberately not stated here as either present or fixed.** In a scratch project the issue's own file and query return exactly one row, but a scratch project holds that file once where this repository holds it on disk, in canon, and across views; that is a difference in state rather than in build, and it was not isolated. What is certain is the `:0`.
+
 **What search gets right, so this is not read as worse than it is:** an unindexed project says so rather than returning an empty list, in the tool's own words -- `nothing is indexed, so this search could not have matched -- an empty result here does NOT mean <term> is absent`. That is the failure mode that would actually mislead a reader, and it is closed.
 
 ## The daemon
