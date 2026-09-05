@@ -1413,10 +1413,29 @@ ${revline}
     bin.install_symlink libexec/"bin/intentd"
   end
 
-  # NO \`service do\` BLOCK YET, and its absence is deliberate. intentd currently
-  # reports "not yet implemented": there is no start verb and no log path, so any
-  # block here would be a guess at an interface that does not exist. It arrives
-  # with the daemon lifecycle.
+  # THE SERVICE BLOCK, ADDED 2026-09-05 (dc) BECAUSE ITS OWN STATED PRECONDITION
+  # WAS MET. This comment read: no start verb and no log path, so any block here
+  # would be a guess at an interface that does not exist. Both halves are now
+  # false and were driven on the delivered pair rather than inferred --
+  # \`intent daemon start|stop|status|run\` all answer, start is idempotent and
+  # reports its pid, and the log path exists and is being written.
+  #
+  # IT RUNS \`intentd\` DIRECTLY RATHER THAN \`intent daemon run\`, on the daemon's
+  # own words: main.rs says serving is what this binary does with NO arguments,
+  # and that \`intent daemon run\` EXECS this binary. Going through the CLI would
+  # add a process for launchd to supervise in front of the one that matters, and
+  # supervise the wrong one if the exec ever became a spawn.
+  #
+  # THE LOG PATHS ARE BREW'S, NOT THE DAEMON'S, AND THAT IS NOT A DUPLICATE.
+  # intentd writes its own structured log under the user's state dir; these two
+  # capture stdout and stderr, where main.rs puts the warnings a supervised
+  # process would otherwise drop on the floor. Two files, two subjects.
+  service do
+    run [opt_bin/"intentd"]
+    keep_alive true
+    log_path var/"log/intentd.log"
+    error_log_path var/"log/intentd.log"
+  end
 
   test do
     assert_match version.to_s, shell_output("#{bin}/intent --version")
