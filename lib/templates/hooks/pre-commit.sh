@@ -455,11 +455,35 @@ fi
 # dispatches one critic per language. Empty array means no language critics
 # run (only the agnostic checklist applies upstream of this hook).
 
+# **TWO ROUTES REACH AN EMPTY `LANGS` HERE, AND BOTH USED TO BE SILENT**
+# (issue 0242): `jq` is not installed, or the array is empty. Each left the
+# dispatch loop unentered, `UNENFORCED` empty, and the digest below suppressed
+# -- so the gate ran no critic and said nothing about it, which is
+# indistinguishable from a gate that enforced everything.
+#
+# **0242 NAMES A THIRD -- AN ABSENT `config.json` -- AND IT CANNOT ARRIVE HERE.**
+# Driven 2026-09-05: the project test at the top of this file `exit 0`s on that
+# case with its own message, well before this block. A branch for it here would
+# be unreachable code READING as coverage, which is the defect this fix is
+# about, one level down. The first build of this fix had exactly that branch;
+# it is removed rather than left in as defence, and the row is corrected.
+#
+# **THE ROUTE IS RECORDED, NOT JUST THE ZERO.** `jq` missing and `languages: []`
+# are different situations with different fixes, and a reader told only that the
+# scope was empty cannot tell which one they are in. `jq` deserves its own line
+# in particular: a machine without it disarms every language critic in the gate
+# on every project, with no message on any path.
 LANGS=()
-if command -v jq >/dev/null 2>&1 && [ -f "intent/.config/config.json" ]; then
+SCOPE_NOTE=""
+if ! command -v jq >/dev/null 2>&1; then
+  SCOPE_NOTE="jq is not installed, so the declared languages could not be read at all -- every language critic is disarmed on this machine, in every project"
+else
   while IFS= read -r lang; do
     [ -n "$lang" ] && LANGS+=("$lang")
   done < <(jq -r '(.languages // []) | .[]' intent/.config/config.json 2>/dev/null)
+  if [ "${#LANGS[@]}" -eq 0 ]; then
+    SCOPE_NOTE="intent/.config/config.json declares no languages -- \`languages: []\` is what \`intent init\` leaves behind, so this is the default rather than a decision anyone made"
+  fi
 fi
 
 # ---- Load severity threshold from .intent_critic.yml ----
@@ -589,11 +613,33 @@ fi
 # is a gate that is not running at all, and those must never look alike. It is
 # the same `of N` discipline this estate applies everywhere else, and it is what
 # makes the line impossible to skim past on the day it changes.
-if [ "${#UNENFORCED[@]}" -gt 0 ]; then
+#
+# **AND THE REASONING ABOVE WAS APPLIED ONE LEVEL TOO LOW UNTIL 2026-09-05**
+# (issue 0242). It distinguishes `1 of 5` from `5 of 5` and distinguished
+# neither from `0 of 0` -- **which is the case it was written for.** The block
+# was guarded on `UNENFORCED` being non-empty, and an empty `LANGS` produces an
+# empty `UNENFORCED`, so the one state the denominator exists to expose was the
+# one state that printed nothing.
+#
+# **SO THE SCOPE LINE IS NOW UNCONDITIONAL**, which is the same `of N`
+# discipline reaching its own edge case. That runs against this file's other
+# rule -- *a report that never changes trains its reader to stop looking* -- and
+# the two are reconciled by the line CHANGING: it names the count on every
+# commit, so `5 of 5 enforced` and `0 of 0` are different text rather than one
+# present line and one absent one. **An absence is not a report.**
+if [ "${#LANGS[@]}" -eq 0 ]; then
+  echo "" >&2
+  echo "intent critic gate: 0 of 0 declared language(s) -- NO code critic ran in this commit." >&2
+  echo "  why: $SCOPE_NOTE" >&2
+  echo "  the commit is NOT blocked by this. Declare a language with \`intent lang init <lang>\` if" >&2
+  echo "  this project has code the rule library covers; otherwise only the guards above are enforcing." >&2
+elif [ "${#UNENFORCED[@]}" -gt 0 ]; then
   echo "" >&2
   echo "intent critic gate: ${#UNENFORCED[@]} of ${#LANGS[@]} declared language(s) went UNENFORCED (${UNENFORCED[*]})." >&2
   echo "  the commit is NOT blocked by this -- the gate fails open on its own breakage by design." >&2
   echo "  nothing else reports this, so if it persists the gate is not protecting what you think it is." >&2
+else
+  echo "intent critic gate: ${#LANGS[@]} of ${#LANGS[@]} declared language(s) enforced (${LANGS[*]})." >&2
 fi
 
 if [ "$AGGREGATE" -eq 1 ]; then
