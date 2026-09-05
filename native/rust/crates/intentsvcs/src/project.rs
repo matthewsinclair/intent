@@ -65,6 +65,163 @@ pub fn within_attachment_cap(bytes: u64) -> bool {
   bytes <= ATTACHMENT_CAP_BYTES
 }
 
+/// Why a string does NOT name a place inside the thread.
+///
+/// **A KIND RATHER THAN A SENTENCE, because the remedy has to differ per
+/// cause.** `FacadeError::remedy`'s own contract is that no two variants share
+/// a remedy text -- *a remedy that fits two different causes is telling the
+/// operator to guess which one they hit* (AC-04.4). Returning prose from here
+/// would have forced the write door onto a shared variant, and the first build
+/// of this check did exactly that: a correct refusal about an attachment path
+/// carrying the remedy *`PUT` json to a caller-assigned id*, which is right for
+/// a different caller entirely. **That is `0268`'s class -- a correct message
+/// printed for a situation it was not written for -- arriving inside the fix
+/// for `0262`.** The kind is what keeps the two apart.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PathFault {
+  /// No path at all.
+  Empty,
+  /// Absolute, so it names a place on the machine rather than in the thread.
+  Absolute,
+  /// Climbs out of the thread with `..`, whether or not it climbs back.
+  Escapes,
+  /// Relative to the REPOSITORY -- the shape `0262` is filed on.
+  RepoRelative {
+    /// The path as it should have been written.
+    corrected: String,
+    /// What the given path would actually have named, which is what makes it
+    /// obviously wrong when read.
+    would_name: String,
+  },
+  /// Resolves inside the thread and is not written plainly, so canon would hold
+  /// it as a second spelling of one file.
+  Unnormalised {
+    /// The plain spelling.
+    corrected: String,
+  },
+}
+
+impl PathFault {
+  /// The sentence naming what is wrong with THIS path. The remedy is a separate
+  /// question with a separate home -- see the type's own doc.
+  pub fn why(&self, shown: &str, thread: &str) -> String {
+    let home = Path::new("intent").join("st").join(thread);
+    match self {
+      Self::Empty => {
+        "an attachment path is empty, so it names no file inside the thread".to_string()
+      }
+      Self::Absolute => format!(
+        "`{shown}` is absolute, and an attachment path is relative to the thread -- it names a place on the machine rather than a place in {}",
+        home.display()
+      ),
+      Self::Escapes => format!(
+        "`{shown}` climbs out of the thread with `..`, and an attachment lives inside {}",
+        home.display()
+      ),
+      Self::RepoRelative { would_name, .. } => format!(
+        "`{shown}` is relative to the REPOSITORY and this path is relative to the THREAD, so it would name `{would_name}`"
+      ),
+      Self::Unnormalised { .. } => format!(
+        "`{shown}` is not written plainly, so canon would hold it as a second spelling of one file"
+      ),
+    }
+  }
+}
+
+/// Whether this string names a place INSIDE the thread, and why not when it
+/// does not.
+///
+/// **THE QUESTION IS THE ADDRESS, NOT THE FILE.** [`Project::classify`] answers
+/// *whose file is this* and deliberately consults nothing about the path's
+/// shape; [`within_attachment_cap`] answers *do the bytes fit*. This is the
+/// third of that family: **does this path name somewhere in the thread at all**.
+/// It is a function rather than a check written at the write door for the
+/// reason `within_attachment_cap` gives above -- every door that writes an
+/// attachment has to refuse the same set, and two copies drift into one door
+/// refusing what another accepts.
+///
+/// # Why the repo-relative form is the case worth naming
+///
+/// The commit gate that refuses an uncarried attachment prints
+/// `intent st attach <ST> <rel-path> --from <file>`, and *relative* to a reader
+/// means relative to the REPOSITORY -- it is the path `git status` has just
+/// printed at them, in hand at the moment they are asked for it. This verb
+/// wants it relative to the THREAD and said so nowhere. Before this check the
+/// other spelling returned `ok:` at rc=0 and minted a SECOND attachment row for
+/// a file that already had one: resolving nowhere, removed by no verb, reported
+/// by no `doctor` (`0262`).
+///
+/// # Four more the same door let through, every one driven
+///
+/// Measured on `da5919e8` before this existed: an empty path, an absolute one,
+/// one climbing out with `..`, and the unnormalised `./x` and `a/../x` forms
+/// were ALL accepted at rc=0 and written into canon -- eight paths offered,
+/// eight rows minted. They are refused here rather than in five places.
+///
+/// **Blast radius, measured rather than assumed**: over this estate's 369
+/// distinct attachment paths at that commit, **zero** are refused by this rule.
+/// It is additive, and it is not a migration.
+///
+/// # The one thing this deliberately gives up
+///
+/// A thread could legitimately hold its own `intent/st/...` subdirectory, and
+/// that path is now unaddressable. It is refused rather than normalised because
+/// normalising silently REINTERPRETS an address instead of correcting the
+/// person who wrote it, and because an accepted-and-wrong write is the failure
+/// this whole check exists to stop. The `why` names what the path would have
+/// meant, so the loss is visible rather than mysterious.
+pub fn attachment_path_fault(rel: &Path, thread: &str) -> Option<PathFault> {
+  use std::path::Component;
+
+  let shown = rel.display().to_string();
+  if shown.is_empty() {
+    return Some(PathFault::Empty);
+  }
+
+  for c in rel.components() {
+    match c {
+      Component::RootDir | Component::Prefix(_) => return Some(PathFault::Absolute),
+      Component::ParentDir => return Some(PathFault::Escapes),
+      _ => {}
+    }
+  }
+
+  // The repo-relative form is checked before normalisation so the better
+  // message wins on a path that is both.
+  if rel.starts_with(Path::new("intent").join("st")) {
+    let inside: PathBuf = rel.components().skip(3).collect();
+    let corrected = if inside.as_os_str().is_empty() {
+      "<the path inside the thread>".to_string()
+    } else {
+      inside.display().to_string()
+    };
+    return Some(PathFault::RepoRelative {
+      corrected,
+      would_name: Path::new("intent")
+        .join("st")
+        .join(thread)
+        .join(&shown)
+        .display()
+        .to_string(),
+    });
+  }
+
+  // One rule for every unnormalised spelling -- `./x`, `a/./b`, `a//b`, a
+  // trailing separator. Canon stores the STRING, so two spellings of one file
+  // are two rows, which is `0262`'s defect reached by a quieter route.
+  let normalised: PathBuf = rel
+    .components()
+    .filter(|c| !matches!(c, Component::CurDir))
+    .collect();
+  if normalised.as_os_str() != rel.as_os_str() {
+    return Some(PathFault::Unnormalised {
+      corrected: normalised.display().to_string(),
+    });
+  }
+
+  None
+}
+
 /// What a file sitting under a thread's directory is.
 ///
 /// These partition the directory: every file is exactly one. **`doctor` still

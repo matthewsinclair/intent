@@ -454,6 +454,20 @@ pub enum FacadeError {
   /// not a taxonomy of refusals.
   #[error("`{url}` cannot be written: {why}")]
   WriteNotAddressable { url: String, why: String },
+  /// An attachment path that names nowhere inside the thread (`0262`).
+  ///
+  /// **SEPARATE FROM `WriteNotAddressable` BECAUSE THE REMEDY IS.** That
+  /// variant's remedy routes a caller to the right DOOR; this one has to hand
+  /// the operator the right PATH, and the two are not the same sentence. The
+  /// first build of this check reused that variant and printed *`PUT` json to a
+  /// caller-assigned id* at someone who had mistyped a file path.
+  #[error("{}", fault.why(path, thread))]
+  AttachmentPathNotInThread {
+    url: String,
+    path: String,
+    thread: String,
+    fault: crate::project::PathFault,
+  },
   /// A field the narrow setter will not write, and the door that does.
   ///
   /// **SEPARATE FROM `WriteNotAddressable` BECAUSE THE SUBJECT IS DIFFERENT.**
@@ -1029,6 +1043,25 @@ impl crate::remedy::Remedy for FacadeError {
     match self {
       // The `why` already carries the rule that refused; a remedy repeating it
       // would be the doubled rendering `IngestError::Refused` documents.
+      // **THE REMEDY IS THE CORRECTED PATH WHERE ONE EXISTS**, because the
+      // operator who typed the wrong spelling is the operator who has to type
+      // the right one, and a remedy that describes the rule leaves them to
+      // derive it. Where no corrected form exists the remedy says what a
+      // well-formed path IS rather than restating the fault.
+      Self::AttachmentPathNotInThread { thread, fault, .. } => {
+        use crate::project::PathFault;
+        match fault {
+          PathFault::RepoRelative { corrected, .. } | PathFault::Unnormalised { corrected } => {
+            format!("write `{corrected}` -- an attachment path is relative to the thread's own directory, not to the repository root")
+          }
+          PathFault::Empty => format!(
+            "name the file's place inside {thread}, as `intent st attach {thread} <path-inside-the-thread> --from <file>`"
+          ),
+          PathFault::Absolute | PathFault::Escapes => format!(
+            "give the path the file should have INSIDE {thread} -- `--from` is where the bytes are read from, and this argument is where they are recorded"
+          ),
+        }
+      }
       Self::WriteNotAddressable { .. } => {
         "`PUT` json to a caller-assigned id (an AC or an AT); everything else is a \
          `POST` to the collection address"
@@ -7082,6 +7115,17 @@ impl Facade {
     };
 
     let rel = std::path::PathBuf::from(path);
+    // **ASKED BEFORE `whose file is this`, because a path that names nowhere
+    // has no owner to look up.** The refusals below classify a well-formed
+    // path; this one refuses a path that never was (`0262`).
+    if let Some(fault) = crate::project::attachment_path_fault(&rel, thread) {
+      return Err(FacadeError::AttachmentPathNotInThread {
+        url: address.to_url(),
+        path: path.clone(),
+        thread: thread.clone(),
+        fault,
+      });
+    }
     if let EditDisposition::Refuse { author_with } = Project::edit_disposition(&rel) {
       return Err(refuse(format!(
         "`{path}` is generated from the model rather than authored on disk -- author it with {author_with}"

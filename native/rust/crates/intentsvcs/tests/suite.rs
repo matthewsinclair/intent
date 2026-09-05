@@ -72,6 +72,8 @@ mod attachment_drift_detected;
 mod attachment_form_by_content;
 #[path = "attachment_naming_gate.rs"]
 mod attachment_naming_gate;
+#[path = "attachment_path_must_name_a_place_in_the_thread.rs"]
+mod attachment_path_must_name_a_place_in_the_thread;
 #[path = "attachment_put_refuses_what_it_cannot_carry.rs"]
 mod attachment_put_refuses_what_it_cannot_carry;
 #[path = "authored_row_round_trip.rs"]

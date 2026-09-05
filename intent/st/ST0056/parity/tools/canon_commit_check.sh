@@ -523,7 +523,17 @@ echo "    Canon was written from the WORKTREE while these files were uncommitted
 # it, watched it do nothing, and worked out the real route separately.
 # **It read as usable because it was ONE WORD wrong rather than wholly wrong**:
 # the ordering argument beneath it is correct and is kept verbatim. Issue 0184.
-echo "    THE ORDER MATTERS AND THE OBVIOUS ONE DOES NOT WORK. \`intent st attach <ST> <rel-path>" >&2
+#
+# **AND THE SAME LINE WAS WRONG IN A SECOND WORD, FOUND THE SAME WAY.** It said
+# `<rel-path>`, and *relative* to a reader means relative to the REPOSITORY --
+# it is the path `git status` has just printed at them, in hand at the moment
+# this gate refuses. The verb wants it relative to the THREAD, and until
+# `0262`'s fix it ACCEPTED the other spelling at `ok:` and minted a second
+# attachment row nothing removed and no `doctor` reported. The verb now refuses
+# it and names the corrected path; this line stops inviting it. **Two separate
+# words of one remedy, each wrong, each found by somebody following it** -- a
+# remedy is read as an instruction and every token in it is load-bearing.
+echo "    THE ORDER MATTERS AND THE OBVIOUS ONE DOES NOT WORK. \`intent st attach <ST> <path-inside-the-thread>" >&2
 echo "    --from <file>\` FIRST -- that is the ONLY writer of an attachment, and it updates the" >&2
 echo "    store AND the extract in one step. **\`sync --to-disk\` will not do it**: no sync direction" >&2
 echo "    re-reads an attachment from the worktree, so syncing here leaves the bytes exactly as" >&2

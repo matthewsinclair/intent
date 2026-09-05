@@ -577,6 +577,28 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("the second facade holds a snapshot the first has already superseded"),
   ));
 
+  // **`0262`'s REFUSAL, PROVOKED RATHER THAN EXEMPTED.** The path here is the
+  // exact spelling the commit gate's own remedy invites -- repo-relative, which
+  // to a reader is what `git status` prints -- and before this variant existed
+  // it returned `ok:` and minted a second attachment row for a file that
+  // already had one.
+  out.push((
+    "an attachment path relative to the repository",
+    facade
+      .put_attachment(
+        &intentsvcs::address::Address {
+          authority: None,
+          entity: intentsvcs::address::Entity::Attachment {
+            thread: "ST0056".to_string(),
+            path: "intent/st/ST0056/parity/probe.txt".to_string(),
+          },
+          format: None,
+        },
+        b"PROBE\n",
+      )
+      .expect_err("a repo-relative attachment path names nowhere in the thread"),
+  ));
+
   out
 }
 
@@ -599,6 +621,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
 fn variant(err: &FacadeError) -> &'static str {
   match err {
     FacadeError::WriteNotAddressable { .. } => "WriteNotAddressable",
+    FacadeError::AttachmentPathNotInThread { .. } => "AttachmentPathNotInThread",
     FacadeError::NoSuchThread { .. } => "NoSuchThread",
     FacadeError::ThreadExists { .. } => "ThreadExists",
     FacadeError::IssueExists { .. } => "IssueExists",

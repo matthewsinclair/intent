@@ -177,7 +177,13 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // `EntityUnserialisable` is a fault in this process, where the caller
     // supplied nothing wrong and can supply nothing better.
     | FacadeError::NoFormForEntity { .. }
-    | FacadeError::EntityUnserialisable { .. } => None,
+    | FacadeError::EntityUnserialisable { .. }
+    // `0262`'s refusal. The caller supplied a path and it names nowhere; there
+    // is no field they LEFT OUT, and the remedy is a different value for the
+    // one they gave rather than a fuller call. The empty-path arm is the near
+    // miss -- it looks like an omission and it is still the same argument,
+    // wrong.
+    | FacadeError::AttachmentPathNotInThread { .. } => None,
   }
 }
 
