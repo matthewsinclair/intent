@@ -1,0 +1,221 @@
+diff --git a/native/rust/crates/intentsvcs/src/facade.rs b/native/rust/crates/intentsvcs/src/facade.rs
+index 2ea67e09a..c426a8006 100644
+--- a/native/rust/crates/intentsvcs/src/facade.rs
++++ b/native/rust/crates/intentsvcs/src/facade.rs
+@@ -765,6 +765,51 @@ pub enum FacadeError {
+     .0.declared
+   )]
+   BelowMigrationFloor(Pending),
++  /// The conversion path met a project git reports no work tree for.
++  ///
++  /// **`migration.md` states this refusal and states its own reason for it:**
++  /// *rollback is git; migrating without an undo is a lossy operation by
++  /// construction.* The Rollback section then rests its entire cost argument on
++  /// the same property -- *cheap because the migration is ONE named commit over
++  /// a v2 estate git holds whole.* **The refusal was documented and absent**
++  /// (issue 0271, measured on the genuine conversion path): a project with no
++  /// `.git` converted, exit 0, and the word `git` did not appear once in the
++  /// output. The operator got a converted estate, a success line, and no undo,
++  /// with nothing naming the missing property.
++  ///
++  /// **Scoped to `Migration::Pending`, so it cannot reach the convergent
++  /// re-run**, and additive by measurement rather than by hope: all 18 fleet
++  /// members carry a `.git`, so this refuses none of them today.
++  ///
++  /// **It says what was OBSERVED, never which of the two causes it was.** No
++  /// repository and no runnable git are indistinguishable from here, and a
++  /// message picking one would be wrong half the time; the remedy names both.
++  #[error("git reports no work tree at this project, so a migration here would have no undo")]
++  MigrationWithoutGit,
++  /// The conversion path met a working tree carrying work that is not committed.
++  ///
++  /// **The dirt that matters is measured against HEAD, not the index** -- see
++  /// [`crate::sync::tree_state`]. `git commit` records the index as it stands,
++  /// so staged work rides the migration commit, and a revert then takes it too.
++  ///
++  /// **Scoped to the conversion path and NEVER to the verb** (vc's ruling on
++  /// cc's measurement, 2026-09-05). `intent upgrade` is the convergent
++  /// orchestrator and gets run routinely: hung on the verb this refuses 11 of
++  /// 18 fleet members today, hung on the conversion it refuses 1 of 1 -- the
++  /// only unmigrated member, correctly, and remediably by committing. **A
++  /// precondition written for a one-shot conversion, applied to a verb people
++  /// run all day, is a migration wearing a fix's clothes.** Git-presence is
++  /// stable; dirt is the normal state of an active repo.
++  #[error(
++    "this project has {} uncommitted change(s), and a migration commit assembled over them could not be reverted without taking them too",
++    .paths.len()
++  )]
++  MigrationOverDirtyTree {
++    /// Every offending path, sorted and NEVER truncated -- `migration.md`'s
++    /// no-silent-caps rule, which exists because a capped list reads as
++    /// complete when it is not.
++    paths: Vec<crate::sync::Uncommitted>,
++  },
+   #[error("could not write the project files")]
+   Write(#[from] WriteError),
+   // NOT a failed mutation, and the text says so. Under D01 as reversed the DB
+@@ -1287,6 +1332,20 @@ impl crate::remedy::Remedy for FacadeError {
+       // Same delegation and the same reason: `Pending` owns the two-hop, and
+       // this variant differs from `Unmigrated` in its MESSAGE, not its cure.
+       Self::BelowMigrationFloor(pending) => pending.remedy(),
++      // NOT delegated and NOT shared with the dirty arm: the two states have
++      // different cures, and one of them names a command that would not help
++      // the other. Both causes are named because this variant deliberately
++      // does not claim to know which one it met.
++      Self::MigrationWithoutGit => {
++        "put the project under git before migrating -- `git init && git add -A && git commit` -- or install git if it is missing. The documented rollback is `git revert <the migration commit>`, and there is nothing to revert without a repository".to_string()
++      }
++      Self::MigrationOverDirtyTree { paths } => {
++        let each: Vec<String> = paths.iter().map(ToString::to_string).collect();
++        format!(
++          "commit or stash these first, then re-run -- the migration is one visible commit and a revert of it must not take your work with it:\n  {}",
++          each.join("\n  ")
++        )
++      }
+       Self::Write { .. } => {
+         "check permissions and free space on the project directory, then retry -- nothing was changed".to_string()
+       }
+@@ -1977,10 +2036,29 @@ impl Facade {
+     // `Migration::Done` MUST proceed -- that is the re-run after an interrupted
+     // migration, and idempotence rests on it -- and `Pending` at or above the
+     // floor is the ordinary estate this door exists for.
+-    if let crate::project::Migration::Pending(pending) = project.migration()
+-      && pending.below_floor
+-    {
+-      return Err(FacadeError::BelowMigrationFloor(pending));
++    // **THE OTHER TWO PRECONDITIONS `migration.md` DOCUMENTS, WHICH DID NOT
++    // EXIST** (issue 0271). The section opens *refused by name, not worked
++    // around* and states three refusals; until this commit the floor above was
++    // the only one implemented, and both of the others were driven on the
++    // GENUINE conversion path -- a dirty tree converted 349 threads at exit 0,
++    // and a tree with no `.git` at all converted at exit 0 with the word `git`
++    // absent from the whole run.
++    //
++    // **THEY LIVE INSIDE THE `Pending` ARM, WHICH IS THE SCOPING RATHER THAN A
++    // COMMENT ABOUT IT.** `Migration::Done` is the convergent re-run, and
++    // neither of these may reach it: measured across 18 fleet members, the dirt
++    // check refuses 11 of them on the verb and 1 of 1 on the conversion.
++    if let crate::project::Migration::Pending(pending) = project.migration() {
++      if pending.below_floor {
++        return Err(FacadeError::BelowMigrationFloor(pending));
++      }
++      match crate::sync::tree_state(project.root()) {
++        crate::sync::TreeState::NoWorkTree => return Err(FacadeError::MigrationWithoutGit),
++        crate::sync::TreeState::Dirty(paths) => {
++          return Err(FacadeError::MigrationOverDirtyTree { paths });
++        }
++        crate::sync::TreeState::Clean => {}
++      }
+     }
+ 
+     let scan = crate::legacy::scan(project).map_err(|cause| FacadeError::MigrationHalted {
+diff --git a/native/rust/crates/intentsvcs/src/sync.rs b/native/rust/crates/intentsvcs/src/sync.rs
+index 3a0cc9ff6..8b69583be 100644
+--- a/native/rust/crates/intentsvcs/src/sync.rs
++++ b/native/rust/crates/intentsvcs/src/sync.rs
+@@ -876,6 +876,66 @@ pub fn uncommitted(root: &Path, paths: &[String]) -> Option<Vec<Uncommitted>> {
+   Some(out)
+ }
+ 
++/// What git says about the working tree, for the MIGRATION preconditions.
++///
++/// **`NoWorkTree` is a third value and not a flavour of clean**, for
++/// [`git_paths`]'s reason one level up: a question git could not answer is not
++/// an answer, and the migration precondition it feeds refuses on exactly that.
++pub enum TreeState {
++  /// git reported no work tree here -- no repository, or no runnable git.
++  NoWorkTree,
++  Clean,
++  /// Every path that would ride the next commit, sorted, never truncated.
++  Dirty(Vec<Uncommitted>),
++}
++
++/// The migration precondition's read of the working tree.
++///
++/// # This asks HEAD, and [`uncommitted`] asks the INDEX, and that is deliberate
++///
++/// They are different questions and sharing a function would silently answer
++/// one with the other. [`uncommitted`] asks *are this attachment's bytes on
++/// their way into a commit*, so the index is right and its own docstring argues
++/// against HEAD: staged work is the normal state of a commit being assembled,
++/// and a check firing on ordinary work is one people learn to skip.
++///
++/// **THE MIGRATION ASKS THE OPPOSITE QUESTION AND WANTS THE OPPOSITE ANSWER.**
++/// `migration.md`'s rollback is `git revert <the migration commit>`, and it is
++/// cheap only because that commit contains the migration ALONE. Staged work is
++/// precisely what would ride it -- `git commit` records the index as it stands
++/// -- so a revert would take somebody's unrelated work with it. Against the
++/// index a staged file reads clean, which is the one state this check exists to
++/// catch.
++///
++/// Untracked files are the other half, for the same reason they are in
++/// [`uncommitted`]: a file the index has never heard of is the one least likely
++/// to be in any commit and the likeliest to be swept into the next one.
++pub fn tree_state(root: &Path) -> TreeState {
++  let Some(changed) = git_paths(root, &["diff-index", "--name-only", "-z", "HEAD"]) else {
++    return TreeState::NoWorkTree;
++  };
++  let Some(untracked) = git_paths(root, &["ls-files", "--others", "--exclude-standard", "-z"])
++  else {
++    return TreeState::NoWorkTree;
++  };
++  let mut out: Vec<Uncommitted> = changed
++    .into_iter()
++    .map(|path| Uncommitted {
++      path,
++      state: NotInIndex::Modified,
++    })
++    .chain(untracked.into_iter().map(|path| Uncommitted {
++      path,
++      state: NotInIndex::Untracked,
++    }))
++    .collect();
++  if out.is_empty() {
++    return TreeState::Clean;
++  }
++  out.sort_by(|a, b| a.path.cmp(&b.path));
++  TreeState::Dirty(out)
++}
++
+ #[cfg(test)]
+ mod tests {
+   use super::*;
+diff --git a/native/rust/crates/intentsvcs/tests/error_remedies.rs b/native/rust/crates/intentsvcs/tests/error_remedies.rs
+index a665be78b..dbfc71e0d 100644
+--- a/native/rust/crates/intentsvcs/tests/error_remedies.rs
++++ b/native/rust/crates/intentsvcs/tests/error_remedies.rs
+@@ -702,6 +702,8 @@ fn variant(err: &FacadeError) -> &'static str {
+     FacadeError::DescopeTargetRequired { .. } => "DescopeTargetRequired",
+     FacadeError::Unmigrated(_) => "Unmigrated",
+     FacadeError::BelowMigrationFloor(_) => "BelowMigrationFloor",
++    FacadeError::MigrationWithoutGit => "MigrationWithoutGit",
++    FacadeError::MigrationOverDirtyTree { .. } => "MigrationOverDirtyTree",
+     FacadeError::Write(_) => "Write",
+     FacadeError::ViewsNotWritten { .. } => "ViewsNotWritten",
+     FacadeError::Store(_) => "Store",
+@@ -779,6 +781,8 @@ const ALL_VARIANTS: &[&str] = &[
+   "DescopeTargetRequired",
+   "Unmigrated",
+   "BelowMigrationFloor",
++  "MigrationWithoutGit",
++  "MigrationOverDirtyTree",
+   "Write",
+   "ViewsNotWritten",
+   "Store",
+diff --git a/native/rust/crates/intentsvcs/tests/mandatory_fields_reach_a_reader.rs b/native/rust/crates/intentsvcs/tests/mandatory_fields_reach_a_reader.rs
+index 3456307a6..00d25232c 100644
+--- a/native/rust/crates/intentsvcs/tests/mandatory_fields_reach_a_reader.rs
++++ b/native/rust/crates/intentsvcs/tests/mandatory_fields_reach_a_reader.rs
+@@ -102,6 +102,12 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
+     | FacadeError::DescopeTargetMissing { .. }
+     | FacadeError::Unmigrated(_)
+     | FacadeError::BelowMigrationFloor(_)
++    // The two `migration.md` documented and did not implement (0271). Neither
++    // demands a field: one reports the absence of a repository and the other
++    // reports work the operator has not committed, so in both cases the cure
++    // is an action on the world, never a fuller call.
++    | FacadeError::MigrationWithoutGit
++    | FacadeError::MigrationOverDirtyTree { .. }
+     | FacadeError::Write(_)
+     | FacadeError::ViewsNotWritten { .. }
+     | FacadeError::Store(_)
