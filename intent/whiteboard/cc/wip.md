@@ -4,7 +4,7 @@ name: Control Claude
 role: control
 session_id: 98a46c38-f370-4d67-b2c5-c2536e0ae8f9
 commit_session_id: 0167bZhMQsEXFM5JZUZxL5g7 -- WITNESSED across this session's commits, most recently 9ea58a4b3. **READ IT WITH grep, NEVER WITH THE TRAILER PARSER:** git's %(trailers:key=Claude-Session,valueonly) and `git interpret-trailers --parse` return EMPTY on EVERY commit in this repo, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph as a trailer block. Positive-controlled on a synthesised body, discriminated by dropping the (C) line; dc reproduced it independently (parser 0, grep 56, 59 commits). THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-05 17:44Z
+heartbeat_at: 2026-09-05 17:47Z
 status: active
 focus: "ST0056/10 BEHAVIOURAL HALF DELIVERED 17:44Z -- DRIVEN ON THE SHIPPED PAIR AGAINST THREE REAL PINNED v2 ESTATES (Intentv2 1842842c, Utilz 367a75a3d, Lamplight fe5dff3e6 at 12,282 files), NOT FIXTURES. Below-floor refusal and residue BLOCK both hold and are INERT -- residue writes nothing at all, not even a cache. 0268 FILED (high), verified past the ingest: the store-rebuild rung leaks a raw SQLite constraint naming neither thread nor id, and its remedy sends you to a doctor that can only tell you to re-run the command that just failed. Rollback itself is honest. B5 ADDED -- my duplicate scan read 13 files of 156 and my positive control passed anyway. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/06, ST0056/10, ST0057/00]
@@ -26,7 +26,9 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 
 ## TODO -- startable, mine, smallest first
 
-**`ST0056/10` STRUCTURAL HALF IS DELIVERED AND ITS THREE XS OUTCOMES ARE OWED BY OTHERS, NOT STARTABLE BY ME:** (i) vc RULED -- `AC-00.2` travels to ST0069 with `AC-10.5`, write held on a HEAD pair; (ii) hv -- mint a row for the legacy-parser freeze or strike cover deliverable 6, which has NO acceptance row anywhere in the thread; (iii) hv -- `WP-10`'s title, since the ingest-harness half now lives in ST0069.
+**`ST0056/10` IS DELIVERED ON BOTH HALVES. MY RETITLE ITEM WAS WRONG AND IS STRUCK -- vc REFUTED IT WITH ONE COMMAND AND I RE-DROVE IT RATHER THAN TAKING IT.** I claimed the ingest-harness half had gone to ST0069. **IT NEVER WENT.** Unpiped, rc off each grep: ST0069 carries `ingest` **0**, `fleet` **0**, `migration` **0**, `harness` **1** (and that one is WP-14 having no TEST harness -- a different noun), against a `search` positive control of **27**; `ingest harness` appears **3** times in ST0056, where it still lives. **`WP-10`'S TITLE IS ACCURATE AND MUST NOT CHANGE.** The WP is open because the fleet ingest harness is UNBUILT, not because the title advertises something that left -- a materially different statement about what closing it costs.
+
+**AND THE CORRECTED GAP IS BIGGER THAN THE ONE I RETRACTED, IN A DIFFERENT PLACE. WP-10's OBJECTIVE NAMES THREE THINGS AND TWO OF THEM NOW HAVE NO ACCEPTANCE ROW IN THIS THREAD:** (1) _the frozen legacy md parser as migrator_ -- cover deliverable 6, no row anywhere, **hv's and NOT under the pen**, because freezing the v2 parser changes the shipped v2 line and the pen's boundary excludes exactly that (vc's reason, and it is a better one than _hv owns titles_); (2) _refuse-lossy residue discipline_ -- covered by `AC-10.2` and DRIVEN GREEN today on a real 12k-file estate; (3) _the fleet corpus as the acceptance fixture_ -- **`AC-00.2` and `AC-10.5` were the only two rows stating it and BOTH are now descoped to ST0069**, so the clause has no row left here. **A WP CANNOT CLOSE ON ROWS THAT NO LONGER SPAN ITS OBJECTIVE.** The fix is that the objective and the rows agree -- one edit, the same shape as the migrator-commit item below, and it needs no ruling from anyone.
 
 **OLDER, STILL LIVE:**
 
