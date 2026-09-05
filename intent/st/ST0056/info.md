@@ -41,7 +41,7 @@ Stretch goals are parked as their own 3.x steel threads: TUI dashboard, the agen
 | WP-09 | MCP server and agent guide                                                                              | L    | Done        |
 | WP-10 | Migration and fleet ingest harness                                                                      | XL   | WIP         |
 | WP-11 | Distribution: cargo-dist, Homebrew, signing                                                             | M    | WIP         |
-| WP-12 | Cutover and v3.0.0 release                                                                              | L    | Not Started |
+| WP-12 | Cutover and v3.0.0 release                                                                              | L    | WIP         |
 | WP-13 | Project search: full-text, structural, and the agent search surface                                     | XL   | Not Started |
 | WP-14 | Coordination model: whiteboard and inboxes in the store, with a bounded API                             | L    | Not Started |
 | WP-15 | Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill                                 | L    | Not Started |

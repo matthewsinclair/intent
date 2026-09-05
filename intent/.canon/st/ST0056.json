@@ -114,7 +114,7 @@
       "seq": 12,
       "title": "Cutover and v3.0.0 release",
       "scope": "L",
-      "status": "not-started",
+      "status": "wip",
       "objective": "Cut v3.0.0: shell pruned fail-forward, docs converged, release docs written before the tag, and the fleet pointed at the migration.",
       "body": "## Deliverables\n\n- `bin/` (shell) pruned at the cut; BATS final disposition (conformance survivors ported or retired with the shell)\n- Docs sweep: working-with-llms.md, the canon narrative, README, CHANGELOG\n- Release docs BEFORE the cut (the v2.19.0 practice): `intent/history/v3.0.0.md` + `docs/releases/3.0.0/RELEASE_NOTES.md`\n- The v3.0.0 tag + GitHub release + brew formula live\n- Fleet migration sequencing recorded (canary order, per-project residue expectations)\n\n## Dependencies\n\n- All prior WPs.",
       "preamble": ""

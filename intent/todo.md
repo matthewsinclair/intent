@@ -16,7 +16,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 09: MCP server and agent guide
   - [-] 10: Migration and fleet ingest harness
   - [-] 11: Distribution: cargo-dist, Homebrew, signing
-  - [ ] 12: Cutover and v3.0.0 release
+  - [-] 12: Cutover and v3.0.0 release
   - [ ] 13: Project search: full-text, structural, and the agent search surface
   - [ ] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API
   - [ ] 15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
