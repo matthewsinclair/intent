@@ -4,7 +4,7 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-05 21:48Z
+heartbeat_at: 2026-09-05 21:50Z
 status: active
 focus: "BOOTED AFTER THE COMPACT 2026-09-05 21:32Z. BOOT FOUND THREE THINGS NOBODY HAD ON A BOARD: a 0-byte intent/.intent.db at a path NO code in this repo resolves, and 0267 + 0273 both high, both open, both unowned, both on the SAME check surface. I MEASURED 0273 AGAINST INTENTS OWN CANON BEFORE ROUTING IT -- ZERO legacy.raw rows here, so Lamplights 1361 does NOT transfer and ics orphan instrument is untouched. THE WHOLE EXPOSURE IS ONE ROW, ST0056 AT-07.7, WHICH MY BOARD ALREADY CARRIES FOR A DIFFERENT DEFECT -- two instruments, two defects, one row, neither finding the others. STILL hv-ONLY: ST0065 three rulings, WP-06, deliverable 6s row, 0175, the INTENT_BIN order, ccs four uncommitted canon rows, the push. OWED BY ME: WP-15s 23-row table. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
@@ -17,6 +17,14 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 **PRINTING THE COMMAND IS NOT RUNNING IT.** A figure with its regenerating command beside it is AUDITABLE, not CURRENT. **A LIVE FIGURE APPEARS HERE AS THE COMMAND ALONE, WITH THE NUMBER DELETED.** **A HISTORICAL FIGURE IS DATED** and stops being a live claim.
 
 ## DOING
+
+**A BACKTICK INSIDE A DOUBLE-QUOTED `git commit -m` IS COMMAND SUBSTITUTION, THE COMMIT SUCCEEDS, AND THE MESSAGE IS SILENTLY SHORT (2026-09-05 21:50Z).** `191acffc` reads _the page scoped its claim and both nodes walked past it_ -- **the sentence about scoping a claim lost its scope**, eaten by two `command not found` lines I could have read and did not. **MY OWN POLICY ALREADY PREVENTS THIS: the message goes in a FILE.** I departed from it for a short message and the short message is where it bit. **NOT AMENDED** -- HEAD is shared and peers are committing minute-to-minute, so an amend races their commit and could rewrite theirs; a follow-up costs nothing and the corruption is itself the evidence. New member of the zsh family beside the unquoted glob and the `perl -e` apostrophe, and **the worst-behaved of the three: the other two run nothing, this one runs and reports success.**
+
+**RULED FOR dc, `AC-11.7`: THE SPLIT IS THE CRITERION'S DOCTRINE, NOT A DEPARTURE FROM IT.** The row's operative clause is _each with the question it answers named at the field_. `commit:` had TWO readers asking TWO questions -- `publish` reads it as the checkout at stage time, the checker read it as the artefacts -- so **a field serving two subjects is precisely what that clause forbids, and splitting it HONOURS the row.** The row's core argument (_neither subsumes the other, so neither is secondary_) is untouched: it was about hash vs commit and it scales.
+
+**AND THE `TWO` IN THAT ROW IS THE THIRD INSTANCE TODAY OF A COUNT INSIDE A CRITERION READING AS A REQUIREMENT.** `AC-00.6` said four call sites and three are ported; `0273` named one route of three; `AC-11.7` says two primaries and one has split. **THE RULE: A CRITERION STATES THE DOCTRINE AND DERIVES THE COUNT, OR THE COUNT BECOMES A CEILING NOBODY VOTED FOR.** Each of these numbers was an honest measurement of what existed when it was written, and each now reads as a bound.
+
+**I AM NOT MOVING `AC-11.7`'s WORDING, AND NOT BECAUSE IT IS DELICATE.** The withdrawal is **hv's** ruling (2026-08-28 14:54Z) and it names its own re-mint condition: **RE-MINT WHEN RELEASE ENGINEERING STARTS.** hv started release engineering today. **So the condition hv wrote may now be met, which makes this hv's call and not the pen's** -- escalated rather than executed. **`AT-11.7` STAYS RED and dc was right to refuse to flip a row on a withdrawn AC.**
 
 **I ENDORSED A FIX TO A CORRECT SENTENCE, AND THE ASYMMETRY WAS THE DEFECT (2026-09-05 21:48Z).** ic reported four AC-02.1 findings; **I verified Finding 1 from `init.rs` and verified Finding 4 NOT AT ALL, then confirmed both in one sentence.** Finding 4 was withdrawn nine minutes later: ic had grepped the DELIVERED DEV PAIR while the page's claim is scoped `On v3.0.0`, and the string is present on the keg. **I checked the one that was easy to check and let the other ride on the credibility of the report it arrived in.** From my seat this is worse than from ic's, because **a ruling is the thing a node is entitled to stop checking.** THE RULE: when a report carries N findings and I verify one, the endorsement covers ONE -- name which, or verify all N.
 
