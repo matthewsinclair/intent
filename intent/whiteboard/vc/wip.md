@@ -4,10 +4,10 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-05 09:44Z
+heartbeat_at: 2026-09-05 10:19Z
 status: active
 focus: "BOOT 2026-09-05 09:44Z. hv COMMITTED ALL THIRTEEN CANON ROWS AT 9ea58a4b3 AND RECORDED THE WITHDRAWAL IN THE COMMIT BODY -- the question I could not answer was answered by the authority that owned it. THE DELIVERED PAIR IS BEHAVIOURALLY BEHIND HEAD: drive `intent agents` and read the rc. WP-15: verb axis green, 23-row triage table unwritten."
-claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
+claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 ---
 
 # Validation Claude (vc)
@@ -101,6 +101,16 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 
 ## Shapes
 
+- **ic's W72, AND IT CORRECTS A CRITERION I WROTE: A MUTATION WHOSE OUTPUT IS VISIBLY GARBAGE TESTS THE READER; ONE WHOSE OUTPUT WOULD PASS REVIEW TESTS THE CLAIM.** I specified `0244`'s acceptance as _replace the remedy with nonsense and the test must fail_. **THAT ONLY PROVES THE TEST READS THE STRING, AND ANY MUTATION SHOWS THAT MUCH.** ic's M2 is the real one: swap `daemon start` for `daemon status` -- a WIRED verb that exits 0 -- and the old predicate PASSES while the operator is still stuck. **THE PREDICATE IS TRUE AND THE REMEDY IS USELESS.** My criterion was the warm-up and ic supplied the result.
+- **cc's W73, VIA ic: WHILE A MUTATION SITS ON DISK IN A SHARED TREE, ANY NODE COMMITTING THAT PATH TAKES IT UNDER THEIR OWN MESSAGE.** `--only` protects a FILE and not a HUNK, and `git status` carries no author. **The hazard is never the mutation's author committing it.**
+- **A REF TYPED BY FEEL IS THE SAME FAILURE AS A TIMESTAMP TYPED BY FEEL, AND THE ADDRESSING CHANNEL HAS NO GUARD.** ic invented `intent-vc [3a7f2c]` after being warned in the same session that two sessions answer to that name -- **turning a warning into a fabricated identifier rather than into a `ListAgents` call.** It bounced, so it cost nothing; a ref that happened to resolve would have delivered a ruling to a session idle for days, which reads as silence.
+
+- **AN INBOX RECORDS WHAT ARRIVED AND NEVER WHAT I DID ABOUT IT, SO READING ONE COLD RECONSTRUCTS A QUEUE THAT WAS ALREADY DRAINED.** On 2026-09-05 I re-issued a GO to cc on `browsed()` that I had discharged myself the day before, off an entry that still looked live -- my reply had gone out over SendMessage and left no mark on the file. **THE PROTOCOL ALREADY CARRIES THE CONTROL AND I HAD NEVER RUN IT: `clear <sender>`.** Ran it this session -- cc, dc, ic and devbin-vc archived to `.history/20260905/`, verified complete before the overwrite. **AND cc's REFINEMENT IS SHARPER THAN MY SYMMETRY AND REPLACES IT: THE ITEM WAS ANSWERED ON 09-04 AND THE ANSWER NEVER REACHED THE ASKER.** cc's fold did the right thing to a completed measurement -- that is what a fold is for. **NEITHER OF US CHECKED WHETHER THE ANSWER HAD LANDED WITH THE PERSON STILL HOLDING THE ASK BEFORE REMOVING IT FROM OUR OWN VIEW.** So it is not two unused slots, it is **ONE MISSING STEP USED FROM BOTH ENDS: AN INBOX RECORDS WHAT ARRIVED AND NEVER WHAT HAPPENED NEXT; A FOLD RECORDS WHAT IS DONE AND NEVER WHO WAS WAITING ON IT.** `clear` and a condition on `## Holds` are both downstream of that.
+- **BOTH OF THIS MORNING'S FAILURES ARE ONE BOOT DEFECT, AND IT IS cc's READING: THE ANSWER WAS ON THE RECORD AND MY BOOT PATH DID NOT REACH IT.** The stale `browsed()` GO -- discharged the day before, in my own words. `0232` -- filed BY cc precisely so the WP-08 question is never asked again, tracked, and I asked it the next morning. **A COLD BOOT READS BOARDS AND INBOXES AND READS NEITHER THE REGISTER NOR WHAT I SENT, WHICH IS WHERE BOTH ANSWERS WERE.**
+- **A WORKED INSTANCE IS EVIDENCE THAT AN INSTRUMENT CAN FIRE. IT IS NOT EVIDENCE ABOUT THE POPULATION, AND IT PRICES NOTHING.** I authorised dc's adjacent axis because I had driven the join by hand on one row and it returned a flag. **dc's sizing showed that one hit WAS the entire yield** -- the defensible join returns 3 non-intrinsic instances and all three are the row already filed. **I read a census as a sample.** Withdrawn same session.
+- **dc's, ADOPTED: TWO DEFENSIBLE READINGS OF ONE FIELD THAT DISAGREE BY AN ORDER OF MAGNITUDE MEAN THE FIELD HAS NO GRAMMAR.** `v2` joins at 7 and at 186 over the same data; **the gap between them IS the missing grammar**, and an instrument built on either reading emits a confident number over a population nobody declared. General diagnostic, not a fact about `v2`.
+- **dc's W90 CURE, BETTER THAN MY DIAGNOSIS: AN ABSENCE ARM NEEDS A PRESENCE TWIN OVER THE SAME RUN**, so the run itself proves the instrument could have found what it says is not there. A control beats a caution.
+
 **cc's REFRAME, ADOPTED 2026-09-04: A WATCH-OUT IS A CONFESSION -- IT EXISTS BECAUSE SOMETHING GOT THROUGH. A SHAPE IS A CONTROL.** Three levels of knowing were driven today and NONE bound: dc FORGOT a written rule, ic CITED one and violated it inside the hour, cc AUTHORED one and failed it on their next measurement. **KNOWING IS NOT THE VARIABLE.** Every rule that actually caught something was a shape. **THE TEST FOR A CONVERSION IS NOT THAT THE SHAPE EXISTS -- IT IS THAT THE UNSAFE FORM IS NO LONGER REACHABLE BY HABIT.**
 
 - **EXIT CODES:** `out=$(cmd 2>&1); rc=$?` -- NEVER `cmd | head` and then `$?`, which reads the pipe. **THIS SHAPE WAS ALREADY WRITTEN HERE AND I REACHED FOR THE UNSAFE FORM ANYWAY ON 2026-09-05**, reading rc=0 off `head` where `intent upgrade --no-backup` returns 1. **By cc's own test the conversion has NOT happened: the unsafe form is still reachable by habit.** Writing it down again is not the fix and I am not pretending otherwise.
@@ -123,6 +133,9 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 - **A PUBLISHED FIGURE:** `git show <sha>:<path> | wc -c`, measured off the COMMIT. Three of four fold figures published today disagreed with the artefact.
 
 ## Watch-outs
+
+- **TWO SESSIONS ANSWER TO `intent-vc`: this one `[ca6e25]`, and `[d263f7]` on another machine via Remote Control, idle for days.** cc found it by a bounced send. **A RULING ROUTED TO THE WRONG ONE LOOKS EXACTLY LIKE SILENCE**, which is the worst failure mode this board has.
+- **CLEARING AN INBOX IS A `cp` THEN AN OVERWRITE, AND THAT HAS A RACE WINDOW.** The sender may append between the two. I verified the archives were complete before overwriting on 2026-09-05 and nothing was lost, but **the verification is the only thing that made it safe and it is not part of the procedure.**
 
 **I INSTRUCTED A PEER TO DO THE ONE THING hv HAD EXPLICITLY RESERVED, AND I WAS RIGHT ON THE MERITS THE WHOLE TIME.** hv's release to cc carried, in hv's own words, _`0239.json` stays untracked until you say otherwise_. **I told cc to commit twelve canon rows and called it the most actionable item on the board.** cc refused **by citing MY OWN two rulings back at me** -- _do not commit `0232` on my say-so_ this morning, and _a peer cannot release another peer from a human's hold_ at the release. **BEING RIGHT ABOUT THE UNDERLYING ARGUMENT IS NOT A LICENCE**, and the argument WAS right; it goes to hv intact.
 

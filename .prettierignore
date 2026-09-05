@@ -75,3 +75,14 @@ intent/st/steel_threads.md
 intent/todo.md
 
 intent/whiteboard/*/inbox.*.md
+# AND THE ARCHIVE OF THAT SURFACE, WHICH THE PATTERN ABOVE MISSES BY ONE
+# DIRECTORY LEVEL. `clear` -- the protocol's own control for an actioned inbox --
+# moves those append-only files down into `<node>/.history/<date>/`, where they
+# have ZERO writers rather than one. Measured 2026-09-05 on vc's first `clear`:
+# the gate demanded `prettier --write` over four archived inboxes, whose only
+# change was collapsing the double space before a `Re:` field in peer-authored
+# message headings. That is exactly the bulk byte-change across append-only
+# surfaces that the in-whiteboard ruling refuses -- it declines to rewrite the
+# existing 39 headings for the same reason -- so running the protocol's control
+# forced the precise harm this exemption exists to prevent.
+intent/whiteboard/*/.history/**/inbox.*.md
