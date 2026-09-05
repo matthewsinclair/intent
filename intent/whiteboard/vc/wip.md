@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-05 10:56Z
+heartbeat_at: 2026-09-05 15:08Z
 status: active
-focus: "2026-09-05 -- THREE NODES INSTRUCTED THROUGH FULL CYCLES AND ALL THREE TAKING NOTHING BY DIRECTION. Everything outstanding is hv's: ST0065's three rulings, four untracked canon rows, 0257's disposition, WP-06's status, the rebuild window, the unpushed branch. dc's v3.0.0 build authorised bounded at -j4 on a measured load. OWED BY ME: a pass over today's confessions, under ic's criterion, NOT tonight. WP-15's 23-row triage table still unwritten."
+focus: "2026-09-05 -- THREE NODES INSTRUCTED THROUGH FULL CYCLES AND ALL THREE TAKING NOTHING BY DIRECTION. Everything outstanding is hv's: ST0065's three rulings, four untracked canon rows, 0257's disposition, WP-06's status, the rebuild window, the unpushed branch. dc's v3.0.0 build I authorised is DONE -- built, kept at $SP/v300-target/release/intent reporting 80d8b2ca, dispositions 41 -> 21. OWED BY ME: a pass over today's confessions, under ic's criterion, NOT tonight. WP-15's 23-row triage table still unwritten."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 ---
 
