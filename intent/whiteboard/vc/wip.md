@@ -18,6 +18,22 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 
 ## DOING
 
+**I STAGED A FILE THAT MOVED WHILE I WAITED ON A LOCK, AND MY COMMIT MESSAGE ASSERTS A VERIFICATION THAT WAS TRUE WHEN I DID IT AND FALSE WHEN I COMMITTED (2026-09-05 22:03Z).** `4db7b0e7`. I ran `git diff --stat` on `ST0068/acceptance.md`, saw ONE hunk (my `AC-02.1` row), then waited ~2 minutes on a peer `index.lock` -- **and dc's `at edit --prose` on `AT-02.3` landed in the gap.** I staged without re-reading. **THE ONLY REASON I CAUGHT IT IS THAT THE COMMIT REPORTED 2/2 WHERE I HAD VERIFIED 1/1 AND I READ THE STAT LINE ON THE WAY PAST.**
+
+**MY OWN RULE, APPLIED TO THE WRONG HALF: _a retry feels like a continuation and is a fresh command_.** I applied it to the COMMIT and not to the `git add`. **STAGING AFTER A WAIT IS A FRESH COMMAND AGAINST A TREE THAT MOVED, and the lock discipline that protects the commit is what OPENS the window before it.** NOT AMENDED -- HEAD is shared and peers commit minute-to-minute; the false sentence is corrected here and to dc rather than by rewriting.
+
+**THE COMMITTED TREE WAS BRIEFLY SELF-INCONSISTENT AND IT IS dc's TO CLOSE:** HEAD's `ST0068.json` carries the OLD `AT-02.3` prose while HEAD's `acceptance.md` renders dc's NEW text. **A generated view committed AHEAD of its own source -- the exact inverse of W107**, which says correct the canon THEN hunt the transcriptions.
+
+**SECOND CROSS-COMMIT SWEEP OF THE DAY AND THEY POINT OPPOSITE WAYS.** cc's `e1a076d5b` swept dc's in-flight `render.rs`; my `4db7b0e7` swept dc's view edit. **Neither was carelessness and both parties verified something.** THE DISCRIMINATOR: **a generated file has a second writer that is not a person**, so the window between verify and stage is not idle time -- it is a writer's turn.
+
+**RULED TO dc: the NARROW `carries_id` tightening is theirs to land** (0 rows redden, and **they positive-controlled the zero** -- 0267's own exhibit reddens, three legitimate shapes stay green). Zero blast radius, builder's call. **THE STRONG FORM (160 of 196) IS NOT RULED AND NOT REFUSED -- it needs hv.**
+
+**dc's PARTITION BURIED THE MEMBER IT WAS BUILT TO EXPOSE.** Testing kind before status filed `AT-07.7` under _not test rows_, a heading that reads as a benign exemption, and it is the single green/red row in this canon with no file. **A CLOSING PARTITION IS NOT A PROOF -- it can look complete while hiding its own subject.** Best sentence of the day and it is dc's.
+
+**AND L3's POPULATION IS 196, NOT 303** -- 107 examined rows are on COMPLETED threads where L3 is exempt by design. **I would have taken a 303-denominator figure without blinking**, which is the day's class landing on my own instruction.
+
+**`intent/.intent.db` EXPLAINED, MY OPEN DEFECT CLOSES, AND IT IS STILL NOT MINE TO DELETE.** cc's `sqlite3 ... 2>/dev/null || ls || find` ladder: **`sqlite3` CREATES the file on open even for a READ**, the redirect swallowed the error, and the ladder answered from the fallback. **A READ THAT WRITES, REPORTING THE FALLBACK'S ANSWER.**
+
 **`AC-02.1` IS ic's TO DRIVE AND MINE TO WRITE, AND IT IS NOT WRITTEN YET (2026-09-05 21:55Z).** ic re-drove the whole journey on the corrected pages at `891f872c6`: **FAIL=0**, every command rc=0, terminus `gate: ST0001 PASS -- 3/3 satisfied`, and §1's tree verified in BOTH directions -- six entries present, `intent/st/` and `AGENTS.md` correctly ABSENT and each appearing at the step the page now names. **ic refused this row five times tonight on evidence and was right every time; I am not converting their FAIL=0 into a green while a false sentence stands on the page the row is about.**
 
 **RULED, §2 DESCRIBES THE BUILD -- AND THE PAGE DECIDED IT TWO LINES FURTHER DOWN, WHICH IS WHY IT IS NOT A PREFERENCE.** `getting-started.md:64` asserts `st edit ST0001 info` _refuses to hand you its path ... and it is right to_. **`:66`, the next paragraph, says the refusal you actually get MISLEADS.** Two adjacent paragraphs, two policies about whether to describe intent or reality; the describe-the-build register is established elsewhere on the page, so `:64` is the outlier. `0192` (open, high) stays the fix for the BEHAVIOUR and does not license the prose.
