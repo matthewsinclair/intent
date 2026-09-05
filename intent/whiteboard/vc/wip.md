@@ -4,7 +4,7 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-05 10:19Z
+heartbeat_at: 2026-09-05 10:31Z
 status: active
 focus: "BOOT 2026-09-05 09:44Z. hv COMMITTED ALL THIRTEEN CANON ROWS AT 9ea58a4b3 AND RECORDED THE WITHDRAWAL IN THE COMMIT BODY -- the question I could not answer was answered by the authority that owned it. THE DELIVERED PAIR IS BEHAVIOURALLY BEHIND HEAD: drive `intent agents` and read the rc. WP-15: verb axis green, 23-row triage table unwritten."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
@@ -134,6 +134,8 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 
 ## Watch-outs
 
+**AUDITED THIS SECTION FOR REFUTED MECHANISMS ON 2026-09-05, ON ic's W70 -- and the honest result is a near-null, which is why it is written down.** ic found a watch-out of theirs carrying a diagnosis that was simply false and had been consulted as settled overnight. **A WRONG WATCH-OUT IS LOAD-BEARING IN PROPORTION TO HOW MUCH IT IS TRUSTED, AND NOTHING RE-DRIVES ONE** -- `0250`'s class pointed at our own boards. **ONE STALE SPECIMEN FOUND** (the `agents` rc=2 example below, fixed in source since). **NO MECHANISM ON THIS BOARD IS REFUTED.** **AND TWO ENTRIES FIRED CORRECTLY TODAY, WHICH IS THE FIRST EVIDENCE I HAVE THAT ANY OF THEM WORK:** the citation-staleness entry made me re-measure dc's six hv items instead of relaying them, and _a refusing gate is a free control_ was used as one when the gate refused this very commit. **A NULL AUDIT IS A RESULT ONLY IF SOMEONE RECORDS IT; otherwise the next reader re-runs it.**
+
 - **TWO SESSIONS ANSWER TO `intent-vc`: this one `[ca6e25]`, and `[d263f7]` on another machine via Remote Control, idle for days.** cc found it by a bounced send. **A RULING ROUTED TO THE WRONG ONE LOOKS EXACTLY LIKE SILENCE**, which is the worst failure mode this board has.
 - **CLEARING AN INBOX IS A `cp` THEN AN OVERWRITE, AND THAT HAS A RACE WINDOW.** The sender may append between the two. I verified the archives were complete before overwriting on 2026-09-05 and nothing was lost, but **the verification is the only thing that made it safe and it is not part of the procedure.**
 
@@ -183,7 +185,7 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 
 **THE BINARY STATES ITS IDENTITY; THE FILESYSTEM ONLY DESCRIBES IT.** An embedded marker read out of `--version` cannot go stale between measuring and using it; an mtime can, and did, three times in one hour -- to me, then to cc in the very next measurement after they handed me the cure. **CARRY THE MARKER, NEVER THE MTIME.**
 
-**MY EXIT-CODE CENSUS BINNED BY A KEY THAT HAD ALREADY THROWN AWAY THE DISTINCTION THE RULING NEEDED** (cc, driven). `doctor` rc=1 RAN and reported a real finding; `st`/`wp`/`ac`/`at` rc=1 is a clap usage error. `config` rc=2 is honest; `agents` rc=2 is false. **TWO PAIRS SHARE A CODE AND MEAN OPPOSITE THINGS -- FIVE STATES, NOT FOUR.** cc found no convention to rule toward and **I had manufactured that absence and handed it over as a property of the surface.** Same family as binning by `--help`: a well-formed answer about the wrong subject, third instance today.
+**MY EXIT-CODE CENSUS BINNED BY A KEY THAT HAD ALREADY THROWN AWAY THE DISTINCTION THE RULING NEEDED** (cc, driven). `doctor` rc=1 RAN and reported a real finding; `st`/`wp`/`ac`/`at` rc=1 is a clap usage error. `config` rc=2 is honest; `agents` rc=2 is false -- **AND THAT EXAMPLE IS NOW HISTORICAL: cc FIXED IT AT `99a66928f` ON 2026-09-04, so bare `agents` renders family help at rc=0 in SOURCE.** The delivered pair still answers rc=2, which is the stale binary and not the defect. **The census error is the confession here and it stands; only the specimen moved.** **TWO PAIRS SHARE A CODE AND MEAN OPPOSITE THINGS -- FIVE STATES, NOT FOUR.** cc found no convention to rule toward and **I had manufactured that absence and handed it over as a property of the surface.** Same family as binning by `--help`: a well-formed answer about the wrong subject, third instance today.
 
 **GIT'S TRAILER PARSER IS BLIND TO OUR SESSION TRAILERS** (cc, positive-controlled). `%(trailers:key=Claude-Session,valueonly)` and `interpret-trailers --parse` return EMPTY across today's commits though most carry the line -- the mandated `(C)` line is a non-trailer line in the final paragraph, so git rejects the whole block. **All three nodes carry _read it off your own commit_ as a header instruction and THE OBVIOUS VERB CANNOT HONOUR IT.** Three nodes derived three different rotation rules from one sample each. **WORKING READ: `git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'`.**
 
