@@ -4,7 +4,7 @@ name: Control Claude
 role: control
 session_id: 98a46c38-f370-4d67-b2c5-c2536e0ae8f9
 commit_session_id: 0167bZhMQsEXFM5JZUZxL5g7 -- WITNESSED across this session's commits, most recently 9ea58a4b3. **READ IT WITH grep, NEVER WITH THE TRAILER PARSER:** git's %(trailers:key=Claude-Session,valueonly) and `git interpret-trailers --parse` return EMPTY on EVERY commit in this repo, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph as a trailer block. Positive-controlled on a synthesised body, discriminated by dropping the (C) line; dc reproduced it independently (parser 0, grep 56, 59 commits). THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-05 17:47Z
+heartbeat_at: 2026-09-05 17:51Z
 status: active
 focus: "ST0056/10 BEHAVIOURAL HALF DELIVERED 17:44Z -- DRIVEN ON THE SHIPPED PAIR AGAINST THREE REAL PINNED v2 ESTATES (Intentv2 1842842c, Utilz 367a75a3d, Lamplight fe5dff3e6 at 12,282 files), NOT FIXTURES. Below-floor refusal and residue BLOCK both hold and are INERT -- residue writes nothing at all, not even a cache. 0268 FILED (high), verified past the ingest: the store-rebuild rung leaks a raw SQLite constraint naming neither thread nor id, and its remedy sends you to a doctor that can only tell you to re-run the command that just failed. Rollback itself is honest. B5 ADDED -- my duplicate scan read 13 files of 156 and my positive control passed anyway. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/06, ST0056/10, ST0057/00]
@@ -32,7 +32,6 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 
 **OLDER, STILL LIVE:**
 
-- **S** `0205` -- vendored fourth block ACCEPTED, reason at `bin/.devbin/lib/builtins:66`.
 - **S** Migrator-commit -- `migration.md` Phase B step 7 and `AC-00.8` stop claiming _one commit_. Correct doc and row; do NOT build the commit.
 - **M** `0192` RULED IN -- refusal in `info_read_back`, placement decided.
 - **S-M** `SERVED_BY_DAEMON` (`render.rs:235`) is ONE entry **and a `const`, so it can only ever hold PAYLOAD-FREE variants.** Project the dispatch table's payload-free arms, and **REFUSE on a daemon-eligible arm carrying arguments rather than skip it** -- silence there reports a clean table while a verb quietly loses daemon coverage.
@@ -50,6 +49,7 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 
 - **`INTENT_BIN` flip and re-baseline -- which order?** (i) flip then re-baseline (ii) re-baseline then flip. **REC (i).**
 - **`burn.sh` re-run, or accept `AC-06.1`'s coverage half red?** (i) run (ii) accept red on the row (iii) descope. **REC (i), and it is hv's because full-suite runs are.**
+- **Close `0205`?** DELIVERED AND RE-DRIVEN TODAY. All three of our blocks now hold the safe `$(cat <<'EOF'` form; the repo-wide sweep, **both halves**, finds **zero** unsafe blocks in `*.sh` and exactly one outside it -- `bin/.devbin/lib/builtins:66`, the vendored block, **ACCEPTED as out of scope** on the recorded reason. **The zero is controlled three ways** -- a planted block found, the safe form correctly not flagged, and (the good one, and it was luck) my scratch v2 tree at a pinned revision still carries all three in their PRE-FIX form and the sweep found all three there, which is the pattern demonstrated against the real historical subjects. (i) close as fixed (ii) leave open on the vendored block. **REC (i)** -- the vendored block is somebody else's repository and holding our issue open for it never closes. **AND THE ISSUE'S OWN EVIDENCE HAD EXPIRED SILENTLY:** it quotes a manifest/disk hash pair as proof the vendored file is pristine, and devbin has been re-vendored since, so both values moved together. The property still holds; anyone re-verifying against the recorded value would read a tamper. Corrected in the body, with the verb that re-takes it.
 - **Close `0175`?** Fixed at `99a66928f`, driven, 76 tests green, committed still OPEN. **REC: close as fixed.** One word.
 
 ## Open, no owner
