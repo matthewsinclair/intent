@@ -336,6 +336,54 @@ fn the_same_fault_on_a_readable_row_is_still_caught() {
   assert_eq!(out.status.code(), Some(1));
 }
 
+/// **0267: an id found on a line naming ANOTHER thread is not coverage.**
+///
+/// AT ids are only locally unique -- `AT-01.1` exists in as many threads as the
+/// estate has -- and L3 was a bare substring match over the whole file. A file
+/// whose sole mention is `// ST0002 AT-01.1 -- this test witnesses thread B`,
+/// cited from ST0001, gave `lint: ST0001 ok` and `gate: ST0001 PASS`.
+///
+/// **THE THREE CASES ARE DRIVEN TOGETHER BECAUSE THE TIGHTENING IS ONLY WORTH
+/// HAVING IF IT DISCRIMINATES.** A rule that reddens the borrowed line AND the
+/// two legitimate forms is not a fix, it is a migration: requiring the id to be
+/// thread-QUALIFIED reddens 160 of the 196 rows L3 applies to. This form
+/// reddens ZERO of them, and the arm below is what makes that zero mean the
+/// rule is quiet rather than absent.
+#[test]
+fn an_id_on_a_line_naming_another_thread_is_not_coverage() {
+  let cite = |body: &str| {
+    let dir = project();
+    let root = dir.path().to_path_buf();
+    std::fs::create_dir_all(root.join("t")).expect("mkdir");
+    std::fs::write(root.join("t/a.rs"), body).expect("write");
+    seed(
+      &root,
+      "ST0001",
+      &criterion("AC-01.1"),
+      r#"{ "id": "AT-01.1", "covers": ["AC-01.1"], "kind": "test", "status": "green", "file": "t/a.rs" }"#,
+    );
+    let out = run(&root, &["at", "lint", "ST0001"]);
+    (stdout(&out), out.status.code())
+  };
+
+  let (borrowed, code) = cite("// ST0002 AT-01.1 -- witnesses thread B and nothing else\n");
+  assert!(
+    borrowed.contains("t/a.rs does not carry the literal id AT-01.1"),
+    "a borrowed id must not read as coverage; got: {borrowed}"
+  );
+  assert_eq!(code, Some(1));
+
+  let (own, code) = cite("// ST0001 AT-01.1 -- this one belongs here\n");
+  assert!(!own.contains("does not carry"), "got: {own}");
+  assert_eq!(code, Some(0));
+
+  // THE ORDINARY FORM IN THIS CORPUS, and the reason the rule is cheap: a line
+  // naming NO thread is silent about ownership, not evidence against it.
+  let (bare, code) = cite("// AT-01.1 -- unqualified, as most of the estate writes it\n");
+  assert!(!bare.contains("does not carry"), "got: {bare}");
+  assert_eq!(code, Some(0));
+}
+
 /// **The control the single-fixture test cannot be.** Two threads, two row
 /// counts, one binary: a constant satisfies at most one of them.
 #[test]

@@ -253,6 +253,30 @@ pub fn resolve(thread: &Thread, criterion: &Criterion) -> Resolved {
 /// satisfied the contract looks. Found by running v2's own binary against an
 /// equivalent estate rather than by reading its source -- the fixture tests
 /// agreed with each other perfectly while missing it.
+/// Does this line name a thread OTHER than the one asking?
+///
+/// **Only a line that names some thread can name a different one.** A line with
+/// no thread id is silent about ownership, not evidence against it, and that
+/// asymmetry is the whole reason this tightening costs nothing: the unqualified
+/// mention is the ordinary form and stays green.
+fn names_another_thread(line: &str, thread: &str) -> bool {
+  let mut named_any = false;
+  let bytes = line.as_bytes();
+  for (i, w) in bytes.windows(2).enumerate() {
+    if w != b"ST" {
+      continue;
+    }
+    let digits = &line[i + 2..];
+    if digits.len() >= 4 && digits.as_bytes()[..4].iter().all(u8::is_ascii_digit) {
+      named_any = true;
+      if line[i..i + 6] == *thread {
+        return false;
+      }
+    }
+  }
+  named_any
+}
+
 pub trait References {
   /// v2's L2: the cited test file exists.
   fn resolves(&self, path: &str) -> bool;
@@ -263,7 +287,13 @@ pub trait References {
   /// that is checkable from BOTH ends and survives rewording, where a cited
   /// test NAME survives neither. Without it, a row can cite a real file that
   /// tests something else entirely and the gate cannot tell.
-  fn carries_id(&self, path: &str, at_id: &str) -> bool;
+  ///
+  /// **`thread` is here because an AT id is only LOCALLY unique** (0267).
+  /// `AT-01.1` exists in as many threads as the estate has, so a bare substring
+  /// match accepts a file whose only mention of the id belongs to a different
+  /// thread. The thread asking is part of the question, and the signature says
+  /// so rather than leaving the caller to know it.
+  fn carries_id(&self, path: &str, at_id: &str, thread: &str) -> bool;
 }
 
 /// Resolve references against a real repository root.
@@ -274,8 +304,26 @@ impl References for RepoFiles<'_> {
     self.0.join(path).exists()
   }
 
-  fn carries_id(&self, path: &str, at_id: &str) -> bool {
-    std::fs::read_to_string(self.0.join(path)).is_ok_and(|text| text.contains(at_id))
+  /// **At least one line carrying the id must not name a DIFFERENT thread**
+  /// (0267). A file whose sole mention is `// ST0002 AT-01.1 -- this test
+  /// witnesses thread B and nothing else`, cited from ST0001, used to satisfy
+  /// this and give `lint: ST0001 ok` and `gate: ST0001 PASS`.
+  ///
+  /// **THE UNQUALIFIED FORM STAYS GREEN, AND THAT IS THE POINT OF THE SHAPE
+  /// RATHER THAN A CONCESSION.** A line naming no thread at all is the ordinary
+  /// case in this corpus and carries no evidence of belonging elsewhere;
+  /// requiring the id to be thread-QUALIFIED would redden 160 of the 196 rows
+  /// L3 applies to, which is a migration wearing a fix's clothes. Measured
+  /// before the shape was chosen: this form reddens ZERO rows here, and it is a
+  /// zero worth having because the predicate was driven on 0267's own exhibit
+  /// first -- the exhibit reddens, three legitimate shapes stay green.
+  fn carries_id(&self, path: &str, at_id: &str, thread: &str) -> bool {
+    std::fs::read_to_string(self.0.join(path)).is_ok_and(|text| {
+      text
+        .lines()
+        .filter(|line| line.contains(at_id))
+        .any(|line| !names_another_thread(line, thread))
+    })
   }
 }
 
@@ -288,7 +336,7 @@ impl References for AllResolve {
     true
   }
 
-  fn carries_id(&self, _path: &str, _at_id: &str) -> bool {
+  fn carries_id(&self, _path: &str, _at_id: &str, _thread: &str) -> bool {
     true
   }
 }
@@ -699,7 +747,7 @@ pub fn contract_report(
       examined += 1;
       if !refs.resolves(path) {
         out.push(format!("{} cites a file that does not exist: {path}", t.id));
-      } else if !completed && !refs.carries_id(path, &t.id) {
+      } else if !completed && !refs.carries_id(path, &t.id, &thread.id) {
         out.push(format!("{path} does not carry the literal id {}", t.id));
       }
     } else {
