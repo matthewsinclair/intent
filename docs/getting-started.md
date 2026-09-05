@@ -16,16 +16,18 @@ You need a repository to work in. Intent does not create one:
   $ intent init
 ```
 
-`intent init` creates `intent/` in your repository and generates the agent contract at the root.
+`intent init` prints what it wrote. That list is the tree, so there is one statement of it rather than two that have to agree:
 
 ```
-  intent/
-    .config/config.json     project metadata, the declared languages
-    st/                     steel threads
-    docs/                   project documentation
-    wip.md                  current work in progress
-  AGENTS.md                 the tool-agnostic agent contract, generated
+  intent/.config/config.json     project metadata, the declared languages
+  intent/.intentfiles            which threads are realised on disk
+  intent/wip.md                  current work in progress
+  intent/llm/                    ARCHITECTURE.md, DECISION_TREE.md, RULES.md
+  CLAUDE.md                      the Claude-specific overlay
+  .prettierignore                keeps the formatter off generated views
 ```
+
+**Nothing else is there yet, and two directories you will expect are among the things that are not.** `intent/st/` arrives with your first `intent st new` in §2. `AGENTS.md` arrives at the root when you first run `intent agents sync` -- **`intent init` does not write it**, so a tree showing it here would be describing a project several steps older than the one you have.
 
 Then declare which languages the project is in:
 
