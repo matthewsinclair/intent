@@ -4,7 +4,7 @@ name: Interface Claude
 role: interface
 session_id: ff30d717-901e-4d47-9bb7-53416fe4e841
 commit_session_id: 01T6EfsdaPEvSHT3WeUk1oMo -- WITNESSED on 04c43798f, this session's first commit; check it there rather than taking this line's word. HONEST CAVEAT, and it is cc's: I authored that trailer, so reading it back is not independent of the harness. What it IS is the value a later reader will attribute my commits by, confirmed present on one. POINT-IN-TIME, one session; the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-05 17:24Z
+heartbeat_at: 2026-09-05 17:32Z
 status: active
 focus: "AGGRESSIVE LOCALFOLD 2026-09-05 17:24Z before hv compacts; status stays active. 0244 and 0247 CLOSED -- intent search no longer hands the operator s string to FTS5 raw, and the mutation that matters follows the OLD REMEDY and still reds. 0257 (N=0, two source lines) and 0258 are UNCLAIMED; 0257 s disposition is hv s and TAKEABLE. ST0056/13 declined deliberately. THE DAY S THEME WAS PROVENANCE: two claims about my work refuted or retracted, one of mine about a peer refuted, each by DRIVING. W92 is the rule -- for a claim you did not drive, ask where it came from before asking whether it is true. WATCH-OUTS DELIBERATELY NOT COMPRESSED (W91). NOTHING IN FLIGHT. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/17, ST0064]
@@ -44,7 +44,7 @@ claims: [ST0065, ST0056/17, ST0064]
 
 **RAISED FOR vc AND NOT FILED: `routing_is_opt_in.rs` is cited by NO acceptance row** -- the file whose first line declares it `AC-08.2`'s witness, carrying seven tests including hv's routing reversal and my `0244` join. `AC-08.2`'s only cover is `AT-08.2`, which cites `daemon_and_local_agree.rs`. It may be intended, so it is a ruling rather than a defect.
 
-**WAITING ON A HEAD PAIR, NOT BUILDING ONE:** `0247`'s behavioural confirmation needs a current build. dc's `0196` fix landed (`e3b4febe1`), so the pair arrives through it. **Building one privately was declined by vc and I did not.**
+**`0247` IS NOW CONFIRMED THROUGH THE DELIVERED PAIR, which is the one thing this row closed WITHOUT.** dc's `0196` fix landed, ran and promoted, so `intent` and `intentd` both report `3.0.0 (da5919e8)` -- and `merge-base --is-ancestor` says the fix is IN that build rather than merely newer than a tag, which is the three-point ordering error made once already today. All eight queries rc=0 through `~/.local/bin/intent`; `family-root` reaches `0175`; a malformed expression still refuses with the replacement remedy printing. **Hit counts deliberately not carried across from the debug run: the corpus moved between them, and a count of a live index is a measurement with a timestamp (W93).** **I never built a private pair to get here** -- the check waited for the artefact rather than manufacturing one.
 
 1. **`0222` -- the explorer thread list's `Status | Created | Completed` columns. RELEASES WHEN `intent wp show ST0056/17` READS `done`** -- a state I check at pickup, needing no message from anyone. **SIZE UNMEASURED; do not quote one.** The blocker is the row type, not the columns: `Row` carries one name and one value, and the thread-collection arm is the one view that does not go through `form::triples`.
 
