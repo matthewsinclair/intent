@@ -40,8 +40,14 @@ setup() {
   git -C "$REPO" commit -qm "base"
   BASE="$(git -C "$REPO" rev-parse HEAD)"
 
+  # SOURCED IN THE ORDER THE HEADERS REQUIRE. `currency.lib` needs `artefact.lib`
+  # for the marker parse and `sharedtarget.lib` for the build-input scope and the
+  # git isolation, and it sources neither itself. Getting this order wrong here
+  # would test a configuration no consumer has.
   # shellcheck source=/dev/null
   . "${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/artefact.lib"
+  # shellcheck source=/dev/null
+  . "${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/sharedtarget.lib"
   # shellcheck source=/dev/null
   . "${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/currency.lib"
 }
@@ -60,6 +66,17 @@ touch_source() {
   echo "// changed" >> "$REPO/native/rust/crates/lib.rs"
   git -C "$REPO" add -A
   git -C "$REPO" commit -qm "source change"
+}
+
+# Advance HEAD by a build input OUTSIDE `native/rust`. This is the whole point of
+# the 2026-09-05 widening: the marker's base commit is chosen over three
+# pathspecs, so a range measured over one of them answers a narrower question
+# than the one the base was picked to serve.
+touch_surface_only() {
+  mkdir -p "$REPO/surface"
+  echo '{"populations":{}}' >> "$REPO/surface/dispatch-table.json"
+  git -C "$REPO" add -A
+  git -C "$REPO" commit -qm "surface change, no native/rust file touched"
 }
 
 # Advance HEAD by a TEST file only. The range must NOT count this.
@@ -219,12 +236,18 @@ touch_test_only() {
   [[ "$output" == *"REACHED-THE-END"* ]]
 }
 
-@test "_rust_source_changed returns rc=0 on a TEST-ONLY range -- grep's no-match is not a verdict" {
+@test "_build_inputs_changed returns rc=0 on a TEST-ONLY range -- grep's no-match is not a verdict" {
   touch_test_only
+  # THIS SUBSHELL SOURCED `currency.lib` ALONE AND THE ARM CAUGHT IT. After the
+  # 2026-09-05 widening the function needs `SHARED_TARGET_DIRT_SCOPES`, so a
+  # lone source returns the `noscope` refusal rather than a count -- which is the
+  # designed behaviour and exactly why it must not silently default. Sourcing
+  # both here matches what every consumer does.
   run bash -c "
     set -uo pipefail
+    . '${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/sharedtarget.lib'
     . '${INTENT_PROJECT_ROOT}/bin/.devbin/cmd/shared/currency.lib'
-    _rust_source_changed '$REPO' '$BASE'
+    _build_inputs_changed '$REPO' '$BASE'
   "
   [ "$status" -eq 0 ]
   [ "$output" = "0" ]
@@ -235,3 +258,86 @@ touch_test_only() {
 # and every cheap way I tried trips an EARLIER guard instead -- so the arm would
 # pass while driving a different refusal. AN ARM THAT CANNOT FAIL IS NOT A TEST,
 # and one that fires on the wrong branch is worse. Recorded as UNDRIVEN.
+
+# --------------------------------------------------------------------------
+# THE 2026-09-05 ARMS. Both defects were LATENT on the live tree when they were
+# found -- the scope one because both pathspecs returned the same count that
+# day, the git one because the gate hands the check the same repo the hook
+# belongs to. Neither could be caught by observing the live estate, so each arm
+# below plants the case where the right answer and the wrong answer DIFFER.
+# --------------------------------------------------------------------------
+
+@test "a build input OUTSIDE native/rust puts the pair behind HEAD -- the old narrow scope called this clean" {
+  plant "$BASE"
+  touch_surface_only
+  run artefact_currency_verdict "$REL" "$REPO"
+  assert_success
+  [[ "$output" == refuse:* ]] || fail "expected a refusal for a surface-only change, got: $output"
+  [[ "$output" == *"surface"* ]] || fail "the refusal must name the scope it measured, got: $output"
+}
+
+@test "the scope in the message is DERIVED from the array, not typed beside it" {
+  plant "$BASE"
+  touch_source
+  run artefact_currency_verdict "$REL" "$REPO"
+  assert_success
+  local phrase; phrase="$(artefact_currency_scope_phrase)"
+  [[ "$output" == *"$phrase"* ]] || fail "message does not carry the derived phrase '$phrase': $output"
+  # AND THE PHRASE IS NOT A CONSTANT: strip the array and it must change, or this
+  # arm passes for a hardcoded string that happens to match.
+  local saved=("${SHARED_TARGET_DIRT_SCOPES[@]}")
+  SHARED_TARGET_DIRT_SCOPES=()
+  local empty; empty="$(artefact_currency_scope_phrase)"
+  SHARED_TARGET_DIRT_SCOPES=("${saved[@]}")
+  [ "$empty" != "$phrase" ] || fail "the phrase did not move when the array was emptied -- it is not derived"
+}
+
+@test "an UNDECLARED scope REFUSES rather than falling back to a narrower default" {
+  plant "$BASE"
+  touch_source
+  local saved=("${SHARED_TARGET_DIRT_SCOPES[@]}")
+  SHARED_TARGET_DIRT_SCOPES=()
+  run artefact_currency_verdict "$REL" "$REPO"
+  SHARED_TARGET_DIRT_SCOPES=("${saved[@]}")
+  assert_success
+  [[ "$output" == refuse:* ]] || fail "an undeclared scope must refuse, got: $output"
+  [[ "$output" == *"undeclared"* ]] || fail "the refusal must say WHY, got: $output"
+}
+
+@test "the verdict is about the tree it was HANDED, even with GIT_DIR set as a hook sets it" {
+  # A SECOND REPO WHOSE HONEST ANSWER IS THE OPPOSITE. Without this the arm
+  # cannot discriminate: if both repos gave the same verdict, GIT_DIR winning
+  # and GIT_DIR losing would look identical.
+  local other="$TEST_TEMP_DIR/other"
+  mkdir -p "$other/native/rust/crates"
+  git init -q "$other"
+  git -C "$other" config user.email "test@example.com"
+  git -C "$other" config user.name "test_user"
+  echo "fn main() {}" > "$other/native/rust/crates/lib.rs"
+  git -C "$other" add -A
+  git -C "$other" commit -qm "base"
+  local other_base; other_base="$(git -C "$other" rev-parse HEAD)"
+  echo "// changed" >> "$other/native/rust/crates/lib.rs"
+  git -C "$other" add -A
+  git -C "$other" commit -qm "source change"
+
+  # THIS repo is clean at BASE; the OTHER is one source commit behind.
+  plant "$BASE"
+  run artefact_currency_verdict "$REL" "$REPO"
+  assert_success
+  [ "$output" = "ok" ] || fail "control: the handed repo must be ok before GIT_DIR is involved, got: $output"
+
+  GIT_DIR="$other/.git" run artefact_currency_verdict "$REL" "$REPO"
+  assert_success
+  [ "$output" = "ok" ] || fail "GIT_DIR won over the handed repo -- the verdict described the wrong tree: $output"
+
+  # AND THE MIRROR, which is the direction that fails OPEN: a stale pair must not
+  # read as ok because GIT_DIR points somewhere clean.
+  local other_rel="$TEST_TEMP_DIR/other_release"
+  mkdir -p "$other_rel"
+  printf 'padding [intent-source-commit:%s] padding\n' "$other_base" > "$other_rel/intent"
+  printf 'padding [intent-source-commit:%s] padding\n' "$other_base" > "$other_rel/intentd"
+  GIT_DIR="$REPO/.git" run artefact_currency_verdict "$other_rel" "$other"
+  assert_success
+  [[ "$output" == refuse:* ]] || fail "a stale pair read as clean because GIT_DIR pointed at a clean tree: $output"
+}

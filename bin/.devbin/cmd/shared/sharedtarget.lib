@@ -91,7 +91,7 @@
 # real signal would go and reads as if it had been checked. The claim is about
 # the BINARY, so the evidence has to be the paths that enter the binary.
 #
-# AND `tests/` IS NOT EXCLUDED HERE EVEN THOUGH `_rust_source_changed` EXCLUDES
+# AND `tests/` IS NOT EXCLUDED HERE EVEN THOUGH `_build_inputs_changed` EXCLUDES
 # IT NEXT DOOR. That function answers a different question -- how far behind HEAD
 # a COMMITTED range leaves an artefact -- where a test-only delta genuinely costs
 # the binary nothing. This one must agree with the marker, and the marker counts

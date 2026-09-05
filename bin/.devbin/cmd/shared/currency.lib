@@ -7,6 +7,37 @@
 # the marker extraction site is that file, and a `source || define-my-own`
 # fallback restores the duplicate at exactly the moment nobody is watching (vc).
 #
+# AND IT REQUIRES `sharedtarget.lib` SOURCED FIRST, ON THE SAME TERMS, SINCE
+# 2026-09-05. Six of this file's eight consumers already sourced it; the two that
+# did not are the ones that had to change. It supplies two things this file spent
+# its whole life re-deriving badly, and BOTH defects were the same shape -- the
+# function agreeing with the truth by luck, with nothing distinguishing luck from
+# construction:
+#
+#   1. THE SCOPE. `_rust_source_changed` diffed `-- native/rust` alone, while the
+#      marker's base commit is `rev-list -1 HEAD` over THREE pathspecs. So the
+#      base was chosen over one population and the range measured over a narrower
+#      one: a commit touching only `surface/` or `docs/design/` moved the build
+#      inputs and this reported a source-clean range. NOT hypothetical -- eight of
+#      the last four hundred commits touching those two paths touch no file under
+#      `native/rust`. It did not fire on the day it was found because both scopes
+#      returned 3, which is exactly the condition under which nobody looks.
+#   2. THE GIT ENVIRONMENT. Four raw `git -C "$repo"` calls, in a check the
+#      pre-commit gate RUNS, inside the environment where git exports `GIT_DIR`,
+#      `GIT_INDEX_FILE` and `GIT_WORK_TREE`. `git -C` changes the directory and
+#      overrides none of them, so the verdict was about whatever repository the
+#      hook belonged to. `sharedtarget.lib` fixed this in itself on its first day
+#      and wrote the paragraph explaining why; its sibling in the same directory,
+#      sourced alongside it, never learned it. DRIVEN two-sided on two planted
+#      repos that disagree without `GIT_DIR`: with `GIT_DIR` set the verdict
+#      followed `GIT_DIR` in BOTH directions, and the dangerous direction is the
+#      mirror -- a genuinely stale pair reported `ok`, which is the guard failing
+#      OPEN, the one direction this file's own comments say an actor must never
+#      fail.
+#
+# ONE LESSON FROM BOTH: a library that learns something does not teach its
+# siblings, and `grep` for the fix is not the same as `grep` for the hazard.
+#
 # NOT `cmd/local`'s `verify_pair`, AND THE DISTINCTION IS THE WHOLE DESIGN.
 # `verify_pair` is BUILD-time: it demands `sc == HEAD` exactly and treats any
 # `dirty-` as bad. Right after `int local build`, WRONG at exec time, where it
@@ -92,20 +123,46 @@ artefact_pair_marker() {
   printf '%s' "$first"
 }
 
-# _rust_source_changed <repo> <base>
+# artefact_currency_scope_phrase
 #
-# Prints the count of non-test files under `native/rust/` that the COMMITTED
-# range <base>..HEAD touches. Prints `unknown` when git cannot answer.
-_rust_source_changed() {
+# The build-input scope as prose, DERIVED from `SHARED_TARGET_DIRT_SCOPES` and
+# never typed. It exists so the sentence a reader sees and the pathspec the diff
+# uses cannot drift: the four messages that used to say "under native/rust" said
+# it because a human wrote it there, and one of them stayed right only because
+# the scope had not been widened yet. Prints `an UNDECLARED scope` when the array
+# is missing, which is the honest phrase for the case the verdict refuses on.
+artefact_currency_scope_phrase() {
+  local sc out=""
+  if [ -z "${SHARED_TARGET_DIRT_SCOPES+x}" ] || [ "${#SHARED_TARGET_DIRT_SCOPES[@]}" -eq 0 ]; then
+    printf 'an UNDECLARED scope'
+    return 0
+  fi
+  for sc in "${SHARED_TARGET_DIRT_SCOPES[@]}"; do
+    out="$out, ${sc#:(top)}"
+  done
+  printf '%s' "${out#, }"
+}
+
+# _build_inputs_changed <repo> <base>
+#
+# Prints the count of non-test files under the BUILD-INPUT SCOPE that the
+# COMMITTED range <base>..HEAD touches. Prints `unknown` when git cannot answer,
+# and `noscope` when the scope array is absent -- which is a REFUSAL and never a
+# fallback to the old narrow pathspec, because an empty pathspec means the WHOLE
+# repo and a defaulted one silently restores the defect this rename records.
+_build_inputs_changed() {
   local repo="$1" base="$2" changed kept
-  git -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { printf 'unknown'; return 0; }
-  git -C "$repo" cat-file -e "${base}^{commit}" 2>/dev/null || { printf 'unreachable'; return 0; }
-  git -C "$repo" merge-base --is-ancestor "$base" HEAD 2>/dev/null || { printf 'notancestor'; return 0; }
+  if [ -z "${SHARED_TARGET_DIRT_SCOPES+x}" ] || [ "${#SHARED_TARGET_DIRT_SCOPES[@]}" -eq 0 ]; then
+    printf 'noscope'; return 0
+  fi
+  $GIT_ISOLATED -C "$repo" rev-parse --git-dir >/dev/null 2>&1 || { printf 'unknown'; return 0; }
+  $GIT_ISOLATED -C "$repo" cat-file -e "${base}^{commit}" 2>/dev/null || { printf 'unreachable'; return 0; }
+  $GIT_ISOLATED -C "$repo" merge-base --is-ancestor "$base" HEAD 2>/dev/null || { printf 'notancestor'; return 0; }
   # NOT `|| true`: its three neighbours above each turn a failure into a NAMED
   # sentinel, and this line used to break that pattern. A swallowed failure left
   # `changed` empty, the count 0 and the verdict `ok` -- THE GUARD FAILING OPEN,
   # which is the one direction an ACTOR on PATH must never fail.
-  if ! changed="$(git -C "$repo" diff --name-only "$base..HEAD" -- native/rust 2>/dev/null)"; then
+  if ! changed="$($GIT_ISOLATED -C "$repo" diff --name-only "$base..HEAD" -- "${SHARED_TARGET_DIRT_SCOPES[@]}" 2>/dev/null)"; then
     printf 'nodiff'
     return 0
   fi
@@ -140,8 +197,11 @@ artefact_currency_verdict() {
     dirty-*) dirty=1; base="${marker#dirty-}" ;;
   esac
 
-  n="$(_rust_source_changed "$repo" "$base")"
+  n="$(_build_inputs_changed "$repo" "$base")"
   case "$n" in
+    noscope)
+      printf 'refuse:the build-input scope is undeclared -- SHARED_TARGET_DIRT_SCOPES is unset or empty, so currency cannot be decided. This is a REFUSAL rather than a narrower default: an empty pathspec means the whole repository and a defaulted one silently restores the single-path comparand this check was widened away from'
+      return 0 ;;
     unknown)
       printf 'warn:cannot reach git, so currency is undecidable here -- the artefact is not at fault'
       return 0 ;;
@@ -165,11 +225,11 @@ artefact_currency_verdict() {
   # exists to refuse -- arriving in the file's own error message.
   if [ "$n" -gt 0 ]; then
     if [ "$dirty" -eq 1 ]; then
-      printf 'refuse:at least %s non-test file(s) under native/rust changed since %s, and the marker is dirty- so that count is a FLOOR rather than the gap -- whatever was uncommitted at build time is outside this range. Behind HEAD either way' \
-        "$n" "${base:0:12}"
+      printf 'refuse:at least %s non-test file(s) under %s changed since %s, and the marker is dirty- so that count is a FLOOR rather than the gap -- whatever was uncommitted at build time is outside this range. Behind HEAD either way' \
+        "$n" "$(artefact_currency_scope_phrase)" "${base:0:12}"
     else
-      printf 'refuse:%s non-test file(s) under native/rust changed since %s -- this binary is behind HEAD' \
-        "$n" "${base:0:12}"
+      printf 'refuse:%s non-test file(s) under %s changed since %s -- this binary is behind HEAD' \
+        "$n" "$(artefact_currency_scope_phrase)" "${base:0:12}"
     fi
     return 0
   fi

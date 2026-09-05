@@ -69,6 +69,23 @@ _ART_LIB="$ROOT/bin/.devbin/cmd/shared/artefact.lib"
 # shellcheck source=/dev/null
 . "$_ART_LIB"
 
+# AND `sharedtarget.lib` BEFORE BOTH, ON THE SAME TERMS AND FOR A REASON THIS
+# FILE CAUSED. It declares `SHARED_TARGET_DIRT_SCOPES` (the build-input pathspec
+# the marker's base commit is chosen over) and `GIT_ISOLATED` (the unset list
+# that makes a `git -C` question be about the tree it was handed). `currency.lib`
+# had neither: it diffed `native/rust` alone against a base chosen over three
+# paths, and it asked git with a raw `git -C` from inside THIS check, which the
+# pre-commit gate runs -- and a hook environment exports `GIT_DIR`. Sourced
+# first because `currency.lib` now requires it and deliberately does not source
+# it itself, which is the rule the two libs above already follow.
+_ST_LIB="$ROOT/bin/.devbin/cmd/shared/sharedtarget.lib"
+[ -f "$_ST_LIB" ] || {
+  echo "${0##*/}: cannot read $_ST_LIB -- the build-input scope and the git isolation have ONE home and this is not it." >&2
+  exit 2
+}
+# shellcheck source=/dev/null
+. "$_ST_LIB"
+
 # AND `currency.lib`, ON THE SAME TERMS AND FOR THE SAME REASON. "Is this binary
 # behind the tree" is a question with ONE home -- `artefact_currency_verdict` --
 # and this file used to answer it locally with `embedded = HEAD`. That is
@@ -385,7 +402,7 @@ else
   else
     _cur="$(artefact_currency_verdict native/rust/target/release .)"
     case "$_cur" in
-      ok)      echo "self-provenance: currency ok -- no non-test file under native/rust has changed since the commit the pair names, so the pair still describes this tree." ;;
+      ok)      echo "self-provenance: currency ok -- no non-test file under $(artefact_currency_scope_phrase) has changed since the commit the pair names, so the pair still describes this tree. THE SCOPE IN THAT SENTENCE IS DERIVED, not typed: it came from the same array the diff used, so the claim and the measurement cannot drift." ;;
       warn:*)  echo "self-provenance: currency WARN -- ${_cur#warn:}" ;;
       refuse:*)
         # `REFUSING`, NOT `STALE`, AND THE FIRST DRAFT OF THIS LINE SAID STALE.
