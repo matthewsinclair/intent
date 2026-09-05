@@ -4,7 +4,7 @@ name: Interface Claude
 role: interface
 session_id: ff30d717-901e-4d47-9bb7-53416fe4e841
 commit_session_id: 01T6EfsdaPEvSHT3WeUk1oMo -- WITNESSED on 04c43798f, this session's first commit; check it there rather than taking this line's word. HONEST CAVEAT, and it is cc's: I authored that trailer, so reading it back is not independent of the harness. What it IS is the value a later reader will attribute my commits by, confirmed present on one. POINT-IN-TIME, one session; the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-05 20:28Z
+heartbeat_at: 2026-09-05 20:33Z
 status: active
 focus: "AGGRESSIVE LOCALFOLD 2026-09-05 20:28Z before hv compacts; status stays active. vc s QUEUE IS CLEAR -- 0257 closed (twin renamed too), 0269 filed AND dispositioned, 0258 sized then RULED candidate C and gated behind ST0056/14. THE DAY S LESSON LANDED ON ME TWICE AND THE SECOND TIME WAS MINE: I corrected vc s 37-absent premise, then committed the same defect in my own instrument one section later -- 36 orphans became 13, because L3 cannot tell a CLAIM from a STRING and I read the rule backwards. BEST FINDING: a row with NO citation is the simultaneous blind spot of every row-first instrument, demonstrated on AT-17.6. NOTHING STARTABLE. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/17, ST0064]
@@ -39,6 +39,10 @@ claims: [ST0065, ST0056/17, ST0064]
 **`0269` IS FILED AND DISPOSITIONED AND NEEDS NOBODY.** Population **13**, not the 36 I first cut -- see W96. What survives for whoever builds the census is IN THE ROW: count comments not occurrences, exclude the `legacy_*` migration corpus by rule, and **surface the rows with no `file` at all**, because those are simultaneously invisible to every instrument the estate has.
 
 **`0258` IS RULED (vc, candidate C -- store-side assignment event, no interim mechanism) AND IS NOT MINE TO WAIT ON.** Gated behind `ST0056/14`. **The delivery-half analysis stays in the row verbatim on vc's instruction** -- _pickup reads boards and inboxes and nothing else_, measured, is what whoever builds `ST0056/14` would otherwise re-derive.
+
+**RE-READ ON vc's INSTRUCTION AFTER hv RULED THE CHEAP PATH BE DRIVEN (`48d15b0d`): THE RULING SURVIVES ITS OWN PREMISE.** vc's flag is right -- if `WP-14` leaves the cut, C's dependency is `Not Started` work outside the release again. **But that bears on C's TIMING only, and A and B were declined on grounds that never mention timing** (A instructs a reader into existence; B needs a boundary ruling about the store authoring a disk file). Disposition identical in both worlds; only the duration moves. **THE EXPOSURE IS THE RELEASE, NOT THE DESIGN:** hv's directive is that everything outstanding ships in 3.0.1, so if `WP-14` leaves the cut and this row is gated behind it, **`0258` does not ship, which CONTRADICTS the directive rather than delaying a fix.** Riding with vc's escalation.
+
+**NOT VERIFIED BY ME AND DELIBERATELY NOT REPEATED:** cc's migrator finding (oversized files excluded with class/reason/bytes, whiteboard collapsed to a directory noun). **I looked and could not locate that emission** -- what I found was attachment caps, a different subject. Named as cc's; my re-read does not depend on it.
 
 **A CAVEAT I RAISED IS LIVE WITH vc AND GOING TO hv:** `ST0056/14` reads `Not Started`/`L` (driven), and the reinstated `AC-00.2`/`AC-10.5` are about the FLEET CORPUS, not the coordination model -- so _WP-14 is in the cut_ does not follow from their subject, and both rows are satisfiable by their residue disjunct. **vc accepted it as a defect in the menu they put to hv, not a new question**: hv may have taken an L they were never obliged to take. **Not mine to pursue.**
 
