@@ -42,6 +42,10 @@ RELEASE_DIR="$PROJECT_ROOT/native/rust/target/release"
 # .gitignore rule, and an artefact directory that is only ignored while somebody
 # remembers to keep a rule in step is the shape this whole guard exists to stop.
 PRIVATE_RELEASE_DIR="$PROJECT_ROOT/native/rust/target/private/release"
+# WHERE A SHARED BUILD IS STAGED BEFORE IT IS PROMOTED (0196). Under `target/`
+# for the same reason `private/` is: it inherits the existing ignore rather than
+# needing a new rule somebody has to remember to keep in step.
+STAGING_RELEASE_DIR="$PROJECT_ROOT/native/rust/target/staging/release"
 
 # guarded_release_build -- the dirt verdict, the provenance force, the build,
 # and the pair verification, in that order, as one thing.
@@ -54,20 +58,29 @@ PRIVATE_RELEASE_DIR="$PROJECT_ROOT/native/rust/target/private/release"
 # gate that refuses on a peer's half-finished file is one that gets bypassed the
 # first afternoon.
 guarded_release_build() {
-  local verdict dir mode
+  local verdict build_dir final_dir mode
   verdict="$(shared_target_verdict "$PROJECT_ROOT")"
   case "$verdict" in
     ok)
-      dir="$RELEASE_DIR"
+      # THE SHARED PAIR IS NEVER THE BUILD TARGET ANY MORE (0196). It is only
+      # ever the DESTINATION of a rename, and only after the staged pair has
+      # passed the very verification the shared pair used to receive AFTER it
+      # had already been overwritten.
+      build_dir="$STAGING_RELEASE_DIR"
+      final_dir="$RELEASE_DIR"
       mode=shared
       ;;
     refuse:*)
       warn "${verdict#refuse:}"
       shared_target_dirt_report "$PROJECT_ROOT"
-      dir="$PRIVATE_RELEASE_DIR"
+      # A PRIVATE BUILD IS NOT STAGED AND IS NOT PROMOTED. It is not a candidate
+      # for the shared slot -- that is the whole point of the redirect -- so the
+      # private dir IS the artefact and there is nothing to move it into.
+      build_dir="$PRIVATE_RELEASE_DIR"
+      final_dir=""
       mode=private
       step "redirecting to a PRIVATE target dir -- the shared artefact is untouched"
-      printf '    %s\n' "$dir"
+      printf '    %s\n' "$build_dir"
       printf '    Commit or stash the paths above and re-run to build the shared pair.\n'
       ;;
     *)
@@ -77,12 +90,85 @@ guarded_release_build() {
 
   cd "$PROJECT_ROOT/native/rust" || die "no Rust workspace at native/rust"
   step "forcing the provenance embeds (cargo will not do this for you -- see the header)"
-  CARGO_TARGET_DIR="$(dirname "$dir")" cargo clean -p intent-cli -p intentd --release
+  CARGO_TARGET_DIR="$(dirname "$build_dir")" cargo clean -p intent-cli -p intentd --release
   step "building every binary in the workspace"
-  CARGO_TARGET_DIR="$(dirname "$dir")" cargo build --workspace --bins --release "$@" ||
+  CARGO_TARGET_DIR="$(dirname "$build_dir")" cargo build --workspace --bins --release "$@" ||
     die "the release build failed"
   step "verifying the SET, which is the check cargo cannot make"
-  verify_pair "$dir" "$mode"
+  verify_pair "$build_dir" "$mode"
+
+  # EVERY FAILURE ABOVE NOW LANDS WITH THE SHARED PAIR UNTOUCHED AND WORKING.
+  # That is the entire fix: the `cargo clean`, the build and the verification all
+  # happen somewhere nobody invokes, so a `die` on any of them leaves the old
+  # pair exactly where four sessions and the human's shell expect it.
+  [ -n "$final_dir" ] || return 0
+  step "promoting the verified pair into the shared path"
+  promote_pair "$build_dir" "$final_dir"
+}
+
+# promote_pair <from> <to> -- move a VERIFIED pair into the shared path.
+#
+# WHY THIS EXISTS (0196; hv ruled the remedy and the sequencing 2026-09-05).
+# `guarded_release_build` used to `cargo clean` the SHARED release dir and build
+# in place, so from the clean until a successful `verify_pair` the artefact every
+# session on this machine invokes DID NOT EXIST -- and every exit from that
+# window other than success left it that way. It was reported as an availability
+# outage and it is worse than that: a Lamplight session ran six `intent` verbs in
+# one script while a build ran here, verb 1 WROTE, verbs 2-6 died `command not
+# found`, `set -e` did not catch it, and a git-tracked acceptance contract in
+# ANOTHER repository was left half-written with no exit status describing it.
+#
+# THE DELETE WAS NEVER THE DEFECT AND IS NOT REMOVED. The source commit is
+# embedded at COMPILE time and is not an input cargo tracks, so without the clean
+# an unchanged crate keeps a stale marker and the pair silently splits across two
+# commits. The clean is sound; doing it in the shared path is what was not.
+#
+# === THE RULING vc ASKED FOR: THE SET IS THE UNIT, AND TWO RENAMES ARE NOT ONE ===
+#
+# CHOSEN: BACK-TO-BACK FILE RENAMES, and the reasoning is a comparison of what
+# each option leaves observable rather than a preference.
+#
+#   - Back-to-back renames leave a window in which `intent` is NEW and `intentd`
+#     is OLD. Neither is ever ABSENT. The window is two syscalls.
+#   - A directory-level swap (`mv release release.prev && mv staging release`) is
+#     ALSO two renames, and between them `target/release` does not exist at all
+#     -- it reintroduces the absent window this fix is written to close, which
+#     makes it strictly worse for the failure actually observed.
+#   - An atomic multi-file swap is not available here. `renameat2(RENAME_EXCHANGE)`
+#     is Linux; macOS `exchangedata(2)` is deprecated and not APFS.
+#
+# **AND THE RESIDUAL WINDOW FAILS LOUDLY WHERE THE ONE IT REPLACES FAILED
+# SILENTLY.** A split pair is exactly what `verify_pair` and the currency reader
+# already refuse by name -- a consumer landing in it gets a refusal that says the
+# pair disagrees. A consumer landing in the ABSENT window got `command not found`
+# mid-script with `set -e` blind to it. Trading minutes of silent absence for two
+# syscalls of noisy disagreement is the trade, and it is stated so the next reader
+# can reject it on its terms rather than rediscover the question.
+#
+# THE SAME-FILESYSTEM CHECK IS A PRECONDITION, NOT PADDING. A rename is atomic
+# only within one filesystem, and across one it fails EXDEV -- which, taken after
+# the first rename had already succeeded, is the one path that could leave a
+# split pair PERMANENTLY. Refusing before the first rename is what makes the
+# second one safe to assume.
+promote_pair() {
+  local from="$1" to="$2" b
+  for b in intent intentd; do
+    [ -f "$from/$b" ] ||
+      die "promote_pair: $from/$b is missing -- verify_pair passed and the file is not there, so refusing to move half a set"
+  done
+  mkdir -p "$to" || die "promote_pair: cannot create $to"
+  [ "$(stat -f '%d' "$from")" = "$(stat -f '%d' "$to")" ] ||
+    die "promote_pair: $from and $to are on different filesystems, so a rename would not be atomic and could fail EXDEV between the two moves -- refusing before touching the shared pair"
+
+  # NOTHING GOES BETWEEN THESE TWO LINES. No logging, no subshell, no command
+  # that can block. The window between them is the whole residual cost of this
+  # design and it is kept to two syscalls by keeping them adjacent.
+  mv -f "$from/intent" "$to/intent" || die "promote_pair: failed to move intent into $to"
+  mv -f "$from/intentd" "$to/intentd" || die "promote_pair: failed to move intentd into $to -- THE SHARED PAIR IS NOW SPLIT: $to/intent is new and $to/intentd is old. Re-run the build; verify_pair will refuse until it agrees."
+
+  for b in intent intentd; do
+    printf '    %-8s -> %s\n' "$b" "$to/$b"
+  done
 }
 
 # verify_pair <dir> <shared|private> -- the pair describes ONE state of this repo.
