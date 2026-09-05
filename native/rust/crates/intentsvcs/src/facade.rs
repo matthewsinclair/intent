@@ -1181,7 +1181,7 @@ impl crate::remedy::Remedy for FacadeError {
         format!("run `intent ac {verb} <thread> {ac}` instead -- a descoped requirement still exists on another thread, and a withdrawn one does not exist at all")
       }
       Self::BadQuery { .. } => {
-        "search takes an FTS5 expression -- quote a phrase, and escape or drop bare punctuation like `:` and `*`".to_string()
+        "bare words and punctuation are searched literally, so this was refused as an FTS5 EXPRESSION -- check for an unbalanced `(` or `)`, or an `AND`/`OR`/`NOT`/`NEAR` with nothing on one side of it".to_string()
       }
       // The alternatives are NAMED here rather than pointed at: the faces are
       // generated from the types and cost nothing to list, and a remedy that
@@ -2248,13 +2248,23 @@ impl Facade {
   /// Full-text search across every authored section -- thread prose, issue
   /// bodies, work-package text (AC-06.4).
   ///
-  /// The query goes to FTS5 as written, so `foo OR bar` and `"a phrase"` work.
+  /// **BARE TERMS ARE MATCHED LITERALLY** -- `crate::fts` quotes them, so
+  /// `render.rs`, `AGENTS.md`, `v3.0.1` and `family-root` search for what they
+  /// say rather than reaching FTS5 as column syntax (`0247`). Operators
+  /// (`foo OR bar`), parentheses, quoted phrases, a trailing `*`, a leading
+  /// `^` and the explicit `{col}:` filter all still work.
   /// A malformed expression comes back as [`FacadeError::BadQuery`] carrying
   /// SQLite's own complaint in its cause chain: the remedy names the likely
   /// fix, and the chain still says exactly what happened, so a genuinely
   /// unhealthy store is not disguised as a typo.
   pub fn search(&self, query: &str) -> Result<Vec<crate::prose::DocSection>, FacadeError> {
-    self.store.search(query).map_err(|cause| {
+    // **THE ONE PLACE THE OPERATOR'S STRING BECOMES AN FTS5 EXPRESSION**
+    // (`0247`). Before this, `family-root` reached FTS5 raw and came back as
+    // `no such column: root` -- a database schema error about a query nobody
+    // wrote. The error's SUBJECT was sqlite's schema rather than the
+    // operator's words.
+    let expression = crate::fts::expression(query);
+    self.store.search(&expression).map_err(|cause| {
       if matches!(cause, StoreError::Sqlite(_)) {
         FacadeError::BadQuery {
           query: query.to_string(),

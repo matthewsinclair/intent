@@ -63,6 +63,7 @@ pub mod facade;
 pub mod faces;
 pub mod finding;
 pub mod form;
+pub mod fts;
 pub mod graphql;
 pub mod ingest;
 pub mod init;

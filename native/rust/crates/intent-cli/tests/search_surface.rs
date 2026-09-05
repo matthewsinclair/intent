@@ -300,13 +300,25 @@ fn an_unpopulated_index_is_not_the_same_answer_as_a_genuine_miss() {
 
 /// A malformed FTS expression is refused in v2's voice, with the underlying
 /// complaint preserved in the cause chain (AC-04.4).
+///
+/// **THE SPECIMEN MOVED ON 2026-09-05 AND THE ASSERTION DID NOT RELAX.** This
+/// arm used `foo:`, which `0247` made a LITERAL rather than a malformed
+/// expression -- bare punctuation is now quoted, so a colon searches for
+/// itself instead of asking FTS5 for a column. **The property under test is
+/// unchanged; only the example of it stopped being an example.** Deleting the
+/// arm would have removed coverage that disagreed with a change of mine, which
+/// is the one thing a change must never do to its own witnesses.
+///
+/// **AN UNBALANCED PAREN IS A STRICTLY BETTER SPECIMEN THAN `foo:` EVER WAS**:
+/// it is structurally malformed under ANY escaping policy, so this arm can no
+/// longer be quietly retired by a future change to what counts as punctuation.
 #[test]
 fn a_malformed_query_is_refused_with_its_cause_and_a_remedy() {
   let dir = project();
   let root = dir.path();
   ok(root, &["st", "new", "a thread"]);
 
-  let out = run(root, &["search", "foo:"]);
+  let out = run(root, &["search", "(foo"]);
   assert_eq!(out.status.code(), Some(1));
   let stderr = String::from_utf8_lossy(&out.stderr);
   assert!(stderr.starts_with("error: "), "v2's voice: {stderr}");
@@ -318,6 +330,67 @@ fn a_malformed_query_is_refused_with_its_cause_and_a_remedy() {
   assert!(
     String::from_utf8_lossy(&out.stdout).is_empty(),
     "a failure writes nothing to stdout"
+  );
+}
+
+/// `0247`: **ordinary punctuation is searched literally rather than reaching
+/// FTS5 as column syntax.**
+///
+/// **THE FOUR QUERIES THIS ESTATE ACTUALLY TYPES WERE ALL REFUSED**: a source
+/// filename, the artefact its own canon mandates every agent regenerate, its
+/// release number, and a phrase from an issue title. Each came back as
+/// `sqlite: no such column: root` or `fts5: syntax error near "."` -- a
+/// DATABASE SCHEMA error, three layers of causation deep, about a query nobody
+/// wrote.
+///
+/// **THE CONTROL IS THE SECOND HALF AND IT IS WHAT MAKES rc=0 MEAN ANYTHING.**
+/// Exit zero alone would pass on a build that answered nothing at all, and a
+/// no-match is also exit zero here by design (`AC-04.3`). So the hyphenated
+/// query must find the SPECIFIC section that carries it, and a hyphenated term
+/// that is NOT in the corpus must still come back empty -- otherwise the arm
+/// would pass on a query that matched everything.
+#[test]
+fn ordinary_punctuation_is_searched_literally_and_finds_what_it_names() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "a thread"]);
+  std::fs::write(
+    root.join("intent/st/ST0001/design.md"),
+    "# Notes\n\nThe family-root disclaimer lives in render.rs and shipped in v3.0.1.\n",
+  )
+  .expect("author prose");
+  restore_from_disk(root);
+
+  for query in ["family-root", "render.rs", "v3.0.1"] {
+    let out = run(root, &["search", query]);
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert_eq!(
+      out.status.code(),
+      Some(0),
+      "`intent search {query}` was refused. Before 0247 this reached FTS5 raw and \
+       answered with sqlite's schema rather than the operator's words: {stderr}"
+    );
+    let hits = String::from_utf8_lossy(&out.stdout);
+    assert!(
+      hits.contains("design.md"),
+      "`intent search {query}` exited 0 without finding the section that contains it, \
+       so exit zero here is a silence rather than an answer: {hits:?}"
+    );
+  }
+
+  // **THE ANTI-VACUITY ARM.** Without it every assertion above passes on a
+  // build whose escaping matched everything -- which is exactly how a fix to a
+  // refusal turns into a fix that returns the whole corpus.
+  let absent = run(root, &["search", "kestrel-combinator"]);
+  assert_eq!(
+    absent.status.code(),
+    Some(0),
+    "an absent hyphenated term is a no-match, not a refusal: {}",
+    String::from_utf8_lossy(&absent.stderr)
+  );
+  assert!(
+    String::from_utf8_lossy(&absent.stdout).is_empty(),
+    "a hyphenated term nothing carries must find nothing, or the quoting matched everything"
   );
 }
 
