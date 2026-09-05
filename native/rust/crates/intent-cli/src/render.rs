@@ -8122,7 +8122,8 @@ fn library() -> Result<intentsvcs::rules::Library, Failure> {
 /// and `--lang` is exactly where a typo lands.
 fn rules_list(m: &ArgMatches) -> Result<(), Failure> {
   let lang = m.get_one::<String>("lang").cloned();
-  let all = library()?.rules().map_err(|e| Failure::Error(e.render()))?;
+  let lib = library()?;
+  let all = lib.rules().map_err(|e| Failure::Error(e.render()))?;
   let shown: Vec<_> = all
     .iter()
     .filter(|r| lang.as_ref().is_none_or(|l| &r.language == l))
@@ -8152,7 +8153,48 @@ fn rules_list(m: &ArgMatches) -> Result<(), Failure> {
     );
   }
   println!();
-  println!("total: {} rule(s)", shown.len());
+
+  // **THE COUNT STATES ITS POPULATION, BECAUSE ON ITS OWN IT CANNOT TELL AN
+  // EMPTY LIBRARY FROM AN ABSENT ONE** (`0275`). `total: 0 rule(s)` under a
+  // well-formed header is what the published 3.0.0 keg prints -- 3 of its 4
+  // support paths are missing -- at rc 0 with nothing on stderr. **The output
+  // is not empty, it is structurally healthy**, which is what makes it
+  // convincing.
+  //
+  // **AND THE HARM IS SPECIFICALLY THAT `install.md` NOMINATES THIS VERB AS THE
+  // INSTALL CHECK**, on the ground that it fails on exactly the packaging fault
+  // worth catching. It does not fail; it succeeds emptily. A reader told to
+  // expect a failure, who runs it and sees exit 0, concludes they are
+  // unaffected -- so being wrong about the symptom converts a documented defect
+  // into a reason to stop looking (ic's framing, and it is the finding).
+  //
+  // **A MESSAGE AND DELIBERATELY NOT AN EXIT CODE.** Refusing when the tree is
+  // absent is correct on IN-AG-NO-SILENT-001 and can break callers, so it is a
+  // separate question that nobody answers without measuring them first. This
+  // half removes the whole harm on its own, breaks no caller and reds nothing.
+  //
+  // **THE CANON ROOT, NOT "the library".** An ext pack can supply rules while
+  // the shipped tree is missing, so the absent case is asserted about the one
+  // path an install is responsible for, and it names it rather than describing
+  // it -- the reader's next act is to look there.
+  let canon = lib.canon_root();
+  if !canon.is_dir() {
+    println!(
+      "total: {} rule(s) -- and there is NO RULE LIBRARY at {}, so this install is incomplete rather than empty",
+      shown.len(),
+      canon.display()
+    );
+  } else if shown.len() != all.len() {
+    // The filtered case states both numbers for the same reason: `total: 0`
+    // under a `--lang` typo reads exactly like a language with no rules.
+    println!(
+      "total: {} rule(s) of {} in the library",
+      shown.len(),
+      all.len()
+    );
+  } else {
+    println!("total: {} rule(s)", shown.len());
+  }
   Ok(())
 }
 

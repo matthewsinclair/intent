@@ -151,6 +151,19 @@ impl Library {
     }
   }
 
+  /// Where this install's CANON rules would be, present or not.
+  ///
+  /// **EXPOSED SO A CALLER CAN TELL AN EMPTY LIBRARY FROM AN ABSENT ONE**
+  /// (`0275`). [`Library::files`] returns an empty list for a root that is not a
+  /// directory -- correct there, because no rules installed is an ordinary state
+  /// -- and that makes the two indistinguishable one layer up, where the
+  /// difference is the whole answer. It is the CANON root specifically and not
+  /// "the library": an ext pack can supply rules while this is missing, so a
+  /// caller asking "is the shipped tree here" must not be answered with a count.
+  pub fn canon_root(&self) -> &Path {
+    &self.canon
+  }
+
   /// Every rule, canon first, then each extension.
   ///
   /// **A MISSING ROOT IS EMPTY, A PRESENT-BUT-UNREADABLE ROOT IS AN ERROR.** No
