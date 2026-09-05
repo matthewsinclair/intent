@@ -204,3 +204,7 @@
 0243	not-reader-reachable	not-exhibited -- the issue records a NEAR-MISS by its own text: the expensive complement sweep was fixed with `--exclude-dir=target` before it landed, so no consumer ever ran it. What remains is the absence of a latency budget and a per-arm cost instrument, which is a property of our apparatus rather than a false statement the docs make to a reader.	
 0237	not-reader-reachable	internal-tooling -- the filed subject is WHERE the canon-git divergence check lives (`bin/.devbin/cmd/`, which reaches this estate alone) rather than a behaviour a documented verb gets wrong. `issues add` writes store and disk correctly everywhere -- driven at 214/214 both ways per the issue -- and git has always been a separate human act that no page promises otherwise.	
 0195	stated	docs/known-defects.md	intent#0195
+0238	stated	docs/known-defects.md	intent#0238
+0256	stated	docs/known-defects.md	intent#0256
+0263	not-reader-reachable	internal-tooling -- the subject is this repository's own `.prettierignore` header. It is not in `lib/templates/`, so no consumer project receives the file, let alone its rationale comment. Driven: no template ships a `.prettierignore`.	
+0264	not-reader-reachable	dev-apparatus-only -- the subject is `dist-provenance.txt`, written by `int macos stage` under `bin/.devbin/`, which is not shipped to any consumer. Driven: no `lib/templates/` path carries devbin. A reader of the published build has no route to the record or to either of its two readers.	

@@ -44,6 +44,10 @@ The row cannot be repaired afterwards: an issue title and body are write-once (`
 
 ## Criteria and tests
 
+**`intent doctor` reports criteria you deliberately withdrew, and `intent ac gate` does not** (`intent#0256`). Driven on v3.0.0 with both controls: a criterion `AC-02.1` on a thread with no `WP-02` is reported as `model-inconsistent -- AC-02.1 belongs to WP-02, which ST0001 does not have`, and **the finding is byte-identical before and after `intent ac withdraw` runs on it**. The same thread's `ac gate` changes its answer correctly, to `all in-scope AC(s) are descoped or withdrawn`. So the two verbs ship opposite verdicts on one thread, and the one that ignores the withdrawal is the one that prints a finding count.
+
+**This scales badly on a real estate, because the count is what people read.** Withdrawing a group of criteria -- the normal way to record that a work package will never be built -- adds one `doctor` finding each, permanently, and they crowd out the findings that need attention. Read `intent ac gate <thread>` for whether a thread is actually in order; treat `doctor`'s model-inconsistency findings as needing a check against each criterion's withdrawn state before you act on any of them.
+
 **A work package whose criteria are all descoped cannot be closed, and the refusal's remedy cannot be followed** (`intent#0063`). Driven on v3.0.0: give a work package one criterion, descope it, and `intent wp done` refuses at exit 1 with `all 1 in-scope AC(s) are descoped or withdrawn; nothing is left to verify`. The remedy printed underneath reads `satisfy or formally descope the remaining criteria, then close again` — but there are no remaining criteria, which is the whole reason it refused. Following it exactly leaves you where you started.
 
 The refusal also names an escape, `declare 'acceptance: exempt'`, and **there is no way to declare it on a work package**: the WP cover carries `wp_id`, `title`, `scope` and `status`, and nothing else. The exemption exists at thread scope only. A work package emptied one descope at a time has no route to `Done`. Leave one criterion in scope and satisfy it, or leave the package open.
@@ -67,6 +71,10 @@ The refusal also names an escape, `declare 'acceptance: exempt'`, and **there is
 **`intent at lint --fix` is advertised and refuses** (`intent#0139`). `at lint --help` documents it as _Migrate the mechanical part of a legacy row_; calling it exits non-zero without doing so.
 
 ## Editing
+
+**An address is answered even when it names something that does not exist** (`intent#0238`). Driven on v3.0.0: `intent edit intent:///threads/ST0001/attachments/nope.md` -- an attachment that was never created -- refuses with `intent/st/ST0001/info.md is generated from the model`. **The trailing segment is dropped rather than checked**, so the answer is about the thread, an entity you did not name, and the error you read discusses a file you did not ask about. Nothing tells you the attachment is absent.
+
+The same grammar refuses criteria and tests outright: `intent:///threads/ST0001/acs/AC-01.1` comes back as `has trailing segments after a complete address` **for a criterion `intent ac list` shows as existing**, with the remedy `an address ends at the entity it names`. It is the same message for a real id and an invented one, so the refusal is about the shape of the address and not about what is in the project. **Address threads and issues; for anything below them, use the family verbs (`ac list`, `at list`, `st show`) rather than an address.**
 
 **Two Intent commands writing to the same thread at once lose one of the writes, and both report success** (`intent#0206`). Driven on v3.0.0: three `intent ac new` calls launched concurrently against one thread each print `ok: AC-01.n created` at exit 0, and afterwards the thread holds two of the three. Run the same three sequentially and all three survive, so this is contention and not a broken verb. The canon left behind is valid, so nothing downstream reports a problem either.
 
