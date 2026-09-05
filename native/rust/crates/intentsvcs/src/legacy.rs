@@ -576,7 +576,7 @@ fn attachments(
   // **THE POPULATION IS COUNTED FROM `dir`, INDEPENDENTLY OF THE CARRY.**
   // See `account_attachments` for why a second count is not redundant with
   // the one the carry already reconciles.
-  let on_disk = Project::thread_files_in(dir)
+  let on_disk = Project::files_in(dir)
     .iter()
     .filter(|rel| Project::classify(rel) == ThreadFile::Attachment)
     .count();

@@ -249,6 +249,45 @@ pub enum FindingClass {
   /// verdict -- hv, 2026-08-26, on Baize printing 66 of these at rc 1 under the
   /// `model-inconsistent` remedy, which made "pristine doctor" unreachable on
   /// any live estate whose AT rows still cite tests in the v2 grammar.
+  /// **THE MODEL CLAIMS THIS ARTEFACT AND NO BUILD CARRIES IT YET.**
+  ///
+  /// **A CLASS RATHER THAN RESIDUE OR AN ADVISORY BECAUSE BOTH OF THOSE SAY
+  /// SOMETHING FALSE ABOUT IT**, which is the only ground this file has ever
+  /// split on. Residue is *something a v2 AUTHOR left behind* (`migrate.rs`),
+  /// whose remedy names the fixing environment -- nothing here is anyone's
+  /// mistake and no v2 command touches it. [`FindingClass::Advisory`] is the
+  /// class of what is worth doing *when that artefact is next touched*, and
+  /// touching one of these changes nothing: what is unmet is a claim the MODEL
+  /// makes, discharged by a build rather than by an operator.
+  ///
+  /// **AND IT MUST NOT ENTER `Scan`, WHICH IS WHY IT IS NOT ROUTED THROUGH
+  /// `record`.** Both of that type's buckets are wrong in a way that is worse
+  /// than untidy: `residue` BLOCKS (`migrate.rs`), so every estate carrying one
+  /// of these directories would be refused a migration permanently, and
+  /// `carried` prints under *converts as-is, no action* -- which is the one
+  /// thing these files demonstrably do not do.
+  ///
+  /// **PER ARTEFACT, BECAUSE THE ESTATE ALREADY HOLDS THAT STANDARD AND WAS
+  /// APPLYING IT TO THE SMALLER CLASS.** `legacy.rs` names each oversized
+  /// attachment individually, by path, with its own reason; the whole
+  /// whiteboard reached the same report as a single directory noun. Measured
+  /// 2026-09-05: 8 files named one by one, against 1,386 collapsed into a noun
+  /// on Lamplight and 624 on this repository. The collapse is applied in exactly
+  /// the direction that makes it least defensible.
+  ///
+  /// **THE DETAIL SAYS THE FILE IS STILL ON DISK, AND THAT HALF IS
+  /// LOAD-BEARING** -- the same requirement `migration_not_yet_built`'s own
+  /// test pins on the summary line. Without it a per-artefact enumeration reads
+  /// as a loss manifest, which is the opposite of what it records.
+  ///
+  /// **IT DOES NOT LICENCE A DROP.** A declared exclusion silences
+  /// `conservation_check.sh` for the paths it names, so a class that named
+  /// everything would be the denominator attack `NOT_CARRIED` warns about. What
+  /// keeps it honest is that the claim is verifiable in the direction that
+  /// matters: `Verdict::Dropped` is corroborated by canon being EMPTY, and this
+  /// by the file being PRESENT and unchanged -- so naming a file that had
+  /// actually gone would be refutable rather than merely unattractive.
+  ModelledNotBuilt,
   Advisory,
 }
 
@@ -500,6 +539,18 @@ impl FindingClass {
       // the class grew members. Same rule the `UnhonourableSetting` comment
       // states a few lines up: what is per-instance goes in the detail, and
       // this string carries only what is true of the class.
+      // Outside every verdict, like `Advisory` and for a DIFFERENT reason: an
+      // advisory is a state of the artefact, this is a state of the BUILD.
+      // Ranked with it because both sort past everything anyone must act on,
+      // and the rank is the only one of these three fields a per-artefact
+      // record consumes indirectly -- this class reaches no `Report` and no
+      // `Scan`, so nothing totals it today. Kept correct anyway: a rank that is
+      // wrong only while nothing reads it is wrong on the day something does.
+      Self::ModelledNotBuilt => (
+        11,
+        "modelled-not-built",
+        "nothing is owed and nothing was lost -- the file is untouched on disk, and what is unmet is a claim the MODEL makes about it. No command repairs this and none should be offered: it is discharged when the build carrying this part of the model lands, at which point these lines stop being emitted on their own",
+      ),
       Self::Advisory => (
         11,
         "advisory",
@@ -588,6 +639,22 @@ impl Finding {
   pub fn carried_line(&self) -> String {
     format!("carried: {}", self.body())
   }
+
+  /// **A MODELLED-NOT-BUILT record: one line, no remedy, and never `residue:`.**
+  ///
+  /// `carried_line`'s argument, arriving at a third class and settled the same
+  /// way: the facts are factored into [`Finding::body`] so the renderings
+  /// cannot drift, and what differs is the lead and whether anything is owed.
+  ///
+  /// **NO REMEDY, AND HERE THAT IS ABOUT VOLUME AS WELL AS TRUTH.** The class
+  /// remedy is a real sentence and belongs in the report exactly once; appended
+  /// per line it would repeat itself 624 times on this repository and 1,386 on
+  /// Lamplight, which is how a report that names everything becomes one nobody
+  /// reads -- and an unread enumeration is the directory noun again, spelled
+  /// out at length.
+  pub fn not_built_line(&self) -> String {
+    format!("not-yet-carried: {}", self.body())
+  }
 }
 
 impl fmt::Display for Finding {
@@ -598,10 +665,16 @@ impl fmt::Display for Finding {
     write!(
       f,
       "{}: {}\n  remedy: {}",
-      if self.class == FindingClass::Advisory {
-        "advisory"
-      } else {
-        "residue"
+      // **THREE LEADS, ONE MATCH.** An `if/else` on `Advisory` was correct
+      // while there were two, and it silently makes every class added
+      // afterwards read `residue:` -- which for `ModelledNotBuilt` would be
+      // this report telling an operator to repair a file nothing is wrong
+      // with. A match is refused by the compiler when the next variant forgets
+      // to choose, for the same reason `meta` is exhaustive.
+      match self.class {
+        FindingClass::Advisory => "advisory",
+        FindingClass::ModelledNotBuilt => "not-yet-carried",
+        _ => "residue",
       },
       self.body(),
       self.class.remedy()

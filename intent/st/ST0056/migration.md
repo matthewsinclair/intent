@@ -57,6 +57,26 @@ Totals print per class; the report never truncates (the no-silent-caps rule -- a
 
 **The line number is reported when the finding has one, and this table no longer claims otherwise.** It previously said "every class carries the exact file:line". Two of the eight classes are about a field that is ABSENT -- `field-not-recorded` most obviously -- and an absent field has no line to cite, so the promise could not be kept by construction. `unknown-scope` does have a line and does not currently print one; that is a real gap and is a defect against this paragraph rather than against the old sentence, which is the point of narrowing the promise to something checkable.
 
+## What the migration did NOT carry
+
+Three lines, and they make three different claims. **Collapsing any two of them was the defect this section exists to prevent** -- issue `0183` was filed proposing the migrator declare its whole unaccounted file set as out-of-model, and 81% of that set is the whiteboard, which `data-model.md` moved INTO the model at D30. Implementing it as filed would have contradicted an hv ruling and closed by fiat a gap that closes on its own.
+
+| Line                            | Stream | Claim                                                           |
+| ------------------------------- | ------ | --------------------------------------------------------------- |
+| `not carried into the model`    | stderr | the model does not cover these. Closes by fiat, forever.        |
+| `not yet carried`               | stderr | the model covers these and no build carries them yet.           |
+| `not yet carried, per artefact` | stdout | the same claim as the line above, one record per file, by path. |
+
+The first two are the migration describing its own REACH and are composed from `sync::NOT_CARRIED` and `sync::NOT_YET_BUILT`, each member pinned to the phrase in `data-model.md` that authorises it -- with a test that reds when the document stops carrying the phrase, because a citation without one is a copy and a copy of a ruling goes stale the day the ruling moves.
+
+**The third is per-artefact because this estate already held that standard and was applying it to the smaller class.** `legacy.rs` names each oversized attachment individually, by path, with its own reason -- 8 files on this repository -- while the entire whiteboard reached the same report as a single directory noun standing for 1,386 files on Lamplight and 624 here. A collapse is least defensible in exactly the direction it was being applied, and "the report is the point, not the carry" is the rule the attachment path already states.
+
+**Its class is `modelled-not-built`, and it is deliberately NOT in the residue table above.** Residue is something a v2 AUTHOR left behind, and every row of that table owes a fix environment; nothing here is anyone's mistake, no v2 command touches it, and the gap is discharged by a build rather than by an operator. It is equally not `advisory`, which is the class of what is worth doing when an artefact is next touched -- touching one of these changes nothing. `residue_class_check.sh` reads `legacy.rs`, so the class correctly stays outside that check's population, exactly as `advisory` and `gate-not-running` do.
+
+**And the records must never reach `Scan`.** Both of its buckets are wrong in a way worse than untidy: `residue` BLOCKS, so routing these through it would refuse a migration to every estate that has a whiteboard, permanently, on the ordinary shape of a project rather than on a defect; and `carried` prints under _converts as-is, no action_, which is the one thing these files do not do. The enumeration therefore lives at the `NOT_YET_BUILT` declaration (vc's ruling, 2026-09-05, under hv's pen) and is guarded by an arm that drives an estate which HAS the files.
+
+**A declared exclusion silences `conservation_check.sh` for the paths it names, so this could have been the denominator attack** -- a migrator zeroing a counter by naming everything. What keeps it honest is that the claim is refutable in the direction that matters: `Verdict::Dropped` is corroborated by canon being EMPTY, and this by the file being PRESENT and unchanged. Driven on Lamplight `fe5dff3e6` (12,282 files, 2.19.0) 2026-09-05: rc 0, 349 threads migrated, 1,386 records emitted, and **0 whiteboard paths touched with all 1,386 still on disk**.
+
 ## The fleet corpus harness (`fleet_corpus_ingest.rs`)
 
 The acceptance fixture for AC-00.2 / AC-10.5. A corpus manifest names `{project, git revision, path}` per member; the harness checks out each at its named revision (read-only), runs Phase A + a dry Phase B into a sandbox, and asserts three generalisations of the Lamplight baseline conditions:

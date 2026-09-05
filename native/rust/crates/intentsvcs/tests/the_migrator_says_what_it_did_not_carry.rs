@@ -218,3 +218,168 @@ fn the_split_separates_the_enumeration_from_the_exception_prose() {
     "the enumeration half lost a member the document plainly lists, so the cut is wrong"
   );
 }
+
+// ---------------------------------------------------------------------------
+// THE PER-ARTEFACT HALF
+//
+// The arms above pin the two SUMMARY lines. These pin the enumeration that
+// details the second one -- `sync::migration_not_yet_built_artefacts` -- and
+// they exist because the estate already held the per-artefact standard and was
+// applying it to the smaller class: `legacy.rs` names each oversized
+// attachment individually, 8 of them here, while 1,386 whiteboard files on
+// Lamplight reached the same report as one directory noun.
+// ---------------------------------------------------------------------------
+
+/// A fixture estate carrying one declared member's directory, with `n` files.
+///
+/// **Built under the member's OWN `at`, never under a path this test picks.**
+/// A fixture that invents its own directory would pass while the shipped
+/// constant pointed somewhere else entirely -- the shape of a test whose
+/// subject cannot fail, and the reason the 0271 build's sixteen reds were the
+/// fixtures rather than the guard.
+fn estate_with_member_files(
+  member: &intentsvcs::sync::NotYetBuilt,
+  n: usize,
+) -> crate::common::Fixture {
+  let fx = crate::common::v2_estate();
+  for i in 0..n {
+    fx.write_file(&format!("{}node{i}/wip.md", member.at), "board\n");
+  }
+  fx
+}
+
+/// **EVERY FILE UNDER A DECLARED MEMBER GETS ITS OWN RECORD, CARRYING THE
+/// MEMBER'S OWN JUSTIFICATION.**
+///
+/// The count is asserted against the WALK rather than against a literal, so
+/// the arm keeps meaning the same thing as the fixture grows -- and the
+/// justification arm is what makes the enumeration inherit the document
+/// pinning above: a reason emitted per artefact cannot drift from the ruling
+/// that authorises it without the first test in this file going red.
+#[test]
+fn every_file_under_a_declared_member_is_named_with_its_own_reason() {
+  for member in intentsvcs::sync::NOT_YET_BUILT {
+    let fx = estate_with_member_files(member, 3);
+    let found = intentsvcs::sync::migration_not_yet_built_artefacts(&fx.project());
+    let on_disk = intentsvcs::project::Project::files_in(&fx.root().join(member.at));
+
+    assert_eq!(
+      found.len(),
+      on_disk.len(),
+      "every file under `{}` is named or the enumeration is a directory noun again: {found:?}",
+      member.at
+    );
+    assert_eq!(found.len(), 3, "the fixture's own files are the population");
+
+    for f in &found {
+      assert!(
+        f.file.starts_with(member.at),
+        "a record names a path outside the member it came from: {}",
+        f.file
+      );
+      assert_eq!(f.class, intentsvcs::finding::FindingClass::ModelledNotBuilt);
+      assert!(
+        f.detail.contains(member.justified_by),
+        "the record must quote the phrase that puts it inside the model, not a \
+         sentence of the emitter's own: {}",
+        f.detail
+      );
+      // **THE LOAD-BEARING HALF, PER LINE.** These are read one at a time, by
+      // grep, far from any header -- and a line that does not say the file is
+      // intact reads as a loss manifest. Same requirement the summary line
+      // carries, for the same reason.
+      assert!(
+        f.detail.contains("on disk"),
+        "a record that does not say the file is intact reads as data loss: {}",
+        f.detail
+      );
+    }
+  }
+}
+
+/// **NOTHING TO ENUMERATE IS THE ORDINARY ANSWER, AND IT IS SILENT.**
+///
+/// Most estates have no whiteboard. An empty vector lets the caller print no
+/// section at all, rather than a heading over nothing -- which would be a
+/// migration announcing a gap that is not there.
+#[test]
+fn a_member_directory_that_is_absent_enumerates_nothing() {
+  let fx = crate::common::v2_estate();
+  assert!(
+    intentsvcs::sync::migration_not_yet_built_artefacts(&fx.project()).is_empty(),
+    "an estate with none of the declared directories owes no records"
+  );
+}
+
+/// **THE RECORDS MUST NEVER REACH `Scan`, AND THIS IS THE ARM THAT CATCHES IT.**
+///
+/// vc's ruling, 2026-09-05, under hv's pen: enumerate at the declaration, do
+/// NOT widen `legacy::scan`'s population. The cost of getting it wrong is not
+/// untidiness. `Scan::residue` BLOCKS (`migrate.rs`), so routing these through
+/// `record` would refuse a migration to every estate that has a whiteboard --
+/// permanently, on the ordinary shape of a project rather than on a defect --
+/// and `carried` would print them under *converts as-is, no action*, which is
+/// the one thing they do not do.
+///
+/// **It drives an estate that HAS the files**, so it is a partition that can
+/// actually separate: an empty whiteboard would pass this arm under the very
+/// wiring it exists to refuse.
+#[test]
+fn the_build_gap_records_never_enter_the_scan() {
+  for member in intentsvcs::sync::NOT_YET_BUILT {
+    let fx = estate_with_member_files(member, 3);
+    assert!(
+      !intentsvcs::sync::migration_not_yet_built_artefacts(&fx.project()).is_empty(),
+      "precondition: the fixture must carry files, or this arm proves nothing"
+    );
+
+    let scan = intentsvcs::legacy::scan(&fx.project()).expect("the estate parses");
+    for f in scan.residue.iter().chain(scan.carried.iter()) {
+      assert_ne!(
+        f.class,
+        intentsvcs::finding::FindingClass::ModelledNotBuilt,
+        "a build-gap record reached `Scan`, where residue BLOCKS and carried claims it \
+         converts as-is -- neither is true of it: {f:?}"
+      );
+      assert!(
+        !f.file.starts_with(member.at),
+        "`legacy::scan` walked `{}`, whose files are not v2 thread material: {}",
+        member.at,
+        f.file
+      );
+    }
+    assert!(
+      scan.residue.is_empty(),
+      "an estate whose only extra content is a declared member still migrates: {:?}",
+      scan.residue
+    );
+  }
+}
+
+/// **NEITHER RENDERING LEADS `residue:`, AND THE TWO AGREE ON THE FACTS.**
+///
+/// `Display`'s lead was an `if/else` on `Advisory` until this class arrived,
+/// which silently spells every later variant `residue:` -- here that would be
+/// the report telling an operator to repair a file nothing is wrong with.
+#[test]
+fn a_build_gap_record_is_never_rendered_as_residue() {
+  let member = intentsvcs::sync::NOT_YET_BUILT
+    .first()
+    .expect("the population is non-empty, asserted above");
+  let fx = estate_with_member_files(member, 1);
+  let found = intentsvcs::sync::migration_not_yet_built_artefacts(&fx.project());
+  let one = found.first().expect("one file, one record");
+
+  assert!(one.not_built_line().starts_with("not-yet-carried: "));
+  assert!(
+    !format!("{one}").starts_with("residue:"),
+    "`Display` calls a build gap residue, which sends an operator to fix an intact file: {one}"
+  );
+  // The per-line form owes no remedy: the class remedy is a real sentence and
+  // is printed once, not 1,386 times.
+  assert!(
+    !one.not_built_line().contains("remedy:"),
+    "the per-artefact line must not carry the class remedy: {}",
+    one.not_built_line()
+  );
+}

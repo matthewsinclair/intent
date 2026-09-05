@@ -213,6 +213,77 @@ pub fn migration_not_yet_built() -> Option<String> {
   ))
 }
 
+/// **THE SAME CLAIM AS [`migration_not_yet_built`], ONE RECORD PER ARTEFACT.**
+///
+/// The summary line says a directory is not carried; this says which files, by
+/// path, each carrying the phrase that puts it inside the model. Both derive
+/// from [`NOT_YET_BUILT`] and neither restates the other's content, so the day
+/// a member is added or the day the build lands, the line and the enumeration
+/// move together or not at all.
+///
+/// **IT LIVES AT THE DECLARATION AND NOT IN `legacy::scan`** (vc's ruling,
+/// 2026-09-05, under hv's pen). Two independent reasons, and the second is the
+/// stronger one:
+///
+/// - `legacy::scan`'s population carries the meaning *this is v2 thread
+///   material*, which is false of all 624 of these files. Widening it would
+///   also break its other caller: `ingest_from_md` reads a markdown estate, and
+///   `migrate.rs` already records what happens when that walk acquires a
+///   population every residue class must specially ignore.
+/// - The enumeration inherits a contract that already binds it to the
+///   document. `the_migrator_says_what_it_did_not_carry.rs` iterates
+///   `NOT_YET_BUILT` and asserts each member's `justified_by` appears in
+///   `data-model.md`, so a reason emitted from here cannot drift from the
+///   ruling that authorises it without a test going red. That is `AC-10.5`'s
+///   *the namer is the migration, not the check*, applied one level down.
+///
+/// **THE WALK HONOURS THE IGNORE RULES (D29), WHICH IS NOT A DETAIL HERE.** The
+/// runtime store sits at a gitignored path inside the project, and a census
+/// that named it would be reporting a per-machine database as an artefact the
+/// model claims.
+///
+/// **EMPTY IS THE ORDINARY ANSWER AND IS NOT A ZERO WORTH PRINTING.** A project
+/// with no whiteboard has nothing here, and the caller emits no section at all
+/// rather than a heading over nothing -- the count scales with what the estate
+/// actually holds, never with the size of this list.
+pub fn migration_not_yet_built_artefacts(project: &crate::project::Project) -> Vec<Finding> {
+  let mut out = Vec::new();
+  for member in NOT_YET_BUILT {
+    let dir = project.root().join(member.at);
+    for rel in crate::project::Project::files_in(&dir) {
+      let path = dir.join(&rel);
+      out.push(Finding::new(
+        project.relative(&path),
+        FindingClass::ModelledNotBuilt,
+        // **`shown` AND `justified_by`, NEVER A SENTENCE OF THIS FUNCTION'S
+        // OWN.** The detail's whole authority is that it quotes the document,
+        // and a phrasing invented here would be a second home for a ruling --
+        // stale the day the ruling moves, with the pinning test still green
+        // because it reads the const and not this string.
+        //
+        // **AND IT CARRIES ONLY WHAT VARIES**, which is `finding.rs`'s own
+        // rule arriving here: *what is per-instance goes in the detail, and
+        // the class string carries only what is true of the class*. The first
+        // draft restated the class on every line -- measured on Lamplight,
+        // 1,386 copies of one 150-character sentence -- which is a class
+        // remedy inlined 1,386 times, printed once four lines later. What is
+        // left is the two member fields, which genuinely differ the day
+        // `NOT_YET_BUILT` holds two members.
+        //
+        // **"unchanged on disk" STAYS, SHORT.** It is the load-bearing half:
+        // a line read on its own -- and these WILL be read one at a time, by
+        // grep -- must not look like a loss report. The pinning test requires
+        // the same phrase of the summary line for the same reason.
+        format!(
+          "{} -- unchanged on disk; `data-model.md` says it \"{}\"",
+          member.shown, member.justified_by
+        ),
+      ));
+    }
+  }
+  out
+}
+
 /// would be worse than the bare count it replaced.
 pub fn extract_written(threads: usize) -> String {
   let shown: Vec<&str> = NOT_CARRIED.iter().map(|m| m.shown).collect();

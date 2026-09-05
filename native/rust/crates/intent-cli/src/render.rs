@@ -3044,13 +3044,47 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
       // stdout and whose stderr is therefore silent. The failing path returned
       // it while printing no verdict; the enum's doc comment was describing an
       // intent the code did not carry out.
+      // AND THE DENOMINATOR IS THE ROWS EXAMINED, NOT THE ROWS WALKED (0273).
+      // `N AT row(s) conform` was the walked total, which includes every row the
+      // citation arms could not read -- so a green row whose address survives
+      // only in `legacy.raw`, and one carrying a verdict with no citation at
+      // all, were both reported as conforming. The count above was a control
+      // against a lint that never ran; a count that includes unexamined rows
+      // reads exactly like coverage, which is the failure it was minted to
+      // prevent, one level in.
+      //
+      // The three exemptions are printed apart because two are correct and one
+      // is not. A doc row and a `to-write` row have no citation to check. A row
+      // that is GREEN OR RED with nothing readable to cite asserts a result
+      // nothing examined, and it is the only one of the three a reader should
+      // act on.
       let rows = report.rows;
+      let seen = report.examined;
+      let un = &report.unexamined;
+      let mut why = Vec::new();
+      if un.not_a_test > 0 {
+        why.push(format!("{} not test rows", un.not_a_test));
+      }
+      if un.no_verdict > 0 {
+        why.push(format!("{} awaiting a verdict", un.no_verdict));
+      }
+      if un.no_readable_citation > 0 {
+        why.push(format!(
+          "{} with a verdict and NO READABLE CITATION",
+          un.no_readable_citation
+        ));
+      }
+      let tail = if why.is_empty() {
+        String::new()
+      } else {
+        format!("; {} not examined ({})", rows - seen, why.join(", "))
+      };
       if report.findings.is_empty() {
-        println!("lint: {st} ok -- {rows} AT row(s) conform");
+        println!("lint: {st} ok -- {seen} of {rows} AT row(s) examined and conforming{tail}");
         Ok(())
       } else {
         println!(
-          "lint: {st} FAILED -- {} finding(s) over {rows} AT row(s)",
+          "lint: {st} FAILED -- {} finding(s) over {seen} of {rows} AT row(s) examined{tail}",
           report.findings.len()
         );
         Err(Failure::Verdict)
@@ -3193,6 +3227,44 @@ fn upgrade() -> Result<(), Failure> {
         d.reason
       );
     }
+  }
+
+  // **THE BUILD GAP, PER ARTEFACT, ON STDOUT BESIDE THE OTHER DISPOSITIONS.**
+  //
+  // The stderr line below says a directory's worth of files is not carried;
+  // this says WHICH. **The estate already held that standard and was applying
+  // it to the smaller class**: `legacy.rs` names each oversized attachment
+  // individually with its own reason -- 8 files here -- while the whiteboard
+  // arrived as one directory noun standing for 624 of them on this repository
+  // and 1,386 on Lamplight. A collapse is least defensible in exactly the
+  // direction it was being applied.
+  //
+  // **STDOUT AND NOT STDERR, ON THE SPLIT THE LINE BELOW ALREADY DECLARES**:
+  // stderr carries the migration describing its own REACH, stdout carries the
+  // per-artefact record. This is the second.
+  //
+  // The section header prints ONCE (ic, on the canary: nine carried findings
+  // and nine copies of their header), and each line goes through
+  // `not_built_line` rather than `Display`, which would lead `residue:` and
+  // append the class remedy to every one of 624 lines.
+  let not_built = intentsvcs::sync::migration_not_yet_built_artefacts(&project);
+  if !not_built.is_empty() {
+    // **THE HEADER DOES NOT RESTATE THE CLAIM THE STDERR LINE MAKES.** Both
+    // derive from `NOT_YET_BUILT` and the first draft had them saying the same
+    // sentence twice, four lines apart -- the divergent-copy shape in prose,
+    // which drifts exactly as readily as the code kind. The claim is made
+    // once, below; this introduces the enumeration and counts it.
+    println!("not yet carried, per artefact ({}):", not_built.len());
+    for finding in &not_built {
+      println!("{}", finding.not_built_line());
+    }
+    // **THE CLASS REMEDY, ONCE.** It is the only place the report says nothing
+    // is owed, and saying it per line is how an enumeration becomes unreadable
+    // -- which would put the directory noun back, spelled out at length.
+    println!(
+      "  {}",
+      intentsvcs::finding::FindingClass::ModelledNotBuilt.remedy()
+    );
   }
 
   eprintln!(

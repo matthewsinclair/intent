@@ -1395,7 +1395,7 @@ impl Project {
   ) -> (Vec<Attachment>, Vec<(String, String)>) {
     let mut carried = Vec::new();
     let mut refused = Vec::new();
-    for rel in Project::thread_files_in(dir) {
+    for rel in Project::files_in(dir) {
       // Consumed by the parsers -- carrying them here as well would give one
       // file two homes in the model.
       if Project::classify(&rel) != ThreadFile::Attachment {
@@ -1475,16 +1475,27 @@ impl Project {
   }
 
   pub fn thread_files(&self, id: &str) -> Vec<PathBuf> {
-    Project::thread_files_in(&self.thread_dir(id))
+    Project::files_in(&self.thread_dir(id))
   }
 
-  /// Every file under a thread directory the CALLER names, relative to it.
+  /// Every file under a directory the CALLER names, relative to it, honouring
+  /// the project's ignore rules (D29).
   ///
   /// An associated function because it consults nothing on `Project` -- the
   /// same reason [`Project::classify`] is one. See
   /// [`Project::collect_attachments_in`] for why the directory is a parameter
   /// rather than something derived from an id.
-  pub fn thread_files_in(dir: &Path) -> Vec<PathBuf> {
+  ///
+  /// **IT WAS `thread_files_in` UNTIL 2026-09-05 AND THE BODY NEVER CHANGED.**
+  /// Nothing in it is thread-specific -- its own doc said so, in the sentence
+  /// above about consulting nothing -- and the whiteboard enumeration in
+  /// `sync` is the second population to need exactly this walk. The choice was
+  /// a second gitignore-aware walker or a name that stops narrowing a general
+  /// function to its first caller, and Highlander settles that: a name is
+  /// cheaper to fix than a duplicate is to keep in step. Renamed rather than
+  /// aliased, because a deprecation stub is the two-homes shape with a label
+  /// on it.
+  pub fn files_in(dir: &Path) -> Vec<PathBuf> {
     let mut out = Vec::new();
     let mut walk = ignore::WalkBuilder::new(dir);
     walk
