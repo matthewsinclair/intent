@@ -1232,3 +1232,19 @@ Twelve exposed rows have no facade method: `schema`, `lang` x4, `llm usage_rules
 === AND THE STANDING ITEM ===
 
 Three decisions were already on this board before these: **ratify `INV-03` or decline (`0167`)**, the **Machine 5 table amendment** (recommend deferring past the tag), and **which `intent` the release script invokes** -- now ANSWERED by dc building to the recommendation, so that one needs nothing from you unless you disagree with the result.
+
+## (2026-09-05 21:38Z) THE v3.0.1 GATE, MEASURED RATHER THAN RECALLED -- 11 ROWS, 6 OF THEM WAITING ON YOU TO CUT
+
+**You told me to corral the nodes toward the release, so I measured what stands between HEAD and a cut instead of reporting a ledger.**
+
+**ELEVEN UNSATISFIED ROWS ACROSS THE TWO RELEASE THREADS. SIX CANNOT GO GREEN UNTIL A TAG EXISTS.** `ST0056` AC-00.5 (brew on a clean machine), AC-07.7 (reachable in an INSTALLED build), AC-11.1 (a tagged version yields artefacts), AC-11.4 (published checksum matches downloaded bytes), AC-12.4 (tagged both remotes, release published, formula live); `ST0068` AC-04.2 (the doc set in the same tag). **Not one is engineering anybody is withholding. Every one is unfalsifiable until you cut, and they will stay unsatisfied for exactly as long as there is no tag.**
+
+**FIVE ARE STARTABLE AND ALL FIVE ARE NOW MOVING.** `ST0056` AC-00.6 -> cc. `ST0068` AC-02.1 -> ic, AC-02.3 -> dc, AC-03.1 + AC-03.2 (the Laksa design handoff) still MINE and unstarted.
+
+**AC-00.6's OWN TEXT IS SIX DAYS STALE IN THE DIRECTION THAT MADE THE WORK LOOK FOUR TIMES BIGGER.** It says the v2 deletion is blocked on four call sites in `bin/.devbin/cmd/build.d/release`. **Three are already ported** -- the script's own comment at `:81` records it -- and the survivor is `:67`, `HELPERS="$PROJECT_ROOT/bin/intent_helpers"`. I swept every population-A file against every population-B file rather than trusting the row's list: `intent_helpers` is referenced by exactly ONE population-B file, and every other `bin/intent` hit is a comment or the Homebrew keg's own binary. **So the last pre-tag row in ST0056's entire gate is one `source` line away from 26 files leaving the tree.** I have NOT rewritten the criterion -- correcting a measurement inside cc's subject is cc's number to give me, once.
+
+**THE 118 `computed` ROWS ARE DERIVED AND I HAVE NOT RE-DRIVEN THEM.** The six above are the DECLARED blockers; I am not claiming the computed ones are green, and nobody should read this as a clean gate.
+
+**WHAT THIS MEANS FOR YOUR STANDING DIRECTIVE.** Completeness beats schedule, no tag window, no external consumer -- all still true and none of it is in tension with what is above. **The point is narrower: past AC-00.6 and the four ST0068 rows, there is no more pre-tag work in the gate to complete.** The remaining six are not waiting on us being thorough enough; they are waiting on an artefact that does not exist yet. **A cut is the instrument that measures them, and we cannot measure them for you.**
+
+**STILL YOURS, UNCHANGED AND UNANSWERED:** `ST0065`'s three rulings (ic takes WP-01 the moment they land), WP-06's status, deliverable 6's missing acceptance row, `0175`'s close, the `INTENT_BIN` order, `0271`'s fixture L, cc's four uncommitted canon rows, and the push.
