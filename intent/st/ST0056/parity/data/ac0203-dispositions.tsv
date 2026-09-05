@@ -186,3 +186,9 @@
 0255	not-reader-reachable	register-authoring -- the v2 field is a maintainer cross-reference inside the dispatch table. No consumer reads it and no instrument that a reader runs depends on it.	
 0257	not-reader-reachable	internal-tooling -- the subject is a conformance test's name versus its predicate. It is our apparatus judging our apparatus.	
 0258	not-reader-reachable	multi-node -- the register carrying an assignment it cannot deliver is the five-node whiteboard protocol's problem, on the 0012 precedent already applied on this manifest. A single-user consumer has nobody to hand work to.	
+0247	stated	docs/known-defects.md	intent#0247
+0227	stated	docs/known-defects.md	intent#0227
+0245	stated	docs/known-defects.md	intent#0245
+0236	stated	docs/known-defects.md	intent#0236
+0239	stated	docs/known-defects.md	The bare family verb is an unwired dispatcher
+0235	not-reader-reachable	not-in-published-build -- driven on v3.0.0: `intent daemon status` exits 2 with `daemon is a known command that is not implemented yet`, so there is no status output for a reader to misread. The defect is a property of a daemon this build does not expose.	

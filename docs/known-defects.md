@@ -40,11 +40,15 @@ The row cannot be repaired afterwards: an issue title and body are write-once (`
 
 **The write-once title is the part that outlasts the mistake, and one of ours proves it.** A thread created this way as `dehydrate` was later adopted and filled in -- it carries a real objective and real context and is genuinely in progress -- and **its title is still the bare subcommand name, because nothing in the tool can change it.** Closing the debris is the answer only while it is debris; once something is adopted, the junk title is permanent. If you hit this, decide early whether the row is worth keeping, because renaming will not be available later.
 
+**`intent wp show` prints a short header, not the work package's `info.md`** (`intent#0245`). Driven on v3.0.0: `intent wp show ST0001/01` returns three lines -- the id and title, `status:`, and `scope:` -- while `intent/st/ST0001/WP/01/info.md` exists on disk and is not shown. The dispatch table describes the verb as showing the work package's `info.md`, so the description and the behaviour disagree. Read the file directly if you want its body. **Note on the register row**: `intent#0245` says four lines; it is three at v3.0.0.
+
 ## Criteria and tests
 
 **A work package whose criteria are all descoped cannot be closed, and the refusal's remedy cannot be followed** (`intent#0063`). Driven on v3.0.0: give a work package one criterion, descope it, and `intent wp done` refuses at exit 1 with `all 1 in-scope AC(s) are descoped or withdrawn; nothing is left to verify`. The remedy printed underneath reads `satisfy or formally descope the remaining criteria, then close again` — but there are no remaining criteria, which is the whole reason it refused. Following it exactly leaves you where you started.
 
 The refusal also names an escape, `declare 'acceptance: exempt'`, and **there is no way to declare it on a work package**: the WP cover carries `wp_id`, `title`, `scope` and `status`, and nothing else. The exemption exists at thread scope only. A work package emptied one descope at a time has no route to `Done`. Leave one criterion in scope and satisfy it, or leave the package open.
+
+**And there is no way to declare `acceptance: exempt` at thread scope either, though the gate tells you to** (`intent#0227`). Driven on v3.0.0 in a fresh project: `intent ac gate ST0001` on a thread with no criteria exits 1 with `BLOCKED -- the thread has zero acceptance criteria (empty contract). Define ACs, or declare 'acceptance: exempt'.` No verb writes that state: `intent ac --help`, `intent at --help` and `intent st --help` mention `exempt` nowhere between them. The state has a complete read path and no writer, so the second half of the remedy cannot be followed at any scope. Define a criterion and satisfy it; the exemption is not reachable from the command line.
 
 **Note on the register row**: `intent#0063`'s title also asserts that `WpStatus` has no `Cancelled` variant. That part is false — it carries one at v3.0.0 and at `HEAD` — but the behaviour above is real and was driven separately.
 
@@ -116,6 +120,8 @@ The same section inserted **before** the banner is refused, by name, with the te
 
 **A hyphen in a search query is read as SQL and leaks the error** (`intent#0194`). Driven on both builds: `intent search canon-ignore` exits 1 with `sqlite: no such column: ignore`, while `intent search canon` returns hits normally. The query goes to FTS5 unescaped, so the hyphen is parsed as an operator and the term after it as a column name. Any query containing `-` fails the same way, which includes most of this project's own vocabulary -- `read-back`, `at-lint`, `to-write`. Quote nothing and search a single word; there is no escaping syntax that helps, because the escaping is missing on the tool's side of the call.
 
+**The remedy printed with that refusal names the wrong characters** (`intent#0247`). Driven on v3.0.0: `intent search no-backup` exits 1 and the remedy reads `search takes an FTS5 expression -- quote a phrase, and escape or drop bare punctuation like ':' and '*'`. Neither character it names is the one that failed, and the one that failed is not named. A reader who follows it exactly -- removing colons and asterisks from a query containing neither -- changes nothing and gets the identical error.
+
 **What search gets right, so this is not read as worse than it is:** an unindexed project says so rather than returning an empty list, in the tool's own words -- `nothing is indexed, so this search could not have matched -- an empty result here does NOT mean <term> is absent`. That is the failure mode that would actually mislead a reader, and it is closed.
 
 ## The daemon
@@ -137,6 +143,8 @@ Each of these is listed in `--help` and refuses when called. Driven against v3.0
 **`intent ext remove`** (`intent#0177`) — `unrecognized subcommand`. `ext` creates and has no way to undo.
 
 **`intent agents` on its own** (`intent#0175`) — exit 2, while `intent agents sync` and `intent agents validate` both work. The bare family verb is an unwired dispatcher, not a broken feature; run `intent agents --help` for the verbs that are wired.
+
+**`intent claude skills install --all` is named by the project's own canon and refused by the binary** (`intent#0236`). Driven on v3.0.0: `intent claude skills install --all` exits 1 with `error: unexpected argument '--all' found`, which reads as a typo. The flag is not a typo -- the root canon names it, and v2 shipped it. Install the skills you want by name; `intent claude skills --help` lists the verbs that work.
 
 ## Declared, accepted, and ignored
 
