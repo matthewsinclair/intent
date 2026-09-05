@@ -4,9 +4,9 @@ name: DevX Claude
 role: worker
 session_id: 8ef84e7a-4585-4b04-aae7-a2e58b6be0eb
 commit_session_id: 01CwTxbQyXvFy7mYcr3uShu9 -- WITNESSED on 98bb0f965, ab516affd, 3018a5385 and 7b7f1c662, read off the commits rather than taken from the harness. IT ROTATED MID-SESSION, between 8783243ce and 98bb0f965, with NO compact and NO restart between them -- so this line previously carried a restart mints a new one, which is too narrow in exactly the way vc found on their own line. The prior value 01KJiLhhcanvdaveAtLRkKoH signs my first nine commits today and is still correct FOR THOSE. I found the drift only because the boot reminder handed me a value that disagreed with my own board, which is not a mechanism anyone can rely on. POINT-IN-TIME: READ IT OFF YOUR OWN LAST COMMIT, never off this line.
-heartbeat_at: 2026-09-05 15:07Z
+heartbeat_at: 2026-09-05 15:50Z
 status: active
-focus: "BOOTED POST-COMPACT 2026-09-05 15:07Z, AWAITING DIRECTION. NOTHING IN FLIGHT, NOTHING OF MINE DIRTY. THE KEPT v3.0.0 BINARY SURVIVED THE COMPACT AND WAS RE-DRIVEN THIS TURN: `$SP/v300-target/release/intent` reports `80d8b2ca` -- MEASURED, not recalled, and if the scratchpad goes so does the authorisation that bought it. `ST0068/AC-02.3` AT 21 UNDISPOSITIONED FROM 41. FOUR PEER-CAUGHT ERRORS YESTERDAY, EVERY ONE REFUTABLE FROM DATA I ALREADY HELD -- W96, W99, W102, W95. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "0196 FIXED, RUN AND VERIFIED LIVE -- the pair is da5919e8, agreeing, and it was NEVER ABSENT during the build: three probes answered mid-compile while cargo built into staging. intentd restarted per hv, 34557 -> 81740. AC-11.7 FIELDS green (900d8792). TWO THINGS I GOT WRONG TODAY AND CORRECTED FROM MY OWN DATA: a roster release condition that named a proxy, refuted by the very run it was waiting for (6b04544d); and an attachment regression I nearly filed, killed by a control I chose to run. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -37,9 +37,15 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-- **NOTHING IN FLIGHT.** All three seams landed and were re-driven after their own commits (seam 2 `31146862f`, seam 3 `5c31a426e`, seam 1 `32c7ad52`). The currency arm's two latent defects landed at `86573ac1`. Dispositions at `bbb9f8f9` and `3e276fc65`. Page correction at `c7a0eaaa`.
-- **THE ONE ASSET A COLD SESSION MUST NOT REBUILD: a published v3.0.0 exists** in a detached worktree at `$SP/v300`, private target `$SP/v300-target/release/intent`, reporting `3.0.0 (80d8b2ca4d897dd15ecc051e7b5b682eed7c8a95)` -- **the exact marker `docs/known-defects.md` names and no PATH binary produces**. It cost 1m24s of shared CPU under a vc authorisation and three announces. **If the scratchpad is gone, re-earn the authorisation before rebuilding; do not treat it as free.** Drive it from INSIDE its install tree (`$SP/v300/native/rust/target/release/`) or `generate`/`sync` fail on a path lookup that reads like a build defect (W103).
-- **THE DAY'S SHAPE, BECAUSE IT IS THE THING TO CARRY:** four errors of mine were caught by peers and **every one was refutable from data already in my hands** -- an unverified peer measurement in a filed issue body (W96), a sample written down as a census (W99), a claim contradicted by my own first tool call (W102), and two board items closed for days (W95). **The instruments were fine. The reading of my own evidence was not.**
+**NOTHING IN FLIGHT.** WP-11 under vc's standing bound: design-and-build only -- no tap, no `gh release`, no `scripts/release`, no push to either remote. If it cannot progress without an outward step I stop at that step and name it.
+
+**0196 IS CLOSED IN BEHAVIOUR AND THE RUN IS THE EVIDENCE.** `guarded_release_build` stages into `target/staging/release`, `verify_pair` runs THERE, and `promote_pair` renames the verified pair into place afterwards (`e3b4febe`). hv released the first run; it landed the pair at `da5919e8` and **I measured the property while it ran rather than after**: `intent --version` answered on three probes mid-compile. Under the old code `cargo clean` had already deleted it and all three would have been `command not found`.
+
+**THE RULING ON THE SET, ACCEPTED BY vc:** back-to-back renames. A directory swap is ALSO two renames and leaves `target/release` absent between them, so it reintroduces the window being closed; `renameat2` is Linux and `exchangedata` is deprecated and not APFS. The residual is two syscalls of a SPLIT pair, never an absent one -- **and a split pair is refused BY NAME by `verify_pair` and the currency reader, so the residual fails loudly where the window it replaced failed silently.**
+
+**AC-11.7 FIELDS IS GREEN AND SET IS RED FOR A NON-DEFECT.** `commit:` has TWO READERS WITH TWO SUBJECTS: `publish` reads it as the CHECKOUT at stage time and requires it to equal the tag; `provenance_fields_check.sh`'s SET arm reads it as a claim about the ARTEFACTS. They coincide at a release and diverge here every time anything lands between build and stage -- measured twice, `214e0d67` vs `92e4d914` and then `38919f13` vs `da5919e8` minutes after the rebuild. **The roster row stays manual; gating would block every commit in the repository.** Restructuring the record is a design call on ST0056 and is with vc.
+
+**MY OWN CORRECTION, AND IT IS THE ENTRY WORTH KEEPING.** I wrote that release condition an hour before the run, as "green on both arms against a freshly staged pair". The run I was waiting for is what refuted it. **A condition written from a mechanism I had not yet driven named a proxy for the property**, and it read as perfectly checkable until the moment it was checked.
 
 ## TODO
 
