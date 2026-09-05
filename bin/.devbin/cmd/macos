@@ -946,6 +946,30 @@ cmd_stage() {
   # starts describing nothing. `checkout_clean` stays for the same reason and
   # keeps its own subject: it is about the CHECKOUT, not about the bytes.
   #
+  # AND `commit:` HAD TWO READERS ASKING TWO DIFFERENT QUESTIONS OF IT (0264).
+  # `publish` reads it as the CHECKOUT at stage time and requires it to equal the
+  # tag; `provenance_fields_check.sh` read it as THE ARTEFACTS and compared it
+  # against the marker embedded in the bytes. Both readings are reasonable and
+  # both were in the tree, so the field was correct only when the two subjects
+  # coincided -- which is at a release and nowhere else. Measured twice within one
+  # hour on 2026-09-05: record 38919f13 against artefacts da5919e8, MINUTES after
+  # a rebuild, so it is not staleness. **A freshly staged pair does not make these
+  # agree and cannot**, because a five-node checkout moves between the build and
+  # the stage.
+  #
+  # So the record now carries a field per subject, and BOTH readers moved in the
+  # same commit. `artefact_commit:` is per-artefact rather than one value for the
+  # set, for the reason `artefact_sha256` already is: one marker covered two
+  # structurally different binaries once, and a set that disagrees with itself has
+  # no single value to record.
+  #
+  # THE ORDER CONSTRAINT THAT MADE THIS A DESIGN CALL RATHER THAN AN EDIT: the
+  # checker resolved `commit:` and `source_commit:` by FILE ORDER through one
+  # `sed ... | head -1`, so a field added carelessly could silently switch which
+  # subject it read. `artefact_commit: ` does not match `^commit: ` or
+  # `^source_commit: `, so `publish` is untouched by construction -- and the
+  # checker no longer resolves by order at all: it looks up each artefact BY NAME.
+  #
   # DRIFT IS HELD RATHER THAN OMITTED. Two fields would read as a CLOSED
   # partition over provenance, and it is not closed: neither primary expresses
   # how much uncommitted code the artefact holds, and nothing here can check that
@@ -957,8 +981,13 @@ cmd_stage() {
     for b in $BINARIES; do
       printf '  %-30s %s\n' "$b-$triple" "$(shasum -a 256 "$STAGE_DIR/$b-$triple" | awk '{ print $1 }')"
     done
+    printf 'artefact_commit:\n'
+    printf '  answers: PROVENANCE -- the source commit each staged binary NAMES IN ITS OWN BYTES; one line per staged artefact\n'
+    for b in $BINARIES; do
+      printf '  %-30s %s\n' "$b-$triple" "$(artefact_source_commit "$STAGE_DIR/$b-$triple" || printf 'NO MARKER')"
+    done
     printf 'commit: %s\n' "$head"
-    printf '  answers: CURRENCY -- which commit the source came from\n'
+    printf '  answers: CURRENCY -- which commit THE CHECKOUT was on when these bytes were staged. NOT what the bytes name -- that is artefact_commit, and the two diverge whenever anything lands between the build and the stage.\n'
     printf 'drift: HELD\n'
     printf '  release condition: a reproducible build -- when one commit and one set of inputs yield one artefact_sha256, the embedded marker can be VERIFIED against the bytes instead of trusted. Until then publish refuses via artefact_commit_blockers at the tag.\n'
     if [ -z "$blockers" ]; then
