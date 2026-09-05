@@ -324,9 +324,15 @@ fn references(remedy: &str) -> Vec<String> {
   out
 }
 
-/// **THE PROPERTY: every emitted remedy names something the binary can do.**
+/// **THE PROPERTY: every emitted remedy names a verb this build has WIRED.**
+///
+/// **THIS IS WIREDNESS, NOT USEFULNESS, AND THE NAME NOW SAYS SO.** A remedy
+/// naming a real, wired verb that does not get the operator unstuck passes here
+/// and SHOULD: that is a different property, joined by
+/// `routing_is_opt_in.rs::doing_what_the_refusal_told_the_operator_to_do_actually_gets_them_the_answer`,
+/// which reds on the `daemon status` mutation this arm is green on (issue 0257).
 #[test]
-fn every_emitted_remedy_names_something_this_build_can_do() {
+fn every_emitted_remedy_names_a_verb_this_build_has_wired() {
   let fx = Fixture::new();
   let declared: BTreeSet<String> = crate::common::declared_paths().into_iter().collect();
   let forbidden: BTreeSet<&str> = FORBIDDEN.iter().map(|(p, _)| *p).collect();
@@ -718,7 +724,7 @@ fn string_literals(body: &str) -> Vec<String> {
 
 /// **THE PROPERTY, OVER THE POPULATION THE DRIVE CANNOT REACH.**
 ///
-/// Same claim as [`every_emitted_remedy_names_something_this_build_can_do`] and
+/// Same claim as [`every_emitted_remedy_names_a_verb_this_build_has_wired`] and
 /// the same resolution -- a reference must name a DECLARED path that is WIRED,
 /// and a `--help` reference must name a family with at least one wired verb.
 /// **What differs is only the corpus**: that arm's remedies come from driving a
@@ -733,7 +739,7 @@ fn string_literals(body: &str) -> Vec<String> {
 /// strings no fixture can provoke. Deleting either one silently shrinks the
 /// corpus back, which is the defect this arm was added to repair.
 #[test]
-fn every_remedy_in_the_source_names_something_this_build_can_do() {
+fn every_remedy_in_the_source_names_a_verb_this_build_has_wired() {
   let fx = Fixture::new();
   let declared: BTreeSet<String> = crate::common::declared_paths().into_iter().collect();
   let forbidden: BTreeSet<&str> = FORBIDDEN.iter().map(|(p, _)| *p).collect();
