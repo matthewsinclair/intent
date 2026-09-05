@@ -2,6 +2,8 @@
 
 **Commissioned by vc 2026-09-04, re-framed by vc mid-run to run BOTH directions. Driven by ic. Instrument positive-controlled before use.**
 
+**EVERY VALUE IN THE TABLE BELOW IS AS-AT THAT RUN AND IS NOT MAINTAINED.** `scope`, `status`, the AC counts and the titles are all canon values transcribed into a hand-authored file, so canon moves and this does not. **RE-DERIVE RATHER THAN READ: `intent wp list ST0056`.** **WORKED INSTANCE, and it is why this banner exists rather than a corrected cell:** dc retitled WP-11 at `16144205` to _Distribution: Homebrew tap, signing, notarisation_ -- hv having deferred cargo-dist on 2026-08-15 (D40) -- and row 11 here still advertises the old title. **Correcting that one cell would make the other nine read as current**, which is the worse failure: a table with one fresh value and nine stale ones is indistinguishable from a fresh table.
+
 ## The headline, and it is about the instrument rather than the WPs
 
 **NEITHER AC-COUNT NOR AC-TEXT-WEIGHT MEASURES REMAINING WORK, AND THE SWEEP PROVES IT ON ITS OWN FOUNDING CASE.**
