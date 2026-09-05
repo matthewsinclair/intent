@@ -88,6 +88,10 @@ Two controls make it sharp. Remove the file from the worktree and the gate flips
 
 **And the citation check stops at close, with nothing saying so** (`intent#0267` again). Driven: close a thread on an honest citation, then remove the id from the cited file. `at lint` answers `ok -- 1 AT row(s) conform`, `at list` still renders the row `green`, `ac gate` still answers `PASS`, and `doctor` does not mention it. The exemption is deliberate -- retrofitting id labels into a finished thread is archaeology -- and the defect is that nothing distinguishes _checked and true_ from _true at close, unchecked since_. **The file-existence arm is not exempt**: delete the cited file and the same closed thread reports `cites a file that does not exist`. So a closed thread's coverage is checked for presence and not for content, and reads identically either way.
 
+**Setting a test red or green is a one-way door, and there is no verb back** (`intent#0270`). Driven on v3.0.0: create a test-backed AT citing a real file, delete the file, and `intent at red` returns `ok: AT-01.1 -> red` at exit 0. From there `intent at lint` reports `cites a file that does not exist` and `intent ac gate` answers `BLOCKED`, so the thread cannot close -- and **`intent at` ships `green`, `red`, `na`, `new` and `edit` with no spelling that returns a row to `to-write`.** `intent doctor` does not mention the row at all.
+
+`to-write` citing a file you have not written yet is the normal, legal state. The verdict states are where the citation starts being checked, so **the transition is what to be careful about, not the row.** If you land in it, `intent at edit <ST> <AT> --file <path>` can point the row at a file that exists; there is no way to make it unwritten again. **A build after v3.0.0 refuses the transition instead**, naming the file and the consequence.
+
 ## Editing
 
 **An address is answered even when it names something that does not exist** (`intent#0238`). Driven on v3.0.0: `intent edit intent:///threads/ST0001/attachments/nope.md` -- an attachment that was never created -- refuses with `intent/st/ST0001/info.md is generated from the model`. **The trailing segment is dropped rather than checked**, so the answer is about the thread, an entity you did not name, and the error you read discusses a file you did not ask about. Nothing tells you the attachment is absent.
@@ -263,6 +267,20 @@ The store warning is also written for a project this is not: `intent/.cache/inte
 ```
 
 and remember that v2 keeps status in the path, so a scan over `intent/st/*/acceptance.md` misses everything under `COMPLETED/` and `CANCELLED/`.
+
+**`migration.md` states three preconditions and only one of them exists** (`intent#0271`). The page says the migration is _refused by name, not worked around_ on three counts. Driven on v3.0.0 against a real 2.19.0 estate captured from this repository's history:
+
+| precondition, as written                                        | driven on v3.0.0                                                                                                              |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `intent_version >= 2.19.0`                                      | **enforced** -- exit 1, names the version, the floor and the fix, tree untouched                                              |
+| _clean git tree ... it refuses to start over dirt_              | **not enforced** -- two dirty paths, exit 0, 56 threads converted, no mention of dirt                                         |
+| _a git repository. No-git projects are refused with the reason_ | **not enforced** -- `.git` removed entirely, exit 0, full conversion, and the word `git` appears **zero** times in the output |
+
+The floor arm is the control: the precondition machinery exists and works, so the other two are absent rather than unreachable.
+
+**The third is the one that costs you something, in the page's own words.** It gives its reason as _rollback is git; migrating without an undo is a lossy operation by construction_, and the Rollback section rests entirely on that -- _`git revert <migration-commit>` ... cheap because the migration is ONE named commit_. **On a project without git the documented rollback does not exist, which is exactly why the doc says it refuses, and it does not refuse.** You get a converted estate, a success line, and no way back.
+
+**And the tool does not commit at all.** Every successful run ends `ok: this project is now Intent v3.0.0 -- commit the canon and the generated views`, so _one visible commit_ is a convention you have to follow, not something the migration does. **Put the estate under git and commit it before you run `intent upgrade`** -- that is the whole of the rollback story, and nothing in the tool will tell you it is missing.
 
 ## What this page does not cover
 
