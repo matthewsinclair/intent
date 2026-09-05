@@ -244,7 +244,10 @@
       "text": "The fleet corpus (Intent's own tree as canary, then Lamplight/Utilz/Baize at named post-sweep revisions) ingests losslessly, or every unconverted artefact appears in the residue report by name",
       "kind": "test",
       "state": {
-        "is": "computed"
+        "is": "descoped",
+        "to": "ST0069",
+        "by": "vc",
+        "reason": "Same requirement as AC-10.5, which travels to ST0069, and the descope reason was never about AC-10.5's wording. It is the DEPENDENCY: 81% of the fleet corpus's unaccounted files are intent/whiteboard/, which D30 MODELS and WP-14 BUILDS; WP-14 moved to ST0069 at 3432644c and the coupling survived the move. A reason indifferent to which row states the requirement applies to both rows, so one requirement had two homes and only one moved. Nothing was falsely green: AT-00.2 is to-write and covers AC-00.2, so the row computed unsatisfied throughout. Found by cc while sizing WP-10's structural half. authority: vc; hv delegated direction 2026-09-03."
       }
     },
     {
