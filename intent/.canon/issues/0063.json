@@ -3,9 +3,10 @@
   "number": 63,
   "slug": "wpstatus-has-no-cancelled-variant-so-a-descoped-",
   "title": "WpStatus has no Cancelled variant, so a descoped work package can never be closed: wp done gates on ac gate, contract.rs:441 blocks when active==0, and the only exemption is thread-scoped",
-  "status": "open",
+  "status": "closed",
   "severity": "high",
   "created": "2026-08-21",
+  "closed": "2026-09-04",
   "reporter": "Matthew Sinclair",
-  "body": ""
+  "body": "\n\n---\n\n## CLOSED AS FIXED, `authority: vc`, 2026-09-04\n\n**THE PREMISE NO LONGER HOLDS: `WpStatus` HAS `Cancelled`, AND TWO VERBS REACH IT.** `model.rs:1044` declares `NotStarted, Wip, Done, Cancelled`. `wp --help` ships `cancel` (*mark a work package as cancelled, with a reason*) and `reinstate` (*reinstate a cancelled work package into NotStarted, with a reason*). Landed at **`85a0ed235`** -- *a work package can be cancelled: the state the model could not express*.\n\n**DRIVEN END TO END**, in a throwaway `intent init` under a scratch `HOME`, never against this project:\n\n    intent wp cancel ST0001/01 --reason \"descoped\"   rc=0   ok: ST0001/01 cancelled\n    intent wp list ST0001                            Status column reads `Cancelled`\n\nThe gate refuses that fixture only for an **empty contract** -- *zero acceptance criteria* -- which is correct behaviour and **not** the `active == 0` path this row describes.\n\n**HOW IT WAS FOUND, BECAUSE THE ROUTE MATTERS MORE THAN THE CLOSE.** vc asked for this to be SIZED, not started, on a real join: adding a `WpStatus` variant might need a schema rung, and the migration ladder 13->17 takes **no backup on any rung**. **That join was priced against a variant that already existed.** The instruction is what caught it: *determine whether it adds a rung and REPORT; do not start*. **A question carrying a false presupposition still resolves correctly when the instruction is determine-then-report rather than do-then-tell-me** (vc's own framing, recorded here rather than as a confession because it is the reusable half).\n\n**THIRD FIXED-BUT-OPEN ROW FOUND TODAY**, after `0090` and `0151`, each surfaced only because another task pointed at it. **No rate is claimed** -- see the separate row filed on the mechanism.\n"
 }

@@ -3,9 +3,10 @@
   "number": 95,
   "slug": "help",
   "title": "help",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-08-26",
+  "closed": "2026-09-04",
   "reporter": "Matthew Sinclair",
-  "body": ""
+  "body": "**ARTEFACT OF `0223`, CLOSED NOT DELETED, AND THE TITLE IS THE EVIDENCE -- DO NOT RENAME IT.**\n\nCreated `2026-08-26T09:48:46.249Z` by a write verb's title positional absorbing the bare CLI token `help` at rc=0. **Two of the seven artefacts `0223` enumerates**, both from episode 1 -- the batch found uncommitted at the v3.0.0 cut and committed at `9d717901`, alongside `ST0061` (`dehydrate`), `ST0062` (`help`) and `ST0063` (`start`).\n\n**Closed rather than deleted, `authority: vc`, 2026-09-04**, on `0225`'s precedent: deleting the JSON would leave the instance existing only in prose on whiteboards that get folded, and **the register is the surface a future reader of `0223` actually consults.**\n\n**THE TITLE STAYS BY DECISION, NOT BY IMPOSSIBILITY, AND THAT DISTINCTION IS THE POINT.** `0225`'s *do not rename it* was ruled when no verb could change a title -- **a constraint dressed as a choice.** `intent issues edit --title` writes today (driven 2026-09-04 in a throwaway `intent init` under a scratch `HOME`, positive control refusing at rc=1 for a missing id). vc **re-affirmed the rule deliberately**: the junk titles stay because they are the evidence, not because nothing can change them. **An expired limitation obeyed out of habit is not a decision.**\n\n**NOT CLOSED AS *never-specified*.** That reason was proposed by cc, approved by vc, and then withdrawn by both: **the title is not empty** -- it is `help` -- and **a class change without its true reason is a deletion wearing a new label** (vc, 2026-08-31).\n\n**COUNTER-CASE, SO DISPOSITION IS NOT READ OFF ORIGIN:** `ST0061` shares this origin and was NOT closed, because it was **adopted** -- 602-byte objective, status `wip`. **Origin does not determine disposition.** Neither `0095` nor `0096` was adopted; both bodies were empty until this note.\n\n**`0223`'s OWN DEFECT IS UNTOUCHED BY THIS CLOSE.** Reproduced on the current build 2026-09-04: `intent issues add help` still returns rc=0 and creates a permanent row. Closing the debris treats the symptom, and `0223` says so.\n"
 }
