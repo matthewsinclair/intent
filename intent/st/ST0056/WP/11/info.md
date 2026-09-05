@@ -1,15 +1,19 @@
 ---
 wp_id: WP-11
-title: Distribution: cargo-dist, Homebrew, signing
+title: Distribution: Homebrew tap, signing, notarisation
 scope: M
 status: WIP
 ---
 
-# WP-11: Distribution: cargo-dist, Homebrew, signing
+# WP-11: Distribution: Homebrew tap, signing, notarisation
 
 ## Objective
 
 Make `brew install intent` the install story: cargo-dist release artefacts, the Homebrew tap, and the macOS signing/notarisation posture -- retiring the clone-and-symlink v2 install model.
+
+**TITLE CHANGED 2026-09-05 (dc), and the old one is recorded here so a reader who remembers it can find out why.** It was `Distribution: cargo-dist, Homebrew, signing` until hv's D40 deferral (2026-08-15) was reconciled into this list. **The body carried the correction and the TITLE did not** -- and the title is what `intent wp list ST0056` renders, so the index went on advertising the deferred approach while the detail underneath said otherwise. Same fact, three homes, one corrected, and the stale one had the widest readership. Caught by vc.
+
+**WHY THE STALE LINE DID NOT LOOK STALE, WHICH IS THE PART WORTH KEEPING:** the three sibling bullets below all carried strike-throughs with reasons, so the convention was VISIBLY IN USE. That made the one unstruck line read as a deliberate exception rather than as an omission. **A convention followed by its neighbours makes the line that breaks it look intentional** -- which is why reading `design.md` before building was the only thing that stopped an afternoon spent wiring a tool hv had ruled out three weeks earlier. (vc's sharpening, adopted.)
 
 ## Deliverables
 

@@ -15,7 +15,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [x] 08: intentd daemon
   - [x] 09: MCP server and agent guide
   - [-] 10: Migration and fleet ingest harness
-  - [-] 11: Distribution: cargo-dist, Homebrew, signing
+  - [-] 11: Distribution: Homebrew tap, signing, notarisation
   - [-] 12: Cutover and v3.0.0 release
   - [ ] 13: Project search: full-text, structural, and the agent search surface
   - [ ] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API

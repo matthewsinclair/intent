@@ -16,7 +16,7 @@ The work breakdown is the 12-WP ladder (`intent wp list ST0056` is the live stat
 | 08  | intentd daemon                                                      | XL   | 05                      |
 | 09  | MCP server and agent guide                                          | L    | 05 (08 for bridge mode) |
 | 10  | Migration and fleet ingest harness                                  | XL   | 06, 07                  |
-| 11  | Distribution: cargo-dist, Homebrew, signing                         | M    | 06                      |
+| 11  | Distribution: Homebrew tap, signing, notarisation                   | M    | 06                      |
 | 12  | Cutover and v3.0.0 release                                          | L    | all                     |
 | 13  | Project search: full-text, structural, and the agent search surface | XL   | 03, 08, 09              |
 
