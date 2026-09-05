@@ -224,3 +224,4 @@
 0269	not-reader-reachable	internal-tooling -- the subject is the estate's OWN coverage apparatus: `declared_kind_check.sh` and `runner_roster_check.sh`, both under `intent/st/ST0056/parity/tools/`. Driven: neither name appears anywhere in `lib/templates/` or `native/rust` at v3.0.0 (control: `pre-commit.sh`, which IS shipped, returns 1 in `lib/templates`). No consumer receives either instrument, so the finding -- that every instrument in the coverage space starts from a ROW and none counts the orphaned artefacts -- is a gap in our measurement rather than a false statement a documented verb makes to a reader. The reader-facing half of the same code site, `contract.rs` L3's unscoped and close-exempt citation check, is 0267, which is stated.	
 0270	stated	docs/known-defects.md	intent#0270
 0271	stated	docs/known-defects.md	intent#0271
+0272	stated	docs/known-defects.md	intent#0272

@@ -268,6 +268,12 @@ The store warning is also written for a project this is not: `intent/.cache/inte
 
 and remember that v2 keeps status in the path, so a scan over `intent/st/*/acceptance.md` misses everything under `COMPLETED/` and `CANCELLED/`.
 
+**Files the migration does not carry are left with no line of any kind** (`intent#0272`). Driven on v3.0.0 against a real 2.19.0 estate: with 185 files under `intent/whiteboard/` and one 1.2 MB image inside a thread directory, `intent upgrade` exits 0, prints 180 lines, and **mentions the whiteboard zero times and the image zero times.** Both are still on disk afterwards and neither is in canon, so they were left rather than carried -- silently.
+
+**The per-artefact reporting works and these two classes are simply not in it.** The same run names 176 paths under `intent/st/` and emits four residue classes with reasons (`dropped`, `deferred`, `field-not-recorded`, `unknown-scope`), so this is not a scale the reporting cannot reach. **After the tag the oversized-file case gains a line naming the path, the cap and the byte count**, which is what the register row describes; on v3.0.0 it has none.
+
+What this costs you: the number of files under `intent/` goes down and nothing tells you which ones or why. **Count `intent/` before and after, and treat anything outside `intent/st/` as uncarried until you have checked it yourself.**
+
 **`migration.md` states three preconditions and only one of them exists** (`intent#0271`). The page says the migration is _refused by name, not worked around_ on three counts. Driven on v3.0.0 against a real 2.19.0 estate captured from this repository's history:
 
 | precondition, as written                                        | driven on v3.0.0                                                                                                              |
