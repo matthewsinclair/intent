@@ -1741,7 +1741,7 @@
         "AC-00.2"
       ],
       "status": "to-write",
-      "note": "red-first against the canary tree"
+      "note": "red-first against the canary tree -- BUT DO NOT SET THIS ROW red UNTIL THE CITED FILE EXISTS. native/rust/crates/intentsvcs/tests/fleet_corpus_ingest.rs has never existed. to-write plus an absent citation is lint-EXEMPT (absent_at_check.sh:107, the normal state); red plus an absent citation is a LIVE absent_at finding that REFUSES EVERY COMMIT IN THIS REPOSITORY. And the door is ONE-WAY: `intent at` offers green, red, na, new and edit, and NO SPELLING RETURNS A ROW TO to-write. Write the file first, then red it. Flagged by cc 2026-09-05 from fleet_corpus_conservation.sh header; moved onto this row because a warning whose only home is a sibling file is not reachable from the row you operate on."
     },
     {
       "id": "AT-00.20",
