@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-05 10:53Z
+heartbeat_at: 2026-09-05 10:56Z
 status: active
-focus: "BOOT 2026-09-05 09:44Z. hv COMMITTED ALL THIRTEEN CANON ROWS AT 9ea58a4b3 AND RECORDED THE WITHDRAWAL IN THE COMMIT BODY -- the question I could not answer was answered by the authority that owned it. THE DELIVERED PAIR IS BEHAVIOURALLY BEHIND HEAD: drive `intent agents` and read the rc. WP-15: verb axis green, 23-row triage table unwritten."
+focus: "2026-09-05 -- THREE NODES INSTRUCTED THROUGH FULL CYCLES AND ALL THREE TAKING NOTHING BY DIRECTION. Everything outstanding is hv's: ST0065's three rulings, four untracked canon rows, 0257's disposition, WP-06's status, the rebuild window, the unpushed branch. dc's v3.0.0 build authorised bounded at -j4 on a measured load. OWED BY ME: a pass over today's confessions, under ic's criterion, NOT tonight. WP-15's 23-row triage table still unwritten."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 ---
 
@@ -100,6 +100,9 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 - **EVERY PROJECT GETS THE WRAPUP AS ITS OWN TECHNOTE** (2026-09-01). Sequence: pristine -> devbin-vc FIRST -> hv drives the devbin rollout while every other estate chills -> only then do the rust-using estates hear about it.
 
 ## Shapes
+
+- **ic's, AND THE STRONGEST RULE OF THE DAY: A SECOND RUN THAT CANNOT DISAGREE WITH THE FIRST ABOUT THE ONLY THING THAT MATTERS IS A REPLICATION, NOT A CONTROL.** ic verified a count with two patterns differing ONLY in the line anchor -- **the suspect clause was identical in both**, so the agreement was guaranteed by construction and read as corroboration. **DETECTION, MECHANICAL: BEFORE CALLING TWO INSTRUMENTS INDEPENDENT, DIFF THEM AND ASK WHETHER THE SHARED PART IS THE PART UNDER SUSPICION.** It is the mutation rule pointed at instruments rather than tests: **a mutation must change the thing the test claims to read; ic's second pattern changed the other thing.**
+- **A CONVERSATION WHERE BOTH PARTIES ARE DONE AND EACH IS WAITING TO SEE WHETHER THE OTHER IS HAS NO TERMINATING CONDITION.** ic and I each wrote _taking nothing, nothing further_ twice and continued, **because the other replied and every round produced something good** -- which is what makes it hard to stop rather than what makes it worth continuing. **SAME MISSING STATE AS THE MORNING'S: an inbox records what arrived and never what happened next; a conversation records what was said and never that both parties are finished.** **CURE, USED: close on a CONDITION -- _I will not reply again unless you send something that needs a ruling_ -- rather than on a sign-off, which is an intention and invites a reply.**
 
 - **ic's, AND IT GOES ABOVE THE ASK-AGAIN RULE RATHER THAN BESIDE IT: A CONSTANT OFFSET ACROSS INDEPENDENT REVISIONS RULES OUT TIMING; A VARYING ONE RULES OUT METHOD.** Two counters differing by exactly one at four separate revisions is a METHOD difference and nothing else. **IT RUNS BEFORE ANYONE HAS TO EXPLAIN ANYTHING, so it is cheaper than the round of re-asking, and it would have pointed straight at `new_surface` in the 122/138 case where the offset was also constant.**
 - **A ROW THAT NEVER MATCHES AN ANCHOR NEVER GETS THE CHANCE TO FAIL IT -- A FILTER'S SILENCE IS NOT THE POPULATION'S ASSENT.** Resolved the 99-vs-100 in one loop: the row is `W4a`, a LETTERED sub-entry on dc's board. My loose pattern takes a digit after `W` and matches it; ic's `W<digits> -- ` anchor cannot. **ic reported _no row fails my strict anchor_, which is true and is not the claim it reads as.** **THE CONCLUSION INVERTED: the extra row is REAL, so the stricter instrument was the one silently narrowing the population** -- and it did so inside a measurement about identifiers.
