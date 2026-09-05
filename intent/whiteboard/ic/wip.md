@@ -4,9 +4,9 @@ name: Interface Claude
 role: interface
 session_id: ff30d717-901e-4d47-9bb7-53416fe4e841
 commit_session_id: 01T6EfsdaPEvSHT3WeUk1oMo -- WITNESSED on 04c43798f, this session's first commit; check it there rather than taking this line's word. HONEST CAVEAT, and it is cc's: I authored that trailer, so reading it back is not independent of the harness. What it IS is the value a later reader will attribute my commits by, confirmed present on one. POINT-IN-TIME, one session; the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-05 17:49Z
+heartbeat_at: 2026-09-05 17:54Z
 status: active
-focus: "POST-BOUNCE, WORKING vc s QUEUE. 0257 CLOSED -- renamed to what it checks, and the TWIN one screen down carried the same overclaim and was renamed too, reported rather than slipped in. 0269 FILED: every instrument in the coverage space starts from a ROW, so 151 of 279 test files on disk are invisible to all of them; 36 write the estate s own L3 coverage literal into themselves while no row cites them. I CORRECTED THE PREMISE I WAS HANDED -- the 37 absent citations are 36 to-write and 1 fiat, ZERO green, so the gated direction reports no defects at all. NEXT IS 0258 s sizing. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "vc s QUEUE IS CLEAR. 0257 closed (twin renamed too, endorsed), 0269 filed (151 of 279 uncited, 36 carrying the L3 literal), 0258 SIZED -- the record half is S with no migration and FIXES NOTHING ALONE; the delivery half is a routing decision whose cost is dominated by where the whiteboard lives, so ST0056/14 is the real dependency and the sequencing call is hv s. I CORRECTED A PREMISE vc HANDED ME AND vc IS PROPAGATING IT: the 37 absent are 36 to-write and 1 fiat, zero green. NOTHING STARTABLE WITHOUT A RULING. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/17, ST0064]
 ---
 
@@ -46,7 +46,7 @@ claims: [ST0065, ST0056/17, ST0064]
 
 **NOTHING IS STARTABLE, AND THAT IS A MEASUREMENT RATHER THAN BREVITY.** Everything of mine is either closed, unclaimed by choice, or gated below with the condition that releases it.
 
-**`0258` IS THE NEXT THING AND IT IS MINE TO SIZE** -- the assignment channel; size still UNMEASURED, and the fix deliberately not named in its title. vc ranked it BELOW the orphan class and that ordering was right: `0269` is a class, `0258` is an instance. **`0257` is CLOSED**, released from hv-only by vc on the grounds that the reasoning behind it had gone missing.
+**`0258` IS SIZED (`9a5ab00b`) AND WHAT IT NEEDS NOW IS A SEQUENCING RULING FROM hv**, not more measurement: the record half is **S** with no migration, and it **fixes nothing on its own** -- a field plus a filter makes the query possible and does not make anyone run it, which is the row's own diagnosis rather than its fix. Delivery is unsized on purpose; `ST0056/14` (whiteboard in the store, Not Started, **L**) is the real dependency. **HAZARD FOR WHOEVER TAKES IT: `render.rs` is cc's, and `--severity` shipped declared-but-unparsed in that same table, so a `--help`-reading test would pass throughout.** Was: -- the assignment channel; size still UNMEASURED, and the fix deliberately not named in its title. vc ranked it BELOW the orphan class and that ordering was right: `0269` is a class, `0258` is an instance. **`0257` is CLOSED**, released from hv-only by vc on the grounds that the reasoning behind it had gone missing.
 
 **`ST0056/13` IS LEFT UNCLAIMED DELIBERATELY.** One defect fixed on its merits is not the first slice of a work package I have not scoped, and a claim is a signal to peers about what I am doing. vc offered it and adopted the reasoning when I declined.
 
