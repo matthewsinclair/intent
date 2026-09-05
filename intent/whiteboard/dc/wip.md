@@ -4,9 +4,9 @@ name: DevX Claude
 role: worker
 session_id: 8ef84e7a-4585-4b04-aae7-a2e58b6be0eb
 commit_session_id: 01CwTxbQyXvFy7mYcr3uShu9 -- WITNESSED on 98bb0f965, ab516affd, 3018a5385 and 7b7f1c662, read off the commits rather than taken from the harness. IT ROTATED MID-SESSION, between 8783243ce and 98bb0f965, with NO compact and NO restart between them -- so this line previously carried a restart mints a new one, which is too narrow in exactly the way vc found on their own line. The prior value 01KJiLhhcanvdaveAtLRkKoH signs my first nine commits today and is still correct FOR THOSE. I found the drift only because the boot reminder handed me a value that disagreed with my own board, which is not a mechanism anyone can rely on. POINT-IN-TIME: READ IT OFF YOUR OWN LAST COMMIT, never off this line.
-heartbeat_at: 2026-09-05 17:56Z
+heartbeat_at: 2026-09-05 18:14Z
 status: active
-focus: "AC-02.3 IS GREEN -- 217 of 217 dispositioned, every stated claim verified against bytes (e742be19, 37ee8908). FOURTEEN MEMBERS DRIVEN ON 80d8b2ca, not read: eleven reproduced and are stated, two did NOT and are recorded as not-exhibited with what was driven, one is internal-tooling. 0266 FILED (high): v3.0.0 claude upgrade writes a pre-commit chain block whose target no code in that build ever writes, so every consumer gate is inert and doctor never looks. NEXT IS 0262 on vc s ruling -- I am taking REFUSE, which is a Rust change and a guarded build. THE POPULATION MOVED THREE TIMES INSIDE THIS PASS; I never quoted it. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "0262 FIXED AND COMMITTED (525dd7f7) -- st attach now REFUSES a path that names nowhere in the thread, and canon_commit_check stops inviting the one it accepted. THE ROW NAMED ONE SHAPE AND THE DOOR WAS ACCEPTING FIVE: eight paths offered on da5919e8, eight rows minted. Blast radius measured at ZERO over 369 existing paths. Demonstrated as the defect NOT OCCURRING on a private release build, not in unit tests alone. AC-02.3 CLOSED EARLIER AT 217/217. THE FIX IS NOT IN THE SHIPPED PAIR -- a rebuild is a shared-artefact action and is hv s. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -37,13 +37,17 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-**NOTHING IN FLIGHT.** `AC-02.3` closed at 217 of 217 this session and is not mine to re-open. Next is **`0262`**, on the ruling vc already gave: fix the VERB first, then read the remedy string again, and the string's wording is determined by which of resolve-or-refuse I take.
+**NOTHING IN FLIGHT.** `AC-02.3` closed at 217 of 217 and `0262` is fixed and committed at `525dd7f7`.
 
-**I AM TAKING REFUSE, AND THE REASONING IS THE PART TO ARGUE WITH.** The verb can tell -- the offending form starts with the thread's own directory prefix. Normalising would silently reinterpret an address that has a legitimate if odd thread-relative meaning. And this estate has been bitten repeatedly by verbs that accept-and-report-`ok`. That is a change in `native/rust` and therefore a guarded release build, so it is a different kind of commitment from the last pass.
+**`0262` IS FIXED IN THE TREE AND NOT IN THE SHIPPED PAIR.** The verb refuses on a private release build I drove it against; `native/rust/target/release/` still holds `da5919e8`, which accepts all eight paths. **A pair rebuild promotes into the shared path five sessions read, so it is hv's call and not mine.** Until then, anyone attaching on this estate is still using the accepting build -- and the corrected `canon_commit_check` remedy IS live, because it is a script rather than a binary.
 
-**THE STANDING BOUND ON WP-11, IF IT COMES BACK:** design-and-build only. No tap repo, no `gh release`, no `scripts/release`, no push to either remote. `AC-11.1` and `AC-11.4` are outward and are hv's.
+**THE PART OF `0262` I GOT WRONG FIRST, KEPT BECAUSE IT IS THE REUSABLE HALF.** My first build returned prose from the fault check and rode on `WriteNotAddressable`, so a correct refusal about a mistyped path carried the remedy _`PUT` json to a caller-assigned id (an AC or an AT)_ -- right for a different caller entirely. **That is `0268`'s class arriving inside the fix for `0262`.** `FacadeError::remedy`'s own doc already forbade it in words: _no two variants share a remedy text_. A KIND rather than a sentence is what keeps them apart.
 
-**TWO FINDINGS OWED TO EXISTING ROWS, BOTH DRIVEN, NEITHER WRITTEN DOWN YET.** `0228` is worse than filed: `bin/*` does not merely LACK an extension constraint, it OVERRIDES one -- identical Lua bytes at `bin/luatool.lua` draw the same CRITICAL as at `bin/luatool`. And `0187`'s refusal carries a second false statement: `intent init --lang shell` refuses at rc=2 saying _the project is created either way_, and the directory afterwards holds only `.git` (positive control: plain `intent init` in the same directory creates it).
+**TWO FINDINGS STILL OWED TO EXISTING ROWS, both driven, neither written down.** `0228`: `bin/*` does not merely LACK an extension constraint, it OVERRIDES one -- identical Lua bytes at `bin/luatool.lua` draw the same CRITICAL as at `bin/luatool`. `0187`: the refusal says _the project is created either way_ and the directory afterwards holds only `.git` (positive control: plain `intent init` there creates it).
+
+**A PRE-EXISTING RED THAT IS NOT MINE AND SOMEBODY SHOULD OWN.** `intent-cli`'s `unmigrated_surface::no_shipped_command_answers_from_an_unmigrated_project` fails on `intent agents` SUCCEEDING at exit 0 over an unmigrated estate. **Reproduced at HEAD `9eb04b911` in a clean detached worktree with none of my changes**, so it is inherited rather than introduced.
+
+**THE STANDING BOUND ON WP-11, IF IT COMES BACK:** design-and-build only. No tap repo, no `gh release`, no `scripts/release`, no push to either remote.
 
 ## TODO
 
@@ -214,6 +218,12 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 **W115 -- A PROXY DOES NOT MERELY UNDER-SPECIFY THE PROPERTY; IT CAN OVERRIDE THE CORRECT SIGNAL.** `0228` is filed as `bin/*` LACKING an extension constraint. Driven, `bin/luatool.lua` -- a file that names its own language -- is claimed by the shell rules anyway. **The proxy beats the evidence that was already there.** Worth carrying wherever this estate says _the instrument measures a LOCATION and the rule claims a LANGUAGE_.
 
 **W116 -- A DUPLICATE REGISTER ROW RIDES ON THE ENTRY, IT DOES NOT GET A SECOND HOME.** `0229` is `0213` filed twice from two directions. The reader-facing page carries ONE entry naming both ids, because the page is a partition of a population and two entries for one behaviour would be the Highlander violation the duplicate itself was.
+
+**W117 -- A FIX CAN SHIP A FRESH INSTANCE OF THE CLASS IT IS FIXING, AND THE DOC THAT FORBIDS IT WILL ALREADY BE THERE.** `0262`'s first build reused `WriteNotAddressable`, so a refusal about a mistyped attachment path printed _`PUT` json to a caller-assigned id_. `FacadeError::remedy`'s own doc comment says **no two variants share a remedy text -- a remedy that fits two different causes is telling the operator to guess which one they hit**. I read that comment while adding the arm underneath it. **The rule was written down, in the file, three lines up, and I still had to SEE the rendered output to notice.** A stated rule is not a check.
+
+**W118 -- AN ISSUE IS WRITTEN ABOUT THE INSTANCE SOMEBODY HAPPENED TO HIT; PROBE THE DOOR BEFORE FIXING THE ROW.** `0262` names the repo-relative path. Offering the same door eight paths found FIVE accepted shapes -- empty, absolute, `..`, and two unnormalised forms -- every one minting a row at rc=0. **Fixing the row would have left four.** The cost of finding out was one probe loop.
+
+**W119 -- MEASURE THE BLAST RADIUS BEFORE CHOOSING REFUSE OVER NORMALISE, NOT AFTER.** A refusal that invalidates existing rows is a migration wearing a fix's clothes. 369 distinct attachment paths in this estate, ZERO refused by the new rule -- so the choice was additive and the argument was about correctness rather than about cost. **Had it been non-zero, the ruling was hv's and not mine**, and I would not have known that without counting first.
 
 ## Decisions
 
