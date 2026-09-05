@@ -40,6 +40,8 @@ mod ac_new_refuses_what_it_used_to_replace;
 mod acceptance_surface;
 #[path = "agents_sync_parity.rs"]
 mod agents_sync_parity;
+#[path = "an_absent_rule_library_is_visible_at_the_process_surface.rs"]
+mod an_absent_rule_library_is_visible_at_the_process_surface;
 #[path = "bootstrap_door.rs"]
 mod bootstrap_door;
 #[path = "canon_keys_are_read.rs"]
@@ -60,8 +62,6 @@ mod closing_verbs_take_a_stated_date;
 mod command_rosters_are_derived_or_declared;
 #[path = "corpus_machine_independence.rs"]
 mod corpus_machine_independence;
-#[path = "critic_refuses_an_empty_library_end_to_end.rs"]
-mod critic_refuses_an_empty_library_end_to_end;
 #[path = "critic_surface.rs"]
 mod critic_surface;
 #[path = "daemon_and_local_agree.rs"]
