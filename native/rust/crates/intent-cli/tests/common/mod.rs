@@ -760,7 +760,7 @@ pub fn string_literals(code: &str) -> Vec<String> {
 /// the check would pass on exactly the tree it is meant to refuse. An absent
 /// sibling is left alone -- that case already has a better message one call
 /// down, and duplicating it here would give one failure two homes.
-fn refuse_a_stale_sibling_daemon() {
+pub fn refuse_a_stale_sibling_daemon() {
   let intent = Path::new(env!("CARGO_BIN_EXE_intent"));
   let Some(sibling) = intent.parent().map(|dir| dir.join("intentd")) else {
     return;

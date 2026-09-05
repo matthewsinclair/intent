@@ -522,3 +522,154 @@ fn with_no_daemon_the_answers_are_the_same() {
   let _ = std::fs::remove_dir_all(&home);
   let _ = std::fs::remove_dir_all(&root);
 }
+
+// ---------------------------------------------------------------------------
+// `0244`: THE REMEDY IS THE INPUT TO THE RECOVERY, NOT A STRING ASSERTED
+// BESIDE IT.
+//
+// **THE GAP THIS CLOSES IS A JOIN, NOT A MISSING CAPABILITY.** Both halves of
+// the promise a remedy makes were already written in this file and nothing
+// connected them: `asking_for_a_daemon_that_is_not_there_refuses_rather_than_
+// answering_locally` asserts the refusal NAMES `intent daemon start`, and
+// `every_servable_path_asked_with_daemon_actually_leaves_this_process` proves
+// the daemon path works -- in a different test, against a different fixture.
+// **Neither asks whether following THIS remedy resolves THIS error**, so the
+// remedy text could be replaced with nonsense and every test in this file
+// stayed green. Measured 2026-09-04: nothing anywhere in the estate -- 2151
+// Rust test functions, 1491 bats tests -- drives a remedy and re-checks.
+//
+// **THE COMMAND IS PARSED OUT OF THE EMITTED TEXT AND EXECUTED, WHICH IS THE
+// ONLY FORM WHERE THE REMEDY AND THE RECOVERY ARE ONE SUBJECT.** The cheaper
+// version satisfies the remedy's PRECONDITION with a fixture and re-drives --
+// which proves the STATE the remedy describes resolves the error, and never
+// that the VERB NAMED produces that state. That is `0244`'s own defect one
+// level up, so it was refused rather than shipped quietly.
+//
+// **NOTHING HERE NAMES `daemon start`.** A command in a remedy is derived --
+// a backticked span beginning with this binary's name -- so the assertion
+// survives the remedy being reworded and FAILS on it being emptied. The
+// acceptance criterion for this test is its own mutation: replace the remedy
+// at `render.rs`'s `--daemon`-with-no-daemon arm with nonsense and it must go
+// red.
+//
+// **THE POPULATION IS DELIBERATELY NOT GENERALISED.** Most of this estate's
+// 186 remedy emissions are not mechanically drivable (`set $EDITOR`, `open its
+// thread and read the work package there`) and some are correctly no-ops
+// (`nothing is owed now`). The count of drivable ones is UNMEASURED, and that
+// measurement -- not this test -- is what would price a general harness.
+// `edit_and_browse_reach_one_model.rs` carries the same unjoined shape and is
+// BLOCKED for this: its recovery half is `open_in_browser`, which would open a
+// real browser on whatever machine ran the suite.
+// ---------------------------------------------------------------------------
+
+/// Every command an emitted remedy tells the operator to run, in printed order.
+///
+/// **DERIVED, NOT RECOGNISED.** The rule is *a backticked span on the remedy
+/// line that starts with this binary's name*, which is why `--daemon` -- also
+/// backticked on that same line -- is excluded by the rule rather than by a
+/// name this function knows. A remedy that names no command returns empty, and
+/// the caller treats that as a failure rather than as nothing to do.
+fn commands_in_the_remedy(seen: &str) -> Vec<String> {
+  seen
+    .lines()
+    .filter(|line| line.trim_start().starts_with("remedy:"))
+    .flat_map(|line| line.split('`').skip(1).step_by(2))
+    .filter(|span| span.starts_with("intent "))
+    .map(str::to_string)
+    .collect()
+}
+
+/// Stops whatever the executed remedy left running, panic or no panic.
+///
+/// **THE DAEMON THIS TEST STARTS IS NOT ITS CHILD.** `intent daemon start`
+/// detaches into its own process group by design, so an assertion that fails
+/// between the start and the stop would leave a real daemon alive under a home
+/// this test is about to delete -- answering probes on a socket whose directory
+/// is gone. Four sessions share this machine; a leak here is not tidiness.
+struct StopWhateverTheRemedyStarted {
+  home: PathBuf,
+}
+
+impl Drop for StopWhateverTheRemedyStarted {
+  fn drop(&mut self) {
+    let _ = Command::new(env!("CARGO_BIN_EXE_intent"))
+      .args(["daemon", "stop"])
+      .env("HOME", &self.home)
+      .output();
+    let _ = std::fs::remove_dir_all(&self.home);
+  }
+}
+
+#[test]
+fn doing_what_the_refusal_told_the_operator_to_do_actually_gets_them_the_answer() {
+  // **ONE SERVABLE PATH, AND THE REASON IS THAT THE OTHER HALF IS ALREADY
+  // COMPLETE.** The refusal's shape is asserted over the whole declared set
+  // three tests up; what is unproven is the JOIN, and the join costs a real
+  // daemon process. Looping it would buy a second witness for the same seam at
+  // the price of N daemons.
+  crate::common::refuse_a_stale_sibling_daemon();
+
+  let home = short_dir("optin-remedy-home");
+  let root = project();
+  let servable = servable();
+  let path = servable[0];
+  let mut argv = vec!["--daemon"];
+  argv.extend(path.split(' '));
+
+  let refused = run(&home, &root, &argv);
+  let seen = text(&refused);
+  assert_eq!(
+    refused.status.code(),
+    Some(2),
+    "`intent --daemon {path}` did not refuse, so there is no error here for a remedy to resolve \
+     and everything below would pass without testing anything: {seen}"
+  );
+
+  let commands = commands_in_the_remedy(&seen);
+  // **ANTI-VACUITY, AND IT IS THE ARM THE MUTATION LANDS ON.** An empty list
+  // makes the loop below a no-op and the re-drive at the end would then be
+  // measuring a daemon nobody started.
+  assert!(
+    !commands.is_empty(),
+    "the refusal named no command to run, so its remedy cannot be followed at all: {seen}"
+  );
+
+  let stop = StopWhateverTheRemedyStarted { home: home.clone() };
+
+  // **EVERY COMMAND THE REMEDY NAMED, IN THE ORDER IT NAMED THEM.** This
+  // refusal offers two ways out -- get a daemon, or ask the same question
+  // without one -- and a remedy is a promise about all of what it says, not
+  // about whichever clause a test happens to pick.
+  for command in &commands {
+    let words: Vec<&str> = command.split_whitespace().skip(1).collect();
+    let out = run(&home, &root, &words);
+    assert_eq!(
+      out.status.code(),
+      Some(0),
+      "the refusal told the operator to run `{command}` and it exited {:?}: {}",
+      out.status.code(),
+      text(&out)
+    );
+  }
+
+  // **THE JOIN. THE SAME ARGV THAT WAS REFUSED, RE-DRIVEN AFTER DOING WHAT THE
+  // REFUSAL SAID.**
+  let again = run(&home, &root, &argv);
+  let after = text(&again);
+  assert_eq!(
+    again.status.code(),
+    Some(0),
+    "`intent --daemon {path}` still refuses after every command its own remedy named was run and \
+     succeeded, so the advice was useless to the operator who took it: {after}"
+  );
+  // **rc=0 ALONE IS NOT THE ANSWER THEY WANTED.** An empty listing exits 0 too,
+  // so without this the arm would pass on a daemon that answered with nothing.
+  assert!(
+    after.contains(MINTED),
+    "`intent --daemon {path}` exited 0 after the remedy was followed but did not name the thread \
+     this project holds, so it did not actually answer the question: {after}"
+  );
+
+  drop(stop);
+  let _ = std::fs::remove_dir_all(&root);
+}
