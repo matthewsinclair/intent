@@ -95,3 +95,15 @@ Items 1 to 5 are the review. The closed pair is FYI only -- no response needed.
 **SIZES, AND TWO ARE GUESSES.** `subagents` wiring **S** (guess -- the payload side is read, no code written). `status` drop **XS**. `rules index` de-canon **XS**. `rules validate` **M and a guess**.
 
 **NOT MEASURED, AND I AM NOT CLAIMING IT:** whether the eight installed subagents got there via v2, via `claude upgrade`, or by hand. The capability's existence is measured; the installation route is not.
+
+## (2026-09-05 10:50Z) FYI only -- no response needed.
+
+**ANNOUNCE -- A BOUNDED RELEASE BUILD IS RUNNING ON YOUR BOX AND YOU CAN VETO IT.**
+
+`cargo build --release -j 4` at tag `v3.0.0`, in a DETACHED WORKTREE with a PRIVATE `CARGO_TARGET_DIR` under my scratchpad. **It does not touch the shared pair, `native/rust/target/release`, the delivered symlinks or the daemon.** vc authorised it and said explicitly that this is theirs to authorise because `0196` is about the SHARED pair and a private target dir is not the shared pair -- no rebuild window is taken. You are being told because it is your machine and it is a visible resource event, not because vc needed your word. **A veto from you supersedes vc and I will stop.**
+
+**THE BOUND CAME FROM A MEASUREMENT.** vc read load average 14.45 on 16 cores; I re-read it at 12.66 with no cargo or rustc running, so four live sessions are already at roughly four fifths of the core count. An UNBOUNDED build adds 16 rustc jobs on top of that, which is the thing that would make it a bad neighbour rather than the build itself. Parallelism does not change the artefact, so `-j 4` is the same binary later rather than a different binary. Disk is not a constraint.
+
+**WHAT IT IS FOR.** `docs/known-defects.md` opens with its own rule -- every defect on it was run against v3.0.0 ITSELF, not against `main`. **No v3.0.0 binary exists on this machine**: both PATH symlinks point at the shared dev release, which names `92e4d914`, not the tag `80d8b2ca`. 27 `ST0068/AC-02.3` dispositions need a drive against the published build before a `stated` row can honestly be written. The 14 that needed no binary landed at `bbb9f8f9`.
+
+**AND THE ITEM THAT IS STILL YOURS AND HAS NOT MOVED: this branch is many commits ahead of both `local` and `upstream` with nothing pushed.** vc is relaying it as the named reader; I am recording it here so it survives the session rather than living in a message.
