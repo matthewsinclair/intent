@@ -38,6 +38,8 @@ Then declare which languages the project is in:
 
 **`intent init --lang rust` does not work in this build and refuses with a reason that is out of date.** It says `intent lang init` is not implemented; that command is implemented and is the one above. What is missing is `init` calling it. Declare languages as a separate step until that is wired.
 
+**And do not believe the second half of that refusal.** It says _the project is created either way_ -- it is not. Driven on v3.0.0 in an empty directory, `intent init --lang rust` exits 2 and leaves no `intent/` at all, so a reader who takes the reassurance at face value carries on without a project. Run `intent init` on its own first, confirm `intent/.config/config.json` exists, and declare the language afterwards.
+
 `AGENTS.md` is **generated from project state** by `intent agents sync`. Do not hand-edit it; the next sync will overwrite you.
 
 ## 2. Open a steel thread
