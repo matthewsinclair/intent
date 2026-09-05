@@ -4,9 +4,9 @@ name: DevX Claude
 role: worker
 session_id: 8ef84e7a-4585-4b04-aae7-a2e58b6be0eb
 commit_session_id: 01CwTxbQyXvFy7mYcr3uShu9 -- WITNESSED on 98bb0f965, ab516affd, 3018a5385 and 7b7f1c662, read off the commits rather than taken from the harness. IT ROTATED MID-SESSION, between 8783243ce and 98bb0f965, with NO compact and NO restart between them -- so this line previously carried a restart mints a new one, which is too narrow in exactly the way vc found on their own line. The prior value 01KJiLhhcanvdaveAtLRkKoH signs my first nine commits today and is still correct FOR THOSE. I found the drift only because the boot reminder handed me a value that disagreed with my own board, which is not a mechanism anyone can rely on. POINT-IN-TIME: READ IT OFF YOUR OWN LAST COMMIT, never off this line.
-heartbeat_at: 2026-09-05 20:29Z
+heartbeat_at: 2026-09-05 18:14Z
 status: active
-focus: "FOLDED 20:29Z FOR A COMPACT -- status stays active; a fold before a compact is not a session ending. Pre-fold verbatim at .history/20260905/wip-prefold-2026Z.md, cmp-verified BEFORE any edit. NOTHING IN FLIGHT. Everything vc handed me is closed: AC-02.3 at 219 of 219, 0262, 0242, 0266, 0270. FOUR FIXES ARE IN THE TREE AND NOT IN THE SHIPPED PAIR, so which behaviour you get depends on which binary you stand on -- read intent --version. I CONSIDERED MERGING THE 121 RULES AND READ THE FAMILY FIRST: they share a theme, not a rule, so they are INDEXED rather than merged. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "0262 FIXED AND COMMITTED (525dd7f7) -- st attach now REFUSES a path that names nowhere in the thread, and canon_commit_check stops inviting the one it accepted. THE ROW NAMED ONE SHAPE AND THE DOOR WAS ACCEPTING FIVE: eight paths offered on da5919e8, eight rows minted. Blast radius measured at ZERO over 369 existing paths. Demonstrated as the defect NOT OCCURRING on a private release build, not in unit tests alone. AC-02.3 CLOSED EARLIER AT 217/217. THE FIX IS NOT IN THE SHIPPED PAIR -- a rebuild is a shared-artefact action and is hv s. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -30,20 +30,24 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 - **THE STORE IS PROJECT-RELATIVE**, `intent_dir()/.cache/intent.db`, found by walking up from CWD. **THE SCHEMA NUMBER IS NOT PRINTED HERE ANY MORE -- IT SAT AT 16 WHILE THE STORE WAS AT 17**, which is my own standing rule catching me in my own environment section. Read it: `sqlite3 intent/.cache/intent.db 'PRAGMA user_version;'`, and the source's value with `grep -m1 'pub const SCHEMA_VERSION' native/rust/crates/intentsvcs/src/store.rs`.
 - **THE INDEX IS SHARED.** `add` + `commit --only <paths>` in ONE call is the only safe write.
 - **CURRENCY IS A COMMAND HERE, NEVER A VALUE, BECAUSE THE VALUE ON THIS LINE WENT STALE AND I QUOTED IT TO hv.** The line used to say the pair was behind HEAD as of 2026-08-31 16:54Z. It was rebuilt at `4be902e1` and I reported the stale claim anyway, from memory, two days later. **THE ARM THAT DECIDES IS NOT THE PIN-VERSUS-HEAD DIFFERENCE** -- that difference is normal and says nothing, because the pin names the last commit touching BUILD INPUTS and HEAD runs ahead over commits that compile nothing. Run this and read its last line: `bash intent/st/ST0056/parity/tools/self_provenance_check.sh`. It prints `currency ok` or `currency REFUSING` and names the files that moved. **`intentd --version` prints NO commit where `intent --version` does, so the pair cannot be compared through `--version` at all**; the embedded marker is the only route, and the sha256 on each line is what distinguishes one build from another because the marker does not. **Do not rebuild into the shared path with sessions live -- `0196`.** **CORRECTED 2026-09-02: this line used to end _A NODE MUST NOT TAKE A REBUILD WINDOW; it is hv's_, and that was FALSE.** I originated it and vc repeated it to hv all evening. Driven: **`0196` is a DEFECT** -- `guarded_release_build` deletes the shared pair BEFORE it builds and no failure path restores it -- **not an authority constraint**, and ic has rebuilt twice today without hv. **The real constraint is the HAZARD: a failed build leaves every live session on this machine without a binary, so a rebuild wants a QUIET TREE, not a permission.**
-- **CANON ORDER: `intent st attach <ST> <THREAD-RELATIVE path> --from <file>` FIRST, then commit the file and canon together.** Read the existing spelling out of canon first: `jq -r '.attachments[]?|.path' intent/.canon/st/<ST>.json`. **AND `sync --to-store` IS NOT THE ROUTE WHILE intentd WATCHES THIS TREE** -- it refuses, correctly, and the daemon has already ingested a canon edit and re-rendered the views by the time you look. Verify PAST the ingest, never at the `ok:`.
-- **THE REPO-RELATIVE ATTACH IS NOW REFUSED, AND THIS LINE USED TO SAY IT WAS ACCEPTED.** `0262` is fixed (`525dd7f7`): a path that names nowhere in the thread is refused with the corrected spelling computed for you. **THE FIX IS IN THE TREE AND NOT IN THE SHIPPED PAIR**, so which behaviour you get depends on which binary you are standing on -- `intent --version` names it. Kept as a correction rather than deleted because the old line was true for weeks and is the shape that misleads on restart.
-
+- **CANON ORDER: `intent st attach <ST> <THREAD-RELATIVE path> --from <file>` FIRST, then commit the file and canon together.** **THE PATH IS RELATIVE TO THE THREAD, NOT THE REPO** -- the repo-relative form returns `ok:` and mints a DUPLICATE entry nothing removes and `doctor` never reports (`0262`, mine, found by making the mistake). Read the existing spelling out of canon first: `jq -r '.attachments[]?|.path' intent/.canon/st/<ST>.json`. **AND `sync --to-store` IS NOT THE ROUTE WHILE intentd WATCHES THIS TREE** -- it refuses, correctly, and the daemon has already ingested a canon edit and re-rendered the views by the time you look. Verify PAST the ingest, never at the `ok:`.
 - **THE GATE FIGURE IS COMPUTED BY THREE VERB CALLS AND NEVER TRANSCRIBED.**
 - **THE PROVENANCE PIN IS NOT HEAD AND THAT IS BY DESIGN.** `emit_source_commit` runs `rev-list -1 HEAD` over `:(top)native/rust :(top)surface :(top)docs/design`, so it names the last commit touching the BUILD'S INPUTS. **`intentd --version` prints NO commit where `intent --version` does, so the pair cannot be compared through `--version` at all** -- the embedded marker is the only route. `dvb build all` forces the embeds and verifies the SET, which is the check cargo cannot make.
 - **THE BASH TOOL'S SHELL IS zsh.** **BACKTICKS INSIDE A DOUBLE-QUOTED COMMIT MESSAGE RUN AS COMMAND SUBSTITUTION AND SILENTLY EAT THE WORD** -- 2026-09-03, `stated` vanished from a landed commit message and the only symptom was one `command not found` line among 40 lines of green guard output. **A message goes in a FILE and through `-F`.** No word-split on unquoted `$var`; an unmatched glob aborts the command; **`mapfile` DOES NOT EXIST**, and in an `&&` chain its failure silently skips every later step, leaving a previous run's file to be read as this run's answer. **Write anything non-trivial as a `#!/usr/bin/env bash` script file.**
 
 ## DOING
 
-**NOTHING IN FLIGHT.** Everything vc handed me this session is built, driven and closed: `AC-02.3` at 219 of 219, `0262`, `0242`, `0266` and `0270`. Next is whatever vc sends on the bounce.
+**NOTHING IN FLIGHT.** `AC-02.3` closed at 217 of 217 and `0262` is fixed and committed at `525dd7f7`.
 
-**THE STANDING BOUND ON WP-11, IF IT COMES BACK:** design-and-build only. No tap repo, no `gh release`, no `scripts/release`, no push to either remote. `AC-11.1` and `AC-11.4` are outward and are hv's.
+**`0262` IS FIXED IN THE TREE AND NOT IN THE SHIPPED PAIR.** The verb refuses on a private release build I drove it against; `native/rust/target/release/` still holds `da5919e8`, which accepts all eight paths. **A pair rebuild promotes into the shared path five sessions read, so it is hv's call and not mine.** Until then, anyone attaching on this estate is still using the accepting build -- and the corrected `canon_commit_check` remedy IS live, because it is a script rather than a binary.
 
-**FOUR FIXES ARE IN THE TREE AND NOT IN THE SHIPPED PAIR** (`0262`, `0242`, `0270`, plus the `canon_commit_check` remedy which IS live because it is a script). `native/rust/target/release/` still holds `da5919e8`, which accepts every path `0262` refuses and lets `at red` through. **A rebuild promotes into the path five sessions read, so it wants a quiet tree** -- that is the hazard, not a permission (`0196`). Every verification this session ran against a PRIVATE release build instead.
+**THE PART OF `0262` I GOT WRONG FIRST, KEPT BECAUSE IT IS THE REUSABLE HALF.** My first build returned prose from the fault check and rode on `WriteNotAddressable`, so a correct refusal about a mistyped path carried the remedy _`PUT` json to a caller-assigned id (an AC or an AT)_ -- right for a different caller entirely. **That is `0268`'s class arriving inside the fix for `0262`.** `FacadeError::remedy`'s own doc already forbade it in words: _no two variants share a remedy text_. A KIND rather than a sentence is what keeps them apart.
+
+**TWO FINDINGS STILL OWED TO EXISTING ROWS, both driven, neither written down.** `0228`: `bin/*` does not merely LACK an extension constraint, it OVERRIDES one -- identical Lua bytes at `bin/luatool.lua` draw the same CRITICAL as at `bin/luatool`. `0187`: the refusal says _the project is created either way_ and the directory afterwards holds only `.git` (positive control: plain `intent init` there creates it).
+
+**A PRE-EXISTING RED THAT IS NOT MINE AND SOMEBODY SHOULD OWN.** `intent-cli`'s `unmigrated_surface::no_shipped_command_answers_from_an_unmigrated_project` fails on `intent agents` SUCCEEDING at exit 0 over an unmigrated estate. **Reproduced at HEAD `9eb04b911` in a clean detached worktree with none of my changes**, so it is inherited rather than introduced.
+
+**THE STANDING BOUND ON WP-11, IF IT COMES BACK:** design-and-build only. No tap repo, no `gh release`, no `scripts/release`, no push to either remote.
 
 ## TODO
 
@@ -51,8 +55,15 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 **MINE AND STARTABLE:**
 
-- **`0264` -- `dist-provenance.txt`'s `commit:` has two readers with two subjects.** Mine, filed 2026-09-05. The fix is a field per subject and it is a DESIGN CALL ON ST0056, not a roster edit: `publish` parses the `commit` spelling, and `provenance_fields_check.sh:190` resolves `commit:` against `source_commit:` by FILE ORDER through one `sed | head -1`, so a careless split silently switches which subject the checker reads.
-- **`0270` option 1, explicitly NOT ruled out** -- a spelling that returns an AT row to `to-write`. Option 2 (built) prevents ENTERING the trap and frees nobody already in it. Nobody is, today (0 of 303), which is why the narrow fix was enough now and is not enough forever.
+- **`ST0068/AC-02.3` -- the remaining members.** Most are READER-REACHABLE, which means they need `docs/known-defects.md` ENTRIES rather than dispositions: a disposition is not an exemption. Drive each on the PUBLISHED v3.0.0 (`$SP/v300-target/release/intent`, marker `80d8b2ca`) in a scratch `intent init` project -- **this repo's store is schema 17 and that build speaks 13, so nothing store-backed can be driven in the tree.**
+- **`0262` -- `st attach` accepts a repo-relative path, reports `ok:`, mints a duplicate.** vc RULED 2026-09-05: **fix the VERB, leave the string.** Resolve-or-refuse is my call and the two are different products; the remedy string's correct wording is DETERMINED BY that choice, so touching the string first is documenting a decision not yet taken.
+- **`0264` -- `dist-provenance.txt`'s `commit:` has two readers with two subjects.** Mine, filed today. The fix is a field per subject and it is a DESIGN CALL ON ST0056, not a roster edit: `publish` parses the `commit` spelling, and `provenance_fields_check.sh:190` resolves `commit:` against `source_commit:` by FILE ORDER through one `sed | head -1`, so a careless split silently switches which subject the checker reads.
+
+**MINE AND BLOCKED -- the CONDITION, never the person:**
+
+- **`AC-02.3` / `0195`** | a route exists that indexes authored prose in a fresh v3.0.0 project.
+- **`AC-02.3` / `0071`** | a migrated v2 estate exists to drive against.
+- **`AC-11.1` / `AC-11.4`** | a published tag and a live tap. Both outward, both hv's.
 
 **OWED BY ME, NOT STARTED:**
 
@@ -60,7 +71,7 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 - **No smoke arm exercises `claude start` / `ws`.** Needs a keg.
 - **`pub const UNWIRED_PHRASE` beside the emitter in `render.rs`**, with `guide.rs` importing it.
 
-**RECORDED, NOT MINE TO BUILD:** `0237` (the canon-vs-git sweep belongs in `intent doctor`). `0271` (migration.md states three preconditions and one is enforced) -- dispositioned and stated, unfixed, unassigned. `unmigrated_surface::no_shipped_command_answers_from_an_unmigrated_project` is RED and INHERITED -- reproduced at HEAD `9eb04b911` in a clean detached worktree; vc has it.
+**RECORDED, NOT MINE TO BUILD:** `0237` -- the canon-vs-git sweep belongs in `intent doctor`; every Intent project has the exposure and `bin/.devbin/` reaches this one alone.
 
 ## Holds
 
@@ -68,16 +79,6 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD** (W69). Re-drive a hold's condition at the moment you quote it, never re-read it off this line.
 
 ## Watch-outs
-
-**A MAP, BECAUSE 121 RULES WITH NO INDEX IS THE REAL DEFECT IN THIS SECTION.** Every number below appears exactly once and the list is checked against the section itself on every fold, so a rule added without a family is a build error rather than a quiet omission -- **this check caught `W9` missing on its first run.** **Nothing is merged and nothing is renumbered**: I considered collapsing the instrument family and read all fourteen first. They share a THEME and not a rule, and each carries a different cure, so a merge would have destroyed mechanism to save bytes. `W97` is why the numbers survive at all -- they are node-local and are cited across nodes anyway.
-
-- **INSTRUMENTS AND CONTROLS -- the dominant class. An instrument that cannot exhibit the failure returns a clean answer.** -- W1, W15, W16, W20, W28, W33, W44, W46, W51, W60, W69, W75, W78, W82, W85, W90, W91, W92, W103, W111, W112
-- **POPULATION, SUBJECT, DENOMINATOR -- what was measured is not what was claimed.** -- W2, W22, W23, W27, W49, W52, W61, W65, W80, W87, W94, W95, W99, W113, W119
-- **SECOND HOMES AND DRIFT -- one fact, two copies, and nothing binding them.** -- W6, W10, W17, W34, W42, W47, W55, W58, W86, W110, W116, W117
-- **THE SHARED CHECKOUT AND PEERS -- five sessions, one tree, no authorship.** -- W3, W4, W45, W66, W68, W70, W74, W79, W81, W89, W96, W97, W98, W100, W101
-- **CLASS VERSUS INSTANCE -- fixing the one you hit leaves the rest, and the fix can be the trap.** -- W5, W12, W21, W37, W40, W41, W50, W71, W72, W73, W105, W114, W115, W118
-- **READING, REPORTING AND REMEDIES -- what the output said versus what it meant.** -- W8, W9, W19, W24, W25, W29, W35, W36, W38, W54, W56, W67, W83, W84, W88, W93, W102, W106, W107, W108, W109
-- **ENVIRONMENT AND MECHANICS -- things that return a plausible wrong answer here.** -- W7, W11, W13, W14, W18, W26, W30, W31, W32, W39, W43, W48, W53, W57, W59, W62, W63, W64, W76, W77
 
 **RULE ONLY. Instances are evidence, not the entry, and they live in `.history/`. Folded hard 2026-09-03 14:46Z: 45,521 bytes of worked examples went to `.history/20260903/wip-prefold-1446Z.md`; not one W-number was dropped.**
 
