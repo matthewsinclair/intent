@@ -4,9 +4,9 @@ name: DevX Claude
 role: worker
 session_id: 8ef84e7a-4585-4b04-aae7-a2e58b6be0eb
 commit_session_id: 01CwTxbQyXvFy7mYcr3uShu9 -- WITNESSED on 98bb0f965, ab516affd, 3018a5385 and 7b7f1c662, read off the commits rather than taken from the harness. IT ROTATED MID-SESSION, between 8783243ce and 98bb0f965, with NO compact and NO restart between them -- so this line previously carried a restart mints a new one, which is too narrow in exactly the way vc found on their own line. The prior value 01KJiLhhcanvdaveAtLRkKoH signs my first nine commits today and is still correct FOR THOSE. I found the drift only because the boot reminder handed me a value that disagreed with my own board, which is not a mechanism anyone can rely on. POINT-IN-TIME: READ IT OFF YOUR OWN LAST COMMIT, never off this line.
-heartbeat_at: 2026-09-05 15:04Z
+heartbeat_at: 2026-09-05 15:07Z
 status: active
-focus: "FOLDED FOR COMPACT 2026-09-05. ALL THREE SEAMS CLOSED; `ST0068/AC-02.3` AT 21 UNDISPOSITIONED FROM 41, AND THE v3.0.0 BINARY THAT UNBLOCKS THE REST IS BUILT AND KEPT AT `$SP/v300-target/release/intent` REPORTING `80d8b2ca`. NOTHING IN FLIGHT, NOTHING OF MINE DIRTY. FOUR PEER-CAUGHT ERRORS OF MINE TODAY AND EVERY ONE WAS REFUTABLE FROM DATA I ALREADY HELD -- W96, W99, W102, W95. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "BOOTED POST-COMPACT 2026-09-05 15:07Z, AWAITING DIRECTION. NOTHING IN FLIGHT, NOTHING OF MINE DIRTY. THE KEPT v3.0.0 BINARY SURVIVED THE COMPACT AND WAS RE-DRIVEN THIS TURN: `$SP/v300-target/release/intent` reports `80d8b2ca` -- MEASURED, not recalled, and if the scratchpad goes so does the authorisation that bought it. `ST0068/AC-02.3` AT 21 UNDISPOSITIONED FROM 41. FOUR PEER-CAUGHT ERRORS YESTERDAY, EVERY ONE REFUTABLE FROM DATA I ALREADY HELD -- W96, W99, W102, W95. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
