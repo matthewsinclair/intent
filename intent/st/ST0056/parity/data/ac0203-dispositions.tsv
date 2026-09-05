@@ -130,7 +130,7 @@
 0182	not-reader-reachable	register-authoring -- unexecuted hv rulings and a fold that keyed on dated are board-authoring concerns	
 0183	not-reader-reachable	internal-tooling -- intent upgrade's out-of-model file set and AC-10.5 are estate-migration surface	
 0184	not-reader-reachable	internal-tooling -- canon_commit_check is a parity instrument	
-0185	stated	docs/getting-started.md	There is no verb for this yet, and the refusal you get if you try says there is.
+0185	stated	docs/getting-started.md	There is no verb for this yet
 0186	not-reader-reachable	register-authoring -- an AT row outside the default suite is a canon-vocabulary gap	
 0187	stated	docs/getting-started.md	does not work in this build and refuses with a reason that is out of date.
 0188	not-reader-reachable	register-authoring -- the register's inability to record why an issue was closed is met by a register author, not by a reader	
@@ -226,3 +226,6 @@
 0271	stated	docs/known-defects.md	intent#0271
 0272	stated	docs/known-defects.md	intent#0272
 0273	stated	docs/known-defects.md	intent#0273
+0274	stated	docs/getting-started.md	**`intent init` does not write it**
+0275	stated	docs/install.md	you must read its COUNT rather than its exit code
+0276	stated	docs/known-defects.md	intent#0276
