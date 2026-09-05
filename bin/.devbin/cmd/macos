@@ -905,15 +905,6 @@ cmd_stage() {
   # carry the other claim in the first place.
   blockers="$(provenance_blockers "$ROOT")"
   head="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || printf 'unknown')"
-  {
-    printf 'commit: %s\n' "$head"
-    if [ -z "$blockers" ]; then
-      printf 'checkout_clean: yes\n'
-    else
-      printf 'checkout_clean: no\n'
-      printf '%s\n' "$blockers" | sed 's/^/  /'
-    fi
-  } >"$PROVENANCE_FILE" || die "could not record provenance at $PROVENANCE_FILE"
 
   step "provenance"
   printf '    %-34s %s\n' "commit" "$head"
@@ -932,6 +923,51 @@ cmd_stage() {
       die "could not stage $b"
     printf '    %-34s <- target/release/%s\n' "$b-$triple" "$b"
   done
+
+  # THE RECORD IS WRITTEN AFTER THE COPY, AND FROM THE COPIED BYTES (AC-11.7).
+  # It used to be written first, which meant a `die` during staging left a record
+  # describing artefacts that were never staged -- a record whose subject does not
+  # exist is worse than no record, because it reads as one.
+  #
+  # WHY THE PARTITION IS THREE FIELDS AND NOT ONE. `commit:` alone answers
+  # CURRENCY and nothing answers IDENTITY, so one source commit covers
+  # structurally different artefacts -- `dirty-18197aaf` was carried by `intent`
+  # at 9008848 bytes and `intentd` at 373136 simultaneously. The converse is just
+  # as real: `f2e4d1f9005d0334` matched its record exactly for ten hours while
+  # being 158 commits behind. **A hash certifies WHICH bytes; a commit certifies
+  # WHICH SOURCE; neither implies the other, so the record must carry both and
+  # SAY which question each answers.** A reader who has to infer the question
+  # from the field name is the reader who read `commit:` as a claim about the
+  # artefacts when its subject was the checkout.
+  #
+  # `commit:` KEEPS ITS SPELLING DELIBERATELY. `int macos publish` parses
+  # `^commit: ` and `^checkout_clean: ` out of this file, and renaming a field to
+  # suit a checker while a consumer still reads the old name is how a record
+  # starts describing nothing. `checkout_clean` stays for the same reason and
+  # keeps its own subject: it is about the CHECKOUT, not about the bytes.
+  #
+  # DRIFT IS HELD RATHER THAN OMITTED. Two fields would read as a CLOSED
+  # partition over provenance, and it is not closed: neither primary expresses
+  # how much uncommitted code the artefact holds, and nothing here can check that
+  # an embedded marker is HONEST about the bytes carrying it. A hold with a named
+  # condition is a covered property; a hold without one is a permanent exemption.
+  {
+    printf 'artefact_sha256:\n'
+    printf '  answers: IDENTITY -- which of several builds these bytes are; one line per staged artefact\n'
+    for b in $BINARIES; do
+      printf '  %-30s %s\n' "$b-$triple" "$(shasum -a 256 "$STAGE_DIR/$b-$triple" | awk '{ print $1 }')"
+    done
+    printf 'commit: %s\n' "$head"
+    printf '  answers: CURRENCY -- which commit the source came from\n'
+    printf 'drift: HELD\n'
+    printf '  release condition: a reproducible build -- when one commit and one set of inputs yield one artefact_sha256, the embedded marker can be VERIFIED against the bytes instead of trusted. Until then publish refuses via artefact_commit_blockers at the tag.\n'
+    if [ -z "$blockers" ]; then
+      printf 'checkout_clean: yes\n'
+    else
+      printf 'checkout_clean: no\n'
+      printf '%s\n' "$blockers" | sed 's/^/  /'
+    fi
+  } >"$PROVENANCE_FILE" || die "could not record provenance at $PROVENANCE_FILE"
 
   # AND NOW ASK THE BYTES THEMSELVES. Everything printed above is a claim about
   # the CHECKOUT, and `stage` used to stop there -- so it reported on binaries it
