@@ -669,6 +669,8 @@ pub fn contract_report(
   let completed = thread.status == ThreadStatus::Completed;
   let mut out = Vec::new();
   let mut rows = 0;
+  let mut examined = 0;
+  let mut un = Unexamined::default();
 
   for t in thread.tests.iter().filter(|t| match wanted {
     None => true,
@@ -679,15 +681,29 @@ pub fn contract_report(
     // is exempt because a missing file is the CORRECT state for a test not yet
     // written -- a naive existence check reds five correct rows, which is why
     // v2 restricts the arm to green|red.
-    if t.kind == AtKind::Test
-      && matches!(t.status, AtStatus::Green | AtStatus::Red)
-      && let Some(path) = t.file.as_deref()
-    {
+    //
+    // AND EVERY ROW THAT DOES NOT REACH THE ARMS IS ACCOUNTED FOR (0273). The
+    // guard used to be the end of it: a row that failed any limb was skipped in
+    // silence and still counted, so the total reported as conforming included
+    // rows nothing had read. The exemptions are real and they stay; what changes
+    // is that they are now COUNTED AS EXEMPTIONS instead of as conformance.
+    if t.kind != AtKind::Test {
+      if matches!(t.status, AtStatus::Green | AtStatus::Red) {
+        un.not_a_test_with_verdict += 1;
+      } else {
+        un.not_a_test += 1;
+      }
+    } else if !matches!(t.status, AtStatus::Green | AtStatus::Red) {
+      un.no_verdict += 1;
+    } else if let Some(path) = t.file.as_deref() {
+      examined += 1;
       if !refs.resolves(path) {
         out.push(format!("{} cites a file that does not exist: {path}", t.id));
       } else if !completed && !refs.carries_id(path, &t.id) {
         out.push(format!("{path} does not carry the literal id {}", t.id));
       }
+    } else {
+      un.no_readable_citation += 1;
     }
 
     for covered in &t.covers {
@@ -723,6 +739,8 @@ pub fn contract_report(
   ContractReport {
     findings: out,
     rows,
+    examined,
+    unexamined: un,
   }
 }
 
@@ -737,8 +755,46 @@ pub fn contract_report(
 pub struct ContractReport {
   /// One entry per L2-L5 violation, each naming which rule fired.
   pub findings: Vec<String>,
-  /// AT rows examined, counted after the scope filter.
+  /// AT rows WALKED, counted after the scope filter -- NOT the number examined.
+  ///
+  /// This field's own doc comment said "examined" until 0273, and the word was
+  /// the whole defect in miniature: `rows` is incremented before the arms decide
+  /// whether they can read the row, so a total that includes rows nothing looked
+  /// at was rendered as the number that conformed.
   pub rows: usize,
+  /// Of those, the rows the L2/L3 citation arms actually read.
+  pub examined: usize,
+  /// The rest, partitioned by WHY, because the three reasons are not alike.
+  pub unexamined: Unexamined,
+}
+
+/// Why a walked row was never examined. **Three reasons, reported apart,
+/// because two of them are correct and one is the thing to look at.**
+///
+/// A row that is not a test, and a test row with no verdict yet, are exempt by
+/// design -- L2/L3 ask about a citation and neither has one to ask about. A
+/// row carrying a VERDICT and no readable citation is different in kind: it
+/// asserts a result that nothing here checked, and folding it in with the other
+/// two is how it stayed invisible. Named separately so a reader can tell an
+/// exemption from a blind spot.
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+pub struct Unexamined {
+  /// `kind` is not `test` and it claims no result: a doc / eyeball / gate row
+  /// awaiting its verdict has no citation to check and is exempt by design.
+  pub not_a_test: usize,
+  /// **`kind` is not `test` AND the row is green or red.** A doc or gate row
+  /// asserting a test result is a defect in its own right, reported elsewhere --
+  /// but it lands here too, because from THIS instrument's side it is a verdict
+  /// nothing examined, which is the whole subject of 0273. It had a home in
+  /// `not_a_test` until it was measured: Intent's canon holds exactly one, and
+  /// filed under a heading that reads as a benign exemption it was invisible.
+  pub not_a_test_with_verdict: usize,
+  /// A test row still `to-write` or `n/a`: a missing file is its CORRECT state.
+  pub no_verdict: usize,
+  /// **Green or red, and no structured `file` to read.** A migrated row whose
+  /// address survives only in `legacy.raw` lands here, and so does one with no
+  /// citation at all. The verdict is asserted and nothing examined it.
+  pub no_readable_citation: usize,
 }
 
 /// Descoped and withdrawn counts are reported SEPARATELY, never folded into

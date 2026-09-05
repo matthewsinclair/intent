@@ -3065,6 +3065,12 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
       if un.not_a_test > 0 {
         why.push(format!("{} not test rows", un.not_a_test));
       }
+      if un.not_a_test_with_verdict > 0 {
+        why.push(format!(
+          "{} NOT TEST row(s) CARRYING A VERDICT",
+          un.not_a_test_with_verdict
+        ));
+      }
       if un.no_verdict > 0 {
         why.push(format!("{} awaiting a verdict", un.no_verdict));
       }

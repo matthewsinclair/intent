@@ -833,7 +833,20 @@ pub fn serve(
       let target = spec(path, need_s(path, map, "stid")?)?;
       let (st, _) = crate::render::scope_of(&target);
       let report = f.at_lint(&st)?;
-      Ok(json!({ "findings": report.findings, "rows": report.rows }))
+      // `rows` is the WALKED total and keeps its spelling; the machine surface
+      // gains what the human one gained (0273), rather than being left as the
+      // one reader still told that walked means examined.
+      Ok(json!({
+        "findings": report.findings,
+        "rows": report.rows,
+        "examined": report.examined,
+        "unexamined": {
+          "not_a_test": report.unexamined.not_a_test,
+          "not_a_test_with_verdict": report.unexamined.not_a_test_with_verdict,
+          "no_verdict": report.unexamined.no_verdict,
+          "no_readable_citation": report.unexamined.no_readable_citation,
+        }
+      }))
     }
     "at green" | "at red" | "at na" => {
       let st = spec(path, need_s(path, map, "stid")?)?;

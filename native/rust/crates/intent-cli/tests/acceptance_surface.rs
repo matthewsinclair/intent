@@ -267,11 +267,73 @@ fn at_lint_on_a_conforming_thread_says_what_it_examined() {
   let out = run(root, &["at", "lint", "ST0001"]);
   assert_eq!(
     stdout(&out),
-    "lint: ST0001 ok -- 2 AT row(s) conform",
+    "lint: ST0001 ok -- 0 of 2 AT row(s) examined and conforming; 2 not examined (2 awaiting a verdict)",
     "v2's positive control (`bin/intent_acceptance:1278`). Zero bytes here is \
      indistinguishable from a lint that never ran"
   );
   assert_eq!(out.status.code(), Some(0));
+}
+
+/// **0273: a row the citation arms cannot read was counted as conforming.**
+///
+/// `rows` was incremented before the guard that decides whether an arm can read
+/// the row, and `at lint` rendered that total as the number that conformed. So
+/// a GREEN row whose address survives only in `legacy.raw` -- or which carries
+/// no citation at all -- was reported as verified by a check that never looked
+/// at it.
+///
+/// **Two rows, deliberately, and they differ in exactly one property.** One
+/// green row cites a real file carrying its id; one green row cites nothing.
+/// With a single row the examined count and the walked count are both 1 or both
+/// 0, and a report that confused them would read correctly either way.
+#[test]
+fn a_verdict_row_with_no_readable_citation_is_not_counted_as_conforming() {
+  let dir = project();
+  let root = dir.path();
+  std::fs::create_dir_all(root.join("t")).expect("mkdir");
+  std::fs::write(root.join("t/real.rs"), "// AT-01.1 lives here\n").expect("write");
+  seed(
+    root,
+    "ST0001",
+    &criterion("AC-01.1"),
+    &[
+      r#"{ "id": "AT-01.1", "covers": ["AC-01.1"], "kind": "test", "status": "green", "file": "t/real.rs" }"#,
+      r#"{ "id": "AT-01.2", "covers": ["AC-01.1"], "kind": "test", "status": "green" }"#,
+    ]
+    .join(", "),
+  );
+
+  let out = run(root, &["at", "lint", "ST0001"]);
+  assert_eq!(
+    stdout(&out),
+    "lint: ST0001 ok -- 1 of 2 AT row(s) examined and conforming; 1 not examined \
+     (1 with a verdict and NO READABLE CITATION)",
+    "the unreadable row must be named as unexamined, not folded into the count"
+  );
+  assert_eq!(out.status.code(), Some(0));
+}
+
+/// **The positive control for the arm above**, and it is the one that makes the
+/// green mean something: the SAME fault on a row the arms CAN read is caught by
+/// name and fails. An instrument that never fires reports every corpus clean.
+#[test]
+fn the_same_fault_on_a_readable_row_is_still_caught() {
+  let dir = project();
+  let root = dir.path();
+  seed(
+    root,
+    "ST0001",
+    &criterion("AC-01.1"),
+    r#"{ "id": "AT-01.1", "covers": ["AC-01.1"], "kind": "test", "status": "green", "file": "t/gone.rs" }"#,
+  );
+
+  let out = run(root, &["at", "lint", "ST0001"]);
+  assert!(
+    stdout(&out).contains("AT-01.1 cites a file that does not exist: t/gone.rs"),
+    "got: {}",
+    stdout(&out)
+  );
+  assert_eq!(out.status.code(), Some(1));
 }
 
 /// **The control the single-fixture test cannot be.** Two threads, two row
@@ -297,11 +359,11 @@ fn the_row_count_is_the_rows_examined_and_not_a_constant() {
 
   assert_eq!(
     stdout(&run(root, &["at", "lint", "ST0001"])),
-    "lint: ST0001 ok -- 1 AT row(s) conform"
+    "lint: ST0001 ok -- 0 of 1 AT row(s) examined and conforming; 1 not examined (1 awaiting a verdict)"
   );
   assert_eq!(
     stdout(&run(root, &["at", "lint", "ST0002"])),
-    "lint: ST0002 ok -- 4 AT row(s) conform"
+    "lint: ST0002 ok -- 0 of 4 AT row(s) examined and conforming; 4 not examined (4 awaiting a verdict)"
   );
 }
 
@@ -316,7 +378,7 @@ fn a_thread_with_no_at_rows_says_zero_rather_than_looking_checked() {
 
   assert_eq!(
     stdout(&run(dir.path(), &["at", "lint", "ST0001"])),
-    "lint: ST0001 ok -- 0 AT row(s) conform"
+    "lint: ST0001 ok -- 0 of 0 AT row(s) examined and conforming"
   );
 }
 
@@ -348,7 +410,9 @@ fn at_lint_failing_prints_the_verdict_beside_the_findings() {
     "the finding still names which rule fired: {printed:?}"
   );
   assert!(
-    printed.contains("lint: ST0001 FAILED -- 1 finding(s) over 2 AT row(s)"),
+    printed.contains(
+      "lint: ST0001 FAILED -- 1 finding(s) over 0 of 2 AT row(s) examined; 2 not examined (2 awaiting a verdict)"
+    ),
     "and the verdict says how much was examined, so a reader can tell one bad \
      row out of two from one out of a hundred: {printed:?}"
   );
