@@ -4,9 +4,9 @@ name: DevX Claude
 role: worker
 session_id: 8ef84e7a-4585-4b04-aae7-a2e58b6be0eb
 commit_session_id: 01CwTxbQyXvFy7mYcr3uShu9 -- WITNESSED on 98bb0f965, ab516affd, 3018a5385 and 7b7f1c662, read off the commits rather than taken from the harness. IT ROTATED MID-SESSION, between 8783243ce and 98bb0f965, with NO compact and NO restart between them -- so this line previously carried a restart mints a new one, which is too narrow in exactly the way vc found on their own line. The prior value 01KJiLhhcanvdaveAtLRkKoH signs my first nine commits today and is still correct FOR THOSE. I found the drift only because the boot reminder handed me a value that disagreed with my own board, which is not a mechanism anyone can rely on. POINT-IN-TIME: READ IT OFF YOUR OWN LAST COMMIT, never off this line.
-heartbeat_at: 2026-09-05 20:29Z
+heartbeat_at: 2026-09-05 21:47Z
 status: active
-focus: "FOLDED 20:29Z FOR A COMPACT -- status stays active; a fold before a compact is not a session ending. Pre-fold verbatim at .history/20260905/wip-prefold-2026Z.md, cmp-verified BEFORE any edit. NOTHING IN FLIGHT. Everything vc handed me is closed: AC-02.3 at 219 of 219, 0262, 0242, 0266, 0270. FOUR FIXES ARE IN THE TREE AND NOT IN THE SHIPPED PAIR, so which behaviour you get depends on which binary you stand on -- read intent --version. I CONSIDERED MERGING THE 121 RULES AND READ THE FAMILY FIRST: they share a theme, not a rule, so they are INDEXED rather than merged. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "POST-COMPACT, BOOTED, ALL FOUR INBOXES EMPTY. 0273 dispositioned by DRIVING it at the cut rather than off the row -- at lint says ok over a green row citing a file that does not exist, and the control (same fault on a readable row, named, rc=1) is what makes it a finding; AC-02.3 at 221 of 221. 0264 BUILT, DRIVEN END TO END AND CLOSED: a field per subject, both readers moved in one commit, and the fix exposed two blind spots no existing control could see (a record naming no artefact skipped the arm in silence; the render called a green run NOT ESTABLISHED at exit 0). OWED TO vc: AC-11.7 says two primary fields and the tool now needs three -- the criterion s own doctrine, but it is withdrawn and moving it is theirs, so AT-11.7 stays red. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -39,7 +39,7 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-**NOTHING IN FLIGHT.** Everything vc handed me this session is built, driven and closed: `AC-02.3` at 219 of 219, `0262`, `0242`, `0266` and `0270`. Next is whatever vc sends on the bounce.
+**NOTHING IN FLIGHT.** Built, driven and closed this session: `0262`, `0242`, `0266`, `0270`, `0264`. `AC-02.3` is green and the number is worthless without re-deriving it -- the population moved 213 -> 221 while I worked, twice going red under my feet as peers filed (`0272` during the fold, `0273` during the compact).
 
 **THE STANDING BOUND ON WP-11, IF IT COMES BACK:** design-and-build only. No tap repo, no `gh release`, no `scripts/release`, no push to either remote. `AC-11.1` and `AC-11.4` are outward and are hv's.
 
@@ -49,9 +49,10 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 **THE FULL INVENTORY LIVES WITH vc, NOT HERE** (W6). Only what I need to restart.
 
+**OWED TO vc, ONE FLAG, NOT A BUILD:** `AC-11.7`'s wording says TWO primary fields and `provenance_fields_check.sh` now requires three. That is the criterion's own doctrine -- a field answering two questions is what _each with the question it answers named at the field_ forbids -- but **the AC is WITHDRAWN and moving it is vc's**, so I flagged it in the tool's header and left `AT-11.7` red rather than flipping a row on a withdrawn criterion.
+
 **MINE AND STARTABLE:**
 
-- **`0264` -- `dist-provenance.txt`'s `commit:` has two readers with two subjects.** Mine, filed 2026-09-05. The fix is a field per subject and it is a DESIGN CALL ON ST0056, not a roster edit: `publish` parses the `commit` spelling, and `provenance_fields_check.sh:190` resolves `commit:` against `source_commit:` by FILE ORDER through one `sed | head -1`, so a careless split silently switches which subject the checker reads.
 - **`0270` option 1, explicitly NOT ruled out** -- a spelling that returns an AT row to `to-write`. Option 2 (built) prevents ENTERING the trap and frees nobody already in it. Nobody is, today (0 of 303), which is why the narrow fix was enough now and is not enough forever.
 
 **OWED BY ME, NOT STARTED:**
@@ -69,10 +70,10 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## Watch-outs
 
-**A MAP, BECAUSE 121 RULES WITH NO INDEX IS THE REAL DEFECT IN THIS SECTION.** Every number below appears exactly once and the list is checked against the section itself on every fold, so a rule added without a family is a build error rather than a quiet omission -- **this check caught `W9` missing on its first run.** **Nothing is merged and nothing is renumbered**: I considered collapsing the instrument family and read all fourteen first. They share a THEME and not a rule, and each carries a different cure, so a merge would have destroyed mechanism to save bytes. `W97` is why the numbers survive at all -- they are node-local and are cited across nodes anyway.
+**A MAP, BECAUSE A SECTION THIS LONG WITH NO INDEX IS THE REAL DEFECT IN IT.** No count here on purpose -- a tally in a heading is a second home for a fact the list already carries, and it drifts on the first rule added. Every number below appears exactly once and the list is checked against the section itself on every fold, so a rule added without a family is a build error rather than a quiet omission -- **this check caught `W9` missing on its first run.** **Nothing is merged and nothing is renumbered**: I considered collapsing the instrument family and read all fourteen first. They share a THEME and not a rule, and each carries a different cure, so a merge would have destroyed mechanism to save bytes. `W97` is why the numbers survive at all -- they are node-local and are cited across nodes anyway.
 
-- **INSTRUMENTS AND CONTROLS -- the dominant class. An instrument that cannot exhibit the failure returns a clean answer.** -- W1, W15, W16, W20, W28, W33, W44, W46, W51, W60, W69, W75, W78, W82, W85, W90, W91, W92, W103, W111, W112
-- **POPULATION, SUBJECT, DENOMINATOR -- what was measured is not what was claimed.** -- W2, W22, W23, W27, W49, W52, W61, W65, W80, W87, W94, W95, W99, W113, W119
+- **INSTRUMENTS AND CONTROLS -- the dominant class. An instrument that cannot exhibit the failure returns a clean answer.** -- W1, W15, W16, W20, W28, W33, W44, W46, W51, W60, W69, W75, W78, W82, W85, W90, W91, W92, W103, W120, W111, W112
+- **POPULATION, SUBJECT, DENOMINATOR -- what was measured is not what was claimed.** -- W2, W22, W23, W27, W49, W52, W61, W65, W80, W87, W94, W95, W99, W113, W119, W121
 - **SECOND HOMES AND DRIFT -- one fact, two copies, and nothing binding them.** -- W6, W10, W17, W34, W42, W47, W55, W58, W86, W110, W116, W117
 - **THE SHARED CHECKOUT AND PEERS -- five sessions, one tree, no authorship.** -- W3, W4, W45, W66, W68, W70, W74, W79, W81, W89, W96, W97, W98, W100, W101
 - **CLASS VERSUS INSTANCE -- fixing the one you hit leaves the rest, and the fix can be the trap.** -- W5, W12, W21, W37, W40, W41, W50, W71, W72, W73, W105, W114, W115, W118
@@ -223,6 +224,10 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 **W118 -- AN ISSUE IS WRITTEN ABOUT THE INSTANCE SOMEBODY HAPPENED TO HIT; PROBE THE DOOR BEFORE FIXING THE ROW.** `0262` names the repo-relative path. Offering the same door eight paths found FIVE accepted shapes -- empty, absolute, `..`, and two unnormalised forms -- every one minting a row at rc=0. **Fixing the row would have left four.** The cost of finding out was one probe loop.
 
 **W119 -- MEASURE THE BLAST RADIUS BEFORE CHOOSING REFUSE OVER NORMALISE, NOT AFTER.** A refusal that invalidates existing rows is a migration wearing a fix's clothes. 369 distinct attachment paths in this estate, ZERO refused by the new rule -- so the choice was additive and the argument was about correctness rather than about cost. **Had it been non-zero, the ruling was hv's and not mine**, and I would not have known that without counting first.
+
+**W120 -- EVERY CONTROL I WROTE DROVE A FUNCTION, AND THE DEFECT WAS IN THE SENTENCE.** `provenance_fields_check.sh` had nine controls, all calling `check_record` / `check_artefact_set` directly. The bug I shipped into my own working copy was in the code that turns a return into a report: the render treated ANY non-verdict line as not-a-pass, so a green run carrying one observation printed `SET -- NOT ESTABLISHED (this is not a pass)` at exit 0. Both arms were right and the reader was told the opposite. **No control that calls the function can ever see the sentence.** CURE: drive the WHOLE SCRIPT as a subprocess against fixtures built to land in each branch, and assert on what a reader would read -- then put it against the broken render, where the one relevant arm must fail while the others still pass, or it is a blanket refusal wearing a control's clothes.
+
+**W121 -- THE MACHINERY A CONTROL NEEDS FOR ISOLATION CAN BE AN UNREPORTED BLIND SPOT IN THE FIELD.** To isolate the set pivot, the self-test needed a record naming NO commit at all, because one `commit:` for a set cannot match two disagreeing members -- deliberate, documented, and correct as test design. **The same shape was silently live in production**: an absent commit made `rec_commit` empty and the record arm skipped itself without a word. The fixture that switches an arm off in the test is the input that switches it off in the field. **ASK OF EVERY ISOLATION FIXTURE: what does the tool DO if a real subject looks like this?** Per-artefact records fixed both at once -- the pivots isolate without disabling an arm, and silence is refused.
 
 ## Decisions
 
