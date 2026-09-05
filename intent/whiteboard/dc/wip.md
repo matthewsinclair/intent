@@ -4,7 +4,7 @@ name: DevX Claude
 role: worker
 session_id: 8ef84e7a-4585-4b04-aae7-a2e58b6be0eb
 commit_session_id: 01CwTxbQyXvFy7mYcr3uShu9 -- WITNESSED on 98bb0f965, ab516affd, 3018a5385 and 7b7f1c662, read off the commits rather than taken from the harness. IT ROTATED MID-SESSION, between 8783243ce and 98bb0f965, with NO compact and NO restart between them -- so this line previously carried a restart mints a new one, which is too narrow in exactly the way vc found on their own line. The prior value 01KJiLhhcanvdaveAtLRkKoH signs my first nine commits today and is still correct FOR THOSE. I found the drift only because the boot reminder handed me a value that disagreed with my own board, which is not a mechanism anyone can rely on. POINT-IN-TIME: READ IT OFF YOUR OWN LAST COMMIT, never off this line.
-heartbeat_at: 2026-09-04 20:12Z
+heartbeat_at: 2026-09-05 09:43Z
 status: active
 focus: "SEAMS 2 AND 3 LANDED (`31146862f`, `5c31a426e`); SEAM 1 IS SPECIFIED AND PARKED ON vc RULING -- DO NOT START IT IN A TIRED SESSION, its failure mode is a confident number. THE HANDOVER IS COMPLETE IN TODO: ruling, size, polarity axis and exclusions are all written down, so a fresh session inherits a fully specified M. FOUR INSTRUMENT CATCHES TONIGHT AND THE RATE ROSE -- W88. NOTHING IN FLIGHT, NOTHING OF MINE DIRTY. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
