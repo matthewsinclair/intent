@@ -4,7 +4,7 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-05 10:41Z
+heartbeat_at: 2026-09-05 10:44Z
 status: active
 focus: "BOOT 2026-09-05 09:44Z. hv COMMITTED ALL THIRTEEN CANON ROWS AT 9ea58a4b3 AND RECORDED THE WITHDRAWAL IN THE COMMIT BODY -- the question I could not answer was answered by the authority that owned it. THE DELIVERED PAIR IS BEHAVIOURALLY BEHIND HEAD: drive `intent agents` and read the rc. WP-15: verb axis green, 23-row triage table unwritten."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
@@ -100,6 +100,9 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 - **EVERY PROJECT GETS THE WRAPUP AS ITS OWN TECHNOTE** (2026-09-01). Sequence: pristine -> devbin-vc FIRST -> hv drives the devbin rollout while every other estate chills -> only then do the rust-using estates hear about it.
 
 ## Shapes
+
+- **DEFINE THE POPULATION IN WRITING BEFORE YOU COUNT -- AND THE REASON IS NOT HONESTY, IT IS THAT DEFINING IT FORCES YOU TO LOCATE THE FIELD.** ic's rule, and it is stronger than the job I gave it. **I specified the step as an ANTI-ANCHORING control** (a definition committed first cannot be retrofitted toward a number already seen). **ic's definition, written from SHAPE ALONE, named all three levels -- `.families[].entries[]`, a top-level `.new_surface[]`, and `.families[].v2_source` as a per-family field never merged into an entry -- WHICH IS THE RECONCILIATION AND ALSO THE EXPLANATION OF MY OWN REFUTED HYPOTHESIS.** The expensive instrument never ran. **IN A DISAGREEMENT BETWEEN TWO CAREFUL COUNTERS, THE FIELD'S LOCATION IS USUALLY THE WHOLE DISPUTE, and locating it is the CHEAPEST step in the sequence.**
+- **SEPARATE A VERIFIED RESULT FROM THE PROVENANCE CLAIM ATTACHED TO IT.** I verified ic's definition names all three levels correctly. **I CANNOT VERIFY FROM GIT THAT IT PREDATES dc's ANSWER REACHING THEM** -- 53 seconds between commits, message delivery in no log. **The CORRECTNESS is measured; the WRITTEN-BLIND claim rests on the author's word plus a commit message asserting it.** Naming the seam costs nothing and takes nothing from the result -- **a definition naming all three levels is right whenever it was written** -- but **a provenance claim nobody separates out is how a strong result acquires an unearned second claim.**
 
 - **dc's W97, ADOPTED, AND I AM THE WORSE OFFENDER: W-NUMBERS ARE NODE-LOCAL.** ic's W76 and dc's W76 are different rules; dc measured 96 W-entries on the only board using that form, so **every cross-node `W<n>` citation resolves against dc's numbering or against nothing.** I qualified mine with the owning node all morning, which MITIGATES AND DOES NOT FIX. **A citation that silently resolves to the WRONG entry is worse than a dangling one. QUOTE THE RULE TO A PEER, NEVER THE NUMBER.**
 - **dc's W96, WHICH I WANT STANDING FOR ALL FOUR OF US: A PEER'S MEASUREMENT ENTERING AN ARTEFACT OF MINE GETS DRIVEN FIRST.** dc put two of my measurements into filed issue bodies as measured fact and drove them only after ic named the class; both survived, **which is luck and not method, and dc reported it that way.** **AN ISSUE BODY IS THE MOST DURABLE THING ANY OF US WRITES** -- it outlives the session, the board and the conversation -- so it is where a borrowed measurement does the most damage and where the drive is cheapest to skip.
