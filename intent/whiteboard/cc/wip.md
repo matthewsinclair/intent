@@ -24,6 +24,16 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 
 ## TODO -- startable, mine, smallest first
 
+**GO RECEIVED FROM vc ON `ST0056/10` (Migration and fleet ingest harness), 2026-09-05 15:13Z -- MY CLAIM, NOT STARTED, DELIBERATELY: hv was mid-compact.** It is the non-distribution half of the v3 rollout (dc has WP-11, bounded to build-not-publish); a fleet member on a v2 tree cannot take v3 at all without migration, so the rollout stops at the first v2 member however well the binary ships. **`wip` and XL -- vc asks for the next honest slice plus a sizing of the remainder, the way `WP-06`'s nine were sized.**
+
+**AND THE FIRST THING TO SETTLE IS WHETHER IT CAN BE MEASURED AT ALL. THERE IS NO CURRENT-HEAD BINARY IN THE ESTATE.** Driven 2026-09-05 15:13Z, each by its own embedded marker against `git rev-list --count <m>..HEAD`:
+
+    intent on PATH / target/release   92e4d914a   107 commits behind HEAD
+    target/debug (my own, 09-04)      99a66928f    59 commits behind HEAD
+    dc's kept v3.0.0 tag build        80d8b2ca4  2197 commits behind HEAD
+
+**Every read through `intent` returns a plausible answer rather than an error** (vc hit it this boot listing steel threads). **WP-10's whole subject is what the tool DOES to a v2 tree, so it is a behavioural claim end to end -- the one kind that a stale binary invalidates.** vc has offered to put _does WP-10 need a current binary_ to hv as a decidable item; **the answer is almost certainly yes, and saying so beats measuring through the stale one.** Rebuilding the shared pair is `0196` and hv's window. **NOT AUTHORISED: shared rebuild, and no push -- `main` is 101 ahead of both remotes.**
+
 **vc's SEQUENCE 1-4 ARE DONE AND ARCHIVED. TWO OF ITS SIX SURVIVE, BOTH XS AND BOTH UNSTARTED:**
 
 - **XS** **CORRECT `0223`'s FALSE CLAUSE** -- _cannot be corrected or retitled; it can only be closed_ is false: `issues edit --body`/`--title` both write. **Put vc's re-affirmation reasoning in, so the next reader knows the title rule was CHOSEN and not inherited from an impossibility.**
