@@ -4,7 +4,7 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-05 17:32Z
+heartbeat_at: 2026-09-05 17:34Z
 status: active
 focus: "2026-09-05 FOLDED FOR A BOUNCE 17:25Z, status stays active -- a fold before a compact is not a session ending. Pre-fold verbatim at .history/20260905/wip-prefold-1723Z.md, cmp-verified BEFORE folding. THE ESTATE IS CURRENT: hv ruled 0196 (staging + atomic mv, fix before rebuild), dc built it, ran it, pair promoted with intentd restarted. ic FIXED AND CLOSED 0247. cc DELIVERED WP-10 structural. Six canon rows committed on hv word; AC-00.2 descoped and verified PAST THE INGEST. WP-11 IS AT ITS BOUND -- AC-11.1 and AC-11.4 are OUTWARD and need a published release, so THE PUSH IS NOW LOAD-BEARING and is hv-only. THREE SHAPES OF MINE FAILED TO BIND TODAY (piped rc, unquoted glob, a heartbeat typed by feel four minutes ahead of the clock I had just read). STILL hv-only: ST0065 three rulings, 0257, WP-06, the push. OWED BY ME: the confessions pass under ic criterion, WP-15 23-row table. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
