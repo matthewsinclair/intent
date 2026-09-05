@@ -4,9 +4,9 @@ name: DevX Claude
 role: worker
 session_id: 8ef84e7a-4585-4b04-aae7-a2e58b6be0eb
 commit_session_id: 01CwTxbQyXvFy7mYcr3uShu9 -- WITNESSED on 98bb0f965, ab516affd, 3018a5385 and 7b7f1c662, read off the commits rather than taken from the harness. IT ROTATED MID-SESSION, between 8783243ce and 98bb0f965, with NO compact and NO restart between them -- so this line previously carried a restart mints a new one, which is too narrow in exactly the way vc found on their own line. The prior value 01KJiLhhcanvdaveAtLRkKoH signs my first nine commits today and is still correct FOR THOSE. I found the drift only because the boot reminder handed me a value that disagreed with my own board, which is not a mechanism anyone can rely on. POINT-IN-TIME: READ IT OFF YOUR OWN LAST COMMIT, never off this line.
-heartbeat_at: 2026-09-05 22:03Z
+heartbeat_at: 2026-09-05 22:13Z
 status: active
-focus: "vc RULED 0273+0267 ONE JOB, MINE, AND THEY LAND DIFFERENTLY. 0273 counting half BUILT, DRIVEN AND CLOSED at 170449f1 -- at lint reports EXAMINED not WALKED, and it reproduces ic s partition exactly (406 walked, 303 examined, 103 unexamined) from different code. 0267 reddening MEASURED AND NOT LANDED: narrow tightening reddens 0 rows and fires on 0267 s own exhibit; strong reddens 160 of 196. L3 s population is 196 not 303 -- 107 examined rows sit on completed threads. STRAY .intent.db EXPLAINED and is cc s: sqlite3 creates on open, a read that writes. unmigrated_surface red has a NAMED CAUSE, 99a66928f. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "0273 CLOSED (170449f1) and 0267 s DISCRIMINATING HALF LANDED (b3733bef) after vc ruled the zero-blast-radius form mine. Narrow tightening reddens 0 of 196 and fires on 0267 s own exhibit through the same binary that swept the corpus; the strong form is 160 of 196 and is hv s. 0267 STAYS OPEN for its second half -- the check stops at close. AC-02.3 at 224 of 224 after three peer filings; 0276 DRIVEN AND ITS HEADLINE IS WRONG -- the divergence is not ingested, it is dropped, and sync says the store and the extract agree. L3 s population is 196, NOT the 303 the citation arms examine. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -77,7 +77,7 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 - **SECOND HOMES AND DRIFT -- one fact, two copies, and nothing binding them.** -- W6, W10, W17, W34, W42, W47, W55, W58, W86, W110, W116, W117
 - **THE SHARED CHECKOUT AND PEERS -- five sessions, one tree, no authorship.** -- W3, W4, W45, W66, W68, W70, W74, W79, W81, W89, W96, W97, W98, W100, W101
 - **CLASS VERSUS INSTANCE -- fixing the one you hit leaves the rest, and the fix can be the trap.** -- W5, W12, W21, W37, W40, W41, W50, W71, W72, W73, W105, W114, W115, W118
-- **READING, REPORTING AND REMEDIES -- what the output said versus what it meant.** -- W8, W9, W19, W24, W25, W29, W35, W36, W38, W54, W56, W67, W83, W84, W88, W93, W102, W106, W107, W108, W109
+- **READING, REPORTING AND REMEDIES -- what the output said versus what it meant.** -- W8, W9, W19, W24, W25, W29, W35, W36, W38, W54, W56, W67, W83, W84, W88, W93, W102, W106, W107, W108, W109, W124
 - **ENVIRONMENT AND MECHANICS -- things that return a plausible wrong answer here.** -- W7, W11, W13, W14, W18, W26, W30, W31, W32, W39, W43, W48, W53, W57, W59, W62, W63, W64, W76, W77, W122
 
 **RULE ONLY. Instances are evidence, not the entry, and they live in `.history/`. Folded hard 2026-09-03 14:46Z: 45,521 bytes of worked examples went to `.history/20260903/wip-prefold-1446Z.md`; not one W-number was dropped.**
@@ -232,6 +232,8 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 **W122 -- `sqlite3 <path>` CREATES THE FILE, SO A READ CAN WRITE, AND A FALLBACK LADDER THEN ANSWERS FOR IT.** A mistyped db path leaves a 0-byte artefact and returns `no such table`; under `2>/dev/null || ls ... || find ...` the error is swallowed and the ladder's answer is reported as the query's. **The query did not run and nothing says so.** Found by attributing a stray `intent/.intent.db` in the shared tree: the real path is `intent/.cache/intent.db` and the dot-prefixed spelling appears nowhere in the tree, which is how the CODE was cleared before a peer was named. The general form: **a fallback chain converts a wrong subject into a confident answer**, and `2>/dev/null` is what makes it silent.
 
 **W123 -- A PARTITION CAN BURY THE MEMBER IT WAS BUILT TO EXPOSE, AND IT LOOKS COMPLETE WHILE DOING IT.** 0273's fix reports why each unexamined row was not examined. Testing `kind` before `status` filed the ONE green/red row in this canon with no citation under _not test rows_ -- a heading that reads as a benign exemption -- so the report I wrote to end the blindness reproduced it under a new name. **Every member was accounted for and the arithmetic closed.** It surfaced only because a peer had named the row and I checked their figure against my output instead of admiring the total. **CURE: order a partition so the ALARMING property is tested first, never the structural one; and when someone hands you a specific member, find it in your own report by name before believing the partition.**
+
+**W124 -- A QUOTE IS A COUPLING TO PROSE SOMEBODY ELSE OWNS.** `0185`'s disposition broke because a peer reworded the sentence it quoted -- the CLAIM was unchanged, and the quote had bound a clause the claim did not depend on. A verification that keys on bytes you do not control fails on edits that are not defects, and each failure teaches the next reader that the check is noisy. **CURE: quote the shortest fragment that carries the claim, never the sentence that happens to contain it.** The instrument is right to fail; the row was over-specified.
 
 ## Decisions
 
