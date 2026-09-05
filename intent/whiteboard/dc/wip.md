@@ -4,9 +4,9 @@ name: DevX Claude
 role: worker
 session_id: 8ef84e7a-4585-4b04-aae7-a2e58b6be0eb
 commit_session_id: 01CwTxbQyXvFy7mYcr3uShu9 -- WITNESSED on 98bb0f965, ab516affd, 3018a5385 and 7b7f1c662, read off the commits rather than taken from the harness. IT ROTATED MID-SESSION, between 8783243ce and 98bb0f965, with NO compact and NO restart between them -- so this line previously carried a restart mints a new one, which is too narrow in exactly the way vc found on their own line. The prior value 01KJiLhhcanvdaveAtLRkKoH signs my first nine commits today and is still correct FOR THOSE. I found the drift only because the boot reminder handed me a value that disagreed with my own board, which is not a mechanism anyone can rely on. POINT-IN-TIME: READ IT OFF YOUR OWN LAST COMMIT, never off this line.
-heartbeat_at: 2026-09-05 11:02Z
+heartbeat_at: 2026-09-05 15:04Z
 status: active
-focus: "SEAM 1 LANDED AT `32c7ad52` -- the suite-versus-table flag seam has a verdict, 12 controls, and TWO LIVE FINDINGS: `--no-backup` and `--version` are asserted GREEN by the estate and undeclared by the table. ALL THREE SEAMS ARE NOW CLOSED. THREE CONTROLS CAUGHT DEFECTS BEFORE IT SHIPPED AND A FOURTH WAS CAUGHT BY THIS DIRECTORY OWN of_n_labels TOOL RUN AGAINST ME. NOTHING IN FLIGHT, NOTHING OF MINE DIRTY. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "FOLDED FOR COMPACT 2026-09-05. ALL THREE SEAMS CLOSED; `ST0068/AC-02.3` AT 21 UNDISPOSITIONED FROM 41, AND THE v3.0.0 BINARY THAT UNBLOCKS THE REST IS BUILT AND KEPT AT `$SP/v300-target/release/intent` REPORTING `80d8b2ca`. NOTHING IN FLIGHT, NOTHING OF MINE DIRTY. FOUR PEER-CAUGHT ERRORS OF MINE TODAY AND EVERY ONE WAS REFUTABLE FROM DATA I ALREADY HELD -- W96, W99, W102, W95. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 ---
 
@@ -37,9 +37,9 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058, ST0066]
 
 ## DOING
 
-- **NOTHING IN FLIGHT. ALL THREE SEAMS ARE CLOSED** -- seam 2 `31146862f`, seam 3 `5c31a426e`, seam 1 `32c7ad52`. Each was re-driven after its own commit.
-- **SEAM 1 WAS THE ONE THAT NEEDED A NEW SOURCE AND IT PAID.** Two live findings the table did not know it had, and the `--no-backup` one is sharper than the join: the table's `upgrade` row NAMES its own v2 twin, and `extract_flags.sh` -- a tool already in that directory -- reads that twin as parsing three flags the row omits. **The evidence was one command away from an instrument that has been sitting there the whole time.**
-- **THE ADJACENT AXIS IS NAMED AND NOT BUILT** (row's declared flags vs its own declared `v2` twin). It is a second witness over a DIFFERENT population and it is a separate instrument. Named in the tool header so nobody reads its absence as coverage.
+- **NOTHING IN FLIGHT.** All three seams landed and were re-driven after their own commits (seam 2 `31146862f`, seam 3 `5c31a426e`, seam 1 `32c7ad52`). The currency arm's two latent defects landed at `86573ac1`. Dispositions at `bbb9f8f9` and `3e276fc65`. Page correction at `c7a0eaaa`.
+- **THE ONE ASSET A COLD SESSION MUST NOT REBUILD: a published v3.0.0 exists** in a detached worktree at `$SP/v300`, private target `$SP/v300-target/release/intent`, reporting `3.0.0 (80d8b2ca4d897dd15ecc051e7b5b682eed7c8a95)` -- **the exact marker `docs/known-defects.md` names and no PATH binary produces**. It cost 1m24s of shared CPU under a vc authorisation and three announces. **If the scratchpad is gone, re-earn the authorisation before rebuilding; do not treat it as free.** Drive it from INSIDE its install tree (`$SP/v300/native/rust/target/release/`) or `generate`/`sync` fail on a path lookup that reads like a build defect (W103).
+- **THE DAY'S SHAPE, BECAUSE IT IS THE THING TO CARRY:** four errors of mine were caught by peers and **every one was refutable from data already in my hands** -- an unverified peer measurement in a filed issue body (W96), a sample written down as a census (W99), a claim contradicted by my own first tool call (W102), and two board items closed for days (W95). **The instruments were fine. The reading of my own evidence was not.**
 
 ## TODO
 
