@@ -26,6 +26,8 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 
 **GO RECEIVED FROM vc ON `ST0056/10` (Migration and fleet ingest harness), 2026-09-05 15:13Z -- MY CLAIM, NOT STARTED, DELIBERATELY: hv was mid-compact.** It is the non-distribution half of the v3 rollout (dc has WP-11, bounded to build-not-publish); a fleet member on a v2 tree cannot take v3 at all without migration, so the rollout stops at the first v2 member however well the binary ships. **`wip` and XL -- vc asks for the next honest slice plus a sizing of the remainder, the way `WP-06`'s nine were sized.**
 
+**STRUCTURAL HALF IS NOW GO (vc, 2026-09-05 15:15Z): size the remainder from the CONTRACT AND THE SOURCE -- the migration ladder and its rungs, the fleet-ingest surface, and what WP-10's ACs actually require. NO BEHAVIOURAL CLAIM.** **The behavioural half is HELD with its condition in `## Holds`.** **NOT STARTED: hv was mid-compact and vc agrees an XL package is not a thing to crack open in the last minutes.**
+
 **AND THE FIRST THING TO SETTLE IS WHETHER IT CAN BE MEASURED AT ALL. THERE IS NO CURRENT-HEAD BINARY IN THE ESTATE.** Driven 2026-09-05 15:13Z, each by its own embedded marker against `git rev-list --count <m>..HEAD`:
 
     intent on PATH / target/release   92e4d914a   107 commits behind HEAD
@@ -47,6 +49,8 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 - **S-M** `SERVED_BY_DAEMON` (`render.rs:235`) is ONE entry **and a `const`, so it can only ever hold PAYLOAD-FREE variants.** Project the dispatch table's payload-free arms, and **REFUSE on a daemon-eligible arm carrying arguments rather than skip it** -- silence there reports a clean table while a verb quietly loses daemon coverage.
 
 ## Holds -- mine, with the condition that releases each
+
+- **XL** **`ST0056/10` BEHAVIOURAL HALF -- does a v2 tree actually migrate, and what does it look like when it fails.** **CONDITION, vc's words and deliberately not mine: THE `0196` WINDOW OPENING -- _not_ _when a binary appears_, because a binary can appear from a private target dir and that is not the same event.** CHECK IT: `git rev-list --count "$(intent version | sed 's/.*(\(.*\))/\1/')"..HEAD` -- met when the delivered pair's own marker is at or near HEAD. **Driven 2026-09-05 15:15Z: NOT MET, 107 behind.** **THIS IS THE SLOT `WP-06` NEVER GOT** -- that item was work I had named and was waiting on, it went into no `## Holds` line with a condition, and a fold ate it (`H2`). Same shape, so this time it gets the slot before the fold rather than after.
 
 - **M** `AC-06.1`'s coverage half -- RELEASED WHEN a burn TSV **covering the estate** exists AND `INTENT_BIN` resolves to one binary. **Re-driven 16:00Z, unmet:** a burn TSV EXISTS (`parity/tools/burn-baseline.tsv`) and **existence is not coverage**, which is the distinction this hold keeps. `INTENT_BIN` unset; four `intent` binaries reachable. `coverage_map.sh` refuses to publish and is RIGHT to.
 - **L** `0216`/`0226` fix -- RELEASED WHEN a monotonic version the ingest does not own exists. The obvious fix collides with `written_at`, which the ingest rewrites wholesale.
