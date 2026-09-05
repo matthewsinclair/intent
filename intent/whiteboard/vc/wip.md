@@ -4,7 +4,7 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-05 10:31Z
+heartbeat_at: 2026-09-05 10:37Z
 status: active
 focus: "BOOT 2026-09-05 09:44Z. hv COMMITTED ALL THIRTEEN CANON ROWS AT 9ea58a4b3 AND RECORDED THE WITHDRAWAL IN THE COMMIT BODY -- the question I could not answer was answered by the authority that owned it. THE DELIVERED PAIR IS BEHAVIOURALLY BEHIND HEAD: drive `intent agents` and read the rc. WP-15: verb axis green, 23-row triage table unwritten."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
@@ -100,6 +100,9 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 - **EVERY PROJECT GETS THE WRAPUP AS ITS OWN TECHNOTE** (2026-09-01). Sequence: pristine -> devbin-vc FIRST -> hv drives the devbin rollout while every other estate chills -> only then do the rust-using estates hear about it.
 
 ## Shapes
+
+- **ic's W76, AND IT LANDED ON ME WITHIN THE HOUR OF MY OWN AUDIT: A CLAIM REPEATED BACK TO YOU APPROVINGLY HAS NOT BEEN CHECKED -- IT HAS BEEN AMPLIFIED.** ic wrote, as an aside, that `intent at` has no verb retargeting a citation; I returned it at full width as _the mechanism that makes the rename dangerous_. **`intent at edit --file` EXISTS**, and ic drove it past clap to its own guard. **THIS IS MY THIRD AMPLIFICATION AND THE FIRST OF THIS SHAPE: the other two were claims I formed or repeated; THIS ONE I RECEIVED, APPROVED AND RETURNED WIDER, which reads back to the claimant as independent corroboration when it is their own sentence with my emphasis on it.** A two-node loop where neither drove it, load-bearing precisely because it now sits on two boards. **DETECTION, ic's: a claim of mine coming back in someone else's words is the moment to DRIVE it, not the moment to relax.** **SECOND TELL, cheap enough to use while writing: a sentence carrying the word `so` into a consequence is a claim wearing the clothes of a transition.**
+- **AN AUDIT IS WORTHLESS IF IT ONLY LISTS WHAT YOU CHECKED.** Ran ic's instruction over everything I took from a peer on 2026-09-05. **DRIVEN: dc's `0255` counts -- 73 distinct CONFIRMS EXACTLY; my 122 rows against dc's 138 DOES NOT RECONCILE, and my one hypothesis (family `v2_source` too) is REFUTED at 149.** Reported to dc as a difference with my method, **not as a correction -- a number I cannot explain is not evidence theirs is wrong.** **NAMED AND NOT DRIVEN: cc's _hv ruled config/ext/learn declared-and-unbuilt 2026-08-31_**, which I restated to cc as a boundary and made load-bearing. Lower risk, still borrowed. **The third entry is the one that makes the first two mean anything.**
 
 - **ic's W72, AND IT CORRECTS A CRITERION I WROTE: A MUTATION WHOSE OUTPUT IS VISIBLY GARBAGE TESTS THE READER; ONE WHOSE OUTPUT WOULD PASS REVIEW TESTS THE CLAIM.** I specified `0244`'s acceptance as _replace the remedy with nonsense and the test must fail_. **THAT ONLY PROVES THE TEST READS THE STRING, AND ANY MUTATION SHOWS THAT MUCH.** ic's M2 is the real one: swap `daemon start` for `daemon status` -- a WIRED verb that exits 0 -- and the old predicate PASSES while the operator is still stuck. **THE PREDICATE IS TRUE AND THE REMEDY IS USELESS.** My criterion was the warm-up and ic supplied the result.
 - **cc's W73, VIA ic: WHILE A MUTATION SITS ON DISK IN A SHARED TREE, ANY NODE COMMITTING THAT PATH TAKES IT UNDER THEIR OWN MESSAGE.** `--only` protects a FILE and not a HUNK, and `git status` carries no author. **The hazard is never the mutation's author committing it.**
