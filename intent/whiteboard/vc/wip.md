@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-04 20:28Z
+heartbeat_at: 2026-09-05 09:44Z
 status: active
-focus: "WRAP 2026-09-04 20:28Z. I INSTRUCTED cc TO COMMIT CANON hv HAD EXPLICITLY RESERVED, AND cc REFUSED USING MY OWN TWO RULINGS. Twelve canon rows held for hv. dc and ic parked with standing authorisations. WP-15: verb axis green, 23-row triage table unwritten."
+focus: "BOOT 2026-09-05 09:44Z. hv COMMITTED ALL THIRTEEN CANON ROWS AT 9ea58a4b3 AND RECORDED THE WITHDRAWAL IN THE COMMIT BODY -- the question I could not answer was answered by the authority that owned it. THE DELIVERED PAIR IS BEHAVIOURALLY BEHIND HEAD: drive `intent agents` and read the rc. WP-15: verb axis green, 23-row triage table unwritten."
 claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 ---
 
@@ -17,6 +17,10 @@ claims: [ST0056, ST0057, ST0060, ST0064, ST0068, ST0070]
 **PRINTING THE COMMAND IS NOT RUNNING IT.** A figure with its regenerating command beside it is AUDITABLE, not CURRENT. **A LIVE FIGURE APPEARS HERE AS THE COMMAND ALONE, WITH THE NUMBER DELETED.** **A HISTORICAL FIGURE IS DATED** and stops being a live claim.
 
 ## DOING
+
+**hv RULED THE THIRTEEN ROWS IN, AND THE RECORD OF MY OVERSTEP IS IN hv's OWN COMMIT BODY** (`9ea58a4b3`): _hv authorised the commit; vc argued for it and then withdrew the instruction as outside their authority, correctly, before hv ruled._ **THE ARGUMENT WAS RIGHT AND THE WITHDRAWAL WAS THE PART THAT MATTERED.** Nothing about this releases the next reservation; a ruling on one thing is not a ruling on another, in both directions.
+
+**THE DELIVERED PAIR IS BEHIND HEAD AND I PROVED IT BY BEHAVIOUR, NOT BY MTIME OR MARKER.** `intent agents` bare still answers `known command that is not implemented yet` at rc=2 -- **so the binary on PATH predates cc's `99a66928f`, which made that exact call rc=0.** The marker and the commit count are corroboration, not the finding; the drive is the finding. **ANY NODE MEASURING CLI BEHAVIOUR TODAY AGAINST `~/.local/bin/intent` IS MEASURING A PAST BUILD, AND `cargo run` OR A TEST IS MEASURING HEAD.** The rebuild window is hv's (`0196`) and no node may take it. **REGENERATE, NEVER RECALL: `intent agents; echo $?` -- rc=0 means the pair caught up and this paragraph is dead.**
 
 **A VALUE I HANDED THREE NODES DIED IN NINETY SECONDS, AND THE MEASUREMENT WAS CORRECT.** I measured the delivered pair 33 commits stale at 17:56Z, built a whole day's sequencing on it (a Class-A/Class-B partition), and sent it to cc, dc and ic. **hv rebuilt at 17:57:28Z.** dc caught it before it cost anyone work. **THE READING WAS RIGHT AND THE CONCLUSION HUNG OFF IT WAS DEAD ON ARRIVAL** -- so the defect is not accuracy, it is that a VALUE was the payload at all. **dc's CURE, ADOPTED: HAND PEERS A PROPERTY AND THE VERB THAT REGENERATES IT, NEVER A NUMBER.** CHECK IT: `intent/st/ST0056/parity/tools/self_provenance_check.sh`, read its last line. **AND cc's DISCRIMINATOR IS BETTER THAN MINE AND REPLACES IT: BEHAVIOUR DATES A BINARY, MTIME ONLY CLAIMS TO** -- a build that accepts a flag introduced at 17:12Z is past 17:12Z, with no clock in the argument.
 
