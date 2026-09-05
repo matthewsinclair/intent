@@ -4,9 +4,9 @@ name: Interface Claude
 role: interface
 session_id: ff30d717-901e-4d47-9bb7-53416fe4e841
 commit_session_id: 01T6EfsdaPEvSHT3WeUk1oMo -- WITNESSED on 04c43798f, this session's first commit; check it there rather than taking this line's word. HONEST CAVEAT, and it is cc's: I authored that trailer, so reading it back is not independent of the harness. What it IS is the value a later reader will attribute my commits by, confirmed present on one. POINT-IN-TIME, one session; the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-05 17:24Z
+heartbeat_at: 2026-09-05 16:06Z
 status: active
-focus: "AGGRESSIVE LOCALFOLD 2026-09-05 17:24Z before hv compacts; status stays active. 0244 and 0247 CLOSED -- intent search no longer hands the operator s string to FTS5 raw, and the mutation that matters follows the OLD REMEDY and still reds. 0257 (N=0, two source lines) and 0258 are UNCLAIMED; 0257 s disposition is hv s and TAKEABLE. ST0056/13 declined deliberately. THE DAY S THEME WAS PROVENANCE: two claims about my work refuted or retracted, one of mine about a peer refuted, each by DRIVING. W92 is the rule -- for a claim you did not drive, ask where it came from before asking whether it is true. WATCH-OUTS DELIBERATELY NOT COMPRESSED (W91). NOTHING IN FLIGHT. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "LOCALFOLD 2026-09-05 15:08Z before hv compacts; status stays active. 0244 BUILT (aa1b0ca0), CLOSED and SPLIT; 0257 MEASURED AT N=0 (d30e0e6f) and its disposition is hv s and TAKEABLE -- a rename costs two source lines; 0258 filed. The 122/138 third count was stood down because the population definition committed FIRST had already named the boundary -- that is the finding, not the number. FIVE OF TODAY S WATCH-OUTS CORRECT EARLIER CLAIMS OF MINE, one of which INVERTED a conclusion I had already published. OPEN FOR vc: routing_is_opt_in.rs is cited by NO acceptance row. NOTHING IN FLIGHT. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/17, ST0064]
 ---
 
@@ -18,13 +18,15 @@ claims: [ST0065, ST0056/17, ST0064]
 
 ## DOING
 
-**AGGRESSIVE LOCALFOLD 2026-09-05 17:23Z ON hv's INSTRUCTION, BEFORE A COMPACT. STATUS STAYS `active`** -- a fold is not a session ending (`/in-whiteboard` invariant 6). Pre-fold board verbatim at `.history/20260905/wip-prefold-1723Z.md` (108,701 bytes, prettier-clean AT SOURCE before the copy and `cmp`-confirmed). Executed narrative: `.history/20260905/doing-folded-2026-09-05-1723Z.md`. Second fold of the day; the `1507Z` pair is beside it.
+**LOCALFOLD 2026-09-05 15:07Z ON hv's INSTRUCTION, BEFORE A COMPACT. STATUS STAYS `active` -- a fold is not a session ending** (`/in-whiteboard` invariant 6). Pre-fold board verbatim at `.history/20260905/wip-prefold-1507Z.md` (104,164 bytes, prettier-clean AT SOURCE before the copy and `cmp`-confirmed, so it is genuinely verbatim -- W25). Executed narrative: `.history/20260905/doing-folded-2026-09-05-1507Z.md`.
+
+**FOLDED ON EXECUTION, NEVER ON DATE.** Everything cut is landed, committed and green. Every unexecuted ruling is still below.
 
 **NOTHING IS IN FLIGHT AND NOTHING OF MINE IS UNCOMMITTED.** `git status` is the check, not this line.
 
-**WATCH-OUTS ARE NOT COMPRESSED BY THIS FOLD, AND THAT IS A JUDGEMENT RATHER THAN AN OMISSION.** They are standing by rule, and **W91 is the specific reason: compressing a peer's finding is the exact operation that manufactured a false attribution on vc's board today** -- `STALE` became `DANGLING` in a fold and a currency problem became an outage with my name still on it. If hv wants the section shortened, it wants a pass that copies severity-bearing words rather than paraphrases them, and that is its own piece of work.
+**TODAY, AS POINTERS RATHER THAN A RETELLING:** `0244` built (`aa1b0ca0`), closed and split (`687889c7`); `0257` measured at **N = 0** (`d30e0e6f`) and its disposition is hv's and now TAKEABLE; `0258` filed (`1bce977b`). The `122/138` reconciliation was stood down -- **the population definition committed at `93455321` had already named the boundary before any count ran**, which is the finding rather than the number.
 
-**FOLDED OUT TODAY, AS POINTERS:** `0247` fixed and closed (`9e742cad` / `ca101335`); `0244`'s fixture leak fixed (`da5919e8`); W90-W93 banked. The day's theme was provenance -- two claims about my work were refuted or retracted, and one of mine about a peer was refuted, each by driving rather than by argument.
+**THE `0238` SIBLINGS ARE NOT MINE AND ARE NOT LOST:** `Ac`, `At` and `Attachment` reach the same door through the `intent://` grammar and still answer rc=0; that is recorded on `0238` and carried as `0240`, which is cc's. **The two COLLECTION variants are NOT defects** -- a collection of a thread that exists also exists -- and are named so nobody re-files them.
 
 ## Live, unfinished, not mine to close alone
 
@@ -36,17 +38,11 @@ claims: [ST0065, ST0056/17, ST0064]
 
 ## TODO
 
-**NOTHING IS STARTABLE, AND THAT IS A MEASUREMENT RATHER THAN BREVITY.** Everything of mine is either closed, unclaimed by choice, or gated below with the condition that releases it.
+**`0247` IS FIXED AND CLOSED (`9e742cad`), SO NOTHING IS STARTABLE AGAIN.** `intent search` no longer hands the operator's string to FTS5 raw: `intentsvcs::fts::expression` quotes bare terms, so `family-root`, `render.rs`, `AGENTS.md` and `v3.0.1` search for what they say instead of answering with sqlite's schema. **The one design call the row said not to pre-empt was taken and is stated on it:** the BARE `col:` filter is gone -- it is the half that REINTERPRETED a query rather than failing -- and the explicit `{col}:` spelling remains. Mutations driven both ways; the one that matters follows the OLD REMEDY and still reds. **`ST0056/13` IS LEFT UNCLAIMED, DELIBERATELY:** one defect fixed on its merits is not the first slice of a work package I have not scoped, and a claim is a signal to peers about what I am doing. **NOT DONE AND NOT CLAIMED: a behavioural check against a HEAD binary.** None exists on this machine; building one privately ahead of `0196`'s fix was declined (vc), so that confirmation follows the pair. Today's other rows -- `0257` (hv's, takeable) and `0258` -- are unchanged and unclaimed.
 
-**UNCLAIMED AND AVAILABLE, both mine to have filed and neither mine to hold:** `0257` (the overclaiming test name -- **measured at N=0, so the rename is two source lines and one rustdoc intra-doc link; the disposition is hv's and TAKEABLE**) and `0258` (the assignment channel; size UNMEASURED, and the fix deliberately not named in its title).
+**ONE FINDING FROM THE FOLD ITSELF, NOT YET FILED AND NOT MINE TO RULE ON.** `routing_is_opt_in.rs` -- the file whose FIRST LINE declares it `AC-08.2`'s witness, carrying seven tests including hv's routing reversal and my `0244` join -- **is cited by NO acceptance row.** Driven across all canon ST rows: zero AT rows name it. `AC-08.2`'s only cover is `AT-08.2`, which cites `daemon_and_local_agree.rs` instead. **So a file that renamed itself FROM `daemon_fallback.rs` to say what it is about is invisible to the register**, and my new test inherited that invisibility. **It may be intended -- one AC can have several witnesses and nothing says every test file needs a row -- so this is a RULING for vc rather than a defect I file.** Raised because a fold is where an uncited artefact is cheapest to notice.
 
-**`ST0056/13` IS LEFT UNCLAIMED DELIBERATELY.** One defect fixed on its merits is not the first slice of a work package I have not scoped, and a claim is a signal to peers about what I am doing. vc offered it and adopted the reasoning when I declined.
-
-**RAISED FOR vc AND NOT FILED: `routing_is_opt_in.rs` is cited by NO acceptance row** -- the file whose first line declares it `AC-08.2`'s witness, carrying seven tests including hv's routing reversal and my `0244` join. `AC-08.2`'s only cover is `AT-08.2`, which cites `daemon_and_local_agree.rs`. It may be intended, so it is a ruling rather than a defect.
-
-**WAITING ON A HEAD PAIR, NOT BUILDING ONE:** `0247`'s behavioural confirmation needs a current build. dc's `0196` fix landed (`e3b4febe1`), so the pair arrives through it. **Building one privately was declined by vc and I did not.**
-
-1. **`0222` -- the explorer thread list's `Status | Created | Completed` columns. RELEASES WHEN `intent wp show ST0056/17` READS `done`** -- a state I check at pickup, needing no message from anyone. **SIZE UNMEASURED; do not quote one.** The blocker is the row type, not the columns: `Row` carries one name and one value, and the thread-collection arm is the one view that does not go through `form::triples`.
+1. **`0222` -- the explorer thread list's `Status | Created | Completed` columns. RELEASES WHEN `intent wp show ST0056/17` READS `done` -- a state I check at pickup, needing no message from anyone (vc, 2026-09-04). RE-DROVE IT THIS TURN: `status: WIP`, `scope: XL`, so it stays put.** **AND THE DEPENDENCY IS REAL RATHER THAN A SEQUENCING PREFERENCE**: `WP-17` IS the Form DSL with its TUI and WEB realisers, so building hand-kept columns now means building the thing WP-17 exists to delete. Nothing diverges while it waits because ordering and the seam are already shared (`index_order` + `views::open_run`). **THE BLOCKER IS THE ROW TYPE, NOT THE COLUMNS**: `Row` carries one name and one value, and the thread-collection arm is the ONE view that does not go through `form::triples`, so hand-kept columns there give the terminal something the web face cannot learn about. **SIZE UNMEASURED -- I have not costed routing that arm through `form::triples`, and if the derivation is load-bearing for the web realiser it is larger than it looks. Do not quote a size for this without driving it.**
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
