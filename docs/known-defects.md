@@ -82,6 +82,12 @@ The refusal also names an escape, `declare 'acceptance: exempt'`, and **there is
 
 Two controls make it sharp. Remove the file from the worktree and the gate flips to `BLOCKED -- AT-01.1 cites a file that does not exist`, so the gate is genuinely reading the tree and the PASS was not indifference. And **the verdict names no tree**, so two people running the identical command in the same repository can get different answers with nothing in either output to explain the difference. Commit the cited files before reading a gate result as a claim about the project; on a shared checkout a PASS is a statement about one person's disk.
 
+**A test file satisfies a citation whenever it contains the id anywhere, including under another thread's name** (`intent#0267`). AT ids are only locally unique -- `AT-01.1` exists in as many threads as you have -- and the check takes a path and a bare id. Driven on v3.0.0: a file whose sole mention is the comment `// ST0002 AT-01.1 -- this test witnesses thread B and nothing else`, cited from **ST0001**, gives `lint: ST0001 ok -- 1 AT row(s) conform` and `gate: ST0001 PASS -- 1/1 satisfied`. Strip the id and the lint goes red naming the row, so the check is running; it is matching a literal that does not belong to the thread asking. Qualify the id with its thread in the test's own text and the collision at least becomes visible to a reader, though not to the tool.
+
+`intent at new` does not check the cited file's contents on this build at all -- a file carrying no id was accepted at exit 0 -- so the first thing that looks at a citation is `at lint`.
+
+**And the citation check stops at close, with nothing saying so** (`intent#0267` again). Driven: close a thread on an honest citation, then remove the id from the cited file. `at lint` answers `ok -- 1 AT row(s) conform`, `at list` still renders the row `green`, `ac gate` still answers `PASS`, and `doctor` does not mention it. The exemption is deliberate -- retrofitting id labels into a finished thread is archaeology -- and the defect is that nothing distinguishes _checked and true_ from _true at close, unchecked since_. **The file-existence arm is not exempt**: delete the cited file and the same closed thread reports `cites a file that does not exist`. So a closed thread's coverage is checked for presence and not for content, and reads identically either way.
+
 ## Editing
 
 **An address is answered even when it names something that does not exist** (`intent#0238`). Driven on v3.0.0: `intent edit intent:///threads/ST0001/attachments/nope.md` -- an attachment that was never created -- refuses with `intent/st/ST0001/info.md is generated from the model`. **The trailing segment is dropped rather than checked**, so the answer is about the thread, an entity you did not name, and the error you read discusses a file you did not ask about. Nothing tells you the attachment is absent.
@@ -236,6 +242,27 @@ These are in our register and you will not hit them on this build. They are list
 ## Migrating from v2
 
 The v2 ingest has its own defect set and its own recovery routes, covered where you meet them in [Migrating from v2](migrating-from-v2.md): evidence discarded silently from criteria authored unsatisfied (`intent#0133`), and a measurement that cannot tell "nothing was lost" from "nothing was measured" (`intent#0098`). `intent st repair` is declared retired and was never built in v3.0.0 either (`intent#0118`).
+
+**Two acceptance tests sharing an id stop the migration with a raw SQLite error that names neither** (`intent#0268`). Driven on v3.0.0 against a real 2.19.0 estate captured from this repository's history: the estate migrates cleanly as captured (`migrated: 56 thread(s), 25 issue(s), 334 file(s) written`), and duplicating a single `AT-01.1` row inside one thread's `acceptance.md` turns the same command into:
+
+```
+  error: could not update the runtime store
+    caused by: sqlite: UNIQUE constraint failed: tests.thread_id, tests.id
+    caused by: Error code 1555: A PRIMARY KEY constraint failed
+    remedy: the change was not made. Do NOT delete the store -- it is the source of
+    truth, not a cache, and the committed extract may be older than it. Run
+    `intent doctor` to inspect the estate
+```
+
+**The thread and the id appear nowhere in it**, and the remedy closes a loop: `intent doctor` on an unmigrated estate can only report `this project has not been migrated ... run \`intent upgrade\`` -- the command that just failed and sent you there. It reads the model, and the model is empty because migrating is what would fill it.
+
+The store warning is also written for a project this is not: `intent/.cache/intent.db` here is a schema-only file created seconds earlier by the failure, with zero rows and no committed extract to be newer than. **The rollback itself is sound** -- nothing lands, the tree is unchanged, and a re-run fails identically -- so the refusal is safe and it is the reporting that strands you. Find the offenders yourself before re-running:
+
+```
+  grep -rho 'AT-[0-9]*\.[0-9]*' <thread>/acceptance.md | sort | uniq -d
+```
+
+and remember that v2 keeps status in the path, so a scan over `intent/st/*/acceptance.md` misses everything under `COMPLETED/` and `CANCELLED/`.
 
 ## What this page does not cover
 
