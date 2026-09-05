@@ -610,6 +610,13 @@ fn doing_what_the_refusal_told_the_operator_to_do_actually_gets_them_the_answer(
   crate::common::refuse_a_stale_sibling_daemon();
 
   let home = short_dir("optin-remedy-home");
+  // **THE GUARD IS CONSTRUCTED BEFORE ANYTHING CAN FAIL, NOT BEFORE THE DAEMON
+  // STARTS.** It used to be built after the remedy was parsed, and driving this
+  // file's own mutations proved the gap: the M1 run failed on the vacuity arm --
+  // ABOVE the guard -- and leaked an empty `/tmp` home that was still there
+  // hours later. Nothing was running under it, so it cost only a directory; the
+  // same two lines in the other order would have leaked a real daemon.
+  let stop = StopWhateverTheRemedyStarted { home: home.clone() };
   let root = project();
   let servable = servable();
   let path = servable[0];
@@ -633,8 +640,6 @@ fn doing_what_the_refusal_told_the_operator_to_do_actually_gets_them_the_answer(
     !commands.is_empty(),
     "the refusal named no command to run, so its remedy cannot be followed at all: {seen}"
   );
-
-  let stop = StopWhateverTheRemedyStarted { home: home.clone() };
 
   // **EVERY COMMAND THE REMEDY NAMED, IN THE ORDER IT NAMED THEM.** This
   // refusal offers two ways out -- get a daemon, or ask the same question
