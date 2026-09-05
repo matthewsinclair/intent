@@ -64,7 +64,6 @@ set -u
 # both correct here and immune to the handler moving again.
 : "${DEVBIN_LIB:?run me through the devbin dispatcher -- 'intent build release'}"
 : "${PROJECT_ROOT:?the devbin dispatcher did not export PROJECT_ROOT}"
-HELPERS="$PROJECT_ROOT/bin/intent_helpers"
 
 # Pin INTENT_HOME to the checkout being released. bin/intent only derives it when
 # it is unset, so an INTENT_HOME exported in the maintainer's shell -- pointing at
@@ -103,14 +102,6 @@ export INTENT_HOME="$PROJECT_ROOT"
 # does -- so an absent one is a sequencing error the operator must see.
 INTENT_BIN="$PROJECT_ROOT/native/rust/target/release/intent"
 
-if [ -f "$HELPERS" ]; then
-  # shellcheck disable=SC1090
-  source "$HELPERS"
-else
-  echo "error: cannot locate $HELPERS" >&2
-  exit 1
-fi
-
 # --------------------------------------------------------------------
 # Logging helpers (consistent with Intent CLI tone: lowercase prefixes)
 # --------------------------------------------------------------------
@@ -118,6 +109,40 @@ log_info() { printf 'info: %s\n' "$*"; }
 log_step() { printf '\n==> %s\n' "$*"; }
 log_dry()  { printf 'dry-run: %s\n' "$*"; }
 log_warn() { printf 'warning: %s\n' "$*" >&2; }
+
+# --------------------------------------------------------------------
+# Ported from bin/intent_helpers, 2026-09-05 (cc), for AC-00.6.
+#
+# **THIS WAS THE WHOLE OF THE v2 COUPLING, AND IT IS ONE FUNCTION.** The row
+# named four blocking call sites in this file; three were ported earlier and
+# only the `source` of `bin/intent_helpers` survived. Sourcing a 700-line file
+# says nothing about what is USED, so the coupling read as large: of everything
+# that file defines, this script called exactly this. `require_intent_bin` is
+# defined below in this file and always was; the three `error` matches a grep
+# finds here are the English word in comments, not calls.
+#
+# **VERBATIM, AND THE RETURN CODES ARE THE CONTRACT.** The caller reads `$?` as
+# a three-way -- 0 stamped, 1 already at target, anything else a hard abort --
+# so this is a move rather than a rewrite. It reaches nothing else: jq, mktemp
+# and mv, no other helper, and none of the two variables that file exports.
+stamp_project_version() {
+  local version="$1"
+  local config="${2:-intent/.config/config.json}"
+  [ -n "$version" ] || return 2
+  [ -f "$config" ] || return 2
+  command -v jq >/dev/null 2>&1 || return 2
+  local current
+  current="$(jq -r '.intent_version // ""' "$config" 2>/dev/null)"
+  [ "$current" = "$version" ] && return 1
+  local tmp
+  tmp="$(mktemp)" || return 2
+  if ! jq --arg v "$version" '.intent_version = $v | del(.version)' "$config" > "$tmp"; then
+    rm -f "$tmp"
+    return 2
+  fi
+  mv "$tmp" "$config" || { rm -f "$tmp"; return 2; }
+  return 0
+}
 
 # **ONE HOME FOR THE REFUSAL, CALLED AT EACH USE RATHER THAN ASSERTED ONCE AT
 # THE TOP.** The three calls sit behind different flags -- `--skip-tests` skips
