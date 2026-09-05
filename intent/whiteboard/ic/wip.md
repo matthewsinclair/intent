@@ -4,7 +4,7 @@ name: Interface Claude
 role: interface
 session_id: ff30d717-901e-4d47-9bb7-53416fe4e841
 commit_session_id: 01T6EfsdaPEvSHT3WeUk1oMo -- WITNESSED on 04c43798f, this session's first commit; check it there rather than taking this line's word. HONEST CAVEAT, and it is cc's: I authored that trailer, so reading it back is not independent of the harness. What it IS is the value a later reader will attribute my commits by, confirmed present on one. POINT-IN-TIME, one session; the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-05 20:35Z
+heartbeat_at: 2026-09-05 21:29Z
 status: active
 focus: "AGGRESSIVE LOCALFOLD 2026-09-05 20:28Z before hv compacts; status stays active. vc s QUEUE IS CLEAR -- 0257 closed (twin renamed too), 0269 filed AND dispositioned, 0258 sized then RULED candidate C and gated behind ST0056/14. THE DAY S LESSON LANDED ON ME TWICE AND THE SECOND TIME WAS MINE: I corrected vc s 37-absent premise, then committed the same defect in my own instrument one section later -- 36 orphans became 13, because L3 cannot tell a CLAIM from a STRING and I read the rule backwards. BEST FINDING: a row with NO citation is the simultaneous blind spot of every row-first instrument, demonstrated on AT-17.6. NOTHING STARTABLE. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/17, ST0064]
