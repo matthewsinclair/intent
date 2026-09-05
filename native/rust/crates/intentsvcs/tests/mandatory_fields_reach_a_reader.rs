@@ -183,7 +183,11 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // one they gave rather than a fuller call. The empty-path arm is the near
     // miss -- it looks like an omission and it is still the same argument,
     // wrong.
-    | FacadeError::AttachmentPathNotInThread { .. } => None,
+    | FacadeError::AttachmentPathNotInThread { .. }
+    // `0270`'s refusal. The caller supplied everything the verb takes; what is
+    // missing is a FILE ON DISK, which is not a field of the call and cannot be
+    // carried to a reader as one.
+    | FacadeError::VerdictCitesAbsentFile { .. } => None,
   }
 }
 

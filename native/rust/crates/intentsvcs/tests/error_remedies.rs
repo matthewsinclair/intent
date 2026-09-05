@@ -19,7 +19,7 @@
 
 use crate::common::{Fixture, sample_thread};
 use intentsvcs::facade::{FacadeError, ListEdit};
-use intentsvcs::model::{AcKind, AtKind, AtStatus};
+use intentsvcs::model::{AcKind, AcceptanceTest, AtKind, AtStatus};
 use intentsvcs::organize::Mode;
 use intentsvcs::remedy::Remedy;
 
@@ -599,6 +599,60 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("a repo-relative attachment path names nowhere in the thread"),
   ));
 
+  // **`0270`'s REFUSAL, AND IT NEEDS A FIXTURE OF ITS OWN** -- the same reason
+  // 0206's does, one paragraph up. Every provocation above runs against one
+  // facade in sequence, so by this point `AT-03.1` has already been driven to
+  // `red` by an earlier arm and `at_set` short-circuits at `AlreadyThere`
+  // BEFORE reaching this guard. **The first spelling of this arm hit exactly
+  // that and reported a success where a refusal was required.**
+  //
+  // A clean thread with one `to-write` row citing a file that does not exist is
+  // the shape: it is legal today, exempt from `absent_at`, and one `at red` away
+  // from a finding that refuses every commit in the repository.
+  let armed = Fixture::new();
+  let mut armed_thread = sample_thread("ST0056");
+  armed_thread.tests = vec![AcceptanceTest {
+    id: "AT-09.1".to_string(),
+    file: Some("crates/intentsvcs/tests/never_written.rs".to_string()),
+    status: AtStatus::ToWrite,
+    ..armed_thread.tests[0].clone()
+  }];
+  armed.write_thread(&armed_thread);
+  // **THE FIXTURE CREATES THE FILES ITS ROWS CITE**, so the absence has to be
+  // arranged rather than assumed. Without this the row cites a path that EXISTS,
+  // the guard correctly does not fire, and the arm reports a successful
+  // transition -- a subject that cannot exhibit the condition, which is the
+  // third sighting of that shape on this estate today.
+  let _ = std::fs::remove_file(
+    armed
+      .root()
+      .join("crates/intentsvcs/tests/never_written.rs"),
+  );
+  assert!(
+    !armed
+      .root()
+      .join("crates/intentsvcs/tests/never_written.rs")
+      .exists(),
+    "the citation must be absent or this arm proves nothing"
+  );
+  let mut armed_facade = armed.facade();
+  let absent_verdict = armed_facade
+    .at_set("ST0056", "AT-09.1", AtStatus::Red, None)
+    .expect_err("a red verdict on a citation that does not exist is refused");
+  // **THE VARIANT IS ASSERTED, NOT ASSUMED.** A provocation that fails to
+  // provoke is green, and this one already failed silently once by reaching
+  // `NoSuchTest` instead -- caught only because that variant's remedy collided
+  // with this one's in `no_two_distinct_causes_render_the_same_text`.
+  assert_eq!(
+    variant(&absent_verdict),
+    "VerdictCitesAbsentFile",
+    "this arm must reach 0270's guard rather than an earlier refusal: {absent_verdict}"
+  );
+  out.push((
+    "a verdict on a row whose cited file is absent",
+    absent_verdict,
+  ));
+
   out
 }
 
@@ -622,6 +676,7 @@ fn variant(err: &FacadeError) -> &'static str {
   match err {
     FacadeError::WriteNotAddressable { .. } => "WriteNotAddressable",
     FacadeError::AttachmentPathNotInThread { .. } => "AttachmentPathNotInThread",
+    FacadeError::VerdictCitesAbsentFile { .. } => "VerdictCitesAbsentFile",
     FacadeError::NoSuchThread { .. } => "NoSuchThread",
     FacadeError::ThreadExists { .. } => "ThreadExists",
     FacadeError::IssueExists { .. } => "IssueExists",

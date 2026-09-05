@@ -171,6 +171,26 @@ const CONSUMERS: &[(&str, &str, Policy)] = &[
     ),
   ),
   (
+    "hooks/pre-commit.sh",
+    "init",
+    Policy::Names(
+      "one `echo` in the zero-scope branch, naming `intent init` as the origin of a `languages: []` \
+       array so a reader knows the empty scope is the DEFAULT rather than a decision anyone made \
+       (issue 0242). It is never invoked -- a gate that ran `init` would be creating the project it is \
+       gating.",
+    ),
+  ),
+  (
+    "hooks/pre-commit.sh",
+    "lang",
+    Policy::Names(
+      "one `echo` in the same zero-scope branch, offering `intent lang init <lang>` as the way to give \
+       the gate something to enforce. Never invoked, for the same reason: declaring a language is the \
+       operator's decision about what the project IS, and a gate that made it would be answering a \
+       question nobody asked it.",
+    ),
+  ),
+  (
     "hooks/pre-commit-shim.sh",
     "shim",
     Policy::Names(

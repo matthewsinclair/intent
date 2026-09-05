@@ -454,6 +454,23 @@ pub enum FacadeError {
   /// not a taxonomy of refusals.
   #[error("`{url}` cannot be written: {why}")]
   WriteNotAddressable { url: String, why: String },
+  /// A verdict (`green` / `red`) on a row whose cited file is not there (`0270`).
+  ///
+  /// **SEPARATE BECAUSE THE REMEDY HAS TO NAME A CONSEQUENCE, NOT A FIX.** The
+  /// operator is not doing anything malformed -- `at red` on a failing test is
+  /// exactly right -- and what they need told is that this particular row's
+  /// citation does not exist yet, that the transition is one-way, and that the
+  /// finding it creates refuses every commit in the repository rather than
+  /// theirs.
+  #[error(
+    "{at} cites `{path}`, which does not exist, so `{status}` would make it a live absent_at finding"
+  )]
+  VerdictCitesAbsentFile {
+    st: String,
+    at: String,
+    path: String,
+    status: String,
+  },
   /// An attachment path that names nowhere inside the thread (`0262`).
   ///
   /// **SEPARATE FROM `WriteNotAddressable` BECAUSE THE REMEDY IS.** That
@@ -1061,6 +1078,18 @@ impl crate::remedy::Remedy for FacadeError {
             "give the path the file should have INSIDE {thread} -- `--from` is where the bytes are read from, and this argument is where they are recorded"
           ),
         }
+      }
+      // **THE REMEDY NAMES THE CONSEQUENCE AND THE WAY OUT, IN THAT ORDER**,
+      // because the operator's instinct here is that the tool is being fussy
+      // about a status they are entitled to set. What makes it not fussy is the
+      // blast radius: an `absent_at` finding refuses EVERY node's commit, and
+      // there is no verb that returns the row to `to-write` afterwards.
+      Self::VerdictCitesAbsentFile { st, at, path, .. } => {
+        format!(
+          "write `{path}` first, then set the verdict -- or point the row at the file that exists with `intent at edit {st} {at} --file <path>`. \
+           This is refused rather than warned because the finding it would create refuses EVERY commit in this repository, not just yours, \
+           and `intent at` has no spelling that returns a row to `to-write` afterwards."
+        )
       }
       Self::WriteNotAddressable { .. } => {
         "`PUT` json to a caller-assigned id (an AC or an AT); everything else is a \
@@ -6092,16 +6121,57 @@ impl Facade {
     status: AtStatus,
     note: Option<String>,
   ) -> Result<Outcome, FacadeError> {
-    let from = self
+    let row_now = self
       .st_show(st)?
       .tests
       .iter()
       .find(|t| t.id == at)
-      .map(|t| t.status)
+      .map(|t| (t.status, t.file.clone()))
       .ok_or_else(|| FacadeError::NoSuchTest {
         st: st.to_string(),
         at: at.to_string(),
       })?;
+    let (from, cited) = row_now;
+
+    // **A VERDICT NEEDS ITS EVIDENCE TO EXIST, AND THE FORWARD STEP IS A ONE-WAY
+    // DOOR** (issue 0270, vc ruled option 2, 2026-09-05).
+    //
+    // `to-write` citing a file that does not exist yet is the NORMAL state and is
+    // exempt from the `absent_at` finding. The identical row at `green` or `red`
+    // is a live finding, and that finding **refuses every commit in the
+    // repository** -- not just the committer's, and not just this thread's. So
+    // `to-write -> red` on a test nobody has written yet converts a quiet, legal
+    // row into an estate-wide block.
+    //
+    // **AND THERE IS NO STEP BACK.** `intent at` offers `green`, `red`, `na`,
+    // `new` and `edit`; no spelling returns a row to `to-write`. Giving the
+    // machine that inverse is the wider fix and is not ruled out. This is the
+    // narrower one, and it defends every row rather than the one somebody
+    // remembered to annotate.
+    //
+    // **BOTH VERDICT STATES, NOT ONLY `red`.** The ruling names `at red` because
+    // that is the door that was walked into, but `absent_at` treats a green row
+    // citing a missing file identically -- guarding one and not the other would
+    // leave the same hole one verb over.
+    //
+    // **RADIUS MEASURED BEFORE THE CHOICE**, independently of the row that asked
+    // for it: 303 green/red rows in this estate carry a citation and **zero**
+    // cite a missing file, so this refuses nothing that exists. It is additive.
+    // The exposure it closes is larger than the row's one instance: **36
+    // `to-write` rows cite a file that has never existed**, and every one of them
+    // is this door, armed.
+    if matches!(status, AtStatus::Green | AtStatus::Red) {
+      if let Some(path) = cited.as_deref() {
+        if !self.project.root().join(path).exists() {
+          return Err(FacadeError::VerdictCitesAbsentFile {
+            st: st.to_string(),
+            at: at.to_string(),
+            path: path.to_string(),
+            status: status.display().to_string(),
+          });
+        }
+      }
+    }
 
     // **`at.set` is declared with an EMPTY from-set, so without this a self-loop
     // was a real write.** Every value legitimately reaches every other here, which
