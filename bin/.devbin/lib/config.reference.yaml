@@ -166,6 +166,21 @@ devbin_version: "^1.0.0"
 # (D3). Absent a file, help generates an answer from the summary, the options
 # and where the command resolved from -- never an empty page.
 
+# WHERE `devbin install` PUBLISHES TO, when run inside devbin's OWN source tree
+# (ST0005). Read by nothing else, and harmless in a consumer -- a project that
+# sets it is describing a publish it will never perform.
+#
+# The point of the key is that the location is CONFIGURATION rather than a path
+# written into code. `--prefix <dir>` overrides it, which is how the test suite
+# publishes into a temporary directory without an environment variable that
+# anything in the environment could redirect a write with.
+#
+# A leading `~/` is expanded. A config value is a literal string, so an
+# unexpanded tilde would create a directory actually named `~` under the cwd and
+# every later command would find an install exactly where it looked.
+install:
+  prefix: ~/Devel/opt/devbin
+
 help:
   # Optional. Completes the first line: `<project name> -- <tagline>`.
   tagline: "unified dev launcher for the Conflab project"

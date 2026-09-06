@@ -1,0 +1,398 @@
+#!/usr/bin/env bash
+#
+#
+# `infra mail dmarc parse` -- a DMARC aggregate report to one JSON object per
+# <record>, on stdout, one per line.
+#
+# WHAT THIS IS FOR. A DMARC report does not say a message was forged. What
+# separates a forgery from a legitimate message that was merely forwarded is
+# THE ABSENCE OF ANY DKIM AUTH RESULT: DKIM signatures survive relay and SPF
+# results do not, so an SPF softfail on its own is what ordinary mailing-list
+# forwarding produces and discriminates nothing.
+#
+# So the one thing this parser must never do is collapse ABSENT into EMPTY.
+# That is a live hazard rather than a theoretical one, because the obvious
+# implementation has it:
+#
+#   xmllint --xpath 'string(...//auth_results/dkim/domain)'
+#
+# returns the empty string for an absent <dkim> AND for a present-but-empty
+# one. `count()` is the discriminator -- 0 versus 1 -- and it is used here for
+# EVERY optional element, not just dkim. dkim is only where getting it wrong
+# costs the most; np, sp, pct, reason, selector and scope have the same shape
+# and the same trap.
+#
+# The contract carries the distinction in the TYPE rather than in a sentinel:
+# `dkim_auth` is an ARRAY whose length is `count()`. Absent is `[]`;
+# present-but-empty is `[{...}]` with empty strings inside. No sentinel string
+# can be mistaken for data, and a multi-signature message needs no special case.
+#
+# PURE BY CONTRACT: no profile, no network, no config. `report` and `check` are
+# tested against this output with no profile in existence, so a reach for one
+# here would coerce a pure stage into an impure one and take their tests with
+# it.
+#
+# NO TEXT-EXTRACTION FALLBACK. A grep/sed fallback for a missing xmllint yields
+# a command that runs everywhere and cannot tell a forgery from a clean send,
+# which is worse than one that refuses to start.
+#
+set -euo pipefail
+
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+# shellcheck source=lib/helpers
+. "$DEVBIN_LIB/helpers"
+
+# The field separator for the packed XPath results below.
+#
+# NOT A TAB, and the reason is a silent one. Tab is an IFS WHITESPACE
+# character, so `IFS=$'\t' read` collapses runs of them and drops leading ones:
+# measured, `a<TAB><TAB>c` splits to (a, c), shifting every later field one
+# column left with nothing to see. `|` is not whitespace, so empty fields
+# survive in place. Free text never travels through this -- see fetch_comment.
+FS='|'
+
+usage() {
+  cat <<EOF
+usage: $DEVBIN_NAME infra mail dmarc <verb>
+
+  parse <report.xml>   one JSON object per <record>, on stdout
+  report               read those rows on stdin, summarise them for a human
+
+Both read no profile and make no network call. Neither judges the estate:
+that is \`infra mail dmarc check\`, which has a profile to judge it against.
+
+  $DEVBIN_NAME infra mail dmarc parse r.xml | $DEVBIN_NAME infra mail dmarc report
+EOF
+}
+
+# --- xmllint, made loud -------------------------------------------------------
+
+# xq <xpath> -- evaluate one XPath expression against $SRC and print the result.
+#
+# XMLLINT'S EXIT CODE CANNOT CARRY THIS, measured 2026-09-06: an expression
+# whose string literal it refuses prints "XPath evaluation failure" to stderr
+# and EXITS 0, while an expression selecting an empty nodeset EXITS 10. Both
+# directions are wrong here -- a green that measured nothing, and a red on a
+# legitimately absent optional element. Two things follow, and both matter
+# here: every expression below returns a string or a number (concat, count,
+# string) and never a nodeset, so the empty-nodeset red cannot arise; and the
+# control on the silent direction is stderr being EMPTY, not the exit code.
+xq() {
+  local out
+  out="$(xmllint --xpath "$1" "$SRC" 2>"$ERRF")" || die "dmarc: XPath failed on $SRC -- $1"
+  if [ -s "$ERRF" ]; then
+    die "dmarc: XPath evaluation failed on $SRC -- $(tr '\n' ' ' <"$ERRF")"
+  fi
+  printf '%s' "$out"
+}
+
+# as_num <value> <field> -- a non-negative integer, or a loud death.
+#
+# Every numeric field is fed through here on the way into `jq --argjson`, so a
+# report that carries a non-number in a counted field stops the run naming the
+# field rather than emitting a row with a plausible zero in it.
+as_num() {
+  case "$1" in
+    '' | *[!0-9]*) die "dmarc: $2 is not a number (got '$1') in $SRC" ;;
+  esac
+  printf '%s' "$1"
+}
+
+# --- extraction ---------------------------------------------------------------
+
+# Every optional element is fetched as a (count, string) PAIR. The count is what
+# makes absent and empty different; the string is the value when there is one.
+read_header() {
+  local line rest
+  line="$(xq "concat(
+    string(/feedback/report_metadata/org_name), '$FS',
+    string(/feedback/report_metadata/report_id), '$FS',
+    string(/feedback/report_metadata/date_range/begin), '$FS',
+    string(/feedback/report_metadata/date_range/end), '$FS',
+    string(/feedback/policy_published/domain), '$FS',
+    string(/feedback/policy_published/p), '$FS',
+    count(/feedback/policy_published/sp), '$FS',
+    string(/feedback/policy_published/sp), '$FS',
+    count(/feedback/policy_published/np), '$FS',
+    string(/feedback/policy_published/np), '$FS',
+    count(/feedback/policy_published/pct), '$FS',
+    string(/feedback/policy_published/pct))")"
+
+  IFS="$FS" read -r H_ORG H_REPORT_ID H_BEGIN H_END H_DOMAIN H_P \
+    H_HAS_SP H_SP H_HAS_NP H_NP H_HAS_PCT H_PCT rest <<<"$line"
+  [ -z "$rest" ] || die "dmarc: report metadata carried an unexpected '$FS' -- refusing to guess field alignment ($SRC)"
+
+  H_BEGIN="$(as_num "$H_BEGIN" 'date_range/begin')"
+  H_END="$(as_num "$H_END" 'date_range/end')"
+}
+
+# fetch_comment <record-index> -- the ONE free-text field, fetched alone.
+#
+# A <comment> is reporter-authored prose and can hold anything, including the
+# separator. It therefore never rides in a packed line: a collision there would
+# either shift a whole record's fields or trip the overflow guard on data that
+# is perfectly valid.
+fetch_comment() {
+  xq "string(/feedback/record[$1]/row/policy_evaluated/reason/comment)"
+}
+
+# auth_array <record-index> <dkim|spf> <count> <third-field>
+#
+# One JSON array for one record's auth results. dkim carries a selector and spf
+# a scope; both are optional, so both arrive as a (count, string) pair and
+# become null rather than "" when the element is absent. An empty count yields
+# `[]` -- which is the whole point of the file.
+auth_array() {
+  local rec="$1" kind="$2" n="$3" third="$4"
+  local acc='[]' j=1 line dom res has val rest
+  while [ "$j" -le "$n" ]; do
+    line="$(xq "concat(
+      string(/feedback/record[$rec]/auth_results/${kind}[$j]/domain), '$FS',
+      string(/feedback/record[$rec]/auth_results/${kind}[$j]/result), '$FS',
+      count(/feedback/record[$rec]/auth_results/${kind}[$j]/$third), '$FS',
+      string(/feedback/record[$rec]/auth_results/${kind}[$j]/$third))")"
+    IFS="$FS" read -r dom res has val rest <<<"$line"
+    [ -z "$rest" ] || die "dmarc: record $rec ${kind}[$j] carried an unexpected '$FS' ($SRC)"
+    acc="$(jq -c -n --argjson acc "$acc" --arg dom "$dom" --arg res "$res" \
+      --argjson has "$(as_num "$has" "${kind}[$j]/$third count")" --arg val "$val" --arg k "$third" \
+      '$acc + [{domain: $dom, result: $res} + {($k): (if $has == 0 then null else $val end)}]')"
+    j=$((j + 1))
+  done
+  printf '%s' "$acc"
+}
+
+emit_record() {
+  local rec="$1" line rest
+  local ip cnt disp dkim_ev spf_ev hfrom has_reason rtype ndkim nspf
+  local comment dkim_json spf_json
+
+  line="$(xq "concat(
+    string(/feedback/record[$rec]/row/source_ip), '$FS',
+    string(/feedback/record[$rec]/row/count), '$FS',
+    string(/feedback/record[$rec]/row/policy_evaluated/disposition), '$FS',
+    string(/feedback/record[$rec]/row/policy_evaluated/dkim), '$FS',
+    string(/feedback/record[$rec]/row/policy_evaluated/spf), '$FS',
+    string(/feedback/record[$rec]/identifiers/header_from), '$FS',
+    count(/feedback/record[$rec]/row/policy_evaluated/reason), '$FS',
+    string(/feedback/record[$rec]/row/policy_evaluated/reason/type), '$FS',
+    count(/feedback/record[$rec]/auth_results/dkim), '$FS',
+    count(/feedback/record[$rec]/auth_results/spf))")"
+
+  IFS="$FS" read -r ip cnt disp dkim_ev spf_ev hfrom has_reason rtype ndkim nspf rest <<<"$line"
+  [ -z "$rest" ] || die "dmarc: record $rec carried an unexpected '$FS' -- refusing to guess field alignment ($SRC)"
+
+  cnt="$(as_num "$cnt" "record $rec count")"
+  has_reason="$(as_num "$has_reason" "record $rec reason count")"
+  ndkim="$(as_num "$ndkim" "record $rec dkim count")"
+  nspf="$(as_num "$nspf" "record $rec spf count")"
+
+  comment=''
+  [ "$has_reason" -eq 0 ] || comment="$(fetch_comment "$rec")"
+
+  dkim_json="$(auth_array "$rec" dkim "$ndkim" selector)"
+  spf_json="$(auth_array "$rec" spf "$nspf" scope)"
+
+  jq -c -n \
+    --arg org "$H_ORG" --arg report_id "$H_REPORT_ID" \
+    --argjson window_begin "$H_BEGIN" --argjson window_end "$H_END" \
+    --arg policy_domain "$H_DOMAIN" --arg p "$H_P" \
+    --argjson has_sp "$H_HAS_SP" --arg sp "$H_SP" \
+    --argjson has_np "$H_HAS_NP" --arg np "$H_NP" \
+    --argjson has_pct "$H_HAS_PCT" --arg pct "$H_PCT" \
+    --arg source_ip "$ip" --argjson count "$cnt" \
+    --arg disposition "$disp" --arg dkim_evaluated "$dkim_ev" --arg spf_evaluated "$spf_ev" \
+    --arg header_from "$hfrom" \
+    --argjson dkim_auth "$dkim_json" --argjson spf_auth "$spf_json" \
+    --argjson has_reason "$has_reason" --arg reason_type "$rtype" --arg reason_comment "$comment" \
+    '{
+      org: $org, report_id: $report_id,
+      window_begin: $window_begin, window_end: $window_end,
+      policy_domain: $policy_domain,
+      p: $p,
+      sp:  (if $has_sp  == 0 then null else $sp end),
+      np:  (if $has_np  == 0 then null else $np end),
+      pct: (if $has_pct == 0 then null else ($pct | tonumber) end),
+      source_ip: $source_ip, count: $count,
+      disposition: $disposition,
+      dkim_evaluated: $dkim_evaluated, spf_evaluated: $spf_evaluated,
+      header_from: $header_from,
+      dkim_auth: $dkim_auth, spf_auth: $spf_auth,
+      reason_type:    (if $has_reason == 0 then null else $reason_type end),
+      reason_comment: (if $has_reason == 0 then null else $reason_comment end)
+    }'
+}
+
+# --- report -------------------------------------------------------------------
+#
+# THE PURE FUNCTION IS THE jq PROGRAM; the shell around it is the impure
+# coordinator (stdin, tool checks, failure). That split is why the summary is
+# testable at all -- the rendering has no I/O in it.
+#
+# WHAT THIS COMMAND MAY NOT DO, and it is a boundary of capability rather than
+# taste: `report` has no profile, so it cannot know which domains SHOULD have
+# reported. A domain publishing no `rua` produces no reports and is absent from
+# the input entirely -- so a summary phrased as an estate verdict would be
+# reporting on its own input while sounding like it reported on the estate.
+# That is absent-reporting-reads-as-clean-reporting, produced by the tool built
+# to detect it. `report` therefore states the domains PRESENT, and
+# `infra mail dmarc check` -- which has a profile -- owns the assertion about
+# what should have been there.
+#
+# AND IT DOES NOT JUDGE. Exit 0 means the summary was produced, never that the
+# estate is well. A non-zero here for "found forgeries" would make the same
+# category error as reading `disposition` as authentication: it would put an
+# assertion in the command that by contract has nothing to assert it against.
+
+# shellcheck disable=SC2016  # single-quoted jq source: $rows, $unauth and the
+# rest are jq variables, bound inside the program and expanded by jq, not bash.
+REPORT_JQ='
+def pad($n): if (length >= $n) then . else . + (" " * ($n - length)) end;
+
+# A message may carry several DKIM signatures, and DMARC needs only one to
+# align. So the class is decided by ANY pass, never by the first signature.
+def klass:
+  if (.dkim_auth | length) == 0 then "unauth"
+  elif ([.dkim_auth[] | .result] | index("pass")) then "auth"
+  else "failing"
+  end;
+
+def plural($n): if $n == 1 then "" else "s" end;
+
+def row:
+  "  " + (.policy_domain | pad(22)) + (.source_ip | pad(18))
+  + ((.count | tostring) + " msg" + plural(.count) | pad(11))
+  + (if (.dkim_auth | length) == 0
+     then "dkim=absent  spf=" + ((.spf_auth | map(.result) | join(",")) // "absent")
+     else "dkim=" + (.dkim_auth | map(.result) | join(","))
+          + "  spf=" + ((.spf_auth | map(.result) | join(",")) // "absent")
+     end);
+
+def block($title; $rows):
+  ([$title] + (if ($rows | length) == 0 then ["  none"] else ($rows | map(row)) end) + [""]);
+
+. as $all
+| ($all | map(. + {k: klass})) as $rows
+| ($rows | map(select(.k == "unauth")))  as $unauth
+| ($rows | map(select(.k == "failing"))) as $failing
+| ($rows | map(select(.k == "auth")))    as $auth
+| ($rows | length) as $nrec
+| ($rows | map(.count) | add) as $nmsg
+| ($rows | map(.policy_domain) | unique) as $domains
+| ($rows | map(.org) | unique) as $reporters
+| ($rows | map(.report_id) | unique) as $reports
+| ($rows | map(select(.disposition == "none")) | length) as $dnone
+| ($unauth | map(select(.disposition == "none")) | length) as $unauth_dnone
+| (
+    [
+      "DMARC aggregate reports",
+      "  " + ($nrec | tostring) + " record" + plural($nrec)
+           + "  " + ($nmsg | tostring) + " message" + plural($nmsg)
+           + "  " + ($domains | length | tostring) + " domain" + plural($domains | length)
+           + "  " + ($reporters | length | tostring) + " reporter" + plural($reporters | length)
+           + "  " + ($reports | length | tostring) + " report" + plural($reports | length),
+      "  window " + ($rows | map(.window_begin) | min | todate)
+           + " .. " + ($rows | map(.window_end) | max | todate),
+      "  domains present in these reports: " + ($domains | join(", ")),
+      ""
+    ]
+    + block("UNAUTHENTICATED -- no DKIM auth result (" + ($unauth | length | tostring)
+            + " record" + plural($unauth | length) + ", "
+            + (($unauth | map(.count) | add) // 0 | tostring) + " messages)"; $unauth)
+    + block("DKIM PRESENT BUT NOT PASSING -- your own mail, failing ("
+            + ($failing | length | tostring) + " record" + plural($failing | length) + ")"; $failing)
+    + block("AUTHENTICATED -- a DKIM signature passed (" + ($auth | length | tostring)
+            + " record" + plural($auth | length) + ")"; $auth)
+    + [
+      "DISPOSITION IS NOT AUTHENTICATION",
+      "  " + ($dnone | tostring) + " of " + ($nrec | tostring)
+           + " records read disposition=none, of which " + ($unauth_dnone | tostring)
+           + " carry no DKIM signature at all.",
+      "  Disposition reports what the receiver DID under the policy in force. It",
+      "  never reports whether a message was authentic -- under p=none it reads",
+      "  none for every record, forged ones included.",
+      "",
+      "WHAT THIS CANNOT SEE",
+      "  - a domain publishing no rua produces no reports and is absent from this",
+      "    input entirely. This summarises the " + ($domains | length | tostring)
+           + " domains present in these reports",
+      "    and says nothing about any domain that is not in them.",
+      "  - receivers that send no aggregate reports at all.",
+      "  - message content. Aggregate reports carry counts, never bodies or subjects.",
+      "  - whether a passing signature belongs to a sender you authorised."
+    ]
+  )
+| .[]
+'
+
+report() {
+  require_tool jq "Install jq. The summary is computed from JSON Lines."
+
+  local input bad
+  input="$(cat)"
+  [ -n "${input//[[:space:]]/}" ] || die "report: no rows on stdin. An empty summary and a clean estate read identically -- refusing to print one."
+
+  # Name the first line that is not JSON. A silently skipped line would drop
+  # records out of every count below with nothing to see.
+  bad="$(printf '%s\n' "$input" | jq -Rn '
+    [inputs] | to_entries
+    | map(select(.value | test("^[[:space:]]*$") | not))
+    | map(select(.value | (try (fromjson | false) catch true)))
+    | if length == 0 then empty else ((.[0].key + 1) | tostring) end')"
+  [ -z "$bad" ] || die "report: line $bad is not JSON. Input must be the output of \`infra mail dmarc parse\`."
+
+  printf '%s\n' "$input" | jq -s -r "$REPORT_JQ"
+}
+
+# --- the verbs ----------------------------------------------------------------
+
+parse() {
+  SRC="${1:-}"
+  [ -n "$SRC" ] || die "dmarc parse: needs a report path (try: $DEVBIN_NAME infra mail dmarc --help)"
+  [ -f "$SRC" ] || die "dmarc parse: no such report: $SRC"
+
+  require_tool xmllint "Install libxml2. There is deliberately no text-extraction fallback -- one would report every message as unsigned, which is what a forgery looks like."
+  require_tool jq "Install jq. Rows are emitted as JSON Lines."
+
+  ERRF="$(mktemp "${TMPDIR:-/tmp}/devbin-dmarc.XXXXXX")"
+  trap 'rm -f "$ERRF"' EXIT
+
+  xmllint --noout "$SRC" 2>"$ERRF" ||
+    die "dmarc parse: malformed XML in $SRC -- $(tr '\n' ' ' <"$ERRF")"
+
+  local n i
+  n="$(as_num "$(xq 'count(/feedback/record)')" 'record count')"
+  # Zero rows is what a clean report and an unreadable one both look like, so it
+  # is never a quiet success. A conforming report always carries at least one
+  # <record>; a document that parses as XML but has none is not one.
+  [ "$n" -gt 0 ] || die "dmarc parse: $SRC has no <record> elements -- not a DMARC aggregate report"
+
+  read_header
+
+  i=1
+  while [ "$i" -le "$n" ]; do
+    emit_record "$i"
+    i=$((i + 1))
+  done
+}
+
+main() {
+  case "${1:-}" in
+    '' | -h | --help)
+      usage
+      return 0
+      ;;
+    parse)
+      shift
+      parse "$@"
+      ;;
+    report)
+      shift
+      report "$@"
+      ;;
+    *)
+      die "infra mail dmarc: unknown verb \`$1\` (try: $DEVBIN_NAME infra mail dmarc --help)"
+      ;;
+  esac
+}
+
+main "$@"

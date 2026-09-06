@@ -83,6 +83,7 @@ version          any     -           -          Ship      @builtin | Show, set a
 publish          opt-in  -           -          Ship      - | Publish a release artifact
 macos            opt-in  -           -          Ship      - | macOS bundle and platform tasks
 which            opt-in  -           -          Install   - | Report which binary or build a name resolves to
+infra            any     -           -          Infra     @builtin | Resolve, check and apply this estate's DNS, mail and runtime configuration
 install          any     -           -          Devbin    @builtin | Vendor this devbin into a project
 upgrade          any     -           -          Devbin    @builtin | Re-sync the vendored runtime from where it came from
 vendor           any     -           -          Devbin    @builtin | Compare the vendored runtime against the devbin it came from

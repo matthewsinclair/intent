@@ -15,18 +15,36 @@ set -euo pipefail
 
 # shellcheck source=lib/helpers
 . "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/config
+# `install.prefix` is read here in PUBLISH-UPGRADE mode (ST0005). Handlers are
+# reached by `exec` (lib/resolve:173), so the config the dispatcher loaded is
+# gone with its process and this file needs the reader of its own.
+. "$DEVBIN_LIB/config"
 # shellcheck source=lib/install
 . "$DEVBIN_LIB/install"
 
 usage() {
   cat <<EOF
 usage: $DEVBIN_INVOKE upgrade [--from <dir>] [--force]
+       $DEVBIN_INVOKE upgrade [--prefix <dir>]          (inside devbin's own tree)
 
   --from <dir>   the devbin to upgrade from (default: the source recorded at install)
+  --prefix <dir> PUBLISH-UPGRADE only: the machine install to replace
+                 (default: install.prefix in config, else ~/Devel/opt/devbin)
   --force        overwrite vendored files that were edited in place
 
 Replaces bin/devbin and bin/.devbin/lib/. Never touches config.yaml, cmd/ or
 help/ -- those are yours.
+
+TWO MODES, chosen by the tree you are standing in (ST0005, D26):
+
+  PUBLISH-UPGRADE  run inside devbin's own source tree. Replaces the machine
+                   install that the estate vendors from. Refuses on a dirty tree,
+                   and refuses when there is no install yet -- use \`install\`.
+  UPGRADE          everywhere else, and unchanged: bring this project's vendored
+                   runtime forward from its recorded source.
+
+The mode is printed before anything is written.
 EOF
 }
 
@@ -41,9 +59,70 @@ _upgrade_provenance_lines() {
   warn "  upgrading to:  $(git -C "$2" rev-parse HEAD 2>/dev/null || printf 'unknown')"
 }
 
+# _upgrade_the_install <srcroot> <prefix-flag> -- replace the machine install.
+#
+# The mirror of `install`'s PUBLISH mode and it shares that mode's single writer,
+# `publish_install`. What differs is the precondition and nothing else: `install`
+# refuses when an install already exists, this refuses when one does not, so
+# whichever verb you reach for, the wrong one names the right one (hv, 2026-09-06).
+_upgrade_the_install() {
+  local srcroot="$1" prefix="$2" dstroot dirty count modified
+
+  cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 ||
+    die "cannot read devbin's own config at $DEVBIN_DIR/config.yaml"
+  [ -n "$prefix" ] || prefix="$(install_prefix_configured)"
+  dstroot="$prefix"
+
+  printf 'mode: PUBLISH-UPGRADE -- %s is devbin'"'"'s own source tree\n' "$srcroot"
+  printf '  replacing the install at: %s\n\n' "$dstroot"
+
+  if ! is_devbin_installed "$dstroot"; then
+    warn "there is no install at $dstroot to upgrade"
+    warn "  to publish one:  $DEVBIN_INVOKE install"
+    return 1
+  fi
+
+  # THE SAME GATE AS `install`, and it is the reason the install tree is worth
+  # having at all (D28). An install cut from a dirty checkout launders the bytes
+  # through one more hop and gives them the LOOK of provenance.
+  if ! dirty="$(tree_dirty_paths "$srcroot")"; then
+    die "cannot publish: $srcroot is not a git repository, so the commit this
+       install would claim cannot be established"
+  fi
+  if [ -n "$dirty" ]; then
+    warn "refusing to publish: the source tree is dirty"
+    printf '%s\n' "$dirty" | while IFS= read -r line; do warn "  $line"; done
+    die "commit or stash, then publish -- an install cut from a dirty tree
+       records a commit that does not describe the bytes in it"
+  fi
+
+  # AN EDITED INSTALL IS REPORTED BEFORE IT IS DISCARDED. Nobody should be
+  # editing an install and the replace is wholesale either way -- but a file
+  # silently overwritten is a change nobody can find afterwards, and saying so
+  # costs one manifest read that already has a reader.
+  # -F'\t' because manifest_check's contract is `<state><TAB><relpath>` and a
+  # vendored path containing a space would split into the wrong field under
+  # awk's default whitespace FS. No such path exists today, which is exactly the
+  # condition under which this would be found late.
+  modified="$(manifest_check "$dstroot" 2>/dev/null | awk -F'\t' '$1 == "modified" { print $2 }' || true)"
+  if [ -n "$modified" ]; then
+    warn "this install has edited files; they are being REPLACED, not preserved:"
+    printf '%s\n' "$modified" | while IFS= read -r line; do warn "  $line"; done
+  fi
+
+  count="$(publish_install "$srcroot" "$dstroot" "$(devbin_runtime_version)")" ||
+    die "failed to write the install at $dstroot"
+  printf '  replaced   %d files (bin/devbin, bin/.devbin/lib/)\n' "$count"
+  printf '  recorded   %s\n' "$(manifest_field "$dstroot" source_commit 2>/dev/null || printf 'unrecorded')"
+  printf '\nThe estate still carries the OLD bytes until each project upgrades:\n'
+  printf '  bin/devbin fleet upgrade --dry-run\n'
+  return 0
+}
+
 main() {
-  local from="" force="" dstroot srcroot version states paths rel src state
+  local from="" force="" prefix="" dstroot srcroot version states paths rel src state
   local added=0 updated=0 unchanged=0 skipped=0 removed=0 converged=0 sum_src sum_dst
+  local prev_source now_source
   # Every path this run REFUSED to replace. Passed to manifest_write so each
   # keeps its install-time checksum: re-checksumming a file we declined to
   # overwrite would record the edit as canonical and the next `doctor` would
@@ -61,6 +140,10 @@ main() {
         from="${2:-}"
         shift 2 || die "--from needs a directory"
         ;;
+      --prefix)
+        prefix="${2:-}"
+        shift 2 || die "--prefix needs a directory"
+        ;;
       --force)
         force=yes
         shift
@@ -71,6 +154,17 @@ main() {
   done
 
   dstroot="${PROJECT_ROOT:?}"
+
+  # --- PUBLISH-UPGRADE: the dev tree replaces the machine install (ST0005) -----
+  #
+  # Must sit BEFORE the is_devbin_installed test below, because the dev tree
+  # deliberately fails that test -- it runs lib/ in place (D12) and has nothing
+  # vendored. What used to happen here was a refusal saying exactly that; the
+  # refusal was correct and there is now something to do instead.
+  if is_devbin_dev_tree "$dstroot"; then
+    _upgrade_the_install "$dstroot" "$prefix"
+    return $?
+  fi
 
   is_devbin_installed "$dstroot" || {
     # Two un-installed shapes, and only one of them wants an install. The D12
@@ -257,6 +351,9 @@ EOF
   [ -f "$(manifest_path "$dstroot")" ] &&
     manifest_was="$(cat "$(manifest_path "$dstroot")" 2>/dev/null || true)"
   prev_commit="$(manifest_source_commit "$dstroot" 2>/dev/null || true)"
+  # The SOURCE PATH is captured beside the commit because it can move on its own,
+  # and until ST0005 nothing ever did so -- see the report below.
+  prev_source="$(manifest_field "$dstroot" source 2>/dev/null || true)"
 
   manifest_write "$dstroot" "$srcroot" "$version" "$preserved" ||
     die "failed to write the manifest"
@@ -275,11 +372,36 @@ EOF
       # NOTHING RAN AND THE TREE STILL CHANGED. Say which file and which way,
       # because the caller is about to find a modified working tree and the
       # summary above accounts for none of it.
+      #
+      # REPORT THE FIELD THAT ACTUALLY MOVED, not always the commit.
+      #
+      # This printed `was recording: <sha>` / `now records: <SAME sha>` -- two
+      # identical values offered as evidence of a change -- the first time a
+      # project was re-pointed from the dev tree at the machine install (ST0005).
+      # Nothing was wrong but the report: the SOURCE PATH had moved and the
+      # commit had not, and until an install tree existed there was no way for
+      # those two to move independently, so the case had never occurred.
+      #
+      # A report that shows a reader two equal numbers and calls them a
+      # difference teaches them to stop reading it.
       now_commit="$(manifest_source_commit "$dstroot" 2>/dev/null || true)"
+      now_source="$(manifest_field "$dstroot" source 2>/dev/null || true)"
       printf 'Runtime already up to date -- but the PROVENANCE moved, so %s changed.\n' \
         "$DEVBIN_MANIFEST_REL"
-      printf '  was recording: %s\n' "${prev_commit:-unrecorded}"
-      printf '  now records:   %s\n' "${now_commit:-unrecorded}"
+      if [ "$prev_commit" != "$now_commit" ]; then
+        printf '  commit was:    %s\n' "${prev_commit:-unrecorded}"
+        printf '  commit now:    %s\n' "${now_commit:-unrecorded}"
+      fi
+      if [ "$prev_source" != "$now_source" ]; then
+        printf '  source was:    %s\n' "${prev_source:-unrecorded}"
+        printf '  source now:    %s\n' "${now_source:-unrecorded}"
+      fi
+      if [ "$prev_commit" = "$now_commit" ] && [ "$prev_source" = "$now_source" ]; then
+        # Neither header moved and the file still differs. Saying so is the only
+        # honest option: the alternative is a confident wrong attribution.
+        printf '  neither the commit nor the source changed -- the manifest differs\n'
+        printf '  for some other reason, and this report cannot say which.\n'
+      fi
       printf 'No vendored file differs; this tree simply now names where it came from.\n'
     fi
   fi

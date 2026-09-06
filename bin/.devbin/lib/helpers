@@ -43,11 +43,33 @@ DEVBIN_NAME="${DEVBIN_NAME:-devbin}"
 # So the per-project symlink is retired and `bin/devbin` is the invocation
 # everywhere.
 #
-# A CONSTANT AND NOT A SECOND VARIABLE. The invocation no longer varies, so a
-# variable would be a field that must be kept in sync with a fact that cannot
-# change. One name, one place, and DEVBIN_NAME is left with exactly one job:
-# saying which project this is.
-DEVBIN_INVOKE="bin/devbin"
+# IT WAS A CONSTANT, AND THE PREMISE FOR THAT WAS FALSE (ST0005, 2026-09-06).
+#
+# This read: "The invocation no longer varies, so a variable would be a field
+# that must be kept in sync with a fact that cannot change." That reasoning was
+# about the retired per-project symlink and it was right about THAT. What it
+# missed is that `bin/devbin` is a RELATIVE path, so what varies is not the name
+# but whether it RESOLVES from where the reader is standing.
+#
+# The operator drives devbin through `dvb`, a shell function that walks UP from
+# $PWD to find `bin/devbin` and runs it without changing directory -- so its
+# whole purpose is being used from a SUBDIRECTORY. Measured there, every
+# remediation devbin prints was a command that does not exist:
+#
+#     run: bin/devbin upgrade
+#     $ bin/devbin upgrade
+#     no such file or directory: bin/devbin
+#
+# That is the Lamplight defect this file already records one form of -- "the
+# remediation names a command that EXISTS" -- recurring in the one direction the
+# earlier fix did not cover. It exists at the project root, and not where the
+# reader is.
+#
+# So it is the SHORTEST FORM THAT WORKS FROM THE CALLER'S CWD, and the dispatcher
+# computes it once from the ORIGINAL cwd before any handler cds to the project
+# root. `:-` rather than a bare assignment so a re-source inside an exec'd
+# handler inherits that answer instead of recomputing a wrong one.
+DEVBIN_INVOKE="${DEVBIN_INVOKE:-bin/devbin}"
 
 die() {
   printf '%s: %s\n' "$DEVBIN_NAME" "$*" >&2
@@ -974,6 +996,177 @@ manifest_version() { manifest_field "$1" devbin_version; }
 manifest_source() { manifest_field "$1" source; }
 manifest_source_commit() { manifest_field "$1" source_commit; }
 
+# _devbin_source_head <srcroot> -- the commit the SOURCE currently holds.
+#
+# rc 0 with a bare sha, or rc 2 when it cannot be told. NO THIRD ANSWER: an
+# empty success would be read as "level" by every caller, and "cannot tell" and
+# "no change" are the two things this file exists to keep apart.
+#
+# TWO KINDS OF SOURCE, TWO INSTRUMENTS (ST0005). Until the machine install
+# existed a source was always a git checkout, so `git rev-parse HEAD` was the
+# only question worth asking. An INSTALL is not a checkout -- it has no .git at
+# all -- and asking git returns nothing, which this function's caller correctly
+# treated as "say nothing".
+#
+# MEASURED, NOT ANTICIPATED. The same consumer, at the same staleness, with one
+# field changed: pointed at the dev tree the notice SPOKE, pointed at the install
+# it went SILENT. So repointing the estate at the install -- which is the entire
+# job of ST0005 WP-03 -- would have turned off the update notice on every
+# project at once, and the failure is invisible because silence is this notice's
+# ordinary state.
+#
+# An install's own manifest already records the commit it was cut from, under
+# the dirty gate, so it is the authority for what that install holds. `kind:`
+# is READ rather than the shape being inferred, which is why that header exists.
+_devbin_source_head() {
+  local src="${1:-}" kind sha
+  [ -n "$src" ] || return 2
+  [ -d "$src" ] || return 2
+
+  kind="$(manifest_field "$src" kind 2>/dev/null || true)"
+  if [ "$kind" = install ]; then
+    sha="$(manifest_field "$src" source_commit 2>/dev/null || true)"
+  else
+    sha="$(git -C "$src" rev-parse HEAD 2>/dev/null)" || return 2
+  fi
+
+  # Same normalisation as the recorded side, and for the same reason: the field
+  # can carry `<sha> +dirty -- ...` or words instead of a sha. Compared whole,
+  # those can never be equal to anything, so the notice would fire forever.
+  sha="${sha%% *}"
+  case "$sha" in
+    *[!0-9a-f]* | "") return 2 ;;
+  esac
+  printf '%s\n' "$sha"
+  return 0
+}
+
+# devbin_offer_upgrade <projroot> -- ask, on a real terminal, whether to
+# upgrade now. Returns 0 whether or not anything was done.
+#
+# WHY THIS IS NARROW, AND IT IS A DELIBERATE NARROWING OF WHAT WAS ASKED FOR.
+# The request was an offer "when it is next used". This offers on the BARE
+# invocation and on `doctor`, not on every command, because there is no way for
+# the dispatcher to know whether the command it is about to run is a gate --
+# gate-ness is decided inside the handler, after dispatch, and the catalogue
+# does not record it. `devbin test all` typed at a terminal would reach this
+# code with stderr still a terminal, and stopping to ask about upgrades before
+# running somebody's tests is the same defect as issue 0058 wearing a friendlier
+# face. Bare and `doctor` are never gates by construction rather than by a check
+# that could drift, and they are where a person is looking at devbin itself.
+#
+# THE TERMINAL TEST IS 0058's, BOTH ARMS. `read </dev/tty` ignores stdin, so
+# `-t 0` alone would not stop it blocking; `-r /dev/tty` alone passes on any
+# machine with a tty device node, which is every CI runner. Neither half works
+# on its own -- that is what cost 6m30s of a hung suite on 2026-09-06.
+#
+# `-t 2` as well, matching the notice: a sealed gate's stderr is a pipe, so this
+# cannot speak from inside one even if it were ever reached there.
+devbin_offer_upgrade() {
+  local root="${1:-}" state rest rec cur reply
+  [ -n "$root" ] || return 0
+  [ -n "${DEVBIN_NO_UPDATE_NOTICE:-}" ] && return 0
+  # A DEVBIN LAUNCHED BY THIS OFFER NEVER OFFERS AGAIN.
+  #
+  # The yes branch runs `bin/devbin upgrade`, which re-enters the dispatcher --
+  # and while that upgrade is still running the project is STILL behind, so a
+  # second offer is made, which launches a third upgrade. Found by mutation on
+  # 2026-09-06: widening the offer to every command turned this into a live
+  # recursion that hung the suite rather than failing an assertion.
+  #
+  # Today the command scoping happens to prevent it, because `upgrade` is not in
+  # the offered set. THAT IS INCIDENTAL PROTECTION, not a guard: it holds only
+  # while nobody widens the set, and the mutation is exactly what widening looks
+  # like. The sentinel makes it intrinsic.
+  [ -n "${DEVBIN_OFFER_IN_PROGRESS:-}" ] && return 0
+  [ -t 2 ] || return 0
+  [ -t 0 ] || return 0
+  [ -r /dev/tty ] || return 0
+
+  state="$(devbin_source_state "$root")"
+  case "$state" in
+    behind*) ;;
+    *) return 0 ;;
+  esac
+  rest="${state#* }"
+  rec="${rest%% *}"
+  cur="${rest##* }"
+
+  {
+    printf 'An update to devbin is available.\n'
+    printf '  this project has: %s\n' "${rec:0:12}"
+    printf '  the source has:   %s\n' "${cur:0:12}"
+    printf '  from:             %s\n' "$(manifest_source "$root" 2>/dev/null || printf 'unrecorded')"
+    printf '\nUpgrading rewrites the vendored runtime in your working tree.\n'
+  } >&2
+  printf 'Upgrade now? [y/N] ' >&2
+  # Read from the terminal, not stdin: the caller may have redirected stdin for
+  # its own reasons and this question is for the person, not the pipeline.
+  # EOF DECLINES, it does not vanish -- the shape `_clean_confirm` uses. An
+  # early `return 0` here made the no-answer case indistinguishable from the
+  # offer never having been made, which is the state a pty-at-EOF test sees.
+  IFS= read -r reply </dev/tty || reply=""
+  case "$reply" in
+    y | Y | yes | YES) ;;
+    *)
+      printf 'Left as it is. Run: %s upgrade\n' \
+        "${DEVBIN_INVOKE:-bin/devbin}" >&2
+      return 0
+      ;;
+  esac
+  printf '\n' >&2
+  # Runs the real verb rather than reimplementing it: upgrade owns what an
+  # upgrade is, including every refusal it makes about edited files.
+  ( cd "$root" && DEVBIN_OFFER_IN_PROGRESS=1 ./bin/devbin upgrade ) || true
+  return 0
+}
+
+# devbin_source_state <projroot> -- THREE states, on stdout, one word first.
+#
+#   level                    the vendored runtime matches what the source holds
+#   behind <recorded> <now>  the source has moved on
+#   unknown <reason>         it could not be established
+#
+# WHY THIS EXISTS SEPARATELY FROM THE NOTICE. `_devbin_update_line` prints or
+# stays quiet, and quiet is its answer for BOTH "level" and "cannot tell". That
+# is right for a notice -- it asserts nothing and must never nag -- and it is
+# exactly wrong for a CHECK, where the two must not collapse. Absent is not
+# clean; a check that cannot reach the source and reports nothing is read as
+# reporting currency it never established.
+#
+# The notice keeps its own contract and its own tests; this is what `doctor`
+# asks, and both go through `_devbin_source_head` so there is one answer to
+# "what does the source hold".
+devbin_source_state() {
+  local root="${1:-}" src rec cur
+  [ -n "$root" ] || { printf 'unknown no project root given\n'; return 0; }
+
+  src="$(manifest_source "$root" 2>/dev/null || true)"
+  rec="$(manifest_source_commit "$root" 2>/dev/null || true)"
+  [ -n "$src" ] || { printf 'unknown this project records no source\n'; return 0; }
+  [ -n "$rec" ] || { printf 'unknown this project records no source commit\n'; return 0; }
+  [ -d "$src" ] || { printf 'unknown the source is not on this machine: %s\n' "$src"; return 0; }
+
+  rec="${rec%% *}"
+  case "$rec" in
+    *[!0-9a-f]* | "")
+      printf 'unknown this project records bytes that name no commit\n'
+      return 0
+      ;;
+  esac
+
+  if ! cur="$(_devbin_source_head "$src")"; then
+    printf 'unknown the source names no commit: %s\n' "$src"
+    return 0
+  fi
+  if [ "$cur" = "$rec" ]; then
+    printf 'level\n'
+  else
+    printf 'behind %s %s\n' "$rec" "$cur"
+  fi
+  return 0
+}
+
 # _devbin_update_line <projroot> -- print the notice body, or nothing.
 #
 # SEPARATED FROM DELIVERY SO IT CAN BE TESTED. The comparison is the part with
@@ -1029,7 +1222,11 @@ _devbin_update_line() {
     *[!0-9a-f]* | "") return 0 ;;
   esac
 
-  cur="$(git -C "$src" rev-parse HEAD 2>/dev/null)" || return 0
+  # ASKED OF THE SOURCE BY THE RIGHT INSTRUMENT FOR WHAT IT IS (ST0005). This
+  # was a bare `git rev-parse HEAD`, which is correct for a dev tree and returns
+  # nothing for an install -- so the notice went silent for every consumer the
+  # moment the estate was repointed at the install. See _devbin_source_head.
+  cur="$(_devbin_source_head "$src")" || return 0
   [ -n "$cur" ] || return 0
   [ "$cur" = "$rec" ] && return 0
 

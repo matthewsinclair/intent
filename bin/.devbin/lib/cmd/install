@@ -23,8 +23,11 @@ set -euo pipefail
 usage() {
   cat <<EOF
 usage: $DEVBIN_INVOKE install [--into <dir>] [--name <n>] [--alias <a>] [--lang <l>] [--force]
+       $DEVBIN_INVOKE install [--prefix <dir>]          (inside devbin's own tree)
 
   --into <dir>   the project to install into (default: the current directory)
+  --prefix <dir> PUBLISH mode only: where to publish the machine install
+                 (default: install.prefix in config, else ~/Devel/opt/devbin)
   --name <n>     the project name (default: the target directory's name)
   --alias <a>    a short name this project may keep, eg 'cf' for conflab.
                  RECORDED ONLY -- devbin creates no symlink for it
@@ -34,6 +37,16 @@ usage: $DEVBIN_INVOKE install [--into <dir>] [--name <n>] [--alias <a>] [--lang 
 Writes bin/devbin and bin/.devbin/lib/, scaffolds bin/.devbin/{cmd,help}, and
 writes a starter config.yaml IF THERE IS NONE. Your config, handlers and
 authored help are never overwritten, with or without --force.
+
+TWO MODES, chosen by the tree you are standing in (ST0005, D26):
+
+  PUBLISH   run inside devbin's own source tree with no --into. Publishes this
+            runtime to the install prefix, which is what every consumer then
+            vendors from. Refuses on a dirty tree, and refuses to overwrite an
+            existing install -- use \`upgrade\` for that.
+  VENDOR    everywhere else, and unchanged: install devbin into a project.
+
+The mode is printed before anything is written.
 EOF
 }
 
@@ -84,8 +97,8 @@ starter_config() {
 # for `intent` and for a human, and nothing about that needed the symlink.
 
 main() {
-  local into="" name="" alias="" langs="" force="" srcroot dstroot version
-  local rel src count=0 config
+  local into="" name="" alias="" langs="" force="" prefix="" srcroot dstroot version
+  local rel src count=0 config mode dirty
 
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -119,6 +132,10 @@ main() {
         langs="$langs $(printf '%s' "${2:-}" | tr ',' ' ')"
         shift 2 || die "--lang needs a value"
         ;;
+      --prefix)
+        prefix="${2:-}"
+        shift 2 || die "--prefix needs a directory"
+        ;;
       --force)
         force=yes
         shift
@@ -129,11 +146,82 @@ main() {
   done
 
   srcroot="${PROJECT_ROOT:?}"
-  dstroot="$(cd "${into:-.}" 2>/dev/null && pwd)" ||
-    die "no such directory: ${into:-.}"
 
   is_devbin_source "$srcroot" ||
     die "this devbin cannot be a source: no dispatcher or runtime at $srcroot"
+
+  # --- WHICH MODE (ST0005, D26) ----------------------------------------------
+  #
+  # PUBLISH when standing in devbin's own source tree with no --into; VENDOR
+  # everywhere else. An explicit --into is always VENDOR, because naming a target
+  # is unambiguous about what you meant and seeding a consumer from the dev tree
+  # has to stay possible.
+  #
+  # `is_devbin_dev_tree` asks whether this tree can be vendored FROM while
+  # carrying no vendored runtime of its OWN -- derived from the two predicates
+  # that already exist rather than from a path or a project name, neither of
+  # which is a fact about what the tree IS. The install tree reads as a consumer
+  # here, which is correct: it is consumer-shaped by D33.
+  if [ -z "$into" ] && is_devbin_dev_tree "$srcroot"; then
+    mode=publish
+  else
+    mode=vendor
+  fi
+
+  # A flag that is meaningless in the mode you are actually in is a usage error,
+  # not something to ignore. Silently discarding --prefix would publish to the
+  # configured location while the operator believed they had redirected it.
+  if [ -n "$prefix" ] && [ "$mode" != publish ]; then
+    die "--prefix applies only when publishing from devbin's own source tree
+       you are in VENDOR mode$([ -n "$into" ] && printf ' (--into was given)')
+       to publish:  cd <the devbin source tree> && bin/devbin install"
+  fi
+
+  if [ "$mode" = publish ]; then
+    # The devbin config the dispatcher loaded lives in ITS process; handlers are
+    # reached by `exec` (lib/resolve:173) so nothing survives into this one.
+    # Loaded HERE and read HERE, before the target's config is loaded further
+    # down over the top of it.
+    cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 ||
+      die "cannot read devbin's own config at $DEVBIN_DIR/config.yaml"
+    [ -n "$prefix" ] || prefix="$(install_prefix_configured)"
+    dstroot="$prefix"
+  else
+    dstroot="$(cd "${into:-.}" 2>/dev/null && pwd)" ||
+      die "no such directory: ${into:-.}"
+  fi
+
+  # ANNOUNCED BEFORE ANYTHING IS WRITTEN (D26). A discriminator that is merely
+  # correct is not enough: a misdetection has to land in the output rather than
+  # be discovered later in the filesystem.
+  if [ "$mode" = publish ]; then
+    printf 'mode: PUBLISH -- %s is devbin'"'"'s own source tree\n' "$srcroot"
+    printf '  publishing to: %s\n\n' "$dstroot"
+  else
+    printf 'mode: VENDOR -- installing devbin INTO a project\n\n'
+  fi
+
+  # --- the dirty gate (D28) ---------------------------------------------------
+  #
+  # WHOLE TREE, not just the vendored set. The manifest's claim is "these bytes
+  # are commit X", and that is only true when nothing in the tree is uncommitted.
+  #
+  # NO --force. This gate is the entire reason the install tree exists: an
+  # install cut from a dirty checkout launders the same bytes through one more
+  # hop and gives them the LOOK of provenance, which is worse than today, since
+  # today's manifest at least says THESE BYTES MATCH NO COMMIT out loud.
+  if [ "$mode" = publish ]; then
+    if ! dirty="$(tree_dirty_paths "$srcroot")"; then
+      die "cannot publish: $srcroot is not a git repository, so the commit this
+       install would claim cannot be established"
+    fi
+    if [ -n "$dirty" ]; then
+      warn "refusing to publish: the source tree is dirty"
+      printf '%s\n' "$dirty" | while IFS= read -r line; do warn "  $line"; done
+      die "commit or stash, then publish -- an install cut from a dirty tree
+       records a commit that does not describe the bytes in it"
+    fi
+  fi
 
   # Refusing to install into the source is not fussiness. Devbin runs itself out
   # of its own lib/ (D12); vendoring into bin/.devbin/lib/ would put a frozen
@@ -143,6 +231,18 @@ main() {
   [ "$dstroot" = "$srcroot" ] &&
     die "cannot install devbin into its own source tree ($srcroot)"
 
+  # PUBLISH refuses an existing install and names `upgrade`; VENDOR refuses and
+  # names `--force`. Same shape, different remedy -- and the shape is not new:
+  # this refusal already existed for consumers and is only being told which verb
+  # to point at (hv, 2026-09-06).
+  if is_devbin_installed "$dstroot" && [ "$mode" = publish ]; then
+    warn "devbin is already installed at $dstroot"
+    warn "  to update it:  $DEVBIN_INVOKE upgrade"
+    warn ""
+    warn "  \`install\` publishes a NEW install and will not overwrite one, so that"
+    warn "  replacing what the whole estate vendors from is always a verb you typed."
+    return 1
+  fi
   if is_devbin_installed "$dstroot" && [ -z "$force" ]; then
     warn "devbin is already installed at $dstroot/bin/.devbin/lib"
     warn "  to re-vendor the runtime:   $DEVBIN_INVOKE install --into $dstroot --force"
@@ -188,34 +288,71 @@ main() {
   version="$(devbin_runtime_version)"
   langs="${langs# }"
 
-  printf 'Installing devbin %s into %s\n\n' "$version" "$dstroot"
-
-  while IFS= read -r rel; do
-    [ -n "$rel" ] || continue
-    src="$(vendor_source_path "$srcroot" "$rel")" ||
-      die "cannot locate '$rel' in the source at $srcroot"
-    copy_vendored "$src" "$dstroot/$rel" || die "failed to write $dstroot/$rel"
-    count=$((count + 1))
-  done <<EOF
-$(vendored_paths "$srcroot")
-EOF
-  printf '  vendored   %d files (bin/devbin, bin/.devbin/lib/)\n' "$count"
-
-  # The project's half of the tree. Created, never populated: an empty cmd/ is
-  # the invitation, and anything already in it is left exactly as it is.
-  mkdir -p "$dstroot/bin/.devbin/cmd" "$dstroot/bin/.devbin/help"
-
-  if [ -f "$config" ]; then
-    printf '  kept       bin/.devbin/config.yaml (yours -- not touched)\n'
+  if [ "$mode" = publish ]; then
+    printf 'Publishing devbin %s to %s\n\n' "$version" "$dstroot"
   else
-    starter_config "$name" "$alias" "$langs" "$version" >"$config"
-    printf '  wrote      bin/.devbin/config.yaml (starter)\n'
+    printf 'Installing devbin %s into %s\n\n' "$version" "$dstroot"
   fi
 
+  # PUBLISH goes through `publish_install` -- the single writer shared with
+  # `upgrade`'s dev-tree mode -- so the two verbs cannot drift about what an
+  # install tree contains. VENDOR keeps its own loop because it writes a project
+  # half that an install never gets.
+  if [ "$mode" = publish ]; then
+    count="$(publish_install "$srcroot" "$dstroot" "$version")" ||
+      die "failed to publish the install to $dstroot"
+    printf '  vendored   %d files (bin/devbin, bin/.devbin/lib/)\n' "$count"
+  else
+    while IFS= read -r rel; do
+      [ -n "$rel" ] || continue
+      src="$(vendor_source_path "$srcroot" "$rel")" ||
+        die "cannot locate '$rel' in the source at $srcroot"
+      copy_vendored "$src" "$dstroot/$rel" || die "failed to write $dstroot/$rel"
+      count=$((count + 1))
+    done <<EOF
+$(vendored_paths "$srcroot")
+EOF
+    printf '  vendored   %d files (bin/devbin, bin/.devbin/lib/)\n' "$count"
+  fi
 
-  manifest_write "$dstroot" "$srcroot" "$version" ||
-    die "failed to write the manifest"
+  # THE PROJECT HALF IS EXACTLY WHAT AN INSTALL DOES NOT GET (D27, D33).
+  #
+  # No config.yaml, no cmd/, no help/ -- and that absence is not tidiness, it is
+  # the mechanism. `bin/devbin` dies without a config.yaml, so an install tree
+  # cannot be run FROM; it can only be vendored from. D27's "always a --from,
+  # never a cwd" therefore needs no check of its own and has no flag that turns
+  # it off, which is the only kind of rule this project trusts.
+  if [ "$mode" = publish ]; then
+    printf '  omitted    the project half (no config.yaml, cmd/ or help/)\n'
+    printf '             -- which is what makes this an install and not a project\n'
+  else
+    # Created, never populated: an empty cmd/ is the invitation, and anything
+    # already in it is left exactly as it is.
+    mkdir -p "$dstroot/bin/.devbin/cmd" "$dstroot/bin/.devbin/help"
+
+    if [ -f "$config" ]; then
+      printf '  kept       bin/.devbin/config.yaml (yours -- not touched)\n'
+    else
+      starter_config "$name" "$alias" "$langs" "$version" >"$config"
+      printf '  wrote      bin/.devbin/config.yaml (starter)\n'
+    fi
+  fi
+
+  # In PUBLISH mode `publish_install` already wrote it, as part of being the one
+  # writer. Writing it a second time here would work and would mean the manifest
+  # has two authors again, which is the thing that function exists to prevent.
+  if [ "$mode" != publish ]; then
+    manifest_write "$dstroot" "$srcroot" "$version" ||
+      die "failed to write the manifest"
+  fi
   printf '  wrote      %s\n' "$DEVBIN_MANIFEST_REL"
+
+  if [ "$mode" = publish ]; then
+    printf '\nPublished. Consumers vendor from here:\n'
+    printf '  cd <a project> && bin/devbin upgrade --from %s\n' "$dstroot"
+    printf '  bin/devbin fleet upgrade --dry-run     (from this tree, to see the estate)\n'
+    return 0
+  fi
 
   printf '\nNext:\n'
   printf '  cd %s\n' "$dstroot"

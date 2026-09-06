@@ -368,6 +368,21 @@ _cfg_path_known() {
       [ "$n" -eq 3 ] && [ "${p[1]}" = version_sidecars ] && _cfg_is_index "${p[2]}" && return 0
       return 1
       ;;
+    install)
+      # install.prefix -- where `devbin install` PUBLISHES to when run inside
+      # devbin's own source tree (ST0005, D32). Meaningless in a consumer, and
+      # harmless there: a project that sets it is describing a publish it will
+      # never perform.
+      #
+      # ADDED IN THE SAME CHANGE AS THE READER, deliberately. `project.referent`
+      # was readable by the runtime and unknown to this function for two days --
+      # the feature worked perfectly while `doctor` reported the consumer's
+      # correct config as an unknown key, which is recorded in the `project`
+      # branch above as the mismatch this validator exists to catch, occurring
+      # in the validator.
+      [ "$n" -eq 2 ] && [ "${p[1]}" = prefix ] && return 0
+      return 1
+      ;;
     help)
       if [ "$n" -eq 2 ]; then
         case "${p[1]}" in preamble | tagline) return 0 ;; esac

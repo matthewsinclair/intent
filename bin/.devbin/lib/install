@@ -67,6 +67,116 @@ is_devbin_installed() {
   [ -d "$1/bin/.devbin/lib" ]
 }
 
+
+# --- the local install (ST0005) ----------------------------------------------
+#
+# devbin publishes itself to a local install tree, and consumers vendor FROM
+# that rather than from the development checkout it is edited in. The reason is
+# measured rather than theoretical: on 2026-09-06 five of thirteen estates were
+# running bytes stamped `+dirty -- THESE BYTES MATCH NO COMMIT`, and two vendors
+# taken ten minutes apart from the same dirty tree carried BYTE-IDENTICAL
+# `source_commit` lines over three differing files. The stamp cannot tell two
+# dirty vendors apart. See intent/st/ST0005/design.md.
+#
+# THE INSTALL TREE IS CONSUMER-SHAPED, WHICH IS WHY THIS SECTION IS SHORT (D33).
+# `<prefix>/bin/devbin` + `<prefix>/bin/.devbin/lib/` + the ordinary manifest, so
+# `is_devbin_source`, `vendored_paths`, `copy_vendored`, `manifest_write` and
+# `upgrade --from` all apply UNCHANGED. What makes it an install rather than a
+# project is the ABSENCE of the project half -- no config.yaml, no cmd/, no
+# help/ -- and `bin/devbin` refuses to run without a config.yaml, so D27's "never
+# a cwd" is delivered by construction rather than by a check anyone can disable.
+
+# The prefix used when nothing configures one. A default, never a hard-coded
+# assumption: `install.prefix` in devbin's own config overrides it and `--prefix`
+# overrides that (D32).
+DEVBIN_INSTALL_PREFIX_DEFAULT="$HOME/Devel/opt/devbin"
+
+# is_devbin_dev_tree <root> -- true when <root> is devbin's own SOURCE checkout.
+#
+# Derived from the two predicates that already exist rather than from a name or
+# a path: a tree that can be vendored FROM but carries no VENDORED runtime of
+# its own is a source checkout, because a consumer always has `bin/.devbin/lib`.
+# The install tree has one too, so it reads as a consumer here -- which is
+# correct and is the point of D33.
+is_devbin_dev_tree() {
+  is_devbin_source "$1" || return 1
+  ! is_devbin_installed "$1"
+}
+
+# install_prefix_configured -- the prefix from config, tilde expanded.
+#
+# THE TILDE IS EXPANDED HERE AND THAT IS NOT A NICETY. A config value is a
+# literal string, so an unexpanded `~/Devel/opt/devbin` creates a directory
+# actually named `~` under the cwd, and every subsequent command finds an
+# install exactly where it looked. The failure is silent and self-consistent,
+# which is the worst combination this project has a name for.
+install_prefix_configured() {
+  local v
+  v="$(cfg_get install.prefix "$DEVBIN_INSTALL_PREFIX_DEFAULT")"
+  [ -n "$v" ] || v="$DEVBIN_INSTALL_PREFIX_DEFAULT"
+  # SC2088 IS WRONG HERE AND THE SUPPRESSION SAYS WHY. These are case PATTERNS
+  # matching a literal `~` that a config file contains as a character -- the
+  # whole point is that it did NOT expand, because a YAML scalar is not a shell
+  # word. shellcheck reads them as an attempt to expand a tilde in quotes, which
+  # is the opposite of the intent.
+  # The directive sits on the `case` and not on a branch: SC1124 refuses it in
+  # front of an individual case item, and putting it there does not merely fail
+  # to suppress -- it makes the whole expression unparseable, so every later
+  # check in this file is silently skipped. Measured, not assumed.
+  # shellcheck disable=SC2088
+  case "$v" in
+    '~') v="$HOME" ;;
+    '~/'*) v="$HOME/${v#\~/}" ;;
+  esac
+  printf '%s\n' "$v"
+}
+
+# tree_dirty_paths <root> -- porcelain lines for an unclean tree, empty when clean.
+#
+# WHOLE TREE, not just the vendored set (D28). The manifest's claim is "these
+# bytes are commit X", and that claim is only true when NOTHING in the tree is
+# uncommitted -- a dirty `.md` beside a clean `lib/` still means the recorded
+# commit does not describe the checkout the bytes came out of.
+#
+# A tree that is not a git repository at all returns non-zero rather than empty:
+# "no changes" and "cannot tell" must not render as the same answer.
+tree_dirty_paths() {
+  local root="$1"
+  git -C "$root" rev-parse --git-dir >/dev/null 2>&1 || return 2
+  git -C "$root" status --porcelain 2>/dev/null
+  return 0
+}
+
+# publish_install <srcroot> <dstroot> <version> -- write an install tree.
+#
+# ONE COPY, called by BOTH `install` (publishing a new one) and `upgrade`
+# (replacing an existing one). Those two differ only in their PRECONDITION --
+# must not exist / must exist -- and never in what they write, so a second copy
+# of the write would be two answers to one question waiting to disagree
+# (IN-AG-HIGHLANDER-001).
+#
+# Deliberately NOT `upgrade`'s per-file state machine. That machinery exists to
+# protect local edits in a project, and an install has no project half and no
+# author -- so preserving an edit here would preserve damage. The caller reports
+# any modified file BEFORE calling this; what happens after is a full replace.
+#
+# Echoes the file count on stdout so the caller renders its own line: a function
+# that both writes files and formats a report is two jobs (IN-AG-THIN-COORD-001).
+publish_install() {
+  local srcroot="$1" dstroot="$2" version="$3" rel src count=0
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    src="$(vendor_source_path "$srcroot" "$rel")" || return 1
+    copy_vendored "$src" "$dstroot/$rel" || return 1
+    count=$((count + 1))
+  done <<EOF
+$(vendored_paths "$srcroot")
+EOF
+  manifest_write "$dstroot" "$srcroot" "$version" "" install || return 1
+  printf '%s\n' "$count"
+  return 0
+}
+
 # vendored_paths <srcroot> -- every file devbin owns, as paths RELATIVE to a
 # project root, sorted. This is the file list, and the only one.
 #
@@ -253,9 +363,33 @@ copy_vendored() {
 # rather than a narrower one being invented. A root with no `lib/` and no
 # `bin/.devbin/lib/` is not a devbin source this can clear, and absent must
 # never be readable as clean.
+# PROVENANCE IS TRANSITIVE, AND WITHOUT THIS IT IS LOST IN TRANSIT (ST0005).
+#
+# An INSTALL tree is not a git checkout, so vendoring from one used to stamp the
+# consumer `not a git checkout -- these bytes name no commit` -- while the
+# install's OWN manifest recorded the exact sha it was cut from, one file away.
+# Every estate would have recorded LESS provenance than before the install tree
+# existed, which is the precise opposite of what this thread is for.
+#
+# MEASURED, not anticipated: the first consumer upgraded from the first install
+# recorded `names no commit` against an install stamped `1e13a9cc...`.
+#
+# The install's stamp is FORWARDED VERBATIM rather than re-derived. It was
+# written by this same function under the dirty gate, so it is already either a
+# clean sha or an explicit refusal-shaped string; re-deriving it here is
+# impossible anyway, since the commit is not reachable from a tree with no .git.
 source_commit_of() {
-  local root="$1" sha p dirty
+  local root="$1" sha p dirty forwarded
   local -a scope=()
+  if [ "$(manifest_field "$root" kind 2>/dev/null || true)" = install ]; then
+    forwarded="$(manifest_field "$root" source_commit 2>/dev/null || true)"
+    if [ -n "$forwarded" ]; then
+      printf '%s\n' "$forwarded"
+      return 0
+    fi
+    printf 'an install with no recorded commit -- these bytes name no commit\n'
+    return 0
+  fi
   git -C "$root" rev-parse --git-dir >/dev/null 2>&1 ||
     { printf 'not a git checkout -- these bytes name no commit\n'; return 0; }
   sha="$(git -C "$root" rev-parse HEAD 2>/dev/null)" || sha=""
@@ -301,7 +435,7 @@ _two_space_to_tab() {
   awk '/^#/ { next } NF >= 2 { p = $2; for (i = 3; i <= NF; i++) p = p " " $i; printf "%s\t%s\n", $1, p }'
 }
 
-# manifest_write <dstroot> <srcroot> <version> [preserve] -- checksum every
+# manifest_write <dstroot> <srcroot> <version> [preserve] [kind] -- checksum every
 # vendored file present in the target and write the manifest.
 #
 # Checksums the TARGET, not the source, so the manifest always describes what
@@ -316,7 +450,7 @@ _two_space_to_tab() {
 # intact" one line after `upgrade` said "edited in place", which is a false
 # green produced by two correct-looking steps in sequence.
 manifest_write() {
-  local dstroot="$1" srcroot="$2" version="$3" preserve="${4:-}" path rel sum old old_sum line
+  local dstroot="$1" srcroot="$2" version="$3" preserve="${4:-}" kind="${5:-}" path rel sum old old_sum line
   path="$(manifest_path "$dstroot")"
   # Read the old entries BEFORE the redirect below truncates the file.
   old="$(manifest_entries "$dstroot" 2>/dev/null || true)"
@@ -326,6 +460,18 @@ manifest_write() {
     printf '# Every line below is a file devbin owns. An edit to one is DETECTED, not overwritten.\n'
     printf '# Files not listed here -- config.yaml, cmd/, help/ -- belong to the project.\n'
     printf '# devbin_version: %s\n' "$version"
+    # `kind` is written ONLY for an install tree, and its absence is what marks a
+    # project (D33). An install is otherwise distinguished from a project by which
+    # files are MISSING -- no config.yaml, no cmd/ -- and a reader who has to infer
+    # a kind from an absence is a reader who will eventually infer it wrongly.
+    #
+    # An `if` rather than `[ -n "$kind" ] && printf`, for the reason 0052 gave:
+    # SC2015 on that form is what CI flags. It is NOT because the `&&` breaks
+    # under `set -e` -- that was asserted here first and the experiment refuted
+    # it, since a non-final command in an AND-list is exempt. The note stays
+    # because a comment claiming a break that does not happen is the defect this
+    # project catalogues.
+    if [ -n "$kind" ]; then printf '# kind: %s\n' "$kind"; fi
     printf '# source: %s\n' "$srcroot"
     printf '# source_commit: %s\n' "$(source_commit_of "$srcroot")"
     # Retabbed through the same filter manifest_check uses, so this file has ONE

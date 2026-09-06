@@ -143,7 +143,26 @@ unset _devbin_wrong_tree_check
 # shellcheck source=lib/help
 . "$DEVBIN_LIB/help"
 
-[ -f "$DEVBIN_DIR/config.yaml" ] || die "no config at $DEVBIN_DIR/config.yaml (try: devbin install)"
+# NO CONFIG MEANS ONE OF TWO THINGS AND THEY NEED DIFFERENT ADVICE (ST0005).
+#
+# A project without a config wants `install`. An INSTALL TREE without a config is
+# working exactly as designed -- the absent project half is what makes it an
+# install (D27, D33) -- and telling its reader to run `install` is advice that
+# would turn the machine install into a project. The manifest's `kind:` line is
+# read rather than the absence being inferred, which is why that line exists.
+if [ ! -f "$DEVBIN_DIR/config.yaml" ]; then
+  if [ "$(manifest_field "$PROJECT_ROOT" kind 2>/dev/null || true)" = install ]; then
+    {
+      printf 'devbin: this is a devbin INSTALL, not a project -- it cannot be run from.\n\n'
+      printf '  installed at:  %s\n' "$PROJECT_ROOT"
+      printf '  vendored from: %s\n' "$(manifest_field "$PROJECT_ROOT" source_commit 2>/dev/null || printf 'unrecorded')"
+      printf '\nUse it as a SOURCE from inside a project:\n'
+      printf '  cd <your project> && bin/devbin upgrade --from %s\n' "$PROJECT_ROOT"
+    } >&2
+    exit 3
+  fi
+  die "no config at $DEVBIN_DIR/config.yaml (try: devbin install)"
+fi
 cfg_load "$DEVBIN_DIR/config.yaml" || exit 1
 
 # THE REFERENT (issue 0049, consumer-filed). `project.referent` names a command
@@ -307,6 +326,21 @@ if [ -z "$PROJECT_ROOT_VAR" ]; then
 else
   assert_identifier "$PROJECT_ROOT_VAR" "project.root_var in $DEVBIN_DIR/config.yaml"
 fi
+# THE REMEDIATION MUST WORK FROM WHERE THE READER IS STANDING (ST0005).
+#
+# `bin/devbin` is relative, and `dvb` -- the shell function the operator actually
+# uses -- walks up from $PWD and runs devbin WITHOUT changing directory. From a
+# subdirectory every printed `run: bin/devbin ...` names a path that does not
+# resolve. Computed HERE because this is the one place that still holds the
+# caller's own cwd: lib/resolve and lib/gatecmd cd to PROJECT_ROOT before any
+# handler runs, so a handler asking the same question gets the wrong answer.
+_devbin_cwd_now="$(pwd -P 2>/dev/null || pwd)"
+if [ "$_devbin_cwd_now" = "$PROJECT_ROOT" ]; then
+  DEVBIN_INVOKE="bin/devbin"
+else
+  DEVBIN_INVOKE="$PROJECT_ROOT/bin/devbin"
+fi
+unset _devbin_cwd_now
 export DEVBIN_NAME DEVBIN_INVOKE
 # Exported under the project's own name so handlers ported from the corpus keep
 # reading the variable they already expect (CONFLAB_ROOT, LAKSA_ROOT, ...).
@@ -374,10 +408,26 @@ export DEVBIN_FMT_ARMS
 # help, and after config so DEVBIN_NAME is set for the remediation line.
 devbin_update_notice "$PROJECT_ROOT"
 
-[ $# -eq 0 ] && {
+# THE OFFER, AND WHY IT IS ONLY HERE AND ON `doctor`.
+#
+# A prompt must never be able to precede a gate: `devbin test all` typed at a
+# terminal reaches this point with stderr still a terminal, and stopping to ask
+# about upgrades before running somebody's tests is issue 0058 wearing a
+# friendlier face. The dispatcher cannot tell whether the command it is about to
+# run is a gate -- that is decided inside the handler, after dispatch -- so the
+# offer is scoped to the two invocations that are never gates BY CONSTRUCTION.
+#
+# The NOTICE above is unconditional and this is not. Everyone hears; only
+# someone looking at devbin itself gets asked.
+if [ $# -eq 0 ]; then
+  devbin_offer_upgrade "$PROJECT_ROOT"
   help_main
   exit 0
-}
+fi
+
+case "$1" in
+  doctor) devbin_offer_upgrade "$PROJECT_ROOT" ;;
+esac
 
 command="$1"
 shift

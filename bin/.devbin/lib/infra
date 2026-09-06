@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+#
+# lib/infra -- the infra PROFILE: resolution, load, and parse-time validation.
+#
+# Sourced, never executed. It answers three questions and nothing else: which
+# profile file applies, does it parse, and is it internally consistent. It makes
+# no network call and reads no live state, which is the whole point of the split
+# -- a malformed PROFILE and a wrong ESTATE are different problems with
+# different fixes, and a run that conflates them produces a red nobody can act
+# on. Everything here is catchable before `check` resolves a single record.
+#
+# ONE YAML READER. This uses `lib/config`'s `cfg_load` and adds no parser of its
+# own (design D7: no yq; the Highlander rule does the rest). That constraint is
+# tighter than it looks and it SHAPED the schema rather than merely permitting
+# it -- see `infra_validate_profile` for the guarantee it cost us.
+#
+# WHY DOMAINS ARE KEYED BY A HANDLE AND NOT BY THEIR FQDN. The agreed schema
+# keyed them by domain name. `lib/config` refuses a key containing a dot, and
+# also refuses flow collections and sequences of maps, so neither the map form
+# nor the list-of-objects fallback parses. The FQDN therefore moved from the KEY
+# to a FIELD -- and YAML keys are unique BY CONSTRUCTION, so "one entry per
+# domain" had been enforced by the format, written down nowhere, and it vanished
+# silently with the format change. `infra_validate_profile` re-imposes it as an
+# explicit rule. A constraint the format was carrying is the kind that
+# disappears in a mechanical fix precisely because nobody ever had to state it.
+
+[ -n "${_DEVBIN_INFRA_LOADED:-}" ] && return 0
+_DEVBIN_INFRA_LOADED=1
+
+# infra_profile_paths -- the search order, one per line, most specific first.
+# Printed rather than returned so a failure can name EVERY path it tried: an
+# error naming only the last place looked sends the reader to the wrong file.
+infra_profile_paths() {
+  printf '%s\n' "\$DEVBIN_INFRA_PROFILE${DEVBIN_INFRA_PROFILE:+ ($DEVBIN_INFRA_PROFILE)}"
+  printf '%s\n' "${PROJECT_ROOT:-.}/infra.yaml"
+  printf '%s\n' "$HOME/.config/devbin/infra.yaml"
+}
+
+# infra_resolve_profile [<explicit>] -- echo the profile path, or die naming
+# every candidate. An explicit --profile that does not exist is a DIFFERENT
+# failure from finding none: the caller named a file, so the search order is
+# not the answer they need.
+infra_resolve_profile() {
+  local explicit="${1:-}" p
+  if [ -n "$explicit" ]; then
+    [ -f "$explicit" ] || die "infra: no profile at $explicit (named with --profile)"
+    printf '%s\n' "$explicit"
+    return 0
+  fi
+  if [ -n "${DEVBIN_INFRA_PROFILE:-}" ] && [ -f "$DEVBIN_INFRA_PROFILE" ]; then
+    printf '%s\n' "$DEVBIN_INFRA_PROFILE"; return 0
+  fi
+  for p in "${PROJECT_ROOT:-.}/infra.yaml" "$HOME/.config/devbin/infra.yaml"; do
+    [ -f "$p" ] && { printf '%s\n' "$p"; return 0; }
+  done
+  {
+    printf 'infra: no profile found. Tried, in order:\n'
+    infra_profile_paths | sed 's/^/  /'
+    printf '\nA profile is never defaulted and never assumed empty -- an infra\n'
+    printf 'command that finds no profile and reports nothing wrong is the false\n'
+    printf 'green this command exists to refuse.\n'
+  } >&2
+  return 1
+}
+
+# infra_handle_matches_name <handle> <fqdn> -- is the handle a recognisable
+# derivation of the FQDN? Deliberately loose: the handle is a label, and
+# `prod`/`staging` handles for one FQDN may be wanted later, so a mismatch is
+# a WARNING and never an error. Foreclosing that on a guess would cost more
+# than the confusion it prevents.
+infra_handle_matches_name() {
+  local handle="$1" fqdn="$2" label="${2%%.*}"
+  [ "$handle" = "$label" ] && return 0
+  case "$fqdn" in *"$handle"*) return 0 ;; esac
+  return 1
+}
+
+# infra_declared_children <file> <block> -- the child keys WRITTEN under a
+# top-level block, read from the raw text.
+#
+# WHY THIS EXISTS, AND WHY IT IS NOT A SECOND YAML PARSER. `lib/config`'s reader
+# emits a cache row only for a key carrying a SCALAR. A key with no value
+# produces no row at all, so `unreviewed: mx_form:` and a profile with no
+# `unreviewed:` block are INDISTINGUISHABLE through `cfg_list` -- and so are a
+# declared domain with no fields and a domain nobody wrote. Both were measured:
+# a profile carrying two authored deviations passed the gate with "valid and
+# fully reviewed", and a declared domain vanished from `show` with rc 0.
+#
+# THAT BLINDNESS POINTS THE WRONG WAY BY CONSTRUCTION. A deviation `init` could
+# not confidently propose is PRECISELY the one with nothing to put on the
+# right-hand side, so the gate is blind in exactly the direction it was built to
+# see. This scan reads one block's child keys and nothing else -- no types, no
+# values, no nesting, no merging. It exists to ask "was this written?", which is
+# the one question the reader structurally cannot answer.
+infra_declared_children() {
+  awk -v block="$2" '
+    $0 ~ "^" block ":[[:space:]]*$" { inblock=1; indent=-1; next }
+    inblock && /^[^[:space:]#]/     { inblock=0 }
+    inblock && /^[[:space:]]*$/     { next }
+    inblock && /^[[:space:]]*#/     { next }
+    inblock {
+      match($0, /^[[:space:]]*/); w = RLENGTH
+      if (indent < 0) indent = w
+      if (w != indent) next
+      line = $0; sub(/^[[:space:]]+/, "", line)
+      if (match(line, /^[A-Za-z0-9_.-]+:/)) print substr(line, 1, RLENGTH - 1)
+    }
+  ' "$1"
+}
+
+# infra_assert_block_visible <file> <block> -- every key WRITTEN under <block>
+# must have survived into the cache. One that did not is valueless, and a
+# valueless entry is not a malformed profile -- it is the honest form of an
+# unratifiable deviation. It is refused so that a hole becomes a refusal, which
+# also makes the artefact better: a deviation with no stated reason is
+# unreviewable by a human anyway.
+infra_assert_block_visible() {
+  local file="$1" block="$2" declared seen missing="" k rc=0
+  declared="$(infra_declared_children "$file" "$block")"
+  [ -n "$declared" ] || return 0
+  seen="$(cfg_list "$block" 2>/dev/null || true)"
+  while IFS= read -r k; do
+    [ -n "$k" ] || continue
+    printf '%s\n' "$seen" | grep -qxF "$k" || missing="$missing $k"
+  done <<EOF
+$declared
+EOF
+  if [ -n "$missing" ]; then
+    printf 'infra: %s: these keys are written but carry no value, so nothing can read them:%s\n' \
+      "$block" "$missing" >&2
+    printf '       A key with no value is invisible to the config reader -- it is not\n' >&2
+    printf '       an empty entry, it is an absent one. Give each a value.\n' >&2
+    rc=1
+  fi
+  return $rc
+}
+
+# infra_validate_profile -- PARSE-TIME rules only. Errors accumulate so one run
+# reports every fault rather than the first; a validator that stops at fault one
+# turns a five-minute fix into five runs.
+infra_validate_profile() {
+  local rc=0 handle fqdn other seen="" warn_out=""
+  # Visibility BEFORE content: a key that never reached the cache cannot be
+  # validated by any rule below, and the rules below would report it as absent.
+  infra_assert_block_visible "$_DEVBIN_INFRA_FILE" domains || rc=1
+  infra_assert_block_visible "$_DEVBIN_INFRA_FILE" unreviewed || rc=1
+  for handle in $(cfg_list domains); do
+    fqdn="$(cfg_get "domains.$handle.name" 2>/dev/null || true)"
+    if [ -z "$fqdn" ]; then
+      printf 'infra: domain `%s` has no `name:` field -- the FQDN is a field, not the key.\n' "$handle" >&2
+      rc=1; continue
+    fi
+    # UNIQUENESS. The guarantee the format used to give for free. Two handles on
+    # one FQDN can carry contradictory expectations that `check` would evaluate
+    # against the same live records, so one goes green and one goes red on the
+    # same domain and ordering decides which the operator reads. A profile that
+    # cannot be self-consistent is worse than one that fails to parse.
+    other="$(printf '%s' "$seen" | awk -v f="$fqdn" -F'\t' '$2==f {print $1; exit}')"
+    if [ -n "$other" ]; then
+      printf 'infra: `%s` is named by two handles, `%s` and `%s`. One entry per domain.\n' \
+        "$fqdn" "$other" "$handle" >&2
+      rc=1
+    fi
+    seen="$seen$handle	$fqdn
+"
+    infra_handle_matches_name "$handle" "$fqdn" || \
+      warn_out="$warn_out  handle \`$handle\` does not look derived from \`$fqdn\`
+"
+  done
+  [ -n "$warn_out" ] && printf 'infra: handles worth a second look (not an error):\n%s' "$warn_out" >&2
+  return $rc
+}
+
+# infra_unreviewed_keys -- the deviations `init` could not confidently propose.
+# `check` REFUSES while any remain; see lib/cmd/infra for why it is refuse and
+# never warn.
+infra_unreviewed_keys() { cfg_list unreviewed 2>/dev/null || true; }

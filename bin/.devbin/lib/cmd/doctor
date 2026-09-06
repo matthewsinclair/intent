@@ -484,6 +484,45 @@ check_symlinks() {
 # this line is already on a compliant bash. The row still earns its place: it
 # names WHICH bash, and it is the check that goes red if the dispatcher guard
 # is ever removed while this one survives it.
+# check_source_currency -- is this project level with the devbin it came from?
+#
+# A NOTE, NEVER A FAILURE, IN ALL THREE STATES. Being behind the source is a
+# normal condition -- it is what `upgrade` is for -- and a project on an older
+# runtime is not broken. Failing here would make `doctor` red on the ordinary
+# case, which is the argument that killed the `> 1 declared test target` rule.
+#
+# WHAT THIS ADDS OVER THE UPDATE NOTICE (ST0005, AC-2.4). The notice prints or
+# stays quiet, and quiet covers BOTH "level" and "could not tell". That is right
+# for something that must never nag, and useless as an answer. Here the three
+# are separated, because a check that cannot reach the source and says nothing
+# gets read as currency it never established. Absent is not clean.
+check_source_currency() {
+  local state rest rec cur
+  is_devbin_installed "$PROJECT_ROOT" || return 0
+
+  state="$(devbin_source_state "$PROJECT_ROOT")"
+  rest="${state#* }"
+  case "$state" in
+    level*)
+      _pass "source: level with the devbin it was vendored from"
+      ;;
+    behind*)
+      rec="${rest%% *}"
+      cur="${rest##* }"
+      _note "source: the devbin this project came from has moved on"
+      _detail "vendored ${rec:0:12}, source now ${cur:0:12}"
+      _detail "run: $DEVBIN_INVOKE upgrade"
+      ;;
+    *)
+      # NOT SILENCE, AND NOT A PASS. The whole point of the third state.
+      _note "source: CANNOT TELL whether this project is current"
+      _detail "$rest"
+      _detail "this is not a clean bill -- nothing was established either way"
+      ;;
+  esac
+  return 0
+}
+
 check_bash() {
   if [ "${BASH_VERSINFO[0]:-0}" -ge 5 ]; then
     _pass "bash: ${BASH_VERSION:-unknown} at ${BASH:-unknown} (floor >= 5, issue 0022)"
@@ -524,6 +563,7 @@ main() {
   check_handlers
   check_shadowing
   check_symlinks
+  check_source_currency
   check_bash
 
   printf '\n%d checks, %d failed, %d notes\n' "$CHECKS" "$FAILURES" "$NOTES"

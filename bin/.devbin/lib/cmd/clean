@@ -385,7 +385,22 @@ _clean_size() {
 # contract.
 _clean_confirm() {
   local n="$1" what="$2" reply
-  if [ ! -r /dev/tty ]; then
+  # TWO CONDITIONS, AND THE SECOND IS THE ONE THAT WAS MISSING. `-r /dev/tty`
+  # answers "does the terminal device node exist", which is TRUE for any process
+  # holding a controlling terminal -- a test suite, a script, anything launched
+  # from a terminal with its stdin redirected elsewhere. It does not answer
+  # "is a human here to type y", and `read </dev/tty` bypasses stdin entirely,
+  # so redirecting the caller's stdin cannot save them.
+  #
+  # Measured 2026-09-06 (issue 0058): the suite reached this prompt under
+  # `bin/devbin test`, printed `proceed? [y/N] ` into bats's CAPTURED output
+  # where the operator could not see it, and blocked on a keystroke nobody knew
+  # was being asked for. It passes anywhere without a real terminal -- CI, and
+  # any sandbox where opening /dev/tty yields ENXIO -- so it was invisible to
+  # everyone who measured it and hung indefinitely for the one person running
+  # it interactively. Same shape as 0057 in the same family: behaviour set by
+  # the operator's environment, invisible to every environment that lacks one.
+  if [ ! -r /dev/tty ] || [ ! -t 0 ]; then
     die "no tty: refusing to remove $n $what without confirmation.
        Pass --force to proceed non-interactively; it names what it removes."
   fi

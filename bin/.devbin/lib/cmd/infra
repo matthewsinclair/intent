@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+#
+#
+# The built-in `infra` -- WHAT THIS ESTATE'S CONFIGURATION SHOULD BE, AND
+# WHETHER IT IS.
+#
+# THE PROBLEM. An estate's configuration drifts with no moment of carelessness
+# to find. Every record is correct against the instructions in force the day it
+# was written; providers then revise their recommendations, and domains
+# onboarded at different dates freeze different snapshots. Nothing compares them
+# to each other, so the drift is invisible BY CONSTRUCTION rather than by
+# neglect. An audit of one 11-domain estate found five distinct inconsistencies,
+# including a domain whose SPF authorised a sender it had no DKIM record for --
+# which makes that domain's own legitimate mail bit-for-bit indistinguishable
+# from a forgery of it.
+#
+# THE CARDINAL CONSTRAINT, and every design decision here follows from it:
+# EVERY CHECK MUST BE ABLE TO GO RED. The failures this estate has produced were
+# all controls that could only report success -- absent reporting that reads as
+# clean reporting, a cached TTL that reads as a configured one, `disposition=
+# none` on ten of ten records while five of them were forged. A verifier built
+# without that constraint reproduces the class it exists to catch.
+#
+# WHY A PROFILE IS NEVER DEFAULTED. `bin/.devbin/cmd/fleet:47-63` records a
+# hardcoded machine-specific root torn out of this project for being "one
+# person's Dropbox layout, in a tool four other estates vendor". devbin ships
+# MACHINERY and never an estate: the profile is absent by default and every verb
+# needing one fails loudly, naming every path it tried. That is also what makes
+# this safe as a framework builtin -- a builtin with no profile is INERT rather
+# than wrong, so it costs an estate that never uses it bytes and not behaviour.
+#
+set -euo pipefail
+
+# shellcheck source=lib/helpers
+. "${DEVBIN_LIB:?run me through bin/devbin}/helpers"
+# shellcheck source=lib/config
+. "$DEVBIN_LIB/config"
+# shellcheck source=lib/infra
+. "$DEVBIN_LIB/infra"
+
+usage() {
+  cat <<'USAGE'
+usage: devbin infra <verb> [--profile <path>]
+
+  show     print the resolved profile and where it was found
+  check    verify live DNS, mail and runtime against the profile
+
+The profile is searched for in this order, and a miss names every path:
+  --profile <path>, $DEVBIN_INFRA_PROFILE, ./infra.yaml, ~/.config/devbin/infra.yaml
+USAGE
+}
+
+verb="${1:-}"; shift || true
+explicit=""
+args=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --profile) explicit="${2:?--profile needs a path}"; shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    *) args+=("$1"); shift ;;
+  esac
+done
+
+case "$verb" in
+  ""|-h|--help) usage; exit 0 ;;
+  show|check) ;;
+  *)
+    # Sub-families (mail, dns, runtime) are routed by devbin's own `.d/`
+    # dispatch before ever reaching here, so an unknown verb at this point is
+    # genuinely unknown rather than merely unrouted.
+    die "infra: unknown verb \`$verb\` (try: devbin infra --help)"
+    ;;
+esac
+
+profile="$(infra_resolve_profile "$explicit")" || exit 1
+cfg_load "$profile"
+# The raw path, for the one question cfg_* structurally cannot answer: was a key
+# WRITTEN? A valueless key produces no cache row and is indistinguishable from
+# one nobody typed.
+_DEVBIN_INFRA_FILE="$profile"
+infra_validate_profile || die "infra: the PROFILE is malformed. Nothing was checked against the live estate -- fix the profile first."
+
+case "$verb" in
+  show)
+    printf 'profile: %s\n' "$profile"
+    printf 'name:    %s\n' "$(cfg_get name 2>/dev/null || printf '(unnamed)')"
+    printf 'domains:\n'
+    for h in $(cfg_list domains); do
+      printf '  %-16s %s\n' "$h" "$(cfg_get "domains.$h.name")"
+    done
+    ;;
+  check)
+    # THE unreviewed GATE, and it REFUSES rather than warns. `init` emits
+    # anything it could not confidently propose into `unreviewed:`; five
+    # deviations reviewed down to one is still an estate with an unratified
+    # target, and a tool that goes green at "mostly reviewed" has rebuilt the
+    # false green it was written to remove. Accepting a deviation is deleting a
+    # key, which is an act; leaving it would be an omission.
+    unrev="$(infra_unreviewed_keys)"
+    if [ -n "$unrev" ]; then
+      {
+        printf 'infra: %s unreviewed deviation(s) in the profile. Refusing to check.\n' \
+          "$(printf '%s\n' "$unrev" | grep -c .)"
+        printf '%s\n' "$unrev" | sed 's/^/  /'
+        printf '\nEach was proposed by `init` and not yet ratified. Delete the key to\n'
+        printf 'accept the deviation, or edit the target to fix it.\n'
+      } >&2
+      exit 1
+    fi
+    printf 'infra: profile %s is valid and fully reviewed.\n' "$profile"
+    not_yet "the DNS, mail and runtime legs of \`infra check\`" "ST0003 WP-02"
+    ;;
+esac

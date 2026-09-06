@@ -141,13 +141,35 @@ _fullcycle_can_rebuild() {
 # links that resolved at the start are recorded, which is the honest scope: the
 # cycle answers for what IT broke, not for what it found broken.
 _fullcycle_path_links() {
-  local p f want="${1:-live}"
+  local p f want="${1:-live}" pat
   local -a elements=()
   IFS=: read -r -a elements <<<"$PATH"
+
+  # `find` NARROWS, the `case` below DECIDES, and that split is the whole point.
+  #
+  # This scanned every entry in PATH and forked `readlink` once per SYMLINK, so
+  # its cost was a property of the OPERATOR'S ENVIRONMENT rather than of the
+  # project, and nothing in the output said so. Measured 2026-09-06: 1,429
+  # symlinks in PATH (Homebrew's bin alone holds 1,301, nearly all links), 1,533
+  # forks and 2.68s PER CALL, with fullcycle.bats at 142s for 33 tests and sys
+  # time at nearly double user -- the signature of process churn rather than
+  # work. A lean CI PATH carries a handful of links and the same code is
+  # instant, which is why this was fast for everyone who measured it and slow
+  # for the person running the suite. Issue 0057.
+  #
+  # `-lname` glob-matches the WHOLE pattern where the `case` below has a literal
+  # left half, so a PROJECT_ROOT carrying `[`, `*` or `?` would match
+  # differently. Escaping those stops it UNDER-matching -- the dangerous
+  # direction, an at-risk binary silently not found -- and re-testing every
+  # candidate with the unchanged `case` makes an over-match harmless. Behaviour
+  # cannot move; only the fork count does.
+  pat="$(printf '%s' "$PROJECT_ROOT" | sed 's/[][*?]/\\&/g')"
+
   for p in "${elements[@]}"; do
     [ -n "$p" ] || continue
     [ -d "$p" ] || continue
-    for f in "$p"/*; do
+    while IFS= read -r f; do
+      [ -n "$f" ] || continue
       [ -L "$f" ] || continue
       case "$(readlink "$f")" in "$PROJECT_ROOT"/*) ;; *) continue ;; esac
       # -e follows the link: true means it resolves today.
@@ -156,7 +178,7 @@ _fullcycle_path_links() {
       else
         [ "$want" = dead ] && printf '%s\n' "$f"
       fi
-    done
+    done < <(find "$p" -maxdepth 1 -type l -lname "$pat/*" 2>/dev/null)
   done
   return 0
 }

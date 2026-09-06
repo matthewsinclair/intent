@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+#
+# `infra mail` -- the mail leg of `infra`, and a router rather than a verb.
+#
+# It exists because devbin's `.d/` descent needs a handler at every level: with
+# no executable here, `infra mail dmarc parse` stops at `infra` and arrives as
+# three unrecognised arguments. The sub-families below own the work.
+#
+set -euo pipefail
+
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+# shellcheck source=lib/helpers
+. "$DEVBIN_LIB/helpers"
+
+usage() {
+  cat <<USAGE
+usage: $DEVBIN_NAME infra mail <family> ...
+
+  dmarc    DMARC aggregate reports: parse them into JSON rows
+
+A family with no handler behind it stops the descent and arrives here, which
+is why an unknown word is an error rather than a silent no-op.
+USAGE
+}
+
+case "${1:-}" in
+  '' | -h | --help)
+    usage
+    exit 0
+    ;;
+  *) die "infra mail: unknown family \`$1\` (try: $DEVBIN_NAME infra mail --help)" ;;
+esac
