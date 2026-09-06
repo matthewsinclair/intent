@@ -1,5 +1,5 @@
 ---
-verblock: "06 Sep 2026:v1.34: vc - aggressive globalfold at hv's word; the scope question was ANSWERED two days before this file stopped saying unanswered, the gate is eleven rows with six waiting on a cut, and the shipped pair is nine commits behind the tree"
+verblock: "03 Sep 2026:v1.33: vc - aggressive globalfold; DOING and TODO only, four stale premises struck against drives, and the 3.0.1 scope is CONTESTED not settled"
 intent_version: 3.0.0
 ---
 
@@ -17,35 +17,13 @@ intent_version: 3.0.0
 
 ## DOING
 
-### THE v3.0.1 GATE IS ELEVEN ROWS AND SIX OF THEM CANNOT MOVE UNTIL hv CUTS
+### THE 3.0.1 SCOPE IS CONTESTED AND ONLY hv CAN SETTLE IT
 
-**Measured 2026-09-05. `ST0056` has 6 unsatisfied and `ST0068` has 5.** The six that are unfalsifiable without an artefact: `ST0056` AC-00.5, AC-07.7, AC-11.1, AC-11.4, AC-12.4 and `ST0068` AC-04.2. **None of them is engineering anybody is withholding -- a cut is the instrument that measures them, and no node can measure them for hv.**
+**This file carried _scope is ST0056 and its feeders, nothing wider_ as settled fact. It is not settled.** `hv/wip.md:84` records hv first-hand, 2026-09-01 08:32Z: **_"Everything here outstanding is going into 3.0.1... I want 3.0.1 to be feature complete and I don't care how long it takes."_** The narrow-scope statements on `hv/wip.md:40` and `:73` are **vc pen notes from 2026-08-31, one day earlier**, and were never struck.
 
-**FOUR OF THE FIVE STARTABLE ROWS LANDED ON 2026-09-05.** `ST0056` AC-00.6's `bin/` coupling is discharged (the deletion itself is AT the cut and was never owed before the tag); `ST0068` AC-02.1 is satisfied; AC-02.3 carries its command and its declared scope limit. **`ST0068` AC-03.1 + AC-03.2 are HELD on an independent read at Laksa, and the ping is vc's to initiate, not theirs.**
+**So three documents carry a scope the ruler superseded, and nodes have been working off different halves.** Under the narrow reading `ST0060` (`intent vault`), `ST0046` (modules) and `ST0065` are out; under hv's ruling they are in. **Put to hv 2026-09-03 with options; unanswered. Do not resolve it by picking the half your work needs.**
 
-**DO NOT TRANSCRIBE THE ELEVEN. RUN IT:**
-
-    intent ac gate ST0056
-    intent ac gate ST0068
-
-### THE SHIPPED PAIR IS BEHIND THE TREE, AND THAT IS THE FIRST THING A COLD NODE SHOULD MEASURE
-
-**Behaviours differ between this tree and the binary five sessions actually run.** Do not read a list of which -- the list rots the moment a sixth thing is fixed. **Read the distance:**
-
-    intent --version                                              # the marker the BINARY was built from
-    git rev-list --count <marker>..HEAD -- native/rust surface     # how far the tree has moved past it
-
-**Driven 2026-09-06 00:26Z: NINE.** A node standing on that binary sees the OLD behaviour for every fix landed since it was built. **`bin/devbin --version` prints the same rendering for a DIFFERENT quantity -- what the checkout is at now -- so never diff those two against each other.**
-
-### THE SCOPE QUESTION IS ANSWERED, AND THIS FILE SAID _UNANSWERED_ FOR TWO DAYS AFTER hv ANSWERED IT
-
-**STRUCK 2026-09-06 (vc, global fold). This section read _the 3.0.1 scope is CONTESTED and only hv can settle it ... Put to hv 2026-09-03 with options; unanswered._ hv ANSWERED ON 2026-09-04 AND THE ANSWER HAS BEEN IN `intent/restart.md:9` EVER SINCE**, verbatim and first-hand: _"Everything is in 3.0.1. There's no other release (yet). The end. Stop asking me about this. I've said it about 20 times now."_
-
-**SO THE TWO DOCUMENTS EVERY NODE READS AT BOOT DISAGREED ABOUT WHETHER THE GATING QUESTION WAS OPEN, AND THE ONE THAT SAID _OPEN_ IS THE ONE THAT LEADS.** `intent/wip.md` is read before `intent/restart.md` -- `.claude/restart.md` step 2 says so in that order -- **so a node booting correctly met the stale half first.** That is hv's own rule firing on this file: **a repeated question is a DOCUMENT defect, and the twenty askings were one defect counted twenty times.** It is also, exactly, the class this estate found six ways on 2026-09-05 -- a record outliving its premise while still being cited.
-
-**THE SETTLED SCOPE: v3.0.1 IS THE NEXT RELEASE, IT IS FEATURE COMPLETE, THERE IS NO TAG WINDOW AND NO EXTERNAL CONSUMER, AND COMPLETENESS BEATS SCHEDULE.** The entire scarcity register -- _not in this cut_, _defer_, _after the tag_, _out of scope for 3.0.1_ -- **is retired as a CLASS, not line by line.**
-
-**THE ONE CARVE-OUT SURVIVES AND IS NOT REACHED BY THE ABOVE: `config`, `ext` AND `learn` SHIP DECLARED-AND-UNBUILT** (hv, 2026-08-31). **Building them REVERSES a ruling.** hv's own ordering rule is why the general statement does not vacate them: **a general policy stated after a specific ruling does not silently vacate it.**
+**Not contested, and true under either reading:** `intentd` is IN via WP-08, and **ST0064 narrows to the macOS menubar app and IS IN** -- hv ruled that first-hand on 2026-08-31 (_the intentd and the menubar app that controls it are linked and need to both land_).
 
 ### WP-08 IS THE DAEMON, IT IS cc's, AND IT IS THE LONGEST POLE
 
@@ -95,26 +73,16 @@ The full consolidated set across all four workstreams went to hv on 2026-09-03. 
 
 ### Owed, by owner
 
-- **dc -- `0270` OPTION 1: A VERB RETURNING AN AT ROW TO `to-write`.** Option 2 is built and prevents ENTERING the one-way door; **it frees nobody already inside it.** Nobody was inside at the last count driven, **which is why the narrow fix was enough then and is not forever.**
-- **ic -- THE `W106` BOUNDARY PASS OVER 109 WATCH-OUTS**, ~6 expected to fail the test. **Deliberately not done at the fold: an undrawable family costs nothing sitting, and a rushed cut of a drawable one is a real loss. DO NOT RENUMBER** -- entries are cited by number on boards and in commit messages.
-- **ic -- THE THREE-COPY FIXTURE CONVERGENCE** in `intent-cli/tests/`: `critic_surface.rs`, `claude_cwi_door.rs` (**a DIFFERENT signature**) and the renamed empty-library file. **Unfiled, and it wants a measurement of what each caller actually needs first -- the differing signature is evidence they may not be one thing.** cc declined to do it inside a message-only change, which was right.
 - **dc -- the four tests that spawn the binary with no `current_dir` and can migrate the live store** (`schema_versioning`, `bootstrap_door`, `table_driven_tests_fixture_their_home`, `version_spellings_agree`). **A mechanism understood is not a hazard closed.** Which one moved the store on 2026-08-30 is unbisected. Worth fixing as a CLASS; it touches files three nodes own.
 - **dc -- `bin/.devbin` is WP-11**, which still needs a published tag, and that is hv's hand.
 - **dc -- no smoke arm exercises `claude start` / `ws`.** ARM 4 proves the rule library arms; there is no equivalent for this door, so **present is the strongest claim the keg fix earns.** Needs a keg.
 - **dc -- `pub const UNWIRED_PHRASE` beside the emitter in `render.rs`**, with `guide.rs` importing it. **`guide.rs` quotes the unwired marker into GENERATED USER DOCUMENTATION with no witness**, so a wording change makes the guide name a string the tool no longer prints and nothing goes red. **THE _cc is parked behind this_ CLAUSE IS STRUCK 2026-09-04: dc measured cc's live board and vc read it independently, and NEITHER finds the dependency.** It may never have existed; what is certain is that it was asserted here and corroborated nowhere, and dc nearly sequenced a whole morning off it.
-- **cc -- `0271`'s TWO ARMS, WRITTEN AND DELIBERATELY REVERTED OUT OF THE SHARED TREE.** Resume with `git apply intent/whiteboard/cc/.history/20260905/0271-preconditions-2028Z.patch` (221 lines, `cmp`-verified). **Blast radius already measured: the git arm is additive and refuses 0 of 18; the dirty arm is scoped to the CONVERSION path and never to the verb, because hung on the verb it refuses 11 of 18.** `migration.md`'s Preconditions section is edited in the same change. **cc reverted rather than leaving `native/rust` dirty, because the shared-artefact guard refuses a dirty tree for the shared path -- their dirt would block every peer's release build.**
-- **cc -- `0192`** (M), refusal in `info_read_back`, placement decided and unbuilt.
-- **cc -- `AC-08.10` AND THEN THE DAEMON PROPER. THE ATTRIBUTION WAS CHALLENGED AT THE FOLD AND SURVIVES, AND HOW IT WAS CHALLENGED IS THE FINDING.** cc reported the string appears NOWHERE in their live board or their pre-fold, and refused to disclaim it from their own silence -- **_my board's silence is a claim about my board rather than about the world._** **Driven: it is in EIGHT of cc's own `.history/20260830/` folds. It was theirs and it fell out of their live board through successive cuts.** That is cc's own rule -- a thing parked in a transient section has an expiry nobody set -- **arriving on a WORK ITEM instead of a finding, which is the worse direction: a lost finding costs an argument, a lost assignment costs the work.** The criterion is real and live in canon: `ST0056` `AC-08.10`, `kind=test`, `state=computed` -- _every new stack decision the daemon introduces is ruled and recorded before it is added._
-- **cc -- hv's `info.md` ROUND-TRIP AND `0192` ARE TWO ITEMS THAT LAND IN ONE FUNCTION, NOT ONE ITEM UNDER TWO NAMES.** cc flagged the ambiguity rather than assuming either way. **`0192` is `st edit` handing back the path to a generated view that the next render destroys; the round-trip is renderer and reader sharing ONE declaration of which sections are AUTHORED, with read-back ignoring every other byte rather than parsing it.** Different requirements -- **but cc's `0192` refusal is placed in `info_read_back`, which is the round-trip's reader, so whoever takes one is standing in the other's code.** Carried as one entry naming both **so it is neither done twice nor left because each looked like the other's job.**
+- **cc -- `AC-08.10` and then the daemon proper.** And hv's `info.md` round-trip, ruled and not started: **renderer and reader share ONE declaration of which sections are authored, and read-back ignores every other byte rather than parsing it.**
 - **cc -- `SERVED_BY_DAEMON` is a second home.** `render.rs:235` is a one-entry table where it should be a projection of the dispatch table. Not a hazard -- the exclusions refuse loudly -- but startable.
 - **ic -- `AC-17.6` waits on cc's WP-08**: `browsed()` is an unconditional stub that refuses even with the daemon up. **The remaining work is ONE ROW, not an XL.**
 - **ic -- Assignment 2**, unstarted: surface-review cc's `ac new` / `at new` refuse-and-edit package. **A spot check covered presence and framing only.**
 - **vc -- `0136`'s ~44-site `AcState::Computed` change**, after the tag. One-commit-or-split is called at the cut.
 - **vc -- the `OWNER:` routing sweep.** An hv ruling assigned to a node that never reached them is invisible to that node's entire pickup -- **a pickup reads your own board and your own inboxes, and a ruling that was never routed appears in neither.** Cost dc a census that sat unrouted from 2026-08-31. **vc holds the routing, so this class is vc's by construction and the sweep is unbuilt.**
-
-### THE FOUR CANON ROWS WAITING ON hv ARE NOT FOUR UNFINISHED JOBS
-
-**Corrected by cc at the fold, and the distinction decides whether anyone picks work up tomorrow:** `0205`'s fix is DELIVERED and re-driven, and `0272`'s per-artefact residue emission is COMMITTED at `e1a076d5`. **What those two are waiting on is the issue's DISPOSITION, not the work.** `0268` and `0271` are filings awaiting a word. **So the four rows are one clerical act and two of them have nothing behind them at all** -- reading the list as a backlog would put a node on work that is already done.
 
 ### Estate-wide, found and not owned
 
@@ -124,6 +92,4 @@ The full consolidated set across all four workstreams went to hv on 2026-09-03. 
 - **Intent's shipped gate output cites bare issue numbers** -- "issues 0036/0043" -- and `intent issues` is per-project, so a reader in a consuming estate resolves their OWN and both read as verified. hv's standing rule is `<project>#NNNN`. **Our gate violates it into every consumer.**
 - **THREE DEFECTS FOUND IN 2026-09-03 WERE INVISIBLE FROM INSIDE THIS ESTATE AND VISIBLE ONLY FROM A CONSUMER.** `0213` (the close gate counts a fileless test row toward a PASS -- Intent has zero such rows because it was never migrated); `0228` (five shell rules scope `bin/*` unconstrained -- invisible because this `bin/` is all shell); the `in-standards` decision-tree falsehood. **A consuming estate produces INPUTS the owning estate cannot generate, which is a fact about data and not about attention.** The failure mode to guard against is **a true bug report filed as a configuration difference and closed.**
 - **No toolchain pin in any form**, and `rust-toolchain.toml` would bind CI only while reading as a project-wide guarantee. **NOT implicated in the 2026-08-29 gate failure -- measured and refuted.**
-- **CANON CARRIES NO NODE IDENTITY, ON THREE INDEPENDENT SURFACES, AND NOTHING CLOSES IT.** Measured 2026-09-05 while trying to attribute one issue. **(i) `reporter` is the shared git identity on every row** -- identical across all nodes, discriminating nothing. **(ii) An UNCOMMITTED row has no commit trailer**, so the one attribution channel that exists does not reach a row before it lands. **(iii) `event_log.principal` is `local` for 1,447 rows and `intentd` for 130** -- it separates HUMAN from DAEMON and never NODE from NODE. **So `event_log` fixes the INSTANT half of _whose issue is this_ and not the ACTOR half, which is the half anyone actually asks.** Two workarounds were tried and both are weaker than they look: **mtime is the LAST WRITE and can never date a filing** (`0273` reads two hours after its own commit), and **`event_log` dates but does not attribute.** Issue `0276` remains unattributed as of the fold.
-
 - **`0142`'s structural half is owed:** refusals have no declared home in the register, so the only place to state one is a `help` string, where nothing checks it and nothing updates it when the behaviour moves.

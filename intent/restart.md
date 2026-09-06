@@ -99,6 +99,23 @@
 - **MECHANICAL.** `--no-fail-fast` always. **Never `$?` after a pipe** -- zsh has `pipestatus`, not `PIPESTATUS`. **An unquoted `$var` does NOT word-split here.** **An apostrophe or a backtick inside a single-quoted string is a hard syntax error** -- run `bash -n` on any edited shell file, and DRIVE it, because a syntax check is not an execution. **`grep` is ugrep here.**
 - **FOUR SHELL CRITIC FINDINGS ARE DELIBERATELY NOT FIXED AND MUST NOT BE.** `bin/intent_st:1187`/`:1208` and `bin/intent_treeindex:220` are **intentional word-splitting**; `bin/intent_st:1353` is a fragment of a multi-line `sed` script. **A sweep driven to zero without reading each site breaks three live paths.**
 
+## What 2026-09-05 established, and it is a reasoning rule nothing can enforce
+
+**ONE DEFECT APPEARED ON SIX INDEPENDENT SURFACES IN ONE EVENING, AND ONLY ONE OF THE SIX SHIPPED.** `at lint` counting rows it never examined; sixteen tests passing on fixtures that could not exhibit the condition; `support_tree_drift` green through the whole of 3.0.0 while the DECLARATION it verified against was wrong; nine controls that each drove a FUNCTION so none could see the RENDER; `cutover_guard.bash` blind to the one directory its criterion is about; and a control that returned 66 rules from a supposedly rules-free root. **The one that shipped is the third: it put a keg with no rule library on the fleet. The rest cost arguments.**
+
+**THE GENERAL CURE, IN THE ESTATE'S OWN WORDS: READ WHAT THE BINARY RESOLVES, NOT WHAT THE LIST SAYS.** And the sharpest form, from `cutover_guard.bash:66`, which dies if its population is EMPTY and has no guard against it being WRONG: **a careful instrument whose care points at the wrong axis passes a non-empty wrong population and renders as coverage.**
+
+**A DISTINCT MEMBER THAT NO REVIEWER OF EITHER HALF COULD FIND: TWO CORRECT LOCAL DECISIONS COMPOSING INTO A FALSE GLOBAL ANSWER.** `Library::files` returning empty for an absent root is correct where it sits; that correctness one layer down is exactly what made _empty_ and _absent_ indistinguishable one layer up.
+
+**AND THE CONCLUSION, WHICH IS THE ONLY THING HERE WORTH ACTING ON: A SUBJECT WRITTEN DOWN BEATS A DISCIPLINE, AND IT IS NOT CLOSE.** Both saves that evening were artefacts that named what they were about -- an instrument's `:62` comment declaring which readers it covers, and a page scoping a claim `On v3.0.0` which survived TWO nodes walking past it. **Against that, three disciplines that depend on remembering each failed at least once the same evening, and one of them failed on the very figure its author had published the rule about an hour earlier.** **A claim that names its own subject is checkable by someone who has not thought about subjects at all.**
+
+## Traps found 2026-09-05, none of which anything catches
+
+- **A BACKTICK INSIDE A DOUBLE-QUOTED `git commit -m` IS COMMAND SUBSTITUTION. The commit SUCCEEDS and the message is silently short.** Worst-behaved of the zsh family: the unquoted glob and the `perl -e` apostrophe run NOTHING; this one runs and reports success. **The cure was already policy -- the message goes in a FILE.**
+- **`find -newermt` PARSES LOCAL TIME.** Feeding it UTC stamps shifts the window by the offset and returns a plausible EMPTY set at exit 0. **Same family as appending `Z` to a local reading.** Caught only by re-running without `2>/dev/null`.
+- **STAGING AFTER A WAIT IS A FRESH COMMAND AGAINST A TREE THAT MOVED.** Verify a diff, wait on a peer's `index.lock`, and the file you stage is not the file you read. **The lock discipline that protects the COMMIT is what OPENS the window before it, and a GENERATED file has a second writer that is not a person -- so the gap is a writer's turn, not idle time.** **CURE: put the `git diff --numstat` and the `git add` in the SAME command**, so a lock failure retries the verification too.
+- **mtime IS THE LAST WRITE AND CAN NEVER DATE A FILING.** A canon row edited hours after it landed reads as recent. `event_log` gives the filing INSTANT and still does not attribute -- `principal` is `local` for every human row.
+
 ## Design rules
 
 - **MAKE THE BAD STATE UNREPRESENTABLE RATHER THAN CHECKED FOR.** Bind-and-publish as ONE call makes publishing an address nobody is listening on unexpressible -- a category retired before any test exists.
