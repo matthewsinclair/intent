@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-06 00:29Z
-status: active
-focus: "LOCALFOLDED FOR THE DAY 2026-09-06 00:29Z at hvs word; status stays active until the GLOBAL fold is done. Pre-fold verbatim at .history/20260906/wip-prefold-0025Z.md, cmp-verified BYTE-IDENTICAL BEFORE the first edit. CUT ON EXECUTION, NEVER ON DATE -- and tonights durable findings were promoted to Shapes BEFORE the cut, on ccs rule that a finding parked in the transient section has an expiry nobody set. ONE HOLD WAS DISCHARGED WITH ITS CONDITION STILL UNMET and the reason is written out in Holds rather than dropped. THE RELEASE GATE IS 11 ROWS: SIX CANNOT MOVE UNTIL hv CUTS, five were startable and four are done. hv items IS THE RESTART LIST -- ST0065s three rulings first, because ic has had nothing startable for two days. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+heartbeat_at: 2026-09-06 00:35Z
+status: paused
+focus: "RELEASED 2026-09-06 00:35Z. Localfold e8527905, GLOBAL FOLD cba3fe95 over all four boards. THE BEST FINDING OF THE DAY IS IN THE BOOT DOCUMENTS: intent/wip.md said the scope question was UNANSWERED for two days after hv answered it, while the answer sat verbatim in intent/restart.md including I have said it about 20 times now -- and .claude/restart.md orders wip.md FIRST, so a node booting CORRECTLY met the stale half. Struck. FIRST THING TOMORROW: ask the three nodes, do not read their state here; measure how far the shipped pair is behind the tree (NINE at the fold); run the gate, never transcribe it. hv items is the restart list and ST0065s three rulings lead it -- ic has had nothing startable for two days. AC-03.1/03.2 are HELD on laksa-vc and THE PING IS MINE TO INITIATE, not theirs. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 ---
 
