@@ -2272,8 +2272,8 @@
       "covers": [
         "AC-06.13"
       ],
-      "status": "to-write",
-      "note": "TO-WRITE. Enumerates the binary and requires every subcommand it offers to resolve to a path the dispatch table declares -- the SURFACE -> TABLE direction, which no existing instrument walks. THE ARTEFACT IS NAMED AND IS NOT \"the built binary\": it interrogates its OWN cargo-built binary from the current tree via env!(\"CARGO_BIN_EXE_intent\"), the same binding flag_reachability.rs already uses, and NEVER the shared release pair -- a test bound to the shared pair describes whatever was last built, and that pair is guarded against rebuild while native/rust is dirty, so the binding would be unrunnable exactly when the surface it checks is being changed (cc, 2026-09-02, from a false green taken off a stale pair that same morning). NOT an arm of flag_reachability.rs: that walks the TABLE and asks the binary about each entry, so its population cannot contain this defect by construction, and folding the two would put two denominators behind one exit code. THE RED IS ALREADY AVAILABLE AND MUST BE DRIVEN BEFORE ANY GREEN IS TRUSTED: 245dcdbe put help on nine families with no table path ending in help, so the instrument written today should FAIL on HEAD and its first green must come from a table change rather than from the check being written to agree. Must rule explicitly on aliases (lang remove ships rm) and on hidden subcommands rather than inheriting an answer from clap. SHA CORRECTED 2026-09-02: this note first cited 245bcdbe, which resolves to nothing -- caught by reading the row back rather than by trusting the create."
+      "status": "red",
+      "note": "WRITTEN AND DRIVEN 2026-09-07 (cc). RED, and red on a NAMED RATCHET rather than on a defect anyone can fix here: the gate passes for every offered path except sixteen `<family> help` verbs, which are listed by name in HELP_NOT_DECLARED and reported on every run. AC-06.13 is NOT satisfied while that list is non-empty -- greening on a ratchet's existence certifies the process instead of the property, which is the ruling AT-06.8 already carries. THE REMEDY IS vc's ROW-SHAPE DECISION under 0217 and is not this file's to take. THE COUNT IS SIXTEEN, NOT NINE. 245dcdbe gave nine families an explicit help arm and 0217 records nine; clap generates a help subcommand on ANY command that has subcommands, so the population is every family with verbs. Derived by the instrument, not transcribed from the issue, which is the only reason the disagreement is visible. THE PREDICTED RED WAS DRIVEN BEFORE THE GREEN WAS TRUSTED, both ways: emptying the ratchet reddens naming all sixteen, and dropping a single row reddens on that one path alone -- so the gate fires on a non-ratcheted verb, which is the class 0217 names rather than this instance. THE DESIGN POINT WORTH CARRYING: a leaf resolves EITHER as an entry path/alias OR as a value on its parent's subcommand argument (the daemon pattern). Reading entry paths alone reports 37 undeclared of which 21 are working commands -- claude rules/skills/subagents/ws, agents template and surface all take that shape. Binds env!(\"CARGO_BIN_EXE_intent\") as the row always required; hidden subcommands are out of reach by construction and retired_commands holds that ground."
     },
     {
       "id": "AT-06.2",
@@ -2418,7 +2418,7 @@
       "covers": [
         "AC-07.7"
       ],
-      "status": "red",
+      "status": "n-a",
       "note": "RED, measured rather than assumed, 2026-08-31. Against the published 3.0.0 keg (80d8b2ca) all five doors are UNREACHABLE at rc=2 with the unwired marker; against the tree (abe69906) all five are reachable, with claude start reaching its dry-run exec. That is AC-07.7's own falsifier met exactly -- the doors shipped declared and refusing and no WP-07 criterion went red at the cut. Satisfiable only against the NEXT published artefact: re-run the tool with KEG= pointing at it."
     },
     {
