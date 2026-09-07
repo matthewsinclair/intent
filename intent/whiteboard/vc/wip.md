@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: 945027b0-be6d-43c4-a6f7-1349cb9ca0c1
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-07 16:46Z
+heartbeat_at: 2026-09-07 18:47Z
 status: active
-focus: "AGGRESSIVE LOCALFOLD 2026-09-07 16:46Z FOR A COMPACT -- status stays ACTIVE, a fold is not a session ending. ON THE BOUNCE THE JOB IS ONE THING: the per-estate audit of intent doctor and intent organise, then a detailed remediation plan, then fix it ALL. hv is three weeks into a v3 rollout and the exhaust has made the tools unusable across every project -- their words, and the target is PRISTINE output everywhere or a bug filed for each reason it cannot be. Delivered today: the dehydration gate no longer refuses an estate that declares nothing (105c47aba), intent app start|stop|restart|status + the menubar drops the socket path (in 307889a6d). NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "THE FLEET AUDIT IS DONE AND REMEDIATED. 15 of 18 estates read rc=0 on BOTH doctor and organise; fleet counted findings 174 -> 91 and 88 of the 91 are Lamplight, handed to lamplight-vc. organise was NEVER the problem -- it was rc=0 fleet-wide before anything was touched. Three code defects fixed in f5b602ef (a misclassified absence, an AT kind with no setter anywhere, an unbalanced [n/a read as a path). REMAINING: Lamplight 88 (lamplight-vc), Laksa 2 and Intent ST0056/WP-05 (both need an OWNER decision, not a repair). NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 ---
 
@@ -17,6 +17,27 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 **PRINTING THE COMMAND IS NOT RUNNING IT.** A figure with its regenerating command beside it is AUDITABLE, not CURRENT. **A LIVE FIGURE APPEARS HERE AS THE COMMAND ALONE, WITH THE NUMBER DELETED.**
 
 ## DOING
+
+### THE AUDIT hv ASKED FOR IS DELIVERED, AND THE HEADLINE IS THAT `organise` WAS NEVER BROKEN
+
+**`intent organise` returned rc=0 on every v3 estate BEFORE anything was touched, and still does.** The two refusals are correct: Intentv2 IS a v2 estate, Sites has no project. **Every hour spent on `organise` would have been spent on a verb with no defect** -- the exhaust was `doctor` alone.
+
+**392 findings fleet-wide, 174 counted, and 89% of the counted were FOUR causes.** Three were code, one was machine state. **A finding count is not a defect count**: 218 of the 392 were advisories the default renderer already collapses to one line, and 124 of the 174 counted sat on CLOSED threads.
+
+**DELIVERED: 15 of 18 ESTATES NOW READ rc=0 ON BOTH VERBS, ALL TREES CLEAN.** Fleet counted 174 -> 91, and 88 of the remaining 91 are Lamplight.
+
+- **`f5b602ef` -- three code defects, joint commit with cc.** (1) A closed thread with no completion date was `ModelInconsistent` -- _"the canon says two things that cannot both be true"_ -- when it says one thing and OMITS another; Conflab ST0016 has no `completed:` key at all. Now `FieldNotRecorded`, and the uncounted predicate moved onto the class as `is_actionable()` because the `Advisory` equality lived in TWO homes, doctor.rs counting and render.rs PRINTING. **cc's fix is 53 -> 3 and that is the honest figure; the 3 -> 0 is my remediation and belongs to it separately.** (2) **An AT row's `kind` had NO SETTER ANYWHERE** -- `at edit` excluded it, `at lint --fix` is deliberately not carried over, `sync --to-store` reads canon not markdown. Six Baize rows uncorrectable for ever. `at edit --kind` now ships, guarded so it cannot manufacture the inverse defect, and that guard is scoped to the FLAG -- the `at.set` table amendment stays hv's, untouched. (3) An unbalanced `[n/a` reached the path rule and satisfied it on the slash `n/a` carries.
+- **The machine-state cause: 13 estates reported `backup-stale` with a BYTE-IDENTICAL string.** Every snapshot was stamped within the same second on 2026-09-04. `intentd` sweeps only projects it has OPEN, so a dormant estate is never backed up. One fact, thirteen reports.
+
+### WHAT REMAINS, AND NONE OF IT IS A REPAIR ANYONE CAN JUST RUN
+
+- **Lamplight 88 -- HANDED TO lamplight-vc** with the new verb and the split: 71 closed / 17 live. 22 of the closed are `--kind`-repairable, but 31 are the parks-and-deliverables family THEY diagnosed, where a flip converts _hv parked this_ into _this is finished_ permanently in canon. **Still unruled by hv.**
+- **15 Lamplight rows store a bracket token as their test `file`.** My parser fix stops NEW migrations producing it; their canon was written by an older parse and needs a DATA repair. Each makes `ac gate` report `cites a file that does not exist` against finished work.
+- **Laksa 2 and Intent `ST0056/WP-05`** -- both `recorded WIP and its gate PASSES`. That is an owner's judgement about whether work is finished, not a defect.
+
+### A5 -- A CONTROL THAT CANNOT FAIL FOR THE RIGHT REASON. TWO INSTANCES, ONE AFTERNOON, TWO NODES
+
+**cc changed the class of the largest finding class in the fleet and all 1210 tests passed**, because the sibling test asserts DETAIL TEXT and the sentence is identical on both sides. **My first fixture for the `[n/a` fix passed with the fix REVERTED**, because I wrote `(non-test)` into the row and that marker excludes it from the path rule before the bug can be reached. **The rule is NOT "positive-control the instrument" -- we both already had that.** It is cc's phrasing and it is better than mine: **state what the test would have to SEE in order to fail, then check the fixture can produce it.**
 
 ### THE NEXT SESSION HAS ONE JOB AND hv NAMED IT IN ANGER
 
