@@ -2941,11 +2941,32 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
     // a git blob. Here a field nobody names is a field nobody changes.
     //
     // `--status` is absent because `at green` / `at red` / `at na` already own
-    // it as a declared state machine, and `--kind` because changing it moves
-    // the contract graph rather than a citation.
+    // it as a declared state machine.
+    //
+    // **`--kind` IS PRESENT AS OF hv's 2026-09-07 RULING**, and the reasoning
+    // that had excluded it is answered rather than dropped -- see
+    // [`Facade::at_edit`]. The short of it: the v2 migrator records
+    // `[non-test: ...]` rows as `kind: Test`, and with no setter anywhere in
+    // the tool those rows could never be corrected. `AtStatus::permitted_for`
+    // is what makes the flag safe rather than the flag being trusted: a kind
+    // that disagrees with the row's status is refused with nothing written.
     Some(("edit", a)) => {
       let st = thread_arg(a, "stid")?;
       let id = arg(a, "atid")?;
+      // Parsed here rather than in the facade because this is where a
+      // MISTYPED value is a usage error; the facade's job is refusing a
+      // well-formed kind the contract cannot hold.
+      let kind = match opt(a, "kind").as_deref() {
+        None => None,
+        Some("test") => Some(intentsvcs::model::AtKind::Test),
+        Some("non-test") => Some(intentsvcs::model::AtKind::NonTest),
+        Some(other) => {
+          return Err(format!(
+            "error: `--kind {other}` is not a kind\n  remedy: the vocabulary is `test` or `non-test` -- a test row cites a file and carries a result, a non-test row is the doc / eyeball / gate shape and records `n/a`"
+          )
+          .into());
+        }
+      };
       // **`None` when the flag is absent, and that is the whole contract of
       // this arm.** An empty `Vec` would be indistinguishable from `--covers`
       // given no values, and the facade reads absence as "not saying" -- so
@@ -2961,6 +2982,7 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
             opt(a, "prose"),
             covers,
             opt(a, "note"),
+            kind,
           )
           .map_err(fail)?,
         &id,
@@ -4596,7 +4618,7 @@ fn events(m: &ArgMatches) -> Result<(), Failure> {
 /// says how many were set aside so a reader cannot mistake "0 finding(s)" for
 /// "nothing printed" (hv, 2026-08-26).
 fn advisory_suffix(report: &intentsvcs::doctor::Report) -> String {
-  match report.advisories() {
+  match report.not_actionable() {
     0 => String::new(),
     n => format!(" -- {n} advisory(ies), not counted"),
   }
@@ -4699,16 +4721,23 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // was introduced to cure, so the bodies move behind `--verbose`, which is
   // already the flag for "what this run resolved". `--quiet` drops them
   // entirely, like every other line that does not move the exit code.
+  //
+  // **THE PREDICATE IS THE CLASS'S OWN, NOT AN EQUALITY REPEATED HERE.** This
+  // read `class == Advisory` while `Report::actionable` read the same equality
+  // in the other crate: ONE CONCEPT, TWO HOMES. Widening the count without
+  // this line would have uncounted a class and gone on printing every one of
+  // its findings -- a summary saying 3 with 50 blocks scrolling above it,
+  // which is worse than the state being fixed.
   for finding in &report.findings {
-    if finding.class == intentsvcs::finding::FindingClass::Advisory && !verbose {
+    if !finding.class.is_actionable() && !verbose {
       continue;
     }
     println!("{finding}");
   }
-  if !quiet && !verbose && report.advisories() > 0 {
+  if !quiet && !verbose && report.not_actionable() > 0 {
     println!(
       "advisory: {} note(s) not shown and not counted -- `intent doctor --verbose` reads them",
-      report.advisories()
+      report.not_actionable()
     );
   }
   // **`--quiet` DROPS WHAT IS NOT A FINDING, AND THESE ARE NOT FINDINGS** --

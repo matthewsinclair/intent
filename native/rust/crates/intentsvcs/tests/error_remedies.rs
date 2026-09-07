@@ -216,7 +216,7 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   out.push((
     "an edit naming no field",
     facade
-      .at_edit("ST0056", "AT-03.1", None, None, None, None)
+      .at_edit("ST0056", "AT-03.1", None, None, None, None, None)
       .expect_err("an edit with nothing to change is refused, not reported unchanged"),
   ));
   // **PROVOKED RATHER THAN EXEMPTED, because it is provokable and an exemption

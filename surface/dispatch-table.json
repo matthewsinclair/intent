@@ -3307,6 +3307,15 @@
             },
             {
               "spellings": [
+                "--kind"
+              ],
+              "type": "string",
+              "help": "Re-kind the row: test or non-test -- refused if the row's status cannot hold it",
+              "value": "<test|non-test>",
+              "disposition": "keep"
+            },
+            {
+              "spellings": [
                 "--covers"
               ],
               "type": "string",
@@ -7989,7 +7998,7 @@
       "owner_wp": "WP-08",
       "family_notes": [
         "**NEW SURFACE, AND A FAMILY FOR `daemon`'s REASON RATHER THAN A `new_surface` ROW** (the precedent is recorded in that family's notes): a bare `values` list carries names and nothing else -- no per-verb help, no per-verb flags, and one `recoverability` for verbs whose answers differ. A child row under a `new_surface` head is never read by `spine::build`, which iterates `table.families`.",
-        "**THE ASYMMETRY THAT MADE THIS OWED: THIS MACHINE RUNS TWO LONG-LIVED THINGS AND ONLY ONE HAD LIFECYCLE VERBS.** `daemon` shipped `start|stop|status|run`; the menubar app shipped none, so its own menu offered *Stop intentd* and *Restart intentd* while offering nothing about itself, and an operator's only route was `killall` or the Finder. hv, 2026-09-07: *how do I stop/start/restart/status the intent menubar app?*",
+        "**THE ASYMMETRY THAT MADE THIS OWED: THIS MACHINE RUNS TWO LONG-LIVED THINGS AND ONLY ONE HAD LIFECYCLE VERBS.** `daemon` shipped `start|stop|status|run`; the menubar app shipped none, so its own menu offered _Stop intentd_ and _Restart intentd_ while offering nothing about itself, and an operator's only route was `killall` or the Finder. hv, 2026-09-07: _how do I stop/start/restart/status the intent menubar app?_",
         "**PORTED FROM `geodica app` (../Gtools) ON hv's STANDING DIRECTIVE, NOT INVENTED**, and three specifics came across because they were paid for there: LaunchServices (`lsappinfo`) rather than `pgrep`, because a hardened-runtime app is invisible in the process table to its own children and a probe shelled from inside the bundle reports it dead; a graceful `osascript` quit that is then VERIFIED by polling, because a quit is a request and returning on delivery reports a stop that may not have happened; and a three-state exit code, 0 running / 1 installed-not-running / 2 not installed, kept byte-compatible with geodica so a script written against one tool reads the other.",
         "`app status` is the only READ in the family and the only member whose exposure question is open -- exactly as `daemon status` is in its own."
       ],
@@ -8916,7 +8925,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 43,
+      "n": 48,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {

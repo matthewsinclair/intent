@@ -376,6 +376,121 @@ fn completion_and_status_must_agree_in_both_directions() {
   );
 }
 
+/// **A DATELESS CLOSE OWES NOTHING; A DATED LIVE THREAD OWES A CORRECTION.**
+///
+/// The sibling above asserts the DETAIL TEXT of both arms and neither their
+/// class nor whether they count, and that gap is the whole reason this exists.
+/// **Measured rather than supposed: the dateless-closed arm was
+/// `ModelInconsistent` until 2026-09-07, it moved to `FieldNotRecorded`, and
+/// every one of this crate's 1210 tests passed across the change** -- on the
+/// single largest finding class in the fleet, 50 of Conflab's 53 counted
+/// findings. A test that reads only the sentence cannot tell a finding that
+/// obliges something from one that does not, because the sentence is identical
+/// either way.
+///
+/// **RECLASSIFYING IS NOT SILENCING, AND THE FIRST ASSERTION IS THERE TO SAY
+/// SO.** The row is still emitted and still printed under `--verbose`; what
+/// changed is that it no longer demands an action nobody can take. A test that
+/// only checked the count would pass if the check were deleted outright.
+#[test]
+fn a_dateless_close_owes_nothing_and_a_dated_live_thread_owes_a_correction() {
+  let fx = Fixture::new();
+  let mut closed = clean_thread("ST0001");
+  closed.status = ThreadStatus::Completed;
+  closed.completed = None;
+  seed(&fx, &closed);
+  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+
+  let dateless = report
+    .findings
+    .iter()
+    .find(|f| f.detail.contains("with no completion date"))
+    .expect("the dateless close is STILL REPORTED -- reclassifying is not silencing");
+  assert_eq!(
+    dateless.class,
+    FindingClass::FieldNotRecorded,
+    "v2 never recorded the value, so there is nothing to reconcile and nothing to author -- \
+     `ModelInconsistent` would promise the canon says two contradictory things when it says one \
+     thing and omits another"
+  );
+  assert_eq!(
+    report.actionable(),
+    0,
+    "a class whose remedy is the words `nothing to fix` must not drive the count or the exit \
+     code; findings were {:?}",
+    report.findings
+  );
+  assert!(
+    report.is_healthy(),
+    "and the exit code follows the count, or the reclassification bought the operator nothing"
+  );
+
+  let fx2 = Fixture::new();
+  let mut live = clean_thread("ST0001");
+  live.status = ThreadStatus::Wip;
+  live.completed = Some("2026-08-14".to_string());
+  seed(&fx2, &live);
+  let report2 = intentsvcs::doctor::diagnose(&fx2.project(), &ctx(), None);
+
+  let dated = report2
+    .findings
+    .iter()
+    .find(|f| f.detail.contains("carries a completion date"))
+    .expect("direction two still fires");
+  assert_eq!(
+    dated.class,
+    FindingClass::ModelInconsistent,
+    "THIS ARM DOES NOT MOVE. A live thread carrying an end date is a genuine contradiction -- \
+     two fields that cannot both be right -- and it is the reason the pair is not one check"
+  );
+  assert!(
+    report2.actionable() >= 1 && !report2.is_healthy(),
+    "and it is counted, or the two arms have been collapsed into one disposition"
+  );
+}
+
+/// The uncounted set is decided by the CLASS, not by an equality with `Advisory`.
+///
+/// **THE REGRESSION THIS CATCHES IS A ONE-WORD EDIT.** `Report::not_actionable`
+/// read `f.class == FindingClass::Advisory`, and the renderer's print filter
+/// read the same equality in the other crate -- one concept, two homes. Anyone
+/// restoring either spelling makes this red, which a test over doctor's output
+/// alone would not: the fixture there would have to carry the right class by
+/// luck.
+#[test]
+fn the_uncounted_set_is_keyed_on_the_class_predicate_and_not_on_one_class() {
+  let report = intentsvcs::doctor::Report {
+    findings: vec![
+      Finding::new("a", FindingClass::Advisory, "reported for visibility"),
+      Finding::new("b", FindingClass::FieldNotRecorded, "no completed date"),
+      Finding::new("c", FindingClass::ModelInconsistent, "a real contradiction"),
+    ],
+    ..Default::default()
+  };
+
+  assert_eq!(
+    report.not_actionable(),
+    2,
+    "both classes whose remedy owes nothing are uncounted; an equality with `Advisory` returns 1"
+  );
+  assert_eq!(
+    report.actionable(),
+    1,
+    "and exactly the contradiction remains"
+  );
+  assert!(!report.is_healthy());
+
+  assert!(
+    !FindingClass::Advisory.is_actionable() && !FindingClass::FieldNotRecorded.is_actionable(),
+    "the predicate is the class's own, so both callers get one answer"
+  );
+  assert!(
+    FindingClass::ModelInconsistent.is_actionable(),
+    "and it can still say YES -- a predicate that answered `not actionable` for everything \
+     would satisfy every assertion above it"
+  );
+}
+
 // ---------------------------------------------------------------------------
 // File checks
 // ---------------------------------------------------------------------------

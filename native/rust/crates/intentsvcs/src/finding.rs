@@ -88,9 +88,17 @@ pub enum FindingClass {
   UnreadField,
   /// A field the v2 estate never recorded, because the artefact predates the
   /// convention that introduced it. **Not a defect and not the reader's to
-  /// fix** -- reported so the migration's counts reconcile, and kept apart from
+  /// fix** -- reported so the counts reconcile, and kept apart from
   /// `UnknownStatus` / `UnknownScope`, which describe a value that IS there and
   /// is wrong.
+  ///
+  /// **IT IS NO LONGER THE MIGRATION SCAN'S ALONE, AND THE DOC SAID IT WAS
+  /// UNTIL 2026-09-07.** `doctor` emits it for a CLOSED thread carrying no
+  /// completion date -- the largest single finding class in the fleet, 50 of
+  /// Conflab's 53 counted findings (vc's audit). That case had been
+  /// `ModelInconsistent`, whose remedy reads *the canon says two things that
+  /// cannot both be true*. It does not: it says one thing and omits another,
+  /// and the omitted value never existed in v2 for the migration to carry.
   FieldNotRecorded,
   /// A generated view on disk differs from what the model renders -- a
   /// hand-edit that would otherwise be silently overwritten, or silently
@@ -575,6 +583,44 @@ impl FindingClass {
   /// Declaration order, for a stable totals line.
   fn rank(&self) -> u8 {
     self.meta().0
+  }
+
+  /// Whether a finding of this class OBLIGES anything.
+  ///
+  /// **THE CONCEPT IS "IS ANYTHING OWED", NOT "IS IT SPELLED `Advisory`", AND
+  /// THE DIFFERENCE IS WHY THIS IS A METHOD ON THE CLASS RATHER THAN A FILTER
+  /// AT A CALL SITE.** `Report::actionable` asked `class == Advisory` and so
+  /// did the renderer's print filter -- **one concept spelled twice, in two
+  /// crates**, so widening it in one place would have uncounted a class and
+  /// gone on printing it. Here a new class must answer the question where it
+  /// is defined, beside its own remedy, and both callers get the same answer
+  /// by construction.
+  ///
+  /// **THE TEST FOR MEMBERSHIP IS THE CLASS'S OWN REMEDY.** A class whose
+  /// remedy is the words *nothing to fix* is not an obligation, and the doc on
+  /// `Report::is_healthy` already says so in hv's words (2026-08-26): *an
+  /// advisory describes a state, not an obligation*. Each member states its
+  /// ground rather than inheriting one:
+  ///
+  /// - [`FindingClass::Advisory`] -- reported for visibility; the original
+  ///   member and the reason the old name was accurate when it was written.
+  /// - [`FindingClass::FieldNotRecorded`] -- *the artefact predates the field,
+  ///   and the migration carries it as it is*. Nothing was lost and nothing can
+  ///   be authored: asking someone to fill it in is asking them to invent data
+  ///   about finished work.
+  /// - [`FindingClass::ModelledNotBuilt`] -- *nothing is owed and nothing was
+  ///   lost*. **It reaches no `Report` today** -- emitted only from
+  ///   `sync.rs`, verified rather than assumed -- so its membership changes no
+  ///   count now. Classified anyway on its own note's reasoning: a rank that is
+  ///   wrong only while nothing reads it is wrong on the day something does.
+  ///
+  /// **NOT A JUDGEMENT ABOUT SEVERITY.** A class can be serious and still owe
+  /// nothing; what is being asked is whether an operator has something to DO.
+  pub fn is_actionable(&self) -> bool {
+    !matches!(
+      self,
+      Self::Advisory | Self::FieldNotRecorded | Self::ModelledNotBuilt
+    )
   }
 }
 

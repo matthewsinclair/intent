@@ -1335,7 +1335,7 @@ Acceptance tests: the small red-to-green tests that prove ACs
 | `at red` (alias `at notdone`) | <stid> <atid> | --note <text>                                                                                                        | Set an AT red                                                                     | keep        |
 | `at na`                       | <stid> <atid> | --note <text>                                                                                                        | Set a non-test AT to n/a (the doc / eyeball / gate status)                        | keep        |
 | `at new`                      | <stid> <atid> | --covers <acid>, --file <path>, --prose <text>, --kind test/non-test, --status to-write/red/green/n-a, --note <text> | Create an acceptance test (caller-assigned id; refuses an id that is taken)       | new-surface |
-| `at edit`                     | <stid> <atid> | --file <path>, --prose <text>, --covers <ac-id>, --note <text>                                                       | Re-cite an acceptance test; a field you do not name is a field it does not change | new-surface |
+| `at edit`                     | <stid> <atid> | --file <path>, --prose <text>, --kind <test/non-test>, --covers <ac-id>, --note <text>                               | Re-cite an acceptance test; a field you do not name is a field it does not change | new-surface |
 
 ### `at`
 
@@ -1550,6 +1550,8 @@ Re-cite an acceptance test; a field you do not name is a field it does not chang
   - `--file` `<path>` (string) -- The repo-relative test file
     - **disposition:** keep
   - `--prose` `<text>` (string) -- What was read or eyeballed (non-test rows)
+    - **disposition:** keep
+  - `--kind` `<test|non-test>` (string) -- Re-kind the row: test or non-test -- refused if the row's status cannot hold it
     - **disposition:** keep
   - `--covers` `<ac-id>` (string) -- The AC id(s) this test covers, replacing the current set
     - **arity:** 1..n
@@ -3719,6 +3721,90 @@ Run intentd in the foreground, without daemonising
 - **basis:** AC-08.9: `intent daemon run` serves the IDENTICAL code in the foreground. **It is long-running and does not return**, which is the property a consumer of `recoverability` should read before treating it like its siblings.
 - **recoverability:** reversible
 - **recoverability anomaly:** REVERSIBLE AND WITHHELD ANYWAY, AND THE WITHHOLD REASON IS NOT IRREVERSIBILITY. The MCP withhold list is derived from `recoverability` because the usual ground for keeping a mutation off the tool tier is that the surface cannot undo it -- and these three ARE undoable, each by a sibling. They are withheld because they are MACHINE-LEVEL PROCESS CONTROL, which is this family's own stated ground and the canonical example behind the exposure field existing at all. **The head row carried `one-way` while it was ONE ROW STANDING FOR FOUR VERBS, which is a label bent to make a derived number come out** (cc's words). A representation that must state something false for a mechanism to produce the right answer is the mechanism's defect, not the row's -- and the generator refusing the bent label rather than accepting it is that working. Splitting the family is what made each verb's real recoverability statable.
+
+## Family: `app`
+
+Manage the Intent menubar app on this machine
+
+- **v2 source:** `new-surface`
+- **v2 help file:** none
+- **Owning work package:** WP-08
+
+- **NEW SURFACE, AND A FAMILY FOR `daemon`'s REASON RATHER THAN A `new_surface` ROW** (the precedent is recorded in that family's notes): a bare `values` list carries names and nothing else -- no per-verb help, no per-verb flags, and one `recoverability` for verbs whose answers differ. A child row under a `new_surface` head is never read by `spine::build`, which iterates `table.families`.
+- **THE ASYMMETRY THAT MADE THIS OWED: THIS MACHINE RUNS TWO LONG-LIVED THINGS AND ONLY ONE HAD LIFECYCLE VERBS.** `daemon` shipped `start|stop|status|run`; the menubar app shipped none, so its own menu offered _Stop intentd_ and _Restart intentd_ while offering nothing about itself, and an operator's only route was `killall` or the Finder. hv, 2026-09-07: _how do I stop/start/restart/status the intent menubar app?_
+- **PORTED FROM `geodica app` (../Gtools) ON hv's STANDING DIRECTIVE, NOT INVENTED**, and three specifics came across because they were paid for there: LaunchServices (`lsappinfo`) rather than `pgrep`, because a hardened-runtime app is invisible in the process table to its own children and a probe shelled from inside the bundle reports it dead; a graceful `osascript` quit that is then VERIFIED by polling, because a quit is a request and returning on delivery reports a stop that may not have happened; and a three-state exit code, 0 running / 1 installed-not-running / 2 not installed, kept byte-compatible with geodica so a script written against one tool reads the other.
+- `app status` is the only READ in the family and the only member whose exposure question is open -- exactly as `daemon status` is in its own.
+
+| command       | args      | flags | help                                                                        | disposition |
+| ------------- | --------- | ----- | --------------------------------------------------------------------------- | ----------- |
+| `app`         | <command> | --    | Manage the Intent menubar app on this machine                               | new-surface |
+| `app start`   | --        | --    | Start the Intent menubar app                                                | new-surface |
+| `app stop`    | --        | --    | Stop the Intent menubar app                                                 | new-surface |
+| `app restart` | --        | --    | Restart the Intent menubar app                                              | new-surface |
+| `app status`  | --        | --    | Report whether the Intent menubar app is running, and where it is installed | new-surface |
+
+### `app`
+
+Manage the Intent menubar app on this machine
+
+- **v2:** new-surface
+- **Arguments:**
+  - `command` (subcommand, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- read-only
+- **MCP note:** The family head dispatches and does nothing itself.
+- **basis:** ST0064. **THE HEAD ROW CARRIES THE `subcommand` ARG AND NO `values` KEY**, for the reason `daemon`'s head row records: in the families model the leaves ARE the child entries, so a `values` list here would be a second home for the roster, and its ABSENCE is what makes the bare command illegal rather than a default deciding it.
+
+### `app start`
+
+Start the Intent menubar app
+
+- **v2:** new-surface
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** Withheld for `daemon`'s reason and it applies unchanged: this is machine-level process control over a GUI application, and an agent that can quit the operator's menubar app can remove the surface they are watching the agent through. `status` is the READ and the same candidate-for-exposure-on-a-ruling as `daemon status`; closed until then, because a wrongly-open row is the expensive direction.
+- **basis:** ST0064. **`open` THROUGH LaunchServices, NEVER THE BUNDLE'S EXECUTABLE.** Executing `Contents/MacOS/Intent` starts a process with no GUI session registration and no menubar -- which is what the developer verb `bin/devbin macos app-run` is for, and deliberately not what this does. **ALREADY RUNNING IS SUCCESS AND NAMES THE PID**, for `daemon start`'s reason: the operator asked for a running app and there is one, and a script's second run must not break.
+- **recoverability:** reversible
+- **recoverability anomaly:** REVERSIBLE AND WITHHELD ANYWAY, for `daemon`'s reason rather than for irreversibility: each verb is undone by a sibling, and the withhold is about an agent controlling the operator's own GUI session.
+
+### `app stop`
+
+Stop the Intent menubar app
+
+- **v2:** new-surface
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** Withheld for `daemon`'s reason and it applies unchanged: this is machine-level process control over a GUI application, and an agent that can quit the operator's menubar app can remove the surface they are watching the agent through. `status` is the READ and the same candidate-for-exposure-on-a-ruling as `daemon status`; closed until then, because a wrongly-open row is the expensive direction.
+- **basis:** ST0064. **A QUIT IS A REQUEST, SO THE STOP IS VERIFIED RATHER THAN ASSUMED.** `osascript ... to quit` returns as soon as the event is delivered; an app holding unsaved state can take a moment or refuse outright, so this polls for the pid to clear and REFUSES with the pid when it does not. Returning success on delivery is IN-AG-NO-SILENT-001 at its most literal. **NOT RUNNING IS SUCCESS**: the postcondition asked for holds, and it says which of the two happened.
+- **recoverability:** reversible
+- **recoverability anomaly:** REVERSIBLE AND WITHHELD ANYWAY, for `daemon`'s reason rather than for irreversibility: each verb is undone by a sibling, and the withhold is about an agent controlling the operator's own GUI session.
+
+### `app restart`
+
+Restart the Intent menubar app
+
+- **v2:** new-surface
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** Withheld for `daemon`'s reason and it applies unchanged: this is machine-level process control over a GUI application, and an agent that can quit the operator's menubar app can remove the surface they are watching the agent through. `status` is the READ and the same candidate-for-exposure-on-a-ruling as `daemon status`; closed until then, because a wrongly-open row is the expensive direction.
+- **basis:** ST0064. **A STOPPED APP RESTARTS RATHER THAN REFUSING** -- someone typing `restart` at an app that is not running means start, and refusing would be correct about the word and useless about the intent. It goes through stop and then start rather than signalling the app to relaunch itself, so a WEDGED app is still recovered, which is the case the verb mostly exists for.
+- **recoverability:** reversible
+- **recoverability anomaly:** REVERSIBLE AND WITHHELD ANYWAY, for `daemon`'s reason rather than for irreversibility: each verb is undone by a sibling, and the withhold is about an agent controlling the operator's own GUI session.
+
+### `app status`
+
+Report whether the Intent menubar app is running, and where it is installed
+
+- **v2:** new-surface
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- read-only
+- **MCP note:** **CLOSED CONSERVATIVELY, THE QUESTION RECORDED RATHER THAN SETTLED**, exactly as `daemon status` is: the family's withhold reason is process control and does not name this row, which is a READ. A candidate for exposure on a ruling rather than on a reading of a sentence written about its siblings.
+- **basis:** ST0064. **THE EXIT CODE CARRIES THE STATE AND THERE ARE THREE OF THEM**: 0 running, 1 installed and not running, 2 not installed. The two non-zero answers have DIFFERENT REMEDIES -- start it versus build it -- and a boolean sends half the callers to the wrong one. **THE RUNNING BUNDLE IS AUTHORITATIVE OVER THE CANDIDATE LIST**: an app launched from a path this resolver would not have guessed is still the app that is running, and printing the guess would name a bundle the operator is not looking at.
 
 ## Known exposures -- defects this file does not have, and is not protected against
 

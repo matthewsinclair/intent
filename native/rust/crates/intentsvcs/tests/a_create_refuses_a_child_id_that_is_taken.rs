@@ -344,7 +344,7 @@ fn at_edit_refuses_a_call_that_names_nothing_to_change() {
   let mut facade = fx.facade();
 
   let err = facade
-    .at_edit("ST0001", "AT-03.1", None, None, None, None)
+    .at_edit("ST0001", "AT-03.1", None, None, None, None, None)
     .expect_err("an edit with no field named must refuse");
 
   assert!(
@@ -402,6 +402,7 @@ fn at_edit_can_repair_a_row_that_already_carries_a_finding() {
       None,
       Some(vec!["AC-03.2".to_string()]),
       None,
+      None,
     )
     .expect("a row's inherited breakage must not make its other fields uneditable");
 
@@ -447,6 +448,7 @@ fn a_re_cite_to_a_live_file_clears_the_finding_the_row_arrived_with() {
       None,
       None,
       None,
+      None,
     )
     .expect("re-citing to a live file is the repair");
 
@@ -485,6 +487,7 @@ fn at_edit_refuses_a_change_that_introduces_a_finding() {
       None,
       None,
       Some(vec!["AC-77.7".to_string()]),
+      None,
       None,
     )
     .expect_err("an edit that breaks the contract must refuse");
@@ -561,5 +564,107 @@ fn put_still_replaces_and_that_is_the_hole_this_leaves() {
     "the addressed PUT stopped replacing. That may well be right -- but it is a change to the \
      HTTP and GraphQL faces' contract, and it is not what hv ruled on 2026-08-28, which was about \
      verbs named `add` and `new`."
+  );
+}
+
+/// **A MIS-MIGRATED ROW'S `kind` IS REPAIRABLE, AND THE FLAG CANNOT MANUFACTURE
+/// THE DEFECT IT REPAIRS** -- hv, 2026-09-07, from the fleet doctor audit.
+///
+/// The v2 migrator reads `- AT-01.1 (legacy) [non-test: capture-spec doc
+/// review]` and records `kind: Test`, because the bracket form is not the
+/// `(non-test)` marker the v3 grammar looks for. `doctor` then reports the row
+/// forever, and before `--kind` there was NO legal spelling that could correct
+/// it: `at edit` excluded kind, `at lint --fix` is deliberately not carried
+/// over from v2, and `sync --to-store` reads the canon extract rather than the
+/// markdown. Six rows on Baize, permanently.
+///
+/// **THE FIXTURE ROW IS BUILT BY HAND, WHICH IS THE POINT RATHER THAN A
+/// SHORTCUT.** `AtStatus::permitted_for` forbids Test/`n-a`, so the facade
+/// cannot be asked to create this state -- exactly as the estate could not
+/// repair it. A migration put it there and only a direct write reproduces it.
+#[test]
+fn at_edit_repairs_a_mis_migrated_kind_and_refuses_to_create_the_disagreement() {
+  let fx = Fixture::new();
+  let mut thread = sample_thread("ST0001");
+  // The Baize shape, verbatim: a non-test row the migrator recorded as a test.
+  thread
+    .tests
+    .iter_mut()
+    .find(|t| t.id == "AT-03.2")
+    .expect("the fixture carries it")
+    .kind = AtKind::Test;
+  fx.write_thread(&thread);
+  let mut facade = fx.facade();
+
+  let row = |f: &Facade| {
+    f.canon().threads[0]
+      .tests
+      .iter()
+      .find(|t| t.id == "AT-03.2")
+      .expect("still there")
+      .clone()
+  };
+
+  // Precondition: the row really is in the state doctor complains about, or
+  // this test passes against a subject that cannot exhibit the defect.
+  let before = row(&facade);
+  assert!(
+    !before.status.permitted_for(before.kind),
+    "precondition: the fixture row must carry the kind/status disagreement, got {:?}/{:?}",
+    before.kind,
+    before.status
+  );
+
+  facade
+    .at_edit(
+      "ST0001",
+      "AT-03.2",
+      None,
+      None,
+      None,
+      None,
+      Some(AtKind::NonTest),
+    )
+    .expect("re-kinding a mis-migrated row to the kind its status already implies is the repair");
+
+  let after = row(&facade);
+  assert_eq!(after.kind, AtKind::NonTest);
+  assert_eq!(
+    after.status,
+    AtStatus::Na,
+    "the repair must not move the status"
+  );
+  assert!(
+    after.status.permitted_for(after.kind),
+    "the disagreement must be gone, not relabelled"
+  );
+
+  // **THE ARM THAT MATTERS: the flag must not be able to CREATE the state it
+  // exists to remove.** AT-03.1 is Test/Green, and Green is not a status a
+  // non-test row can hold.
+  let err = facade
+    .at_edit(
+      "ST0001",
+      "AT-03.1",
+      None,
+      None,
+      None,
+      None,
+      Some(AtKind::NonTest),
+    )
+    .expect_err("re-kinding a green test row to non-test would claim an outcome nothing ran");
+  assert!(
+    matches!(err, FacadeError::ValueNotRecordable { ref field, .. } if field == "--kind"),
+    "the refusal must name the flag whose value cannot be recorded, got {err:?}"
+  );
+  assert_eq!(
+    facade.canon().threads[0]
+      .tests
+      .iter()
+      .find(|t| t.id == "AT-03.1")
+      .expect("still there")
+      .kind,
+    AtKind::Test,
+    "a refused re-kind writes nothing"
   );
 }

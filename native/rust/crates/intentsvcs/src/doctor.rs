@@ -79,17 +79,26 @@ impl Report {
   pub fn is_healthy(&self) -> bool {
     self.actionable() == 0
   }
-  /// Findings that are advisories: printed, never counted.
-  pub fn advisories(&self) -> usize {
+  /// Findings that oblige nothing: pointed at, never counted.
+  ///
+  /// **IT WAS `advisories()` AND THE NAME LOST A MEMBER**, which is the same
+  /// correction this estate already made when `reads_no_model` gained `critic`.
+  /// The set is no longer *the class spelled `Advisory`* but *every class that
+  /// owes nothing*, so a name asserting the first would be false of the second
+  /// -- and would be false silently, since both return a number that looks
+  /// right. The membership question lives on the class
+  /// ([`FindingClass::is_actionable`]) so a new class answers it where it is
+  /// defined rather than here.
+  pub fn not_actionable(&self) -> usize {
     self
       .findings
       .iter()
-      .filter(|f| f.class == FindingClass::Advisory)
+      .filter(|f| !f.class.is_actionable())
       .count()
   }
   /// Findings that demand an action; the number the summary line reports.
   pub fn actionable(&self) -> usize {
-    self.findings.len() - self.advisories()
+    self.findings.len() - self.not_actionable()
   }
 
   /// v2's exit contract: 0 when healthy, 1 when anything was found.
@@ -805,13 +814,34 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
   // excluded everything else. A thread cancelled with no date recorded when
   // is a real inconsistency and nothing reported it.
   match (thread.status, &thread.completed) {
+    // **THIS ARM IS `FieldNotRecorded` AND THE OTHER STAYS
+    // `ModelInconsistent`, BECAUSE THEY ARE NOT THE SAME KIND OF WRONG.**
+    // `ModelInconsistent`'s remedy reads *the canon says two things that cannot
+    // both be true*. Of a closed thread with no date that is FALSE: the canon
+    // says one thing and omits another. The omission is not the migration's
+    // and not the operator's -- v2 never recorded the value, so there was
+    // nothing to carry, and no command can author it without inventing data
+    // about finished work. `FieldNotRecorded`'s remedy already reads exactly
+    // right: *nothing to fix -- the artefact predates the field*.
+    //
+    // **MEASURED BEFORE IT WAS CHANGED, ON A REAL ESTATE** (vc's fleet audit,
+    // handed to cc 2026-09-07): this single arm is 50 of Conflab's 53 counted
+    // findings, on an estate that USES the field where it has it -- 64 threads
+    // dated, 49 not -- so it is not *the convention is unknown there*. Two
+    // source shapes, both checked in the v2 markdown: `completed:` absent
+    // entirely, and `completed:` present with an empty value.
+    //
+    // **THE RECLASSIFICATION ALONE WOULD HAVE CHANGED NOTHING VISIBLE**, which
+    // is why it landed with the counting fix above rather than before it: the
+    // count and the exit code keyed on the class being spelled `Advisory`, so
+    // a correctly-relabelled finding would still have been counted.
     (status, None) if status.is_closed() => add(
       format!(
         "{} is {} with no completion date",
         thread.id,
         status.display()
       ),
-      FindingClass::ModelInconsistent,
+      FindingClass::FieldNotRecorded,
     ),
     (status, Some(date)) if !status.is_closed() => add(
       format!(

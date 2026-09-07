@@ -5616,11 +5616,49 @@ impl Facade {
   /// the job was the one that lost the work. Here absence is silence: a field
   /// nobody named is a field nobody changed.
   ///
-  /// **`status` AND `kind` ARE ABSENT, EACH FOR ITS OWN REASON.** `status` has
-  /// a door already -- `at green` / `at red` / `at na`, which is a declared
-  /// state machine with an envelope per movement -- and a second way to write
-  /// it would be a divergent copy of a transition. `kind` is absent for the
-  /// same reason as [`Facade::ac_edit`]'s: it moves the contract graph.
+  /// **`status` IS ABSENT AND `kind` IS NOT, AND THE SPLIT IS hv's RULING OF
+  /// 2026-09-07 RATHER THAN A DRIFT.** `status` has a door already -- `at
+  /// green` / `at red` / `at na`, which is a declared state machine with an
+  /// envelope per movement -- and a second way to write it would be a
+  /// divergent copy of a transition. That reason is untouched.
+  ///
+  /// **`kind` USED TO BE ABSENT FOR [`Facade::ac_edit`]'s REASON -- it moves
+  /// the contract graph -- AND THAT REASONING WAS SOUND WHILE ITS COST WAS
+  /// UNMEASURED.** The fleet audit measured it: the v2 migrator reads
+  /// `- AT-01.1 (legacy) [non-test: capture-spec doc review]` and records
+  /// `kind: Test`, because the bracket form is not the `(non-test)` marker the
+  /// v3 grammar looks for. The row's own `legacy.raw` then says `non-test`
+  /// while its `kind` says otherwise, `doctor` reports the disagreement
+  /// forever, and **there was no legal spelling anywhere in the tool that could
+  /// correct it**: this verb excluded `kind`, `at lint --fix` is deliberately
+  /// not carried over from v2, and `sync --to-store` reads the canon extract
+  /// rather than the markdown. Six rows on Baize, permanently.
+  ///
+  /// **A STATE THE TOOL CAN CREATE AND CANNOT REPAIR IS THE DEFECT**, and it
+  /// outweighs the graph-motion argument -- which is answered rather than
+  /// ignored: the prospective row still goes through
+  /// `refuse_unless_the_row_holds_the_contract` like every other field, so a
+  /// re-kind that introduces a contract finding is refused with nothing
+  /// written.
+  ///
+  /// **AND THAT CHECK IS NOT ENOUGH ON ITS OWN, WHICH A NEGATIVE CONTROL
+  /// CAUGHT RATHER THAN A READING.** `contract_report` does not ask whether a
+  /// row's status suits its kind -- `AtStatus::permitted_for` is enforced in
+  /// `doctor` alone, which that check's own comment calls "ONE of its three
+  /// enforcement points, not three ... it reports rather than prevents". So
+  /// the contract check let `--kind test` land on an `n-a` row: the exact
+  /// defect this flag exists to REMOVE, reachable through the flag itself.
+  ///
+  /// **THE PRECONDITION BELOW IS SCOPED TO THIS FLAG DELIBERATELY, AND IS NOT
+  /// THE GENERAL GUARD.** That same comment records why the general one is a
+  /// TABLE amendment rather than more code: `at_set` writes any status onto
+  /// any row, the guard belongs on Machine 5's four `at.set` edges, hv
+  /// ratified that table on 2026-08-29 with `--` in every Guard cell, and
+  /// "enforcing it in the verb body without the declaration is the shape
+  /// `data-model.md` already names and rejects". **That ruling stands and the
+  /// `at.set` hole stays open -- it is hv's to close.** What is refused here
+  /// is narrower and needs no table: a NEW door declining to manufacture a
+  /// state its own estate calls a defect. Nothing existing becomes stricter.
   ///
   /// **THE CONTRACT IS RE-ASKED ON THE PROSPECTIVE ROW**, so a re-cite to a
   /// file that does not exist, or to one not carrying the row's id, is refused
@@ -5634,6 +5672,7 @@ impl Facade {
     prose: Option<String>,
     covers: Option<Vec<String>>,
     note: Option<String>,
+    kind: Option<AtKind>,
   ) -> Result<Outcome, FacadeError> {
     // **REFUSED RATHER THAN TREATED AS A NO-OP, AND IT IS REFUSED HERE RATHER
     // THAN IN THE RENDERER.** `at edit ST0001 AT-01.1` with no field named is a
@@ -5642,7 +5681,7 @@ impl Facade {
     // facade is the contract -- a library caller passing three `None`s makes
     // the identical mistake, and a renderer-side guard would protect only the
     // operators who came through the CLI.
-    if file.is_none() && prose.is_none() && covers.is_none() && note.is_none() {
+    if file.is_none() && prose.is_none() && covers.is_none() && note.is_none() && kind.is_none() {
       return Err(FacadeError::NothingToChange {
         subject: format!("{st} {at}"),
         offered: vec![
@@ -5650,6 +5689,7 @@ impl Facade {
           "--prose".to_string(),
           "--covers".to_string(),
           "--note".to_string(),
+          "--kind".to_string(),
         ],
       });
     }
@@ -5687,8 +5727,38 @@ impl Facade {
       prose: prose.or_else(|| existing.prose.clone()),
       covers: covers.unwrap_or_else(|| existing.covers.clone()),
       note: note.or_else(|| existing.note.clone()),
+      kind: kind.unwrap_or(existing.kind),
       ..existing.clone()
     };
+
+    // **THE DECISION IS `AtStatus::permitted_for`, NOT A MATCH HERE**, for the
+    // reason `doctor` records at the same rule: a match that decides needs a
+    // `_` arm, and a `_` arm goes quiet about the next variant nobody taught
+    // it. One home for the rule, two readers.
+    //
+    // Only a caller who NAMED `--kind` can trip this: a row already carrying
+    // the disagreement is left exactly as it is, so this refuses the flag
+    // rather than the estate, and no existing row becomes unwritable.
+    if kind.is_some() && !row.status.permitted_for(row.kind) {
+      // **`ValueNotRecordable`, NOT `WriteNotAddressable`**, and its own
+      // docstring is why: that one's remedy sends the reader to `PUT json to a
+      // caller-assigned id`, which is nothing anybody can do about a kind that
+      // disagrees with a status. The field IS theirs to set; this value is not
+      // one it can hold while the row reads as it does.
+      return Err(FacadeError::ValueNotRecordable {
+        field: "--kind".to_string(),
+        given: crate::model::enum_str(&row.kind),
+        why: format!(
+          "{} records `{}`, and re-kinding it that way would CREATE the disagreement `intent doctor` reports -- the defect this flag exists to repair. Move the status first ({}), then re-kind",
+          row.id,
+          row.status.display(),
+          match row.kind {
+            AtKind::Test => "`at green` / `at red`, once something has actually run",
+            AtKind::NonTest => "`at na`",
+          }
+        ),
+      });
+    }
     if &row == existing {
       return Ok(Outcome::AlreadyThere {
         state: "unchanged".to_string(),

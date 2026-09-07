@@ -101,7 +101,7 @@ fn the_clean_baseline_reports_nothing() {
     "the baseline must be silent or every arm below is measuring noise: {:?}",
     report.findings
   );
-  assert_eq!(report.advisories(), 0);
+  assert_eq!(report.not_actionable(), 0);
   assert!(report.is_healthy());
   assert_eq!(report.exit_code(), 0);
 }
@@ -137,7 +137,7 @@ fn a_legacy_reference_on_a_live_thread_is_an_advisory_and_the_report_is_healthy(
     "nothing else is reported for it -- in particular no model-inconsistent twin: {:?}",
     report.findings
   );
-  assert_eq!(report.advisories(), 1);
+  assert_eq!(report.not_actionable(), 1);
   assert_eq!(report.actionable(), 0);
   assert!(
     report.is_healthy(),
@@ -187,7 +187,7 @@ fn a_real_finding_beside_an_advisory_still_fails_the_report() {
     "the pair conflict is still a finding: {:?}",
     report.findings
   );
-  assert_eq!(report.advisories(), 1, "{:?}", report.findings);
+  assert_eq!(report.not_actionable(), 1, "{:?}", report.findings);
   assert!(report.actionable() >= 1, "{:?}", report.findings);
   assert!(
     !report.is_healthy(),

@@ -196,6 +196,8 @@ mod issue_estate;
 mod legacy_at_citation_annotation;
 #[path = "legacy_at_status_annotation.rs"]
 mod legacy_at_status_annotation;
+#[path = "legacy_at_unbalanced_bracket.rs"]
+mod legacy_at_unbalanced_bracket;
 #[path = "legacy_at_without_a_subject.rs"]
 mod legacy_at_without_a_subject;
 #[path = "legacy_bucket_attachments.rs"]

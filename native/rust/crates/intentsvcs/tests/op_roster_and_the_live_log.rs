@@ -224,7 +224,7 @@ fn an_undeclared_op_adds_nothing_to_the_verdict() {
      estate red for keeping a true record of its own past"
   );
   assert!(
-    report.advisories() > 0,
+    report.not_actionable() > 0,
     "it must still be REPORTED -- silence and a clean bill of health are \
      indistinguishable to a reader, which is the whole reason this exists"
   );

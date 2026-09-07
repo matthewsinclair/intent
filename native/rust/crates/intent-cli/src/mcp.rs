@@ -905,8 +905,22 @@ pub fn serve(
       // kept on this face).
       let covers = strings(path, map, "covers")?;
       let note = opt_s(path, map, "note")?.map(str::to_string);
+      // **THE SAME CLOSED VOCABULARY THE CLI PARSES, REFUSED HERE RATHER THAN
+      // COERCED.** A face that silently ignored an unreadable `kind` would
+      // report success on a call that changed nothing.
+      let kind = match opt_s(path, map, "kind")? {
+        None => None,
+        Some("test") => Some(intentsvcs::model::AtKind::Test),
+        Some("non-test") => Some(intentsvcs::model::AtKind::NonTest),
+        Some(other) => {
+          return Err(args_err(
+            path,
+            format!("`kind` is `{other}` -- the vocabulary is `test` or `non-test`"),
+          ));
+        }
+      };
       Ok(outcome_json(
-        &f.at_edit(&st, id, file, prose, covers, note)?,
+        &f.at_edit(&st, id, file, prose, covers, note, kind)?,
         id,
       ))
     }

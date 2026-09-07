@@ -1961,7 +1961,22 @@ fn acceptance_test(row: &str) -> Result<ParsedTest, RowRejection> {
   // **AN `n/a` JUSTIFICATION IS NOT A CITATION**, and the path rule cannot see
   // that on its own: `n/a` carries a slash. Excluded before the rule runs
   // rather than patched after it, so there is one place that decides.
-  let na = bracketed.is_some_and(is_na_justification);
+  //
+  // **IT IS ASKED OF `cited`, NOT OF `bracketed`, AND THAT IS THE 2026-09-07
+  // FIX.** Asking `bracketed` scoped the exclusion to rows whose bracket
+  // CLOSES -- so the unbalanced form `AT-11.1 (non-test) [n/a -- covers ... --
+  // status: n/a` fell through to the naive split, arrived here as `n/a`, and
+  // satisfied the path rule on the slash it has always carried. **Fifteen rows
+  // on Lamplight store `[n/a`, `[` or a sentence as their `file`**, and each
+  // one then makes `ac gate` report `cites a file that does not exist` on work
+  // that is done -- the same visible damage `bracket_citation` was built to
+  // stop, reached by the route it deliberately declined to read.
+  //
+  // The two are equivalent wherever the bracket closes (`cited` is that inner
+  // text, trimmed), so this widens the exclusion without moving any row that
+  // parses correctly today. It cannot swallow a real path either: nothing that
+  // is `n/a`, or opens `n/a ` or `n/a-`, is a filename.
+  let na = is_na_justification(cited);
   let is_path = !non_test && !na && cited.contains('/') && !cited.contains(':');
   // A legacy reference is carried whole, per the rule directly above; only a
   // real path citation is separated from the words the author wrote after it.

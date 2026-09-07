@@ -78,6 +78,7 @@ fn a_re_cite_keeps_the_note_it_was_never_given() {
       None,
       Some(vec!["AC-03.2".to_string()]),
       None,
+      None,
     )
     .expect("re-citing coverage on an existing row is what this verb is for");
 
@@ -117,6 +118,7 @@ fn a_re_cite_keeps_the_legacy_marker_it_was_never_given() {
       None,
       Some(vec!["AC-03.2".to_string()]),
       None,
+      None,
     )
     .expect("re-citing coverage is legal");
 
@@ -151,6 +153,7 @@ fn each_named_field_moves_and_its_neighbours_do_not() {
       "AT-03.2",
       None,
       Some("re-read against the rendered view".to_string()),
+      None,
       None,
       None,
     )

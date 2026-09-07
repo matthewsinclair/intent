@@ -184,6 +184,8 @@ mod st_dehydrate_round_trips_with_hydrate;
 mod st_edit_opens_or_prints;
 #[path = "st_list_shows_the_title.rs"]
 mod st_list_shows_the_title;
+#[path = "surface_is_declared.rs"]
+mod surface_is_declared;
 #[path = "sync_to_store_does_not_contradict_itself.rs"]
 mod sync_to_store_does_not_contradict_itself;
 #[path = "table_driven_tests_fixture_their_home.rs"]
