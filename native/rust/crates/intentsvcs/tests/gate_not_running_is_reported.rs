@@ -346,7 +346,12 @@ fn a_monolithic_carrier_still_has_to_name_its_runner() {
 fn a_tree_that_is_not_a_repository_says_nothing_about_hooks() {
   let fx = crate::common::Fixture::new();
   let facade = fx.facade_on_disk();
-  let report = doctor::diagnose(&fx.project(), &crate::common::ctx(), Some(facade.store()));
+  let report = doctor::diagnose(
+    &fx.project(),
+    &crate::common::ctx(),
+    Some(facade.store()),
+    intentsvcs::doctor::Scope::All,
+  );
   let hooks: Vec<&str> = report
     .findings
     .iter()
@@ -374,7 +379,12 @@ fn a_repository_carrying_an_unwired_carrier_is_reported_through_the_io() {
   std::fs::write(hooks.join("pre-commit.intent"), UNWIRED).expect("plant the carrier");
 
   let facade = fx.facade_on_disk();
-  let report = doctor::diagnose(&fx.project(), &crate::common::ctx(), Some(facade.store()));
+  let report = doctor::diagnose(
+    &fx.project(),
+    &crate::common::ctx(),
+    Some(facade.store()),
+    intentsvcs::doctor::Scope::All,
+  );
   let found: Vec<&str> = report
     .findings
     .iter()
@@ -426,7 +436,12 @@ fn a_root_level_file_named_pre_commit_is_not_mistaken_for_a_hook() {
   .expect("write a root-level pre-commit");
 
   let facade = fx.facade_on_disk();
-  let report = doctor::diagnose(&fx.project(), &crate::common::ctx(), Some(facade.store()));
+  let report = doctor::diagnose(
+    &fx.project(),
+    &crate::common::ctx(),
+    Some(facade.store()),
+    intentsvcs::doctor::Scope::All,
+  );
   let found: Vec<&str> = report
     .findings
     .iter()
@@ -480,7 +495,12 @@ fn an_unmigrated_estate_is_never_reached_and_that_is_the_limit_not_a_pass() {
   // unmigrated estate is exactly the one whose store a caller cannot open, which
   // is why `diagnose` takes an `Option` at all -- so passing `None` is what a
   // real `intent doctor` does on Conflab tonight, not a fixture shortcut.
-  let report = doctor::diagnose(&fx.project(), &crate::common::ctx(), None);
+  let report = doctor::diagnose(
+    &fx.project(),
+    &crate::common::ctx(),
+    None,
+    intentsvcs::doctor::Scope::All,
+  );
 
   assert!(
     report

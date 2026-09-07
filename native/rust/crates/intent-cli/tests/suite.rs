@@ -152,6 +152,8 @@ mod one_dispatch_home;
 mod organize_default_declaration;
 #[path = "organize_default_force_applies.rs"]
 mod organize_default_force_applies;
+#[path = "organize_verbosity.rs"]
+mod organize_verbosity;
 #[path = "plugin_surface.rs"]
 mod plugin_surface;
 #[path = "prefix_resolution.rs"]

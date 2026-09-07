@@ -44,6 +44,86 @@ use crate::store::Store;
 use crate::sync::{self, FileState};
 use crate::views::{self, RenderContext};
 
+/// Which threads a run is ABOUT.
+///
+/// **`doctor` reported every thread a project had ever carried, and on a mature
+/// estate most of them are finished.** Measured 2026-09-07 across the fleet:
+/// 96 of 331 findings sat on closed threads -- 50 on Conflab, 46 on Lamplight
+/// -- and not one of them was work anybody was going to do. A completed thread
+/// whose work packages predate a field, or whose scope was parked before it
+/// closed, is not a defect; it is history, and reporting history as a fault
+/// buries the live signal underneath it.
+///
+/// hv ruled the shape 2026-09-07, in these words: a narrow default is
+/// sensible, *"but you should be able to specify the scope with a `--scope`
+/// param"*. So the default NARROWS and the widening is one flag away --
+/// [`Scope::All`] is the behaviour every build before this one had, and
+/// [`Scope::Closed`] is the deliberate history audit, so what the default hides
+/// stays reachable without re-reading everything.
+///
+/// **THE NARROWING MUST ANNOUNCE ITSELF OR IT IS A DENOMINATOR ATTACK.**
+/// `0 finding(s)` over live threads is byte-identical to `0 finding(s)` over
+/// everything, and a reader cannot tell a clean estate from a narrowed one.
+/// That is why [`Report::out_of_scope`] exists and why the summary prints it:
+/// the safety property is not the flag, it is the count of what the flag took
+/// away.
+///
+/// **Not to be confused with [`crate::contract::Scope`]**, which selects
+/// CRITERIA within one thread for a gate. This one selects THREADS for a run.
+/// Two different questions that both got called scope by the surface they
+/// answer to; each reads correctly at its own use site and neither is a copy of
+/// the other.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Scope {
+  /// Threads still in play. **The default**, and the reason the default is safe
+  /// is [`Report::out_of_scope`], not this variant.
+  #[default]
+  Live,
+  /// Every thread, closed ones included -- the behaviour before the flag.
+  All,
+  /// Only the closed ones: the deliberate history audit.
+  Closed,
+}
+
+impl Scope {
+  /// Whether a run at this scope is about a thread in `status`.
+  ///
+  /// It asks [`ThreadStatus::is_closed`] rather than listing statuses, so a
+  /// seventh state added to the machine is classified by the type that owns the
+  /// vocabulary instead of by a match here that would silently admit it.
+  pub fn admits(self, status: crate::model::ThreadStatus) -> bool {
+    match self {
+      Self::All => true,
+      Self::Live => !status.is_closed(),
+      Self::Closed => status.is_closed(),
+    }
+  }
+
+  /// The wire spellings, in the order `--scope` declares them.
+  ///
+  /// Declared so a caller can take the POPULATION rather than an example of it.
+  /// A round-trip test over three hand-typed literals passes on the day a
+  /// fourth variant becomes unreachable, which is the shape of stale test this
+  /// estate has met repeatedly -- it goes wrong by being RIGHT.
+  pub const ALL: [Scope; 3] = [Self::Live, Self::All, Self::Closed];
+
+  /// This scope's wire spelling -- the word `--scope` takes.
+  pub fn wire(self) -> &'static str {
+    match self {
+      Self::Live => "live",
+      Self::All => "all",
+      Self::Closed => "closed",
+    }
+  }
+
+  /// Read a wire spelling. `None` is an unknown word, which the surface
+  /// refuses; the roster it refuses against comes from the dispatch table, so
+  /// this is not a second place the vocabulary is written down.
+  pub fn from_wire(s: &str) -> Option<Self> {
+    Self::ALL.into_iter().find(|sc| sc.wire() == s)
+  }
+}
+
 /// A doctor run: every finding, plus what was actually examined.
 ///
 /// The counts are here so a clean report can say what it covered. "No problems
@@ -57,6 +137,25 @@ pub struct Report {
   pub issues_checked: usize,
   pub files_checked: usize,
   pub views_checked: usize,
+  /// The population this run was about. Carried on the report rather than left
+  /// with the caller so that every face -- the summary line, the JSON, a test
+  /// -- reads the run's own answer instead of re-deriving it from the argv that
+  /// produced it.
+  pub scope: Scope,
+  /// **Findings this run's [`Scope`] took away. THE COUNT IS FINDINGS, NOT
+  /// THREADS, and the difference is the whole point.**
+  ///
+  /// A thread count is a different quantity wearing the same words: *70 threads
+  /// not examined* is equally true of an estate hiding nothing and one hiding
+  /// five hundred faults, so it cannot do the job this field exists for.
+  ///
+  /// **What it exists for: `0 finding(s)` over live threads is BYTE-IDENTICAL
+  /// to `0 finding(s)` over everything.** A narrowing that does not announce
+  /// itself is the denominator attack wearing a flag -- vc committed exactly
+  /// that on 2026-09-07 by reporting "15 of 18 estates pristine" off a count
+  /// that could not see 372 lines of output. So the summary prints this
+  /// whenever it is non-zero, and the flag is not shippable without it.
+  pub out_of_scope: usize,
   /// Files under a thread that the store does not hold, by path.
   ///
   /// **NOT findings, and the distinction is the whole design.** A finding
@@ -105,6 +204,29 @@ impl Report {
   pub fn exit_code(&self) -> i32 {
     i32::from(!self.is_healthy())
   }
+
+  /// Take one thread's findings under this run's [`Scope`] -- **the single
+  /// place scope is applied.**
+  ///
+  /// **THE THREAD IS PASSED IN, AND THAT IS THE DESIGN AND NOT A CONVENIENCE.**
+  /// The alternative is to decide membership afterwards by reading `STxxxx` back
+  /// out of a finding's `intent/.canon/st/STxxxx.json` path -- which is issue
+  /// 0256 exactly, a check that INFERS where it should READ, and which goes
+  /// wrong in silence the first time a finding's file is not a thread file.
+  /// Every producer already has the thread in hand at the moment it speaks, so
+  /// attribution costs nothing here and cannot be recovered later.
+  ///
+  /// The findings are COMPUTED either way. That is not waste: the count of what
+  /// was withheld is the safety property (see [`Report::out_of_scope`]), and it
+  /// is not knowable without producing them. The run costs what it always cost;
+  /// only the output narrows.
+  fn admit(&mut self, thread: &Thread, mut found: Vec<Finding>) {
+    if self.scope.admits(thread.status) {
+      self.findings.append(&mut found);
+    } else {
+      self.out_of_scope += found.len();
+    }
+  }
 }
 
 /// Diagnose a project WITHOUT requiring that it can be opened.
@@ -138,8 +260,12 @@ pub fn diagnose(
   project: &Project,
   ctx: &RenderContext<'_>,
   store: Option<&crate::store::Store>,
+  scope: Scope,
 ) -> Report {
-  let mut report = Report::default();
+  let mut report = Report {
+    scope,
+    ..Report::default()
+  };
 
   // FIRST, and it returns rather than continuing. Every check below this line
   // compares the model against the files, and on an unmigrated project the
@@ -201,7 +327,13 @@ pub fn diagnose(
 
   for thread in &canon.threads {
     let file = project.relative(&project.thread_json(&thread.id));
-    model_checks(thread, &canon, &file, &mut report.findings);
+    // **`model_checks` PRODUCES; `Report::admit` DECIDES.** The check stays a
+    // pure producer of findings about one thread and knows nothing about the
+    // run's scope, so the policy has one home and the producer cannot drift
+    // from it. That is this project's own PFIC in the small.
+    let mut found = Vec::new();
+    model_checks(thread, &canon, &file, &mut found);
+    report.admit(thread, found);
   }
 
   // **ABOVE `db_checks` AND NOT INSIDE IT, BECAUSE THIS READS CANON AND NOTHING
@@ -210,7 +342,7 @@ pub fn diagnose(
   // NORMAL state for a fresh clone. A status arm hooked in there would be
   // silently skipped on exactly the estate a new reader is looking at, and a
   // check that does not run looks the same as one that found nothing.
-  status_gate_disagreement(&canon, project, &mut report.findings);
+  status_gate_disagreement(&canon, project, &mut report);
   db_checks(&canon, project, &mut report.findings);
   file_checks(project, &canon, ctx, &mut report);
 
@@ -253,9 +385,12 @@ pub fn diagnose(
 /// `doctor` that no ruling backs and that `wp done` does not share, which is
 /// the second-answer problem in a different direction. It is named here so the
 /// gap is a stated limit rather than something a reader assumes is covered.
-fn status_gate_disagreement(canon: &Canon, project: &Project, out: &mut Vec<Finding>) {
+fn status_gate_disagreement(canon: &Canon, project: &Project, report: &mut Report) {
   let refs = crate::contract::RepoFiles(project.root());
   for thread in &canon.threads {
+    // Accumulated per THREAD, not per WP, because that is the unit
+    // [`Report::admit`] scopes by and the unit whose status decides it.
+    let mut found = Vec::new();
     // **A THREAD WITH NO CONTRACT IS NOT A DISAGREEMENT, AND THE FIRST CUT OF
     // THIS REPORTED NINETY-SIX OF THEM.** `gate` returns BLOCKED for a thread
     // with zero criteria -- correct for `wp done`, which must refuse to close
@@ -359,8 +494,9 @@ fn status_gate_disagreement(canon: &Canon, project: &Project, out: &mut Vec<Find
       // something this arm measures. A real finding is the best possible cover
       // for an invented mechanism attached to it; the remedy on the class names
       // the causes as possibilities, where a detail line reads as a reading.
-      out.push(Finding::new(file.clone(), class, detail));
+      found.push(Finding::new(file.clone(), class, detail));
     }
+    report.admit(thread, found);
   }
 }
 /// Unwrap an ingest failure into findings. A refusal already carries them; any

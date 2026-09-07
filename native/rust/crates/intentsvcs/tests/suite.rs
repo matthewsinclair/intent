@@ -124,8 +124,11 @@ mod dep_graph_guard;
 mod dependency_rationale;
 #[path = "doctor_advisory.rs"]
 mod doctor_advisory;
+
 #[path = "doctor_checks.rs"]
 mod doctor_checks;
+#[path = "doctor_scope.rs"]
+mod doctor_scope;
 #[path = "edit_prints_a_path_that_exists.rs"]
 mod edit_prints_a_path_that_exists;
 #[path = "egest_estate.rs"]

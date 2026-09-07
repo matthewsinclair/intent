@@ -291,12 +291,17 @@ use crate::common::ctx;
 use intentsvcs::finding::FindingClass;
 
 fn backup_findings(fx: &Fixture, store: &Store) -> Vec<String> {
-  intentsvcs::doctor::diagnose(&fx.project(), &ctx(), Some(store))
-    .findings
-    .into_iter()
-    .filter(|f| f.class == FindingClass::BackupStale)
-    .map(|f| f.detail)
-    .collect()
+  intentsvcs::doctor::diagnose(
+    &fx.project(),
+    &ctx(),
+    Some(store),
+    intentsvcs::doctor::Scope::All,
+  )
+  .findings
+  .into_iter()
+  .filter(|f| f.class == FindingClass::BackupStale)
+  .map(|f| f.detail)
+  .collect()
 }
 
 /// **Never-taken is its own message, not a very large number.**
@@ -417,12 +422,17 @@ fn with_schedule(fx: &Fixture, value: Option<&str>) {
 }
 
 fn findings_of(fx: &Fixture, store: &Store, class: FindingClass) -> Vec<String> {
-  intentsvcs::doctor::diagnose(&fx.project(), &ctx(), Some(store))
-    .findings
-    .into_iter()
-    .filter(|f| f.class == class)
-    .map(|f| f.detail)
-    .collect()
+  intentsvcs::doctor::diagnose(
+    &fx.project(),
+    &ctx(),
+    Some(store),
+    intentsvcs::doctor::Scope::All,
+  )
+  .findings
+  .into_iter()
+  .filter(|f| f.class == class)
+  .map(|f| f.detail)
+  .collect()
 }
 
 /// **The period comes out of the ratified key, and 24 is the declared default

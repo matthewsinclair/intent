@@ -95,7 +95,7 @@ fn seed(fx: &Fixture, thread: &Thread) {
 }
 
 fn run(fx: &Fixture) -> Vec<Finding> {
-  intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None).findings
+  intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All).findings
 }
 
 /// The detail texts, for asserting that a specific check fired.
@@ -116,7 +116,8 @@ fn a_consistent_project_reports_nothing() {
   let fx = Fixture::new();
   seed(&fx, &clean_thread("ST0001"));
 
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  let report =
+    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All);
   assert!(
     report.is_healthy(),
     "a clean estate must report nothing, or every finding below is noise: {}",
@@ -399,7 +400,8 @@ fn a_dateless_close_owes_nothing_and_a_dated_live_thread_owes_a_correction() {
   closed.status = ThreadStatus::Completed;
   closed.completed = None;
   seed(&fx, &closed);
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  let report =
+    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All);
 
   let dateless = report
     .findings
@@ -430,7 +432,8 @@ fn a_dateless_close_owes_nothing_and_a_dated_live_thread_owes_a_correction() {
   live.status = ThreadStatus::Wip;
   live.completed = Some("2026-08-14".to_string());
   seed(&fx2, &live);
-  let report2 = intentsvcs::doctor::diagnose(&fx2.project(), &ctx(), None);
+  let report2 =
+    intentsvcs::doctor::diagnose(&fx2.project(), &ctx(), None, intentsvcs::doctor::Scope::All);
 
   let dated = report2
     .findings
@@ -559,7 +562,8 @@ fn doctor_runs_on_a_project_that_cannot_be_opened() {
     "precondition: a duplicate criterion id must defeat the normal open path"
   );
 
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  let report =
+    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All);
   assert!(
     !report.is_healthy(),
     "doctor ran and reported on an estate the facade could not open"
@@ -589,7 +593,8 @@ fn a_cold_cache_is_healthy_and_a_stale_one_is_not() {
   seed(&fx, &clean_thread("ST0001"));
 
   assert!(
-    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None).is_healthy(),
+    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All)
+      .is_healthy(),
     "a project whose on-disk cache was never written is healthy"
   );
 
@@ -616,7 +621,8 @@ fn unreadable_canon_becomes_findings() {
   let fx = Fixture::new();
   fx.write_raw_thread("ST0001", "{ this is not json");
 
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  let report =
+    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All);
   assert!(!report.is_healthy());
   assert!(
     report
@@ -703,7 +709,9 @@ fn skew_is_judged_against_the_rendering_version() {
     version: "9.9.9-not-the-fixture-version",
     todo_watermark: None,
   };
-  let findings = intentsvcs::doctor::diagnose(&fx.project(), &other, None).findings;
+  let findings =
+    intentsvcs::doctor::diagnose(&fx.project(), &other, None, intentsvcs::doctor::Scope::All)
+      .findings;
   assert!(
     findings.iter().any(|f| f.class == FindingClass::ViewSkew),
     "a different version renders a different banner, which IS skew: {}",
@@ -789,7 +797,8 @@ fn an_uncarried_file_is_listed_by_path_without_making_the_project_unhealthy() {
   )
   .expect("write a file over the cap");
 
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  let report =
+    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All);
   assert_eq!(
     report.unattached.len(),
     1,
@@ -830,7 +839,8 @@ fn a_carried_file_and_a_generated_view_are_absent_from_the_uncarried_list() {
   )
   .expect("write a file over the cap");
 
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  let report =
+    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All);
   assert_eq!(
     report.unattached.len(),
     1,
@@ -879,7 +889,8 @@ fn a_done_work_package_over_a_blocked_gate_is_found() {
   });
   seed(&fx, &thread);
 
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  let report =
+    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All);
   let hit: Vec<&Finding> = report
     .findings
     .iter()
@@ -905,7 +916,8 @@ fn a_done_work_package_over_a_passing_gate_is_not_found() {
   let fx = Fixture::new();
   seed(&fx, &clean_thread("ST0001"));
 
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  let report =
+    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All);
   assert!(
     !report
       .findings
@@ -935,7 +947,8 @@ fn a_gate_with_no_contract_to_judge_is_not_a_disagreement() {
   empty.tests.clear();
   empty.wps[0].status = WpStatus::Done;
   seed(&fx, &empty);
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  let report =
+    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All);
   assert!(
     !report
       .findings
@@ -952,7 +965,8 @@ fn a_gate_with_no_contract_to_judge_is_not_a_disagreement() {
   exempt.acceptance = Some(AcceptanceMode::Exempt);
   exempt.wps[0].status = WpStatus::Wip;
   seed(&fx, &exempt);
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  let report =
+    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All);
   assert!(
     !report
       .findings
@@ -980,7 +994,8 @@ fn a_gate_with_no_contract_to_judge_is_not_a_disagreement() {
     preamble: String::new(),
   });
   seed(&fx, &vacuous);
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None);
+  let report =
+    intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All);
   assert!(
     !report
       .findings

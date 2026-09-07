@@ -323,7 +323,7 @@ fn doctor_line(thread: Thread) -> String {
   let project = fx.project();
   let canon = intentsvcs::ingest::read(&project).expect("fixture canon reads");
   intentsvcs::views::write_all(&project, &canon, &ctx()).expect("write views");
-  intentsvcs::doctor::diagnose(&project, &ctx(), None)
+  intentsvcs::doctor::diagnose(&project, &ctx(), None, intentsvcs::doctor::Scope::All)
     .findings
     .iter()
     .filter(|f| {

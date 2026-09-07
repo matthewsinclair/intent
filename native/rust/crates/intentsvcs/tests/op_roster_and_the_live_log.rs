@@ -80,7 +80,12 @@ fn undeclared(fx: &Fixture) -> Vec<String> {
   let facade = fx.facade_on_disk();
   let project = fx.project();
   let ctx = crate::common::ctx();
-  let report = doctor::diagnose(&project, &ctx, Some(facade.store()));
+  let report = doctor::diagnose(
+    &project,
+    &ctx,
+    Some(facade.store()),
+    intentsvcs::doctor::Scope::All,
+  );
   report
     .findings
     .into_iter()
@@ -200,6 +205,7 @@ fn an_undeclared_op_adds_nothing_to_the_verdict() {
       &clean.project(),
       &crate::common::ctx(),
       Some(facade.store()),
+      intentsvcs::doctor::Scope::All,
     )
     .actionable()
   };
@@ -207,7 +213,12 @@ fn an_undeclared_op_adds_nothing_to_the_verdict() {
   let fx = Fixture::new();
   plant(&fx, "st.invented");
   let facade = fx.facade_on_disk();
-  let report = doctor::diagnose(&fx.project(), &crate::common::ctx(), Some(facade.store()));
+  let report = doctor::diagnose(
+    &fx.project(),
+    &crate::common::ctx(),
+    Some(facade.store()),
+    intentsvcs::doctor::Scope::All,
+  );
 
   assert!(
     report

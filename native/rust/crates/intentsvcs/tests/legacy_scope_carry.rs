@@ -317,7 +317,12 @@ fn a_work_package_carrying_both_a_scope_and_a_legacy_one_is_reported() {
   fixture.write_thread(&thread);
 
   let project = fixture.project();
-  let report = intentsvcs::facade::Facade::doctor(&project, &crate::common::facade_ctx(), None);
+  let report = intentsvcs::facade::Facade::doctor(
+    &project,
+    &crate::common::facade_ctx(),
+    None,
+    intentsvcs::doctor::Scope::All,
+  );
   assert!(
     report
       .findings
@@ -347,7 +352,12 @@ fn a_carried_scope_on_a_live_thread_is_reported() {
   fixture.write_thread(&thread);
 
   let project = fixture.project();
-  let report = intentsvcs::facade::Facade::doctor(&project, &crate::common::facade_ctx(), None);
+  let report = intentsvcs::facade::Facade::doctor(
+    &project,
+    &crate::common::facade_ctx(),
+    None,
+    intentsvcs::doctor::Scope::All,
+  );
   assert!(
     report
       .findings
@@ -388,7 +398,12 @@ fn an_acceptance_test_carrying_both_a_file_and_a_legacy_reference_is_reported() 
   fixture.write_thread(&thread);
 
   let project = fixture.project();
-  let report = intentsvcs::facade::Facade::doctor(&project, &crate::common::facade_ctx(), None);
+  let report = intentsvcs::facade::Facade::doctor(
+    &project,
+    &crate::common::facade_ctx(),
+    None,
+    intentsvcs::doctor::Scope::All,
+  );
   assert!(
     report
       .findings
@@ -426,7 +441,12 @@ fn a_carried_reference_on_a_live_thread_is_reported() {
   fixture.write_thread(&thread);
 
   let project = fixture.project();
-  let report = intentsvcs::facade::Facade::doctor(&project, &crate::common::facade_ctx(), None);
+  let report = intentsvcs::facade::Facade::doctor(
+    &project,
+    &crate::common::facade_ctx(),
+    None,
+    intentsvcs::doctor::Scope::All,
+  );
   assert!(
     report
       .findings

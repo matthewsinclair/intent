@@ -3999,6 +3999,7 @@ impl Facade {
     project: &Project,
     ctx: &FacadeContext,
     store: Option<&crate::store::Store>,
+    scope: crate::doctor::Scope,
   ) -> crate::doctor::Report {
     // **This used to read the event log, from the store or from the extract,
     // and D44 took away its only reason to.** The watermark was the one thing
@@ -4029,6 +4030,7 @@ impl Facade {
         todo_watermark,
       },
       store,
+      scope,
     )
   }
 

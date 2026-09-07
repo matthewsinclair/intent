@@ -203,12 +203,17 @@ fn doctor_does_not_report_a_flushed_view_as_hand_edited() {
     .expect("sync");
 
   let skew = |dir: &Fixture, store: Option<&intentsvcs::store::Store>| -> Vec<String> {
-    intentsvcs::facade::Facade::doctor(&dir.project(), &crate::common::facade_ctx(), store)
-      .findings
-      .iter()
-      .filter(|f| f.file.contains("todo.md"))
-      .map(|f| format!("{}: {}", f.file, f.detail))
-      .collect()
+    intentsvcs::facade::Facade::doctor(
+      &dir.project(),
+      &crate::common::facade_ctx(),
+      store,
+      intentsvcs::doctor::Scope::All,
+    )
+    .findings
+    .iter()
+    .filter(|f| f.file.contains("todo.md"))
+    .map(|f| format!("{}: {}", f.file, f.detail))
+    .collect()
   };
 
   let store = intentsvcs::store::Store::open(&fx.project().db_path()).expect("store");

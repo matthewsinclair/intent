@@ -54,12 +54,17 @@ fn good_snapshot_at(fx: &Fixture, stamp: &str) {
 }
 
 fn findings_of(fx: &Fixture, store: &Store, class: FindingClass) -> Vec<String> {
-  intentsvcs::doctor::diagnose(&fx.project(), &ctx(), Some(store))
-    .findings
-    .into_iter()
-    .filter(|f| f.class == class)
-    .map(|f| f.detail)
-    .collect()
+  intentsvcs::doctor::diagnose(
+    &fx.project(),
+    &ctx(),
+    Some(store),
+    intentsvcs::doctor::Scope::All,
+  )
+  .findings
+  .into_iter()
+  .filter(|f| f.class == class)
+  .map(|f| f.detail)
+  .collect()
 }
 
 // ---------------------------------------------------------------------------

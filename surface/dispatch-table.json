@@ -4845,6 +4845,18 @@
             },
             {
               "spellings": [
+                "--scope"
+              ],
+              "type": "enum",
+              "help": "Which threads to report on",
+              "value": "live|all|closed",
+              "default": "live",
+              "disposition": "keep",
+              "disposition_basis": "NEW IN v3, NO v2 ANTECEDENT. hv RULED IT 2026-09-07 in these words: a narrow default is sensible, `but you should be able to specify the scope with a --scope param`. THE MEASUREMENT THAT PROMPTED IT, taken across the fleet the same day: 96 of 331 findings sat on CLOSED threads (50 on Conflab, 46 on Lamplight) and not one was work anybody was going to do -- a completed thread whose work packages predate a field is history, and reporting history as a fault buries the live signal under it. `all` is the behaviour every build before this one had and `closed` is the deliberate history audit, so what the default hides stays reachable without re-reading everything. THE DEFAULT IS ONLY SAFE BECAUSE THE NARROWING ANNOUNCES ITSELF: `0 finding(s)` over live threads is byte-identical to `0 finding(s)` over everything, so `Report` carries `out_of_scope` and the summary prints it whenever it is non-zero. Without that count this flag is a denominator attack wearing a flag, which is the error vc committed on 2026-09-07 by reporting 15 of 18 estates pristine off a count that could not see 372 lines of output. SCOPE COVERS THE TWO MODEL CHECKS ONLY: view-skew and unattached files are DISK facts and stay always-reported, because a hand-edited generated view is a divergence `sync --to-disk` repairs whatever its thread\u0027s status. CLAP IS DELIBERATELY NOT THE ENFORCER, as on `--format` above: an unknown value is refused in the renderer at exit 1, never by a `value_parser` at exit 2, because 2 is INV-04 USAGE and the pre-commit gate fails OPEN on it.",
+              "exposed_on_mcp": false
+            },
+            {
+              "spellings": [
                 "--help",
                 "-h"
               ],
@@ -8388,7 +8400,29 @@
           "disposition_basis": "**ST0057 AC-11.2, and the tty is the mechanism rather than a courtesy: `--force` without a tty writes nothing and exits non-zero; `--force` answered `y` on a tty regenerates the file from status.** Ratified before hv's 2026-08-26 ruling and unchanged by it -- hv's _after a confirm_ lands on this row exactly. **THERE IS NO `--yes` AND NO ENVIRONMENT OVERRIDE, DELIBERATELY.** A flag-driven force without a tty WRITES, which would make AC-11.2 unmeasurable: the criterion's whole content is that the absence of a human IS the refusal, so an escape hatch does not weaken the gate a little, it removes the only thing the gate measures. **The consequence is accepted and named: no tool-driven caller can run the destructive arm** -- not the migration, not `upgrade`, not a fleet sweep. Those callers want bare `--default`, which writes a declaration and removes nothing, so nothing legitimate is blocked. **Precedent rather than invention: `int build release` already reads its confirmation from `/dev/tty`, and this estate never passes `--no-confirm` from a tool session.** With `--default` this is the destructive arm and the only one (AC-11.6).",
           "exposed_on_mcp": false,
           "note": "narrowed off MCP as terminal-channel: it qualifies --default and its whole meaning is the terminal confirmation step"
-        }
+        },
+          {
+            "spellings": [
+              "--verbose",
+              "-v"
+            ],
+            "type": "bool",
+            "help": "List the unclaimed inventory as well as the summary",
+            "disposition": "keep",
+            "disposition_basis": "**NEW IN v3 WITH NO v2 ANTECEDENT, AND THE ABSENCE IS MEASURED RATHER THAN ASSUMED**: `bin/intent_organize` parses no verbosity flag at all (0 hits for the verbose/quiet pattern, against 43 for the same pattern in `bin/intent_doctor`, which is the positive control that makes the 0 mean something). So nothing is carried across here and the shape is chosen to match the sibling verb rather than to preserve a behaviour. **THE DEFECT IT ANSWERS, MEASURED BY vc across the fleet 2026-09-07**: `organize` prints ~3155 lines against `doctor`'s ~95, and Lamplight alone is 2100 of which 2072 are `unclaimed:` -- one per directory, already grouped, under a summary line that already carries the file count AND a digest of the membership. **SCOPE OF THE MOVE**: only the unclaimed inventory goes behind `--verbose`. The per-path record of what was hydrated, rewritten, removed or pruned stays at the default, because removals are this verb's subject and `--apply` exists precisely because a build once advertised its destructive half and did not show it. Refusals print at every verbosity. **RATIFICATION**: hv ruled narrow-by-default with a flag to widen for `doctor --scope` on 2026-09-07; this applies that ruled principle to a sibling verb by analogy. It is NOT ruled for `organize` specifically and is reversible in one word.",
+            "exposed_on_mcp": false
+          },
+          {
+            "spellings": [
+              "--quiet",
+              "-q"
+            ],
+            "type": "bool",
+            "help": "Only the summary line and refusals",
+            "disposition": "keep",
+            "disposition_basis": "**THE SIBLING HALF OF `--verbose` ON THIS ENTRY; READ ITS BASIS FOR THE MEASUREMENT AND THE RATIFICATION.** Row-specific: **QUIET WINS OVER VERBOSE** when both are given, which is the rule `doctor` already applies (carried there from `bin/intent_doctor:134`). Two sibling verbs answering one question two ways is the surface Highlander problem, so the rule is adopted rather than re-decided. **THE SUMMARY LINE SURVIVES `--quiet`**, deliberately and for `doctor`'s stated reason: a quiet clean run that printed nothing at all would be indistinguishable from the command never having run. **REFUSALS SURVIVE IT TOO** -- they move the exit code on the apply path, and a quiet flag that could hide a refused removal would be hiding the one thing an operator must see.",
+            "exposed_on_mcp": false
+          }
       ],
       "v2": "new-surface",
       "basis": "D57-3 (hv, 2026-08-18): the reconciliation verb of the sparse-projection model -- hydrate, verify, dehydrate, and refuse. Implemented at `intentsvcs::organize`.",

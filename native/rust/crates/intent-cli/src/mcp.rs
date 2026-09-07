@@ -1035,7 +1035,27 @@ pub fn serve(
       }
     }
     "doctor" => {
-      let report = Facade::doctor(f.project(), ctx, Some(f.store()));
+      // **`Scope::All` HERE, AND THE ARGUMENT IS A DEAD END RATHER THAN A
+      // PREFERENCE.** `--scope` narrows because a human terminal was buried
+      // under history -- 96 of 331 fleet findings sat on closed threads. A
+      // machine face is not buried, and it has no argv to widen with: the
+      // table declares `--scope` `exposed_on_mcp: false`, so a narrowed MCP
+      // report would name `out_of_scope: 50` at a caller with no way to reach
+      // those fifty. A report pointing at something its own reader cannot open
+      // is worse than a long one.
+      //
+      // **AND THE CALLER CANNOT DO THE NARROWING ITSELF**, which is what rules
+      // out "return live and let the agent widen". Deciding a finding's thread
+      // from `intent/.canon/st/STxxxx.json` is issue 0256 exactly, and pushing
+      // that inference onto every consumer would spread the defect this flag
+      // was built to avoid. If MCP ever needs the narrowing it gets a real
+      // argument; it does not get a silent default.
+      let report = Facade::doctor(
+        f.project(),
+        ctx,
+        Some(f.store()),
+        intentsvcs::doctor::Scope::All,
+      );
       Ok(crate::render::doctor_json(&report))
     }
     "agents generate" => Ok(json!({ "content": f.agents_generate()? })),

@@ -88,7 +88,7 @@ fn seed(fx: &Fixture, thread: &Thread) {
 }
 
 fn diagnose(fx: &Fixture) -> intentsvcs::doctor::Report {
-  intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None)
+  intentsvcs::doctor::diagnose(&fx.project(), &ctx(), None, intentsvcs::doctor::Scope::All)
 }
 
 #[test]

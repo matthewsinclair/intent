@@ -1178,3 +1178,72 @@ fn the_populations_block_and_the_shipping_predicate_agree() {
      partition has a hole that per-list comparison cannot see"
   );
 }
+
+/// **`--scope`'s vocabulary is written twice by necessity, so the two are
+/// pinned.** The dispatch table declares the words (that is what reaches clap
+/// and what `enum_flag` refuses against) and `intentsvcs::doctor::Scope`
+/// declares the meanings. Neither can be deleted: a table with no roster cannot
+/// validate, and an enum that reads its variants from a JSON file at runtime is
+/// not an enum. **What CAN be deleted is the silence between them** -- a fourth
+/// variant with no row is a value the surface refuses, and a fourth row with no
+/// variant is a word the surface accepts and the renderer maps to the default.
+///
+/// **THE DEFAULT IS ASSERTED ON BOTH SIDES, AND IT IS THE HALF THAT MATTERS.**
+/// hv ruled 2026-09-07 that `doctor` narrows by default. The table's `default`
+/// is what clap hands back when the flag is absent, so a row reading `all`
+/// would leave the ruling implemented everywhere except in the invocation
+/// every single user types -- passing every other arm in this file.
+#[test]
+fn the_scope_vocabulary_has_one_home_and_the_narrow_default_is_on_both_sides() {
+  use intentsvcs::doctor::Scope;
+
+  let table = dispatch::table();
+  let flag = table
+    .families
+    .iter()
+    .flat_map(|f| f.entries.iter())
+    .chain(table.new_surface.iter())
+    .find(|e| e.path == "doctor")
+    .and_then(|e| {
+      e.flags
+        .iter()
+        .find(|fl| fl.spellings.iter().any(|s| s == "--scope"))
+    })
+    .expect("the table declares `--scope` on `doctor`");
+
+  let declared: Vec<String> = flag
+    .value
+    .as_ref()
+    .map(|v| v.split('|').map(|s| s.trim().to_string()).collect())
+    .unwrap_or_default();
+
+  // **Vacuity guard.** Every loop below is trivially satisfied by an empty
+  // roster, so the arm would pass most loudly on the row being gone.
+  assert!(
+    !declared.is_empty(),
+    "the table declares no values for `--scope`, so nothing below is being checked"
+  );
+
+  for word in &declared {
+    assert!(
+      Scope::from_wire(word).is_some(),
+      "the table declares `--scope={word}` and `Scope` has no such variant -- the \
+       surface would accept it and the renderer would silently fall back to the default"
+    );
+  }
+  for scope in Scope::ALL {
+    assert!(
+      declared.iter().any(|w| w == scope.wire()),
+      "`Scope::{:?}` has no row in the table, so `--scope {}` is refused by a \
+       build that implements it",
+      scope,
+      scope.wire()
+    );
+  }
+  assert_eq!(
+    flag.default.as_deref(),
+    Some(Scope::default().wire()),
+    "hv ruled `doctor` narrows by default; the table's `default` is what clap \
+     hands back when nobody types the flag, so this is where that ruling ships"
+  );
+}

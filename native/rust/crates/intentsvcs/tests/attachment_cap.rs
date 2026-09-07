@@ -96,7 +96,12 @@ fn the_carrier_refuses_exactly_what_the_report_names() {
     "the carrier refuses it: {refused:?}"
   );
 
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &crate::common::ctx(), None);
+  let report = intentsvcs::doctor::diagnose(
+    &fx.project(),
+    &crate::common::ctx(),
+    None,
+    intentsvcs::doctor::Scope::All,
+  );
   assert!(
     report.unattached.iter().any(|u| u.contains("huge.png")),
     "and the report names the same file, or the two have drifted: {:?}",
@@ -127,7 +132,12 @@ fn a_file_under_the_cap_is_carried_and_is_not_reported() {
     "carried: {carried:?}"
   );
 
-  let report = intentsvcs::doctor::diagnose(&fx.project(), &crate::common::ctx(), None);
+  let report = intentsvcs::doctor::diagnose(
+    &fx.project(),
+    &crate::common::ctx(),
+    None,
+    intentsvcs::doctor::Scope::All,
+  );
   assert!(
     !report.unattached.iter().any(|u| u.contains("small.png")),
     "a carried file is not an uncovered one: {:?}",

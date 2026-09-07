@@ -3510,7 +3510,7 @@ fn declared_default(m: &ArgMatches) -> Result<(), Failure> {
   // Performed tense, and a refusal moves the exit code exactly as it does under
   // `--apply` -- the same act reported by the same code, including the part
   // where something asked to be removed and was not.
-  render_organize_report(&project, &report, false)
+  render_organize_report(&project, &report, false, Verbosity::of(m))
 }
 
 /// `intent explore` -- the TUI, rooted at the entity kinds.
@@ -4269,7 +4269,83 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
   let (project, ctx) = context()?;
   let mut facade = engine(project.clone(), ctx, StoreNeed::Shared)?;
   let report = facade.organize(mode).map_err(fail)?;
-  render_organize_report(&project, &report, previewing)
+  render_organize_report(&project, &report, previewing, Verbosity::of(m))
+}
+
+/// How much of an `organize` report reaches the terminal.
+///
+/// **THE THREE STATES ARE RESOLVED ONCE, HERE, BECAUSE THE INTERESTING RULE IS
+/// THE INTERACTION AND NOT EITHER FLAG.** `--quiet --verbose` has to mean
+/// something, and the answer that costs least is the one the estate already
+/// gives on `doctor`: quiet wins. Resolving that at each print site would be
+/// the same rule written down five times, which is how two of them end up
+/// disagreeing.
+///
+/// **NOT SHARED WITH `doctor`, DELIBERATELY, AND THIS IS A HOLD RATHER THAN A
+/// RULING.** `doctor` resolves the identical rule inline (`quiet`, then
+/// `verbose && !quiet`), so there are two homes for one concept and Highlander
+/// says there should be one. It is not unified in this change because vc is
+/// inside `fn doctor` for `--scope` as this lands, and a shared type would put
+/// two authors on one symbol -- the exact coupling that collided on
+/// `f5b602ef0`, where the FILE boundary was clean and the SYMBOL boundary was
+/// not. Unify it once that lands; the follow-up is recorded on cc's board
+/// rather than left to be noticed.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum Verbosity {
+  /// `--quiet`: the summary line and refusals. Nothing else.
+  Quiet,
+  /// The default: everything except the unclaimed inventory.
+  Normal,
+  /// `--verbose`: everything this verb knows.
+  Verbose,
+}
+
+impl Verbosity {
+  /// **QUIET WINS OVER VERBOSE.** Carried from `doctor`, which carried it from
+  /// v2's `bin/intent_doctor:134` (`VERBOSE = true && QUIET != true`).
+  /// `organize` has no v2 antecedent for either flag -- v2's `bin/intent_organize`
+  /// parses neither, measured -- so nothing is being carried across here; the
+  /// rule is adopted so that two sibling verbs answer one question one way.
+  fn of(m: &ArgMatches) -> Self {
+    match (given(m, "quiet"), given(m, "verbose")) {
+      (true, _) => Self::Quiet,
+      (false, true) => Self::Verbose,
+      (false, false) => Self::Normal,
+    }
+  }
+
+  /// Whether the per-path record of what this run DID (or would do) prints.
+  ///
+  /// **THE DESTRUCTIVE LINES ARE IN HERE AND NOT BEHIND `--verbose`, AND THAT
+  /// IS THE ONE CALL IN THIS CHANGE MOST WORTH DISAGREEING WITH.** Removals and
+  /// prunes are this verb's SUBJECT: `--apply` exists because ic measured a
+  /// build whose destructive half was advertised in its own help and
+  /// unobservable in its own output, against an estate holding 544 planned
+  /// removals. Moving `removed:` behind a flag would rebuild that defect one
+  /// layer up, and saving lines is not a reason to do it -- the lines this
+  /// change is aimed at are `unclaimed:`, which is inventory.
+  fn shows_body(self) -> bool {
+    self != Self::Quiet
+  }
+
+  /// Whether the unclaimed inventory prints.
+  ///
+  /// **THIS IS THE LINE-COUNT DEFECT AND IT IS THE ONLY CLASS MOVED.** Measured
+  /// by vc across the fleet: `organize` prints ~3155 lines against `doctor`'s
+  /// ~95, and Lamplight alone is 2100, of which 2072 are `unclaimed:` -- one
+  /// per DIRECTORY, already grouped, under a summary that carries the file
+  /// count AND a digest of the membership. That summary line was built to
+  /// stand alone; this is the flag that lets it.
+  ///
+  /// An unclaimed path is never acted on, never moves the exit code, and on
+  /// this estate is unclaimable BY CONSTRUCTION -- the renderer cannot produce
+  /// a `.tap`, and `.intentfiles` names artefacts rather than files. A report
+  /// whose first two thousand lines are identical on every run trains its
+  /// reader to stop looking, and the run where one changes is then the run
+  /// nobody sees.
+  fn shows_inventory(self) -> bool {
+    self == Self::Verbose
+  }
 }
 
 /// Render an organize report, in either tense.
@@ -4290,6 +4366,7 @@ fn render_organize_report(
   project: &Project,
   report: &intentsvcs::organize::Report,
   previewing: bool,
+  verbosity: Verbosity,
 ) -> Result<(), Failure> {
   // **PROJECT-RELATIVE, THROUGH THE PROJECT'S OWN ANSWER.** Measured on a real
   // estate before this was added: 199 unclaimed paths printed absolute, each
@@ -4406,14 +4483,16 @@ fn render_organize_report(
     report.diverged.len(),
     report.refused.len()
   );
-  for (label, paths) in [
-    (hyd, &report.hydrated),
-    (rew, &report.rewritten),
-    (rem, &report.dehydrated),
-    (prn, &report.pruned),
-  ] {
-    for path in paths {
-      println!("  {label}: {}", show(path));
+  if verbosity.shows_body() {
+    for (label, paths) in [
+      (hyd, &report.hydrated),
+      (rew, &report.rewritten),
+      (rem, &report.dehydrated),
+      (prn, &report.pruned),
+    ] {
+      for path in paths {
+        println!("  {label}: {}", show(path));
+      }
     }
   }
   // **Reported, never acted on, and named rather than counted.** An unclaimed
@@ -4454,18 +4533,39 @@ fn render_organize_report(
       .unwrap_or_else(|| ".".to_string());
     *by_dir.entry(dir).or_default() += 1;
   }
-  for (dir, count) in &by_dir {
-    println!("  unclaimed: {dir}/ ({count} file(s))");
+  if verbosity.shows_inventory() {
+    for (dir, count) in &by_dir {
+      println!("  unclaimed: {dir}/ ({count} file(s))");
+    }
+  } else if verbosity.shows_body() && !by_dir.is_empty() {
+    // **THE WITHHELD LINE CARRIES A FIGURE THE SUMMARY DOES NOT.** The summary
+    // above already says how many FILES are unclaimed and digests their
+    // membership; what it cannot say is how many DIRECTORIES that spreads
+    // across, which is the quantity that decides whether reading the list is
+    // worth it. A pointer that only repeated the count would be duplication;
+    // this one is the second half of the shape.
+    //
+    // **AND IT ANNOUNCES ITS OWN NARROWING, WHICH IS THE PROPERTY THAT MAKES A
+    // DEFAULT SAFE TO NARROW AT ALL** (vc, on `doctor --scope`, 2026-09-07):
+    // `0 unclaimed` over a full listing is byte-identical to `0 unclaimed` over
+    // a suppressed one, so a narrowing that does not say so is the denominator
+    // attack wearing a flag.
+    println!(
+      "  unclaimed: {} directory(ies) not listed -- `intent organize --verbose` lists them",
+      by_dir.len()
+    );
   }
-  for path in &report.diverged {
-    println!("  diverged: {}", show(path));
+  if verbosity.shows_body() {
+    for path in &report.diverged {
+      println!("  diverged: {}", show(path));
+    }
   }
 
   // **THE FOOTER IS BELT-AND-BRACES, NOT THE MECHANISM.** The per-line tense
   // above is what makes a preview unmistakable; this says it once more in plain
   // words and names the spelling that performs it, so the operator never has to
   // go and look the flag up.
-  if previewing {
+  if previewing && verbosity.shows_body() {
     println!(
       "organize: preview only -- nothing was written or removed. `intent organize --apply` performs it."
     );
@@ -4624,6 +4724,27 @@ fn advisory_suffix(report: &intentsvcs::doctor::Report) -> String {
   }
 }
 
+/// What the run's `--scope` took away, on the summary line.
+///
+/// **IT RIDES THE SUMMARY BECAUSE THE SUMMARY IS THE ONE LINE THAT SURVIVES
+/// `--quiet`.** A narrowing announced only in the verbose body would be absent
+/// from exactly the invocation a script uses, and a quiet run that hides its
+/// own denominator is the defect this whole field exists to prevent.
+///
+/// **Silent at zero, and that is correct rather than a gap.** Nothing was
+/// withheld, so `0 finding(s)` over live threads really is the same statement
+/// as `0 finding(s)` over everything -- there is no difference to announce. The
+/// line appears when, and only when, the two would differ.
+fn scope_suffix(report: &intentsvcs::doctor::Report) -> String {
+  match report.out_of_scope {
+    0 => String::new(),
+    n => format!(
+      " -- {n} withheld by `--scope {}`; `--scope all` reads them",
+      report.scope.wire()
+    ),
+  }
+}
+
 /// Print findings grouped by class: one header, one remedy, then every member.
 ///
 /// **THE REMEDY CANNOT VARY WITHIN A CLASS.** `FindingClass::remedy` takes no
@@ -4698,6 +4819,17 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // whole estate to then reject the request is work done for an answer we have
   // already decided not to give.
   let format = enum_flag(a, "doctor", "--format")?;
+  // **THE VOCABULARY IS THE TABLE'S AND THE MEANING IS THE TYPE'S.**
+  // `enum_flag` refuses a word the table does not declare -- at exit 1, in the
+  // renderer, never a clap `value_parser` at exit 2, for the reason `--format`'s
+  // own row states. What comes back is then a word that `Scope::from_wire`
+  // knows, so the `unwrap_or_default` below is unreachable in practice and is
+  // still a DEFAULT rather than a panic: a table row and an enum variant
+  // drifting apart is a build-time mistake, and answering it by killing the one
+  // command a user runs when everything else has stopped working would be the
+  // worst possible place to be right.
+  let scope =
+    intentsvcs::doctor::Scope::from_wire(&enum_flag(a, "doctor", "--scope")?).unwrap_or_default();
   let (project, ctx) = context()?;
   // **Opened opportunistically, and a failure to open is not reported here.**
   // `doctor` exists to run on a project that cannot be opened, so the store is
@@ -4742,7 +4874,7 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
     );
   }
 
-  let report = Facade::doctor(&project, &ctx, opened.as_ref().map(|f| f.store()));
+  let report = Facade::doctor(&project, &ctx, opened.as_ref().map(|f| f.store()), scope);
   // **THE MACHINE FACE THIS FILE ASKED FOR IN WORDS.** The `unattached` block
   // below carries the note *it stays inline until `doctor` has a machine face
   // to carry it, which needs a surface row and is not mine to add*. This is
@@ -4895,7 +5027,7 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
     report.issues_checked,
     report.views_checked,
     report.files_checked,
-    advisory_suffix(&report)
+    format!("{}{}", advisory_suffix(&report), scope_suffix(&report))
   );
   if report.is_healthy() {
     Ok(())
@@ -9670,6 +9802,14 @@ pub(crate) fn doctor_json(report: &intentsvcs::doctor::Report) -> serde_json::Va
     // in full and never truncated, which is the rule the text face states in
     // those words: appearing inside a counted group is fine, vanishing is not.
     "unattached": report.unattached,
+    // **THE NARROWING TRAVELS WITH THE VERDICT, FOR THE SAME REASON `checked`
+    // DOES.** A machine reader has no summary line, so without these
+    // `"findings": []` means both *this estate is clean* and *we did not look
+    // at the threads where the faults are*. `out_of_scope` is the count of
+    // FINDINGS withheld, not threads skipped -- a thread count is equally true
+    // of an estate hiding nothing and one hiding five hundred.
+    "scope": report.scope.wire(),
+    "out_of_scope": report.out_of_scope,
   })
 }
 

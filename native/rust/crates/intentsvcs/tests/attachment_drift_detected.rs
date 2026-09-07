@@ -58,11 +58,16 @@ fn seeded() -> Fixture {
 }
 
 fn drift(fx: &Fixture) -> Vec<Finding> {
-  intentsvcs::doctor::diagnose(&fx.project(), &crate::common::ctx(), None)
-    .findings
-    .into_iter()
-    .filter(|f| f.class == FindingClass::AttachmentDrift)
-    .collect()
+  intentsvcs::doctor::diagnose(
+    &fx.project(),
+    &crate::common::ctx(),
+    None,
+    intentsvcs::doctor::Scope::All,
+  )
+  .findings
+  .into_iter()
+  .filter(|f| f.class == FindingClass::AttachmentDrift)
+  .collect()
 }
 
 /// **THE CONTROL, and it runs first because nothing below means anything
@@ -218,7 +223,12 @@ fn the_remedy_leads_with_the_step_that_cannot_lose_anything() {
 fn every_realised_attachment_in_the_estate_still_matches_canon() {
   let root = repo_root();
   let project = Project::open(&root).expect("the real project opens");
-  let report = intentsvcs::doctor::diagnose(&project, &crate::common::ctx(), None);
+  let report = intentsvcs::doctor::diagnose(
+    &project,
+    &crate::common::ctx(),
+    None,
+    intentsvcs::doctor::Scope::All,
+  );
   let canon = intentsvcs::ingest::read(&project).expect("canon reads");
 
   let realised = canon
