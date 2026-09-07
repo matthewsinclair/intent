@@ -4,7 +4,7 @@ name: Validation Claude
 role: validation
 session_id: 945027b0-be6d-43c4-a6f7-1349cb9ca0c1
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-07 20:56Z
+heartbeat_at: 2026-09-07 21:07Z
 status: active
 focus: "LOCALFOLD 2026-09-07 20:56Z FOR A COMPACT -- status stays ACTIVE. ON THE BOUNCE THE JOB IS `doctor --scope`, hv ruled it 20:5xZ: DEFAULT NARROW (closed threads not reported), `--scope live|all|closed` to widen. DESIGN IS ON THIS BOARD AND THE CODE IS NOT WRITTEN -- I reverted a part-built Scope enum rather than fold over half a change. hv will split it with intent-cc on the bounce. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
@@ -18,19 +18,43 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 
 ## DOING
 
-### ON THE BOUNCE: `intent doctor --scope`, RULED BY hv 2026-09-07 AND NOT BUILT
+### `intent doctor --scope` IS BUILT, DRIVEN AND GREEN -- 2026-09-07, in intent-cc's joint commit with `organize -v/-q`
 
-**hv's words: a narrow default is sensible, "but you should be able to specify the scope with a `--scope` param".** So: **DEFAULT `live`** (closed threads not reported), **`--scope live|all|closed`** to widen or invert. `all` is today's behaviour; `closed` is the deliberate history audit, so what the default hides stays reachable without re-reading everything.
+**`--scope live|all|closed`, default `live`, exactly as hv ruled.** `Scope` + `Report.scope`/`out_of_scope` in `intentsvcs`; the two MODEL checks scoped at EMISSION with the thread in hand; view-skew and unattached always-reported as DISK facts; the summary prints the withheld count whenever non-zero AND survives `--quiet`. MCP takes `Scope::All` -- the table declares the flag `exposed_on_mcp: false`, so a narrowed MCP report would name findings its caller has no way to reach, and the caller cannot narrow for itself without committing `0256`.
 
-**I REVERTED A PART-BUILT `Scope` ENUM RATHER THAN FOLD OVER HALF A CHANGE.** Nothing of it is on disk; the design below is the whole of it and it is enough to rebuild from.
+**DRIVEN ON REAL ESTATES WITH A DEBUG BINARY, DELIBERATELY NOT REBUILDING RELEASE**, so nothing untested reached anyone's PATH. **Lamplight 71 lines -> 25, 64 findings -> 18. Conflab 186 -> 136, 50 announced as withheld.** The arithmetic reconciles three ways and the third is the one that proves the boundary: live 17 + closed 46 + skew 1 = 64, **the skew appearing under ALL THREE scopes** rather than being asserted to.
 
-**THE ONE PROPERTY THAT MAKES THE DEFAULT SAFE, AND IT IS NOT OPTIONAL:** `Report` gains `scope` AND `out_of_scope` (findings withheld), and the summary prints the withheld count whenever it is non-zero. **`0 finding(s)` over live threads is BYTE-IDENTICAL to `0 finding(s)` over everything** -- that is the denominator attack, and **I committed it myself this morning** by reporting "15 of 18 pristine" off a count that could not see 372 lines of output. A narrowing that does not announce itself is the same defect wearing a flag.
+**THE NUMBER ON THIS BOARD LAST NIGHT WAS WRONG AND THE PARKS ITEM SHRANK WITH IT.** I wrote "124 of the fleet's counted findings, 44 of Lamplight's 64 being the parks family". Measured against thread status: **96 of 331, and of Lamplight's 44 status-gate rows only 31 are on closed threads. The other 13 sit on WIP threads and are correct live signal that SHOULD report.** So the parks ruling is worth 31 rows on one estate, all of them already hidden by the default hv ruled -- **it may not need a ruling at all.**
 
-**ATTRIBUTE AT EMISSION, NEVER BY PARSING THE PATH.** `model_checks` has `thread` in hand and `status_gate_disagreement` loops threads internally -- both take the scope. **Inferring a thread from `intent/.canon/st/STxxxx.json` is EXACTLY `0256`**, the defect I spent today removing: a check that infers where it should read.
+### A5 AGAIN, ON MY OWN TEST, AND ONLY A CONTROL FOUND IT
 
-**THE BOUNDARY, STATED SO IT IS NOT RE-ARGUED:** scope covers the two MODEL checks. **View-skew and unattached files are DISK facts and stay always-reported** -- a stale generated view is a divergence `sync --to-disk` fixes whatever the thread's status, and `views::skew` owns that attribution anyway. Scoping it would mean plumbing through `views.rs` for no gain.
+**`the_withheld_count_is_findings_and_not_threads` ASSERTED 2 ON A FIXTURE OF ONE THREAD WITH TWO FINDINGS, AND BREAKING `+= found.len()` TO `+= 1` LEFT IT GREEN.** `Report::admit` is called TWICE per thread -- once for the model checks, once for the gate arm -- so a per-CALL counter also reaches 2. **Findings, threads and admit-calls collided at the fixture's own number and nothing about the green read wrong.** Three orphans is the smallest fixture where all three differ (3, 1, 2). **cc hit the identical class the same hour**: their fixture had 2 directories and 2 action rows, so a withheld line printing the wrong quantity would have read 2 == 2. **Both of us wrote the control BEFORE the fixture could distinguish what it was controlling for.**
 
-**WHAT IT IS WORTH, MEASURED:** 124 of the fleet's counted findings sit on closed threads -- Conflab's 50 `field-not-recorded` and 44 of Lamplight's 64, which are the parks family nobody may act on.
+**THE RULE THAT COMES OUT OF IT, SHARPER THAN "POSITIVE-CONTROL THE INSTRUMENT":** state what the test must SEE to fail, then check the fixture can produce a number that differs from every neighbouring quantity. A control that confirms a green is decoration; only one that turns a green red is evidence.
+
+### TWO CORRECTIONS FROM lamplight-vc, 2026-09-07 21:29Z, AND BOTH ARE MINE
+
+**1. I REPORTED A FLEET NUMBER WITHOUT SAYING WHICH TREE IT CAME FROM.** Lamplight reads **64 on the working tree and 89 on the committed one**. The difference is **21 `kind: test -> non-test` rows across seven COMPLETED threads that I WROTE during this morning's fleet surgery and never committed** -- ST0248, ST0256, ST0270, ST0275, ST0298, ST0300, ST0332. lamplight-vc has deliberately left them uncommitted because **hv's D3 rules finished threads are history**, and both committing and discarding them are decisions neither of us may take. **So "Lamplight 88 -> 64" is conditional and I stated it flat.** Same class as everything I have been policing today: a population reported without its denominator.
+
+**2. I TOLD lamplight-vc TO CLOSE ELEVEN WORK PACKAGES AND AT LEAST FIVE OF THEM MUST NOT CLOSE.** I wrote "the gate already passes so it will not refuse" with a general caution to read one first. **The caution was not strong enough for the case where a passing gate is the CORRECT state rather than a lagging one.** Three are parked (above); `ST0315/WP-16`'s third deliverable is outside any AC set; `ST0306/WP-03`'s own file says `all three ACs satisfied, one deliverable outstanding -- STAYS WIP`. **Measured read rate across cc and ac: 4 closes out of 12 examined.** My eleven was an over-estimate by roughly three.
+
+### A6, AND cc's HALF IS BETTER THAN MINE
+
+**`git add` IS THE PUBLICATION, NOT `git commit`. A STAGED FILE IS A PUBLISHED FILE**, and `--only` scopes YOUR commit while protecting nothing from mine. Stage and commit in ONE UNINTERRUPTED ACT, or announce you are holding the index. cc's wording, adopted verbatim.
+
+**AND THE SHARED-FILE TWIN, WHICH I GOT WRONG WHEN I WARNED THEM.** I told cc their revert method was the hazard. It was not -- they were already using `cp` + `cmp`. **The real hazard is that their pre-mutation snapshot FROZE MY UNCOMMITTED WORK at one instant, so a write from me inside their window would have been silently rolled back to their copy.** The announcement is what protects against that; `cmp` only protects against their own mutation surviving. **Two different failures, and I conflated them.**
+
+**A FILE CARRYING TWO NODES' UNCOMMITTED WORK CANNOT BE SPLIT ACROSS TWO COMMITS.** `git commit -- <path>` takes the whole file and hunk staging is interactive. Four files were joint tonight (`render.rs`, `intent-cli/tests/suite.rs`, both `surface/dispatch-table.*`), so it landed as ONE act by ONE node -- the only shape with no broken intermediate, because splitting would have put `--scope` code against a table with no `--scope` row and `dispatch::table()` is compiled in.
+
+### `organise` WAS THE BIGGER HALF OF hv's ASK AND I MEASURED IT ON rc
+
+**hv's ask names TWO commands. I measured `doctor` on LINES and `organise` on EXIT CODE, then reported it "never broken".** That is the same proxy substitution hv corrected me for on `doctor`, committed on the other half of the ask in the same breath. **Measured: `organise` prints ~3155 fleet lines against `doctor`'s ~95** -- Lamplight 2100, Conflab 636, Laksa 342. Lamplight's 2100 is 2072 `unclaimed:` lines, one per DIRECTORY, under a summary already carrying the count and a digest.
+
+**cc BUILT `organize -v/-q` AND THEIR OWN JUDGEMENT CHANGED THE ANSWER.** Told to decide each class on its merits rather than sweep the body, they found Lamplight's default carries **25 `to-remove:` lines -- 25 files it is about to delete.** A wholesale sweep would have hidden them and rebuilt the exact defect `--apply` was minted to prevent. Only `unclaimed:` moved. **2098 -> 28 at the default, 1 under `-q`.**
+
+### JOB 2 WAS ALREADY DONE AND I PUT IT IN A PLAN ANYWAY
+
+I told hv the advisory detail still repeated ~90 chars of class policy 136 times. **It does not: `9331cb11` cut both legacy details from ~270 to ~150 chars**, and what remains is the deliberate short policy clause `doctor_advisory.rs` asserts on by name. **I was reading this board instead of the code.** No churn; a tested string is not worth thirty characters.
 
 ### DELIVERED TODAY, AND ALL OF IT DROVE hv's OWN `-v` RUNS
 
@@ -136,11 +160,18 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 
 - **THE PUSH -- REGENERATE IT, THE LINE CARRIES NO NUMBER:** `git log --oneline @{u}..HEAD | wc -l`. It read ZERO on 2026-09-06 and non-zero again after today's commits, so it is a state and never a fact.
 
+### Arising 2026-09-07 EVENING, after `--scope` and `organize -v/-q` landed
+
+- **21 CANON ROWS I WROTE IN LAMPLIGHT'S TREE THIS MORNING ARE UNCOMMITTED AND UNRULED, AND THE DECISION IS YOURS BOTH WAYS.** `kind: test -> non-test` across SEVEN COMPLETED threads -- ST0248, ST0256, ST0270, ST0275, ST0298, ST0300, ST0332. **D3 rules finished threads are history**, so committing them takes a decision and discarding them takes a decision; lamplight-vc has correctly refused to do either. **Lamplight reads 64 on that working tree and 89 on the committed one, and I quoted the 64 to you flat.** If you keep them: 64 -> 18 under the new default. If you discard them: 89 -> ~43, of which 22 are the `n/a` rows `at edit --kind` exists to repair. **Mine to answer for, not lamplight-vc's to clean up.**
+
+- **DOES A 136-MEMBER ADVISORY GROUP NEED 136 LINES UNDER `-v`? YOURS, AND I HAVE NOT DECIDED IT.** After the grouping fix and `--scope`, Conflab's `-v` is ~145 lines: one header, one remedy, and 136 members that differ only in an AT id and a thread file. **The default is 2 lines and rc=0, so the estate is pristine where it counts** -- this is only about what `-v` owes a reader who asked for everything. It is the same family of presentation ruling you just made for `--scope`, and it is not one a node should make while holding the file. **My recommendation: leave it. `-v` is the flag that means print the notes, and truncating the one surface that promises completeness would cost more than the lines are worth.**
+- **`organize -v/-q` IS UNRULED FOR `organize` SPECIFICALLY.** I extended your `--scope` ruling by analogy to a sibling verb with the same summary-plus-body shape, and said so out loud in the commit body and the table row so it is reversible in one word. **The 25 `to-remove:` lines stay at the default deliberately** -- they name files about to be deleted.
+
 ### Arising 2026-09-07 -- the first two are ANSWERED and stay only as their consequence
 
 - **~~WHICH BINARY?~~ ANSWERED BY EVENTS: cc rebuilt release mid-audit and it has been rebuilt since at every landing.** The pair now names the tree. **The standing property, not the value: `intent --version` names its source commit, so MEASURE it before believing any behaviour -- never recall it.**
 - **~~DOES `doctor` GET A SCOPE FLAG?~~ RULED YES, 2026-09-07: NARROW BY DEFAULT, `--scope live|all|closed` TO WIDEN.** It is now MY work, not an hv item -- the design is at the top of this board and the code is unwritten.
-- **THE `0256` SIBLING: PARKS AND DELIVERABLES -- NOW THE SINGLE BIGGEST BLOCKER ON THE FLEET, 44 OF LAMPLIGHT'S 64.** The scope flag HIDES these by default and does not answer them; a `--scope all` run still meets every one. The status-vs-gate check reads ACs and neither. **A flip would convert _hv parked this_ into _this is finished_ in canon**, so the answer is a design call -- a `Parked` status, a deliverable state, or simply not reporting the class -- and there is no existing predicate to reach for.
+- **THE `0256` SIBLING: PARKS AND DELIVERABLES -- SMALLER THAN THIS BOARD SAID, LIVE, AND THE MOST DANGEROUS THING ON THIS LIST. I CALLED IT MOOT AT 21:27Z AND lamplight-vc REFUTED IT MINUTES LATER.** My correction was right about the size and wrong about the conclusion: 31 of Lamplight's 44 status-gate rows sit on CLOSED threads and are hidden by the default you ruled -- **but at least THREE of the 13 that survive on LIVE threads are PARKED work** (`ST0290/WP-05` and `WP-07`, titled `(PARKED -- hv 2026-07-14)` and `(POST-MVP, parked)`; `ST0324/WP-05`, `(deferred)`). **Intent's own 2026-08-10 parked-row ruling makes the park a SATISFIABLE criterion, so for parked work `Not Started` + gate PASSES is CORRECT BY CONSTRUCTION** -- the check has no notion of a park and reports the correct state as a defect. **`wp done` does NOT refuse there, and a close converts _hv parked this_ into _this is finished_ permanently in canon with nothing downstream able to detect it.** So the scope flag hides the harmless 31 and leaves every dangerous one visible. **THE RULING IS NOT MOOT; IT IS THE ONE ITEM ON THIS BOARD WHERE ACTING ON THE REPORT DESTROYS INFORMATION.** The status-vs-gate check reads ACs and neither. **A flip would convert _hv parked this_ into _this is finished_ in canon**, so the answer is a design call -- a `Parked` status, a deliverable state, or simply not reporting the class -- and there is no existing predicate to reach for.
 - **`WP-06`'s STATUS**; **deliverable 6's MISSING ACCEPTANCE ROW** (held on the pen boundary -- it commits a change to the shipped v2 line); **`0175`'s CLOSE**.
 - **`flip` THEN `burn`, ONE SITTING, IN THAT ORDER** -- the `INTENT_BIN` rebind off `bin/intent`, the v2 shell script.
 - **THE STORE MIGRATION** 13 -> 17, ladder complete, each rung transactional with an FK check inside it before `user_version` moves.
