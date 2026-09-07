@@ -125,9 +125,25 @@ pub const KNOWN_OPS: &[&str] = &[
   "disk.sync_from_disk",
   "disk.sync_to_disk",
   "init",
+  // **`issue.set` IS SINGULAR AND THE REST OF ITS FAMILY IS PLURAL. THAT IS
+  // TWO NAMING SOURCES, NOT A HALF-FINISHED RENAME**, and it is recorded here
+  // because the asymmetry reads exactly like one. `issue.set` is minted by the
+  // generic address-based setter, which names the ENTITY (`AddrEntity::Issue`)
+  // -- the same shape as `ac.set`. The verbs below are minted by the issue
+  // family, which names the CLI FAMILY. The two sources AGREE for `ac` and
+  // DISAGREE for `issue`/`issues`, so nothing is broken and nothing is
+  // mid-migration. Renaming either half to match would break the source it
+  // actually comes from.
   "issue.set",
   "issues.add",
   "issues.close",
+  // **ADDED 2026-09-07: written since it shipped and never declared.**
+  // `facade.rs`'s issue-edit door mints it, and the live check found it exactly
+  // as designed -- 10 rows on Devbin, 135 on Intent, all reported as an op
+  // "this build does not declare". The roster's own note says the trigger to
+  // watch is the first RENAME or RETIREMENT; this was neither, just a door
+  // whose literal never reached the list.
+  "issues.edit",
   "issues.open",
   "st.cancel",
   "st.done",
