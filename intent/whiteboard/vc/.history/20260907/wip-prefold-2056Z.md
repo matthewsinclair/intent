@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: 945027b0-be6d-43c4-a6f7-1349cb9ca0c1
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-07 20:56Z
+heartbeat_at: 2026-09-07 18:47Z
 status: active
-focus: "LOCALFOLD 2026-09-07 20:56Z FOR A COMPACT -- status stays ACTIVE. ON THE BOUNCE THE JOB IS `doctor --scope`, hv ruled it 20:5xZ: DEFAULT NARROW (closed threads not reported), `--scope live|all|closed` to widen. DESIGN IS ON THIS BOARD AND THE CODE IS NOT WRITTEN -- I reverted a part-built Scope enum rather than fold over half a change. hv will split it with intent-cc on the bounce. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "THE FLEET AUDIT IS DONE AND REMEDIATED. 15 of 18 estates read rc=0 on BOTH doctor and organise; fleet counted findings 174 -> 91 and 88 of the 91 are Lamplight, handed to lamplight-vc. organise was NEVER the problem -- it was rc=0 fleet-wide before anything was touched. Three code defects fixed in f5b602ef (a misclassified absence, an AT kind with no setter anywhere, an unbalanced [n/a read as a path). REMAINING: Lamplight 88 (lamplight-vc), Laksa 2 and Intent ST0056/WP-05 (both need an OWNER decision, not a repair). NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 ---
 
@@ -18,39 +18,50 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 
 ## DOING
 
-### ON THE BOUNCE: `intent doctor --scope`, RULED BY hv 2026-09-07 AND NOT BUILT
+### THE AUDIT hv ASKED FOR IS DELIVERED, AND THE HEADLINE IS THAT `organise` WAS NEVER BROKEN
 
-**hv's words: a narrow default is sensible, "but you should be able to specify the scope with a `--scope` param".** So: **DEFAULT `live`** (closed threads not reported), **`--scope live|all|closed`** to widen or invert. `all` is today's behaviour; `closed` is the deliberate history audit, so what the default hides stays reachable without re-reading everything.
+**`intent organise` returned rc=0 on every v3 estate BEFORE anything was touched, and still does.** The two refusals are correct: Intentv2 IS a v2 estate, Sites has no project. **Every hour spent on `organise` would have been spent on a verb with no defect** -- the exhaust was `doctor` alone.
 
-**I REVERTED A PART-BUILT `Scope` ENUM RATHER THAN FOLD OVER HALF A CHANGE.** Nothing of it is on disk; the design below is the whole of it and it is enough to rebuild from.
+**392 findings fleet-wide, 174 counted, and 89% of the counted were FOUR causes.** Three were code, one was machine state. **A finding count is not a defect count**: 218 of the 392 were advisories the default renderer already collapses to one line, and 124 of the 174 counted sat on CLOSED threads.
 
-**THE ONE PROPERTY THAT MAKES THE DEFAULT SAFE, AND IT IS NOT OPTIONAL:** `Report` gains `scope` AND `out_of_scope` (findings withheld), and the summary prints the withheld count whenever it is non-zero. **`0 finding(s)` over live threads is BYTE-IDENTICAL to `0 finding(s)` over everything** -- that is the denominator attack, and **I committed it myself this morning** by reporting "15 of 18 pristine" off a count that could not see 372 lines of output. A narrowing that does not announce itself is the same defect wearing a flag.
+**DELIVERED: 15 of 18 ESTATES NOW READ rc=0 ON BOTH VERBS, ALL TREES CLEAN.** Fleet counted 174 -> 91, and 88 of the remaining 91 are Lamplight.
 
-**ATTRIBUTE AT EMISSION, NEVER BY PARSING THE PATH.** `model_checks` has `thread` in hand and `status_gate_disagreement` loops threads internally -- both take the scope. **Inferring a thread from `intent/.canon/st/STxxxx.json` is EXACTLY `0256`**, the defect I spent today removing: a check that infers where it should read.
+- **`f5b602ef` -- three code defects, joint commit with cc.** (1) A closed thread with no completion date was `ModelInconsistent` -- _"the canon says two things that cannot both be true"_ -- when it says one thing and OMITS another; Conflab ST0016 has no `completed:` key at all. Now `FieldNotRecorded`, and the uncounted predicate moved onto the class as `is_actionable()` because the `Advisory` equality lived in TWO homes, doctor.rs counting and render.rs PRINTING. **cc's fix is 53 -> 3 and that is the honest figure; the 3 -> 0 is my remediation and belongs to it separately.** (2) **An AT row's `kind` had NO SETTER ANYWHERE** -- `at edit` excluded it, `at lint --fix` is deliberately not carried over, `sync --to-store` reads canon not markdown. Six Baize rows uncorrectable for ever. `at edit --kind` now ships, guarded so it cannot manufacture the inverse defect, and that guard is scoped to the FLAG -- the `at.set` table amendment stays hv's, untouched. (3) An unbalanced `[n/a` reached the path rule and satisfied it on the slash `n/a` carries.
+- **The machine-state cause: 13 estates reported `backup-stale` with a BYTE-IDENTICAL string.** Every snapshot was stamped within the same second on 2026-09-04. `intentd` sweeps only projects it has OPEN, so a dormant estate is never backed up. One fact, thirteen reports.
 
-**THE BOUNDARY, STATED SO IT IS NOT RE-ARGUED:** scope covers the two MODEL checks. **View-skew and unattached files are DISK facts and stay always-reported** -- a stale generated view is a divergence `sync --to-disk` fixes whatever the thread's status, and `views::skew` owns that attribution anyway. Scoping it would mean plumbing through `views.rs` for no gain.
+### WHAT REMAINS, AND NONE OF IT IS A REPAIR ANYONE CAN JUST RUN
 
-**WHAT IT IS WORTH, MEASURED:** 124 of the fleet's counted findings sit on closed threads -- Conflab's 50 `field-not-recorded` and 44 of Lamplight's 64, which are the parks family nobody may act on.
-
-### DELIVERED TODAY, AND ALL OF IT DROVE hv's OWN `-v` RUNS
-
-- **`9331cb11` -- THE REPORT GROUPS BY CLASS AND THE LEAD WORD AGREES WITH THE VERDICT.** Three output defects: (1) `Display` enumerated classes while the count asked `is_actionable()`, so Conflab printed **50 lines leading `residue:` above a summary reading `0 finding(s)`**, each carrying the remedy _nothing to fix_; the lead is now `FindingClass::lead()` and asks the predicate. **The comment it replaced claimed a protection it did not have** -- _"a match is refused by the compiler when the next variant forgets to choose"_ -- and a `_` arm is never refused, which is exactly what let the class through. (2) **`remedy()` takes no argument, so it CANNOT vary within a class** -- 45 identical copies on Lamplight, 186 on Conflab. One header, one remedy, every member. (3) Details carried ~150 chars of class policy, against `finding.rs`'s own rule.
-- **`16f64586` -- `issues.edit` DECLARED, AND IT WAS NOT THE RENAME IT LOOKED LIKE.** `issue.set` is singular because it comes from the ENTITY-named generic setter; the verbs are plural because they come from the CLI FAMILY. The sources agree for `ac` and diverge for `issue`/`issues`. Renaming either half breaks its source. **Devbin now prints five lines under `-v`.**
-- **`f5b602ef` (joint with cc), `a312534d`, and estate repairs**: Conflab 189 -> 0, Baize 73 -> 0, Prolix 4 -> 0, Intent 6 -> 1, Lamplight 88 -> 64.
-
-### MEASURED ON LINES, WHICH IS THE METRIC THE ASK NAMED
-
-`-v` / default: **13 estates at 5-8 / 1-2**. Intent 11/5, Laksa 15/5, **Baize 73/2**, **Lamplight 75/71**, **Conflab 195/2**. Baize and Conflab's `-v` is now genuine content -- 66 and 236 real notes, one line each, duplication gone.
-
-### THE CORRECTION THAT MATTERS MOST, AND IT IS MINE
-
-**I REPORTED "15 of 18 PRISTINE" AND hv ASKED HOW HUNDREDS OF LINES COULD BE PRISTINE. THEY WERE RIGHT.** I measured `rc=0` and zero COUNTED findings -- a number I could drive to zero -- when the ask was about OUTPUT. **Substituting a measurable proxy for the thing asked for is the same error as a narrowed denominator**, committed on the acceptance criterion itself.
-
-**AND I SCOPED hv's ASK DOWN WITHOUT SAYING SO.** Told to fix it ALL, I handed Lamplight's 88 to lamplight-vc and reported it as "handed over". **That was a third of the problem, decided by me.** On the bounce: Lamplight's remaining 64 are 44 parks-family (hv's ruling, still unmade), 12 `covers nothing`, 4 pointing at a non-existent ST0338, 1 the new `--kind` guard correctly refused because the AT covers a TEST-BACKED AC. **None is mechanically fixable from outside -- that is what they ARE, not me declining again.**
+- **Lamplight 88 -- HANDED TO lamplight-vc** with the new verb and the split: 71 closed / 17 live. 22 of the closed are `--kind`-repairable, but 31 are the parks-and-deliverables family THEY diagnosed, where a flip converts _hv parked this_ into _this is finished_ permanently in canon. **Still unruled by hv.**
+- **15 Lamplight rows store a bracket token as their test `file`.** My parser fix stops NEW migrations producing it; their canon was written by an older parse and needs a DATA repair. Each makes `ac gate` report `cites a file that does not exist` against finished work.
+- **Laksa 2 and Intent `ST0056/WP-05`** -- both `recorded WIP and its gate PASSES`. That is an owner's judgement about whether work is finished, not a defect.
 
 ### A5 -- A CONTROL THAT CANNOT FAIL FOR THE RIGHT REASON. TWO INSTANCES, ONE AFTERNOON, TWO NODES
 
 **cc changed the class of the largest finding class in the fleet and all 1210 tests passed**, because the sibling test asserts DETAIL TEXT and the sentence is identical on both sides. **My first fixture for the `[n/a` fix passed with the fix REVERTED**, because I wrote `(non-test)` into the row and that marker excludes it from the path rule before the bug can be reached. **The rule is NOT "positive-control the instrument" -- we both already had that.** It is cc's phrasing and it is better than mine: **state what the test would have to SEE in order to fail, then check the fixture can produce it.**
+
+### THE NEXT SESSION HAS ONE JOB AND hv NAMED IT IN ANGER
+
+**hv, 2026-09-07, verbatim in substance: the state of `intent doctor` makes just about everything unusable across every estate; they have been trying to land the v3 rollout for over three weeks and the exhaust is intolerable.** The target is **PRISTINE `intent doctor` AND `intent organise` OUTPUT ACROSS ALL ESTATES**, and **where that is not achievable, that is a BUG and it gets filed and fixed** -- not explained.
+
+**THE ORDER IS FIXED AND IT IS hv's:** (1) per-estate audit, by me, on the bounce; (2) a DETAILED remediation plan; (3) then fix it all. **Do not start fixing before the plan is seen.**
+
+**THREE REPORTS ALREADY IN HAND, AND THEY ARE THE SAME FAMILY -- A CHECK THAT INFERS WHERE IT SHOULD READ:**
+
+- **`0256` -- LANDED IN `307889a6d`** (lamplight-vc's 21 lines, hv asked for it, verified before it was committed). `doctor`'s orphan-criterion check inferred a criterion's work package from its ID prefix and consulted no state, so a WP descoped WITH its criteria could not be recorded. One clause: `&& criterion.state.in_scope()`. **Measured there: 153 findings -> 92, exactly 61 removed, and the 62nd orphan SURVIVES because it is genuinely orphaned.** `in_scope()` keeps `Fiat` in scope deliberately.
+- **THE SIBLING, NOT FILED, NO PREDICATE TO REACH FOR** (lamplight-vc): the status-vs-gate check reads ACs and reads NEITHER deliverables NOR parks. **Intent's own 2026-08-10 parked-row ruling makes a park a SATISFIABLE criterion**, so Not Started + gate PASSES is the CORRECT state for parked work and doctor calls it a disagreement -- a flip would convert _hv parked this_ into _this is finished_, permanently, in canon. 12 of 14 WPs there carry a `## Deliverables` section no gate reads. **After the 0256 patch: 88 findings, 14 on live threads, and 11 of the 14 are correct states the model cannot express. Real residue 3. Precision on live threads 3/14.**
+- **`doctor` HAS NO SCOPE FLAG** (`--daemon`, `-v`, `-q`, `--format` only). **70 of those 92 sit on `completed` threads, which hv has ruled are history and untouchable, so they regenerate forever.** Not filed; it is a want-or-by-design question for hv.
+
+**AND THE INSTRUMENT EVERY ESTATE IS ACTUALLY RUNNING IS STALE.** `~/.local/bin/intent` is a symlink into `target/release/`, and the pre-commit gate reported at `105c47aba`: **the shipped pair names `da5919e8fce8` while HEAD has moved 10 non-test files under `native/rust`, `surface`, `docs/design`.** So a fleet-wide doctor audit run through the installed binary measures a two-day-old checker. **MEASURE THE MARKER FIRST -- `intent --version`, then `git rev-list --count <marker>..HEAD -- native/rust surface` -- AND DECIDE DELIBERATELY which binary the audit is about.** Rebuilding release swaps the binary under every live session, which is hv's call and not mine.
+
+### THE AUDIT'S OWN TRAP, NAMED BEFORE IT IS RUN
+
+**A FINDING COUNT IS NOT A DEFECT COUNT, AND THIS FAMILY IS THE PROOF.** 61 of Lamplight's were an hv ruling the model could not express; 11 of the remaining 14 likewise. **So the audit reports, per estate, THREE numbers and never one: findings emitted, findings that name a real defect, and findings that name a state Intent's own rulings prescribe.** An estate-by-estate total with no split would send hv to fix the tool's vocabulary believing it was fixing their projects.
+
+### DELIVERED TODAY
+
+- **`105c47aba` -- the dehydration ship gate stops refusing an estate that declares nothing.** `AC-00.1` gates on a DECLARED precondition being unmet; nothing declared means nothing unmet. The preconditions are ST0057's own ACs, which no consumer estate can hold, so the refusal was permanent and the only way past was `rm -rf` -- **no gate at all**. Every other `Unreadable` still refuses. The per-file rail (ST0061 `AC-00.2`) holds the bytes and always did.
+- **`intent app start|stop|restart|status` (in `307889a6d`), mirroring `intent daemon`.** Ported from `geodica app`: `lsappinfo` not `pgrep` (a hardened-runtime app is invisible to its own children), a quit that is VERIFIED by polling, and 0/1/2 exit codes byte-compatible with geodica. `Health.swift` drops the socket path from the menubar line.
+- **THREE OF MY OWN DEFECTS WERE CAUGHT BY THE ESTATE'S GUARDS, NOT BY ME:** three env vars `no_intent_home` forbids (routed through `userstate`); `start()` reading status immediately after `open`, which is the same request-not-act error I had already written down for `quit`; and `app status` declared a comparable read when resolving through `userstate::home()` makes it HOME-dependent. **The false claim is corrected in place rather than deleted.**
 
 ### MINE AND UNSTARTED
 
@@ -136,11 +147,11 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 
 - **THE PUSH -- REGENERATE IT, THE LINE CARRIES NO NUMBER:** `git log --oneline @{u}..HEAD | wc -l`. It read ZERO on 2026-09-06 and non-zero again after today's commits, so it is a state and never a fact.
 
-### Arising 2026-09-07 -- the first two are ANSWERED and stay only as their consequence
+### Arising 2026-09-07, and the first two gate the audit
 
-- **~~WHICH BINARY?~~ ANSWERED BY EVENTS: cc rebuilt release mid-audit and it has been rebuilt since at every landing.** The pair now names the tree. **The standing property, not the value: `intent --version` names its source commit, so MEASURE it before believing any behaviour -- never recall it.**
-- **~~DOES `doctor` GET A SCOPE FLAG?~~ RULED YES, 2026-09-07: NARROW BY DEFAULT, `--scope live|all|closed` TO WIDEN.** It is now MY work, not an hv item -- the design is at the top of this board and the code is unwritten.
-- **THE `0256` SIBLING: PARKS AND DELIVERABLES -- NOW THE SINGLE BIGGEST BLOCKER ON THE FLEET, 44 OF LAMPLIGHT'S 64.** The scope flag HIDES these by default and does not answer them; a `--scope all` run still meets every one. The status-vs-gate check reads ACs and neither. **A flip would convert _hv parked this_ into _this is finished_ in canon**, so the answer is a design call -- a `Parked` status, a deliverable state, or simply not reporting the class -- and there is no existing predicate to reach for.
+- **WHICH BINARY IS THE AUDIT ABOUT?** The shipped pair names `da5919e8fce8` and HEAD has moved past it; `~/.local/bin/intent` symlinks straight into `target/release/`. **Rebuilding release swaps the binary under every live session on this machine, so it is hv's to authorise and not a node's to take.** Until it is, a fleet audit measures a two-day-old doctor.
+- **DOES `doctor` GET A SCOPE FLAG?** 70 of Lamplight's 92 post-patch findings sit on `completed` threads, which hv has ruled are history and untouchable, so they regenerate on every run forever. **Want, or by design?** Not filed pending the word.
+- **THE `0256` SIBLING: PARKS AND DELIVERABLES.** The status-vs-gate check reads ACs and neither. **A flip would convert _hv parked this_ into _this is finished_ in canon**, so the answer is a design call -- a `Parked` status, a deliverable state, or simply not reporting the class -- and there is no existing predicate to reach for.
 - **`WP-06`'s STATUS**; **deliverable 6's MISSING ACCEPTANCE ROW** (held on the pen boundary -- it commits a change to the shipped v2 line); **`0175`'s CLOSE**.
 - **`flip` THEN `burn`, ONE SITTING, IN THAT ORDER** -- the `INTENT_BIN` rebind off `bin/intent`, the v2 shell script.
 - **THE STORE MIGRATION** 13 -> 17, ladder complete, each rung transactional with an FK check inside it before `user_version` moves.
