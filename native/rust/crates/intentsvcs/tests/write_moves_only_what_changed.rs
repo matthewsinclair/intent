@@ -593,6 +593,41 @@ const MUTATE_BUT_WRITES_NOTHING: &[(&str, &str)] = &[
 /// address selects WHERE THE EXPLORER OPENS; the mutating path is still behind
 /// the terminal and still behind a keystroke. The reason survives the override
 /// intact, and the discharge condition above is unchanged by it.
+/// Verbs whose side effect is a PROCESS ON THIS MACHINE that no sandbox
+/// contains, so driving them here would act on the operator rather than on a
+/// fixture.
+///
+/// **THE GROUND IS THE SAME ONE [`NOT_CALLABLE_WITHOUT_A_TERMINAL`] STATES FOR
+/// `explore` -- _what it reaches is a HUMAN face on THIS machine_ -- BUT THAT
+/// BUCKET'S NAME IS NOT TRUE OF THESE.** They need no terminal and return
+/// perfectly well; a suite could call them, and that is exactly the problem.
+/// Putting them under a name about terminals would have made the roster read
+/// correctly and describe wrongly, which is the class this file exists to catch,
+/// so the bucket is new rather than the members bent to fit.
+///
+/// **AND MEMBERSHIP HERE CANNOT BE DRIVEN, WHICH IS THE POINT RATHER THAN AN
+/// EXCUSE.** `MUTATE_BUT_WRITES_NOTHING` requires its members be driven against
+/// the real binary; these cannot be, because the drive IS the harm. The same
+/// judgement is recorded against the same three verbs in the dispatch table's
+/// `populations.not_probed`, so the two rosters agree by reasoning rather than
+/// by coincidence.
+const REACHES_THE_OPERATORS_SESSION: &[(&str, &str)] = &[
+  (
+    "app start",
+    "launches Intent.app through LaunchServices by a FIXED bundle id. A tempdir $HOME does not \
+     scope it, so a probe would put a menubar app on the screen of whoever is running the suite.",
+  ),
+  (
+    "app stop",
+    "quits the operator's running Intent.app. `daemon stop` is drivable because a sandboxed probe \
+     stops a daemon under the tempdir it created; this reaches the real GUI session instead.",
+  ),
+  (
+    "app restart",
+    "both of the above in one verb, so it inherits both grounds.",
+  ),
+];
+
 const NOT_CALLABLE_WITHOUT_A_TERMINAL: &[(&str, &str)] = &[(
   "explore",
   "the TUI writes through the facade on Enter, and every route to that Enter needs a terminal this \
@@ -1089,6 +1124,10 @@ fn every_shipped_mutator_is_accounted_for() {
     .iter()
     .map(|(v, _)| *v)
     .collect();
+  let operators_session: Vec<&str> = REACHES_THE_OPERATORS_SESSION
+    .iter()
+    .map(|(v, _)| *v)
+    .collect();
 
   // **EVERY FIGURE IS AN INTERSECTION WITH `shipped`, AND THE LINE STATES ITS
   // OWN ARITHMETIC** (vc, 2026-08-20, who caught the old form contradicting the
@@ -1112,13 +1151,14 @@ fn every_shipped_mutator_is_accounted_for() {
       .filter(|v| bucket.contains(&v.as_str()))
       .count()
   };
-  let (d, e, o, u, w, t9, n) = (
+  let (d, e, o, u, w, t9, sess, n) = (
     tally(&driven),
     tally(&elsewhere),
     tally(&out_of_estate),
     tally(&unwired),
     tally(&writes_nothing),
     tally(&no_terminal),
+    tally(&operators_session),
     tally(UNPROVEN),
   );
   let unbucketed: Vec<&str> = shipped
@@ -1131,6 +1171,7 @@ fn every_shipped_mutator_is_accounted_for() {
         &unwired,
         &writes_nothing,
         &no_terminal,
+        &operators_session,
         &UNPROVEN.to_vec(),
       ]
       .iter()
@@ -1143,9 +1184,9 @@ fn every_shipped_mutator_is_accounted_for() {
     "verb coverage, derived from surface/dispatch-table.json:\n  \
      {} shipped mutator(s) = {d} driven here + {e} covered elsewhere + {o} out of estate \
      + {u} declared-but-unwired + {w} classified-mutate-but-writes-nothing \
-     + {t9} not-callable-without-a-terminal + {n} UNPROVEN = {}{}",
+     + {t9} not-callable-without-a-terminal + {sess} reaches-the-operators-session      + {n} UNPROVEN = {}{}",
     shipped.len(),
-    d + e + o + u + w + t9 + n,
+    d + e + o + u + w + t9 + sess + n,
     if unbucketed.is_empty() {
       String::new()
     } else {
@@ -1208,6 +1249,10 @@ fn every_shipped_mutator_is_accounted_for() {
         (
           "not-callable-without-a-terminal",
           no_terminal.contains(&verb.as_str()),
+        ),
+        (
+          "reaches-the-operators-session",
+          operators_session.contains(&verb.as_str()),
         ),
         ("UNPROVEN", UNPROVEN.contains(&verb.as_str())),
       ]

@@ -228,8 +228,19 @@ main() {
   # copy AHEAD of the working tree in the dispatcher's own search order, so every
   # edit to lib/ would stop taking effect and the test suite would go on passing
   # against the copy.
-  [ "$dstroot" = "$srcroot" ] &&
-    die "cannot install devbin into its own source tree ($srcroot)"
+  # ANY dev tree, not just THIS one. The comparison was `dstroot = srcroot`,
+  # which only catches installing a tree into itself -- and the harm above has
+  # nothing to do with the two being the same. Installing from the machine
+  # install into devbin's source tree has a different source and an identical
+  # consequence, and on 2026-09-07 it happened: bin/.devbin/lib/ and a manifest
+  # landed in the dev tree, past a guard that could not see them because the
+  # source was somewhere else.
+  if is_devbin_dev_tree "$dstroot"; then
+    die "cannot install devbin into a devbin SOURCE tree ($dstroot)
+       It runs lib/ in place (D12); a vendored copy would sit ahead of the
+       working tree in the search order and every edit to lib/ would stop
+       taking effect, with the suite still green against the copy."
+  fi
 
   # PUBLISH refuses an existing install and names `upgrade`; VENDOR refuses and
   # names `--force`. Same shape, different remedy -- and the shape is not new:

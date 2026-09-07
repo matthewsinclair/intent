@@ -97,7 +97,7 @@
     "`observed` records what v2 measurably does, at the revision stamped above. `target` records what v3 will do. They are separate fields because they genuinely differ, and a table that conflated them would launder a v2 defect into a v3 requirement -- which is the failure mode an output-equality parity suite cannot catch (parity.md, 'Parity properties beyond output equality').",
     "`target.state: pending-hv` is an honest blank, not an omission. hv ratified the `corrected` class at the 2026-08-14 bounce; WHICH v2 behaviours join it is a scope call still open. A guess recorded here would be indistinguishable from a ruling by the time WP-05 read it.",
     "Every claim carries an `evidence_class`, because 'verified' is not one thing. `measured` = a probe was run against v2 at the stamped revision. `documented-default` = a framework's published default, correct today and CHANGEABLE by a major bump or a single builder setting. `read` = taken from source without executing it. The distinction was forced by vc catching this file claiming clap's exit code was measured -- it cannot have been, since no clap dependency exists in the workspace yet. A documented default that goes unpinned is a finding with a silent expiry date.",
-    "`disposition` uses one vocabulary shared with the keep/retire/deviate register: `keep \u00b7 retire \u00b7 deviate \u00b7 pending` (vc ruling, 2026-08-14). `pending` is written explicitly and never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight. The payoff is that AC-05.3 (every unit classified, no unclassified rows) becomes mechanical: no row carries `pending` at close.",
+    "`disposition` uses one vocabulary shared with the keep/retire/deviate register: `keep · retire · deviate · pending` (vc ruling, 2026-08-14). `pending` is written explicitly and never expressed by omitting the field -- absence-as-meaning is un-greppable and reads as an oversight. The payoff is that AC-05.3 (every unit classified, no unclassified rows) becomes mechanical: no row carries `pending` at close.",
     "Entry-level `defects` reference an invariant by ID and add only the entry-specific locus (`where`). The rule text lives in exactly one place, the invariant. An entry that paraphrased it would be the divergent copy, in the artefact built to stop them.",
     "There is a FIFTH parity class, `undefined` (vc ruling, 2026-08-14, on `intent config` as its first member). `corrected` needs a v2 antecedent to correct; silence is not an antecedent. Where v2 exhibited NO behaviour at all, v3 is DESIGNING rather than porting or correcting, and that is a different decision needing a different reviewer. Folding it into `corrected` would hide a design decision inside a bug-fix class.",
     "Each family carries `bats_coverage`: how many test FILES exercise it through the dispatcher (`files_real`), how many name it but never reach the CLI (`files_vacuous`), and how many individual tests actually burn. Produced by `parity/tools/coverage_map.sh`, which joins these families against `burn-baseline.tsv`. The join is the point -- a naive grep reports `treeindex` as well covered when all 53 of its tests exec `bin/intent_treeindex` directly and the dispatcher never sees them. **A family with no burning coverage is a parity hole: v3 can change it freely and the conformance suite stays green.**",
@@ -7980,6 +7980,118 @@
           "recoverability_anomaly": "REVERSIBLE AND WITHHELD ANYWAY, AND THE WITHHOLD REASON IS NOT IRREVERSIBILITY. The MCP withhold list is derived from `recoverability` because the usual ground for keeping a mutation off the tool tier is that the surface cannot undo it -- and these three ARE undoable, each by a sibling. They are withheld because they are MACHINE-LEVEL PROCESS CONTROL, which is this family's own stated ground and the canonical example behind the exposure field existing at all. **The head row carried `one-way` while it was ONE ROW STANDING FOR FOUR VERBS, which is a label bent to make a derived number come out** (cc's words). A representation that must state something false for a mechanism to produce the right answer is the mechanism's defect, not the row's -- and the generator refusing the bent label rather than accepting it is that working. Splitting the family is what made each verb's real recoverability statable."
         }
       ]
+    },
+    {
+      "name": "app",
+      "help": "Manage the Intent menubar app on this machine",
+      "v2_source": null,
+      "v2_help_file": null,
+      "owner_wp": "WP-08",
+      "family_notes": [
+        "**NEW SURFACE, AND A FAMILY FOR `daemon`'s REASON RATHER THAN A `new_surface` ROW** (the precedent is recorded in that family's notes): a bare `values` list carries names and nothing else -- no per-verb help, no per-verb flags, and one `recoverability` for verbs whose answers differ. A child row under a `new_surface` head is never read by `spine::build`, which iterates `table.families`.",
+        "**THE ASYMMETRY THAT MADE THIS OWED: THIS MACHINE RUNS TWO LONG-LIVED THINGS AND ONLY ONE HAD LIFECYCLE VERBS.** `daemon` shipped `start|stop|status|run`; the menubar app shipped none, so its own menu offered *Stop intentd* and *Restart intentd* while offering nothing about itself, and an operator's only route was `killall` or the Finder. hv, 2026-09-07: *how do I stop/start/restart/status the intent menubar app?*",
+        "**PORTED FROM `geodica app` (../Gtools) ON hv's STANDING DIRECTIVE, NOT INVENTED**, and three specifics came across because they were paid for there: LaunchServices (`lsappinfo`) rather than `pgrep`, because a hardened-runtime app is invisible in the process table to its own children and a probe shelled from inside the bundle reports it dead; a graceful `osascript` quit that is then VERIFIED by polling, because a quit is a request and returning on delivery reports a stop that may not have happened; and a three-state exit code, 0 running / 1 installed-not-running / 2 not installed, kept byte-compatible with geodica so a script written against one tool reads the other.",
+        "`app status` is the only READ in the family and the only member whose exposure question is open -- exactly as `daemon status` is in its own."
+      ],
+      "entries": [
+        {
+          "path": "app",
+          "help": "Manage the Intent menubar app on this machine",
+          "args": [
+            {
+              "name": "command",
+              "type": "subcommand",
+              "arity": "1"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "basis": "ST0064. **THE HEAD ROW CARRIES THE `subcommand` ARG AND NO `values` KEY**, for the reason `daemon`'s head row records: in the families model the leaves ARE the child entries, so a `values` list here would be a second home for the roster, and its ABSENCE is what makes the bare command illegal rather than a default deciding it.",
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "note": "The family head dispatches and does nothing itself."
+          }
+        },
+        {
+          "path": "app start",
+          "help": "Start the Intent menubar app",
+          "args": [],
+          "flags": [],
+          "v2": "new-surface",
+          "basis": "ST0064. **`open` THROUGH LaunchServices, NEVER THE BUNDLE'S EXECUTABLE.** Executing `Contents/MacOS/Intent` starts a process with no GUI session registration and no menubar -- which is what the developer verb `bin/devbin macos app-run` is for, and deliberately not what this does. **ALREADY RUNNING IS SUCCESS AND NAMES THE PID**, for `daemon start`'s reason: the operator asked for a running app and there is one, and a script's second run must not break.",
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "note": "Withheld for `daemon`'s reason and it applies unchanged: this is machine-level process control over a GUI application, and an agent that can quit the operator's menubar app can remove the surface they are watching the agent through. `status` is the READ and the same candidate-for-exposure-on-a-ruling as `daemon status`; closed until then, because a wrongly-open row is the expensive direction."
+          },
+          "recoverability": "reversible",
+          "recoverability_anomaly": "REVERSIBLE AND WITHHELD ANYWAY, for `daemon`'s reason rather than for irreversibility: each verb is undone by a sibling, and the withhold is about an agent controlling the operator's own GUI session."
+        },
+        {
+          "path": "app stop",
+          "help": "Stop the Intent menubar app",
+          "args": [],
+          "flags": [],
+          "v2": "new-surface",
+          "basis": "ST0064. **A QUIT IS A REQUEST, SO THE STOP IS VERIFIED RATHER THAN ASSUMED.** `osascript ... to quit` returns as soon as the event is delivered; an app holding unsaved state can take a moment or refuse outright, so this polls for the pid to clear and REFUSES with the pid when it does not. Returning success on delivery is IN-AG-NO-SILENT-001 at its most literal. **NOT RUNNING IS SUCCESS**: the postcondition asked for holds, and it says which of the two happened.",
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "note": "Withheld for `daemon`'s reason and it applies unchanged: this is machine-level process control over a GUI application, and an agent that can quit the operator's menubar app can remove the surface they are watching the agent through. `status` is the READ and the same candidate-for-exposure-on-a-ruling as `daemon status`; closed until then, because a wrongly-open row is the expensive direction."
+          },
+          "recoverability": "reversible",
+          "recoverability_anomaly": "REVERSIBLE AND WITHHELD ANYWAY, for `daemon`'s reason rather than for irreversibility: each verb is undone by a sibling, and the withhold is about an agent controlling the operator's own GUI session."
+        },
+        {
+          "path": "app restart",
+          "help": "Restart the Intent menubar app",
+          "args": [],
+          "flags": [],
+          "v2": "new-surface",
+          "basis": "ST0064. **A STOPPED APP RESTARTS RATHER THAN REFUSING** -- someone typing `restart` at an app that is not running means start, and refusing would be correct about the word and useless about the intent. It goes through stop and then start rather than signalling the app to relaunch itself, so a WEDGED app is still recovered, which is the case the verb mostly exists for.",
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "mutate",
+          "mcp_review": {
+            "note": "Withheld for `daemon`'s reason and it applies unchanged: this is machine-level process control over a GUI application, and an agent that can quit the operator's menubar app can remove the surface they are watching the agent through. `status` is the READ and the same candidate-for-exposure-on-a-ruling as `daemon status`; closed until then, because a wrongly-open row is the expensive direction."
+          },
+          "recoverability": "reversible",
+          "recoverability_anomaly": "REVERSIBLE AND WITHHELD ANYWAY, for `daemon`'s reason rather than for irreversibility: each verb is undone by a sibling, and the withhold is about an agent controlling the operator's own GUI session."
+        },
+        {
+          "path": "app status",
+          "help": "Report whether the Intent menubar app is running, and where it is installed",
+          "args": [],
+          "flags": [],
+          "v2": "new-surface",
+          "basis": "ST0064. **THE EXIT CODE CARRIES THE STATE AND THERE ARE THREE OF THEM**: 0 running, 1 installed and not running, 2 not installed. The two non-zero answers have DIFFERENT REMEDIES -- start it versus build it -- and a boolean sends half the callers to the wrong one. **THE RUNNING BUNDLE IS AUTHORITATIVE OVER THE CANDIDATE LIST**: an app launched from a path this resolver would not have guessed is still the app that is running, and printing the guess would name a bundle the operator is not looking at.",
+          "target": {
+            "state": "new-surface"
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": false,
+          "read_or_mutate": "read",
+          "mcp_review": {
+            "note": "**CLOSED CONSERVATIVELY, THE QUESTION RECORDED RATHER THAN SETTLED**, exactly as `daemon status` is: the family's withhold reason is process control and does not name this row, which is a READ. A candidate for exposure on a ruling rather than on a reading of a sentence written about its siblings."
+          }
+        }
+      ]
     }
   ],
   "families_outstanding": [],
@@ -8739,7 +8851,7 @@
     {
       "id": "EXP-04",
       "title": "A `keep` disposition is honest about the SURFACE and silent about the SEMANTICS",
-      "detail": "vc, 2026-08-15, generalising from `st new -s|--start`. The whole disposition vocabulary -- `keep \u00b7 retire \u00b7 deviate \u00b7 corrected \u00b7 new-surface \u00b7 pending` -- classifies what happens to a COMMAND'S SURFACE. It has no way to say _the spelling, the flags and the observed behaviour are all unchanged, and the meaning moved anyway_. That is exactly what happened to `-s|--start`: it is v2 parity, its help text still matches, its v2 behaviour still matches, and **a ratified decision changed the state space underneath it** so that one transition became two. **Nothing in this file could have shown that**, and a reader scanning dispositions would have seen `keep` and moved on.",
+      "detail": "vc, 2026-08-15, generalising from `st new -s|--start`. The whole disposition vocabulary -- `keep · retire · deviate · corrected · new-surface · pending` -- classifies what happens to a COMMAND'S SURFACE. It has no way to say _the spelling, the flags and the observed behaviour are all unchanged, and the meaning moved anyway_. That is exactly what happened to `-s|--start`: it is v2 parity, its help text still matches, its v2 behaviour still matches, and **a ratified decision changed the state space underneath it** so that one transition became two. **Nothing in this file could have shown that**, and a reader scanning dispositions would have seen `keep` and moved on.",
       "why_it_will_recur": "The trigger is not a surface edit, which is what this table watches; it is a RATIFIED MODEL CHANGE landing elsewhere -- in `data-model.md`, in the state machines, in an enum collapse. So the invalidating act happens in a file this artefact does not read, performed by a node that is not editing this artefact. **Two more machines have already been ratified and WP-06's verbs are still landing**, so instance one is not instance last. It is the same structural shape as a hand-maintained roster going stale: the act that invalidates it is not the act that updates it.",
       "resolution": "**Deliberately NOT solved today, and vc explicitly did not ask for a mechanism.** Recorded here rather than left as a note in an inbox because an inbox entry gets archived and this section is read by anyone who reads the table -- and because the honest status of this exposure is _known, unprotected_, which is precisely what `known_exposures` exists to say. The cheap partial already in use: when a row's semantics move under a ruling, say so ON the row in its own field (`st new` now carries `start_flag_ruled` and `composition_constraint`), so the fact is at least greppable even though the disposition cannot carry it. If it recurs often enough to need a mechanism, the shape is a semantics stamp -- the ruling a row was last checked against -- and that is a contract decision for vc, not a renderer change."
     },
@@ -8996,6 +9108,18 @@
       {
         "path": "daemon start",
         "why": "leaves a process behind the probe -- `intent daemon start` detaches an `intentd` under `$HOME` and RETURNS, so a sandboxed probe exits cleanly and a live daemon stays running in the tempdir's home with nothing in the harness to reap it. It returns perfectly well, like `claude upgrade`; the ground is the side effect outliving the question, not the exit. Added with `daemon run` when the probe widened to every entry (ic, 2026-08-31)."
+      },
+      {
+        "path": "app start",
+        "why": "acts on the operator's REAL GUI session and no sandbox contains it. `daemon stop` is probeable because a probe under a tempdir `$HOME` stops a daemon in that tempdir; this verb reaches LaunchServices by a FIXED BUNDLE ID, so a probe would quit or relaunch the developer's actual menubar app on the machine running the suite. The ground is that the side effect escapes the sandbox, not that the verb fails to return -- it returns perfectly well, which is what makes it dangerous to drive blind. Do NOT copy `daemon`'s disposition here: the two families look alike and their probes do not."
+      },
+      {
+        "path": "app stop",
+        "why": "acts on the operator's REAL GUI session and no sandbox contains it. `daemon stop` is probeable because a probe under a tempdir `$HOME` stops a daemon in that tempdir; this verb reaches LaunchServices by a FIXED BUNDLE ID, so a probe would quit or relaunch the developer's actual menubar app on the machine running the suite. The ground is that the side effect escapes the sandbox, not that the verb fails to return -- it returns perfectly well, which is what makes it dangerous to drive blind. Do NOT copy `daemon`'s disposition here: the two families look alike and their probes do not."
+      },
+      {
+        "path": "app restart",
+        "why": "acts on the operator's REAL GUI session and no sandbox contains it. `daemon stop` is probeable because a probe under a tempdir `$HOME` stops a daemon in that tempdir; this verb reaches LaunchServices by a FIXED BUNDLE ID, so a probe would quit or relaunch the developer's actual menubar app on the machine running the suite. The ground is that the side effect escapes the sandbox, not that the verb fails to return -- it returns perfectly well, which is what makes it dangerous to drive blind. Do NOT copy `daemon`'s disposition here: the two families look alike and their probes do not."
       }
     ],
     "declared": [
@@ -9121,6 +9245,11 @@
       "daemon stop",
       "daemon status",
       "daemon run",
+      "app",
+      "app start",
+      "app stop",
+      "app restart",
+      "app status",
       "search",
       "sync",
       "schema",
@@ -9251,6 +9380,11 @@
       "daemon stop",
       "daemon status",
       "daemon run",
+      "app",
+      "app start",
+      "app stop",
+      "app restart",
+      "app status",
       "search",
       "sync",
       "schema",
@@ -9389,6 +9523,8 @@
       "daemon",
       "daemon stop",
       "daemon status",
+      "app",
+      "app status",
       "search",
       "sync",
       "schema",

@@ -138,6 +138,37 @@ EOF
 # infra_validate_profile -- PARSE-TIME rules only. Errors accumulate so one run
 # reports every fault rather than the first; a validator that stops at fault one
 # turns a five-minute fix into five runs.
+# infra_domain_pairs -- `<handle><TAB><fqdn>` for every domain in the LOADED
+# profile, one per line. THE one place that knows how a profile spells its
+# domains.
+#
+# Added 2026-09-07 with the cross-profile check, which needed the same walk.
+# Written as a shared function rather than a second loop because the shape it
+# encodes -- handle is the key, FQDN is a FIELD -- is exactly what the
+# documentation got wrong for the whole of 0.1.0, and two readers of it would be
+# two things to correct the next time it moves.
+#
+# A handle whose `name:` is missing is emitted with an EMPTY fqdn rather than
+# skipped: the validator reports that as an error, and a walk that dropped it
+# would hand every other caller a profile that looks smaller than it is.
+infra_domain_pairs() {
+  local h n
+  for h in $(cfg_list domains); do
+    n="$(cfg_get "domains.$h.name" 2>/dev/null || true)"
+    printf '%s\t%s\n' "$h" "$n"
+  done
+}
+
+#
+# SC2016 is suppressed for the function, not line by line, for the same reason
+# `bin/.devbin/cmd/release` suppresses it for its renderers: every message below
+# names a config KEY, and the delimiter this project writes a key in is the
+# backtick. Single quotes are correct here precisely because the contents must
+# NOT expand -- which is the thing shellcheck is warning about. Added 2026-09-07
+# after `check lint` was found red at HEAD: these two lines landed with WP-01 on
+# 2026-09-06 and CI could not have caught them, because CI runs on push and
+# nothing had been pushed since 2026-09-03.
+# shellcheck disable=SC2016
 infra_validate_profile() {
   local rc=0 handle fqdn other seen="" warn_out=""
   # Visibility BEFORE content: a key that never reached the cache cannot be

@@ -122,7 +122,7 @@ impl Route {
       Route::InProcess => &[
         Hazard::NeverReturns,
         Hazard::ReplacesTheImage,
-        Hazard::ActsOnTheRealHome,
+        Hazard::ActsOnAmbientUserState,
       ],
     }
   }
@@ -311,7 +311,15 @@ enum Hazard {
   /// a global mutation with no scope -- and `via_library` exists to prove the
   /// LIBRARY answers as the binary does, so a row whose subject is the machine
   /// rather than the project has nothing to compare in the first place.
-  ActsOnTheRealHome,
+  ///
+  /// **AND THE AMBIENT STATE IS NOT ALWAYS `$HOME`, WHICH IS WHY THIS IS NO
+  /// LONGER NAMED FOR IT.** The `app` family reaches the operator's GUI session
+  /// through LaunchServices by a fixed bundle id; no `HOME` scopes that, and the
+  /// rows were driven against a developer's real menubar app before they were
+  /// declared here. The title line above was always the contract -- *ambient
+  /// per-user state rather than the fixture root* -- and the identifier had
+  /// narrowed it to one mechanism.
+  ActsOnAmbientUserState,
 }
 
 /// What each row is known to do that a route may not survive.
@@ -332,8 +340,30 @@ const HAZARDS: &[(&str, &[Hazard])] = &[
   // developer's own. **`stop` looks harmless and is not**: driven in-process it
   // stops the daemon a peer session is using, from inside a test that appears
   // to be comparing exit codes.
-  ("daemon start", &[Hazard::ActsOnTheRealHome]),
-  ("daemon stop", &[Hazard::ActsOnTheRealHome]),
+  ("daemon start", &[Hazard::ActsOnAmbientUserState]),
+  ("daemon stop", &[Hazard::ActsOnAmbientUserState]),
+  // **THE SAME HAZARD BY A DIFFERENT ROUTE, AND IT WAS FOUND THE EXPENSIVE WAY.**
+  // These reach the operator's GUI session through LaunchServices by a FIXED
+  // bundle id, so no fixture `HOME` scopes them -- undeclared, this harness
+  // stopped and restarted a developer's real menubar app once per route. It
+  // surfaced as `app restart` answering 1 down one route and 0 down the other,
+  // which is a timing symptom of the real fault rather than a contract
+  // divergence: two restarts back to back, and the app cannot settle between
+  // them.
+  //
+  // **`app status` IS HERE TOO, AND THAT WAS NOT THE FIRST ANSWER.** This
+  // comment read *`app status` is deliberately NOT here -- it reads and is the
+  // arm worth comparing*, and the harness refuted it on the next run: binary 2,
+  // in-process 1. A READ is not automatically comparable. It resolves the build
+  // output through `userstate::home()`, so under `via_binary`'s fixture `HOME`
+  // it correctly reports `not installed` while `via_library` finds the real
+  // bundle under the developer's own -- **both answers right, about two
+  // different machines.** The hazard is the SUBJECT being ambient, not the verb
+  // being a mutation.
+  ("app start", &[Hazard::ActsOnAmbientUserState]),
+  ("app stop", &[Hazard::ActsOnAmbientUserState]),
+  ("app restart", &[Hazard::ActsOnAmbientUserState]),
+  ("app status", &[Hazard::ActsOnAmbientUserState]),
   (
     "daemon run",
     &[Hazard::NeverReturns, Hazard::ReplacesTheImage],

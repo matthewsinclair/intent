@@ -19,6 +19,7 @@ use intentsvcs::facade::{
   EventFilter, Exported, Facade, FacadeContext, FacadeError, ListEdit, Note, Outcome,
 };
 use intentsvcs::launchagent;
+use intentsvcs::macapp;
 use intentsvcs::model::{
   self, AcKind, AtKind, AtStatus, IssueStatus, TShirt, ThreadStatus, enum_str,
 };
@@ -104,6 +105,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), Failure> {
     Some(("fc", m)) => fc(m),
     Some(("surface", m)) => surface(m),
     Some(("daemon", m)) => daemon(m),
+    Some(("app", m)) => app(m),
     Some(("graphql", m)) => graphql(m),
     // Serves until the MCP host closes stdin -- the row's `not_probed`
     // exemption describes exactly this, in the built tense.
@@ -6003,6 +6005,104 @@ fn daemon(m: &ArgMatches) -> Result<(), Failure> {
     Some(("status", sm)) => daemon_status(sm),
     Some((verb, _)) => unwired("daemon", verb),
     None => unwired("daemon", ""),
+  }
+}
+
+/// `intent app` -- the CLI owns the menubar app's lifecycle, exactly as it owns
+/// the daemon's.
+///
+/// **THE TWO LONG-RUNNING THINGS ON THIS MACHINE NOW HAVE THE SAME FOUR VERBS.**
+/// Until this landed, `daemon` had `start`/`stop`/`status` and the app had none,
+/// so the app's own menu offered *Stop intentd* and *Restart intentd* with no
+/// way to say either about itself, and an operator's only route was `killall`.
+/// The asymmetry was the defect; the mechanics were ported from `geodica app`
+/// (../Gtools) on hv's standing directive rather than reinvented.
+fn app(m: &ArgMatches) -> Result<(), Failure> {
+  match m.subcommand() {
+    Some(("start", _)) => app_start(),
+    Some(("stop", _)) => app_stop(),
+    Some(("restart", _)) => app_restart(),
+    Some(("status", _)) => app_status(),
+    Some((verb, _)) => unwired("app", verb),
+    None => unwired("app", ""),
+  }
+}
+
+fn app_start() -> Result<(), Failure> {
+  // **ALREADY RUNNING IS SUCCESS AND SAYS SO**, for `daemon start`'s reason: the
+  // operator asked for a running app and there is one, and a script's second run
+  // must not break. Naming the pid is what stops that silently covering an app
+  // nobody meant to leave up.
+  match macapp::start().map_err(|e| Failure::Error(e.to_string()))? {
+    macapp::State::Running { pid, bundle } => {
+      println!(
+        "ok: Intent.app is running (pid {pid}) from {}",
+        bundle.display()
+      );
+      Ok(())
+    }
+    // `open` returned without a process appearing. Reported rather than assumed
+    // successful -- the launch is a request like the quit is.
+    other => Err(Failure::Error(format!(
+      "asked LaunchServices to open Intent.app and no process appeared -- {}",
+      match other {
+        macapp::State::Installed { bundle } =>
+          format!("the bundle at {} did not start", bundle.display()),
+        _ => "no bundle was found afterwards".to_string(),
+      }
+    ))),
+  }
+}
+
+fn app_stop() -> Result<(), Failure> {
+  match macapp::stop().map_err(|e| Failure::Error(e.to_string()))? {
+    Some(pid) => println!("ok: Intent.app stopped (was pid {pid})"),
+    // **NOT AN ERROR, AND NOT SILENT EITHER.** The postcondition the operator
+    // asked for holds. Saying which of the two happened is what `daemon stop`
+    // does and what stops `stopped` meaning two things.
+    None => println!("ok: Intent.app is not running"),
+  }
+  Ok(())
+}
+
+fn app_restart() -> Result<(), Failure> {
+  let state = macapp::restart().map_err(|e| Failure::Error(e.to_string()))?;
+  match state {
+    macapp::State::Running { pid, bundle } => {
+      println!(
+        "ok: Intent.app restarted (pid {pid}) from {}",
+        bundle.display()
+      );
+      Ok(())
+    }
+    _ => Err(Failure::Error(
+      "Intent.app was stopped and did not come back -- `intent app start` to see why".to_string(),
+    )),
+  }
+}
+
+/// **THE EXIT CODE CARRIES THE STATE, WHICH IS WHY THERE ARE THREE OF THEM.**
+/// `0` running, `1` installed and not running, `2` not installed -- geodica's
+/// convention, kept deliberately so a script written against one tool reads the
+/// other. The two non-zero answers have different remedies (start it versus
+/// build it), and a boolean would send half the callers to the wrong one.
+fn app_status() -> Result<(), Failure> {
+  match macapp::status() {
+    macapp::State::Running { pid, bundle } => {
+      println!("ok: Intent.app is running (pid {pid}) from {}", bundle.display());
+      Ok(())
+    }
+    macapp::State::Installed { bundle } => {
+      println!(
+        "Intent.app is installed at {} and is not running",
+        bundle.display()
+      );
+      println!("  remedy: `intent app start`");
+      Err(Failure::Verdict)
+    }
+    macapp::State::NotInstalled => Err(Failure::Unavailable(
+      "Intent.app is not built or installed on this machine -- `bin/devbin macos app-build` builds it, `bin/devbin macos app-install` installs it to /Applications".to_string(),
+    )),
   }
 }
 

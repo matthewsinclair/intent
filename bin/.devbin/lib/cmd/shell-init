@@ -44,6 +44,10 @@ set -uo pipefail
 # left `check lint` red on a clean tree.
 # shellcheck source=lib/helpers
 . "$DEVBIN_LIB/helpers"
+# shellcheck source=lib/config
+. "$DEVBIN_LIB/config"
+# shellcheck source=lib/install
+. "$DEVBIN_LIB/install"
 
 _shell_init_usage() {
   cat <<USAGE
@@ -133,17 +137,77 @@ dvb() {
     print -u2 "dvb: DEVBIN_SOURCE is set to '$DEVBIN_SOURCE' but $src is not there."
     return 127
   fi
-  print -u2 "dvb: no bin/devbin found from $PWD upward. Looked in:"
+  # THE MACHINE INSTALL, and it is why `dvb` outside any project is not an
+  # error any more. It answers what devbin is installed and it can seed a new
+  # project; every project verb still refuses, because an install has no
+  # project. Last in the order on purpose: a project's own launcher and an
+  # explicit DEVBIN_SOURCE both outrank it, so this can never shadow either.
+  local prefix=${DEVBIN_INSTALL_PREFIX:-@@DEVBIN_INSTALL_PREFIX@@}
+  if [[ -x $prefix/bin/devbin ]]; then
+    "$prefix/bin/devbin" "$@"
+    return $?
+  fi
+  print -u2 "dvb: no bin/devbin found from $PWD upward, and no machine install at $prefix. Looked in:"
   print -u2 -l "  ${^tried[@]}"
-  print -u2 "dvb: to bootstrap a project that has no devbin yet, set DEVBIN_SOURCE to a devbin checkout."
+  print -u2 "dvb: publish one with 'bin/devbin install' inside devbin, or set DEVBIN_SOURCE to a devbin checkout."
   return 127
 }
 BODY
 }
 
+# _shell_init_prefix -- the machine install's location, for the emitted body.
+#
+# AN INSTALL KNOWS ITS OWN PREFIX WITHOUT BEING TOLD: it IS the prefix, so when
+# this runs from one the answer is PROJECT_ROOT and no config is consulted.
+# That matters because an install deliberately has no config.yaml, so asking
+# `install_prefix_configured` there would fall through to a default -- and a
+# baked default is the thing being removed.
+_shell_init_prefix() {
+  if [ "$(manifest_field "$PROJECT_ROOT" kind 2>/dev/null || true)" = install ]; then
+    printf '%s\n' "$PROJECT_ROOT"
+    return 0
+  fi
+  install_prefix_configured
+}
+
 cmd_shell_init() {
   case "${1:-}" in
-    zsh) _shell_init_zsh ;;
+    # THE PREFIX IS SUBSTITUTED, NOT INTERPOLATED. The body heredoc is quoted
+    # so that $PWD, $@ and ${^tried[@]} survive generation verbatim -- the exact
+    # trap `lib/cmd/infra` fell into by unquoting one -- so the one value that
+    # DOES need to come from config travels as a placeholder and is replaced
+    # here. `install_prefix_configured` stays its only source.
+    zsh)
+      case "${2:-}" in
+        --autoload)
+          # THE AUTOLOAD FORM, and it exists because the eval form could not
+          # reach the one person already using it. hv's `dvb` is an autoload
+          # BODY at config/zsh/functions/dvb -- no `dvb() {` wrapper, because
+          # zsh's autoload takes the body alone -- hand-copied on 2026-08-27
+          # from the snippet this command replaced. The generated definition
+          # cannot be pasted into that file: it would define a function inside
+          # a function. So every fix made here since has been undeliverable to
+          # the setup that reported the bug, which is precisely the failure the
+          # README records this command as having FIXED.
+          # SC2016 disabled for this pipeline: the sed replacement names a
+          # COMMAND in backticks and must NOT expand -- which is the very thing
+          # being warned about here, and the thing that is wanted.
+          #
+          # NB: no comment line above may BEGIN with the linter's own name, or
+          # it is parsed as a malformed directive (SC1073) and takes the real
+          # one below down with it. Measured, 2026-09-07.
+          # shellcheck disable=SC2016
+          _shell_init_zsh |
+            sed -e '/^dvb() {$/d' -e '/^}$/d' -e 's/^  //' \
+              -e 's|^# Emitted by .*|# Emitted by `devbin shell-init zsh --autoload` -- do not edit; re-run it instead.|' |
+            sed "s|@@DEVBIN_INSTALL_PREFIX@@|$(_shell_init_prefix)|g"
+          ;;
+        "")
+          _shell_init_zsh | sed "s|@@DEVBIN_INSTALL_PREFIX@@|$(_shell_init_prefix)|g"
+          ;;
+        *) die "shell-init zsh: unknown option '$2' (try: --autoload)" ;;
+      esac
+      ;;
     "" | -h | --help)
       _shell_init_usage
       [ -n "${1:-}" ] || return 2

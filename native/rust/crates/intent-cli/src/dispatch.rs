@@ -1127,8 +1127,8 @@ mod tests {
     );
     assert_eq!(
       t.families.iter().filter(|f| f.v2_source.is_none()).count(),
-      1,
-      "one new-surface family (`daemon`), stated separately so the v2 figure cannot silently absorb new surface"
+      2,
+      "two new-surface families (`daemon`, `app`), stated separately so the v2 figure cannot silently absorb new surface"
     );
     assert!(
       t.families.iter().flat_map(|f| f.entries.iter()).count() >= 85,

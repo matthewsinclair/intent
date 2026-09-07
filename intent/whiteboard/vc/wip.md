@@ -2,10 +2,10 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: de387da0-feeb-49d4-ab72-9a0c46bb5fc7
+session_id: 945027b0-be6d-43c4-a6f7-1349cb9ca0c1
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-06 00:35Z
-status: paused
+heartbeat_at: 2026-09-06 14:33Z
+status: active
 focus: "RELEASED 2026-09-06 00:35Z. Localfold e8527905, GLOBAL FOLD cba3fe95 over all four boards. THE BEST FINDING OF THE DAY IS IN THE BOOT DOCUMENTS: intent/wip.md said the scope question was UNANSWERED for two days after hv answered it, while the answer sat verbatim in intent/restart.md including I have said it about 20 times now -- and .claude/restart.md orders wip.md FIRST, so a node booting CORRECTLY met the stale half. Struck. FIRST THING TOMORROW: ask the three nodes, do not read their state here; measure how far the shipped pair is behind the tree (NINE at the fold); run the gate, never transcribe it. hv items is the restart list and ST0065s three rulings lead it -- ic has had nothing startable for two days. AC-03.1/03.2 are HELD on laksa-vc and THE PING IS MINE TO INITIATE, not theirs. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 ---

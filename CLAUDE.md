@@ -27,7 +27,18 @@ Canon narrative on how AGENTS.md + CLAUDE.md + usage-rules.md + hooks + critics 
 
 ## Rules of the road
 
-The four cross-language principles -- Highlander, PFIC, Thin Coordinator, No Silent Errors -- are stated in `AGENTS.md` under "Rules of the Road", with their rule IDs. **They are not restated here**: AGENTS.md is the tool-agnostic contract and this file is the Claude-specific overlay, so a second copy would be a Highlander violation in the document that defines the rule.
+Four cross-language principles govern all Intent projects. Every language pack concretises them; the critics enforce them.
+
+- **Highlander** (`IN-AG-HIGHLANDER-001`) -- there can be only one; no divergent copies of the same concern.
+- **PFIC** (`IN-AG-PFIC-001`) -- Pure Function, Impure Coordination. Read it with `intent claude rules show IN-AG-PFIC-001`.
+- **Thin Coordinator** (`IN-AG-THIN-COORD-001`) -- coordinators parse to call to render; business logic lives elsewhere.
+- **No Silent Errors** (`IN-AG-NO-SILENT-001`) -- every failure surfaces; rescue-and-swallow is forbidden.
+
+**THIS INDEX IS ALSO IN `AGENTS.md`, DELIBERATELY, AND A DRIFT TEST HOLDS THE TWO BYTE-IDENTICAL.** This section used to say the four were stated in `AGENTS.md` and **not restated here**, on the grounds that a second copy would be a Highlander violation in the document that defines the rule. That reasoning was sound and its outcome was wrong: **`AGENTS.md` is the one file the Claude Code agent never receives**, and it does not exist at all in a fresh project until `intent agents sync` runs -- so the pointer could not land for this file's own primary reader.
+
+**HIGHLANDER GOVERNS IMPLEMENTATIONS, NOT INDEXES, AND THE TEST IS WHAT MAKES THE COPY LEGITIMATE.** The rule BODIES live in the rule library and are served by `intent claude rules show <id>`; there is exactly one of each and that is untouched. What is duplicated here is a table of contents pointing at them. **A copy that cannot silently diverge is not the failure mode Highlander names** -- drift is -- so the duplication is held by a test rather than by discipline.
+
+**AND THE HONEST LIMIT, MEASURED RATHER THAN ASSUMED: THE THIRD HOME IS `in-standards/SKILL.md`, NOT `usage-rules.md`.** Driven 2026-09-04: `usage-rules.md` names the four principles in passing -- a skill description, a pointer to the rules directory, a rule-id format example -- and carries no index of them; the `_usage-rules.md` template carries nothing at all. **`intent/plugins/claude/skills/in-standards/SKILL.md` does carry a real index**, all four ids with slugs, as a TABLE. It cannot join a byte-identity test because it is a different RENDERING by design, not a copy of these bytes, and it reaches installed projects through `intent claude skills sync` rather than through `claude upgrade --apply`. **So this arrangement takes two of three homes into a tested pair and leaves one declared exception whose divergence is intended. It does not reach zero and does not claim to.**
 
 Read any of them with `intent claude rules show <id>` (`intent claude rules list` to enumerate, `--lang <lang>` to filter).
 

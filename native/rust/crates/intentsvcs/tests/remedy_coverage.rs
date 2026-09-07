@@ -40,6 +40,7 @@ fn proofs() {
   implements::<intentsvcs::ingest::IngestError>();
   implements::<intentsvcs::install::InstallError>();
   implements::<intentsvcs::launchagent::LaunchAgentError>();
+  implements::<intentsvcs::macapp::AppError>();
   implements::<intentsvcs::event::JsonlError>();
   implements::<intentsvcs::output::OutputError>();
   implements::<intentsvcs::plugins::PluginError>();

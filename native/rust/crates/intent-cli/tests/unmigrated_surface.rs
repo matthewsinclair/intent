@@ -72,6 +72,14 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     "doctor" => Some("reports the migration as a finding rather than refusing"),
     // Stdio and socket servers: wiring these later must not hang this test.
     "mcp" | "daemon" => Some("long-running servers -- excluded by construction"),
+    // **NOT `daemon`'s REASON, THOUGH IT SITS BESIDE IT.** This is not a
+    // long-running server; it is a client of one. The ground is SCOPE: every
+    // verb here asks LaunchServices about a bundle on this MACHINE and never
+    // opens the estate, so there is no project for it to answer wrongly about
+    // -- `intent app status` gives the same answer inside a migrated project,
+    // an unmigrated one, and a bare directory, because none of the three is
+    // its subject.
+    "app" => Some("machine-level app lifecycle -- never reads the estate"),
     "version" | "info" | "help" => Some("tool-level, not project-level"),
     // The agent guide is generated from the dispatch table compiled into this
     // binary -- the same category as `schema`, and verified rather than

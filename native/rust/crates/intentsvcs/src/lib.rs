@@ -71,6 +71,7 @@ pub mod install;
 pub mod intentfiles;
 pub mod launchagent;
 pub mod legacy;
+pub mod macapp;
 pub mod migrate;
 pub mod model;
 pub mod modules;

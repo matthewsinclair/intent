@@ -38,15 +38,28 @@ set -euo pipefail
 # shellcheck source=lib/infra
 . "$DEVBIN_LIB/infra"
 
+# THE HEREDOC IS UNQUOTED SO $DEVBIN_NAME RENDERS, AND $DEVBIN_INFRA_PROFILE IS
+# ESCAPED SO IT DOES NOT. Both halves are load-bearing and the second is the one
+# that bites: unquoting alone substitutes the env var too, which is unset, so the
+# help silently drops a resolution step and prints `--profile <path>, ,
+# ./infra.yaml`. Measured on 2026-09-07 before this edit, not reasoned about.
+#
+# Why the literal was here at all: inside this repository $DEVBIN_NAME IS
+# `devbin`, so the hardcoded form and the rendered form are byte-identical and
+# nothing here could tell them apart. In Lamplight the dispatcher is `lamplight`
+# and `devbin` resolves to nothing, so this block told the reader to type a
+# command that does not exist -- while this command's OWN children, infra.d/mail
+# and infra.d/mail.d/dmarc, already rendered the name correctly. Found on the
+# first run of `infra` in a consuming estate.
 usage() {
-  cat <<'USAGE'
-usage: devbin infra <verb> [--profile <path>]
+  cat <<USAGE
+usage: $DEVBIN_NAME infra <verb> [--profile <path>]
 
   show     print the resolved profile and where it was found
   check    verify live DNS, mail and runtime against the profile
 
 The profile is searched for in this order, and a miss names every path:
-  --profile <path>, $DEVBIN_INFRA_PROFILE, ./infra.yaml, ~/.config/devbin/infra.yaml
+  --profile <path>, \$DEVBIN_INFRA_PROFILE, ./infra.yaml, ~/.config/devbin/infra.yaml
 USAGE
 }
 
@@ -68,7 +81,7 @@ case "$verb" in
     # Sub-families (mail, dns, runtime) are routed by devbin's own `.d/`
     # dispatch before ever reaching here, so an unknown verb at this point is
     # genuinely unknown rather than merely unrouted.
-    die "infra: unknown verb \`$verb\` (try: devbin infra --help)"
+    die "infra: unknown verb \`$verb\` (try: $DEVBIN_NAME infra --help)"
     ;;
 esac
 
@@ -102,8 +115,14 @@ case "$verb" in
         printf 'infra: %s unreviewed deviation(s) in the profile. Refusing to check.\n' \
           "$(printf '%s\n' "$unrev" | grep -c .)"
         printf '%s\n' "$unrev" | sed 's/^/  /'
-        printf '\nEach was proposed by `init` and not yet ratified. Delete the key to\n'
-        printf 'accept the deviation, or edit the target to fix it.\n'
+        # NOT "proposed by `init`", which is what this said until 2026-09-07:
+        # `infra` accepts show|check and there is NO init verb, so the sentence
+        # named a command the tool refuses, in the same breath as refusing. It
+        # also carried the only SC2016 breach left in the tree once lib/infra's
+        # was suppressed -- one line, two faults, and the lint one is what made
+        # anybody look at the sentence.
+        printf '\nEach is a deviation the profile records and nobody has ratified.\n'
+        printf 'Delete the key to accept the deviation, or edit the target to fix it.\n'
       } >&2
       exit 1
     fi

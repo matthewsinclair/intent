@@ -145,6 +145,40 @@ pub fn daemon_state_dir() -> Result<PathBuf, UserStateError> {
   Ok(daemon_state_dir_under(&home()?))
 }
 
+/// Where `bin/devbin macos app-build` leaves the built `Intent.app` bundles.
+///
+/// **IT LIVES HERE BECAUSE THIS IS THE ONE MODULE ALLOWED TO ASK WHERE HOME
+/// IS** (`AC-11.3`, enforced by `no_intent_home.rs`). `macapp.rs` wanted the
+/// path and read `$HOME`, `$XDG_STATE_HOME` and `$INTENT_MACOS_STATE_DIR` to
+/// get it; the guard refused all three and its instruction was to route through
+/// this module rather than to add rows to an allowlist. **The env overrides are
+/// deliberately NOT carried across**: they are a developer convenience in the
+/// devbin verb, and a shipped binary meeting a brew install on a machine with
+/// no clone must not have its answer depend on a variable only a developer sets.
+///
+/// Mirrors `APP_STATE_DIR` in `bin/.devbin/cmd/macos`. **That is a second home
+/// for this layout and it is not one this module can close**: the builder is a
+/// shell verb and the reader is Rust, so they cannot share a constant. What
+/// keeps them honest is that a disagreement makes `intent app status` report
+/// `not installed` on a machine that has just built the app -- loud, and on the
+/// verb whose whole subject is where the bundle is.
+pub fn macos_app_build_dir() -> Result<PathBuf, UserStateError> {
+  Ok(macos_app_build_dir_under(&home()?))
+}
+
+/// [`macos_app_build_dir`]'s layout, against any root -- the same split, for
+/// the same reason.
+pub fn macos_app_build_dir_under(root: &std::path::Path) -> PathBuf {
+  root
+    .join(".local")
+    .join("state")
+    .join("intent")
+    .join("build")
+    .join("macos")
+    .join("Build")
+    .join("Products")
+}
+
 /// [`daemon_state_dir`]'s layout, against any root.
 ///
 /// **THE SPLIT `install.rs` USES, AND FOR THE REASON THIS MODULE ALREADY GIVES

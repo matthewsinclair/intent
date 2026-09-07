@@ -94,9 +94,30 @@ case "${1:-}" in
   #                  shell rc where the cwd is $HOME by definition.
   # Everything else writes to or reports on PROJECT_ROOT, `upgrade` and `vendor`
   # included -- their `--from` names a SOURCE, not a target.
-  install | shell-init) _devbin_wrong_tree_check=no ;;
+  #   -v/--version/version, and the same behind the framework word `devbin`
+  #               -- from an INSTALL these report what devbin is installed, and
+  #                  an install has no project for the guard to protect.
+  install | shell-init | -v | --version | version) _devbin_wrong_tree_check=no ;;
+  devbin) case "${2:-}" in -v | --version | version) _devbin_wrong_tree_check=no ;; *) _devbin_wrong_tree_check=yes ;; esac ;;
   *) _devbin_wrong_tree_check=yes ;;
 esac
+# AN INSTALL TREE IS EXEMPT FROM THIS GUARD ENTIRELY, because it has no project
+# for the guard to protect and a better refusal waiting for it further down.
+#
+# `dvb` now falls back to the machine install when the walk finds nothing, so
+# running a PROJECT verb from outside any project reaches an install tree by
+# design. Without this, the answer was "refusing to run -- this is not your
+# current project", naming ~/Devel/opt/devbin as the project it belongs to,
+# which is both confusing and false. The install-tree refusal says what is
+# actually true and names `install --into` and `upgrade --from`.
+#
+# The manifest line is read inline rather than through `manifest_field`: this
+# guard deliberately runs BEFORE lib/helpers is sourced, so that helper does not
+# exist yet. One grep for the line that function would return.
+if [ "$_devbin_wrong_tree_check" = yes ] &&
+  grep -q '^# kind: install$' "$PROJECT_ROOT/bin/.devbin/manifest.sha256" 2>/dev/null; then
+  _devbin_wrong_tree_check=no
+fi
 if [ "$_devbin_wrong_tree_check" = yes ]; then
   _devbin_cwd="$(pwd -P 2>/dev/null || pwd)"
   case "$_devbin_cwd" in
@@ -152,18 +173,89 @@ unset _devbin_wrong_tree_check
 # read rather than the absence being inferred, which is why that line exists.
 if [ ! -f "$DEVBIN_DIR/config.yaml" ]; then
   if [ "$(manifest_field "$PROJECT_ROOT" kind 2>/dev/null || true)" = install ]; then
-    {
-      printf 'devbin: this is a devbin INSTALL, not a project -- it cannot be run from.\n\n'
-      printf '  installed at:  %s\n' "$PROJECT_ROOT"
-      printf '  vendored from: %s\n' "$(manifest_field "$PROJECT_ROOT" source_commit 2>/dev/null || printf 'unrecorded')"
-      printf '\nUse it as a SOURCE from inside a project:\n'
-      printf '  cd <your project> && bin/devbin upgrade --from %s\n' "$PROJECT_ROOT"
-    } >&2
-    exit 3
+    # `install` IS EXEMPT, because SEEDING A PROJECT IS WHAT AN INSTALL IS FOR.
+    #
+    # The refusal below shipped without this exemption and made the install
+    # useless for the one job it exists to do: a project with no devbin yet
+    # could not be seeded from it, and the only two paths that DID work were
+    # both wrong. Installing from the dev tree delivers whatever that tree is
+    # mid-development, which is generally AHEAD of the published install and so
+    # ahead of every estate. (No version numbers here on purpose: naming the
+    # current one dates the comment, and documentation.bats refuses it.)
+    # Installing from
+    # another consumer delivers the right bytes and then records THAT
+    # consumer's git HEAD as `source_commit`, which names a commit in an
+    # unrelated repository and does not exist in devbin's history at all.
+    #
+    # Installing FROM THE INSTALL is the only path that gets both halves right:
+    # the fleet's exact bytes, and a `source_commit` forwarded out of the
+    # install's own manifest by `source_commit_of`. Blocking it left no correct
+    # way to onboard a project.
+    #
+    # `$1` rather than `$command`, which is not bound until much further down.
+    #
+    # Everything except `install` is still refused: the absent project half is
+    # what makes this an install, and every other verb would act on the wrong
+    # tree.
+    #
+    # NOT ALSO REQUIRING `--into`, though a first cut did. `--into` defaults to
+    # the cwd, and that default is CORRECT for the documented bootstrap -- the
+    # `DEVBIN_SOURCE` fallback in `shell-init` runs `install` from inside the new
+    # project precisely so the cwd is the target. The real hazard is narrower
+    # than the flag: a devbin DEV TREE as the target, which `lib/cmd/install`
+    # now refuses outright. Guarding the harm beats guarding one route to it.
+    # AN INSTALL CAN ANSWER QUESTIONS ABOUT DEVBIN. It cannot answer questions
+    # about a project, because it has none -- which is the whole distinction the
+    # refusal below draws, and reporting its own version does not cross it.
+    #
+    # Answered HERE rather than by lib/cmd/version, deliberately. That handler
+    # reads a project's VERSION file and its declared sidecars; in an install
+    # there is neither, so routing to it would produce `unknown` from a tree
+    # that knows the answer perfectly well -- the manifest records it. The
+    # framework word `devbin` is stripped first so all four spellings hv tried
+    # land here: `version`, `--version`, `devbin version`, `devbin --version`.
+    _devbin_vq="${1:-}"
+    if [ "$_devbin_vq" = devbin ]; then _devbin_vq="${2:-}"; fi
+    case "$_devbin_vq" in
+      -v | --version | version)
+        printf 'devbin %s (%s)\n  install: %s\n' \
+          "$(manifest_field "$PROJECT_ROOT" devbin_version 2>/dev/null || printf 'unknown')" \
+          "$(manifest_field "$PROJECT_ROOT" source_commit 2>/dev/null || printf 'unrecorded')" \
+          "$PROJECT_ROOT"
+        exit 0
+        ;;
+    esac
+    unset _devbin_vq
+
+    # `shell-init` is exempt for the same reason the wrong-tree guard exempts it:
+    # it emits a static shell function to stdout, reads nothing from
+    # PROJECT_ROOT and writes nothing. Missed on the first cut, and it was the
+    # one verb hv needed from the install -- regenerating `dvb` so the fallback
+    # to the install exists at all. An install that cannot emit the function
+    # that finds it is a bootstrap that cannot bootstrap.
+    case "${1:-}" in
+      install | shell-init) _devbin_install_ok=yes ;;
+      *) _devbin_install_ok=no ;;
+    esac
+    if [ "$_devbin_install_ok" = no ]; then
+      {
+        printf 'devbin: this is a devbin INSTALL, not a project -- it cannot be run from.\n\n'
+        printf '  installed at:  %s\n' "$PROJECT_ROOT"
+        printf '  vendored from: %s\n' "$(manifest_field "$PROJECT_ROOT" source_commit 2>/dev/null || printf 'unrecorded')"
+        printf '\nTo SEED a project that has no devbin yet:\n'
+        printf '  %s/bin/devbin install --into <your project>\n' "$PROJECT_ROOT"
+        printf '\nTo UPGRADE a project that already has one:\n'
+        printf '  cd <your project> && bin/devbin upgrade --from %s\n' "$PROJECT_ROOT"
+      } >&2
+      exit 3
+    fi
+    unset _devbin_install_ok
+  else
+    die "no config at $DEVBIN_DIR/config.yaml (try: devbin install)"
   fi
-  die "no config at $DEVBIN_DIR/config.yaml (try: devbin install)"
+else
+  cfg_load "$DEVBIN_DIR/config.yaml" || exit 1
 fi
-cfg_load "$DEVBIN_DIR/config.yaml" || exit 1
 
 # THE REFERENT (issue 0049, consumer-filed). `project.referent` names a command
 # the PROJECT owns; devbin runs it once, here, and exports its stdout for

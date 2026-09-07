@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+#
+#
+# `infra profiles` -- ONE DOMAIN, ONE PROFILE, ACROSS A DIRECTORY OF THEM.
+#
+# THE GAP THIS CLOSES, reported by a consumer on 2026-09-07 from the first real
+# multi-profile estate. `infra_validate_profile` enforces one-entry-per-domain
+# WITHIN a file, for a stated reason: two handles on one FQDN can carry
+# contradictory expectations that `check` evaluates against the same live
+# records, so one goes green and one goes red on the same domain and ordering
+# decides which the operator reads.
+#
+# THAT REASON DOES NOT STOP AT THE FILE BOUNDARY. An estate laid out as
+# `profiles/<name>/infra.yaml` can have two profiles claiming one domain, with
+# exactly the same consequence and nothing at all reporting it -- the drift
+# class this whole thread exists to detect, newly reachable and unowned. It
+# lives here rather than as a script in the estate repo, because a checker
+# written beside the data it checks is a second implementation of the rule.
+#
+# AN EMPTY POPULATION IS AN ERROR, NOT A PASS. A directory with no profiles in
+# it produces "0 profiles, no collisions", which is the shape of every false
+# green this repository has a name for. Finding nothing means the argument was
+# wrong, not that the estate is clean.
+#
+set -euo pipefail
+
+: "${DEVBIN_LIB:?run me through the devbin dispatcher}"
+# shellcheck source=lib/helpers
+. "$DEVBIN_LIB/helpers"
+# shellcheck source=lib/config
+. "$DEVBIN_LIB/config"
+# shellcheck source=lib/infra
+. "$DEVBIN_LIB/infra"
+
+usage() {
+  cat <<USAGE
+usage: $DEVBIN_NAME infra profiles <dir>
+
+Validate every infra.yaml under <dir> and refuse a domain claimed by more than
+one profile. Searches three levels down, so profiles/<name>/infra.yaml is found.
+
+A directory holding no profiles is an ERROR: nothing found means the path was
+wrong, and reporting it as "no collisions" would be a green over an empty set.
+USAGE
+}
+
+case "${1:-}" in
+  '' | -h | --help)
+    usage
+    exit 0
+    ;;
+esac
+
+dir="$1"
+[ -d "$dir" ] || die "infra profiles: not a directory: $dir"
+
+# A SUBSHELL PER PROFILE. `cfg_load` populates process-global state, so reading
+# two profiles in one shell risks the second inheriting keys from the first --
+# and a domain leaking between profiles is precisely the fault being looked for,
+# which would make the instrument manufacture its own positives.
+pairs=""
+count=0
+while IFS= read -r f; do
+  [ -n "$f" ] || continue
+  count=$((count + 1))
+  out="$(
+    cfg_load "$f" >/dev/null 2>&1 || exit 1
+    infra_domain_pairs
+  )" || die "infra profiles: $f does not load -- fix it before comparing it to anything"
+  while IFS="$(printf '\t')" read -r handle fqdn; do
+    [ -n "${fqdn:-}" ] || continue
+    pairs="$pairs$fqdn	$f	$handle
+"
+  done <<<"$out"
+done <<EOF
+$(find "$dir" -maxdepth 3 -name 'infra.yaml' -type f 2>/dev/null | LC_ALL=C sort)
+EOF
+
+[ "$count" -gt 0 ] ||
+  die "infra profiles: no infra.yaml found under $dir
+       Nothing found is a wrong path, not a clean estate."
+
+# THE INPUT IS SORTED, NOT THE OUTPUT. Sorting awk's output re-orders LINES,
+# and each record here is several lines -- which put the "claimed by 2 profiles"
+# header BELOW the profiles it introduces. Caught on the first red drive.
+dupes="$(printf '%s' "$pairs" | LC_ALL=C sort | awk -F'\t' '
+  NF >= 3 { seen[$1] = seen[$1] "\n    " $2 " (as " $3 ")"; if (!($1 in n)) order[++k] = $1; n[$1]++ }
+  END { for (i = 1; i <= k; i++) { d = order[i]; if (n[d] > 1) printf "  %s claimed by %d profiles:%s\n", d, n[d], seen[d] } }
+')"
+
+if [ -n "$dupes" ]; then
+  # SC2016 disabled for the block, matching lib/infra and the release renderers:
+  # the message names a COMMAND, and the delimiter this project writes one in is
+  # the backtick. Single quotes are correct precisely because it must not expand.
+  # shellcheck disable=SC2016
+  {
+    printf 'infra profiles: a domain is claimed by more than one profile.\n\n'
+    printf '%s\n' "$dupes"
+    printf '\nTwo profiles on one FQDN can carry contradictory expectations that\n'
+    printf '`check` evaluates against the same live records, so one goes green and\n'
+    printf 'one goes red on the same domain and ordering decides which you read.\n'
+  } >&2
+  exit 1
+fi
+
+printf 'infra profiles: %s profile(s) under %s, no domain claimed twice.\n' "$count" "$dir"

@@ -52,7 +52,7 @@ enum Health: Sendable, Equatable {
   /// at it -- the remedy, never an unlink.
   var summary: String {
     switch self {
-    case .live(let endpoint): "intentd is answering at \(endpoint)"
+    case .live: "intentd is answering"
     case .stale(let pid): "intentd (pid \(pid)) holds the socket but is not answering -- investigate it"
     case .absent: "intentd is not running"
     case .unknown(let why): "intentd status unknown (\(why))"

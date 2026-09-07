@@ -657,9 +657,30 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
   // vc is correcting `data-model.md:193` ("group = WP seq or `00` for
   // ST-level") to match, which was written from ST0056's shape rather than
   // from the estate's.
+  // **A criterion that is no longer being asked for is exempt, and this is the
+  // same model correction as the clause above rather than a suppression.** The
+  // check infers a criterion's work package from its ID prefix and, before this
+  // clause, consulted no state at all -- so there was no way to record a work
+  // package descoped TOGETHER WITH its criteria. Withdrawing the criteria left
+  // them pointing at a WP that, by the act of withdrawing them, would never
+  // exist.
+  //
+  // **Measured on Lamplight, 2026-09-07: 62 of 154 findings -- 40% of the whole
+  // report -- were one estate's withdrawn rows.** 61 came from ST0356, where hv
+  // withdrew WP-04..13's criteria in a ruling the store itself records with a
+  // reason and a `by`; the gate reads `PASS 17/17, 65 withdrawn` while doctor
+  // called the same 61 rows model-inconsistent. **The tool was reporting a
+  // decision it had recorded as a defect.**
+  //
+  // `in_scope()` is the existing predicate and deliberately keeps `Fiat` IN
+  // scope: a fiat-closed requirement is still being asked for and was closed
+  // unmet, so its group naming a missing WP is still a real inconsistency.
+  // Only `Descoped` and `Withdrawn` -- the two states that mean the requirement
+  // stopped being asked for -- go quiet here.
   for criterion in &thread.criteria {
     if let Some(seq) = group_seq(&criterion.id)
       && seq != 0
+      && criterion.state.in_scope()
       && !thread.wps.is_empty()
       && !thread.wps.iter().any(|w| w.seq == seq)
     {
