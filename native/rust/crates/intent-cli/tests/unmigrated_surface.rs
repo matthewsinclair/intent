@@ -213,6 +213,30 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     // (Exemption added by cc with the wiring that made it reachable; ic owns
     // this list and should reword if the framing is wrong.)
     "modules" => Some("prints its own usage; it reads neither the install nor a project"),
+    // **THE THIRD USAGE-ONLY FAMILY HEAD, AND IT ARRIVED AS A RED RATHER THAN
+    // AS A WIRING.** Bare `intent agents` refused until `0175` (filed by dc
+    // 2026-08-30; `0239` carries the measurement) restored v2's own observed
+    // behaviour, `bare -- prints 984B usage, exit 0`. That repair was correct
+    // and this list was never told, so the sweep went red on `intent agents`
+    // SUCCEEDED (exit 0) -- **a guard reporting a deliberate parity fix as a
+    // defect**, which is the same shape as the `st repair` case recorded at
+    // the `surface` row below.
+    //
+    // Same ground as `lang` and `modules`, verified rather than assumed:
+    // `render.rs`'s `agents` arm ends in `family_help("agents")`, which builds
+    // the spine from the dispatch table compiled into this binary and renders
+    // clap's help. It opens no project and touches no facade.
+    //
+    // **EXACT-PATH, AND HERE THAT IS LOAD-BEARING RATHER THAN TIDY.** All six
+    // verbs under this family read a project -- measured, they refuse at 1 --
+    // and `agents sync` is the spelling `in-essentials` rule 2 orders every
+    // agent to use. Under the family fallback as it stood, adding this row
+    // would have dropped all six from the sweep's population in silence; see
+    // `exemption_is_family_wide`, which is the half of this fix that makes the
+    // other half safe.
+    // (Exemption added by cc 2026-09-07 on hv's assignment; ic owns this list
+    // and should reword if the framing is wrong.)
+    "agents" => Some("prints its own usage; it reads neither the install nor a project"),
     "lang list" => Some("lists a compile-time language registry; it never reads a project"),
     "lang show" => Some("describes a compile-time language registry; it never reads a project"),
     // **THE UNMIGRATED PROJECT IS THIS VERB'S PRIMARY CASE, NOT AN EDGE OF
@@ -270,6 +294,39 @@ fn exempt_from_the_migration_refusal(path: &str) -> Option<&'static str> {
     ),
     _ => None,
   }
+}
+
+/// The families whose exemption covers every verb beneath them.
+///
+/// **EXACT-PATH IS THE DEFAULT AND FAMILY-WIDE IS DECLARED, WHICH IS THE
+/// OPPOSITE OF HOW THIS READ UNTIL 2026-09-07.** The sweep applied every
+/// single-segment exemption to the whole family and carved out `llm` by name.
+/// That default is the wrong way round: it widens an exemption as a SIDE
+/// EFFECT of adding one, and the widening is invisible, because the guard goes
+/// on reporting a pass over a population that quietly shrank. An opt-out list
+/// also has to be remembered at exactly the moment a new row is being written
+/// for a different reason.
+///
+/// **IT HAD ALREADY HAPPENED TWICE, AGAINST COMMENTS IN THIS FILE SAYING IT
+/// MUST NOT.** `lang`'s row says in terms that a family-level entry "would
+/// exempt precisely the two verbs that mutate" and "would have exempted a live
+/// defect"; `modules`'s says "only the bare head is exempt". Both were false as
+/// the code stood -- the fallback covered `lang init`, `lang remove`,
+/// `modules find` and `modules check`. **Measured 2026-09-07 before changing
+/// anything: all four still refuse at 1 on their own merits**, so the sweep was
+/// SHORT rather than wrong and nothing was hiding behind it. That is the good
+/// case and it is not the point; a guard that is accidentally right is still a
+/// guard whose population nobody can state.
+///
+/// Each member below is family-wide on a property of the WHOLE family, stated
+/// at its own exemption row: `app` asks LaunchServices about this machine and
+/// never opens the estate, `plugin`'s verbs all read the install, and `daemon`
+/// and `mcp` are long-running servers this sweep must not start. **`llm` needs
+/// no carve-out any more** -- it is simply absent from this list, which is what
+/// exact-path now means, and `llm usage_rules` is swept again as its row always
+/// said it should be.
+fn exemption_is_family_wide(family: &str) -> bool {
+  matches!(family, "app" | "daemon" | "mcp" | "plugin")
 }
 
 fn legacy_project() -> tempfile::TempDir {
@@ -356,13 +413,7 @@ fn no_shipped_command_answers_from_an_unmigrated_project() {
 
   for entry in dispatch::shipped_entries(&table) {
     let family = entry.path.split(' ').next().unwrap_or_default();
-    // **A FAMILY EXEMPTION COVERS EVERY VERB UNDER IT, AND `llm`'s MUST NOT.**
-    // Bare `intent llm` is exempt because it serves the compiled-in guide; its
-    // sibling `llm usage_rules` opens the project and has to keep refusing
-    // here. Letting the family fallback answer for `llm` would retire a live
-    // check as a side effect of exempting a different command -- the quiet way
-    // a guard's population shrinks while it still reports a pass.
-    let by_family = (family != "llm")
+    let by_family = exemption_is_family_wide(family)
       .then(|| exempt_from_the_migration_refusal(family))
       .flatten();
     if exempt_from_the_migration_refusal(&entry.path).is_some() || by_family.is_some() {
@@ -487,4 +538,56 @@ fn the_surface_exemption_states_the_precondition_it_rests_on() {
      entry: exempt each leaf on its own stated ground, and let a leaf that opens a project keep \
      refusing."
   );
+}
+
+/// A family-wide exemption is honest only over the verbs it was ruled for.
+///
+/// **THE GENERAL FORM OF `the_surface_exemption_states_the_precondition_it_rests_on`.**
+/// That test pins one family, because family-wide was honest there only while
+/// `surface` had a single leaf. The identical hazard applies to every member of
+/// `exemption_is_family_wide`: a verb added later inherits the exemption in
+/// silence while the sweep next door goes on reporting a pass. Inverting the
+/// default made that hazard SMALLER -- four families instead of every exempt
+/// family head -- and did not remove it, so it is pinned rather than argued.
+///
+/// **A FAILURE HERE IS A REQUEST FOR A RULING, NOT A DEFECT REPORT.** Either
+/// the new verb holds the family's stated ground and the pin extends, or it
+/// opens a project and the entry splits into exact paths.
+#[test]
+fn a_family_wide_exemption_covers_only_the_verbs_it_was_ruled_for() {
+  let table = dispatch::table();
+  let pinned: &[(&str, &[&str])] = &[
+    ("app", &["restart", "start", "status", "stop"]),
+    ("daemon", &["run", "start", "status", "stop"]),
+    ("mcp", &[]),
+    ("plugin", &["list", "show"]),
+  ];
+
+  for (family, expected) in pinned {
+    assert!(
+      exemption_is_family_wide(family),
+      "`{family}` is pinned here but is no longer declared family-wide -- drop the row"
+    );
+    assert!(
+      exempt_from_the_migration_refusal(family).is_some(),
+      "`{family}` is declared family-wide but carries no exemption row, so the declaration \
+       exempts nothing. A scope without a subject is dead code wearing a guard's name."
+    );
+    let mut verbs: Vec<&str> = dispatch::shipped_entries(&table)
+      .into_iter()
+      .filter_map(|e| (e.family() == *family).then(|| e.verb()).flatten())
+      .collect();
+    verbs.sort_unstable();
+    verbs.dedup();
+    assert_eq!(
+      verbs.as_slice(),
+      *expected,
+      "`{family}` is exempt from the unmigrated refusal as a FAMILY, so every verb under it is \
+       skipped by the sweep entirely. Its verb set has changed, so the ruling that made that \
+       honest no longer describes what it exempts. Re-rule: if the new verb holds the family's \
+       stated ground -- it never opens the estate, or it is a server this sweep must not start \
+       -- extend the pin; if it opens a project, split the entry into exact paths and let it \
+       refuse."
+    );
+  }
 }
