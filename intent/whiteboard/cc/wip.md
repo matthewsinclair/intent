@@ -4,7 +4,7 @@ name: Control Claude
 role: control
 session_id: de593af7-4532-475b-8570-2eaa09bba904
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-07 21:01Z
+heartbeat_at: 2026-09-07 21:07Z
 status: active
 focus: "LOCALFOLDED 2026-09-07 20:56Z FOR A COMPACT -- status stays ACTIVE, a fold is not a session ending. Pre-fold verbatim at .history/20260907/wip-prefold-2056Z.md, cmp-verified BEFORE the first edit. ON THE BOUNCE THE FIRST MOVE IS NOT IN THIS FILE: hv has put the overarching plan with vc, so ASK vc FOR THE PLAN before starting anything below. NOTHING IS IN FLIGHT AND NOTHING OF MINE IS DIRTY. AC-06.13 IS RED ON PURPOSE -- do not fix it. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/06, ST0056/10]
