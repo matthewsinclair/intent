@@ -116,7 +116,7 @@
       "covers": [
         "AC-00.2"
       ],
-      "status": "to-write",
+      "status": "n-a",
       "note": "NOT YET DONE. The WP-02 catalogue read all 25 skills against hv's vocabulary on 2026-08-28, so the raw material exists -- but it was a review of the set AS IT WAS, and this row is about the set that SURVIVES the rationalisation, which has not been cut yet. Citing the catalogue for it would be evidence about a different population."
     },
     {
@@ -126,7 +126,7 @@
       "covers": [
         "AC-00.3"
       ],
-      "status": "to-write",
+      "status": "n-a",
       "note": "NOT YET DONE, and it needs a BUILD named at the time of the read rather than a date. The WP-01 catalogue measured against `intent 3.0.0 (4479264f)` on 2026-08-28, with a scratch `intent init` in an empty directory as its control -- which is the right shape -- but that build is many commits behind and the surviving set has not been cut yet. THIS NOTE WAS WRITTEN TWICE: the first attempt passed it as an inline double-quoted shell argument, and zsh executed every backticked span in it as a command. Both citations were replaced with nothing, the row was created, and the tool printed `ok`. The note read plausibly and had silently lost the two facts it existed to carry."
     },
     {
@@ -176,7 +176,7 @@
       "covers": [
         "AC-00.8"
       ],
-      "status": "to-write",
+      "status": "n-a",
       "note": "NON-TEST ARM, MINTED 2026-09-02 BY vc ON ic's DECLARED LIMIT. `AT-00.1` is green and reaches the CHEAP HALF of the one-home property only: a sliding twelve-word window catches a rule forked by COPY-PASTE. **Prose does not usually fork that way.** It forks by rewording, and whether two differently-worded paragraphs state one rule is a judgement about meaning -- the ground `AC-00.2` and `AC-00.3` were minted non-test for.\n\n**THIS ARM EXISTS BECAUSE THE ALTERNATIVE WAS A GREEN THAT CLAIMED MORE THAN ITS INSTRUMENT REACHED.** `AC-00.1` as first minted stated the whole property while its only instrument saw the cheap half. **A criterion wearing a green earned by a narrower instrument is the vacuous-instrument class this thread was opened to catch, sitting in the thread's own first row.** It was catchable only because ic stated the limit at the top of the test file and raised it, rather than letting a green stand.\n\n**THE HOUSING WAS DECIDED BY THE CONTRACT, NOT BY vc.** The first ruling was one-property-two-instruments: keep `AC-00.1` whole and hang this non-test read on it beside the test. **The store refused the write** -- a non-test row is never green, so it can never satisfy a test-backed criterion. Kind is a property of the CRITERION here, so `AC-00.1` was narrowed to its mechanical reach and this arm now covers `AC-00.8`. **Many-to-one coverage is ordinary in this estate -- `AC-04.1` carries four rows -- so the refusal is about KIND and not about arity**, and `intent ac list` renders only the first covering row either way.\n\nWHAT THE READ MUST DO: take the rules the canon set states, and for each decide by reading whether a second canon document states the same rule in different words. Output is a named list of forks or an explicit none, naming the documents compared and the date, because a read is true of a set at a moment. `CLAUDE.md`'s Rules-of-the-Road section is the worked positive: it declines to restate the four principles and says why. **A verdict here is a judgement on the record, never a measurement.**"
     }
   ],
