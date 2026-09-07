@@ -130,9 +130,14 @@ pub enum Unreadable {
   /// No criterion anywhere in canon carries the block.
   ///
   /// **This is the ordinary state of every project that is not Intent, and its
-  /// message says so rather than naming Intent's own paperwork.** The refusal
-  /// still stands -- an estate that has declared no preconditions has proved
-  /// nothing about its ability to put files back.
+  /// message says so rather than naming Intent's own paperwork.**
+  ///
+  /// **IT IS THE ONE VARIANT THAT DOES NOT REFUSE** -- see [`Verdict::permits`]
+  /// for why, and for the measurement that changed it. In short: AC-00.1 gates
+  /// on a DECLARED precondition being unmet, and nothing is declared here; the
+  /// preconditions are ST0057's own criteria, which no consumer estate can ever
+  /// hold; and the per-file rail is what protects the bytes either way. Every
+  /// other variant means a declaration exists and is broken, and those refuse.
   NoDeclaration,
   /// More than one criterion carries a block. **The duplication the whole row
   /// exists to forbid, so choosing between them is the one thing this must not
@@ -204,10 +209,46 @@ pub struct Verdict {
 impl Verdict {
   /// Whether dehydration may remove anything.
   ///
-  /// The only route to `true` is a readable, non-empty declaration with every
-  /// one of its entries resolved satisfied.
+  /// Two routes to `true`, and the second is the one this gate got wrong for
+  /// every project that is not Intent.
+  ///
+  /// 1. A readable, non-empty declaration with every entry resolved satisfied.
+  /// 2. **NO DECLARATION AT ALL**, which is not the same answer as a broken one.
+  ///
+  /// **AC-00.1 IS THE AUTHORITY AND ITS WORDING SETTLES THIS: _no dehydration
+  /// path removes any file while any DECLARED precondition is unmet_. Where
+  /// nothing is declared, nothing is unmet, so refusing was never something the
+  /// criterion asked for.** The refusal was Intent's own rollout interlock --
+  /// hold dehydration until ST0057's fourteen preconditions land -- and those
+  /// landed (hv, 2026-08-19: _fourteen preconditions that are MET, holding a
+  /// gate that is open_). What shipped to consumers was the scaffolding.
+  ///
+  /// **AND IT COULD NEVER BE SATISFIED THERE, BY CONSTRUCTION.** The
+  /// preconditions are acceptance criteria of ST0057 -- Intent's thread. A
+  /// consumer estate has no such criteria and no way to acquire them, so the
+  /// remedy it was handed (_meet your declared preconditions_) named nothing it
+  /// could act on. Measured on Devbin 2026-09-07: `organise --apply` refused on
+  /// every run, permanently, and the only way past it was `rm -rf`, **which
+  /// performs none of the checks this module exists to perform. A gate that is
+  /// never satisfiable is a gate that is always bypassed, and it was costing
+  /// safety rather than buying it.**
+  ///
+  /// **THE BYTES ARE PROTECTED BY THE PER-FILE RAIL AND ALWAYS WERE** (ST0061
+  /// AC-00.2): a realised file the store cannot be SHOWN to hold is a refusal
+  /// naming the file, never a deletion. That rail is independent of this gate,
+  /// is green, and is what actually stands between a `dehydrate` and a loss.
+  ///
+  /// **EVERY OTHER [`Unreadable`] STILL REFUSES**, and the distinction is the
+  /// whole of the change: absence is a consumer's ordinary state, while two
+  /// declarations, an empty block, an unterminated one or a malformed token all
+  /// mean a declaration EXISTS AND IS BROKEN. Refusing those is not scaffolding
+  /// -- it is the gate working.
   pub fn permits(&self) -> bool {
-    self.unreadable.is_none() && !self.declared.is_empty() && self.unmet.is_empty()
+    match &self.unreadable {
+      Some(Unreadable::NoDeclaration) => true,
+      Some(_) => false,
+      None => !self.declared.is_empty() && self.unmet.is_empty(),
+    }
   }
 
   /// Every precondition the declaration names, in declaration order.
@@ -252,6 +293,16 @@ impl Verdict {
 /// on a quiet run, from a gate that checked nothing.
 impl fmt::Display for Verdict {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    // **THE PERMITTING ABSENCE RENDERS AS ITSELF AND NEVER AS A REFUSAL.** It
+    // keeps the denominator, because this module prints one on every answer --
+    // a gate that shows its counts only when it refuses cannot be told, on a
+    // quiet run, from a gate that checked nothing.
+    if let Some(Unreadable::NoDeclaration) = &self.unreadable {
+      return write!(
+        f,
+        "0 checked of 0 declared: this project declares no dehydration preconditions, so this gate does not apply to it. Each file is still checked individually, and one the store cannot be shown to hold is refused by name rather than removed"
+      );
+    }
     if let Some(why) = &self.unreadable {
       return write!(
         f,

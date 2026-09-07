@@ -369,9 +369,9 @@ fn default_removes_no_file_belonging_to_an_undeclared_thread() {
   // as having been measured wrong on a real estate.
   let said = summary(&intent(root, &["organize"]));
   assert!(
-    said.contains("0 to remove (2 blocked)"),
-    "the preview must report the undeclared thread's two files as blocked removals \
-     rather than as nothing at all: {said}"
+    said.contains("2 to remove"),
+    "the preview must report the undeclared thread's two files as removals an apply \
+     would make, rather than as nothing at all: {said}"
   );
   assert!(
     said.contains("0 diverged"),
@@ -386,13 +386,24 @@ fn default_removes_no_file_belonging_to_an_undeclared_thread() {
   // a count satisfies the second half of that only by arithmetic that happens
   // to be unambiguous when there is exactly one undeclared thread.
   //
-  // **AND THE SURVIVAL CLAUSE ABOVE IS HELD UP BY THE DEHYDRATION GATE, NOT BY
-  // THIS VERB DECLINING TO ACT. MEASURED, NOT SUSPECTED:** making
-  // `--default` call `facade.organize(Mode::Apply)` -- an applying `--default`,
-  // which is the exact defect the clause exists to catch -- leaves THIS TEST
-  // green, because the gate refuses the removal on a project that declares no
-  // dehydration preconditions. The removal arm cannot distinguish *never
-  // removes* from *tried and was stopped*.
+  // **THE SURVIVAL CLAUSE ABOVE WAS HELD UP BY THE DEHYDRATION GATE RATHER THAN
+  // BY THIS VERB DECLINING TO ACT, AND THAT PROP IS GONE AS OF 2026-09-07.**
+  // The note here read: making `--default` call `facade.organize(Mode::Apply)`
+  // -- an applying `--default`, the exact defect this clause exists to catch --
+  // left the test green, because the gate refused every removal on a project
+  // declaring no dehydration preconditions. **The removal arm could not
+  // distinguish _never removes_ from _tried and was stopped_.**
+  //
+  // The ship gate no longer refuses on absence (see `Verdict::permits`), so this
+  // fixture -- which declares nothing -- now permits removals and that mutation
+  // reddens the survival clause honestly. Driven end to end on a scratch estate
+  // that declares no preconditions: `st dehydrate` removed two clean views and
+  // pruned the directory, then refused the whole run once one view carried a
+  // hand edit, leaving the clean file beside it untouched.
+  //
+  // **WHAT STILL IS NOT ESTABLISHED HERE:** `declare_default` does not call
+  // `organize` at all, so this verb's non-destructiveness is structural rather
+  // than asserted, and no assertion below would notice if that changed.
   //
   // **THE ARM THAT CAN IS CREATION, AND IT IS NEXT DOOR.** Hydration is not
   // gated, so an applying `--default` betrays itself by writing files rather

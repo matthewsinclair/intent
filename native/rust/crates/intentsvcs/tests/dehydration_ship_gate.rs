@@ -281,22 +281,59 @@ fn with_ac_00_1_text(text: &str) -> Canon {
 }
 
 #[test]
-fn an_estate_that_declares_nothing_refuses() {
-  // **The ordinary state of every project that is not this one**, and the reason
-  // the message names no thread: a consumer of the tool would otherwise be sent
-  // to read paperwork that does not exist in their estate.
+fn an_estate_that_declares_nothing_is_not_gated_by_this_row() {
+  // **The ordinary state of every project that is not this one, and it PERMITS
+  // -- which is what AC-00.1 asks for rather than a concession to it.** The row
+  // gates on a DECLARED precondition being unmet; nothing is declared here, so
+  // nothing is unmet.
+  //
+  // **THIS ROW ASSERTED THE OPPOSITE UNTIL 2026-09-07 AND IT WAS COSTING SAFETY.**
+  // The preconditions are ST0057's own acceptance criteria, so a consumer estate
+  // could never declare them and the refusal was permanent: measured on Devbin,
+  // `organise --apply` refused every run and the only way past was `rm -rf`,
+  // which performs none of these checks. **A gate that is never satisfiable is a
+  // gate that is always bypassed.** The bytes are held by the per-file rail
+  // (ST0061 AC-00.2), asserted below rather than assumed here.
   let v = preconditions::check(&canon_of(vec![sample_thread("ST0001")]));
-  assert!(!v.permits());
+  assert!(v.permits(), "no declaration means no precondition is unmet");
   assert_eq!(v.unreadable(), Some(&Unreadable::NoDeclaration));
 }
 
 #[test]
 fn a_criterion_carrying_no_block_is_not_the_declaration() {
+  // Prose naming the preconditions is not a declaration -- the gate reads the
+  // delimited block and never the sentences around it. Same disposition as an
+  // estate that says nothing at all, because that is what this is.
   let v = preconditions::check(&with_ac_00_1_text(
     "the preconditions are the seven bullets in design.md",
   ));
-  assert!(!v.permits());
+  assert!(v.permits());
   assert_eq!(v.unreadable(), Some(&Unreadable::NoDeclaration));
+}
+
+#[test]
+fn every_broken_declaration_still_refuses_and_absence_is_the_only_exception() {
+  // **THE ARM THAT KEEPS THE CHANGE HONEST.** Absence permits; a declaration
+  // that EXISTS AND IS BROKEN does not, and collapsing the two would retire the
+  // gate rather than scope it. Driven over every refusing variant, so a later
+  // simplification that folds them into the permitting arm reds here.
+  let broken = [
+    "<<PRECONDITIONS PRECONDITIONS>>",
+    "<<PRECONDITIONS AC-00.2",
+    "<<PRECONDITIONS AT-00.2 PRECONDITIONS>>",
+  ];
+  for text in broken {
+    let v = preconditions::check(&with_ac_00_1_text(text));
+    assert!(
+      !v.permits(),
+      "a broken declaration must still refuse, got permit for: {text}"
+    );
+    assert_ne!(
+      v.unreadable(),
+      Some(&Unreadable::NoDeclaration),
+      "a broken declaration is not an absent one: {text}"
+    );
+  }
 }
 
 #[test]

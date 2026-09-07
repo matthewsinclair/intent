@@ -256,22 +256,53 @@ fn an_absent_manifest_refuses_and_one_that_omits_the_id_does_not() {
 /// the gate would protect only the operator who happened to reach for
 /// `organize`, and the NARROWER verb would be the one that deletes.
 #[test]
-fn an_estate_with_no_declaration_refuses_this_door_too() {
+fn an_estate_with_no_declaration_is_guarded_by_the_per_file_rail_at_this_door() {
   // Deliberately NOT `fixture()`: no `gate_open()` thread, so the estate
-  // declares no preconditions at all and the honest answer is "I do not know"
-  // -- which has to mean no.
+  // declares no preconditions at all -- the ordinary state of every project
+  // that is not Intent.
+  //
+  // **THIS ROW ASSERTED A REFUSAL UNTIL 2026-09-07, ON THE GROUNDS THAT _I DO
+  // NOT KNOW_ HAS TO MEAN NO. THE PREMISE WAS WRONG AND THE COST WAS MEASURED:**
+  // the preconditions are ST0057's own criteria, so a consumer estate can never
+  // declare them, and the refusal was permanent. On Devbin it made `organise
+  // --apply` fail on every run with a remedy naming nothing the operator could
+  // act on, and the only way past was `rm -rf` -- **no gate at all**. The estate
+  // is not in the dark here: it knows, per file, whether the store holds the
+  // bytes, and that is the question worth answering.
+  //
+  // **SO THE DOOR IS PROVED BY BOTH ARMS RATHER THAN BY A BLANKET NO.** A clean
+  // thread leaves; a hand-edited one is refused with nothing removed.
   let fx = Fixture::new();
   fx.write_thread(&sample_thread("ST0001"));
   fx.write_file("intent/.intentfiles", "STEELTHREAD:ST0001\n");
   let mut f = fx.facade();
   let realised = f.hydrate(&at("ST0001")).expect("realises");
 
+  // ARM ONE: every file is exactly what the store renders, so it may go.
   f.dehydrate(&at("ST0001"))
-    .expect_err("an estate that has declared nothing has proved nothing");
+    .expect("a clean thread dehydrates in an estate that declares no preconditions");
+  for path in &realised {
+    assert!(
+      !path.exists(),
+      "{} survived a permitted dehydration",
+      path.display()
+    );
+  }
+
+  // ARM TWO: the rail, at this same door. One hand edit and the whole run is
+  // refused -- **including the clean files beside it**, which is what stops a
+  // partial removal leaving the manifest saying dehydrated over a live tree.
+  let realised = f.hydrate(&at("ST0001")).expect("re-realises");
+  let edited = realised.first().expect("at least one file").clone();
+  let original = std::fs::read(&edited).expect("read back");
+  std::fs::write(&edited, [original.as_slice(), b"\nhand edit\n"].concat()).expect("edit");
+
+  f.dehydrate(&at("ST0001"))
+    .expect_err("a file the store cannot be shown to hold must refuse the run");
   for path in &realised {
     assert!(
       path.exists(),
-      "{} was removed through a door the estate gate does not cover",
+      "{} was removed despite the run being refused",
       path.display()
     );
   }
