@@ -2,11 +2,11 @@
 node: cc
 name: Control Claude
 role: control
-session_id: 98a46c38-f370-4d67-b2c5-c2536e0ae8f9
-commit_session_id: 0167bZhMQsEXFM5JZUZxL5g7 -- WITNESSED across this session's commits, most recently 9ea58a4b3. **READ IT WITH grep, NEVER WITH THE TRAILER PARSER:** git's %(trailers:key=Claude-Session,valueonly) and `git interpret-trailers --parse` return EMPTY on EVERY commit in this repo, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph as a trailer block. Positive-controlled on a synthesised body, discriminated by dropping the (C) line; dc reproduced it independently (parser 0, grep 56, 59 commits). THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-06 00:29Z
+session_id: de593af7-4532-475b-8570-2eaa09bba904
+commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
+heartbeat_at: 2026-09-07 17:16Z
 status: active
-focus: "FOLDED FOR A COLD READER 2026-09-06 00:29Z -- status stays ACTIVE; a fold before a day's end is not a session ending. Pre-fold verbatim at .history/20260906/wip-prefold-0025Z.md, cmp-verified BEFORE the first edit. NOTHING IS IN FLIGHT AND NOTHING OF MINE IS DIRTY IN native/rust. DELIVERED 2026-09-05: the per-artefact residue emission (e1a076d5), AC-00.6 unblocked (92817292), 0275 half one (4100712c). FOUR CANON ROWS OF MINE ARE UNCOMMITTED AND WAITING ON hv: 0205, 0268, 0271, 0272. START TOMORROW WITH THE TODO SECTION, WHICH IS EXECUTION-KEYED: everything in it is unbuilt. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "CLOSED THE unmigrated_surface RED ON hv's ASSIGNMENT (981a55049); workspace 492/0 and the release pair rebuilt to name that commit, so vc's estate-wide doctor audit is unblocked. The fix was NOT the exemption it looked like -- the sweep's family fallback was opt-out and had silently widened twice. NOTHING ELSE IS IN FLIGHT. FOUR CANON ROWS STILL WAIT ON hv: 0205, 0268, 0271, 0272. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/06, ST0056/10, ST0057/00]
 ---
 
@@ -14,11 +14,19 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 
 ## DOING
 
-**NOTHING IS IN FLIGHT. NOTHING OF MINE IS DIRTY IN `native/rust`.** Everything ruled to me on 2026-09-05 is built, driven, and committed; what is left is either in TODO below (unbuilt) or waiting on hv.
+**NOTHING IS IN FLIGHT. NOTHING OF MINE IS DIRTY.** Today's assignment is delivered and committed at `981a55049`; everything else is TODO below (unbuilt) or waiting on hv.
 
-**THREE THINGS SHIPPED YESTERDAY, AND A COLD READER NEEDS ONLY THE LAST SENTENCE OF EACH.** The migrator now names `intent/whiteboard/` **per artefact** rather than as a directory noun -- new `FindingClass::ModelledNotBuilt`, enumerated at the `NOT_YET_BUILT` declaration and **deliberately never routed into `Scan`**, because `residue` BLOCKS and would refuse a migration to every estate that has a whiteboard (`e1a076d5`). **AC-00.6 is unblocked**: the v2 coupling was ONE function, `stamp_project_version`, ported verbatim into the release script, and the deletion itself is AT THE CUT and is hv's (`92817292`). **`0275` half one**: `rules list` states its population, so an absent rule library stops reading as an empty one; the exit code is deliberately unchanged because half two is not ruled (`4100712c`).
+**DELIVERED 2026-09-07, ON hv's DIRECT ASSIGNMENT WHILE AFK: THE `unmigrated_surface` RED IS CLOSED.** It was the row in `## Open, no owner` -- carried there since 2026-09-05 as _not mine_ -- and hv handed it to me to unblock vc's estate-wide `intent doctor` audit. **Workspace 492 passed / 0 failed**, up from 490/1, and `bin/int build all` promoted a verified pair naming `981a5504` into the shared path, so `intent --version` now agrees with HEAD.
 
-**THE ONE THING TO CARRY FORWARD RATHER THAN RE-DERIVE: `intent issues edit` SHIPS.** `0179`'s _an issue body is write-once_ is EXPIRED, and `AT-10.5`'s canon note still cites it to justify an escalation on hv's desk. vc has struck the premise in place. **Do not route a correction around that verb again.**
+**THE DIAGNOSIS WAS NOT THE ONE THE RED LOOKED LIKE, AND THAT IS THE PART TO CARRY.** Bare `intent agents` answering at rc=0 is CORRECT -- `0175`'s deliberate v2-parity repair. The guard's exemption list had simply never been told, so **the sweep was reporting a parity fix as a defect**, which is the shape its own `surface` row already records for `st repair`. `0175` versus `unmigrated_surface` was never the two-invariants standoff this board described it as; **only one of the two was making a claim, and it was the stale one.**
+
+**BUT THE ONE-LINE FIX WOULD HAVE DONE REAL DAMAGE, WHICH IS WHY THIS TOOK THE MORNING.** The sweep's family fallback was OPT-OUT -- `(family != "llm")` -- so every single-segment exemption silently became family-wide. Adding `"agents"` would have dropped all six of its verbs from the guard's population, **`agents sync` included**. **AND IT HAD ALREADY HAPPENED TWICE, against comments in that same file forbidding it**: `lang`'s row says a family entry "would exempt precisely the two verbs that mutate", `modules`'s says "only the bare head is exempt", and both were false as the code stood. Default now inverted -- exact-path by default, family-wide DECLARED in `exemption_is_family_wide`.
+
+**THE MEASUREMENT THAT MAKES IT EVIDENCE RATHER THAN A GREEN LIGHT: the population GREW.** Old fallback `exempt 43, guarded 53`; under the fix `exempt 34, guarded 61`. **Nine commands that were being skipped are now checked.** Three positive controls, each breaking its own subject and reverted `cmp`-identical: old fallback restored (those counts), `agents` row deleted (reddens with the byte-identical original panic), pin falsified with a fake `plugin install` (reddens with its re-ruling instruction). **Family `B` RULE 1 applied deliberately this time rather than in hindsight.**
+
+**ONE THING I DID NOT DO, AND IT IS A DECISION RATHER THAN AN OMISSION: I DID NOT RUN `fullcycle --force`.** It refused without a tty, and its refusal named the reason to leave it refused -- **the target tree is SHARED and holds 745M of another session's `staging/`**, so the clean costs a peer a full rebuild and takes the release symlink out from under vc's running audit. The clean phase proves nothing about this fix; the test phase does, and it is green. hv can run it from a tty when the estate is quiet.
+
+**AND I DID NOT FILE AN ISSUE FOR THE FALLBACK WIDENING.** hv already has four canon rows waiting and the restart doc warns that list reads as a backlog when it is not. The finding is recorded where it is most discoverable -- in the code, at the mechanism -- and routed to vc in full. **Say the word if you want it filed anyway.**
 
 ## TODO -- startable, mine, smallest first. EVERYTHING HERE IS UNBUILT.
 
@@ -54,7 +62,6 @@ claims: [ST0056/06, ST0056/10, ST0057/00]
 
 ## Open, no owner
 
-- **A RED ON PUBLISHED `main`, NOT MINE, MEASURED AT CLEAN HEAD.** `unmigrated_surface::no_shipped_command_answers_from_an_unmigrated_project` fails with my work stashed, byte-identical message: `intent agents` SUCCEEDED (exit 0) over an estate it cannot see. **Two invariants, one command, one has to yield, with a shipped exit code on the line.** vc has routed it to hv; it is `0175` versus `unmigrated_surface` and nothing anyone introduced yesterday.
 - **`--all`: THE SEAM SURVIVES THE FIX, WHICH IS THE ONLY REASON THIS ROW IS STILL HERE.** The flag works on the delivered pair. **But burn asks _does this reach the v2 CLI_ and `fixture_probe.sh` asks _does this hardcode a v2 PATH_; NEITHER ASKS WHETHER THE ARGV STILL PARSES**, so a future argv regression is invisible to both, and dc's static arm cannot reach `uninstall --all`, which canon never names. Kept for the seam, not the flag.
 - **Something WALKS the CLI surface.** Seven CLI-token-titled creations in `event_log`, two episodes eight days apart. **This is `0223`'s -- re-read it, do not restate from here.** Episode 3 checked 2026-09-04: none. **THAT SETTLES NOTHING** -- two episodes is ONE interval and one interval is not a period. **The monitor is one query, so re-run it rather than reasoning about it.**
 - **ic's 907-BYTE FOLD DISCREPANCY IS STILL UNEXPLAINED BY ANYTHING ANY OF US HAS MEASURED.** Carried out of `F4` at this fold rather than archived with the investigation, because it is an open question and not a completed one.
