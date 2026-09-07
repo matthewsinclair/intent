@@ -1,7 +1,7 @@
 //! An advisory is printed, never counted -- hv, 2026-08-26.
 //!
 //! Baize printed 66 `AT-x.y carries a legacy reference and its thread is still
-//! WIP -- ADVISORY, not a refusal` lines at exit 1 under the
+//! WIP -- ... nothing blocked` lines at exit 1 under the
 //! `model-inconsistent` remedy ("the canon says two things that cannot both be
 //! true"), which made a clean `doctor` unreachable on any live estate whose
 //! AT rows still cite tests in the v2 `file::name` grammar. The text already
@@ -127,7 +127,7 @@ fn a_legacy_reference_on_a_live_thread_is_an_advisory_and_the_report_is_healthy(
     advisories[0]
       .detail
       .contains("AT-01.1 carries a legacy reference")
-      && advisories[0].detail.contains("ADVISORY, not a refusal"),
+      && advisories[0].detail.contains("nothing blocked"),
     "the advisory names the row and keeps the sentence that explains the carry policy: {:?}",
     advisories[0].detail
   );

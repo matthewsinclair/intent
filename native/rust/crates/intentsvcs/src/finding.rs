@@ -622,6 +622,41 @@ impl FindingClass {
       Self::Advisory | Self::FieldNotRecorded | Self::ModelledNotBuilt
     )
   }
+
+  /// The word a report leads with for this class.
+  ///
+  /// **IT ASKS THE SAME QUESTION THE VERDICT ASKS, AND THAT IS THE WHOLE
+  /// RULE.** `residue:` is the word reserved for the blocking bucket, so a line
+  /// leading with it while the summary does not count it makes the report
+  /// contradict itself in one breath.
+  ///
+  /// **DRIVEN, NOT IMAGINED (hv, 2026-09-07, on Conflab):** the previous form
+  /// enumerated CLASSES -- `Advisory`, `ModelledNotBuilt`, `_` -- while the
+  /// verdict asked [`FindingClass::is_actionable`]. `FieldNotRecorded` is not
+  /// actionable and was not in that list, so `intent doctor -v` printed FIFTY
+  /// lines leading `residue:` above a summary reading `0 finding(s)`, each
+  /// carrying the remedy "nothing to fix".
+  ///
+  /// **AND THE COMMENT THIS REPLACES CLAIMED A PROTECTION IT DID NOT HAVE** --
+  /// "a match is refused by the compiler when the next variant forgets to
+  /// choose". A `_` arm is never refused; it is exactly what let the new class
+  /// through in silence. Asking the predicate cannot go stale that way: a class
+  /// added to `is_actionable`'s exempt list changes its lead in the same edit.
+  ///
+  /// **ONE HOME, TWO READERS**: `Display` for an ungrouped line, and the
+  /// grouped report's header, which asks it once per group instead of once per
+  /// member.
+  ///
+  /// `ModelledNotBuilt` keeps its own word ahead of the predicate: it is also
+  /// uncounted, and "not-yet-carried" says the more specific true thing about a
+  /// shape nothing is wrong with.
+  pub fn lead(&self) -> &'static str {
+    match self {
+      Self::ModelledNotBuilt => "not-yet-carried",
+      class if !class.is_actionable() => "advisory",
+      _ => "residue",
+    }
+  }
 }
 
 /// One refusal: what was refused, where, and why.
@@ -669,6 +704,18 @@ impl Finding {
     )
   }
 
+  /// Where it is and what is true of it -- WITHOUT the class name.
+  ///
+  /// **For a caller that has already said the class**, which is what grouping
+  /// by class makes possible: repeating the class on every member of a group
+  /// headed by that class is the same duplication as repeating the remedy, one
+  /// field over. [`Finding::body`] stays as it is, because an ungrouped line
+  /// still has to name its own class.
+  pub fn where_and_what(&self) -> String {
+    let line = self.line.map(|l| format!(":{l}")).unwrap_or_default();
+    format!("{}{line} -- {}", self.file, self.detail)
+  }
+
   /// **A CARRIED finding: not residue, and it owes no remedy.**
   ///
   /// Both halves of `Display` are wrong for a carried row and the second half is
@@ -711,17 +758,30 @@ impl fmt::Display for Finding {
     write!(
       f,
       "{}: {}\n  remedy: {}",
-      // **THREE LEADS, ONE MATCH.** An `if/else` on `Advisory` was correct
-      // while there were two, and it silently makes every class added
-      // afterwards read `residue:` -- which for `ModelledNotBuilt` would be
-      // this report telling an operator to repair a file nothing is wrong
-      // with. A match is refused by the compiler when the next variant forgets
-      // to choose, for the same reason `meta` is exhaustive.
-      match self.class {
-        FindingClass::Advisory => "advisory",
-        FindingClass::ModelledNotBuilt => "not-yet-carried",
-        _ => "residue",
-      },
+      // **THE LEAD ASKS THE SAME QUESTION THE COUNT ASKS, AND THAT IS THE
+      // WHOLE RULE.** `residue:` is the word this report reserves for the
+      // blocking bucket, so a line leading with it while the verdict does not
+      // count it makes the report contradict itself in the same breath.
+      //
+      // **DRIVEN, NOT IMAGINED (hv, 2026-09-07, on Conflab):** the previous
+      // form enumerated CLASSES -- `Advisory`, `ModelledNotBuilt`, `_` -- while
+      // the verdict asked `is_actionable()`. `FieldNotRecorded` is not
+      // actionable and was not in the list, so `intent doctor -v` printed FIFTY
+      // lines leading `residue:` above a summary reading `0 finding(s)`. Every
+      // one of them carried the remedy "nothing to fix", which is the sentence
+      // that makes the contradiction unmissable once it is on screen.
+      //
+      // **AND THE COMMENT THIS REPLACES CLAIMED A PROTECTION IT DID NOT HAVE**
+      // -- "a match is refused by the compiler when the next variant forgets to
+      // choose". A `_` arm is never refused; it is exactly what let the new
+      // class through in silence. Asking the predicate cannot go stale that
+      // way: a class added to `is_actionable`'s exempt list changes its lead in
+      // the same edit.
+      //
+      // `ModelledNotBuilt` keeps its own word ahead of the predicate: it is
+      // also uncounted, and "not-yet-carried" says the more specific true
+      // thing about a shape nothing is wrong with.
+      self.class.lead(),
       self.body(),
       self.class.remedy()
     )

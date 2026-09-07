@@ -306,3 +306,62 @@ fn the_rendered_finding_carries_its_remedy() {
     "and it is THIS class's remedy: {rendered}"
   );
 }
+
+/// **THE LEAD WORD MUST ANSWER THE SAME QUESTION THE VERDICT ANSWERS.**
+///
+/// `residue:` is the word this report reserves for the blocking bucket, so a
+/// line leading with it while the summary does not count it makes the report
+/// contradict itself on one screen.
+///
+/// **DRIVEN BY hv ON CONFLAB, 2026-09-07, AND IT IS WHY THIS TEST EXISTS.**
+/// The lead enumerated CLASSES while the verdict asked `is_actionable()`.
+/// `FieldNotRecorded` is not actionable and was not in that list, so
+/// `intent doctor -v` printed FIFTY lines leading `residue:` above a summary
+/// reading `0 finding(s)` -- each carrying the remedy "nothing to fix".
+///
+/// The roster is discovered, so a class added tomorrow is checked tomorrow
+/// without anybody remembering this file.
+#[test]
+fn the_lead_word_agrees_with_whether_the_class_is_counted() {
+  let declared = declared_classes();
+  assert!(
+    declared.len() >= 8,
+    "precondition: the roster was discovered, not empty ({declared:?})"
+  );
+
+  // The property has to be able to fail in BOTH directions, so the roster must
+  // actually contain some of each -- otherwise this passes over a population
+  // that cannot exhibit the defect, which is the shape that let the original
+  // through.
+  let counted = declared
+    .iter()
+    .filter(|w| class_of(w).is_actionable())
+    .count();
+  assert!(
+    counted > 0 && counted < declared.len(),
+    "precondition: the roster must hold both counted and uncounted classes or this test is vacuous ({counted} of {})",
+    declared.len()
+  );
+
+  for wire in &declared {
+    let class = class_of(wire);
+    let rendered = Finding::new("f".to_string(), class, "d".to_string()).to_string();
+    let lead = rendered
+      .split(':')
+      .next()
+      .expect("the rendering always has a lead word")
+      .to_string();
+
+    if class.is_actionable() {
+      assert_eq!(
+        lead, "residue",
+        "`{wire}` IS counted in the verdict, so it must lead with the blocking word; it led `{lead}`"
+      );
+    } else {
+      assert_ne!(
+        lead, "residue",
+        "`{wire}` is NOT counted in the verdict, so leading `residue:` puts a blocking word above a summary that ignores it -- the Conflab defect exactly"
+      );
+    }
+  }
+}

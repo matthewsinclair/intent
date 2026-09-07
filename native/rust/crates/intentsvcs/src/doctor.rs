@@ -473,6 +473,17 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
   // (ic). The policy explanation is kept deliberately -- it is the only place
   // the output says what the carry policy IS -- and losing that to gain the
   // tone would be the wrong trade.
+  //
+  // **IT IS KEPT AND IT IS SHORTER, 2026-09-07, AND THE TRADE THAT SENTENCE
+  // FEARED IS NO LONGER THE ONE ON OFFER.** hv drove `-v` across the fleet:
+  // Conflab printed 186 of these notes and Baize 66, each repeating ~150
+  // characters of class policy that is identical on every instance. The report
+  // now GROUPS by class and prints the class remedy once, so what remains here
+  // is the per-instance fact plus the short form of the policy -- which is what
+  // `FindingClass::Advisory`'s own doc demands in its own words: *what is per
+  // instance goes in the detail, the class string carries only what is true of
+  // the class*. The policy is not lost, it is not repeated at length, and the
+  // check still says what the carry means.
   for wp in &thread.wps {
     if wp.scope.is_some() && wp.scope_legacy.is_some() {
       add(
@@ -487,7 +498,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     if wp.scope_legacy.is_some() && !thread.status.is_closed() {
       add(
         format!(
-          "WP-{:02} carries a legacy scope and its thread is still {} -- ADVISORY, not a refusal: the value is well-formed and nothing is blocked by it. The carry converts losslessly on a CLOSED thread, so a live one is worth rewriting in the v3 vocabulary next time the thread is touched",
+          "WP-{:02} carries a legacy scope and its thread is still {} -- well-formed, nothing blocked; worth rewriting in the v3 vocabulary next time the thread is touched",
           wp.seq,
           thread.status.display()
         ),
@@ -524,7 +535,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
     if at.legacy.is_some() && !thread.status.is_closed() {
       add(
         format!(
-          "{} carries a legacy reference and its thread is still {} -- ADVISORY, not a refusal: the reference RESOLVES and nothing is blocked by it. The carry converts losslessly on a CLOSED thread, so a live one is worth rewriting in the v3 grammar next time the thread is touched",
+          "{} carries a legacy reference and its thread is still {} -- it RESOLVES, nothing blocked; worth rewriting in the v3 grammar next time the thread is touched",
           at.id,
           thread.status.display()
         ),

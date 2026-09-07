@@ -4624,6 +4624,59 @@ fn advisory_suffix(report: &intentsvcs::doctor::Report) -> String {
   }
 }
 
+/// Print findings grouped by class: one header, one remedy, then every member.
+///
+/// **THE REMEDY CANNOT VARY WITHIN A CLASS.** `FindingClass::remedy` takes no
+/// argument, so a per-finding remedy line emits the same sentence once per
+/// instance -- 45 identical copies on Lamplight's `status-gate-disagreement`
+/// alone, 186 across Conflab's advisories. Grouping removes the repetition and
+/// nothing else: every finding still prints, in order, naming its own artefact.
+///
+/// **THE LEAD WORD IS THE CLASS'S OWN**, so a group of uncounted notes cannot
+/// head itself `residue:` -- the same agreement `Finding`'s `Display` keeps for
+/// an ungrouped line, asked once for the group instead of once per member.
+///
+/// Order is first-appearance rather than sorted: the report's own order already
+/// carries meaning (`FindingClass::meta`'s rank puts `Unmigrated` first because
+/// everything else is downstream of it), and re-sorting here would quietly
+/// discard it.
+fn print_grouped<'a>(findings: impl Iterator<Item = &'a intentsvcs::finding::Finding>) {
+  use intentsvcs::finding::{Finding, FindingClass};
+  let mut by_class: Vec<(FindingClass, Vec<&Finding>)> = Vec::new();
+  for finding in findings {
+    match by_class.iter_mut().find(|(c, _)| *c == finding.class) {
+      Some((_, group)) => group.push(finding),
+      None => by_class.push((finding.class, vec![finding])),
+    }
+  }
+  for (class, group) in &by_class {
+    // `FindingClass::Advisory`'s wire spelling IS its lead word, so naming both
+    // renders `advisory: advisory --`. The class is dropped when it would only
+    // stutter; every other class still names itself.
+    let named = match class.as_str() == class.lead() {
+      true => String::new(),
+      false => format!("{} -- ", class.as_str()),
+    };
+    println!(
+      "{}: {named}{}{}",
+      class.lead(),
+      match group.len() {
+        1 => "1 finding".to_string(),
+        n => format!("{n} findings"),
+      },
+      if class.is_actionable() {
+        ""
+      } else {
+        ", not counted in the verdict"
+      }
+    );
+    println!("  remedy: {}", class.remedy());
+    for finding in group {
+      println!("  {}", finding.where_and_what());
+    }
+  }
+}
+
 fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // **QUIET WINS OVER VERBOSE, and that is v2's rule rather than a tie-break
   // invented here** -- `bin/intent_doctor:134` reads
@@ -4728,13 +4781,50 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
   // this line would have uncounted a class and gone on printing every one of
   // its findings -- a summary saying 3 with 50 blocks scrolling above it,
   // which is worse than the state being fixed.
-  for finding in &report.findings {
-    if !finding.class.is_actionable() && !verbose {
-      continue;
-    }
-    println!("{finding}");
-  }
-  if !quiet && !verbose && report.not_actionable() > 0 {
+  // **GROUPED BY CLASS, AND THE REMEDY PRINTS ONCE PER CLASS.**
+  //
+  // **hv, 2026-09-07, driving Lamplight: "this is the worst of the lot".** 88
+  // findings rendered as 176 lines, of which 45 were byte-identical copies of
+  // the `status-gate-disagreement` remedy and 40 of the `model-inconsistent`
+  // one. `FindingClass::remedy` takes no argument, so a class's remedy CANNOT
+  // vary between its instances -- printing it per finding is duplication by
+  // construction, not detail.
+  //
+  // **THE COUNT LEADS AND THE LIST STAYS COMPLETE.** Every finding still
+  // appears on its own line, in order, naming its own artefact; what is removed
+  // is the repetition, never an instance. That is the same distinction
+  // `report.unattached` below already draws when it prints a shape line and
+  // then every path.
+  //
+  // The class name moves to the group header, so members use
+  // `where_and_what()` rather than `Display` -- repeating the class on every
+  // member of a group headed by that class is the same duplication one field
+  // over.
+  print_grouped(report.findings.iter().filter(|f| f.class.is_actionable()));
+  // **THE UNCOUNTED NOTES ARE GROUPED BY CLASS, AND THE REMEDY PRINTS ONCE PER
+  // CLASS RATHER THAN ONCE PER NOTE.**
+  //
+  // **hv, 2026-09-07, on Conflab and Baize: "how do we come to the conclusion
+  // that multiple hundreds of lines of output is pristine?"** They were right
+  // and the number that said otherwise was measuring the wrong thing -- rc=0
+  // with zero COUNTED findings, while `-v` printed 186 notes as 372 lines. A
+  // class remedy is BY CONSTRUCTION identical on every instance of its class:
+  // `FindingClass::remedy` takes no argument and cannot vary. So printing it
+  // per note emitted the same sentence 186 times and called it detail.
+  //
+  // **THIS ALSO RESOLVES A TRADE `model_checks` RECORDED AS UNAVOIDABLE.** The
+  // legacy-carry note keeps its policy explanation inline "because it is the
+  // only place the output says what the carry policy IS -- and losing that to
+  // gain the tone would be the wrong trade". It was the only place because the
+  // remedy was noise; give the class one visible home and the policy is stated
+  // once, in full, rather than sacrificed OR repeated.
+  //
+  // The count still leads and the list is still complete -- every note appears,
+  // none is elided. What is removed is duplication, not information, which is
+  // the distinction `report.unattached` above already draws.
+  if verbose {
+    print_grouped(report.findings.iter().filter(|f| !f.class.is_actionable()));
+  } else if !quiet && report.not_actionable() > 0 {
     println!(
       "advisory: {} note(s) not shown and not counted -- `intent doctor --verbose` reads them",
       report.not_actionable()

@@ -835,14 +835,18 @@ fn a_withheld_flag_is_named_by_doctor_and_a_shipped_one_is_not() {
     .next()
     .and_then(|n| n.parse().ok())
     .unwrap_or_else(|| panic!("the summary leads with a count: {summary}"));
+  // **THE FINDINGS ARE THE INDENTED MEMBERS, NOT THE HEADERS** -- the report
+  // groups by class, so three findings of one class print as ONE unindented
+  // header plus three indented `<artefact> -- <detail>` lines. Counting
+  // unindented lines counted CLASSES and read 1 where the summary said 3.
+  //
+  // A member is indented, carries the ` -- ` that separates its artefact from
+  // its detail, and is not the group's single `remedy:` line. That excludes the
+  // remedy and the unattached block's bare indented paths, which carry no
+  // separator.
   let printed = text
     .lines()
-    .filter(|l| {
-      !l.starts_with(' ')
-        && !l.starts_with("surface:")
-        && !l.starts_with("doctor: ")
-        && !l.is_empty()
-    })
+    .filter(|l| l.starts_with("  ") && l.contains(" -- ") && !l.starts_with("  remedy:"))
     .count();
   assert_eq!(
     reported, printed,

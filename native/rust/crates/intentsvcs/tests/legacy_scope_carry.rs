@@ -352,7 +352,7 @@ fn a_carried_scope_on_a_live_thread_is_reported() {
     report
       .findings
       .iter()
-      .any(|f| f.class == FindingClass::Advisory && f.detail.contains("ADVISORY, not a refusal")),
+      .any(|f| f.class == FindingClass::Advisory && f.detail.contains("nothing blocked")),
     "a live thread is fixed, not carried: {:?}",
     report.findings
   );
@@ -433,7 +433,7 @@ fn a_carried_reference_on_a_live_thread_is_reported() {
       .iter()
       .any(|f| f.class == FindingClass::Advisory
         && f.detail.contains(&id)
-        && f.detail.contains("ADVISORY, not a refusal")),
+        && f.detail.contains("nothing blocked")),
     "a live thread is fixed, not carried: {:?}",
     report.findings
   );

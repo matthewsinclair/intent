@@ -91,11 +91,21 @@ fn the_summary_counts_advisories_apart_and_exits_zero_on_them_alone() {
   // `--verbose` is where they live, in full, with the remedy.
   let (ok, verbose) = intent(root, &["doctor", "--verbose"]);
   assert!(ok, "still exit 0 under --verbose: {verbose}");
+  // **THE GROUPED SHAPE: one header naming the class and the count, the class
+  // remedy ONCE, then every member by artefact.** Asserted as three separate
+  // properties rather than one long line, so a wording change to any of them
+  // reddens the arm it belongs to instead of all three at once.
   assert!(
-    verbose.contains(
-      "advisory: intent/.canon/st/ST0001.json -- advisory -- AT-01.1 carries a legacy reference"
-    ),
-    "--verbose prints the row under `advisory:`: {verbose}"
+    verbose.contains("advisory: 1 finding, not counted in the verdict"),
+    "--verbose heads the group with its class and count: {verbose}"
+  );
+  assert!(
+    verbose.contains("  intent/.canon/st/ST0001.json -- AT-01.1 carries a legacy reference"),
+    "--verbose still names every member by artefact: {verbose}"
+  );
+  assert!(
+    verbose.matches("remedy:").count() == 1,
+    "the class remedy prints ONCE for the group, not once per member: {verbose}"
   );
   assert!(
     verbose.contains("remedy: nothing is owed now"),
