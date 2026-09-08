@@ -12,7 +12,29 @@ final class HealthTests: XCTestCase {
     // Key order is alphabetical on the wire (endpoint before state); Codable
     // does not care, and this proves it.
     let h = Health.decode(#"{"endpoint":"/tmp/intentd.sock","state":"live"}"#)
-    XCTAssertEqual(h, .live(endpoint: "/tmp/intentd.sock"))
+    XCTAssertEqual(h, .live(endpoint: "/tmp/intentd.sock", url: nil))
+  }
+
+  /// A live daemon that published an answering loopback address carries the
+  /// browser face beside the socket. **THE TWO ARE DIFFERENT KINDS OF ADDRESS
+  /// AND BOTH ARE REAL**: `endpoint` is where clients route, `url` is where a
+  /// browser goes, and rendering one as the other is the bug this pins.
+  func testLiveCarriesTheBrowserURLWhenThereIsOne() {
+    let h = Health.decode(
+      #"{"endpoint":"/tmp/intentd.sock","state":"live","url":"http://127.0.0.1:51737"}"#)
+    XCTAssertEqual(h, .live(endpoint: "/tmp/intentd.sock", url: "http://127.0.0.1:51737"))
+  }
+
+  /// **`url` ABSENT IS `nil`, NOT AN EMPTY STRING.** The menu gates on this
+  /// optional, so a decoder that substituted `""` would offer an item whose
+  /// title is blank and whose action opens nothing -- present-and-meaningless,
+  /// the exact shape the Rust side omits the key to avoid.
+  func testLiveWithoutAURLIsNilAndNotEmpty() {
+    guard case .live(_, let url) = Health.decode(#"{"endpoint":"/tmp/x.sock","state":"live"}"#)
+    else {
+      return XCTFail("a live daemon with no published web face is still live")
+    }
+    XCTAssertNil(url)
   }
 
   func testStaleDecodesWithItsPid() {

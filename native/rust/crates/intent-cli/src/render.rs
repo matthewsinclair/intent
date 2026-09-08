@@ -1871,12 +1871,14 @@ fn browser_url(address: &intentsvcs::address::Address) -> Result<String, Failure
     ))
   })?;
 
-  let candidates =
-    intentsvcs::daemon::candidates_under(&root).map_err(|e| Failure::Error(e.render()))?;
-  let answering = candidates
-    .iter()
-    .find(|e| matches!(e, intentsvcs::daemon::Endpoint::Tcp(_)) && e.answers());
-  let Some(intentsvcs::daemon::Endpoint::Tcp(addr)) = answering else {
+  // **ONE READER OF *the answering loopback*, SHARED WITH `daemon status`.**
+  // This was the inline form and `daemon status` was about to become a second
+  // copy of it; two searches for the same address are two chances to disagree
+  // about where the daemon is, silently, because both answers look like
+  // addresses.
+  let answering =
+    intentsvcs::daemon::answering_loopback_under(&root).map_err(|e| Failure::Error(e.render()))?;
+  let Some(addr) = answering else {
     return Err(Failure::Error(
       concat!(
         "error: no `intentd` is answering, and a browser cannot be sent to a page ",
@@ -1910,7 +1912,8 @@ fn browser_url(address: &intentsvcs::address::Address) -> Result<String, Failure
   // keeps their work.
   let (project, _) = context()?;
   Ok(format!(
-    "http://{addr}{}#token={secret}&root={}",
+    "{}{}#token={secret}&root={}",
+    intentsvcs::daemon::loopback_base_url(&addr),
     view.path(),
     urlencode(&project.root().to_string_lossy())
   ))
@@ -6752,6 +6755,29 @@ fn daemon_status(a: &ArgMatches) -> Result<(), Failure> {
   // reimplementing the question.
   let health = daemon::health().map_err(|e| Failure::Error(e.render()))?;
 
+  // **THE BROWSER ADDRESS IS A SECOND QUESTION, ASKED ONLY WHEN THE FIRST
+  // ANSWERED LIVE.** This verb's help promises *the address it answers on*, and
+  // a daemon answers on TWO -- the unix socket every client routes through, and
+  // the loopback port a browser can be pointed at. `Health::Live` carries
+  // whichever `route()` selected, which is the socket whenever both are up, so
+  // reporting it alone leaves the promise half-kept and leaves `ST0064`'s
+  // menubar app with no address it can open.
+  //
+  // **IT IS NOT ASKED WHEN THE DAEMON IS NOT LIVE**, because the question is
+  // meaningless then and the probe is a round trip: a stale or absent daemon
+  // would pay for an answer nobody renders.
+  //
+  // **A FAULT TRAVELS RATHER THAN COLLAPSING INTO *no URL*.** An unreadable
+  // address file means we could not find out, and rendering that as a live
+  // daemon with no web face is the confident negative `candidates_under`
+  // refuses to emit one layer down.
+  let loopback = match &health {
+    daemon::Health::Live(_) => {
+      daemon::answering_loopback().map_err(|e| Failure::Error(e.render()))?
+    }
+    daemon::Health::Stale { .. } | daemon::Health::Absent => None,
+  };
+
   // **THE MACHINE FACE IS A PROJECTION OF THE SAME VALUE, NOT A SECOND
   // ANSWER.** Both arms render one `Health` computed once above; asking twice
   // could answer differently across the two calls, on a verb whose entire
@@ -6769,7 +6795,15 @@ fn daemon_status(a: &ArgMatches) -> Result<(), Failure> {
   if format == "json" {
     let payload = match &health {
       daemon::Health::Live(endpoint) => {
-        serde_json::json!({ "state": "live", "endpoint": endpoint.to_string() })
+        // **`url` IS PRESENT IFF THERE IS ONE, WHICH IS THE SAME CONTRACT AS
+        // `endpoint` AND `pid`.** ic's decoder is per-state optionals, so a
+        // `null` or an empty string would decode as present-and-meaningless --
+        // and the app would render a menu item that opens nothing.
+        let mut payload = serde_json::json!({ "state": "live", "endpoint": endpoint.to_string() });
+        if let Some(addr) = &loopback {
+          payload["url"] = serde_json::json!(daemon::loopback_base_url(addr));
+        }
+        payload
       }
       daemon::Health::Stale { pid } => serde_json::json!({ "state": "stale", "pid": pid }),
       daemon::Health::Absent => serde_json::json!({ "state": "absent" }),
@@ -6779,7 +6813,18 @@ fn daemon_status(a: &ArgMatches) -> Result<(), Failure> {
   }
 
   match health {
-    daemon::Health::Live(endpoint) => println!("ok: intentd is answering at {endpoint}"),
+    daemon::Health::Live(endpoint) => {
+      println!("ok: intentd is answering at {endpoint}");
+      // **THE HUMAN FACE OWES THE SAME TWO ADDRESSES AS THE MACHINE ONE.** An
+      // operator reading this verb to find out where the daemon is should not
+      // have to know that a second address exists, nor where it is published.
+      if let Some(addr) = &loopback {
+        println!(
+          "note: its web face is at {}",
+          daemon::loopback_base_url(addr)
+        );
+      }
+    }
     // **THE REMEDY IS THE POINT OF THE STATE, SO IT IS PRINTED WITH IT.** A
     // split whose two sides read the same to an operator is a vocabulary
     // change; `AC-08.12` makes unlinking a live daemon's socket destructive,

@@ -165,7 +165,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       menu.addItem(item)
     } else {
       switch daemon.health {
-      case .live:
+      case .live(_, let url):
+        // **THE TITLE IS THE ADDRESS AND THE ADDRESS IS WHAT OPENS.** One value,
+        // rendered not derived (AC-01.1): the port is assigned by the kernel and
+        // published by the daemon, so the app has nothing to reconstruct it from
+        // and must never try. `nil` means the daemon published no answering
+        // loopback face, and the item is then ABSENT rather than disabled --
+        // a greyed-out URL invites a click that could never work.
+        if let url {
+          let web = NSMenuItem(
+            title: url, action: #selector(openWebFace(_:)), keyEquivalent: "")
+          web.representedObject = url
+          menu.addItem(web)
+        }
         menu.addItem(
           NSMenuItem(title: "Stop intentd", action: #selector(stopDaemon), keyEquivalent: ""))
         menu.addItem(
@@ -229,6 +241,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     runLifecycle("Restart failed") { try await self.daemon.restart() }
   }
   @objc private func runDoctorVerb() { runVerb(["doctor"], failing: "Doctor failed") }
+
+  /// Open the daemon's web face in whatever the operator's default browser is.
+  ///
+  /// **THE ADDRESS COMES OFF THE ITEM, WHICH IS THE ADDRESS THE OPERATOR READ.**
+  /// Re-asking the daemon here would open a page other than the one the menu
+  /// showed, on the one occasion the two differ -- a restart between paint and
+  /// click, which is exactly when the port changes.
+  ///
+  /// **NEITHER FAILURE IS SILENT** (AC-01.1's no-silent-errors sibling): a menu
+  /// item that does nothing when clicked is indistinguishable from one that
+  /// worked, so both paths log and the unopenable one tells the operator.
+  @objc private func openWebFace(_ sender: NSMenuItem) {
+    guard let raw = sender.representedObject as? String, let url = URL(string: raw) else {
+      let shown = (sender.representedObject as? String) ?? sender.title
+      Self.logger.error("web face is not a usable URL: \(shown, privacy: .public)")
+      return showAlert(
+        "Could not open the web face", message: "`\(shown)` is not a URL this app can open")
+    }
+    Self.logger.info("open web face \(raw, privacy: .public)")
+    if !NSWorkspace.shared.open(url) {
+      showAlert("Could not open \(raw)", message: "the system declined to open it")
+    }
+  }
 
   private func runLifecycle(_ failing: String, _ op: @escaping () async throws -> Void) {
     Task {

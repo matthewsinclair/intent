@@ -662,6 +662,60 @@ pub fn candidates_under(root: &std::path::Path) -> Result<Vec<Endpoint>, DaemonE
   Ok(found)
 }
 
+/// The loopback address a daemon is ANSWERING on, if one is.
+///
+/// **THE ANSWER IS A ROUND TRIP, NOT A READ OF THE ADDRESS FILE.** `intentd.addr`
+/// outlives the process that wrote it for exactly the reason the socket file
+/// does -- `SIGKILL` runs no destructor, so [`Published`]'s guard narrows the
+/// window and cannot close it. A caller that trusted the file would hand a
+/// browser a page nothing serves, or show an operator an address that is a
+/// lie. [`Endpoint::answers`] is the same completed round trip
+/// [`health_under`] uses, so the two can never disagree about liveness.
+///
+/// **`None` MEANS *there is nowhere to send a browser*, WHICH IS ONE ANSWER
+/// EVEN THOUGH IT HAS TWO CAUSES** -- no TCP candidate was published, or one
+/// was and it is not answering. The caller's question is may I hand this to a
+/// browser, and both causes answer it identically. What must NOT collapse is a
+/// FAULT: an unreadable or malformed address file still travels as `Err` out of
+/// [`candidates_under`], because *we could not find out* is not *there is
+/// nothing there* -- the confident-negative defect this module keeps re-finding.
+pub fn answering_loopback_under(root: &std::path::Path) -> Result<Option<SocketAddr>, DaemonError> {
+  let candidates = candidates_under(root)?;
+  let answering = candidates
+    .iter()
+    .find(|e| matches!(e, Endpoint::Tcp(_)) && e.answers());
+  match answering {
+    Some(Endpoint::Tcp(addr)) => Ok(Some(*addr)),
+    _ => Ok(None),
+  }
+}
+
+/// [`answering_loopback_under`] against the operator's own home.
+///
+/// **NO HOME IS `None` AND NOT AN ERROR**, matching [`health`] and
+/// [`candidates`]: without `$HOME` there is no per-user state, so no address
+/// was ever published and there is nowhere to send a browser.
+pub fn answering_loopback() -> Result<Option<SocketAddr>, DaemonError> {
+  let Ok(root) = crate::userstate::home() else {
+    return Ok(None);
+  };
+  answering_loopback_under(&root)
+}
+
+/// The base URL of the loopback face: scheme and authority, no path.
+///
+/// **THE SCHEME HAS ONE HOME BECAUSE IT IS THE PART THAT CAN GO STALE
+/// SILENTLY.** The address comes from the daemon and cannot drift; `http` is
+/// the only literal in the URL, and a second copy of it is two places to change
+/// on the day the face is served over anything else. Both callers -- `browse
+/// --browser`'s URL and `daemon status`'s machine face -- render the same
+/// authority for the same daemon, so a disagreement between them would be two
+/// answers to *where is it*, which is the one thing [`candidates`] exists to
+/// prevent.
+pub fn loopback_base_url(addr: &SocketAddr) -> String {
+  format!("http://{addr}")
+}
+
 /// A published daemon address, removed when this value is dropped.
 ///
 /// **THE WRITE SIDE OF hv's D6, AND THE READER ([`candidates`]) ALREADY

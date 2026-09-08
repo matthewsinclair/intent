@@ -60,7 +60,7 @@ fn absent_is_the_state_and_nothing_else() {
   // gates on optionals, so a `pid: null` or an empty `endpoint` would decode as
   // present-and-meaningless rather than absent.
   assert!(
-    v.get("pid").is_none() && v.get("endpoint").is_none(),
+    v.get("pid").is_none() && v.get("endpoint").is_none() && v.get("url").is_none(),
     "absent carries the state alone: {v}"
   );
 }
@@ -114,4 +114,68 @@ fn the_three_state_names_are_the_ones_the_consumer_decodes() {
     rendered.contains(r#""state": "stale""#),
     "the renderer no longer emits the `stale` discriminator ic decodes"
   );
+}
+
+/// **`ST0064`: THE MENUBAR ITEM'S TITLE IS THIS FIELD AND ITS ACTION IS OPENING
+/// IT, SO THE TWO CLAIMS ARE ASSERTED TOGETHER.** A `url` that is well-formed
+/// and serves nothing would render a menu item that looks right and does
+/// nothing when clicked -- the failure lands in another language, in another
+/// build, in a click nobody scripts.
+///
+/// **THE UNAUTHENTICATED GET IS THE POINT, NOT AN INCIDENTAL.** The HTTP face
+/// requires a bearer token for `/op` (`D56`), and a browser sent to a bare
+/// address carries no `Authorization` header. If `/` ever starts demanding the
+/// secret, the honest consequence is that this menu item cannot exist without
+/// putting a secret in a URL -- which is an `hv` decision, not a patch. This
+/// test is what would surface that day, rather than an operator finding a login
+/// wall in their browser.
+#[test]
+fn live_names_a_browser_address_that_serves_a_page_without_a_token() {
+  let daemon = RealDaemon::start();
+  let v = status_json(daemon.home());
+
+  let url = v["url"]
+    .as_str()
+    .unwrap_or_else(|| panic!("a live daemon publishes a loopback address to open: {v}"));
+  // **NO TRAILING SLASH, BECAUSE THIS STRING IS THE MENU ITEM'S TITLE VERBATIM.**
+  // The app renders what it is given and derives nothing, so any tidying of the
+  // address has to happen here or it happens twice.
+  let authority = url
+    .strip_prefix("http://")
+    .unwrap_or_else(|| panic!("`url` is what a browser is handed, scheme and all: {url}"));
+  authority
+    .parse::<std::net::SocketAddr>()
+    .unwrap_or_else(|e| panic!("`url`'s authority must be the published address ({e}): {url}"));
+
+  // **A RAW GET RATHER THAN A CLIENT DEPENDENCY.** `dependency_rationale.rs`
+  // audits this workspace's manifest, and one request with no headers does not
+  // earn an HTTP stack.
+  let status_line = plain_get(authority, "/");
+  assert!(
+    status_line.starts_with("HTTP/1.1 200"),
+    "a browser with no token must get the status page, not a refusal: {status_line}"
+  );
+}
+
+/// One unauthenticated `GET`, returning the status line.
+fn plain_get(authority: &str, path: &str) -> String {
+  use std::io::{Read, Write};
+
+  let mut stream = std::net::TcpStream::connect(authority).expect("connect to the published port");
+  stream
+    .set_read_timeout(Some(std::time::Duration::from_secs(5)))
+    .expect("set a deadline");
+  write!(
+    stream,
+    "GET {path} HTTP/1.1\r\nHost: {authority}\r\nConnection: close\r\n\r\n"
+  )
+  .expect("write the request");
+
+  let mut body = Vec::new();
+  stream.read_to_end(&mut body).expect("read the response");
+  String::from_utf8_lossy(&body)
+    .lines()
+    .next()
+    .unwrap_or_default()
+    .to_string()
 }
