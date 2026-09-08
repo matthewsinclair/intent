@@ -479,8 +479,22 @@ fn status_gate_disagreement(canon: &Canon, project: &Project, report: &mut Repor
           } else {
             (
               FindingClass::StatusGateDisagreement,
+              // **IT STATES THE DISAGREEMENT AND NO LONGER INFERS THE CAUSE.**
+              // This read `so anything sequencing off this field is planning
+              // work that is already done` -- an inference from SATISFIED
+              // CRITERIA to FINISHED WORK, and the two come apart on parked
+              // scope: a park is recorded as its own satisfied criterion, so
+              // the gate passes and the work has not started. Measured across
+              // the fleet 2026-09-08: 9 work packages carry a park or defer
+              // marker, and every one of the live ones is `not-started`, so
+              // every one of them was being told its work was already done.
+              //
+              // **A REAL FINDING IS THE BEST POSSIBLE COVER FOR AN INVENTED
+              // MECHANISM ATTACHED TO IT** -- the note two arms below already
+              // says exactly that about this same detail line, and this is the
+              // clause it did not catch.
               format!(
-                "{}/WP-{:02} is recorded {recorded} and its gate PASSES -- every criterion in its scope is satisfied, so anything sequencing off this field is planning work that is already done",
+                "{}/WP-{:02} is recorded {recorded} and its gate PASSES -- every criterion in its scope is satisfied, so the status and the contract disagree about it",
                 thread.id, wp.seq
               ),
             )

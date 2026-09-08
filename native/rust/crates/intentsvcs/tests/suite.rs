@@ -129,6 +129,7 @@ mod doctor_advisory;
 mod doctor_checks;
 #[path = "doctor_scope.rs"]
 mod doctor_scope;
+
 #[path = "edit_prints_a_path_that_exists.rs"]
 mod edit_prints_a_path_that_exists;
 #[path = "egest_estate.rs"]
@@ -315,6 +316,8 @@ mod root_files_generated;
 mod schema_faces_drift;
 #[path = "skills_sync.rs"]
 mod skills_sync;
+#[path = "status_gate_states_what_it_observed.rs"]
+mod status_gate_states_what_it_observed;
 #[path = "status_vocabulary.rs"]
 mod status_vocabulary;
 #[path = "store_rebuild.rs"]

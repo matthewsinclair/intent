@@ -465,7 +465,7 @@ impl FindingClass {
       Self::StatusGateDisagreement => (
         7,
         "status-gate-disagreement",
-        "the status and the gate disagree, and only you can say which one is wrong. If the work really is finished, the contract is missing something -- read the blocking ids and either satisfy them or take them out of scope. If it is not finished, `intent wp start <ST>/<NN>` says so. Do NOT reach for `wp done`: it is refused on a blocked gate, which is the same ruling as this report",
+        "the status and the gate disagree, and only you can say which one is wrong. THIS CLASS CARRIES BOTH DIRECTIONS and they take opposite actions. GATE BLOCKED, status Done: the contract is missing something -- read the blocking ids and either satisfy them or take them out of scope; do NOT reach for `wp done`, which is refused on a blocked gate, the same ruling as this report. GATE PASSES, status not Done: either the work is finished and the field is stale -- `intent wp done <ST>/<NN>`, and from `Not Started` that needs `intent wp start <ST>/<NN>` first because `wp.done` is declared only from `wip` -- or the scope is satisfied for a reason other than completion, which is what PARKED work looks like: a park records its own satisfied criterion, so the gate passes over work nobody has started. Read the work package before you close it",
       ),
       Self::StatusGateDisagreementOverFiat => (
         7,
