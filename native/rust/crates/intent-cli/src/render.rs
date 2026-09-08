@@ -8253,7 +8253,7 @@ fn payload_fail(e: intentsvcs::payload::PayloadError) -> Failure {
   Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy()))
 }
 
-/// The line printed for [`Outcome::ModifiedLocally`].
+/// The line printed for [`intentsvcs::payload::Outcome::ModifiedLocally`].
 ///
 /// **THIS ONE MAY BE CONFIDENT, AND THE CONTRAST WITH [`CONFLICTED_HELD`] IS
 /// THE WHOLE REASON BOTH ARE NAMED.** Here the baseline matches the SOURCE and
@@ -8263,8 +8263,9 @@ fn payload_fail(e: intentsvcs::payload::PayloadError) -> Failure {
 /// information on the one arm that has it.
 const MODIFIED_LOCALLY_HELD: &str = "modified here since it was installed -- HELD. `--force` takes the source copy and reports the checksum of what it discarded; copy your edits out first if you want them";
 
-/// The line printed for [`Outcome::Conflicted`], held here so it has one home
-/// and can be constrained by a test rather than only by whoever edits it.
+/// The line printed for [`intentsvcs::payload::Outcome::Conflicted`], held here
+/// so it has one home and can be constrained by a test rather than only by
+/// whoever edits it.
 ///
 /// **IT MUST NOT ASSERT A STATE IT HAS NOT ESTABLISHED, AND MUST NOT REPLACE
 /// ONE ASSERTION WITH ANOTHER** (vc's ruling, 2026-09-08, issue 0280).
@@ -8287,10 +8288,10 @@ const MODIFIED_LOCALLY_HELD: &str = "modified here since it was installed -- HEL
 /// of what it discarded; and if the operator knows there are none, `--force` is
 /// safe.
 ///
-/// **THE PRECEDENT WAS ALREADY ONE ARM AWAY.** [`Outcome::Forced`] with
-/// [`Baseline::Absent`] already refuses to name the discarded bytes as an edit,
-/// on AC-07.3(d)'s grounds. This is that discipline applied to the arm that
-/// leads there.
+/// **THE PRECEDENT WAS ALREADY ONE ARM AWAY.** [`intentsvcs::payload::Outcome::Forced`]
+/// with [`intentsvcs::payload::Baseline::Absent`] already refuses to name the
+/// discarded bytes as an edit, on AC-07.3(d)'s grounds. This is that discipline
+/// applied to the arm that leads there.
 const CONFLICTED_HELD: &str = "the recorded baseline matches neither the source nor the installed tree, so it cannot say what was installed -- HELD. This build cannot tell an edit of yours from a stale baseline: both look exactly like this. If you have edits here, copy them out first -- `--force` takes the source copy and reports the checksum of what it discarded. If you know you have none, `--force` is safe";
 
 /// install / sync / uninstall -- one renderer, because they report the same
