@@ -39,9 +39,14 @@ For each ST/WP worked on this session:
 
 Update `intent/wip.md` with:
 
-- What was accomplished this session
 - Current state of in-progress work
 - What's next
+
+**`wip.md` IS DOING AND TODO ONLY. DONE WORK IS ILLEGAL IN IT, AND THIS LIST USED TO ORDER THE OPPOSITE.** Its first bullet read _What was accomplished this session_ until 2026-09-08 -- so the skill every node runs at wrap-up instructed the precise thing the file's own name forbids, and a human then corrected it by hand, repeatedly, on four separate occasions across two projects. **A repeated correction is a document defect, not a discipline failure**: nodes were following the instruction they were given.
+
+Finished work already has homes that outlive the session and cannot rot -- the commit, the closed issue, the satisfied AC, `done.md`. **Restating it in `wip.md` gives one fact a second home whose only distinguishing property is that nobody updates it**, which is the divergence this section's own history is about.
+
+The test before you write a line here: **would this line still be true if the work were abandoned tomorrow?** DOING and TODO survive that question. _What was accomplished_ does not -- it is a claim about the past, and `wip.md` is not a log.
 
 ### 4. Update restart context
 

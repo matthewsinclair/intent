@@ -19,7 +19,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 12: Cutover and v3.0.0 release
   - [ ] 13: Project search: full-text, structural, and the agent search surface
   - [ ] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API
-  - [ ] 15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
+  - [-] 15: Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill
   - [ ] 16: Contract drift: a shipped field with no model row is refused
   - [-] 17: Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs
   - [x] 18: Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator

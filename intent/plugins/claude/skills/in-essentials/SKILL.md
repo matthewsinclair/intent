@@ -68,10 +68,12 @@ Frontmatter is written by v3 from the store, so do not hand-author it: `info.md`
 
 Before ending a session, update tracking files to preserve context for the next session:
 
-1. Update `intent/wip.md` with current state and what is next
+1. Update `intent/wip.md` with current state and what is next -- **DOING and TODO only; done work is illegal in it**
 2. Update `intent/restart.md` with session restart context
-3. Update `.claude/restart.md` with WIP/TODO focus
+3. **Leave `.claude/restart.md` alone** unless the entry procedure itself changed -- it is the ENTRY POINT and holds NO STATE
 4. Commit changes before ending session
+
+**STEP 3 SAID _update `.claude/restart.md` with WIP/TODO focus_ UNTIL 2026-09-08, WHICH IS THE OPPOSITE OF WHAT `/in-finish` SAYS ABOUT THE SAME FILE.** Two skills, one file, contradictory orders -- and the one that was wrong is the one loaded at every session start, so it was read far more often. The three tracking files were three copies of one narrative until 2026-08-24, each opening with a banner claiming to supersede the others; **state written into the entry point is how that rebuilds.** `/in-finish` step 4 carries the full reasoning and is the one home for it.
 
 ### 6. Use `intent wp` commands for work package management
 
