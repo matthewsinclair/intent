@@ -662,6 +662,13 @@ const UNPROVEN: &[&str] = &[
   "daemon run",
   "daemon start",
   "daemon stop",
+  // **THE FOURTH VERB, ADDED WITH IT AND UNPROVEN FOR ITS SIBLINGS' REASON.**
+  // `daemon restart` (hv, 2026-09-08) composes `stop` then `start`, so whatever
+  // those two write it writes, and neither has been established. It is listed
+  // rather than exempted because the enumeration is an EQUALITY: a shipped
+  // mutator missing from every bucket reds this file, which is how this row
+  // came to be written at all.
+  "daemon restart",
   "ext new",
   // `fileindex` left this roster on 2026-08-31 by being RETIRED (hv's A4,
   // executed at `c6515ad6`), not by being proven. A retired verb is not a

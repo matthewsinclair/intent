@@ -342,6 +342,14 @@ const HAZARDS: &[(&str, &[Hazard])] = &[
   // to be comparing exit codes.
   ("daemon start", &[Hazard::ActsOnAmbientUserState]),
   ("daemon stop", &[Hazard::ActsOnAmbientUserState]),
+  // **`restart` IS BOTH OF ITS HALVES' HAZARD AT ONCE, WHICH IS WHY IT IS
+  // DECLARED RATHER THAN INFERRED.** It composes `stop` then `start`, so driven
+  // in-process it would stop the developer's real daemon and then spawn one
+  // under their real `HOME` -- the two hazards above in sequence, in one row.
+  // It was caught by this harness on the day the verb landed (2026-09-08),
+  // which is the declaration working: the row went red for `binary exited 0,
+  // in-process exited 1` rather than by taking a machine down.
+  ("daemon restart", &[Hazard::ActsOnAmbientUserState]),
   // **THE SAME HAZARD BY A DIFFERENT ROUTE, AND IT WAS FOUND THE EXPENSIVE WAY.**
   // These reach the operator's GUI session through LaunchServices by a FIXED
   // bundle id, so no fixture `HOME` scopes them -- undeclared, this harness

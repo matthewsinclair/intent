@@ -7952,6 +7952,25 @@
           "recoverability": "reversible",
           "recoverability_anomaly": "REVERSIBLE AND WITHHELD ANYWAY, AND THE WITHHOLD REASON IS NOT IRREVERSIBILITY. The MCP withhold list is derived from `recoverability` because the usual ground for keeping a mutation off the tool tier is that the surface cannot undo it -- and these three ARE undoable, each by a sibling. They are withheld because they are MACHINE-LEVEL PROCESS CONTROL, which is this family's own stated ground and the canonical example behind the exposure field existing at all. **The head row carried `one-way` while it was ONE ROW STANDING FOR FOUR VERBS, which is a label bent to make a derived number come out** (cc's words). A representation that must state something false for a mechanism to produce the right answer is the mechanism's defect, not the row's -- and the generator refusing the bent label rather than accepting it is that working. Splitting the family is what made each verb's real recoverability statable."
         },
+      {
+        "path": "daemon restart",
+        "help": "Restart intentd: stop it, then start it",
+        "args": [],
+        "flags": [],
+        "v2": "new-surface",
+        "basis": "hv, 2026-09-08, on hitting `error: unrecognized subcommand 'restart'` while `app restart` shipped. **THE RULING IS `app restart`'s, APPLIED RATHER THAN RE-DECIDED**: a STOPPED daemon restarts rather than refusing, because someone typing `restart` at a daemon that is not running means start, and refusing would be correct about the word and useless about the intent. Two sibling verbs resolving one question two ways is the surface Highlander problem, and there was no reason to open it twice. **IT COMPOSES `stop` THEN `start` RATHER THAN ASKING THE DAEMON TO RELAUNCH ITSELF**: `stop` tries the wire first and falls back to SIGTERM, so a WEDGED daemon is still recovered -- which is the case the verb mostly exists for, and a self-relaunch would need the very process that is not answering. **NEITHER HALF TAKES `--at-login`**: that flag enrols or unenrols the launch agent, which is a different act from bouncing the process, so a restart leaves enrolment exactly as it found it. **THE GAP WAS CONCEALED BY A COMMENT ASSERTING IT DID NOT EXIST** -- `fn app`'s doc read _the two long-running things now have the same four verbs_ while `app` had `restart` and `daemon` did not, and the app's own `DaemonService.swift:67` had documented the stop-then-start workaround for weeks. A comment describing a symmetry is a claim, and nothing tested it.",
+        "target": {
+          "state": "new-surface"
+        },
+        "disposition": "new-surface",
+        "exposed_on_mcp": false,
+        "read_or_mutate": "mutate",
+        "mcp_review": {
+          "note": "Machine-level process control. See `daemon start`."
+        },
+        "recoverability": "reversible",
+      "recoverability_anomaly": "REVERSIBLE AND WITHHELD ANYWAY, FOR THIS FAMILY'S STATED REASON RATHER THAN A NEW ONE. See `daemon run`'s anomaly, which sets it out in full: the usual ground for keeping a mutation off the tool tier is that the surface cannot undo it, and these are undoable -- each by a sibling. They are withheld because they are MACHINE-LEVEL PROCESS CONTROL. **`restart` is the strongest instance of that in the family**: it is the only verb here whose SUCCESS PATH deliberately kills a process an agent may itself be talking to, and it republishes the loopback address in doing so, so a tool-tier caller could sever its own transport and every other client's mid-call. Undoable does not mean harmless."
+      },
         {
           "path": "daemon status",
           "help": "Report whether intentd is running, and the address it answers on",
@@ -8959,7 +8978,7 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 48,
+      "n": 49,
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -9153,6 +9172,10 @@
         "why": "leaves a process behind the probe -- `intent daemon start` detaches an `intentd` under `$HOME` and RETURNS, so a sandboxed probe exits cleanly and a live daemon stays running in the tempdir's home with nothing in the harness to reap it. It returns perfectly well, like `claude upgrade`; the ground is the side effect outliving the question, not the exit. Added with `daemon run` when the probe widened to every entry (ic, 2026-08-31)."
       },
       {
+        "path": "daemon restart",
+        "why": "leaves a process behind the probe, for `daemon start`'s reason and BY COMPOSITION rather than by a judgement of its own. `restart` is `stop` then `start`, so its second half detaches an `intentd` under `$HOME` and returns -- a sandboxed probe exits cleanly and a live daemon survives it, which is the sentence above verbatim. **THE COMPOSITION IS WHY THIS ROW CANNOT INHERIT `daemon stop`'s PROBEABILITY.** `stop` is probeable because under a tempdir `$HOME` it finds nothing and says so; `restart` reaches that same harmless first half and then starts something. **A verb built from a probeable half and an unprobeable half takes the stricter answer, and stopping at the first half is exactly how it would get the wrong one** -- the shape this list has gone short by twice, both times because a member was judged against a criterion narrower than the one that actually applied."
+      },
+      {
         "path": "app start",
         "why": "acts on the operator's REAL GUI session and no sandbox contains it. `daemon stop` is probeable because a probe under a tempdir `$HOME` stops a daemon in that tempdir; this verb reaches LaunchServices by a FIXED BUNDLE ID, so a probe would quit or relaunch the developer's actual menubar app on the machine running the suite. The ground is that the side effect escapes the sandbox, not that the verb fails to return -- it returns perfectly well, which is what makes it dangerous to drive blind. Do NOT copy `daemon`'s disposition here: the two families look alike and their probes do not."
       },
@@ -9286,6 +9309,7 @@
       "daemon",
       "daemon start",
       "daemon stop",
+      "daemon restart",
       "daemon status",
       "daemon run",
       "app",
@@ -9421,6 +9445,7 @@
       "daemon",
       "daemon start",
       "daemon stop",
+      "daemon restart",
       "daemon status",
       "daemon run",
       "app",

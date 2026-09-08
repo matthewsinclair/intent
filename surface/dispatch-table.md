@@ -3645,13 +3645,14 @@ Manage the machine-level intentd
 - **THE TWO ALTERNATIVES WERE BOTH DEFECTS ALREADY NAMED ON THIS ESTATE.** A `--format` on the head row lands on `start`, `stop`, `run` and `status` alike, which is a FLAG ACCEPTED AND IGNORED -- worse than one refused, because the caller believes they got the behaviour and the exit code agrees. And a child row under a `new_surface` head is never read by `spine::build`, which iterates `table.families`: measured, that produced TWO TESTS DISAGREEING about whether the command exists, one saying it was missing from the surface and one saying it was present with no row behind it. That is what two homes look like from outside.
 - `daemon status` is the only READ in the family and the only member whose exposure question is open.
 
-| command         | args      | flags                  | help                                                             | disposition |
-| --------------- | --------- | ---------------------- | ---------------------------------------------------------------- | ----------- |
-| `daemon`        | <command> | --                     | Manage the machine-level intentd                                 | new-surface |
-| `daemon start`  | --        | --at-login             | Start intentd for this machine                                   | new-surface |
-| `daemon stop`   | --        | --at-login             | Stop the running intentd                                         | new-surface |
-| `daemon status` | --        | --format terminal/json | Report whether intentd is running, and the address it answers on | new-surface |
-| `daemon run`    | --        | --                     | Run intentd in the foreground, without daemonising               | new-surface |
+| command          | args      | flags                  | help                                                             | disposition |
+| ---------------- | --------- | ---------------------- | ---------------------------------------------------------------- | ----------- |
+| `daemon`         | <command> | --                     | Manage the machine-level intentd                                 | new-surface |
+| `daemon start`   | --        | --at-login             | Start intentd for this machine                                   | new-surface |
+| `daemon stop`    | --        | --at-login             | Stop the running intentd                                         | new-surface |
+| `daemon restart` | --        | --                     | Restart intentd: stop it, then start it                          | new-surface |
+| `daemon status`  | --        | --format terminal/json | Report whether intentd is running, and the address it answers on | new-surface |
+| `daemon run`     | --        | --                     | Run intentd in the foreground, without daemonising               | new-surface |
 
 ### `daemon`
 
@@ -3697,6 +3698,19 @@ Stop the running intentd
 - **basis:** design.md:73-74, D07/D08/D19. The undo of `daemon start`, which is why neither is one-way.
 - **recoverability:** reversible
 - **recoverability anomaly:** REVERSIBLE AND WITHHELD ANYWAY, AND THE WITHHOLD REASON IS NOT IRREVERSIBILITY. The MCP withhold list is derived from `recoverability` because the usual ground for keeping a mutation off the tool tier is that the surface cannot undo it -- and these three ARE undoable, each by a sibling. They are withheld because they are MACHINE-LEVEL PROCESS CONTROL, which is this family's own stated ground and the canonical example behind the exposure field existing at all. **The head row carried `one-way` while it was ONE ROW STANDING FOR FOUR VERBS, which is a label bent to make a derived number come out** (cc's words). A representation that must state something false for a mechanism to produce the right answer is the mechanism's defect, not the row's -- and the generator refusing the bent label rather than accepting it is that working. Splitting the family is what made each verb's real recoverability statable.
+
+### `daemon restart`
+
+Restart intentd: stop it, then start it
+
+- **v2:** new-surface
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface`
+- **MCP:** not exposed -- **mutates**
+- **MCP note:** Machine-level process control. See `daemon start`.
+- **basis:** hv, 2026-09-08, on hitting `error: unrecognized subcommand 'restart'` while `app restart` shipped. **THE RULING IS `app restart`'s, APPLIED RATHER THAN RE-DECIDED**: a STOPPED daemon restarts rather than refusing, because someone typing `restart` at a daemon that is not running means start, and refusing would be correct about the word and useless about the intent. Two sibling verbs resolving one question two ways is the surface Highlander problem, and there was no reason to open it twice. **IT COMPOSES `stop` THEN `start` RATHER THAN ASKING THE DAEMON TO RELAUNCH ITSELF**: `stop` tries the wire first and falls back to SIGTERM, so a WEDGED daemon is still recovered -- which is the case the verb mostly exists for, and a self-relaunch would need the very process that is not answering. **NEITHER HALF TAKES `--at-login`**: that flag enrols or unenrols the launch agent, which is a different act from bouncing the process, so a restart leaves enrolment exactly as it found it. **THE GAP WAS CONCEALED BY A COMMENT ASSERTING IT DID NOT EXIST** -- `fn app`'s doc read _the two long-running things now have the same four verbs_ while `app` had `restart` and `daemon` did not, and the app's own `DaemonService.swift:67` had documented the stop-then-start workaround for weeks. A comment describing a symmetry is a claim, and nothing tested it.
+- **recoverability:** reversible
+- **recoverability anomaly:** REVERSIBLE AND WITHHELD ANYWAY, FOR THIS FAMILY'S STATED REASON RATHER THAN A NEW ONE. See `daemon run`'s anomaly, which sets it out in full: the usual ground for keeping a mutation off the tool tier is that the surface cannot undo it, and these are undoable -- each by a sibling. They are withheld because they are MACHINE-LEVEL PROCESS CONTROL. **`restart` is the strongest instance of that in the family**: it is the only verb here whose SUCCESS PATH deliberately kills a process an agent may itself be talking to, and it republishes the loopback address in doing so, so a tool-tier caller could sever its own transport and every other client's mid-call. Undoable does not mean harmless.
 
 ### `daemon status`
 

@@ -6341,6 +6341,7 @@ fn daemon(m: &ArgMatches) -> Result<(), Failure> {
     Some(("run", _)) => daemon_run(),
     Some(("start", sm)) => daemon_start(given(sm, "at-login")),
     Some(("stop", sm)) => daemon_stop(given(sm, "at-login")),
+    Some(("restart", _)) => daemon_restart(),
     Some(("status", sm)) => daemon_status(sm),
     Some((verb, _)) => unwired("daemon", verb),
     None => unwired("daemon", ""),
@@ -6350,8 +6351,16 @@ fn daemon(m: &ArgMatches) -> Result<(), Failure> {
 /// `intent app` -- the CLI owns the menubar app's lifecycle, exactly as it owns
 /// the daemon's.
 ///
-/// **THE TWO LONG-RUNNING THINGS ON THIS MACHINE NOW HAVE THE SAME FOUR VERBS.**
-/// Until this landed, `daemon` had `start`/`stop`/`status` and the app had none,
+/// **THE TWO LONG-RUNNING THINGS ON THIS MACHINE HAVE THE SAME LIFECYCLE VERBS
+/// -- AND THIS COMMENT CLAIMED THAT BEFORE IT WAS TRUE.** It read *the same four
+/// verbs* while `app` had `restart` and `daemon` did not, so the sentence
+/// asserting parity is what would stop a reader noticing the gap. hv hit it on
+/// 2026-09-08 by typing `intent daemon restart` and getting *unrecognized
+/// subcommand*; `daemon restart` landed in the same change as this correction.
+/// `daemon run` has no app twin and is not meant to: it is the foreground form
+/// of the same server, not a lifecycle verb.
+///
+/// Until the app family landed, `daemon` had `start`/`stop`/`status` and the app had none,
 /// so the app's own menu offered *Stop intentd* and *Restart intentd* with no
 /// way to say either about itself, and an operator's only route was `killall`.
 /// The asymmetry was the defect; the mechanics were ported from `geodica app`
@@ -6402,6 +6411,39 @@ fn app_stop() -> Result<(), Failure> {
     None => println!("ok: Intent.app is not running"),
   }
   Ok(())
+}
+
+/// `intent daemon restart` -- stop it, then start it.
+///
+/// **THE RULING IS THE SIBLING'S, APPLIED RATHER THAN RE-DECIDED.** `app
+/// restart`'s basis reads *a STOPPED APP RESTARTS RATHER THAN REFUSING --
+/// someone typing `restart` at an app that is not running means start, and
+/// refusing would be correct about the word and useless about the intent*. Every
+/// clause holds for the daemon, so this composes the same way and inherits the
+/// same answer. **Two sibling verbs resolving one question two ways is the
+/// surface Highlander problem**, and there was no reason to open it twice.
+///
+/// **THE WEDGED CASE IS WHY IT GOES THROUGH `stop` RATHER THAN ASKING THE
+/// DAEMON TO RELAUNCH ITSELF.** `stop_whatever_is_running` tries the wire first
+/// and falls back to `SIGTERM`, so a daemon that has stopped answering is still
+/// recovered -- which is the case an operator reaches for `restart` in. A
+/// self-relaunch would need the very process that is not answering.
+///
+/// **NEITHER HALF TAKES `--at-login`, DELIBERATELY.** That flag enrols or
+/// unenrols the launch agent, which is a different act from bouncing the
+/// process: a restart that silently unenrolled a machine would remove a
+/// property nobody asked it to touch, and one that enrolled would add one.
+/// Restart bounces what is running and leaves enrolment exactly as it found it.
+///
+/// **IT PRINTS BOTH LINES RATHER THAN ONE, WHICH IS WHERE IT DIVERGES FROM `app
+/// restart` ON PURPOSE.** `daemon start`'s line carries the endpoint and the log
+/// path, and a restart is precisely when those can change -- the daemon binds
+/// `127.0.0.1:0` and republishes whatever the kernel gives it, so anything
+/// holding the old URL is stale the moment this returns. Collapsing to a single
+/// summary line would drop the one datum the operator most needs afterwards.
+fn daemon_restart() -> Result<(), Failure> {
+  daemon_stop(false)?;
+  daemon_start(false)
 }
 
 fn app_restart() -> Result<(), Failure> {
@@ -6658,7 +6700,25 @@ fn stop_whatever_is_running(home: &std::path::Path) -> Result<(), Failure> {
     );
     if let Ok(Response::Stopping) = asked {
       for _ in 0..START_ATTEMPTS {
-        if matches!(route_now()?, daemon::Route::InProcess) {
+        // **THE SOCKET CLOSING IS NOT THE PROCESS EXITING, AND THIS WAITED ON
+        // THE WRONG ONE** (hv, 2026-09-08, found by `daemon restart` composing
+        // this verb). `running_pid_under` answers from an ADVISORY FILE LOCK
+        // the daemon holds for its lifetime and the OS releases on exit, while
+        // this loop asked whether the listener had gone. Between the two there
+        // is a window in which the daemon is not answering and still holds its
+        // lock, so `ok: intentd stopped` was printed over a process that had
+        // not left -- and `daemon start`'s already-running guard, which reads
+        // the LOCK, then declined to start anything.
+        //
+        // **THE RACE WAS INVISIBLE UNTIL SOMETHING COMPOSED THE TWO VERBS
+        // WITHOUT A PROCESS BOUNDARY.** `intent daemon stop && intent daemon
+        // start` at a shell usually clears it on the round-trip alone; a
+        // `restart` that calls both in one process hits it every time, and the
+        // menubar app's own `DaemonService.restart()` composes them the same
+        // way. **A postcondition that is true often enough is a race, not a
+        // postcondition** -- so this now waits for BOTH, and `stopped` means
+        // gone.
+        if matches!(route_now()?, daemon::Route::InProcess) && running_daemon_pid(home)?.is_none() {
           println!("ok: intentd stopped");
           return Ok(());
         }
@@ -6697,8 +6757,21 @@ fn stop_whatever_is_running(home: &std::path::Path) -> Result<(), Failure> {
       String::from_utf8_lossy(&killed.stderr).trim()
     )));
   }
-  println!("ok: intentd (pid {pid}) would not answer its socket and was sent SIGTERM");
-  Ok(())
+  // **THE SIGNAL IS DELIVERED, NOT OBSERVED, SO THIS WAITS TOO.** `kill`
+  // returning 0 means the signal was sent; the process still has to act on it
+  // and release its lock. Reporting a stop here without waiting would reproduce
+  // the defect above on the fallback path -- the one reached precisely when the
+  // daemon is already misbehaving.
+  for _ in 0..START_ATTEMPTS {
+    if running_daemon_pid(home)?.is_none() {
+      println!("ok: intentd (pid {pid}) would not answer its socket and was sent SIGTERM");
+      return Ok(());
+    }
+    std::thread::sleep(START_PAUSE);
+  }
+  Err(Failure::Error(format!(
+    "error: intentd (pid {pid}) was sent SIGTERM and still holds its lock\n  remedy: it is not responding to a polite signal. Check whether it is stopped with `intent daemon status`, and if it is still there, `kill -9 {pid}`."
+  )))
 }
 
 /// The daemon's pid, rendered as a `Failure` when the lock cannot answer.

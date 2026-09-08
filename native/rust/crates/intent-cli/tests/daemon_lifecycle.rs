@@ -161,6 +161,144 @@ fn start_status_stop_is_a_working_lifecycle() {
 /// holds; `systemctl start` on an active unit exits 0 for the same reason. The
 /// refusing version made `intent daemon start && ...` break on its second run
 /// in any script.
+/// **`daemon restart` LEAVES THE DAEMON RUNNING -- THE ARM THAT WOULD HAVE
+/// CAUGHT THE RACE IT WAS BORN WITH.**
+///
+/// hv asked for the verb on 2026-09-08 (`app restart` shipped, `daemon restart`
+/// did not). The first implementation composed `stop` then `start` and left the
+/// daemon DOWN while reporting success on both halves:
+///
+/// ```text
+/// ok: intentd stopped
+/// ok: intentd is already running (pid 3267)
+/// ```
+///
+/// **THE CAUSE WAS A POSTCONDITION THAT WAS TRUE OFTEN ENOUGH.** `stop` waited
+/// for the SOCKET to stop answering; `start`'s already-running guard reads the
+/// advisory LOCK the daemon holds until it exits. Between those two facts is a
+/// window where the daemon answers nothing and still holds its lock, so `start`
+/// declined and nothing came back up. **`stop` now waits for both**, and this
+/// arm is what stops that regressing.
+///
+/// **IT ASSERTS THE STATE, NOT THE MESSAGE.** Both halves printed `ok:` while
+/// the daemon was down, so a test reading stdout would have passed on the
+/// broken build -- which is exactly how the defect reached a driven verb.
+#[test]
+fn restart_leaves_the_daemon_answering() {
+  let machine = Machine::new();
+  assert!(
+    !answering(&machine),
+    "something was already answering in a freshly created isolated HOME"
+  );
+
+  let started = machine.run(&["daemon", "start"]);
+  assert_eq!(
+    started.status.code(),
+    Some(0),
+    "start failed: {}",
+    text(&started)
+  );
+  assert!(
+    answering(&machine),
+    "the fixture must be up before it is restarted"
+  );
+
+  // **REPEATED, BECAUSE ONCE IS A COIN TOSS.** The defect was a race: the
+  // broken build failed on every in-process composition, but a test that ran
+  // the verb once would still be asserting against timing rather than against
+  // a property.
+  for round in 1..=3 {
+    let out = machine.run(&["daemon", "restart"]);
+    assert_eq!(
+      out.status.code(),
+      Some(0),
+      "restart {round} failed: {}",
+      text(&out)
+    );
+    assert!(
+      answering(&machine),
+      "restart {round} returned 0 and left the daemon DOWN -- the stop/start race: {}",
+      text(&out)
+    );
+  }
+
+  machine.run(&["daemon", "stop"]);
+}
+
+/// **`restart` ON A STOPPED DAEMON STARTS IT RATHER THAN REFUSING.**
+///
+/// `app restart`'s ruling applied rather than re-decided: someone typing
+/// `restart` at a daemon that is not running means start, and refusing would be
+/// correct about the word and useless about the intent.
+#[test]
+fn restart_starts_a_daemon_that_was_not_running() {
+  let machine = Machine::new();
+  assert!(
+    !answering(&machine),
+    "the fixture must start with nothing running"
+  );
+
+  let out = machine.run(&["daemon", "restart"]);
+  assert_eq!(
+    out.status.code(),
+    Some(0),
+    "restart refused a stopped daemon: {}",
+    text(&out)
+  );
+  assert!(
+    answering(&machine),
+    "restart on a stopped daemon must leave one running: {}",
+    text(&out)
+  );
+
+  machine.run(&["daemon", "stop"]);
+}
+
+/// **`stop` RETURNS ONLY WHEN THE DAEMON IS GONE, NOT WHEN ITS SOCKET CLOSES.**
+///
+/// The postcondition `restart` needs and the one `stop` did not have: `start`
+/// immediately after `stop` must START something rather than report an
+/// already-running pid.
+///
+/// **THIS ARM DOES NOT CATCH THE RACE, AND SAYING SO IS THE POINT.** Measured:
+/// reverting the fix reds `restart_leaves_the_daemon_answering` and leaves this
+/// one GREEN, because two separate process invocations carry the same latency
+/// that hid the defect from `intent daemon stop && intent daemon start` at a
+/// shell. **Only the in-process composition exhibits it reliably**, which is
+/// why `restart` is the arm that guards the race and this is the arm that
+/// states the property.
+///
+/// It is kept rather than deleted because the property is the one a future
+/// reader will reason from, and a named property with a known blind spot is
+/// worth more than an unnamed one -- but **a comment claiming this caught the
+/// misfire would have been false**, which is the same defect as `fn app`'s
+/// symmetry claim that concealed the missing verb in the first place.
+#[test]
+fn stop_returns_only_once_the_daemon_has_released_its_lock() {
+  let machine = Machine::new();
+  machine.run(&["daemon", "start"]);
+  assert!(answering(&machine), "the fixture must be up");
+
+  let stopped = machine.run(&["daemon", "stop"]);
+  assert_eq!(
+    stopped.status.code(),
+    Some(0),
+    "stop failed: {}",
+    text(&stopped)
+  );
+
+  let restarted = machine.run(&["daemon", "start"]);
+  assert!(
+    text(&restarted).contains("is answering at"),
+    "start straight after stop reported `{}` instead of starting one -- stop returned before \
+     the daemon released its lock",
+    text(&restarted).trim()
+  );
+  assert!(answering(&machine));
+
+  machine.run(&["daemon", "stop"]);
+}
+
 #[test]
 fn a_second_start_is_idempotent_and_names_the_running_pid() {
   let machine = Machine::new();

@@ -558,7 +558,14 @@ fn a_family_wide_exemption_covers_only_the_verbs_it_was_ruled_for() {
   let table = dispatch::table();
   let pinned: &[(&str, &[&str])] = &[
     ("app", &["restart", "start", "status", "stop"]),
-    ("daemon", &["run", "start", "status", "stop"]),
+    // **RE-RULED 2026-09-08 WHEN `restart` LANDED, WHICH IS THIS PIN DOING ITS
+    // JOB.** The guard fired on its own author eight hours after he wrote it:
+    // adding a verb to an exempt family silently widens the exemption, so the
+    // list is an equality and the new verb has to be ruled INTO it. `daemon
+    // restart` holds the family's stated ground unchanged -- it composes `stop`
+    // and `start`, never opens an estate, and so has nothing to refuse an
+    // unmigrated project about.
+    ("daemon", &["restart", "run", "start", "status", "stop"]),
     ("mcp", &[]),
     ("plugin", &["list", "show"]),
   ];
