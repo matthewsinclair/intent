@@ -765,17 +765,40 @@ fi
 # version + date restamp falls out of it. this handler renders no template itself:
 # the substitution logic already has three homes and does not need a fourth.
 #
-# --skip-settings keeps the blast radius to the documents. Without it the engine
-# also rewrites .claude/settings.json and the three hook scripts -- unrelated to
-# the release, outside the sidecar list, and enough to trip the dirty-tree check
-# below and abort the cut. A release refreshes the version stamp; it is not the
-# place to re-provision the .claude/ stack.
+# THERE IS NO `--skip-settings`, AND THREE LINES HERE SAID THERE WAS.
 #
-# Those files no longer differ between checkouts (issue 0016 removed the last
-# install-time path substitution), so this is now about scope rather than
-# inevitability: skipping them keeps the release diff to what a release means.
+# This comment justified the flag at length; the dry-run line printed a command
+# with it; and the real call had never carried it. **v3 does not implement it at
+# all** -- `intent claude upgrade` takes `--apply`, `--daemon`, `--force` and
+# nothing else, and `--skip-settings` exits 1. v2 had it and the port dropped it
+# (CLAUDE.md records this under "Session hooks"). So the paragraph explained a
+# safeguard that no reader could have found in the code, and the DRY RUN
+# described a command the real path does not run -- which is worse than no dry
+# run, because it is consulted precisely when someone wants to know what will
+# happen.
+#
+# THE HAZARD IT DESCRIBED IS REAL AND IS NOW UNGUARDED, so it is measured rather
+# than repeated. `intent claude upgrade` (report-only) names what `--apply`
+# writes here: `.claude/settings.json`, `CLAUDE.md`, `AGENTS.md`,
+# `usage-rules.md`, `.intent_critic.yml`, and both `.githooks/pre-commit` files.
+# Five of those are TRACKED and only two -- CLAUDE.md and AGENTS.md -- are in
+# `SIDECAR_FILES`. If any of the other three differs from canon when a release
+# runs, the engine rewrites it, the tree is left dirty outside the sidecar list,
+# and the cut aborts.
+#
+# It aborted LATE, and that was the damaging part: the leftover check sits AFTER
+# the commit block, so the version commit landed and then the release stopped --
+# a half-cut tree with a release commit in it and no tag. The check below now
+# runs HERE, before anything is committed, and names the cause instead of
+# leaving a reader to work out why a tree they never touched is dirty.
+#
+# THE REAL FIX IS A NARROWER VERB and it is not this file's to make: the release
+# needs CLAUDE.md's banner restamped and nothing else re-provisioned. Restoring a
+# `--skip-settings` equivalent to v3's `claude upgrade` is CLI surface work --
+# a flag, a dispatch-table row, tests -- and belongs to whoever owns that surface.
 if [ "$DRY_RUN" = "true" ]; then
-  log_dry "would run 'intent claude upgrade --apply --skip-settings' to refresh CLAUDE.md"
+  log_dry "would run 'intent claude upgrade --apply' to refresh CLAUDE.md"
+  log_dry "would then refuse the cut if that rewrote anything outside the sidecar list"
 else
   # Same reasoning as the AGENTS.md sync above: a failure here leaves CLAUDE.md
   # carrying the previous version, the tree stays clean, and the tag ships
@@ -785,6 +808,22 @@ else
     abort "intent claude upgrade --apply failed -- refusing to tag a release whose CLAUDE.md was not refreshed"
   fi
   log_info "CLAUDE.md refreshed"
+
+  # Anything the canon regeneration touched OUTSIDE the sidecar list. Computed by
+  # EXCLUDING the sidecars from the status pathspec rather than by listing what
+  # to look for: a hand-kept list of "files the engine might write" is a second
+  # home for a fact the engine owns, and it would go stale the first time canon
+  # gained a file.
+  CANON_EXCLUDES=()
+  for _sidecar in $SIDECAR_FILES; do CANON_EXCLUDES+=(":(exclude)$_sidecar"); done
+  CANON_SPILL="$(cd "$PROJECT_ROOT" && git status --porcelain -- . "${CANON_EXCLUDES[@]}")"
+  if [ -n "$CANON_SPILL" ]; then
+    log_warn "the canon regeneration rewrote files outside the sidecar list:"
+    printf '%s\n' "$CANON_SPILL" | sed 's/^/  /' >&2
+    abort "refusing to cut: 'claude upgrade --apply' re-provisions the whole .claude/ stack and v3 has no --skip-settings to stop it.
+       Nothing has been committed. Bring the files above into line with canon in their own commit, then re-run --
+       a release restamps a version, it does not re-provision a project."
+  fi
 fi
 
 # Detect any change to a sidecar this script owns. Scoped to SIDECAR_FILES --
