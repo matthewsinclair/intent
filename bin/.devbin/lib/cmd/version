@@ -225,9 +225,17 @@ DEVBIN_VERSION_UNREADABLE=0
 report_drift() {
   local want file have reason drift=0
   DEVBIN_VERSION_UNREADABLE=0
+  # THE POPULATION IS COUNTED, NOT JUST THE FAILURES. `drift` alone answers
+  # "did anything disagree", which is 0 both when every sidecar agreed and
+  # when there were none -- so the caller could not tell a real pass from a
+  # vacuous one, and said `every sidecar agrees` for both. A universally
+  # quantified claim over an empty set is TRUE and says nothing. Issue 0061,
+  # reported by intent/vc from Intent's checkout.
+  DEVBIN_VERSION_EXAMINED=0
   want="$(read_version)"
   while IFS= read -r file; do
     [ -n "$file" ] || continue
+    DEVBIN_VERSION_EXAMINED=$((DEVBIN_VERSION_EXAMINED + 1))
     if [ ! -f "$file" ]; then
       warn "missing: $file"
       drift=1
@@ -300,7 +308,22 @@ case "${1:-}" in
     ;;
   check)
     if report_drift; then
-      printf 'version: %s, every sidecar agrees\n' "$(read_version)"
+      # ZERO IS A DIFFERENT VERDICT, NOT A QUIETER PASS. It stays exit 0 because
+      # zero is the ORDINARY configuration rather than a misconfiguration --
+      # measured across the fleet at 12 of 16 estates, devbin's own included --
+      # so failing it would break `version check` in three quarters of the
+      # estate for projects that are correctly set up with a single version
+      # file. That is the line `infra check` already draws: a gate that COULD
+      # NOT examine fails, a gate with NOTHING DECLARED to examine says so.
+      #
+      # The count alone would not have been enough. `0 sidecar(s) agree` still
+      # reads as success to a skimming eye, which is intent/vc's point and the
+      # reason both halves landed rather than the cheaper one.
+      if [ "${DEVBIN_VERSION_EXAMINED:-0}" -eq 0 ]; then
+        printf 'version: %s, NO sidecars declared -- nothing was compared\n' "$(read_version)"
+      else
+        printf 'version: %s, %s sidecar(s) agree\n' "$(read_version)" "$DEVBIN_VERSION_EXAMINED"
+      fi
     elif [ "$DEVBIN_VERSION_UNREADABLE" = 1 ]; then
       # Naming `sync` here would send the reader at a command that refuses this
       # file too. The fix is in the config, not in a heal.
