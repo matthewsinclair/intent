@@ -37,7 +37,11 @@ intent_version: 3.0.0
     intent --version                                              # the marker the BINARY was built from
     git rev-list --count <marker>..HEAD -- native/rust surface     # how far the tree has moved past it
 
-**Driven 2026-09-06 00:26Z: NINE.** A node standing on that binary sees the OLD behaviour for every fix landed since it was built. **`bin/devbin --version` prints the same rendering for a DIFFERENT quantity -- what the checkout is at now -- so never diff those two against each other.**
+**NO FIGURE HERE. It read NINE on 2026-09-06, ZERO for most of 2026-09-08, and moved twice inside twenty minutes as peers landed work.** Run the command. **`bin/devbin --version` prints the same rendering for a DIFFERENT quantity -- what the checkout is at now -- so never diff those two against each other.**
+
+**AND THE DISTANCE ANSWERS FOR THE COMPILED HALF ONLY, WHICH THIS SECTION CLAIMED OTHERWISE UNTIL 2026-09-08.** It said a stale binary shows the OLD behaviour for _every fix landed since it was built_. **False for anything served from a script.** `intent claude ws hygiene` is dispatched to `intent/plugins/claude/bin/intent_claude_cwi` -- resolved at `intentsvcs/src/install.rs:361` and read LIVE from the tree -- so a fix there is in effect the moment it is committed, whatever the binary's marker says. Note the scope in the command itself: `-- native/rust surface`, which correctly EXCLUDES `intent/plugins/`. **The command was always right about what it measures; the sentence overclaimed what that means.**
+
+**MEASURED, BECAUSE THIS IS THE KIND OF CLAIM THAT NEEDS A WITNESS:** on 2026-09-08 the pair named `b070c158` while `cb04fe7d0` was the fix, `--is-ancestor` said the binary did NOT contain it, and `ws hygiene` emitted the new behaviour anyway. **utilz-vc was one step from reporting the fix had not reached them, on the version string's word.** So: **ASK THE BEHAVIOUR. Where a tool is part compiled and part scripted, the version answers for one half and is confidently wrong about the other rather than silent.**
 
 ### THE SCOPE QUESTION IS ANSWERED, AND THIS FILE SAID _UNANSWERED_ FOR TWO DAYS AFTER hv ANSWERED IT
 
