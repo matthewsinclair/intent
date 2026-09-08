@@ -146,6 +146,9 @@ mod no_intent_home;
 mod no_orphan_suite_member;
 #[path = "no_pm_state_in_output.rs"]
 mod no_pm_state_in_output;
+#[path = "one_daemon_predicate_across_both_trees.rs"]
+mod one_daemon_predicate_across_both_trees;
+
 #[path = "one_dispatch_home.rs"]
 mod one_dispatch_home;
 #[path = "organize_default_declaration.rs"]

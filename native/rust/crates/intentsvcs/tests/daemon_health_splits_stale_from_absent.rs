@@ -141,29 +141,106 @@ fn an_orphaned_listener_with_no_holder_is_absent_and_not_stale() {
   drop(listener);
 }
 
+/// **THE REMEDY SPLIT, ASSERTED AS AN ACTION RATHER THAN AS A VARIANT -- WHICH
+/// IS WHAT `AC-01.6` ACTUALLY REQUIRES.**
+///
+/// **THIS REPLACES AN ARM THAT COULD NOT FAIL** (`the_two_non_live_states_differ_in_what_they_give_an_operator`,
+/// removed here). It asserted `assert_ne!(absent, stale)` beside two `matches!`
+/// on its own fixtures: given the `matches!` pass, the inequality is a
+/// TAUTOLOGY -- `Health::Absent` and `Health::Stale { .. }` are distinct
+/// variants of a `PartialEq` enum and cannot compare equal. Its marginal
+/// coverage over `nothing_running_is_absent` and
+/// `a_holder_that_does_not_answer_is_stale` was zero, and the latter already
+/// asserts the pid an operator is sent to investigate. Its comment claimed it
+/// was "what stops the projection degenerating into a vocabulary change while
+/// every other arm above stays green" -- the one thing a tautology cannot do.
+/// **A test whose NAME claims more than its BODY checks is green on a false
+/// remedy and green on the fix** (the class vc carries as
+/// `every_emitted_remedy_names_something_this_build_can_do`).
+///
+/// So the split is asserted where it is falsifiable: in WHAT AN OPERATOR MAY
+/// SAFELY DO. `ABSENT` promises nothing owns the endpoint and residue is safe
+/// to clear; this arm carries that remedy out and requires it to succeed.
 #[test]
-fn the_two_non_live_states_differ_in_what_they_give_an_operator() {
-  // **THE REMEDY DIFFERENCE, ASSERTED RATHER THAN DESCRIBED** -- `AC-01.6`'s
-  // actual requirement. A split whose two sides carry the same information is
-  // a vocabulary change, and this arm is what stops the projection degenerating
-  // into one while every other arm above stays green.
-  let absent_dir = tempfile::tempdir().expect("tempdir");
-  let stale_dir = tempfile::tempdir().expect("tempdir");
-  let (_listener, _bound) = Bound::bind_socket_under(stale_dir.path()).expect("bind");
+fn absent_promises_the_residue_is_safe_to_clear_and_a_start_clears_it() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let path = userstate::daemon_socket_under(dir.path());
+  std::fs::create_dir_all(path.parent().expect("socket has a parent")).expect("mkdir");
 
-  let absent = daemon::health_under(absent_dir.path()).expect("health");
-  let stale = daemon::health_under(stale_dir.path()).expect("health");
+  // The hard-killed case: a socket FILE with no listener behind it and no lock
+  // held. `UnixListener` does not unlink on drop, which is the very reason a
+  // dead daemon leaves this residue behind.
+  let corpse = UnixListener::bind(&path).expect("bind the corpse");
+  drop(corpse);
+  assert!(
+    path.exists(),
+    "the fixture is not RESIDUE if the socket file is gone -- it would be testing the nothing-ever-ran case instead"
+  );
 
-  assert_ne!(
-    absent, stale,
-    "the two non-live states are indistinguishable, so the projection has three names and two answers"
+  assert_eq!(
+    daemon::health_under(dir.path()).expect("health"),
+    Health::Absent,
+    "a socket file with no holder and no answer must read ABSENT before its remedy means anything"
   );
+
+  // **THE REMEDY, CARRIED OUT RATHER THAN DESCRIBED.** If a start cannot clear
+  // the residue, ABSENT is announcing a remedy the build does not have.
+  let (_listener, _bound) = Bound::bind_socket_under(dir.path())
+    .expect("ABSENT promises the residue is safe to clear, and the start could not carry that out");
+}
+
+/// **THE OTHER HALF OF THE SPLIT, AND THE ONE WHERE BEING WRONG IS DESTRUCTIVE
+/// RATHER THAN WASTEFUL** (`AC-08.12`).
+///
+/// `STALE` means a holder is alive and not serving, so its remedy is to
+/// investigate that pid and NOT to unlink. The guard that enforces the
+/// destructive half lives in the start path: an endpoint that ANSWERS is never
+/// unlinked, whatever the lock said. **Nothing anywhere exercised
+/// `RunningEvidence::EndpointAnsweredUnderOurLock` before this arm** -- the
+/// refusal was covered for the lock-held case in `daemon_address.rs`, but no
+/// test anywhere asserted that the socket SURVIVES a refusal, which is the part
+/// that is destructive when it regresses.
+///
+/// **CONSTRUCTED, NOT WAITED FOR.** Where the lock works this branch is
+/// unreachable -- it defends the split-brain `flock` cannot rule out over NFS.
+/// Its deterministic equivalent is a listener bound DIRECTLY, answering while
+/// holding no lock, so the start acquires the lock and then meets a live
+/// endpoint underneath it.
+#[test]
+fn an_answering_endpoint_is_never_unlinked_even_when_the_lock_is_free() {
+  use std::os::unix::fs::MetadataExt;
+
+  let dir = tempfile::tempdir().expect("tempdir");
+  let path = userstate::daemon_socket_under(dir.path());
+  std::fs::create_dir_all(path.parent().expect("socket has a parent")).expect("mkdir");
+
+  let listener = UnixListener::bind(&path).expect("bind the answerer");
+  answer_on(listener);
+  let before = std::fs::metadata(&path).expect("metadata").ino();
+
+  match Bound::bind_socket_under(dir.path()) {
+    Err(daemon::DaemonError::AlreadyRunning {
+      evidence: daemon::RunningEvidence::EndpointAnsweredUnderOurLock,
+      ..
+    }) => {}
+    Err(other) => panic!(
+      "an answering endpoint under a free lock must be refused on the evidence that it ANSWERED, got: {other}"
+    ),
+    Ok(_) => panic!(
+      "a start bound over a live endpoint. The serving process now holds a listener no path reaches, and its clients are silently rehomed"
+    ),
+  }
+
+  // **THE ASSERTION THE REFUSAL DOES NOT MAKE.** Refusing to start and
+  // destroying the endpoint on the way out are independent failures, and only
+  // the second is unrecoverable.
   assert!(
-    matches!(stale, Health::Stale { .. }),
-    "the stale fixture did not produce STALE, so this comparison proves nothing"
+    path.exists(),
+    "the refusal unlinked an ANSWERING endpoint. STALE's remedy is to investigate a holder, never to clear it, and AC-08.12 is where being wrong is destructive rather than wasteful"
   );
-  assert!(
-    matches!(absent, Health::Absent),
-    "the absent fixture did not produce ABSENT, so this comparison proves nothing"
+  assert_eq!(
+    std::fs::metadata(&path).expect("metadata").ino(),
+    before,
+    "the socket path survived by NAME but points at a different inode, so the live endpoint was replaced rather than left alone"
   );
 }
