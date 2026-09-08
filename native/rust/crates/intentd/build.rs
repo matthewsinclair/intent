@@ -12,9 +12,19 @@
 //! one binary of a two-binary release reports on the release, so half the embed
 //! would have left the pipeline's verdict reading as one verdict over an
 //! artefact that could not answer.
+//!
+//! IT ALSO ASSERTS VERSION PARITY, from a second file with its own name and its
+//! own contract -- `version_parity.rs`. Same reason the provenance logic has one
+//! home, and a different concern from it: a build script may carry two calls,
+//! but a file must not carry a name that stops describing what is in it.
 
 include!("../../build-support/source_commit.rs");
+include!("../../build-support/version_parity.rs");
 
 fn main() {
+  // FIRST, and the order is the point: a drifted tree must not reach the
+  // provenance embed, because the artefact it would stamp is one that should
+  // not exist.
+  assert_version_parity();
   emit_source_commit();
 }
