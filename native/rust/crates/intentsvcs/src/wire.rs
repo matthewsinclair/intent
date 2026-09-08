@@ -128,7 +128,9 @@ pub enum Op {
   /// **THE READS-ONLY BOUND WAS NEVER ABOUT WRITES BEING UNWANTED -- IT IS
   /// [`Op::Graphql`]'s BOUND AND IT STAYS.** `EmptyMutation` keeps the
   /// document face reads-only as a property of the SCHEMA, and vc's 2026-08-31
-  /// ruling put GraphQL mutations out of 3.0.1. This op is why that ruling
+  /// ruling leaves GraphQL mutations UNBUILT -- on architectural grounds and not
+  /// a release boundary, the wording having been corrected 2026-09-08 when a
+  /// scope claim in it outlived the question it answered. This op is why that ruling
   /// costs nothing: the escape hatch does not become the write path, and the
   /// write path is not a document.
   ///
