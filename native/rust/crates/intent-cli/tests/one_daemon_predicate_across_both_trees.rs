@@ -20,8 +20,19 @@
 //! does NOT establish that the one predicate is the one executed at run time --
 //! a static read cannot watch a process. An app that shells the CLI verb and
 //! then ignores its answer passes here and is exactly as broken as the case the
-//! row forbids; what covers that is a live drive of the built app, which is
-//! `AC-01.4`'s territory and is not claimed here.
+//! row forbids.
+//!
+//! **THAT CLAUSE IS UNCOVERED BY EVERY ROW ON THE THREAD RATHER THAN DELEGATED
+//! TO ONE, AND IT IS FILED AS `0278`.** This file first handed it to `AC-01.4`;
+//! vc read all nine rows on 2026-09-08 and none of them observes execution.
+//! `AC-01.4` is the tail-orphan trap -- a live drive, but of leaked `tail`
+//! processes against three signals, and it would not notice an app that shells
+//! the verb and ignores the answer. **A hand-off to a row that does not accept
+//! it is worse than a stated gap, because the gap is visible and the hand-off
+//! is not**: a reader follows the pointer, finds a row about `tail`, and either
+//! re-derives the whole question or assumes they misread. And an uncovered
+//! clause recorded ONLY in a module doc is invisible to the gate, which is why
+//! it is carried on an issue rather than left in this comment alone.
 //!
 //! It reads only the app TARGET (`native/macos/Intent/Intent`). The test target
 //! is deliberately out of scope -- a test may construct whatever fixture it
