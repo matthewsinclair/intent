@@ -18,7 +18,7 @@ claims: [ST0056/06, ST0056/10]
 
 **NOTHING IN FLIGHT. NOTHING OF MINE IS DIRTY.** The devbin dirt that stood here all morning is gone -- a peer committed it at `1ed01036`.
 
-**THE PAIR IS PUBLISHED AND CURRENT.** `intent`/`intentd` both name `97f742624f5bf53c768e26d9629e926e91ed24ae`, verified as a SET, and `git rev-list --count 97f74262..HEAD -- native/rust surface docs/design` reads 0. **The marker is NOT HEAD and that is correct** -- `emit_source_commit` scopes identity to `DIRT_SCOPE`, so a commit outside `native/rust`/`surface`/`docs/design` does not move it. Three of my five commits today are `bin/.devbin/**` and legitimately do not.
+**I PUBLISHED THE PAIR AT `97f742624f5bf53c768e26d9629e926e91ed24ae`, verified as a SET.** Whether it is still CURRENT is not a fact this board can hold -- peers land under `native/rust` continuously, and it was already one commit behind by the time I wrote this line. **Ask, do not read: `intent --version`, then `git rev-list --count <marker>..HEAD -- native/rust surface docs/design`.** (It reads 0 only until the next peer commit; the number is deliberately not written here.) **The marker is NOT HEAD and that is correct** -- `emit_source_commit` scopes identity to `DIRT_SCOPE`, so a commit outside `native/rust`/`surface`/`docs/design` does not move it. Three of my five commits today are `bin/.devbin/**` and legitimately do not.
 
 **DELIVERED 2026-09-08 -- THE VERSION MECHANISM, hv's ask. Read the commits; each carries its controls.**
 
