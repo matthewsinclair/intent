@@ -453,6 +453,88 @@ fn a_byte_identical_unrecorded_skill_is_adopted_rather_than_refused() {
   assert_eq!(read(&f.target.join("in-probe/SKILL.md")), "# moved\n");
 }
 
+/// **A BASELINE CAN BE STALE RATHER THAN ABSENT, AND THE ARM ABOVE COULD NOT
+/// REACH THAT** (issue 0280).
+///
+/// The sibling test covers `old == None`. Here a baseline EXISTS and describes
+/// a state neither side is in any more -- the shape that arises whenever
+/// something other than this tool writes the installed tree and canon moves to
+/// the same bytes. Both limbs of the conflict test then read true, and the pair
+/// reported `Conflicted` over two byte-identical trees.
+///
+/// **THE SECOND HALF IS WHAT MAKES THIS A REGRESSION TEST RATHER THAN A VERDICT
+/// TEST.** No held outcome calls `manifest.upsert`, correctly, because nothing
+/// was written -- so before the fix the stale baseline SURVIVED the run that
+/// reported it and the next sync computed the same thing forever. Asserting the
+/// verdict alone would pass for a fix that printed the right word and left the
+/// latch in place. Driving a real upstream change afterwards is what proves the
+/// baseline was actually adopted.
+#[test]
+fn a_stale_baseline_over_two_identical_trees_is_not_a_conflict() {
+  let f = Fixture::new();
+  f.source("in-probe", &[("SKILL.md", "# base\n")]);
+  let s = f.skills();
+  s.install(&one("in-probe"), false).unwrap();
+
+  // Both sides move to the SAME bytes, and nothing records it.
+  fs::write(f.canon().join("in-probe/SKILL.md"), "# moved\n").unwrap();
+  fs::write(f.target.join("in-probe/SKILL.md"), "# moved\n").unwrap();
+
+  assert_eq!(
+    outcome(&s.sync(false).unwrap().steps, "in-probe"),
+    Outcome::UpToDate,
+    "two byte-identical trees have nothing to resolve, whatever the baseline says"
+  );
+
+  // The latch is broken: the baseline was adopted, so a real upstream change
+  // now propagates instead of reporting the same conflict forever.
+  fs::write(f.canon().join("in-probe/SKILL.md"), "# upstream\n").unwrap();
+  assert!(
+    matches!(
+      outcome(&s.sync(false).unwrap().steps, "in-probe"),
+      Outcome::Updated { .. }
+    ),
+    "the stale baseline survived the run that reported it"
+  );
+  assert_eq!(read(&f.target.join("in-probe/SKILL.md")), "# upstream\n");
+}
+
+/// **THE CONTROL FOR THE ARM ABOVE, AND WITHOUT IT THAT TEST PASSES FOR A FIX
+/// THAT SIMPLY STOPPED REPORTING CONFLICTS.**
+///
+/// Same stale baseline -- `old` matches neither side -- but the two trees
+/// DIFFER. That signature is identical to a genuine conflict, where the
+/// baseline described the tree at install time and then both sides moved, so
+/// nothing in the manifest can tell them apart. The hold must survive, and the
+/// operator's bytes must still be there.
+#[test]
+fn a_stale_baseline_over_two_different_trees_is_still_held() {
+  let f = Fixture::new();
+  f.source("in-probe", &[("SKILL.md", "# base\n")]);
+  let s = f.skills();
+  s.install(&one("in-probe"), false).unwrap();
+
+  // Both sides move to the same bytes and are adopted, so the baseline is
+  // current again...
+  fs::write(f.canon().join("in-probe/SKILL.md"), "# moved\n").unwrap();
+  fs::write(f.target.join("in-probe/SKILL.md"), "# moved\n").unwrap();
+  s.sync(false).unwrap();
+
+  // ...and now they diverge, which is the state that must still hold.
+  fs::write(f.canon().join("in-probe/SKILL.md"), "# upstream\n").unwrap();
+  fs::write(f.target.join("in-probe/SKILL.md"), "# mine\n").unwrap();
+
+  assert_eq!(
+    outcome(&s.sync(false).unwrap().steps, "in-probe"),
+    Outcome::Conflicted
+  );
+  assert_eq!(
+    read(&f.target.join("in-probe/SKILL.md")),
+    "# mine\n",
+    "the operator's edit was overwritten without being reported"
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Ruling 2 -- the conflict v2's prompt cannot see.
 // ---------------------------------------------------------------------------

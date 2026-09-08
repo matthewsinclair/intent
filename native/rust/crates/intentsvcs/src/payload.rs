@@ -1002,6 +1002,50 @@ impl Payload {
           let (written, removed) = self.apply(&origin, prior.as_ref(), dry_run, &mut manifest)?;
           Outcome::Updated { written, removed }
         }
+        // **BOTH SIDES AGREE, SO THERE IS NOTHING TO RESOLVE WHATEVER THE
+        // BASELINE SAYS** (issue 0280).
+        //
+        // This arm is the `old == None` adoption below, applied to the case
+        // where a baseline EXISTS and is merely stale. The reasoning there is
+        // already the right reasoning and it was reachable from only one of the
+        // two states: *the objection to rebaselining is that it discards the
+        // distinction between an upstream change and a local edit; here there
+        // is no distinction to discard.* When the source tree and the installed
+        // tree are byte-identical, no recorded value can make them differ.
+        //
+        // **WITHOUT IT THE VERDICT WAS A LATCH, AND THAT IS WHY THIS IS `high`
+        // RATHER THAN COSMETIC.** A stale `old` makes both limbs true, so the
+        // pair reads as `Conflicted` -- and no held outcome ever calls
+        // `manifest.upsert`, correctly, because nothing was written. So the
+        // stale baseline that caused the hold survives the run that reported
+        // it, and the next sync computes the same thing forever. Measured on
+        // this machine: the manifest was rewritten on 2026-09-05 with three
+        // byte-identical skills left untouched, held since 2026-08-30.
+        //
+        // **AND THE MESSAGE RECRUITED THE CAREFUL OPERATOR INTO INACTION.** The
+        // hold says `--force` will discard their work; an operator who believes
+        // it declines to force, correctly on the evidence shown, and the skill
+        // stays stale permanently. A wrong verdict a user can route around is a
+        // nuisance; one whose safe reading is the wrong action is a trap.
+        //
+        // **WHAT THIS DOES NOT FIX, STATED SO THE SCOPE IS NOT READ AS WIDER
+        // THAN IT IS.** When the source and the installed tree DIFFER and the
+        // baseline matches neither, this changes nothing -- and it must not.
+        // That signature is identical to a genuine conflict, where `old`
+        // described the tree at install time and then both sides moved, so the
+        // two are indistinguishable from the manifest alone. `Conflicted` stays
+        // the honest answer there.
+        (Some(_), Some(target)) if source_sum == *target => {
+          let installed_at = mtime_rfc3339(&self.installed_marker(&name))?;
+          manifest.upsert(Entry {
+            name: name.clone(),
+            source_path: origin.dir.display().to_string(),
+            installed_at,
+            checksum: source_sum.clone(),
+            files: self.installed_files(&name)?,
+          });
+          Outcome::UpToDate
+        }
         (Some(old), Some(target)) => {
           let source_moved = *old != source_sum;
           let target_moved = old != target;
