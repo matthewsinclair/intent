@@ -4,9 +4,9 @@ name: Interface Claude
 role: interface
 session_id: 5e8e3506-ecad-4712-ae02-74896394f147
 commit_session_id: 01T6EfsdaPEvSHT3WeUk1oMo -- WITNESSED on 04c43798f, this session's first commit; check it there rather than taking this line's word. HONEST CAVEAT, and it is cc's: I authored that trailer, so reading it back is not independent of the harness. What it IS is the value a later reader will attribute my commits by, confirmed present on one. POINT-IN-TIME, one session; the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-08 11:20Z
+heartbeat_at: 2026-09-08 11:39Z
 status: active
-focus: "MENUBAR WEB-FACE ITEM BUILT AND THE APP IS INSTALLED; THE PAIR IS NOT PUBLISHED AND THAT IS DELIBERATE -- cc PUBLISHES IT WITH 0192 (route 3, their call, one publish one person). WORK IS IN THE TREE UNCOMMITTED: daemon.rs, render.rs, one new test, three Swift files, dispatch-table json+md. COMMIT WITH --only, NEVER BARE: cc has views.rs STAGED in the shared index. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "MENUBAR WEB-FACE ITEM DELIVERED AND INSTALLED (`ac1e92ba`), PAIR PUBLISHED AT `071113a0` BY cc. NOTHING OF MINE IS IN FLIGHT; TREE CLEAN OF ME. The one dirty path is cc's `daemon restart` in render.rs -- DO NOT COMMIT IT. Startable and mine: the W106 boundary pass over this board, and the three-copy fixture convergence in intent-cli/tests. Blocked on hv: ST0065 three rulings. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/17, ST0064]
 ---
 
@@ -18,13 +18,21 @@ claims: [ST0065, ST0056/17, ST0064]
 
 ## DOING
 
-**IN FLIGHT 2026-09-08, UNCOMMITTED, AND THIS SECTION IS THE ONLY REASON THAT IS NOT A SILENT STATE.** hv asked inline for a menubar item titled with intentd's local URL that opens it. Built, driven and installed; NOT published.
+**NOTHING OF MINE IS IN FLIGHT. `git status` IS THE CHECK, NOT THIS LINE** -- and when you run it, **the dirty `render.rs` is cc's `daemon restart`, not mine.** Mine landed in `071113a0` and `ac1e92ba`.
 
-**WHAT IS ON DISK AND NOT IN A COMMIT:** `intentsvcs/src/daemon.rs` (new `answering_loopback_under` / `answering_loopback` / `loopback_base_url`), `intent-cli/src/render.rs` (`daemon status` renders `url` in BOTH faces; `browser_url` re-pointed at the shared helper), `daemon_status_answers_a_machine.rs` (one new test), `Health.swift` / `HealthTests.swift` / `IntentApp.swift`, `surface/dispatch-table.{json,md}`.
+**DELIVERED 2026-09-08 -- THE MENUBAR REACHES intentd's WEB FACE.** hv asked inline, then refined it from a screenshot of the shipped build. Final shape: **the status line IS the affordance.** It reads `intentd is active` and clicking it opens the page; there is no URL text in the menu, because an address is not a name.
 
-**THE ROLLOUT IS GATED AND THE CONDITION IS NOT MINE TO MEET.** `/Applications/Intent.app` shells out to `intent` on PATH -> `~/.local/bin/intent` -> `native/rust/target/release/intent`, which is the SHIPPED binary and carries no `url`. So the app is installed and the item cannot appear until the release pair moves. **cc took route 3** -- they publish once `0192` lands and my change rides with it. **I DO NOT TOUCH `target/release`**: publishing uncommitted work into the path every session resolves through is the 2026-08-18 19:33Z episode with different hands on it, and cc's phrasing is the keeper -- GREEN IS NOT THE SAME AS LANDED.
+**IT SHIPPED IN TWO CUTS AND THE SECOND ONE IS THE LESSON.** The first put the URL in its own item -- which is what hv literally asked for -- and the menu then said the same thing twice, a greyed `intentd is answering` caption above an item whose whole title was an address. **hv saw it in one screenshot and I had not.** A redundancy that is invisible in the diff is obvious in the artefact, which is the argument for installing and looking rather than reading the code back.
 
-**THE TOKEN TRAP cc FLAGGED IS DEAD AND IT IS PINNED RATHER THAN MERELY MEASURED.** An unauthenticated `GET /` on the published port answers 200 with the real status page; the bearer token gates `/op` and entity views, not `/`. A test now does a raw GET and asserts 200, so the day `/` starts demanding the secret is the day a test fails rather than an operator meets a login wall.
+**`answering` WAS A BORROWED WORD.** It is the CLI's term for a routing question -- does a round trip complete -- and it rode into a menu that is telling an operator whether their daemon is up. Now pinned by a test, because it labels an affordance rather than captioning a state.
+
+**ONLY `live`-WITH-A-URL IS CLICKABLE AND THAT IS STRUCTURAL, NOT REMEMBERED.** The action binds on `case .live(_, let url)` with `let url`, so `stale`, `absent` and `unknown` cannot acquire one -- they carry no `url` by the CLI's own iff-contract. A `busy` line is inert too: mid-restart is exactly when the old address is dead.
+
+**THE ROUTE, IN CASE ANYONE REOPENS IT:** the address goes in `daemon status --format json`, NOT read from `intentd.addr` by the app. The verb's own help already promised _the address it answers on_ and a daemon answers on TWO, so this closed a gap between promise and behaviour rather than adding a field for the app's convenience. `answering_loopback_under` + `loopback_base_url` are the ONE reader of the answering loopback; `browse --browser` had it inline and this would have been the second copy.
+
+**THE TOKEN TRAP cc FLAGGED IS DEAD AND IT IS PINNED RATHER THAN MEASURED.** An unauthenticated `GET /` answers 200 with the real status page; the secret gates `/op` and entity views. A test drives a raw GET and asserts 200, **so the day `/` starts demanding the token is the day a test fails rather than an operator meets a login wall.**
+
+**I BUILT AND INSTALLED FROM A DIRTY TREE ONCE AND REDID IT.** The first install stamped `tree <sha>-dirty`, an artefact naming a commit that does not contain its source. cc's framing is the keeper and is sharper than the one I had: **blast radius is recoverable by a rebuild; a false self-description is not, because anything that recorded the marker keeps the claim after the artefact is replaced.** Commit, then build.
 
 **AGGRESSIVE LOCALFOLD 2026-09-05 20:27Z ON hv's INSTRUCTION, BEFORE A COMPACT. STATUS STAYS `active`** -- a fold is not a session ending (`/in-whiteboard` invariant 6). Verbatim pre-fold at `.history/20260905/wip-prefold-2026Z.md` (114,252 bytes, **prettier-clean AT SOURCE before the copy**, `cmp`-confirmed). Executed narrative: `.history/20260905/doing-folded-2026-09-05-2026Z.md`. Third fold of the day; `1507Z` and `1723Z` are beside it.
 
