@@ -434,7 +434,16 @@ fn a_near_miss_token_is_malformed_rather_than_accepted() {
   // `AT-` is one character from `AC-`, and an acceptance TEST id in the block
   // would resolve to nothing and be reported as a missing criterion -- a
   // refusal for the wrong reason, which sends the operator to the wrong fix.
-  for token in ["AT-00.2", "AC-0.2", "AC-00", "AC-00.x"] {
+  //
+  // **`AC-0.2` WAS IN THIS LIST AND CAME OUT ON hv's 2026-09-08 RULING.** It was
+  // never a near miss on this arm's own stated reasoning, which justifies only
+  // the `AT-` case; it was here because `is_ac_id` required `group.len() == 2`
+  // and this list recorded that rule's CONSEQUENCE rather than an independent
+  // intent. One-digit groups are now conforming -- 182 rows across three
+  // estates, Lamplight's `AC-0.1` among them -- so a token that shape is a real
+  // id and refusing it would be the wrong-fix error this arm exists to prevent.
+  // The three that remain are malformed under the relaxed grammar too.
+  for token in ["AT-00.2", "AC-00", "AC-00.x"] {
     let v = preconditions::check(&with_ac_00_1_text(&format!(
       "<<PRECONDITIONS {token} PRECONDITIONS>>"
     )));
@@ -747,4 +756,83 @@ fn the_shipped_criterion_carries_a_readable_declaration() {
     !declared.iter().any(|id| id == "AC-00.1"),
     "the declaring criterion must not declare ITSELF a precondition -- that is a gate that can never open"
   );
+}
+
+/// **THE AC-ID GRAMMAR THE BLOCK ACCEPTS -- ANY GROUP WIDTH, hv 2026-09-08.**
+///
+/// `is_ac_id` required `group.len() == 2` and was **the strictest reader of an
+/// AC id in the tool**: `contract::group_of` imposes no width and
+/// `bin/intent_acceptance:295` greps `AC-[0-9]+\.[0-9]+`, where `[0-9]+` matches
+/// one digit. A census of 9473 ids across 13 estates found **182 in the
+/// one-digit shape** -- Devbin 38, Lamplight 126, Prolix 18 -- every one of them
+/// parsing and rendering correctly everywhere except here. The rule was the
+/// outlier; hv relaxed it rather than rewriting 182 ids and every citation of
+/// them.
+///
+/// **I CLAIMED THIS RULE WAS UNPINNED AND IT WAS NOT.** I grepped for `is_ac_id`
+/// and `group.len()` across the tests, found nothing, and said so. The rule was
+/// pinned by `a_near_miss_token_is_malformed_rather_than_accepted`, which names
+/// TOKENS and never the function -- so a grep aimed at the implementation could
+/// not match the test that constrained it. **The full suite is what found it,
+/// after the targeted search had already returned a confident zero.** That arm
+/// listed `AC-0.2` as a near miss on reasoning that covers only the `AT-` case,
+/// so it recorded the length rule's consequence rather than an intent; it has
+/// been corrected rather than deleted.
+///
+/// This arm still earns its place: the old one pinned the grammar INCIDENTALLY,
+/// through four example tokens, where this one states the accepted and refused
+/// shapes as the population and says which check refuses each.
+///
+/// **WHAT EACH CASE WOULD HAVE TO SEE TO FAIL**, since a table of accepts alone
+/// passes on a build that accepts everything: the REJECT half carries the real
+/// weight, and `AC-.1` is the one that pins the REPLACEMENT (`!is_empty()`)
+/// rather than merely the removal of the length check -- without it, an empty
+/// group parses, because `all()` over no bytes is vacuously true.
+#[test]
+fn the_precondition_block_takes_any_group_width_and_still_refuses_the_flat_form() {
+  let accept = [
+    ("AC-1.1", "one digit -- the 182 rows hv ruled conforming"),
+    (
+      "AC-01.1",
+      "two digits -- the shape that always worked, no regression",
+    ),
+    (
+      "AC-123.4",
+      "wide groups follow from removing the width rule, not from a new one",
+    ),
+    ("AC-0.1", "zero is a group; Lamplight carries these"),
+  ];
+  let reject = [
+    (
+      "AC01",
+      "the FLAT form: taught nowhere, breaks group_of and the renderer too",
+    ),
+    (
+      "AC-.1",
+      "an EMPTY group -- `all()` over no bytes is vacuously true, so `!is_empty()` is what refuses this",
+    ),
+    ("AC-x.1", "a non-digit group"),
+    ("AC-1", "no sequence at all"),
+    (
+      "AT-1.1",
+      "an acceptance TEST id is not an acceptance CRITERION id",
+    ),
+  ];
+
+  for (id, why) in accept {
+    let block = format!("<<PRECONDITIONS {id} PRECONDITIONS>>");
+    let got = intentsvcs::preconditions::declared_in(&block);
+    assert_eq!(
+      got.as_deref().map(|v| v.to_vec()),
+      Ok(vec![id.to_string()]),
+      "`{id}` must be accepted -- {why}; got {got:?}"
+    );
+  }
+  for (id, why) in reject {
+    let block = format!("<<PRECONDITIONS {id} PRECONDITIONS>>");
+    assert!(
+      intentsvcs::preconditions::declared_in(&block).is_err(),
+      "`{id}` must be REFUSED -- {why}"
+    );
+  }
 }
