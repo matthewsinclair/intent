@@ -163,6 +163,40 @@ fm_present() { # $1 file
 }
 
 # A workstream id is a short-ish slug: lowercase, [a-z0-9-], 1..16 chars.
+# Bytes NOT inside a section the protocol declares STANDING.
+#
+# The size WARN thresholded the WHOLE file and then told the operator to
+# archive DONE content -- a remedy `ws archive` forbids for most of what it was
+# counting. `## Watch-outs` is defined as "durable cautions peers should know
+# (standing; not archived)" and archive KEEPS it, with Holds, Standing
+# directives and still-relevant Decisions. Measured 2026-09-08 (issue 0282,
+# reported from Utilz): the old form fired on 5 of 5 boards here, the smallest
+# over four times the threshold. A warning whose remedy never applies gets
+# ignored, and then the board that IS large for a bad reason draws the same
+# line and nobody looks.
+#
+# MATCH THE HEADING STEM, NEVER THE WHOLE HEADING. Nodes decorate their
+# headings and the protocol does not forbid it -- `## Watch-outs -- mechanisms
+# only`, `## Holds -- mine, with the CONDITION that releases each`. An
+# exact-match first draft read one board as 2% standing where the stem match
+# reads 87%: a 46x difference from a suffix, which would have reported the node
+# with the largest Watch-outs section on the board as having none.
+#
+# LC_ALL=C so `length` counts BYTES, agreeing with the `wc -c` total beside it.
+# Content before the first `## ` heading is the frontmatter, which no fold can
+# reduce, so it starts STANDING rather than being counted against the operator.
+foldable_bytes() { # $1 file
+  LC_ALL=C awk '
+    BEGIN { standing = 1 }
+    /^## / {
+      standing = ($0 ~ /^## Watch-outs/ || $0 ~ /^## Holds/ || \
+                  $0 ~ /^## Standing directives/ || $0 ~ /^## Decisions/)
+    }
+    !standing { n += length($0) + 1 }
+    END { print n + 0 }
+  ' "$1"
+}
+
 valid_wsid() { # $1 id
   id="$1"
   [ -n "$id" ] || return 1
@@ -318,7 +352,8 @@ cmd_ws_hygiene() {
       head -n1 "$ib" | grep -q '^# inbox: ' || { echo "BAD-INBOX $ws/$(basename "$ib"): no header"; rc=1; }
     done
     bytes="$(wc -c < "$d/wip.md" | tr -d ' ')"
-    [ "$bytes" -gt 16000 ] && echo "WARN      $ws/wip.md is large (${bytes}b) -- archive DONE content"
+    fold="$(foldable_bytes "$d/wip.md")"
+    [ "$fold" -gt 16000 ] && echo "WARN      $ws/wip.md carries ${fold}b outside its standing sections (${bytes}b total) -- fold finished work out of DOING"
   done
   [ "$rc" -eq 0 ] && echo "hygiene: ok"
   exit "$rc"
