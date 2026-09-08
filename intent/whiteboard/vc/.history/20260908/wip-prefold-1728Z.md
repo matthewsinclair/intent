@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: 945027b0-be6d-43c4-a6f7-1349cb9ca0c1
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-08 17:28Z
+heartbeat_at: 2026-09-08 15:07Z
 status: active
-focus: "LOCALFOLD 2026-09-08 17:28Z FOR A COMPACT -- status stays ACTIVE. Pre-folds at .history/20260908/wip-prefold-{1507,1728}Z.md, each cmp-verified BEFORE its edit. LATE: `0284` -- 27 leaked intentd, 249 min CPU, cleared; the cross-project inference was REFUTED (they held only Intent). `st hydrate` is the verb nothing names. I recommended `edit --path` as a diagnostic and it MUTATES. ON THE BOUNCE: `intent --version` names a scope it does not have, then AC-15.4's instrument, then PING laksa-vc per Holds. WP-15 IS HALF DONE. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "LOCALFOLD 2026-09-08 15:07Z FOR A COMPACT -- status stays ACTIVE. Pre-fold verbatim at .history/20260908/wip-prefold-1507Z.md, cmp-verified BEFORE the first edit. ON THE BOUNCE: `intent --version` names a scope it does not have (third instance today of a verdict printed without its population -- fix it in the output, do not document around it), then AC-15.4's instrument, then PING laksa-vc per Holds. WP-15 IS HALF DONE: AC-15.4 MEASURES green and its instrument IS NOT WRITTEN -- do not report the measurement as the row. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 ---
 
@@ -21,16 +21,6 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 **LOCALFOLD 2026-09-08 15:07Z. STATUS STAYS `active` -- a fold is not a session ending.** Verbatim pre-fold at `.history/20260908/wip-prefold-1507Z.md` (84993b), `cmp`-verified BEFORE the first edit. Sixteen executed blocks moved to `.history/20260908/doing-folded-1507Z.md`; **the lessons that outlive them are in `## Watch-outs`, which is why the fold does not lose them.** Cut on the executed/live boundary, never on bytes.
 
 **NOTHING OF MINE IS IN FLIGHT OR UNCOMMITTED.** `git status` is the check, not this line.
-
-### THE DAEMON LEAK, AND MY OWN ADVICE WAS PART OF THE MESS -- 2026-09-08 EVENING
-
-**`0284` (high): 27 LEAKED `intentd` PROCESSES, 249 MINUTES OF CPU, NONE OF THEM ANSWERING.** Found while diagnosing a Utilz report. `intent daemon status` read _no intentd is answering_ throughout -- no pidfile, no endpoint, all at `PPID 1`. **The mechanism is in the fd layout: each held BOTH ENDS of its own socketpair plus a duplicate**, which is a daemonise whose intermediate forks never exit. Bursts of 3-4 per second at test-run times; eight test files spawn a real `intentd` and the processes outlive the run. **They honour `SIGTERM` and take about four seconds** -- an immediate recount read 27 still alive and was a RACE, not a refusal, which matters because the obvious next move from that reading is `SIGKILL` and a hot WAL. Cleared on hv's order; store healthy afterwards.
-
-**AND THE CROSS-PROJECT INFERENCE WAS REFUTED, WHICH IS THE HALF THAT NEARLY REACHED hv AS THE ROOT CAUSE.** `lsof` on four of them, every hot one included, returns ZERO handles on Utilz, Lamplight or Conflab; the release process held Intent's own `intent.db-shm` and nothing else. **The daemon is machine-level and `--daemon` is OPT-IN, so ordinary CLI work in another project touches no daemon at all. The leak is the defect; the design is not.**
-
-**I RECOMMENDED A MUTATING VERB AS A DIAGNOSTIC AND DID NOT KNOW IT MUTATED.** I told utilz-vc to run `intent edit st <ID> --path` to re-hydrate a stale view. It works -- and it **WRITES THE DECLARATION**, which I found only by driving it afterwards on a scratch estate where it added `STEELTHREAD:ST0002`. Additive only, so it deleted nothing, but it is a mutation dressed as _print the path_.
-
-**AND THE VERB BUILT FOR THE JOB IS `intent st hydrate <ID>` -- _Add a steel thread to .intentfiles and write its files_.** Nothing pointed at it: `doctor` names `sync --to-disk` (wrong artefact), `organize` goes the other way (deletes), I found `edit --path` (works by side effect). **Utilz could not find it because their `.intentfiles` header is the 2026-08-26 original and mentions hydrate ZERO times** -- the file that should have answered describes a world without the verb. `0283` corrected: I had written _there is no verb and that is the gap_, and the gap is that nothing NAMES the verb.
 
 ### DELIVERED 2026-09-08, AND EVERY LINE IS A COMMIT YOU CAN READ
 
