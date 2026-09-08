@@ -8,7 +8,7 @@ import Foundation
 /// The three states and their REMEDIES are vc's AC-01.6 ruling: the state IS
 /// the remedy, so the UI reads it rather than deriving a second fact beside it.
 ///
-/// - `live`    answering at its endpoint. Stop / Restart, and -- when the daemon
+/// - `live`    active at its endpoint. Stop / Restart, and -- when the daemon
 ///             published a loopback address that is answering -- `url`, the
 ///             browser-openable face. `url` is OPTIONAL on a live daemon and
 ///             that is the contract, not a gap: the CLI omits it when there is
@@ -63,7 +63,7 @@ enum Health: Sendable, Equatable {
   /// at it -- the remedy, never an unlink.
   var summary: String {
     switch self {
-    case .live: "intentd is answering"
+    case .live: "intentd is active"
     case .stale(let pid): "intentd (pid \(pid)) holds the socket but is not answering -- investigate it"
     case .absent: "intentd is not running"
     case .unknown(let why): "intentd status unknown (\(why))"

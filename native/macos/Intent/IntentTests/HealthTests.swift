@@ -61,6 +61,35 @@ final class HealthTests: XCTestCase {
     }
   }
 
+  /// **hv, 2026-09-08: the live line reads `active`, and the wording is pinned
+  /// because it is now also the CLICK TARGET.** The status line opens the web
+  /// face, so this string is the affordance's label rather than a caption --
+  /// and `answering` was the CLI's word for a different question (does a round
+  /// trip complete), which is why hv asked for the change.
+  func testLiveSummaryReadsActiveAndNotAnswering() {
+    let live = Health.live(endpoint: "/tmp/x.sock", url: "http://127.0.0.1:51737")
+    XCTAssertEqual(live.summary, "intentd is active")
+    XCTAssertFalse(live.summary.contains("answering"))
+  }
+
+  /// **NO STATE BUT `live` CARRIES A URL, WHICH IS WHAT KEEPS THE OTHER THREE
+  /// LINES INERT.** The menu binds its action on `case .live(_, let url)` with
+  /// `let url`, so an absent url is structurally unclickable rather than
+  /// remembered -- a menu item that looks clickable and does nothing is worse
+  /// than the redundancy hv removed.
+  func testOnlyLiveCanCarryAURLToOpen() {
+    guard
+      case .live(_, let live) = Health.decode(
+        #"{"endpoint":"/tmp/x.sock","state":"live","url":"http://127.0.0.1:51737"}"#)
+    else { return XCTFail("live decodes as live") }
+    XCTAssertNotNil(live)
+
+    for json in [#"{"pid":1,"state":"stale"}"#, #"{"state":"absent"}"#, #"{"state":"zzz"}"#] {
+      guard case .live = Health.decode(json) else { continue }
+      XCTFail("\(json) decoded as live, which would make its menu line clickable")
+    }
+  }
+
   /// The remedy travels with the state (AC-01.6): stale names its pid and points
   /// the operator at it, absent does not -- the difference the display gates on.
   func testStaleSummaryNamesThePidAndAbsentDoesNot() {

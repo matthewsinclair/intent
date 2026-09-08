@@ -144,8 +144,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
     menu.addItem(identity)
 
+    // **THE STATUS LINE IS THE ACTION WHEN THERE IS SOMETHING TO OPEN** (hv,
+    // 2026-09-08). It was a caption with a separate URL item under it, which
+    // said the same thing twice and put an address in a menu where a name
+    // belongs. One line now: it reports the state AND opens the web face.
+    //
+    // **ONLY `live`-WITH-A-URL IS CLICKABLE, AND THAT IS STRUCTURAL RATHER THAN
+    // REMEMBERED.** `stale`, `absent` and `unknown` carry no `url` by the CLI's
+    // own iff-contract, so there is nothing for the pattern to bind and the
+    // line stays the caption it was. A menu item that looks clickable and does
+    // nothing is worse than the redundancy this removes.
+    //
+    // **A LIFECYCLE VERB IN FLIGHT OWNS THE LINE.** While `busy` is set the
+    // title is "Starting…"/"Restarting…", which is not a state and has no page
+    // behind it -- and mid-restart is exactly when the old address is dead.
     let summary = NSMenuItem(title: statusSummary(), action: nil, keyEquivalent: "")
-    summary.isEnabled = false
+    if daemon.busy == nil, case .live(_, let url) = daemon.health, let url {
+      summary.action = #selector(openWebFace(_:))
+      summary.representedObject = url
+    } else {
+      summary.isEnabled = false
+    }
     menu.addItem(summary)
 
     // A real datum read through `intent graphql` (AC-01.3), rendered not derived:
@@ -165,19 +184,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       menu.addItem(item)
     } else {
       switch daemon.health {
-      case .live(_, let url):
-        // **THE TITLE IS THE ADDRESS AND THE ADDRESS IS WHAT OPENS.** One value,
-        // rendered not derived (AC-01.1): the port is assigned by the kernel and
-        // published by the daemon, so the app has nothing to reconstruct it from
-        // and must never try. `nil` means the daemon published no answering
-        // loopback face, and the item is then ABSENT rather than disabled --
-        // a greyed-out URL invites a click that could never work.
-        if let url {
-          let web = NSMenuItem(
-            title: url, action: #selector(openWebFace(_:)), keyEquivalent: "")
-          web.representedObject = url
-          menu.addItem(web)
-        }
+      case .live:
+        // **NO URL ITEM HERE ANY MORE.** The address moved onto the status line
+        // above, which is the one place the daemon's liveness is already
+        // stated. The `url` is still what the click opens -- it is read there,
+        // off the same `Health` value, and is never rebuilt from a constant.
         menu.addItem(
           NSMenuItem(title: "Stop intentd", action: #selector(stopDaemon), keyEquivalent: ""))
         menu.addItem(
