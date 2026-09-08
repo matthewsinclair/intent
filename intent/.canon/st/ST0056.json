@@ -1420,7 +1420,7 @@
     },
     {
       "id": "AC-15.3",
-      "text": "**Every RETIRE verdict is carried out through `intent claude skills` rather than by hand, and the removal REACHES a consumer.** `intent claude skills sync` checksums `SKILL.md` alone, so a skill whose scripts changed without its `SKILL.md` changing does not propagate -- asserted by driving a consumer install, never by observing that the source directory is clean.",
+      "text": "**Every RETIRE verdict is carried out through `intent claude skills` rather than by hand, and the removal REACHES a consumer -- asserted by driving a consumer install, never by observing that the source directory is clean.** **THIS ROW CARRIED ITS OWN RATIONALE AS A FALSE MECHANISM UNTIL 2026-09-08.** It read: *`intent claude skills sync` checksums `SKILL.md` alone, so a skill whose scripts changed without its `SKILL.md` changing does not propagate.* **That is v2's defect and v3 does not have it** -- `payload.rs` gives skills `Shape::Tree` / `SCOPE_TREE`, hashing every file's path and content, and `skills_sync::a_change_confined_to_a_script_propagates` pins the fix green (31 arms, driven 2026-09-08). `SKILL.md` is only the MARKER that makes a directory a unit; it was never the checksum scope in v3. **The requirement is unchanged, and the reason it survives its own rationale is the stronger claim: driving a consumer is what separates a removal that REACHED one from a source directory that merely looks clean, and that holds whatever the checksum scope turns out to be.** An instrument built to the struck sentence would have gone looking for a bug that is already fixed and pinned.",
       "kind": "test",
       "state": {
         "is": "computed"

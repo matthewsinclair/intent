@@ -4,7 +4,7 @@ name: Validation Claude
 role: validation
 session_id: 945027b0-be6d-43c4-a6f7-1349cb9ca0c1
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-08 12:12Z
+heartbeat_at: 2026-09-08 12:29Z
 status: active
 focus: "LOCALFOLD 2026-09-07 20:56Z FOR A COMPACT -- status stays ACTIVE. ON THE BOUNCE THE JOB IS `doctor --scope`, hv ruled it 20:5xZ: DEFAULT NARROW (closed threads not reported), `--scope live|all|closed` to widen. DESIGN IS ON THIS BOARD AND THE CODE IS NOT WRITTEN -- I reverted a part-built Scope enum rather than fold over half a change. hv will split it with intent-cc on the bounce. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
@@ -17,6 +17,28 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 **PRINTING THE COMMAND IS NOT RUNNING IT.** A figure with its regenerating command beside it is AUDITABLE, not CURRENT. **A LIVE FIGURE APPEARS HERE AS THE COMMAND ALONE, WITH THE NUMBER DELETED.**
 
 ## DOING
+
+### WP-15 STARTED 2026-09-08. `AC-15.3`'s PREMISE WAS FALSE AND IS STRUCK; `AC-15.2` IS TWO AXES GREEN, ONE NOT VIABLE AS BUILT
+
+**`AC-15.3` CARRIED A v2 DEFECT AS ITS RATIONALE AND v3 DOES NOT HAVE IT.** The row read _`intent claude skills sync` checksums `SKILL.md` alone, so a skill whose scripts changed without its `SKILL.md` changing does not propagate_. **`payload.rs` gives skills `Shape::Tree` / `SCOPE_TREE`** -- every file's path and content -- and `SKILL.md` is only the MARKER that makes a directory a unit. **`skills_sync::a_change_confined_to_a_script_propagates` pins the fix and is green (31 arms, driven).** Struck in place via `ac edit`; the REQUIREMENT and the evidence standard are unchanged, and the reason they survive is the stronger claim: driving a consumer separates a removal that REACHED one from a source tree that merely looks clean, whatever the checksum scope is. **An instrument built to the struck sentence would have hunted a bug that is already fixed and pinned.**
+
+### `AC-15.2`: VERB AND FLAG AXES GREEN AND BELIEVABLE; PATHS AXIS 0-REAL-OUT-OF-43 AND NOT SHIPPABLE
+
+- **VERB -- 33 cited spellings, all resolve.** Population is **142 paths from `families` (128) AND `new_surface` (14 more)**.
+- **FLAG -- 3 (verb,flag) pairs, 0 suspect**, span-scoped, `disposition: retire` counted as NOT shipped surface.
+- **CONTROLS, all three firing on planted references:** a stale verb, a RETIRED flag (`doctor --fix`), an undeclared flag. **The live corpus stays clean under the plant**, so the zero is not the instrument failing to look.
+- **PATHS -- BUILT, MEASURED, AND REFUSED BY ME.** 43 candidates, **0 real**. Not shippable and the reason is a taxonomy, not a bug: a cited path resolves against FOUR different roots and some are not paths at all -- Elixir arity (`mount/3`, `Map.get/2`), rule-pack ids (`elixir/code`), template placeholders (`STXXXX`, `WP/NN`, `YYYYMMDD`), consumer-tree paths (`deps/ash/usage-rules.md`, correctly absent HERE), and install-tree paths (`rules/elixir/lv/`). **The taxonomy comes before the checker.**
+- **FILE LAYOUTS axis: not started.** Do not report this AC on the two green axes.
+
+### THREE INSTRUMENT DEFECTS I BUILT AND CAUGHT IN ONE SITTING, ALL THE SAME FAMILY
+
+1. **MY OWN POPULATION WAS SHORT BY 16 ROWS.** I walked `families` and not `new_surface`, so `intent fc` read as UNRESOLVED and **I nearly filed a false finding against `in-essentials`, a skill loaded on every session.** `fc` is in the table and in the binary. **The denominator attack, committed on the instrument built to detect it** -- caught only because I verified the finding instead of reporting it. `flag_reachability.rs` already walks both populations; the precedent existed and I did not read it first.
+2. **LINE-SCOPED FLAG ATTRIBUTION RAN AT PRECISION 0 OF 4.** `--to` on a line naming `ac descope` AND `ac withdraw` was bound to the wrong verb. **A flag binds to the invocation in ITS OWN span, never to a verb elsewhere on the line.**
+3. **AND FIXING (2) SILENTLY KILLED THE NEGATIVE CONTROL.** Span-scoping dropped the verb population 33 -> 27 and made `intent to deceive` invisible, so a stale reference written in PROSE would no longer be seen. **The two axes need different scoping and that is a finding, not a preference:** a verb citation is checkable anywhere, a flag binding needs an invocation boundary. **A narrowing that improves precision and removes the control is indistinguishable from a fix.**
+
+### THE `AC-15.2` FALSE-POSITIVE CONSTRAINT, NOW WITH A SECOND WITNESS
+
+My board already carried it from `in-tca-init:52` (`~/.intent/ext/`). **`in-essentials:29` is the second: `intent/llm/AGENTS.md` is cited by the sentence RETIRING it** -- _legacy ... which is retired and should be removed_. **The best-maintained skills read as the stalest**, because retiring a thing means naming it. `.claude/skills/` at `:41` is the third shape: an operator-home path in a PROHIBITION, correctly absent from this repo.
 
 ### `intent doctor --scope` IS BUILT, DRIVEN AND GREEN -- 2026-09-07, in intent-cc's joint commit with `organize -v/-q`
 
@@ -130,7 +152,7 @@ I told hv the advisory detail still repeated ~90 chars of class policy 136 times
 
 ## Holds
 
-- **`ST0068` AC-03.1 + AC-03.2 -- HELD ON laksa-vc's INDEPENDENT READ.** **CONDITION THAT RELEASES IT: Laksa's ficton and wrighter sites are serving, OR tomorrow (2026-09-06), whichever is first -- AND THE PING IS MINE TO INITIATE, NOT THEIRS.** They declined tonight with Laksa's hv live in their session mid a two-site production migration, and they explicitly refused to hold a queue position across a compact, naming `0099` -- **an ask sitting on a channel neither side guards is the failure mode, and waiting for them to come back IS that failure.** Their precondition is CLEARED: §7 is reconciled as of tonight. **I am the wrong reader for these two rows because I consolidated the document**, and that is not modesty -- an author checking their own spec for completeness cannot discover what it assumes, which is the same class ic drove out of a docs page in the first minute tonight.
+- **`ST0068` AC-03.1 + AC-03.2 -- HELD ON laksa-vc's INDEPENDENT READ. ASKED 2026-09-08 12:2xZ; THEY SAID YES AND NAMED A TIME.** **CONDITION THAT RELEASES IT: laksa-vc returns the read, or the clock passes ~16:00Z 2026-09-08 and I ping again. CHECK IT: `date -u` against 16:00Z -- that is the whole check, and it is why the time is written here rather than remembered.** **THE PREVIOUS CONDITION READ _or tomorrow (2026-09-06), whichever is first_ AND EXPIRED TWO DAYS BEFORE I NOTICED.** Nothing checked it, because a condition nobody checks is the same as no condition -- which is the exact failure the hold rules exist to prevent, committed in the section that states them. **WHY THEM AND NOT ME: I consolidated the document, and an author checking their own spec for completeness cannot discover what it assumes.** They disclosed a current failure mode of their own (concluding from something adjacent instead of reading the artefact) and it points the right way here -- the ask forbids resolving a question, which is the thing they have just been burned for. **MITIGATION AGREED: every logged question names where they looked**, so a FALSE FAIL costs one lookup rather than a wasted revision. **IF hv REDIRECTS THEM, ANY OF ic/cc/dc IS A VALID READER** -- none wrote the document, so the independence property survives and this hold does not become a block.
 
 **Each carries the CONDITION that releases it AND the COMMAND that checks it. A hold with no condition is an abandonment; a condition with no check gets recalled instead of driven.**
 
