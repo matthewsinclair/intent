@@ -159,6 +159,58 @@ infra_domain_pairs() {
   done
 }
 
+# SC2016 is suppressed for THIS function too, with its OWN directive rather
+# than sharing the one below. A `disable` comment binds to the NEXT command,
+# so dropping a function between that comment and the function it documents
+# relocates the suppression silently -- which is exactly what the first draft
+# of this change did, leaving `infra_validate_profile` unguarded and five
+# pre-existing lines newly red. The comment said `for the function`; it could
+# not say WHICH, because position was the only thing binding them.
+# shellcheck disable=SC2016
+# THE UNIVERSAL SENDER INVARIANT, and it needs no per-vendor table to state:
+#
+#   A domain declaring a sender must carry a MATCHED SPF include and DKIM
+#   selector pair, and the two must be consistent with each other.
+#
+# design.md settles that this is what the known-sender library ships -- the
+# pair's SHAPE, never its contents. A shipped `mailersend: {spf:
+# _spf.mailersend.net}` WOULD HAVE BEEN WRONG for a live domain sitting on
+# `_spf.mlsend.com`, and neither node could establish whether that split is
+# account-specific or generational. Shipping a value commits to an answer
+# nobody has; the invariant is correct either way.
+#
+# WHAT THIS FIXES IS A MISCLASSIFICATION, measured against a real estate on
+# 2026-09-08. Two live domains name `mailersend` in profiles that never define
+# it, and `check` reported "names sender `mailersend` which the profile does
+# not define -- the matched-pair check CANNOT RUN for it" under COULD NOT
+# MEASURE, whose own header reads "gaps in the INSTRUMENT, not verdicts".
+#
+# THAT IS THE WRONG CHANNEL AND IT UNDERSTATES THE FAULT. Nothing about the
+# instrument is missing: the profile is the TARGET STATE, and a target naming a
+# sender it never describes is INCOMPLETE. It is a malformed profile, it is
+# catchable before any network call, and it belongs with the other parse-time
+# refusals -- "your profile is wrong" and "your estate is wrong" are different
+# problems with different fixes, and this one was wearing the other's clothes.
+infra_sender_pair_complete() {
+  local name="$1" inc sel miss=""
+  inc="$(cfg_get "senders.$name.spf_include" 2>/dev/null || true)"
+  sel="$(cfg_get "senders.$name.dkim.name" 2>/dev/null || true)"
+  [ -n "$inc" ] || miss="$miss spf_include"
+  [ -n "$sel" ] || miss="$miss dkim.name"
+  [ -n "$miss" ] || return 0
+  {
+    printf 'infra: sender `%s` is defined with only HALF A PAIR -- missing:%s
+' "$name" "$miss"
+    printf '       A sender authorised in SPF with no DKIM selector to match makes
+'
+    printf '       that mail indistinguishable from a forgery of it. Declaring half
+'
+    printf '       the pair as the TARGET builds that state on purpose.
+'
+  } >&2
+  return 1
+}
+
 #
 # SC2016 is suppressed for the function, not line by line, for the same reason
 # `bin/.devbin/cmd/release` suppresses it for its renderers: every message below
@@ -170,7 +222,7 @@ infra_domain_pairs() {
 # nothing had been pushed since 2026-09-03.
 # shellcheck disable=SC2016
 infra_validate_profile() {
-  local rc=0 handle fqdn other seen="" warn_out=""
+  local rc=0 handle fqdn other sender seen="" warn_out=""
   # Visibility BEFORE content: a key that never reached the cache cannot be
   # validated by any rule below, and the rules below would report it as absent.
   infra_assert_block_visible "$_DEVBIN_INFRA_FILE" domains || rc=1
@@ -197,6 +249,22 @@ infra_validate_profile() {
     infra_handle_matches_name "$handle" "$fqdn" || \
       warn_out="$warn_out  handle \`$handle\` does not look derived from \`$fqdn\`
 "
+    # A NAMED SENDER IS A PROMISE THE PROFILE HAS TO KEEP.
+    for sender in $(infra_domain_senders "$handle"); do
+      if ! infra_sender_defined "$sender"; then
+        {
+          printf 'infra: domain `%s` declares sender `%s`, which this profile never defines.\n' "$handle" "$sender"
+          printf '       The profile is the TARGET STATE, so a sender named and not\n'
+          printf '       described is an incomplete target -- not an estate that could\n'
+          printf '       not be measured. Add a `senders.%s` block carrying its\n' "$sender"
+          printf '       `spf_include` and `dkim.name`. Both values are ACCOUNT-SPECIFIC,\n'
+          printf '       which is why devbin ships the pair shape and never the contents.\n'
+        } >&2
+        rc=1
+        continue
+      fi
+      infra_sender_pair_complete "$sender" || rc=1
+    done
   done
   [ -n "$warn_out" ] && printf 'infra: handles worth a second look (not an error):\n%s' "$warn_out" >&2
   return $rc
@@ -206,3 +274,82 @@ infra_validate_profile() {
 # `check` REFUSES while any remain; see lib/cmd/infra for why it is refuse and
 # never warn.
 infra_unreviewed_keys() { cfg_list unreviewed 2>/dev/null || true; }
+
+# --- inheritance, and it did not exist until 2026-09-07 ----------------------
+#
+# THE SCHEMA PROMISED THIS FROM THE FIRST DRAFT AND NOTHING IMPLEMENTED IT.
+# `lib/infra.reference.yaml` says a handle carrying nothing but its `name:`
+# inherits all of `defaults:`, and all three real profiles depend on it totally
+# -- every domain in them inherits `mail`, `ttl` and `dmarc` and spells almost
+# nothing. Measured on a two-line fixture: `defaults.ttl` read 300 and
+# `domains.alpha.ttl` read empty.
+#
+# It cost nothing until now because NO CONSUMER READ THOSE FIELDS. `show` prints
+# `name:` alone and `check` was a stub, so the gap sat behind a command that
+# never asked. WP-02 is the first reader, and it reads all of them -- which is
+# the general shape worth keeping: a documented behaviour with no implementation
+# and no test is free exactly until something depends on it.
+#
+# ONE function rather than a fallback spelled at each call site, because the
+# rule is a property of the schema and not of any caller. Two copies drift the
+# first time inheritance gains a level.
+
+# infra_effective <handle> <key> -- the value in force for a domain: its own if
+# it has one, else the profile default. rc 1 when neither declares it.
+#
+# rc rather than an empty string, matching `install_prefix_configured`: a caller
+# that forgets to check an rc dies at the assignment, one that forgets an empty
+# check silently checks against "". Only one of those is loud.
+infra_effective() {
+  local handle="$1" key="$2" v
+  v="$(cfg_get "domains.$handle.$key" 2>/dev/null || true)"
+  [ -n "$v" ] || v="$(cfg_get "defaults.$key" 2>/dev/null || true)"
+  [ -n "$v" ] || return 1
+  printf '%s\n' "$v"
+}
+
+# infra_domain_senders <handle> -- the sender handles a domain declares.
+#
+# Sequences flatten to `.0`, `.1`, so the list is the child keys of the
+# sequence. Silence is the normal case: `senders: []` is never written, only
+# the non-empty case.
+infra_domain_senders() {
+  local handle="$1" i
+  for i in $(cfg_list "domains.$handle.senders" 2>/dev/null || true); do
+    cfg_get "domains.$handle.senders.$i" 2>/dev/null || true
+  done
+}
+
+# infra_manual_keys <handle> -- every `manual:` entry in force for a domain,
+# as `<key><TAB><text>`, defaults first and the domain's own overriding by name.
+#
+# THESE ARE NEVER CHECKED AND ALWAYS NAMED. A `manual:` entry records what
+# SHOULD be true and can never detect that it stopped being true, so it lives in
+# its own namespace precisely so that nothing in the file blurs "check validates
+# this" with "check merely mentions it". Naming every one of them on every run
+# is what stops an operator reading the block as a record of verification.
+infra_manual_keys() {
+  local handle="$1" k seen="" v
+  for k in $(cfg_list "domains.$handle.manual" 2>/dev/null || true); do
+    v="$(cfg_get "domains.$handle.manual.$k" 2>/dev/null || true)"
+    printf '%s\t%s\n' "$k" "$v"
+    seen="$seen $k "
+  done
+  for k in $(cfg_list defaults.manual 2>/dev/null || true); do
+    case "$seen" in *" $k "*) continue ;; esac
+    v="$(cfg_get "defaults.manual.$k" 2>/dev/null || true)"
+    printf '%s\t%s\n' "$k" "$v"
+  done
+}
+
+# infra_sender_defined <name> -- does the profile define this sender?
+#
+# A domain naming a sender nothing defines is a profile the PAIR INVARIANT
+# cannot be evaluated against: without the selector there is no DKIM name to
+# look up, so the half-pair check -- the one that finds a domain whose own
+# legitimate mail is indistinguishable from a forgery of it -- silently covers
+# nothing. Reported by `check` as an unmeasurable rather than passed over.
+infra_sender_defined() {
+  local name="$1"
+  cfg_list senders 2>/dev/null | grep -qxF "$name"
+}

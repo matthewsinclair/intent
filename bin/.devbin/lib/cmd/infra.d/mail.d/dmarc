@@ -55,7 +55,12 @@ usage() {
   cat <<EOF
 usage: $DEVBIN_NAME infra mail dmarc <verb>
 
-  parse <report.xml>   one JSON object per <record>, on stdout
+  parse <report|dir>   one JSON object per <record>, on stdout. Accepts .xml,
+                       .xml.gz and .zip -- every real report is a container, and
+                       the kind is read from the file's own bytes, not its name.
+                       Given a DIRECTORY it walks every report beneath it and
+                       accounts for each file on stderr -- parsed, not a report,
+                       or failed -- so stdout stays pure JSON Lines
   report               read those rows on stdin, summarise them for a human
 
 Both read no profile and make no network call. Neither judges the estate:
@@ -63,6 +68,107 @@ that is \`infra mail dmarc check\`, which has a profile to judge it against.
 
   $DEVBIN_NAME infra mail dmarc parse r.xml | $DEVBIN_NAME infra mail dmarc report
 EOF
+}
+
+# --- containers ---------------------------------------------------------------
+
+# THE TRAILING `return 0` IS NOT DECORATION. A function whose last statement is
+# a conditional returns THAT status, so `[ -n "$x" ] && rm ...` returning 1
+# under `set -e` kills the run -- silently, from an EXIT trap, which is the
+# worst place for it. This repository has produced that defect twice in one day.
+_dmarc_cleanup() {
+  rm -f "$ERRF"
+  [ -n "${_DMARC_TMP:-}" ] && rm -f "$_DMARC_TMP"
+  return 0
+}
+
+
+
+# EVERY REAL REPORT IS A CONTAINER, and that was MEASURED rather than assumed.
+# Across the 17 aggregate reports collected in `~/Devel/prj/Prodinfra/dmarc`
+# from three reporters on 2026-09-06 and -07: Google and Outlook ship `.zip`,
+# mail.ru ships `.xml.gz`, and NOT ONE arrived as bare XML. A `parse` whose
+# argument is `<report.xml>` therefore reads nothing anybody actually receives
+# -- and it failed with a PARSER error naming the wrong problem, because the
+# zip's `PK` header reached xmllint as text and was reported as malformed XML.
+#
+# DETECTION IS BY MAGIC BYTES AND NEVER BY EXTENSION. Reporters name files
+# `<reporter>!<domain>!<start>!<end>.<ext>` by convention and nothing enforces
+# it; this project already refuses to classify a build tree by its NAME, for
+# the same reason. A mis-named container read as XML produces a complaint about
+# the content when the fault is the container.
+#
+# THIS ASSIGNS `SRC` RATHER THAN PRINTING IT, and that is load-bearing. A
+# `SRC="$(_dmarc_unpack "$SRC")"` would run the whole function in a SUBSHELL,
+# where the temp path it must register for cleanup is lost and, worse, a `die`
+# inside it exits only the subshell -- the parent reads the output, carries on,
+# and the swallowed refusal produces the false clean the refusal existed to
+# prevent. That is issue 0060, filed from this repository, so reproducing it
+# here would be inexcusable.
+_dmarc_unpack() {
+  local src="$1" magic n
+  magic="$(od -An -tx1 -N2 "$src" 2>/dev/null | tr -d ' \n')"
+  case "$magic" in
+    504b | 1f8b) ;;
+    *)
+      # Not a container. SRC stands as given, and a genuinely malformed XML
+      # still meets `xmllint --noout` below, which is where it belongs.
+      return 0
+      ;;
+  esac
+
+  # RELEASE THE PREVIOUS UNPACK BEFORE CLAIMING A NEW ONE. A directory walk
+  # calls this once per file in ONE process, so keeping only the EXIT trap
+  # would leak every temp but the last. Written as `if` rather than
+  # `[ -n "$x" ] && rm`, because that form returns 1 when the test is false and
+  # `set -e` kills the run -- the defect this repository generates most.
+  if [ -n "${_DMARC_TMP:-}" ]; then rm -f "$_DMARC_TMP"; fi
+  _DMARC_TMP="$(mktemp "${TMPDIR:-/tmp}/devbin-dmarc-xml.XXXXXX")"
+
+  if [ "$magic" = 504b ]; then
+    require_tool unzip "A DMARC aggregate report from Google or Outlook is a zip. Install unzip, or unpack the report yourself and pass the .xml."
+    # A ZIP CARRYING ANYTHING BUT EXACTLY ONE MEMBER IS REFUSED, naming the
+    # count. RFC 7489 sends one report per message, so zero members and two
+    # members are both anomalies rather than shapes to guess at -- and silently
+    # taking the first would be a verdict over a population the operator never
+    # saw, which is precisely what this command exists to refuse.
+    # THE COUNT COMES OFF THE EXIT CODE, NOT OFF THE LINE COUNT, and the test
+    # is what found the difference. `unzip -Z1` on an empty archive prints
+    # `Empty zipfile.` TO STDOUT and exits 1, so counting lines reports ONE
+    # member and names it after an error string. The archive was still refused
+    # -- by the zero-bytes check below -- but the diagnosis named the wrong
+    # thing, which is its own defect: a refusal that misdescribes the fault
+    # sends the operator to the wrong file.
+    local members=""
+    if members="$(unzip -Z1 "$src" 2>/dev/null)"; then
+      n="$(printf '%s\n' "$members" | grep -c . || true)"
+    else
+      n=0
+    fi
+    if [ "$n" != 1 ]; then
+      die "dmarc parse: $src is a zip holding $n member(s), not 1.
+       RFC 7489 sends one report per message, so this is an anomaly rather than
+       a shape to guess at. Taking the first would be a verdict over a
+       population you never saw. Members:
+$(unzip -Z1 "$src" 2>/dev/null | sed 's/^/         /')"
+    fi
+    unzip -p "$src" >"$_DMARC_TMP" 2>/dev/null ||
+      die "dmarc parse: cannot unpack the zip $src"
+  else
+    require_tool gunzip "A DMARC aggregate report from mail.ru is gzipped. Install gzip, or unpack the report yourself and pass the .xml."
+    gunzip -c "$src" >"$_DMARC_TMP" 2>/dev/null ||
+      die "dmarc parse: cannot unpack the gzip $src"
+  fi
+
+  # AN EMPTY UNPACK IS AN ERROR AND NOT AN EMPTY REPORT. A container that
+  # yielded nothing and a report carrying no findings are different events, and
+  # only one of them is safe to summarise.
+  [ -s "$_DMARC_TMP" ] ||
+    die "dmarc parse: $src unpacked to ZERO bytes -- nothing was read. An empty
+       unpack and an empty report are different events."
+
+  SRC="$_DMARC_TMP"
+  return 0
 }
 
 # --- xmllint, made loud -------------------------------------------------------
@@ -246,7 +352,14 @@ emit_record() {
 # shellcheck disable=SC2016  # single-quoted jq source: $rows, $unauth and the
 # rest are jq variables, bound inside the program and expanded by jq, not bash.
 REPORT_JQ='
-def pad($n): if (length >= $n) then . else . + (" " * ($n - length)) end;
+# ALWAYS AT LEAST ONE SPACE. The old form returned the value UNCHANGED once
+# it reached the column width, so an over-long field butted straight against
+# the next one. Seen on real output: an IPv6 source address is 22 characters
+# in an 18-wide column, and `2a00:1450:4864:20::431` followed by `1 msg`
+# rendered as `2a00:1450:4864:20::4311 msg` -- where `::4311` reads as a
+# perfectly plausible address. A report that can silently join two fields
+# into one wrong-looking value is worse than one that misaligns.
+def pad($n): . + (" " * ([$n - length, 1] | max));
 
 # A message may carry several DKIM signatures, and DMARC needs only one to
 # align. So the class is decided by ANY pass, never by the first signature.
@@ -345,16 +458,120 @@ report() {
 
 # --- the verbs ----------------------------------------------------------------
 
+# _dmarc_is_report <path> -- is this file even a candidate?
+#
+# By MAGIC, like the unpacker: `PK` for zip, gzip's `1f8b`, or something whose
+# first non-space byte opens a tag. Everything else is not a report and is
+# NAMED as such rather than being quietly stepped over.
+_dmarc_is_report() {
+  case "$(od -An -tx1 -N2 "$1" 2>/dev/null | tr -d ' \n')" in
+    504b | 1f8b) return 0 ;;
+  esac
+  # NULLS ARE STRIPPED FIRST, and this is not cosmetic. A binary file reaching
+  # the command substitution makes bash emit `warning: command substitution:
+  # ignored null byte in input` -- onto STDERR, which is the channel this verb
+  # uses for its own accounting. Noise there corrupts an audit trail whose
+  # entire job is saying which files were read and which were not.
+  case "$(head -c 512 "$1" 2>/dev/null | tr -d '\000' | tr -d '[:space:]' | cut -c1-1)" in
+    '<') return 0 ;;
+  esac
+  return 1
+}
+
+# parse_dir <dir> -- every report under a directory, accounted for.
+#
+# REPORTS ARRIVE IN A FOLDER, WHICH IS THE WHOLE REASON THIS EXISTS. Measured
+# 2026-09-08 on a real collection of 17: they land in dated subdirectories, and
+# the folder also holds a `.DS_Store`, so the obvious `for f in dir/*` loop
+# dies on the first Mac that touches it. Until now `parse` took ONE file and a
+# caller had to write that loop themselves -- which is a second implementation
+# of the classification rule, in every consumer, none of them tested.
+#
+# EVERY FILE IS ACCOUNTED FOR, and the accounting goes to STDERR so stdout
+# stays pure JSON Lines for `| report`. Three outcomes, all counted and none
+# silent: parsed, not-a-report (named), and FAILED (named, and fatal at the
+# end). A walk that skipped quietly would let a truncated archive vanish from
+# a run that still printed rows and exited 0.
+#
+# AN EMPTY POPULATION IS AN ERROR, matching `infra profiles`: finding no
+# reports means the path was wrong, not that the estate is clean.
+parse_dir() {
+  local dir="$1" f n_ok=0 n_skip=0 n_fail=0 skipped="" failed=""
+  while IFS= read -r -d '' f; do
+    if ! _dmarc_is_report "$f"; then
+      n_skip=$((n_skip + 1)); skipped="$skipped  not a report: $f
+"
+      continue
+    fi
+    # EACH FILE RUNS IN ITS OWN SUBSHELL, and the reason is a defect the tests
+    # caught rather than a preference. Every refusal inside `parse_one` is a
+    # `die`, which EXITS -- so in-process the first broken report aborted the
+    # whole walk: later files were never read, the accounting never printed,
+    # and the run died naming one file while silently abandoning the rest.
+    #
+    # This is the `$(...)` hazard of issue 0060 INVERTED, and the difference is
+    # what makes it correct here rather than the same mistake. There, a
+    # swallowed refusal let a caller carry on believing nothing was wrong. Here
+    # the refusal is CAUGHT, COUNTED, NAMED, and made fatal at the end -- the
+    # subshell is the isolation boundary, not a place for a verdict to vanish.
+    #
+    # The subshell takes its OWN temps: `_dmarc_cleanup` removes ERRF, and
+    # sharing the parent's would delete a file the parent still needs.
+    if (
+      ERRF="$(mktemp "${TMPDIR:-/tmp}/devbin-dmarc.XXXXXX")"
+      _DMARC_TMP=""
+      trap _dmarc_cleanup EXIT
+      parse_one "$f"
+    ); then
+      n_ok=$((n_ok + 1))
+    else
+      n_fail=$((n_fail + 1)); failed="$failed  FAILED: $f
+"
+    fi
+  done < <(find "$dir" -type f -print0 2>/dev/null | LC_ALL=C sort -z)
+
+  {
+    printf 'dmarc parse: %s parsed, %s not a report, %s failed (under %s)\n' \
+      "$n_ok" "$n_skip" "$n_fail" "$dir"
+    [ -n "$skipped" ] && printf '%s' "$skipped"
+    [ -n "$failed" ] && printf '%s' "$failed"
+  } >&2
+
+  if [ "$((n_ok + n_fail))" -eq 0 ]; then
+    die "dmarc parse: no DMARC reports found under $dir
+       Nothing found is a wrong path, not an empty mailbox."
+  fi
+  [ "$n_fail" -eq 0 ] || return 1
+  return 0
+}
+
 parse() {
   SRC="${1:-}"
-  [ -n "$SRC" ] || die "dmarc parse: needs a report path (try: $DEVBIN_NAME infra mail dmarc --help)"
-  [ -f "$SRC" ] || die "dmarc parse: no such report: $SRC"
+  [ -n "$SRC" ] || die "dmarc parse: needs a report path or a directory of them (try: $DEVBIN_NAME infra mail dmarc --help)"
 
   require_tool xmllint "Install libxml2. There is deliberately no text-extraction fallback -- one would report every message as unsigned, which is what a forgery looks like."
   require_tool jq "Install jq. Rows are emitted as JSON Lines."
 
   ERRF="$(mktemp "${TMPDIR:-/tmp}/devbin-dmarc.XXXXXX")"
-  trap 'rm -f "$ERRF"' EXIT
+  _DMARC_TMP=""
+  trap _dmarc_cleanup EXIT
+
+  if [ -d "$SRC" ]; then
+    parse_dir "$SRC"
+    return
+  fi
+  [ -f "$SRC" ] || die "dmarc parse: no such report: $SRC"
+  parse_one "$SRC"
+}
+
+# parse_one <file> -- one report to rows. Assumes ERRF and the trap are set.
+parse_one() {
+  SRC="$1"
+
+  # A container is unpacked in place, BEFORE anything reads the file as XML.
+  # Reversing these two lines is what produced "malformed XML ... 'PK'": a
+  # complaint about the content, when the fault was the wrapper.
+  _dmarc_unpack "$SRC"
 
   xmllint --noout "$SRC" 2>"$ERRF" ||
     die "dmarc parse: malformed XML in $SRC -- $(tr '\n' ' ' <"$ERRF")"

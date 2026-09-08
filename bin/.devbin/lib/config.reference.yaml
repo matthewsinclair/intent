@@ -170,16 +170,26 @@ devbin_version: "^1.0.0"
 # (ST0005). Read by nothing else, and harmless in a consumer -- a project that
 # sets it is describing a publish it will never perform.
 #
+# REQUIRED TO PUBLISH, AND THERE IS NO DEFAULT. `lib/install` carried
+# `$HOME/Devel/opt/devbin` until 2026-09-07 -- one operator's directory layout,
+# baked into the runtime every estate vendors. A publish from any of them would
+# have gone to a path named after somebody else's home directory and would have
+# SUCCEEDED, because a publish to the wrong place is indistinguishable from a
+# publish to the right one. Unset, `install`, `upgrade` and `fleet upgrade`
+# refuse by name.
+#
 # The point of the key is that the location is CONFIGURATION rather than a path
-# written into code. `--prefix <dir>` overrides it, which is how the test suite
-# publishes into a temporary directory without an environment variable that
-# anything in the environment could redirect a write with.
+# written into code -- and a default is not an exception to that, it just moves
+# the decision from a key somebody wrote to the absence of one. `--prefix <dir>`
+# overrides it for a single run, which is how the test suite publishes into a
+# temporary directory without an environment variable that anything in the
+# environment could redirect a write with.
 #
 # A leading `~/` is expanded. A config value is a literal string, so an
 # unexpanded tilde would create a directory actually named `~` under the cwd and
 # every later command would find an install exactly where it looked.
 install:
-  prefix: ~/Devel/opt/devbin
+  prefix: ~/opt/devbin
 
 help:
   # Optional. Completes the first line: `<project name> -- <tagline>`.

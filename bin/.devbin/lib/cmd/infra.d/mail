@@ -24,10 +24,17 @@ is why an unknown word is an error rather than a silent no-op.
 USAGE
 }
 
+# Same split as `infra profiles`, and for the same reason: a router reached
+# with no family named is a caller who left something out, not a caller asking
+# what the families are.
 case "${1:-}" in
-  '' | -h | --help)
+  -h | --help)
     usage
     exit 0
+    ;;
+  '')
+    usage >&2
+    die "infra mail: no family given. Nothing ran."
     ;;
   *) die "infra mail: unknown family \`$1\` (try: $DEVBIN_NAME infra mail --help)" ;;
 esac

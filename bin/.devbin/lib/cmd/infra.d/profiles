@@ -44,10 +44,21 @@ wrong, and reporting it as "no collisions" would be a green over an empty set.
 USAGE
 }
 
+# ASKING FOR HELP AND FORGETTING THE ARGUMENT ARE DIFFERENT EVENTS, and
+# collapsing them is why this exited 0 on a missing directory until 2026-09-07.
+# This verb's whole argument is that an empty population is an ERROR -- "0
+# profiles, no collisions" is the shape of every false green this repository has
+# a name for -- and a caller who omitted the argument got usage text and a
+# success code, which is that same false green one level up, in the command
+# written to refuse it. Reported by lamplight-dc.
 case "${1:-}" in
-  '' | -h | --help)
+  -h | --help)
     usage
     exit 0
+    ;;
+  '')
+    usage >&2
+    die "infra profiles: no directory given. Nothing was compared."
     ;;
 esac
 

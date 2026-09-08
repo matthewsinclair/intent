@@ -86,11 +86,6 @@ is_devbin_installed() {
 # help/ -- and `bin/devbin` refuses to run without a config.yaml, so D27's "never
 # a cwd" is delivered by construction rather than by a check anyone can disable.
 
-# The prefix used when nothing configures one. A default, never a hard-coded
-# assumption: `install.prefix` in devbin's own config overrides it and `--prefix`
-# overrides that (D32).
-DEVBIN_INSTALL_PREFIX_DEFAULT="$HOME/Devel/opt/devbin"
-
 # is_devbin_dev_tree <root> -- true when <root> is devbin's own SOURCE checkout.
 #
 # Derived from the two predicates that already exist rather than from a name or
@@ -103,17 +98,38 @@ is_devbin_dev_tree() {
   ! is_devbin_installed "$1"
 }
 
-# install_prefix_configured -- the prefix from config, tilde expanded.
+# install_prefix_configured -- the prefix from config, tilde expanded, or rc 1
+# having printed nothing.
+#
+# THERE IS NO DEFAULT, AND THE ONE THAT USED TO BE HERE IS WHY THIS NOTE IS LONG.
+# This function ended `[ -n "$v" ] || v="$HOME/Devel/opt/devbin"` -- one
+# operator's directory layout, written into the runtime that fourteen estates
+# vendor. Every consumer carried it; a publish from any of them would have gone
+# to a path named after somebody else's home directory, and it would have
+# SUCCEEDED, because a publish to the wrong place is indistinguishable from a
+# publish to the right one.
+#
+# D32 already said the location is CONFIGURATION. A default does not soften that
+# rule, it relocates the decision: from a key somebody wrote to the absence of
+# one, which is the reading nobody makes deliberately. So unset returns 1 and
+# every caller that needs a prefix refuses by name -- see
+# `die_install_prefix_unset`, which is the one message all three of them print.
+#
+# rc 1 RATHER THAN AN EMPTY STRING. A caller that forgets to check an empty
+# return proceeds with `""` and writes to `/bin`; a caller that forgets to check
+# rc 1 is killed by errexit at the assignment. Neither is correct, but only one
+# of them is silent. `shell-init` is the one caller for which unset is a legal
+# answer, and it says so at the call site.
 #
 # THE TILDE IS EXPANDED HERE AND THAT IS NOT A NICETY. A config value is a
-# literal string, so an unexpanded `~/Devel/opt/devbin` creates a directory
-# actually named `~` under the cwd, and every subsequent command finds an
-# install exactly where it looked. The failure is silent and self-consistent,
-# which is the worst combination this project has a name for.
+# literal string, so an unexpanded `~/opt/devbin` creates a directory actually
+# named `~` under the cwd, and every subsequent command finds an install exactly
+# where it looked. The failure is silent and self-consistent, which is the worst
+# combination this project has a name for.
 install_prefix_configured() {
   local v
-  v="$(cfg_get install.prefix "$DEVBIN_INSTALL_PREFIX_DEFAULT")"
-  [ -n "$v" ] || v="$DEVBIN_INSTALL_PREFIX_DEFAULT"
+  v="$(cfg_get install.prefix "")"
+  [ -n "$v" ] || return 1
   # SC2088 IS WRONG HERE AND THE SUPPRESSION SAYS WHY. These are case PATTERNS
   # matching a literal `~` that a config file contains as a character -- the
   # whole point is that it did NOT expand, because a YAML scalar is not a shell
@@ -129,6 +145,41 @@ install_prefix_configured() {
     '~/'*) v="$HOME/${v#\~/}" ;;
   esac
   printf '%s\n' "$v"
+  return 0
+}
+
+# die_install_prefix_unset [flag] -- the ONE refusal for a prefix that is not
+# configured. Never returns.
+#
+# ONE MESSAGE FOR THREE CALLERS. `install` publishes to the prefix, `upgrade`
+# replaces what is there, and the fleet sweep distributes FROM it -- three verbs
+# reading the same key out of the same file and failing for the same reason.
+# Three spellings of the fix-it instruction is three things to keep in step, and
+# the one that drifts is the one nobody was reading (IN-AG-HIGHLANDER-001).
+#
+# CALLED AT STATEMENT LEVEL, NEVER INSIDE A COMMAND SUBSTITUTION at a caller
+# that has not set `inherit_errexit`. `die` exits, so the message is printed
+# either way -- but `local x="$(...)"` takes its rc from `local` and swallows
+# the failure while still showing the text, which is issue 0060 and is how a
+# refusal comes to read as a refusal and behave as a default.
+#
+# The flag is a PARAMETER because `--prefix` belongs to install and upgrade and
+# the fleet sweep has no such option. Naming a flag that does not exist is worse
+# than naming none.
+die_install_prefix_unset() {
+  local flag="${1:-}" extra=""
+  # An `if`, not `[ -n "$flag" ] && extra=...`: that AND-list is the final
+  # command of its own statement, so an empty flag would return 1 and take the
+  # whole handler down under `set -e` before the message was ever composed.
+  if [ -n "$flag" ]; then
+    extra="
+       or pass $flag for a single run"
+  fi
+  die "no install prefix is configured, and there is no default
+       set install.prefix in devbin's own bin/.devbin/config.yaml:
+
+         install:
+           prefix: ~/where/devbin/should/live$extra"
 }
 
 # tree_dirty_paths <root> -- porcelain lines for an unclean tree, empty when clean.

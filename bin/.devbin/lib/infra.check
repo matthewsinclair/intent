@@ -1,0 +1,368 @@
+#!/usr/bin/env bash
+#
+# lib/infra.check -- the DNS and mail legs of `infra check` (ST0003 WP-02).
+#
+# Sourced, never executed. It compares a loaded profile against live
+# authoritative DNS and produces a verdict in FOUR channels, not two.
+#
+#   OK      measured, and it matches
+#   DRIFT   measured, and it differs -- the estate is wrong
+#   ERROR   NOT MEASURED -- the instrument failed, and nothing is known
+#   BLIND   not machine-checkable at all, declared and named every run
+#
+# WHY FOUR AND NOT TWO, which is the whole design. Every failure this thread
+# was built to catch is a control that could only report success. Fold ERROR
+# into OK and an unreachable nameserver reads as a clean domain; fold it into
+# DRIFT and the operator chases an estate fault that is really a network fault.
+# Both are wrong and only one of them is loud. So an unmeasured domain leaves
+# the OK count, enters its own section, and takes the exit code with it.
+#
+# EXIT CODES. 0 all measured and matching; 1 drift; 2 something could not be
+# measured. Two beats one when both are present, because a drift red is already
+# visible AND actionable in the output, while an unmeasured domain is the one a
+# scripted caller would otherwise bank as covered.
+#
+# WHAT IS DELIBERATELY NOT CHECKED, and it is the decision that unblocked this
+# work. `mail: google` does NOT assert a particular MX value. The STANDARD --
+# the vendor-derived table that would say what Google's current MX form is --
+# was deleted with `docs/infrastructure.md` on hv's ruling, and WP-03 carries an
+# open dependency on where such a claim can live so that it goes stale VISIBLY.
+# Shipping a value here would answer that question by accident, and would ship
+# the exact `estate-inferred` row the ruling removed.
+#
+# INTRA-ESTATE CONSISTENCY REPLACES IT AND COSTS NOTHING: every domain declaring
+# the same `mail:` value must carry the same MX form as every other. That fires
+# on the audited defect -- three different Google MX forms across eleven domains
+# -- asserts no vendor value, and at N=1 REPORTS ITSELF AS A BLIND SPOT rather
+# than going quiet. Same for SPF across domains sharing a sender. The result is
+# a check leg with zero confidently-wrong assertions anywhere in it.
+
+[ -n "${_DEVBIN_INFRA_CHECK_LOADED:-}" ] && return 0
+_DEVBIN_INFRA_CHECK_LOADED=1
+
+# The four channels. Newline-delimited `<fqdn><TAB><facet><TAB><detail>`.
+_IC_OK=0
+_IC_DRIFT=""
+_IC_ERROR=""
+_IC_BLIND=""
+_IC_MANUAL=""
+
+# _ic_flat <detail> -- ONE RECORD IS ONE LINE, enforced rather than assumed.
+#
+# Every channel is newline-delimited records of tab-separated fields, and the
+# counts in the report come from `grep -c .` over them. A detail carrying its
+# own newline therefore inflates the count while rendering as one row, so the
+# header and the listing disagree -- measured 2026-09-07 on the geodica estate,
+# where the summary read 14 drift and the DRIFT section showed 3.
+#
+# That is precisely the class this command exists to report, produced by the
+# command reporting it: a count and a listing that disagree is a caught error,
+# and a count alone is a silent one. Folded to a single line rather than
+# refused, because losing a whole finding to a formatting fault would be the
+# worse failure -- but the fold is VISIBLE in the output, never quiet.
+_ic_flat() { printf '%s' "$1" | tr '\n\t' '  ' | sed 's/  */ /g; s/ *$//'; }
+
+_ic_ok() { _IC_OK=$((_IC_OK + 1)); }
+_ic_drift() { _IC_DRIFT="$_IC_DRIFT$1	$2	$(_ic_flat "$3")
+"; }
+_ic_error() { _IC_ERROR="$_IC_ERROR$1	$2	$(_ic_flat "$3")
+"; }
+_ic_blind() { _IC_BLIND="$_IC_BLIND$1	$2	$(_ic_flat "$3")
+"; }
+_ic_manual() { _IC_MANUAL="$_IC_MANUAL$1	$2	$(_ic_flat "$3")
+"; }
+
+# _ic_spf_of <ns> <fqdn> -- the SPF records, one per line. Zero lines is a
+# measured absence; rc 1 is a failure to read.
+_ic_spf_of() {
+  local out
+  out="$(infra_dns_txt_joined "$1" "$2")" || return 1
+  printf '%s\n' "$out" | awk -F'\t' '$2 ~ /^v=spf1/ { print }'
+}
+
+# infra_check_domain <handle> <fqdn> -- every DNS and mail assertion for one
+# domain. Prints nothing; accumulates into the four channels.
+#
+# THE AUTHORITY READ GATES EVERYTHING. Each later read runs THROUGH it, so a
+# domain whose nameservers cannot be found is one ERROR rather than six DRIFTs:
+# reporting "no MX, no SPF, no DMARC" for a domain nobody could reach is a
+# verdict about an estate that was never read.
+infra_check_domain() {
+  local handle="$1" fqdn="$2" ns mail ttl want_dmarc policy rua
+  local mx spf dmarc_txt sender sel spf_rec n k v
+
+  # `manual:` first, so a domain that turns out to be unreachable still has its
+  # unverifiable expectations named. They are not contingent on the network.
+  while IFS="$(printf '\t')" read -r k v; do
+    [ -n "${k:-}" ] || continue
+    _ic_manual "$fqdn" "$k" "$v"
+  done <<EOF
+$(infra_manual_keys "$handle")
+EOF
+
+  if ! ns="$(infra_dns_authority "$fqdn")"; then
+    _ic_error "$fqdn" "authority" "no authoritative nameserver answered -- NOTHING about this domain was checked"
+    return 0
+  fi
+
+  ttl="$(infra_effective "$handle" ttl || true)"
+  mail="$(infra_effective "$handle" mail || true)"
+
+  # --- MX ---------------------------------------------------------------------
+  if [ -n "$mail" ]; then
+    if ! mx="$(infra_dns_read "$ns" "$fqdn" MX)"; then
+      _ic_error "$fqdn" "mx" "MX could not be read from $ns"
+    elif [ -z "$mx" ]; then
+      _ic_drift "$fqdn" "mx" "declares \`mail: $mail\` and carries NO MX record"
+    else
+      _ic_ok
+      _ic_mx_form "$fqdn" "$mail" "$mx"
+      _ic_ttl_check "$fqdn" "mx" "$ttl" "$mx"
+    fi
+  fi
+
+  # --- SPF --------------------------------------------------------------------
+  if ! spf="$(_ic_spf_of "$ns" "$fqdn")"; then
+    _ic_error "$fqdn" "spf" "TXT could not be read from $ns"
+  else
+    n="$(printf '%s' "$spf" | grep -c . || true)"
+    if [ "$n" -gt 1 ]; then
+      # RFC 7208: more than one SPF record makes the domain's SPF PERMERROR,
+      # which most receivers treat as no SPF at all. Needs no profile field and
+      # no vendor knowledge, so it is checkable at every N.
+      _ic_drift "$fqdn" "spf" "$n SPF records -- RFC 7208 permits exactly one, and two is evaluated as none"
+    elif [ "$n" -eq 1 ]; then
+      _ic_ok
+      _ic_ttl_check "$fqdn" "spf" "$ttl" "$spf"
+    fi
+    spf_rec="$(printf '%s' "$spf" | head -1 | cut -f2-)"
+
+    # --- declared senders: the MATCHED PAIR ----------------------------------
+    #
+    # SPF authorising a sender with no DKIM record to match makes this domain's
+    # own legitimate mail bit-for-bit indistinguishable from a forgery of it,
+    # and it stays silent until the first message flows. It is the sharpest
+    # single check in this leg.
+    for sender in $(infra_domain_senders "$handle"); do
+      # THE UNDEFINED-SENDER BRANCH WAS REMOVED HERE ON 2026-09-08, and the
+      # reason is that it could no longer go red. `infra_validate_profile` now
+      # refuses a domain naming a sender the profile never defines, before any
+      # network call, so this arm was unreachable through every path a caller
+      # has -- and a check with no reachable red state carries zero bits while
+      # still reading like coverage. It was also a second home for one rule:
+      # the parse-time refusal and this report said the same thing in two
+      # channels, and only one of them was right about whose fault it is.
+      _ic_sender_pair "$ns" "$fqdn" "$sender" "$spf_rec"
+    done
+  fi
+
+  # --- DMARC ------------------------------------------------------------------
+  want_dmarc="$(cfg_get "domains.$handle.dmarc" 2>/dev/null || true)"
+  if [ "$want_dmarc" = none ]; then
+    # A DELIBERATE, SPELLED opt-out. Not a check and not a pass: a domain
+    # outside the reporting estate can be forged and will never generate a
+    # report saying so, so it is NAMED on every run rather than skipped.
+    _ic_blind "$fqdn" "dmarc" "outside the reporting estate by declaration (\`dmarc: none\`) -- forgery here produces no report"
+  else
+    policy="$(infra_effective "$handle" dmarc.policy || true)"
+    rua="$(infra_effective "$handle" dmarc.rua || true)"
+    if ! dmarc_txt="$(infra_dns_txt_joined "$ns" "_dmarc.$fqdn")"; then
+      _ic_error "$fqdn" "dmarc" "_dmarc TXT could not be read from $ns"
+    else
+      dmarc_txt="$(printf '%s\n' "$dmarc_txt" | awk -F'\t' '$2 ~ /^v=DMARC1/ {print; exit}')"
+      if [ -z "$dmarc_txt" ]; then
+        # `if`, NEVER `[ -n "$x" ] && cmd`. As the last statement of a branch
+        # that form returns 1 when the test is false, and `set -e` kills the
+        # run before a single line is printed. Measured 2026-09-07: five arms
+        # red with EMPTY output and rc 1, every one a profile with no `dmarc:`
+        # block. Same trap as `die_install_prefix_unset` earlier the same day,
+        # which is the point -- knowing a rule and writing it down does not
+        # stop you reproducing it hours later in a different file.
+        if [ -n "$policy" ]; then
+          _ic_drift "$fqdn" "dmarc" "profile declares \`policy: $policy\` and there is NO _dmarc record"
+        fi
+      else
+        _ic_ok
+        _ic_dmarc_fields "$fqdn" "$policy" "$rua" "$(printf '%s' "$dmarc_txt" | cut -f2-)"
+        _ic_ttl_check "$fqdn" "dmarc" "$ttl" "$dmarc_txt"
+      fi
+    fi
+  fi
+}
+
+# _ic_ttl_check <fqdn> <facet> <declared> <records> -- the CONFIGURED ttl,
+# because the reads are authoritative. See lib/infra.dns for why that is a rule
+# rather than a preference.
+_ic_ttl_check() {
+  local fqdn="$1" facet="$2" want="$3" recs="$4" got
+  [ -n "$want" ] || return 0
+  while IFS="$(printf '\t')" read -r got _; do
+    [ -n "${got:-}" ] || continue
+    [ "$got" = "$want" ] && continue
+    _ic_drift "$fqdn" "$facet.ttl" "ttl is $got, profile declares $want"
+    return 0
+  done <<EOF
+$recs
+EOF
+}
+
+# --- intra-estate consistency ------------------------------------------------
+#
+# The mechanism that replaces the deleted STANDARD. Forms are collected here and
+# compared once, after every domain has been read, by infra_check_consistency.
+_IC_MXFORM=""
+_IC_SENDER_SPF=""
+
+_ic_mx_form() {
+  local fqdn="$1" mail="$2" form
+  form="$(printf '%s\n' "$3" | cut -f2- | LC_ALL=C sort | tr '\n' ' ' | sed 's/ *$//')"
+  _IC_MXFORM="$_IC_MXFORM$mail	$form	$fqdn
+"
+}
+
+# _ic_sender_pair <ns> <fqdn> <sender> <spf record> -- the matched pair.
+_ic_sender_pair() {
+  local ns="$1" fqdn="$2" sender="$3" spf="$4" inc sel typ want got
+  inc="$(cfg_get "senders.$sender.spf_include" 2>/dev/null || true)"
+  sel="$(cfg_get "senders.$sender.dkim.name" 2>/dev/null || true)"
+  typ="$(cfg_get "senders.$sender.dkim.type" 2>/dev/null || true)"
+  want="$(cfg_get "senders.$sender.dkim.value" 2>/dev/null || true)"
+
+  # SPF half.
+  local has_spf=0
+  if [ -n "$inc" ]; then
+    case "$spf" in *"include:$inc"*) has_spf=1 ;; esac
+  fi
+
+  # DKIM half.
+  local has_dkim=0
+  if [ -n "$sel" ]; then
+    if ! got="$(infra_dns_read "$ns" "$sel.$fqdn" "${typ:-CNAME}")"; then
+      _ic_error "$fqdn" "dkim:$sender" "$sel.$fqdn could not be read"
+      return 0
+    fi
+    if [ -n "$got" ]; then has_dkim=1; fi
+    _IC_SENDER_SPF="$_IC_SENDER_SPF$sender	$fqdn	$(printf '%s' "$got" | cut -f2- | head -1)
+"
+  fi
+
+  if [ -n "$inc" ] && [ "$has_spf" -eq 0 ]; then
+    _ic_drift "$fqdn" "spf:$sender" "declares sender \`$sender\` and its SPF does NOT include $inc"
+  fi
+  if [ "$has_spf" -eq 1 ] && [ "$has_dkim" -eq 0 ]; then
+    # THE HALF PAIR. Stated at full strength because its consequence is not
+    # obvious from the field names.
+    _ic_drift "$fqdn" "pair:$sender" "SPF authorises \`$sender\` but there is NO DKIM record at $sel.$fqdn -- HALF PAIR: this domain's own legitimate mail is indistinguishable from a forgery of it"
+  fi
+  if [ "$has_spf" -eq 1 ] && [ "$has_dkim" -eq 1 ]; then
+    _ic_ok
+    if [ -n "$want" ] && [ -n "${got:-}" ]; then
+      case "$(printf '%s' "$got" | cut -f2- | head -1)" in
+        *"$want"*) ;;
+        *) _ic_drift "$fqdn" "dkim:$sender" "DKIM at $sel.$fqdn does not carry the declared value" ;;
+      esac
+    fi
+  fi
+}
+
+_ic_dmarc_fields() {
+  local fqdn="$1" policy="$2" rua="$3" rec="$4" got_p got_rua
+  got_p="$(printf '%s' "$rec" | tr ';' '\n' | sed -n 's/^ *p= *//p' | head -1)"
+  got_rua="$(printf '%s' "$rec" | tr ';' '\n' | sed -n 's/^ *rua= *//p' | head -1)"
+  if [ -n "$policy" ] && [ -n "$got_p" ] && [ "$policy" != "$got_p" ]; then
+    _ic_drift "$fqdn" "dmarc.p" "live policy is p=$got_p, profile declares $policy"
+  fi
+  if [ -n "$rua" ]; then
+    case "$got_rua" in
+      *"$rua"*) ;;
+      "") _ic_drift "$fqdn" "dmarc.rua" "profile declares rua $rua and the record carries NO rua -- reports go nowhere" ;;
+      *) _ic_drift "$fqdn" "dmarc.rua" "live rua is $got_rua, profile declares $rua" ;;
+    esac
+  fi
+  # DISPOSITION IS NOT AUTHENTICATION, and this fires on a CLEAN record too.
+  # A summary that goes quiet exactly when it looks good is the thing this
+  # command is built against.
+  case "$got_p" in
+    quarantine | reject) ;;
+    *) _ic_blind "$fqdn" "dmarc.enforcement" "p=$got_p publishes a preference and enforces nothing -- a forged message is delivered and merely reported" ;;
+  esac
+}
+
+# infra_check_consistency -- the cross-domain pass, run ONCE after every domain.
+#
+# AT N=1 THIS REPORTS ITSELF AS A BLIND SPOT rather than passing. A comparison
+# over a population of one is not a green; it is a comparison that did not
+# happen, and saying so is the difference between this and every instrument
+# this thread was written to replace.
+infra_check_consistency() {
+  local mail forms n
+
+  for mail in $(printf '%s' "$_IC_MXFORM" | cut -f1 | LC_ALL=C sort -u); do
+    n="$(printf '%s' "$_IC_MXFORM" | awk -F'\t' -v m="$mail" '$1==m' | grep -c . || true)"
+    forms="$(printf '%s' "$_IC_MXFORM" | awk -F'\t' -v m="$mail" '$1==m {print $2}' | LC_ALL=C sort -u | grep -c . || true)"
+    if [ "$n" -lt 2 ]; then
+      _ic_blind "(estate)" "mx.consistency" "only $n domain declares \`mail: $mail\` -- form consistency is NOT COMPARABLE at this population"
+    elif [ "$forms" -gt 1 ]; then
+      # ONE LINE, and that is a contract rather than a formatting choice.
+      # Every channel here is newline-delimited records of tab-separated
+      # fields, so a detail carrying its own newlines makes the COUNT and the
+      # RENDERED ROWS disagree -- measured on the geodica estate, where the
+      # header read 14 drift and the section showed 3. A count that disagrees
+      # with its own listing is the defect this command reports in estates,
+      # produced by the command reporting it.
+      _ic_drift "(estate)" "mx.consistency" \
+        "$n domains declare \`mail: $mail\` and carry $forms DIFFERENT MX forms -- $(
+          printf '%s' "$_IC_MXFORM" | awk -F'\t' -v m="$mail" '$1==m {c[$2]++; d[$2] = d[$2] " " $3}
+            END { for (f in c) printf "[%dx %s:%s] ", c[f], f, d[f] }' | sed 's/ *$//'
+        )"
+    else
+      _ic_ok
+    fi
+  done
+}
+
+# infra_check_report <profile> <name> -- render, and decide the exit code.
+infra_check_report() {
+  local profile="$1" name="$2" nd ne nb nm rc=0
+  nd="$(printf '%s' "$_IC_DRIFT" | grep -c . || true)"
+  ne="$(printf '%s' "$_IC_ERROR" | grep -c . || true)"
+  nb="$(printf '%s' "$_IC_BLIND" | grep -c . || true)"
+  nm="$(printf '%s' "$_IC_MANUAL" | grep -c . || true)"
+
+  printf 'infra check: %s (%s)\n' "$name" "$profile"
+  printf '  %s assertion(s) held, %s drift, %s NOT MEASURED\n\n' "$_IC_OK" "$nd" "$ne"
+
+  if [ "$ne" -gt 0 ]; then
+    printf 'COULD NOT MEASURE (%s) -- these are gaps in the INSTRUMENT, not verdicts:\n' "$ne"
+    printf '%s' "$_IC_ERROR" | awk -F'\t' 'NF>=3 {printf "  %-26s %-18s %s\n", $1, $2, $3}'
+    printf '\n'
+    rc=2
+  fi
+  if [ "$nd" -gt 0 ]; then
+    printf 'DRIFT (%s):\n' "$nd"
+    printf '%s' "$_IC_DRIFT" | awk -F'\t' 'NF>=3 {printf "  %-26s %-18s %s\n", $1, $2, $3}'
+    printf '\n'
+    [ "$rc" -eq 0 ] && rc=1
+  fi
+
+  # BOTH BLOCKS PRINT ON A GREEN RUN, and that is the point of them. A green
+  # covering the DNS third of infra reads as "infra is fine" unless the run
+  # says what it did not measure -- a summary of what the tool DID, mistaken
+  # for a statement about the estate. Documentation cannot do this job because
+  # nobody reads documentation at check time.
+  printf 'not machine-checkable (%s item(s)) -- declared intent, NEVER verified:\n' "$nm"
+  if [ "$nm" -gt 0 ]; then
+    printf '%s' "$_IC_MANUAL" | awk -F'\t' 'NF>=3 {printf "  %-26s %-22s %s\n", $1, $2, substr($3, 1, 96)}'
+  else
+    printf '  (none declared)\n'
+  fi
+  printf '\nblind spots in this run (%s):\n' "$nb"
+  if [ "$nb" -gt 0 ]; then
+    printf '%s' "$_IC_BLIND" | awk -F'\t' 'NF>=3 {printf "  %-26s %-18s %s\n", $1, $2, $3}'
+  else
+    printf '  (none)\n'
+  fi
+  printf '\nThis run covered DNS and mail records only. Fly runtime is WP-07 and\n'
+  printf 'was not examined; Workspace routing is not machine-checkable at all.\n'
+  return $rc
+}

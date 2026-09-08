@@ -27,7 +27,8 @@ usage: $DEVBIN_INVOKE install [--into <dir>] [--name <n>] [--alias <a>] [--lang 
 
   --into <dir>   the project to install into (default: the current directory)
   --prefix <dir> PUBLISH mode only: where to publish the machine install
-                 (default: install.prefix in config, else ~/Devel/opt/devbin)
+                 (default: install.prefix in devbin's own config. There is no
+                 built-in default -- the location is configuration, D32)
   --name <n>     the project name (default: the target directory's name)
   --alias <a>    a short name this project may keep, eg 'cf' for conflab.
                  RECORDED ONLY -- devbin creates no symlink for it
@@ -184,7 +185,13 @@ main() {
     # down over the top of it.
     cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 ||
       die "cannot read devbin's own config at $DEVBIN_DIR/config.yaml"
-    [ -n "$prefix" ] || prefix="$(install_prefix_configured)"
+    # `|| die_...` rather than a bare assignment, so the refusal happens HERE
+    # rather than as an unexplained errexit death at the assignment. There is no
+    # baked default any more: an unconfigured prefix is a configuration error,
+    # not a location to guess at (D32).
+    if [ -z "$prefix" ]; then
+      prefix="$(install_prefix_configured)" || die_install_prefix_unset '--prefix <dir>'
+    fi
     dstroot="$prefix"
   else
     dstroot="$(cd "${into:-.}" 2>/dev/null && pwd)" ||

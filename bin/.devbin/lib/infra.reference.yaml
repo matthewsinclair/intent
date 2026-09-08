@@ -1,0 +1,147 @@
+# devbin infra.yaml -- annotated reference
+#
+# The profile: one file holding everything `devbin infra` knows about an estate.
+# devbin ships no estate of its own and never will -- a profile is data you
+# supply, and the profile is an ARGUMENT rather than a location, so `infra`
+# works inside a project, outside one, or in CI.
+#
+# WHERE IT IS LOOKED FOR, in this order:
+#
+#   --profile <path>
+#   $DEVBIN_INFRA_PROFILE
+#   ./infra.yaml
+#   ~/.config/devbin/infra.yaml
+#
+# A MISS IS A HARD FAILURE NAMING EVERY PATH TRIED. Never a default, never an
+# empty estate, never a silent skip: an infra command that finds no profile and
+# reports nothing wrong is exactly the false green this framework refuses.
+#
+# GRAMMAR. The same restricted YAML subset every devbin config uses, read by the
+# same `lib/config` (design D7), so the same forms are refused with the same
+# line-naming errors:
+#
+#   yes   two-space indent, nested maps, `key: value`, scalar sequences
+#         (`- item`), `#` comments, quoted scalars, blank lines, `---`
+#   no    tabs, odd or jumped indent, duplicate keys, anchors/aliases (& *),
+#         block scalars (| >), flow collections ({ [), sequences of maps
+#
+# EVERYTHING BELOW IS BLOCK FORM, AND THAT IS A CONSTRAINT RATHER THAN A STYLE.
+# `dmarc: { policy: none }` and `senders: [mailersend]` are refused at parse
+# time. Until 2026-09-07 the worked example lived in a prose document and was
+# written in three forms this parser rejects -- flow collections, flow
+# sequences, and a `domains:` map keyed by FQDN instead of by handle. It was the
+# first thing a new reader would copy and it could not load, and no test noticed
+# because no test read it. THIS FILE IS PARSED BY THE SUITE ON EVERY RUN
+# (tests/unit/infra-profile.bats), which is the only assertion that cannot rot:
+# a test grepping for forbidden punctuation would pass the day somebody invented
+# a fourth way to write it wrong.
+#
+# WHAT BELONGS IN A PROFILE, and it is one rule rather than a list:
+#
+#   A field belongs in the profile if and only if `check` can go red on it.
+#
+# `ttl: 300` is an ASSERTION compared against truth on every run, so it belongs.
+# Authoritative nameservers are an INPUT -- the value lookups run THROUGH -- so
+# nothing could ever compare them to anything, and declaring them would create a
+# second source of truth free to drift: profile says one registrar, the domain
+# moved, and every subsequent "authoritative" read is a lie.
+#
+# An earlier form of the rule read `could devbin discover it? then it does not
+# belong`, which also deletes `ttl`, every SPF include and the DMARC policy.
+# Discoverability was never the discriminator. Being checkable is.
+
+# Required. The schema version, so a later shape can be told from this one.
+version: 1
+
+# Required. A label for the estate. Two profiles are two files with two names.
+name: example
+
+# --- defaults, inherited by every domain ------------------------------------
+#
+# Only genuine differences are spelled per domain. A handle carrying nothing but
+# its `name:` inherits all of this.
+defaults:
+  mail: google
+  ttl: 300
+  dmarc:
+    policy: none
+    rua: dmarc@example.com
+
+# --- senders: a matched pair, declared once ---------------------------------
+#
+# A third-party sender is a matched pair of an SPF include and a DKIM record,
+# AND THE PAIR IS THE UNIT. Naming it once means a domain cannot acquire half of
+# it -- SPF authorising a sender with no DKIM to match makes that domain's own
+# legitimate mail bit-for-bit indistinguishable from a forgery of it, and it is
+# silent until the first message flows.
+#
+# THE VALUES LIVE HERE, IN YOUR PROFILE, AND NEVER IN DEVBIN. devbin ships the
+# pair's SHAPE and never its contents: a vendor's published include is often
+# account-specific, so a shipped value is a confidently-wrong assertion -- a
+# check whose target was never the right target. Measured on a real estate,
+# where two domains on one vendor account carried disjoint includes.
+senders:
+  mailersend:
+    spf_include: _spf.mailersend.net
+    dkim:
+      name: mlsend2._domainkey
+      type: CNAME
+      value: mlsend2._domainkey.mailersend.net
+
+# --- domains: a map from HANDLE to a block carrying name: --------------------
+#
+# THE FQDN IS A FIELD, NOT THE KEY, and the handle is a short label you choose.
+# Two handles naming one FQDN is REFUSED: they can carry contradictory
+# expectations that `check` would evaluate against the same live records, so one
+# goes green and one goes red on the same domain and ordering decides which you
+# read.
+#
+# `senders: []` is never written -- only the non-empty case.
+domains:
+  example:
+    name: example.com
+
+  partner:
+    name: partner.example
+    senders:
+      - mailersend
+
+  legacy:
+    name: legacy.example
+    mail: other
+    # A DELIBERATE OPT-OUT, AND IT MUST BE SPELLED, never achieved by omission.
+    # Omission means inherit. A domain outside the reporting estate has to be a
+    # decision somebody typed, because the alternative is a domain that can be
+    # forged, will never generate a report saying so, and looks identical to a
+    # domain that is simply quiet.
+    dmarc: none
+
+# --- runtime: omitted entirely by an estate that does not use Fly ------------
+runtime:
+  fly:
+    example-app:
+      org: example
+      hostnames:
+        - example.com
+        - app.partner.example
+
+# --- unreviewed: deviations are STRUCTURAL, never commentary -----------------
+#
+# `infra init` emits anything it could not confidently propose into this block,
+# and `check` REFUSES TO RUN while it holds any entry. Not a warning, and not
+# "mostly reviewed": five deviations reviewed down to one is still an estate
+# with an unratified target.
+#
+# Accepting a deviation means DELETING A KEY, which is an act. Leaving it as a
+# comment would make acceptance an omission -- and comments are the least
+# durable content in any config file, stripped by formatters, folded by editors,
+# lost on regeneration. A generated profile whose only guard rail is a comment
+# is an automated false green waiting for its first skim.
+#
+# Absent when there is nothing outstanding, which is the normal state. Shown
+# here commented out because a reference carrying a live entry would refuse to
+# check.
+#
+# unreviewed:
+#   partner.spf.include: "_spf.mlsend.com (1 other domain uses _spf.mailersend.net)"
+#   legacy: "no SPF, no DMARC, live MX -- outside the reporting estate"

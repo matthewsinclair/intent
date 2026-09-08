@@ -67,7 +67,7 @@ usage: $DEVBIN_INVOKE shell-init <zsh>
   Set DEVBIN_SOURCE to a devbin checkout -- either the project root or the
   launcher itself -- and dvb falls back to it when the walk finds nothing:
 
-    export DEVBIN_SOURCE=~/Devel/prj/Devbin
+    export DEVBIN_SOURCE=/path/to/devbin
     cd ~/some/new/project && dvb install
 
   The fallback runs whatever you typed against that devbin and lets its cwd
@@ -142,32 +142,50 @@ dvb() {
   # project; every project verb still refuses, because an install has no
   # project. Last in the order on purpose: a project's own launcher and an
   # explicit DEVBIN_SOURCE both outrank it, so this can never shadow either.
+  # THE EMPTY CASE IS REACHABLE AND IT IS NOT AN EDGE. A consumer project does
+  # not configure install.prefix and there is no default to fall through to any
+  # more, so this arrives empty in the ordinary case -- and `-x /bin/devbin`
+  # is a real path on the system PATH that an unguarded test would RUN.
   local prefix=${DEVBIN_INSTALL_PREFIX:-@@DEVBIN_INSTALL_PREFIX@@}
-  if [[ -x $prefix/bin/devbin ]]; then
-    "$prefix/bin/devbin" "$@"
-    return $?
+  if [[ -n $prefix ]]; then
+    if [[ -x $prefix/bin/devbin ]]; then
+      "$prefix/bin/devbin" "$@"
+      return $?
+    fi
+    print -u2 "dvb: no bin/devbin found from $PWD upward, and no machine install at $prefix. Looked in:"
+  else
+    print -u2 "dvb: no bin/devbin found from $PWD upward, and no machine install prefix is configured. Looked in:"
   fi
-  print -u2 "dvb: no bin/devbin found from $PWD upward, and no machine install at $prefix. Looked in:"
   print -u2 -l "  ${^tried[@]}"
-  print -u2 "dvb: publish one with 'bin/devbin install' inside devbin, or set DEVBIN_SOURCE to a devbin checkout."
+  print -u2 "dvb: publish one with 'bin/devbin install' inside devbin, or set DEVBIN_INSTALL_PREFIX or DEVBIN_SOURCE."
   return 127
 }
 BODY
 }
 
-# _shell_init_prefix -- the machine install's location, for the emitted body.
+# _shell_init_prefix -- the machine install's location, for the emitted body,
+# or EMPTY when this tree has no opinion about one.
 #
 # AN INSTALL KNOWS ITS OWN PREFIX WITHOUT BEING TOLD: it IS the prefix, so when
 # this runs from one the answer is PROJECT_ROOT and no config is consulted.
-# That matters because an install deliberately has no config.yaml, so asking
-# `install_prefix_configured` there would fall through to a default -- and a
-# baked default is the thing being removed.
+# That matters because an install deliberately has no config.yaml.
+#
+# UNSET IS A LEGAL ANSWER HERE, and this is the only caller for which it is. A
+# consumer project has no reason to know where the machine install lives, so it
+# emits a `dvb` with no machine-install fallback rather than one aimed at a path
+# invented from somebody's $HOME -- which is what the removed default did, in
+# every one of the fourteen estates that vendor this file.
+#
+# rc 0 WITH EMPTY OUTPUT, SAID OUT LOUD, because the value travels through two
+# nested command substitutions on its way into the sed below. An rc raised in
+# there is swallowed without `inherit_errexit` (issue 0060) and the emptiness
+# would look deliberate either way, so it is made deliberate.
 _shell_init_prefix() {
   if [ "$(manifest_field "$PROJECT_ROOT" kind 2>/dev/null || true)" = install ]; then
     printf '%s\n' "$PROJECT_ROOT"
     return 0
   fi
-  install_prefix_configured
+  install_prefix_configured || return 0
 }
 
 cmd_shell_init() {

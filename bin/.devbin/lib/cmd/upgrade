@@ -30,7 +30,8 @@ usage: $DEVBIN_INVOKE upgrade [--from <dir>] [--force]
 
   --from <dir>   the devbin to upgrade from (default: the source recorded at install)
   --prefix <dir> PUBLISH-UPGRADE only: the machine install to replace
-                 (default: install.prefix in config, else ~/Devel/opt/devbin)
+                 (default: install.prefix in devbin's own config. There is no
+                 built-in default -- the location is configuration, D32)
   --force        overwrite vendored files that were edited in place
 
 Replaces bin/devbin and bin/.devbin/lib/. Never touches config.yaml, cmd/ or
@@ -70,7 +71,11 @@ _upgrade_the_install() {
 
   cfg_load "$DEVBIN_DIR/config.yaml" >/dev/null 2>&1 ||
     die "cannot read devbin's own config at $DEVBIN_DIR/config.yaml"
-  [ -n "$prefix" ] || prefix="$(install_prefix_configured)"
+  # As in `install`, and through the same reader: no baked default, and the
+  # refusal is raised at the call site rather than left to errexit.
+  if [ -z "$prefix" ]; then
+    prefix="$(install_prefix_configured)" || die_install_prefix_unset '--prefix <dir>'
+  fi
   dstroot="$prefix"
 
   printf 'mode: PUBLISH-UPGRADE -- %s is devbin'"'"'s own source tree\n' "$srcroot"

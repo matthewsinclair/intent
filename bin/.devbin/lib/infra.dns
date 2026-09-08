@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+#
+# lib/infra.dns -- AUTHORITATIVE DNS reads for `infra check`.
+#
+# Sourced, never executed. It answers exactly one question -- what do the
+# domain's own nameservers say -- and it answers it in a way that keeps
+# COULD NOT MEASURE separate from MEASURED, NOTHING THERE.
+#
+# THAT SEPARATION IS THE WHOLE CONTRACT, and it is the same trap this thread
+# already met once in the DMARC parser, wearing different clothes. There,
+# `string(...//dkim/domain)` returned "" for an absent element AND for a
+# present-but-empty one, which destroys the only field separating a forgery
+# from a clean send. Here, a resolver failure returning "no records" would make
+# an unreachable nameserver indistinguishable from a domain that genuinely has
+# no MX -- and the first is a gap in the instrument while the second is a red.
+# Collapse them and the tool reports a verdict about an estate it never read.
+#
+# So: rc 1 means COULD NOT MEASURE and the caller must not treat it as drift.
+#      rc 0 with no output means MEASURED, NOTHING THERE, which is checkable.
+#
+# WHY AUTHORITATIVE READS, AND IT IS NOT PURITY. A recursive resolver returns
+# the REMAINING ttl, not the CONFIGURED one, so a `ttl:` assertion read through
+# the cache reports drift that is an artefact of when the command ran.
+# Measured 2026-09-07 on three real domains:
+#
+#   cloudflare.com   configured 1800   through the resolver  780
+#   amazon.com       configured  900   through the resolver  815
+#   geodica.com      configured  300   through the resolver  300
+#
+# The third row is why this is a rule rather than a preference: on the estate
+# this command was written for, the WRONG instrument returns the RIGHT answer,
+# so nothing local would ever have shown the defect.
+#
+# NAMESERVERS ARE AN INPUT, NEVER A DECLARATION (design principle 1). They are
+# what lookups run THROUGH, so nothing could compare them to anything; declaring
+# them creates a second source of truth free to drift, and every subsequent
+# "authoritative" read would be a lie the moment a domain moved registrar.
+#
+# `dig` IS RESOLVED THROUGH PATH so the suite can shadow it with a fixture-
+# driven fake. There is deliberately no env var naming a binary: one more
+# documented knob to test, for a seam PATH already provides and the suite
+# already uses everywhere else.
+
+[ -n "${_DEVBIN_INFRA_DNS_LOADED:-}" ] && return 0
+_DEVBIN_INFRA_DNS_LOADED=1
+
+# The per-query budget. Short enough that a dead nameserver does not stall a
+# twenty-domain run, long enough that a slow one is not misreported as an error.
+: "${DEVBIN_INFRA_DNS_TIMEOUT:=3}"
+: "${DEVBIN_INFRA_DNS_TRIES:=2}"
+
+# infra_dns_have_tool -- is there a resolver at all?
+#
+# Checked ONCE by the caller and reported as a hard failure, never per-domain:
+# a missing `dig` is not a property of any domain, and reporting it twenty times
+# buries the one line that matters.
+infra_dns_have_tool() { command -v dig >/dev/null 2>&1; }
+
+# infra_dns_authority <fqdn> -- one authoritative nameserver, or rc 1.
+#
+# Read from the delegation rather than declared. A domain with no NS at all is
+# rc 1 (COULD NOT MEASURE) rather than an empty answer: every later read for
+# that domain depends on this one, so a caller that treated it as "nothing
+# there" would go on to report every record as missing.
+infra_dns_authority() {
+  local fqdn="$1" ns
+  ns="$(dig +short +time="$DEVBIN_INFRA_DNS_TIMEOUT" +tries="$DEVBIN_INFRA_DNS_TRIES" \
+        NS "$fqdn" 2>/dev/null | grep -E '^[A-Za-z0-9]' | LC_ALL=C sort | head -1)" || return 1
+  [ -n "$ns" ] || return 1
+  printf '%s\n' "$ns"
+}
+
+# infra_dns_read <ns> <name> <type> -- `<ttl><TAB><rdata>` per record.
+#
+# rc 0  -- the server answered. Zero lines means the name genuinely carries no
+#          record of that type, which is a fact the caller can check against.
+# rc 1  -- NO ANSWER WAS OBTAINED. Not "no records": no reading. The caller must
+#          report this in its own category and must never let it satisfy or
+#          violate an assertion.
+#
+# The discriminator is dig's exit status PLUS the header status, and both are
+# needed: dig exits 9 when no server could be reached, but exits 0 on SERVFAIL
+# and REFUSED -- which are refusals to answer, not answers. Treating those as an
+# empty result is precisely how an unreachable zone reports as an empty one.
+infra_dns_read() {
+  local ns="$1" name="$2" type="$3" raw status
+  raw="$(dig +noall +comments +answer +time="$DEVBIN_INFRA_DNS_TIMEOUT" \
+         +tries="$DEVBIN_INFRA_DNS_TRIES" @"$ns" "$name" "$type" 2>/dev/null)" || return 1
+  status="$(printf '%s\n' "$raw" | sed -n 's/.*->>HEADER<<-.*status: \([A-Z]*\).*/\1/p' | head -1)"
+  case "$status" in
+    NOERROR | NXDOMAIN) ;;
+    *) return 1 ;;
+  esac
+  # Answer rows only: `dig +comments` prefixes every non-record line with `;`.
+  printf '%s\n' "$raw" | awk -v t="$type" '
+    /^;/ { next }
+    NF >= 5 && $4 == t { ttl = $2; $1 = ""; $2 = ""; $3 = ""; $4 = "";
+                         sub(/^[[:space:]]+/, ""); printf "%s\t%s\n", ttl, $0 }
+  '
+}
+
+# infra_dns_txt_joined <ns> <name> -- TXT records with the quoting removed.
+#
+# A TXT record longer than 255 bytes arrives as SEVERAL quoted strings on ONE
+# line, and DNS defines the value as their concatenation with NOTHING between.
+# A DKIM key is routinely over 255 bytes, so a reader that keeps the quotes or
+# joins on a space compares against a value no resolver ever sees -- and it
+# fails only on long records, which is to say only on the ones that matter.
+infra_dns_txt_joined() {
+  local ns="$1" name="$2" out
+  out="$(infra_dns_read "$ns" "$name" TXT)" || return 1
+  printf '%s\n' "$out" | awk -F'\t' 'NF >= 2 {
+    ttl = $1; v = $2
+    gsub(/" +"/, "", v)     # adjacent strings concatenate with nothing between
+    gsub(/^"|"$/, "", v)
+    printf "%s\t%s\n", ttl, v
+  }'
+}

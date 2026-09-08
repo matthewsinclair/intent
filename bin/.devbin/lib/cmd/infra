@@ -37,6 +37,10 @@ set -euo pipefail
 . "$DEVBIN_LIB/config"
 # shellcheck source=lib/infra
 . "$DEVBIN_LIB/infra"
+# shellcheck source=lib/infra.dns
+. "$DEVBIN_LIB/infra.dns"
+# shellcheck source=lib/infra.check
+. "$DEVBIN_LIB/infra.check"
 
 # THE HEREDOC IS UNQUOTED SO $DEVBIN_NAME RENDERS, AND $DEVBIN_INFRA_PROFILE IS
 # ESCAPED SO IT DOES NOT. Both halves are load-bearing and the second is the one
@@ -51,15 +55,32 @@ set -euo pipefail
 # command that does not exist -- while this command's OWN children, infra.d/mail
 # and infra.d/mail.d/dmarc, already rendered the name correctly. Found on the
 # first run of `infra` in a consuming estate.
+# THE VERB LIST WAS HALF THE SURFACE UNTIL 2026-09-07. `profiles` and `mail`
+# are routed by devbin's `.d/` descent BEFORE this file is reached, which is the
+# right mechanism and exactly why they were missing here: nothing in the
+# dispatch path needs this list, so only a reader does, and no test could miss
+# them. An instrument silent about part of its own surface cannot teach anyone
+# the verb exists -- reported by lamplight-dc, who found `profiles` only by
+# already knowing to look.
+#
+# The lines below carry NO BACKTICKS on purpose. This heredoc is unquoted so
+# $DEVBIN_NAME renders, which makes a backtick live command substitution: the
+# first draft of this change put `.d/` in the help text and shellcheck refused
+# it as a command ending in `/`. The comment is where prose goes.
 usage() {
   cat <<USAGE
 usage: $DEVBIN_NAME infra <verb> [--profile <path>]
 
-  show     print the resolved profile and where it was found
-  check    verify live DNS, mail and runtime against the profile
+  show      print the resolved profile and where it was found
+  check     verify live DNS and mail records against the profile
+  profiles  compare every profile in a directory, refusing a domain claimed twice
+  mail      DMARC report handling: mail dmarc parse|report
 
 The profile is searched for in this order, and a miss names every path:
   --profile <path>, \$DEVBIN_INFRA_PROFILE, ./infra.yaml, ~/.config/devbin/infra.yaml
+
+The annotated worked example is VENDORED INTO THIS PROJECT -- read it, copy it:
+  bin/.devbin/lib/infra.reference.yaml
 USAGE
 }
 
@@ -126,7 +147,23 @@ case "$verb" in
       } >&2
       exit 1
     fi
-    printf 'infra: profile %s is valid and fully reviewed.\n' "$profile"
-    not_yet "the DNS, mail and runtime legs of \`infra check\`" "ST0003 WP-02"
+    # A RESOLVER IS A HARD REQUIREMENT, CHECKED ONCE. Without one every domain
+    # would report "could not measure", which is true and useless: the fault is
+    # one missing tool, not twenty unreachable domains, and twenty copies of it
+    # buries the single line that can be acted on.
+    infra_dns_have_tool ||
+      die "infra check: dig not found. The DNS and mail legs read AUTHORITATIVE
+       records, and there is deliberately no fallback to the system resolver --
+       a cached TTL reads as a configured one, which is the false green this
+       command exists to refuse."
+
+    while IFS="$(printf '\t')" read -r handle fqdn; do
+      [ -n "${fqdn:-}" ] || continue
+      infra_check_domain "$handle" "$fqdn"
+    done <<EOF
+$(infra_domain_pairs)
+EOF
+    infra_check_consistency
+    infra_check_report "$profile" "$(cfg_get name 2>/dev/null || printf '(unnamed)')"
     ;;
 esac
