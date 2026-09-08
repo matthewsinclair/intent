@@ -4,9 +4,9 @@ name: Validation Claude
 role: validation
 session_id: 945027b0-be6d-43c4-a6f7-1349cb9ca0c1
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-08 20:16Z
-status: active
-focus: "BOTH FOLDS LANDED (416bfc92 local, 3bb4f5ad global) AND THE hv LIST IS RE-DRIVEN, NOT RESTATED -- three items were dead, `agents` bare being rc=0 with help. cc found FOUR OF SEVEN dead on their own list the same evening: a durable escalation surface has NO EXPIRY, so an item s presence reads as its own justification. RE-DRIVE BEFORE SURFACING. The globalfold fixed the CAUSE of done-work-in-wip.md: /in-finish ordered 'What was accomplished this session' into it and /in-essentials ordered state into the entry point that forbids it. Both fixed and synced, verified against the INSTALLED copies. 0285/0286/0287 filed, all three want a word not effort; four of 0285 s five defects came from cc and ic. NEXT: AC-15.1 s triage table, then AC-15.2 s three unmeasured axes. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+heartbeat_at: 2026-09-08 21:17Z
+status: paused
+focus: "RELEASED 2026-09-08 21:17Z -- EOD, status PAUSED. Both folds landed (416bfc92 local, 3bb4f5ad global) plus the re-driven hv list (94cc345c). THE GLOBALFOLD FIXED A CAUSE, NOT A SYMPTOM: /in-finish ordered 'What was accomplished this session' into intent/wip.md and /in-essentials ordered state into the entry point that forbids it -- two skills, one file, opposite orders, and the wrong one loads at every session start. Both fixed and synced, verified against the INSTALLED copies. The done gumpf in wip.md turned out to be CORRECTION ARCHAEOLOGY -- records of edits to the document, not finished tasks. 0285/0286/0287 filed; four of 0285 s five defects came from cc and ic, and I had its SIGN backwards. RE-DRIVE THE hv LIST BEFORE SURFACING IT -- three items were dead tonight and cc found four of seven dead on theirs. FIRST THING TOMORROW: AC-15.1 s triage table, then AC-15.2 s three unmeasured axes (flags, paths, layouts) -- the VERB axis passed and is NOT the criterion. ST0070 needs criteria or cancellation. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 ---
 
@@ -35,6 +35,12 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 - **`AC-15.1` -- the 23-row triage table is UNTOUCHED.** One row per skill including every KEEP-with-no-change; the denominator goes in the output.
 - **`AC-15.2` -- VERB and FLAG axes green** over a 142-path population, three planted-reference controls firing. **PATHS axis built, measured 0 real of 43, and REFUSED rather than shipped** -- a cited path resolves against four roots and several candidates are not paths. **FILE LAYOUTS found one real defect (the `verblock` claim) and is otherwise unmeasured.** **DO NOT REPORT THE GREEN AXES AS THE ROW.** Constraint on its instrument, found before building it: it must separate _names X as a live instruction_ from _names X while retiring it_, or every well-maintained skill reads as the stalest. Measured precision of the naive form: **1 of 4**.
 - **`AC-15.3` -- untouched.** Its requirement survives its own struck rationale: driving a consumer is what separates a removal that REACHED one from a source directory that merely looks clean.
+
+### TONIGHT'S GLOBALFOLD DID `ST0070`'s WORK WITHOUT `ST0070`, AND THAT IS THE THREAD'S OWN SUBJECT
+
+**`ST0070` is _LLM config rationalisation -- one home per fact_, `Not Started`, zero ACs, zero WPs, mine.** The globalfold fixed two skills that carried CONTRADICTORY instructions about the same two files -- `/in-finish` ordering done work into `intent/wip.md`, `/in-essentials` ordering state into the entry point `/in-finish` forbids. **That is a one-home-per-fact defect in the LLM config, which is precisely and only what `ST0070` is for.**
+
+**SO THE WORK LANDED WITH NO CRITERION TO SATISFY AND NO THREAD TO RECORD IT** -- which is the shape `ST0070` exists to stop, arriving on `ST0070` itself. Not repaired tonight and deliberately not back-filled under the pen: **minting criteria to cover work already done is how a thread becomes a receipt.** The honest options are criteria written forward, or cancellation with tonight's commits cited as why the thread's subject is thinner than it was. **hv's call is only _does it live_; the criteria, if it lives, are mine.**
 
 ### MINE AND UNSTARTED, BESIDES `WP-15`
 
@@ -126,7 +132,8 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 - **`flip` THEN `burn`, ONE SITTING, IN THAT ORDER** -- the `INTENT_BIN` rebind off `bin/intent`, the v2 shell script.
 - **THE STORE MIGRATION** 13 -> 17, ladder complete, each rung transactional with an FK check inside it before `user_version` moves.
 - **DOES ic's `wp` ADDRESSING SHAPE RIDE 3.0.1?** Build it / reword `AC-17.6` / ship the row unsatisfied and say so. **Not the reword.**
-- **`ST0064` 01.7 SIGNING NEEDS hv's ADC** -- an action, not a decision. **`ST0070` Phase 0 (`3d68c40a`) -- does it ride the tag?**
+- **`ST0064` 01.7 SIGNING NEEDS hv's ADC** -- an action, not a decision.
+- **`ST0070` _DOES PHASE 0 RIDE THE TAG?_ IS NOT ANSWERABLE AS POSED, AND THE MEASUREMENT SAYS WHY.** Driven 2026-09-08 21:17Z: the thread EXISTS -- _LLM config rationalisation -- one home per fact_, opened 2026-09-03 -- and reads **`Not Started` with ZERO acceptance criteria and ZERO work packages.** `3d68c40a` is the commit that OPENED it and did the shipped-falsehood fix in `in-standards/SKILL.md`; **there is no Phase 0 artefact to ride anything.** The live question is smaller and is mine, not hv's: **does this thread get criteria, or is it cancelled?**
 - **`0218`** -- what does `uninstall` PROMISE, the files it wrote or the directory it emptied? ic's hold 6 hangs on it.
 - **cc's WORD ON `0232`**; **palette Home/End**; **the `overhead` meter, W46**; **`intent claude skills sync`** (unblocked, backup verified).
 
