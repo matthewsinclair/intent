@@ -4,7 +4,7 @@ name: Validation Claude
 role: validation
 session_id: 945027b0-be6d-43c4-a6f7-1349cb9ca0c1
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-08 12:29Z
+heartbeat_at: 2026-09-08 12:53Z
 status: active
 focus: "LOCALFOLD 2026-09-07 20:56Z FOR A COMPACT -- status stays ACTIVE. ON THE BOUNCE THE JOB IS `doctor --scope`, hv ruled it 20:5xZ: DEFAULT NARROW (closed threads not reported), `--scope live|all|closed` to widen. DESIGN IS ON THIS BOARD AND THE CODE IS NOT WRITTEN -- I reverted a part-built Scope enum rather than fold over half a change. hv will split it with intent-cc on the bounce. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
@@ -17,6 +17,20 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 **PRINTING THE COMMAND IS NOT RUNNING IT.** A figure with its regenerating command beside it is AUDITABLE, not CURRENT. **A LIVE FIGURE APPEARS HERE AS THE COMMAND ALONE, WITH THE NUMBER DELETED.**
 
 ## DOING
+
+### `0280` -- THE PROPAGATION PATH `AC-15.3` IS ABOUT IS ITSELF BROKEN, FOUND BY APPLYING THAT ROW'S STANDARD TO MY OWN FIX
+
+**`intent claude skills sync` HOLDS FOUR SKILLS AS CONFLICTED AND THREE ARE BYTE-IDENTICAL TO CANON.** Computed with `payload.rs`'s own algorithm: `in-tca-audit` canon `262b9722` == installed `262b9722`, manifest `5bc75387` (recorded 2026-04-28). Same for `in-tca-finish`, `in-tca-init`. **The conflict test rests on the manifest baseline, and when canon and installed agree there is nothing to resolve whatever the baseline says.** `in-standards` and `in-detrope` are BOTH correct in the same run, so it is a missing case and not a broken comparison. `in-essentials`'s `changed here` limb is false too -- its installed tree is byte-identical to canon at `HEAD~1`.
+
+**THE HARM IS THE MESSAGE, NOT THE VERDICT: _copy your edits out first if you want them_.** An operator who believes it declines to force, CORRECTLY on the evidence, and the skill stays stale. **It recruits the careful reader into inaction** -- the pessimistic-direction failure, in a tool. 4 of 23, `in-essentials` among them, so today's `20841a5e8` correction reaches nobody on this machine. Routed to cc with the caveat that I read the COMPARE path and not the WRITE path, so why the baselines went stale is unmeasured.
+
+**AND I COMMITTED THE STRUCK DEFECT WHILE STRIKING IT.** My first drift census compared `SKILL.md` ALONE and reported 2 drifted; the tool said 5. **That is precisely the v2 behaviour I had spent the morning removing from `AC-15.3` as a thing v3 does not have** -- written the correction, then built the bug into the instrument checking it, inside an hour. Skills are TREE-scoped; the live manifest's `checksum_scope` reads `tree`, which is a third witness for the strike.
+
+### `22 ENGINEERING` AUDITED UNDER ic's RULE, AND IT SURVIVES WITH ITS BOUND STATED
+
+ic declined `ST0064 AC-01.7` on the grounds that **blocked on an external dependency and unbuilt are different states a gate reports identically** -- Apple credentials only hv can supply. Accepted and generalised. **I then turned it on my own figure, because accepting the distinction and not checking my own number would have been the cheap move.** A prose scan for external-dependency tells, **positive-controlled against `AC-01.7` itself, where it fires on `notarised per D38`**, returns ZERO over the 22.
+
+**TWO LIMITS, RECORDED RATHER THAN DROPPED:** it is a text scan, so a row blocked without saying so in words the pattern knows is invisible; and **`ST0068` AC-03.1/03.2 are in the 22 and are not startable BY ME** -- they need a reader who did not consolidate the document. **22 engineering, of which 2 need a reader who is not vc.**
 
 ### WP-15 STARTED 2026-09-08. `AC-15.3`'s PREMISE WAS FALSE AND IS STRUCK; `AC-15.2` IS TWO AXES GREEN, ONE NOT VIABLE AS BUILT
 
