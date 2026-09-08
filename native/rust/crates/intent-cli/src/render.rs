@@ -8253,6 +8253,46 @@ fn payload_fail(e: intentsvcs::payload::PayloadError) -> Failure {
   Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy()))
 }
 
+/// The line printed for [`Outcome::ModifiedLocally`].
+///
+/// **THIS ONE MAY BE CONFIDENT, AND THE CONTRAST WITH [`CONFLICTED_HELD`] IS
+/// THE WHOLE REASON BOTH ARE NAMED.** Here the baseline matches the SOURCE and
+/// differs from the installed tree, so it IS a usable record of what was
+/// written and *modified here since it was installed* is established rather
+/// than assumed. Softening this to match its neighbour would lose real
+/// information on the one arm that has it.
+const MODIFIED_LOCALLY_HELD: &str = "modified here since it was installed -- HELD. `--force` takes the source copy and reports the checksum of what it discarded; copy your edits out first if you want them";
+
+/// The line printed for [`Outcome::Conflicted`], held here so it has one home
+/// and can be constrained by a test rather than only by whoever edits it.
+///
+/// **IT MUST NOT ASSERT A STATE IT HAS NOT ESTABLISHED, AND MUST NOT REPLACE
+/// ONE ASSERTION WITH ANOTHER** (vc's ruling, 2026-09-08, issue 0280).
+///
+/// It used to read *changed upstream AND here ... copy your edits out first if
+/// you want them*, which tells the operator they have edits. `Conflicted` is
+/// raised exactly when the recorded baseline matches NEITHER side, and that
+/// signature is produced both by a genuine conflict and by a baseline that is
+/// merely stale -- so *you edited this* is unknown. **`there are no edits` is
+/// equally unestablished, so the fix is not to flip it.**
+///
+/// **THE DEFECT WAS NOT THAT THE WORDING WAS WRONG. IT WAS THAT IT WAS
+/// CONFIDENT, AND THE CONFIDENCE IS WHAT MADE A CAREFUL OPERATOR DECLINE** --
+/// leaving the skill stale permanently, which is issue 0280's whole harm.
+///
+/// The four things this build actually knows, and can say without git history:
+/// the baseline records neither side, so it is not a record of what was
+/// installed; an edit and a stale baseline are therefore indistinguishable
+/// here; if there are edits, copy them out, and `--force` reports the checksum
+/// of what it discarded; and if the operator knows there are none, `--force` is
+/// safe.
+///
+/// **THE PRECEDENT WAS ALREADY ONE ARM AWAY.** [`Outcome::Forced`] with
+/// [`Baseline::Absent`] already refuses to name the discarded bytes as an edit,
+/// on AC-07.3(d)'s grounds. This is that discipline applied to the arm that
+/// leads there.
+const CONFLICTED_HELD: &str = "the recorded baseline matches neither the source nor the installed tree, so it cannot say what was installed -- HELD. This build cannot tell an edit of yours from a stale baseline: both look exactly like this. If you have edits here, copy them out first -- `--force` takes the source copy and reports the checksum of what it discarded. If you know you have none, `--force` is safe";
+
 /// install / sync / uninstall -- one renderer, because they report the same
 /// thing about the same objects (IN-AG-HIGHLANDER-001). Three copies of the
 /// tally would agree the day they were written.
@@ -8493,11 +8533,11 @@ fn payload_change(
       }
       Outcome::ModifiedLocally => {
         needs_decision += 1;
-        "modified here since it was installed -- HELD. `--force` takes the source copy and reports the checksum of what it discarded; copy your edits out first if you want them".to_string()
+        MODIFIED_LOCALLY_HELD.to_string()
       }
       Outcome::Conflicted => {
         needs_decision += 1;
-        "changed upstream AND here -- HELD. `--force` takes the source copy and reports the checksum of what it discarded; copy your edits out first if you want them".to_string()
+        CONFLICTED_HELD.to_string()
       }
       Outcome::Undecidable => {
         needs_decision += 1;
@@ -10057,6 +10097,57 @@ fn render_critic_json(report: &intentsvcs::critic::Report) {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  /// **A HOLD THAT ASSERTS THE OPERATOR HAS EDITS IS WHAT MADE 0280 A TRAP,
+  /// AND NOTHING PINNED THE SENTENCE** (vc's ruling, 2026-09-08).
+  ///
+  /// `Conflicted` is raised exactly when the recorded baseline matches NEITHER
+  /// side, and both a genuine conflict and a merely stale baseline produce that
+  /// signature -- so *you edited this* is unknown. The old wording said it
+  /// anyway, and a careful operator who believed it declined to `--force` and
+  /// left the skill stale forever.
+  ///
+  /// **BYTES ARE NOT PINNED HERE, DELIBERATELY: asserting the literal would be
+  /// a tautology that goes green the moment someone edits both sides.** What is
+  /// constrained is what the sentence may and may not CLAIM.
+  ///
+  /// `MODIFIED_LOCALLY_HELD` is the control, and without it this test degrades
+  /// into *no message may mention edits*. There the baseline matches the source
+  /// and differs from the installed tree, so it IS a record of what was written
+  /// and the confident phrasing is correct. **The pair is the test: one arm may
+  /// assert an edit, the other may not, and the discriminator is whether the
+  /// baseline describes either side.**
+  #[test]
+  fn the_conflict_hold_states_what_it_knows_and_claims_no_more() {
+    // It must not assert that edits exist...
+    assert!(
+      !CONFLICTED_HELD.contains("AND here"),
+      "`AND here` asserts a local change the baseline cannot establish"
+    );
+    assert!(
+      !CONFLICTED_HELD.contains("copy your edits out first"),
+      "the unconditional form tells the operator they have edits"
+    );
+    // ...nor that they do not. The condition is what makes it honest.
+    assert!(CONFLICTED_HELD.contains("If you have edits here"));
+
+    // The four things the build actually knows.
+    assert!(CONFLICTED_HELD.contains("matches neither the source nor the installed tree"));
+    assert!(CONFLICTED_HELD.contains("cannot tell an edit of yours from a stale baseline"));
+    assert!(CONFLICTED_HELD.contains("reports the checksum of what it discarded"));
+    assert!(
+      CONFLICTED_HELD.contains("`--force` is safe"),
+      "an operator who knows there are no edits is left with no way forward"
+    );
+
+    // THE CONTROL. This arm HAS a usable baseline, so it may say so, and a fix
+    // that softened every hold would show up right here.
+    assert!(
+      MODIFIED_LOCALLY_HELD.contains("modified here since it was installed"),
+      "the arm whose baseline matches the source lost information it had"
+    );
+    assert!(MODIFIED_LOCALLY_HELD.contains("copy your edits out first"));
+  }
 
   /// **`AC-09.4`'s SECOND CLAUSE HAS EXACTLY ONE SUBJECT IN THIS ESTATE, AND
   /// IT WAS COMPARED TO NOTHING.**
