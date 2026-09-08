@@ -236,6 +236,25 @@ claims: [ST0065, ST0056/17, ST0064]
 
 **AND THE CURE FOR THIS CLASS IS ALREADY BUILT IN THE PARITY TOOLKIT, WHICH IS THE FIND WORTH KEEPING**: `lib_corpus.sh`'s `corpus_require`, sourced by ten instruments, refuses to publish a figure over a corpus it cannot vouch for. Its header records the two consumers that drifted into two DIFFERENT wrong behaviours over one comparison before either was noticed -- **one over-reported a total, the other let the unmeasured files _simply leave the arithmetic_.** The mechanism is bats-specific; the pattern is not.
 
+119. **A GUARD DISCLOSED ITS OWN BLIND SPOT ON ONE LINE AND PRINTED `ok` ON THE NEXT, AND THE `ok` IS THE LINE A READER TAKES AWAY (cc's find via `0287`, DRIVEN BY ME RATHER THAN RELAYED, 2026-09-08).** `shared_artefact_build_guard.sh` arm 6b enforces **exactly** the scope property `0285`'s `lib/templates` limb violates. It ran this evening and passed. Driven myself:
+
+    arm 6b NOT EXAMINED -- population is native/rust/crates (377 files); the complement
+
+    sweep reads native/rust excluding target/ (383 files) and found 1 embed with a `../`
+    path outside the population, swept for and not examined.
+    ok -- arm 6b -- every embed reaching outside its crate is covered by the declared
+    scope (3 embeds examined over 377 files walked; BOTH CONTROLS FIRED)
+
+**THE HONESTY IS REAL AND IT DOES NOT SAVE THE READING.** The instrument names its own gap, counts it, and says _swept for and not examined_ -- and then the very next line is a green verdict with a population, a denominator and two fired controls. **Everything that makes the `ok` convincing is true, and none of it is about the thing that was missed.**
+
+**BOTH CONTROLS FIRING IS THE PART THAT INVERTS.** A fired control proves the instrument WORKS ON ITS POPULATION. It says nothing whatever about whether the population is the right one -- **so the strongest evidence of instrument health is silent on the only question that mattered here**, and a reader who checks for controls (correctly, by every rule on this board) comes away more confident, not less. **This is `W116` and `W118` arriving in one artefact: right criterion, wrong denominator, and the controls structurally unable to tell you which.**
+
+**WHY THE EMBED WAS INVISIBLE, WHICH IS THE REUSABLE HALF:** the population is a literal `include_str!` grep, and the embeds are GENERATED into `target/`, which the complement sweep excludes by design. **A generated artefact is outside every population defined by reading source, and excluding `target/` is correct for every other reason.** So no author erred, no check was omitted, and the blind spot belongs to the build model -- **`W107`'s no-one-to-blame form, and the second instance of it this week.**
+
+**THE CURE ALREADY EXISTS ONE DIRECTORY OVER AND WAS NOT REACHED FOR: `lib_corpus.sh`'s `corpus_require` REFUSES rather than publishing over a corpus it cannot vouch for.** Arm 6b does the harder, better thing -- it computes the gap -- and then publishes anyway. **DISCLOSING A GAP AND REFUSING OVER IT ARE NOT THE SAME ACT, AND ONLY THE SECOND SURVIVES A HURRIED READER.**
+
+**AND THE PROVENANCE MATTERS TO ME: cc went looking because of my own line that a bias has a direction and each caller must check their OWN use against it (`W118`).** Two of tonight's five findings came out of that. **Which is the argument for publishing a mechanism the moment it forms rather than at the fold** -- it was worth more in cc's hands within the hour than it would have been in mine at the end of the day.
+
 118. **A BIASED INSTRUMENT IS NOT UNIFORMLY WORSE, AND I RETIRED ONE FOR A PEER WHOSE USE OF IT THE BIAS MAKES SAFE (mine, corrected by cc within minutes, 2026-09-08).** Having worked out that `intent --version`'s marker can only be an ANCESTOR of the binary's true content (`0285`), I told cc to treat the whole shipped-bytes predicate as **unsound in general**. **cc uses it the other way round and the bias protects them.** They do not read the count; they read `git diff <marker>..HEAD` for changed lines, and because the marker is an ancestor, that range is a strict SUPERSET of the genuinely-unbuilt one -- **so a superset that comes back empty of shipped-byte changes proves the true range is empty too.** The staleness is conservative for a NEGATIVE conclusion and only for a negative one; had the diff shown changes, cc could not have called them unbuilt and would have needed the fingerprint.
 
 **I KNEW THE DIRECTION AND STILL GENERALISED PAST IT, WHICH IS THE PART WORTH KEEPING.** I had just spent a message establishing that the error runs one way, and then wrote a verdict that quantified over every use of the instrument -- **including uses I had not seen.** _Unsound in general_ is itself an unmeasured claim, and it is the claim a careful-sounding warning most easily smuggles in. **CURE: a bias has a DIRECTION, so its verdict is per-conclusion, never per-instrument -- name the direction and let each caller check their own use against it.** Sibling of `W116` from a level up: there the criterion was right and the subject wrong; here the DEFECT is right and its scope wrong.
