@@ -60,7 +60,9 @@ Each steel thread lives in `intent/st/<ID>/`. The minimum required file is `info
 - `tasks.md` — work breakdown and progress tracking
 - `WP/<NN>/info.md` — work packages within a steel thread
 
-Frontmatter uses `verblock:` format: `"DD Mon YYYY:vX.Y: Author - Description"`
+Frontmatter is written by v3 from the store, so do not hand-author it: `info.md` carries `st_id`, `title`, `status`, `created`, `completed`; `WP/<NN>/info.md` carries `wp_id`, `title`, `scope`, `status`. **This line claimed `verblock:` until 2026-09-08 and v3 writes no such field on a thread view** -- that is v2's shape, and v3 emits it only when ingesting a v2 tree. `verblock` remains the house style for HAND-AUTHORED persistent documents such as `intent/wip.md`, which is a different document class and the reason the wrong claim read as plausible.
+
+**AND THE FILES ABOVE ARE REALISED LAZILY.** `intent st new` writes the store, not the tree, so `intent/st/<ID>/` does not exist until something realises it -- `intent edit <kind> <ID> --path` realises one, `intent organize` reconciles the tree against `.intentfiles`. An agent that runs `st new` and then lists the directory will find nothing, and nothing is wrong.
 
 ### 5. Session wrap-up workflow
 

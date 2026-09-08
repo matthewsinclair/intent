@@ -290,15 +290,34 @@ This file. Elixir-ecosystem-aligned (`mix usage_rules.sync` discoverable). Terse
 
 ### Frontmatter
 
+**THIS BLOCK SHOWED v2's SHAPE UNTIL 2026-09-08 AND NOT ONE FIELD OF IT SURVIVED.** It read `verblock` + `intent_version: 2.9.1` + `status: WIP` + `created: YYYYMMDD`. v3 realises these views from the store, so the shape below is DRIVEN off `intent edit st <ID> --path` in a scratch project and corroborated against this repo's own `intent/st/ST0056/info.md`, not transcribed.
+
+`info.md`:
+
 ```yaml
 ---
-verblock: "DD Mon YYYY:vX.Y: author - Description"
-intent_version: 2.9.1
+st_id: ST0056
+title: A thread title
 status: WIP
-created: YYYYMMDD
+created: 2026-08-14
 completed:
 ---
 ```
+
+`WP/<NN>/info.md`:
+
+```yaml
+---
+wp_id: WP-01
+title: A work package title
+scope: S
+status: Not Started
+---
+```
+
+`acceptance.md` carries `st_id` and `title` alone.
+
+**`verblock` IS NOT DEAD, IT IS A DIFFERENT CONVENTION, AND CONFLATING THE TWO IS WHAT KEPT THIS BLOCK WRONG.** It is still the house style for HAND-AUTHORED persistent documents -- `intent/wip.md` carries one -- which is what `AGENTS.md` means by _verblock frontmatter on persistent docs_. It has never been part of a GENERATED thread view in v3, and v3 writes one only when ingesting a v2 tree. A rule that names the field without naming which of the two documents it governs will be read as governing both.
 
 ## Common Workflows
 
