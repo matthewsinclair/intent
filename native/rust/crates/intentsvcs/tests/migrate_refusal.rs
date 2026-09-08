@@ -45,7 +45,7 @@
 //! through **and the tree must change** -- the closed/live split is hv's ruling
 //! and it is what makes an unchanged tree evidence rather than a tautology.
 
-use crate::common::{Fixture, changed, facade_ctx, tree, v2_estate, v2_thread};
+use crate::common::{Fixture, changed, facade_ctx, tree, v2_estate_in_git, v2_thread};
 use intentsvcs::facade::Facade;
 use intentsvcs::finding::Finding;
 use intentsvcs::legacy;
@@ -94,7 +94,7 @@ fn line_for(findings: &[Finding], class: &str) -> Option<String> {
 /// three, and on dropping it.
 #[test]
 fn the_residue_report_carries_a_class_per_line_and_a_line_number_when_it_has_one() {
-  let fx = v2_estate();
+  let fx = v2_estate_in_git();
   v2_thread(&fx, "ST0001", "Banana");
   v2_thread(&fx, "ST0002", "WIP");
   let marker_line = v2_wp_with_conflict(&fx, "ST0002");
@@ -144,7 +144,7 @@ fn the_residue_report_carries_a_class_per_line_and_a_line_number_when_it_has_one
 /// filesystem and does not care what git tracks.
 #[test]
 fn upgrade_refuses_live_residue_and_writes_nothing_at_all() {
-  let fx = v2_estate();
+  let fx = v2_estate_in_git();
   v2_thread(&fx, "ST0001", "Banana");
   v2_thread(&fx, "ST0002", "WIP");
 
@@ -179,7 +179,7 @@ fn upgrade_refuses_live_residue_and_writes_nothing_at_all() {
 /// done far too much.
 #[test]
 fn the_same_defect_in_a_closed_thread_carries_and_the_migration_does_run() {
-  let fx = v2_estate();
+  let fx = v2_estate_in_git();
   v2_thread(&fx, "ST0001", "Banana");
   fx.write_file(
     "intent/st/ST0001/info.md",
@@ -205,6 +205,7 @@ fn the_same_defect_in_a_closed_thread_carries_and_the_migration_does_run() {
     "and not in the blocking one, or the split is not being applied"
   );
 
+  fx.git_commit_all();
   let before = tree(fx.root());
   Facade::upgrade(&fx.project(), &facade_ctx()).expect("carried findings do not block");
   let after = tree(fx.root());

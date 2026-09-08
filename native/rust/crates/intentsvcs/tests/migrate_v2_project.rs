@@ -43,16 +43,17 @@
 //! that it is right, **passing on a stamp of `banana`**. That is the
 //! five-limbs argument arriving inside a single limb.
 
-use crate::common::{Fixture, facade_ctx, v2_estate, v2_thread};
+use crate::common::{Fixture, facade_ctx, v2_estate_in_git, v2_thread};
 use intentsvcs::facade::Facade;
 
 /// A clean v2 estate, converted. Panics rather than returning a Result: every
 /// test below is about the *state after* a successful conversion, so a failure
 /// here is a broken fixture and not a finding.
 fn converted() -> Fixture {
-  let fx = v2_estate();
+  let fx = v2_estate_in_git();
   v2_thread(&fx, "ST0001", "WIP");
   v2_thread(&fx, "ST0002", "Completed");
+  fx.git_commit_all();
   Facade::upgrade(&fx.project(), &facade_ctx()).expect("a clean v2 estate converts");
   fx
 }
@@ -265,7 +266,7 @@ fn a_clean_estate_builds_a_store_that_holds_it() {
 /// binaries both carried 5 of 5 from a real v2 estate, byte-identical output.**
 #[test]
 fn a_clean_estate_carries_its_issues_into_the_store() {
-  let fx = v2_estate();
+  let fx = v2_estate_in_git();
   v2_thread(&fx, "ST0001", "WIP");
   for (bucket, num, status) in [("OPEN", "0001", "OPEN"), ("CLOSED", "0002", "CLOSED")] {
     fx.write_file(
@@ -277,6 +278,7 @@ fn a_clean_estate_carries_its_issues_into_the_store() {
     );
   }
 
+  fx.git_commit_all();
   Facade::upgrade(&fx.project(), &facade_ctx()).expect("a v2 estate with issues converts");
 
   let store = intentsvcs::store::Store::open(&fx.project().db_path()).expect("the store opens");

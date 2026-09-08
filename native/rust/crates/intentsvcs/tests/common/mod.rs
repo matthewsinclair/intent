@@ -252,11 +252,20 @@ impl Fixture {
   /// with no Intent project around it; **when it next needs a project it should
   /// collapse into here rather than grow one.**
   pub fn git_init(&self) -> &Self {
-    self.git(&["init", "-q"]);
-    self.git(&["config", "user.email", "t@example.com"]);
-    self.git(&["config", "user.name", "t"]);
-    self.git(&["config", "core.excludesFile", "/dev/null"]);
-    self.git(&["config", "commit.gpgSign", "false"]);
+    git_init_at(self.root());
+    self
+  }
+
+  /// Commit everything currently in the fixture, so the tree is CLEAN.
+  ///
+  /// **`git_init` ALONE IS NOT ENOUGH FOR A MIGRATION FIXTURE, AND THE REASON
+  /// IS THE OTHER HALF OF `0271`.** The precondition is a git repository AND a
+  /// clean tree; a fixture that inits a repo and then writes its estate has a
+  /// repo full of untracked files, which is dirty and is refused for the
+  /// correct reason. So the estate is written first and committed last, which
+  /// is also the order a real project reaches a migration in.
+  pub fn git_commit_all(&self) -> &Self {
+    git_commit_all_at(self.root());
     self
   }
 
@@ -572,12 +581,68 @@ pub fn gate_open() -> Thread {
 /// `upgrade_command`, `ingest_command`, `unmigrated_surface`, `info_exit_code`,
 /// `retired_commands` in `intent-cli`. **Consolidating those is not this
 /// commit's job and they are left alone**; what this closes is the next copy.
+/// Make `root` a git repository, configured so a commit succeeds unattended.
+///
+/// **ONE HOME, TAKING A PATH RATHER THAN A `Fixture`.** Not every estate in
+/// these tests is a `Fixture` -- `unmigrated_project` builds bare `TempDir`s
+/// from `git archive` output -- and `0271` makes every migrating estate need a
+/// repository, so the two shapes would otherwise grow one of these each.
+/// [`Fixture::git_init`] delegates here.
+pub fn git_init_at(root: &Path) {
+  git_at(root, &["init", "-q"]);
+  git_at(root, &["config", "user.email", "t@example.com"]);
+  git_at(root, &["config", "user.name", "t"]);
+  git_at(root, &["config", "core.excludesFile", "/dev/null"]);
+  git_at(root, &["config", "commit.gpgSign", "false"]);
+}
+
+/// Commit everything at `root`, leaving the tree CLEAN. See
+/// [`Fixture::git_commit_all`] for why an estate is written first and committed
+/// last.
+pub fn git_commit_all_at(root: &Path) {
+  git_at(root, &["add", "-A"]);
+  git_at(root, &["commit", "-q", "-m", "fixture estate"]);
+}
+
+/// Run a git command at `root`, RAISING on failure -- a silently failed git
+/// leaves the tree in a state the test did not ask for, and every assertion
+/// after it then measures the wrong world.
+fn git_at(root: &Path, args: &[&str]) {
+  let ok = std::process::Command::new("git")
+    .args(args)
+    .current_dir(root)
+    .status()
+    .expect("run git")
+    .success();
+  assert!(ok, "git {args:?} failed at {}", root.display());
+}
+
 pub fn v2_estate() -> Fixture {
   let fx = Fixture::new();
   fx.write_file(
     "intent/.config/config.json",
     "{\n  \"intent_version\": \"2.19.0\",\n  \"project_name\": \"Fixture\",\n  \"author\": \"cc\",\n  \"intent_dir\": \"intent\",\n  \"languages\": [\"rust\"]\n}\n",
   );
+  fx
+}
+
+/// A v2 estate that is also a git repository -- the fixture for anything that
+/// actually RUNS the migration.
+///
+/// **SEPARATE FROM [`v2_estate`] ON PURPOSE, AND THE SEPARATION IS THE POINT**
+/// (hv, 2026-09-08, ruling `0271`). `Facade::upgrade` now refuses an estate
+/// that is not a git repository, so every test that converts one needs a repo.
+/// The cheap fix is to put `git_init()` inside `Fixture::new()`, or inside
+/// `v2_estate` -- and either would change a precondition for a whole population
+/// in order to fix a handful, **and would mask the next test that SHOULD fail
+/// without git, which is the exact class `0271` exists to close.**
+///
+/// So `v2_estate` stays git-free and this names the stronger precondition at
+/// the call site. A test asserting the REFUSAL keeps using `v2_estate` and
+/// keeps meaning it.
+pub fn v2_estate_in_git() -> Fixture {
+  let fx = v2_estate();
+  fx.git_init();
   fx
 }
 
@@ -612,6 +677,16 @@ pub fn tree(root: &Path) -> BTreeMap<String, Vec<u8>> {
     };
     for entry in entries.flatten() {
       let path = entry.path();
+      // **`.git` IS NOT PART OF THE ESTATE, AND A SNAPSHOT THAT INCLUDES IT IS
+      // ASSERTING ON SOMETHING NO TEST MEANS.** Harmless while no fixture was a
+      // repository; `0271` makes migration fixtures git repositories, so every
+      // `tree()` comparison would otherwise carry loose objects, index and refs
+      // -- bytes that move for reasons unrelated to any subject here. Excluding
+      // it keeps `tree` meaning what its callers read it as: the files the
+      // estate is made of.
+      if path.file_name().is_some_and(|n| n == ".git") {
+        continue;
+      }
       if path.is_dir() {
         walk(&path, root, out);
       } else if let Ok(bytes) = std::fs::read(&path) {

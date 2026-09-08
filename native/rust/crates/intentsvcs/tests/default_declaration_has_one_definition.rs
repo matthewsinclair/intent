@@ -104,7 +104,7 @@
 //! to what it was before the run. **The residue is AC-11.4's state, not a
 //! hole**, and `organize` reports it as to-remove-and-blocked.
 
-use crate::common::{Fixture, facade_ctx, sample_thread, v2_estate, v2_thread};
+use crate::common::{Fixture, facade_ctx, sample_thread, v2_estate_in_git, v2_thread};
 use intentsvcs::facade::Facade;
 use intentsvcs::intentfiles::default_declaration;
 use intentsvcs::model::{Thread, ThreadStatus};
@@ -142,12 +142,15 @@ fn statuses(facade: &Facade) -> Vec<(String, ThreadStatus)> {
 /// maps `tbc` to Not Started and nothing to Triage, deliberately. Corpus B
 /// below supplies it.
 fn v2_corpus() -> Fixture {
-  let fx = v2_estate();
+  let fx = v2_estate_in_git();
   v2_thread(&fx, "ST0001", "WIP");
   v2_thread(&fx, "ST0002", "Not Started");
   v2_thread(&fx, "ST0003", "On Hold");
   v2_thread(&fx, "ST0004", "Completed");
   v2_thread(&fx, "ST0005", "Cancelled");
+  // The estate is written first and committed last, which is both what the
+  // migration precondition requires and the order a real project reaches one in.
+  fx.git_commit_all();
   fx
 }
 

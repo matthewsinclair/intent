@@ -874,6 +874,22 @@ impl std::fmt::Display for Uncommitted {
 /// same: no repository, or a git that could not run, means the question was not
 /// answered, and reporting an unanswered question as "nothing is wrong" is how
 /// a check comes to mean nothing.
+/// Whether `root` sits inside a git work tree, asked WITHOUT resolving `HEAD`.
+///
+/// `rev-parse --is-inside-work-tree` answers from the repository's existence
+/// alone, so it is true on a repo with no commits where every `HEAD`-resolving
+/// command fails. That is the only question [`tree_state`] needs when
+/// `diff-index` refuses, and asking it separately is what keeps "no git" and
+/// "no commits yet" from collapsing into one answer.
+fn is_work_tree(root: &Path) -> bool {
+  std::process::Command::new("git")
+    .args(["rev-parse", "--is-inside-work-tree"])
+    .current_dir(root)
+    .output()
+    .map(|out| out.status.success() && out.stdout.starts_with(b"true"))
+    .unwrap_or(false)
+}
+
 fn git_paths(root: &Path, args: &[&str]) -> Option<Vec<String>> {
   let out = std::process::Command::new("git")
     .args(args)
@@ -945,6 +961,86 @@ pub fn uncommitted(root: &Path, paths: &[String]) -> Option<Vec<Uncommitted>> {
   }
   out.sort_by(|a, b| a.path.cmp(&b.path));
   Some(out)
+}
+
+/// What git says about the working tree, for the MIGRATION preconditions.
+///
+/// **`NoWorkTree` is a third value and not a flavour of clean**, for
+/// [`git_paths`]'s reason one level up: a question git could not answer is not
+/// an answer, and the migration precondition it feeds refuses on exactly that.
+pub enum TreeState {
+  /// git reported no work tree here -- no repository, or no runnable git.
+  NoWorkTree,
+  Clean,
+  /// Every path that would ride the next commit, sorted, never truncated.
+  Dirty(Vec<Uncommitted>),
+}
+
+/// The migration precondition's read of the working tree.
+///
+/// # This asks HEAD, and [`uncommitted`] asks the INDEX, and that is deliberate
+///
+/// They are different questions and sharing a function would silently answer
+/// one with the other. [`uncommitted`] asks *are this attachment's bytes on
+/// their way into a commit*, so the index is right and its own docstring argues
+/// against HEAD: staged work is the normal state of a commit being assembled,
+/// and a check firing on ordinary work is one people learn to skip.
+///
+/// **THE MIGRATION ASKS THE OPPOSITE QUESTION AND WANTS THE OPPOSITE ANSWER.**
+/// `migration.md`'s rollback is `git revert <the migration commit>`, and it is
+/// cheap only because that commit contains the migration ALONE. Staged work is
+/// precisely what would ride it -- `git commit` records the index as it stands
+/// -- so a revert would take somebody's unrelated work with it. Against the
+/// index a staged file reads clean, which is the one state this check exists to
+/// catch.
+///
+/// Untracked files are the other half, for the same reason they are in
+/// [`uncommitted`]: a file the index has never heard of is the one least likely
+/// to be in any commit and the likeliest to be swept into the next one.
+pub fn tree_state(root: &Path) -> TreeState {
+  // **A REPOSITORY WITH NO COMMITS IS STILL A REPOSITORY, AND `diff-index`
+  // CANNOT SAY SO.** It resolves `HEAD`, which does not exist until the first
+  // commit, so it exits non-zero on a freshly `git init`ed tree -- exactly the
+  // same signal as "there is no git here at all". Conflating the two made this
+  // function answer `NoWorkTree` for a repo that plainly has a work tree, and
+  // the migration then refused with *this project is not in a git repository*
+  // in front of somebody who had just created one.
+  //
+  // **FOUND BY DRIVING IT, NOT BY READING IT** (2026-09-08): the fixtures for
+  // 21 migration tests init a repo and commit nothing, which is the case the
+  // two branches disagree about, and every one of them refused with the wrong
+  // reason.
+  //
+  // With no HEAD there is nothing committed, so nothing can DIFFER from what
+  // was committed; the whole estate is untracked and the `ls-files` arm below
+  // reports it. An empty repo therefore reads as Dirty, which is the honest
+  // answer -- a migration there is unprotected in precisely the way this
+  // precondition exists to prevent.
+  let changed = match git_paths(root, &["diff-index", "--name-only", "-z", "HEAD"]) {
+    Some(changed) => changed,
+    None if is_work_tree(root) => Vec::new(),
+    None => return TreeState::NoWorkTree,
+  };
+  let Some(untracked) = git_paths(root, &["ls-files", "--others", "--exclude-standard", "-z"])
+  else {
+    return TreeState::NoWorkTree;
+  };
+  let mut out: Vec<Uncommitted> = changed
+    .into_iter()
+    .map(|path| Uncommitted {
+      path,
+      state: NotInIndex::Modified,
+    })
+    .chain(untracked.into_iter().map(|path| Uncommitted {
+      path,
+      state: NotInIndex::Untracked,
+    }))
+    .collect();
+  if out.is_empty() {
+    return TreeState::Clean;
+  }
+  out.sort_by(|a, b| a.path.cmp(&b.path));
+  TreeState::Dirty(out)
 }
 
 #[cfg(test)]

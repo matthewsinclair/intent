@@ -56,7 +56,7 @@
 
 use std::path::PathBuf;
 
-use crate::common::{Fixture, changed, facade_ctx, tree, v2_estate, v2_thread};
+use crate::common::{Fixture, changed, facade_ctx, tree, v2_estate_in_git, v2_thread};
 use intentsvcs::facade::Facade;
 use intentsvcs::{legacy, migrate};
 
@@ -69,7 +69,7 @@ use intentsvcs::{legacy, migrate};
 /// with only the former leaves the `scripts/**` half of the criterion
 /// unexercised while reading as though it covered it.
 fn v2_estate_with_hooks() -> Fixture {
-  let fx = v2_estate();
+  let fx = v2_estate_in_git();
   fx.write_file(
     ".claude/settings.json",
     "{\n  \"hooks\": {\n    \"UserPromptSubmit\": [\n      { \"command\": \"intent claude hook require-in-session\" }\n    ]\n  }\n}\n",
@@ -166,6 +166,7 @@ fn upgrade_leaves_the_hook_estate_byte_identical_and_the_same_run_did_convert() 
     "the fixture must hold settings.json and both scripts, or the equality below is vacuous: {:?}",
     hooks_before.keys().collect::<Vec<_>>()
   );
+  fx.git_commit_all();
   let estate_before = tree(fx.root());
 
   Facade::upgrade(&fx.project(), &facade_ctx()).expect("a clean v2 estate converts");

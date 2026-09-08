@@ -67,6 +67,35 @@ fn run(args: &[&str], cwd: &std::path::Path) -> (String, String, i32) {
 ///
 /// **The version is a parameter because the floor is a behaviour**, and the
 /// only honest way to test a floor is with the same estate either side of it.
+/// Put `root` under git with its estate COMMITTED, which is what `0271`'s
+/// migration preconditions require: a repository (the documented rollback is
+/// `git revert <the migration commit>`, and there is nothing to revert without
+/// one) and a clean tree (a migration commit assembled over uncommitted work
+/// could not be reverted without taking that work too).
+///
+/// **CALLED AFTER THE ESTATE IS WRITTEN, NEVER BEFORE.** Committing first would
+/// leave every file that follows untracked, which is dirty, and the fixture
+/// would be refused for the correct reason while looking like it was set up.
+fn git_ready(root: &std::path::Path) {
+  for args in [
+    ["init", "-q"].as_slice(),
+    &["config", "user.email", "t@example.com"],
+    &["config", "user.name", "t"],
+    &["config", "core.excludesFile", "/dev/null"],
+    &["config", "commit.gpgSign", "false"],
+    &["add", "-A"],
+    &["commit", "-q", "-m", "fixture estate"],
+  ] {
+    let ok = std::process::Command::new("git")
+      .args(args)
+      .current_dir(root)
+      .status()
+      .expect("run git")
+      .success();
+    assert!(ok, "git {args:?} failed at {}", root.display());
+  }
+}
+
 fn v2_project(dir: &std::path::Path, version: &str) {
   std::fs::create_dir_all(dir.join("intent/.config")).expect("mkdir");
   std::fs::write(
@@ -139,6 +168,12 @@ fn tree(root: &std::path::Path) -> BTreeMap<String, Vec<u8>> {
       if rel.starts_with("intent/.cache") {
         continue;
       }
+      // **`.git` IS NOT PART OF THE ESTATE.** `0271` makes every migrating
+      // fixture a repository, and loose objects, refs and the index move for
+      // reasons no assertion here is about.
+      if rel == ".git" {
+        continue;
+      }
       if path.is_dir() {
         walk(root, &path, out);
       } else {
@@ -188,6 +223,7 @@ fn a_v2_estate_migrates_through_the_binary_and_the_stamp_lands() {
     "the fixture must start as v2 or this test proves nothing"
   );
 
+  git_ready(dir.path());
   let (_, err, code) = run(&["upgrade"], dir.path());
   assert_eq!(code, 0, "a clean v2 estate migrates: {err}");
   assert!(
@@ -264,6 +300,7 @@ fn running_it_twice_leaves_the_tree_byte_identical() {
   v2_thread(dir.path(), "ST0001", "WIP");
   v2_thread(dir.path(), "ST0002", "Completed");
 
+  git_ready(dir.path());
   let (_, err1, code1) = run(&["upgrade"], dir.path());
   assert_eq!(code1, 0, "first run: {err1}");
   let after_first = tree(dir.path());
@@ -321,6 +358,7 @@ fn a_blocked_migration_writes_nothing_and_does_not_stamp() {
 
   let before = tree(dir.path());
 
+  git_ready(dir.path());
   let (out, err, code) = run(&["upgrade"], dir.path());
   assert_eq!(
     code, 1,
@@ -392,6 +430,7 @@ fn a_refusal_names_each_finding_exactly_once() {
     .expect("write");
   }
 
+  git_ready(dir.path());
   let (out, err, code) = run(&["upgrade"], dir.path());
   assert_eq!(code, 1, "premise: the estate must actually block");
   let report = format!("{err}{out}");
@@ -446,6 +485,7 @@ fn an_estate_below_the_migration_floor_is_refused_and_one_at_the_floor_is_not() 
   v2_thread(below.path(), "ST0001", "Completed");
   let before = tree(below.path());
 
+  git_ready(below.path());
   let (out, err, code) = run(&["upgrade"], below.path());
   assert_eq!(code, 1, "a sub-floor estate is refused: {err}{out}");
   assert!(
@@ -479,6 +519,7 @@ fn an_estate_below_the_migration_floor_is_refused_and_one_at_the_floor_is_not() 
   v2_project(at_floor.path(), "2.19.0");
   v2_thread(at_floor.path(), "ST0001", "Completed");
 
+  git_ready(at_floor.path());
   let (_, err2, code2) = run(&["upgrade"], at_floor.path());
   assert_eq!(
     code2, 0,

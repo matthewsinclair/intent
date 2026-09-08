@@ -94,6 +94,10 @@ fn archived(version: &str, threads: &[(&str, &str)]) -> tempfile::TempDir {
     )
     .expect("write v2 info.md");
   }
+  // `0271`: a genuine conversion needs a repository and a clean tree. Written
+  // first, committed last -- the order a real project reaches a migration in.
+  crate::common::git_init_at(dir.path());
+  crate::common::git_commit_all_at(dir.path());
   dir
 }
 

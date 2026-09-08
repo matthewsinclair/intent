@@ -59,7 +59,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::common::{Fixture, facade_ctx, tree, v2_estate, v2_thread};
+use crate::common::{Fixture, facade_ctx, tree, v2_estate_in_git, v2_thread};
 use intentsvcs::facade::Facade;
 
 /// The issue numbers this fixture plants, in both v2 buckets.
@@ -82,7 +82,7 @@ fn is_the_store(path: &str) -> bool {
 
 /// A v2 estate with threads AND issues, converted once.
 fn migrated_estate_with_issues() -> Fixture {
-  let fx = v2_estate();
+  let fx = v2_estate_in_git();
   v2_thread(&fx, "ST0001", "WIP");
   v2_thread(&fx, "ST0002", "Completed");
   for (bucket, num, status) in ISSUES {
@@ -94,6 +94,7 @@ fn migrated_estate_with_issues() -> Fixture {
       ),
     );
   }
+  fx.git_commit_all();
   Facade::upgrade(&fx.project(), &facade_ctx()).expect("a v2 estate with issues converts");
   fx
 }

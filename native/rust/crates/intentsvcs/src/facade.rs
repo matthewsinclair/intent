@@ -765,6 +765,51 @@ pub enum FacadeError {
     .0.declared
   )]
   BelowMigrationFloor(Pending),
+  /// The conversion path met a project git reports no work tree for.
+  ///
+  /// **`migration.md` states this refusal and states its own reason for it:**
+  /// *rollback is git; migrating without an undo is a lossy operation by
+  /// construction.* The Rollback section then rests its entire cost argument on
+  /// the same property -- *cheap because the migration is ONE named commit over
+  /// a v2 estate git holds whole.* **The refusal was documented and absent**
+  /// (issue 0271, measured on the genuine conversion path): a project with no
+  /// `.git` converted, exit 0, and the word `git` did not appear once in the
+  /// output. The operator got a converted estate, a success line, and no undo,
+  /// with nothing naming the missing property.
+  ///
+  /// **Scoped to `Migration::Pending`, so it cannot reach the convergent
+  /// re-run**, and additive by measurement rather than by hope: all 18 fleet
+  /// members carry a `.git`, so this refuses none of them today.
+  ///
+  /// **It says what was OBSERVED, never which of the two causes it was.** No
+  /// repository and no runnable git are indistinguishable from here, and a
+  /// message picking one would be wrong half the time; the remedy names both.
+  #[error("git reports no work tree at this project, so a migration here would have no undo")]
+  MigrationWithoutGit,
+  /// The conversion path met a working tree carrying work that is not committed.
+  ///
+  /// **The dirt that matters is measured against HEAD, not the index** -- see
+  /// [`crate::sync::tree_state`]. `git commit` records the index as it stands,
+  /// so staged work rides the migration commit, and a revert then takes it too.
+  ///
+  /// **Scoped to the conversion path and NEVER to the verb** (vc's ruling on
+  /// cc's measurement, 2026-09-05). `intent upgrade` is the convergent
+  /// orchestrator and gets run routinely: hung on the verb this refuses 11 of
+  /// 18 fleet members today, hung on the conversion it refuses 1 of 1 -- the
+  /// only unmigrated member, correctly, and remediably by committing. **A
+  /// precondition written for a one-shot conversion, applied to a verb people
+  /// run all day, is a migration wearing a fix's clothes.** Git-presence is
+  /// stable; dirt is the normal state of an active repo.
+  #[error(
+    "this project has {} uncommitted change(s), and a migration commit assembled over them could not be reverted without taking them too",
+    .paths.len()
+  )]
+  MigrationOverDirtyTree {
+    /// Every offending path, sorted and NEVER truncated -- `migration.md`'s
+    /// no-silent-caps rule, which exists because a capped list reads as
+    /// complete when it is not.
+    paths: Vec<crate::sync::Uncommitted>,
+  },
   #[error("could not write the project files")]
   Write(#[from] WriteError),
   // NOT a failed mutation, and the text says so. Under D01 as reversed the DB
@@ -1287,6 +1332,20 @@ impl crate::remedy::Remedy for FacadeError {
       // Same delegation and the same reason: `Pending` owns the two-hop, and
       // this variant differs from `Unmigrated` in its MESSAGE, not its cure.
       Self::BelowMigrationFloor(pending) => pending.remedy(),
+      // NOT delegated and NOT shared with the dirty arm: the two states have
+      // different cures, and one of them names a command that would not help
+      // the other. Both causes are named because this variant deliberately
+      // does not claim to know which one it met.
+      Self::MigrationWithoutGit => {
+        "put the project under git before migrating -- `git init && git add -A && git commit` -- or install git if it is missing. The documented rollback is `git revert <the migration commit>`, and there is nothing to revert without a repository".to_string()
+      }
+      Self::MigrationOverDirtyTree { paths } => {
+        let each: Vec<String> = paths.iter().map(ToString::to_string).collect();
+        format!(
+          "commit or stash these first, then re-run -- the migration is one visible commit and a revert of it must not take your work with it:\n  {}",
+          each.join("\n  ")
+        )
+      }
       Self::Write { .. } => {
         "check permissions and free space on the project directory, then retry -- nothing was changed".to_string()
       }
@@ -1977,10 +2036,29 @@ impl Facade {
     // `Migration::Done` MUST proceed -- that is the re-run after an interrupted
     // migration, and idempotence rests on it -- and `Pending` at or above the
     // floor is the ordinary estate this door exists for.
-    if let crate::project::Migration::Pending(pending) = project.migration()
-      && pending.below_floor
-    {
-      return Err(FacadeError::BelowMigrationFloor(pending));
+    // **THE OTHER TWO PRECONDITIONS `migration.md` DOCUMENTS, WHICH DID NOT
+    // EXIST** (issue 0271). The section opens *refused by name, not worked
+    // around* and states three refusals; until this commit the floor above was
+    // the only one implemented, and both of the others were driven on the
+    // GENUINE conversion path -- a dirty tree converted 349 threads at exit 0,
+    // and a tree with no `.git` at all converted at exit 0 with the word `git`
+    // absent from the whole run.
+    //
+    // **THEY LIVE INSIDE THE `Pending` ARM, WHICH IS THE SCOPING RATHER THAN A
+    // COMMENT ABOUT IT.** `Migration::Done` is the convergent re-run, and
+    // neither of these may reach it: measured across 18 fleet members, the dirt
+    // check refuses 11 of them on the verb and 1 of 1 on the conversion.
+    if let crate::project::Migration::Pending(pending) = project.migration() {
+      if pending.below_floor {
+        return Err(FacadeError::BelowMigrationFloor(pending));
+      }
+      match crate::sync::tree_state(project.root()) {
+        crate::sync::TreeState::NoWorkTree => return Err(FacadeError::MigrationWithoutGit),
+        crate::sync::TreeState::Dirty(paths) => {
+          return Err(FacadeError::MigrationOverDirtyTree { paths });
+        }
+        crate::sync::TreeState::Clean => {}
+      }
     }
 
     let scan = crate::legacy::scan(project).map_err(|cause| FacadeError::MigrationHalted {

@@ -17,8 +17,8 @@
 //! `every_variant_is_provoked_or_declared_elsewhere`, and the exemptions are
 //! declared rather than implied.
 
-use crate::common::{Fixture, sample_thread};
-use intentsvcs::facade::{FacadeError, ListEdit};
+use crate::common::{Fixture, facade_ctx, sample_thread, v2_estate, v2_thread};
+use intentsvcs::facade::{Facade, FacadeError, ListEdit};
 use intentsvcs::model::{AcKind, AcceptanceTest, AtKind, AtStatus};
 use intentsvcs::organize::Mode;
 use intentsvcs::remedy::Remedy;
@@ -653,6 +653,45 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
     absent_verdict,
   ));
 
+  // **`0271`'s TWO REFUSALS, PROVOKED RATHER THAN DECLARED, BECAUSE THE WHOLE
+  // ISSUE IS THAT THEY DID NOT HAPPEN.** `migration.md` states three
+  // preconditions "refused by name, not worked around" and only the floor
+  // existed: a no-git estate converted 349 threads at exit 0 with the word
+  // `git` absent from the entire run, and a dirty tree converted over two
+  // uncommitted paths without mentioning dirt. A variant listed in
+  // `ALL_VARIANTS` and reached by nothing would restate that defect one level
+  // up -- the roster would claim coverage the suite does not have.
+  //
+  // **EACH GETS ITS OWN ESTATE, AND THE ORDER IS THE DISCRIMINATOR.** The
+  // no-git arm must not be a git repository at all; the dirty arm must BE one
+  // and be dirty, which is `git_init` with nothing committed. Sharing a fixture
+  // would make the second arm depend on what the first left behind, and
+  // `v2_estate` is deliberately git-free so both remain writable.
+  let no_git = v2_estate();
+  v2_thread(&no_git, "ST0001", "WIP");
+  let without_git = Facade::upgrade(&no_git.project(), &facade_ctx())
+    .expect_err("a v2 estate with no git repository is refused");
+  assert_eq!(
+    variant(&without_git),
+    "MigrationWithoutGit",
+    "this arm must reach the git precondition rather than an earlier refusal: {without_git}"
+  );
+  out.push(("a migration with no git repository", without_git));
+
+  let dirty = v2_estate();
+  dirty.git_init();
+  v2_thread(&dirty, "ST0001", "WIP");
+  let over_dirt = Facade::upgrade(&dirty.project(), &facade_ctx())
+    .expect_err("a v2 estate with a dirty tree is refused");
+  assert_eq!(
+    variant(&over_dirt),
+    "MigrationOverDirtyTree",
+    "this arm must reach the clean-tree precondition, and reaching \
+     MigrationWithoutGit here would mean an initialised repo with no commits is \
+     being read as no repository at all: {over_dirt}"
+  );
+  out.push(("a migration over a dirty tree", over_dirt));
+
   out
 }
 
@@ -702,6 +741,8 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::DescopeTargetRequired { .. } => "DescopeTargetRequired",
     FacadeError::Unmigrated(_) => "Unmigrated",
     FacadeError::BelowMigrationFloor(_) => "BelowMigrationFloor",
+    FacadeError::MigrationWithoutGit => "MigrationWithoutGit",
+    FacadeError::MigrationOverDirtyTree { .. } => "MigrationOverDirtyTree",
     FacadeError::Write(_) => "Write",
     FacadeError::ViewsNotWritten { .. } => "ViewsNotWritten",
     FacadeError::Store(_) => "Store",
@@ -779,6 +820,8 @@ const ALL_VARIANTS: &[&str] = &[
   "DescopeTargetRequired",
   "Unmigrated",
   "BelowMigrationFloor",
+  "MigrationWithoutGit",
+  "MigrationOverDirtyTree",
   "Write",
   "ViewsNotWritten",
   "Store",
