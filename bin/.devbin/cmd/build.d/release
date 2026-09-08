@@ -454,12 +454,14 @@ preflight() {
   # release did not, which is the wrong way round: CI reports, the release
   # DECIDES.
   #
-  # GUARDED ON THE MANIFEST EXISTING, NOT ON STAMP_NATIVE, and the difference is
-  # not stylistic. STAMP_NATIVE is not assigned until the sidecar-sync section,
-  # which runs AFTER this function -- so reading it here would test an empty
-  # string and skip in silence on every release. That is the exact shape of gate
-  # this change exists to remove, and it would have shipped inside the fix for
-  # it.
+  # GUARDED ON THE MANIFEST EXISTING, AND THE ALTERNATIVE THAT WAS REJECTED IS
+  # WORTH KEEPING. This used to be tempted by a `STAMP_NATIVE` flag set in the
+  # sidecar-sync section, which runs AFTER this function -- so reading it here
+  # would have tested an empty string and skipped in silence on every release.
+  # That is the exact shape of gate this function exists to remove, and it would
+  # have shipped inside the fix for it. The flag itself is gone now (its 2.x arm
+  # became unreachable once VERSION passed 3.0.0), but a state read before its
+  # writer runs is the class, not the variable.
   if [ -f "$PROJECT_ROOT/$NATIVE_MANIFEST_REL" ]; then
     if ! command -v cargo >/dev/null 2>&1; then
       abort "cargo not found in PATH and $NATIVE_MANIFEST_REL is present -- refusing to release a native tree this machine cannot test"
@@ -534,10 +536,10 @@ esac
 # --------------------------------------------------------------------
 # Native workspace location
 # --------------------------------------------------------------------
-# Defined HERE, above preflight's CALL, and not beside STAMP_NATIVE in the
-# sidecar section below -- because preflight needs them and the sidecar section
-# runs after it. A second copy inside preflight() would be two homes for one
-# pair of paths; this is one definition hoisted above its first reader.
+# Defined HERE, above preflight's CALL, and not beside the sidecar list below --
+# because preflight needs them and the sidecar section runs after it. A second
+# copy inside preflight() would be two homes for one pair of paths; this is one
+# definition hoisted above its first reader.
 NATIVE_MANIFEST_REL="native/rust/Cargo.toml"
 NATIVE_LOCK_REL="native/rust/Cargo.lock"
 
@@ -558,42 +560,68 @@ log_step "sidecar sync"
 CONFIG_REL="intent/.config/config.json"
 SIDECAR_FILES="VERSION CHANGELOG.md AGENTS.md CLAUDE.md $CONFIG_REL"
 
-# THE NATIVE WORKSPACE IS A SIDECAR ONLY FOR A 3.x RELEASE, and the condition is
-# the whole design rather than a special case.
-#
 # `native/rust/Cargo.toml` carries `[workspace.package] version`, every crate
-# inherits it with `version.workspace = true`, and the binary compiles its own
-# version string from `env!("CARGO_PKG_VERSION")`. So the workspace version IS
-# the v3 product's version. A 2.x release must never touch it -- v2 is the shell
-# CLI and stamping `2.19.1` into the Rust workspace would make the next v3 build
-# announce itself as a v2 -- and a 3.x release must always touch it, or the tag
-# says `v3.0.0` while `intent --version` says whatever the tree happened to hold.
-# Measured: the workspace sits at `3.0.0-dev`, so without this the first v3 tag
-# would publish a binary calling itself a dev build.
+# inherits it with `version.workspace = true`, and both binaries compile their
+# own version string from `env!("CARGO_PKG_VERSION")`. So the workspace version
+# IS the v3 product's version -- the number on `intent --version` and on the
+# page intentd serves -- and the lockfile records it per member, so the two must
+# move together.
 #
-# The condition retires itself. Once 2.x stops being cut there is no other arm,
-# and this collapses to an unconditional sidecar.
-STAMP_NATIVE=false
-case "$TARGET" in
-  [3-9].* | [1-9][0-9]*.*) [ -f "$PROJECT_ROOT/$NATIVE_MANIFEST_REL" ] && STAMP_NATIVE=true ;;
-esac
-if [ "$STAMP_NATIVE" = "true" ]; then
-  SIDECAR_FILES="$SIDECAR_FILES $NATIVE_MANIFEST_REL $NATIVE_LOCK_REL"
-fi
+# THIS WAS CONDITIONAL ON A 3.x TARGET AND THE CONDITION IS NOW UNREACHABLE, so
+# it is deleted rather than left as a guard that reads as live. Its own comment
+# predicted the retirement -- "once 2.x stops being cut there is no other arm" --
+# and what retired it is not a judgement call: `semver_gt "$TARGET" "$CURRENT"`
+# above aborts anything not GREATER than the current version, and the current
+# version is 3.0.0. A 2.x target cannot reach this line to be excluded by it.
+#
+# The hazard the condition guarded is real and has simply moved upstream:
+# stamping `2.19.1` into the Rust workspace would make the next v3 build
+# announce itself as a v2. If 2.x is ever cut again it will be from a branch
+# whose VERSION is a 2.x, where `semver_gt` admits it -- and this handler will
+# need the arm back. That is a deliberate condition to restore at that point,
+# not a silent behaviour to rediscover.
+SIDECAR_FILES="$SIDECAR_FILES $NATIVE_MANIFEST_REL $NATIVE_LOCK_REL"
 
 NEEDS_COMMIT=false
 
-# /VERSION
-if [ "$CURRENT" != "$TARGET" ]; then
-  if [ "$DRY_RUN" = "true" ]; then
-    log_dry "would write '$TARGET' to $PROJECT_ROOT/VERSION"
-  else
-    printf '%s\n' "$TARGET" > "$PROJECT_ROOT/VERSION"
-    log_info "wrote $TARGET to VERSION"
-  fi
-  NEEDS_COMMIT=true
+# Read BEFORE anything writes it: the lock half below reports what the manifest
+# moved from, and after `version set` that number is gone.
+NATIVE_BEFORE="$(sed -n 's/^version = "\(.*\)"$/\1/p' "$PROJECT_ROOT/$NATIVE_MANIFEST_REL" | head -1)"
+
+# THE VERSION SYNC IS TWO HALVES, AND THIS HANDLER OWNS ONLY THE SECOND.
+#
+# `bin/devbin version set` writes VERSION and every file named in
+# `project.version_sidecars` -- here, `native/rust/Cargo.toml`. devbin refuses a
+# lockfile BY NAME (no generic recipe can know which `[[package]]` entries are
+# this project's own), so the workspace lock is ours and is synced below.
+#
+# THIS WAS HAND-ROLLED HERE UNTIL NOW, AND THAT WAS THE VERSION DEFECT IN
+# MINIATURE: two mechanisms for one fact. `int version check` sat unconfigured
+# and answered green over an empty list, while the only code that actually knew
+# where the version lives ran once per release and nowhere else. One writer now,
+# and `check` interrogates the same declaration the writer uses, so the two
+# cannot disagree about which files are homes.
+#
+# WHY THE CONDITION WENT WITH IT. The old form wrote VERSION only when
+# `$CURRENT != $TARGET`. devbin's invariant 2 is that the sync is
+# UNCONDITIONAL, and it is written from a shipped defect: an only-if-different
+# gate skipped sidecar healing whenever the version file already held the
+# target, so a tree with VERSION bumped in one commit and a sidecar lagging
+# published the wrong number. Always write; let git decide what changed.
+#
+# ORDERING IS devbin's INVARIANT 1 AND IS WHY THIS IS ONE CALL RATHER THAN TWO:
+# every sidecar first, the version file LAST, so a partial failure leaves the
+# version un-advanced and a re-run recomputes the same target instead of
+# bumping twice onto a half-synced tree.
+if [ "$DRY_RUN" = "true" ]; then
+  log_dry "would run 'bin/devbin version set $TARGET' -- VERSION + declared sidecars ($NATIVE_MANIFEST_REL)"
+  [ "$CURRENT" != "$TARGET" ] && NEEDS_COMMIT=true
 else
-  log_info "VERSION already at $TARGET"
+  if ! (cd "$PROJECT_ROOT" && ./bin/devbin version set "$TARGET" >/dev/null); then
+    abort "bin/devbin version set $TARGET failed -- VERSION and the declared sidecars are the release's version, and a tag over a half-synced pair is the defect this replaced"
+  fi
+  log_info "version set $TARGET: VERSION + declared sidecars"
+  [ "$CURRENT" != "$TARGET" ] && NEEDS_COMMIT=true
 fi
 
 # CHANGELOG date finalisation
@@ -625,7 +653,9 @@ else
   esac
 fi
 
-# native/rust -- the workspace version, and the lockfile that must move with it.
+# native/rust -- THE LOCK HALF. The manifest was written above, by `version set`
+# through the declared sidecar; devbin refuses a lockfile by name, so the lock is
+# this handler's to sync and the two halves meet here.
 #
 # THE LOCK IS NOT OPTIONAL. `Cargo.lock` records each workspace member's version,
 # so stamping the manifest alone leaves the two disagreeing and **every
@@ -646,69 +676,66 @@ fi
 # workspace member version lines and no dependency at all. If it ever touches
 # anything else, the release stops -- **the one moment a resolver change must not
 # ride along unnoticed is the commit the tag points at.**
-if [ "$STAMP_NATIVE" = "true" ]; then
-  native_current="$(sed -n 's/^version = "\(.*\)"$/\1/p' "$PROJECT_ROOT/$NATIVE_MANIFEST_REL" | head -1)"
-  if [ "$native_current" = "$TARGET" ]; then
-    log_info "$NATIVE_MANIFEST_REL already at $TARGET"
-  elif [ "$DRY_RUN" = "true" ]; then
-    log_dry "would stamp [workspace.package] version = $TARGET in $NATIVE_MANIFEST_REL (from $native_current)"
-    log_dry "would refresh $NATIVE_LOCK_REL via cargo, refusing any change beyond workspace member versions"
-  else
-    lock_before="$(mktemp)"
-    cp "$PROJECT_ROOT/$NATIVE_LOCK_REL" "$lock_before"
-    sed -i.bak "s|^version = \"$native_current\"$|version = \"$TARGET\"|" "$PROJECT_ROOT/$NATIVE_MANIFEST_REL"
-    rm -f "$PROJECT_ROOT/$NATIVE_MANIFEST_REL.bak"
+#
+# UNCONDITIONAL, and the `already at $TARGET` short-circuit that stood here is
+# gone with the manifest write it guarded. It was devbin's invariant 2 in local
+# form: skipping the refresh whenever the MANIFEST already held the target is
+# exactly the case where the LOCK is the thing that drifted, so the one tree
+# needing the heal was the one that never got it. A refresh on an already-
+# consistent lock is a no-op diff, which is the cheap half of the trade.
+if [ "$DRY_RUN" = "true" ]; then
+  log_dry "would refresh $NATIVE_LOCK_REL via cargo, refusing any change beyond workspace member versions"
+else
+  lock_before="$(mktemp)"
+  cp "$PROJECT_ROOT/$NATIVE_LOCK_REL" "$lock_before"
 
-    # No --locked: the point is to let cargo rewrite the lock. Not --offline
-    # either: the lock legitimately names targets this machine never builds
-    # (windows, wasm), and --offline fails on those with an error that reads
-    # exactly like an inconsistent lockfile. Measured, and it cost a wrong
-    # diagnosis before it was.
-    if ! (cd "$PROJECT_ROOT/$(dirname "$NATIVE_MANIFEST_REL")" && cargo metadata --format-version 1 >/dev/null 2>&1); then
-      cp "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL"
-      rm -f "$lock_before"
-      abort "cargo could not refresh $NATIVE_LOCK_REL after the version stamp"
-    fi
-
-    # WHAT MUST BE TRUE: only WORKSPACE MEMBER versions changed.
-    #
-    # That is not the same claim as "every changed line is a version line",
-    # which is what this check tested until 2026-08-16 -- and the two differ
-    # exactly where it matters. A dependency bump is a lone `version = "..."`
-    # line, identical in shape to a member's, so the old form ACCEPTED the
-    # single most likely resolver change while its own comment said it refused
-    # one. Canaried and measured: a lone `serde` bump sailed straight through.
-    # The comment and the code agreed with each other and both were wrong about
-    # the invariant, which is why reading them together proved nothing.
-    #
-    # Correlating each changed version with the package NAME it sits under is
-    # the whole fix, and it lets the refusal name the offending crate instead of
-    # printing diff lines a reader has to interpret.
-    # A non-zero return is "could not look", never "nothing changed": an
-    # extractor that silently returns nothing makes the comparison report no
-    # changes, so the check would ACCEPT ANYTHING and say so confidently. An
-    # empty parse is a broken parse, never a clean lockfile.
-    if ! unexpected="$(lock_nonmember_changes "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL")"; then
-      cp "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL"
-      rm -f "$lock_before"
-      abort "could not read packages or workspace members out of $NATIVE_LOCK_REL -- refusing to check nothing and call it clean"
-    fi
-
+  # No --locked: the point is to let cargo rewrite the lock. Not --offline
+  # either: the lock legitimately names targets this machine never builds
+  # (windows, wasm), and --offline fails on those with an error that reads
+  # exactly like an inconsistent lockfile. Measured, and it cost a wrong
+  # diagnosis before it was.
+  if ! (cd "$PROJECT_ROOT/$(dirname "$NATIVE_MANIFEST_REL")" && cargo metadata --format-version 1 >/dev/null 2>&1); then
+    cp "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL"
     rm -f "$lock_before"
-    if [ -n "$unexpected" ]; then
-      abort "refreshing $NATIVE_LOCK_REL changed packages that are NOT workspace members -- refusing to fold a dependency change into a release commit:
-$(printf '%s\n' "$unexpected" | sed 's/^/  /')"
-    fi
+    abort "cargo could not refresh $NATIVE_LOCK_REL after the version stamp"
+  fi
 
-    log_info "stamped $NATIVE_MANIFEST_REL + $NATIVE_LOCK_REL to $TARGET (was $native_current)"
+  # WHAT MUST BE TRUE: only WORKSPACE MEMBER versions changed.
+  #
+  # That is not the same claim as "every changed line is a version line",
+  # which is what this check tested until 2026-08-16 -- and the two differ
+  # exactly where it matters. A dependency bump is a lone `version = "..."`
+  # line, identical in shape to a member's, so the old form ACCEPTED the
+  # single most likely resolver change while its own comment said it refused
+  # one. Canaried and measured: a lone `serde` bump sailed straight through.
+  # The comment and the code agreed with each other and both were wrong about
+  # the invariant, which is why reading them together proved nothing.
+  #
+  # Correlating each changed version with the package NAME it sits under is
+  # the whole fix, and it lets the refusal name the offending crate instead of
+  # printing diff lines a reader has to interpret.
+  # A non-zero return is "could not look", never "nothing changed": an
+  # extractor that silently returns nothing makes the comparison report no
+  # changes, so the check would ACCEPT ANYTHING and say so confidently. An
+  # empty parse is a broken parse, never a clean lockfile.
+  if ! unexpected="$(lock_nonmember_changes "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL")"; then
+    cp "$lock_before" "$PROJECT_ROOT/$NATIVE_LOCK_REL"
+    rm -f "$lock_before"
+    abort "could not read packages or workspace members out of $NATIVE_LOCK_REL -- refusing to check nothing and call it clean"
+  fi
+
+  rm -f "$lock_before"
+  if [ -n "$unexpected" ]; then
+    abort "refreshing $NATIVE_LOCK_REL changed packages that are NOT workspace members -- refusing to fold a dependency change into a release commit:
+$(printf '%s\n' "$unexpected" | sed 's/^/  /')"
+  fi
+
+  if [ "$NATIVE_BEFORE" = "$TARGET" ]; then
+    log_info "$NATIVE_LOCK_REL refreshed; $NATIVE_MANIFEST_REL was already at $TARGET"
+  else
+    log_info "synced $NATIVE_MANIFEST_REL + $NATIVE_LOCK_REL to $TARGET (was $NATIVE_BEFORE)"
     NEEDS_COMMIT=true
   fi
-else
-  # Named, not silent. A 2.x cut leaving the native workspace alone is correct
-  # and is worth one line, because the alternative reading -- that the script
-  # forgot -- is the one a reader reaches for when v3 exists in the tree.
-  [ -f "$PROJECT_ROOT/$NATIVE_MANIFEST_REL" ] &&
-    log_info "$NATIVE_MANIFEST_REL untouched: $TARGET is not a 3.x release"
 fi
 
 # AGENTS.md regeneration
