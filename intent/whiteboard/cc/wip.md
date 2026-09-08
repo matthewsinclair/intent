@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: de593af7-4532-475b-8570-2eaa09bba904
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-08 12:38Z
+heartbeat_at: 2026-09-08 12:45Z
 status: active
-focus: "THE VERSION MECHANISM IS DELIVERED -- five commits, 2386163d..70a92018. THE SHAPE WAS NOT WHAT THIS BOARD SAID: not one unconfigured check but TWO mechanisms for one fact, and the one that ran was the release handler. Now: sidecars declared, a build-time parity assertion so a drifted tree does not compile, and the release delegates to `version set`. THE BUMP IS STILL BLOCKED ON hv -- 3.0.1 or larger. Pair published and current at 97f74262. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "BOOTED AND HOLDING FOR vc ON hv's WORD. The version mechanism is DELIVERED -- five commits, 2386163d..70a92018 -- and the shape was TWO mechanisms for one fact, not one unconfigured check. Nothing of mine in flight, nothing dirty. TWO DECISIONS SIT WITH hv: the version scope (3.0.1 or larger) and the CHANGELOG's -unreleased vs the handler's -in-progress. TWO ITEMS ROUTED TO vc: a narrower claude-upgrade verb, and devbin's vacuous green. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/06, ST0056/10]
 ---
 
