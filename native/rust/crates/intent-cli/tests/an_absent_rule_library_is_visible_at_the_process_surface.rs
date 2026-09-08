@@ -44,9 +44,7 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-fn repo_root() -> PathBuf {
-  Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..")
-}
+use testkit::repo_root;
 
 /// An install tree carrying the marker and nothing else -- the shipped keg's
 /// shape, which is what every estate is running.

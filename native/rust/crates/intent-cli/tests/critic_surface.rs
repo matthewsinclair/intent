@@ -67,12 +67,10 @@
 //! surface behaviour, and a test migration is not the place to change what the
 //! binary does during a tag window.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::{Command, Output};
 
-fn repo_root() -> PathBuf {
-  Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..")
-}
+use testkit::repo_root;
 
 /// The bad/good pair the v2 file used: the `strong-assertions` rule's own
 /// fixtures, which ship in the rule library and are not population A.

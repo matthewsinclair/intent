@@ -74,16 +74,13 @@
 //! broken instrument too.
 
 use std::collections::BTreeSet;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use intentsvcs::critic::{Severity, run};
 use intentsvcs::rules::Library;
+use testkit::repo_root;
 
 /// The repo root -- the install root a source-tree run resolves to.
-fn repo_root() -> PathBuf {
-  Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..")
-}
-
 fn files() -> Vec<PathBuf> {
   vec![repo_root().join("README.md")]
 }
