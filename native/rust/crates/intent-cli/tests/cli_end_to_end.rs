@@ -644,7 +644,7 @@ fn sync_and_st_sync_are_different_commands_and_both_are_wired() {
 
   let index = ok(root, &["st", "sync"]);
   assert!(
-    index.starts_with("ID "),
+    index.starts_with(&heading(root)),
     "st sync still reports the index as a table: {index:?}"
   );
   assert!(
@@ -731,11 +731,34 @@ fn sync_runs_the_direction_it_is_given_and_names_the_loss_before_taking_it() {
 /// defect one level down -- a command that answers a question by saying
 /// nothing at all, so a script cannot tell "ran and found none" from "did not
 /// run". The answer here was honest and the silence still was not.
+
+/// The heading `st list` now puts in its first column: this project's directory
+/// name, clipped the way `render::clamp_heading` clips it.
+///
+/// **THESE ARMS USED `"ID "` AS A PROXY FOR "A HEADER PRINTED AT ALL", and that
+/// proxy stopped being available on 2026-09-08** when hv asked for the first
+/// column to name the project so a pasted table says which estate produced it.
+/// The property each arm holds is unchanged -- an empty estate still prints a
+/// header, `st sync` still reports a table, piped markdown is still canonical
+/// GFM -- so the assertions are re-keyed rather than loosened. Asserting the
+/// ACTUAL heading is stronger than asserting some heading: a build that printed
+/// the wrong project would pass the weaker form.
+fn heading(root: &std::path::Path) -> String {
+  let name: String = root
+    .file_name()
+    .map(|n| n.to_string_lossy().into_owned())
+    .unwrap_or_default();
+  name.chars().take(16).collect()
+}
+
 #[test]
 fn st_list_prints_the_table_header_even_with_no_threads() {
   let dir = project();
   let out = ok(dir.path(), &["st", "list"]);
-  assert!(out.starts_with("ID "), "v2's column order: {out:?}");
+  assert!(
+    out.starts_with(&heading(dir.path())),
+    "v2's column order, with the id column now naming the project: {out:?}"
+  );
   // `Title`, not `Slug`: hv ruled the descriptive column is the title
   // (2026-08-27), the slug being a rendering of it rather than a second datum.
   // The property this arm holds is that the HEADER PRINTS AT ALL on an empty
@@ -874,7 +897,10 @@ fn width_is_overridable_and_markdown_is_width_independent() {
   let a = run_at("200", &["st", "list", "--status", "all", "--markdown"]);
   let b = run_at("60", &["st", "list", "--status", "all", "--markdown"]);
   assert_eq!(a, b, "markdown is content-fit at every terminal width");
-  assert!(a.starts_with("| ID "), "canonical piped GFM: {a:?}");
+  assert!(
+    a.starts_with(&format!("| {} ", heading(root))),
+    "canonical piped GFM: {a:?}"
+  );
 }
 
 /// `st sync` is v2's INDEX sync, not the store reconciliation, and its dry run

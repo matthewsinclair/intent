@@ -184,6 +184,8 @@ mod spelling_notes_name_their_issue;
 mod st_dehydrate_round_trips_with_hydrate;
 #[path = "st_edit_opens_or_prints.rs"]
 mod st_edit_opens_or_prints;
+#[path = "st_list_names_its_project.rs"]
+mod st_list_names_its_project;
 #[path = "st_list_shows_the_title.rs"]
 mod st_list_shows_the_title;
 #[path = "surface_is_declared.rs"]

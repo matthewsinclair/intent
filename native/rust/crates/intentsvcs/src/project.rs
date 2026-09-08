@@ -1136,6 +1136,34 @@ impl Project {
     &self.root
   }
 
+  /// The name of the directory this project lives in.
+  ///
+  /// **THE DIRECTORY NAME, NOT `config.project_name`** (hv, 2026-09-03, ruled
+  /// on the `explore` info row and applied here unchanged). The configured name
+  /// cannot discriminate two checkouts of one project -- `Intentv2` declares
+  /// itself `Intent` -- and telling those apart is the question an operator has
+  /// when they look at output and ask which estate produced it.
+  ///
+  /// **ONE HOME, BECAUSE THE SECOND CALLER ARRIVED AND PROVED IT WAS A RULE
+  /// RATHER THAN A LINE.** `explore` resolved this inline; `st list` now asks
+  /// the same question of the same object, and a second copy of a four-line
+  /// resolution carrying a ruling in its comment is how the ruling comes to be
+  /// stated in one place and quietly not applied in the other.
+  ///
+  /// **`None` RATHER THAN A PLACEHOLDER**, so each caller owns its own
+  /// fallback: a root with no final component (`/`) is a real state, and the
+  /// right answer differs by surface -- `explore` renders an empty corner,
+  /// `st list` keeps its `ID` heading. Inventing one here would force both.
+  /// **NOT the same question as `intent init`'s** (`render.rs`), which asks
+  /// what a NEW project should be CALLED and falls back to `project`; that one
+  /// reads the cwd and has no `Project` to ask.
+  pub fn directory_name(&self) -> Option<String> {
+    self
+      .root
+      .file_name()
+      .map(|n| n.to_string_lossy().into_owned())
+  }
+
   /// This project's spelling of [`relative`].
   pub fn relative(&self, path: &Path) -> String {
     relative(&self.root, path)

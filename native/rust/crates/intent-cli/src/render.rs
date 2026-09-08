@@ -339,7 +339,7 @@ fn refuse_unservable(path: &str) -> Failure {
 fn served<T>(
   path: &str,
   a: &ArgMatches,
-  from_daemon: impl FnOnce(Response) -> Result<T, Failure>,
+  from_daemon: impl FnOnce(Response, &Project) -> Result<T, Failure>,
   locally: impl FnOnce(Facade) -> Result<T, Failure>,
 ) -> Result<T, Failure> {
   let (project, ctx) = context()?;
@@ -371,7 +371,7 @@ fn served<T>(
     Ok(Response::Error { message, remedy }) => Err(Failure::Error(format!(
       "error: {message}\n  remedy: {remedy}"
     ))),
-    Ok(response) => from_daemon(response),
+    Ok(response) => from_daemon(response, &project),
     Err(e) => Err(Failure::Unavailable(format!(
       "error: {e}\n  remedy: {}",
       e.remedy()
@@ -607,6 +607,90 @@ const ST_COLUMNS: &[&str] = &["ID", "Title", "Status", "Created", "Completed"];
 /// `st list --slug`: the same table with the slug in the descriptive column.
 const ST_SLUG_COLUMNS: &[&str] = &["ID", "Slug", "Status", "Created", "Completed"];
 
+/// `st list`'s headers, with the FIRST column carrying this project's name.
+///
+/// **hv's ask, 2026-09-08: running `st list --status=all` in two estates gives
+/// two tables and "it isn't obvious at all which project that the output refers
+/// to".** The id column's heading is the one piece of the table that is pure
+/// decoration -- every value under it already begins `ST` -- so it is the space
+/// the answer can occupy without costing a column.
+///
+/// **BOTH TABLES CHANGE, DELIBERATELY.** `--slug` is the same table with a
+/// different descriptive column; leaving it on `ID` would give one question two
+/// answers depending on a flag that has nothing to do with the project.
+///
+/// **THE NAME IS NEVER TRUNCATED TO FIT, AND THAT IS FORCED RATHER THAN
+/// PREFERRED.** `views::table` floors every column at its header width and says
+/// why -- a clipped header makes the column unidentifiable -- so the first
+/// column is now sized by the HEADER wherever the name is longer than `ST0013`:
+/// `Utilz` 5 and `Intent` 6 fit inside today's width, `Lamplight` 9 and
+/// `MicroGPTEx` 10 widen it, and on a narrow terminal the shrink pass takes
+/// that back off the widest column, which is `Title`. **That cost is accepted
+/// and the alternative is not merely worse, it is self-defeating**: truncating
+/// to the old 6 renders `Intentv2` as `Intent`, which is precisely the pair
+/// hv's directory-name ruling exists to tell apart. A heading that cannot
+/// discriminate the two checkouts answers nothing.
+///
+/// **`ID` SURVIVES AS THE FALLBACK** for a root with no final component, and it
+/// is read out of the arrays above rather than written again here.
+fn st_columns(project: &Project, as_slug: bool) -> Vec<String> {
+  let declared = if as_slug { ST_SLUG_COLUMNS } else { ST_COLUMNS };
+  let name = project
+    .directory_name()
+    .unwrap_or_else(|| declared[0].to_string());
+  std::iter::once(clamp_heading(&name))
+    .chain(declared[1..].iter().map(|c| (*c).to_string()))
+    .collect()
+}
+
+/// How wide the project heading is allowed to get before it is clipped.
+///
+/// **THE HEADING IS THE ONLY CELL IN THIS TABLE SIZED BY SOMETHING THAT IS NOT
+/// IN THE TABLE**, and that is what makes a bound necessary rather than tidy.
+/// Every value under it is six characters (`ST0013`), so any heading wider than
+/// six is width the column does not use, taken from `Title` -- `views::table`
+/// floors each column at its header and takes the overflow off the widest
+/// column, which is `Title` in every real estate.
+///
+/// **MEASURED, NOT GUESSED.** A 35-character directory name -- `intent-fixture-
+/// dualpath-proj-98962-2`, which is what this crate's own harness generates --
+/// consumed enough of an 80-to-100 column terminal that a 34-character thread
+/// title was clipped away entirely. Four tests in two files caught it by
+/// looking for a title that was no longer on screen. **That is a real user
+/// outcome and not a fixture artefact: a deep checkout path is ordinary, and
+/// silently shortening every title to widen a heading nobody needs is a bad
+/// trade at any width.**
+///
+/// **SIXTEEN, AND THE NUMBER IS STATED RATHER THAN DERIVED.** Every estate in
+/// this fleet fits whole -- the longest is `MicroGPTEx` at 10 -- and the bound
+/// leaves ten characters of slack over the six the column actually needs. It is
+/// a judgement, so it is one constant with a reason on it rather than a rule
+/// pretending to be forced. **A name longer than this is clipped and still
+/// discriminates in every realistic case** -- the pair hv's ruling exists to
+/// separate, a project and its second checkout, differs in the suffix only when
+/// both are already long, and that residual case is recorded here rather than
+/// solved.
+const HEADING_MAX: usize = 16;
+
+/// The project heading, clipped to [`HEADING_MAX`].
+///
+/// **THERE IS NO EMPTY-NAME ARM HERE, AND ITS ABSENCE IS MEASURED RATHER THAN
+/// AN OVERSIGHT.** This carried a `0 => declared` branch until a mutation run
+/// showed that breaking it reddened NOTHING -- the exact shape vc hit an hour
+/// earlier, where a user-facing sentence changed and 1222 tests stayed green.
+/// It was unpinned because it is UNREACHABLE: `Path::file_name` answers `None`
+/// for a root with no final component and never `Some("")`, so the absent case
+/// is already handled one level up where `directory_name()` returns `None` and
+/// the caller substitutes the declared heading. A branch no input can reach and
+/// no test can pin is not defensive, it is a second home for a decision that is
+/// already made correctly elsewhere.
+fn clamp_heading(name: &str) -> String {
+  match name.chars().count() {
+    n if n <= HEADING_MAX => name.to_string(),
+    _ => name.chars().take(HEADING_MAX).collect(),
+  }
+}
+
 const WP_COLUMNS: &[&str] = &["WP", "Title", "Scope", "Status"];
 
 /// v2's `intent issues list` columns (`bin/intent_issues:240`).
@@ -745,13 +829,17 @@ pub(crate) fn status_filter(spec: &str) -> Result<Option<Vec<ThreadStatus>>, Str
 /// bodies agreeing, which is the thing the criterion exists to forbid. One
 /// renderer over one row type is the only arrangement in which "identical" is
 /// structural.
-fn st_table_from(threads: &[ThreadSummary], a: &ArgMatches) -> Result<String, Failure> {
+fn st_table_from(
+  threads: &[ThreadSummary],
+  a: &ArgMatches,
+  project: &Project,
+) -> Result<String, Failure> {
   let wanted = match opt(a, "status") {
     Some(spec) => status_filter(&spec)?,
     // v2's default: WIP only. NOT the same as `--status all`.
     None => Some(vec![ThreadStatus::Wip]),
   };
-  st_rows(threads, a, wanted)
+  st_rows(threads, a, wanted, project)
 }
 
 /// The wire's row type, built from the model.
@@ -776,7 +864,7 @@ fn summarise(f: &Facade) -> Vec<ThreadSummary> {
 /// The index scope: every thread, whatever `--status` would have said.
 /// `st sync` has no status filter in v2 -- the index is the whole estate.
 fn st_table_all(f: &Facade, a: &ArgMatches) -> Result<String, Failure> {
-  st_rows(&summarise(f), a, None)
+  st_rows(&summarise(f), a, None, f.project())
 }
 
 /// **A NARROWED RENDER NAMES ITS SCOPE** (hv, 2026-08-28, on issue 0121).
@@ -811,6 +899,7 @@ fn st_rows(
   threads: &[ThreadSummary],
   a: &ArgMatches,
   wanted: Option<Vec<ThreadStatus>>,
+  project: &Project,
 ) -> Result<String, Failure> {
   let out = output_of(a)?;
   // **`try_get_one`, NOT `get_flag`, AND THE REASON IS THAT THIS FUNCTION IS
@@ -848,7 +937,8 @@ fn st_rows(
     })
     .collect();
 
-  let columns = if as_slug { ST_SLUG_COLUMNS } else { ST_COLUMNS };
+  let columns = st_columns(project, as_slug);
+  let columns: Vec<&str> = columns.iter().map(String::as_str).collect();
   // **THE FORMAT QUESTION IS ANSWERED BEFORE ANY EMPTY SHORT-CIRCUIT, AND THAT
   // ORDERING IS THE WHOLE CARE IN THIS FUNCTION.** `--format` is validated as
   // an argument to the RENDERER, so a verb that returns early on an empty
@@ -858,7 +948,7 @@ fn st_rows(
   // thread is at `Triage`, which is precisely the narrowed-empty case below.
   // Rendering first means the refusal is a property of the VERB rather than of
   // how much it happened to find.
-  let table = table_out(&out, columns, &rows)?;
+  let table = table_out(&out, &columns, &rows)?;
 
   // Nothing was narrowed, so there is nothing to disclose -- and `st sync`'s
   // dry run reaches here, where a line naming `st list` would be describing the
@@ -2304,13 +2394,13 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       let table = served(
         "st list",
         a,
-        |response| match response {
-          Response::Threads { threads } => st_table_from(&threads, a),
+        |response, project| match response {
+          Response::Threads { threads } => st_table_from(&threads, a, project),
           other => Err(Failure::Error(format!(
             "error: intentd answered a thread listing with something else: {other:?}\n  remedy: this is a version skew between `intent` and `intentd`. Run `intent daemon status`; the two must be the same build."
           ))),
         },
-        |f| st_table_from(&summarise(&f), a),
+        |f| st_table_from(&summarise(&f), a, f.project()),
       )?;
       print!("{table}");
       Ok(())
@@ -3575,17 +3665,12 @@ fn explore(address: Option<&str>) -> Result<(), Failure> {
   // **THE ADDRESS IS RESOLVED BEFORE THE TERMINAL IS TAKEN**, so a spelling
   // this tool cannot read is reported on the info row of a screen the operator
   // can read, rather than behind a raw-mode switch.
-  // **THE DIRECTORY NAME, NOT `config.project_name`** (hv, 2026-09-03). The
-  // configured name cannot discriminate two checkouts of one project --
-  // `Intentv2` declares itself `Intent` -- and telling them apart is the
-  // question the operator has when they look at this row.
-  let project = live
-    .facade
-    .project()
-    .root()
-    .file_name()
-    .map(|n| n.to_string_lossy().into_owned())
-    .unwrap_or_default();
+  // **THE DIRECTORY NAME, NOT `config.project_name`** (hv, 2026-09-03) -- the
+  // ruling now lives on `Project::directory_name`, which is where `st list`
+  // reads it too. This was the only copy until 2026-09-08; a second caller is
+  // what turned four inline lines into a method, and the reasoning moved with
+  // it rather than being left behind in a comment here.
+  let project = live.facade.project().directory_name().unwrap_or_default();
   let mut app = match address {
     None => tui::app::App::explore(),
     Some(spelling) => match nav::land(spelling, |v| present(&live.facade, v)) {

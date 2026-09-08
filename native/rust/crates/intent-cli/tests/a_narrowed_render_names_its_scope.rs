@@ -77,6 +77,26 @@ fn project() -> tempfile::TempDir {
 }
 
 /// **THE PAIR. Either arm alone passes on a wrong fix.**
+
+/// The heading `st list` now puts in its first column: this project's directory
+/// name, clipped the way `render::clamp_heading` clips it.
+///
+/// **THESE ARMS USED `"ID "` AS A PROXY FOR "A HEADER PRINTED AT ALL", and that
+/// proxy stopped being available on 2026-09-08** when hv asked for the first
+/// column to name the project so a pasted table says which estate produced it.
+/// The property each arm holds is unchanged -- an empty estate still prints a
+/// header, `st sync` still reports a table, piped markdown is still canonical
+/// GFM -- so the assertions are re-keyed rather than loosened. Asserting the
+/// ACTUAL heading is stronger than asserting some heading: a build that printed
+/// the wrong project would pass the weaker form.
+fn heading(root: &std::path::Path) -> String {
+  let name: String = root
+    .file_name()
+    .map(|n| n.to_string_lossy().into_owned())
+    .unwrap_or_default();
+  name.chars().take(16).collect()
+}
+
 #[test]
 fn an_empty_filter_and_an_empty_estate_are_different_answers() {
   let dir = project();
@@ -87,7 +107,7 @@ fn an_empty_filter_and_an_empty_estate_are_different_answers() {
   let (empty_estate, code) = run(root, &["st", "list"]);
   assert_eq!(code, 0, "{empty_estate}");
   assert!(
-    empty_estate.starts_with("ID "),
+    empty_estate.starts_with(&heading(root)),
     "an empty ESTATE still prints its header: {empty_estate:?}"
   );
   assert!(
@@ -208,7 +228,10 @@ fn markdown_carries_the_disclosure_too() {
 
   let (md, code) = run(root, &["st", "list", "--markdown"]);
   assert_eq!(code, 0, "{md}");
-  assert!(md.starts_with("| ID "), "canonical GFM: {md:?}");
+  assert!(
+    md.starts_with(&format!("| {} ", heading(root))),
+    "canonical GFM: {md:?}"
+  );
   assert!(
     md.contains("showing 1 of 2 threads"),
     "and the scope travels with the file: {md:?}"
