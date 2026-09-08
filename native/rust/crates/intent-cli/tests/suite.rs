@@ -181,6 +181,8 @@ mod self_loop_population;
 mod self_loop_voice;
 #[path = "session_hook_lockout.rs"]
 mod session_hook_lockout;
+#[path = "skill_cross_references_resolve.rs"]
+mod skill_cross_references_resolve;
 #[path = "spelling_notes_name_their_issue.rs"]
 mod spelling_notes_name_their_issue;
 #[path = "st_dehydrate_round_trips_with_hydrate.rs"]

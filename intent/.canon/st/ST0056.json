@@ -3070,11 +3070,12 @@
     {
       "id": "AT-15.4",
       "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/skill_cross_references_resolve.rs",
       "covers": [
         "AC-15.4"
       ],
-      "status": "to-write",
-      "note": "chains_to targets, /in-* names cited in prose, and rule ids -- all three, with a planted dangling reference as the control."
+      "status": "green",
+      "note": "chains_to targets, /in-* names cited in prose, and rule ids -- all three, with a planted dangling reference as the control. || DRIVEN BY vc 2026-09-08 17:47Z, AND IT COVERS TWO OF THE THREE ON PURPOSE. chains_to: is already resolved against the catalogue by AT-00.4 (ST0065, every_skill_has_a_live_caller.rs, its Finding::Dangling arm with its own planted control); a second walker here would be a Highlander violation in the row whose subject is references that stop resolving. Reversible in one word if that reading is wrong. REAL TREE: 82 skill citations and 106 rule citations over 23 skills and 66 rules, 0 unresolved -- denominators asserted in the test before the zero is believed. MUTATION-TESTED AGAINST THE REAL TREE AND THE FIRST RUN DID NOT BITE: deleting the path guard left the arm green because a trim_end_matches('-') was quietly repairing the sentinel path /tmp/intent/in-session-<UUID> into a name that resolves, so the header's claim that the guard was load-bearing described a check that could not exercise it. Trim removed, one mechanism; the mutation now yields exactly one finding (in-session -> in-session-), which is the number an independently written scan of the same corpus predicted. SIX ARMS: real tree; planted dangling skill; planted dangling rule; all-resolving stays quiet; the path-vs-citation guard in BOTH directions in one fixture; the rule-id shape against four near-misses. LIMIT: static resolution only -- it does not establish that following a reference does anything, which is AC-00.2's by a read."
     },
     {
       "id": "AT-16.1",
