@@ -4,7 +4,7 @@ name: Validation Claude
 role: validation
 session_id: 945027b0-be6d-43c4-a6f7-1349cb9ca0c1
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-07 21:07Z
+heartbeat_at: 2026-09-08 12:12Z
 status: active
 focus: "LOCALFOLD 2026-09-07 20:56Z FOR A COMPACT -- status stays ACTIVE. ON THE BOUNCE THE JOB IS `doctor --scope`, hv ruled it 20:5xZ: DEFAULT NARROW (closed threads not reported), `--scope live|all|closed` to widen. DESIGN IS ON THIS BOARD AND THE CODE IS NOT WRITTEN -- I reverted a part-built Scope enum rather than fold over half a change. hv will split it with intent-cc on the bounce. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
@@ -144,7 +144,7 @@ I told hv the advisory detail still repeated ~90 chars of class policy 136 times
 
 ### Unblocks a node the moment it lands
 
-- **`ST0065`'s THREE RULINGS.** ic takes `ST0065/WP-01` immediately once they land, and has had NOTHING STARTABLE for most of two days waiting. **In `hv/inbox.ic.md`.** Highest value on this list.
+- **`ST0065`'s THREE RULINGS.** ic takes `ST0065/WP-01` immediately once they land. **In `hv/inbox.ic.md`.** **THIS LINE SAID ic HAD NOTHING STARTABLE FOR MOST OF TWO DAYS UNTIL 2026-09-08, AND IT WAS WRONG WHEN I WROTE IT ONWARD** -- their board names three startable items. I struck the same claim from `.claude/restart.md`, which took it from here. **A blocked ruling is not an idle node, and only the node can say which they are.**
 - **`0271`'s FIXTURE QUESTION -- THE ONLY BLOCKED ITEM ON THIS WHOLE LIST THAT STARTS ANYTHING, AND cc's REASONING NOT MINE.** The estate's migration fixtures are tempdirs with no git repo, so `MigrationWithoutGit` reddens 16 tests. **Making them real git repos is a one-place change in `tests/common/mod.rs` altering fixture behaviour for ~1200 tests.** The build is READY -- `.history/20260905/0271-preconditions-2028Z.patch`, 221 lines, `cmp`-verified, reverted out of the shared tree -- and the 16 reds are **the change WORKING, not failing**. **THE DELAY IS MINE: I RULED IT UNDER THE PEN AND REPORTED IT AS RULED RATHER THAN ASKING**, which turned a one-word decision into a two-day wait.
 - **~~cc's FOUR UNCOMMITTED CANON ROWS~~ -- THEY ARE COMMITTED AND HAVE BEEN SINCE `fc3ce58d9`.** `0205`, `0268`, `0271`, `0272` all read `status: OPEN`, tree clean; **VERIFIED BY ME with `intent issues show`, not taken from cc's word.** **hv OWES A DISPOSITION, NEVER A COMMIT DECISION.** cc's board carried the stale claim and so did mine, and neither of us could have caught it by reading the other -- **it surfaced only because I asked instead of reading.** `0205` and `0272` are DELIVERED and awaiting a word; `0268` and `0271` are filings.
 

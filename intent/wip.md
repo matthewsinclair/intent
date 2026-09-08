@@ -1,5 +1,5 @@
 ---
-verblock: "06 Sep 2026:v1.34: vc - aggressive globalfold at hv's word; the scope question was ANSWERED two days before this file stopped saying unanswered, the gate is eleven rows with six waiting on a cut, and the shipped pair is nine commits behind the tree"
+verblock: "08 Sep 2026:v1.35: vc - struck the three counts this file stated as facts: the gate total (it was seventeen rows short), the shipped pair's distance behind the tree (it read nine, it now reads zero), and ic's empty queue (they have three startable items). A pointer that carries a number rots; the verbs below are the only answer."
 intent_version: 3.0.0
 ---
 
@@ -17,13 +17,15 @@ intent_version: 3.0.0
 
 ## DOING
 
-### THE v3.0.1 GATE IS ELEVEN ROWS AND SIX OF THEM CANNOT MOVE UNTIL hv CUTS
+### THE v3.0.1 GATE -- SIX ROWS CANNOT MOVE UNTIL hv CUTS, AND EVERY OTHER ROW IS ENGINEERING
 
-**Measured 2026-09-05. `ST0056` has 6 unsatisfied and `ST0068` has 5.** The six that are unfalsifiable without an artefact: `ST0056` AC-00.5, AC-07.7, AC-11.1, AC-11.4, AC-12.4 and `ST0068` AC-04.2. **None of them is engineering anybody is withholding -- a cut is the instrument that measures them, and no node can measure them for hv.**
+**THIS HEADING CARRIED A TOTAL UNTIL 2026-09-08 AND IT WAS SEVENTEEN ROWS SHORT.** It read _eleven_, measured 2026-09-05, four lines above its own instruction not to transcribe it -- so a reader who obeyed the instruction and a reader who ignored it got different answers, and the document rewarded the lazier one. **Do not put a count back here.** A total is a state; the verbs below are the only thing that can answer it.
 
-**FOUR OF THE FIVE STARTABLE ROWS LANDED ON 2026-09-05.** `ST0056` AC-00.6's `bin/` coupling is discharged (the deletion itself is AT the cut and was never owed before the tag); `ST0068` AC-02.1 is satisfied; AC-02.3 carries its command and its declared scope limit. **`ST0068` AC-03.1 + AC-03.2 are HELD on an independent read at Laksa, and the ping is vc's to initiate, not theirs.**
+**WHAT IS DURABLE IS THE NAMED SET, NOT THE COUNT.** Six rows are unfalsifiable without a published artefact: `ST0056` AC-00.5, AC-07.7, AC-11.1, AC-11.4, AC-12.4 and `ST0068` AC-04.2. **Each re-verified still unsatisfied 2026-09-08 -- nothing regressed, the count was simply always short.** **None is engineering anybody is withholding: a cut is the instrument that measures them, and no node can measure them for hv.** Every row the gate reports beyond those six is engineering somebody can start.
 
-**DO NOT TRANSCRIBE THE ELEVEN. RUN IT:**
+**`ST0068` AC-03.1 + AC-03.2 ARE HELD ON AN INDEPENDENT READ AT LAKSA, AND THE PING IS vc's TO INITIATE.** It went out 2026-09-08, two days after the hold's own condition expired -- recorded because a hold that quietly outlives its condition is the failure the hold rules exist to prevent. `ST0056` AC-00.6's `bin/` coupling is discharged (the deletion is AT the cut and was never owed before the tag); `ST0068` AC-02.1 is satisfied; AC-02.3 carries its command and its declared scope limit.
+
+**RUN IT. DO NOT TRANSCRIBE IT:**
 
     intent ac gate ST0056
     intent ac gate ST0068
