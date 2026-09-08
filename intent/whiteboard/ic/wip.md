@@ -2,11 +2,11 @@
 node: ic
 name: Interface Claude
 role: interface
-session_id: ff30d717-901e-4d47-9bb7-53416fe4e841
+session_id: 5e8e3506-ecad-4712-ae02-74896394f147
 commit_session_id: 01T6EfsdaPEvSHT3WeUk1oMo -- WITNESSED on 04c43798f, this session's first commit; check it there rather than taking this line's word. HONEST CAVEAT, and it is cc's: I authored that trailer, so reading it back is not independent of the harness. What it IS is the value a later reader will attribute my commits by, confirmed present on one. POINT-IN-TIME, one session; the mapping accumulates in .history/ as folds archive the header that was live.
-heartbeat_at: 2026-09-06 00:28Z
+heartbeat_at: 2026-09-08 11:09Z
 status: active
-focus: "END-OF-DAY LOCALFOLD 2026-09-06 00:25Z, status stays active -- the session continues waiting on vc. NEXT READER IS A COLD NODE: everything is written to be read without me. MINE AND STARTABLE: the W106 boundary pass over this board (cut ~6 undrawable families, do NOT renumber), and the three-copy fixture convergence in intent-cli/tests (measure what each caller needs first). BLOCKED ON hv: ST0065 three rulings, which release WP-01 the moment they land. NOTHING IN FLIGHT, tree clean. AC-02.1 satisfied; 0274 and 0275 filed. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "MENUBAR WEB-FACE ITEM BUILT AND THE APP IS INSTALLED; THE PAIR IS NOT PUBLISHED AND THAT IS DELIBERATE -- cc PUBLISHES IT WITH 0192 (route 3, their call, one publish one person). WORK IS IN THE TREE UNCOMMITTED: daemon.rs, render.rs, one new test, three Swift files, dispatch-table json+md. COMMIT WITH --only, NEVER BARE: cc has views.rs STAGED in the shared index. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/17, ST0064]
 ---
 
@@ -17,6 +17,14 @@ claims: [ST0065, ST0056/17, ST0064]
 **FOLDED ON EXECUTION, NEVER ON DATE.** Everything cut was DONE: today's three hv asks are landed, built and delivered, and the three expired figures I opened the day correcting were each discharged by the node that owned them. **Every unexecuted ruling is still here**, and gated work sits under Holds with the condition that releases it rather than in TODO looking like work I am declining to start.
 
 ## DOING
+
+**IN FLIGHT 2026-09-08, UNCOMMITTED, AND THIS SECTION IS THE ONLY REASON THAT IS NOT A SILENT STATE.** hv asked inline for a menubar item titled with intentd's local URL that opens it. Built, driven and installed; NOT published.
+
+**WHAT IS ON DISK AND NOT IN A COMMIT:** `intentsvcs/src/daemon.rs` (new `answering_loopback_under` / `answering_loopback` / `loopback_base_url`), `intent-cli/src/render.rs` (`daemon status` renders `url` in BOTH faces; `browser_url` re-pointed at the shared helper), `daemon_status_answers_a_machine.rs` (one new test), `Health.swift` / `HealthTests.swift` / `IntentApp.swift`, `surface/dispatch-table.{json,md}`.
+
+**THE ROLLOUT IS GATED AND THE CONDITION IS NOT MINE TO MEET.** `/Applications/Intent.app` shells out to `intent` on PATH -> `~/.local/bin/intent` -> `native/rust/target/release/intent`, which is the SHIPPED binary and carries no `url`. So the app is installed and the item cannot appear until the release pair moves. **cc took route 3** -- they publish once `0192` lands and my change rides with it. **I DO NOT TOUCH `target/release`**: publishing uncommitted work into the path every session resolves through is the 2026-08-18 19:33Z episode with different hands on it, and cc's phrasing is the keeper -- GREEN IS NOT THE SAME AS LANDED.
+
+**THE TOKEN TRAP cc FLAGGED IS DEAD AND IT IS PINNED RATHER THAN MERELY MEASURED.** An unauthenticated `GET /` on the published port answers 200 with the real status page; the bearer token gates `/op` and entity views, not `/`. A test now does a raw GET and asserts 200, so the day `/` starts demanding the secret is the day a test fails rather than an operator meets a login wall.
 
 **AGGRESSIVE LOCALFOLD 2026-09-05 20:27Z ON hv's INSTRUCTION, BEFORE A COMPACT. STATUS STAYS `active`** -- a fold is not a session ending (`/in-whiteboard` invariant 6). Verbatim pre-fold at `.history/20260905/wip-prefold-2026Z.md` (114,252 bytes, **prettier-clean AT SOURCE before the copy**, `cmp`-confirmed). Executed narrative: `.history/20260905/doing-folded-2026-09-05-2026Z.md`. Third fold of the day; `1507Z` and `1723Z` are beside it.
 
