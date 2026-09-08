@@ -777,17 +777,38 @@ fi
 if [ "$NEEDS_COMMIT" = "true" ]; then
   log_step "commit"
   if [ "$DRY_RUN" = "true" ]; then
-    log_dry "would stage $SIDECAR_FILES and commit as 'release: v$TARGET'"
+    log_dry "would commit ONLY $SIDECAR_FILES as 'release: v$TARGET' (--only: the ambient index is not swept)"
   else
+    # `--only`, AND IT IS THE WHOLE POINT: this commits the named paths and
+    # NOTHING ELSE, whatever the ambient index happens to hold.
+    #
+    # The previous form was `git add -- $SIDECAR_FILES` followed by a bare `git
+    # commit`, and a bare commit commits THE INDEX AS IT STANDS. `preflight()`
+    # demands a clean tree, so the index is empty when a run starts -- but
+    # everything between that check and this line is minutes of wall clock:
+    # doctor, the bats suite, the cargo gate, `agents sync` and the canon
+    # regeneration. FOUR NODES COMMIT INTO THIS CLONE. A peer staging work
+    # inside that window would land it in the commit the TAG POINTS AT, under
+    # the message `release: v<target>`, and nothing downstream would report it:
+    # the leftover check below passes precisely because the peer's work was
+    # committed rather than left dirty.
+    #
+    # The old "is there anything staged" test read `git diff --cached
+    # --name-only`, which asks about the WHOLE index -- so under a peer's staged
+    # work it answered yes even when no sidecar had changed. It is gone rather
+    # than scoped: `NEEDS_COMMIT` above already computed that answer from
+    # `git status --porcelain -- $SIDECAR_FILES`, and two tests for one question
+    # is how they come to disagree.
+    # THE FLAGS COME BEFORE THE `--`, AND THAT ORDER IS NOT COSMETIC: after the
+    # separator every argument is a PATHSPEC, so `-- $SIDECAR_FILES -m "..."`
+    # makes git look for files named `-m` and `release: v3.0.1` and fail. Caught
+    # by driving the fix rather than by reading it -- the first form written here
+    # was exactly that, and it would have broken the release it was fixing.
     # shellcheck disable=SC2086
-    (cd "$PROJECT_ROOT" && git add -- $SIDECAR_FILES 2>/dev/null || true)
-    # Only commit if there's something staged
-    if [ -n "$(cd "$PROJECT_ROOT" && git diff --cached --name-only)" ]; then
-      (cd "$PROJECT_ROOT" && git commit -m "release: v$TARGET" -m "(C) hello@matthewsinclair.com")
-      log_info "committed release: v$TARGET"
-    else
-      log_info "nothing to commit (sidecars already at target)"
-    fi
+    (cd "$PROJECT_ROOT" && git commit --only \
+      -m "release: v$TARGET" -m "(C) hello@matthewsinclair.com" \
+      -- $SIDECAR_FILES)
+    log_info "committed release: v$TARGET"
   fi
 else
   log_info "no sidecar changes to commit"
