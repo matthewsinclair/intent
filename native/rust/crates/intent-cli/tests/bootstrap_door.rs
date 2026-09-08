@@ -77,7 +77,7 @@ fn it_publishes_the_pointer_the_shim_reads() {
   // test of where the suite happens to run -- which is the shape this estate
   // keeps finding in its own instruments.
   assert!(
-    root.join("lib/templates").is_dir(),
+    root.join(intentsvcs::install::MARKER).is_dir(),
     "the pointer must name a real install (the marker the shim validates); got {}",
     root.display()
   );

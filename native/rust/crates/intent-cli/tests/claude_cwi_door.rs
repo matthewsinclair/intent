@@ -55,16 +55,14 @@ fn real_script() -> PathBuf {
 /// caller's environment.
 fn fixture_install() -> tempfile::TempDir {
   let dir = tempfile::tempdir().expect("tempdir");
-  let root = dir.path();
-  std::fs::create_dir_all(root.join("lib/templates")).expect("marker");
-  std::fs::create_dir_all(root.join("bin")).expect("bin");
-  std::fs::create_dir_all(root.join("intent/plugins/claude/bin")).expect("plugin bin");
-  std::fs::copy(env!("CARGO_BIN_EXE_intent"), root.join("bin/intent")).expect("copy binary");
-  std::fs::copy(
-    real_script(),
-    root.join("intent/plugins/claude/bin/intent_claude_cwi"),
-  )
-  .expect("copy launcher");
+  // `C is A plus a plugin step` -- the base, then the one thing this caller
+  // needs that the other does not.
+  crate::common::fake_install(dir.path());
+  crate::common::seed_plugin(
+    dir.path(),
+    "intent/plugins/claude/bin/intent_claude_cwi",
+    &real_script(),
+  );
   dir
 }
 

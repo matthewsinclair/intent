@@ -232,6 +232,8 @@ mod legacy_vocabulary;
 mod lifecycle_verbs_edit_the_list;
 #[path = "mandatory_fields_reach_a_reader.rs"]
 mod mandatory_fields_reach_a_reader;
+#[path = "marker_has_one_home.rs"]
+mod marker_has_one_home;
 #[path = "migrate_hooks_continuity.rs"]
 mod migrate_hooks_continuity;
 #[path = "migrate_refusal.rs"]
@@ -314,6 +316,7 @@ mod retired_st_prefix;
 mod root_files_generated;
 #[path = "schema_faces_drift.rs"]
 mod schema_faces_drift;
+
 #[path = "skills_sync.rs"]
 mod skills_sync;
 #[path = "status_gate_states_what_it_observed.rs"]

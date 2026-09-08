@@ -904,3 +904,41 @@ pub fn ask_op(daemon: &RealDaemon, body: &str) -> (String, String) {
     ),
   )
 }
+
+/// Build a fake Intent install root in `dir`: the marker, `bin/`, and a COPY of
+/// the `intent` binary. Returns the copied binary's path (issue 0279).
+///
+/// **THE MARKER COMES FROM [`intentsvcs::install::MARKER`], NOT FROM A
+/// LITERAL.** `install::is_install` is exactly `dir.join(MARKER).is_dir()`, so
+/// the constant is what MAKES a directory an install root, and a hardcoded copy
+/// builds something the resolver does not recognise if it ever moves.
+///
+/// **COPIED, NOT SYMLINKED**, carried from the caller this was extracted from:
+/// the binary must RESOLVE this tree as its own install, and resolution walks
+/// up from the executable's real path.
+///
+/// The caller owns `dir`, which is the shape both callers already had -- one
+/// hands in a `TempDir`'s path, the other a path it manages itself. Plugin
+/// seeding is [`seed_plugin`], deliberately a separate call: the two callers
+/// differed by exactly that step and folding it in would give one of them a
+/// directory it never wanted.
+pub fn fake_install(dir: &Path) -> PathBuf {
+  std::fs::create_dir_all(dir.join(intentsvcs::install::MARKER)).expect("marker");
+  std::fs::create_dir_all(dir.join("bin")).expect("bin");
+  let exe = dir.join("bin/intent");
+  std::fs::copy(env!("CARGO_BIN_EXE_intent"), &exe).expect("copy the binary");
+  exe
+}
+
+/// Seed a file inside a fake install at `rel`, creating its parent. Returns the
+/// path written.
+///
+/// The second half of `C is A plus a plugin step`: one caller needs a launcher
+/// script reachable at its canonical path inside the install, and the other
+/// needs no plugin tree at all.
+pub fn seed_plugin(root: &Path, rel: &str, src: &Path) -> PathBuf {
+  let dest = root.join(rel);
+  std::fs::create_dir_all(dest.parent().expect("a plugin path has a parent")).expect("plugin dir");
+  std::fs::copy(src, &dest).expect("copy the plugin file");
+  dest
+}

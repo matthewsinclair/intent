@@ -9,7 +9,7 @@
 //! question asked at the same surface: **can a caller standing outside the
 //! process tell an empty library from an absent one?** They also want the same
 //! fixture, because a keg missing its rule tree is exactly what
-//! `fixture_install()` builds -- and the file was named for the first half
+//! `crate::common::fake_install()` builds -- and the file was named for the first half
 //! alone until the second landed beside it.
 //!
 //! # Why this file exists separately from the unit test
@@ -41,22 +41,13 @@
 //! is present. If the fake root were not being read at all, the control would
 //! not change the answer, and it does.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 
 use testkit::repo_root;
 
 /// An install tree carrying the marker and nothing else -- the shipped keg's
 /// shape, which is what every estate is running.
-fn fixture_install(dir: &Path) -> PathBuf {
-  std::fs::create_dir_all(dir.join("lib/templates")).expect("marker");
-  std::fs::create_dir_all(dir.join("bin")).expect("bin");
-  let exe = dir.join("bin/intent");
-  // COPIED, NOT SYMLINKED -- see the module note.
-  std::fs::copy(env!("CARGO_BIN_EXE_intent"), &exe).expect("copy the binary");
-  exe
-}
-
 /// Copy a rule tree wholesale, returning the number of `RULE.md` files placed.
 ///
 /// The count is the control's own control: it is what makes "nothing was copied"
@@ -99,7 +90,7 @@ fn run(exe: &Path) -> (i32, String) {
 #[test]
 fn a_binary_whose_install_carries_no_rules_exits_2_and_says_why() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let exe = fixture_install(dir.path());
+  let exe = crate::common::fake_install(dir.path());
 
   let (rc, text) = run(&exe);
 
@@ -122,7 +113,7 @@ fn a_binary_whose_install_carries_no_rules_exits_2_and_says_why() {
 #[test]
 fn the_same_fixture_with_a_rules_tree_does_not_refuse() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let exe = fixture_install(dir.path());
+  let exe = crate::common::fake_install(dir.path());
 
   // Only `shell` is needed: `Library::files` walks the known languages and skips
   // any whose directory is absent.
@@ -183,7 +174,7 @@ fn the_same_fixture_with_a_rules_tree_does_not_refuse() {
 #[test]
 fn rules_list_on_an_install_with_no_library_says_so_instead_of_a_bare_zero() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let exe = fixture_install(dir.path());
+  let exe = crate::common::fake_install(dir.path());
 
   let (rc, text) = run_args(&exe, &["claude", "rules", "list"]);
 
@@ -212,7 +203,7 @@ fn rules_list_on_an_install_with_no_library_says_so_instead_of_a_bare_zero() {
 #[test]
 fn the_same_fixture_with_a_rules_tree_reports_a_plain_total() {
   let dir = tempfile::tempdir().expect("tempdir");
-  let exe = fixture_install(dir.path());
+  let exe = crate::common::fake_install(dir.path());
 
   let dest = dir.path().join("intent/plugins/claude/rules/shell");
   let src = repo_root().join("intent/plugins/claude/rules/shell");

@@ -616,7 +616,7 @@ fn real_thread_ids() -> BTreeSet<String> {
 fn installed_payload() -> Vec<(PathBuf, String)> {
   let root = repo_root();
   let mut out = Vec::new();
-  for sub in ["lib/templates", "intent/plugins/claude"] {
+  for sub in [intentsvcs::install::MARKER, "intent/plugins/claude"] {
     collect_text_files(&root.join(sub), &mut out);
   }
   out

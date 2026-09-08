@@ -33,7 +33,7 @@ fn isolated_binary() -> (tempfile::TempDir, PathBuf) {
   // machine where the tempdir happens to sit under one, and reports the
   // embedding as proven when nothing was proven.
   for ancestor in dest.ancestors() {
-    for marker in ["lib/templates", "intent/.config/config.json"] {
+    for marker in [intentsvcs::install::MARKER, "intent/.config/config.json"] {
       let candidate = ancestor.join(marker);
       assert!(
         !candidate.exists(),

@@ -34,9 +34,7 @@ impl Fixture {
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path().to_path_buf();
     let install = root.join("install");
-    fs::create_dir_all(install.join("intent/plugins/claude/subagents")).unwrap();
-    // `install::MARKER` -- what makes a tree an install.
-    fs::create_dir_all(install.join("lib/templates")).unwrap();
+    crate::common::fake_install(&install, "intent/plugins/claude/subagents");
     Self {
       install,
       target: root.join("home/.claude/agents"),

@@ -782,3 +782,29 @@ pub fn out_of_model_enumeration(section: &str) -> (&str, &str) {
 
 /// The document's own words for a thing LEAVING the excluded set.
 pub const DEPARTURE: &str = "left this set";
+
+/// Make `dir` a tree the install resolver recognises, and seed one plugin
+/// directory inside it (issue 0279).
+///
+/// **THE MARKER COMES FROM [`intentsvcs::install::MARKER`], NOT FROM A
+/// LITERAL, AND THAT IS THE WHOLE POINT OF THE HELPER.** `install::is_install`
+/// is exactly `dir.join(MARKER).is_dir()`, so the constant is what MAKES a
+/// directory an install root. Eight test files hardcoded its value; two of them
+/// carried `// install::MARKER -- what makes a tree an install.` on the line
+/// directly above the literal. **A comment naming the constant beside its
+/// hardcoded value is worse than no comment: it proves the author knew, which
+/// is the strongest evidence that knowing is not what prevents this.**
+///
+/// If `MARKER` ever moves, a hardcoded copy builds a directory the resolver
+/// does not recognise -- and the test then fails somewhere else entirely, as a
+/// missing file rather than as a wrong fixture.
+///
+/// **NO BINARY IS COPIED HERE, UNLIKE THE `intent-cli` TWIN.** These callers
+/// drive `Payload` in-process; `CARGO_BIN_EXE_intent` is set only for test
+/// targets of the package that DEFINES that binary, so this crate has none to
+/// copy. One helper across both crates would carry a parameter that is always
+/// absent on this side, which moves a per-crate fact into a shared place.
+pub fn fake_install(dir: &Path, plugin_rel: &str) {
+  std::fs::create_dir_all(dir.join(plugin_rel)).expect("plugin dir");
+  std::fs::create_dir_all(dir.join(intentsvcs::install::MARKER)).expect("marker");
+}

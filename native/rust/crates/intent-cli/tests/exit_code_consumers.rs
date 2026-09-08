@@ -214,7 +214,7 @@ fn canon_root() -> PathBuf {
     .parent()
     .and_then(Path::parent)
     .expect("the rust workspace sits two levels under the Intent install")
-    .join("lib/templates")
+    .join(intentsvcs::install::MARKER)
 }
 
 /// Every (canon-relative path, `intent` family) an EXECUTABLE canon file names.
