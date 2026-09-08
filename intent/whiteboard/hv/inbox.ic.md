@@ -57,3 +57,48 @@ I will keep it additive -- a new module rather than edits to the existing helper
 **A1 STOPPED BECAUSE ITS PREMISE IS REFUTED, NOT BECAUSE PAINT SYNC WAS DEEP.** The harness A1 existed to build already exists in-process and is green: `src/tui/run.rs` drives the caret key by key in both vocabularies against concrete screen line numbers (16 green), and `src/tui/app.rs` drives the full open-filter-move-commit path including the argv that reaches the realiser, exhaustively over the command vocabulary (52 green).
 
 **An announce that stands unretracted is a shared surface everyone avoids for nothing**, which is why this is going to all of you rather than only to vc.
+
+## (2026-09-08 19:02Z)
+
+**SIX ITEMS OF MINE NEED YOUR WORD AND ONLY ONE OF THEM WAS EVER FILED HERE. ROUTING THE OTHER FIVE, AT YOUR INSTRUCTION, SO THEY ARE IN ONE PLACE RATHER THAN ON MY BOARD WHERE YOU DO NOT READ THEM.** My own four inboxes are EMPTY -- there was nothing to clear out, and I am saying so rather than inventing an action to report.
+
+Ordered by what unblocks a node, not by age.
+
+=== 1. `ST0065`'s THREE RULINGS -- FILED 2026-08-30 16:55Z, STILL THE ONLY LIVE ENTRY ABOVE ===
+
+**Unchanged and unanswered. `ic/inbox.hv.md` is empty, so nothing has come back.** This is the one that matters: **ic takes `WP-01` the moment they land, and I have had nothing startable for most of three days.** The three questions are in the entry above (does `AGENTS.md` exist at fresh init; what is it a mirror of; generator or drift-tested copy for the four-rule index) with a costed recommendation of **Option 2, S**.
+
+=== 2. `0281` -- A DESIGN DISPOSITION, AND THE REMEDY IS ALREADY WRITTEN DOWN ===
+
+**`ST0064`'s `AC-01.4` cannot close without it, and there is no engineering left to do first.** `IntentCLI.swift:131` assigns the console tail's lifecycle to _the verb's job, not the app's_ -- and no `log`, `tail` or `console` verb exists anywhere in the surface (positive-controlled: the same probe returns 2 for `daemon`).
+
+**THE FIX IS IN OUR OWN TREE, FROM GEODICA, AND NOTHING LINKED IT UNTIL I RE-SYNCED `ST0064`'s DOCS:** `design-menubar-app.md` records the identical failure already diagnosed and already fixed in their estate -- _the verb runs its pipeline under a shell that reads its own stdin and takes the process group down when that pipe closes; verified against SIGTERM, SIGINT and SIGKILL, zero orphans._ **The lesson crossed estates and the implementation did not.**
+
+**WHAT I NEED IS ONE WORD: does Intent adopt that shape?** If yes it is cc's build and I write the fixture. **The fixture has a precondition that must not be lost** -- `kill(-pgid)` works only because Foundation makes the child a group LEADER, which I measured on this machine on this day and is not a documented guarantee; if a future Foundation stops doing it, `-pgid` names the app and the remedy becomes worse than the leak. So the test asserts `child.pgid == child.pid` FIRST.
+
+**RELATED FROM THE OTHER SIDE: `0284`** -- 27 leaked `intentd` processes, 249 minutes of CPU, none answering. **Two spawn paths in one estate, neither cleaning up after itself.**
+
+=== 3. `AC-01.7` -- APPLE DEVELOPER CREDENTIALS, ONLY YOU ===
+
+Not a decision, a dependency. **Recording it here so it is visible next to the others rather than looking like work someone is withholding.**
+
+=== 4. NEW TONIGHT: `ST0056/WP-15` AND `ST0065/WP-02` ARE TWO HOMES FOR ONE CONCERN, BOTH WIP ===
+
+- **`WP-15`** _Skills catalogue triage_, scope **L**, WIP, fully specified, **vc's and being worked right now**.
+- **`WP-02`** _Audit and cleanup of the /in-\* skills_, scope **S**, WIP, **Objective `_(not yet written)_`**. Mine, via the `ST0065` claim.
+
+**WP-15's deliverable list already contains WP-02's entire subject, verbatim** -- _a check that the catalogue's cross-references still resolve: `chains_to:` frontmatter, the `/in-*` names skills cite in each other's prose, and the rule IDs they name._
+
+**THE DISPOSITION LOOKS OBVIOUS AND IS DELIBERATELY NOT BEING TAKEN BY ANYONE HERE.** Collapsing a work package is a scope call. vc has declined to resolve it under the pen -- their words: two homes for one concern across two open threads is the same defect they had just cut three instances of on their own board. **What is already done is the safe half: I am not starting WP-02**, so nothing duplicates while this waits.
+
+=== 5. `0218` REMEDY 1 -- WHAT `uninstall` PROMISES ===
+
+**The files it wrote, or the directory it emptied.** Not _implement pruning_ -- `prune_empty_dirs` IS called and refuses `dir == root`, which is the skip. **Both answers are coherent and they produce different behaviour**, so it is yours and not a bug to fix.
+
+=== 6. THE PALETTE `Home`/`End` FLIP ===
+
+**A product-feel call, which is why neither I nor the pen may take it.** The `/` sigil means the palette's buffer is never empty, so the empty-composer guard cannot fire the way it does elsewhere.
+
+=== AND ONE THING THAT IS NOT AN ASK, BECAUSE IT IS ALREADY MOVING ===
+
+**`restart.md`'s three-measurements ritual hands every node a BOUND dressed as a MEASUREMENT.** `git rev-list --count <marker>..HEAD` counts commits already compiled in, so drift is overstated; and the scope it ranges over is missing `lib/templates/{llm,prj}`, which compiles into the binary. **Three nodes quoted figures over that denominator tonight and every one was caught by a peer rather than by any instrument.** vc has it as the global fold's first job and cc's wording is the fix -- **label the number an upper bound rather than remove the command.** Raising it here only because the ritual is the first thing every node runs and you are the reader who would otherwise meet it cold.
