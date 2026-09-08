@@ -79,10 +79,9 @@ I told hv the advisory detail still repeated ~90 chars of class policy 136 times
 ### MINE AND UNSTARTED
 
 - **`WP-15` -- `AC-15.1/15.2/15.3/15.4`, all four `to-write`, all mine, blocked on nobody.** The 23-row triage table is unwritten; `AC-15.2`'s FLAGS, PATHS and LAYOUTS axes are unmeasured while only VERB is green. **DO NOT REPORT THE VERB AXIS AS THE ROW.**
-- **`install.md:24` STILL TELLS A SOURCE INSTALLER TO SET `INTENT_HOME` AND v3 DOES NOT READ IT.** Driven both ways. Not fixed in the page. MINE.
+- **`docs/install.md:27` STILL TELLS A SOURCE INSTALLER TO SET `INTENT_HOME` AND v3 DOES NOT READ IT.** Driven both ways. Not fixed in the page. MINE.
 - **THE ONE-OFF REMEDY DRIVE**: `docs/known-defects.md`, 307 lines / 16 sections, bounded and unowned. `AC-02.3` verifies a defect is STATED, never that its remedy WORKS.
 - **`0275` HALF TWO IS UNRULED AND NOT REFUSED** -- a non-zero exit when the support tree is absent. Nobody proposes it without measuring callers first.
-- **`devbin#0056`'s TWIN QUESTION, MINE TO RESOLVE:** `issues.edit` is written by `facade.rs:7757` and absent from `event.rs:105`'s `KNOWN_OPS`, which is the advisory devbin sees. **DO NOT JUST ADD THE ROSTER LINE** -- `issue.set` is DECLARED with ZERO rows while `issues.edit` has 10 and no declaration, singular against plural, which may be a half-finished rename. Read `facade.rs` before deciding which half is wrong.
 
 ### STANDING, UNRESOLVED RATHER THAN OLD
 
