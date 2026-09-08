@@ -44,7 +44,7 @@ Stretch goals are parked as their own 3.x steel threads: TUI dashboard, the agen
 | WP-12 | Cutover and v3.0.0 release                                                                              | L    | WIP         |
 | WP-13 | Project search: full-text, structural, and the agent search surface                                     | XL   | Not Started |
 | WP-14 | Coordination model: whiteboard and inboxes in the store, with a bounded API                             | L    | Not Started |
-| WP-15 | Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill                                 | L    | Not Started |
+| WP-15 | Skills catalogue triage: KEEP, UPDATE or RETIRE every Intent2-era skill                                 | L    | WIP         |
 | WP-16 | Contract drift: a shipped field with no model row is refused                                            | S    | Not Started |
 | WP-17 | Form DSL: one declaration, TUI and WEB realisers, CRUD through intentsvcs                               | XL   | WIP         |
 | WP-18 | Store growth: the doc-section index duplicates on every mutation, and explore gets a progress indicator | S    | Done        |
