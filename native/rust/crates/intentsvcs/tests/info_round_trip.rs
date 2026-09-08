@@ -29,6 +29,32 @@
 //! v3 view. That is the damage class arriving through the door built to stop
 //! it, which is why this reader is a CLOSED allow-list.
 
+//! # Issue 0192 -- mutations, measured
+//!
+//! Each applied to a `cp` snapshot of `views.rs`, reverted with `cp`, verified
+//! byte-identical with `cmp`, baseline re-run green after each.
+//!
+//! | mutation                                          | reds                                                       |
+//! | ------------------------------------------------- | ---------------------------------------------------------- |
+//! | `after_banner` always returns empty               | the two refusal arms                                        |
+//! | `after_banner` returns from the MARKER            | `invariant_a_reworded_banner_does_not_reach_the_model`      |
+//! | the comparison drops `trim_end`                   | `success_trailing_whitespace_after_the_banner_...`          |
+//! | the banner finding short-circuits instead of joining | `failure_a_hand_added_section_and_appended_text_...`      |
+//!
+//! **THE SECOND ROW IS NOT HYPOTHETICAL -- IT IS THE VERSION I ACTUALLY WROTE
+//! FIRST.** Comparing from the marker onward swept in the banner LINE, so a
+//! reworded banner refused, and the estate's own invariant caught it before it
+//! left the machine. **The banner line is the renderer's; only what follows it
+//! is the author's**, and that boundary is the whole of the fix.
+//!
+//! **AND THE DRIVE THAT FOUND THE DEFECT NEARLY DID NOT.** A fresh project
+//! cannot exhibit the carry at all -- `resync_inner` builds `touched` from files
+//! that are `Changed` AND present in the PREVIOUS index, so an unindexed estate
+//! has an empty baseline and the whole path is a designed no-op. The first
+//! reproduction attempt ran on a fresh project, showed the text vanishing, and
+//! was measuring the wrong thing; the estate has to be synced once before the
+//! edit for the question to mean anything.
+
 use crate::common::{ctx, sample_thread};
 use intentsvcs::views::{self, INFO_ROUND_TRIP_SECTIONS};
 
@@ -204,6 +230,89 @@ fn failure_a_hand_added_heading_refuses_and_names_itself() {
   assert!(
     refused.iter().any(|s| s.contains("## Scope")),
     "the refusal must name the heading that was added: {refused:?}"
+  );
+}
+
+/// **TEXT APPENDED AFTER THE TRAILING BANNER REFUSES (issue 0192).**
+///
+/// The hole this closes: `authored_regions` truncates at the banner and is
+/// called for BOTH sides of the comparison, so anything after it landed in
+/// neither `want` nor `got` -- the structural guard compared two lists that
+/// AGREED, found nothing, and the next projection rewrote the file without the
+/// text. `sync --to-store` reported `ok:` at rc=0 having carried nothing.
+///
+/// **`>>` IS HOW A SCRIPT APPENDS**, which is what makes this the likely way to
+/// lose text rather than an exotic one.
+#[test]
+fn failure_text_after_the_trailing_banner_refuses() {
+  let thread = sample_thread("ST0056");
+  let rendered = views::info(&thread, &ctx());
+  let edited = format!("{rendered}\n## Hand Added\n\nTEXT\n");
+
+  let refused = views::info_read_back(&thread, &ctx(), &edited)
+    .expect_err("text after the banner must refuse rather than being silently dropped");
+
+  assert!(
+    refused
+      .iter()
+      .any(|s| s.contains("after the trailing banner")),
+    "the refusal must name WHERE the text is, since the author cannot see a \
+     section heading for it: {refused:?}"
+  );
+}
+
+/// **TRAILING WHITESPACE IS NOT AUTHORED TEXT AND MUST NOT REFUSE.**
+///
+/// The arm that stops the fix above from becoming a false refusal on every file
+/// that lost or gained a final newline -- which an editor does without being
+/// asked. **Without this the check would be indistinguishable from one that
+/// refuses on any byte after the banner**, and that is a different, wrong rule.
+#[test]
+fn success_trailing_whitespace_after_the_banner_still_reads_back() {
+  let thread = sample_thread("ST0056");
+  let rendered = views::info(&thread, &ctx());
+
+  for suffix in ["\n", "\n\n", "   \n"] {
+    let edited = format!("{rendered}{suffix}");
+    assert_ne!(edited, rendered, "the fixture must actually differ");
+    views::info_read_back(&thread, &ctx(), &edited)
+      .unwrap_or_else(|e| panic!("whitespace-only tail {suffix:?} must round-trip: {e:?}"));
+  }
+}
+
+/// **ONE EDITING SESSION REPORTS AS ONE RUN, NOT TWO REFUSALS.**
+///
+/// A file carrying an added section AND appended text is one thing the author
+/// did; naming half of it sends them back for a second refusal they could have
+/// fixed the first time. This also pins that the banner finding does not
+/// SHORT-CIRCUIT the structural one -- an early return would have been the
+/// obvious implementation and would have hidden the section.
+#[test]
+fn failure_a_hand_added_section_and_appended_text_report_together() {
+  let thread = sample_thread("ST0056");
+  let rendered = views::info(&thread, &ctx());
+  let with_section = rendered.replace(
+    "## Context\n",
+    "## Scope\n\nSomething the author wanted.\n\n## Context\n",
+  );
+  let edited = format!("{with_section}\n## Hand Added\n\nTEXT\n");
+  assert_ne!(
+    with_section, rendered,
+    "the section arm must actually plant one"
+  );
+
+  let refused =
+    views::info_read_back(&thread, &ctx(), &edited).expect_err("both faults must refuse");
+
+  assert!(
+    refused.iter().any(|s| s.contains("## Scope")),
+    "the added section must still be named: {refused:?}"
+  );
+  assert!(
+    refused
+      .iter()
+      .any(|s| s.contains("after the trailing banner")),
+    "and so must the appended text: {refused:?}"
   );
 }
 
