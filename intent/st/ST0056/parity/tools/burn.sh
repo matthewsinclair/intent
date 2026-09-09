@@ -63,6 +63,40 @@ set -uo pipefail
 WT="${WT:?set WT}"
 cd "$WT"
 
+# THE SUBJECT IS REQUIRED, AND REFUSING IS THE POINT.
+#
+# burn.sh measures the DELTA between a run under the default INTENT_BIN and a
+# run under INTENT_BIN=/usr/bin/false. The mutant arm pins its subject inline
+# at the call site, so it is recoverable from this file forever. The default
+# arm bound NOTHING and inherited whatever was ambient -- so the one arm whose
+# subject actually varies was the one arm with no provenance, and the TSV
+# recorded neither the value nor the fact that it was inherited.
+#
+# The cost of that is not "we probably measured the wrong binary". It is worse:
+# INTENT_BIN is an environment variable with a default, so whoever ran this may
+# have exported anything, and the artefact recorded neither the default nor an
+# override. THE SUBJECT OF burn-baseline.tsv (last written 2026-08-14, four days
+# before v3 self-hosting) IS UNRECOVERABLE IN BOTH DIRECTIONS -- no re-reading
+# settles it and no evidence exists either way.
+#
+# Defaulting here would be a second home for a rule that already lives in
+# tests/lib/test_helper.bash, and the estate demonstrably has TWO of those
+# already: test_helper.bash defaults to the v2 SHELL script at
+# ${INTENT_BIN_DIR}/intent, tests/conformance/run_v2_suite.bash defaults to
+# $ROOT/target/debug/intent. A third copy here would not resolve that, it would
+# hide it. So this refuses instead, exactly as WT above refuses -- same shape,
+# same file, two lines apart.
+INTENT_BIN="${INTENT_BIN:?burn.sh: set INTENT_BIN explicitly (an inherited default silently decides WHICH CLI is measured, and the TSV cannot record that it was inherited)}"
+[ -x "$INTENT_BIN" ] || { echo "burn.sh: INTENT_BIN=$INTENT_BIN is not executable" >&2; exit 2; }
+export INTENT_BIN
+
+# Ask the subject what it is rather than deriving it from the path. A path is
+# not an identity: target/release/intent is a shared artefact peers rebuild, so
+# the same path names a different binary on different days.
+BURN_SUBJECT_VERSION="$("$INTENT_BIN" --version 2>&1 | head -1)"
+[ -n "$BURN_SUBJECT_VERSION" ] || BURN_SUBJECT_VERSION="(no --version output)"
+echo "burn.sh: subject INTENT_BIN=$INTENT_BIN -- $BURN_SUBJECT_VERSION" >&2
+
 # OPT-IN TAP CAPTURE. With BURN_TAP_DIR set, both runs' raw TAP output is kept
 # per file, so a downstream tool can name WHICH tests burn rather than only how
 # many. This exists so per-test adjudication does not need its own copy of the
@@ -82,7 +116,15 @@ if [ -n "$BURN_TAP_DIR" ]; then
 fi
 tap_slug() { printf '%s' "$1" | tr '/' '_'; }
 
-printf 'FILE\tTESTS\tDEFAULT_FAIL\tBURN\tSTATUS\n'
+# The subject rides on the HEADER line, which is the one line every consumer
+# already skips by construction -- gen_register.sh uses `tail -n +2` and
+# `NR>1`, both of which hardcode "the header is exactly line 1". A provenance
+# line ABOVE or BELOW the header would be read as data by both. Extra fields on
+# line 1 are free, the data rows keep their five columns, and the artefact
+# finally answers for its own subject without a sidecar that can be separated
+# from it.
+printf 'FILE\tTESTS\tDEFAULT_FAIL\tBURN\tSTATUS\tSUBJECT=%s\tVERSION=%s\n' \
+  "$INTENT_BIN" "$BURN_SUBJECT_VERSION"
 
 for f in $(find tests -name '*.bats' | sort); do
   total=$(grep -c '^@test' "$f" 2>/dev/null || echo 0)
