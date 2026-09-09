@@ -3,7 +3,6 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
 heartbeat_at: 2026-09-09 18:33Z
 status: active
 focus: "LOCALFOLD 2026-09-09 18:32Z before a compact; status stays active. DELIVERED: TN001 enforcement (two rules + a transition tripwire + testkit consolidated + the orphan guard single-homed 3 copies to 1), AC-02.3 satisfied and re-driven, the commit-msg attribution guard, issues 0288-0293. ST0068 is 6/9; the gate is 26 unsatisfied, 6 cut-blocked, 20 engineering -- RUN THE VERB, this figure rots. THREE ERRORS OF MINE, ALL ONE SHAPE: 0285 and 0292 filed with a correct measurement and a REVERSED conclusion (0292 asked to RESTORE Claude attribution on commits, which CLAUDE.md forbids in capitals and I had read that morning), and I nearly filed a false defect against intent issues edit on hv's instruction when the cause was my own git reset --hard. A DIRECTION IS A CLAIM AND MUST BE WORKED, NOT REACHED FOR. FIRST THING NEXT: AC-15.1's triage table, then AC-15.2's three unmeasured axes, then ST0068 AC-03.1/03.2 which are mine and were missing from this board until today."
