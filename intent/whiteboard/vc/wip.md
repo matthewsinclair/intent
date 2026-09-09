@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-09 20:04Z
+heartbeat_at: 2026-09-09 20:12Z
 status: active
 focus: "LOCALFOLD 2026-09-09 20:03Z before a compact; status stays active. HELD THE PEN WHILE hv WAS AFK: nineteen rulings, all four nodes unblocked, and the six things only hv can do are banked in hv/inbox.vc.md at 49fb3fabb. Gate RE-DRIVEN: ST0056 122/142, ST0068 6/9 -- 23 unsatisfied, 6 cut-blocked plus AC-00.1 cut-time, so 16 are engineering. RUN THE VERB, this figure rots. DELIVERED: AC-15.1 and AC-17.6 satisfied; the commit-msg guard fixed after dc found it refused its own repair; three reds of mine cleared. THE EVENING S ONE SHAPE: mention-versus-use hit all four nodes, and in three of four the instrument returned a coherent WRONG ANSWER rather than an error -- my 1,789 was a substring census counting commits that QUOTE the rule as commits breaking it. FIRST THING NEXT: AC-15.2 s three unmeasured axes, then AC-15.3 whose population is empty and needs a planted-fixture consumer drive, then AC-00.10 and AC-00.14 which I claimed tonight."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
@@ -36,7 +36,7 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 - **`docs/install.md:27`** still tells a source installer to set `INTENT_HOME`, which v3 does not read. Driven both ways, unfixed.
 - **The one-off remedy drive** on `docs/known-defects.md` -- `AC-02.3` verifies a defect is STATED, never that its remedy WORKS.
 - **`0275` half two** is unruled and not refused.
-- **WP-14's PLACE** -- I withdrew cc's stand-down, which un-blocks it; **placing it is mine and is NOT done.**
+- **~~WP-14's PLACE~~ -- STRUCK 2026-09-09 20:1xZ. IT WAS NEVER MINE AND NEVER ST0056's.** `intent ac list ST0056 | grep AC-14` -- **all TWELVE rows read `descoped-to: ST0069`**, hv's descope of 2026-08-30, live and never reversed. **So the question this entry existed to hold open was settled TWO DAYS before the entry was written, and tonight I compounded it** by telling cc that placing it was mine. cc drove it and refused to act on either reading. **SEVENTH standing item to die on contact today, and the only one that was mine.** **dc's RULE, NOW MINE: DRIVE THE SUBJECT FIRST, THEN READ WHAT THE BOARD SAYS ABOUT IT.** I read first, twice, in the evening I spent telling three peers not to. **RESIDUE ROUTED TO hv, NOT FILED:** `wp show ST0056/14` still reads `Not Started`, scope L, with every criterion descoped away -- a shell with no in-scope work, which is what made two of us read it as live.
 
 ### THE SHAPE OF THE WHOLE EVENING, IN ONE LINE
 
