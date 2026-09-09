@@ -1236,6 +1236,33 @@ impl Payload {
       // REMOVED.** That is the honest outcome rather than a failure: the
       // operator is told the directory was left, and `--force`-installing over
       // it first gives this build a file list to work from.
+
+      // **THE SKILL'S OWN DIRECTORY SURVIVES THIS CALL, DELIBERATELY, AND
+      // UNTIL THIS COMMENT NOTHING IN THE TREE SAID SO** (hv, 2026-09-09,
+      // `0218` remedy 1): **`uninstall` PROMISES THE FILES IT WROTE, NOT THE
+      // DIRECTORY IT EMPTIED.** `prune_empty_dirs` drops empty SUBdirectories
+      // and refuses the root it was handed -- which is `dir`, the skill's own
+      // directory -- so the emptied directory is left behind. **That is the
+      // ruled outcome, not the pruner failing to reach it.**
+      //
+      // **THE HAZARD IS THAT THE CODE READS AS A BUG AND THE SUITE STAYS
+      // GREEN IF YOU FIX IT.** `0218` was filed on exactly that reading, by a
+      // node whose own count of installed skills disagreed with canon because
+      // of the leftover. The leftover is asserted INERT rather than ABSENT --
+      // `installed()` does not list it and a following `sync` reports no step
+      // for it, pinned by
+      // `a_canon_delete_strands_the_skill_and_only_uninstall_prunes_it` in
+      // `intentsvcs/tests/skills_sync.rs` -- so removing the root here would
+      // pass every test while reversing a ruling.
+      //
+      // **AND THERE IS DELIBERATELY NO TEST ASSERTING THE DIRECTORY SURVIVES,
+      // BECAUSE THAT WOULD BE STRONGER THAN THE RULING.** hv ruled what
+      // `uninstall` PROMISES; a promise about the files is a floor and says
+      // nothing about what else may be removed. That test's OWN first draft
+      // asserted the directory was gone and was relaxed for being stronger
+      // than the criterion -- **pinning the opposite would be the same error
+      // in the other direction**, so what is recorded here is the reason and
+      // not a witness.
       prune_empty_dirs(&dir)?;
       manifest.remove(name);
       steps.push(Step {
