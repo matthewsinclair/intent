@@ -1500,3 +1500,32 @@ cc inferred that clearing the sibling-staleness reds is what made tonight acute 
 **WHAT I HAVE NOT ESTABLISHED, AND IT DECIDES HOW URGENT THIS IS:** whether `organize --apply` actually prunes a thread directory containing 312 non-view files, or whether it removes only the realised VIEWS (`info.md`, `acceptance.md`) as it did for `ST0066` and leaves the rest. **`0293` records `pruned: intent/st/ST0066` -- the whole directory -- but `ST0066` may have held nothing else.** That is one drive and it is the difference between a hazard and a certainty. **I am not driving it, because driving it means dehydrating a thread on a live shared tree, which is the action that started `0293`.**
 
 **THE ASK IS ONE SENTENCE IN `AC-12.1`, NOT A FIX:** when you rule on the parity fixtures, rule on the ruling records and the guard in the same breath, because they share a fate and only one of the three is currently written down.
+
+## (2026-09-09 23:21Z) Re: 22:29Z -- THE FREEZE IS PROTECTING OUR WORK AND NOT SLOWING THE CAUSE
+
+**MEASURED SINCE THE ESCALATION, AND IT ARGUES AGAINST LEAVING THE REAP UNTIL MORNING.**
+
+    intent.db-wal   251 MB at the escalation  ->  559 MB now (~45 min)
+    intentd events  last 60 min 234 | last 30 min 193 | last 10 min 76 | last 5 min 24
+
+**THE PREVIOUS THIRTY MINUTES CARRIED ONLY 41 OF THAT 234**, so the rate did not drift up -- it stepped, around 22:50, from roughly 40-50/hour to between 290 and 460/hour depending on the window.
+
+**AND THE POPULATION IS UNCHANGED AT 64 PROCESSES / 33 STORE-HOLDERS**, driven just now. So this is not more daemons; it is more work per daemon.
+
+**THE EXPLANATION FITS AND IS UNCOMFORTABLE: THE FREEZE STOPPED CANON WRITES AND DID NOT STOP THE INGEST, BECAUSE COMMITS CHANGE THE DISK AND 33 DAEMONS INGEST EVERY CHANGE.** Four nodes committing hard through the freeze is exactly what the step at 22:50 corresponds to. **So the mitigation protects our WORK -- no node's canon write can be silently reverted while nobody is making any -- and does nothing whatever about the growth.**
+
+**A SECOND LIMIT ON THE FREEZE, FOUND BY HITTING IT: IT DOES NOT STOP THE DAEMONS WRITING CANON.** I edited a shell tool under `intent/st/ST0056/parity/tools/`, moved no row and ran no `st attach`, and **canon's recorded sha256 for that attachment became the worktree's on its own.** `canon_commit_check.sh` then refused the commit, correctly, because canon named bytes the commit did not carry. **Every node has been told: a commit touching an ST attachment must now carry `intent/.canon/st/<ID>.json` with it, and the canon diff must be inspected before staging** -- under these conditions an unexpected row change in that diff is either a peer's work riding along or a reverted write reappearing.
+
+**NOTHING HERE CHANGES THE ASK OR ITS SHAPE.** Clear them, **and** rule on store isolation, because reaping alone is a one-night fix. **What has changed is the cost of waiting: the WAL more than doubled in forty-five minutes with the estate deliberately not writing to it.**
+
+## (2026-09-09 23:23Z) Re: 22:29Z -- THE DAEMONS ARE NOT A MANGLER, AND THE REAP NOW HAS A POST-CONDITION
+
+**TWO CORRECTIONS THAT MAKE THE ASK SMALLER AND MORE CHECKABLE. Neither changes what is being asked for.**
+
+**1. THE DAEMONS ARE INGESTING CORRECTLY. NOTHING IS BEING CORRUPTED.** dc hashed every one of `ST0056`'s **325 attachments** against its recorded `sha256` and I re-drove it independently: **0 diverge, 0 absent on disk, 325 agree.** So `disk.sync_from_disk` does exactly what its name says. **The defect is not that it does the wrong thing -- it is that it does the right thing at moments nobody asked for, and that 33 processes holding a read/write handle is what stops the WAL checkpointing.** My own canon-refusal case earlier was them catching up to a real edit of mine, not mangling it, and the escalation above should be read with that in it.
+
+**2. THE REAP NOW HAS A CHEAP POST-CONDITION, WHICH IS dc's AND IS THE FIRST THING THAT MAKES IT VERIFIABLE RATHER THAN MERELY DONE.** After clearing them, **re-run that 325-attachment hash. If it stays at zero divergence, nothing was mid-flight when they died.** One command, and it converts "we killed 33 processes and hope" into a checked outcome.
+
+**AND A DEFECT IN MY OWN BROADCAST RULE, CORRECTED TO ALL THREE NODES, because its failure mode was the thing it was written to prevent.** I told the fleet that a commit touching an ST attachment must carry that thread's canon. **I did not say how to determine a file IS an attachment, and the obvious test lies.** dc drove it: `grep -rl 'devbin/cmd/local' intent/.canon/st/` returns **ST0058 and ST0056**, and `attachments[].path` says **neither holds it** -- both merely name it in prose. **Following the grep would stage two canon files carrying other nodes' in-flight rows: the exact entanglement that cost dc and me an hour, reached by complying correctly.** The rule now carries its test: **read `attachments[].path` as structured data, never grep a canon file for a path.**
+
+**That is mention-versus-use for the fifth distinct time today, and the first time in a PROCEDURE rather than in an instrument.** A compliance rule whose obvious test fails toward the harm it guards against is worse than no rule, and that one was mine.
