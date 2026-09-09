@@ -46,6 +46,11 @@ final class TailOrphanTests: XCTestCase {
   /// results.
   private func runProbe(arm: String, signal: String, stateDir: URL) throws -> String {
     let process = Process()
+    // **`/bin/bash` IS 3.2.57 ON macOS AND IS NOT `bash` ON PATH (5.3.15 here).**
+    // That difference is not incidental: the probe's first version used
+    // `BASHPID`, which is bash 4.0+, so every cell died before writing a pid
+    // file under `xcodebuild` while running perfectly for its author. Drive the
+    // probe with `/bin/bash` when checking it by hand, never with `bash`.
     process.executableURL = URL(fileURLWithPath: "/bin/bash")
     process.arguments = [probePath, arm, signal, stateDir.path]
     let pipe = Pipe()
@@ -91,6 +96,38 @@ final class TailOrphanTests: XCTestCase {
           verdict, "LEAKED",
           "control arm under SIG\(signal): the probe must be able to observe a leak, got \(verdict)")
       }
+    }
+  }
+
+  /// RIG SELF-TEST. The probe has a third verdict -- `probe-indeterminate`, for
+  /// when the tail is alive and the runtime has not been reaped, so neither
+  /// `clean` nor `LEAKED` is available -- and this asserts it can actually be
+  /// produced.
+  ///
+  /// **IT EXISTS BECAUSE THE THIRD VERDICT WAS UNREACHABLE WHEN IT WAS FIRST
+  /// WRITTEN, AND ONLY TRYING TO FIRE IT FOUND THAT OUT.** Shrinking the poll
+  /// budget to a single tick did not reach it: on this machine reparenting is
+  /// effectively instantaneous, so the runtime is already gone and the tail
+  /// already shows a new parent by the first iteration. **A verdict that cannot
+  /// be produced is decoration, and it would have been decoration in the very
+  /// branch added to stop a misreading.**
+  ///
+  /// The `stubborn` arm traps the signal so the runtime SURVIVES it, which is
+  /// the one state where the tail is alive under its ORIGINAL parent. The
+  /// negative control is the same arm under SIGKILL, which cannot be trapped
+  /// and must therefore come back LEAKED -- so the indeterminate is a property
+  /// of the runtime surviving rather than of the arm being special.
+  func testTheProbeCanReportIndeterminateRatherThanGuessing() throws {
+    try withStateDir { dir in
+      let stuck = try runProbe(arm: "stubborn", signal: "TERM", stateDir: dir)
+      XCTAssertTrue(
+        stuck.hasPrefix("probe-indeterminate"),
+        "the probe must be able to say it does not know, got: \(stuck)")
+
+      let killed = try runProbe(arm: "stubborn", signal: "KILL", stateDir: dir)
+      XCTAssertTrue(
+        killed.hasPrefix("LEAKED"),
+        "negative control: SIGKILL cannot be trapped, so the same arm must reach a real verdict, got: \(killed)")
     }
   }
 }

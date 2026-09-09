@@ -15,44 +15,121 @@
 #   guarded  the wrapper reads its own stdin and the runtime holds the write
 #            end. The runtime's death closes it HOWEVER IT DIES -- SIGKILL
 #            included, which no handler can intercept -- the read returns EOF,
-#            and the wrapper takes its own process group down. This is the
-#            remedy ruled for `0281` on 2026-09-09 (option (i)).
-#   plain    the runtime spawns the tail directly. This MUST leak. It is the
-#            control: a probe whose arms cannot disagree has not been shown to
-#            measure anything, and "no tail running" is also what you get from
-#            a probe that never started one.
+#            and the wrapper takes its own process group down. Ruled for `0281`
+#            on 2026-09-09, option (i).
+#   plain    the runtime spawns the tail directly. This MUST leak. A probe
+#            whose arms cannot disagree has not been shown to measure anything.
 #
-# THE PRECONDITION IS ASSERTED BEFORE ANY RESULT IS TRUSTED, and it is the
-# constraint `0281`'s ruling carries: the runtime must be its own process-group
-# leader. If it is not, `kill -TERM 0` in the wrapper names somebody else's
-# group -- so the probe REFUSES rather than reporting a clean run it cannot
-# justify. That refusal fired on this probe's first execution and was a real
-# bug in it ($$ inside a subshell reports the PARENT's pid; $BASHPID is the
-# subshell's own), which is the argument for the assertion being here at all.
+# THREE VERDICTS, NOT TWO, AND THE THIRD IS WHY (dc, 2026-09-09):
+#
+#   clean                 the tail is gone.
+#   LEAKED                the tail is ALIVE and its original parent is GONE.
+#   probe-indeterminate   the tail is alive and the runtime has not been reaped
+#                         yet, so neither statement is available.
+#
+# **A TWO-VERDICT PROBE FAILS IN THE DIRECTION NOBODY CHECKS.** With only
+# clean/LEAKED, a loaded machine that has not finished reaping the runtime
+# reports the control arm as `clean` -- and a reader scanning results sees the
+# leak as FIXED. That is the worst available misreading. The third verdict is
+# unmisreadable by construction: nobody mistakes `probe-indeterminate` for a
+# fix.
+#
+# **AND THE PREDICATE IS `ppid != RUNTIME`, NOT `ppid == 1` (dc's correction).**
+# The property meant is *its original parent is gone*; `1` is what that looks
+# like on this machine because launchd reaps, and a subreaper would satisfy the
+# same property with a different pid. **The claim is asserted, the observation
+# is reported.** Hardcoding the observation is a real measurement of an adjacent
+# property -- the defect class that cost this estate an entire evening on
+# 2026-09-09.
+#
+# **THE POLL BUDGETS ARE DELIBERATELY NOT SHARED**, because the arms fail in
+# opposite directions. The guarded arm can false-FAIL on a loaded machine (the
+# wrapper must be scheduled to notice EOF) -- loud and safe. The control arm
+# can false-`clean` -- quiet and dangerous. The settle condition is per-arm and
+# structural, so neither can report a verdict it has not observed.
+#
+# **THE RUNTIME MUST BE ITS OWN PROCESS-GROUP LEADER OR THE PROBE REFUSES.**
+# That is `0281`'s ruling constraint: `kill -TERM 0` in the wrapper names
+# another group otherwise. It fired on this probe's first execution and caught
+# a real bug in the probe rather than in the subject ($$ inside a subshell
+# reports the PARENT's pid; $BASHPID is the subshell's own).
+# **THE INTERPRETER IS PART OF THE CONTRACT AND IT IS NOT THE ONE ON `PATH`
+# (dc, 2026-09-09, found by running this file under `xcodebuild`).**
+# `TailOrphanTests.swift` sets `executableURL = /bin/bash` explicitly, and on
+# macOS `/bin/bash` is **3.2.57** while `bash` on PATH here is Homebrew's
+# **5.3.15**. `BASHPID` is bash 4.0+, so the original `$BASHPID` in each arm was
+# an UNBOUND VARIABLE under `set -u` at line 39 -- fatal before a single pid
+# file was written, which surfaced as `probe-error: the arm never started` on
+# all six cells while running perfectly for its author.
+#
+# **EVERY RESULT THIS PROBE PRODUCED BEFORE THAT FIX RAN ON AN INTERPRETER THE
+# TEST NEVER USES.** The substitute below is POSIX and version-independent:
+# `sh -c 'echo $PPID'` inside the subshell returns the SUBSHELL's own pid,
+# driven under both 3.2.57 and 5.3.15. **Drive this file with `/bin/bash`, never
+# with `bash`** -- they are different programs on this machine, and the house
+# notes already carry the class (`no declare -A`, `no ${VAR^}`); `BASHPID`
+# belongs on that list.
 set -u
-ARM="${1:?arm: guarded|plain}"; SIG="${2:?signal: TERM|INT|KILL}"; DIR="${3:?state dir}"
-rm -f "$DIR"/tail.pid "$DIR"/rt.pid "$DIR"/rt.pgid
+ARM="${1:?arm: guarded|plain|stubborn (self-test)}"; SIG="${2:?signal: TERM|INT|KILL}"; DIR="${3:?state dir}"
+SETTLE_TRIES="${PROBE_SETTLE_TRIES:-40}"   # x 0.4s -- generous; both arms settle structurally
+rm -f "$DIR"/tail.pid "$DIR"/rt.pid "$DIR"/rt.pgid "$DIR"/ctl
+mkfifo "$DIR/ctl"
 
 set -m   # job control -- the runtime subshell becomes its own group leader
-if [ "$ARM" = "guarded" ]; then
+if [ "$ARM" = "stubborn" ]; then
+  # RIG SELF-TEST ARM, not a production arm. The runtime IGNORES the signal, so
+  # the tail stays alive with its ORIGINAL parent -- the one state in which
+  # neither `clean` nor `LEAKED` is available. Without this arm
+  # `probe-indeterminate` is unreachable, and a verdict that cannot be produced
+  # is decoration rather than a verdict. Driven: on this machine reparenting is
+  # effectively instantaneous, so shrinking the poll budget does NOT reach the
+  # third state -- only a runtime that survives its signal does.
   (
-    echo $BASHPID > "$DIR/rt.pid"
-    ps -o pgid= -p $BASHPID | tr -d ' ' > "$DIR/rt.pgid"
-    exec 3> >(
-      tail -f /dev/null &
-      echo $! > "$DIR/tail.pid"
-      while read -r _; do :; done
-      kill -TERM 0 2>/dev/null
-    )
-    sleep 120
-  ) &
-else
-  (
-    echo $BASHPID > "$DIR/rt.pid"
-    ps -o pgid= -p $BASHPID | tr -d ' ' > "$DIR/rt.pgid"
+    trap '' TERM INT
+    RT_SELF=$(sh -c 'echo $PPID')          # bash 3.2 has no BASHPID -- see header
+    echo "$RT_SELF" > "$DIR/rt.pid"
+    ps -o pgid= -p "$RT_SELF" | tr -d ' ' > "$DIR/rt.pgid"
     tail -f /dev/null &
     echo $! > "$DIR/tail.pid"
     sleep 120
+  ) &
+elif [ "$ARM" = "guarded" ]; then
+  (
+    RT_SELF=$(sh -c 'echo $PPID')          # bash 3.2 has no BASHPID -- see header
+    echo "$RT_SELF" > "$DIR/rt.pid"
+    ps -o pgid= -p "$RT_SELF" | tr -d ' ' > "$DIR/rt.pgid"
+    # THE RUNTIME MUST BE THE SOLE HOLDER OF THE WRAPPER'S STDIN WRITE END,
+    # AND NO DESCENDANT MAY INHERIT IT. Both halves are load-bearing and both
+    # were found by driving this under /bin/bash 3.2.57 -- see the header.
+    #   `3>&-`      the wrapper must not hold the write end itself, or its own
+    #               read never sees EOF.
+    #   `exec`      the runtime must not fork a child that inherits fd 3; an
+    #               ordinary `sleep` keeps the pipe open after the runtime dies.
+    # A FIFO rather than `>(...)`: bash 3.2 process substitution does not close
+    # the write end on the runtime's death and the wrapper blocks forever.
+    ( tail -f /dev/null &
+      echo $! > "$DIR/tail.pid"
+      while read -r _; do :; done < "$DIR/ctl"
+      kill -TERM 0 2>/dev/null ) 3>&- &
+    exec 3> "$DIR/ctl"
+    exec sleep 120
+  ) &
+else
+  (
+    RT_SELF=$(sh -c 'echo $PPID')          # bash 3.2 has no BASHPID -- see header
+    echo "$RT_SELF" > "$DIR/rt.pid"
+    ps -o pgid= -p "$RT_SELF" | tr -d ' ' > "$DIR/rt.pgid"
+    tail -f /dev/null &
+    echo $! > "$DIR/tail.pid"
+    # `exec` FOR THE SAME REASON THE GUARDED ARM HAS IT, AND THE REASON IS THE
+    # CONTROL RATHER THAN THE MECHANISM. Without it this arm's runtime stays a
+    # backgrounded bash subshell, which IGNORES SIGINT, while the guarded arm's
+    # runtime has exec'd into `sleep`, which does not. The arms would then
+    # differ in TWO ways -- the remedy and the runtime's signal disposition --
+    # and a control that varies more than the axis under test isolates nothing.
+    # Measured before this line existed: plain/INT returned probe-indeterminate
+    # because the runtime simply never died.
+    exec sleep 120
   ) &
 fi
 set +m
@@ -70,8 +147,22 @@ RT=$(cat "$DIR/rt.pid"); TL=$(cat "$DIR/tail.pid"); PG=$(cat "$DIR/rt.pgid")
 kill -0 "$TL" 2>/dev/null || { echo "probe-error: tail not alive before the signal"; exit 2; }
 
 kill "-$SIG" "$RT" 2>/dev/null
-for _ in $(seq 1 15); do kill -0 "$TL" 2>/dev/null || break; sleep 0.4; done
 
-if kill -0 "$TL" 2>/dev/null; then echo "LEAKED"; else echo "clean"; fi
+VERDICT="probe-indeterminate"; PPID_SEEN=""
+for _ in $(seq 1 "$SETTLE_TRIES"); do
+  if ! kill -0 "$TL" 2>/dev/null; then VERDICT="clean"; break; fi
+  PPID_SEEN=$(ps -o ppid= -p "$TL" 2>/dev/null | tr -d ' ')
+  # SETTLED only when the original parent is demonstrably gone -- not when a
+  # timer expired. `1` is what that looks like here; the claim is `!= RT`.
+  if [ -n "$PPID_SEEN" ] && [ "$PPID_SEEN" != "$RT" ]; then VERDICT="LEAKED"; break; fi
+  sleep 0.4
+done
+
+case "$VERDICT" in
+  clean)  echo "clean" ;;
+  LEAKED) echo "LEAKED (tail $TL alive, reparented to ppid=$PPID_SEEN, original parent $RT gone)" ;;
+  *)      echo "probe-indeterminate: tail $TL alive, ppid=$PPID_SEEN, runtime $RT not yet reaped -- NOT a clean result" ;;
+esac
 kill -9 "$TL" "$RT" 2>/dev/null
+[ "$VERDICT" = "probe-indeterminate" ] && exit 3
 exit 0
