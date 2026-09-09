@@ -65,13 +65,29 @@ fi
 
 # HARD DEPENDENCY, ON PURPOSE. A wrapper that drops its own guard when a file
 # goes missing is worse than one with no guard, because it still looks guarded.
-for lib in artefact currency; do
+for lib in artefact sharedtarget currency; do
   libpath="$(dirname "${BASH_SOURCE[0]}")/shared/$lib.lib"
   [ -r "$libpath" ] ||
     die "cannot read $libpath -- refusing to exec without the currency check"
   # shellcheck disable=SC1090
   . "$libpath"
 done
+
+# THE PRECONDITION IS ASSERTED HERE RATHER THAN INFERRED FROM THE VERDICT.
+# `currency.lib` deliberately does not source `sharedtarget.lib` (its own header
+# says so), so the scope array is THIS CALLER's responsibility to bring. When it
+# was missing, `_build_inputs_changed` returned `noscope` in its first statement
+# -- before `base` was read and before git was called -- and the refusal below
+# printed prose about a binary nothing had examined. `int cli` refused every
+# invocation for four days on that path and the one surface that would have
+# reported it is the surface that broke (issue 0294).
+#
+# A MISSING PRECONDITION IS THIS FILE'S DEFECT AND MUST NOT WEAR THE ARTEFACT'S
+# WORDS. Adding `sharedtarget` to the loop above fixes today; this assertion is
+# what stops the next edit of that list from regressing in silence.
+if [ -z "${SHARED_TARGET_DIRT_SCOPES+x}" ] || [ "${#SHARED_TARGET_DIRT_SCOPES[@]}" -eq 0 ]; then
+  die "SHARED_TARGET_DIRT_SCOPES is undeclared after sourcing -- this wrapper failed to bring its own precondition, and that is a defect HERE and not a fact about the binary. remedy: check the source list above includes every lib the verdict needs; \`int local build\` cannot clear this."
+fi
 
 verdict="$(artefact_currency_verdict "$release_dir" "$PROJECT_ROOT")"
 case "$verdict" in
@@ -81,9 +97,13 @@ case "$verdict" in
     ;;
   refuse:*)
     printf 'error: %s\n' "${verdict#refuse:}" >&2
+    # THE REASON SPEAKS AND THIS CALLER DOES NOT SPEAK OVER IT. These two lines
+    # used to assert "the binary really does not describe this tree" on EVERY
+    # refusal. Two of the five reasons say exactly that already and say it more
+    # precisely; the other three say currency CANNOT BE DECIDED, and the prose
+    # contradicted them in the confident direction. A caller must not conclude
+    # what its library declined to conclude (issue 0294).
     printf "  remedy: run 'int local build' -- it rebuilds and verifies the SET.\n" >&2
-    printf '  This refusal is the guard working. The binary really does not describe\n' >&2
-    printf '  this tree, and a v3 answer from it would be about a tree you are not on.\n' >&2
     exit 1
     ;;
   *)
