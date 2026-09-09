@@ -34,11 +34,42 @@ import XCTest
 final class TailOrphanTests: XCTestCase {
   private static let signals = ["TERM", "INT", "KILL"]
 
-  private var probePath: String {
-    URL(fileURLWithPath: #filePath)
+  /// Where the probe is read from, and why there are two answers.
+  ///
+  /// **`#filePath` IS THE SOURCE TREE AND IS ALWAYS CURRENT; THE BUNDLE COPY IS
+  /// WHAT SHIPS AND MAY BE STALE.** Reading only the source makes the test's
+  /// correctness depend on the checkout existing at test time -- fine when run
+  /// from the repo, and not a property to rely on (dc, 2026-09-09). Reading
+  /// only the bundle would silently exercise an old copy if Xcode ever failed
+  /// to re-copy the resource.
+  ///
+  /// **SO BOTH ARE RESOLVED AND, WHERE BOTH EXIST, REQUIRED TO AGREE.** A
+  /// divergence means the bundled probe is not the probe under review, and
+  /// that is a failure rather than something to pick a winner for. The source
+  /// wins when both are present, because it is the one the author just edited.
+  private func probePath() throws -> String {
+    let source = URL(fileURLWithPath: #filePath)
       .deletingLastPathComponent()
       .appendingPathComponent("tail-orphan-probe.sh")
-      .path
+    let bundled = Bundle(for: Self.self).url(forResource: "tail-orphan-probe", withExtension: "sh")
+    let fm = FileManager.default
+
+    switch (fm.fileExists(atPath: source.path), bundled) {
+    case (true, let b?):
+      let a = try Data(contentsOf: source)
+      let c = try Data(contentsOf: b)
+      XCTAssertEqual(
+        a, c,
+        "the bundled probe differs from the source probe -- the test would exercise a copy that is not under review")
+      return source.path
+    case (true, nil):
+      return source.path
+    case (false, let b?):
+      return b.path
+    case (false, nil):
+      XCTFail("no probe found: neither \(source.path) nor a bundled tail-orphan-probe.sh")
+      return source.path
+    }
   }
 
   /// Runs one cell and returns the probe's LAST line, which is the verdict
@@ -62,7 +93,7 @@ final class TailOrphanTests: XCTestCase {
     // file under `xcodebuild` while running perfectly for its author. Drive the
     // probe with `/bin/bash` when checking it by hand, never with `bash`.
     process.executableURL = URL(fileURLWithPath: "/bin/bash")
-    process.arguments = [probePath, arm, signal, stateDir.path]
+    process.arguments = [try probePath(), arm, signal, stateDir.path]
     let pipe = Pipe()
     process.standardOutput = pipe
     process.standardError = pipe
