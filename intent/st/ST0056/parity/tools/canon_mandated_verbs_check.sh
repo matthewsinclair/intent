@@ -170,7 +170,12 @@ fi
 # row. Excluded here so it is not reported for every entry -- and that absence
 # is itself a table-versus-code gap, recorded rather than fixed by this tool.
 SPINE_GLOBALS="--daemon"
-INTRINSIC="$(jq -r '[.families[].entries[].flags[]? | select(.disposition=="intrinsic") | .spellings[]] | unique | join(" ")' "$TABLE_JSON")"
+# INTRINSIC is assigned BELOW, beside TABLE_JSON. It used to sit here and read
+# $TABLE_JSON forty lines before that variable was assigned, so under `set -u`
+# the substitution failed and INTRINSIC was ALWAYS EMPTY -- with the unbound
+# error landing on stderr among forty lines of green output. It is an EXCLUSION
+# list, so the arm was over-strict rather than blind and its greens still held;
+# the cost was a phantom gap waiting for the first intrinsic flag canon named.
 
 # ONE function for the verdict AND both controls. **A control running its own
 # parallel comparison proves only that the comparison works** -- mutation
@@ -217,6 +222,7 @@ undeclared_spellings() {
 
 TABLE_JSON="${TABLE_JSON:-$root/surface/dispatch-table.json}"
 [ -f "$TABLE_JSON" ] || { echo "canon-verbs: REFUSING -- no dispatch table at $TABLE_JSON" >&2; exit 2; }
+INTRINSIC="$(jq -r '[.families[].entries[].flags[]? | select(.disposition=="intrinsic") | .spellings[]] | unique | join(" ")' "$TABLE_JSON")"
 ENTRY_PATHS_BY_LENGTH="$(jq -r '.families[].entries[].path' "$TABLE_JSON" | awk '{print gsub(/ /," ")" "$0}' | sort -rn | cut -d' ' -f2- | tr ' ' '.' | tr '\n' ' ')"
 
 CORPUS="$(mktemp)"; trap 'rm -f "$CORPUS"' EXIT
