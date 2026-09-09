@@ -59,6 +59,13 @@ pub enum RootFileError {
     #[source]
     source: crate::write_set::WriteError,
   },
+  /// The install root could not be resolved, so the template has no address.
+  /// **A DISTINCT VARIANT RATHER THAN A FOLD INTO `Unreadable`**: that one says
+  /// the template is missing from an install we found, and this one says we
+  /// never found the install. The remedies differ and so does what the operator
+  /// should look at.
+  #[error("cannot resolve the Intent install root")]
+  Install(#[source] crate::install::InstallError),
 }
 
 impl crate::remedy::Remedy for RootFileError {
@@ -77,6 +84,10 @@ impl crate::remedy::Remedy for RootFileError {
       Self::Unwritable { .. } => {
         "check the project root is writable and has space -- the file was rendered and could not be put down".to_string()
       }
+      // Delegated rather than restated. `InstallError` already knows the four
+      // ways a resolve fails and carries a remedy for each; a sentence here
+      // would be a fifth answer that cannot see which one happened.
+      Self::Install(source) => crate::remedy::Remedy::remedy(source),
     }
   }
 }
@@ -276,6 +287,41 @@ pub fn sync(
     })?
     .keep();
   Ok(path)
+}
+
+/// Generate one root file from project state and put it on disk, resolving the
+/// install root and the render context for the caller.
+///
+/// **THIS IS THE WRITE HALF OF THE GAP [`crate::facade::Facade::agents_generate`]
+/// CLOSED FOR THE READ HALF** (vc ruling (c), 2026-08-30: the renderer composed
+/// `install::home` + `rootfiles::render` inline, so the CLI face owned an
+/// operation every other face would have had to re-compose). The write side had
+/// the same shape and one more instance of it: `install::home` + a
+/// `RenderContext` + [`sync`] appeared TWICE inside a single `match` block in
+/// the renderer, once for `agents sync` and once for `agents init`.
+///
+/// **`init` IS WHY IT MOVED RATHER THAN WHY IT WAS FOUND.** `intentsvcs::init`
+/// is a third caller and it is not a face at all, so leaving the composition in
+/// the CLI would have put the same four lines in a crate that cannot see them.
+///
+/// **THE WATERMARK IS `None` BY CONSTRUCTION, NOT BY DEFAULT.** Nothing on this
+/// path renders `todo.md`, so there is no cutoff to carry and asking the store
+/// for one would be a read with no reader. A root file that DID need a
+/// watermark would have to call [`sync`] with a context of its own rather than
+/// widen this signature -- the argument this function does not take is the
+/// reason it can be called from `init`, where no store read is available yet.
+pub fn generate(
+  root: &Path,
+  name: &str,
+  cfg: &Config,
+  version: &str,
+) -> Result<PathBuf, RootFileError> {
+  let home = crate::install::home().map_err(RootFileError::Install)?;
+  let ctx = RenderContext {
+    version,
+    todo_watermark: None,
+  };
+  sync(root, &home, name, cfg, &ctx)
 }
 
 // ---------------------------------------------------------------------------

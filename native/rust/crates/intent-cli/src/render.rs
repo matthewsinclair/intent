@@ -9594,13 +9594,6 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("sync", _)) => {
       let f = open()?;
-      let home = intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
-      let ctx = views::RenderContext {
-        version: env!("CARGO_PKG_VERSION"),
-        // Nothing on this path renders `todo.md`, so there is no watermark to
-        // carry and asking the store for one would be a read with no reader.
-        todo_watermark: None,
-      };
       // **THIS VOICE IS v2's AND IT IS NOT TIDIED.** A bare capitalised progress
       // line with a trailing ellipsis, then a line carrying a full stop -- both
       // against the house style issue 0023 spent a release enforcing, both
@@ -9609,12 +9602,18 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
       // it is gone because the backup is, and that deviation was RATIFIED
       // rather than cleaned up -- see `rootfiles::sync`.
       println!("Syncing AGENTS.md with latest project state...");
-      intentsvcs::rootfiles::sync(
+      // **THE INSTALL ROOT AND THE RENDER CONTEXT MOVED INTO
+      // `rootfiles::generate`.** They were composed here and again in the `init`
+      // arm below -- two copies of four lines inside one `match`, which is the
+      // write half of the gap `Facade::agents_generate` closed for the read
+      // half (vc ruling (c), 2026-08-30). `intentsvcs::init` is now a third
+      // caller and cannot see this crate at all, so the composition had to
+      // live below both of us.
+      intentsvcs::rootfiles::generate(
         f.project().root(),
-        &home,
         "AGENTS.md",
         f.project().config(),
-        &ctx,
+        env!("CARGO_PKG_VERSION"),
       )
       .map_err(|e| Failure::Error(e.render()))?;
       println!("ok: AGENTS.md updated at project root.");
@@ -9635,20 +9634,16 @@ fn agents(m: &ArgMatches) -> Result<(), Failure> {
           path.display()
         )));
       }
-      let home = intentsvcs::install::home().map_err(|e| Failure::Error(e.render()))?;
-      let ctx = views::RenderContext {
-        version: env!("CARGO_PKG_VERSION"),
-        todo_watermark: None,
-      };
       println!("Initializing AGENTS.md for Intent project...");
       // The SAME writer `sync` uses. A second write path for a file with one
-      // canonical form is how the two start disagreeing about trailing bytes.
-      intentsvcs::rootfiles::sync(
+      // canonical form is how the two start disagreeing about trailing bytes --
+      // and that is now literally one function rather than two call sites
+      // agreeing by inspection.
+      intentsvcs::rootfiles::generate(
         f.project().root(),
-        &home,
         "AGENTS.md",
         f.project().config(),
-        &ctx,
+        env!("CARGO_PKG_VERSION"),
       )
       .map_err(|e| Failure::Error(e.render()))?;
       println!("ok: AGENTS.md created at project root.");

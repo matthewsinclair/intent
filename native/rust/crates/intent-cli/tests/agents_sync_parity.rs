@@ -276,12 +276,104 @@ fn the_footer_is_stable_across_runs() {
 // `agents init` and `agents validate` -- ST0058 AC-00.3
 // ---------------------------------------------------------------------------
 
-/// A corpus project with NO `AGENTS.md` yet, which `synced()` cannot give.
+/// A corpus project with NO `AGENTS.md`, which now takes a DELETION.
+///
+/// **`intent init` LAYS THE FILE DOWN AS OF hv's 2026-09-09 RULING, so this
+/// fixture can no longer be made by initialising and stopping.** The removal is
+/// the fixture's whole content and is asserted rather than assumed -- a
+/// `remove_file` that silently did nothing would hand every test below a
+/// project that already has the file, and the arms that follow would then pass
+/// for the wrong reason.
+///
+/// **THIS IS ALSO THE CASE `agents init` NOW EXISTS FOR.** Before the ruling it
+/// served the happy path; after it, a project reaches this state by having lost
+/// the file or by predating the ruling, which is exactly what the fixture now
+/// builds.
 fn unsynced() -> tempfile::TempDir {
   let dir = tempfile::tempdir().expect("tempdir");
   let (out, rc) = run(dir.path(), &["init", PROJECT_NAME]);
   assert_eq!(rc, 0, "init a corpus project: {out}");
+  let path = dir.path().join("AGENTS.md");
+  assert!(
+    path.exists(),
+    "init must lay AGENTS.md down -- if this fires, the fixture is deleting nothing and every arm below is vacuous"
+  );
+  std::fs::remove_file(&path).expect("remove the generated AGENTS.md");
   dir
+}
+
+/// **hv's RULING, DRIVEN END TO END: a project born on v3 passes the estate's
+/// own check on its first run.**
+///
+/// Before this, `intent init` wrote `CLAUDE.md` and `intent/` and no
+/// `AGENTS.md`, so `intent agents validate` answered rc=1 --
+/// `error: AGENTS.md not found at project root` -- against a project the tool
+/// had just created. `intent agents init` already did exactly the right thing
+/// and nothing called it.
+///
+/// **THE CHECK IS THE ASSERTION, NOT THE FILE'S EXISTENCE.** A test that only
+/// asked whether the path is there would pass for a zero-byte file, and the
+/// defect being fixed is that the estate's own validator refused -- so the
+/// validator is what gets asked.
+#[test]
+fn a_freshly_initialised_project_passes_the_estates_own_agents_check() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  let (out, rc) = run(root, &["init", PROJECT_NAME]);
+  assert_eq!(rc, 0, "init a corpus project: {out}");
+
+  assert!(
+    root.join("AGENTS.md").exists(),
+    "init must lay AGENTS.md down at the project root: {out}"
+  );
+
+  let (out, rc) = run(root, &["agents", "validate"]);
+  assert_eq!(
+    rc, 0,
+    "the estate's own check must pass on a project the estate just created: {out}"
+  );
+}
+
+/// **THE NEGATIVE CONTROL FOR THE ARM ABOVE, and it is not optional.**
+/// `agents validate` returning 0 proves nothing unless it can return non-zero
+/// on the same corpus -- otherwise a validator that always passes would satisfy
+/// the test that exists to catch a validator that always fails.
+#[test]
+fn the_agents_check_can_actually_refuse() {
+  let dir = unsynced();
+  let (out, rc) = run(dir.path(), &["agents", "validate"]);
+  assert_ne!(
+    rc, 0,
+    "with AGENTS.md removed the check must refuse, or the arm above is vacuous: {out}"
+  );
+}
+
+/// **GENERATED, NOT SEEDED, AND THE DIFFERENCE IS OBSERVABLE.** Flipping
+/// `_AGENTS.md` to a seeded `At` destination would also have made the file
+/// appear -- carrying the template's UNRESOLVED `[[#lang ...]]` blocks, because
+/// `init`'s own `fill` replaces four tokens and resolves no blocks. That
+/// failure would have looked like a template bug rather than a wrong
+/// disposition, so the absence of template markup is asserted here.
+#[test]
+fn the_laid_down_file_is_rendered_rather_than_copied() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  let root = dir.path();
+  let (out, rc) = run(root, &["init", PROJECT_NAME]);
+  assert_eq!(rc, 0, "init a corpus project: {out}");
+  let text = std::fs::read_to_string(root.join("AGENTS.md")).expect("read AGENTS.md");
+
+  assert!(
+    !text.contains("[[#lang"),
+    "an unresolved block survived, so the file was copied rather than rendered"
+  );
+  assert!(
+    !text.contains("[[PROJECT_NAME]]"),
+    "an unsubstituted token survived: the file was copied rather than rendered"
+  );
+  assert!(
+    text.contains(PROJECT_NAME),
+    "the rendered file must carry the project's own name"
+  );
 }
 
 /// **THE HALF-WIRED FAMILY WAS WORSE THAN AN ABSENT ONE.** `agents sync` and
