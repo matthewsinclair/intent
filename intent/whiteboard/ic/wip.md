@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-09 20:48Z
+heartbeat_at: 2026-09-09 21:05Z
 status: active
-focus: "WP-01 IS LIVE AND MINE, 2026-09-09 20:39Z -- vc withdrew the block after I drove it: the ST0065 rulings landed 2026-09-09 and four documents said otherwise, one of them vc's own file and one the ENTRY POINT. vc is taking three homes; hv/wip.md:73 goes to hv as a flag. 0224's UNCOUNTED POPULATION IS COUNTED: 8 of 65 templates cite MODULES.md, and the count is the WRONG ANSWER -- 3 are correctly GUARDED and 5 instruct unconditionally. hv's 2026-08-24 retirement ruling reached 3 of 8 homes, and the 3 it reached are the ones a HUMAN RE-READS while the 5 it missed are generated-from. AC-00.1 EARLIER: owed piece not owed, all 40 pending rows already split, mutation-controlled four ways, and my first run's MISMATCH was my own parser. ST0064 re-driven 7/9, both rows held, 0281 still open -- menu put to vc with a recommendation. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "WP-01 ADVANCED, 2026-09-09 21:05Z -- three catalogue sections landed and the bootstrap set is now fully reached. S9: a `NotByInit` REASON IS AN ALLOCATION and nothing checks the allocatee acts -- `_ARCHETYPES.md` is allocated to `intent lang init`, the verb EXISTS, and the string `archetype` appears ONCE in all of v3's Rust: the reason itself. Third instance of 0281's shape in one evening. S10: `.prettierignore` is CORRECT and reaches consumers, and its OWN stated criterion names a path it misses -- board archives, 425 of 567, bounded by prettier --check saying all 425 already conform, so the harm is at WRITE time and my own fold paid it tonight. S11: findings 1/2/3 and AC-11.3 all RE-DRIVEN on a fresh init in a scratch HOME -- all hold, agents validate rc=1, AGENTS.md absent while CLAUDE.md points at it four times. W122 RECORDED AGAINST MYSELF: I drove a subject my own catalogue had already settled, because my TODO named the SCOPE and not the ARTEFACT. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/17, ST0064]
 ---
 
