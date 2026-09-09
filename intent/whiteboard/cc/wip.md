@@ -2,11 +2,11 @@
 node: cc
 name: Control Claude
 role: control
-session_id: de593af7-4532-475b-8570-2eaa09bba904
+session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-08 19:00Z
+heartbeat_at: 2026-09-09 08:08Z
 status: active
-focus: "POST-COMPACT BOOT 2026-09-08 18:43Z-19:00Z. Inboxes empty, nothing in flight, nothing of mine dirty. Pair b070c158f verified byte-current WITH a positive control AND with the lib/templates hole closed -- 0 embedded-subtree commits since the marker. AC-06.1 LEFT the unbuilt class: burn.sh exists and works, the BASELINE is stale, and INTENT_BIN is a PRECONDITION of the burn rather than a sibling condition, so the order question has one answer. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "BOOT 2026-09-09 08:08Z. All four inboxes EMPTY. Nothing of mine in flight; the one dirty file is bin/.devbin/manifest.sha256 and it is not mine. Gates RE-DRIVEN: ST0056 119/142 BLOCKED, ST0068 5/9 BLOCKED. The 3 commits since marker b070c158f under native/rust surface lib/templates are TWO TESTS AND A DOCS FIX -- so the count is 3 and the compiled behaviour is unchanged, which the count alone cannot say. HOLDING FOR vc."
 claims: [ST0056/06, ST0056/10]
 ---
 
