@@ -298,3 +298,30 @@ Finding 2 prices Intent's own `MODULES.md` at **571,769 bytes** and calls `CLAUD
 **So the catalogue's own corrective figure is now 18% low, and `CLAUDE.md`'s is stale by ~97% rather than 62%.** **And the two halves have moved in OPPOSITE directions** -- bytes nearly doubled while rows went DOWN, 367 to 326 -- so a reader checking only one half would conclude the file had shrunk. **A finding about a stale figure, carrying a figure that went stale inside a month, is the strongest available argument that the number does not belong in the prose at all**: the argument finding 2 actually needs is _too large to read_, which is true at every one of these values and needs none of them.
 
 **Driven that the figure is NOT in the template** -- `grep '354KB' lib/templates/llm/_CLAUDE.md` returns 0 against a positive control of 4 on `Highlander` -- so it is this project's `CLAUDE.md` overlay only and seeds into no other project. **Project-level, and therefore vc's rather than this WP's.**
+
+---
+
+## 10. `.prettierignore` -- **CORRECT**, and its own stated criterion names a path it does not cover
+
+**THE SEEDING HALF IS RIGHT AND IS THE PART WORTH RECORDING AS A VERIFIED NEGATIVE.** `init` calls `facade::converge_formatter_exclusion` (`init.rs:405-407`), which writes the generated-view patterns from `Project::generated_view_patterns` (`project.rs:1359`) -- **one roster, beside the methods that produce the real paths, so the function holds no copy of its own to drift.** It is additive and never authoritative: missing patterns are appended, an operator's tuning is left alone, and it writes five patterns and never `*`. **So a fresh consumer project DOES get the protection**, which is `AC-07.6`'s closing clause and the exact gap the doc comment says the estate could not see from inside once it had fixed itself by hand. **Do not re-find this.**
+
+**THE `.history/` HALF IS NOT A JUDGEMENT CALL, IT IS THE FILE'S OWN RULE APPLIED TO A PATH IT DOES NOT LIST.** `.prettierignore:65-69` states the criterion so the next person widening it has one rather than a list: **_a path belongs here when it has a single writer AND its existing content is evidence. Both halves are required._** It then applies that to archived inboxes, and its comment at `:78` says the earlier pattern _misses by one directory level_.
+
+**A BOARD ARCHIVE MISSES BY FILENAME INSTEAD, AND MEETS BOTH HALVES.** `<node>/.history/<date>/wip-prefold-*Z.md` and its siblings are written once by the folding node and never rewritten -- **ZERO writers after creation, which the file itself notes is stronger than one** -- and their content is evidence: a fold records the archive's sha as its verification handle.
+
+**ASKED OF PRETTIER RATHER THAN REASONED ABOUT, two-sided on real files:**
+
+| file                                          | `prettier --file-info` |
+| --------------------------------------------- | ---------------------- |
+| `ic/.history/20260909/doing-prefold-2003Z.md` | `"ignored": false`     |
+| `vc/.history/20260820/inbox.ic.md`            | `"ignored": true`      |
+
+**POPULATION: 567 `.md` files under `intent/whiteboard/*/.history/`. 142 match `inbox.*.md` and are exempt; 425 are exposed** -- 162 `wip-fold-*Z`, 86 `wip-prefold-*Z`, 41 `wip.md`, 16 `wip-*Z`, plus the `doing-folded`, `watch-outs-full`, `day-narrative` and `decisions` families.
+
+**AND THE EXPOSURE IS BOUNDED, WHICH MAKES THIS SMALLER AND SHARPER THAN THE COUNT SUGGESTS.** `prettier --check` over all 425 returns **_All matched files use Prettier code style!_** -- positive-controlled against a planted non-conformant file, which it warns on. **Nothing is pending a bulk rewrite; every archive was already normalised on the way in.** So the remedy must NOT rewrite the 425, and the harm is entirely at WRITE time.
+
+**THE REALISED COST, MEASURED ON MY OWN FOLD TONIGHT.** The gate refuses unformatted markdown, so an archive is formatted between being taken and being committed. `doing-prefold-2003Z.md` was `437aeb7a531fa038` when taken and `3a410bee87283436` when it landed -- **one trailing blank line** -- and the fold's recorded sha had to be corrected in the same commit. **An archive's sha is therefore a property of the formatter rather than of the board it archives, and a fold that records the sha it took records one that will never reproduce.** That is the same class as the inbox case: running the protocol's own control forces the precise harm the exemption exists to prevent.
+
+**REMEDY IS ONE PATTERN AND IT IS FORWARD-LOOKING**: widen the archive exemption from `inbox.*.md` to every `.md` under `intent/whiteboard/*/.history/`. The 425 already conform, so nothing is rewritten; future archives simply land verbatim. **The consequence to accept, stated rather than discovered: `.history/` will then hold a mix of formatted older files and verbatim newer ones -- which is already true of the inbox archives and is the intended outcome, not a wart.**
+
+**NOT TAKEN.** `.prettierignore` is a shared root file on a five-writer tree and the whiteboard block in it is hand-written rather than generated from `generated_view_patterns`, so the edit is not this WP's to make unilaterally. Routed.
