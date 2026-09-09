@@ -139,7 +139,30 @@ fn ids_the_renderer_reads(src: &str) -> BTreeSet<String> {
   //
   // `get_flag(` ENDS with `flag(`, so the two markers overlap and find the same
   // id twice -- harmless into a set, and cheaper than a boundary rule.
-  const MARKERS: [&str; 5] = ["get_flag(", "flag(", "get_one::<", "get_many::<", "opt("];
+  // **`given(` IS THE FIFTH MARKER AND ITS ABSENCE HID THIRTY-ONE CALL SITES**
+  // (cc, 2026-09-09). The comment above says `flag(` is the fourth and stops
+  // there; the renderer has since grown a fifth accessor -- `fn given(m, name)`
+  // at `render.rs:9483`, which answers *was this flag supplied* through
+  // `try_get_raw` -- and nothing added it here. **THE BLINDNESS WAS MASKED
+  // RATHER THAN ABSENT, WHICH IS WHY IT SURVIVED:** every id read through
+  // `given(` also had a literal `get_flag("..")` somewhere, so the set looked
+  // complete.
+  //
+  // **IT SURFACED THROUGH A CORRECT REFACTOR, WHICH IS THE PART WORTH
+  // KEEPING.** `78ccfa37` unified `doctor` onto `Verbosity::of`, deleting the
+  // last `get_flag("quiet")` in the file -- and `quiet` is one of the five ids
+  // `the_scanner_finds_ids_that_are_demonstrably_read` pins. The refactor did
+  // not break the renderer; it removed the literal that was standing in for a
+  // syntactic fact. **A SUBSTRING PROXY DECAYS WHENEVER THE CODE GETS BETTER**,
+  // and it decays in the direction that reports a real read as unread.
+  const MARKERS: [&str; 6] = [
+    "get_flag(",
+    "flag(",
+    "get_one::<",
+    "get_many::<",
+    "opt(",
+    "given(",
+  ];
   const WINDOW: usize = 48;
   let mut out = BTreeSet::new();
   for marker in MARKERS {
