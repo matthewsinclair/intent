@@ -1,9 +1,9 @@
 ---
 st_id: ST0066
 title: Add 'fiat close' as a feature to close STs, WPs, ACs, and ATs
-status: WIP
+status: Completed
 created: 2026-08-28
-completed:
+completed: 2026-09-09
 ---
 
 # ST0066: Add 'fiat close' as a feature to close STs, WPs, ACs, and ATs
