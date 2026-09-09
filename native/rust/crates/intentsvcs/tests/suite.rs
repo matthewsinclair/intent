@@ -142,6 +142,8 @@ mod error_remedies;
 mod event_log_envelopes;
 #[path = "every_declared_form_resolves_to_an_entity.rs"]
 mod every_declared_form_resolves_to_an_entity;
+#[path = "every_key_the_runner_reads_is_declared.rs"]
+mod every_key_the_runner_reads_is_declared;
 #[path = "every_st_op_has_a_declared_list_answer.rs"]
 mod every_st_op_has_a_declared_list_answer;
 #[path = "explore_lands_where_the_address_names.rs"]
