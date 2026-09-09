@@ -317,12 +317,40 @@ were declaring in words it did not match), wide rescues on MENTIONS of the token
 vocabulary is not decided, and this instrument will not launder a judgement it
 cannot make into a verdict it prints.
 
-TWO THINGS THE PARTITION DOES SAY, AND BOTH ARE REAL. One claim -- ST0056/AC-00.7
--- has certificates that DISAGREE about declaring reach, which is the sharp form:
-a union nobody owns while each file passes its own inspection. And 322 of 328
-claims carry exactly ONE certificate, so per-property collapses to per-instrument
-for 98% of the estate. The unit is right; the estate's shape bounds what it sees.
+VERDICT
 
+# EVERY LIVE VALUE IN THE PARAGRAPH BELOW IS DERIVED, AND IT USED TO BE TYPED.
+# This block printed `322 of 328`, `98%` and a named `ST0056/AC-00.7` as literal
+# prose while the partition a hundred lines up computed 337 of 343 -- so the
+# instrument built to find the gaps between sound instruments was transcribing
+# figures into its own verdict, which is the defect this whole thread exists to
+# catch. THE CAUSE IS STRUCTURAL AND WORTH NAMING: the verdict is a QUOTED
+# heredoc, which cannot interpolate, so anyone stating a measurement inside it
+# had no choice but to type it. The cure is to print the live lines rather than
+# to retype them -- correcting a stale literal to a fresher literal rebuilds the
+# same defect with a newer number and a longer fuse.
+# AC-00.7 is the sharper half: it was named as THE disagreeing claim, and a row
+# can stop disagreeing. On 2026-09-09 it also went satisfied. A verdict that
+# names a row the partition no longer selects is wrong in the direction that
+# reads as informative.
+if [ "$c_some" -gt 0 ]; then
+  printf 'TWO THINGS THE PARTITION DOES SAY, AND BOTH ARE REAL. %s claim(s) --\n' "$c_some"
+  printf '%s\n' "${some_list[@]}" | sed 's/^/    /'
+  echo "-- carry certificates that DISAGREE about declaring reach, which is the sharp"
+  echo "form: a union nobody owns while each file still passes its own inspection."
+else
+  echo "ONE THING THE PARTITION SAYS, AND IT IS REAL. NO claim's certificates"
+  echo "currently disagree about declaring reach. The sharp form is EMPTY at this"
+  echo "revision -- a measurement, not a guarantee, and not a reason to retire the arm."
+fi
+printf 'And %s of %s claims carry exactly ONE certificate, so per-property collapses to\n' \
+  "$((nclaims - multi))" "$nclaims"
+printf 'per-instrument for %s%% of the estate. The unit is right; the shape of the estate\n' \
+  "$(( (nclaims - multi) * 100 / nclaims ))"
+echo "is what bounds what it sees."
+echo
+
+cat <<'VERDICT'
 MOVES WHEN the declaration becomes STRUCTURAL rather than lexical -- a REACH
 block in a fixed form, of which this file is the only instance and therefore the
 emit partner a never-emitted form needs. THAT IS A CRITERION AMENDMENT AND IT IS
