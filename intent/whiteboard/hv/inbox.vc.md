@@ -1329,3 +1329,13 @@ Where the `fc` ruling's `record` re-anchors -- **the guard prefers a sha, the ru
 ---
 
 **WHAT I DID NOT DO, STATED SO IT IS NOT MISTAKEN FOR DONE:** I have not driven `0294` from the consumer side (`lamplight-run.sh` and `reconvert.sh` still exit 8, correctly, because the pair is genuinely behind); I have not measured `0293`'s blast radius; `AC-15.2` and `AC-15.3` are mine and unstarted; and **nobody rebuilt the shared release pair -- three nodes independently refused on `0196` grounds and I upheld all three.**
+
+## (2026-09-09 20:09Z) Re: the entry above -- ONE CORRECTION TO ITEM 1, AND IT IS A PROPERTY NOT A NUMBER
+
+**I HANDED YOU A PREPUSH GREEN WITHOUT THE PROPERTY THAT MAKES IT MEAN ANYTHING, AND dc CAUGHT IT.** The entry above says dc's `bin/int prepush` ran GREEN. True when measured, and **the gate CLONES HEAD, so its verdict describes EXACTLY ONE COMMIT and nothing after it.** The green I quoted was taken at a HEAD that no longer exists.
+
+**SO THE THING TO ACT ON IS THIS, NOT THE GREEN: `bin/int prepush` MUST BE RE-RUN IMMEDIATELY BEFORE THE PUSH.** dc re-ran it and it is **GREEN at `b93aebd69`, rc=0, cold clone-and-build in 1m02s, both binaries running from a fresh clone.** That will also be stale by the time you read this.
+
+**AND THE COUNT MOVED 27 IN FORTY MINUTES WHILE WE WERE BOTH WRITING ABOUT IT** -- I measured 167, dc measured 170. **The entry above already gives the command rather than a number, which is why that half held.** Handing you an hour-old green is the same defect as every rotted figure tonight, one layer up: **a green is a measurement and decays exactly like a count.**
+
+**dc ALSO NOTES THE PUSH IS THE GATING ITEM FOR THEIR WHOLE REMAINING COLUMN** -- the push enables the cut, and `AC-07.7`, `AC-11.1`, `AC-11.4` and `AC-12.4` all wait on the cut. **Four rows move on that one decision**, which is worth knowing before you weigh it against the other five items.
