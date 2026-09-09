@@ -1044,33 +1044,44 @@ pub fn shipped_entries(table: &Table) -> Vec<&Entry> {
     .collect()
 }
 
-/// Whether the spine synthesises `intent <family> help` on this family.
+/// Whether the spine builds out this family's verb surface.
 ///
-/// **THE ONE HOME FOR A RULE THAT TWO CALLERS NEED, AND THEY NEED IT FROM
-/// OPPOSITE SIDES.** [`crate::spine::build`] asks in order to ADD the
-/// subcommand; anything enumerating what the surface legitimately offers asks
-/// in order to DECLARE it. Before this the rule lived only as an inline
-/// `if !verbs.is_empty()` in the spine, so the second caller had no way to ask
-/// and would have had to restate it -- and a restated rule is a second home
-/// that drifts the first time either side changes.
+/// **THE NAME IS THE SECOND ONE AND THE FIRST WAS A DEFECT, FOUND BY AN
+/// OVER-KILL MUTATION.** It was `family_gets_synthetic_help`, which is what
+/// the caller in `AC-06.13` wanted to ask and is NARROWER than what the
+/// function gates. Driven 2026-09-09: forcing it false to test the help
+/// derivation also deleted `claude skills install` from the surface, because
+/// the spine block it guards attaches the family's flags and positionals,
+/// expands a subcommand slot's `values` into leaves, and sets
+/// `subcommand_required` from the declared arity -- the help verb is one line
+/// of five. **A name narrower than its effect is how a future reader disables
+/// four things while believing they disabled one.**
 ///
-/// **`AC-06.13` IS WHY THIS EXISTS AT ALL.** Every subcommand the built binary
-/// offers must resolve to a path the table declares, and this verb is offered
-/// on sixteen families while the table declares it on none of them. vc ruled
+/// **THE ONE HOME FOR A RULE THAT TWO CALLERS NEED FROM OPPOSITE SIDES.**
+/// [`crate::spine::build`] asks in order to BUILD; anything enumerating what
+/// the surface legitimately offers asks in order to DECLARE the `help` that
+/// building produces. Before this the rule lived only as an inline
+/// `if !verbs.is_empty()`, so the second caller had no way to ask and would
+/// have had to restate it -- and a restated rule is a second home that drifts
+/// the first time either side changes.
+///
+/// **`AC-06.13` IS WHY IT NEEDED A SECOND CALLER.** Every subcommand the built
+/// binary offers must resolve to a path the table declares, and `help` is
+/// offered on sixteen families while no row declares it anywhere. vc ruled
 /// 2026-09-09 (issue `0217`) that those rows are DERIVED rather than
-/// hand-authored or exempted: hand-authoring sixteen identical rows is the
-/// transcription `AC-17.15` forbids, and an exemption would put the verb
-/// outside `AC-06.13`'s population by construction, which is the defect
-/// `0217` exists to name reintroduced one level in.
+/// hand-authored or exempted: sixteen identical rows is the transcription
+/// `AC-17.15` forbids, and an exemption would put the verb outside
+/// `AC-06.13`'s population by construction, which is the defect `0217` exists
+/// to name reintroduced one level in.
 ///
-/// **THE PREDICATE MIRRORS THE SPINE'S `find`-THEN-CHECK RATHER THAN AN
-/// `any`, AND THE TWO ARE NOT THE SAME.** A family carrying more than one
-/// verbless entry -- a retired one ahead of a shipped one -- makes `find` stop
-/// at the retired row and the whole family drop out, while `any` would keep
-/// it. The spine's shape is the one that decides what the binary actually
-/// offers, so it is the shape this reproduces; making them agree by
-/// construction is the entire point of the function.
-pub fn family_gets_synthetic_help(family: &Family) -> bool {
+/// **THE PREDICATE MIRRORS THE SPINE'S `find`-THEN-CHECK RATHER THAN AN `any`,
+/// AND THE TWO ARE NOT THE SAME.** A family carrying more than one verbless
+/// entry -- a retired one ahead of a shipped one -- makes `find` stop at the
+/// retired row and the whole family drop out, while `any` would keep it. The
+/// spine's shape is the one that decides what the binary actually offers, so
+/// it is the shape this reproduces; making them agree by construction is the
+/// entire point of the function.
+pub fn family_builds_out_its_verbs(family: &Family) -> bool {
   family
     .entries
     .iter()
@@ -1080,16 +1091,6 @@ pub fn family_gets_synthetic_help(family: &Family) -> bool {
       .entries
       .iter()
       .any(|e| e.verb().is_some() && e.is_shipped())
-}
-
-/// The families the spine synthesises `intent <family> help` on.
-pub fn families_with_synthetic_help(table: &Table) -> Vec<&str> {
-  table
-    .families
-    .iter()
-    .filter(|f| family_gets_synthetic_help(f))
-    .map(|f| f.name.as_str())
-    .collect()
 }
 
 /// Find one entry by its full path, eg `st new` or `search`.

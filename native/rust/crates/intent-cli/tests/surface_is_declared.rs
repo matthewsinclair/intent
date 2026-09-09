@@ -47,53 +47,25 @@ use std::process::Command;
 
 use intent_cli::dispatch;
 
-/// Offered-but-undeclared paths that are KNOWN, OWNED, and not this file's to
-/// fix -- reported by name on every run, and not gated.
+/// **THE RATCHET IS GONE BECAUSE THE REMEDY LANDED, NOT BECAUSE IT WAS
+/// WAIVED.** This file carried `HELP_NOT_DECLARED`, sixteen `<family> help`
+/// spellings the binary offers and no row declared, with the note that
+/// `AC-06.13` stays UNSATISFIED while the list is non-empty -- greening on a
+/// ratchet's existence certifies the process instead of the property.
 ///
-/// **THIS IS `flag_reachability.rs`'s `INHERITED_UNREAD` IDIOM AND IT IS
-/// DELIBERATE, NOT A SOFTENING.** Gating on these would make this a
-/// permanently-red check over a decision nobody here can take, which is the
-/// guard that must be bypassed, which is the guard nobody keeps. Anything NOT
-/// on this list reddens immediately -- so the class `0217` names is closed from
-/// today even though this instance is not.
+/// **vc RULED IT 2026-09-09 UNDER hv's PEN (`0217`): the rows are DERIVED.**
+/// Not hand-authored -- sixteen identical rows describing one uniform
+/// behaviour is the transcription `AC-17.15` forbids -- and not exempted,
+/// because an exemption puts the verb outside this file's population by
+/// construction, which is the defect `0217` names, reintroduced one level in.
+/// So [`dispatch::family_builds_out_its_verbs`] is the one home for the
+/// spine's own predicate: the spine calls it to ADD the verb and [`declared`]
+/// calls it to DECLARE one. The list shrank to empty by the table learning to
+/// say the thing, which is what the note said would happen.
 ///
-/// **AND THE RATCHET IS NOT THE CRITERION.** `AC-06.13` stays UNSATISFIED while
-/// this list is non-empty. Greening on the ratchet's existence would certify
-/// the process instead of the property, which is the ruling `AT-06.8` already
-/// carries in those words.
-///
-/// # Every member is one thing, and the count is not the one on the record
-///
-/// `245dcdbe` gave nine families an explicit `help` verb and `0217` records
-/// nine. **Measured here on 2026-09-07: SIXTEEN.** clap generates a `help`
-/// subcommand on any command that has subcommands, so the population is every
-/// family with verbs and not only the nine that got an explicit arm. The number
-/// is derived by this file rather than transcribed from the issue, which is why
-/// the disagreement is visible at all.
-///
-/// **THE REMEDY IS A ROW-SHAPE DECISION AND IS vc's**, per `0217`: either the
-/// rows are authored -- a row describing a real verb is the table being CORRECT
-/// rather than growing -- or `help` is declared once as a property of a family.
-/// Nothing here prejudges which; this list shrinks to empty either way.
-const HELP_NOT_DECLARED: &[&str] = &[
-  "ac help",
-  "agents help",
-  "app help",
-  "at help",
-  "claude help",
-  "config help",
-  "daemon help",
-  "ext help",
-  "issues help",
-  "lang help",
-  "llm help",
-  "modules help",
-  "plugin help",
-  "st help",
-  "todo help",
-  "wp help",
-];
-
+/// **AND THE COUNT WAS SIXTEEN, NOT THE NINE ON `0217`'s RECORD** -- derived
+/// here 2026-09-07, re-derived two independent ways 2026-09-09, and corrected
+/// at the issue rather than annotated.
 /// One `--help` render from the binary under test.
 ///
 /// `current_dir` is a temp dir and `HOME` is the fixture home, so the walk
@@ -122,7 +94,7 @@ fn help_for(path: &[String]) -> String {
 /// to the description column, which is deeper, so it is skipped rather than
 /// mistaken for a command -- measured at zero occurrences on this build, and
 /// guarded anyway because a longer help string introduces one silently.
-fn subcommands_in(help: &str) -> Vec<String> {
+fn subcommands_in(help: &str) -> Vec<(String, Vec<String>)> {
   let mut out = Vec::new();
   let mut inside = false;
   for line in help.lines() {
@@ -142,11 +114,47 @@ fn subcommands_in(help: &str) -> Vec<String> {
     if rest.starts_with(char::is_whitespace) {
       continue;
     }
-    if let Some(name) = rest.split_whitespace().next() {
-      out.push(name.to_string());
+    let mut fields = rest.splitn(2, char::is_whitespace);
+    let Some(name) = fields.next() else {
+      continue;
+    };
+    // **`[alias: rm]` IS THE ONLY PLACE AN ALIAS APPEARS**, and it is inside
+    // the description rather than in the name column. Matched as a literal
+    // rather than a pattern: the first attempt at this used `\[aliases?: `,
+    // which can never match `[alias: ` because the `?` binds to the `e` and
+    // not to the word, and it reported ZERO aliases on a surface with four.
+    // A pattern that cannot match its subject returns a confident zero, and a
+    // zero is the one result that never looks like a bug in the query.
+    let tail = fields.next().unwrap_or_default();
+    let mut aliases = Vec::new();
+    for opener in ["[alias: ", "[aliases: "] {
+      if let Some(at) = tail.find(opener) {
+        let after = &tail[at + opener.len()..];
+        if let Some(close) = after.find(']') {
+          for spelling in after[..close].split(',') {
+            let spelling = spelling.trim();
+            if !spelling.is_empty() {
+              aliases.push(spelling.to_string());
+            }
+          }
+        }
+      }
     }
+    out.push((name.to_string(), aliases));
   }
   out
+}
+
+/// What the walk found, with the aliases kept separately.
+///
+/// **THE SPLIT EXISTS SO THE CENSUS CAN PROVE IT RECOGNISED AN ALIAS.** A
+/// parse that silently recognises none is indistinguishable from a surface
+/// that has none, and nothing else in this file can tell those apart.
+struct Offered {
+  /// Every spelling, names and aliases alike -- the gate's population.
+  all: Vec<Vec<String>>,
+  /// Just the alias spellings.
+  aliases: Vec<Vec<String>>,
 }
 
 /// Every subcommand path the binary offers, depth-first from the root.
@@ -156,23 +164,39 @@ fn subcommands_in(help: &str) -> Vec<String> {
 /// is the one failure mode nobody reads. Measured on this build: 170 paths over
 /// three levels, and `<family> help --help` lists no commands, so `help` does
 /// not recurse.
-fn offered_paths() -> Vec<Vec<String>> {
+fn offered_paths() -> Offered {
   let mut found = Vec::new();
+  let mut aliases = Vec::new();
   let mut visited: BTreeSet<Vec<String>> = BTreeSet::new();
   let mut queue: Vec<Vec<String>> = vec![Vec::new()];
   while let Some(path) = queue.pop() {
-    for verb in subcommands_in(&help_for(&path)) {
+    for (verb, alias_spellings) in subcommands_in(&help_for(&path)) {
       let mut child = path.clone();
       child.push(verb);
       if !visited.insert(child.clone()) {
         continue;
       }
       found.push(child.clone());
+      // An alias is a spelling an operator can type, so it belongs in the
+      // gate's population -- but it names the SAME command, so recursing into
+      // it would walk the whole subtree twice under two names.
+      for alias in alias_spellings {
+        let mut spelling = path.clone();
+        spelling.push(alias);
+        if visited.insert(spelling.clone()) {
+          found.push(spelling.clone());
+          aliases.push(spelling);
+        }
+      }
       queue.push(child);
     }
   }
   found.sort();
-  found
+  aliases.sort();
+  Offered {
+    all: found,
+    aliases,
+  }
 }
 
 /// Whether the table declares this path, by either of the two forms it uses.
@@ -208,13 +232,27 @@ fn declared(table: &dispatch::Table, segments: &[String]) -> bool {
     return false;
   }
   let parent = head.join(" ");
-  entries.iter().any(|e| {
+  if entries.iter().any(|e| {
     e.path == parent
       && e
         .args
         .iter()
         .any(|a| a.kind == "subcommand" && a.values.iter().any(|v| v == leaf))
-  })
+  }) {
+    return true;
+  }
+
+  // **FORM THREE: THE SYNTHETIC `help`, WHICH NO ROW DECLARES AND SIXTEEN
+  // FAMILIES OFFER.** The spine adds it to every shipped family that has at
+  // least one shipped verb, and `0217` ruled those rows DERIVED rather than
+  // authored or exempted -- so the predicate asks the spine's own function
+  // rather than carrying a list that would rot on the seventeenth family.
+  head.len() == 1
+    && leaf == "help"
+    && table
+      .families
+      .iter()
+      .any(|f| f.name == head[0] && dispatch::family_builds_out_its_verbs(f))
 }
 
 /// **THE GATE.** Every offered path is declared, or is a named, owned exception.
@@ -224,18 +262,17 @@ fn every_subcommand_the_binary_offers_is_declared_by_the_table() {
   let offered = offered_paths();
 
   let mut undeclared = Vec::new();
-  for path in &offered {
-    let spelling = path.join(" ");
-    if declared(&table, path) || HELP_NOT_DECLARED.contains(&spelling.as_str()) {
+  for path in &offered.all {
+    if declared(&table, path) {
       continue;
     }
-    undeclared.push(spelling);
+    undeclared.push(path.join(" "));
   }
 
   assert!(
     undeclared.is_empty(),
-    "the binary offers {} subcommand(s) the dispatch table does not declare, and they are not on \
-     the named exception list. This is issue 0217's class: the table is the SSOT and a verb that \
+    "the binary offers {} subcommand(s) the dispatch table does not declare. This is issue \
+     0217's class: the table is the SSOT and a verb that \
      is not in it was never reviewed, never rendered into the reference docs, and is invisible to \
      every other instrument, all of which walk the table. Either declare the row, or -- if the \
      verb should not exist -- take it out of the spine:\n  {}",
@@ -244,10 +281,9 @@ fn every_subcommand_the_binary_offers_is_declared_by_the_table() {
   );
 
   eprintln!(
-    "offered {}, declared {}, known-undeclared {}",
-    offered.len(),
-    offered.len() - HELP_NOT_DECLARED.len(),
-    HELP_NOT_DECLARED.len()
+    "surface-is-declared: {} spelling(s) offered, {} of them aliases, 0 undeclared",
+    offered.all.len(),
+    offered.aliases.len()
   );
 }
 
@@ -264,13 +300,13 @@ fn the_walk_reaches_the_surface_it_claims_to_check() {
   let offered = offered_paths();
 
   assert!(
-    offered.len() > 100,
+    offered.all.len() > 100,
     "this binary ships well over a hundred subcommand paths; {} means the walker stopped early \
      or the help format moved under it",
-    offered.len()
+    offered.all.len()
   );
   assert!(
-    offered.iter().any(|p| p.len() == 3),
+    offered.all.iter().any(|p| p.len() == 3),
     "the walk must recurse past the second level, or every leaf of a nested family goes \
      unexamined while the check reports a pass"
   );
@@ -283,10 +319,21 @@ fn the_walk_reaches_the_surface_it_claims_to_check() {
     ],
   ] {
     assert!(
-      offered.contains(&expected),
+      offered.all.contains(&expected),
       "a path known to be offered is missing from the walk: {expected:?}"
     );
   }
+
+  // **AND THE ALIAS PARSE IS PINNED SEPARATELY, BECAUSE ITS FAILURE IS
+  // SILENT.** `lang remove` prints `[alias: rm]`. A parse that finds no
+  // aliases reports exactly what a correct parse of an alias-free surface
+  // reports, so without this arm every alias could leave the gate's population
+  // and nothing here would move. Measured 2026-09-09: four visible aliases.
+  assert!(
+    !offered.aliases.is_empty(),
+    "the walk recognised no aliases at all -- either the surface lost them, or, far likelier, \
+     the parse cannot see one and every alias is silently outside this file's population"
+  );
 }
 
 /// The resolver can say NO, and says YES for each declared form.
@@ -324,29 +371,52 @@ fn the_declared_predicate_answers_both_ways_and_knows_both_forms() {
   );
 }
 
-/// The exception list describes today's binary, not the day it was written.
+/// The derivation that replaced the ratchet actually reaches the surface.
 ///
-/// **A RATCHET THAT IS NEVER RE-DRIVEN ROTS INTO A SILENT EXEMPTION.** Each of
-/// two failures is invisible without this: an entry whose verb was fixed goes
-/// on excusing a path that no longer needs it, and an entry that stops being
-/// offered at all leaves the list looking like work when it is not. Both make
-/// the gate's population smaller than it reads.
+/// **AN EMPTY EXCEPTION LIST AND A DERIVATION THAT RETURNS NOTHING LOOK
+/// IDENTICAL FROM THE GATE.** `HELP_NOT_DECLARED` used to be re-driven here --
+/// each named path still offered, still undeclared -- and deleting it removes
+/// that check along with the list. What replaces it is the floor: sixteen
+/// `<family> help` spellings are offered, no row declares one, and the gate is
+/// green, so [`declared`]'s third form must be answering. If the derivation
+/// ever returned empty they would all become undeclared at once.
+///
+/// **WHAT THIS DELIBERATELY DOES NOT DO IS COMPARE THE DERIVATION TO THE
+/// SPINE.** An earlier draft asserted `family_builds_out_its_verbs` over the families
+/// equals the families the binary offers `help` on. That reads like the
+/// strongest arm available and is worth nothing: the spine ADDS the verb
+/// through that same function, so both sides move together. **Driven rather
+/// than reasoned -- the predicate was mutated from *at least one verb* to
+/// *more than one verb*, the surface changed, and every arm stayed green.**
+/// A test that imports the value it asserts has stopped testing.
+///
+/// Repairing it would mean a second implementation of the predicate living
+/// here to disagree with the first, which is the second home `0217`'s ruling
+/// existed to avoid. The spine and the declaration cannot disagree about WHICH
+/// families get `help`, so no arm should claim to watch for it.
 #[test]
-fn every_named_exception_is_still_offered_and_still_undeclared() {
+fn the_synthetic_help_derivation_reaches_every_family_that_offers_it() {
   let table = dispatch::table();
-  let offered: BTreeSet<String> = offered_paths().iter().map(|p| p.join(" ")).collect();
+  let offered = offered_paths();
 
-  for spelling in HELP_NOT_DECLARED {
-    let segments: Vec<String> = spelling.split(' ').map(str::to_string).collect();
+  let help_paths: Vec<&Vec<String>> = offered
+    .all
+    .iter()
+    .filter(|p| p.len() == 2 && p[1] == "help")
+    .collect();
+
+  assert!(
+    !help_paths.is_empty(),
+    "the binary offered `help` on no family, so the derivation this arm is about is unexercised \
+     and its green says nothing"
+  );
+  for path in help_paths {
     assert!(
-      offered.contains(*spelling),
-      "`{spelling}` is on the exception list and the binary no longer offers it -- delete the row \
-       rather than leaving a name that excuses nothing"
-    );
-    assert!(
-      !declared(&table, &segments),
-      "`{spelling}` is on the exception list and the table now DECLARES it. That is the fix \
-       landing: take it off the list, and when the list is empty AC-06.13 is satisfied"
+      declared(&table, path),
+      "`{}` is offered and the table does not declare it. No row spells this verb -- it reaches \
+       the population only through `dispatch::family_builds_out_its_verbs`, so this is that \
+       derivation failing rather than a row anybody forgot to write",
+      path.join(" ")
     );
   }
 }
