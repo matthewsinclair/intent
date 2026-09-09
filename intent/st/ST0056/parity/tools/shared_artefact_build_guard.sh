@@ -440,6 +440,110 @@ else
   fail "arm 6b -- of $n_embeds embed(s) examined, these resolve outside every declared scope:$uncovered. A build mid-edit in one of them is approved by this guard and baked into the shared binary."
 fi
 
+
+# --------------------------------- ARM 6d: A GENERATED EMBED IS STILL AN EMBED
+# **ARM 6b's CENSUS IS A GREP FOR A LITERAL `include_str!`, AND A GENERATED
+# EMBED HAS NO LITERAL TO FIND** (`0287`). `build-support/embed_templates.rs`
+# WALKS a directory and WRITES the macro lines into `$OUT_DIR`, so the embed
+# exists only after a build and only under `target/` -- which arm 6b's
+# population (`native/rust/crates`) does not reach, and which its complement
+# sweep excludes for a correct and declared reason. **Two arms, one class, two
+# individually defensible blindnesses.** Measured 2026-09-08: arm 6b printed
+# `ok` on a commit while `lib/templates/{llm,prj}` reached into the shipped
+# binary from outside every declared scope. A control whose population cannot
+# contain the subject is not a control that failed; it is one that could never
+# have fired.
+#
+# **THIS ARM READS THE BUILD'S OWN OUTPUT RATHER THAN PARSING THE GENERATOR,
+# AND THE CHOICE IS THE DESIGN.** The generator is always present and is
+# INFERENCE: answering "what does this Rust build?" by reading Rust from shell
+# is the coupling that fails in the dark, and the obvious parse -- take every
+# `.join("literal")` -- cannot tell an INPUT it walks from the OUTPUT file it
+# writes, so it would red on `embedded_templates.rs` and refuse every commit in
+# the repository for a path that is not an input at all. The build output is
+# MEASUREMENT: it holds the embeds the compiler was actually handed.
+#
+# **ITS ABSENCE IS REPORTED, NEVER SCORED AS ZERO, AND THAT IS THE HALF THE
+# REPAIRED ARM WOULD OTHERWISE REPEAT.** On a fresh checkout there is no build
+# output, so an arm that simply examined it would print a confident `ok` over a
+# population of nothing -- the same shape as the defect this arm exists for. It
+# says NOT EXAMINED instead, and quantifies what it could not read.
+#
+# **BLAST RADIUS, NAMED BECAUSE THE RULING REQUIRES IT AND BECAUSE THIS ARM CAN
+# REFUSE:** a failure here blocks the commit on EVERY path in the repository,
+# not merely a build -- the same radius that made the `../`-stripping residual
+# an outage rather than conservatism. It is written to red only when a
+# generated embed resolves outside every declared scope, which is a condition an
+# author creates by adding a generator and never one that arrives on its own.
+# ARRAYS AND NUL-DELIMITED READS THROUGHOUT, NOT STYLE: a build directory is
+# machine-generated and an absolute path under it can contain anything a
+# checkout path can, spaces included. The first draft joined these into a
+# space-separated string and split it again, which the shell critic refused as
+# `IN-SH-CODE-001` -- correctly, because the failure it names is silent: a path
+# with a space becomes two files that do not exist, `grep` reads neither, and
+# the arm reports a confident zero over a population it never opened. That is
+# the same shape as the blindness this whole arm was written to repair.
+gen_files=()
+while IFS= read -r d; do
+  [ -n "$d" ] || continue
+  for g in "$d"/*.rs; do [ -f "$g" ] && gen_files+=("$g"); done
+done < <(find "$ROOT/native/rust/target" -maxdepth 4 -type d -name out 2>/dev/null | head -40 | sort -u)
+n_gen_files=${#gen_files[@]}
+
+# The generators themselves, counted so that "no build output" is a quantity
+# rather than a blank -- a generator in source with nothing built from it is
+# exactly the state this arm must not read as clean.
+n_generators=$(grep -rl 'include_str!\|include_bytes!' "$ROOT/native/rust/build-support" 2>/dev/null | grep -c . || true)
+
+# **THE COVERAGE TEST TAKES THE FULL PATH AND THE MESSAGE TAKES THE ROOT, AND
+# CONFLATING THE TWO IS A BUG THIS ARM SHIPPED FOR ABOUT A MINUTE.**
+# `embed_covered` asks whether a path is strictly INSIDE a scope (`scope/*`), so
+# handing it a path already reduced to `lib/templates` compares the scope to
+# itself and can never match -- the arm reds on a root the scopes DO cover, and
+# the author reads it as the gap still being open. Full paths are tested; the
+# root is derived afterwards, for the human reading the failure.
+gen_paths=()
+if [ "$n_gen_files" -gt 0 ]; then
+  while IFS= read -r pth; do
+    [ -n "$pth" ] && gen_paths+=("$pth")
+  done < <(grep -ho 'include_str!("[^"]*")\|include_bytes!("[^"]*")' "${gen_files[@]}" 2>/dev/null \
+           | sed -E 's#^(include_str|include_bytes)!\("([^"]+)"\)$#\2#' \
+           | grep "^${ROOT}/" \
+           | sed -E "s#^${ROOT}/##" \
+           | sort -u)
+fi
+n_gen_roots=0
+if [ "${#gen_paths[@]}" -gt 0 ]; then
+  n_gen_roots=$(printf '%s\n' "${gen_paths[@]}" | sed -E 's#^([^/]+/[^/]+)/.*#\1#' | sort -u | grep -c .)
+fi
+
+# CONTROLS, BOTH SIDES, PLANTED RATHER THAN POINTED AT -- and they exercise the
+# COVERAGE predicate, which is the only judgement this arm makes.
+ctl6d=""
+embed_covered "native/rust/crates/whatever" || ctl6d="$ctl6d covered-root-NOT-recognised"
+embed_covered "definitely-not-a-scope/x"    && ctl6d="$ctl6d uncovered-root-NOT-refused"
+
+gen_uncovered=""
+n_gen_paths=${#gen_paths[@]}
+for pth in ${gen_paths[@]+"${gen_paths[@]}"}; do
+  if ! embed_covered "$pth"; then
+    root="$(printf '%s' "$pth" | sed -E 's#^([^/]+/[^/]+)/.*#\1#')"
+    case " $gen_uncovered " in *" $root "*) ;; *) gen_uncovered="$gen_uncovered $root" ;; esac
+  fi
+done
+
+if [ -n "$ctl6d" ]; then
+  fail "arm 6d -- CONTROLS FAILED ($ctl6d); no verdict is offered on the $n_gen_roots generated embed root(s) this arm examined"
+elif [ "$n_gen_files" -eq 0 ]; then
+  printf 'shared-artefact-guard: arm 6d NOT EXAMINED -- %s generator(s) under build-support mention an embed macro and NO build output exists to read (native/rust/target holds no out/*.rs). This is not a clean result; it is an unread one, and it is the state of a fresh checkout.\n' "$n_generators"
+elif [ "${#gen_paths[@]}" -eq 0 ]; then
+  fail "arm 6d -- read $n_gen_files generated file(s) and found NO absolute embed at all; embed_templates.rs is known to write them, so the probe is broken rather than the tree being clean"
+elif [ -z "$gen_uncovered" ]; then
+  ok "arm 6d -- every generated embed resolves inside the declared scope ($n_gen_paths embed(s) under $n_gen_roots root(s), read from $n_gen_files generated file(s) written by $n_generators generator(s); both controls fired)"
+else
+  fail "arm 6d -- these generated embed root(s) are outside every declared scope:$gen_uncovered. They are compiled into the shared binary, so a build taken mid-edit in one of them is approved by this guard and baked in, and no arm above can see them."
+fi
+
 # ------------------------------------------- ARM 7: THE VERDICT PRECEDES THE BUILD
 # THE ORDER IS THE CRITERION. `verify_pair` already refused a `dirty-` marker
 # before this guard existed; it ran after `cargo build` had replaced the shared

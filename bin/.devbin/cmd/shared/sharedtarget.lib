@@ -121,7 +121,16 @@ GIT_ISOLATED="env -u GIT_DIR -u GIT_INDEX_FILE -u GIT_WORK_TREE -u GIT_OBJECT_DI
 # `docs/design/intent-logo.svg` with include_str!, so it is a compile-time
 # input to the shared binary from outside native/rust. Widened rather than
 # copying the asset inward -- one mark, one home.
-SHARED_TARGET_DIRT_SCOPES=(':(top)native/rust' ':(top)surface' ':(top)docs/design')
+#
+# `lib/templates` joined on 2026-09-09 (`0287`), and it was found by an arm
+# rather than by a reader. `build-support/embed_templates.rs` WALKS
+# `lib/templates/{llm,prj}` and GENERATES an `include_str!` per file into
+# `$OUT_DIR`, so those bytes are compiled into the shared binary on exactly the
+# `docs/design` grounds above -- and no census could see them, because a
+# generated embed has no literal for a grep to find. **Arm 6b printed `ok` over
+# this gap for as long as it existed.** Same widening, same reason, one mark and
+# one home; arm 6d is what will red the day a third generator appears.
+SHARED_TARGET_DIRT_SCOPES=(':(top)native/rust' ':(top)surface' ':(top)docs/design' ':(top)lib/templates')
 
 # shared_target_dirt <repo>
 #
