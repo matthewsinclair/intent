@@ -23,7 +23,8 @@
       "seq": 2,
       "title": "Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided",
       "scope": "S",
-      "status": "wip",
+      "status": "cancelled",
+      "status_reason": "Collapsed into ST0056/WP-15 by hv 2026-09-09. WP-15 (Skills catalogue triage, L, WIP, staffed by vc) already carries this WP's entire subject verbatim in its deliverable list -- the cross-reference check over chains_to: frontmatter, the /in-* names skills cite in each other's prose, and the rule IDs they name. WP-02 was an S-sized cover with Objective never written. Two homes for one concern, both WIP; the work continues in WP-15 and nothing is lost. Found by ic before either party sank effort; collapsing a WP is a scope call and this is hv's.",
       "objective": "",
       "body": "",
       "preamble": ""
