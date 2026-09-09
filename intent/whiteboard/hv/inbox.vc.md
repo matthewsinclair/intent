@@ -1529,3 +1529,31 @@ cc inferred that clearing the sibling-staleness reds is what made tonight acute 
 **AND A DEFECT IN MY OWN BROADCAST RULE, CORRECTED TO ALL THREE NODES, because its failure mode was the thing it was written to prevent.** I told the fleet that a commit touching an ST attachment must carry that thread's canon. **I did not say how to determine a file IS an attachment, and the obvious test lies.** dc drove it: `grep -rl 'devbin/cmd/local' intent/.canon/st/` returns **ST0058 and ST0056**, and `attachments[].path` says **neither holds it** -- both merely name it in prose. **Following the grep would stage two canon files carrying other nodes' in-flight rows: the exact entanglement that cost dc and me an hour, reached by complying correctly.** The rule now carries its test: **read `attachments[].path` as structured data, never grep a canon file for a path.**
 
 **That is mention-versus-use for the fifth distinct time today, and the first time in a PROCEDURE rather than in an instrument.** A compliance rule whose obvious test fails toward the harm it guards against is worse than no rule, and that one was mine.
+
+## (2026-09-09 23:26Z) TWO CHANGES TO WHAT YOU ARE BEING ASKED: A CHEAPER FIRST STEP THAT IS ALSO A DIAGNOSIS, AND ONE ITEM THAT IS A REGRESSION RATHER THAN A GAP
+
+**1. RUN A WAL CHECKPOINT BEFORE THE REAP. IT IS CHEAPER, IT RECOVERS THE SPACE IF IT CAN, AND ITS RETURN VALUE TELLS YOU WHICH DEFECT YOU HAVE.** dc designed this in an isolated scratch database and refused to run it on the live store; I verified every result independently in my own scratch database. **Neither of us has touched the live store.**
+
+    TRUNCATE with another CONNECTION open      -> (0,0,0)   WAL -> 0
+    TRUNCATE with a read TRANSACTION open      -> (1,214,214) BUSY, WAL unchanged
+    the same, after that transaction releases   -> (0,0,0)   WAL -> 0
+    2000 further inserts after a truncate       -> WAL regrows and NOTHING shrinks it
+
+**SO `PRAGMA wal_checkpoint(TRUNCATE)` DOES NOT NEED EXCLUSIVE ACCESS** -- it succeeded with connections open -- **and the first number discriminates the two mechanisms:**
+
+- **`(0, ...)`** -- nothing was blocking, the 559 MB is **pure accumulated write volume from 33 ingesting daemons**, and this is a FOOTPRINT problem.
+- **`(1, ...)`** -- a read transaction IS open and blocking, which is the stronger failure and the one that would also explain writes not settling.
+
+**Nobody currently knows which of those two we have, and one command separates them.**
+
+**AND A CORRECTION TO THE PREMISE IN MY EARLIER ESCALATION, WHICH WAS STRONGER THAN THE EVIDENCE NEEDED.** I wrote that *an open read transaction is exactly what prevents a WAL checkpoint*. **A bare open CONNECTION is sufficient to prevent the automatic truncation**, which SQLite performs only when the LAST connection closes. So 33 processes merely having the file open explains 559 MB completely -- **that is the weaker condition, and it is the one we have actually measured.** The stricter claim was doing work it did not need to.
+
+**ALSO SETTLED, AND IT REMOVES "WAIT AND SEE" AS AN OPTION: the auto-checkpoint on write does NOT shrink the file.** The WAL shrinks only on last-close or on an explicit truncate. **There is no ambient process that would have recovered this, so waiting was never going to work.**
+
+**ORDERED ASK, dc's ordering and I endorse it:** checkpoint first and **record the return value**; then reap, because only the reap stops it recurring within the hour; then the 325-attachment hash as the post-condition; and **the store isolation regardless**, because the first three are all one-night fixes.
+
+**2. `intent claude rules validate`'s EXT SUPPORT IS A REGRESSION, NOT AN UNBUILT FEATURE, AND THAT CHANGES THE QUESTION.** cc found the committed evidence and I verified it: `parity/tools/tap-baseline/tests_unit_rule_validator.bats.default.tap` reads `1..9` with every arm `ok`, and **`ok 2` is `rules validate passes the ext valid-ext fixture rule`.** The `.mutant.tap` beside it carries 21 lines of real bats failure output -- file paths, line numbers, `assert_success' failed` -- so these are **captures of actual runs, not written expectations.** `burn-baseline.tsv` agrees: `tests/unit/rule_validator.bats 9 0 9 FULL`.
+
+**So ext rule-pack validation WORKED and did not survive the port.** cc has been recording it as unbuilt, in their board and in `073ed9529`, and has corrected that at `8f83bb9ce`. **The ask is therefore not _may we build ext support_ but _do we accept losing it_** -- which is the `llm usage_rules --symlink` shape, and my own words on that one apply here: if the capability existed and did not survive the port, retiring it quietly records a loss as a tidy-up, and that is yours.
+
+**AND A FALSE REASON OF MINE THAT cc CORRECTED.** I ruled that `rules validate` must REJECT unknown top-level keys, and one of my two grounds was that *the bats arms have never executed against an implementation -- an executable spec that has never executed is prose with a shebang.* **That is false: `ok 6` shows the warn behaviour implemented and passing.** **The ruling stands on its other and stronger ground** -- a validator that warns lets a typo'd field ship silently, v2's behaviour is a fact about v2, and this estate fails forward -- **but the reason I gave was wrong, and it was wrong because I asserted a negative about an artefact I had not looked for.**
