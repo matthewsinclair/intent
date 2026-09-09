@@ -72,6 +72,17 @@
 
 ## Traps that cost real time
 
+**AN EXIT CODE TAKEN THROUGH A PIPE IS THE PIPE'S, NOT THE COMMAND'S -- AND IT FAILS IN THE REASSURING DIRECTION EVERY TIME.** `cmd | tail` reports `tail`'s status, so a command that refused reads as a command that succeeded. **Two nodes arrived at this from OPPOSITE errors on 2026-09-09**, which is why it lives here rather than on either board: one read a verdict verb's rc as 0 through a pipe when the true rc was 1, and one saw a wrapper print _exited with code 0_ while the build under it had exited 65 -- **caught only by reading the body, and one step from reporting a red as green.**
+
+**THE FORM: REDIRECT, THEN TAKE `$?` FROM THE PROCESS.**
+
+    cmd > /dev/null 2>&1 ; rc=$?        # the command's own status
+    cmd | tail ; rc=$?                  # tail's status. NOT the command's.
+
+`${PIPESTATUS[0]}` is the other spelling and it is easy to misuse -- it must be read in the statement immediately after the pipeline, and anything between resets it. **When a gate or a consumer takes an exit code, drive it in the CONSUMER'S EXACT SHAPE rather than one that resembles it**: if the caller writes `cmd > /dev/null || exit 8`, that redirect is part of the question.
+
+**AND `git commit --only <dir>` SILENTLY OMITS A NEW FILE AND REPORTS SUCCESS ON THE REST** -- driven both directions in a throwaway repo. **This is not a new rule: it is the shared-checkout rule with one half dropped.** That rule is `add` + `commit --only <paths>` in ONE call, and applying only the second half is what loses the file. A commit can therefore land citing an archive the repository does not contain, **and nothing checks it** -- a commit message's citations are prose, guarded by nobody, while structured claims like canon attachments are guarded. Same asymmetry as a page that verifies a defect is STATED and never that its remedy WORKS.
+
 **ONE NAME, TWO ARTEFACTS -- A CHECK EXAMINES ONE OF THEM AND THE CLAIM IS PHRASED ABOUT THE NAME. FOUR INSTANCES ON 2026-09-09, FOUND BY THREE NODES, AND THE FOURTH CAUGHT BOTH AUTHORS INSIDE THE ACT OF WRITING THE CLASS DOWN.**
 
 - **`intent --version`** answers for the COMPILED half and is confidently wrong about the SCRIPTED half. `.claude/restart.md`'s pair-distance item carries the worked explanation, and that is the one place it belongs.
