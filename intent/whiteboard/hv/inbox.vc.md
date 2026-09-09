@@ -1592,3 +1592,25 @@ cc inferred that clearing the sibling-staleness reds is what made tonight acute 
 **THAT LOWERS THE URGENCY AND DOES NOT CHANGE THE ASK.** It is not an emergency tonight; it is a defect that gets monotonically worse and has no natural floor. **The ordering stands: checkpoint and record its return value, reap, the 325-attachment hash, and store isolation regardless.** What changes is that you can take it in the morning without something breaking overnight -- **and that is a thing I should say plainly, having spent the previous entry arguing the opposite.**
 
 **THIRD TIME TONIGHT I HAVE OVERSTATED SOMETHING TO YOU AND WALKED IT BACK ON MEASUREMENT** -- the honest-refusal claim, the open-read-transaction premise, and now this. **Each was a real observation carrying an inference one step past it.** The pattern is mine and it is worth your knowing when you weigh anything else in this inbox.
+
+## (2026-09-09 23:36Z) `0275` HALF TWO IS RULED AND THE LANDING IS YOURS, BECAUSE IT CHANGES A SHIPPED VERB'S EXIT CODE
+
+**`0275` HAS BEEN OPEN FOUR DAYS WITH ITS PAGE HALF ALREADY DISCHARGED, AND NOBODY NOTICED.** `docs/install.md` was corrected at `f07ab450e` on 2026-09-05 -- the day the issue was filed -- and corrected well: it states the real symptom, says *you must read its COUNT rather than its exit code*, and answers the danger the filing named head-on with **_if you were expecting these to fail and they did not, you are affected rather than exempt_**. **Both wrong claims are gone; the filing's own "fix shape" for the page is done.** It cannot be closed under the freeze, and it is the fourth stale record tonight.
+
+**WHAT REMAINED IS THE TOOL HALF, WHICH THE FILING EXPLICITLY LEFT UNRULED -- AND THE CODE DID NOT LEAVE IT VAGUE, IT LEFT A CONDITION.** `render.rs`'s rules-list arm already prints the absent case by name: *there is NO RULE LIBRARY at `<path>`, so this install is incomplete rather than empty.* Beside it: **"A MESSAGE AND DELIBERATELY NOT AN EXIT CODE. Refusing when the tree is absent is correct on `IN-AG-NO-SILENT-001` and can break callers, so it is a separate question that nobody answers without measuring them first."**
+
+**THE MEASUREMENT THE CODE ASKED FOR EXISTS AND NOBODY HAD DRIVEN IT FOR THIS QUESTION.** `exit_code_consumers.rs` -- *every place the SHIPPED CANON invokes `intent`, declared with what it does on a non-zero code* -- 4/4 green. Driven:
+
+    13 declared rows.  `rules list` named in ZERO policy prose.
+    claude-family INVOKERS: 1 -- .claude/settings.json, and its own row records
+      that it invokes `claude hook`, which DELEGATES to a script, so every 2 a
+      hook consumer sees is the script's own.
+    hooks/pre-commit.sh merely NAMES the claude family; it does not invoke it.
+
+**RULED: `intent claude rules list` SHOULD refuse when its canon tree is absent. Three grounds.** (i) **Zero canon rules is not a reachable healthy state** -- 104 rule files are tracked and ship with the install, so an empty canon library means the tree is missing rather than that nothing is configured. (ii) The deferral's own condition is now met: **no declared shipped-canon consumer invokes it.** (iii) `IN-AG-NO-SILENT-001`, which the code itself names.
+
+**AND THE ASYMMETRY IS THE POINT, SO IT IS RULED TOO: `intent claude skills list` MUST NOT REFUSE ON ZERO.** Skills are installed on demand -- `claude skills install` / `uninstall` are user verbs and `skills list` reports a per-skill install state -- **so zero skills IS legitimate, and refusing would conflate _nothing installed yet_ with _install broken_.** The rule is *refuse where zero is unreachable in a healthy install*, not *refuse on zero*.
+
+**TWO DECLARED LIMITS, because the evidence is the strongest available and not a proof.** The roster is per (file, FAMILY) and not per VERB, so this establishes a fact about the `claude` family's invokers rather than about `rules list` itself. And its scope is the shipped canon **by design** -- the file says so -- while `bin/.devbin/` carries three more callers in dc's lane. **Those three should be checked before it lands.**
+
+**THE LANDING IS YOURS, NOT MINE, AND THAT IS THE SAME LINE I HAVE HELD ALL NIGHT: it changes a shipped verb's exit code.** The ruling that it is CORRECT is validation's; the decision to change what a released surface returns is release scope. **The remedy is small -- refuse when `canon_root()` is not a directory, and that accessor already exists and was added for `0275` -- so this is a word from you and an afternoon, not a build.**
