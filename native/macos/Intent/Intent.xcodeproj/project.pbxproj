@@ -19,6 +19,7 @@
 		D1B7407CB6E1DC3E976E745A /* ProjectService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1FDFCD2416E01A931378EF /* ProjectService.swift */; };
 		E4FB94495E37A90BCFC43C24 /* IntentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A21089C3EE01CC6CD256BFC /* IntentApp.swift */; };
 		FCF20238A656A982DF4B12D1 /* LoginShellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E9C74AD191140D77FB3294C /* LoginShellTests.swift */; };
+		B1475288F7614F368A85D83B /* TailOrphanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFB9FAFDAEC04E1EA598C3D2 /* TailOrphanTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +39,7 @@
 		4634133A4EB56FC2D1AED35E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4AF69039A2E9F208B08C436D /* IntentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IntentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5E9C74AD191140D77FB3294C /* LoginShellTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginShellTests.swift; sourceTree = "<group>"; };
+		FFB9FAFDAEC04E1EA598C3D2 /* TailOrphanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TailOrphanTests.swift; sourceTree = "<group>"; };
 		60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentCLI.swift; sourceTree = "<group>"; };
 		7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuousObservation.swift; sourceTree = "<group>"; };
 		894E47351007915CC6F59BBD /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -89,6 +91,7 @@
 			children = (
 				29672806305D887EA65656B8 /* HealthTests.swift */,
 				5E9C74AD191140D77FB3294C /* LoginShellTests.swift */,
+				FFB9FAFDAEC04E1EA598C3D2 /* TailOrphanTests.swift */,
 				B9E84295876C1959E651CD8B /* ProjectServiceTests.swift */,
 			);
 			path = IntentTests;
@@ -234,6 +237,7 @@
 			files = (
 				2997E46680241912D530A7B5 /* HealthTests.swift in Sources */,
 				FCF20238A656A982DF4B12D1 /* LoginShellTests.swift in Sources */,
+				B1475288F7614F368A85D83B /* TailOrphanTests.swift in Sources */,
 				63748568E2B10D3229CB13A9 /* ProjectServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
