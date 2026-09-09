@@ -8768,9 +8768,67 @@ fn rules(m: &ArgMatches) -> Result<(), Failure> {
   match m.subcommand() {
     Some(("list", a)) => rules_list(a),
     Some(("show", a)) => rules_show(a),
+    Some(("validate", a)) => rules_validate(a),
     Some((verb, _)) => unwired("claude", &format!("rules {verb}")),
     None => rules_list(m),
   }
+}
+
+/// `intent claude rules validate [<id>|<path>]`.
+///
+/// **WIRED FOR CANON AND IT DECLARES ITS EXT LIMIT, WHICH IS THE HONEST FORM OF
+/// WIRED-OR-WITHDRAWN.** A validator that checks the shipped corpus is useful on
+/// its own; one that silently checked less than it was asked to would be the
+/// advertised-and-inert defect wearing a different hat. So the limit is printed
+/// by the verb, every run, naming the mechanism rather than the symptom -- a
+/// limit stated in the artefact beats one stated on a board.
+///
+/// **THE FINDINGS GO TO STDERR AND THE SUMMARY TO STDOUT** (INV-01). The summary
+/// is the machine-readable half and it is emitted on both verdicts, because a
+/// validator that prints nothing on success is indistinguishable from one that
+/// did not run.
+fn rules_validate(m: &ArgMatches) -> Result<(), Failure> {
+  let lib = library()?;
+  let subject = opt(m, "id");
+  let (findings, examined) = lib
+    .validate(subject.as_deref())
+    .map_err(|e| Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy())))?;
+
+  if subject.is_some() && examined == 0 {
+    return Err(Failure::Error(format!(
+      "error: no rule matches `{}`\n  remedy: pass a rule id as `intent claude rules list` prints it, or a path to a `RULE.md`",
+      subject.unwrap_or_default()
+    )));
+  }
+
+  for f in &findings {
+    let label = match f.level {
+      intentsvcs::rules::Level::Error => "error",
+      intentsvcs::rules::Level::Warning => "warning",
+    };
+    eprintln!("{label}: {}: {}", f.path.display(), f.message);
+  }
+
+  // **NAMED, NOT SUMMARISED.** "ext not supported" would tell an operator that
+  // something is missing and not which thing they just failed to check.
+  eprintln!(
+    "note: extension rule packs were NOT validated. `library()` constructs `Library::new(&home, None)`, so `ext_packs()` returns an empty list by construction and no pack under `~/.intent/ext` is reached. Two arms of `tests/unit/rule_validator.bats` need it -- `rules validate passes the ext valid-ext fixture rule` and `rules validate detects duplicate ids across files`, which builds its duplicates inside a temporary ext directory."
+  );
+
+  let errors = findings
+    .iter()
+    .filter(|f| f.level == intentsvcs::rules::Level::Error)
+    .count();
+  let warnings = findings.len() - errors;
+  if errors == 0 {
+    println!("{examined} ok");
+    if warnings > 0 {
+      println!("{warnings} warning(s)");
+    }
+    return Ok(());
+  }
+  println!("{errors} error(s), {warnings} warning(s) across {examined} rule(s)");
+  Err(Failure::Verdict)
 }
 
 /// The library this binary serves.
@@ -8787,7 +8845,7 @@ fn library() -> Result<intentsvcs::rules::Library, Failure> {
   // v2 also serves rule packs from `~/.intent/ext`, resolved through
   // `$INTENT_EXT_DIR` / `$INTENT_EXT_DISABLE` / `$HOME`. Wiring that here fails
   // `no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable`
-  // -- `ALLOWED` is `["COLUMNS"]`, exactly one -- and that test says in its own
+  // -- and that test says in its own
   // failure message that a further read "needs an hv ruling and a row in
   // ALLOWED, not a quiet addition", because every machine here has the variable
   // set so nothing else would fail.

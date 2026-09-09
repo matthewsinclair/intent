@@ -52,10 +52,25 @@ EXT_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/extensions"
   assert_output_contains "does not resolve"
 }
 
-@test "rules validate warns on unknown-field fixture (warning, not error)" {
+# **THIS ARM ASSERTED A WARNING UNTIL 2026-09-09 AND vc RULED IT A REFUSAL.**
+# `_schema/rule-schema.md` states the contract in the opposite direction --
+# *`intent claude rules validate` rejects unknown top-level keys* -- and it was
+# the canon. The argument that an executable spec outranks prose does not hold
+# HERE, specifically: the verb did not exist, so this arm had never once run
+# against an implementation. An executable spec that has never executed is prose
+# with a shebang.
+#
+# On the substance: this is a VALIDATOR, and one that warns on an unknown key
+# lets a typo'd field ship silently, which is how schema drift enters. Driven on
+# the day it was wired, the reject arm immediately found THREE undeclared keys
+# across FIVE shipped rules -- `critic_tool`, `critic_tool_codes` and
+# `critic_tool_context` -- which a warning would have printed and nobody would
+# have acted on.
+@test "rules validate REFUSES the unknown-field fixture" {
   run run_intent claude rules validate "$RULE_FIXTURES/unknown-field/RULE.md"
-  assert_success
-  assert_output_contains "warning: frontmatter key 'unknown_field_we_do_not_recognise'"
+  assert_failure
+  assert_output_contains "unknown_field_we_do_not_recognise"
+  assert_output_contains "not in the declared schema"
 }
 
 # ====================================================================
