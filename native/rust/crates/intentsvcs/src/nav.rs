@@ -76,6 +76,35 @@ pub enum View {
     id: String,
     field: String,
   },
+  /// One item INSIDE a child collection: the work package, not the list of them.
+  ///
+  /// **A WORK PACKAGE IS AN ITEM AND [`View::Item`] CANNOT HOLD ONE, WHICH IS
+  /// WHY THIS IS A VARIANT RATHER THAN A LONGER `id`.** `Item` carries ONE id;
+  /// a work package is named by two components -- the thread and the sequence
+  /// -- and packing them into one string (`Item { kind: "wp", id: "ST0056/17" }`)
+  /// puts a `/` inside a segment. [`View::path`] then renders `/wp/ST0056/17`
+  /// and [`View::parse`] reads it back as `Children { kind: "wp", id: "ST0056",
+  /// field: "17" }`.
+  ///
+  /// **THAT ROUND TRIP WAS THE WORST OF THE THREE AVAILABLE OUTCOMES: it
+  /// neither round-tripped NOR refused.** A refusal would have been defensible
+  /// -- `parse`'s own contract two doors down says a spelling that names
+  /// nothing is refused as a spelling. Silently returning a DIFFERENT address
+  /// is what `IN-AG-NO-SILENT-001` forbids outright, and it is what decided
+  /// this shape over rewording `AC-17.6` (vc, 2026-09-09, under hv's pen).
+  ///
+  /// **THE SEGMENT REUSES A DECLARED DESCENT RATHER THAN INVENTING ONE.**
+  /// `/thread/ST0056/wps/17` descends `wps` -- the same field [`Descent`]
+  /// already declares and [`View::Children`] already addresses -- so the
+  /// ladder reads collection, item, child-collection, child-item with nothing
+  /// new to remember. `Collection -> Item` existed; `Children -> nothing` was
+  /// the gap.
+  Child {
+    kind: String,
+    id: String,
+    field: String,
+    item: String,
+  },
   /// The whole key/command reference. Derived, never written out.
   ///
   /// **A SECOND RESERVED SEGMENT, AND THE COST IS THE SAME ONE
@@ -112,6 +141,12 @@ impl View {
       View::Collection { kind } => format!("/{kind}"),
       View::Item { kind, id } => format!("/{kind}/{id}"),
       View::Children { kind, id, field } => format!("/{kind}/{id}/{field}"),
+      View::Child {
+        kind,
+        id,
+        field,
+        item,
+      } => format!("/{kind}/{id}/{field}/{item}"),
       View::Settings => format!("/{SETTINGS_SEGMENT}"),
       View::Help { of: None } => format!("/{HELP_SEGMENT}"),
       View::Help { of: Some(name) } => format!("/{HELP_SEGMENT}/{name}"),
@@ -154,6 +189,17 @@ impl View {
         kind: (*kind).to_string(),
         id: (*id).to_string(),
         field: (*field).to_string(),
+      }),
+      // **THE FOURTH SEGMENT IS THE LADDER'S LAST RUNG, NOT AN OPEN TAIL.**
+      // `_ => None` still catches five and beyond, so this stays a closed
+      // grammar: the arm below is the only path that ends inside a child
+      // collection, and anything deeper is refused as a spelling exactly as
+      // this function's contract promises.
+      [kind, id, field, item] => Some(View::Child {
+        kind: (*kind).to_string(),
+        id: (*id).to_string(),
+        field: (*field).to_string(),
+        item: (*item).to_string(),
       }),
       _ => None,
     }

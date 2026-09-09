@@ -27,6 +27,16 @@ fn loaded() -> Loaded {
 
 /// Every view the real declaration can produce, so the round trip below is held
 /// over the corpus rather than over three hand-picked examples.
+///
+/// **THE KIND AXIS IS A CORPUS AND THE ID AXIS IS ONE LITERAL, AND SAYING SO IS
+/// THE POINT.** Kinds and descents come from the real declaration, so a new
+/// form is covered with nothing to remember. The ids do NOT: every view below
+/// carries `ST0056`, a single separator-free string. **A green here is
+/// therefore evidence that ids WITHOUT a separator round-trip, and never that
+/// ids do** -- which is exactly the claim this file made until 2026-09-09,
+/// while `View::Item { kind: "wp", id: "ST0056/17" }` rendered `/wp/ST0056/17`
+/// and parsed back as a `Children`. `a_separator_in_an_id_is_the_shape
+/// _View_Child_exists_for` holds the half this walk structurally cannot.
 fn every_view(l: &Loaded) -> Vec<View> {
   let mut out = vec![
     View::Entities,
@@ -46,7 +56,13 @@ fn every_view(l: &Loaded) -> Vec<View> {
       out.push(View::Children {
         kind: kind.clone(),
         id: "ST0056".into(),
+        field: d.field.clone(),
+      });
+      out.push(View::Child {
+        kind: kind.clone(),
+        id: "ST0056".into(),
         field: d.field,
+        item: "17".into(),
       });
     }
   }
@@ -115,15 +131,81 @@ fn every_view_round_trips_through_its_path() {
 
 /// A path that names nothing is refused AS A SPELLING rather than resolved to
 /// something near it.
+/// **THE DEFECT `AC-17.6` NAMES, PINNED AS A PROPERTY RATHER THAN AS AN
+/// EXAMPLE.** A `/` inside an id is not an addressing style this module can
+/// carry: `path` writes it out raw, so the segment count changes and `parse`
+/// reads a DIFFERENT view back. It neither round-trips nor refuses, which is
+/// the one outcome `IN-AG-NO-SILENT-001` forbids outright -- and it is why the
+/// two-component address is a VARIANT (`View::Child`) rather than a longer id.
+///
+/// Held over every kind, so a form that acquires a compound-id notion tomorrow
+/// fails here rather than shipping a silent mis-parse.
+#[test]
+fn a_separator_in_an_id_is_the_shape_view_child_exists_for() {
+  let l = loaded();
+  for kind in kinds(&l) {
+    let packed = View::Item {
+      kind: kind.clone(),
+      id: "ST0056/17".into(),
+    };
+    let back = View::parse(&packed.path());
+    assert_ne!(
+      back.as_ref(),
+      Some(&packed),
+      "`{}` round-tripped, so this test no longer pins the defect it was written for",
+      packed.path()
+    );
+
+    // The shape that DOES carry two components, over the same segments.
+    let proper = View::Child {
+      kind: kind.clone(),
+      id: "ST0056".into(),
+      field: "wps".into(),
+      item: "17".into(),
+    };
+    assert_eq!(
+      View::parse(&proper.path()).as_ref(),
+      Some(&proper),
+      "`{}` must round trip -- it is the address a two-component item is spelled with",
+      proper.path()
+    );
+  }
+}
+
 #[test]
 fn a_path_that_names_nothing_is_refused_rather_than_guessed() {
-  for bad in ["", "thread", "/thread//ST0056", "/a/b/c/d", "//"] {
+  for bad in ["", "thread", "/thread//ST0056", "//"] {
     assert_eq!(
       View::parse(bad),
       None,
       "{bad:?} parsed to a view and should not have"
     );
   }
+
+  // **THE TOO-DEEP CASE IS DERIVED FROM THE LADDER, NEVER TYPED AS A LITERAL.**
+  // This list carried `/a/b/c/d` until 2026-09-09, when `View::Child` made four
+  // segments legal. **The literal became a live path and the assertion went on
+  // passing** -- it had stopped testing depth and started testing that a real
+  // view was unreachable, which is the opposite claim in the same words.
+  // Taking the deepest view the module can render and appending ONE segment
+  // ties the boundary to the ladder, so the next rung moves it with nothing to
+  // remember.
+  let deepest = View::Child {
+    kind: "a".into(),
+    id: "b".into(),
+    field: "c".into(),
+    item: "d".into(),
+  };
+  assert!(
+    View::parse(&deepest.path()).is_some(),
+    "the deepest view must parse, or the boundary asserted below is vacuous"
+  );
+  let one_past = format!("{}/e", deepest.path());
+  assert_eq!(
+    View::parse(&one_past),
+    None,
+    "{one_past:?} is one segment past the ladder and must be refused as a spelling"
+  );
 }
 
 /// **NO SEGMENT IS INVENTED, PLURALISED OR PRETTIFIED.** A spelling rule is a

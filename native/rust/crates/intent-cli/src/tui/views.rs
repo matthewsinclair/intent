@@ -113,6 +113,12 @@ pub fn app_line(view: &View) -> String {
     View::Collection { kind } => kind.clone(),
     View::Item { kind, id } => format!("{kind}  {id}"),
     View::Children { kind, id, field } => format!("{kind}  {id}  {field}"),
+    View::Child {
+      kind,
+      id,
+      field,
+      item,
+    } => format!("{kind}  {id}  {field}  {item}"),
     View::Settings => format!("settings  {}", intentsvcs::settings::SECTION),
     View::Help { of: None } => "help".to_string(),
     View::Help { of: Some(name) } => format!("help  intent {name}"),

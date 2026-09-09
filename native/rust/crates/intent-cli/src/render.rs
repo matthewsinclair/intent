@@ -3810,7 +3810,15 @@ fn present(facade: &Facade, view: &intentsvcs::nav::View) -> bool {
     // `intentsvcs::settings::read_all`. Answering `false` here would refuse the
     // one screen that tells the operator what is in force.
     View::Settings | View::Help { .. } => true,
-    View::Item { kind, id } | View::Children { kind, id, .. } => {
+    // **A `Child`'s PARENT is what this answers, and the child item's own
+    // existence is answered one layer down, DELIBERATELY.** `present` has the
+    // facade and not the declaration, so asking whether WP-17 is in
+    // `ST0056`'s `wps` here would mean hard-coding the descent -- a second
+    // home for `nav::descents`, which is the contract both faces walk. The
+    // missing-child answer belongs where the data is: `rows_for` puts an
+    // absent item on an error row, the same shape an unbuilt level already
+    // gets, so a child that does not exist SAYS SO rather than painting empty.
+    View::Item { kind, id } | View::Children { kind, id, .. } | View::Child { kind, id, .. } => {
       entity_json(facade, kind, id).is_some()
     }
   }
@@ -4219,7 +4227,7 @@ fn rows_for(
       // unbuilt descent is that case: without this the operator cannot tell a
       // collection with no members from a level nobody wired, and the second
       // one is a bug that reads as data.
-      children_of(facade, declaration, id, field).unwrap_or_else(|| {
+      children_of(facade, declaration, kind, id, field).unwrap_or_else(|| {
         vec![tui::layout::Row::new(
           "error",
           format!("`{field}` is a level this build does not render yet"),
@@ -4227,6 +4235,42 @@ fn rows_for(
         )]
       })
     }
+    // **WITHOUT THIS ARM A `Child` FELL THROUGH `_` AND RENDERED EMPTY.** The
+    // compiler flagged the two exhaustive matches this variant broke and could
+    // not flag this one, because a wildcard is exhaustive by construction --
+    // the trap this board already records as W9's inverted form. An empty
+    // `Vec` here would have been the exact silent-partial this thread exists
+    // to remove: a level that looks like a collection with no members.
+    View::Child {
+      kind,
+      id,
+      field,
+      item,
+    } if kind == "thread" => match children_of(facade, declaration, kind, id, field) {
+      None => vec![tui::layout::Row::new(
+        "error",
+        format!("`{field}` is a level this build does not render yet"),
+        "text",
+      )],
+      // **AN ABSENT CHILD IS NAMED, NOT PAINTED EMPTY.** `present` answers the
+      // PARENT's existence; this is where the item's own is answered, and the
+      // two together are why a bad `/thread/ST0056/wps/99` reads as an error
+      // rather than as a work package with no fields.
+      Some(rows) => match rows.into_iter().find(|r| r.name == *item) {
+        Some(row) => row.detail.unwrap_or_else(|| {
+          vec![tui::layout::Row::new(
+            "error",
+            format!("`{item}` carries no declared form in this build"),
+            "text",
+          )]
+        }),
+        None => vec![tui::layout::Row::new(
+          "error",
+          format!("`{item}` is not in `{field}`"),
+          "text",
+        )],
+      },
+    },
     _ => Vec::new(),
   }
 }
@@ -4254,6 +4298,7 @@ fn rows_for(
 fn children_of(
   facade: &Facade,
   declaration: &intentsvcs::form::Loaded,
+  kind: &str,
   id: &str,
   field: &str,
 ) -> Option<Vec<tui::layout::Row>> {
@@ -4268,12 +4313,24 @@ fn children_of(
           wps
             .iter()
             .map(|w| {
-              let row = Row::named(
+              let mut row = Row::named(
                 format!("{}", w.seq),
                 format!("WP-{:02}", w.seq),
                 w.title.clone(),
                 "button",
               );
+              // **THE DOOR IS WHAT MAKES THE NEW LEVEL REACHABLE RATHER THAN
+              // MERELY ADDRESSABLE.** A `button` with no door visibly opens
+              // nothing (`tui-design.md` section 6), so without this a work
+              // package would round-trip as a URL and still be unenterable
+              // from the surface that lists it -- the two halves of `AC-17.6`
+              // coming apart in the quiet direction.
+              row.door = Some(intentsvcs::nav::View::Child {
+                kind: kind.to_string(),
+                id: id.to_string(),
+                field: field.to_string(),
+                item: format!("{}", w.seq),
+              });
               match (declaration.form("wp"), serde_json::to_value(w).ok()) {
                 (Some(form), Some(entity)) => row.expanding_to(tui::views::rows_for(form, &entity)),
                 _ => row,
