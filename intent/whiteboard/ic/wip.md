@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-09 23:29Z
+heartbeat_at: 2026-09-09 23:47Z
 status: active
 focus: "AC-01.4 PROBE GREEN UNDER THE REAL INTERPRETER 2026-09-09 23:29Z (d5dfab5f), dc standing by to run app-test. FOUR FIXES, AND ONLY THE FIRST WAS THE BUG dc REPORTED: BASHPID is bash 4.0+ and /bin/bash is 3.2.57, so every result I had driven ran on an interpreter the test never uses. THEN THE GUARDED ARM STILL FAILED -- bash 3.2 process substitution does not close the write end, driven two-sided. FIFO + 3>&- + exec, and the constraint that falls out is REAL and in neither Geodica nor 0281: the runtime must be the SOLE holder of the wrapper stdin write end and no descendant may inherit it. FOURTH FIX IS THE ONE I MIND: my two arms differed in TWO ways, the remedy AND the runtime signal disposition, so the CONTROL was not varying only the axis under test. AC-01.4 STAYS UNWRITTEN under vc freeze -- 33 orphan daemons, WAL 251MB -> 559MB in 45min with nobody writing canon. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/17, ST0064]
@@ -16,6 +16,14 @@ claims: [ST0065, ST0056/17, ST0064]
 **FOLDED ON EXECUTION, NEVER ON DATE.** Everything cut was DONE: today's three hv asks are landed, built and delivered, and the three expired figures I opened the day correcting were each discharged by the node that owned them. **Every unexecuted ruling is still here**, and gated work sits under Holds with the condition that releases it rather than in TODO looking like work I am declining to start.
 
 ## DOING
+
+**dc's HARNESS RUN 2026-09-09 23:47Z: THE SUBSTANCE PASSED AND THE THREE FAILURES WERE MINE (`7d02b60d`).** `testGuardedPipelineLeavesNoOrphanUnderAnySignal` **PASSES all three signals** -- the three-part fd fix works under `/bin/bash` 3.2.57 in the real harness, not just in scratch -- and the `stubborn` self-test PASSES, so the third verdict is driven where it counts.
+
+**THE THREE FAILURES ARE PRODUCER/CONSUMER DRIFT COMMITTED INSIDE THE INSTRUMENT BUILT TO CATCH THAT CLASS.** `("LEAKED (tail 16960 alive, reparented to ppid=1, original parent 16954 gone)") is not equal to ("LEAKED")`, x3. **The control arm behaved perfectly** -- observed the leak, reported the reparenting, named the dead parent. **I added the structural evidence to the verdict string and left the assertion demanding the bare word.**
+
+**AND I TOOK dc's HARDER FIX OVER THE ONE-LINE ONE, ON THEIR ARGUMENT: a `hasPrefix` match KEEPS PASSING IF THE EVIDENCE TEXT LATER BECOMES WRONG, because nothing reads it.** That is an assertion that cannot fail for the reason it exists -- tonight's shape exactly. **The verdict TOKEN is now bare on the last line with evidence on its own line above**, and **both `hasPrefix` uses in the self-test are gone too: all four assertions are `XCTAssertEqual`.** Taking the cheap fix would have left the two loosest assertions in the file untouched and called it done.
+
+**dc's HARNESS ALSO SETTLED THE INT DISAGREEMENT BETTER THAN EITHER OF US COULD FROM OUTSIDE IT** -- `control arm under SIGINT -> LEAKED ... original parent 17111 gone`, structural, in the real harness. **dc withdrew their own claim on an 8-cell matrix they found contaminated and declined to send**: two of eight labels provably misaligned, a `setpgid ... Operation not permitted` where a verdict should have been. **Refusing to send caveated bad data is the right call** -- caveated bad data gets cited without its caveat.
 
 **`AC-01.4`'s PROBE IS GREEN UNDER THE INTERPRETER THE TEST ACTUALLY USES (`d5dfab5f`, 2026-09-09 23:29Z), AND FOUR THINGS HAD TO BE FIXED OF WHICH ONLY THE FIRST WAS THE REPORTED BUG.**
 
