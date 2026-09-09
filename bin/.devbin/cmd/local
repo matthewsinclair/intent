@@ -208,6 +208,47 @@ EOF
     fi
   done
   printf '    HEAD     %s\n' "$(git -C "$PROJECT_ROOT" rev-parse HEAD 2>/dev/null || echo '<no git>')"
+
+  # THE VERDICT, NOT THE TWO HASHES. This block printed the marker and HEAD and
+  # stopped, leaving the reader to diff two 40-character strings by eye and
+  # decide for themselves what a difference meant -- and a difference alone
+  # means nothing: the marker is an ANCESTOR of the commit actually compiled in,
+  # so an unequal pair is the NORMAL state of a working tree and only the
+  # verdict separates that from a pair that is genuinely behind.
+  #
+  # `currency.lib` is ALREADY SOURCED at the top of this file and
+  # `sharedtarget.lib` already declares the scopes the verdict needs, so this
+  # was one call away the whole time. A capability with no consumer distinguishes
+  # nothing (AT-11.5's finding, arriving here): the tool could answer a question
+  # nothing on the typed route was asking it.
+  #
+  # WHY HERE AND NOWHERE ELSE ON THE TYPED ROUTE. The verdict already exists in
+  # three places and not one of them is a route a person types: `devbin cli`
+  # (refuses on it), `self_provenance_check.sh` (pre-commit only) and
+  # `int macos publish` (the cut). `~/.local/bin/intent` is a symlink straight
+  # into the release directory and passes through nothing at all. `local status`
+  # is the verb people type to ask WHAT AM I RUNNING, which is this exact
+  # question, so the answer belongs in its output.
+  #
+  # IT REPORTS AND DOES NOT REFUSE, DELIBERATELY. `status` is read-only and
+  # every caller reads its exit code as "did the status run", not as a verdict.
+  # Enforcement stays where it already is. This is NOT the warn-and-continue
+  # form `build.d/release` rules against in its own words -- *a fallback that
+  # warns is a fallback that gets ignored* -- because nothing here is falling
+  # back to a second-choice binary; the verdict is the whole product of the verb.
+  local verdict
+  verdict="$(artefact_currency_verdict "$RELEASE_DIR" "$PROJECT_ROOT" 2>/dev/null || echo 'refuse:the currency verdict could not be taken')"
+  case "$verdict" in
+    ok)
+      printf '    currency ok -- this pair describes the tree you are standing in\n' ;;
+    warn:*)
+      printf '    currency WARN -- %s\n' "${verdict#warn:}" ;;
+    refuse:*)
+      printf '    currency REFUSING -- %s\n' "${verdict#refuse:}"
+      printf '    an actor on the exec path would refuse to run this pair. `int build all` rebuilds it.\n' ;;
+    *)
+      printf '    currency UNREADABLE -- the verdict was %s, which is not a form this renders\n' "$verdict" ;;
+  esac
 }
 
 # verify_pair -- refuse a set that describes no single state of this repo.
