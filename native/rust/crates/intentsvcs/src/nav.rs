@@ -513,12 +513,32 @@ pub fn view_for(entity: &Entity) -> Option<View> {
 /// `an_item_view_round_trips_to_the_entity_it_came_from` drives the pair
 /// together so neither can grow an arm the other lacks.
 pub fn entity_for_item(view: &View) -> Option<Entity> {
-  let View::Item { kind, id } = view else {
-    return None;
-  };
-  match kind.as_str() {
-    "thread" => Some(Entity::Thread { id: id.clone() }),
-    "issue" => Some(Entity::Issue { id: id.clone() }),
+  match view {
+    View::Item { kind, id } => match kind.as_str() {
+      "thread" => Some(Entity::Thread { id: id.clone() }),
+      "issue" => Some(Entity::Issue { id: id.clone() }),
+      _ => None,
+    },
+    // **THE CHILD RUNG IS AN ITEM VIEW, WHICH IS WHY IT BELONGS IN THIS
+    // FUNCTION AND NOT BESIDE IT.** A face standing on `/thread/ST0056/wps/17`
+    // holds an item as surely as one standing on `/thread/ST0056`; the only
+    // difference is that its address takes two components. This answered `None`
+    // for every work package until 2026-09-09 -- the SECOND of the two
+    // refusals `browser_url` used to cite as the reason a work package had no
+    // browser address -- and `View::Child` is what retires both.
+    //
+    // The descent is matched by NAME rather than assumed: `wps` is the field
+    // [`view_for`] authored on the way out, and reading it back anywhere else
+    // would be a second spelling of one mapping.
+    View::Child {
+      kind,
+      id,
+      field,
+      item,
+    } if kind == "thread" && field == "wps" => Some(Entity::Wp {
+      thread: id.clone(),
+      wp: item.clone(),
+    }),
     _ => None,
   }
 }

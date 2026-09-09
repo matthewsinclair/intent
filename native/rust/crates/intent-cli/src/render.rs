@@ -1846,42 +1846,26 @@ fn browser_url(address: &intentsvcs::address::Address) -> Result<String, Failure
   use intentsvcs::address::Entity;
 
   let view = match &address.entity {
-    // **A WORK PACKAGE IS REFUSED HERE, AND THE REFUSAL IS THE HONEST ANSWER
-    // RATHER THAN A GAP I DECLINED TO FILL.** `nav.rs` REFUSES TO PRODUCE THIS
-    // VIEW IN TWO SEPARATE FUNCTIONS, both deliberately and both documented:
-    // `view_for` answers `None` for `Entity::Wp` (*a declared kind whose item
-    // view nothing reaches*), and `entity_for_item` answers `None` for the
-    // `wp` kind. The cause is the path grammar, not an oversight --
-    // `/wp/ST0056/17` parses as `Children { kind: "wp", id: "ST0056", field:
-    // "17" }` under the positional `/{kind}/{id}/{field}` shape, so the
-    // RATIFIED contract cannot express a work-package item at all.
+    // **THE WORK-PACKAGE REFUSAL THAT STOOD HERE IS GONE, AND THE COMMENT IT
+    // REPLACES NAMED ITS OWN DISCHARGE CONDITION.** It refused `Entity::Wp` by
+    // name because `nav.rs` would not produce a view for one, in two separate
+    // functions, and because `/wp/ST0056/17` parsed as `Children { kind: "wp",
+    // id: "ST0056", field: "17" }` under the positional grammar -- so the
+    // ratified contract could not express a work-package item at all. It listed
+    // three routes, rejected two, and said of the third: *give `wp` a shape in
+    // `nav.rs`. That is a change to the `AC-17.12` contract and is vc's.*
     //
-    // **THREE ROUTES WERE CONSIDERED AND TWO WERE REJECTED FOR REASONS THAT
-    // BELONG ON THE RECORD.** Landing on the thread's `wps` collection is
-    // expressible and was rejected because nothing serves a children
-    // collection -- `Op::Form` addresses ONE entity, so the page would render
-    // a view it cannot populate, which is the blank-form failure `nav.rs`
-    // already warns about wearing a different hat. Percent-encoding the id
-    // into one segment works at the transport layer and was rejected because
-    // it requires CONSTRUCTING a `View` that two functions in `nav.rs`
-    // deliberately refuse to construct -- overriding a ratified decision from
-    // a renderer.
+    // **vc RULED IT ON 2026-09-09 UNDER hv's PEN AND `View::Child` IS THAT
+    // SHAPE.** So the arm below is no longer a special case: `view_for` answers
+    // `Some` for a work package, `entity_for_item` travels back, and the
+    // refusal would now be a renderer overriding a ratified decision in the
+    // direction the old comment was careful not to.
     //
-    // **SO THE THIRD ROUTE IS THE ONE NOT TAKEN HERE: give `wp` a shape in
-    // `nav.rs`. That is a change to the `AC-17.12` contract and is vc's.**
-    // `AC-17.6` requires both verbs to cover ST, WP and ISSUE, so this row does
-    // not close until that ruling lands -- and saying so is the point of
-    // refusing by name instead of opening something plausible.
-    Entity::Wp { .. } => {
-      return Err(Failure::Error(
-        "error: this build cannot open a work package in a browser\n  \
-         remedy: open its thread and read the work package there -- \
-         `intent browse st <thread>`. A work package has no address of its own \
-         in the browser's path contract yet, and inventing one here would \
-         disagree with the terminal"
-          .to_string(),
-      ));
-    }
+    // **THE TWO REJECTED ROUTES ARE STILL REJECTED, WHICH IS WHY THIS IS NOT A
+    // RELITIGATION.** Landing on the thread's `wps` collection would render a
+    // page nothing populates, and percent-encoding the id into one segment
+    // would still be constructing a view the contract does not declare. What
+    // changed is that the contract now declares one.
     other => intentsvcs::nav::view_for(other).ok_or_else(|| {
       Failure::Error(format!(
         "error: `{}` is not something this build opens in a browser\n  \

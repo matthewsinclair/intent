@@ -34,13 +34,25 @@
 //! The claim stops at *the right URL is composed and the page it names is
 //! served*, and the two halves either side of that are asserted separately.
 //!
-//! **Work packages are NOT covered, and that is the row's open half rather than
-//! an omission here.** `nav.rs` refuses to produce a `View` for `Entity::Wp` in
-//! two separate functions, because `/wp/ST0056/17` parses as a CHILDREN view
-//! under the positional grammar -- so the ratified path contract cannot express
-//! one. `AC-17.6` requires ST, WP and ISSUE, so the row does not close on this
-//! file alone; the refusal is asserted below so the gap is visible rather than
-//! silent.
+//! **WORK PACKAGES ARE NOW COVERED, AND THE OPEN HALF THIS PARAGRAPH DESCRIBED
+//! IS CLOSED.** It read, correctly, that `nav.rs` refused to produce a `View`
+//! for `Entity::Wp` in two separate functions because `/wp/ST0056/17` parsed as
+//! a CHILDREN view under the positional grammar -- so the ratified path
+//! contract could not express one, and `AC-17.6` could not close on this file.
+//!
+//! **vc RULED THE SHAPE ON 2026-09-09 UNDER hv's PEN AND `View::Child` IS IT.**
+//! The deciding ground was that the old behaviour neither round-tripped NOR
+//! refused, which `IN-AG-NO-SILENT-001` forbids outright. A work package is
+//! addressed as `/thread/<id>/wps/<seq>` -- the descent the declaration already
+//! carries -- so nothing was invented for it.
+//!
+//! **THE ASSERTIONS BELOW INVERTED RATHER THAN RELAXED, AND THAT IS THE POINT
+//! WORTH READING.** The refusal arm became a derivation arm: a work package's
+//! rows over the wire are compared to the terminal's, the same claim the thread
+//! arm makes. And INV-09 for work packages used to hold BY BOTH SPELLINGS
+//! REFUSING -- a real way for the invariant to hold and the fragile one, which
+//! this header already warned about in the paragraph above. It now holds by
+//! both spellings composing a URL, so the twin check finally discriminates.
 
 use std::path::{Path, PathBuf};
 
@@ -65,6 +77,19 @@ fn an_estate() -> PathBuf {
   facade
     .st_new("A thread to open in a browser")
     .expect("a thread is created");
+  // **A REAL WORK PACKAGE, BECAUSE THE WP LIMB IS NOW LIVE.** Until 2026-09-09
+  // no arm below needed one: a work package could not be browsed at all, so
+  // `ST0001/01` being absent and being refused were indistinguishable and the
+  // tests read the same either way. With `View::Child` the two answers differ,
+  // and an estate with no work package would quietly measure the ABSENT path
+  // while claiming to measure the present one.
+  facade
+    .wp_new(
+      "ST0001",
+      "A work package to open in a browser",
+      intentsvcs::model::TShirt::S,
+    )
+    .expect("a work package is created");
   root
 }
 
@@ -82,6 +107,30 @@ fn in_process(root: &Path, id: &str) -> Vec<intentsvcs::form::Triple> {
   let entity = facade
     .entity_json(&intentsvcs::address::Entity::Thread { id: id.to_string() })
     .expect("the thread resolves");
+  intentsvcs::form::triples(form, &entity)
+}
+
+/// The rows the TERMINAL would draw for a WORK PACKAGE, computed in this
+/// process. The `thread` twin above with one substitution -- the entity and its
+/// form -- because `AC-17.6`'s claim is that the DERIVATION is shared, and a
+/// second walk written differently here would be asserting that two hand-made
+/// paths agree rather than that one path is reached twice.
+fn in_process_wp(root: &Path, thread: &str, seq: &str) -> Vec<intentsvcs::form::Triple> {
+  let project = intentsvcs::project::Project::open(root).expect("the project opens");
+  let ctx = intentsvcs::facade::FacadeContext {
+    principal: "test".to_string(),
+    project_id: String::new(),
+    version: env!("CARGO_PKG_VERSION").to_string(),
+  };
+  let facade = intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens");
+  let declaration = intentsvcs::form::Loaded::load().expect("the form declaration loads");
+  let form = declaration.form("wp").expect("`wp` is declared");
+  let entity = facade
+    .entity_json(&intentsvcs::address::Entity::Wp {
+      thread: thread.to_string(),
+      wp: seq.to_string(),
+    })
+    .expect("the work package resolves");
   intentsvcs::form::triples(form, &entity)
 }
 
@@ -230,7 +279,56 @@ fn neither_spelling_starts_a_daemon_and_both_say_the_same_thing() {
 /// shape for `Entity::Wp` this test fails, which is the intended signal: the
 /// criterion's WP limb is then live and wants a real assertion instead.
 #[test]
-fn a_work_package_is_refused_by_both_spellings_and_says_why() {
+fn a_work_package_reaches_one_derivation_through_the_child_rung() {
+  let root = an_estate();
+  let daemon = RealDaemon::start();
+  daemon.wait_until_it_answers_a_real_op();
+
+  let (status, body) = ask_op(
+    &daemon,
+    &format!(
+      r#"{{"root":"{}","op":"form","view":"/thread/ST0001/wps/01"}}"#,
+      root.display()
+    ),
+  );
+  assert!(
+    status.contains("200"),
+    "the form op answered {status} for a work package view: {body}"
+  );
+
+  let answer: serde_json::Value = serde_json::from_str(&body).expect("a JSON answer");
+  assert!(
+    answer.get("error").is_none(),
+    "the daemon refused the work package form op: {body}"
+  );
+
+  let over_the_wire: Vec<intentsvcs::form::Triple> =
+    serde_json::from_value(answer["fields"].clone()).expect("the fields are triples");
+  let in_this_process = in_process_wp(&root, "ST0001", "01");
+
+  // The same vacuity guard the thread arm carries, for the same reason: two
+  // empty vectors are equal.
+  assert!(
+    !in_this_process.is_empty(),
+    "the in-process work-package derivation produced no rows, so the comparison proves nothing"
+  );
+  assert_eq!(
+    over_the_wire, in_this_process,
+    "a work package's browser rows and terminal rows must be ONE derivation reached two ways"
+  );
+}
+
+/// **INV-09 ON THE WORK-PACKAGE LIMB: THE TWO SPELLINGS AGREE, AND THEY NO
+/// LONGER AGREE BY BOTH REFUSING.**
+///
+/// This is the arm the module header warned about: until 2026-09-09 `browse`
+/// and `edit --browser` held INV-09 for work packages **by both refusing**,
+/// which is a real way for the invariant to hold and the fragile one -- wiring
+/// either alone would have broken it by NEITHER holding, and it would have read
+/// green throughout. Now they agree by both composing a URL, so the assertion
+/// finally discriminates.
+#[test]
+fn both_spellings_agree_on_a_work_package_and_neither_refuses_it_for_being_one() {
   let root = an_estate();
   let home = short_dir("browse-wp");
   std::fs::create_dir_all(&home).expect("an isolated home");
@@ -239,12 +337,12 @@ fn a_work_package_is_refused_by_both_spellings_and_says_why() {
   let (flag, _) = cli(&root, &home, &["edit", "wp", "ST0001/01", "--browser"]);
 
   assert!(
-    verb.contains("cannot open a work package in a browser"),
-    "the refusal must name what it cannot do, and said: {verb}"
+    !verb.contains("cannot open a work package in a browser"),
+    "a work package is no longer refused for BEING one, and said: {verb}"
   );
   assert_eq!(
     verb, flag,
-    "INV-09 covers the refusals too, or the twins drift on the case neither can serve"
+    "INV-09: the twins must answer identically for a work package"
   );
 }
 
@@ -301,13 +399,18 @@ fn an_entity_that_does_not_exist_is_refused_before_a_browser_is_opened() {
   );
 }
 
-/// **THE WORK-PACKAGE REFUSAL STILL COMES FIRST, AND THE ORDER IS A DECISION.**
+/// **THE PREMISE OF THIS TEST INVERTED ON 2026-09-09, AND THE ASSERTION WITH
+/// IT.** It used to require a present and an absent work package to get the
+/// SAME answer, and the reasoning was sound while it held: *a real WP-01 cannot
+/// be browsed either, so answering `no such work package` for WP-99 would tell
+/// the operator that WP-01 would have worked -- which is false.*
 ///
-/// `0238`'s check sits AFTER the `Entity::Wp` refusal deliberately. A real
-/// WP-01 cannot be browsed either, so answering *no such work package* for
-/// WP-99 would tell the operator that WP-01 would have worked -- which is
-/// false. Both a present and an absent work package must therefore get the
-/// same answer, and it must be the one naming what this build cannot do.
+/// **WP-01 NOW DOES WORK, so equality has become the wrong assertion and would
+/// pass only if the fix had not landed.** The property the row actually needs
+/// is the one that survived the inversion: an absent work package is refused as
+/// a WORK PACKAGE and never as a typo or a missing daemon. It is now stated
+/// with the discrimination the old shape could not have -- the two answers must
+/// DIFFER, because one of them opens.
 #[test]
 fn an_absent_work_package_is_refused_as_a_work_package_and_not_as_a_typo() {
   let root = an_estate();
@@ -318,12 +421,12 @@ fn an_absent_work_package_is_refused_as_a_work_package_and_not_as_a_typo() {
   let (present, _) = cli(&root, &home, &["browse", "wp", "ST0001/01"]);
 
   assert!(
-    absent.contains("cannot open a work package in a browser"),
-    "an absent work package must be refused as a work package, and said: {absent}"
+    absent.contains("WP-99"),
+    "an absent work package must be refused BY NAME as a work package, and said: {absent}"
   );
-  assert_eq!(
+  assert_ne!(
     absent, present,
-    "a present and an absent work package must get the SAME answer here, or the \
-     refusal implies the present one would have opened"
+    "a present and an absent work package must now get DIFFERENT answers -- equal ones \
+     would mean the present case is still being refused for being a work package"
   );
 }
