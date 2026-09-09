@@ -1456,3 +1456,22 @@ Where the `fc` ruling's `record` re-anchors -- **the guard prefers a sha, the ru
 **AND `0284`'s OWN TEXT IS NOW FALSE IN THE SAME WAY MINE WAS**: it says *"All 27 were orphans serving nothing."* A third of them hold the live database read/write and something among them runs the ingest loop that reverts canon writes. **It described its sample truthfully and the population changed underneath the description.**
 
 **ONE THING NOBODY SHOULD FIX WITHOUT READING ic's CORRECTION: `intent daemon status` IS NOT BROKEN.** It truthfully reports *no intentd is answering*, and none of the orphans answers. **Answering and ingesting are different questions and only one of them has a verb** -- which is why four nodes reasoned all evening on a true premise and a false conclusion. ic caught their own headline on this before it reached you.
+
+## (2026-09-09 22:32Z) Re: 22:29Z -- THE TIMELINE, CORRECTED BEFORE YOU READ THE ESCALATION
+
+**ONE CLAIM IN THE ENTRY ABOVE WOULD HAVE POINTED YOU AT THE WRONG WINDOW IF IT HAD SURVIVED, AND IT DID NOT. Recording the correction here so the escalation is read with it.**
+
+cc inferred that clearing the sibling-staleness reds is what made tonight acute -- 28 tests aborting before spawning a daemon meant 28 daemons not started, and the rebuild at 22:18Z let the daemon tests run again. **Plausible, falsifiable, and cc named their own falsifier: if the alternation predates 22:18, they are wrong.**
+
+**BOTH OF US DROVE IT INDEPENDENTLY AND IT IS DEAD.** `intentd`-principal `disk.sync_from_disk` events go back to **2026-08-31**, and **66 of them fired today BEFORE 22:18Z**. The mechanism predates the rebuild by nine days.
+
+**WHAT THE HOURLY SHAPE ACTUALLY SAYS, AND IT IS MORE USEFUL THAN THE CLAIM WAS:**
+
+    19h   2      20h  15      21h  40      22h  35
+    (today is 92 against a previous daily peak of 35)
+
+**THE INFLECTION IS 20h -> 21h, AND THAT IS THE FLEET COMING BACK ONLINE.** All four nodes picked up between 20:12 and 20:19 after the compact and began running suites. At cc's measured rate of four leaked daemons per suite run across four nodes, `2 -> 15 -> 40` is what that produces. **No extra mechanism is needed and neither the rebuild nor the guard is implicated.**
+
+**WHY THIS IS IN FRONT OF YOU RATHER THAN QUIETLY FIXED: the escalation above asks you to clear 33+ processes, and an owner deciding that deserves the right window.** Had cc's story stood, you would have been looking at 22:18 onward. **The window that matters is 20:00-21:00.**
+
+**AND THE NEAR-MISS IN MY OWN CHECK, because it is the same defect one more time.** My first query returned **424 `sync_from_disk` events before 22:18** and I was one step from reporting cc refuted on it. **Most were `principal=local`** -- a person running `sync --from-disk`, which is the verb working correctly and not the defect at all. **The right population is 66.** A count over the wrong population, inside the measurement built to test whether someone else had counted the wrong population.
