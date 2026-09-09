@@ -102,10 +102,11 @@ done
 # --------------------------------------------------------------------------
 probe_commit=""
 probes=()
+srcs=()
 
 while IFS= read -r commit; do
   [ -n "$commit" ] || continue
-  cands=()
+  cands=(); srcs=()
   while IFS= read -r lit; do
     [ -n "$lit" ] || continue
     # The literal must still be in the tree -- a probe for deleted code tests nothing.
@@ -116,6 +117,11 @@ while IFS= read -r commit; do
     tmod="$(grep -n '#\[cfg(test)\]' "$file" 2>/dev/null | head -1 | cut -d: -f1)"
     if [ -n "$tmod" ] && [ "$line" -ge "$tmod" ]; then continue; fi
     cands+=("$lit")
+    # The literal's SOURCE FILE, in the form rustc embeds in panic locations
+    # (`crates/<crate>/src/<file>.rs`). Kept because an artefact that does not
+    # link this file CANNOT carry the probe, and reporting that as BLIND is the
+    # very defect this row is about -- see the UNREACHABLE partition below.
+    srcs+=("crates/${file#"$CRATES"/}")
   done < <(git -C "$ROOT" show "$commit" -- 'native/rust/crates/*/src/*.rs' 2>/dev/null \
     | grep -E '^\+' | grep -oE '"[a-z][a-z0-9 :;,._-]{24,70}"' | tr -d '"' | sort -u)
 
@@ -155,14 +161,61 @@ echo ""
 # CONTROL B -- the probe is shown able to MATCH. No designated reference; the
 # demonstration is that something in the population carries it.
 # --------------------------------------------------------------------------
-current=(); stale=()
+# THE THIRD STATE, AND IT IS NOT A REFINEMENT -- IT IS THIS ROW'S OWN DEFECT
+# FOUND IN THIS FILE. `intentd` does not depend on `intent-cli` (its Cargo.toml
+# says so and `dep_graph_guard.rs` enforces it), so a probe derived from a
+# literal in `intent-cli` CANNOT be carried by `intentd` however current it is.
+# Reporting that as BLIND is a confident, well-formed verdict about a question
+# the probe cannot ask of that artefact -- `AC-00.14` exactly, committed by the
+# instrument that measures `AC-00.14`. Measured 2026-09-09: both `intentd`
+# binaries reported BLIND while both were freshly built from the same commit as
+# the `intent` binaries that reported CURRENT.
+#
+# The discriminator is DERIVED, not declared: rustc embeds each source file's
+# path for panic locations, so an artefact carries `crates/<crate>/src/<f>.rs`
+# iff that file is linked into it. A hand-listed exclusion would rot exactly
+# like the hardcoded probe this file already refuses to have.
+#
+# DRIVEN TO ALL THREE STATES ON PLANTED ARTEFACTS, 2026-09-09, BECAUSE A NEW
+# STATE CAN SWALLOW THE FINDINGS IT WAS ADDED BESIDE. If everything became
+# UNREACHABLE this instrument would be retired without anyone deciding to, so
+# BLIND was shown to be still reachable rather than assumed to be. Recipe --
+# `ROOT` is overridable and `.git` and `crates` are symlinked in, so the probe
+# still derives from the real history:
+#
+#   FAKE=$(mktemp -d); ln -s "$PWD/.git" "$FAKE/.git"
+#   mkdir -p "$FAKE/native/rust/target/release" "$FAKE/native/rust/target/debug"
+#   ln -s "$PWD/native/rust/crates" "$FAKE/native/rust/crates"
+#   release/intent : a probe literal + `crates/intent-cli/src/render.rs`  -> CURRENT
+#   debug/intent   : `crates/intent-cli/src/render.rs`, NO probe literal  -> BLIND
+#   {release,debug}/intentd : `crates/intentsvcs/src/...` only            -> UNREACHABLE
+#   PATH=/usr/bin:/bin ROOT="$FAKE" bash instrument_currency_check.sh
+#
+# Result: `1 current + 1 blind + 2 unreachable = 4 of 4`. A FOURTH fixture,
+# carrying no probe literal on ANY artefact, is refused by CONTROL B at exit 2
+# rather than reported -- that arm was driven too and is not new.
+srcs_seen=0
+for a in "${artefacts[@]}"; do
+  n="$(strings "$a" 2>/dev/null | grep -cE 'crates/[a-z-]+/src/' || true)"
+  [ "${n:-0}" -gt 0 ] && srcs_seen=$((srcs_seen + 1))
+done
+[ "$srcs_seen" -eq "${#artefacts[@]}" ] || die "at least one artefact exposes no \`crates/*/src/\` path at all, so UNREACHABLE below could not be distinguished from a reader failure. $srcs_seen of ${#artefacts[@]} exposed one. This is exit 2 and not a finding."
+
+current=(); stale=(); unreachable=()
 for a in "${artefacts[@]}"; do
   hits=0
   for p in "${probes[@]}"; do
     c="$(strings "$a" 2>/dev/null | grep -cF -- "$p" || true)"
     hits=$((hits + ${c:-0}))
   done
-  if [ "$hits" -gt 0 ]; then current+=("$a"); else stale+=("$a"); fi
+  linked=0
+  for f in "${srcs[@]}"; do
+    c="$(strings "$a" 2>/dev/null | grep -cF -- "$f" || true)"
+    [ "${c:-0}" -gt 0 ] && linked=1
+  done
+  if [ "$hits" -gt 0 ]; then current+=("$a")
+  elif [ "$linked" -eq 1 ]; then stale+=("$a")
+  else unreachable+=("$a"); fi
 done
 
 echo "CONTROL B -- the probe can match: ${#current[@]} of ${#artefacts[@]} artefact(s) carry it"
@@ -177,10 +230,12 @@ fi
 echo ""
 
 echo "VERDICT -- can each artefact see $probe_commit?"
-for a in "${current[@]}"; do printf '    CURRENT  %s\n' "${a#"$ROOT"/}"; done
-for a in "${stale[@]}"; do printf '    BLIND    %s\n' "${a#"$ROOT"/}"; done
-echo "    partition: ${#current[@]} current + ${#stale[@]} blind = $((${#current[@]} + ${#stale[@]})) of ${#artefacts[@]}"
-[ $((${#current[@]} + ${#stale[@]})) -eq "${#artefacts[@]}" ] || die "partition does not close"
+for a in "${current[@]}"; do printf '    CURRENT      %s\n' "${a#"$ROOT"/}"; done
+for a in "${stale[@]}"; do printf '    BLIND        %s\n' "${a#"$ROOT"/}"; done
+for a in "${unreachable[@]-}"; do [ -n "$a" ] && printf '    UNREACHABLE  %s  -- does not link %s\n' "${a#"$ROOT"/}" "${srcs[0]-the probe source}"; done
+echo "    partition: ${#current[@]} current + ${#stale[@]} blind + ${#unreachable[@]} unreachable = $((${#current[@]} + ${#stale[@]} + ${#unreachable[@]})) of ${#artefacts[@]}"
+[ $((${#current[@]} + ${#stale[@]} + ${#unreachable[@]})) -eq "${#artefacts[@]}" ] || die "partition does not close"
+[ "${#unreachable[@]}" -eq 0 ] || echo "    UNREACHABLE is NOT a finding about currency: the probe's source is not linked into those artefacts, so no probe derived from it can speak about them either way." 
 echo ""
 
 # --------------------------------------------------------------------------
