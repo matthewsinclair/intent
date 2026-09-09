@@ -280,10 +280,10 @@ fn independently_declared_targets(manifest: &str) -> BTreeSet<String> {
   let mut out = BTreeSet::new();
   for line in manifest.lines() {
     let line = line.trim();
-    if let Some(rest) = line.strip_prefix("path = \"tests/") {
-      if let Some(name) = rest.strip_suffix("\"") {
-        out.insert(name.to_string());
-      }
+    if let Some(rest) = line.strip_prefix("path = \"tests/")
+      && let Some(name) = rest.strip_suffix("\"")
+    {
+      out.insert(name.to_string());
     }
   }
   out
@@ -293,10 +293,10 @@ fn declared_suite_paths(suite: &str) -> BTreeSet<String> {
   let mut out = BTreeSet::new();
   for line in suite.lines() {
     let line = line.trim();
-    if let Some(rest) = line.strip_prefix("#[path = \"") {
-      if let Some(p) = rest.strip_suffix("\"]") {
-        out.insert(p.to_string());
-      }
+    if let Some(rest) = line.strip_prefix("#[path = \"")
+      && let Some(p) = rest.strip_suffix("\"]")
+    {
+      out.insert(p.to_string());
     }
   }
   out
