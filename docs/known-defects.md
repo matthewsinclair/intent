@@ -121,6 +121,17 @@ This bites hardest where it is least visible: a script, a `Makefile` target, or 
 
 Two things are wrong in one message. **The remedy says `a thread or an issue`** and an issue is exactly what was refused, so following it returns you to the refusal — that half is corrected after `v3.0.0`, which now says `a steel thread`. **`A \`issue\`` is the article bug** and it is not corrected: seven of the fourteen entity names are vowel-initial, and this site builds the article by hand rather than asking the noun for it. The refusal is still telling you the right thing; only its grammar and its remedy are wrong.
 
+**`intent edit wp <thread>/<seq> --path` hands back the parent THREAD's file, at exit 0** (`intent#0291`). Driven here:
+
+```
+  $ intent edit wp ST0056/17 --path
+  /Users/.../intent/st/ST0056/info.md
+  $ intent edit st ST0056 --path
+  /Users/.../intent/st/ST0056/info.md
+```
+
+The two lines are identical, exit 0 both times, and `intent/st/ST0056/WP/17/info.md` **exists on disk** -- so the correct answer is present and a different one is returned with nothing marking the substitution. **Check what you were handed before you edit it**; a tool that opens the path for you will open the thread and you will edit the wrong document. `intent#0153` records the same command REFUSING at exit 1 on 2026-08-30, so this is a regression rather than an unbuilt corner, and which of the two you get depends on the build you are standing on: the refusal is the older behaviour.
+
 ## Syncing
 
 **`intent sync --to-store` reports two contradictory things in one breath** (`intent#0069`, `intent#0111`). Driven on a thread-scoped sync:
@@ -163,6 +174,8 @@ Exit 0, and **both lines are false**. The store and the extract did not agree, a
 
 **Commit before you sync** -- that is the only thing that makes the loss recoverable -- and change a thread's fields in `intent/.canon/st/<ID>.json` rather than in the extract (`intent#0185`).
 
+**`intent doctor`'s `view-skew` remedy names a verb that acts on a different artefact, and asserts a cause that can be false** (`intent#0283`). The finding is about a rendered markdown view; the remedy offers `intent sync --to-disk`, which writes the store out to the committed extract at `intent/.canon/*.json` -- not the view. Driven on an estate that hit it: `ok: extract written for 16 thread(s)`, the view unchanged, `doctor` still reporting one finding, `git status` clean. The message also says the file was hand-edited or written by an older version, and there is a third cause it does not admit: **adding a criterion to a CLOSED thread updates the model and leaves the rendered view stale**, with nothing regenerating it afterwards. `intent organize --apply` is not the repair either -- on a project whose `intent/.intentfiles` does not declare the closed thread, it marks that view **to-remove** rather than refreshing it, which is correct dehydration and the opposite of what the reader wants. **No verb refreshes a closed thread's view.** Until one exists, read canon as the truth for a closed thread and treat the skew as cosmetic.
+
 ## Searching
 
 **A hyphen in a search query is read as SQL and leaks the error** (`intent#0194`). Driven on both builds: `intent search canon-ignore` exits 1 with `sqlite: no such column: ignore`, while `intent search canon` returns hits normally. The query goes to FTS5 unescaped, so the hyphen is parsed as an operator and the term after it as a column name. Any query containing `-` fails the same way, which includes most of this project's own vocabulary -- `read-back`, `at-lint`, `to-write`. Quote nothing and search a single word; there is no escaping syntax that helps, because the escaping is missing on the tool's side of the call.
@@ -202,6 +215,12 @@ Three controls separate this from a gate that is merely quiet. The listing sees 
 **The shell critic claims any file in `bin/`, whatever language it is** (`intent#0228`). Five canon shell rules -- two of them `critical` -- carry `applies_to: ["**/*.sh", "**/*.bash", "bin/*"]`, and the third pattern is not extension-constrained. Driven on v3.0.0: a Lua script at `bin/luatool` whose second line is the comment `-- shells out for the legacy path: cat $1 | grep x` returns `[CRITICAL] IN-SH-CODE-001 at bin/luatool:2`. The identical bytes at `src/luatool.lua` return no findings, so the discriminator is the path and not the content.
 
 **And `bin/*` overrides an extension rather than merely lacking one.** The same bytes at `bin/luatool.lua` -- a file that names its own language -- are claimed too, and draw the same critical. The pattern stands in for _an extensionless shell script in `bin/`_, which is a real convention it cannot see directly. Keep non-shell files out of `bin/`, or expect critical findings against a language the rules do not describe.
+
+**`.intent_critic.yml` has no single reader, and `severity_min` is honoured by the gate but ignored by the runner you would test with** (`intent#0288`). You will meet this file: canon seeds it into every project when it is absent, and the critic's own refusal routes you to it -- _disarm that rule in `.intent_critic.yml`_. `disabled:` is read by `intent critic` and works. **`severity_min:` is read only by the pre-commit gate.** The runner takes its severity from the command line alone and falls back to the `warning` default, so raising the floor in the file changes what the gate reports and changes nothing about the run you made to check it -- the two disagree, and the one you drove is the one that ignored your config. Pass `--severity-min <lvl>` explicitly when you want the runner to answer the same question as the gate.
+
+## Skills and subagents
+
+**`intent claude skills sync` reports a conflict for skills whose canon and installed trees are byte-identical** (`intent#0280`). Driven on v3.0.0: `in-tca-audit`, `in-tca-finish` and `in-tca-init` each report `changed upstream AND here -- HELD`, and the message tells you that forcing takes the source copy and discards your edits. **Both trees hash the same, so there is provably nothing to discard.** The cause is that each side is compared against the recorded manifest and never against the other, so a manifest baseline that matches neither limb makes both limbs true at once -- and the one comparison that would settle it, canon against installed, is the one the verb does not make. The warning is therefore not evidence that you have edits. Hash the two trees against each other before you believe it, on these three or on any other skill.
 
 ## Declared and not implemented
 
@@ -305,3 +324,7 @@ If you hit something not listed, that is the gap rather than a surprise. The reg
 `intent --version` names the build you are on. Everything here was driven against `intent 3.0.0 (80d8b2ca)`, the published tag. A source install from `main` behaves differently, and several entries above are already fixed there.
 
 **The register itself cannot tell you which build a row describes** (`intent#0191`). An issue says what is broken and carries no field naming the version it was broken in, so `intent issues list` mixes rows about the published tag with rows about `main`. This page is the partition, drawn by hand and by driving each row: what is above is what a v3.0.0 reader can hit, and the section before last names the rows that read alarmingly and are not present. **If you find an open issue that seems to describe your version, check here before believing it.**
+
+**And the sha it prints is not the commit the binary was built from** (`intent#0285`). The value is `git rev-list -1 HEAD` restricted to `native/rust`, `surface` and `docs/design`, so it names the newest commit touching the BUILD INPUTS -- an ancestor of the commit you built at, never a successor. Two things follow for reading this page. **A difference between that sha and your own `HEAD` is normal and means nothing on its own**, because most commits touch neither the Rust tree nor the surface, so the marker sits behind `HEAD` in a perfectly healthy checkout. And **the refresh trigger is narrower than the scope the value claims**: `build.rs` deliberately emits no `cargo:rerun-if-changed`, because emitting one would replace cargo's default and make the embed go stale on code changes -- but that default re-runs the script only when its own package changes, so the marker refreshes on `crates/intent-cli/**` while ranging over `intentsvcs` as well. A clean build can print a commit that predates a change it contains. The scope is also incomplete in the other direction: `lib/templates/` is compiled into the binary and is named by neither the marker nor the command below.
+
+So `git rev-list --count <printed-sha>..HEAD -- native/rust surface` is an **upper bound on unbuilt work rather than a distance**. Zero is conclusive -- nothing is unbuilt. Non-zero proves nothing, because the count includes commits already compiled in.

@@ -230,3 +230,26 @@
 0275	stated	docs/install.md	you must read its COUNT rather than its exit code
 0276	stated	docs/known-defects.md	intent#0276
 0277	stated	docs/install.md	`INTENT_HOME` is v2's variable and v3 does not read it
+# Extended by dc, 2026-09-09, for the ten members that landed after the 08-31 pass.
+# Population rule re-read before judging: an issue is excluded only if it was ALREADY
+# CLOSED at the cut. 0279, 0280 and 0282 are closed TODAY and were filed long after
+# v3.0.0, so a reader on the shipped pair still meets them -- fixed-in-tree is not a
+# reason to call something not-reader-reachable, and reading it as one would have
+# silently shrunk the population by three.
+0278	not-reader-reachable	register-authoring -- an uncovered CLAUSE in ST0064 s contract, put to hv as a scope question; a reader meets the app s behaviour, never a criterion s coverage	
+0279	not-reader-reachable	internal-tooling -- eight test files and a crate constant; the estate s own rig, and no published page routes a reader to a test literal	
+0280	stated	docs/known-defects.md	intent#0280
+0281	not-reader-reachable	not-in-published-build -- IntentCLI.swift is the menubar app; v3.0.0 publishes intent and intentd only, so no reader has the surface this doc comment misallocates	
+0282	not-reader-reachable	multi-node -- ws hygiene is the five-node whiteboard protocol, not a single-user workflow; same disposition and same subject as 0012	
+0283	stated	docs/known-defects.md	intent#0283
+0284	not-reader-reachable	internal-tooling -- the leak is triggered by OUR test suite; a reader never runs it, and no published page routes them to one	
+0285	stated	docs/known-defects.md	intent#0285
+0286	not-reader-reachable	multi-node -- a follow-up on 0282 s own fix, same ws hygiene subject and same protocol scope	
+0287	not-reader-reachable	internal-tooling -- shared_artefact_build_guard is a parity instrument on the estate s build path; a reader never invokes it	
+# 0288-0290 landed WHILE the ten above were being dispositioned, which is the moving
+# target this criterion is built for: the register is the source and the derivation
+# reports the counts at the moment it runs.
+0288	stated	docs/known-defects.md	intent#0288
+0289	not-reader-reachable	source-structure -- render.rs s line count and internal layout; a reader meets the verbs it renders, never the file, and no published page names it	
+0290	not-reader-reachable	source-structure -- facade.rs s line count and function shape; same disposition and same grounds as 0289	
+0291	stated	docs/known-defects.md	intent#0291
