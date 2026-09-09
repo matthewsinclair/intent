@@ -127,8 +127,34 @@ enum IntentCLI {
   /// Streams stdout and stderr, merged and line by line, to `onLine` (called on
   /// an arbitrary queue -- hop to the main actor before touching UI), and still
   /// returns the full result on exit. `onStart` receives a handle so a caller
-  /// can end the child early -- the console's tail, whose pipeline the verb owns
-  /// and takes down on SIGTERM (the verb's job, not the app's).
+  /// can end the child early.
+  ///
+  /// **THE TAIL'S LIFECYCLE IS A DECIDED PLAN, NOT A DIVISION OF LABOUR THAT
+  /// ALREADY EXISTS.** This comment used to say the console's tail pipeline was
+  /// *the verb's job, not the app's*, in the present tense -- and there is no
+  /// such verb: `log`, `tail` and `console` are absent from the top level, from
+  /// `daemon` and from `app`. Issue `0281` filed that, because a sentence
+  /// reading as settled is one the next author BUILDS ON, which produces
+  /// exactly the unbounded tail leak `AC-01.4` exists to prevent.
+  ///
+  /// **RULED 2026-09-09 (vc under hv's pen), option (i): when a log verb is
+  /// built, IT runs its pipeline under a shell that reads its own stdin**, so
+  /// the group goes down when that pipe closes -- and the runtime's death
+  /// closes it however it dies, SIGKILL included. The app then needs no special
+  /// handling and plain `terminate()` below is correct.
+  ///
+  /// **THE ALTERNATIVE WAS DECLINED FOR A REASON WORTH KEEPING HERE.** Giving
+  /// the app the job means `kill(-pgid, SIGTERM)`, which works only because a
+  /// probe measured `child.pgid == child.pid` on one Foundation on one day --
+  /// no documented guarantee. If that ever stops holding, the child inherits
+  /// the app's group and `-pgid` names THE APP: the remedy does not degrade to
+  /// doing nothing, it degrades to killing the app. **Anything that later
+  /// reaches for group signalling must assert `child.pgid == child.pid` FIRST,
+  /// because a test that only checks the tail is gone PASSES ON A BUILD THAT
+  /// KILLED THE APP.**
+  ///
+  /// **NOTHING CALLS THIS TODAY**, so nothing leaks yet; the trap is live for
+  /// the next reader rather than for the current build.
   static func stream(
     _ args: [String],
     onStart: (@Sendable (RunningProcess) -> Void)? = nil,
