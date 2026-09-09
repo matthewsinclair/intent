@@ -1,0 +1,11 @@
+{
+  "schema": "intent/issue@3.0",
+  "number": 300,
+  "slug": "write-path-probe-delete-me",
+  "title": "write-path probe -- delete me",
+  "status": "open",
+  "severity": "low",
+  "created": "2026-09-09",
+  "reporter": "Matthew Sinclair",
+  "body": "probe"
+}
