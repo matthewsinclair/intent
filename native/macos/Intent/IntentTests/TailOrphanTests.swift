@@ -41,9 +41,19 @@ final class TailOrphanTests: XCTestCase {
       .path
   }
 
-  /// Runs one cell and returns the probe's last line: `clean`, `LEAKED`, or a
-  /// `probe-error:` / `probe-refuse:` line, which are failures rather than
+  /// Runs one cell and returns the probe's LAST line, which is the verdict
+  /// TOKEN and carries nothing else: `clean`, `LEAKED`, `probe-indeterminate`,
+  /// or a `probe-error:` / `probe-refuse:` line, which are failures rather than
   /// results.
+  ///
+  /// **THE TOKEN IS DELIBERATELY BARE AND THE EVIDENCE IS THE LINE ABOVE IT.**
+  /// The probe first emitted `LEAKED (tail 16960 alive, reparented to ppid=1,
+  /// ...)` and every control cell then failed an exact-equality assertion while
+  /// the probe was behaving perfectly -- the producer gained information and
+  /// this consumer still demanded the old form. **Relaxing the assertion to
+  /// `hasPrefix` was the cheap fix and the wrong one**: it keeps passing if the
+  /// evidence text later becomes wrong, because nothing would read it. A bare
+  /// token plus a separate evidence line keeps both assertable.
   private func runProbe(arm: String, signal: String, stateDir: URL) throws -> String {
     let process = Process()
     // **`/bin/bash` IS 3.2.57 ON macOS AND IS NOT `bash` ON PATH (5.3.15 here).**
@@ -120,13 +130,13 @@ final class TailOrphanTests: XCTestCase {
   func testTheProbeCanReportIndeterminateRatherThanGuessing() throws {
     try withStateDir { dir in
       let stuck = try runProbe(arm: "stubborn", signal: "TERM", stateDir: dir)
-      XCTAssertTrue(
-        stuck.hasPrefix("probe-indeterminate"),
+      XCTAssertEqual(
+        stuck, "probe-indeterminate",
         "the probe must be able to say it does not know, got: \(stuck)")
 
       let killed = try runProbe(arm: "stubborn", signal: "KILL", stateDir: dir)
-      XCTAssertTrue(
-        killed.hasPrefix("LEAKED"),
+      XCTAssertEqual(
+        killed, "LEAKED",
         "negative control: SIGKILL cannot be trapped, so the same arm must reach a real verdict, got: \(killed)")
     }
   }

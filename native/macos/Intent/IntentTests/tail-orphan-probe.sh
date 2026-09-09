@@ -69,6 +69,31 @@
 # with `bash`** -- they are different programs on this machine, and the house
 # notes already carry the class (`no declare -A`, `no ${VAR^}`); `BASHPID`
 # belongs on that list.
+# **THE INT CELL IS CONSTRUCTIBLE HERE BY A CONJUNCTION OF THREE PROPERTIES,
+# AND ANY ONE OF THEM CHANGING SILENTLY DISARMS IT (dc, 2026-09-09).**
+#
+#   1. `set -m` is on, so the runtime is its own process-group leader.
+#   2. NO trap is installed in the runtime. A backgrounded subshell that
+#      installs `trap ... INT` SURVIVES the signal -- driven, with and without
+#      job control -- and the handler never fires. One with no trap DIES.
+#   3. The runtime `exec`s into its final program rather than forking it, so it
+#      takes that program's default disposition.
+#
+# **NONE OF THE THREE IS A PROPERTY OF THE WRAPPER, WHICH IS WHAT THIS PROBE
+# EXISTS TO TEST.** They are all properties of the RUNTIME construction, so a
+# later edit made for an unrelated reason -- dropping job control, reinstating
+# a trap, replacing `exec sleep` with `sleep` -- takes the INT cell back to
+# `probe-indeterminate` while every other cell keeps reporting normally.
+# **That is the failure mode to watch for: not a red, but one cell quietly
+# ceasing to answer.**
+#
+# **THIS IS WHY THE ARMS MUST BUILD THEIR RUNTIME IDENTICALLY.** They did not,
+# once: `guarded` had `exec`'d and `plain` had not, so the control varied the
+# remedy AND the signal disposition. **A control that varies more than the axis
+# under test isolates nothing**, and it produces confident results indefinitely
+# rather than failing. That defect was found only because dc asked about INT
+# for an unrelated reason.
+#
 set -u
 ARM="${1:?arm: guarded|plain|stubborn (self-test)}"; SIG="${2:?signal: TERM|INT|KILL}"; DIR="${3:?state dir}"
 SETTLE_TRIES="${PROBE_SETTLE_TRIES:-40}"   # x 0.4s -- generous; both arms settle structurally
@@ -158,10 +183,27 @@ for _ in $(seq 1 "$SETTLE_TRIES"); do
   sleep 0.4
 done
 
+# **THE VERDICT TOKEN IS THE LAST LINE AND CARRIES NOTHING ELSE; EVIDENCE GOES
+# ON ITS OWN LINE ABOVE IT (dc, 2026-09-09, on the first harness run).**
+# The evidence was originally appended to the token -- `LEAKED (tail 16960
+# alive, ...)` -- and the caller's `XCTAssertEqual(verdict, "LEAKED")` then
+# failed on all three control cells while the probe was behaving perfectly.
+# **The producer gained information and the consumer still demanded the old
+# exact form**, which is producer/consumer drift committed inside the
+# instrument built to catch that class.
+#
+# **THE CHEAP FIX WAS `hasPrefix` IN THE ASSERTION AND IT IS THE WRONG ONE.** A
+# prefix match keeps passing if the evidence text later becomes WRONG, because
+# nothing reads it. A fixed token plus a separate evidence line lets a caller
+# assert the verdict and the evidence INDEPENDENTLY -- the same discipline as a
+# machine-readable column set that prose can grow beside without either
+# breaking the other.
 case "$VERDICT" in
   clean)  echo "clean" ;;
-  LEAKED) echo "LEAKED (tail $TL alive, reparented to ppid=$PPID_SEEN, original parent $RT gone)" ;;
-  *)      echo "probe-indeterminate: tail $TL alive, ppid=$PPID_SEEN, runtime $RT not yet reaped -- NOT a clean result" ;;
+  LEAKED) echo "evidence: tail $TL alive, reparented to ppid=$PPID_SEEN, original parent $RT gone"
+          echo "LEAKED" ;;
+  *)      echo "evidence: tail $TL alive, ppid=$PPID_SEEN, runtime $RT not yet reaped -- neither verdict is available"
+          echo "probe-indeterminate" ;;
 esac
 kill -9 "$TL" "$RT" 2>/dev/null
 [ "$VERDICT" = "probe-indeterminate" ] && exit 3
