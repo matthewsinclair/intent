@@ -7,15 +7,42 @@
 # attribution in commit messages" -- and until this hook existed the rule was
 # enforced by nothing at all.
 #
-# MEASURED BEFORE IT WAS WRITTEN (Intent, 2026-09-09): 1,789 commits in this
-# repository carry a `Claude-Session:` trailer and one carries a
-# `Co-Authored-By` naming Claude. At least 392 are already published. The
-# practice stopped on 2026-09-07 for reasons outside this tree -- which is
+# MEASURED OVER ALL 5,885 COMMITS, ANCHORED, TWICE, BY TWO NODES INDEPENDENTLY
+# (Intent, 2026-09-09): 1,782 carry a `Claude-Session:` trailer; ZERO carry an
+# anchored `Co-Authored-By` naming Claude; zero carry a generated-with line;
+# zero carry the robot emoji. At least 392 of the 1,782 are already published.
+# The practice stopped on 2026-09-07 for reasons outside this tree -- which is
 # precisely the case a guard exists for: nothing would stop it resuming, and
 # nothing would report it if it did.
 #
+# THE FIRST SHIPPED VERSION OF THIS HEADER SAID 1,789 AND ONE, AND BOTH WERE
+# UNANCHORED COUNTS. 1,789 is the count of commits containing the SUBSTRING
+# `Claude-Session` anywhere, which includes prose about the trailer; the "one"
+# was `6816e1e94`, a commit QUOTING the prohibition. An instrument that counts
+# mentions as violations grows its own population every time somebody documents
+# the rule -- and it did: the commit that added this guard became the second
+# such "hit" because its message quotes CLAUDE.md.
+#
+# SO THE GUARD MATCHES TRAILERS AND NEVER PROSE, AND THAT IS THE WHOLE CONTRACT.
+# The first version also carried `Generated with.*Claude` and a robot-emoji
+# pattern, both unanchored. They refused any message DESCRIBING the rule --
+# including the commit that documents this guard and the commit that fixes it,
+# whose remedy line then told the author to delete their own sentence. dc drove
+# it and reported it. The in-house precedent had already ruled the same way:
+# `whiteboard-header-guard.sh` reads header blocks and never prose, because
+# "nodes report this class to each other by quoting it, and scanning prose would
+# make reporting the defect an offence". A commit message is prose by nature;
+# its trailer block is the structured part, so the trailer block is the subject.
+#
+# DECLARED LIMIT, NOT AN OVERSIGHT: a footer carrying ONLY a robot-emoji or
+# generated-with line and NO trailer would pass. Measured at zero occurrences in
+# 5,885 commits, and the standard tool footer emits the `Co-Authored-By:`
+# trailer alongside it, which this guard catches. If a trailerless footer is
+# ever observed, the fix is a LINE-ANCHORED pattern (`^[[:space:]]*` + the
+# form), not a return to substring matching.
+#
 # HISTORY IS NOT REWRITTEN. This hook prevents the next one; it does not repair
-# the 1,789, and rewriting them would invalidate every commit citation in canon,
+# the 1,782, and rewriting them would invalidate every commit citation in canon,
 # on five boards and in every issue body.
 #
 # It NEVER edits the message. A guard that silently strips the line hides the
@@ -35,9 +62,10 @@ fi
 # would refuse every commit.
 body="$(grep -v '^#' "$msg_file" || true)"
 
-# Each pattern is anchored at what it actually matches. `Claude-Session` and
-# `Co-Authored-By` are trailers; the generated-with line is free prose.
-patterns='^[[:space:]]*Claude-Session:|^[[:space:]]*Co-[Aa]uthored-[Bb]y:.*([Cc]laude|[Aa]nthropic)|[Gg]enerated with.*[Cc]laude|🤖.*[Cc]laude'
+# BOTH patterns are anchored at line start and BOTH require the trailer colon.
+# That colon is what separates `Co-Authored-By: Claude <...>` (a trailer) from
+# "Co-Authored-By trailers naming Claude" (a sentence about one).
+patterns='^[[:space:]]*Claude-Session:|^[[:space:]]*Co-[Aa]uthored-[Bb]y:.*([Cc]laude|[Aa]nthropic)'
 
 hits="$(printf '%s\n' "$body" | grep -nEi "$patterns" || true)"
 
