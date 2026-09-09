@@ -240,15 +240,41 @@ EOF
   verdict="$(artefact_currency_verdict "$RELEASE_DIR" "$PROJECT_ROOT" 2>/dev/null || echo 'refuse:the currency verdict could not be taken')"
   case "$verdict" in
     ok)
-      printf '    currency ok -- this pair describes the tree you are standing in\n' ;;
+      printf '    currency ok -- the PATH pair under target/release describes the tree you are standing in\n' ;;
     warn:*)
-      printf '    currency WARN -- %s\n' "${verdict#warn:}" ;;
+      printf '    currency WARN (target/release) -- %s\n' "${verdict#warn:}" ;;
     refuse:*)
-      printf '    currency REFUSING -- %s\n' "${verdict#refuse:}"
+      printf '    currency REFUSING (target/release) -- %s\n' "${verdict#refuse:}"
       printf '    an actor on the exec path would refuse to run this pair. `int build all` rebuilds it.\n' ;;
     *)
       printf '    currency UNREADABLE -- the verdict was %s, which is not a form this renders\n' "$verdict" ;;
   esac
+
+  # THE VERDICT ABOVE IS ABOUT ONE ARTEFACT AND THE UNQUALIFIED FORM MISLED THREE
+  # NODES WITHIN TWENTY MINUTES OF LANDING (cc, 2026-09-09). It read `currency ok
+  # -- this pair describes the tree you are standing in`, which is true of the
+  # PATH pair and says NOTHING about `target/debug/`. vc rebuilt the release pair
+  # correctly, read the green, and told three nodes that cc's 28 sibling-staleness
+  # failures would clear on a re-run. They could not: the harness spawns
+  # `target/debug/intentd`, which was still an hour behind the source, and the
+  # count did not move by one. **Every statement in that chain was true.**
+  #
+  # SO THE SCOPE IS PRINTED RATHER THAN IMPLIED, and the debug artefact is named
+  # with the command that refreshes it. This is the same defect as `intent
+  # --version` answering for the compiled half while being confidently wrong about
+  # the scripted half: a currency claim is about ONE artefact, and naming the
+  # artefact is the load-bearing part. A green here is the most authoritative-
+  # looking thing the reader holds, so an unnamed scope is read as the whole tree.
+  #
+  # It prints unconditionally, under every verdict including `ok`, because the
+  # green is the branch that gets over-read -- a limit attached only to the
+  # refusal would be absent exactly when it is needed.
+  local dbg="$PROJECT_ROOT/native/rust/target/debug/intentd"
+  if [ -f "$dbg" ]; then
+    printf '    scope: this verdict examined target/release ONLY. `target/debug/` is a SECOND artefact\n'
+    printf '           and it is the one the test harness spawns -- `cargo build -p intentd` refreshes it.\n'
+    printf '           debug intentd names %s\n' "$(artefact_source_commit "$dbg" 2>/dev/null || echo '<no marker>')"
+  fi
 }
 
 # verify_pair -- refuse a set that describes no single state of this repo.
