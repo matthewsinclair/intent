@@ -1044,6 +1044,54 @@ pub fn shipped_entries(table: &Table) -> Vec<&Entry> {
     .collect()
 }
 
+/// Whether the spine synthesises `intent <family> help` on this family.
+///
+/// **THE ONE HOME FOR A RULE THAT TWO CALLERS NEED, AND THEY NEED IT FROM
+/// OPPOSITE SIDES.** [`crate::spine::build`] asks in order to ADD the
+/// subcommand; anything enumerating what the surface legitimately offers asks
+/// in order to DECLARE it. Before this the rule lived only as an inline
+/// `if !verbs.is_empty()` in the spine, so the second caller had no way to ask
+/// and would have had to restate it -- and a restated rule is a second home
+/// that drifts the first time either side changes.
+///
+/// **`AC-06.13` IS WHY THIS EXISTS AT ALL.** Every subcommand the built binary
+/// offers must resolve to a path the table declares, and this verb is offered
+/// on sixteen families while the table declares it on none of them. vc ruled
+/// 2026-09-09 (issue `0217`) that those rows are DERIVED rather than
+/// hand-authored or exempted: hand-authoring sixteen identical rows is the
+/// transcription `AC-17.15` forbids, and an exemption would put the verb
+/// outside `AC-06.13`'s population by construction, which is the defect
+/// `0217` exists to name reintroduced one level in.
+///
+/// **THE PREDICATE MIRRORS THE SPINE'S `find`-THEN-CHECK RATHER THAN AN
+/// `any`, AND THE TWO ARE NOT THE SAME.** A family carrying more than one
+/// verbless entry -- a retired one ahead of a shipped one -- makes `find` stop
+/// at the retired row and the whole family drop out, while `any` would keep
+/// it. The spine's shape is the one that decides what the binary actually
+/// offers, so it is the shape this reproduces; making them agree by
+/// construction is the entire point of the function.
+pub fn family_gets_synthetic_help(family: &Family) -> bool {
+  family
+    .entries
+    .iter()
+    .find(|e| e.verb().is_none())
+    .is_some_and(|e| e.is_shipped())
+    && family
+      .entries
+      .iter()
+      .any(|e| e.verb().is_some() && e.is_shipped())
+}
+
+/// The families the spine synthesises `intent <family> help` on.
+pub fn families_with_synthetic_help(table: &Table) -> Vec<&str> {
+  table
+    .families
+    .iter()
+    .filter(|f| family_gets_synthetic_help(f))
+    .map(|f| f.name.as_str())
+    .collect()
+}
+
 /// Find one entry by its full path, eg `st new` or `search`.
 pub fn entry<'a>(table: &'a Table, path: &str) -> Option<&'a Entry> {
   shipped_entries(table).into_iter().find(|e| e.path == path)

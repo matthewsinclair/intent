@@ -106,6 +106,7 @@ pub fn drain(mut master: std::fs::File) -> String {
 // exactly the parts a copied fixture keeps while the original is fixed.
 // ---------------------------------------------------------------------------
 
+use std::collections::BTreeSet;
 use std::io::{BufRead, BufReader, Write};
 use std::net::TcpStream;
 use std::path::{Path, PathBuf};
@@ -545,6 +546,108 @@ pub fn declared_paths() -> Vec<String> {
     "the scan covers every shipped row the table declares, or it covers an unstated subset"
   );
   paths
+}
+
+/// Every spelling the shipped surface may legitimately offer, as segments.
+///
+/// **WHY THIS IS NOT AN ARM OF [`declared_paths`], WHICH IS THE OBVIOUS PLACE
+/// AND THE WRONG ONE.** That function answers *what paths does the table
+/// declare*, and four files depend on that population: widening it to include
+/// slot values and aliases would silently change what each of them scans, and
+/// three of those scans would then be asserting over rows their messages do
+/// not describe. **A population is a claim, so growing one under its existing
+/// readers is the defect, not the tidy.** This answers a different question --
+/// *what may the binary offer* -- and is therefore its own function with its
+/// own name.
+///
+/// **THE SURFACE IS DECLARED FOUR WAYS AND AN ENUMERATOR THAT KNOWS ONLY THE
+/// FIRST CRIES WOLF ON RUN ONE.** Measured 2026-09-09 while building
+/// `AC-06.13`:
+///
+/// 1. **A path entry.** `st list` is its own row. 134 shipped.
+/// 2. **A subcommand slot's `values`.** `claude ws` declares
+///    `values: [new, list, archive, hygiene]` and there are NO `claude ws new`
+///    rows, so a path-only walk reports four real verbs as undeclared. 29.
+/// 3. **An alias.** `lang remove` carries `lang rm`; `organize` carries a
+///    HIDDEN `organise`. 5 declared, of which 4 reach the visible surface --
+///    `st organise` sits on a `retire` row and the spine never registers it.
+/// 4. **The synthetic `help`**, which no row declares at all and the spine adds
+///    to sixteen families. Derived through
+///    [`dispatch::families_with_synthetic_help`] rather than listed here, per
+///    vc's ruling on `0217`: a list would be a second home for the spine's own
+///    predicate, and it would rot on the seventeenth family.
+///
+/// **EACH SOURCE IS ASSERTED NON-EMPTY SEPARATELY, AND THAT IS NOT CEREMONY.**
+/// `declared_paths` learned this the hard way -- one home returning nothing
+/// while the total still looked healthy -- and the same failure hit this
+/// function's own prototype twice in one evening, each time returning a
+/// coherent wrong answer rather than an error. A single total cannot tell
+/// "every source read" from "one source read and it is the big one".
+pub fn declared_spellings() -> BTreeSet<Vec<String>> {
+  let table = dispatch::table();
+  let segs = |p: &str| -> Vec<String> { p.split(' ').map(str::to_string).collect() };
+
+  let mut paths = BTreeSet::new();
+  let mut slot_values = BTreeSet::new();
+  let mut aliases = BTreeSet::new();
+
+  for entry in dispatch::shipped_entries(&table) {
+    let path = segs(&entry.path);
+    paths.insert(path.clone());
+
+    for alias in &entry.aliases {
+      aliases.insert(segs(alias));
+    }
+    // A hidden alias is a LAST SEGMENT, so it replaces the verb rather than
+    // being a path of its own -- the same distinction `Entry::alias_verbs`
+    // draws between what clap registers and what a command line reads.
+    for hidden in &entry.hidden_aliases {
+      let mut spelling = path.clone();
+      spelling.pop();
+      spelling.push(hidden.clone());
+      aliases.insert(spelling);
+    }
+
+    for arg in &entry.args {
+      if arg.kind != "subcommand" {
+        continue;
+      }
+      for value in &arg.values {
+        let mut spelling = path.clone();
+        spelling.push(value.clone());
+        slot_values.insert(spelling);
+      }
+    }
+  }
+
+  let synthetic_help: BTreeSet<Vec<String>> = dispatch::families_with_synthetic_help(&table)
+    .into_iter()
+    .map(|family| vec![family.to_string(), "help".to_string()])
+    .collect();
+
+  assert!(
+    !paths.is_empty(),
+    "precondition: no shipped path was read, so the census has no subject"
+  );
+  assert!(
+    !slot_values.is_empty(),
+    "precondition: no subcommand slot `values` were read -- `claude ws` and `claude skills`      declare their verbs that way, so an empty set here reports every one of them as undeclared"
+  );
+  assert!(
+    !aliases.is_empty(),
+    "precondition: no aliases were read -- an alias census that cannot recognise an alias is      indistinguishable from a surface that has none, which is how this function's prototype      reported 0 on a surface with 4"
+  );
+  assert!(
+    !synthetic_help.is_empty(),
+    "precondition: no family was found to receive the spine's synthetic `help`, so all sixteen      would be reported undeclared"
+  );
+
+  paths
+    .into_iter()
+    .chain(slot_values)
+    .chain(aliases)
+    .chain(synthetic_help)
+    .collect()
 }
 
 /// Shipped source: the three crates that become binaries or are linked into

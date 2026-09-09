@@ -90,6 +90,8 @@ mod embedded_init;
 mod error_literal_shape;
 #[path = "events_are_queryable.rs"]
 mod events_are_queryable;
+#[path = "every_offered_subcommand_is_declared.rs"]
+mod every_offered_subcommand_is_declared;
 #[path = "every_skill_has_a_live_caller.rs"]
 mod every_skill_has_a_live_caller;
 #[path = "exit_code_consumers.rs"]

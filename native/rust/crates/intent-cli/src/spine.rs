@@ -358,7 +358,14 @@ pub fn build(table: &Table) -> Command {
     for entry in &verbs {
       cmd = cmd.subcommand(leaf(entry));
     }
-    if !verbs.is_empty() {
+    // **THE PREDICATE MOVED TO `dispatch`, AND THE CONDITION IS UNCHANGED.**
+    // At this point `family_entry` is already known shipped, so
+    // `family_gets_synthetic_help` is exactly the `!verbs.is_empty()` this
+    // line used to read. It is a function rather than an inline test because
+    // `AC-06.13` enumerates what the binary OFFERS and must be able to ask the
+    // same question from the other side -- see the doc comment there for why a
+    // restated rule would have been a second home.
+    if dispatch::family_gets_synthetic_help(family) {
       // **`intent <family> help`, ADDED EXPLICITLY RATHER THAN BY CLEARING
       // `disable_help_subcommand`** (issue 0203, vc ruled (ii) 2026-09-02).
       // v2 answers this on six of nine families and v3 answered it on none,
