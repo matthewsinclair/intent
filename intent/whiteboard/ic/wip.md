@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-09 22:21Z
+heartbeat_at: 2026-09-09 22:27Z
 status: active
-focus: "AC-01.4 INSTRUMENT BUILT AND DRIVEN 2026-09-09 22:21Z -- six cells, guarded clean under TERM/INT/KILL and the plain CONTROL arm LEAKED under all three, so the pass is evidence rather than a vacuous zero. The 0281 precondition asserted INSIDE the probe REFUSED on its first run and it was MY bug ($$ in a subshell reports the parent pid) -- fourth instrument failure of mine tonight and the first an assertion caught BEFORE I read the result. THE ONE CALL PUT TO vc RATHER THAN TAKEN: the row names driving the app open and shut, which cannot be done because the app spawns no pipeline -- so satisfying it is an EVIDENCE SUBSTITUTION and must be named on the row. STORE UNTOUCHED pending vc, and 0216 is firing badly. Also landed: the three MODULES.md instructions guarded, two dead NotByInit reasons corrected, .prettierignore exempting .history archives (announced to cc and dc). NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "CANON WRITES ARE NOT LANDING AND I FOUND WHY, 2026-09-09 22:27Z -- 64 PPID-1 orphan intentd, 33 HOLDING THE STORE DB, disk.sync_from_disk firing continuously, 251MB WAL. 0284 has the orphans and 0216 has the reverts; NOBODY HAS THE LINK. daemon status is CORRECT -- none of them ANSWERS -- and every node reads that as no daemon INGESTING. Two different questions, one verb. I sent vc an urgent message headlined daemon status is broken BEFORE reading 0284, and corrected it: second diagnosis stated as a fact tonight. AC-01.4 is BUILT, RULED and NOT RECORDED -- vc ruled satisfy-with-substitution-named, the write reported ok: twice and reverted twice, and I will not leave a row reading satisfied on evidence that is not in it. Everything else of mine is in GIT and unaffected: 3bf2e9f9. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/17, ST0064]
 ---
 
@@ -17,19 +17,21 @@ claims: [ST0065, ST0056/17, ST0064]
 
 ## DOING
 
-**`ST0064/AC-01.4` -- THE INSTRUMENT IS BUILT AND DRIVEN (`3bf2e9f9`), AND ONE CALL IS WITH vc RATHER THAN TAKEN.**
+**CANON WRITES ARE NOT LANDING, AND THE MECHANISM IS A COMPOSITION OF TWO OPEN ISSUES THAT NEITHER OF THEM CARRIES (2026-09-09 22:27Z).**
 
-**SIX CELLS, TWO ARMS, THREE SIGNALS.** `guarded` clean under TERM, INT and KILL; `plain` **LEAKED** under all three. **The control arm is what makes the pass mean anything** -- _no tail is running_ is also what a probe that never started one returns. **The KILL cell is the one that matters**: no handler can intercept it, so a clean result there is prevention BY CONSTRUCTION rather than a shutdown hook.
+**DRIVEN:** 64 `intentd` processes, **all `PPID 1`** -- `0284`'s exact signature, grown from 27 on 2026-09-08. **33 of them hold the store database** (`intent.db`, `-wal`, `-shm`, driven with `lsof` on the files). `disk.sync_from_disk` firing continuously -- four events in forty seconds. **WAL at 251 MB.**
 
-**THE TOPOLOGY IS THREE LEVELS BECAUSE THE REMEDY IS ABOUT WHAT THE WRAPPER DOES WHEN THE RUNTIME DIES** -- runtime (app) -> wrapper (the verb's shell) -> tail. **A two-level probe cannot express option (i) at all.** The wrapper reads its own stdin, the runtime holds the write end, and the runtime's death closes it however it dies.
+**THE PROOF IS THE ALTERNATION IN `event_log`, NOT THE PROCESS COUNT.** Two isolated `local ac.satisfy` writes on `ST0064/AC-01.4`, each followed within 3-10s by an `intentd disk.sync_from_disk`, each reverted. The canon file is now byte-identical to HEAD -- `git status` on it clean, so nothing survived.
 
-**THE PRECONDITION vc MADE RIDE THE RULING IS ASSERTED INSIDE THE PROBE, AND IT EARNED ITS KEEP ON THE FIRST RUN.** The runtime must be its own process-group leader or a group kill names someone else's group. **It REFUSED, and the bug was MINE rather than the subject's** -- `$$` inside a subshell reports the PARENT's pid; `$BASHPID` is the subshell's own, so I was comparing the wrong two numbers. **Fourth instrument failure of mine tonight and the FIRST that an assertion caught before I read the result** -- the other three I caught only by re-driving.
+**THE LINK NOBODY HAS: `0284` SAYS THEY DO NOT ANSWER; `0216` SAYS WRITES REVERT; THE ORPHANS ARE THE REVERT ENGINE.** Every node checks `daemon status`, gets a TRUTHFUL _no intentd is answering_, and concludes `0216` is not armed. **ANSWERING AND INGESTING ARE DIFFERENT QUESTIONS AND ONLY ONE OF THEM HAS A VERB.** I reasoned exactly that way earlier tonight and said so to vc; vc has been fighting `0216` all evening on the same premise.
 
-**THE CALL PUT TO vc: `AC-01.4` NAMES A METHOD THAT CANNOT BE EXECUTED.** _Checked by driving the app open and shut several times and then reading `ps`_ -- **the app spawns no pipeline**, nothing calls `IntentCLI.stream`, re-driven on the CURRENT pair now the rebuild landed (`log`/`tail`/`console` absent top-level, from `daemon`'s six and `app`'s five, zero in the committed dispatch table). **So the row's method presupposes a console that does not exist, which is also why the row says _verified BEFORE any console is built on it_.** My reading: the headline is met, the method clause is not, and the honest close names the substitution IN the evidence string. **STORE UNTOUCHED until vc rules -- and `0216` is firing hard enough that the write will be verified structurally at the moment I depend on it, never on the `ok:`.**
+**AND `0216`'s _LAST WRITE OF A BURST_ FRAMING DOES NOT FIT THIS: there was no burst.** Two isolated writes, nothing else in flight, both reverted. Worth re-reading `0216` against that rather than appending -- vc reports that issue is the one they cannot reliably update.
 
-**ALSO LANDED (`ec55b3ba`), all three of vc's smaller rulings:** `_DECISION_TREE.md`'s three unconditional `MODULES.md` instructions now carry `_CLAUDE.md`'s guarded framing; the two dead `NotByInit` reasons say what is true and name v2's `intent_st_zero` as the only writer, going at the cut; `.prettierignore` exempts `intent/whiteboard/*/.history/**/*.md`, **controlled in both directions and rewriting nothing**. **Announced to cc and dc** -- shared root file, and an announcement is a message I send rather than a state I record (W121).
+**UNRESOLVED AND NOT CLAIMED: vc's probe issue `0300` SURVIVED** while my two `ac satisfy` writes did not. **The revert may be selective by artefact kind rather than universal**, which would change the mitigation entirely. One survivor is not a pattern; it is the next thing worth one drive.
 
-**ROUTED, NOT TAKEN: `TailOrphanTests.swift` is written and NOT in the test target.** `project.pbxproj` lists test files explicitly (no synchronized groups, objectVersion 77), so wiring it is four references added to the app's shared build definition. The probe runs standalone meanwhile.
+**I TOLD vc TO STOP TRUSTING `daemon status` BEFORE READING `0284`, AND IT WAS WRONG.** `0284` establishes the verb is CORRECT: none of the orphans is the machine daemon, none answers, no pidfile, no endpoint. **Second diagnosis I have stated as a fact tonight** (W123 is the first). Corrected within the minute, and the corrected finding is stronger than the wrong one.
+
+**`AC-01.4` IS BUILT, RULED, AND DELIBERATELY NOT RECORDED.** vc ruled satisfy-with-the-substitution-named and drove both the matrix and the zero-call-sites fact independently before ruling. The write reported `ok:` twice and reverted twice. **A row reading satisfied on evidence that is not in it is worse than an unsatisfied row**, so it stays unsatisfied until writes are trustworthy. **Not killing the 64**: `0284` records they honour SIGTERM in ~4s and that SIGKILL leaves the WAL hot, hv cleared the last batch by order, and three peers are mid-write.
 
 ### WHAT IS BANKED, ONE LINE EACH, SO NOTHING IS RE-DRIVEN LOOKING FOR IT
 
