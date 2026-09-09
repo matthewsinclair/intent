@@ -54,11 +54,24 @@ EXT_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/extensions"
 
 # **THIS ARM ASSERTED A WARNING UNTIL 2026-09-09 AND vc RULED IT A REFUSAL.**
 # `_schema/rule-schema.md` states the contract in the opposite direction --
-# *`intent claude rules validate` rejects unknown top-level keys* -- and it was
-# the canon. The argument that an executable spec outranks prose does not hold
-# HERE, specifically: the verb did not exist, so this arm had never once run
-# against an implementation. An executable spec that has never executed is prose
-# with a shebang.
+# *`intent claude rules validate` rejects unknown top-level keys*.
+#
+# **THE REASON FIRST GIVEN FOR PREFERRING THE DOC WAS THAT THIS ARM HAD NEVER
+# RUN AGAINST AN IMPLEMENTATION. IT HAD. IT PASSED.** The false sentence is
+# deleted rather than quoted -- a correction that reproduces its error keeps the
+# error alive, and a reader skimming finds the memorable wrong line either way.
+# `parity/tools/tap-baseline/tests_unit_rule_validator.bats.default.tap` records
+# all nine arms `ok`, including this one by its old name and including the ext
+# arm; the `.mutant.tap` beside it carries real bats failure output with line
+# numbers, so both are captures of actual runs rather than written
+# expectations; and `burn-baseline.tsv` grades the file `9 0 9 FULL` -- nine
+# tests, zero default failures, every one reaching the CLI.
+#
+# **SO THE CHOICE IS BETWEEN TWO IMPLEMENTED CONTRACTS, NOT BETWEEN A CONTRACT
+# AND A DEAD LETTER, AND THE RULING SURVIVES ON ITS OTHER LEG:** this is a
+# VALIDATOR, and one that warns on an unknown key lets a typo'd field ship
+# silently, which is how schema drift enters. v2 warning is a fact about v2, and
+# this estate fails forward rather than porting behaviour for its own sake.
 #
 # On the substance: this is a VALIDATOR, and one that warns on an unknown key
 # lets a typo'd field ship silently, which is how schema drift enters. Driven on
