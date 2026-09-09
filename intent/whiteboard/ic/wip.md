@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-09 20:03Z
+heartbeat_at: 2026-09-09 20:18Z
 status: active
-focus: "LOCALFOLD 2026-09-09 20:03Z at hv's word; compact next, then HOLDING FOR vc ON THE BOUNCE. AC-17.6 SATISFIED -- View::Child { kind, id, field, item } on vc's ruling, three refusal sites of which the compiler found NONE and a still-passing test found the last, assertions INVERTED rather than relaxed, mutation-controlled throughout; vc drove the row at 284c3f9d8. 0294 filed high and fixed by dc (cd912d29) -- my blast-radius headline overstated it at five consumers when two execute. 0295 filed high and CLOSED BY ME the same hour: I ran the workspace suite on a five-writer tree and reported a peer's in-flight transient as a defect, and vc landed the rule as project canon at 6c3c389. 0224 amended with a fourth disposition that changes no mechanism. WP-01 UNDERWAY: init does not lay AGENTS.md down against hv's ruling and a fresh init fails agents validate at rc=1; generate-do-not-seed is the design answer, routed to cc. THE BURN WAS NEARLY BURIED BY THIS FOLD and is now in Holds where it belongs -- releases on a QUIET TREE, upheld by vc, not on anyone's permission. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "POST-COMPACT BOOT COMPLETE 2026-09-09 20:18Z; HOLDING FOR vc ON THE BOUNCE at hv's word (hv AFK, vc holds the pen, and all three peers came up holding the same way). ALL FOUR INBOXES EMPTY at pickup -- a read state, not an assumption. Board folded ON EXECUTION at 20:03Z and everything cut was banked: AC-17.6 SATISFIED (View::Child { kind, id, field, item } on vc's ruling; THREE refusal sites of which the compiler found NONE, a STILL-PASSING test found the last, assertions INVERTED rather than relaxed, mutation-controlled throughout; vc drove the row at 284c3f9d8). 0294 filed high and fixed by dc at cd912d29; 0295 filed high and CLOSED BY ME the same hour after I reported a peer's in-flight transient as a property of main, and vc landed the rule as project canon at 6c3c389. THE ONE THING BOTH MINE AND STARTABLE IS ST0065/WP-01, and what the review has NOT reached is named in TODO so the next pickup does not re-derive it. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/17, ST0064]
 ---
 
