@@ -235,20 +235,70 @@ pub(crate) enum StoreNeed {
 /// class this note is modelled on: `HOOKS` declared why it was CLOSED and never
 /// what it EXCLUDED, and its exclusion was SILENT.** A silent exclusion hides a
 /// missing member; a loud one cannot.
-const SERVED_BY_DAEMON: &[(&str, Op)] = &[("st list", Op::ThreadList)];
+/// The [`Op`] a declared `serving_op` name means, and the CLOSED VOCABULARY of
+/// what may be declared at all.
+///
+/// **THE ROSTER IS NOW A PROJECTION AND THIS IS WHAT REPLACED IT.** The set of
+/// SERVED PATHS moved to `surface/dispatch-table.json`, per the discharge
+/// condition recorded on the drift guard below; what stays in code is the only
+/// half the table cannot state about itself -- which ops are constructible with
+/// no arguments. That is a property of the enum, and repeating it as data would
+/// be the second home this change exists to remove.
+///
+/// **ONLY PAYLOAD-FREE VARIANTS ARE ADMISSIBLE, AND THE OMISSIONS ARE BY WHAT
+/// THE VARIANTS ARE.** `Graphql`, `Set` and `Form` carry payloads: a roster
+/// projected from a static table has nothing to fill them with. `Registry` is
+/// deliberately not scoped to one project, `Subscribe` changes the connection's
+/// MODE and answers once before streaming, and `Shutdown` acts on the daemon
+/// rather than answering a question about the estate -- so none of the three is
+/// a verb path's answer even though each is payload-free.
+///
+/// **A NAME OUTSIDE THIS SET REFUSES AT LOAD** ([`crate::dispatch::table`]),
+/// rather than being skipped at use. Skipping is the failure this replaces: it
+/// would report a clean table while a verb quietly lost daemon coverage, which
+/// is the SILENT exclusion the note below distinguishes itself from.
+pub fn serving_op_from_name(name: &str) -> Option<Op> {
+  match name {
+    "ThreadList" => Some(Op::ThreadList),
+    _ => None,
+  }
+}
 
 /// The op a verb path becomes at the daemon, if a daemon can answer it at all.
+///
+/// Reads the table. A path whose entry declares no `serving_op` is a path no
+/// daemon answers, which is the declaration rather than the absence of one.
 pub fn daemon_op_for(path: &str) -> Option<Op> {
-  SERVED_BY_DAEMON
+  crate::dispatch::table()
+    .families
     .iter()
-    .find(|(served, _)| *served == path)
-    .map(|(_, op)| op.clone())
+    .flat_map(|family| family.entries.iter())
+    .find(|entry| entry.path == path)
+    .and_then(|entry| entry.serving_op.as_deref())
+    .and_then(serving_op_from_name)
 }
 
 /// Every verb path a daemon can answer. Read by the harnesses and by the
 /// caller-side `--daemon` guard.
-pub fn daemon_servable_paths() -> Vec<&'static str> {
-  SERVED_BY_DAEMON.iter().map(|(path, _)| *path).collect()
+///
+/// Owned rather than `&'static str`: the paths come from the parsed table now,
+/// not from a literal in this file. The borrow was an artefact of the roster
+/// being a const, and keeping it would have meant leaking the table to preserve
+/// a lifetime nothing needed.
+pub fn daemon_servable_paths() -> Vec<String> {
+  crate::dispatch::table()
+    .families
+    .iter()
+    .flat_map(|family| family.entries.iter())
+    .filter(|entry| {
+      entry
+        .serving_op
+        .as_deref()
+        .and_then(serving_op_from_name)
+        .is_some()
+    })
+    .map(|entry| entry.path.clone())
+    .collect()
 }
 
 /// The full verb path the parser resolved, as `SERVED_BY_DAEMON` spells it.
@@ -10189,6 +10239,97 @@ mod tests {
   /// daemon can answer, derivable the moment the second fact exists; and WHICH
   /// `Op` each path becomes, which the table does not carry at all -- checked
   /// rather than assumed, no `new_surface` key names an `Op`.
+  /// The vocabulary admits exactly the payload-free ops, and refuses the rest.
+  ///
+  /// **THIS IS THE REFUSAL THAT REPLACED A SILENT SKIP.** Before the roster
+  /// became a projection there was nowhere to declare a bad op, so there was
+  /// nothing to refuse; now a table can name one, and naming a payload-carrying
+  /// op has to be an error rather than an entry that quietly maps to nothing.
+  /// A skipped entry would report a clean table while the verb lost daemon
+  /// coverage, which is the SILENT exclusion the roster note distinguishes
+  /// itself from.
+  ///
+  /// The refusal itself fires in `dispatch::table` and cannot be exercised from
+  /// here -- the table is `include_str!`'d, so a bad one is a build defect and
+  /// not a value any test can hand it. What IS testable is the predicate that
+  /// refusal consults, which is this.
+  #[test]
+  fn the_serving_vocabulary_admits_only_payload_free_ops() {
+    assert!(
+      serving_op_from_name("ThreadList").is_some(),
+      "the one op a verb path can be answered with is not admitted, so the projection is empty \
+       and every arm keyed on it passes for free"
+    );
+
+    // Payload-carrying: a projection from a static table has nothing to fill
+    // these with.
+    for name in ["Graphql", "Set", "Form"] {
+      assert!(
+        serving_op_from_name(name).is_none(),
+        "`{name}` carries a payload and a table projection cannot construct it, so admitting it \
+         would declare daemon coverage the roster could never deliver"
+      );
+    }
+
+    // Payload-free but not a verb path's answer, each for its own reason:
+    // Registry is not project-scoped, Subscribe changes the connection's mode,
+    // Shutdown acts on the daemon rather than on the estate.
+    for name in ["Registry", "Subscribe", "Shutdown"] {
+      assert!(
+        serving_op_from_name(name).is_none(),
+        "`{name}` is payload-free but is not a verb path's answer, and admitting it on the \
+         strength of being constructible would put it on a roster the conformance harness drives \
+         as though a CLI verb produced it"
+      );
+    }
+
+    assert!(
+      serving_op_from_name("ThreadLst").is_none(),
+      "a misspelling resolves, so the vocabulary is not closed and a typo would ship as a \
+       declaration"
+    );
+  }
+
+  /// The roster is the table's `serving_op` column and nothing else.
+  ///
+  /// Reads the table independently rather than calling the accessor under test,
+  /// so this compares two derivations of one fact instead of asserting a
+  /// function equals itself.
+  #[test]
+  fn the_roster_is_exactly_what_the_table_declares_a_serving_op_for() {
+    let table = dispatch::table();
+    let from_table: Vec<String> = table
+      .families
+      .iter()
+      .flat_map(|family| family.entries.iter())
+      .filter(|entry| entry.serving_op.is_some())
+      .map(|entry| entry.path.clone())
+      .collect();
+
+    assert!(
+      !from_table.is_empty(),
+      "no entry declares a serving_op, so the projection is empty and this test cannot fail"
+    );
+
+    let mut roster = daemon_servable_paths();
+    let mut expected = from_table;
+    roster.sort();
+    expected.sort();
+    assert_eq!(
+      roster, expected,
+      "the roster and the table's serving_op column disagree, so the projection has a second \
+       source somewhere"
+    );
+
+    for path in &roster {
+      assert!(
+        daemon_op_for(path).is_some(),
+        "`{path}` is on the roster and resolves to no op, which is the shape that used to be \
+         possible when the two were kept by hand"
+      );
+    }
+  }
+
   #[test]
   fn every_daemon_served_path_is_one_the_table_declares() {
     let table = dispatch::table();
@@ -10206,7 +10347,7 @@ mod tests {
 
     let undeclared: Vec<&str> = roster
       .iter()
-      .copied()
+      .map(String::as_str)
       .filter(|p| !declared.contains(p))
       .collect();
     assert!(

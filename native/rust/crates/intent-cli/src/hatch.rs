@@ -296,7 +296,7 @@ mod tests {
     assert!(daemon_only("graphql"));
     for path in crate::render::daemon_servable_paths() {
       assert!(
-        !daemon_only(path),
+        !daemon_only(&path),
         "`{path}` is on both rosters, and the two make contradictory claims"
       );
     }

@@ -134,18 +134,25 @@ const DECLARED: &[(&str, &str, Why)] = &[
     "intent-cli/src/render.rs",
     "st list",
     Why::Discharges(
-      "TWO SITES SPELL IT AND THEY DISCHARGE TOGETHER. (1) `SERVED_BY_DAEMON`, the roster; (2) the \
-     `served(\"st list\", ..)` CALL SITE, where the path is spelled so the router can resolve it \
-     -- its own note says a site that forgets to route falls through with a zero delta, so \
-     spelling it there is what makes the omission red by name rather than invisible. \
-     BOTH GO WHEN THE TABLE CARRIES THE MAPPING: `SERVED_BY_DAEMON` discharges when \
-     `surface/dispatch-table.json` declares each path's serving `Op`, or its absence -- at that \
+      "ONE SITE NOW, AND THE OTHER DISCHARGED ON 2026-09-09 EXACTLY AS THIS ENTRY SAID IT WOULD. \
+     (1) `SERVED_BY_DAEMON`, the roster -- GONE. Its stated condition was that \
+     `surface/dispatch-table.json` declare each path's serving `Op`, or its absence, at which \
      point `daemon_op_for` reads the table and the roster is a projection rather than a second \
-     home (cc, 2026-08-30, quoted verbatim), and the call site resolves through the same \
-     declaration. THE SHORTHAND THIS REPLACED -- `it discharges when the daemon serves the \
-     surface` -- COULD NEVER BECOME TRUE: `version`, `info`, `init` and the `lang` verbs need no \
-     store, so they will never be daemon-served. An exception whose condition is unmeetable \
-     reads like the kind that cannot rot and behaves like the kind that does.",
+     home (cc, 2026-08-30, quoted verbatim). The table now carries `serving_op` per entry, \
+     absence meaning no daemon answers it, and what remains in code is \
+     `render::serving_op_from_name` -- the CLOSED VOCABULARY of payload-free ops, which is a \
+     property of the `Op` enum and the one half the table cannot state about itself. A name \
+     outside it refuses at LOAD in `dispatch::table`, so a payload-carrying op cannot be \
+     declared and then silently skipped. (2) THE SURVIVOR: the `served(\"st list\", ..)` CALL \
+     SITE, where the path is spelled so the router can resolve it -- its own note says a site \
+     that forgets to route falls through with a zero delta, so spelling it there is what makes \
+     the omission red by name rather than invisible. It does not discharge with the roster: a \
+     projection says WHICH paths a daemon answers and cannot say WHERE in this file each one is \
+     handled. THE SHORTHAND THIS REPLACED -- `it discharges when the daemon serves the surface` \
+     -- COULD NEVER BECOME TRUE: `version`, `info`, `init` and the `lang` verbs need no store, \
+     so they will never be daemon-served. An exception whose condition is unmeetable reads like \
+     the kind that cannot rot and behaves like the kind that does. THIS ONE WAS MEETABLE AND WAS \
+     MET, which is the argument for stating conditions that way.",
     ),
   ),
   (

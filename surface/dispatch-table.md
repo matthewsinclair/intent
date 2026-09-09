@@ -523,6 +523,7 @@ List steel threads (default: in progress only)
 - **render order:** bin/intent_st:941 pins the display order as a five-element list -- `WIP TBC HOLD COMPLETED CANCELLED`. Six states means this list grows, and `Triage` belongs BEFORE the `Not Started` slot because it precedes it in the machine. Named here because it is a surface fact hiding in an array literal, and a new state that renders in the wrong place looks like a sorting bug rather than a missing decision.
 - **MCP:** exposed as an agent tool -- read-only
 - **MCP classification grounded in:** bin/intent_st:717-1043 -- no write primitive in the arm
+- **serving op:** ThreadList
 - **facade:** st_list
 
 ### `st show`

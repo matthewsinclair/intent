@@ -185,6 +185,24 @@ pub struct Entry {
   /// three when the vocabulary had five, and nothing could tell.
   #[serde(default)]
   pub disposition: String,
+  /// The [`intentsvcs::wire::Op`] a daemon answers this path with, by name, or
+  /// absent where no daemon can answer it.
+  ///
+  /// **THIS FIELD IS WHAT MAKES THE CLI's DAEMON ROSTER A PROJECTION RATHER
+  /// THAN A SECOND HOME** -- the discharge condition
+  /// `command_rosters_are_derived_or_declared.rs` records for `SERVED_BY_DAEMON`
+  /// verbatim: *it discharges when `surface/dispatch-table.json` declares each
+  /// path's serving `Op`, or its absence.*
+  ///
+  /// **ABSENCE IS THE DECLARATION FOR EVERY PATH A DAEMON CANNOT ANSWER**, and
+  /// the vocabulary is closed by [`crate::render::serving_op_from_name`], which
+  /// admits only the payload-free variants. That is the refusal, and it is why
+  /// the name is checked at LOAD rather than skipped at USE: a payload-carrying
+  /// op named here has nothing to supply its payload, so honouring it would be
+  /// impossible and ignoring it would report a clean table while the verb
+  /// quietly lost daemon coverage.
+  #[serde(default)]
+  pub serving_op: Option<String>,
   /// The other spelling of this row's capability, eg `edit --browser`.
   ///
   /// **INV-09: every spelling of one capability agrees about whether it
@@ -731,9 +749,11 @@ pub fn table() -> Table {
   if let Err(unknown) = check_vocabularies(&table) {
     panic!(
       "the dispatch table carries values no vocabulary declares:\n  {}\n\
-       Each is a closed domain declared in the table itself (`entry_dispositions`, `target_states`, \
-       `flag_dispositions`); a value outside one is a typo or an undeclared addition, and either is \
-       a build defect.",
+       Each is a closed domain: `entry_dispositions`, `target_states` and `flag_dispositions` are \
+       declared in the table itself, and `serving_op`'s vocabulary is the payload-free `Op` \
+       variants, which is a property of the enum rather than something the table could state \
+       about itself. A value outside one is a typo or an undeclared addition, and either is a \
+       build defect.",
       unknown.join("\n  ")
     );
   }
@@ -779,6 +799,26 @@ fn check_vocabularies(table: &Table) -> Result<(), Vec<String>> {
       unknown.push(format!(
         "{what} declares no values at all, so nothing below it could be checked"
       ));
+    }
+  }
+  if !unknown.is_empty() {
+    return Err(unknown);
+  }
+
+  // `serving_op` is a closed domain like the others, but its vocabulary lives in
+  // code rather than in the table: the legal values are exactly the `Op`
+  // variants that carry no payload, which is a property of the enum and not
+  // something the table could declare about itself without repeating it.
+  for entry in table.families.iter().flat_map(|f| f.entries.iter()) {
+    if let Some(name) = entry.serving_op.as_deref() {
+      if crate::render::serving_op_from_name(name).is_none() {
+        unknown.push(format!(
+          "`{}` declares serving_op `{name}`, which is not a payload-free Op. A daemon roster \
+           projected from this table can only name ops it can construct with no arguments; a \
+           payload-carrying op here would be unservable and silently skipped.",
+          entry.path
+        ));
+      }
     }
   }
   if !unknown.is_empty() {
@@ -1139,6 +1179,10 @@ mod tests {
   #[test]
   fn paths_decompose_into_family_and_verb() {
     let st = Entry {
+      // Absent here for the same reason the two below are empty: these are
+      // fixtures for path decomposition, and declaring a daemon op on one
+      // would put a serving claim into a test that no table makes.
+      serving_op: None,
       // Added when `Entry` gained the field for dc's accepted-but-never-shown
       // `organise` alias. Empty here: these are fixtures for a different
       // property and inventing an alias would put a spelling into a test that
@@ -1193,6 +1237,7 @@ mod tests {
       required_unless: None,
     };
     let with = |arg: Arg| Entry {
+      serving_op: None,
       hidden_aliases: Vec::new(),
       twin_of: String::new(),
       path: "todo".to_string(),

@@ -843,6 +843,7 @@
         },
         {
           "path": "st list",
+      "serving_op": "ThreadList",
           "help": "List steel threads (default: in progress only)",
           "args": [],
           "flags": [
@@ -9034,7 +9035,8 @@
         "recoverability",
         "target",
         "twin_of",
-        "facade"
+        "facade",
+        "serving_op"
       ],
       "note": [
         "acceptance",

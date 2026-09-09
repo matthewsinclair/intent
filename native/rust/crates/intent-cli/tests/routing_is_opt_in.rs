@@ -181,7 +181,7 @@ fn text(out: &Output) -> String {
 }
 
 /// The declared set, asserted non-empty so nothing below can go vacuous.
-fn servable() -> Vec<&'static str> {
+fn servable() -> Vec<String> {
   let paths = intent_cli::render::daemon_servable_paths();
   assert!(
     !paths.is_empty(),
@@ -356,7 +356,7 @@ fn the_daemon_flag_is_refused_on_a_verb_no_daemon_can_answer() {
   let candidates: Vec<String> = intent_cli::dispatch::shipped_entries(&table)
     .iter()
     .map(|e| e.path.clone())
-    .filter(|p| !servable.contains(&p.as_str()) && !p.starts_with("daemon"))
+    .filter(|p| !servable.contains(p) && !p.starts_with("daemon"))
     .collect();
   let unservable = candidates
     .iter()
@@ -619,7 +619,7 @@ fn doing_what_the_refusal_told_the_operator_to_do_actually_gets_them_the_answer(
   let stop = StopWhateverTheRemedyStarted { home: home.clone() };
   let root = project();
   let servable = servable();
-  let path = servable[0];
+  let path = servable[0].as_str();
   let mut argv = vec!["--daemon"];
   argv.extend(path.split(' '));
 
