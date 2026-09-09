@@ -511,10 +511,25 @@ log_info "CHANGELOG section present for $TARGET"
 # Validate CHANGELOG date.
 TODAY="$(date +%Y-%m-%d)"
 HEADER_LINE="$(printf '%s\n' "$CHANGELOG_SECTION" | head -1)"
+# UNDATED_PLACEHOLDER is the single home for "which not-yet-dated word this
+# header used", and the rewrite below derives its sed from it rather than
+# re-listing the legal forms. Two homes for that set is how `unreleased`
+# reached a rewrite that could only match `in progress`: the case arm would
+# have set the flag, the sed would have matched nothing, and the run would have
+# logged "CHANGELOG date finalised" over an unchanged file.
 case "$HEADER_LINE" in
   "## [$TARGET] - in progress"*)
     NEEDS_DATE_REWRITE=true
+    UNDATED_PLACEHOLDER="in progress"
     log_info "CHANGELOG header still 'in progress' -- will rewrite to $TODAY"
+    ;;
+  "## [$TARGET] - unreleased"*)
+    # Keep-a-Changelog's own word for the same state, and the word CHANGELOG.md
+    # cites in its header. It is not a stale DATE, so the stale-date branch
+    # below reported the wrong cause and offered a flag that could not fix it.
+    NEEDS_DATE_REWRITE=true
+    UNDATED_PLACEHOLDER="unreleased"
+    log_info "CHANGELOG header still 'unreleased' -- will rewrite to $TODAY"
     ;;
   "## [$TARGET] - $TODAY"*)
     NEEDS_DATE_REWRITE=false
@@ -627,13 +642,20 @@ fi
 # CHANGELOG date finalisation
 if [ "$NEEDS_DATE_REWRITE" = "true" ]; then
   if [ "$DRY_RUN" = "true" ]; then
-    log_dry "would rewrite '## [$TARGET] - in progress' to '## [$TARGET] - $TODAY' in CHANGELOG.md"
+    log_dry "would rewrite '## [$TARGET] - $UNDATED_PLACEHOLDER' to '## [$TARGET] - $TODAY' in CHANGELOG.md"
   else
-    # Keep any trailing parenthesised note that follows " - in progress"
+    # Keep any trailing parenthesised note that follows the placeholder
     # (e.g. " - in progress (ST0035 + ST0036)" -> " - $TODAY (ST0035 + ST0036)").
-    sed -i.bak -E "s|^(## \[$TARGET\]) - in progress(.*)$|\1 - $TODAY\2|" "$PROJECT_ROOT/CHANGELOG.md"
+    sed -i.bak -E "s|^(## \[$TARGET\]) - $UNDATED_PLACEHOLDER(.*)$|\1 - $TODAY\2|" "$PROJECT_ROOT/CHANGELOG.md"
     rm -f "$PROJECT_ROOT/CHANGELOG.md.bak"
-    log_info "CHANGELOG date finalised to $TODAY"
+    # No silent success: the sed above is derived from UNDATED_PLACEHOLDER, but
+    # a header that changed between the check and the rewrite would leave the
+    # file untouched and this log would still claim the date was finalised.
+    if grep -q "^## \[$TARGET\] - $TODAY" "$PROJECT_ROOT/CHANGELOG.md"; then
+      log_info "CHANGELOG date finalised to $TODAY"
+    else
+      abort "CHANGELOG date rewrite did not take: no '## [$TARGET] - $TODAY' after rewriting '$UNDATED_PLACEHOLDER'"
+    fi
   fi
   NEEDS_COMMIT=true
 fi

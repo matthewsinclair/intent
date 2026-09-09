@@ -326,6 +326,58 @@ run_release_src() {
   [[ "$output" == *"CHANGELOG date is not today, but --allow-stale-date is set"* ]]
 }
 
+# `unreleased` is the third legal not-yet-dated form, alongside `in progress`.
+# It is the Keep-a-Changelog word, and it is the one CHANGELOG.md's own header
+# cites -- so the estate wrote it, and the handler had no case for it. It fell
+# to the generic `- <anything>` arm, which reads every unmatched header as a
+# stale DATE: the cut refused with "but today is <date> (re-run with
+# --allow-stale-date)", naming a cause that was not the cause and offering a
+# flag that could not fix it. The second test is the one that pins the defect --
+# accepting the header is not enough if it is accepted down the stale-date path.
+
+@test "release accepts CHANGELOG header 'unreleased'" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1" "unreleased"
+  shim_gh
+
+  cd "$repo" || return 1
+  run_release --dry-run --patch
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"still 'unreleased'"* ]]
+  [[ "$output" == *"will rewrite to $(date +%Y-%m-%d)"* ]]
+}
+
+@test "release does not misreport 'unreleased' as a stale date" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1" "unreleased"
+  shim_gh
+
+  cd "$repo" || return 1
+  run_release --dry-run --patch
+
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"--allow-stale-date"* ]]
+  [[ "$output" != *"but today is"* ]]
+}
+
+@test "release plans the date rewrite from the placeholder it actually found" {
+  local repo="$TEST_TEMP_DIR/repo"
+  create_scratch_release_repo "$repo" "2.10.0" "2.10.1" "unreleased"
+  shim_gh
+
+  cd "$repo" || return 1
+  run_release --dry-run --patch
+
+  # The dry-run plan must name the header it found, not a hardcoded one. When
+  # the rewrite hardcoded `in progress`, adding a case arm for `unreleased`
+  # would have set the rewrite flag, matched nothing, and reported success over
+  # an unchanged file.
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"'## [2.10.1] - unreleased' to '## [2.10.1] - $(date +%Y-%m-%d)'"* ]]
+  [[ "$output" != *"'## [2.10.1] - in progress' to"* ]]
+}
+
 # --------------------------------------------------------------------
 # Help output
 # --------------------------------------------------------------------
