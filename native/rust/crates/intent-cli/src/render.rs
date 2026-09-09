@@ -4369,15 +4369,13 @@ fn organize(m: &ArgMatches) -> Result<(), Failure> {
 /// the same rule written down five times, which is how two of them end up
 /// disagreeing.
 ///
-/// **NOT SHARED WITH `doctor`, DELIBERATELY, AND THIS IS A HOLD RATHER THAN A
-/// RULING.** `doctor` resolves the identical rule inline (`quiet`, then
-/// `verbose && !quiet`), so there are two homes for one concept and Highlander
-/// says there should be one. It is not unified in this change because vc is
-/// inside `fn doctor` for `--scope` as this lands, and a shared type would put
-/// two authors on one symbol -- the exact coupling that collided on
-/// `f5b602ef0`, where the FILE boundary was clean and the SYMBOL boundary was
-/// not. Unify it once that lands; the follow-up is recorded on cc's board
-/// rather than left to be noticed.
+/// **SHARED WITH `doctor`, WHICH IS WHY THIS TYPE EXISTS RATHER THAN A PAIR OF
+/// BOOLEANS.** It was deliberately not shared when it landed -- vc was inside
+/// `fn doctor` for `--scope` at the time, and a shared symbol would have put
+/// two authors on one name, the coupling that collided on `f5b602ef0` where the
+/// FILE boundary was clean and the SYMBOL boundary was not. That condition is
+/// spent: `--scope` landed, and `doctor` now asks this type instead of
+/// resolving `quiet`/`verbose` for itself.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 enum Verbosity {
   /// `--quiet`: the summary line and refusals. Nothing else.
@@ -4887,14 +4885,20 @@ fn print_grouped<'a>(findings: impl Iterator<Item = &'a intentsvcs::finding::Fin
 }
 
 fn doctor(a: &ArgMatches) -> Result<(), Failure> {
-  // **QUIET WINS OVER VERBOSE, and that is v2's rule rather than a tie-break
-  // invented here** -- `bin/intent_doctor:134` reads
-  // `if [ "$VERBOSE" = true ] && [ "$QUIET" != true ]`, so the two together
-  // resolve to quiet in v2 and must resolve the same way in v3. A parity flag
-  // whose interaction with its sibling differs from v2's is a flag that has
-  // been re-designed under the name of being carried across.
-  let quiet = a.get_flag("quiet");
-  let verbose = a.get_flag("verbose") && !quiet;
+  // **QUIET WINS OVER VERBOSE, and [`Verbosity`] is where that is decided.**
+  // This resolved the rule inline until the two homes were unified: `organize`
+  // held it in `Verbosity::of` and `doctor` held it here, which is one concept
+  // with two implementations and exactly what Highlander forbids. The rule's
+  // provenance -- v2's `bin/intent_doctor:134` -- travels with the type rather
+  // than being restated at each caller, because a citation copied to a second
+  // site is a citation that can go stale at one of them.
+  //
+  // The two booleans are derived rather than removed: this function reads them
+  // separately downstream, and rewriting those reads would be a behaviour
+  // change smuggled into a de-duplication.
+  let verbosity = Verbosity::of(a);
+  let quiet = verbosity == Verbosity::Quiet;
+  let verbose = verbosity == Verbosity::Verbose;
   // **REFUSED BEFORE THE WORK, AND BY THE RENDERER RATHER THAN BY CLAP.**
   // A `value_parser` would reject at exit 2, which is INV-04's USAGE code and
   // the one the pre-commit gate FAILS OPEN on -- so a typo in `--format` would
