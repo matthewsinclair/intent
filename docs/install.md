@@ -21,12 +21,17 @@ Requires a recent stable Rust toolchain.
   $ cargo build --release
 ```
 
-The binaries land in `native/rust/target/release/`. **Building is not the whole install** — the binary resolves its templates, rule library and skills against `INTENT_HOME`, so a source build needs that set to the repository root:
+The binaries land in `native/rust/target/release/`. **The binary finds its own templates, rule library and skills, and nothing needs setting.** `intentsvcs::install::home()` reads `std::env::current_exe()` — the one ambient input, read there and nowhere else — canonicalises it, and walks up until it reaches a directory containing `lib/templates`. A source build's binary therefore resolves to the repository root by construction. Symlinks are resolved before that walk, because a packaged `intent` is reached through one — Homebrew's `bin/intent` points into the Cellar — and walking up from the link would climb the wrong tree entirely.
+
+So a source build needs only the binary on `PATH`:
 
 ```
-  $ export INTENT_HOME=/path/to/intent
-  $ export PATH="$INTENT_HOME/native/rust/target/release:$PATH"
+  $ export PATH="/path/to/intent/native/rust/target/release:$PATH"
 ```
+
+**DO NOT SET `INTENT_HOME`. v3 NEVER READS IT, AND A STALE v2 VALUE IS ACTIVELY HARMFUL.** This page instructed source installers to export it until 2026-09-09. The rule is stated in the code at the site that resolves plugin paths: _"Never `$INTENT_HOME`. A v2 value left in the environment would point this binary at v2's manifests and **the output would look completely ordinary**"_ — the same rule the rule library and the skills payload are built on (`AC-11.3`). **The advice was not merely obsolete; it constructed the exact hazard that rule exists to prevent, and the failure it invites is a confident wrong answer rather than an error.**
+
+Driven with the variable unset (`env -u INTENT_HOME`): `intent --version` answers, and `intent claude rules list` returns a non-empty library.
 
 ## Verifying an install
 
