@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Intent attribution guard. The BODY is shipped canon at
+# lib/templates/hooks/commit-msg.sh so every consumer project inherits it on
+# `intent upgrade`; this dispatcher is the tracked hook that puts it to THIS
+# repository, the same shape `bin/int hooks` reports for the pre-commit roster.
+#
+# ABSENCE IS A REFUSAL, NEVER A PASS. A guard that silently no-ops when its body
+# is missing is indistinguishable from a guard that ran and found nothing --
+# which is the defect the pre-commit dispatcher already refuses for its own gate.
+_guard="$(git rev-parse --show-toplevel)/lib/templates/hooks/commit-msg.sh"
+if [ ! -f "$_guard" ]; then
+  echo "commit-msg: GUARD ABSENT -- the attribution check did NOT run." >&2
+  echo "commit-msg:   expected at: $_guard" >&2
+  echo "commit-msg:   refusing rather than passing: a missing guard must not read as a clean message." >&2
+  exit 1
+fi
+bash "$_guard" "$@"
