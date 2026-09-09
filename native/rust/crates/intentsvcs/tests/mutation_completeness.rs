@@ -512,7 +512,31 @@ fn no_service_call_can_set_an_edgeless_field() {
       // 4 landed**, because the row became a `State` and the loop stops before
       // the match. A dead arm in a hand-written enumeration reads as coverage,
       // which is the same thing a short enumeration does.
-      ("Criterion", "kind") | ("AcceptanceTest", "kind") => false,
+      // **SPLIT 2026-09-09 (dc). THESE TWO WERE ONE ARM AND THEY ARE NOT ONE
+      // CASE.** The comment above is about CONSTRUCTION -- no service call
+      // builds a criterion or an AT -- and this function asks about SETTING.
+      // `at edit --kind` sets `AcceptanceTest.kind`, so `false` was a false
+      // statement, and it is what kept the stale `Unbuilt` disposition green.
+      // `Unbuilt`'s own doc promises "the day a mutation lands the disposition
+      // is contradicted and the test says so"; this arm is why it did not.
+      //
+      // **AND IT IS THE SECOND TIME THIS ARM HAS DONE IT** -- six lines up,
+      // `("Issue", "status")` sat here dead after Machine 4 landed. The note
+      // written about that instance did not prevent this one.
+      //
+      // DRIVEN, not read (`--help` proves a flag is DECLARED, never that its
+      // arm exists): on a scratch v3 project, `at na` then
+      // `at edit --kind non-test` then `at red` then `at edit --kind test`
+      // returns the row to where it started, every step a service call at rc=0.
+      // Every refusal on the way is a status guard naming the verb that clears
+      // it, not a closed door.
+      ("AcceptanceTest", "kind") => true,
+      // `Criterion.kind` genuinely has no setter: `ac edit --kind test` returns
+      // rc=1 `unexpected argument '--kind' found`. Driven, because
+      // `ac edit --help | grep -i kind` HITS -- the summary line reads "leaving
+      // its kind and its satisfaction alone", so the string proving the flag's
+      // absence contains the word you would grep for to prove its presence.
+      ("Criterion", "kind") => false,
       // No service call constructs a fiat record today, so nothing can set the
       // tty flag inside one. **This arm is written knowing it will change**:
       // when `fc` lands it will CREATE the record carrying this value, and the
@@ -526,7 +550,11 @@ fn no_service_call_can_set_an_edgeless_field() {
       ),
     };
     let consequence = if row.owed {
-      "the row is describing a trap rather than an absence. Make it a State and give it the exit"
+      "the row is describing a trap rather than an absence. Make it a State and give it the exit -- \
+     AND NOTE WHAT THAT COSTS: `every_state_machine_is_ratified_by_a_table_or_by_prose_and_nothing_by_neither` \
+     requires every State field to be ratified, by the RATIFIED table or by a cited prose sentence in \
+     data-model.md. If this machine is not ratified there, this red is a DECISION PENDING hv and NOT a bug \
+     to fix -- do not invent the ratification to clear the test"
     } else {
       "the row says nothing moves this field and something does, so the ruling it cites has been contradicted -- revisit the ruling, do not relax the test"
     };
