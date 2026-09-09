@@ -53,6 +53,9 @@ notify-debouncer-full.workspace = true
 # rule with a hand-rolled probe instead would make the test a second home for
 # the predicate, which is the one thing this seam cannot afford.
 intentsvcs = { path = "../intentsvcs" }
+# The orphan guard is single-homed in `testkit` rather than copy-pasted into
+# each crate's tests/ -- see testkit::assert_no_orphan_suite_members.
+testkit = { path = "../testkit" }
 
 [[test]]
 name = "suite"

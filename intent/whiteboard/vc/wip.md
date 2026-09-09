@@ -2,11 +2,11 @@
 node: vc
 name: Validation Claude
 role: validation
-session_id: 945027b0-be6d-43c4-a6f7-1349cb9ca0c1
+session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
 commit_session_id: 01QowqYJaW1178GFgwUDcxaU -- POINT-IN-TIME. It rotated MID-SESSION with no bounce on 2026-09-04, so "a bounce mints a new one" is too narrow. RE-READ IT OFF YOUR OWN LAST COMMIT.
-heartbeat_at: 2026-09-08 21:17Z
-status: paused
-focus: "RELEASED 2026-09-08 21:17Z -- EOD, status PAUSED. Both folds landed (416bfc92 local, 3bb4f5ad global) plus the re-driven hv list (94cc345c). THE GLOBALFOLD FIXED A CAUSE, NOT A SYMPTOM: /in-finish ordered 'What was accomplished this session' into intent/wip.md and /in-essentials ordered state into the entry point that forbids it -- two skills, one file, opposite orders, and the wrong one loads at every session start. Both fixed and synced, verified against the INSTALLED copies. The done gumpf in wip.md turned out to be CORRECTION ARCHAEOLOGY -- records of edits to the document, not finished tasks. 0285/0286/0287 filed; four of 0285 s five defects came from cc and ic, and I had its SIGN backwards. RE-DRIVE THE hv LIST BEFORE SURFACING IT -- three items were dead tonight and cc found four of seven dead on theirs. FIRST THING TOMORROW: AC-15.1 s triage table, then AC-15.2 s three unmeasured axes (flags, paths, layouts) -- the VERB axis passed and is NOT the criterion. ST0070 needs criteria or cancellation. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+heartbeat_at: 2026-09-09 10:51Z
+status: active
+focus: "TN001 IS ENFORCED RATHER THAN READ, at hv's word. MEASURED FIRST: the ruling's ONLY home was the note -- 0 acceptance criteria name autotests or line-tables across 71 CANON threads (not the 14 hydrated dirs), 0 issues, and critic-rust's 7 rules touched no build topology. DELIVERED: IN-RS-TEST-003/004 in the library (applies_to **/Cargo.toml -- driven, the runner DOES reach a manifest, no tool change needed); both DECLARED UNANSWERABLE headless because every violation is an ABSENCE and the one positive token, debug = true, occurs in this repo only inside the COMMENT documenting the remedy -- a proxy would warn on the manifest that implements the rule. MECHANICAL ARM IS A TEST: test_target_topology_guard.rs, comments stripped, population asserted before property, driven to 3 verdicts. AND THE NOTE HAD A LIVE INSTANCE IT LOOKED STRAIGHT AT: testkit had no autotests key, 6 cargo targets against 5 declared; now 6 of 6 declared. FIXING IT NAIVELY WOULD HAVE MINTED A FOURTH COPY of a byte-identical 93-line orphan guard held together by nothing -- single-homed as testkit::assert_no_orphan_suite_members, 4 thin call sites."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 ---
 
@@ -25,6 +25,16 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 **NOTHING OF MINE IS IN FLIGHT OR UNCOMMITTED.** `git status` is the check, not this line.
 
 **AND `0285` WAS CORRECTED MID-FOLD BECAUSE ic AND cc INDEPENDENTLY DERIVED THE OPPOSITE SIGN AND BOTH WERE RIGHT.** I filed it saying the failure _makes a binary look MORE current than it is_. Reversed. **The bytes come from the newer source and the marker names the older commit, so the binary looks LESS current than it is and `rev-list --count marker..HEAD` OVERSTATES the drift.** cc's derivation is now the row's spine and is shorter than either of mine: **the marker is an ANCESTOR of the true content commit** -- evaluated at T1, linked at T2 >= T1, append-only history, clean tree. **My "fails in one direction only" was independently wrong too, and my own `20221c5df` refutes it: it moves the marker over byte-identical shipped code.**
+
+### TN001 ENFORCEMENT -- DELIVERED 2026-09-09 10:51Z, AND THE MEASUREMENT IS THE PART THAT TRANSFERS
+
+**THE RULING HAD ONE HOME AND IT WAS THE NOTE.** Censused over CANON, not disk (71 threads vs 14 hydrated dirs -- a disk probe samples a fifth and reads as complete), positive-controlled before the zeros were trusted: `autotests` in **0** criteria, `line-tables` in **0**, issue register empty, `critic-rust` 7 rules none touching build topology.
+
+**THE CRITIC REACHES A MANIFEST AND I DROVE IT RATHER THAN ASSUMING EITHER WAY** -- `staged_files()` has no extension filter, `run()` reads what it is handed, `applies_to` is a general glob, absent means universal. No tool defect to file. **BOTH RULES ARE STILL DECLARED UNANSWERABLE HEADLESS, AND THAT IS THE FINDING: every violation is an ABSENCE, and the one positive token (`debug = true`) occurs in this repo exactly once -- inside the comment explaining the default. A proxy on it warns on the manifest implementing the rule, in the sentence documenting the remedy.** A rule that cannot fire is worse than an absent rule because it reads as coverage. Census now reads 5 declared unanswerable, not 3.
+
+**THE NOTE LOOKED STRAIGHT AT A LIVE INSTANCE FOR EIGHT DAYS.** It cites `testkit` to show `grep -c '[[test]]'` is a bad instrument; testkit ALSO had no `autotests` key, so cargo reported 6 targets against 5 declared. **Now 6 of 6, set-identical.** And the naive fix was a trap: the orphan guard was a byte-identical 93-line file in three crates with **no drift test between them**, so "add it to testkit" meant a fourth copy. Single-homed in `testkit` -- the crate whose own header is about the estate having chosen copy-paste nine times.
+
+**MY OWN TWO INSTRUMENT ERRORS, BOTH CAUGHT, BOTH THE MORNING'S FAMILY.** (1) A control that truncated at `[[test]]` hit the occurrence inside my own COMMENT, so it silently re-tested arm A while producing a plausible FAIL -- redone, and the inverse-hazard arm is now proven. (2) `cargo fmt --check | head && echo clean` printed **clean** over two real diffs, because `head` exits 0. **Sixth sighting of the piped-rc shape and policy caught it again, not attention.**
 
 ### `WP-15` -- ONE HOME FOR ITS STATE, AND IT IS THIS ONE
 

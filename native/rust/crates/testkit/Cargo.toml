@@ -12,6 +12,18 @@ description = "Test-only helpers shared across the workspace's integration tests
 # `mod common;` cannot cross a crate boundary.
 publish = false
 
+# **ONE DECLARED TEST TARGET, per hv's estate-wide ruling of 2026-08-27 (TN001).**
+# This crate was the one the ruling never reached: it had no `autotests` key at
+# all, so its single test file was auto-discovered into its own target and a
+# SECOND file would have become a second target in silence. TN001 names testkit
+# only to show that `grep -c '[[test]]'` is a bad instrument -- it looked
+# straight at the crate and did not notice it was also an instance.
+autotests = false
+
+[[test]]
+name = "suite"
+path = "tests/suite.rs"
+
 # DELIBERATELY NO DEPENDENCIES. Everything here is std. A testkit that grows a
 # dependency graph becomes a thing to reason about rather than a thing to reach
 # for -- and dep_graph_guard.rs walks every manifest under crates/, so anything

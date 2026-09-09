@@ -262,6 +262,9 @@ mod mutation_roundtrip_complete;
 mod nav_is_the_shared_path_contract;
 #[path = "no_function_takes_a_time.rs"]
 mod no_function_takes_a_time;
+#[path = "test_target_topology_guard.rs"]
+mod test_target_topology_guard;
+
 #[path = "no_orphan_suite_member.rs"]
 mod no_orphan_suite_member;
 #[path = "no_view_claims_to_be_truth.rs"]

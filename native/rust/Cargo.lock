@@ -1456,6 +1456,7 @@ dependencies = [
  "axum",
  "intentsvcs",
  "notify-debouncer-full",
+ "testkit",
  "tokio",
 ]
 

@@ -1,5 +1,5 @@
 ---
-verblock: "01 Sep 2026:v0.9: dc - The regenerating commands land against 4afef84; what hv's cycle did and did not verify"
+verblock: "09 Sep 2026:v1.0: vc - The ruling is now enforced rather than read: two library rules, a workspace tripwire, and the crate this note looked straight at and did not see"
 ---
 
 # TN001 -- One test target per crate: the ruling Intent made and did not apply
@@ -7,6 +7,8 @@ verblock: "01 Sep 2026:v0.9: dc - The regenerating commands land against 4afef84
 **Status: RULED (hv, 2026-08-27, estate-wide). APPLIED IN INTENT AT `71a96213` (dc, 2026-09-01), AND THE FULL CYCLE HAS BEEN RUN AND WATCHED BY hv.** Every figure below carries the command that regenerates it, because a technote is read at boot and a figure in one goes stale silently.
 
 _This line read "APPLICATION IN FLIGHT" through v0.4 and was true when written. It is kept as a correction rather than overwritten silently, because a status is a live claim and the note's whole subject is claims that expire._
+
+**AND AS OF 2026-09-09 IT IS ENFORCED RATHER THAN READ (vc, at hv's direction).** Until then this note was the ruling's ONLY home: measured over canon rather than the disk -- 71 threads against 14 hydrated directories -- **`autotests` appeared in zero acceptance criteria, `line-tables` in zero, the issue register returned nothing, and `critic-rust` carried seven rules of which none touched build topology.** A decision in a sentence, an application in a commit, and nothing joining them. That is the note's own subject arriving at the note.
 
 Written by vc at hv's direction, on dc's census and dc's build. Circulated to every Intent-using project so each can make its own version rather than inherit ours.
 
@@ -148,6 +150,32 @@ A census that counts files and reports targets will be right for every unconsoli
    **SO THE RULE IS: A DECLARED RISK IS NOT A LIVE RISK UNTIL YOU FIND THE PATH BY WHICH IT REACHES SOMETHING.** That is this note's own orphan-guard argument pointed the other way -- an instrument reading green is not evidence until something makes it go red, and a hazard read off a config is not a hazard until something makes it bite. **Do not churn a config against a standing ruling to remove an exposure you have not measured.**
 
 6. **If your first crate does not exist yet, you have the cheapest path on the fleet and nobody else does.** Every estate in the table above is RETROFITTING. Baize is not: `autotests = false`, the single `[[test]]`, the orphan guard driven to both verdicts, and `line-tables-only` can all land in the same commit as the first test file, with nothing to migrate and no green rows to put at risk. **Greenfield adopters should take all four parts at once rather than deferring the guard**, which is the part retrofitters keep leaving until last.
+
+   **AND ITEM 6's TRIGGER IS THE FIRST TEST FILE, NOT TODAY.** A crate whose tests are entirely inline `#[cfg(test)]` modules has no `tests/` directory, nothing to consolidate, and no orphan risk -- setting `autotests = false` there only ARMS the quiet hole. **Leave the default, which is loud, and put the guard on the TRANSITION instead.** Two Utilz nodes each derived this independently on 2026-09-09 and each still had to ask, because nothing readable answered it.
+
+7. **Put the transition under a check, not under a note.** The four parts govern crates that already have integration tests; nothing in them watches a crate GROW one. A workspace-level guard costs an afternoon and covers the window the orphan guard structurally cannot reach. **If you record the decision and its application separately, you now have two things that can rot independently** -- make one artefact that fails if either is missing, and the guard is that artefact.
+
+## What enforces this, and what deliberately does not
+
+**THE CRITIC HOSTS THE DOCTRINE; A TEST HOSTS THE ENFORCEMENT. That split is measured, not stylistic.**
+
+`IN-RS-TEST-003` (one declared test target per crate) and `IN-RS-TEST-004` (trim debuginfo, never fail fast) are in the rule library, `applies_to: **/Cargo.toml`. **The critic runner does reach a manifest** -- driven: `staged_files()` applies no extension filter, `run()` reads whatever it is handed, `applies_to` is a general glob, and an absent `applies_to` means universal. No tool change was needed.
+
+**BOTH RULES ARE NEVERTHELESS DECLARED UNANSWERABLE IN THE HEADLESS GATE, AND THE REASON IS THE POINT.** Every violation here is an ABSENCE -- a manifest that does not carry a key -- and the runner matches only positively. **The one positive token was driven and rejected rather than waived:** `debug = true` occurs in this repository exactly once, inside the comment at the workspace root explaining what the cargo default is. A proxy on it would warn on the manifest that implements the rule, in the sentence documenting the remedy. **A rule that cannot fire is worse than an absent rule, because it reads as coverage** -- so both declare the limit and the census counts them as asked-of-nothing rather than reporting a green over a question never put.
+
+**THE MECHANICAL ARM IS `test_target_topology_guard.rs`**, a workspace-level test that walks every crate manifest with comments stripped and asserts: a crate holding `tests/*.rs` declares `autotests = false` AND a `[[test]]` target; and `autotests = false` never stands without one. It asserts its own population before asserting the property. Driven to three verdicts, each restored to green.
+
+### The window the four parts never covered
+
+**THE ENFORCEMENT MECHANISM CANNOT EXIST BEFORE THE THING IT ENFORCES.** The orphan guard lives inside `tests/suite.rs`; `suite.rs` exists only after consolidation. So a crate with no `tests/` directory has nothing holding the property, and the first file added there decides silently which régime the crate is in. **That is why the tripwire is not a duplicate of the orphan guard and is deliberately weaker than it** -- it reads a directory listing and a manifest and never reads `suite.rs`, which is exactly what lets it cover the pre-suite window.
+
+**THIS NOTE LOOKED STRAIGHT AT A LIVE INSTANCE AND DID NOT SEE IT.** Item 1 below uses `testkit` to show that `grep -c '[[test]]'` is a bad instrument. **testkit also had no `autotests` key at all**, so its one test file was auto-discovered and a second would have joined it in silence. Cargo reported six targets against five declared. The crate was used as an illustration of measurement error while being an instance of the defect, for eight days. **Consolidated 2026-09-09; every target is now declared and the two sets are identical.**
+
+**AND FIXING IT NAIVELY WOULD HAVE MADE THINGS WORSE, WHICH IS THE PART WORTH CARRYING.** The orphan guard was a byte-identical 93-line file in three crates with no drift test between them -- so "add the guard to testkit" meant a fourth copy. It is now single-homed as `testkit::assert_no_orphan_suite_members`, called from four thin sites. **A guard is an IMPLEMENTATION, not an index, so a drift test would not have licensed the copies.** The crate that exists to end copy-pasted test helpers was the one carrying a copy-pasted test helper.
+
+### `--no-fail-fast` is a multi-target artefact, not a consolidation artefact
+
+Stated in part 4 as something to add "in the same commit as `autotests = false`", which reads as though it only matters once you consolidate. **It bites at two targets.** Cargo stops after the first failing target, so a workspace with a lib and a bin already hides one result behind another, and every crate added widens it. An estate with no `tests/` directory anywhere still wants it at every call site.
 
 ## Verifying a consolidation, which is the part we got wrong twice in an hour
 
