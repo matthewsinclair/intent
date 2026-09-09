@@ -1557,3 +1557,38 @@ cc inferred that clearing the sibling-staleness reds is what made tonight acute 
 **So ext rule-pack validation WORKED and did not survive the port.** cc has been recording it as unbuilt, in their board and in `073ed9529`, and has corrected that at `8f83bb9ce`. **The ask is therefore not _may we build ext support_ but _do we accept losing it_** -- which is the `llm usage_rules --symlink` shape, and my own words on that one apply here: if the capability existed and did not survive the port, retiring it quietly records a loss as a tidy-up, and that is yours.
 
 **AND A FALSE REASON OF MINE THAT cc CORRECTED.** I ruled that `rules validate` must REJECT unknown top-level keys, and one of my two grounds was that *the bats arms have never executed against an implementation -- an executable spec that has never executed is prose with a shebang.* **That is false: `ok 6` shows the warn behaviour implemented and passing.** **The ruling stands on its other and stronger ground** -- a validator that warns lets a typo'd field ship silently, v2's behaviour is a fact about v2, and this estate fails forward -- **but the reason I gave was wrong, and it was wrong because I asserted a negative about an artefact I had not looked for.**
+
+## (2026-09-09 23:30Z) Re: 23:26Z -- THE EXT REGRESSION AND THE ENV-VAR GRANT ARE ONE ITEM, NOT TWO
+
+**THE LOST CAPABILITY'S REMEDY REQUIRES THE GRANT NOBODY HAD CONNECTED TO IT.** The bats arm that proves ext validation worked does this:
+
+    export INTENT_EXT_DIR="$EXT_FIXTURES"
+    run run_intent claude rules validate IN-AG-EXT-001
+    assert_success
+
+**So the capability read `INTENT_EXT_DIR`** -- and cc measured that `INTENT_EXT_DIR` and `INTENT_EXT_DISABLE` are in **neither** of `no_intent_home.rs`'s two lists. **Restoring what was lost therefore needs a new `ALLOWED` row plus a new `CONFINED` row, which is the ruling cc has been holding for.** Those have been sitting in front of you as two items and they are one: **you cannot accept the capability back without the grant, and the grant has no purpose except the capability.**
+
+**AND THE REFUSAL AT THE SITE IS AN ARGUMENT, NOT A GAP, WHICH IS WHY IT NEEDS YOU RATHER THAN A BUILD.** `ext_base()` already exists in `userstate.rs` and already returns `None`, deliberately, and its own comment gives the reason: *defaulting to `~/.intent/ext` without the two variables would be worse than not wiring it -- an operator who set `INTENT_EXT_DISABLE=1` would have their extensions silently switched back on.* `extensions_are_not_quietly_enabled` asserts it. **So the honest options are to grant both variables, or to accept the loss. There is no third route that reaches the capability**, and my earlier suggestion that routing through `userstate.rs` would need no ruling was wrong -- cc corrected it and I have withdrawn it.
+
+**THE DISCRIMINATOR THAT MAKES THE REGRESSION CLAIM LOAD-BEARING, dc's, VERIFIED HERE:** `.default.tap:3` reads `ok 2` and `.mutant.tap:8` reads `not ok 2` for the same arm. **The mutant fails, so the baseline's `ok` is earned rather than vacuous** -- which is what separates "this worked" from "a test said so".
+
+**AND `AC-00.3` DOES NOT ABSORB IT, WHICH dc GOT RIGHT AND IS WORTH YOUR NOTICE.** That row's falsifier is a verb returning *is a known command that is not implemented yet*; `claude rules validate` returns **rc=0 and prints the marker zero times**, driven. So the row measures REFUSAL and this verb answers. **Folding the regression into it would mean satisfying `AC-00.3` silently retired a live loss** -- a green row swallowing it. dc rewrote their own evidence clause rather than let that stand, having found it collapsed two facts with a false implication between them: `intent ext` being out of canon, and ext validation inside a different verb being out of this row's scope. **True separately, and the first does not imply the second.**
+
+## (2026-09-09 23:31Z) Re: 23:21Z -- MY URGENCY CLAIM WAS OVERSTATED. IT IS A RATCHET, NOT A RUNAWAY
+
+**I TOLD YOU THE WAL "MORE THAN DOUBLED IN FORTY-FIVE MINUTES WITH THE ESTATE DELIBERATELY NOT WRITING TO IT". TRUE, AND IT READS AS AUTONOMOUS GROWTH. IT WAS NOT.**
+
+    intentd events, last  5 min : 0
+    intentd events, last 15 min : 9
+    newest intentd event        : 23:16:45Z  (now 23:31Z)
+    WAL                         : 559479552 -- UNCHANGED since it stopped
+
+**POSITIVE CONTROL ON THAT ZERO, because a zero from a query I wrote is worth nothing on its own:** the same reader returns **193** for the `>22:50` window, matching the figure I measured half an hour ago. **The reader works; the daemons genuinely went quiet at 23:16.**
+
+**SO THE DAEMONS ARE REACTIVE, NOT SPINNING.** They ingest disk changes. The 251 MB -> 559 MB growth tracked the fleet's heavy commit window almost exactly, and it stopped when the commits stopped. **My sentence implied 33 processes chewing through a database on their own initiative, and that is not what is happening.**
+
+**WHAT SURVIVES IS WORSE IN A DIFFERENT WAY AND IT IS THE ACCURATE FRAMING: IT IS A RATCHET.** Each busy period adds to the WAL, **and dc measured that nothing ever gives it back** -- no auto-checkpoint shrinks the file, only last-close or an explicit truncate does. **So the estate's WAL only ever goes up, one working session at a time, and 33 permanently-open handles are why last-close never arrives.** 12.0x this morning, 26.4x now.
+
+**THAT LOWERS THE URGENCY AND DOES NOT CHANGE THE ASK.** It is not an emergency tonight; it is a defect that gets monotonically worse and has no natural floor. **The ordering stands: checkpoint and record its return value, reap, the 325-attachment hash, and store isolation regardless.** What changes is that you can take it in the morning without something breaking overnight -- **and that is a thing I should say plainly, having spent the previous entry arguing the opposite.**
+
+**THIRD TIME TONIGHT I HAVE OVERSTATED SOMETHING TO YOU AND WALKED IT BACK ON MEASUREMENT** -- the honest-refusal claim, the open-read-transaction premise, and now this. **Each was a real observation carrying an inference one step past it.** The pattern is mine and it is worth your knowing when you weigh anything else in this inbox.
