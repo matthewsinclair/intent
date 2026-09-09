@@ -1287,3 +1287,45 @@ Three decisions were already on this board before these: **ratify `INV-03` or de
 **SEPARATELY, AND IT IS ON THE INSTALL PATH: `install.md:24` TELLS A SOURCE INSTALLER TO SET `INTENT_HOME` TO THE REPOSITORY ROOT, AND v3 DOES NOT READ IT.** Driven both ways on the dev pair -- `INTENT_HOME` unset gives `total: 66 rule(s)`, `INTENT_HOME` pointed at a rules-free directory gives `total: 66 rule(s)`. **It is INERT for resolution**; v3 walks up from the binary's own canonicalised path for the `lib/templates` marker, and `render.rs:5527` says so. **The source build works, so the instruction is unnecessary rather than harmful -- what it does is teach a false model, and that model then produced BOTH the known-defects closing sentence AND cc's `0275` control independently.** Two artefacts wrong the same way from one shared wrong belief. **dc found the first half; the install-instruction half is mine and is recorded on `AC-02.3`, not yet fixed in the page.**
 
 **`AC-02.3` NOW DECLARES ITS LIMIT: it verifies that a defect is STATED and NOT that its remedy WORKS, and a false remedy satisfied it perfectly.** dc's sentence is the reason it matters and it is in the row: **a remedy is the only kind of claim on a defects page that a reader ACTS on.** The limit is DECLARED rather than closed because a remedy population is not mechanically enumerable from prose -- `AC-00.10` already retracts a keyword probe for that exact shape -- **but it is not a permanent exemption: the remedies are bounded by the 307-line page, so a one-off drive is finite and ownable, and is named separately rather than folded into a criterion that checks statements.**
+
+## (2026-09-09 20:02Z)
+
+**YOU GAVE ME THE PEN AND WENT AFK. NINETEEN RULINGS LATER, EVERY NODE IS UNBLOCKED AND SIX THINGS ARE LEFT THAT ONLY YOU CAN DO.** Ordered by what is most irreversible, not by age. **Every figure below rots; the command that regenerates it is beside it.**
+
+### 1. THE PUSH -- `git log --oneline @{u}..HEAD | wc -l`
+
+**I REFUSED TO AUTHORISE IT AND THE REASON IS THAT THE RECORD CONTRADICTS ITSELF AND THE CONTRADICTION IS MINE.** `hv/wip.md:170` says `upstream` IS PUSHABLE, freeze lift standing, *Push both remotes* -- **and flags its own contradiction in the same entry, in my words**. `intent/restart.md:98` says a node bound to confirm before pushing is still bound. **`hv/wip.md:147` is the most recent and is you, first-hand, 2026-08-26, answering this exact question with a three-option menu: you chose to run it yourself, and the entry records _the push gate stays human_.**
+
+**Resolving my own recorded contradiction in my own favour, with you away, on an irreversible outward-facing publication, is not what the pen is for.** `@{u}` is GitHub, so this is PUBLICATION and not a Dropbox sync.
+
+**WHAT dc DID INSTEAD, ON MY AUTHORISATION, IS THE PART THAT MAKES YOUR DECISION CHEAP: `bin/int prepush` RAN GREEN.** Fresh clone of HEAD, cold build in 19.8s with no shared target dir, both binaries executed -- *ok: intent runs from a fresh clone*, *ok: intentd runs from a fresh clone*. **Those commits have never been through it. It says nothing about whether to push, only that the thing being pushed builds.**
+
+### 2. RATIFY A SIXTH MACHINE: `AcceptanceTest.kind`
+
+**`AC-04.6` IS NOW A TRUE RED WHERE IT WAS A FALSE GREEN, AND ONLY YOU CAN CLEAR IT.** dc found `mutation_completeness.rs:515` hand-writing `("Criterion","kind") | ("AcceptanceTest","kind") => false` -- **an exception disarming the exact test built to catch this** -- and the arm's own comment six lines up records the identical failure for `("Issue","status")`. **Naming a class did not prevent its recurrence in the same arm.**
+
+dc drove the round trip: `at edit --kind` moves `AcceptanceTest.kind` test -> non-test -> test, every step a service call, rc=0. **So `transitions.rs:654` calling it `Unbuilt` is false.** Making it a `State` requires ratification, and **`data-model.md` ratifies no `kind` machine at all** -- no table row, and neither `re-kind` nor `rekind` appears in it. **dc refused to write their own ratification and cite it, which was right.**
+
+**I RULED LAND THE HONEST RED (`797a5c58`).** The deciding fact was neither of ours: **CI triggers only on `push` to main and on PRs, so with the push held it is not running -- the red reaches CI at the moment you are at the keyboard.** The gate does not run `cargo test`, so no node is blocked. The failure message names the ratification and says *do not invent the ratification to clear the test*.
+
+### 3. `ST0070` -- DOES IT LIVE? (unchanged, still one word)
+
+`Not Started`, zero ACs, zero WPs. Last night's globalfold did its work without it. **Criteria are mine if it lives; cancellation is yours.**
+
+### 4. `0293`'s TWO OPEN DECISIONS
+
+Where the `fc` ruling's `record` re-anchors -- **the guard prefers a sha, the ruling is dated 2026-08-29, and no commit to that file carries that date, so the correct anchor is not derivable and I did not guess.** And whether to close the class with a guard refusing a `record` naming a path under `intent/st/`. **I have not measured its blast radius yet and said I would; that is owed.**
+
+### 5. `AC-11.7` -- RE-MINT OR LEAVE WITHDRAWN
+
+**dc's finding beat all three prices you were offered: _a criterion states the doctrine and DERIVES the count, or the count becomes a ceiling nobody voted for._** Three instances -- `AC-00.6` says four call sites and three are ported; `0273` names one route where there are three; `AC-11.7` says two primaries and one has split. **I ruled the WORDING correction mine (it costs nothing and makes the re-mint safe) and the RE-MINT yours, because it adds a row to a gate and that is release scope.**
+
+### 6. THE SMALL ONES THAT ARE STILL ONLY YOURS
+
+- **`AC-01.7`** -- Apple developer credentials. A dependency, not a decision.
+- **The palette `Home`/`End` flip** -- ic says outright the pen may not take it and I agree: product feel.
+- **`burn.sh`** -- a full-suite run, which is yours by standing convention. **Its precondition is now met**: I ruled the `INTENT_BIN` flip order (flip THEN re-baseline), which cc derived rather than preferred -- under the other order the baseline arm has no defined subject.
+
+---
+
+**WHAT I DID NOT DO, STATED SO IT IS NOT MISTAKEN FOR DONE:** I have not driven `0294` from the consumer side (`lamplight-run.sh` and `reconvert.sh` still exit 8, correctly, because the pair is genuinely behind); I have not measured `0293`'s blast radius; `AC-15.2` and `AC-15.3` are mine and unstarted; and **nobody rebuilt the shared release pair -- three nodes independently refused on `0196` grounds and I upheld all three.**
