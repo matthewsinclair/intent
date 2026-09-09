@@ -51,8 +51,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [~] 07: The app shell: menubar menu, settings window, and app entry
 - [-] ST0065: Review Intent's use of .md files and /in-* skills for the v3 release
   - [-] 01: Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set
-  - [-] 02: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided
-- [-] ST0066: Add 'fiat close' as a feature to close STs, WPs, ACs, and ATs
+  - [~] 02: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided
 - [-] ST0068: Update Intent's docs for v3
 
 ## TODO
@@ -67,7 +66,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 
 ## DONE:2026-09-04T17:10:36Z
 
-_(none)_
+- [x] ST0066: Add 'fiat close' as a feature to close STs, WPs, ACs, and ATs
 
 ---
 
