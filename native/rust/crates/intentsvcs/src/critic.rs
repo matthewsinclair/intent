@@ -582,6 +582,17 @@ pub fn parse_disabled(text: &str) -> BTreeSet<String> {
     }
     if in_block {
       let t = trimmed.trim_start();
+      // **A COMMENT OR A BLANK LINE INSIDE THE BLOCK DOES NOT END IT.** The
+      // schema's own header asks a project to explain each opt-out, so a
+      // project writing that explanation ABOVE its items must not be handed an
+      // empty list -- silently, because an empty list is tolerated by design.
+      // Reported by gtools-vc 2026-09-09 against a config whose five-line
+      // written justification had made it inert since the day it was written.
+      // **The only shape that worked was the one the shipped sample uses**, and
+      // that is the shape the tests exercised.
+      if t.is_empty() || t.starts_with('#') {
+        continue;
+      }
       if let Some(item) = t.strip_prefix("- ") {
         // A trailing `# reason: ...` is the documented convention.
         let id = item.split('#').next().unwrap_or("").trim();
@@ -1208,6 +1219,34 @@ mod tests {
     assert_eq!(got.len(), 2);
     // An empty list disables nothing -- and must not disable everything.
     assert!(parse_disabled("disabled: []\n").is_empty());
+  }
+
+  /// **A COMMENT BETWEEN THE KEY AND ITS ITEMS MUST NOT END THE BLOCK.**
+  ///
+  /// Reported by gtools-vc 2026-09-09 against a real project config. The schema's
+  /// own header asks a project to explain each opt-out; a project that wrote that
+  /// explanation as a comment block above the items got an EMPTY disabled set, in
+  /// silence, because an unknown-or-empty list is tolerated by design. **The only
+  /// shape that worked was the one the shipped sample happens to use**, and that
+  /// is the only shape the tests exercised.
+  #[test]
+  fn comments_and_blank_lines_inside_the_block_do_not_end_it() {
+    let commented = "disabled:\n  # This suite is a black-box CLI harness: it shells out to\n  # bin/geodica and talks HTTP, so the OTP test rules do not apply.\n\n  - IN-EX-TEST-002 # reason: black-box harness\n  - IN-EX-TEST-005 # reason: black-box harness\n";
+    let got = parse_disabled(commented);
+    assert!(
+      got.contains("IN-EX-TEST-002") && got.contains("IN-EX-TEST-005"),
+      "a comment above the items must not terminate the block: {got:?}"
+    );
+    assert_eq!(got.len(), 2);
+
+    // The terminator is still a real sibling key, not any non-item line.
+    let terminated = "disabled:\n  - IN-EX-TEST-002\nseverity_min: warning\n- IN-NOT-A-MEMBER\n";
+    let got = parse_disabled(terminated);
+    assert!(got.contains("IN-EX-TEST-002"));
+    assert!(
+      !got.contains("IN-NOT-A-MEMBER"),
+      "a list item after a sibling key belongs to no block this parser reads"
+    );
   }
 
   // ---- the proxy block ----------------------------------------------------
