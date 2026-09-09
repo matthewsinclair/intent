@@ -3257,11 +3257,12 @@
     {
       "id": "AT-17.6",
       "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/edit_and_browse_reach_one_model.rs",
       "covers": [
         "AC-17.6"
       ],
-      "status": "to-write",
-      "note": "Minted 2026-08-29 by vc on hv expanded WP-17 spec."
+      "status": "green",
+      "note": "Minted 2026-08-29 by vc on hv expanded WP-17 spec. || DRIVEN BY vc 2026-09-09 ON MY OWN RUN, NOT ON ic's REPORT: 7 passed, 0 failed. The file opens by naming AT-17.6 / AC-17.6, so the witness is self-declaring. THE CITATION IS SAFE AND MY STANDING RULING DOES NOT BLOCK IT: 0270's hazard is VerdictCitesAbsentFile, a verdict against a file that is NOT there; this file exists and I drove it BEFORE citing it. BUILT BY ic ON MY View::Child RULING; the row was moved by me because ic correctly refused to run at green on someone else's ruling. THREE REFUSAL SITES, NOT ONE, AND THE COMPILER FOUND NONE -- ic found the third only because a test kept PASSING when it should have broken, and that test's docstring had predicted the moment. THE ASSERTIONS INVERTED RATHER THAN RELAXED: an_absent_work_package demanded a present and an absent WP give the SAME answer, so once WP-01 worked, equality became an assertion that passes only if the fix did NOT land; it now requires them to differ. INV-09 had been holding by both spellings REFUSING and now holds by both composing a URL, so the twin check discriminates. Mutation-controlled both ways. AND THIS ROW TOOK TWO WRITES: 0216 reverted the first green ~1s later while keeping the --file from the same burst, with three intentd processes live."
     },
     {
       "id": "AT-17.7",
