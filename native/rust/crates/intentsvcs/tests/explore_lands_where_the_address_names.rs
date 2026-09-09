@@ -57,6 +57,19 @@ const WITH_VIEWS: &[&str] = &[
   "issue",
   "wp-collection",
   "ac-collection",
+  // **`wp` MOVED SIDES ON 2026-09-09 BY RULING, NOT BY DRIFT.** It sat in the
+  // refused-by-name half for as long as no view could hold it: `View::Item`
+  // carries one id and a work package is named by two, so landing on it would
+  // have painted a blank form for EVERY work package. `View::Child` gives it
+  // the view the `wps` descent already renders, and `AC-17.6` requires that
+  // `intent edit wp <spec>` and `intent browse wp <spec>` reach ONE model --
+  // which they cannot while one arm resolves and the other is refused.
+  //
+  // **THE PROPERTY THIS TEST HOLDS IS UNCHANGED**: every addressable form
+  // either opens a view or is refused BY NAME. Only which side `wp` falls on
+  // moved, and it moved because the surface grew the level, not because the
+  // assertion was inconvenient.
+  "wp",
 ];
 
 /// A presence test that says yes to everything -- for the arms whose subject is
@@ -227,9 +240,22 @@ fn every_child_view_this_maps_to_is_a_descent_the_declaration_carries() {
     !declared.is_empty(),
     "the declaration reports no descents for `thread`, so this test cannot fail and proves nothing"
   );
-  for url in ["intent:///threads/ST0056/wp", "intent:///threads/ST0056/ac"] {
-    let Landing::At(View::Children { field, kind, .. }) = nav::land(url, anything) else {
-      panic!("`{url}` did not open a child view");
+  // **BOTH RUNGS OF THE DESCENT, AND THE ITEM RUNG WAS OUTSIDE THIS WALK UNTIL
+  // 2026-09-09.** This test destructured `View::Children` alone, so when
+  // `view_for` learned to map `Entity::Wp` onto `View::Child` the new authored
+  // field -- `wps`, typed in `nav.rs` beside the collection's -- was held
+  // against nothing. **That is this test's own stated failure mode arriving
+  // inside it**: an authored mapping beside a declaration, going stale in
+  // silence, one variant away from the assertion written to catch it.
+  for url in [
+    "intent:///threads/ST0056/wp",
+    "intent:///threads/ST0056/ac",
+    "intent:///threads/ST0056/wp/01",
+  ] {
+    let (kind, field) = match nav::land(url, anything) {
+      Landing::At(View::Children { kind, field, .. }) => (kind, field),
+      Landing::At(View::Child { kind, field, .. }) => (kind, field),
+      other => panic!("`{url}` did not open a child view: {other:?}"),
     };
     assert_eq!(kind, "thread");
     assert!(

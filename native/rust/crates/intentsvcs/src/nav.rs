@@ -455,12 +455,27 @@ pub fn view_for(entity: &Entity) -> Option<View> {
     Entity::Issue { id } => Some(item("issue", id)),
     Entity::WpCollection { thread } => Some(children(thread, "wps")),
     Entity::AcCollection { thread } => Some(children(thread, "criteria")),
-    // **`wp` IS A DECLARED KIND WHOSE ITEM VIEW NOTHING REACHES.** No
-    // navigation push produces `View::Item { kind: "wp" }` and the realiser
-    // answers `None` for it, so landing there would paint a form whose every
-    // value is blank -- for every work package, not just a missing one. Its
-    // COLLECTION renders, which is why the arm above is `Some`.
-    Entity::Wp { .. }
+    // **A WORK PACKAGE REACHES ITS OWN VIEW THROUGH THE DESCENT, NOT THROUGH
+    // `View::Item`.** This arm answered `None` until 2026-09-09, and the reason
+    // it gave was true at the time: *`wp` is a declared kind whose item view
+    // nothing reaches* -- no navigation push produced `View::Item { kind: "wp" }`
+    // and the realiser answered `None` for it, so landing there would have
+    // painted a form whose every value is blank, for EVERY work package rather
+    // than only a missing one.
+    //
+    // **`View::Child` retired that, and retiring it is what closes `AC-17.6`'s
+    // second arm.** `intent edit wp ST0056/17` and `intent browse wp ST0056/17`
+    // have to reach ONE model; while this answered `None` the browse arm could
+    // not reach what the edit arm could, which is the disagreement the criterion
+    // names. The view is the one the `wps` descent already renders and the one
+    // its rows already door into, so nothing new is reachable that was not
+    // reachable by hand -- what changes is that the ADDRESS now lands on it.
+    Entity::Wp { thread, wp } => Some(View::Child {
+      kind: "thread".to_string(),
+      id: thread.to_string(),
+      field: "wps".to_string(),
+      item: wp.to_string(),
+    }),
     // A criterion, a test and an attachment are ROWS INSIDE a collection this
     // surface renders, not items with views of their own.
     | Entity::Ac { .. }
