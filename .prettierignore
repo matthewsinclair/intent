@@ -86,3 +86,30 @@ intent/whiteboard/*/inbox.*.md
 # existing 39 headings for the same reason -- so running the protocol's control
 # forced the precise harm this exemption exists to prevent.
 intent/whiteboard/*/.history/**/inbox.*.md
+
+# AND EVERY OTHER ARCHIVE UNDER `.history/`, WHICH THE PATTERN ABOVE MISSES BY
+# FILENAME RATHER THAN BY DIRECTORY LEVEL. A board archive --
+# `wip-prefold-*Z.md`, `wip-fold-*Z.md`, `doing-folded-*Z.md`, the narrative and
+# watch-out snapshots -- is written once by the folding node and never
+# rewritten, so it has ZERO writers, and its content is evidence: a fold records
+# the archive's sha as the handle that proves the archive is what was folded.
+# Both halves of the criterion above are met.
+#
+# MEASURED 2026-09-09 (ic). 567 `.md` under `intent/whiteboard/*/.history/`; the
+# inbox pattern covers 142 and left 425 exposed, confirmed two-sided by asking
+# `prettier --file-info` rather than by reading patterns -- a board archive came
+# back `"ignored": false` beside an archived inbox at `"ignored": true`.
+#
+# THIS REWRITES NOTHING. `prettier --check` over all 425 reports every one
+# already conformant, so the exemption is forward-looking and the existing
+# archives are left exactly as they are -- which is the same restraint the 39
+# message headings got, and for the same reason.
+#
+# THE REALISED COST IT PREVENTS, AND IT IS PROVENANCE RATHER THAN TIDINESS.
+# `ic/.history/20260909/doing-prefold-2003Z.md` was `437aeb7a531fa038` when it
+# was taken and `3a410bee87283436` when it landed -- one trailing blank line --
+# and the fold's recorded sha had to be corrected in the same commit. An
+# archive's sha is otherwise a property of the FORMATTER rather than of the
+# board it archives, and a record whose bytes depend on a tool that ran
+# afterwards is not a record.
+intent/whiteboard/*/.history/**/*.md

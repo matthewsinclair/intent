@@ -153,11 +153,15 @@ const DESTINATIONS: &[(&str, Destination)] = &[
   ),
   (
     "llm/_ARCHETYPES.md",
-    NotByInit("archetypes are a language pack's, laid down by `intent lang init`"),
+    NotByInit(
+      "a language pack's, and NOTHING IN v3 LAYS IT DOWN -- v2's `intent_st_zero` was the only writer and goes at the cut",
+    ),
   ),
   (
     "llm/_DEPENDENCY_GRAPH.md",
-    NotByInit("written when a project first declares dependencies, not at init"),
+    NotByInit(
+      "an umbrella-app artefact, and NOTHING IN v3 WRITES IT -- v2's `intent_st_zero` was the only writer and goes at the cut",
+    ),
   ),
   // **THE STEEL-THREAD TEMPLATES ARE v2's VIEW RENDERER AND v3 HAS ANOTHER.**
   // Under D02 these files are GENERATED VIEWS of canon; the generator reads

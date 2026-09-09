@@ -1,7 +1,8 @@
 # Decision Tree - Where Does This Code Belong?
 
 > Use this tree when you're about to write new code. Walk through the questions to find the right location.
-> Always cross-reference MODULES.md -- if a module already owns that concern, put the code there.
+> Where the project keeps an `intent/llm/MODULES.md` registry, cross-reference it -- if a module already owns that concern, put the code there.
+> **`MODULES.md` is OPTIONAL and `intent init` does not create one.** Its absence is the normal case and is not a gap to fix; a project that wants one creates it and keeps it. Where it does not exist, search the tree for an existing owner instead.
 
 ## Elixir/Phoenix Decision Tree
 
@@ -44,9 +45,9 @@
 
 ### Step 2: Does a module already own this?
 
-1. Check MODULES.md
+1. Look for an existing owner -- search `intent/llm/MODULES.md` **if the project keeps one**, and the source tree otherwise
 2. If yes: add code to that module
-3. If no: register in MODULES.md first, then create the module
+3. If no: create the module -- and register it in `MODULES.md` first **only where that registry exists**
 
 ### Step 3: Anti-patterns
 
