@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-09 18:33Z
+heartbeat_at: 2026-09-09 19:21Z
 status: active
-focus: "LOCALFOLD 2026-09-09 18:32Z before a compact; status stays active. DELIVERED: TN001 enforcement (two rules + a transition tripwire + testkit consolidated + the orphan guard single-homed 3 copies to 1), AC-02.3 satisfied and re-driven, the commit-msg attribution guard, issues 0288-0293. ST0068 is 6/9; the gate is 26 unsatisfied, 6 cut-blocked, 20 engineering -- RUN THE VERB, this figure rots. THREE ERRORS OF MINE, ALL ONE SHAPE: 0285 and 0292 filed with a correct measurement and a REVERSED conclusion (0292 asked to RESTORE Claude attribution on commits, which CLAUDE.md forbids in capitals and I had read that morning), and I nearly filed a false defect against intent issues edit on hv's instruction when the cause was my own git reset --hard. A DIRECTION IS A CLAIM AND MUST BE WORKED, NOT REACHED FOR. FIRST THING NEXT: AC-15.1's triage table, then AC-15.2's three unmeasured axes, then ST0068 AC-03.1/03.2 which are mine and were missing from this board until today."
+focus: "POST-COMPACT PICKUP 2026-09-09 19:02Z; status stays active because a compact is not a session ending. GATE RE-DRIVEN THIS TURN, not transcribed: ST0056 119/142 BLOCKED (23 unsatisfied), ST0068 6/9 BLOCKED -- 26 total, 6 cut-blocked on hv, 20 engineering somebody can start. Shipped-pair upper bound is 7 commits under native/rust surface (8 including lib/templates); NON-ZERO PROVES NOTHING and the marker b070c158f is CURRENT, not stale -- I hypothesised it had regressed past cc's 981a55049 and git refuted me before it reached this board. 0293 filed high; its two open decisions are hv's. MINE AND UNSTARTED: AC-15.1 triage table, AC-15.2 three unmeasured axes, AC-15.3, ST0068 AC-03.1/03.2, docs/install.md:27. The only dirty paths are hv's cancelled ST0072 plus the unowned devbin manifest."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 ---
 
@@ -16,6 +16,24 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 **PRINTING THE COMMAND IS NOT RUNNING IT.** A figure with its regenerating command beside it is AUDITABLE, not CURRENT. **A LIVE FIGURE APPEARS HERE AS THE COMMAND ALONE, WITH THE NUMBER DELETED.**
 
 ## DOING
+
+### 2026-09-09 EVENING -- hv IS AFK AND I HOLD THE PEN. NINE RULINGS, AND THE FIRST THING IT FOUND WAS MY OWN GUARD
+
+**RULED TONIGHT, ALL `authority: vc`, ALL UNDER hv's PEN GRANTED 2026-08-22, ALL REVERSIBLE BY hv IN ONE WORD:**
+
+- **`0294` -> dc.** `bin/.devbin` is WP-11; **the decider is that I am the CONSUMER and must not be the fixer**, or nothing independent verifies it. Both cc and dc had flagged it might sit between them.
+- **`0217` -> DERIVE the nine `help` rows. Not hand-authored (my own earlier position, overruled: nine identical rows is transcription, against `AC-17.15`), not exempted (an exemption puts them outside `AC-06.13`'s population by construction, which is the defect `0217` names, one level in).**
+- **`AC-00.3` -> BUILD `rules validate`, cc's, do NOT de-canonise.** The `ext` precedent does not reach it: canon assigns this verb a DUTY nothing else performs (`_schema/attribution-policy.md:169` has it enforcing attribution rows; `index-generator.md:133` calls it the authoritative validator), and the logic already exists in `tests/unit/rule_validator.bats`.
+- **`ST0064` -> ic.** No live overlap ever existed; see the struck entry below.
+- **The `wp` addressing shape -> BUILD, not the reword.** The current behaviour **neither round-trips NOR refuses**, which is `IN-AG-NO-SILENT-001` outright; rewording `AC-17.6` would mint a criterion to fit the defect.
+- **`0271` -> struck, patch deleted, and it is cc's file to delete.** See the near-miss below.
+- **WP-14's stand-down -> WITHDRAWN.** It came from me and everything is 3.0.1, so there is no cut to be outside of. **Placing it is still mine and is not done.**
+- **The burn, and cc's and ic's refusals to rebuild -> ALL THREE UPHELD.** `0196` sequences the staging-plus-atomic-mv fix first with no separate supervised window.
+- **`AC-00.10` AND `AC-00.14` ARE NOW MINE.** ic drove all five boards and found five unsatisfied rows named by NO board; two are instrument-VALIDITY rows -- _is the instrument driven_, _can the instrument see the change_ -- **which is the validation role stated as two criteria, while I carried five ACs and neither of these.**
+
+**THE COMMIT-MSG GUARD I SHIPPED LAST NIGHT MATCHED PROSE AND REFUSED ITS OWN REPAIR. dc FOUND IT BY READING; NOTHING HERE COULD HAVE FOUND IT BY RUNNING.** Two unanchored prose patterns meant any message DESCRIBING the rule was refused, remedy line included. **Two figures in its header were wrong the same way: 1,789 was the SUBSTRING count (1,782 anchored), and the "one" `Co-Authored-By` was `6816e1e94`, a commit QUOTING the prohibition.** The population grew while I watched -- my own guard commit became the second such hit. **MY OWN STANDING RULING FIRED ON MY OWN GUARD: a safe direction is only safe if its false-positive cost is bounded, and it must name its blast radius.** Fixed at `6051a4c63` with the 15-arm test it should have shipped with, controls in the majority, mutation-tested.
+
+**AND I NEARLY WROTE INTO A PEER'S DIRECTORY.** My board cited the `0271` patch as `.history/20260905/...` with **no node prefix**. Every node has that path. I went to delete it as mine; it is cc's. **A BARE `.history/` PATH IS NOT A PATH ON THIS BOARD, IT IS A PATH ON FIVE, AND IT RESOLVES SILENTLY EITHER WAY.**
 
 **LOCALFOLD 2026-09-09 18:32Z, BEFORE A COMPACT. STATUS STAYS `active` -- a fold is not a session ending.** Verbatim pre-fold at `.history/20260909/wip-prefold-1832Z.md`, `cmp`-verified BEFORE the first edit. Cut on the EXECUTED/LIVE boundary: everything delivered today is in the commits and out of this board; what stays is unfinished work, unexecuted rulings, and shapes.
 
@@ -55,8 +73,8 @@ TN001 enforcement (`IN-RS-TEST-003/004`, the transition tripwire, testkit consol
 
 ### STANDING, UNRESOLVED RATHER THAN OLD
 
-- **ic AND I BOTH CLAIM `ST0064`.** Flagged rather than silently reconciled. **THE 2026-09-06 ASK WENT UNANSWERED BECAUSE THEY WERE OFFLINE; THEY ARE ONLINE NOW AND IT IS STILL UNASKED. ASK.**
-- **THE GATE IS 28 ROWS, NOT THE ELEVEN TWO BOOT DOCUMENTS STILL SAY** (`intent/wip.md` heading + verblock, `.claude/restart.md:11`). ST0056 24 + ST0068 4; 6 blocked on a cut, so **22 are engineering**. The `jq` I put beside the caveat regenerates the canon state distribution and **cannot emit 28**, so a reader obeying my own instruction is confirmed in the error. **THIS IS THE GLOBAL FOLD'S FIRST JOB AND IT HAS BEEN UNDONE FOR DAYS.**
+- **`ST0064` IS ic's. SETTLED 2026-09-09, AND THE WAY IT WAS SETTLED IS THE DURABLE HALF.** There was never a live overlap: **I unclaimed it at `4649c2b64`** and ic drove all five boards' `claims:` lines to confirm it appears on theirs alone. **A PROSE LINE ON THIS BOARD OUTLIVED THE `claims:` LINE IT DESCRIBED**, so my own board ordered me to ask a question my own header had already answered -- the gate-figure defect one field over, in the one document I read at every pickup. **`authority: vc`, 2026-09-09, under hv's pen.**
+- **THE BOOT-DOC GATE FIGURE IS FIXED AND THIS ENTRY'S OWN NUMBER HAD ROTTED WHILE IT SAT HERE.** `intent/wip.md:24` and `.claude/restart.md:16` now carry the NAMED SIX-ROW SET instead of a count, which is the durable form. **This line said 28 and the gate reads 26** -- so the entry demanding others stop transcribing figures was itself transcribing one. **A FIGURE ON A BOARD IS A CLAIM WITH NO EXPIRY DATE; RUN `intent ac gate`.**
 
 ## Rulings -- UNEXECUTED or STANDING only, all `authority: vc`
 
