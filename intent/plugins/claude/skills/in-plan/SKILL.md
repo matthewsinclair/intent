@@ -1,6 +1,16 @@
 ---
 description: "Planning kickoff: show workplan, invoke coding skills, enforce rules before coding"
-chains_to: []
+chains_to:
+  [
+    "in-essentials",
+    "in-standards",
+    "in-elixir-essentials",
+    "in-elixir-testing",
+    "in-ash-ecto-essentials",
+    "in-phoenix-liveview",
+    "in-author-essentials",
+    "in-content-essentials",
+  ]
 ---
 
 # Planning Kickoff

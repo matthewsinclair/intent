@@ -3043,11 +3043,12 @@
     {
       "id": "AT-15.1",
       "kind": "test",
+      "file": "native/rust/crates/intent-cli/tests/skills_triage_covers_the_catalogue.rs",
       "covers": [
         "AC-15.1"
       ],
-      "status": "to-write",
-      "note": "Row count asserted against the catalogue enumerated at close, never against a figure carried from when the WP was written."
+      "status": "green",
+      "note": "Row count asserted against the catalogue enumerated at close, never against a figure carried from when the WP was written. || DRIVEN BY vc 2026-09-09: 3 arms green in intent-cli's suite target. THE ASSERTION IS A SET EQUALITY OF TWO INDEPENDENTLY DERIVED POPULATIONS, NOT A ROW COUNT -- one side walks intent/plugins/claude/skills for directories carrying a SKILL.md (the same marker payload.rs uses to decide a skill is a unit), the other parses intent/docs/skills-triage.md; compared in BOTH directions, naming the offending members. A count-based assertion passes on a table naming 23 of the WRONG skills, which is the defect WP-15's own objective records happening FOUR times to this very denominator. POPULATION ASSERTED BEFORE PROPERTY: both sides floored at 10, because an extractor that matches nothing makes the empty-set equality pass. MUTATION-TESTED AGAINST THE REAL SUBJECT and not only the fixture -- deleting the in-verify row from the real document reddens the real check and names in-verify; restored and cmp-verified byte-identical. Three fixture controls drive both set directions and the verdict vocabulary. THE TABLE'S HOME IS intent/docs/ AND NOT intent/st/ST0056/ DELIBERATELY: 0293, filed today, is a realised thread directory pruned by organise at close, which broke a ratified ruling's record and blocked every commit in the repository. LIMIT: it does not judge whether a verdict is CORRECT -- that is judgement and no test holds it. THE TRIAGE FOUND ONE UPDATE (in-plan's chains_to declared [] while its body invokes eight) AND ZERO RETIREs, which is a RESULT: three retirements had already happened (in-handoff, in-next, in-start, all verified gone, 26 -> 23) and the four grounds that would each have produced a RETIRE were driven and named in the document."
     },
     {
       "id": "AT-15.2",
