@@ -765,21 +765,6 @@ const INHERITED_UNREAD: &[&str] = &[
   // is that ONE of these two ids is genuinely read and this list can no longer
   // say which. Routed to ic, who owns this file. (cc, 2026-08-22, with the
   // `claude skills` wiring.)
-  //
-  // **SURFACED BY WIDENING THIS CHECK TO `new_surface[]` ROWS (ic,
-  // 2026-08-27), AND IT IS RATIFIED RATHER THAN BROKEN.** `ingest` is a
-  // top-level row, so no run of this test had ever asked about its flags.
-  // `--from-md` is a mode flag with ONE mode: the handler always ingests
-  // markdown, because the other thing `ingest` could have meant -- rebuilding
-  // the store from committed canon -- is already `sync --from-disk`. There is
-  // nothing for a renderer to read, which is why the scan cannot see a read.
-  // I objected to the flag when it was declared; vc ruled it KEPT because
-  // withdrawing it would put the table in contradiction with ratified rows,
-  // and sent the objection to AC-10.2/10.3 where its acceptance lands. The
-  // full reasoning is at `render.rs`'s `ingest` arm. **Listed here so the
-  // widening lands without wedging the suite, and so this state is visible in
-  // the source instead of being hidden by a population that never covered it.**
-  "`ingest` --from-md (id `from-md`)",
 ];
 
 /// **THE CRITERION.** Every `keep` flag on a WIRED entry is read by name.

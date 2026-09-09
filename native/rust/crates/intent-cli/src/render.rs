@@ -5234,18 +5234,25 @@ fn doctor(a: &ArgMatches) -> Result<(), Failure> {
 /// canon is missing or was never written -- so opening a facade first would
 /// require the project to be migrated before it could be migrated.
 ///
-/// **On `--from-md`, which this arm reads and cannot act on differently.** ic
-/// objected that it is a mode flag with one mode; vc ruled it kept because
-/// withdrawing it would put the table in contradiction with ratified rows, and
-/// sent the objection to AC-10.2/10.3 where its acceptance lands. Wiring the
-/// verb turned that judgement into a measurement, and it comes out ic's way:
-/// the OTHER thing `ingest` could have meant -- rebuilding the store from the
-/// committed JSON canon -- is already `intent sync --from-disk`
-/// (`Facade::sync_from_disk`), so giving bare `ingest` that meaning would be
-/// two commands for one operation. **Markdown is what is left, and it is the
-/// whole of what is left.** Recorded here rather than acted on: the flag is
-/// ratified, the ruling names where the objection belongs, and a renderer is
-/// not the place to overturn either.
+/// **`--from-md` IS WITHDRAWN, AND THIS COMMENT USED TO ASSERT THAT THIS ARM
+/// READ IT.** It did not. `fn ingest` reads exactly one thing, `opt(a, "path")`
+/// -- and the only `from_md` token in the body is `Facade::ingest_from_md`, a
+/// FUNCTION NAME, so a grep for the flag "confirmed" the false sentence by
+/// matching the call. **A mention-versus-use error asserting the exact property
+/// AC-06.8 measures, inside the function AC-06.8 is about.**
+///
+/// The substance the comment was carrying is right and survives it: this is a
+/// mode flag with ONE mode, because the other thing bare `ingest` could have
+/// meant -- rebuilding the store from committed JSON canon -- is already
+/// `intent sync --from-disk` (`Facade::sync_from_disk`), so giving bare
+/// `ingest` that meaning would be two commands for one operation. **Markdown is
+/// what is left, and it is the whole of what is left.**
+///
+/// ic said so when the flag was declared and was overruled on the procedural
+/// ground that withdrawal would contradict ratified rows. vc reversed that on
+/// 2026-09-09 after driving the premise: AC-10.2 and AC-10.3 contain zero
+/// occurrences of the flag and ratify the capability's BEHAVIOUR rather than the
+/// flag's EXISTENCE. `disposition: retire`, with the basis at the table row.
 fn ingest(a: &ArgMatches) -> Result<(), Failure> {
   let project = match opt(a, "path") {
     Some(path) => Project::open(std::path::Path::new(&path)).map_err(|e| {
