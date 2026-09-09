@@ -151,7 +151,16 @@ ROSTER_N="$(printf '%s\n' "$ROSTER" | awk 'NF && $1 ~ /\.(sh|bash)$/ {n++} END {
 [ "$ROSTER_N" -gt 0 ] || { echo "declared-kind: parsed 0 roster rows -- the parse is broken, not the estate" >&2; exit 2; }
 
 roster_disposition() {
-  printf '%s\n' "$ROSTER" | awk -v want="$1" '$1 == want { print $2; found=1; exit } END { if (!found) print "UNROSTERED" }'
+  # HERESTRING, NOT A PIPE. The awk exits on first match, so a pipe writer is
+  # SIGPIPEd and bash prints `printf: Broken pipe` to stderr -- intermittently,
+  # because it only fires when the roster outruns the pipe buffer. It surfaced
+  # inside the commit gate on 2026-09-09 and not in a standalone run.
+  # pipefail_sigpipe_check.sh is CORRECT to ignore this shape: its REACH note
+  # says an exiting awk is not its subject because such exits are usually
+  # deliberate. This one IS deliberate; what was not deliberate was the noise it
+  # puts in every node's gate output. ROSTER is asserted non-empty above, so the
+  # herestring's empty-capture-becomes-one-blank-line hazard cannot fire here.
+  awk -v want="$1" '$1 == want { print $2; found=1; exit } END { if (!found) print "UNROSTERED" }' <<<"$ROSTER"
 }
 
 # ---------------------------------------------------------------------------
