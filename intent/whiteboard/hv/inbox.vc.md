@@ -1414,3 +1414,45 @@ Where the `fc` ruling's `record` re-anchors -- **the guard prefers a sha, the ru
 **AND A CAUTION THAT NEARLY BECAME A FIFTH SIGHTING, WHICH IS WHY IT BELONGS IN THE SAME REPORT.** dc came one message from filing `issues add` as a fourth verb -- `created: ...0299.json` with no such file -- and it never happened. **Three independent defects in their own verifier, all three pointing at a serious defect**: a lowercase grep against an uppercase heading, `grep -c` exiting 1 on zero matches read by `|| echo NOFILE` as a missing file, and an invented `--status` flag whose refusal read as an empty store. **A blind verifier returns a reassuring zero and is caught later; a verifier confidently wrong TOWARD a serious defect gets acted on.** My four stand because they were read as JSON fields with the input file positive-controlled first -- I checked the payload was 72700 bytes and contained the text before claiming any of them.
 
 **WHAT I AM ASKING FOR, AND IT IS NOT A FIX.** `0216` is `high` and open and has been the largest unowned thing on the board for weeks. **Tonight it stopped being a canon-write curiosity and became a property of every write verb the estate has**, including the one that records defects. **Nobody here can own it under a delegated pen** -- it is not a row, it has no work package, and every node that touches it produces another sighting rather than a diagnosis. **It wants an owner and a severity decision from you.** I have deliberately not raised the severity myself.
+
+## (2026-09-09 22:23Z) `AC-01.4` IS SATISFIED ON EVIDENCE ITS OWN METHOD CLAUSE FORBIDS, AND THE CLAUSE IS THE THING THAT NEEDS YOUR WORD
+
+**NOT A BLOCKER AND NOTHING WAITS ON IT.** ic built the instrument, I drove it independently, and the row closes. **This is the wording defect underneath, recorded so it does not outlive the close.**
+
+**THE ROW CONTAINS A TENSION IT CANNOT RESOLVE ITSELF.** Its headline requires the tail-orphan trap *"VERIFIED BEFORE ANY CONSOLE IS BUILT ON IT"*. Its method clause says *"Checked by driving the app open and shut several times and then reading `ps`"*. **In the state the headline requires verification in, the named method cannot exercise its subject** -- driven, `IntentCLI.swift:158` declares `func stream(` and has **ZERO call sites**, so the app spawns no pipeline and there is no tail to find. **Honouring the method would mean waiting for the console the row exists to protect, which makes the row unsatisfiable by construction.**
+
+**WHAT DECIDED IT WAS THE METHOD CLAUSE'S OWN STATED PURPOSE -- `not by reasoning about the pipeline`.** It exists to forbid satisfaction by ARGUMENT, and ic's evidence is observation rather than argument: a six-cell matrix, three signals against two arms, which I re-drove myself rather than accepting.
+
+    guarded  TERM clean   INT clean   KILL clean
+    plain    TERM LEAKED  INT LEAKED  KILL LEAKED
+
+**The `plain` arm LEAKS in all three cells, which is what makes `clean` a discrimination rather than an absence** -- the failure mode the row's own text warns about. And it reaches **SIGKILL**, which the row calls the cell that matters and which *open-and-shut* would never have exercised. **So the clause's intent is met more completely than its letter would have managed.**
+
+**WHAT I WANT FROM YOU IS THE WORDING, NOT THE VERDICT.** The evidence string names the substitution, which protects a reader who reads the evidence. **It does not protect the reader who reads the ROW and reasonably infers the app was driven** -- and that reader is the common case. **Either the method clause is reworded to describe what can actually be done before a console exists, or it is marked as owed-at-console-build.** ic has recorded the app-driving clause as owed either way, so nothing is lost if you leave it; it is a clarity fix for whoever meets this row next.
+
+**AND ONE THING THAT EARNED ITS KEEP IMMEDIATELY, WORTH KNOWING WHEN YOU RULE `0281`'s COUSINS.** I made the ruling carry a precondition it does not itself need: any future move toward group signalling must assert `child.pgid == child.pid` FIRST. ic asserted it inside the probe, **and it fired on the probe's very first execution** -- catching a real defect in the probe rather than in the subject (`$$` inside a subshell reports the PARENT's pid; `$BASHPID` is the subshell's own). **It refused rather than reporting a clean run it could not justify.** A precondition attached to a ruling that does not need it caught the first thing it was pointed at.
+
+## (2026-09-09 22:29Z) THE ESTATE'S CANON WRITES ARE UNRELIABLE RIGHT NOW, THE CAUSE IS MEASURED, AND ONE HALF OF THE FIX IS YOURS
+
+**I HAVE FROZEN CANON WRITES ACROSS ALL FOUR NODES.** Git commits continue; nothing is lost. **This is the one item tonight that is actively costing work rather than waiting on a decision.**
+
+**WHAT IS HAPPENING, DRIVEN BY THREE NODES INDEPENDENTLY:**
+
+- **64 leaked `intentd` processes**, all `PPID 1`, ages spanning three hours -- `0284`'s exact signature, grown from the 27 you cleared on 2026-09-08.
+- **33 of them hold THIS PROJECT'S `intent.db`, `-wal` and `-shm` open, at fd mode `u` -- READ/WRITE.** Sampled `pid 953`: exactly ONE `intent.db` handle, and it is `/Users/matts/Devel/prj/Intent/intent/.cache/intent.db`. Not a temp copy. The real store.
+- **`intent.db` is 21 MB and `intent.db-wal` is 251 MB**, never checkpointed -- which is what 33 open read/write handles held for hours produce.
+- **`event_log` shows the revert directly rather than by inference** (ic): every `local` write followed within 3-10 seconds by an `intentd disk.sync_from_disk`. Two isolated `ac satisfy` writes on `ST0064/AC-01.4`, nothing else in flight, **both reverted.**
+
+**THE PART THAT IS NOT IN `0284` AND CHANGES WHAT THE FIX IS (dc's finding, verified here).** Their isolation did not fail at the edges -- it failed at the store. **Their sockets ARE isolated and unreachable**: every one is `/var/folders/.../T/.tmpXXXX/.local/share/intent/intentd.sock`, in a temp directory that no longer exists, with **zero connected clients**. **The `HOME` and socket redirection worked. The store redirection was never applied.** A test-spawned daemon opened the live project's database read/write and kept it.
+
+**SO REAPING IS THE SYMPTOM AND THE STORE REACH IS THE DEFECT. KILLING THEM CLEARS TONIGHT AND THE NEXT SUITE RUN REBUILDS IT**, because nothing stops a test daemon opening the real store. **The pattern for the fix already exists in the estate** -- dc drove the `HOME` redirection for the `--all` forms an hour ago and it is clean; this path simply is not using it.
+
+**WHAT IS YOURS, AND WHY I HAVE NOT DONE IT.** `0284` records *"Cleared by hv's order"*, so this is an action you have already reserved on this exact population -- and it is 33+ processes on your machine with four nodes live. **I was about to reap on a deleted-cwd discriminator and stopped when I read that.** dc has verified that none of the 33 can matter, three ways: no live parent, no live cwd, and unreachable sockets with zero clients. **They honour SIGTERM cleanly in about four seconds per `0284`; SIGKILL would leave the WAL hot.**
+
+**MY ASK IS BOTH HALVES IN ONE BREATH, because the first alone is a one-night fix:** clear them, **and rule on store isolation in the test harness** -- or you will be asked again tomorrow, and `0284` will be filed a third time.
+
+**AND A CORRECTION THAT IS MINE, BECAUSE IT MISLED THREE NODES FOR HOURS.** I filed `0297` tonight -- *test-spawned intentd processes are never reaped* -- **which is a DUPLICATE of your `0284`, filed a day later, and I did not dedupe.** Worse: its *What it is NOT* section asserts **"no defect here can be attributed to them"**, on the strength of `live-cwd=0`. **`cwd` says nothing about open file descriptors.** I used that to rule out the daemon explanation for `0216` and corrected dc for reaching for it, twice. **Three probes of mine said no daemon was involved -- a `*.sock` file search against TCP listeners, the cwd census, and a socket-absence check -- and all three were real measurements of the wrong question, every one returning the reassuring answer.** `0297` should be closed as a duplicate carrying forward the two things it adds: the growth to 64, and the 33 store-holders. **It cannot be closed right now, because `issues close` is an update and updates are the half that reverts.**
+
+**AND `0284`'s OWN TEXT IS NOW FALSE IN THE SAME WAY MINE WAS**: it says *"All 27 were orphans serving nothing."* A third of them hold the live database read/write and something among them runs the ingest loop that reverts canon writes. **It described its sample truthfully and the population changed underneath the description.**
+
+**ONE THING NOBODY SHOULD FIX WITHOUT READING ic's CORRECTION: `intent daemon status` IS NOT BROKEN.** It truthfully reports *no intentd is answering*, and none of the orphans answers. **Answering and ingesting are different questions and only one of them has a verb** -- which is why four nodes reasoned all evening on a true premise and a false conclusion. ic caught their own headline on this before it reached you.
