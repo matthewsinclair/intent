@@ -1475,3 +1475,28 @@ cc inferred that clearing the sibling-staleness reds is what made tonight acute 
 **WHY THIS IS IN FRONT OF YOU RATHER THAN QUIETLY FIXED: the escalation above asks you to clear 33+ processes, and an owner deciding that deserves the right window.** Had cc's story stood, you would have been looking at 22:18 onward. **The window that matters is 20:00-21:00.**
 
 **AND THE NEAR-MISS IN MY OWN CHECK, because it is the same defect one more time.** My first query returned **424 `sync_from_disk` events before 22:18** and I was one step from reporting cc refuted on it. **Most were `principal=local`** -- a person running `sync --from-disk`, which is the verb working correctly and not the defect at all. **The right population is 66.** A count over the wrong population, inside the measurement built to test whether someone else had counted the wrong population.
+
+## (2026-09-09 22:41Z) `0293`'s BLAST RADIUS, MEASURED AT LAST -- AND CLOSING `ST0056` IS THE EVENT THAT FIRES IT
+
+**THIS IS A DEBT I RECORDED ON MY OWN BOARD AS _OWED AND UNMEASURED -- I said I would and did not_. It is measured now, and the answer is a release-day hazard on the cut itself.**
+
+**THE MECHANISM `0293` FOUND: a declared ruling's `record` field that names a path under a thread directory stops resolving when that thread is dehydrated, and `rulings_check.sh` then blocks EVERY commit in the repository.** That is not a prediction -- it happened, to `ST0066`, hours after `st done`.
+
+**THE POPULATION, DRIVEN FROM `surface/dispatch-table.json` (`target.rulings[].record`):**
+
+    43 declared rulings carry a record
+    28 DURABLE   -- 16 sha-shaped (git resolves them forever), plus `issue NNNN`
+                    and repo-root paths outside `intent/st/`
+    15 FRAGILE   -- resolve ONLY under a thread directory
+
+**AND TWELVE OF THE FIFTEEN ARE UNDER `ST0056` ITSELF:** ten records reading `parity.md`, which `record_resolves()` resolves as `[ -f "$ST_DIR/parity.md" ]`, plus `data-model.md:258` and `intent/st/ST0056/data-model.md`. `ST_DIR` is `intent/st/ST0056`, derived at `rulings_check.sh:94` from the tool's own location. **`ST0058/acceptance.md` and `ST0066/acceptance.md` are the other two; `ST0066` was rehydrated after `0293` and resolves today. The guard passes right now** -- driven, `every declared ruling is well formed, and every record it names still resolves`.
+
+**SO THE HAZARD IS ENTIRELY FORWARD-LOOKING AND ITS TRIGGER IS THE v3.0.0 CUT.** `intent/.intentfiles:37` declares `STEELTHREAD:ST0056`. When `ST0056` is closed and the tree reconciled, its realised directory is a dehydration candidate exactly as `ST0066`'s was -- and twelve ruling records point into it.
+
+**AND THE FAILURE MODE IS THE OPPOSITE OF `ST0066`'s, WHICH IS WHY IT IS WORSE.** `ST0066`'s dehydration blocked every commit LOUDLY and was diagnosed within minutes. **`rulings_check.sh` LIVES AT `intent/st/ST0056/parity/tools/rulings_check.sh` -- under the very tree that would go.** So dehydrating `ST0056` does not produce a blocked commit that someone debugs; **it deletes the guard that would have reported it.** Alongside **312 files** under `intent/st/ST0056/parity/`.
+
+**THIS IS ALREADY HALF-ASKED IN `AC-12.1` AND NOBODY HAS TRACED THE CONSEQUENCE.** That row's class (3) says the parity fixtures are *"reference data describing v2 behaviour, and if they are the migration's evidence they must outlive the thing they describe -- a WP-12 call, not a sweep target."* **The open question is whether they survive. The unmeasured consequence is that twelve ratified ruling records and the guard that validates them survive or die with the same decision.**
+
+**WHAT I HAVE NOT ESTABLISHED, AND IT DECIDES HOW URGENT THIS IS:** whether `organize --apply` actually prunes a thread directory containing 312 non-view files, or whether it removes only the realised VIEWS (`info.md`, `acceptance.md`) as it did for `ST0066` and leaves the rest. **`0293` records `pruned: intent/st/ST0066` -- the whole directory -- but `ST0066` may have held nothing else.** That is one drive and it is the difference between a hazard and a certainty. **I am not driving it, because driving it means dehydrating a thread on a live shared tree, which is the action that started `0293`.**
+
+**THE ASK IS ONE SENTENCE IN `AC-12.1`, NOT A FIX:** when you rule on the parity fixtures, rule on the ruling records and the guard in the same breath, because they share a fate and only one of the three is currently written down.
