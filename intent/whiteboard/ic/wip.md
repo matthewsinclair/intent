@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-09 23:47Z
+heartbeat_at: 2026-09-09 23:55Z
 status: active
-focus: "AC-01.4 PROBE GREEN UNDER THE REAL INTERPRETER 2026-09-09 23:29Z (d5dfab5f), dc standing by to run app-test. FOUR FIXES, AND ONLY THE FIRST WAS THE BUG dc REPORTED: BASHPID is bash 4.0+ and /bin/bash is 3.2.57, so every result I had driven ran on an interpreter the test never uses. THEN THE GUARDED ARM STILL FAILED -- bash 3.2 process substitution does not close the write end, driven two-sided. FIFO + 3>&- + exec, and the constraint that falls out is REAL and in neither Geodica nor 0281: the runtime must be the SOLE holder of the wrapper stdin write end and no descendant may inherit it. FOURTH FIX IS THE ONE I MIND: my two arms differed in TWO ways, the remedy AND the runtime signal disposition, so the CONTROL was not varying only the axis under test. AC-01.4 STAYS UNWRITTEN under vc freeze -- 33 orphan daemons, WAL 251MB -> 559MB in 45min with nobody writing canon. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "AC-01.4 IS DONE BAR THE ROW, 2026-09-09 23:55Z -- dc drove app-test GREEN: REAL_RC=0, 21 tests, 0 failures, TailOrphanTests passed, checked on the exit code AND the body. Four runs, three red for three different reasons, and NONE of the reds was ambiguous about which layer owned it: BASHPID was the interpreter, the blocked read was the remedy, the string mismatch was my consumer. LAST FIX 7e3f0a5d: both probe copies resolved and required to AGREE -- reading only the bundle would silently exercise a stale copy, which is the same cannot-fail-for-its-own-reason shape as the hasPrefix I nearly took. THE ROW STAYS UNWRITTEN under vc freeze: 65 orphan intentd, WAL 534MB against a 20MB db, reap reserved to hv by 0284 own record. A FOLD IS DUE ON THIS BOARD. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/17, ST0064]
 ---
 
@@ -16,6 +16,16 @@ claims: [ST0065, ST0056/17, ST0064]
 **FOLDED ON EXECUTION, NEVER ON DATE.** Everything cut was DONE: today's three hv asks are landed, built and delivered, and the three expired figures I opened the day correcting were each discharged by the node that owned them. **Every unexecuted ruling is still here**, and gated work sits under Holds with the condition that releases it rather than in TODO looking like work I am declining to start.
 
 ## DOING
+
+**GREEN 2026-09-09 23:55Z (dc drove it): `REAL_RC=0`, 21 tests, 0 failures, `Test Suite 'TailOrphanTests' passed`.** Checked on the exit code AND the body -- the discipline that caught dc's own false green two runs earlier, where a wrapper announced `exited with code 0` over an `xcodebuild` that had exited 65.
+
+**`AC-01.4` IS DONE BAR THE ROW.** Wired, running in the target, passing under `/bin/bash` 3.2.57, all three arms driven in-harness rather than in scratch.
+
+**LAST FIX (`7e3f0a5d`), AND IT WAS CHEAPER THAN THE SENTENCE dc ASKED FOR BECAUSE THEY HAD ALREADY DONE THE HARD PART.** Their pbxproj edit had added `tail-orphan-probe.sh in Resources`, so a bundled copy exists and the `#filePath` dependency is REMOVABLE rather than only documentable. **Both copies are now resolved and required to AGREE where both exist.** Reading only the bundle would have been the worse fix -- it silently exercises a stale copy if Xcode ever fails to re-copy, **which is the same cannot-fail-for-the-reason-it-exists shape as the `hasPrefix` I nearly took an hour earlier.** The check has a real population: the Resources entry is there to compare against.
+
+**THE THING WORTH KEEPING FROM THE WHOLE EXCHANGE IS dc's: four runs, three red for three DIFFERENT reasons, and none of the reds was ever ambiguous about which layer owned it.** `BASHPID` was the interpreter, the blocked `read` was the remedy, the string mismatch was my consumer. **That is the opposite of everywhere else tonight**, where the plumbing kept producing confident signals about the subject.
+
+**A FOLD IS DUE ON THIS BOARD** -- `## DOING` has carried five sessions of work since the 20:03Z fold and nothing in it is unexecuted except the frozen row.
 
 **dc's HARNESS RUN 2026-09-09 23:47Z: THE SUBSTANCE PASSED AND THE THREE FAILURES WERE MINE (`7d02b60d`).** `testGuardedPipelineLeavesNoOrphanUnderAnySignal` **PASSES all three signals** -- the three-part fd fix works under `/bin/bash` 3.2.57 in the real harness, not just in scratch -- and the `stubborn` self-test PASSES, so the third verdict is driven where it counts.
 
