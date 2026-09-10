@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-10 09:52Z
+heartbeat_at: 2026-09-10 19:55Z
 status: active
 focus: "AC-12.1 HALF DELIVERED (`d8a8c070`) AND THE STOP WAS THE BETTER HALF. v2s dispatcher advertised five doors `125f601d8` had pruned; both CI workflows red on every push for eleven days, driven not relayed. Pruned not restored -- fail-forward. **IT DOES NOT TURN CI GREEN AND THE COMMIT SAYS SO.** **I WAS ONE COMMAND FROM DELETING FOUR BATS SUITES THAT ARE DISPOSITIONED `keep` WITH THEIR BURN ALREADY RECORDED, CITED BY THE BURN BASELINE AND FOUR TAP BASELINES -- deleting them re-bases the parity population and lands on `AC-06.1`, hvs run** ([[W139]]). EVERYTHING ELSE OF MINE IS BEHIND ONE hv RULING: three shipping doors and four suites, all `keep` dispositions whose subjects were retired after the disposition was set -- `agents template`s remedy is nine days older than the retirement of the directory it enumerates. **SEVEN THINGS, ONE RULING, AND SEVEN IS A FLOOR** (57 of 127 paths never probed). Unblocked and filed: `int local status` counting by EXECUTABLE not command-line text ([[W138]]) and reporting store holders separately from processes. STATIC ONLY -- machine hit load 502, my suite run was a contributor, killed it. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058]
