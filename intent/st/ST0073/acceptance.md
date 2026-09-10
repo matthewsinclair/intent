@@ -25,7 +25,7 @@ title: intentd owns its own lifetime: a lifeline instead of an assumed superviso
 
 ### WP-03 -- One home for spawning a daemon in the test tree (status: Not Started)
 
-- AC-03.1 **The test tree has ONE home that spawns `intentd`, and a check refuses a second.** The check reads the test sources structurally and is positive-controlled by a planted second spawn site that it must catch, and by a clean tree it must pass -- **a roster check that has never been shown to fire is decoration.** It REFUSES over an empty population rather than reporting the reassuring zero that a broken pattern also reports. -- satisfied: no (computed)
+- AC-03.1 **The test tree has ONE home that spawns `intentd`, and a check refuses a second.** The check reads the test sources structurally and is positive-controlled by a planted second spawn site that it must catch, and by a clean tree it must pass -- **a roster check that has never been shown to fire is decoration.** It REFUSES over an empty population rather than reporting the reassuring zero that a broken pattern also reports. -- satisfied: yes (computed)
 
 ### WP-04 -- The fixture-home teardown leak (status: WIP)
 
@@ -48,7 +48,7 @@ title: intentd owns its own lifetime: a lifeline instead of an assumed superviso
 
 ### WP-03 -- One home for spawning a daemon in the test tree (status: Not Started)
 
-- AT-03.1 `native/rust/crates/intentd/tests/one_home_spawns_the_daemon.rs` -- covers AC-03.1 -- status: to-write -- Plants a second spawn site in-test and requires the check to fire on it.
+- AT-03.1 `native/rust/crates/intentd/tests/every_daemon_spawn_carries_a_lifeline.rs` -- covers AC-03.1 -- status: green -- Plants a second spawn site in-test and requires the check to fire on it. GREEN 2026-09-10. It knows THREE shapes and the second and third were found the hard way: a direct intentd spawn; a "daemon start", which is a short-lived .output() call leaving a DETACHED daemon behind (render.rs does process_group(0) deliberately) and is invisible to any check keyed on .spawn(); and a roster-driven argv, where a file enumerates the dispatch surface and drives "daemon start" without those words appearing in it at all. It has fired for real twice on this estate -- daemon_run_execs.rs, a site its own author had missed by hand, and remedies_are_reachable.rs, the argv case that leaked four daemons per run. It also produced one false positive on a TABLE of subcommand names, because it asked whether both words were present rather than adjacent: mention versus use, inside the guard against it, now keyed on adjacency. 42 sites, every one armed. It refuses over an empty population, both plants are controlled, and the LIFELINE-EXEMPT escape hatch is itself controlled in both directions so it cannot become a hole.
 
 ### WP-04 -- The fixture-home teardown leak (status: WIP)
 

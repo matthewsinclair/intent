@@ -1,0 +1,14 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0072",
+  "title": "Retire 'steel_threads.md' as its no longer needed",
+  "slug": "retire-steel-threads-md-as-its-no-longer-needed",
+  "status": "cancelled",
+  "status_reason": "It is not necessary",
+  "created": "2026-09-09",
+  "completed": "2026-09-09",
+  "objective": "",
+  "context": "",
+  "body": "",
+  "preamble": ""
+}

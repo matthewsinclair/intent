@@ -3,9 +3,10 @@
   "number": 300,
   "slug": "write-path-probe-delete-me",
   "title": "write-path probe -- delete me",
-  "status": "open",
+  "status": "closed",
   "severity": "low",
   "created": "2026-09-09",
+  "closed": "2026-09-10",
   "reporter": "Matthew Sinclair",
   "body": "probe"
 }
