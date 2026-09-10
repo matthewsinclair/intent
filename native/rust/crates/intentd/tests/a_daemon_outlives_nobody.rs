@@ -73,8 +73,23 @@ use intentsvcs::daemon::{self, Route};
 const ATTEMPTS: u32 = 300;
 const PAUSE: Duration = Duration::from_millis(50);
 
-/// How long a daemon gets to finish stopping. See [`Reaped::wait_for_exit`].
-const EXIT_BUDGET: Duration = Duration::from_secs(60);
+/// How long a daemon gets to finish stopping, counted in `PAUSE` intervals
+/// rather than held as a deadline. See [`Reaped::wait_for_exit`].
+///
+/// **IT IS A COUNT BECAUSE THIS WORKSPACE HAS NO CLOCK** (hv, 2026-08-15; the
+/// guard is `intentsvcs/tests/one_clock.rs`, whose `EXEMPT` list is empty and
+/// is required to stay empty). This was `Duration::from_secs(60)` read against
+/// `Instant::now()` until 2026-09-10, and `tests/` is in the guard's
+/// population precisely because a fixture is where "I only need a time for
+/// setup" gets written. It was, here, by me.
+///
+/// **THE COUNT IS NOT THE SAME QUANTITY AS THE DEADLINE, AND THE DIFFERENCE
+/// FAVOURS THE ARM.** A deadline expires after 60s of WALL time however slow
+/// the machine is; 1200 sleeps of 50ms take 60s only if each sleep returns on
+/// time, and under the load that produces this file's flake they do not. So
+/// the budget now stretches with the contention rather than against it, which
+/// is the direction the residual flake wants.
+const EXIT_ATTEMPTS: u32 = ATTEMPTS * 4;
 
 /// Held across pipe creation AND both spawns, so no two arms in this file are
 /// forking at the same moment.
@@ -163,7 +178,9 @@ impl Reaped {
   /// Wait, bounded, for the child to be reaped. `None` means it outlived it.
   ///
   /// **THE BUDGET IS SEPARATE FROM `ATTEMPTS` AND FOUR TIMES IT, BECAUSE THE
-  /// TWO WAITS ARE NOT THE SAME QUESTION.** Waiting for a daemon to come UP is
+  /// TWO WAITS ARE NOT THE SAME QUESTION** -- and it now says so in its own
+  /// units (`ATTEMPTS * 4`) rather than in seconds that had to be read off a
+  /// clock. Waiting for a daemon to come UP is
   /// bounded by a bind; waiting for one to go DOWN is bounded by a clean
   /// shutdown -- unwinding through `Bound` and `Published`, closing the store,
   /// draining the axum task -- on a machine that may be running four other
@@ -177,8 +194,7 @@ impl Reaped {
   /// which of the two possible worlds it is in rather than leaving the next
   /// reader to guess.
   fn wait_for_exit(&mut self) -> Option<std::process::ExitStatus> {
-    let deadline = std::time::Instant::now() + EXIT_BUDGET;
-    while std::time::Instant::now() < deadline {
+    for _ in 0..EXIT_ATTEMPTS {
       match self.0.try_wait() {
         Ok(Some(status)) => return Some(status),
         Ok(None) => std::thread::sleep(PAUSE),
@@ -262,8 +278,8 @@ fn invariant_a_daemon_whose_owner_is_killed_stops_by_itself() {
   let status = daemon_proc.wait_for_exit().unwrap_or_else(|| {
     let began = daemon_proc.began_to_stop(&home);
     panic!(
-      "THE DAEMON OUTLIVED ITS OWNER by more than {}s. Its owner was SIGKILLed and it is still running under HOME={}.\n\nAND HERE IS WHICH OF THE TWO IT IS: it {} begin to stop -- its published address {}.\n\n  address GONE  -> the lifeline WORKED and this budget is too short for this machine. That is a flake, not the defect.\n  address STILL THERE -> the lifeline is not reaching the serve loop, which is the leak this thread exists to remove: 64 processes on one machine by 2026-09-10, 64.9 CPU-hours between them.",
-      EXIT_BUDGET.as_secs(),
+      "THE DAEMON OUTLIVED ITS OWNER by more than {}s of sleeping (and by more wall time than that, on a machine that is slow enough to matter). Its owner was SIGKILLed and it is still running under HOME={}.\n\nAND HERE IS WHICH OF THE TWO IT IS: it {} begin to stop -- its published address {}.\n\n  address GONE  -> the lifeline WORKED and this budget is too short for this machine. That is a flake, not the defect.\n  address STILL THERE -> the lifeline is not reaching the serve loop, which is the leak this thread exists to remove: 64 processes on one machine by 2026-09-10, 64.9 CPU-hours between them.",
+      u64::from(EXIT_ATTEMPTS) * PAUSE.as_millis() as u64 / 1000,
       home.display(),
       if began {{ "DID" }} else {{ "did NOT" }},
       if began {{ "is gone" }} else {{ "is still published" }}
