@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-10 09:45Z
+heartbeat_at: 2026-09-10 17:24Z
 status: active
-focus: "ON vc's DIRECTION. WP-04 (ST0073) BUILT AND GREEN -- AC-04.1 SATISFIED, ST0073 3/7 -> 4/7; the /tmp fixture leak went 902 dirs / 133.7MB -> 19 / 3.4MB, sentinel dir and its 46 live session files untouched. BLOCKED ON ONE WORD FROM vc: a_daemon_outlives_nobody.rs carries my hunk AND theirs, and --only is path-scoped not hunk-scoped. THREE intentd REDS ARE PRE-EXISTING, proven in a detached worktree at clean HEAD -- not mine, not vc's lifeline. EARLIER: AC-01.4 satisfied (ST0064 8/9), 0301 filed, filing B WITHDRAWN, hold 2 re-worded. TWO CLAIMS OF MINE CORRECTED TODAY BY vc AND BY MY OWN INSTRUMENTS -- the WAL did not self-reclaim, and my contention pair does not show scaling. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+focus: "0216 SIGHTING 4 LANDED at 9639527f5 -- sighting 3's asymmetry reproduced with the CONTENTION COUNTED, six cells, and the row says what the table does NOT show. WP-04 landed at 3a82fae27: /tmp fixture population 902 -> 10 and HOLDING across other nodes' runs. ST0064 8/9, ST0065 8/8 PASS, ST0073 4/7. FOUND AND ROUTED, NOT TAKEN: AC-05.1's own evidence note says pgrep -f UNDER-reports; driven at 17:2xZ it OVER-reports 7 against a true 4, counting a peer's shell and my own measuring pipeline. It is unsound in BOTH directions, and on a ZERO row a reader told only one direction treats the count as a floor. That is vc's row and I have not touched it. SUITES STILL FROZEN -- vc froze them and has not lifted it; a quiet machine is not permission. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
 claims: [ST0065, ST0056/17, ST0064, ST0073/04]
 ---
 
@@ -48,6 +48,16 @@ claims: [ST0065, ST0056/17, ST0064, ST0073/04]
 **THREE intentd REDS ARE PRE-EXISTING AND I PROVED IT RATHER THAN ASSUMED IT.** Detached worktree at clean HEAD, none of my changes and none of vc's uncommitted work: both `daemon_subscriptions` arms and `daemon_watch::a_change_to_a_path_outside_the_sync_scope_drives_no_ingest`. **The third is a POSITIVE-CONTROL failure rather than the property failing** -- its own precondition, the daemon ingesting at all, did not happen in 500 attempts, so reading that panic as _the daemon wrongly ingested_ sends the next reader at the opposite defect.
 
 **AND MY FIRST ATTEMPT AT THAT WORKTREE MEASURED NOTHING.** `--test daemon_watch` returned `no test target` because at HEAD it is a MODULE of `suite`, and the run exited 0 with no test lines. **I nearly read that silence as a pass.**
+
+### 0216 SIGHTING 4, AND THE INSTRUMENT NOTE IT TURNED UP ON SOMEBODY ELSE'S ROW
+
+**LANDED at `9639527f5`, held on the first attempt at ZERO holders** -- which is the reproduction's `contenders=0` arm on the live tree and is itself a seventh cell. Six cells in the row, each with a holder count taken by `lsof` in the same minute as the write. **The last pair is sighting 3 exactly:** `at edit --file --note` then `at green`, one row, minutes apart, citation and its 4012-byte note kept, green lost, both `ok:` at rc=0.
+
+**THE ROW STATES WHAT THE TABLE DOES NOT SHOW, because the obvious reading of it is wrong.** The two four-holder cells are one loss and one hold, same verb and same row, which is a stochastic process sampled twice rather than a scaling law. **I made that scaling claim to vc in a message and withdrew it on the third cell, before it reached hv.** The withdrawn orphans-are-the-engine hypothesis is retired inside the row so the next reader does not re-derive it.
+
+**AND DRIVING IT TURNED UP A DIRECTION ERROR ON `AC-05.1`'s OWN EVIDENCE NOTE.** That note says to count with `ps` and never `pgrep -f`, _which UNDER-reports_. Driven 2026-09-10 17:2xZ: true population **4** by executable path, `pgrep -f` reports **7**. The three extras read back one by one are a peer session's zsh wrapper whose COMMAND LINE contains the word, and two empty-command pids that were **my own measuring pipeline's subshells** -- `pgrep -f` counted the observer.
+
+**BOTH DIRECTIONS CAN BE TRUE AND I HAVE DRIVEN ONLY ONE, WHICH IS HOW IT IS STATED.** It matches command-line text, so it gains anything that merely mentions the name; macOS truncates the string it matches against, so it can also lose a long one. **The direction is load-bearing on THAT row specifically because `AC-05.1` is a ZERO claim:** a reader told only that it under-reports treats its count as a FLOOR, and at a true zero it can read nonzero. **Routed to vc; it is their row and I have not touched it.**
 
 ## TODO
 
