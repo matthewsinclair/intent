@@ -1843,8 +1843,6 @@ fn open_in_browser(address: &intentsvcs::address::Address) -> Result<(), Failure
 /// shape in `nav.rs` -- is a change to the ratified contract and is vc's, not
 /// this function's.**
 fn browser_url(address: &intentsvcs::address::Address) -> Result<String, Failure> {
-  use intentsvcs::address::Entity;
-
   let view = match &address.entity {
     // **THE WORK-PACKAGE REFUSAL THAT STOOD HERE IS GONE, AND THE COMMENT IT
     // REPLACES NAMED ITS OWN DISCHARGE CONDITION.** It refused `Entity::Wp` by

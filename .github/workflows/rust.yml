@@ -62,6 +62,40 @@ jobs:
         # been green on Linux and red on macOS with identical code.
         if: runner.os == 'macOS'
         run: brew install shellcheck
+      - name: prettier (an armed tool, not an optional extra -- same class as shellcheck)
+        # `view_single_writer.rs` asserts AC-07.6 by RUNNING prettier over a
+        # rendered view, and `require_prettier()` PANICS when it is absent
+        # rather than skipping -- deliberately, because "a skip here is a green
+        # that means nothing, on a criterion about instruments that pass
+        # without measuring". It was right and nobody was reading it.
+        #
+        # NEITHER RUNNER SHIPS PRETTIER, so unlike the shellcheck step above
+        # this needs no `if:` -- that one is macOS-only because ubuntu-latest
+        # ships shellcheck. Five arms have failed on BOTH legs since
+        # 2026-08-29, which is every run since, and the local greens were real:
+        # the primary dev machine has prettier from Homebrew, so the arms
+        # measured there and only there.
+        #
+        # PINNED TO THE MAJOR, NOT THE PATCH, AND THE REASON IS THIS FILE'S OWN.
+        # The rustc step ABOVE records rather than pins, because a pin that
+        # binds CI while the dev machine floats "does not refuse, and it
+        # misleads" -- the rust-toolchain.toml argument. Prettier locally is
+        # Homebrew's and floats the same way, so an exact CI pin would bind one
+        # side of a two-sided gate. `@3` binds the CONTRACT the tests rely on
+        # (3.x emphasis normalisation) and leaves both sides in the same
+        # regime; this step's own second line records the version to the job
+        # summary so drift is diagnosable rather than mysterious.
+        #
+        # THAT SECOND LINE IS ALSO THE INSTALL'S OWN CHECK, WHICH IS WHY IT IS
+        # `prettier --version` AND NOT `npm ls`. If the global install does not
+        # put the binary on PATH -- a real risk, since the two runners lay out
+        # their npm prefix differently -- this STEP fails, loudly, naming the
+        # tool. Without it the install would appear to succeed and five arms
+        # would fail forty lines later with `prettier is not on PATH`, which
+        # reads as the defect being fixed here rather than as a broken fix.
+        run: |
+          npm install -g prettier@3
+          prettier --version | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: fmt
         run: cargo fmt --check
