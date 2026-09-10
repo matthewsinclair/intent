@@ -1614,3 +1614,29 @@ cc inferred that clearing the sibling-staleness reds is what made tonight acute 
 **TWO DECLARED LIMITS, because the evidence is the strongest available and not a proof.** The roster is per (file, FAMILY) and not per VERB, so this establishes a fact about the `claude` family's invokers rather than about `rules list` itself. And its scope is the shipped canon **by design** -- the file says so -- while `bin/.devbin/` carries three more callers in dc's lane. **Those three should be checked before it lands.**
 
 **THE LANDING IS YOURS, NOT MINE, AND THAT IS THE SAME LINE I HAVE HELD ALL NIGHT: it changes a shipped verb's exit code.** The ruling that it is CORRECT is validation's; the decision to change what a released surface returns is release scope. **The remedy is small -- refuse when `canon_root()` is not a directory, and that accessor already exists and was added for `0275` -- so this is a word from you and an afternoon, not a build.**
+
+## (2026-09-10 07:20Z) CORRECTION: THE DAEMONS ARE SPINNING. MY LAST WORD LOWERED YOUR URGENCY AND IT WAS WRONG
+
+**I TOLD YOU THEY ARE _REACTIVE, NOT SPINNING_, AND THAT hv COULD TAKE THIS IN THE MORNING. THE FIRST HALF IS FALSE.** Driven while a build waited:
+
+    64 intentd processes, 867% CPU total
+    26-27% CPU EACH across the top of the list
+    load average 499, with 273 processes in running state
+
+**THEY ARE SPINNING.** My claim came from the `event_log` going quiet -- and **event emission is not CPU**. I measured one property and concluded about another. That is the family this whole session has been cataloguing, committed inside the correction I sent specifically to make your decision less urgent.
+
+**AND `0284` ALREADY SAYS SO, IN YOUR OWN WORDS, AND I READ IT LAST NIGHT.** *"~9 HOT: 19 to 40 minutes of CPU EACH, spinning for hours."* I opened that filing, quoted its orphan count, corrected its *serving nothing* characterisation -- **and did not connect its HOT half to the question I was answering.** The evidence was in the document I was citing.
+
+**WHAT SURVIVES AND WHAT DOES NOT.** The ratchet framing stands: the WAL only ever grows and shrinks only on last-close or an explicit truncate. **What does not stand is _you can take it in the morning_.** A machine at load 499 with 64 spinning processes is a live cost -- `prepush` took **1m05s early last night and 1m36s an hour later on the same tree**, and every node's build and test run has been paying it.
+
+**THE ORDERED ASK IS UNCHANGED AND MORE URGENT: checkpoint and RECORD THE RETURN VALUE, reap, dc's 325-attachment hash as the post-condition, store isolation regardless.** The reap is the half that stops the CPU burn; the checkpoint is the half that recovers 559 MB and tells you which defect you have.
+
+**AND THIS IS THE FOURTH TIME IN THIS THREAD I HAVE PUT SOMETHING TO YOU AND WALKED IT BACK ON MEASUREMENT** -- the honest-refusal claim, the open-read-transaction premise, the runaway framing, and now the reactive one. **Three of the four moved in the direction of less alarm and this one moves back.** Weigh anything else in this inbox accordingly: the measurements have held, and my inferences one step past them have not.
+
+---
+
+**AND THE PUSH IS DONE, AT YOUR WORD AND AGAINST MY RECOMMENDATION.** `b13d58d2c..350eb76f9`, **255 commits**, both remotes, verified by reading the refs back rather than by trusting the push output:
+
+    upstream/main  350eb76f9      local/main  350eb76f9      HEAD  350eb76f9
+
+**`bin/int prepush` GREEN on `350eb76f9` itself**, re-driven after all four nodes went quiet -- because the earlier green described a commit two behind by the time I read it, which is dc's decay warning arriving exactly as they wrote it. **The pre-push hook re-ran it independently on each remote and it was green both times.**
