@@ -74,6 +74,7 @@ fn run(exe: &Path, args: &[&str], wb: &Path) -> (String, i32) {
     .env("HOME", testkit::fixture_home())
     .env("CWI_DRY_RUN", "1")
     .env("CWI_WB", wb)
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("run the binary");
   let text = format!(

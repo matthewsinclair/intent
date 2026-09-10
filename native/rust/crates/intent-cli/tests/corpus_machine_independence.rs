@@ -114,6 +114,7 @@ impl Fixture {
       .current_dir(self.root())
       .env("GIT_CONFIG_GLOBAL", self.home.path().join("gitconfig"))
       .env("HOME", self.home.path())
+      .stdin(testkit::lifeline_for(args))
       .output()
       .unwrap_or_else(|e| panic!("run {program}: {e}"));
     (

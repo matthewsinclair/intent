@@ -61,6 +61,7 @@ fn run(argv: &[&str]) -> (i32, String, String) {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(argv)
     .env("HOME", testkit::fixture_home())
+    .stdin(testkit::lifeline_for(argv))
     .output()
     .expect("the intent binary runs");
   (

@@ -266,12 +266,37 @@ fn invariant_the_lifeline_is_event_driven_and_carries_no_interval() {
     );
   }
 
-  // **THE ARMING IS A PIPE AND NOTHING ELSE, AND THE FALL-THROUGH IS
-  // SUPERVISED.** This is what keeps launchd's daemon out of the owned branch:
-  // it is handed `/dev/null`, a character device, which cannot match.
+  // **THE DISCRIMINATOR HAS ONE HOME AND THIS SIDE MUST ASK IT, NOT COPY IT.**
+  // Two processes ask "is my stdin a lifeline": `intentd`, to decide whether it
+  // has an owner to outlive, and `intent daemon start`, to decide whether to
+  // RELAY the one it was handed. A copy in either would be two answers to the
+  // one question that decides whether a daemon can be left running for ever.
   assert!(
-    body.contains("is_fifo() => Lifeline::Owned") && body.contains("Ok(_) => Lifeline::Supervised"),
-    "the discriminator is no longer `stdin is a fifo -> Owned, anything else -> Supervised`. launchd hands the daemon /dev/null and its plist is KeepAlive false with no socket activation, so a widened arming condition means the production daemon exits and does not come back until the next login."
+    body.contains("intentsvcs::daemon::stdin_is_a_lifeline()"),
+    "intentd is no longer asking the shared predicate. If this side has grown its own copy of the fifo test, `intent daemon start` and the daemon it spawns can disagree about whether the daemon has an owner -- and the disagreement is silent."
+  );
+  assert!(
+    !body.contains("is_fifo"),
+    "the fifo test has been copied back into intentd. It belongs in `intentsvcs::daemon` because two crates ask it."
+  );
+
+  // **AND THE ONE HOME STILL SAYS WHAT IT MUST**, checked here rather than
+  // trusted: a widened arming condition means launchd's daemon -- handed
+  // `/dev/null`, a character device -- would enter the owned branch and exit,
+  // and its plist is `KeepAlive false` with no socket activation, so it would
+  // not come back until the next login.
+  let shared = std::fs::read_to_string(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../intentsvcs/src/daemon.rs"
+  ))
+  .expect("intentsvcs::daemon is readable from here");
+  assert!(
+    shared.contains("pub fn stdin_is_a_lifeline() -> bool"),
+    "the shared predicate is gone from intentsvcs::daemon, so this check has lost its subject"
+  );
+  assert!(
+    shared.contains("m.file_type().is_fifo()"),
+    "the shared predicate no longer keys on a fifo. Anything wider takes in `/dev/null`, which is what launchd hands a daemon."
   );
 
   // **NO SECOND ENVIRONMENT VARIABLE, WHICH IS AC-11.3's INVARIANT AND NOT

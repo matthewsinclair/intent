@@ -64,6 +64,7 @@ fn run(argv: &[&str]) -> i32 {
     .args(argv)
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
+    .stdin(testkit::lifeline_for(argv))
     .output()
     .expect("run the v3 binary");
   out.status.code().unwrap_or(-1)
@@ -95,6 +96,7 @@ fn run_saying(path: &str) -> (i32, String) {
     .args(&argv)
     .current_dir(dir.path())
     .env("HOME", testkit::fixture_home())
+    .stdin(testkit::lifeline_for(&argv))
     .output()
     .expect("run the v3 binary");
   (

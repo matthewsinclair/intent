@@ -236,6 +236,7 @@ fn cli(root: &Path, home: &Path, args: &[&str]) -> (String, i32) {
     .args(args)
     .current_dir(root)
     .env("HOME", home)
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("the intent binary runs");
   (

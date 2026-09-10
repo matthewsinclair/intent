@@ -180,6 +180,7 @@ fn via_binary(root: &Path, argv: &[String]) -> Answer {
     .args(argv)
     .current_dir(root)
     .env("HOME", testkit::fixture_home())
+    .stdin(testkit::lifeline_for(argv))
     .output()
     .expect("run the v3 binary");
   Answer {

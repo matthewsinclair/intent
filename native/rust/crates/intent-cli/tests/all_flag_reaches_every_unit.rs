@@ -40,6 +40,7 @@ fn run(home: &Path, args: &[&str]) -> (i32, String) {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
     .env("HOME", home)
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("spawn intent");
   let mut text = String::from_utf8_lossy(&out.stdout).to_string();

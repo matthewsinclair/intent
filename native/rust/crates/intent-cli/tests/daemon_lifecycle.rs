@@ -82,6 +82,7 @@ impl Machine {
       .args(argv)
       .current_dir(&self.project)
       .env("HOME", &self.home)
+      .stdin(testkit::lifeline_for(argv))
       .output()
       .expect("the intent binary runs")
   }

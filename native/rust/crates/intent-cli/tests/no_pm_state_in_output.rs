@@ -189,6 +189,7 @@ fn run(dir: &Path, args: &[&str]) -> String {
     .args(args)
     .current_dir(dir)
     .env("HOME", testkit::fixture_home())
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("run the v3 binary");
   let mut both = String::from_utf8_lossy(&out.stdout).into_owned();

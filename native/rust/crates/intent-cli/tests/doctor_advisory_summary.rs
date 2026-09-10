@@ -10,6 +10,7 @@ fn intent(root: &Path, args: &[&str]) -> (bool, String) {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
     .current_dir(root)
+    .stdin(testkit::lifeline_for(args))
     .output()
     .unwrap_or_else(|e| panic!("could not run `intent {args:?}`: {e}"));
   (

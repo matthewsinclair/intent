@@ -24,6 +24,7 @@ use std::process::{Command, Output};
 fn run(args: &[&str]) -> Output {
   Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("run the v3 binary")
 }
@@ -32,6 +33,7 @@ fn run_in(dir: &std::path::Path, args: &[&str]) -> Output {
   Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
     .current_dir(dir)
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("run the v3 binary")
 }

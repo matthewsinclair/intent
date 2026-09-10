@@ -805,16 +805,15 @@ impl Lifeline {
   /// rather than swallowed, because a daemon quietly declining to notice its
   /// owner is the defect this whole type exists to remove.
   fn observed() -> Lifeline {
-    use std::os::unix::fs::FileTypeExt;
-    match std::fs::metadata(STDIN_PATH) {
-      Ok(m) if m.file_type().is_fifo() => Lifeline::Owned,
-      Ok(_) => Lifeline::Supervised,
-      Err(e) => {
-        eprintln!(
-          "warning: intentd could not tell what its stdin is ({e}), so it will serve until signalled. If something started this daemon expecting it to stop when that process does, it will not."
-        );
-        Lifeline::Supervised
-      }
+    // **THE PREDICATE LIVES IN `intentsvcs`, NOT HERE, BECAUSE TWO PROCESSES
+    // ASK IT.** `intent daemon start` asks the same question to decide whether
+    // to RELAY the lifeline it was handed. Two copies would be two answers to
+    // the one question that decides whether a daemon can be left running for
+    // ever.
+    if intentsvcs::daemon::stdin_is_a_lifeline() {
+      Lifeline::Owned
+    } else {
+      Lifeline::Supervised
     }
   }
 
@@ -866,11 +865,6 @@ impl Lifeline {
     }
   }
 }
-
-/// Where the kernel reports what stdin is. `/dev/fd/0` rather than
-/// `/dev/stdin`: both answer identically here, and the former is the one
-/// present on every platform this ships to.
-const STDIN_PATH: &str = "/dev/fd/0";
 
 /// Resolve when the platform asks this process to stop.
 ///

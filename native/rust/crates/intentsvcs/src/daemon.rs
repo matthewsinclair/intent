@@ -166,6 +166,57 @@ const PROBE_FRAME: &[u8] = b"{\"intent_probe\":1}\n";
 /// JSON and newline-terminated because D56 rules the daemon emits JSON only,
 /// over the socket AND over HTTP, and the probe is not an exception to that
 /// just because its content is empty.
+/// Where the kernel reports what this process's stdin is.
+///
+/// `/dev/fd/0` rather than `/dev/stdin`: both answer identically on the
+/// platforms this ships to, and the former is the one present on all of them.
+const STDIN_PATH: &str = "/dev/fd/0";
+
+/// **IS THIS PROCESS'S STDIN A LIFELINE -- a pipe whose far end somebody is
+/// holding?** (`ST0073`.)
+///
+/// One home, and it has to be, because TWO processes ask it and they must
+/// agree: `intentd` asks to decide whether it has an owner to outlive, and
+/// `intent daemon start` asks to decide whether to RELAY the one it was given.
+/// A copy in each would be two answers to one question, on the predicate that
+/// decides whether a daemon can be left running forever.
+///
+/// # THE DISCRIMINATOR IS A FACT ABOUT THE DESCRIPTOR, NOT A CONVENTION
+///
+/// Measured rather than assumed:
+///
+///   pipe          `is_fifo`          -> true   (a harness passed one)
+///   `/dev/null`   `is_char_device`   -> false  (what `launchd` hands a daemon)
+///   terminal      `is_char_device`   -> false  (an operator at a shell)
+///   regular file  `is_file`          -> false  (a redirect)
+///
+/// **THE FIRST BUILD OF THIS READ AN ENVIRONMENT VARIABLE AND
+/// `the_shipped_surface_reads_exactly_one_environment_variable` REFUSED IT**,
+/// correctly: `AC-11.3` is hv's, a second variable needs a ruling and an
+/// `ALLOWED` row, and every machine in this estate would have had it set, so
+/// nothing else would have failed. The guard named a real cost and the variable
+/// bought nothing the kernel does not already report.
+///
+/// # AN UNREADABLE STDIN IS `false`, AND THE ASYMMETRY IS DELIBERATE
+///
+/// Guessing `true` and being wrong stops a supervised daemon that will not come
+/// back until the next login -- the plist is `KeepAlive false` with no socket
+/// activation. Guessing `false` and being wrong leaves one orphan that the next
+/// sweep collects. The two errors are not the same size.
+///
+/// # THE KNOWN EDGE, STATED RATHER THAN DISCOVERED
+///
+/// `something | intent daemon start` puts a pipe on stdin that its writer
+/// closes immediately, so the daemon would start and stop. That invocation is
+/// meaningless -- `daemon start` reads no input and prints one line -- and its
+/// failure is SAFE and LOUD: `intent daemon status` says so at once. The
+/// alternative failure, a daemon nobody can stop, is silent and cost this
+/// estate 64 processes and a machine at load 500 on 2026-09-10.
+pub fn stdin_is_a_lifeline() -> bool {
+  use std::os::unix::fs::FileTypeExt;
+  std::fs::metadata(STDIN_PATH).is_ok_and(|m| m.file_type().is_fifo())
+}
+
 pub const PROBE_REPLY: &[u8] = b"{\"intent_probe\":\"ack\"}\n";
 
 /// Is this the probe frame, so the daemon can answer it before dispatching?

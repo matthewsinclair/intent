@@ -432,6 +432,7 @@ fn probe_every_shipped_entry() -> Wiredness {
         .args(argv)
         .current_dir(dir.path())
         .env("HOME", dir.path())
+        .stdin(testkit::lifeline_for(argv))
         .output()
         .unwrap_or_else(|e| panic!("could not run `intent {}`: {e}", argv.join(" ")));
       let said = String::from_utf8_lossy(&output.stderr).into_owned()

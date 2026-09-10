@@ -40,6 +40,8 @@ mod arguments_do_not_start_a_daemon;
 mod daemon_stops_when_asked;
 #[path = "daemon_watch.rs"]
 mod daemon_watch;
+#[path = "every_daemon_spawn_carries_a_lifeline.rs"]
+mod every_daemon_spawn_carries_a_lifeline;
 #[path = "graphql_answers_through_the_store_door.rs"]
 mod graphql_answers_through_the_store_door;
 #[path = "no_orphan_suite_member.rs"]

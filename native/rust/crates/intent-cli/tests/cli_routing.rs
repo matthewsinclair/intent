@@ -690,6 +690,7 @@ fn the_shipped_cli_routes_on_a_live_socket_and_not_otherwise() {
       .args(argv)
       .current_dir(project.path())
       .env("HOME", home.path())
+      .stdin(testkit::lifeline_for(argv))
       .output()
       .expect("run intent");
     (

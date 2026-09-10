@@ -25,6 +25,7 @@ fn run(args: &[&str], cwd: &Path) -> (String, i32) {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(args)
     .current_dir(cwd)
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("run the v3 binary");
   (

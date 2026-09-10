@@ -89,6 +89,7 @@ fn run(root: &Path, args: &[&str]) -> Output {
     .args(args)
     .current_dir(root)
     .env("HOME", testkit::fixture_home())
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("run the v3 binary")
 }
@@ -877,6 +878,7 @@ fn width_is_overridable_and_markdown_is_width_independent() {
       .args(args)
       .current_dir(root)
       .env("COLUMNS", cols)
+      .stdin(testkit::lifeline_for(args))
       .output()
       .expect("run");
     String::from_utf8_lossy(&out.stdout).to_string()

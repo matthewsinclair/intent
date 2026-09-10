@@ -106,6 +106,7 @@ fn run(cwd: &Path, args: &[&str]) -> (String, i32) {
     .args(args)
     .current_dir(cwd)
     .env("HOME", testkit::fixture_home())
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("the intent binary runs");
   let mut text = String::from_utf8_lossy(&out.stdout).into_owned();

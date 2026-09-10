@@ -489,6 +489,7 @@ fn drive(root: &Path, argv: &[&str]) -> (Option<i32>, String) {
     .args(argv)
     .current_dir(root)
     .env("HOME", testkit::fixture_home())
+    .stdin(testkit::lifeline_for(argv))
     .output()
     .expect("run the v3 binary");
   (

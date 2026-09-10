@@ -53,6 +53,7 @@ fn run(root: &Path, args: &[&str]) -> Output {
     .args(args)
     .current_dir(root)
     .env("HOME", testkit::fixture_home())
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("run the v3 binary")
 }

@@ -72,6 +72,7 @@ fn cli(root: &Path, argv: &[&str]) -> String {
   let out = Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(argv)
     .current_dir(root)
+    .stdin(testkit::lifeline_for(argv))
     .output()
     .expect("the intent binary runs");
   assert!(

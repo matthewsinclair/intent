@@ -6698,8 +6698,27 @@ fn daemon_start(at_login: bool) -> Result<(), Failure> {
       })
   };
 
+  // **RELAY THE LIFELINE THIS PROCESS WAS GIVEN, IF IT WAS GIVEN ONE**
+  // (`ST0073`). An operator at a shell has a terminal on stdin and a `launchd`
+  // job has `/dev/null`, so both take `null()` and this verb behaves exactly as
+  // it always has. A TEST HARNESS hands `daemon start` a pipe -- and because
+  // this process exits immediately after spawning, the far end is held by the
+  // harness, not by us. The daemon then dies with the harness, by any means,
+  // `SIGKILL` included.
+  //
+  // **WITHOUT THIS, `daemon start` IS UNREACHABLE BY ANY LIFELINE BY
+  // CONSTRUCTION**, because `null()` cannot be an owner and `process_group(0)`
+  // below is deliberate detachment. `daemon_lifecycle.rs` drives this verb nine
+  // times; on 2026-09-10 that population, plus the harnesses, reached 64
+  // processes and took the machine to load 500.
+  let lifeline = if intentsvcs::daemon::stdin_is_a_lifeline() {
+    std::process::Stdio::inherit()
+  } else {
+    std::process::Stdio::null()
+  };
+
   std::process::Command::new(&binary)
-    .stdin(std::process::Stdio::null())
+    .stdin(lifeline)
     .stdout(open(&out)?)
     .stderr(open(&err)?)
     // **ITS OWN PROCESS GROUP, SO A TERMINAL CANNOT TAKE IT DOWN.** Left in

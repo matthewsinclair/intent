@@ -79,6 +79,7 @@ fn help_for(path: &[String]) -> String {
     .arg("--help")
     .current_dir(std::env::temp_dir())
     .env("HOME", testkit::fixture_home())
+    .stdin(testkit::lifeline_for(path))
     .output()
     .expect("run the binary under test for --help");
   format!(

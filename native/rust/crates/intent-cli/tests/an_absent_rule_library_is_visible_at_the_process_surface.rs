@@ -75,6 +75,7 @@ fn run_args(exe: &Path, args: &[&str]) -> (i32, String) {
   let out = Command::new(exe)
     .args(args)
     .current_dir(repo_root())
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("run the fixture binary");
   let mut text = String::from_utf8_lossy(&out.stderr).into_owned();

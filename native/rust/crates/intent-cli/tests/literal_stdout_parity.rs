@@ -214,6 +214,7 @@ fn run(root: &Path, argv: &[String]) -> (String, String, bool) {
   let out = Command::new(bin())
     .args(argv)
     .current_dir(root)
+    .stdin(testkit::lifeline_for(argv))
     .output()
     .expect("spawn intent");
   (

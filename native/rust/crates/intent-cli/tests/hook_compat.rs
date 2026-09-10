@@ -202,6 +202,7 @@ fn git(root: &Path, args: &[&str]) {
     .env_remove("GIT_WORK_TREE")
     .env_remove("GIT_OBJECT_DIRECTORY")
     .env_remove("GIT_COMMON_DIR")
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("run git for the fixture");
   assert!(

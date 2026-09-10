@@ -88,6 +88,7 @@ fn help(args: &[&str]) -> String {
   let out = intent_cmd()
     .args(args)
     .arg("--help")
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("run the v3 binary");
   format!(
@@ -211,6 +212,7 @@ fn no_unbuilt_command_leaks_intents_own_project_state() {
     let out = intent_cmd()
       .args(args)
       .current_dir(dir.path())
+      .stdin(testkit::lifeline_for(args))
       .output()
       .expect("run the v3 binary");
     String::from_utf8_lossy(&out.stderr).to_string()
@@ -975,7 +977,11 @@ fn a_retired_rows_alias_does_not_come_back() {
 
 /// stdout + stderr of one invocation, with no `--help` appended.
 fn run_raw(args: &[&str]) -> String {
-  let out = intent_cmd().args(args).output().expect("run the v3 binary");
+  let out = intent_cmd()
+    .args(args)
+    .stdin(testkit::lifeline_for(args))
+    .output()
+    .expect("run the v3 binary");
   format!(
     "{}{}",
     String::from_utf8_lossy(&out.stdout),

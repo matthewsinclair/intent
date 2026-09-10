@@ -452,3 +452,55 @@ pub fn sweep_once() {
     let _ = sweep_abandoned_fixtures();
   });
 }
+
+/// One lifeline for this test process, handed to every child that runs the CLI
+/// (`ST0073`).
+///
+/// # WHY EVERY CHILD AND NOT JUST THE ONES THAT START A DAEMON
+///
+/// **A HELPER THAT TAKES A CALLER'S ARGV CANNOT KNOW WHETHER IT STARTS A
+/// DAEMON.** `remedies_are_reachable.rs` sweeps the whole declared surface to
+/// collect remedy lines, so it drives `daemon start` without those words ever
+/// appearing in the file. It leaked four daemons per run, and no reap written
+/// in that file could have caught them, because nothing there knows a daemon
+/// was created. Deciding per call site which argv deserves a lifeline puts a
+/// copy of `daemon start`'s own rule in a test fixture, where it rots the first
+/// time another verb learns to spawn.
+///
+/// Handing one to everything costs nothing: a verb that starts no daemon simply
+/// never reads it.
+///
+/// # ONE PIPE FOR THE PROCESS, HELD FOR THE PROCESS'S LIFE
+///
+/// The write end lives in a `OnceLock` and is never dropped, so it closes when
+/// and only when this test binary dies -- by return, by panic, by an
+/// interrupted `cargo test`, or by `SIGKILL`. **That last case is the whole
+/// point**: `Drop` covers the first two and it is the other two that put 64
+/// orphaned daemons on one machine on 2026-09-10.
+///
+/// A per-fixture pipe would work too and would be wrong here: a free `fn
+/// run(root, args)` has nowhere to hold one, and those are most of the estate's
+/// helpers.
+/// The lifeline, but only for an argv that can actually start a daemon.
+///
+/// **A PIPE NOBODY WRITES TO BLOCKS ANY VERB THAT READS STDIN**, so the first
+/// build of this handed one to every child and hung the suite. The helper has
+/// the argv in hand, so it can look: a `daemon` verb gets the lifeline and
+/// everything else gets `null`, which is what these call sites had before.
+///
+/// This is the shape a free `fn run(root, args)` can use. A fixture that owns a
+/// struct can hold its own pipe instead; both are the same property.
+pub fn lifeline_for<S: AsRef<str>>(argv: &[S]) -> std::process::Stdio {
+  match argv.first().map(AsRef::as_ref) {
+    Some("daemon") => lifeline(),
+    _ => std::process::Stdio::null(),
+  }
+}
+
+pub fn lifeline() -> std::process::Stdio {
+  use std::io::{PipeReader, PipeWriter};
+  use std::sync::OnceLock;
+  static PIPE: OnceLock<(PipeReader, PipeWriter)> = OnceLock::new();
+  let (read, _write) = PIPE.get_or_init(|| std::io::pipe().expect("a lifeline pipe"));
+  std::process::Stdio::from(read.try_clone().expect("clone the lifeline"))
+}

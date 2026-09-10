@@ -223,12 +223,31 @@ enum Wired {
 struct Fixture {
   dir: tempfile::TempDir,
   home: tempfile::TempDir,
+  /// The write end of the lifeline handed to the daemon-starting verbs this
+  /// fixture drives (`ST0073`).
+  ///
+  /// **THIS FIXTURE SWEEPS THE WHOLE DECLARED SURFACE, SO IT DRIVES `daemon
+  /// start` WITHOUT THE WORDS EVER APPEARING IN THE FILE.** The argv is
+  /// generated from the dispatch roster, and `daemon start` spawns a daemon
+  /// detached into its own process group. It leaked exactly four per run, and
+  /// no reap written here could have caught them, because nothing in this file
+  /// knows a daemon was ever created.
+  ///
+  /// **THE LIFELINE GOES TO `daemon` VERBS AND NOTHING ELSE, AND THE FIRST
+  /// BUILD HANDED IT TO EVERYTHING AND HUNG THE SUITE.** A pipe on stdin that
+  /// nobody writes to blocks any verb that READS stdin -- so "hand one to
+  /// every child, a verb that starts no daemon simply never reads it" is false,
+  /// and it is false in the direction that stops the tests rather than the
+  /// direction that leaks. The helper HAS the argv, so it can look.
+  _lifeline: std::io::PipeWriter,
+  lifeline_read: std::io::PipeReader,
 }
 
 impl Fixture {
   fn new() -> Fixture {
     let dir = tempfile::tempdir().expect("tempdir");
     let home = tempfile::tempdir().expect("home");
+    let (lifeline_read, _lifeline) = std::io::pipe().expect("a lifeline pipe");
     let out = Command::new(binary())
       .args(["init", "R"])
       .current_dir(dir.path())
@@ -241,14 +260,27 @@ impl Fixture {
        rather than the verb: {}",
       String::from_utf8_lossy(&out.stderr)
     );
-    Fixture { dir, home }
+    Fixture {
+      dir,
+      home,
+      _lifeline,
+      lifeline_read,
+    }
   }
 
   fn run(&self, argv: &[String]) -> String {
+    // A daemon can only come from a `daemon` verb, and this is the one place
+    // that knows which verb is about to run.
+    let stdin = if argv.first().map(String::as_str) == Some("daemon") {
+      std::process::Stdio::from(self.lifeline_read.try_clone().expect("clone the lifeline"))
+    } else {
+      std::process::Stdio::null()
+    };
     let out = Command::new(binary())
       .args(argv)
       .current_dir(self.dir.path())
       .env("HOME", self.home.path())
+      .stdin(stdin)
       .output()
       .expect("the binary runs");
     format!(

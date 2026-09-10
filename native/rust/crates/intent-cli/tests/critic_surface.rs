@@ -87,6 +87,7 @@ fn critic(args: &[&str]) -> Output {
     .arg("critic")
     .args(args)
     .current_dir(repo_root())
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("run the v3 binary")
 }

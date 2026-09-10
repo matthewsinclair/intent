@@ -168,6 +168,7 @@ fn run(home: &Path, root: &Path, argv: &[&str]) -> Output {
     .args(argv)
     .current_dir(root)
     .env("HOME", home)
+    .stdin(testkit::lifeline_for(argv))
     .output()
     .expect("the intent binary runs")
 }

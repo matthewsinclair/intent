@@ -89,6 +89,7 @@ fn git(root: &Path, args: &[&str]) -> Output {
   Command::new("git")
     .args(args)
     .current_dir(root)
+    .stdin(testkit::lifeline_for(args))
     .output()
     .expect("run git")
 }
