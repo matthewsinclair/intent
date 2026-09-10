@@ -1,9 +1,9 @@
 ---
 st_id: ST0073
 title: intentd owns its own lifetime: a lifeline instead of an assumed supervisor
-status: WIP
+status: Completed
 created: 2026-09-10
-completed:
+completed: 2026-09-10
 ---
 
 # ST0073: intentd owns its own lifetime: a lifeline instead of an assumed supervisor

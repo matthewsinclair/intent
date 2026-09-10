@@ -53,11 +53,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 01: Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set
   - [~] 02: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided
 - [-] ST0068: Update Intent's docs for v3
-- [-] ST0073: intentd owns its own lifetime: a lifeline instead of an assumed supervisor
-  - [x] 01: The lifeline: intentd exits when the owner it can observe goes away
-  - [x] 02: State-dir death exit
-  - [x] 03: One home for spawning a daemon in the test tree
-  - [x] 04: The fixture-home teardown leak
 
 ## TODO
 
