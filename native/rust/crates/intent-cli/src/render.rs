@@ -8811,9 +8811,19 @@ fn rules_validate(m: &ArgMatches) -> Result<(), Failure> {
 
   // **NAMED, NOT SUMMARISED.** "ext not supported" would tell an operator that
   // something is missing and not which thing they just failed to check.
-  eprintln!(
-    "note: extension rule packs were NOT validated. `library()` constructs `Library::new(&home, None)`, so `ext_packs()` returns an empty list by construction and no pack under `~/.intent/ext` is reached. Two arms of `tests/unit/rule_validator.bats` need it -- `rules validate passes the ext valid-ext fixture rule` and `rules validate detects duplicate ids across files`, which builds its duplicates inside a temporary ext directory."
-  );
+  //
+  // **CONDITIONAL SINCE THE `library()` COLLAPSE, AND THAT IS THE POINT OF
+  // MAKING IT CONDITIONAL RATHER THAN REWORDING IT.** An unconditional note
+  // describing an absence becomes a LIE the moment the absence ends, and it
+  // would have gone on printing "were NOT validated" over a run that validated
+  // them -- a stale caveat reads as authoritative precisely because nobody
+  // re-checks a warning. It now asks the same function the library asked, so
+  // the note and the behaviour cannot disagree.
+  if intentsvcs::userstate::ext_base().is_none() {
+    eprintln!(
+      "note: extension rule packs were NOT validated. `userstate::ext_base()` answers `None`, so `ext_packs()` returns an empty list by construction and no pack under `~/.intent/ext` is reached -- see that function for why it is held. Two arms of `tests/unit/rule_validator.bats` need it -- `rules validate passes the ext valid-ext fixture rule` and `rules validate detects duplicate ids across files`, which builds its duplicates inside a temporary ext directory."
+    );
+  }
 
   let errors = findings
     .iter()
@@ -8841,25 +8851,32 @@ fn rules_validate(m: &ArgMatches) -> Result<(), Failure> {
 fn library() -> Result<intentsvcs::rules::Library, Failure> {
   let home = intentsvcs::install::home()
     .map_err(|e| Failure::Error(format!("error: {e}\n  remedy: {}", e.remedy())))?;
-  // **CANON ONLY TONIGHT, AND THE `None` IS A HELD RULING RATHER THAN A GAP.**
-  // v2 also serves rule packs from `~/.intent/ext`, resolved through
-  // `$INTENT_EXT_DIR` / `$INTENT_EXT_DISABLE` / `$HOME`. Wiring that here fails
-  // `no_intent_home::the_shipped_surface_reads_exactly_one_environment_variable`
-  // -- and that test says in its own
-  // failure message that a further read "needs an hv ruling and a row in
-  // ALLOWED, not a quiet addition", because every machine here has the variable
-  // set so nothing else would fail.
+  // **ONE HOME FOR "DOES THIS BUILD SEE EXTENSIONS", AND IT IS NOT HERE.**
+  // [`intentsvcs::userstate::ext_base`] owns that decision and carries the
+  // reasoning; this call site asks it rather than restating it. It answers
+  // `None` today, so asking changes no behaviour -- which is precisely why the
+  // collapse happens NOW: while both answers agree there is nothing to
+  // adjudicate, and after a ruling this would be merging two behaviours
+  // instead of two call sites.
   //
-  // **The extension case is genuinely different from `$INTENT_HOME` and that is
-  // why it is a question rather than a refusal**: the assets are unversioned and
-  // operator-authored, so there is no v2/v3 skew to serve wrongly. But the
-  // invariant is one variable, the ruling is hv's, and the seam is a parameter
-  // rather than a rewrite -- ext support is this argument and nothing else.
+  // **THE HARDCODED `None` THAT STOOD HERE WAS A SECOND HOME THAT AGREED WITH
+  // THE FIRST ONLY BY COINCIDENCE.** `payload_lib` already asked `ext_base()`,
+  // so skills and subagents would have picked a ruling up the moment it landed
+  // and rules would silently not have: one question, two values, the
+  // divergence latent until the ruling made it live.
   //
-  // **THE CONSEQUENCE IS NAMED, NOT SWALLOWED:** an operator with rules under
-  // `~/.intent/ext` sees them from v2 and not from v3, and `Provenance::Ext`
-  // exists and is currently unreachable.
-  Ok(intentsvcs::rules::Library::new(&home, None))
+  // **AND THE COMMENT THAT STOOD HERE NAMED THE WRONG REASON**, which is the
+  // durable half. It said ext support was blocked on an `ALLOWED` row for a
+  // second environment variable. The owning function states the real one --
+  // defaulting to `~/.intent/ext` without `$INTENT_EXT_DISABLE` silently
+  // switches extensions back ON for an operator who turned them off. Two nodes
+  // read this seam from the describing files and both got the reason wrong;
+  // the function that OWNS a decision beats every file that describes it from
+  // outside.
+  Ok(intentsvcs::rules::Library::new(
+    &home,
+    intentsvcs::userstate::ext_base(),
+  ))
 }
 
 /// `intent claude rules list [--lang <lang>]`.

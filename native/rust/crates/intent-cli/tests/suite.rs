@@ -153,6 +153,9 @@ mod one_daemon_predicate_across_both_trees;
 
 #[path = "one_dispatch_home.rs"]
 mod one_dispatch_home;
+
+#[path = "one_home_for_the_ext_base.rs"]
+mod one_home_for_the_ext_base;
 #[path = "organize_default_declaration.rs"]
 mod organize_default_declaration;
 #[path = "organize_default_force_applies.rs"]
