@@ -3,10 +3,10 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-10 19:50Z
+heartbeat_at: 2026-09-09 22:16Z
 status: active
-focus: "ST0073 MINTED AND 6/7 -- intentd had no lifetime it could observe, and the leak had THREE mechanisms where I shipped a fix for one and said it was all of them: a direct spawn, `daemon start` DETACHED by process_group(0) so no stdin lifeline reaches it, and a ROSTER-DRIVEN argv that drives the verb without naming it. Arming is DERIVED from stdin being a fifo, because a ruled invariant refused my environment variable and was right to. AC-05.1 is the only row left and it is the estate one. A residual flake is OPEN in my own test, cut from 1-in-6 to 1-in-20 and NOT fixed, mechanism unconfirmed. THE PUSH IS THE ONE THING BLOCKING EVERY NODE and CI has been red on every push for twelve days, both workflows, verified on gh run list -- so every green any node reported this fortnight is a macOS-with-Homebrew green. RUN THE VERBS; every figure here rots."
-claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
+focus: "POST-COMPACT, PEN STILL HELD, hv AFK. GATE 122 -> 124/142: AC-00.7 (a hold whose written condition was met three weeks earlier and no pickup re-checked it) and AC-06.8 (cc built it; I drove the claim and recorded their own 32-of-113 reach limit into the row as the condition of closing). SHIPPED: AT-15.2 s instrument, verb+flag axes with three in-test plants -- RED because AC-15.2 names four axes and its own named reference, the dispatch table, carries no paths and no file layouts; amendment routed to hv, NOT written by me because it is my row. REBUILT THE PAIR at ec55b3ba, currency ok. FILED 0296 (a fully descoped WP renders identically to live work) and 0297 (28 orphaned intentd, live-cwd=0). 0216 IS THE STORY: four sightings, three verbs, and three layers of mitigation each undercut by the next -- ok: is not load-bearing, error: is not either, and a write VERIFIED at +12s reverted anyway. Escalated to hv on a git-tracked surface because the issue is the one I cannot reliably write to. RUN THE VERBS; every figure here rots."
+claims: [ST0056, ST0057, ST0060, ST0068, ST0070]
 ---
 
 # Validation Claude (vc)
@@ -17,35 +17,29 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 
 ## DOING
 
-**LOCALFOLD 2026-09-10 19:48Z, `active`.** Pre-fold verbatim at `.history/20260910/wip-prefold-1948Z.md`, `cmp`-verified BYTE-IDENTICAL before the first edit. **Cut on EXECUTED/LIVE, never on dated. The Rulings section below is UNTOUCHED**, and the anchor for this cut is the full heading text, because a two-hash mention in replacement prose is what grew this board three times on 2026-09-09.
+**LOCALFOLD 2026-09-09 23:36Z, `active`.** Pre-fold verbatim at `.history/20260909/wip-prefold-2336Z.md`, `cmp`-verified. **Cut on EXECUTED/LIVE, never on dated. The Rulings section below is UNTOUCHED** -- it is declared unexecuted-or-standing only, each entry needs driving individually, and a fold that guesses is how two got buried on 2026-08-31.
 
-**THE FREEZE IS OVER AND THE ESTATE IS QUIET.** Load reached 502 with 64 orphaned daemons; it is single figures with zero. **DO NOT TRANSCRIBE THAT -- `uptime` and `ps -axo pid=,command= | awk` on argv[0].**
+**CANON WRITES FROZEN ESTATE-WIDE, called by me.** 33 leaked test daemons hold the live store open read/write; `event_log` shows every `local` write followed by an `intentd disk.sync_from_disk` within 3-10s. Git commits unaffected. **hv holds both halves with an ordered ask: checkpoint and RECORD ITS RETURN VALUE, reap, dc's 325-attachment hash as post-condition, store isolation regardless.**
 
-### ST0073 -- MINE, MINTED TODAY, THE ONLY THREAD I OPENED
+**TWO LIMITS ON THE FREEZE, FOUND BY HITTING THEM.** (1) It does not stop the daemons writing canon: a commit touching an ST attachment must carry that thread's canon, **and the test is `attachments[].path` as structured data, NEVER a grep of a canon file** -- the grep names threads that merely mention the path in prose, and following it stages a peer's in-flight rows (dc). (2) It does not slow the cause: the WAL ratchets per busy period and shrinks only on last-close or an explicit truncate.
 
-**`intentd` had no lifetime it could observe.** It had delegated the whole of it to a supervisor -- `launchd` in production, NOBODY in the test path -- and could not tell them apart. **RUN THE GATE; the figure rots: `intent ac gate ST0073`.**
+**GATE 124/142 AT THIS FOLD. RUN THE VERB; THIS FIGURE ROTS.**
 
-- **`AC-05.1` IS THE ONLY ROW LEFT** and it is the estate one: a full suite run INCLUDING a deliberately interrupted one, before/after counts. **It needs the machine and it is MINE.** Not started.
-- **THREE MECHANISMS, AND I SHIPPED A FIX FOR ONE WHILE SAYING IT WAS ALL OF THEM.** A direct spawn; `intent daemon start`, DETACHED by `process_group(0)` so no stdin lifeline can reach it; and a ROSTER-DRIVEN argv, where a sweep drives `daemon start` without those words appearing in the file.
-- **THE ARMING IS DERIVED, NOT DECLARED, AND A RULED INVARIANT IS WHY.** The first build read an environment variable and `the_shipped_surface_reads_exactly_one_environment_variable` refused it -- correctly. `intentsvcs::daemon::stdin_is_a_lifeline()` is the one home; two processes ask it.
-- **A RESIDUAL FLAKE IS OPEN IN MY OWN TEST AND THE FILE SAYS SO.** Parallel, in-suite: ~1 in 6 before a spawn lock, 1 in 20 after; 0 in 5 driven by hand. **Cut by three and NOT fixed**, mechanism unconfirmed, and `std::io::pipe()` setting `O_CLOEXEC` argues against the simple form of my story.
+### MINE AND LIVE
 
-### MINE AND LIVE, NONE RE-DRIVEN AT THIS FOLD
+- **`AC-15.2`** -- instrument shipped `ac94abee9`; **red on a CONTRACT question that is hv's**: the row names four axes and says _measured against the dispatch table_, which carries no paths and no file layouts. Three options on `AT-15.2`, no recommendation, because narrowing it would green my own red row.
+- **`AC-15.3`** -- instrument shipped `c7de8708f`; **row unmoved by the freeze**, green in one command when writes take.
+- **`AC-00.14` / `AT-00.15`** -- instrument fixed `375af583f`; **remaining work is ADOPTION and it does NOT narrow.** 1 of 27 call it; 6 read the pin only; 20 ask nothing. **I tried to narrow the 20 by currency EXPOSURE and the attempt failed against its own control**: my grep scored 7 of them as driving no binary, and `capability_ship_check.sh` -- one of the 7 -- says at line 33 that _the roster is DERIVED FROM THE RUNNING BINARY_. The census's own detector already covers `$BIN`, which mine did not. **All 20 have the exposure; there is no cheaper subset.** **THE REMEDY SHAPE IS THE OPEN QUESTION AND IT IS NOT 20 EDITS.** Twenty instruments each implementing a currency demonstration is twenty homes for one concern. `instrument_currency_check.sh` is a whole-estate CENSUS, so an instrument calling it would run the whole thing -- **what is missing is a small sourceable assertion** (_can the artefact I am about to drive see a recent change_) extracted from the census's probe. **Build the helper and adopt it in ONE instrument as a worked example before any sweep**; a 20-file change to instruments on the eve of a cut is not a thing to start quietly.
+- **`AC-00.10`** -- blocked on a clone-and-build, not on attention: `rev_with_override`'s `cannot resolve --rev` path needs a non-override run.
+- **`0294`'s consumer drive** -- startable now; it waited on a current pair and the pair is current.
+- **`ST0068` `AC-03.1` / `AC-03.2`** -- both `n/a`, satisfy by named evidence. `AC-03.2`'s decision register is the buildable half and the input `AC-03.1` needs; `docs/design/design-system.md` exists and is unread by me.
+- **`0297`** -- closes as a duplicate of hv's `0284` when writes work, carrying its two additions: growth 27 -> 64, and the 33 store-holders.
 
-**Every item below was live at the last fold and I have driven none of them today** -- the day went entirely to the leak. **Re-drive before acting on any of them.**
+### DELIVERED SINCE THE LAST FOLD
 
-- **`AC-15.2`** -- instrument shipped; red on a CONTRACT question that is hv's, three options offered, no recommendation, because narrowing it would green my own red row.
-- **`AC-15.3`** -- instrument shipped; **the freeze that blocked it is lifted**, so it is green in one command when driven.
-- **`AC-00.14` / `AT-00.15`** -- the helper exists and has ONE consumer. **The remaining work is ADOPTION across 20 instruments and it does not narrow**; build-one-worked-example first, never a 20-file sweep.
-- **`AC-00.10`** -- blocked on a clone-and-build, not on attention.
-- **`0294`'s consumer drive**, and **`0297`** closing as a duplicate of `0284` carrying its two additions (growth 27 to 64; the store-holders).
-- **`ST0068` `AC-03.1` / `AC-03.2`** -- both `n/a`, satisfy by named evidence; `AC-03.2` is the buildable half.
+**The commits carry them.** `AC-00.7` and `AC-06.8` satisfied, gate 122 -> 124. `0296` filed high, `0297` filed. `0293`'s blast radius measured: 12 of 15 fragile ruling records sit under ST0056, and `rulings_check.sh` lives under the tree whose closure breaks them. `0281` dispositioned on the issue. `0275` half two ruled, its page half already done since 2026-09-05. `docs/install.md`, `docs/reference/` (18 pages, `intent app` had none), three `critic_tool*` keys in `rule-schema.md`. The one-name-two-artefacts class placed in `intent/restart.md`. Four stale ST0065 homes struck. Pair rebuilt to `ec55b3ba`.
 
-### THE PUSH, AND IT IS THE ONE THING BLOCKING EVERY NODE
-
-**Unpushed: `git log --oneline @{u}..HEAD | wc -l`. CI has been RED on every push since at least 2026-09-04, both workflows, verified by me on `gh run list` and not taken from cc.** Two stacked causes: `require_prettier()` panicking on runners that have no prettier, and the v2 dispatcher naming five deleted plugin scripts. **cc's fix for the first is COMMITTED AND UNVERIFIED, and verification requires the push by construction** -- their words, and they are right to insist on them.
-
-**EVERY GREEN ANY NODE REPORTED THIS FORTNIGHT IS A macOS-WITH-HOMEBREW GREEN.** That is bigger than the two causes under it and it is cc's finding.
+**AND THE FOLD ITSELF PRODUCED THE SIXTH MENTION-VERSUS-USE OF THE DAY.** My first two attempts GREW the board -- 50231 to 54297 to 57273 -- because the replacement text contained a section name written with two leading hashes, prettier put it at line start, and my own `index()` matched **that mention** instead of the real heading. Each run layered another copy. **The anchor is now the heading's full text, and no section name in this block is written with leading hashes.**
 
 ## Rulings -- UNEXECUTED or STANDING only, all `authority: vc`
 
@@ -105,24 +99,6 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 - **EVERY PROJECT GETS THE WRAPUP AS ITS OWN TECHNOTE** (2026-09-01). Sequence: pristine -> devbin-vc FIRST -> hv drives the devbin rollout while every other estate chills -> only then do the rust-using estates hear about it.
 
 ## Watch-outs
-
-**2026-09-10 PRODUCED ONE FAMILY SIX TIMES ACROSS FOUR NODES, AND THE KEEPER IS THAT NO SINGLE DISCIPLINE CAUGHT THEM.** _The thing that answered was not the thing you asked._ cc's `--help` probe answering before the unwired dispatch; cc's prose-matching probe hitting the guide's DOCUMENTATION of a refusal and reporting a shipped family unbuilt; cc reading the first matching log line and calling a two-leg failure a one-leg one; my ruling-status read off four documents instead of the store; my guard matching a TABLE of subcommand names because it asked whether two words were present rather than ADJACENT; and my own no-interval guard failing on `main.rs`'s prose explaining why the variable it named had been removed. **Each was caught by a different mechanism -- a peer, a control, a timestamp, a sample, an enumeration.** Do not look for the one discipline that prevents this class; there is not one.
-
-- **A PROHIBITION BY ENUMERATION READS AS COVERAGE, AND IS WORSE THAN NO PROHIBITION.** `remedies_are_reachable.rs` banned `daemon start` with a good reason and never named `daemon restart`, which the binary itself defines as stop-then-start; `app start/stop/restart` sat in the same hole. **A reader greps, finds the verb banned, and stops looking. No list would have invited the check.** Found by dc, who checked a claim of mine BECAUSE it flattered their own proposal. **The cure is a derived property -- a family carrying start AND stop AND status IS a process manager -- with a LIST kept only for bespoke cases that have no siblings to derive from.**
-
-- **AND MY FIRST REPAIR WAS THE SAME DEFECT ONE LEVEL UP: paths replaced by VERBS.** `start` is a spelling, not a property, so the rule took `st start` and `wp start` out of the sweep silently. **My controls were all `list`/`status` leaves -- I controlled the direction that had just failed and left the direction my repair introduced.** When you fix an over-permissive rule, the next control belongs on the false-POSITIVE side.
-
-- **A RULE DERIVED FROM _THE CALLER CANNOT KNOW_ DESERVES A HOSTILE READ; IT IS USUALLY A CLAIM ABOUT WHAT THE AUTHOR DID NOT LOOK AT.** I handed a lifeline to every child on that reasoning. It is false twice: the helper HAS the argv and can look, and a pipe nobody writes to BLOCKS any verb that reads stdin. **It failed in the direction that stops the tests rather than the direction that leaks**, which is the cheap direction to notice and the expensive one to suffer. ic's prefix-list instinct on the `/tmp` sweep was the same shape, refuted by the disk.
-
-- **AN INSTRUMENT THAT OVER-COUNTS CANNOT EXHIBIT ITS OVER-COUNTING WHEN THE TRUE VALUE IS ZERO, SO AGREEMENT AT ZERO IS NOT EVIDENCE THAT INSTRUMENTS AGREE** (ic). And the direction of an instrument's error is load-bearing on a ZERO claim: told only that a counter under-reports, a reader treats its count as a FLOOR, and a satisfied row then looks unsatisfiable. **`pgrep -f` is unsound in BOTH directions; my board said under-reports and that was backwards.**
-
-- **REPORT AFTER MEASURING, NOT BEFORE -- ic's own tally, and it is the sharpest self-assessment anyone produced today.** Four of their claims were wrong; three were reported before the evidence existed, and the one they got right is the one where they measured first. **Hiding work is survivable because someone eventually trips over it; inventing work is not, because nobody audits a task list for being too long** (cc, on a probe that manufactured two entries).
-
-- **A FIGURE THAT MATCHES IS NOT EVIDENCE THAT THE THING IT NAMES EXISTS** (ic, 2026-09-10). Their fold cited `wip-prefold-1947Z.md`; the file was `-1946Z.md`. **The line count, the byte count and the sha were all CORRECT for the real file -- only the name was wrong**, so every figure agreed and the artefact did not exist. Two `date` calls a minute apart, the second stamp used for both names. **Nothing but an EXISTENCE CHECK finds that**, and theirs only ran because a `[ -f ]` guard printed nothing and they noticed the silence. Applied to this fold before committing it.
-
-- **`sync --to-store` REPLACES THE STORE FROM THE EXTRACT AND SAYS SO IN A WARNING.** I rewrote a thread's canon to fix a WP scope and silently reverted every state verb run since the last sync -- and blamed the daemon ingest for a moment. **Hand-edit canon FIRST, drive the verbs AFTER**, or use `intent ac edit` / `at edit`. Same shape as the formatter being a second writer: correct about its own job, silently authoritative over somebody else's.
-
-- **ONE TEST BINARY PER CRATE MAKES THE FILE DESCRIPTOR TABLE PROCESS-GLOBAL STATE, AND `suite.rs`'s OWN HEADER PREDICTED THE CLASS.** A lifeline is an inherited descriptor; arms that fork concurrently can hold each other's pipes open. **This is the second member after `dual_path_conformance`'s `set_current_dir`, and the first that nobody looked for.**
 
 - **A PAIR CANNOT DISTINGUISH INTERMITTENT FROM STOPPED -- mine, 2026-09-09, and two nodes had it wrong before me.** cc and dc each reported the session-commit trailer as "fires on some paths and not others", from two commits that STRADDLE a step change. **38 of the 40 commits before `b13d58d2c` carry it; 0 of the 132 since.** Any two samples either side of a step look exactly like a coin flip, and two nodes sampling the same straddle AGREE WITH EACH OTHER while both misdescribe it. **The cure is the population, never a better pair**, and neither ran it because each had an answer that fit.
 
