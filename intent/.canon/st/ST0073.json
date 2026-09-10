@@ -23,7 +23,7 @@
       "seq": 2,
       "title": "State-dir death exit",
       "scope": "XS",
-      "status": "not-started",
+      "status": "done",
       "objective": "A daemon whose own state directory has been removed stops serving.",
       "body": "Free in production -- the real state dir does not vanish under a running daemon -- and it catches the fixture-teardown ordering where `remove_dir_all` lands but `daemon stop` did not. Complementary to WP-01, not a substitute: it does NOT catch the 669-fixture case, where the home survived.",
       "preamble": ""
@@ -41,7 +41,7 @@
       "seq": 4,
       "title": "The fixture-home teardown leak",
       "scope": "S",
-      "status": "wip",
+      "status": "done",
       "objective": "Temporary fixture homes do not accumulate on /tmp across interrupted runs.",
       "body": "**A DIFFERENT LEAK WITH THE SAME ROOT CAUSE, AND IT IS SEPARATED HERE SO THE TWO FIXES ARE NOT CONFLATED.** 669 dirs / 75 MB measured 2026-09-10, none of them carrying a daemon state dir. A lifeline does not help a directory: a directory has no process to notice anything. The candidates are a fixed root that a suite-level entry point sweeps on START (which runs even when the previous run was killed), or `TempDir` under the OS temp root with the platform's own reaping. **Sweeping on start rather than on exit is the whole point** -- exit is the path that does not run.",
       "preamble": ""

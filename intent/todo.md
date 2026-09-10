@@ -55,9 +55,9 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [-] ST0068: Update Intent's docs for v3
 - [-] ST0073: intentd owns its own lifetime: a lifeline instead of an assumed supervisor
   - [x] 01: The lifeline: intentd exits when the owner it can observe goes away
-  - [ ] 02: State-dir death exit
+  - [x] 02: State-dir death exit
   - [x] 03: One home for spawning a daemon in the test tree
-  - [-] 04: The fixture-home teardown leak
+  - [x] 04: The fixture-home teardown leak
 
 ## TODO
 

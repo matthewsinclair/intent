@@ -2,7 +2,7 @@
 wp_id: WP-02
 title: State-dir death exit
 scope: XS
-status: Not Started
+status: Done
 ---
 
 # WP-02: State-dir death exit
