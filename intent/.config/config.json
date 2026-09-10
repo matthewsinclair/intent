@@ -1,9 +1,12 @@
 {
-  "intent_version": "3.0.0",
-  "project_name": "Intent",
   "author": "matts",
-  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "backup": {
+    "schedule": "daily"
+  },
+  "created": "2025-07-16",
+  "dft_width": 120,
   "intent_dir": "intent",
+  "intent_version": "3.0.0",
   "languages": [
     "elixir",
     "author",
@@ -12,14 +15,6 @@
     "shell",
     "swift"
   ],
-  "todo": {
-    "window_hours": 24
-  },
-  "backup": {
-    "schedule": "daily"
-  },
-  "created": "2025-07-16",
-  "dft_width": 120,
   "plugins": {
     "agents": {
       "config_path": "intent/plugins/agents"
@@ -28,5 +23,10 @@
       "subagents_path": "intent/plugins/claude/subagents"
     }
   },
-  "st_prefix": "ST"
+  "project_id": "fe0da6d7-6cca-425a-abca-b31e3c399be1",
+  "project_name": "Intent",
+  "st_prefix": "ST",
+  "todo": {
+    "window_hours": 24
+  }
 }
