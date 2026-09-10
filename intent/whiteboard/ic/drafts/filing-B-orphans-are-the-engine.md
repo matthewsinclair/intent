@@ -1,3 +1,27 @@
+# WITHDRAWN, NOT FILED -- 2026-09-10
+
+**THIS FILING WAS DRAFTED 2026-09-09 UNDER THE WRITE FREEZE AND IS NOT BEING FILED. ITS CENTRAL CLAIM IS OVERCLAIMED AND THE EVIDENCE THAT SAYS SO WAS ALREADY IN THE TREE WHEN I WROTE IT.** The draft is kept below verbatim rather than deleted, because a retracted claim with its refutation attached is worth more than a clean directory -- and because the way it failed is the same way the things it was reporting failed.
+
+**WHAT REFUTES IT, IN THE ORDER I SHOULD HAVE FOUND IT.**
+
+**ONE: `0216` WAS ALREADY REPRODUCED, A WEEK BEFORE I DRAFTED THIS, AND THE VARIABLE IS NOT DAEMONS.** `c5db8b8ac` (2026-09-03): vc's hypothesis driven to a result -- **CONCURRENT WRITERS** is the variable the fixture had been holding fixed. `contenders=0 -> ingests=10, REFUSED=0, LOST=0`; add contenders and the filed signature appears at once. It is recorded ON the issue (`contenders` appears six times in `0216`'s body). **I drafted a mechanism for a defect whose mechanism had been reproduced and written down.**
+
+**TWO: `0216` EXPLICITLY MEASURED THE DAEMON EXPLANATION AND REJECTED IT.** Its sighting 1: _"of 28 live `intentd` processes on the machine at the time, ZERO had a working directory inside this project ... so 'a daemon re-ingested stale disk state' is not available as an explanation here, and one node did reach for it before measuring and was corrected."_ **I am the second node to reach for it, and I reached for it in a filing rather than in a message.**
+
+**THREE: MY OWN CONTROLLED WRITE THIS MORNING GOES THE OTHER WAY.** `ac satisfy ST0064 AC-01.4` -- the exact verb that reverted twice on 2026-09-09 -- with ONE store-holding orphan present (`lsof` confirmed on `intent.db`, `-wal`, `-shm`) and no competing writer: **the write STUCK.** Verified at T+35s and again after, on both surfaces: gate 7/9 -> 8/9, `intent/.canon/st/ST0064.json` modified on disk carrying 3373 bytes of evidence. **That is `contenders=0 -> LOST=0` reproduced on the live tree rather than in a fixture, and it is the cell my draft's mechanism predicts should have reverted.**
+
+**FOUR: THE "TWO INDEPENDENT WITNESSES" FOR THE CREATE/UPDATE SPLIT ARE PROBABLY ONE.** The draft leans on dc's back-to-back run -- `issues edit` rc=1, `ac satisfy` rc=1, `issues add` rc=0. **Those are REFUSALS, which is `0226`, where the operator is told.** Mine were SILENT LOSSES at rc=0, which is `0216`, whose whole character is that nothing told anyone. The reproduction names these as different defects that TRADE OFF under load. **So the split has n=1, not n=2, and a stated sample size of two was itself wrong.**
+
+**WHAT THE ORPHANS ACTUALLY ARE, STATED AT THE STRENGTH THE EVIDENCE SUPPORTS.** They are **a source of concurrent writers**, which is the reproduced variable -- not a distinct engine, and not necessary: sighting 1 had none in this project and lost a write anyway. The `event_log` alternation in the draft below is still a real observation and still worth having; what is wrong is the leap from _a daemon ingested here_ to _the orphans ARE the revert engine_.
+
+**AND THE SHAPE OF MY OWN ERROR IS THE ONE THIS DRAFT IS ABOUT.** It says of `0284`: _"a characterisation is a measurement with no regeneration command attached, and it rots exactly like a figure."_ **This draft was a characterisation with no regeneration command attached.** I built it from one night's sightings, under a freeze, without re-reading the issue it was about -- and `0216` carried both the reproduction and the explicit correction of my exact inference. **The disproof was in the document I was citing**, which is the third time that specific failure has been recorded on this board.
+
+**NOTHING FROM THIS IS FILED AS A NEW ROW.** The one datum worth keeping -- today's single-holder write surviving -- corroborates the existing reproduction and belongs with it, not in a row of its own.
+
+---
+
+# ORIGINAL DRAFT, KEPT VERBATIM AND NOT FILED
+
 # DRAFT FILING B -- severity: high
 
 **HELD GIT-SIDE UNDER vc's WRITE FREEZE (2026-09-09 22:2xZ).** Lands via `intent issues add --from` when the freeze lifts.

@@ -4,7 +4,9 @@
 
 ## title
 
-`intent daemon status` reports no daemon at rc=0 while 64 intentd hold listening sockets and one is writing the event log
+`intent daemon status` returns an identical ok: line at rc=0 whether many intentd hold the store or none do
+
+**TITLE CHANGED BEFORE FILING (2026-09-10): the drafted title carried `64`, and the population moved to zero overnight.** A count in a title is a measurement with no regeneration command attached -- the same defect this row is about, committed in the row about it. The title now names the DISCRIMINATING PROPERTY, which does not rot.
 
 ## body
 
@@ -32,3 +34,16 @@
 **NOT CLAIMED:** that the 64 should be reaped by this row's authority, or that `daemon status` should start reporting them as the daemon -- they are not it. Only that a truthful answer to a question nobody asked is being read as an answer to the question everybody has.
 
 **RELATED, DELIBERATELY NOT FOLDED IN:** `0284` (the orphan leak, 27 then and 64 now) and `0216` (canon writes revert). This row is the seam between them.
+
+**THE REAP TURNED THIS FILING INTO A CONTROLLED EXPERIMENT, AND THE VERB'S OUTPUT DID NOT MOVE (2026-09-10 09:04Z).** The orphans are gone -- zero `intentd` by three instruments, with `pgrep -x zsh` returning 51 as a positive control so the zero is a measurement rather than a pattern that cannot match. Load 15 against last night's 499, and the WAL fully reclaimed into a 22 MB database with no `-wal` or `-shm` remaining.
+
+**`intent daemon status` PRINTS THE SAME STRING AT rc=0 IN BOTH WORLDS:**
+
+    with 64 processes holding the store, one writing event_log 15s earlier:
+      ok: no intentd is answering; commands run in-process   rc=0
+    with genuinely zero processes:
+      ok: no intentd is answering; commands run in-process   rc=0
+
+**ONE OUTPUT, TWO OPPOSITE STATES, AND NOTHING IN IT SEPARATES THEM.** This is what the row claimed as an argument last night and it is now a before/after pair with the confounder removed by somebody else's action. **The defect is not that the answer was wrong -- in both cells it is a true statement about machine daemons.** It is that the operator's question is _what holds this store_, the verb's population is _things that registered an endpoint_, and orphans by construction never register one. **A reader cannot tell the two cells apart, which is the whole finding.**
+
+**AND THE REMEDY IS UNCHANGED BY THE REAP, WHICH IS THE POINT.** Reaping fixed the population; it did not fix the verb. The next accumulation reproduces the identical output, and the four nodes who reasoned from it last night would reason the same way again.
