@@ -13,7 +13,7 @@ title: intentd owns its own lifetime: a lifeline instead of an assumed superviso
 
 ## Acceptance Criteria
 
-### WP-01 -- The lifeline: intentd exits when the owner it can observe goes away (status: WIP)
+### WP-01 -- The lifeline: intentd exits when the owner it can observe goes away (status: Done)
 
 - AC-01.1 **A daemon whose owner is SIGKILLed exits on its own, and the test kills the owner in a way NO `Drop`, handler or atexit can survive.** A test that terminated its parent politely would be measuring the path that already works. The arm asserts the daemon process is GONE, by pid, not that a socket stopped answering -- a wedged process holding the store still fails to answer and would satisfy the weaker check while being the exact defect this thread exists to remove. -- satisfied: yes (computed)
 - AC-01.2 **A daemon started WITHOUT a lifeline serves until signalled -- the production path, asserted rather than assumed.** This is the control on AC-01.1 and it is the row that matters most: an implementation that exits when no lifeline was passed would sail through AC-01.1 and silently kill the `launchd` daemon, whose plist is `KeepAlive false` with no socket activation, so it would not come back until next login. **The failure would present as 'the daemon is sometimes not running' and nothing would name this change.** -- satisfied: yes (computed)
@@ -23,7 +23,7 @@ title: intentd owns its own lifetime: a lifeline instead of an assumed superviso
 
 - AC-02.1 **A daemon whose own state directory is removed stops serving**, driven by removing it under a running daemon, with a positive control that the same daemon was answering immediately before the removal. Without that control the arm passes against a daemon that never started. -- satisfied: no (computed)
 
-### WP-03 -- One home for spawning a daemon in the test tree (status: Not Started)
+### WP-03 -- One home for spawning a daemon in the test tree (status: Done)
 
 - AC-03.1 **The test tree has ONE home that spawns `intentd`, and a check refuses a second.** The check reads the test sources structurally and is positive-controlled by a planted second spawn site that it must catch, and by a clean tree it must pass -- **a roster check that has never been shown to fire is decoration.** It REFUSES over an empty population rather than reporting the reassuring zero that a broken pattern also reports. -- satisfied: yes (computed)
 
@@ -37,7 +37,7 @@ title: intentd owns its own lifetime: a lifeline instead of an assumed superviso
 
 ## Acceptance Tests
 
-### WP-01 -- The lifeline: intentd exits when the owner it can observe goes away (status: WIP)
+### WP-01 -- The lifeline: intentd exits when the owner it can observe goes away (status: Done)
 
 - AT-01.1 `native/rust/crates/intentd/tests/a_daemon_outlives_nobody.rs` -- covers AC-01.1, AC-01.2 -- status: green -- Two arms in one file deliberately: the lifeline arm and its production control are the same decision read in both directions, and separating them invites one to be run without the other. GREEN 2026-09-10, and BURNED IN BOTH DIRECTIONS rather than merely passing. Burn 1: the lifeline arm cut out of the select -- arms 1 and 4 FAIL and the two controls stay green. Burn 2: the arming widened from is_fifo to any stdin -- arm 2 (the production control) and the structural arm FAIL and the two lifeline arms stay green. Each burn fires on exactly the arms it should and on no others, which is what makes these four evidence rather than decoration. Four arms, not two: an owner that WRITES must not end the lifeline, and that arm caught a real defect -- sh forking for sleep left a child holding the write end.
 - AT-01.3 `native/rust/crates/intentd/tests/a_daemon_outlives_nobody.rs` -- covers AC-01.3 -- status: green -- Structural: asserts the lifeline path carries no interval to configure. GREEN 2026-09-10, positive-controlled on the EXTRACTION rather than on the source -- a slice that missed its target would contain none of the markers and pass every assertion below it. Its first form was keyed on the VARIABLE NAME and failed on main.rs's own prose explaining why that variable was removed: mention versus use, committed inside the guard against it. Now keyed on env::var within the impl block, so recording the reason for a decision is no longer a violation of it.
@@ -46,7 +46,7 @@ title: intentd owns its own lifetime: a lifeline instead of an assumed superviso
 
 - AT-02.1 `native/rust/crates/intentd/tests/a_daemon_outlives_nobody.rs` -- covers AC-02.1 -- status: to-write -- Positive-controlled: the daemon must be answering before the state dir is removed.
 
-### WP-03 -- One home for spawning a daemon in the test tree (status: Not Started)
+### WP-03 -- One home for spawning a daemon in the test tree (status: Done)
 
 - AT-03.1 `native/rust/crates/intentd/tests/every_daemon_spawn_carries_a_lifeline.rs` -- covers AC-03.1 -- status: green -- Plants a second spawn site in-test and requires the check to fire on it. GREEN 2026-09-10. It knows THREE shapes and the second and third were found the hard way: a direct intentd spawn; a "daemon start", which is a short-lived .output() call leaving a DETACHED daemon behind (render.rs does process_group(0) deliberately) and is invisible to any check keyed on .spawn(); and a roster-driven argv, where a file enumerates the dispatch surface and drives "daemon start" without those words appearing in it at all. It has fired for real twice on this estate -- daemon_run_execs.rs, a site its own author had missed by hand, and remedies_are_reachable.rs, the argv case that leaked four daemons per run. It also produced one false positive on a TABLE of subcommand names, because it asked whether both words were present rather than adjacent: mention versus use, inside the guard against it, now keyed on adjacency. 42 sites, every one armed. It refuses over an empty population, both plants are controlled, and the LIFELINE-EXEMPT escape hatch is itself controlled in both directions so it cannot become a hole.
 

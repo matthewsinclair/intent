@@ -2,7 +2,7 @@
 wp_id: WP-01
 title: The lifeline: intentd exits when the owner it can observe goes away
 scope: S
-status: WIP
+status: Done
 ---
 
 # WP-01: The lifeline: intentd exits when the owner it can observe goes away

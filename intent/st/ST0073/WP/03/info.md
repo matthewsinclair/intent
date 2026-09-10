@@ -2,7 +2,7 @@
 wp_id: WP-03
 title: One home for spawning a daemon in the test tree
 scope: M
-status: Not Started
+status: Done
 ---
 
 # WP-03: One home for spawning a daemon in the test tree
