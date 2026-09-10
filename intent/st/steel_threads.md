@@ -4,6 +4,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 
 | ID     | Title                                                                                                                                           | Status      | Created    | Completed            |
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------- | -------------------- |
+| ST0073 | intentd owns its own lifetime: a lifeline instead of an assumed supervisor                                                                      | WIP         | 2026-09-10 |                      |
 | ST0070 | LLM config rationalisation -- one home per fact                                                                                                 | Not Started | 2026-09-03 |                      |
 | ST0069 | v3 post-cut: project search, store-backed coordination, and contract drift                                                                      | Triage      | 2026-08-30 |                      |
 | ST0068 | Update Intent's docs for v3                                                                                                                     | WIP         | 2026-08-29 |                      |
@@ -18,6 +19,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 | ST0057 | Disk as a sparse projection of the store                                                                                                        | WIP         | 2026-08-18 |                      |
 | ST0056 | Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files that exposes an MCP server with full API access to Intent | WIP         | 2026-08-14 |                      |
 | ST0046 | Add modules (properly) to the intent cli                                                                                                        | Not Started | 2026-06-15 |                      |
+| ST0072 | Retire 'steel_threads.md' as its no longer needed                                                                                               | Cancelled   | 2026-09-09 | 2026-09-09           |
 | ST0071 | help                                                                                                                                            | Cancelled   | 2026-09-03 | 2026-09-03           |
 | ST0067 | Build out 'intent llm' so that LLMs can work out how to work with Intent                                                                        | Completed   | 2026-08-28 | 2026-08-28           |
 | ST0066 | Add 'fiat close' as a feature to close STs, WPs, ACs, and ATs                                                                                   | Completed   | 2026-08-28 | 2026-09-09           |

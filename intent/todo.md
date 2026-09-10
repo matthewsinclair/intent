@@ -53,6 +53,11 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [-] 01: Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set
   - [~] 02: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided
 - [-] ST0068: Update Intent's docs for v3
+- [-] ST0073: intentd owns its own lifetime: a lifeline instead of an assumed supervisor
+  - [x] 01: The lifeline: intentd exits when the owner it can observe goes away
+  - [ ] 02: State-dir death exit
+  - [x] 03: One home for spawning a daemon in the test tree
+  - [-] 04: The fixture-home teardown leak
 
 ## TODO
 
@@ -64,9 +69,9 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [?] ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
 - [ ] ST0070: LLM config rationalisation -- one home per fact
 
-## DONE:2026-09-04T17:10:36Z
+## DONE:2026-09-10T00:00:51Z
 
-- [x] ST0066: Add 'fiat close' as a feature to close STs, WPs, ACs, and ATs
+_(none)_
 
 ---
 
