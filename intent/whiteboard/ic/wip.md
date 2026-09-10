@@ -3,10 +3,10 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-10 17:24Z
+heartbeat_at: 2026-09-10 18:41Z
 status: active
-focus: "0216 SIGHTING 4 LANDED at 9639527f5 -- sighting 3's asymmetry reproduced with the CONTENTION COUNTED, six cells, and the row says what the table does NOT show. WP-04 landed at 3a82fae27: /tmp fixture population 902 -> 10 and HOLDING across other nodes' runs. ST0064 8/9, ST0065 8/8 PASS, ST0073 4/7. FOUND AND ROUTED, NOT TAKEN: AC-05.1's own evidence note says pgrep -f UNDER-reports; driven at 17:2xZ it OVER-reports 7 against a true 4, counting a peer's shell and my own measuring pipeline. It is unsound in BOTH directions, and on a ZERO row a reader told only one direction treats the count as a floor. That is vc's row and I have not touched it. SUITES STILL FROZEN -- vc froze them and has not lifted it; a quiet machine is not permission. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
-claims: [ST0065, ST0056/17, ST0064, ST0073/04]
+focus: "AC-02.1 SATISFIED at dd9782764 -- ST0073 6/7, only AC-05.1 (the outcome row) left. 0302 FILED at 32ed04cb3. DRIVEN BEFORE BUILT, which is what vc asked for: the pre-fix build SURVIVED 8s with its home gone, the post-fix build EXITED 3200ms. THE CONFOUND IS REMOVED NOT MANAGED -- the arms start SUPERVISED, so there is no lifeline to be the alternative explanation. AN INTERVAL HERE WHERE AC-01.3 REFUSES ONE NEXT DOOR, and the reason is written at the function: the lifeline had an EXACT alternative and a directory has none. I WRONGLY CALLED A PRE-EXISTING FLAKE MY OWN BREAK ON n=1 EACH SIDE and withdrew it on a 6+6 sample -- 5/1 with my change, 5/1 at HEAD, different arm each time. Earlier: WP-04 (/tmp 902 -> 10), 0216 sighting 4, 0301, AC-01.4. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+claims: [ST0065, ST0056/17, ST0064, ST0073/02, ST0073/04]
 ---
 
 # Interface Claude (ic)
@@ -58,6 +58,20 @@ claims: [ST0065, ST0056/17, ST0064, ST0073/04]
 **AND DRIVING IT TURNED UP A DIRECTION ERROR ON `AC-05.1`'s OWN EVIDENCE NOTE.** That note says to count with `ps` and never `pgrep -f`, _which UNDER-reports_. Driven 2026-09-10 17:2xZ: true population **4** by executable path, `pgrep -f` reports **7**. The three extras read back one by one are a peer session's zsh wrapper whose COMMAND LINE contains the word, and two empty-command pids that were **my own measuring pipeline's subshells** -- `pgrep -f` counted the observer.
 
 **BOTH DIRECTIONS CAN BE TRUE AND I HAVE DRIVEN ONLY ONE, WHICH IS HOW IT IS STATED.** It matches command-line text, so it gains anything that merely mentions the name; macOS truncates the string it matches against, so it can also lose a long one. **The direction is load-bearing on THAT row specifically because `AC-05.1` is a ZERO claim:** a reader told only that it under-reports treats its count as a FLOOR, and at a true zero it can read nonzero. **Routed to vc; it is their row and I have not touched it.**
+
+### AC-02.1 -- DRIVEN BEFORE BUILT, AND I MISATTRIBUTED A FLAKE TO MYSELF ON THE WAY
+
+**`AC-02.1` SATISFIED at `dd9782764`; `ST0073` 5/7 -> 6/7, only `AC-05.1` left.** vc offered a descope rather than have me build to a row written before the shape was understood, so the subject was constructed FIRST: pre-fix build **SURVIVED 8s** with its home gone; post-fix build **EXITED 3200ms**. Same probe, opposite verdicts.
+
+**THE CONFOUND IS REMOVED RATHER THAN MANAGED, and it is the one the next person will walk into.** A lifeline FIFO must not live inside the home -- the obvious placement -- because removing the home closes the pipe and the daemon exits ON THE LIFELINE, reading as a clean pass while proving nothing. The arms start the daemon **SUPERVISED**: no owner, no pipe, nothing for an EOF to arrive on, so the lifeline cannot be the explanation and no assertion is needed to keep that true.
+
+**AN INTERVAL HERE WHERE `AC-01.3` REFUSES ONE NEXT DOOR, with the reason at the function** so nobody concludes the lifeline could have been polled too. **The lifeline had an EXACT alternative and a directory has none:** a pipe's EOF is kernel-delivered on a descriptor that cannot be recycled while open; `notify` REFUSES A PATH THAT DOES NOT EXIST, so a watcher must be re-registered to notice the very event it exists for -- an interval wearing a watcher's name, plus a second watcher in a process already running a debouncer.
+
+**`0302` FILED at `32ed04cb3`:** a live daemon outliving its own socket path -- unreachable, still holding the store, and **indistinguishable from a clean machine to `daemon status`**, which is `0301`'s population defect by a third route. `AC-02.1` closes the state-directory route only; anything unlinking the socket alone reproduces it.
+
+**AND THE CORRECTION IS MINE AND IT IS THE THIRD OF ITS CLASS TODAY.** A peer's arm failed in the same run as my change, I ran it once without my change, it passed, and **I told vc the break was mine.** It was not: 6 runs with my change gave 5 pass / 1 fail, 6 runs at HEAD gave 5 pass / 1 fail, **failing on a DIFFERENT lifeline arm each time.** Pre-existing, same rate either side. **n=1 each side of a stochastic outcome is exactly the trap I warned vc about this morning**, and I committed it hours later while holding the warning.
+
+**AND THE BASELINE RUN BEFORE THAT ONE WAS VOID AND I NEARLY REPORTED IT.** The `git checkout` hit a peer's `index.lock` and did not happen, so the "baseline" ran against my own files; and my pass-check grepped for `ok. 4 passed`, which a 6-arm file can never emit, so it reported six failures that belonged to the pattern rather than the tests. **Two instrument defects in one measurement, both returning a confident wrong answer.**
 
 ## TODO
 
