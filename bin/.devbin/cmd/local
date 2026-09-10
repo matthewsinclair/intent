@@ -58,6 +58,7 @@ set -euo pipefail
 # file, which is how four other entrances came to write the shared artefact
 # without them.
 . "$(dirname "${BASH_SOURCE[0]}")/shared/releasebuild.lib"
+. "$(dirname "${BASH_SOURCE[0]}")/shared/runtime.lib"
 
 BINDIR="${INTENT_LOCAL_BINDIR:-$HOME/.local/bin}"
 # RELEASE_DIR and PRIVATE_RELEASE_DIR live in releasebuild.lib, sourced above.
@@ -275,6 +276,55 @@ EOF
     printf '           and it is the one the test harness spawns -- `cargo build -p intentd` refreshes it.\n'
     printf '           debug intentd names %s\n' "$(artefact_source_commit "$dbg" 2>/dev/null || echo '<no marker>')"
   fi
+
+  # **THE SCOPE BLOCK ABOVE NAMED `target/debug/` AND MEASURED NOTHING ABOUT IT
+  # UNTIL 2026-09-10.** On 2026-09-09 this machine carried 67 leaked `intentd`
+  # processes, 65 CPU-hours of burn, a 559MB WAL against a 21MB database and a
+  # load average of 502; four nodes lost writes. Nothing in the estate reported
+  # any of it. A door that names an artefact and does not measure it is the
+  # gate-figure defect in a different costume, so it measures it now.
+  printf '\n==> what is running against this project, and what its store weighs\n'
+
+  local daemons holders dbf walf verdict
+  daemons="$(runtime_daemons)"
+  printf '    intentd processes  %s  (matched on the EXECUTABLE, never the command line)\n' \
+    "$(printf '%s' "$daemons" | runtime_count)"
+  if [ -n "$daemons" ]; then
+    printf '%s\n' "$daemons" | while IFS="$(printf '\t')" read -r pid exe; do
+      printf '      pid %-8s %s\n' "$pid" "$exe"
+    done
+  fi
+
+  dbf="$PROJECT_ROOT/intent/.cache/intent.db"
+  holders="$(runtime_store_holders "$dbf")"
+  printf '    store holders      %s  (a SEPARATE number: these are the ones that cost writes)\n' \
+    "$(printf '%s' "$holders" | runtime_count)"
+
+  walf="$dbf-wal"
+  printf '    store              db %s bytes, WAL %s bytes\n' \
+    "$(runtime_bytes "$dbf")" "$(runtime_bytes "$walf")"
+  verdict="$(runtime_footprint_verdict "$(runtime_bytes "$dbf")" "$(runtime_bytes "$walf")")"
+  case "$verdict" in
+    ok) printf '    footprint ok -- the WAL is a fraction of the database, so checkpoints are landing\n' ;;
+    warn:*) printf '    footprint WARN -- %s\n' "${verdict#warn:}" ;;
+    refuse:*) printf '    footprint REFUSING -- %s\n' "${verdict#refuse:}" ;;
+    *) printf '    footprint UNREADABLE -- the verdict was %s\n' "$verdict" ;;
+  esac
+
+  # **AND THE DISCRIMINATOR, BECAUSE `intent daemon status` FAILS IN THE
+  # REASSURING DIRECTION AND THAT IS HOW THE LEAK SURVIVED A DAY.** It asks THIS
+  # project's socket address. A harness-spawned daemon binds under its own
+  # isolated HOME, so it is a correct singleton for a DIFFERENT address and
+  # answers nothing here. Measured 2026-09-10: four live `target/debug/intentd`
+  # processes on this machine while `daemon status` said `no intentd is
+  # answering`. BOTH ANSWERS WERE TRUE AND THEY ANSWER DIFFERENT QUESTIONS -- a
+  # node reading only the socket concludes the machine is clean.
+  printf '    NOTE: `intent daemon status` asks THIS project'"'"'s socket. A leaked or harness-spawned\n'
+  printf '          daemon binds its OWN address, so it answers `none` while the count above is\n'
+  printf '          non-zero. Both are true. The count above is the one about the MACHINE.\n'
+  printf '          A non-zero holder count with zero daemons is NORMAL -- with no daemon\n'
+  printf '          answering, every peer `intent` invocation opens the store in-process for its\n'
+  printf '          own lifetime. What is diagnostic is holders that PERSIST.\n'
 }
 
 # verify_pair -- refuse a set that describes no single state of this repo.

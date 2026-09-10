@@ -1,0 +1,157 @@
+# shellcheck shell=bash
+#
+# shared/runtime.lib -- what is RUNNING against this project, and what does its
+# store weigh?
+#
+# SOURCED, never run: 0644 so `is_handler` (-f AND -x) cannot mistake it for a
+# command. It depends on nothing else in shared/ and deliberately defines no
+# path resolution of its own -- it is handed a project root and a db path.
+#
+# WHY THIS EXISTS, AND IT IS A MEASURED FAILURE RATHER THAN A TIDINESS ARGUMENT.
+# On 2026-09-09 this machine carried 67 leaked `intentd` processes, 65 CPU-hours
+# of burn, a 559MB WAL against a 21MB database, and a load average of 502. Four
+# nodes lost writes to it. NO TOOL IN THE ESTATE REPORTED ANY OF IT -- the way
+# it was found was a node noticing the machine felt slow, and the way it was
+# confirmed was reading `Activity Monitor` by hand. `int local status` already
+# named `target/debug/` in its own scope block as *the one the test harness
+# spawns*, and then measured nothing about it. A door that names the artefact
+# and does not measure it is the gate-figure defect in a different costume.
+#
+# ============================================================================
+# TWO RULES ARE BUILT INTO THE MECHANISM RATHER THAN WRITTEN IN A NOTE, BECAUSE
+# BOTH WERE BOUGHT WITH REAL ERRORS AND A NOTE DOES NOT TRAVEL WITH THE CODE.
+# ============================================================================
+#
+# RULE 1 -- MATCH THE EXECUTABLE, NEVER THE COMMAND LINE.
+#
+#   ps -axo command= | grep -c 'target/debug/intentd'    ->  2
+#   ...with ZERO intentd processes on the machine.
+#
+# Both hits were the measuring shell itself. A tool-driven session wraps every
+# command in an eval string, so the pattern being searched FOR appears inside a
+# process's command line BY CONSTRUCTION. The `[i]ntentd` bracket trick defeats
+# the grep matching ITSELF and does nothing whatever about the SHELL running it.
+#
+# THE ARTEFACT DID NOT STOP AT A WRONG COUNT -- IT MANUFACTURED A MECHANISM.
+# From an oscillating 0 -> 2 -> 0 a node concluded "each CLI invocation spawns a
+# daemon that exits". That is false: `launchd` starts the daemon out of
+# `launchagent.rs`, and the one in-tree spawn site is `render.rs`'s
+# `daemon_start()`. And it produced a RECOMMENDATION -- "prefer `ps`, never
+# `pgrep`" -- which had to be withdrawn, because a recommendation outlives the
+# measurement that motivated it.
+#
+# So `runtime_select_daemons` matches argv[0] against `(^|/)intentd$`. A wrapper
+# quoting the string `intentd` inside a longer command line cannot match, because
+# the field being tested is the executable path and not the line.
+#
+# RULE 2 -- STORE HOLDERS ARE A SEPARATE NUMBER FROM PROCESS COUNT.
+#
+# These are not two views of one fact and they came apart on the day that proved
+# it: 13 processes, 4 of them holding the live store. THE HOLDERS ARE THE ONES
+# THAT COST WRITES. A report that gives only a process count answers the cheap
+# half of the question.
+#
+# AND A HOLDER COUNT IS A POINT-IN-TIME SAMPLE, WHICH THIS FILE SAYS OUT LOUD
+# BECAUSE IT IS NOT OBVIOUS AND IT MISLEADS IN THE REASSURING DIRECTION. Measured
+# while writing this: `lsof` reported TWO holders of the store at an instant when
+# `runtime_select_daemons` correctly reported ZERO daemons, and both were gone a
+# second later. With no daemon answering, `intent` runs IN-PROCESS and opens the
+# store directly, so any peer's CLI invocation is a holder for its lifetime. A
+# non-zero holder count with zero daemons is therefore NORMAL and is not a leak;
+# what is diagnostic is holders that PERSIST, and this library reports the number
+# rather than pretending to that judgement.
+#
+# ============================================================================
+
+# PURE. Reads `pid command...` lines on stdin, emits `pid<TAB>executable` for
+# every line whose argv[0] basename is exactly `intentd`.
+#
+# Pure by construction so it can be driven from a fixture, which is the whole
+# reason the split exists: proving this classifier correct must not require
+# spawning a daemon, on a machine whose defining problem this month was too many
+# daemons. Every arm of RULE 1 is exercised by feeding it text.
+runtime_select_daemons() {
+  awk '
+    {
+      exe = $2
+      n = split(exe, parts, "/")
+      base = parts[n]
+      if (base == "intentd") { printf "%s\t%s\n", $1, exe }
+    }
+  '
+}
+
+# PURE. Classifies a store footprint from two byte counts. Emits one of
+# `ok`, `warn:<why>`, `refuse:<why>` on stdout.
+#
+# THE WAL IS THE SUBJECT, NOT THE DATABASE. A large db is a large project; a
+# large WAL against a small db is a checkpoint that is not happening, which is
+# the shape that reached 559MB against 21MB. The ratio carries the finding and
+# the absolute size alone does not.
+runtime_footprint_verdict() {
+  db_bytes="$1"
+  wal_bytes="$2"
+
+  if [ -z "$db_bytes" ] || [ -z "$wal_bytes" ]; then
+    echo "refuse:a byte count was not readable, so no verdict is offered"
+    return 0
+  fi
+  if [ "$db_bytes" -le 0 ] 2>/dev/null; then
+    echo "refuse:the database reports zero bytes -- that is a broken read, not a small project"
+    return 0
+  fi
+  if [ "$wal_bytes" -le 0 ]; then
+    echo "ok"
+    return 0
+  fi
+
+  # Integer arithmetic only: this is bash 3.2 on macOS and there is no float.
+  ratio=$((wal_bytes / db_bytes))
+  if [ "$ratio" -ge 4 ]; then
+    echo "refuse:the WAL is ${ratio}x the database -- a checkpoint is not happening"
+  elif [ "$ratio" -ge 1 ]; then
+    echo "warn:the WAL is ${ratio}x the database and is expected to be a fraction of it"
+  else
+    echo "ok"
+  fi
+}
+
+# IMPURE. The process table, handed to the pure classifier above.
+runtime_daemons() {
+  ps -axo pid=,command= 2>/dev/null | runtime_select_daemons || true
+}
+
+# IMPURE. Which pids hold the store open, whatever they are.
+#
+# DELIBERATELY NOT FILTERED TO DAEMONS. The question this answers is "who is
+# holding your database", and narrowing it to a process name would hide exactly
+# the case nobody predicted -- which is how the leak survived a day.
+runtime_store_holders() {
+  db="$1"
+  [ -f "$db" ] || return 0
+  # `|| true` IS LOAD-BEARING AND IS NOT DEFENSIVE NOISE. `lsof` exits 1 when it
+  # finds nothing, which is a legitimate empty result and not an error -- the
+  # same shape as `grep -c` exiting 1 on zero matches. Every consumer here runs
+  # under `set -euo pipefail`, so without this the NO-HOLDERS case (the good
+  # one) aborts the caller.
+  #
+  # MEASURED, BECAUSE IT DID EXACTLY THAT: the first wiring of this block printed
+  # its daemon-count line and then STOPPED, silently, with every line it had
+  # already emitted looking perfectly correct. A truncated report that ends on a
+  # plausible line is worse than one that errors, because nothing marks the end
+  # as premature.
+  lsof -t -- "$db" 2>/dev/null || true
+}
+
+# PURE. Counts lines without the `grep -c` exit-1-on-zero hazard above.
+# Always succeeds; emits 0 for empty input.
+runtime_count() {
+  awk 'NF {n++} END {print n+0}'
+}
+
+# IMPURE. Byte size of a path, or empty when absent. `stat -f%z` is the BSD
+# spelling; this file is macOS-only by the same warrant as the rest of devbin.
+runtime_bytes() {
+  [ -f "$1" ] || { echo ""; return 0; }
+  stat -f%z "$1" 2>/dev/null || echo ""
+}
