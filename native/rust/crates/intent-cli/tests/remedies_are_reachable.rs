@@ -75,20 +75,51 @@ const SENTINEL: &str = "ST9999";
 /// good reason -- and `daemon restart` was declared and unlisted. The binary's
 /// own help says what restart is: *Restart intentd: stop it, then start it*. So
 /// the sweep drove a daemon into existence through a verb the prohibition never
-/// named, in a file that states in as many words why that must never happen. It
-/// leaked daemons per run for as long as the list has existed.
+/// named, in a file that states in as many words why that must never happen.
+/// `app start`, `app stop` and `app restart` were in the same position.
 ///
 /// **THE LIST IS WHAT MADE IT INVISIBLE.** A reader greps `daemon start`, finds
-/// it banned with a rationale, and stops looking. That is worse than no list:
-/// no list invites a check, and this one answered the question and was wrong.
-/// (`ST0073`; found by dc, 2026-09-10, correcting my claim that no amount of
-/// reading could have found it -- a grep finds it in one second.)
+/// it banned with a rationale, and stops looking. That is worse than no list: no
+/// list invites a check, and this one answered the question and was wrong.
+/// (`ST0073`; found by dc, correcting my claim that no amount of reading could
+/// have found it -- a grep finds it in one second.)
 ///
-/// **SO THE RULE IS DERIVED FROM THE PATH AND CANNOT BE OUT-ENUMERATED.** Any
-/// declared path whose leaf is a process-lifecycle verb starts or stops a
-/// long-lived process, whatever family it is added to and whenever it is added.
-/// `app start`, `app stop` and `app restart` were in exactly the same position
-/// and nobody had noticed those either.
+/// # AND THE FIRST REPAIR TRADED FALSE NEGATIVES FOR FALSE POSITIVES
+///
+/// **IT REFUSED EVERY PATH WHOSE LEAF WAS A LIFECYCLE WORD, WHICH CAUGHT
+/// `st start` AND `wp start`** -- ordinary reversible store writes that happen
+/// to end in that word. They left the sweep, silently, and a path that is never
+/// driven cannot fail. That is this file's own sentence arriving in its own fix:
+/// *a refusal covering everything reports a clean surface for the reason that it
+/// drove none of it.* The controls checked `st list`, `wp list`, `doctor` and
+/// `daemon status` -- all `list`/`status` leaves -- so **no control looked where
+/// the risk was.** (dc again, same evening, by enumerating the surface against
+/// the predicate rather than reading its controls.)
+///
+/// **THE DIAGNOSIS IS THAT IT WAS STILL AN ENUMERATION, ONE LEVEL UP: paths
+/// replaced by VERBS.** `start` is a spelling, not a property. The property
+/// wanted is *does this path create or destroy a process*, and the dispatch
+/// table does not carry it: `read_or_mutate` says `mutate` for all of them, and
+/// `recoverability` splits `claude start` from `daemon start` the wrong way.
+/// **That is a missing declared field and it belongs to hv**, not to a test.
+///
+/// # WHAT IS ACTUALLY DERIVABLE, AND THE ONE EXCEPTION THAT IS NOT
+///
+/// A family that carries `start` AND `stop` AND `status` is a PROCESS MANAGER --
+/// that shape is what managing a process looks like, and it is a fact about the
+/// declared surface rather than a list anyone maintains. `daemon` and `app` have
+/// it; `st`, `wp` and `claude` have `start` alone. New lifecycle verbs in either
+/// family are covered the day they are declared.
+///
+/// `claude start` is the exception and stays LISTED, because it spawns a session
+/// and has no siblings to derive from. **A named exception with a reason is what
+/// a list is for; the four that were missed are what it is not.**
+fn is_a_process_manager(family: &str, declared: &BTreeSet<String>) -> bool {
+  ["start", "stop", "status"]
+    .iter()
+    .all(|leaf| declared.contains(&format!("{family} {leaf}")))
+}
+
 fn lifecycle_leaf(path: &str) -> bool {
   matches!(
     path.rsplit(' ').next(),
@@ -101,15 +132,26 @@ fn refusal_for(path: &str) -> Option<&'static str> {
   if let Some((_, why)) = FORBIDDEN.iter().find(|(p, _)| *p == path) {
     return Some(why);
   }
-  if lifecycle_leaf(path) {
+  if !lifecycle_leaf(path) {
+    return None;
+  }
+  let declared: BTreeSet<String> = crate::common::declared_paths().into_iter().collect();
+  let family = path.split(' ').next().unwrap_or("");
+  if is_a_process_manager(family, &declared) {
     return Some(
-      "a process-lifecycle verb: it starts or stops something that outlives this test. Derived        from the leaf rather than listed, because the list named `daemon start` and missed        `daemon restart`, which the binary itself defines as stop-then-start.",
+      "a lifecycle verb of a family that manages a process -- it starts or stops something that        outlives this test. Derived from the family carrying start+stop+status, because the list        named `daemon start` and missed `daemon restart`, which the binary itself defines as        stop-then-start.",
     );
   }
   None
 }
 
 const FORBIDDEN: &[(&str, &str)] = &[
+  (
+    "claude start",
+    "spawns a Claude Code session bound to a whiteboard node -- a real process, with a real \
+     terminal, outliving this test. It is LISTED rather than derived because `claude` carries no \
+     `stop` or `status` to derive from: it is a genuine exception, which is what a list is for.",
+  ),
   (
     "fc",
     "IN-AG-FIAT-001: fiat close is the human's verb. Not run here, not in a script, not to \
@@ -337,7 +379,13 @@ fn invariant_the_refusal_is_derived_and_catches_what_the_list_missed() {
   // RIGHT.** `FORBIDDEN` named `daemon start` and missed `daemon restart`, which
   // the binary defines as stop-then-start. A check that only re-asserted the
   // listed entries would have passed every day the gap was open.
-  for missed in ["daemon restart", "app start", "app stop", "app restart"] {
+  for missed in [
+    "daemon restart",
+    "app start",
+    "app stop",
+    "app restart",
+    "claude start",
+  ] {
     assert!(
       refusal_for(missed).is_some(),
       "`{missed}` is declared and drives a process that outlives this test, and the refusal does not cover it. That is the enumeration gap this rule replaced: the list named its siblings and this walked through."
@@ -357,6 +405,18 @@ fn invariant_the_refusal_is_derived_and_catches_what_the_list_missed() {
 
   // **AND IT MUST NOT REFUSE EVERYTHING**, or the sweep measures nothing and
   // reports a clean surface for the reason that it drove none of it.
+  // **THE FALSE-POSITIVE CONTROLS, AND THE FIRST SET LOOKED IN THE WRONG PLACE.**
+  // They were all `list`/`status` leaves, so they could not have caught a rule
+  // that over-refused on `start` -- which the first repair did, taking `st
+  // start` and `wp start` out of the sweep silently. These two are named
+  // explicitly and first, because they are the ones that were actually lost.
+  for reversible in ["st start", "wp start"] {
+    assert!(
+      refusal_for(reversible).is_none(),
+      "`{reversible}` is an ordinary reversible store write that happens to end in the word `start`, and it is now refused. It has left the sweep, and a path that is never driven cannot fail -- which is this file's own complaint about a refusal that covers everything."
+    );
+  }
+
   for ordinary in ["st list", "wp list", "doctor", "daemon status"] {
     assert!(
       refusal_for(ordinary).is_none(),
