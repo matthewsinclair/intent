@@ -211,7 +211,13 @@ fn serving_spawns() -> Vec<Spawn> {
 /// blanket allowance for "tests that meant it" is indistinguishable from an
 /// omission, so the exception is spelled at the site and must say why: a bare
 /// marker with nothing after it is refused.
-const EXEMPT: &str = "LIFELINE-EXEMPT:";
+/// **NO TRAILING PUNCTUATION, DELIBERATELY.** The first version demanded
+/// `LIFELINE-EXEMPT:` with a colon, and a peer writing a correct, well-reasoned
+/// exemption wrote `LIFELINE-EXEMPT,` -- so the guard refused a legitimate
+/// exception over one character and would have taught them to delete the check
+/// rather than the comma. A marker that is hard to spell is a marker people
+/// route around.
+const EXEMPT: &str = "LIFELINE-EXEMPT";
 
 /// **A `daemon start` SITE IS ARMED BY THE HELPER THAT RUNS IT, NOT AT THE
 /// CALL.** `machine.run(&["daemon", "start"])` carries no stdin of its own --
@@ -240,7 +246,7 @@ fn exempt_with_a_reason(s: &Spawn) -> bool {
   s.window
     .lines()
     .filter_map(|l| l.split_once(EXEMPT))
-    .any(|(_, reason)| reason.trim().len() > 20)
+    .any(|(_, reason)| reason.trim_start_matches([':', ',', ' ', '-']).trim().len() > 20)
 }
 
 #[test]

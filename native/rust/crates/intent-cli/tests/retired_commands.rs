@@ -16,7 +16,7 @@
 //! it is covered on the next run, by nobody's decision.
 
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::Command;
 
 use intent_cli::dispatch;
 use testkit::workspace_root;

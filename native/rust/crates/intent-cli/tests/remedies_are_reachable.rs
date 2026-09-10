@@ -69,6 +69,46 @@ const SENTINEL: &str = "ST9999";
 /// because its targets happen to be unbuilt gets more dangerous as the estate
 /// gets more complete, so the exclusions are named and the reasons are the
 /// point. Two of these are standing rules that outrank any test's convenience.
+/// **A PROHIBITION BY ENUMERATION READS AS COVERAGE, AND THIS ONE DID.**
+///
+/// `FORBIDDEN` named `daemon start`, `daemon stop` and `daemon run`, each with a
+/// good reason -- and `daemon restart` was declared and unlisted. The binary's
+/// own help says what restart is: *Restart intentd: stop it, then start it*. So
+/// the sweep drove a daemon into existence through a verb the prohibition never
+/// named, in a file that states in as many words why that must never happen. It
+/// leaked daemons per run for as long as the list has existed.
+///
+/// **THE LIST IS WHAT MADE IT INVISIBLE.** A reader greps `daemon start`, finds
+/// it banned with a rationale, and stops looking. That is worse than no list:
+/// no list invites a check, and this one answered the question and was wrong.
+/// (`ST0073`; found by dc, 2026-09-10, correcting my claim that no amount of
+/// reading could have found it -- a grep finds it in one second.)
+///
+/// **SO THE RULE IS DERIVED FROM THE PATH AND CANNOT BE OUT-ENUMERATED.** Any
+/// declared path whose leaf is a process-lifecycle verb starts or stops a
+/// long-lived process, whatever family it is added to and whenever it is added.
+/// `app start`, `app stop` and `app restart` were in exactly the same position
+/// and nobody had noticed those either.
+fn lifecycle_leaf(path: &str) -> bool {
+  matches!(
+    path.rsplit(' ').next(),
+    Some("start") | Some("stop") | Some("restart") | Some("run")
+  ) && path.contains(' ')
+}
+
+/// Is this path one the sweep must not drive, and why?
+fn refusal_for(path: &str) -> Option<&'static str> {
+  if let Some((_, why)) = FORBIDDEN.iter().find(|(p, _)| *p == path) {
+    return Some(why);
+  }
+  if lifecycle_leaf(path) {
+    return Some(
+      "a process-lifecycle verb: it starts or stops something that outlives this test. Derived        from the leaf rather than listed, because the list named `daemon start` and missed        `daemon restart`, which the binary itself defines as stop-then-start.",
+    );
+  }
+  None
+}
+
 const FORBIDDEN: &[(&str, &str)] = &[
   (
     "fc",
@@ -291,12 +331,51 @@ impl Fixture {
   }
 }
 
+#[test]
+fn invariant_the_refusal_is_derived_and_catches_what_the_list_missed() {
+  // **THE CONTROL ON THE THING THAT WAS WRONG, NOT ON THE THING THAT WAS
+  // RIGHT.** `FORBIDDEN` named `daemon start` and missed `daemon restart`, which
+  // the binary defines as stop-then-start. A check that only re-asserted the
+  // listed entries would have passed every day the gap was open.
+  for missed in ["daemon restart", "app start", "app stop", "app restart"] {
+    assert!(
+      refusal_for(missed).is_some(),
+      "`{missed}` is declared and drives a process that outlives this test, and the refusal does not cover it. That is the enumeration gap this rule replaced: the list named its siblings and this walked through."
+    );
+  }
+
+  // The listed entries still refuse, with their own reasons rather than the
+  // derived one -- a bespoke reason is why they are listed at all.
+  assert!(
+    refusal_for("fc").is_some(),
+    "the fiat-close refusal is gone"
+  );
+  assert!(
+    refusal_for("claude upgrade").is_some(),
+    "the claude-upgrade refusal is gone"
+  );
+
+  // **AND IT MUST NOT REFUSE EVERYTHING**, or the sweep measures nothing and
+  // reports a clean surface for the reason that it drove none of it.
+  for ordinary in ["st list", "wp list", "doctor", "daemon status"] {
+    assert!(
+      refusal_for(ordinary).is_none(),
+      "`{ordinary}` is now refused, so the sweep has stopped driving the surface it exists to sweep"
+    );
+  }
+
+  // `daemon status` in particular: the one daemon verb that starts nothing.
+  assert!(
+    !lifecycle_leaf("daemon status"),
+    "the derived rule has widened to every daemon verb, which would stop the sweep asking the one that is safe"
+  );
+}
+
 /// Every remedy line the binary emits across the declared surface.
 fn emitted_remedies(fx: &Fixture) -> BTreeSet<String> {
-  let forbidden: BTreeSet<&str> = FORBIDDEN.iter().map(|(p, _)| *p).collect();
   let mut out = BTreeSet::new();
   for path in crate::common::declared_paths() {
-    if forbidden.contains(path.as_str()) {
+    if refusal_for(path.as_str()).is_some() {
       continue;
     }
     let argv: Vec<String> = path.split_whitespace().map(str::to_string).collect();
@@ -367,7 +446,6 @@ fn references(remedy: &str) -> Vec<String> {
 fn every_emitted_remedy_names_a_verb_this_build_has_wired() {
   let fx = Fixture::new();
   let declared: BTreeSet<String> = crate::common::declared_paths().into_iter().collect();
-  let forbidden: BTreeSet<&str> = FORBIDDEN.iter().map(|(p, _)| *p).collect();
 
   let mut unreachable: BTreeSet<String> = BTreeSet::new();
   for remedy in emitted_remedies(&fx) {
@@ -382,12 +460,12 @@ fn every_emitted_remedy_names_a_verb_this_build_has_wired() {
           .collect();
         let any_wired = verbs
           .iter()
-          .filter(|p| !forbidden.contains(p.as_str()))
+          .filter(|p| refusal_for(p.as_str()).is_none())
           .any(|p| wiredness(&fx, p) == Wired::Yes);
         if !verbs.is_empty() && !any_wired {
           unreachable.insert(r.clone());
         }
-      } else if declared.contains(&r) && !forbidden.contains(r.as_str()) {
+      } else if declared.contains(&r) && refusal_for(r.as_str()).is_none() {
         if wiredness(&fx, &r) == Wired::No {
           unreachable.insert(r.clone());
         }
@@ -494,7 +572,6 @@ const FAMILY_FORM: &str = "for the verbs that are";
 #[test]
 fn the_remedy_a_family_emits_matches_the_verbs_it_actually_wires() {
   let fx = Fixture::new();
-  let forbidden: BTreeSet<&str> = FORBIDDEN.iter().map(|(p, _)| *p).collect();
 
   let mut families: BTreeSet<String> = BTreeSet::new();
   for path in crate::common::declared_paths() {
@@ -509,7 +586,7 @@ fn the_remedy_a_family_emits_matches_the_verbs_it_actually_wires() {
   for family in &families {
     let verbs: Vec<String> = crate::common::declared_paths()
       .into_iter()
-      .filter(|p| p.starts_with(&format!("{family} ")) && !forbidden.contains(p.as_str()))
+      .filter(|p| p.starts_with(&format!("{family} ")) && refusal_for(p.as_str()).is_none())
       .collect();
 
     let wired = verbs.iter().any(|p| wiredness(&fx, p) == Wired::Yes);
@@ -774,7 +851,6 @@ fn string_literals(body: &str) -> Vec<String> {
 fn every_remedy_in_the_source_names_a_verb_this_build_has_wired() {
   let fx = Fixture::new();
   let declared: BTreeSet<String> = crate::common::declared_paths().into_iter().collect();
-  let forbidden: BTreeSet<&str> = FORBIDDEN.iter().map(|(p, _)| *p).collect();
 
   let bodies = remedy_bodies();
   let mut refs: BTreeSet<String> = BTreeSet::new();
@@ -796,7 +872,7 @@ fn every_remedy_in_the_source_names_a_verb_this_build_has_wired() {
         .collect();
       let any_wired = verbs
         .iter()
-        .filter(|p| !forbidden.contains(p.as_str()))
+        .filter(|p| refusal_for(p.as_str()).is_none())
         .any(|p| wiredness(&fx, p) == Wired::Yes);
       if !verbs.is_empty() && !any_wired {
         unreachable.insert(r.clone());
@@ -817,7 +893,7 @@ fn every_remedy_in_the_source_names_a_verb_this_build_has_wired() {
         .join(" ");
       if !verb.is_empty()
         && declared.contains(&verb)
-        && !forbidden.contains(verb.as_str())
+        && refusal_for(verb.as_str()).is_none()
         && wiredness(&fx, &verb) == Wired::No
       {
         unreachable.insert(r.clone());
