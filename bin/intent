@@ -92,32 +92,24 @@ PLUGIN_SUBCOMMAND=""
 case "$COMMAND" in
   claude)
     # Claude plugin - check for subcommand
-    if [ $# -ge 1 ] && [ "$1" = "subagents" ]; then
-      PLUGIN_COMMAND="claude"
-      PLUGIN_SUBCOMMAND="subagents"
-      shift  # Remove 'subagents' from arguments
-      COMMAND_SCRIPT="$INTENT_HOME/intent/plugins/claude/bin/intent_claude_subagents"
-    elif [ $# -ge 1 ] && [ "$1" = "skills" ]; then
-      PLUGIN_COMMAND="claude"
-      PLUGIN_SUBCOMMAND="skills"
-      shift  # Remove 'skills' from arguments
-      COMMAND_SCRIPT="$INTENT_HOME/intent/plugins/claude/bin/intent_claude_skills"
-    elif [ $# -ge 1 ] && [ "$1" = "upgrade" ]; then
-      PLUGIN_COMMAND="claude"
-      PLUGIN_SUBCOMMAND="upgrade"
-      shift  # Remove 'upgrade' from arguments
-      COMMAND_SCRIPT="$INTENT_HOME/intent/plugins/claude/bin/intent_claude_upgrade"
-    elif [ $# -ge 1 ] && [ "$1" = "prime" ]; then
-      PLUGIN_COMMAND="claude"
-      PLUGIN_SUBCOMMAND="prime"
-      shift  # Remove 'prime' from arguments
-      COMMAND_SCRIPT="$INTENT_HOME/intent/plugins/claude/bin/intent_claude_prime"
-    elif [ $# -ge 1 ] && [ "$1" = "rules" ]; then
-      PLUGIN_COMMAND="claude"
-      PLUGIN_SUBCOMMAND="rules"
-      shift  # Remove 'rules' from arguments
-      COMMAND_SCRIPT="$INTENT_HOME/intent/plugins/claude/bin/intent_claude_rules"
-    elif [ $# -ge 1 ] && [ "$1" = "hook" ]; then
+    # **FIVE DOORS LEFT THIS DISPATCHER, FOLLOWING THE IMPLEMENTATIONS THAT LEFT
+    # AT `125f601d8` (AC-12.1's prune, 2026-08-30).** That commit deleted six v2
+    # plugin scripts and left the dispatcher pointing at five of them, so
+    # `intent claude subagents|skills|upgrade|prime|rules` answered
+    # `error: Plugin command not found: .../intent_claude_<verb>` -- a v2 entry
+    # point ADVERTISING capabilities v2 no longer has.
+    #
+    # **PRUNED RATHER THAN RESTORED, AND THE PRINCIPLE DECIDES IT.** Intent
+    # fails forward: no deprecation stubs, no preservation, migrations actively
+    # prune. Bringing five scripts back would un-do completed, ratified work in
+    # the one codebase that forbids exactly that. The dispatcher follows the
+    # prune; it does not reverse it.
+    #
+    # **AND THE COST WAS NOT ONLY A RED WORKFLOW.** `AC-06.1`'s burn
+    # re-baseline flips `INTENT_BIN` at this binary. With five of its doors
+    # erroring out, every measurement taken through it measures the prune
+    # rather than the parity -- a poisoned baseline for a run only hv can make.
+    if [ $# -ge 1 ] && [ "$1" = "hook" ]; then
       PLUGIN_COMMAND="claude"
       PLUGIN_SUBCOMMAND="hook"
       shift  # Remove 'hook'; the runner takes the hook name as $1
@@ -128,7 +120,7 @@ case "$COMMAND" in
       # Do NOT shift: intent_claude_cwi's own dispatch consumes `start`/`ws`.
       COMMAND_SCRIPT="$INTENT_HOME/intent/plugins/claude/bin/intent_claude_cwi"
     else
-      error "Unknown claude subcommand. Try: intent claude subagents, intent claude skills, intent claude upgrade, intent claude prime, intent claude rules, intent claude start, intent claude ws"
+      error "Unknown claude subcommand. Try: intent claude hook, intent claude start, intent claude ws"
     fi
     ;;
   agents)
