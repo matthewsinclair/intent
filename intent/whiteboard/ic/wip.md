@@ -3,10 +3,10 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-10 09:15Z
+heartbeat_at: 2026-09-10 09:45Z
 status: active
-focus: "THE FREEZE IS LIFTED AND EVERYTHING I HELD UNDER IT IS LANDED. AC-01.4 SATISFIED at 6eb230653 on a green that names HEAD -- ST0064 8/9, only AC-01.7 (hv's Apple credentials) left. 0301 filed: one ok: line covers 64 store-holding intentd and zero, which the reap turned into a controlled pair. FILING B IS WITHDRAWN, NOT FILED -- 0216 was already reproduced a week ago (contention is the variable, not daemons) and 0216 itself had measured and rejected my inference; the disproof was in the document I was citing. THE ORPHANS ARE REAPED: zero intentd, WAL fully reclaimed, load 499 -> 15, store intact through the recovery. BUT THE LEAK IS NOT FIXED -- holders reappear with peer test runs and the WAL regrew to 20MB in three minutes. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
-claims: [ST0065, ST0056/17, ST0064]
+focus: "ON vc's DIRECTION. WP-04 (ST0073) BUILT AND GREEN -- AC-04.1 SATISFIED, ST0073 3/7 -> 4/7; the /tmp fixture leak went 902 dirs / 133.7MB -> 19 / 3.4MB, sentinel dir and its 46 live session files untouched. BLOCKED ON ONE WORD FROM vc: a_daemon_outlives_nobody.rs carries my hunk AND theirs, and --only is path-scoped not hunk-scoped. THREE intentd REDS ARE PRE-EXISTING, proven in a detached worktree at clean HEAD -- not mine, not vc's lifeline. EARLIER: AC-01.4 satisfied (ST0064 8/9), 0301 filed, filing B WITHDRAWN, hold 2 re-worded. TWO CLAIMS OF MINE CORRECTED TODAY BY vc AND BY MY OWN INSTRUMENTS -- the WAL did not self-reclaim, and my contention pair does not show scaling. NO FIGURE ON THIS BOARD IS EVIDENCE; RUN THE VERBS."
+claims: [ST0065, ST0056/17, ST0064, ST0073/04]
 ---
 
 # Interface Claude (ic)
@@ -34,6 +34,20 @@ claims: [ST0065, ST0056/17, ST0064]
 **BUT HOLDERS REAPPEAR AND THE WAL REGROWS, SO THE REAP IS A CLEANUP AND NOT A FIX.** Within four minutes a `target/release/intentd` at `PPID 1` held `intent.db`, `-wal` and `-shm` with the WAL already back to **19.9 MB from zero**, and the population has churned since (a different pid holds it now). **The proximate spawner is a peer's live test run, not mine** -- `cargo test -p intentd --test suite a_daemon_outlives_nobody`, a file created at 10:07 today. **I nearly attributed it to my own `app-test` and the timestamps refuted that: my run ended 10:06:32, the daemons started 10:07:17 and 10:07:22.** That is W124's discipline applied before the claim rather than after it.
 
 **NOT MINE TO REAP AND I HAVE NOT TOUCHED THEM.** They may be in-flight fixtures for a test that is being written right now, and `0284` reserves the reap to hv anyway.
+
+### WP-04 (ST0073): THE FIXTURE-HOME LEAK -- BUILT, GREEN, AND HELD ON A SHARED FILE
+
+**`AC-04.1` SATISFIED; `ST0073` 3/7 -> 4/7.** Sweep lives in `testkit` -- one home, std only, no new dependency. `sweep_abandoned_fixtures()` is the assertable worker; `sweep_once()` is the idempotent at-START hook, separate because collapsing them makes the worker unassertable after its first call.
+
+**THE DISCRIMINATOR IS STRUCTURAL AND THE DISK FORCED THAT.** Reading the six creation sites found four families; reading `/tmp` found twelve name shapes. A candidate begins `intent` AND ends `-<pid>-<counter>`. **The suffix clause is what saves the machine:** `/tmp/intent` is the in-session gate's sentinel DIRECTORY, one file per live Claude Code session, and `/tmp/intentfiles.new` is a stray file -- both begin `intent`, and the prefix-only sweep anyone writes first deletes the sentinel out from under every running session. Both exclusions are asserted arms.
+
+**BURNED IN THREE DIRECTIONS, each firing on exactly its own arms:** liveness removed -> the live-fixture arm alone; removal disabled -> the dead arm and the population arm; one of six sites unwired -> the source arm alone. **Live effect: 902 dirs / 133.7 MB -> 19 / 3.4 MB.**
+
+**LANDED at `3a82fae27` on vc's option (b) -- both hunks, theirs named as theirs. THE HELD CONDITION IS DISCHARGED:** `a_daemon_outlives_nobody.rs` carries my sweep hunk and vc's `LIFELINE-EXEMPT` hunk, and `git commit --only` is path-scoped rather than hunk-scoped. **Skipping that file was not available** -- my own source arm would have been RED in CI, which is shipping a guard broken. vc ruled: take both rather than hunk-split a shared file under load. **AND IT LANDED WITHOUT A VERIFICATION RUN, DELIBERATELY:** vc froze suite runs at load 502, so it rests on the green taken before the freeze plus a doc-comment edit that cannot change behaviour. That is stated in the commit rather than left for someone to discover.
+
+**THREE intentd REDS ARE PRE-EXISTING AND I PROVED IT RATHER THAN ASSUMED IT.** Detached worktree at clean HEAD, none of my changes and none of vc's uncommitted work: both `daemon_subscriptions` arms and `daemon_watch::a_change_to_a_path_outside_the_sync_scope_drives_no_ingest`. **The third is a POSITIVE-CONTROL failure rather than the property failing** -- its own precondition, the daemon ingesting at all, did not happen in 500 attempts, so reading that panic as _the daemon wrongly ingested_ sends the next reader at the opposite defect.
+
+**AND MY FIRST ATTEMPT AT THAT WORKTREE MEASURED NOTHING.** `--test daemon_watch` returned `no test target` because at HEAD it is a MODULE of `suite`, and the run exited 0 with no test lines. **I nearly read that silence as a pass.**
 
 ## TODO
 
