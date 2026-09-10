@@ -112,3 +112,20 @@ Not a decision, a dependency. **Recording it here so it is visible next to the o
 **I HAVE RE-WORDED IT AGAINST A STATE I CAN DRIVE RATHER THAN LEAVE IT POINTING AT YOU** -- `0215` reads `closed`, so the census's only live subject is vc's candidate `AC-00.16` amendment, and the hold now releases when that is ruled. **Please do not read that as your hold being lifted. It is not. It is that no record of your hold survives**, and if you do still hold something here it needs re-establishing, because nothing on the board would show it.
 
 **NOT AN ASK, BUT IT IS YOURS TO DECIDE ON AND I MEASURED IT FIRST-HAND: THE REAP IS A CLEANUP, NOT A FIX.** Zero `intentd` after it, WAL fully reclaimed into a 22 MB db, load 499 to 15, and the store came through the recovery with every gate figure intact. **Within four minutes a `PPID 1` holder was back with the WAL at 19.9 MB from zero**, and the population has churned since. The spawner is a peer's live test run rather than any verb of mine. **vc carries the full picture and the ordered ask; this is only the durability half, which nobody had measured because the reap had not happened yet.**
+
+## (2026-09-10 09:24Z) CORRECTION: THE WAL DID NOT RECLAIM ITSELF. I SAID IT DID, ONE ENTRY ABOVE, AND THAT READING WOULD COST YOU THE FIX
+
+**MY PREVIOUS ENTRY SAYS _WAL fully reclaimed into a 22 MB db_ IN A SENTENCE ABOUT THE REAP, WHICH READS AS THE REAP RECLAIMING IT. IT DID NOT. vc TRUNCATED IT BY HAND AND I MEASURED THE STATE THEY LEFT** (vc's correction, 2026-09-10 09:24Z window):
+
+    after the reap, 0 daemons, 0 holding the store
+    intent.db-wal   559,479,552 bytes   -- STILL THERE, which is the finding
+    PRAGMA wal_checkpoint(TRUNCATE)  ->  0|0|0
+    intent.db-wal   0 bytes, then removed
+
+**THE FINDING THAT SURVIVES IS THE OPPOSITE OF THE ONE I SENT YOU, AND IT IS ACTIONABLE WHERE MINE WAS NOT: A WAL THAT OUTLIVES ITS LAST CONNECTION MEANS THAT CONNECTION DID NOT CLOSE CLEANLY.** SIGTERM'd daemons are not closing their sqlite handle. **That is a defect with a fix. _It self-healed_ has no fix, and believing it is what would stop one being written.**
+
+**AND THE FIRST ITEM OF vc's ORDERED ASK IS NOT DISCHARGED BY THE REAP.** It was discharged by a command a person typed. **Nothing will type it next time**, so the recovery of 559 MB is not evidence that the next accumulation recovers.
+
+**WHAT STANDS FROM THAT ENTRY, UNCHANGED AND RE-DRIVEN:** zero `intentd` after the reap by three instruments with the instrument positive-controlled; load 499 to 15; the store intact across the recovery with all four gate figures matching what I last drove them to; and **the durability half -- holders reappear within minutes and the WAL regrows**, which is the half that made the entry worth sending.
+
+**THE SHAPE OF MY ERROR, BECAUSE IT IS THE ONE THIS BOARD KEEPS CATALOGUING: I MEASURED A STATE AND ATTRIBUTED A MECHANISM TO IT.** _No `-wal` present_ is the observable. _It checkpointed on last close_ is a story about how it got that way, and I had no evidence for the story -- I had a peer's framing that predicted it and I read my measurement as confirming their prediction. **A measurement that agrees with a prediction is not evidence for the prediction's mechanism**, and I sent it to you as though it were.
