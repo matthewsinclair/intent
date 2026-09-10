@@ -52,6 +52,28 @@ cd "$root" || exit 2
 INTENT="${INTENT_BIN:-intent}"
 PHRASE="is a known command that is not implemented yet"
 
+# **CURRENCY, ASKED BEFORE ANYTHING IS REPORTED (`AC-00.14`), AND THIS ROW'S
+# EXPOSURE IS NOT HYPOTHETICAL.** This check drives whatever `intent` resolves
+# to and reports a verb as UNWIRED when it answers the phrase above. **A verb
+# wired AFTER the binary was built answers exactly that way** -- so a stale
+# artefact does not make this check miss a defect, it makes it INVENT one.
+# Measured 2026-09-09: `claude rules validate` answered the phrase on the
+# delivered pair while working at rc=0 on a build of the same tree.
+#
+# **REFUSING RATHER THAN WARNING, in this file's own idiom** -- it already
+# refuses when its negative control does not answer, on the ground that the
+# run's zero would be worthless. A run whose UNWIRED findings could each be an
+# artefact of the binary's age is worth no more.
+# shellcheck source=lib_currency.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib_currency.sh"
+_ipath="$(command -v "$INTENT" 2>/dev/null || true)"
+if [ -n "$_ipath" ]; then
+  currency_require "$_ipath" "$root" "$root/native/rust/crates" || {
+    echo "canon-verbs: REFUSING -- the binary this check drives cannot see a recent change, so every UNWIRED below would be a claim about a world that has moved" >&2
+    exit 2
+  }
+fi
+
 # The shipped canon an agent actually loads, plus the templates a fresh project
 # is seeded from. Both, because the falsifier's subject is a SWITCHED project
 # and the template is not what such a project is reading.

@@ -100,37 +100,19 @@ done
 # DERIVE THE PROBE. Walk back from HEAD; the first commit yielding a candidate
 # that survives the cfg(test) rejection defines it.
 # --------------------------------------------------------------------------
-probe_commit=""
-probes=()
-srcs=()
+# shellcheck source=lib_currency.sh
+. "$HERE/lib_currency.sh"
 
-while IFS= read -r commit; do
-  [ -n "$commit" ] || continue
-  cands=(); srcs=()
-  while IFS= read -r lit; do
-    [ -n "$lit" ] || continue
-    # The literal must still be in the tree -- a probe for deleted code tests nothing.
-    hit="$(grep -rn -F -- "$lit" "$CRATES"/*/src/*.rs 2>/dev/null | head -1)"
-    [ -n "$hit" ] || continue
-    file="${hit%%:*}"; rest="${hit#*:}"; line="${rest%%:*}"
-    # REJECT a literal sitting after its file's first `#[cfg(test)]`.
-    tmod="$(grep -n '#\[cfg(test)\]' "$file" 2>/dev/null | head -1 | cut -d: -f1)"
-    if [ -n "$tmod" ] && [ "$line" -ge "$tmod" ]; then continue; fi
-    cands+=("$lit")
-    # The literal's SOURCE FILE, in the form rustc embeds in panic locations
-    # (`crates/<crate>/src/<file>.rs`). Kept because an artefact that does not
-    # link this file CANNOT carry the probe, and reporting that as BLIND is the
-    # very defect this row is about -- see the UNREACHABLE partition below.
-    srcs+=("crates/${file#"$CRATES"/}")
-  done < <(git -C "$ROOT" show "$commit" -- 'native/rust/crates/*/src/*.rs' 2>/dev/null \
-    | grep -E '^\+' | grep -oE '"[a-z][a-z0-9 :;,._-]{24,70}"' | tr -d '"' | sort -u)
-
-  if [ "${#cands[@]}" -gt 0 ]; then
-    probe_commit="$commit"
-    probes=("${cands[@]}")
-    break
-  fi
-done < <(git -C "$ROOT" log -n "$DEPTH" --format=%h -- 'native/rust/crates/*/src/*.rs' 2>/dev/null)
+# **THE PROBE LOGIC LIVES IN `lib_currency.sh` AND NOT HERE.** This file is a
+# whole-estate CENSUS, which is the wrong shape for a consumer that wants to ask
+# about the one artefact it is about to drive -- so the derivation and the
+# three-state classifier moved to a sourceable home and this census became its
+# first caller. Twenty-six other instruments have the same exposure and no way
+# to ask without paying for a census; that is what the lib is for.
+currency_derive_probe "$ROOT" "$CRATES" "$DEPTH" || true
+probe_commit="$CURRENCY_PROBE_COMMIT"
+probes=("${CURRENCY_PROBE_LITERALS[@]-}")
+srcs=("${CURRENCY_PROBE_SRCS[@]-}")
 
 [ -n "$probe_commit" ] || die "no shipping literal found in the last $DEPTH source commits -- the probe could not be derived, so nothing here is measurable. Raise DEPTH or accept that this run establishes nothing."
 
@@ -203,19 +185,11 @@ done
 
 current=(); stale=(); unreachable=()
 for a in "${artefacts[@]}"; do
-  hits=0
-  for p in "${probes[@]}"; do
-    c="$(strings "$a" 2>/dev/null | grep -cF -- "$p" || true)"
-    hits=$((hits + ${c:-0}))
-  done
-  linked=0
-  for f in "${srcs[@]}"; do
-    c="$(strings "$a" 2>/dev/null | grep -cF -- "$f" || true)"
-    [ "${c:-0}" -gt 0 ] && linked=1
-  done
-  if [ "$hits" -gt 0 ]; then current+=("$a")
-  elif [ "$linked" -eq 1 ]; then stale+=("$a")
-  else unreachable+=("$a"); fi
+  case "$(currency_state "$a")" in
+    CURRENT) current+=("$a") ;;
+    BLIND) stale+=("$a") ;;
+    *) unreachable+=("$a") ;;
+  esac
 done
 
 echo "CONTROL B -- the probe can match: ${#current[@]} of ${#artefacts[@]} artefact(s) carry it"
