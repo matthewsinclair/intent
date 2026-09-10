@@ -144,3 +144,31 @@ Two requirements go INTO the mechanism rather than into a note, both bought with
 Size **M**. Falsifier is clean and does not need your machine: spawn N in a scratch project, the door says N; kill them, it says 0. vc has agreed the shape and added the executable requirement. **Your word needed only on whether it belongs in this cut or after it** -- it is devx, it is unblocked, and it is the only new work my column has that nobody is waiting on.
 
 -- dc
+
+## (2026-09-10 09:51Z)
+
+**ADDENDUM TO MY FILING ABOVE. THE POPULATION IS FOUR SUITES WIDER THAN THREE DOORS, AND IT IS ONE SHAPE RATHER THAN TWO -- vc's instruction, and I agree with it.**
+
+Fixing AC-12.1 this morning took me one command away from deleting four bats suites, and checking what referenced them is the only thing that stopped me. **All four are dispositioned `keep` in `intent/st/ST0056/parity/register.md`, with the full burn ALREADY RECORDED:**
+
+    agent_commands.bats    50 tests   50/50   keep   full burn
+    skills_commands.bats   39 tests   39/39   keep   full burn
+    rule_index.bats         8 tests    8/8    keep   full burn
+    claude_prime.bats       2 tests    2/2    keep   full burn
+
+They are cited by `burn-baseline.tsv`, `lib_classify.sh` and four TAP baselines. **Deleting them is a DISPOSITION CHANGE and a re-base of the parity population, and it lands on `AC-06.1` -- the run only you can make.** I would have re-based your baseline while fixing a red workflow, in the same commit, with nothing saying so. **That is the worst shape a correct-looking change can take**, and the only reason it is not in the tree is that I looked before deleting.
+
+**AND IT IS THE SAME CLASS AS THE THREE DOORS ABOVE, ONE LAYER DOWN: a disposition that outlived its subject.** Four suites dispositioned `keep`, testing five doors pruned at `125f601d8` eleven days ago. So the ask above is unchanged in kind and wider in scope -- **one ruling over three doors AND four suites**, rather than answering the doors now and the suites in a fortnight. `d8a8c070` fixed the half that is unambiguously mine: v2's dispatcher no longer advertises what v2 cannot serve. **It does NOT turn CI green and does not claim to** -- the suites now meet `Unknown claude subcommand` instead of `Plugin command not found`.
+
+**SHARPENING THE `int local status` PROPOSAL, ON A CORRECTION vc MADE AGAINST THEMSELVES.** vc told three nodes there is NO spawn site for `intentd` in shipped code. **There is one**: `render.rs:6636`, where `intent daemon start` detaches a daemon into its own process group via `process_group(0)`. That is CORRECT for a user verb -- your daemon should outlive your shell -- and it means **the estate has TWO daemon-creation mechanisms with different lifetimes, one deliberately detached, and no tool distinguishes them or counts either.** It was invisible to a `Command::new` grep because `resolve_intentd()` computes the binary name rather than spelling it. **Nobody could have caught this by reading; it took the machine falling over.** That is the argument for the tool, and it is stronger than the one I filed with.
+
+**AND A MACHINE-COST QUESTION I AM FILING AS OPEN RATHER THAN AS A FINDING, BECAUSE SETTLING IT NEEDS THE ONE THING NOBODY MAY DO RIGHT NOW.** A tool reporting what a test run costs this machine probably has to count more than processes. Measured, statically, with zero daemons and nothing building:
+
+- **247,053 files under `native/rust/target`**, and **no `.metadata_never_index`** at the target, crate or repo root, with Spotlight indexing enabled on the volume.
+- **A load contributor nobody in this estate has named: Dropbox.** `fileproviderd` at 59.7% and `Dropbox` at 18.1% -- and the `local` git remote is `~/Dropbox/Repositories/Devel/Intent`, where 255 commits landed this morning. The repo itself is NOT inside Dropbox; the remote is.
+- **I CANNOT GIVE YOU A SPOTLIGHT ITEM COUNT AND WILL NOT PICK ONE.** Three query forms returned three answers -- `mdfind '*'` gave 92, `kMDItemFSName == '*'` gave 0, `find` on disk gave 247,053. **An instrument disagreeing with itself three ways adjudicates nothing**, so vc's 43,898 is neither confirmed nor refuted by me.
+- **vc read `syspolicyd` at 69%; I read it at 2.8%.** Different samples minutes apart, and Gatekeeper assessment is bursty by nature. **Not a refutation and I am not offering it as one.**
+
+**THE CAUSAL LINK IS THE PART THAT IS MISSING, AND IT IS MISSING BY CONSTRUCTION: confirming that a workspace run drives this cost means RUNNING A SUITE, which is exactly what is forbidden while the machine recovers.** So this is an open question with its own blocker stated, not a finding dressed as one.
+
+-- dc
