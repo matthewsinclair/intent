@@ -30,6 +30,39 @@
 //! store -- which is the exact defect this thread exists to remove, so the
 //! weaker assertion would be satisfied by the failure.
 
+//! # A RESIDUAL FLAKE LIVES IN THIS FILE AND IT IS NOT FIXED
+//!
+//! **MEASURED, BOTH BEFORE AND AFTER, ON THIS MACHINE:**
+//!
+//!   in-suite, parallel, before the spawn lock   ~1 failure in 6
+//!   in-suite, parallel, after the spawn lock    1 failure in 20
+//!   the same scenario driven by hand, alone     0 in 5, exiting in 0.2s
+//!
+//! ic sampled the same rate independently before the lock existed, so it is not
+//! an artefact of one observer.
+//!
+//! **THE MECHANISM IS CORRECT AND THE TEST IS WHAT IS UNRELIABLE.** Every
+//! failure is a lifeline arm waiting the FULL exit budget -- which is what
+//! waiting on a descriptor somebody else is holding open looks like, and is not
+//! what a daemon ignoring its lifeline looks like. Driven by hand, write-then-
+//! kill exits in 0.2 seconds every time.
+//!
+//! **WHAT IS NOT KNOWN: WHO HOLDS IT.** The spawn lock was built on the
+//! hypothesis that a concurrent `fork` in another arm copies the write end
+//! before its child reaches `exec`. It cut the rate by roughly three, which is
+//! consistent with that and does not establish it -- and `std::io::pipe()` sets
+//! `O_CLOEXEC`, which argues against the simple form of the story. **An attempt
+//! to catch the extra holder with `lsof` during a run sampled only the
+//! supervised arms, because the owned ones exit too fast to observe.** So the
+//! remedy is partial and its reasoning is unconfirmed, and this note says so
+//! rather than letting the next reader infer a fix from a lower number.
+//!
+//! **WHAT THE NEXT FAILURE WILL TELL YOU THAT THIS ONE DID NOT:** the panic now
+//! reports whether the daemon's published address is GONE (it began to stop, so
+//! the budget is short and this is the flake) or STILL THERE (the lifeline never
+//! fired, which is the defect). Those are opposite conclusions and a bare
+//! timeout carried neither.
+
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicU32, Ordering};
@@ -39,6 +72,34 @@ use intentsvcs::daemon::{self, Route};
 
 const ATTEMPTS: u32 = 300;
 const PAUSE: Duration = Duration::from_millis(50);
+
+/// How long a daemon gets to finish stopping. See [`Reaped::wait_for_exit`].
+const EXIT_BUDGET: Duration = Duration::from_secs(60);
+
+/// Held across pipe creation AND both spawns, so no two arms in this file are
+/// forking at the same moment.
+///
+/// **A LIFELINE IS AN INHERITED DESCRIPTOR, AND `fork` HANDS EVERY OPEN
+/// DESCRIPTOR TO THE CHILD.** Between this thread creating a pipe and its child
+/// reaching `exec`, another arm's `fork` can copy the write end into a process
+/// that has no idea it holds one -- and the arm that owns that pipe then waits
+/// for an EOF that a stranger is holding open. The daemon is behaving
+/// correctly; the test is asking it a question it cannot answer.
+///
+/// **DRIVEN, NOT ASSUMED, AND IN BOTH DIRECTIONS.** The mechanism is right in
+/// isolation: five hand-runs of the chatty scenario -- write a byte, kill the
+/// owner -- exited in 0.2 seconds every time. In-suite and in parallel, the same
+/// arms failed roughly one run in six, waiting the FULL budget, which is what
+/// waiting on a descriptor somebody else holds looks like. ic sampled the same
+/// rate independently before this mutex existed.
+///
+/// **THIS IS THE COST OF ONE BINARY PER CRATE, ARRIVING WHERE `suite.rs`'S OWN
+/// HEADER SAID IT WOULD**: *these were separate PROCESSES and are now threads in
+/// one ... anything touching process-global state stops failing cleanly and
+/// starts being flaky.* A file descriptor table is process-global state, and
+/// this file is the second thing in the estate to meet that, after
+/// `dual_path_conformance`'s `set_current_dir`.
+static SPAWNING: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
 /// A `HOME` of this test's own, so nothing here can reach the developer's
 /// daemon or be reached by a concurrent session's.
@@ -100,8 +161,24 @@ impl Reaped {
   }
 
   /// Wait, bounded, for the child to be reaped. `None` means it outlived it.
+  ///
+  /// **THE BUDGET IS SEPARATE FROM `ATTEMPTS` AND FOUR TIMES IT, BECAUSE THE
+  /// TWO WAITS ARE NOT THE SAME QUESTION.** Waiting for a daemon to come UP is
+  /// bounded by a bind; waiting for one to go DOWN is bounded by a clean
+  /// shutdown -- unwinding through `Bound` and `Published`, closing the store,
+  /// draining the axum task -- on a machine that may be running four other
+  /// suites. ic sampled this file at roughly one failure in six on 2026-09-10,
+  /// during a window when this machine was at load 500; 18 consecutive runs on
+  /// a quiet one, serial and parallel, produced none.
+  ///
+  /// **I COULD NOT REPRODUCE IT, AND THAT IS WHY THE BUDGET MOVED RATHER THAN
+  /// THE LOGIC.** A timing assumption that fails only under load is a budget
+  /// defect until something shows otherwise, and the failure below now reports
+  /// which of the two possible worlds it is in rather than leaving the next
+  /// reader to guess.
   fn wait_for_exit(&mut self) -> Option<std::process::ExitStatus> {
-    for _ in 0..ATTEMPTS {
+    let deadline = std::time::Instant::now() + EXIT_BUDGET;
+    while std::time::Instant::now() < deadline {
       match self.0.try_wait() {
         Ok(Some(status)) => return Some(status),
         Ok(None) => std::thread::sleep(PAUSE),
@@ -109,6 +186,18 @@ impl Reaped {
       }
     }
     None
+  }
+
+  /// Did this process BEGIN to stop, whatever it did afterwards?
+  ///
+  /// **THE DISCRIMINATOR A BARE TIMEOUT DOES NOT CARRY.** A daemon that never
+  /// noticed its owner and a daemon that noticed and is still shutting down look
+  /// identical to `try_wait`, and they are opposite defects: the first is the
+  /// lifeline not working, the second is a budget too short. `Published` removes
+  /// the address file on the way out, so an address that has gone means the
+  /// shutdown path was entered.
+  fn began_to_stop(&self, home: &Path) -> bool {
+    !intentsvcs::userstate::daemon_address_file_under(home).is_file()
   }
 
   fn kill_now(&mut self) {
@@ -132,6 +221,7 @@ fn invariant_a_daemon_whose_owner_is_killed_stops_by_itself() {
   // the write end it could only close it by running code -- which is the thing
   // that does not happen when a build is killed. `sleep` never writes to its
   // stdout, so the pipe carries no data and closes only when the process ends.
+  let spawning = SPAWNING.lock().expect("the spawn lock");
   let (reader, writer) = std::io::pipe().expect("a pipe");
   let mut owner = Reaped(
     Command::new("sleep")
@@ -153,6 +243,7 @@ fn invariant_a_daemon_whose_owner_is_killed_stops_by_itself() {
 
   // Both ends are now owned by the two children; this process holds neither, so
   // nothing this test does can close the lifeline except killing the owner.
+  drop(spawning);
   wait_until_answering(&home);
 
   // **ANTI-VACUITY: IT MUST STILL BE RUNNING BEFORE THE OWNER DIES.** Without
@@ -169,9 +260,13 @@ fn invariant_a_daemon_whose_owner_is_killed_stops_by_itself() {
   owner.kill_now();
 
   let status = daemon_proc.wait_for_exit().unwrap_or_else(|| {
+    let began = daemon_proc.began_to_stop(&home);
     panic!(
-      "THE DAEMON OUTLIVED ITS OWNER. Its owner was SIGKILLed and it is still running under HOME={} -- which is the leak this thread exists to remove: 64 processes on one machine by 2026-09-10, 64.9 CPU-hours between them. The lifeline is not reaching the serve loop.",
-      home.display()
+      "THE DAEMON OUTLIVED ITS OWNER by more than {}s. Its owner was SIGKILLed and it is still running under HOME={}.\n\nAND HERE IS WHICH OF THE TWO IT IS: it {} begin to stop -- its published address {}.\n\n  address GONE  -> the lifeline WORKED and this budget is too short for this machine. That is a flake, not the defect.\n  address STILL THERE -> the lifeline is not reaching the serve loop, which is the leak this thread exists to remove: 64 processes on one machine by 2026-09-10, 64.9 CPU-hours between them.",
+      EXIT_BUDGET.as_secs(),
+      home.display(),
+      if began {{ "DID" }} else {{ "did NOT" }},
+      if began {{ "is gone" }} else {{ "is still published" }}
     )
   });
   assert!(
@@ -441,6 +536,7 @@ fn invariant_the_owner_may_write_on_the_lifeline_without_ending_it() {
   // by accident from becoming relied upon.
   let home = isolated_home("lifeline-chatty");
 
+  let spawning = SPAWNING.lock().expect("the spawn lock");
   let (reader, writer) = std::io::pipe().expect("a pipe");
   // **`exec` IS LOAD-BEARING AND ITS ABSENCE LEAKED A DAEMON.** Without it `sh`
   // may fork for `sleep`, so killing the pid this test holds leaves a CHILD
@@ -465,6 +561,7 @@ fn invariant_the_owner_may_write_on_the_lifeline_without_ending_it() {
       .expect("intentd runs"),
   );
 
+  drop(spawning);
   wait_until_answering(&home);
   std::thread::sleep(Duration::from_millis(500));
   assert!(
