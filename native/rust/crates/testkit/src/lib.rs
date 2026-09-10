@@ -301,3 +301,154 @@ fn declared_suite_paths(suite: &str) -> BTreeSet<String> {
   }
   out
 }
+
+/// What a sweep did, so a caller can assert on it rather than trust it.
+///
+/// A `()`-returning sweep is indistinguishable from a sweep that matched
+/// nothing, which is the failure this estate keeps meeting: an instrument whose
+/// silence and whose success look identical.
+#[derive(Debug, Default, PartialEq, Eq)]
+pub struct SweepReport {
+  /// Directories whose NAME said they were an abandoned-fixture candidate.
+  pub examined: usize,
+  /// Candidates whose creating process is gone, and which were removed.
+  pub removed: usize,
+  /// Candidates whose creating process is still alive, deliberately left.
+  pub kept_live: usize,
+  /// The live-process set could not be read, so NOTHING was removed.
+  pub refused: bool,
+}
+
+/// Remove `/tmp` fixture directories whose creating process is gone.
+///
+/// # Why this runs at START and never at exit
+///
+/// Every fixture home already has a `Drop` that removes it, and `/tmp` held
+/// **902 of them** when this was written. `Drop` is the exit path, and the exit
+/// path is exactly the one that does not run when a test binary is killed --
+/// which is the condition that produced the whole population. **A cleanup that
+/// only runs on the happy path cleans up only what did not need cleaning.**
+///
+/// So this is called before the first fixture of a run is created. It cleans up
+/// after the PREVIOUS run's corpses rather than its own, which is the only
+/// ordering that survives its own process being killed.
+///
+/// # The discriminator is STRUCTURAL, not a list of prefixes
+///
+/// A candidate is a directory whose name ends `-<pid>-<counter>` and begins
+/// `intent`. **A prefix list would have been wrong on the day it was written:**
+/// the six creation sites spell four families (`intent-fixture-*`,
+/// `intentd-proj`, `intentd-home`, and the `execwitness` variant that wears an
+/// `intent-fixture-` prefix), and reading the code found fewer families than
+/// reading the disk did. The trailing `-<pid>-<counter>` is what every creation
+/// site actually produces, so matching on it catches families nobody listed.
+///
+/// **AND IT IS WHAT EXCLUDES THE THINGS THAT ARE NOT FIXTURES.** `/tmp/intent`
+/// is the `in-session` gate's sentinel directory and `/tmp/intentfiles.new` is
+/// a stray file; both start with `intent` and neither carries the suffix, so
+/// neither is a candidate. A prefix-only match would have deleted the sentinel
+/// directory out from under every running Claude Code session on this machine.
+///
+/// # Refusing beats guessing
+///
+/// If the live-process set cannot be read, this removes NOTHING and says so in
+/// [`SweepReport::refused`]. **A sweep that cannot tell live from dead and
+/// deletes anyway is worse than the leak**: the live fixtures belong to test
+/// runs in progress, including other developers' on a shared machine.
+///
+/// Pid reuse can only make this KEEP an abandoned directory (its dead pid now
+/// names some live process), never delete a live one -- a live fixture's own
+/// process is alive by construction. The failure direction is a leak that
+/// persists, which is safe.
+///
+/// # `/tmp` literally, not `temp_dir()`
+///
+/// The creation sites hardcode `PathBuf::from("/tmp")`, and on macOS
+/// `std::env::temp_dir()` honours `TMPDIR`, which is a per-user directory and
+/// NOT `/tmp`. Reading a different directory than the writers write to is the
+/// population-mismatch defect; this deliberately matches the writers. When
+/// `WP-03` gives spawning one home, this constant collapses with theirs.
+pub fn sweep_abandoned_fixtures() -> SweepReport {
+  let mut report = SweepReport::default();
+  let Some(live) = live_pids() else {
+    report.refused = true;
+    return report;
+  };
+  let Ok(entries) = std::fs::read_dir("/tmp") else {
+    return report;
+  };
+  for entry in entries.flatten() {
+    let name = entry.file_name();
+    let Some(name) = name.to_str() else { continue };
+    let Some(pid) = abandoned_fixture_pid(name) else {
+      continue;
+    };
+    if !entry.path().is_dir() {
+      continue;
+    }
+    report.examined += 1;
+    if live.contains(&pid) {
+      report.kept_live += 1;
+    } else if std::fs::remove_dir_all(entry.path()).is_ok() {
+      report.removed += 1;
+    }
+  }
+  report
+}
+
+/// The creating pid of a fixture directory name, or `None` if the name is not
+/// one.
+///
+/// Split out so the naming contract is testable WITHOUT touching `/tmp`: the
+/// exclusions above (`intent`, `intentfiles.new`) are assertions about this
+/// function, and a test that had to plant real directories to check them would
+/// be slower and would race every other suite on the machine.
+pub fn abandoned_fixture_pid(name: &str) -> Option<u32> {
+  if !name.starts_with("intent") {
+    return None;
+  }
+  let (rest, counter) = name.rsplit_once('-')?;
+  let (_family, pid) = rest.rsplit_once('-')?;
+  // BOTH trailing segments must be numeric. `intent-fixture-browse-wp-absent`
+  // ends in a word, and reading `absent` as a counter would make its parent
+  // segment the "pid" -- a name-shaped match on a directory that is not one.
+  counter.parse::<u32>().ok()?;
+  pid.parse().ok()
+}
+
+/// Every live pid on this machine, or `None` if the question could not be
+/// answered.
+///
+/// `ps` rather than `/proc`, which does not exist on macOS, and rather than
+/// `kill -0` per candidate, which would be one process spawn per directory --
+/// 902 of them on the day this was written.
+fn live_pids() -> Option<BTreeSet<u32>> {
+  let out = Command::new("ps").args(["-Ao", "pid="]).output().ok()?;
+  if !out.status.success() {
+    return None;
+  }
+  let set: BTreeSet<u32> = String::from_utf8_lossy(&out.stdout)
+    .split_whitespace()
+    .filter_map(|p| p.parse().ok())
+    .collect();
+  // An EMPTY set means `ps` answered and told us nothing, which cannot be true
+  // -- this process is alive. Treating it as "no pid is live" would sweep every
+  // fixture on the machine, including running ones.
+  if set.is_empty() { None } else { Some(set) }
+}
+
+/// The at-START hook every `/tmp` fixture creation site calls before it creates
+/// its first directory.
+///
+/// Separate from [`sweep_abandoned_fixtures`] on purpose: the worker returns a
+/// [`SweepReport`] and is therefore assertable, while this one is idempotent per
+/// process and returns nothing, which is what a hook wants and what a test
+/// cannot check. **Collapsing them would make the worker unassertable after its
+/// first call** -- the second call would report zero removals and a test could
+/// not tell that from a sweep that does nothing.
+pub fn sweep_once() {
+  static ONCE: std::sync::Once = std::sync::Once::new();
+  ONCE.call_once(|| {
+    let _ = sweep_abandoned_fixtures();
+  });
+}

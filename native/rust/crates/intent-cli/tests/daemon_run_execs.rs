@@ -49,6 +49,12 @@ const PAUSE: std::time::Duration = std::time::Duration::from_millis(20);
 /// process's open descriptors rather than trusting the pattern.
 fn short_dir(prefix: &str) -> PathBuf {
   static NEXT: AtomicU32 = AtomicU32::new(0);
+  // **AT START, NEVER AT EXIT.** The `Drop` below removes this directory on the
+  // happy path; the path that produced 902 abandoned homes in `/tmp` is the one
+  // where the binary is killed and no `Drop` runs. Sweeping here cleans up the
+  // PREVIOUS run's corpses, which is the only ordering that survives this
+  // process being killed too. Idempotent per process.
+  testkit::sweep_once();
   let dir = PathBuf::from("/tmp").join(format!(
     "{prefix}-{}-{}",
     std::process::id(),
@@ -104,9 +110,16 @@ impl ForegroundDaemon {
     // daemon holds the store -- so a careless fixture here takes four
     // developers' store verbs down together.
     let home = short_dir("intent-fixture-execwitness");
+    // **THE LIFELINE (`ST0073`), AND `daemon run` EXECS, SO THE PIPE ARRIVES IN
+    // THE DAEMON RATHER THAN STOPPING AT THE CLI.** This site was missed by
+    // hand and found by `every_daemon_spawn_carries_a_lifeline.rs`, which is
+    // the argument for that check existing: three sites were armed
+    // deliberately and a fourth was not, in the same hour, by the person who
+    // wrote the fix.
     let child = Command::new(env!("CARGO_BIN_EXE_intent"))
       .args(["daemon", "run"])
       .env("HOME", &home)
+      .stdin(Stdio::piped())
       .stdout(Stdio::null())
       .stderr(Stdio::null())
       .spawn()

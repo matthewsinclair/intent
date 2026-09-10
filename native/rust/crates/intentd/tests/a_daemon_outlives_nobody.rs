@@ -46,6 +46,12 @@ fn isolated_home(tag: &str) -> PathBuf {
   static NEXT: AtomicU32 = AtomicU32::new(0);
   // Short, because a unix socket address is a fixed-size field and `$TMPDIR` on
   // macOS is a ~50-character generated path.
+  // **AT START, NEVER AT EXIT.** The `Drop` below removes this directory on the
+  // happy path; the path that produced 902 abandoned homes in `/tmp` is the one
+  // where the binary is killed and no `Drop` runs. Sweeping here cleans up the
+  // PREVIOUS run's corpses, which is the only ordering that survives this
+  // process being killed too. Idempotent per process.
+  testkit::sweep_once();
   let dir = PathBuf::from("/tmp").join(format!(
     "intent-fixture-{tag}-{}-{}",
     std::process::id(),
@@ -185,6 +191,10 @@ fn invariant_a_daemon_with_no_lifeline_serves_until_signalled() {
   // so an implementation that treated stdin as a lifeline unconditionally would
   // die here on its first poll -- which is precisely the silent breakage this
   // arm exists to catch.
+  // LIFELINE-EXEMPT: this arm exists to spawn a daemon with NO lifeline -- it
+  // is the production control, and `Stdio::null()` is what launchd hands one.
+  // Arming it would delete the only test of the supervised path. It is reaped
+  // by `Reaped` and by its own SIGTERM below.
   let mut daemon_proc = Reaped(
     Command::new(env!("CARGO_BIN_EXE_intentd"))
       .env("HOME", &home)

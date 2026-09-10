@@ -50,6 +50,12 @@ impl Machine {
     static NEXT: AtomicU32 = AtomicU32::new(0);
     // Short, because a unix socket address is a fixed-size field and `$TMPDIR`
     // on macOS is a ~50-character generated path.
+    // **AT START, NEVER AT EXIT.** The `Drop` below removes this directory on the
+    // happy path; the path that produced 902 abandoned homes in `/tmp` is the one
+    // where the binary is killed and no `Drop` runs. Sweeping here cleans up the
+    // PREVIOUS run's corpses, which is the only ordering that survives this
+    // process being killed too. Idempotent per process.
+    testkit::sweep_once();
     let home = PathBuf::from("/tmp").join(format!(
       "intent-fixture-lifecycle-{}-{}",
       std::process::id(),

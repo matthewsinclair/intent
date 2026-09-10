@@ -27,9 +27,9 @@ title: intentd owns its own lifetime: a lifeline instead of an assumed superviso
 
 - AC-03.1 **The test tree has ONE home that spawns `intentd`, and a check refuses a second.** The check reads the test sources structurally and is positive-controlled by a planted second spawn site that it must catch, and by a clean tree it must pass -- **a roster check that has never been shown to fire is decoration.** It REFUSES over an empty population rather than reporting the reassuring zero that a broken pattern also reports. -- satisfied: no (computed)
 
-### WP-04 -- The fixture-home teardown leak (status: Not Started)
+### WP-04 -- The fixture-home teardown leak (status: WIP)
 
-- AC-04.1 **Fixture homes do not accumulate: a suite run leaves the /tmp population no larger than it found it**, and the sweep that guarantees it runs at START rather than at exit. Exit is the path that does not run when a build is killed, which is the condition that produced all 669. -- satisfied: no (computed)
+- AC-04.1 **Fixture homes do not accumulate: a suite run leaves the /tmp population no larger than it found it**, and the sweep that guarantees it runs at START rather than at exit. Exit is the path that does not run when a build is killed, which is the condition that produced all 669. -- satisfied: yes (computed)
 
 ### Group 05
 
@@ -50,9 +50,23 @@ title: intentd owns its own lifetime: a lifeline instead of an assumed superviso
 
 - AT-03.1 `native/rust/crates/intentd/tests/one_home_spawns_the_daemon.rs` -- covers AC-03.1 -- status: to-write -- Plants a second spawn site in-test and requires the check to fire on it.
 
-### WP-04 -- The fixture-home teardown leak (status: Not Started)
+### WP-04 -- The fixture-home teardown leak (status: WIP)
 
-- AT-04.1 `native/rust/crates/intentd/tests/fixtures_do_not_accumulate.rs` -- covers AC-04.1 -- status: to-write -- Drives the START sweep, not the exit path.
+- AT-04.1 `native/rust/crates/testkit/tests/abandoned_fixtures_are_swept.rs` -- covers AC-04.1 -- status: green -- GREEN 2026-09-10 (ic), 4 arms in testkit's single suite target, BURNED IN THREE DIRECTIONS rather than merely passing. The sweep lives in `testkit` -- one home reachable from every crate's tests, std only, no new dependency so `dep_graph_guard` stays quiet. `sweep_abandoned_fixtures()` is the assertable worker returning a SweepReport; `sweep_once()` is the idempotent at-START hook. They are separate deliberately: collapsing them makes the worker unassertable after its first call, because a second call reports zero removals and a test cannot tell that from a sweep that does nothing.
+
+THE DISCRIMINATOR IS STRUCTURAL, NOT A PREFIX LIST, AND THE DISK FORCED THAT. Reading the six creation sites found four families; reading /tmp found twelve name shapes. A candidate is a directory whose name begins `intent` AND ends `-<pid>-<counter>`. THE SUFFIX CLAUSE IS WHAT SAVES THE MACHINE, and both exclusions are asserted arms: `/tmp/intent` is the in-session gate's sentinel DIRECTORY, holding one file per live Claude Code session, and `/tmp/intentfiles.new` is a stray file. Both begin `intent`. A prefix-only sweep -- the one anyone writes first -- deletes the sentinel directory out from under every running session on the machine.
+
+REFUSING BEATS GUESSING: if the live-pid set cannot be read, or comes back EMPTY, nothing is removed and the report says `refused`. An empty `ps` result cannot be true while the sweep itself is running, and reading it as "no pid is live" would sweep every fixture on the machine including in-flight ones. Pid reuse can only make this KEEP an abandoned directory, never delete a live one, because a live fixture's own process is alive by construction -- the failure direction is a leak that persists, which is the safe one.
+
+BURN MAP, each firing on exactly its own arms and no others: (1) liveness check removed so the sweep deletes everything it matches -> `a_dead_fixture_is_removed_and_a_live_one_survives_the_same_sweep` alone FAILS; (2) removal disabled, the silent no-op -> that arm AND `a_run_leaves_no_corpse_of_its_own_behind` FAIL; (3) one of the six creation sites unwired -> `every_tmp_fixture_creation_site_sweeps_at_start` alone FAILS. The live-fixture arm is what makes the dead-fixture arm mean anything: "the abandoned directory is gone" is also what a sweep that deletes everything returns, and that sweep would take out every concurrent test run's fixtures.
+
+THE SITE ARM IS A SOURCE CHECK BECAUSE A RUNTIME CHECK PASSES ON THE BROKEN TREE TOO. `sweep_once` is Once-guarded per process, so once ANY site has called it, a site that never calls it is indistinguishable at run time from one that does.
+
+ONE ARM CAUGHT ITS OWN FLAKINESS BEFORE IT COULD LAND, AND THE LIMIT IS RECORDED RATHER THAN PAPERED OVER. The first population arm counted all of /tmp and failed with `the population grew across a run: 0 -> 0` -- the count moved between the assertion and its own panic message, because sibling test binaries share that directory. /tmp is not this test's to make claims about, and a global assertion would have landed as an intermittent CI red whose cause is a concurrently running sibling. Rescoped to a probe family keyed on this process, where the property is deterministic.
+
+LIVE EFFECT, MEASURED RATHER THAN PREDICTED: 902 abandoned directories / 133.7 MB before, 19 / 3.4 MB after, with the sentinel directory and its 46 live session files untouched. The 19 survivors are other suites' live-pid fixtures, which is the correct outcome.
+
+NOT CLAIMED, AND ROUTED RATHER THAN TAKEN: `testkit::fixture_home()`'s own doc already rules /tmp the wrong home -- "under target/ rather than the system temp directory ... it never accumulates in /tmp where nothing prunes it" -- while all six sites hardcode /tmp anyway. Moving them under target/ would let `cargo clean` do this and need no sweep at all. That changes AC-04.1's named mechanism, which is not ic's to change, so the sweep the row specifies is what was built and the alternative is flagged for vc/hv.
 
 ### Group 05
 

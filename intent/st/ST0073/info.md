@@ -23,7 +23,7 @@ Give `intentd` a lifetime it can observe, so a daemon whose owner dies stops ins
 | WP-01 | The lifeline: intentd exits when the owner it can observe goes away | S    | WIP         |
 | WP-02 | State-dir death exit                                                | XS   | Not Started |
 | WP-03 | One home for spawning a daemon in the test tree                     | M    | Not Started |
-| WP-04 | The fixture-home teardown leak                                      | S    | Not Started |
+| WP-04 | The fixture-home teardown leak                                      | S    | WIP         |
 
 ## Acceptance
 

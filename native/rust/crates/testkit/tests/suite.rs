@@ -19,3 +19,6 @@ mod roots_and_fixture_home;
 
 #[path = "no_orphan_suite_member.rs"]
 mod no_orphan_suite_member;
+
+#[path = "abandoned_fixtures_are_swept.rs"]
+mod abandoned_fixtures_are_swept;

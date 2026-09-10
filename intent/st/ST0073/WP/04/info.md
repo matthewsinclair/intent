@@ -2,7 +2,7 @@
 wp_id: WP-04
 title: The fixture-home teardown leak
 scope: S
-status: Not Started
+status: WIP
 ---
 
 # WP-04: The fixture-home teardown leak
