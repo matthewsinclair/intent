@@ -336,6 +336,10 @@ async fn serve_under(root: &Path, lifeline: Lifeline) -> Result<(), StartupError
   let lifeline_closed = lifeline.closed();
   tokio::pin!(lifeline_closed);
 
+  // Built once and pinned for the same reason the lifeline is.
+  let state_dir_gone = state_dir_removed(userstate::daemon_state_dir_under(root));
+  tokio::pin!(state_dir_gone);
+
   loop {
     tokio::select! {
       accepted = unix.accept() => match accepted {
@@ -381,10 +385,87 @@ async fn serve_under(root: &Path, lifeline: Lifeline) -> Result<(), StartupError
         println!("intentd stopping: {reason}");
         break;
       }
+      // **THE SAME EXIT AS A SIGNAL, FOR THE THIRD TIME AND FOR THE SAME
+      // REASON** (`ST0073` `AC-02.1`). It breaks the loop and unwinds through
+      // `Bound` and `Published`, so a removed state directory releases the lock
+      // and unlinks whatever is left of the socket exactly as `SIGTERM` does.
+      reason = &mut state_dir_gone => {
+        println!("intentd stopping: {reason}");
+        break;
+      }
     }
   }
 
   Ok(())
+}
+
+/// Resolve when the daemon's own state directory is gone.
+///
+/// # What this is for, and it is NOT the leak
+///
+/// **DRIVEN BEFORE IT WAS BUILT, because a row whose subject cannot be
+/// constructed is decoration.** A daemon whose home is removed under it keeps
+/// running: measured 2026-09-10 with the positive control the row demands --
+/// `daemon status` answering immediately before the removal, the process still
+/// alive 8s after it, and its owner's lifeline still held throughout so the
+/// survival is attributable to the directory and not to the pipe.
+///
+/// **AND THE SHARPER STATEMENT IS THAT IT CANNOT SERVE AND DOES NOT KNOW.** The
+/// socket lives INSIDE that tree, so after removal the daemon holds a listening
+/// socket whose path no longer exists: alive, holding the store, unreachable to
+/// any new client because there is nothing left to connect to. That is the
+/// orphaned-listener shape `AC-01.6` and `AC-08.3` already name, reached from a
+/// direction neither names -- an unlinked path under a live listener rather
+/// than an inherited descriptor.
+///
+/// **SO THIS ARM IS ABOUT CONTENTION, NOT SURVIVAL.** The lifeline already
+/// stops these outliving their run. What it cannot do is stop one accumulating
+/// DURING a run, because the owner is alive and the lifeline fires on the
+/// owner's death. An unreachable daemon is still a writer on the store, and
+/// concurrent writers are `0216`'s reproduced variable.
+///
+/// # Why this one is an interval when the lifeline next door refuses to be
+///
+/// [`Lifeline::closed`] argues against polling in terms that apply here too --
+/// *a poll leaves a window proportional to its period* -- and the two sitting
+/// side by side with no explanation is how the next reader concludes the
+/// lifeline could have been polled too. **It could not, and the difference is
+/// that the lifeline HAD AN EXACT ALTERNATIVE and this has none.**
+///
+/// A pipe delivers EOF from the kernel on a descriptor that cannot be recycled
+/// while it is open, so the lifeline's event is raceless and free. **A
+/// directory has no such primitive.** `notify` is the alternative and it
+/// REFUSES A PATH THAT DOES NOT EXIST (`watch.rs`, which already records this
+/// for the `intent/` case) -- so a watcher must be re-registered to notice the
+/// very event it exists for, which is an interval wearing a watcher's name. It
+/// would also put a SECOND watcher in a process that already runs a debouncer.
+///
+/// **The honest trade is a stated bound against a silent miss, and a stated
+/// bound wins.** A missed filesystem event is invisible; a period is written
+/// here, testable, and small against what it bounds -- one tick versus the
+/// remaining minutes of a test run.
+///
+/// # Two consecutive observations, not one
+///
+/// **THE ASYMMETRY IS THE ONE `Lifeline::observed` ALREADY MAKES.** Exiting
+/// wrongly stops `launchd`'s daemon until the next login, because the plist is
+/// `KeepAlive false` with no socket activation; staying wrongly leaves one
+/// orphan that the next tick collects. Those errors are not the same size, so a
+/// single unlucky `stat` must not be able to stop a production daemon.
+async fn state_dir_removed(dir: PathBuf) -> &'static str {
+  const PERIOD: Duration = Duration::from_secs(2);
+  let mut misses = 0u8;
+  loop {
+    tokio::time::sleep(PERIOD).await;
+    if dir.is_dir() {
+      misses = 0;
+    } else {
+      misses += 1;
+      if misses >= 2 {
+        return "its state directory was removed";
+      }
+    }
+  }
 }
 
 /// **AN ACCEPT FAILURE IS REPORTED AND SURVIVED, WITH A PAUSE THAT IS ABOUT THE

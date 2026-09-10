@@ -233,6 +233,122 @@ fn invariant_a_daemon_with_no_lifeline_serves_until_signalled() {
   let _ = std::fs::remove_dir_all(&home);
 }
 
+/// `AT-02.1` (`ST0073` `AC-02.1`): **a daemon whose own state directory is
+/// removed stops serving.**
+///
+/// # THE CONFOUND THAT MAKES THE OBVIOUS VERSION OF THIS TEST WORTHLESS
+///
+/// The first drive of this subject was a shell probe holding a lifeline FIFO,
+/// and **the FIFO cannot live inside the home.** Put it there -- which is the
+/// obvious placement, and where the next person will reach for it -- and
+/// removing the home closes the pipe, the daemon exits ON THE LIFELINE, and the
+/// run reads as a clean pass while proving nothing about state directories at
+/// all.
+///
+/// **THIS ARM REMOVES THE CONFOUND RATHER THAN MANAGING IT: the daemon is
+/// started SUPERVISED, with no lifeline of any kind.** `Stdio::null()` is what
+/// `launchd` hands one, so there is no owner, no pipe and nothing for an EOF to
+/// arrive on. An exit here cannot be the lifeline's doing because there is no
+/// lifeline. That is stronger than holding a pipe and asserting it is still
+/// held, and it needs no assertion to stay true.
+///
+/// # THE POSITIVE CONTROL IS THE ROW'S OWN DEMAND
+///
+/// `AC-02.1` says it in as many words: *with a positive control that the same
+/// daemon was answering immediately before the removal -- without that control
+/// the arm passes against a daemon that never started.* `wait_until_answering`
+/// is that control, and it waits on the shipped routing predicate rather than
+/// on a sleep.
+///
+/// # MEASURED BEFORE IT WAS BUILT
+///
+/// Driven 2026-09-10 against the build that had no state-directory arm: the
+/// daemon ANSWERED, its home was removed, and it was **still alive 8 seconds
+/// later**. So this row had a demonstrated subject before any code was written
+/// for it, which is the difference between a test and decoration.
+#[test]
+fn invariant_a_daemon_whose_state_directory_is_removed_stops_by_itself() {
+  let home = isolated_home("statedir-removed");
+
+  // LIFELINE-EXEMPT, AND THE EXEMPTION IS THE POINT OF THE ARM: a lifeline here
+  // would be the alternative explanation for the exit this test asserts.
+  let mut daemon_proc = Reaped(
+    Command::new(env!("CARGO_BIN_EXE_intentd"))
+      .env("HOME", &home)
+      .stdin(Stdio::null())
+      .stdout(Stdio::null())
+      .stderr(Stdio::null())
+      .spawn()
+      .expect("intentd is built beside this test by cargo"),
+  );
+
+  wait_until_answering(&home);
+
+  std::fs::remove_dir_all(&home).expect("remove the daemon's state directory");
+
+  assert!(
+    daemon_proc.wait_for_exit().is_some(),
+    "A DAEMON WHOSE STATE DIRECTORY WAS REMOVED KEPT RUNNING. It cannot serve -- its socket lived inside that tree, so the path a client would connect to is gone -- and it is still holding the store, which makes it a concurrent writer nothing can reach and nothing will stop until the run ends."
+  );
+}
+
+/// THE CONTROL FOR THE ARM ABOVE, AND ITS BUDGET IS WHAT MAKES IT DISTINCT.
+///
+/// **"The daemon exited" is also what a daemon that exits for any other reason
+/// looks like**, so an arm that only removes the directory and sees an exit
+/// cannot attribute it. This one changes exactly one variable -- the directory
+/// stays -- and requires the daemon to still be there.
+///
+/// **IT IS NOT A SECOND HOME FOR `invariant_a_daemon_with_no_lifeline_serves_
+/// until_signalled`, AND THE DIFFERENCE IS THE DEADLINE.** That arm waits 750ms,
+/// which is chosen against an EOF-on-stdin implementation that would die in
+/// microseconds. The state-directory check needs two consecutive misses on a
+/// two-second period, so its worst case is four seconds: 750ms establishes
+/// nothing about it, and this arm has to outlast the mechanism it controls for.
+#[test]
+fn invariant_a_daemon_whose_state_directory_remains_keeps_serving() {
+  let home = isolated_home("statedir-kept");
+
+  // LIFELINE-EXEMPT for the same reason as the arm above: the two must differ
+  // in the directory and in nothing else.
+  let mut daemon_proc = Reaped(
+    Command::new(env!("CARGO_BIN_EXE_intentd"))
+      .env("HOME", &home)
+      .stdin(Stdio::null())
+      .stdout(Stdio::null())
+      .stderr(Stdio::null())
+      .spawn()
+      .expect("intentd is built beside this test by cargo"),
+  );
+
+  wait_until_answering(&home);
+
+  // Comfortably past the two-miss, two-second worst case of the state-directory
+  // check, so a daemon that exits here is exiting on a timer rather than on the
+  // removal that never happened.
+  std::thread::sleep(Duration::from_millis(5_000));
+  assert!(
+    daemon_proc.running(),
+    "A DAEMON WITH ITS STATE DIRECTORY INTACT STOPPED ON ITS OWN. The state-directory check is firing on something other than the directory, which means the arm above proves nothing and launchd's daemon -- KeepAlive false, no socket activation -- would not come back until the next login."
+  );
+
+  // **THE POSITIVE CONTROL ON THE ASSERTION ABOVE.** `running()` is also what a
+  // broken observation returns; proving this test can see an exit when there is
+  // one to see is what stops "still running" being vacuous.
+  let signalled = Command::new("kill")
+    .arg("-TERM")
+    .arg(daemon_proc.id().to_string())
+    .status()
+    .expect("kill runs");
+  assert!(signalled.success(), "could not signal the daemon");
+  assert!(
+    daemon_proc.wait_for_exit().is_some(),
+    "the daemon did not exit on SIGTERM, so this test cannot observe an exit at all and its 'still running' assertion above establishes nothing"
+  );
+
+  let _ = std::fs::remove_dir_all(&home);
+}
+
 #[test]
 fn invariant_the_lifeline_is_event_driven_and_carries_no_interval() {
   // **STRUCTURAL, BECAUSE A TIMING ASSERTION CANNOT TELL A FAST POLL FROM AN

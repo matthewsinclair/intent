@@ -21,7 +21,7 @@ title: intentd owns its own lifetime: a lifeline instead of an assumed superviso
 
 ### WP-02 -- State-dir death exit (status: Not Started)
 
-- AC-02.1 **A daemon whose own state directory is removed stops serving**, driven by removing it under a running daemon, with a positive control that the same daemon was answering immediately before the removal. Without that control the arm passes against a daemon that never started. -- satisfied: no (computed)
+- AC-02.1 **A daemon whose own state directory is removed stops serving**, driven by removing it under a running daemon, with a positive control that the same daemon was answering immediately before the removal. Without that control the arm passes against a daemon that never started. -- satisfied: yes (computed)
 
 ### WP-03 -- One home for spawning a daemon in the test tree (status: Done)
 
@@ -44,7 +44,23 @@ title: intentd owns its own lifetime: a lifeline instead of an assumed superviso
 
 ### WP-02 -- State-dir death exit (status: Not Started)
 
-- AT-02.1 `native/rust/crates/intentd/tests/a_daemon_outlives_nobody.rs` -- covers AC-02.1 -- status: to-write -- Positive-controlled: the daemon must be answering before the state dir is removed.
+- AT-02.1 `native/rust/crates/intentd/tests/a_daemon_outlives_nobody.rs` -- covers AC-02.1 -- status: green -- GREEN 2026-09-10 (ic). Two arms in `a_daemon_outlives_nobody.rs`, which is where vc's header had already allocated AT-02.1 -- so this is that file's fifth and sixth arms rather than a second home for the fixture.
+
+DRIVEN BEFORE IT WAS BUILT, which is the difference between a test and decoration. Against the build with no state-directory arm: the daemon ANSWERED (`ok: intentd is answering at <home>/.local/share/intent/intentd.sock`), its home was removed, and it was STILL ALIVE 8 SECONDS LATER. Against the build with the arm: EXITED 3200ms after removal. Same probe, opposite verdicts, which is the burn.
+
+THE CONFOUND THAT MAKES THE OBVIOUS VERSION OF THIS TEST WORTHLESS, and it is recorded in the arm's own text because the next person will reach for the obvious placement. A lifeline FIFO must not live inside the home: put it there and removing the home closes the pipe, the daemon exits ON THE LIFELINE, and the run reads as a clean pass while proving nothing about state directories. The shell probe that first drove this managed the confound by keeping the FIFO outside the home and asserting it was still held at the moment of the verdict. THE ARM REMOVES IT INSTEAD OF MANAGING IT: the daemon is started SUPERVISED with `Stdio::null()`, so there is no owner, no pipe, and nothing for an EOF to arrive on. An exit cannot be the lifeline's doing because there is no lifeline, and that needs no assertion to stay true.
+
+THE POSITIVE CONTROL IS THE ROW'S OWN DEMAND and it is `wait_until_answering`, which waits on the shipped routing predicate rather than on a sleep. Without it the arm passes against a daemon that never started.
+
+THE SECOND ARM IS THE CONTROL AND ITS BUDGET IS WHAT MAKES IT DISTINCT FROM THE EXISTING SUPERVISED ARM. "The daemon exited" is also what a daemon exiting for any other reason looks like. `invariant_a_daemon_whose_state_directory_remains_keeps_serving` changes exactly one variable -- the directory stays -- and waits 5s, comfortably past the two-miss two-second worst case. The existing `serves_until_signalled` arm waits 750ms, chosen against an EOF-on-stdin implementation that dies in microseconds, so it establishes nothing about a 4-second mechanism. It then SIGTERMs and requires an exit, so "still running" cannot pass vacuously.
+
+MECHANISM, AND WHY IT IS AN INTERVAL WHEN THE LIFELINE NEXT DOOR REFUSES TO BE ONE. `AC-01.3` forbids an interval on the lifeline path and `invariant_the_lifeline_is_event_driven_and_carries_no_interval` enforces it structurally over the `impl Lifeline` block. This arm polls at 2s and the two sit in one file, so the reason is written at the function rather than left for a reader to infer that the lifeline could have been polled too. THE DIFFERENCE IS THAT THE LIFELINE HAD AN EXACT ALTERNATIVE AND THIS HAS NONE: a pipe delivers EOF from the kernel on a descriptor that cannot be recycled while open, so it is raceless and free. A directory has no such primitive. `notify` REFUSES A PATH THAT DOES NOT EXIST -- `watch.rs` already records this for the `intent/` case -- so a watcher must be re-registered to notice the very event it exists for, which is an interval wearing a watcher's name, and it would add a second watcher to a process already running a debouncer. The honest trade is a stated bound against a silent miss, and a stated bound wins.
+
+TWO CONSECUTIVE MISSES, NOT ONE, on the asymmetry `Lifeline::observed` already makes: exiting wrongly stops launchd's daemon until the next login (plist is `KeepAlive false`, no socket activation), while staying wrongly leaves one orphan the next tick collects. Those errors are not the same size, so a single unlucky `stat` must not be able to stop a production daemon.
+
+STRUCTURAL CHECK CONFIRMED UNBROKEN: `invariant_the_lifeline_is_event_driven_and_carries_no_interval` extracts the `impl Lifeline` block only, and `state_dir_removed` is a free function outside it. Driven rather than reasoned -- the test was run against this change and passes.
+
+A PRE-EXISTING FLAKE IN THIS FILE IS RECORDED HERE AND IS NOT THIS ROW'S: sampled 6 runs with this change (5 pass / 1 fail) and 6 runs at HEAD without it (5 pass / 1 fail), failing on a DIFFERENT lifeline arm each time. Same rate either side, so the change neither introduces nor worsens it. ic first concluded the break WAS this change on one failing run against one passing run, and withdrew that on the sample -- n=1 each side of a stochastic outcome, which is the trap this thread has now hit three times.
 
 ### WP-03 -- One home for spawning a daemon in the test tree (status: Done)
 
