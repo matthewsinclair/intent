@@ -63,6 +63,7 @@
 //! taken silently.**
 
 use std::collections::BTreeSet;
+use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -225,62 +226,6 @@ impl Loaded {
     Self::from_str(FORMS)
   }
 
-  /// The same, over supplied bytes -- so a test can drive a BROKEN declaration
-  /// without a fixture file on disk.
-  ///
-  /// **A refusal that is never driven is a refusal nobody knows fires**, and
-  /// the only honest way to drive these two is to hand the loader a
-  /// declaration that trips them.
-  pub fn from_str(bytes: &str) -> Result<Self, FormError> {
-    let declaration: Declaration =
-      serde_json::from_str(bytes).map_err(|why| FormError::Unparseable(why.to_string()))?;
-
-    let vocabulary: BTreeSet<&str> = declaration
-      .widgets
-      .iter()
-      .map(|w| w.value.as_str())
-      .collect();
-
-    for form in &declaration.forms {
-      let pointer = face_for(&form.entity).ok_or_else(|| FormError::NoSuchFace {
-        entity: form.entity.clone(),
-        face: String::new(),
-      })?;
-      let face = face_properties(pointer).ok_or_else(|| FormError::NoSuchFace {
-        entity: form.entity.clone(),
-        face: pointer.to_string(),
-      })?;
-
-      let mut seen: BTreeSet<&str> = BTreeSet::new();
-      for field in &form.fields {
-        if !face.contains(field.name.as_str()) {
-          return Err(FormError::NoSuchProperty {
-            entity: form.entity.clone(),
-            field: field.name.clone(),
-            face: pointer.to_string(),
-            available: face.iter().map(|p| (*p).to_string()).collect(),
-          });
-        }
-        if !vocabulary.contains(field.widget.as_str()) {
-          return Err(FormError::UnknownWidget {
-            entity: form.entity.clone(),
-            field: field.name.clone(),
-            widget: field.widget.clone(),
-            declared: vocabulary.iter().map(|w| (*w).to_string()).collect(),
-          });
-        }
-        if !seen.insert(field.name.as_str()) {
-          return Err(FormError::DuplicateProperty {
-            entity: form.entity.clone(),
-            field: field.name.clone(),
-          });
-        }
-      }
-    }
-
-    Ok(Self { declaration })
-  }
-
   /// The forms, in declaration order.
   pub fn forms(&self) -> &[Form] {
     &self.declaration.forms
@@ -359,6 +304,73 @@ impl Loaded {
     }
     found.sort();
     found
+  }
+}
+
+impl std::str::FromStr for Loaded {
+  /// Parse a declaration from supplied bytes -- so a test can drive a BROKEN
+  /// declaration without a fixture file on disk.
+  ///
+  /// **A refusal that is never driven is a refusal nobody knows fires**, and
+  /// the only honest way to drive these two is to hand the loader a
+  /// declaration that trips them.
+  ///
+  /// **THE REAL TRAIT RATHER THAN AN INHERENT METHOD WEARING ITS NAME.** This
+  /// was `Loaded::from_str`, which `clippy::should_implement_trait` refuses:
+  /// an inherent method with a std trait method's exact name and shape is a
+  /// second home for one meaning, and a reader who knows `FromStr` gets a
+  /// method that behaves like it and cannot be used where it can. Implementing
+  /// the trait keeps every existing call spelling working and adds `.parse()`.
+  type Err = FormError;
+
+  fn from_str(bytes: &str) -> Result<Self, Self::Err> {
+    let declaration: Declaration =
+      serde_json::from_str(bytes).map_err(|why| FormError::Unparseable(why.to_string()))?;
+
+    let vocabulary: BTreeSet<&str> = declaration
+      .widgets
+      .iter()
+      .map(|w| w.value.as_str())
+      .collect();
+
+    for form in &declaration.forms {
+      let pointer = face_for(&form.entity).ok_or_else(|| FormError::NoSuchFace {
+        entity: form.entity.clone(),
+        face: String::new(),
+      })?;
+      let face = face_properties(pointer).ok_or_else(|| FormError::NoSuchFace {
+        entity: form.entity.clone(),
+        face: pointer.to_string(),
+      })?;
+
+      let mut seen: BTreeSet<&str> = BTreeSet::new();
+      for field in &form.fields {
+        if !face.contains(field.name.as_str()) {
+          return Err(FormError::NoSuchProperty {
+            entity: form.entity.clone(),
+            field: field.name.clone(),
+            face: pointer.to_string(),
+            available: face.iter().map(|p| (*p).to_string()).collect(),
+          });
+        }
+        if !vocabulary.contains(field.widget.as_str()) {
+          return Err(FormError::UnknownWidget {
+            entity: form.entity.clone(),
+            field: field.name.clone(),
+            widget: field.widget.clone(),
+            declared: vocabulary.iter().map(|w| (*w).to_string()).collect(),
+          });
+        }
+        if !seen.insert(field.name.as_str()) {
+          return Err(FormError::DuplicateProperty {
+            entity: form.entity.clone(),
+            field: field.name.clone(),
+          });
+        }
+      }
+    }
+
+    Ok(Self { declaration })
   }
 }
 

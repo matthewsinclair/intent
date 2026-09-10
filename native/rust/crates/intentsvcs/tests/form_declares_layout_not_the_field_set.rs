@@ -21,6 +21,8 @@
 //! a declared expectation rather than as *something was reported*. A new
 //! writable field fails this file.
 
+use std::str::FromStr;
+
 use intentsvcs::form::{FormError, Loaded, Reach, face_reach};
 
 /// The shipped declaration loads. **The positive control for every refusal

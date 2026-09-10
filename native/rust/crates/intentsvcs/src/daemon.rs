@@ -1174,6 +1174,15 @@ impl Bound {
       // would accumulate pids and a reader would parse the first daemon that
       // ever ran.
       .write(true)
+      // **`truncate(false)` IS DECLARED, NOT DEFAULTED, AND IT MUST STAY
+      // FALSE.** `clippy::suspicious_open_options` refuses `create(true)` with
+      // no truncate decision, and it is right to: the two answers differ and
+      // the default is invisible. Here truncating at OPEN would destroy the
+      // predecessor's pid before this process has taken the lock -- the file is
+      // opened `read(true)` precisely so a live holder can be identified. The
+      // truncation this file does want happens under the lock, at `set_len(0)`
+      // below, once the right to replace the contents has been established.
+      .truncate(false)
       .open(&lock_path)
       .map_err(|source| DaemonError::Unpublishable {
         path: lock_path.clone(),
