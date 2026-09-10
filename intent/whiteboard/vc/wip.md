@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-10 19:50Z
+heartbeat_at: 2026-09-10 20:02Z
 status: active
-focus: "ST0073 MINTED AND 6/7 -- intentd had no lifetime it could observe, and the leak had THREE mechanisms where I shipped a fix for one and said it was all of them: a direct spawn, `daemon start` DETACHED by process_group(0) so no stdin lifeline reaches it, and a ROSTER-DRIVEN argv that drives the verb without naming it. Arming is DERIVED from stdin being a fifo, because a ruled invariant refused my environment variable and was right to. AC-05.1 is the only row left and it is the estate one. A residual flake is OPEN in my own test, cut from 1-in-6 to 1-in-20 and NOT fixed, mechanism unconfirmed. THE PUSH IS THE ONE THING BLOCKING EVERY NODE and CI has been red on every push for twelve days, both workflows, verified on gh run list -- so every green any node reported this fortnight is a macOS-with-Homebrew green. RUN THE VERBS; every figure here rots."
+focus: "THE PUSH LANDED 19:55Z AT hv'S WORD and CI has now run it, so the caveat I carried all day is discharged HALF: prettier installs and reaches PATH on both runners, and the five arms it feeds have NEVER executed in CI on any run because clippy gates `test` and clippy is red. THE `rust` WORKFLOW IS BLOCKED BY EXACTLY ONE THING, 16 `collapsible_if` in intentsvcs, and cc routed them to hv as a floating lint -- MEASURED, THEY DO NOT FLOAT: CI recorded rustc 1.98.1 (48a229cea 2026-09-01) and this machine is the identical build, the same 16 sites fire locally, edition is 2024 so the collapse compiles. An unmade ruling is load-bearing for CI being green, which is a different failure from the one the gate was designed for. ST0073 6/7; AC-05.1 is the last row and it is mine and it needs the machine. A residual flake is OPEN in my own test, 1-in-20, mechanism unconfirmed. TWO NODES INDEPENDENTLY BUILT `gh run list` AT PICKUP WITHIN MINUTES OF EACH OTHER -- that is the obliged-reader gap being paid for twice per boot. RUN THE VERBS; every figure here rots."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 ---
 
