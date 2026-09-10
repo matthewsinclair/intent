@@ -1,0 +1,161 @@
+{
+  "schema": "intent/thread@3.0",
+  "id": "ST0073",
+  "title": "intentd owns its own lifetime: a lifeline instead of an assumed supervisor",
+  "slug": "intentd-owns-its-own-lifetime-a-lifeline-instead",
+  "status": "wip",
+  "created": "2026-09-10",
+  "objective": "Give `intentd` a lifetime it can observe, so a daemon whose owner dies stops instead of running forever. Today its lifetime is delegated entirely to a supervisor: `launchd` in production, and NOBODY in the test path. The daemon cannot tell the difference, so every abnormal exit of a test binary deposits a permanent process.",
+  "context": "**MEASURED 2026-09-10, NOT RECALLED.** 64 orphaned `intentd` processes were reaped from this machine, 33 of them holding the live store, having burned 64.9 CPU-hours. `0284` filed the same class on 2026-09-08 with 27 orphans, was cleared on hv's order, and rebuilt to 64 in two days -- **because a reap treats the deposit and the deposit rate is a function of how often a run is interrupted.**",
+  "body": "",
+  "preamble": "",
+  "wps": [
+    {
+      "seq": 1,
+      "title": "The lifeline: intentd exits when the owner it can observe goes away",
+      "scope": "S",
+      "status": "wip",
+      "objective": "Bind the daemon's life to an owner it can observe, where the observation survives the owner being SIGKILLed.",
+      "body": "## The mechanism\n\nWhoever spawns `intentd` passes an inherited pipe; `intentd` holds the READ end and exits on EOF. **The kernel closes the write end on ANY parent death** -- clean exit, panic, SIGKILL, crashed TUI, closed terminal. No polling, no timeout to tune, no periodic `getppid`.\n\n## Why a pipe rather than the platform's own facility\n\n`PR_SET_PDEATHSIG` is Linux-only and this estate ships macOS first; kqueue `NOTE_EXIT` is macOS-only and needs a pid that can be recycled. **The pipe is the portable form and it is the only one with no race**: the fd either is open or is not, and no pid can be reused underneath it.\n\n## The production path is untouched BY CONSTRUCTION\n\n`launchd` passes no lifeline, so absent one the daemon takes the supervised branch and serves until signalled, exactly as today. **This is not a promise to be careful -- it is the default branch**, and AC-01.2 is the control that fails if it ever stops being.",
+      "preamble": ""
+    },
+    {
+      "seq": 2,
+      "title": "State-dir death exit",
+      "scope": "XS",
+      "status": "not-started",
+      "objective": "A daemon whose own state directory has been removed stops serving.",
+      "body": "Free in production -- the real state dir does not vanish under a running daemon -- and it catches the fixture-teardown ordering where `remove_dir_all` lands but `daemon stop` did not. Complementary to WP-01, not a substitute: it does NOT catch the 669-fixture case, where the home survived.",
+      "preamble": ""
+    },
+    {
+      "seq": 3,
+      "title": "One home for spawning a daemon in the test tree",
+      "scope": "M",
+      "status": "not-started",
+      "objective": "Collapse the invented launcher into a single harness type that owns spawn, lifeline and reap, so the lifeline cannot be forgotten at a new call site.",
+      "body": "**THIS IS THE HIGHLANDER HALF.** Shipped code has zero spawn sites for `intentd`; the test tree has dozens. A fix applied at one of them is a fix at one of them. The harness type is where the lifeline is attached, and a check refuses a second spawn site so the count cannot silently grow back.",
+      "preamble": ""
+    },
+    {
+      "seq": 4,
+      "title": "The fixture-home teardown leak",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "Temporary fixture homes do not accumulate on /tmp across interrupted runs.",
+      "body": "**A DIFFERENT LEAK WITH THE SAME ROOT CAUSE, AND IT IS SEPARATED HERE SO THE TWO FIXES ARE NOT CONFLATED.** 669 dirs / 75 MB measured 2026-09-10, none of them carrying a daemon state dir. A lifeline does not help a directory: a directory has no process to notice anything. The candidates are a fixed root that a suite-level entry point sweeps on START (which runs even when the previous run was killed), or `TempDir` under the OS temp root with the platform's own reaping. **Sweeping on start rather than on exit is the whole point** -- exit is the path that does not run.",
+      "preamble": ""
+    }
+  ],
+  "criteria": [
+    {
+      "id": "AC-01.1",
+      "text": "**A daemon whose owner is SIGKILLed exits on its own, and the test kills the owner in a way NO `Drop`, handler or atexit can survive.** A test that terminated its parent politely would be measuring the path that already works. The arm asserts the daemon process is GONE, by pid, not that a socket stopped answering -- a wedged process holding the store still fails to answer and would satisfy the weaker check while being the exact defect this thread exists to remove.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.2",
+      "text": "**A daemon started WITHOUT a lifeline serves until signalled -- the production path, asserted rather than assumed.** This is the control on AC-01.1 and it is the row that matters most: an implementation that exits when no lifeline was passed would sail through AC-01.1 and silently kill the `launchd` daemon, whose plist is `KeepAlive false` with no socket activation, so it would not come back until next login. **The failure would present as 'the daemon is sometimes not running' and nothing would name this change.**",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-01.3",
+      "text": "**The exit is event-driven, not swept: there is no interval to configure and none is configured.** A polled implementation passes AC-01.1 with a long enough test and leaves a window proportional to the poll period, during which the orphan is still holding the store. Evidence is structural -- no timer, no periodic `getppid`, no sleep loop on the lifeline path -- because a timing assertion cannot distinguish a fast poll from an event.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-02.1",
+      "text": "**A daemon whose own state directory is removed stops serving**, driven by removing it under a running daemon, with a positive control that the same daemon was answering immediately before the removal. Without that control the arm passes against a daemon that never started.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-03.1",
+      "text": "**The test tree has ONE home that spawns `intentd`, and a check refuses a second.** The check reads the test sources structurally and is positive-controlled by a planted second spawn site that it must catch, and by a clean tree it must pass -- **a roster check that has never been shown to fire is decoration.** It REFUSES over an empty population rather than reporting the reassuring zero that a broken pattern also reports.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-04.1",
+      "text": "**Fixture homes do not accumulate: a suite run leaves the /tmp population no larger than it found it**, and the sweep that guarantees it runs at START rather than at exit. Exit is the path that does not run when a build is killed, which is the condition that produced all 669.",
+      "kind": "test",
+      "state": {
+        "is": "computed"
+      }
+    },
+    {
+      "id": "AC-05.1",
+      "text": "**THE OUTCOME ROW, AND IT IS THE ONLY ONE THAT ANSWERS THE ORIGINAL QUESTION.** A full suite run, INCLUDING one deliberately interrupted mid-flight, leaves zero `intentd` processes that were not running before it started. Counted with `ps -axo pid=,command=`, never `pgrep -f`, which under-reports -- measured 2026-09-10 at 64 against `ps`'s 67. **Every other row here is a mechanism; this one is the estate.** Evidence: the before/after counts and the interruption method, recorded on this thread.",
+      "kind": "non-test",
+      "state": {
+        "is": "unsatisfied"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "id": "AT-01.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentd/tests/a_daemon_outlives_nobody.rs",
+      "covers": [
+        "AC-01.1",
+        "AC-01.2"
+      ],
+      "status": "green",
+      "note": "Two arms in one file deliberately: the lifeline arm and its production control are the same decision read in both directions, and separating them invites one to be run without the other. GREEN 2026-09-10, and BURNED IN BOTH DIRECTIONS rather than merely passing. Burn 1: the lifeline arm cut out of the select -- arms 1 and 4 FAIL and the two controls stay green. Burn 2: the arming widened from is_fifo to any stdin -- arm 2 (the production control) and the structural arm FAIL and the two lifeline arms stay green. Each burn fires on exactly the arms it should and on no others, which is what makes these four evidence rather than decoration. Four arms, not two: an owner that WRITES must not end the lifeline, and that arm caught a real defect -- sh forking for sleep left a child holding the write end."
+    },
+    {
+      "id": "AT-01.3",
+      "kind": "test",
+      "file": "native/rust/crates/intentd/tests/a_daemon_outlives_nobody.rs",
+      "covers": [
+        "AC-01.3"
+      ],
+      "status": "green",
+      "note": "Structural: asserts the lifeline path carries no interval to configure. GREEN 2026-09-10, positive-controlled on the EXTRACTION rather than on the source -- a slice that missed its target would contain none of the markers and pass every assertion below it. Its first form was keyed on the VARIABLE NAME and failed on main.rs's own prose explaining why that variable was removed: mention versus use, committed inside the guard against it. Now keyed on env::var within the impl block, so recording the reason for a decision is no longer a violation of it."
+    },
+    {
+      "id": "AT-02.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentd/tests/a_daemon_outlives_nobody.rs",
+      "covers": [
+        "AC-02.1"
+      ],
+      "status": "to-write",
+      "note": "Positive-controlled: the daemon must be answering before the state dir is removed."
+    },
+    {
+      "id": "AT-03.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentd/tests/one_home_spawns_the_daemon.rs",
+      "covers": [
+        "AC-03.1"
+      ],
+      "status": "to-write",
+      "note": "Plants a second spawn site in-test and requires the check to fire on it."
+    },
+    {
+      "id": "AT-04.1",
+      "kind": "test",
+      "file": "native/rust/crates/intentd/tests/fixtures_do_not_accumulate.rs",
+      "covers": [
+        "AC-04.1"
+      ],
+      "status": "to-write",
+      "note": "Drives the START sweep, not the exit path."
+    }
+  ]
+}

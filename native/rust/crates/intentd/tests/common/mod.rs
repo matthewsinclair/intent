@@ -124,8 +124,25 @@ pub struct RunningDaemon {
 impl RunningDaemon {
   pub fn start() -> RunningDaemon {
     let home = short_dir("intentd-home");
+    // **THE LIFELINE (`ST0073`), AND IT IS WHAT MAKES THE `Drop` GUARD BELOW A
+    // BELT RATHER THAN THE ONLY STRAP.** `Drop` runs on a normal return or an
+    // unwinding panic and NOT on an interrupted `cargo test`, a killed build or
+    // a crashed TUI -- and those are how 64 orphaned daemons reached this
+    // machine while every guard in this tree was correct. The daemon holds the
+    // read end of this pipe and exits on EOF, which the kernel delivers when
+    // THIS process dies by any means at all, `SIGKILL` included.
+    //
+    // **THE WRITE END IS HELD BY THE `Child`, SO NOTHING HAS TO REMEMBER TO
+    // HOLD IT.** `Stdio::piped()` parks it in `child.stdin`; taking or dropping
+    // it would end the daemon early, which fails loudly in every daemon test
+    // rather than quietly in none of them.
+    //
+    // **AND `piped()` IS THE WHOLE OF THE ARMING** -- there is no flag and no
+    // variable. The daemon asks the kernel what its stdin is and treats a pipe,
+    // and only a pipe, as an owner. `launchd` hands it `/dev/null`.
     let child = Command::new(env!("CARGO_BIN_EXE_intentd"))
       .env("HOME", &home)
+      .stdin(Stdio::piped())
       .stdout(Stdio::null())
       .stderr(Stdio::null())
       .spawn()

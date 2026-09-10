@@ -233,12 +233,18 @@ async fn main() -> ExitCode {
     return ExitCode::FAILURE;
   }
 
+  // **ASKED BEFORE ANYTHING IS BOUND, AND BEFORE ANYTHING COULD HAVE CONSUMED
+  // STDIN.** The answer is a property of the descriptor this process was handed,
+  // so it is read once, at the top, rather than re-derived somewhere that a
+  // reader has already advanced.
+  let lifeline = Lifeline::observed();
+
   let root = match userstate::home() {
     Ok(root) => root,
     Err(e) => return refuse(StartupError::NoUserState(e)),
   };
 
-  match serve_under(&root).await {
+  match serve_under(&root, lifeline).await {
     Ok(()) => ExitCode::SUCCESS,
     Err(e) => refuse(e),
   }
@@ -259,7 +265,7 @@ fn refuse(e: StartupError) -> ExitCode {
 /// the whole reason they are guards rather than a tidy-up at the end -- cleanup
 /// written after the serving loop is dead code until the day something returns
 /// early, and on that day it does not run.
-async fn serve_under(root: &Path) -> Result<(), StartupError> {
+async fn serve_under(root: &Path, lifeline: Lifeline) -> Result<(), StartupError> {
   let (unix, bound) = Bound::bind_socket_under(root).map_err(StartupError::Address)?;
 
   // **THE TOKEN IS MINTED BEFORE THE PORT IS PUBLISHED, AND THE ORDER IS D6's
@@ -326,6 +332,10 @@ async fn serve_under(root: &Path) -> Result<(), StartupError> {
     });
   }
 
+  // Built once and pinned: see `Lifeline::closed`.
+  let lifeline_closed = lifeline.closed();
+  tokio::pin!(lifeline_closed);
+
   loop {
     tokio::select! {
       accepted = unix.accept() => match accepted {
@@ -360,6 +370,15 @@ async fn serve_under(root: &Path) -> Result<(), StartupError> {
       // kept in step with the first.
       () = stop.notified() => {
         println!("intentd stopping: asked over the wire");
+        break;
+      }
+      // **THE SAME EXIT AS A SIGNAL, FOR THE SAME REASON THE ARM ABOVE IS.**
+      // It breaks this loop and unwinds through `Bound` and `Published`, so an
+      // owner's death releases the lock and unlinks the socket exactly as
+      // `SIGTERM` does. A lifeline that called `process::exit` would leave the
+      // stale socket that the whole guard arrangement exists to prevent.
+      reason = &mut lifeline_closed => {
+        println!("intentd stopping: {reason}");
         break;
       }
     }
@@ -717,6 +736,141 @@ async fn dispatch(registry: &Registry, bound: &mut Option<PathBuf>, line: &[u8])
 
   Served::Reply(handle.call(request.op).await)
 }
+
+/// Who owns this process's lifetime, DERIVED from stdin rather than declared.
+///
+/// **A DAEMON'S LIFETIME IS OWNED BY SOMEBODY, AND UNTIL NOW THIS ONE ASSUMED
+/// THE OWNER EXISTS.** `launchd` owns the production daemon and stops it; in a
+/// test the owner is a `cargo` process that may be killed, and this binary
+/// could not tell the two apart. It served on, holding the store, answering
+/// nobody -- 64 of them on one machine by 2026-09-10, 64.9 CPU-hours between
+/// them (`ST0073`, discharging `0284`).
+///
+/// # WHY DERIVED AND NOT AN ENVIRONMENT VARIABLE
+///
+/// **THE FIRST BUILD OF THIS READ `INTENT_DAEMON_LIFELINE` AND
+/// `the_shipped_surface_reads_exactly_one_environment_variable` REFUSED IT**,
+/// correctly: `AC-11.3`'s invariant is hv's, a second variable needs an hv
+/// ruling and a row in `ALLOWED`, and **every machine here would have had it
+/// set, so nothing else would have failed.** The guard is not an obstacle that
+/// was routed around -- it named a real cost, and the cost bought nothing that
+/// the kernel does not already report.
+///
+/// **THE DISCRIMINATOR IS A FACT ABOUT THE DESCRIPTOR, NOT A CONVENTION
+/// BETWEEN CALLERS**, which is the same reason `lib_currency.sh` derives its
+/// exclusion instead of hand-listing it: a declared marker rots, and a `stat`
+/// cannot. Measured on this platform rather than assumed:
+///
+///   pipe          `is_fifo`          -> Owned      (a harness passed one)
+///   `/dev/null`   `is_char_device`   -> Supervised (what `launchd` hands us)
+///   terminal      `is_char_device`   -> Supervised (`intent daemon run`)
+///   regular file  `is_file`          -> Supervised (a redirect)
+///
+/// **THE PRODUCTION PATH IS THEREFORE UNREACHABLE BY ACCIDENT.** `launchd`
+/// never hands a daemon a pipe, so `Owned` is not a state the LaunchAgent can
+/// enter. That matters more than the leak it fixes: the plist is
+/// `KeepAlive false` with no socket activation, so a daemon that exited when it
+/// should not have would stay exited until the next login, and nothing in the
+/// failure would name this code.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Lifeline {
+  /// Something else owns it: `launchd`, or a terminal running
+  /// `intent daemon run`. Serve until signalled.
+  Supervised,
+  /// The process holding the other end of stdin owns it, and its death is
+  /// observed as EOF.
+  ///
+  /// **THE OWNER DOES NOT HAVE TO DO ANYTHING, WHICH IS THE ENTIRE DESIGN
+  /// REQUIREMENT.** The code that would run at teardown is precisely the code
+  /// that does not run when a process is killed -- so the kernel closing the
+  /// write end is the only mechanism that survives the case this exists for.
+  ///
+  /// **AND IT IS EVENT-DRIVEN, NOT SWEPT.** No timer, no interval, no periodic
+  /// `getppid`. A poll leaves a window proportional to its period during which
+  /// an orphan still holds the store, and the window is invisible in a test
+  /// generous enough to pass. The rejected alternatives were both
+  /// non-portable: `PR_SET_PDEATHSIG` is Linux-only, and kqueue `NOTE_EXIT`
+  /// keys on a pid, which can be recycled underneath it. **A descriptor cannot
+  /// be recycled while it is open, so a pipe is the form with no race.**
+  Owned,
+}
+
+impl Lifeline {
+  /// Ask the kernel what stdin is.
+  ///
+  /// **AN UNREADABLE STDIN IS `Supervised`, AND THE ASYMMETRY IS DELIBERATE.**
+  /// Guessing `Owned` and being wrong stops `launchd`'s daemon until the next
+  /// login; guessing `Supervised` and being wrong leaves one orphan that the
+  /// next reap collects. The two errors are not the same size. It is reported
+  /// rather than swallowed, because a daemon quietly declining to notice its
+  /// owner is the defect this whole type exists to remove.
+  fn observed() -> Lifeline {
+    use std::os::unix::fs::FileTypeExt;
+    match std::fs::metadata(STDIN_PATH) {
+      Ok(m) if m.file_type().is_fifo() => Lifeline::Owned,
+      Ok(_) => Lifeline::Supervised,
+      Err(e) => {
+        eprintln!(
+          "warning: intentd could not tell what its stdin is ({e}), so it will serve until signalled. If something started this daemon expecting it to stop when that process does, it will not."
+        );
+        Lifeline::Supervised
+      }
+    }
+  }
+
+  /// Resolve when the owner is gone. Never resolves when `Supervised`.
+  ///
+  /// **THE FUTURE IS BUILT ONCE AND POLLED, NEVER REBUILT INSIDE THE SELECT.**
+  /// `tokio::select!` re-evaluates its expressions on every pass of the loop,
+  /// so calling this in the arm would spawn a fresh reader thread per accepted
+  /// connection. It is pinned outside the loop for that reason.
+  async fn closed(self) -> &'static str {
+    match self {
+      Lifeline::Supervised => {
+        std::future::pending::<()>().await;
+        unreachable!("pending never resolves")
+      }
+      Lifeline::Owned => {
+        let (tx, rx) = tokio::sync::oneshot::channel::<()>();
+        // **A PLAIN OS THREAD, NOT `spawn_blocking`.** A blocking-pool task
+        // that never returns is one the runtime waits for at shutdown, so the
+        // daemon would hang on the way out for every OTHER stop reason. This
+        // thread is detached: it blocks in the kernel until the write end
+        // closes, and it dies with the process.
+        std::thread::spawn(move || {
+          use std::io::Read;
+          let mut byte = [0u8; 1];
+          loop {
+            match std::io::stdin().read(&mut byte) {
+              // EOF. Every copy of the write end is closed, which is what the
+              // kernel does for a process that dies by any means at all.
+              Ok(0) => break,
+              // The owner wrote something. Nothing here reads stdin for
+              // meaning -- this daemon takes no input -- so it is discarded and
+              // the wait continues. **A LIFELINE IS NOT A MESSAGE CHANNEL**,
+              // and exiting on readability rather than on EOF would kill the
+              // daemon the moment anyone wrote a byte for any reason.
+              Ok(_) => continue,
+              Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+              // Unreadable is treated as gone. The alternative -- serving on --
+              // is the orphan this exists to prevent, arriving through an error
+              // path instead of through a missing feature.
+              Err(_) => break,
+            }
+          }
+          let _ = tx.send(());
+        });
+        let _ = rx.await;
+        "the lifeline closed, so whoever started this daemon is gone"
+      }
+    }
+  }
+}
+
+/// Where the kernel reports what stdin is. `/dev/fd/0` rather than
+/// `/dev/stdin`: both answer identically here, and the former is the one
+/// present on every platform this ships to.
+const STDIN_PATH: &str = "/dev/fd/0";
 
 /// Resolve when the platform asks this process to stop.
 ///

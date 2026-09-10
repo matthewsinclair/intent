@@ -30,6 +30,8 @@
 #[path = "common/mod.rs"]
 mod common;
 
+#[path = "a_daemon_outlives_nobody.rs"]
+mod a_daemon_outlives_nobody;
 #[path = "an_ingest_never_reverts_a_newer_store_write.rs"]
 mod an_ingest_never_reverts_a_newer_store_write;
 #[path = "arguments_do_not_start_a_daemon.rs"]

@@ -420,9 +420,16 @@ impl RealDaemon {
 /// differed from the original start in any of those would be testing a
 /// different daemon than the one the test set up.
 fn spawn_under(home: &Path) -> Child {
+  // **THE LIFELINE (`ST0073`) SURVIVES THE `exec`, WHICH IS WHY IT CAN BE SET
+  // HERE AT ALL.** `daemon run` execs `intentd`, so the environment and the
+  // inherited stdin both carry across into the daemon -- and on the day that
+  // stops being an exec, the daemon becomes a GRANDCHILD and this is the only
+  // one of the two mechanisms that still reaches it, because the pipe is
+  // inherited down the whole chain while a pid is not.
   Command::new(env!("CARGO_BIN_EXE_intent"))
     .args(["daemon", "run"])
     .env("HOME", home)
+    .stdin(Stdio::piped())
     .stdout(Stdio::null())
     .stderr(Stdio::null())
     .spawn()

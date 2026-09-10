@@ -170,8 +170,12 @@ fn the_no_argument_case_really_does_serve() {
   // **The cleanup this crate is proud of makes the naive control indistinguish-
   // able from the failure**, and it reported the correct behaviour as broken.
   let home = isolated_home("argserve");
+  // Armed with the `ST0073` lifeline like both shared harnesses: this arm
+  // deliberately starts a daemon that SERVES, so it is the one spawn in this
+  // file that can outlive a killed test binary.
   let mut child = Command::new(env!("CARGO_BIN_EXE_intentd"))
     .env("HOME", &home)
+    .stdin(std::process::Stdio::piped())
     .stdout(std::process::Stdio::null())
     .stderr(std::process::Stdio::piped())
     .spawn()
