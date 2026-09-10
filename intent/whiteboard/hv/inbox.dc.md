@@ -107,3 +107,40 @@ Items 1 to 5 are the review. The closed pair is FYI only -- no response needed.
 **WHAT IT IS FOR.** `docs/known-defects.md` opens with its own rule -- every defect on it was run against v3.0.0 ITSELF, not against `main`. **No v3.0.0 binary exists on this machine**: both PATH symlinks point at the shared dev release, which names `92e4d914`, not the tag `80d8b2ca`. 27 `ST0068/AC-02.3` dispositions need a drive against the published build before a `stated` row can honestly be written. The 14 that needed no binary landed at `bbb9f8f9`.
 
 **AND THE ITEM THAT IS STILL YOURS AND HAS NOT MOVED: this branch is many commits ahead of both `local` and `upstream` with nothing pushed.** vc is relaying it as the named reader; I am recording it here so it survives the session rather than living in a message.
+
+## (2026-09-10 09:33Z)
+
+**THREE DOORS THAT SHIP IN v3 ANSWER `not implemented yet`, AND I AM NOT WIRING ANY OF THEM WITHOUT A WORD FROM YOU, BECAUSE ALL THREE POINT AT SUBJECTS THIS ESTATE HAS SINCE RETIRED.** cc found them in WPs I claim and I verified each against `target/release` at `ec55b3ba` with both controls -- a known-wired door (`st list`, renders) and a known-unwired one (`config`, refuses) -- so the probe can tell the two apart.
+
+  st bootstrap      WP-04   keep / corrected
+  agents template   WP-07   keep / corrected
+  claude prime      WP-07   keep / as-observed
+
+**THE PATTERN IS THE FILING. EACH ROW'S DISPOSITION OR REMEDY WAS SETTLED BEFORE THE THING IT OPERATES ON WAS RETIRED, AND BUILDING TO THE ROW WOULD SHIP, IN A NEW DOOR, THE DEFECT THE NEIGHBOURING CODE WAS REWRITTEN TO AVOID.**
+
+**(1) `agents template` -- your remedy is nine days older than the retirement of its subject.** You ruled it 2026-08-17 at `632d9d861`: `list` reports what each directory actually offers, in separate labelled groups, and `show` resolves either kind, so no name `list` prints is a name `show` refuses. The principle is untouched. The SUBJECT is not: the directory it enumerates, `intent/plugins/agents/templates/`, **has no reader anywhere in v3.** The only two mentions in the Rust tree are doc-comments explaining why v3 does not read it. `b60f9ebb5` (2026-08-26, nine days after your ruling) made `intent lang init` install nothing, and `rules.rs:67` states the reason in the words this filing would otherwise have to invent -- *enumerating the template directory would be a correct value about a subject that is no longer the question.* **Building your remedy today puts that exact sentence inside a door, one file from the comment warning against it.** Measured: eight directories, `elixir` alone carries an `AGENTS.md`, and `AGENTS.md` is now GENERATED rather than seeded (`init.rs`, `Generated` not `At`) -- so both halves of the door point at retired ground, not just the canon-pack half your remedy widened `show` to cover.
+
+**(2) `st bootstrap` -- its deliverable list is part live and part ruled-against, and only measurement separates them.** Eight deliverables. **D2 (CLAUDE.md) is live** -- `init.rs:84`, `At("CLAUDE.md")` -- and that is the negative control that keeps this finding specific rather than a blanket claim. **D3 installs `intent/llm/MODULES.md`, which v3's `init` declares `NotByInit("a hand-maintained index of a tree the store already indexes")`** on your 2026-08-24 ruling. So D3 retrofits a file the estate decided not to create. **D8 is *MEMORY.md via `intent claude prime`*** -- it depends on the second unwired door in this filing. **D10 installs `intent/.config/learnings.md`, written by `intent learn`, which is itself unwired** (driven just now: `error: 'learn' is a known command that is not implemented yet`).
+
+**(3) `claude prime` -- cc's finding and I am carrying it rather than restating it as mine.** `prime` consumes `learnings.md`; `learn` writes it by stamping `- $(date +%Y-%m-%d): <desc>`; your 2026-08-15 ruling leaves NO clock in the workspace, and `one_clock.rs` bans every route across `src/` AND `tests/` with an empty exempt list. **prime is learn's stated consumer, so the pair carries one design decision between them and it lands across two work packages.**
+
+**WHAT I AM ASKING FOR, AND IT IS ONE RULING RATHER THAN THREE.** For each door: is it still a `keep`? A `keep` whose subject is retired is a disposition that outlived its premise, and the honest outcomes are to retire the door, to re-point it at whatever replaced the subject, or to say the subject is not as retired as I have measured. **I can build any of the three once you say which.** I am not choosing between those myself -- picking one would be minting a disposition, and dispositions are yours.
+
+**AND THE POPULATION IS WIDER THAN MY THREE.** vc is already bringing you the `as-observed` rows measured before 2026-08-15. **This is the same defect one field over: `keep` and `corrected` rows whose remedy or deliverable list predates a retirement.** Worth ruling as a class, because the three I hit are the three cc's probe could reach -- **57 of 127 paths were NOT PROBED and 7 are inconclusive**, so my three are a floor and not a count. I am deliberately not proposing a sweep sized to that probe.
+
+---
+
+**SEPARATELY, AND NOT BLOCKED ON ANY OF THE ABOVE -- A DEVX GAP I WANT TO BUILD, ROUTED HERE ON vc's INSTRUCTION.**
+
+**NO TOOL ON THIS MACHINE REPORTS WHAT IS RUNNING OR WHAT THE STORE WEIGHS, AND THAT COST A DAY.** Sixty-five CPU-hours, a 559MB WAL against a 21MB database, load average 417, and four nodes' writes going missing -- and the way anybody found out was a node noticing the machine felt slow. `int local status` already names `target/debug/` in its own scope block as *the one the test harness spawns*, and then measures nothing about it. **A door that names the artefact and does not measure it is the gate-figure defect in a different costume.**
+
+It re-ran itself while I was writing this: vc watched the daemon population go 0 -> 2 -> 13 in twenty minutes with four holding the live store, and ic caught `0216` eating a real write at four holders. **Not one tool said anything, again, today.**
+
+Two requirements go INTO the mechanism rather than into a note, both bought with real errors this morning:
+
+- **COUNT BY EXECUTABLE, NEVER BY COMMAND-LINE TEXT.** `ps -axo command= | grep -c 'target/debug/intentd'` returns 2 with ZERO daemons running, because this harness wraps commands in an eval string and the pattern appears in a process's command line by construction. The `[i]ntentd` bracket trick stops the grep matching itself and does nothing about the wrapper. **I gave you the opposite advice yesterday -- prefer `ps` over `pgrep` -- and it is withdrawn; the reason I gave was false.** The discriminator is `ps -axo pid=,command= | awk '$2 ~ /(^|\/)intentd$/'`, matching argv[0], or asking the socket.
+- **REPORT STORE HOLDERS SEPARATELY FROM PROCESS COUNT.** Those are the ones that cost writes, and the two numbers came apart today: 13 processes, 4 holders.
+
+Size **M**. Falsifier is clean and does not need your machine: spawn N in a scratch project, the door says N; kill them, it says 0. vc has agreed the shape and added the executable requirement. **Your word needed only on whether it belongs in this cut or after it** -- it is devx, it is unblocked, and it is the only new work my column has that nobody is waiting on.
+
+-- dc
