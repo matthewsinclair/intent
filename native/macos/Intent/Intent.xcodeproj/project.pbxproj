@@ -13,13 +13,14 @@
 		692A1EC01D5213CB6472B434 /* LoginShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DC7A046D343F9FF30FC56EA /* LoginShell.swift */; };
 		77F2AD848C06FB9ADCF161AC /* ContinuousObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */; };
 		7D834CF192226880601F3117 /* Health.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93A196E045968A129A323B3D /* Health.swift */; };
+		8343B7CACA2683B7988F3B85 /* tail-orphan-probe.sh in Resources */ = {isa = PBXBuildFile; fileRef = 5B1D8CD9C21DD8AB55553EE1 /* tail-orphan-probe.sh */; };
 		8D27169B4F83BE63308AB785 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8EAE393A0F5FE9A9C3B52262 /* Assets.xcassets */; };
 		916BB7ABBBF4DD2D92D59492 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 894E47351007915CC6F59BBD /* Theme.swift */; };
 		954C28016164850D99C2B79C /* IntentCLI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */; };
 		D1B7407CB6E1DC3E976E745A /* ProjectService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1FDFCD2416E01A931378EF /* ProjectService.swift */; };
+		DA11798D557190F5D7DC21E9 /* TailOrphanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5D0CA4EA5DAA03411AB24E /* TailOrphanTests.swift */; };
 		E4FB94495E37A90BCFC43C24 /* IntentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A21089C3EE01CC6CD256BFC /* IntentApp.swift */; };
 		FCF20238A656A982DF4B12D1 /* LoginShellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E9C74AD191140D77FB3294C /* LoginShellTests.swift */; };
-		B1475288F7614F368A85D83B /* TailOrphanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFB9FAFDAEC04E1EA598C3D2 /* TailOrphanTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,8 +39,9 @@
 		3FAB073C6E0F8ACF198E5CB8 /* Intent.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intent.entitlements; sourceTree = "<group>"; };
 		4634133A4EB56FC2D1AED35E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4AF69039A2E9F208B08C436D /* IntentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IntentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B1D8CD9C21DD8AB55553EE1 /* tail-orphan-probe.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "tail-orphan-probe.sh"; sourceTree = "<group>"; };
+		5B5D0CA4EA5DAA03411AB24E /* TailOrphanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TailOrphanTests.swift; sourceTree = "<group>"; };
 		5E9C74AD191140D77FB3294C /* LoginShellTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginShellTests.swift; sourceTree = "<group>"; };
-		FFB9FAFDAEC04E1EA598C3D2 /* TailOrphanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TailOrphanTests.swift; sourceTree = "<group>"; };
 		60A27EDDB4A20BCF4F9C54CA /* IntentCLI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentCLI.swift; sourceTree = "<group>"; };
 		7A0B4F62DDB480DBBBD1A353 /* ContinuousObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContinuousObservation.swift; sourceTree = "<group>"; };
 		894E47351007915CC6F59BBD /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -91,8 +93,9 @@
 			children = (
 				29672806305D887EA65656B8 /* HealthTests.swift */,
 				5E9C74AD191140D77FB3294C /* LoginShellTests.swift */,
-				FFB9FAFDAEC04E1EA598C3D2 /* TailOrphanTests.swift */,
 				B9E84295876C1959E651CD8B /* ProjectServiceTests.swift */,
+				5B1D8CD9C21DD8AB55553EE1 /* tail-orphan-probe.sh */,
+				5B5D0CA4EA5DAA03411AB24E /* TailOrphanTests.swift */,
 			);
 			path = IntentTests;
 			sourceTree = "<group>";
@@ -152,6 +155,7 @@
 			buildConfigurationList = CA6FEAF1F0E40EF3446BB27B /* Build configuration list for PBXNativeTarget "IntentTests" */;
 			buildPhases = (
 				E7E51653936A202A5E0085C3 /* Sources */,
+				590F833EDDB1E95EEB128599 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -205,6 +209,14 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		590F833EDDB1E95EEB128599 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8343B7CACA2683B7988F3B85 /* tail-orphan-probe.sh in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A43CF13D2B9B8F145436FD50 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -237,8 +249,8 @@
 			files = (
 				2997E46680241912D530A7B5 /* HealthTests.swift in Sources */,
 				FCF20238A656A982DF4B12D1 /* LoginShellTests.swift in Sources */,
-				B1475288F7614F368A85D83B /* TailOrphanTests.swift in Sources */,
 				63748568E2B10D3229CB13A9 /* ProjectServiceTests.swift in Sources */,
+				DA11798D557190F5D7DC21E9 /* TailOrphanTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
