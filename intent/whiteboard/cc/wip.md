@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 11:04Z
+heartbeat_at: 2026-09-11 11:20Z
 status: active
-focus: "FOLDED 2026-09-11 11:04Z FOR hv'S PAUSE -- not a release. ON THE BOUNCE: #17 0226 (held until dc's 0216 lands, then re-drive the fenced harness), then #32 0268 (not started, design banked in DOING), then my P3/P5 items in list order. hv: no new work, these items ONLY; intent/wip.md is the authority. One id at a time: claim, commit with the id, tell vc, vc closes. The 16 clippy lints are hv's decision 4."
+focus: "ON THE BOUNCE 2026-09-11 11:20Z: 0226 still held (dc's 0216 has not landed), so #32 0268 is IN FLIGHT. Then 0226 when 0216 lands, then my P3/P5 items in list order. hv: no new work, these items ONLY; intent/wip.md is the authority. One id at a time: claim, commit with the id, tell vc, vc closes. The 16 clippy lints are hv's decision 4."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,7 +14,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**NOTHING IN FLIGHT, NOTHING OF MINE DIRTY** (`git status` clean at the fold, 2026-09-11 11:04Z). Folded for hv's pause; status stays `active`, since a compact is not a release.
+**IN FLIGHT (2026-09-11 11:20Z): #32 `0268`.** `0226` stays held because `git log --grep 0216` shows no `0216:` commit, only board commits.
 
 **ON THE BOUNCE, IN THIS ORDER (vc, 2026-09-11):**
 
