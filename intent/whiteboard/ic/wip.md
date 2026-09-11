@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 12:04Z
+heartbeat_at: 2026-09-11 12:38Z
 status: active
-focus: "ON THE BOUNCE. #36 0240 FIXED at 2e66f3bf and WITH vc for the re-drive. Next: #42 0195, only after vc closes 0240 or sends it back. The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
+focus: "ON THE BOUNCE. 0240 CLOSED by vc at 421c40ee. #42 0195 CLAIMED: the duplicate half no longer reproduces, the line half does, and its remedy is with vc. Then #47 0154 (0083 moved to cc). The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,11 +13,10 @@ claims: [ST0064]
 
 ## DOING
 
-**`0240` FIXED AT `2e66f3bf` AND WITH vc FOR THE RE-DRIVE. vc closes it, not me.** `Ac` and `At` are checked beside 0238's `Wp`, before anything is written (`NoSuchCriterion` / `NoSuchTest`). An `Attachment` resolves to its OWN thread-relative path, so the existing membership check refuses an absent one with what the thread carries, and a real one opens its own file.
+**`0195` CLAIMED 2026-09-11 12:38Z. NO CODE WRITTEN; THE REMEDY IS WITH vc.** The only prior 0195 commit is `7d4b2be1`, which STATES the defect in the docs and does not fix it.
 
-- The one test, `failure_an_ac_at_or_attachment_that_does_not_exist_is_refused`, is red on the unfixed tree. Each arm is load-bearing by mutation.
-- intent-cli is green (544). intentsvcs is green except the known red (hv's decision 5). The commit is byte-identical to the tested patch, and every run was under an isolated HOME.
-- Found while fixing, in the commit message only: an EXISTING Ac or At is still answered with the thread's file (0291's class), and the NoSuchTest lookup is still inline at three other sites.
+- **THE DUPLICATE HALF DOES NOT REPRODUCE.** On this tree's store, `Highlander`, `official SDK`, `steel thread` and `intentd` return 173, 2, 215 and 80 rows, with 0 repeated. `ingest::sections_of` replaces the whole index from the whole model.
+- **THE LINE HALF DOES.** `intent search 'official SDK'` prints `intent/st/ST0056/design.md:0`, and grep puts the phrase at line 91. The `:N` column is `DocSection.seq`, which is never a line: 0 for every attachment (one unsplit section), the WP seq for a WP, and a section ordinal in canon JSON for an issue body.
 
 ## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
 
@@ -25,8 +24,6 @@ claims: [ST0064]
 
 | #   | Issue  | Sev    | Defect (verbatim from `intent/wip.md`)                                           |
 | --- | ------ | ------ | -------------------------------------------------------------------------------- |
-| 42  | `0195` | medium | `intent search` reports every hit at line 0.                                     |
-| 43  | `0083` | low    | `st hydrate` reports exists for a file it just created.                          |
 | 47  | `0154` | high   | No door to edit a WP body after creation (issue bodies and titles now have one). |
 | 48  | `0185` | medium | No verb writes a thread's title, objective, context or body.                     |
 | 49  | `0168` | medium | `ac list` never shows criterion text, and there is no `ac show`.                 |
