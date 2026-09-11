@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 16:12Z
+heartbeat_at: 2026-09-11 16:15Z
 status: active
-focus: "Lane empty. hv decision 7 done: 56322937 signs the app, and hv's app-notarize came back Accepted and stapled (afbcaa0b). With vc: 0231, 0084, 0100, decisions 5, 4 and 7, plus 0066, 0145, 0153, 0146. intentsvcs suites run ONLY from a private worktree."
+focus: "HOLDING. Every cc item is closed (0066, 0084, 0100, 0145, 0146, 0153, 0176, 0231 read CLOSED; hv decisions 4, 5 and 7 verified by vc, AC-01.7 at 23bca1b1). The list has no workable row; what remains is dc's decision 3 and the notice fix, then the cut. intentsvcs suites run ONLY from a private worktree."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,11 +14,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**FOLDED 2026-09-11 14:29Z FOR hv'S PAUSE; BACK ON THE BOUNCE AFTER THE COMPACT. NOTHING OF MINE IS DIRTY IN THE TREE.** The board before this fold is verbatim at `.history/20260911/wip-prefold-1429Z.md`, and every fix since the last fold is in `git log` under its id.
-
-**WITH vc FOR THE RE-DRIVE, nothing of mine left on them:** `0231` at `ea06d7c3` (told vc 2026-09-11 14:50Z); `0084` at `d4b31f5c` and `0100` at `9046156b` (hv's decisions 11 (a) and 2, relayed by vc); hv's decision 5 at `32958364` (the edgeless-field test deleted) and decision 4 at `7d3ffe61` (the 16 `collapsible_if` collapsed; intentsvcs lib clippy is now clean); `0066` at `f74fbf31`, `0145` at `ff78b917`, `0153` at `ca2dd018`, `0146` at `367bd6d4` + `75ce790d` (the branched remedy is accepted). **Ruled by vc and out of my column:** `0176` (close, no code), `0172` (not workable in 3.0.1, lane `--`).
-
-**hv DECISION 7 (ST0064 AC-01.7) AT `56322937`, WITH vc.** hv ran `app-notarize`: Accepted (submission `afbcaa0b-9f5d-4f73-87cb-50026c7f4e49`), stapled, and a quarantined copy passes Gatekeeper as `Notarized Developer ID`; the missing `CFBundleExecutable` did not block it. `int macos app-sign` builds Release, stages a copy under `~/.local/state/intent/build/macos/dist`, signs it inside-out and reads identifier, team and runtime back; `app-notarize` submits, staples and checks a quarantined copy; `app-verify dist` re-checks. Driven here: signs clean, and both refusals fire (un-notarised, unsigned). vc and ic told (ic owns ST0064 and the app sources; the missing `CFBundleExecutable` is in the commit message and with ic).
+**NOTHING IN FLIGHT, AND NOTHING WITH vc.** Every cc item is closed, driven by vc before each close: `0066`, `0084`, `0100`, `0145`, `0146`, `0153`, `0176` and `0231` read CLOSED, and hv's decisions 4 (`7d3ffe61`), 5 (`32958364`) and 7 (`56322937`, AC-01.7 satisfied at `23bca1b1`) are verified. **HOLDING on vc's word:** the list has no workable row; what remains is dc's decision 3 and the notice fix, then the cut. Every fix is in `git log` under its id.
 
 **THE RULES ON THE BOUNCE (vc):** one item at a time, claimed here; the id in the commit subject; tell vc, who re-drives and closes it. The only new test allowed is the proving one, seen red. No new instruments, guards, criteria or threads. A defect found while fixing goes in the commit message, not on the list. **hv: _THERE IS NO NEW WORK TO BE DONE._** The list in `intent/wip.md` is the authority, and `intent issues list` is the live state. **Read the lane column there, never a copy here.**
 
