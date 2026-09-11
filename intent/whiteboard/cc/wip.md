@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 11:20Z
+heartbeat_at: 2026-09-11 11:38Z
 status: active
-focus: "ON THE BOUNCE 2026-09-11 11:20Z: 0226 still held (dc's 0216 has not landed), so #32 0268 is IN FLIGHT. Then 0226 when 0216 lands, then my P3/P5 items in list order. hv: no new work, these items ONLY; intent/wip.md is the authority. One id at a time: claim, commit with the id, tell vc, vc closes. The 16 clippy lints are hv's decision 4."
+focus: "ON THE BOUNCE 2026-09-11: #17 0226 IN FLIGHT (dc's 0216 landed at be0422d9). 0097 is with vc at a15870e8; vc closed 0268. Then #39 0069 and my P3/P5 items in list order. hv: no new work, these items ONLY; intent/wip.md is the authority. One id at a time: claim, commit with the id, tell vc, vc closes. The 16 clippy lints are hv's decision 4."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,12 +14,9 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**IN FLIGHT (2026-09-11 11:20Z): #32 `0268`.** `0226` stays held because `git log --grep 0216` shows no `0216:` commit, only board commits.
+**IN FLIGHT (2026-09-11 11:38Z): #17 `0226`**, released by dc's `0216` at `be0422d9` (11:37Z). First, re-drive the fenced harness at HEAD. vc closed `0268`. `0097` is with vc at `a15870e8`. `0159` was closed by vc at `a9f241f7` (delivered at `a8984f0d`), so it has left TODO.
 
-**ON THE BOUNCE, IN THIS ORDER (vc, 2026-09-11):**
-
-1. **#17 `0226`, held until dc's `0216` lands** (see `## Holds`). Then re-run the issue's fenced harness: `cd native/rust && INTENT_0216_BASELINE=250 cargo test -p intentd --test suite an_ingest_never_reverts_a_newer_store_write::an_ingest_never_reverts_a_newer_store_write -- --include-ignored --nocapture --test-threads=1`. **At HEAD (11:02Z) it fails differently from the issue**: `st new` is refused `ThreadExists { id: "ST0184" }` mid-mint, not `ViewsNotWritten`. That's `0216`'s collision, so re-drive after `0216` before designing anything.
-2. **#32 `0268`, NOT STARTED, and no code.** The design read so far: the migration's store-rebuild rung leaks a raw `UNIQUE constraint failed: tests.thread_id, tests.id` naming no thread or id. The issue's own shape is to move the duplicate child-id check into Phase A, next to `unread-field`, naming the file, line, thread and id. **It must go through `out.block()`, not `record()`**, because the real offenders (Lamplight `ST0298 AT-02.3`, `ST0198 AT-16.1`) sit in `COMPLETED/` threads, where `record` only carries, and the store's primary key refuses them regardless. The parser is `legacy.rs` `acceptance()` (it returns `Ok((criteria, tests))`), and Phase A's thread-level duplicate check (class `0011`) is in `scan()`.
+**`0226` FIRST STEP:** re-run the issue's fenced harness: `cd native/rust && INTENT_0216_BASELINE=250 cargo test -p intentd --test suite an_ingest_never_reverts_a_newer_store_write::an_ingest_never_reverts_a_newer_store_write -- --include-ignored --nocapture --test-threads=1`. **At HEAD (11:02Z) it fails differently from the issue**: `st new` is refused `ThreadExists { id: "ST0184" }` mid-mint, not `ViewsNotWritten`. That's `0216`'s collision, so re-drive after `0216` before designing anything.
 
 **THE RULES ON THE BOUNCE (vc):** one item at a time, claimed here; the id in the commit subject; tell vc, who re-drives and closes it. The only new test allowed is the proving one, seen red. No new instruments, guards, criteria or threads. A defect found while fixing goes in the commit message, not on the list. **hv: _THERE IS NO NEW WORK TO BE DONE._** The list in `intent/wip.md` is the authority, and `intent issues list` is the live state. **Read the lane column there, never a copy here.**
 
@@ -27,13 +24,13 @@ claims: [ST0056/06, ST0056/10]
 
 ## TODO -- startable, mine, in the list's order
 
-- **After `0226` and `0268`, my P3/P5 items in the list's order:** #38 `0097`, #39 `0069`, #63 `0080`, #64 `0100`, #65 `0084`, #71 `0259`, #76 `0159`, #78 `0136`, #79 `0141`, #80 `0114`, #82 `0152`, #83 `0210`. **`0100`'s remaining fix, per vc:** a `status_legacy` mirror like `scope_legacy` (`4479264f` was option 1 only; 22 of 23 still default to not-started with only a finding).
+- **After `0226`, my P3/P5 items in the list's order:** #39 `0069`, #63 `0080`, #64 `0100`, #65 `0084`, #71 `0259`, #78 `0136`, #79 `0141`, #80 `0114`, #82 `0152`, #83 `0210`. **`0100`'s remaining fix, per vc:** a `status_legacy` mirror like `scope_legacy` (`4479264f` was option 1 only; 22 of 23 still default to not-started with only a finding).
 
 ## Holds -- mine, with the CONDITION that releases each
 
 **A hold whose condition still stands is never archived by a fold. None below is released.**
 
-- **#17 `0226` -- RELEASED WHEN dc's `0216` has landed on `main`** (`git log --grep 0216`). Same collision, and the issue says a fix for one must be checked against the other. dc's `0216` adds a decided rebuild beside my `warm_if_cold`/`replace_estate` in `store.rs`, as a Load mode for the daemon's background ingest only; explicit `--to-store` stays `Load::Restore` (vc reversed its ruling after my AC-03.9 flag).
+- **#17 `0226` -- RELEASED 2026-09-11 11:37Z** by dc's `0216` at `be0422d9`, and now in DOING. **The old check, `git log --grep 0216`, was too loose:** at 11:37Z it matched `69ebc932`, an issue-body edit from 2026-09-03, and I told vc the hold was released a minute before it actually was. **A hold's condition names the artefact it waits on** (eg `-- native/rust` plus a `--since`), not a string that any mention of the id will match.
 - **POST-CUT (culled from the 3.0.1 loop 2026-09-11):** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). Their conditions stand and none is 3.0.1 work.
 - **The 16 `collapsible_if` in intentsvcs -- RELEASED WHEN hv says go on hv's decision 4 (NOT a list item) AND `facade.rs`/`store.rs`/`daemon.rs` carry no peer's uncommitted work.** They are our own code at a fixed compiler (10 -> 10 across 1.98.0 -> 1.98.1), so this is mechanical, not a policy call. They are the SOLE blocker on the `rust` workflow, and they gate the five prettier arms that have never measured in CI. My REC is to collapse them.
 
