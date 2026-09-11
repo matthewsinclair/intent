@@ -3618,6 +3618,28 @@ impl Facade {
   /// nothing either, because a service call with a stated direction has
   /// already been chosen. The REFUSAL belongs on the bare verb (AC-03.9).
   pub fn sync_from_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
+    self.load_from_disk(scope, ingest::Load::Restore)
+  }
+
+  /// **disk -> db for intentd's background pass after an external edit: the
+  /// disk wins only where it says something the store did not write** (issue
+  /// `0216`).
+  ///
+  /// The same engine as [`Facade::sync_from_disk`] under a different
+  /// [`ingest::Load`], so the daemon runs no second sync implementation (D32).
+  /// It is NOT the restore: nobody typed it and nobody was shown an OVERWRITES
+  /// preview, so it must not destroy a write whose commit has landed and whose
+  /// canon file has not -- which the restore's wholesale rebuild did, ~1s after
+  /// the writer printed `ok`.
+  pub fn ingest_from_disk(&mut self, scope: &SyncScope) -> Result<usize, FacadeError> {
+    self.load_from_disk(scope, ingest::Load::Ingest)
+  }
+
+  fn load_from_disk(
+    &mut self,
+    scope: &SyncScope,
+    load: ingest::Load,
+  ) -> Result<usize, FacadeError> {
     // **Validated against DISK, because disk is this direction's SOURCE.**
     // Checking the store instead would refuse a thread that exists only on
     // disk, which is the one case a restore is most obviously for. The extra
@@ -3643,7 +3665,7 @@ impl Facade {
     // block the very verb the error tells the operator to run.
     let project = &self.project;
     let canon = ingest::recording(&mut self.store, |store| {
-      let mut canon = ingest::resync(project, store, scope)?;
+      let mut canon = ingest::resync_as(project, store, scope, load)?;
 
       // **The disk-to-attachments carry, and this is the only caller** (D57-6's
       // second consumer; 5.1b). Until this landed the sole producer of an
@@ -3657,11 +3679,44 @@ impl Facade {
       // rather than let disk quietly outvote it. The second `rebuild` is the
       // price of keeping that boundary honest, on a path that is explicit,
       // infrequent and already declared destructive.
+      let before: std::collections::HashMap<String, Vec<crate::model::Attachment>> = canon
+        .threads
+        .iter()
+        .map(|t| (t.id.clone(), t.attachments.clone()))
+        .collect();
       let refused = ingest::collect_attachments_into(project, &mut canon);
       if !refused.is_empty() {
         return Err(IngestError::from(crate::finding::Refusal::new(refused)));
       }
-      store.rebuild(&canon.threads, &canon.issues)?;
+      if load == ingest::Load::Ingest {
+        // **ON THE DAEMON'S PASS, ONLY WHAT THE CARRY CHANGED, ONTO THE ESTATE
+        // AS IT STANDS UNDER THE LOCK** (issue `0216`). The wholesale second
+        // rebuild below, from canon decided in `resync`'s own transaction a
+        // moment earlier, deleted a writer committing between the two: the
+        // event log shows `ST0082` minted at .315, gone by .325 when a
+        // contender minted the same id, and the ingest logged at .331. When
+        // the carry changed nothing there is no second write at all.
+        let carried: std::collections::HashMap<String, Vec<crate::model::Attachment>> = canon
+          .threads
+          .iter()
+          .filter(|t| before.get(&t.id) != Some(&t.attachments))
+          .map(|t| (t.id.clone(), t.attachments.clone()))
+          .collect();
+        if !carried.is_empty() {
+          let (threads, issues) = store.rebuild_deciding(|mut held_threads, held_issues, _| {
+            for thread in &mut held_threads {
+              if let Some(attachments) = carried.get(&thread.id) {
+                thread.attachments = attachments.clone();
+              }
+            }
+            (held_threads, held_issues)
+          })?;
+          canon.threads = threads;
+          canon.issues = issues;
+        }
+      } else {
+        store.rebuild(&canon.threads, &canon.issues)?;
+      }
 
       // **The index is derived during `read`, which by design has not seen the
       // attachments yet, so it has to be re-derived here or the carry lands in

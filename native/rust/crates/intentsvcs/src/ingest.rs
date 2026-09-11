@@ -490,9 +490,13 @@ pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestE
 
 /// What a load from the files does to a store that already holds an estate.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Load {
+pub(crate) enum Load {
   /// Replace it wholesale -- `sync --to-store`, the declared restore.
   Restore,
+  /// Take the disk only where it says something the store did not write --
+  /// intentd's background pass after an external edit (issue `0216`). See
+  /// [`Recorded::disk_takes`].
+  Ingest,
   /// Leave it alone: someone warmed or wrote it first, and its rows are truth.
   WarmIfCold,
 }
@@ -631,10 +635,138 @@ fn compose_scoped(store: &Store, disk: Canon, named: &[String]) -> Result<Canon,
   })
 }
 
+/// What the store last recorded of each canon file: the bytes it wrote there
+/// or read from there (0260's index), by project-relative path.
+struct Recorded(std::collections::HashMap<String, String>);
+
+impl Recorded {
+  fn from_index(index: &[sync::FileEntry]) -> Self {
+    Self(
+      index
+        .iter()
+        .map(|e| (e.path.clone(), e.sha256.clone()))
+        .collect(),
+    )
+  }
+
+  /// **DOES THE DISK SAY SOMETHING THE STORE DID NOT WRITE?** (issue `0216`)
+  ///
+  /// The one rule of [`Load::Ingest`]. `read` is the canon file's bytes as this
+  /// ingest read them, `None` when it was absent.
+  ///
+  /// - **The file moved during the ingest** (its bytes now differ from what
+  ///   was read): no. What was read is already stale, and the move will
+  ///   trigger the next ingest, which reads it.
+  /// - **Exactly the bytes the store recorded**: no. This is where the store
+  ///   left the file, so the store's value is at least as new -- and when the
+  ///   store is AHEAD, a writer whose commit has landed and whose canon file
+  ///   has not, taking the disk is the revert this issue is about.
+  /// - **Never on disk and never recorded**: no. A subject only the store has
+  ///   seen is a write not yet projected, not a deletion.
+  /// - **Anything else** -- an edit, a pull, a peer's commit, a deletion of a
+  ///   file the store had recorded: yes, and the disk is taken, which is what
+  ///   an ingest after an external edit exists to do.
+  ///
+  /// **NOT the restore's rule.** `sync --to-store` is the declared destructive
+  /// direction and still takes the disk wholesale (AC-03.9, AT-03.10); its
+  /// OVERWRITES preview is computed without this rule for the same reason.
+  fn disk_takes(&self, project: &Project, path: &std::path::Path, read: Option<&str>) -> bool {
+    let now = sync::file_sha256(path);
+    if now.as_deref() != read {
+      return false;
+    }
+    let recorded = self.0.get(&project.relative(path)).map(String::as_str);
+    match (read, recorded) {
+      (None, None) => false,
+      (read, recorded) if read == recorded => false,
+      _ => true,
+    }
+  }
+}
+
+/// The estate an ingest writes, decided UNDER THE STORE'S WRITE LOCK from what
+/// the store holds at that instant (issue `0216`).
+///
+/// Per thread and per issue: out of scope keeps the store's value; in scope,
+/// the disk's value is taken only where [`Recorded::disk_takes`] says the disk
+/// contradicts the store, and the store's value is kept otherwise -- including
+/// a subject the store has and the disk lacks, which a wholesale rebuild used
+/// to delete. `read` is this ingest's scan, by project-relative path.
+#[allow(clippy::too_many_arguments)]
+fn decide_estate(
+  project: &Project,
+  scope: &Scope,
+  disk_threads: Vec<Thread>,
+  disk_issues: Vec<Issue>,
+  held_threads: Vec<Thread>,
+  held_issues: Vec<Issue>,
+  read: &std::collections::HashMap<String, String>,
+  recorded: &Recorded,
+) -> (Vec<Thread>, Vec<Issue>) {
+  let takes = |path: std::path::PathBuf| {
+    let read = read.get(&project.relative(&path)).map(String::as_str);
+    recorded.disk_takes(project, &path, read)
+  };
+
+  let mut ids: Vec<String> = held_threads
+    .iter()
+    .map(|t| t.id.clone())
+    .chain(disk_threads.iter().map(|t| t.id.clone()))
+    .collect();
+  ids.sort();
+  ids.dedup();
+  let mut threads = Vec::with_capacity(ids.len());
+  for id in ids {
+    let held = held_threads.iter().find(|t| t.id == id);
+    let disk = disk_threads.iter().find(|t| t.id == id);
+    let chosen = if scope.selects(&id) && takes(project.thread_json(&id)) {
+      disk
+    } else {
+      held
+    };
+    threads.extend(chosen.cloned());
+  }
+
+  // Issues are not threads, so a thread scope names none of them and every
+  // issue keeps the store's value under one.
+  if scope.named().is_some() {
+    return (threads, held_issues);
+  }
+  let mut numbers: Vec<u32> = held_issues
+    .iter()
+    .map(|i| i.number)
+    .chain(disk_issues.iter().map(|i| i.number))
+    .collect();
+  numbers.sort_unstable();
+  numbers.dedup();
+  let mut issues = Vec::with_capacity(numbers.len());
+  for number in numbers {
+    let held = held_issues.iter().find(|i| i.number == number);
+    let disk = disk_issues.iter().find(|i| i.number == number);
+    let chosen = if takes(project.issue_json(number)) {
+      disk
+    } else {
+      held
+    };
+    issues.extend(chosen.cloned());
+  }
+  (threads, issues)
+}
+
 pub fn resync(project: &Project, store: &mut Store, scope: &Scope) -> Result<Canon, IngestError> {
-  recording(store, |store| {
-    resync_inner(project, store, scope, Load::Restore)
-  })
+  resync_as(project, store, scope, Load::Restore)
+}
+
+/// [`resync`] under a stated [`Load`] -- the restore, or intentd's ingest.
+/// One engine for both, so the daemon's pass is not a second sync
+/// implementation (D32); only what wins on a disagreement differs.
+pub(crate) fn resync_as(
+  project: &Project,
+  store: &mut Store,
+  scope: &Scope,
+  load: Load,
+) -> Result<Canon, IngestError> {
+  recording(store, |store| resync_inner(project, store, scope, load))
 }
 
 /// The body of [`resync`], separated only so the recording wraps every exit
@@ -699,6 +831,34 @@ fn resync_inner(
 
   match load {
     Load::Restore => store.rebuild(&canon.threads, &canon.issues)?,
+    // **DECIDED UNDER THE WRITE LOCK, NOT REPLACED WHOLESALE** (issue `0216`).
+    // The daemon's pass used to take the Restore arm: the disk's estate over
+    // the store's, so a writer whose commit had landed and whose canon file
+    // had not was silently reverted -- `ok` printed, the row gone ~1s later.
+    // Out-of-scope threads a scoped composition read above, outside any lock,
+    // are re-read here under it; `decide_estate` keeps the held value for them.
+    Load::Ingest => {
+      let read_now: std::collections::HashMap<String, String> = entries
+        .iter()
+        .map(|e| (e.path.clone(), e.sha256.clone()))
+        .collect();
+      let disk_threads = std::mem::take(&mut canon.threads);
+      let disk_issues = std::mem::take(&mut canon.issues);
+      let (threads, issues) = store.rebuild_deciding(|held_threads, held_issues, index| {
+        decide_estate(
+          project,
+          scope,
+          disk_threads,
+          disk_issues,
+          held_threads,
+          held_issues,
+          &read_now,
+          &Recorded::from_index(&index),
+        )
+      })?;
+      canon.threads = threads;
+      canon.issues = issues;
+    }
     // A peer warmed or wrote this store after it was found empty. What it holds
     // is truth, so it is read rather than replaced from files that may not
     // carry the peer's write yet -- and the rest of this pass, which exists to

@@ -279,7 +279,7 @@ fn an_unwatched_project_loses_nothing_in_the_same_burst() {
 }
 
 #[test]
-#[ignore = "0216 is an OPEN defect and this REPRODUCES it, so it is red by design until the ingest stops reverting store state newer than the disk it read. Stochastic: the loss appears in a contention band (1 row at 2-4 contenders, none at 0 or 8), so a single green run is not evidence of a fix. Run with --include-ignored."]
+#[ignore = "The fenced reproduction of 0216, which the ingest's Load::Ingest mode closes. Slow and stochastic: the loss appeared in a contention band (1 row at 2-4 contenders, none at 0 or 8), so one green run is not evidence and a regression needs a distribution (six runs at INTENT_0216_CONTENDERS=2). Run with --include-ignored."]
 fn an_ingest_never_reverts_a_newer_store_write() {
   // **THE SUBJECT.** Identical to the control in every respect except that the
   // daemon is made to serve -- and therefore watch -- this root.

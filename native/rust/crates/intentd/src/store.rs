@@ -456,10 +456,16 @@ impl ProjectHandle {
 
 /// Re-read the project from disk, on the store thread.
 ///
-/// **THE SAME CALL `intent sync --to-store` MAKES, WHICH IS D32 APPLIED TO A
+/// **THE SAME ENGINE `intent sync --to-store` RUNS, WHICH IS D32 APPLIED TO A
 /// TRIGGER NOBODY TYPED.** A daemon with its own ingest path would be a second
 /// sync engine in the literal sense the design warns about -- not two processes
 /// racing, but two implementations that agree today.
+///
+/// **BUT NOT THE RESTORE** (issue `0216`). `sync --to-store` is the declared
+/// destructive direction; this pass was never declared anything, and running
+/// the restore here reverted a peer's landed write whenever its canon file had
+/// not caught up. `ingest_from_disk` takes the disk only where it says
+/// something the store did not write.
 ///
 /// **A FAILURE IS PRINTED BECAUSE THERE IS NOBODY TO RETURN IT TO, AND SILENCE
 /// IS THE ONE THING IT MUST NOT BE** (`IN-AG-NO-SILENT-001`). An ingest that
@@ -469,7 +475,7 @@ impl ProjectHandle {
 /// lands this is stderr, which is where `intent daemon run` puts it in front
 /// of whoever started it.
 fn ingest(facade: &mut Facade, root: &Path) {
-  if let Err(e) = facade.sync_from_disk(&intentsvcs::sync::Scope::All) {
+  if let Err(e) = facade.ingest_from_disk(&intentsvcs::sync::Scope::All) {
     eprintln!(
       "intentd: ingesting `{}` after an external edit failed: {}\n  remedy: {}",
       root.display(),

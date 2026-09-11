@@ -5,8 +5,9 @@
 //! WHOLE DESIGN.** It answers one question -- *did anything a sync would read
 //! just change?* -- and hands the answer to the project's store thread. It does
 //! not decide what changed, does not read files, and has no opinion about
-//! canon. Everything downstream of the trigger is `Facade::sync_from_disk`,
-//! which is the same call `intent sync --to-store` makes.
+//! canon. Everything downstream of the trigger is `Facade::ingest_from_disk`,
+//! the engine `intent sync --to-store` runs, in its non-destructive mode
+//! (issue `0216`).
 //!
 //! **SCOPE COMES FROM `intentsvcs::sync::Scanned` AND IS NEVER RE-DERIVED
 //! HERE.** That predicate and `sync::scan` are the same object, so the watcher

@@ -2514,6 +2514,36 @@ impl Store {
     Ok(true)
   }
 
+  /// Rebuild the store from canon CHOSEN UNDER THE WRITE LOCK (issue `0216`).
+  ///
+  /// **`decide` is handed the store's current estate and its file index and
+  /// returns the estate to write, and all of it happens inside ONE IMMEDIATE
+  /// TRANSACTION.** A disk ingest that read the store, decided, and then called
+  /// [`Store::rebuild`] would leave a window in which another writer commits
+  /// -- and that commit would be replaced by an estate that never saw it,
+  /// which is 0216 exactly. Taking the write lock before the read closes the
+  /// window: a writer arriving meanwhile waits, or is refused (0226), and is
+  /// never silently lost.
+  ///
+  /// The decision itself is not the store's to make, so it arrives as a
+  /// closure; the store only guarantees that what `decide` saw is still true
+  /// when its answer is written.
+  pub fn rebuild_deciding(
+    &mut self,
+    decide: impl FnOnce(Vec<Thread>, Vec<Issue>, Vec<FileEntry>) -> (Vec<Thread>, Vec<Issue>),
+  ) -> Result<(Vec<Thread>, Vec<Issue>), StoreError> {
+    let tx = self
+      .conn
+      .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let held_threads = Self::hydrate_threads(&tx, None)?;
+    let held_issues = Self::hydrate_issues(&tx, None)?;
+    let index = Self::read_file_index(&tx)?;
+    let (threads, issues) = decide(held_threads, held_issues, index);
+    Self::replace_estate(&tx, &threads, &issues)?;
+    tx.commit()?;
+    Ok((threads, issues))
+  }
+
   /// The body both [`Store::rebuild`] and [`Store::warm_if_cold`] run inside
   /// their own transaction: every modelled row out, the given estate in.
   fn replace_estate(
@@ -3425,8 +3455,13 @@ impl Store {
 
   /// Every indexed file, ordered by path.
   pub fn file_index(&self) -> Result<Vec<FileEntry>, StoreError> {
-    let mut stmt = self
-      .conn
+    Self::read_file_index(&self.conn)
+  }
+
+  /// The one reader of the file index, on whatever connection or transaction
+  /// the caller holds -- [`Store::rebuild_deciding`] reads it under its lock.
+  fn read_file_index(conn: &rusqlite::Connection) -> Result<Vec<FileEntry>, StoreError> {
+    let mut stmt = conn
       .prepare("SELECT path, size, mtime, sha256, state, findings FROM file_index ORDER BY path")?;
     let rows = stmt.query_map([], |row| {
       Ok((

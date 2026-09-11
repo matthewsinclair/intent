@@ -723,7 +723,7 @@ pub(crate) fn entry_for(
   let rel = crate::project::relative(root, path);
   let bytes = std::fs::read(path).map_err(|e| io_err(path, e))?;
   let meta = std::fs::metadata(path).map_err(|e| io_err(path, e))?;
-  let sha256 = hex(Sha256::digest(&bytes).as_slice());
+  let sha256 = sha256_hex(&bytes);
 
   let findings = inspect(&rel, &bytes);
   let state = if !findings.is_empty() {
@@ -831,6 +831,17 @@ fn conflict_markers(rel: &str, text: &str) -> Vec<Finding> {
 fn is_marker(line: &str, c: char) -> bool {
   let run = line.chars().take_while(|&ch| ch == c).count();
   run == 7 && line[run..].chars().next().is_none_or(|ch| ch == ' ')
+}
+
+/// The file's bytes as the index names them, or `None` when it cannot be read
+/// now. One digest with [`entry_for`], so "what are this file's bytes" has one
+/// answer (issue `0216` compares the two).
+pub(crate) fn file_sha256(path: &Path) -> Option<String> {
+  std::fs::read(path).ok().map(|bytes| sha256_hex(&bytes))
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+  hex(Sha256::digest(bytes).as_slice())
 }
 
 fn hex(bytes: &[u8]) -> String {
