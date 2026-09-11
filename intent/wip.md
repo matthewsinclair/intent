@@ -50,7 +50,6 @@ intent_version: 3.0.0
 | 60  | `0115` | medium | dc   | `claude upgrade` report mode prints the roster, not a diff.              |
 | 61  | `0220` | medium | dc   | No per-project override of shipped templates and hooks.                  |
 | 62  | `0224` | medium | dc   | `init` seeds an Elixir decision tree into every project.                 |
-| 63  | `0080` | medium | cc   | Migrated threads carry no slug.                                          |
 | 64  | `0100` | high   | cc   | An unmappable WP status is defaulted silently.                           |
 | 65  | `0084` | medium | cc   | A retired refusal left two survivors in ingest.                          |
 | 66  | `0066` | medium | ic   | `_inbox/` is invisible to st show/list, ac gate, at lint, todo.          |
