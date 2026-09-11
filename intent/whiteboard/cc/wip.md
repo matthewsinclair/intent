@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 12:07Z
+heartbeat_at: 2026-09-11 12:34Z
 status: active
-focus: "ON THE BOUNCE 2026-09-11: #71 0259 IN FLIGHT. Held on vc rulings: 0100 (shape) and 0084 (a sidecar writer first). With vc: 0069, 0080, 0226, 0097. Then my P3/P5 items in list order. hv: no new work, these items ONLY; intent/wip.md is the authority. One id at a time: claim, commit with the id, tell vc, vc closes. The 16 clippy lints are hv's decision 4."
+focus: "2026-09-11 12:34Z: MY LANE IS WORKED. With vc: 0259 (d984b077), 0210 (7c5302bb). Held on hv: 0100 (decision 2, rung 17->18), 0084 (decision 11, byte write). 0114 and 0141 are lane --. Next is what vc routes, or a hold coming true. hv: no new work, these items ONLY; intent/wip.md is the authority. The 16 clippy lints are hv's decision 4."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,7 +14,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**IN FLIGHT (2026-09-11 12:07Z): #71 `0259`.** With vc: `0069` (`c0b688a1`), `0080` (`4f718b3c`), `0226` (`7ac7de0c`; drive the lib test, not the fenced harness) and `0097` (`a15870e8`). vc closed `0268`.
+**NOTHING IN FLIGHT (2026-09-11 12:34Z). Every item in my lane has been worked.** With vc to re-drive: `0259` (`d984b077`) and `0210` (`7c5302bb`). Closed by vc since the compact: `0268`, `0097`, `0069`, `0226`, `0080`, `0136`, `0152`. The rest are held on hv decisions (see `## Holds`). Next is whatever vc routes, or a hold's condition coming true.
 
 **THE RULES ON THE BOUNCE (vc):** one item at a time, claimed here; the id in the commit subject; tell vc, who re-drives and closes it. The only new test allowed is the proving one, seen red. No new instruments, guards, criteria or threads. A defect found while fixing goes in the commit message, not on the list. **hv: _THERE IS NO NEW WORK TO BE DONE._** The list in `intent/wip.md` is the authority, and `intent issues list` is the live state. **Read the lane column there, never a copy here.**
 
@@ -22,14 +22,16 @@ claims: [ST0056/06, ST0056/10]
 
 ## TODO -- startable, mine, in the list's order
 
-- **My P3/P5 items in the list's order:** #78 `0136`, #79 `0141`, #80 `0114`, #82 `0152`, #83 `0210`.
+- **Empty.** Every cc row in `intent/wip.md` is either with vc or held on an hv decision. Read the lane column there, never a copy here.
 
 ## Holds -- mine, with the CONDITION that releases each
 
 **A hold whose condition still stands is never archived by a fold. None below is released.**
 
-- **#64 `0100` -- RELEASED WHEN vc rules the shape** (asked 2026-09-11 12:02Z): (a) `status: Option<WpStatus>` plus `status_legacy`, about 40 reads across 23 files, L; or (b) `status_legacy: Option<Legacy>` carrying the raw v2 spelling beside the substituted status, M. Both need a store rung 17->18, so tell dc before touching `store.rs`. REC (b).
-- **#65 `0084` -- RELEASED WHEN vc rules** (asked 12:07Z). The obvious fix (`sync::inspect` stands down for a non-UTF-8 attachment) is banked at scratchpad `0084-banked.patch` (sha256 `74679d6cee74fe2a`) and NOT committed. Lifting the refusal makes canon name an opaque attachment whose sidecar no door writes: `export::canon_blobs` has no non-test caller and `WriteSet` is text-only, so the second `--to-store` refuses `broken-reference`. REC (a): add a sidecar writer (WriteSet bytes + projection + record_landed) along with the inspect change, proved by a double restore.
+- **#64 `0100` -- RELEASED WHEN hv answers decision 2's added question** (`intent/wip.md`): does 3.0.1 take a store rung 17 -> 18? The shape is ruled (option (b): `status_legacy: Option<Legacy>` carrying the raw v2 spelling beside the substituted status). Tell dc before touching `store.rs`.
+- **#65 `0084` -- RELEASED WHEN hv answers decision 11**: does 3.0.1 build the byte write for opaque attachments? The fix is banked at scratchpad `0084-banked.patch` (sha256 `74679d6cee74fe2a`) and NOT committed. Lifting the refusal alone makes canon name a sidecar no door writes (`export::canon_blobs` has no non-test caller, and `WriteSet` is text-only), so the second `--to-store` refuses `broken-reference`. With a go: WriteSet byte writes + projection emits `canon_blobs` + `record_landed`, then the inspect change, proved by a double restore.
+- **`0114` -- lane `--`, held on hv decision 12** (cap a thread's inline attachment total, or close as by-design). Not mine unless routed back.
+- **`0141` -- lane `--`, NOT WORKABLE IN 3.0.1 (vc)**: both wildcard self-loops are load-bearing under rulings, and the only fix is a new guard. It stays open as the constraint on either field gaining a payload.
 - **A hold's condition names the artefact it waits on** (eg `git log --since=... --grep <id> -- native/rust`), not a string that any mention of the id matches. `git log --grep 0216` matched `69ebc932`, a 2026-09-03 issue-body edit, and I told vc the `0226` hold was released a minute before it was (2026-09-11 11:37Z).
 - **POST-CUT (culled from the 3.0.1 loop 2026-09-11):** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). Their conditions stand and none is 3.0.1 work.
 - **The 16 `collapsible_if` in intentsvcs -- RELEASED WHEN hv says go on hv's decision 4 (NOT a list item) AND `facade.rs`/`store.rs`/`daemon.rs` carry no peer's uncommitted work.** They are our own code at a fixed compiler (10 -> 10 across 1.98.0 -> 1.98.1), so this is mechanical, not a policy call. They are the SOLE blocker on the `rust` workflow, and they gate the five prettier arms that have never measured in CI. My REC is to collapse them.
