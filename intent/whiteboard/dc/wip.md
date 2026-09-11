@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 15:30Z
+heartbeat_at: 2026-09-11 15:40Z
 status: active
-focus: "FOLDED FOR hv's SECOND PAUSE (2026-09-11 14:40Z); this is not a release. The live-store hold is lifted (hv rebuilt at HEAD; vc all-clear 15:30Z). NOTHING IN FLIGHT, NOTHING UNCOMMITTED. 0150 landed at c9960b90, with vc. ON THE BOUNCE: #71 0259 half 2 (not started), then 0065, then decision 2's notice -- ruled at d0777bc8. Test suites run ONLY from a worktree's own sources. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "ON THE BOUNCE, 2026-09-11 15:40Z (vc: pause over). DOING: #68 0065 (doctor acknowledgement, decision 14). With vc: 0150 (c9960b90); 0259 half 2 driven and found to have NO instance at HEAD, so vc rules. Then decision 2's notice. Test suites run ONLY from a worktree's own sources. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -40,9 +40,11 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**Nothing in flight. Nothing of mine is uncommitted in the shared checkout, and no dc worktree is open** (hv's second pause, relayed by vc 2026-09-11 14:40Z; 0259 half 2 was claimed and NOT started). Pre-fold board verbatim at `.history/20260911/wip-prefold-1316Z.md`.
+**`0065` (#68), claimed 2026-09-11 15:40Z:** the doctor acknowledgement, decision 14 as ruled (spec in TODO below). Worktree off HEAD, one proving test red first, tests compiled only from the worktree's own sources, isolated HOME. Pre-fold board verbatim at `.history/20260911/wip-prefold-1316Z.md`.
 
 **With vc, for its re-drive and close:**
+
+- **`0259` HALF 2**: driven 2026-09-11 15:40Z and found to have NO INSTANCE at HEAD, so nothing is built; the ruling is vc's. With the store edited alone, one doctor run flags `model-inconsistent` and reports zero view-skew, and that zero is TRUE. `diagnose` takes its model from committed canon (`ingest::read`, doctor.rs:317, since at least `a1a949cf`). Its two store-backed checks, backups and the op census, read tables `derived_dump` does not compare (store.rs:3439). I offered vc an optional S clarification of the finding's sentence as new work, not built. Found while: `model-inconsistent`'s class remedy is wrong for the store-vs-canon instance.
 
 - **`0150`**: landed at `c9960b90` (a second arm in `payload_list` names what is on disk and the roster does not; nothing removed, 0218 stands). Told vc 2026-09-11 14:38Z.
 
@@ -53,12 +55,12 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## TODO
 
-**vc's column for me, in order:** `0259` HALF 2, then `0065`, then decision 2's notice. The bounce starts at 0259 (vc 2026-09-11 14:40Z). The last two joined on hv's rulings; `intent/wip.md` records decisions 2, 10 and 14 as ruled at `d0777bc8`. Decision 10: 3.0.1 ships every workable row, so 0259 half 2 is in. `0172` moved to cc. When all three land, ask vc for the column rather than inventing work.
+**vc's column for me, in order:** `0065` (DOING), then decision 2's notice. `0259` half 2 is with vc (above). `intent/wip.md` records all fourteen decisions as ruled at `3221118c` (vc). `0172` moved to cc. When these land, ask vc for the column rather than inventing work.
+
+- **Decision 6, CUT-TIME ONLY -- NOT A NOW TASK** (relayed by vc; ruled in `intent/wip.md` at `3221118c`, line 67 at that read): keep the two v3 bats files (`daemon_commands.bats`, `config_undefined.bats`). When the v2 trunk goes at the cut, point `test_helper.bash` at the v3 binary.
 
 - **`0065` (decision 14, ruled: my S design as written):** the key is `"doctor": {"acknowledged": {"<finding-class>": "<reason>"}}` in project config, using the FindingClass kebab name. An acknowledged class still RUNS and still prints `acknowledged: <class> -- <reason> (N finding(s))` in place of its warnings. **Its findings DROP OUT of the finding count and the exit code** (my original wording; "leaves" in decision 14's text means departs). `--format json` carries `acknowledged: true` and the reason. An acknowledgement naming no real class is itself reported, so a typo cannot silence a check. The write path is a hand edit. One test.
 - **Decision 2's notice (docs item):** one CHANGELOG line and one backup sentence in the migration docs, saying that 13 -> 17 and the 17 -> 18 rung cannot be reversed. The rung landed at `9046156b` (`0100`, cc: `status_legacy` on `wps`). hv recovered the live store's accidental 17 -> 18 by a rebuild at HEAD; that is an incident, not something the notice describes.
-
-- **`0259` HALF 2 START HERE (#71):** in one `intent doctor` run, `model-inconsistent` flags the runtime store stale while checks computed FROM that store (eg view-skew) print green. A check that answers from the runtime store must say so when the same run reports that store stale. NOT the doctor remedy offering to delete `intent/.cache/` (not on the list). Half 1 is fixed at `d984b077`. Read `intent issues show 0259` section 2 first.
 
 **THE RULES ON THE BOUNCE** are unchanged and live in the paragraph below. Two practices that paid off today:
 
