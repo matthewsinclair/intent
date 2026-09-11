@@ -148,17 +148,22 @@ APP_ASSET="Intent.app.zip"
 # A RECORDED VERIFICATION MUST NAME ITS POPULATION, or the next reader inherits
 # the confidence without the scope.
 #
-# THE FOURTH ENTRY IS A FILE, NOT A TREE, AND THAT IS THE WHOLE POINT.
-# `intent_claude_cwi` is the one plugin script v3 resolves (`cwi_script` in
-# `intentsvcs/src/install.rs`), and hv ruled it the ONE plugin script surviving
-# the cut -- recorded on that function. Naming the file rather than
-# `intent/plugins/claude/bin/` keeps the list to what the resolver reads: a
-# directory entry would ship whatever else is ever dropped beside it, which is
-# precisely the residue fail-forward exists to refuse. Adjacency is not a reason
-# to ship something.
+# `intent/plugins/claude` SHIPS WHOLE, BECAUSE THE BINARY CHOOSES ITS CHILD AT RUN
+# TIME. `payload.rs` resolves `intent/plugins/claude/<kind.canon_subdir()>` --
+# `skills` or `subagents` -- and no reading of the source can list what a
+# run-time join will ask for. Until 2026-09-11 this list named the rules and
+# skills trees and the `intent_claude_cwi` file, the coverage guard counted the
+# directory as covered by those children, and the 3.0.1 keg shipped with no
+# `subagents` tree: `intent claude subagents list` answered `no subagents in this
+# install` at exit 0. `support_paths_coverage` now accepts a run-time-resolved
+# directory only when the whole directory ships, so the next child cannot be
+# left out in silence. The file-level `intent_claude_cwi` entry existed to keep
+# v2's plugin scripts out of the keg; they are gone from `bin/`, which now holds
+# only the launcher.
 #
-# HOW IT WENT MISSING, BECAUSE THE ANSWER CHANGES WHAT THE FIX MEANS. It was not
-# missed when this list was corrected on 2026-08-26 (`0112b8c1`). The cwi door
+# HOW `intent_claude_cwi` WENT MISSING FROM THE 3.0.0 KEG, BECAUSE THE ANSWER
+# CHANGES WHAT A FIX MEANS. It was not missed when this list was corrected on
+# 2026-08-26 (`0112b8c1`). The cwi door
 # landed the NEXT DAY, `68ca70bf` 2026-08-27 14:41Z, and the copy list did not
 # follow it. `support_paths_coverage` caught it on the first stage attempt after
 # that -- **so this entry is the check WORKING, not the check having failed.** A
@@ -175,7 +180,7 @@ APP_ASSET="Intent.app.zip"
 # It needs no formula `chmod`: the archive preserves 0755 through `tar`, and the
 # `chmod` in the formula exists only for the BINARIES, which GitHub serves as
 # bare 644 files. Verified in the archive, not assumed.
-SUPPORT_PATHS="lib/templates intent/plugins/claude/rules intent/plugins/claude/skills intent/plugins/claude/bin/intent_claude_cwi"
+SUPPORT_PATHS="lib/templates intent/plugins/claude"
 
 # THE WRAPPER DIRECTORY, AND IT EXISTS BECAUSE HOMEBREW UNPACKS WITH A HEURISTIC.
 #
@@ -433,27 +438,63 @@ INSTALL_BINARY_PATHS="bin"
 # only. A `tests/` join builds a FIXTURE install root -- `skills_sync.rs` mkdirs
 # some of these paths in a tempdir -- so a fixture path is not a shipping
 # requirement, and reading tests here would refuse a release over a temp dir.
-resolved_install_paths() {
+#
+# ONE SCAN, TWO KINDS OF LINE, AND A CHAIN MAY SPAN LINES. `install_path_chains`
+# reads each resolver file whole, so a chain rustfmt breaks across lines is seen
+# -- `payload.rs` writes
+#
+#   install
+#     .join("intent/plugins/claude")
+#     .join(kind.canon_subdir()),
+#
+# and a line-at-a-time grep saw none of it, which is how the 3.0.1 keg shipped
+# with no subagents tree while this guard printed nothing. Each line is
+#   L<TAB><path>   a literal chain: the binary resolves exactly <path>
+#   R<TAB><path>   a literal chain CONTINUED by a non-literal join: the binary
+#                  resolves a child of <path> chosen at run time
+# An R path is covered only by shipping the WHOLE directory (see below), because
+# no reading of the source can say which children the run time will ask for.
+install_path_chains() {
   local src="$ROOT/native/rust/crates"
   [ -d "$src" ] || return 0
-  find "$src" -path '*/src/*' -name '*.rs' -exec \
-    grep -hoE '(install|install_root|home)(\.join\("[^"]+"\))+' {} + 2>/dev/null |
-    sed -E -e 's/^(install|install_root|home)//' -e 's/\.join\("/\//g' \
-           -e 's/"\)//g' -e 's#^/##' | sort -u
+  find "$src" -path '*/src/*' -name '*.rs' -exec perl -0777 -ne '
+    while (/\b(?:install_root|install|home)((?:\s*\.join\(\s*"[^"]+"\s*\))+)(\s*\.join\(\s*[^\s")])?/g) {
+      my ($chain, $more) = ($1, $2);
+      my $p = join("/", $chain =~ /"([^"]+)"/g);
+      $p =~ s{^/+}{};
+      print((defined $more ? "R" : "L"), "\t", $p, "\n");
+    }' {} + 2>/dev/null | sort -u
+}
+
+resolved_install_paths() {
+  install_path_chains | cut -f2 | sort -u
 }
 
 support_paths_coverage() {
-  local src="$ROOT/native/rust/crates" lit entry covered out=""
+  local src="$ROOT/native/rust/crates" kind lit entry covered out=""
   [ -d "$src" ] || { printf '       < no rust source at %s\n' "$src"; return 0; }
-  for lit in $(resolved_install_paths); do
+  while IFS=$'\t' read -r kind lit; do
+    [ -n "$lit" ] || continue
     covered=""
     for entry in $SUPPORT_PATHS $INSTALL_BINARY_PATHS; do
       case "$lit/" in "$entry"/*) covered=y ;; esac
+      # A PARENT-OF-AN-ENTRY LITERAL IS COVERED ONLY WHEN IT IS RESOLVED
+      # EXACTLY. For an R path the run time picks a child, so an entry for one
+      # child says nothing about the next: `intent/plugins/claude` was
+      # "covered" by its rules and skills entries while subagents was missing.
+      [ "$kind" = R ] && continue
       case "$entry/" in "$lit"/*) covered=y ;; esac
     done
-    [ -n "$covered" ] || out="$out       < $lit
+    if [ -z "$covered" ]; then
+      if [ "$kind" = R ]; then
+        out="$out       < $lit (a child is chosen at run time, so the whole directory must ship)
 "
-  done
+      else
+        out="$out       < $lit
+"
+      fi
+    fi
+  done < <(install_path_chains)
   printf '%s' "$out"
 }
 
