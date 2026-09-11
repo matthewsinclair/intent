@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 17:50Z
+heartbeat_at: 2026-09-11 18:15Z
 status: active
-focus: "THE 3.0.1 CUT, vc holds the pen (hv 2026-09-11: 'You have the pen. Do it.' and 'You're in charge ... make the release a reality'). Steps 1-2 LANDED (7c40da0ab, d5998ac37); step 3 landing ic, then cc x3. RUN THE VERBS; every figure here rots."
+focus: "THE 3.0.1 CUT, vc holds the pen. Steps 1-4 LANDED AND GREEN; dc fixing the 3.0.1 CHANGELOG, then the tree freezes and hv runs the release. RUN THE VERBS; every figure here rots."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 ---
 
@@ -17,14 +17,16 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 
 **THE ORDER IS LOAD-BEARING. Each step gates the next.**
 
-1. **vc: the 75 AT rows -- LANDED at 7c40da0ab.** It also cleared the two preflight blockers (ST0069 WP-13/14/16, ST0064/01 done); live doctor 0, rc=0. `--scope all` withholds one finding on the closed ST0073 (AC-05.1 names a WP-05 it lacks): report it to hv, don't act. The devbin manifest (only its source_commit header had moved) was committed alone at 3b8cd3876.
-2. **dc: the AC-00.6 prune -- LANDED at d5998ac37** (86 paths; bin/intent* gone). dc's dry-run: preflight passes, and the suite's 50 failures all map to the 16 mixed files. A FRESH clone's doctor refuses backup-stale until one `intent backup`; hv's live tree has a snapshot.
-3. **The 16 mixed files, in this order: ic, then cc's critic commit, then cc's tests, then cc's clippy.**
-   - ic: its eight (R1-R12, R3 dry-run byte-identical). GO sent 2026-09-11 17:50Z.
-   - cc critic commit: `--rules` fix, the critic_config 6 warn, and option (a) (ruled 2026-09-11 17:50Z): a project-disabled rule is counted, the empty-library refusal needs census empty AND none disabled, and the census line shows the disabled COUNT (critic_surface forbids the ids in stdout).
-   - cc tests commit: rulings B-G. D' ruled: the fixture writes $HOME/.intent/config.json author, which is v3's one author source, never git.
-   - cc clippy commit: DECISION 4 IS NOT FINISHED. rust.yml runs `clippy --workspace --all-targets -D warnings` before test, and at fbf15f694 it is red at about 33 sites (rustc 1.98.1). result_large_err: box inside the file, or a scoped allow with a reason; no crate-wide allow. Size M at most.
-4. **vc: rebuild the PATH pair at HEAD (`bin/devbin build all`; it is 9046156b and the gate says it is behind), then the full suite, green, in a private worktree with an in-tree target** (an out-of-tree CARGO_TARGET_DIR fakes 36 failures). Rust was 2353/0 at b9fdf0f4. Shell: run_tests.sh must be green. Then dc regenerates the WHOLE docs/reference at that sha (ST0068 AC-04.2).
+1-4. **LANDED AND GREEN** (2026-09-11 18:15Z):
+
+- 7c40da0ab: the 75 rows, ST0069 WP-13/14/16, ST0064/01 done; 3b8cd3876: devbin manifest;
+- d5998ac37: dc's prune; 0f9958492: ic's eight; 48b61d109 and d1a710ef7: cc's critic and tests; 1409aff70: clippy to zero (decision 4's remainder); ab1bcaaa7: legacy.rs citation pinned to 27c4ec98 (AC-00.6's fourth falsifier);
+- 5f443f4a0: ST0056 AC-00.6 and AC-12.1 satisfied by evidence (cutover_guard refuses after the prune by design, so AC-12.1 took the step-1 route); 28ac7a017: the whole docs/reference.
+- Suite at 1409aff70, private worktree: fmt clean, clippy rc 0, Rust 2353/0, run_tests.sh 716/0. PATH pair rebuilt at ab1bcaaa7. Live doctor 0.
+- `--scope all` withholds one finding on the closed ST0073 (AC-05.1 names a WP-05 it lacks). Report it to hv; don't act.
+  4b. **dc: the 3.0.1 CHANGELOG and release notes** (asked 2026-09-11 18:15Z): delete the stale "cut is held" opening line; add the v2 shell removal, decision 3's retirements and today's critic fixes; the menubar app only if publish carries it. "Nothing that worked in v3.0.0 is removed" holds for the installed binary: on the 3.0.0 keg, --with-st0000 and the three doors all gave rc=2, "not implemented yet".
+  4c. **FREEZE for the release**: every node commits its board, then makes no shared-tree writes until hv's release is done. The preflight runs cargo test in the shared checkout under the real HOME; afterwards re-read `~/.intent/home` and the store's user_version (18).
+
 5. **hv runs `! bin/devbin build release --patch`.** Its confirm gate stays human; never --no-confirm. It stamps 3.0.1, commits, tags, pushes both remotes and creates the GitHub release. The CHANGELOG reads `## [3.0.1] - in progress`, and the script dates it.
 6. **Artefacts:**
    - `bin/devbin build all` at the tag;
