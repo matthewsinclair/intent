@@ -2,16 +2,20 @@
 #
 # Consumers:
 #   - intent critic <lang>             (headless runner, pre-commit gate)
-#   - .claude/scripts/post-tool-advisory.sh (opt-in PostToolUse advisory)
+#   - intent claude hook post-tool-advisory (opt-in PostToolUse advisory; the body ships in the Intent install)
 #   - critic-<lang> subagents          (LLM review via Task(...))
 #
-# Full schema and behaviour notes: intent/docs/critics.md at the Intent
-# install. A worked example with disabled rules and reasons ships there
-# too (rules/_schema/sample-intent-critic.yml).
+# Full schema and behaviour notes: intent/docs/critics.md in the Intent
+# source repository (https://github.com/matthewsinclair/intent). A worked
+# example with disabled rules and reasons ships in the Intent install
+# (rules/_schema/sample-intent-critic.yml).
 
 # Minimum severity to emit in the report body AND to block commits on.
 # Valid values: critical | warning | recommendation | style.
 # Default: warning (body shows CRITICAL + WARNING; Summary counts all severities).
+# Read by the pre-commit gate, which passes it as --severity-min. A direct
+# `intent critic <lang>` run and the PostToolUse advisory do not read it;
+# pass --severity-min instead.
 severity_min: warning
 
 # Rule IDs to suppress entirely for this project. Each entry should be

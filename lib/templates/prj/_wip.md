@@ -1,5 +1,5 @@
 ---
-verblock: "06 Mar 2025:v0.1: Matthew Sinclair - Initial version"
+verblock: "[[DATE]]:v0.1: [[AUTHOR]] - Initial version"
 ---
 
 # Work In Progress
