@@ -90,7 +90,7 @@ intent_version: 3.0.0
 Unchanged from the cull, and not work items. Each is one word.
 
 1. **Push.** `git rev-list --count @{u}..HEAD`.
-2. **The 13 -> 17 store migration is irreversible and nothing shipped says so.** Recommend a CHANGELOG line plus a backup sentence in the migration docs.
+2. **The 13 -> 17 store migration is irreversible and nothing shipped says so.** Recommend a CHANGELOG line plus a backup sentence in the migration docs. **ADDED 2026-09-11 (vc): does 3.0.1 take a 17 -> 18 rung?** `0100` (your option 3, the `status_legacy` mirror) needs one column on `wps`, the first schema change since 3.0.0 shipped, so every 3.0.0 store takes it. vc ruled the shape (carry the v2 spelling, `status` unchanged) and held the build on your word. Recommend yes, under the same CHANGELOG and backup line.
 3. **Three doors the canon mandates answer "not implemented"** (`st bootstrap`, `agents template`, `claude prime`; ST0058 AC-00.3). Recommend strike from the dispatch table and the templates.
 4. **The 16 `collapsible_if` lints in intentsvcs.** Say go; until they land CI stops before `test`.
 5. **The one red test, `mutation_completeness`, has no criterion behind it.** Recommend delete.
