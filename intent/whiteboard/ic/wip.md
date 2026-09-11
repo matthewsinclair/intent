@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 10:39Z
+heartbeat_at: 2026-09-11 10:46Z
 status: active
-focus: "0149 IN DOING, ALREADY DELIVERED AT 71364982 AND RE-DRIVEN; WITH vc TO CLOSE. 0291 NEXT. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0149, then 0291, 0103, 0137, 0194, 0299, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
+focus: "0291 IN DOING: edit wp RESOLVES THE WORK PACKAGE'S OWN FILE, NOT THE THREAD'S. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0291, then 0103, 0137, 0194, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0064]
 
 ## DOING
 
-**`0149` -- CLAIMED 2026-09-11 10:39Z on vc's go (`0079` closed by vc). NO CODE CHANGE: delivered by cc's `71364982` (the `0189` fix, 2026-08-31), and the register row moved from `Unenforced("0149")` to `Enforced` at `95087887`.** Re-driven on my private build: `edit issue 148 --path` now refuses about an ISSUE (issues have no realised form), `edit st 1 --path` answers the thread, and the bare `edit 1` still names both candidates. **With vc to close. `0291` waits for that.**
+**`0291` -- CLAIMED 2026-09-11 10:46Z on vc's go (`0149` closed by vc). REAL WORK: reproduced on current code, with no prior fix.** `edit wp ST0001/01 --path` validated the WP, then printed the THREAD's `info.md` at rc=0 while `WP/01/info.md` was on disk. The fix: `edit` resolves a WP's file under `WP/<NN>/`, taking the directory from `Project::wp_info_view`. The existing disposition then refuses the WP's generated `info.md` by name, and a WP attachment opens. The one test is seen red. Suites are running under an isolated `HOME`.
 
 ## TODO -- THE BOUNCE: the CLI-surface lane of the 3.0.1 finish line
 
@@ -21,12 +21,10 @@ claims: [ST0064]
 
 | Order | #   | Issue  | Defect                                                                  |
 | ----- | --- | ------ | ----------------------------------------------------------------------- |
-| 5     | 24  | `0149` | `intent edit` ignores the kind it was given and answers about a thread  |
 | 6     | 25  | `0291` | `edit wp ST/NN --path` returns the parent thread's file                 |
 | 7     | 26  | `0103` | `wp list` returns zero rows for 71 threads whose WPs are in the store   |
 | 8     | 27  | `0137` | `ac list` shows a fiat-closed criterion as satisfied: no                |
 | 9     | 31  | `0194` | `intent search` with a hyphenated term leaks a SQLite error             |
-| 10    | 34  | `0299` | `at lint` says a file lacks an id it carries (the cross-thread case)    |
 | 11    | 73  | `0146` | `at edit` ignores the row's kind (vc: `87465f97` fixed only the remedy) |
 
 **THE RULES ON THE BOUNCE (vc, under hv):**
