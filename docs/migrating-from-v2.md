@@ -13,9 +13,18 @@
   $ intent st list
 ```
 
+**Commit first.** `intent upgrade` refuses to convert a project that is not under git or has uncommitted changes, because the migration is one commit and `git revert` of that commit is the rollback.
+
 `intent ingest` checks that the project's markdown would migrate and names each line it could not carry; **it writes nothing.** `intent upgrade` does the migration. It reports each section it did not carry as-is (a section still byte-identical to the v2 template is dropped, because no author wrote it), then tells you to commit the canon and the generated views. Thread directories stay where v2 put them, status-bucket directories included.
 
 Then read a thread you know well and check it against what you remember writing. **Do this before you do anything else with the project**: the longer you work on top of a migration you have not checked, the harder any recovery gets.
+
+### A project older than v2.19.0
+
+**v3 converts a project that v2.19.0 last upgraded, and nothing older.** Bring an older project to v2.19.0 with v2's own `intent upgrade` first: v2.19.0 is the `v2.19.0` tag of this repository. Two things v3 tells you on an older project are wrong:
+
+- A project stamped with an older v2 version is refused with a remedy that says to run `install intent@2 && intent upgrade`. No tap provides an `intent@2` formula.
+- A project from before v2.10.0, which keeps its config at a top-level `.intent/`, is not recognised as a project at all: v3 says `no Intent project found` and suggests `intent init`. **Do not run `intent init` on it.** Upgrade it with v2.19.0.
 
 ## If you migrated with v3.0.0
 
