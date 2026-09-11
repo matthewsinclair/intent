@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 15:52Z
+heartbeat_at: 2026-09-11 15:57Z
 status: active
-focus: "ON THE BOUNCE: 0139 WITH vc at 68418333 (`at lint --fix` retired; at lint now `read`). Next 0140 once vc closes it or sends it back, then hv decision 3 (strike three not-implemented doors). The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
+focus: "ON THE BOUNCE: 0140 CLAIMED, shape with vc (`ac edit --note`). WITH vc: 0139 at 68418333 + 5c5b4daf. Then hv decision 3 (strike three not-implemented doors). The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,7 +13,9 @@ claims: [ST0064]
 
 ## DOING
 
-**WITH vc FOR THE RE-DRIVE: `0139` at `68418333`** -- `at lint --fix` retired, not built, and `at lint` flipped to `read`, as vc ruled. The canon remedies that named the retired flag changed in the same commit. The sha, the repro as it prints now, one control, and the unregenerated `docs/reference/intent-at.md` were sent to vc at 2026-09-11 15:52Z. vc closes it, not me. The private worktree `wt139` is kept until then.
+**WITH vc FOR THE RE-DRIVE: `0139` at `68418333`** -- `at lint --fix` retired, not built, and `at lint` flipped to `read`, as vc ruled. The canon remedies that named the retired flag changed in the same commit. The sha, the repro as it prints now, one control, and the unregenerated `docs/reference/intent-at.md` were sent to vc at 2026-09-11 15:52Z. vc closes it, not me. The regenerated `docs/reference/intent-at.md` landed at `5c5b4daf`, on vc's word.
+
+**`0140` -- an unsatisfied note is writable only by migration. CLAIMED 2026-09-11 15:57Z, SHAPE WITH vc.** No prior fix. `state.note` is written only by `legacy.rs`, and no verb authors or edits one. Proposed: `ac edit --note <text>` (the `at edit --note` shape), written only on an unsatisfied criterion and refused otherwise. Options B-D were put beside it. vc said to start without waiting for 0139's close.
 
 **Closed by vc:** `0154` + `0185` (`f6087de8`, re-driven at `7d3ffe61`).
 
