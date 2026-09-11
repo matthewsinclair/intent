@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-11 17:26Z
+heartbeat_at: 2026-09-11 17:48Z
 status: active
-focus: "PICKUP 2026-09-11 17:26Z after the compact. AC-00.6: applying rulings B-G and the critic_config 6 warning IN wt-cut ONLY, so the two commits are ready the moment vc says dc's prune is on main. NOTHING LANDS BEFORE THAT WORD. Suites only in a private worktree under an isolated HOME."
+focus: "AC-00.6 READY, NOT LANDED (2026-09-11 17:48Z): every ruling applied (B-G, D', critic_config 6 warn + option (a)), all eight files N/N, rehearsed on main + dc's prune. Banked: scratchpad ac006-critic-v3.patch + ac006-tests-v3.patch, messages msg-ac006-critic.txt + msg-ac006-tests.txt. LAND ONLY ON vc's RELAY OF dc's PRUNE SHA: critic commit, then tests."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,16 +14,11 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**LOCALFOLD 2026-09-11 17:18Z FOR THE COMPACT -- not a release. NOTHING OF MINE IS ON MAIN OR DIRTY IN THE SHARED TREE.** The pre-fold board is at `.history/20260911/wip-prefold-1650Z.md`; the rest is in `git log`.
+**AC-00.6 (THE CUT), vc's ROUTING -- READY, NOT LANDED. NOTHING OF MINE IS ON MAIN OR DIRTY IN THE SHARED TREE.** My eight mixed bats files plus the critic fixes they exposed. **LANDING ORDER (vc): dc's prune, then my critic commit (`--rules` + the config warning + option (a)), then my test commit, each with `git add` + `git commit --only`. LAND ONLY WHEN vc RELAYS dc's PRUNE SHA**, then send vc both shas.
 
-**AC-00.6 (THE CUT), vc's ROUTING, hv CONFIRMED LIVE -- BANKED, NOT LANDED.** My eight mixed bats files. **LANDING ORDER (vc): vc's canon commit, then dc's prune, then my critic fix (its own commit, `AC-00.6` and `critic --rules` in the subject), then my test commit (`AC-00.6` in the subject), each rebased. On the bounce WAIT for vc's word that dc's prune is on main.** Send vc both shas and the per-file counts.
-
-- **Worktree:** scratchpad `wt-cut`, detached at `e70b667f`, v2's `bin/intent*` deleted locally (unstaged -- never part of a patch), its own release build at `native/rust/target/release/intent`. Run bats as `HOME=<scratchpad>/hcut INTENT_BIN=<wt-cut>/native/rust/target/release/intent bats tests/unit/<f>.bats`.
-- **Critic fix, DONE, came in at S:** `Library::at(root, ext)` in `rules.rs` (`new` builds through it); the critic roots at `--rules <dir>` and refuses a non-directory by name. Patch: scratchpad `ac006-critic-rules.patch` (sha256 `d208f18fc63598ea`), applies to main.
-- **Deletes, DONE (vc confirmed):** `critic_arming_census` "absent tool: a tool-armed rule reports NOT RUN rather than passing quietly" (v2 critic wording); `no_absolute_home_paths` "the canon engine has no INTENT_HOME substitution left to reintroduce it" (greps the deleted v2 `intent_claude_upgrade`). Patch: scratchpad `ac006-cc.patch` (`4c04cc36446f2377`).
-- **vc's rulings B-G, NOT YET APPLIED:** (B) `critic_report_format` 5 and 6 read `.findings` (and `.rule`, not v2's `.rule_id`; 6 asserts `.findings == []`). (C) DELETE `claude_md_template` 8, naming `agents_sync_parity.rs::the_four_rule_index_is_byte_identical_in_every_template_that_carries_it`. (D) `claude_md_template` 14: git identity `user.name TestUser` in the fixture instead of `INTENT_AUTHOR`, assert TestUser in CLAUDE.md and config -- if v3 honours no author source, STOP and tell vc. (E) the `co_language_code_guard` fixture to an IN-CO id no canon rule declares. (F) `devbin_seal_disagreement` 9's grep to `resolve:513`'s current form, keeping no-elif. (G) DELETE `ext_seed_validity` 16, citing `0177`.
-- **`critic_config` 6, RULED BY vc: BOTH halves, IN THE CRITIC COMMIT.** (1) The critic's `.ok()` that drops an unreadable project config becomes a WARNING on stderr naming the config and the discover error -- NOT a refusal (the gate runs `intent critic` in every estate; a new refusal at release could wedge a pre-commit on a config quirk). rc unchanged. Drive it by hand on a fixture with a bad config and put the drive in the commit message; no new test. (2) The test's fixture gets a valid `config.json` (with `intent_version`) so it proves a disabled rule id suppresses the finding. NOT YET BUILT.
-- **Counts now (fix + two deletes):** claude_md_template 12/2, co_language_code_guard 3/1, critic_arming_census 18/0, critic_config 9/1, critic_report_format 5/2, devbin_seal_disagreement 8/1, ext_seed_validity 17/1, no_absolute_home_paths 6/0. Each must end N/N.
+- **Worktree:** scratchpad `wt-cut` (detached at `e70b667f`, v2's `bin/intent*` deleted locally and never part of a patch). Rehearsal tree `wt-reh` = main `3b8cd387` + dc's `d6-prune.patch` + mine, applied, not committed; its own build; all eight N/N there.
+- **Banked:** scratchpad `ac006-critic-v3.patch` (sha256 `0548c028ccaebe6b`) and `ac006-tests-v3.patch` (`2c068d1f2dc0802c`); messages `msg-ac006-critic.txt` and `msg-ac006-tests.txt`. Rebase onto whatever main is at the relay, re-run the eight files on that tree's own build, then land.
+- **Every ruling is applied:** B, C, D' (author from `$HOME/.intent/config.json`, vc 2026-09-11), E (IN-CO-STYLE-901), F, G, and critic_config 6 both halves plus option (a). The drives are in the critic message.
 
 ## TODO
 
