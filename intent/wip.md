@@ -76,7 +76,6 @@ intent_version: 3.0.0
 | 73  | `0146` | medium | ic   | `at edit` is kind-blind and its remedy produces a row lint cannot judge. |
 | 74  | `0153` | medium | ic   | `intent edit` refuses the address form its own remedy recommends.        |
 | 75  | `0150` | medium | dc   | `skills list` cannot see an orphaned skill directory.                    |
-| 76  | `0159` | medium | cc   | A fiat close is never timestamped.                                       |
 | 77  | `0176` | high   | ic   | `todo notdone`/`toggle` mutate around the Facade.                        |
 | 78  | `0136` | high   | cc   | `deny_unknown_fields` does not reach `AcState::Computed`.                |
 | 79  | `0141` | medium | cc   | A self-loop on a payload state enum becomes a silent overwrite.          |
