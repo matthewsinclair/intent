@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 16:10Z
+heartbeat_at: 2026-09-11 16:53Z
 status: active
-focus: "HOLDING on vc's word: 0140 WITH vc at e396bf90 + 3da61a0a + 323a9785 (`ac edit --note`). My lane is EMPTY; vc sends back anything a drive refuses. hv: NO NEW WORK; these items ONLY."
+focus: "AGGRESSIVE LOCALFOLD 2026-09-11 16:53Z FOR THE COMPACT, THEN HOLD WHILE vc DOES THE CUT. My lane is EMPTY. WITH vc: 0140 at e396bf90 + 3da61a0a + 323a9785. Nothing in flight, nothing uncommitted, no worktree, no daemon. hv: NO NEW WORK."
 claims: [ST0064]
 ---
 
@@ -13,54 +13,35 @@ claims: [ST0064]
 
 ## DOING
 
-**WITH vc FOR THE RE-DRIVE: `0140` at `e396bf90` + the reference page at `3da61a0a` + the known-defects 0211 note at `323a9785`** -- `ac edit --note <text>`, vc's option (A). It writes an unsatisfied criterion's note and is refused by name on a row that keeps its own record. The sha, the repro as it prints now, one control, and `set`'s unchanged refusal of `state` were sent to vc at 2026-09-11 16:07Z. vc closes it, not me. The private worktree `wt139` is kept until then.
+**HOLDING, on hv's word (2026-09-11 16:49Z: "hold while vc does the cut") and vc's.** The pre-fold board is verbatim at `.history/20260911/wip-prefold-aggressive-1648Z.md` (`c1a2f623`), committed alone and confirmed tracked. **Nothing in flight, nothing uncommitted, no private worktree (`wt139` removed), no daemon.**
 
-**Closed by vc:** `0139` (`68418333` + `5c5b4daf`); `0154` + `0185` (`f6087de8`). **Moved to dc:** hv decision 3.
+**WITH vc FOR THE RE-DRIVE: `0140`** -- `ac edit --note <text>` (vc's option A, the `at edit --note` shape). The fix is `e396bf90`, the reference page `3da61a0a`, and the known-defects 0211 note `323a9785`. vc closes it, not me. If a drive sends it back, rebuild a private worktree at HEAD.
 
-## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
+**hv's shell run at 16:50Z (`tmp/test/20260911-1650.SHELL.*`), measured and reported to hv, not fixed.** 51 failures, all one cause: `bin/intent:123` answers only `claude hook|start|ws` since `d8a8c070` (AC-12.1, 2026-09-10 09:49Z), and `tests/unit/agent_commands.bats` (50) plus `ambient_project_root_guard.bats` test 86 still drive `intent claude subagents` through v2. Neither file has been touched since 2026-08-14. The run reported 130 of 1525 (it ended in `at_lint_wp_scope.bats`), and the Rust log is its header only.
 
-**Source: the lane column of `intent/wip.md`. hv: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._ hv cuts from the bottom.** Re-drive it on return; it is vc's and it moves.
+## TODO
 
-**Empty. HOLDING on vc's word** (2026-09-11 16:10Z): every open row is landed and with vc, marked not workable, or dc's. vc will say if a drive sends something back to my lane.
+**Empty.** Every open row is landed and with vc, marked not workable, or dc's (hv decision 3). vc will say if a drive sends something back. The lane column of `intent/wip.md` is the authority.
 
-**THE RULES ON THE BOUNCE (vc, under hv):**
-
-- Claim the id in DOING, **one item at a time**. The next starts only after vc closes the last or sends it back.
-- Commit with the id in the subject and tell vc: **the fix sha, the issue's reproduction as it prints now, and ONE control.** vc re-drives, then closes. Never close it myself.
-- **Check for a prior fix FIRST** (`git log -S`, the issue id in source comments). Of today's eight, four were delivered and never closed, and one no longer reproduced.
-- **A defect found while fixing goes in the commit message, not on the list.**
-- **No new tests beyond the ONE that proves the item, seen RED on the old code.** No new instruments, guards, criteria or threads.
+**THE RULES ON THE BOUNCE (vc, under hv), for anything that comes back:** claim the id in DOING, one at a time. Check for a prior fix first. Put a design call to vc, with options, before writing code. Write ONE proving test, seen red on the unfixed tree. Commit with the id in the subject, and send vc the sha, the repro as it prints now, and ONE control. A defect found while fixing goes in the commit message, not on the list. Never close it myself.
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
-**Cut to the 3.0.1 finish line by vc on 2026-09-11 under hv's instruction; the pre-cull section is verbatim at `.history/20260911/precull-ic-wip-md-0851Z.md`.**
-
-1. **`ST0064` AC-01.7** -- RELEASES WHEN hv signs and notarises the app with their own credentials. hv ruled 2026-09-11 that the app ships in 3.0.1, signed and notarised (decision 7), and cc landed `app-sign` / `app-notarize` at `56322937`. Nothing of mine moves; the claim stays. **cc's finding, not an ask:** `native/macos/Intent/Intent/Info.plist` has no `CFBundleExecutable`. The bundle launches and signs because macOS and codesign fall back to the bundle name. If hv's notarisation submission refuses it, the fix is `CFBundleExecutable` = `$(EXECUTABLE_NAME)` in that plist.
+1. **`ST0064` AC-01.7** -- RELEASES WHEN hv signs and notarises the menubar app with their own credentials. hv ruled 2026-09-11 that the app ships in 3.0.1 (decision 7), and cc landed `app-sign` / `app-notarize` at `56322937`. **cc's finding, not an ask:** `native/macos/Intent/Intent/Info.plist` has no `CFBundleExecutable`. If notarisation refuses it, the fix is `CFBundleExecutable` = `$(EXECUTABLE_NAME)`.
 2. **The palette `Home`/`End` flip** -- post-cut; product feel; no criterion names it.
 
-Culled with the loop: the estate-wide burn (AC-06.1 and AC-00.1 withdrawn), the `v2:` census (AC-00.16 withdrawn), `0222` (WP-17 is done; the issue stays open as a product defect).
+## Watch-outs -- the ones that bite if an item comes back
 
-## Watch-outs -- the ones that bear on fixing CLI defects on a shared tree
+**Cut hard for the compact. Every earlier entry, with its worked case, is verbatim in `.history/20260911/` (the `wip-prefold-*` and `precull-*` files).**
 
-**Cut to rules that bite THIS work. All 129 entries, with their worked cases, are verbatim in the archive above.**
-
-- **SHARED TREE: `git add` the explicit paths, then `git commit --only <explicit paths>`** -- `--only` does NOT stage an untracked file, and it is path-scoped rather than hunk-scoped. **Never remove a peer's `index.lock`: wait, then re-issue the SAME command.** Put the wait BEFORE `git add`, since `add` needs the lock too, and a silent `add` in a retry loop makes every iteration a no-op.
-- **`ok:` IS THE TOOL'S REPORT, NOT EVIDENCE THE WRITE SURVIVED (`0216`).** A canon write can land and then be reverted by the daemon's disk ingest about a second later. **Verify AFTER the ingest.** `sync --to-store` REPLACES the store from the extract, so hand-edit canon FIRST and drive the verbs AFTER.
-- **A GENERATED VIEW HEALS ITSELF ON THE NEXT RENDER; A HAND-AUTHORED FILE CARRYING THE SAME VALUE DOES NOT,** and the tree cannot tell the two apart. That is `0192`'s whole subject: know which one you are editing.
-- **DRIVE A DESTRUCTIVE QUESTION IN A SANDBOX OR DO NOT DRIVE IT.** Three of the first three items are data loss, so reproduce them in a throwaway `HOME`/project and never on this tree's store.
-- **THE ONE TEST MUST BE SEEN RED ON THE UNFIXED TREE BEFORE IT COUNTS.** A green that would also pass against the bug is decoration. The load-bearing assertion is the place to look first.
-- **BOTH RUST CRATES HAVE ONE `suite` TEST TARGET:** `cargo test -p <crate> --test suite <filter>`. **`one_clock` guards the whole workspace and its EXEMPT list is empty** (hv), so a new test must not read `Instant::now`/`SystemTime`. A filtered `--workspace` run prints mostly `0 passed … filtered out`, so read the ONE line with a count.
-- **`intent --version` names the commit the binary was built from.** A behaviour claim needs a current binary; a store claim survives a stale one.
-- **THE BASH TOOL'S SHELL IS zsh:** no word-splitting on an unquoted `$var`, an unmatched glob aborts the command, and it's `pipestatus` rather than `PIPESTATUS`. **Backticks inside a double-quoted argument are command substitution**, so the command that runs is the one you were writing about.
-- **A STATUS FIELD IS A CLAIM BY WHOEVER LAST DROVE A VERB; A COMPUTED RESULT IS DERIVED (W129).** When the two disagree, believe the derived one. That includes an issue reading `open` against a commit that delivered it (`0218`, 2026-09-11).
-- **MEASURE BEFORE SPEAKING. The ordering is the whole rule:** three of four wrong claims on 2026-09-10 went out before the evidence existed. Name the observable and stop, because a mechanism nobody drove is a story.
-- **EVERY `cargo test` AND BUILD RUNS UNDER AN ISOLATED `HOME`** (`CARGO_HOME`/`RUSTUP_HOME` pointed at the real toolchain). `dual_path_conformance` runs `intent bootstrap` IN-PROCESS under the real `HOME`, and `publish_home()` resolves the install from the TEST BINARY's location. From a scratch worktree it repointed `~/.intent/home` at 09:58:55Z, and deleting the worktree then made the pre-commit shim refuse EVERY commit in the repo. Restored with `~/.local/bin/intent bootstrap` (no `--force`).
-- **AN ISOLATED `HOME` DOES NOT PROTECT THE LIVE STORE; ONLY A PRIVATE WORKTREE DOES.** `attachment_drift_detected.rs` runs doctor on `repo_root()`, and on 2026-09-11 a run from the shared tree migrated the live `intent/.cache/intent.db` 17 -> 18 while cc's rung sat uncommitted, so every PATH binary refused the project until vc rebuilt at `9046156b`. Run the intentsvcs suites from a private worktree, never from the shared checkout.
-- **DEVELOP IN A PRIVATE DETACHED WORKTREE; LAND BY PATCH.** cc keeps `facade.rs` dirty, and `commit --only` is whole-file, so wait for the peer's commit, rebase the worktree onto `HEAD`, rerun, `git apply --check`, apply, commit exactly my paths, and `diff` the commit against the tested patch.
-- **AN EXISTING FIXTURE CAN ENCODE THE DEFECT** (three for `0079`, one for `0291`). Repair the fixture so it reaches its state honestly; never touch the assertion.
-- **`intent fc` IS THE HUMAN'S VERB EVEN IN A SANDBOX.** To drive a fiat state, hand-set `{"is":"fiat",...}` in canon and `sync --to-store`.
-- **WHEN THE FIX IS A DESIGN CALL, PUT THE OPTIONS TO vc BEFORE WRITING CODE,** with one recommendation and what each costs. 0223, 0195 and 0154+0185 each came back ruled with conditions that reshaped the build, and vc's condition 2 on 0223 (stop if clap cannot tell `x -- help` from `x help`) fired: clap_builder 4.6.6 keeps `--` in `pub(crate)` state only.
-- **A NEW DISPATCH-TABLE ROW: THE GENERATOR'S GREEN IS NOT A STARTUP PROOF.** `gen_dispatch_table.sh` accepted `owner_wp: null` and the binary then panicked EVERY command at rc=101. A new row also moves the status sentence's count, the `legal_pairs` census, `populations.declared/shipped/probeable`, and a mutating verb needs a bucket in `write_moves_only_what_changed`. Insert the row as TEXT: `jq` rewrites the whole file's formatting.
-- **TO PROVE A WRITE SURVIVES A DAEMON INGEST, FORCE ONE.** A daemon that has opened a project records nothing until something on disk moves, so "it held for 4s" alone proves nothing. Author an unrelated file, wait for `disk.sync_from_disk` in `intent events`, THEN read back the store and canon. The daemon socket must fit in 104 bytes, so its HOME is a short `mktemp -d` dir, never the scratchpad. Stop the daemon and remove the dir after.
-- **HEAD MOVES UNDER A WORKTREE ON NEARLY EVERY ITEM.** Before landing, `git log <base>..HEAD` and `git diff --stat <base> HEAD -- native/ surface/`. If code moved, stash, checkout the new HEAD, pop, **rebuild `intentd`** (the stale-sibling-daemon guard otherwise reds three edit/browse tests), and rerun.
-- **READ THE CLOCK BEFORE WRITING THE STAMP, IN THE SAME COMMAND.** On 2026-09-11 I typed `10:47Z` into a script whose own `date -u` read `10:35Z`, and caught it before the commit. Pass the read value in (`NOW=$(date -u ...)`), never a literal.
+- **SHARED TREE: `git add` the explicit paths, then `git commit --only <explicit paths>`.** `--only` does not stage an untracked file. **Never remove a peer's `index.lock`: re-issue the SAME command.** Put the wait IMMEDIATELY before `git add`: a peer took the lock between my check and my add twice on 2026-09-11.
+- **BUILD AND TEST ONLY IN A PRIVATE DETACHED WORKTREE, UNDER AN ISOLATED `HOME`. EACH GUARDS A DIFFERENT THING, AND ONE IS NOT THE OTHER.**
+  - The isolated `HOME` (`CARGO_HOME`/`RUSTUP_HOME` pointed at the real toolchain) guards `~/.intent/home`: `dual_path_conformance` runs `intent bootstrap` in-process, and `publish_home()` resolves the install from the TEST binary. At 16:48Z on 2026-09-11 `~/.intent/home` named **cc's `wt-cc`**, from a run that isolated the store but not HOME. cc keeps `wt-cc` until hv restores the pointer (`~/.local/bin/intent bootstrap`, no `--force`). **Read `cat ~/.intent/home` before removing ANY worktree.**
+  - The worktree guards the live store: `attachment_drift_detected.rs` runs doctor on `repo_root()`, and a run from the shared checkout migrated the live `intent.db` 17 -> 18.
+- **LAND BY PATCH, AND DIFF THE COMMIT AGAINST THE TESTED PATCH.** Before landing, check `git log <base>..HEAD` and `git diff --stat <base> HEAD -- <my paths>`. If code moved underneath, rebase, rebuild `intentd`, and rerun.
+- **A NEW DISPATCH-TABLE ROW OR FLAG: THE GENERATOR'S GREEN IS NOT A STARTUP PROOF** (`owner_wp: null` panicked every command). A new ROW moves the status count, the `legal_pairs` census and the three populations; a new FLAG moves none of them. Retiring a row's only writer flips it to `read`: drop `recoverability`, leave the writes-nothing bucket, and supersede `mcp_review` inline (the 0139 / 0181 shape). Insert as TEXT, since `jq` reformats the whole file.
+- **`docs/reference/*.md` IS GENERATED FROM A COMMITTED REVISION** (`gen_reference.sh --rev <sha> --out <scratch>`). When a fix changes a verb's surface, regenerate that family's page at the fix sha as its own commit, and take only that page. The rest of the set is behind HEAD, and that is not the item's to fix.
+- **A DOC LINE IS A CLAIM: DRIVE EVERY CLAUSE BEFORE COMMITTING IT.** Twice on 2026-09-11 I wrote a clause before measuring it: the 17-page diff claim and the descoped/withdrawn refusal. Both held, and both were luck until driven.
+- **TO PROVE A WRITE SURVIVES A DAEMON INGEST, FORCE ONE** (author an unrelated file, wait for `disk.sync_from_disk`). The daemon HOME is a short `mktemp -d`, because the socket is limited to 104 bytes.
+- **THE BASH TOOL IS zsh:** an unquoted `$var` does not word-split (use `${(@f)...}` for a path list), `pipestatus` replaces `PIPESTATUS`, and **a bare `====` is an `=cmd` expansion that aborts the whole command** (hit at 16:52Z; quote separators). **Read the clock in the same command as the stamp** (`NOW=$(date -u ...)`).
+- **`intent fc` IS THE HUMAN'S VERB, EVEN IN A SANDBOX.**
