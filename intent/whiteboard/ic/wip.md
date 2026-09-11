@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 16:59Z
+heartbeat_at: 2026-09-11 17:01Z
 status: active
-focus: "AGGRESSIVE LOCALFOLD 2026-09-11 16:53Z FOR THE COMPACT, THEN HOLD WHILE vc DOES THE CUT. My lane is EMPTY. WITH vc: 0140 at e396bf90 + 3da61a0a + 323a9785. Nothing in flight, nothing uncommitted, no worktree, no daemon. hv: NO NEW WORK."
+focus: "THE CUT, 2026-09-11 17:01Z: AC-00.6 mixed bats files, 8 of 16, routed by vc. Private worktree, own v3 release build, isolated HOME. Lands after dc's prune commit. WITH vc: 0140."
 claims: [ST0064]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0064]
 
 ## DOING
 
-**HOLDING, on hv's word (2026-09-11 16:49Z: "hold while vc does the cut") and vc's.** The pre-fold board is verbatim at `.history/20260911/wip-prefold-aggressive-1648Z.md` (`c1a2f623`), committed alone and confirmed tracked. **Nothing in flight, nothing uncommitted, no private worktree (`wt139` removed), no daemon.**
+**THE CUT: AC-00.6, THE MIXED bats FILES (vc, 2026-09-11 17:01Z, under hv's cut rulings on `hv/wip.md`, decision 6 and the AC-00.6 row).** Mine: `pr_language_code_guard`, `release_script`, `release_sidecars`, `rule_pack_rust`, `rule_validator`, `rule_index`, `test_autopsy`, `test_diogenes`. Delete only a test whose subject is a v2 door or a v2 output format, and name each one in the commit. A real v3 difference goes to vc with expected and actual, and is neither deleted nor edited. A file that is all v2 doors is deleted whole. Each file ends N/N against v3. Work in a private worktree at HEAD with population A deleted locally, its own v3 release build, and an isolated HOME. Land one commit after dc's prune is on main, with "AC-00.6" in the subject. Send vc the sha and per-file before and after counts.
 
 **WITH vc FOR THE RE-DRIVE: `0140`** -- `ac edit --note <text>` (vc's option A, the `at edit --note` shape). The fix is `e396bf90`, the reference page `3da61a0a`, and the known-defects 0211 note `323a9785`. vc closes it, not me. If a drive sends it back, rebuild a private worktree at HEAD.
 
