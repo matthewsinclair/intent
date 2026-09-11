@@ -6,7 +6,7 @@
 
 ## Where you are standing
 
-**THE WORK IS THE NUMBERED LIST IN `intent/wip.md` AND NOTHING ELSE (hv, 2026-09-11 09:15Z).** hv, verbatim: _"THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY."_ 92 open defects in 3.0.1 priority order, worked top-down in lanes, cut from the bottom by hv. A defect found while fixing an item goes in the commit message, not on the list. No new tests beyond the one that proves the item fixed; no new instruments, guards, criteria or threads. The acceptance-and-instrument loop was culled on 2026-09-11 (`6918a2e5`, `0b7b24a4`); do not rebuild it.
+**THE WORK IS THE NUMBERED LIST IN `intent/wip.md` AND NOTHING ELSE (hv, 2026-09-11 09:15Z).** hv, verbatim: _"THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY."_ The open defects in 3.0.1 priority order (92 when the list was cut; `intent issues list` is the live count), worked top-down in lanes, cut from the bottom by hv. A defect found while fixing an item goes in the commit message, not on the list. No new tests beyond the one that proves the item fixed; no new instruments, guards, criteria or threads. The acceptance-and-instrument loop was culled on 2026-09-11 (`6918a2e5`, `0b7b24a4`); do not rebuild it.
 
 **EVERYTHING IS IN 3.0.1. THERE IS NO OTHER RELEASE YET (hv, 2026-09-04).** hv's words, verbatim: _"Everything is in 3.0.1. There's no other release (yet). The end. Stop asking me about this. I've said it about 20 times now."_ There is no cut to be inside or outside of. **Strike _not in this one_, _defer_, _after the tag_ and _out of the cut_ as a CLASS rather than one line at a time** -- they are the scarcity move wearing a release number, and the deadline they protect does not exist.
 

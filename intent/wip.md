@@ -1,5 +1,5 @@
 ---
-verblock: "2026-09-11:v1.38: vc - THE WORK LIST. hv, 2026-09-11 09:14Z: the 92 open defects, in 3.0.1 priority order, ARE the work. No new work is added. Pre-list verbatim at intent/.history/20260911/wip-prelist-0914Z.md."
+verblock: "2026-09-11:v1.39: vc - THE WORK LIST. hv, 2026-09-11 09:14Z: the open defects, in 3.0.1 priority order, ARE the work. No new work is added. A row leaves this table when vc has driven its fix and closed the issue; the numbers do not shift. Pre-list verbatim at intent/.history/20260911/wip-prelist-0914Z.md."
 intent_version: 3.0.0
 ---
 
@@ -23,7 +23,6 @@ intent_version: 3.0.0
 
 | #   | id     | sev      | lane | defect                                                                                                                                         |
 | --- | ------ | -------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `0133` | critical | cc   | Migrating a v2 project destroys the evidence text of every criterion authored unsatisfied. Deterministic, in the shipped build.                |
 | 2   | `0260` | critical | cc   | The v3 migration froze generated sections into authored body on 326 of 358 threads. Re-examine first: the original report is partly withdrawn. |
 | 3   | `0192` | high     | ic   | `st edit` hands back a generated view; the next render destroys the edit.                                                                      |
 | 4   | `0207` | high     | ic   | `at green/red/na --note` replaces the whole note, destroying the row's history.                                                                |
@@ -45,7 +44,6 @@ intent_version: 3.0.0
 
 | #   | id     | sev    | lane | defect                                                                      |
 | --- | ------ | ------ | ---- | --------------------------------------------------------------------------- |
-| 18  | `0275` | high   | dc   | `install.md`'s install check returns 0 on the very fault it names.          |
 | 19  | `0277` | high   | dc   | `install.md` twice offers `INTENT_HOME` as a remedy; v3 never reads it.     |
 | 20  | `0193` | medium | dc   | getting-started says `st edit design` works; it refuses.                    |
 | 21  | `0274` | medium | dc   | getting-started's first tree shows three things `init` does not create.     |
