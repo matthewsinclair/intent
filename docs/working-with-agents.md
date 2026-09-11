@@ -100,7 +100,7 @@ For Claude Code, Intent installs procedural skills — a session bootstrap that 
 
 **Never hand-copy a skill into `.claude/skills/`.** They are tracked by checksum and a hand-placed copy diverges silently.
 
-**Deeper:** [`intent/docs/creating-custom-agents.md`](../intent/docs/creating-custom-agents.md) for project-specific agents, and [`intent/docs/writing-extensions.md`](../intent/docs/writing-extensions.md) for user extensions at `~/.intent/ext/` — subagents, skills and rule packs that follow you across projects.
+**Deeper:** [`intent/docs/creating-custom-agents.md`](../intent/docs/creating-custom-agents.md) for project-specific agents. User extensions at `~/.intent/ext/` are declared and not built: `intent ext` answers every subcommand with _a known command that is not implemented yet_.
 
 ## What this buys, and what it does not
 
