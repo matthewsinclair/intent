@@ -11,6 +11,19 @@ intent_version: 3.0.1
 
 - **Rulings on the lists below.** None is worked until hv rules. The audit's commits and the tap README were pushed on hv's approval, 2026-09-11.
 
+## DOING: fix batch 1, release and install (hv ruled 2026-09-11, read by vc at 21:38Z)
+
+hv chose it from vc's proposed batches; the other batches stay unruled. **dc owns it, size M, code authorised for these items only:**
+
+1. The release step must not tag with schema faces stamped for another version (item 0).
+2. The keg's `SUPPORT_PATHS` carries subagents, and the coverage guard sees a non-literal join (item 1).
+3. After a fresh install, the shim's remedy names `intent bootstrap`, and the formula bootstraps in `post_install` or prints a caveat naming it, whichever Homebrew's sandbox allows (item 21).
+
+**Conditions:**
+
+- Red before green on each item, in private worktrees under an isolated HOME.
+- No release and no push. The tap formula commits locally only; shipping needs a release, and that is hv's call.
+
 **The live state is the register, not this file.** `intent issues list` is what is open; `intent ac gate <ST>` is where a thread stands.
 
 ## Open

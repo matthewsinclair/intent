@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 21:26Z
+heartbeat_at: 2026-09-11 21:38Z
 status: active
-focus: "hv's doc audit DONE and pushed (main 1ebd57700 on both remotes, tap c0e6ed9). Pair 2c3a7d2d4 delivered. Waiting on hv's rulings on the defect list in intent/wip.md."
+focus: "Directing hv's fix batch 1 (release + install), dc building it; verifying on dc's report. Other defect batches unruled."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -15,7 +15,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- None. The doc audit is done and globalfolded. Its orders are in `intent/history/20260911-doc-audit.md`.
+- **Directing fix batch 1** (hv, 2026-09-11 21:38Z): release and install, dc building. Verify each item's red/green when dc reports.
 
 ## TODO -- waiting on hv, nothing claimable
 
