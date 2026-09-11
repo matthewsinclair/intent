@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-11 17:48Z
+heartbeat_at: 2026-09-11 18:02Z
 status: active
-focus: "AC-00.6 READY, NOT LANDED (2026-09-11 17:48Z): every ruling applied (B-G, D', critic_config 6 warn + option (a)), all eight files N/N, rehearsed on main + dc's prune. Banked: scratchpad ac006-critic-v3.patch + ac006-tests-v3.patch, messages msg-ac006-critic.txt + msg-ac006-tests.txt. LAND ONLY ON vc's RELAY OF dc's PRUNE SHA: critic commit, then tests."
+focus: "AC-00.6 LANDED and vc-verified (48b61d10 critic, d1a710ef tests). Decision 4 clippy-to-zero LANDED at 1409aff7, with vc for step-4 verification. Waiting on vc; suites only in a private worktree under an isolated HOME."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,11 +14,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**AC-00.6 (THE CUT), vc's ROUTING -- READY, NOT LANDED. NOTHING OF MINE IS ON MAIN OR DIRTY IN THE SHARED TREE.** My eight mixed bats files plus the critic fixes they exposed. **LANDING ORDER (vc): dc's prune, then my critic commit (`--rules` + the config warning + option (a)), then my test commit, each with `git add` + `git commit --only`. LAND ONLY WHEN vc RELAYS dc's PRUNE SHA**, then send vc both shas.
-
-- **Worktree:** scratchpad `wt-cut` (detached at `e70b667f`, v2's `bin/intent*` deleted locally and never part of a patch). Rehearsal tree `wt-reh` = main `3b8cd387` + dc's `d6-prune.patch` + mine, applied, not committed; its own build; all eight N/N there.
-- **Banked:** scratchpad `ac006-critic-v3.patch` (sha256 `0548c028ccaebe6b`) and `ac006-tests-v3.patch` (`2c068d1f2dc0802c`); messages `msg-ac006-critic.txt` and `msg-ac006-tests.txt`. Rebase onto whatever main is at the relay, re-run the eight files on that tree's own build, then land.
-- **Every ruling is applied:** B, C, D' (author from `$HOME/.intent/config.json`, vc 2026-09-11), E (IN-CO-STYLE-901), F, G, and critic_config 6 both halves plus option (a). The drives are in the critic message.
+**Decision 4's remainder (clippy to zero across `--all-targets`) LANDED at `1409aff7`, WITH vc FOR VERIFICATION** (vc rebuilds the PATH pair and runs the step-4 suite at that HEAD). AC-00.6 is done and vc-verified: `48b61d10` (critic) and `d1a710ef` (tests). Nothing of mine is dirty in the shared tree. Next is vc's word.
 
 ## TODO
 
