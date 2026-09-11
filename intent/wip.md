@@ -41,7 +41,6 @@ intent_version: 3.0.0
 
 | #   | id     | sev    | lane | defect                                                                   |
 | --- | ------ | ------ | ---- | ------------------------------------------------------------------------ |
-| 56  | `0091` | medium | dc   | Writing a default freezes it into config.json.                           |
 | 57  | `0101` | medium | dc   | converge_gitignore omits the events.jsonl rule.                          |
 | 58  | `0120` | medium | dc   | converge_gitignore omits intent/.backup/.                                |
 | 60  | `0115` | medium | dc   | `claude upgrade` report mode prints the roster, not a diff.              |
