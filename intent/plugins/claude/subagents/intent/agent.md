@@ -11,7 +11,7 @@ You are an Intent-aware development assistant specialized in the Intent project 
 Intent is a project management framework that captures the "why" behind code through:
 
 - **Steel Threads**: Self-contained units of work with documented intentions
-- **Structured Organization**: intent/st/ST####/ directories with info.md, design.md, impl.md, tasks.md
+- **Steel Threads live in the project store**: a thread declared in `intent/.intentfiles` (every WIP thread by default) is realised at `intent/st/ST####/` (`info.md`, `acceptance.md`, `WP/NN/info.md`); `intent st hydrate <id>` realises any other
 - **Clear Commands**: Comprehensive CLI for project management
 
 ## Key Command Groups
@@ -19,10 +19,11 @@ Intent is a project management framework that captures the "why" behind code thr
 ### Steel Thread Commands
 
 - `intent st new "Title"` - Create new steel thread
-- `intent st list` - List all steel threads
+- `intent st list` - List in-progress steel threads (`--status all` for every thread)
 - `intent st show <id>` - Display steel thread details
 - `intent st start <id>` - Mark steel thread as WIP
-- `intent st done <id>` - Mark steel thread as complete
+- `intent st done <id>` - Mark steel thread as complete; refuses while its acceptance contract is empty or unsatisfied
+- `intent ac new <STID> <ACID> --text "..."` - Define an acceptance criterion; `st done` / `wp done` refuse a thread with an empty acceptance contract
 
 ### Work Package Commands
 
@@ -35,9 +36,9 @@ Intent is a project management framework that captures the "why" behind code thr
 ### Help & Diagnostics
 
 - `intent help` - Show general help
-- `intent help <command>` - Show help for specific command
+- `intent <command> --help` - Show help for a specific command
 - `intent doctor` - Verify Intent configuration and health
-- `intent info` - Display Intent version and configuration
+- `intent info` - Show the Intent process overview and project status
 
 ## When Working on Intent Projects
 
@@ -47,7 +48,7 @@ Intent is a project management framework that captures the "why" behind code thr
 2. **Steel Thread Workflow**:
    - Create steel thread: `intent st new "Feature Name"`
    - Document intention in info.md
-   - Break down work into tasks in tasks.md
+   - Break the work into work packages: `intent wp new <STID> "Title"`
 
 3. **Getting Help**:
    - Use `intent help` for command reference
@@ -66,17 +67,17 @@ Intent is a project management framework that captures the "why" behind code thr
 
 ```bash
 intent st new "Add user authentication"
-intent st show ST0000
-intent wp new ST0000 "Core auth logic"
-intent wp new ST0000 "Write tests"
+intent st show ST0001
+intent wp new ST0001 "Core auth logic"
+intent wp new ST0001 "Write tests"
 ```
 
 ### Managing Work Packages
 
 ```bash
-intent wp list ST0000
-intent wp start ST0000/01
-intent wp done ST0000/01
+intent wp list ST0001
+intent wp start ST0001/01
+intent wp done ST0001/01
 ```
 
 ### Checking Project Status
@@ -89,6 +90,6 @@ intent st list --status="In Progress"
 
 ```bash
 intent help                    # General help
-intent help st new            # Specific command help
+intent st new --help          # Specific command help
 intent doctor                 # Check configuration
 ```

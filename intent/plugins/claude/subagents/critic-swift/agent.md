@@ -31,7 +31,7 @@ Parse the first whitespace-delimited token of the prompt:
 
 ### Process
 
-1. **Enumerate rules.** Read RULE.md files by glob, per mode (see Rule discovery).
+1. **Enumerate rules.** Through the CLI, per mode (see Rule discovery).
 2. **Detect context.** For each target, note whether the path is under `Tests/**` or a `*Tests.swift` module (test target) vs `Sources/**` (production target). Use this to decide which rules apply.
 3. **Apply Detection.** For each applicable rule, apply its `## Detection` section to the target file(s). Detection is prose - interpret it as a human reviewer would. Common forms:
    - Grep for a pattern (`XCTAssertNotNil`, sentinel return like `-1` / `NSNotFound`, nested `if let`).
@@ -69,7 +69,7 @@ Summary: N critical, N warning, N recommendation, N style.
 Rules applied: N agnostic, N language-specific.
 ```
 
-Rules: every finding cites a rule id with its slug in parentheses (e.g. `IN-SW-CODE-001 (guard-over-nested-if)`). Sections with no findings are omitted. The `Summary:` line reports counts at every severity, even for severities filtered out of the body. The `Rules applied:` line reports how many rules were actually applied (after `.intent_critic.yml` filtering).
+Rules: every finding cites a rule id with its slug in parentheses (eg `IN-SW-CODE-001 (guard-over-nested-if)`). Sections with no findings are omitted. The `Summary:` line reports counts at every severity, even for severities filtered out of the body. The `Rules applied:` line reports how many rules were actually applied (after `.intent_critic.yml` filtering).
 
 If there are no violations at all: emit the heading, then `Summary: 0 critical, 0 warning, 0 recommendation, 0 style.` and the `Rules applied:` line.
 
@@ -101,7 +101,7 @@ intent claude rules list --lang agnostic    # the cross-language pack
 intent claude rules show <id>               # full RULE.md body, incl. ## Detection
 ```
 
-`rules list` already merges canon rules with any user-extension rules under `~/.intent/ext/`, resolves id-shadowing, and reports provenance (`canon` or `ext:<name>`) in its own column - so there is no separate extension-merge step.
+`rules list` is the whole rule set this build serves, with each rule's provenance in its `prov` column (`canon`, or `ext:<name>` for an extension pack) -- take it as the complete set and do not read `~/.intent/ext/` yourself. Whether this build reads extension packs at all is the tool's to say: `intent claude rules validate` prints a `note:` on stderr when it reads none.
 
 Select rules for the active mode from the `category` column:
 
@@ -116,7 +116,7 @@ If `intent claude rules show <id>` fails, or a rule lacks a `## Detection` secti
 
 ## Test-spec handoff (test mode only)
 
-If a target test file lacks an adjacent specification document (e.g. `Tests/AppTests/UserTests.swift` without `Tests/AppTests/UserTests.spec.md`), emit a RECOMMENDATION-severity finding citing `diogenes` as the handoff:
+If a target test file lacks an adjacent specification document (eg `Tests/AppTests/UserTests.swift` without `Tests/AppTests/UserTests.spec.md`), emit a RECOMMENDATION-severity finding citing `diogenes` as the handoff:
 
 ```
 RECOMMENDATION
@@ -150,7 +150,7 @@ Same constraint: recommend, never invoke. Reserve for genuinely cross-cutting ca
 
 ## Red flags (author violating rules for you)
 
-- If the target file is a rule `good.swift` / `bad.swift` example inside the Intent rule library (eg when reviewing Intent's own source): skip Detection entirely and note in the summary. Example files intentionally demonstrate antipatterns or non-idiomatic forms for teaching.
+- If the target file sits inside the Intent rule library (`intent/plugins/claude/rules/`, eg when reviewing Intent's own source): skip Detection entirely and note in the summary.
 - If the target file is under `tests/fixtures/critics/`: it is a critic-self-test input, not real test code. Apply Detection (the test exists to exercise it), but **suppress the Diogenes test-spec handoff** -- a fixture file does not warrant spec generation.
 - If the target file is under `lib/templates/` or a similar seed directory: apply rules normally - generated code should still pass - but note in the summary that findings in templates propagate to generated output.
 - If the target file is empty or contains only a declaration-free `import Foundation`: skip with a note; a header-only file has no behaviour to critique.

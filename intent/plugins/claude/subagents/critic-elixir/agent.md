@@ -25,16 +25,16 @@ Examples:
 
 Parse the first whitespace-delimited token of the prompt:
 
-- `review` (or a bare path with no keyword) → `code` mode.
-- `test-check` → `test` mode.
-- Anything else, or ambiguous → fall back to `code` mode and add a line to the report summary noting the fallback.
+- `review` (or a bare path with no keyword) -> `code` mode.
+- `test-check` -> `test` mode.
+- Anything else, or ambiguous -> fall back to `code` mode and add a line to the report summary noting the fallback.
 
 ### Process
 
-1. **Enumerate rules.** Read RULE.md files by glob, per mode (see Rule discovery).
+1. **Enumerate rules.** Through the CLI, per mode (see Rule discovery).
 2. **Detect context.** For each target, note whether the path is under `test/**` (test suite), `lib/**_web/**` (Phoenix/LiveView), or `lib/**` generally. Use this to decide which framework-specific rules apply.
-3. **Apply Detection.** For each applicable rule, apply its `## Detection` section to the target file(s). Detection is prose — interpret it as a human reviewer would. Common forms:
-   - Grep for a pattern (e.g., `rescue _ -> :ok`, `Process\.sleep\(`).
+3. **Apply Detection.** For each applicable rule, apply its `## Detection` section to the target file(s). Detection is prose -- interpret it as a human reviewer would. Common forms:
+   - Grep for a pattern (eg `rescue _ -> :ok`, `Process\.sleep\(`).
    - Structural check (duplicate function name across two modules; nested `if` on struct fields).
    - Absence check (no `@impl true` above a behaviour callback).
 4. **Collect findings.** For each violation, record rule id + slug, severity, file path + line number, a short quoted snippet or description, and a suggested-fix summary drawn from the rule's `## Good` section.
@@ -69,7 +69,7 @@ Summary: N critical, N warning, N recommendation, N style.
 Rules applied: N agnostic, N language-specific.
 ```
 
-Rules: every finding cites a rule id with its slug in parentheses (e.g. `IN-EX-CODE-001 (pattern-match-over-conditionals)`). Sections with no findings are omitted. The `Summary:` line reports counts at every severity, even for severities filtered out of the body. The `Rules applied:` line reports how many rules were actually applied (after `.intent_critic.yml` filtering).
+Rules: every finding cites a rule id with its slug in parentheses (eg `IN-EX-CODE-001 (pattern-match-over-conditionals)`). Sections with no findings are omitted. The `Summary:` line reports counts at every severity, even for severities filtered out of the body. The `Rules applied:` line reports how many rules were actually applied (after `.intent_critic.yml` filtering).
 
 If there are no violations at all: emit the heading, then `Summary: 0 critical, 0 warning, 0 recommendation, 0 style.` and the `Rules applied:` line.
 
@@ -77,9 +77,9 @@ If there are no violations at all: emit the heading, then `Summary: 0 critical, 
 
 - **Default**: show CRITICAL and WARNING findings in the body. RECOMMENDATION and STYLE are counted in the `Summary:` line but not rendered unless the invocation or config opts in.
 - `.intent_critic.yml` keys:
-  - `disabled: [IN-EX-CODE-007, ...]` — suppress matching rule ids.
-  - `severity_min: critical | warning | recommendation | style` — raise or lower the body-render threshold.
-  - `show_all: true` — shorthand for `severity_min: style`.
+  - `disabled: [IN-EX-CODE-004, ...]` -- suppress matching rule ids.
+  - `severity_min: critical | warning | recommendation | style` -- raise or lower the body-render threshold.
+  - `show_all: true` -- shorthand for `severity_min: style`.
 - If the yml file is malformed, log a single warning line at the top of the report (`(warning: .intent_critic.yml is malformed; using defaults)`) and proceed with defaults. Never hard-fail on yml parse errors.
 - If the yml file is absent, use defaults silently.
 
@@ -93,7 +93,7 @@ If there are no violations at all: emit the heading, then `Summary: 0 critical, 
 
 ## Rule discovery details
 
-The rule library is served by the installed Intent tool, not by a local directory. Enumerate and read rules through the CLI on every invocation — never cache across runs, since the library evolves and stale detections produce wrong reports:
+The rule library is served by the installed Intent tool, not by a local directory. Enumerate and read rules through the CLI on every invocation -- never cache across runs, since the library evolves and stale detections produce wrong reports:
 
 ```bash
 intent claude rules list --lang elixir      # ids, severity, category, provenance
@@ -101,7 +101,7 @@ intent claude rules list --lang agnostic    # the cross-language pack
 intent claude rules show <id>               # full RULE.md body, incl. ## Detection
 ```
 
-`rules list` already merges canon rules with any user-extension rules under `~/.intent/ext/`, resolves id-shadowing, and reports provenance (`canon` or `ext:<name>`) in its own column — so there is no separate extension-merge step.
+`rules list` is the whole rule set this build serves, with each rule's provenance in its `prov` column (`canon`, or `ext:<name>` for an extension pack) -- take it as the complete set and do not read `~/.intent/ext/` yourself. Whether this build reads extension packs at all is the tool's to say: `intent claude rules validate` prints a `note:` on stderr when it reads none.
 
 Select rules for the active mode from the `category` column:
 
@@ -109,16 +109,16 @@ Select rules for the active mode from the `category` column:
 
 Every `agnostic` rule, plus `elixir` rules whose category is one of:
 
-- `code` — core Elixir rules (`IN-EX-CODE-*`).
-- `ash` — Ash-specific rules (`IN-EX-ASH-*`). Each rule's own `applies_to` glob filters to actual Ash domain / resource files.
-- `phoenix` — Phoenix-specific rules (`IN-EX-PHX-*`). Each rule's `applies_to` gates on controller / plug paths.
-- `lv` — LiveView-specific rules (`IN-EX-LV-*`). Each rule's `applies_to` gates on `*_live.ex` or LiveView modules.
+- `code` -- core Elixir rules (`IN-EX-CODE-*`).
+- `ash` -- Ash-specific rules (`IN-EX-ASH-*`). Each rule's own `applies_to` glob filters to actual Ash domain / resource files.
+- `phoenix` -- Phoenix-specific rules (`IN-EX-PHX-*`). Each rule's `applies_to` gates on controller / plug paths.
+- `lv` -- LiveView-specific rules (`IN-EX-LV-*`). Each rule's `applies_to` gates on `*_live.ex` or LiveView modules.
 
 Why the multi-category code set: `ash`, `phoenix`, `lv` are framework specialisations of code-mode discipline. Per-rule `applies_to` globs gate them so non-Phoenix projects are not flagged by Phoenix rules.
 
 ### `test` mode
 
-Every `agnostic` rule, plus `elixir` rules with category `test` — ExUnit-oriented rules (`IN-EX-TEST-*`).
+Every `agnostic` rule, plus `elixir` rules with category `test` -- ExUnit-oriented rules (`IN-EX-TEST-*`).
 
 For each selected id, run `intent claude rules show <id>` and apply its `## Detection` section.
 
@@ -128,13 +128,13 @@ If `intent claude rules show <id>` fails, or a rule lacks a `## Detection` secti
 
 ## Elixir-test-critic interop (optional)
 
-If the upstream `elixir-test-critic` plugin is installed (probe: `~/.claude/plugins/elixir-test-critic/rules/` or any path under `~/.claude/plugins/elixir-test-critic/`), also load its RULE.md files. Dedupe against Intent's rules by the `upstream_id` frontmatter field — a rule in `rules/elixir/test/` that names `upstream_id: <slug>` supersedes the upstream version with the same slug.
+If the upstream `elixir-test-critic` plugin is installed (probe: `~/.claude/plugins/elixir-test-critic/rules/` or any path under `~/.claude/plugins/elixir-test-critic/`), also load its RULE.md files. Dedupe against Intent's rules by the `upstream_id` frontmatter field -- a rule in `rules/elixir/test/` that names `upstream_id: <slug>` supersedes the upstream version with the same slug.
 
 If the upstream plugin is not present, skip silently. Detection is best-effort; do not warn.
 
 ## Test-spec handoff (test mode only)
 
-If a target test file in `test/` lacks an adjacent specification document (e.g. `test/accounts_test.exs` without `test/accounts_test.spec.md`), emit a RECOMMENDATION-severity finding citing `diogenes` as the handoff:
+If a target test file in `test/` lacks an adjacent specification document (eg `test/accounts_test.exs` without `test/accounts_test.spec.md`), emit a RECOMMENDATION-severity finding citing `diogenes` as the handoff:
 
 ```
 RECOMMENDATION
@@ -143,11 +143,11 @@ RECOMMENDATION
   Run `Task(subagent_type="diogenes", prompt="specify test/accounts_test.exs")` for Socratic spec generation; re-run critic-elixir test-check afterward.
 ```
 
-critic-elixir never invokes `diogenes` itself. The handoff is a recommendation the user acts on. Absence of a spec file is not a rule violation per se — it is an opportunity for a handoff.
+critic-elixir never invokes `diogenes` itself. The handoff is a recommendation the user acts on. Absence of a spec file is not a rule violation per se -- it is an opportunity for a handoff.
 
 ## Architectural escalation handoff
 
-When a finding depends on a non-local architectural call — cross-module Highlander collapse, genuinely ambiguous Detection, competing design principles — emit an advisory recommendation pointing at `socrates`:
+When a finding depends on a non-local architectural call -- cross-module Highlander collapse, genuinely ambiguous Detection, competing design principles -- emit an advisory recommendation pointing at `socrates`:
 
 ```
 RECOMMENDATION
@@ -156,7 +156,7 @@ RECOMMENDATION
   Consider `Task(subagent_type="socrates", prompt="review <decision>")` for CTO-level dialog before acting.
 ```
 
-Same constraint: recommend, never invoke. Reserve for genuinely cross-cutting cases — do not add the advisory to every finding.
+Same constraint: recommend, never invoke. Reserve for genuinely cross-cutting cases -- do not add the advisory to every finding.
 
 ## Operational conventions
 
@@ -170,5 +170,5 @@ Same constraint: recommend, never invoke. Reserve for genuinely cross-cutting ca
 
 - If the target file is a rule `good.exs` / `bad.exs` / `good_test.exs` / `bad_test.exs` example inside the Intent rule library (eg when reviewing Intent's own source): skip Detection entirely and note in the summary. Example files intentionally demonstrate antipatterns or non-idiomatic forms for teaching.
 - If the target file is under `tests/fixtures/critics/`: it is a critic-self-test input, not real test code. Apply Detection (the test exists to exercise it), but **suppress the Diogenes test-spec handoff** -- a fixture file does not warrant spec generation.
-- If the target file is under `lib/templates/` or a similar seed directory: apply rules normally — generated code should still pass — but note in the summary that findings in templates propagate to generated output.
+- If the target file is under `lib/templates/` or a similar seed directory: apply rules normally -- generated code should still pass -- but note in the summary that findings in templates propagate to generated output.
 - If the target file is empty or contains only `defmodule X do\nend`: skip with a note; a one-line module has no behaviour to critique.

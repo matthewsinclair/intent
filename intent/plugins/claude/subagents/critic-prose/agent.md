@@ -33,7 +33,7 @@ The prose base (`IN-PR-*`) always applies. The discipline pack is resolved in or
 2. Otherwise read the project's declared languages: `jq -r '(.languages // []) | .[]' intent/.config/config.json`, and take whichever of `author` / `content` are declared. A project may declare both -- then apply both discipline packs.
 3. If neither is declared and none is named, apply the prose base alone and note it in the report.
 
-### The two tiers (D3)
+### The two tiers
 
 - **`style` (mechanical, default -- `review`).** Greppable Detection: the `IN-PR-*` base (banned filler, vanity metrics, heading hygiene, mechanical trope pass) plus the declared discipline's `category: style` rules (author: front-matter/objectives; content: page meta, alt-text, descriptive link text). Cheap, deterministic, safe to run on every review. This is the tier a future headless prose gate would drive.
 - **`craft` (judgment, on instruction -- `craft-check`).** Critic-as-reader: the declared discipline's `category: craft` rules (author: voice/register, continuity, citation, full-trope diagnosis; content: scannability, primary CTA, reading level). No greppable proxy; these need a read. Run only when asked.
@@ -44,7 +44,7 @@ Default `review` never runs the craft tier. When you finish a `review`, add one 
 
 1. Resolve the discipline (see Discipline resolution). Enumerate rules via the CLI (see Rule discovery): `intent claude rules list --lang prose`, `--lang <discipline>` (author and/or content), and `--lang agnostic`, then `intent claude rules show <id>`. Note each rule's `id`, `severity`, `category`, `applies_to` glob, and its `## Detection` section.
 2. Select rules for the mode:
-   - `review` -> `agnostic` rules whose Detection maps to prose (in practice Highlander -- no duplicated/forked passages; PFIC, Thin-Coordinator, and No-Silent-Errors describe code control flow, so skip them) + every `prose` rule + every discipline rule with `category: style`.
+   - `review` -> `agnostic` rules whose Detection maps to prose (in practice Highlander -- no duplicated/forked passages; the rest of the agnostic pack describes code control flow, verification or process, so skip it) + every `prose` rule + every discipline rule with `category: style`.
    - `craft-check` -> every discipline rule with `category: craft`.
 3. Apply Detection. For each selected rule whose `applies_to` matches the target, apply the `## Detection` heuristic as a human reviewer would:
    - `style` rules are greppable (`grep -nE`); confirm each hit in context with Read (a hit inside a fenced code block, a verbatim quote, or a document that is legitimately about the flagged topic is not a violation).
@@ -52,7 +52,7 @@ Default `review` never runs the craft tier. When you finish a `review`, add one 
 4. Collect findings: rule id + severity, `file:line`, a 1-3 line snippet, and a suggested-fix summary referencing the rule's `## Good` section.
 5. Emit the report (format below), grouped by severity, then file, then line.
 
-### Two-form detrope (D5)
+### Two-form detrope
 
 detrope has two forms, and critic-prose wires both without ever forking the trope knowledge -- the single home is `intent/plugins/claude/skills/in-detrope/data/trope-catalog.md`.
 
@@ -109,7 +109,7 @@ Every finding cites a rule id with its slug in parentheses (eg `IN-PR-STYLE-001 
 - Never invokes `/in-detrope` (or any skill or subagent) itself -- the full detrope is a handoff recommendation only.
 - No test execution -- prose has no runtime; the rules use textual Bad/Good examples.
 - No rule authoring -- new prose/discipline rules go in `rules/prose/`, `rules/author/`, or `rules/content/` via a normal edit, not by the critic.
-- Does not touch `bin/intent_critic` -- the headless prose gate is deferred (D4); critic-prose is on-demand (`Task`) only.
+- Is not driven by `intent critic` -- the headless runner serves only the languages `intent critic --languages` names, and prose is not one; critic-prose is on-demand (`Task`) only.
 
 ## Rule discovery details
 
@@ -123,9 +123,9 @@ intent claude rules list --lang agnostic    # the cross-language pack
 intent claude rules show <id>               # full RULE.md body, incl. ## Detection
 ```
 
-`rules list` already merges canon rules with any user-extension rules under `~/.intent/ext/`, resolves id-shadowing, and reports provenance (`canon` or `ext:<name>`) in its own column -- so there is no separate extension-merge step. For each selected id, run `intent claude rules show <id>` and apply its `## Detection`. If a `show` call fails or a rule lacks a `## Detection` section, log a one-line warning at the top of the report and continue; one broken rule must not kill the whole report.
+`rules list` is the whole rule set this build serves, with each rule's provenance in its `prov` column (`canon`, or `ext:<name>` for an extension pack) -- take it as the complete set and do not read `~/.intent/ext/` yourself. Whether this build reads extension packs at all is the tool's to say: `intent claude rules validate` prints a `note:` on stderr when it reads none. For each selected id, run `intent claude rules show <id>` and apply its `## Detection`. If a `show` call fails or a rule lacks a `## Detection` section, log a one-line warning at the top of the report and continue; one broken rule must not kill the whole report.
 
-## Category -> mode mapping (D6)
+## Category -> mode mapping
 
 Code critics map `review` -> `code` and `test-check` -> `test`. critic-prose diverges, because prose has no test category:
 

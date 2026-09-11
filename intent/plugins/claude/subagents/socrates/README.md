@@ -56,13 +56,8 @@ strong PostgreSQL experience but no NoSQL experience."
 
 When delegating to the Socrates agent as a sub-agent:
 
-```javascript
-Task(
-  (description = "Review authentication architecture"),
-  (prompt =
-    "Conduct CTO Review Mode dialog for our authentication system redesign. We need to support enterprise SSO, maintain 15-minute token expiry for compliance, and ensure zero-downtime migration."),
-  (subagent_type = "socrates"),
-);
+```
+Task(subagent_type="socrates", prompt="Conduct CTO Review Mode dialog for our authentication system redesign. We need to support enterprise SSO, maintain 15-minute token expiry for compliance, and ensure zero-downtime migration.")
 ```
 
 ## Integration with Intent
@@ -121,10 +116,10 @@ This methodology was developed by Matthew Sinclair and successfully used across 
 
 ```bash
 # Install the Socrates agent globally
-intent agents install socrates
+intent claude subagents install socrates
 
 # Verify installation
-intent agents list
+intent claude subagents list
 ```
 
 ## Tips for Best Results
@@ -139,7 +134,7 @@ intent agents list
 
 You can create project-specific versions by:
 
-1. Copying this agent to your project's `intent/agents/` directory
+1. Copying `agent.md` to your project's `.claude/agents/socrates.md`
 2. Modifying the personas to match your organization's roles
 3. Adding domain-specific knowledge and constraints
 4. Including references to your specific tech stack and standards
