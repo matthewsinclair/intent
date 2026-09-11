@@ -3,9 +3,10 @@
   "number": 97,
   "slug": "ingest-from-md-on-an-already-migrated-estate-is-",
   "title": "ingest --from-md on an already-migrated estate is a parse check that prints ok and writes nothing at rc 0 -- the exit status does not distinguish validated from ingested (devbin/vc, measured on a sandbox copy of Devbin)",
-  "status": "open",
+  "status": "closed",
   "severity": "medium",
   "created": "2026-08-26",
+  "closed": "2026-09-11",
   "reporter": "Matthew Sinclair",
   "body": "**RESTORED ARCHAEOLOGY, TRANSCRIBED VERBATIM ON 2026-08-31.** This issue was filed with an empty body because no verb could write one -- the defect `0090` names -- so its finding survived only in the commit that filed it. The prose below is its author's, carried whole from `1de67ccd` (*issues: 0097 -- ingest --from-md on a migrated estate validates, prints ok and writes nothing at rc 0 (devbin/vc)*). **Nothing in it is written by the restorer**; the header you are reading is the only addition, and the commit's hard line wraps are joined without a word changed.\n\nThe wording is honest and the exit status is not: a reader reaching for the only markdown-to-store verb to land an edit gets ok and rc 0 with nothing ingested. Whether validated and ingested should share an exit status is the decision. steel_threads.md is the regenerated index from the ST0064 creation.\n"
 }
