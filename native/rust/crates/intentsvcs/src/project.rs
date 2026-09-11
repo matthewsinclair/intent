@@ -448,13 +448,12 @@ pub struct Config {
 /// type, still in the file. The rewrite below is only safe BECAUSE of that
 /// field, so the two must not be separated.
 ///
-/// **What DOES change is key ORDER.** `extra` is a `serde_json::Map`, which is
-/// sorted rather than insertion-ordered in this build, so keys this type does
-/// not model come back alphabetised. That is content-preserving and
-/// diff-noisy, stated here rather than discovered in a review: JSON object
-/// order carries no meaning, and the alternative -- editing the file as text to
-/// preserve a layout nothing reads -- trades a real guarantee for a cosmetic
-/// one.
+/// **Top-level key ORDER is kept too, since issue `0091`**: `write_config`
+/// writes the file's own members in the file's order and changes only the
+/// ones the caller changed. What still comes back alphabetised is the INSIDE of
+/// an unmodelled block, because it round-trips through a `serde_json::Map`,
+/// which is sorted in this build -- content-preserving and diff-noisy, as
+/// before.
 /// A fresh project identity: D15's cloud seam, minted.
 ///
 /// **ONE HOME, BECAUSE TWO PATHS MINT AND A PROJECT HAS EXACTLY ONE IDENTITY.**
@@ -529,6 +528,10 @@ pub enum ConfigWriteError {
     #[source]
     source: crate::write_set::WriteError,
   },
+  /// The file on disk could not be read back as a project config, so there is
+  /// no baseline to write the change onto. Nothing was written.
+  #[error("cannot read the project config at {path} back before rewriting it: {reason}")]
+  Unreadable { path: String, reason: String },
 }
 
 impl crate::remedy::Remedy for ConfigWriteError {
@@ -542,6 +545,9 @@ impl crate::remedy::Remedy for ConfigWriteError {
       }
       Self::Write { path, .. } => {
         format!("check that {path} and the directory holding it are writable by the account running intent")
+      }
+      Self::Unreadable { path, .. } => {
+        format!("nothing was written -- repair {path} by hand so it parses as JSON with an `intent_version`, then re-run")
       }
     }
   }
@@ -557,16 +563,131 @@ impl crate::remedy::Remedy for ConfigWriteError {
 /// simply be re-rendered. v2 reached the same conclusion by hand: both
 /// `add_project_language` and `remove_project_language` write through `mktemp`
 /// and `mv`.
+///
+/// **ONLY WHAT THE CALLER CHANGED IS WRITTEN** (issue `0091`). Serialising the
+/// whole [`Config`] materialised every `#[serde(default)]` into the file, so the
+/// first `lang init` froze `author`, `intent_dir`, `todo` and `backup` at that
+/// day's defaults and the project silently stopped tracking the tool. v2 edited
+/// the one key with `jq` and left the rest alone; this is the same rule for a
+/// typed writer -- see [`changed_members`]. A key absent from the file stays
+/// absent unless its value changed, and a key present keeps its place and,
+/// unless changed, its bytes.
 pub fn write_config(root: &Path, config: &Config) -> Result<(), ConfigWriteError> {
   let path = Project::config_path(root);
+  let unreadable = |reason: String| ConfigWriteError::Unreadable {
+    path: path.display().to_string(),
+    reason,
+  };
+  let wanted: Members = serde_json::to_string(config)
+    .and_then(|text| serde_json::from_str(&text))
+    .map_err(ConfigWriteError::Encode)?;
+  let members = match std::fs::read_to_string(&path) {
+    // No file yet: there is nothing to track, so the whole config is the write.
+    Err(e) if e.kind() == std::io::ErrorKind::NotFound => wanted,
+    Err(e) => return Err(unreadable(e.to_string())),
+    Ok(text) => {
+      let file: Members = serde_json::from_str(&text).map_err(|e| unreadable(e.to_string()))?;
+      let read: Config = serde_json::from_str(&text).map_err(|e| unreadable(e.to_string()))?;
+      let read = match serde_json::to_value(&read).map_err(ConfigWriteError::Encode)? {
+        serde_json::Value::Object(map) => map,
+        _ => return Err(unreadable("a project config is a JSON object".to_string())),
+      };
+      changed_members(file, &read, wanted)
+    }
+  };
   // Two-space pretty, plus the trailing newline `init.rs` writes, so a config
   // this rewrites keeps the shape of one it laid down.
-  let mut body = serde_json::to_string_pretty(config).map_err(ConfigWriteError::Encode)?;
+  let mut body = serde_json::to_string_pretty(&members).map_err(ConfigWriteError::Encode)?;
   body.push('\n');
   crate::write_set::write_atomically(&path, &body).map_err(|source| ConfigWriteError::Write {
     path: path.display().to_string(),
     source,
   })
+}
+
+/// A JSON object's members IN THE ORDER THEY WERE READ.
+///
+/// `serde_json::Map` is sorted in this build, so a rewrite through a `Value`
+/// would alphabetise every config it touched. This keeps the file's own order,
+/// and a [`Config`]'s field order for keys the file does not have yet.
+struct Members(Vec<(String, serde_json::Value)>);
+
+impl Members {
+  fn get(&self, key: &str) -> Option<&serde_json::Value> {
+    self.0.iter().find(|(k, _)| k == key).map(|(_, v)| v)
+  }
+}
+
+impl Serialize for Members {
+  fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+    use serde::ser::SerializeMap;
+    let mut map = serializer.serialize_map(Some(self.0.len()))?;
+    for (k, v) in &self.0 {
+      map.serialize_entry(k, v)?;
+    }
+    map.end()
+  }
+}
+
+impl<'de> Deserialize<'de> for Members {
+  fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+    struct Visit;
+    impl<'de> serde::de::Visitor<'de> for Visit {
+      type Value = Members;
+      fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str("a JSON object")
+      }
+      fn visit_map<A: serde::de::MapAccess<'de>>(self, mut access: A) -> Result<Members, A::Error> {
+        let mut members = Vec::new();
+        while let Some(entry) = access.next_entry::<String, serde_json::Value>()? {
+          members.push(entry);
+        }
+        Ok(Members(members))
+      }
+    }
+    deserializer.deserialize_map(Visit)
+  }
+}
+
+/// The config to write: the FILE, with only the members the caller changed.
+///
+/// `read` is the file as a [`Config`] reads it, defaults filled in, so "changed"
+/// means changed from what the caller was handed -- a default the caller left
+/// alone equals its `read` value and is not written. Pure, so the rule is
+/// testable without a filesystem.
+///
+/// - A key in the file keeps its position. It takes the caller's value if that
+///   differs from `read`, keeps its own bytes if not, and is dropped if the
+///   caller no longer carries it (an `Option` set to `None`, or a key removed
+///   from [`Config::extra`]).
+/// - A key not in the file is added, after the file's keys, only if its value
+///   differs from `read` -- which for such a key is the default.
+///
+/// **The one case this cannot tell apart:** setting a key the file lacks to
+/// exactly its default leaves it absent, still tracking the tool. Nothing in a
+/// typed value says the caller meant it; the file saying nothing is the honest
+/// record of that.
+fn changed_members(
+  file: Members,
+  read: &serde_json::Map<String, serde_json::Value>,
+  wanted: Members,
+) -> Members {
+  let changed = |key: &str, value: &serde_json::Value| read.get(key) != Some(value);
+  let mut out = Vec::with_capacity(file.0.len());
+  for (key, own) in &file.0 {
+    match wanted.get(key) {
+      Some(value) if changed(key, value) => out.push((key.clone(), value.clone())),
+      Some(_) => out.push((key.clone(), own.clone())),
+      None if read.contains_key(key) => {}
+      None => out.push((key.clone(), own.clone())),
+    }
+  }
+  for (key, value) in wanted.0 {
+    if file.get(&key).is_none() && changed(&key, &value) {
+      out.push((key, value));
+    }
+  }
+  Members(out)
 }
 
 /// The `todo` block: how much of the DONE bucket a TERMINAL render shows.
@@ -2094,6 +2215,56 @@ mod tests {
     assert!(
       body.contains("\n  \"intent_version\""),
       "two-space indent, as init writes: {body}"
+    );
+  }
+
+  /// **WRITING ONE KEY DOES NOT FREEZE THE DEFAULTS** (issue `0091`).
+  ///
+  /// The file declares four keys, one of them a CHOSEN non-default. After a
+  /// `lang init`-shaped write, the defaults it never declared are still absent,
+  /// so the project goes on tracking the tool; the chosen value is still its
+  /// own; and the file's keys keep their order.
+  #[test]
+  fn writing_one_key_leaves_undeclared_defaults_unwritten() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let root = dir.path();
+    let path = Project::config_path(root);
+    std::fs::create_dir_all(path.parent().expect("parent")).expect("mkdir");
+    std::fs::write(
+      &path,
+      r#"{"intent_version":"3.0.0","project_name":"Fixture","languages":["rust"],"todo":{"window_hours":48}}"#,
+    )
+    .expect("seed");
+
+    let mut config: Config =
+      serde_json::from_str(&std::fs::read_to_string(&path).expect("read")).expect("parse");
+    assert!(config.declare_language("shell"));
+    write_config(root, &config).expect("write");
+
+    let body = std::fs::read_to_string(&path).expect("reread");
+    let reread: serde_json::Value = serde_json::from_str(&body).expect("parse json");
+    assert_eq!(
+      reread["languages"],
+      serde_json::json!(["rust", "shell"]),
+      "{body}"
+    );
+    for key in ["author", "intent_dir", "backup"] {
+      assert!(
+        reread.get(key).is_none(),
+        "{key:?} was never declared and is now frozen at today's default:\n{body}"
+      );
+    }
+    assert_eq!(
+      reread["todo"]["window_hours"],
+      serde_json::json!(48),
+      "a chosen value is the project's own and survives: {body}"
+    );
+    let at = |key: &str| body.find(&format!("\"{key}\"")).expect("key present");
+    assert!(
+      at("intent_version") < at("project_name")
+        && at("project_name") < at("languages")
+        && at("languages") < at("todo"),
+      "the file's own key order is kept: {body}"
     );
   }
 }
