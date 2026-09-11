@@ -1429,7 +1429,10 @@ for i in $(seq 0 $((FAMILY_COUNT - 1))); do
     else "`" + .v2_help_file + "`" end')"
   emit "- **Owning work package:** $WP"
   if printf '%s' "$F" | jq -e '.bats_coverage' >/dev/null 2>&1; then
-    emit "- **BATS coverage:** $(printf '%s' "$F" | jq -r '.bats_coverage | "\(.burning_tests) burning test(s) across \(.files_real) file(s)" + (if .files_vacuous > 0 then ", plus \(.files_vacuous) file(s) that name it but never reach the CLI" else "" end) + " -- **\(.verdict)**"')"
+    # THE VERDICT ONLY, NEVER THE TALLY (hv's count ban, 2026-09-11): the
+    # figures measured the v2 bats suite, which the cut deleted, and a count
+    # in a doc tells its reader nothing. The register keeps the numbers.
+    emit "- **v2 BATS coverage (a record -- the cut deleted that suite):** **$(printf '%s' "$F" | jq -r '.bats_coverage.verdict')**"
   fi
   emit ""
   printf '%s' "$F" | jq -r '.family_notes[]? | "- " + .' >> "$OUT_TMP"
@@ -1505,15 +1508,15 @@ fi
 
 # --- Coverage findings ------------------------------------------------------
 if jq -e '.coverage_findings' "$IN" >/dev/null 2>&1; then
-  emit "## Parity holes -- what the BATS estate does NOT cover"
+  emit "## Parity holes -- what the v2 BATS suite did NOT cover"
   emit ""
-  emit "A command family with no burning coverage is a parity hole: v3 can change it freely and the conformance suite stays green. Produced by \`parity/tools/coverage_map.sh\`, which joins these families against \`burn-baseline.tsv\` -- the join matters, because a naive grep reports \`treeindex\` as well covered when all 53 of its tests exec \`bin/intent_treeindex\` directly and the dispatcher never sees them."
+  emit "**A record of the v2 bats suite, which the cut deleted.** A command family with no burning coverage was a parity hole: v3 could change it freely and that suite stayed green. Produced by \`parity/tools/coverage_map.sh\`, which joined these families against \`burn-baseline.tsv\` -- the join mattered, because a naive grep reported \`treeindex\` as well covered when every one of its tests exec'd \`bin/intent_treeindex\` directly and the dispatcher never saw them."
   emit ""
-  emit "| family | files (real) | files (vacuous) | burning tests | verdict |"
-  emit "| ------ | ------------ | --------------- | ------------- | ------- |"
+  emit "| family | verdict |"
+  emit "| ------ | ------- |"
   jq -r "$JQ_LIB"'
     .families[] | select(.bats_coverage) |
-    "| `\(.name)` | \(.bats_coverage.files_real) | \(.bats_coverage.files_vacuous) | \(.bats_coverage.burning_tests) | \(.bats_coverage.verdict | cell) |"
+    "| `\(.name)` | \(.bats_coverage.verdict | cell) |"
   ' "$IN" >> "$OUT_TMP"
   emit ""
   jq -r '.coverage_findings[] |

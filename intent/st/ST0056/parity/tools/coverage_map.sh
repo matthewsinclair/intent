@@ -79,17 +79,17 @@ for famname in $(jq -r '.families[].name' "$CANON"); do
   elif [ "$real" -eq 0 ] && [ "$vac" -eq 0 ]; then
     # Every file naming this family failed to measure. Emphatically NOT a hole:
     # a hole is a known absence of coverage, this is an absence of knowledge.
-    verdict="UNKNOWN -- $unmeas file(s) name it, none measured"
+    verdict="UNKNOWN -- files name it, none measured"
   elif [ "$real" -eq 0 ]; then
-    verdict="VACUOUS -- $vac file(s) name it, none reach the CLI"
+    verdict="VACUOUS -- files name it, none reach the CLI"
   elif [ "$realtests" -lt 3 ]; then
-    verdict="THIN -- $realtests burning test(s)"
+    verdict="THIN"
   else
     verdict="covered"
   fi
   # An unmeasured file qualifies whatever verdict it sits under, so it is
   # appended rather than folded in -- "covered" over a partly-unmeasured family
   # is exactly the overclaim this column exists to prevent.
-  [ "$unmeas" -gt 0 ] && [ "$real" -gt 0 ] && verdict="$verdict (+$unmeas unmeasured)"
+  [ "$unmeas" -gt 0 ] && [ "$real" -gt 0 ] && verdict="$verdict (partly unmeasured)"
   printf '%-12s %8s %8s %8s %8s   %s\n' "$famname" "$real" "$vac" "$realtests" "$unmeas" "$verdict"
 done
