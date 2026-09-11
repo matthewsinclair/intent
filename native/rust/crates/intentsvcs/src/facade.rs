@@ -447,6 +447,17 @@ pub struct Declared {
   pub declares: usize,
 }
 
+/// What [`Facade::hydration`] did (0083).
+#[derive(Debug, Clone)]
+pub struct Hydration {
+  /// Every file the artefact owns that NOW exists -- [`Facade::hydrate`]'s
+  /// answer, the same whether or not this call had anything to do.
+  pub paths: Vec<std::path::PathBuf>,
+  /// The subset of `paths` this call wrote: created, or rewritten because its
+  /// bytes differed. Empty on a hydrate that found everything in place.
+  pub wrote: Vec<std::path::PathBuf>,
+}
+
 /// What [`Facade::dehydrate`] did.
 ///
 /// **`unlisted` IS A FACT ABOUT THIS RUN, NOT A RESTATEMENT OF `removed`.** The
@@ -3019,6 +3030,17 @@ impl Facade {
   /// does this artefact have", and the one that goes stale is always the one
   /// nobody is looking at when a new view kind lands.
   pub fn hydrate(&mut self, address: &Address) -> Result<Vec<std::path::PathBuf>, FacadeError> {
+    self.hydration(address).map(|h| h.paths)
+  }
+
+  /// [`Facade::hydrate`], with which of its paths THIS CALL WROTE (0083).
+  ///
+  /// `hydrate`'s answer is the paths that now exist, and it is idempotent, so
+  /// a restore and a no-op returned the same set and a report built on it
+  /// labelled a file it had just recreated `exists:`. The written subset is
+  /// what the organize run already knows -- created or rewritten -- so the
+  /// report reads it here rather than guessing from the disk.
+  pub fn hydration(&mut self, address: &Address) -> Result<Hydration, FacadeError> {
     if let Some(authority) = &address.authority {
       return Err(FacadeError::NotHydratable {
         form: address.entity.form(),
@@ -3239,7 +3261,15 @@ impl Facade {
         }),
       )?;
     }
-    Ok(owned)
+    let wrote: Vec<std::path::PathBuf> = owned
+      .iter()
+      .filter(|p| run.hydrated.contains(p) || run.rewritten.contains(p))
+      .cloned()
+      .collect();
+    Ok(Hydration {
+      paths: owned,
+      wrote,
+    })
   }
 
   /// Remove one artefact's realised files and unlist it from the manifest --

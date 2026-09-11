@@ -2159,39 +2159,44 @@ pub(crate) fn launch_editor(path: &Path, named: Option<&str>) -> Result<(), Fail
 fn hydrated(argument: &str) -> Result<(), Failure> {
   let address = address::promote(argument).map_err(|e| Failure::Error(e.render()))?;
   let mut facade = open()?;
-  let paths = facade.hydrate(&address).map_err(fail)?;
+  let done = facade.hydration(&address).map_err(fail)?;
 
-  // **`exists`, NOT `wrote`, AND THE DISTINCTION IS THE FACADE'S OWN.**
-  // `hydrate` documents its return as *paths that NOW EXIST, not paths this run
-  // had a step for* -- it is idempotent in both of its steps, so the ordinary
-  // second call writes nothing and returns the same set. Labelling these
-  // `wrote:` would be a count of one thing standing for a count of another,
-  // which is the class that let `1 refused` speak for 423 files.
+  // **`wrote` FOR WHAT THIS RUN WROTE, `exists` FOR THE REST (0083).** Every
+  // path was labelled `exists`, on the ground that `hydrate` returns what NOW
+  // exists and is idempotent -- true, and it made a restore and a no-op print
+  // the same report, so the one question anyone runs this to answer could not
+  // be read off it. The facade names the written subset from its own run, so a
+  // label here is a fact about this call rather than a guess from the disk.
   // **THE URL RATHER THAN THE ARGUMENT, SO THE PROMOTION IS VISIBLE.** An
   // operator who typed `ST0000` is told what it was promoted to, which is the
   // one place the bare-id shorthand can be seen doing its work; echoing their
   // own argument back would confirm only that it was received.
   let project = facade.project();
   println!(
-    "ok: {} hydrated -- listed in {}, {} file(s) on disk",
+    "ok: {} hydrated -- listed in {}, {} file(s) on disk, {} written by this run",
     address.to_url(),
     project.relative(&project.intentfiles_path()),
-    paths.len()
+    done.paths.len(),
+    done.wrote.len()
   );
-  for path in &paths {
-    println!("  exists: {}", project.relative(path));
+  for path in &done.paths {
+    let label = if done.wrote.contains(path) {
+      "wrote"
+    } else {
+      "exists"
+    };
+    println!("  {label}: {}", project.relative(path));
   }
   Ok(())
 }
 
 /// The inverse of `hydrated`, and the report is where the two differ most.
 ///
-/// **`removed:` RATHER THAN `hydrated`s `exists:`, AND THE ASYMMETRY IS HONEST.**
-/// `hydrate` labels its lines `exists` because it is idempotent in both steps
-/// and the ordinary second call writes nothing while returning the same set --
-/// so `wrote` would be a count of one thing standing for a count of another.
-/// Dehydration has no such gap: a file already absent was never in the plan, so
-/// every path here names a removal this run actually performed.
+/// **`removed:` FOR EVERY LINE, WHERE `hydrated` NEEDS TWO LABELS.** `hydrate`
+/// returns every path that now exists, written or not, so it labels each one
+/// `wrote` or `exists` from its own run (0083). Dehydration has no such gap: a
+/// file already absent was never in the plan, so every path here names a
+/// removal this run actually performed.
 fn dehydrated(argument: &str) -> Result<(), Failure> {
   let address = address::promote(argument).map_err(|e| Failure::Error(e.render()))?;
   let mut facade = open()?;

@@ -1218,7 +1218,8 @@ fn the_door_needles_still_match_what_the_surface_says() {
 /// &Address)` and are not doors: none changes canon at the addressed entity.
 /// They are listed here so that removing one from the exclusion list is a
 /// visible act rather than a shrug -- the same citation clause [`Expected`]
-/// carries.
+/// carries. `hydration` is `hydrate`'s body, returning which paths the call
+/// wrote as well (0083), so it is excluded for the same reason.
 ///
 /// **`dehydrate` REMOVES FILES AND IS STILL NOT A DOOR, WHICH IS THE ONE WORTH
 /// STATING.** It writes `.intentfiles` and deletes realised views; canon is
@@ -1227,7 +1228,7 @@ fn the_door_needles_still_match_what_the_surface_says() {
 /// about how much a verb writes.
 #[test]
 fn the_door_set_is_the_facades_own_and_announces_a_fifth() {
-  const NOT_DOORS: [&str; 3] = ["hydrate", "dehydrate", "edit"];
+  const NOT_DOORS: [&str; 4] = ["hydrate", "hydration", "dehydrate", "edit"];
 
   let source =
     std::fs::read_to_string(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/facade.rs"))

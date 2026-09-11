@@ -578,11 +578,15 @@ pub fn serve(
     "st hydrate" => {
       let id = spec(path, need_s(path, map, "id")?)?;
       let address = promote(path, &id)?;
-      let paths = f.hydrate(&address)?;
-      let rel: Vec<String> = paths.iter().map(|p| f.project().relative(p)).collect();
-      // `exists`, not `wrote` -- the facade's own distinction: hydrate is
-      // idempotent in both steps and returns the paths that NOW exist.
-      Ok(json!({ "address": address.to_url(), "exists": rel }))
+      let done = f.hydration(&address)?;
+      let rel = |paths: &[std::path::PathBuf]| -> Vec<String> {
+        paths.iter().map(|p| f.project().relative(p)).collect()
+      };
+      // `exists` is every path that NOW exists; `wrote` is the subset this call
+      // wrote (0083), so a restore and a no-op answer differently.
+      Ok(
+        json!({ "address": address.to_url(), "exists": rel(&done.paths), "wrote": rel(&done.wrote) }),
+      )
     }
     "st dehydrate" => {
       let id = spec(path, need_s(path, map, "id")?)?;

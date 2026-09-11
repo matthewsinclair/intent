@@ -328,3 +328,27 @@ fn dehydrate_reports_every_removed_path_and_the_manifest_it_changed() {
     "the run changed the manifest and did not name it -- stdout: {stdout}"
   );
 }
+
+/// **0083: `hydrate` says which files it WROTE, so a restore and a no-op read
+/// differently.** It labelled every path `exists:`, including one it had just
+/// recreated, so its report could not verify the restore it is run to perform.
+#[test]
+fn hydrate_reports_the_file_it_restored_apart_from_the_ones_already_there() {
+  let dir = project();
+  let root = dir.path();
+  std::fs::remove_file(root.join("intent/st/ST0002/acceptance.md"))
+    .expect("remove a realised file");
+
+  let restored = ok(root, &["st", "hydrate", "ST0002"]);
+  assert!(
+    restored.contains("  wrote: intent/st/ST0002/acceptance.md\n")
+      && restored.contains("  exists: intent/st/ST0002/info.md\n"),
+    "the recreated file is reported as written and the untouched one as existing: {restored}"
+  );
+
+  let again = ok(root, &["st", "hydrate", "ST0002"]);
+  assert!(
+    again.contains("  exists: intent/st/ST0002/acceptance.md\n") && !again.contains("wrote:"),
+    "a hydrate with nothing to restore writes nothing and says so: {again}"
+  );
+}
