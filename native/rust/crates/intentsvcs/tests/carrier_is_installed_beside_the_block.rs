@@ -68,8 +68,7 @@ fn apply(fx: &crate::common::Fixture, hooks: &Path) -> canon::Applied {
     project.config(),
     &crate::common::ctx(),
     Some(hooks),
-    false,
-    false,
+    canon::Options::default(),
   )
   .expect("canon apply")
 }
@@ -257,8 +256,7 @@ fn no_repository_means_no_carrier_and_no_error() {
     project.config(),
     &crate::common::ctx(),
     None,
-    false,
-    false,
+    canon::Options::default(),
   )
   .expect("a project without git is a supported shape, not an error");
 
@@ -297,8 +295,10 @@ fn skip_settings_leaves_the_settings_file_alone_and_says_so() {
       project.config(),
       &crate::common::ctx(),
       Some(&hooks),
-      false,
-      skip,
+      canon::Options {
+        skip_settings: skip,
+        ..Default::default()
+      },
     )
     .expect("canon apply");
     let after = std::fs::read_to_string(&settings).expect("settings still readable");
@@ -343,5 +343,68 @@ fn skip_settings_leaves_the_settings_file_alone_and_says_so() {
   assert!(
     control.written.iter().any(|p| p == &settings),
     "{control:?}"
+  );
+}
+
+/// **REPORT MODE ANSWERS WHAT `--apply` WOULD DO, AND WRITES NOTHING** (issue
+/// `0115`).
+///
+/// The dry run used to print canon's roster, identical on a stale estate and a
+/// clean one. Three runs pin the replacement: a report on a fresh fixture names
+/// what would be written and leaves the tree untouched; `--apply` then writes
+/// EXACTLY that set; and a report on the now-canonical tree says nothing would
+/// be written -- the answer the roster could never give.
+#[test]
+fn report_mode_answers_what_apply_would_do_and_writes_nothing() {
+  let fx = crate::common::Fixture::new();
+  fx.git_init();
+  let hooks = hooks_dir(&fx);
+  let project = fx.project();
+  let run = |report: bool| {
+    canon::apply(
+      fx.root(),
+      &home(),
+      project.config(),
+      &crate::common::ctx(),
+      Some(&hooks),
+      canon::Options {
+        report,
+        ..Default::default()
+      },
+    )
+    .expect("canon apply")
+  };
+
+  let report = run(true);
+  assert!(
+    !report.written.is_empty(),
+    "a fresh fixture has canon to write, so the report must name it: {report:?}"
+  );
+  for path in &report.written {
+    assert!(
+      !path.exists(),
+      "report mode wrote {} -- a dry run that writes is not a dry run",
+      path.display()
+    );
+  }
+
+  let applied = run(false);
+  assert_eq!(
+    applied.written, report.written,
+    "the report and the write disagree about what changes"
+  );
+
+  let clean = run(true);
+  assert!(
+    clean.written.is_empty(),
+    "on a canonical tree the report must say nothing would be written: {clean:?}"
+  );
+  // Seeded user-owned files read as `preserved` from here on, so the count
+  // that matters is that the clean report EXAMINED the tree rather than
+  // returning an empty verdict: an empty `written` from a report that looked
+  // at nothing would pass the assertion above.
+  assert!(
+    !clean.unchanged.is_empty(),
+    "a clean report must name what it found canonical, not return nothing: {clean:?}"
   );
 }

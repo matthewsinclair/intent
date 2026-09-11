@@ -8278,55 +8278,36 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   };
   let root = f.project().root();
   let hooks = intentsvcs::canon::hooks_dir(root);
-  let skip_settings = m.get_flag("skip-settings");
-
-  if !m.get_flag("apply") {
-    println!(
-      "canon (dry run): would apply v3 canon to {}",
-      root.display()
-    );
-    if skip_settings {
-      println!("  .claude/settings.json -- skipped (--skip-settings)");
-    } else {
-      println!("  .claude/settings.json");
-    }
-    for name in [
-      "CLAUDE.md",
-      "AGENTS.md",
-      "usage-rules.md (only if absent)",
-      ".intent_critic.yml (only if absent)",
-    ] {
-      println!("  {name}");
-    }
-    match &hooks {
-      Some(h) => {
-        // **BOTH HALVES OF THE GATE ARE NAMED, CARRIER FIRST.** A dry run that
-        // listed only the chain block would describe the exact state that block
-        // produces on its own: a reference with no referent, silently skipped.
-        println!("  {}/pre-commit.intent (the gate shim)", h.display());
-        println!("  {}/pre-commit (chain block, region-edited)", h.display());
-      }
-      // NOT SILENCE. A dry run that omits a step it cannot do reads as a plan
-      // that never included it.
-      None => println!("  (no git repository -- no gate: neither carrier nor chain block)"),
-    }
-    println!("re-run with --apply to write.");
-    return Ok(());
-  }
-
+  // **ONE COMPUTATION, TWO RENDERINGS** (issue `0115`). The dry run used to
+  // print canon's ROSTER -- every file canon covers, headed "would apply" --
+  // which is byte-identical whether every file is stale or none is, so the
+  // read-only mode could not answer the one question it exists for. It now
+  // runs the same `canon::apply` with writes suppressed, and the verdicts are
+  // the ones `--apply` would reach.
+  let report = !m.get_flag("apply");
   let applied = intentsvcs::canon::apply(
     root,
     &home,
     f.project().config(),
     &ctx,
     hooks.as_deref(),
-    m.get_flag("force"),
-    skip_settings,
+    intentsvcs::canon::Options {
+      force: m.get_flag("force"),
+      skip_settings: m.get_flag("skip-settings"),
+      report,
+    },
   )
   .map_err(|e| Failure::Error(e.to_string()))?;
 
+  if report {
+    println!(
+      "canon (dry run) for {} -- nothing is written:",
+      root.display()
+    );
+  }
+  let wrote = if report { "would write" } else { "written" };
   for p in &applied.written {
-    println!("written: {}", rel(root, p));
+    println!("{wrote}: {}", rel(root, p));
   }
   // **REPORTED, NOT SILENT.** A run that says nothing about a file it examined
   // cannot be told from one that skipped it -- and "already canonical" is the
@@ -8351,6 +8332,25 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   // canon forgot (issue `0143`).
   for p in &applied.skipped {
     println!("skipped: {} (--skip-settings)", rel(root, p));
+  }
+  // NOT SILENCE. A step that cannot run is named, or the report reads as a
+  // plan that never included it.
+  if hooks.is_none() {
+    println!("no git repository -- no gate: neither carrier nor chain block");
+  }
+  if report {
+    println!(
+      "dry run: {} would be written, {} already canonical, {} preserved, {} held, {} skipped. \
+       re-run with --apply to write.",
+      applied.written.len(),
+      applied.unchanged.len(),
+      applied.preserved.len(),
+      applied.held.len(),
+      applied.skipped.len()
+    );
+    // The pointer warnings below describe a gate that was just INSTALLED; a
+    // run that installed nothing has nothing to qualify.
+    return Ok(());
   }
   println!(
     "ok: {} written, {} already canonical, {} preserved, {} held, {} skipped.",
