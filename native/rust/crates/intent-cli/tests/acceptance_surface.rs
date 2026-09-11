@@ -275,6 +275,45 @@ fn at_lint_on_a_conforming_thread_says_what_it_examined() {
   assert_eq!(out.status.code(), Some(0));
 }
 
+/// **0139: `--fix` was advertised in `at lint --help` and refused when called.**
+///
+/// The help promised a mechanical migration of legacy rows; the arm answered
+/// `not implemented in v3`. The migration has one home, the WP-10 migrator
+/// with its refuse-lossy discipline, so the flag is retired rather than built:
+/// a consumer meets it exactly when `at lint` has named rows they must fix, and
+/// a help line naming a door that refuses sends them the wrong way.
+///
+/// **Both halves, because either alone passes against the defect.** A help
+/// that stopped naming `--fix` while the arm still answered would advertise
+/// nothing and still carry a dead door; a flag clap refuses that `--help`
+/// still lists is the original defect.
+#[test]
+fn at_lint_neither_advertises_nor_answers_a_fix_it_does_not_perform() {
+  let dir = project();
+  let root = dir.path();
+  seed(
+    root,
+    "ST0001",
+    &criterion("AC-01.1"),
+    &at_row("AT-01.1", "AC-01.1"),
+  );
+
+  let help = run(root, &["at", "lint", "--help"]);
+  assert!(
+    !stdout(&help).contains("--fix"),
+    "`at lint --help` still advertises --fix: {}",
+    stdout(&help)
+  );
+
+  let out = run(root, &["at", "lint", "ST0001", "--fix"]);
+  assert_eq!(
+    String::from_utf8_lossy(&out.stderr).lines().next(),
+    Some("error: unexpected argument '--fix' found"),
+    "a retired flag is refused by clap, as `doctor --fix` is"
+  );
+  assert_eq!(out.status.code(), Some(1));
+}
+
 /// **0273: a row the citation arms cannot read was counted as conforming.**
 ///
 /// `rows` was incremented before the guard that decides whether an arm can read

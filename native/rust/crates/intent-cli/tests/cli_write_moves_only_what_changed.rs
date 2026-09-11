@@ -425,7 +425,7 @@ fn cases() -> Vec<Case> {
       prep: NOOP,
       expect: Expect::WritesNothing(1),
       must_say: None,
-      why: "`at lint --fix` is not implemented in v3 -- the flag that earns this verb its `mutate` classification does not exist, so the classification is unearned in BOTH arms",
+      why: "`--fix` is retired (0139), so clap refuses it and the estate stays byte-identical -- it was the only thing that ever earned `at lint` a `mutate` classification, and the row is now `read`",
     },
     Case {
       verb: "ingest",

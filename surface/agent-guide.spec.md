@@ -35,7 +35,7 @@ The halves compose at render time. There is no committed generated guide file: `
 
 Not the same projection a human help screen wants. An agent needs the safety constraint before the description, and the call before the routing:
 
-1. **`read_or_mutate`** -- does this change durable state. Declared over the WHOLE entry, so `at lint` is a mutation because `--fix` exists, and `todo list` is a mutation because it generates `todo.md` when absent.
+1. **`read_or_mutate`** -- does this change durable state. Declared over the WHOLE entry, so `todo list` is a mutation because it generates `todo.md` when absent.
 2. **path, help, arguments, flags** -- the call. Flags are the `keep` set only, which is `Flag::ships()`; see below for what that deliberately excludes.
 3. **`exposed_on_mcp`** -- whether the OTHER route also carries this row. Declared per row (AC-09.1), never derived. It is not a gate on the agent; see immediately below.
 4. **surface-wide facts, stated ONCE and not per row** -- the exit-code contract, and `--help`.

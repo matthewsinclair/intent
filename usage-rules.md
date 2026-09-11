@@ -88,7 +88,7 @@ intent ac withdraw ST0001 AC-01.4 --reason "..."     # it was dropped outright
 intent ac rescope ST0001 AC-01.3                     # undo a descope
 intent ac reinstate ST0001 AC-01.4                   # undo a withdrawal
 intent at list ST0001                                # AT rows: id, cited file, covers, status
-intent at lint ST0001 [--fix]                        # grammar + citation checks; --fix migrates the mechanical half
+intent at lint ST0001                                # grammar + citation checks; fix what it names with `at edit`
 intent at red|green|na ST0001 AT-01.1                # transitions (done / notdone alias green / red)
 ```
 

@@ -1347,7 +1347,7 @@ Acceptance tests: the small red-to-green tests that prove ACs
 | ----------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------- |
 | `at`                          | <command>     | --                                                                                                                   | Acceptance test commands                                                          | keep        |
 | `at list`                     | <stid>        | --                                                                                                                   | List ATs (id, reference, status)                                                  | keep        |
-| `at lint`                     | <stid>        | --fix                                                                                                                | Check AT rows against the grammar (--fix migrates what is mechanical)             | keep        |
+| `at lint`                     | <stid>        | --fix                                                                                                                | Check AT rows against the grammar                                                 | keep        |
 | `at green` (alias `at done`)  | <stid> <atid> | --note <text>                                                                                                        | Set an AT green                                                                   | keep        |
 | `at red` (alias `at notdone`) | <stid> <atid> | --note <text>                                                                                                        | Set an AT red                                                                     | keep        |
 | `at na`                       | <stid> <atid> | --note <text>                                                                                                        | Set a non-test AT to n/a (the doc / eyeball / gate status)                        | keep        |
@@ -1399,16 +1399,15 @@ List ATs (id, reference, status)
 
 ### `at lint`
 
-Check AT rows against the grammar (--fix migrates what is mechanical)
+Check AT rows against the grammar
 
 - **v2:** bin/intent_acceptance:1368-1377 (the `at` dispatch arm)
 - **Arguments:**
   - `stid` (st-id[/NN], arity `1`)
 - **Flags:**
   - `--fix` (bool) -- Migrate the mechanical part of a legacy row -- and REFUSE what cannot migrate without loss
-    - narrowed off MCP because the CLI arm itself refuses it as not implemented in v3 -- a tool must not advertise a parameter whose only answer is a refusal to exist
-    - **disposition:** keep
-    - **exposed on mcp:** false
+    - **disposition:** retire
+    - **disposition basis:** RETIRED 2026-09-11 (vc, within the pen, on issue 0139). v2 really implements --fix (bin/intent_acceptance:1266), so this is a genuine v2 behaviour v3 is deliberately not carrying -- the `doctor --fix` shape. It shipped as `keep` with an arm that refused it as not implemented in v3, so `at lint --help` advertised a mechanical migration at exactly the moment a consumer needed one and the call refused. Retired rather than built because the mechanical migration of a legacy row already has ONE home, the WP-10 migrator with its refuse-lossy discipline, and an `at lint --fix` would be a second writer of the same rewrite. The remedy for a row `at lint` names is to fix it by hand through `intent at edit`. Superseded text, kept inline: the flag carried `exposed_on_mcp: false` with the note `narrowed off MCP because the CLI arm itself refuses it as not implemented in v3 -- a tool must not advertise a parameter whose only answer is a refusal to exist`; a retired flag reaches neither clap nor MCP, so both went with it.
 - **Exit codes:**
   - `0` -- all rows parse
   - `1` -- L1-L5 findings present
@@ -1418,10 +1417,9 @@ Check AT rows against the grammar (--fix migrates what is mechanical)
 - **Observed notes:** Scope-honouring since issue 0024: a `/NN` scope is applied, and a scoped `--fix` no longer rewrites rows OUTSIDE the scope.
 - **Target:** `as-observed`
 - **Note:** **The refuse-lossy discipline is the load-bearing part and must survive into WP-10's migrator.** `--fix` once half-migrated rows and destroyed the only link a row had; the SUGGESTION was lossy before the fixer was, so every human following it lost the same data. A tool that cannot finish a job must not start it.
-- **MCP:** exposed as an agent tool -- **mutates**
-- **Wants review -- the classification disagrees with the verb name:** `lint` is the canonical read-only verb and `intent at lint --fix` migrates rows in place. Classified by the whole entry, not by its default invocation.
+- **MCP:** exposed as an agent tool -- read-only
+- **Wants review -- the classification disagrees with the verb name:** SUPERSEDED 2026-09-11 BY THE `--fix` RETIREMENT (0139), AND THE OLD TEXT IS KEPT INLINE BECAUSE IT EXPLAINS THE FIGURE THAT MOVED. It read: `lint is the canonical read-only verb and intent at lint --fix migrates rows in place. Classified by the whole entry, not by its default invocation.` That was the v2 reading; in v3 the arm refused `--fix`, so the bare form was the only one that ran and it leaves the estate byte-identical. `--fix` was the only thing on this row that could write, so retiring it leaves nothing that mutates and the row is now plainly `read`. Its `recoverability` read `idempotent` and is dropped with the reclassification, because the vocabulary refuses a recoverability on a `read` row. THE RECLASSIFICATION IS A CONSEQUENCE OF THE RULING, NOT A SECOND JUDGEMENT -- the `llm usage_rules --symlink` shape (0181).
 - **MCP classification grounded in:** bin/intent_acceptance:1266 (`--fix) fix=1`), at_lint_fix / at_fix_line
-- **recoverability:** idempotent
 - **facade:** at_lint
 
 ### `at green`

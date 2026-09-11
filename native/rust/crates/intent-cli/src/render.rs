@@ -3175,16 +3175,9 @@ fn at(m: &ArgMatches) -> Result<(), Failure> {
     }
     Some(("lint", a)) => {
       let st = thread_arg(a, "stid")?;
-      if given(a, "fix") {
-        // The 0017 `--fix` half-migrated rows: it rewrote what it could parse
-        // and silently left the rest, which is worse than refusing, because a
-        // lossy fixer damages what it touches and a lossy SUGGESTION damages
-        // everything touched after it. v3 will not ship one that cannot finish
-        // the job.
-        return Err(
-          "error: `at lint --fix` is not implemented in v3\n  remedy: fix the rows `intent at lint` names -- v2's --fix rewrote what it could parse and left the rest, which is why it is not being carried over".into(),
-        );
-      }
+      // No `--fix` (0139): v2's half-migrated rows, and the mechanical
+      // migration of a legacy row has one home, the WP-10 migrator. The flag
+      // is retired in the dispatch table, so clap refuses it before this arm.
       let f = open()?;
       let report = f.at_lint(&st).map_err(fail)?;
       for finding in &report.findings {

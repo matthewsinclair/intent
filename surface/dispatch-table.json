@@ -2904,7 +2904,7 @@
         },
         {
           "path": "at lint",
-          "help": "Check AT rows against the grammar (--fix migrates what is mechanical)",
+          "help": "Check AT rows against the grammar",
           "args": [
             {
               "name": "stid",
@@ -2919,9 +2919,8 @@
               ],
               "type": "bool",
               "help": "Migrate the mechanical part of a legacy row -- and REFUSE what cannot migrate without loss",
-              "disposition": "keep",
-              "exposed_on_mcp": false,
-              "note": "narrowed off MCP because the CLI arm itself refuses it as not implemented in v3 -- a tool must not advertise a parameter whose only answer is a refusal to exist"
+              "disposition": "retire",
+              "disposition_basis": "RETIRED 2026-09-11 (vc, within the pen, on issue 0139). v2 really implements --fix (bin/intent_acceptance:1266), so this is a genuine v2 behaviour v3 is deliberately not carrying -- the `doctor --fix` shape. It shipped as `keep` with an arm that refused it as not implemented in v3, so `at lint --help` advertised a mechanical migration at exactly the moment a consumer needed one and the call refused. Retired rather than built because the mechanical migration of a legacy row already has ONE home, the WP-10 migrator with its refuse-lossy discipline, and an `at lint --fix` would be a second writer of the same rewrite. The remedy for a row `at lint` names is to fix it by hand through `intent at edit`. Superseded text, kept inline: the flag carried `exposed_on_mcp: false` with the note `narrowed off MCP because the CLI arm itself refuses it as not implemented in v3 -- a tool must not advertise a parameter whose only answer is a refusal to exist`; a retired flag reaches neither clap nor MCP, so both went with it."
             }
           ],
           "v2": "bin/intent_acceptance:1368-1377 (the `at` dispatch arm)",
@@ -2954,12 +2953,11 @@
           },
           "disposition": "keep",
           "exposed_on_mcp": true,
-          "read_or_mutate": "mutate",
+          "read_or_mutate": "read",
           "mcp_review": {
-            "counterintuitive": "`lint` is the canonical read-only verb and `intent at lint --fix` migrates rows in place. Classified by the whole entry, not by its default invocation.",
+            "counterintuitive": "SUPERSEDED 2026-09-11 BY THE `--fix` RETIREMENT (0139), AND THE OLD TEXT IS KEPT INLINE BECAUSE IT EXPLAINS THE FIGURE THAT MOVED. It read: `lint is the canonical read-only verb and intent at lint --fix migrates rows in place. Classified by the whole entry, not by its default invocation.` That was the v2 reading; in v3 the arm refused `--fix`, so the bare form was the only one that ran and it leaves the estate byte-identical. `--fix` was the only thing on this row that could write, so retiring it leaves nothing that mutates and the row is now plainly `read`. Its `recoverability` read `idempotent` and is dropped with the reclassification, because the vocabulary refuses a recoverability on a `read` row. THE RECLASSIFICATION IS A CONSEQUENCE OF THE RULING, NOT A SECOND JUDGEMENT -- the `llm usage_rules --symlink` shape (0181).",
             "grounded_in": "bin/intent_acceptance:1266 (`--fix) fix=1`), at_lint_fix / at_fix_line"
           },
-          "recoverability": "idempotent",
           "facade": "at_lint"
         },
         {

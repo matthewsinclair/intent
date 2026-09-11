@@ -526,10 +526,9 @@ establishing it would file a known answer as a debt.",
 /// unchanged estate. The day one starts writing, that file goes RED and forces
 /// the re-bucket, rather than leaving an excuse sitting here.
 const MUTATE_BUT_WRITES_NOTHING: &[(&str, &str)] = &[
-  (
-    "at lint",
-    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- BOTH arms driven. Bare: rc=0, estate byte-identical. `--fix`, the flag that earns the `mutate` classification: `rc=1`, `at lint --fix is not implemented in v3`. The classification rests on a flag that does not exist.",
-  ),
+  // `at lint` LEFT THIS ROSTER ON 2026-09-11 BY BEING RECLASSIFIED (0139): its
+  // `mutate` rested only on `--fix`, which the arm refused, and retiring the
+  // flag made the row `read`. It is no longer a shipped mutator.
   (
     "ingest",
     "intent-cli/tests/cli_write_moves_only_what_changed.rs -- Phase A reads and writes nothing INCLUDING no store, driven from a storeless start rather than inherited. Its paired control is `todo list` in the same run and the same condition, which DOES materialise one -- so the store observation is not stuck-false.",
