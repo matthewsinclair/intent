@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 09:17Z
+heartbeat_at: 2026-09-11 09:28Z
 status: active
-focus: "FOLDED AGGRESSIVELY 2026-09-11 FOR THE COMPACT, and this is not a release. ON THE BOUNCE: hv's words, no new work, these items ONLY. The work is intent/wip.md, 92 defects in 3.0.1 priority order, and that list is the authority. MY LANE is ingest, migration and the store write path: #1 0133, then #2 0260 (re-examine first), then 0082 0276 0124 0126 0138 0129 0216 0212 0206 0131 0135 0226. One id at a time: claim it in DOING, put the id in the commit subject, tell vc, and vc closes it. No new tests beyond the proof, and no instruments, guards, criteria or threads. The 16 clippy lints are hv's decision 4 and wait on hv's go."
+focus: "BOUNCED 2026-09-11. DOING #1 0133. hv's words: no new work, these items ONLY. The work is intent/wip.md, 92 defects in 3.0.1 priority order, and that list is the authority. MY LANE is ingest, migration and the store write path, in list order. One id at a time: claim it in DOING, put the id in the commit subject, tell vc, and vc closes it. No new tests beyond the proof, and no instruments, guards, criteria or threads. The 16 clippy lints are hv's decision 4 and wait on hv's go."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,11 +14,11 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**NOTHING IN FLIGHT. NOTHING OF MINE DIRTY.** Verified by `git status` at the fold.
+**#1 `0133` (critical), claimed 2026-09-11 09:28Z:** the v2 ingest routes `(satisfied: no, evidence: Some)` to the unit variant `AcState::Unsatisfied`, which has nowhere to put the evidence. The issue names the fix: `Unsatisfied` carries optional evidence.
 
 **ON THE BOUNCE, hv's WORDS VIA vc: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._** The work is the numbered list in `intent/wip.md`: the 92 open defects in 3.0.1 priority order. **That list is the authority; this board only points at it.** hv cuts from the bottom.
 
-**MY LANE IS INGEST, MIGRATION AND THE STORE WRITE PATH.** All my items are P1 and are listed in `## TODO` in list order.
+**MY LANE IS INGEST, MIGRATION AND THE STORE WRITE PATH.** My P1 items are in `## TODO` in list order. **The list ALSO carries cc items in P3 and P5** (#32 `0268`, #33 `0111`, #38 `0097`, #39 `0069`, #63 `0080`, #64 `0100`, #65 `0084`, #71 `0259`, #76 `0159`, #78 `0136`, #79 `0141`, #80 `0114`, #82 `0152`, #83 `0210`). This board said _all my items are P1_ at the fold, and that was wrong. **Read the lane column in `intent/wip.md`, never this list.**
 
 **THE RULES ON THE BOUNCE (vc, 2026-09-11):** claim the id in this DOING, one item at a time. Commit with the id in the subject, then tell vc; **vc closes the issue after re-driving the fix, not me.** A defect I find while fixing goes in the commit message, NOT onto the list. **The only new test allowed is the one that proves the item fixed.** No new instruments, guards, criteria or threads.
 
@@ -28,7 +28,6 @@ claims: [ST0056/06, ST0056/10]
 
 **MY ITEMS FROM `intent/wip.md`, IN LIST ORDER. RE-READ THE LIST AT PICKUP, because vc owns its numbering.**
 
-- **#1 `0133`** (critical): migrating a v2 project destroys the evidence text of every criterion authored unsatisfied.
 - **#2 `0260`** (critical): the v3 migration froze generated sections into authored body on 326 of 358 threads. **RE-EXAMINE FIRST**, as the list says.
 - **#6 `0082`**: a new attachment authored in canon never reaches disk (`sync --to-disk`).
 - **#7 `0276`**: a committed attachment whose bytes differ from canon enters canon with no warning.
