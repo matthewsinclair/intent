@@ -1735,6 +1735,7 @@ fn a_different_legal_wp_value() -> Vec<(&'static str, Value)> {
     ("title", json!("Ingest, views and sync -- re-titled")),
     ("scope", json!("XL")),
     ("scope_legacy", json!({ "raw": "3 days" })),
+    ("status_legacy", json!({ "raw": "pending" })),
     ("status_reason", json!("held: blocked on the ingest ruling")),
     (
       "objective",
@@ -2112,7 +2113,7 @@ fn field_axis(entity: &intentsvcs::address::Entity) -> FieldAxis {
 /// A `WorkPackage` with every field carrying a value.
 ///
 /// **Fully populated for the reason [`fully_populated_row`] gives**: `scope`,
-/// `scope_legacy` and `status_reason` are `Option` with
+/// `scope_legacy`, `status_legacy` and `status_reason` are `Option` with
 /// `skip_serializing_if`, so a partially-populated instance is blind to
 /// exactly the fields nobody has ever set.
 fn fully_populated_work_package() -> intentsvcs::model::WorkPackage {
@@ -2136,6 +2137,9 @@ fn fully_populated_work_package() -> intentsvcs::model::WorkPackage {
     }),
     scope_legacy: Some(Legacy {
       raw: "Medium-Large".to_string(),
+    }),
+    status_legacy: Some(Legacy {
+      raw: "Deferred".to_string(),
     }),
     status: intentsvcs::model::WpStatus::Wip,
     status_reason: Some("reopened by a criterion minted into its scope".to_string()),
@@ -2279,6 +2283,7 @@ fn true_fields(model: &str) -> Vec<&'static str> {
         scope: _,
         scope_legacy: _,
         status: _,
+        status_legacy: _,
         status_reason: _,
         fiat: _,
         objective: _,
@@ -2291,6 +2296,7 @@ fn true_fields(model: &str) -> Vec<&'static str> {
         "scope",
         "scope_legacy",
         "status",
+        "status_legacy",
         "status_reason",
         "fiat",
         "objective",
@@ -3051,6 +3057,7 @@ fn the_work_package_tail_carries_the_same_property() {
     title: "one".to_string(),
     scope: Some(intentsvcs::model::TShirt::S),
     scope_legacy: None,
+    status_legacy: None,
     status: intentsvcs::model::WpStatus::Done,
     status_reason: None,
     fiat: None,

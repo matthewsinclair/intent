@@ -287,14 +287,21 @@ fn a_face_whose_contract_moves_must_bump_that_faces_version() {
     // the same reason `derived_dump` excludes it. A one-face result, which is
     // the reading this instrument produces when something is PERSISTED and not
     // PUBLISHED.
-    ("SCHEMA_DDL_VER", 14, 0xd644_e366_08fc_d07a),
+    //
+    // **14 -> 15, AND ALL THREE AGAIN: `WorkPackage.status_legacy` (0100).** A
+    // v2 status outside the vocabulary, carried verbatim beside the status it
+    // was read as -- a real column (rung 18) and an optional field on a
+    // modelled type, so it is both persisted and published, as
+    // `scope_legacy` is.
+    ("SCHEMA_DDL_VER", 15, 0x713c_c8b0_73e2_2435),
     // SDL and JSON move together, as they did for the AC kind: `AtStatus`
     // gained a `Fiat` variant and `AcceptanceTest` gained the optional record
     // beside it, so the wire contract now says an acceptance test can be closed
     // on human authority against the evidence.
-    ("SCHEMA_SDL_VER", 14, 0xd2e4_728d_bd0f_e06c),
-    // Same change on the JSON face. 13 -> 14.
-    ("SCHEMA_JSON_VER", 16, 0xf61a_2744_b021_e63d),
+    // 14 -> 15 is `status_legacy`, as above.
+    ("SCHEMA_SDL_VER", 15, 0x3760_5121_a8aa_eb12),
+    // Same change on the JSON face. 13 -> 14. 16 -> 17 is `status_legacy`.
+    ("SCHEMA_JSON_VER", 17, 0xb055_28f1_5a90_b5f6),
   ];
 
   let mut moved = Vec::new();

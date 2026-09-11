@@ -267,6 +267,10 @@ CREATE TABLE IF NOT EXISTS wps (
   -- The package's fiat record, as serde JSON, or NULL. Carries an
   -- `inherited_from` when it was written by a cascade from its thread.
   fiat TEXT,
+  -- 0100: a status v2 recorded outside the vocabulary, carried verbatim beside
+  -- the status it was read as -- `scope_legacy`'s carry, for `status`. Last
+  -- because rung 18 appends it.
+  status_legacy TEXT,
   PRIMARY KEY (thread_id, seq)
 );
 -- `state` is the whole recorded AC state as its serde JSON, replacing the
@@ -500,7 +504,7 @@ CREATE TABLE IF NOT EXISTS project (
 /// carry `user_version = 0` and no record of which of the day's several shapes
 /// they hold, so there is no state to migrate FROM. They are refused, by name,
 /// rather than migrated on a guess -- see [`StoreError::SchemaUnstamped`].
-pub const SCHEMA_VERSION: i32 = 17;
+pub const SCHEMA_VERSION: i32 = 18;
 
 /// **The record-timestamp columns (AC-02.8, D42), named once.**
 ///
@@ -1163,6 +1167,18 @@ const MIGRATIONS: &[(i32, &str)] = &[(
     // happened. The first write through the change door takes every row it
     // touches to 1.
     "ALTER TABLE threads ADD COLUMN revision INTEGER NOT NULL DEFAULT 0;",
+  ),
+  (
+    18,
+    // 17 -> 18: `wps.status_legacy` (0100), the spelling v2 wrote for a
+    // work-package status outside the vocabulary. The migrator defaulted it to
+    // `not-started` and kept nothing of what v2 said, while `scope_legacy`
+    // beside it carried the same class of value verbatim.
+    //
+    // No table rebuild: NULL is a constant default, as rung 17's `0` is.
+    // Existing rows arrive NULL, which is true of every store written before
+    // this -- none holds a carried status, because no migrator carried one.
+    "ALTER TABLE wps ADD COLUMN status_legacy TEXT;",
   ),
 ];
 
@@ -2089,7 +2105,7 @@ impl Store {
     }
     for wp in &t.wps {
       tx.execute(
-        "INSERT INTO wps (thread_id, seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble, fiat) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+        "INSERT INTO wps (thread_id, seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble, fiat, status_legacy) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
         params![
           t.id,
           wp.seq,
@@ -2102,6 +2118,7 @@ impl Store {
           wp.body,
           wp.preamble,
           wp.fiat.as_ref().map(serde_json::to_string).transpose()?,
+          wp.status_legacy.as_ref().map(|l| l.raw.clone()),
         ],
       )?;
     }
@@ -2798,7 +2815,7 @@ impl Store {
 
   fn wps_of(conn: &rusqlite::Connection, thread: &str) -> Result<Vec<WorkPackage>, StoreError> {
     let mut stmt = conn
-      .prepare("SELECT seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble, fiat FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
+      .prepare("SELECT seq, title, scope, scope_legacy, status, status_reason, objective, body, preamble, fiat, status_legacy FROM wps WHERE thread_id = ?1 ORDER BY seq")?;
     let raw = stmt
       .query_map(params![thread], |row| {
         Ok((
@@ -2812,6 +2829,7 @@ impl Store {
           row.get::<_, String>(7)?,
           row.get::<_, String>(8)?,
           row.get::<_, Option<String>>(9)?,
+          row.get::<_, Option<String>>(10)?,
         ))
       })?
       .collect::<Result<Vec<_>, _>>()?;
@@ -2829,6 +2847,7 @@ impl Store {
           body,
           preamble,
           fiat,
+          status_legacy,
         )| {
           Ok(WorkPackage {
             seq,
@@ -2836,6 +2855,7 @@ impl Store {
             scope: scope.as_deref().map(enum_from).transpose()?,
             scope_legacy: scope_legacy.map(|raw| crate::model::Legacy { raw }),
             status: enum_from(&status)?,
+            status_legacy: status_legacy.map(|raw| crate::model::Legacy { raw }),
             status_reason,
             fiat: fiat.map(|raw| serde_json::from_str(&raw)).transpose()?,
             objective,

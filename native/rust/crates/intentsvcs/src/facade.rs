@@ -5586,6 +5586,7 @@ impl Facade {
       scope: Some(scope),
       scope_legacy: None,
       status: WpStatus::NotStarted,
+      status_legacy: None,
       status_reason: None,
       // A creation path: only `wp.fc` writes this, so `None` is the fact and
       // not a placeholder. A brand-new package has not been closed at all.

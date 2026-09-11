@@ -48,6 +48,7 @@ fn clean_thread(id: &str) -> Thread {
       title: "The only package".to_string(),
       scope: Some(TShirt::S),
       scope_legacy: None,
+      status_legacy: None,
       // **`Done`, NOT `Wip`, AND THE FIXTURE'S NAME IS THE ARGUMENT.** This
       // thread's only criterion is satisfied by a green AT, so its gate PASSES
       // -- and a work package recorded WIP over a passing gate is exactly what
@@ -1042,6 +1043,7 @@ fn a_gate_with_no_contract_to_judge_is_not_a_disagreement() {
     title: "A package with no criteria of its own".to_string(),
     scope: Some(TShirt::S),
     scope_legacy: None,
+    status_legacy: None,
     status: WpStatus::NotStarted,
     status_reason: None,
     fiat: None,

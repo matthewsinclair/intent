@@ -43,6 +43,7 @@ fn clean_thread(id: &str) -> Thread {
       title: "The only package".to_string(),
       scope: Some(TShirt::S),
       scope_legacy: None,
+      status_legacy: None,
       status: WpStatus::Done,
       status_reason: None,
       fiat: None,

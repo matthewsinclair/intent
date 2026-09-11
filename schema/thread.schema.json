@@ -571,6 +571,17 @@
         "status": {
           "$ref": "#/$defs/WpStatus"
         },
+        "status_legacy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Legacy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A status recorded by an older Intent that is outside the status\nvocabulary, carried verbatim beside the status it was read as."
+        },
         "status_reason": {
           "description": "Why the work package is in [`WorkPackage::status`] -- `wp reopen` is the\none WP transition the ratified machine guards with \"reason recorded\".\nSame rule as [`Thread::status_reason`]: it belongs to the current status\nand any transition without a reason clears it.",
           "type": [
@@ -724,5 +735,5 @@
   "title": "Thread",
   "type": "object",
   "x-intent-ver": "3.0.0",
-  "x-schema-json-ver": 16
+  "x-schema-json-ver": 17
 }

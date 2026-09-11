@@ -192,7 +192,7 @@ fn declaration(fields: &str) -> String {
 
 /// **AC-17.2's CONVERSE, ASSERTED AS AN EQUALITY OVER ALL THREE ENTITIES.**
 ///
-/// The gap set is exactly three properties, each out by a recorded decision:
+/// The gap set is exactly four properties, each out by a recorded decision:
 ///
 /// - **`thread.body`, `thread.preamble`** -- `tui-design.md` §11, *empty
 ///   everywhere measured*, recommended out of v1.
@@ -202,6 +202,9 @@ fn declaration(fields: &str) -> String {
 ///   it would invite an operator to author into a field whose whole contract
 ///   is that nobody reads it** -- and a live thread carrying one is itself a
 ///   defect `doctor` reports, so the route out is `doctor`'s, not a form row.
+/// - **`wp.status_legacy`** (0100) -- the same carry for `status`, out for the
+///   same reason: a v2 spelling kept verbatim beside the status it was read
+///   as, which nothing reads to answer a question about status.
 ///
 /// **The point is that each omission is NAMED rather than silent**, and it is
 /// asserted as `==`, never as `is_empty` or `contains`. A new writable field
@@ -209,7 +212,7 @@ fn declaration(fields: &str) -> String {
 /// converse arm exists: it fires the day a field is ADDED, and nothing about a
 /// form merely missing a row looks wrong.
 #[test]
-fn the_only_changeable_properties_off_a_form_are_the_three_ruled_out() {
+fn the_only_changeable_properties_off_a_form_are_the_four_ruled_out() {
   let loaded = Loaded::load().expect("loads");
   let gaps: Vec<String> = loaded
     .changeable_and_not_on_any_form()
@@ -218,9 +221,14 @@ fn the_only_changeable_properties_off_a_form_are_the_three_ruled_out() {
     .collect();
   assert_eq!(
     gaps,
-    ["thread.body", "thread.preamble", "wp.scope_legacy"],
+    [
+      "thread.body",
+      "thread.preamble",
+      "wp.scope_legacy",
+      "wp.status_legacy"
+    ],
     "a changeable property with no row is unreachable through EVERY realiser, and the only \
-     symptom is that nobody ever edits it. These three are out by a recorded decision; \
+     symptom is that nobody ever edits it. These four are out by a recorded decision; \
      anything else here is a field that arrived after the forms were written"
   );
 }
@@ -256,7 +264,16 @@ fn every_property_of_every_face_is_accounted_for() {
     // 9 -> 10: `fiat` landed on WorkPackage in the same commit as the
     // Thread one, so both faces moved together and both are re-read here
     // rather than bumped.
-    ("wp", 10, &["scope_legacy (NarrowSetter)"]),
+    // 10 -> 11: `status_legacy` (0100), off the form for `scope_legacy`'s
+    // reason -- see the gap arm above.
+    (
+      "wp",
+      11,
+      &[
+        "scope_legacy (NarrowSetter)",
+        "status_legacy (NarrowSetter)",
+      ],
+    ),
     ("issue", 10, &[]),
   ];
 

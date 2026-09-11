@@ -1,5 +1,5 @@
 -- INTENT_VER: 3.0.0
--- SCHEMA_DDL_VER: 14
+-- SCHEMA_DDL_VER: 15
 -- Intent v3 runtime store (GENERATED FACE -- the master is
 -- native/rust/crates/intentsvcs/src/store.rs; regenerate via INTENT_BLESS, never edit).
 -- The durable source of truth for a project, not an index of its files.
@@ -184,6 +184,10 @@ CREATE TABLE IF NOT EXISTS wps (
   -- The package's fiat record, as serde JSON, or NULL. Carries an
   -- `inherited_from` when it was written by a cascade from its thread.
   fiat TEXT,
+  -- 0100: a status v2 recorded outside the vocabulary, carried verbatim beside
+  -- the status it was read as -- `scope_legacy`'s carry, for `status`. Last
+  -- because rung 18 appends it.
+  status_legacy TEXT,
   PRIMARY KEY (thread_id, seq)
 );
 -- `state` is the whole recorded AC state as its serde JSON, replacing the

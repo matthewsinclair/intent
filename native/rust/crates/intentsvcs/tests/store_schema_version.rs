@@ -273,8 +273,12 @@ fn the_schema_version_is_bumped_whenever_the_ddl_changes() {
   // every earlier one defaulted to `strftime(...)` and SQLite refuses those.
   // Existing rows start at 0, which says this store has recorded no revisions
   // rather than claiming no writes happened.
-  const PINNED_SCHEMA_HASH: u64 = 0x9963_40a7_19e9_8fa8;
-  const PINNED_FOR_VERSION: i32 = 17;
+  // 18 is `wps.status_legacy` (0100): the spelling v2 wrote for a work-package
+  // status outside the vocabulary, carried beside the status it was read as, as
+  // `scope_legacy` carries a scope. `ADD COLUMN` again, with a NULL default;
+  // every existing row is NULL because no migrator carried one before.
+  const PINNED_SCHEMA_HASH: u64 = 0xd655_06e8_9680_ab35;
+  const PINNED_FOR_VERSION: i32 = 18;
 
   assert_eq!(
     SCHEMA_VERSION, PINNED_FOR_VERSION,

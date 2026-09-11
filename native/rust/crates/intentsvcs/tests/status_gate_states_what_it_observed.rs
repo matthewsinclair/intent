@@ -51,6 +51,7 @@ fn park_shaped() -> Thread {
       title: "PARKED -- criteria authored at unpark".to_string(),
       scope: Some(TShirt::S),
       scope_legacy: None,
+      status_legacy: None,
       status: WpStatus::NotStarted,
       status_reason: None,
       fiat: None,

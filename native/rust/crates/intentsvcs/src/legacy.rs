@@ -1162,8 +1162,11 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
     //
     // The real count on this estate is ONE: `scope: Medium-Large`.
     let raw_status = front.get("status").cloned().unwrap_or_default();
-    let status = match (raw_status.trim().is_empty(), wp_status(&raw_status)) {
-      (_, Some(status)) => status,
+    // **THE DEFAULT STANDS AND WHAT v2 WROTE IS CARRIED BESIDE IT (0100)**, as
+    // `scope_legacy` carries an unmappable scope below. Only a value somebody
+    // recorded is carried: an absent status has nothing to carry.
+    let (status, status_legacy) = match (raw_status.trim().is_empty(), wp_status(&raw_status)) {
+      (_, Some(status)) => (status, None),
       (true, None) => {
         out.record(
           closed,
@@ -1173,7 +1176,7 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
             "this work package predates the frontmatter convention: no status was ever recorded",
           ),
         );
-        WpStatus::NotStarted
+        (WpStatus::NotStarted, None)
       }
       (false, None) => {
         out.record(
@@ -1184,7 +1187,12 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
             format!("work-package status {raw_status:?} is not in the v2 vocabulary"),
           ),
         );
-        WpStatus::NotStarted
+        (
+          WpStatus::NotStarted,
+          Some(crate::model::Legacy {
+            raw: raw_status.trim().to_string(),
+          }),
+        )
       }
     };
 
@@ -1315,6 +1323,7 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
         .unwrap_or_default(),
       scope,
       scope_legacy,
+      status_legacy,
       status,
       status_reason: None,
       // A creation path: only `wp.fc` writes this, so `None` is the fact and

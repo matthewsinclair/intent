@@ -900,6 +900,13 @@ pub struct WorkPackage {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub scope_legacy: Option<Legacy>,
   pub status: WpStatus,
+  // 0100: the same carry as `scope_legacy`, for the other field the migrator
+  // cannot always map. `status` has no absent form, so it keeps the default it
+  // was read as and this carries what v2 actually wrote beside it.
+  /// A status recorded by an older Intent that is outside the status
+  /// vocabulary, carried verbatim beside the status it was read as.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub status_legacy: Option<Legacy>,
   /// Why the work package is in [`WorkPackage::status`] -- `wp reopen` is the
   /// one WP transition the ratified machine guards with "reason recorded".
   /// Same rule as [`Thread::status_reason`]: it belongs to the current status

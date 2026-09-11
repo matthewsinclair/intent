@@ -218,6 +218,7 @@ fn every_work_package_spelling_reaches_a_view_and_excludes_the_others() {
       title: "one work package".to_string(),
       scope: None,
       scope_legacy: None,
+      status_legacy: None,
       status,
       status_reason: None,
       fiat: None,
