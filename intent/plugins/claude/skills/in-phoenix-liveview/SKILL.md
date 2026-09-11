@@ -4,7 +4,7 @@ description: "Phoenix LiveView rules: two-phase mount, streams for lists, thin L
 
 # Phoenix LiveView Essentials
 
-Load the Intent LiveView and Phoenix rule pack into context. LiveView-specific rules live in `rules/elixir/lv/`; shared controller-layer rules live in `rules/elixir/phoenix/`.
+Load the Intent LiveView and Phoenix rule pack into context. LiveView rules are the elixir pack's `lv` category and controller-layer rules its `phoenix` category; read each with `intent claude rules show <id>`.
 
 ## Procedure
 
@@ -26,15 +26,15 @@ Load the Intent LiveView and Phoenix rule pack into context. LiveView-specific r
 
 | Rule ID          | Slug                              | Why it matters for LiveView                                                                  |
 | ---------------- | --------------------------------- | -------------------------------------------------------------------------------------------- |
-| `IN-EX-CODE-003` | `impl-true-on-callbacks`          | `@impl true` on `mount/3`, `render/1`, `handle_event/3`, `handle_info/2`, `handle_params/2`. |
-| `IN-EX-CODE-004` | `with-for-railway`                | `handle_event/3` bodies often chain fallible operations — use `with`.                        |
+| `IN-EX-CODE-003` | `impl-true-on-callbacks`          | `@impl true` on `mount/3`, `render/1`, `handle_event/3`, `handle_info/2`, `handle_params/3`. |
+| `IN-EX-CODE-004` | `with-for-railway`                | `handle_event/3` bodies often chain fallible operations -- use `with`.                       |
 | `IN-EX-CODE-001` | `pattern-match-over-conditionals` | Branch `handle_event/3` clauses on event name or params shape, not nested `if`.              |
 
 ### 4. Additional operational conventions
 
 Not yet first-class rules:
 
-- **`push_navigate` vs `push_patch`.** `push_patch` stays in the same LiveView and triggers `handle_params/2`. `push_navigate` goes to a _different_ LiveView and triggers a full `mount/3`. Do not `push_patch` to a route served by a different LiveView.
+- **`push_navigate` vs `push_patch`.** `push_patch` stays in the same LiveView and triggers `handle_params/3`. `push_navigate` goes to a _different_ LiveView and triggers a full `mount/3`. Do not `push_patch` to a route served by a different LiveView.
 - **`assign_async/3` for slow data loads.** Never block `mount/3` with an expensive query. Wrap in `assign_async/3` and render a loading state via `<.async_result>`.
 - **Extract repeated HEEX into function components.** When the same HTML block appears in two places, pull it into a component with typed `attr/3` declarations for compile-time validation.
 

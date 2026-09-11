@@ -4,7 +4,7 @@ description: "Ash Framework database-access rules: domain code interfaces, actor
 
 # Ash/Ecto Essentials
 
-Load the Intent Ash rule pack into context. All database access in Ash-framework projects goes through Ash — never raw Ecto in application code. Authoritative upstream reference: `deps/ash/usage-rules.md`.
+Load the Intent Ash rule pack into context. All database access in Ash-framework projects goes through Ash -- never raw Ecto in application code. Authoritative upstream reference: `deps/ash/usage-rules.md`.
 
 ## Procedure
 
@@ -19,7 +19,7 @@ Read each rule on demand. The full text is served by the installed Intent tool v
 
 ### 2. Additional operational conventions
 
-Not yet first-class rules — treat as mandatory Ash discipline:
+Not yet first-class rules -- treat as mandatory Ash discipline:
 
 - **Migrations via `mix ash.codegen`.** Never write Ecto migrations by hand for Ash resources. `mix ash.codegen <name>` reads resource definitions and produces correct migrations; `mix ash.migrate` applies them.
 - **Code-interface options over manual pipelines.** Prefer `MyApp.Content.list_posts!(query: [filter: [...], sort: [...], limit: 20], actor: user)` over hand-rolled `Ash.Query.filter |> Ash.Query.sort |> Ash.read!` pipelines in web modules.
@@ -36,5 +36,5 @@ When the task deepens, read `deps/ash/usage-rules.md` -- plus any topical sub-ru
 | Rationalisation                                          | Reality                                                                         |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | "I'll just `Ash.get!` here; it's one line."              | See IN-EX-ASH-001. The one-line bypass is how policies die quietly.             |
-| "Actor on `Ash.read!` is fine; same effect."             | See IN-EX-ASH-002. Not the same — calculations and policies see `nil`.          |
+| "Actor on `Ash.read!` is fine; same effect."             | See IN-EX-ASH-002. Not the same -- calculations and policies see `nil`.         |
 | "`mix ecto.gen.migration` is faster than `ash.codegen`." | It is also wrong. Ash needs to read your resource DSL to produce the migration. |

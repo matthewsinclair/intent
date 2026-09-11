@@ -32,7 +32,7 @@ Read each rule on demand when the situation matches. The full text is served by 
 | `IN-EX-TEST-006` | `real-code-over-mocks`         | Mock only at external boundaries; never your own modules.             |
 | `IN-EX-TEST-007` | `test-highlander-shared-setup` | No duplicated setup; fixtures with async-safe identity.               |
 
-Three rules (002, 003, 004) are upstream-derived from `elixir-test-critic`. Full MIT attribution ships with the rule library at the Intent install (`rules/_attribution/elixir-test-critic.md`).
+Rules 002, 003 and 004 are upstream-derived from `elixir-test-critic` (each carries `upstream_id:` in its frontmatter). Full MIT attribution ships with the rule library at the Intent install (`rules/_attribution/elixir-test-critic.md`).
 
 ### 2. Additional operational conventions
 
@@ -40,7 +40,7 @@ Not yet first-class rules in the library:
 
 - **One assertion focus per test.** Each test verifies one outcome. Name with `success:`, `failure:`, or `invariant:` prefix. If the test would need two `describe` blocks, it is two tests. (Implicit in IN-EX-TEST-001.)
 - **Test the domain contract, not the implementation.** Test through public API (Ash code interfaces). Never test private functions. (Supports IN-EX-TEST-006.)
-- **Spec-driven tests when a spec exists.** When `*_test.spec.md` exists, test names match spec assertions exactly — no tests without a spec counterpart, no spec assertions without a test. (Diogenes-adjacent discipline.)
+- **Spec-driven tests when a spec exists.** When `*_test.spec.md` exists, test names match spec assertions exactly -- no tests without a spec counterpart, no spec assertions without a test. (Diogenes-adjacent discipline.)
 
 ### 3. Run the tests often
 
