@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 09:15Z
+heartbeat_at: 2026-09-11 09:17Z
 status: paused
-focus: "FOLDED FOR A COMPACT, ON hv's INSTRUCTION. ON RETURN, TAKE THE OUTSTANDING 3.0.1 ITEMS FROM vc, IN vc's ORDER, and start nothing before that order arrives. Mine in `intent/wip.md` Decisions: 2 (the 13 -> 17 migration docs), 3 (strike three doors), 6 (the v2 bats prune). DECISION 6 STATES THE WRONG-BINARY 15 BACKWARDS: they are v3 tests pointed at v2, and a blanket prune deletes v3's only bats coverage of daemon and config. Correction sent to vc 09:15Z; check whether it was amended. 0299 reopened (XS, product). NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "FOLDED FOR A COMPACT. ON RETURN, WORK vc's LIST IN ORDER, ONE ID AT A TIME, AND DO NOTHING ELSE (hv: no new work). My lane is docs, install, init, templates, config and daemon ops. Start at P2: 0275, 0277, 0193, 0274, 0122; then P3: 0301, 0285, 0187, 0078, 0302, 0235; then P4: 0162. Claim the id, commit with it in the subject, tell vc; vc closes the issue. Decision 6 is corrected. 0299 is reopened. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -43,10 +43,17 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## TODO
 
-**ON RETURN: TAKE THE OUTSTANDING 3.0.1 ITEMS FROM vc, IN vc's ORDER** (hv's instruction, 2026-09-11). The list is `intent/wip.md`, `## Decisions for hv, in order`. **It is not copied here**, because a second copy of that list would drift.
+**ON RETURN: THE ORDER HAS ARRIVED (vc, 2026-09-11 09:17Z). hv, verbatim: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._**
 
-- **Mine inside that list:** decision 2 (the irreversible 13 -> 17 store migration: docs only); decision 3 (the three doors `st bootstrap` / `agents template` / `claude prime`, which is ST0058 AC-00.3; recommend strike); decision 6 (the v2 bats suite is pruned with the trunk).
-- **DECISION 6 STATES THE WRONG-BINARY 15 BACKWARDS, AND I SENT vc THE CORRECTION AT 2026-09-11 09:15Z.** It says "v2 tests pointed at v3". They are **v3 tests pointed at v2**: `daemon_commands.bats` (10) and `config_undefined.bats` (5), written 2026-09-01, 15 of 15 red on `bin/intent` and 0 red on `target/release/intent`, driven 09:14Z. **Prune-no-port as worded deletes v3's only bats coverage of `daemon` and `config`.** Before acting on decision 6, check whether vc amended it.
+The work is the numbered defect list in `intent/wip.md`, in 3.0.1 priority order. It is not copied here. **My lane is docs, install, init, templates, config and daemon operations.** P1 has nothing in my lane. My items, in order (all OPEN at 2026-09-11 09:17Z):
+
+- **P2, all five:** #18 `0275`, #19 `0277` (install.md), #20 `0193`, #21 `0274` (getting-started), #22 `0122`.
+- **Then P3:** `0301`, `0285`, `0187`, `0078`, `0302`, `0235`.
+- **Then P4:** `0162` (`intentd --help` starts a daemon).
+
+**RULES ON THE BOUNCE:** claim the id, one at a time. Commit with the id in the subject, then tell vc; vc closes the issue after re-driving the fix. **A defect found while fixing goes in the commit message, not on the list.**
+
+- **Decision 6 was corrected by vc in `intent/wip.md` and `hv/wip.md`:** the 15 are v3 tests that the harness points at v2; recommend keep. Read back at 2026-09-11 09:17Z.
 - **`0299` REOPENED (`81ff17d3`)**: `at lint` prints a sentence that is false about the user's file in the cross-thread case. XS. vc accepted it as a product defect; whether it goes before or after the cut is hv's call.
 - **`int local status`: after the cut** (vc, ruled under the pen; no criterion names it).
 - **ST0056:** my WPs 04 and 05 are Done; 07, 11 and 12 are WIP. The seven unsatisfied rows (AC-00.5, 00.6, 07.7, 11.1, 11.4, 12.1, 12.4) are all satisfied BY the cut. Driven 2026-09-11 09:15Z.
@@ -57,7 +64,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## Holds
 
-- **EVERYTHING IS HELD ON vc's 3.0.1 ORDER.** Condition: vc sends the order after the compact. Start nothing before it arrives.
+- **HOLDING UNTIL THE COMPACT IS DONE.** The order has arrived (see TODO). Condition: the session is back from the compact, and then the work starts at `0275`.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD** (`W69`). Re-drive a hold's condition at the moment you quote it; never re-read it off this line.
 
 ## Watch-outs
