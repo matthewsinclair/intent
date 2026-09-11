@@ -1,6 +1,6 @@
 # Writing Intent Extensions
 
-User extensions let you add subagents, skills, or rule packs to Intent without forking it. Extensions are content-only — no executable code is loaded. This document is the authoring guide; the worker-bee extension serves as the worked example throughout.
+User extensions let you add subagents, skills, or rule packs to Intent without forking it. Extensions are content-only — no executable code is loaded. This document is the authoring guide.
 
 ## What is an extension?
 
@@ -81,74 +81,6 @@ For rules, the same shadowing applies by `id:` rather than directory name — an
 - `intent ext new <name> --subagent | --skill | --rule-pack` — scaffold a valid skeleton.
 
 See `intent help ext` for full usage.
-
-## Worked example: worker-bee
-
-Worker-bee is the Worker-Bee Driven Design specialist for Elixir applications. In Intent v2.8.x it shipped as a canon subagent. In v2.9.0 it moved out of canon and into the reference extension at `~/.intent/ext/worker-bee/`. The migration step `migrate_v2_8_2_to_v2_9_0` (see `bin/intent_helpers`) seeds it on first upgrade by copying from `lib/templates/ext-seeds/worker-bee/`.
-
-Worker-bee was chosen as the worked example because:
-
-- It is a real, non-trivial subagent — not a toy. If the extension mechanism can host worker-bee end-to-end, it can host any user-authored subagent.
-- The seed lives in the Intent repo (`lib/templates/ext-seeds/worker-bee/`), so you can read it without leaving the codebase.
-- Its single-subagent contribution shows the simplest possible manifest shape.
-
-### What's on disk after a fresh upgrade
-
-```
-~/.intent/ext/worker-bee/
-├── extension.json
-├── README.md
-└── subagents/
-    └── worker-bee/
-        ├── agent.md
-        ├── metadata.json
-        └── resources/
-```
-
-### The manifest
-
-```json
-{
-  "schema": "intent-extension/v1",
-  "name": "worker-bee",
-  "version": "1.0.0",
-  "description": "Worker-Bee Driven Design specialist for Elixir applications - enforces WDD 6-layer architecture, validates functional core purity, and scaffolds WDD-compliant code",
-  "author": "thebreakincoder",
-  "license": "MIT",
-  "intent_compat": { "min": "2.8.2", "max": "3.x" },
-  "contributes": {
-    "subagents": [{ "name": "worker-bee", "path": "subagents/worker-bee" }],
-    "skills": [],
-    "rules": []
-  },
-  "checksums": {}
-}
-```
-
-Note `intent_compat.min` is `2.8.2` — the version that introduced the extension system. `max` is `3.x`, allowing the extension to remain valid through any v3 release.
-
-### How discovery sees it
-
-```bash
-$ intent claude subagents list
-...
-worker-bee                            [ext:worker-bee]   v1.0.0
-critic-elixir                         [canon]            v1.0.0
-critic-rust                           [canon]            v1.0.0
-...
-```
-
-The `[ext:worker-bee]` tag tells you the subagent is contributed by the worker-bee extension, not canon. If a canon subagent had the same name, the list would include a shadow warning line.
-
-### Installing the worker-bee subagent
-
-Once the extension is in place, the `intent claude subagents install` flow treats it transparently:
-
-```bash
-intent claude subagents install worker-bee
-```
-
-Behind the scenes, this resolves the source via the multi-root lookup (`plugin_resolve_source_file` in `intent/plugins/claude/lib/claude_plugin_helpers.sh`), copies the agent files into `~/.claude/agents/`, and registers the install in `~/.intent/agents/installed-agents.json`. To Claude Code, an installed extension subagent is indistinguishable from an installed canon subagent.
 
 ## Creating your own extension
 
@@ -250,17 +182,6 @@ In v2.9.0, extensions are local-only. There is no registry, no `intent ext insta
 
 A registry, signing, and remote-install workflow remains future work (not yet scheduled). The schema's `checksums` and `homepage` fields exist in anticipation — recommended now, enforced later.
 
-## Migration from canon
-
-Worker-bee's move from canon to extension demonstrates the migration pattern. Brief summary:
-
-1. Author the extension at `lib/templates/ext-seeds/<name>/` (a "seed" — source of truth for the migration to copy from).
-2. Add a `migrate_vX_Y_Z_to_vA_B_C` function in `bin/intent_helpers` that copies the seed to `~/.intent/ext/<name>/` if not already present, then prunes the canon copy from `~/.claude/agents/` and `~/.intent/agents/installed-agents.json`.
-3. Wire the migration into `bin/intent_upgrade`'s chain.
-4. Delete the canon directory (`intent/plugins/claude/subagents/<name>/`) so it can never be re-installed from canon.
-
-For worker-bee specifically: see `bin/intent_helpers::migrate_v2_8_2_to_v2_9_0` and the seed at `lib/templates/ext-seeds/worker-bee/` for the full pattern.
-
 ## See also
 
 - `intent help ext` — `intent ext` command reference
@@ -268,4 +189,3 @@ For worker-bee specifically: see `bin/intent_helpers::migrate_v2_8_2_to_v2_9_0` 
 - `intent/docs/rules.md` — rule authoring guide (for `--rule-pack` extensions)
 - `intent/docs/critics.md` — Critic subagent contract (rules are consumed here)
 - `intent/docs/creating-custom-agents.md` — authoring guide for canon and extension subagents
-- `lib/templates/ext-seeds/worker-bee/` — the worked-example extension on disk

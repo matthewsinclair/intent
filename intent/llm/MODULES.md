@@ -190,17 +190,14 @@ Non-critic subagents installed to `~/.claude/agents/` by `intent claude subagent
 
 User-local extensions at `~/.intent/ext/<name>/`. Discovered alongside canon; shadow warnings emitted on collisions.
 
-| Concern                  | THE Module                                               | Notes                                                                       |
-| ------------------------ | -------------------------------------------------------- | --------------------------------------------------------------------------- |
-| Ext dispatcher           | `bin/intent_ext`                                         | list, show, validate, new                                                   |
-| Manifest schema          | `intent/plugins/claude/ext-schema/extension.schema.json` | JSON Schema for `extension.json`                                            |
-| Multi-root discovery     | `intent/plugins/claude/lib/claude_plugin_helpers.sh`     | `plugin_get_source_roots` + `plugin_resolve_source_file` callbacks          |
-| Ext-seed template source | `lib/templates/ext-seeds/`                               | Seed directory root — copied by migrations                                  |
-| Worker-bee ext seed      | `lib/templates/ext-seeds/worker-bee/`                    | Reference extension; source for `migrate_v2_8_2_to_v2_9_0` seeding          |
-| User-ext root (runtime)  | `~/.intent/ext/` (outside repo)                          | Created by migration; README stub included                                  |
-| Migration function       | `bin/intent_helpers::migrate_v2_8_2_to_v2_9_0`           | Creates ext root, seeds worker-bee, prunes elixir + worker-bee installs     |
-| Upgrade predicate        | `bin/intent_helpers::needs_v2_9_0_upgrade`               | Takes a version string arg; returns true unless it matches 2.9.x/2.10.x/3.x |
-| Ext README emitter       | `bin/intent_helpers::generate_ext_readme`                | Writes ~/.intent/ext/README.md on first bootstrap                           |
+| Concern                 | THE Module                                               | Notes                                                                       |
+| ----------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Ext dispatcher          | `bin/intent_ext`                                         | list, show, validate, new                                                   |
+| Manifest schema         | `intent/plugins/claude/ext-schema/extension.schema.json` | JSON Schema for `extension.json`                                            |
+| Multi-root discovery    | `intent/plugins/claude/lib/claude_plugin_helpers.sh`     | `plugin_get_source_roots` + `plugin_resolve_source_file` callbacks          |
+| User-ext root (runtime) | `~/.intent/ext/` (outside repo)                          | Created by migration; README stub included                                  |
+| Upgrade predicate       | `bin/intent_helpers::needs_v2_9_0_upgrade`               | Takes a version string arg; returns true unless it matches 2.9.x/2.10.x/3.x |
+| Ext README emitter      | `bin/intent_helpers::generate_ext_readme`                | Writes ~/.intent/ext/README.md on first bootstrap                           |
 
 ## Tests
 
@@ -216,7 +213,6 @@ User-local extensions at `~/.intent/ext/<name>/`. Discovered alongside canon; sh
 | Ext commands (v2.9.0)           | `tests/unit/ext_commands.bats`              | `intent ext list/show/validate/new` (WP02)                                           |
 | Ext discovery (v2.9.0)          | `tests/unit/ext_discovery.bats`             | Precedence, shadowing, env-var overrides (WP02)                                      |
 | Ext migration (v2.9.0)          | `tests/unit/ext_migration.bats`             | Seed copy, idempotency, prune (WP08 + WP09)                                          |
-| Ext seed validity (v2.9.0)      | `tests/unit/ext_seed_validity.bats`         | Worker-bee seed passes `intent ext validate` (WP08)                                  |
 | Rule validator (v2.9.0)         | `tests/unit/rule_validator.bats`            | `intent claude rules validate` (WP02)                                                |
 | Rule index (v2.9.0)             | `tests/unit/rule_index.bats`                | `intent claude rules index` determinism (WP02)                                       |
 | Rule pack — agnostic (v2.9.0)   | `tests/unit/rule_pack_agnostic.bats`        | Presence + `concretised_by:` ≥ 2 invariant (WP04)                                    |
@@ -244,7 +240,7 @@ User-local extensions at `~/.intent/ext/<name>/`. Discovered alongside canon; sh
 
 | Concern               | THE Module                          | Notes                                                               |
 | --------------------- | ----------------------------------- | ------------------------------------------------------------------- |
-| Writing extensions    | `intent/docs/writing-extensions.md` | Walkthrough with worker-bee as the worked example                   |
+| Writing extensions    | `intent/docs/writing-extensions.md` | Authoring guide for user extensions                                 |
 | Rules guide           | `intent/docs/rules.md`              | Schema, authoring, validation, attribution, skill-reference pattern |
 | Critics guide         | `intent/docs/critics.md`            | Contract, modes, report format, `.intent_critic.yml` schema         |
 | Working-with-LLMs     | `intent/docs/working-with-llms.md`  | Canon narrative: D1–D10, three-file arch, hooks, critics (ST0035)   |

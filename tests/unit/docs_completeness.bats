@@ -4,8 +4,8 @@
 # Three groups:
 #   1. Presence: the three new docs exist; cross-references from CLAUDE.md /
 #      MODULES.md / DECISION_TREE.md resolve.
-#   2. No dead refs: no doc references the deleted `elixir` subagent path or
-#      the canon `subagents/worker-bee/` path as if either were active.
+#   2. No dead refs: no doc references the deleted `elixir` subagent path as
+#      if it were active.
 #   3. Idempotent sync: `intent agents sync` run twice produces identical
 #      AGENTS.md.
 
@@ -19,7 +19,6 @@ NEW_DOCS=(
 
 DELETED_PATHS=(
   "intent/plugins/claude/subagents/elixir/"
-  "intent/plugins/claude/subagents/worker-bee/"
 )
 
 # ====================================================================
@@ -87,19 +86,6 @@ DELETED_PATHS=(
     "${INTENT_PROJECT_ROOT}/intent/llm" \
     "${INTENT_PROJECT_ROOT}/lib/help" 2>/dev/null || true)
   [ -z "$hits" ] || fail "Dead reference to deleted elixir subagent path: $hits"
-}
-
-@test "no_dead_refs: no doc cites the canon subagents/worker-bee/ path as active" {
-  # The relocated worker-bee lives at ~/.intent/ext/worker-bee/ now. The seed
-  # at lib/templates/ext-seeds/worker-bee/ is allowed and expected. We grep
-  # for the canon path specifically.
-  local hits
-  hits=$(grep -rln "intent/plugins/claude/subagents/worker-bee" \
-    "${INTENT_PROJECT_ROOT}/CLAUDE.md" \
-    "${INTENT_PROJECT_ROOT}/intent/docs" \
-    "${INTENT_PROJECT_ROOT}/intent/llm" \
-    "${INTENT_PROJECT_ROOT}/lib/help" 2>/dev/null || true)
-  [ -z "$hits" ] || fail "Dead reference to canon worker-bee path: $hits"
 }
 
 @test "no_dead_refs: CLAUDE.md does not list 'elixir' as an active Available Agent" {

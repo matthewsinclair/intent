@@ -21,14 +21,14 @@ Intent agents are specialized AI assistants with domain-specific knowledge and f
 As of Intent v2.9.0, subagents come in two flavours:
 
 - **Canon subagents** ship with Intent itself, in `intent/plugins/claude/subagents/<name>/`. They are part of the Intent codebase and benefit every Intent user. Examples: `intent`, `socrates`, `diogenes`, the `critic-<lang>` family.
-- **Extension subagents** live in user-local extensions at `~/.intent/ext/<name>/subagents/<name>/`. They are not part of canon — they belong to one user, one team, or one domain. Example: `worker-bee` (relocated from canon to a reference extension in v2.9.0).
+- **Extension subagents** live in user-local extensions at `~/.intent/ext/<name>/subagents/<name>/`. They are not part of canon — they belong to one user, one team, or one domain.
 
 The choice between them is one question: **is this useful to every Intent user, or only to some?**
 
 - Useful to every Intent user → canon. The remainder of this guide applies.
 - Useful only to some users → extension. See `intent/docs/writing-extensions.md` for the authoring guide. The agent definition (the `agent.md` shape) is identical to canon; the difference is where it lives and how it is distributed.
 
-A subagent that started as canon can be promoted to an extension (see worker-bee's migration), and vice versa. The agent.md shape is the same either way, so the move is mostly a directory rename plus a manifest.
+A subagent that started as canon can be promoted to an extension, and vice versa. The agent.md shape is the same either way, so the move is mostly a directory rename plus a manifest.
 
 ## Prerequisites
 

@@ -206,8 +206,6 @@ All subagents install to `~/.claude/agents/<name>.md` and run in separate contex
 
 Socrates and Diogenes are disjoint agents — different domains, different personas. Socrates is architectural; Diogenes is test-specification. See `intent/docs/working-with-llms.md` for the FAQ.
 
-Extension subagents (not canon): `worker-bee` — install via `intent claude subagents install worker-bee` after upgrading to v2.9.0 (the seed is staged automatically).
-
 ## Rule Library
 
 Single source of truth for coding rules. Critic subagents read the library at invocation time, apply each rule's Detection heuristic to target files, and report findings by severity. Rules never autofix.
