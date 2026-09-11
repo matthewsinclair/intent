@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-11 18:10Z
+heartbeat_at: 2026-09-11 19:32Z
 status: active
-focus: "All my 3.0.1 code is on main: AC-00.6 (48b61d10, d1a710ef, ab1bcaaa citation pin) and decision 4 clippy-to-zero (1409aff7, step-4 green per vc). ab1bcaaa with vc. Waiting on vc; suites only in a private worktree under an isolated HOME."
+focus: "3.0.1 SHIPPED (vc, 2026-09-11; both remotes at 89531a8f). Lane empty; vc: no new work. Suites only in a private worktree under an isolated HOME."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,7 +14,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**`ab1bcaaa` (legacy.rs pins `bin/intent_wp:113` to `27c4ec98`, AC-00.6's fourth falsifier) WITH vc FOR VERIFICATION.** Everything else of mine is landed and vc-verified. Nothing of mine is dirty in the shared tree. Next is vc's word.
+- **Empty.** 3.0.1 is shipped and nothing of mine is in flight.
 
 ## TODO
 
