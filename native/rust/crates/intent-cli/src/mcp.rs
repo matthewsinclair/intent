@@ -797,8 +797,9 @@ pub fn serve(
     "ac edit" => {
       let st = spec(path, need_s(path, map, "stid")?)?;
       let id = need_s(path, map, "acid")?;
-      let text = need_s(path, map, "text")?;
-      Ok(outcome_json(&f.ac_edit(&st, id, text)?, id))
+      let text = opt_s(path, map, "text")?.map(str::to_string);
+      let note = opt_s(path, map, "note")?.map(str::to_string);
+      Ok(outcome_json(&f.ac_edit(&st, id, text, note)?, id))
     }
     "ac satisfy" => {
       let st = spec(path, need_s(path, map, "stid")?)?;

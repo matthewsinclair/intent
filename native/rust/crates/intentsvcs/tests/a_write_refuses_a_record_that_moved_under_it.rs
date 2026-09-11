@@ -82,14 +82,24 @@ fn sequential_edits_through_fresh_facades_both_land() {
 
   let mut first = fx.facade_on_disk();
   first
-    .ac_edit("ST0001", "AC-03.1", "the first edit")
+    .ac_edit(
+      "ST0001",
+      "AC-03.1",
+      Some("the first edit".to_string()),
+      None,
+    )
     .unwrap();
 
   // A SECOND facade, opened after the first write landed, so its snapshot is
   // current. This is the shape of one operator running two commands.
   let mut second = fx.facade_on_disk();
   second
-    .ac_edit("ST0001", "AC-03.2", "the second edit")
+    .ac_edit(
+      "ST0001",
+      "AC-03.2",
+      Some("the second edit".to_string()),
+      None,
+    )
     .expect("a write derived from a CURRENT record must not refuse");
 
   let after = fx.facade_on_disk();
@@ -111,11 +121,21 @@ fn two_facades_holding_one_snapshot_do_not_both_get_to_write() {
   let mut a = fx.facade_on_disk();
   let mut b = fx.facade_on_disk();
 
-  a.ac_edit("ST0001", "AC-03.1", "the edit that survives")
-    .unwrap();
+  a.ac_edit(
+    "ST0001",
+    "AC-03.1",
+    Some("the edit that survives".to_string()),
+    None,
+  )
+  .unwrap();
 
   let err = b
-    .ac_edit("ST0001", "AC-03.2", "the edit derived from a stale record")
+    .ac_edit(
+      "ST0001",
+      "AC-03.2",
+      Some("the edit derived from a stale record".to_string()),
+      None,
+    )
     .expect_err(
       "the second facade's write carries AC-03.1 at its pre-edit value and would erase the \
        first edit -- it must be refused",
@@ -144,9 +164,19 @@ fn the_refused_write_leaves_the_edit_it_would_have_erased() {
   let mut a = fx.facade_on_disk();
   let mut b = fx.facade_on_disk();
 
-  a.ac_edit("ST0001", "AC-03.1", "the edit that survives")
-    .unwrap();
-  let _ = b.ac_edit("ST0001", "AC-03.2", "the write that must not land");
+  a.ac_edit(
+    "ST0001",
+    "AC-03.1",
+    Some("the edit that survives".to_string()),
+    None,
+  )
+  .unwrap();
+  let _ = b.ac_edit(
+    "ST0001",
+    "AC-03.2",
+    Some("the write that must not land".to_string()),
+    None,
+  );
 
   // Read through a THIRD facade, so this is about what the store holds rather
   // than about either writer's in-memory canon.
@@ -179,10 +209,20 @@ fn two_facades_editing_different_threads_both_land() {
   let mut a = fx.facade_on_disk();
   let mut b = fx.facade_on_disk();
 
-  a.ac_edit("ST0001", "AC-03.1", "a change to one thread")
-    .unwrap();
-  b.ac_edit("ST0002", "AC-03.1", "a change to the other")
-    .expect("a stale snapshot of a thread this write does not touch must not refuse it");
+  a.ac_edit(
+    "ST0001",
+    "AC-03.1",
+    Some("a change to one thread".to_string()),
+    None,
+  )
+  .unwrap();
+  b.ac_edit(
+    "ST0002",
+    "AC-03.1",
+    Some("a change to the other".to_string()),
+    None,
+  )
+  .expect("a stale snapshot of a thread this write does not touch must not refuse it");
 
   let after = fx.facade_on_disk();
   assert_eq!(
@@ -224,7 +264,12 @@ fn a_resync_resets_the_counter_and_the_write_is_still_allowed() {
   // never anything else.
   let mut bumper = fx.facade_on_disk();
   bumper
-    .ac_edit("ST0001", "AC-03.1", "a write to move the counter")
+    .ac_edit(
+      "ST0001",
+      "AC-03.1",
+      Some("a write to move the counter".to_string()),
+      None,
+    )
     .unwrap();
   let bumped = revision_of(&fx, "ST0001");
   assert_eq!(
@@ -250,7 +295,12 @@ fn a_resync_resets_the_counter_and_the_write_is_still_allowed() {
   );
 
   writer
-    .ac_edit("ST0001", "AC-03.2", "an edit across a resync")
+    .ac_edit(
+      "ST0001",
+      "AC-03.2",
+      Some("an edit across a resync".to_string()),
+      None,
+    )
     .expect(
       "the record's CONTENT did not move, only its write counter -- and refusing here would \
        refuse every facade opened before any sync",

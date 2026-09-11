@@ -583,12 +583,22 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
   let mut first = shared.facade_on_disk();
   let mut second = shared.facade_on_disk();
   first
-    .ac_edit("ST0056", "AC-03.1", "the edit that lands")
+    .ac_edit(
+      "ST0056",
+      "AC-03.1",
+      Some("the edit that lands".to_string()),
+      None,
+    )
     .expect("the first write is ordinary");
   out.push((
     "a record that moved under the write",
     second
-      .ac_edit("ST0056", "AC-03.2", "the edit derived from a stale record")
+      .ac_edit(
+        "ST0056",
+        "AC-03.2",
+        Some("the edit derived from a stale record".to_string()),
+        None,
+      )
       .expect_err("the second facade holds a snapshot the first has already superseded"),
   ));
 

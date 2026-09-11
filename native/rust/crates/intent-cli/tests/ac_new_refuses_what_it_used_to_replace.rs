@@ -188,6 +188,90 @@ fn ac_edit_rewords_through_the_binary_and_leaves_kind_and_state_alone() {
   );
 }
 
+/// **0140: an unsatisfied criterion's note was published and writable only by
+/// migration.** Every native construction of `Unsatisfied` wrote `note: None`,
+/// so a v3-native estate could not reach a state a migrated one arrives in.
+/// `ac edit --note` is the one door, shaped like `at edit --note`: it writes the
+/// note on an unsatisfied row, leaves an unnamed field alone, and refuses a row
+/// whose state carries its own record rather than a note.
+///
+/// **The write is read back from the STORE through a fresh facade**, not from
+/// a rendering and not from the canon file the refusal half checks, so a verb
+/// that updated one face only would fail here.
+#[test]
+fn ac_edit_note_writes_an_unsatisfied_note_and_refuses_a_satisfied_row() {
+  let dir = seeded();
+  let root = dir.path();
+  for (ac, text) in [("AC-01.2", "an open one"), ("AC-01.3", "a done one")] {
+    let (_, err, code) = run(root, &["ac", "new", "ST0001", ac, "--text", text]);
+    assert_eq!(code, 0, "the fixture criterion must exist: {err}");
+  }
+  let (_, err, code) = run(
+    root,
+    &[
+      "ac",
+      "satisfy",
+      "ST0001",
+      "AC-01.3",
+      "--evidence",
+      "checked by hand",
+    ],
+  );
+  assert_eq!(code, 0, "the fixture criterion must be satisfied: {err}");
+
+  let (out, err, code) = run(
+    root,
+    &[
+      "ac",
+      "edit",
+      "ST0001",
+      "AC-01.2",
+      "--note",
+      "waits on the migrator",
+    ],
+  );
+  assert_eq!(code, 0, "the note must land: {err:?}");
+  assert!(out.contains("note written"), "{out:?}");
+
+  let satisfied = stored(root, "AC-01.3");
+  let (_, err, code) = run(root, &["ac", "edit", "ST0001", "AC-01.3", "--note", "x"]);
+  assert_ne!(code, 0, "a note on a satisfied row must be refused");
+  assert!(
+    err.contains("`note` cannot be set") && err.contains("satisfied"),
+    "the refusal must name the field and the state that holds no note: {err:?}"
+  );
+  assert_eq!(
+    stored(root, "AC-01.3"),
+    satisfied,
+    "the refused note wrote anyway"
+  );
+
+  let project = intentsvcs::project::Project::open(root).expect("the project opens");
+  let ctx = intentsvcs::facade::FacadeContext {
+    principal: "test".to_string(),
+    project_id: String::new(),
+    version: env!("CARGO_PKG_VERSION").to_string(),
+  };
+  let facade = intentsvcs::facade::Facade::open(project, ctx).expect("the facade opens");
+  let thread = facade.st_show("ST0001").expect("the thread");
+  let row = thread
+    .criteria
+    .iter()
+    .find(|c| c.id == "AC-01.2")
+    .expect("AC-01.2 is stored");
+  assert_eq!(
+    row.state,
+    intentsvcs::model::AcState::Unsatisfied {
+      note: Some("waits on the migrator".to_string())
+    },
+    "the store holds the note ac edit wrote"
+  );
+  assert_eq!(
+    row.text, "an open one",
+    "a field not named is a field not changed"
+  );
+}
+
 /// The AT side end to end: a re-cite moves the file and keeps the note. The
 /// note is the field whose loss was measured at six rows on this repository.
 #[test]

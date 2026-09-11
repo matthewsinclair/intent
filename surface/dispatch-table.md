@@ -995,21 +995,21 @@ Acceptance criteria: the ratified completeness boundary of a unit
 - An AC has four states, not two (issue 0013): in-scope, satisfied, descoped-to-a-named-thread, withdrawn-with-reason. Descoped and withdrawn are non-blocking and reported separately rather than folded into the satisfied count. This is already reified in the v3 model as `AcScope` (native/rust/crates/intentsvcs/src/model.rs), so the CLI surface here maps onto it directly.
 - Satisfaction for test-backed ACs is COMPUTED from covering green ATs and never stored; only non-test ACs carry `satisfied` inline with their evidence. v3 must preserve that asymmetry -- storing it would be double truth (data-model.md).
 
-| command        | args          | flags                                    | help                                                                            | disposition |
-| -------------- | ------------- | ---------------------------------------- | ------------------------------------------------------------------------------- | ----------- |
-| `ac`           | <command>     | --                                       | Acceptance criteria commands                                                    | keep        |
-| `ac list`      | <stid>        | --                                       | List ACs + covering AT + satisfied state                                        | keep        |
-| `ac show`      | <stid> <acid> | --                                       | Show one criterion: its kind, state, covering ATs and full text                 | new-surface |
-| `ac status`    | <stid>        | --                                       | Report N/M satisfied + verdict (PASS/BLOCKED)                                   | keep        |
-| `ac satisfy`   | <stid> <acid> | --evidence <ref>                         | Satisfy a non-test AC by named evidence                                         | keep        |
-| `ac unsatisfy` | <stid> <acid> | --                                       | Reopen a satisfied non-test AC -- clears satisfaction AND its evidence together | new-surface |
-| `ac gate`      | <stid>        | --                                       | Close-gate: exit non-zero + BLOCKED if unsatisfied                              | keep        |
-| `ac descope`   | <stid> <acid> | --to <stid>, --by <who>, --reason <text> | Record that an AC moved to another thread (non-blocking)                        | keep        |
-| `ac rescope`   | <stid> <acid> | --                                       | Undo a descope: back in scope, unsatisfied                                      | keep        |
-| `ac withdraw`  | <stid> <acid> | --reason <text>, --by <who>              | Withdraw an AC outright, with its reason on the record (non-blocking)           | keep        |
-| `ac reinstate` | <stid> <acid> | --                                       | Undo a withdrawal: back in scope, unsatisfied                                   | keep        |
-| `ac new`       | <stid> <acid> | --text <text>, --kind test/non-test      | Create a criterion (caller-assigned id; refuses an id that is taken)            | new-surface |
-| `ac edit`      | <stid> <acid> | --text <text>                            | Reword a criterion, leaving its kind and its satisfaction alone                 | new-surface |
+| command        | args          | flags                                    | help                                                                                                          | disposition |
+| -------------- | ------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------- |
+| `ac`           | <command>     | --                                       | Acceptance criteria commands                                                                                  | keep        |
+| `ac list`      | <stid>        | --                                       | List ACs + covering AT + satisfied state                                                                      | keep        |
+| `ac show`      | <stid> <acid> | --                                       | Show one criterion: its kind, state, covering ATs and full text                                               | new-surface |
+| `ac status`    | <stid>        | --                                       | Report N/M satisfied + verdict (PASS/BLOCKED)                                                                 | keep        |
+| `ac satisfy`   | <stid> <acid> | --evidence <ref>                         | Satisfy a non-test AC by named evidence                                                                       | keep        |
+| `ac unsatisfy` | <stid> <acid> | --                                       | Reopen a satisfied non-test AC -- clears satisfaction AND its evidence together                               | new-surface |
+| `ac gate`      | <stid>        | --                                       | Close-gate: exit non-zero + BLOCKED if unsatisfied                                                            | keep        |
+| `ac descope`   | <stid> <acid> | --to <stid>, --by <who>, --reason <text> | Record that an AC moved to another thread (non-blocking)                                                      | keep        |
+| `ac rescope`   | <stid> <acid> | --                                       | Undo a descope: back in scope, unsatisfied                                                                    | keep        |
+| `ac withdraw`  | <stid> <acid> | --reason <text>, --by <who>              | Withdraw an AC outright, with its reason on the record (non-blocking)                                         | keep        |
+| `ac reinstate` | <stid> <acid> | --                                       | Undo a withdrawal: back in scope, unsatisfied                                                                 | keep        |
+| `ac new`       | <stid> <acid> | --text <text>, --kind test/non-test      | Create a criterion (caller-assigned id; refuses an id that is taken)                                          | new-surface |
+| `ac edit`      | <stid> <acid> | --text <text>, --note <text>             | Reword a criterion, or write an unsatisfied one's note; a field you do not name is a field it does not change | new-surface |
 
 ### `ac`
 
@@ -1312,7 +1312,7 @@ Create a criterion (caller-assigned id; refuses an id that is taken)
 
 ### `ac edit`
 
-Reword a criterion, leaving its kind and its satisfaction alone
+Reword a criterion, or write an unsatisfied one's note; a field you do not name is a field it does not change
 
 - **v2:** new-surface
 - **Arguments:**
@@ -1320,8 +1320,10 @@ Reword a criterion, leaving its kind and its satisfaction alone
   - `acid` (ac-id, arity `1`)
 - **Flags:**
   - `--text` `<text>` (string) -- The new criterion text
-    - **required:** true
     - **disposition:** keep
+  - `--note` `<text>` (string) -- Replace an unsatisfied criterion's note outright -- refused on a row whose state keeps its own record
+    - **disposition:** keep
+    - **disposition basis:** NEW SURFACE, ruled by vc under the pen 2026-09-11 on issue 0140, option (A) of four. An unsatisfied criterion's `state.note` is published on both faces and was written only by the v2 ingest (legacy.rs), so no v3 verb could author or edit one and a v3-native estate could not reach a state a migrated one arrives in. Shaped exactly like `at edit --note`: it replaces the note outright, a field not named is not changed, and `--note ""` stores an empty string rather than inventing a clear, so the two doors agree. `--text` stops being required with it, and the facade refuses a call naming neither, as `at_edit` does. Refused by name (`FieldNotWritable`) on a satisfied, descoped, withdrawn, fiat or computed row, whose state keeps its own record. Ruled out: `--note` on the four verbs that enter unsatisfied (four surfaces, and none can edit), and a virtual `state.note` field in `intent set` (special-casing the generic setter, whose refusal of `state` is the machine's).
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: cc, 2026-08-29, on hv's 2026-08-28 ruling over issue 0131, sequenced to cc by vc. **NO ACCEPTANCE ROW IS CLAIMED HERE, DELIBERATELY.** `ac new` and `at new` carry AC-08.6 / AC-08.7; these two verbs were ruled by hv into an existing package rather than minted with a criterion, and the builder writing their own acceptance criterion for their own build is the shape hv's AC-08.5 precedent exists to prevent. The contract row is OWED and is vc's to place.
 - **Note:** **SHIPS IN THE SAME CHANGE AS THE REFUSAL ON `ac new`, AND THAT IS THE WHOLE DESIGN.** Refusing a create on an existing id without this verb would leave an AC sentence unwritable by any door in the tool: `ac` had nine subcommands and every one of them is a transition on state, not an edit of text. ic measured that gap after the refusal was first ruled; hv took the re-raise and ruled the two halves as one change. Either half alone strands an estate.

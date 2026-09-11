@@ -6207,17 +6207,69 @@ impl Facade {
   /// the state to the kind's entry value, so repairing one sentence of a
   /// satisfied criterion silently discarded its evidence. This reaches one
   /// field and cannot reach that one.
-  pub fn ac_edit(&mut self, st: &str, ac: &str, text: &str) -> Result<Outcome, FacadeError> {
+  ///
+  /// **`note` IS THE ONE PART OF A STATE IT WRITES, AND ONLY ON AN UNSATISFIED
+  /// ROW (0140).** An unsatisfied note was published on both faces and written
+  /// only by the v2 ingest, so a v3-native estate could not reach a state a
+  /// migrated one arrives in. It is [`Facade::at_edit`]'s `--note`: it replaces
+  /// the note outright, and a field not named is not changed. The variant never
+  /// moves; a satisfied, descoped, withdrawn or computed row carries its own
+  /// record rather than a note, so a note there is refused by name and the
+  /// lifecycle verbs are the way to it.
+  pub fn ac_edit(
+    &mut self,
+    st: &str,
+    ac: &str,
+    text: Option<String>,
+    note: Option<String>,
+  ) -> Result<Outcome, FacadeError> {
+    // Refused here rather than in the renderer, for `at_edit`'s reason: a
+    // caller naming no field believes they changed something, and a library
+    // caller passing two `None`s makes the same mistake.
+    if text.is_none() && note.is_none() {
+      return Err(FacadeError::NothingToChange {
+        subject: format!("{st} {ac}"),
+        offered: vec!["--text".to_string(), "--note".to_string()],
+      });
+    }
     // `criterion` raises `NoSuchCriterion`, which is the refusal an edit owes:
     // an edit that CREATED on a missing id would be the create door wearing the
     // other name, and both doors would then be able to make a row.
-    if self.criterion(st, ac)?.text == text {
+    let existing = self.criterion(st, ac)?.clone();
+    if note.is_some() && !matches!(existing.state, AcState::Unsatisfied { .. }) {
+      let state = existing.state.name();
+      return Err(FacadeError::FieldNotWritable {
+        url: format!("intent:///threads/{st}/ac/{ac}"),
+        field: "note".to_string(),
+        why: format!(
+          "{ac} is {state}, and only an unsatisfied criterion carries a note -- a {state} row \
+           keeps its own record, so move it with `intent ac unsatisfy|rescope|reinstate` first"
+        ),
+      });
+    }
+    let mut row = existing.clone();
+    if let Some(text) = &text {
+      row.text = text.clone();
+    }
+    if let Some(note) = &note {
+      row.state = AcState::Unsatisfied {
+        note: Some(note.clone()),
+      };
+    }
+    if row == existing {
       return Ok(Outcome::AlreadyThere {
         state: "unchanged".to_string(),
       });
     }
+    let mut payload = serde_json::Map::new();
+    if let Some(text) = text {
+      payload.insert("text".to_string(), json!(text));
+    }
+    if let Some(note) = note {
+      payload.insert("note".to_string(), json!(note));
+    }
     let mut next = self.canon.clone();
-    find_criterion_mut(&mut next, st, ac)?.text = text.to_string();
+    *find_criterion_mut(&mut next, st, ac)? = row;
     self
       .apply(
         "ac.edit",
@@ -6225,7 +6277,7 @@ impl Facade {
           kind: "ac".to_string(),
           id: format!("{st}/{ac}"),
         },
-        json!({ "text": text }),
+        Value::Object(payload),
         next,
       )
       .map(|()| Outcome::Moved)

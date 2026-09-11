@@ -215,7 +215,12 @@ fn ac_edit_rewords_and_leaves_the_evidence_standing() {
   );
 
   facade
-    .ac_edit("ST0001", "AC-03.2", "view rendering is byte-deterministic")
+    .ac_edit(
+      "ST0001",
+      "AC-03.2",
+      Some("view rendering is byte-deterministic".to_string()),
+      None,
+    )
     .expect("rewording is what this verb is for");
 
   let after = criterion(&facade, "AC-03.2");
@@ -279,7 +284,7 @@ fn states_are_driven_by_the_model_not_by_a_list() {
   for (id, was) in stored {
     let text = format!("reworded {id}");
     facade
-      .ac_edit("ST0001", &id, &text)
+      .ac_edit("ST0001", &id, Some(text.to_string()), None)
       .unwrap_or_else(|e| panic!("{id} must be rewordable whatever state it is in: {e}"));
     let now = criterion(&facade, &id);
     assert_eq!(now.text, text, "{id}: the reword did not land");
@@ -300,7 +305,8 @@ fn ac_edit_refuses_an_id_the_thread_does_not_have() {
     .ac_edit(
       "ST0001",
       "AC-09.9",
-      "a sentence for a row that is not there",
+      Some("a sentence for a row that is not there".to_string()),
+      None,
     )
     .expect_err("an edit must not create");
 
@@ -325,7 +331,7 @@ fn ac_edit_on_identical_text_writes_nothing() {
 
   let same = criterion(&facade, "AC-03.2").text.clone();
   let outcome = facade
-    .ac_edit("ST0001", "AC-03.2", &same)
+    .ac_edit("ST0001", "AC-03.2", Some(same.to_string()), None)
     .expect("a no-op is not an error");
 
   assert!(

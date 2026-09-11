@@ -2736,7 +2736,7 @@
         },
         {
           "path": "ac edit",
-          "help": "Reword a criterion, leaving its kind and its satisfaction alone",
+          "help": "Reword a criterion, or write an unsatisfied one's note; a field you do not name is a field it does not change",
           "args": [
             {
               "name": "stid",
@@ -2757,8 +2757,17 @@
               "type": "string",
               "help": "The new criterion text",
               "value": "<text>",
-              "required": true,
               "disposition": "keep"
+            },
+            {
+              "spellings": [
+                "--note"
+              ],
+              "type": "string",
+              "help": "Replace an unsatisfied criterion's note outright -- refused on a row whose state keeps its own record",
+              "value": "<text>",
+              "disposition": "keep",
+              "disposition_basis": "NEW SURFACE, ruled by vc under the pen 2026-09-11 on issue 0140, option (A) of four. An unsatisfied criterion's `state.note` is published on both faces and was written only by the v2 ingest (legacy.rs), so no v3 verb could author or edit one and a v3-native estate could not reach a state a migrated one arrives in. Shaped exactly like `at edit --note`: it replaces the note outright, a field not named is not changed, and `--note \"\"` stores an empty string rather than inventing a clear, so the two doors agree. `--text` stops being required with it, and the facade refuses a call naming neither, as `at_edit` does. Refused by name (`FieldNotWritable`) on a satisfied, descoped, withdrawn, fiat or computed row, whose state keeps its own record. Ruled out: `--note` on the four verbs that enter unsatisfied (four surfaces, and none can edit), and a virtual `state.note` field in `intent set` (special-casing the generic setter, whose refusal of `state` is the machine's)."
             }
           ],
           "v2": "new-surface",

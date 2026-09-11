@@ -991,7 +991,12 @@ fn cases() -> Vec<Case> {
       NOOP,
       |fx| {
         fx.facade()
-          .ac_edit("ST0001", "AC-03.2", "a reworded criterion")
+          .ac_edit(
+            "ST0001",
+            "AC-03.2",
+            Some("a reworded criterion".to_string()),
+            None,
+          )
           .expect("ac edit");
       },
       true,

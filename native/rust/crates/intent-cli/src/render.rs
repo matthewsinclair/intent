@@ -2804,11 +2804,17 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
     Some(("edit", a)) => {
       let st = thread_arg(a, "stid")?;
       let id = arg(a, "acid")?;
-      let text = arg(a, "text")?;
+      let text = opt(a, "text");
+      let note = opt(a, "note");
+      let moved = match (&text, &note) {
+        (Some(_), Some(_)) => "reworded, note written",
+        (None, Some(_)) => "note written",
+        _ => "reworded",
+      };
       reported(
-        &open()?.ac_edit(&st, &id, &text).map_err(fail)?,
+        &open()?.ac_edit(&st, &id, text, note).map_err(fail)?,
         &id,
-        "reworded",
+        moved,
       );
       Ok(())
     }
