@@ -25,7 +25,6 @@ intent_version: 3.0.0
 | --- | ------ | ------ | ---- | -------------------------------------------------------------------------------------------- |
 | 12  | `0216` | high   | dc   | A canon write reports ok, lands, and the daemon's disk ingest reverts it (under contention). |
 | 13  | `0212` | high   | dc   | A daemon ingest reverts a completed store write when the on-disk extract lags.               |
-| 15  | `0131` | high   | cc   | Two concurrent `issues add` both report created; one silently replaces the other.            |
 | 16  | `0135` | medium | cc   | Two facades can both take one child id.                                                      |
 | 17  | `0226` | high   | cc   | `st new` fails on a watched project once the corpus is large (render race with the daemon).  |
 
