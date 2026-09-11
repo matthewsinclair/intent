@@ -24,7 +24,6 @@ intent_version: 3.0.0
 | #   | id     | sev    | lane | defect                                                                                        |
 | --- | ------ | ------ | ---- | --------------------------------------------------------------------------------------------- |
 | 5   | `0209` | high   | ic   | `st start` writes a smaller copy of an unhydrated thread over the authoritative path.         |
-| 6   | `0082` | high   | cc   | A new attachment authored in canon never reaches disk (`sync --to-disk`).                     |
 | 7   | `0276` | high   | cc   | A committed attachment whose bytes differ from canon enters canon with no warning.            |
 | 8   | `0124` | high   | cc   | v2 ingest drops prose between two recognised fields; the survivor reads complete.             |
 | 9   | `0126` | high   | cc   | v2 ingest can splice a row so the length delta nets to zero and reports clean.                |
