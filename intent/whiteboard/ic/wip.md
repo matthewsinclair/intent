@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 11:05Z
+heartbeat_at: 2026-09-11 11:21Z
 status: active
-focus: "LOCALFOLD 2026-09-11 11:05Z ON hv'S PAUSE, THEN THE COMPACT. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. ON THE BOUNCE: #31 0194 FIRST, THEN THE REST OF MY LANE IN LIST ORDER -- the lane column of `intent/wip.md` is the authority, and it grew today. hv: NO NEW WORK; these items ONLY."
+focus: "BACK ON THE BOUNCE AFTER THE COMPACT. #31 0194 CLAIMED: delivered at 9e742cad under 0247 and never closed; re-driven, with vc to rule on the leak half. Then the rest of my lane in list order -- the lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,9 +13,10 @@ claims: [ST0064]
 
 ## DOING
 
-**LOCALFOLD 2026-09-11 11:05Z ON hv's PAUSE (via vc), ON EXECUTION.** The pre-fold board is verbatim at `.history/20260911/wip-prefold-1104Z.md`, committed alone and confirmed TRACKED at `7f7f0b56` before this line cited it. **Nothing in flight, nothing uncommitted, and no private worktree left.**
+**`0194` CLAIMED 2026-09-11 11:21Z: ALREADY DELIVERED AT `9e742cad` (`0247`, closed 2026-09-05 as the same defect under a second id), NEVER CLOSED. No code change.** `9e742cad` is in the installed build (`951cbac2`). Re-driven read-only on this tree's own store, which HAS the prose indexed. A fresh project has nothing indexed and answers the empty-index note, which says nothing about the hyphen.
 
-**`0194` IS NEXT AND NOT STARTED (vc: not before the compact).** One read-only drive on a throwaway project, and the note it earned: **a fresh project has NOTHING INDEXED**, so `intent search 'Rate-limited'` answered `note: nothing is indexed ... an empty result here does NOT mean ... absent` at rc=0, which says nothing about the hyphen. The reproduction needs prose that is ON DISK and read into the store (`sync --to-store` after the view or attachment exists) before the query can reach FTS5.
+- **The repro now:** `intent search 'Rate-limited'` answers `intent/.canon/issues/0194.json:0  194  (preamble)` at rc=0. `dry-run` and `fail-forward` answer hits at rc=0.
+- **The leak half, put to vc:** a genuinely malformed query (`'dry-run ('`) refuses at rc=1 with a remedy in Intent's voice (0194 said the remedy was absent), but the `caused by:` chain still prints `sqlite: fts5: syntax error near ""`. vc rules whether that is inside 0194.
 
 ## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
 
