@@ -108,6 +108,13 @@ The docs now describe each as built. None is worked until hv rules.
     - `lib/templates/hooks/module_check_hook.json`: nothing reads it, but a roster row in `exit_code_consumers.rs:128` names it.
     - `lib/templates/hooks/critic-guard.sh` is parked and has drifted: it lacks 0242's zero-scope report. Retire it, or re-roster it after porting that report.
     - The `rules/_schema/index-generator.md`, `rules/index.json` and `.template` trio sit behind the unwired `claude rules index`, whose retirement is pending hv. `index.json` is also wrong.
+    - `lib/templates/llm/{_ARCHETYPES,_DECISION_TREE,_DEPENDENCY_GRAPH,_MODULES}.md` and `lib/templates/prj/st/ST####/{acceptance,design,impl,tasks}.md` are dead, and still embedded through `init.rs` DESTINATIONS rows. Deleting them is code.
+    - **Stale comments in test and code files**, which a doc sweep can't reach without touching code (cc, listed in `817fa950b`):
+      - hv-banned counts in bats and Rust test headers;
+      - `guard_dispatch.bats:41` says pre-commit.sh is copied;
+      - `schema_faces_drift.rs:6,39` name a test target that is now a module of `suite`;
+      - `rules_path_guard.bats:20-21` grep paths that are gone, so they pass vacuously;
+      - organize.rs, tui.rs, mcp_stdio.rs, plugins.rs and the Cargo.toml descriptions.
 12. **`intent claude skills uninstall <name>` WITHOUT `--force` deletes a skill the user edited after install** (dc, re-driven by vc under an isolated HOME). It prints `removed (1 file(s))` at rc 0 and leaves an empty directory, and `--force`'s own help says it is the flag for "a skill that was changed here". **High: it loses user data.**
 13. **Driven by dc on the keg:**
     - `at new` fails in the argument order its usage prints, because the `--covers` variadic swallows the ids.
