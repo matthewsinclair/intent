@@ -1,12 +1,12 @@
 # Intent -- traps and conventions
 
-**Current as at 2026-09-11 20:09Z: v3.0.1 is shipped, and hv's estate-wide doc audit is the live work.** Current work is `intent/wip.md`; the entry point is `.claude/restart.md`; the DONE ledger is `intent/done.md`.
+**Current as at 2026-09-11 21:22Z: v3.0.1 is shipped, and hv's estate-wide doc audit is done; its push waits on hv.** Current work is `intent/wip.md`; the entry point is `.claude/restart.md`; the DONE ledger is `intent/done.md`.
 
 **THIS FILE CARRIES RULES, NOT HISTORY (hv, 2026-08-30).** Every completed-work narrative and every incident that produced a rule has moved to `intent/history/202608-restart-prefold.md`, verbatim. **What survives is what nothing else enforces** -- ic's criterion, and it is better than _is it done_: **a decision that survives only as prose is one nobody can fail**, so anything already encoded in a test, a guard or a generator has no prose home here.
 
 ## Where you are standing
 
-**v3.0.1 SHIPPED ON 2026-09-11** (tag `v3.0.1` at `a8942aead` on both remotes; formula live; installed on rhadamanth). **hv then set new work: the estate-wide doc audit, every as-written doc synced to the as-built code, vc directing, one lane per node.** The protocol and the lanes are in `intent/wip.md`. The 3.0.1 rule _"THERE IS NO NEW WORK TO BE DONE"_ is retired by that. The cut's own record is in its commits (`7c40da0ab` to `89531a8f6`) and in `intent/history/20260911-restart-cut-fold.md`.
+**v3.0.1 SHIPPED ON 2026-09-11** (tag `v3.0.1` at `a8942aead` on both remotes; formula live; installed on rhadamanth). **hv then set the estate-wide doc audit, and it is done:** every as-written doc was synced to the as-built code, vc directing, one lane per node. Its orders are in `intent/history/20260911-doc-audit.md`. The defects it found, which it describes and does not fix, are in `intent/wip.md` awaiting hv's rulings. The delivered pair names `2c3a7d2d4`, built through the promote guard fixed on hv's ruling (`bc696da63`). The cut's own record is in its commits (`7c40da0ab` to `89531a8f6`) and in `intent/history/20260911-restart-cut-fold.md`.
 
 **hv's 2026-09-04 ruling _"Everything is in 3.0.1"_ governed the cut, and the cut has shipped.** Its lesson outlives it: **strike _not in this one_, _defer_, _after the tag_ and _out of the cut_ as a CLASS**, because they are the scarcity move wearing a release number.
 
@@ -32,7 +32,7 @@
 
 **THE PAIR CAN BE SPLIT, AND EVERY CHECK THAT READS ONLY `intent` PASSES ON IT.** The property is that BOTH halves name the same commit; `bin/devbin build all` verifies them as a set, which is why a bare `cargo build --release` is not the door. **`build-support/source_commit.rs` omits `rerun-if-changed` deliberately** -- emitting any would REPLACE cargo's default of re-running on package change and make the embed stale on CODE changes, silently, in the worse direction. **Nobody fixes it and nobody reaches for the bare command.**
 
-**THE MARKER IS PROVENANCE, NOT AN IDENTITY.** Never compare it to `HEAD` -- that differs after every board commit and says the alarming thing on the healthy case. **The deciding test is `git diff --name-only <marker>..HEAD -- native/rust surface`, empty meaning current.** The sha256 distinguishes one build from another.
+**THE MARKER IS PROVENANCE, NOT AN IDENTITY.** Never compare it to `HEAD` -- that differs after every board commit and says the alarming thing on the healthy case. **The deciding test is `git diff --name-only <marker>..HEAD` over the marker's own scope, `DIRT_SCOPE` in `native/rust/build-support/source_commit.rs`, empty meaning current.** Both the promote guard and the currency check read that list from there (`bc696da63`), so a commit touching only non-embedded files, such as hook comments, leaves a pair current. The sha256 distinguishes one build from another.
 
 ## Open protocol questions
 
@@ -158,7 +158,7 @@ The commit guard catches a **future** stamp, a **missing `Z`**, and an **inbox g
 
 ## Conventions
 
-T-shirt sizing only. **ALWAYS use the intent CLI for ST/WP.** NEVER manually wrap markdown. **NO Claude attribution in commits**; end bodies with `(C) hello@matthewsinclair.com`. No vanity metrics. Fail-forward. **Commit to `main` only when matts asks; always `git commit --only <paths>`.** matts runs the full suite externally and is the acceptance verifier. **NEVER `--no-confirm` on the release.** Author CHANGELOG headings as `## [X.Y.Z] - in progress` and let `bin/int build release` date them -- **and a defect introduced and fixed inside one unreleased cycle gets NO entry, because there is no reader for it.**
+T-shirt sizing only. **ALWAYS use the intent CLI for ST/WP.** NEVER manually wrap markdown. **NO Claude attribution in commits**; end bodies with `(C) hello@matthewsinclair.com`. **No hardcoded counts in any doc a reader reads** -- hv, 2026-09-11: _"STRICTLY FUCKING VERBOTEN"_, because _"what does a hardcoded number like that mean? ... nothing."_ Name the verb that reports a figure; a count survives only as evidence in a commit message or a bug report. Fail-forward. **Commit to `main` only when matts asks; always `git commit --only <paths>`.** matts runs the full suite externally and is the acceptance verifier. **NEVER `--no-confirm` on the release.** Author CHANGELOG headings as `## [X.Y.Z] - in progress` and let `bin/int build release` date them -- **and a defect introduced and fixed inside one unreleased cycle gets NO entry, because there is no reader for it.**
 
 **EACH PROJECT-WIDE DOCUMENT GETS ONE JOB: `.claude/restart.md` is the entry point, `intent/wip.md` is DOING and TODO, `intent/done.md` is the DONE ledger, `intent/history/` is the archive, and this file is traps and conventions.** **If you find yourself writing a supersedes banner, DELETE WHAT IT SUPERSEDES INSTEAD** -- three copies of one narrative is how the gate figure came to have three homes carrying three values.
 

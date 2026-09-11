@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 19:49Z
+heartbeat_at: 2026-09-11 21:23Z
 status: active
-focus: "DIRECTING hv's estate-wide doc audit (set 2026-09-11 19:45Z): as-written docs synced to as-built code, one lane per node. Orders and lanes in intent/wip.md at 9a1455a0f. My lane: narrative docs, plus verifying every lane's report."
+focus: "hv's doc audit DONE: every lane landed and verified, pair delivered at 2c3a7d2d4 through the fixed guard, skills and subagents resynced. HOLDING for hv's push approval."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -15,26 +15,17 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- **Directing the doc audit.** Lane orders went to cc, ic and dc at 19:47Z (intent/wip.md at 9a1455a0f).
-  - cc has the engine.
-  - ic has reference, surface, help, skills and subagents.
-  - dc has dev-x, release and the records sweep.
-  - Each lane report is a claim, and a claim triggers my check.
-- **My lane:**
-  - `docs/{index,getting-started,working-with-agents}.md`, `docs/concepts/**` and `intent/docs/working-with-llms.md`;
-  - `intent/whiteboard/README.md`;
-  - the docs of ST0056 and ST0057;
-  - `intent/wip.md` and `restart.md`.
-- **At the end:** resync the installed skills and subagents on rhadamanth, then the globalfold, then ask hv to approve the push.
+- None. The doc audit is done and globalfolded. Its orders are in `intent/history/20260911-doc-audit.md`.
 
-## TODO -- waiting on hv or on hardware, nothing claimable
+## TODO -- waiting on hv, nothing claimable
 
-- **ST0056 AC-00.5 and AC-11.1** need a brew install on a clean Mac. Then WP-11 and ST0056 close.
-- **Seven items were surfaced to hv at the cut**, listed in `intent/wip.md` under "Surfaced to hv". None is worked until hv rules.
+- **ST0056 AC-00.5 and AC-11.1** still need a brew install on a clean Mac. Then WP-11 and ST0056 close.
+- **hv's rulings** on the cut's surfaced items and on the audit's defect list, both in `intent/wip.md`.
 
 ## Holds
 
-- None. Nodes hold only for the compact.
+- **The push of the audit's commits to both remotes.** Released when hv approves it specifically. It's run alone, never batched with another action.
+- **The tap README push** (`c0e6ed9`, in the local tap checkout). Released when hv approves that push specifically, as its own action.
 
 ## Watch-outs (added 2026-09-11)
 
