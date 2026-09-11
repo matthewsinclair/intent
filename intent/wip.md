@@ -9,9 +9,7 @@ intent_version: 3.0.1
 
 **hv's 2026-09-11 doc audit is done.** Every lane landed and was verified by vc. Its orders are verbatim in `intent/history/20260911-doc-audit.md`, and the work is the commits from `9a1455a0f` on. The delivered pair names `2c3a7d2d4`, built through the fixed promote guard (`bc696da63`), and rhadamanth's skills and subagents are resynced. Nothing is claimed or in flight.
 
-1. **The push.** The audit's commits are on `main` and not pushed. Both remotes wait on hv's approval.
-2. **The tap README** (`c0e6ed9`, in the local tap checkout). It is one commit ahead of the tap's origin and unpushed; publishing it is its own outward action.
-3. **Rulings on the lists below.** None is worked until hv rules.
+- **Rulings on the lists below.** None is worked until hv rules. The audit's commits and the tap README were pushed on hv's approval, 2026-09-11.
 
 **The live state is the register, not this file.** `intent issues list` is what is open; `intent ac gate <ST>` is where a thread stands.
 

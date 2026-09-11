@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 21:23Z
+heartbeat_at: 2026-09-11 21:26Z
 status: active
-focus: "hv's doc audit DONE: every lane landed and verified, pair delivered at 2c3a7d2d4 through the fixed guard, skills and subagents resynced. HOLDING for hv's push approval."
+focus: "hv's doc audit DONE and pushed (main 1ebd57700 on both remotes, tap c0e6ed9). Pair 2c3a7d2d4 delivered. Waiting on hv's rulings on the defect list in intent/wip.md."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -24,8 +24,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## Holds
 
-- **The push of the audit's commits to both remotes.** Released when hv approves it specifically. It's run alone, never batched with another action.
-- **The tap README push** (`c0e6ed9`, in the local tap checkout). Released when hv approves that push specifically, as its own action.
+- None. Both pushes ran on hv's approval: `main` at `1ebd57700` on both remotes, and the tap at `c0e6ed9`.
 
 ## Watch-outs (added 2026-09-11)
 
