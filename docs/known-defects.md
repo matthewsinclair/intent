@@ -28,7 +28,7 @@ on every verb, including ones that have nothing to do with the stray thread. The
 
 **The `AGENTS.md` a shell project is given documents a test command that finds no tests** (`intent#0220`). Driven on v3.0.0: with `shell` declared, `intent agents sync` writes an `AGENTS.md` whose line 29 reads `bats tests/`. `bats` is not recursive, so a project whose suites live under `tests/unit/` gets `ERROR: Found no tests. (Try \`--allow-empty-suite\`?)`from the documented command, where`bats -r tests/`runs them.`AGENTS.md`is the first file the project tells an agent to read, and it is generated, so a correction written into it is overwritten at the next`intent agents sync`. No per-project override exists for a template value. Run `bats -r tests/`; the flag is correct for a flat layout too.
 
-Declaring the language is its own obstacle on this build: `intent init --lang shell` refuses (`intent#0187`), so the array has to be edited into `intent/.config/config.json` by hand before the generated file says anything about shell at all.
+Declaring the language is its own obstacle on this build: `intent init --lang shell` refuses (`intent#0187`, fixed in v3.0.1) and creates nothing. Run `intent init`, then `intent lang init shell`, which works on v3.0.0, before `intent agents sync` says anything about shell at all.
 
 ## Threads
 

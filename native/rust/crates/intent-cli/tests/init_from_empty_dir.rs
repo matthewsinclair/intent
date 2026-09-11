@@ -144,17 +144,15 @@ fn init_refuses_an_existing_project() {
   );
 }
 
-/// **A FLAG WHOSE SUBSYSTEM IS ABSENT REFUSES BY NAME.** `--with-st0000` and
-/// `--lang` are `disposition: keep` in the table, so they are not withheld --
-/// they are declared and their machinery is not built. Accepting either would
-/// report a project set up in a way it is not, and nothing downstream would
-/// ever say so.
+/// **A FLAG WHOSE SUBSYSTEM IS ABSENT REFUSES BY NAME.** `--with-st0000` is
+/// `disposition: keep` in the table, so it is not withheld -- it is declared
+/// and its machinery is not built. Accepting it would report a project set up
+/// in a way it is not, and nothing downstream would ever say so. `--lang` was
+/// in this loop until issue `0187`: its machinery shipped, and the refusal kept
+/// firing on the expired premise. It is covered by the two tests below.
 #[test]
 fn a_flag_whose_subsystem_is_unimplemented_refuses_rather_than_ignoring() {
-  for (flag, args) in [
-    ("--with-st0000", vec!["init", "p", "--with-st0000"]),
-    ("--lang", vec!["init", "p", "--lang", "rust"]),
-  ] {
+  for (flag, args) in [("--with-st0000", vec!["init", "p", "--with-st0000"])] {
     let dir = empty_dir();
     let (_, err, code) = run(&args, dir.path());
     assert_ne!(code, 0, "`{flag}` was accepted with nothing behind it");
@@ -169,4 +167,45 @@ fn a_flag_whose_subsystem_is_unimplemented_refuses_rather_than_ignoring() {
       "`{flag}` refused and still created a project"
     );
   }
+}
+
+/// `init --lang` creates the project AND declares the languages, through the
+/// same code `lang init` runs (issue `0187`). Both separators the table
+/// declares are exercised, and the declaration is read back from the config
+/// rather than trusted from stdout.
+#[test]
+fn init_lang_declares_the_languages_in_the_project_it_creates() {
+  let dir = empty_dir();
+  let (out, err, code) = run(&["init", "p", "--lang", "rust, shell"], dir.path());
+  assert_eq!(code, 0, "init --lang refused: {out}{err}");
+  let config: serde_json::Value = serde_json::from_str(
+    &std::fs::read_to_string(dir.path().join("intent/.config/config.json"))
+      .expect("init --lang created no config"),
+  )
+  .expect("config is json");
+  assert_eq!(
+    config["languages"],
+    serde_json::json!(["rust", "shell"]),
+    "the languages did not reach the config: {out}"
+  );
+}
+
+/// An undeclarable name refuses BEFORE anything is written, so "nothing was
+/// created" is true when the refusal says it.
+#[test]
+fn init_lang_with_an_undeclarable_name_refuses_and_leaves_nothing() {
+  let dir = empty_dir();
+  let (_, err, code) = run(&["init", "p", "--lang", "rust,nosuchlang"], dir.path());
+  assert_ne!(code, 0, "an undeclarable language was accepted");
+  assert!(
+    err.contains("nosuchlang") && err.contains("nothing was created"),
+    "the refusal must name the language and say nothing was created: {err}"
+  );
+  assert_eq!(
+    std::fs::read_dir(dir.path())
+      .expect("read the fixture")
+      .count(),
+    0,
+    "the refusal left something behind"
+  );
 }

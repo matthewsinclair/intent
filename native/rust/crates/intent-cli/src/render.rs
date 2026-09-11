@@ -5517,13 +5517,21 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
 /// because there is not one yet, so reaching for the facade would refuse the
 /// command on the exact condition it is meant to remove.
 ///
-/// **`--with-st0000` AND `--lang` ARE DECLARED `keep` IN THE TABLE AND ARE
-/// REFUSED HERE BY NAME.** Their subsystems answer 2 in this build -- measured
-/// 2026-08-20, `intent lang init rust` returns `not implemented yet` -- so
-/// accepting either would report a project set up in a way it is not. **A flag
-/// that is silently ignored is worse than one that refuses**: the operator gets
-/// what they asked for in the exit code and not in the tree, and nothing
-/// downstream ever says so. Refusing names the flag, the reason and the state.
+/// **`--with-st0000` IS DECLARED `keep` IN THE TABLE AND IS REFUSED HERE BY
+/// NAME**, because `st bootstrap` still answers 2 in this build, so accepting it
+/// would report a project set up in a way it is not. **A flag that is silently
+/// ignored is worse than one that refuses**: the operator gets what they asked
+/// for in the exit code and not in the tree, and nothing downstream ever says
+/// so. Refusing names the flag, the reason and the state.
+///
+/// **`--lang` WAS REFUSED THE SAME WAY UNTIL ISSUE `0187`, AND IS NOW HONOURED.**
+/// The refusal said `intent lang init` was not implemented, which stopped
+/// being true when it shipped, and the guard kept firing on the expired premise.
+/// Its remedy also said "the project is created either way", which was never
+/// true: the refusal returns before anything is written. The languages are now
+/// checked BEFORE the project is created, so an undeclarable name still leaves
+/// nothing behind, and they are then declared through [`declare_languages`],
+/// the same code `intent lang init` runs.
 fn init(a: &ArgMatches) -> Result<(), Failure> {
   // **THE ID IS THE LONG SPELLING WITH `--` STRIPPED AND THE HYPHENS KEPT.**
   // `DispatchFlag::arg_id` returns `self.long()`, so the table's
@@ -5541,30 +5549,19 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
   // failure. An unknown id now panics: it cannot happen in a shipped build,
   // and if it does, the renderer and the table have drifted and nothing else
   // would say so.
-  for (flag, needs) in [
-    ("with-st0000", "the ST0000 bootstrap"),
-    ("lang", "`intent lang init`"),
-  ] {
-    let asked = match a.try_get_one::<bool>(flag) {
-      Ok(v) => v.copied().unwrap_or(false),
-      // Not a bool: the table declares this one as a string with a value.
-      Err(clap::parser::MatchesError::Downcast { .. }) => a
-        .try_get_one::<String>(flag)
-        .unwrap_or_else(|e| {
-          panic!("`init` reads a flag id the surface does not build: {flag} ({e})")
-        })
-        .is_some(),
-      Err(e) => panic!("`init` reads a flag id the surface does not build: {flag} ({e})"),
-    };
-    if asked {
-      return Err(Failure::Unavailable(format!(
-        "error: `--{}` cannot be honoured in this build -- {needs} is not implemented yet\n  \
-         remedy: run `intent init` without it; the project is created either way, and nothing \
-         about it forecloses running that step once the command lands",
-        flag.replace('_', "-")
-      )));
-    }
+  let flag = "with-st0000";
+  let asked = match a.try_get_one::<bool>(flag) {
+    Ok(v) => v.copied().unwrap_or(false),
+    Err(e) => panic!("`init` reads a flag id the surface does not build: {flag} ({e})"),
+  };
+  if asked {
+    return Err(Failure::Unavailable(format!(
+      "error: `--{flag}` cannot be honoured in this build -- the ST0000 bootstrap is not implemented yet\n  \
+       remedy: nothing was created. Run `intent init` without it; nothing about the project it \
+       creates forecloses running that step once the command lands"
+    )));
   }
+  let langs = init_langs(a)?;
 
   let cwd = std::env::current_dir().map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
   // The directory name is the table's declared default for `project_name`, and
@@ -5655,7 +5652,50 @@ fn init(a: &ArgMatches) -> Result<(), Failure> {
       made.skipped.len()
     );
   }
-  Ok(())
+  if langs.is_empty() {
+    return Ok(());
+  }
+  println!();
+  let project = Project::open(&made.root).map_err(|e| Failure::Error(format!("error: {e}")))?;
+  declare_languages(&project, &langs)
+}
+
+/// `init --lang <list>`, parsed and checked BEFORE anything is written.
+///
+/// The table declares the value as comma- or space-separated, so both split.
+/// **Every name is checked here, not in the declaration after `init`**, because
+/// an undeclarable name found after the project exists would leave a project
+/// the operator did not ask for in the shape it is in. Refusing first keeps
+/// "nothing was created" true in the one place it is said.
+fn init_langs(a: &ArgMatches) -> Result<Vec<String>, Failure> {
+  let raw = a
+    .try_get_one::<String>("lang")
+    .unwrap_or_else(|e| panic!("`init` reads a flag id the surface does not build: lang ({e})"));
+  let Some(raw) = raw else {
+    return Ok(Vec::new());
+  };
+  let langs: Vec<String> = raw
+    .split(|c: char| c == ',' || c.is_whitespace())
+    .filter(|s| !s.is_empty())
+    .map(str::to_string)
+    .collect();
+  if langs.is_empty() {
+    return Err(Failure::Error(
+      "error: `--lang` was given no language\n  remedy: nothing was created. Name one or more, eg `intent init --lang rust` or `--lang elixir,shell`".to_string(),
+    ));
+  }
+  let unknown: Vec<String> = langs
+    .iter()
+    .filter(|l| !intentsvcs::rules::is_declarable(l))
+    .map(|l| unknown_language(l))
+    .collect();
+  if !unknown.is_empty() {
+    return Err(Failure::Error(format!(
+      "{}\n  nothing was created",
+      unknown.join("\n")
+    )));
+  }
+  Ok(langs)
 }
 
 /// `intent bootstrap`: set THIS MACHINE up.
@@ -6202,12 +6242,19 @@ fn migrated_project() -> Result<Project, Failure> {
 /// `init` reads as project initialisation.
 fn lang_declare(m: &ArgMatches) -> Result<(), Failure> {
   let langs = lang_many(m)?;
-  let project = migrated_project()?;
+  declare_languages(&migrated_project()?, &langs)
+}
+
+/// Declare `langs` in `project`'s config, printing a line per language and a
+/// summary. **The one home for declaring a language**: `intent lang init` and
+/// `intent init --lang` both call it (issue `0187`), so the two cannot come to
+/// disagree about what declaring means.
+fn declare_languages(project: &Project, langs: &[String]) -> Result<(), Failure> {
   let mut config = project.config().clone();
 
   let mut failed = 0usize;
   let mut declared = 0usize;
-  for lang in &langs {
+  for lang in langs {
     if !intentsvcs::rules::is_declarable(lang) {
       eprintln!("{}", unknown_language(lang));
       failed += 1;
