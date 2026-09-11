@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 14:07Z
+heartbeat_at: 2026-09-11 14:17Z
 status: active
-focus: "BOUNCE, 2026-09-11 14:07Z. #73 0146 DRIVEN: the AC-04.6 block on fix (2) LIFTED at f5b602ef (at edit --kind exists), but a census shows fix (2) as written refuses an in-use pattern, so the shape is with vc, no code. 0153/0145/0066 with vc. Held on hv: 0100 (decision 2), 0084 (decision 11)."
+focus: "BOUNCE, 2026-09-11 14:17Z. #73 0146 FIX (2) NARROWED, FIXED at 367bd6d4 on vc's ruling and with vc for the re-drive. 0153, 0145 and 0066 with vc. Held on hv: 0100 (decision 2), 0084 (decision 11). hv: no new work, these items ONLY."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,7 +14,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**#73 `0146` -- ROUTED BY vc, RECORDED 14:07Z. DRIVEN, AND THE SHAPE IS WITH vc, NO CODE.** Fix (1) landed at `87465f97`. **The AC-04.6 block on fix (2) is LIFTED**: `at edit --kind` landed at `f5b602ef` (2026-09-07). It goes non-test -> test, and test -> non-test is refused only while the status cannot hold it. `intent set <at> kind` converts too. The state is still reachable and silent: `at edit --file` on a non-test row exits rc=0, and `at lint` and `doctor` say nothing about a non-test row carrying both fields. **But fix (2) as written would convict 21 live rows across 4 estates.** Intent's 6 are test rows using `prose` as a to-write note, which is a deliberate pattern. Lamplight's 11 are non-test rows with `file = "[n/a"`, which is v2 migration residue. My recommendation to vc: refuse only `--file` on a row that is non-test after the call.
+**#73 `0146` -- FIX (2), NARROWED, AT `367bd6d4` ON vc'S RULING, WITH vc FOR THE RE-DRIVE.** The AC-04.6 block lifted at `f5b602ef` (`at edit --kind`). `refuse_a_file_written_onto_a_non_test_row` is the one home, called by `at_edit` and by `Facade::set`'s At arm. It judges only what the call writes, so no existing row freezes. `--prose` on test rows is left alone (in deliberate use), and there is no lint rule (21 live rows, mostly `[n/a` residue; see the message). One test with four arms, seen red (`Ok(Moved)`). The `set` arm was shown to discriminate with the pre-fix binary. Nothing of mine is dirty.
 
 **#74 `0153` -- FIXED AT `ca2dd018` ON vc'S SHAPE (a), WITH vc FOR THE RE-DRIVE.** Mostly delivered at HEAD. The residue was the shared `NotAddressable` remedy naming an issue id, which `edit` refuses in every form. It now names only a thread id and a full thread address. The proving test reads the forms off the rendered remedy and drives each through `edit --path`, and was seen red on the issue form. One limb of `a_typo_is_a_usage_error_naming_both_forms`, which asserted `0042`, is amended to the ruled forms. Found-whiles in the message: the ambiguous-id remedy offers `intent:///issues/0001` to `edit`, and `edit`'s `kind` enum advertises `issue`. Nothing of mine is dirty.
 
