@@ -1433,7 +1433,7 @@ dependencies = [
 
 [[package]]
 name = "intent-cli"
-version = "3.0.0"
+version = "3.0.1"
 dependencies = [
  "clap",
  "crossterm",
@@ -1451,7 +1451,7 @@ dependencies = [
 
 [[package]]
 name = "intentd"
-version = "3.0.0"
+version = "3.0.1"
 dependencies = [
  "axum",
  "intentsvcs",
@@ -1462,7 +1462,7 @@ dependencies = [
 
 [[package]]
 name = "intentsvcs"
-version = "3.0.0"
+version = "3.0.1"
 dependencies = [
  "async-graphql",
  "ignore",
@@ -2960,7 +2960,7 @@ dependencies = [
 
 [[package]]
 name = "testkit"
-version = "3.0.0"
+version = "3.0.1"
 
 [[package]]
 name = "thiserror"
