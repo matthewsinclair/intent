@@ -16,6 +16,7 @@
 //! AC-03.1's "nothing partially loaded" clause, and it is why [`read`] returns
 //! a [`Canon`] rather than writing as it goes.
 
+use std::path::PathBuf;
 use std::sync::OnceLock;
 
 use serde::de::DeserializeOwned;
@@ -350,8 +351,52 @@ pub fn load(project: &Project, store: &mut Store) -> Result<Canon, IngestError> 
     store.rebuild(&canon.threads, &canon.issues)?;
     store.replace_doc_sections(&canon.sections)?;
     carry_project_state(project, store)?;
+    record_canon_files(
+      project,
+      store,
+      &canon_paths(project, &canon.threads, &canon.issues),
+    )?;
     Ok(canon)
   })
+}
+
+/// Every thread and issue canon file for these records, where they live on disk.
+pub(crate) fn canon_paths(project: &Project, threads: &[Thread], issues: &[Issue]) -> Vec<PathBuf> {
+  threads
+    .iter()
+    .map(|t| project.thread_json(&t.id))
+    .chain(issues.iter().map(|i| project.issue_json(i.number)))
+    .collect()
+}
+
+/// **Record what these canon files hold on disk now** into the file index
+/// (0260): the bytes the store has just read from them or written to them.
+///
+/// One home for "the store and this file agree as of here", called from every
+/// path that loads canon into a store and from every projection that lands
+/// canon on disk. `sync --to-disk` refuses to overwrite a canon file whose
+/// bytes have moved since, which is how it tells files AHEAD of the store (a
+/// pull) from a store AHEAD of its files (a refused projection). A load path
+/// that did not record would leave its files with no baseline, and the egest
+/// would then write over them exactly as it did before this existed.
+///
+/// An absent path is skipped: there is nothing on disk to have agreed with.
+pub(crate) fn record_canon_files(
+  project: &Project,
+  store: &mut Store,
+  paths: &[PathBuf],
+) -> Result<(), IngestError> {
+  let mut entries = Vec::with_capacity(paths.len());
+  for path in paths.iter().filter(|p| p.exists()) {
+    let mut entry = sync::entry_for(project.root(), path, &[]).map_err(|e| IngestError::Io {
+      path: path.display().to_string(),
+      source: std::io::Error::other(e.to_string()),
+    })?;
+    entry.state = FileState::Clean;
+    entries.push(entry);
+  }
+  store.record_file_entries(&entries)?;
+  Ok(())
 }
 
 /// Take the committed project state into the store, on any disk -> store path.

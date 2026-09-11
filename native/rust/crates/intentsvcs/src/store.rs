@@ -1367,6 +1367,35 @@ fn enum_from<T: serde::de::DeserializeOwned>(wire: &str) -> Result<T, StoreError
   ))?)
 }
 
+/// The one upsert into `file_index`, shared by the whole-index replace and the
+/// per-projection record. `created_at` is the row's own, so a conflict keeps it.
+fn upsert_file_entries(
+  tx: &rusqlite::Transaction<'_>,
+  entries: &[FileEntry],
+) -> Result<(), StoreError> {
+  for e in entries {
+    tx.execute(
+      "INSERT INTO file_index (path, size, mtime, sha256, state, findings) VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+       ON CONFLICT (path) DO UPDATE SET
+         size = excluded.size,
+         mtime = excluded.mtime,
+         sha256 = excluded.sha256,
+         state = excluded.state,
+         findings = excluded.findings,
+         updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
+      params![
+        e.path,
+        e.size as i64,
+        e.mtime,
+        e.sha256,
+        enum_str(&e.state),
+        serde_json::to_string(&e.findings)?,
+      ],
+    )?;
+  }
+  Ok(())
+}
+
 pub struct Store {
   conn: Connection,
   /// How many loads-from-canon are open on this store right now.
@@ -3329,26 +3358,25 @@ impl Store {
       "DELETE FROM file_index WHERE path NOT IN (SELECT value FROM json_each(?1))",
       params![keep],
     )?;
-    for e in entries {
-      tx.execute(
-        "INSERT INTO file_index (path, size, mtime, sha256, state, findings) VALUES (?1, ?2, ?3, ?4, ?5, ?6)
-         ON CONFLICT (path) DO UPDATE SET
-           size = excluded.size,
-           mtime = excluded.mtime,
-           sha256 = excluded.sha256,
-           state = excluded.state,
-           findings = excluded.findings,
-           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')",
-        params![
-          e.path,
-          e.size as i64,
-          e.mtime,
-          e.sha256,
-          enum_str(&e.state),
-          serde_json::to_string(&e.findings)?,
-        ],
-      )?;
-    }
+    upsert_file_entries(&tx, entries)?;
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// Record the files a projection just LANDED, leaving every other row alone
+  /// (0260).
+  ///
+  /// The index answered "what did the store last read"; with this it answers
+  /// "what did the store last read OR WRITE", which is the provenance a canon
+  /// file needs before an egest may overwrite it. Without it a file the store
+  /// wrote after its last ingest looks moved, and store-ahead -- the state
+  /// `sync --to-disk` exists to repair -- would be refused.
+  ///
+  /// Not [`Store::replace_file_index`]: a projection writes a handful of files,
+  /// so deleting the rest would unindex files nobody touched.
+  pub fn record_file_entries(&mut self, entries: &[FileEntry]) -> Result<(), StoreError> {
+    let tx = self.conn.transaction()?;
+    upsert_file_entries(&tx, entries)?;
     tx.commit()?;
     Ok(())
   }

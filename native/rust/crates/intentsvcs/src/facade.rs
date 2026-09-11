@@ -1064,6 +1064,16 @@ pub enum FacadeError {
   /// this and why it needs a variant of its own.
   #[error("this would write an empty estate over one that is not empty: {evidence}")]
   EgestWouldEmptyTheEstate { evidence: String },
+  /// **A canon file moved after the store last wrote or read it** (0260).
+  ///
+  /// Separate from [`FacadeError::EgestFromRefusedIngest`] because nothing was
+  /// refused: the store was warm and correct, and then the canon moved under it
+  /// -- a pull, a peer's commit -- with no intentd running to take it in. The
+  /// daily driver never looks at the files, so only the egest can see it.
+  #[error(
+    "the canon on disk for {subjects} changed after the store last wrote or read it, so this would write the store's version over it"
+  )]
+  EgestFromStaleStore { subjects: String },
   /// **A write that would replace an authored body with nothing** (Lamplight,
   /// 2026-08-26).
   ///
@@ -1539,6 +1549,12 @@ impl crate::remedy::Remedy for FacadeError {
       Self::EgestWouldEmptyTheEstate { .. } => {
         "the store is empty, not the project. Your work is still on disk and in the commit; find out why the store holds nothing -- a `sync --to-store` that read zero and reported success is the usual cause -- before writing in either direction".to_string()
       }
+      // Both directions are named because the bytes cannot say which side is
+      // right, and the operator can: a pull they meant, or an edit they did
+      // not. Neither route proceeds over the disagreement.
+      Self::EgestFromStaleStore { .. } => {
+        "nothing was written. If the canon on disk is right -- a pull or a peer's commit -- run `intent sync --to-store` to take it into the store. If the store is right, restore the file from git when the change is an uncommitted edit, or remove it: an absent canon file is re-created from the store. Then run this again".to_string()
+      }
       Self::EgestFromRefusedIngest { .. } => {
         "fix what the ingest refused and run `intent sync --to-store` again -- a load that succeeds clears this. Your canon holds authored work the store has never taken, so writing the store over it now is the loss, not the repair".to_string()
       }
@@ -1878,6 +1894,27 @@ pub struct Facade {
   ctx: FacadeContext,
 }
 
+/// What [`Facade::projection`] builds: the writes, and which of them are canon.
+///
+/// The canon files are named because an egest has to ask about them before it
+/// writes (0260) and the index has to record them after, and the projection is
+/// the one place that knows which paths it added as canon.
+struct Projection {
+  set: WriteSet,
+  /// Each thread and issue canon file in `set`, with the subject a refusal
+  /// names: the thread id, or `issue 0260`.
+  canon_files: Vec<(std::path::PathBuf, String)>,
+}
+
+/// A canon file that exists and cannot be read. Reported, never read past: an
+/// egest that could not see the file cannot know whether it moved.
+fn canon_file_unreadable(path: &std::path::Path, source: std::io::Error) -> FacadeError {
+  FacadeError::Ingest(IngestError::Io {
+    path: path.display().to_string(),
+    source,
+  })
+}
+
 /// A narrowing of the history. Every field NARROWS; none widens.
 ///
 /// **Filters are the point rather than a convenience.** `event_log` is
@@ -2085,6 +2122,14 @@ impl Facade {
     let finish = || -> Result<(), FacadeError> {
       let mut store = Store::open(&project.db_path())?;
       store.rebuild(&threads, &issues)?;
+      // The store has just been built from the canon these writes landed, so
+      // it records their bytes (0260); without a baseline, the first egest
+      // after a hop could not tell a peer's committed change from its own.
+      ingest::record_canon_files(
+        project,
+        &mut store,
+        &ingest::canon_paths(project, &threads, &issues),
+      )?;
       converge_gitignore(project).map_err(|cause| FacadeError::MigrationHalted {
         step: "adding the store to .gitignore",
         cause,
@@ -3476,9 +3521,11 @@ impl Facade {
       Some(_) => Vec::new(),
     };
     let count = all_threads.len();
-    let set = self.projection(&canon, &all_threads, &all_issues)?;
+    let Projection { set, canon_files } = self.projection(&canon, &all_threads, &all_issues)?;
     self.refuse_if_this_would_empty_a_populated_face(&canon, &set)?;
+    self.refuse_if_canon_moved_under_the_store(&set, &canon_files)?;
     let applied = set.commit()?;
+    self.record_landed(&canon_files)?;
     // **WHAT LANDED, NOT WHAT WAS ASKED FOR.** `commit` skips a path whose
     // bytes already match, so a sync over an estate that already agrees writes
     // nothing -- and recording the SET would put an act that did not happen
@@ -3598,8 +3645,9 @@ impl Facade {
       Some(_) => Vec::new(),
     };
     let count = all_threads.len();
-    let set = self.projection(&canon, &all_threads, &all_issues)?;
+    let Projection { set, canon_files } = self.projection(&canon, &all_threads, &all_issues)?;
     let applied = set.commit()?;
+    self.record_landed(&canon_files)?;
     let wrote = self.estate_paths(&applied);
     applied.keep();
     // **THE DISK ACT OF A RESTORE IS THE RE-PROJECTION, AND IT IS THE HALF
@@ -3969,17 +4017,22 @@ impl Facade {
     canon: &Canon,
     threads: &[&Thread],
     issues: &[&Issue],
-  ) -> Result<WriteSet, FacadeError> {
+  ) -> Result<Projection, FacadeError> {
     let mut set = WriteSet::new();
+    let mut canon_files: Vec<(std::path::PathBuf, String)> = Vec::new();
     for thread in threads {
+      let path = self.project.thread_json(&thread.id);
+      canon_files.push((path.clone(), thread.id.clone()));
       set.add(
-        self.project.thread_json(&thread.id),
+        path,
         to_canonical_json(thread).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
       );
     }
     for issue in issues {
+      let path = self.project.issue_json(issue.number);
+      canon_files.push((path.clone(), format!("issue {:04}", issue.number)));
       set.add(
-        self.project.issue_json(issue.number),
+        path,
         to_canonical_json(issue).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
       );
     }
@@ -4021,7 +4074,77 @@ impl Facade {
       }
       set.add(view.path, view.content);
     }
-    Ok(set)
+    Ok(Projection { set, canon_files })
+  }
+
+  /// **Record the canon files a projection just landed** (0260), through
+  /// [`ingest::record_canon_files`], the one recorder.
+  ///
+  /// Called only after a commit SUCCEEDS. A refused projection leaves the old
+  /// bytes and their old record in place, which is exactly store-ahead.
+  fn record_landed(
+    &mut self,
+    canon_files: &[(std::path::PathBuf, String)],
+  ) -> Result<(), FacadeError> {
+    let paths: Vec<std::path::PathBuf> = canon_files.iter().map(|(p, _)| p.clone()).collect();
+    ingest::record_canon_files(&self.project, &mut self.store, &paths).map_err(FacadeError::Ingest)
+  }
+
+  /// **An egest must not overwrite a canon file that moved since the store
+  /// last wrote or read it** (0260).
+  ///
+  /// Content alone cannot answer this. A store AHEAD of its files -- a
+  /// projection refused after the DB committed, which `--to-disk` exists to
+  /// repair -- and files AHEAD of their store -- a pull, a peer's commit, with
+  /// no intentd to take it in -- disagree identically. Provenance separates
+  /// them: a file whose bytes still match the index is where the store left it,
+  /// so the store's version is newer; one that does not has moved under it.
+  ///
+  /// It reads this write's own canon files, so a scope narrows it for free and
+  /// another thread's state never refuses this one (issue 0259's shape).
+  ///
+  /// - **Absent**: re-created. The files are re-creatable (D01).
+  /// - **Already equal to what would be written**: nothing to overwrite.
+  /// - **No recorded bytes**: written, as before this check existed. A file
+  ///   with no baseline has nothing it could have moved from -- the rule
+  ///   `ingest::resync` states for covers -- and refusing would block the
+  ///   first egest from every store written before the index learned to
+  ///   record writes.
+  fn refuse_if_canon_moved_under_the_store(
+    &self,
+    set: &WriteSet,
+    canon_files: &[(std::path::PathBuf, String)],
+  ) -> Result<(), FacadeError> {
+    let index = self.store.file_index().map_err(FacadeError::Store)?;
+    let writes: std::collections::HashMap<&std::path::Path, &str> = set.writes().collect();
+    let mut moved: Vec<String> = Vec::new();
+    for (path, subject) in canon_files {
+      let bytes = match std::fs::read(path) {
+        Ok(bytes) => bytes,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
+        Err(e) => return Err(canon_file_unreadable(path, e)),
+      };
+      if writes
+        .get(path.as_path())
+        .is_some_and(|w| w.as_bytes() == bytes.as_slice())
+      {
+        continue;
+      }
+      let now = crate::sync::entry_for(self.project.root(), path, &[])
+        .map_err(|e| canon_file_unreadable(path, std::io::Error::other(e.to_string())))?;
+      if index
+        .iter()
+        .any(|recorded| recorded.path == now.path && recorded.sha256 != now.sha256)
+      {
+        moved.push(subject.clone());
+      }
+    }
+    match moved.is_empty() {
+      true => Ok(()),
+      false => Err(FacadeError::EgestFromStaleStore {
+        subjects: moved.join(", "),
+      }),
+    }
   }
 
   /// Add the event log's file form to a write set (D34, AC-02.6).
@@ -8559,7 +8682,8 @@ impl Facade {
       .iter()
       .filter(|i| changed_issue_numbers.contains(&i.number))
       .collect();
-    let set = self.projection(&next, &changed_threads, &changed_issues)?;
+    let Projection { set, canon_files } =
+      self.projection(&next, &changed_threads, &changed_issues)?;
     drop(changed_threads);
     drop(changed_issues);
 
@@ -8573,7 +8697,8 @@ impl Facade {
     // this process builds on what actually happened either way.
     let projected = set.commit().map(Applied::keep);
     self.canon = next;
-    projected.map_err(|cause| FacadeError::ViewsNotWritten { cause })
+    projected.map_err(|cause| FacadeError::ViewsNotWritten { cause })?;
+    self.record_landed(&canon_files)
   }
 
   /// What a CLOSING transition has to say before it happens (AC-05.2).

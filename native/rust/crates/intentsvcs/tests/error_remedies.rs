@@ -755,6 +755,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::MigrationHalted { .. } => "MigrationHalted",
     FacadeError::EgestFromRefusedIngest { .. } => "EgestFromRefusedIngest",
     FacadeError::EgestWouldEmptyTheEstate { .. } => "EgestWouldEmptyTheEstate",
+    FacadeError::EgestFromStaleStore { .. } => "EgestFromStaleStore",
     FacadeError::WriteWouldEmptyAnAuthoredBody { .. } => "WriteWouldEmptyAnAuthoredBody",
     FacadeError::Realise(_) => "Realise",
     FacadeError::Organize(_) => "Organize",
@@ -835,6 +836,7 @@ const ALL_VARIANTS: &[&str] = &[
   "MigrationHalted",
   "EgestFromRefusedIngest",
   "EgestWouldEmptyTheEstate",
+  "EgestFromStaleStore",
   "WriteWouldEmptyAnAuthoredBody",
   "Realise",
   "Install",
@@ -912,6 +914,11 @@ const NOT_PROVOKED_HERE: &[&str] = &[
   // remedy, and both controls. **The citation goes red if that file stops
   // provoking it**, which is the only thing that makes an exemption a cover.
   "WriteWouldEmptyAnAuthoredBody",
+  // The same class as the one above: canon on disk that moved after the open
+  // facade's store was warmed, which is a file edit between two calls. Driven
+  // in `a_stale_store_does_not_overwrite_committed_canon.rs`, which asserts the
+  // committed correction survives and the refusal names its thread.
+  "EgestFromStaleStore",
   // Both need a v2 estate rather than a bad call, and both are the migration
   // door rather than a verb: `MigrationBlocked` needs live-thread residue and
   // `MigrationHalted` needs the filesystem to fail PART WAY THROUGH an

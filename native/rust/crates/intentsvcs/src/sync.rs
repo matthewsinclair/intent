@@ -710,7 +710,16 @@ fn walk(dir: &Path, scope: &Scanned, out: &mut Vec<PathBuf>) -> Result<(), SyncE
   Ok(())
 }
 
-fn entry_for(root: &Path, path: &Path, previous: &[FileEntry]) -> Result<FileEntry, SyncError> {
+/// One file's index entry, hashed from its bytes on disk now.
+///
+/// `pub(crate)` because the facade records the canon files a projection lands
+/// (0260), and a second hasher there would be a second answer to "what are
+/// this file's bytes".
+pub(crate) fn entry_for(
+  root: &Path,
+  path: &Path,
+  previous: &[FileEntry],
+) -> Result<FileEntry, SyncError> {
   let rel = crate::project::relative(root, path);
   let bytes = std::fs::read(path).map_err(|e| io_err(path, e))?;
   let meta = std::fs::metadata(path).map_err(|e| io_err(path, e))?;
