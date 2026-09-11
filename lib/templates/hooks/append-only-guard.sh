@@ -8,18 +8,18 @@
 #
 # WHY A GUARD RATHER THAN CARE. Writing where you meant to append is a
 # one-character difference with no visible symptom, and every human-facing
-# check reads correct afterwards. Two members, both measured, both silent:
+# check reads correct afterwards. The members, each measured, each silent:
 #
-#   intent/whiteboard/<node>/.history/**   492 lines destroyed 2026-08-17, by a
+#   intent/whiteboard/<node>/.history/**   lines destroyed 2026-08-17, by a
 #                                          fold that overwrote the day's archive
 #                                          instead of appending. The live inbox
 #                                          read `_(empty)_` correctly, the entry
 #                                          was correctly in .history/, the board
 #                                          read as folded, `ws hygiene` was
 #                                          clean. The ONLY signal anywhere was
-#                                          `514 deletions` in `git show --stat`.
+#                                          the deletion count in `git show --stat`.
 #
-#   intent/events.jsonl                    19 events destroyed 2026-08-19, by
+#   intent/events.jsonl                    events destroyed 2026-08-19, by
 #                                          `intent upgrade` emitting an empty
 #                                          log over a populated one -- and it
 #                                          wrote no event for its own run, so
@@ -34,9 +34,11 @@
 # nothing to tune and no case to exempt.
 #
 # LEAN BY INSTRUCTION (hv: "bike-shedding"). No options, no config, no design.
-# It lands in a shipped consumer surface -- every project inherits it on the
-# next `intent upgrade` -- which is the reason for lean rather than an argument
-# against building it.
+# It lands in a shipped consumer surface -- the gate reads the roster and guard
+# bodies live from the Intent install, so every project whose carrier is
+# installed (`intent claude upgrade --apply`) runs it as soon as its install
+# carries it -- which is the reason for lean rather than an argument against
+# building it.
 
 set -euo pipefail
 

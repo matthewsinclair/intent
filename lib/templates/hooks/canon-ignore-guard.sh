@@ -9,12 +9,12 @@
 # EDIT, and the gap between those two moments is where the class lives.**
 #
 # WHY THE HAZARD IS STRUCTURAL AND NOT HYPOTHETICAL. Every other `intent/.<x>/`
-# in a v3 tree is gitignored -- `.cache/`, `.backup/` -- so the
-# convention reads *a dot directory under `intent/` is local and never travels*.
-# `.canon/` is the single deliberate exception, and it holds the entire steel
-# thread and issue estate. A future tidy-up adding `intent/.*/` to `.gitignore`
-# is a natural, tidy-looking, correct-SEEMING edit that would silently
-# un-commit all of it. **A convention that every sibling follows and one
+# holding per-machine state in a v3 tree is gitignored -- `.cache/`, `.backup/`
+# -- so the convention reads *a dot directory under `intent/` is local and never
+# travels*. `.canon/` is not the only committed exception (`.config/` is
+# committed too), but it is the one holding the entire steel thread and issue
+# estate. A future tidy-up adding `intent/.*/` to `.gitignore` is a natural,
+# tidy-looking, correct-SEEMING edit that would silently un-commit all of it. **A convention that every sibling follows and one
 # exception breaks is not a convention anyone will remember to check.**
 #
 # WHAT IT ASKS, AND WHY IT ASKS GIT RATHER THAN A REGEX. The question is not
@@ -117,12 +117,13 @@ matches="$(git check-ignore -v --no-index -- "${PROBES[@]}" 2>/dev/null || true)
 # blocked when inherited or waved through when added.
 #
 # GROUPED BY RULE, AND THAT IS A CORRECTNESS PROPERTY OF THE MESSAGE RATHER
-# THAN A COSMETIC ONE. Ungrouped, one `intent/.*/` printed 100 identical
-# `source:line:pattern` prefixes and buried the single fact the operator needs
-# -- which rule to delete -- under the evidence for it. The gate's own runner
-# warns that a line a reader cannot act on is how a gate's output stops being
-# read, and 100 of them is that failure delivered wholesale. The count IS the
-# alarming figure; the examples are what makes it concrete.
+# THAN A COSMETIC ONE. Ungrouped, one `intent/.*/` printed an identical
+# `source:line:pattern` prefix for every canon path and buried the single fact
+# the operator needs -- which rule to delete -- under the evidence for it. The
+# gate's own runner warns that a line a reader cannot act on is how a gate's
+# output stops being read, and a wall of them is that failure delivered
+# wholesale. The count IS the alarming figure; the examples are what makes it
+# concrete.
 blocking_rules=""
 blocking_counts=""
 inherited_rules=""

@@ -6,35 +6,35 @@
 # the entire reason this file exists as a file, so it goes first.
 #
 # WHAT WENT WRONG, MEASURED ON THIS REPOSITORY 2026-08-20 AT `5dbac6fb`.
-# `pre-commit.sh` is copied verbatim into `.git/hooks/pre-commit.intent` by
-# `intent claude upgrade --apply`, and it used to carry the roster INSIDE it.
+# `pre-commit.sh` was then copied verbatim into `.git/hooks/pre-commit.intent`
+# by `intent claude upgrade --apply` (today that path holds the shim
+# `pre-commit-shim.sh`, which execs `pre-commit.sh` live), and it used to carry
+# the roster INSIDE it.
 # The guard bodies were read live from `INTENT_HOME`, and its own comment said
 # in these words that this "makes a new guard propagate without touching a
 # consumer's .git/hooks/". **The bodies propagated. The roster did not.** So
-# adding a guard to canon reached nobody until they reinstalled the hook:
+# adding a guard to canon reached nobody until they reinstalled the hook. The
+# shipped roster named more guards than this repo's installed pre-commit.intent
+# ran (its copy was hardcoded), `bin/int precommit` compensated for only part of
+# the gap, and canon-ignore-guard.sh and append-only-guard.sh ran NOWHERE in
+# this repository.
 #
-#     shipped roster (canon)                     4 guards
-#     this repo's installed pre-commit.intent    1 guard, hardcoded, dated Aug 14
-#     bin/int precommit compensated for          1 of the missing 3
-#     guards running NOWHERE in this repository  canon-ignore-guard.sh
-#                                                append-only-guard.sh
-#
-# `append-only-guard.sh` was written because 492 lines of `.history/` were
-# destroyed on 2026-08-17 and 19 events on 2026-08-19. It protected nothing here
+# `append-only-guard.sh` was written because `.history/` lines were destroyed
+# on 2026-08-17 and events on 2026-08-19. It protected nothing here
 # from the day it was written. **A guard nothing dispatches is indistinguishable
 # from a guard that passes** -- this file's own subject matter, happening to the
-# mechanism, for six days, in silence.
+# mechanism, for days, in silence.
 #
 # So the rule is now structural rather than remembered: the copied file names no
 # guard and holds no roster, and there is exactly one place a guard is declared.
 # Adding one is a line in the array below and it reaches every consumer with no
 # reinstall, no version bump and nothing to remember.
 #
-# THREE ABSENCES, NOT TWO, AND THEY MUST STAY APART (issue 0042, one level up).
+# THE ABSENCES MUST STAY APART (issue 0042, one level up).
 # The hook already distinguished "the resolver did not answer" (ALL guards
 # missing) from "one guard file is missing" (one hole), because collapsing them
 # printed one benign "not found" per guard while the gate was in fact not
-# running. Delegating the roster adds a third: **the runner itself missing**,
+# running. Delegating the roster adds another: **the runner itself missing**,
 # which is again all-guards-missing but has a different remedy -- nothing is
 # wrong with the guards and nothing is wrong with the resolver; the install is
 # older than this mechanism. The hook owns absences 1 and 2 because they are
@@ -47,7 +47,7 @@ set -u
 # Format is `applies-when|basename|what goes unchecked if it is missing`.
 #
 # ONE GUARD PER CONCERN, NOT ONE GUARD THAT GREW. The clock guard checks
-# TIMESTAMPS (three checks, all about clocks); the header guard checks the
+# TIMESTAMPS (every check is about clocks); the header guard checks the
 # HEADER BLOCK's format contract. They were kept apart by ruling (vc,
 # 2026-08-16): folding a second concern into a file named for the first makes
 # its name lie to the next reader, and it couples two controls that should be
@@ -81,10 +81,11 @@ GUARDS=(
   # regardless of why it was dispatched** -- so `applies-when` is a cheap
   # pre-filter here and not the real gate.
   #
-  # D53 retires ONE of the two subjects: the event log's home is the store and
-  # `intent/events.jsonl` becomes an `intent export` product. `.history/**` is
-  # untouched, five nodes fold into it daily, and it is where the 492-line loss
-  # actually happened. The guard keeps both entries until the file form is gone.
+  # D53 retired ONE of the subjects: the event log's home is the store,
+  # `intent/events.jsonl` is an `intent export` product, and the converger
+  # gitignores it (`facade.rs` `IGNORED`), so that entry now bites only a
+  # force-added file. `.history/**` is untouched, every node folds into it
+  # daily, and it is where the loss actually happened.
   'intent|append-only-guard.sh|a write where an append was meant is UNCHECKED'
 )
 
@@ -103,7 +104,7 @@ GUARD_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 #
 # **`int hooks` REPORTED THIS GATE AS ONE LINE AND NAMED NONE OF ITS GUARDS**,
 # so the tool an operator consults to find out what the gate enforces
-# under-reported it by the whole of this roster. It printed the eleven
+# under-reported it by the whole of this roster. It printed the
 # repo-local guards and, for the shipped ones, `pre-commit.intent (critic + the
 # shipped guard roster)` -- which is presence, not membership. **A check that
 # under-reports what a gate enforces is worse than no check** is that command's
@@ -119,7 +120,7 @@ GUARD_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 #
 # THE RUNNER IS THE AUTHORITY ON ITS OWN ROSTER, and that is why this is a flag
 # rather than something `int hooks` derives. The previous arrangement grepped a
-# runner's source for a path shape and under-reported a three-guard gate as two
+# runner's source for a path shape and under-reported a gate's guards
 # WITHIN THE DAY, because a guard had been implemented inline and matched no
 # path. A roster restated anywhere but here goes stale the moment a guard is
 # added -- and this file exists because exactly that happened to the copied

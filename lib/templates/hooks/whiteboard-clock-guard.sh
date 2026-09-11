@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 #
 # whiteboard-clock-guard.sh -- refuse a commit whose whiteboard timestamps
-# cannot be real clock reads. THREE checks, each closing a hole the others
+# cannot be real clock reads. Each check below closes a hole the others
 # cannot see.
 #
 # ORIGIN: built and measured in Lamplight (`bin/hooks/whiteboard-clock-guard`,
 # check A 2026-08-11, checks B and C 2026-08-14) and brought upstream here,
 # because Intent ships the whiteboard protocol and every consumer inherits the
 # hole otherwise. The measurements in the comments below are Lamplight's, on a
-# five-node board; they are kept because they are the evidence for the design,
-# not decoration. Ported with four changes, each marked PORT: below.
+# multi-node board; they are kept because they are the evidence for the design,
+# not decoration. Ported with changes, each marked PORT: below.
 #
 # WHY THIS IS A GATE AND NOT A RULE.
 #
 # The rule "never hand-write a stamp, use `date -u`" is canon in the
 # `in-whiteboard` skill ("Every timestamp is READ FROM A CLOCK"), and every node
-# on a five-node board broke it repeatedly while nothing enforced it. The
+# on a multi-node board broke it repeatedly while nothing enforced it. The
 # failure is SILENT (a wrong time is still a valid timestamp), PLAUSIBLE (15:52Z
 # looks exactly like 14:52Z), and EXPENSIVE (heartbeats decide whether a peer
 # reads you as live, and the 7-day reclaim rule can never expire a stamp set in
@@ -25,19 +25,19 @@
 # CHECK A -- FUTURE STAMP
 #
 # A stamp cannot postdate the commit that adds it, so a positive delta is proof
-# of a bad read. Measured 2026-08-11: positive deltas from all four nodes,
+# of a bad read. Measured 2026-08-11: positive deltas from every node,
 # clustered at +40 to +65 minutes -- the signature of reading a LOCAL clock (the
 # machine runs BST) and appending a `Z`.
 #
 # CHECK B -- MISSING `Z`
 #
 # Check A alone does NOT catch the local-clock error, and measuring it is what
-# proved that: 14 unmarked headings were written AFTER check A landed. The
+# proved that: unmarked headings were still written AFTER check A landed. The
 # reason is arithmetic. An unmarked `## (2026-08-14 14:19)` is parsed as UTC, so
 # it only trips check A while it is still in the future; the moment a node's
 # commit lags by more than the local offset (one hour in BST) the same bad stamp
-# sails through. Lag is normal -- over 68 real stamps, 93% commit within the
-# hour, with a tail to nine hours. Check A was only ever catching the fast half.
+# sails through. Lag is normal -- most real stamps commit within the hour,
+# with a tail of hours. Check A was only ever catching the fast half.
 #
 # So the `Z` is checked SYNTACTICALLY: no clock, no tolerance. An unmarked stamp
 # is not a wrong time but an UNKNOWN one, and "assume local, treat its ordering
@@ -52,8 +52,8 @@
 # two board stamps to each other, a real `date -u` read can never break it
 # (time does not run backwards), and a fabricated stamp breaks it immediately.
 #
-# Measured 2026-08-14 in Lamplight: three live violations, by 50, 28 and 9
-# minutes. B and C overlapped on that day's evidence and are still kept
+# Measured 2026-08-14 in Lamplight: live violations, each under an hour. B and
+# C overlapped on that day's evidence and are still kept
 # separate, because they fail independently -- B cannot see a fabricated stamp
 # carrying a `Z`, and C cannot see a wrong-clock stamp that lands in order.
 #
@@ -61,7 +61,7 @@
 # `.history/`. Archives replay old entries verbatim, so `clear` and `archive`
 # legitimately add stamps hours or days old; excluding that path is what stops
 # the guard blocking the protocol's own housekeeping. Measured: including
-# `.history/` put the apparent lag tail at 55 HOURS; excluding it, 9.
+# `.history/` stretched the apparent lag tail from hours to days.
 #
 # CHECK C NEVER BLOCKS ON PRE-EXISTING BREAKAGE -- it fires only when a stamp
 # THIS COMMIT ADDS is out of order. Otherwise existing violations would wedge
@@ -114,13 +114,13 @@
 #
 #     THIS NOTE USED TO END "No coverage is lost -- those are the only places the
 #     protocol puts a time", AND THAT WAS FALSE WHEN IT WAS WRITTEN. The protocol
-#     names three surfaces and this guard read two, so anchoring positionally DID
-#     lose coverage: every date in a `## Decisions` line, 97 of them on Intent's
-#     own board, none scanned. The sentence was re-asserted through a rewrite of
+#     names more surfaces than this guard read, so anchoring positionally DID
+#     lose coverage: every date in a `## Decisions` line on Intent's own board,
+#     none scanned. The sentence was re-asserted through a rewrite of
 #     this region rather than checked against the protocol it describes.
 #
 #     A GUARD THAT STATES ITS OWN REACH IS MAKING A CLAIM NOBODY TESTS, and this
-#     one was wrong for as long as it stood. The reach is now the three shapes in
+#     one was wrong for as long as it stood. The reach is now the shapes in
 #     `STAMP_LINES_RE` below, and that list is the only place to read it from.
 #
 #   PORT 3 -- CHECK B ACCEPTS EITHER ISO SEPARATOR. The original requires `T`
@@ -147,8 +147,8 @@
 # travel, which is why it never cost a false positive and never caught anything.
 #
 # WHAT IT COST, MEASURED ON THIS ESTATE BEFORE THE CHANGE: the guard ran for
-# thirteen days and detected NOTHING, while twenty future stamps landed in
-# Intent's own board history and walked past it. Both known instances are
+# days and detected NOTHING, while future stamps landed in Intent's own board
+# history and walked past it. The known instances are
 # exactly +60s and `-gt` is strict, so 120 missed them -- and so would 60.
 #
 # WHY 0 AND NOT MERELY A SMALLER NUMBER: it is the only value at which the two
@@ -248,45 +248,46 @@ added_lines="$(git diff --cached --unified=0 -- "${WB_PATHS[@]}" 2>/dev/null |
 # PORT 2 + 3: the shapes that carry a protocol timestamp. Everything else on a
 # board is prose, including prose about timestamps.
 #
-# THREE SHAPES, NOT TWO, AND THE COMMENT HERE ASSERTED TWO WHILE THE THIRD WENT
+# MORE SHAPES THAN THE COMMENT HERE ASSERTED, AND THE ONE IT OMITTED WENT
 # UNSCANNED. The protocol (`in-whiteboard` SKILL.md) names entry headings,
 # `heartbeat_at:`, AND every date in a `## Decisions` line. This file used to say
 # "the two shapes that carry a protocol timestamp", and the PORT 2 note above
 # used to add "those are the only places the protocol puts a time" -- both false,
 # both load-bearing for a reader deciding whether to look further, and the claim
 # was RE-ASSERTED through a rewrite of this region rather than checked. Found by
-# baize-vc; measured on Intent's own board at 97 dated Decisions bullets, 0 of
-# them scanned.
+# baize-vc; measured on Intent's own board, where no dated Decisions bullet was
+# scanned.
 #
 # THE DECISIONS FORM IS POSITIONAL LIKE THE OTHER TWO, WHICH IS PORT 2's WHOLE
 # POINT: it anchors to the bullet opening, so only a date sitting where the
 # protocol reserves a decision's OWN date is read, and a node quoting a peer's
 # bad date mid-sentence is still not blocked for reporting it.
 #
-# BOTH BULLET FORMS ARE COVERED DELIBERATELY. A census of one board found 68
-# date-only (`- (YYYY-MM-DD)`), 28 carrying a time (`- **(YYYY-MM-DD HH:MMZ, ...`)
-# and 1 with the date followed by bold markup. A pattern requiring `)` straight
-# after the date reaches the 68 and misses the 28 -- and the 28 are exactly where
-# checks A and B do real work, because they carry a time to be wrong about.
+# BOTH BULLET FORMS ARE COVERED DELIBERATELY. A census of one board found
+# date-only bullets (`- (YYYY-MM-DD)`), bullets carrying a time
+# (`- **(YYYY-MM-DD HH:MMZ, ...`) and a date followed by bold markup. A pattern
+# requiring `)` straight after the date reaches the date-only form and misses
+# the timed one -- and the timed ones are exactly where checks A and B do real
+# work, because they carry a time to be wrong about.
 #
 # WHAT THIS DOES NOT REACH, NAMED HERE BECAUSE AN UNSTATED SCOPE IS THE DEFECT
-# THAT CREATED THIS WHOLE ITEM. Two live forms are NOT matched, both measured,
-# both left out on purpose rather than missed:
+# THAT CREATED THIS WHOLE ITEM. Live forms that are NOT matched, each measured
+# and left out on purpose rather than missed:
 #
-#   - A DATED `###` HEADING, eg `### 2026-08-26 -- ruled in chat`. Intent 5,
-#     Lamplight 4. Found by lamplight-vc, who measured it and explicitly did not
+#   - A DATED `###` HEADING, eg `### 2026-08-26 -- ruled in chat`.
+#     Found by lamplight-vc, who measured it and explicitly did not
 #     argue for widening. Not widened here either: hv ruled a specific shape and
 #     extending scope afterwards on my own initiative is how a guard grows reach
 #     nobody sanctioned. FILED, NOT FIXED.
 #
 #     AND THE COUNT UNDERSTATES IT, WHICH IS THE REASON TO READ THIS TWICE:
 #     **the unscanned form correlates with the highest-authority content on the
-#     board.** All 5 of Intent's are on the `hv` node -- the rulings record --
+#     board.** All of Intent's are on the `hv` node -- the rulings record --
 #     and on Lamplight the hv node uses ONLY this form, so that estate's rulings
 #     are entirely unscanned. Two estates, arrived at independently, and it is
 #     not coincidence: a dated `###` heading is the NATURAL shape for a rulings
 #     record, and it is the one shape this guard does not read. Whoever weighs
-#     widening should weigh that rather than the 9.
+#     widening should weigh that rather than the count.
 #
 #     vc's response was to change what they WRITE rather than ask this to grow --
 #     recording hv's rulings as date-first bullets from now on. That is the
@@ -297,7 +298,7 @@ added_lines="$(git diff --cached --unified=0 -- "${WB_PATHS[@]}" 2>/dev/null |
 #     PORT 2 hazard, blocking a report. Chosen, not inherited.
 #   - AN AUTHOR-FIRST STAMP, eg `- **(hv, 2026-08-26) ...`. This one IS a
 #     protocol stamp in a variant field order, not a different kind of line, so
-#     it is the weakest of the three exclusions. 10 of them, ALL on Intent's `ic`
+#     it is the weakest of the exclusions. ALL of them are on Intent's `ic`
 #     node, and no other estate has any -- a local convention rather than a
 #     protocol variant, which is why it is filed rather than fixed. None is
 #     future-dated, so nothing is being missed that would block today. The node
@@ -311,7 +312,7 @@ added_lines="$(git diff --cached --unified=0 -- "${WB_PATHS[@]}" 2>/dev/null |
 # evidence FOR requiring the parenthesis: a dated bullet with no opening
 # parenthesis is PROSE THAT MENTIONS A DATE, not a stamp -- `- Cross-node
 # decisions from 2026-08-24 are archived at ...`, `- **2026-08-25's rulings are
-# NOT carried here.**`. Laksa, Prolix and Devbin carry one or two each. Reading
+# NOT carried here.**`. Laksa, Prolix and Devbin carry a few. Reading
 # those would block a node for writing a sentence about a date, which is the
 # PORT 2 hazard in its plainest form.
 #
@@ -352,8 +353,8 @@ report_header() {
 # BSD FILLS THE UNSPECIFIED TIME FROM THE CURRENT CLOCK, so a decision dated
 # TODAY parses to NOW. `now_epoch` is read once before this loop and `to_epoch`
 # is called per stamp inside it, so any elapsed time makes the drift POSITIVE and
-# a tolerance of 0 REFUSES A DECISION DATED TODAY. With ~100 bullets in the loop
-# that is not hypothetical. Normalising to `<date> 00:00` pins the field both
+# a tolerance of 0 REFUSES A DECISION DATED TODAY. With a board's worth of bullets in the
+# loop that is not hypothetical. Normalising to `<date> 00:00` pins the field both
 # flavours would otherwise invent, and they then agree.
 #
 # THE FAILURE THIS AVOIDS IS FAIL-CLOSED ON CORRECT WORK, which is worse than the
@@ -422,9 +423,10 @@ EOF
 # A `## Decisions` BULLET IS THE THIRD ARM, AND IT IS SCOPED TO THE ONES THAT
 # CARRY A TIME. A date-only decision has no zone to mark, so B is inapplicable to
 # it BY CONSTRUCTION rather than by exemption -- but the claim that Decisions
-# dates are date-only is false: a census of one board found 28 of 97 carrying
-# `HH:MMZ`, and an unmarked time there is exactly as ambiguous as an unmarked
-# heading. Those 28 all carry their Z today, so this arm ships green and stays
+# dates are date-only is false: a census of one board found timed bullets
+# carrying `HH:MMZ`, and an unmarked time there is exactly as ambiguous as an
+# unmarked heading. Those all carried their Z when measured, so this arm ships
+# green and stays
 # that way only while nodes keep reading `date -u`.
 #
 # The trailing `[^Z]` is what makes it a NO-Z test rather than a has-a-time test:

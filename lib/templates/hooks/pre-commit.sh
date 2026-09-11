@@ -4,15 +4,18 @@
 #
 # Purpose:
 #   Run `intent critic <lang> --staged --severity-min <sev>` for each
-#   language detected in the project, block the commit on findings at or
-#   above the configured severity threshold, and fail-open when the
-#   critic tooling itself is unavailable.
+#   language declared in `intent/.config/config.json`, block the commit on
+#   findings at or above the configured severity threshold, fail open when
+#   the critic answers a code the gate does not recognise (its own breakage),
+#   and refuse when the `intent` CLI cannot be run in an Intent project.
 #
 # Install:
-#   Copied to `.git/hooks/pre-commit` (chmod +x) by
-#   `intent claude upgrade --apply`. If a pre-existing hook is present,
-#   the installer writes to `.git/hooks/pre-commit.intent` and prints
-#   instructions for chaining instead of overwriting.
+#   Not copied into a project. `intent claude upgrade --apply` writes the
+#   shim `pre-commit-shim.sh` to `pre-commit.intent` in the git hooks
+#   directory and inserts a chain block that runs it into that directory's
+#   `pre-commit`, creating the hook if absent and editing only the block if
+#   present. The shim reads the install root from `~/.intent/home` and execs
+#   this file from `<root>/lib/templates/hooks/`.
 #
 # Configuration:
 #   Reads severity threshold from `.intent_critic.yml` at the project
@@ -57,20 +60,22 @@ cd "$PROJECT_ROOT" || exit 0
 # already existed. No new machinery -- the ordering was the whole defect.
 # ---- Repo guards (delegated: this file names NO guard and holds NO roster) ----
 #
-# THE ROSTER IS NOT HERE, AND THAT IS THE POINT. This file is COPIED into
-# `.git/hooks/pre-commit.intent`; the roster is READ LIVE out of `INTENT_HOME`,
-# in `pre-commit-guards.sh`. Anything a consumer holds a frozen copy of cannot
-# be updated by shipping canon, so the roster must not be something they hold.
+# THE ROSTER IS NOT HERE, AND THAT IS THE POINT. This file is no longer copied
+# into a project: the carrier `.git/hooks/pre-commit.intent` is the shim
+# (`pre-commit-shim.sh`), which execs this file live from the install root. The
+# roster is read live from the same install, in `pre-commit-guards.sh`. Anything
+# a consumer holds a frozen copy of cannot be updated by shipping canon, so the
+# roster must not be something they hold.
 #
 # It used to be, and the comment here claimed otherwise in those words --
 # "this is also what makes a new guard propagate without touching a consumer's
 # .git/hooks/". The guard BODIES propagated; the array naming them did not.
-# Measured on this repository 2026-08-20: canon rostered four guards, the
-# installed hook ran one, and two had never run here at all. The full account,
+# Measured on this repository 2026-08-20: the installed hook ran a fraction of
+# the guards canon rostered, and some had never run here at all. The full account,
 # and the roster, are in `pre-commit-guards.sh`.
 #
 # NO APPLICABILITY PRE-FILTER HERE, DELIBERATELY, AND IT COSTS ONE `intent info`
-# (measured: 46ms) ON EVERY COMMIT IN EVERY PROJECT. The previous version tested
+# ON EVERY COMMIT IN EVERY PROJECT. The previous version tested
 # the roster's `applies-when` paths first so a project owing nothing paid
 # nothing -- which requires knowing the roster, which is the thing that must not
 # live in a copied file. A cheap stand-in (`[ -e intent ]`) would be a second,
@@ -85,7 +90,7 @@ cd "$PROJECT_ROOT" || exit 0
 # containing spaces still resolves.
 #
 # Captured WITHOUT a pipe before `$?` is read: `x="$(cmd | sed)"; rc=$?` gives
-# sed's status, and that mistake has cost this estate four wrong diagnoses.
+# sed's status, and that mistake has cost this estate wrong diagnoses.
 wb_info_out="$(intent info 2>&1)"; wb_info_rc=$?
 # Trailing whitespace is stripped as well as leading, and that is vc's measured
 # hardening rather than a defensive reflex: the line is COLUMN-PADDED ON THE
@@ -96,11 +101,11 @@ wb_info_out="$(intent info 2>&1)"; wb_info_rc=$?
 # which would print the line twice, and without GNU's `T`, which BSD sed lacks.
 INTENT_HOME_RESOLVED="$(printf '%s\n' "$wb_info_out" | sed -n '/^ *INTENT_HOME:/ { s/^ *INTENT_HOME: *//; s/ *$//; p; }' | head -1)"
 
-# THREE ABSENCES, KEPT APART. Issue 0042 was two of them collapsed into one
+# THE ABSENCES, KEPT APART. Issue 0042 was absences 1 and 3 collapsed into one
 # `else`: when the RESOLVER fails every guard is missing at once, so the loop
-# printed one benign-looking "not found" per guard and enforced nothing -- two
-# mild warnings read as two small holes when the truth was that the gate was not
-# running. Delegating the roster adds a third, and the same discipline applies.
+# printed one benign-looking "not found" per guard and enforced nothing -- mild
+# warnings read as small holes when the truth was that the gate was not
+# running. Delegating the roster adds absence 2, and the same discipline applies.
 #
 #   1. resolver did not answer   ALL guards missing   the tool that finds them is broken
 #   2. runner not in the install ALL guards missing   the install predates this mechanism
@@ -114,12 +119,12 @@ INTENT_HOME_RESOLVED="$(printf '%s\n' "$wb_info_out" | sed -n '/^ *INTENT_HOME:/
 # which was the true signature of an unresolvable install on the day it was
 # written: `intent info` was unimplemented, printed no INTENT_HOME line at all,
 # and the `sed` above yielded nothing. It now prints `INTENT_HOME: <not set>`
-# -- v2 has always rendered that token (`bin/intent_info`) and v3 reproduces it
-# deliberately so this parse never comes back empty -- which is better for a
+# -- v2 always rendered that token and v3 reproduces it deliberately (`render.rs`
+# `info`) so this parse never comes back empty -- which is better for a
 # human and NON-EMPTY, so the branch below became unreachable in exactly the
 # condition it exists for. Measured on a brew-shaped install (a binary sitting
 # outside its own tree): exit 1, resolution `<not set>`, and the loop then hunted
-# for guards under `<not set>/lib/templates/hooks/` and reported two small holes.
+# for guards under `<not set>/lib/templates/hooks/` and reported small holes.
 # Neither change was wrong and nothing connected them, because the coupling is a
 # `sed` over display text and is written down nowhere but here.
 #
@@ -162,10 +167,10 @@ INTENT_HOME_RESOLVED="$(printf '%s\n' "$wb_info_out" | sed -n '/^ *INTENT_HOME:/
 #
 # MEASURED 2026-08-21 at c8555d4e. With the v2 CLI split out to
 # `~/Devel/prj/Intentv2`, `intent info` in the Intent source tree resolves to
-# that frozen checkout. All seven guard files were byte-identical that day, so
+# that frozen checkout. All the guard files were byte-identical that day, so
 # nothing was broken -- and that is exactly the shape of the frozen-roster
-# failure already on this estate's record, where an installed hook ran one
-# guard of four and nothing said so. The drift arms on the first change to
+# failure already on this estate's record, where an installed hook ran a
+# fraction of the roster and nothing said so. The drift arms on the first change to
 # `lib/templates/hooks/`; `pre-commit-guards.sh` IS the roster file, so a
 # roster admission is the likeliest trigger.
 #
@@ -177,9 +182,9 @@ INTENT_HOME_RESOLVED="$(printf '%s\n' "$wb_info_out" | sed -n '/^ *INTENT_HOME:/
 # THE MARKER IS THE RUNNER ITSELF PLUS `VERSION`. A repository carrying
 # `lib/templates/hooks/pre-commit-guards.sh` in Intent's own source layout IS
 # an Intent source tree, and `VERSION` beside it makes an accidental collision
-# negligible. Deliberately NOT `bin/intent`: the v2 shell is slated for pruning
-# here, and a marker that a planned change deletes is one that fails silently
-# later, which is the class this whole block exists to remove.
+# negligible. Deliberately NOT `bin/intent`: the v2 shell has since been pruned
+# from this tree (`d5998ac37`), which is exactly how a marker on it would have
+# failed silently -- the class this whole block exists to remove.
 _repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 GUARD_HOME="$INTENT_HOME_RESOLVED"
 GUARD_HOME_IS_SELF=""
@@ -269,8 +274,8 @@ else
   # SILENT IN THE ORDINARY CASE, DELIBERATELY. For every project that USES
   # Intent this branch never fires, and a line on every commit in every project
   # restating the expected outcome is how a gate's output stops being read --
-  # measured on this estate the same day this was written, where 82 lines of
-  # entirely correct `ok:` masked four guards that were not present at all.
+  # measured on this estate the same day this was written, where a screenful of
+  # entirely correct `ok:` lines masked guards that were not present at all.
   if [ -n "$GUARD_HOME_IS_SELF" ]; then
     echo "intent gate: guards read from THIS repository (${GUARD_HOME}/lib/templates/hooks), not from INTENT_HOME." >&2
   fi
@@ -303,9 +308,9 @@ fi
 # Intent project and the gate was asked for; a missing CLI is then a broken
 # installation, not a repo the gate does not apply to.
 #
-# **MEASURED BEFORE THE CHANGE (vc, 2026-08-27): all 17 estates carrying this
-# hook ARE Intent projects, so the fail-open protected nobody** -- and it cost
-# 12 ungated commits across 3 estates inside one 9-minute window, two of them
+# **MEASURED BEFORE THE CHANGE (vc, 2026-08-27): every estate carrying this
+# hook IS an Intent project, so the fail-open protected nobody** -- and it cost
+# ungated commits across several estates inside a few minutes, some of them
 # the committing node's own. A skip is indistinguishable from a pass to
 # everything downstream, which is why the cost went unnoticed while the log
 # looked healthy.
@@ -320,7 +325,7 @@ fi
 # cannot run -- is devbin-vc's, already implemented in `check format`.
 # **RESOLVED, THEN TESTED FOR EXECUTABILITY -- because `command -v` does not do
 # the second thing.** This condition used to be `! command -v intent`, and that
-# is exactly two of the five states short: a plain non-executable file (C) and a
+# is states C and E short: a plain non-executable file (C) and a
 # link to a non-executable target (E) are both FOUND by `command -v`, sailed
 # past this arm, and died at the invocation site as exit 126 -- where the gate
 # reported the language UNENFORCED and let the commit through.
@@ -328,17 +333,17 @@ fi
 # **hv RULING 4 (2026-08-27): A GATE THAT CANNOT LOCATE WHAT IT NEEDS REFUSES,
 # IT DOES NOT SKIP.** This arm ALREADY refused for A, B and D; C and E fell
 # through on an accident of what `command -v` tests, not on a policy anyone
-# chose. Closing it makes the five states agree rather than adding a new
+# chose. Closing it makes states A to E agree rather than adding a new
 # severity: the gate is not becoming stricter, it is becoming consistent.
 #
 # **AND THIS IS NOT ISSUE 0043 REBUILT ON THE GIT SIDE.** That objection applies
 # to blocking when the tool RAN and answered; it does not apply here, because
-# the tool did not run at all and this arm has blocked for three of these five
-# states since it was written. The fail-open below (exit 2, unimplemented) is
-# untouched and remains a ruling.
+# the tool did not run at all and this arm has blocked for states A, B and D
+# since it was written. The fail-open below (exit 2 and any other unrecognised
+# code -- the critic's own breakage) is untouched and remains a ruling.
 _cv="$(command -v intent 2>/dev/null || true)"
 if [ -z "$_cv" ] || [ ! -x "$_cv" ] || [ -d "$_cv" ]; then
-  # ---- WHICH ABSENCE? `command -v` COLLAPSES THREE STATES INTO ONE EMPTY ANSWER ----
+  # ---- WHICH ABSENCE? `command -v` COLLAPSES STATES A, B AND D INTO ONE EMPTY ANSWER ----
   #
   # **THE REMEDY WAS WRONG FOR MOST OPERATORS WHO WOULD EVER SEE IT** (ic,
   # measured live 2026-08-27): during a release build the CLI goes ABSENT rather
@@ -347,9 +352,10 @@ if [ -z "$_cv" ] || [ ! -x "$_cv" ] || [ -d "$_cv" ]; then
   # flight. `~/.local/bin/intent` is a symlink into the release tree here, so the
   # window is real and estate-wide, not hypothetical.
   #
-  # **THREE, AND THE NUMBER WAS FOUR UNTIL A TEST DROVE IT.** ic and I both
-  # recorded that `command -v` answers empty for FOUR states, and I wrote four
-  # branches on that basis. Measured under bash on all five planted states:
+  # **THE EMPTY-ANSWER STATES ARE A, B AND D, AND THE LIST WAS LONGER UNTIL A
+  # TEST DROVE IT.** ic and I both recorded more empty-answer states than there
+  # are, and I wrote a branch for each on that basis. Measured under bash on
+  # every planted state:
   #
   #   A  nothing on PATH by that name      rc=1 EMPTY   reaches here
   #   B  link, target does not resolve     rc=1 EMPTY   reaches here
@@ -360,11 +366,11 @@ if [ -z "$_cv" ] || [ ! -x "$_cv" ] || [ -d "$_cv" ]; then
   # **`command -v` DOES NOT TEST EXECUTABILITY**, which is why the condition
   # above resolves the path and asks `-x` itself. C and E USED TO sail through
   # here and die at the invocation site as exit 126, reported as UNENFORCED and
-  # not blocking. They now arrive, so all five states are handled in one place
+  # not blocking. They now arrive, so every state is handled in one place
   # and the `rc` column above describes `command -v` alone rather than this
   # arm's reach.
   #
-  # **THE TWO BRANCHES I ORIGINALLY WROTE FOR C AND E WERE UNREACHABLE** -- dead
+  # **THE BRANCHES I ORIGINALLY WROTE FOR C AND E WERE UNREACHABLE** -- dead
   # code reading as coverage, in the very file that exists to stop that. They
   # were removed when the table was driven, and what follows is a single branch
   # written against a state that now actually arrives, which is a different
@@ -414,8 +420,9 @@ if [ -z "$_cv" ] || [ ! -x "$_cv" ] || [ -d "$_cv" ]; then
     echo "         still cannot be run. Something on PATH shadows the real CLI." >&2
     echo "  remedy: rename it, or reorder PATH so Intent's bin/ comes first." >&2
   elif [ ! -x "$_cand" ]; then
-    # **C AND E, THE TWO STATES THAT USED TO BE A FAIL-OPEN.** One branch, not
-    # two, and that is deliberate: C (a plain file without +x) and E (a link to
+    # **C AND E, THE STATES THAT USED TO BE A FAIL-OPEN.** A single branch
+    # rather than one each, and that is deliberate: C (a plain file without +x)
+    # and E (a link to
     # a target without +x) differ in how the operator got here and not at all in
     # what they must do, and `chmod +x` is the remedy for both. The earlier
     # attempt at this gave them a branch each and neither could ever run.
@@ -517,9 +524,11 @@ fi
 #   * = anything else. The gate does NOT know what it means. Fails open, LOUDLY.
 #
 # **`2` IS DELIBERATELY NOT LISTED, AND THAT IS THE FIX RATHER THAN AN OMISSION.**
-# v2 uses 2 for a usage error; v3 uses it for `known command, not implemented`.
-# One code, two meanings, two binaries -- so a legend that named 2 would be
-# false of whichever binary it was not describing. The gate treats every
+# v2 uses 2 for a usage error; v3's `critic` uses it for a usage error or a run
+# that loaded no rules (`critic.rs` `exit_code`), and a v3 verb that is declared
+# but unbuilt also answers 2. One code, several meanings across v2 and v3 -- so
+# a legend that named 2 would be false of whichever meaning it was not
+# describing. The gate treats every
 # unrecognised code identically and says so, which is the only claim it is
 # entitled to make.
 
@@ -581,7 +590,7 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
         # Under a v3 binary it printed `invocation error` over a checker that
         # ran perfectly and simply is not built yet, which is a confident claim
         # about a cause it did not measure -- the class that cost this estate
-        # seven wrong readings on 2026-08-20, and the only one of them with a
+        # a run of wrong readings on 2026-08-20, and the only one of them with a
         # live consumer in every project that installs this hook.
         #
         # **THE FAIL-OPEN IS UNCHANGED AND IS A RULING, NOT AN OVERSIGHT.** A
@@ -605,9 +614,9 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
   done
 fi
 
-# **ONE DIGEST WITH A DENOMINATOR, NOT N IDENTICAL LINES** (dc). Five declared
-# languages all answering an unrecognised code printed five near-identical
-# lines, and **a report that never changes trains its reader to stop looking**.
+# **ONE DIGEST WITH A DENOMINATOR, NOT N IDENTICAL LINES** (dc). Every declared
+# language answering an unrecognised code printed its own near-identical
+# line, and **a report that never changes trains its reader to stop looking**.
 #
 # **THE DENOMINATOR IS THE LOAD-BEARING PART.** `1 of 5` is a bad day; `5 of 5`
 # is a gate that is not running at all, and those must never look alike. It is

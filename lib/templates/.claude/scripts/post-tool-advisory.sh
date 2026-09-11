@@ -14,7 +14,7 @@
 # Opt in:
 #   1. Set `post_tool_use_advisory: true` in `.intent_critic.yml`.
 #   2. Add a PostToolUse hook stanza pointing here in your own
-#      `.claude/settings.local.json`, e.g.:
+#      `.claude/settings.local.json`, eg:
 #
 #      "PostToolUse": [
 #        {
@@ -68,8 +68,9 @@ esac
 
 command -v intent >/dev/null 2>&1 || exit 0
 
-# `intent critic` may not be present in every build. If the subcommand isn't present
-# yet, the `|| true` swallows failure and `[ -z "$findings" ]` exits.
+# `|| true` and `2>/dev/null` discard the critic's exit status and stderr on
+# purpose: this advisory must never block, so a critic that breaks (2) or
+# refuses (3) prints nothing here and `[ -z "$findings" ]` exits.
 findings="$(intent critic "$lang" --files "$file_path" --severity-min warning --format text 2>/dev/null || true)"
 [ -z "$findings" ] && exit 0
 

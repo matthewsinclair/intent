@@ -15,10 +15,10 @@
 #     see below.
 #
 # WHY EXIT 2 IS FORBIDDEN HERE, SPECIFICALLY:
-#   Claude Code's Stop hook reads 2 as "refuse to stop", measured as a 24s hang
-#   with zero output (vc, five arms, 2026-08-16; the table lives in
-#   `native/rust/crates/intent-cli/src/spine.rs`). `2` means four different
-#   things to four consumers of this binary, so there is no globally right
+#   Claude Code's Stop hook reads 2 as "refuse to stop", measured as a hang
+#   with no output (vc, 2026-08-16; the table lives in
+#   `native/rust/crates/intent-cli/src/spine.rs`). `2` means different
+#   things to different consumers of this binary, so there is no globally right
 #   value; what keeps the Claude Code side safe is that `intent claude hook`
 #   DELEGATES -- it execs this script, so every code a hook consumer sees is
 #   this script's own. That makes the exit code this file's responsibility
@@ -29,7 +29,7 @@
 #   lets the body become conditional, and conditional logic is exactly what
 #   could reach a non-zero exit. So the trade is explicit: the feature that
 #   makes routing worth doing is the same one that makes this contract
-#   mandatory. `tests/unit/session_finish_hook.bats` holds it.
+#   mandatory.
 #
 # Target runtime: < 100ms. All git calls are best-effort.
 

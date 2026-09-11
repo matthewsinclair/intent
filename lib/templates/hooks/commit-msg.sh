@@ -1,24 +1,29 @@
 #!/usr/bin/env bash
 # commit-msg.sh -- Intent attribution guard.
 #
+# Reached only through this repository's tracked `.githooks/commit-msg`; no
+# Intent verb installs it into another project.
+#
 # REFUSES any commit message carrying AI/Claude attribution. `CLAUDE.md` states
 # the rule in capitals and without exception -- "DO NOT ADD CLAUDE TO GIT
 # COMMITS. EVER. No Co-Authored-By lines, no Claude signatures, no AI
 # attribution in commit messages" -- and until this hook existed the rule was
 # enforced by nothing at all.
 #
-# MEASURED OVER ALL 5,885 COMMITS, ANCHORED, TWICE, BY TWO NODES INDEPENDENTLY
-# (Intent, 2026-09-09): 1,782 carry a `Claude-Session:` trailer; ZERO carry an
-# anchored `Co-Authored-By` naming Claude; zero carry a generated-with line;
-# zero carry the robot emoji. At least 392 of the 1,782 are already published.
+# MEASURED OVER THE WHOLE HISTORY, ANCHORED, BY SEPARATE NODES INDEPENDENTLY
+# (Intent, 2026-09-09): commits carrying a `Claude-Session:` trailer exist, many
+# of them already published --
+# `git log --grep='^[[:space:]]*Claude-Session:' --oneline | wc -l` reports how
+# many. None carries an anchored `Co-Authored-By` naming Claude, a
+# generated-with line or the robot emoji.
 # The practice stopped on 2026-09-07 for reasons outside this tree -- which is
 # precisely the case a guard exists for: nothing would stop it resuming, and
 # nothing would report it if it did.
 #
-# THE FIRST SHIPPED VERSION OF THIS HEADER SAID 1,789 AND ONE, AND BOTH WERE
-# UNANCHORED COUNTS. 1,789 is the count of commits containing the SUBSTRING
-# `Claude-Session` anywhere, which includes prose about the trailer; the "one"
-# was `6816e1e94`, a commit QUOTING the prohibition. An instrument that counts
+# THE FIRST SHIPPED VERSION OF THIS HEADER CARRIED UNANCHORED COUNTS. Its
+# trailer figure counted commits containing the SUBSTRING `Claude-Session`
+# anywhere, which includes prose about the trailer; its Co-Authored-By hit was
+# `6816e1e94`, a commit QUOTING the prohibition. An instrument that counts
 # mentions as violations grows its own population every time somebody documents
 # the rule -- and it did: the commit that added this guard became the second
 # such "hit" because its message quotes CLAUDE.md.
@@ -35,15 +40,15 @@
 # its trailer block is the structured part, so the trailer block is the subject.
 #
 # DECLARED LIMIT, NOT AN OVERSIGHT: a footer carrying ONLY a robot-emoji or
-# generated-with line and NO trailer would pass. Measured at zero occurrences in
-# 5,885 commits, and the standard tool footer emits the `Co-Authored-By:`
+# generated-with line and NO trailer would pass. Measured at zero occurrences
+# across the history, and the standard tool footer emits the `Co-Authored-By:`
 # trailer alongside it, which this guard catches. If a trailerless footer is
 # ever observed, the fix is a LINE-ANCHORED pattern (`^[[:space:]]*` + the
 # form), not a return to substring matching.
 #
 # HISTORY IS NOT REWRITTEN. This hook prevents the next one; it does not repair
-# the 1,782, and rewriting them would invalidate every commit citation in canon,
-# on five boards and in every issue body.
+# the existing ones, and rewriting them would invalidate every commit citation in
+# canon, on every board and in every issue body.
 #
 # It NEVER edits the message. A guard that silently strips the line hides the
 # class from whoever needs to learn their tooling is adding it; this one prints

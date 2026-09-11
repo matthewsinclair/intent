@@ -6,7 +6,7 @@
 #
 # WHY THIS IS A SEPARATE FILE FROM whiteboard-clock-guard.sh, and it was ruled
 # rather than assumed (vc, 2026-08-16). That guard's name and contract are
-# TIMESTAMPS -- three checks on stamps, and documentation entirely about clocks.
+# TIMESTAMPS -- checks on stamps, and documentation entirely about clocks.
 # Header wellformedness is a different concern, and folding it in would make the
 # name lie to the next reader, which is the standing defect this estate keeps
 # finding: a claim in one artefact that the next author believes. It would also
@@ -50,7 +50,7 @@
 #
 # The protocol had already measured the OTHER direction of the same defect and
 # only the other direction. From the `in-whiteboard` skill: a sweep of one
-# node's last 25 revisions found four INVALID headers in two episodes, "all of
+# node's recent revisions found INVALID headers in more than one episode, "all of
 # which repaired themselves at the next fold, before anyone noticed... a defect
 # whose lifetime is shorter than the interval between observations leaves no
 # corpse". So:
@@ -74,8 +74,8 @@
 # exclude is LOAD-BEARING and its shape was verified by running it, not by
 # reading the docs: a git pathspec wildcard is matched against the WHOLE path,
 # so `intent/whiteboard/*/wip.md` CROSSES slashes. Measured on this repository,
-# 2026-08-16: that pathspec alone matches 21 files, SIXTEEN of them archived
-# boards; with the exclude, 5 -- exactly the live boards. An archive replays an
+# 2026-08-16: that pathspec alone matches the archived boards as well as the
+# live ones; with the exclude, exactly the live boards. An archive replays an
 # old header verbatim, so covering it would refuse the protocol's own
 # housekeeping over a historical record, and the harm this guard exists to
 # prevent (`ws list` rendering `ic''s`) does not exist there. The control goes
@@ -109,7 +109,7 @@
 # implementation disagreement -- the protocol text said "a single pair of
 # surrounding quotes" while the reader implements double quotes only -- and it
 # was sent to vc as a contract question rather than settled by widening this
-# file. RULED 2026-08-16 (vc, verified against `intent_claude_cwi:86`): the
+# file. RULED 2026-08-16 (vc, verified against `fm_get` in `intent_claude_cwi`): the
 # prose was ambiguous, not the code; `"` is THE delimiter and `'` is never
 # stripped.
 #
