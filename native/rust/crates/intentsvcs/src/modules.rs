@@ -383,12 +383,14 @@ fn function_is_defined(body: &str, func: &str) -> bool {
 impl crate::remedy::Remedy for ModulesError {
   fn remedy(&self) -> String {
     match self {
-      // The registry is laid down by the canon, so the actionable answer is
-      // almost always "this project has not had canon applied", not "write the
-      // file by hand". Naming `upgrade` first keeps the operator on the path the
-      // tool already owns.
+      // The registry is OPTIONAL: `init` declares it `NotByInit` (ruled
+      // 2026-08-24) and `upgrade` does not write it either, so creating the file
+      // is the only path that produces one. This remedy used to name `upgrade`
+      // first, on the ground that the canon laid the registry down, and routed
+      // the operator to a verb that cannot help (issue 0122). The refusal itself
+      // stays: a verb over a registry that is not there has nothing to report.
       ModulesError::NoRegistry(path) => format!(
-        "`{path}` is the module registry the canon lays down. Run `intent upgrade` if this project predates it, or create the file if this project has never carried one."
+        "`{path}` is optional, and neither `intent init` nor `intent upgrade` creates it. If this project wants a module registry, create the file and register modules in it; if it does not, `intent modules` does not apply."
       ),
       ModulesError::Unreadable { path, .. } => format!(
         "`{path}` exists and could not be opened -- check its permissions with `ls -l {path}`."

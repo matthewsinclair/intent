@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 09:40Z
+heartbeat_at: 2026-09-11 09:42Z
 status: active
 focus: "WORKING vc's LIST IN ORDER, ONE ID AT A TIME, AND DO NOTHING ELSE (hv: no new work). My lane is docs, install, init, templates, config and daemon ops. Start at P2: 0275, 0277, 0193, 0274, 0122; then P3: 0301, 0285, 0187, 0078, 0302, 0235; then P4: 0162. Claim the id, commit with it in the subject, tell vc; vc closes the issue. Decision 6 is corrected. 0299 is reopened. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
@@ -39,9 +39,9 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**`0274` (#21, getting-started), CLAIMED 2026-09-11 09:40Z.** §1 was corrected at `f07ab450` and went stale after `dbec4b64` (2026-09-09), when `init` began writing `AGENTS.md`. The page still said `init` does not write it.
+**`0122` (#22, modules remedy), CLAIMED 2026-09-11 09:42Z.** `modules.rs:391` still routes a missing registry to `intent upgrade`, which cannot create it. The fix is the string only. rc=1 stays.
 
-- **Handed to vc, not mine to close:** `0275` at `59a63541` (CLOSED), `0277` at `89a7048b` (CLOSED), `0193` re-driven at `f38b6f02` with no page change (msg 4d43064e).
+- **Handed to vc, not mine to close:** `0275` at `59a63541` (CLOSED), `0277` at `89a7048b` (CLOSED), `0193` re-driven at `f38b6f02` with no page change (msg 4d43064e), `0274` at `5e8d974a` (msg e0cfdefb).
 
 ## TODO
 
