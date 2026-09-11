@@ -41,8 +41,9 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
    - Then drop the row (numbers do not shift), `prettier --write`, and commit the row plus `intent/.canon/issues/<id>.json`.
      **Between reports:** search `git log` full messages (`--grep`, not subjects) for fix commits naming a listed id after its filing.
 4. **`0283` half A LANDED at `62f2db60` (dc, rebased onto half B) -- re-drive both halves together on the bounce, then close.** dc's test reads the remedy out of doctor's own line, runs it, and checks doctor is clean; drive that same loop on my own closed-thread fixture. When dc reports `0259` half 2: drive it, then close.
-5. Act on each of hv's decisions (1-14) as its word arrives. Items 3, 4 and 5 are code and need hv's explicit go. Unblocked by a word: decision 2 frees `0100` (cc, shape ruled); 11 frees `0084` (cc, patch banked); 12, 13 and 14 close or free `0114`, `0220`, `0065`.
-6. At the cut: satisfy the nine cut-time rows by evidence, close ST0056 WP-07/11/12, then ST0056, ST0058, ST0068.
+5. **`0176`: cc reports it does not reproduce at HEAD** (the unconditional refusal predates the filing, a7aa0b9e 2026-08-16). Drive it myself: `todo notdone`/`toggle` on a done thread and WP each exit 1 with no row, event or file moved; `st reopen` is the control. Then close. The refusal's remedy fails when followed (positional reason; `st reopen` printed for a WP): put it in the close commit, not a fix.
+6. Act on each of hv's decisions (1-14) as its word arrives. Items 3, 4 and 5 are code and need hv's explicit go. Unblocked by a word: decision 2 frees `0100` (cc, shape ruled); 11 frees `0084` (cc, patch banked); 12, 13 and 14 close or free `0114`, `0220`, `0065`.
+7. At the cut: satisfy the nine cut-time rows by evidence, close ST0056 WP-07/11/12, then ST0056, ST0058, ST0068.
 
 **NO NEW WORK.** Nothing gets added to the list. A defect found while fixing goes in the commit message.
 
