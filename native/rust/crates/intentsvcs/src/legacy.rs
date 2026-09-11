@@ -1963,11 +1963,10 @@ fn acceptance_test(row: &str) -> Result<ParsedTest, RowRejection> {
   // A reference failing them is a legacy citation, and it is CARRIED whole
   // rather than reshaped into something that satisfies the grammar.
   //
-  // **CLASSIFIED ON THE WHOLE CITATION, BEFORE ANY SPLIT.** Deciding first and
-  // splitting second keeps this verdict exactly what it is today: a subject
-  // like `foo (bar/baz)` carries its only `/` inside the annotation, so
-  // splitting first would flip it from path to legacy and reclassify a row the
-  // change is not about.
+  // **CLASSIFIED BEFORE ANY SPLIT, ON THE CITATION'S FIRST WORD** (see 0138
+  // below). This paragraph used to defend `foo (bar/baz)` as a path because
+  // its only `/` sits in the annotation -- which stored `foo` as a file that
+  // was never there, the same false gate 0138 is about. It is legacy now.
   // **AN `n/a` JUSTIFICATION IS NOT A CITATION**, and the path rule cannot see
   // that on its own: `n/a` carries a slash. Excluded before the rule runs
   // rather than patched after it, so there is one place that decides.
@@ -1987,7 +1986,16 @@ fn acceptance_test(row: &str) -> Result<ParsedTest, RowRejection> {
   // parses correctly today. It cannot swallow a real path either: nothing that
   // is `n/a`, or opens `n/a ` or `n/a-`, is a filename.
   let na = is_na_justification(cited);
-  let is_path = !non_test && !na && cited.contains('/') && !cited.contains(':');
+  // **THE SLASH MUST BE IN THE CITATION'S FIRST WORD** (0138). Asked of the
+  // whole string, `each_utility() ignores a bin/ symlink ...` was a path
+  // because of `bin/`, and stored the sentence as `file` -- while a sibling row
+  // with no slash went, correctly, to `legacy.raw`. One input class, two
+  // behaviours, and only the false one blocked a gate. A cited path OPENS with
+  // the path; prose that merely mentions one opens with a word. The colon and
+  // `n/a` rules are unchanged, so this only ever moves a row from path to
+  // legacy, never the other way.
+  let first_word = cited.split_whitespace().next().unwrap_or("");
+  let is_path = !non_test && !na && first_word.contains('/') && !cited.contains(':');
   // A legacy reference is carried whole, per the rule directly above; only a
   // real path citation is separated from the words the author wrote after it.
   // **NOTHING INSIDE A BRACKET IS DISCARDED -- IT IS ROUTED.** The two bracket

@@ -187,3 +187,49 @@ fn a_legacy_reference_is_carried_whole() {
     "the legacy reference was split: {raw:?}"
   );
 }
+
+/// **0138: free text in the citation slot is carried as legacy whether or not
+/// it happens to contain a slash.**
+///
+/// Utilz `ST0009`, one thread, one migration: a row whose text had no `/` went
+/// to `legacy.raw`, and a row that said `a bin/ symlink` was stored as `file`
+/// and blocked a closed thread's gate on a path that never existed. The slash
+/// was asked of the whole citation; it is now asked of its first word. Measured
+/// before the fix across the 11 migrated estates here, 1640 AT rows with a
+/// `file`: 18 would move, all on Lamplight, and none of the 18 files exists.
+///
+/// The control is a real path, whose first word is the path.
+#[test]
+fn free_text_is_legacy_even_when_it_mentions_a_path_and_a_real_path_is_still_a_file() {
+  let tests = tests_of(
+    "## Acceptance Criteria\n\n\
+     - AC-01.1 (non-test) A thing -- evidence: e -- satisfied: yes\n\
+     - AC-01.2 (non-test) A thing -- evidence: e -- satisfied: yes\n\
+     - AC-01.3 (non-test) A thing -- evidence: e -- satisfied: yes\n\n\
+     ## Acceptance Tests\n\n\
+     - AT-01.1 each_utility() lists installed utilities one per line -- covers AC-01.1 -- status: green\n\
+     - AT-01.2 each_utility() ignores a bin/ symlink that does not resolve to utilz -- covers AC-01.2 -- status: green\n\
+     - AT-01.3 test/common_lib_test.bats (3 tests) -- covers AC-01.3 -- status: green\n",
+  );
+  let by = |id: &str| tests.iter().find(|t| t.id == id).expect(id).clone();
+
+  for id in ["AT-01.1", "AT-01.2"] {
+    let t = by(id);
+    assert_eq!(
+      t.file, None,
+      "{id}: free text was stored as a path, which blocks the gate on a file that never existed"
+    );
+    assert!(
+      t.legacy
+        .as_ref()
+        .is_some_and(|l| l.raw.starts_with("each_utility()")),
+      "{id}: the free text did not reach legacy.raw: {:?}",
+      t.legacy
+    );
+  }
+  assert_eq!(
+    by("AT-01.3").file.as_deref(),
+    Some("test/common_lib_test.bats"),
+    "CONTROL: a citation that opens with a path is still a file"
+  );
+}
