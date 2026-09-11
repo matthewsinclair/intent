@@ -119,8 +119,61 @@ fn a_run_that_did_overwrite_still_says_so() {
      other test's silence meaningful: {out}"
   );
   assert!(
-    out.contains("store replaced from the canon extract"),
+    out.contains("replaced from the canon extract"),
     "the verb stopped saying `replaced` even when it did replace, which satisfies the sibling \
      test for the wrong reason: {out}"
+  );
+}
+
+/// The `ok:` line of a run's output.
+fn ok_line(out: &str) -> String {
+  out
+    .lines()
+    .find(|l| l.starts_with("ok: "))
+    .unwrap_or_else(|| panic!("the run printed no `ok:` line: {out}"))
+    .to_string()
+}
+
+/// **0069: THE CONFIRMATION NAMES THE SCOPE IT OPERATED ON AND COUNTS WHAT
+/// CHANGED, NOT WHAT EXISTS.** A run scoped to one thread said the STORE was
+/// replaced; a run whose warning listed three ISSUES confirmed with a count of
+/// THREADS, none of which had changed.
+#[test]
+fn the_confirmation_names_its_scope_and_counts_what_changed() {
+  let dir = seeded();
+  run(dir.path(), &["issues", "add", "An issue"]);
+
+  let thread = dir.path().join("intent/.canon/st/ST0001.json");
+  let text = std::fs::read_to_string(&thread).expect("read the thread's extract");
+  std::fs::write(
+    &thread,
+    text.replace("test/probe_test.exs", "test/changed_test.exs"),
+  )
+  .expect("write the thread's extract");
+  let (out, rc) = run(dir.path(), &["sync", "--to-store", "ST0001"]);
+  assert_eq!(rc, 0, "sync --to-store ST0001 refused: {out}");
+  let ok = ok_line(&out);
+  assert!(
+    ok.contains("ST0001") && !ok.contains("store replaced"),
+    "a run scoped to one thread confirms the whole store: {ok}"
+  );
+
+  let issue = dir.path().join("intent/.canon/issues/0001.json");
+  let text = std::fs::read_to_string(&issue).expect("read the issue's extract");
+  assert!(
+    text.contains("An issue"),
+    "the issue's title is in its extract"
+  );
+  std::fs::write(&issue, text.replace("An issue", "An edited issue")).expect("write the issue");
+  let (out, rc) = run(dir.path(), &["sync", "--to-store"]);
+  assert_eq!(rc, 0, "sync --to-store refused: {out}");
+  assert!(
+    out.contains("issue 1: differs on disk"),
+    "the fixture's one difference is the issue, or this arm tests nothing: {out}"
+  );
+  let ok = ok_line(&out);
+  assert!(
+    ok.contains("1 difference") && !ok.contains("thread(s)"),
+    "the confirmation counts a population rather than the one difference it took: {ok}"
   );
 }

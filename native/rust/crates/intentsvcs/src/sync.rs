@@ -298,6 +298,30 @@ pub fn extract_written(threads: usize) -> String {
   )
 }
 
+/// The `--to-store` confirmation, composed here beside [`extract_written`] for
+/// the same reason.
+///
+/// **It names the scope the run operated on and counts what CHANGED (0069).**
+/// It used to say the STORE was replaced when one thread was, and to confirm
+/// with the number of threads in scope -- a population, which read as a
+/// delta: a run whose warning listed three issues confirmed `3 thread(s)`,
+/// none of which had changed. `differences` is the overwrite list the
+/// operator was shown before the write, so the two lines count the same thing.
+pub fn store_restored(scope: &Scope, differences: usize) -> String {
+  let what = match scope.named() {
+    None => "store".to_string(),
+    Some(ids) => ids.join(", "),
+  };
+  match differences {
+    0 => format!(
+      "{what} rewritten from the canon extract; nothing the store already held was overwritten"
+    ),
+    n => {
+      format!("{what} replaced from the canon extract, taking the {n} difference(s) listed above")
+    }
+  }
+}
+
 /// Which threads a `sync` run takes from its SOURCE.
 ///
 /// **Both directions were whole-estate only until hv ruled otherwise on

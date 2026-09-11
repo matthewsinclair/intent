@@ -1204,7 +1204,7 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
           );
         }
       }
-      let count = f.sync_from_disk(&scope).map_err(fail)?;
+      f.sync_from_disk(&scope).map_err(fail)?;
       // **THE TWO LINES USED TO CONTRADICT EACH OTHER AND ONE OF THEM WAS
       // READ.** `overwrites nothing` followed immediately by `store replaced
       // from the extract` reads as the replacement having materially happened;
@@ -1212,25 +1212,18 @@ fn sync(m: &ArgMatches) -> Result<(), Failure> {
       // the second is the one that looks like a result. Reproduced on a clean
       // fixture while confirming issue 0111's remainder.
       //
-      // The count still prints in both branches: it is how many threads this
-      // run wrote, which is a true and useful number either way. What changes
-      // is that the verb no longer calls an unchanged store `replaced`.
-      //
-      // **AND THE SOURCE IS NAMED, because the count was read as a claim about
+      // **AND THE SOURCE IS NAMED, because a count was read as a claim about
       // FILES.** Lamplight ran this on `ST0300`, saw `1 thread(s)`, and took it
-      // for the thread having been processed from its own directory. That
-      // thread has no v3 realised form at all -- `intent/st/ST0300/` does not
-      // exist, it is not in `.intentfiles`, and its authored `acceptance.md`
-      // sits in a v2 status bucket canon has never seen. The count was true
-      // about the canon extract and false about everything the reader thought
-      // it meant. Saying `canon extract` costs one word and closes that.
-      if nothing_overwritten {
-        println!(
-          "ok: store rewritten from the canon extract, {count} thread(s); nothing the store already held was overwritten"
-        );
-      } else {
-        println!("ok: store replaced from the canon extract, {count} thread(s)");
-      }
+      // for the thread having been processed from its own directory, which it
+      // has no v3 form of. Saying `canon extract` costs one word and closes that.
+      //
+      // **THE COUNT IS OF THE DIFFERENCES LISTED ABOVE, NOT OF THREADS IN
+      // SCOPE (0069)**, and the scope named is the one operated on. The
+      // sentence is composed in `intentsvcs::sync`, like `--to-disk`'s.
+      println!(
+        "ok: {}",
+        intentsvcs::sync::store_restored(&scope, overwrite.len())
+      );
       Ok(())
     }
     (false, false) => {
