@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 17:19Z
+heartbeat_at: 2026-09-11 17:11Z
 status: active
-focus: "LOCALFOLD 2026-09-11 17:19Z FOR THE COMPACT, THEN THE BOUNCE. AC-00.6 is BANKED and N/N in wt006, NOT landed: it lands after vc says dc's prune is on main. WITH vc: 0140."
+focus: "THE CUT, 2026-09-11 17:01Z: AC-00.6 mixed bats files, 8 of 16, routed by vc. Private worktree, own v3 release build, isolated HOME. Lands after dc's prune commit. WITH vc: 0140."
 claims: [ST0064]
 ---
 
@@ -13,21 +13,13 @@ claims: [ST0064]
 
 ## DOING
 
-**AC-00.6, MY EIGHT MIXED bats FILES: DONE IN THE WORKTREE, BANKED, NOT LANDED.** (vc routed it 2026-09-11 17:01Z under hv's cut rulings: `hv/wip.md` decision 6 and the AC-00.6 row. vc ruled every item by 17:17Z.) **HOLD UNTIL vc SAYS dc's PRUNE IS ON MAIN.** dc's prune waits on vc's canon commit. Then rebase, re-drive and land ONE commit with "AC-00.6" in the subject. Send vc the sha, the per-file counts and the R3 dry-run diff (the message carries all three).
+**THE CUT: AC-00.6, THE MIXED bats FILES (vc, 2026-09-11 17:01Z, under hv's cut rulings on `hv/wip.md`, decision 6 and the AC-00.6 row).** Mine: `pr_language_code_guard`, `release_script`, `release_sidecars`, `rule_pack_rust`, `rule_validator`, `rule_index`, `test_autopsy`, `test_diogenes`. Delete only a test whose subject is a v2 door or a v2 output format, and name each one in the commit. A real v3 difference goes to vc with expected and actual, and is neither deleted nor edited. A file that is all v2 doors is deleted whole. Each file ends N/N against v3. Work in a private worktree at HEAD with population A deleted locally, its own v3 release build, and an isolated HOME. Land one commit after dc's prune is on main, with "AC-00.6" in the subject. Send vc the sha and per-file before and after counts.
 
-- **Banked, all under the scratchpad** (`/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/b148e605-2046-46b1-9830-53a81fc2d54f/scratchpad/`):
-  - The worktree is `wt006`, at base `e70b667f2`. Population A is deleted locally and `test_helper` points at v3; both are dc's and stay out of my commit. It has its own release build.
-  - My patch is `ac006.patch` (sha256 `232f9a43b7e5d2ef`, 9 paths, +74 -297): `bin/.devbin/cmd/build.d/release` plus 8 files under `tests/unit/`, including the `rule_index.bats` deletion.
-  - The commit message is drafted IN FULL in `msg006.txt`, with every deleted and edited test named with its reason.
-  - The TAPs and the R3 dry-run outputs are in `b006/`.
-- **Per file, ok/not ok before -> after, against v3 with v2 absent:** pr_language_code_guard 3/1 -> 4/4; release_script 15/1 -> 16/16; release_sidecars 21/3 -> 23/23; rule_pack_rust 8/1 -> 9/9; rule_validator 4/5 -> 7/7; rule_index 0/8 -> deleted; test_autopsy 16/7 -> 18/18; test_diogenes 10/9 -> 12/12.
-- **R3 (the release script):** the native pair is folded into the one `SIDECAR_FILES` declaration. The dry run, with `--dry-run --patch --skip-tests` in the clone, is byte-identical before and after (`diff` rc 0). The control, with Cargo.lock dropped, changes line 23.
-- **TO LAND after vc's word:**
-  - Take a fresh detached worktree at the new main, which has dc's prune in it. `git apply` the patch there and confirm it applies clean. If dc's prune touched any of my 8 files, stop and reconcile.
-  - Rebuild the release under an isolated HOME and re-run the eight files (seven, since rule_index is deleted).
-  - Land by patch into the shared tree: explicit `git add` of the 9 paths (`git rm` for rule_index), then `git commit --only` of them, with `-F msg006.txt`. Diff the commit against the patch.
+**STATE, 2026-09-11 17:11Z: SORTED AND WITH vc; WAITING ON vc's RULINGS AND ON dc's PRUNE.** The worktree is `scratchpad/wt006` at `e70b667f`, with its own release build. Its before-counts match dc's exactly. Deleted there: `rule_index.bats` whole, plus 8 v2-format tests. Proposed to vc and not yet applied: 5 tests that fail only on v2's `installing:` line. With vc to rule: R1 to R12, 14 tests, none deleted or edited. The TAPs are in `scratchpad/b006/`.
 
-**WITH vc FOR THE RE-DRIVE: `0140`** -- `ac edit --note <text>`. The fix is `e396bf90`, the reference page `3da61a0a`, and the 0211 note `323a9785`. vc closes it, not me.
+**WITH vc FOR THE RE-DRIVE: `0140`** -- `ac edit --note <text>` (vc's option A, the `at edit --note` shape). The fix is `e396bf90`, the reference page `3da61a0a`, and the known-defects 0211 note `323a9785`. vc closes it, not me. If a drive sends it back, rebuild a private worktree at HEAD.
+
+**hv's shell run at 16:50Z (`tmp/test/20260911-1650.SHELL.*`), measured and reported to hv, not fixed.** 51 failures, all one cause: `bin/intent:123` answers only `claude hook|start|ws` since `d8a8c070` (AC-12.1, 2026-09-10 09:49Z), and `tests/unit/agent_commands.bats` (50) plus `ambient_project_root_guard.bats` test 86 still drive `intent claude subagents` through v2. Neither file has been touched since 2026-08-14. The run reported 130 of 1525 (it ended in `at_lint_wp_scope.bats`), and the Rust log is its header only.
 
 ## TODO
 
