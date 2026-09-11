@@ -734,6 +734,6 @@
   ],
   "title": "Thread",
   "type": "object",
-  "x-intent-ver": "3.0.0",
+  "x-intent-ver": "3.0.1",
   "x-schema-json-ver": 17
 }
