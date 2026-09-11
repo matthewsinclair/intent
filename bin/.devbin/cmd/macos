@@ -20,12 +20,14 @@
 #
 # PORTED FROM LAMPLIGHT (`bin/.devbin/cmd/macos.d/`), which signs the lamplight
 # CLI and Wrighter.app with the same Geodica ADC, team 76BQL8L47U. Ported rather
-# than reinvented: the credential model, the codesign flags and the notarytool
-# flow are all theirs. **This is a fraction of theirs and deliberately one file**
-# -- Intent ships two bare Mach-O CLI binaries with no .app bundle, no nested
-# executables, no entitlements and no installer pkg, so the inside-out bundle
-# walk and the productsign half have no counterpart here. Splitting five short
-# subcommands into a `.d/` would only strand the shared credential lookup.
+# than reinvented: the credential model, the codesign flags, the notarytool flow
+# and the inside-out bundle walk are all theirs. **Intent ships two things to
+# sign**: two bare Mach-O CLI binaries, and -- from 3.0.1, hv's decision 7 on
+# 2026-09-11 -- the menubar app, `Intent.app`, which carries its own entitlements.
+# The CLI half is the pipeline below; the app half is `app-sign` / `app-notarize`
+# at the foot of the file. There is still no installer pkg, so Lamplight's
+# productsign half has no counterpart. **One file, deliberately**: a `.d/` would
+# strand the credential lookup both halves share.
 #
 # CREDENTIALS LIVE IN THE LOGIN KEYCHAIN AND NOWHERE ELSE. No key material in
 # this repository, in CI config, or in any file this writes. `store-creds` is
@@ -33,8 +35,10 @@
 # `env` and `doctor` report PRESENT/MISSING, never a value.
 #
 # THE THING THAT WILL LOOK LIKE A BUG AND IS NOT: **a bare Mach-O binary cannot
-# have a notarisation ticket stapled to it.** `stapler` writes tickets into
-# .app/.pkg/.dmg containers; there is nowhere to put one in a bare executable.
+# have a notarisation ticket stapled to it.** (The .app CAN, and `app-notarize`
+# staples it -- this paragraph is about the two CLI binaries.) `stapler` writes
+# tickets into .app/.pkg/.dmg containers; there is nowhere to put one in a bare
+# executable.
 # Measured on the closest possible precedent -- conflab, a Developer ID signed
 # bare binary shipped through the geodica tap: `stapler validate` says "does not
 # have a ticket stapled to it", and that is the correct steady state. The ticket
@@ -2141,9 +2145,10 @@ cmd_store_creds() {
 # =============================================================================
 # int macos app-* -- the menubar app (native/macos/Intent) build pipeline.
 #
-# CHUNK 1 (no credentials): the buildable/testable/installable .app plus its
-# icon asset. Chunk 2 adds app-sign / app-notarize against the Geodica ADC and
-# rewrites the header lines that still say Intent ships no .app bundle.
+# Build, run, test, install and icon need no credentials. `app-sign` and
+# `app-notarize` produce the distributable: a Developer ID signed, notarised and
+# STAPLED copy of the Release bundle in APP_DIST_DIR, never the build product
+# itself (see app-sign).
 #
 # TRANSLATED from Geodica's bin/geodica_app (Elixir), which is the reference for
 # generate-if-stale, the SYMROOT/OBJROOT-off-the-tree location args, the stamps
@@ -2174,6 +2179,7 @@ APP_LOC_ARGS=(
 )
 
 app_bundle() { printf '%s' "$APP_STATE_DIR/Build/Products/$1/Intent.app"; }
+APP_BUNDLE_ID="com.matthewsinclair.intent.macos"
 
 # The four stamps xcodebuild substitutes into Info.plist. Version is the source
 # tree's release tag (never a built binary -- the .app may be built before any
@@ -2337,7 +2343,7 @@ cmd_app_doctor() {
 # --- app-build -----------------------------------------------------------------
 # Default Debug; `int macos app-build release` for Release. Unsigned by default
 # for dev (CODE_SIGNING_ALLOWED=NO): it proves the thing compiles without
-# needing an identity. Distribution signing is app-sign (chunk 2), never here.
+# needing an identity. Distribution signing is app-sign, never here.
 cmd_app_build() {
   local config="Debug"
   case "${1:-}" in release|Release) config="Release" ;; ""|debug|Debug) config="Debug" ;;
@@ -2363,7 +2369,7 @@ cmd_app_build() {
 # one just built; two menubar turtles is the wrong kind of surprise.
 cmd_app_run() {
   cmd_app_build Debug
-  osascript -e 'tell application id "com.matthewsinclair.intent.macos" to quit' >/dev/null 2>&1 || true
+  osascript -e "tell application id \"$APP_BUNDLE_ID\" to quit" >/dev/null 2>&1 || true
   local exe; exe="$(app_bundle Debug)/Contents/MacOS/Intent"
   [ -x "$exe" ] || die "no executable at $exe"
   nohup "$exe" >/dev/null 2>&1 &
@@ -2394,9 +2400,9 @@ cmd_app_test() {
 }
 
 # --- app-install: build Release, install to /Applications, register, launch ----
-# Chunk 1 installs an UNSIGNED dev build; distribution goes through app-sign +
-# app-notarize first (chunk 2). ditto preserves the bundle; lsregister claims
-# the intent:// scheme for THIS copy.
+# This installs an UNSIGNED dev build. The distributable is the stapled bundle
+# app-sign + app-notarize leave in APP_DIST_DIR. ditto preserves the bundle;
+# lsregister claims the intent:// scheme for THIS copy.
 cmd_app_install() {
   cmd_app_build Release
   local src dst lsr tmp
@@ -2409,7 +2415,7 @@ cmd_app_install() {
   tmp="$dst.new-$$"
   rm -rf "$tmp"
   ditto "$src" "$tmp" || { rm -rf "$tmp"; die "ditto failed copying $src -> $tmp"; }
-  osascript -e 'tell application id "com.matthewsinclair.intent.macos" to quit' >/dev/null 2>&1 || true
+  osascript -e "tell application id \"$APP_BUNDLE_ID\" to quit" >/dev/null 2>&1 || true
   [ -d "$dst" ] && { "$lsr" -u "$dst" >/dev/null 2>&1 || true; rm -rf "$dst"; }
   mv "$tmp" "$dst" || { rm -rf "$tmp"; die "could not move $tmp -> $dst"; }
   "$lsr" -f "$dst" >/dev/null 2>&1 || true
@@ -2418,16 +2424,26 @@ cmd_app_install() {
   printf 'installed %s (%s build %s, %s); intent:// -> Intent.app; running\n' "$dst" "$APP_VERSION" "$APP_BUILD" "$APP_COMMIT"
 }
 
-# --- app-verify: non-credential checks on a built bundle -----------------------
-# Chunk 2 adds the codesign/spctl/notary arms. This proves the bundle is there,
-# the executable is present, LSUIElement is set (a menubar app has no dock item),
-# and the Info.plist stamps are the built ones rather than the "dev" defaults --
-# so a bundle built from inside Xcode is NAMED as such rather than passing quietly.
+# --- app-verify: checks on a built or distributable bundle ---------------------
+# On a build (`debug` / `release`), the non-credential checks: the executable is
+# present, LSUIElement is set (a menubar app has no dock item), and the Info.plist
+# stamps are the built ones rather than the "dev" defaults -- so a bundle built
+# from inside Xcode is NAMED as such rather than passing quietly.
+#
+# On `dist` -- the bundle app-sign and app-notarize produce -- the same checks,
+# then the signature read back off the bytes, and the ticket, the way
+# app-notarize's own final check reads them. `dist` before app-notarize is
+# EXPECTED to fail the ticket arm; that is the check telling the truth about an
+# un-notarised bundle, not a defect in it.
 cmd_app_verify() {
   local config="${1:-Debug}" bundle plist exe v
-  bundle="$(app_bundle "$config")"
-  [ -d "$bundle" ] || die "no $config bundle at $bundle -- run: int macos app-build $config"
-  plist="$bundle/Contents/Info.plist"; exe="$bundle/Contents/MacOS/Intent"
+  case "$config" in
+    dist) bundle="$(app_dist)"
+      [ -d "$bundle" ] || die "no distributable bundle at $bundle -- run: int macos app-sign" ;;
+    *) bundle="$(app_bundle "$config")"
+      [ -d "$bundle" ] || die "no $config bundle at $bundle -- run: int macos app-build $config" ;;
+  esac
+  plist="$bundle/Contents/Info.plist"; exe="$bundle/Contents/MacOS/$(app_executable_name "$bundle")"
   printf 'bundle:  %s\n' "$bundle"
   [ -x "$exe" ] || die "no executable at $exe"
   printf 'exec:    present\n'
@@ -2437,10 +2453,243 @@ cmd_app_verify() {
   v="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist" 2>/dev/null || echo dev)"
   printf 'version: %s (commit %s)\n' "$v" "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$plist" 2>/dev/null || echo '?')"
   [ "$v" != "dev" ] || printf '  note: built from inside Xcode (stamps are defaults) -- run int macos app-build for a stamped bundle\n'
+  [ "$config" = "dist" ] || return 0
+  app_signature_readback "$bundle"
+  app_verify_notarised "$bundle"
+}
+
+# =============================================================================
+# app-sign / app-notarize -- the distributable Intent.app.
+#
+# PORTED FROM LAMPLIGHT: the inside-out walk is `sign_nested_machos` in
+# macos.d/build-pkg.sh and the submit/staple half is macos.d/notarize.sh, which
+# sign and notarise Wrighter.app with the same Geodica ADC. Two differences, both
+# about what Intent.app is:
+#
+# - THE TICKET IS STAPLED TO THE .app ITSELF. Lamplight staples a .pkg because
+#   Wrighter ships inside an installer; Intent.app ships as the bundle, and a
+#   bundle is a container a ticket can live in. So the offline Gatekeeper check
+#   works on it, where the CLI binaries above have to wait for the online one.
+# - THE ENTITLEMENTS ARE THE PROJECT'S OWN release set (Intent/Intent.entitlements,
+#   get-task-allow false), not Wrighter's JIT set: nothing in Intent.app JITs.
+#
+# THE SUBJECT IS A STAGED COPY, NEVER THE BUILD PRODUCT, for the reason STAGE_DIR
+# gives for the CLI: the build products are shared by every session on this
+# machine, and a signature over bytes a peer's app-build can replace mid-
+# notarisation is a signature over nothing. It is NOT staged in STAGE_DIR:
+# `checksum` refuses any artefact there it cannot classify, and a bundle is not
+# one of the CLI release's artefacts.
+# -----------------------------------------------------------------------------
+
+APP_DIST_DIR="$APP_STATE_DIR/dist"
+APP_ENTITLEMENTS="$APP_DIR/Intent/Intent.entitlements"
+
+app_dist() { printf '%s' "$APP_DIST_DIR/Intent.app"; }
+
+# The main executable's name. The project's Info.plist carries no
+# CFBundleExecutable, and macOS and codesign both fall back to the bundle's own
+# name -- so this does too, rather than refusing a bundle that launches and signs.
+app_executable_name() {
+  /usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$1/Contents/Info.plist" 2>/dev/null ||
+    basename "$1" .app
+}
+
+# app_sign_nested <bundle> -- sign every Mach-O inside the bundle EXCEPT its main
+# executable, deepest path first, so a container is signed after what it holds (a
+# signature seals what it encloses). The main executable is sealed by the bundle
+# signature, last: Lamplight measured that signing it first fails "In
+# subcomponent" once the bundle holds anything else.
+#
+# INTENT.APP HOLDS NO NESTED CODE TODAY, SO THIS SIGNS NOTHING AND SAYS SO. It is
+# here so that the first framework or helper added to the app is signed on the
+# way through, rather than found by notarisation rejecting the whole bundle.
+app_sign_nested() {
+  local bundle="$1" main list f ftype signed=0
+  local -a files=()
+  main="$bundle/Contents/MacOS/$(app_executable_name "$bundle")"
+  # To a file first, so find's own failure is seen: a process substitution
+  # would swallow it and sign a truncated set.
+  list="$(mktemp)"
+  find "$bundle" -type f >"$list" || { rm -f "$list"; die "find failed enumerating $bundle"; }
+  while IFS= read -r f; do files+=("$f"); done < <(awk -F/ '{ print NF "\t" $0 }' "$list" | sort -t "$(printf '\t')" -k1,1nr | cut -f2-)
+  rm -f "$list"
+  [ "${#files[@]}" -gt 0 ] || die "no files under $bundle -- refusing to sign an empty bundle"
+  for f in "${files[@]}"; do
+    [ "$f" = "$main" ] && continue
+    # A classification ERROR fails; it is never read as "not Mach-O" and
+    # skipped, which would let unsigned code into a notarised bundle.
+    ftype="$(file -b "$f")" || die "file(1) could not classify $f"
+    case "$ftype" in
+      *Mach-O*executable*)
+        # An entry point: entitlements are not inherited across exec().
+        codesign --force --options runtime --timestamp --entitlements "$APP_ENTITLEMENTS" \
+          --sign "$IDENTITY" "$f"
+        signed=$((signed + 1)) ;;
+      *Mach-O*)
+        # A dylib or bundle loaded in-process, under its host's entitlements.
+        codesign --force --options runtime --timestamp --sign "$IDENTITY" "$f"
+        signed=$((signed + 1)) ;;
+      *)
+        # Not Mach-O. An executable helper directly in Contents/MacOS must
+        # still be signed for the seal; resources are sealed, not signed.
+        if [ "$(dirname "$f")" = "$bundle/Contents/MacOS" ] && [ -x "$f" ]; then
+          codesign --force --timestamp --sign "$IDENTITY" "$f"
+          signed=$((signed + 1))
+        fi ;;
+    esac
+  done
+  printf '    %-34s %s\n' "nested code signed" "$signed"
+}
+
+# app_signature_readback <bundle> -- what the bytes say, not what was asked for.
+# `--options runtime` and `--sign` are REQUESTS; the flags, the team and the
+# identifier are properties of the signature, read back the way cmd_sign reads the
+# CLI's. The identifier matters here in a way it does not for the CLI: codesign
+# names a bundle by its CFBundleIdentifier, and a linker-signed build names it
+# `Intent`, so a bundle still carrying the build's signature says so here.
+app_signature_readback() {
+  local bundle="$1" desc flags team ident want_team
+  # Displayed, then judged: the display pipeline tolerates codesign's exit so
+  # the refusal below is the one that speaks, naming what is wrong.
+  codesign --verify --strict --deep --verbose=2 "$bundle" 2>&1 | sed 's/^/    /' || true
+  codesign --verify --strict --deep "$bundle" >/dev/null 2>&1 ||
+    die "$bundle does not verify -- its signature is broken or incomplete"
+  desc="$(codesign -d --verbose=2 "$bundle" 2>&1)"
+  flags="$(printf '%s\n' "$desc" | sed -n 's/.*flags=\([^ ]*\).*/\1/p' | head -1)"
+  team="$(printf '%s\n' "$desc" | sed -n 's/^TeamIdentifier=//p')"
+  ident="$(printf '%s\n' "$desc" | sed -n 's/^Identifier=//p')"
+  want_team="${IDENTITY##*(}"; want_team="${want_team%)}"
+  printf '    %-34s %s\n' "identifier" "${ident:-<unreadable>}"
+  printf '    %-34s %s\n' "team" "${team:-<none>}"
+  printf '    %-34s %s\n' "flags" "${flags:-<unreadable>}"
+  [ "$ident" = "$APP_BUNDLE_ID" ] ||
+    die "the bundle is signed as '${ident:-<none>}', not $APP_BUNDLE_ID -- it still carries the build's signature, not a Developer ID one"
+  [ "$team" = "$want_team" ] ||
+    die "the bundle's team is '${team:-<none>}', not $want_team -- it is not signed with $IDENTITY"
+  case "$flags" in
+    *runtime*) ;;
+    *) die "the hardened runtime is NOT set on the bundle (flags=${flags:-<unreadable>}) -- notarisation would refuse these bytes" ;;
+  esac
+}
+
+# app_verify_notarised <bundle> -- the ticket, checked the way a download meets
+# it. The copy is quarantined, as a browser download is, and the quarantine is
+# ASSERTED before any verdict is read: a fixture that never entered the branch
+# proves nothing and looks like a pass. `-t exec` is the right policy for a
+# BUNDLE (it is the CLI binaries that need `-t open`, above). The app is not
+# launched: a menubar app launched by a check is a second turtle in the bar.
+app_verify_notarised() {
+  local bundle="$1" t verdict rc=0
+  if xcrun stapler validate "$bundle" >/dev/null 2>&1; then
+    printf '    %-34s %s\n' "stapled ticket" "present, validates"
+  else
+    printf '    %-34s %s\n' "stapled ticket" "NONE -- run: int macos app-notarize"
+    rc=1
+  fi
+  t="$(mktemp -d)"
+  /usr/bin/ditto "$bundle" "$t/Intent.app"
+  xattr -w com.apple.quarantine "0083;0;cc-verify;" "$t/Intent.app"
+  if ! xattr -p com.apple.quarantine "$t/Intent.app" >/dev/null 2>&1; then
+    printf '    %-34s SKIPPED -- could not set the quarantine xattr; verdict withheld\n' "Gatekeeper"
+    rm -rf "$t"
+    return 1
+  fi
+  # `|| true`: spctl exits non-zero on a REJECTION, which is the verdict being
+  # read here, and under errexit + pipefail that exit killed the check before it
+  # could say FAILED -- measured, on a signed and un-notarised bundle.
+  verdict="$(spctl -a -t exec -vv "$t/Intent.app" 2>&1 | sed -n 's/^source=//p')" || true
+  if [ "$verdict" = "Notarized Developer ID" ]; then
+    printf '    %-34s quarantined copy accepted -- source=%s\n' "Gatekeeper" "$verdict"
+  else
+    printf '    %-34s FAILED -- source=%s (expected: Notarized Developer ID)\n' "Gatekeeper" "${verdict:-<none>}"
+    rc=1
+  fi
+  rm -rf "$t"
+  return $rc
+}
+
+# --- app-sign: build Release, stage a copy, sign it inside-out ------------------
+cmd_app_sign() {
+  require_identity
+  [ -f "$APP_ENTITLEMENTS" ] || die "no release entitlements at $APP_ENTITLEMENTS"
+  cmd_app_build Release
+  local src dist
+  src="$(app_bundle Release)"; dist="$(app_dist)"
+  step "staging a copy out of the shared build products"
+  # rm -rf first: anything already here is a signature over bytes about to be
+  # replaced, and keeping it would let a stale bundle survive a rebuild.
+  rm -rf "$APP_DIST_DIR"
+  mkdir -p "$APP_DIST_DIR"
+  /usr/bin/ditto "$src" "$dist" || die "could not stage $src -> $dist"
+  # codesign refuses "resource fork, Finder information, or similar detritus",
+  # and a ditto of a bundle can carry it even off the synced tree.
+  xattr -cr "$dist"
+  printf '    %s\n' "$dist"
+  step "signing Intent.app inside-out (nested code, then the bundle)"
+  printf 'identity: %s\n' "$IDENTITY"
+  app_sign_nested "$dist"
+  codesign --force --options runtime --timestamp --entitlements "$APP_ENTITLEMENTS" \
+    --sign "$IDENTITY" "$dist"
+  step "reading the signature back off the bundle"
+  app_signature_readback "$dist"
+  printf '\n'
+  ok
+  printf '  The staged bundle is Developer ID signed, and its identifier, team and\n'
+  printf '  hardened runtime were read back off it rather than assumed.\n'
+  printf '  NEXT: int macos app-notarize   (needs the notary credentials)\n'
+}
+
+# --- app-notarize: submit the signed bundle, wait, staple, check ----------------
+cmd_app_notarize() {
+  require_identity
+  local dist staging zip out status id
+  dist="$(app_dist)"
+  [ -d "$dist" ] || die "no signed bundle at $dist -- run: int macos app-sign"
+  [ -n "$APPLE_ID" ] && [ -n "$APPLE_APP_PASSWORD" ] && [ -n "$APPLE_TEAM_ID" ] ||
+    die "notary credentials missing -- run: int macos store-creds (see: int macos doctor)"
+  # Refuse an unsigned or build-signed bundle here rather than minutes later at
+  # Apple, with a less useful message.
+  step "checking the bundle is the signed one"
+  app_signature_readback "$dist"
+
+  staging="$(mktemp -d)"
+  zip="$staging/Intent.zip"
+  # ditto, never zip(1): it keeps the signature and the extended attributes
+  # notarisation reads.
+  /usr/bin/ditto -c -k --keepParent --sequesterRsrc "$dist" "$zip" ||
+    { rm -rf "$staging"; die "could not build the submission archive"; }
+
+  step "submitting to Apple (typically 1-5 minutes; notarytool waits)"
+  # `|| true`: notarytool exits non-zero on an Invalid verdict, and the verdict
+  # is what gets read and reported below, never assumed.
+  out="$(xcrun notarytool submit "$zip" \
+    --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" \
+    --wait 2>&1)" || true
+  printf '%s\n' "$out"
+  rm -rf "$staging"
+  status="$(printf '%s' "$out" | awk '/^  status: / { print $2 }' | tail -1)"
+  id="$(printf '%s' "$out" | awk '/id: [0-9a-f-]{36}/ { print $2; exit }')"
+  [ -n "$id" ] || die "could not read a submission id from notarytool's output -- nothing stapled"
+  # Anything but Accepted: print the log and stop. Never staple, never claim a
+  # ticket that does not exist.
+  if [ "$status" != "Accepted" ]; then
+    xcrun notarytool log "$id" \
+      --apple-id "$APPLE_ID" --password "$APPLE_APP_PASSWORD" --team-id "$APPLE_TEAM_ID" 2>&1 | head -40
+    die "notarisation was not Accepted (status: ${status:-unknown}) -- nothing stapled"
+  fi
+
+  step "stapling the ticket to the bundle"
+  xcrun stapler staple "$dist" || die "stapler could not staple the ticket to $dist"
+  step "checking the stapled bundle as a download meets it"
+  app_verify_notarised "$dist" || die "the bundle was Accepted and stapled, and does not pass the check above"
+  printf '\n'
+  ok
+  printf '  Accepted, stapled, and accepted by Gatekeeper from a quarantined copy.\n'
+  printf '  The distributable is %s\n' "$dist"
 }
 
 
-SUBCOMMANDS="doctor stage sign notarize verify checksum prepare formula publish smoke env store-creds app-doctor app-icons app-build app-run app-test app-install app-verify"
+SUBCOMMANDS="doctor stage sign notarize verify checksum prepare formula publish smoke env store-creds app-doctor app-icons app-build app-run app-test app-install app-verify app-sign app-notarize"
 
 usage() {
   cat <<'USAGE'
@@ -2486,8 +2735,8 @@ intent macos <subcommand>
   store-creds  Store APPLE_ID / APPLE_APP_PASSWORD / APPLE_TEAM_ID in the
                login Keychain (interactive; once per machine)
 
-  THE MENUBAR APP (native/macos/Intent). Build, run, test, install, icon.
-  Signing + notarisation of the .app land as app-sign / app-notarize.
+  THE MENUBAR APP (native/macos/Intent). Build, run, test, install, icon, and
+  the distributable: app-sign then app-notarize.
 
   app-doctor   Preflight: xcodegen, xcodebuild, rsvg-convert, the icon asset
   app-icons    Rasterise docs/design/intent-logo.svg into the tracked asset
@@ -2500,9 +2749,16 @@ intent macos <subcommand>
                can launch the installed copy); quits any running copy first
   app-test     xcodebuild test -- the IntentTests target
   app-install  Build Release, install to /Applications, register intent://,
-               launch. Dev (unsigned) until app-sign lands
-  app-verify   Non-credential checks on a built bundle: executable present,
-               LSUIElement set, Info.plist stamps are the built ones
+               launch. An unsigned dev build, never the distributable
+  app-verify   Checks on a bundle: executable present, LSUIElement set,
+               Info.plist stamps are the built ones. `app-verify dist` adds the
+               signature read back off the bytes, the stapled ticket, and
+               Gatekeeper on a quarantined copy
+  app-sign     Build Release, stage a copy off the shared build products, and
+               Developer ID sign it inside-out (nested code, then the bundle),
+               hardened runtime; reads identifier, team and flags back
+  app-notarize Submit the signed copy to Apple, wait, and on Accepted staple
+               the ticket to the bundle and check it from a quarantined copy
 USAGE
 }
 
@@ -2527,5 +2783,7 @@ case "${1:-}" in
   app-test)    cmd_app_test ;;
   app-install) cmd_app_install ;;
   app-verify)  shift; cmd_app_verify "${1:-}" ;;
+  app-sign)    cmd_app_sign ;;
+  app-notarize | app-notarise) cmd_app_notarize ;;
   *) die "unknown macos subcommand: $1 (try: $SUBCOMMANDS)" ;;
 esac
