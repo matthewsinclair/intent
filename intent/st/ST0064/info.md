@@ -33,7 +33,7 @@ Triage. No work is scheduled; WP-01 carries a drop-in design so the work can sta
 
 | WP    | Title                                                                                                                                               | Size | Status    |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------- |
-| WP-01 | Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon | M    | WIP       |
+| WP-01 | Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon | M    | Done      |
 | WP-02 | CLI shell-out foundation and login-shell PATH capture (AC-01.1, AC-01.9)                                                                            | S    | Cancelled |
 | WP-03 | Daemon health predicate, three endpoint states, and the turtle menubar icon (AC-01.2, AC-01.3, AC-01.6, AC-01.8)                                    | S    | Cancelled |
 | WP-04 | The tailing console and its tail-orphan trap (AC-01.4)                                                                                              | S    | Cancelled |

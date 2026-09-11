@@ -27,6 +27,33 @@
       "objective": "",
       "body": "",
       "preamble": ""
+    },
+    {
+      "seq": 13,
+      "title": "Project search: full-text, structural, and the agent search surface",
+      "scope": "XL",
+      "status": "not-started",
+      "objective": "Moved whole from ST0056 WP-13 with its 9 criteria at 3432644cc; the move minted the criteria and not the work package, so they named a WP this thread did not have. The design stays in ST0056/WP/13.",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 14,
+      "title": "Coordination model: whiteboard and inboxes in the store, with a bounded API",
+      "scope": "L",
+      "status": "not-started",
+      "objective": "Moved whole from ST0056 WP-14 with its 12 criteria at 3432644cc; the move minted the criteria and not the work package, so they named a WP this thread did not have. The design stays in ST0056/WP/14.",
+      "body": "",
+      "preamble": ""
+    },
+    {
+      "seq": 16,
+      "title": "Contract drift: a shipped field with no model row is refused",
+      "scope": "S",
+      "status": "not-started",
+      "objective": "Moved whole from ST0056 WP-16 with its 4 criteria at 3432644cc; the move minted the criteria and not the work package, so they named a WP this thread did not have. The design stays in ST0056/WP/16.",
+      "body": "",
+      "preamble": ""
     }
   ],
   "criteria": [

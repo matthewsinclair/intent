@@ -41,7 +41,7 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [-] ST0058: Local cutover: v3 usable across the estate before it is releasable
   - [x] 01: One path to the native CLI: int cli carries the coherence guard
 - [-] ST0064: The Intent menubar app: controlling intentd from the macOS menubar
-  - [-] 01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
+  - [x] 01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
   - [~] 02: CLI shell-out foundation and login-shell PATH capture (AC-01.1, AC-01.9)
   - [~] 03: Daemon health predicate, three endpoint states, and the turtle menubar icon (AC-01.2, AC-01.3, AC-01.6, AC-01.8)
   - [~] 04: The tailing console and its tail-orphan trap (AC-01.4)
@@ -56,6 +56,9 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [?] ST0069: v3 post-cut: project search, store-backed coordination, and contract drift
   - [ ] 01: Issues get a realised form and a sigil, then join the default declaration
   - [ ] 02: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
+  - [ ] 13: Project search: full-text, structural, and the agent search surface
+  - [ ] 14: Coordination model: whiteboard and inboxes in the store, with a bounded API
+  - [ ] 16: Contract drift: a shipped field with no model row is refused
 - [ ] ST0070: LLM config rationalisation -- one home per fact
 
 ## DONE:2026-09-10T00:00:51Z

@@ -153,9 +153,10 @@
     {
       "id": "AC-04.1",
       "text": "`intent lang init content` installs `intent/llm/RULES-content.md` + `ARCHITECTURE-content.md`, appends the Language Packs entry, and writes `content` to config `languages`; `intent lang list` enumerates `content`. (Allowlist-free: `templates/content/{RULES,ARCHITECTURE}.md` is all that was needed -- `lang init`/`lang list` are dir-driven.)",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_lang.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
@@ -262,13 +263,14 @@
     },
     {
       "id": "AT-04.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_lang.bats",
+      "prose": "Witness tests/unit/intent_lang.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-04.1"
       ],
-      "status": "green",
-      "note": "content cases: list enumerates content; init installs both files, appends the pack entry, writes config languages"
+      "status": "n-a",
+      "note": "content cases: list enumerates content; init installs both files, appends the pack entry, writes config languages -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_lang.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-05.1",

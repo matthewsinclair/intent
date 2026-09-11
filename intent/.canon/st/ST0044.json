@@ -23,89 +23,100 @@
     {
       "id": "AC-01.1",
       "text": "`intent st new` stamps `acceptance.md` into every new ST's doc-set (default on, via the `lib/templates/prj/st/ST####/*.md` glob).",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/st_commands.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-01.2",
       "text": "The stamped `acceptance.md` is sourced from `lib/templates/prj/st/ST####/acceptance.md` with placeholders substituted (no raw `ST####` survives).",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/st_commands.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-02.1",
       "text": "`lib/templates/prj/st/ST####/acceptance.md` carries the contract preamble, the AC section (ST-level + per-WP), and the AT section. (Content provisional -- refinable in place; no flip gate, since the default is on.)",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/st_commands.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-03.1",
       "text": "`intent at list <stid>[/NN]` lists ATs (id, cited `path::name`, status); `intent ac list <stid>[/NN]` lists ACs with covering AT + derived satisfied state.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_acceptance_cli.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-03.2",
       "text": "`intent at green` is reachable only from `red`; `intent at red` / `intent at na` set those states; `done` / `notdone` alias `green` / `red`.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_acceptance_cli.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-03.3",
       "text": "`intent ac status <stid>` reports N/M ACs satisfied and the close-gate verdict (PASS / BLOCKED).",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_acceptance_cli.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-03.4",
       "text": "`intent ac satisfy <stid> <acid> --evidence` succeeds for non-test ACs only; test-backed ACs cannot be hand-satisfied.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_acceptance_cli.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-03.5",
       "text": "All `ac` / `at` commands read and write `acceptance.md` only (single source of truth); in-place status edits are linter-stable.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_acceptance_cli.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-04.1",
       "text": "`intent st done` / `intent wp done` refuse to close while any AC is unsatisfied (no green AT and no non-test evidence) or sign-off is unrecorded; the verdict is computed, never read from a hand-ticked box.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/acceptance_close_gate.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-05.1",
       "text": "The `info.md` and `WP/info.md` templates reference `acceptance.md` and contain no restated ACs.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/st_new_acceptance.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-05.2",
       "text": "`intent st show <id> acceptance` displays `acceptance.md` and `intent st show <id> all` includes it in the doc-set; `intent st edit <id> <type>` (incl. `acceptance`) prints the file's absolute path instead of launching an editor.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/st_new_acceptance.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
@@ -120,9 +131,10 @@
     {
       "id": "AC-07.1",
       "text": "ST0043 and ST0044 each carry an `acceptance.md`.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/st_new_acceptance.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
@@ -147,164 +159,180 @@
   "tests": [
     {
       "id": "AT-01.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/st_commands.bats",
+      "prose": "Witness tests/unit/st_commands.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.1"
       ],
-      "status": "green",
-      "note": "red witnessed by matts 2026-06-13, then green -- test: st new stamps acceptance.md into the doc-set"
+      "status": "n-a",
+      "note": "red witnessed by matts 2026-06-13, then green -- test: st new stamps acceptance.md into the doc-set -- RETIRED at the 3.0.1 cut: its witness tests/unit/st_commands.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.2",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/st_commands.bats",
+      "prose": "Witness tests/unit/st_commands.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.2",
         "AC-02.1"
       ],
-      "status": "green",
-      "note": "red witnessed by matts 2026-06-13, then green -- test: st new stamps acceptance.md content from the template file"
+      "status": "n-a",
+      "note": "red witnessed by matts 2026-06-13, then green -- test: st new stamps acceptance.md content from the template file -- RETIRED at the 3.0.1 cut: its witness tests/unit/st_commands.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-03.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_acceptance_cli.bats",
+      "prose": "Witness tests/unit/intent_acceptance_cli.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-03.1"
       ],
-      "status": "green",
-      "note": "test: at list and ac list render ids, paths, status"
+      "status": "n-a",
+      "note": "test: at list and ac list render ids, paths, status -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_acceptance_cli.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-03.2",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_acceptance_cli.bats",
+      "prose": "Witness tests/unit/intent_acceptance_cli.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-03.2"
       ],
-      "status": "green",
-      "note": "test: green only from red; to-write to green is refused"
+      "status": "n-a",
+      "note": "test: green only from red; to-write to green is refused -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_acceptance_cli.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-03.3",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_acceptance_cli.bats",
+      "prose": "Witness tests/unit/intent_acceptance_cli.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-03.2"
       ],
-      "status": "green",
-      "note": "test: done aliases green and notdone aliases red"
+      "status": "n-a",
+      "note": "test: done aliases green and notdone aliases red -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_acceptance_cli.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-03.4",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_acceptance_cli.bats",
+      "prose": "Witness tests/unit/intent_acceptance_cli.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-03.3"
       ],
-      "status": "green",
-      "note": "test: ac status reports counts and gate verdict"
+      "status": "n-a",
+      "note": "test: ac status reports counts and gate verdict -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_acceptance_cli.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-03.5",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_acceptance_cli.bats",
+      "prose": "Witness tests/unit/intent_acceptance_cli.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-03.4"
       ],
-      "status": "green",
-      "note": "test: ac satisfy refuses test-backed ACs"
+      "status": "n-a",
+      "note": "test: ac satisfy refuses test-backed ACs -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_acceptance_cli.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-03.6",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_acceptance_cli.bats",
+      "prose": "Witness tests/unit/intent_acceptance_cli.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-03.5"
       ],
-      "status": "green",
-      "note": "test: status edit is linter-stable"
+      "status": "n-a",
+      "note": "test: status edit is linter-stable -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_acceptance_cli.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-03.7",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_acceptance_cli.bats",
+      "prose": "Witness tests/unit/intent_acceptance_cli.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-03.1"
       ],
-      "status": "green",
-      "note": "normalisation lap: red then green, 2026-06-13 -- test: list accepts a bare numeric st id (normalised), like intent wp"
+      "status": "n-a",
+      "note": "normalisation lap: red then green, 2026-06-13 -- test: list accepts a bare numeric st id (normalised), like intent wp -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_acceptance_cli.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-04.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/acceptance_close_gate.bats",
+      "prose": "Witness tests/unit/acceptance_close_gate.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-04.1"
       ],
-      "status": "green",
-      "note": "test: wp done is blocked while a WP AC is uncovered"
+      "status": "n-a",
+      "note": "test: wp done is blocked while a WP AC is uncovered -- RETIRED at the 3.0.1 cut: its witness tests/unit/acceptance_close_gate.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-04.2",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/acceptance_close_gate.bats",
+      "prose": "Witness tests/unit/acceptance_close_gate.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-04.1"
       ],
-      "status": "green",
-      "note": "test: st done is blocked when the ST-level sign-off AC is unsatisfied"
+      "status": "n-a",
+      "note": "test: st done is blocked when the ST-level sign-off AC is unsatisfied -- RETIRED at the 3.0.1 cut: its witness tests/unit/acceptance_close_gate.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-04.3",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/acceptance_close_gate.bats",
+      "prose": "Witness tests/unit/acceptance_close_gate.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-04.1"
       ],
-      "status": "green",
-      "note": "test: st done is allowed once every AC including sign-off is satisfied"
+      "status": "n-a",
+      "note": "test: st done is allowed once every AC including sign-off is satisfied -- RETIRED at the 3.0.1 cut: its witness tests/unit/acceptance_close_gate.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-04.4",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/acceptance_close_gate.bats",
+      "prose": "Witness tests/unit/acceptance_close_gate.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-04.1"
       ],
-      "status": "green",
-      "note": "test: st done is not gated for a freshly stamped ST with no real ACs"
+      "status": "n-a",
+      "note": "test: st done is not gated for a freshly stamped ST with no real ACs -- RETIRED at the 3.0.1 cut: its witness tests/unit/acceptance_close_gate.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-05.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/st_new_acceptance.bats",
+      "prose": "Witness tests/unit/st_new_acceptance.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-05.1"
       ],
-      "status": "green",
-      "note": "test: info templates reference acceptance.md and restate no ACs"
+      "status": "n-a",
+      "note": "test: info templates reference acceptance.md and restate no ACs -- RETIRED at the 3.0.1 cut: its witness tests/unit/st_new_acceptance.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-05.2",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/st_new_acceptance.bats",
+      "prose": "Witness tests/unit/st_new_acceptance.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-05.2"
       ],
-      "status": "green",
-      "note": "test: st show and edit know the acceptance file type"
+      "status": "n-a",
+      "note": "test: st show and edit know the acceptance file type -- RETIRED at the 3.0.1 cut: its witness tests/unit/st_new_acceptance.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-07.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/st_new_acceptance.bats",
+      "prose": "Witness tests/unit/st_new_acceptance.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-07.1"
       ],
-      "status": "green",
-      "note": "test: open STs ST0043 and ST0044 each have an acceptance.md"
+      "status": "n-a",
+      "note": "test: open STs ST0043 and ST0044 each have an acceptance.md -- RETIRED at the 3.0.1 cut: its witness tests/unit/st_new_acceptance.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     }
   ],
   "attachments": [

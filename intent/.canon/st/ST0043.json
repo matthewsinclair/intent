@@ -14,49 +14,55 @@
     {
       "id": "AC-00.1",
       "text": "`intent upgrade` is a convergent orchestrator: detect state + numeric semver sanity, then verified backup, then walk an ordered ledger of structural steps (each with a state-based `needs` probe, a `run`, and a postcondition verify), then a single delegation to `intent claude upgrade --apply` for all canon/skills/subagents convergence, then stamp the target once, last. The confirmed defects below are all killed.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_upgrade_orchestrator.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-01.1",
       "text": "(F-UPG-3) After any interruption, a re-run performs exactly the remaining work; applicability is decided by probing on-disk state (or a step-scoped sentinel), never the top-level stamp. No step ever writes a version newer than its own step. The stamp is written once, last.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_upgrade_orchestrator.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-01.2",
       "text": "(F-UPG-1/2) Semver sanity (refuse downgrade, error on missing VERSION) runs before any mutation; unknown / future versions do not hard-fail mid-mutation; no enumerated `needs_*` globs that break at a future version (eg 2.20.0).",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_upgrade_orchestrator.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-01.3",
       "text": "Backup is verified -- `error()` on copy failure; no unconditional \"Backup created successfully\". (Already correct in v2.11.14 inline backup; the orchestrator must preserve it.)",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_upgrade_orchestrator.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-01.4",
       "text": "Canon files have a single writer and the stamp has a single technology. `intent_upgrade` is the sole stamper (jq); `intent claude upgrade` is the sole canon engine (its `VERSION_BUMP` action + the two `sed` stamps stripped).",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_upgrade_orchestrator.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-01.5",
       "text": "Migration code moves out of `bin/intent_helpers` (sourced by all commands, consumed only by upgrade) into upgrade-only scope (`bin/intent_migrations`); `detect_project_version` stays shared.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_upgrade_orchestrator.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
@@ -82,83 +88,91 @@
   "tests": [
     {
       "id": "AT-00.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_upgrade_orchestrator.bats",
+      "prose": "Witness tests/unit/intent_upgrade_orchestrator.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-00.1"
       ],
-      "status": "green",
-      "note": "test: convergent upgrade from a v2.9.x project lands at target (relocate then languages then canon then stamp-once)"
+      "status": "n-a",
+      "note": "test: convergent upgrade from a v2.9.x project lands at target (relocate then languages then canon then stamp-once) -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_upgrade_orchestrator.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_upgrade_orchestrator.bats",
+      "prose": "Witness tests/unit/intent_upgrade_orchestrator.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.1"
       ],
-      "status": "green",
-      "note": "test: interrupted upgrade re-run completes only the remaining work via state probe"
+      "status": "n-a",
+      "note": "test: interrupted upgrade re-run completes only the remaining work via state probe -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_upgrade_orchestrator.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.2",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_upgrade_orchestrator.bats",
+      "prose": "Witness tests/unit/intent_upgrade_orchestrator.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.1"
       ],
-      "status": "green",
-      "note": "test: no ledger step writes the version; only the orchestrator stamps, last"
+      "status": "n-a",
+      "note": "test: no ledger step writes the version; only the orchestrator stamps, last -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_upgrade_orchestrator.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.3",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_upgrade_orchestrator.bats",
+      "prose": "Witness tests/unit/intent_upgrade_orchestrator.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.2"
       ],
-      "status": "green",
-      "note": "test: future or unknown version does not hard-fail before mutation"
+      "status": "n-a",
+      "note": "test: future or unknown version does not hard-fail before mutation -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_upgrade_orchestrator.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.4",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_upgrade_orchestrator.bats",
+      "prose": "Witness tests/unit/intent_upgrade_orchestrator.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.2"
       ],
-      "status": "green",
-      "note": "test: semver sanity refuses downgrade and missing VERSION before any mutation"
+      "status": "n-a",
+      "note": "test: semver sanity refuses downgrade and missing VERSION before any mutation -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_upgrade_orchestrator.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.5",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_upgrade_orchestrator.bats",
+      "prose": "Witness tests/unit/intent_upgrade_orchestrator.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.3"
       ],
-      "status": "green",
-      "note": "test: backup failure surfaces via error() and aborts before mutation"
+      "status": "n-a",
+      "note": "test: backup failure surfaces via error() and aborts before mutation -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_upgrade_orchestrator.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.6",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_upgrade_orchestrator.bats",
+      "prose": "Witness tests/unit/intent_upgrade_orchestrator.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.4"
       ],
-      "status": "green",
-      "note": "test: only intent_upgrade writes the stamp and the canon engine carries no version-bump"
+      "status": "n-a",
+      "note": "test: only intent_upgrade writes the stamp and the canon engine carries no version-bump -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_upgrade_orchestrator.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.7",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_upgrade_orchestrator.bats",
+      "prose": "Witness tests/unit/intent_upgrade_orchestrator.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.5"
       ],
-      "status": "green",
-      "note": "test: migration code is not sourced into non-upgrade commands"
+      "status": "n-a",
+      "note": "test: migration code is not sourced into non-upgrade commands -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_upgrade_orchestrator.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.8",

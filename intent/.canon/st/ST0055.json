@@ -61,9 +61,10 @@
     {
       "id": "AC-01.1",
       "text": "`bin/intent_issues` exists, is executable, and `intent issues` dispatches to it as a project command (fails cleanly outside an Intent project).",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
@@ -87,113 +88,127 @@
     {
       "id": "AC-01.4",
       "text": "`intent issues help` and an unknown subcommand both print usage listing the five verbs; exit code is 0 for `help`, non-zero for the unknown verb.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-02.1",
       "text": "`intent issues add \"Title\"` allocates the next zero-padded 4-digit id (max+1 across OPEN+CLOSED), writes `intent/issues/OPEN/NNNN/NNNN-slug.md` with stamped frontmatter (id/title/date/reporter/status=OPEN/severity), and prints `NNNN:Title`.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-02.2",
       "text": "A second `add` allocates the next sequential id with no collision (gaps tolerated, ids not reused below max).",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-02.3",
       "text": "`intent issues` and `intent issues list` (no args) list OPEN issues by default.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-02.4",
       "text": "`--kind open|closed|all` filters the listing; an empty bucket prints a clean empty state, not an error; an invalid `--kind` fails via `error()`.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-02.5",
       "text": "The first `add` lazily scaffolds `intent/issues/{OPEN,CLOSED}/` (with `.gitkeep`); no per-project `_templ/` is written.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-02.6",
       "text": "`add --severity SEV` sets the frontmatter severity; omitted defaults to `medium`; an invalid severity fails via `error()`.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-02.7",
       "text": "`new` is an alias for `add` (identical behaviour).",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-03.1",
       "text": "`intent issues show ID` prints the issue's frontmatter + body for an id in either bucket.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-03.2",
       "text": "`intent issues show ID --json` emits valid (jq-parseable) JSON with id/title/status/severity/date/reporter fields.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-03.3",
       "text": "`intent issues close ID` moves the whole `OPEN/NNNN/` directory to `CLOSED/NNNN/` and sets frontmatter `status: CLOSED`, atomically.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-03.4",
       "text": "`intent issues open ID` moves `CLOSED/NNNN/` to `OPEN/NNNN/` and sets `status: OPEN`.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-03.5",
       "text": "A legacy `RESOLVED` issue is read, listed, and shown as CLOSED (normalised; no third state surfaces).",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-03.6",
       "text": "An unknown/missing ID on show/close/open fails via `error()` (non-zero, clear message) -- no silent success.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
@@ -244,172 +259,189 @@
     {
       "id": "AC-05.2",
       "text": "`issue_file` picks the frontmatter-bearing primary among a multi-`.md` issue directory (legacy satellites like `NNNN-resolved.md` / `-session.md` carry no frontmatter), so `show` / `list` never surface an empty satellite. Required to adopt Lamplight's rich issues.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     }
   ],
   "tests": [
     {
       "id": "AT-01.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.1"
       ],
-      "status": "green",
-      "note": "test: \"dispatch: intent issues routes to bin/intent_issues\""
+      "status": "n-a",
+      "note": "test: \"dispatch: intent issues routes to bin/intent_issues\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.4",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.4"
       ],
-      "status": "green",
-      "note": "test: \"help: usage lists the five verbs; unknown verb exits non-zero\""
+      "status": "n-a",
+      "note": "test: \"help: usage lists the five verbs; unknown verb exits non-zero\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-02.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-02.1"
       ],
-      "status": "green",
-      "note": "test: \"add: allocates id, writes OPEN/NNNN/NNNN-slug.md, prints ID:Title\""
+      "status": "n-a",
+      "note": "test: \"add: allocates id, writes OPEN/NNNN/NNNN-slug.md, prints ID:Title\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-02.2",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-02.2"
       ],
-      "status": "green",
-      "note": "test: \"add: second add increments id, no collision\""
+      "status": "n-a",
+      "note": "test: \"add: second add increments id, no collision\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-02.3",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-02.3"
       ],
-      "status": "green",
-      "note": "test: \"list: default lists OPEN\""
+      "status": "n-a",
+      "note": "test: \"list: default lists OPEN\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-02.4",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-02.4"
       ],
-      "status": "green",
-      "note": "test: \"list: --kind filters; empty state clean; invalid kind errors\""
+      "status": "n-a",
+      "note": "test: \"list: --kind filters; empty state clean; invalid kind errors\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-02.5",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-02.5"
       ],
-      "status": "green",
-      "note": "test: \"add: lazily scaffolds issues dirs, no _templ\""
+      "status": "n-a",
+      "note": "test: \"add: lazily scaffolds issues dirs, no _templ\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-02.6",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-02.6"
       ],
-      "status": "green",
-      "note": "test: \"add: --severity sets severity; invalid severity errors\""
+      "status": "n-a",
+      "note": "test: \"add: --severity sets severity; invalid severity errors\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-02.7",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-02.7"
       ],
-      "status": "green",
-      "note": "test: \"add: 'new' is an alias for 'add'\""
+      "status": "n-a",
+      "note": "test: \"add: 'new' is an alias for 'add'\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-03.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-03.1"
       ],
-      "status": "green",
-      "note": "test: \"show: prints frontmatter + body\""
+      "status": "n-a",
+      "note": "test: \"show: prints frontmatter + body\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-03.2",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-03.2"
       ],
-      "status": "green",
-      "note": "test: \"show --json: valid json with expected fields\""
+      "status": "n-a",
+      "note": "test: \"show --json: valid json with expected fields\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-03.3",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-03.3"
       ],
-      "status": "green",
-      "note": "test: \"close: moves OPEN/NNNN dir to CLOSED + status\""
+      "status": "n-a",
+      "note": "test: \"close: moves OPEN/NNNN dir to CLOSED + status\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-03.4",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-03.4"
       ],
-      "status": "green",
-      "note": "test: \"open: moves CLOSED/NNNN dir to OPEN + status\""
+      "status": "n-a",
+      "note": "test: \"open: moves CLOSED/NNNN dir to OPEN + status\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-03.5",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-03.5"
       ],
-      "status": "green",
-      "note": "test: \"read: RESOLVED normalised to CLOSED\""
+      "status": "n-a",
+      "note": "test: \"read: RESOLVED normalised to CLOSED\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-03.6",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-03.6"
       ],
-      "status": "green",
-      "note": "test: \"error: unknown id on show/close/open exits non-zero\""
+      "status": "n-a",
+      "note": "test: \"error: unknown id on show/close/open exits non-zero\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-05.2",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/intent_issues.bats",
+      "prose": "Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-05.2"
       ],
-      "status": "green",
-      "note": "test: \"show: picks the frontmatter-bearing primary among multi-file issue dirs\""
+      "status": "n-a",
+      "note": "test: \"show: picks the frontmatter-bearing primary among multi-file issue dirs\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     }
   ],
   "attachments": [

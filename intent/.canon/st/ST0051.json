@@ -14,17 +14,19 @@
     {
       "id": "AC-01.1",
       "text": "`get_default_width` returns the project config's `dft_width` value when it is set.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/output_width.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-01.2",
       "text": "`get_default_width` returns 120 when `dft_width` is absent or empty in config.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/output_width.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
@@ -39,25 +41,28 @@
     {
       "id": "AC-02.1",
       "text": "`intent st sync --write` sizes `steel_threads.md` from `get_default_width`, independent of the terminal width the command runs under.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/output_width.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-02.2",
       "text": "`intent st list` renders to stdout at the live terminal width (`get_terminal_width`).",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/output_width.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-02.3",
       "text": "an explicit `--width N` overrides both the file path and the stdout path.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/output_width.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
@@ -91,53 +96,58 @@
   "tests": [
     {
       "id": "AT-01.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/output_width.bats",
+      "prose": "Witness tests/unit/output_width.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.1"
       ],
-      "status": "green",
-      "note": "test: dft_width_read_from_config"
+      "status": "n-a",
+      "note": "test: dft_width_read_from_config -- RETIRED at the 3.0.1 cut: its witness tests/unit/output_width.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.2",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/output_width.bats",
+      "prose": "Witness tests/unit/output_width.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.2"
       ],
-      "status": "green",
-      "note": "test: dft_width_defaults_to_120"
+      "status": "n-a",
+      "note": "test: dft_width_defaults_to_120 -- RETIRED at the 3.0.1 cut: its witness tests/unit/output_width.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-02.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/output_width.bats",
+      "prose": "Witness tests/unit/output_width.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-02.1"
       ],
-      "status": "green",
-      "note": "test: sync_write_uses_default_width_not_terminal"
+      "status": "n-a",
+      "note": "test: sync_write_uses_default_width_not_terminal -- RETIRED at the 3.0.1 cut: its witness tests/unit/output_width.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-02.2",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/output_width.bats",
+      "prose": "Witness tests/unit/output_width.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-02.2"
       ],
-      "status": "green",
-      "note": "test: list_uses_terminal_width"
+      "status": "n-a",
+      "note": "test: list_uses_terminal_width -- RETIRED at the 3.0.1 cut: its witness tests/unit/output_width.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-02.3",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/output_width.bats",
+      "prose": "Witness tests/unit/output_width.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-02.3"
       ],
-      "status": "green",
-      "note": "test: explicit_width_overrides_both"
+      "status": "n-a",
+      "note": "test: explicit_width_overrides_both -- RETIRED at the 3.0.1 cut: its witness tests/unit/output_width.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     }
   ],
   "attachments": [

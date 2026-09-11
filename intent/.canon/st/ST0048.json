@@ -52,41 +52,46 @@
     {
       "id": "AC-01.1",
       "text": "`intent ac gate <st>` exits non-zero with a BLOCKED report when `acceptance.md` is present but has zero in-scope ACs and no exemption (was a vacuous exit 0).",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/acceptance_close_gate.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-01.2",
       "text": "`intent ac gate <st>` exits non-zero with a BLOCKED report when `acceptance.md` is absent (no contract = fail), and the message names the escape hatch.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/acceptance_close_gate.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-01.3",
       "text": "`acceptance: exempt` in `acceptance.md` frontmatter opens the gate (exit 0) for a zero-AC contract AND the gate prints an `EXEMPT` line naming the exemption (No-Silent: announced, not silent).",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/acceptance_close_gate.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-01.4",
       "text": "A real contract is unaffected: all-satisfied still passes (exit 0); any-unsatisfied still BLOCKS; malformed AC/AT lines still BLOCK (F1 regression guard).",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/acceptance_close_gate.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
       "id": "AC-01.5",
       "text": "`intent wp done <st>/NN` honours the ratified WP-granularity rule (design.md D3, WP-lenient): a WP with no own `AC-NN.x` closes iff the thread carries >=1 real AC or is exempt; a fully-empty, non-exempt thread BLOCKS `wp done`.",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/acceptance_close_gate.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
@@ -101,9 +106,10 @@
     {
       "id": "AC-02.2",
       "text": "No \"opt-in / legacy-safe / closes exactly as before\" close-gate claim survives in the canon or code comments (gate header `bin/intent_acceptance`, `bin/intent_st` + `bin/intent_wp` consumer comments, `intent/docs/working-with-llms.md` D11); all describe fail-by-default + exemption. (Highlander)",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/unit/acceptance_close_gate.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
@@ -137,63 +143,69 @@
   "tests": [
     {
       "id": "AT-01.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/acceptance_close_gate.bats",
+      "prose": "Witness tests/unit/acceptance_close_gate.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.1"
       ],
-      "status": "green",
-      "note": "test: \"gate blocks a present contract with zero in-scope ACs\""
+      "status": "n-a",
+      "note": "test: \"gate blocks a present contract with zero in-scope ACs\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/acceptance_close_gate.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.2",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/acceptance_close_gate.bats",
+      "prose": "Witness tests/unit/acceptance_close_gate.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.2"
       ],
-      "status": "green",
-      "note": "test: \"gate blocks a missing acceptance.md (no contract)\""
+      "status": "n-a",
+      "note": "test: \"gate blocks a missing acceptance.md (no contract)\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/acceptance_close_gate.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.3",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/acceptance_close_gate.bats",
+      "prose": "Witness tests/unit/acceptance_close_gate.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.3"
       ],
-      "status": "green",
-      "note": "test: \"gate passes and reports EXEMPT for acceptance: exempt with zero ACs\""
+      "status": "n-a",
+      "note": "test: \"gate passes and reports EXEMPT for acceptance: exempt with zero ACs\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/acceptance_close_gate.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.4",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/acceptance_close_gate.bats",
+      "prose": "Witness tests/unit/acceptance_close_gate.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.4"
       ],
-      "status": "green",
-      "note": "test: \"gate unaffected by a real satisfied contract; still blocks unsatisfied and malformed\""
+      "status": "n-a",
+      "note": "test: \"gate unaffected by a real satisfied contract; still blocks unsatisfied and malformed\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/acceptance_close_gate.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-01.5",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/acceptance_close_gate.bats",
+      "prose": "Witness tests/unit/acceptance_close_gate.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-01.5"
       ],
-      "status": "green",
-      "note": "test: \"wp done honours the WP-lenient granularity rule\""
+      "status": "n-a",
+      "note": "test: \"wp done honours the WP-lenient granularity rule\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/acceptance_close_gate.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     },
     {
       "id": "AT-02.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/unit/acceptance_close_gate.bats",
+      "prose": "Witness tests/unit/acceptance_close_gate.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-02.2"
       ],
-      "status": "green",
-      "note": "test: \"no opt-in or closes-as-before claim survives in canon and comments\""
+      "status": "n-a",
+      "note": "test: \"no opt-in or closes-as-before claim survives in canon and comments\" -- RETIRED at the 3.0.1 cut: its witness tests/unit/acceptance_close_gate.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"
     }
   ],
   "attachments": [

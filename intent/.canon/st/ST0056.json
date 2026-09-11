@@ -181,7 +181,7 @@
     {
       "id": "AC-00.1",
       "text": "The v3 binary passes the narrowed BATS conformance contract (stdout, exit codes, behaviour), with every file-layout divergence recorded in the ratified keep/retire/deviate register, **and no command family has zero burning coverage** -- a contract with a hole passes trivially at that hole (strengthened by vc 2026-08-14 on ic's `config` finding; ADOPTED under hv standing authorisation) -- **and the non-core `pending` register rows deferred at AC-05.3 are split to per-test rows by this gate -- DISCHARGED 2026-09-09 (ic), and they were already split rather than owed**: every `pending` register row carries per-test rows, register `n/total` conserves exactly against `pertest.md`'s row and burn counts for all of them, and there are zero UNCLASSIFIED rows at the per-test level, so AC-05.3's both-levels condition holds here too. The check is mutation-controlled in four arms -- a register ratio altered, a per-test row deleted, a burns cell flipped, each caught and each failing only on its own mutation -- and it REFUSES over an empty population rather than reporting the reassuring zero. **Its first run reported a mismatch that was the INSTRUMENT and not the data** -- an escaped pipe in a test title, which `awk -F'|'` splits blind, landing in the one file the register's own header records as having defeated four grep passes. **NO FIGURE HERE, DELIBERATELY: a count transcribed into a criterion is a claim about a corpus at a moment, and this one moved under its own row. Re-drive it.** **This clause no longer holds the row. The whole-estate half does, and the register's corpus is behind the tree -- `0298`**",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
         "is": "withdrawn",
         "reason": "withdrawn 2026-09-11 under hv's instruction to end the acceptance-and-instrument loop and draw a line under 3.0.1. This row demands a proof about an instrument, a register or a baseline, not a behaviour a user of 3.0.1 meets. The record it produced stays where it is; the criterion no longer gates the release."
@@ -611,9 +611,10 @@
     {
       "id": "AC-05.2",
       "text": "The core families (st, wp, ac, at, todo) **and their read verbs** (list, show, status) are green via `INTENT_BIN` **on the NARROWED conformance contract** -- stdout, exit codes and behaviour, per the ratified parity contract at design.md:146 -- with voice and exit codes byte-compatible; a v2 test may leave that contract ONLY by a register classification of `retire` or `deviate` recorded at land time for a design-consequence reason, never because it failed. The whole-estate number is AC-00.1's, not this one's",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
-        "is": "computed"
+        "is": "satisfied",
+        "evidence": "tests/conformance/run_v2_suite.bash was green when this row was last recorded (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"
       }
     },
     {
@@ -662,7 +663,7 @@
     {
       "id": "AC-06.1",
       "text": "The full command surface is ported and the conformance suite is green minus register-recorded deviations only, with `coverage_map.sh` reporting no command family at zero burning coverage -- `intent config` lands a conformance test BEFORE its behaviour is designed, or the `undefined` ruling on it is unverifiable by construction",
-      "kind": "test",
+      "kind": "non-test",
       "state": {
         "is": "withdrawn",
         "reason": "withdrawn 2026-09-11 under hv's instruction to end the acceptance-and-instrument loop and draw a line under 3.0.1. This row demands a proof about an instrument, a register or a baseline, not a behaviour a user of 3.0.1 meets. The record it produced stays where it is; the criterion no longer gates the release."
@@ -1641,13 +1642,14 @@
   "tests": [
     {
       "id": "AT-00.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/conformance/run_v2_suite.bash",
+      "prose": "Witness tests/conformance/run_v2_suite.bash, red when this row was last recorded; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). The criterion it covers was withdrawn by hv on 2026-09-11.",
       "covers": [
         "AC-00.1"
       ],
-      "status": "red",
-      "note": "**the harness EXISTS and this row was wrong at `to-write`, which is why it is red rather than merely unwritten.** It retargets through ic's `INTENT_BIN` seam (`tests/lib/test_helper.bash:21`), and **it BURNS FIRST** -- points `INTENT_BIN` at `/usr/bin/false` and requires the named files to fail before trusting any result, which is the only thing that catches a file resolving `intent` some other way and never seeing the override. Red for two named reasons, not for being unbuilt: **the surface is not ported (WP-04 is the v2 replacement and is unbuilt), so the estate cannot be green**; and this AC additionally carries the burning-coverage clause I added on 2026-08-14 against ic's `config` finding -- **no command family at zero burning coverage** -- which `coverage_map.sh` reports and which no run has yet cleared. **AC-00.1's deferred non-core `pending` rows are DISCHARGED (ic, 2026-09-09) and this row is no longer where they are gated** -- every `pending` register row carries per-test rows and conserves against the file-level register, mutation-controlled in four arms with a refusal over an empty population; the derivation sits on the criterion. **This row stays red for its OTHER two named reasons, and a reader must not take the discharge as movement on either.** **A first run coming back green would mean the file list had been scoped to what already passes**, which the harness says of itself in its own header. The full 100-file estate is deliberately not the default because hv runs the full suite externally; a harness that invites a long unattended run from a tool session is one that will be run that way by accident"
+      "status": "n-a",
+      "note": "**the harness EXISTS and this row was wrong at `to-write`, which is why it is red rather than merely unwritten.** It retargets through ic's `INTENT_BIN` seam (`tests/lib/test_helper.bash:21`), and **it BURNS FIRST** -- points `INTENT_BIN` at `/usr/bin/false` and requires the named files to fail before trusting any result, which is the only thing that catches a file resolving `intent` some other way and never seeing the override. Red for two named reasons, not for being unbuilt: **the surface is not ported (WP-04 is the v2 replacement and is unbuilt), so the estate cannot be green**; and this AC additionally carries the burning-coverage clause I added on 2026-08-14 against ic's `config` finding -- **no command family at zero burning coverage** -- which `coverage_map.sh` reports and which no run has yet cleared. **AC-00.1's deferred non-core `pending` rows are DISCHARGED (ic, 2026-09-09) and this row is no longer where they are gated** -- every `pending` register row carries per-test rows and conserves against the file-level register, mutation-controlled in four arms with a refusal over an empty population; the derivation sits on the criterion. **This row stays red for its OTHER two named reasons, and a reader must not take the discharge as movement on either.** **A first run coming back green would mean the file list had been scoped to what already passes**, which the harness says of itself in its own header. The full 100-file estate is deliberately not the default because hv runs the full suite externally; a harness that invites a long unattended run from a tool session is one that will be run that way by accident -- RETIRED at the 3.0.1 cut: its witness tests/conformance/run_v2_suite.bash went with the v2 shell (ST0056 AC-00.6), red, and the criterion it covers was withdrawn by hv on 2026-09-11; the runner's record stands at its commits"
     },
     {
       "id": "AT-00.10",
@@ -2186,12 +2188,14 @@
     },
     {
       "id": "AT-05.2",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/conformance/run_v2_suite.bash",
+      "prose": "Witness tests/conformance/run_v2_suite.bash, green when this row was last recorded; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6).",
       "covers": [
         "AC-05.2"
       ],
-      "status": "green"
+      "status": "n-a",
+      "note": "RETIRED at the 3.0.1 cut: its witness tests/conformance/run_v2_suite.bash went with the v2 shell (ST0056 AC-00.6); it was green when this row was last recorded"
     },
     {
       "id": "AT-05.3",
@@ -2242,13 +2246,14 @@
     },
     {
       "id": "AT-06.1",
-      "kind": "test",
+      "kind": "non-test",
       "file": "tests/conformance/run_v2_suite.bash",
+      "prose": "Witness tests/conformance/run_v2_suite.bash, red when this row was last recorded; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). The criterion it covers was withdrawn by hv on 2026-09-11.",
       "covers": [
         "AC-06.1"
       ],
-      "status": "red",
-      "note": "**same instrument as AT-00.1 and a different criterion, so read them together**: AT-00.1 asks whether the narrowed contract passes, this one asks whether the FULL command surface is ported and the suite is green minus register-recorded deviations only. Red because the surface is not ported, and it is honest red rather than absent instrument -- **the harness exists, burns in, and classifies per file**, so the failures it reports today are the expected ratified-deviation reds rather than an unbuilt check. **This AC carries one clause the other does not and it is an ORDERING constraint, not a coverage one: `intent config` must land a conformance test BEFORE its behaviour is designed**, or the `undefined` ruling on it is unverifiable by construction -- there is nothing to be faithful to, so a test written after the design would be measuring the design against itself. `coverage_map.sh` is the reporter for the zero-burning-coverage half and lives at `intent/st/ST0056/parity/tools/` **THE ORDERING LIMB IS DISCHARGED, AND IT WAS NEVER WHY THIS ROW IS RED (cc, 2026-09-02).** `tests/unit/config_undefined.bats` landed 2026-09-01 at `e3110564`, and `config` is STILL unwired at HEAD -- `render.rs:110` routes the family to `unwired_whole_family`, and 6 of 6 arms assert rc=2 against a binary BUILT FROM THE CURRENT TREE rather than the delivered pair, which the gate reports as behind HEAD. So the test was written while there was nothing to be faithful to, and what it pins is an ABSENCE that goes red the day someone wires the family. **That is the mechanism the clause exists for, working.** It carries its own control (`the byte-identity check can actually detect a write`) and explicitly declines to read `--help` rendering as evidence of an arm. **THE ONE FACT THAT COMPLICATES THIS, RECORDED HERE RATHER THAN LEFT TO BE DISCOVERED: D35 (hv, 2026-08-15) already names `intent config` as the reader of `backup.enabled` / `backup.schedule` / `backup.retain.{daily,weekly,monthly}`, two weeks BEFORE the test landed.** That is a requirement ON config rather than a design OF it -- no verb semantics, no key grammar, no output shape -- and `surface/dispatch-table.json` still records config's v3 shape as *a decision rather than a port*. **The clause is met on its own terms; a stricter reader who counts D35 as partial design should meet that fact here rather than find it later.** WHAT REMAINS RED IS THE OTHER TWO LIMBS: the surface is not ported, and the zero-burning-coverage half is blocked on the `INTENT_BIN` flip and a `burn.sh` re-baseline, both hv's. **A ROW HELD RED ON A PROCESS FAULT THAT COULD NEVER BE UNDONE WOULD BE A ROW THAT CANNOT PASS; this one is red on two things that can still be done.**"
+      "status": "n-a",
+      "note": "**same instrument as AT-00.1 and a different criterion, so read them together**: AT-00.1 asks whether the narrowed contract passes, this one asks whether the FULL command surface is ported and the suite is green minus register-recorded deviations only. Red because the surface is not ported, and it is honest red rather than absent instrument -- **the harness exists, burns in, and classifies per file**, so the failures it reports today are the expected ratified-deviation reds rather than an unbuilt check. **This AC carries one clause the other does not and it is an ORDERING constraint, not a coverage one: `intent config` must land a conformance test BEFORE its behaviour is designed**, or the `undefined` ruling on it is unverifiable by construction -- there is nothing to be faithful to, so a test written after the design would be measuring the design against itself. `coverage_map.sh` is the reporter for the zero-burning-coverage half and lives at `intent/st/ST0056/parity/tools/` **THE ORDERING LIMB IS DISCHARGED, AND IT WAS NEVER WHY THIS ROW IS RED (cc, 2026-09-02).** `tests/unit/config_undefined.bats` landed 2026-09-01 at `e3110564`, and `config` is STILL unwired at HEAD -- `render.rs:110` routes the family to `unwired_whole_family`, and 6 of 6 arms assert rc=2 against a binary BUILT FROM THE CURRENT TREE rather than the delivered pair, which the gate reports as behind HEAD. So the test was written while there was nothing to be faithful to, and what it pins is an ABSENCE that goes red the day someone wires the family. **That is the mechanism the clause exists for, working.** It carries its own control (`the byte-identity check can actually detect a write`) and explicitly declines to read `--help` rendering as evidence of an arm. **THE ONE FACT THAT COMPLICATES THIS, RECORDED HERE RATHER THAN LEFT TO BE DISCOVERED: D35 (hv, 2026-08-15) already names `intent config` as the reader of `backup.enabled` / `backup.schedule` / `backup.retain.{daily,weekly,monthly}`, two weeks BEFORE the test landed.** That is a requirement ON config rather than a design OF it -- no verb semantics, no key grammar, no output shape -- and `surface/dispatch-table.json` still records config's v3 shape as *a decision rather than a port*. **The clause is met on its own terms; a stricter reader who counts D35 as partial design should meet that fact here rather than find it later.** WHAT REMAINS RED IS THE OTHER TWO LIMBS: the surface is not ported, and the zero-burning-coverage half is blocked on the `INTENT_BIN` flip and a `burn.sh` re-baseline, both hv's. **A ROW HELD RED ON A PROCESS FAULT THAT COULD NEVER BE UNDONE WOULD BE A ROW THAT CANNOT PASS; this one is red on two things that can still be done.** -- RETIRED at the 3.0.1 cut: its witness tests/conformance/run_v2_suite.bash went with the v2 shell (ST0056 AC-00.6), red, and the criterion it covers was withdrawn by hv on 2026-09-11; the runner's record stands at its commits"
     },
     {
       "id": "AT-06.10",

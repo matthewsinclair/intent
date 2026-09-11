@@ -15,29 +15,29 @@ title: Add `intent issues` command
 
 ### WP-01 -- Foundation & format: dir-per-issue canon, Intent-owned template, scaffold, MODULES row, dispatch skeleton (status: Done)
 
-- AC-01.1 `bin/intent_issues` exists, is executable, and `intent issues` dispatches to it as a project command (fails cleanly outside an Intent project). -- satisfied: yes (computed)
+- AC-01.1 (non-test) `bin/intent_issues` exists, is executable, and `intent issues` dispatches to it as a project command (fails cleanly outside an Intent project). -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
 - AC-01.2 (non-test) The issue template lives at `lib/templates/issues/_ISSUE.md` (Intent-owned single source; no inline heredoc in `bin/intent_issues`). -- evidence: lib/templates/issues/_ISSUE.md exists; intent_issues stamps via sed, no heredoc; critic-shell no-heredoc clean -- satisfied: yes
 - AC-01.3 (non-test) `MODULES.md` carries a row for `bin/intent_issues`, added before the module ships. -- evidence: MODULES.md 'Issue tracker' row for bin/intent_issues -- satisfied: yes
-- AC-01.4 `intent issues help` and an unknown subcommand both print usage listing the five verbs; exit code is 0 for `help`, non-zero for the unknown verb. -- satisfied: yes (computed)
+- AC-01.4 (non-test) `intent issues help` and an unknown subcommand both print usage listing the five verbs; exit code is 0 for `help`, non-zero for the unknown verb. -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
 
 ### WP-02 -- Create & list: add (dir-per-issue, id alloc, stamp), list --kind open/closed/all (status: Done)
 
-- AC-02.1 `intent issues add "Title"` allocates the next zero-padded 4-digit id (max+1 across OPEN+CLOSED), writes `intent/issues/OPEN/NNNN/NNNN-slug.md` with stamped frontmatter (id/title/date/reporter/status=OPEN/severity), and prints `NNNN:Title`. -- satisfied: yes (computed)
-- AC-02.2 A second `add` allocates the next sequential id with no collision (gaps tolerated, ids not reused below max). -- satisfied: yes (computed)
-- AC-02.3 `intent issues` and `intent issues list` (no args) list OPEN issues by default. -- satisfied: yes (computed)
-- AC-02.4 `--kind open|closed|all` filters the listing; an empty bucket prints a clean empty state, not an error; an invalid `--kind` fails via `error()`. -- satisfied: yes (computed)
-- AC-02.5 The first `add` lazily scaffolds `intent/issues/{OPEN,CLOSED}/` (with `.gitkeep`); no per-project `_templ/` is written. -- satisfied: yes (computed)
-- AC-02.6 `add --severity SEV` sets the frontmatter severity; omitted defaults to `medium`; an invalid severity fails via `error()`. -- satisfied: yes (computed)
-- AC-02.7 `new` is an alias for `add` (identical behaviour). -- satisfied: yes (computed)
+- AC-02.1 (non-test) `intent issues add "Title"` allocates the next zero-padded 4-digit id (max+1 across OPEN+CLOSED), writes `intent/issues/OPEN/NNNN/NNNN-slug.md` with stamped frontmatter (id/title/date/reporter/status=OPEN/severity), and prints `NNNN:Title`. -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
+- AC-02.2 (non-test) A second `add` allocates the next sequential id with no collision (gaps tolerated, ids not reused below max). -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
+- AC-02.3 (non-test) `intent issues` and `intent issues list` (no args) list OPEN issues by default. -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
+- AC-02.4 (non-test) `--kind open|closed|all` filters the listing; an empty bucket prints a clean empty state, not an error; an invalid `--kind` fails via `error()`. -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
+- AC-02.5 (non-test) The first `add` lazily scaffolds `intent/issues/{OPEN,CLOSED}/` (with `.gitkeep`); no per-project `_templ/` is written. -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
+- AC-02.6 (non-test) `add --severity SEV` sets the frontmatter severity; omitted defaults to `medium`; an invalid severity fails via `error()`. -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
+- AC-02.7 (non-test) `new` is an alias for `add` (identical behaviour). -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
 
 ### WP-03 -- Inspect & lifecycle: show (+--json), close, open (move NNNN dir + status mirror) (status: Done)
 
-- AC-03.1 `intent issues show ID` prints the issue's frontmatter + body for an id in either bucket. -- satisfied: yes (computed)
-- AC-03.2 `intent issues show ID --json` emits valid (jq-parseable) JSON with id/title/status/severity/date/reporter fields. -- satisfied: yes (computed)
-- AC-03.3 `intent issues close ID` moves the whole `OPEN/NNNN/` directory to `CLOSED/NNNN/` and sets frontmatter `status: CLOSED`, atomically. -- satisfied: yes (computed)
-- AC-03.4 `intent issues open ID` moves `CLOSED/NNNN/` to `OPEN/NNNN/` and sets `status: OPEN`. -- satisfied: yes (computed)
-- AC-03.5 A legacy `RESOLVED` issue is read, listed, and shown as CLOSED (normalised; no third state surfaces). -- satisfied: yes (computed)
-- AC-03.6 An unknown/missing ID on show/close/open fails via `error()` (non-zero, clear message) -- no silent success. -- satisfied: yes (computed)
+- AC-03.1 (non-test) `intent issues show ID` prints the issue's frontmatter + body for an id in either bucket. -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
+- AC-03.2 (non-test) `intent issues show ID --json` emits valid (jq-parseable) JSON with id/title/status/severity/date/reporter fields. -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
+- AC-03.3 (non-test) `intent issues close ID` moves the whole `OPEN/NNNN/` directory to `CLOSED/NNNN/` and sets frontmatter `status: CLOSED`, atomically. -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
+- AC-03.4 (non-test) `intent issues open ID` moves `CLOSED/NNNN/` to `OPEN/NNNN/` and sets `status: OPEN`. -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
+- AC-03.5 (non-test) A legacy `RESOLVED` issue is read, listed, and shown as CLOSED (normalised; no third state surfaces). -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
+- AC-03.6 (non-test) An unknown/missing ID on show/close/open fails via `error()` (non-zero, clear message) -- no silent success. -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
 
 ### WP-04 -- Gate & integration: bats green, critic-shell clean, intent help, doctor, ac gate (status: Done)
 
@@ -49,33 +49,33 @@ title: Add `intent issues` command
 ### WP-05 -- Fleet normalisation (POST-SHIP, cross-repo): normalise Utilz/Lamplight intent/issues to canon (status: Done)
 
 - AC-05.1 (non-test) Every fleet project with an `intent/issues/` tree (Lamplight, Conflab, Utilz, Intent) is normalised to the ratified canon: directory-per-issue `{OPEN,CLOSED}/NNNN/NNNN-slug.md`, `RESOLVED` -> CLOSED, vendored `_templ/` removed (Intent now owns the template). -- evidence: Utilz (0171297), Lamplight (7058fd3a8), Conflab (49428b4f), Intent (issue 0001) all dir-per-issue, statuses CLOSED, _templ dropped; verified via intent issues list --kind all -- satisfied: yes
-- AC-05.2 `issue_file` picks the frontmatter-bearing primary among a multi-`.md` issue directory (legacy satellites like `NNNN-resolved.md` / `-session.md` carry no frontmatter), so `show` / `list` never surface an empty satellite. Required to adopt Lamplight's rich issues. -- satisfied: yes (computed)
+- AC-05.2 (non-test) `issue_file` picks the frontmatter-bearing primary among a multi-`.md` issue directory (legacy satellites like `NNNN-resolved.md` / `-session.md` carry no frontmatter), so `show` / `list` never surface an empty satellite. Required to adopt Lamplight's rich issues. -- evidence: tests/unit/intent_issues.bats was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6) -- satisfied: yes
 
 ## Acceptance Tests
 
 ### WP-01 -- Foundation & format: dir-per-issue canon, Intent-owned template, scaffold, MODULES row, dispatch skeleton (status: Done)
 
-- AT-01.1 `tests/unit/intent_issues.bats` -- covers AC-01.1 -- status: green -- test: "dispatch: intent issues routes to bin/intent_issues"
-- AT-01.4 `tests/unit/intent_issues.bats` -- covers AC-01.4 -- status: green -- test: "help: usage lists the five verbs; unknown verb exits non-zero"
+- AT-01.1 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-01.1 -- status: n/a -- test: "dispatch: intent issues routes to bin/intent_issues" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
+- AT-01.4 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-01.4 -- status: n/a -- test: "help: usage lists the five verbs; unknown verb exits non-zero" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
 
 ### WP-02 -- Create & list: add (dir-per-issue, id alloc, stamp), list --kind open/closed/all (status: Done)
 
-- AT-02.1 `tests/unit/intent_issues.bats` -- covers AC-02.1 -- status: green -- test: "add: allocates id, writes OPEN/NNNN/NNNN-slug.md, prints ID:Title"
-- AT-02.2 `tests/unit/intent_issues.bats` -- covers AC-02.2 -- status: green -- test: "add: second add increments id, no collision"
-- AT-02.3 `tests/unit/intent_issues.bats` -- covers AC-02.3 -- status: green -- test: "list: default lists OPEN"
-- AT-02.4 `tests/unit/intent_issues.bats` -- covers AC-02.4 -- status: green -- test: "list: --kind filters; empty state clean; invalid kind errors"
-- AT-02.5 `tests/unit/intent_issues.bats` -- covers AC-02.5 -- status: green -- test: "add: lazily scaffolds issues dirs, no _templ"
-- AT-02.6 `tests/unit/intent_issues.bats` -- covers AC-02.6 -- status: green -- test: "add: --severity sets severity; invalid severity errors"
-- AT-02.7 `tests/unit/intent_issues.bats` -- covers AC-02.7 -- status: green -- test: "add: 'new' is an alias for 'add'"
+- AT-02.1 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-02.1 -- status: n/a -- test: "add: allocates id, writes OPEN/NNNN/NNNN-slug.md, prints ID:Title" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
+- AT-02.2 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-02.2 -- status: n/a -- test: "add: second add increments id, no collision" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
+- AT-02.3 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-02.3 -- status: n/a -- test: "list: default lists OPEN" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
+- AT-02.4 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-02.4 -- status: n/a -- test: "list: --kind filters; empty state clean; invalid kind errors" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
+- AT-02.5 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-02.5 -- status: n/a -- test: "add: lazily scaffolds issues dirs, no _templ" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
+- AT-02.6 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-02.6 -- status: n/a -- test: "add: --severity sets severity; invalid severity errors" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
+- AT-02.7 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-02.7 -- status: n/a -- test: "add: 'new' is an alias for 'add'" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
 
 ### WP-03 -- Inspect & lifecycle: show (+--json), close, open (move NNNN dir + status mirror) (status: Done)
 
-- AT-03.1 `tests/unit/intent_issues.bats` -- covers AC-03.1 -- status: green -- test: "show: prints frontmatter + body"
-- AT-03.2 `tests/unit/intent_issues.bats` -- covers AC-03.2 -- status: green -- test: "show --json: valid json with expected fields"
-- AT-03.3 `tests/unit/intent_issues.bats` -- covers AC-03.3 -- status: green -- test: "close: moves OPEN/NNNN dir to CLOSED + status"
-- AT-03.4 `tests/unit/intent_issues.bats` -- covers AC-03.4 -- status: green -- test: "open: moves CLOSED/NNNN dir to OPEN + status"
-- AT-03.5 `tests/unit/intent_issues.bats` -- covers AC-03.5 -- status: green -- test: "read: RESOLVED normalised to CLOSED"
-- AT-03.6 `tests/unit/intent_issues.bats` -- covers AC-03.6 -- status: green -- test: "error: unknown id on show/close/open exits non-zero"
+- AT-03.1 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-03.1 -- status: n/a -- test: "show: prints frontmatter + body" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
+- AT-03.2 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-03.2 -- status: n/a -- test: "show --json: valid json with expected fields" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
+- AT-03.3 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-03.3 -- status: n/a -- test: "close: moves OPEN/NNNN dir to CLOSED + status" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
+- AT-03.4 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-03.4 -- status: n/a -- test: "open: moves CLOSED/NNNN dir to OPEN + status" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
+- AT-03.5 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-03.5 -- status: n/a -- test: "read: RESOLVED normalised to CLOSED" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
+- AT-03.6 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-03.6 -- status: n/a -- test: "error: unknown id on show/close/open exits non-zero" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
 
 ### WP-04 -- Gate & integration: bats green, critic-shell clean, intent help, doctor, ac gate (status: Done)
 
@@ -83,7 +83,7 @@ _(no tests in this group)_
 
 ### WP-05 -- Fleet normalisation (POST-SHIP, cross-repo): normalise Utilz/Lamplight intent/issues to canon (status: Done)
 
-- AT-05.2 `tests/unit/intent_issues.bats` -- covers AC-05.2 -- status: green -- test: "show: picks the frontmatter-bearing primary among multi-file issue dirs"
+- AT-05.2 (non-test) Witness tests/unit/intent_issues.bats, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6). -- covers AC-05.2 -- status: n/a -- test: "show: picks the frontmatter-bearing primary among multi-file issue dirs" -- RETIRED at the 3.0.1 cut: its witness tests/unit/intent_issues.bats went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close
 
 ---
 
