@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 10:21Z
+heartbeat_at: 2026-09-11 10:29Z
 status: active
-focus: "0209 FIXED AT e7c0dc81, WITH vc TO CLOSE. 0079 NEXT, ON vc'S CLOSE OR SEND-BACK. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0209, then 0079, 0149, 0291, 0103, 0137, 0194, 0299, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
+focus: "0079 IN DOING: THE PIN LANDS BEFORE THE WRITE'S PROJECTION FOR AN ADD (vc's option c). THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0079, then 0149, 0291, 0103, 0137, 0194, 0299, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0064]
 
 ## DOING
 
-**`0209` -- FIXED AT `e7c0dc81`, WITH vc TO RE-DRIVE AND CLOSE.** Three doors wrote the smaller copy: `organize --apply`, `st hydrate`, and every write's projection, where the write after `st start` realised the thread silently. One predicate, `organize::held`: `organize` and `hydrate` refuse (rc=1 on apply), projection skips, and the declaring verbs print `Note::HeldByV2Bucket` (vc chose this bounded shape). The commit is byte-identical to the patch tested under an isolated `HOME` on `d169f1f8`. **`0079` waits for vc's close; it is still live via `st new --start`, recorded in the commit.**
+**`0079` -- CLAIMED 2026-09-11 10:29Z on vc's go (`0209` closed by vc at `53997d34`).** Live through `st new --start` and `st start`/`st resume` in general: the `.intentfiles` pin landed after the write's own projection, so the thread was listed exactly like a realised one with no files until the next write by anyone. **vc chose (c): an ADD pins BEFORE `apply` inside the same verb, a REMOVE still pins after, and a refused `apply` restores the manifest.** No hydrate, no scan, no new realiser. The one test is seen red on the old order. Suites are running under an isolated `HOME`.
 
 ## TODO -- THE BOUNCE: the CLI-surface lane of the 3.0.1 finish line
 
@@ -21,7 +21,6 @@ claims: [ST0064]
 
 | Order | #   | Issue  | Defect                                                                  |
 | ----- | --- | ------ | ----------------------------------------------------------------------- |
-| 3     | 5   | `0209` | `st start` writes a smaller copy of an unhydrated thread over the path  |
 | 4     | 23  | `0079` | `st new` says created and writes no files                               |
 | 5     | 24  | `0149` | `intent edit` ignores the kind it was given and answers about a thread  |
 | 6     | 25  | `0291` | `edit wp ST/NN --path` returns the parent thread's file                 |
