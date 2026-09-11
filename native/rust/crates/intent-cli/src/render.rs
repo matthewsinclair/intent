@@ -10194,14 +10194,49 @@ fn critic(m: &ArgMatches) -> Result<(), Failure> {
   // outside a project (`PROJECT_ROOT` may be empty) and only consults
   // `.intent_critic.yml` when there is one. Requiring a project would make the
   // critic unusable in exactly the place a fresh checkout needs it.
-  let disabled = std::env::current_dir()
+  //
+  // **NO PROJECT IS SILENT; A PROJECT WHOSE CONFIG WILL NOT READ IS NOT
+  // (AC-00.6, vc).** A bare `.ok()` here folded both into "no project", so a
+  // config missing `intent_version` dropped every rule `.intent_critic.yml`
+  // disables and the run reported findings the project had opted out of, with
+  // nothing saying why. It WARNS rather than refuses: the gate runs this verb in
+  // every estate, and a new refusal would wedge a commit on a config quirk.
+  let project = std::env::current_dir()
     .ok()
-    .and_then(|cwd| intentsvcs::project::Project::discover(&cwd).ok())
+    .and_then(|cwd| match intentsvcs::project::Project::discover(&cwd) {
+      Ok(p) => Some(p),
+      Err(intentsvcs::project::ProjectError::NotFound(_)) => None,
+      Err(e) => {
+        eprintln!(
+          "warning: {e}\n  so .intent_critic.yml was not read, and no rule it disables is disabled in this run\n  remedy: {}",
+          e.remedy()
+        );
+        None
+      }
+    });
+  let disabled = project
     .and_then(|p| std::fs::read_to_string(p.root().join(".intent_critic.yml")).ok())
     .map(|t| intentsvcs::critic::parse_disabled(&t))
     .unwrap_or_default();
 
-  let lib = library()?;
+  // **`--rules` REPLACES CANON, AS IT IS DECLARED TO (AC-00.6).** It was
+  // parsed and never read, so a run given a rules tree ran canon's rules
+  // instead and reported clean at rc 0 -- a declared flag failing in silence in
+  // the gate's own verb. A root that is not a directory is refused by name:
+  // left to the empty-library refusal below, it would be told to reinstall
+  // Intent for a path the operator typed.
+  let lib = match m.get_one::<String>("rules") {
+    Some(dir) => {
+      let root = std::path::Path::new(dir);
+      if !root.is_dir() {
+        return Err(Failure::Unavailable(format!(
+          "error: --rules {dir} is not a directory\n  remedy: name a rules root laid out as canon's is (`<lang>/<category>/<slug>/RULE.md`)"
+        )));
+      }
+      intentsvcs::rules::Library::at(root, intentsvcs::userstate::ext_base())
+    }
+    None => library()?,
+  };
   let report = intentsvcs::critic::run(&lib, lang, &files, severity_min, &disabled)
     .map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
 
@@ -10296,6 +10331,17 @@ fn render_critic_text(report: &intentsvcs::critic::Report, files: usize, severit
     report.total(),
     report.armed()
   );
+  // The opt-out is counted beside the census it shrank, or a run the project
+  // disabled wholesale reads as a clean pass over rules it never put. A COUNT,
+  // not the ids: a disabled rule is not reported (`critic_surface.rs` holds
+  // that), the ids are in the project's own committed file, and the JSON
+  // carries them for a reader that wants them.
+  if !report.disabled.is_empty() {
+    println!(
+      "  {} rule(s) disabled by .intent_critic.yml and not asked",
+      report.disabled.len()
+    );
+  }
 
   let declared = report
     .census
@@ -10594,6 +10640,7 @@ fn render_critic_json(report: &intentsvcs::critic::Report) {
     "findings": findings,
     "census": census,
     "refused": report.refused,
+    "disabled": report.disabled,
   });
   println!("{}", serde_json::to_string_pretty(&doc).unwrap_or_default());
 }

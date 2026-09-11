@@ -145,8 +145,15 @@ impl Library {
   /// pattern-matching bug into a pattern-matching bug, which is funnier than it
   /// is useful.
   pub fn new(install: &Path, ext: Option<PathBuf>) -> Self {
+    Self::at(&install.join("intent/plugins/claude/rules"), ext)
+  }
+
+  /// Rooted at a rules directory named directly rather than found through an
+  /// install -- `critic --rules <dir>`, which replaces canon discovery as it is
+  /// declared to. [`Library::new`] is this, at the install's canon path.
+  pub fn at(canon: &Path, ext: Option<PathBuf>) -> Self {
     Self {
-      canon: install.join("intent/plugins/claude/rules"),
+      canon: canon.to_path_buf(),
       ext,
     }
   }

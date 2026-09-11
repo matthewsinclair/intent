@@ -238,6 +238,12 @@ pub struct Report {
   /// is the sentence AC-07.4 exists to forbid. CI images and new laptops are
   /// routinely that machine.
   pub refused: Vec<String>,
+  /// Rules of this language the library holds and the project's
+  /// `.intent_critic.yml` disabled, sorted. They leave no census row (see
+  /// [`run`]), so without this a project that disabled every rule for a
+  /// language produced an empty census and was told its install had no rule
+  /// library.
+  pub disabled: Vec<String>,
 }
 
 impl Report {
@@ -295,8 +301,14 @@ impl Report {
   /// are all `Undeclared` today -- so those two languages arm ZERO from a
   /// perfectly healthy library. Refusing on `armed() == 0` would block every
   /// commit in every project declaring them: a false refusal with a real
-  /// population. An empty CENSUS has exactly one cause, which is that the
-  /// library did not load.
+  /// population.
+  ///
+  /// **AN EMPTY CENSUS HAS TWO CAUSES, AND ONLY ONE IS OURS (AC-00.6).** This
+  /// said *exactly one cause, which is that the library did not load*, and a
+  /// disabled rule leaves no census row -- so a project that disabled every rule
+  /// for a language got rc 2 and a remedy telling it to reinstall Intent. The
+  /// opt-out is the project's own committed decision, not our breakage, so it
+  /// takes the verdict the findings give and the census names what it disabled.
   ///
   /// **AND 2 IS THE RIGHT CODE BECAUSE THIS IS OUR BREAKAGE, NOT THE
   /// OPERATOR'S.** The module's governing principle is *a gate should fail open
@@ -317,7 +329,7 @@ impl Report {
   /// nobody can act on it, it is our defect rather than the project's, and v2
   /// reports it in the census at exit 0. See [`Report::refused`].
   pub fn exit_code(&self) -> i32 {
-    if self.total() == 0 {
+    if self.total() == 0 && self.disabled.is_empty() {
       2
     } else if !self.unenforced().is_empty() {
       3
@@ -1053,11 +1065,18 @@ pub fn run(
     });
   }
 
+  let disabled: BTreeSet<String> = all
+    .iter()
+    .filter(|r| r.language == lang && disabled.contains(&r.id))
+    .map(|r| r.id.clone())
+    .collect();
+
   Ok(Report {
     lang: lang.to_string(),
     findings,
     census,
     refused: refused.into_iter().collect(),
+    disabled: disabled.into_iter().collect(),
   })
 }
 
@@ -1304,6 +1323,7 @@ mod tests {
       findings: Vec::new(),
       census: Vec::new(),
       refused: Vec::new(),
+      disabled: Vec::new(),
     };
 
     let absent = Report {
@@ -1386,6 +1406,7 @@ mod tests {
         by: "grep".into(),
       }],
       refused: Vec::new(),
+      disabled: Vec::new(),
     };
     assert_eq!(base.exit_code(), 0);
 
