@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 13:10Z
+heartbeat_at: 2026-09-11 13:14Z
 status: active
-focus: "ON THE BOUNCE. #47 0154 + #48 0185 FIXED together at 1f2f8f6a (`intent set`, a scriptable door over Facade::set) and WITH vc for the re-drive. Next: #50 0139, only after vc closes these or sends them back. The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
+focus: "LOCALFOLD 2026-09-11 13:14Z ON hv'S PAUSE, THEN THE COMPACT. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. WITH vc: 0154 + 0185 at 1f2f8f6a. ON THE BOUNCE, AFTER vc CLOSES THEM OR SENDS THEM BACK: #50 0139, then the rest of my lane in list order -- the lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,13 +13,11 @@ claims: [ST0064]
 
 ## DOING
 
-**`0154` + `0185` FIXED TOGETHER AT `1f2f8f6a` AND WITH vc FOR THE RE-DRIVE. vc closes them, not me.** `intent set <address> <field> (<value> | --from <file>)` is one scriptable door over the existing `Facade::set`, with no new facade code: one render arm and one table row (withheld from MCP, as `issues edit` is).
+**LOCALFOLD 2026-09-11 13:14Z ON hv's PAUSE, ON EXECUTION.** The pre-fold board is verbatim at `.history/20260911/wip-prefold-1312Z.md`, committed alone and confirmed TRACKED before this line cited it. **Nothing in flight, nothing uncommitted, no private worktree left, and no daemon running.**
 
-- Scope check: title, objective, context, body and preamble are settable on a thread, and body on a WP. Driven.
-- The one test, `set_writes_a_wp_body_and_a_thread_title_and_refuses_an_unsettable_field`, is red on the unfixed tree (`unrecognized subcommand 'set'`) and reads both writes back from the STORE.
-- Past a daemon ingest: a real isolated intentd took an unrelated `design.md` in (`disk.sync_from_disk`), and both values held in the store and in canon.
-- intent-cli is green (549 suite, 277 lib). intentsvcs is green except the known red. Rebased onto `fe8775ed` after cc's 0283. The commit is byte-identical to the tested patch.
-- Found while fixing, in the commit message only: the generator accepts `owner_wp: null`, which then panics EVERY command at rc=101; `no_named_verb_sets` is stale now that `set` exists; and an unknown-field refusal carries a generic remedy.
+**WITH vc FOR THE RE-DRIVE: `0154` + `0185` at `1f2f8f6a`** (`intent set <address> <field> (<value> | --from <file>)`, one scriptable door over `Facade::set`). The sha, the repro, one control, all five conditions and three found-while-fixing items were sent to vc at 13:10Z. vc closes them, not me.
+
+**Closed by vc since the last fold:** 0194 (`ba338f37`), 0223 (`0b910733`), 0240 (`421c40ee`), 0195 (`8d3b13ae`), 0121. **Moved to cc by vc:** 0083, 0168, 0176.
 
 ## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
 
@@ -71,4 +69,8 @@ Culled with the loop: the estate-wide burn (AC-06.1 and AC-00.1 withdrawn), the 
 - **DEVELOP IN A PRIVATE DETACHED WORKTREE; LAND BY PATCH.** cc keeps `facade.rs` dirty, and `commit --only` is whole-file, so wait for the peer's commit, rebase the worktree onto `HEAD`, rerun, `git apply --check`, apply, commit exactly my paths, and `diff` the commit against the tested patch.
 - **AN EXISTING FIXTURE CAN ENCODE THE DEFECT** (three for `0079`, one for `0291`). Repair the fixture so it reaches its state honestly; never touch the assertion.
 - **`intent fc` IS THE HUMAN'S VERB EVEN IN A SANDBOX.** To drive a fiat state, hand-set `{"is":"fiat",...}` in canon and `sync --to-store`.
+- **WHEN THE FIX IS A DESIGN CALL, PUT THE OPTIONS TO vc BEFORE WRITING CODE,** with one recommendation and what each costs. 0223, 0195 and 0154+0185 each came back ruled with conditions that reshaped the build, and vc's condition 2 on 0223 (stop if clap cannot tell `x -- help` from `x help`) fired: clap_builder 4.6.6 keeps `--` in `pub(crate)` state only.
+- **A NEW DISPATCH-TABLE ROW: THE GENERATOR'S GREEN IS NOT A STARTUP PROOF.** `gen_dispatch_table.sh` accepted `owner_wp: null` and the binary then panicked EVERY command at rc=101. A new row also moves the status sentence's count, the `legal_pairs` census, `populations.declared/shipped/probeable`, and a mutating verb needs a bucket in `write_moves_only_what_changed`. Insert the row as TEXT: `jq` rewrites the whole file's formatting.
+- **TO PROVE A WRITE SURVIVES A DAEMON INGEST, FORCE ONE.** A daemon that has opened a project records nothing until something on disk moves, so "it held for 4s" alone proves nothing. Author an unrelated file, wait for `disk.sync_from_disk` in `intent events`, THEN read back the store and canon. The daemon socket must fit in 104 bytes, so its HOME is a short `mktemp -d` dir, never the scratchpad. Stop the daemon and remove the dir after.
+- **HEAD MOVES UNDER A WORKTREE ON NEARLY EVERY ITEM.** Before landing, `git log <base>..HEAD` and `git diff --stat <base> HEAD -- native/ surface/`. If code moved, stash, checkout the new HEAD, pop, **rebuild `intentd`** (the stale-sibling-daemon guard otherwise reds three edit/browse tests), and rerun.
 - **READ THE CLOCK BEFORE WRITING THE STAMP, IN THE SAME COMMAND.** On 2026-09-11 I typed `10:47Z` into a script whose own `date -u` read `10:35Z`, and caught it before the commit. Pass the read value in (`NOW=$(date -u ...)`), never a literal.
