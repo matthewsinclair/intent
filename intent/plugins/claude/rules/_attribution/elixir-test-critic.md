@@ -82,7 +82,7 @@ Intent's rule schema (see `../_schema/rule-schema.md`) adopts upstream's frontma
 - `language:` -- REQUIRED, not optional; one of `agnostic`, `elixir`, `rust`, `swift`, `lua`, `shell`, `prose`, `author`, `content`
 - `applies_to:` — machine-readable glob patterns
 - `references:`, `related_rules:`, `concretised_by:`, `conflicts_with:` — Intent cross-references
-- `aliases:` — previous slugs for stable ID resolution
+- `aliases:` -- previous slugs, kept as a record for readers; nothing resolves them (`intent claude rules show` matches the id only)
 
 Upstream rules can be dropped into Intent's discovery unchanged. The reverse (Intent → upstream) requires stripping Intent-specific fields — out of scope for v2.9.0 since Intent does not publish rules upstream.
 

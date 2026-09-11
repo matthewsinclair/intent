@@ -55,7 +55,7 @@ The cure is a hard rule: every failure mode gets a named response. The response 
 Signals in code:
 
 - `rescue _ -> nil` or equivalent (`except: pass`, `catch { }`, `.unwrap_or_default()` where the caller meant "success or failure").
-- A returned `Result` or `{:ok, _} | {:error, _}` tuple where the caller binds only the happy path and discards the error tuple implicitly (e.g. `{:ok, value} = fallible()` in a place where `{:error, _}` is possible).
+- A returned `Result` or `{:ok, _} | {:error, _}` tuple where the caller binds only the happy path and discards the error tuple implicitly (eg `{:ok, value} = fallible()` in a place where `{:error, _}` is possible).
 - `try { ... } catch (Exception e) { /* intentionally blank */ }`.
 - A call that returns a fallible value whose return value is ignored: `_ = Repo.insert(changeset)`, `some_http_call();` in a language where the compiler does not force the handling.
 - A log statement at the error site with no accompanying propagation: `Logger.error("failed")` followed by `nil` returned as if success.
