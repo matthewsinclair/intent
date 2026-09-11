@@ -38,14 +38,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [~] 12: Issues get a realised form and a sigil, then join the default declaration
   - [~] 13: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
   - [x] 14: The DONE cutoff is canon state, not history: it travels by git
-- [-] ST0064: The Intent menubar app: controlling intentd from the macOS menubar
-  - [x] 01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
-  - [~] 02: CLI shell-out foundation and login-shell PATH capture (AC-01.1, AC-01.9)
-  - [~] 03: Daemon health predicate, three endpoint states, and the turtle menubar icon (AC-01.2, AC-01.3, AC-01.6, AC-01.8)
-  - [~] 04: The tailing console and its tail-orphan trap (AC-01.4)
-  - [~] 05: The intent:// URL handler as a client of the one resolver (AC-01.5)
-  - [~] 06: The int macos build, run, test, install and notarise pipeline (AC-01.7)
-  - [~] 07: The app shell: menubar menu, settings window, and app entry
 
 ## TODO
 
@@ -67,6 +59,14 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 - [x] ST0061: dehydrate
 - [~] ST0062: help
 - [~] ST0063: start
+- [x] ST0064: The Intent menubar app: controlling intentd from the macOS menubar
+  - [x] 01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
+  - [~] 02: CLI shell-out foundation and login-shell PATH capture (AC-01.1, AC-01.9)
+  - [~] 03: Daemon health predicate, three endpoint states, and the turtle menubar icon (AC-01.2, AC-01.3, AC-01.6, AC-01.8)
+  - [~] 04: The tailing console and its tail-orphan trap (AC-01.4)
+  - [~] 05: The intent:// URL handler as a client of the one resolver (AC-01.5)
+  - [~] 06: The int macos build, run, test, install and notarise pipeline (AC-01.7)
+  - [~] 07: The app shell: menubar menu, settings window, and app entry
 - [x] ST0065: Review Intent's use of .md files and /in-* skills for the v3 release
   - [x] 01: Root-and-branch review and rationalisation of the Intent-canon .md bootstrap set
   - [~] 02: Audit and cleanup of the /in-* skills: retire the senseless, correct the wrong, rewrite the misguided

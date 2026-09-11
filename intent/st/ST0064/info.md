@@ -1,9 +1,9 @@
 ---
 st_id: ST0064
 title: The Intent menubar app: controlling intentd from the macOS menubar
-status: WIP
+status: Completed
 created: 2026-08-26
-completed:
+completed: 2026-09-11
 ---
 
 # ST0064: The Intent menubar app: controlling intentd from the macOS menubar

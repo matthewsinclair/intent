@@ -3,24 +3,43 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 19:34Z
+heartbeat_at: 2026-09-11 18:15Z
 status: active
-focus: "3.0.1 SHIPPED and installed on rhadamanth. Close-out done except ST0056 AC-00.5/11.1 (clean Mac). hv rulings pending on the seven cut findings in intent/wip.md."
-claims: [ST0056, ST0057, ST0060, ST0070]
+focus: "THE 3.0.1 CUT, vc holds the pen. Steps 1-4 LANDED AND GREEN; dc fixing the 3.0.1 CHANGELOG, then the tree freezes and hv runs the release. RUN THE VERBS; every figure here rots."
+claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 ---
 
 # Validation Claude (vc)
 
-**3.0.1 SHIPPED 2026-09-11 19:34Z.** The cut's board is verbatim in `.history/20260911/`. Tag `v3.0.1` is at `a8942aead` on both remotes; the release carries four assets; the formula is live at `fc32170`; it is installed on rhadamanth (dev-tree pair, keg unlinked and pinned, Intent.app 3.0.1 in /Applications). Close-out is at `36839061a` and `89531a8f6`: ST0058, ST0064 and ST0068 are done, and ST0056 WP-07 and WP-12 are done. Both remotes were pushed at `89531a8f6`.
+**LOCALFOLD 2026-09-11 17:18Z for hv's compact, `active`.** The pre-fold board is verbatim in `.history/20260911/`. The list is done: every workable row is closed, and 0177 is the one open issue, post-cut with no owner. hv ruled all 14 decisions and every one is verified (see `intent/wip.md`). What remains is THE CUT.
 
-## DOING
+## DOING -- THE CUT, in this order
 
-- None. The globalfold was the last step.
+**THE ORDER IS LOAD-BEARING. Each step gates the next.**
 
-## TODO -- waiting on hv or on hardware, nothing claimable
+1-4. **LANDED AND GREEN** (2026-09-11 18:15Z):
 
-- **ST0056 AC-00.5 and AC-11.1** need a brew install on a clean Mac. Then WP-11 and ST0056 close.
-- **Seven items were surfaced to hv at the cut**, listed in `intent/wip.md` under "Surfaced to hv". None is worked until hv rules.
+- 7c40da0ab: the 75 rows, ST0069 WP-13/14/16, ST0064/01 done; 3b8cd3876: devbin manifest;
+- d5998ac37: dc's prune; 0f9958492: ic's eight; 48b61d109 and d1a710ef7: cc's critic and tests; 1409aff70: clippy to zero (decision 4's remainder); ab1bcaaa7: legacy.rs citation pinned to 27c4ec98 (AC-00.6's fourth falsifier);
+- 5f443f4a0: ST0056 AC-00.6 and AC-12.1 satisfied by evidence (cutover_guard refuses after the prune by design, so AC-12.1 took the step-1 route); 28ac7a017: the whole docs/reference.
+- Suite at 1409aff70, private worktree: fmt clean, clippy rc 0, Rust 2353/0, run_tests.sh 716/0. PATH pair rebuilt at ab1bcaaa7. Live doctor 0.
+- `--scope all` withholds one finding on the closed ST0073 (AC-05.1 names a WP-05 it lacks). Report it to hv; don't act.
+  4b. **dc: the 3.0.1 CHANGELOG and release notes** (asked 2026-09-11 18:15Z): delete the stale "cut is held" opening line; add the v2 shell removal, decision 3's retirements and today's critic fixes; the menubar app only if publish carries it. "Nothing that worked in v3.0.0 is removed" holds for the installed binary: on the 3.0.0 keg, --with-st0000 and the three doors all gave rc=2, "not implemented yet".
+  4c. **FREEZE for the release**: every node commits its board, then makes no shared-tree writes until hv's release is done. The preflight runs cargo test in the shared checkout under the real HOME; afterwards re-read `~/.intent/home` and the store's user_version (18).
+
+5. **hv runs `! bin/devbin build release --patch`.** Its confirm gate stays human; never --no-confirm. It stamps 3.0.1, commits, tags, pushes both remotes and creates the GitHub release. The CHANGELOG reads `## [3.0.1] - in progress`, and the script dates it.
+6. **Artefacts:**
+   - `bin/devbin build all` at the tag;
+   - `int macos prepare` (stage, sign, notarize, checksum; creds PRESENT per `int macos doctor`);
+   - `int macos formula`;
+   - `int macos publish` (hv's word covers it);
+   - `int macos smoke --reinstall`.
+     CI must be green on both legs.
+7. **Close out:**
+   - satisfy the nine cut-time ACs by evidence (ST0056 AC-00.5/00.6/07.7/11.1/11.4/12.1/12.4, ST0058 AC-00.1, ST0068 AC-04.2) and mark their ATs;
+   - judge ST0058 AC-00.3 (every canon-mandated verb works);
+   - close ST0056 WP-07/11/12, then ST0056, ST0058 and ST0068;
+   - push; then a globalfold.
 
 ## Holds
 

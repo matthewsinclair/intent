@@ -1,59 +1,32 @@
 ---
-verblock: "2026-09-11:v1.41: vc - THE WORK LIST. hv, 2026-09-11 09:14Z: the open defects, in 3.0.1 priority order, ARE the work. No new work is added. A row leaves this table when vc has driven its fix and closed the issue; the numbers do not shift. Pre-list verbatim at intent/.history/20260911/wip-prelist-0914Z.md."
-intent_version: 3.0.0
+verblock: "2026-09-11:v1.42: vc - 3.0.1 SHIPPED (tag v3.0.1 at a8942aead). The 3.0.1 work list is finished; what is still open and what was surfaced to hv at the cut. The list as it stood at the cut is verbatim in git at 89531a8f6."
+intent_version: 3.0.1
 ---
 
-# Work In Progress -- the v3.0.1 work list
+# Work In Progress -- after 3.0.1
 
 ## THE RULE (hv, 2026-09-11 09:14Z, verbatim)
 
 > _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._
 
-**The work is the numbered list below and nothing else.** Work it top-down. hv cuts from the bottom when deciding what ships in 3.0.1 and what is pushed. A defect found while fixing an item is NOT added here: write it in the fixing commit message and move on. No new tests beyond the one that proves the item fixed. No new instruments, guards, criteria or threads.
+**It stands until hv sets new work.** The 3.0.1 list it governed is finished. Nothing below is claimed or in flight: each item waits on a ruling from hv or on a machine this estate does not have.
 
-**How an item moves:** claim it on your board (its id in DOING), fix it, commit with the id in the subject, and tell vc. **vc drives the fix, then closes the issue** with `intent issues close <id>`. One item in flight per node. Lanes are by area so two nodes do not edit the same files; when your lane is empty, take the next unclaimed item in order.
+**The live state is the register, not this file.** `intent issues list` is what is open; `intent ac gate <ST>` is where a thread stands.
 
-**Lanes:** `cc` ingest, migration and the store write path. `ic` the CLI surface: edit, st, wp, ac, at, search, TUI. `dc` docs, install, init, templates, config, daemon operations. `vc` drives every fix before it closes, keeps this list, holds hv's pen.
+## Open
 
-**The live state is the register, not this file.** `intent issues list` is what is still open; an item struck here and still open there is not done.
+- **`0177`** (medium): `ext` ships the creating half without the undoing half. Post-cut, no owner (hv, 2026-09-11). `config`, `ext` and `learn` ship declared-and-unbuilt (hv, 2026-08-31).
+- **ST0056 stays open on AC-00.5 and AC-11.1**, and WP-11 with it. Both ask for a `brew install` on a machine that has never seen this repository. rhadamanth has, so its cold tap install (`int macos smoke --reinstall`, green at formula `fc32170`) does not satisfy them. Needs a clean Mac: install from the tap, run `intent` and the `intentd` lifecycle, then satisfy both by evidence and close WP-11 and ST0056.
+- **Out of 3.0.1 by ruling:** ST0057, ST0060 (vault), ST0069 (post-cut), ST0070 (LLM config).
 
-## The list
+## Surfaced to hv at the cut, not worked
 
-### P3 -- commands that report success or state while wrong.
+Each is recorded in the named commit's message. None is on a list until hv rules.
 
-| #   | id  | sev | lane | defect |
-| --- | --- | --- | ---- | ------ |
-
-### P4 -- advertised but not built.
-
-| #   | id     | sev    | lane | defect                                                                                                                                                                                       |
-| --- | ------ | ------ | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 52  | `0177` | medium | --   | OPEN POST-CUT, NO OWNER (hv, 2026-09-11): all of `ext` ships declared-and-unbuilt (hv, 2026-08-31), so no `ext new` ships without `ext remove`. Stays open as the constraint on ext's build. |
-
-### P5 -- rough edges: defaults, doctor, internals.
-
-| #   | id  | sev | lane | defect |
-| --- | --- | --- | ---- | ------ |
-
-## hv's decisions that unblock the cut
-
-All fourteen are ruled (hv, 2026-09-11). Only the work they created is listed below. The closes and descopes they ordered are done and are in the register.
-
-### Ruled, now work
-
-- **1. Push (hv).** Push to `local` (Dropbox) now. Push to `upstream` (GitHub) at the 3.0.1 cut.
-- **2. Store migration notice (hv: go). Lane dc.** One CHANGELOG line and one backup sentence in the migration docs, saying that neither 13 -> 17 nor 17 -> 18 can be undone. The 17 -> 18 rung (`0100`) is in at 9046156b. LANDED at c2ea14c1, corrected at 3027ac56 and e71dbeec; VERIFIED (vc): both ways back driven with the 3.0.0 keg (a snapshot always works; deleting the cache works only while canon carries nothing 3.0.1 alone writes -- a WP status_legacy and a non-UTF-8 attachment each make 3.0.0 refuse), and no page calls the store wholly derived.
-- **3. Three doors that answer "not implemented" (hv: strike). Lane dc (moved from ic 2026-09-11; ic is on 0140).** Remove `st bootstrap`, `agents template` and `claude prime` from the dispatch table and from the templates that mandate them (ST0058 AC-00.3). LANDED at dbe12d29 (+ 55412f26 reference pages); VERIFIED (vc): each of the three answers rc=2 "was retired" with no replacement (9046156b said "not implemented yet"), none is in --help, st_zero no longer points at `st bootstrap`, `init --with-st0000` is refused by clap.
-- **4. The 16 `collapsible_if` lints in intentsvcs (hv: go). Lane cc.** A mechanical fix, so that CI reaches `test`. VERIFIED (vc): intentsvcs lib clippy 0 warnings.
-- **5. The red test `no_service_call_can_set_an_edgeless_field` in `mutation_completeness.rs` (hv: delete). Lane cc.** VERIFIED (vc): intentsvcs 1268 passed, 0 failed.
-- **6. The two v3 bats files (hv: keep). Lane dc, at the cut.** When the v2 trunk goes, point `test_helper.bash` at the v3 binary. That keeps `daemon_commands.bats` and `config_undefined.bats`, the only bats coverage of `daemon` and `config`.
-- **7. The menubar app SHIPS in 3.0.1 (hv), signed and notarised (ST0064 AC-01.7). Lane cc.** `int macos` signs and notarises the CLI pair already. The app pipeline built `app-build/run/test/install/verify` and declared `app-sign` and `app-notarize` as its chunk 2, but never built them. Build them by porting Lamplight's Wrighter.app flow (same Geodica ADC, team 76BQL8L47U). Then rewrite the header lines that still say Intent ships no .app bundle. LANDED at 56322937; hv notarised (Accepted, afbcaa0b); vc verified the dist and satisfied AC-01.7.
-- **10. The cut (hv).** 3.0.1 ships every workable row. It cuts when every row not marked NOT WORKABLE is closed.
-
-## What ships 3.0.1
-
-ST0056 AC-00.5, AC-00.6, AC-07.7, AC-11.1, AC-11.4, AC-12.1, AC-12.4; ST0058 AC-00.1; ST0068 AC-04.2. All satisfied BY the cut. Run `intent ac gate ST0056`.
-
-## Out of 3.0.1
-
-ST0060 (vault), ST0069 (post-cut), ST0070 (LLM config). `config`, `ext`, `learn` ship declared-and-unbuilt (hv, 2026-08-31). The cull of 2026-09-11 is in commits `6918a2e5` and `0b7b24a4`.
+1. **A version bump turns every realised view into doctor view-skew** (`36839061a`). The banner carries the tool version; the finding blames a hand edit; for an unlisted thread its only remedy, `st hydrate`, also pins it. 24 banner-only views on 9 unlisted threads here, and a user upgrading from 3.0.0 will likely see the same. The release preflight's doctor refuses until this is resolved.
+2. **A stranger's `brew tap` may refuse our tap as untrusted** (`549031396`, dc). Seen on Homebrew main with an empty trust store; not measured on stable. If stable does it too, the install docs need `brew trust --tap matthewsinclair/intent` first.
+3. **Linux and Intel macOS binaries are not built.** hv, 2026-09-11: _"I only care about macOS and Linux."_ The formula is macOS arm64 by `depends_on`, and taps cleanly everywhere. A Linux build, package and publish is size L.
+4. **CI did not run for 3.0.1** (no credit; hv waived it). The rust.yml clippy-to-zero and the tests.yml bats-on-v3 changes are unexercised by CI. The local evidence is fmt, clippy -D warnings, Rust 2353/0 and shell 716/0 at `1409aff70`, plus the release preflight's suites at the tag.
+5. **Stale plugin references** (`77b724c55`, dc): MODULES.md's plugin table lists six scripts that are gone, and DECISION_TREE.md:29 and writing-extensions.md:151 cite `claude_plugin_helpers.sh` as live.
+6. **ST0073 AC-05.1 names a WP-05 the thread lacks.** `doctor --scope all` shows it; the thread is closed.
+7. **`set <ac> kind non-test` leaves state `computed`**, illegal for non-test, and only withdraw-then-reinstate moves it (`7c40da0ab`).
