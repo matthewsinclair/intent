@@ -67,8 +67,6 @@ Per `../_schema/attribution-policy.md`:
 
 ## Substantially derived rules
 
-None in v2.9.0.
-
 The reference-and-recommend integration design (see the reference-and-recommend design note) explicitly avoids Tier 3 by rewriting upstream content in Intent's voice. If a future rule crosses into Tier 3, add a row here and inline the full MIT notice above into that rule's `RULE.md` body.
 
 | Intent rule | Upstream slug | What was copied | MIT notice location |
@@ -81,7 +79,7 @@ _No rows._
 Intent's rule schema (see `../_schema/rule-schema.md`) adopts upstream's frontmatter shape. Intent adds these optional fields that upstream tools ignore:
 
 - `upstream_id:` — pointer to source slug
-- `language:` — Intent covers agnostic + Elixir + Rust + Swift + Lua
+- `language:` -- REQUIRED, not optional; one of `agnostic`, `elixir`, `rust`, `swift`, `lua`, `shell`, `prose`, `author`, `content`
 - `applies_to:` — machine-readable glob patterns
 - `references:`, `related_rules:`, `concretised_by:`, `conflicts_with:` — Intent cross-references
 - `aliases:` — previous slugs for stable ID resolution
@@ -125,8 +123,6 @@ curl -fsSL "https://raw.githubusercontent.com/iautom8things/elixir-test-critic/1
 If either returns 404 or an unexpected SHA, upstream has rewritten history. That is a signal for a full re-audit, not a silent re-pin.
 
 ## Dangling upstream references
-
-None at the v2.9.0 pin.
 
 If a future re-pin finds that upstream has removed a rule that Intent currently references, list it here. The Intent rule stands on its own; the attribution remains historical.
 

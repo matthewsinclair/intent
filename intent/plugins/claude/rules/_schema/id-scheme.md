@@ -6,7 +6,7 @@ Every rule in Intent's rule library has a stable, cite-able identifier.
 
 `IN-<LANG>-<CAT>-<NNN>`
 
-Three fixed segments separated by hyphens:
+Fixed segments separated by hyphens:
 
 | Segment  | Values                                                                                                                                                                |
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -48,7 +48,7 @@ Why two letters: short enough to read inline in Critic reports; distinct enough 
 
 Why not `EL` for Elixir: `EX` matches the `.ex` / `.exs` file extensions and reads as "Elixir" in context.
 
-Why not `BA`/`ZS` for bash/zsh separately: about 80% of shell rules (quoting discipline, `$()` over backticks, no-parse-`ls`, no `eval` on untrusted input) apply identically to both. Splitting into two language codes would force Highlander violations for every shared rule. Shell-dialect divergence is real (`set -e` vs `setopt err_exit`, 0- vs 1-based array indexing, word-splitting defaults) and is handled by splitting THAT concern into two separate `IN-SH-*` rules with distinct slugs, tagged `bash-specific` or `zsh-specific`. The language code stays `SH`.
+Why not `BA`/`ZS` for bash/zsh separately: most shell rules (quoting discipline, `$()` over backticks, no-parse-`ls`, no `eval` on untrusted input) apply identically to both. Splitting into two language codes would force Highlander violations for every shared rule. Shell-dialect divergence is real (`set -e` vs `setopt err_exit`, 0- vs 1-based array indexing, word-splitting defaults) and is handled by splitting THAT concern into two separate `IN-SH-*` rules with distinct slugs, tagged `bash-specific` or `zsh-specific`. The language code stays `SH`.
 
 ## Category codes
 
@@ -67,6 +67,10 @@ Upper-case short slug. Categories are established per-language as the pack grows
 | `PFIC`        | Pure Function / Impure Coordination          | agnostic                |
 | `THIN-COORD`  | Thin Coordinator                             | agnostic                |
 | `RED-CONTROL` | A control is only a control if it can go red | agnostic                |
+| `NO-SILENT`   | No Silent Errors                             | agnostic                |
+| `FIAT`        | Fiat close is the human's verb               | agnostic                |
+| `STYLE`       | Mechanical prose rules                       | prose, author, content  |
+| `CRAFT`       | Judgment prose rules                         | author, content         |
 
 Categories are not strictly hierarchical. A rule fits one `<LANG>-<CAT>` bucket; that bucket is what appears in its ID.
 
@@ -100,20 +104,17 @@ Four-digit suffixes (`IN-EX-CODE-1000`) are forbidden in v2.9.0. Re-category bef
 
 ## Renames (allowed)
 
-A rule's slug (`<slug>` segment in the directory path and `slug:` frontmatter field) can change without changing the numeric ID. Store the previous slug in `aliases:`:
+A rule's slug (the `<slug>` directory segment) can change without changing the numeric ID. Store the previous slug in `aliases:`. `slug:` is not a declared frontmatter key, and `intent claude rules validate` refuses undeclared keys:
 
 ```yaml
 ---
 id: IN-EX-TEST-001
-slug: strong-assertions
 aliases:
   - no-shape-tests
 ---
 ```
 
-Downstream references by ID (`IN-EX-TEST-001`) continue to resolve. References by slug (`no-shape-tests`) resolve via the alias list.
-
-The `intent claude rules validate` tool checks that alias lookups still resolve to the expected rule.
+Downstream references by ID (`IN-EX-TEST-001`) continue to resolve. Nothing resolves a slug or an alias: `aliases:` is a record for readers.
 
 ## Cross-reference conventions
 
@@ -138,7 +139,7 @@ concretised_by:
 
 Upstream (`elixir-test-critic`) uses `ETC-<CAT>-<NNN>` — a two-segment scheme without a language code because upstream is Elixir-only.
 
-Intent's three-segment scheme has the language code because Intent covers Elixir + Rust + Swift + Lua + agnostic. The cost of the extra segment is worth the clarity when rules from five sources appear in one report.
+Intent's scheme has the language code because Intent covers agnostic, Elixir, Rust, Swift, Lua, shell and the prose packs. The cost of the extra segment is worth the clarity when rules from several sources appear in one report.
 
 When Intent ports an upstream principle, the Intent rule stores the upstream slug in `upstream_id:`. The IDs are not mechanically convertible — Intent assigns its own sequence. Planned allocations for v2.9.0 (WP05 authors the actual rules):
 
@@ -156,11 +157,9 @@ See `attribution-policy.md` for the attribution discipline.
 
 The `intent claude rules validate` tool (spec in WP02) checks:
 
-- ID matches regex `^IN-(AG|EX|RS|SW|LU|SH|AU)-[A-Z][A-Z0-9-]*-[0-9]{3}$`.
-- ID directory path matches ID structure: `rules/<lang>/<category>/<slug>/` where `<lang>` and `<category>` are the lowercase forms of the ID segments.
+- ID starts `IN-`, ends in a three-digit number, and has at least two segments of uppercase letters or digits between. No language-code list is checked.
 - IDs are unique across the entire library (no two rules share a full ID, even across language packs).
-- `aliases:` do not collide with other rules' current slugs.
-- References (`references:`, `related_rules:`, `concretised_by:`, `conflicts_with:`) all resolve to existing IDs or aliases.
+- References (`references:`, `related_rules:`, `concretised_by:`, `conflicts_with:`) all resolve to ids declared in the library (aliases are not consulted).
 
 ## Do / Don't
 
@@ -181,7 +180,7 @@ Adding a new language requires:
 - Documentation update here.
 - Rule directory `rules/<lang>/` created.
 - At least one seed rule in the new pack — subsequent rules copy from it.
-- `language` enum in `rules/_schema/rule-schema.md` extended; the codes table + regex here and the duplicate regex in `index-generator.md` updated.
-- The language added to `LANGUAGES` in `native/rust/crates/intentsvcs/src/rules.rs` -- the canon-enumeration allowlist, which `intent lang init` also derives its accepted languages from. Without it the pack is invisible to `intent claude rules list` / `index` / anything that enumerates canon. The v3 validator (`intent claude rules validate`) checks an id's shape and keeps no list of language codes, so it needs no change. (In v2 this step was the validator regex in `intent_claude_rules` plus `LANG_SUBDIRS` in `rules_lib.sh`, both removed with the v2 shell.)
+- `language` enum in `rules/_schema/rule-schema.md` extended; the codes table here updated. (`index-generator.md` also carries an id regex, for `intent claude rules index`, which is declared and not built: it exits 2 as not implemented, and whether it retires is an open hv decision.)
+- The language added to `LANGUAGES` in `native/rust/crates/intentsvcs/src/rules.rs` -- the canon-enumeration allowlist, which `intent lang init` also derives its accepted languages from. Without it the pack is invisible to `intent claude rules list` and anything else that enumerates canon (`intent claude rules index` is declared and not built). The v3 validator (`intent claude rules validate`) checks an id's shape and keeps no list of language codes, so it needs no change. (In v2 this step was the validator regex in `intent_claude_rules` plus `LANG_SUBDIRS` in `rules_lib.sh`, both removed with the v2 shell.)
 
 Adding a new category code within an existing language: lighter process. Add the category code to the `rule-schema.md` category table and start numbering from `001`.

@@ -4,23 +4,24 @@ Intent's rule library supports runnable good / bad examples for some languages a
 
 ## Runnable-examples matrix (v2.9.0)
 
-| Language | Runnable examples | File convention                                                                  | Validator                                     |
-| -------- | :---------------: | -------------------------------------------------------------------------------- | --------------------------------------------- |
-| Elixir   |        Yes        | `good_test.exs`, `bad_test.exs` (test rules); `good.exs`, `bad.exs` (code rules) | `mix test` via `intent claude rules validate` |
-| Shell    |       Mixed       | Optional `good.sh` / `bad.sh` where feasible; fenced blocks otherwise            | `bash -n` / `zsh -n` syntax check             |
-| Agnostic |        N/A        | No examples; `concretised_by:` language-specific rules                           | —                                             |
-| Rust     |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                   | Syntax review only                            |
-| Swift    |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                   | Syntax review only                            |
-| Lua      |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                   | Syntax review only                            |
+| Language                 | Runnable examples | File convention                                                                  | Validator                                                                                                    |
+| ------------------------ | :---------------: | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Elixir                   |        Yes        | `good_test.exs`, `bad_test.exs` (test rules); `good.exs`, `bad.exs` (code rules) | none; `intent claude rules validate` checks frontmatter only. Run `elixir <rule-dir>/good_test.exs` by hand. |
+| Shell                    |       Mixed       | Optional `good.sh` / `bad.sh` where feasible; fenced blocks otherwise            | none                                                                                                         |
+| Agnostic                 |        N/A        | No examples; `concretised_by:` language-specific rules                           | —                                                                                                            |
+| Rust                     |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                   | Syntax review only                                                                                           |
+| Swift                    |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                   | Syntax review only                                                                                           |
+| Lua                      |   Textual only    | Fenced code blocks in `## Bad` / `## Good` sections of RULE.md                   | Syntax review only                                                                                           |
+| Prose / Author / Content |   Textual only    | Fenced `markdown` blocks in `## Bad` / `## Good` of RULE.md                      | none                                                                                                         |
 
 ## Why Elixir is runnable and the others are not
 
-Intent runs on macOS. Elixir (via Homebrew) is a first-class development dependency — Intent itself uses Elixir subagents, Credo checks, and Elixir rule authoring. The validator can assume `mix` is on PATH.
+Intent runs on macOS. Elixir (via Homebrew) is a first-class development dependency — Intent itself uses Elixir subagents, Credo checks, and Elixir rule authoring.
 
-Rust, Swift, and Lua are in-scope languages for Critic subagents, but the Intent repo does not mandate Rust / Swift / Lua toolchains as dev dependencies. Requiring them:
+Rust, Swift, and Lua are in-scope languages for Critic subagents. Intent itself is written in Rust, but the rule validator runs no examples in any language, and Swift / Lua toolchains are not dev dependencies. Requiring them:
 
 - Adds to the local-setup burden for Intent contributors.
-- Complicates CI (which would need three additional language runtimes).
+- Complicates CI (which would need additional language runtimes).
 - Locks Intent to specific Rust editions / Swift versions / Lua dialects, creating version drift maintenance.
 
 For v2.9.0, the cost-benefit falls on "textual examples are enough". Critic subagents perform Detection against real project files at invocation time; the rule's good / bad serve as teaching examples for Claude and human readers, not as validation fixtures.
@@ -61,9 +62,7 @@ fn load(id: u32) -> Result<User, Error> {
 
 `intent claude rules validate` for Rust / Swift / Lua rules:
 
-- Checks that `## Bad` and `## Good` sections exist.
-- Checks that each section contains at least one fenced code block.
-- Checks the fence's language tag (` ```rust `, ` ```swift `, ` ```lua `) matches the rule's `language:` frontmatter.
+- Checks frontmatter only (declared and required keys, id shape, duplicate ids, cited ids, attribution rows). Sections, fences and fence tags are not checked.
 - Does NOT compile, parse, or lint the example code.
 
 Syntactic errors in examples are caught by human review or by Critic subagents noticing drift at invocation time.
@@ -95,7 +94,7 @@ If you are authoring an Elixir rule:
 
 - Your good / bad `.exs` files must exit 0 when run (upstream convention — see `rule-schema.md` "Exit code contract").
 - Run them locally before committing: `mix test good_test.exs && mix test bad_test.exs`.
-- The validator (WP02) runs them in CI on each change.
+- No validator or CI job runs them; running them before committing is the author's job.
 
 ## Consequences for Critics
 

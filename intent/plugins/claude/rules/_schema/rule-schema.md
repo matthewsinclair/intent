@@ -1,4 +1,4 @@
-# Rule Schema (Intent v2.9.0)
+# Rule Schema
 
 This document is the authoritative reference for the shape of a `RULE.md` file in Intent's rule library. Every rule in `intent/plugins/claude/rules/**` conforms to this schema. The `intent claude rules validate` tool enforces it.
 
@@ -21,33 +21,33 @@ rules/<lang>/<category>/<slug>/
 └── bad.<ext>        # ditto
 ```
 
-- Agnostic rules (`rules/agnostic/<slug>/`) omit example files entirely. A **pattern** rule -- one governing a code shape -- cites `concretised_by:` language-specific rules; a **procedural** rule -- one governing an ACTION -- has no language-specific concretisation to point at and carries none. `IN-AG-RED-CONTROL-001` is the existing procedural member.
+- Agnostic rules (`rules/agnostic/<slug>/`) omit example files entirely. A **pattern** rule -- one governing a code shape -- cites `concretised_by:` language-specific rules; a **procedural** rule -- one governing an ACTION -- has no language-specific concretisation to point at and carries none. `IN-AG-RED-CONTROL-001` and `IN-AG-FIAT-001` are procedural members.
 - Elixir rules have runnable `.exs` examples validated by `mix test`.
 - Rust/Swift/Lua rules have textual examples embedded in `RULE.md` (see `CI-LIMITATIONS.md`).
 
 ## Frontmatter
 
-YAML frontmatter at the top of every `RULE.md`, between `---` delimiters. All top-level fields are scalars, strings, or flat arrays. No nested maps (keeps the bash+jq index generator trivial; see `index-generator.md`).
+YAML frontmatter at the top of every `RULE.md`, between `---` delimiters. All top-level fields are scalars, strings, or flat arrays. No nested maps: the reader (`rules::parse_front`) takes only column-zero `key: value` scalars and block or inline lists, so anything nested is not read.
 
 ### Required fields
 
-| Field          | Type         | Purpose                                                                                                                |
-| -------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| `id`           | string       | Rule identifier. Format: `IN-<LANG>-<CAT>-<NNN>`. See `id-scheme.md`.                                                  |
-| `title`        | string       | Human-readable one-line name. Matches the H1 heading in the body.                                                      |
-| `language`     | enum         | One of `agnostic`, `elixir`, `rust`, `swift`, `lua`, `shell`, `prose`, `author`, `content`. Drives rule-pack location. |
-| `category`     | string       | Kebab-case category slug (`code`, `test`, `ash`, `phoenix`, `lv`, `architecture`, etc.).                               |
-| `severity`     | enum         | One of `critical`, `warning`, `recommendation`, `style`.                                                               |
-| `summary`      | string       | One or two sentences. YAML multiline with `>` encouraged. Shown in `intent claude rules list`.                         |
-| `principles`   | list[string] | One or more principle short-names. Intent's agnostic principles plus upstream's for Elixir rules.                      |
-| `applies_when` | list[string] | Natural-language circumstances under which the rule applies. For humans and Claude.                                    |
+| Field          | Type         | Purpose                                                                                                                                            |
+| -------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`           | string       | Rule identifier. Format: `IN-<LANG>-<CAT>-<NNN>`. See `id-scheme.md`.                                                                              |
+| `title`        | string       | Human-readable one-line name. Matches the H1 heading in the body.                                                                                  |
+| `language`     | enum         | One of `agnostic`, `elixir`, `rust`, `swift`, `lua`, `shell`, `prose`, `author`, `content`. Drives rule-pack location.                             |
+| `category`     | string       | Kebab-case category slug (`code`, `test`, `ash`, `phoenix`, `lv`, `architecture`, etc.).                                                           |
+| `severity`     | enum         | One of `critical`, `warning`, `recommendation`, `style`.                                                                                           |
+| `summary`      | string       | One or two sentences. YAML multiline with `>` encouraged. Printed with the whole file by `intent claude rules show <id>`; `list` does not show it. |
+| `principles`   | list[string] | One or more principle short-names. Intent's agnostic principles plus upstream's for Elixir rules.                                                  |
+| `applies_when` | list[string] | Natural-language circumstances under which the rule applies. For humans and Claude.                                                                |
 
 ### Optional fields
 
 | Field                 | Type         | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | --------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `upstream_id`         | string       | Intent-specific. Slug of the upstream elixir-test-critic rule this borrows from. Required when principle or detection is lifted from upstream. See `attribution-policy.md`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `applies_to`          | list[glob]   | Intent-specific. Machine-readable glob patterns. Used by tooling to narrow file sets. Example: `["test/**/*_test.exs"]`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `applies_to`          | list[glob]   | Intent-specific. Machine-readable glob patterns. Used by tooling to narrow file sets. Example: `["test/**/*_test.exs"]`. The headless critic matches each glob suffix-anchored (`lib/**/*.ex` also matches `apps/x/lib/foo.ex`). An absent `applies_to` means every file.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `references`          | list[id]     | Intent-specific. Cross-rule citations by Intent ID. Example: `[IN-AG-HIGHLANDER-001]`. Distinct from `related_rules`: `references` implies "this rule concretises or depends on"; `related_rules` is a softer suggestion.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `concretised_by`      | list[id]     | Required on a PATTERN agnostic rule (one governing a code shape), which lists at least 2 language-specific rule IDs demonstrating it; forbidden on language rules. **A PROCEDURAL agnostic rule -- one governing an action rather than a code pattern -- carries none, because a prohibition on doing something has no language-specific concretisation to point at.** `IN-AG-RED-CONTROL-001` and `IN-AG-FIAT-001` are that category. **THE ANTI-VAGUENESS OBLIGATION DOES NOT LAPSE, IT CHANGES FORM: a procedural rule discharges it through `applies_when`, which must name SITUATIONS rather than virtues, and one with an empty or aspirational `applies_when` has failed the requirement exactly as a pattern rule with no `concretised_by` would.** |
 | `aliases`             | list[string] | Previous slugs for this rule. Supports rename without ID changes. Empty array `[]` by default.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
@@ -58,17 +58,17 @@ YAML frontmatter at the top of every `RULE.md`, between `---` delimiters. All to
 | `does_not_apply_when` | list[string] | Natural-language exceptions. Content mirrors the `## When This Does Not Apply` Markdown section; frontmatter version is for tooling filters.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `status`              | enum         | `active` (default), `draft`, `deprecated`. Only `active` rules are enforced by Critics. Defaults to `active` if omitted.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `version`             | integer      | Rule-content version. Bump on breaking changes to Detection or Problem framing. Starts at `1`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `critic_tool`         | string       | Intent-specific. Names an EXTERNAL tool whose findings this rule is expressed through (`shellcheck`, `clippy`). **READ, not decorative** -- `intentsvcs/src/critic.rs:812` resolves it and the headless runner dispatches on it. A rule carrying it is enforced by that tool rather than by a greppable proxy.                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `critic_tool_context` | enum         | Intent-specific. How the external tool is invoked: `per-file` (the default applied at `critic.rs:813` when the key is absent) or the whole-target form. Only meaningful alongside `critic_tool`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `critic_tool_codes`   | list[string] | Intent-specific. The tool's own diagnostic codes this rule claims, inline form only -- `[SC2086, SC2046]`. Read at `critic.rs:963` to narrow the tool's output to this rule's subject. Without it a rule inherits everything the tool reports.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `critic_tool`         | string       | Intent-specific. Names an EXTERNAL tool whose findings this rule is expressed through (`shellcheck`, `clippy`). **READ, not decorative** -- `classify` in `intentsvcs/src/critic.rs` reads it and the headless runner dispatches on it. A rule carrying it is enforced by that tool rather than by a greppable proxy.                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `critic_tool_context` | enum         | Intent-specific. How the external tool is invoked: `per-file` (the default when the key is absent) or `workspace`. Any value other than `per-file` reports the rule `not-run:out-of-context` in a per-file run. Only meaningful alongside `critic_tool`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `critic_tool_codes`   | list[string] | Intent-specific. The tool's own diagnostic codes this rule claims, inline (`[SC2086, SC2046]`) or as a block list. `run` in `critic.rs` reads it to narrow the tool's output to this rule's subject. Without it the rule reports nothing: `shellcheck_findings` returns no findings for an empty code list, while the census still counts the rule as asked.                                                                                                                                                                                                                                                                                                                                                                                                |
 
-**THE THREE `critic_tool*` KEYS WERE READ BY THE RUNNER AND UNDECLARED HERE UNTIL 2026-09-09**, across five shipped rules -- `rust/code/{lifetime-elision-first,ownership-before-clone,result-over-panic}` and `shell/code/{no-parse-ls,quote-expansions}`. `intent claude rules validate` found them on its first run, the same day it was wired, which is the argument for that verb REFUSING unknown keys rather than warning: under a warn contract fifteen findings would have printed and nobody would have acted.
+**THE `critic_tool*` KEYS WERE READ BY THE RUNNER AND UNDECLARED HERE UNTIL 2026-09-09**, across shipped rules -- `rust/code/{lifetime-elision-first,ownership-before-clone,result-over-panic}` and `shell/code/{no-parse-ls,quote-expansions}`. `intent claude rules validate` found them on its first run, the same day it was wired, which is the argument for that verb REFUSING unknown keys rather than warning: under a warn contract the findings would have printed and nobody would have acted.
 
-**AND THE DANGEROUS FIX WAS THE OBVIOUS ONE.** Faced with a validator refusing five rules, the cheap repair is to delete the offending keys from the rules -- which would have silently disabled shellcheck code-narrowing and the clippy integration, because `critic.rs` reads all three. **The rules were right and this schema was the stale document.** It is the mirror of a defect the estate already guards against in the other direction -- a surface DECLARING what nothing reads. This is code READING what nothing declared. **Both are one concern living in two homes and drifting apart, and only one of the two directions currently has a verb that reports it.**
+**AND THE DANGEROUS FIX WAS THE OBVIOUS ONE.** Faced with a validator refusing those rules, the cheap repair is to delete the offending keys from the rules -- which would have silently disabled shellcheck code-narrowing and the clippy integration, because `critic.rs` reads each of them. **The rules were right and this schema was the stale document.** It is the mirror of a defect the estate already guards against in the other direction -- a surface DECLARING what nothing reads. This is code READING what nothing declared. **Both are one concern living in two homes and drifting apart, and only one of the two directions currently has a verb that reports it.**
 
 ### Forbidden in frontmatter
 
-- Nested maps (e.g. `detection: { pattern: ..., severity: ... }`). Keep everything flat.
+- Nested maps (eg `detection: { pattern: ..., severity: ... }`). Keep everything flat.
 - Free-form keys outside this schema. `intent claude rules validate` rejects unknown top-level keys. If new metadata is needed, update this schema first.
 
 ### Example frontmatter
@@ -96,7 +96,7 @@ applies_to:
   - "test/**/*_test.exs"
 does_not_apply_when:
   - "Property-based tests that assert invariants rather than specific values"
-  - "Tests where the shape itself is the contract (e.g. GenServer callback returns)"
+  - "Tests where the shape itself is the contract (eg GenServer callback returns)"
 references:
   - IN-AG-HIGHLANDER-001
 related_rules:
@@ -138,7 +138,7 @@ version: 1
 
 ## Markdown body
 
-Sections appear in this fixed order. Every rule has all nine; empty sections are explicitly marked "N/A" rather than omitted, so readers can tell the author considered and rejected the section.
+Sections appear in this fixed order. Every rule has all of them; empty sections are explicitly marked "N/A" rather than omitted, so readers can tell the author considered and rejected the section.
 
 ```markdown
 # <Title matching frontmatter>
@@ -183,7 +183,7 @@ a complete citation (title + source), not a bare URL.>
 
 ### Section headings are load-bearing
 
-- Use exact H2 headings (`## Problem`, `## Detection`, etc.) — no variations. The validator greps for these verbatim.
+- Use exact H2 headings (`## Problem`, `## Detection`, etc.) -- no variations. The headless critic finds a proxy only under an exact `## Detection` line; `intent claude rules validate` does not check body sections.
 - `## Bad` / `## Good` use the short form (upstream convention). Not `## Bad Example` or `## The Bad Pattern`.
 - `## When This Applies` / `## When This Does Not Apply` match upstream verbatim (not `## When It Applies` with different wording — exact match). Note the frontmatter fields stay `applies_when:` / `does_not_apply_when:` (Intent's tooling names); only the Markdown section headings match upstream.
 
@@ -272,9 +272,9 @@ elixir <rule-dir>/good_test.exs
 elixir <rule-dir>/bad_test.exs
 ```
 
-The files use `Mix.install([])` + `ExUnit.start(autorun: true)` and run standalone — no surrounding Mix project required. `mix test <path>` also works when the caller is inside a Mix project, but standalone `elixir` is the reference form because it is what `intent claude rules validate` (WP02) will invoke.
+The files use `Mix.install([])` + `ExUnit.start(autorun: true)` and run standalone — no surrounding Mix project required. `mix test <path>` also works when the caller is inside a Mix project, but standalone `elixir` is the reference form.
 
-The first non-empty line of each file must be `# EXPECTED: passes` (upstream convention — enforced by the validator). Other permitted values (`failure`, `flaky`) are reserved for upstream-style rules where runtime failure is intentional; Intent rules use `passes`.
+The first non-empty line of each file must be `# EXPECTED: passes` (upstream convention; not checked by `intent claude rules validate`). Other permitted values (`failure`, `flaky`) are reserved for upstream-style rules where runtime failure is intentional; Intent rules use `passes`.
 
 ## Runnable example contract (Rust / Swift / Lua)
 
@@ -318,32 +318,35 @@ When authoring a new rule, a quick check: `grep -nE '^    [^ ]' <rule-dir>/RULE.
 
 Anti-bloat invariant: no field in this schema exists without a named consumer. The consumers are:
 
-**THREE ROWS BELOW NAME A CONSUMER THAT DOES NOT EXIST YET, AND THEY ARE MARKED RATHER THAN QUIETLY CORRECTED.** `references`, `concretised_by` and `conflicts_with` each cite `validate`; **`intent claude rules validate` is a known-but-unimplemented command and refuses at rc=2** (measured 2026-08-30, directly rather than through a pipe -- a piped read reports the filter's status, not the command's). So for those three fields the anti-bloat invariant is satisfied by an INTENDED consumer, not a live one. **The consequence is the reason this is stated here rather than left implicit: with `validate` unimplemented, this document is the only enforcement the schema has, so it has to be true by READING.**
+The `intent claude rules index` column describes a verb that is declared and not built: it exits 2 as not implemented, nothing regenerates or reads `index.json`, and whether it retires is an open hv decision.
 
-| Field                 | Claude reads | `intent claude rules` reads | `intent claude rules index` reads | Critic subagent reads  |
-| --------------------- | :----------: | :-------------------------: | :-------------------------------: | :--------------------: |
-| `id`                  |      ✓       |              ✓              |                 ✓                 |           ✓            |
-| `title`               |      ✓       |              ✓              |                 ✓                 |           ✓            |
-| `language`            |      ✓       |              ✓              |                 ✓                 |      ✓ (dispatch)      |
-| `category`            |      ✓       |              ✓              |                 ✓                 |           ✓            |
-| `severity`            |      ✓       |              ✓              |                 ✓                 |       ✓ (filter)       |
-| `summary`             |      ✓       |          ✓ (list)           |                 —                 |           —            |
-| `principles`          |      ✓       |              —              |                 ✓                 |           ✓            |
-| `applies_when`        |      ✓       |              —              |                 —                 |           ✓            |
-| `upstream_id`         |      —       |    ✓ (attribution check)    |                 ✓                 |  ✓ (upstream dedupe)   |
-| `applies_to`          |      —       |              —              |                 ✓                 |    ✓ (file filter)     |
-| `references`          |      ✓       |    ✓ (validate resolves)    |                 ✓                 |           ✓            |
-| `concretised_by`      |      ✓       |   ✓ (validate invariant)    |                 ✓                 |           —            |
-| `aliases`             |      ✓       |         ✓ (lookup)          |                 ✓                 |           —            |
-| `tags`                |      —       |              —              |                 ✓                 |           —            |
-| `related_rules`       |      ✓       |              —              |                 ✓                 |           —            |
-| `sources`             |      ✓       |              —              |                 —                 |           —            |
-| `conflicts_with`      |      ✓       |        ✓ (validate)         |                 ✓                 |           —            |
-| `does_not_apply_when` |      ✓       |              —              |                 —                 |       ✓ (filter)       |
-| `status`              |      —       |         ✓ (filter)          |                 ✓                 | ✓ (skip if not active) |
-| `version`             |      —       |              ✓              |                 —                 |           —            |
+| Field                 | Claude reads | `intent claude rules` reads | `intent claude rules index` reads | Critic subagent reads  |       `intent critic` reads       |
+| --------------------- | :----------: | :-------------------------: | :-------------------------------: | :--------------------: | :-------------------------------: |
+| `id`                  |      ✓       |              ✓              |                 ✓                 |           ✓            |                 ✓                 |
+| `title`               |      ✓       |              ✓              |                 ✓                 |           ✓            |                --                 |
+| `language`            |      ✓       |              ✓              |                 ✓                 |      ✓ (dispatch)      |       ✓ (selects the pack)        |
+| `category`            |      ✓       |              ✓              |                 ✓                 |           ✓            |                --                 |
+| `severity`            |      ✓       |              ✓              |                 ✓                 |       ✓ (filter)       | ✓ (filter; unknown value refused) |
+| `summary`             |      ✓       |             --              |                --                 |           --           |                --                 |
+| `principles`          |      ✓       |             --              |                 ✓                 |           ✓            |                --                 |
+| `applies_when`        |      ✓       |             --              |                --                 |           ✓            |                --                 |
+| `upstream_id`         |      --      |    ✓ (attribution check)    |                 ✓                 |  ✓ (upstream dedupe)   |                --                 |
+| `applies_to`          |      --      |             --              |                 ✓                 |    ✓ (file filter)     |          ✓ (file filter)          |
+| `references`          |      ✓       |    ✓ (validate resolves)    |                 ✓                 |           ✓            |                --                 |
+| `concretised_by`      |      ✓       |    ✓ (validate resolves)    |                 ✓                 |           --           |                --                 |
+| `aliases`             |      ✓       |             --              |                 ✓                 |           --           |                --                 |
+| `tags`                |      --      |             --              |                 ✓                 |           --           |                --                 |
+| `related_rules`       |      ✓       |    ✓ (validate resolves)    |                 ✓                 |           --           |                --                 |
+| `sources`             |      ✓       |             --              |                --                 |           --           |                --                 |
+| `conflicts_with`      |      ✓       |    ✓ (validate resolves)    |                 ✓                 |           --           |                --                 |
+| `does_not_apply_when` |      ✓       |             --              |                --                 |       ✓ (filter)       |                --                 |
+| `status`              |      --      |             --              |                 ✓                 | ✓ (skip if not active) |    ✓ (non-active never fires)     |
+| `version`             |      --      |             --              |                --                 |           --           |                --                 |
+| `critic_tool`         |      --      |             --              |                --                 |           --           |           ✓ (dispatch)            |
+| `critic_tool_context` |      --      |             --              |                --                 |           --           |  ✓ (per-file or out of context)   |
+| `critic_tool_codes`   |      --      |             --              |                --                 |           --           |   ✓ (narrows the tool's output)   |
 
-Fields with zero ✓s are candidates for removal. None currently.
+Fields with zero ✓s are candidates for removal.
 
 ## Adding a new rule (quick reference)
 
@@ -351,10 +354,10 @@ Fields with zero ✓s are candidates for removal. None currently.
 2. Assign an ID. Use the next free `IN-<LANG>-<CAT>-<NNN>`. Never reuse a numeric suffix, including for deleted rules.
 3. Copy any existing rule directory as a template. `rules/elixir/test/strong-assertions/` is the canonical exemplar (runnable examples + full schema); a simpler starting point is any agnostic rule under `rules/agnostic/`.
 4. Fill frontmatter per this schema.
-5. Write the nine Markdown sections.
+5. Write the Markdown sections.
 6. Author runnable examples (Elixir) or textual examples (Rust/Swift/Lua).
-7. Run `intent claude rules validate <id>` (once WP02 lands).
-8. Ensure skills or Critic subagents that reference the rule have the new ID in their `rules:` list.
+7. Run `intent claude rules validate <id>`.
+8. Ensure skills that cite the rule have the new ID in their `rules:` list; critic subagents pick it up from `intent claude rules list` with no wiring.
 9. If the rule borrows from upstream, add `upstream_id:` and update `_attribution/elixir-test-critic.md` per `attribution-policy.md`.
 
 ## Schema evolution

@@ -71,7 +71,7 @@ The earlier framing was off -- here is the correction.
 
 ## When This Applies
 
-- Every prose file in a project that declares `author` -- chapters, courseware modules, blog drafts, essays, long-form.
+- Every prose file in a project that declares `author` or `content` -- chapters, courseware modules, pages, blog drafts, essays, long-form.
 - Especially LLM-assisted drafts, where filler and reflexive agreement are introduced by the model rather than the author.
 
 ## When This Does Not Apply

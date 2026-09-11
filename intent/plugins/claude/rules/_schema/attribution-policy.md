@@ -20,9 +20,9 @@ MIT permits fork, vendor, modify, sublicense, commercial use. The single binding
 
 For Intent, this means: anywhere we reproduce or adapt upstream content substantially enough to be a "substantial portion", we include the full MIT notice (copyright line + permission text). The notice lives at `_attribution/elixir-test-critic.md` (single source of truth) and is cited from rules that borrow.
 
-## Three levels of borrowing
+## Levels of borrowing
 
-Not every rule that mentions upstream is a borrow. The discipline has three tiers:
+Not every rule that mentions upstream is a borrow. The discipline has these tiers:
 
 ### Tier 1: No attribution required
 
@@ -52,7 +52,7 @@ Any case where Intent reproduces or adapts upstream content at paragraph scale o
 - RULE.md body: prefaced with the full MIT notice inline (not just a link).
 - The portion that's derived is clearly marked.
 
-**Intent does not currently produce any Tier 3 rules.** The reference-and-recommend design (see the reference-and-recommend design note) is explicitly to avoid Tier 3: Intent rewrites in its own voice, never copies upstream prose.
+The reference-and-recommend design (see the reference-and-recommend design note) is explicitly to avoid Tier 3: Intent rewrites in its own voice, never copies upstream prose.
 
 If a future rule crosses into Tier 3, add the full MIT notice to its RULE.md and update this policy with the rule ID.
 
@@ -63,7 +63,7 @@ Set `upstream_id: <upstream-slug>` whenever **any** of the following is true:
 - The Problem statement's central insight comes from upstream.
 - The Detection heuristic matches upstream's (same grep pattern, same AST signal, same structural test).
 - The example is morally identical to upstream's (same antipattern, same fix), even if rewritten.
-- The principle listed in `principles:` was introduced by upstream (e.g. `assert-not-sleep`, `mock-as-noun`).
+- The principle listed in `principles:` was introduced by upstream (eg `assert-not-sleep`, `mock-as-noun`).
 
 Set `upstream_id` to the upstream rule's slug (lower-kebab-case, matching the final path segment of the upstream rule directory). Intent scopes the slug by category via the `category:` frontmatter field, so bare slugs are unambiguous. Examples:
 
@@ -85,7 +85,7 @@ When **not** to set it:
 
 - The rule is language-agnostic (lives in `rules/agnostic/`). Agnostic rules predate upstream.
 - The rule is Rust / Swift / Lua. Upstream is Elixir-only.
-- The rule is Intent-specific Elixir guidance with no upstream counterpart (e.g. Ash-specific rules that upstream doesn't cover).
+- The rule is Intent-specific Elixir guidance with no upstream counterpart (eg Ash-specific rules that upstream doesn't cover).
 - Topical overlap without principle borrow.
 
 ## Attribution file structure
@@ -119,7 +119,7 @@ Rows above are illustrative — WP05 authors the actual Intent rules and populat
 
 ## Substantially derived rules
 
-None in v2.9.0.
+_No rows._
 
 ## Schema compatibility
 

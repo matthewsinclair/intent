@@ -1,6 +1,6 @@
 # Critic Subagent Contract
 
-This document is the contract that every Critic subagent in Intent must satisfy. WP07 implements four concrete Critics (`critic-elixir`, `critic-rust`, `critic-swift`, `critic-lua`) and WP12 adds a fifth (`critic-shell`) — all share the contract defined here. The `in-review` skill's stage-2 dispatches to one of these Critics based on project language indicators.
+This document is the contract that every Critic subagent in Intent must satisfy. WP07 implements concrete Critics (`critic-elixir`, `critic-rust`, `critic-swift`, `critic-lua`) and WP12 adds `critic-shell` — all share the contract defined here. The `in-review` skill's stage-2 dispatches to one of these Critics based on project language indicators.
 
 Draft lives here under `_schema/` for WP01. At WP10 this content migrates to `intent/docs/critics.md` as the user-facing reference; the copy here remains as the canonical schema-side definition.
 
@@ -21,9 +21,9 @@ A Critic's prompt (the `agent.md` body) contains only orchestration logic: mode 
 Each Critic has:
 
 - Name: `critic-<lang>` where `<lang>` matches the language segment of rule IDs (`elixir`, `rust`, `swift`, `lua`, `shell`).
-- Language code match: `EX` → `critic-elixir`, `RS` → `critic-rust`, `SW` → `critic-swift`, `LU` → `critic-lua`, `SH` → `critic-shell`.
-- Tool loadout (declared in `agent.md` frontmatter): `Read`, `Grep`, `Bash`. No `Write` or `Edit` — Critics report, they do not modify.
-- Subagent registration: in `intent/plugins/claude/subagents/.manifest/global-agents.json`.
+- Language code match: `EX` → `critic-elixir`, `RS` → `critic-rust`, `SW` → `critic-swift`, `LU` → `critic-lua`, `SH` → `critic-shell`, and `PR` / `AU` / `CO` -> `critic-prose` (one critic for the prose base and both prose disciplines; its modes are `review` and `craft-check`).
+- Tool loadout (declared in `agent.md` frontmatter): `Read`, `Grep`, `Glob`, `Bash`. No `Write` or `Edit` — Critics report, they do not modify.
+- Subagent registration: a directory `intent/plugins/claude/subagents/critic-<lang>/` containing `agent.md`; `intent claude subagents list` enumerates it.
 
 ## Invocation
 
@@ -40,28 +40,27 @@ Alternatively invoked by `in-review` stage-2, which composes the invocation base
 
 ## Modes
 
-Each Critic supports two modes, selected by the first word of the invocation prompt:
+Each code Critic supports these modes, selected by the first word of the invocation prompt:
 
-| Mode verb          | Purpose                                      | Rule dirs loaded                                                                             |
-| ------------------ | -------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `review` (default) | Apply code-category rules to production code | `rules/agnostic/*` + `rules/<lang>/code/*` + any shared (`rules/<lang>/common/*` if present) |
-| `test-check`       | Apply test-category rules to test files      | `rules/agnostic/*` + `rules/<lang>/test/*` + any shared                                      |
+| Mode verb          | Purpose                                      | Rule dirs loaded                                                                                                                                        |
+| ------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `review` (default) | Apply code-category rules to production code | every `agnostic` rule plus `<lang>` rules whose category is `code` (`critic-elixir` also takes `ash`, `phoenix`, `lv`), from `intent claude rules list` |
+| `test-check`       | Apply test-category rules to test files      | every `agnostic` rule plus `<lang>` rules whose category is `test`                                                                                      |
 
 If the first word of the prompt is not one of the above verbs, the Critic defaults to `review` mode and includes a note in the report ("defaulted to review; specify 'test-check' for test-mode").
 
-Why one subagent per language with modes instead of two per language: rule-loading machinery is shared across modes; invocation is cleaner; severity filtering and report format stay uniform.
+Why one subagent per language with modes instead of one per mode: rule-loading machinery is shared across modes; invocation is cleaner; severity filtering and report format stay uniform.
 
 ## Rule loading order
 
 On invocation, the Critic loads rules in this order (each entry additive; later-loaded rules do not override earlier ones):
 
-1. `intent/plugins/claude/rules/agnostic/*/RULE.md` — cross-language principles first.
-2. `intent/plugins/claude/rules/<lang>/<mode>/*/RULE.md` — language + mode specific (e.g. `rules/elixir/test/*` for `critic-elixir test-check`).
-3. `intent/plugins/claude/rules/<lang>/common/*/RULE.md` — optional. Language-specific rules shared across modes (empty in v2.9.0; reserved).
-4. **Upstream interop** (Elixir only): if elixir-test-critic is installed as a Claude plugin in `~/.claude/`, load its rules too. Dedupe by `upstream_id`: where an Intent rule has `upstream_id: <slug>` and upstream has the matching rule, skip upstream's copy in favour of Intent's.
-5. **User extensions**: for every extension discovered via `plugin_get_source_roots` (see WP02), load any `<ext>/rules/<lang>/**/RULE.md` files contributed.
+1. `intent claude rules list --lang agnostic` and `intent claude rules list --lang <lang>`; select by the `category` column for the mode.
+2. `intent claude rules show <id>` for each selected rule.
+3. **Upstream interop** (Elixir only): if elixir-test-critic is installed as a Claude plugin in `~/.claude/`, load its rules too. Dedupe by `upstream_id`: where an Intent rule has `upstream_id: <slug>` and upstream has the matching rule, skip upstream's copy in favour of Intent's.
+4. **User extensions**: none in v3. `userstate::ext_base()` answers `None`, so `rules list` serves canon only.
 
-Precedence on collision (same rule ID, different source): last-loaded wins within the lang / mode combination, but a warning is emitted in the report. In practice Intent IDs and upstream slugs do not collide — Intent rules live in `IN-*` namespace, upstream in `ETC-*`.
+Intent IDs and upstream slugs do not collide: Intent rules live in the `IN-*` namespace, upstream in `ETC-*`.
 
 After loading, the Critic applies optional filters:
 
@@ -88,23 +87,17 @@ Schema:
 ```yaml
 # .intent_critic.yml — optional per-project configuration for Intent Critic subagents
 disabled:
-  - IN-EX-CODE-007 # moduledoc noise; not a concern for this project
+  - IN-EX-CODE-003 # reason: <why this project opts out>
   - IN-EX-TEST-005 # we have legacy non-async tests we're not converting
 severity_min: warning # show warning, critical; hide recommendation, style
-include_categories:
-  - code
-  - test
-exclude_paths:
-  - "lib/generated/**"
-  - "test/fixtures/**"
+show_all: false # shorthand for severity_min: style (subagents only)
+post_tool_use_advisory: false # opt-in per-edit advisory
 ```
 
 All fields optional. Defaults:
 
 - `disabled`: empty list (no rules disabled).
 - `severity_min`: `warning`.
-- `include_categories`: all categories in scope for the current mode.
-- `exclude_paths`: empty list.
 
 Absent config file → defaults apply uniformly.
 
@@ -136,12 +129,12 @@ STYLE
   <description>
 
 Summary: N critical, N warning, N recommendation, N style.
-Rules applied: N agnostic, N language-specific, N upstream (deduped), N user-ext.
-Target files reviewed: N.
-Config: .intent_critic.yml (present|absent).
+Rules applied: N agnostic, N language-specific.
 ```
 
-Every severity section always appears, even when empty. An empty section shows `(none)` on the next line.
+(`critic-prose` prints `Rules applied: N agnostic, N prose, N <discipline>.`, `Target files reviewed: N.` and `Config: .intent_critic.yml (present|absent).`)
+
+The code critics omit a severity section with no findings; `critic-prose` prints every section and shows `(none)` under an empty one.
 
 When the Summary reports `0 critical, 0 warning, 0 recommendation, 0 style`, the report is a clean result.
 
@@ -153,8 +146,8 @@ When the Summary reports `0 critical, 0 warning, 0 recommendation, 0 style`, the
   suggested fix: <summary>
 ```
 
-- `<id>` — full rule ID, e.g. `IN-EX-TEST-001`.
-- `<slug>` — the rule's slug, e.g. `strong-assertions`.
+- `<id>` — full rule ID, eg `IN-EX-TEST-001`.
+- `<slug>` — the rule's slug, eg `strong-assertions`.
 - `<file>:<line>` — relative path from project root + line number of the violation.
 - Description — one line, max 120 chars.
 - `suggested fix:` line optional for `style` severity, required for `critical` and `warning`.
@@ -170,21 +163,15 @@ CRITICAL
   suggested fix: pattern-match on {:ok, user} / {:error, :not_found} and surface the error.
 
 WARNING
+- IN-EX-CODE-003 (impl-true-on-callbacks) lib/my_app/accounts.ex:12
+  Behaviour callback missing @impl true.
+  suggested fix: add @impl true above the callback.
 - IN-EX-CODE-001 (pattern-match-over-conditionals) lib/my_app/accounts.ex:55
   Nested if inside case clause. Replace with multi-clause function.
   suggested fix: extract to def find(%{...}) / def find(_) clauses.
 
-RECOMMENDATION
-(none)
-
-STYLE
-- IN-EX-CODE-007 (moduledoc-public-modules) lib/my_app/accounts.ex:1
-  Public module missing @moduledoc.
-
-Summary: 1 critical, 1 warning, 0 recommendation, 1 style.
-Rules applied: 4 agnostic, 11 language-specific, 0 upstream (deduped), 0 user-ext.
-Target files reviewed: 1.
-Config: .intent_critic.yml (absent).
+Summary: 1 critical, 2 warning, 0 recommendation, 0 style.
+Rules applied: N agnostic, N language-specific.
 ```
 
 ### Clean report example
@@ -192,27 +179,13 @@ Config: .intent_critic.yml (absent).
 ```
 ## Critic Report: critic-elixir review lib/my_app/user.ex
 
-CRITICAL
-(none)
-
-WARNING
-(none)
-
-RECOMMENDATION
-(none)
-
-STYLE
-(none)
-
 Summary: 0 critical, 0 warning, 0 recommendation, 0 style.
-Rules applied: 4 agnostic, 11 language-specific, 0 upstream (deduped), 0 user-ext.
-Target files reviewed: 1.
-Config: .intent_critic.yml (absent).
+Rules applied: N agnostic, N language-specific.
 ```
 
 ### Severity tier defaults
 
-Default filter: show `critical` and `warning`. `recommendation` and `style` sections still appear in the report structure but may contain `(none)` when filtered out.
+Default filter: show `critical` and `warning`. `recommendation` and `style` findings are counted in `Summary:` but not rendered in the body.
 
 To see all severities: set `severity_min: style` in `.intent_critic.yml`, or invoke the Critic with an explicit severity override in the prompt: `review --all-severities lib/x.ex`.
 
@@ -229,13 +202,13 @@ Downstream tooling (future: auto-fix, CI gates) can parse with these anchors.
 
 ## diogenes handoff (Elixir `test-check` mode only)
 
-When `critic-elixir test-check` runs against a test file, it may detect that the test lacks a specification document (e.g. `test/<module>_test.spec.md` absent, or the spec exists but is stale).
+When `critic-elixir test-check` runs against a test file, it may detect that the test lacks a specification document (eg `test/<module>_test.spec.md` absent, or the spec exists but is stale).
 
 On detection, the Critic adds a recommendation to the report:
 
 ```
 RECOMMENDATION
-- IN-EX-TEST-XXX (<slug>) test/my_module_test.exs:1
+- (test-spec-missing) test/my_module_test.exs:1
   Test lacks a Socratic spec. Consider running the `diogenes` subagent first:
     Task(subagent_type="diogenes", prompt="specify lib/my_module.ex")
 ```
@@ -248,8 +221,7 @@ On invocation, `critic-elixir` checks whether the upstream plugin is installed:
 
 ```bash
 # Detection heuristic (pseudocode)
-if [ -d "$HOME/.claude/plugins/elixir-test-critic" ] || \
-   [ -d "$HOME/.intent/ext/elixir-test-critic" ]; then
+if [ -d "$HOME/.claude/plugins/elixir-test-critic" ]; then
   UPSTREAM_AVAILABLE=1
 fi
 ```
@@ -267,7 +239,7 @@ If not available: Critic runs with Intent rules only. No warning — upstream is
 
 ## Error handling
 
-Critic failures are surfaced as `## Critic Error:` blocks, not silent. Categories:
+Critic failures are surfaced as one-line warnings at the top of the report (eg `(warning: <id> unreadable; skipped)`), never silently. Categories:
 
 - Rule file malformed (fails schema parse) → log warning, skip rule, continue.
 - Target file unreadable → report error, set exit status non-zero, produce partial report with what could be processed.
@@ -278,7 +250,6 @@ A Critic that crashes silently is worse than one that reports partial results �
 
 ## Performance envelope
 
-- Rule loading: 30-50 RULE.md files per invocation. Accepted latency for v2.9.0.
 - Target files: arbitrary. Intent's typical invocation is single-file or single-directory.
 - Detection: grep + Read. Single target file review should complete in seconds; recursive directory reviews may take tens of seconds.
 
@@ -299,7 +270,7 @@ Performance optimisations (rule caching, index-based loading, parallel Read) are
 ---
 name: critic-elixir
 description: Critic for Elixir code and test files. Enforces Intent's rule library.
-tools: Read, Grep, Bash
+tools: Read, Grep, Glob, Bash
 ---
 
 You are a Critic subagent specialised in Elixir. You enforce Intent's rule library
@@ -313,16 +284,14 @@ modify code.
 
 ## Load the rule set
 
-1. Read `$INTENT_HOME/intent/plugins/claude/rules/agnostic/*/RULE.md`.
-2. Read `$INTENT_HOME/intent/plugins/claude/rules/elixir/<mode>/*/RULE.md`.
-3. Read `$INTENT_HOME/intent/plugins/claude/rules/elixir/common/*/RULE.md` if dir exists.
-4. Probe for elixir-test-critic plugin; if found, load its rules and dedupe by `upstream_id`.
-5. Probe for user extensions; load any `<ext>/rules/elixir/**/RULE.md`.
+1. `intent claude rules list --lang agnostic` and `intent claude rules list --lang elixir`; select by category for the mode.
+2. `intent claude rules show <id>` for each selected rule.
+3. Probe for elixir-test-critic plugin; if found, load its rules and dedupe by `upstream_id`.
+4. Probe for user extensions; load any `<ext>/rules/elixir/**/RULE.md`.
 
 ## Apply project config
 
-Read `<project>/.intent_critic.yml` if present. Apply `disabled`, `severity_min`,
-`exclude_paths`, `include_categories`.
+Read `<project>/.intent_critic.yml` if present. Apply `disabled`, `severity_min`, `show_all`.
 
 ## Detect violations
 
@@ -346,4 +315,3 @@ In `test-check` mode, if the target test lacks a spec, add a diogenes recommenda
 - Auto-fix: deferred. Critics stay read-only in v2.9.0.
 - Parallel review (review an entire directory in parallel): deferred.
 - Incremental review (only re-run on changed files): deferred.
-- Pre-commit hook integration: deferred; documentation after Critics prove out.
