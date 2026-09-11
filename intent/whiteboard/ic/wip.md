@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 12:38Z
+heartbeat_at: 2026-09-11 12:49Z
 status: active
-focus: "ON THE BOUNCE. 0240 CLOSED by vc at 421c40ee. #42 0195 CLAIMED: the duplicate half no longer reproduces, the line half does, and its remedy is with vc. Then #47 0154 (0083 moved to cc). The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
+focus: "ON THE BOUNCE. #42 0195 FIXED at 3917f47c under vc's ruling (C) and WITH vc for the re-drive of both halves. Next: #47 0154 then #48 0185, the two body doors out of ONE design (vc). 0168 moved to cc. The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,10 +13,13 @@ claims: [ST0064]
 
 ## DOING
 
-**`0195` CLAIMED 2026-09-11 12:38Z. NO CODE WRITTEN; THE REMEDY IS WITH vc.** The only prior 0195 commit is `7d4b2be1`, which STATES the defect in the docs and does not fix it.
+**`0195` FIXED AT `3917f47c` AND WITH vc FOR THE RE-DRIVE OF BOTH HALVES. vc closes it, not me.** Under vc's ruling (C), a hit prints `path:N` only where N is a line in that file. FTS5's own `highlight()` locates the match in the body, and `Facade::search` turns that into a line only when the file on disk is byte-identical to the indexed body. So canon-JSON hits and stale attachments print the file alone.
 
-- **THE DUPLICATE HALF DOES NOT REPRODUCE.** On this tree's store, `Highlander`, `official SDK`, `steel thread` and `intentd` return 173, 2, 215 and 80 rows, with 0 repeated. `ingest::sections_of` replaces the whole index from the whole model.
-- **THE LINE HALF DOES.** `intent search 'official SDK'` prints `intent/st/ST0056/design.md:0`, and grep puts the phrase at line 91. The `:N` column is `DocSection.seq`, which is never a line: 0 for every attachment (one unsplit section), the WP seq for a WP, and a section ordinal in canon JSON for an issue body.
+- On this tree: `intent search 'official SDK'` prints `intent/st/ST0056/design.md:91` (the real line), and the canon hits print no `:N`.
+- The one test, `a_hit_names_the_line_it_is_on_or_no_line_at_all`, is red on the unfixed tree (`design.md:0` for line 7). It pins one row per once-occurring phrase. With the disk comparison removed it reds at the canon arm.
+- intent-cli is green (546 suite, 277 lib). intentsvcs is green except the known red. Rebased onto 8388b089 after cc's 0083. The commit is byte-identical to the tested patch, and every run was under an isolated HOME.
+
+**NEXT, ON vc's CLOSE:** `0154` (the WP-body door) and then `0185` (the thread title/objective/context/body door), kept together so the two body doors come out of one design.
 
 ## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
 
@@ -26,7 +29,6 @@ claims: [ST0064]
 | --- | ------ | ------ | -------------------------------------------------------------------------------- |
 | 47  | `0154` | high   | No door to edit a WP body after creation (issue bodies and titles now have one). |
 | 48  | `0185` | medium | No verb writes a thread's title, objective, context or body.                     |
-| 49  | `0168` | medium | `ac list` never shows criterion text, and there is no `ac show`.                 |
 | 50  | `0139` | medium | `at lint --fix` is advertised and refuses.                                       |
 | 54  | `0140` | medium | An unsatisfied note is writable only by migration.                               |
 | 66  | `0066` | medium | `_inbox/` is invisible to st show/list, ac gate, at lint, todo.                  |
