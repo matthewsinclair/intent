@@ -2073,6 +2073,34 @@
           "facade": "ac_list"
         },
         {
+          "path": "ac show",
+          "help": "Show one criterion: its kind, state, covering ATs and full text",
+          "args": [
+            {
+              "name": "stid",
+              "type": "st-id",
+              "arity": "1"
+            },
+            {
+              "name": "acid",
+              "type": "ac-id",
+              "arity": "1"
+            }
+          ],
+          "flags": [],
+          "v2": "new-surface",
+          "target": {
+            "state": "new-surface",
+            "note": "**THE ONE VERB THAT PRINTS WHAT A CRITERION SAYS (issue 0168).** `ac list` prints id, covering ATs and satisfied state and never the text, so a node planning from it planned from ids -- vc glossed AC-04.6 and AC-05.7 from the list and neither gloss was close. Printing the text in `ac list` was measured and refused: across 512 criteria the text runs median 292, p90 2,812, max 59,061 characters, and ST0056's list alone would carry 302,087. Truncating would read as complete with no verb to read the rest, which is the defect's own shape. So the list stays a list and this verb shows one row whole.",
+            "consequence": "Read-only and flagless, mirroring `wp show`: a `<STID>/<ACID>` header, `kind`, the state in `ac list`'s own vocabulary (one composer, `ac_row`, serves both), the state's payload when it has one (`evidence`, `note`, `by`, `reason`), `covered-by`, then the full text after a blank line. An id the thread does not have refuses with `NoSuchCriterion`, the same refusal every other AC verb gives. `at show` is deliberately absent: `at list` has the same gap for a test's note, and vc ruled it out of this change.",
+            "ratification": "vc, 2026-09-11, under hv's pen, option (a) on issue 0168, sequenced to cc."
+          },
+          "disposition": "new-surface",
+          "exposed_on_mcp": true,
+          "read_or_mutate": "read",
+          "facade": "ac_show"
+        },
+        {
           "path": "ac status",
           "help": "Report N/M satisfied + verdict (PASS/BLOCKED)",
           "args": [
@@ -8988,7 +9016,8 @@
     {
       "disposition": "new-surface",
       "target_state": "new-surface",
-      "n": 49,
+      "n": 50,
+      "census_note": "50 since 2026-09-11: `ac show` (issue 0168, vc's option (a)).",
       "gloss": "There is no v2 command. Both fields say so because the question `what becomes of it` does not apply to either axis -- this is one of the two pairs where the fields MUST agree."
     },
     {
@@ -9233,6 +9262,7 @@
       "wp show",
       "ac",
       "ac list",
+      "ac show",
       "ac status",
       "ac satisfy",
       "ac unsatisfy",
@@ -9377,6 +9407,7 @@
       "wp show",
       "ac",
       "ac list",
+      "ac show",
       "ac status",
       "ac satisfy",
       "ac unsatisfy",
@@ -9525,6 +9556,7 @@
       "wp show",
       "ac",
       "ac list",
+      "ac show",
       "ac status",
       "ac satisfy",
       "ac unsatisfy",

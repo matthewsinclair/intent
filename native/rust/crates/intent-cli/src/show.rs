@@ -30,7 +30,8 @@
 
 use std::fmt::Write;
 
-use intentsvcs::model::{Issue, Thread, WorkPackage};
+use intentsvcs::facade::AcRow;
+use intentsvcs::model::{AcState, Criterion, Issue, Thread, WorkPackage};
 
 /// `intent st show <id>`'s text: id, title, status, its reason if any, created,
 /// completed if any. No body — `st show` does not print it.
@@ -59,6 +60,49 @@ pub fn work_package(st: &str, wp: &WorkPackage) -> String {
     let _ = writeln!(s, "reason: {reason}");
   }
   let _ = writeln!(s, "scope: {}", wp.scope_display());
+  s
+}
+
+/// `intent ac show <st> <ac>`'s text (0168): the header, `kind`, the state in
+/// `ac list`'s vocabulary (`row.state`, composed once by the facade), the
+/// state's payload lines that the state line does not already carry, the
+/// covering tests, then the whole text after a blank line.
+pub fn criterion(st: &str, c: &Criterion, row: &AcRow) -> String {
+  let mut s = String::new();
+  let _ = writeln!(s, "{st}/{}", c.id);
+  let _ = writeln!(s, "kind: {}", intentsvcs::model::enum_str(&c.kind));
+  let _ = writeln!(s, "{}", row.state);
+  match &c.state {
+    AcState::Satisfied { evidence } => {
+      let _ = writeln!(s, "evidence: {evidence}");
+    }
+    AcState::Unsatisfied { note: Some(note) } => {
+      let _ = writeln!(s, "note: {note}");
+    }
+    AcState::Descoped { by, reason, .. } => {
+      if let Some(by) = by {
+        let _ = writeln!(s, "by: {by}");
+      }
+      if let Some(reason) = reason {
+        let _ = writeln!(s, "reason: {reason}");
+      }
+    }
+    AcState::Withdrawn { by: Some(by), .. } => {
+      let _ = writeln!(s, "by: {by}");
+    }
+    AcState::Computed {}
+    | AcState::Unsatisfied { note: None }
+    | AcState::Withdrawn { by: None, .. }
+    | AcState::Fiat(_) => {}
+  }
+  let covering = row
+    .covered_by
+    .iter()
+    .map(|id| format!(" {id}"))
+    .collect::<String>();
+  let _ = writeln!(s, "covered-by:{covering}");
+  let _ = writeln!(s);
+  let _ = writeln!(s, "{}", c.text);
   s
 }
 

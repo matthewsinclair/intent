@@ -287,6 +287,11 @@ const DECLARED: &[(&str, &str, Why)] = &[
   ),
   (
     "intent-cli/src/mcp.rs",
+    "ac show",
+    Why::CheckedBy(MCP_SERVING_MATCH),
+  ),
+  (
+    "intent-cli/src/mcp.rs",
     "ac status",
     Why::CheckedBy(MCP_SERVING_MATCH),
   ),

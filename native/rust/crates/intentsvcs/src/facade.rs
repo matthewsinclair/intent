@@ -2414,70 +2414,17 @@ impl Facade {
   /// data-model.md forbids.
   pub fn ac_list(&self, st: &str) -> Result<Vec<AcRow>, FacadeError> {
     let thread = self.st_show(st)?;
-    Ok(
-      thread
-        .criteria
-        .iter()
-        .map(|c| AcRow {
-          id: c.id.clone(),
-          text: c.text.clone(),
-          // v2's own vocabulary (`bin/intent_acceptance:904-907`). The state
-          // is COMPUTED -- for a test-backed AC it is stored nowhere, because
-          // satisfaction comes from a covering green test and storing it too
-          // would be the double truth data-model.md forbids.
-          state: match &c.state {
-            AcState::Descoped { to, .. } => format!("descoped-to: {to}"),
-            AcState::Withdrawn { reason, .. } => format!("withdrawn: {reason}"),
-            // **ISSUE 0137, AND IT WAS A WILDCARD SWALLOWING A STATE THAT HAS
-            // TWO EXPLICIT NEIGHBOURS.** `Fiat` fell into the `_` arm below and
-            // rendered `satisfied: no` -- indistinguishable from an ordinary
-            // open criterion, which is the one outcome hv's ruling exists to
-            // prevent: a fiat-closed row must never read as an ordinarily
-            // judged one, in either direction.
-            //
-            // **It was demoted rather than escalated on a census showing ZERO
-            // fiat rows store-wide, watched with the census as its trigger.
-            // The trigger fired the moment `fc` could write one.** A defect
-            // whose only defence is that nothing can reach the state stops
-            // being defended by the change that reaches it.
-            //
-            // **The spelling is this line's vocabulary, not `fiat_marker`'s,
-            // and that is the ruling rather than a shortcut.** It now has ONE
-            // HOME -- `model::fiat_status`, hv's required composer -- shared
-            // with the AT kind, whose record sits beside its status and so has
-            // nothing structural forcing a renderer to look at it at all.
-            // `fiat_marker` composes the
-            // GENERATED VIEW's form; the census in
-            // `fiat_close_is_visible_on_every_surface.rs` records that "one
-            // composer" is the goal for surfaces that render a marker, and that
-            // the property actually held is the weaker true one -- a surface
-            // reporting a fiat-closed criterion must make the close visible, by
-            // whatever spelling suits it. This line's vocabulary is
-            // `<state>: <why>`, set by the two arms above it.
-            //
-            // **The cascade marker leads**, for the reason `fiat_marker` gives:
-            // a reader must not miss that this row was never individually
-            // judged, and a marker after the reason reads as a footnote to a
-            // decision nobody made about it.
-            AcState::Fiat(record) => crate::model::fiat_status("fiat-closed", Some(record)),
-            _ => format!(
-              "satisfied: {}",
-              if contract::resolve(thread, c) == contract::Resolved::Satisfied {
-                "yes"
-              } else {
-                "no"
-              }
-            ),
-          },
-          covered_by: thread
-            .tests
-            .iter()
-            .filter(|t| t.covers.iter().any(|covered| covered == &c.id))
-            .map(|t| t.id.clone())
-            .collect(),
-        })
-        .collect(),
-    )
+    Ok(thread.criteria.iter().map(|c| ac_row(thread, c)).collect())
+  }
+
+  /// One criterion, for `intent ac show` (0168): the criterion as stored --
+  /// its kind, its state's payload and its whole text -- and its row as
+  /// [`Facade::ac_list`] computes it, so the two verbs share one state
+  /// vocabulary. A missing id is the same `NoSuchCriterion` every AC verb
+  /// refuses with.
+  pub fn ac_show(&self, st: &str, ac: &str) -> Result<(&Criterion, AcRow), FacadeError> {
+    let criterion = self.criterion(st, ac)?;
+    Ok((criterion, ac_row(self.st_show(st)?, criterion)))
   }
 
   /// Check the acceptance-test rows against the grammar the GATE enforces.
@@ -9760,6 +9707,69 @@ fn find_thread_mut<'a>(canon: &'a mut Canon, id: &str) -> Result<&'a mut Thread,
     .iter_mut()
     .find(|t| t.id == id)
     .ok_or_else(|| FacadeError::NoSuchThread { id: id.to_string() })
+}
+
+/// One criterion's `ac list` row. The ONE home for its computed state, shared
+/// by [`Facade::ac_list`] and [`Facade::ac_show`].
+fn ac_row(thread: &Thread, c: &Criterion) -> AcRow {
+  AcRow {
+    id: c.id.clone(),
+    text: c.text.clone(),
+    // v2's own vocabulary (`bin/intent_acceptance:904-907`). The state
+    // is COMPUTED -- for a test-backed AC it is stored nowhere, because
+    // satisfaction comes from a covering green test and storing it too
+    // would be the double truth data-model.md forbids.
+    state: match &c.state {
+      AcState::Descoped { to, .. } => format!("descoped-to: {to}"),
+      AcState::Withdrawn { reason, .. } => format!("withdrawn: {reason}"),
+      // **ISSUE 0137, AND IT WAS A WILDCARD SWALLOWING A STATE THAT HAS
+      // TWO EXPLICIT NEIGHBOURS.** `Fiat` fell into the `_` arm below and
+      // rendered `satisfied: no` -- indistinguishable from an ordinary
+      // open criterion, which is the one outcome hv's ruling exists to
+      // prevent: a fiat-closed row must never read as an ordinarily
+      // judged one, in either direction.
+      //
+      // **It was demoted rather than escalated on a census showing ZERO
+      // fiat rows store-wide, watched with the census as its trigger.
+      // The trigger fired the moment `fc` could write one.** A defect
+      // whose only defence is that nothing can reach the state stops
+      // being defended by the change that reaches it.
+      //
+      // **The spelling is this line's vocabulary, not `fiat_marker`'s,
+      // and that is the ruling rather than a shortcut.** It now has ONE
+      // HOME -- `model::fiat_status`, hv's required composer -- shared
+      // with the AT kind, whose record sits beside its status and so has
+      // nothing structural forcing a renderer to look at it at all.
+      // `fiat_marker` composes the
+      // GENERATED VIEW's form; the census in
+      // `fiat_close_is_visible_on_every_surface.rs` records that "one
+      // composer" is the goal for surfaces that render a marker, and that
+      // the property actually held is the weaker true one -- a surface
+      // reporting a fiat-closed criterion must make the close visible, by
+      // whatever spelling suits it. This line's vocabulary is
+      // `<state>: <why>`, set by the two arms above it.
+      //
+      // **The cascade marker leads**, for the reason `fiat_marker` gives:
+      // a reader must not miss that this row was never individually
+      // judged, and a marker after the reason reads as a footnote to a
+      // decision nobody made about it.
+      AcState::Fiat(record) => crate::model::fiat_status("fiat-closed", Some(record)),
+      _ => format!(
+        "satisfied: {}",
+        if contract::resolve(thread, c) == contract::Resolved::Satisfied {
+          "yes"
+        } else {
+          "no"
+        }
+      ),
+    },
+    covered_by: thread
+      .tests
+      .iter()
+      .filter(|t| t.covers.iter().any(|covered| covered == &c.id))
+      .map(|t| t.id.clone())
+      .collect(),
+  }
 }
 
 fn find_criterion_mut<'a>(

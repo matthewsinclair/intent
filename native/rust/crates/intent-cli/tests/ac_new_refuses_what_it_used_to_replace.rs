@@ -251,3 +251,34 @@ fn at_edit_re_cites_through_the_binary_and_keeps_the_note() {
     "the re-cite reset the status, which `at green`/`at red`/`at na` own"
   );
 }
+
+/// **0168: `ac show` PRINTS WHAT THE CRITERION SAYS, BYTE FOR BYTE.** `ac list`
+/// prints ids and states and never the text, and no verb printed it. The text
+/// is multi-line on purpose: a renderer that trimmed, wrapped or took the first
+/// line would pass on a one-liner. An absent id refuses, as every AC verb does.
+#[test]
+fn ac_show_prints_the_whole_text_and_refuses_an_absent_id() {
+  let dir = seeded();
+  let text = "First line of the requirement.\n\n  An indented second paragraph -- with `code`.  \nThird line.";
+  let (_, err, code) = run(
+    dir.path(),
+    &["ac", "edit", "ST0001", "AC-01.1", "--text", text],
+  );
+  assert_eq!(code, 0, "the fixture text is written: {err}");
+  assert_eq!(
+    stored(dir.path(), "AC-01.1")["text"],
+    text,
+    "canon holds the text, so the comparison below is against what was stored"
+  );
+
+  let (out, err, code) = run(dir.path(), &["ac", "show", "ST0001", "AC-01.1"]);
+  assert_eq!(code, 0, "ac show answers: {err}");
+  assert!(
+    out.starts_with("ST0001/AC-01.1\n") && out.ends_with(&format!("\n\n{text}\n")),
+    "the criterion's whole text follows its header block, byte for byte: {out:?}"
+  );
+
+  let (_, err, code) = run(dir.path(), &["ac", "show", "ST0001", "AC-09.9"]);
+  assert_eq!(code, 1, "an absent id refuses: {err}");
+  assert!(err.contains("AC-09.9"), "the refusal names the id: {err}");
+}

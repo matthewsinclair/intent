@@ -999,6 +999,7 @@ Acceptance criteria: the ratified completeness boundary of a unit
 | -------------- | ------------- | ---------------------------------------- | ------------------------------------------------------------------------------- | ----------- |
 | `ac`           | <command>     | --                                       | Acceptance criteria commands                                                    | keep        |
 | `ac list`      | <stid>        | --                                       | List ACs + covering AT + satisfied state                                        | keep        |
+| `ac show`      | <stid> <acid> | --                                       | Show one criterion: its kind, state, covering ATs and full text                 | new-surface |
 | `ac status`    | <stid>        | --                                       | Report N/M satisfied + verdict (PASS/BLOCKED)                                   | keep        |
 | `ac satisfy`   | <stid> <acid> | --evidence <ref>                         | Satisfy a non-test AC by named evidence                                         | keep        |
 | `ac unsatisfy` | <stid> <acid> | --                                       | Reopen a satisfied non-test AC -- clears satisfaction AND its evidence together | new-surface |
@@ -1053,6 +1054,21 @@ List ACs + covering AT + satisfied state
 - **Target:** `as-observed`
 - **MCP:** exposed as an agent tool -- read-only
 - **facade:** ac_list
+
+### `ac show`
+
+Show one criterion: its kind, state, covering ATs and full text
+
+- **v2:** new-surface
+- **Arguments:**
+  - `stid` (st-id, arity `1`)
+  - `acid` (ac-id, arity `1`)
+- **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
+- **Target:** `new-surface` -- ratified: vc, 2026-09-11, under hv's pen, option (a) on issue 0168, sequenced to cc.
+- **Note:** **THE ONE VERB THAT PRINTS WHAT A CRITERION SAYS (issue 0168).** `ac list` prints id, covering ATs and satisfied state and never the text, so a node planning from it planned from ids -- vc glossed AC-04.6 and AC-05.7 from the list and neither gloss was close. Printing the text in `ac list` was measured and refused: across 512 criteria the text runs median 292, p90 2,812, max 59,061 characters, and ST0056's list alone would carry 302,087. Truncating would read as complete with no verb to read the rest, which is the defect's own shape. So the list stays a list and this verb shows one row whole.
+- **consequence:** Read-only and flagless, mirroring `wp show`: a `<STID>/<ACID>` header, `kind`, the state in `ac list`'s own vocabulary (one composer, `ac_row`, serves both), the state's payload when it has one (`evidence`, `note`, `by`, `reason`), `covered-by`, then the full text after a blank line. An id the thread does not have refuses with `NoSuchCriterion`, the same refusal every other AC verb gives. `at show` is deliberately absent: `at list` has the same gap for a test's note, and vc ruled it out of this change.
+- **MCP:** exposed as an agent tool -- read-only
+- **facade:** ac_show
 
 ### `ac status`
 

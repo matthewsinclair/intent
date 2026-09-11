@@ -2873,6 +2873,16 @@ fn ac(m: &ArgMatches) -> Result<(), Failure> {
       }
       Ok(())
     }
+    Some(("show", a)) => {
+      let st = thread_arg(a, "stid")?;
+      let id = arg(a, "acid")?;
+      let f = open()?;
+      let (criterion, row) = f.ac_show(&st, &id).map_err(fail)?;
+      // **ONE RENDERER (`crate::show::criterion`)**, as `wp show` has, so the
+      // MCP read and this arm print the same bytes (0168).
+      print!("{}", crate::show::criterion(&st, criterion, &row));
+      Ok(())
+    }
     Some(("status", a)) => {
       let target = thread_arg(a, "stid")?;
       let (st, scope) = scope_of(&target);

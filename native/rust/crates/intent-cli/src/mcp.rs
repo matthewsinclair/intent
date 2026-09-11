@@ -388,7 +388,7 @@ impl ServeError {
 /// end-to-end by `tests::every_roster_path_reaches_an_arm`. A row gaining its
 /// door joins `tools()` by regeneration and this list by hand -- the gate is
 /// what makes forgetting either half a red test rather than a silent gap.
-pub const SERVED: [&str; 60] = [
+pub const SERVED: [&str; 61] = [
   "st new",
   "st start",
   "st done",
@@ -415,6 +415,7 @@ pub const SERVED: [&str; 60] = [
   "wp list",
   "wp show",
   "ac list",
+  "ac show",
   "ac status",
   "ac satisfy",
   "ac unsatisfy",
@@ -754,6 +755,15 @@ pub fn serve(
         })
         .collect();
       Ok(json!({ "criteria": rows }))
+    }
+    "ac show" => {
+      let st = spec(path, need_s(path, map, "stid")?)?;
+      let id = need_s(path, map, "acid")?;
+      let (criterion, row) = f.ac_show(&st, id)?;
+      Ok(json!({
+        "id": criterion.id, "kind": criterion.kind, "text": criterion.text,
+        "state": row.state, "record": criterion.state, "covered_by": row.covered_by,
+      }))
     }
     "ac gate" => {
       let target = spec(path, need_s(path, map, "stid")?)?;
