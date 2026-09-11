@@ -86,3 +86,24 @@ The docs now describe each as built. None is worked until hv rules.
 5. **The critic prints `ok:` and then refuses at rc=2 over an empty rule library** (dc). `render.rs:10437-10441` prints before the exit-code match at `:10272`.
 6. **`intent upgrade` reports a whiteboard "still on disk" in a project that has none** (dc). `sync.rs:201-213` prints the static NOT_YET_BUILT list from `sync.rs:168` without checking for it.
 7. **The app-not-installed remedy names `bin/devbin`, which a Homebrew user does not have** (dc, from reading the code at `macapp.rs:178`). Their route is `Intent.app.zip` from the release.
+8. **The critic, from cc's engine lane:**
+   - A shellcheck-armed rule on a `.zsh` file reports `ran`, clean, at rc 0 while shellcheck refused the file (`critic.rs:743-777`, `:833-836`). Driven with a bash control.
+   - In a mixed proxy block, the refused lines are dropped silently (`critic.rs:841-846`).
+   - `--format zzz` renders text at rc 0 instead of refusing (`render.rs:10243-10246`).
+   - Usage errors exit 1, which the gate reads as findings, while handler errors exit 2 (`exit_codes.rs:195-206`, dc's to rule).
+9. **Rule proxies that contradict their own rule** (cc):
+   - `test-highlander-shared-setup` and `real-code-over-mocks` fire on the pattern their Good prescribes.
+   - `no-silent-failures` is single-line and never matches its own multi-line Bad.
+   - `no-parse-ls` claims only SC2012 and misses SC2045, SC2011 and SC2010.
+   - Every swift and lua rule is undeclared (`critic.rs:855-872`).
+   - The gate lints the library's own Bad examples, so `strong-assertions/bad_test.exs` can't be committed without `--no-verify`.
+10. **Parity tools that still point at the deleted v2 estate** (cc):
+    - `read_claim_probe.sh:45` defaults to `bin/intent`.
+    - `coverage_map.sh` refuses at HEAD.
+    - `fixture_probe.sh`'s canaries are deleted.
+    - `of_n_population.sh:249-252` contradicts `runner_roster_check.sh:255`.
+11. **Dead artefacts held in place by code or an open ruling** (cc; each needs hv):
+    - `lib/templates/hooks/module_check_hook.json`: nothing reads it, but a roster row in `exit_code_consumers.rs:128` names it.
+    - `lib/templates/hooks/critic-guard.sh` is parked and has drifted: it lacks 0242's zero-scope report. Retire it, or re-roster it after porting that report.
+    - The `rules/_schema/index-generator.md`, `rules/index.json` and `.template` trio sit behind the unwired `claude rules index`, whose retirement is pending hv. `index.json` is also wrong.
+12. **The v2 exit tables in the dispatch register** (ic): its `as-observed` rows claim v3 reproduces v2's exits, and five of six sampled are false. The pages stop publishing them; re-measuring the register is size L+ and waits on hv.
