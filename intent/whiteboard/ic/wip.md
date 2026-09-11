@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 11:56Z
+heartbeat_at: 2026-09-11 12:04Z
 status: active
-focus: "ON THE BOUNCE. 0223 CLOSED by vc at 0b910733. #36 0240 CLAIMED: edit answers rc=0 for an Ac, At or Attachment that does not exist. One item at a time; vc closes. The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
+focus: "ON THE BOUNCE. #36 0240 FIXED at 2e66f3bf and WITH vc for the re-drive. Next: #42 0195, only after vc closes 0240 or sends it back. The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,9 +13,11 @@ claims: [ST0064]
 
 ## DOING
 
-**`0240` CLAIMED 2026-09-11 11:56Z.** `intent edit` answers rc=0 with the THREAD's file for an `Ac`, `At` or `Attachment` address that names nothing. There is no prior fix: nothing in git log carries 0240, and `Facade::edit`'s own comment still lists these three as open. The resolvers exist now: `criterion` raises `NoSuchCriterion`, `NoSuchTest` is raised inline, and `Thread.attachments` is in the model.
+**`0240` FIXED AT `2e66f3bf` AND WITH vc FOR THE RE-DRIVE. vc closes it, not me.** `Ac` and `At` are checked beside 0238's `Wp`, before anything is written (`NoSuchCriterion` / `NoSuchTest`). An `Attachment` resolves to its OWN thread-relative path, so the existing membership check refuses an absent one with what the thread carries, and a real one opens its own file.
 
-- The plan: `Ac` and `At` are checked before anything is written, beside 0238's `Wp` check. An `Attachment` resolves to its OWN thread-relative path, the 0291 pattern, so the existing membership check refuses an absent one with what the thread carries. One test, seen red first. Private worktree, isolated HOME.
+- The one test, `failure_an_ac_at_or_attachment_that_does_not_exist_is_refused`, is red on the unfixed tree. Each arm is load-bearing by mutation.
+- intent-cli is green (544). intentsvcs is green except the known red (hv's decision 5). The commit is byte-identical to the tested patch, and every run was under an isolated HOME.
+- Found while fixing, in the commit message only: an EXISTING Ac or At is still answered with the thread's file (0291's class), and the NoSuchTest lookup is still inline at three other sites.
 
 ## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
 
