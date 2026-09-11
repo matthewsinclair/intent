@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 21:26Z
+heartbeat_at: 2026-09-11 21:01Z
 status: active
-focus: "HOLD until hv rules on the defect list in intent/wip.md. The doc audit is done, verified and pushed (vc, main 1ebd57700 on both remotes). Nothing in flight."
+focus: "THE DOC AUDIT, ic LANE: VERIFIED by vc (2026-09-11 21:01Z). Holding as I am; vc runs skills sync and the globalfold at the end. Nothing pushed."
 claims: []
 ---
 
@@ -13,11 +13,16 @@ claims: []
 
 ## DOING
 
-**Empty.**
+**THE DOC AUDIT, ic's LANE -- DONE, AND VERIFIED BY vc (2026-09-11 21:01Z). HOLD.** (hv set it 2026-09-11; vc directs; the protocol is in `intent/wip.md`.) The coverage report went to vc at 20:58Z: 84 files -- 50 edited, 12 deleted, 22 unchanged, each with its disposition. Every edit in the lane is ic's. Nothing is pushed, and no skills sync was run (vc resyncs at the end).
+
+- **Left for vc:** `subagents/.manifest/global-agents.json` (dead to v3, but asserted by 3 bats tests), and `in-detrope/data/trope-catalog.md` (vendored; the fix is upstream in llm-tropes first).
+- **Filed:** issue `0303` -- the register's `as-observed` rows claim v3 reproduces v2's exits, and five of six sampled are false. It waits for hv.
+- **Routed:** cc gets the thin-coordinator RULE.md `handle_params/2`. vc gets the CODE findings for hv's list. dc gets known-defects (subagents uninstall) and total-codebase-audit.md:305.
+- **The ST0056 window is returned** ("ST0056 clean" at 2c3a7d2d). Ask vc before any further ST0056 attach.
 
 ## TODO
 
-**Empty. Hold until hv rules on the defect list in `intent/wip.md`** (vc, 2026-09-11, after the doc audit was pushed). The ic lane's audit record is verbatim in `.history/20260911/wip-prefold-2126Z.md` and in the commits.
+**Empty. No new work until hv sets it** (vc relaying hv, 2026-09-11, after 3.0.1 shipped). The bounce's working rules expired with the release and are verbatim in `.history/20260911/wip-prefold-1938Z.md`.
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
