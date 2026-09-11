@@ -42,8 +42,9 @@
 //! passes vacuously and reads identically to one that works.
 
 use crate::common::{Fixture, sample_thread};
-use intentsvcs::facade::{Facade, FacadeError};
+use intentsvcs::facade::{Facade, FacadeError, Outcome};
 use intentsvcs::model::{AtKind, AtStatus};
+use intentsvcs::remedy::Remedy;
 
 fn row<'a>(facade: &'a Facade, at: &str) -> &'a intentsvcs::model::AcceptanceTest {
   facade.canon().threads[0]
@@ -363,25 +364,48 @@ fn a_file_written_onto_a_non_test_row_is_refused_and_nothing_existing_freezes() 
     "precondition"
   );
 
-  let refused = facade.at_edit(
-    "ST0001",
-    "AT-03.2",
-    Some("some/test.rs".to_string()),
-    None,
-    None,
-    None,
-    None,
-  );
-  assert!(
-    matches!(&refused, Err(FacadeError::ValueNotRecordable { why, .. }) if why.contains("--kind test")),
-    "`at edit --file` on a non-test row is refused, naming the re-kind: {refused:?}"
-  );
+  // **ARM 1: REFUSED, WRITES NOTHING, AND THE REMEDY RUN VERBATIM CLEARS
+  // IT.** A remedy that cannot succeed is 0146's own class, so the commands are
+  // read out of the rendered remedy and run as written. The row's status
+  // decides what they are: a `to-write` row re-kinds in one call, while an
+  // `n-a` row's re-kind is refused until a result is recorded.
+  let remedy_for = |facade: &mut Facade, at: &str| {
+    let refused = facade
+      .at_edit(
+        "ST0001",
+        at,
+        Some("some/test.rs".to_string()),
+        None,
+        None,
+        None,
+        None,
+      )
+      .expect_err("a non-test row asserts prose instead of a file");
+    assert!(
+      matches!(&refused, FacadeError::FileOnANonTestRow { .. }),
+      "`at edit --file` on non-test {at} is refused as a file on a non-test row: {refused:?}"
+    );
+    refused.remedy()
+  };
+  fx.write_file("some/test.rs", "// AT-03.2 AT-03.8\n");
+
+  let remedy = remedy_for(&mut facade, "AT-03.8");
   assert_eq!(
-    row(&facade, "AT-03.2").file,
+    row(&facade, "AT-03.8").file,
     None,
     "and nothing was written"
   );
+  let commands = commands_in(&remedy);
+  assert_eq!(
+    commands.len(),
+    1,
+    "a to-write row re-kinds in one call: {remedy}"
+  );
+  run_verbatim(&mut facade, &commands[0])
+    .unwrap_or_else(|e| panic!("the remedy `{}` failed: {e}", commands[0]));
+  assert_eq!(row(&facade, "AT-03.8").kind, AtKind::Test);
 
+  // ARM 2: `intent set` meets the same check.
   let address = intentsvcs::address::parse("intent:///threads/ST0001/at/AT-03.2").expect("address");
   let refused = facade.set(
     &address,
@@ -389,7 +413,7 @@ fn a_file_written_onto_a_non_test_row_is_refused_and_nothing_existing_freezes() 
     serde_json::Value::String("some/test.rs".into()),
   );
   assert!(
-    matches!(&refused, Err(FacadeError::ValueNotRecordable { .. })),
+    matches!(&refused, Err(FacadeError::FileOnANonTestRow { .. })),
     "`intent set ... file` meets the same check: {refused:?}"
   );
   assert_eq!(
@@ -398,18 +422,14 @@ fn a_file_written_onto_a_non_test_row_is_refused_and_nothing_existing_freezes() 
     "and nothing was written"
   );
 
-  facade
-    .at_edit(
-      "ST0001",
-      "AT-03.8",
-      Some("some/test.rs".to_string()),
-      None,
-      None,
-      None,
-      Some(AtKind::Test),
-    )
-    .expect("`--kind test --file` in one call leaves a test row, which is where a file belongs");
-  assert_eq!(row(&facade, "AT-03.8").kind, AtKind::Test);
+  let remedy = remedy_for(&mut facade, "AT-03.2");
+  let commands = commands_in(&remedy);
+  let (record, rekind) = (commands.first(), commands.last());
+  for command in [record, rekind].into_iter().flatten() {
+    run_verbatim(&mut facade, command)
+      .unwrap_or_else(|e| panic!("the remedy `{command}` failed: {e}\n  remedy: {remedy}"));
+  }
+  assert_eq!(row(&facade, "AT-03.2").kind, AtKind::Test);
 
   facade
     .at_edit(
@@ -422,4 +442,44 @@ fn a_file_written_onto_a_non_test_row_is_refused_and_nothing_existing_freezes() 
       None,
     )
     .expect("a row already carrying both stays editable: this call wrote no file");
+}
+
+/// Every backticked command in a remedy, in order.
+fn commands_in(remedy: &str) -> Vec<String> {
+  remedy
+    .split('`')
+    .skip(1)
+    .step_by(2)
+    .map(str::to_string)
+    .collect()
+}
+
+/// Run one `intent at ...` command as a remedy spells it, through the facade
+/// call that verb makes.
+fn run_verbatim(facade: &mut Facade, command: &str) -> Result<Outcome, FacadeError> {
+  let words: Vec<&str> = command.split_whitespace().collect();
+  match words.as_slice() {
+    [
+      "intent",
+      "at",
+      "edit",
+      st,
+      at,
+      "--kind",
+      "test",
+      "--file",
+      file,
+    ] => facade.at_edit(
+      st,
+      at,
+      Some(file.to_string()),
+      None,
+      None,
+      None,
+      Some(AtKind::Test),
+    ),
+    ["intent", "at", "green", st, at] => facade.at_set(st, at, AtStatus::Green, None),
+    ["intent", "at", "red", st, at] => facade.at_set(st, at, AtStatus::Red, None),
+    other => panic!("the remedy names a command this test cannot run: {other:?}"),
+  }
 }

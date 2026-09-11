@@ -562,6 +562,22 @@ pub enum FacadeError {
     given: String,
     why: String,
   },
+  /// A `file` written onto a non-test row (0146).
+  ///
+  /// **ITS OWN VARIANT BECAUSE THE REMEDY IS THE POINT.** `ValueNotRecordable`
+  /// says the value is wrong; here the value is fine and the row's KIND is
+  /// what cannot hold it, so the way out is a re-kind -- and on a row at `n-a`
+  /// the re-kind is itself refused until the status moves, so the remedy has
+  /// to name that step too or it names a command that cannot succeed.
+  #[error(
+    "{st} {at} is a non-test row, which asserts prose INSTEAD of a file, so `{file}` cannot be cited on it"
+  )]
+  FileOnANonTestRow {
+    st: String,
+    at: String,
+    file: String,
+    status_holds_a_test: bool,
+  },
   /// A `--note` that would DESTROY an existing note rather than extend it.
   ///
   /// **DISTINCT FROM [`FacadeError::ValueNotRecordable`], and the difference is
@@ -1214,6 +1230,21 @@ impl crate::remedy::Remedy for FacadeError {
         "restate the value in the form the message names -- the verb and the field are right, \
          and nothing was written"
           .to_string()
+      }
+      Self::FileOnANonTestRow {
+        st,
+        at,
+        file,
+        status_holds_a_test,
+      } => {
+        let rekind = format!("`intent at edit {st} {at} --kind test --file {file}`");
+        if *status_holds_a_test {
+          format!("re-kind it in the same call: {rekind}")
+        } else {
+          format!(
+            "once the test has actually run, record it (`intent at green {st} {at}` or `intent at red {st} {at}`), then re-kind it: {rekind}"
+          )
+        }
       }
       Self::FieldNotWritable { .. } => {
         "go to the door the refusal names: a lifecycle verb for a field a state machine owns, \
@@ -6395,13 +6426,11 @@ impl Facade {
   ) -> Result<(), FacadeError> {
     let file = after.file.as_deref().unwrap_or_default();
     if matches!(after.kind, AtKind::NonTest) && after.file != before.file && !file.is_empty() {
-      return Err(FacadeError::ValueNotRecordable {
-        field: "file".to_string(),
-        given: file.to_string(),
-        why: format!(
-          "{at} is a non-test row, which asserts prose INSTEAD of a file. Re-kind it in the same call -- `intent at edit {st} {at} --kind test --file {file}`",
-          at = after.id
-        ),
+      return Err(FacadeError::FileOnANonTestRow {
+        st: st.to_string(),
+        at: after.id.clone(),
+        file: file.to_string(),
+        status_holds_a_test: after.status.permitted_for(AtKind::Test),
       });
     }
     Ok(())

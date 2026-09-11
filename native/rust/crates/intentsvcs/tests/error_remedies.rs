@@ -165,6 +165,21 @@ fn provoked_errors() -> Vec<(&'static str, FacadeError)> {
       .expect_err("the list edit cannot be expressed against a manifest that will not parse"),
   ));
   out.push((
+    "a file cited on a non-test row",
+    // The sample thread's AT-03.2 is non-test at `n-a` (0146).
+    facade
+      .at_edit(
+        "ST0056",
+        "AT-03.2",
+        Some("some/test.rs".to_string()),
+        None,
+        None,
+        None,
+        None,
+      )
+      .expect_err("a non-test row asserts prose instead of a file"),
+  ));
+  out.push((
     "unknown work package",
     facade.wp_start("ST0056", 99).expect_err("no such wp"),
   ));
@@ -770,6 +785,7 @@ fn variant(err: &FacadeError) -> &'static str {
     FacadeError::FieldNotWritable { .. } => "FieldNotWritable",
     FacadeError::ValueNotRecordable { .. } => "ValueNotRecordable",
     FacadeError::NoteWouldBeLost { .. } => "NoteWouldBeLost",
+    FacadeError::FileOnANonTestRow { .. } => "FileOnANonTestRow",
     FacadeError::Install(_) => "Install",
     FacadeError::RootFile(_) => "RootFile",
     FacadeError::RecordMovedUnderTheWrite { .. } => "RecordMovedUnderTheWrite",
@@ -787,6 +803,7 @@ fn variant(err: &FacadeError) -> &'static str {
 const ALL_VARIANTS: &[&str] = &[
   "ValueNotRecordable",
   "NoteWouldBeLost",
+  "FileOnANonTestRow",
   "NotHydratable",
   "NoManifestToUnlistFrom",
   "DehydrationRefused",

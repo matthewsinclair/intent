@@ -163,6 +163,9 @@ fn demanded_field(err: &FacadeError) -> Option<&'static str> {
     // reader, and telling the operator to supply a field they already supplied
     // is the one remedy that cannot help them.
     | FacadeError::NoteWouldBeLost { .. }
+    // **THE CALLER SUPPLIED THE FILE; THE ROW'S KIND CANNOT HOLD IT** (0146).
+    // Nothing was left out, so there is nothing to carry to a reader.
+    | FacadeError::FileOnANonTestRow { .. }
     // A wrapped realisation failure. It reports that making files exist did not
     // work, not that a value was left out -- no authored prose behind it.
     | FacadeError::Realise(_)
