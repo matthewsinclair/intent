@@ -5,7 +5,7 @@ role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
 heartbeat_at: 2026-09-11 13:16Z
 status: active
-focus: "FOLDED FOR A COMPACT (hv's pause, 2026-09-11 13:16Z); this is not a release. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. ON THE BOUNCE: 0150, then 0172, then 0259 half 2 -- vc's column, in list order, one id at a time. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "FOLDED FOR A COMPACT (hv's pause, 2026-09-11 13:16Z); this is not a release. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. ON THE BOUNCE: 0150, then 0259 half 2 -- vc's column, in list order, one id at a time. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -50,7 +50,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## TODO
 
-**vc's column for me, in list order:** `0150`, `0172`, then `0259` HALF 2 only (#71: a check answering from the runtime store says so when the same run reports that store stale; NOT the doctor remedy offering to delete `intent/.cache/`).
+**vc's column for me, in list order:** `0150`, then `0259` HALF 2 only (`0172` moved to cc, vc 2026-09-11) (#71: a check answering from the runtime store says so when the same run reports that store stale; NOT the doctor remedy offering to delete `intent/.cache/`).
 
 - **`0150` START HERE:** `claude skills list` enumerates the canon roster (`payload_list` in `intent-cli/src/render.rs`: `lib.available()` + `lib.is_installed`), so a directory under `~/.claude/skills/` that canon does not name is invisible. The remedy is a second arm that reads the directory and reports what canon does not name. `intentsvcs::payload` has `installed()` (payload.rs, ~:770). Drive under a temporary HOME only; never write the real `~/.claude`.
 
