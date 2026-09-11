@@ -392,6 +392,16 @@ pub struct Origin {
   pub provenance: Provenance,
 }
 
+/// A unit on disk under the target that the roster does not name.
+#[derive(Debug, Clone)]
+pub struct Unlisted {
+  pub name: String,
+  /// Where it sits: a directory for a tree, a file otherwise.
+  pub path: PathBuf,
+  /// Whether its marker is present, ie whether the agent can load it.
+  pub loadable: bool,
+}
+
 /// What happened to one skill.
 /// Whether this build had a record of what it previously installed.
 ///
@@ -768,6 +778,44 @@ impl Payload {
   /// -- a skill installed by v2, or by hand -- so a reader that trusted the
   /// manifest for this question could never see one.
   pub fn installed(&self) -> Result<Vec<String>, PayloadError> {
+    Ok(
+      self
+        .on_disk()?
+        .into_iter()
+        .filter(|name| self.is_installed(name))
+        .collect(),
+    )
+  }
+
+  /// Every unit on disk under the target that the roster does not name
+  /// (issue 0150).
+  ///
+  /// **THE ROSTER IS NOT THE POPULATION THE LISTING IS ASKED ABOUT.** A listing
+  /// that walks [`Payload::available`] can only report units this install
+  /// carries, so a directory canon has retired, or one copied in by hand, is
+  /// never examined and never reported. This is the other arm: it walks the
+  /// TARGET and keeps what the roster does not name, loadable or not -- the
+  /// emptied directory `uninstall` leaves by ruling (`0218`) has no marker and
+  /// is exactly the case a marker filter would hide.
+  pub fn unlisted(&self) -> Result<Vec<Unlisted>, PayloadError> {
+    let roster: BTreeSet<String> = self.available()?.into_iter().map(|o| o.name).collect();
+    Ok(
+      self
+        .on_disk()?
+        .into_iter()
+        .filter(|name| !roster.contains(name))
+        .map(|name| Unlisted {
+          path: self.installed_dir(&name),
+          loadable: self.is_installed(&name),
+          name,
+        })
+        .collect(),
+    )
+  }
+
+  /// Every unit name present under the target, with or without its marker,
+  /// in name order.
+  fn on_disk(&self) -> Result<Vec<String>, PayloadError> {
     let mut out = Vec::new();
     if !self.target.is_dir() {
       return Ok(out);
@@ -779,8 +827,11 @@ impl Payload {
       // subagent's file is `<name>.md`, so the `.md` this tool appended on the
       // way in comes off on the way out. A scan that skipped that step would
       // report every agent under a name no verb accepts.
+      // A tree unit is a DIRECTORY, marker or no marker; a stray file beside
+      // the skills is not one.
       let name = match self.kind.shape() {
-        Shape::Tree => raw,
+        Shape::Tree if entry.path().is_dir() => raw,
+        Shape::Tree => continue,
         Shape::SingleFile => match raw.strip_suffix(".md") {
           Some(stem) => stem.to_string(),
           None => continue,
@@ -789,9 +840,7 @@ impl Payload {
       if check_name(&name).is_err() {
         continue;
       }
-      if self.is_installed(&name) {
-        out.push(name);
-      }
+      out.push(name);
     }
     out.sort();
     Ok(out)

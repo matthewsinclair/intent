@@ -8971,11 +8971,11 @@ fn payload_list(a: &ArgMatches, kind: intentsvcs::payload::Kind) -> Result<(), F
   let lib = payload_lib(kind)?;
   let w = words(kind);
   let available = lib.available().map_err(payload_fail)?;
+  let unlisted = lib.unlisted().map_err(payload_fail)?;
   let verbose = given(a, "v");
 
   if available.is_empty() {
     println!("no {} in this install", w.verb);
-    return Ok(());
   }
   for origin in &available {
     let state = if lib.is_installed(&origin.name) {
@@ -8994,6 +8994,37 @@ fn payload_list(a: &ArgMatches, kind: intentsvcs::payload::Kind) -> Result<(), F
     } else {
       println!("{:<28} {:<10} {}", origin.name, state, origin.provenance);
     }
+  }
+  // **THE SECOND ARM (issue 0150): WHAT IS ON DISK AND THE ROSTER DOES NOT
+  // NAME.** The loop above can only report units this install carries, so a
+  // directory canon has retired, or one copied in by hand, was invisible to
+  // the one command that looks at the target.
+  for unit in &unlisted {
+    let state = if unit.loadable { "installed" } else { "inert" };
+    if verbose {
+      println!(
+        "{:<28} {:<10} {:<8} {}",
+        unit.name,
+        state,
+        "unlisted",
+        unit.path.display()
+      );
+    } else {
+      println!("{:<28} {:<10} unlisted", unit.name, state);
+    }
+  }
+  if !unlisted.is_empty() {
+    println!(
+      "note: unlisted -- on disk but not a {} this install carries",
+      w.noun
+    );
+  }
+  // Only a tree can be inert: a single-file unit IS its marker.
+  if unlisted.iter().any(|u| !u.loadable) {
+    println!(
+      "note: inert -- no {}, so Claude Code cannot load it",
+      kind.marker()
+    );
   }
   Ok(())
 }

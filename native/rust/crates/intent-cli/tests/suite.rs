@@ -190,6 +190,8 @@ mod self_loop_voice;
 mod session_hook_lockout;
 #[path = "skill_cross_references_resolve.rs"]
 mod skill_cross_references_resolve;
+#[path = "skills_list_names_what_the_roster_does_not.rs"]
+mod skills_list_names_what_the_roster_does_not;
 #[path = "skills_triage_covers_the_catalogue.rs"]
 mod skills_triage_covers_the_catalogue;
 #[path = "spelling_notes_name_their_issue.rs"]
