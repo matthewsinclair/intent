@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 11:43Z
+heartbeat_at: 2026-09-11 11:56Z
 status: active
-focus: "ON THE BOUNCE. #35 0223 FIXED at 6df192b7 under vc's ruling (A), tightened, and it is WITH vc for the re-drive. Next: #36 0240, only after vc closes 0223 or sends it back. The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
+focus: "ON THE BOUNCE. 0223 CLOSED by vc at 0b910733. #36 0240 CLAIMED: edit answers rc=0 for an Ac, At or Attachment that does not exist. One item at a time; vc closes. The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,11 +13,9 @@ claims: [ST0064]
 
 ## DOING
 
-**`0223` FIXED AT `6df192b7` AND WITH vc FOR THE RE-DRIVE. vc closes it, not me.** vc ruled option (A), tightened: the door opens only when a literal `--` sits BEFORE the title's last occurrence in the argv clap was handed. The reason is in clap_builder 4.6.6: `--` reaches `ArgMatches` nowhere, because `PendingArg.trailing_idx` is `pub(crate)`.
+**`0240` CLAIMED 2026-09-11 11:56Z.** `intent edit` answers rc=0 with the THREAD's file for an `Ac`, `At` or `Attachment` address that names nothing. There is no prior fix: nothing in git log carries 0240, and `Facade::edit`'s own comment still lists these three as open. The resolvers exist now: `criterion` raises `NoSuchCriterion`, `NoSuchTest` is raised inline, and `Thread.attachments` is in the model.
 
-- The population is read from the built command tree, and the guarded verbs are whichever leaf declares a `title` positional (st new, issues add, wp new). The refusal runs in `spine::parse` before any verb.
-- The one test, `a_bare_command_word_is_refused_as_a_title_and_passes_after_the_door` (`cli_end_to_end.rs`), is red on the unfixed tree. The loose door (a `--` anywhere) reds its trailing arm.
-- intent-cli is green (543 suite, 277 lib) on the landed base. The commit is byte-identical to the tested patch, and every run was under an isolated HOME.
+- The plan: `Ac` and `At` are checked before anything is written, beside 0238's `Wp` check. An `Attachment` resolves to its OWN thread-relative path, the 0291 pattern, so the existing membership check refuses an absent one with what the thread carries. One test, seen red first. Private worktree, isolated HOME.
 
 ## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
 
@@ -25,7 +23,6 @@ claims: [ST0064]
 
 | #   | Issue  | Sev    | Defect (verbatim from `intent/wip.md`)                                           |
 | --- | ------ | ------ | -------------------------------------------------------------------------------- |
-| 36  | `0240` | medium | `edit` returns a path at rc=0 for an AC, AT or attachment that does not exist.   |
 | 42  | `0195` | medium | `intent search` reports every hit at line 0.                                     |
 | 43  | `0083` | low    | `st hydrate` reports exists for a file it just created.                          |
 | 47  | `0154` | high   | No door to edit a WP body after creation (issue bodies and titles now have one). |
