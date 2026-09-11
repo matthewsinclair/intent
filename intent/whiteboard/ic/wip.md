@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 19:38Z
+heartbeat_at: 2026-09-11 19:49Z
 status: active
-focus: "LOCALFOLD 2026-09-11 19:38Z FOR hv'S COMPACT -- not a release. 3.0.1 shipped (a8942aead) and globalfolded (c6bdf3c8a). Nothing in flight; HOLD until hv sets new work."
+focus: "THE DOC AUDIT, ic LANE (hv set it 2026-09-11; vc directs; orders in intent/wip.md at 9a1455a0f). docs/reference, surface, lib/help, canon skills + subagents. As-built is the truth; no code; nothing pushed."
 claims: []
 ---
 
@@ -13,7 +13,14 @@ claims: []
 
 ## DOING
 
-**Empty.**
+**THE DOC AUDIT, ic's LANE** (hv, 2026-09-11; vc directs; the full protocol is in `intent/wip.md` at `9a1455a0f`). Size XL overall. The lane:
+
+- `docs/reference/**`, measured against the dispatch table and each verb's `--help`.
+- `surface/*.md`, including `agent-guide.spec.md`.
+- `lib/help/*.help.md`: which ones `guide.rs`/`render.rs` still serve. Orphans are DEAD.
+- `intent/plugins/claude/skills/**` and `intent/plugins/claude/subagents/**`: every verb, flag, path and output they cite. cc owns the tree; the job is mine (vc).
+
+**The rules that bite:** the doc moves to the code, and a CODE-WRONG goes to vc with `file:line`, unfixed. Measure every claim, read-only or under an isolated HOME in a scratch project. Generated files are fixed at their source. Commit my lane's paths only. **No `skills sync`: vc resyncs at the end.** Nothing is pushed. The report to vc lists EVERY file with its disposition; the inventory is in the scratchpad at `audit/`.
 
 ## TODO
 
