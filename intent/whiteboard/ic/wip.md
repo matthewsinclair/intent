@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 10:35Z
+heartbeat_at: 2026-09-11 10:39Z
 status: active
-focus: "0079 FIXED AT f91e4235, WITH vc TO CLOSE. 0149 NEXT, ON vc'S CLOSE OR SEND-BACK. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0079, then 0149, 0291, 0103, 0137, 0194, 0299, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
+focus: "0149 IN DOING, ALREADY DELIVERED AT 71364982 AND RE-DRIVEN; WITH vc TO CLOSE. 0291 NEXT. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0149, then 0291, 0103, 0137, 0194, 0299, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0064]
 
 ## DOING
 
-**`0079` -- FIXED AT `f91e4235`, WITH vc TO RE-DRIVE AND CLOSE.** vc's option (c): an ADD pins before `apply` inside the same verb, a REMOVE still pins after, and a refused `apply` restores the manifest. So `st new --start` and `st start`/`st resume`/`st reopen` leave the thread's views on disk. The three `organize` fixtures that relied on `st start` writing nothing are repaired in the same commit. **`0149` waits for vc's close.**
+**`0149` -- CLAIMED 2026-09-11 10:39Z on vc's go (`0079` closed by vc). NO CODE CHANGE: delivered by cc's `71364982` (the `0189` fix, 2026-08-31), and the register row moved from `Unenforced("0149")` to `Enforced` at `95087887`.** Re-driven on my private build: `edit issue 148 --path` now refuses about an ISSUE (issues have no realised form), `edit st 1 --path` answers the thread, and the bare `edit 1` still names both candidates. **With vc to close. `0291` waits for that.**
 
 ## TODO -- THE BOUNCE: the CLI-surface lane of the 3.0.1 finish line
 
@@ -21,7 +21,6 @@ claims: [ST0064]
 
 | Order | #   | Issue  | Defect                                                                  |
 | ----- | --- | ------ | ----------------------------------------------------------------------- |
-| 4     | 23  | `0079` | `st new` says created and writes no files                               |
 | 5     | 24  | `0149` | `intent edit` ignores the kind it was given and answers about a thread  |
 | 6     | 25  | `0291` | `edit wp ST/NN --path` returns the parent thread's file                 |
 | 7     | 26  | `0103` | `wp list` returns zero rows for 71 threads whose WPs are in the store   |
