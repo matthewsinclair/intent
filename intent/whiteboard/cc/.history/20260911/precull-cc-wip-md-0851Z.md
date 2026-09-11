@@ -30,9 +30,12 @@ claims: [ST0056/06, ST0056/10]
 
 **A hold whose condition still stands is never archived by a fold. None below is released.**
 
+- **M** `AC-06.1`'s coverage half -- RELEASED WHEN a burn baseline covering the estate exists AND `INTENT_BIN` resolves to one binary. **THE CONDITION GREW A THIRD LIMB TODAY AND IT IS NOT MINE: the v2 side of that comparison is itself broken.** `125f601d8` deleted six v2 plugin scripts while `bin/intent` still dispatches to seven, so five of v2's `claude` subcommands refuse -- and dc measures fifteen of thirty other failures as the harness pointing at the wrong binary. **A re-baseline taken now would measure a broken v2.** Precondition: dc's `AC-12.1`.
 - **L** `0216`/`0226` fix -- RELEASED WHEN a monotonic version the ingest does not own exists. The obvious fix collides with `written_at`, which the ingest rewrites wholesale.
-- **POST-CUT (culled from the 3.0.1 loop 2026-09-11):** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). Their conditions stand and none is 3.0.1 work.
+- **`ext` x5** -- RELEASED WHEN hv rules whether `$INTENT_EXT_DISABLE` is ported (a real `ALLOWED` row and a `CONFINED` row) or the loss is accepted. **The walk itself is PROVEN at `32dc92e88`; what is missing is permission to reach the packs, and defaulting without the disable variable would silently re-enable extensions for an operator who turned them off.** The question sits in vc's `hv/inbox.vc.md` (around line 1569). **This line said _with hv since `8ad7efd7`_ until 2026-09-11, and that was false**: that commit carried only the CI entry.
+- **`learn`** -- RELEASED WHEN hv rules where a learnings entry's date comes from. v2 stamps `- $(date +%Y-%m-%d):` into a plain markdown file; hv's 2026-08-15 ruling leaves **no clock in the workspace at all**, guarded across `src/` AND `tests/` with an EMPTY exempt list, because a record is stamped BY the write that creates it. A plain file has no such write. **`keep`/`as-observed` CONCEALED a design question, and it is a CLASS: every `as-observed` row measured before 2026-08-15 has the same unasked question.** **This line said _vc carries it to hv_ and it had NEVER been routed.** On 2026-09-11 vc grepped `hv/inbox.vc.md` for `learn`, `no-clock` and `as-observed`, with a positive control, and found nothing. vc has now put it in the round-up that hv is reading live. **A route recorded on MY board is not a route taken on SOMEONE ELSE's.**
 - **The 16 `collapsible_if` in intentsvcs -- RELEASED WHEN the human says go AND `facade.rs`/`store.rs`/`daemon.rs` carry no peer's uncommitted work.** They are our own code at a fixed compiler (10 -> 10 across 1.98.0 -> 1.98.1), so this is mechanical, not a policy call. They are the SOLE blocker on the `rust` workflow, and they gate the five prettier arms that have never measured in CI. My REC is to collapse them.
+- **`config` x3** -- RELEASED WHEN the design lands. Disposition is still `pending`, target `undefined`; `AC-06.1`'s ordering clause (a conformance test before the behaviour is designed) is DISCHARGED at `e3110564`.
 
 ## Decisions
 
@@ -46,8 +49,11 @@ claims: [ST0056/06, ST0056/10]
 
 ## Open, no owner
 
+- **`--all`: THE SEAM SURVIVES THE FIX, WHICH IS THE ONLY REASON THIS ROW IS STILL HERE.** burn asks _does this reach the v2 CLI_ and `fixture_probe.sh` asks _does this hardcode a v2 PATH_; **neither asks whether the argv still parses**, so a future argv regression is invisible to both.
 - **Something WALKS the CLI surface.** Seven CLI-token-titled creations in `event_log`, two episodes eight days apart. **This is `0223`'s -- re-read it, do not restate from here.** Two episodes is ONE interval, and one interval is not a period.
+- **ic's 907-BYTE FOLD DISCREPANCY IS STILL UNEXPLAINED BY ANYTHING ANY OF US HAS MEASURED.**
 - **Does one fix serve both `0216` and `0226`?** Same collision, opposite symptoms. Not driven.
+- **The roster guard says _N parity file(s) in this commit_ and means the WORKING TREE.** Wording defect, unfiled.
 
 ## Watch-outs
 
