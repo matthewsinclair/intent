@@ -24,7 +24,6 @@ intent_version: 3.0.0
 | #   | id     | sev      | lane | defect                                                                                                                                         |
 | --- | ------ | -------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2   | `0260` | critical | cc   | The v3 migration froze generated sections into authored body on 326 of 358 threads. Re-examine first: the original report is partly withdrawn. |
-| 3   | `0192` | high     | ic   | `st edit` hands back a generated view; the next render destroys the edit.                                                                      |
 | 4   | `0207` | high     | ic   | `at green/red/na --note` replaces the whole note, destroying the row's history.                                                                |
 | 5   | `0209` | high     | ic   | `st start` writes a smaller copy of an unhydrated thread over the authoritative path.                                                          |
 | 6   | `0082` | high     | cc   | A new attachment authored in canon never reaches disk (`sync --to-disk`).                                                                      |
