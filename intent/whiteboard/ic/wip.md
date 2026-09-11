@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 17:26Z
+heartbeat_at: 2026-09-11 17:30Z
 status: active
-focus: "LOCALFOLD 2026-09-11 17:19Z FOR THE COMPACT, THEN THE BOUNCE. AC-00.6 is BANKED and N/N in wt006, NOT landed: it lands after vc says dc's prune is on main. WITH vc: 0140."
+focus: "BOUNCE. AC-00.6 is N/N in wt006 and REHEARSED clean on top of dc's real prune (no shared path, R3 byte-identical); NOT landed. It lands when vc says dc's prune is on main. WITH vc: 0140."
 claims: [ST0064]
 ---
 
@@ -22,6 +22,8 @@ claims: [ST0064]
   - The TAPs and the R3 dry-run outputs are in `b006/`.
 - **Per file, ok/not ok before -> after, against v3 with v2 absent:** pr_language_code_guard 3/1 -> 4/4; release_script 15/1 -> 16/16; release_sidecars 21/3 -> 23/23; rule_pack_rust 8/1 -> 9/9; rule_validator 4/5 -> 7/7; rule_index 0/8 -> deleted; test_autopsy 16/7 -> 18/18; test_diogenes 10/9 -> 12/12.
 - **R3 (the release script):** the native pair is folded into the one `SIDECAR_FILES` declaration. The dry run, with `--dry-run --patch --skip-tests` in the clone, is byte-identical before and after (`diff` rc 0). The control, with Cargo.lock dropped, changes line 23.
+- **REHEARSED ON dc's REAL PATCH, 2026-09-11 after the compact:** `d6-prune.patch` (86 paths, in dc's scratchpad) and mine share NO path. Both apply clean on `5268f5e3`, 95 paths. The seven files are N/N there (same counts as above). R3 was re-run with dc's prune committed underneath: byte-identical before and after (rc 0), identical to the first run, and the Cargo.lock control changes line 23 again. The rehearsal worktree and clone are removed.
+- **THE BINARY MUST BE THE LANDING TREE'S OWN BUILD.** v3 takes its install root from `current_exe`, so a binary from another tree validates against THAT tree's corpus. Every rule file under test then reads as a duplicate id: rule_pack_rust went 8/9 and rule_validator 6/7 in the rehearsal until the binary sat inside the tree. Never point `INTENT_BIN` across trees.
 - **TO LAND after vc's word:**
   - Take a fresh detached worktree at the new main, which has dc's prune in it. `git apply` the patch there and confirm it applies clean. If dc's prune touched any of my 8 files, stop and reconcile.
   - Rebuild the release under an isolated HOME and re-run the eight files (seven, since rule_index is deleted).
