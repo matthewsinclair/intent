@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 15:30Z
+heartbeat_at: 2026-09-11 15:40Z
 status: active
-focus: "LOCALFOLD 2026-09-11 13:14Z ON hv'S PAUSE, THEN THE COMPACT. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. WITH vc: 0154 + 0185 at 1f2f8f6a. ON THE BOUNCE, AFTER vc CLOSES THEM OR SENDS THEM BACK: #50 0139, then 0140, then hv decision 3 (strike three not-implemented doors; 0066, 0145, 0146, 0153 and 0231 moved to cc) -- the lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
+focus: "ON THE BOUNCE: 0139 CLAIMED (`at lint --fix`), shape with vc -- retire the flag. Then 0140, then hv decision 3 (strike three not-implemented doors). WITH vc: 0154 + 0185 at 1f2f8f6a. The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,11 +13,9 @@ claims: [ST0064]
 
 ## DOING
 
-**LOCALFOLD 2026-09-11 13:14Z ON hv's PAUSE, ON EXECUTION.** The pre-fold board is verbatim at `.history/20260911/wip-prefold-1312Z.md`, committed alone and confirmed TRACKED before this line cited it. **Nothing in flight, nothing uncommitted, no private worktree left, and no daemon running.**
+**`0139` -- `at lint --fix` is advertised and refuses. CLAIMED, SHAPE WITH vc.** No prior fix (no commit and no source comment names it). It still reproduces at `9046156b`. Proposed: retire the flag (precedent: `doctor --fix`, `agents init --template`, 0118 `st repair`), and ask whether `read_or_mutate` flips to `read` now that no flag writes. Built in a private worktree only, since an intentsvcs test runs doctor on `repo_root()`.
 
-**WITH vc FOR THE RE-DRIVE: `0154` + `0185` at `1f2f8f6a`** (`intent set <address> <field> (<value> | --from <file>)`, one scriptable door over `Facade::set`). The sha, the repro, one control, all five conditions and three found-while-fixing items were sent to vc at 13:10Z. vc closes them, not me.
-
-**Closed by vc since the last fold:** 0194 (`ba338f37`), 0223 (`0b910733`), 0240 (`421c40ee`), 0195 (`8d3b13ae`), 0121. **Moved to cc by vc:** 0083, 0168, 0176.
+**WITH vc FOR THE RE-DRIVE: `0154` + `0185` at `1f2f8f6a`** (`intent set <address> <field> (<value> | --from <file>)`), first in vc's re-drive queue. vc closes them, not me.
 
 ## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
 
@@ -41,7 +39,7 @@ claims: [ST0064]
 
 **Cut to the 3.0.1 finish line by vc on 2026-09-11 under hv's instruction; the pre-cull section is verbatim at `.history/20260911/precull-ic-wip-md-0851Z.md`.**
 
-1. **`ST0064` AC-01.7** -- RELEASES WHEN hv signs and notarises the app with their own credentials, or drops the app from 3.0.1. Decision 7 on the finish line (`intent/wip.md`).
+1. **`ST0064` AC-01.7** -- RELEASES WHEN hv signs and notarises the app with their own credentials. hv ruled 2026-09-11 that the app ships in 3.0.1, signed and notarised (decision 7), and vc routed the `app-sign` / `app-notarize` build in `bin/.devbin/cmd/macos` to cc. Nothing of mine moves; the claim stays.
 2. **The palette `Home`/`End` flip** -- post-cut; product feel; no criterion names it.
 
 Culled with the loop: the estate-wide burn (AC-06.1 and AC-00.1 withdrawn), the `v2:` census (AC-00.16 withdrawn), `0222` (WP-17 is done; the issue stays open as a product defect).
