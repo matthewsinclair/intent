@@ -44,7 +44,6 @@ intent_version: 3.0.0
 
 | #   | id     | sev    | lane | defect                                                                      |
 | --- | ------ | ------ | ---- | --------------------------------------------------------------------------- |
-| 19  | `0277` | high   | dc   | `install.md` twice offers `INTENT_HOME` as a remedy; v3 never reads it.     |
 | 20  | `0193` | medium | dc   | getting-started says `st edit design` works; it refuses.                    |
 | 21  | `0274` | medium | dc   | getting-started's first tree shows three things `init` does not create.     |
 | 22  | `0122` | medium | dc   | `modules` errors route the operator to `intent upgrade`, which cannot help. |
