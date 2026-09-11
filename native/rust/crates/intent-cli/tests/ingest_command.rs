@@ -242,3 +242,27 @@ fn a_named_path_is_the_project_and_an_absent_one_means_the_project_you_are_in() 
     "a bad path is reported as a bad path, even standing inside a good project: {err}"
   );
 }
+
+/// **0097: THE VERB'S OWN HELP SAYS WHAT IT DOES -- A CHECK THAT WRITES NOTHING.**
+///
+/// It read "Ingest markdown into the store through the API gate", and the verb
+/// writes nothing: a clean estate prints `ok` at rc 0 with nothing ingested, so
+/// a reader reaching for the only markdown verb to land an edit got success
+/// for an act that never happened. `--from-md` is retired and this is the one
+/// mode left, so rc 0 means "parses" -- and the help is where that must be said.
+#[test]
+fn the_help_does_not_promise_markdown_reaches_the_store() {
+  let dir = tempfile::tempdir().expect("tempdir");
+  project(dir.path());
+  let (help, _, code) = run(&["ingest", "--help"], dir.path());
+  assert_eq!(code, 0, "help renders");
+
+  assert!(
+    !help.contains("into the store"),
+    "the help promises a write the verb never makes: {help}"
+  );
+  assert!(
+    help.contains("writes nothing"),
+    "the help says the check writes nothing: {help}"
+  );
+}

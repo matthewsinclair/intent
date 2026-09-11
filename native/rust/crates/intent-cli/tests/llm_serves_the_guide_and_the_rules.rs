@@ -209,13 +209,12 @@ fn the_guide_does_not_claim_markdown_reaches_the_store() {
 
   // **SCOPED TO THE AUTHORED HALF, and the reason is a finding in itself.**
   // The generated half carries `intent ingest`'s own `help` string from the
-  // dispatch table -- "Ingest markdown into the store through the API gate (the
-  // recovery path, and the v2 migrator)" -- which makes this exact false claim
-  // at the surface-declaration level. **That string is where the author's error
-  // came from: the verb advertises the capability it does not have.** It is the
-  // table's to correct and a ratified-surface decision, so this arm must not
-  // fail on it, and must not tempt anyone to hand-edit a generated line to go
-  // green. Reported rather than swallowed.
+  // dispatch table, which until 0097 read "Ingest markdown into the store
+  // through the API gate (the recovery path, and the v2 migrator)" -- this
+  // exact false claim at the surface-declaration level, and where the author's
+  // error came from. The table now says the verb writes nothing, and
+  // `ingest_command.rs` pins that; this arm stays on the half a person writes,
+  // so it never tempts anyone to hand-edit a generated line to go green.
   let authored = guide
     .split_once("## Workflows, methodology and conventions")
     .expect("the authored half is present")

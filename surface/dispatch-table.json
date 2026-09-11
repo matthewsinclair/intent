@@ -8285,7 +8285,7 @@
     },
     {
       "path": "ingest",
-      "help": "Ingest markdown into the store through the API gate (the recovery path, and the v2 migrator)",
+      "help": "Check that an estate's markdown would migrate, naming each residue line; writes nothing (`upgrade` migrates)",
       "flags": [
         {
           "spellings": [
