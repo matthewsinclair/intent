@@ -31,7 +31,6 @@ intent_version: 3.0.0
 
 | #   | id     | sev    | lane | defect                                                                              |
 | --- | ------ | ------ | ---- | ----------------------------------------------------------------------------------- |
-| 31  | `0194` | high   | ic   | `intent search` with a hyphenated term leaks a SQLite error.                        |
 | 32  | `0268` | high   | cc   | A failed migration rung prints a raw SQLite error naming nothing; its remedy loops. |
 | 35  | `0223` | medium | ic   | A mistyped subcommand becomes the title of a real artefact at rc=0.                 |
 | 36  | `0240` | medium | ic   | `edit` returns a path at rc=0 for an AC, AT or attachment that does not exist.      |
