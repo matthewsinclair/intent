@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 17:30Z
+heartbeat_at: 2026-09-11 17:38Z
 status: active
 focus: "BOUNCE. AC-00.6 is N/N in wt006 and REHEARSED clean on top of dc's real prune (no shared path, R3 byte-identical); NOT landed. It lands when vc says dc's prune is on main. WITH vc: 0140."
 claims: [ST0064]
@@ -39,8 +39,8 @@ claims: [ST0064]
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
-1. **`ST0064` AC-01.7** -- RELEASES WHEN hv signs and notarises the menubar app with their own credentials. hv ruled 2026-09-11 that the app ships in 3.0.1 (decision 7), and cc landed `app-sign` / `app-notarize` at `56322937`. **cc's finding, not an ask:** `native/macos/Intent/Intent/Info.plist` has no `CFBundleExecutable`. If notarisation refuses it, the fix is `CFBundleExecutable` = `$(EXECUTABLE_NAME)`.
-2. **The palette `Home`/`End` flip** -- post-cut; product feel; no criterion names it.
+1. **The palette `Home`/`End` flip** -- post-cut; product feel; no criterion names it.
+2. **The `ST0064` claim stays until vc's close-out closes the thread.** WP-01 is done (vc, `7c40da0ab`), and AC-01.7's condition was met: hv's notarisation submission was Accepted and vc's `app-verify` passed. The thread close is in vc's close-out, not mine.
 
 ## Watch-outs -- the ones that bite if an item comes back
 
