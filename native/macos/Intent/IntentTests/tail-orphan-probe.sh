@@ -1,38 +1,40 @@
 #!/bin/bash
 # ST0064 AC-01.4 -- does a pipeline survive its RUNTIME's death, per signal?
 #
-# THE TOPOLOGY IS THE POINT AND IT IS THREE LEVELS, matching the real one:
+# THE TOPOLOGY IS THE POINT, AND IT MATCHES THE REAL ONE:
 #
 #   RUNTIME  (stands in for the menubar app)
 #     -> WRAPPER  (the log verb's shell)
 #          -> TAIL  (the pipeline that must not outlive the app)
 #
-# A two-level probe cannot express the remedy at all, because the remedy is
-# about what the WRAPPER does when the RUNTIME dies.
+# A probe without the WRAPPER level cannot express the remedy at all, because
+# the remedy is about what the WRAPPER does when the RUNTIME dies.
 #
-# ARMS, and the second one exists so the first one means something:
+# ARMS, and `plain` exists so `guarded` means something:
 #
-#   guarded  the wrapper reads its own stdin and the runtime holds the write
-#            end. The runtime's death closes it HOWEVER IT DIES -- SIGKILL
-#            included, which no handler can intercept -- the read returns EOF,
-#            and the wrapper takes its own process group down. Ruled for `0281`
-#            on 2026-09-09, option (i).
-#   plain    the runtime spawns the tail directly. This MUST leak. A probe
-#            whose arms cannot disagree has not been shown to measure anything.
+#   guarded   the wrapper reads its own stdin and the runtime holds the write
+#             end. The runtime's death closes it HOWEVER IT DIES -- SIGKILL
+#             included, which no handler can intercept -- the read returns EOF,
+#             and the wrapper takes its own process group down. Ruled for
+#             `0281` on 2026-09-09, option (i).
+#   plain     the runtime spawns the tail directly. This MUST leak. A probe
+#             whose arms cannot disagree has not been shown to measure anything.
+#   stubborn  RIG SELF-TEST, not a production arm: the runtime ignores TERM and
+#             INT, so the one state `probe-indeterminate` names is reachable.
 #
-# THREE VERDICTS, NOT TWO, AND THE THIRD IS WHY (dc, 2026-09-09):
+# VERDICTS, AND WHY `probe-indeterminate` IS ONE (dc, 2026-09-09):
 #
 #   clean                 the tail is gone.
 #   LEAKED                the tail is ALIVE and its original parent is GONE.
 #   probe-indeterminate   the tail is alive and the runtime has not been reaped
 #                         yet, so neither statement is available.
 #
-# **A TWO-VERDICT PROBE FAILS IN THE DIRECTION NOBODY CHECKS.** With only
-# clean/LEAKED, a loaded machine that has not finished reaping the runtime
-# reports the control arm as `clean` -- and a reader scanning results sees the
-# leak as FIXED. That is the worst available misreading. The third verdict is
-# unmisreadable by construction: nobody mistakes `probe-indeterminate` for a
-# fix.
+# **A PROBE WITH ONLY clean/LEAKED FAILS IN THE DIRECTION NOBODY CHECKS.**
+# Without the indeterminate verdict, a loaded machine that has not finished
+# reaping the runtime reports the control arm as `clean` -- and a reader
+# scanning results sees the leak as FIXED. That is the worst available
+# misreading. `probe-indeterminate` is unmisreadable by construction: nobody
+# mistakes it for a fix.
 #
 # **AND THE PREDICATE IS `ppid != RUNTIME`, NOT `ppid == 1` (dc's correction).**
 # The property meant is *its original parent is gone*; `1` is what that looks
@@ -42,11 +44,13 @@
 # property -- the defect class that cost this estate an entire evening on
 # 2026-09-09.
 #
-# **THE POLL BUDGETS ARE DELIBERATELY NOT SHARED**, because the arms fail in
-# opposite directions. The guarded arm can false-FAIL on a loaded machine (the
-# wrapper must be scheduled to notice EOF) -- loud and safe. The control arm
-# can false-`clean` -- quiet and dangerous. The settle condition is per-arm and
-# structural, so neither can report a verdict it has not observed.
+# **ONE POLL BUDGET SERVES EVERY ARM, AND THE SETTLE CONDITION IS
+# STRUCTURAL**, because the arms fail in opposite directions. The guarded arm
+# can false-FAIL on a loaded machine (the wrapper must be scheduled to notice
+# EOF) -- loud and safe. The control arm could false-`clean` -- quiet and
+# dangerous. The loop settles only on an observed state (the tail gone, or its
+# parent no longer the RUNTIME), never on a timer; a budget that runs out
+# reports `probe-indeterminate` rather than a verdict.
 #
 # **THE RUNTIME MUST BE ITS OWN PROCESS-GROUP LEADER OR THE PROBE REFUSES.**
 # That is `0281`'s ruling constraint: `kill -TERM 0` in the wrapper names
@@ -58,9 +62,9 @@
 # `TailOrphanTests.swift` sets `executableURL = /bin/bash` explicitly, and on
 # macOS `/bin/bash` is **3.2.57** while `bash` on PATH here is Homebrew's
 # **5.3.15**. `BASHPID` is bash 4.0+, so the original `$BASHPID` in each arm was
-# an UNBOUND VARIABLE under `set -u` at line 39 -- fatal before a single pid
-# file was written, which surfaced as `probe-error: the arm never started` on
-# all six cells while running perfectly for its author.
+# an UNBOUND VARIABLE under `set -u` -- fatal before a single pid file was
+# written, which surfaced as `probe-error: the arm never started` on every
+# cell while running perfectly for its author.
 #
 # **EVERY RESULT THIS PROBE PRODUCED BEFORE THAT FIX RAN ON AN INTERPRETER THE
 # TEST NEVER USES.** The substitute below is POSIX and version-independent:
@@ -69,8 +73,8 @@
 # with `bash`** -- they are different programs on this machine, and the house
 # notes already carry the class (`no declare -A`, `no ${VAR^}`); `BASHPID`
 # belongs on that list.
-# **THE INT CELL IS CONSTRUCTIBLE HERE BY A CONJUNCTION OF THREE PROPERTIES,
-# AND ANY ONE OF THEM CHANGING SILENTLY DISARMS IT (dc, 2026-09-09).**
+# **THE INT CELL IS CONSTRUCTIBLE HERE BY A CONJUNCTION OF PROPERTIES, AND
+# ANY ONE OF THEM CHANGING SILENTLY DISARMS IT (dc, 2026-09-09).**
 #
 #   1. `set -m` is on, so the runtime is its own process-group leader.
 #   2. NO trap is installed in the runtime. A backgrounded subshell that
@@ -79,7 +83,7 @@
 #   3. The runtime `exec`s into its final program rather than forking it, so it
 #      takes that program's default disposition.
 #
-# **NONE OF THE THREE IS A PROPERTY OF THE WRAPPER, WHICH IS WHAT THIS PROBE
+# **NONE OF THEM IS A PROPERTY OF THE WRAPPER, WHICH IS WHAT THIS PROBE
 # EXISTS TO TEST.** They are all properties of the RUNTIME construction, so a
 # later edit made for an unrelated reason -- dropping job control, reinstating
 # a trap, replacing `exec sleep` with `sleep` -- takes the INT cell back to
@@ -150,8 +154,8 @@ else
     # CONTROL RATHER THAN THE MECHANISM. Without it this arm's runtime stays a
     # backgrounded bash subshell, which IGNORES SIGINT, while the guarded arm's
     # runtime has exec'd into `sleep`, which does not. The arms would then
-    # differ in TWO ways -- the remedy and the runtime's signal disposition --
-    # and a control that varies more than the axis under test isolates nothing.
+    # differ in the remedy AND in the runtime's signal disposition, and a
+    # control that varies more than the axis under test isolates nothing.
     # Measured before this line existed: plain/INT returned probe-indeterminate
     # because the runtime simply never died.
     exec sleep 120
@@ -187,7 +191,7 @@ done
 # ON ITS OWN LINE ABOVE IT (dc, 2026-09-09, on the first harness run).**
 # The evidence was originally appended to the token -- `LEAKED (tail 16960
 # alive, ...)` -- and the caller's `XCTAssertEqual(verdict, "LEAKED")` then
-# failed on all three control cells while the probe was behaving perfectly.
+# failed on every control cell while the probe was behaving perfectly.
 # **The producer gained information and the consumer still demanded the old
 # exact form**, which is producer/consumer drift committed inside the
 # instrument built to catch that class.

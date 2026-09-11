@@ -32,21 +32,26 @@ enum IntentCLIError: LocalizedError {
 /// Which Intent project this menubar is pointed at.
 ///
 /// INTERIM, and it knows it: this is a per-app-instance stand-in for D07's
-/// ratified-but-unbuilt machine registry ("one intentd per machine, N projects,
-/// per-project DBs, REGISTRY"). When D07's registry lands, the app READS IT and
-/// this local store goes away -- it must never become a parallel home that has
-/// to agree with the registry forever, which is issue 0204's shape. A short-
-/// lived second home that knows it is second is fine; one that forgets is not --
-/// the two would then diverge silently, and the disagreement never announces
-/// itself (0206), so the exit is to READ the registry when it lands, never to
-/// keep this store in sync with it. (vc ruling (a) + condition (ii), 2026-08-31.)
+/// machine registry ("one intentd per machine, N projects, per-project DBs,
+/// REGISTRY"). intentd holds that registry -- projects registered on first
+/// contact (`intentd/src/registry.rs`, ST0056 AC-08.1) -- but no `intent` verb
+/// surfaces it, and the app reaches intentd only through verbs. When a verb
+/// does, the app READS IT and this local store goes away -- it must never
+/// become a parallel home that has to agree with the registry forever, which is
+/// issue 0204's shape. A short-lived second home that knows it is second is
+/// fine; one that forgets is not -- the two would then diverge silently, and the
+/// disagreement never announces itself (0206), so the exit is to READ the
+/// registry once a verb surfaces it, never to keep this store in sync with it.
+/// (vc ruling (a) + condition (ii), 2026-08-31.)
 ///
 /// Per-app-instance is the right scope regardless of D07: a machine holds many
 /// Intent projects, so "which project is this app controlling" is app state,
 /// like a window position -- not a machine-level fact. The root is stored as a
-/// path; every child the CLI spawns runs with it as the working directory, so
-/// verbs resolve by CWD walk-up exactly as in a terminal (no new resolution
-/// path, no flag for `edit`/`graphql` to learn).
+/// path in the `IntentProjectRoot` user default, which nothing in the app sets
+/// (there is no settings UI): `defaults write com.matthewsinclair.intent.macos
+/// IntentProjectRoot <dir>`. Every child IntentCLI spawns runs with it as the
+/// working directory, so verbs resolve by CWD walk-up exactly as in a terminal
+/// (no new resolution path, no flag for `edit`/`graphql` to learn).
 enum ProjectConfig {
   static let rootKey = "IntentProjectRoot"
 
@@ -65,12 +70,14 @@ enum ProjectConfig {
 }
 
 /// The one shell-out path to `intent`, with the login shell's PATH handed to
-/// every child. Nothing else in the app spawns anything, so binary resolution,
-/// environment and error mapping live here once. (AC-01.1 / AC-01.9)
+/// every child. The only other spawn in the app is LoginShell's `/bin/zsh`
+/// probe that finds that PATH, so binary resolution, environment and error
+/// mapping live here once. (AC-01.1 / AC-01.9)
 enum IntentCLI {
   static let overrideKey = "IntentBinary"
 
-  /// Settings -> Estate's override wins; otherwise what the login shell found.
+  /// The `IntentBinary` user default wins when it names an executable (set with
+  /// `defaults write`; there is no settings UI); otherwise what LoginShell found.
   static func binary() -> String? {
     if let override = UserDefaults.standard.string(forKey: overrideKey), !override.isEmpty,
       FileManager.default.isExecutableFile(atPath: override)
@@ -91,8 +98,8 @@ enum IntentCLI {
   /// work and a project verb gets the CLI's own not-in-project error, which is
   /// honest. A configured-but-invalid root is a LOUD refusal (condition (i)),
   /// never a silent spawn into a directory where CWD walk-up finds a different
-  /// project or none. Once Settings validates on set, this runtime check is the
-  /// defensive backstop rather than the primary guard. (AC-01.3/01.5.)
+  /// project or none. With no settings UI to validate on set, this runtime check
+  /// is the only guard. (AC-01.3/01.5.)
   static func projectDirectory() throws -> URL? {
     guard let root = ProjectConfig.configuredRoot() else { return nil }
     guard ProjectConfig.isIntentProject(root) else {

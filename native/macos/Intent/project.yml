@@ -5,9 +5,10 @@ options:
     macOS: "14.0"
   xcodeVersion: "16.0"
   generateEmptyDirectories: true
-# Ported from Geodica's project.yml (~/Devel/prj/Gtools/native/macos), itself
-# cut from Conflab's. The menubar app shells out to `intent` / `intentd` and
-# holds no product logic (AC-01.1). Both configs sign with the Geodica ADC
+# Ported from Geodica's project.yml (~/Devel/prj/Gtools/native/macos/Gtools),
+# itself cut from Conflab's. The menubar app shells out to `intent` (and to
+# `/bin/zsh` once per launch, for the login PATH) and holds no product logic
+# (AC-01.1). Both configs sign with the Geodica ADC
 # team on this machine; Developer ID signing + notarisation for distribution
 # is the `int macos app-sign | app-notarize` path (AC-01.7), never this spec.
 configs:
@@ -25,9 +26,10 @@ settings:
     ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOLS: YES
     ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
     # The stamps, substituted into Info.plist. `int macos app-build` overrides
-    # all four on the xcodebuild command line from the source tree + git; a
-    # build from inside Xcode gets these defaults, so About says "dev" rather
-    # than lying. No generated Swift file (Conflab's BuildInfo lesson).
+    # each of them on the xcodebuild command line from the source tree + git; a
+    # build from inside Xcode gets these defaults, so the stamped Info.plist
+    # keys say "dev" rather than lying. No generated Swift file (Conflab's
+    # BuildInfo lesson).
     INTENT_VERSION: dev
     INTENT_BUILD: "0"
     INTENT_COMMIT: dev

@@ -9,7 +9,7 @@ import Observation
 /// and then stops observing. Keeping a view in sync therefore means re-arming
 /// after every change. This type owns that, so no call site has to.
 ///
-/// Two things live here so that no call site has to get them right:
+/// These live here so that no call site has to get them right:
 ///
 /// - **Re-arming.** Re-arming by hand gives every call site a path where an
 ///   early return skips it, and the view then stops updating for the life of

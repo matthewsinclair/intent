@@ -3,11 +3,12 @@ import OSLog
 import ServiceManagement
 
 /// Intent.app: the menubar item, the intent:// handler, and control of intentd.
-/// Every action here runs an `intent` verb; every fact shown comes from the
-/// daemon or the CLI, never from a Swift-side derivation (AC-01.1). The shape is
-/// Geodica's AppDelegate, cut to intentd. The console and settings land as their
-/// gated seams arrive: the console on cc's `intent daemon logs` verb (AC-01.4),
-/// the intent:// wire-in on the resolver door (AC-01.5).
+/// Every daemon and project action here runs an `intent` verb; every fact shown
+/// comes from the daemon or the CLI, never from a Swift-side derivation
+/// (AC-01.1). The shape is Geodica's AppDelegate, cut to intentd. The intent://
+/// handler is wired below (AC-01.5). There is no console and no settings UI: the
+/// console waits on a log verb the CLI does not have (the ruling for when one is
+/// built sits on `IntentCLI.stream`, AC-01.4).
 @main
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -44,7 +45,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
 
     daemon.startPolling()
-    project.startPolling()  // one real GraphQL read every 5s, through `intent graphql` (AC-01.3)
+    project.startPolling()  // with a project set, one `intent graphql` read every 5s (AC-01.3)
     startObserving()  // renders the current state immediately, then on every change
 
     if !UserDefaults.standard.bool(forKey: Self.firstRunKey) {
@@ -101,8 +102,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   // MARK: - Observation
 
-  /// The icon and menu follow the daemon's health; ContinuousObservation re-arms
-  /// after every change, so a single poll drives both.
+  /// The icon and menu follow the daemon's health, any lifecycle verb in flight,
+  /// and the project's thread count; ContinuousObservation re-arms after every
+  /// change, so a write from either poll repaints both.
   private func startObserving() {
     observation = ContinuousObservation(
       track: { [weak self] in
@@ -129,8 +131,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   // MARK: - Menu
 
-  /// Gated on the ONE health predicate. Start when absent, Stop/Restart when
-  /// live; a stale daemon offers Restart to recover and NEVER an unlink -- the
+  /// Gated on the ONE health predicate. Start when absent or unknown, Stop/Restart
+  /// when live; a stale daemon offers Restart to recover and NEVER an unlink -- the
   /// socket has an owner to investigate, not remove (AC-01.6 / AC-08.12), and
   /// the summary above names its pid.
   private func rebuildMenu() {
@@ -156,8 +158,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // nothing is worse than the redundancy this removes.
     //
     // **A LIFECYCLE VERB IN FLIGHT OWNS THE LINE.** While `busy` is set the
-    // title is "Starting…"/"Restarting…", which is not a state and has no page
-    // behind it -- and mid-restart is exactly when the old address is dead.
+    // title is "Starting…"/"Stopping…"/"Restarting…", which is not a state and
+    // has no page behind it -- and mid-restart is exactly when the old address
+    // is dead.
     let summary = NSMenuItem(title: statusSummary(), action: nil, keyEquivalent: "")
     if daemon.busy == nil, case .live(_, let url) = daemon.health, let url {
       summary.action = #selector(openWebFace(_:))
@@ -225,8 +228,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   /// `intent edit <address> --path` (cc's `9508788`), which realises the entity
   /// and prints its path; the app opens that and parses nothing itself.
   /// Addresses are `intent:///…` -- three slashes, an empty authority meaning
-  /// *this project*; a bare number is refused until the ladder lands, so the URL
-  /// scheme only ever delivers a full address here.
+  /// *this project*. LaunchServices delivers only `intent:` URLs, so `edit`
+  /// always receives a full address here and never a bare number.
   private func openAddress(_ address: String) {
     Self.logger.info("open \(address, privacy: .public)")
     Task {

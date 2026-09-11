@@ -40,8 +40,8 @@ final class DaemonService {
     pollTask = nil
   }
 
-  /// One read of the health predicate. `daemon status` reports a state for all
-  /// three cases and its stdout is the answer whatever the exit code; a launch
+  /// One read of the health predicate. `daemon status` reports live, stale or
+  /// absent and its stdout is the answer whatever the exit code; a launch
   /// failure is `unknown`, never a silent `absent`. A lifecycle verb in flight
   /// owns the state, so a poll does not overwrite "Starting…".
   func poll() async {
@@ -64,7 +64,8 @@ final class DaemonService {
     try await lifecycle("Stopping…", [["daemon", "stop"]])
   }
 
-  /// intentd has no `restart` verb; stop then start, an order the CLI owns.
+  /// `daemon stop` then `daemon start`, run as separate verbs from here; the
+  /// CLI's own `intent daemon restart` is not called.
   func restart() async throws {
     try await lifecycle("Restarting…", [["daemon", "stop"], ["daemon", "start"]])
   }

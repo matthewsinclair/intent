@@ -5,11 +5,11 @@ import XCTest
 /// ST0064 `AC-01.4`: the tail-orphan trap, verified BEFORE any console is built
 /// on it, against SIGTERM, SIGINT and SIGKILL **separately**.
 ///
-/// **THE THREE SIGNALS DO NOT SHARE A PATH, WHICH IS WHY THE ROW NAMES THEM
+/// **THE SIGNALS DO NOT SHARE A PATH, WHICH IS WHY THE ROW NAMES THEM
 /// SEPARATELY.** A handler that cleans up on SIGTERM and SIGINT proves nothing
 /// about SIGKILL, which cannot be handled at all -- so the orphan has to be
 /// prevented by construction rather than by a shutdown hook, and only a probe
-/// that actually sends all three can tell those two designs apart.
+/// that actually sends each of them can tell those two designs apart.
 ///
 /// **THE CONTROL ARM IS NOT DECORATION, IT IS WHAT MAKES THE PASS MEAN
 /// ANYTHING.** `no tail is running` is also the answer you get from a probe
@@ -17,8 +17,8 @@ import XCTest
 /// from a probe whose fixture silently failed to launch. The `plain` arm spawns
 /// the pipeline the way an unguarded runtime would and **must LEAK in every
 /// cell**; if it ever comes back clean, this file is measuring nothing and the
-/// guarded results are worthless. Six cells, two arms, three signals, and the
-/// arms must disagree in all three.
+/// guarded results are worthless. Each arm runs under each signal, and the arms
+/// must disagree under every one.
 ///
 /// **THE PRECONDITION `0281`'s RULING CARRIES IS ASSERTED INSIDE THE PROBE, NOT
 /// HERE.** The runtime must be its own process-group leader or a group kill
@@ -114,7 +114,7 @@ final class TailOrphanTests: XCTestCase {
 
   /// The remedy ruled for `0281` (option (i)): the wrapper reads its own stdin,
   /// the runtime holds the write end, and the runtime's death closes it however
-  /// it dies. No tail survives any of the three signals.
+  /// it dies. No tail survives any of the signals.
   func testGuardedPipelineLeavesNoOrphanUnderAnySignal() throws {
     try withStateDir { dir in
       for signal in Self.signals {
@@ -140,12 +140,12 @@ final class TailOrphanTests: XCTestCase {
     }
   }
 
-  /// RIG SELF-TEST. The probe has a third verdict -- `probe-indeterminate`, for
-  /// when the tail is alive and the runtime has not been reaped, so neither
-  /// `clean` nor `LEAKED` is available -- and this asserts it can actually be
-  /// produced.
+  /// RIG SELF-TEST. Beside `clean` and `LEAKED` the probe has
+  /// `probe-indeterminate`, for when the tail is alive and the runtime has not
+  /// been reaped, so neither of the others is available -- and this asserts it
+  /// can actually be produced.
   ///
-  /// **IT EXISTS BECAUSE THE THIRD VERDICT WAS UNREACHABLE WHEN IT WAS FIRST
+  /// **IT EXISTS BECAUSE THE INDETERMINATE VERDICT WAS UNREACHABLE WHEN IT WAS FIRST
   /// WRITTEN, AND ONLY TRYING TO FIRE IT FOUND THAT OUT.** Shrinking the poll
   /// budget to a single tick did not reach it: on this machine reparenting is
   /// effectively instantaneous, so the runtime is already gone and the tail

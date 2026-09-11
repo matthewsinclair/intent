@@ -4,7 +4,7 @@
 
 **It specifies a one-page site.** Intent's documentation lives in this repository at [`docs/`](../) and the site links to it rather than reproducing it. Sections marked _docs shell_ apply only if the documentation is later hosted; everything else is needed for the one page.
 
-**This document was consolidated from two independent drafts** — cc's, briefed by hv as simple / technical / coherent / self-contained and modelled on best-in-class tool home pages, and vc's, briefed by hv's selection of an editorial direction. Both were written without knowing the other existed. The measured prefix vocabulary in §1, the references in §2, the forbidden affordances in §8 and the budgets in §9 are cc's and are kept largely as written.
+**This document was consolidated from independent drafts** — cc's, briefed by hv as simple / technical / coherent / self-contained and modelled on best-in-class tool home pages, and vc's, briefed by hv's selection of an editorial direction. Both were written without knowing the other existed. The measured prefix vocabulary in §1, the references in §2, the forbidden affordances in §8 and the budgets in §9 are cc's and are kept largely as written.
 
 ---
 
@@ -26,7 +26,7 @@
 
 ### This list is CURATED, and an earlier draft of this section implied it was not
 
-**The seven rows above are a selection, not the output of a count**, and saying otherwise was the defect in the first version of this document. Two Laksa nodes re-derived it independently and both found the same thing: the corpus contains prefixes that outrank listed ones by frequency and are absent here -- `critic:` and `doctor:` both sit above or beside `note:`, along with `events:`, `status:`, `removed:`, `lint:` and a long tail.
+**The rows above are a selection, not the output of a count**, and saying otherwise was the defect in the first version of this document. Laksa nodes re-derived it independently and found the same thing: the corpus contains prefixes absent here -- `critic:`, `doctor:`, `events:`, `status:`, `removed:`, `lint:` and a long tail -- some of which outrank listed ones by frequency. The command below re-derives the ranking.
 
 **The selection rule, stated now because it was applied and never written down:** a row is here if it describes **what happened to the operation**. It is excluded if it names **who is speaking** (`critic:`, `doctor:`, `gate:`, `ac:` -- these label the reporting command, not an outcome) or if it is a **field label inside a report** (`status:`, `reason:`, `severity:`, `scope:`). Prefixes that are outcomes but belong to one verb's report rather than the general vocabulary -- `written:`, `unchanged:`, `preserved:` from `intent claude upgrade` -- are excluded on the same ground and are the least comfortable exclusions in the set.
 
@@ -34,17 +34,17 @@
 
 ### The counts are a derivation over a corpus that moves, so they are not published here
 
-An earlier version of this table carried per-prefix counts. **They are removed, because three independent measurements of the same corpus disagreed within one hour** -- `error:` read 88, then 92, then 92 again -- not because anyone measured wrongly, but because the corpus is `native/rust/crates/intent-cli/src` and two sessions are committing into it. **A count without a commit beside it describes a tree that no longer exists.**
+**The table carries no per-prefix counts, because independent measurements of the same corpus disagreed within the hour** -- not because anyone measured wrongly, but because sessions are committing into the corpus. **A count without a commit beside it describes a tree that no longer exists.**
 
-Re-derive it if you need it, and pin it:
+The corpus is the CLI crate and the services crate it renders through. `gate:` and `ac:` lines are composed in `native/rust/crates/intentsvcs/src/contract.rs`, so a grep of the CLI crate alone never sees them. Re-derive it if you need it, and pin it:
 
 ```
   $ git rev-parse --short HEAD
-  $ grep -rhoE '"[a-z][a-z_-]*: ' native/rust/crates/intent-cli/src --include='*.rs' \
+  $ grep -rhoE '"[a-z][a-z_-]*: ' native/rust/crates/intent-cli/src native/rust/crates/intentsvcs/src --include='*.rs' \
       | sed 's/^"//; s/: $//' | sort | uniq -c | sort -rn
 ```
 
-**The path is the full one deliberately.** An earlier draft cited the corpus as `intent-cli/src`, which is not a directory anyone can change into, and both reviewers had to guess candidate paths before they could check the table at all. **A corpus you cannot `cd` to is one nobody re-runs, which is how a table stops being reproducible without anyone editing it.**
+**The paths are the full ones deliberately.** An earlier draft cited the corpus as `intent-cli/src`, which is not a directory anyone can change into, and both reviewers had to guess candidate paths before they could check the table at all. **A corpus you cannot `cd` to is one nobody re-runs, which is how a table stops being reproducible without anyone editing it.**
 
 ## 2. References, and what to take from each
 
@@ -131,7 +131,7 @@ Near-monochrome ground and ink, one accent, and the semantic set from §1. Lift 
 
 ### OPEN DECISION A — the accent, and whether it can be red at all
 
-**This is not settled and it must not be settled by whoever holds the pen on this document.** The `--accent` values above are a placeholder so the spec is buildable; they are one of the two candidates, not a ruling.
+**This is not settled and it must not be settled by whoever holds the pen on this document.** The `--accent` values above are a placeholder so the spec is buildable; they are one of the candidates, not a ruling.
 
 **The decision.** Is the site's accent **steel `#35618f`** or **rust `#A03E1E`**?
 
@@ -221,7 +221,7 @@ _(docs shell)_ A hosted docs set adds a left nav — static above `900px`, a dis
 
 ### 6.1 Header
 
-Mono, `--t-sm`, on a hairline. Left: the wordmark. Right: `docs` and `github`. No logo image and no hamburger — three items fit at every width. Nav links are `--ink-muted` going to `--ink` on hover, **and are not underlined**; the underline is reserved for prose links so it keeps meaning something.
+Mono, `--t-sm`, on a hairline. Left: the wordmark. Right: `docs` and `github`. No hamburger — three items fit at every width. Whether the mark sits beside the wordmark is Decision C (§11). Nav links are `--ink-muted` going to `--ink` on hover, **and are not underlined**; the underline is reserved for prose links so it keeps meaning something.
 
 ### 6.2 The terminal block — the one component that carries the whole voice
 
@@ -230,10 +230,9 @@ Mono, `--t-sm`, on a hairline. Left: the wordmark. Right: `docs` and `github`. N
 ```
   $ intent st new "Port the acceptance gate"
   created: ST0069
-  ok:      intent/st/ST0069/info.md
 ```
 
-Four rules, each closing a real failure:
+Each rule below closes a real failure:
 
 1. **The prompt character is not selectable and is not copied.** A copy control copies the command without the `$`. A reader who pastes `$ intent ...` and gets `command not found` was failed by the page.
 2. **Output is styled by its prefix**, using the semantic tokens. The colour comes from the prefix, so it cannot disagree with the terminal.
@@ -322,11 +321,11 @@ The site is a single scroll. The copy below is a **draft to design against**, re
 
 **7. Install**, with the platforms named and nothing hidden behind a tab that defaults wrong.
 
-**RECONCILIATION AGAINST THE SHIPPED SURFACE, DONE 2026-09-05 (vc), BECAUSE THIS SECTION PROMISED IT AND A PROMISE TO RECONCILE IS NOT A RECONCILIATION.** Two claims above were measured against the estate and the keg rather than read.
+**Reconciliation against the shipped surface.** The claims in 5 and 6 are checked against the tool rather than read, and they are re-checked before launch.
 
-**THE MODEL COPY IN 5 WAS WRONG AND IS FIXED ABOVE.** It read _each is backed by an acceptance test, and Intent computes whether the thread is satisfied rather than asking you to assert it_. Measured across this canon: **137 of 505 criteria are `non-test`, and ALL 107 satisfied criteria in the entire estate carry named evidence — every satisfaction in this project was asserted, not computed.** The differentiating claim on the home page was contradicted by every satisfied row in the tool's own repository. **The thread VERDICT is computed; the non-test ROW is asserted, and collapsing the two is how a reader learns the model wrong on the first page.**
+**5, the model.** Every criterion is `kind: test` or `kind: non-test`, and `intent ac show <stid> <acid>` prints which. A test criterion is satisfied when its covering acceptance test is green (`intent at green`) and carries no evidence line: the gate computes it from the tests and ignores any stored flag. A non-test criterion is satisfied only by `intent ac satisfy`, with named evidence that `ac show` prints as `evidence:`. A criterion can also be fiat-closed on authority with its reason recorded (`intent fc`, which refuses without `--because`). `intent ac status <stid>` computes the thread's PASS/BLOCKED verdict from all of them. **The thread VERDICT is computed; the non-test ROW is asserted, and collapsing the two is how a reader learns the model wrong on the first page.**
 
-**AND 6's RULE-LIBRARY CLAIM IS A LAUNCH PRECONDITION, NOT A COPY DEFECT.** This page offers exactly ONE action — `brew install matthewsinclair/intent/intent` — and 6 promises _it ships a rule library agents can be held to_. **The v3.0.0 keg carries no rules directory (driven; issue `0275`), so today the one action the page recommends produces a build lacking the thing the page's central section promises.** The copy list is fixed and guarded at stage, so this comes true when the next keg carries the trees — **which is `ST0056 AC-00.5`'s job to verify and NOT this document's to assume. If the tag ships without them, this page ships a false promise and the falsity is on the install path, where it is worst.**
+**6, the rule library.** This page offers one action, `brew install matthewsinclair/intent/intent`, and 6 promises _it ships a rule library agents can be held to_. The keg carries it: `ls "$(brew --prefix intent)/libexec/intent/plugins/claude/rules"` lists the rule packs, and `intent claude rules list` enumerates the rules. **Re-check it for every release the page points at: a keg without that tree makes the page's central promise false on the install path, where it is worst.**
 
 **8. Footer.** Docs, GitHub, changelog, licence, author. Mono, `--ink-muted`, on a hairline.
 
@@ -360,7 +359,7 @@ This list is checkable. A review can run it.
 - **Semantic HTML.** One `h1`, no skipped levels, real `nav` / `main` / `article`, real `button` for actions and real `a` for navigation.
 - **Keyboard.** Everything reachable, in document order, no traps.
 - **JavaScript is progressive enhancement only.** Copy buttons and an optional theme toggle are enhancements. With JS off, every page reads and every link works.
-- **Budget: under 160KB on the home page, uncompressed, including everything.** The two subset webfonts are the largest single item at roughly 45–60KB together, and that is the cost the editorial direction buys — it is stated here so it is a decision rather than a surprise. If the budget cannot be met, the fonts are what gets revisited, not the accessibility items.
+- **Budget: under 160KB on the home page, uncompressed, including everything.** The subset webfonts are the largest single item at roughly 45–60KB together, and that is the cost the editorial direction buys — it is stated here so it is a decision rather than a surprise. If the budget cannot be met, the fonts are what gets revisited, not the accessibility items.
 - **Zero off-origin requests. This is the hard constraint and it is checkable in one line of devtools.**
 
 ## 10. Voice
@@ -377,7 +376,7 @@ The site inherits Intent's house style, which is enforced in this repository. Th
 
 **These go to the design agent at Laksa, not to hv in a workstream session** (hv's ruling, 2026-08-29). **Nothing here has been quietly settled by whoever held the pen**, and if you find something in this document that reads as decided but appears below, the section above is a placeholder and this is the authority.
 
-**A flag that says "open" is not the same as one that says what would close it.** Each decision below carries three things: the decision itself, the constraint it must respect, and what breaks if it goes the other way. A decision presented without those gets resolved on taste, which is the same ambiguity in a tidier format.
+**A flag that says "open" is not the same as one that says what would close it.** Each decision below carries the decision itself, the constraint it must respect, and what breaks if it goes the other way. A decision presented without those gets resolved on taste, which is the same ambiguity in a tidier format.
 
 ### A. The accent, and whether it can be red at all
 
@@ -393,11 +392,11 @@ Specified in full at §3. **Steel `#35618f` vs rust `#A03E1E`.** The constraint 
 
 ### C. The wordmark
 
-**Decision.** Is there a mark, and what is it?
+**Decision.** Does the site carry the mark beside the mono-set wordmark, and where?
 
-**Constraint.** There is no logo in the repository and none has been invented. Mono-set `intent` in lowercase is the obvious placeholder.
+**Constraint.** The mark exists: the turtle at `docs/design/intent-logo.svg`, with `.png` and `.pdf` renderings beside it. intentd's web face embeds that file at build time (`native/rust/crates/intentd/src/web.rs`), `int macos app-icons` rasterises it into the menubar app's icon and template menubar glyph, and the theme at `../Sites/intent` serves a byte-identical copy as its favicon, header mark and hero mark. Mono-set `intent` in lowercase is the wordmark.
 
-**What breaks either way.** The placeholder may simply be right permanently — a tool whose voice is "no banners, no unicode decoration" is not obviously improved by a glyph. A drawn mark then has to earn its place against §8's forbidden-affordance list, which rules out most of what a mark is usually for.
+**What breaks either way.** The wordmark alone may simply be right permanently — a tool whose voice is "no banners, no unicode decoration" is not obviously improved by a glyph. Wherever the mark appears it has to earn its place against §8's forbidden-affordance list, which rules out most of what a mark is usually for.
 
 ### D. Versioned docs, and the canonicals
 
@@ -441,7 +440,7 @@ Specified in full at §3. **Steel `#35618f` vs rust `#A03E1E`.** The constraint 
 
 ## 12. What this document is not
 
-**It is not ratified, no page has been built against it, and eight of its decisions are open (§11).** Every claim is a design intention rather than a measurement — with the single exception of §1's prefix list, which names words the tool really emits -- though **the selection among them is a choice, stated as one in §1, and the counts an earlier draft carried are withdrawn as unreproducible against a moving corpus.**
+**It is not ratified, and the decisions in §11 are open.** A theme has been built against it: `../Sites/intent/theme/layout.liquid` carries §3's tokens in both modes and §4's font stacks, and `intent.laksa.io` serves it. Every claim is a design intention rather than a measurement — with the exceptions of §7's reconciliation, which names the verbs that check the copy, and §1's prefix list, which names words the tool really emits -- though **the selection among them is a choice, stated as one in §1, and the counts an earlier draft carried are withdrawn as unreproducible against a moving corpus.**
 
 ---
 

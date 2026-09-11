@@ -3,16 +3,17 @@ import Foundation
 /// What launchd does not give a GUI app: the user's PATH, and where `intent`
 /// is. A `.app` bundle launches with a bare PATH and none of the developer's
 /// environment, and a Homebrew-installed `intent` under `/opt/homebrew/bin` is
-/// not on it. So: ask the login shell once (`-ilc`, so PATH additions in
-/// .zshrc count too; stderr goes nowhere, there is no tty) and give every child
-/// what a terminal has. Nothing is baked into the bundle. (AC-01.9)
+/// not on it. So: ask `/bin/zsh` once, as a login and interactive shell
+/// (`-ilc`, so PATH additions in .zshrc count too; stderr goes nowhere, there
+/// is no tty) and give every child what a terminal has. Nothing but a fallback
+/// PATH is baked into the bundle. (AC-01.9)
 struct LoginShell: Sendable {
   /// The login shell's PATH, or a sane default if the shell said nothing.
   let path: String
   /// `command -v intent`, realpath'd -- the ~/.local/bin symlink resolves to
   /// native/rust/target/release/intent.
   let intent: String?
-  /// How `intent` was found, for Settings -> Estate.
+  /// How `intent` was found, written to the launch log line.
   let source: String
 
   static let fallbackPath = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
@@ -66,7 +67,8 @@ struct LoginShell: Sendable {
   }
 }
 
-/// One capture per launch, refreshed on demand (Settings -> Estate).
+/// One capture per launch. `refresh()` re-captures on demand; nothing in the
+/// app calls it.
 final class LoginShellStore: @unchecked Sendable {
   static let shared = LoginShellStore()
 

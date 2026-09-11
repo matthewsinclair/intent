@@ -5,21 +5,22 @@ import Foundation
 /// ONE health predicate (AC-01.2), read through the CLI verb and never a Swift
 /// reimplementation of the probe.
 ///
-/// The three states and their REMEDIES are vc's AC-01.6 ruling: the state IS
-/// the remedy, so the UI reads it rather than deriving a second fact beside it.
+/// The states and their REMEDIES are vc's AC-01.6 ruling: the state IS the
+/// remedy, so the UI reads it rather than deriving a second fact beside it.
 ///
 /// - `live`    active at its endpoint. Stop / Restart, and -- when the daemon
 ///             published a loopback address that is answering -- `url`, the
 ///             browser-openable face. `url` is OPTIONAL on a live daemon and
 ///             that is the contract, not a gap: the CLI omits it when there is
-///             nowhere to send a browser, so `nil` here means do not offer the
-///             item rather than offer one that opens nothing.
+///             nowhere to send a browser, so `nil` here means the menu's status
+///             line stays a caption rather than an item that opens nothing.
 /// - `stale`   a process holds the lock and is NOT answering. Investigate that
 ///             pid; NEVER offer to remove the socket it still owns (AC-08.12).
 ///             Restart recovers it.
 /// - `absent`  nothing owns the endpoint; residue is safe to clear. Start.
-/// - `unknown` not yet polled, or a line this build could not decode. It is
-///             never rendered as one of the three, so a renamed `Health`
+/// - `unknown` not yet polled, a `daemon status` that could not be run
+///             (DaemonService.poll), or a line this build could not decode. It
+///             is never rendered as live, stale or absent, so a renamed `Health`
 ///             variant on the daemon side shows as unknown here rather than
 ///             silently as the wrong state -- cc's tripwire, mirrored in
 ///             `HealthTests`.

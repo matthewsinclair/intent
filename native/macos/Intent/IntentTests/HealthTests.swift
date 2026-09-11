@@ -2,7 +2,7 @@ import XCTest
 
 @testable import Intent
 
-/// cc's tripwire, mirrored on the Swift side. cc asserts the three discriminator
+/// cc's tripwire, mirrored on the Swift side. cc asserts the discriminator
 /// literals in the Rust renderer; a renamed `Health` variant would still
 /// compile and serialise and SILENTLY stop decoding here, in my language, where
 /// cc's tests cannot see it. These pin the decode so the rename trips on this
@@ -47,7 +47,7 @@ final class HealthTests: XCTestCase {
     XCTAssertEqual(h, .absent)
   }
 
-  /// A state this build does not know is `unknown`, never one of the three -- so
+  /// A state this build does not know is `unknown`, never live, stale or absent -- so
   /// a renamed daemon-side variant surfaces rather than masquerading as the
   /// wrong state.
   func testAnUnknownStateIsNotSilentlyOneOfTheThree() {
@@ -72,8 +72,8 @@ final class HealthTests: XCTestCase {
     XCTAssertFalse(live.summary.contains("answering"))
   }
 
-  /// **NO STATE BUT `live` CARRIES A URL, WHICH IS WHAT KEEPS THE OTHER THREE
-  /// LINES INERT.** The menu binds its action on `case .live(_, let url)` with
+  /// **NO STATE BUT `live` CARRIES A URL, WHICH IS WHAT KEEPS THE OTHER LINES
+  /// INERT.** The menu binds its action on `case .live(_, let url)` with
   /// `let url`, so an absent url is structurally unclickable rather than
   /// remembered -- a menu item that looks clickable and does nothing is worse
   /// than the redundancy hv removed.
