@@ -35,7 +35,6 @@ intent_version: 3.0.0
 
 | #   | id     | sev    | lane | defect                                                                                                                                                                                                                                                                 |
 | --- | ------ | ------ | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 68  | `0065` | medium | dc   | hv said go (decision 14): dc's S design as written. The acknowledgement lives in project config under `doctor.acknowledged`, and an acknowledged class drops OUT of the finding count and the exit code. After 0259 half 2. LANDED at 5493dd28; vc to drive.           |
 | 79  | `0141` | medium | --   | NOT WORKABLE IN 3.0.1 (vc, 2026-09-11): no instance today, because both wildcard fields (AT status, WP scope) carry no payload and both self-loops are needed by rulings. The only fix is a new guard. Stays open as the constraint on either field gaining a payload. |
 | 81  | `0172` | medium | --   | NOT WORKABLE IN 3.0.1 (vc, 2026-09-11): hv ruled it NARROW, DO NOT BUILD on 2026-08-30. The reopen condition (a user reporting missed backups while intentd ran the whole time) is unmet, and a fix needs a new per-user registry file. Stays open.                    |
 
