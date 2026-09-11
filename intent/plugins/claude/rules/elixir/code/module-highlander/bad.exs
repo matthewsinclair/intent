@@ -1,9 +1,9 @@
 # EXPECTED: passes
-# BAD PRACTICE: two modules each carry their own email-validation regex.
+# BAD PRACTICE: each module carries its own email-validation regex.
 #   The Critic subagent (critic-elixir, mode code) detects this by reading the
-#   source — two different modules with a `valid_email?/1` function, each
+#   source — more than one module with a `valid_email?/1` function, each
 #   containing its own regex. Elixir runs the code fine; the antipattern is
-#   that the two regexes have already drifted (one accepts "a@b" without a
+#   that the regexes have already drifted (one accepts "a@b" without a
 #   TLD; the other requires one), so "is this email valid?" depends on which
 #   module you asked.
 Mix.install([])

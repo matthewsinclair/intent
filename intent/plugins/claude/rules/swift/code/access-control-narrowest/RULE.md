@@ -3,7 +3,7 @@ id: IN-SW-CODE-004
 language: swift
 category: code
 severity: recommendation
-title: Access control — narrowest first
+title: Access control -- narrowest first
 summary: >
   Default to `private`. Widen to `fileprivate`, `internal`, `package`, or
   `public` only when a caller outside the current scope actually needs
@@ -33,7 +33,7 @@ status: active
 version: 1
 ---
 
-# Access control — narrowest first
+# Access control -- narrowest first
 
 Every `public` is a contract you will have to keep. Every `private` is a rename you can do without asking.
 

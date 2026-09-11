@@ -23,7 +23,7 @@ applies_to:
 does_not_apply_when:
   - "Interactive scripts (.bashrc, .bash_profile) where strict modes break unrelated interactive behaviours"
   - "Legacy scripts where retrofit would require auditing every unset-var usage (document and track)"
-  - "Bash 3.x compatibility constraints where `-o pipefail` has known edge cases — Intent itself uses just `set -e` for macOS bash 3.x"
+  - "Bash 3.x compatibility constraints where `-o pipefail` has known edge cases"
 tags:
   - shell
   - bash
@@ -66,7 +66,7 @@ Static signals:
 
 ShellCheck: indirectly via SC2148 (missing shebang) and SC2154 (unset variable) — the latter is effectively unreachable unless `-u` is on.
 
-**No greppable proxy is authoritative for this rule.** The violation is an ABSENCE -- a script that carries no `set -` directive -- and one `grep` can express only a positive match; there is no `grep -L` inside the headless runner's contract. **And no tool answers it either, which is the more important half: driven against shellcheck 0.11.0, a bash script containing nothing but a shebang and an `echo` produces NO diagnostic at all.** The two lints this rule's own Detection names apply only indirectly and neither reports the absence: SC2148 is a missing shebang, and SC2154 fires on an unset variable, which is a CONSEQUENCE of `-u` being absent rather than a report of it. Apply this rule via the LLM-driven `critic-shell` subagent during `/in-review`, not in the headless pre-commit gate.
+**No greppable proxy is authoritative for this rule.** The violation is an ABSENCE -- a script that carries no `set -` directive -- and one `grep` can express only a positive match; there is no `grep -L` inside the headless runner's contract. **And no tool answers it either, which is the more important half: driven against shellcheck 0.11.0, a bash script containing nothing but a shebang and an `echo` produces NO diagnostic at all.** The lints this rule's own Detection names apply only indirectly and neither reports the absence: SC2148 is a missing shebang, and SC2154 fires on an unset variable, which is a CONSEQUENCE of `-u` being absent rather than a report of it. Apply this rule via the LLM-driven `critic-shell` subagent during `/in-review`, not in the headless pre-commit gate.
 
 ## Bad
 
@@ -109,7 +109,7 @@ Any failure aborts the script immediately. Missing `$1` fails loudly with a mess
 
 - `.bashrc` / `.bash_profile` / interactive shell startup: strict modes break tab-completion handlers, prompt customisations, and unrelated interactive behaviours.
 - Legacy scripts where retrofit would unearth a backlog of unset-var usage. Document the decision, file a ticket, migrate incrementally.
-- Bash 3.x compatibility constraints (macOS default). `-o pipefail` has known edge cases in bash 3.x on some corner inputs; Intent itself uses `set -e` alone and documents why (see `CLAUDE.md` / `MEMORY.md` on bash 3.x constraints).
+- Bash 3.x compatibility constraints (macOS default). `-o pipefail` has known edge cases in bash 3.x on some corner inputs;
 
 ## Further Reading
 

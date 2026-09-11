@@ -69,23 +69,17 @@ ShellCheck: SC2015 (`&&` and `||` mixing pitfall), SC2164 (`cd` without error ha
 
 **DECLARED: NO GREPPABLE PROXY IS AUTHORITATIVE FOR THIS RULE, AND NO TOOL EXISTS EITHER. THIS ROW WAS ARMED FOR ONE HOUR ON 2026-08-19 AND THE MEASUREMENT RETIRED IT.** Both halves are recorded because the reversal is the useful part.
 
-**NO TOOL, DRIVEN**: shellcheck 0.11.0 lints none of this rule's three constructs. SC2015 is `&&`/`||` mixing and SC2164 is `cd` without a check -- **adjacent propositions, not this one** -- and a rule naming a tool that answers a neighbouring question is the standing trap pointed at itself.
+**NO TOOL, DRIVEN**: shellcheck 0.11.0 lints none of this rule's constructs. SC2015 is `&&`/`||` mixing and SC2164 is `cd` without a check -- **adjacent propositions, not this one** -- and a rule naming a tool that answers a neighbouring question is the standing trap pointed at itself.
 
-**SO A PROXY WAS THE ONLY CANDIDATE, AND IT WAS ARMED ON THREE POSITIVE PATTERNS. THEN IT WAS MEASURED ACROSS THE ESTATE, AND THE MEASUREMENT IS THE WHOLE ARGUMENT:**
+**SO A PROXY WAS THE ONLY CANDIDATE, AND IT WAS ARMED ON POSITIVE PATTERNS. THEN IT WAS MEASURED ACROSS THE ESTATE, AND `2>/dev/null` ALONE MATCHED MOST OF ITS SHELL FILES.**
 
-| construct              | hits | files (of 128 shell files)  |
-| ---------------------- | ---- | --------------------------- |
-| `2>/dev/null`          | 395  | **87 -- 68% of the estate** |
-| `\|\| true` / `\|\| :` | 48   | 22                          |
-| `set +e`               | 3    | 2                           |
-
-**ARMING ON THESE MAKES THE GATE REFUSE TWO THIRDS OF EVERY SHELL FILE IN THE PROJECT, ON A CRITICAL RULE, OVER CODE THAT IS CORRECT.** It was not a prediction: the armed version blocked a real commit within the hour and produced **13 findings on one file, all 13 of them deliberate `2>/dev/null` on `git` and `jq` probes where absence is the expected outcome.**
+**ARMING ON THESE MAKES THE GATE REFUSE MOST SHELL FILES IN THE PROJECT, ON A CRITICAL RULE, OVER CODE THAT IS CORRECT.** It was not a prediction: the armed version blocked a real commit within the hour, and **every finding on that file was a deliberate `2>/dev/null` on a `git` or `jq` probe where absence is the expected outcome.**
 
 **THE REASON NO PROXY CAN WORK IS STRUCTURAL AND IS NOT ABOUT REGEX CARE.** This rule's content IS its qualifier -- _`|| true` **without an adjacent comment explaining why**_, _`2>/dev/null` **without `|| handle_error` or a comment**_. The violation is the ABSENCE of a neighbouring justification. A `Greppable proxy` is one `grep` with flag clusters drawn from `{r,n,E}`; **`-A` and `-B` are refused, so the neighbouring line is unreachable by construction.** Every pattern can therefore match the construct and none can evaluate the condition that makes it a defect.
 
-**AND A GATE THAT MUST BE BYPASSED TO WORK IS ONE NOBODY KEEPS** -- this estate's own words, learned from a guard that fired four times in one day on peers' in-flight code and whose author hand-built workarounds four times in one session. Arming here buys one honest-looking green and spends the gate's credibility on 87 files.
+**AND A GATE THAT MUST BE BYPASSED TO WORK IS ONE NOBODY KEEPS** -- this estate's own words, learned from a guard that fired repeatedly in one day on peers' in-flight code and whose author hand-built a workaround each time. Arming here buys one honest-looking green and spends the gate's credibility on most of the estate's shell files.
 
-**THIS IS NOT A RETREAT TO SILENCE, WHICH IS THE DISTINCTION THAT MATTERS AND THE REASON THIS IS NOT A REGRESSION.** Before 2026-08-19 this rule was UNDECLARED: the runner skipped it without asking and without saying so, and `critic shell` returned rc=0 as though the question had been put. A DECLARE-NONE is REPORTED IN NORMAL OUTPUT ON EVERY RUN -- named, counted, and attributed to the `critic-shell` subagent. **Unenforced-and-stated is not invisible; unenforced-and-silent was the founding defect.** Apply this rule via the LLM-driven `critic-shell` subagent during `/in-review`, which can read the adjacent line.
+**THIS IS NOT A RETREAT TO SILENCE, WHICH IS THE DISTINCTION THAT MATTERS AND THE REASON THIS IS NOT A REGRESSION.** Before 2026-08-19 this rule was UNDECLARED: the runner skipped it without asking and without saying so, and `critic shell` returned rc=0 as though the question had been put. A DECLARE-NONE is REPORTED ON EVERY RUN -- counted in the text census as `declared unanswerable`, and named with `"arming": "declared"` in the `--format json` census. **Unenforced-and-stated is not invisible; unenforced-and-silent was the founding defect.** Apply this rule via the LLM-driven `critic-shell` subagent during `/in-review`, which can read the adjacent line.
 
 ## Bad
 

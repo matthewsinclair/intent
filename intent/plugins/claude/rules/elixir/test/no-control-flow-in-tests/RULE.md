@@ -40,7 +40,7 @@ A test with an `if` inside it is two tests pretending to be one. The reader cann
 
 ## Problem
 
-Four failure modes:
+Failure modes:
 
 1. **Silent branch skip.** `if success?, do: assert_success(), else: assert_failure()` passes when `success?` is wrong — because the else branch quietly asserts the wrong contract. The test is green; the behaviour is broken.
 2. **Unclear failure message.** When an `if` test fails, the stack trace says "line 47 of test_x.exs, in the `else` branch". You have to re-read the test to work out what branch was taken. A split pair of tests gives you the branch name in the test name.
@@ -58,7 +58,7 @@ Signals:
 - `try/rescue` inside a test body (almost always hiding a missing `assert_raise/2`).
 - `case result do; {:ok, v} -> assert v == x; _ -> flunk("expected ok") end` — should be `assert {:ok, ^x} = result`.
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
+Greppable proxy (the headless `intent critic elixir` runner, which is the pre-commit gate, reports every matching line in a file `applies_to` admits as a finding at this rule's severity; only the `critic-elixir` subagent confirms by reading the body):
 
 ```bash
 grep -rnE '^[[:space:]]+(if|unless|case|cond) ' test/

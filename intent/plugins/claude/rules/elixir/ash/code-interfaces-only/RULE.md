@@ -43,7 +43,7 @@ Ash gives you a clean, generated API per domain action. Calling `Ash.get!/2` or 
 
 ## Problem
 
-Three failure modes when web modules call `Ash.*` directly:
+Failure modes when web modules call `Ash.*` directly:
 
 1. **Policy bypasses creep in.** A LiveView written in a hurry does `Ash.get!(Post, id)` without an actor. Policy never runs. The feature ships; six months later someone finds that unauthenticated users can view draft posts.
 2. **Query composition duplicates.** Web modules build their own `Ash.Query.filter(...)` pipelines. The same "active, published, not-deleted" filter appears in the LiveView, the controller, and the admin dashboard — each slightly different. The domain had a code interface that did exactly this; nobody found it.

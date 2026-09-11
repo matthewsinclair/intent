@@ -3,7 +3,7 @@ id: IN-EX-LV-003
 language: elixir
 category: lv
 severity: warning
-title: Thin LiveViews — delegate domain logic to the domain
+title: Thin LiveViews -- delegate domain logic to the domain
 summary: >
   LiveViews are coordinators. They assign state, dispatch events to domain
   functions, and update assigns from the result. No business logic, no
@@ -35,13 +35,13 @@ status: active
 version: 1
 ---
 
-# Thin LiveViews
+# Thin LiveViews -- delegate domain logic to the domain
 
 A LiveView is an HTTP controller with a socket. Everything that was true of `IN-EX-PHX-001` for controllers — parse, call, shape — is true here, with one addition: LiveViews also hold per-session state and react to events. That does not make them a home for business logic; it makes them the _coordinator_ that has more state to juggle. The domain is still where the logic lives.
 
 ## Problem
 
-Three failure modes when LiveViews fatten:
+Failure modes when LiveViews fatten:
 
 1. **Domain logic invisible to non-LiveView callers.** A `handle_event("publish", ...)` that computes "is this publishable?" inline duplicates logic that Oban workers, controllers, and mix tasks all need. The workaround is usually copy-paste. The rule ends up in three places.
 2. **Untestable via LiveViewTest.** Business logic inside `handle_event/3` can only be tested by simulating the event. The same logic as a domain function is testable by calling it directly, with real inputs and real expected outputs.
@@ -59,7 +59,7 @@ Signals:
 - Data transformation (group-by, pivot, percentile) in the LiveView's helpers.
 - `Repo.*` or `Ash.*` calls outside a domain wrapper (see `IN-EX-ASH-001`).
 
-**No greppable proxy is authoritative for this rule.** The signal — "a `handle_event/3` longer than ~15 lines, or `Repo.*` / `Ash.*` calls outside a domain wrapper" — requires line-counting state machines (awk) the headless mechanical runner deliberately rejects. The reliable structural signal is "would an Oban worker or a controller need this same logic?" Apply this rule via the LLM-driven `critic-elixir` subagent during `/in-review`, not in the headless pre-commit gate.
+**No greppable proxy is authoritative for this rule.** The signal — "a `handle_event/3` longer than ~10 lines, or `Repo.*` / `Ash.*` calls outside a domain wrapper" — requires line-counting state machines (awk) the headless mechanical runner deliberately rejects. The reliable structural signal is "would an Oban worker or a controller need this same logic?" Apply this rule via the LLM-driven `critic-elixir` subagent during `/in-review`, not in the headless pre-commit gate.
 
 ## Bad
 
@@ -84,7 +84,7 @@ def handle_event("publish", %{"id" => id}, socket) do
 end
 ```
 
-Five concerns inline: read, validate, update, notify, track. A mix task needing to publish posts cannot reuse any of this.
+Concerns inline: read, validate, update, notify, track. A mix task needing to publish posts cannot reuse any of this.
 
 ## Good
 
@@ -103,7 +103,7 @@ def handle_event("publish", %{"id" => id}, socket) do
 end
 ```
 
-The handler is four lines of coordination. `MyApp.Content.publish_post/2` does validation, update, notification, and analytics — and any Oban worker or mix task can call it.
+The handler is coordination only. `MyApp.Content.publish_post/2` does validation, update, notification, and analytics — and any Oban worker or mix task can call it.
 
 ## When This Applies
 

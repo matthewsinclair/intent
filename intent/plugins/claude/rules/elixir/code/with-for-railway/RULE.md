@@ -44,7 +44,7 @@ Nested `case` blocks over `{:ok, _}` / `{:error, _}` are the Elixir version of a
 
 ## Problem
 
-Three failure modes without `with`:
+Failure modes without `with`:
 
 1. **Pyramid of doom.** Three nested `case` blocks means three levels of indentation, three `error -> error` forwarders, and a happy path buried at the bottom. A reader has to traverse the whole pyramid to see what the function actually does.
 2. **`else` clauses become an error-handling spec.** `with ... else` is tempting for aggregating every possible error, but the result is a long `else` block where each step's errors are re-mapped. That `else` becomes a second decision tree the reader must hold alongside the main one.
@@ -61,7 +61,7 @@ Signals:
 - A function body with "step 1 / step 2 / step 3" comments indicating sequential operations.
 - `with ... else` blocks with more than two clauses, often remapping the same `{:error, _}` into a normalised form.
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
+Greppable proxy (the headless `intent critic elixir` runner, which is the pre-commit gate, reports every matching line in a file `applies_to` admits as a finding at this rule's severity; only the `critic-elixir` subagent confirms by reading the body):
 
 ```bash
 grep -rnE '^[[:space:]]+error -> error$' lib/
@@ -90,7 +90,7 @@ def create_order(params) do
 end
 ```
 
-Three levels of nesting; the happy path (`{:ok, order}`) is buried 4 levels deep; two `error -> error` forwarders add noise.
+Each nested `case` adds a level and an `error -> error` forwarder, and the happy path (`{:ok, order}`) sits at the deepest level.
 
 ## Good
 
@@ -106,7 +106,7 @@ def create_order(params) do
 end
 ```
 
-Three bindings, one happy-path result. Any `{:error, _}` short-circuits. No `else` needed — the error shape flows through unchanged.
+Any `{:error, _}` short-circuits. No `else` needed — the error shape flows through unchanged.
 
 When error normalisation is needed, push it into each step rather than into `else`:
 

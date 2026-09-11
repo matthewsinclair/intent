@@ -41,7 +41,7 @@ Bare return values hide failure. A function that returns `nil` on "not found" fo
 
 ## Problem
 
-Three failure modes when fallible functions return bare values:
+Failure modes when fallible functions return bare values:
 
 1. **`nil` means two things.** `Repo.get(User, id)` returns `nil` for "no user with that id" and also for "the database was unreachable, the adapter swallowed the error, and we got nothing back". Callers cannot tell the difference. Bugs are silent.
 2. **Callers forget to check.** A function that returns `nil | value` invites callers to use the value directly — `user = find_user(id); user.email` — and crash three lines later with `** (KeyError) key :email not found in: nil`. The crash is far from the cause.

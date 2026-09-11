@@ -58,7 +58,7 @@ Clippy lints: `clippy::needless_lifetimes`, `clippy::extra_unused_lifetimes`.
 
 **TOOL-ARMED: clippy -- `needless_lifetimes` and `extra_unused_lifetimes`, BOTH in `clippy::all`.** On by default; nothing to enable, no group to opt into, no flag to pass. The cheapest arm in either pack.
 
-**THE PROBE THAT FOUND THESE WAS WRONG FIRST, AND THE WAY IT WAS WRONG IS WORTH MORE THAN THE RESULT.** `clippy --help`'s lint listing spells its lints HYPHENATED (`clippy::needless-lifetimes`); the probe used underscores and reported **seven of eight lints ABSENT from a list of 825 entries**. A near-total miss, produced by an instrument measuring its own vocabulary rather than the tool's. It was caught only because `clippy::panic` DID match, and one hit among eight is not a pattern anybody should believe. **The declarations above use the UNDERSCORED form, which is what the attribute and `-W` flag take; the hyphenated form is what the listing prints. Both name the same lint, and a grep that does not know this returns a confident zero.**
+**THE PROBE THAT FOUND THESE WAS WRONG FIRST, AND THE WAY IT WAS WRONG IS WORTH MORE THAN THE RESULT.** `clippy --help`'s lint listing spells its lints HYPHENATED (`clippy::needless-lifetimes`); the probe used underscores and reported **nearly every lint ABSENT from the listing**. A near-total miss, produced by an instrument measuring its own vocabulary rather than the tool's. It was caught only because `clippy::panic` DID match, and a lone hit is not a pattern anybody should believe. **The declarations above use the UNDERSCORED form, which is what the attribute and `-W` flag take; the hyphenated form is what the listing prints. Both name the same lint, and a grep that does not know this returns a confident zero.**
 
 **Context is `workspace`: `cargo clippy` is a whole-workspace compile and does not belong in a per-file gate.** Reported as ARMED but NOT RUN HERE, never as clean.
 
@@ -105,7 +105,7 @@ Same signatures, same behaviour, no lifetime clutter. When readers encounter `<'
 - Signatures with two input references and a reference output where the output lifetime matches a specific input. The compiler cannot elide this; you must write `fn min<'a>(a: &'a T, b: &'a T) -> &'a T`.
 - Structs carrying references in fields: these _must_ be parameterised (`struct Parser<'input>`).
 - Cases where the relationship between lifetimes is part of the public contract and worth naming for clarity, even if the compiler would elide.
-- Teaching examples in `intent/plugins/claude/rules/**` (rule fixtures) and `tests/fixtures/critics/rust/**` (critic test inputs). These files often carry deliberate explicit lifetimes as a contrast against an adjacent `bad.rs` or to exercise Detection on a clean target; do not flag them.
+- Teaching examples: the `## Bad` / `## Good` blocks in `intent/plugins/claude/rules/**` and the critic test inputs under `tests/fixtures/critics/rust/**`, whose `would-miss/clean.rs` carries a deliberate explicit lifetime to exercise Detection on a clean target; do not flag them.
 
 ## Further Reading
 

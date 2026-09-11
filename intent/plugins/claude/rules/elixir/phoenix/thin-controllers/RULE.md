@@ -41,7 +41,7 @@ A controller action is a shell: read the request, call the domain, render the re
 
 ## Problem
 
-Three failure modes when controllers fatten:
+Failure modes when controllers fatten:
 
 1. **Invisible business logic.** A controller that computes "is this post publishable?" inline means that a non-controller caller (Oban worker, CLI, GraphQL) has to re-compute it. Two copies of the rule; two places to fix when the rule changes.
 2. **Policy duplication.** A controller that checks `if user.role == :admin do ...` before calling the domain either duplicates Ash policies (if the domain has them) or installs policies in the wrong place (if it doesn't). Ash policies live on the resource; if the controller is doing authorisation, the policy is wrong or missing.
@@ -60,7 +60,7 @@ Signals:
 - Computed values (totals, filters, derived state) being built in the controller before rendering.
 - A controller's `create/2` action that wraps `Accounts.register_user/1` with validation, geocoding, email-dispatch, and analytics — that is five concerns, not one.
 
-**No greppable proxy is authoritative for this rule.** The signal — "a controller action longer than ~20 lines" — requires line-counting state machines (awk) the headless mechanical runner deliberately rejects. The reliable structural signal is "would a non-HTTP caller (Oban, CLI, GraphQL) need this logic too?" Apply this rule via the LLM-driven `critic-elixir` subagent during `/in-review`, not in the headless pre-commit gate.
+**No greppable proxy is authoritative for this rule.** The signal — "a controller action longer than ~15 lines" — requires line-counting state machines (awk) the headless mechanical runner deliberately rejects. The reliable structural signal is "would a non-HTTP caller (Oban, CLI, GraphQL) need this logic too?" Apply this rule via the LLM-driven `critic-elixir` subagent during `/in-review`, not in the headless pre-commit gate.
 
 ## Bad
 
@@ -87,7 +87,7 @@ def create(conn, %{"order" => params}) do
 end
 ```
 
-Five concerns in one action: validation, payment, persistence, notification, analytics. None of these is HTTP-specific.
+Concerns in one action: validation, payment, persistence, notification, analytics. None of these is HTTP-specific.
 
 ## Good
 

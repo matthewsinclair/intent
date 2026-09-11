@@ -34,13 +34,13 @@ status: active
 version: 1
 ---
 
-# Module-level Highlander
+# Module-level Highlander (one canonical home per concern)
 
 "There can be only one." A concern belongs to one module, and that module is where everybody goes to get it. Email-address validation lives in one place. The ISO 8601 date formatter lives in one place. The "is this order cancellable?" predicate lives in one place. When the rule changes, you change it once and every caller gets the new behaviour.
 
 ## Problem
 
-Three failure modes when Highlander is broken:
+Failure modes when Highlander is broken:
 
 1. **Divergent copies.** `AccountsModule` validates emails with one regex; `WebhooksModule` validates them with a slightly different one. A user with `+tag@example.com` passes one and fails the other. Nobody realises until a customer reports missing notifications.
 2. **Fix-in-one-only.** A bug is discovered in the email regex. Someone fixes it in `AccountsModule`. The `WebhooksModule` copy stays broken for six months because nobody grep'd for "email_regex" across the tree.
@@ -76,7 +76,7 @@ defmodule Webhooks do
 end
 ```
 
-Two modules, two slightly-different regexes, two versions of "valid email".
+Each module carries its own slightly-different regex, so "valid email" has a version per module.
 
 ## Good
 
@@ -105,7 +105,7 @@ defmodule Webhooks do
 end
 ```
 
-One regex, one module, two callers. Fixing the regex updates both callers automatically.
+One regex, one module, every caller routed through it. Fixing the regex updates both callers automatically.
 
 ## When This Applies
 

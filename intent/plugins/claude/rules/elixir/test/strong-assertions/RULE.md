@@ -43,7 +43,7 @@ Tests that assert shape without asserting value let real bugs through while appe
 
 A passing test should be evidence that the function under test behaves as specified. Shape assertions like `assert is_struct(result, User)` or `refute is_nil(result)` degrade that evidence to "the function returned something that looks roughly like a User." Any bug that leaves the shape intact but corrupts the content slips through.
 
-Three failure modes recur:
+Failure modes that recur:
 
 1. **Silent regressions.** A change swaps `role: :admin` for `role: :viewer` in a default. Every shape-based test still passes. The bug ships.
 2. **False coverage.** The test suite size grows, but the mean information-per-test falls. Reviewers glance at the assertion, see `assert is_struct/2`, and assume the test is doing work.
@@ -63,13 +63,13 @@ Signals:
 - `refute is_nil(x)` as the sole assertion on a function result.
 - `assert match?(%Mod{}, x)` with `_` field patterns or no field patterns at all — the wildcard version is equivalent to `is_struct/2`.
 
-Greppable proxy (not authoritative; Critic must confirm by reading surrounding context):
+Greppable proxy (the headless `intent critic elixir` runner, which is the pre-commit gate, reports every matching line in a file `applies_to` admits as a finding at this rule's severity; only the `critic-elixir` subagent confirms by reading the surrounding context):
 
 ```bash
 grep -rnE 'assert is_struct|assert is_map|assert is_list|refute is_nil' test/
 ```
 
-A Critic subagent confirms by reading the test body and checking whether any subsequent line constrains the actual value.
+The `critic-elixir` subagent confirms by reading the test body and checking whether any subsequent line constrains the actual value; the headless runner does not.
 
 ## Bad
 
@@ -84,7 +84,7 @@ test "fetch/1 returns a user" do
 end
 ```
 
-All three assertions pass when `role: :banned` replaces the expected `:viewer`. The test name promises "returns a user," and the assertions only verify "returned a struct of the right module."
+Every assertion passes when `role: :banned` replaces the expected `:viewer`. The test name promises "returns a user," and the assertions only verify "returned a struct of the right module."
 
 ## Good
 

@@ -39,7 +39,7 @@ A LiveView that assigns a list of 500 messages re-sends the full list to the cli
 
 ## Problem
 
-Three failure modes with full-list assigns:
+Failure modes with full-list assigns:
 
 1. **O(n) diffs on every append.** LiveView's default diffing sees the assign as changed and re-sends the full list. 500 messages × a few KB each = multi-megabyte delta for one new message.
 2. **Memory grows on the server.** Every socket holds every message it has ever seen. A long-lived LiveView tab with 10,000 messages holds 10,000 items in GenServer state per connected user.
@@ -56,7 +56,7 @@ Signals:
 - Template loops on `@messages` where `@messages` comes from a growing assign.
 - PubSub handlers that prepend/append to a list assign.
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
+Greppable proxy (the headless `intent critic elixir` runner, which is the pre-commit gate, reports every matching line in a file `applies_to` admits as a finding at this rule's severity; only the `critic-elixir` subagent confirms by reading the body):
 
 ```bash
 grep -rnE 'update\([^,]+,[[:space:]]*:(messages|posts|items|events)' lib/**/live/

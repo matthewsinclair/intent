@@ -44,7 +44,7 @@ version: 1
 
 ## Problem
 
-Three failure modes with sequential-by-default:
+Failure modes with sequential-by-default:
 
 1. **Hidden coupling compounds.** Tests that share a named process, an ETS table, or a global env var pass individually and pass together in the current order. Change the order, the suite breaks. Add a test, the suite breaks. The fix is no longer "add `async: true`" — it is a refactor across many files.
 2. **Slow suites train impatience.** A 40-second sequential suite that could be 6 seconds trains developers to not run it locally. Regressions slip into PRs; CI becomes the primary test runner; feedback lag grows.
@@ -117,6 +117,6 @@ A good test: "would two copies of this test running simultaneously interfere?" I
 
 ## Further Reading
 
-- [elixir-test-critic upstream rule](https://github.com/iautom8things/elixir-test-critic/blob/main/rules/core/async-by-default/RULE.md) — `ETC-CORE-001`, the upstream source for this rule.
+- [elixir-test-critic upstream rule](https://github.com/iautom8things/elixir-test-critic/blob/1d9aa40700dab7370b4abd338ce11b922e914b14/rules/core/async-by-default/RULE.md) — `ETC-CORE-001`, the upstream source for this rule.
 - [ExUnit.Case — `async` option](https://hexdocs.pm/ex_unit/ExUnit.Case.html) — language reference.
 - [Mox docs — `set_mox_from_context/1`](https://hexdocs.pm/mox/Mox.html#set_mox_from_context/1) — how to keep Mox tests async.

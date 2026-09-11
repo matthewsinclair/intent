@@ -1,7 +1,7 @@
 # EXPECTED: passes
 # BAD PRACTICE: nested `case` blocks over tagged tuples instead of `with`.
 #   The Critic subagent (critic-elixir, mode code) detects this by reading the
-#   source — three levels of nesting with `error -> error` forwarders. Elixir
+#   source — nested `case` levels with `error -> error` forwarders. Elixir
 #   runs the code fine; the antipattern is that the happy path is buried deep
 #   and every new fallible step adds another indent and another forwarder.
 Mix.install([])

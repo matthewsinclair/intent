@@ -3,7 +3,7 @@ id: IN-EX-TEST-007
 language: elixir
 category: test
 severity: warning
-title: Highlander Rule for tests — shared setup and fixtures
+title: Highlander Rule for tests -- shared setup and fixtures
 summary: >
   No duplicated setup or assertion patterns across tests. Common preconditions
   go in a `setup` block. Repeated fixture-creation expressions go in
@@ -37,13 +37,13 @@ status: active
 version: 1
 ---
 
-# Highlander Rule for tests — shared setup and fixtures
+# Highlander Rule for tests -- shared setup and fixtures
 
 "There can be only one" applies to tests too. A user-registration fixture, an authenticated-conn setup, an admin-role factory — each belongs in one place. Duplicating them across test files guarantees drift: someone adds a `:role` column, updates the fixture in `accounts_test.exs`, and three other test files are now using the outdated version.
 
 ## Problem
 
-Three failure modes when test setup is duplicated:
+Failure modes when test setup is duplicated:
 
 1. **Fixture drift.** `user_fixture/1` is defined in `accounts_test.exs` and re-defined in `posts_test.exs` with slightly different defaults. A model change updates one; the other keeps returning the old shape. Tests pass; the integration path is untested.
 2. **Hard-coded identity collisions.** `user_fixture/0` that always creates `%{email: "alice@test.com"}` deadlocks in `async: true` runs — two tests try to insert the same unique key; one fails. The fix is not "add `async: false`"; it is `System.unique_integer/1` in the fixture.
@@ -60,7 +60,7 @@ Signals:
 - Hard-coded email/slug/token values that will collide under concurrent inserts.
 - A test module with 5+ tests where the first 3 lines of each test are identical.
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
+Greppable proxy (the headless `intent critic elixir` runner, which is the pre-commit gate, reports every matching line in a file `applies_to` admits as a finding at this rule's severity; only the `critic-elixir` subagent confirms by reading the body):
 
 ```bash
 grep -rn 'def user_fixture' test/
@@ -89,7 +89,7 @@ test "success: admin can view users" do
 end
 ```
 
-Four lines duplicated; hard-coded `admin@test.com` collides in async; each test re-does the login before getting to the assertion of interest.
+Setup lines duplicated; hard-coded `admin@test.com` collides in async; each test re-does the login before getting to the assertion of interest.
 
 ## Good
 
@@ -124,7 +124,7 @@ The shared precondition runs once per test via `setup`. Each test body is the va
 ## When This Does Not Apply
 
 - **One-off tests.** A single isolated test whose setup is genuinely bespoke. Extraction would hurt clarity.
-- **Variation testing.** If the setup varies per test to exercise a specific branch (e.g. `setup do %{role: :admin} end` vs `setup do %{role: :user} end` across describes), the variance is the point — extract the _parts_ that stay the same, not the whole thing.
+- **Variation testing.** If the setup varies per test to exercise a specific branch (eg `setup do %{role: :admin} end` vs `setup do %{role: :user} end` across describes), the variance is the point — extract the _parts_ that stay the same, not the whole thing.
 - **Trivial one-liners.** `assert html =~ "Dashboard"` once per test is not "duplication" in any meaningful sense. Extract only when the boilerplate exceeds the variation.
 
 A good test: "if the shared setup changed, would I have to edit more than one place?" If yes, extract.

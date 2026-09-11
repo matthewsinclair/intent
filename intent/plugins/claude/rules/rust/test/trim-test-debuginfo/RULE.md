@@ -42,7 +42,7 @@ Two keys, one per repo, and the second one buys back information the first chang
 
 **Debuginfo.** Cargo's default `dev` profile is `debug = true` -- full debuginfo, emitted and linked into every test binary. `cargo test` inherits `dev`, so **one key at the workspace root reaches every test target** rather than needing a `[profile.test]` beside it. `line-tables-only` keeps the file and line a person actually reads off a failure and drops the type and variable detail only a debugger consumes.
 
-**Fail-fast, and this is the half that gets forgotten.** With one target per file, a bare `cargo test` reported every failing target. **After consolidation the first failure hides all the others** -- Lamplight turned 17 independently-failing targets into one and lost sixteen reports. **You do not lose a flag's benefit by omitting it; you lose CI information you previously had.** Add `--no-fail-fast` in the same change as `autotests = false`, not after.
+**Fail-fast, and this is the half that gets forgotten.** With one target per file, a bare `cargo test` reported every failing target. **After consolidation the first failure hides all the others** -- Lamplight's consolidation lost every failing-target report after the first. **You do not lose a flag's benefit by omitting it; you lose CI information you previously had.** Add `--no-fail-fast` in the same change as `autotests = false`, not after.
 
 **It is not only a consolidation artefact.** Cargo stops after the first failing target, so the mechanism bites at two targets and worsens with every crate added. A workspace with a lib and a bin already has it.
 
@@ -96,5 +96,5 @@ debug = "line-tables-only"
 
 ## Further Reading
 
-- `intent/docs/notes/tn001-one-test-target-per-crate.md` -- part 4, and Lamplight's measured sixteen lost reports.
+- `intent/docs/notes/tn001-one-test-target-per-crate.md` -- part 4, and the reports Lamplight lost to fail-fast.
 - The cargo book, profile inheritance and `[profile.dev]`.

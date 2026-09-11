@@ -42,7 +42,7 @@ version: 1
 
 ## Problem
 
-Three failure modes when tests leak processes:
+Failure modes when tests leak processes:
 
 1. **Name collisions.** Two tests start a GenServer with the same registered name. The second test crashes with `{:error, {:already_started, pid}}` — or worse, reuses the leftover process and the test's assumptions about initial state silently fail.
 2. **Ghost state.** A leftover ETS-backed Agent accumulates data across tests. The failing test is not the one that started the process; diagnosis takes hours.
@@ -109,6 +109,6 @@ A good test: "if this process is still alive after this test returns, is that a 
 
 ## Further Reading
 
-- [elixir-test-critic upstream rule](https://github.com/iautom8things/elixir-test-critic/blob/main/rules/core/start-supervised/RULE.md) — `ETC-CORE-006`, the upstream source for this rule.
+- [elixir-test-critic upstream rule](https://github.com/iautom8things/elixir-test-critic/blob/1d9aa40700dab7370b4abd338ce11b922e914b14/rules/core/start-supervised/RULE.md) — `ETC-CORE-006`, the upstream source for this rule.
 - [ExUnit.Callbacks — `start_supervised/2`](https://hexdocs.pm/ex_unit/ExUnit.Callbacks.html#start_supervised/2) — the runtime-option variant.
 - [ExUnit.Callbacks — `start_supervised!/2`](https://hexdocs.pm/ex_unit/ExUnit.Callbacks.html#start_supervised!/2) — the bang variant that raises on failure (almost always what you want).

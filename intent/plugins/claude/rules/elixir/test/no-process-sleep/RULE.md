@@ -41,7 +41,7 @@ version: 1
 
 ## Problem
 
-Two failure modes, both inevitable at scale:
+Failure modes, each inevitable at scale:
 
 1. **Too short.** The sleep was tuned on the author's machine. CI runs hotter, or slower, or under load. The async operation has not completed when the assertion fires. The failure is intermittent and non-reproducible locally. Nobody believes it; a `retry` badge appears in CI config; the next flake is ignored by default.
 2. **Too long.** The sleep is padded to make flakiness go away. Every test run now wastes the padded duration on every machine, regardless of actual work time. Fifty such tests sleeping 100ms each add five seconds to the suite — pure waste.
@@ -57,11 +57,13 @@ Signals:
 - `Process.sleep` followed by `assert_received`
 - A comment above a sleep saying "wait for the GenServer" or "let it process"
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
+Greppable proxy (the headless `intent critic elixir` runner, which is the pre-commit gate, reports every matching line in a file `applies_to` admits as a finding at this rule's severity; only the `critic-elixir` subagent confirms by reading the body):
 
 ```bash
 grep -rnE 'Process\.sleep\(' test/
 ```
+
+The headless runner applies only the quoted pattern, and only to files `applies_to` admits (`test/**/*_test.exs`), so a sleep inside a `test/support/` helper reaches the `critic-elixir` subagent and never the pre-commit gate.
 
 The reliable structural signal is "is this sleep trying to synchronise with work happening elsewhere?" If yes, replace it with an explicit synchronisation mechanism.
 
@@ -117,6 +119,6 @@ A good test: "is the sleep there because I want to observe what happens after so
 
 ## Further Reading
 
-- [elixir-test-critic upstream rule](https://github.com/iautom8things/elixir-test-critic/blob/main/rules/core/no-process-sleep/RULE.md) — `ETC-CORE-005`, the upstream source for this rule.
+- [elixir-test-critic upstream rule](https://github.com/iautom8things/elixir-test-critic/blob/1d9aa40700dab7370b4abd338ce11b922e914b14/rules/core/no-process-sleep/RULE.md) — `ETC-CORE-005`, the upstream source for this rule.
 - [ExUnit.Assertions — `assert_receive/3`](https://hexdocs.pm/ex_unit/ExUnit.Assertions.html#assert_receive/3) — the explicit-synchronisation replacement.
 - [Saša Jurić — "The Soul of Erlang and Elixir"](https://www.youtube.com/watch?v=JvBT4XBdoUE) — the canonical synchronisation-patterns talk.

@@ -41,11 +41,11 @@ Cargo's default is one linked binary per test file. Nothing warns you, and it gr
 
 ## Problem
 
-Under `autotests = true` -- the default, in force whenever the key is absent -- **every `.rs` file directly under a crate's `tests/` directory becomes its own cargo target.** Each is a separate compile and a separate FULL LINK against the crate and its whole dependency graph. A crate with 166 test files links 166 binaries to run its tests.
+Under `autotests = true` -- the default, in force whenever the key is absent -- **every `.rs` file directly under a crate's `tests/` directory becomes its own cargo target.** Each is a separate compile and a separate FULL LINK against the crate and its whole dependency graph.
 
 It is invisible in the output, it is nobody's decision, and it is paid on every `cargo test`.
 
-The fix is three lines in the manifest plus a `tests/suite.rs` whose members are `#[path]` module declarations. **Use `#[path]` so that NO FILE MOVES**: relocating tests under `tests/suite/` breaks every acceptance-test row citing a test by path, and on a published release there may be no verb that retargets a row's file.
+The fix is `autotests = false` and a declared `[[test]]` target in the manifest, plus a `tests/suite.rs` whose members are `#[path]` module declarations. **Use `#[path]` so that NO FILE MOVES**: relocating tests under `tests/suite/` breaks every acceptance-test row citing a test by path, and on a published release there may be no verb that retargets a row's file.
 
 **TURNING DISCOVERY OFF INVERTS THE FAILURE RATHER THAN REMOVING IT.** Before, a stray `tests/quick.rs` silently became another target. After, a stray `tests/quick.rs` silently becomes NOTHING -- not compiled, not run, not reported. **Both are silent; only the second loses coverage somebody believed they had.** So `autotests = false` ships with an orphan guard or it does not ship.
 
@@ -66,7 +66,7 @@ Static signals:
 ## Bad
 
 ```toml
-# crates/mycrate/Cargo.toml -- 17 files under tests/, 17 linked binaries
+# crates/mycrate/Cargo.toml -- one linked binary per file under tests/
 [package]
 name = "mycrate"
 ```

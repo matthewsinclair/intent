@@ -42,7 +42,7 @@ Elixir's "let it crash" philosophy requires that failures be _visible_ — to th
 
 ## Problem
 
-Four failure modes:
+Failure modes:
 
 1. **`try/rescue _ -> :ok`.** Rescuing the raised exception, discarding it, and returning `:ok` turns every crash into a no-op success. The call looks clean in production logs; the bug surfaces days later as missing data.
 2. **Partial pattern match.** `{:ok, _} = risky_call()` crashes loudly when the call returns `{:error, _}`, which is often what you want. But `case risky_call() do; {:ok, v} -> v; _ -> nil end` silently swallows every error and converts it to `nil`, joining the family of "`nil` means two things".
@@ -62,7 +62,7 @@ Signals:
 - `{:ok, _} = call()` in contexts where you can argue the right behaviour is "return an error tuple", not "crash the process" (a harder one — Critic flags for review)
 - `try do ... rescue _ -> ... end` where the rescue branch does not log, inspect, or re-tag the exception
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
+Greppable proxy (the headless `intent critic elixir` runner, which is the pre-commit gate, reports every matching line in a file `applies_to` admits as a finding at this rule's severity; only the `critic-elixir` subagent confirms by reading the body):
 
 ```bash
 grep -rnE 'rescue _ -> (\:ok|nil)' lib/

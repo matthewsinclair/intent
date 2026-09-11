@@ -1,6 +1,6 @@
 # EXPECTED: passes
 #   Demonstrates the GOOD pattern for IN-EX-CODE-004 (with-for-railway):
-#   three fallible steps composed with `with`. The happy path reads top-to-
+#   fallible steps composed with `with`. The happy path reads top-to-
 #   bottom; any `{:error, _}` short-circuits and is returned as-is.
 Mix.install([])
 

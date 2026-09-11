@@ -3,7 +3,7 @@ id: IN-EX-LV-001
 language: elixir
 category: lv
 severity: critical
-title: Two-phase LiveView mount — guard async work with `connected?/1`
+title: Two-phase LiveView mount -- guard async work with `connected?/1`
 summary: >
   `mount/3` is called twice: once for the static HTML render (disconnected),
   once for the WebSocket (connected). Never subscribe to PubSub, start timers,
@@ -19,7 +19,7 @@ applies_when:
 applies_to:
   - "lib/**/live/**/*.ex"
 does_not_apply_when:
-  - "Idempotent, cheap mount-time work (e.g. assigning derived values from params)"
+  - "Idempotent, cheap mount-time work (eg assigning derived values from params)"
   - "Operations that deliberately need to run on both disconnected and connected mounts (rare)"
 references: []
 related_rules:
@@ -34,13 +34,13 @@ status: active
 version: 1
 ---
 
-# Two-phase LiveView mount
+# Two-phase LiveView mount -- guard async work with `connected?/1`
 
 Every LiveView mounts twice. First, Phoenix renders the static HTML server-side to bootstrap the page — that is disconnected mount, no socket, no live process. Then the client opens a WebSocket and LiveView mounts again — that is connected mount, the one where subscriptions and timers make sense. Doing WebSocket-only work in the disconnected mount double-subscribes, double-spawns, and leaks processes.
 
 ## Problem
 
-Three failure modes when disconnected mount does WebSocket-only work:
+Failure modes when disconnected mount does WebSocket-only work:
 
 1. **Double subscription.** `Phoenix.PubSub.subscribe(...)` runs in the disconnected mount, but that process exits when the static render completes. The connected mount subscribes again. Now there is an unowned subscription from the disconnected phase that the system does not know to clean up — though in practice the process termination clears it, the double work is wasteful.
 2. **Leaked timers and tasks.** `Process.send_after(self(), :tick, 1000)` in the disconnected mount sends a message to a process that is about to exit. The message is lost, and if the author assumed a tick would arrive for the first render, the UI is wrong for a frame.

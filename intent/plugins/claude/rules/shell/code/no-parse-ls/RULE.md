@@ -66,7 +66,9 @@ Static signals:
 
 ShellCheck: SC2012.
 
-**TOOL-ARMED: shellcheck, SC2012 -- _"Use find instead of ls to better handle non-alphanumeric filenames"_, which is this rule stated by the tool.**
+**TOOL-ARMED: shellcheck, SC2012 -- _"Use find instead of ls to better handle non-alphanumeric filenames"_, which covers the `ls | ...` pipe and `$(ls ...)` substitution forms.** shellcheck reports the other signals above under codes this rule does not claim -- `for ... in $(ls ...)` is SC2045, `ls | xargs` SC2011, `ls | grep` SC2010 -- so the headless run does not report them.
+
+**shellcheck refuses zsh** (SC1071, recorded in IN-SH-CODE-004), and on a `.zsh` file the headless census still reports this rule `ran` with no findings, so a zsh file is never checked by it. Apply it to zsh via the `critic-shell` subagent during `/in-review`.
 
 **IT WAS THE ONE CLEAN GREP ARM IN THIS PACK AND THE NAMED-TOOL RULING UPGRADES IT, WHICH IS THE PART WORTH RECORDING.** A `grep` for `ls` is a token match: it fires on `ls` inside a comment, inside a string, and on any word ending in those two letters, and no amount of regex care removes that because a regex has no grammar. **shellcheck parses, so it fires on the COMMAND and not on the letters.** The prediction made before this partition was re-derived did not consider that a named tool improves an ALREADY-ARMED rule; it does, and this is the row that proved it.
 

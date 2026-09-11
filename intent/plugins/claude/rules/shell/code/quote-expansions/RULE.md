@@ -64,9 +64,11 @@ Static signals:
 
 Linters: `shellcheck` flags these with SC2086, SC2046, SC2206, SC2068.
 
-**TOOL-ARMED: shellcheck. This rule's four static signals ARE four shellcheck codes -- not neighbours of them, which is the test that matters and the one two other rules in this pack fail.** SC2086 (unquoted expansion), SC2046 (unquoted command substitution), SC2206 (unquoted array assignment) and SC2068 (unquoted array expansion) each answer one of the signals above, in the tool's own words. **Driven against shellcheck 0.11.0 on a fixture: SC2086 x2, SC2206, SC2068.** A parser reads the shell grammar, so it does not fire inside a comment, a single-quoted string, or a heredoc -- which a regex cannot avoid, and which is why this rule is armed on a tool rather than on a proxy.
+**TOOL-ARMED: shellcheck. This rule's static signals ARE shellcheck codes -- not neighbours of them, which is the test that matters and the one other rules in this pack fail.** SC2086 (unquoted expansion), SC2046 (unquoted command substitution), SC2206 (unquoted array assignment) and SC2068 (unquoted array expansion) each answer one of the signals above, in the tool's own words. **Driven against shellcheck 0.11.0 on a fixture: SC2086, SC2206 and SC2068 each fired.** A parser reads the shell grammar, so it does not fire inside a comment, a single-quoted string, or a heredoc -- which a regex cannot avoid, and which is why this rule is armed on a tool rather than on a proxy.
 
-**THE RULE NAMES WHICH TOOL AND WHICH DIAGNOSTICS. THE RUNNER OWNS HOW IT IS INVOKED, IN THE RUNNER'S OWN CODE.** No flag appears here. A rule file that supplied one would be a rule file contributing shell to the pre-commit gate of every fleet project, and `critic_proxy_is_simple` exists to prevent exactly that -- it is an injection boundary, not a capability ceiling, and it is not relaxed to make room for this.
+**shellcheck refuses zsh** (SC1071, recorded in IN-SH-CODE-004), and on a `.zsh` file the headless census still reports this rule `ran` with no findings, so a zsh file is never checked by it. Apply it to zsh via the `critic-shell` subagent during `/in-review`.
+
+**THE RULE NAMES WHICH TOOL AND WHICH DIAGNOSTICS. THE RUNNER OWNS HOW IT IS INVOKED, IN THE RUNNER'S OWN CODE.** No flag appears here. A rule file that supplied one would be a rule file contributing shell to the pre-commit gate of every fleet project, and `intentsvcs::critic::proxy_is_simple` exists to prevent exactly that -- it is an injection boundary, not a capability ceiling, and it is not relaxed to make room for this.
 
 **THIS RULE WAS SILENT UNTIL 2026-08-19.** It is CRITICAL, it had no proxy and no declaration, and the runner skipped it without asking anything and without saying so -- so `critic shell` returned rc=0 on a file this rule would have failed. It is the highest-value row in the pack.
 
@@ -112,7 +114,7 @@ Every expansion is quoted. Filenames with spaces, globs, and other special chara
 
 ## When This Does Not Apply
 
-- Intentional word-splitting: rare, document with a `# SC2086: deliberate splitting of whitespace-separated list` comment to acknowledge the risk and turn off the shellcheck alert locally.
+- Intentional word-splitting: rare. Put `# shellcheck disable=SC2086 # deliberate splitting of whitespace-separated list` on the line above; the directive is what turns the alert off, in shellcheck and therefore in the headless gate, and a comment that merely names the code does not.
 - `[[ ]]` right-hand sides of comparison operators. Bash does not split there, but keep quotes for consistency — readers who scan for violations learn to skip any `[[ ]]` context.
 - `case "$var" in ... esac` patterns — inside the `in ... esac`, word-splitting rules differ; still, keep the matching variable quoted.
 

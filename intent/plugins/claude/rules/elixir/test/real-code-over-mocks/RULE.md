@@ -40,7 +40,7 @@ A mock is a stand-in for something you cannot call in tests. Mocking your own mo
 
 ## Problem
 
-Four failure modes when mocks are used internally:
+Failure modes when mocks are used internally:
 
 1. **Tests pass, production fails.** A test mocks `MyApp.Accounts.get_user!/1` to return a fake user. The test passes. Production breaks because the real `get_user!/1` raises on missing users and the caller did not handle the raise. The mock hid the contract.
 2. **Refactor-hostile.** Renaming `Accounts.get_user!/1` to `Accounts.fetch_user!/1` breaks every mock. The tests have to be updated in lockstep with the production code. The mock duplicates the contract; both must change, and the test can drift.
@@ -59,7 +59,7 @@ Signals:
 - A test named "creates user" that mocks `get_user!/1`, `register_user/1`, or similar — the thing it is testing.
 - `MyApp.Accounts.Mock` being used in tests that are _not_ testing the `@behaviour MyApp.Accounts` contract.
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
+Greppable proxy (the headless `intent critic elixir` runner, which is the pre-commit gate, reports every matching line in a file `applies_to` admits as a finding at this rule's severity; only the `critic-elixir` subagent confirms by reading the body):
 
 ```bash
 grep -rnE '(expect|stub)\(Mock[A-Z]' test/

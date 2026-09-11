@@ -124,7 +124,7 @@ Private helpers stay private. Unit tests reach them via `use super::*;`. Integra
 
 - Integration tests modelled as "what would a user of this crate see?" — put those in `tests/`.
 - Benchmarks — `benches/` is the right place, not `#[cfg(test)]`.
-- Tests that depend on features compiled only for the test binary (e.g. `#[cfg(feature = "test-util")]` exposed types).
+- Tests that depend on features compiled only for the test binary (eg `#[cfg(feature = "test-util")]` exposed types).
 
 ## Further Reading
 

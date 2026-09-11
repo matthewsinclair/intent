@@ -39,7 +39,7 @@ Ash routes the actor into policies and calculations at query-build time, not at 
 
 ## Problem
 
-Three failure modes when the actor is passed on the terminal call:
+Failure modes when the actor is passed on the terminal call:
 
 1. **Calculations see `nil` actor.** Calculations registered with `calculations do` can reference `actor/0`. If the actor is not on the query at build time, the calculation sees `nil` — even though `Ash.read!(query, actor: user)` is called seconds later.
 2. **Policies silently fall through.** A policy that checks `actor_attribute_equals(:role, :admin)` evaluates at query-build time. Without the actor set at build time, it has no actor to check; the policy's default may allow the read that should have been denied.

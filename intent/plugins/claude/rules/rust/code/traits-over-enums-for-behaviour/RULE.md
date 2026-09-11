@@ -54,7 +54,7 @@ Static signals:
 
 Clippy does not lint this directly; structural review is the detection mechanism.
 
-**No greppable proxy is authoritative for this rule, and this rule's own Detection already said so**: _"Clippy does not lint this directly; structural review is the detection mechanism."_ The signal is that a `match` is DISPATCHING rather than reshaping data, which is a judgement about intent that neither a regex nor a lint reaches. **Confirmed against clippy 0.1.97: no lint in the 825-entry list covers it.** Apply this rule via the LLM-driven `critic-rust` subagent during `/in-review`, not in the headless pre-commit gate.
+**No greppable proxy is authoritative for this rule, and this rule's own Detection already said so**: _"Clippy does not lint this directly; structural review is the detection mechanism."_ The signal is that a `match` is DISPATCHING rather than reshaping data, which is a judgement about intent that neither a regex nor a lint reaches. **Confirmed against clippy 0.1.97: no lint in its listing covers it.** Apply this rule via the LLM-driven `critic-rust` subagent during `/in-review`, not in the headless pre-commit gate.
 
 ## Bad
 
@@ -118,4 +118,4 @@ Adding an SMS handler is one new struct and one new `impl`. No `match` arm, no r
 - The Rust Programming Language, ch. 17 "Object-Oriented Programming Features of Rust" (<https://doc.rust-lang.org/book/ch17-00-oop.html>)
 - Rust API Guidelines, "Types are predictable" (<https://rust-lang.github.io/api-guidelines/>)
 - "Casey Muratori on Hierarchies vs. Flatness" — arguments for enums over traits (the contrary view is legitimate for closed data)
-- IN-AG-PFIC-001 — pattern matching is primary; traits are not replacements, they are a different tool
+- IN-AG-PFIC-001 -- Pure Function, Impure Coordination; traits are not replacements for pattern matching, they are a different tool

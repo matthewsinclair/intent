@@ -20,7 +20,7 @@ applies_to:
   - "lib/**/*.ex"
 does_not_apply_when:
   - "Single-branch conditionals used once for clarity"
-  - "Boolean gates where all three decisions (`if/else`) are a single pure expression"
+  - "Boolean gates where each branch of the `if/else` is a single pure expression"
   - "Branches on computed values where pattern-match would require match specs outside the core language"
 references: []
 related_rules:
@@ -42,7 +42,7 @@ Nested `if`/`case`/`cond` on struct or map fields reads like an unfolded pattern
 
 Conditionals hide the decision space. A function that dispatches on `user.status` with an `if/else if/else` chain reads top-to-bottom; you have to read every branch to learn what shapes the function handles. The unhandled case is the `else` — implicit, and likely wrong.
 
-Three failure modes:
+Failure modes:
 
 1. **Silent fall-through.** `if/else` collapses every shape that does not match the first predicate into the `else` branch. A new `status: :suspended` slips through to the `:inactive` path because nobody remembered to add the new predicate.
 2. **Compound predicates drift.** `if user.status == :active and user.role == :admin` is one branch today; three branches tomorrow as `:role` grows `:editor` and `:viewer`. The nested conditionals become unreadable, and the tests lag.
@@ -59,7 +59,7 @@ Signals:
 - `cond` blocks where every arm is a predicate on one input struct.
 - A function body whose first line is `user = ...; if user.role == :admin do ...`.
 
-Greppable proxy (not authoritative; Critic confirms by reading body):
+Greppable proxy (the headless `intent critic elixir` runner, which is the pre-commit gate, reports every matching line in a file `applies_to` admits as a finding at this rule's severity; only the `critic-elixir` subagent confirms by reading the body):
 
 ```bash
 grep -rnE '^[[:space:]]+if[[:space:]]+[a-z_]+\.(status|role|state|kind)' lib/
@@ -97,7 +97,7 @@ def process(%{status: :active}), do: :denied
 def process(_), do: :inactive
 ```
 
-Three clauses, each one line. The shape is the contract. Adding `:editor` is one new clause, not a nested refactor.
+One clause per shape, each a single line. The shape is the contract. Adding `:editor` is one new clause, not a nested refactor.
 
 For type- or range-based decisions, use guards on a single head:
 
@@ -117,7 +117,7 @@ def format(value), do: inspect(value)
 ## When This Does Not Apply
 
 - **Single-branch conditionals used once for clarity.** A one-off `if condition?, do: expensive_computation()` is fine; turning it into a single-clause function just adds noise.
-- **Boolean gates where all three arms are pure expressions.** `if approved?, do: :accept, else: :reject` is already at the minimal form; a pattern match would not help.
+- **Boolean gates where every arm is a pure expression.** `if approved?, do: :accept, else: :reject` is already at the minimal form; a pattern match would not help.
 - **Computed predicates that the language cannot match directly.** `case user_age > 65 do ... end` compares a dynamic value; fall back to `cond` or guards. Pattern matching is for _shapes_, not for arbitrary Boolean expressions.
 - **Top-level CLI arg parsing.** `System.argv` is an unstructured list; pattern-match it once at the entry point, not throughout the program.
 
