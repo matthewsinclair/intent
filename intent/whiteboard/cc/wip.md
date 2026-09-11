@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-11 17:18Z
+heartbeat_at: 2026-09-11 17:26Z
 status: active
-focus: "LOCALFOLD 2026-09-11 17:18Z FOR THE COMPACT -- not a release. AC-00.6 BANKED, NOTHING ON MAIN: critic --rules fix (S) + two v2 test deletes in wt-cut, rulings B-G not yet applied, critic_config 6 with vc. On the bounce: WAIT for vc's word that dc's prune is on main. Suites only in a private worktree under an isolated HOME."
+focus: "PICKUP 2026-09-11 17:26Z after the compact. AC-00.6: applying rulings B-G and the critic_config 6 warning IN wt-cut ONLY, so the two commits are ready the moment vc says dc's prune is on main. NOTHING LANDS BEFORE THAT WORD. Suites only in a private worktree under an isolated HOME."
 claims: [ST0056/06, ST0056/10]
 ---
 
