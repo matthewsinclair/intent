@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 19:41Z
+heartbeat_at: 2026-09-11 19:50Z
 status: active
-focus: "LOCALFOLD 2026-09-11 19:38Z for hv's compact; this is not a release. 3.0.1 shipped and globalfolded at c6bdf3c8. HOLDING: no new work until hv sets it. Open with vc: 0150, 0065. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "THE DOC AUDIT (hv, 2026-09-11; vc directing, orders in intent/wip.md at 9a1455a0f). dc lane: dev-x and release, plus the records sweep. As-built is the truth; this job writes no code. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -40,17 +40,26 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**Nothing in flight. HOLDING after the localfold (2026-09-11 19:38Z); hv compacts each node, and there is no new work until hv sets it.** 3.0.1 is shipped and globalfolded (`c6bdf3c8`). What dc did in the cut is in `.history/20260911/` and in the commits themselves.
+**The doc audit, dc's lane** (hv set it 2026-09-11; vc directs; the protocol's nine rules are in `intent/wip.md` at `9a1455a0f`). As-built is the truth and the doc moves to the code; **this job writes no code**. A CODE-WRONG finding goes to vc with `file:line`. Every file in the lane is reported to vc with its disposition (clean / edited / deleted / exempt). Nothing is pushed until hv approves.
+
+Lane:
+
+- root `README.md`, `DEPRECATIONS.md`, and `CHANGELOG.md` outside its shipped entries;
+- `docs/{install,known-defects,migrating-from-v2}.md`, and `docs/design/design-system.md` against the macOS app;
+- `bin/.devbin` docs and the `int`/`devbin` help. `bin/.devbin/lib/**` is vendored from devbin (`manifest.sha256`), so a finding there goes upstream and is not edited here;
+- `intent/docs/{rust-on-macos,pre-commit-hook,migration-v2.10.0,skills-triage,total-codebase-audit}.md` and `intent/docs/notes/**`;
+- `.github/workflows`, `tests/**/*.md` (fixtures excluded), and `native/macos`;
+- the tap README: commit locally, don't push;
+- the records sweep (rule 6): a one-line historical banner only where a reader could take a record for current.
 
 **With vc to close:** `0150` (`c9960b90`) and `0065` (`5493dd28`), both still OPEN.
 
 ## TODO
 
-**Nothing assigned.** Do not invent work. The found-while items dc raised at the cut are restated live in `intent/wip.md` under "Surfaced to hv"; none is dc's until hv rules.
+- The lane report to vc when every file in it has a disposition.
 
 ## Holds
 
-- **HOLD everything until hv sets new work.** Condition: a ruling from hv, or a task from vc under hv's word. The compact is not that condition.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD** (`W69`). Re-drive a hold's condition at the moment you quote it; never re-read it off this line.
 
 ## Watch-outs
