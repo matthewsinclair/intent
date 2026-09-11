@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 14:50Z
+heartbeat_at: 2026-09-11 15:36Z
 status: active
-focus: "ON THE BOUNCE after the compact. With vc for the re-drive: 0231 ea06d7c3, 0066 f74fbf31, 0145 ff78b917, 0153 ca2dd018, 0146 367bd6d4 + 75ce790d. Held on hv: 0100 (decision 2), 0084 (decision 11). Nothing startable remains in the cc column."
+focus: "ON THE BOUNCE. Nothing startable in the cc column. With vc for the re-drive: 0231 ea06d7c3, 0084 d4b31f5c, 0100 9046156b, decision 5 32958364, decision 4 7d3ffe61, plus 0066, 0145, 0153 and 0146. intentsvcs suites run ONLY from a private worktree."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -16,7 +16,7 @@ claims: [ST0056/06, ST0056/10]
 
 **FOLDED 2026-09-11 14:29Z FOR hv'S PAUSE; BACK ON THE BOUNCE AFTER THE COMPACT. NOTHING OF MINE IS DIRTY IN THE TREE.** The board before this fold is verbatim at `.history/20260911/wip-prefold-1429Z.md`, and every fix since the last fold is in `git log` under its id.
 
-**WITH vc FOR THE RE-DRIVE, nothing of mine left on them:** `0231` at `ea06d7c3` (told vc 2026-09-11 14:50Z), `0066` at `f74fbf31`, `0145` at `ff78b917`, `0153` at `ca2dd018`, `0146` at `367bd6d4` + `75ce790d` (the branched remedy is accepted). **Ruled by vc and out of my column:** `0176` (close, no code), `0172` (not workable in 3.0.1, lane `--`).
+**WITH vc FOR THE RE-DRIVE, nothing of mine left on them:** `0231` at `ea06d7c3` (told vc 2026-09-11 14:50Z); `0084` at `d4b31f5c` and `0100` at `9046156b` (hv's decisions 11 (a) and 2, relayed by vc); hv's decision 5 at `32958364` (the edgeless-field test deleted) and decision 4 at `7d3ffe61` (the 16 `collapsible_if` collapsed; intentsvcs lib clippy is now clean); `0066` at `f74fbf31`, `0145` at `ff78b917`, `0153` at `ca2dd018`, `0146` at `367bd6d4` + `75ce790d` (the branched remedy is accepted). **Ruled by vc and out of my column:** `0176` (close, no code), `0172` (not workable in 3.0.1, lane `--`).
 
 **THE RULES ON THE BOUNCE (vc):** one item at a time, claimed here; the id in the commit subject; tell vc, who re-drives and closes it. The only new test allowed is the proving one, seen red. No new instruments, guards, criteria or threads. A defect found while fixing goes in the commit message, not on the list. **hv: _THERE IS NO NEW WORK TO BE DONE._** The list in `intent/wip.md` is the authority, and `intent issues list` is the live state. **Read the lane column there, never a copy here.**
 
@@ -24,16 +24,13 @@ claims: [ST0056/06, ST0056/10]
 
 ## TODO -- startable, mine, in the list's order
 
-- **Empty.** Every cc row in `intent/wip.md` is either with vc or held on an hv decision. Read the lane column there, never a copy here.
+- **Empty.** Every cc row in `intent/wip.md` is with vc. Read the lane column there, never a copy here.
 
 ## Holds -- mine, with the CONDITION that releases each
 
-**A hold whose condition still stands is never archived by a fold. None below is released.**
+**A hold whose condition still stands is never archived by a fold. None below is released.** `0100`, `0084` and the 16 `collapsible_if` left this section when hv released them on 2026-09-11; each is in `git log` under its id.
 
-- **#64 `0100` -- RELEASED WHEN hv answers decision 2's added question** (`intent/wip.md`): does 3.0.1 take a store rung 17 -> 18? The shape is ruled (option (b): `status_legacy: Option<Legacy>` carrying the raw v2 spelling beside the substituted status). Tell dc before touching `store.rs`.
-- **#65 `0084` -- RELEASED WHEN hv answers decision 11**: does 3.0.1 build the byte write for opaque attachments? The fix is banked at scratchpad `0084-banked.patch` (sha256 `74679d6cee74fe2a`) and NOT committed. Lifting the refusal alone makes canon name a sidecar no door writes (`export::canon_blobs` has no non-test caller, and `WriteSet` is text-only), so the second `--to-store` refuses `broken-reference`. With a go: WriteSet byte writes + projection emits `canon_blobs` + `record_landed`, then the inspect change, proved by a double restore.
 - **POST-CUT (culled from the 3.0.1 loop 2026-09-11):** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). Their conditions stand and none is 3.0.1 work.
-- **The 16 `collapsible_if` in intentsvcs -- RELEASED WHEN hv says go on hv's decision 4 (NOT a list item) AND `facade.rs`/`store.rs`/`daemon.rs` carry no peer's uncommitted work.** They are our own code at a fixed compiler (10 -> 10 across 1.98.0 -> 1.98.1), so this is mechanical, not a policy call. They are the SOLE blocker on the `rust` workflow, and they gate the five prettier arms that have never measured in CI. My REC is to collapse them.
 
 ## Decisions
 
@@ -62,7 +59,7 @@ claims: [ST0056/06, ST0056/10]
 
 **W4. ONE NAME, TWO ARTEFACTS.** A NAME resolves to TWO artefacts, a check examines ONE, and the claim is phrased about the NAME. **NOT AN INSTANCE:** a verdict that names the artefact it examined.
 
-**W5. THE SHARED CHECKOUT.** Canon cannot be split, so every canon commit is silently multi-node. **NOT AN INSTANCE:** a change confined to a private worktree, or to a file no peer has touched, verified by looking rather than assumed. **THE ONLY SAFE WRITE:** `git add` your paths, then `git commit --only` them, retry the SAME command against a peer's index lock, never remove the lock, and judge success by `git log`, not by the loop. **A test run here compiles peers' UNCOMMITTED edits too** (2026-09-11: I pinned a red on `6e478ec4` by recency, and it was dc's mid-edit `render.rs`; the wrong sha now stands in `86071c36`'s message). Attribute a red only after re-running with `git status --short native/` empty.
+**W5. THE SHARED CHECKOUT.** Canon cannot be split, so every canon commit is silently multi-node. **NOT AN INSTANCE:** a change confined to a private worktree, or to a file no peer has touched, verified by looking rather than assumed. **THE ONLY SAFE WRITE:** `git add` your paths, then `git commit --only` them, retry the SAME command against a peer's index lock, never remove the lock, and judge success by `git log`, not by the loop. **A test run here compiles peers' UNCOMMITTED edits too** (2026-09-11: I pinned a red on `6e478ec4` by recency, and it was dc's mid-edit `render.rs`; the wrong sha now stands in `86071c36`'s message). Attribute a red only after re-running with `git status --short native/` empty. **AND RUN THE intentsvcs SUITES ONLY FROM A PRIVATE WORKTREE** (2026-09-11): `attachment_drift_detected.rs` runs `doctor` on `repo_root()`, `doctor::db_checks` calls `Store::open` on that project's store, and `Store::open` migrates. `repo_root()` is baked in at compile time (`testkit/src/lib.rs:128`), so a test binary built in the shared checkout reaches the live store from any CWD. My run with rung 18 in the tree moved the live store 17 -> 18 and locked every 17 binary out; hv recovered it by a rebuild. The vector is in `d0777bc8`'s message.
 
 **W6. A CLAIM THAT DOES NOT FEEL LIKE A CLAIM IS THE ONE TO DRIVE.** **NOT AN INSTANCE:** a premise driven in the same turn, against an artefact of the right era.
 
