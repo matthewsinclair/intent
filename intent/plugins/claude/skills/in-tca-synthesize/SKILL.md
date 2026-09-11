@@ -43,7 +43,7 @@ Count findings per IN-\* rule ID across all WPs:
 ...
 ```
 
-The IN-\* IDs come straight from the critic reports — no translation needed. Sort by count descending. This reveals **systemic issues** (rules violated everywhere) vs **localized issues** (one bad module). Cross-reference each ID with `intent claude rules show <id>` for the Detection heuristic and the canonical fix pattern.
+The IN-\* IDs come straight from the critic reports -- no translation needed. Sort by count descending. This reveals **systemic issues** (rules violated everywhere) vs **localized issues** (one bad module). Cross-reference each ID with `intent claude rules show <id>` for the Detection heuristic and the canonical fix pattern.
 
 ### 4. Cross-cutting deduplication
 
@@ -52,12 +52,12 @@ The most important synthesis step. Cluster violations by **root cause and fix**,
 **Deduplication signals**:
 
 - Same function name reported in multiple WPs
-- Same root cause (e.g., "no shared utility module")
+- Same root cause (eg "no shared utility module")
 - Same fix recommended across WPs
 
 **Split signals** (do NOT merge these):
 
-- Same rule but different data types (e.g., Map.get on struct vs Map.get on plain map)
+- Same rule but different data types (eg Map.get on struct vs Map.get on plain map)
 - Same pattern but different contexts requiring different fixes
 - Same function name but genuinely independent implementations
 
@@ -77,7 +77,7 @@ Classify each unique violation into one of five tiers. The default mapping from 
 | RECOMMENDATION  | P2b       | Minor refactoring requiring design decisions                  |
 | STYLE           | P3        | Style and convention                                          |
 
-This mapping is the default. A WARNING that names `IN-AG-HIGHLANDER-001` (or any `IN-*-HIGHLANDER-*` concretisation) is always P1 — the synthesis dedup may collapse multiple WARNING findings into one P1 cluster. A WARNING on a mechanical rule (e.g. `IN-EX-CODE-003` `@impl true`) is P2a.
+This mapping is the default, with one override: a finding on `IN-AG-HIGHLANDER-001` (severity critical, so it arrives under CRITICAL) or on a rule in its `concretised_by:` list (eg `IN-EX-CODE-006`, a WARNING) is always P1, not P0 -- the synthesis dedup may collapse several into one P1 cluster. A WARNING on a mechanical rule (eg `IN-EX-CODE-003` `@impl true`) is P2a.
 
 | Tier | Name                    | Character                                    |
 | ---- | ----------------------- | -------------------------------------------- |
@@ -89,7 +89,7 @@ This mapping is the default. A WARNING that names `IN-AG-HIGHLANDER-001` (or any
 
 **P0 examples**: bare `=` match on fallible calls, `String.to_atom` on user input, debug artifacts in production paths, non-exhaustive `with` clauses (typically `IN-EX-CODE-005` and similar CRITICAL rules)
 
-**P1 ranking criteria**: copy count, inconsistency risk, fix scope. Driven by the critic's IN-AG-HIGHLANDER-001 findings and their language concretisations (e.g. `IN-EX-CODE-006`).
+**P1 ranking criteria**: copy count, inconsistency risk, fix scope. Driven by the critic's IN-AG-HIGHLANDER-001 findings and their language concretisations (eg `IN-EX-CODE-006`).
 
 **P2a examples**: missing `@impl true` (`IN-EX-CODE-003`), missing tagged-tuple returns (`IN-EX-CODE-002`), unambiguous boolean operator fixes
 
@@ -118,8 +118,8 @@ Batch H: P3 style fixes (batch by rule, one commit per rule)
 
 For polyglot projects (multiple critic dispatches per WP):
 
-1. **Within-ecosystem pass**: Synthesise findings per language using that language's IN-_ rule pack (e.g. `IN-EX-_`Elixir findings,`IN-RS-\*` Rust findings).
-2. **Cross-ecosystem pass**: Look for `IN-AG-*` agnostic-rule violations that span ecosystems — Highlander duplications across language boundaries, identical anti-patterns concretised differently, shared coordinator-thinness gaps. The agnostic rule's `concretised_by:` list shows which language IDs to expect on each side.
+1. **Within-ecosystem pass**: Synthesise findings per language using that language's `IN-<LANG>-*` rule pack (eg `IN-EX-*` for Elixir findings, `IN-RS-*` for Rust findings).
+2. **Cross-ecosystem pass**: Look for `IN-AG-*` agnostic-rule violations that span ecosystems -- Highlander duplications across language boundaries, identical anti-patterns concretised differently, shared coordinator-thinness gaps. The agnostic rule's `concretised_by:` list shows which language IDs to expect on each side.
 
 ### 8. Present for review
 
@@ -151,7 +151,7 @@ Proceed to review (Phase 3), then `/in-tca-remediate` for execution.
 
 ## Important Notes
 
-- Cluster by root cause and fix, not by rule ID. Multiple distinct IN-_ findings can collapse to one fix; one IN-_ finding can split into multiple fixes by data-type context.
+- Cluster by root cause and fix, not by rule ID. Multiple distinct `IN-*` findings can collapse to one fix; one `IN-*` finding can split into multiple fixes by data-type context.
 - Split clusters when the same rule has different data types or contexts (the FP guidance section in design.md should already enumerate these).
 - The P2a/P2b distinction matters: mechanical fixes are parallelizable, refactoring is not.
 - Always present synthesis for user review before remediation.

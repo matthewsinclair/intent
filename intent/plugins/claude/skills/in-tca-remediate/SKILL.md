@@ -23,7 +23,7 @@ Ask the user which batches to tackle this session:
 - Just P0 and P1 (Batches A-D)?
 - Specific batches?
 
-Set expectations: P0+P1 typically takes 1-2 hours. Full remediation may take 2-4 hours depending on scope.
+Set expectations in T-shirt sizes, never clock time: size P0+P1 and full remediation separately from the synthesis backlog (eg P0+P1 = M, full = XL).
 
 ### 3. Execute remediation in main conversation
 

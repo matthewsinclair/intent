@@ -20,7 +20,7 @@ bash "$(find ~/.claude/skills/in-tca-audit -name tca-progress.sh 2>/dev/null | h
   --tca-dir intent/st/STXXXX
 ```
 
-This shows which WPs are complete, pending, or in-progress, with violation counts.
+This lists each WP as Complete (non-empty `socrates.md`) or Pending (missing or empty). Its Violations/High/Med/Low columns read `| High`, `| Medium`, `| Low` and `| Total` table rows, which a verbatim critic report does not carry, so they read 0 -- take counts from each WP's `Summary:` line.
 
 ### 2. Select next WP batch
 
@@ -42,7 +42,7 @@ Before launching each sub-agent:
 
 ### 4. Dispatch the critic
 
-Per WP, dispatch the language critic against the WP's file set. There is no custom prompt template — the critic enforces the rule library automatically and emits a stable severity-grouped report (see `intent/docs/critics.md`).
+Per WP, dispatch the language critic against the WP's file set. There is no custom prompt template -- the critic enforces the rule library automatically and emits a stable severity-grouped report (see `intent/docs/critics.md`).
 
 ```
 Task(subagent_type="critic-<lang>", prompt="review <file1> <file2> ...")
@@ -66,7 +66,7 @@ Task(subagent_type="critic-<lang>", prompt="test-check <test_file1> <test_file2>
 | `lua`          | `critic-lua`       |
 | `shell`        | `critic-shell`     |
 
-This matches the `/in-review` stage-2 dispatcher.
+This is the code-language half of the `/in-review` stage-2 dispatcher. `/in-review` also sends `author` and `content` to `critic-prose`, which reviews prose, not code, and has no place in a TCA component WP.
 
 ### 4a. Capture the critic report
 
@@ -89,16 +89,17 @@ Write the captured critic output to `WP/{NN}/socrates.md` verbatim, with a small
 
 The critic report itself owns the rule IDs (IN-\*), severities (CRITICAL/WARNING/RECOMMENDATION/STYLE), file:line citations, and one-line violation descriptions. The wrapper only adds component identity, dispatch metadata, and cross-WP Highlander handoffs that synthesis will consume.
 
-If the critic emits zero findings, the report still includes the bare `Summary: 0 critical, 0 warning, 0 recommendation, 0 style.` line — record it. Absence of findings is a first-class outcome.
+If the critic emits zero findings, the report still includes the bare `Summary: 0 critical, 0 warning, 0 recommendation, 0 style.` line -- record it. Absence of findings is a first-class outcome.
 
 ### 5. Post-WP
 
 After each critic dispatch completes:
 
-1. **Record metadata** at the top of `WP/{NN}/socrates.md` immediately under the H1. Format: `**Critic**: critic-<lang>; **Files**: N (code:M test:K); **Findings**: critical=A warning=B recommendation=C style=D; **FPs noted**: N`. The findings counts come straight from the critic's `Summary:` line; FPs noted is the count flagged in §4a's cross-check against pre-filter ground truth. This line is queryable across audits and feeds the "Critic Effectiveness" section of the final feedback report.
-2. **Commit immediately**: `git add WP/{NN}/socrates.md && git commit -m "audit: WP-{NN} {component}"`
-3. **Log the summary** in your running tally
-4. **Run progress check** to update status
+1. **Record metadata** at the top of `WP/{NN}/socrates.md` immediately under the H1. Format: `**Critic**: critic-<lang>; **Files**: N (code:M test:K); **Findings**: critical=A warning=B recommendation=C style=D; **FPs noted**: N`. The findings counts come straight from the critic's `Summary:` line; FPs noted is the number of this WP's findings marked false positive against design.md's False Positive Guidance and the Phase 0.5 pre-filter baseline. This line is queryable across audits and feeds the `Sub-Agent Effectiveness` section of the `tca-report.sh` template.
+2. **Record it in the store**: `intent st attach STXXXX WP/{NN}/socrates.md --from intent/st/STXXXX/WP/{NN}/socrates.md`, then `intent wp done STXXXX/{NN}` (run `intent wp start STXXXX/{NN}` before the dispatch). The progress script reads only `socrates.md`, so without these the store's WP status never moves.
+3. **Commit immediately**: `git add WP/{NN}/socrates.md && git commit -m "audit: WP-{NN} {component}"`
+4. **Log the summary** in your running tally
+5. **Run progress check** to update status
 
 ### 6. Repeat
 
@@ -115,7 +116,7 @@ bash "$(find ~/.claude/skills/in-tca-audit -name tca-progress.sh 2>/dev/null | h
   --tca-dir intent/st/STXXXX
 ```
 
-Exit code 0 confirms all WPs complete. Proceed to `/in-tca-synthesize`.
+At this point the synthesis WP is still empty, so expect exit 1 with `hint: 1 of N work packages pending`. Confirm the one pending WP is the synthesis WP, then proceed to `/in-tca-synthesize`. Exit 0 means every WP, synthesis included, has a non-empty `socrates.md`.
 
 ## Crash Prevention
 
@@ -125,12 +126,12 @@ Exit code 0 confirms all WPs complete. Proceed to `/in-tca-synthesize`.
 | Lost work        | Commit after every WP (never batch)                                |
 | Critic not found | Restart session before audit if critics were installed mid-session |
 | Session crash    | Keep a running log outside the session                             |
-| WP too large     | Split WPs with >60 files into sub-WPs                              |
+| WP too large     | Split a WP with >60 files into two flat WPs (`intent wp new`)      |
 | File manifest    | Verify files exist before each WP                                  |
 
 ## Important Notes
 
 - Never batch commits -- commit after every single WP
 - Capture the critic report verbatim. Critics never invent IN-\* IDs and never invent file:line citations; the report is ground truth for synthesis.
-- Cross-WP Highlander notes are the wrapper's job — the critic does not see other WPs.
+- Cross-WP Highlander notes are the wrapper's job -- the critic does not see other WPs.
 - If context usage exceeds 70%, start a fresh session rather than risk truncation.

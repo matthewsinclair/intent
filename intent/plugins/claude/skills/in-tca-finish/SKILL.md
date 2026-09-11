@@ -52,6 +52,8 @@ All must pass before proceeding.
 - Rules that were added or removed during audit
 - Effective file count accuracy assessment
 
+Once design.md, tasks.md and impl.md are updated, record each in the store: `intent st attach STXXXX <file> --from intent/st/STXXXX/<file>`. Until then `intent organize --verbose` lists them as unclaimed.
+
 **impl.md**: Implementation notes:
 
 - Session count and approximate wall clock times
@@ -69,22 +71,22 @@ bash "$(find ~/.claude/skills/in-tca-finish -name tca-report.sh 2>/dev/null | he
   -o intent/st/STXXXX/feedback-report.md
 ```
 
-This generates a pre-populated template with audit data (WP breakdown, per-WP counts, dedup rate estimate). The analytical sections are left as `[Fill in: ...]` placeholders.
+This generates a template with the WP list and each WP's Complete/Pending status. Its severity columns parse `| High`/`| Medium`/`| Low` rows, not the critic `Summary:` line, so they read 0 for verbatim critic reports, and the dedup rate prints `?`. Fill both from the synthesis WP. The analytical sections are `[Fill in ...]` placeholders.
 
 ### 4. Fill in the feedback report
 
 Open `intent/st/STXXXX/feedback-report.md` and replace every `[Fill in: ...]` placeholder with real analysis:
 
-- **Rule-by-rule analysis**: which IN-\* rules had most value, which were noisy, rule-by-rule FP rates. Where a rule had a high FP rate, propose either a `.intent_critic.yml` `disabled:` entry for the project or a Detection refinement for the rule itself (the latter is an edit to the rule's `RULE.md` in the Intent source repo, validated by `intent claude rules validate`).
-- **WP sizing assessment**: which WPs were appropriately sized, which were too large or too small.
-- **Critic effectiveness**: per-WP critic findings counts and FPs noted (use the metadata lines in each WP's socrates.md). Where the critic missed something a human reviewer caught, the gap is a candidate Detection improvement on the relevant RULE.md.
-- **Process improvements**: concrete recommendations for the TCA doc, the rule library, or the skill suite based on what went wrong this audit.
+- **Rule Analysis**: which IN-\* rules had most value, which were noisy, rule-by-rule FP rates. Where a rule had a high FP rate, propose either a `.intent_critic.yml` `disabled:` entry for the project or a Detection refinement for the rule itself (the latter is an edit to the rule's `RULE.md` in the Intent source repo, validated by `intent claude rules validate`).
+- **WP Sizing Assessment**: which WPs were appropriately sized, which were too large or too small.
+- **Sub-Agent Effectiveness** (the template's name for critic effectiveness): per-WP critic findings counts and FPs noted (use the metadata lines in each WP's socrates.md). Where the critic missed something a human reviewer caught, the gap is a candidate Detection improvement on the relevant RULE.md.
+- **Process Improvements**: concrete recommendations for the TCA doc, the rule library, or the skill suite based on what went wrong this audit.
 
-The pre-flight guard will refuse to close the audit while any `[Fill in:` placeholders remain in the report.
+The pre-flight guard refuses while any `[Fill in` placeholder remains, including `[Fill in if applicable]` under Comparison with Previous TCAs.
 
-### 5. Close acceptance criteria
+### 5. Close the acceptance contract
 
-Open `intent/st/STXXXX/info.md` and close every `- [ ]` checkbox under Acceptance Criteria. An unchecked box signals that the TCA has not actually finished -- the pre-flight guard will refuse to close the audit if any remain unchecked.
+`info.md` and `acceptance.md` are generated views, so tick nothing by hand. List the contract with `intent ac list STXXXX`, satisfy each non-test AC with `intent ac satisfy STXXXX AC-NN --evidence <ref>` (eg `--evidence feedback-report.md`), turn each covering test green with `intent at green STXXXX AT-NN`, then run `intent ac gate STXXXX` -- it exits non-zero with `BLOCKED` while any AC is unsatisfied.
 
 ### 6. Pre-flight guard
 
@@ -98,14 +100,16 @@ bash "$(find ~/.claude/skills/in-tca-finish -name tca-report.sh 2>/dev/null | he
 
 The guard verifies:
 
-- The TCA ST is properly shaped (WP/ directory, design.md with rule set)
+- The TCA ST is properly shaped (WP/ directory, and a design.md containing the literal `rule set` -- or `Rule <N>` / `R<N>` -- case-sensitive)
 - `feedback-report.md` exists at the canonical location
 - The feedback report contains no unfilled `[Fill in:` placeholders
-- `info.md` has zero unchecked `- [ ]` acceptance criteria
+- `info.md` has no `- [ ]` lines -- a v3 `info.md` never has any, so this check always passes; the acceptance contract is checked by `intent ac gate STXXXX` (step 5), and the guard does not replace it
 
 If the guard fails, fix the flagged issue and re-run. **Do NOT hand-edit session docs or run `/in-finish` manually until this guard passes.** The failure mode this guard prevents is the Lamplight ST0121 24-hour window of lying docs (commits 75706c18 to 98616a0c, 2026-04-08) -- closing the TCA before the feedback report exists or before acceptance criteria are actually met.
 
-### 7. Commit everything
+### 7. Close and commit
+
+After the guard and `intent ac gate STXXXX` both pass, close the thread with `intent st done STXXXX`, then commit:
 
 ```bash
 git add intent/st/STXXXX/

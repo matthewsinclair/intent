@@ -51,7 +51,7 @@ For each correction and frustration signal from the findings:
 
 **Memory Gap**: The correction addresses something with NO matching rule in MEMORY.md or CLAUDE.md. This is a candidate for a new memory entry.
 
-**Enforcement Failure**: A matching rule EXISTS in MEMORY.md or CLAUDE.md but was violated anyway. The rule needs strengthening, better examples, or elevation (e.g., from MEMORY.md to CLAUDE.md).
+**Enforcement Failure**: A matching rule EXISTS in MEMORY.md or CLAUDE.md but was violated anyway. The rule needs strengthening, better examples, or elevation (eg from MEMORY.md to CLAUDE.md).
 
 ### 5. Find undocumented conventions
 
@@ -78,7 +78,7 @@ Save the report to `intent/autopsy/YYYYMMDD.md` (create the directory if needed)
 
 - Sessions analyzed: N | Compactions: N | Date range: YYYY-MM-DD to YYYY-MM-DD
 - Corrections: N (M post-compaction) | Frustration signals: N
-- User flags: N | Deferrals: N (L legitimate) | Banned violations: N
+- User flags: N | Deferrals: N (L legitimate) | Banned matches: N raw -> N authored -> N actionable (act on the last)
 
 ## User Flags (highest confidence)
 
@@ -145,5 +145,6 @@ Note findings from both passes in the report.
 - This skill requires Elixir to be installed (`elixir --version` to check)
 - Session files are at `~/.claude/projects/<project-key>/*.jsonl`
 - The script reads files but never modifies them
-- Large sessions (hundreds of MB) are handled by the script's streaming parser
+- The script reads each session line by line but holds every parsed session in memory; on a large corpus, narrow with `--days` or `--project`
+- The first run fetches Jason through `Mix.install`, so it needs network access to Hex
 - Reports are proposed, never auto-applied. The user decides what memory updates to make.

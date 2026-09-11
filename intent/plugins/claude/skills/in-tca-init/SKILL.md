@@ -7,7 +7,7 @@ chains_to: ["in-tca-audit"]
 
 > **Invariant (load-bearing)**: A TCA is always its own dedicated steel thread. NEVER provision a TCA as a work package inside the audited ST. See `intent/docs/total-codebase-audit.md` section 0.0 for the four failure modes this rule prevents. The `tca-init.sh` script enforces this with a provisioning guard and will refuse to run against a path that looks like it is inside an existing work package.
 
-Provisions a Total Codebase Audit: creates the steel thread, defines the rule set, maps the codebase into components, and generates work package directories with templated info.md files.
+Provisions a Total Codebase Audit: creates the steel thread and its work packages through the CLI, defines the rule set, maps the codebase into components, and writes each WP's scope, file list and rule focus into the store with `intent set`.
 
 For reference: `intent/docs/total-codebase-audit.md`
 
@@ -18,14 +18,14 @@ For reference: `intent/docs/total-codebase-audit.md`
 Ask the user:
 
 - Project name
-- Ecosystem(s): Elixir, Rust, Swift, TypeScript, or polyglot combination
+- Ecosystem(s): Elixir, Rust, Swift, Lua, Shell, or a polyglot combination
 - Approximate file count (or let discovery determine it)
 - Whether the project uses Ash Framework
 - Whether it is an umbrella/monorepo
 
 ### 2. Select the rule packs
 
-A TCA enforces Intent's rule library. There is no per-audit invented rule numbering — every cited rule has a stable `IN-*` ID, served by the installed Intent tool via `intent claude rules show <id>` (`intent claude rules list` to enumerate). The schema lives in `intent/docs/rules.md` at the Intent install.
+A TCA enforces Intent's rule library. There is no per-audit invented rule numbering -- every cited rule has a stable `IN-*` ID, served by the installed Intent tool via `intent claude rules show <id>` (`intent claude rules list` to enumerate). The schema lives in `intent/docs/rules.md` at the Intent install.
 
 Default rule packs by ecosystem:
 
@@ -51,7 +51,7 @@ Customize with the user via `.intent_critic.yml` at the audited project root, **
 - Set the body threshold: `severity_min: warning` (default) or `style` to see everything.
 - **Project-specific rules have no v3 home yet, so the audit set is the canon rules minus the `disabled:` list.** The `~/.intent/ext/` extension mechanism this line used to point at is v2's: v3 reads that directory nowhere, and hv ruled `ext` out of the 3.0.0 cut on 2026-08-30 rather than porting it. Naming a layout the tool does not read is the same defect as naming a verb that refuses -- correct-looking prose pointing at nothing.
 
-The rule set for the audit is the canonical IN-\* IDs minus anything in the project's `.intent_critic.yml` `disabled:` list, plus any extension rules. Critics enforce this set automatically — no per-audit prompt template required.
+The rule set for the audit is the canonical IN-\* IDs minus anything in the project's `.intent_critic.yml` `disabled:` list. Critics enforce this set automatically -- no per-audit prompt template required.
 
 ### 3. Map codebase into components
 
@@ -96,19 +96,39 @@ bash "$(find ~/.claude/skills/in-tca-init -name tca-init.sh 2>/dev/null | head -
   --project "ProjectName"
 ```
 
-This creates WP directories with templated info.md files and empty socrates.md files. The last WP is always the synthesis WP.
+The script writes files only. It refuses a `--tca-dir` inside an existing WP and refuses to overwrite populated `socrates.md` files, then creates `WP/01`..`WP/NN` on disk, each with a templated `info.md` and an empty `socrates.md`, titling the last one as the synthesis WP. It skips any WP directory that already exists. **The store does not register these directories**: `intent wp list STXXXX` reports no work packages, `intent set` refuses them, and `intent organize --verbose` lists them as unclaimed. Register each one, in order, synthesis last:
 
-### 6. Populate WP info.md files
+```bash
+intent wp new STXXXX "<Component name>"          # once per component, in order
+intent wp new STXXXX "Cross-Component Synthesis" # always last
+```
 
-For each WP, fill in:
+On a fresh thread `intent wp new` numbers from 01, so each registration lands on the directory the script made. It re-renders that WP's `info.md` from the store, replacing the script's template; the empty `socrates.md` is kept. Step 6 writes the template's sections back through the store.
 
-- Scope description (1-2 sentences)
-- Complete file list (every file to be audited)
-- Applicable rule packs (per §2) and the language critic to dispatch (`critic-elixir`, `critic-rust`, etc.)
-- Special-focus IN-\* rule IDs for this WP (e.g. `IN-EX-CODE-006` for a known-Highlander-prone subsystem)
-- Cross-WP Highlander dependencies (2-4 other WPs that might overlap)
+### 6. Write each WP's objective and body
+
+A WP's `info.md` is a generated view: `intent doctor` reports a hand edit as view skew, and `intent sync --to-disk` discards it. Write through the store, addressing the WP as `intent:///threads/STXXXX/wp/NN`:
+
+```bash
+intent set intent:///threads/STXXXX/wp/NN objective "<1-2 sentence scope>"
+intent set intent:///threads/STXXXX/wp/NN body --from wp-NN-body.md
+```
+
+`wp-NN-body.md` carries: the complete file list, one `` - `path` `` line per file (step 10 greps the rendered `info.md` for these); the applicable rule packs (per §2) and the critic to dispatch (`critic-elixir`, `critic-rust`, etc.); the special-focus IN-\* IDs (eg `IN-EX-CODE-006` for a known-Highlander-prone subsystem); and the cross-WP Highlander dependencies (2-4 other WPs that might overlap). Set the size with `intent wp rescope STXXXX/NN <size>`.
+
+### Mint the acceptance contract
+
+`intent st done` refuses a thread with no criteria, and `/in-tca-finish` closes against them:
+
+```bash
+intent ac new STXXXX AC-01 --text "Every component WP has its critic report captured in socrates.md"
+intent ac new STXXXX AC-02 --text "The synthesis WP holds the prioritized remediation backlog"
+intent ac new STXXXX AC-03 --text "feedback-report.md exists with no [Fill in placeholders"
+```
 
 ### 7. Write design.md
+
+Head the rule-pack section `## The rule set` -- `tca-report.sh` refuses a design.md without the literal lowercase `rule set` (or `Rule <N>` / `R<N>`), and `## Rule packs loaded` does not match. Once design.md and tasks.md are written, record them in the store with `intent st attach STXXXX design.md --from intent/st/STXXXX/design.md` (and the same for `tasks.md`); until then `intent organize --verbose` lists them as unclaimed.
 
 The steel thread's design.md should contain:
 
@@ -117,7 +137,7 @@ The steel thread's design.md should contain:
 - Component map with effective file counts (per §3 file weights)
 - Batch ordering for parallelization (dependency-ordered)
 - Pre-filter results (Phase 0.5)
-- **False Positive Guidance (REQUIRED -- not optional)**: for each IN-\* rule with known non-violations in this codebase, list the acceptable patterns BEFORE Phase 1 starts. Without this section, mechanical rules generate high FP rates at synthesis time. In Lamplight ST0121, the R7-equivalent pre-classification dropped the FP rate from an estimated 82% to 0%. If this section is missing or contains placeholder text, do NOT proceed to Phase 1 -- go back and author it.
+- **False Positive Guidance (REQUIRED -- not optional)**: for each IN-\* rule with known non-violations in this codebase, list the acceptable patterns BEFORE Phase 1 starts. Without this section, mechanical rules generate high FP rates at synthesis time. In Lamplight ST0121, pre-classifying the R7-equivalent rule removed its false positives. If this section is missing or contains placeholder text, do NOT proceed to Phase 1 -- go back and author it.
 
 #### False Positive Guidance format
 
@@ -137,13 +157,12 @@ For each IN-\* rule that has known non-violations in this codebase, add a subsec
 - Any module defined with `defstruct` where a missing key indicates an error
 - Known typed state containers (Pctx, Pctx.Mechanic, PhaseState, etc.)
 
-### IN-EX-CODE-NNN (bracket-access-on-structs) False Positive Guidance
+### IN-EX-CODE-003 (impl-true-on-callbacks) False Positive Guidance
 
-Bracket access `struct[:field]` is CORRECT on:
+A `def` without `@impl true` is CORRECT on:
 
-- Plain maps (config, params, assigns)
-- Keyword lists
-- Any `%{}` not defined with `defstruct`
+- Plain functions in a module that does not `use` or `@behaviour` anything
+- `defp` helpers
 ```
 
 Rules without known non-violations can be omitted. Rules that do have non-violations MUST be documented -- an unsure auditor is a noisy auditor. Where a project-wide disable is the right answer, lift the rule into `.intent_critic.yml` instead.

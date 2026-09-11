@@ -4,12 +4,9 @@ description: "Detrope: diagnoses LLM writing tropes and stylometric tells, asses
 
 # Detrope
 
-Scans documents for LLM writing tropes and stylometric tells. Assesses findings
-in context of the project where it runs. Produces a diagnostic report with
-severity-ranked findings and concrete rewrites.
+Scans documents for LLM writing tropes and stylometric tells. Assesses findings in context of the project where it runs. Produces a diagnostic report with severity-ranked findings and concrete rewrites.
 
-Trope catalog: [llm-tropes](https://github.com/matthewsinclair/llm-tropes)
-(44 tropes across 8 categories, vendored in data/trope-catalog.md).
+Trope catalog: [llm-tropes](https://github.com/matthewsinclair/llm-tropes) (vendored in data/trope-catalog.md; its Table of Contents lists every trope).
 
 ## Procedure
 
@@ -38,9 +35,7 @@ Extract and note:
 - **Document type**: blog post, technical docs, README, internal design doc, etc.
 - **Tone expectations**: formal, conversational, technical, marketing
 
-This context drives Step 5's contextual assessment. A trope in a published blog
-post is worse than the same trope in an internal design doc. A "serves as" in
-API documentation may be legitimate.
+This context drives Step 5's contextual assessment. A trope in a published blog post is worse than the same trope in an internal design doc. A "serves as" in API documentation may be legitimate.
 
 ### Step 3 -- Read the trope catalog
 
@@ -50,8 +45,7 @@ Read the vendored trope catalog:
 cat "$(find ~/.claude/skills/in-detrope -name trope-catalog.md 2>/dev/null | head -1)"
 ```
 
-If the file is too large to read at once, read the Table of Contents first, then
-read individual trope sections as needed during analysis.
+If the file is too large to read at once, read the Table of Contents first, then read individual trope sections as needed during analysis.
 
 ### Step 4 -- Resolve and read target files
 
@@ -73,32 +67,25 @@ For each file, read its full contents.
 
 Perform two passes per file:
 
-**Pass 1 -- Pattern detection**: Scan for every trope in the catalog. For each
-finding, record:
+**Pass 1 -- Pattern detection**: Scan for every trope in the catalog. For each finding, record:
 
 - Trope slug (the canonical identifier from the catalog)
 - Severity (high / medium / low)
 - Exact text containing the trope, with line number or paragraph reference
-- Threshold status: for density-based tropes, count occurrences and compare to
-  the threshold in the catalog
+- Threshold status: for density-based tropes, count occurrences and compare to the threshold in the catalog
 
-**Pass 2 -- Contextual assessment**: For each finding from Pass 1, evaluate
-whether it is actually problematic given the project context from Step 2.
-Assign one of three verdicts:
+**Pass 2 -- Contextual assessment**: For each finding from Pass 1, evaluate whether it is actually problematic given the project context from Step 2. Assign one of three verdicts:
 
 - `flag` -- genuinely problematic in this context. Should be rewritten.
-- `note` -- marginal. Worth knowing about but tolerable here. The surrounding
-  text is clean, or the project's style may permit it.
-- `pass` -- acceptable. The trope is used effectively, the word carries its
-  literal meaning (not a trope), or the project context explicitly permits it.
+- `note` -- marginal. Worth knowing about but tolerable here. The surrounding text is clean, or the project's style may permit it.
+- `pass` -- acceptable. The trope is used effectively, the word carries its literal meaning (not a trope), or the project context explicitly permits it.
 
 When assessing context, consider:
 
 - Technical terms used literally ("robust to failure") are not tropes
 - Published blog posts have lower tolerance than internal docs
 - A single low-severity trope in 2000 words of clean prose is usually `pass`
-- Trope clusters (3+ different tropes in one paragraph) always flag regardless of
-  individual severity
+- Trope clusters (3+ different tropes in one paragraph) always flag regardless of individual severity
 
 ### Step 6 -- Generate remediation (full mode only)
 
@@ -117,8 +104,7 @@ For each finding marked `note`:
 
 ### Step 7 -- Produce the report
 
-Output a structured report. For quick mode, omit the Remediation Plan section
-and per-finding rewrites.
+Output a structured report. For quick mode, omit the Remediation Plan section and per-finding rewrites.
 
 ```markdown
 # Detrope Report: [target]
@@ -190,21 +176,13 @@ Priority-ordered list of changes, grouped by severity:
 - **Assessment**: [1-2 sentence verdict on overall AI-ness of the document]
 ```
 
-If the user requested a saved report, write it to:
-`intent/detrope/YYYYMMDD-<slug>.md`
+If the user requested a saved report, write it to: `intent/detrope/YYYYMMDD-<slug>.md`
 
 ## Important Notes
 
-- This skill reads files but never modifies them directly. All changes are
-  proposals for the user to review and apply.
-- Context assessment depends on CLAUDE.md being current. If the project lacks
-  a CLAUDE.md, ask the user about the target audience and document purpose.
+- This skill reads files but never modifies them directly. All changes are proposals for the user to review and apply.
+- Context assessment depends on CLAUDE.md being current. If the project lacks a CLAUDE.md, ask the user about the target audience and document purpose.
 - The trope catalog covers English-language prose only.
-- Density thresholds are calibrated for documents of 500+ words. Very short
-  files may produce skewed density numbers -- note this in the report.
-- For a fast automated pre-scan of the mechanically-detectable subset (~28 of
-  44 tropes), use `cleanz --detrope` from [Utilz](https://github.com/matthewsinclair/Utilz)
-  before running the full skill analysis.
-- Trope slugs are stable identifiers from the
-  [llm-tropes](https://github.com/matthewsinclair/llm-tropes) catalog.
-  Use them consistently in reports and discussions.
+- Density thresholds are calibrated for documents of 500+ words. Very short files may produce skewed density numbers -- note this in the report.
+- For a fast automated pre-scan of the mechanically-detectable subset (the catalog's `automated` and `mixed` rows), use `cleanz --detrope` from [Utilz](https://github.com/matthewsinclair/Utilz) before running the full skill analysis.
+- Trope slugs are stable identifiers from the [llm-tropes](https://github.com/matthewsinclair/llm-tropes) catalog. Use them consistently in reports and discussions.

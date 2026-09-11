@@ -14,7 +14,7 @@ Ask the user:
 
 - Target directory (default: current project root)
 - Organization type: solo, startup, scaleup, or enterprise (default: startup)
-- Directories to exclude (default: vendor, node_modules, \_build, deps, .git)
+- Directories to exclude (default: vendor, node_modules, \_build, deps, .git, .elixir_ls, \_opam, target, dist, build, .next)
 - Whether to include git history analysis (default: yes if git repo)
 
 ### 2. Run the metrics script
@@ -30,7 +30,7 @@ bash "$(find ~/.claude/skills/in-cost-analysis -name cost-metrics.sh 2>/dev/null
 Adjust flags based on user input:
 
 - `--dir PATH` for target directory
-- `--exclude "dir1,dir2"` for exclusion list
+- `--exclude "dir1,dir2"` replaces the default list -- repeat any defaults you still want excluded
 - `--no-git` to skip git history analysis
 - `-o FILE` for output file (default: stdout)
 
