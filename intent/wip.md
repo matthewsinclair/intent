@@ -39,32 +39,32 @@ intent_version: 3.0.0
 
 ### P5 -- rough edges: defaults, doctor, internals.
 
-| #   | id     | sev    | lane | defect                                                                   |
-| --- | ------ | ------ | ---- | ------------------------------------------------------------------------ |
-| 57  | `0101` | medium | dc   | converge_gitignore omits the events.jsonl rule.                          |
-| 58  | `0120` | medium | dc   | converge_gitignore omits intent/.backup/.                                |
-| 60  | `0115` | medium | dc   | `claude upgrade` report mode prints the roster, not a diff.              |
-| 61  | `0220` | medium | dc   | No per-project override of shipped templates and hooks.                  |
-| 62  | `0224` | medium | dc   | `init` seeds an Elixir decision tree into every project.                 |
-| 64  | `0100` | high   | cc   | An unmappable WP status is defaulted silently.                           |
-| 65  | `0084` | medium | cc   | A retired refusal left two survivors in ingest.                          |
-| 66  | `0066` | medium | ic   | `_inbox/` is invisible to st show/list, ac gate, at lint, todo.          |
-| 68  | `0065` | medium | dc   | `doctor` has no way to acknowledge a deliberately-kept state.            |
-| 69  | `0256` | high   | dc   | `doctor` flags 62 deliberately retired rows as residue.                  |
-| 70  | `0283` | medium | dc   | `doctor` and `organize` never consider the store being newer.            |
-| 71  | `0259` | high   | cc   | A scoped sync refuses on another thread's view-skew.                     |
-| 72  | `0145` | medium | ic   | `st edit` writes on its refusal, and the remedy names an empty list.     |
-| 73  | `0146` | medium | ic   | `at edit` is kind-blind and its remedy produces a row lint cannot judge. |
-| 74  | `0153` | medium | ic   | `intent edit` refuses the address form its own remedy recommends.        |
-| 75  | `0150` | medium | dc   | `skills list` cannot see an orphaned skill directory.                    |
-| 77  | `0176` | high   | ic   | `todo notdone`/`toggle` mutate around the Facade.                        |
-| 78  | `0136` | high   | cc   | `deny_unknown_fields` does not reach `AcState::Computed`.                |
-| 79  | `0141` | medium | cc   | A self-loop on a payload state enum becomes a silent overwrite.          |
-| 80  | `0114` | medium | cc   | Attachments have a per-file cap and no per-thread total.                 |
-| 81  | `0172` | medium | dc   | intentd holds no persisted project registry.                             |
-| 82  | `0152` | medium | cc   | A contended write waits a 5s timeout nobody chose.                       |
-| 83  | `0210` | high   | cc   | Concurrent canon commits on one thread deadlock under auto-ingest.       |
-| 84  | `0231` | medium | ic   | TUI repaints can tear on real terminals.                                 |
+| #   | id     | sev    | lane | defect                                                                                                                                                                                                        |
+| --- | ------ | ------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 57  | `0101` | medium | dc   | converge_gitignore omits the events.jsonl rule.                                                                                                                                                               |
+| 58  | `0120` | medium | dc   | converge_gitignore omits intent/.backup/.                                                                                                                                                                     |
+| 60  | `0115` | medium | dc   | `claude upgrade` report mode prints the roster, not a diff.                                                                                                                                                   |
+| 61  | `0220` | medium | dc   | No per-project override of shipped templates and hooks.                                                                                                                                                       |
+| 62  | `0224` | medium | dc   | `init` seeds an Elixir decision tree into every project.                                                                                                                                                      |
+| 64  | `0100` | high   | cc   | An unmappable WP status is defaulted silently.                                                                                                                                                                |
+| 65  | `0084` | medium | cc   | A retired refusal left two survivors in ingest.                                                                                                                                                               |
+| 66  | `0066` | medium | ic   | `_inbox/` is invisible to st show/list, ac gate, at lint, todo.                                                                                                                                               |
+| 68  | `0065` | medium | dc   | `doctor` has no way to acknowledge a deliberately-kept state.                                                                                                                                                 |
+| 69  | `0256` | high   | dc   | `doctor` flags 62 deliberately retired rows as residue.                                                                                                                                                       |
+| 70  | `0283` | medium | dc   | `doctor` and `organize` never consider the store being newer.                                                                                                                                                 |
+| 71  | `0259` | high   | dc   | HALF 1 FIXED at d984b077 (vc re-drove it; a scoped restore no longer refuses on, or overwrites, another thread's view). HALF 2 OPEN: `doctor` reports a green computed from a store the same run flags stale. |
+| 72  | `0145` | medium | ic   | `st edit` writes on its refusal, and the remedy names an empty list.                                                                                                                                          |
+| 73  | `0146` | medium | ic   | `at edit` is kind-blind and its remedy produces a row lint cannot judge.                                                                                                                                      |
+| 74  | `0153` | medium | ic   | `intent edit` refuses the address form its own remedy recommends.                                                                                                                                             |
+| 75  | `0150` | medium | dc   | `skills list` cannot see an orphaned skill directory.                                                                                                                                                         |
+| 77  | `0176` | high   | ic   | `todo notdone`/`toggle` mutate around the Facade.                                                                                                                                                             |
+| 78  | `0136` | high   | cc   | `deny_unknown_fields` does not reach `AcState::Computed`.                                                                                                                                                     |
+| 79  | `0141` | medium | cc   | A self-loop on a payload state enum becomes a silent overwrite.                                                                                                                                               |
+| 80  | `0114` | medium | cc   | Attachments have a per-file cap and no per-thread total.                                                                                                                                                      |
+| 81  | `0172` | medium | dc   | intentd holds no persisted project registry.                                                                                                                                                                  |
+| 82  | `0152` | medium | cc   | A contended write waits a 5s timeout nobody chose.                                                                                                                                                            |
+| 83  | `0210` | high   | cc   | Concurrent canon commits on one thread deadlock under auto-ingest.                                                                                                                                            |
+| 84  | `0231` | medium | ic   | TUI repaints can tear on real terminals.                                                                                                                                                                      |
 
 ### P6 -- to CLOSE on hv's word, not to work.
 
