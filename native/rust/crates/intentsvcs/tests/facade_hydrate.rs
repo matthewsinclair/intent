@@ -19,6 +19,7 @@ use crate::common::{Fixture, sample_thread};
 use intentsvcs::address::{Address, Entity, Format};
 use intentsvcs::facade::FacadeError;
 use intentsvcs::intentfiles;
+use intentsvcs::organize::OrganizeError;
 
 const MANIFEST: &str = "\
 # .intentfiles
@@ -78,6 +79,50 @@ fn an_absent_artefact_is_realised_and_every_returned_path_exists() {
     );
   }
   assert!(is_pinned(&fx, "ST0001"), "and it must be pinned");
+}
+
+/// Issue 0209: realising a thread whose files still sit in a v2 status bucket
+/// wrote a smaller copy at the thread's own directory and left the original
+/// where it was. The bucket holds a file the store does not carry, so the
+/// realisation refuses and writes nothing at the canonical path -- and the
+/// thread, now pinned, is not realised by the next write about anything else.
+#[test]
+fn failure_a_thread_still_in_a_v2_bucket_is_not_realised_beside_it() {
+  let fx = fixture();
+  fx.write_file(
+    "intent/st/NOT-STARTED/ST0001/tasks.md",
+    "# Tasks\n\nhand-authored, and the store never carried it\n",
+  );
+  let mut facade = fx.facade();
+  let err = facade
+    .hydrate(&at(Entity::Thread {
+      id: "ST0001".to_string(),
+    }))
+    .expect_err("a thread with a v2 bucket copy must not be realised beside it");
+
+  assert!(
+    matches!(
+      &err,
+      FacadeError::Organize(OrganizeError::LegacyCopyPresent { thread, files: 1, .. })
+        if thread == "ST0001"
+    ),
+    "the refusal names the thread and the bucket's one file: {err:?}"
+  );
+  assert!(
+    !fx.path("intent/st/ST0001/info.md").exists(),
+    "nothing is written at the canonical path"
+  );
+
+  // The refusal leaves ST0001 pinned, which is the state `st start` leaves: a
+  // declared thread with no files. Every write projects every declared
+  // thread's views, so an unrelated write is the door that realised it.
+  facade
+    .st_new("an unrelated thread")
+    .expect("an unrelated write");
+  assert!(
+    !fx.path("intent/st/ST0001/info.md").exists(),
+    "a later write about another thread does not realise the held one"
+  );
 }
 
 #[test]

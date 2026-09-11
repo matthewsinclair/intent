@@ -2297,7 +2297,7 @@ fn st(m: &ArgMatches) -> Result<(), Failure> {
       // really happened, and the log is the record of what happened.
       if given(a, "start") {
         f.st_triage(&id).map_err(fail)?;
-        f.st_start(&id).map_err(fail)?;
+        report_notes(&f.st_start(&id).map_err(fail)?, &id);
       }
       // v2 prints nothing extra for `-s` (`bin/intent_st:377-381`), so neither
       // does this. The new status is one `st list` away and a second line here
@@ -7919,6 +7919,17 @@ fn fc(m: &ArgMatches) -> Result<(), Failure> {
 }
 
 fn reported(outcome: &Outcome, subject: &str, moved: &str) {
+  report_notes(outcome, subject);
+  match outcome.already() {
+    None => println!("ok: {subject} {moved}"),
+    Some(state) => println!("ok: {subject} already {state}"),
+  }
+}
+
+/// The notes half of [`reported`], for a verb whose result line is its own --
+/// `st new --start` prints `created:` for v2 parity, and its `st start` must
+/// not lose what the transition had to say (issue 0209).
+fn report_notes(outcome: &Outcome, subject: &str) {
   // **THE NOTES ARE PRINTED HERE, AND THAT PLACEMENT IS WHAT MAKES THEM
   // UNDROPPABLE.** Adding an `Outcome` variant would not have forced the
   // nineteen arms to handle it -- they all ask `Outcome::already`, a method,
@@ -7948,6 +7959,19 @@ fn reported(outcome: &Outcome, subject: &str, moved: &str) {
       Note::UnsyncedUnknown => eprintln!(
         "note: the index could not be read, so whether this thread's attachments carry uncommitted bytes is UNKNOWN"
       ),
+      Note::HeldByV2Bucket {
+        thread,
+        dir,
+        home,
+        files,
+      } => {
+        eprintln!(
+          "note: {thread} is declared but NOT realised -- the v2 status bucket {dir} still holds {files} file(s), and realising from the store would leave them behind"
+        );
+        eprintln!(
+          "  remedy: `git mv {dir} {home}`, then `intent organize --apply`. Until then every write skips its views, and `organize` / `st hydrate` refuse it"
+        );
+      }
       Note::FiatClosedSoleCover(acs) => {
         eprintln!(
           "warning: {subject} was the ONLY test covering {}, which stay(s) unsatisfied with nothing left that could satisfy them:",
@@ -7965,10 +7989,6 @@ fn reported(outcome: &Outcome, subject: &str, moved: &str) {
         );
       }
     }
-  }
-  match outcome.already() {
-    None => println!("ok: {subject} {moved}"),
-    Some(state) => println!("ok: {subject} already {state}"),
   }
 }
 

@@ -1652,6 +1652,20 @@ pub enum Note {
   /// most needs to tell apart, and collapsing them prints a clean bill of
   /// health nobody earned.
   UnsyncedUnknown,
+  /// The thread this verb just declared is NOT realised: a v2 status bucket
+  /// still holds its files, so every write skips its views and `organize` /
+  /// `hydrate` refuse it (issue 0209). The strings are project-relative paths.
+  ///
+  /// **SAID BY THE VERB THAT CREATED THE STATE**, because that is the one
+  /// write whose success implies the thread is on its way to disk. A later
+  /// write about another thread claims nothing about this one, so its skip
+  /// hides nothing (vc, 2026-09-11).
+  HeldByV2Bucket {
+    thread: String,
+    dir: String,
+    home: String,
+    files: usize,
+  },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1742,6 +1756,14 @@ pub fn outcome_json(outcome: &Outcome, subject: &str) -> serde_json::Value {
         "kind": "fiat-closed-sole-cover", "criteria": acs,
       }),
       Note::UnsyncedUnknown => serde_json::json!({ "kind": "unsynced-unknown" }),
+      Note::HeldByV2Bucket {
+        thread,
+        dir,
+        home,
+        files,
+      } => serde_json::json!({
+        "kind": "held-by-v2-bucket", "thread": thread, "dir": dir, "home": home, "files": files,
+      }),
     })
     .collect();
   serde_json::json!({
@@ -3079,6 +3101,21 @@ impl Facade {
     let home = match sigil {
       intentfiles::Sigil::SteelThread => self.project.thread_dir(&id),
     };
+    // **A HELD THREAD IS REFUSED HERE, NOT REPORTED** (issue 0209). `run`
+    // reports a hold as one refusal among a run's findings, which suits the
+    // whole-estate verb; this verb names one artefact, so nothing it could
+    // write means the call failed. The pin above stands, and the next
+    // `organize` names the same refusal until the bucket copy is moved.
+    if let Some(h) = whole.held.iter().find(|h| h.thread == id) {
+      return Err(FacadeError::Organize(
+        organize::OrganizeError::LegacyCopyPresent {
+          thread: h.thread.clone(),
+          dir: h.dir.clone(),
+          home: h.home.clone(),
+          files: h.files,
+        },
+      ));
+    }
     let mine: Vec<_> = whole
       .steps
       .iter()
@@ -3090,6 +3127,7 @@ impl Facade {
       digest: whole.digest.clone(),
       preconditions: whole.preconditions.clone(),
       estate_root: whole.estate_root.clone(),
+      held: Vec::new(),
     };
     // **`hydrate` IS ALWAYS `Mode::Apply`, AND IT NEEDS NO FLAG TO BE.** The
     // preview/apply split exists because `organize` REMOVES; `hydrate` only
@@ -3410,6 +3448,7 @@ impl Facade {
       digest: whole.digest.clone(),
       preconditions: whole.preconditions.clone(),
       estate_root: whole.estate_root.clone(),
+      held: Vec::new(),
     };
     let run = scoped
       .run(organize::Mode::Apply, &|| {
@@ -4104,10 +4143,29 @@ impl Facade {
     // every project that has not opted in. Absence means nobody has said, not
     // that the answer is none.
     let realised = self.realised_threads();
+    // **A HELD THREAD'S VIEWS ARE SKIPPED, NOT REFUSED** (issue 0209). The
+    // write after `st start` realised the thread here, beside the v2 bucket
+    // copy it would leave behind, and that write can be any verb about any
+    // thread -- so refusing would make every write hostage to one bucket. The
+    // named refusal belongs to the realising verbs, `organize` and `hydrate`.
+    let held: std::collections::BTreeSet<String> = organize::held(
+      &self.project,
+      canon,
+      &realised,
+      &organize::presence(&self.project, canon, &realised),
+    )
+    .into_iter()
+    .map(|h| h.thread)
+    .collect();
     for view in views::render_all(&self.project, canon, &self.render_ctx()?) {
       if let Realised::Declared(ref declared) = realised
         && let Some(owner) = self.owning_thread(&view.path, canon)
         && !declared.contains(&owner)
+      {
+        continue;
+      }
+      if let Some(owner) = self.owning_thread(&view.path, canon)
+        && held.contains(&owner)
       {
         continue;
       }
@@ -4931,7 +4989,7 @@ impl Facade {
     // none; its return value is no longer the thing that writes the field.
     Self::check_reason("Thread", "status", op, reason)?;
     // Read BEFORE anything is written -- see [`Facade::closing_notes`].
-    let notes = self.closing_notes(op, id, list)?;
+    let mut notes = self.closing_notes(op, id, list)?;
     let mut next = self.canon.clone();
     let thread = find_thread_mut(&mut next, id)?;
     thread.status = status;
@@ -5050,6 +5108,23 @@ impl Facade {
     // **AFTER `apply`, DELIBERATELY** -- see [`Facade::edit_list`] for why the
     // interrupted-between state has to be the one that degrades into `--keep`.
     self.edit_list(op, id, list)?;
+    // **ASKED AFTER THE PIN, BECAUSE THE PIN IS WHAT MAKES IT HELD** (issue
+    // 0209). A thread this verb has just declared, with a v2 bucket copy and
+    // nothing at its home, will be skipped by every write -- and this verb is
+    // the one whose success reads as "on its way to disk".
+    let realised = self.realised_threads();
+    let present = organize::presence(&self.project, &self.canon, &realised);
+    if let Some(h) = organize::held(&self.project, &self.canon, &realised, &present)
+      .into_iter()
+      .find(|h| h.thread == id)
+    {
+      notes.push(Note::HeldByV2Bucket {
+        thread: h.thread,
+        dir: self.project.relative(&h.dir),
+        home: self.project.relative(&h.home),
+        files: h.files,
+      });
+    }
     Ok(if notes.is_empty() {
       Outcome::Moved
     } else {

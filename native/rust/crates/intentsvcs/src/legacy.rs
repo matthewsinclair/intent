@@ -850,11 +850,19 @@ fn thread_dirs(project: &Project) -> Vec<(String, std::path::PathBuf)> {
     out.append(&mut found);
   };
   push_from(&root, &mut out);
-  for bucket in ["COMPLETED", "NOT-STARTED", "CANCELLED"] {
+  for bucket in V2_STATUS_BUCKETS {
     push_from(&root.join(bucket), &mut out);
   }
   out
 }
+
+/// v2's status subdirectories under `intent/st/`, which a v3 estate can still
+/// carry because migration does not relocate out of them (`migrate.rs`).
+///
+/// **One home, because two readers need the same three names**: the migrator
+/// walks them to find every thread, and `organize` looks in them before
+/// realising a thread beside a copy it would leave behind (issue 0209).
+pub const V2_STATUS_BUCKETS: [&str; 3] = ["COMPLETED", "NOT-STARTED", "CANCELLED"];
 
 use crate::model::is_thread_id;
 

@@ -256,7 +256,7 @@ fn write_bytes(dest: &Path, bytes: &[u8]) -> Result<(), RealiseError> {
 }
 
 /// Every file under `root`, in path order.
-fn walk(root: &Path) -> BTreeSet<PathBuf> {
+pub(crate) fn walk(root: &Path) -> BTreeSet<PathBuf> {
   let mut out = BTreeSet::new();
   let mut stack = vec![root.to_path_buf()];
   while let Some(dir) = stack.pop() {

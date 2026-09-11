@@ -214,6 +214,30 @@ pub struct Plan {
   /// is allowed to touch, exactly as `preconditions` lets it be inspected for
   /// what it is allowed to do.
   pub estate_root: PathBuf,
+  /// Declared threads this plan will not realise, because a v2 status bucket
+  /// still holds their files (issue 0209). Their steps are absent from `steps`,
+  /// and [`Plan::run`] reports each one as a refusal.
+  pub held: Vec<Held>,
+}
+
+/// A declared thread whose realisation is held back (issue 0209).
+///
+/// **THE PREDICATE IS "THE DISK CARRIES FILES FOR THIS THREAD THAT THE
+/// REALISATION WOULD LEAVE BEHIND", NOT A SIZE COMPARISON.** A realisation can
+/// be byte-larger and still drop `tasks.md`, so size tracks nothing (laksa-dc's
+/// correction, recorded on the issue). Measured on Laksa's ST0106: realising
+/// from a store that never carried `design.md`/`impl.md`/`tasks.md` wrote 9493
+/// bytes at `intent/st/ST0106/` while the 14789-byte original stayed tracked
+/// under `NOT-STARTED/` -- two directories, and the incomplete one looked
+/// authoritative.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Held {
+  pub thread: String,
+  /// The bucket directory holding the files, eg `intent/st/NOT-STARTED/ST0106`.
+  pub dir: PathBuf,
+  /// Where the thread would have been realised.
+  pub home: PathBuf,
+  pub files: usize,
 }
 
 impl Plan {
@@ -287,6 +311,16 @@ pub enum OrganizeError {
   /// [`OrganizeError::Io`]: a failed walk means the plan was computed against a
   /// population that is not the estate, and every other refusal here is about a
   /// named file the walk succeeded on.
+  #[error(
+    "refusing to realise {thread}: the v2 status bucket {dir} still holds {files} file(s) for it, and realising from the store would write a second, smaller copy at {home} while that one stays -- two directories, and the incomplete one would look authoritative."
+  )]
+  LegacyCopyPresent {
+    thread: String,
+    dir: PathBuf,
+    home: PathBuf,
+    files: usize,
+  },
+
   #[error("could not read the tree to reconcile it: {source}")]
   Scan {
     #[source]
@@ -329,6 +363,15 @@ impl crate::remedy::Remedy for OrganizeError {
       // an override would hand out exactly the bypass the gate exists to
       // refuse.
       Self::PreconditionsUnmet { .. } => "dehydration stays gated until this project's declared preconditions are met, and the refusal above names every one that is not. `intent ac list` shows the state of each. Nothing here needs undoing: hydration and verification in the same run were unaffected, and no file was removed.".to_string(),
+      // **NOT `intent st hydrate`**: it realises from the same store, so it
+      // would write the same smaller copy. Moving the directory keeps what the
+      // store does not model beside the views, where `organize` reports it as
+      // unclaimed and never removes it.
+      Self::LegacyCopyPresent { dir, home, .. } => format!(
+        "bring the bucket copy home first: `git mv {} {}`, then re-run. If the bucket copy is obsolete, delete it instead. Nothing was written for this thread.",
+        dir.display(),
+        home.display()
+      ),
       Self::Scan { .. } => "the tree could not be walked, so nothing was planned and nothing was touched. The cause above names the path -- check it is readable and re-run.".to_string(),
       Self::Io { path, .. } => format!(
         "check that {} exists and is readable. This is a file `organize` had already decided about, so the tree moved or a permission changed between the plan and the act.",
@@ -598,13 +641,81 @@ pub fn plan(
     }
   }
 
+  let held = held(project, canon, realised, present);
+  steps.retain(|s| !held.iter().any(|h| s.path.starts_with(&h.home)));
+
   steps.sort_by(|a, b| a.path.cmp(&b.path));
   Plan {
     steps,
     digest,
     preconditions: preconditions::check(canon),
     estate_root: project.st_dir(),
+    held,
   }
+}
+
+/// The declared threads that must not be realised yet (issue 0209).
+///
+/// **A DECLARED THREAD WITH NOTHING AT ITS OWN DIRECTORY AND FILES IN A v2
+/// BUCKET IS HELD.** Only a FIRST realisation is held: a thread already present
+/// at its home has no smaller copy left to write, and holding it would freeze a
+/// working thread over a stray bucket.
+///
+/// **ONE PREDICATE, TWO DOORS.** [`plan`] asks it of the tree it observed;
+/// `Facade::projection` asks it of [`presence`] on every write, because the
+/// write after `st start` realised the thread silently -- driven, and the
+/// likelier way Laksa's copy appeared than `organize` itself.
+pub fn held(
+  project: &Project,
+  canon: &Canon,
+  realised: &Realised,
+  present: &BTreeSet<PathBuf>,
+) -> Vec<Held> {
+  canon
+    .threads
+    .iter()
+    .filter(|t| realised.declares(&t.id))
+    .filter(|t| {
+      let home = project.thread_dir(&t.id);
+      !present.iter().any(|p| p.starts_with(&home))
+    })
+    .filter_map(|t| v2_bucket_copy(project, present, &t.id))
+    .collect()
+}
+
+/// The files [`held`] reads, for a caller with no observed tree: each declared
+/// thread's home and its v2 bucket directories, and nothing else.
+///
+/// **NOT `sync::scan`**, which hashes the whole estate: `Facade::projection`
+/// runs on every write, and the question needs a few directory listings.
+pub fn presence(project: &Project, canon: &Canon, realised: &Realised) -> BTreeSet<PathBuf> {
+  canon
+    .threads
+    .iter()
+    .filter(|t| realised.declares(&t.id))
+    .flat_map(|t| {
+      std::iter::once(project.thread_dir(&t.id)).chain(
+        crate::legacy::V2_STATUS_BUCKETS
+          .iter()
+          .map(|bucket| project.st_dir().join(bucket).join(&t.id)),
+      )
+    })
+    .flat_map(|dir| crate::realise::walk(&dir))
+    .collect()
+}
+
+/// The first v2 status bucket holding files for `id`, if any.
+fn v2_bucket_copy(project: &Project, present: &BTreeSet<PathBuf>, id: &str) -> Option<Held> {
+  crate::legacy::V2_STATUS_BUCKETS.iter().find_map(|bucket| {
+    let dir = project.st_dir().join(bucket).join(id);
+    let files = present.iter().filter(|p| p.starts_with(&dir)).count();
+    (files > 0).then(|| Held {
+      thread: id.to_string(),
+      dir,
+      home: project.thread_dir(id),
+      files,
+    })
+  })
 }
 
 /// Remove the directories THIS RUN EMPTIED, and only those.
@@ -792,6 +903,19 @@ impl Plan {
   /// operator is consulting the preview for.
   pub fn run(&self, mode: Mode, digest_now: &dyn Fn() -> String) -> Result<Report, OrganizeError> {
     let mut report = Report::default();
+
+    // **REPORTED IN BOTH MODES, AND THE RUN CONTINUES** (issue 0209), for the
+    // reason `refused` gives: one held thread must not make every other
+    // thread's realisation hostage to it. On `--apply` a refusal moves the exit
+    // code, so a script does not carry on believing the thread is realised.
+    for h in &self.held {
+      report.refused.push(OrganizeError::LegacyCopyPresent {
+        thread: h.thread.clone(),
+        dir: h.dir.clone(),
+        home: h.home.clone(),
+        files: h.files,
+      });
+    }
 
     // **GUARDED ONLY WHEN THERE IS SOMETHING IRREVERSIBLE TO GUARD.** A plan that
     // removes nothing has no step worth refusing over, and refusing a pure
