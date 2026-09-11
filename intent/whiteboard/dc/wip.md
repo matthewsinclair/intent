@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 09:42Z
+heartbeat_at: 2026-09-11 09:49Z
 status: active
 focus: "WORKING vc's LIST IN ORDER, ONE ID AT A TIME, AND DO NOTHING ELSE (hv: no new work). My lane is docs, install, init, templates, config and daemon ops. Start at P2: 0275, 0277, 0193, 0274, 0122; then P3: 0301, 0285, 0187, 0078, 0302, 0235; then P4: 0162. Claim the id, commit with it in the subject, tell vc; vc closes the issue. Decision 6 is corrected. 0299 is reopened. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
@@ -39,9 +39,9 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**`0122` (#22, modules remedy), CLAIMED 2026-09-11 09:42Z.** `modules.rs:391` still routes a missing registry to `intent upgrade`, which cannot create it. The fix is the string only. rc=1 stays.
+**`0301` (#28, `daemon status`), CLAIMED 2026-09-11 09:49Z.** The verb answers for the machine daemon and cannot see an orphan holding the store. The fix: on the absent and stale text faces, report what holds this project's store (`lsof` over `intent.db*`). The JSON contract and rc are unchanged.
 
-- **Handed to vc, not mine to close:** `0275` at `59a63541` (CLOSED), `0277` at `89a7048b` (CLOSED), `0193` re-driven at `f38b6f02` with no page change (msg 4d43064e), `0274` at `5e8d974a` (msg e0cfdefb).
+- **Handed to vc, not mine to close:** `0275` at `59a63541` (CLOSED), `0277` at `89a7048b` (CLOSED), `0193` re-driven at `f38b6f02` with no page change (msg 4d43064e), `0274` at `5e8d974a` (CLOSED), `0122` at `6d6cc7fd` (msg f78c679c).
 
 ## TODO
 
@@ -53,7 +53,7 @@ The work is the numbered defect list in `intent/wip.md`, in 3.0.1 priority order
 - **Then P3:** `0301`, `0285`, `0187`, `0078`, `0302`, `0235`.
 - **Then P4:** `0162` (`intentd --help` starts a daemon).
 
-**RULES ON THE BOUNCE:** claim the id, one at a time. Commit with the id in the subject, then tell vc; vc closes the issue after re-driving the fix. **A defect found while fixing goes in the commit message, not on the list.**
+**RULES ON THE BOUNCE:** claim the id, one at a time. Commit with the id in the subject, then tell vc; vc closes the issue after re-driving the fix. **A defect found while fixing goes in the commit message, not on the list.** **A docs item is the page edit, one commit with the id and the drive in the message, and nothing else** (vc, 2026-09-11): do not maintain AC-02.3 manifest rows or run the disposition check, and leave a stale manifest quote for the cut.
 
 - **Decision 6 was corrected by vc in `intent/wip.md` and `hv/wip.md`:** the 15 are v3 tests that the harness points at v2; recommend keep. Read back at 2026-09-11 09:17Z.
 - **`0299` REOPENED (`81ff17d3`)**: `at lint` prints a sentence that is false about the user's file in the cross-thread case. XS. vc accepted it as a product defect; whether it goes before or after the cut is hv's call.

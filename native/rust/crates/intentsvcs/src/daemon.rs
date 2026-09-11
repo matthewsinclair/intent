@@ -612,6 +612,16 @@ pub enum DaemonError {
     #[source]
     source: std::io::Error,
   },
+  /// `lsof` could not be started, so what holds the store is unknown.
+  #[error("could not run `lsof` to see what holds `{store}`: {source}")]
+  HoldersUnrunnable {
+    store: PathBuf,
+    #[source]
+    source: std::io::Error,
+  },
+  /// `lsof` ran and did not return an answer this module can read.
+  #[error("`lsof` gave no usable answer about `{store}`: {found}")]
+  HoldersUnreadable { store: PathBuf, found: String },
 }
 
 impl crate::remedy::Remedy for DaemonError {
@@ -645,8 +655,95 @@ impl crate::remedy::Remedy for DaemonError {
         "intentd bound a port and could not record it, so no client could have found it. Check that `{}` is writable -- it is created by intentd under your own per-user state directory.",
         path.parent().map(|p| p.display().to_string()).unwrap_or_else(|| "its directory".to_string())
       ),
+      DaemonError::HoldersUnrunnable { store, .. } | DaemonError::HoldersUnreadable { store, .. } => format!(
+        "this is the check for processes holding the store, and it did not answer, so no conclusion about them follows. Run `lsof -- {}` yourself to see what holds it.",
+        store.display()
+      ),
     }
   }
+}
+
+/// What holds a project's store right now (issue `0301`).
+///
+/// **A DIFFERENT QUESTION FROM [`health`], AND THE ONE AN OPERATOR ACTUALLY
+/// HAS.** `health` answers whether the machine daemon is answering, over the
+/// population of processes that published an endpoint. A process that never
+/// published one -- an orphaned test daemon, for one -- can still hold this
+/// project's store and write to it, and `health` cannot see it by
+/// construction. Measured 2026-09-09: 33 processes held Intent's own store
+/// while `daemon status` printed the line it prints when nothing is running.
+#[derive(Debug, PartialEq, Eq)]
+pub enum StoreHolders {
+  /// No store file exists, so nothing can hold one.
+  NoStore,
+  /// The pids holding the store, its WAL or its SHM, the caller excluded.
+  /// **Empty is a measured answer**, not a default.
+  Pids(Vec<u32>),
+}
+
+/// Ask `lsof` which processes hold `db` and its `-wal` / `-shm` companions.
+///
+/// **ONLY FILES THAT EXIST ARE NAMED**, because `lsof` exits 1 and writes to
+/// stderr for a missing name, and that shape is also its error shape. With
+/// only existing names and `-w` silencing warnings, exit 1 with empty output
+/// is unambiguous: nothing holds them. Anything else is refused rather than
+/// read as empty -- telling an operator nothing holds the store when the
+/// check did not answer is the confident negative this issue is about.
+pub fn store_holders(db: &std::path::Path) -> Result<StoreHolders, DaemonError> {
+  if !db.exists() {
+    return Ok(StoreHolders::NoStore);
+  }
+  let files: Vec<PathBuf> = ["", "-wal", "-shm"]
+    .iter()
+    .map(|suffix| {
+      let mut name = db.as_os_str().to_owned();
+      name.push(suffix);
+      PathBuf::from(name)
+    })
+    .filter(|p| p.exists())
+    .collect();
+  let out = std::process::Command::new("lsof")
+    .args(["-w", "-t", "--"])
+    .args(&files)
+    .output()
+    .map_err(|source| DaemonError::HoldersUnrunnable {
+      store: db.to_path_buf(),
+      source,
+    })?;
+  let stderr = String::from_utf8_lossy(&out.stderr);
+  let unreadable = |found: String| DaemonError::HoldersUnreadable {
+    store: db.to_path_buf(),
+    found,
+  };
+  match out.status.code() {
+    Some(0 | 1) if stderr.trim().is_empty() => {
+      parse_lsof_pids(&String::from_utf8_lossy(&out.stdout), std::process::id())
+        .map(StoreHolders::Pids)
+        .map_err(unreadable)
+    }
+    code => Err(unreadable(format!(
+      "exit {code:?}, stderr {:?}",
+      stderr.trim()
+    ))),
+  }
+}
+
+/// `lsof -t` output to a sorted, de-duplicated pid list without `own`.
+///
+/// A line that is not a pid refuses the whole answer: a partial list would
+/// under-report holders, and under-reporting is the defect being fixed.
+fn parse_lsof_pids(stdout: &str, own: u32) -> Result<Vec<u32>, String> {
+  let mut pids = Vec::new();
+  for line in stdout.lines().map(str::trim).filter(|l| !l.is_empty()) {
+    let pid: u32 = line
+      .parse()
+      .map_err(|_| format!("`lsof -t` printed {line:?}, which is not a pid"))?;
+    if pid != own && !pids.contains(&pid) {
+      pids.push(pid);
+    }
+  }
+  pids.sort_unstable();
+  Ok(pids)
 }
 
 /// Every address this build knows to look for a daemon on.
@@ -1369,5 +1466,44 @@ impl Drop for Bound {
         let _ = std::fs::remove_file(&self.path);
       }
     }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn lsof_pids_are_sorted_deduplicated_and_exclude_the_caller() {
+    // `lsof -t` lists a pid once per file it holds, so a process holding the
+    // store and its WAL appears twice.
+    let got = parse_lsof_pids("4242\n17\n4242\n99\n", 99);
+    assert_eq!(got, Ok(vec![17, 4242]));
+  }
+
+  #[test]
+  fn empty_lsof_output_is_an_empty_answer() {
+    assert_eq!(parse_lsof_pids("", 1), Ok(vec![]));
+    assert_eq!(parse_lsof_pids("\n  \n", 1), Ok(vec![]));
+  }
+
+  #[test]
+  fn a_line_that_is_not_a_pid_refuses_the_whole_answer() {
+    // A partial list would under-report holders, which is the defect.
+    let got = parse_lsof_pids("17\nCOMMAND\n", 1);
+    assert!(
+      got.as_ref().is_err_and(|e| e.contains("COMMAND")),
+      "a non-pid line must refuse and name itself: {got:?}"
+    );
+  }
+
+  #[test]
+  fn a_missing_store_is_no_store_and_runs_nothing() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let got = store_holders(&dir.path().join("intent.db"));
+    assert!(
+      matches!(got, Ok(StoreHolders::NoStore)),
+      "no store file must be NoStore: {got:?}"
+    );
   }
 }

@@ -7028,12 +7028,59 @@ fn daemon_status(a: &ArgMatches) -> Result<(), Failure> {
       println!(
         "note: that process is alive -- investigate it rather than removing the socket, which it still owns"
       );
+      print_store_holders();
     }
     daemon::Health::Absent => {
-      println!("ok: no intentd is answering; commands run in-process")
+      println!("ok: no intentd is answering; commands run in-process");
+      print_store_holders();
     }
   }
   Ok(())
+}
+
+/// The second question `daemon status` owes when commands run in-process:
+/// what holds THIS project's store (issue `0301`).
+///
+/// **THE LINE ABOVE IT IS TRUE AND WAS BEING READ AS COVERING THIS.** It
+/// answers for the machine daemon, and 64 orphaned `intentd` holding a store
+/// printed exactly what zero processes print. So the holders are measured and
+/// named here, and every way the measurement can fail to happen says so on its
+/// own line rather than printing nothing -- an absent line would read as an
+/// empty one.
+///
+/// **TEXT FACE ONLY.** The JSON face is ic's decoder contract, where absent
+/// carries the state alone (`daemon_status_answers_a_machine.rs`), and the exit
+/// code is unchanged: the daemon answer it reports is still correct.
+fn print_store_holders() {
+  let project = std::env::current_dir()
+    .ok()
+    .and_then(|cwd| Project::discover(&cwd).ok());
+  let Some(project) = project else {
+    println!("note: not in an Intent project, so no project store was checked for holders");
+    return;
+  };
+  let db = project.db_path();
+  match daemon::store_holders(&db) {
+    Ok(daemon::StoreHolders::NoStore) => {
+      println!("note: this project has no store yet at {}", db.display())
+    }
+    Ok(daemon::StoreHolders::Pids(pids)) if pids.is_empty() => {
+      println!(
+        "note: nothing else holds this project's store at {}",
+        db.display()
+      )
+    }
+    Ok(daemon::StoreHolders::Pids(pids)) => {
+      let list: Vec<String> = pids.iter().map(u32::to_string).collect();
+      println!(
+        "warning: {} process(es) hold this project's store at {} (pid {}) -- the line above answers only for the machine daemon, and a process holding the store can write to it behind you",
+        pids.len(),
+        db.display(),
+        list.join(", ")
+      );
+    }
+    Err(e) => println!("note: {}\n  remedy: {}", e, e.remedy()),
+  }
 }
 
 /// Where `intentd` is, refusing anything that is not the binary built beside
