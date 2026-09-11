@@ -21,14 +21,13 @@ intent_version: 3.0.0
 
 ### P1 -- data loss or corruption. These decide whether 3.0.1 ships.
 
-| #   | id     | sev    | lane | defect                                                                                        |
-| --- | ------ | ------ | ---- | --------------------------------------------------------------------------------------------- |
-| 12  | `0216` | high   | dc   | A canon write reports ok, lands, and the daemon's disk ingest reverts it (under contention).  |
-| 13  | `0212` | high   | dc   | A daemon ingest reverts a completed store write when the on-disk extract lags.                |
-| 14  | `0206` | high   | cc   | Canon verbs are read-modify-write with no compare-and-swap; concurrent sessions lose a write. |
-| 15  | `0131` | high   | cc   | Two concurrent `issues add` both report created; one silently replaces the other.             |
-| 16  | `0135` | medium | cc   | Two facades can both take one child id.                                                       |
-| 17  | `0226` | high   | cc   | `st new` fails on a watched project once the corpus is large (render race with the daemon).   |
+| #   | id     | sev    | lane | defect                                                                                       |
+| --- | ------ | ------ | ---- | -------------------------------------------------------------------------------------------- |
+| 12  | `0216` | high   | dc   | A canon write reports ok, lands, and the daemon's disk ingest reverts it (under contention). |
+| 13  | `0212` | high   | dc   | A daemon ingest reverts a completed store write when the on-disk extract lags.               |
+| 15  | `0131` | high   | cc   | Two concurrent `issues add` both report created; one silently replaces the other.            |
+| 16  | `0135` | medium | cc   | Two facades can both take one child id.                                                      |
+| 17  | `0226` | high   | cc   | `st new` fails on a watched project once the corpus is large (render race with the daemon).  |
 
 ### P3 -- commands that report success or state while wrong.
 
@@ -39,7 +38,6 @@ intent_version: 3.0.0
 | 27  | `0137` | high   | ic   | `ac list` shows a fiat-closed criterion as satisfied: no.                           |
 | 31  | `0194` | high   | ic   | `intent search` with a hyphenated term leaks a SQLite error.                        |
 | 32  | `0268` | high   | cc   | A failed migration rung prints a raw SQLite error naming nothing; its remedy loops. |
-| 34  | `0299` | medium | dc   | `at lint` says a file lacks an id it carries (the cross-thread case).               |
 | 35  | `0223` | medium | ic   | A mistyped subcommand becomes the title of a real artefact at rc=0.                 |
 | 36  | `0240` | medium | ic   | `edit` returns a path at rc=0 for an AC, AT or attachment that does not exist.      |
 | 38  | `0097` | medium | cc   | `ingest --from-md` prints ok and writes nothing.                                    |
