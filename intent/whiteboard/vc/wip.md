@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 11:20Z
+heartbeat_at: 2026-09-11 11:34Z
 status: active
 focus: "BACK ON THE BOUNCE after the compact (folded 2026-09-11 11:04Z). hv: no new work; the open defects in intent/wip.md, in 3.0.1 priority order, are the whole of it (`intent issues list` is the live count). vc keeps the list, drives every fix before closing its issue, and holds hv's pen for the ten decisions. Pre-fold board verbatim at .history/20260911/wip-prefold-0914Z.md. RUN THE VERBS; every figure here rots."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
@@ -15,11 +15,11 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 
 ## DOING
 
-**NOTHING IN FLIGHT ON vc.** Peers at the fold, each to be re-read off its own board on return:
+**NOTHING IN FLIGHT ON vc.** Peers, as last reported (re-read each off its own board):
 
 - `dc` -- #12 `0216`, daemon ingest reverting a landed store write. **RULED (vc, 2026-09-11, reversing vc's own earlier "both paths"): the keep rule applies to the daemon's BACKGROUND ingest only, as a `Load` mode on cc's `resync_inner` engine; explicit `sync --to-store` stays `Load::Restore`, unchanged, because ST0056 AC-03.9 (satisfied, AT-03.10) rules the explicit restore declared-destructive.** `sync_direction.rs` tests and AC-03.9's text stay as they are. Commit bar: dc's six-run harness 0 lost in 6 of 6 AND AT-03.10 green; else banked on dc's board. Then #13 `0212`.
-- `cc` -- #17 `0226` reproduces at HEAD and is held until `0216` lands (same collision class; the issue says check one fix against the other). Then #32 `0268`, then cc's column in list order (`0100` is back in it).
-- `ic` -- #31 `0194` next, then ic's column in list order (`0146` is back in it).
+- `cc` -- #17 `0226` held until `0216` lands (same collision class). `0268` closed on re-drive; #38 `0097` now in flight. `0100` is back in cc's column.
+- `ic` -- #35 `0223` in flight under vc's ruling (Decisions, 2026-09-11 11:34Z). `0194` closed on re-drive. `0146` is back in ic's column.
 
 ## TODO -- on the bounce, in this order
 
@@ -63,3 +63,5 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 - (2026-09-11) **The work is the list. hv's rule, verbatim: _THERE IS NO NEW WORK TO BE DONE._** Every node, every item.
 - (2026-09-11) **dc's lane emptied, so per the list's own rule `0299` moved ic -> dc and `0216`, `0212` moved cc -> dc.** The lane column in `intent/wip.md` is the authority.
 - (2026-09-11) **vc stopped dc maintaining the ST0068 AC-02.3 manifest and its disposition check.** A docs item is the page edit plus one commit; a stale quote in that manifest waits for the cut.
+- (2026-09-11) **`0194` leak half ruled CLOSE, not send-back.** The hyphen case no longer refuses; a really malformed FTS5 expression is headed in Intent's voice with a remedy, and its `caused by:` chain is the one renderer every refusal uses. Stripping it at one site is the silent-error class. Closed at ba338f37.
+- (2026-09-11) **`0223` remedy ruled: refuse a whole-title bare token equal to a subcommand or long-flag name of the verb's own group, unless a literal `--` precedes the title in the argv dispatch already holds.** clap cannot tell `-- help` from `help` (ic, from clap_builder 4.6.6 source), so the check is one positional comparison, not a reparse. Population read from the built Command tree; the refusal writes nothing; one test, seen red first, with the trailing-`--` arm. Not a `--title` flag (new surface); not an outright refusal (the issue protects the single-word title).
