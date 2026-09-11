@@ -405,14 +405,24 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
       }
     };
 
+    let heading = title(body).unwrap_or_else(|| id.clone());
+    // **A THREAD v2 NEVER SLUGGED GETS THE SLUG `st new` WOULD GIVE IT (0080).**
+    // An authored slug is carried as written. Absent, it is derived from the
+    // title through the one `slugify` the create door uses, so the two doors
+    // agree on the field: 75 of Lamplight's 353 v2 threads carry no slug line.
+    let slug = front
+      .get("slug")
+      .filter(|s| !s.is_empty())
+      .cloned()
+      .unwrap_or_else(|| crate::facade::slugify(&heading));
     out.threads.push(Thread {
       attachments,
       body: carried_body,
       preamble: preamble(body),
       schema: THREAD_SCHEMA.to_string(),
       id: id.clone(),
-      title: title(body).unwrap_or_else(|| id.clone()),
-      slug: front.get("slug").filter(|s| !s.is_empty()).cloned(),
+      title: heading,
+      slug: Some(slug),
       status: status.unwrap_or(ThreadStatus::NotStarted),
       status_reason: None,
       // A creation path: only `st.fc` writes this, so `None` is the fact and

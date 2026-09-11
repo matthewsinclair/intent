@@ -341,3 +341,47 @@ fn a_clean_estate_converges_its_formatter_exclusion_by_pattern_and_not_by_star()
      {excluded:?}"
   );
 }
+
+/// **0080: A v2 THREAD WITH NO `slug:` LINE MIGRATES WITH THE SLUG `st new`
+/// WOULD GIVE IT, NOT WITH NONE.** 75 of Lamplight's 353 v2 threads carry no
+/// slug line, and each came through with `slug: None` while every thread `st
+/// new` makes computes one -- two creation doors disagreeing on one field. An
+/// authored slug is the control: it is carried as written, never recomputed.
+#[test]
+fn a_thread_v2_never_slugged_takes_the_slug_st_new_would_give_it() {
+  let fx = v2_estate_in_git();
+  v2_thread(&fx, "ST0001", "WIP");
+  let authored = fx.read("intent/st/ST0001/info.md");
+  assert!(
+    authored.contains("slug: a-slug\n"),
+    "the control thread carries an authored slug"
+  );
+  fx.write_file(
+    "intent/st/ST0002/info.md",
+    &authored
+      .replace("slug: a-slug\n", "")
+      .replace("# ST0001: A thread", "# ST0002: A Thread Nobody Slugged"),
+  );
+
+  let scan = intentsvcs::legacy::scan(&fx.project()).expect("a v2 estate scans");
+  let slug = |id: &str| {
+    scan
+      .threads
+      .iter()
+      .find(|t| t.id == id)
+      .unwrap_or_else(|| panic!("{id} was not read"))
+      .slug
+      .clone()
+  };
+
+  assert_eq!(
+    slug("ST0001").as_deref(),
+    Some("a-slug"),
+    "an authored slug is carried as written"
+  );
+  assert_eq!(
+    slug("ST0002"),
+    Some(intentsvcs::facade::slugify("A Thread Nobody Slugged")),
+    "a thread v2 never slugged gets the slug st new computes from its title"
+  );
+}
