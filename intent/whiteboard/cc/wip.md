@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 10:29Z
+heartbeat_at: 2026-09-11 11:00Z
 status: active
-focus: "BOUNCED 2026-09-11. DOING #9 0126. 0124 is with vc at 6a0d7198; 0133, 0260, 0082 and 0276 closed. 0100 is back in my lane. hv's words: no new work, these items ONLY. The work is intent/wip.md, 92 defects in 3.0.1 priority order, and that list is the authority. MY LANE is ingest, migration and the store write path, in list order. One id at a time: claim it in DOING, put the id in the commit subject, tell vc, and vc closes it. No new tests beyond the proof, and no instruments, guards, criteria or threads. The 16 clippy lints are hv's decision 4 and wait on hv's go."
+focus: "BOUNCED 2026-09-11. DOING #17 0226, the last P1. 0135 is with vc at 065823ff; ten items closed today. 0100 is back in my lane. hv's words: no new work, these items ONLY. The work is intent/wip.md, 92 defects in 3.0.1 priority order, and that list is the authority. MY LANE is ingest, migration and the store write path, in list order. One id at a time: claim it in DOING, put the id in the commit subject, tell vc, and vc closes it. No new tests beyond the proof, and no instruments, guards, criteria or threads. The 16 clippy lints are hv's decision 4 and wait on hv's go."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,11 +14,11 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**#9 `0126` (high), claimed 2026-09-11 10:29Z.** The v2 ingest can SPLICE a row: head lost, a span duplicated, tail truncated. The length delta nets out. The issue's hypothesis (a covers clause after `status:` reaching the note twice, via `note()` AND `with_qualifiers`) is to be DRIVEN before fixing.
+**#17 `0226` (high), claimed 2026-09-11 11:00Z.** `st new` fails on a watched project once the corpus is large (a render race with the daemon). The last of my P1 items.
 
-**WITH vc FOR RE-DRIVE: #8 `0124` at `6a0d7198`.** `evidence`/`reason` run to the next keyed field. Found while fixing: the acceptance view never renders an Unsatisfied note.
+**WITH vc FOR RE-DRIVE: #16 `0135` at `065823ff`.** It was closed by `5ef0667c`'s CAS (a child create is a change to its thread) and is now pinned by a deterministic two-facade test. No behaviour change.
 
-**CLOSED BY vc TODAY: `0133` (fixed at `04cf6f18`); `0260` at `86071c36` (provenance guard on `--to-disk`); `0082` at `4e136867`; `0276` at `d169f1f8`.**
+**CLOSED BY vc TODAY:** `0133` (`04cf6f18`), `0260` (`86071c36`), `0082` (`4e136867`), `0276` (`d169f1f8`), `0124` (`6a0d7198`), `0126` (`a39d91a5`), `0138` (`0c58e837`), `0129` (control negative, no code), `0206` (`5ef0667c`, already fixed), `0131` (`f6a7dde0`, the cold-store warm). **MOVED TO dc BY vc:** `0216`, `0212`.
 
 **BACK IN MY LANE, IN LIST ORDER: #64 `0100`.** `4479264f` was option 1 only. The remaining fix is the `status_legacy` mirror that `scope` already has (`scope_legacy`); 22 of 23 still default to not-started with only a finding.
 
@@ -34,10 +34,7 @@ claims: [ST0056/06, ST0056/10]
 
 **MY ITEMS FROM `intent/wip.md`, IN LIST ORDER. RE-READ THE LIST AT PICKUP, because vc owns its numbering.**
 
-- **#10 `0138`**, **#11 `0129`**: the v2 ingest has two behaviours for one shape, and rewrites an authored full stop.
-- **#12 `0216`**, **#13 `0212`**: an ingest reverts a completed write. **DESIGN NOTE CARRIED FROM THE OLD HOLD:** the obvious version check collides with `written_at`, which the ingest rewrites wholesale, so it needs a monotonic version that the ingest does not own. **Contention is `0216`'s variable. Refusals (`0226`) and silent losses (`0216`) trade off**, so a single counter will read as improvement. Whether one fix serves both is not yet driven.
-- **#14 `0206`**: canon verbs are read-modify-write with no compare-and-swap. **#15 `0131`**: two concurrent `issues add` both report created. **#16 `0135`**: two facades can take one child id.
-- **#17 `0226`**: `st new` fails on a watched project once the corpus is large (a render race with the daemon).
+- **Then my P3/P5 items, in the list's lane order:** #32 `0268`, #38 `0097`, #39 `0069`, #63 `0080`, #64 `0100`, #65 `0084`, #71 `0259`, #76 `0159`, #78 `0136`, #79 `0141`, #80 `0114`, #82 `0152`, #83 `0210`. (`0111` was closed by vc.)
 
 ## Holds -- mine, with the CONDITION that releases each
 
