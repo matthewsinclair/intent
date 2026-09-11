@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 19:38Z
+heartbeat_at: 2026-09-11 19:41Z
 status: active
 focus: "LOCALFOLD 2026-09-11 19:38Z for hv's compact; this is not a release. 3.0.1 shipped and globalfolded at c6bdf3c8. HOLDING: no new work until hv sets it. Open with vc: 0150, 0065. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
