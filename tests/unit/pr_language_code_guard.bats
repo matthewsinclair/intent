@@ -18,8 +18,11 @@ _pr_rule() {
 }
 
 @test "rules validate accepts a well-formed IN-PR prose id" {
+  # An id no canon rule declares. v3 validates a path against the whole corpus,
+  # so the IN-PR-STYLE-001 this used to stamp now collides with the real rule of
+  # that id and is refused as a duplicate -- which is not this test's subject.
   local rule="$TEST_TEMP_DIR/pr-valid.md"
-  _pr_rule "IN-PR-STYLE-001" "prose" "$rule"
+  _pr_rule "IN-PR-STYLE-900" "prose" "$rule"
   run run_intent claude rules validate "$rule"
   assert_success
   assert_output_contains "1 ok"

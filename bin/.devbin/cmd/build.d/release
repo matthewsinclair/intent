@@ -573,7 +573,6 @@ log_step "sidecar sync"
 # step and the commit step alike, so the two cannot disagree about what a
 # release commit contains.
 CONFIG_REL="intent/.config/config.json"
-SIDECAR_FILES="VERSION CHANGELOG.md AGENTS.md CLAUDE.md $CONFIG_REL"
 
 # `native/rust/Cargo.toml` carries `[workspace.package] version`, every crate
 # inherits it with `version.workspace = true`, and both binaries compile their
@@ -595,7 +594,11 @@ SIDECAR_FILES="VERSION CHANGELOG.md AGENTS.md CLAUDE.md $CONFIG_REL"
 # whose VERSION is a 2.x, where `semver_gt` admits it -- and this handler will
 # need the arm back. That is a deliberate condition to restore at that point,
 # not a silent behaviour to rediscover.
-SIDECAR_FILES="$SIDECAR_FILES $NATIVE_MANIFEST_REL $NATIVE_LOCK_REL"
+#
+# THE NATIVE PAIR WAS AN APPEND TO THIS LIST UNTIL 2026-09-11, which made the
+# append a second home for the list the comment above says there is one of
+# (vc, AC-00.6). Folded into the one declaration; the set is unchanged.
+SIDECAR_FILES="VERSION CHANGELOG.md AGENTS.md CLAUDE.md $CONFIG_REL $NATIVE_MANIFEST_REL $NATIVE_LOCK_REL"
 
 NEEDS_COMMIT=false
 

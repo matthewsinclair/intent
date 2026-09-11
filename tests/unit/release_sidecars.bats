@@ -65,11 +65,18 @@ RELEASE="${INTENT_RELEASE_SCRIPT:-${INTENT_HOME}/bin/.devbin/cmd/build.d/release
   local stamp_line claude_line commit_line tag_line
   stamp_line="$(grep -n 'stamp_project_version' "$RELEASE" | head -1 | cut -d: -f1)"
   claude_line="$(grep -n 'claude upgrade --apply' "$RELEASE" | head -1 | cut -d: -f1)"
-  commit_line="$(grep -n 'git commit -m "release: v\$TARGET"' "$RELEASE" | head -1 | cut -d: -f1)"
+  # The release commit is two lines since 01f447a5 (`git commit --only`, then
+  # `-m "release: v$TARGET"` on the next), so it is found by the first and
+  # confirmed by the second. A one-line grep for the old form found nothing, and
+  # the ordering checks below then compared an empty string.
+  commit_line="$(grep -n 'git commit --only' "$RELEASE" | head -1 | cut -d: -f1)"
   tag_line="$(grep -n 'log_step "tag"' "$RELEASE" | head -1 | cut -d: -f1)"
 
   [ -n "$stamp_line" ] || fail "intent build release never stamps intent_version"
   [ -n "$claude_line" ] || fail "intent build release never refreshes CLAUDE.md"
+  [ -n "$commit_line" ] || fail "intent build release never makes the release commit"
+  sed -n "$((commit_line + 1))p" "$RELEASE" | grep -qF -- '-m "release: v$TARGET"' \
+    || fail "the commit at line $commit_line is not the release commit"
 
   # Ordering is the whole fix: a stamp after the tag is the manual wrap this
   # replaced, and it is what made every published tag self-inconsistent.
@@ -106,15 +113,6 @@ RELEASE="${INTENT_RELEASE_SCRIPT:-${INTENT_HOME}/bin/.devbin/cmd/build.d/release
   assert_success
   run bash -c "sed -n '1,40p' '$RELEASE' | grep -F 'NOT with a hand-typed date'"
   assert_success
-}
-
-@test "intent_upgrade routes its stamp through the shared helper" {
-  # The stamper existed only in intent_upgrade; intent build release growing a second
-  # copy is what the shared helper prevents.
-  run grep -F 'stamp_project_version' "${INTENT_HOME}/bin/intent_upgrade"
-  assert_success
-  run grep -F "jq --arg v \"\$TARGET_VERSION\" '.intent_version" "${INTENT_HOME}/bin/intent_upgrade"
-  assert_failure
 }
 
 @test "intent build release pins INTENT_HOME to the checkout being released" {

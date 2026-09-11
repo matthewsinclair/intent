@@ -192,7 +192,9 @@ run_release_src() {
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"target version: 2.10.1"* ]]
-  [[ "$output" == *"would write '2.10.1'"* ]]
+  # VERSION has one writer since 60decc32, `bin/devbin version set`, and the
+  # plan names it; the handler no longer writes the file itself.
+  [[ "$output" == *"would run 'bin/devbin version set 2.10.1'"* ]]
   [[ "$output" == *"would create tag v2.10.1"* ]]
   [[ "$output" == *"would push main + v2.10.1"* ]]
   [[ "$output" == *"would publish GitHub release v2.10.1"* ]]

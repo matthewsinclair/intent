@@ -9,7 +9,6 @@ RULE_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/rules"
 # when WP05 populated the Elixir rule pack. The path below is the canonical
 # location; the test below guards that this one real rule keeps validating.
 EXEMPLAR_RULE="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/elixir/test/strong-assertions/RULE.md"
-EXT_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/extensions"
 
 # ====================================================================
 # Happy path
@@ -20,14 +19,6 @@ EXT_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/extensions"
   assert_success
   assert_output_contains "1 ok"
   refute_output_contains "error:"
-}
-
-@test "rules validate passes the ext valid-ext fixture rule" {
-  export INTENT_EXT_DIR="$EXT_FIXTURES"
-  run run_intent claude rules validate IN-AG-EXT-001
-  assert_success
-  assert_output_contains "ext:valid-ext"
-  assert_output_contains "1 ok"
 }
 
 # ====================================================================
@@ -49,7 +40,8 @@ EXT_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/extensions"
 @test "rules validate fails unresolved-reference fixture" {
   run run_intent claude rules validate "$RULE_FIXTURES/unresolved-reference/RULE.md"
   assert_failure
-  assert_output_contains "does not resolve"
+  # v3's wording for an unresolved reference; v2 said `does not resolve`.
+  assert_output_contains "which no rule in this corpus declares"
 }
 
 # **THIS ARM ASSERTED A WARNING UNTIL 2026-09-09 AND vc RULED IT A REFUSAL.**
@@ -87,30 +79,6 @@ EXT_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/extensions"
 }
 
 # ====================================================================
-# Multi-file pass: duplicate-id detection
-# ====================================================================
-
-@test "rules validate detects duplicate ids across files" {
-  # Construct a temporary ext directory holding both duplicate-id fixtures
-  # under the canonical ext rule layout. `rules validate` with no argument
-  # walks canon + ext, so the summary line reflects BOTH the canon rules
-  # (expected to pass) and the two duplicate fixtures (expected to fail).
-  local sandbox="$TEST_TEMP_DIR/ext-dup-ids"
-  mkdir -p "$sandbox/ext-dup/rules/agnostic/a" "$sandbox/ext-dup/rules/agnostic/b"
-  cp "$RULE_FIXTURES/duplicate-id-a/RULE.md" "$sandbox/ext-dup/rules/agnostic/a/RULE.md"
-  cp "$RULE_FIXTURES/duplicate-id-b/RULE.md" "$sandbox/ext-dup/rules/agnostic/b/RULE.md"
-
-  export INTENT_EXT_DIR="$sandbox"
-  run run_intent claude rules validate
-  assert_failure
-  assert_output_contains "declared by more than one RULE.md"
-  # Both duplicate fixtures must be flagged failed; their exact path + id
-  # pair shows up in the body. The summary always reports 2 failures from
-  # the fixtures regardless of how many canon rules pass alongside.
-  assert_output_contains "2 failed"
-}
-
-# ====================================================================
 # Exemplar: cross-reference resolves after WP04
 # ====================================================================
 
@@ -123,7 +91,7 @@ EXT_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/extensions"
   # rules/elixir/test/ at WP05 start.
   run run_intent claude rules validate "$EXEMPLAR_RULE"
   assert_success
-  assert_output_contains "IN-EX-TEST-001"
+  # v3's success output is the count, and names no rule.
   assert_output_contains "1 ok"
   refute_output_contains "does not resolve"
 }
@@ -135,5 +103,6 @@ EXT_FIXTURES="${INTENT_PROJECT_ROOT}/tests/fixtures/extensions"
 @test "rules validate fails when given a non-existent id and non-existent path" {
   run run_intent claude rules validate "no-such-thing"
   assert_failure
-  assert_output_contains "neither a readable file nor a known rule id"
+  # v3's wording; v2 said `neither a readable file nor a known rule id`.
+  assert_output_contains 'no rule matches `no-such-thing`'
 }

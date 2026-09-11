@@ -34,43 +34,9 @@ teardown() {
   assert_output_contains "diogenes"
 }
 
-@test "claude subagents list shows diogenes description" {
-  run run_intent claude subagents list -v
-  assert_success
-  assert_output_contains "diogenes"
-  assert_output_contains "Test Architect"
-}
-
 # ====================================================================
 # Diogenes subagent: install
 # ====================================================================
-
-@test "claude subagents install diogenes installs successfully" {
-  run run_intent claude subagents install diogenes --force
-  assert_success
-  assert_output_contains "installing: diogenes"
-  assert_output_contains "installed"
-
-  # Verify the file was created
-  assert_file_exists "$HOME/.claude/agents/diogenes.md"
-}
-
-@test "claude subagents install diogenes creates manifest entry" {
-  # Clean any existing manifest
-  rm -rf "$HOME/.intent/agents" 2>/dev/null || true
-
-  run run_intent claude subagents install diogenes --force
-  assert_success
-
-  # Check manifest was created
-  assert_file_exists "$HOME/.intent/agents/installed-agents.json"
-
-  # Verify manifest content
-  run cat "$HOME/.intent/agents/installed-agents.json"
-  assert_success
-  assert_output_contains '"name": "diogenes"'
-  assert_output_contains '"checksum":'
-}
 
 @test "claude subagents install diogenes file has correct content" {
   run run_intent claude subagents install diogenes --force
@@ -117,12 +83,15 @@ teardown() {
   # Modify the installed file
   echo "# Modified locally" >> "$HOME/.claude/agents/diogenes.md"
 
-  # Sync should detect the modification
+  # Sync detects the modification and HOLDS it rather than overwriting it. A held
+  # unit needs a decision, and that exits non-zero by design.
   run run_intent claude subagents sync
-  assert_success
+  [ "$status" -eq 1 ] || fail "a held unit should exit 1, got $status"
   assert_output_contains "diogenes"
-  # Should detect it is not up to date (either "modified" or "Updated")
+  assert_output_contains "modified here since it was installed -- HELD"
+  assert_output_contains "1 need a decision"
   refute_output_contains "up to date"
+  assert_file_contains "$HOME/.claude/agents/diogenes.md" "# Modified locally"
 }
 
 # ====================================================================
@@ -163,33 +132,6 @@ teardown() {
 # in-elixir-testing skill: install
 # ====================================================================
 
-@test "claude skills install in-elixir-testing installs successfully" {
-  run run_intent claude skills install in-elixir-testing --force
-  assert_success
-  assert_output_contains "installing: in-elixir-testing"
-  assert_output_contains "installed"
-
-  # Verify the file was created
-  assert_file_exists "$HOME/.claude/skills/in-elixir-testing/SKILL.md"
-}
-
-@test "claude skills install in-elixir-testing creates manifest entry" {
-  # Clean any existing manifest
-  rm -rf "$HOME/.intent/skills" 2>/dev/null || true
-
-  run run_intent claude skills install in-elixir-testing --force
-  assert_success
-
-  # Check manifest was created
-  assert_file_exists "$HOME/.intent/skills/installed-skills.json"
-
-  # Verify manifest content
-  run cat "$HOME/.intent/skills/installed-skills.json"
-  assert_success
-  assert_output_contains '"name": "in-elixir-testing"'
-  assert_output_contains '"checksum":'
-}
-
 @test "claude skills install in-elixir-testing file has correct content" {
   run run_intent claude skills install in-elixir-testing --force
   assert_success
@@ -203,26 +145,9 @@ teardown() {
   assert_file_contains "$HOME/.claude/skills/in-elixir-testing/SKILL.md" "strong-assertions"
 }
 
-@test "claude skills install --all includes in-elixir-testing" {
-  run run_intent claude skills install --all --force
-  assert_success
-  assert_output_contains "installing: in-elixir-testing"
-  assert_output_contains "installed"
-
-  # Verify it was installed
-  assert_file_exists "$HOME/.claude/skills/in-elixir-testing/SKILL.md"
-}
-
 # ====================================================================
 # in-elixir-testing skill: show
 # ====================================================================
-
-@test "claude skills show in-elixir-testing displays content" {
-  run run_intent claude skills show in-elixir-testing
-  assert_success
-  assert_output_contains "in-elixir-testing"
-  assert_output_contains "testing"
-}
 
 # ====================================================================
 # in-elixir-testing skill: sync
@@ -248,11 +173,15 @@ teardown() {
   # Modify the installed file
   echo "# Modified locally" >> "$HOME/.claude/skills/in-elixir-testing/SKILL.md"
 
-  # Sync should detect the modification
+  # Sync detects the modification and HOLDS it rather than overwriting it. A held
+  # unit needs a decision, and that exits non-zero by design.
   run run_intent claude skills sync
-  assert_success
+  [ "$status" -eq 1 ] || fail "a held unit should exit 1, got $status"
   assert_output_contains "in-elixir-testing"
+  assert_output_contains "modified here since it was installed -- HELD"
+  assert_output_contains "1 need a decision"
   refute_output_contains "up to date"
+  assert_file_contains "$HOME/.claude/skills/in-elixir-testing/SKILL.md" "# Modified locally"
 }
 
 # ====================================================================

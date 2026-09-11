@@ -5,8 +5,10 @@
 #   1. Presence — every rule catalogued here exists at the expected path.
 #   2. ID assignment — each rule declares its canonical IN-RS-* id.
 #   3. Validator agreement — each rule passes `intent claude rules validate`.
-#   4. Textual-examples invariant — Rust rules have fenced `rust` blocks in
-#      ## Bad / ## Good, not sibling `.rs` files (per CI-LIMITATIONS.md).
+#   4. Textual-examples invariant — each rule carries its declared example fence
+#      in ## Bad / ## Good, not sibling `.rs` files (per CI-LIMITATIONS.md). The
+#      fence is the third catalogue column: `rust` for a code rule, `toml` for a
+#      Cargo-config rule, whose examples are written in Cargo.toml (vc, AC-00.6).
 
 load "../lib/test_helper.bash"
 
@@ -14,13 +16,15 @@ RUST_ROOT="${INTENT_PROJECT_ROOT}/intent/plugins/claude/rules/rust"
 
 rust_rules() {
   cat <<'EOF'
-code/result-over-panic|IN-RS-CODE-001
-code/ownership-before-clone|IN-RS-CODE-002
-code/traits-over-enums-for-behaviour|IN-RS-CODE-003
-code/error-types-thiserror-anyhow|IN-RS-CODE-004
-code/lifetime-elision-first|IN-RS-CODE-005
-test/cfg-test-colocated|IN-RS-TEST-001
-test/assert-matches-for-variants|IN-RS-TEST-002
+code/result-over-panic|IN-RS-CODE-001|rust
+code/ownership-before-clone|IN-RS-CODE-002|rust
+code/traits-over-enums-for-behaviour|IN-RS-CODE-003|rust
+code/error-types-thiserror-anyhow|IN-RS-CODE-004|rust
+code/lifetime-elision-first|IN-RS-CODE-005|rust
+test/cfg-test-colocated|IN-RS-TEST-001|rust
+test/assert-matches-for-variants|IN-RS-TEST-002|rust
+test/one-declared-test-target|IN-RS-TEST-003|toml
+test/trim-test-debuginfo|IN-RS-TEST-004|toml
 EOF
 }
 
@@ -50,7 +54,7 @@ EOF
 # ====================================================================
 
 @test "rust pack: each rule declares its canonical id" {
-  while IFS='|' read -r slug id; do
+  while IFS='|' read -r slug id _; do
     [ -z "$slug" ] && continue
     assert_file_contains "$RUST_ROOT/$slug/RULE.md" "id: $id"
   done < <(rust_rules)
@@ -79,7 +83,7 @@ EOF
 @test "rust pack: rules list reports every rust id" {
   run run_intent claude rules list --lang rust
   assert_success
-  while IFS='|' read -r _ id; do
+  while IFS='|' read -r _ id _; do
     [ -z "$id" ] && continue
     assert_output_contains "$id"
   done < <(rust_rules)
@@ -89,25 +93,25 @@ EOF
 # Textual-examples invariant (CI-LIMITATIONS.md)
 # ====================================================================
 
-@test "rust pack: each rule has a fenced rust code block in Bad section" {
-  local fence='```rust'
-  while IFS='|' read -r slug _; do
+@test "rust pack: each rule has its declared fence in the Bad section" {
+  while IFS='|' read -r slug _ lang; do
     [ -z "$slug" ] && continue
+    local fence='```'"$lang"
     local rule="$RUST_ROOT/$slug/RULE.md"
     awk '/^## Bad$/,/^## Good$/' "$rule" | grep -qxF "$fence" || {
-      echo "$rule: Bad section missing fenced rust block" >&2
+      echo "$rule: Bad section missing its fenced $lang block" >&2
       return 1
     }
   done < <(rust_rules)
 }
 
-@test "rust pack: each rule has a fenced rust code block in Good section" {
-  local fence='```rust'
-  while IFS='|' read -r slug _; do
+@test "rust pack: each rule has its declared fence in the Good section" {
+  while IFS='|' read -r slug _ lang; do
     [ -z "$slug" ] && continue
+    local fence='```'"$lang"
     local rule="$RUST_ROOT/$slug/RULE.md"
     awk '/^## Good$/,/^## When This Applies$/' "$rule" | grep -qxF "$fence" || {
-      echo "$rule: Good section missing fenced rust block" >&2
+      echo "$rule: Good section missing its fenced $lang block" >&2
       return 1
     }
   done < <(rust_rules)

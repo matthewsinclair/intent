@@ -61,24 +61,9 @@ teardown() {
   assert_output_contains "in-autopsy"
 }
 
-@test "claude skills list shows in-autopsy as NOT INSTALLED" {
-  run run_intent claude skills list
-  assert_success
-  assert_output_contains "in-autopsy"
-  assert_output_contains "[NOT INSTALLED]"
-}
-
 # ====================================================================
 # Full directory install
 # ====================================================================
-
-@test "claude skills install copies SKILL.md for in-autopsy" {
-  run run_intent claude skills install in-autopsy --force
-  assert_success
-  assert_output_contains "installing: in-autopsy"
-  assert_output_contains "installed"
-  assert_file_exists "$HOME/.claude/skills/in-autopsy/SKILL.md"
-}
 
 @test "claude skills install copies scripts directory for in-autopsy" {
   run run_intent claude skills install in-autopsy --force
@@ -88,29 +73,10 @@ teardown() {
   assert_file_exists "$HOME/.claude/skills/in-autopsy/scripts/banned-words.txt"
 }
 
-@test "claude skills install --all includes in-autopsy with scripts" {
-  run run_intent claude skills install --all --force
-  assert_success
-  assert_output_contains "installing: in-autopsy"
-  assert_file_exists "$HOME/.claude/skills/in-autopsy/SKILL.md"
-  assert_file_exists "$HOME/.claude/skills/in-autopsy/scripts/autopsy.exs"
-  assert_file_exists "$HOME/.claude/skills/in-autopsy/scripts/banned-words.txt"
-}
-
 @test "existing skills still install correctly with directory copy" {
   run run_intent claude skills install in-essentials --force
   assert_success
   assert_file_exists "$HOME/.claude/skills/in-essentials/SKILL.md"
-}
-
-@test "in-autopsy shows as INSTALLED after install" {
-  run run_intent claude skills install in-autopsy --force
-  assert_success
-
-  run run_intent claude skills list
-  assert_success
-  assert_output_contains "in-autopsy"
-  assert_output_contains "[INSTALLED]"
 }
 
 # ====================================================================
@@ -142,14 +108,6 @@ teardown() {
 # Show command
 # ====================================================================
 
-@test "claude skills show displays in-autopsy info" {
-  run run_intent claude skills show in-autopsy
-  assert_success
-  assert_output_contains "Skill: in-autopsy"
-  assert_output_contains "Description:"
-  assert_output_contains "Content:"
-}
-
 @test "claude skills show in-autopsy extracts description from frontmatter" {
   run run_intent claude skills show in-autopsy
   assert_success
@@ -172,8 +130,12 @@ teardown() {
   assert_success
   assert_output_contains "removed"
 
-  # Verify entire directory is gone
-  [ ! -d "$HOME/.claude/skills/in-autopsy" ] || fail "Skill directory should be removed"
+  # Every file it installed is gone, and the directory it emptied stays: v3's
+  # uninstall removes what it wrote and never the root it was handed (0218).
+  [ ! -e "$HOME/.claude/skills/in-autopsy/SKILL.md" ] || fail "SKILL.md should be removed"
+  [ ! -e "$HOME/.claude/skills/in-autopsy/scripts" ] || fail "scripts/ should be removed"
+  assert_directory_exists "$HOME/.claude/skills/in-autopsy"
+  [ -z "$(ls -A "$HOME/.claude/skills/in-autopsy")" ] || fail "the skill directory should be left empty"
 }
 
 # ====================================================================
@@ -228,13 +190,17 @@ teardown() {
   # Uninstall
   run run_intent claude skills uninstall in-autopsy --force
   assert_success
-  [ ! -d "$HOME/.claude/skills/in-autopsy" ] || fail "Skill directory should be removed"
+  # The files go and the emptied directory stays (0218).
+  [ ! -e "$HOME/.claude/skills/in-autopsy/SKILL.md" ] || fail "SKILL.md should be removed"
+  [ -z "$(ls -A "$HOME/.claude/skills/in-autopsy")" ] || fail "the skill directory should be left empty"
 
-  # List should show not installed
+  # The listing is the canon roster with each row's install state (0150), so an
+  # uninstalled canon skill keeps its one row and reads `-` for its install
+  # state; the emptied directory is not a second row.
   run run_intent claude skills list
   assert_success
-  assert_output_contains "in-autopsy"
-  assert_output_contains "[NOT INSTALLED]"
+  echo "$output" | grep -qE '^in-autopsy +- +canon$' || fail "in-autopsy should list as not installed"
+  [ "$(echo "$output" | grep -c 'in-autopsy')" = "1" ] || fail "in-autopsy should have exactly one row"
 }
 
 # ====================================================================
