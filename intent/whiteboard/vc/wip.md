@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 11:34Z
+heartbeat_at: 2026-09-11 12:21Z
 status: active
 focus: "BACK ON THE BOUNCE after the compact (folded 2026-09-11 11:04Z). hv: no new work; the open defects in intent/wip.md, in 3.0.1 priority order, are the whole of it (`intent issues list` is the live count). vc keeps the list, drives every fix before closing its issue, and holds hv's pen for the ten decisions. Pre-fold board verbatim at .history/20260911/wip-prefold-0914Z.md. RUN THE VERBS; every figure here rots."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
@@ -17,9 +17,9 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 
 **NOTHING IN FLIGHT ON vc.** Peers, as last reported (re-read each off its own board):
 
-- `dc` -- #12 `0216`, daemon ingest reverting a landed store write. **RULED (vc, 2026-09-11, reversing vc's own earlier "both paths"): the keep rule applies to the daemon's BACKGROUND ingest only, as a `Load` mode on cc's `resync_inner` engine; explicit `sync --to-store` stays `Load::Restore`, unchanged, because ST0056 AC-03.9 (satisfied, AT-03.10) rules the explicit restore declared-destructive.** `sync_direction.rs` tests and AC-03.9's text stay as they are. Commit bar: dc's six-run harness 0 lost in 6 of 6 AND AT-03.10 green; else banked on dc's board. Then #13 `0212`.
-- `cc` -- #17 `0226` held until `0216` lands (same collision class). `0268` closed on re-drive; #38 `0097` now in flight. `0100` is back in cc's column.
-- `ic` -- #35 `0223` in flight under vc's ruling (Decisions, 2026-09-11 11:34Z). `0194` closed on re-drive. `0146` is back in ic's column.
+- `dc` -- P1 is EMPTY: `0216`, `0212`, `0226` all closed on re-drive. dc on #57 `0101`, then its column in list order; `0259` half 2 (doctor green from a stale store) joined it at #71. `0177` left the column as not workable.
+- `cc` -- on #78 `0136`. `0100` and `0084` HELD on hv (decisions 2 and 11); both banked, neither built.
+- `ic` -- on #42 `0195`, then its column in list order. `0146` is back in it.
 
 ## TODO -- on the bounce, in this order
 
@@ -65,3 +65,8 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 - (2026-09-11) **vc stopped dc maintaining the ST0068 AC-02.3 manifest and its disposition check.** A docs item is the page edit plus one commit; a stale quote in that manifest waits for the cut.
 - (2026-09-11) **`0194` leak half ruled CLOSE, not send-back.** The hyphen case no longer refuses; a really malformed FTS5 expression is headed in Intent's voice with a remedy, and its `caused by:` chain is the one renderer every refusal uses. Stripping it at one site is the silent-error class. Closed at ba338f37.
 - (2026-09-11) **`0223` remedy ruled: refuse a whole-title bare token equal to a subcommand or long-flag name of the verb's own group, unless a literal `--` precedes the title in the argv dispatch already holds.** clap cannot tell `-- help` from `help` (ic, from clap_builder 4.6.6 source), so the check is one positional comparison, not a reparse. Population read from the built Command tree; the refusal writes nothing; one test, seen red first, with the trailing-`--` arm. Not a `--title` flag (new surface); not an outright refusal (the issue protects the single-word title).
+- (2026-09-11) **`0177` ruled not workable in 3.0.1**: all of `ext` ships declared-and-unbuilt (hv, 2026-08-31). It stays open as the constraint on ext's build; lane `--`.
+- (2026-09-11) **`0100` shape ruled (b), carrying the v2 spelling in `status_legacy` with `status` unchanged; build HELD** because it needs store rung 17 -> 18, the first schema change since 3.0.0 shipped. Put to hv under decision 2.
+- (2026-09-11) **`0084` put to hv as decision 11, recommending (a), the byte write for opaque attachments.** The refusal is load-bearing, and vc drove the migrator hole: a Latin-1 `notes.txt` migrates to canon with no sidecar, and the next restore refuses `broken-reference`.
+- (2026-09-11) **`0259` NOT closed on half 1.** The issue's second clause, doctor reporting from a store it knows is stale, is dc's; row moved cc -> dc.
+- (2026-09-11) **A red arm must predate the fix and postdate the defect.** 951cbac2 is 32 build commits behind HEAD and predates the view-skew refusal, so for `0259` it read green for the wrong reason; the fix's parent was the baseline. Check the red arm reproduces BEFORE reading a green.
