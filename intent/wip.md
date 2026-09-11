@@ -68,7 +68,6 @@ intent_version: 3.0.0
 | 64  | `0100` | high   | cc   | An unmappable WP status is defaulted silently.                           |
 | 65  | `0084` | medium | cc   | A retired refusal left two survivors in ingest.                          |
 | 66  | `0066` | medium | ic   | `_inbox/` is invisible to st show/list, ac gate, at lint, todo.          |
-| 67  | `0121` | medium | ic   | `st list` defaults to in-progress and does not say so.                   |
 | 68  | `0065` | medium | dc   | `doctor` has no way to acknowledge a deliberately-kept state.            |
 | 69  | `0256` | high   | dc   | `doctor` flags 62 deliberately retired rows as residue.                  |
 | 70  | `0283` | medium | dc   | `doctor` and `organize` never consider the store being newer.            |
