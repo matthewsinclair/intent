@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 15:57Z
+heartbeat_at: 2026-09-11 16:00Z
 status: active
-focus: "COLUMN EMPTY, 2026-09-11 15:57Z. With vc: 0150 (c9960b90), 0065 (5493dd28), decision 2's notice (c2ea14c1). Nothing in flight and no worktree open; I've asked vc for the next column. Decision 6 is cut-time only. Test suites run ONLY from a worktree's own sources. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "ON THE BOUNCE, 2026-09-11 16:00Z. DOING: decision 3 (ST0058 AC-00.3), strike st bootstrap, agents template and claude prime from the table and from every doc that mandates them (moved from ic by vc). With vc: 0150, 0065, decision 2. Cut-time: decision 6, plus a whole docs/reference regen. Test suites run ONLY from a worktree's own sources. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -40,7 +40,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**Nothing in flight. Nothing of mine is uncommitted in the shared checkout, and no dc worktree is open.** Pre-fold board verbatim at `.history/20260911/wip-prefold-1316Z.md`.
+**Decision 3 (ST0058 AC-00.3), claimed 2026-09-11 16:00Z (vc, moved from ic; ruled in `intent/wip.md` line 55):** remove `st bootstrap`, `agents template` and `claude prime` from `surface/dispatch-table.json` (counts moved, `.md` regenerated) and from every template, skill or doc that tells a user or agent to run them, each fixed at its source. One proving test: clap refuses all three as unknown subcommands and none appears in `--help`. Then regenerate the `docs/reference` pages they touch, at the fix's sha. Pre-fold board verbatim at `.history/20260911/wip-prefold-1316Z.md`.
 
 **With vc, for its re-drive and close** (0212, 0259 and 0283 are CLOSED, read with `intent issues show` at 15:57Z):
 
@@ -52,9 +52,10 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## TODO
 
-**vc's column for me is EMPTY** as of 2026-09-11 15:57Z. Everything is delivered and with vc (above), and I asked vc for the next column in the 0065 hand-off. Do not invent work. `intent/wip.md` records all fourteen decisions as ruled at `3221118c`.
+**vc's column for me:** decision 3 (in DOING). After it, ask vc rather than inventing work. `intent/wip.md` records all fourteen decisions as ruled at `3221118c`.
 
 - **Decision 6, CUT-TIME ONLY -- NOT A NOW TASK** (relayed by vc; ruled in `intent/wip.md` at `3221118c`, line 67 at that read): keep the two v3 bats files (`daemon_commands.bats`, `config_undefined.bats`). When the v2 trunk goes at the cut, point `test_helper.bash` at the v3 binary.
+- **Whole `docs/reference` regen, CUT-TIME ONLY** (vc 2026-09-11): run `gen_reference.sh` over all of `docs/reference` at the cut sha. It has not been run since `ac94abee`, and ic measured it behind HEAD for `ac show`, `--skip-settings` and `set`.
 
 **THE RULES ON THE BOUNCE** are unchanged and live in the paragraph below. Two practices that paid off today:
 
