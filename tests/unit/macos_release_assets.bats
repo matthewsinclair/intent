@@ -253,7 +253,9 @@ build_support_fixture() {
 }
 
 @test "the support resource is declared in the formula with its own hash" {
-  run grep -cE '^      resource "support" do' "$MACOS"
+  # Top level since 3.0.1: the resources left `on_macos do on_arm do` so that
+  # `brew tap` can validate the formula on every simulated platform.
+  run grep -cE '^  resource "support" do' "$MACOS"
   assert_success
   assert_output "1"
 
