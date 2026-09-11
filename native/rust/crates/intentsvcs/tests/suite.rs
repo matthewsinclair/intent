@@ -30,6 +30,8 @@
 #[path = "common/mod.rs"]
 mod common;
 
+#[path = "a_cold_warm_leaves_a_peers_write.rs"]
+mod a_cold_warm_leaves_a_peers_write;
 #[path = "a_create_refuses_a_child_id_that_is_taken.rs"]
 mod a_create_refuses_a_child_id_that_is_taken;
 #[path = "a_create_refuses_a_key_that_is_taken.rs"]

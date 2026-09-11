@@ -478,7 +478,23 @@ pub fn load_fresh(project: &Project, store: &mut Store) -> Result<Canon, IngestE
   // state of every fresh clone, and warming it with anything less would leave
   // the tool answering questions from a store that holds part of the estate --
   // silently, because a partial store looks exactly like a small project.
-  resync(project, store, &Scope::All)
+  //
+  // **AND IT WARMS ONLY WHAT IS STILL COLD WHEN IT GETS THE LOCK** (0131). The
+  // emptiness above is read without one, so by the rebuild a peer may have
+  // written its first record -- and a wholesale rebuild from a disk that peer
+  // has not reached yet deleted it. See [`Store::warm_if_cold`].
+  recording(store, |store| {
+    resync_inner(project, store, &Scope::All, Load::WarmIfCold)
+  })
+}
+
+/// What a load from the files does to a store that already holds an estate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Load {
+  /// Replace it wholesale -- `sync --to-store`, the declared restore.
+  Restore,
+  /// Leave it alone: someone warmed or wrote it first, and its rows are truth.
+  WarmIfCold,
 }
 
 /// Re-read the committed canon and rebuild the store from it -- the expensive,
@@ -616,13 +632,20 @@ fn compose_scoped(store: &Store, disk: Canon, named: &[String]) -> Result<Canon,
 }
 
 pub fn resync(project: &Project, store: &mut Store, scope: &Scope) -> Result<Canon, IngestError> {
-  recording(store, |store| resync_inner(project, store, scope))
+  recording(store, |store| {
+    resync_inner(project, store, scope, Load::Restore)
+  })
 }
 
 /// The body of [`resync`], separated only so the recording wraps every exit
 /// from it -- including the `?` on the rebuild, which is the one that produced
 /// the live instance.
-fn resync_inner(project: &Project, store: &mut Store, scope: &Scope) -> Result<Canon, IngestError> {
+fn resync_inner(
+  project: &Project,
+  store: &mut Store,
+  scope: &Scope,
+  load: Load,
+) -> Result<Canon, IngestError> {
   let previous = store.file_index()?;
   let entries = sync::scan(project.root(), &previous).map_err(|e| IngestError::Io {
     path: project.root().display().to_string(),
@@ -674,7 +697,23 @@ fn resync_inner(project: &Project, store: &mut Store, scope: &Scope) -> Result<C
     return Err(Refusal::new(findings).into());
   }
 
-  store.rebuild(&canon.threads, &canon.issues)?;
+  match load {
+    Load::Restore => store.rebuild(&canon.threads, &canon.issues)?,
+    // A peer warmed or wrote this store after it was found empty. What it holds
+    // is truth, so it is read rather than replaced from files that may not
+    // carry the peer's write yet -- and the rest of this pass, which exists to
+    // warm, has nothing left to do.
+    Load::WarmIfCold => {
+      if !store.warm_if_cold(&canon.threads, &canon.issues)? {
+        let (threads, issues) = store.load_canon()?;
+        return Ok(Canon {
+          threads,
+          issues,
+          sections: store.doc_sections()?,
+        });
+      }
+    }
+  }
   store.replace_doc_sections(&canon.sections)?;
   carry_project_state(project, store)?;
   // **The file index is left alone under a scope, deliberately.** It records

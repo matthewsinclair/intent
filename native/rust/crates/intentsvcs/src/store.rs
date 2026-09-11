@@ -2478,6 +2478,49 @@ impl Store {
   /// the mutation path (see [`Store::commit_mutation`]).
   pub fn rebuild(&mut self, threads: &[Thread], issues: &[Issue]) -> Result<(), StoreError> {
     let tx = self.conn.transaction()?;
+    Self::replace_estate(&tx, threads, issues)?;
+    tx.commit()?;
+    Ok(())
+  }
+
+  /// **Warm an EMPTY store from canon, and do nothing to one that is not**
+  /// (0131). Returns whether it warmed.
+  ///
+  /// The cold path used to decide "empty" in `load_fresh` and rebuild much
+  /// later, inside `resync`. Between the two a peer could commit its first
+  /// write -- and the rebuild, which deletes every row before re-inserting from
+  /// a disk the peer has not reached yet, took that row with it. The number was
+  /// free again, the next create landed on it, and both writers were told
+  /// `created`. Measured on a fresh project: 3 of 3 runs of ten paired `issues
+  /// add` rounds lost one filing, always `0001`; 0 of 3 on a store warmed first.
+  ///
+  /// So the check and the rebuild are one step, under the write lock
+  /// (`IMMEDIATE`): a store that holds anything by the time the lock is held
+  /// was warmed or written by someone else, and is left exactly as it is.
+  pub fn warm_if_cold(&mut self, threads: &[Thread], issues: &[Issue]) -> Result<bool, StoreError> {
+    let tx = self
+      .conn
+      .transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let held: i64 = tx.query_row(
+      "SELECT (SELECT count(*) FROM threads) + (SELECT count(*) FROM issues)",
+      [],
+      |row| row.get(0),
+    )?;
+    if held > 0 {
+      return Ok(false);
+    }
+    Self::replace_estate(&tx, threads, issues)?;
+    tx.commit()?;
+    Ok(true)
+  }
+
+  /// The body both [`Store::rebuild`] and [`Store::warm_if_cold`] run inside
+  /// their own transaction: every modelled row out, the given estate in.
+  fn replace_estate(
+    tx: &rusqlite::Transaction<'_>,
+    threads: &[Thread],
+    issues: &[Issue],
+  ) -> Result<(), StoreError> {
     tx.execute_batch("DELETE FROM tests; DELETE FROM criteria; DELETE FROM related; DELETE FROM attachments; DELETE FROM wps; DELETE FROM threads; DELETE FROM issues;")?;
     for t in threads {
       // The RESTORE door: these dates were recorded before, and rebuilding a
@@ -2485,7 +2528,7 @@ impl Store {
       // `rebuild` REPLACES the estate wholesale, so every row here is a change
       // by construction -- see the issues arm below for why the create door
       // would refuse every re-sync there is.
-      Self::write_thread(&tx, t, Stamp::CarriedFromTheExtract, Door::Change)?;
+      Self::write_thread(tx, t, Stamp::CarriedFromTheExtract, Door::Change)?;
     }
     for i in issues {
       // The RESTORE door, same as the threads above. **v2 users AUTHOR an
@@ -2497,9 +2540,8 @@ impl Store {
       // every row here is a change by construction. Sending these through the
       // create door would refuse every re-sync of an issue that already exists,
       // which is every re-sync there is.
-      Self::write_issue(&tx, i, Stamp::CarriedFromTheExtract, Door::Change)?;
+      Self::write_issue(tx, i, Stamp::CarriedFromTheExtract, Door::Change)?;
     }
-    tx.commit()?;
     Ok(())
   }
 
