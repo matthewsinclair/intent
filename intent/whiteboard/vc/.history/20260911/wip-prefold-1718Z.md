@@ -3,65 +3,46 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 17:18Z
+heartbeat_at: 2026-09-11 16:15Z
 status: active
-focus: "THE 3.0.1 CUT, vc holds the pen (hv 2026-09-11: 'You have the pen. Do it.' and 'You're in charge ... make the release a reality'). LOCALFOLD for hv's compact at 2026-09-11 17:18Z; resume on the bounce at DOING step 1. RUN THE VERBS; every figure here rots."
+focus: "BOUNCE, 2026-09-11 16:15Z. hv ruled all 14 decisions. Every workable row on the list is re-driven and closed; the 3 still open are NOT WORKABLE. Left: dc's decision 3 and decision 2's notice fix, then the cut. intent/wip.md is the authority. RUN THE VERBS; every figure here rots."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 ---
 
 # Validation Claude (vc)
 
-**LOCALFOLD 2026-09-11 17:18Z for hv's compact, `active`.** The pre-fold board is verbatim in `.history/20260911/`. The list is done: every workable row is closed, and 0177 is the one open issue, post-cut with no owner. hv ruled all 14 decisions and every one is verified (see `intent/wip.md`). What remains is THE CUT.
+**BOUNCE AFTER THE 2026-09-11 COMPACT, `active`.** The pre-bounce queue is closed, and each close commit carries its own drive. Pre-fold boards are verbatim at `.history/20260911/wip-prefold-1314Z.md` and `-0914Z.md`.
 
-## DOING -- THE CUT, in this order
+## DOING
 
-**THE ORDER IS LOAD-BEARING. Each step gates the next.**
+**NOTHING IN FLIGHT ON vc.** The peers, each to be re-read off its own board:
 
-1. **vc: retire the 75 AT rows whose witness the v2 prune deletes (hv chose the EVIDENCE route).**
-   - dc's list: `/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/b9e78c72-479d-4984-9df9-ac1bedfe7f2d/scratchpad/absent_rows.txt`. 73 are green on 9 threads (ST0043/44/48/50/51/52/53/55/56). The other 2 are RED, ST0056 AT-00.1 and AT-06.1, citing `tests/conformance/run_v2_suite.bash`; the parser skipped them, so handle them by hand.
-   - Analysis: `/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/e089236a-72ea-4b23-87e7-c318ef8f0ac5/scratchpad/ret_analyse.py` -> `/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/e089236a-72ea-4b23-87e7-c318ef8f0ac5/scratchpad/ret_plan.json`. 69 criteria, all `test/computed`, and NONE has a surviving covering AT.
-   - Per-row route, PROVEN on ST0043 AT-00.1/AC-00.1 in the sandbox (`/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/e089236a-72ea-4b23-87e7-c318ef8f0ac5/scratchpad/wth`, HOME `~/.vcreth`):
-     1. `at na <st> <at> --note "<OLD NOTE> -- RETIRED at the 3.0.1 cut: its witness <file> went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"`. The note MUST extend the old one, which lives in the store's tests.note.
-     2. Per covered AC, once: `set intent:///threads/<st>/ac/<ac> kind non-test`, then `ac withdraw <st> <ac> --reason "..."`, then `ac reinstate <st> <ac>` (no --reason), then `ac satisfy <st> <ac> --evidence "<file> was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"`.
-     3. `at edit <st> <at> --kind non-test --prose "Witness <file>, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)."`
-     4. Check: `ac gate <st>` PASS, `doctor` shows no line for the thread, and `at lint <st>` is ok.
-   - WHY withdraw/reinstate: `set <ac> kind non-test` leaves state `computed`, which is illegal for non-test and schema-invalid in canon, and no satisfy or unsatisfy moves it. It is a DEFECT; the withdraw reason names it, and it goes in the commit message.
-   - Script it, rehearse ALL rows in the sandbox first (reset it with `git -C /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/e089236a-72ea-4b23-87e7-c318ef8f0ac5/scratchpad/wth checkout -- intent/.canon` and a rm of its store), then run live with the PATH `intent`. One canon commit. Then send dc the sha.
-2. **dc: the AC-00.6 prune.** One atomic commit, staged in dc's worktree:
-   - population A deleted: bin/intent plus the 25 bin/intent_*;
-   - 51 v2-door bats files and run_v2_suite.bash deleted;
-   - run_tests.sh self-contained, test_helper on v3 (decision 6), tests.yml and pr-checks.yml on v3 (86 paths).
-     The gate blocked it ONLY on step 1's rows. dc re-applies, re-gates, runs the release dry-run and lands.
-3. **cc, then ic: the 16 mixed bats files, rebased onto dc's prune.**
-   - cc: FIX `critic --rules <dir>` (declared, silently reads canon). Its own commit, S, and stop if it is bigger. Then the surgery on its eight (rulings A-G).
-   - ic: its eight, rulings R1-R12. R3 FIXES the release script's second SIDECAR_FILES home, with a mandatory dry-run diff. rule_pack_rust is ruled (A): a fence column.
-4. **vc: the full suite, green, in a private worktree with an in-tree target** (an out-of-tree CARGO_TARGET_DIR fakes 36 failures). Rust was 2353/0 at b9fdf0f4. Shell: run_tests.sh must be green. Then dc regenerates the WHOLE docs/reference at that sha (ST0068 AC-04.2).
-5. **hv runs `! bin/devbin build release --patch`.** Its confirm gate stays human; never --no-confirm. It stamps 3.0.1, commits, tags, pushes both remotes and creates the GitHub release. The CHANGELOG reads `## [3.0.1] - in progress`, and the script dates it.
-6. **Artefacts:**
-   - `bin/devbin build all` at the tag;
-   - `int macos prepare` (stage, sign, notarize, checksum; creds PRESENT per `int macos doctor`);
-   - `int macos formula`;
-   - `int macos publish` (hv's word covers it);
-   - `int macos smoke --reinstall`.
-     CI must be green on both legs.
-7. **Close out:**
-   - satisfy the nine cut-time ACs by evidence (ST0056 AC-00.5/00.6/07.7/11.1/11.4/12.1/12.4, ST0058 AC-00.1, ST0068 AC-04.2) and mark their ATs;
-   - judge ST0058 AC-00.3 (every canon-mandated verb works);
-   - close ST0056 WP-07/11/12, then ST0056, ST0058 and ST0068;
-   - push; then a globalfold.
+- `dc` -- decision 3 (strike `st bootstrap`, `agents template` and `claude prime`), ruled RETIRE with `spelling: ""`, st_zero's successor cleared, `init --with-st0000` retired, and B ruled (a). Then the fix to decision 2's notice: c2ea14c1's "only way back" sentence was sent back.
+- `cc`, `ic` -- holding; their lanes are empty.
+
+## TODO
+
+1. **Decision 3 when dc lands it.** Each of the three answers rc=2 'was retired' with no replacement and is absent from --help. st zero's refusal names no successor. `init --with-st0000` is retired. The five repoints and five one-sided notes are as ruled, and a kept negative half fails on a planted instance.
+2. **Decision 2's notice when dc re-lands it.** Drive both ways back with the 3.0.0 keg (/opt/homebrew/Cellar/intent/3.0.0_1/bin/intent): a snapshot always works; deleting the cache works only while canon carries nothing 3.0.1 alone writes (a WP status_legacy is refused as schema-invalid).
+3. **At the cut.**
+   - Decision 6 (dc): repoint test_helper at v3.
+   - dc: regenerate the whole of docs/reference at the cut sha.
+   - Satisfy the nine cut-time rows by evidence.
+   - Close ST0056 WP-07/11/12, then ST0056, ST0058 and ST0068.
+   - Push upstream (decision 1).
+   - The PATH pair must name the cut sha: `bin/devbin build all`.
+4. **The three NOT WORKABLE rows (0177, 0141, 0172) stay open** as constraints on future work. Each row says why.
+
+**NO NEW WORK.** Nothing gets added to the list. A defect found while fixing goes in the commit message.
 
 ## Holds
 
-- None. Nodes hold only for the compact.
+- None. Every hv decision is ruled, and every held close is done.
 
-## Watch-outs (added 2026-09-11)
+## Watch-outs (added on the bounce)
 
-- **TESTS REACH LIVE MACHINE STATE.** Twice today:
-  - an intentsvcs test opened the LIVE store via doctor (store 17 -> 18, 15:10Z; d0777bc8);
-  - cc's `cargo test -p intent-cli` under the real HOME ran `intent bootstrap`, which republished ~/.intent/home to cc's worktree (15:34Z; restored by vc at 17:07Z with `intent bootstrap`).
-    Every suite runs in a private worktree under an isolated HOME. Check ~/.intent/home names /Users/matts/Devel/prj/Intent after any peer run.
-- **A parent build cannot read a newer build's fixture** (store 18 vs 17). Build each arm's fixture with its own binary.
-- **An out-of-tree CARGO_TARGET_DIR makes intent-cli tests fail** with 'cannot locate the Intent install'. It is the setup, not the code.
+- **A test that opens `repo_root()` migrates the LIVE store** (tests/attachment_drift_detected.rs -> doctor -> Store::open). Run every intentsvcs suite from a private worktree. The 15:10:30Z incident and its recovery are in d0777bc8.
+- **A parent build cannot read a fixture a newer build made** (store 18 vs 17). Make each arm's fixture with that arm's own binary.
 
 ## Standing directives from hv
 
