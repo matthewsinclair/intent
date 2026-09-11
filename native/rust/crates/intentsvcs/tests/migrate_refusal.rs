@@ -259,3 +259,32 @@ fn a_duplicate_test_id_in_a_closed_thread_is_refused_in_phase_a_and_named() {
     "the refusal names the file, the line and the id, in Phase A's classed form: {refusal}"
   );
 }
+
+/// **0066: A v2 THREAD IN A DIRECTORY THE MIGRATOR DOES NOT WALK IS REFUSED
+/// AND NAMED, NOT WALKED PAST.**
+///
+/// Lamplight kept threads authored elsewhere in `intent/st/_inbox/`. The
+/// migrator walks the top level and v2's three status buckets, so it reported
+/// `migrated: 1 thread(s)` at rc=0 over this estate -- and `Project::migration`,
+/// which descends into any directory, then refused every verb on the thread it
+/// had walked past, under a remedy (`intent upgrade`) that exited 0 again.
+#[test]
+fn a_thread_in_a_directory_migration_does_not_walk_is_refused_and_named() {
+  let fx = v2_estate_in_git();
+  v2_thread(&fx, "ST0001", "WIP");
+  fx.write_file(
+    "intent/st/_inbox/ST0002/info.md",
+    "---\nverblock: \"14 Aug 2026:v0.1: cc - x\"\nintent_version: 2.19.0\nstatus: WIP\nslug: a-slug\ncreated: 20260814\ncompleted:\n---\n\n# ST0002: A thread\n\n## Objective\n\nShip it.\n\n## Context\n\nBecause.\n",
+  );
+  fx.git_commit_all();
+
+  let refusal = Facade::upgrade(&fx.project(), &facade_ctx())
+    .expect_err("a thread the migrator cannot carry must not be migrated around")
+    .to_string();
+
+  assert!(
+    refusal.contains("residue: intent/st/_inbox/ST0002 -- unknown-file-shape -- ")
+      && refusal.contains("`intent/st/ST0002`"),
+    "the refusal names the directory and where to move it to carry it: {refusal}"
+  );
+}

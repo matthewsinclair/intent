@@ -502,6 +502,20 @@ pub fn scan(project: &Project) -> Result<Scan, std::io::Error> {
     out.block(Finding::new("intent/st", FindingClass::DuplicateId, detail));
   }
 
+  for (id, dir) in unwalked_thread_dirs(project) {
+    let container = dir
+      .parent()
+      .map(|p| project.relative(p))
+      .unwrap_or_default();
+    out.block(Finding::new(
+      project.relative(&dir),
+      FindingClass::UnknownFileShape,
+      format!(
+        "a thread directory inside `{container}/`, which is not one of v2's status directories, so migration does not carry it -- move it to `intent/st/{id}` to migrate it as a thread, or out of `intent/st/` to leave it behind"
+      ),
+    ));
+  }
+
   // **Deduplicated, and it is NOT tidying.** `thread_dirs` legitimately yields
   // one id twice -- v2's own `st done` leaves a directory behind under
   // `COMPLETED/` while the flat path exists -- and the canon check above fires
@@ -863,6 +877,41 @@ fn thread_dirs(project: &Project) -> Vec<(String, std::path::PathBuf)> {
   for bucket in V2_STATUS_BUCKETS {
     push_from(&root.join(bucket), &mut out);
   }
+  out
+}
+
+/// v2 thread directories [`thread_dirs`] does not walk: one level inside a
+/// directory under `intent/st/` that is neither a thread nor a status bucket,
+/// eg a project's own `_inbox/` (issue 0066).
+///
+/// **Refused, not walked past.** `Project::migration` descends into ANY
+/// directory, so a thread the migrator skipped was convicted as unmigrated on
+/// every verb afterwards, under a remedy -- `intent upgrade` -- that exited 0
+/// and skipped it again. Carrying it instead is not the migrator's call: the
+/// `_inbox/` it was found in held threads authored elsewhere, under ids the
+/// project had not minted. An id with canon is superseded, as it is there.
+fn unwalked_thread_dirs(project: &Project) -> Vec<(String, std::path::PathBuf)> {
+  let Ok(entries) = std::fs::read_dir(project.st_dir()) else {
+    return Vec::new();
+  };
+  let mut out: Vec<(String, std::path::PathBuf)> = entries
+    .flatten()
+    .map(|e| e.path())
+    .filter(|p| p.is_dir())
+    .filter(|p| {
+      p.file_name()
+        .and_then(|n| n.to_str())
+        .is_some_and(|n| !is_thread_id(n) && !V2_STATUS_BUCKETS.contains(&n))
+    })
+    .filter_map(|container| std::fs::read_dir(container).ok())
+    .flat_map(|children| children.flatten().map(|e| e.path()))
+    .filter(|p| p.is_dir() && p.join("info.md").is_file())
+    .filter_map(|p| {
+      let name = p.file_name()?.to_str()?.to_string();
+      (!project.thread_json(&name).is_file()).then_some((name, p))
+    })
+    .collect();
+  out.sort();
   out
 }
 
