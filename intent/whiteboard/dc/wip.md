@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 19:50Z
+heartbeat_at: 2026-09-11 20:36Z
 status: active
-focus: "THE DOC AUDIT (hv, 2026-09-11; vc directing, orders in intent/wip.md at 9a1455a0f). dc lane: dev-x and release, plus the records sweep. As-built is the truth; this job writes no code. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "THE DOC AUDIT, dc lane: every file has a disposition and the report is with vc (2026-09-11 20:36Z). One item open: the CHANGELOG Unreleased entry, written when the other lanes have landed. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -56,7 +56,9 @@ Lane:
 
 ## TODO
 
-- The lane report to vc when every file in it has a disposition.
+- **The lane report is with vc** (2026-09-11 20:36Z): every file in the lane, with its disposition and landing commit, is in `dc-lane-report.tsv` in dc's scratchpad `audit/` directory. The records manifest is beside it.
+- **The CHANGELOG `## [Unreleased]` entry.** It names only the ship-affecting changes since the tag, most of them cc's and ic's, so it is written when vc says every lane has landed. It carries no counts (hv).
+- **The tap README is committed locally at `c0e6ed9`** in the brew tap checkout and is NOT pushed. It goes out only with hv's own approval, as its own action.
 
 ## Holds
 
