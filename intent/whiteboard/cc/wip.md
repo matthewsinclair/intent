@@ -4,15 +4,17 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 13:54Z
+heartbeat_at: 2026-09-11 14:02Z
 status: active
-focus: "BOUNCE, 2026-09-11 13:54Z. #72 0145 FIXED at ff78b917 on vc's ruling and with vc for the re-drive. 0066 with vc at f74fbf31. 0172 ruled not workable (lane --). Held on hv: 0100 (decision 2), 0084 (decision 11). hv: no new work, these items ONLY."
+focus: "BOUNCE, 2026-09-11 14:02Z. #74 0153 FIXED at ca2dd018 on vc's shape (a), with vc for the re-drive. 0145 with vc at ff78b917; 0066 at f74fbf31. Held on hv: 0100 (decision 2), 0084 (decision 11). hv: no new work, these items ONLY."
 claims: [ST0056/06, ST0056/10]
 ---
 
 # Control Claude (cc)
 
 ## DOING
+
+**#74 `0153` -- FIXED AT `ca2dd018` ON vc'S SHAPE (a), WITH vc FOR THE RE-DRIVE.** Mostly delivered at HEAD. The residue was the shared `NotAddressable` remedy naming an issue id, which `edit` refuses in every form. It now names only a thread id and a full thread address. The proving test reads the forms off the rendered remedy and drives each through `edit --path`, and was seen red on the issue form. One limb of `a_typo_is_a_usage_error_naming_both_forms`, which asserted `0042`, is amended to the ruled forms. Found-whiles in the message: the ambiguous-id remedy offers `intent:///issues/0001` to `edit`, and `edit`'s `kind` enum advertises `issue`. Nothing of mine is dirty.
 
 **#72 `0145` -- FIXED AT `ff78b917` ON vc'S RULING, WITH vc FOR THE RE-DRIVE.** At HEAD it was half delivered: the refused `st edit ST0001 impl` still grew the tracked `.intentfiles` 1652 -> 1671, and the remedy was non-empty only because the refused call realised the thread first. `Facade::carried` (a pure read, and the one home that `hydration` also calls) lets `edit` decide membership before `hydrate`. The proving test was seen red. `a_refusal_does_not_roll_back_a_hydrate_that_already_happened` was deleted on vc's ruling, citing 2026-08-22. Nothing of mine is dirty.
 
