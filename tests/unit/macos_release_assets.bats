@@ -35,7 +35,7 @@ MACOS="${INTENT_MACOS_SCRIPT:-${INTENT_HOME}/bin/.devbin/cmd/macos}"
 # says something else.
 load_macos_fns() {
   local fns="${TEST_TEMP_DIR}/macosfns.sh"
-  sed -n '/^BINARIES=/p;/^SUPPORT_ASSET=/p;/^SUPPORT_PATHS=/p' "$MACOS" >"$fns"
+  sed -n '/^BINARIES=/p;/^SUPPORT_ASSET=/p;/^APP_ASSET=/p;/^SUPPORT_PATHS=/p' "$MACOS" >"$fns"
   sed -n '/^is_binary_artefact() {/,/^}/p;/^staged_artefacts() {/,/^}/p;/^unclassified_artefacts() {/,/^}/p;/^support_tree_drift() {/,/^}/p;/^provenance_blockers() {/,/^}/p' \
     "$MACOS" >>"$fns"
   # shellcheck disable=SC1090
@@ -133,7 +133,7 @@ build_support_fixture() {
 
 @test "BASELINE: the shipping set classifies clean" {
   load_macos_fns
-  stage_with intent-aarch64-apple-darwin intentd-aarch64-apple-darwin intent-support.tar.gz
+  stage_with intent-aarch64-apple-darwin intentd-aarch64-apple-darwin intent-support.tar.gz Intent.app.zip
   run unclassified_artefacts "aarch64-apple-darwin"
   assert_success
   assert_output ""

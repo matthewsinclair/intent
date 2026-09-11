@@ -112,6 +112,19 @@ KC_PREFIX="intent.apple"
 # unclassified artefact is now a refusal rather than a default.
 SUPPORT_ASSET="intent-support.tar.gz"
 
+# THE APP SHIPS AS A RELEASE ASSET BESIDE THE CLI (decision 7; hv: "Of course
+# the app ships"). Until this line, `app-sign` and `app-notarize` produced a
+# stapled bundle in APP_DIST_DIR and no release step read it: a distributable
+# signed, notarised, and published by nothing.
+#
+# A zip of that STAPLED bundle, made by `stage` with `ditto -c -k --keepParent`
+# so the signature, the ticket and the extended attributes survive. NO TRIPLE:
+# the bundle is universal (x86_64 arm64), so a host triple would be false. NO
+# VERSION, as for SUPPORT_ASSET: the tag carries it. Unlike the support tarball
+# it IS notarised, so `checksum` proves it before hashing it. The formula stays
+# CLI-only -- it names its artefacts by file, so this asset never reaches it.
+APP_ASSET="Intent.app.zip"
+
 # THE ONE HOME for what the support tree carries. Relative to $ROOT. Every path
 # v3 resolves against its install root is either here or comes from the binaries
 # themselves, and `support_paths_coverage` below holds that sentence to the
@@ -305,6 +318,7 @@ require_staged() {
     [ -f "$STAGE_DIR/$b-$triple" ] || missing="$missing $b-$triple"
   done
   [ -f "$STAGE_DIR/$SUPPORT_ASSET" ] || missing="$missing $SUPPORT_ASSET"
+  [ -f "$STAGE_DIR/$APP_ASSET" ] || missing="$missing $APP_ASSET"
   [ -z "$missing" ] || die "nothing staged:$missing -- run 'int macos stage' first (it copies the build output into $STAGE_DIR, where a peer's cargo build cannot reach it)"
 }
 
@@ -347,6 +361,7 @@ unclassified_artefacts() {
   for f in $(staged_artefacts); do
     is_binary_artefact "$f" "$triple" && continue
     [ "$f" = "$SUPPORT_ASSET" ] && continue
+    [ "$f" = "$APP_ASSET" ] && continue
     out="$out $f"
   done
   printf '%s' "$out"
@@ -1094,6 +1109,11 @@ $drift
     die "$SUPPORT_ASSET must have exactly one top-level entry ('$SUPPORT_PREFIX') so Homebrew's single-directory strip lands the install root -- it has: $(printf '%s' "$tops" | tr '\n' ' ')"
   printf '    %-34s single top-level entry %s/ (Homebrew strips exactly this)\n' "" "$SUPPORT_PREFIX"
 
+  # AFTER THE BINARIES, because the app is refused unless it reports the version
+  # the staged CLI does -- see app_asset_blockers.
+  step "staging Intent.app"
+  app_stage_asset
+
   printf '\n'
   ok
   printf '  Staged into %s, which only this command writes.\n' "$STAGE_DIR"
@@ -1160,7 +1180,8 @@ cmd_checksum() {
     rm -f "$sums"
     die "unclassified staged artefact(s):$unclassified
        Every artefact is either a Mach-O that MUST be proven signed and notarised
-       (add it to BINARIES) or data that cannot be (add it beside SUPPORT_ASSET).
+       (add it to BINARIES), the app bundle's zip (APP_ASSET), or data that cannot
+       be proven (add it beside SUPPORT_ASSET).
        Refusing to guess: guessing wrong publishes either an unproven binary or a
        hash for a file nobody checked."
   }
@@ -1174,6 +1195,14 @@ cmd_checksum() {
     die "refusing to checksum -- a staged artefact is not signed AND notarised. Run: int macos sign && int macos notarize (the staged binaries are left alone; only the checksum claim is withdrawn)"
   fi
   printf '    %-34s not a Mach-O -- nothing to sign, nothing to notarise\n' "$SUPPORT_ASSET"
+
+  # THE APP IS PROVEN FROM THE ZIP, NOT FROM APP_DIST_DIR: the zip is what ships,
+  # so it is unpacked and checked the way a download meets it before it is hashed.
+  step "proving $APP_ASSET before it is hashed"
+  app_zip_verify "$STAGE_DIR/$APP_ASSET" || {
+    rm -f "$sums"
+    die "refusing to checksum -- $APP_ASSET does not unpack to a stapled bundle Gatekeeper accepts. Run: int macos prepare"
+  }
 
   # Hashed from the CLASSIFIED set, never from a glob. The old form globbed
   # `*-$triple`, which silently omits any artefact not spelled that way -- and an
@@ -1194,7 +1223,8 @@ cmd_checksum() {
   # summary asserted the rule over it. A summary that generalises past its own
   # exception is an unmeasured assertion in the place people read first.
   printf '\n  Each BINARY above was proven signed and notarised from a quarantined\n'
-  printf '  copy before it was hashed. %s is not a Mach-O: it carries no\n' "$SUPPORT_ASSET"
+  printf '  copy before it was hashed, and so was the bundle inside %s.\n' "$APP_ASSET"
+  printf '  %s is not a Mach-O: it carries no\n' "$SUPPORT_ASSET"
   printf '  signature and no ticket, and nothing here claims it does -- its hash\n'
   printf '  says the bytes are intact and says nothing about their origin.\n'
   printf '  NOT REGENERATED ON RE-SIGN -- re-run `checksum` after any `sign`,\n'
@@ -1213,7 +1243,20 @@ cmd_checksum() {
 #
 # The subcommands stay individually callable, for diagnosis and for re-running one
 # step. This is the path anyone cutting a release actually takes.
+#
+# THE APP GOES FIRST, AND INSIDE THIS COMMAND (vc, 2026-09-11, ruling (1)). The
+# release ships Intent.app, and the only correct app is one built and notarised
+# from THIS tree: `app_version` stamps the bundle from `git describe --tags` of
+# $ROOT, so an app signed before the tag reports the previous release. Run here,
+# at the tag on a clean tree -- which `publish` enforces, since it refuses unless
+# the staged commit IS the tag -- the stamp reads the release being cut. Left to
+# the operator as two commands before this one, the app would be correct only
+# when somebody remembered, and `stage` would be the only thing that noticed.
 cmd_prepare() {
+  cmd_app_sign
+  printf '\n'
+  cmd_app_notarize
+  printf '\n'
   cmd_stage
   printf '\n'
   cmd_sign
@@ -1225,8 +1268,8 @@ cmd_prepare() {
   # NAMES THE STEPS THAT RAN, not a property of every artefact they touched --
   # `sign` and `notarize` never touch the support tarball, so the participle list
   # was asserting over an artefact two of its four words do not apply to.
-  printf 'prepare: stage, sign, notarize and checksum ran in one pass; each step\n'
-  printf '  reported above what it did and did not cover.\n'
+  printf 'prepare: app-sign, app-notarize, stage, sign, notarize and checksum ran in\n'
+  printf '  one pass; each step reported above what it did and did not cover.\n'
   printf '  NEXT: int macos formula\n'
 }
 
@@ -2476,9 +2519,9 @@ cmd_app_verify() {
 # THE SUBJECT IS A STAGED COPY, NEVER THE BUILD PRODUCT, for the reason STAGE_DIR
 # gives for the CLI: the build products are shared by every session on this
 # machine, and a signature over bytes a peer's app-build can replace mid-
-# notarisation is a signature over nothing. It is NOT staged in STAGE_DIR:
-# `checksum` refuses any artefact there it cannot classify, and a bundle is not
-# one of the CLI release's artefacts.
+# notarisation is a signature over nothing. The BUNDLE stays here, outside
+# STAGE_DIR; what ships is its zip, which `stage` writes into STAGE_DIR as
+# APP_ASSET and `checksum` proves from the zip before hashing it.
 # -----------------------------------------------------------------------------
 
 APP_DIST_DIR="$APP_STATE_DIR/dist"
@@ -2608,6 +2651,55 @@ app_verify_notarised() {
   return $rc
 }
 
+# app_asset_blockers <bundle> <version> -- why this bundle cannot ship as the
+# release's app, one reason per line; empty means it can. Extracted so the three
+# refusals can be driven without a trip to Apple.
+#
+# THE VERSION ARM IS THE ONE THAT MATTERS. A bundle signed before the tag stamps
+# the previous release, passes `stapler validate` and Gatekeeper perfectly, and
+# would ship a 3.0.0 app inside a 3.0.1 release with nothing saying so.
+app_asset_blockers() {
+  local bundle="$1" want="$2" got
+  if [ ! -d "$bundle" ]; then
+    printf 'no signed bundle at %s -- run: int macos prepare (it runs app-sign and app-notarize first)\n' "$bundle"
+    return 0
+  fi
+  xcrun stapler validate "$bundle" >/dev/null 2>&1 ||
+    printf 'no valid stapled ticket on %s -- run: int macos prepare (app-notarize staples it)\n' "$bundle"
+  got="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$bundle/Contents/Info.plist" 2>/dev/null)" || got=""
+  [ "$got" = "$want" ] ||
+    printf 'the bundle reports version %s and the staged CLI reports %s -- it was built from another tree; run: int macos prepare at the tag\n' "${got:-<unreadable>}" "$want"
+  return 0
+}
+
+# app_stage_asset -- the stapled, release-version bundle, zipped into STAGE_DIR.
+app_stage_asset() {
+  local dist want blockers
+  dist="$(app_dist)"
+  want="$(staged_version)" || die "could not read the staged CLI's version, which the app must match"
+  blockers="$(app_asset_blockers "$dist" "$want")"
+  [ -z "$blockers" ] || die "Intent.app cannot ship with this release:
+$(printf '%s\n' "$blockers" | sed 's/^/       /')"
+  /usr/bin/ditto -c -k --keepParent "$dist" "$STAGE_DIR/$APP_ASSET" ||
+    die "could not zip $dist into $STAGE_DIR/$APP_ASSET"
+  printf '    %-34s <- %s (stapled, version %s)\n' "$APP_ASSET" "$dist" "$want"
+}
+
+# app_zip_verify <zip> -- the zip unpacked as a user unpacks it, then the bundle
+# checked the way a download meets it (app_verify_notarised, the one check).
+app_zip_verify() {
+  local zip="$1" t rc=0
+  t="$(mktemp -d)"
+  if ! /usr/bin/ditto -x -k "$zip" "$t" || [ ! -d "$t/Intent.app" ]; then
+    printf '    %-34s does not unpack to Intent.app\n' "$(basename "$zip")"
+    rm -rf "$t"
+    return 1
+  fi
+  app_verify_notarised "$t/Intent.app" || rc=1
+  rm -rf "$t"
+  return $rc
+}
+
 # --- app-sign: build Release, stage a copy, sign it inside-out ------------------
 cmd_app_sign() {
   require_identity
@@ -2699,12 +2791,15 @@ intent macos <subcommand>
   native/rust/target/dist -- never on target/release, which four sessions share
   and any `cargo build --release` will overwrite underneath you.
 
-  prepare      RUN THE WHOLE SEQUENCE AS ONE PASS: stage, sign, notarize,
-               checksum. This is the path for cutting a release; the individual
+  prepare      RUN THE WHOLE SEQUENCE AS ONE PASS: app-sign, app-notarize,
+               stage, sign, notarize, checksum. Run it AT THE TAG: the app
+               stamps its version from the tree. The path for cutting a release; the individual
                steps below exist for diagnosis and for re-running one of them.
 
   stage        Copy the build output into target/dist under its shipping name
                (<binary>-<target-triple>), out of shared space. Wipes first.
+               Zips the stapled Intent.app in as Intent.app.zip, and REFUSES one
+               that is missing, unstapled, or not the staged CLI's version.
   sign         Developer ID sign the STAGED artefacts, hardened runtime
   notarize     Submit the staged artefacts to Apple, wait, report
   checksum     Prove every staged artefact from a quarantined copy, and only
