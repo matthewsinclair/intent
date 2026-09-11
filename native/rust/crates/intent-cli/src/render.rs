@@ -3299,9 +3299,19 @@ fn search(m: &ArgMatches) -> Result<(), Failure> {
     );
     return Ok(());
   }
+  // **`path:N` IS PRINTED ONLY WHERE N IS A LINE IN THAT FILE** (issue 0195).
+  // This printed the section's `seq` in the line's place, so every attachment
+  // hit read `:0` and an editor jumping to it landed at the top of the file.
+  // Where there is no line to state, the row is the file alone; the heading
+  // and the owner still say which section and which entity.
   for hit in hits {
-    let heading = hit.heading.as_deref().unwrap_or("(preamble)");
-    println!("{}:{}  {}  {}", hit.file, hit.seq, hit.owner_id, heading);
+    let s = &hit.section;
+    let heading = s.heading.as_deref().unwrap_or("(preamble)");
+    let place = match hit.line {
+      Some(line) => format!("{}:{line}", s.file),
+      None => s.file.clone(),
+    };
+    println!("{place}  {}  {heading}", s.owner_id);
   }
   Ok(())
 }

@@ -1367,6 +1367,23 @@ fn enum_from<T: serde::de::DeserializeOwned>(wire: &str) -> Result<T, StoreError
   ))?)
 }
 
+/// The mark [`Store::search_hits`] asks `highlight()` to put before each
+/// matched token. Private-use, so authored prose does not carry it.
+const MATCH_MARK: char = '\u{E000}';
+
+/// One `doc_sections` row, from its first seven columns in declaration order.
+fn section_from(row: &rusqlite::Row<'_>) -> rusqlite::Result<DocSection> {
+  Ok(DocSection {
+    owner_type: row.get(0)?,
+    owner_id: row.get(1)?,
+    file: row.get(2)?,
+    seq: row.get::<_, i64>(3)? as u32,
+    heading: row.get(4)?,
+    level: row.get::<_, i64>(5)? as u8,
+    body: row.get(6)?,
+  })
+}
+
 /// The one upsert into `file_index`, shared by the whole-index replace and the
 /// per-projection record. `created_at` is the row's own, so a conflict keeps it.
 fn upsert_file_entries(
@@ -3557,10 +3574,46 @@ impl Store {
   /// (design.md). Results are ordered by FTS relevance, then by address so the
   /// ordering is total rather than merely mostly-determined.
   pub fn search(&self, query: &str) -> Result<Vec<DocSection>, StoreError> {
-    self.doc_sections_query(
-      "SELECT owner_type, owner_id, file, seq, heading, level, body FROM doc_sections WHERE doc_sections MATCH ?1 ORDER BY rank, file, seq",
-      params![query],
+    Ok(
+      self
+        .search_hits(query)?
+        .into_iter()
+        .map(|(section, _)| section)
+        .collect(),
     )
+  }
+
+  /// [`Self::search`], with each hit's first match in its BODY located by
+  /// the engine: the byte offset in `body` where FTS5 marked a matched
+  /// token, or `None` when the match is in the heading alone (issue 0195).
+  ///
+  /// **THE ENGINE LOCATES IT, THROUGH `highlight()` ON THE SAME QUERY.** A
+  /// Rust re-match of the operator's expression would be a second matcher
+  /// that agrees with FTS5's tokenizer, stemming and operators only until it
+  /// does not. `highlight` inserts a mark before each matched token and
+  /// changes nothing else, so the text before the FIRST mark is exactly
+  /// `body`'s prefix and its length is the offset. The mark is a
+  /// private-use character; a body that already carries one gets no offset
+  /// rather than a guessed one.
+  pub fn search_hits(&self, query: &str) -> Result<Vec<(DocSection, Option<usize>)>, StoreError> {
+    let mut stmt = self.conn.prepare(
+      "SELECT owner_type, owner_id, file, seq, heading, level, body, \
+       highlight(doc_sections, 6, ?2, '') FROM doc_sections WHERE doc_sections MATCH ?1 \
+       ORDER BY rank, file, seq",
+    )?;
+    let rows = stmt.query_map(params![query, MATCH_MARK.to_string()], |row| {
+      let section = section_from(row)?;
+      let marked: String = row.get(7)?;
+      let at = marked
+        .find(MATCH_MARK)
+        .filter(|_| !section.body.contains(MATCH_MARK));
+      Ok((section, at))
+    })?;
+    let mut out = Vec::new();
+    for row in rows {
+      out.push(row?);
+    }
+    Ok(out)
   }
 
   fn doc_sections_query(
@@ -3569,17 +3622,7 @@ impl Store {
     args: impl rusqlite::Params,
   ) -> Result<Vec<DocSection>, StoreError> {
     let mut stmt = self.conn.prepare(sql)?;
-    let rows = stmt.query_map(args, |row| {
-      Ok(DocSection {
-        owner_type: row.get(0)?,
-        owner_id: row.get(1)?,
-        file: row.get(2)?,
-        seq: row.get::<_, i64>(3)? as u32,
-        heading: row.get(4)?,
-        level: row.get::<_, i64>(5)? as u8,
-        body: row.get(6)?,
-      })
-    })?;
+    let rows = stmt.query_map(args, section_from)?;
     let mut out = Vec::new();
     for row in rows {
       out.push(row?);

@@ -456,3 +456,65 @@ fn a_phrase_in_a_thread_objective_is_found() {
     "a thread's own objective is searchable: {hits:?}"
   );
 }
+
+/// Issue 0195: a hit printed `path:0` whatever line the match was on, and one
+/// file was once listed once per match.
+///
+/// `path:N` is the shape a jump-to-line consumer trusts, so N must be a line
+/// in THAT file, checked against the file's own bytes and not the index. A hit
+/// inside canon JSON has no prose line and prints the file alone. So does an
+/// attachment edited on disk since it was carried, because its indexed body is
+/// no longer the file. And a phrase that occurs once in one file is one row.
+#[test]
+fn a_hit_names_the_line_it_is_on_or_no_line_at_all() {
+  let dir = project();
+  let root = dir.path();
+  ok(root, &["st", "new", "a thread"]);
+  let design = root.join("intent/st/ST0001/design.md");
+  std::fs::create_dir_all(design.parent().expect("a thread dir")).expect("mkdir");
+  std::fs::write(
+    &design,
+    "# Notes\n\nA first paragraph.\n\n## Detail\n\nThe kestrel combinator returns its first argument.\n",
+  )
+  .expect("author prose");
+  let issues = root.join("intent/.canon/issues");
+  std::fs::create_dir_all(&issues).expect("mkdir issues");
+  std::fs::write(
+    issues.join("0001.json"),
+    "{\n  \"schema\": \"intent/issue@3.0\",\n  \"number\": 1,\n  \"slug\": \"pelican-drift\",\n  \"title\": \"Pelican drift\",\n  \"status\": \"open\",\n  \"created\": \"2026-08-14\",\n  \"body\": \"The pelican index drifts after a rebuild.\\n\"\n}\n",
+  )
+  .expect("write issue canon");
+  restore_from_disk(root);
+
+  // The FILE's own line for the phrase, read off disk rather than the index.
+  let on_disk = std::fs::read_to_string(&design).expect("read the file back");
+  let line = on_disk
+    .lines()
+    .position(|l| l.contains("kestrel"))
+    .expect("the phrase is in the file")
+    + 1;
+  let hits = ok(root, &["search", "kestrel"]);
+  let rows: Vec<&str> = hits.lines().collect();
+  assert_eq!(
+    rows.len(),
+    1,
+    "a phrase occurring once in one file is ONE row: {hits:?}"
+  );
+  assert!(
+    rows[0].starts_with(&format!("intent/st/ST0001/design.md:{line}  ")),
+    "the hit names line {line}, where the file has it: {hits:?}"
+  );
+
+  let hits = ok(root, &["search", "pelican"]);
+  assert!(
+    hits.starts_with("intent/.canon/issues/0001.json  "),
+    "a hit inside canon JSON has no prose line, so it prints the file alone: {hits:?}"
+  );
+
+  std::fs::write(&design, format!("# Moved\n\n{on_disk}")).expect("edit without a carry");
+  let hits = ok(root, &["search", "kestrel"]);
+  assert!(
+    hits.starts_with("intent/st/ST0001/design.md  "),
+    "an attachment edited since it was carried gets no line, not a stale one: {hits:?}"
+  );
+}

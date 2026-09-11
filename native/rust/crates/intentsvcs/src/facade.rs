@@ -2510,14 +2510,14 @@ impl Facade {
   /// SQLite's own complaint in its cause chain: the remedy names the likely
   /// fix, and the chain still says exactly what happened, so a genuinely
   /// unhealthy store is not disguised as a typo.
-  pub fn search(&self, query: &str) -> Result<Vec<crate::prose::DocSection>, FacadeError> {
+  pub fn search(&self, query: &str) -> Result<Vec<crate::prose::SearchHit>, FacadeError> {
     // **THE ONE PLACE THE OPERATOR'S STRING BECOMES AN FTS5 EXPRESSION**
     // (`0247`). Before this, `family-root` reached FTS5 raw and came back as
     // `no such column: root` -- a database schema error about a query nobody
     // wrote. The error's SUBJECT was sqlite's schema rather than the
     // operator's words.
     let expression = crate::fts::expression(query);
-    self.store.search(&expression).map_err(|cause| {
+    let hits = self.store.search_hits(&expression).map_err(|cause| {
       if matches!(cause, StoreError::Sqlite(_)) {
         FacadeError::BadQuery {
           query: query.to_string(),
@@ -2526,7 +2526,29 @@ impl Facade {
       } else {
         FacadeError::Store(cause)
       }
-    })
+    })?;
+    // **A LINE ONLY WHERE THE INDEXED BODY IS THE FILE, CHECKED PER HIT**
+    // (issue 0195). The engine gave the match's offset in the BODY; that is a
+    // line in the FILE only when the two are the same bytes. It holds for an
+    // attachment at the moment it is carried, since both carry doors decode
+    // the file's bytes unchanged, and it stops holding the moment the file is
+    // edited without a carry. It never holds for canon JSON. So it is
+    // compared rather than assumed, and a file that cannot be read gets no
+    // line: the row still names the file, and a wrong line would be believed.
+    Ok(
+      hits
+        .into_iter()
+        .map(|(section, at)| {
+          let line = at
+            .filter(|_| {
+              std::fs::read(self.project.root().join(&section.file))
+                .is_ok_and(|bytes| bytes == section.body.as_bytes())
+            })
+            .map(|at| section.body[..at].matches('\n').count() as u32 + 1);
+          crate::prose::SearchHit { section, line }
+        })
+        .collect(),
+    )
   }
 
   /// How many prose sections the index holds -- the question that makes an

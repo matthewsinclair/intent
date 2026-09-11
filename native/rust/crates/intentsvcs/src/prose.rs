@@ -36,6 +36,24 @@ pub struct DocSection {
   pub body: String,
 }
 
+/// One search result: the section, and the 1-indexed line of its FILE where
+/// the engine first matched, when there is a line to state (issue 0195).
+///
+/// **`line` IS `None` UNLESS THE INDEXED BODY IS THE FILE ON DISK, BYTE FOR
+/// BYTE**, and `Facade::search` checks that per hit rather than assuming it.
+/// `seq` was printed where a line belongs and was never one: 0 for every
+/// attachment, a WP's sequence, an issue section's ordinal. A work package,
+/// an issue body or a thread's objective lives inside canon JSON, where no
+/// prose line exists, and a match in the heading alone has no body line. A
+/// wrong line is worse than none, because it is believed.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct SearchHit {
+  #[serde(flatten)]
+  pub section: DocSection,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub line: Option<u32>,
+}
+
 /// Split one markdown document into sections.
 ///
 /// The concatenation law, which the round-trip test pins: rebuilding the file
