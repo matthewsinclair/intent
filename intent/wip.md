@@ -43,7 +43,6 @@ intent_version: 3.0.0
 
 | #   | id     | sev    | lane | defect                                                                      |
 | --- | ------ | ------ | ---- | --------------------------------------------------------------------------- |
-| 21  | `0274` | medium | dc   | getting-started's first tree shows three things `init` does not create.     |
 | 22  | `0122` | medium | dc   | `modules` errors route the operator to `intent upgrade`, which cannot help. |
 
 ### P3 -- commands that report success or state while wrong.
