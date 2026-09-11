@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 21:21Z
+heartbeat_at: 2026-09-11 21:26Z
 status: active
-focus: "DOC AUDIT lane done and verified. Guard fix bc696da63 (hv: Fix the guard). Delivery rebuild done 2026-09-11 21:21Z: the pair names 2c3a7d2d4 and currency is ok. The tap README is local and unpushed. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "HOLDING. The doc audit is done and pushed on hv approval: main at 1ebd57700 on both remotes, the tap at c0e6ed9, the pair delivered at 2c3a7d2d4. No new work until hv rules on the defect list in intent/wip.md. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -40,27 +40,17 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**The doc audit, dc's lane** (hv set it 2026-09-11; vc directs; the protocol's nine rules are in `intent/wip.md` at `9a1455a0f`). As-built is the truth and the doc moves to the code; **this job writes no code**. A CODE-WRONG finding goes to vc with `file:line`. Every file in the lane is reported to vc with its disposition (clean / edited / deleted / exempt). Nothing is pushed until hv approves.
+**Nothing in flight.** The doc audit is done and pushed on hv's approval: main is at `1ebd57700` on both remotes, and the tap is at `c0e6ed9` (origin/main read back 2026-09-11 21:26Z). The pair was delivered at `2c3a7d2d4` through the guard fix `bc696da63`. What dc did in the audit is in those commits and in vc's globalfold.
 
-Lane:
-
-- root `README.md`, `DEPRECATIONS.md`, and `CHANGELOG.md` outside its shipped entries;
-- `docs/{install,known-defects,migrating-from-v2}.md`, and `docs/design/design-system.md` against the macOS app;
-- `bin/.devbin` docs and the `int`/`devbin` help. `bin/.devbin/lib/**` is vendored from devbin (`manifest.sha256`), so a finding there goes upstream and is not edited here;
-- `intent/docs/{rust-on-macos,pre-commit-hook,migration-v2.10.0,skills-triage,total-codebase-audit}.md` and `intent/docs/notes/**`;
-- `.github/workflows`, `tests/**/*.md` (fixtures excluded), and `native/macos`;
-- the tap README: commit locally, don't push;
-- the records sweep (rule 6): a one-line historical banner only where a reader could take a record for current.
-
-**With vc to close:** `0150` (`c9960b90`) and `0065` (`5493dd28`), both still OPEN.
+**With vc to close:** `0150` (`c9960b90`) and `0065` (`5493dd28`). Re-drive `intent issues show` before quoting either.
 
 ## TODO
 
-- **Nothing open.** vc verified the lane report. The routed fixes are at `7a797196` and the CHANGELOG Unreleased entry at `c25dca196`. The guard fix is at `bc696da63`: verify_pair and the currency reader ask identity over the marker's own DIRT_SCOPE. The delivery rebuild went through the fixed guard, and the pair names `2c3a7d2d4`. Run `intent --version`; don't trust this line.
+**Nothing assigned.** Do not invent work.
 
 ## Holds
 
-- **The tap README is committed locally at `c0e6ed9`** in `/opt/homebrew/Library/Taps/matthewsinclair/homebrew-intent`, and it is NOT pushed. Condition: hv approves that push, as its own action.
+- **HOLD everything until hv rules on the defect list in `intent/wip.md`.** Condition: a ruling from hv, or a task from vc under hv's word.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD** (`W69`). Re-drive a hold's condition at the moment you quote it; never re-read it off this line.
 
 ## Watch-outs
