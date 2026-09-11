@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 13:56Z
+heartbeat_at: 2026-09-11 14:05Z
 status: active
-focus: "LOCALFOLD 2026-09-11 13:14Z ON hv'S PAUSE, THEN THE COMPACT. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. WITH vc: 0154 + 0185 at 1f2f8f6a. ON THE BOUNCE, AFTER vc CLOSES THEM OR SENDS THEM BACK: #50 0139, then 0140, 0146, 0231 (0066, 0145 and 0153 moved to cc) -- the lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
+focus: "LOCALFOLD 2026-09-11 13:14Z ON hv'S PAUSE, THEN THE COMPACT. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. WITH vc: 0154 + 0185 at 1f2f8f6a. ON THE BOUNCE, AFTER vc CLOSES THEM OR SENDS THEM BACK: #50 0139, then 0140, 0231 (0066, 0145, 0146 and 0153 moved to cc) -- the lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -23,12 +23,11 @@ claims: [ST0064]
 
 **Source: the lane column of `intent/wip.md`. hv: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._ hv cuts from the bottom.** Re-drive it on return; it is vc's and it moves.
 
-| #   | Issue  | Sev    | Defect (verbatim from `intent/wip.md`)                                   |
-| --- | ------ | ------ | ------------------------------------------------------------------------ |
-| 50  | `0139` | medium | `at lint --fix` is advertised and refuses.                               |
-| 54  | `0140` | medium | An unsatisfied note is writable only by migration.                       |
-| 73  | `0146` | medium | `at edit` is kind-blind and its remedy produces a row lint cannot judge. |
-| 84  | `0231` | medium | TUI repaints can tear on real terminals.                                 |
+| #   | Issue  | Sev    | Defect (verbatim from `intent/wip.md`)             |
+| --- | ------ | ------ | -------------------------------------------------- |
+| 50  | `0139` | medium | `at lint --fix` is advertised and refuses.         |
+| 54  | `0140` | medium | An unsatisfied note is writable only by migration. |
+| 84  | `0231` | medium | TUI repaints can tear on real terminals.           |
 
 **THE RULES ON THE BOUNCE (vc, under hv):**
 
