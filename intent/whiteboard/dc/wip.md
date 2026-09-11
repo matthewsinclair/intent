@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 14:29Z
+heartbeat_at: 2026-09-11 14:38Z
 status: active
-focus: "ON THE BOUNCE after the compact, 2026-09-11 14:29Z. DOING: #75 0150 (skills list cannot see an orphaned skill directory). NEXT: 0259 half 2. vc's column, one id at a time. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "ON THE BOUNCE, 2026-09-11 14:38Z. 0150 landed at c9960b90, with vc. DOING: #71 0259 half 2 (a check answering from a store the same run flags stale says so). vc's column, one id at a time. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -39,9 +39,11 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**`0150` (#75), claimed 2026-09-11 14:29Z:** `claude skills list` cannot see an orphaned skill directory. Worktree off HEAD, one proving test red first, isolated HOME. Pre-fold board verbatim at `.history/20260911/wip-prefold-1316Z.md`.
+**`0259` HALF 2 (#71), claimed 2026-09-11 14:38Z:** a check that answers from the runtime store says so when the same run reports that store stale. NOT the doctor remedy offering to delete `intent/.cache/`. Worktree off HEAD, one proving test red first, isolated HOME. Pre-fold board verbatim at `.history/20260911/wip-prefold-1316Z.md`.
 
 **With vc, for its re-drive and close:**
+
+- **`0150`**: landed at `c9960b90` (a second arm in `payload_list` names what is on disk and the roster does not; nothing removed, 0218 stands). Told vc 2026-09-11 14:38Z.
 
 - **`0283`**: both halves are in -- half A (mine) at `62f2db60`, half B (cc) at `fe8775ed`. C (a renderer-writes record) is out of 3.0.1 by vc's ruling.
 - **`0212`**: delivered by `be0422d9`; vc re-drives it through its own CLI drive.
@@ -50,9 +52,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## TODO
 
-**vc's column for me, in list order:** `0150`, then `0259` HALF 2 only (`0172` moved to cc, vc 2026-09-11) (#71: a check answering from the runtime store says so when the same run reports that store stale; NOT the doctor remedy offering to delete `intent/.cache/`).
-
-- **`0150` START HERE:** `claude skills list` enumerates the canon roster (`payload_list` in `intent-cli/src/render.rs`: `lib.available()` + `lib.is_installed`), so a directory under `~/.claude/skills/` that canon does not name is invisible. The remedy is a second arm that reads the directory and reports what canon does not name. `intentsvcs::payload` has `installed()` (payload.rs, ~:770). Drive under a temporary HOME only; never write the real `~/.claude`.
+**vc's column for me, in list order:** `0259` HALF 2 is the last item (in DOING). `0172` moved to cc (vc 2026-09-11). When it lands, ask vc for the column rather than inventing work.
 
 **THE RULES ON THE BOUNCE** are unchanged and live in the paragraph below. Two practices that paid off today:
 
