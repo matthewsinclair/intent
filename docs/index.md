@@ -24,7 +24,7 @@ Intent gives it a place to live that ages with the code instead of away from it.
 
 ## What it actually is
 
-A single CLI, written in Rust, that manages a small set of durable objects inside your repository.
+A CLI, written in Rust, that manages a small set of durable objects inside your repository. It ships with `intentd`, an optional daemon the CLI can hand work to, and on macOS with Intent.app, a menu bar companion.
 
 **A steel thread** is one intention followed end to end — what you are trying to achieve and why it matters. It breaks into **work packages**, the units of work that get done. It states **acceptance criteria**, which are the conditions that decide whether the intention was met. Each criterion is backed by an **acceptance test**, so Intent can compute whether a thread is satisfied rather than asking you to assert it.
 
@@ -44,7 +44,7 @@ Intent's answer is to make the reasoning a tracked object with a state the tool 
 
 This set describes **Intent v3**, the Rust implementation. Intent v2 was a Bash implementation whose final release was v2.19.0; it is documented separately and frozen at [`docs/v2/`](v2/). The two are not interchangeable — a v2 binary refuses a v3 project deliberately, and [Migrating from v2](migrating-from-v2.md) describes the hop.
 
-Deeper authoring guides — writing rules, writing critics, writing extensions, and the full narrative on how Intent composes with coding agents — ship inside the tool and are documented at `intent/docs/` in this repository. This set links across to them rather than duplicating them.
+Deeper authoring guides — writing rules, writing critics, writing extensions, and the full narrative on how Intent composes with coding agents — live at `intent/docs/` in this repository. They are not part of the installed tool. This set links across to them rather than duplicating them.
 
 ---
 

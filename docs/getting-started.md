@@ -1,10 +1,10 @@
 # Getting started
 
-This walks one steel thread from nothing to satisfied. It takes about ten minutes and leaves behind a project you can keep.
+This walks one steel thread from nothing to satisfied, and leaves behind a project you can keep.
 
 Everything below runs against a real repository. Intent lives inside your project, not beside it.
 
-**Every command on this page has been run, in this order, from an empty directory, and the sequence ends at a passing gate.** That is worth stating because the previous version of this page had not been: it broke on its first command, told you to create a test covering a criterion it never had you create, and ended at a gate its own steps could not pass.
+**Every command on this page has been run, in this order, from an empty directory, and the sequence ends at a passing gate.**
 
 ## 1. Initialise
 
@@ -28,7 +28,11 @@ You need a repository to work in. Intent does not create one:
   .prettierignore                keeps the formatter off generated views
 ```
 
-**Nothing else is there yet, and the directory you will most expect is not among them.** `intent/st/` arrives with your first `intent st new` in §2, so a tree showing it here would be describing a project one step older than the one you have. **The published v3.0.0 build writes less:** its `intent init` writes neither `AGENTS.md` nor `.prettierignore` nor `intent/.intentfiles`. Whichever build you are on, the list it prints is the tree.
+**Nothing else is there yet, and the directory you will most expect is not among them.** `intent/st/` arrives with your first thread in §2, so a tree showing it here would be describing a project one step older than the one you have.
+
+**One file is created and not listed: the store, `intent/.cache/intent.db`.** It is this machine's state and never belongs in history, but `intent init` does not write a `.gitignore` for it, so a `git add .` stages it. Add `intent/.cache/` to your `.gitignore` before your first commit.
+
+`intent init` also tells you if no author is recorded for this machine; `intent bootstrap` records one once, or set it in `intent/.config/config.json`.
 
 Then declare which languages the project is in:
 
@@ -39,9 +43,7 @@ Then declare which languages the project is in:
 
 **It is a declaration, not a detection** — Intent will not guess from the files present, because file presence is unreliable evidence and a wrong guess loads the wrong rules. `lang init` takes more than one language and is idempotent, so you can add to it later.
 
-**You can also declare them as you initialise: `intent init --lang rust,shell`** creates the project and then declares both, through the same code `lang init` runs. An undeclarable name refuses before anything is written, and the refusal says nothing was created.
-
-**On the published v3.0.0 build, `--lang` refuses, and its refusal is wrong twice.** It says `intent lang init` is not implemented, which is false: that command works on v3.0.0 and is the one above. It also says _the project is created either way_, and it is not. `intent init --lang rust` exits 2 and leaves no `intent/` at all. On v3.0.0, run `intent init` on its own, confirm `intent/.config/config.json` exists, and declare the language afterwards.
+**You can also declare them as you initialise: `intent init --lang rust,shell`** creates the project and then declares both, through the same code `lang init` runs. An undeclarable name refuses before anything is written, and the refusal says nothing was created. `intent lang list` names the languages you can declare.
 
 `AGENTS.md` is **generated from project state**: `intent init` generates the first one and `intent agents sync` regenerates it. Do not hand-edit it; the next sync will overwrite you.
 
@@ -57,16 +59,13 @@ A steel thread is one intention. Name the outcome, not the task.
 Then write down why. This is the part that matters and the part everything else hangs off:
 
 ```
-  $ $EDITOR intent/.canon/st/ST0001.json
-  $ intent sync --to-store ST0001
-  $ intent sync --to-disk  ST0001
+  $ intent set intent:///threads/ST0001 objective "Cache because the upstream API limits us to 100 req/min"
+  $ intent set intent:///threads/ST0001 context "We see 10K req/s at peak, and the upstream refuses rather than queues"
 ```
 
-**You edit the canon extract, not `info.md`.** `info.md` is a generated view: whatever you write into it is gone at the next render. Fill in the `objective` and `context` fields in the JSON, sync them into the store, then render the view back out.
+`intent set <address> <field> <value>` writes one field of one entity. For prose that spans lines, `--from <file>` reads the value from a file instead.
 
-**And nothing stops you doing the wrong thing here, so the discipline is yours.** `intent st edit ST0001 info` hands back the path at exit 0 and lets you edit the generated view — driven on this build. The published `3.0.0` tag refused it, which is where the protection people remember comes from; this build lost the refusal (issue `0192`). Until that is back, treat `st edit ... info` as a way to READ where the view lives and never as permission to author into it.
-
-**There is no verb for this yet, and on the published tag the refusal claims there is.** `3.0.0`'s refusal reads _author it with `intent st` for thread fields_ — and no `intent st` verb writes `objective` or `context`, so following it leads nowhere. On a build that has lost the refusal you get no steer at all. **The canon route above is the working one under both.**
+**`info.md` is a generated view of the thread, not its source.** `intent st edit ST0001 info` hands back its path, which is where to read what you wrote. Of that file, only the `## Objective` and `## Context` sections are carried back into the store; everything else in it is rendered from the model and a hand edit there is lost at the next render, which `intent doctor` reports as skew. `intent set` is the dependable writer.
 
 **A new thread carries `info.md` and `acceptance.md`, and nothing else.** `design`, `impl` and `tasks` are not created for you and are not made real by creating the file — a thread's file set is a property of the model, not of the directory. They join a thread as attachments: `intent st attach ST0001 design.md --from <your file>` is the writer, and once a thread carries one, `intent st edit ST0001 design` hands back its path. Until then the thread has no design of its own to open, and the reasoning goes in `objective` and `context` above. **Be specific about constraints and about what you ruled out** — that is the information nobody can reconstruct later, and it is what an agent reading this file will act on. "Cache because the upstream API limits us to 100 req/min, and we see 10K req/s at peak" tells a reader something. "Add caching" does not.
 
@@ -86,7 +85,7 @@ Work packages are the units that get done. A thread with one work package is fin
   $ intent wp start ST0001/01
 ```
 
-`intent wp list ST0001` shows where they stand. Statuses are `not-started`, `wip`, `done` and `cancelled`, and they move with `wp start`, `wp done`, `wp cancel` and `wp reopen` rather than by editing a field. **`wp cancel` requires `--reason`** and refuses without one, because the reason is recorded on the work package as the reason for its current state. **`wp reopen` is legal only from `done`** — the machine has no terminal states, so there is always a route, but it goes through the states rather than around them.
+`intent wp list ST0001` shows where they stand. Statuses are `not-started`, `wip`, `done` and `cancelled` (the listing prints them as `Not Started`, `WIP`, `Done` and `Cancelled`), and they move with `wp start`, `wp done`, `wp cancel` and `wp reopen` rather than by editing a field. **`wp cancel` requires `--reason`** and refuses without one, because the reason is recorded on the work package as the reason for its current state. **`wp reopen` is legal only from `done`** — the machine has no terminal states, so there is always a route, but it goes through the states rather than around them.
 
 ## 4. State the acceptance criteria
 
@@ -133,7 +132,7 @@ A test starts at `to-write`. When it exists and fails it is `red`; when it passe
   $ intent at green ST0001 AT-01.2 --note "passes across a restart"
 ```
 
-**Go through `red` first, even though nothing forces you to.** A test that goes straight from `to-write` to `green` was never observed failing, so nothing has demonstrated it can fail — which is the difference between a test and a decoration. **On `v3.0.0`, `at green`'s own help says "reachable only from red"; that describes v2, and no v3 build enforces it.** See [Criteria and tests](concepts/criteria-and-tests.md).
+**Go through `red` first, even though nothing forces you to.** A test that goes straight from `to-write` to `green` was never observed failing, so nothing has demonstrated it can fail — which is the difference between a test and a decoration. See [Criteria and tests](concepts/criteria-and-tests.md).
 
 **Not everything is testable by a test, and Intent does not pretend otherwise.** `AC-02.1` was created `non-test` in §4. Its acceptance test cites what was read rather than a file, and **the criterion is then satisfied by naming the evidence**:
 
@@ -163,21 +162,29 @@ When you want the gate rather than the listing:
   $ intent ac gate ST0001
 ```
 
-`ac gate` exits non-zero and reports `BLOCKED` if anything in scope is unsatisfied. It is built to be run from a pre-commit hook or CI, not read by a human.
+```
+  gate: ST0001 PASS -- 3/3 satisfied
+```
+
+`ac gate` exits non-zero and reports `BLOCKED`, naming the unsatisfied criteria, if anything in scope is unsatisfied. It is built to be run from a pre-commit hook or CI.
 
 ## 7. Close it
 
+Finish or cancel the work packages, then close the thread:
+
 ```
+  $ intent wp done ST0001/01
+  $ intent wp cancel ST0001/02 --reason "rate limiting moved upstream"
   $ intent st done ST0001
 ```
 
-`st done` runs the gate first and refuses a thread that would not pass it, so a closed thread is a thread that was actually finished.
+`st done` runs the gate first and refuses a thread that would not pass it. **The gate is over criteria, not work packages:** a work package left open does not stop the close, so closing them first is your discipline. `st done` is legal only from `WIP`, which is why §2 started the thread.
 
 ## Where to go next
 
 - **[Concepts](concepts/)** — the model underneath: what a thread is, how criteria reach their state, and why the store rather than the files is the source of truth.
 - **[Command reference](reference/)** — the full surface.
-- **[Known defects](known-defects.md)** — what is broken in v3.0.0 that you can reach by following these pages correctly, derived from the issue register at the cut rather than remembered.
+- **[Known defects](known-defects.md)** — what is broken in the current release that you can reach by following these pages correctly, derived from the issue register at the cut rather than remembered.
 - `intent todo` — a flat DOING / TODO / DONE view across every thread and work package, generated from their real status.
 - `intent doctor` — findings about **this project**: a stale backup, a thread whose status disagrees with its own gate, a store that has drifted from committed canon. It does not inspect your installation. A class of finding your project has decided to keep can be acknowledged in `intent/.config/config.json` as `"doctor": {"acknowledged": {"<class>": "<reason>"}}`, using the class name `doctor` prints: it still runs and prints `acknowledged: <class> -- <reason> (N finding(s))`, and its findings leave the count and the exit code.
 
