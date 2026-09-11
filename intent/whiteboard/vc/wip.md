@@ -3,60 +3,46 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 14:46Z
+heartbeat_at: 2026-09-11 16:15Z
 status: active
-focus: "LOCALFOLD FOR A COMPACT, 2026-09-11 13:14Z, refreshed 14:28Z, then back on the bounce. hv: no new work; the open defects in intent/wip.md are the whole of it (`intent issues list` is the live count). vc keeps the list, drives every fix before closing its issue, rules fix shapes under the pen, and holds hv's decisions (now 1-14). Pre-fold board verbatim at .history/20260911/wip-prefold-1314Z.md. RUN THE VERBS; every figure here rots."
+focus: "BOUNCE, 2026-09-11 16:15Z. hv ruled all 14 decisions. Every workable row on the list is re-driven and closed; the 3 still open are NOT WORKABLE. Left: dc's decision 3 and decision 2's notice fix, then the cut. intent/wip.md is the authority. RUN THE VERBS; every figure here rots."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 ---
 
 # Validation Claude (vc)
 
-**LOCALFOLD 2026-09-11 13:14Z, `active`.** Pre-fold verbatim at `.history/20260911/wip-prefold-1314Z.md`; the 09:15Z fold is `.history/20260911/wip-prefold-0914Z.md`. Executed rulings (0194, 0223, 0195, 0224, 0168) are there, with their evidence in each close commit.
+**BOUNCE AFTER THE 2026-09-11 COMPACT, `active`.** The pre-bounce queue is closed, and each close commit carries its own drive. Pre-fold boards are verbatim at `.history/20260911/wip-prefold-1314Z.md` and `-0914Z.md`.
 
 ## DOING
 
-**NOTHING IN FLIGHT ON vc.** Peers at the fold, each to be re-read off its own board on return:
+**NOTHING IN FLIGHT ON vc.** The peers, each to be re-read off its own board:
 
-- `ic` -- `0154` + `0185` FIXED together at `1f2f8f6a` (`intent set`), WITH vc FOR RE-DRIVE. Then #50 `0139`, #54 `0140`. `0145`, `0146`, `0153`, `0231` left its column for cc.
-- `cc` -- ran ahead during the fold: fixed `0066`, `0145`, `0153` and `0146` (all banked below). `0176` ruled close-after-drive; `0172` ruled not workable. Now building #84 `0231` (DEC 2026 synchronized updates, shape approved), uncommitted in `run.rs` at 14:28Z.
-- `dc` -- `0283` half A LANDED at `62f2db60`; next #75 `0150`, then `0259` half 2. `0172` left its column (not workable). `0220`, `0065` HELD on hv (decisions 13, 14).
+- `dc` -- decision 3 (strike `st bootstrap`, `agents template` and `claude prime`), ruled RETIRE with `spelling: ""`, st_zero's successor cleared, `init --with-st0000` retired, and B ruled (a). Then the fix to decision 2's notice: c2ea14c1's "only way back" sentence was sent back.
+- `cc`, `ic` -- holding; their lanes are empty.
 
-## TODO -- on the bounce, in this order
+## TODO
 
-1. **Re-drive `0154` + `0185` at `1f2f8f6a` or later.** Check the ruling's conditions against the build, not ic's report:
-   - exactly one of value or `--from`;
-   - the address goes through `address_of`;
-   - WP body and thread title/objective/context/body are settable, with nothing widened;
-   - an unsettable field (`status`) is refused with the tree byte-identical;
-   - the value reads back from the STORE and survives a real intentd ingest.
-     Red arm: 951cbac2 answers `unrecognized subcommand set`. Close both in one commit.
-2. Keep `intent/wip.md` true: strike an item only when `intent issues list` no longer shows it open. The row count must equal the open count.
-3. For each item a peer reports fixed: drive the fix myself against the issue's own reproduction, then `intent issues close <id>`. A fix I cannot reproduce as fixed goes back to its lane, not closed.
-   **How:**
-   - The worktree is `$SP/wth`. Move it with `git -C $SP/wth checkout --detach <MAIN's sha>` -- NOT `HEAD`, which inside the worktree is its own HEAD and a no-op. Build into `$SP/tgt`.
-   - Then `cp $SP/tgt/debug/intent $SP/wth/native/rust/target/debug/intent`. A binary outside an install tree cannot find `lib/templates`; `claude upgrade` and `upgrade` need that, and `INTENT_HOME` is not honoured.
-   - `intentd` is built separately (`-p intentd --bin intentd`).
-   - Use an isolated short HOME (`/Users/matts/.vc<id>h`, removed after) and my own fixture.
-   - The version string names the last NATIVE commit, so check the fix is an ancestor rather than expecting its sha.
-   - Then drop the row (numbers do not shift), `prettier --write`, and commit the row plus `intent/.canon/issues/<id>.json`.
-     **Between reports:** search `git log` full messages (`--grep`, not subjects) for fix commits naming a listed id after its filing.
-4. **`0283` half A LANDED at `62f2db60` (dc, rebased onto half B) -- re-drive both halves together on the bounce, then close.** dc's test reads the remedy out of doctor's own line, runs it, and checks doctor is clean; drive that same loop on my own closed-thread fixture. When dc reports `0259` half 2: drive it, then close.
-5. **`0176`: cc reports it does not reproduce at HEAD** (the unconditional refusal predates the filing, a7aa0b9e 2026-08-16). Drive it myself: `todo notdone`/`toggle` on a done thread and WP each exit 1 with no row, event or file moved; `st reopen` is the control. Then close. The refusal's remedy fails when followed (positional reason; `st reopen` printed for a WP): put it in the close commit, not a fix.
-6. **`0066` FIXED at `f74fbf31` (cc).** Phase A refuses a thread directory one level inside a non-bucket directory (`_inbox/`) as `unknown-file-shape`, naming both remedies. Drive it: a v2 estate with ST0001 flat and ST0002 under `intent/st/_inbox/`, committed; `upgrade` gives rc=1 with a residue line for `intent/st/_inbox/ST0002` and the tree unchanged; after `git mv` to `intent/st/ST0002`, both migrate. RED 951cbac2: `migrated: 1 thread(s)`, and every verb refuses on ST0002 (the loop). Watch for cc's unconfirmed lead: a `config.json edited in the working tree` refusal that `git commit` calls nothing to commit.
-7. **`0145` FIXED at `ff78b917` (cc).** `edit` checks membership against `Facade::carried` before any hydrate. Drive it: a fresh project, `st new`; `st edit ST0001 impl --path` gives rc=1, `.intentfiles` byte count unchanged, and the remedy `this artefact carries: acceptance.md, info.md` with nothing on disk; control: `st edit ST0001 info` realises the thread and grows `.intentfiles`. RED 951cbac2: the refusal grows `.intentfiles`.
-8. **`0153` FIXED at `ca2dd018` (cc).** The shared NotAddressable remedy names only a thread id and a full thread address. Drive it: a project with ST0001 and issue 0001; `edit nonsense --path` names only those two forms; `edit ST0001 --path` and `edit intent:///threads/ST0001 --path` give rc=0. RED 951cbac2: the remedy offers `0042`, which edit refuses. cc amended one limb of `address_promotes_a_bare_id.rs` that pinned the issue form (the defect); vc accepted it.
-9. **`0146` FIXED at `367bd6d4` + `75ce790d` (cc).** The new `FileOnANonTestRow` remedy branches on status: at to-write it says re-kind with `--kind test --file` in one call; at n-a it says record `at green` or `at red` first, then re-kind. vc accepted the branch: the one-command form is itself refused at n-a. Drive it: a non-test row gets `at edit --file` and `set .../at/<id> file ...`; both are refused with nothing written, and the remedy line, run verbatim on BOTH branches (to-write and n-a), succeeds. `--kind test --file` in one call passes; `--prose` on a pre-existing both-fields row passes. RED: ca2dd018 answers the `set` form rc=0.
-10. **`0150` FIXED at `c9960b90` (dc).** `claude skills list` adds a row per unit on disk that the roster lacks (`installed` or `inert`, provenance `unlisted`). Drive it under a temp HOME: `claude skills install in-verify`; `uninstall in-verify --force`; `mkdir ~/.claude/skills/in-start ~/.claude/skills/in-next`; `claude skills list` shows both as `inert unlisted`, plus note lines. A stray file is not listed; a hand-written `~/.claude/agents/mine.md` lists under `subagents list` as `installed unlisted`. RED: a build before c9960b90 (ebfac707) lists neither.
-11. Act on each of hv's decisions (1-14) as its word arrives. Items 3, 4 and 5 are code and need hv's explicit go. Unblocked by a word: decision 2 frees `0100` (cc, shape ruled); 11 frees `0084` (cc, patch banked); 12, 13 and 14 close or free `0114`, `0220`, `0065`.
-12. At the cut: satisfy the nine cut-time rows by evidence, close ST0056 WP-07/11/12, then ST0056, ST0058, ST0068.
+1. **Decision 3 when dc lands it.** Each of the three answers rc=2 'was retired' with no replacement and is absent from --help. st zero's refusal names no successor. `init --with-st0000` is retired. The five repoints and five one-sided notes are as ruled, and a kept negative half fails on a planted instance.
+2. **Decision 2's notice when dc re-lands it.** Drive both ways back with the 3.0.0 keg (/opt/homebrew/Cellar/intent/3.0.0_1/bin/intent): a snapshot always works; deleting the cache works only while canon carries nothing 3.0.1 alone writes (a WP status_legacy is refused as schema-invalid).
+3. **At the cut.**
+   - Decision 6 (dc): repoint test_helper at v3.
+   - dc: regenerate the whole of docs/reference at the cut sha.
+   - Satisfy the nine cut-time rows by evidence.
+   - Close ST0056 WP-07/11/12, then ST0056, ST0058 and ST0068.
+   - Push upstream (decision 1).
+   - The PATH pair must name the cut sha: `bin/devbin build all`.
+4. **The three NOT WORKABLE rows (0177, 0141, 0172) stay open** as constraints on future work. Each row says why.
 
 **NO NEW WORK.** Nothing gets added to the list. A defect found while fixing goes in the commit message.
 
 ## Holds
 
-- **`0283` close** -- both halves are in (B fe8775ed verified; A 62f2db60 not yet driven). Held only until vc re-drives A on the bounce.
-- **`0259` close** -- held until dc's half 2 lands (doctor must say when it answers from a store the same run flags stale). Half 1 is verified at d984b077.
-- **`0100`, `0084`, `0114`, `0220`, `0065`** -- held until hv answers decisions 2, 11, 12, 13 and 14 respectively. Each row names its decision.
+- None. Every hv decision is ruled, and every held close is done.
+
+## Watch-outs (added on the bounce)
+
+- **A test that opens `repo_root()` migrates the LIVE store** (tests/attachment_drift_detected.rs -> doctor -> Store::open). Run every intentsvcs suite from a private worktree. The 15:10:30Z incident and its recovery are in d0777bc8.
+- **A parent build cannot read a fixture a newer build made** (store 18 vs 17). Make each arm's fixture with that arm's own binary.
 
 ## Standing directives from hv
 
