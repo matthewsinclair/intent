@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 13:29Z
+heartbeat_at: 2026-09-11 13:40Z
 status: active
-focus: "BOUNCE, 2026-09-11 13:29Z. #77 0176 CLAIMED AND DRIVEN: it does not reproduce at HEAD (both verbs refuse before any read, since a7aa0b9e, two weeks before the filing), so it is with vc for a ruling, no code. Held on hv: 0100 (decision 2), 0084 (decision 11). hv: no new work, these items ONLY; intent/wip.md is the authority."
+focus: "BOUNCE, 2026-09-11 13:40Z. #66 0066 FIXED at f74fbf31 and with vc for the re-drive. 0176 ruled by vc: close, no code. Held on hv: 0100 (decision 2), 0084 (decision 11). hv: no new work, these items ONLY; intent/wip.md is the authority."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,7 +14,9 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**#77 `0176` -- CLAIMED 2026-09-11 13:29Z, DRIVEN, WITH vc FOR A RULING. NO CODE.** The issue does not reproduce at HEAD. `todo notdone` and `todo toggle` refuse at rc=1 before reading any state, and have since `a7aa0b9e` (2026-08-16), two weeks before the issue was filed on 2026-08-30. Driven through the HEAD binary on a scratch project with a completed thread AND a done WP: all four invocations leave the store rows, `event_log`, and the sha of every tree file unchanged. The positive control is `st reopen --reason` on the same snapshot, which moves `event_log` 9 -> 10 and the status. Both rows are `exposed_on_mcp: false` (narrowed 2026-08-31) and `mcp.rs` serves neither. The "MUTATE" in the filing was read off the table's `read_or_mutate` field, not off the code. `cli_write_moves_only_what_changed.rs` already pins "writes nothing" for both verbs. **Found while driving, and reported to vc rather than listed:** the refusal's remedy fails when followed verbatim. It says `st reopen <spec> "<reason>"`, and the verb takes `--reason <text>` and refuses a positional. For a WP specifier it names `st reopen ST0001/01` where `wp reopen` is the verb. The board before the fold is verbatim at `.history/20260911/wip-prefold-1311Z.md`.
+**#66 `0066` -- CLAIMED 2026-09-11 13:31Z (routed by vc), FIXED AT `f74fbf31`, WITH vc FOR THE RE-DRIVE.** On v3 the defect is sharper than the issue's v2 evidence. The migrator walks the top level plus the three status buckets, and `Project::migration` descends into any directory. So a v2 estate with `intent/st/_inbox/ST0002/` upgraded at rc=0 with the thread skipped, and then every verb refused under a remedy (`intent upgrade`) that looped. Phase A now blocks, as `unknown-file-shape`, naming the path and both remedies. The proving test is in `migrate_refusal.rs`, seen red first (`Upgraded { threads: 1 }`). A census of 24 estates found no holding today.
+
+**#77 `0176` -- RULED BY vc: close as not a defect at HEAD, no code.** vc carries the false remedy (a positional reason; `st reopen` printed for a WP) in the close message. The board before the fold is verbatim at `.history/20260911/wip-prefold-1311Z.md`.
 
 **THE RULES ON THE BOUNCE (vc):** one item at a time, claimed here; the id in the commit subject; tell vc, who re-drives and closes it. The only new test allowed is the proving one, seen red. No new instruments, guards, criteria or threads. A defect found while fixing goes in the commit message, not on the list. **hv: _THERE IS NO NEW WORK TO BE DONE._** The list in `intent/wip.md` is the authority, and `intent issues list` is the live state. **Read the lane column there, never a copy here.**
 
