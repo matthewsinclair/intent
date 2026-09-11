@@ -16,13 +16,13 @@ An instrument was correct, the reader quoted it accurately, and the sentence sti
 
 ## The instance
 
-`self_provenance_check.sh:280` emits, on a PASSING path:
+`self_provenance_check.sh` emitted, on a PASSING path:
 
 ```
 self-provenance: <BIN> was built from an UNCOMMITTED tree (dirty-4ef953db) -- its bytes match no commit.
 ```
 
-Capitalised `UNCOMMITTED`, a negative predicate, no hedge. Read cold it is a defect report; there is no other way to read it. The three lines saying it is not a finding are at `:179-181`, in a **comment**, a hundred lines up, and never appear in the output at all. vc read it as an outstanding item and carried it into a board focus line, two peer messages and a report to hv.
+Capitalised `UNCOMMITTED`, a negative predicate, no hedge. Read cold it is a defect report; there is no other way to read it. The lines saying it was not a finding sat in a **comment**, a hundred lines up, and never appeared in the output at all. (The line now carries its hedge in the emission: _this marker does not distinguish it from any other build of the same dirty tree_.) vc read it as an outstanding item and carried it into a board focus line, two peer messages and a report to hv.
 
 **It was not carelessness.** The reader never had access to the thing that would have corrected them.
 
@@ -40,7 +40,7 @@ ic's general form covers every mechanism below and predicts ones nobody has hit 
 
 | #   | mechanism                                | the correcting text is                                   | found by | example                                      |
 | --- | ---------------------------------------- | -------------------------------------------------------- | -------- | -------------------------------------------- |
-| 1   | **distance**                             | present, in a comment that never reaches output          | dc       | `self_provenance_check.sh:280`               |
+| 1   | **distance**                             | present, in a comment that never reaches output          | dc       | `self_provenance_check.sh`, UNCOMMITTED line |
 | 2   | **truncation**                           | present IN the emitted string, and cut before the reader | ic       | `estate_corpus.sh list`, criterion field     |
 | 3   | **evidence-shaped token**                | absent, and the token reads as proof                     | ic       | `dirty-<sha>` quoted as a binary identity    |
 | 4   | **suppression**                          | emitted and correct; the INVOCATION discarded it         | vc       | `sync --to-store` piped to `/dev/null`       |
@@ -48,7 +48,7 @@ ic's general form covers every mechanism below and predicts ones nobody has hit 
 
 **Mechanism 4 was the one ic predicted** when they said the general form implies a fourth nobody had hit -- wrapping, a `head -N`, a summariser. It arrived as `>/dev/null`. It is the reader-side twin of mechanism 1: in 1 the author put the caveat out of reach, in 4 the consumer deleted the channel. **An instrument cannot defend against it and should not try**; it belongs in the taxonomy because it explains misreads that look like instrument defects and are not.
 
-**There are two control cases, not one.** vc read past an accurate `sync --to-store` overwrite warning; and `at lint` reported _"115 AT row(s) conform"_ when the truth was 116, and the word `conform` was read while the number was not. **The count WAS the instrument, it WAS correct, and it was looked past.** Both are reader error. Neither is a defect to fix in the tool, and scoring them as defects would inflate the class and move blame off readers who should carry it.
+**There are two control cases, not one.** vc read past an accurate `sync --to-store` overwrite warning; and `at lint` reported its count of conforming AT rows one short of the truth, and the word `conform` was read while the number was not. **The count WAS the instrument, it WAS correct, and it was looked past.** Both are reader error. Neither is a defect to fix in the tool, and scoring them as defects would inflate the class and move blame off readers who should carry it.
 
 **The control is what makes the class measurable.** Without it every misread scores as an instrument defect, the finding inflates, and blame moves off readers who should carry it. vc supplied the case that exonerates an instrument in one instance while insisting the blame for another was theirs.
 
@@ -79,27 +79,27 @@ With the corollary that decides WHICH identity, and getting this wrong manufactu
 
 ## The sweep, and why its number is not a population
 
-Two nomination axes over the 40 tools in `parity/tools/`, adjudicating only the three this WP owns and nominating the rest for their owners.
+Two nomination axes over the tools in `parity/tools/`, adjudicating only the tools this WP owns and nominating the rest for their owners.
 
-- **Axis 1 (dc, vocabulary).** Stdout emissions carrying failure vocabulary, keyed on the estate's own convention: findings go to stderr and set `rc`; reports go to stdout. **77 lines nominated -- not audited -- across 16 of the 40 tools.**
-- **Axis 2 (ic, truncation).** Stored strings rendered through a width limit. **9 of 40**, of which **3 hit only this axis and are invisible to axis 1.**
-- **Adjudicated (3 of 3 owned).** `provenance_check.sh` CLEAN -- every emission is stderr AND sets `rc=1`. `no_intent_home.rs` CLEAN -- assertions only, so a Rust test has no report-only path and is immune by construction. `self_provenance_check.sh` DEFECTIVE.
+- **Axis 1 (dc, vocabulary).** Stdout emissions carrying failure vocabulary, keyed on the estate's own convention: findings go to stderr and set `rc`; reports go to stdout. **Lines nominated -- not audited -- across a minority of the tools.**
+- **Axis 2 (ic, truncation).** Stored strings rendered through a width limit. A handful of tools, some of which hit only this axis and are **invisible to axis 1.**
+- **Adjudicated (the tools this WP owns).** `provenance_check.sh` CLEAN -- every emission is stderr AND sets `rc=1`. `no_intent_home.rs` CLEAN -- assertions only, so a Rust test has no report-only path and is immune by construction. `self_provenance_check.sh` DEFECTIVE.
 
-**The filter discriminates, proven two-sided on real unplanted cases**: the tool adjudicated clean scores 0, the tool adjudicated defective scores 6.
+**The filter discriminates, proven two-sided on real unplanted cases**: the tool adjudicated clean scores nothing, the tool adjudicated defective scores several lines.
 
-**And it has a known false negative sitting inside those 6.** `:284` -- _"the binary is from an earlier tree"_, which AC-11.5 itself calls the case `stage` must fail closed on -- scores zero. No negation, no capitalised token: **the tell is a comparative, not a negative.** Two of the 6 are false positives (a self-hedging line caught on the bare token `no `, and an internal function return value that is not output at all).
+**And it has a known false negative sitting beside those.** _"the binary is from an earlier tree"_, which AC-11.5 itself calls the case `stage` must fail closed on, scores zero. No negation, no capitalised token: **the tell is a comparative, not a negative.** Some of the lines it did score are false positives (a self-hedging line caught on the bare token `no `, and an internal function return value that is not output at all).
 
-**So the 77 over-counts and under-counts at once, and the two errors are different lines, so they do not cancel.** It is a work list, never a measurement. Quote it with its denominator and the word "nominated" in the same sentence, or not at all.
+**So the nomination count over-counts and under-counts at once, and the two errors are different lines, so they do not cancel.** It is a work list, never a measurement. Quote it with its denominator and the word "nominated" in the same sentence, or not at all.
 
-**THE CITED LINE IS GONE AS OF 2026-08-27, AND THE EXAMPLE IS KEPT VERBATIM RATHER THAN REWRITTEN** (vc). `the binary is from an earlier tree` no longer exists in the tool: it compared `embedded = HEAD`, which is `verify_pair`'s BUILD-time criterion, and it therefore fired after every commit that compiles nothing -- so it was not merely a false negative of the vocabulary filter, it was a false POSITIVE of the instrument, on nearly every run of a five-node estate. Driven the same day: it printed on a genuinely three-commit-stale pair and, four minutes later, printed word for word on the freshly rebuilt current pair, because a board commit had moved HEAD in between. The judgement now comes from `artefact_currency_verdict`, which is the one home for it. **The sentence above stands exactly as written** -- the tell being a comparative rather than a negative is a fact about detectors, not about this line, and losing the example would lose the lesson. **And the `:280` / `:284` anchors in this document are now wrong**, which is this estate's own rule arriving on schedule: a line number in a durable record is a fact with an expiry date. Anchor on the text.
+**`the binary is from an earlier tree` no longer exists in the tool** (vc, 2026-08-27): it compared `embedded = HEAD`, which is `verify_pair`'s BUILD-time criterion, and it therefore fired after every commit that compiles nothing -- so it was not merely a false negative of the vocabulary filter, it was a false POSITIVE of the instrument, on nearly every run of a five-node estate. Driven the same day: it printed on a genuinely stale pair and, minutes later, printed word for word on the freshly rebuilt current pair, because a board commit had moved HEAD in between. The judgement now comes from `artefact_currency_verdict`, which is the one home for it. **The lesson stands** -- the tell being a comparative rather than a negative is a fact about detectors, not about this line. Anchor on the text: a line number in a durable record is a fact with an expiry date.
 
-**The filter was deliberately NOT patched to catch `:284`.** Adding `earlier|predate|behind|older` catches the one case already found and teaches nothing about the ones not yet seen -- a detector fitted to its own validation sample measures the sample. Reporting the false negative is the more useful artefact than removing it.
+**The filter was deliberately NOT patched to catch the comparative.** Adding `earlier|predate|behind|older` catches the one case already found and teaches nothing about the ones not yet seen -- a detector fitted to its own validation sample measures the sample. Reporting the false negative is the more useful artefact than removing it.
 
 ## What the stale figures actually were
 
-The producer rule -- _a figure must travel with the subject and revision it is a claim about_ -- was argued from one instance. ic then re-measured all eleven timings in the roster (**re-measured, not re-stated**: every one is gated, so every one has a bare invocation they could drive). The result is stronger than the argument.
+The producer rule -- _a figure must travel with the subject and revision it is a claim about_ -- was argued from one instance. ic then re-measured every timing in the roster (**re-measured, not re-stated**: every one is gated, so every one has a bare invocation they could drive). The result is stronger than the argument.
 
-**Nine overstated, one understated by 49%, and one was near-exact.** So **no single correction factor explains them and no reader could have adjusted.** Had they all been high, "taken on a slower machine" would have covered it and the figures would have stayed.
+**Most overstated, one understated by 49%, and one was near-exact.** So **no single correction factor explains them and no reader could have adjusted.** Had they all been high, "taken on a slower machine" would have covered it and the figures would have stayed.
 
 **The one that understates is the dangerous one, and it is dangerous for a structural reason.** `rulings_check.sh` is a _static read of the dispatch table_, and the dispatch table has grown. **A cost that grows silently is exactly what a stale figure hides**, and it is the only direction where the recorded number reassures you about something getting worse.
 
@@ -113,7 +113,7 @@ The producer rule -- _a figure must travel with the subject and revision it is a
 
 ## The instrument for this class committed this class
 
-`canon_commit_check.sh` was built to catch canon asserting what it had not measured. **Its first draft skipped a thread recording zero attachments and printed _"every attachment matches"_ at exit 0, having compared nothing** -- reproduced at `6ab155ef` before the rewrite, which is what makes this evidence rather than an anecdote. 86 of 132 commits in this history record no attachments, so the vacuous case was **the majority of its input**, not a corner.
+`canon_commit_check.sh` was built to catch canon asserting what it had not measured. **Its first draft skipped a thread recording zero attachments and printed _"every attachment matches"_ at exit 0, having compared nothing** -- reproduced at `6ab155ef` before the rewrite, which is what makes this evidence rather than an anecdote. Most of the commits it examined recorded no attachments, so the vacuous case was **the majority of its input**, not a corner.
 
 It now exits 2 saying `This is NOT a pass`, closes its count in one line (measured + unmeasurable = population), and states its contract and its reach in the OUTPUT rather than in a comment -- the defect this whole document is about, which it had faithfully reproduced.
 
@@ -121,15 +121,15 @@ It now exits 2 saying `This is NOT a pass`, closes its count in one line (measur
 
 ### And it did it twice more
 
-The same tool then shipped a hardcoded `86 of 132 commits in this history` -- **a figure naming neither its subject nor its revision, inside the instrument built to find records that disagree with reality.** `git rev-list --count HEAD` is 2184, so the string read as all of them and never meant that.
+The same tool then shipped a hardcoded commit-count figure, _N of M commits in this history_ -- **a figure naming neither its subject nor its revision, inside the instrument built to find records that disagree with reality.** The history was far longer than M, so the string read as all of it and never meant that.
 
-Then an optimisation narrowed what it examined from 278 attachments to 0, **and the population line went on reporting `278 of 278 examined`.** The closing count was arithmetically correct and substantively false. Which sharpens the condition above:
+Then an optimisation narrowed what it examined from every attachment to none, **and the population line went on reporting every attachment as examined.** The closing count was arithmetically correct and substantively false. Which sharpens the condition above:
 
 > **A closing count must close over what was EXAMINED, not over what EXISTS.** The two are the same number only while an instrument examines everything, and any optimisation at all separates them -- silently, because the arithmetic still closes.
 
 ## Enumerate the exceptions, not the successes
 
-ic's admission bar required naming every subject AND stating the instrument's reach. Applied literally, the checker printed 57 per-thread counts before its verdict -- burying the load-bearing line and failing ic's own truncation rule in the same breath. **Two requirements collided, and the resolution collapses them into one:**
+ic's admission bar required naming every subject AND stating the instrument's reach. Applied literally, the checker printed a count for every thread before its verdict -- burying the load-bearing line and failing ic's own truncation rule in the same breath. **Two requirements collided, and the resolution collapses them into one:**
 
 > **AN INSTRUMENT SHOULD ENUMERATE ITS EXCEPTIONS, NOT ITS SUCCESSES.** A list of everything that worked is noise that pushes the finding off screen; a list of what it could not reach IS the reach statement. They are the same list.
 
@@ -147,7 +147,7 @@ Then an optimisation narrowed what the tool examined -- and **the narrowed mode 
 
 > **A contract line is not self-verifying. It is another claim, and it acquires the same failure mode as the thing it describes the moment a mode changes underneath it.**
 
-**Which makes the remedy not free, and saying so is part of adopting it (vc).** Every contract-in-output line this estate adds is a claim that needs its own re-verification whenever the code beneath it changes. ic's amendment carries the standing half: **a new mode must be checked against every contract line it inherits.** A mode was added here and none of the three inherited lines was re-read; nothing in the tool required it.
+**Which makes the remedy not free, and saying so is part of adopting it (vc).** Every contract-in-output line this estate adds is a claim that needs its own re-verification whenever the code beneath it changes. ic's amendment carries the standing half: **a new mode must be checked against every contract line it inherits.** A mode was added here and none of the inherited lines was re-read; nothing in the tool required it.
 
 **And the property being asserted is a property of HISTORY, not of a revision.** Commit the file and sync canon after, and _that_ commit stays divergent permanently -- a later sync repairs the next commit and can never reach the one already made. So a run against one revision can establish that the revision ADDS nothing, and an exhaustive run can establish the property holds _at that revision_; **neither establishes that the property holds, which is a claim about every commit.** `--history` is the only mode that speaks to it, and it speaks only about the range it was given.
 
@@ -165,9 +165,7 @@ Both are one statement; a prohibition worded against one operation catches one o
 
 ## The adjacent-proposition error
 
-Three instances in one afternoon, by three different nodes, **every one caught by the person next door rather than by any check**:
-
-Five instances in one afternoon, across three nodes:
+Five instances in one afternoon, across three nodes, **every one caught by the person next door rather than by any check**:
 
 - a control calibrated on `lib/cmd/*` offered as evidence about `cmd/*` (dc, caught by vc)
 - a superlative placed on a peer's unverified mechanism (dc, caught by ic)
@@ -185,11 +183,11 @@ The shape is one measurement, one proposition next door, and no step between the
 
 **The author of the criterion, the instrument and the remedy text did it while typing the sentence that forbids it.** Not through ignorance of the rule: through having just written it down.
 
-**And could not have complied.** The compliant order needs a canon sync first, `intent sync` has no operation smaller than all 57 threads, and it is not this node's to run. So the commit is permanently divergent -- a later sync repairs the next commit and can never reach this one.
+**And could not have complied.** The compliant order needed a canon sync first, `intent sync` then had no operation smaller than the whole estate, and that was not this node's to run. So the commit is permanently divergent -- a later sync repairs the next commit and can never reach this one.
 
 > **A rule its own author cannot obey while writing it down is not a discipline problem. It is a missing operation, and no amount of care closes it.**
 
-That is the argument for the narrow verb at ST0057 WP-08, and it is why the checker's row stays `manual`: gated, this would have blocked the commit of the document explaining why it should be gated.
+That was the argument for a narrow verb, and it now exists: `intent sync <id>...` names the threads that take their value from the source, and with no ids the verb still means the whole estate. Until it did, the checker's row stayed `manual`: gated, this would have blocked the commit of the document explaining why it should be gated. With the narrow verb in place the checker runs in Intent's own pre-commit gate (`bin/.devbin/cmd/precommit`) as `canon_commit_check.sh --staged`, judging the index.
 
 ## The second form: the defect is in the message, not in the measurement
 
@@ -202,17 +200,19 @@ Six days later, four instruments were found carrying the same shape, and it is n
 | `0075` | `view_skew_check.sh` | no APPARATUS view was touched | "no generated view was touched -- nothing to check" |
 | `0076` | `IN-EX-TEST-001`     | the anti-pattern in a COMMENT | the anti-pattern                                    |
 
-**The distinguishing property is that a true sentence produces a false belief, so nothing an instrument can check is wrong.** `0075` is the sharpest because it was driven end to end: the gate printed _nothing to check_ on a commit carrying `acceptance.md`, a file whose own first line declares it a generated view. **A reader who already knows the coverage figure is 1 of 269 still reads that sentence as the category being EMPTY rather than UNCHECKED.** Those are different claims and only one is true. **A silent gap gets found. A gap that files a clean report on its own behalf does not.**
+All four issues are closed.
+
+**The distinguishing property is that a true sentence produces a false belief, so nothing an instrument can check is wrong.** `0075` is the sharpest because it was driven end to end: the gate printed _nothing to check_ on a commit carrying `acceptance.md`, a file whose own first line declares it a generated view. **A reader who already knows the check covers a sliver of the generated views still reads that sentence as the category being EMPTY rather than UNCHECKED.** Those are different claims and only one is true. **A silent gap gets found. A gap that files a clean report on its own behalf does not.**
 
 The remedy is a noun, not a mechanism: name the narrow scope in the output, and where the uncovered case is present, say it was **not checked**. Wiring the uncovered check instead would make the sentence accidentally true rather than honest, and leave the defect standing for whatever the gate does not cover next.
 
 ## The gradient is the finding, and it is worse than any of the four
 
-`precommit` carries fourteen guard arms. Driven, they fall into three strengths: **seven assert a repository finding on ANY non-zero exit**; four lead with instrument failure in the text (_could not measure ... exit 2; its findings never gate_); one is structurally guarded, and that one is the arm that was burned.
+Intent's own dev gate, `bin/.devbin/cmd/precommit`, runs a roster of guard arms. Driven, they fell into three strengths: **most asserted a repository finding on ANY non-zero exit**; some led with instrument failure in the text (_could not measure ... exit 2; its findings never gate_); one was structurally guarded, and that one is the arm that was burned.
 
-`precommit:406` records the burn in a comment: the summary line once asserted one cause for every non-zero exit, **including exit 127 when the tool itself was missing**, and a node hit exactly that while the file was momentarily off the tree -- _"and the gate told them their template was broken. It was not."_
+The `guard_home_check.sh` arm records the burn in a comment: the summary line once asserted one cause for every non-zero exit, **including exit 127 when the tool itself was missing**, and a node hit exactly that while the file was momentarily off the tree -- _"and the gate told them their template was broken. It was not."_
 
-**The fix went onto that arm and nowhere else, and it fixed the INSTANCE rather than the CLASS.** It guards the tool being MISSING. It does not guard the tool being BROKEN: a `guard_home_check.sh` that exists and cannot parse falls through to `:422` and accuses the hook template, which was never opened. **Driven, not read** -- a deliberately unparseable copy fires that arm. So the arm burned by this class is still exposed to it.
+**The fix went onto that arm and nowhere else, and it fixed the INSTANCE rather than the CLASS.** It guards the tool being MISSING. It does not guard the tool being BROKEN: a `guard_home_check.sh` that exists and cannot parse falls through to the arm's other branch, which accuses the hook template (_the shipped hook template lost the self-hosted GUARD_HOME override_), a file that was never opened. **Driven, not read** -- a deliberately unparseable copy fires that arm. So the arm burned by this class is still exposed to it.
 
 > **A rule is honoured by whoever learned it, and does not propagate by having been stated.**
 
@@ -225,7 +225,7 @@ The `0075` guard declared `#!/bin/bash`, which on macOS is 3.2.57, and **was a h
 
 **And a third mode, which is the worst of the three and is invisible to any result-checking.** Without `set -e`, `declare -A` under 3.2 emits its error to stderr, **prints the CORRECT answer, and exits 0** -- the subscript degenerates to index 0, and index 0 is what was set. **A version defect that returns the right answer on the case in front of you cannot be found by checking results.** Only stderr or `set -e` separates it.
 
-That matters here because **nine of the twelve rostered guard scripts do not execute `set -e`** -- driven, with the anchored/unanchored cross-check that keeps prose _about_ `set -e` out of the count. So mode 3 is invisible inside three quarters of the instruments the commit gate depends on. **Two layers, one shape: the arm cannot tell a broken guard from a clean one, and most guards cannot tell a broken step from a clean one internally.**
+That matters here because **most of the rostered guard scripts did not execute `set -e`** -- driven, with the anchored/unanchored cross-check that keeps prose _about_ `set -e` out of the count. So mode 3 was invisible inside most of the instruments the commit gate depends on. **Two layers, one shape: the arm cannot tell a broken guard from a clean one, and most guards cannot tell a broken step from a clean one internally.**
 
 ## 0 of 0, wearing the shape of a finished measurement
 
@@ -236,11 +236,11 @@ The count above was first taken with `for g in $GUARDS` -- and the tool shell is
 
 **That is neither a false positive nor a false negative. It is a null population wearing the shape of a completed measurement**, and read quickly it says _no guard executes `set -e`_ -- a larger and more alarming version of the true finding. **It was caught only because the wrong answer pointed the same way as the right one.** A correct loop over a wrong population prints the identical `0/0` and reads as **all clear**. Legibility was luck, and the luck ran one way once.
 
-The same error in the loud direction was caught in one second the same evening: a sweep reported 101 failures of 295 because data files had entered a shell population. **Same defect, opposite legibility.** The instrument was perfect both times; the population was wrong. **"Prove the scan hits" must be paired with "prove the population is the subject", and only the second one has no natural alarm.**
+The same error in the loud direction was caught in one second the same evening: a sweep reported failures across a third of its population because data files had entered a shell population. **Same defect, opposite legibility.** The instrument was perfect both times; the population was wrong. **"Prove the scan hits" must be paired with "prove the population is the subject", and only the second one has no natural alarm.**
 
 ## Three controls, each stated with what it cannot reach
 
-- **Declare the expected denominator before measuring, then check the actual against it.** _12 expected_ refuses a `0` on sight. It catches a suppressed refusal, a timeout, a wrong population and an empty loop -- **four of the six failures here. It does not touch precision** (comment matches inflating a count) **and it does not touch a wrong axis** (`-n` measuring parse where runnability was claimed).
+- **Declare the expected denominator before measuring, then check the actual against it.** _N expected_ refuses a `0` on sight. It catches a suppressed refusal, a timeout, a wrong population and an empty loop -- **most of the failures here. It does not touch precision** (comment matches inflating a count) **and it does not touch a wrong axis** (`-n` measuring parse where runnability was claimed).
 - **Run the negative control, not only the positive one.** A bash-4 detector was verified to fire on `declare -A` and never checked against `declare -a`. A pattern flagging both reports hits across the tree and **reads exactly like a finding**, in a sweep whose entire job is telling those apart.
 - **A control is only a control if its ground truth is KNOWN rather than RECALLED.** A file was named as a known-positive for `set -e` from memory of a line in a different file; it has none. **A remembered ground truth is a second guess wearing a control's costume, and nothing distinguishes the two by looking.**
 
@@ -253,6 +253,7 @@ With three instances it reads as coincidence. **The recurrence is the finding, a
 ## What is closed and what is not
 
 - **CLOSED.** The arm announces its contract (`addd4581`). The guard names both arms and says which one gates (`af7f86d7`). Paired identity requires a content hash (AC-10.11). Canon ingesting uncommitted bytes is reported (ST0057 AC-03.5). A verb may not silently clear a field it was not asked to change (ST0057 AC-08.5).
-  **The measured cost of the missing narrow verb (vc):** four whole-estate syncs in ninety minutes to keep one thread's attachment records current -- zero stale after each, stale again within the hour. `intent sync` is `--to-disk` or `--to-store`, both across all 57 threads, so there is no operation smaller than the estate. That figure is the argument for the narrow verb at ST0057 WP-08, and it is why the checker's roster row stays `manual`: under a gate the only compliant order needs an operation two of four nodes may not perform.
+  **The narrow verb.** Keeping one thread's attachment records current once took repeated whole-estate syncs within the hour, because `intent sync` had no operation smaller than the estate. `intent sync <id>...` now names the threads that take their value from the source.
+  **A commit-time control refusing canon that names bytes not in that same commit** -- argued from AC-11.1 and the clock guard's block-only-on-what-the-commit-adds. Measured before it was built: half the commits carrying canon with attachments disagreed, but only a handful introduced a new divergence, so a naive form would block half of all commits and be a guard nobody keeps; the inherited-breakage clause is the whole design. It runs in Intent's own pre-commit gate as `canon_commit_check.sh --staged`, which GATES on what a commit ADDS and reports inherited divergences without failing on them.
 
-- **OPEN.** A store that refused a write must not then be read as truth silently (vc's, above -- the only member of this class that destroyed data). The 77 nominations over the 37 instruments this WP does not own, held by their owners. Whether a commit-time control should refuse canon that names bytes not in that same commit -- argued from AC-11.1 and the clock guard's block-only-on-what-the-commit-adds, and the false-positive rate is now MEASURED rather than unknown: over all 46 commits carrying canon with attachments, 23 disagree (50%) but only **5 introduce a new divergence**. A naive form blocks half of all commits and is a guard nobody keeps; the inherited-breakage clause is the whole design.
+- **OPEN.** A store that refused a write must not then be read as truth silently (vc's, above -- the only member of this class that destroyed data). The nominations over the instruments this WP does not own, held by their owners.
