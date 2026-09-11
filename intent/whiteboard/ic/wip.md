@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 15:40Z
+heartbeat_at: 2026-09-11 15:52Z
 status: active
-focus: "ON THE BOUNCE: 0139 CLAIMED (`at lint --fix`), shape with vc -- retire the flag. Then 0140, then hv decision 3 (strike three not-implemented doors). WITH vc: 0154 + 0185 at 1f2f8f6a. The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
+focus: "ON THE BOUNCE: 0139 WITH vc at 68418333 (`at lint --fix` retired; at lint now `read`). Next 0140 once vc closes it or sends it back, then hv decision 3 (strike three not-implemented doors). The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,9 +13,9 @@ claims: [ST0064]
 
 ## DOING
 
-**`0139` -- `at lint --fix` is advertised and refuses. CLAIMED, SHAPE WITH vc.** No prior fix (no commit and no source comment names it). It still reproduces at `9046156b`. Proposed: retire the flag (precedent: `doctor --fix`, `agents init --template`, 0118 `st repair`), and ask whether `read_or_mutate` flips to `read` now that no flag writes. Built in a private worktree only, since an intentsvcs test runs doctor on `repo_root()`.
+**WITH vc FOR THE RE-DRIVE: `0139` at `68418333`** -- `at lint --fix` retired, not built, and `at lint` flipped to `read`, as vc ruled. The canon remedies that named the retired flag changed in the same commit. The sha, the repro as it prints now, one control, and the unregenerated `docs/reference/intent-at.md` were sent to vc at 2026-09-11 15:52Z. vc closes it, not me. The private worktree `wt139` is kept until then.
 
-**WITH vc FOR THE RE-DRIVE: `0154` + `0185` at `1f2f8f6a`** (`intent set <address> <field> (<value> | --from <file>)`), first in vc's re-drive queue. vc closes them, not me.
+**Closed by vc:** `0154` + `0185` (`f6087de8`, re-driven at `7d3ffe61`).
 
 ## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
 
@@ -23,7 +23,6 @@ claims: [ST0064]
 
 | #   | Issue  | Sev    | Defect (verbatim from `intent/wip.md`)                                                                                                                                                                 |
 | --- | ------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 50  | `0139` | medium | `at lint --fix` is advertised and refuses.                                                                                                                                                             |
 | 54  | `0140` | medium | An unsatisfied note is writable only by migration.                                                                                                                                                     |
 | d3  | hv 3   | --     | Three doors that answer "not implemented" (hv: strike). Remove `st bootstrap`, `agents template` and `claude prime` from the dispatch table and from the templates that mandate them (ST0058 AC-00.3). |
 
@@ -39,7 +38,7 @@ claims: [ST0064]
 
 **Cut to the 3.0.1 finish line by vc on 2026-09-11 under hv's instruction; the pre-cull section is verbatim at `.history/20260911/precull-ic-wip-md-0851Z.md`.**
 
-1. **`ST0064` AC-01.7** -- RELEASES WHEN hv signs and notarises the app with their own credentials. hv ruled 2026-09-11 that the app ships in 3.0.1, signed and notarised (decision 7), and vc routed the `app-sign` / `app-notarize` build in `bin/.devbin/cmd/macos` to cc. Nothing of mine moves; the claim stays.
+1. **`ST0064` AC-01.7** -- RELEASES WHEN hv signs and notarises the app with their own credentials. hv ruled 2026-09-11 that the app ships in 3.0.1, signed and notarised (decision 7), and cc landed `app-sign` / `app-notarize` at `56322937`. Nothing of mine moves; the claim stays. **cc's finding, not an ask:** `native/macos/Intent/Intent/Info.plist` has no `CFBundleExecutable`. The bundle launches and signs because macOS and codesign fall back to the bundle name. If hv's notarisation submission refuses it, the fix is `CFBundleExecutable` = `$(EXECUTABLE_NAME)` in that plist.
 2. **The palette `Home`/`End` flip** -- post-cut; product feel; no criterion names it.
 
 Culled with the loop: the estate-wide burn (AC-06.1 and AC-00.1 withdrawn), the `v2:` census (AC-00.16 withdrawn), `0222` (WP-17 is done; the issue stays open as a product defect).
