@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 13:16Z
+heartbeat_at: 2026-09-11 12:51Z
 status: active
-focus: "FOLDED FOR A COMPACT (hv's pause, 2026-09-11 13:16Z); this is not a release. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. ON THE BOUNCE: 0150, then 0172, then 0259 half 2 -- vc's column, in list order, one id at a time. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "vc's column, in list order, one id at a time. DOING 0256. With vc to close: 0224 (0b1d182d), 0212 (vc re-drives). Off my column: 0177 (not workable in 3.0.1), 0220 (hv decision 13), 0065 (hv decision 14, design kept, not built). hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -39,27 +39,20 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**Nothing in flight. Nothing of mine is uncommitted in the shared checkout, and no dc worktree is open.** Pre-fold board verbatim at `.history/20260911/wip-prefold-1316Z.md`.
+**`0256`: doctor flags every criterion whose inferred WP is absent.** The withdrawn/descoped half landed untagged in `307889a6` (the 2026-09-07 Safety Checkin): `criterion.state.in_scope()` exempts `Descoped` and `Withdrawn`, `Fiat` stays in scope. Nothing pins it. The ST0227-shaped row (SATISFIED, WP absent) still flags. Drive both before claiming anything. If closing it needs 0065's acknowledgement, STOP and tell vc (vc, 12:4xZ).
 
-**With vc, for its re-drive and close:**
+**With vc, for its re-drive and close.** Nothing of mine is uncommitted in the shared checkout.
 
-- **`0283`**: both halves are in -- half A (mine) at `62f2db60`, half B (cc) at `fe8775ed`. C (a renderer-writes record) is out of 3.0.1 by vc's ruling.
+- **`0224`**: `0b1d182d`, DECISION_TREE.md is `NotByInit`, under all four of vc's conditions.
 - **`0212`**: delivered by `be0422d9`; vc re-drives it through its own CLI drive.
-
-**Off my column by ruling, so do not pick them up:** `0177` (not workable in 3.0.1), `0220` (hv decision 13), `0065` (hv decision 14; my S design is recommended as written and is NOT to be built).
+- **Closed by vc today:** `0216` `0180` `0143` `0067` `0091` `0101` `0120` `0115`.
+- **Off my column:** `0177` (not workable in 3.0.1), `0220` (hv decision 13), `0065` (hv decision 14; my S design is recommended, and it is NOT to be built).
 
 ## TODO
 
-**vc's column for me, in list order:** `0150`, `0172`, then `0259` HALF 2 only (#71: a check answering from the runtime store says so when the same run reports that store stale; NOT the doctor remedy offering to delete `intent/.cache/`).
+**vc's column for me, in list order:** `0256` (DOING), `0283`, `0150`, `0172`, then `0259` HALF 2 only (#71: a store-answering check says so when the same run reports the store stale; NOT the cache-delete remedy).
 
-- **`0150` START HERE:** `claude skills list` enumerates the canon roster (`payload_list` in `intent-cli/src/render.rs`: `lib.available()` + `lib.is_installed`), so a directory under `~/.claude/skills/` that canon does not name is invisible. The remedy is a second arm that reads the directory and reports what canon does not name. `intentsvcs::payload` has `installed()` (payload.rs, ~:770). Drive under a temporary HOME only; never write the real `~/.claude`.
-
-**THE RULES ON THE BOUNCE** are unchanged and live in the paragraph below. Two practices that paid off today:
-
-- **A peer's hunk in your file:** do not commit around it or copy over it. Build in a worktree, and when the file is clean, apply your change onto HEAD as a PATCH, never as a copied file (0101/0120 over cc's 0136).
-- **The index lock:** retry the SAME `add` + `commit --only` only when the error names `index.lock`. It raced five times today.
-
-**THE PATH BINARY IS STALE:** it was built from `951cbac2` and HEAD has moved well past it; the count is the command's to give, not this line's. A drive of anything changed since then needs a tree build. Re-check with `bash intent/st/ST0056/parity/tools/self_provenance_check.sh` rather than trusting this line.
+**THE PATH BINARY IS STALE:** it is built from `951cbac2`, 32 build-input commits behind HEAD at 12:07Z. A drive of anything changed since then needs a tree build. Re-check with `bash intent/st/ST0056/parity/tools/self_provenance_check.sh` rather than trusting this line.
 
 **RULES ON THE BOUNCE:** claim the id, one at a time. Commit with the id in the subject, then tell vc; vc closes the issue after re-driving the fix. **A defect found while fixing goes in the commit message, not on the list.** **A docs item is the page edit, one commit with the id and the drive in the message, and nothing else** (vc, 2026-09-11): do not maintain AC-02.3 manifest rows or run the disposition check, and leave a stale manifest quote for the cut. **If a fix needs a file cc has dirty, stop and tell vc** rather than committing around it. **Build in a detached worktree off HEAD with a private or in-tree target, and run every test under an isolated HOME**: a test run from a worktree once rewrote `~/.intent/home`.
 
