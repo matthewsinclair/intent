@@ -38,8 +38,6 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
   - [~] 12: Issues get a realised form and a sigil, then join the default declaration
   - [~] 13: The v2 tree survives migration and disagrees with the store: ingest bucket files as attachments, then remove the bucket
   - [x] 14: The DONE cutoff is canon state, not history: it travels by git
-- [-] ST0058: Local cutover: v3 usable across the estate before it is releasable
-  - [x] 01: One path to the native CLI: int cli carries the coherence guard
 - [-] ST0064: The Intent menubar app: controlling intentd from the macOS menubar
   - [x] 01: Menubar app: control of intentd after Geodica's design -- no product logic, every control an intent verb, the daemon is the authority on the daemon
   - [~] 02: CLI shell-out foundation and login-shell PATH capture (AC-01.1, AC-01.9)
@@ -63,6 +61,8 @@ A DOING / TODO / DONE view, projected from steel-thread and work-package status:
 ## DONE:2026-09-10T00:00:51Z
 
 - [~] ST0046: Add modules (properly) to the intent cli
+- [x] ST0058: Local cutover: v3 usable across the estate before it is releasable
+  - [x] 01: One path to the native CLI: int cli carries the coherence guard
 - [~] ST0059: Rebuild all Intent docs for v3
 - [x] ST0061: dehydrate
 - [~] ST0062: help

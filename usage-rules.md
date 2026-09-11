@@ -98,7 +98,6 @@ intent at red|green|na ST0001 AT-01.1                # transitions (done / notdo
 
 ```bash
 intent agents init                              # Create AGENTS.md at project root
-intent agents init --template <lang>            # Language-specific scaffold
 intent agents sync                              # Update AGENTS.md from project state
 intent agents validate                          # Check compliance
 ```
@@ -325,7 +324,7 @@ status: Not Started
 
 ```bash
 intent init
-intent agents init --template <lang>
+intent agents sync
 intent claude skills install --all
 intent claude subagents install --all
 intent claude upgrade --apply                   # Install hooks, pre-commit, critic config

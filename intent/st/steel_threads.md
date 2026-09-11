@@ -8,7 +8,6 @@ An index of every steel thread in the project. A steel thread is a self-containe
 | ST0069 | v3 post-cut: project search, store-backed coordination, and contract drift                                                                      | Triage      | 2026-08-30 |                      |
 | ST0064 | The Intent menubar app: controlling intentd from the macOS menubar                                                                              | WIP         | 2026-08-26 |                      |
 | ST0060 | Add 'intent vault' as a way for intent projects to manage local credentials                                                                     | Triage      | 2026-08-25 |                      |
-| ST0058 | Local cutover: v3 usable across the estate before it is releasable                                                                              | WIP         | 2026-08-21 |                      |
 | ST0057 | Disk as a sparse projection of the store                                                                                                        | WIP         | 2026-08-18 |                      |
 | ST0056 | Add a Rust-based CLI with a local SQLite DB with bidirectional sync to/from .md files that exposes an MCP server with full API access to Intent | WIP         | 2026-08-14 |                      |
 | ST0073 | intentd owns its own lifetime: a lifeline instead of an assumed supervisor                                                                      | Completed   | 2026-09-10 | 2026-09-10           |
@@ -22,6 +21,7 @@ An index of every steel thread in the project. A steel thread is a self-containe
 | ST0062 | help                                                                                                                                            | Cancelled   | 2026-08-26 | 2026-09-11           |
 | ST0061 | dehydrate                                                                                                                                       | Completed   | 2026-08-26 | 2026-09-11           |
 | ST0059 | Rebuild all Intent docs for v3                                                                                                                  | Cancelled   | 2026-08-25 | 2026-09-11           |
+| ST0058 | Local cutover: v3 usable across the estate before it is releasable                                                                              | Completed   | 2026-08-21 | 2026-09-11           |
 | ST0055 | Add `intent issues` command                                                                                                                     | Completed   | 2026-07-10 | 2026-07-10T17:02:28Z |
 | ST0054 | Update Intent for latest usage-rules.md format                                                                                                  | Completed   | 2026-07-09 | 2026-07-09T09:11:14Z |
 | ST0053 | Content (web-content) project-type pack                                                                                                         | Completed   | 2026-07-07 | 2026-07-07T23:34:26Z |

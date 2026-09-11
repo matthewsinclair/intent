@@ -1,9 +1,9 @@
 ---
 st_id: ST0058
 title: Local cutover: v3 usable across the estate before it is releasable
-status: WIP
+status: Completed
 created: 2026-08-21
-completed:
+completed: 2026-09-11
 ---
 
 # ST0058: Local cutover: v3 usable across the estate before it is releasable
