@@ -7063,6 +7063,7 @@ fn daemon_status(a: &ArgMatches) -> Result<(), Failure> {
           daemon::loopback_base_url(addr)
         );
       }
+      print_running_build(&endpoint);
     }
     // **THE REMEDY IS THE POINT OF THE STATE, SO IT IS PRINTED WITH IT.** A
     // split whose two sides read the same to an operator is a vocabulary
@@ -7083,6 +7084,63 @@ fn daemon_status(a: &ArgMatches) -> Result<(), Failure> {
     }
   }
   Ok(())
+}
+
+/// Which build the running daemon IS, and whether the `intentd` a restart would
+/// launch is the same one (issue `0235`).
+///
+/// **`is answering` WAS READ AS THE WHOLE ANSWER.** A fix committed after the
+/// pair was built left every daemon running the old image, and a restart
+/// relaunched the same stale binary -- both printed the same `ok:` line. So the
+/// running image is ASKED (`Op::Build`, answered from what it embedded), and
+/// the binary on disk is READ ([`intentsvcs::install::embedded_marker`] on the
+/// candidate `daemon start` would run). A running image and the file at its
+/// path are different questions after any rebuild, which is the normal case,
+/// so a difference is a routine note rather than an error.
+///
+/// **TEXT FACE ONLY**, as for the holders line: the JSON face is ic's decoder
+/// contract. Every way the question can go unanswered prints its own note.
+fn print_running_build(endpoint: &daemon::Endpoint) {
+  // The daemon answers this without binding to a project, so the root is never
+  // read; `/` is sent because the request shape requires one.
+  let request = Request {
+    root: std::path::PathBuf::from("/"),
+    op: Op::Build,
+  };
+  let (version, commit) = match wire::ask(endpoint, &request) {
+    Ok(Response::Build { version, commit }) => (version, commit),
+    Ok(Response::Error { message, .. }) => {
+      println!(
+        "note: intentd refused the build question ({message}), so it cannot say which build it is -- an intentd older than the question cannot answer it, and `intent daemon restart` runs the one beside this intent"
+      );
+      return;
+    }
+    Ok(other) => {
+      println!("note: intentd answered the build question with {other:?}, which is not a build");
+      return;
+    }
+    Err(e) => {
+      println!("note: could not ask intentd which build it is: {e}");
+      return;
+    }
+  };
+  let running = format!("note: it is running intentd {version} ({commit})");
+  match intentd_candidates().first() {
+    None => println!("{running}; there is no intentd beside this intent to compare it with"),
+    Some(path) => match intentsvcs::install::embedded_marker(path, "commit") {
+      Some(disk) if disk == commit => {
+        println!("{running}, the commit the intentd beside this intent names")
+      }
+      Some(disk) => println!(
+        "{running}; the intentd at {} names {disk} -- `intent daemon restart` runs that one",
+        path.display()
+      ),
+      None => println!(
+        "{running}; the intentd at {} could not be read to compare",
+        path.display()
+      ),
+    },
+  }
 }
 
 /// The second question `daemon status` owes when commands run in-process:

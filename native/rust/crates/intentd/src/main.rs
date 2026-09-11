@@ -774,6 +774,18 @@ async fn dispatch(registry: &Registry, bound: &mut Option<PathBuf>, line: &[u8])
     return Served::ReplyThenStop(Response::Stopping);
   }
 
+  // **ANSWERED WITHOUT BINDING, AND FROM WHAT THIS IMAGE EMBEDDED** (issue
+  // `0235`). It is a question about the running daemon, not about a project,
+  // and the commit comes from `SOURCE_COMMIT` rather than from anything on
+  // disk: the file at this binary's path can have been rebuilt since it
+  // started, and only the image itself knows which build it is.
+  if matches!(request.op, Op::Build) {
+    return Served::Reply(Response::Build {
+      version: env!("CARGO_PKG_VERSION").to_string(),
+      commit: SOURCE_COMMIT.to_string(),
+    });
+  }
+
   // **THE BINDING IS CHECKED BEFORE ANYTHING IS OPENED.** Canonicalising is a
   // pure question about a path; opening starts a store thread and registers a
   // project. Asking for the handle first and comparing afterwards would refuse

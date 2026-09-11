@@ -364,11 +364,6 @@ fn short(commit: &str) -> String {
 /// A self-delimiting `[intent-source-<key>:...]` marker, read out of a binary
 /// sitting beside this one.
 fn sibling_marker(name: &str, key: &str) -> Option<String> {
-  let open = format!("[intent-source-{key}:");
-  let open = open.as_bytes();
   let path = std::env::current_exe().ok()?.parent()?.join(name);
-  let bytes = std::fs::read(path).ok()?;
-  let at = bytes.windows(open.len()).position(|w| w == open)? + open.len();
-  let end = at + bytes[at..].iter().position(|b| *b == b']')?;
-  String::from_utf8(bytes[at..end].to_vec()).ok()
+  intentsvcs::install::embedded_marker(&path, key)
 }

@@ -361,9 +361,49 @@ pub fn cwi_script(home: &Path) -> PathBuf {
   home.join("intent/plugins/claude/bin/intent_claude_cwi")
 }
 
+/// Read a `[intent-source-<key>:...]` marker out of a binary ON DISK.
+///
+/// **THE ONE READER** (issue `0235`). `intentd`'s web footer uses it to name
+/// the `intent` beside it, and `intent daemon status` uses it to name the
+/// `intentd` beside it -- which was the half of that pair that had no way to be
+/// read. `build-support/source_commit.rs` emits the markers as self-delimiting
+/// literals, so the read is: find the opening, stop at the `]`.
+///
+/// **A FILE IS NOT A RUNNING IMAGE.** This answers what the binary at `path`
+/// is now; a process started from that path before a rebuild is a different
+/// build, and only asking the process says which (`wire::Op::Build`). `None`
+/// means this file could not say, and the caller says so rather than guessing.
+pub fn embedded_marker(binary: &Path, key: &str) -> Option<String> {
+  let open = format!("[intent-source-{key}:");
+  let open = open.as_bytes();
+  let bytes = std::fs::read(binary).ok()?;
+  let at = bytes.windows(open.len()).position(|w| w == open)? + open.len();
+  let end = at + bytes[at..].iter().position(|b| *b == b']')?;
+  String::from_utf8(bytes[at..end].to_vec()).ok()
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn an_embedded_marker_is_read_to_its_bracket_and_absence_is_none() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let bin = dir.path().join("fake");
+    // Literals pack with no separator in rodata, which is why the bracket is
+    // the delimiter: the byte after it belongs to something else.
+    std::fs::write(
+      &bin,
+      b"\x00junk[intent-source-commit:dirty-abc123]unsafe\x00",
+    )
+    .unwrap();
+    assert_eq!(
+      embedded_marker(&bin, "commit"),
+      Some("dirty-abc123".to_string())
+    );
+    assert_eq!(embedded_marker(&bin, "version"), None);
+    assert_eq!(embedded_marker(&dir.path().join("absent"), "commit"), None);
+  }
 
   /// A tree shaped like an install, plus one that is not.
   fn install_at(root: &Path) {

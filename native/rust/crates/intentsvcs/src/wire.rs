@@ -214,6 +214,14 @@ pub enum Op {
   /// regardless, and a wedged daemon will not answer its own socket -- which is
   /// exactly when stopping it matters most. Wire first, signal as the fallback.
   Shutdown,
+  /// Which build this daemon is (issue `0235`).
+  ///
+  /// **ANSWERED WITHOUT BINDING, FOR [`Op::Registry`]'s REASON**: it is a
+  /// question about the daemon rather than about any project. It exists
+  /// because the daemon knew the answer all along -- its commit is embedded at
+  /// build time -- and a running image could not be asked for it, so a restart
+  /// that relaunched a stale binary read exactly like one that picked up a fix.
+  Build,
 }
 
 /// Ops the daemon answers WITHOUT reaching a project's store, and which
@@ -231,7 +239,7 @@ pub enum Op {
 /// harness reads the registry to take its before-and-after delta, so a counting
 /// registry would move the number it is measuring -- the instrument perturbing
 /// its own subject.
-pub const UNCOUNTED: &[Op] = &[Op::Registry, Op::Subscribe, Op::Shutdown];
+pub const UNCOUNTED: &[Op] = &[Op::Registry, Op::Subscribe, Op::Shutdown, Op::Build];
 
 /// One thread, as much of it as a listing needs.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -394,6 +402,9 @@ pub enum Response {
   },
   /// The projects a [`Op::Registry`] found.
   Registry { projects: Vec<RegisteredProject> },
+  /// What an [`Op::Build`] asked: this running image's version and commit,
+  /// read from what the binary embedded, so `dirty-` and `unknown` survive.
+  Build { version: String, commit: String },
   /// This connection is now a feed (`AC-08.6`).
   ///
   /// **THE SUBSCRIPTION IS ACKNOWLEDGED BEFORE ANY EVENT ARRIVES, AND THE
@@ -656,6 +667,28 @@ mod tests {
     let framed = frame(&Op::Registry).expect("serialisable");
     assert_eq!(framed.iter().filter(|b| **b == b'\n').count(), 1);
     assert!(framed.ends_with(b"\n"));
+  }
+
+  #[test]
+  fn the_build_question_and_its_answer_have_the_hand_written_shape() {
+    // Issue `0235`. Typed out rather than round-tripped, for the reason the
+    // test below gives: serde agreeing with itself is not a wire form.
+    let line = br#"{"root":"/tmp/project","op":"build"}"#;
+    let parsed: Request = serde_json::from_slice(line).expect("the build line parses");
+    assert_eq!(parsed.op, Op::Build);
+    assert!(
+      UNCOUNTED.contains(&Op::Build),
+      "a question about the daemon must not count as a project's dispatch"
+    );
+
+    let answer = Response::Build {
+      version: "3.0.0".to_string(),
+      commit: "dirty-abc".to_string(),
+    };
+    assert_eq!(
+      serde_json::to_string(&answer).expect("serialisable"),
+      r#"{"result":"build","version":"3.0.0","commit":"dirty-abc"}"#
+    );
   }
 
   #[test]
