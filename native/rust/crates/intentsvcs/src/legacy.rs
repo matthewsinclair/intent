@@ -2257,12 +2257,20 @@ fn covers(row: &str) -> Option<Covers> {
 /// the common case rather than the exotic one: nine of the corpus's rows have a
 /// note introduced by the separator that then contains it. Nothing downstream may
 /// split on it.
+///
+/// **THE NOTE STARTS WHERE THE STATUS VALUE ENDS, BY THE SAME [`field_end`]
+/// THAT `field(row, "status")` USES** (0126). This found the first ` -- ` with
+/// no regard for brackets, so a separator inside the status's parenthetical --
+/// `to-write (red-first -- the opposite error). Mirrors ...` -- began the note
+/// mid-annotation, and the depth-aware status value then appended the whole
+/// annotation after it: head lost, tail duplicated, length netted out. Two
+/// cutters on one region is how the span arrived twice; one cutter makes the
+/// status value and the note disjoint by construction.
 fn note(row: &str) -> Option<String> {
   const MARKER: &str = " -- status: ";
   let start = row.find(MARKER)? + MARKER.len();
   let rest = &row[start..];
-  let sep = rest.find(" -- ")?;
-  let tail = rest[sep + " -- ".len()..].trim();
+  let tail = rest[field_end(rest)..].strip_prefix(" -- ")?.trim();
   (!tail.is_empty()).then(|| tail.to_string())
 }
 

@@ -199,3 +199,39 @@ fn an_unknown_status_token_is_named_rather_than_dropped_in_silence() {
     scan.residue, scan.carried
   );
 }
+
+/// **0126: the note is the status annotation ONCE, whole -- not a spliced
+/// copy of its own tail plus the annotation.**
+///
+/// `note` cut at the first ` -- ` after `status:` without counting brackets,
+/// so a separator inside the status's parenthetical started the note mid-
+/// annotation (the head lost), and the depth-aware status value then appended
+/// the whole annotation after it (the tail duplicated). The length nets out and
+/// the test above, which asks `contains`, stays green over it. Measured before
+/// the fix: 5 AT rows in Lamplight's pre-hop tree, 3 in Conflab, 0 in Intent.
+///
+/// The control arm is an ordinary note after the status value, at depth 0,
+/// which must come through exactly as it did.
+#[test]
+fn a_status_annotation_reaches_the_note_once_and_whole() {
+  let scan = scan_of(ROWS);
+  let note_of = |id: &str| {
+    scan.threads[0]
+      .tests
+      .iter()
+      .find(|t| t.id == id)
+      .unwrap_or_else(|| panic!("{id} did not arrive"))
+      .note
+      .clone()
+  };
+  assert_eq!(
+    note_of("AT-09.4").as_deref(),
+    Some("fixed early, in WP-02, because it blocked the version fixture -- (9 tests)"),
+    "CONTROL: a note after the status value, at depth 0, must be unchanged"
+  );
+  assert_eq!(
+    note_of("AT-20.2").as_deref(),
+    Some("(4 tests) -- (2026-07-25 cc: the anti-vacuity floor -- a zero-row pass is not a pass)"),
+    "the annotation was spliced: its tail cut at the inner separator, then the whole appended"
+  );
+}
