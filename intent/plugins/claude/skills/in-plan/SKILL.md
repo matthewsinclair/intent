@@ -25,7 +25,7 @@ ALWAYS create or update steel thread and work package docs BEFORE coding:
 
 - If no ST exists for this work, create one: `intent st new "Title"`
 - If no WP exists, create one: `intent wp new <STID> "Title"`
-- Write the plan in the ST's `design.md` or WP's `info.md`
+- Write the plan into the record: the thread's objective with `intent set <STID> objective --from <file>`, a WP's with `intent set intent:///threads/<STID>/wp/<NN> objective --from <file>`, or a design document attached with `intent st attach <STID> design.md --from <file>`. `WP/<NN>/info.md` is a generated view; never write into it
 - If the thread has an `acceptance.md`, ratify its Acceptance Criteria first -- the open-gate. The verifier owns the boundary; settle it before writing code. See the AC/AT five-step in `working-with-llms.md` (D11).
 
 ### 2. Show detailed workplan
@@ -45,7 +45,7 @@ Every plan must meet these standards before presenting to the user:
 
 **Specific file paths**: Every step must name the files it will create or modify. "Update the config" is not a step. "Add pool_size to config/runtime.exs" is.
 
-**Small steps**: Each step should be independently verifiable. If a step modifies more than 3 files, split it. If a step takes more than a few minutes of coding, split it.
+**Small steps**: Each step should be independently verifiable. If a step modifies more than 3 files, split it. If a step is bigger than an XS, split it.
 
 **Verification per step**: Each step includes how to verify it worked (test command, build command, or manual check). A step without verification is not a step.
 
@@ -65,7 +65,7 @@ These rules apply to ALL languages (Elixir, Rust, Swift, Lua, shell):
 
 - **Highlander Rule**: No duplicated code paths. Search for an existing owner before adding one.
 - **Thin Coordinators**: Controllers, LiveViews, CLI commands are thin. Business logic in services.
-- **PFIC**: Pure-Functional Idiomatic Code. Prefer pure functions, tagged tuples, pattern matching.
+- **PFIC** (`IN-AG-PFIC-001`, Pure Function, Impure Coordination): read it before applying it -- `intent claude rules show IN-AG-PFIC-001`.
 
 ### 6. Wait for user review
 
@@ -81,7 +81,7 @@ After planning is approved, pick the first work unit from the plan:
 
 | Rationalization                       | Reality                                               |
 | ------------------------------------- | ----------------------------------------------------- |
-| "This is simple, no plan needed"      | Simple tasks grow. The plan takes 2 minutes.          |
+| "This is simple, no plan needed"      | Simple tasks grow. A plan is an XS.                   |
 | "I'll figure it out as I go"          | Ad-hoc coding produces ad-hoc results.                |
 | "The user wants speed, skip planning" | Plans prevent rework. Rework is slower than planning. |
 | "I already know the codebase"         | Search anyway. Memory drifts.                         |

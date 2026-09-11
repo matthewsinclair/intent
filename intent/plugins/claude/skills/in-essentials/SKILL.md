@@ -13,11 +13,11 @@ Core Intent workflow rules enforced on every interaction. These are mandatory --
 NEVER manually create directories under `intent/st/`. NEVER manually edit `status:` fields in steel thread frontmatter. Use the CLI to manage lifecycle.
 
 ```bash
-# BAD — manual creation
+# BAD -- manual creation
 mkdir -p intent/st/ST0000
 echo "status: active" > intent/st/ST0000/info.md
 
-# GOOD — use the CLI
+# GOOD -- use the CLI
 intent st new "My steel thread"
 intent st list
 intent st show ST0000
@@ -26,39 +26,40 @@ intent st edit ST0000
 
 ### 2. Use `intent agents sync` to update AGENTS.md
 
-NEVER edit root `AGENTS.md` directly — it is auto-generated from project state by `intent agents sync`. Manual edits will be overwritten on the next sync. `AGENTS.md` lives at the project root as a real file (not a symlink); older projects may still have a legacy `intent/llm/AGENTS.md` which is retired and should be removed.
+NEVER edit root `AGENTS.md` directly -- it is auto-generated from project state by `intent agents sync`. Manual edits will be overwritten on the next sync. `AGENTS.md` lives at the project root as a real file (not a symlink); older projects may still have a legacy `intent/llm/AGENTS.md` which is retired and should be removed.
 
 ```bash
-# BAD — direct edit
+# BAD -- direct edit
 echo "New section" >> AGENTS.md
 
-# GOOD — regenerate from project state
+# GOOD -- regenerate from project state
 intent agents sync
 ```
 
 ### 3. Use `intent claude skills` for skill management
 
-NEVER manually create or edit files in `.claude/skills/`. Use the CLI for install, sync, and removal. Skills use SHA256 manifests for tracking.
+NEVER manually create or edit files in `~/.claude/skills/`. Use the CLI for install, sync, and removal. Installs are tracked by a SHA256 manifest at `~/.intent/skills/installed-skills.v3.json`.
 
 ```bash
-# BAD — manual copy
+# BAD -- manual copy
 cp some-skill/SKILL.md ~/.claude/skills/my-skill/SKILL.md
 
-# GOOD — use the CLI
+# GOOD -- use the CLI
 intent claude skills install in-elixir-essentials
 intent claude skills sync
 intent claude skills uninstall in-elixir-essentials
 ```
 
+**`sync` holds a skill you edited locally; `uninstall` does not** -- it deletes an edited skill at exit 0 without `--force`. Copy your edits out first.
+
 ### 4. Steel thread document conventions
 
-Each steel thread lives in `intent/st/<ID>/`. The minimum required file is `info.md` with frontmatter metadata. Optional companion files provide design and tracking.
+Each steel thread's record lives in the store; `intent/st/<ID>/` is its realised tree, and its views are GENERATED.
 
-- `info.md` — required, contains title, status, dates, description
-- `design.md` — architecture and design decisions
-- `impl.md` — implementation notes and as-built state
-- `tasks.md` — work breakdown and progress tracking
-- `WP/<NN>/info.md` — work packages within a steel thread
+- `info.md` -- the cover. Its `## Objective` and `## Context` round-trip (`intent st edit <ID>`, or `intent set <ID> objective|context --from <file>`), and nothing else in it does.
+- `acceptance.md` -- changed with `intent ac` / `intent at`.
+- `WP/<NN>/info.md` -- changed with `intent set intent:///threads/<ID>/wp/<NN> objective|body --from <file>` and the `intent wp` verbs.
+- `design.md`, `impl.md`, `tasks.md` -- optional ATTACHMENTS: a thread carries one only after `intent st attach <ID> <name>.md --from <file>`, and from then on the file on disk is its authoring surface.
 
 Frontmatter is written by v3 from the store, so do not hand-author it: `info.md` carries `st_id`, `title`, `status`, `created`, `completed`; `WP/<NN>/info.md` carries `wp_id`, `title`, `scope`, `status`. **This line claimed `verblock:` until 2026-09-08 and v3 writes no such field on a thread view** -- that is v2's shape, and v3 emits it only when ingesting a v2 tree. `verblock` remains the house style for HAND-AUTHORED persistent documents such as `intent/wip.md`, which is a different document class and the reason the wrong claim read as plausible.
 

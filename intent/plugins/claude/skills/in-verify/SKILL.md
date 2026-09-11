@@ -24,7 +24,7 @@ Verification must happen in the current message, not reference a prior message. 
 
 ### 3. Verify the specific change
 
-Run the specific test or check that covers your change. "All 462 tests pass" is less useful than "the 3 tests covering this module pass." Run both if practical: specific first, then broad.
+Run the specific test or check that covers your change. A whole-suite pass is less useful than a pass of the tests covering this module. Run both if practical: specific first, then broad.
 
 ### 4. Types of verification
 
@@ -50,7 +50,7 @@ A task is done when:
 
 If the steel thread carries an `acceptance.md`, "done" is bound to it:
 
-- Write Acceptance Tests **red-first** and witness them RED before building to green -- a green that never went red proves nothing. `intent at red` / `green` enforce the transition (green is reachable only from red).
+- Write Acceptance Tests **red-first** and witness them RED before building to green -- a green that never went red proves nothing. **The CLI does not enforce this**: `intent at green` accepts a row at any status, so red-first is held by the verifier witnessing RED, not by the tool.
 - A test-backed AC is satisfied by a green covering AT; a non-test AC by `intent ac satisfy`. The close-gate computes the verdict -- `intent ac status <id>` (or `intent ac gate`) -- never a hand-ticked box.
 - **The AT row has an enforced grammar.** Cite the test **file**, backticked and repo-relative (`` `tests/unit/foo.bats` ``) -- not a test name, not `path::name`. Then put the AT's own id inside the test it names, because that is the link the tool can check from both ends. A `(non-test)` row carries prose and `status: n/a`, records a doc or eyeball check, and never satisfies anything. Run `intent at lint <id>` before you claim coverage, and fix each row it names by hand with `intent at edit <id> <AT-id>`.
 
@@ -62,5 +62,5 @@ See the AC/AT five-step in `working-with-llms.md` (D11).
 | ------------------------------------- | ----------------------------------------------------- |
 | "I just ran the tests above"          | Context may be compacted. Run again.                  |
 | "This is a doc-only change, no tests" | Confirm the file exists and has no syntax errors.     |
-| "The change is too small to verify"   | Small changes break things. Verify takes seconds.     |
+| "The change is too small to verify"   | Small changes break things. Verification is an XS.    |
 | "I'll verify at the end"              | Verify each step. Compound errors are harder to find. |

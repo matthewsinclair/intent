@@ -29,7 +29,7 @@ A project that wants the human in the loop gives them a node, conventionally `hv
 
 **It is required wherever a node cannot reach the human on a live channel.** Where a live channel does exist it is redundant for that exchange, not for the project: reachability is a property of a RUN, not of a project. The same human is reachable during an interactive session and unreachable at 3am, so a project-level exemption would retire the durable surface at exactly the moments it was designed for.
 
-**AND A WRITE SURFACE WITH NO NAMED READER IS A QUEUE, NOT A CHANNEL.** So the project's `README.md` roster MUST name who is obliged to read `hv/inbox.*` and surface its contents to the human. Without that, writing succeeds every time, delivery never happens, and **nothing observable distinguishes the two** -- measured on this protocol in August 2026: four nodes wrote correctly into `hv` inboxes for four days, in the right format, and the human was reading none of it. Not one write failed, so nothing reported the gap.
+**AND A WRITE SURFACE WITH NO NAMED READER IS A QUEUE, NOT A CHANNEL.** So the project's `README.md` roster MUST name who is obliged to read `hv/inbox.*` and surface its contents to the human. Without that, writing succeeds every time, delivery never happens, and **nothing observable distinguishes the two** -- measured on this protocol in August 2026: nodes wrote correctly into `hv` inboxes for days, in the right format, and the human was reading none of it. Not one write failed, so nothing reported the gap.
 
 Intent's own roster names the validation node, in the human's words: _the workstreams can write in the hv channel FOR me, but I need that stuff surfaced TO me by vc._ **The obligation is what matters, not the mechanism** -- a reader, a bot, a scheduled sweep and a store trigger all satisfy it, and a project that keeps the whiteboard in a database rather than in files owes exactly the same thing.
 
@@ -111,7 +111,7 @@ It looks like YAML frontmatter and it is not. It is a **line-oriented `key: valu
 - **Quotes are a display delimiter, not syntax, and the delimiter is the DOUBLE quote.** A single pair of surrounding `"` is stripped for display; quotes INSIDE a value are literal and are **never escaped**. Write `focus: "the counted body is the SENT body"` exactly as it reads. Writing `\"` puts a backslash in your board. **Single quotes are not delimiters and are never stripped** -- `focus: 'plain text'` renders with its quotes visible, which is the intended outcome rather than a gap. Two delimiter forms would mean a value whose content legitimately opens and closes with `'` silently loses two characters, and the rendered view would differ from the file with nothing saying so; visible quotes are a wart the author fixes at the next fold. **The one format whose whole purpose is having almost no rules does not get a second quoting rule.**
 - **`claims:` is a comma-separated list in square brackets**, read as text.
 
-This is a deliberate ruling, not an accident, and it was made because the alternative loses. The block is hand-written by LLM nodes in prose-heavy fields, which is close to the worst case for a quoting-sensitive format: a `focus:` line quoting a phrase is the natural thing to write, and under YAML it is invalid. Measured on a five-node board, two of five were unparseable at a point in time, and a sweep of one node's last 25 revisions found four invalid in two separate episodes -- **all of which repaired themselves** at the next fold, before anyone noticed. A defect whose lifetime is shorter than the interval between observations leaves no corpse, so the real rate is higher than any point-in-time count.
+This is a deliberate ruling, not an accident, and it was made because the alternative loses. The block is hand-written by LLM nodes in prose-heavy fields, which is close to the worst case for a quoting-sensitive format: a `focus:` line quoting a phrase is the natural thing to write, and under YAML it is invalid. Measured on a live board, a sizeable share of headers were unparseable at a point in time, and a sweep of one node's recent revisions found invalid headers in more than one episode -- **all of which repaired themselves** at the next fold, before anyone noticed. A defect whose lifetime is shorter than the interval between observations leaves no corpse, so the real rate is higher than any point-in-time count.
 
 Under YAML the correct board also renders worse: `ws list` strips the delimiters without unescaping, so a node that complied would display `\"` mid-prose. The format the tooling actually implements, the format the nodes actually write, and the format that reads correctly are the same one; the word "YAML" was the only thing out of step, so the word is what changed.
 
@@ -144,14 +144,14 @@ The `# inbox: <sender> -> <recipient>` header restates the single-writer routing
 Each entry appended by `ask` / `announce`:
 
 ```
-## (YYYY-MM-DD HH:MM) [Re: <prior-anchor>] [FYI only -- no response needed.]
+## (YYYY-MM-DD HH:MMZ) [Re: <prior-anchor>] [FYI only -- no response needed.]
 
 <text>
 ```
 
 Required fields: the `## (YYYY-MM-DD HH:MMZ)` timestamp heading (minute granularity -- it doubles as the anchor a reply threads against) and the `<text>` body. Recommended / optional: `Re: <prior-anchor>` (present only when threading a reply to a prior entry's timestamp) and `FYI only -- no response needed.` (present only when no reply is expected; absent means the sender expects a reply). A reply is a new entry in the opposite-direction inbox (`<original-sender>/inbox.<you>.md`), carrying `Re:` the entry it answers.
 
-**THE SEPARATOR BETWEEN THOSE FIELDS IS NOT SIGNIFICANT -- one or more spaces, both legal.** This spec said three spaces until 2026-09-02, and **a corpus read found 39 headings carrying a `Re:` or `FYI` field and ZERO retaining them**: the pre-commit gate refuses unformatted markdown and the formatter collapses runs of spaces, so every node wrote the documented form and every one was rewritten on the way in. **A format nobody can write is not a format.** Nothing parses the separator -- `whiteboard-clock-guard.sh` keys on the STAMP and mentions `Re:` only in prose, and no other tool reads these fields at all -- so the spec moved rather than the files. **The existing 39 are deliberately NOT rewritten**: a bulk byte-change across append-only surfaces to satisfy a cosmetic field nothing reads is the exact harm the `.prettierignore` exemption exists to prevent.
+**THE SEPARATOR BETWEEN THOSE FIELDS IS NOT SIGNIFICANT -- one or more spaces, both legal.** This spec said three spaces until 2026-09-02, and **a corpus read found that NO heading carrying a `Re:` or `FYI` field had kept the documented spacing**: the pre-commit gate refuses unformatted markdown and the formatter collapses runs of spaces, so every node wrote the documented form and every one was rewritten on the way in. **A format nobody can write is not a format.** Nothing parses the separator -- `whiteboard-clock-guard.sh` keys on the STAMP and mentions `Re:` only in prose, and no other tool reads these fields at all -- so the spec moved rather than the files. **The existing headings are deliberately NOT rewritten**: a bulk byte-change across append-only surfaces to satisfy a cosmetic field nothing reads is the exact harm the `.prettierignore` exemption exists to prevent.
 
 ### Every timestamp is READ FROM A CLOCK, never written from memory
 
@@ -165,7 +165,7 @@ date -u +'%Y-%m-%d %H:%MZ'
 
 Two failures, both observed, both silent:
 
-- **Fabrication.** A node stamped a reply 25 minutes BEFORE the message it was replying to, and another stamped a heartbeat ~99 minutes ahead of true UTC -- matching neither `date` nor `date -u` on the machine, so it came from no clock at all. Neither was noticed until a third node compared boards against `date -u`.
+- **Fabrication.** A node stamped a reply BEFORE the message it was replying to, and another stamped a heartbeat well ahead of true UTC -- matching neither `date` nor `date -u` on the machine, so it came from no clock at all. Neither was noticed until a third node compared boards against `date -u`.
 - **Wrong clock (Lamplight, 2026-07-24).** Heartbeats correctly in UTC, entry headings in local BST an hour ahead, so a correctly-stamped entry sorted BELOW a wrongly-stamped one. `date` and `date -u` differ by two characters and by the local offset.
 
 Both destroy the same thing: the board's only cross-node ordering. "Who saw what, and in what order" is the question the inboxes exist to answer, and it stops being answerable the moment one stamp is invented -- **and it fails silently, because a fabricated timestamp is indistinguishable from a real one by inspection.** Use commits when you need ordering you can prove.
@@ -177,23 +177,23 @@ Corollaries:
 - **Never repair your own fabricated stamp by inventing a better one.** You cannot recover a time you never read. Annotate it as unverifiable and move on; a corrected-looking fake is worse than an admitted one.
 - **`git log` prints LOCAL time.** It is the usual source of the +1h error: reading a time off it and appending a `Z` produces a stamp that is wrong by exactly the local offset and looks perfect.
 - **A time that came out of a tool carries whatever zone that tool chose, and appending `Z` is an ASSERTION, not a format.** `git log` is the usual case and not the only one: `stat -f '%Sm'` prints local; `ls -la` prints local; `git log --date=format:` prints the commit's OWN recorded zone and IGNORES `TZ`, so `TZ=UTC git log --date=format:'%H:%MZ'` returns local and looks like it worked -- `--date=format-local:` is the form that honours `TZ`. The rule cannot enumerate every tool, so the general form is the keeper: `date -u`, or `date -u -r <epoch>`, or say nothing. Measured 2026-08-26 on the Intent board: two nodes each rendered a real read an hour ahead by appending `Z` to a local listing, and one did it INSIDE the audit it was running to catch the first instance.
-- **A stamp typed from the last one you read is fabricated too.** The offset error is +1h exactly; this one drifts by however long the turn felt. Same cure: a clock value goes into a message or a board only when the command that produced it is in front of you in this turn, verbatim, or it does not go in at all. Cross-session messages carry the same `## (...)` ordering claims as the boards and sit under none of the three guards (Intent issue 0099), so the discipline is the only check on that channel.
+- **A stamp typed from the last one you read is fabricated too.** The offset error is +1h exactly; this one drifts by however long the turn felt. Same cure: a clock value goes into a message or a board only when the command that produced it is in front of you in this turn, verbatim, or it does not go in at all. Cross-session messages carry the same `## (...)` ordering claims as the boards and sit under none of the whiteboard guards (Intent issue 0099), so the discipline is the only check on that channel.
 
 ### This is enforced, not merely written down
 
 `lib/templates/hooks/whiteboard-clock-guard.sh` runs from the pre-commit gate and **refuses the commit** -- the bad stamp never lands. It is opt-in by the presence of `intent/whiteboard/`, so nothing changes for a project without a board. Built and measured in Lamplight, brought upstream because Intent ships this protocol and every consumer inherits the hole otherwise.
 
-It is one of two whiteboard guards, and they are deliberately separate files: this one's name and contract are TIMESTAMPS, the header guard's is the header block's format. The shipped `pre-commit.sh` declares both in one roster and **runs every one of them before deciding**, so a board carrying a bad stamp AND an escaped value is one editing session rather than two commit attempts. Only that hook is copied into a project; the guard bodies are read live out of `INTENT_HOME`, which is why a new guard reaches every consumer on their next `intent upgrade` without anyone touching `.git/hooks/`.
+It is one of the whiteboard guards -- with the header guard and the `.history/` append-only guard -- and they are deliberately separate files: this one's name and contract are TIMESTAMPS, the header guard's is the header block's format. The roster lives in the install's `lib/templates/hooks/pre-commit-guards.sh`, which **runs every applicable guard before deciding**, so a board carrying a bad stamp AND an escaped value is one editing session rather than two commit attempts. A project holds only a shim (`.git/hooks/pre-commit.intent`) that finds the install through `~/.intent/home`; the gate, the roster and the guard bodies are all read live from there, so a new guard reaches every consumer on its next commit without anyone touching `.git/hooks/`.
 
-Three checks, because each closes a hole the others cannot see:
+The checks below each close a hole the others cannot see:
 
-| check | what it catches                      | how                                                                 |
-| ----- | ------------------------------------ | ------------------------------------------------------------------- |
-| **A** | a stamp in the future                | a stamp cannot postdate the commit adding it; 120s jitter tolerance |
-| **B** | a missing trailing `Z`               | syntactic, exact, no clock, no tolerance                            |
-| **C** | an append-only inbox going backwards | compares two board stamps to each other; needs no clock at all      |
+| check | what it catches                      | how                                                                   |
+| ----- | ------------------------------------ | --------------------------------------------------------------------- |
+| **A** | a stamp in the future                | a stamp's minute cannot postdate the commit adding it; zero tolerance |
+| **B** | a missing trailing `Z`               | syntactic, exact, no clock, no tolerance                              |
+| **C** | an append-only inbox going backwards | compares two board stamps to each other; needs no clock at all        |
 
-Why all three. **A alone does not catch the local-clock error**: an unmarked `## (2026-08-14 14:19)` is read as UTC, so it only trips A _while still in the future_ -- once a commit lags past the local offset the same bad stamp sails through, and lag is normal (measured: 93% of stamps commit within the hour, tail to nine hours). **A and B both compare a stamp to a clock**, so a fabricated stamp landing in the _past_ passes both in silence -- which is the failure this rule names first. C is the two-sided test: a real `date -u` read can never break it, because time does not run backwards.
+Why all of them. **A alone does not catch the local-clock error**: an unmarked `## (2026-08-14 14:19)` is read as UTC, so it only trips A _while still in the future_ -- once a commit lags past the local offset the same bad stamp sails through, and lag is normal (measured: most stamps commit within the hour, with a tail of hours). **A and B both compare a stamp to a clock**, so a fabricated stamp landing in the _past_ passes both in silence -- which is the failure this rule names first. C is the two-sided test: a real `date -u` read can never break it, because time does not run backwards.
 
 Two things the guard deliberately does not do. It **never auto-corrects** -- a guard that silently fixes the stamp hides the class from the node that needs to learn its clock was wrong; it prints the right value so the fix is a copy-paste. And **check C never blocks on pre-existing breakage**, only on stamps the current commit adds, because a guard that must be bypassed to work is a guard nobody keeps.
 
@@ -214,7 +214,7 @@ The moniker is durable; subsequent sessions of that node inherit it via the exis
 ### pickup
 
 1. List `intent/whiteboard/*/` to enumerate nodes. Determine your node (see discovery).
-2. Read your `<you>/wip.md` (resume state) and all four `<you>/inbox.*.md` (incoming). Surface any non-empty inbox entries to the user.
+2. Read your `<you>/wip.md` (resume state) and every `<you>/inbox.*.md` (one per peer; incoming). Surface any non-empty inbox entries to the user.
 3. Read each peer's `<peer>/wip.md` header block (line-oriented `key: value`, NOT YAML -- see wip.md shape). For each peer with `status: active` AND `heartbeat_at` within 7 days AND a different `session_id`: surface "node X active (heartbeat <relative>, focus: <focus>)". Active but older than 7 days: "node X appears stale".
 4. Update your `<you>/wip.md` header block: `session_id` (this session, or `unknown`), `heartbeat_at` (now), `status: active`. Keep `claims` + body intact. One line per key; do not escape quotes inside a value.
 5. Report a one-line summary of peer state + your inbound messages.
@@ -224,7 +224,7 @@ The moniker is durable; subsequent sessions of that node inherit it via the exis
 1. Your `inbox.<you>.md` in `<node>/` usually already exists (`ws new` pre-seeds it); if it is absent (a hand-added node), create it with its `# inbox: <you> -> <node>` header + `_(empty)_` sentinel (see inbox shape). Append a message entry (see Message-entry format) -- the path encodes sender -> recipient, so the 2.0 `to:`/`from:` line is implicit:
 
    ```
-   ## (YYYY-MM-DD HH:MM) [Re: <prior-anchor>] [FYI only -- no response needed.]
+   ## (YYYY-MM-DD HH:MMZ) [Re: <prior-anchor>] [FYI only -- no response needed.]
 
    <text>
    ```
@@ -266,7 +266,7 @@ Roll your OWN node's DONE content out of the live files into your own history, d
 
 1. Ensure `<you>/.history/<YYYYMMDD>/` exists (today, or the content's own date).
 2. From `<you>/wip.md`: move DONE `## DOING` items + superseded blocks into `<you>/.history/<YYYYMMDD>/wip.md`. KEEP frontmatter, live DOING/TODO, `## Watch-outs`, `## Holds`, and still-relevant `## Decisions`.
-   - **AN UNEXECUTED RULING IS LIVE STATE, NOT HISTORY. A fold archives the NARRATIVE of a ruling and never the ruling itself while it is unexecuted.** Execution status is the discriminator; the date is evidence of nothing. Verify execution against the ARTEFACT, never against the board that records it. Measured on this protocol 2026-08-30: a fold applied the rule _cut any mention of DONE work_ to a whole dated ruling record, which keyed on **dated** where the rule keys on **done** -- so the fold enforcing _doing and todo only_ is the thing that removed todo items. Not one word was lost, which is precisely the failure: a live directive reachable only by grepping `.history/` is discoverable by nobody, because grepping `.history/` is not a thing a node does at pickup. Two buried directives were found, one of them shipping the option the human had explicitly DECLINED, five days on.
+   - **AN UNEXECUTED RULING IS LIVE STATE, NOT HISTORY. A fold archives the NARRATIVE of a ruling and never the ruling itself while it is unexecuted.** Execution status is the discriminator; the date is evidence of nothing. Verify execution against the ARTEFACT, never against the board that records it. Measured on this protocol 2026-08-30: a fold applied the rule _cut any mention of DONE work_ to a whole dated ruling record, which keyed on **dated** where the rule keys on **done** -- so the fold enforcing _doing and todo only_ is the thing that removed todo items. Not one word was lost, which is precisely the failure: a live directive reachable only by grepping `.history/` is discoverable by nobody, because grepping `.history/` is not a thing a node does at pickup. Buried directives were found, one of them shipping the option the human had explicitly DECLINED, days later.
 3. From each `<you>/inbox.<sender>.md`: move handled entries into history (same as `clear`, **including its precondition** -- answered, actioned, or re-stated live, and reading is none of the three).
 4. `prettier --write` the touched files if the project formats markdown.
 5. **Single-owner: you only ever touch your own `<you>/` directory, so there is no peer-collision hazard** -- this is the key simplification over 2.0's shared-file archive. Commit via explicit pathspec (`git commit --only <you>/...`), never `-A`.

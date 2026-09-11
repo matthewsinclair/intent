@@ -41,7 +41,7 @@ Languages-in-use is a configuration decision, not a filesystem detection. Read t
 jq -r '(.languages // []) | .[]' intent/.config/config.json
 ```
 
-For each language listed, invoke the matching essentials skill if one exists. Elixir and `author` have a per-language essentials skill; the other languages get their coding rules via the rule library served by the installed Intent tool (`intent claude rules list --lang <lang>`, `intent claude rules show <id>`) plus the `critic-<lang>` subagent applied on demand.
+For each language listed, invoke the matching essentials skill if one exists. Elixir, `author` and `content` have an essentials skill; the other languages get their coding rules via the rule library served by the installed Intent tool (`intent claude rules list --lang <lang>`, `intent claude rules show <id>`) plus the `critic-<lang>` subagent applied on demand.
 
 | Language  | Skills to invoke (if listed in config)                                           |
 | --------- | -------------------------------------------------------------------------------- |
@@ -64,9 +64,9 @@ When `mix.exs` is present, read it and invoke by dependency:
 
 ### 4. Release the UserPromptSubmit gate
 
-Intent projects ship a strict `UserPromptSubmit` hook (`require-in-session.sh`) that blocks the first prompt until `/in-session` has been run. Releasing the gate is cooperative: this skill writes a per-session sentinel that the hook looks for.
+Where `.claude/settings.json` was installed by `intent claude upgrade --apply`, a strict `UserPromptSubmit` hook (`intent claude hook require-in-session`, whose body `require-in-session.sh` is served from the Intent install) blocks the first prompt until `/in-session` has run. Releasing the gate is cooperative: this skill writes a per-session sentinel that the hook looks for.
 
-Run the helper script (idempotent, fast, ~30 lines):
+Run the helper script (idempotent, fast):
 
 ```bash
 bash "$HOME/.claude/skills/in-session/scripts/release-gate.sh"
@@ -99,7 +99,7 @@ Hold these regardless of which language skills get loaded above. They do not exp
 
 ## Why this exists
 
-After `/compact`, the conversation summary is regenerated but skill invocations are not replayed. Without a bootstrap, the user has to paste the skill list manually every reset. This skill is a Thin Coordinator: parse the project, call the right skills, done. One command instead of six.
+After `/compact`, the conversation summary is regenerated but skill invocations are not replayed. Without a bootstrap, the user has to paste the skill list manually every reset. This skill is a Thin Coordinator: parse the project, call the right skills, done.
 
 ## Red Flags
 

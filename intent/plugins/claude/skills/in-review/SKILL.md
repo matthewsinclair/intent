@@ -5,7 +5,7 @@ chains_to: ["in-verify"]
 
 # Two-Stage Code Review
 
-Review code in two distinct passes. Do not combine them — each pass has a different focus.
+Review code in two distinct passes. Do not combine them -- each pass has a different focus.
 
 ## When to invoke
 
@@ -41,7 +41,7 @@ Read the project's declared languages from `intent/.config/config.json`:
 jq -r '(.languages // []) | .[]' intent/.config/config.json
 ```
 
-For each language listed, dispatch to its critic subagent. Code languages map directly: `elixir` → `critic-elixir`, `rust` → `critic-rust`, `swift` → `critic-swift`, `lua` → `critic-lua`, `shell` → `critic-shell`. The prose disciplines both map to the one `critic-prose`: `author` (books + courseware) and `content` (web pages + posts) each dispatch to `critic-prose`, which reviews prose (`.md`/`.mdx`/`.html`), not code, and resolves which discipline pack to apply from the declared `languages` -- see Prose projects below.
+For each language listed, dispatch to its critic subagent. Code languages map directly: `elixir` -> `critic-elixir`, `rust` -> `critic-rust`, `swift` -> `critic-swift`, `lua` -> `critic-lua`, `shell` -> `critic-shell`. The prose disciplines both map to the one `critic-prose`: `author` (books + courseware) and `content` (web pages + posts) each dispatch to `critic-prose`, which reviews prose (`.md`/`.mdx`/`.html`), not code, and resolves which discipline pack to apply from the declared `languages` -- see Prose projects below.
 
 A mixed project (multiple entries in `languages`) dispatches to each critic whose language matches the files being reviewed. If `languages` is empty, no language-specific critic runs; only the agnostic checklist below applies.
 
@@ -49,10 +49,10 @@ A mixed project (multiple entries in `languages`) dispatches to each critic whos
 
 Confirm no concretised-by rule is violated at the agnostic level:
 
-- [ ] `IN-AG-HIGHLANDER-001` — no duplicated code paths (search for an existing owner; `intent modules find <name>` where the project keeps a registry)
-- [ ] `IN-AG-THIN-COORD-001` — coordinators parse → call → render
-- [ ] `IN-AG-PFIC-001` — Pure Function, Impure Coordination. **Read it before checking it: `intent claude rules show IN-AG-PFIC-001`.** This line used to say _pattern-match, pipe, tagged-tuple, compose idioms in play_, which is a different rule -- code can be fully idiomatic and still bury I/O three calls deep in a domain core, so the old check passed the violation and recorded the rule as examined (issue 0219).
-- [ ] `IN-AG-NO-SILENT-001` — no rescue-and-swallow, no discarded fallible results
+- [ ] `IN-AG-HIGHLANDER-001` -- no duplicated code paths (search for an existing owner; `intent modules find <name>` where the project keeps a registry)
+- [ ] `IN-AG-THIN-COORD-001` -- coordinators parse -> call -> render
+- [ ] `IN-AG-PFIC-001` -- Pure Function, Impure Coordination. **Read it before checking it: `intent claude rules show IN-AG-PFIC-001`.** This line used to say _pattern-match, pipe, tagged-tuple, compose idioms in play_, which is a different rule -- code can be fully idiomatic and still bury I/O three calls deep in a domain core, so the old check passed the violation and recorded the rule as examined (issue 0219).
+- [ ] `IN-AG-NO-SILENT-001` -- no rescue-and-swallow, no discarded fallible results
 
 #### Delegate to `critic-<lang>`
 
@@ -77,16 +77,16 @@ Task(subagent_type="critic-prose", prompt="review docs/**/*.md")
 Task(subagent_type="critic-prose", prompt="review content/**/*.md")
 ```
 
-**Prose projects (`author` and/or `content` in `languages`)**: `critic-prose` reviews prose, not code, and resolves its discipline pack from the declared `languages`. Under `/in-review` run its mechanical `review` tier (house style, structure, the mechanical trope pass, plus the discipline's mechanics -- author front-matter/objectives, or content page-meta/alt-text/links) on the prose targets (`.md`/`.mdx`/`.html`). Its judgment tier -- `craft-check` (author: voice, continuity, citation; content: scannability, CTA, reading level) and the full `/in-detrope` diagnosis -- is on instruction, not part of the automatic pass. Per the per-language loop above, a prose-only project (`languages: [author]` or `[content]`) runs no code critic; a mixed project (eg `[elixir, content]`) runs `critic-elixir` on the code subtree and `critic-prose` on the prose subtree (D7). A project declaring both `author` and `content` applies both discipline packs.
+**Prose projects (`author` and/or `content` in `languages`)**: `critic-prose` reviews prose, not code, and resolves its discipline pack from the declared `languages`. Under `/in-review` run its mechanical `review` tier (house style, structure, the mechanical trope pass, plus the discipline's mechanics -- author front-matter/objectives, or content page-meta/alt-text/links) on the prose targets (`.md`/`.mdx`/`.html`). Its judgment tier -- `craft-check` (author: voice, continuity, citation; content: scannability, CTA, reading level) and the full `/in-detrope` diagnosis -- is on instruction, not part of the automatic pass. Per the per-language loop above, a prose-only project (`languages: [author]` or `[content]`) runs no code critic; a mixed project (eg `[elixir, content]`) runs `critic-elixir` on the code subtree and `critic-prose` on the prose subtree (ST0052 D7). A project declaring both `author` and `content` applies both discipline packs.
 
 **Polyglot projects**: when `languages` has more than one entry, the user has explicitly declared a polyglot. Invoke each critic with a target glob narrowed to its own subtree. Array order is the explicit declaration; the first entry is the primary where a primary is needed.
 
-**Project-local config**: critics honour `.intent_critic.yml` at the project root for `disabled:` and `severity_min:` overrides. The full contract (`intent/docs/critics.md`) and a worked sample config (`rules/_schema/sample-intent-critic.yml`) live in the Intent install, not the project.
+**Project-local config**: critics honour `.intent_critic.yml` at the project root for `disabled:` and `severity_min:` overrides. The full contract (`intent/docs/critics.md`) and a worked sample config (`intent/plugins/claude/rules/_schema/sample-intent-critic.yml`) live in the Intent install, not the project.
 
 ### Stage 3: After both stages
 
 - Fix critical issues before proceeding
-- Log non-critical issues as TODOs in `tasks.md`
+- Log non-critical issues with `intent issues add "<title>" --severity low --body "<detail>"` (or in the thread's attached `tasks.md`, if it carries one)
 - Invoke `/in-verify` to confirm fixes
 
 ## Red Flags

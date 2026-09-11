@@ -26,14 +26,12 @@ If `intent/whiteboard/` exists in the project root **and this session is actuall
 
 For each ST/WP worked on this session:
 
-- Update `tasks.md` with completed and remaining tasks
-- Update `design.md` with as-built status (if design changed)
-- Update `impl.md` with implementation notes (if applicable)
-- Move completed tasks from `tasks.md` to `done.md` if that file exists
+- Write the thread's objective and context through `intent set <ID> objective|context --from <file>` (or `intent st edit <ID>`)
+- Update the attached companion documents the thread carries (`design.md`, `impl.md`, `tasks.md`) with as-built status; `intent st edit <ID> <name> --path` names each and refuses one the thread does not carry, and `intent st attach <ID> <name>.md --from <file>` adds one
 - Closing a thread or WP? `intent st done` / `intent wp done` refuse while its `acceptance.md` contract is BLOCKED (the close-gate). Cover or satisfy the remaining ACs first; the ST-level sign-off AC is the verifier's. See `working-with-llms.md` (D11).
 - **An AC you are not going to do has two honest exits, and neither is satisfying it.** If it moved to another thread, `intent ac descope <id> <AC> --to <ID>`; if it was dropped, `intent ac withdraw <id> <AC> --reason "..."`. Both are non-blocking and both stay on the record. Reach for them instead of the two alternatives that lose the truth: marking work done that was not, or deleting the line. `intent ac rescope` / `reinstate` undo them.
 - **BLOCKED on an AT contract finding, not an unsatisfied AC?** The gate lints the AT rows too -- a row that fails the grammar, or a `green` AT citing a file that does not exist, is coverage that cannot be resolved. `intent at lint <id>` names each one; fix each row it names by hand with `intent at edit <id> <AT-id>`.
-- `st done` / `wp done` also **warn** (never block) if `## Objective` is still the template placeholder. If it fires, the unit is closing without anyone having said what it was for -- write the sentence.
+- `st done` / `wp done` do **not** check `## Objective`: once the gate passes, a unit whose objective is still `_(not yet written)_` closes silently. Before closing, read the `## Objective` in the thread's `info.md` (`intent st edit <ID> --path` realises it). If it is empty, the unit is closing without anyone having said what it was for -- write the sentence with `intent set <ID> objective --from <file>`.
 
 ### 3. Update work-in-progress
 
@@ -42,7 +40,7 @@ Update `intent/wip.md` with:
 - Current state of in-progress work
 - What's next
 
-**`wip.md` IS DOING AND TODO ONLY. DONE WORK IS ILLEGAL IN IT, AND THIS LIST USED TO ORDER THE OPPOSITE.** Its first bullet read _What was accomplished this session_ until 2026-09-08 -- so the skill every node runs at wrap-up instructed the precise thing the file's own name forbids, and a human then corrected it by hand, repeatedly, on four separate occasions across two projects. **A repeated correction is a document defect, not a discipline failure**: nodes were following the instruction they were given.
+**`wip.md` IS DOING AND TODO ONLY. DONE WORK IS ILLEGAL IN IT, AND THIS LIST USED TO ORDER THE OPPOSITE.** Its first bullet read _What was accomplished this session_ until 2026-09-08 -- so the skill every node runs at wrap-up instructed the precise thing the file's own name forbids, and a human then corrected it by hand, repeatedly, across projects. **A repeated correction is a document defect, not a discipline failure**: nodes were following the instruction they were given.
 
 Finished work already has homes that outlive the session and cannot rot -- the commit, the closed issue, the satisfied AC, `done.md`. **Restating it in `wip.md` gives one fact a second home whose only distinguishing property is that nobody updates it**, which is the divergence this section's own history is about.
 
@@ -76,7 +74,7 @@ Do NOT write new code during session finish. This step is documentation only. Co
 
 Before finishing, consider:
 
-- `/in-whiteboard release` -- pause this session's whiteboard node (fires automatically as step 1 if `intent/whiteboard/` exists)
+- `/in-whiteboard release` -- pause this session's whiteboard node (step 1 runs it when `intent/whiteboard/` exists AND the session is actually ending; a fold before `/compact` runs `touch` instead)
 - `/in-verify` -- verify any completion claims made this session
 
 ## Red Flags
