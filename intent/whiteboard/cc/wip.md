@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 12:37Z
+heartbeat_at: 2026-09-11 12:46Z
 status: active
-focus: "2026-09-11 12:37Z: #43 0083 IN FLIGHT (routed by vc). Held on hv: 0100 (decision 2, rung 17->18; shape (b) ruled), 0084 (decision 11, byte write). 0114 and 0141 are lane --. hv: no new work, these items ONLY; intent/wip.md is the authority. The 16 clippy lints are hv's decision 4."
+focus: "2026-09-11 12:46Z: nothing in flight; 0083 with vc at 8388b089. Held on hv: 0100 (decision 2, rung 17->18; shape (b) ruled), 0084 (decision 11, byte write). Next is what vc routes. hv: no new work, these items ONLY; intent/wip.md is the authority. The 16 clippy lints are hv's decision 4."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,7 +14,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**IN FLIGHT (2026-09-11 12:37Z): #43 `0083`** (vc routed it into my lane when it emptied). vc closed `0210`, and `0259` half 1 is verified with the row now dc's. The rest are held on hv (see `## Holds`).
+**NOTHING IN FLIGHT (2026-09-11 12:46Z).** `0083` is with vc at `8388b089`. vc has closed `0210`, and the rest are held on hv (see `## Holds`). Next is whatever vc routes into my lane, or a hold's condition coming true.
 
 **THE RULES ON THE BOUNCE (vc):** one item at a time, claimed here; the id in the commit subject; tell vc, who re-drives and closes it. The only new test allowed is the proving one, seen red. No new instruments, guards, criteria or threads. A defect found while fixing goes in the commit message, not on the list. **hv: _THERE IS NO NEW WORK TO BE DONE._** The list in `intent/wip.md` is the authority, and `intent issues list` is the live state. **Read the lane column there, never a copy here.**
 
