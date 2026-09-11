@@ -40,7 +40,7 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
    - The version string names the last NATIVE commit, so check the fix is an ancestor rather than expecting its sha.
    - Then drop the row (numbers do not shift), `prettier --write`, and commit the row plus `intent/.canon/issues/<id>.json`.
      **Between reports:** search `git log` full messages (`--grep`, not subjects) for fix commits naming a listed id after its filing.
-4. When dc reports `0283` half A: drive both halves together, then close. When dc reports `0259` half 2: drive it, then close.
+4. **`0283` half A LANDED at `62f2db60` (dc, rebased onto half B) -- re-drive both halves together on the bounce, then close.** dc's test reads the remedy out of doctor's own line, runs it, and checks doctor is clean; drive that same loop on my own closed-thread fixture. When dc reports `0259` half 2: drive it, then close.
 5. Act on each of hv's decisions (1-14) as its word arrives. Items 3, 4 and 5 are code and need hv's explicit go. Unblocked by a word: decision 2 frees `0100` (cc, shape ruled); 11 frees `0084` (cc, patch banked); 12, 13 and 14 close or free `0114`, `0220`, `0065`.
 6. At the cut: satisfy the nine cut-time rows by evidence, close ST0056 WP-07/11/12, then ST0056, ST0058, ST0068.
 
@@ -48,7 +48,7 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 
 ## Holds
 
-- **`0283` close** -- held until dc's half A lands. Half B is verified at fe8775ed; the row says so.
+- **`0283` close** -- both halves are in (B fe8775ed verified; A 62f2db60 not yet driven). Held only until vc re-drives A on the bounce.
 - **`0259` close** -- held until dc's half 2 lands (doctor must say when it answers from a store the same run flags stale). Half 1 is verified at d984b077.
 - **`0100`, `0084`, `0114`, `0220`, `0065`** -- held until hv answers decisions 2, 11, 12, 13 and 14 respectively. Each row names its decision.
 
