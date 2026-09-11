@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 11:05Z
+heartbeat_at: 2026-09-11 10:52Z
 status: active
-focus: "FOLDED FOR A COMPACT (hv's pause, 2026-09-11 11:05Z); this is not a release. ON THE BOUNCE: finish 0216 under vc's NARROWED ruling (the keep rule on the daemon's background ingest only, as a Load mode), prove it 0 lost in 6 of 6 plus AT-03.10 green, commit, then 0212. One id at a time; the id in the subject; tell vc; vc closes. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "FIRST LANE DONE; NOW vc's SECOND ASSIGNMENT: 0299, then 0216, then 0212. ONE ID AT A TIME, AND DO NOTHING ELSE (hv: no new work). My lane is docs, install, init, templates, config and daemon ops. Start at P2: 0275, 0277, 0193, 0274, 0122; then P3: 0301, 0285, 0187, 0078, 0302, 0235; then P4: 0162. Claim the id, commit with it in the subject, tell vc; vc closes the issue. Decision 6 is corrected. 0299 is reopened. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -39,30 +39,34 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**`0216` (#12, an ingest reverts a newer store write): BANKED 2026-09-11 11:05Z, NOT COMMITTED. Nothing of it is in the shared checkout.**
+**`0216` (#12, an ingest reverts a newer store write), CLAIMED 2026-09-11 10:52Z.** Mechanism read from source: `sync_from_disk` is a whole-store restore, so a writer's store commit that has not reached its canon file yet is dropped. The fix is 0260's provenance rule applied to the ingest, decided inside `rebuild`'s transaction. Meanwhile, measuring the fenced reproduction's baseline at clean HEAD.
 
-- **Where it is:** base `6967722c`; worktree `scratchpad/wt0216b` (index staged, never committed); patch `scratchpad/0216-v2.patch`, 4 files: `store.rs`, `ingest.rs`, `facade.rs`, `sync.rs`.
-- **What the patch does:** `Store::rebuild_deciding` runs the decision inside one IMMEDIATE transaction, beside cc's `warm_if_cold` and sharing cc's `replace_estate`. `read_file_index` is the one index reader. `sync::file_sha256` shares `entry_for`'s digest. In `ingest.rs`: `Recorded::disk_takes` is the one rule, plus `decide_estate` and `scoped_sections`, and `resync`'s `Load::Restore` arm decides under the lock. In `Facade::sync_from_disk`, the attachment carry's second wholesale rebuild became `rebuild_deciding`, applying only the carried attachments. `sync_overwrite` is gated by `disk_takes`.
-- **The rule:** a subject takes the disk's value only where its canon file carries bytes the store did not record. Bytes equal to the `file_index` record, never on disk and never recorded, or a file that moved during the ingest: the store's value is kept.
-- **The harness** (fenced repro, 2 contenders, depth 8, six runs, isolated HOME): baseline at `8e079be8` lost 1,0,2,2,1,1, so 7 rows with 5/6 runs red. The first cut (resync only) lost 1 row in 5/6 runs. The full patch (both paths) lost **0 in 6/6**.
-- **The second cause came from a failed run's `event_log`, not from a guess:** `ST0082` was minted as "Burst row 1" at .315 and re-minted by a contender at .325, and the ingest logged at .331. The only actor in that window is the second rebuild.
-- **ON THE BOUNCE, vc's NARROWED RULING (final; it supersedes "both paths"):** the keep rule applies ONLY to the daemon's background ingest, as a new `Load` mode on the same engine, beside `Restore` and `WarmIfCold`. Explicit `sync --to-store` stays `Load::Restore`, unchanged. The two `sync_direction.rs` tests under AT-03.10 stay exactly as they are and green. AC-03.9's text is unchanged. No help or doc edits. The OVERWRITES preview is unchanged, so revert the `sync_overwrite` gate. The decided Restore arm and the decided attachment carry both apply on the ingest mode only.
-- **Then:** rustfmt; the six-run harness (bar: 0 lost in 6/6) AND AT-03.10 green; commit with `0216` in the subject; report to vc with the baseline and the after. Every test run under an isolated HOME.
+- **Handed to vc, not mine to close:** `0275` at `59a63541` (CLOSED), `0277` at `89a7048b` (CLOSED), `0193` re-driven at `f38b6f02` with no page change (msg 4d43064e), `0274` at `5e8d974a` (CLOSED), `0122` at `6d6cc7fd` (CLOSED), `0301` at `6e478ec4` (CLOSED), `0187` at `827e4686` (CLOSED), `0285` at `2994bae3` (CLOSED), `0078` at `cdb41e97` (CLOSED), `0302` re-driven at `e8a4ef19` (CLOSED), `0235` at `56dc8b9f` (CLOSED), `0162` re-driven at `12434fb3` (CLOSED), `0299` at `0df12081` (CLOSED).
 
 ## TODO
 
-**vc's second assignment, in order:** `0216` (banked above), then #13 `0212` (a daemon ingest reverts a completed store write when the on-disk extract lags). My first lane (twelve ids) and `0299` are done: vc CLOSED `0275` `0277` `0193` `0274` `0122` `0301` `0187` `0285` `0078` `0302` `0235` `0162` `0299` on 2026-09-11. The commits are in `git log`, and the pre-fold board lists each one.
+**ON RETURN: THE ORDER HAS ARRIVED (vc, 2026-09-11 09:17Z). hv, verbatim: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._**
 
-**RULES ON THE BOUNCE:** claim the id, one at a time. Commit with the id in the subject, then tell vc; vc closes the issue after re-driving the fix. **A defect found while fixing goes in the commit message, not on the list.** **A docs item is the page edit, one commit with the id and the drive in the message, and nothing else** (vc, 2026-09-11): do not maintain AC-02.3 manifest rows or run the disposition check, and leave a stale manifest quote for the cut. **If a fix needs a file cc has dirty, stop and tell vc** rather than committing around it. **Build in a detached worktree off HEAD with a private or in-tree target, and run every test under an isolated HOME**: a test run from a worktree once rewrote `~/.intent/home`.
+The work is the numbered defect list in `intent/wip.md`, in 3.0.1 priority order. It is not copied here. **My lane is docs, install, init, templates, config and daemon operations.** P1 has nothing in my lane. My items, in order (all OPEN at 2026-09-11 09:17Z):
 
-- **ST0056:** my WPs 04 and 05 are Done; 07, 11 and 12 are WIP. The seven unsatisfied rows (AC-00.5, 00.6, 07.7, 11.1, 11.4, 12.1, 12.4) are all satisfied BY the cut.
-- **ST0058:** WIP. AC-00.1 (satisfied at the cut) and AC-00.3 (= decision 3) are unsatisfied. WP-01 is Done.
+- **P2, all five:** #18 `0275`, #19 `0277` (install.md), #20 `0193`, #21 `0274` (getting-started), #22 `0122`.
+- **Then P3:** `0301`, `0285`, `0187`, `0078`, `0302`, `0235`.
+- **Then P4:** `0162` (`intentd --help` starts a daemon).
+
+**RULES ON THE BOUNCE:** claim the id, one at a time. Commit with the id in the subject, then tell vc; vc closes the issue after re-driving the fix. **A defect found while fixing goes in the commit message, not on the list.** **A docs item is the page edit, one commit with the id and the drive in the message, and nothing else** (vc, 2026-09-11): do not maintain AC-02.3 manifest rows or run the disposition check, and leave a stale manifest quote for the cut.
+
+- **Decision 6 was corrected by vc in `intent/wip.md` and `hv/wip.md`:** the 15 are v3 tests that the harness points at v2; recommend keep. Read back at 2026-09-11 09:17Z.
+- **`0299` REOPENED (`81ff17d3`)**: `at lint` prints a sentence that is false about the user's file in the cross-thread case. XS. vc accepted it as a product defect; whether it goes before or after the cut is hv's call.
+- **`int local status`: after the cut** (vc, ruled under the pen; no criterion names it).
+- **ST0056:** my WPs 04 and 05 are Done; 07, 11 and 12 are WIP. The seven unsatisfied rows (AC-00.5, 00.6, 07.7, 11.1, 11.4, 12.1, 12.4) are all satisfied BY the cut. Driven 2026-09-11 09:15Z.
+- **ST0058:** WIP. AC-00.1 (satisfied at the cut) and AC-00.3 (= decision 3) are unsatisfied; the other four read yes. WP-01 is Done.
 - **THE STANDING BOUND ON WP-11:** design-and-build only. No tap repo, no `gh release`, no `scripts/release`, no push to either remote. AC-11.1 and AC-11.4 are outward-facing and are hv's.
-- **`int local status`: after the cut** (vc, ruled under the pen).
+
+**CULLED BY hv's LINE UNDER 3.0.1 (`6918a2e5`, vc executing), SO IT LEFT THIS LIST WITH A TRACE:** flip-then-burn; the AT-07.5 stop-the-daemon window; the `overhead` meter; the machine-cost question. AC-06.1, AC-00.16 and AC-04.6 were withdrawn. `0270`, `0300`, `0237`, `0271` and `0267` read CLOSED at 2026-09-11 09:15Z.
 
 ## Holds
 
-- **`0216`'s COMMIT IS HELD.** Condition: the narrowed build (daemon ingest only) is green on the six-run harness, 0 lost in 6/6, AND AT-03.10 is green. Don't commit a half.
+- **`0216`'s CODE IS HELD** (asked 2026-09-11 10:52Z, msg 9e3080ea). The fix needs a new `store.rs` method and cc has `store.rs` dirty. Condition: vc rules on the slot (after cc lands, or coordinated with cc) and on the scope (both sync paths, or the background ingest only).
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD** (`W69`). Re-drive a hold's condition at the moment you quote it; never re-read it off this line.
 
 ## Watch-outs
