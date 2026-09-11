@@ -50,7 +50,6 @@ intent_version: 3.0.0
 | 36  | `0240` | medium | ic   | `edit` returns a path at rc=0 for an AC, AT or attachment that does not exist.      |
 | 38  | `0097` | medium | cc   | `ingest --from-md` prints ok and writes nothing.                                    |
 | 39  | `0069` | medium | cc   | `sync` misdescribes its own scope, twice.                                           |
-| 40  | `0302` | medium | dc   | A live daemon can outlive its socket and look like a clean machine.                 |
 | 41  | `0235` | medium | dc   | A running intentd cannot say which build it is.                                     |
 | 42  | `0195` | medium | ic   | `intent search` reports every hit at line 0.                                        |
 | 43  | `0083` | low    | ic   | `st hydrate` reports exists for a file it just created.                             |
