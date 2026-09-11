@@ -67,7 +67,7 @@ vc directs. Size XL. **Estate** is read as this repository; the tap's README is 
 
 Each is recorded in the named commit's message. None is on a list until hv rules.
 
-1. **A version bump turns every realised view into doctor view-skew** (`36839061a`). The banner carries the tool version; the finding blames a hand edit; for an unlisted thread its only remedy, `st hydrate`, also pins it. 24 banner-only views on 9 unlisted threads here, and a user upgrading from 3.0.0 will likely see the same. The release preflight's doctor refuses until this is resolved.
+1. **A version bump turns every realised view into doctor view-skew** (`36839061a`). The banner carries the tool version; the finding blames a hand edit; for an unlisted thread its only remedy, `st hydrate`, also pins it. `intent doctor --scope all` lists the banner-only views here, and dc reproduced it on a clean project upgraded from 3.0.0, so a user upgrading will see the same. The release preflight's doctor refuses until this is resolved.
 2. **A stranger's `brew tap` may refuse our tap as untrusted** (`549031396`, dc). Seen on Homebrew main with an empty trust store; not measured on stable. If stable does it too, the install docs need `brew trust --tap matthewsinclair/intent` first.
 3. **Linux and Intel macOS binaries are not built.** hv, 2026-09-11: _"I only care about macOS and Linux."_ The formula is macOS arm64 by `depends_on`, and taps cleanly everywhere. A Linux build, package and publish is size L.
 4. **CI did not run for 3.0.1** (no credit; hv waived it). The rust.yml clippy-to-zero and the tests.yml bats-on-v3 changes are unexercised by CI. The local evidence is fmt, clippy -D warnings, and both suites green at `1409aff70`, plus the release preflight's suites at the tag.
