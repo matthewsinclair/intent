@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 14:40Z
+heartbeat_at: 2026-09-11 14:54Z
 status: active
-focus: "FOLDED FOR hv's SECOND PAUSE (2026-09-11 14:40Z, relayed by vc); this is not a release. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. 0150 landed at c9960b90, with vc. ON THE BOUNCE: #71 0259 half 2, not started. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "FOLDED FOR hv's SECOND PAUSE (2026-09-11 14:40Z, relayed by vc); this is not a release. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. 0150 landed at c9960b90, with vc. ON THE BOUNCE: #71 0259 half 2 (not started), then 0065, then decision 2's notice -- hv ruled both, relayed by vc 14:54Z. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -52,7 +52,10 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## TODO
 
-**vc's column for me:** `0259` HALF 2 is the last item, and the bounce starts there (vc 2026-09-11 14:40Z). `0172` moved to cc. When it lands, ask vc for the column rather than inventing work.
+**vc's column for me, in order:** `0259` HALF 2, then `0065`, then decision 2's notice. The bounce starts at 0259 (vc 2026-09-11 14:40Z). The last two joined on hv's rulings, relayed by vc at 2026-09-11 14:54Z; `intent/wip.md` did not yet record them at that read. Decision 10 is also ruled: 3.0.1 ships every workable row, so 0259 half 2 is in. `0172` moved to cc. When all three land, ask vc for the column rather than inventing work.
+
+- **`0065` (decision 14, ruled: my S design as written):** the key is `"doctor": {"acknowledged": {"<finding-class>": "<reason>"}}` in project config, using the FindingClass kebab name. An acknowledged class still RUNS and still prints `acknowledged: <class> -- <reason> (N finding(s))` in place of its warnings. **Its findings DROP OUT of the finding count and the exit code** (my original wording; "leaves" in decision 14's text means departs). `--format json` carries `acknowledged: true` and the reason. An acknowledgement naming no real class is itself reported, so a typo cannot silence a check. The write path is a hand edit. One test.
+- **Decision 2's notice (docs item):** one CHANGELOG line and one backup sentence in the migration docs, saying that 13 -> 17 and the new 17 -> 18 rung (`0100`, cc) cannot be reversed. Before claiming 17 -> 18, check whether cc's `0100` has landed; do not describe a rung the tree does not have.
 
 - **`0259` HALF 2 START HERE (#71):** in one `intent doctor` run, `model-inconsistent` flags the runtime store stale while checks computed FROM that store (eg view-skew) print green. A check that answers from the runtime store must say so when the same run reports that store stale. NOT the doctor remedy offering to delete `intent/.cache/` (not on the list). Half 1 is fixed at `d984b077`. Read `intent issues show 0259` section 2 first.
 
