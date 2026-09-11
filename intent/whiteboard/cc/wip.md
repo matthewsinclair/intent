@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-11 17:13Z
+heartbeat_at: 2026-09-11 17:18Z
 status: active
-focus: "AC-00.6 (the cut): my eight mixed bats files. 2 v2 tests deleted in a private worktree, 13 v3 differences with vc for ruling; lands as ONE commit after dc's prune, rebased. Suites run only in a private worktree under an isolated HOME."
+focus: "LOCALFOLD 2026-09-11 17:18Z FOR THE COMPACT -- not a release. AC-00.6 BANKED, NOTHING ON MAIN: critic --rules fix (S) + two v2 test deletes in wt-cut, rulings B-G not yet applied, critic_config 6 with vc. On the bounce: WAIT for vc's word that dc's prune is on main. Suites only in a private worktree under an isolated HOME."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,11 +14,16 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**FOLDED 2026-09-11 16:50Z FOR THE COMPACT -- not a release. HOLDING WHILE vc CUTS 3.0.1.** The board before this fold is verbatim at `.history/20260911/wip-prefold-1650Z.md`, and every fix is in `git log` under its id. Every cc item is closed, re-driven by vc before each close (`0066`, `0084`, `0100`, `0145`, `0146`, `0153`, `0176`, `0231`), and hv's decisions 4 (`7d3ffe61`), 5 (`32958364`) and 7 (`56322937`; AC-01.7 satisfied at `23bca1b1`, notarised as `afbcaa0b`) are verified. The list has no workable row.
+**LOCALFOLD 2026-09-11 17:18Z FOR THE COMPACT -- not a release. NOTHING OF MINE IS ON MAIN OR DIRTY IN THE SHARED TREE.** The pre-fold board is at `.history/20260911/wip-prefold-1650Z.md`; the rest is in `git log`.
 
-**AC-00.6 (THE CUT), ROUTED BY vc, CONFIRMED BY hv LIVE:** my eight mixed bats files -- `claude_md_template`, `co_language_code_guard`, `critic_arming_census`, `critic_config`, `critic_report_format`, `devbin_seal_disagreement`, `ext_seed_validity`, `no_absolute_home_paths`. Driven in private worktree `wt-cut` (v2 deleted locally, its own release build, isolated HOME). **Deleted (v2 subject):** `critic_arming_census` test 9 (v2 critic wording), `no_absolute_home_paths` test 4 (greps the deleted v2 `intent_claude_upgrade`). **With vc for ruling:** 13 tests in groups A-G (`critic --rules` not honoured; JSON shape; the template's rule index; `INTENT_AUTHOR`; an IN-CO fixture id collision; a stale devbin grep; `ext` unbuilt). Patch banked at scratchpad `ac006-cc.patch`. **Lands as ONE commit, `AC-00.6` in the subject, only after dc's prune is on main** -- then send vc the sha and the per-file counts.
+**AC-00.6 (THE CUT), vc's ROUTING, hv CONFIRMED LIVE -- BANKED, NOT LANDED.** My eight mixed bats files. **LANDING ORDER (vc): vc's canon commit, then dc's prune, then my critic fix (its own commit, `AC-00.6` and `critic --rules` in the subject), then my test commit (`AC-00.6` in the subject), each rebased. On the bounce WAIT for vc's word that dc's prune is on main.** Send vc both shas and the per-file counts.
 
-`wt-cc` is removed: vc restored `~/.intent/home` on hv's word, and it reads the main checkout.
+- **Worktree:** scratchpad `wt-cut`, detached at `e70b667f`, v2's `bin/intent*` deleted locally (unstaged -- never part of a patch), its own release build at `native/rust/target/release/intent`. Run bats as `HOME=<scratchpad>/hcut INTENT_BIN=<wt-cut>/native/rust/target/release/intent bats tests/unit/<f>.bats`.
+- **Critic fix, DONE, came in at S:** `Library::at(root, ext)` in `rules.rs` (`new` builds through it); the critic roots at `--rules <dir>` and refuses a non-directory by name. Patch: scratchpad `ac006-critic-rules.patch` (sha256 `d208f18fc63598ea`), applies to main.
+- **Deletes, DONE (vc confirmed):** `critic_arming_census` "absent tool: a tool-armed rule reports NOT RUN rather than passing quietly" (v2 critic wording); `no_absolute_home_paths` "the canon engine has no INTENT_HOME substitution left to reintroduce it" (greps the deleted v2 `intent_claude_upgrade`). Patch: scratchpad `ac006-cc.patch` (`4c04cc36446f2377`).
+- **vc's rulings B-G, NOT YET APPLIED:** (B) `critic_report_format` 5 and 6 read `.findings` (and `.rule`, not v2's `.rule_id`; 6 asserts `.findings == []`). (C) DELETE `claude_md_template` 8, naming `agents_sync_parity.rs::the_four_rule_index_is_byte_identical_in_every_template_that_carries_it`. (D) `claude_md_template` 14: git identity `user.name TestUser` in the fixture instead of `INTENT_AUTHOR`, assert TestUser in CLAUDE.md and config -- if v3 honours no author source, STOP and tell vc. (E) the `co_language_code_guard` fixture to an IN-CO id no canon rule declares. (F) `devbin_seal_disagreement` 9's grep to `resolve:513`'s current form, keeping no-elif. (G) DELETE `ext_seed_validity` 16, citing `0177`.
+- **With vc for ruling:** `critic_config` 6 went red once `--rules` worked -- its fixture `config.json` lacks `intent_version`, `Project::discover` errors, and the critic's `.ok()` drops `.intent_critic.yml` silently. Fixture or product.
+- **Counts now (fix + two deletes):** claude_md_template 12/2, co_language_code_guard 3/1, critic_arming_census 18/0, critic_config 9/1, critic_report_format 5/2, devbin_seal_disagreement 8/1, ext_seed_validity 17/1, no_absolute_home_paths 6/0. Each must end N/N.
 
 ## TODO
 
