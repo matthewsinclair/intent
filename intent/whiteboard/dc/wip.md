@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 17:17Z
+heartbeat_at: 2026-09-11 17:50Z
 status: active
-focus: "FOLDED FOR hv's COMPACT (2026-09-11 17:17Z); this is not a release. BANKED: the AC-00.6 prune + decision 6, STAGED in worktree scratchpad/wtd6 off c1a2f623 (86 paths) and saved as scratchpad/d6-prune.patch; message scratchpad/msgd6.txt. ON THE BOUNCE: wait for vc's canon commit sha (the 73 ATs), then re-apply, re-gate, release dry-run, land, send vc the sha; then the docs/reference regen waits for vc. vc is in charge of the release. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "THE 3.0.1 CUT, vc holds the pen. The AC-00.6 prune + decision 6 is ON MAIN at d5998ac3 (2026-09-11 17:50Z); vc has the sha and the dry-run verdict. HOLDING: the whole docs/reference regen waits for vc's word after the step-4 suite. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -40,23 +40,23 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**BANKED FOR THE COMPACT, NOT IN FLIGHT: the AC-00.6 prune + decision 6, one atomic commit, ruled by vc under the pen.** Staged (uncommitted) in the detached worktree `scratchpad/wtd6` at `c1a2f623`; the same change is saved as `scratchpad/d6-prune.patch` (86 paths: 79 deletions, 7 modifications) with its commit message in `scratchpad/msgd6.txt`. A commit in the worktree was REFUSED by the gate's `absent_at_check.sh`: 75 green AT rows cited deleted files. hv chose the EVIDENCE route and vc runs it: each criterion goes non-test, satisfied by evidence of its bats witness green at close, and each row goes to non-test n/a (vc counts 73 rows over 69 criteria).
+**Nothing in flight. The AC-00.6 prune + decision 6 is ON MAIN at `d5998ac3`** (parent `3b8cd387`; 86 paths, 67+ / 26281-), landed with one `add` + `commit --only` call on vc's GO. vc has the sha and the dry-run verdict (2026-09-11 17:50Z).
 
-- **What the prune is:** delete `bin/intent` and the 25 `bin/intent_*`, `intent/plugins/agents/bin/intent_agents`, `tests/conformance/run_v2_suite.bash`, and the 51 v2-door bats files named in `msgd6.txt`; `test_helper.bash` defaults `INTENT_BIN` to `native/rust/target/release/intent`; `run_tests.sh` defines `error`/`info` itself; `tests.yml` builds v3 before bats; `pr-checks.yml` builds v3 and asks its `st show`; `tests/README.md` at directory level; one-line fixes in the kept `intent_bin_retarget_guard.bats` and `shell_error_voice.bats`.
-- **Proofs already taken:** kept 51 = 543/543; whole suite 693 ok / 50 not-ok, all 50 in the 16 mixed files (cc and ic do surgery on those AFTER this lands; red by design until then); `cutover_guard.bash` rc=0 on the PRE-prune tree (it refuses post-prune by design); the gate green except the absent-AT check.
-- **ON THE BOUNCE, in order:** (1) wait for vc's canon-commit sha; (2) move `wtd6` onto it and `git apply` the patch (or re-stage), copy `.githooks/pre-commit.intent` into the worktree (gitignored, so no worktree has it), commit there so the gate runs; (3) `bin/devbin build release --dry-run --patch` on that clean tree -- preflight must pass up to the suite; (4) land on main with `add` + `commit --only` over the 86 paths; (5) send vc the sha; (6) HOLD for vc's word on the release commit, then regenerate the WHOLE of `docs/reference` at it (`gen_reference.sh` + `gen_cut_surface.sh`, prettier'd, "cut" in the subject) and tell vc the sha and the shipped-documented count.
-- **Found while, in `msgd6.txt`:** `bin/.devbin/cmd/suite` assumed only `run_v2_suite` needed v3 and `--with-build` builds DEBUG, so `int suite` breaks now that every bats file drives the release binary. Routed to vc.
+- **How it got there:** `wtd6` was moved onto vc's cut step 1 (`7c40da0a`, the 75 AT rows retired by evidence) and the patch re-applied unchanged. No path of the 86, and no Rust source, changed in `c1a2f623..7c40da0a`. The worktree gate passed at `4942340b` (absent-citation: 238 rows, none missing). `git diff d5998ac3 4942340b` over the 86 is empty.
+- **Release dry-run** (`bin/devbin build release --dry-run --patch`, in a `--shared` clone with main at `4942340b`, every pushurl disabled, HOME isolated): preflight passes the clean tree, main, remotes, frozen and doctor, then stops at the suite as ruled. The suite reads 693 ok / 50 not ok, and all 50 map by test name to the 16 mixed files. cc and ic land their surgery next, on vc's relay.
+- **Fresh-clone fact, told to vc:** doctor in a fresh clone refuses on `backup-stale` until one `intent backup`; the live tree has snapshots.
+- **Manifest:** `bin/.devbin/manifest.sha256` was not mine. I showed its restamp was true (Devbin `65895b59..3bfa922d` touches no vendored file; every hash checks), and vc committed it on its own at `3b8cd387`.
+- **Found while, in the prune's message:** `bin/.devbin/cmd/suite --with-build` builds DEBUG while every bats file now drives the release binary. Routed to vc.
 
-**With vc, delivered today:** `0150` (`c9960b90`) and `0065` (`5493dd28`) -- OPEN pending vc's close; decision 3 VERIFIED (`dbe12d29` + `55412f26`); decision 2 CLOSED at `944fdc02` (`c2ea14c1`, `3027ac56`, `e71dbeec`); 0212, 0259, 0283 CLOSED. **Off my column by ruling:** `0177`, `0220`.
+**With vc, delivered today:** `0150` (`c9960b90`) and `0065` (`5493dd28`) -- OPEN pending vc's close; decision 3 VERIFIED (`dbe12d29` + `55412f26`); decision 2 CLOSED at `944fdc02`; 0212, 0259, 0283 CLOSED. **Off my column by ruling:** `0177`, `0220`.
 
 ## TODO
 
-**Nothing beyond the banked prune and the regen above.** vc is in charge of the release and corrals the nodes. Do not invent work.
+**Only the regen held below.** vc is in charge of the release and corrals the nodes. Do not invent work.
 
 ## Holds
 
-- **HOLD the prune until vc sends its canon-commit sha** (the 73 evidence re-kinds). Condition: that sha exists and the absent-AT check passes on it.
-- **HOLD the whole `docs/reference` regen until vc names the release commit.** Condition: vc's word that the release commit exists, so the pages stamp the tagged sha.
+- **HOLD the WHOLE `docs/reference` regen (ST0068 AC-04.2) until vc's word, which comes after vc's step-4 suite is green.** Condition: vc names the sha to stamp. Then run `gen_reference.sh --rev <sha> --out` + `gen_cut_surface.sh`, prettier'd, in its own commit with "cut" in the subject, and tell vc the sha and the shipped-documented count.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD** (`W69`). Re-drive a hold's condition at the moment you quote it; never re-read it off this line.
 
 ## Watch-outs
