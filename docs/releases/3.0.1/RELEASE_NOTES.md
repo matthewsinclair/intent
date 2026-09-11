@@ -2,7 +2,7 @@
 
 **v3.0.1 is a correctness release for people already running v3.0.0.** It repairs a packaging fault that left a Homebrew install without part of its support tree, and two defects in the criteria surface that destroyed authored text without failing.
 
-**If you installed v3.0.0 from Homebrew, upgrade.** Two of the three faults below are in the build you have, and one of them is silent.
+**If you installed v3.0.0 from Homebrew, upgrade.** The packaging fault below is in the build you have, and it is silent: the affected commands succeed with nothing to show.
 
 ## Provenance
 
@@ -10,9 +10,9 @@
 
 ## Fixed
 
-**A Homebrew install of v3.0.0 has no rule library and no skills.** The formula's copy list did not match what the binary resolves at runtime, so the keg is missing `intent/plugins/claude/rules/` and `intent/plugins/claude/skills/`. The failure is per-command rather than global, which is why it survived: `intent st` and the rest work normally, and only `intent claude rules list`, `intent claude rules show`, `intent critic <lang>` and the skills verbs fail. **There is no workaround in v3.0.0 short of a source install**; the fix ships here, and the copy list is now checked against its consumer rather than maintained beside it.
+**A Homebrew install of v3.0.0 has no rule library and no skills, and the verbs that read them succeed empty rather than failing.** The formula's copy list did not match what the binary resolves at runtime, so the keg is missing `intent/plugins/claude/rules/` and `intent/plugins/claude/skills/`. `intent st` and the rest work normally. On that keg `intent claude rules list` and `intent claude skills list` exit 0 and list nothing, `intent claude rules show <id>` says there is no rule with that id, and `intent critic <lang>` reports `ok` at exit 0 over zero rules. **The critic is the dangerous one: it reports a clean result over rules it never had**, so anything built on its exit code, a pre-commit gate included, passes. That is also why the fault survived: nothing failed. **There is no workaround in v3.0.0 short of a source install**; the fix ships here, and the copy list is now checked against its consumer rather than maintained beside it.
 
-**The same keg cannot run `intent claude ws` or `intent claude start`.** The support tree also omitted `intent/plugins/claude/bin/intent_claude_cwi`, which both resolve against, so the whiteboard provisioner is unavailable on a Homebrew install of v3.0.0. **The keg contradicts itself on this**: the whiteboard skill it ships says scaffolding a node is the job of `intent claude ws new`, and the same keg cannot run that command. It is one fix with the trees above, not a second one.
+**`intent claude ws` and `intent claude start` did not run in v3.0.0 on any install.** Both were declared and unimplemented, answering `is a known command that is not implemented yet` at exit 2, so the whiteboard provisioner was unavailable. v3.0.1 implements them, and ships `intent/plugins/claude/bin/intent_claude_cwi`, the launcher they run, which the v3.0.0 keg did not carry either.
 
 **`intent ac new` on an id that already exists destroyed the row it collided with, and there was no edit verb to reach for instead.** In v3.0.0 the create overwrote the criterion's text, kind and state, reporting success. It now refuses, names the id it would have overwritten, and points at the verb that does the thing you meant. **This was the most expensive command in the tool**: the ordinary way to hit it is to retype a criterion you meant to reword, which is exactly when the row you destroy is the one you were being careful about. `intent at new` carried the same shape and is refused the same way.
 
@@ -38,7 +38,19 @@
 
 **A hit that survives both verbs is expected in one place, and knowing that is the difference between a diagnosis and a dead end.** `intent/llm/RULES.md` -- and on a project migrated from v2, any `intent/llm/RULES-<lang>.md` beside it -- is a **v2-era generated artefact that no v3 verb owns.** v3 retired template-based language init: `intent lang init` now declares the language and installs nothing into the project, and `intent claude upgrade --apply` writes the canon set without touching `intent/llm/` at all. **So a fork there needs a hand edit, and re-running the remediation will never clear it.** Without that, three different outcomes -- a false positive, a fork a verb repairs, and a fork no verb owns -- produce the same output and read as the remediation not working.
 
+**`intent critic --rules <dir>` was accepted and never read.** A run given a rules tree ran the installed rules instead and could report clean. The run is now rooted where the flag says, and a `--rules` path that is not a directory is refused by name.
+
+**A project config that would not read was ignored in silence by `intent critic`**, so every rule `.intent_critic.yml` disables was back on, with nothing saying why. The critic now warns on stderr, naming the config and the parse error, and still runs: the pre-commit gate calls it in every project, so a config quirk must not wedge a commit.
+
 ## Added
+
+**The Intent menubar app ships, as `Intent.app.zip` on the GitHub release.** It is a universal bundle for macOS 14 or later, Developer ID signed with the hardened runtime and notarised by Apple, and its notarisation ticket is stapled to the bundle itself, so Gatekeeper can check it offline. It lives in the menubar with no dock icon, and it holds no product logic of its own: it runs the `intent` CLI it finds on your login shell's `PATH`, so install the CLI first. **The Homebrew formula installs the CLI pair (`intent` and `intentd`) only, not the app.** To install it:
+
+```
+  1. Download Intent.app.zip from the v3.0.1 GitHub release.
+  2. Unzip it.
+  3. Move Intent.app to /Applications, and open it.
+```
 
 **`intent ac edit`** — change a criterion's text without touching its satisfaction. This is the verb `ac new` now points at, and its absence is what made the destructive create reachable.
 
@@ -48,9 +60,15 @@
 
 **`intent st edit` opens an editor on a terminal and prints the path into a pipe.** In v3.0.0 it printed the path in both cases. `--editor` and `--path` force either branch, and they exist for a stated cost rather than for symmetry: a bare terminal test makes behaviour depend on an invisible property of the environment, so a wrapper, a CI job or an editor plugin gets a different result with nothing in the command saying why. **If you have scripted `intent st edit` expecting a path on stdout, you are already in the branch that still prints one** — a script's stdout is not a terminal — but the override is there to say so explicitly.
 
+**`intent critic` refuses at exit 2 when its rule library is empty.** v3.0.0 reported `ok` at exit 0 over zero rules, which is what a Homebrew install of v3.0.0, missing its library, still does. A project whose `.intent_critic.yml` disables every rule for a language is not that case: it exits 0, and the report says how many rules were disabled.
+
 ## Removed
 
-**Nothing that worked in v3.0.0 is removed here.** If you have a working script, this release does not break it.
+**Nothing that worked in an installed v3.0.0 is removed here.** If you have a working script against the `intent` command, this release does not break it. What follows is commands that never ran, and a source implementation the Homebrew install never carried.
+
+**The v2 shell implementation is gone from the repository**: `bin/intent` and the 25 `bin/intent_*` scripts. This only affects someone running `bin/intent` from a checkout of the Intent repository. The Homebrew install never shipped it, and the installed `intent` is the v3 binary. `bin/int`, `bin/devbin` and `bin/.devbin/` stay. The repository's shell test suite now drives the v3 binary, and the tests whose only subject was the v2 shell went with it.
+
+**`intent st bootstrap`, `intent agents template` and `intent claude prime` are now declared retired, and none of them ever ran.** In v3.0.0 each answered `is a known command that is not implemented yet` at exit 2; each now answers `was retired in Intent v3 and is not a command in this build`, also at exit 2. **`intent init --with-st0000` goes with them.** v3.0.0 refused the flag at exit 2 because the ST0000 bootstrap was not implemented; v3.0.1 no longer recognises it, so it fails as an unexpected argument at exit 1. A script using any of the four failed before this release and fails after it. Only the flag's exit code moves, from 2 to 1.
 
 **`intent st repair` is now declared retired, and it never ran.** In v3.0.0 it was a declared command with no implementation: invoking it answered `intent st repair is a known command that is not implemented yet`. It now answers `intent st repair was retired in Intent v3 and is not a command in this build`. **The message changed and the capability did not, because there was none.** A script calling it failed before this release and fails after it.
 
@@ -61,10 +79,10 @@
 ```
   $ brew upgrade matthewsinclair/intent/intent
   $ intent --version
-  $ intent claude rules list
+  $ intent claude rules show IN-AG-PFIC-001
 ```
 
-**The third line is the check that the support tree actually arrived**, which is the fault this release exists to fix. It is the direct test rather than a proxy: that command reads the rule library out of the install, so it fails on exactly the packaging fault described above and succeeds only if the tree is there. Run it once rather than assuming.
+**The third line is the check that the support tree actually arrived**, which is the fault this release exists to fix. **Read what it prints, not only its exit code**: it should print the rule, headed `# Rule: IN-AG-PFIC-001`. On an install missing the tree it says there is no rule with that id and exits 1. **Do not use `intent claude rules list` for this.** On the faulty v3.0.0 keg it exits 0 with a header and no rules, so a check on its exit code passes on exactly the fault it is meant to catch. Run the check once rather than assuming.
 
 **Your runtime store is migrated on first open, and the upgrade is a ONE-WAY DOOR.** v3.0.0 wrote schema version 13 and v3.0.1 speaks 18. The first v3.0.1 command to touch a project migrates its store in place, through both steps (13 -> 17, then 17 -> 18), without asking -- and **nothing migrates it back from either.** A store written by a newer `intent` than the one you are running is refused outright, with the remedy stated as _upgrade intent rather than migrating the store down_. Forward is implemented; backward is not. **So take a snapshot with v3.0.0 first:** `intent backup` writes the store, still at schema 13, to `intent/.backup/db/`, and copying that file back over `intent/.cache/intent.db` by hand is the only way back to v3.0.0 that always works -- no restore verb ships, and anything written after the snapshot is lost with it. Deleting `intent/.cache/` instead lets v3.0.0 rebuild the store from committed canon, but only while that canon carries nothing v3.0.1 alone writes -- a work package's carried v2 status (`status_legacy`) or an attachment that is not UTF-8 text makes v3.0.0 refuse the canon outright -- and it gives up everything the store held beyond canon, the event log included.
 
