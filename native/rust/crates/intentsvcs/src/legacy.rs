@@ -47,6 +47,9 @@ const ST_TEMPLATE_REV: &str = "0b1b3b5b";
 const WP_TEMPLATE_PATH: &str = "lib/templates/prj/st/WP/info.md";
 const WP_TEMPLATE_REV: &str = "0b1b3b5b";
 const WP_TEMPLATE_SUBST: &str = "bin/intent_wp:113";
+// Its own revision, not the template's: line 113 is blank at 0b1b3b5b, and
+// the prune deleted the file, so an unpinned line number points at nothing.
+const WP_TEMPLATE_SUBST_REV: &str = "27c4ec98";
 
 /// What the migration decided about one section, and why.
 ///
@@ -1282,7 +1285,7 @@ fn work_packages(project: &Project, dir: &Path, closed: bool, out: &mut Scan) ->
           heading: heading.clone(),
           verdict: Verdict::Dropped,
           reason: format!(
-            "byte-identical to `{WP_TEMPLATE_PATH}` at {WP_TEMPLATE_REV} with `WP-NN` substituted per `{WP_TEMPLATE_SUBST}`: no author wrote it"
+            "byte-identical to `{WP_TEMPLATE_PATH}` at {WP_TEMPLATE_REV} with `WP-NN` substituted per `{WP_TEMPLATE_SUBST}` at {WP_TEMPLATE_SUBST_REV}: no author wrote it"
           ),
         }),
         false => kept.push((heading.clone(), text.clone())),
