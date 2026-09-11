@@ -156,27 +156,48 @@ fn declare_default_if_absent(project: &Project, threads: &[Thread]) -> Result<()
   std::fs::write(&path, intentfiles::default_declaration(&open))
 }
 
+/// The per-machine artefacts a converged project ignores, each a PATH under the
+/// intent directory with the line that says why -- the same class Intent
+/// ignores in its own tree.
+///
+/// **`events.jsonl` joined `.cache/` for issue `0101`.** D53 ruled the event log
+/// has one home, the store, and that the file is deleted and untracked; its only
+/// writer is `intent export`. Intent's own `.gitignore` carried that rule while
+/// this converger, which gives every OTHER estate its rules, knew only one
+/// member of the class.
+const IGNORED: &[(&str, &str)] = &[
+  (
+    ".cache/",
+    "The Intent runtime store: per-machine, rebuilt from the committed extract.",
+  ),
+  (
+    "events.jsonl",
+    "The event log lives in the store (D53); its file form is produced by `intent export`.",
+  ),
+];
+
 fn converge_gitignore(project: &Project) -> Result<(), std::io::Error> {
-  let rule = format!(
-    "{}/.cache/",
-    project
-      .intent_dir()
-      .file_name()
-      .map(|n| n.to_string_lossy().into_owned())
-      .unwrap_or_else(|| "intent".to_string())
-  );
+  let dir = project
+    .intent_dir()
+    .file_name()
+    .map(|n| n.to_string_lossy().into_owned())
+    .unwrap_or_else(|| "intent".to_string());
   let path = project.root().join(".gitignore");
   let current = std::fs::read_to_string(&path).unwrap_or_default();
-  if current.lines().any(|l| l.trim() == rule) {
+  let mut next = current.clone();
+  for (member, why) in IGNORED {
+    let rule = format!("{dir}/{member}");
+    if next.lines().any(|l| l.trim() == rule) {
+      continue;
+    }
+    if !next.is_empty() && !next.ends_with('\n') {
+      next.push('\n');
+    }
+    next.push_str(&format!("\n# {why}\n{rule}\n"));
+  }
+  if next == current {
     return Ok(());
   }
-  let mut next = current;
-  if !next.is_empty() && !next.ends_with('\n') {
-    next.push('\n');
-  }
-  next.push_str("\n# The Intent runtime store: per-machine, rebuilt from the committed extract.\n");
-  next.push_str(&rule);
-  next.push('\n');
   std::fs::write(&path, next)
 }
 
@@ -2153,7 +2174,7 @@ impl Facade {
         &ingest::canon_paths(project, &threads, &issues),
       )?;
       converge_gitignore(project).map_err(|cause| FacadeError::MigrationHalted {
-        step: "adding the store to .gitignore",
+        step: "adding the per-machine artefacts to .gitignore",
         cause,
       })?;
       converge_formatter_exclusion(project).map_err(|cause| FacadeError::MigrationHalted {

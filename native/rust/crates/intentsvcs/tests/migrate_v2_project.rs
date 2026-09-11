@@ -306,6 +306,12 @@ fn a_clean_estate_converges_its_gitignore_by_path_and_not_by_glob() {
     ignored.lines().any(|l| l.trim() == "intent/.cache/"),
     "the runtime store is not gitignored after a migration: {ignored:?}"
   );
+  // Issue 0101: the other member of the per-machine class. D53 untracks the
+  // event log's file form everywhere, and Intent ignores it in its own tree.
+  assert!(
+    ignored.lines().any(|l| l.trim() == "intent/events.jsonl"),
+    "the event log's file form is not gitignored after a migration: {ignored:?}"
+  );
   assert!(
     !ignored.contains("*.db"),
     "the ignore rule is a PATH rule -- `*.db` would swallow a database the operator \
