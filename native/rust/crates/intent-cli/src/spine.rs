@@ -784,8 +784,17 @@ fn placeholder(value: &str) -> &str {
 /// they print and exit 0.
 pub fn parse(argv: Vec<String>) -> Result<clap::ArgMatches, i32> {
   let table = dispatch::table();
-  match build(&table).try_get_matches_from(argv.clone()) {
-    Ok(matches) => Ok(matches),
+  let root = build(&table);
+  match root.clone().try_get_matches_from(argv.clone()) {
+    Ok(matches) => {
+      // Before any verb runs, so a refusal here writes nothing: no row, no
+      // event, no file. See `title_token_refusal` (issue 0223).
+      if let Some(refusal) = title_token_refusal(&root, &matches, &argv) {
+        eprintln!("{refusal}");
+        return Err(EXIT_ERROR);
+      }
+      Ok(matches)
+    }
     Err(e) => {
       use clap::error::ErrorKind;
       match e.kind() {
@@ -907,6 +916,107 @@ fn ambiguous_prefix_refusal(root: &clap::Command, argv: &[String]) -> Option<Str
     };
   }
   None
+}
+
+/// A `title` that is exactly a name the verb's own command group already uses,
+/// typed bare, is refused rather than created (issue 0223).
+///
+/// **`st new help`, `st new start` and `issues add severity` each created a
+/// permanent artefact at rc=0**, and this project's register carries seven of
+/// them in two episodes. They are machine-paced, so the source is a walker
+/// rather than a typist, and a confirmation prompt is no defence against that.
+/// **The string is not what is refused.** An issue about the help system may
+/// be titled `help`, and `intent st new -- help` still creates it. What is
+/// refused is the one shape the walker produces: the whole title, bare, equal
+/// to a subcommand name or a long-flag name of that verb's group.
+///
+/// **THE POPULATION IS READ FROM THE BUILT TREE, NEVER LISTED.** A verb or a
+/// flag added to the table joins it by construction, the way
+/// `ambiguous_prefix_refusal` stays in step with clap. The verbs it guards are
+/// found the same way: whichever leaf declares a `title` positional.
+///
+/// **`--` IS READ OFF THE ARGV CLAP WAS HANDED, BECAUSE CLAP DOES NOT KEEP IT.**
+/// In clap_builder 4.6.6, `Parser::get_matches_with` meets `--`, sets a local
+/// flag and `continue`s without advancing `cur_idx`, so `index_of` cannot see
+/// it. Its only record is `PendingArg.trailing_idx`, which is `pub(crate)` and
+/// never reaches `ArgMatches`. So the matches for `st new help` and
+/// `st new -- help` are identical. This is one positional comparison, not a
+/// second parser: the door is open only when a literal `--` sits BEFORE the
+/// title's last occurrence. A trailing `wp new ST0001 help --` has no `--`
+/// ahead of its title, so it refuses like the bare form.
+fn title_token_refusal(
+  root: &clap::Command,
+  matches: &clap::ArgMatches,
+  argv: &[String],
+) -> Option<String> {
+  let mut group = root;
+  let mut leaf = root;
+  let mut leaf_matches = matches;
+  let mut path: Vec<&str> = Vec::new();
+  while let Some((name, sub)) = leaf_matches.subcommand() {
+    group = leaf;
+    leaf = leaf.find_subcommand(name)?;
+    path.push(name);
+    leaf_matches = sub;
+  }
+  if !leaf.get_positionals().any(|a| a.get_id() == "title") {
+    return None;
+  }
+  let title = leaf_matches.get_one::<String>("title")?.as_str();
+
+  let used_as = if let Some(sub) = group
+    .get_subcommands()
+    .find(|s| s.get_name() == title || s.get_all_aliases().any(|a| a == title))
+  {
+    format!("the `{}` subcommand", sub.get_name())
+  } else {
+    let flag = std::iter::once(group)
+      .chain(group.get_subcommands())
+      .flat_map(clap::Command::get_arguments)
+      .find(|a| {
+        a.get_long() == Some(title)
+          || a
+            .get_all_aliases()
+            .is_some_and(|aliases| aliases.contains(&title))
+      })?;
+    format!("the `--{}` flag", flag.get_long()?)
+  };
+
+  let at = argv.iter().rposition(|a| a == title)?;
+  if argv[..at].iter().any(|a| a == "--") {
+    return None;
+  }
+
+  let group_path = path[..path.len().saturating_sub(1)].join(" ");
+  // The operator's own command with the door put in, so it pastes back as
+  // written. Anything a shell would split or expand is single-quoted, and a
+  // `--` typed after the title is dropped: the door has moved in front of it,
+  // and a second `--` would reach the parser as a surplus positional.
+  let shell_word = |w: &str| {
+    if !w.is_empty()
+      && w
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || "_-./:=@%+,".contains(c))
+    {
+      w.to_string()
+    } else {
+      format!("'{}'", w.replace('\'', r"'\''"))
+    }
+  };
+  let remedy: Vec<String> = std::iter::once("intent".to_string())
+    .chain(argv[1..at].iter().map(|w| shell_word(w)))
+    .chain(std::iter::once("--".to_string()))
+    .chain(
+      argv[at..]
+        .iter()
+        .filter(|w| *w != "--")
+        .map(|w| shell_word(w)),
+    )
+    .collect();
+  Some(format!(
+    "error: `{title}` is {used_as} of `intent {group_path}`, so it was not taken as a title and nothing was created\n  remedy: to create one titled `{title}`, put `--` before it: `{}`",
+    remedy.join(" ")
+  ))
 }
 
 /// What replaces a retired command, as three distinguishable FACTS rather than

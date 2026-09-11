@@ -129,6 +129,95 @@ fn the_first_command_in_a_fresh_project_succeeds() {
   assert_eq!(out.trim(), "created: ST0001");
 }
 
+/// **Issue 0223: a bare command word is not taken as a title, and the refusal
+/// writes nothing. After `--` it IS the title.**
+///
+/// `st new start` and `issues add severity` each created a permanent artefact
+/// at rc=0. Every verb with a `title` positional is driven here: a subcommand
+/// name, a flag name, and the trailing-`--` form, which has no `--` ahead of
+/// its title. "Nothing written" is the whole project tree, byte for byte,
+/// because a store row, an event and a canon file all live in it. The door
+/// arm runs the command each refusal names as its remedy.
+#[test]
+fn a_bare_command_word_is_refused_as_a_title_and_passes_after_the_door() {
+  fn tree(dir: &Path, into: &mut std::collections::BTreeMap<std::path::PathBuf, Vec<u8>>) {
+    for entry in std::fs::read_dir(dir).expect("read the project tree") {
+      let path = entry.expect("a tree entry").path();
+      if path.is_dir() {
+        tree(&path, into);
+      } else {
+        into.insert(
+          path.clone(),
+          std::fs::read(&path).expect("read a tree file"),
+        );
+      }
+    }
+  }
+  let snapshot = |root: &Path| {
+    let mut files = std::collections::BTreeMap::new();
+    tree(root, &mut files);
+    files
+  };
+
+  let dir = project();
+  let root = dir.path();
+  assert_eq!(
+    ok(root, &["st", "new", "A thread for its work package"]).trim(),
+    "created: ST0001"
+  );
+
+  let refused: [(&[&str], &str); 4] = [
+    (&["st", "new", "start"], "intent st new -- start"),
+    (
+      &["issues", "add", "severity"],
+      "intent issues add -- severity",
+    ),
+    (
+      &["wp", "new", "ST0001", "help"],
+      "intent wp new ST0001 -- help",
+    ),
+    (
+      &["wp", "new", "ST0001", "help", "--"],
+      "intent wp new ST0001 -- help",
+    ),
+  ];
+  for (args, remedy) in refused {
+    let before = snapshot(root);
+    let out = run(root, args);
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert_eq!(
+      out.status.code(),
+      Some(EXIT_ERROR),
+      "`intent {}` must refuse\nstdout: {}\nstderr: {stderr}",
+      args.join(" "),
+      stdout(&out)
+    );
+    assert!(
+      stderr.contains(&format!("`{remedy}`")),
+      "`intent {}` must name its door `{remedy}`, and said:\n{stderr}",
+      args.join(" ")
+    );
+    assert!(
+      snapshot(root) == before,
+      "`intent {}` wrote to the project on its refusal",
+      args.join(" ")
+    );
+  }
+
+  assert_eq!(
+    ok(root, &["st", "new", "--", "start"]).trim(),
+    "created: ST0002"
+  );
+  assert_eq!(
+    ok(root, &["issues", "add", "--", "severity"]).trim(),
+    "created: intent/.canon/issues/0001.json\n0001:severity"
+  );
+  assert_eq!(
+    ok(root, &["wp", "new", "ST0001", "--", "help"]).trim(),
+    "created: ST0001/01"
+  );
+}
+
 /// **`st new` then `st start` lands at WIP, without `st triage` in between.**
 ///
 /// The ratified machine made `Triage -> NotStarted -> Wip` the only route, and
