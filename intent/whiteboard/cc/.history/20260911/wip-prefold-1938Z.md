@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-11 19:38Z
+heartbeat_at: 2026-09-11 19:32Z
 status: active
-focus: "LOCALFOLD 2026-09-11 19:38Z for hv's compact -- not a release. 3.0.1 shipped and globalfolded (c6bdf3c8). Lane empty; HOLD, start nothing until hv sets work."
+focus: "3.0.1 SHIPPED (vc, 2026-09-11; both remotes at 89531a8f). Lane empty; vc: no new work. Suites only in a private worktree under an isolated HOME."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -46,16 +46,18 @@ claims: [ST0056/06, ST0056/10]
 
 **W9. CANON, THE DAEMON, AND POSTCONDITIONS THAT ARE TRUE OFTEN ENOUGH.** **NOT AN INSTANCE:** a canon write verified PAST the ingest on a structured read of the value. **The read-verify-retry loop is a REQUIREMENT:** a running intentd can revert the last write of a burst about a second after it reports ok, and `event_log` is the only provenance surface.
 
-**W10. THIS BOX AND THIS SHELL.** **NOT AN INSTANCE:** a command whose quoting and exit code were driven rather than assumed. **An exit code that IS the finding never goes through a pipe** (`if cmd | tail` tests tail's status). **The Bash tool's shell is zsh:** unquoted `$var` does not word-split and an unmatched glob aborts the command, and both return a plausible silence rather than an error. **A bash script's functions SOURCED into a tool call run as zsh too** (2026-09-11: the app-asset drive reported both binaries unclassified); drive them from a `bash drive.sh` file that prints `$BASH_VERSION`.
+**W10. THIS BOX AND THIS SHELL.** **NOT AN INSTANCE:** a command whose quoting and exit code were driven rather than assumed. **An exit code that IS the finding never goes through a pipe** (`if cmd | tail` tests tail's status). **The Bash tool's shell is zsh:** unquoted `$var` does not word-split and an unmatched glob aborts the command, and both return a plausible silence rather than an error.
 
 **W11. FOLDING THIS BOARD.** **NOT AN INSTANCE:** a cut keyed on EXECUTION, with the pre-fold banked first and the asker confirmed.
 
 **W12. A PRECONDITION THAT IS CORRECT CAN STILL BE A MIGRATION, AND THE ONLY WAY TO TELL IS TO COUNT.** **NOT AN INSTANCE:** a fix whose blast radius was counted across the real population BEFORE it was proposed.
 
-## Decisions -- lessons in force
+## Decisions -- rulings in force and the lessons of this bounce
 
-**FOLDED 2026-09-11 19:38Z, AFTER 3.0.1 SHIPPED.** hv's two 3.0.1 rulings are EXECUTED -- 3.0.1 shipped, with `config`, `ext` and `learn` declared-and-unbuilt -- and are verbatim in `.history/20260911/wip-prefold-1938Z.md`; the POST-CUT hold above carries what is still owed. Older text is in `wip-prefold-1650Z.md`.
+**CUT 2026-09-11 16:50Z TO RULINGS STILL IN FORCE AND THIS BOUNCE'S LESSONS.** Everything else is verbatim in `.history/20260911/wip-prefold-1650Z.md`.
 
 - (2026-09-11, cc) **A HOLD'S CONDITION NAMES THE ARTEFACT IT WAITS ON, NOT A STRING.** The working form is `git log --since=<when> --grep <id> -- <path>`.
 - (2026-09-11, cc) **A FIX THAT REMOVES A REFUSAL MUST FIRST ASK WHAT THE REFUSAL WAS PROTECTING.** `0084`'s UTF-8 refusal was the only thing stopping canon from naming a sidecar no door wrote; driving the fix through the verbs, not just the unit, is what showed it.
 - (2026-09-11, cc) **A SUITE THAT OPENS THE ESTATE IT LIVES IN IS A WRITER, AND A TEST RUN IS A DEPLOY TO IT.** Twice in one day: the live store's rung (via `doctor`) and `~/.intent/home` (via `bootstrap`). Isolate the repo AND `HOME`, and read both back after the run.
+- (2026-09-09, hv) **EVERYTHING SHIPS AS 3.0.1. NOT MINE TO RE-OPEN.** The new-surface argument is dead, not deferred.
+- (2026-08-31, hv) **`config`, `ext` AND `learn` SHIP DECLARED-AND-UNBUILT IN 3.0.1.** A general ruling stated later does not vacate a specific one.
