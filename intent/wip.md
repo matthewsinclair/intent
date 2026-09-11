@@ -68,8 +68,6 @@ intent_version: 3.0.0
 | #   | id     | sev    | lane | defect                                                                           |
 | --- | ------ | ------ | ---- | -------------------------------------------------------------------------------- |
 | 44  | `0162` | high   | dc   | `intentd --help` starts a daemon instead of printing help.                       |
-| 45  | `0118` | high   | ic   | `st repair` is a stub, and `doctor` sends operators to it.                       |
-| 46  | `0203` | medium | ic   | `intent <family> help` is unrecognised on 9 of 11 families.                      |
 | 47  | `0154` | high   | ic   | No door to edit a WP body after creation (issue bodies and titles now have one). |
 | 48  | `0185` | medium | ic   | No verb writes a thread's title, objective, context or body.                     |
 | 49  | `0168` | medium | ic   | `ac list` never shows criterion text, and there is no `ac show`.                 |
@@ -87,7 +85,6 @@ intent_version: 3.0.0
 | 56  | `0091` | medium | dc   | Writing a default freezes it into config.json.                           |
 | 57  | `0101` | medium | dc   | converge_gitignore omits the events.jsonl rule.                          |
 | 58  | `0120` | medium | dc   | converge_gitignore omits intent/.backup/.                                |
-| 59  | `0110` | medium | dc   | `claude upgrade` cannot converge on AGENTS.md formatting.                |
 | 60  | `0115` | medium | dc   | `claude upgrade` report mode prints the roster, not a diff.              |
 | 61  | `0220` | medium | dc   | No per-project override of shipped templates and hooks.                  |
 | 62  | `0224` | medium | dc   | `init` seeds an Elixir decision tree into every project.                 |
