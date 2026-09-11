@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 17:18Z
+heartbeat_at: 2026-09-11 17:38Z
 status: active
-focus: "THE 3.0.1 CUT, vc holds the pen (hv 2026-09-11: 'You have the pen. Do it.' and 'You're in charge ... make the release a reality'). LOCALFOLD for hv's compact at 2026-09-11 17:18Z; resume on the bounce at DOING step 1. RUN THE VERBS; every figure here rots."
+focus: "THE 3.0.1 CUT, vc holds the pen (hv 2026-09-11: 'You have the pen. Do it.' and 'You're in charge ... make the release a reality'). Step 1 LANDED at 7c40da0ab; waiting on dc's prune (step 2). RUN THE VERBS; every figure here rots."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 ---
 
@@ -17,16 +17,7 @@ claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 
 **THE ORDER IS LOAD-BEARING. Each step gates the next.**
 
-1. **vc: retire the 75 AT rows whose witness the v2 prune deletes (hv chose the EVIDENCE route).**
-   - dc's list: `/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/b9e78c72-479d-4984-9df9-ac1bedfe7f2d/scratchpad/absent_rows.txt`. 73 are green on 9 threads (ST0043/44/48/50/51/52/53/55/56). The other 2 are RED, ST0056 AT-00.1 and AT-06.1, citing `tests/conformance/run_v2_suite.bash`; the parser skipped them, so handle them by hand.
-   - Analysis: `/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/e089236a-72ea-4b23-87e7-c318ef8f0ac5/scratchpad/ret_analyse.py` -> `/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/e089236a-72ea-4b23-87e7-c318ef8f0ac5/scratchpad/ret_plan.json`. 69 criteria, all `test/computed`, and NONE has a surviving covering AT.
-   - Per-row route, PROVEN on ST0043 AT-00.1/AC-00.1 in the sandbox (`/private/tmp/claude-501/-Users-matts-Devel-prj-Intent/e089236a-72ea-4b23-87e7-c318ef8f0ac5/scratchpad/wth`, HOME `~/.vcreth`):
-     1. `at na <st> <at> --note "<OLD NOTE> -- RETIRED at the 3.0.1 cut: its witness <file> went with the v2 shell (ST0056 AC-00.6); it was green at this thread's close"`. The note MUST extend the old one, which lives in the store's tests.note.
-     2. Per covered AC, once: `set intent:///threads/<st>/ac/<ac> kind non-test`, then `ac withdraw <st> <ac> --reason "..."`, then `ac reinstate <st> <ac>` (no --reason), then `ac satisfy <st> <ac> --evidence "<file> was green at this thread's close (v2); retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)"`.
-     3. `at edit <st> <at> --kind non-test --prose "Witness <file>, green at this thread's close; retired with the v2 shell at the 3.0.1 cut (ST0056 AC-00.6)."`
-     4. Check: `ac gate <st>` PASS, `doctor` shows no line for the thread, and `at lint <st>` is ok.
-   - WHY withdraw/reinstate: `set <ac> kind non-test` leaves state `computed`, which is illegal for non-test and schema-invalid in canon, and no satisfy or unsatisfy moves it. It is a DEFECT; the withdraw reason names it, and it goes in the commit message.
-   - Script it, rehearse ALL rows in the sandbox first (reset it with `git -C /private/tmp/claude-501/-Users-matts-Devel-prj-Intent/e089236a-72ea-4b23-87e7-c318ef8f0ac5/scratchpad/wth checkout -- intent/.canon` and a rm of its store), then run live with the PATH `intent`. One canon commit. Then send dc the sha.
+1. **vc: the 75 AT rows -- LANDED at 7c40da0ab (2026-09-11 17:38Z).** Retired by evidence, rehearsed from a reset sandbox, live canon byte-identical to the rehearsal. The same commit cleared the two preflight blockers: ST0069 WP-13/14/16 (my 3221118cc armed doctor's group check) and ST0064/01 done. Live doctor: 0 findings, rc=0. dc has the sha. `--scope all` withholds one finding, ST0073 AC-05.1 naming a WP-05 the thread lacks; the thread is closed and the preflight's scope doesn't read it. Report it to hv, don't act on it. Also OPEN WITH dc: `bin/.devbin/manifest.sha256` is dirty in the shared tree (only its source_commit header moved), which the release's clean-tree check refuses; settle it before step 5.
 2. **dc: the AC-00.6 prune.** One atomic commit, staged in dc's worktree:
    - population A deleted: bin/intent plus the 25 bin/intent_*;
    - 51 v2-door bats files and run_v2_suite.bash deleted;

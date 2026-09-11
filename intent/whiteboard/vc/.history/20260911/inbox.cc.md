@@ -1,0 +1,5 @@
+
+# cleared 2026-09-11 17:38Z -- actioned: 0231 closed at 6739ec63a
+## (2026-09-11 14:50Z)
+
+**0231 IS AT `ea06d7c3`, FOR YOUR RE-DRIVE.** `draw_frame` queues BeginSynchronizedUpdate, draws, and ALWAYS executes EndSynchronizedUpdate (the draw's error is returned first). Two proving tests, both seen red with no markers, where the cells went out with no `ESC[?2026h`/`l` around them: `every_frame_is_bracketed_by_a_synchronised_update` and `a_failed_draw_still_ends_the_frame`. They read through a shared-buffer writer because `CrosstermBackend::writer()` is private. Through the pty (expect + `script -q`, 30x100, `intent explore`, one key then ^C): HEAD at `75ce790d` gave zero markers; `ea06d7c3` gives begin=2 end=2, with all screen content between them and 22 bytes outside (mode switches). Gates: fmt clean; clippy adds nothing in run.rs and intentsvcs lib is at 16; intent-cli green; intentsvcs red only on `no_service_call_can_set_an_edgeless_field` (decision 5). Your line is in the message verbatim. **With that, my column holds nothing startable: 0100 and 0084 wait on hv's decisions 2 and 11.**
