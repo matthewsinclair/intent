@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 08:26Z
+heartbeat_at: 2026-09-10 20:24Z
 status: active
-focus: "HOLDING WHILE vc ROUNDS UP, ON hv's INSTRUCTION. Nothing in flight, nothing startable. EVERYTHING PUT TO hv IS IN ONE PLACE: `hv/inbox.dc.md`, leaned from 8 entries to 4 open items on 2026-09-11 after the full content went to vc. The pre-lean text is verbatim in `.history/20260911/`, checked by hash. Four entries CLOSED, each re-driven: AC-00.3 is satisfied, with A1/C1/D1 landed as recommended; the pipefail guard is superseded; the push happened. OPEN: the ruling over seven (186 of CI Ubuntu's 216); `int local status` placement; the five 09-02 items; the machine-cost question. The CI partition of Ubuntu's 216 is 186 / 15 wrong-binary / 15 unattributed, settled by name. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "CI's 216 AND MY 216 ARE THE SAME NUMBER AND I HAVE NOT PROVEN THEY ARE THE SAME POPULATION. Five independent agreements (total, `claude` 116, `subagents` 4, `daemon` 10, `config` 6) and they are still inference; THE DISCRIMINATOR IS CI's TAP PLAN LINE -- `1..1518` is `tests/unit` exactly, and it is vc's to pull. vc's `claude *` block is ONE CAUSE, DRIVEN: 116 of 116 claude-leading tests fail, across six files, all six in my pruned-door column -- so the largest half of CI's red is the `125f601d` prune and it is already inside hv's seven-thing ruling, not a new front. **15 of CI's 216 ARE THE WRONG-BINARY CLASS, NOT DEFECTS AND NOT PARITY** (I sent vc ~16 and it was 15 -- [[W143]]) (`test_helper.bash:21` -> v2; `daemon_commands` 10/10 red on default, 10/10 GREEN on v3) -- that is AC-06.1's baseline caveat with CI's own numbers under it. REFUSED: vc's families sum to 186 and my pruned-door is 186, and they are DIFFERENT SETS differing by >=19 members ([[W142]]). `d8a8c070` moved the CI count by ZERO, exactly as its commit message said in capitals. AC-12.1 half delivered and the stop was the better half. `int local status` delivered at `8c5a82fa`, awaiting hv on cut placement. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -39,22 +39,28 @@ claims: [ST0056/04, ST0056/05, ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**NOTHING IN FLIGHT.** 2026-09-10's delivered work and the sweep are verbatim in `.history/20260910/`. This morning's pre-lean board and hv inbox are verbatim in `.history/20260911/`.
+**NOTHING IN FLIGHT. Today's delivered work is verbatim in `.history/20260910/doing-prefold-1944Z.md`; the sweep it produced is in `.history/20260910/unit-sweep-1839Z.md`. Nothing is summarised away.**
 
-**EVERYTHING I HAVE PUT TO hv IS IN ONE PLACE: `hv/inbox.dc.md`, leaned to four open items on 2026-09-11.** This board points at it and does not repeat it, because two copies of an ask drift apart, which is the defect Highlander names.
+**THE ONE ARTEFACT hv NEEDS BEFORE RULING, and it is a table rather than a sentence:** `tests/unit/` at HEAD, default `INTENT_BIN` -- **1518 tests, 216 failing, 186 citing the pruned dispatcher, 30 OTHER.** Zero still cite a missing plugin script. **15 of the 30 are not defects at all** -- `daemon_commands.bats` (10) and `config_undefined.bats` (5) are v3-targeted files that the harness default points at v2's `bin/intent`; both are GREEN with `INTENT_BIN` at the v3 binary. **The remaining 15 are unattributed and no number is offered for them.**
 
 ## TODO
 
 **FOLDED 2026-09-10. Struck and delivered items are archived verbatim, not deleted** -- an item removed without a trace is indistinguishable from one that was never here.
 
-**MINE, AND ALL OF IT WAITS ON hv:** items 1 to 4 of `hv/inbox.dc.md`. They are the ruling over seven, where `int local status` sits relative to the cut, the five 09-02 items, and the machine-cost question. **They are not restated here.**
+**MINE, AND ALL OF IT IS BEHIND ONE hv RULING -- filed `d79eced9`, widened in the addendum:**
 
-- **`0270` OPTION 1 is still held on hv's word after the tag.** `git tag -l 'v3.*'` returned only `v3.0.0` at 2026-09-11 08:25Z.
+- **THREE SHIPPING DOORS ANSWER `not implemented yet`, AND ALL THREE POINT AT RETIRED SUBJECTS.** `st bootstrap` (WP-04), `agents template` (WP-07), `claude prime` (WP-07) -- cc found them, I verified each against `target/release` at `ec55b3ba` with BOTH controls (`st list` renders, `config` refuses). **`agents template`: hv's remedy is 2026-08-17 and the directory it enumerates lost its last reader at `b60f9ebb5` on 2026-08-26 -- nine days later.** `st bootstrap`: D3 installs a file `init` declares `NotByInit`, D8 depends on `claude prime`, D10 depends on `learn` -- both unwired. `claude prime`: consumes a file written by a date-stamping verb, against hv's clock ruling. **D2 is live, and it is the negative control that keeps this specific rather than a blanket claim.**
+- **FOUR BATS SUITES DISPOSITIONED `keep`, TESTING DOORS PRUNED ELEVEN DAYS AGO.** Same class one layer down. See DOING.
+- **`0270` OPTION 1 -- still held on hv's POST-TAG word.** No tag beyond v3.0.0; re-driven this morning, not recalled.
 - **No smoke arm exercises `claude start` / `ws`.** Condition: a keg.
+
+**THE ASK IS ONE RULING OVER SEVEN THINGS, NOT SEVEN ASKS.** Retire, re-point, or tell me the subject is less retired than measured. **I am not minting a disposition myself, and my seven are a FLOOR** -- 57 of 127 paths were never probed.
+
+**UNBLOCKED AND FILED, WAITING ONLY ON WHERE IT SITS RELATIVE TO THE CUT:** `int local status` reports what is running and what the store weighs. Two requirements are IN the mechanism, not in a note: count by **executable**, never command-line text ([[W138]]); and report **store holders separately from process count**, because those cost writes and the two came apart today at 13 processes / 4 holders.
 
 **BLOCKED ON hv, BY NAME:** `AC-12.1` + `AC-00.6` (one bats-suite/CI ruling -- and `AC-12.1` class (2) has a member the row does not name, `intent/plugins/agents/bin/intent_agents`); `AC-04.6` (a sixth ratified machine); `AC-00.16` (a criterion amendment -- its first conjunct is not machine-decidable as written and the instrument refuses to write its own denominator); `0267`'s strong form; `AC-11.7`'s wording.
 
-**BLOCKED ON THE CUT:** `AC-07.7`, `AC-11.1`, `AC-11.4`, `AC-12.4`. **The push is done:** 255 commits went up at hv's word, and CI ran on them at 2026-09-10 19:55Z. **So the cut no longer waits on the push.** What it does wait on is hv's to say.
+**BLOCKED ON THE CUT:** `AC-07.7`, `AC-11.1`, `AC-11.4`, `AC-12.4`. **And the cut is behind THE PUSH, which is the single item that unblocks the most of this column -- four rows against the bats ruling's two.** I described this column as parked on the bats ruling for hours and that was imprecise; corrected to vc 2026-09-10.
 
 **RECORDED, NOT MINE TO BUILD:** `0237`, `0271`, `0267`'s second half, `0298` (ic filed it citing my D-DELETE class), `0299` (mine, filed, engineering). **`0300` is litter I created with a write-path probe and cannot close, because closing an issue is an update and updates are failing.**
 
