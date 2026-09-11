@@ -37,7 +37,6 @@ intent_version: 3.0.0
 
 | #   | id     | sev    | lane | defect                                                                              |
 | --- | ------ | ------ | ---- | ----------------------------------------------------------------------------------- |
-| 23  | `0079` | high   | ic   | `st new` says created and writes no files.                                          |
 | 24  | `0149` | high   | ic   | `intent edit` ignores the kind it was given and answers about a thread.             |
 | 25  | `0291` | high   | ic   | `edit wp ST/NN --path` returns the parent thread's file.                            |
 | 26  | `0103` | high   | ic   | `wp list` returns zero rows for 71 threads whose WPs are in the store.              |
