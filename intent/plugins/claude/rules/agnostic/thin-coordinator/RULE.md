@@ -124,7 +124,7 @@ The controller does three things. The same `Content.publish_post/2` works from a
 ## When This Applies
 
 - **HTTP controllers and GraphQL resolvers.** The transport is the request/response cycle; the domain is the operation.
-- **LiveView `handle_event/3`, `handle_info/2`, `handle_params/2`.** The transport is the WebSocket; the domain is the state change.
+- **LiveView `handle_event/3`, `handle_info/2`, `handle_params/3`.** The transport is the WebSocket; the domain is the state change.
 - **CLI dispatchers and Mix tasks.** The transport is argv; the domain is the operation.
 - **Job runners and queue workers.** The transport is the queue; the domain is the processing.
 - **GenServer and actor callbacks in long-lived processes.** The transport is the message protocol; the domain is the state machine.
