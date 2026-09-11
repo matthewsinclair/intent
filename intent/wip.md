@@ -24,7 +24,7 @@ intent_version: 3.0.0
 | #   | id     | sev    | lane | defect                                                  |
 | --- | ------ | ------ | ---- | ------------------------------------------------------- |
 | 42  | `0195` | medium | ic   | `intent search` reports every hit at line 0.            |
-| 43  | `0083` | low    | ic   | `st hydrate` reports exists for a file it just created. |
+| 43  | `0083` | low    | cc   | `st hydrate` reports exists for a file it just created. |
 
 ### P4 -- advertised but not built.
 
@@ -59,7 +59,6 @@ intent_version: 3.0.0
 | 79  | `0141` | medium | --   | NOT WORKABLE IN 3.0.1 (vc, 2026-09-11): no instance today, because both wildcard fields (AT status, WP scope) carry no payload and both self-loops are needed by rulings. The only fix is a new guard. Stays open as the constraint on either field gaining a payload. |
 | 80  | `0114` | medium | --   | HELD ON hv, decision 12: cap a thread's inline attachment total, or close as by-design.                                                                                                                                                                                |
 | 81  | `0172` | medium | dc   | intentd holds no persisted project registry.                                                                                                                                                                                                                           |
-| 83  | `0210` | high   | cc   | Concurrent canon commits on one thread deadlock under auto-ingest.                                                                                                                                                                                                     |
 | 84  | `0231` | medium | ic   | TUI repaints can tear on real terminals.                                                                                                                                                                                                                               |
 
 ### P6 -- to CLOSE on hv's word, not to work.
