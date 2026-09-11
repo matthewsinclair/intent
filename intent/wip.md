@@ -29,7 +29,6 @@ intent_version: 3.0.0
 | #   | id     | sev    | lane | defect                                                                                                                                                                                     |
 | --- | ------ | ------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 52  | `0177` | medium | --   | NOT WORKABLE IN 3.0.1 (vc, 2026-09-11): all of `ext` ships declared-and-unbuilt (hv, 2026-08-31), so no `ext new` ships without `ext remove`. Stays open as the constraint on ext's build. |
-| 54  | `0140` | medium | ic   | An unsatisfied note is writable only by migration.                                                                                                                                         |
 
 ### P5 -- rough edges: defaults, doctor, internals.
 
