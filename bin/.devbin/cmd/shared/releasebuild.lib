@@ -2,8 +2,8 @@
 #
 # THE ONE RELEASE BUILD THAT MAY WRITE THE SHARED ARTEFACT.
 #
-# WHY THIS FILE EXISTS. On 2026-08-26 five entrances wrote
-# `native/rust/target` and exactly one of them took the dirt verdict:
+# WHY THIS FILE EXISTS. On 2026-08-26 every entrance below wrote
+# `native/rust/target` and only `local build` took the dirt verdict:
 #
 #     all                 NO VERDICT    bare `cargo build --workspace --bins`
 #     cli                 NO VERDICT    bare `cargo build -p intent-cli`
@@ -13,7 +13,7 @@
 #
 # The shared-artefact guard asserted "the verdict is taken before the first
 # cargo invocation inside cmd_build". That was TRUE, and `cmd_build` was
-# `local`'s -- so the guard protected one entrance of five and the assertion
+# `local`'s -- so the guard protected one entrance of the set and the assertion
 # could not tell you. **Arm 10 is the answer to that**: it censuses every
 # release-capable cargo invocation under `bin/.devbin` and refuses one that is
 # not cloned, redirected, refusing, or this file. Arms 7 and 8 read the guarded
@@ -21,12 +21,15 @@
 # structurally cannot.
 #
 # WHAT IT COST, because the abstract version reads as tidiness. dc rebuilt with
-# `int build all` after a batch landed, `cargo` rebuilt the two crates whose
-# source had changed and left `intentd` at a pre-flip build, and the split pair
+# `int build all` after a batch landed, `cargo` rebuilt the crates whose source
+# had changed and left `intentd` at a pre-flip build, and the split pair
 # blocked every hop 2 in vc's lane. **The source commit is embedded at COMPILE
-# time and is not an input cargo tracks**, so a crate whose source did not
-# change keeps its old sha no matter where HEAD is -- which is why the force
-# below is a `cargo clean`, not a rebuild flag.
+# time by a build script**, and at the time that script re-ran only on changes
+# inside its own package. Since issue 0285 it re-runs on any tracked path under
+# DIRT_SCOPE (native/rust/build-support/source_commit.rs), so both halves move
+# together; the residual it records is a tree built dirty and then committed
+# with no further in-scope edit, which keeps its `dirty-<old>` marker. That is
+# why the force below is a `cargo clean`, not a rebuild flag.
 #
 # AND THE VERIFICATION DID NOT PASS THE MISMATCHED PAIR. IT NEVER RAN. It lived
 # in `local build`, and the verb whose own help says it means ALL BINARIES was
@@ -52,11 +55,11 @@ STAGING_RELEASE_DIR="$PROJECT_ROOT/native/rust/target/staging/release"
 #
 # ORDER IS THE POINT AND IT IS NOT NEGOTIABLE. AC-11.6 ruled that the shared
 # artefact is protected BEFORE it is overwritten rather than after: `verify_pair`
-# alone reported the damage to binaries four nodes had already started invoking.
+# alone reported the damage to binaries other nodes had already started invoking.
 #
-# A DIRTY TREE IS REDIRECTED, NEVER BLOCKED. Five nodes share this clone, and a
-# gate that refuses on a peer's half-finished file is one that gets bypassed the
-# first afternoon.
+# A DIRTY TREE IS REDIRECTED, NEVER BLOCKED. Several nodes share this clone, and
+# a gate that refuses on a peer's half-finished file is one that gets bypassed
+# the first afternoon.
 guarded_release_build() {
   local verdict build_dir final_dir mode
   verdict="$(shared_target_verdict "$PROJECT_ROOT")"
@@ -100,7 +103,7 @@ guarded_release_build() {
   # EVERY FAILURE ABOVE NOW LANDS WITH THE SHARED PAIR UNTOUCHED AND WORKING.
   # That is the entire fix: the `cargo clean`, the build and the verification all
   # happen somewhere nobody invokes, so a `die` on any of them leaves the old
-  # pair exactly where four sessions and the human's shell expect it.
+  # pair exactly where every session and the human's shell expect it.
   [ -n "$final_dir" ] || return 0
   step "promoting the verified pair into the shared path"
   promote_pair "$build_dir" "$final_dir"
@@ -113,15 +116,16 @@ guarded_release_build() {
 # in place, so from the clean until a successful `verify_pair` the artefact every
 # session on this machine invokes DID NOT EXIST -- and every exit from that
 # window other than success left it that way. It was reported as an availability
-# outage and it is worse than that: a Lamplight session ran six `intent` verbs in
-# one script while a build ran here, verb 1 WROTE, verbs 2-6 died `command not
+# outage and it is worse than that: a Lamplight session ran a script of `intent`
+# verbs while a build ran here, the first WROTE, the rest died `command not
 # found`, `set -e` did not catch it, and a git-tracked acceptance contract in
 # ANOTHER repository was left half-written with no exit status describing it.
 #
 # THE DELETE WAS NEVER THE DEFECT AND IS NOT REMOVED. The source commit is
-# embedded at COMPILE time and is not an input cargo tracks, so without the clean
-# an unchanged crate keeps a stale marker and the pair silently splits across two
-# commits. The clean is sound; doing it in the shared path is what was not.
+# embedded at COMPILE time by a build script cargo re-runs only when a watched
+# path changes, so without the clean a crate can keep a stale marker (see the
+# header for the residual). The clean is sound; doing it in the shared path is
+# what was not.
 #
 # === THE RULING vc ASKED FOR: THE SET IS THE UNIT, AND TWO RENAMES ARE NOT ONE ===
 #
@@ -172,6 +176,12 @@ promote_pair() {
 }
 
 # verify_pair <dir> <shared|private> -- the pair describes ONE state of this repo.
+#
+# <dir> defaults to RELEASE_DIR and <mode> to `shared`. THE MODE EXISTS BECAUSE
+# `dirty-` MEANS OPPOSITE THINGS ON THE TWO PATHS: in the shared slot it is the
+# defect AC-11.6 exists to prevent, and in a private redirect it is the EXPECTED
+# and correct outcome of having redirected. A single strict check would have
+# made the redirect fail every time it worked.
 #
 # THE AGREEMENT HALF IS DELEGATED, NOT REIMPLEMENTED. `artefact_pair_marker` in
 # `currency.lib` already answers "do both binaries name the same commit, and if
@@ -254,13 +264,13 @@ verify_pair() {
 # land in the shared target.
 #
 # NOT A STYLE RULE. `cargo build -p intent-cli` and `cargo build -p intentd`
-# SPLIT THE PAIR BY CONSTRUCTION: the pair is the unit every guard, every hop
-# and `intent3 --version` itself reads, and building one of the two guarantees
-# the stamps diverge the moment HEAD moves. There is no consumer of a shared
+# SPLIT THE PAIR BY CONSTRUCTION: the pair is the unit every guard and every hop
+# reads, and building one of the two guarantees the stamps diverge the moment
+# HEAD moves. There is no consumer of a shared
 # single-package release build whose correctness survives it.
 #
 # A PRIVATE TARGET IS STILL ALLOWED, following the dirt redirect's own precedent:
-# the objection is to writing the artefact four other sessions invoke, not to
+# the objection is to writing the artefact other sessions invoke, not to
 # building one crate. Set CARGO_TARGET_DIR and the refusal lifts.
 refuse_single_package_release() {
   local verb="$1"

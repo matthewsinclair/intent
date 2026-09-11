@@ -2,19 +2,22 @@
 #
 # devbin: summary = Run the test suite against HEAD in a single-writer clone
 #
-# int suite [--with-build] [test-path] -- clone HEAD into a temp dir and run
-# `tests/run_tests.sh` there, so the figure NAMES A REVISION BY CONSTRUCTION.
+# bin/devbin suite [--with-build] [test-path] -- clone HEAD into a temp dir and
+# run `tests/run_tests.sh [test-path]` there, so the figure NAMES A REVISION BY
+# CONSTRUCTION. `--with-build` runs a debug `cargo build` in the clone first.
+# Uncommitted work is not measured. Exit 0 on a green suite; exit 1 on a red
+# suite, or when the runner never emitted a TAP plan.
 #
 # WHY THIS EXISTS, AND IT IS AN ADVISORY RETIRED RATHER THAN A CONVENIENCE.
 # A suite run over the live tree measures whatever the tree happened to be
-# during the run, and in a five-node checkout that is not one thing. Measured
-# 2026-08-21: a green 1444-test run had to be KILLED and rerun because two
-# nodes wrote to the tree mid-run -- one of them the author of the run, twice,
-# recording findings ABOUT the run while it was going. The rerun came back
-# clean only because three of the four writers were quiet: one by request, and
-# two because they were STOPPED. **A `yes` bought by circumstance is not a
-# control**, and asking four sessions to hold still is the advisory this
-# estate has repeatedly ruled is not one either.
+# during the run, and in a multi-node checkout that is not one thing. Measured
+# 2026-08-21: a green suite run had to be KILLED and rerun because nodes wrote
+# to the tree mid-run -- one of them the author of the run, recording findings
+# ABOUT the run while it was going. The rerun came back clean only because the
+# other writers were quiet: one by request, and the rest because they were
+# STOPPED. **A `yes` bought by circumstance is not a control**, and asking
+# every session to hold still is the advisory this estate has repeatedly ruled
+# is not one either.
 #
 # Here nobody can perturb the tree under measurement, because it is a clone with
 # a single writer. The question changes from "was anyone else writing?" to
@@ -26,11 +29,13 @@
 #     here by design -- that is the property, not a gap. If you want to know
 #     whether what you are HOLDING is green, run `tests/run_tests.sh` directly
 #     and accept that the figure names no revision.
-#   - WITHOUT `--with-build` THE CLONE HAS NO `native/rust/target/`, because it
-#     is gitignored. Exactly one file under `tests/` reaches for the v3 binary
-#     (`tests/conformance/run_v2_suite.bash`, a harness rather than a `.bats`),
-#     so the bats suite runs regardless -- but that harness is NOT covered and
-#     this says so at the end rather than leaving a green to imply it was.
+#   - THE CLONE HAS NO `native/rust/target/`, because it is gitignored. The
+#     bats suite drives the v3 binary at `$INTENT_BIN`, which
+#     `tests/lib/test_helper.bash` defaults to the clone's
+#     `native/rust/target/release/intent`. `--with-build` runs
+#     `cargo build --workspace --bins` in the clone, which is the DEBUG
+#     profile and does not produce that path; this handler sets no
+#     `INTENT_BIN`.
 #
 # THE FIXTURE-VERSION TRAP CANNOT FIRE HERE, AND THAT IS WORTH KNOWING BECAUSE
 # THE OBVIOUS WORRY IS THE OPPOSITE. `run_tests.sh` exports
@@ -70,9 +75,9 @@ trap "rm -rf '$TMP'" EXIT
 
 step "suite: cloning HEAD -- reading the repository, not the working tree"
 # THE CLONE-AND-REFUSE IS `shared/measure.lib` AS OF 2026-08-22. It used to be
-# eleven lines here, and being here is precisely why the next measurement anyone
-# took -- a command-surface sweep, by this file's own author, three hours later
-# -- was driven against a binary fifteen commits behind HEAD. The mechanism was
+# inline here, and being here is precisely why the next measurement anyone took
+# -- a command-surface sweep, by this file's own author, three hours later --
+# was driven against a binary well behind HEAD. The mechanism was
 # correct and unreachable from where the next question was asked.
 clone_sha="$(measured_clone "$ROOT" "$TMP/clone")"
 printf '    clone at %s\n' "$clone_sha"

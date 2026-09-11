@@ -8,21 +8,21 @@
 # fallback restores the duplicate at exactly the moment nobody is watching (vc).
 #
 # AND IT REQUIRES `sharedtarget.lib` SOURCED FIRST, ON THE SAME TERMS, SINCE
-# 2026-09-05. Six of this file's eight consumers already sourced it; the two that
+# 2026-09-05. Most of this file's consumers already sourced it; the ones that
 # did not are the ones that had to change. It supplies two things this file spent
 # its whole life re-deriving badly, and BOTH defects were the same shape -- the
 # function agreeing with the truth by luck, with nothing distinguishing luck from
 # construction:
 #
 #   1. THE SCOPE. `_rust_source_changed` diffed `-- native/rust` alone, while the
-#      marker's base commit is `rev-list -1 HEAD` over THREE pathspecs. So the
+#      marker's base commit is `rev-list -1 HEAD` over SEVERAL pathspecs. So the
 #      base was chosen over one population and the range measured over a narrower
 #      one: a commit touching only `surface/` or `docs/design/` moved the build
-#      inputs and this reported a source-clean range. NOT hypothetical -- eight of
-#      the last four hundred commits touching those two paths touch no file under
-#      `native/rust`. It did not fire on the day it was found because both scopes
-#      returned 3, which is exactly the condition under which nobody looks.
-#   2. THE GIT ENVIRONMENT. Four raw `git -C "$repo"` calls, in a check the
+#      inputs and this reported a source-clean range. NOT hypothetical -- recent
+#      commits touching those paths touch no file under `native/rust`. It did
+#      not fire on the day it was found because both scopes returned the same
+#      count, which is exactly the condition under which nobody looks.
+#   2. THE GIT ENVIRONMENT. Raw `git -C "$repo"` calls, in a check the
 #      pre-commit gate RUNS, inside the environment where git exports `GIT_DIR`,
 #      `GIT_INDEX_FILE` and `GIT_WORK_TREE`. `git -C` changes the directory and
 #      overrides none of them, so the verdict was about whatever repository the
@@ -38,14 +38,15 @@
 # ONE LESSON FROM BOTH: a library that learns something does not teach its
 # siblings, and `grep` for the fix is not the same as `grep` for the hazard.
 #
-# NOT `cmd/local`'s `verify_pair`, AND THE DISTINCTION IS THE WHOLE DESIGN.
-# `verify_pair` is BUILD-time: it demands `sc == HEAD` exactly and treats any
-# `dirty-` as bad. Right after `int local build`, WRONG at exec time, where it
-# would refuse after any commit at all -- a README edit, a whiteboard fold --
-# which is how a gate becomes something people work around. TWO MECHANISMS
-# ENFORCING DIFFERENT PROPERTIES ARE NOT TWO COPIES OF ONE (vc). The shared
-# primitive is the pair read below; converging `verify_pair` onto it is RECORDED
-# AND DELIBERATELY NOT DONE, so this header and `grep` still agree.
+# NOT `verify_pair` (shared/releasebuild.lib), AND THE DISTINCTION IS THE WHOLE
+# DESIGN. `verify_pair` is BUILD-time: on the shared path it demands the marker
+# equal the build inputs' last commit exactly and treats any `dirty-` as bad.
+# Right after `int local build`, WRONG at exec time, where it would refuse after
+# any commit at all -- a README edit, a whiteboard fold -- which is how a gate
+# becomes something people work around. TWO MECHANISMS ENFORCING DIFFERENT
+# PROPERTIES ARE NOT TWO COPIES OF ONE (vc). The shared primitive is the pair
+# read below; converging `verify_pair` onto it is RECORDED AND DELIBERATELY NOT
+# DONE, so this header and `grep` still agree.
 #
 # ---------------------------------------------------------------------------
 # THE MATRIX KEYS ON DECIDABILITY, NEVER ON DIRT.
@@ -71,7 +72,8 @@
 # warning is unsatisfying and it is the only honest one: the alternative LOOKS
 # clearable and quietly is not.
 #
-# THE BOUNDARY IS `native/rust/`, NOT `native/rust/crates/`. A `Cargo.lock` or
+# THE BOUNDARY IS THE BUILD-INPUT SCOPE (`SHARED_TARGET_DIRT_SCOPES`, which
+# includes all of `native/rust/`), NOT `native/rust/crates/`. A `Cargo.lock` or
 # workspace `Cargo.toml` change is a different dependency set and therefore a
 # different binary, and neither lives under `crates/`. Widening makes the guard
 # refuse MORE, the correct direction when a false negative ships a stale binary
@@ -127,8 +129,8 @@ artefact_pair_marker() {
 #
 # The build-input scope as prose, DERIVED from `SHARED_TARGET_DIRT_SCOPES` and
 # never typed. It exists so the sentence a reader sees and the pathspec the diff
-# uses cannot drift: the four messages that used to say "under native/rust" said
-# it because a human wrote it there, and one of them stayed right only because
+# uses cannot drift: the messages that used to say "under native/rust" said it
+# because a human wrote it there, and one of them stayed right only because
 # the scope had not been widened yet. Prints `an UNDECLARED scope` when the array
 # is missing, which is the honest phrase for the case the verdict refuses on.
 artefact_currency_scope_phrase() {
@@ -168,15 +170,16 @@ _build_inputs_changed() {
   fi
 
   # COUNT WITHOUT LETTING `grep`'s NO-MATCH BECOME THIS FUNCTION'S EXIT STATUS.
-  # A range touching ONLY `tests/` or `benches/` is the documented `ok` case, and
-  # there `grep -v` selects nothing and exits 1. As the last command of the
+  # A range touching ONLY `tests/` or `benches/` is the documented `ok` case,
+  # and there `grep -v` selects nothing and exits 1. As the last command of the
   # function that rc IS the function's rc, so a caller running under `set -e`
   # WITHOUT wrapping the call in `$( )` dies on the healthiest possible answer.
-  # `bin/intent3` survives only because a command substitution DISARMS errexit in
-  # the subshell (`$-` measured: `ehuBc` outside, `huBc` inside) -- ACCIDENTAL
-  # PROTECTION, not design, and the header two screens up promises that a library
-  # cannot kill its host. Found by critic-shell; the consequence it predicted did
-  # not reproduce, and the mechanism under it was real.
+  # The one caller, `artefact_currency_verdict`, survives only because a command
+  # substitution DISARMS errexit in the subshell (`$-` measured: `ehuBc`
+  # outside, `huBc` inside) -- ACCIDENTAL PROTECTION, not design, and the header
+  # above promises that a library cannot kill its host. Found by critic-shell;
+  # the consequence it predicted did not reproduce, and the mechanism under it
+  # was real.
   kept="$(printf '%s\n' "$changed" | grep -vE '(^|/)(tests|benches)/' || true)"
   printf '%s\n' "$kept" | awk 'NF' | wc -l | tr -d ' '
 }
@@ -220,7 +223,7 @@ artefact_currency_verdict() {
   # committed range is enough to conclude STALE -- one changed source file does
   # that, and it needs none of the dirty argument. It is NOT enough to say HOW FAR
   # behind: whatever was uncommitted at build time lies outside the range, in
-  # either direction. Saying "8 files changed since" over a dirty base invites the
+  # either direction. Saying "N files changed since" over a dirty base invites the
   # number to be quoted as the size of the gap, which is the overclaim this file
   # exists to refuse -- arriving in the file's own error message.
   if [ "$n" -gt 0 ]; then

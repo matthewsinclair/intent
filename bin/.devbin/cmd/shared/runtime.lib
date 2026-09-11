@@ -8,14 +8,15 @@
 # path resolution of its own -- it is handed a project root and a db path.
 #
 # WHY THIS EXISTS, AND IT IS A MEASURED FAILURE RATHER THAN A TIDINESS ARGUMENT.
-# On 2026-09-09 this machine carried 67 leaked `intentd` processes, 65 CPU-hours
-# of burn, a 559MB WAL against a 21MB database, and a load average of 502. Four
-# nodes lost writes to it. NO TOOL IN THE ESTATE REPORTED ANY OF IT -- the way
-# it was found was a node noticing the machine felt slow, and the way it was
-# confirmed was reading `Activity Monitor` by hand. `int local status` already
-# named `target/debug/` in its own scope block as *the one the test harness
-# spawns*, and then measured nothing about it. A door that names the artefact
-# and does not measure it is the gate-figure defect in a different costume.
+# On 2026-09-09 this machine carried a crowd of leaked `intentd` processes
+# burning CPU for hours, a WAL many times the size of its database, and a
+# runaway load average. Nodes lost writes to it. NO TOOL IN THE ESTATE REPORTED
+# ANY OF IT -- the way it was found was a node noticing the machine felt slow,
+# and the way it was confirmed was reading `Activity Monitor` by hand. `int
+# local status` already named `target/debug/` in its own scope block as *the one
+# the test harness spawns*, and then measured nothing about it. A door that
+# names the artefact and does not measure it is the gate-figure defect in a
+# different costume.
 #
 # ============================================================================
 # TWO RULES ARE BUILT INTO THE MECHANISM RATHER THAN WRITTEN IN A NOTE, BECAUSE
@@ -47,14 +48,14 @@
 # RULE 2 -- STORE HOLDERS ARE A SEPARATE NUMBER FROM PROCESS COUNT.
 #
 # These are not two views of one fact and they came apart on the day that proved
-# it: 13 processes, 4 of them holding the live store. THE HOLDERS ARE THE ONES
+# it: of the processes running, only some held the live store. THE HOLDERS ARE THE ONES
 # THAT COST WRITES. A report that gives only a process count answers the cheap
 # half of the question.
 #
 # AND A HOLDER COUNT IS A POINT-IN-TIME SAMPLE, WHICH THIS FILE SAYS OUT LOUD
 # BECAUSE IT IS NOT OBVIOUS AND IT MISLEADS IN THE REASSURING DIRECTION. Measured
-# while writing this: `lsof` reported TWO holders of the store at an instant when
-# `runtime_select_daemons` correctly reported ZERO daemons, and both were gone a
+# while writing this: `lsof` reported holders of the store at an instant when
+# `runtime_select_daemons` correctly reported ZERO daemons, and they were gone a
 # second later. With no daemon answering, `intent` runs IN-PROCESS and opens the
 # store directly, so any peer's CLI invocation is a holder for its lifetime. A
 # non-zero holder count with zero daemons is therefore NORMAL and is not a leak;
@@ -86,8 +87,8 @@ runtime_select_daemons() {
 #
 # THE WAL IS THE SUBJECT, NOT THE DATABASE. A large db is a large project; a
 # large WAL against a small db is a checkpoint that is not happening, which is
-# the shape that reached 559MB against 21MB. The ratio carries the finding and
-# the absolute size alone does not.
+# the shape of the 2026-09-09 incident. The ratio carries the finding and the
+# absolute size alone does not.
 runtime_footprint_verdict() {
   db_bytes="$1"
   wal_bytes="$2"
@@ -105,7 +106,7 @@ runtime_footprint_verdict() {
     return 0
   fi
 
-  # Integer arithmetic only: this is bash 3.2 on macOS and there is no float.
+  # Integer arithmetic only: bash has no floating point.
   ratio=$((wal_bytes / db_bytes))
   if [ "$ratio" -ge 4 ]; then
     echo "refuse:the WAL is ${ratio}x the database -- a checkpoint is not happening"

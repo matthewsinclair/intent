@@ -2,24 +2,27 @@
 #
 # devbin: summary = The v3 install on THIS machine -- bindings, build, install, reversal
 #
-# int local <status|build|install|use|uninstall>
+# bin/devbin local <status|build|install|use|uninstall>
+#   status             every `intent` binding, PATH order, plus pair currency and store health
+#   build              the guarded release build, the same path as `build all`
+#   install --yes      symlink `intent`/`intentd` in $INTENT_LOCAL_BINDIR (default ~/.local/bin)
+#   use [dev|prod] [--yes]  switch which BUILD answers `intent`; bare reports
+#   uninstall          remove the symlinks `install` made; the way back
 #
-#   status      every `intent` binding on this machine, ranked by PATH precedence
-#   build       force a COHERENT release pair, then VERIFY it
-#   install     put v3 on PATH as `intent`/`intentd` -- their own names, since
-#               2026-08-27; it minted `intent3` while the fleet was still v2
-#   use         switch which BUILD answers `intent`: dev|prod [--yes]; bare reports
-#   uninstall   remove it again; the way back
+# `install` without --yes verifies the pair, prints what it would do and
+# refuses. `use dev` needs --yes only when no brew formula is installed. The
+# links take their own names, `intent`/`intentd`, since 2026-08-27; before
+# that `install` minted `intent3` while the fleet was still v2.
 #
 # WHY `status` EXISTS, AND IT IS THE REASON FOR THE WHOLE COMMAND. On 2026-08-21
-# this estate's own record said there were THREE `intent` bindings. There were
-# FOUR: `~/.local/bin/intent` at PATH 17 and `~/bin/intent` at PATH 19, both
-# symlinks to the same v2 tree, made in the same minute, and only one of them
-# written down anywhere. A design that repoints "the symlink" moves one of two,
-# and deleting the recorded one hands resolution to the unrecorded one, which
-# still answers v2 -- silently, at exit 0. NOTHING ON THIS MACHINE COULD LIST
-# THEM, so the list was maintained by memory and memory was wrong. This is that
-# instrument, and it is read-only so there is never a reason not to run it.
+# this estate's own record undercounted the `intent` bindings:
+# `~/.local/bin/intent` and `~/bin/intent` were both symlinks to the same v2
+# tree, made in the same minute, and only one of them was written down anywhere.
+# A design that repoints "the symlink" moves one of two, and deleting the
+# recorded one hands resolution to the unrecorded one, which still answers v2 --
+# silently, at exit 0. NOTHING ON THIS MACHINE COULD LIST THEM, so the list was
+# maintained by memory and memory was wrong. This is that instrument, and it is
+# read-only so there is never a reason not to run it.
 #
 # AND THE FACT IT EXISTS TO PRINT: `INTENT_HOME` HAS NO AUTHORITY OVER v3.
 # Driven three ways -- exported, unset, and forced to a junk path -- the v3
@@ -30,21 +33,20 @@
 # refuses every 2.x string measured. Two locks, and this prints the one people
 # wrongly believe in so the belief cannot survive looking.
 #
-# WHY `build` IS NOT `cargo build --release`. That command returns 0 over a pair
-# built from TWO DIFFERENT TREES. Measured here: `cargo build --release` and
-# then `int build all` both reported `Finished` while `intent` named the current
-# HEAD and `intentd` named a `dirty-` sha from two days earlier. The cause is
-# exact -- `intentd` declares NO dependencies, so nothing ever invalidates its
-# fingerprint and its `build.rs` never re-runs, permanently. `intent-cli` escapes
-# only incidentally, by depending on `intentsvcs`, which changes.
+# WHY `build` IS NOT `cargo build --release`. That command once returned 0 over
+# a pair built from TWO DIFFERENT TREES. Measured here: `cargo build --release`
+# and the then-unguarded `int build all` both reported `Finished` while `intent`
+# named the current HEAD and `intentd` named a `dirty-` sha from two days
+# earlier, because each binary's source-commit build script re-ran only on
+# changes inside its own package.
 #
-# THE ABSENT `cargo:rerun-if-changed` IS DELIBERATE AND MUST NOT BE "FIXED" --
-# see `native/rust/build-support/source_commit.rs`, which measured it: emitting
-# ANY `rerun-if-changed` REPLACES cargo's default of re-running on package
-# change, so naming `.git/HEAD` would swap a trigger that follows the code for
-# one that does not follow it at all, and the embed would go stale on CODE
-# changes instead -- worse, and in the direction nothing reports. The remedy
-# belongs HERE, outside cargo, at the moment someone wants artefacts to install.
+# `native/rust/build-support/source_commit.rs` now re-runs on any tracked path
+# under its DIRT_SCOPE (issue 0285), so both halves move together, and it
+# records the residual: a tree built dirty and then committed with no further
+# in-scope edit keeps its `dirty-<old>` marker. Cargo still reasons per
+# package, and coherence is a property of the SET, so the force (`cargo clean`
+# of both packages) and the pair verification belong HERE, outside cargo, at
+# the moment someone wants artefacts to install.
 #
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
@@ -55,7 +57,7 @@ set -euo pipefail
 # The pair-agreement reader `verify_pair` delegates to.
 . "$(dirname "${BASH_SOURCE[0]}")/shared/currency.lib"
 # THE one guarded release build, and `verify_pair`. Both used to live in this
-# file, which is how four other entrances came to write the shared artefact
+# file, which is how the other entrances came to write the shared artefact
 # without them.
 . "$(dirname "${BASH_SOURCE[0]}")/shared/releasebuild.lib"
 . "$(dirname "${BASH_SOURCE[0]}")/shared/runtime.lib"
@@ -67,8 +69,8 @@ BINDIR="${INTENT_LOCAL_BINDIR:-$HOME/.local/bin}"
 # THIS USED TO MINT `intent3`/`intentd3` AND THE REASON HAS EXPIRED. cmd_install
 # said, in these words, "NEVER `intent` -- installing v3 under that name shadows
 # v2 for every other project on this machine in one move". That was true while
-# the fleet was v2. Twenty of twenty-one estates are on v3.0.0 as of 2026-08-27,
-# and the one holdout is Intentv2, frozen by ruling and never on the port list.
+# the fleet was v2. As of 2026-08-27 every estate but Intentv2 was on v3.0.0,
+# and Intentv2 is frozen by ruling and never on the port list.
 #
 # The rule was also being kept by nobody in either direction: `~/.local/bin/
 # intent3` did not exist on this machine, so the name this minted was one no one
@@ -182,16 +184,17 @@ EOF
   #
   # THE HAZARD IS REAL EVEN THOUGH THAT CHECK WAS NOT. `Intentv2` carries
   # `intent/.config/config.json`, so every census keyed on config presence finds
-  # it -- and it sits at the migration floor, clean, with 3 threads, which makes
-  # it look like the ideal canary and makes it the worst possible target: it is
-  # the CLI fifteen other projects RUN (vc's census, 2026-08-21, which could not
-  # tell a consumer from the tool -- no config-presence census can).
+  # it -- and it sits at the migration floor, clean and small, which makes it look
+  # like the ideal canary and makes it the worst possible target: it was the CLI
+  # the v2 projects RAN (vc's census, 2026-08-21, which could not tell a consumer
+  # from the tool -- no config-presence census can).
   #
-  # `bin/intent` + `lib/templates/` is NOT the discriminator: this v3 checkout has
-  # both and is a legitimate consumer, self-hosted. The discriminator is whether a
-  # tree is the one INTENT_HOME NAMES, because that is exactly what makes
-  # migrating it break everyone else. Stated here as a machine fact so a
-  # census-writer meets it; the per-project test belongs in the census.
+  # `lib/templates/` is NOT the discriminator: this v3 checkout has it and is a
+  # legitimate consumer, self-hosted. The discriminator is whether a tree is the
+  # one INTENT_HOME NAMES, because INTENT_HOME is what binds v2, and that is
+  # exactly what makes migrating it break every v2 project still using it.
+  # Stated here as a machine fact so a census-writer meets it; the per-project
+  # test belongs in the census.
   local home_real
   home_real="$(cd "${INTENT_HOME:-/nonexistent}" 2>/dev/null && pwd -P || echo '<unresolved>')"
   printf '    INTENT_HOME names %s\n' "$home_real"
@@ -223,13 +226,12 @@ EOF
   # nothing (AT-11.5's finding, arriving here): the tool could answer a question
   # nothing on the typed route was asking it.
   #
-  # WHY HERE AND NOWHERE ELSE ON THE TYPED ROUTE. The verdict already exists in
-  # three places and not one of them is a route a person types: `devbin cli`
-  # (refuses on it), `self_provenance_check.sh` (pre-commit only) and
-  # `int macos publish` (the cut). `~/.local/bin/intent` is a symlink straight
-  # into the release directory and passes through nothing at all. `local status`
-  # is the verb people type to ask WHAT AM I RUNNING, which is this exact
-  # question, so the answer belongs in its output.
+  # WHY HERE AND NOWHERE ELSE ON THE TYPED ROUTE. Its other consumers are not
+  # routes a person types to ask this: `bin/devbin cli` refuses on it, and
+  # `self_provenance_check.sh` reports it at pre-commit. `~/.local/bin/intent`
+  # is a symlink straight into the release directory and passes through nothing
+  # at all. `local status` is the verb people type to ask WHAT AM I RUNNING,
+  # which is this exact question, so the answer belongs in its output.
   #
   # IT REPORTS AND DOES NOT REFUSE, DELIBERATELY. `status` is read-only and
   # every caller reads its exit code as "did the status run", not as a verdict.
@@ -251,14 +253,15 @@ EOF
       printf '    currency UNREADABLE -- the verdict was %s, which is not a form this renders\n' "$verdict" ;;
   esac
 
-  # THE VERDICT ABOVE IS ABOUT ONE ARTEFACT AND THE UNQUALIFIED FORM MISLED THREE
-  # NODES WITHIN TWENTY MINUTES OF LANDING (cc, 2026-09-09). It read `currency ok
-  # -- this pair describes the tree you are standing in`, which is true of the
-  # PATH pair and says NOTHING about `target/debug/`. vc rebuilt the release pair
-  # correctly, read the green, and told three nodes that cc's 28 sibling-staleness
-  # failures would clear on a re-run. They could not: the harness spawns
-  # `target/debug/intentd`, which was still an hour behind the source, and the
-  # count did not move by one. **Every statement in that chain was true.**
+  # THE VERDICT ABOVE IS ABOUT ONE ARTEFACT AND THE UNQUALIFIED FORM MISLED
+  # NODES WITHIN MINUTES OF LANDING (cc, 2026-09-09). It read `currency ok --
+  # this pair describes the tree you are standing in`, which is true of the PATH
+  # pair and says NOTHING about `target/debug/`. vc rebuilt the release pair
+  # correctly, read the green, and told the other nodes that cc's
+  # sibling-staleness failures would clear on a re-run. They could not: the
+  # harness spawns `target/debug/intentd`, which was still an hour behind the
+  # source, and the failures did not move. **Every statement in that chain was
+  # true.**
   #
   # SO THE SCOPE IS PRINTED RATHER THAN IMPLIED, and the debug artefact is named
   # with the command that refreshes it. This is the same defect as `intent
@@ -278,11 +281,12 @@ EOF
   fi
 
   # **THE SCOPE BLOCK ABOVE NAMED `target/debug/` AND MEASURED NOTHING ABOUT IT
-  # UNTIL 2026-09-10.** On 2026-09-09 this machine carried 67 leaked `intentd`
-  # processes, 65 CPU-hours of burn, a 559MB WAL against a 21MB database and a
-  # load average of 502; four nodes lost writes. Nothing in the estate reported
-  # any of it. A door that names an artefact and does not measure it is the
-  # gate-figure defect in a different costume, so it measures it now.
+  # UNTIL 2026-09-10.** On 2026-09-09 this machine carried a crowd of leaked
+  # `intentd` processes burning CPU for hours, a WAL many times the size of its
+  # database and a runaway load average; nodes lost writes. Nothing in the
+  # estate reported any of it (shared/runtime.lib has the detail). A door that
+  # names an artefact and does not measure it is the gate-figure defect in a
+  # different costume, so it measures it now.
   printf '\n==> what is running against this project, and what its store weighs\n'
 
   local daemons holders dbf walf verdict
@@ -315,7 +319,7 @@ EOF
   # REASSURING DIRECTION AND THAT IS HOW THE LEAK SURVIVED A DAY.** It asks THIS
   # project's socket address. A harness-spawned daemon binds under its own
   # isolated HOME, so it is a correct singleton for a DIFFERENT address and
-  # answers nothing here. Measured 2026-09-10: four live `target/debug/intentd`
+  # answers nothing here. Measured 2026-09-10: live `target/debug/intentd`
   # processes on this machine while `daemon status` said `no intentd is
   # answering`. BOTH ANSWERS WERE TRUE AND THEY ANSWER DIFFERENT QUESTIONS -- a
   # node reading only the socket concludes the machine is clean.
@@ -327,24 +331,12 @@ EOF
   printf '          own lifetime. What is diagnostic is holders that PERSIST.\n'
 }
 
-# verify_pair -- refuse a set that describes no single state of this repo.
-#
-# This is the check `cargo` cannot make and `int build all` does not: cargo
-# reasons per package, and coherence is a property of the SET.
-# verify_pair [<dir>] [<mode>]
-#
-# <dir> defaults to the shared release dir; <mode> is `shared` (default) or
-# `private`. THE MODE EXISTS BECAUSE `dirty-` MEANS OPPOSITE THINGS ON THE TWO
-# PATHS: in the shared slot it is the defect AC-11.6 exists to prevent, and in a
-# private redirect it is the EXPECTED and correct outcome of having redirected.
-# A single strict check would have made the redirect fail every time it worked.
-
 cmd_build() {
   # THE WHOLE BODY MOVED TO `shared/releasebuild.lib`, and moving it IS the fix.
   # It sat here as one command's private sequence while `int build all`,
   # `int build cli`, `int build daemon` and `cmd/cli`'s fallback each wrote the
   # same shared artefact with a bare `cargo build`. The guard was not weak, it
-  # was unreachable from four of the five doors people actually use.
+  # was unreachable from most of the doors people actually use.
   guarded_release_build
 }
 
@@ -397,24 +389,25 @@ cmd_install() {
 #   int local use prod     the brew-installed release
 #   int local use dev      this checkout's build
 #
-# MECHANISM: `brew link` / `brew unlink`. `/opt/homebrew/bin` is PATH position 1
-# and the dev symlinks sit at 17 and 19, so while the formula is linked brew wins
-# and nothing built here is ever reached. Unlinking removes brew's symlinks and
+# MECHANISM: `brew link` / `brew unlink`. `/opt/homebrew/bin` sits ahead of the
+# dev symlinks (`~/.local/bin`, `~/bin`) on PATH, so while the formula is linked
+# brew wins and nothing built here is ever reached. Unlinking removes brew's symlinks and
 # PATH falls through. That is Homebrew's own sanctioned, reversible mechanism;
 # hand-editing `/opt/homebrew/bin` or reordering PATH is neither.
 #
 # WHY THIS IS NOT A PORT OF CONFLAB'S `use`, AND THE DIFFERENCE IS THE WHOLE RISK.
-# Conflab unlinks brew and falls through TO NOTHING. WE FALL THROUGH TO v2:
-# `~/.local/bin/intent` (17) and `~/bin/intent` (19) are both symlinks into the
-# FROZEN v2 tree. So a bare unlink here does not select the dev build, IT SELECTS
-# v2 -- right binary name, wrong major version, EXIT 0, no message. This file's
-# own header states the general form: a design that repoints "the symlink" moves
-# one of two, and deleting the recorded one hands resolution to the unrecorded
-# one, which still answers v2 silently.
+# Conflab unlinks brew and falls through TO NOTHING. WE FALL THROUGH TO
+# WHATEVER `~/.local/bin/intent` and `~/bin/intent` point at, and when this was
+# written both were symlinks into the FROZEN v2 tree. Then a bare unlink does
+# not select the dev build, IT SELECTS v2 -- right binary name, wrong major
+# version, EXIT 0, no message. This file's own header states the general form:
+# a design that repoints "the symlink" moves one of two, and deleting the
+# recorded one hands resolution to the unrecorded one, which still answers v2
+# silently.
 #
 # SO THE VERIFY IS THE LOAD-BEARING PART, NOT THE REPOINT. This command repoints
 # what it owns and then MEASURES WHAT ACTUALLY RESOLVES, dying if it is not the
-# flavour asked for. That catches PATH 19, and any position nobody has found yet,
+# flavour asked for. That catches `~/bin`, and any position nobody has found yet,
 # WITHOUT NEEDING TO KNOW IT EXISTS. An enumeration of positions goes stale the
 # day someone adds one; a measurement of resolution cannot.
 
@@ -454,7 +447,7 @@ brew_has_intent() {
 # after which it sent the reader off to cut a release when what they needed was
 # one `brew install`. Measured on this machine the hour the tap gained a formula.
 #
-# DELIBERATELY DOES NOT NAME THE TAP. `cmd/macos` owns the three tap spellings and
+# DELIBERATELY DOES NOT NAME THE TAP. `cmd/macos` owns the tap spellings and
 # a second copy here would be a Highlander violation for a string that exists to
 # be stated once. Asking brew to resolve the bare name answers the question this
 # command actually has -- is there a formula to install -- without owning where it
@@ -467,13 +460,15 @@ brew_formula_available() {
 #
 # A DIFFERENT PROPOSITION FROM "WHICH BINARY RESOLVES", AND THEY COME APART ON
 # THE PROD ARM (cc, 2026-08-26). The door finds its scripts by walking
-# `current_exe()` ancestors for `lib/templates/`. A symlink canonicalises first
-# and the walk lands inside the checkout; A BREW INSTALL IS A COPY, and a copy
-# with no marker above it refuses EVERY hook at exit 1 -- which Claude Code does
-# NOT block on, so the strict in-session gate stops enforcing SILENTLY, in every
-# project, at once. `verify_pair` and a resolution check BOTH PASS while that is
-# true: both ask which bytes are there, neither asks whether the door opens.
-# (copy-vs-link arms: ic's find, dc's measurement, 2026-08-21.)
+# `current_exe()` ancestors for `lib/templates/` (intentsvcs/src/install.rs). A
+# symlink canonicalises first and the walk lands inside the checkout. The brew
+# formula installs `libexec/lib/templates` beside `libexec/bin/intent`, so the
+# walk lands inside the keg; a bare COPY of the binary with no marker above it
+# refuses EVERY hook at exit 1 -- which Claude Code does NOT block on, so the
+# strict in-session gate stops enforcing SILENTLY, in every project, at once.
+# `verify_pair` and a resolution check BOTH PASS while that is true: both ask
+# which bytes are there, neither asks whether the door opens. (copy-vs-link
+# arms: ic's find, dc's measurement, 2026-08-21.)
 #
 # STDIN MUST BE CLOSED. `claude hook require-in-session` reads its payload from
 # stdin and BLOCKS FOREVER on an inherited one -- two minutes on cc's probe
@@ -532,7 +527,7 @@ cmd_use() {
       printf '    brew unlinked and pinned\n'
     else
       # NO PROD TO GO BACK TO, SO THIS IS NOT A TOGGLE -- IT IS THE CUTOVER.
-      # Nothing shadows PATH 17 while the formula is absent, so repointing it
+      # Nothing shadows `~/.local/bin` while the formula is absent, so repointing it
       # changes which Intent EVERY project on this machine runs, and `use prod`
       # cannot undo it because there is no formula to link. Machine-wide and
       # one-way, so it asks, exactly as `install` does for the same reason.
@@ -565,7 +560,7 @@ cmd_use() {
   verify_hook_door
 
   # A dev switch is only as good as the artefacts it switched to, and the pair is
-  # routinely at a different commit from HEAD in a four-writer tree.
+  # routinely at a different commit from HEAD in a multi-writer tree.
   if [ "$want" = dev ]; then
     step "do the dev artefacts describe this tree?"
     verify_pair

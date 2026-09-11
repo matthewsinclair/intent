@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# devbin: summary = Sign and notarise the macOS release binaries with the Geodica Developer ID
+# devbin: summary = Sign, notarise and publish the macOS release (CLI pair + Intent.app) with the Geodica Developer ID
 #
-# intent macos <subcommand>  -- run `int macos` with no arguments for the list.
+# bin/devbin macos <subcommand>  -- run `int macos` with no arguments for the list.
 #
 # THE SUBCOMMAND LIST LIVES IN usage() AT THE FOOT OF THIS FILE, not here, and it
 # moved for a reason worth keeping. The help used to be `sed -n '5,15p'` of this
@@ -21,8 +21,8 @@
 # PORTED FROM LAMPLIGHT (`bin/.devbin/cmd/macos.d/`), which signs the lamplight
 # CLI and Wrighter.app with the same Geodica ADC, team 76BQL8L47U. Ported rather
 # than reinvented: the credential model, the codesign flags, the notarytool flow
-# and the inside-out bundle walk are all theirs. **Intent ships two things to
-# sign**: two bare Mach-O CLI binaries, and -- from 3.0.1, hv's decision 7 on
+# and the inside-out bundle walk are all theirs. **Intent ships more than one
+# kind of thing to sign**: the bare Mach-O CLI pair, and -- from 3.0.1, hv's decision 7 on
 # 2026-09-11 -- the menubar app, `Intent.app`, which carries its own entitlements.
 # The CLI half is the pipeline below; the app half is `app-sign` / `app-notarize`
 # at the foot of the file. There is still no installer pkg, so Lamplight's
@@ -36,7 +36,7 @@
 #
 # THE THING THAT WILL LOOK LIKE A BUG AND IS NOT: **a bare Mach-O binary cannot
 # have a notarisation ticket stapled to it.** (The .app CAN, and `app-notarize`
-# staples it -- this paragraph is about the two CLI binaries.) `stapler` writes
+# staples it -- this paragraph is about the CLI binaries.) `stapler` writes
 # tickets into .app/.pkg/.dmg containers; there is nowhere to put one in a bare
 # executable.
 # Measured on the closest possible precedent -- conflab, a Developer ID signed
@@ -70,10 +70,10 @@ RELEASE_DIR="$ROOT/native/rust/target/release"
 BINARIES="intent intentd"
 KC_PREFIX="intent.apple"
 
-# THE SUPPORT TREE, AND WHY A RELEASE OF TWO BINARIES SHIPS THREE ARTEFACTS.
+# THE SUPPORT TREE, AND WHY A RELEASE OF BINARIES ALSO SHIPS A TARBALL.
 #
 # **A Rust binary cannot carry shell inside itself.** Intent ships its Claude Code
-# hooks and its whiteboard guards as FILES under `lib/templates/`, and two shipped
+# hooks and its whiteboard guards as FILES under `lib/templates/`, and shipped
 # consumers exec them out of the install tree: `intent claude hook <name>` runs
 # `lib/templates/.claude/scripts/<name>.sh`, and the pre-commit gate runs
 # `lib/templates/hooks/<guard>.sh` at a path it parses back out of `intent info`.
@@ -96,12 +96,11 @@ KC_PREFIX="intent.apple"
 # paragraph above says the archive exists to prevent. Measured on the first real
 # brew install, 2026-08-26.** It contains `lib/templates/...`
 # rather than `templates/...`, so the formula's install line is "put everything in
-# this archive into libexec" rather than "put templates in libexec/lib". Two
-# unimplemented commands -- `intent critic` and `intent claude rules`, both exit 2
-# in this build -- will need the rule library, which lives OUTSIDE the marker
-# directory (`intent/plugins/claude/rules/`). When they land, the shipped set
-# grows. Rooting the archive at the install root means that is a CONTENT change,
-# not a formula change and not a second asset.
+# this archive into libexec" rather than "put templates in libexec/lib". The rule
+# library and the skills tree that `intent critic` and `intent claude rules` read
+# live OUTSIDE the marker directory (`intent/plugins/claude/`), and rooting the
+# archive at the install root is what lets a tree like that join the shipped set
+# as a CONTENT change, not a formula change and not a second asset.
 #
 # IT IS NOT SIGNED AND NOT NOTARISED, AND THAT IS NOT AN OMISSION. Notarisation
 # assesses Mach-O binaries; a gzipped tar of shell and markdown has nothing to
@@ -148,13 +147,15 @@ APP_ASSET="Intent.app.zip"
 #
 # A RECORDED VERIFICATION MUST NAME ITS POPULATION, or the next reader inherits
 # the confidence without the scope.
+#
 # THE FOURTH ENTRY IS A FILE, NOT A TREE, AND THAT IS THE WHOLE POINT.
-# `intent/plugins/claude/bin/` holds SEVEN scripts; `intent_claude_cwi` is the
-# only one v3 resolves (`intentsvcs/src/install.rs:361`), and hv ruled it the ONE
-# plugin script surviving the cut -- recorded at `install.rs:352`. Shipping the
-# DIRECTORY would satisfy this check just as well and carry six v2 scripts nothing
-# executes, which is precisely the residue fail-forward exists to refuse. Adjacency
-# is not a reason to ship something.
+# `intent_claude_cwi` is the one plugin script v3 resolves (`cwi_script` in
+# `intentsvcs/src/install.rs`), and hv ruled it the ONE plugin script surviving
+# the cut -- recorded on that function. Naming the file rather than
+# `intent/plugins/claude/bin/` keeps the list to what the resolver reads: a
+# directory entry would ship whatever else is ever dropped beside it, which is
+# precisely the residue fail-forward exists to refuse. Adjacency is not a reason
+# to ship something.
 #
 # HOW IT WENT MISSING, BECAUSE THE ANSWER CHANGES WHAT THE FIX MEANS. It was not
 # missed when this list was corrected on 2026-08-26 (`0112b8c1`). The cwi door
@@ -172,7 +173,7 @@ APP_ASSET="Intent.app.zip"
 # documentation on disk.
 #
 # It needs no formula `chmod`: the archive preserves 0755 through `tar`, and the
-# `chmod` in the formula exists only for the two BINARIES, which GitHub serves as
+# `chmod` in the formula exists only for the BINARIES, which GitHub serves as
 # bare 644 files. Verified in the archive, not assumed.
 SUPPORT_PATHS="lib/templates intent/plugins/claude/rules intent/plugins/claude/skills intent/plugins/claude/bin/intent_claude_cwi"
 
@@ -188,28 +189,28 @@ SUPPORT_PATHS="lib/templates intent/plugins/claude/rules intent/plugins/claude/s
 # `install::home` walks for. Every file shipped correctly and NOTHING could reach
 # them: `intent --version` answered perfectly, `intent info` printed
 # `INTENT_HOME: <not set>`, and every hook refused at exit 1. **rc=1 is the code
-# Claude Code does not block on and the code eleven vendored devbin estates fail
-# OPEN on, so a fleet on that install loses every session hook and five guards per
-# estate with every commit still succeeding.**
+# Claude Code does not block on and the code vendored devbin estates fail OPEN
+# on, so a fleet on that install loses every session hook and every guard with
+# every commit still succeeding.**
 #
 # The wrapper makes the strip DETERMINISTIC INSTEAD OF INCIDENTAL. There is always
 # exactly one top-level entry, brew always removes exactly the wrapper, and what
 # is staged is always the install root.
 #
-# WHY NOT THE ONE-LINE FORMULA FIX. `(libexec/"lib").install Dir["*"]` corrects
-# today's layout and is wrong for the change already planned: when `intent critic`
-# and `intent claude rules` land they need the rule library at
-# `intent/plugins/claude/rules/`, OUTSIDE this marker directory, and that second
-# tree would land under `libexec/lib/intent/`. The fragile fix and the robust fix
-# are the same size; only one survives growth. The formula line stays
-# "install whatever the archive carries".
+# WHY NOT THE ONE-LINE FORMULA FIX. `(libexec/"lib").install Dir["*"]` would
+# correct a marker-only layout and is wrong for what the archive carries: the
+# rule library and skills tree at `intent/plugins/claude/`, which `intent critic`
+# and `intent claude rules` read, sit OUTSIDE this marker directory and would
+# land under `libexec/lib/intent/`. The fragile fix and the robust fix are the
+# same size; only one survives growth. The formula line stays "install whatever
+# the archive carries".
 SUPPORT_PREFIX="intent-support"
 
-# WHERE THE ARTEFACTS GO AND WHERE THE CLAIM ABOUT THEM GOES. Two repositories,
+# WHERE THE ARTEFACTS GO AND WHERE THE CLAIM ABOUT THEM GOES. Separate repositories,
 # by hv's ruling of 2026-08-15 (D40): artefacts live on the source repo's own
 # releases, and the tap carries only the formula that names them.
 #
-# The three spellings are all real and none is derivable from the others without
+# The spellings are all real and none is derivable from the others without
 # a rule someone has to remember: GitHub calls the tap `homebrew-intent`, brew
 # calls the same thing `matthewsinclair/intent`, and the source repo is a third
 # name again. Written out once rather than reconstructed at each use.
@@ -228,13 +229,13 @@ BREW_TAP="matthewsinclair/intent"
 
 # EVERYTHING AFTER THE COPY HAPPENS HERE, AND THAT IS THE WHOLE POINT.
 #
-# `target/release/` is SHARED MUTABLE STATE. Four sessions build in this tree and
+# `target/release/` is SHARED MUTABLE STATE. Several sessions build in this tree and
 # `cargo build --release` is the most ordinary thing any of them does -- so a
 # signature living there is not a property of a file, it is a property of a file
 # that nobody has rebuilt yet.
 #
 # MEASURED LIVE, 2026-08-15: a peer's release build replaced a Developer ID
-# signature with the linker's ad-hoc one, and one of two shipped binaries stopped
+# signature with the linker's ad-hoc one, and one of the shipped binaries stopped
 # being notarised inside the hour, with NO signal and every artefact of the
 # earlier proof still reading as valid. Nobody did anything wrong; a shared target
 # directory is what it is for.
@@ -254,13 +255,13 @@ STAGE_DIR="$ROOT/native/rust/target/dist"
 
 # WHAT COMMIT DID THESE BYTES COME FROM. Written by `stage`, read by `publish`.
 #
-# A SIBLING of STAGE_DIR rather than a file inside it, for two reasons that both
+# A SIBLING of STAGE_DIR rather than a file inside it, for reasons that each
 # had to hold. `stage` opens with `rm -rf "$STAGE_DIR"`, so a record inside it
 # would be destroyed and rewritten by the very step whose inputs it describes --
 # harmless, but it makes the record's lifetime identical to the staging
 # directory's, which is exactly when you want to be able to compare them. And
 # `unclassified_artefacts` REFUSES any staged file that is not a proven binary or
-# the declared support asset, so a provenance file inside STAGE_DIR would be
+# one of the declared assets (SUPPORT_ASSET, APP_ASSET), so a provenance file inside STAGE_DIR would be
 # rejected by the guard added beside it -- correctly, since it is not something
 # that ships.
 PROVENANCE_FILE="$ROOT/native/rust/target/dist-provenance.txt"
@@ -286,7 +287,8 @@ APPLE_TEAM_ID="$(kc_get APPLE_TEAM_ID)"
 # The identity is DERIVED from the team id rather than stored, so there is one
 # place a team id can be wrong. Falls back to discovering it from the keychain
 # when no team id is stored yet -- which is the normal state before store-creds,
-# and is what lets `sign` work today while notarisation waits on hv.
+# and is what lets `sign` work on a machine whose notary credentials are not yet
+# stored.
 if [ -n "$APPLE_TEAM_ID" ]; then
   IDENTITY="Developer ID Application: Geodica Pty Ltd ($APPLE_TEAM_ID)"
 else
@@ -348,8 +350,9 @@ staged_artefacts() {
   (cd "$STAGE_DIR" && ls -1) | grep -v '^SHA256SUMS\.txt$' || true
 }
 
-# unclassified_artefacts -- staged files that are neither a Mach-O we must prove
-# nor a data asset we have decided to ship unproven.
+# unclassified_artefacts -- staged files that are neither a Mach-O we must prove,
+# nor the app zip (APP_ASSET, proven from the zip by `checksum`), nor a data asset
+# we have decided to ship unproven (SUPPORT_ASSET).
 #
 # EXTRACTED SO IT CAN BE DRIVEN. Inline in cmd_checksum this was reachable only
 # through a full release run -- stage, sign, and a multi-minute notarisation
@@ -396,25 +399,21 @@ INSTALL_BINARY_PATHS="bin"
 #
 # THE CHECK ONE LEVEL UP FROM `support_tree_drift`, AND THE LEVEL THE 3.0.0
 # DEFECT LIVED AT. That one asks "does the ARCHIVE match the COPY LIST", and it
-# was green and correct throughout while the copy list was missing two of the
-# three trees the binary resolves. Nothing compared the copy list to the thing
-# that reads it, so the archive faithfully carried an incomplete answer.
-#
-# POPULATION, NAMED, BECAUSE NAMING IT IS THE WHOLE LESSON OF THE DEFECT: `src/`
-# only. A `tests/` join builds a FIXTURE install root -- `skills_sync.rs` mkdirs
-# two of these paths in a tempdir -- so a fixture path is not a shipping
-# requirement, and reading tests here would refuse a release over a temp dir.
+# was green and correct throughout while the copy list was missing trees the
+# binary resolves. Nothing compared the copy list to the thing
+# that reads it, so the archive faithfully carried an incomplete answer. Its
+# population is `resolved_install_paths`, below, which names it.
 #
 # COVERED means a path-boundary prefix in EITHER direction, and both directions
 # are load-bearing. An entry that is a PARENT of the literal ships it, so
-# `lib/templates` covers `canon.rs`'s `lib/templates/hooks/pre-commit.sh`. A
+# `lib/templates` covers any `lib/templates/...` literal a resolver joins. A
 # literal that is a parent of an ENTRY exists because its children ship, so
 # `plugins.rs`'s `intent/plugins` needs nothing of its own. A new sibling tree
 # is neither, which is exactly the case this exists to catch.
 # resolved_install_paths -- every path v3 resolves against its install root,
 # read out of the RESOLVERS. One line per path, sorted, no duplicates.
 #
-# THE ONE HOME FOR THAT QUESTION, AND IT HAS TWO CONSUMERS ON PURPOSE:
+# THE ONE HOME FOR THAT QUESTION, AND IT IS SHARED ON PURPOSE:
 # `support_paths_coverage` (does the copy list carry them) and smoke ARM 3 (does
 # the built keg contain them). Before 2026-08-29 ARM 3 asked its question of
 # `$SUPPORT_PATHS` instead -- the copy list -- so it audited the artefact against
@@ -432,7 +431,7 @@ INSTALL_BINARY_PATHS="bin"
 #
 # POPULATION, NAMED, BECAUSE NAMING IT IS THE WHOLE LESSON OF THE DEFECT: `src/`
 # only. A `tests/` join builds a FIXTURE install root -- `skills_sync.rs` mkdirs
-# two of these paths in a tempdir -- so a fixture path is not a shipping
+# some of these paths in a tempdir -- so a fixture path is not a shipping
 # requirement, and reading tests here would refuse a release over a temp dir.
 resolved_install_paths() {
   local src="$ROOT/native/rust/crates"
@@ -464,8 +463,8 @@ support_paths_coverage() {
 # WHY THIS EXISTS, AND IT IS A HOLE IN THIS FILE THAT NOTHING WAS WATCHING.
 # `publish` already refuses a dev version, refuses to overwrite published bytes,
 # and refuses when the tag does not exist -- so it establishes that a tag IS
-# there, and then publishes bytes with no evidence they came from it. Two
-# independent ways they might not have:
+# there, and then publishes bytes with no evidence they came from it.
+# Independent ways they might not have:
 #
 #   1. `stage` COPIES the binaries out of `native/rust/target/release`. It does
 #      not build them. That directory is shared mutable state in a clone several
@@ -474,7 +473,7 @@ support_paths_coverage() {
 #      that silently compiled another node's in-flight edit.
 #   2. The support tarball is built with `tar -C "$ROOT"` straight from the
 #      WORKING TREE, so uncommitted shell ships verbatim. That one arrived with
-#      the support asset itself and is the sharper of the two, because it needs
+#      the support asset itself and is the sharper, because it needs
 #      no peer and no stale cache -- an editor with unsaved-but-written changes
 #      is enough.
 #
@@ -507,11 +506,11 @@ provenance_blockers() {
     printf 'the working tree is dirty, so target/release may hold bytes that match no commit\n'
 }
 
-# artefact_source_commit MOVED to `cmd/artefact.lib` 2026-08-21 (dc), sourced just
-# below. Its three call sites here are unchanged; the move is what keeps them the
-# only copy now that `cmd/local` needs the same reader. It went to `lib/helpers`
-# first and that was WRONG -- that file is devbin-owned and checksummed, so the
-# next `devbin upgrade` would have deleted the function out from under these three.
+# artefact_source_commit MOVED to `cmd/shared/artefact.lib` 2026-08-21 (dc),
+# sourced just below. The move is what keeps its call sites here on the one copy
+# now that `cmd/local` needs the same reader. It went to `lib/helpers` first and
+# that was WRONG -- that file is devbin-owned and checksummed, so the next
+# `devbin upgrade` would have deleted the function out from under them.
 . "$(dirname "${BASH_SOURCE[0]}")/shared/artefact.lib"
 
 # artefact_commit_blockers <stage-dir> <triple> <want-commit> -- reasons the
@@ -536,7 +535,7 @@ provenance_blockers() {
 # `prov_commit`: publishing is allowed to happen after the branch has moved on,
 # and what matters is correspondence to the thing being published rather than to
 # the thing being worked on. A stage-time comparison against HEAD would also be
-# a comparison between two things the checkout supplied, which is the class of
+# a comparison between things the checkout supplied, which is the class of
 # check AC-11.5 exists to reject.
 #
 # PURE AND PARAMETERISED SO IT CAN BE DRIVEN, following this file's own precedent
@@ -547,20 +546,23 @@ provenance_blockers() {
 # at the tag must return NOTHING, because a blocker function that fires on
 # everything reads exactly like a blocker function that works.
 #
-# A RELEASE SHIPS THREE ARTEFACTS AND THIS EXAMINES TWO, WHICH IS A JUSTIFIED
+# A RELEASE SHIPS MORE ARTEFACTS THAN THIS EXAMINES, WHICH IS A JUSTIFIED
 # ASYMMETRY AND NOT A GAP -- WRITTEN DOWN BECAUSE THE NEXT READER WILL SPOT THE
-# COUNT AND EITHER ADD A BOGUS CHECK OR ASSUME A HOLE. The two binaries are
+# COUNT AND EITHER ADD A BOGUS CHECK OR ASSUME A HOLE. The binaries are
 # COPIED here out of a build directory, so the only thing that knows what built
 # them is the artefact, and nothing in the checkout can answer for them. The
 # support tarball is ARCHIVED from the working tree by `tar -C "$ROOT"`, so its
 # provenance question is genuinely a question about the CHECKOUT -- "was the tree
 # clean when this was rolled up" -- and `provenance_blockers` answers it with a
 # NARROW `git status --porcelain -- $SUPPORT_PATHS`, which is the sharper of its
-# two arms precisely because dirt there is not a risk of shipping uncommitted
+# arms precisely because dirt there is not a risk of shipping uncommitted
 # bytes, it IS shipping them. DIFFERENT ARTEFACTS, DIFFERENT SUBJECTS, DIFFERENT
 # CORRECT CHECKS. Adding a marker to a tarball of shell would be a check whose
 # subject does not exist; leaving the tarball unexamined would be the compound
-# artefact problem this function was built to fix. It is neither.
+# artefact problem this function was built to fix. It is neither. The app zip
+# (APP_ASSET) is examined at `stage` by `app_asset_blockers` instead: it must be
+# stapled and report the staged CLI's version. Its bundle's `IntentCommit` stamp
+# is not compared against the tag by anything in this file.
 #
 # BOTH BINARIES CARRY THE EMBED (`4c839def`), INCLUDING `intentd`. An earlier
 # draft of this comment said `intentd` had none and that a refused publish was
@@ -572,7 +574,7 @@ provenance_blockers() {
 #
 # What still fails closed, correctly, is a STALE artefact: there is no
 # `rerun-if-changed` on `.git/HEAD` (that trigger means "a peer committed" in a
-# five-session clone), so a HEAD move outside a package leaves its embed naming
+# multi-session clone), so a HEAD move outside a package leaves its embed naming
 # an earlier commit -- measured -- and that is exactly the disagreement this
 # refuses on. A `cargo build` at the tag is the remedy, and it is one command.
 artefact_commit_blockers() {
@@ -654,7 +656,7 @@ cmd_doctor() {
   # one -- a SPACE, not an `=`. So `sed -n 's/^Signature=//p'` matched an ad-hoc
   # binary and printed NOTHING for a correctly Developer ID signed one: **the
   # display went blank exactly when the news was good.** hv ran `doctor` after
-  # signing and saw two empty fields.
+  # signing and saw empty fields.
   #
   # Nothing-means-bad is the same false-report shape as an unwired guard, and it
   # is worse in a doctor, whose entire job is to be believed about state. The
@@ -788,7 +790,7 @@ cmd_notarize() {
   #
   # MEASURED, not anticipated. A submission came back Accepted with both binaries
   # signed and hardened-runtime-verified, and Gatekeeper then rejected one of them
-  # as `Unnotarized Developer ID` for over two minutes -- six polls, both copy
+  # as `Unnotarized Developer ID` for over two minutes of polling, both copy
   # methods agreeing at every moment, so it was the ticket and not the check. It
   # then flipped to `Notarized` and stayed, for both binaries. Latency has a
   # direction; that shape is what distinguishes it from a per-artefact gap.
@@ -827,7 +829,7 @@ cmd_notarize() {
   printf '  servers and Gatekeeper checks online. conflab ships exactly this way.\n'
 }
 
-# verify_notarised <dir> <file> -- THE ONLY CHECK THAT PROVES THE WHOLE CHAIN,
+# verify_notarised <file> -- THE ONLY CHECK THAT PROVES THE WHOLE CHAIN,
 # and the reason it exists is that every other check passes on a binary that is
 # signed but NOT notarised. codesign verifies the signature; spctl -t exec
 # answers the wrong question; `stapler` correctly reports no ticket on a bare
@@ -846,7 +848,8 @@ cmd_notarize() {
 # answer to a question nobody is asking. **Verify the artefact you are going to
 # publish, never its ancestor.**
 #
-# One implementation, one target, three callers -- which is the arrangement where
+# One implementation, one target, every CLI caller (`notarize`, `verify`,
+# `checksum`, `publish`) -- which is the arrangement where
 # a release-time check cannot drift away from the development-time one everybody
 # actually runs.
 verify_notarised() {
@@ -948,12 +951,12 @@ cmd_stage() {
   # describing artefacts that were never staged -- a record whose subject does not
   # exist is worse than no record, because it reads as one.
   #
-  # WHY THE PARTITION IS THREE FIELDS AND NOT ONE. `commit:` alone answers
+  # WHY THE PARTITION IS SEVERAL FIELDS AND NOT ONE. `commit:` alone answers
   # CURRENCY and nothing answers IDENTITY, so one source commit covers
   # structurally different artefacts -- `dirty-18197aaf` was carried by `intent`
-  # at 9008848 bytes and `intentd` at 373136 simultaneously. The converse is just
-  # as real: `f2e4d1f9005d0334` matched its record exactly for ten hours while
-  # being 158 commits behind. **A hash certifies WHICH bytes; a commit certifies
+  # and `intentd` at very different sizes simultaneously. The converse is just
+  # as real: `f2e4d1f9005d0334` matched its record exactly for hours while
+  # being far behind HEAD. **A hash certifies WHICH bytes; a commit certifies
   # WHICH SOURCE; neither implies the other, so the record must carry both and
   # SAY which question each answers.** A reader who has to infer the question
   # from the field name is the reader who read `commit:` as a claim about the
@@ -965,20 +968,20 @@ cmd_stage() {
   # starts describing nothing. `checkout_clean` stays for the same reason and
   # keeps its own subject: it is about the CHECKOUT, not about the bytes.
   #
-  # AND `commit:` HAD TWO READERS ASKING TWO DIFFERENT QUESTIONS OF IT (0264).
+  # AND `commit:` HAD READERS ASKING DIFFERENT QUESTIONS OF IT (0264).
   # `publish` reads it as the CHECKOUT at stage time and requires it to equal the
   # tag; `provenance_fields_check.sh` read it as THE ARTEFACTS and compared it
   # against the marker embedded in the bytes. Both readings are reasonable and
-  # both were in the tree, so the field was correct only when the two subjects
-  # coincided -- which is at a release and nowhere else. Measured twice within one
-  # hour on 2026-09-05: record 38919f13 against artefacts da5919e8, MINUTES after
+  # both were in the tree, so the field was correct only when the subjects
+  # coincided -- which is at a release and nowhere else. Measured repeatedly
+  # on 2026-09-05: record 38919f13 against artefacts da5919e8, MINUTES after
   # a rebuild, so it is not staleness. **A freshly staged pair does not make these
-  # agree and cannot**, because a five-node checkout moves between the build and
+  # agree and cannot**, because a multi-node checkout moves between the build and
   # the stage.
   #
   # So the record now carries a field per subject, and BOTH readers moved in the
   # same commit. `artefact_commit:` is per-artefact rather than one value for the
-  # set, for the reason `artefact_sha256` already is: one marker covered two
+  # set, for the reason `artefact_sha256` already is: one marker covered
   # structurally different binaries once, and a set that disagrees with itself has
   # no single value to record.
   #
@@ -989,7 +992,7 @@ cmd_stage() {
   # `^source_commit: `, so `publish` is untouched by construction -- and the
   # checker no longer resolves by order at all: it looks up each artefact BY NAME.
   #
-  # DRIFT IS HELD RATHER THAN OMITTED. Two fields would read as a CLOSED
+  # DRIFT IS HELD RATHER THAN OMITTED. The primaries alone would read as a CLOSED
   # partition over provenance, and it is not closed: neither primary expresses
   # how much uncommitted code the artefact holds, and nothing here can check that
   # an embedded marker is HONEST about the bytes carrying it. A hold with a named
@@ -1019,7 +1022,7 @@ cmd_stage() {
 
   # AND NOW ASK THE BYTES THEMSELVES. Everything printed above is a claim about
   # the CHECKOUT, and `stage` used to stop there -- so it reported on binaries it
-  # had never asked anything, which is the three-indistinguishable-states defect
+  # had never asked anything, which is the indistinguishable-states defect
   # in this command's own output. `stage` COPIES out of target/release rather than
   # building, and that directory is shared mutable state in a clone several
   # sessions write to, so the bytes it just copied can predate the commit it just
@@ -1062,7 +1065,7 @@ cmd_stage() {
   # REFUSE BEFORE BUILDING, because the archive cannot report what the copy list
   # never asked for. `support_tree_drift` below proves the archive matches
   # SUPPORT_PATHS and stayed green through the whole of 3.0.0 while SUPPORT_PATHS
-  # was missing two of the three trees the binary resolves. This is the arm that
+  # was missing trees the binary resolves. This is the arm that
   # reads the CONSUMER.
   local uncovered
   uncovered="$(support_paths_coverage)"
@@ -1079,7 +1082,7 @@ $uncovered
   printf '    %-34s <- %s\n' "$SUPPORT_ASSET" "$SUPPORT_PATHS"
 
   # Assert the archive carries the tree -- DERIVED, not spot-checked. The first
-  # version of this listed the six scripts the shipped consumers exec, which is a
+  # version of this listed the scripts the shipped consumers exec, which is a
   # needle list: it proves the files somebody thought of are present and says
   # nothing about the ones they did not. Comparing the archive against the source
   # tree closes the class instead, and costs less code.
@@ -1100,7 +1103,7 @@ $drift
   # EXACTLY ONE TOP-LEVEL ENTRY, AND IT IS THE WRAPPER. This is the property
   # Homebrew's unpack heuristic keys on, and the drift check above cannot see it:
   # drift compares FILE SETS, and today's defect shipped a perfect file set at the
-  # wrong depth. Two top-level entries and brew stops stripping; the wrong single
+  # wrong depth. More than one top-level entry and brew stops stripping; the wrong single
   # entry and it strips the wrong thing. Either way the marker lands at a depth
   # `install::home` does not walk, and NOTHING about the install looks wrong.
   local tops
@@ -1127,7 +1130,7 @@ $drift
 
 # cmd_checksum -- prove every staged artefact, and only then hash it.
 #
-# WHY THIS IS A COMMAND AND NOT A NOTE IN A RELEASE DOC. The two operations in a
+# WHY THIS IS A COMMAND AND NOT A NOTE IN A RELEASE DOC. The operations in a
 # release pipeline have OPPOSITE effects on the bytes, and the asymmetry is easy
 # to get backwards:
 #
@@ -1219,7 +1222,7 @@ cmd_checksum() {
   # PER ARTEFACT, BECAUSE THE SET IS NOT UNIFORM. This said "every line above is
   # a hash of a binary this command has just proven signed and notarised" -- and
   # one line is the support tarball, which is not a Mach-O, was never signed and
-  # never notarised, and is stated as the exception twelve lines up before the
+  # never notarised, and is stated as the exception above before the
   # summary asserted the rule over it. A summary that generalises past its own
   # exception is an unmeasured assertion in the place people read first.
   printf '\n  Each BINARY above was proven signed and notarised from a quarantined\n'
@@ -1235,8 +1238,8 @@ cmd_checksum() {
 #
 # THE OPERATOR'S MEMORY IS NOT A CONTROL. Every individual subcommand here is
 # correct in isolation and the failure this exists to prevent is not a bug in any
-# of them -- it is the GAP BETWEEN them. Four commands run by hand, with a
-# multi-minute wait in the middle, is four chances to stop halfway and come back
+# of them -- it is the GAP BETWEEN them. Running the steps by hand, with
+# multi-minute notarisation waits among them, is a chance at every gap to stop halfway and come back
 # to a tree a peer has rebuilt underneath you. That is not hypothetical; it is
 # what happened, and the note I wrote afterwards said "must run as one
 # uninterrupted sequence", which is a reminder, and reminders are not load-bearing.
@@ -1250,7 +1253,7 @@ cmd_checksum() {
 # $ROOT, so an app signed before the tag reports the previous release. Run here,
 # at the tag on a clean tree -- which `publish` enforces, since it refuses unless
 # the staged commit IS the tag -- the stamp reads the release being cut. Left to
-# the operator as two commands before this one, the app would be correct only
+# the operator as separate commands before this one, the app would be correct only
 # when somebody remembered, and `stage` would be the only thing that noticed.
 cmd_prepare() {
   cmd_app_sign
@@ -1267,7 +1270,7 @@ cmd_prepare() {
   printf '\n'
   # NAMES THE STEPS THAT RAN, not a property of every artefact they touched --
   # `sign` and `notarize` never touch the support tarball, so the participle list
-  # was asserting over an artefact two of its four words do not apply to.
+  # was asserting over an artefact some of its words do not apply to.
   printf 'prepare: app-sign, app-notarize, stage, sign, notarize and checksum ran in\n'
   printf '  one pass; each step reported above what it did and did not cover.\n'
   printf '  NEXT: int macos formula\n'
@@ -1283,26 +1286,26 @@ cmd_prepare() {
 # copied wrong**, and this particular wrong number does not fail for us -- it
 # fails for every `brew install`, against a formula we already published.
 #
-# IT INHERITS `stage`'s REFUSAL STRUCTURALLY RATHER THAN RE-CHECKING IT. The only
-# input is `SHA256SUMS.txt`, which `stage` writes ONLY for artefacts it has proven
+# IT INHERITS `checksum`'s REFUSAL STRUCTURALLY RATHER THAN RE-CHECKING IT. The only
+# input is `SHA256SUMS.txt`, which `checksum` writes ONLY for artefacts it has proven
 # signed and notarised from a quarantined copy. So there is no path from an
 # unproven binary to a formula: not because this command checks again, but because
 # the file it needs does not exist. One check, one place, no second opinion to
 # drift out of step.
 #
 # THE DEV-VERSION REFUSAL IS DELIBERATELY NOT HERE. Emitting a formula that reads
-# `version "3.0.0-dev"` is harmless -- it is text on a terminal, and it is
+# `RELEASE_VERSION = "3.0.0-dev"` is harmless -- it is text on a terminal, and it is
 # self-evidently not a release. The harm is in PUBLISHING one, so the refusal
 # belongs in the publish step. **Put the control where the harm is, not where it
 # is convenient to write.**
 #
 # VALIDATED WITH `brew style`, AND THE CALIBRATION IS THE POINT. Linted as a bare
-# file the generated formula reports five offences; linted AT A TAP PATH it
-# reports one. Four of the five were artefacts of judging a formula by the
+# file the generated formula reports several offences; linted AT A TAP PATH it
+# reports far fewer. The difference was artefacts of judging a formula by the
 # generic Ruby config -- Sorbet sigils, a frozen-string-literal comment,
 # top-level class documentation -- none of which Homebrew applies inside a tap.
 # **Calibrated against `geodica/homebrew-conflab`'s live shipped formula**, which
-# reports the same one offence and none of the four, then confirmed by linting a
+# reports the same remaining offence and none of the extras, then confirmed by linting a
 # copy of ours at a real tap path. `Style/MutableConstant` is now fixed here, so
 # this generates a formula that lints clean where the reference does not.
 #
@@ -1311,16 +1314,18 @@ cmd_prepare() {
 # already known good. Same shape as `spctl -a -t exec` calling a correctly signed
 # binary rejected.
 #
-# THE CONSTANT ITSELF STAYS, deliberately. `#{version}` may well work in the URL
-# and would remove the second copy, but the constant is what the shipped conflab
-# formula does, this path has no end-to-end test, and refactoring an unexercised
-# artefact for elegance is how the first real run finds something new. The two
-# copies come from one shell variable, so they cannot drift.
+# THE CONSTANT ITSELF STAYS, deliberately. `RELEASE_VERSION` is the formula's
+# only statement of the version -- there is no `version` line, because brew reads
+# it from the /v<version>/ path -- and every download URL interpolates it.
+# `#{version}` may well work in its place, but the constant is what the shipped
+# conflab formula does, and refactoring an artefact for elegance is how the next
+# real run finds something new.
 #
 # EXPIRY, stated rather than left to be noticed: this lives under `macos` because
 # hv ruled 2026-08-15 that v3.0.0 ships macOS arm64 ONLY, which makes the formula
-# a single-platform document. If Linux artefacts are ever added the formula grows
-# a second platform block and stops being a macOS concern -- move it then.
+# a single-platform document, limited by its `depends_on` lines. If Linux
+# artefacts are ever added the formula loses that limit, grows per-platform URLs
+# and stops being a macOS concern -- move it then.
 # require_sums -- the proof file, or the reason there isn't one.
 #
 # ONE MESSAGE FOR ONE MISSING FILE. `formula` and `publish` both need it and both
@@ -1343,12 +1348,12 @@ staged_version() {
   # THE VERSION TOKEN ONLY. `--version` prints `intent <version> (<commit>)`, and
   # the provenance suffix is NOT part of the version. Taking everything after
   # `intent ` put `3.0.0-dev (4c5babdf...)` into `version`, into RELEASE_VERSION,
-  # and therefore into every download URL -- a URL carrying a space and two
+  # and therefore into every download URL -- a URL carrying a space and
   # parentheses, inside a formula that was otherwise perfectly well-formed and
   # linted clean. Nothing about the output looked wrong.
   #
   # FOUND ON THE FIRST END-TO-END RUN, which is precisely what the cmd_formula
-  # header predicted would happen to this path: "this path has no end-to-end
+  # header then predicted would happen to this path: "this path has no end-to-end
   # test, and refactoring an unexercised artefact for elegance is how the first
   # real run finds something new". It found something new.
   v="$("$STAGE_DIR/intent-$(host_triple)" --version 2>/dev/null | sed -n 's/^intent \([^ ]*\).*/\1/p')"
@@ -1427,7 +1432,7 @@ class Intent < Formula
   license "MIT"
 ${revline}
   # macOS arm64 only, by ruling (hv, 2026-08-15) rather than by omission, and
-  # TRUE BY CONSTRUCTION through the two dependency lines below, which is what
+  # TRUE BY CONSTRUCTION through the dependency lines below, which is what
   # a platform limit in a formula is for. Both binaries are Developer ID signed
   # and notarised; nothing is stapled, because a bare Mach-O has nowhere to hold
   # a ticket and Gatekeeper checks online. (No comment line here may open with
@@ -1457,11 +1462,11 @@ ${revline}
   # the binary unable to find the hooks it execs, and both whiteboard guards and
   # every session hook stop working with nothing reporting a failure.
   #
-  # That rules IN two layouts and Homebrew rules one of them OUT. Installing to
+  # That rules IN the layouts that keep the tree in the keg, and Homebrew rules one of them OUT. Installing to
   # \`prefix/lib/templates\` resolves correctly, but \`lib\` is a LINKED directory:
   # brew symlinks keg \`lib\` subdirectories into the shared prefix, so this would
   # publish a directory called \`templates\` into \`#{HOMEBREW_PREFIX}/lib\`
-  # alongside 858 other formulae's entries. \`templates\` is about as generic as a
+  # alongside every other formula's entries. \`templates\` is about as generic as a
   # name gets, and the collision would surface as a \`brew link\` failure in
   # somebody else's install. \`libexec\` is not linked, so the tree stays private
   # to this keg.
@@ -1511,9 +1516,10 @@ ${revline}
   # supervise the wrong one if the exec ever became a spawn.
   #
   # THE LOG PATHS ARE BREW'S, NOT THE DAEMON'S, AND THAT IS NOT A DUPLICATE.
-  # intentd writes its own structured log under the user's state dir; these two
-  # capture stdout and stderr, where main.rs puts the warnings a supervised
-  # process would otherwise drop on the floor. Two files, two subjects.
+  # intentd writes its own structured log under the user's state dir; these
+  # capture stdout and stderr, both into one brew log, where main.rs puts the
+  # warnings a supervised process would otherwise drop on the floor. The brew log
+  # and the daemon's log are different files with different subjects.
   service do
     run [opt_bin/"intentd"]
     keep_alive true
@@ -1548,12 +1554,11 @@ FORMULA
 # That asymmetry is deliberate. A release with no formula pointing at it is
 # inert -- nobody installs it by accident. A formula pointing at bytes whose hash
 # we could not confirm is a confident false statement, and it is the same
-# reasoning that keeps the tap deliberately empty rather than carrying a formula
-# for a release that does not exist: **a wrong artefact is not a neutral
-# placeholder.**
+# reasoning that keeps a formula out of the tap until the release it names
+# exists: **a wrong artefact is not a neutral placeholder.**
 #
 # THE DEV-VERSION REFUSAL LIVES HERE, WHERE THE HARM IS. `formula` will happily
-# print `version "3.0.0-dev"` to a terminal, and should -- that is text, and it is
+# print `RELEASE_VERSION = "3.0.0-dev"` to a terminal, and should -- that is text, and it is
 # self-evidently not a release. The same bytes in a tap install a build nobody
 # meant to ship. **A control belongs at the point of harm, not at the first point
 # it could have been written.**
@@ -1605,7 +1610,7 @@ cmd_publish() {
   # RELEASE.** This check used to refuse any release with this tag, which is
   # broader than the reason above and made a v3 cut impossible: `int build
   # release` creates the tag AND the GitHub release in one step (`gh release
-  # create`, build.d/release:531), while the next line here requires the tag to
+  # create` in build.d/release), while the next line here requires the tag to
   # already exist because the cut owns tagging. So publish demanded a state --
   # tag present, release absent -- that the only thing which creates the tag
   # cannot leave behind. **Each command was individually correct and the
@@ -1648,7 +1653,7 @@ cmd_publish() {
   # unclassified artefact. All of that is internal consistency, and a set of
   # bytes built from a peer's uncommitted work is perfectly self-consistent.
   #
-  # Two failures it closes, both reachable today. `stage` COPIES out of
+  # The failures it closes, both reachable today. `stage` COPIES out of
   # native/rust/target/release rather than building, and that directory is shared
   # mutable state in a clone several sessions write to. And the support tarball is
   # archived from the WORKING TREE, so uncommitted shell ships verbatim.
@@ -1663,9 +1668,9 @@ cmd_publish() {
   prov_clean="$(sed -n 's/^checkout_clean: //p' "$PROVENANCE_FILE" | head -1)"
   # EVERY REFUSAL NAMES THE SUBJECT IT MEASURED, and this one did not. It read
   # `git status` and said "the staged artefacts cannot name their source commit"
-  # -- a sentence about the BYTES. Driven, three cases, real repositories: with
+  # -- a sentence about the BYTES. Driven on real repositories: with
   # ONE unrelated file dirty and both binaries built at HEAD, this refused with a
-  # claim that `artefact_commit_blockers` twenty-eight lines below contradicts,
+  # claim that `artefact_commit_blockers`, below, contradicts,
   # and its remedy sent the operator to rebuild binaries that were never the
   # problem. Not an edge case either -- the wide arm trips on dirt anywhere, so in
   # a clone several sessions write to this is the ORDINARY message.
@@ -1700,7 +1705,7 @@ $(sed 's/^/       /' "$PROVENANCE_FILE")
   # THE PIPELINE'S ONLY CHECK WHOSE SUBJECT IS THE ARTEFACT, and that is the
   # claim to hold rather than "a provenance field was added" (cc's sharpening,
   # taken because it changes what the check is FOR). Everything above this line
-  # -- `traceable`, `prov_commit` against `tag_commit`, the round trip that
+  # -- `checkout_clean`, `prov_commit` against `tag_commit`, the round trip that
   # re-downloads and re-hashes -- takes its input from the CHECKOUT or from the
   # pipeline's own earlier output. None of them can disagree with the others, so
   # their unanimity carries no information about the bytes.
@@ -1737,8 +1742,8 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
   # an earlier step surviving in a record beside the artefacts. That is the exact
   # shape AC-11.5 forbids, and it sat on the most public surface in the pipeline.
   #
-  # `verify_notarised` and nothing else, so this remains ONE implementation with
-  # three consumers rather than a second copy that drifts: it is the only check
+  # `verify_notarised` and nothing else, so this remains ONE implementation
+  # shared by every caller rather than a second copy that drifts: it is the only check
   # that proves the whole chain, on a quarantined copy, because `codesign
   # --verify --strict` returns 0 over the linker's ad-hoc signature.
   step "proving the claim the release body is about to make"
@@ -1759,8 +1764,8 @@ $(printf '%s\n' "$artefact_blockers" | sed 's/^/       /')
   # UPLOAD THE HASHED SET, NEVER A RESTATED ONE. Both this list and the
   # round-trip below iterate what `checksum` actually classified and hashed, so
   # "what gets published" and "what has a published hash" cannot drift apart. The
-  # earlier form listed $BINARIES here and would have shipped two of the three
-  # artefacts, silently, leaving the formula pointing at a resource that 404s.
+  # earlier form listed $BINARIES here and would have shipped only the binaries
+  # and none of the other artefacts, silently, leaving the formula pointing at a resource that 404s.
   local a assets=""
   for a in $(staged_artefacts); do assets="$assets $STAGE_DIR/$a"; done
 
@@ -1863,7 +1868,7 @@ bytes a user actually receives.
 #
 # WHY IT IS NOT DESTRUCTIVE BY DEFAULT, WHICH IS A CHANGE FROM ITS REGISTRATION.
 # The row says "installs cold from the tap"; on this machine that would
-# `brew uninstall` the binary FIVE CONCURRENT SESSIONS ARE USING, mid-run, to
+# `brew uninstall` the binary EVERY CONCURRENT SESSION IS USING, mid-run, to
 # test it. A check that breaks the estate to prove the estate works is not a
 # check. So the cold install is `--reinstall`, opt-in and announced, and the
 # default asserts against whatever keg is installed. What that costs is stated
@@ -1872,8 +1877,8 @@ bytes a user actually receives.
 # 644 defect -- so the default proves the keg on disk is good and says nothing
 # about how it got there.
 # COUNT THE FAILURES, NEVER THE LINES. The first version reported
-# `grep -c '^'` over the accumulated text and said "fails 6 check(s)" while
-# listing 3 -- one message carried the multi-line output of the command it was
+# `grep -c '^'` over the accumulated text and reported more failed checks than
+# it listed -- one message carried the multi-line output of the command it was
 # reporting on. A miscount reads exactly as authoritative as a correct one.
 smoke_fail() {
   SMOKE_FAIL_COUNT=$((SMOKE_FAIL_COUNT + 1))
@@ -1957,7 +1962,7 @@ cmd_smoke() {
 
   step "the installed keg"
   # Every capture below is `|| true`-guarded or tested. THE FILE IS
-  # `set -euo pipefail` (:60), so a bare assignment from a failing command
+  # `set -euo pipefail`, so a bare assignment from a failing command
   # ABORTS THE RUN -- and this function's arms are SUPPOSED to fail. Driven
   # before it was noticed: the unknown-hook arm returned 1, set -e killed the
   # run between the last passing arm and the verdict, and `int macos smoke`
@@ -2007,7 +2012,7 @@ cmd_smoke() {
   # COPY LIST -- so its population was the very thing its claim was supposed to
   # audit. A path the copy list omits is absent from the keg AND absent from the
   # loop, so the arm reports every entry green and passes: measured against the
-  # list as it stood that morning it would have said 4/4 while the keg was
+  # list as it stood that morning it would have reported every entry green while the keg was
   # missing `intent_claude_cwi` and `intent claude ws` was dark. The comment
   # above was already correct; the code under it was asserting something
   # narrower and nothing said so. Population now comes from the resolvers via
@@ -2055,7 +2060,7 @@ cmd_smoke() {
       "pre-commit-guards.sh under INTENT_HOME"
   fi
 
-  # ARM 6 -- the four hooks answer 0 and an unknown one answers 1, NEVER 2.
+  # ARM 6 -- the session hooks answer 0 and an unknown one answers 1, NEVER 2.
   # The names are the binary's, not Claude Code's lifecycle names: driving
   # SessionStart/UserPromptSubmit/Stop returns rc=1 and reads as a failing arm
   # when it is a wrong instrument (dc, measured 2026-08-26).
@@ -2084,10 +2089,10 @@ cmd_smoke() {
   # ARM 7 -- A READ VERB LEAVES THE TREE ALONE. A REGRESSION GUARD, NOT A FIX.
   #
   # WHAT IT IS NOT. The claim that the shipped keg silently re-rendered tracked
-  # views on a read was RETRACTED on 2026-08-26 after three independent
-  # measurements refuted it -- the keg on two different clones, and the pair on
+  # views on a read was RETRACTED on 2026-08-26 after independent
+  # measurements refuted it -- the keg on different clones, and the pair on
   # convergent and divergent fixtures. Nothing here is chasing a live defect.
-  # It exists because a tree that quietly gains 167 modified files after a read
+  # It exists because a tree that quietly gains modified files after a read
   # is invisible until someone runs `git status`, and the way that class returns
   # is a change nobody connects to views.
   #
@@ -2143,7 +2148,7 @@ cmd_smoke() {
         "the planted divergence survived the read"
     fi
 
-    # THE CONTROL. It must FIRE. A green here is what entitles the three greens
+    # THE CONTROL. It must FIRE. A green here is what entitles the greens
     # above to mean anything at all.
     (cd "$tmp2" && "$bin_intent" st triage ST0001 >/dev/null 2>&1) || true
     dirt="$( (cd "$tmp2" && git status --porcelain) || true)"
@@ -2232,10 +2237,12 @@ APP_LOC_ARGS=(
 app_bundle() { printf '%s' "$APP_STATE_DIR/Build/Products/$1/Intent.app"; }
 APP_BUNDLE_ID="com.matthewsinclair.intent.macos"
 
-# The four stamps xcodebuild substitutes into Info.plist. Version is the source
+# The stamps xcodebuild substitutes into Info.plist. Version is the source
 # tree's release tag (never a built binary -- the .app may be built before any
-# intent is staged); the tree hash is what app-verify/doctor compares against an
-# installed copy. `short` keeps the -dirty suffix, which is the load-bearing bit.
+# intent is staged); the tree hash identifies which native/macos tree a bundle was
+# built from, and app-doctor and app-build print it. Nothing here compares it
+# against an installed copy. `short` keeps the -dirty suffix, which is the
+# load-bearing bit.
 app_git() { git -C "$ROOT" "$@" 2>/dev/null; }
 
 app_source_tree() {
@@ -2244,8 +2251,8 @@ app_source_tree() {
   [ -n "$tree" ] || { printf 'dev'; return; }
   dirt="$(app_git status --porcelain -- native/macos 2>/dev/null)"
   # if/else, not `[ ] && printf || printf`: a failed first printf would run the
-  # `-dirty` branch too and stamp the tree hash twice, and this value is what
-  # app-doctor compares against an installed copy (dc's finding 2).
+  # `-dirty` branch too and stamp the tree hash twice, and this value is stamped
+  # into the bundle's Info.plist as IntentSourceTree (dc's finding 2).
   if [ -z "$dirt" ]; then printf '%s' "$tree"; else printf '%s-dirty' "$tree"; fi
 }
 
@@ -2257,7 +2264,7 @@ app_version() {
 }
 
 # Populates the scalars AND APP_STAMP_ARGS (the xcodebuild build-setting form),
-# so the two never drift.
+# so the scalars and the args never drift.
 app_stamps() {
   APP_VERSION="$(app_version)"
   APP_BUILD="$(app_git rev-list --count HEAD 2>/dev/null || echo 0)"
@@ -2514,7 +2521,7 @@ cmd_app_verify() {
 #
 # PORTED FROM LAMPLIGHT: the inside-out walk is `sign_nested_machos` in
 # macos.d/build-pkg.sh and the submit/staple half is macos.d/notarize.sh, which
-# sign and notarise Wrighter.app with the same Geodica ADC. Two differences, both
+# sign and notarise Wrighter.app with the same Geodica ADC. The differences are
 # about what Intent.app is:
 #
 # - THE TICKET IS STAPLED TO THE .app ITSELF. Lamplight staples a .pkg because
@@ -2660,7 +2667,7 @@ app_verify_notarised() {
 }
 
 # app_asset_blockers <bundle> <version> -- why this bundle cannot ship as the
-# release's app, one reason per line; empty means it can. Extracted so the three
+# release's app, one reason per line; empty means it can. Extracted so its
 # refusals can be driven without a trip to Apple.
 #
 # THE VERSION ARM IS THE ONE THAT MATTERS. A bundle signed before the tag stamps
@@ -2793,47 +2800,64 @@ SUBCOMMANDS="doctor stage sign notarize verify checksum prepare formula publish 
 
 usage() {
   cat <<'USAGE'
-intent macos <subcommand>
+bin/devbin macos <subcommand>        (int macos <subcommand>)
 
-  THE PIPELINE, in order. Every step after `stage` acts on the staged copies in
-  native/rust/target/dist -- never on target/release, which four sessions share
-  and any `cargo build --release` will overwrite underneath you.
+  THE PIPELINE, in order, after `bin/devbin build release` has cut and tagged
+  the release and `bin/devbin build all` has built the pair at the tag. Every
+  step after `stage` acts on the staged copies in native/rust/target/dist --
+  never on target/release, which every session in this clone shares and any
+  `cargo build --release` will overwrite underneath you.
 
   prepare      RUN THE WHOLE SEQUENCE AS ONE PASS: app-sign, app-notarize,
                stage, sign, notarize, checksum. Run it AT THE TAG: the app
-               stamps its version from the tree. The path for cutting a release; the individual
-               steps below exist for diagnosis and for re-running one of them.
+               stamps its version from the tree. The path for cutting a
+               release; the individual steps below exist for diagnosis and for
+               re-running one of them.
 
   stage        Copy the build output into target/dist under its shipping name
                (<binary>-<target-triple>), out of shared space. Wipes first.
+               Archives the support tree as intent-support.tar.gz, REFUSING if
+               it misses a path v3 resolves or drifts from the source tree.
                Zips the stapled Intent.app in as Intent.app.zip, and REFUSES one
                that is missing, unstapled, or not the staged CLI's version.
-  sign         Developer ID sign the STAGED artefacts, hardened runtime
-  notarize     Submit the staged artefacts to Apple, wait, report
-  checksum     Prove every staged artefact from a quarantined copy, and only
-               then hash it -- REFUSES to hash anything unproven
+               Records provenance in native/rust/target/dist-provenance.txt.
+  sign         Developer ID sign the staged CLI binaries, hardened runtime
+               read back off each
+  notarize     Submit the staged CLI binaries to Apple, wait, report, then
+  (notarise)   wait for the ticket to become visible to Gatekeeper
+  checksum     Prove each staged binary, and the bundle inside Intent.app.zip,
+               from a quarantined copy, and only then write SHA256SUMS.txt.
+               The support tarball is hashed unproven (it holds no Mach-O).
+               REFUSES an unclassified artefact or anything unproven
 
-  verify       Prove the staged artefacts without hashing them (read-only)
+  verify       Prove the staged CLI binaries without hashing them (read-only)
   formula      Emit the Homebrew formula to stdout. Generated, never hand-edited;
-               refuses unless `checksum` has proven the artefacts it describes
-  publish      Create the release, upload the artefacts, RE-DOWNLOAD them and
+               refuses unless `checksum` has written SHA256SUMS.txt.
+               `--revision N` emits a revision line, for a formula fix at an
+               unchanged version
+  publish      Upload the artefacts to the release (creating it, or attaching
+               to the asset-less one the release cut made), RE-DOWNLOAD them and
                confirm they hash to what we are about to publish, and only then
-               push the formula to the tap. Refuses a dev version, refuses to
-               overwrite an existing release, and requires the tag to exist
-               already -- tagging is the release cut's job, not this one's.
+               push the formula to the tap. Refuses a dev version, a release
+               that already carries assets, a missing tag, a checkout that was
+               dirty at stage, a stage not taken at the tag, and binaries whose
+               embedded source commit is not the tag's -- tagging is the
+               release cut's job, not this one's.
                `--dry-run` runs every check and publishes nothing.
   smoke        Assert the INSTALLED KEG, which is the only subject that has been
                through the network hop. Reads -x back off both binaries, checks
                every install-root path v3 resolves is present, that the rule
                library ARMS rather than merely existing, and drives INTENT_HOME
-               and the four hooks from outside any checkout. It also builds a
-               throwaway project whose tracked view carries bytes the store did
-               not render, and asserts a READ verb leaves it alone -- with a
+               and the session hooks from outside any checkout. It also builds
+               a throwaway project whose tracked view carries bytes the store
+               did not render, and asserts a READ verb leaves it alone -- with a
                WRITE verb beside it that must dirty the tree, because an
                assertion that nothing happened passes on a broken fixture too.
                `--reinstall` does the cold tap install first -- it unlinks the
                binary other sessions are using, so it is opt-in.
-  doctor       Preflight: identity present, a real test-sign, notary creds
+               `--keg <dir>` asserts a keg directory other than the installed one
+  doctor       Preflight: identity present, a real test-sign, notary creds, and
+               the signing state of target/release's binaries
   env          Print the resolved identity + which creds are present
   store-creds  Store APPLE_ID / APPLE_APP_PASSWORD / APPLE_TEAM_ID in the
                login Keychain (interactive; once per machine)
@@ -2861,7 +2885,7 @@ intent macos <subcommand>
                Developer ID sign it inside-out (nested code, then the bundle),
                hardened runtime; reads identifier, team and flags back
   app-notarize Submit the signed copy to Apple, wait, and on Accepted staple
-               the ticket to the bundle and check it from a quarantined copy
+  (app-notarise) the ticket to the bundle and check it from a quarantined copy
 USAGE
 }
 

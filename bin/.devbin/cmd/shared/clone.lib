@@ -7,13 +7,14 @@
 # 2026-08-15 and states the property in its own words: **the one workspace in
 # the estate with a single writer** -- a `git clone --local` of the pushed
 # revision, with nobody's uncommitted work in it. That is a GENERAL answer to
-# "which revision does this figure describe", and for a year it had exactly one
+# "which revision does this figure describe", and at first it had exactly one
 # consumer, `cargo build`, because it lived inside a command about pushing and
-# nobody arrives there thinking about test suites.
+# nobody arrives there thinking about test suites. It now serves `prepush`,
+# `suite` and, through shared/measure.lib, `hosting`.
 #
 # **A GENERAL MECHANISM INSIDE A SPECIFIC COMMAND IS A PRIVATE METHOD WITH A
 # PUBLIC CLAIM** (dc, 2026-08-21). Its discoverability is bounded by the name of
-# the file it happens to sit in, which nobody chose and nobody checks. Two other
+# the file it happens to sit in, which nobody chose and nobody checks. Other
 # instances that week: `int hooks` resolving its target repo from the binary's
 # location, and `lib/helpers` claiming to be THE ONE EXTRACTION SITE while
 # sitting inside `cmd/macos` -- where the false claim CAUSED a defect rather than
@@ -21,10 +22,10 @@
 #
 # THE PROPERTY IT BUYS IS AN ADVISORY RETIRED. A figure measured here names a
 # revision BY CONSTRUCTION: no writer anywhere can perturb it, so nobody has to
-# be asked to hold still. On 2026-08-21 a green 1444-test run was killed and
-# rerun because the live tree moved under it, and the `yes` on the rerun was
-# bought by three of four nodes being quiet -- one by request and two because
-# they were stopped. **A control that survives a node behaving correctly is the
+# be asked to hold still. On 2026-08-21 a green suite run was killed and rerun
+# because the live tree moved under it, and the `yes` on the rerun was bought by
+# the other nodes being quiet -- one by request and the rest because they were
+# stopped. **A control that survives a node behaving correctly is the
 # only kind worth having.**
 
 # single_writer_clone <src-repo> <dest> -- clone <src-repo> at HEAD into <dest>.

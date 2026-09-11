@@ -2,8 +2,13 @@
 #
 # devbin: summary = Report which git hooks are wired to which guards (bare form reports)
 #
-# intent hooks            -- REPORT the wiring state of this clone's git hooks.
-# intent hooks --install  -- wire the repo-local runners into the hooks.
+# bin/devbin hooks            -- REPORT the wiring state of this clone's git
+#                                hooks (pre-commit, pre-push, post-commit and
+#                                the pre-commit.intent gate). Exit 0 when all
+#                                are wired, 1 otherwise.
+# bin/devbin hooks --install  -- set core.hooksPath to .githooks when it is
+#                                unset, wire the repo-local runners into the
+#                                hooks, then re-run the report.
 #
 # THE HOLE THIS EXISTS FOR, and it sits underneath every other guard here.
 # `bin/int precommit` and `bin/int prepush` are tracked, reviewed and tested.
@@ -18,7 +23,7 @@
 # to anyone who looks; an unwired guard does not fail, it reports NOTHING, and
 # **reporting nothing is indistinguishable from passing.**
 #
-# THE BARE FORM REPORTS, deliberately (the `int use` convention). An installer
+# THE BARE FORM REPORTS, deliberately (the `int local use` convention). An installer
 # someone forgets to run leaves you exactly where you started; a check turns
 # "did you run it?" into a measured fact. The check is the load-bearing half.
 #
@@ -52,13 +57,13 @@
 # ARE the repository's -- reviewable, diffable, and received by every clone.
 #
 # THE COLLISION WAS NARROWER THAN THIS FILE FEARED, and the reason is the rule
-# stated fifty lines below: ask git, never compute. `canon_hooks_dir` in
-# `intent_claude_upgrade` resolves through `rev-parse --git-path hooks`, exactly
-# as this command does, so the canon installer follows the redirect on its own
-# and drops `pre-commit.intent` into the tracked directory. **That file is
-# gitignored**: it is shipped canon, and tracking it would be a second home for
-# canon -- the defect removed from the guard roster the same morning. No
-# installer change was needed, and none was made.
+# stated below at HOOKS_DIR: ask git, never compute. `intent claude upgrade
+# --apply` resolves the hooks directory through `rev-parse --git-path hooks`
+# (`hooks_dir` in native/rust/crates/intentsvcs/src/canon.rs), exactly as this
+# command does, so the canon installer follows the redirect on its own and drops
+# `pre-commit.intent` into the tracked directory. **That file is gitignored**:
+# it is shipped canon, and tracking it would be a second home for canon -- the
+# defect removed from the guard roster the same morning.
 #
 # WHAT IS STILL IRREDUCIBLE: one config command per clone. Git will not adopt
 # tracked hooks on its own; that is a deliberate security property, not an
@@ -109,7 +114,7 @@ _hp="$(git -C "$ROOT" config --get core.hooksPath 2>/dev/null || true)"
 
 # YOU ARE STANDING IN A DIFFERENT REPOSITORY FROM THE ONE THIS ANSWERS ABOUT.
 #
-# `$ROOT` is `PROJECT_ROOT`, which `bin/devbin:29-30` derives from the LAUNCHER's
+# `$ROOT` is `PROJECT_ROOT`, which `bin/devbin` derives from the LAUNCHER's
 # own location -- so `int hooks` always reports on the tree the `int` script lives
 # in, never on the one you are standing in. That is correct for a repo-local dev
 # launcher and it is NOT changed here; `bin/devbin` is vendored from Devbin and
@@ -117,11 +122,11 @@ _hp="$(git -C "$ROOT" config --get core.hooksPath 2>/dev/null || true)"
 #
 # The report already names its subject on its first line, so this is not a silent
 # wrong answer. It is a MISREADABLE one, and the misreading has a documented
-# route: `restart.md` step 0 says to run `int hooks` FIRST IN A FRESH CLONE, and
+# route: `.claude/restart.md` step 0 says to run `int hooks` FIRST IN A FRESH CLONE, and
 # a fresh clone is exactly where this repository's `int` is on PATH while the
 # clone is somewhere else. Driven 2026-08-21 (dc): standing in `Intentv2`, the
 # PATH `int` answered `hooks in .../Intent/.githooks` -- correctly, about the
-# wrong tree -- and produced THREE false findings before the header line was
+# wrong tree -- and produced false findings before the header line was
 # read. `Intentv2/bin/int` then reported `gate ABSENT` about its own tree.
 #
 # So: say it, do not fix it. A warning belongs where the misreading happens.
@@ -131,79 +136,13 @@ if [ -n "$CWD_REPO" ] && [ "$CWD_REPO" != "$ROOT" ]; then
   FOREIGN="yes"
 fi
 
-# guards_of <runner-name> -- ASK THE RUNNER what it enforces, then report whether
-# each guard that names a script has one that is present and executable.
-#
-# THIS REPLACES A GREP THAT UNDER-REPORTED, and the correction is worth keeping
-# because the original was wrong in the way that is hardest to notice. It read
-# `$TOOLS/[a-z]*.sh` out of the runner's source, and this file claimed that
-# deriving the names from the runner meant the roster could not rot. It rotted
-# within the day: `int precommit` grew a guard implemented INLINE, the grep could
-# not see it, and this command reported a gate enforcing two things while it
-# enforced three.
-#
-# **A check that under-reports what a gate enforces is worse than no check**,
-# because it is consulted precisely by someone trying to find out, and it answers
-# confidently. It is the same failure this command exists to expose -- a hook that
-# looks installed and protects less than it claims -- reproduced by the tool doing
-# the exposing.
-#
-# The root error was anchoring on a PATH SHAPE (`$TOOLS/...`) rather than on the
-# structural fact (what the runner checks). A needle built from a path stops
-# matching the moment the path stops being the shape, and then passes in silence.
-# `--list-guards` makes the runner the authority, which is the only arrangement
-# where the roster genuinely cannot rot.
-# shipped_guards -- the guards the GATE dispatches, as opposed to the ones the
-# repo-local runners do.
-#
-# **THIS COMMAND UNDER-REPORTED THE GATE BY FOUR AND SAID NOTHING** (dc, driven
-# 2026-08-20). It listed the eleven repo-local guards in full and rendered the
-# whole shipped roster as one parenthetical -- `(critic + the shipped guard
-# roster)` -- which reports PRESENCE and not MEMBERSHIP. **A check that
-# under-reports what a gate enforces is worse than no check** is this file's own
-# sentence, written about the previous version of this same defect.
-#
-# THE SAME DOCTRINE AS `guards_of`, APPLIED ONE LAYER OUT: capability-detect
-# from the source, then ASK THE RUNNER. What differs is which runner and where
-# it lives -- the repo-local ones are under `bin/.devbin/cmd/`, and this one is
-# under the resolved install, because the gate reads its guards live out of
-# `INTENT_HOME` rather than from a copy. That is the whole reason a guard added
-# to canon reaches every consumer with no reinstall, and it is why this cannot
-# be answered from anything in this repository.
-#
-# THE RESOLVER IS NOT SECOND-GUESSED, AND THE RULE IS "MATCH THE GATE" RATHER
-# THAN "USE `intent info`". Those were the same sentence until 6b60367c and they
-# are not any more.
-#
-# THIS COMMENT USED TO READ: *`intent info` IS THE RESOLVER AND IS NOT
-# SECOND-GUESSED. `.githooks/pre-commit` resolves the install exactly this way;
-# a second spelling here could pair this roster with a different install than
-# the one the gate will actually run.* **That was true when it was written and
-# 6b60367c is what made it false** -- the gate now prefers a self-hosted
-# checkout's own `lib/templates/hooks/`, so keeping the single `intent info`
-# spelling became the thing that pairs this roster with a DIFFERENT install
-# from the one the gate runs. The rule's conclusion inverted because its
-# premise is what changed. Found by ic, against my own commit.
-#
-# ARMED, NOT YET MISREPORTING, WHICH IS THE ONLY REASON THERE WAS TIME TO FIX
-# IT. The six other guard files still match across both trees, so the roster
-# printed was accurate BY COINCIDENCE and nothing maintained the coincidence.
-# The trigger is exactly the case 6b60367c exists to make safe: add or improve
-# a guard in this repo's `lib/templates/hooks/`, and the gate RUNS it while
-# this command does not LIST it. That is the 2026-08-20 defect recorded at
-# `:158` -- *THIS COMMAND UNDER-REPORTED THE GATE BY FOUR AND SAID NOTHING* --
-# same command, same direction, same silence, through a different door.
-#
-# THREE ABSENCES, KEPT APART, because collapsing them is how this family of
-# defects starts: the resolver did not answer, the runner is not in the install
-# it named, or the runner is there and declares no roster. Only the first two
-# are faults and the third is a legitimate state.
 # resolve_guard_home -- WHERE THE GATE WILL READ FROM, RESOLVED ONCE FOR THIS
 # FILE. Sets GUARD_HOME and GUARD_HOME_FROM.
 #
 # SAME PREDICATE AS THE GATE (`lib/templates/hooks/pre-commit.sh`): the runner
-# itself plus `VERSION`. Deliberately not `bin/intent` -- the v2 shell is slated
-# for pruning here, and a marker a planned change deletes fails silently later.
+# itself plus `VERSION`. Deliberately not `bin/intent`: that was the v2 shell,
+# which has since been removed from this tree, and a marker a planned change
+# deletes fails silently later.
 #
 # ONE SPELLING IN THIS FILE, AND THAT IS THE POINT. The predicate already exists
 # twice by necessity -- here and in the gate -- because they are separate
@@ -224,59 +163,19 @@ resolve_guard_home() {
   fi
 }
 
-# gate_currency -- IS THE DISPATCHER THAT RUNS THE ONE THIS TREE DECLARES?
-#
-# THE GUARDS ARE READ LIVE; THE FILE THAT DECIDES WHICH TREE THEY COME FROM IS
-# NOT. `pre-commit.intent` is a gitignored COPY the installer writes from
-# `lib/templates/hooks/pre-commit.sh`. As of `6b60367c` that copy is what
-# chooses between this repo's guards and INTENT_HOME's -- so the staleness this
-# estate spent the day removing did not leave, it CONCENTRATED into the one file
-# whose job is now to pick the tree. Found by ic, who named it while I was still
-# calling the mechanism closed.
-#
-# WHY THIS IS WORTH A CHECK WHEN THE RESOLUTION CHANGE ITSELF IS NOT OBSERVABLE
-# (vc, measured on the live tree): both candidate guard runners are currently
-# byte-identical, so reading one or the other produces identical output and the
-# resolution change is a no-op in observable behaviour until they diverge. THIS
-# check is the opposite -- it compares two files that CAN differ today, the
-# moment anyone edits the template without reinstalling. It is the observable
-# half of an otherwise prospective mechanism.
-#
-# IT CONTRIBUTES TO `rc` RATHER THAN WARNING BESIDE IT, for the reason already
-# recorded against the gate-absent arm: a warning under a line reading `WIRED`
-# is the same defect one font weight down.
-#
-# AN ABSENT TEMPLATE IS NOT A STALE GATE. A consumer resolving through
-# INTENT_HOME to an install predating this file has nothing to compare, and
-# reporting a missing comparison as a divergence is an absence dressed as a
-# fault -- the collapse the three absence branches exist to prevent.
-# TWO CARRIER MODELS NOW EXIST AND COMPARING AGAINST THE WRONG TEMPLATE REPORTS
-# A CORRECTLY-INSTALLED GATE AS STALE. Until cc's `f8a78e05`, `canon::apply`
-# wrote nothing and every carrier was a COPY of the gate body, so comparing
-# against `pre-commit.sh` was the only comparison there was. It now installs
-# `pre-commit-shim.sh` instead -- same destination filename, different template,
-# and a byte-comparison against the body would call every correct shim stale.
-#
-# THE DISCRIMINATOR IS `--where`, WHICH ONLY THE SHIM ANSWERS (2 occurrences in
-# the shim, 0 in the body and 0 in this tree's installed carrier). It is read
-# rather than executed, so a carrier that cannot run is still classified.
-#
-# AND THE SHIM ARM CHECKS SOMETHING THE COPY ARM COULD NOT: a copy carries its
-# own gate, so it works or it does not. A SHIM IS ONLY AS GOOD AS THE POINTER IT
-# RESOLVES, and a shim whose root is gone REFUSES EVERY COMMIT in that estate.
-# That is a worse condition than staleness and it is invisible to a byte
 # upgrade_apply_scope <indent> -- what `intent claude upgrade --apply` ALSO does.
 #
-# ONE HOME, because this command offers that verb from three places and the fact
-# is the same fact each time (issue 0109). Three copies of a blast radius is
-# three things to update the day the canon set changes, and the one that gets
-# missed is the one an operator reads.
+# ONE HOME, because this command offers that verb from several places and the
+# fact is the same fact each time (issue 0109). A copy of a blast radius per
+# place is a thing to update per place the day the canon set changes, and the
+# one that gets missed is the one an operator reads.
 #
-# WHY IT IS OWED AT ALL. The verb has no narrower mode: there is no flag that
-# installs the carrier alone. So the only offered repair for ONE hook file also
-# rewrites CLAUDE.md, AGENTS.md and .claude/settings.json and region-edits the
-# chain block -- and until this printed, none of that was said where the verb
-# was offered.
+# WHY IT IS OWED AT ALL. There is no flag that installs the carrier alone; the
+# verb's only narrowing flag is `--skip-settings`, which spares
+# .claude/settings.json and nothing else. So the only offered repair for ONE
+# hook file also regenerates AGENTS.md, regenerates CLAUDE.md when it carries
+# the generated marker, and region-edits the chain block -- and until this
+# printed, none of that was said where the verb was offered.
 #
 # THE COST IS MEASURED, NOT HYPOTHETICAL. On 2026-08-28 an operator met this
 # command reporting the dispatcher STALE -- a TRUE positive -- dry-ran the
@@ -308,11 +207,55 @@ upgrade_apply_scope() {
 ' "$i"
 }
 
+# carrier_is_shim -- is the installed pre-commit.intent the SHIM rather than a
+# copy of the gate body?
+#
+# TWO CARRIER MODELS NOW EXIST AND COMPARING AGAINST THE WRONG TEMPLATE REPORTS
+# A CORRECTLY-INSTALLED GATE AS STALE. Until cc's `f8a78e05`, `canon::apply`
+# wrote nothing and every carrier was a COPY of the gate body, so comparing
+# against `pre-commit.sh` was the only comparison there was. It now installs
+# `pre-commit-shim.sh` instead -- same destination filename, different template,
+# and a byte-comparison against the body would call every correct shim stale.
+#
+# THE DISCRIMINATOR IS `--where`, WHICH ONLY THE SHIM ANSWERS: the string is in
+# `pre-commit-shim.sh` and not in the `pre-commit.sh` body. It is read rather
+# than executed, so a carrier that cannot run is still classified.
+#
+# AND THE SHIM ARM CHECKS SOMETHING THE COPY ARM COULD NOT: a copy carries its
+# own gate, so it works or it does not. A SHIM IS ONLY AS GOOD AS THE POINTER IT
+# RESOLVES, and a shim whose root is gone REFUSES EVERY COMMIT in that estate.
+# That is a worse condition than staleness and it is invisible to a byte
 # comparison, so it is asked first and reported louder.
 carrier_is_shim() {
   grep -q -- '--where' "$HOOKS_DIR/pre-commit.intent" 2>/dev/null
 }
 
+# gate_currency -- IS THE DISPATCHER THAT RUNS THE ONE THIS TREE DECLARES?
+#
+# THE GUARDS ARE READ LIVE; THE FILE THAT DECIDES WHICH TREE THEY COME FROM IS
+# NOT. `pre-commit.intent` is a gitignored COPY the installer writes from
+# `lib/templates/hooks/pre-commit.sh`. As of `6b60367c` that copy is what
+# chooses between this repo's guards and INTENT_HOME's -- so the staleness this
+# estate spent the day removing did not leave, it CONCENTRATED into the one file
+# whose job is now to pick the tree. Found by ic, who named it while I was still
+# calling the mechanism closed.
+#
+# WHY THIS IS WORTH A CHECK WHEN THE RESOLUTION CHANGE ITSELF IS NOT OBSERVABLE
+# (vc, measured on the live tree): both candidate guard runners are currently
+# byte-identical, so reading one or the other produces identical output and the
+# resolution change is a no-op in observable behaviour until they diverge. THIS
+# check is the opposite -- it compares two files that CAN differ today, the
+# moment anyone edits the template without reinstalling. It is the observable
+# half of an otherwise prospective mechanism.
+#
+# IT CONTRIBUTES TO `rc` RATHER THAN WARNING BESIDE IT, for the reason already
+# recorded against the gate-absent arm: a warning under a line reading `WIRED`
+# is the same defect one font weight down.
+#
+# AN ABSENT TEMPLATE IS NOT A STALE GATE. A consumer resolving through
+# INTENT_HOME to an install predating this file has nothing to compare, and
+# reporting a missing comparison as a divergence is an absence dressed as a
+# fault -- the collapse the three absence branches exist to prevent.
 gate_currency() {
   local tmpl
   resolve_guard_home
@@ -362,14 +305,15 @@ gate_currency() {
   # `canon::apply` install the carrier, so the verb now does repair this.
   #
   # **BUT IT INSTALLS A SHIM, AND A SHIM IS ONLY AS GOOD AS `~/.intent/home`.**
-  # On this machine that pointer currently names a deleted worktree, so running
-  # the verb today would replace a working copied gate with a shim that refuses
-  # every commit. **Naming the verb without that condition would be the same
-  # defect the old line was fixed to avoid, one generation later: a remedy that
-  # is now correct in general and wrong here.** So the pointer is stated as a
-  # precondition and the operator is told how to check it, rather than being
-  # sent to a command whose safety depends on machine state this function has
-  # already looked at. Raised by cc before it could bite anyone.
+  # When that pointer names a deleted tree -- which it did on this machine when
+  # this was written -- running the verb replaces a working copied gate with a
+  # shim that refuses every commit. **Naming the verb without that condition
+  # would be the same defect the old line was fixed to avoid, one generation
+  # later: a remedy that is now correct in general and wrong here.** So the
+  # pointer is stated as a precondition and the operator is told how to check
+  # it, rather than being sent to a command whose safety depends on machine
+  # state this function has already looked at. Raised by cc before it could bite
+  # anyone.
   printf '                 remedy: `intent claude upgrade --apply` installs the carrier (since f8a78e05).\n'
   printf '                 CHECK FIRST -- it installs a SHIM, which is only as good as ~/.intent/home:\n'
   printf '                   bash %s --where   (or read ~/.intent/home)\n' "$GUARD_HOME/lib/templates/hooks/pre-commit-shim.sh"
@@ -378,6 +322,51 @@ gate_currency() {
   upgrade_apply_scope '                 '
 }
 
+# shipped_guards -- the guards the GATE dispatches, as opposed to the ones the
+# repo-local runners do.
+#
+# **THIS COMMAND UNDER-REPORTED THE GATE AND SAID NOTHING** (dc, driven
+# 2026-08-20). It listed the repo-local guards in full and rendered the
+# whole shipped roster as one parenthetical -- `(critic + the shipped guard
+# roster)` -- which reports PRESENCE and not MEMBERSHIP. **A check that
+# under-reports what a gate enforces is worse than no check** is this file's own
+# sentence, written about the previous version of this same defect.
+#
+# THE SAME DOCTRINE AS `guards_of`, APPLIED ONE LAYER OUT: capability-detect
+# from the source, then ASK THE RUNNER. What differs is which runner and where
+# it lives -- the repo-local ones are under `bin/.devbin/cmd/`, and this one is
+# under the resolved install, because the gate reads its guards live out of
+# `INTENT_HOME` rather than from a copy. That is the whole reason a guard added
+# to canon reaches every consumer with no reinstall, and it is why this cannot
+# be answered from anything in this repository.
+#
+# THE RESOLVER IS NOT SECOND-GUESSED, AND THE RULE IS "MATCH THE GATE" RATHER
+# THAN "USE `intent info`". Those were the same sentence until 6b60367c and they
+# are not any more.
+#
+# THIS COMMENT USED TO READ: *`intent info` IS THE RESOLVER AND IS NOT
+# SECOND-GUESSED. `.githooks/pre-commit` resolves the install exactly this way;
+# a second spelling here could pair this roster with a different install than
+# the one the gate will actually run.* **That was true when it was written and
+# 6b60367c is what made it false** -- the gate now prefers a self-hosted
+# checkout's own `lib/templates/hooks/`, so keeping the single `intent info`
+# spelling became the thing that pairs this roster with a DIFFERENT install
+# from the one the gate runs. The rule's conclusion inverted because its
+# premise is what changed. Found by ic, against my own commit.
+#
+# ARMED, NOT YET MISREPORTING, WHICH IS THE ONLY REASON THERE WAS TIME TO FIX
+# IT. The other guard files still matched across both trees, so the roster
+# printed was accurate BY COINCIDENCE and nothing maintained the coincidence.
+# The trigger is exactly the case 6b60367c exists to make safe: add or improve
+# a guard in this repo's `lib/templates/hooks/`, and the gate RUNS it while
+# this command does not LIST it. That is the 2026-08-20 defect recorded at the
+# top of this header -- *THIS COMMAND UNDER-REPORTED THE GATE AND SAID NOTHING*
+# -- same command, same direction, same silence, through a different door.
+#
+# THREE ABSENCES, KEPT APART, because collapsing them is how this family of
+# defects starts: the resolver did not answer, the runner is not in the install
+# it named, or the runner is there and declares no roster. Only the first two
+# are faults and the third is a legitimate state.
 shipped_guards() {
   local home runner name path when state from
   resolve_guard_home
@@ -415,6 +404,28 @@ shipped_guards() {
   done < <(bash "$runner" --list-guards 2>/dev/null)
 }
 
+# guards_of <runner-name> -- ASK THE RUNNER what it enforces, then report whether
+# each guard that names a script has one that is present and executable.
+#
+# THIS REPLACES A GREP THAT UNDER-REPORTED, and the correction is worth keeping
+# because the original was wrong in the way that is hardest to notice. It read
+# `$TOOLS/[a-z]*.sh` out of the runner's source, and this file claimed that
+# deriving the names from the runner meant the roster could not rot. It rotted
+# within the day: `int precommit` grew a guard implemented INLINE, the grep could
+# not see it, and this command reported a gate enforcing fewer things than it
+# enforced.
+#
+# **A check that under-reports what a gate enforces is worse than no check**,
+# because it is consulted precisely by someone trying to find out, and it answers
+# confidently. It is the same failure this command exists to expose -- a hook that
+# looks installed and protects less than it claims -- reproduced by the tool doing
+# the exposing.
+#
+# The root error was anchoring on a PATH SHAPE (`$TOOLS/...`) rather than on the
+# structural fact (what the runner checks). A needle built from a path stops
+# matching the moment the path stops being the shape, and then passes in silence.
+# `--list-guards` makes the runner the authority, which is the only arrangement
+# where the roster genuinely cannot rot.
 guards_of() {
   local runner="$ROOT/bin/.devbin/cmd/$1" name script
   [ -f "$runner" ] || {
@@ -444,7 +455,7 @@ guards_of() {
   # prepush ignored the unrecognised flag and DID THE WHOLE THING, cloning HEAD
   # and building both binaries, and its progress lines were parsed as a guard
   # roster and printed as guards. Asking what was wired performed a clone and a
-  # build, which is the side-effect-as-probe failure named four lines up, caused
+  # build, which is the side-effect-as-probe failure named above, caused
   # by the mitigation written to prevent it.
   #
   # PROSE AND MECHANISM SHARE A SPELLING. A grep for a capability counts the
@@ -529,7 +540,7 @@ if [ "$DO_INSTALL" -eq 0 ]; then
 
   # **THE CHAINED GATE, AND THIS COMMAND USED TO ANSWER A DIFFERENT QUESTION
   # FROM THE ONE IT IS READ AS ANSWERING** (cc, measured 2026-08-20 in two real
-  # clones). The three checks above ask *is the repo-local RUNNER wired*. People
+  # clones). The runner checks above ask *is the repo-local RUNNER wired*. People
   # read the verdict as *are the guards wired*, and arm C proved those come
   # apart: a fresh clone where `int hooks --install` had just printed **"this
   # clone is wired"** then landed a commit adding `intent/.*/` to `.gitignore`
@@ -621,9 +632,10 @@ fi
 
 # ---- install ----
 #
-# APPEND, never overwrite. `.git/hooks/pre-commit` here already carries the
-# intent-chain-block (installed by `intent claude upgrade`), prettier, and mix
-# format. Replacing it would silently drop the critic gate and the whiteboard
+# APPEND, never overwrite. The pre-commit hook here (`.githooks/pre-commit`,
+# reached through core.hooksPath) already carries the intent-chain-block
+# (installed by `intent claude upgrade`) and the prettier, mix format and
+# rustfmt check stanzas. Replacing it would silently drop the critic gate and the whiteboard
 # clock guard -- removing guards while claiming to install them.
 mkdir -p "$HOOKS_DIR"
 install_chain() {
@@ -635,11 +647,11 @@ install_chain() {
   # THREE STATES, NOT TWO, AND THE MISSING ONE MADE THIS INSTALLER UNABLE TO
   # UPGRADE ANYTHING. It asked only "does this file invoke the runner", so once
   # a hook was wired the answer was yes forever and a CHANGED generator could
-  # never reach an existing clone -- it reported `unchanged` and meant it.
-  # .git/hooks is never tracked, so there is no other mechanism that would have
-  # caught up either: every clone would have kept whatever line it was born
-  # with. The estate's own upgrade philosophy is a state PROBE rather than a
-  # version ladder; this is that, one directory over.
+  # never reach an existing clone -- it reported `unchanged` and meant it. While
+  # the hooks lived in the untracked .git/hooks there was no other mechanism
+  # that would have caught up either: every clone would have kept whatever line
+  # it was born with. The estate's own upgrade philosophy is a state PROBE
+  # rather than a version ladder; this is that, one directory over.
   #
   # `"$@"` is the payload that forced the issue: git passes a pre-push hook its
   # destination as `<remote-name> <remote-url>`, and the frozen-remote refusal

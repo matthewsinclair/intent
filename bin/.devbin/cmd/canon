@@ -1,36 +1,36 @@
 #!/usr/bin/env bash
 #
-# devbin: summary = Report canon that disagrees with git -- membership both ways, and content
+# devbin: summary = Report canon issues that disagree with git -- membership both ways, and content
 #
-# intent canon        -- REPORT canon issues that disagree between disk and git,
-#                        by MEMBERSHIP in both directions and by CONTENT for
-#                        every file present in both.
+# bin/devbin canon    -- REPORT canon issues (intent/.canon/issues/*.json) that
+#                        disagree between disk and git, by MEMBERSHIP in both
+#                        directions and by CONTENT for every file in both.
 #
 # THE CLASS, in cc's words, and the wording decides the remedy: **filing an issue
 # writes the store and the disk atomically and correctly. Git is a separate,
 # human-gated act, and nothing reports the divergence.** The earlier framing --
 # *the store and git disagree* -- pointed a fix at consistency machinery that is
-# already sound: store-versus-disk was driven at 214/214, perfect both ways. What
+# already sound: store-versus-disk was driven and agreed perfectly both ways. What
 # is missing is not consistency, it is the git step and any report of its absence.
 #
 # So an issue is filed, resolvable by every verb, present on disk, and absent
 # from git -- and behaves entirely normally until someone clones, or a fold goes
 # looking.
 #
-# MEASURED 2026-09-04: four instances in one day. 0230 and 0231 (ic), 0232 (cc),
-# 0233 (vc). **All four were found BY HAND.** Three reached git only through
+# MEASURED 2026-09-04, all in one day: 0230 and 0231 (ic), 0232 (cc), 0233
+# (vc). **Every one was found BY HAND**, and most reached git only through
 # remediation commits whose subject lines say *was never in git*. A class that
 # has only ever been detected by hand is the strongest available evidence that
 # nothing automatic is watching.
 #
 # THE MECHANISM IS *WHETHER*, NOT *WHEN*, AND THE IDS INVITE THE WRONG STORY.
-# The four ids ran consecutively, which reads as *something about that window*.
-# It is refuted: all six issues in 0230-0235 carry `created: 2026-09-04`, and
+# Those ids ran consecutively, which reads as *something about that window*.
+# It is refuted: every issue in 0230-0235 carries `created: 2026-09-04`, and
 # 0234 and 0235 landed from inside the same window. **The discriminator is
 # whether the issue was the SUBJECT of a commit or a side-artefact of one** --
 # 0234 and 0235 are named in their commits' subject lines because they WERE the
-# work; the other four were filed while doing something else, so no commit was
-# ever about them and nothing swept them in.
+# work; 0230-0233 were filed while doing something else, so no commit was ever
+# about them and nothing swept them in.
 #
 # CONSEQUENCE, and it is the argument for running this on a schedule rather than
 # remembering it: **the exposure is a HABIT, not a date.** Every node files
@@ -39,7 +39,7 @@
 #
 # WHY A SWEEP AND NOT A COMMIT GATE (ic's argument, and it is unanswerable): a
 # commit guard can only judge what the commit in front of it touches, and **every
-# one of the four slipped by NOT being in a commit.** The population is the
+# instance slipped by NOT being in a commit.** The population is the
 # estate, so this is a sweep run on demand and at a fold. It is also why this is
 # not an arm of `runner_roster_check.sh`, whose name and contract are parity
 # instruments -- this repo already ruled that question when it kept the whiteboard
@@ -57,10 +57,12 @@
 # a synthetic disk-only name must be DETECTED and a name present in both must NOT
 # be, on every run, before any verdict here is allowed to mean anything.
 #
-# THE DURABLE HOME IS `intent doctor`, NOT HERE -- issue 0237. Every Intent
-# project has this exposure, because `issues add` writes store and disk
-# everywhere and git is a separate act everywhere; `bin/.devbin/` reaches this
-# estate alone. This is the reachable version, not the right one.
+# THIS REACHES THIS ESTATE ALONE. Every Intent project has this exposure,
+# because `issues add` writes store and disk everywhere and git is a separate
+# act everywhere, and issue 0237 named `intent doctor` as the durable home. That
+# issue was closed in the 3.0.1 cull without the check being built, so this
+# handler is the only implementation; `intent doctor` does not compare canon
+# with git.
 #
 # MEMBERSHIP IS NOT CONTENT, AND THE SECOND QUESTION WAS MISSING FOR A DAY.
 # The arms above compare `git ls-files` against the disk listing, which answers
@@ -78,9 +80,9 @@
 # filings points at it. The confound was the LIFECYCLE, not the direction.
 #
 # **THIS ARM ADDS NO SOURCE. The population was already right and complete; the
-# QUESTION was too weak.** That is class 1 of the three in `intent/llm/RULES.md`
-# -- the cheapest class to fix and the hardest to notice, because every count
-# the instrument printed was correct.
+# QUESTION was too weak.** That is the first class under "Instrument discipline"
+# in `intent/llm/RULES.md` -- the cheapest class to fix and the hardest to
+# notice, because every count the instrument printed was correct.
 #
 # THREE STATES, NEVER TWO, because conflating the third would hide it: a file
 # present in both is `same`, `differs`, or `absent` from HEAD entirely (staged

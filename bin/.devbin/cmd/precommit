@@ -2,32 +2,43 @@
 #
 # devbin: summary = Run this repo's local commit gates (ST0056 apparatus guards)
 #
-# intent precommit [--all] -- run the guards that protect THIS repository's
-# apparatus. Invoked by .git/hooks/pre-commit; safe to run by hand.
+# bin/devbin precommit [--all | --list-guards] -- run the guards that protect
+# THIS repository's apparatus. Invoked by .githooks/pre-commit (the tracked
+# hooks directory core.hooksPath points at) as `bin/int precommit "$@"`, after
+# the shipped gate; safe to run by hand.
 #
-# WHY THIS IS NOT IN lib/templates/hooks/pre-commit.sh, which is where the
-# critic gate and the whiteboard clock guard live. That file is SHIPPED: every
-# consumer project receives it via `intent claude upgrade --apply`. The two
-# guards run here check `intent/st/ST0056/parity/**`, which exists in this
-# repository and nowhere else. Putting an ST-specific check into the shipped
-# canon would hand every consumer a gate for a steel thread they do not have,
-# and it would outlive ST0056 in the canon forever. Repo-local guards get a
-# repo-local runner.
+#   --all          force the path-triggered skew checks to sweep every view
+#                  rather than the staged set
+#   --list-guards  print the roster (`name<TAB>script-or-dash`) and exit 0;
+#                  `int hooks` reads it
 #
-# WHY ONE COMMAND FOR TWO GUARDS IS NOT THE EXIT-CODE OVERLOAD ic WARNED ABOUT.
-# The defect in `intent critic` is that four unrelated conditions share exit 2
-# with no way for the caller to tell them apart. Here each guard keeps its own
-# script, its own invariant and its own message; this runner aggregates and
-# NAMES the one that refused. The guards were also deliberately kept separate
-# by vc's ruling -- provenance checks that STAMPS AGREE (metadata), skew checks
-# that CONTENT MATCHES CANON -- and nothing here merges them.
+# Exits 1 when any guard blocks (each blocking guard is named in the summary),
+# 0 otherwise. Only the first argument is read.
 #
-# COVERAGE IS REPORTED AS MEASURED, NEVER AS DESIGNED. Measured 2026-08-15:
-# view_skew covers ONE of thirty apparatus views (`dispatch-table.md` is the
-# only one re-derivable from committed state); provenance groups the other 29,
-# for which the stamp is the only guard that exists. Do not write those numbers
-# into this file as constants -- the guards print what they actually checked,
-# and a hard-coded figure rots the moment somebody adds artefact 31.
+# WHY THIS IS NOT IN the shipped gate under lib/templates/hooks/ --
+# `pre-commit.sh` (the critic gate) and the guard roster in
+# `pre-commit-guards.sh` (the whiteboard clock and header guards among them).
+# Those files are SHIPPED: every consumer project receives them via `intent
+# claude upgrade --apply`. Most guards run here check
+# `intent/st/ST0056/parity/**`, which exists in this repository and nowhere
+# else. Putting an ST-specific check into the shipped canon would hand every
+# consumer a gate for a steel thread they do not have, and it would outlive
+# ST0056 in the canon forever. Repo-local guards get a repo-local runner.
+#
+# WHY ONE COMMAND FOR MANY GUARDS IS NOT THE EXIT-CODE OVERLOAD ic WARNED ABOUT.
+# The defect in `intent critic` is that unrelated conditions share exit 2 with
+# no way for the caller to tell them apart. Here each guard keeps its own
+# invariant and its own message; this runner aggregates and NAMES the one that
+# refused. The guards were also deliberately kept separate by vc's ruling --
+# provenance checks that STAMPS AGREE (metadata), skew checks that CONTENT
+# MATCHES CANON -- and nothing here merges them.
+#
+# COVERAGE IS REPORTED AS MEASURED, NEVER AS DESIGNED. view_skew covers only
+# the apparatus views re-derivable from committed state (its CHECKABLE list:
+# `surface/dispatch-table.md`); provenance groups the rest, for which the stamp
+# is the only guard that exists. Do not write coverage figures into this file
+# as constants -- the guards print what they actually checked, and a hard-coded
+# figure rots the moment somebody adds an artefact.
 #
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
@@ -41,7 +52,7 @@ set -euo pipefail
 # source that reading the names from the runner meant "the roster cannot rot".
 # It rotted the same day: guard 0 below is implemented INLINE rather than as a
 # script under `$TOOLS/`, so the grep could not see it and `int hooks` reported
-# a gate enforcing two things when it enforces three. Under-reporting what a
+# a gate enforcing fewer things than it does. Under-reporting what a
 # gate enforces is worse than most defects, because the tool people consult to
 # find out is the thing that is wrong.
 #
@@ -60,8 +71,8 @@ set -euo pipefail
 # It used to emit bare filenames and the reader prefixed the ST0056 tools
 # directory, which quietly redefined the second field as "a script UNDER
 # $TOOLS". The moment a guard's script lived anywhere else -- guard 0b then
-# delegated to shipped canon under lib/ -- that reader had exactly two wrong
-# answers available and no right one: report a real script as MISSING, or emit
+# delegated to shipped canon under lib/ -- that reader had only wrong answers
+# available and no right one: report a real script as MISSING, or emit
 # a dash claiming there is none. Same anchoring error as the defect recorded
 # above, one field along: the roster is the authority on what it checks AND on
 # where those checks live.
@@ -99,11 +110,11 @@ G_PIPEFAIL="pipefail/SIGPIPE: no instrument ends a pipeline in an early-exiting 
 #
 # It was never merely redundant, which is why it is gone rather than left as a
 # cheap double-check. It was COMPENSATION for a defect one layer down: the
-# installed hook carried a frozen Aug 14 roster running one guard of four, and
-# this call papered over exactly one of the three that were missing. A local
+# installed hook carried a frozen Aug 14 roster running only part of its
+# guards, and this call papered over one of the missing ones. A local
 # workaround for a shipped hole is the worst possible place for it -- it makes
 # the hole invisible HERE, which is the one repository where somebody would
-# have noticed. Two guards it did not compensate for (`canon-ignore-guard.sh`,
+# have noticed. The guards it did not compensate for (`canon-ignore-guard.sh`,
 # `append-only-guard.sh`) ran nowhere at all, and nothing said so.
 
 if [ "${1:-}" = "--list-guards" ]; then
@@ -225,11 +236,10 @@ fi
 # database into a pass.
 HAVE_TOOLS=1
 if [ ! -d "$TOOLS" ]; then
-  # NO COUNT IN THIS MESSAGE, DELIBERATELY, AND THE ABSENCE IS THE FIX. It read
-  # "those two gates" from the day dc wrote it (b186a0f3), when there were two.
-  # There are now NINE behind this branch, and the literal rotted silently
-  # through every addition -- so at the one moment coverage is degraded, the
-  # message a human reads understated the gap by seven.
+  # NO COUNT IN THIS MESSAGE, DELIBERATELY, AND THE ABSENCE IS THE FIX. It
+  # carried a literal count from the day dc wrote it (b186a0f3), and the literal
+  # rotted silently through every addition behind this branch -- so at the one
+  # moment coverage is degraded, the message a human reads understated the gap.
   #
   # A count here can only ever be a second copy of the list below, and the copy
   # is the half nobody updates. Naming the CLASS cannot rot; naming what still
@@ -239,8 +249,8 @@ if [ ! -d "$TOOLS" ]; then
   HAVE_TOOLS=0
 fi
 
-# 1. Provenance. Always runs the full sweep: it is three greps over 29 files,
-#    and its invariant is CROSS-artefact -- staging one file of a measurement
+# 1. Provenance. Always runs the full sweep: it is cheap (its span is recorded
+#    in runner_roster_check.sh's ROSTER), and its invariant is CROSS-artefact -- staging one file of a measurement
 #    group is exactly when the group can be split, so narrowing it to the staged
 #    set would blind it to the failure it exists to catch.
 if [ "$HAVE_TOOLS" -eq 1 ]; then
@@ -273,29 +283,25 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   fi
 
   # 2b. Thread views. The SIBLING of the check above and a different population:
-  #     the CHECKABLE in view_skew_check.sh is one triple under surface/, so gated
-  #     skew coverage was 1 of 288 and the missing 287 are thread covers,
-  #     acceptance contracts and WP covers. This asks views::skew for one answer
-  #     rather than computing a second, so there is still exactly one home for the
-  #     question.
+  #     the CHECKABLE in view_skew_check.sh covers only surface/, so thread
+  #     covers, acceptance contracts and WP covers had no gated skew coverage.
+  #     This asks views::skew (through `intent doctor`) for one answer rather than
+  #     computing a second, so there is still exactly one home for the question.
   #
   #     `--changed` HERE NARROWS WHAT BLOCKS, NOT WHAT IS CHECKED, and dispatching
-  #     without it would be the blast-radius error this repo has already paid for
-  #     twice. Every view is examined either way and the cost is identical; the
-  #     flag decides whether skew in a path this commit never touched BLOCKS or is
-  #     REPORTED. Five nodes share this checkout, so the unnarrowed form would stop
-  #     every node on a stale view none of them wrote, and a guard that must be
-  #     bypassed is a guard nobody keeps.
+  #     without it would be the blast-radius error this repo has already paid for.
+  #     Every view is examined either way and the cost is identical; the flag
+  #     decides whether skew in a path this commit never touched BLOCKS or is
+  #     REPORTED. Peer nodes share this checkout, so the unnarrowed form would
+  #     stop every node on a stale view none of them wrote, and a guard that must
+  #     be bypassed is a guard nobody keeps.
   #
-  #     ADMITTED 2026-08-27 AND THE HOLE IS NAMED RATHER THAN CARRIED IN SILENCE:
-  #     with no v3 binary at native/rust/target/release/intent the tool prints what
-  #     goes unchecked and exits 0. That is a fail-open, and the population it was
-  #     written for (a machine with no v3 build) is not the one that occurs here.
-  #     Every machine in this estate carries a build; the real absent window is a
-  #     REBUILD, where cargo removes the artefact before writing it. Gating does
-  #     not create that hole and does not widen it -- ungated, the coverage is zero
-  #     always. Whether a gate that cannot run should skip or refuse is with hv,
-  #     and this is the third instrument waiting on that one ruling.
+  #     WITH NO v3 BINARY at native/rust/target/release/intent THE TOOL REFUSES
+  #     (exit 2), IT DOES NOT SKIP (hv ruling 4 as scoped by vc 2026-08-27), so
+  #     this commit blocks. Its message separates the TRANSIENT case -- a release
+  #     directory exists, so a rebuild is removing and rewriting the artefact:
+  #     wait and retry -- from a tree that was never built, where the remedy is
+  #     `bin/devbin build all`.
   step "$G_SKEWTHREAD"
   thread_skew_run=(bash "$TOOLS/thread_view_skew_check.sh")
   if [ "$FULL" -eq 0 ] && [ -n "$STAGED" ]; then
@@ -316,8 +322,8 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   #    this view still match its canon", which only changes when a path changes.
   #    This asks "does git hold what this generator reads", and that can go false
   #    with NO path in this repository changing at all -- someone deletes a
-  #    scratchpad, or reboots. It is a whole-set check over four files and reads
-  #    only the index, so it costs nothing to run every time.
+  #    scratchpad, or reboots. It is a whole-set check over the `gen_*.sh`
+  #    generators the index holds, so it is cheap to run every time.
   step "$G_GENIN"
   if ! bash "$TOOLS/generator_inputs_check.sh"; then
     rc=1
@@ -326,13 +332,14 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   fi
 
   # 4. Instrument disposition -- the roster that says whether the list ABOVE is
-  #    the whole of what runs. Issue 0059: eleven instruments lived in the tools
-  #    directory, three had an execution site, and eight had none -- three of
-  #    those eight CITED BY A GREEN ACCEPTANCE ROW. Every individual record was
-  #    correct; nothing joined "this tool exists" to "something runs it".
+  #    the whole of what runs. Issue 0059: most instruments in the tools
+  #    directory had no execution site, some of them CITED BY A GREEN
+  #    ACCEPTANCE ROW. Every individual record was correct; nothing joined "this
+  #    tool exists" to "something runs it".
   #
-  #    IT GATES ON ITS FINDINGS, unlike the five below, and the asymmetry is
-  #    principled rather than a mood. Those are report-only because most of
+  #    IT GATES ON ITS FINDINGS, unlike the report-only register checks below,
+  #    and the asymmetry is principled rather than a mood. Those are report-only
+  #    because most of
   #    their hits are a legitimate mid-ladder state -- a command not wired yet,
   #    a row not ratified yet. There is no legitimate state in which a tool
   #    exists and its disposition is undeclared: the fix is one line in the
@@ -345,21 +352,25 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
 "
   fi
 
-  # 5-9. THE REGISTER CHECKS. All five are REPORT-ONLY BY CONSTRUCTION: each
-  #      exits 0 whether it is clean or has findings, and non-zero ONLY when it
-  #      cannot measure at all.
+  # THE REGISTER CHECKS. corrected_check.sh, class_vocab_check.sh and
+  # stale_at_check.sh are REPORT-ONLY BY CONSTRUCTION: each exits 0 whether it
+  # is clean or has findings, and non-zero ONLY when it cannot measure at all.
+  # rulings_check.sh and residue_class_check.sh are NOT: each exits 1 on a
+  # finding (a malformed or dangling ruling; declared and emitted residue
+  # classes that disagree), and that blocks, as their summary lines below say.
   #
-  #      So a refusal from any of the five is never "the register is wrong" --
-  #      it is "this instrument could not answer", which is a broken instrument.
-  #      That distinction is not academic: corrected_check.sh spent a day dying
-  #      at exit 2 for all twenty corrected rows, because a ratification had
-  #      been written into a field it does not read. The refusal was correct,
-  #      loud, and by design, and it sat through a fold and a compact under a
-  #      board reading "nothing blocked" -- because nothing ran it. A refusal
-  #      and a silence look the same to anyone not looking.
+  # So a refusal from a report-only check is never "the register is wrong" --
+  # it is "this instrument could not answer", which is a broken instrument.
+  # That distinction is not academic: corrected_check.sh spent a day dying at
+  # exit 2 for every corrected row, because a ratification had been written
+  # into a field it does not read. The refusal was correct, loud, and by
+  # design, and it sat through a fold and a compact under a board reading
+  # "nothing blocked" -- because nothing ran it. A refusal and a silence look
+  # the same to anyone not looking.
   #
-  #      Their FINDINGS print above and do not block. Read them; that is the
-  #      whole reason they are here rather than in somebody's shell history.
+  # The report-only checks' FINDINGS print above and do not block. Read them;
+  # that is the whole reason they are here rather than in somebody's shell
+  # history.
   step "$G_CORRECTED"
   if ! bash "$TOOLS/corrected_check.sh"; then
     rc=1
@@ -374,8 +385,8 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
 "
   fi
 
-  # The pipefail/SIGPIPE class in our own instruments. IT GATES, unlike the two
-  # above: a finding here is a live defect in a checker, and the reason it needs
+  # The pipefail/SIGPIPE class in our own instruments. IT GATES, unlike the
+  # report-only checks above: a finding here is a live defect in a checker, and the reason it needs
   # a gate rather than a sweep is that it is invisible to every other instrument
   # -- a lost race has the same exit code, the same silence and the same green
   # as a clean run. Exit 2 is the tool refusing to report (its own two-sided
@@ -396,7 +407,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   # The ratified state machines against their transcription. It is here rather
   # than beside the view-skew guards because what it compares is two HAND-KEPT
   # documents, not a generated artefact against its source: `transitions.rs`
-  # says "transcribed" in four comments and nothing was checking the claim, so
+  # says "transcribed" in its comments and nothing was checking the claim, so
   # hv`s `Fiat` ruling reached the code and left the ratified table stale with
   # no instrument able to see it (2026-08-29, found by eye).
   step "$G_MACHINE"
@@ -426,7 +437,7 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   # gate COUNT, so a green citing nothing is a claim with no referent being
   # tallied as a claim with one -- and it is invisible to inspection, because a
   # green row looks like every other green row. WHOLE-SET for the same reason as
-  # its two neighbours above.
+  # its neighbours above.
   step "$G_ABSENTAT"
   if ! bash "$TOOLS/absent_at_check.sh"; then
     rc=1
@@ -464,7 +475,8 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   #
   #     NOT path-triggered. A re-vendor is TWO FACTS -- the files and the record
   #     -- and the failure is staging one of them, so the trigger would have to
-  #     fire on the path that ISN'T there. Whole-set at 504ms over 27 blobs.
+  #     fire on the path that ISN'T there. Whole-set; its span is recorded in
+  #     runner_roster_check.sh's ROSTER.
   step "$G_SELFPROV"
   if ! bash "$TOOLS/self_provenance_check.sh"; then
     rc=1
@@ -482,8 +494,8 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   #       - "there is no narrow attachment-sync verb": DEAD. `sync --to-store [ID]...`
   #         takes positional ids, landed at `212b0075`, so the order a gate permits
   #         (sync the one thread, then commit file and canon together) is open.
-  #       - "--staged is not supported": DEAD. `:254` parses the flag and `:364`
-  #         reads `git diff-index --cached HEAD`, so it judges the INDEX.
+  #       - "--staged is not supported": DEAD. canon_commit_check.sh parses the
+  #         flag and reads `git diff-index --cached HEAD`, so it judges the INDEX.
   #
   #     ALWAYS `--staged`, NEVER PATH-TRIGGERED, and that is a ruling rather than an
   #     oversight. The tool already narrows internally; a path trigger here would be
@@ -492,14 +504,10 @@ if [ "$HAVE_TOOLS" -eq 1 ]; then
   #     a question only a path change can alter, this asks whether the index is
   #     internally consistent, which staging one half of a pair makes false.
   #
-  #     COST, RE-MEASURED AT `ecea0eeb` ON THIS MACHINE BECAUSE THE ROSTER SAYS TO:
-  #     2710-2760ms narrowed, against 2.49-2.55s recorded -- ~8% slower, so the
-  #     affordability case is REFRESHED rather than overturned. It is now the most
-  #     expensive guard here, and the gate total moves ~4.6s -> ~7.3s on every commit.
-  #     `runner_roster_check.sh:102` warned in its own words that the original
-  #     affordability argument was conducted against stale numbers; this is that
-  #     re-measurement, and the figure carries its revision because a bare one
-  #     cannot be compared against anything.
+  #     COST: the most expensive guard in this runner. Its measured span lives in
+  #     runner_roster_check.sh's ROSTER, whose header says to RE-TIME BEFORE
+  #     MOVING A ROW ON COST GROUNDS and to record the span with its method; read
+  #     the figure there rather than from a copy here.
   step "$G_CANONCOMMIT"
   if ! bash "$TOOLS/canon_commit_check.sh" --staged; then
     rc=1
@@ -511,8 +519,8 @@ fi
 # GUARD HOME. UNCONDITIONAL AND NOT PATH-TRIGGERED, because the failure it
 # catches is a DELETION and a path trigger keyed to the template would not fire
 # on a commit that removes the branch from somewhere else -- or, worse, would
-# fire only on the commit that breaks it and never again. 17-22ms of two greps
-# over one committed file is not worth a trigger to avoid.
+# fire only on the commit that breaks it and never again. Grepping the committed
+# hook template is too cheap to be worth a trigger to avoid.
 step "$G_GUARDHOME"
 # THE ABSENT CASE IS NAMED SEPARATELY, AND cc FOUND THIS ON REAL BYTES BEFORE IT
 # COULD SHIP. The summary line used to assert ONE cause -- "the template lost the

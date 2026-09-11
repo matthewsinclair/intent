@@ -2,11 +2,13 @@
 #
 # devbin: summary = The Rust CLI binary (cargo build -p intent-cli)
 #
-# intent build cli [cargo opts] -- build the ST0056 native CLI.
+# bin/devbin build cli [--debug] [cargo opts] -- build the native `intent` CLI.
 #
-# Defaults to a release profile because the reason to build this binary at all
-# is to run or ship it; pass --debug for a debug build. Extra arguments ride
-# through to cargo untouched.
+# Defaults to a release profile, and a release build of this one binary is
+# REFUSED unless CARGO_TARGET_DIR names a private target: it would split the
+# shared intent/intentd pair (refuse_single_package_release, below). Pass
+# --debug for a debug build, or use `bin/devbin build all` for the release
+# pair. Extra arguments ride through to cargo untouched.
 #
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"

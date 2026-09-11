@@ -2,7 +2,17 @@
 #
 # devbin: summary = Report which devbin-owned files this project has locally patched
 #
-# int vendor  -- REPORT the divergence between the vendored tree and its manifest.
+# bin/devbin vendor  -- REPORT the divergence between the vendored lib/ tree and
+#                       the checksums in bin/.devbin/manifest.sha256. Takes no
+#                       arguments. Exit 1 when a listed file is missing or no
+#                       file matches; local patches and unlisted files are
+#                       reported at exit 0.
+#
+# THIS SHADOWS DEVBIN'S OWN `vendor`. A project handler shadows totally, so
+# devbin's built-in (lib/cmd/vendor, which compares the vendored bytes with the
+# devbin source the manifest names) is not reachable as `bin/devbin vendor` in
+# this project. `bin/devbin doctor` also checks the manifest checksums, as part
+# of its wider install check.
 #
 # THE HOLE THIS EXISTS FOR (issue 0048). `bin/.devbin/manifest.sha256` lists the
 # files devbin OWNS, and its own header states the contract: "An edit to one is
@@ -10,12 +20,11 @@
 # belong to the project." Patching a vendored file is therefore a SUPPORTED
 # state, not damage.
 #
-# What was missing is that the detector the header refers to -- `devbin doctor`,
-# `devbin upgrade` -- lives in the Devbin SOURCE repository. From inside the
-# project that carries the patches there was nothing to run, so the divergence
-# had a size nobody knew and members nobody had enumerated. Measured 2026-08-17:
-# the count named in conversation was three and the truth was four, and two of
-# the four predated the discussion entirely and were news to everyone in it.
+# What was missing on 2026-08-17 was a detector runnable from inside the project
+# that carries the patches, so the divergence had a size nobody knew and members
+# nobody had enumerated. Measured that day: the count named in conversation was
+# short of the truth, and some of the patches predated the discussion entirely
+# and were news to everyone in it.
 #
 # Same shape as an unwired git hook (`int hooks`): the thing is not failing, it
 # is reporting NOTHING, and reporting nothing is indistinguishable from being in
@@ -37,7 +46,7 @@
 # Under zsh it is a special variable tied to `PATH`, so `while read -r want path`
 # destroys `PATH` on the first iteration; `shasum` is then not found, every
 # comparison fails, and every file reports as DIVERGED. The first hand-run of
-# this measurement reported all 27 entries drifted for exactly that reason --
+# this measurement reported every entry drifted for exactly that reason --
 # **a broken instrument reporting maximum alarm, which reads exactly like a
 # catastrophic finding.** The MATCHES count below is the control that says the
 # tool works; a run with zero matches is a broken run, not a broken tree.

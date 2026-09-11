@@ -12,7 +12,7 @@
 # v3 SHOULD do. Only the binary knows what it DOES.
 #
 # AND DRIVING THE BINARY IS NECESSARY, NOT SUFFICIENT. The first sweep drove a
-# binary fifteen commits behind HEAD and reported `claude skills` UNBUILT; the
+# binary well behind HEAD and reported `claude skills` UNBUILT; the
 # fix had landed WHILE THE SWEEP RAN, so the result was false before it was
 # published and had already been sent to the node who wrote the fix. **`rc=2` is
 # byte-identical whether a command was never built or was built ten minutes ago
@@ -25,8 +25,8 @@
 #
 # `--help` IS NOT A PROBE, AND IT CATCHES EVERYONE INCLUDING WHOEVER JUST WROTE
 # IT UP. Under INV-07 it exits 0 to stdout whether or not the command is built:
-# all eight `claude` subcommands answered rc=0 and the family was nearly filed
-# as fully hosted. Every verb here is a REAL invocation.
+# every `claude` subcommand answered rc=0 and the family was nearly filed as
+# fully hosted. Every verb here is a REAL invocation.
 #
 # WHY A CLONE MAKES THE UNDRIVABLE DRIVABLE. A sweep over the live tree can only
 # touch read-only verbs, and *declared read-only* is no substitute for driving:
@@ -98,11 +98,11 @@ step "hosting: driving ${#VERBS[@]} verb(s)"
 printf '\n'
 hosted=0; unbuilt=0; retired=0; other=0
 for v in "${VERBS[@]}"; do
-  # ARGV SPLIT DELIBERATELY AND NOT VIA AN UNQUOTED VAR. This shell family does
-  # not word-split an unquoted expansion the way bash does, so `$v` holding
-  # "claude skills list" arrives as ONE argument and EVERY verb answers
-  # `unrecognized subcommand` -- a uniform, plausible, entirely wrong sweep.
-  # Measured: a first pass reported rc=0 for six verbs including `st list`.
+  # ARGV SPLIT DELIBERATELY AND NOT VIA AN UNQUOTED VAR. This file is bash, but
+  # the first pass was driven in zsh, which does not word-split an unquoted
+  # expansion, so `$v` holding "claude skills list" arrived as ONE argument and
+  # EVERY verb answered `unrecognized subcommand` -- a uniform, plausible,
+  # entirely wrong sweep. `read -r -a` splits the same way in both shells.
   read -r -a argv <<<"$v"
   # rc OFF THE BARE CALL. `cmd | head` reports head's status, which returned 0
   # for everything in that same first pass -- two faults, one command, one
@@ -117,10 +117,10 @@ for v in "${VERBS[@]}"; do
   # 2026-08-24 at 13:44:15Z (`stat` reports it as 14:44:15 LOCAL/BST -- converted
   # here at the source, because a reader appending a `Z` to the local value lands
   # an hour out and the clock guard cannot see it once the commit lags past the
-  # offset): `agents sync` rewrote AGENTS.md (+12), `upgrade`
+  # offset): `agents sync` rewrote AGENTS.md, `upgrade`
   # stamped `project_id` into intent/.config/config.json and WROTE
   # intent/.cache/intent.db -- the durable SSOT -- plus events.jsonl. Canon was
-  # untouched (0 of 105 dirty), which bounds it and does not excuse it.
+  # untouched, which bounds it and does not excuse it.
   #
   # THE TELL WAS IN THIS TOOL'S OWN OUTPUT AND WAS READ PAST: `init` answered
   # "already an Intent project: /Users/..." while the clone sat under /private/var.

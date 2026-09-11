@@ -2,33 +2,35 @@
 #
 # devbin: summary = Stand up a throwaway v3 project so the real binary can be exercised
 #
-# intent dogfood            -- create/refresh a scratch v3 project and print how to use it
-# intent dogfood --fresh    -- delete and recreate it
-# intent dogfood --at DIR   -- put it somewhere specific
+# bin/devbin dogfood            -- create/refresh a scratch v3 project and print how to use it
+# bin/devbin dogfood --fresh    -- delete and recreate it
+# bin/devbin dogfood --at DIR   -- put it somewhere specific (default $TMPDIR/intent-dogfood)
+#
+# It execs native/rust/target/debug/intent, so a debug build must exist
+# (`bin/devbin build cli --debug`). It takes no --help.
 #
 # WHY THIS EXISTS. hv, 2026-08-15: "~/Devel/prj/Intent is an Intent2 project.
 # We're building Intent3 using Intent. So we need to be a) aware of that at all
 # times, and b) eat our own dogfood."
 #
-# The first half of that is a trap with teeth. **This repository declares Intent
-# 2.19.0, so the v3 binary REFUSES here** -- correctly, on migration grounds:
+# The first half of that is a trap with teeth. **While this repository declared
+# Intent 2.19.0 the v3 binary REFUSED here** -- correctly, on migration grounds
+# (`this project has not been migrated to Intent v3 -- it declares Intent ...`).
+# The repository is self-hosted on v3 now, but the refusal still fires in any v2
+# checkout, and there **every measurement taken with the v3 binary measures the
+# refusal path, not the function.** That is not a hypothetical: I ran the
+# binary with and without INTENT_HOME across several verbs, got byte-identical
+# output, and nearly recorded it as evidence for AC-11.3. Every one was the same
+# refusal. Matched failures prove nothing -- the same shape as a coverage test
+# that only checks the tables which already pass, and a WAL snapshot test that
+# closes the DB first: one class, met repeatedly in a day.
 #
-#   error: this project has not been migrated to Intent v3 -- it declares Intent
-#   2.19.0, and 56 steel threads carry v2 canon this binary cannot read
-#
-# Which means **every measurement taken with the v3 binary inside this tree
-# measures the refusal path, not the function.** That is not a hypothetical: I
-# ran the binary with and without INTENT_HOME across five verbs, got
-# byte-identical output, and nearly recorded it as evidence for AC-11.3. It was
-# five identical refusals. Two matched failures prove nothing -- the same shape
-# as a coverage test that only checks the tables which already pass, and a WAL
-# snapshot test that closes the DB first. Three instances of one class in a day.
-#
-# The second half is what this command is for. Dogfooding needs a v3 project and
-# `intent init` is not wired yet (WP-06), so the barrier to eating our own
-# dogfood is currently "know that a v3 project is a config.json, and know the
-# exact fields". That is enough friction to stop it happening, which is how a
-# dogfood instruction quietly becomes a dogfood aspiration.
+# The second half is what this command is for. Dogfooding needs a v3 project,
+# and when this was written `intent init` was not wired (WP-06), so the barrier
+# was "know that a v3 project is a config.json, and know the exact fields".
+# That is enough friction to stop it happening, which is how a dogfood
+# instruction quietly becomes a dogfood aspiration. `intent init` is wired now
+# and this command still hand-writes the config -- see the expiry below.
 #
 # THIS IS A STOPGAP AND SAYS SO IN ITS OWN OUTPUT. It hand-writes the one file
 # `intent init` would otherwise write, which makes it a second implementation of
@@ -49,7 +51,7 @@ ROOT="${PROJECT_ROOT:?}"
 BIN="$ROOT/native/rust/target/debug/intent"
 # `$TMPDIR` carries a TRAILING SLASH on macOS, so the naive concatenation yields
 # `/var/folders/.../T//intent-dogfood`. Harmless to the filesystem and not
-# harmless to the reader: this path is printed four times as something to
+# harmless to the reader: this path is printed repeatedly as something to
 # copy-paste, and a doubled slash reads as a bug in the tool that printed it.
 # `%/` strips one trailing slash if present and does nothing if not.
 DEST="${TMPDIR:-/tmp}"; DEST="${DEST%/}/intent-dogfood"

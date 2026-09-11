@@ -4,21 +4,22 @@
 # it is 0644 precisely so `is_handler` (-f AND -x) cannot mistake it for a command.
 #
 # WHY IT IS HERE AND NOT IN `lib/helpers`, WHICH IS WHERE I PUT IT FIRST AND WAS
-# WRONG. `lib/helpers` is DEVBIN-OWNED -- vendored from ~/Devel/prj/Devbin and
-# checksummed in `manifest.sha256`. Putting an Intent-specific parser there made
-# `devbin doctor` report `edited:` (driven, rc=1) and would have let a `devbin
-# upgrade` overwrite the file and DELETE this function, breaking three call sites
-# in `cmd/macos` with nothing saying why. The manifest states the rule in its own
-# header -- "Files not listed here -- config.yaml, cmd/, help/ -- belong to the
-# project" -- so `cmd/` is the project territory and `lib/` is not.
+# WRONG. `lib/helpers` is DEVBIN-OWNED -- vendored from the devbin install that
+# `manifest.sha256` names as its `source:`, and checksummed there. Putting an
+# Intent-specific parser there made `devbin doctor` report `edited:` (driven,
+# rc=1) and would have let a `devbin upgrade` overwrite the file and DELETE this
+# function, breaking its call sites in `cmd/macos` with nothing saying why. The
+# manifest states the rule in its own header -- "Files not listed here --
+# config.yaml, cmd/, help/ -- belong to the project" -- so `cmd/` is the project
+# territory and `lib/` is not.
 #
 # artefact_source_commit <mach-o> -- what the ARTEFACT says it was built from.
 #
 # THE ONE EXTRACTION SITE -- TRUE AS OF 2026-08-22, AND IT WAS FALSE ON THE DAY
 # THIS LINE WAS WRITTEN. The sentence used to stand alone, and it was a claim
 # nobody had measured. `grep -rn 'intent-source-commit'` over every `.sh`, `.rs`
-# and `.bats` found FOUR shell implementations of one contract: this one, and
-# inline copies in `self_provenance_check.sh`, `interrupt_rig.sh` and
+# and `.bats` found other shell implementations of one contract: inline copies
+# in `self_provenance_check.sh`, `interrupt_rig.sh` and
 # `provenance_fields_check.sh` -- the last being `marker_of()`, BYTE-FOR-BYTE
 # this function under a different name, written by the author of this file ON
 # THE DAY BEFORE they wrote this header.
@@ -31,7 +32,10 @@
 #
 # CONSUMERS, NAMED SO THE CLAIM IS CHECKABLE RATHER THAN ASSERTED (if you add
 # one, add it here; if this list and `grep` ever disagree, `grep` is right):
-#   - `bin/.devbin/cmd/macos`                                 (3 call sites)
+#   - `bin/.devbin/cmd/macos`
+#   - `bin/.devbin/cmd/local`
+#   - `bin/.devbin/cmd/shared/currency.lib` (`artefact_pair_marker`), and
+#     through it `cmd/cli` and the build arms that source it
 #   - `intent/st/ST0056/parity/tools/self_provenance_check.sh`
 #   - `intent/st/ST0056/parity/tools/interrupt_rig.sh`
 #   - `intent/st/ST0056/parity/tools/provenance_fields_check.sh`

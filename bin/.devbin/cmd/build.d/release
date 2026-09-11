@@ -2,17 +2,19 @@
 #
 # devbin: summary = Cut, tag and publish an Intent release
 #
-# intent build release -- Intent release orchestrator
+# bin/devbin build release -- Intent release orchestrator
 #
-# Cuts an Intent release in one invocation: pre-flight checks, version bump,
-# CHANGELOG date finalisation, sidecar sync (VERSION, config.json intent_version,
-# AGENTS.md, CLAUDE.md, and for a 3.x target the native workspace version),
-# commit, tag, push to both remotes, and GitHub release publication. Every
-# sidecar is stamped BEFORE the commit, so the tag describes a self-consistent
-# tree -- there is no post-tag wrap to remember.
+# Cuts an Intent release in one invocation: pre-flight checks (clean tree on
+# main, both remotes configured and not frozen, `intent doctor`, the bats suite,
+# `cargo test --workspace`, gh authenticated), version bump, CHANGELOG date
+# finalisation, sidecar sync (VERSION and native/rust/Cargo.toml through
+# `bin/devbin version set`, native/rust/Cargo.lock through cargo,
+# config.json intent_version, AGENTS.md, CLAUDE.md), commit, tag, push to both
+# remotes, and GitHub release publication. Every sidecar is stamped BEFORE the
+# commit, so the tag describes a self-consistent tree -- there is no post-tag
+# wrap to remember.
 #
-# Modelled on ../Conflab/scripts/release. Pared back to Intent's surface:
-# single repo, two remotes (local Dropbox + upstream GitHub).
+# Single repo, two remotes (local Dropbox + upstream GitHub).
 #
 # THIS COMMAND OWNS THE TAG AND THE RELEASE OBJECT, AND NOTHING ELSE (D43). It
 # does not build, sign, notarise or upload a native binary, and it does not
@@ -25,31 +27,38 @@
 #
 # WRITING THE CHANGELOG SECTION
 #
-# Author the heading as `## [X.Y.Z] - in progress`, NOT with a hand-typed date.
-# This script stamps the real date at cut time. A hand-dated heading is correct
-# only on the day it was typed: it goes stale at midnight and aborts the
-# pre-flight date gate, which is exactly what happened to v2.17.4. `in progress`
-# makes the date correct by construction.
+# Author the heading as `## [X.Y.Z] - in progress` (or `- unreleased`),
+# NOT with a hand-typed date. This script stamps the real date at cut time. A
+# hand-dated heading is correct only on the day it was typed: it goes stale at
+# midnight and aborts the pre-flight date gate, which is exactly what happened
+# to v2.17.4. `in progress` makes the date correct by construction.
 #
 # Usage:
-#   intent build release --patch | --minor | --major | vX.Y.Z [flags]
+#   bin/devbin build release --patch | --minor | --major | vX.Y.Z [flags]
 #
 # Flags:
-#   --dry-run            Compute and print every step; exit without side effects.
-#   --no-confirm         Skip interactive confirmation before pushes / releases.
-#   --skip-tests         Skip the pre-flight test/doctor gates (re-run mode).
+#   --dry-run            Run the pre-flight gates, then print every write step
+#                        (stamps, lock, canon, commit, tag, push, release)
+#                        instead of performing it.
+#   --no-confirm         Skip the interactive confirmation before the push.
+#   --skip-tests         Skip the pre-flight doctor, bats and cargo test gates
+#                        (re-run mode).
 #   --allow-stale-date   Accept a CHANGELOG date that is not today.
-#   --help               Print this help and exit.
+#   --help, -h           Print this help and exit.
+#
+# The binary it drives is native/rust/target/release/intent, resolved by path:
+# build the release pair first with `bin/devbin build all`.
 #
 # Examples:
-#   intent build release --dry-run --patch
-#   intent build release --minor
-#   intent build release v2.10.1
+#   bin/devbin build release --dry-run --patch
+#   bin/devbin build release --minor
+#   bin/devbin build release vX.Y.Z   (explicit target; must exceed VERSION)
 #
 # Exit codes:
 #   0  success (or dry-run completed)
-#   1  pre-flight or validation failure
-#   2  user aborted at confirmation prompt
+#   1  pre-flight, validation or sidecar-step refusal
+#   2  confirmation declined at the push, or no terminal to ask on (the tag
+#      already exists locally)
 
 set -u
 
@@ -65,13 +74,14 @@ set -u
 : "${DEVBIN_LIB:?run me through the devbin dispatcher -- 'intent build release'}"
 : "${PROJECT_ROOT:?the devbin dispatcher did not export PROJECT_ROOT}"
 
-# Pin INTENT_HOME to the checkout being released. bin/intent only derives it when
-# it is unset, so an INTENT_HOME exported in the maintainer's shell -- pointing at
-# whichever Intent they normally work in -- silently wins, and every sub-command
-# reads THAT tree's VERSION. Releasing any checkout other than the habitual one
-# would then stamp the wrong version into AGENTS.md and CLAUDE.md while VERSION
-# and config.json carried the right one. Caught by cutting a test release from a
-# clone; the release must describe the tree it is cutting, not the ambient one.
+# Pin INTENT_HOME to the checkout being released, so any child process that
+# reads it sees the tree being cut rather than whichever Intent the maintainer's
+# shell points at. Nothing this script drives depends on it today: the v3
+# `intent` binary reads no INTENT_HOME at all
+# (native/rust/crates/intent-cli/tests/no_intent_home.rs holds it to that), and
+# tests/run_tests.sh exports its own. The pin is a guard for a child that does
+# read it -- the release must describe the tree it is cutting, not the ambient
+# one.
 export INTENT_HOME="$PROJECT_ROOT"
 
 # **THE `intent` THIS SCRIPT DRIVES IS THE ONE BUILT FROM THE TREE BEING
@@ -84,22 +94,24 @@ export INTENT_HOME="$PROJECT_ROOT"
 # in as one, and it would be invisible because both spellings work on any
 # machine that is set up correctly.
 #
-# **IT MATTERS BECAUSE TWO OF THE THREE CALLS BELOW WRITE CANON INTO THE
-# RELEASE.** `agents sync` regenerates AGENTS.md and `claude upgrade --apply`
+# **IT MATTERS BECAUSE CALLS BELOW WRITE CANON INTO THE RELEASE.**
+# `agents sync` regenerates AGENTS.md and `claude upgrade --apply`
 # regenerates CLAUDE.md, both committed as sidecars of the cut. Under a `PATH`
 # lookup the released BYTES would be a function of the operator's shell.
 #
 # **AND THE FAILURE IS LIVE RATHER THAN THEORETICAL.** Measured 2026-08-30:
 # `intent --version` reported `dirty-a402625f...` while `intentd --version`
 # named no commit at all, `self_provenance_check.sh` had the pair built from
-# two DIFFERENT trees, and `~/.local/bin/intent` is a symlink straight into a
+# DIFFERENT trees, and `~/.local/bin/intent` is a symlink straight into a
 # release directory that passes through nothing. The ambient binary is
 # precisely the one with no provenance guarantee.
 #
 # **REFUSES RATHER THAN FALLING BACK.** A fallback that warns is a fallback
 # that gets ignored, and it reintroduces the nondeterminism in exactly the case
-# where it matters. This script does not build the binary -- `intent build cli`
-# does -- so an absent one is a sequencing error the operator must see.
+# where it matters. This script does not build the binary -- `bin/devbin build
+# all` (or `bin/devbin local build`) builds the release pair into
+# native/rust/target/release -- so an absent one is a sequencing error the
+# operator must see.
 INTENT_BIN="$PROJECT_ROOT/native/rust/target/release/intent"
 
 # --------------------------------------------------------------------
@@ -114,17 +126,17 @@ log_warn() { printf 'warning: %s\n' "$*" >&2; }
 # Ported from bin/intent_helpers, 2026-09-05 (cc), for AC-00.6.
 #
 # **THIS WAS THE WHOLE OF THE v2 COUPLING, AND IT IS ONE FUNCTION.** The row
-# named four blocking call sites in this file; three were ported earlier and
-# only the `source` of `bin/intent_helpers` survived. Sourcing a 700-line file
+# named blocking call sites in this file; the others were ported earlier and
+# only the `source` of `bin/intent_helpers` survived. Sourcing that whole file
 # says nothing about what is USED, so the coupling read as large: of everything
-# that file defines, this script called exactly this. `require_intent_bin` is
-# defined below in this file and always was; the three `error` matches a grep
-# finds here are the English word in comments, not calls.
+# that file defined, this script called exactly this. `require_intent_bin` is
+# defined below in this file and always was; the `error` matches a grep finds
+# here are prose and printf strings, not calls.
 #
 # **VERBATIM, AND THE RETURN CODES ARE THE CONTRACT.** The caller reads `$?` as
 # a three-way -- 0 stamped, 1 already at target, anything else a hard abort --
 # so this is a move rather than a rewrite. It reaches nothing else: jq, mktemp
-# and mv, no other helper, and none of the two variables that file exports.
+# and mv, no other helper, and none of the variables that file exported.
 stamp_project_version() {
   local version="$1"
   local config="${2:-intent/.config/config.json}"
@@ -145,11 +157,11 @@ stamp_project_version() {
 }
 
 # **ONE HOME FOR THE REFUSAL, CALLED AT EACH USE RATHER THAN ASSERTED ONCE AT
-# THE TOP.** The three calls sit behind different flags -- `--skip-tests` skips
-# the doctor entirely, and the two canon regenerations have their own branches
-# -- so a single top-level assertion would refuse a run that was never going to
-# touch the binary, and an assertion placed at only the first use would let the
-# other two through when that one is skipped.
+# THE TOP.** The calls sit behind different flags -- `--skip-tests` skips the
+# doctor entirely, and the canon regenerations have their own `--dry-run`
+# branches -- so a single top-level assertion would refuse a run that was never
+# going to touch the binary, and an assertion placed at only the first use
+# would let the later ones through when that one is skipped.
 require_intent_bin() {
   [ -x "$INTENT_BIN" ] && return 0
   abort "no built CLI at $INTENT_BIN -- this script drives the binary built FROM the tree it is releasing, and does not build it. Run \`intent build cli --release\` (or \`intent build all\`) first. It is resolved by path rather than through PATH deliberately: two of the calls below regenerate canon that ships in this cut, so an ambient binary would make the released bytes a function of your shell."
@@ -586,7 +598,7 @@ CONFIG_REL="intent/.config/config.json"
 # predicted the retirement -- "once 2.x stops being cut there is no other arm" --
 # and what retired it is not a judgement call: `semver_gt "$TARGET" "$CURRENT"`
 # above aborts anything not GREATER than the current version, and the current
-# version is 3.0.0. A 2.x target cannot reach this line to be excluded by it.
+# version is a 3.x. A 2.x target cannot reach this line to be excluded by it.
 #
 # The hazard the condition guarded is real and has simply moved upstream:
 # stamping `2.19.1` into the Rust workspace would make the next v3 build
@@ -690,14 +702,14 @@ fi
 #
 # CARGO WRITES THE LOCK; THIS SCRIPT DOES NOT REIMPLEMENT IT. The obvious version
 # rewrote the member entries by hand, and it was wrong the first time it ran: it
-# stamped three members and MISSED `intentd`, which is the second shipped binary.
+# stamped the members it listed and MISSED `intentd`, a shipped binary.
 # A hand-kept list of crates is the needle that skips the names nobody has
 # invented yet, and this workspace will gain crates. Cargo knows the members;
 # asking it cannot go stale.
 #
 # BUT CARGO IS ALLOWED TO DO MORE THAN WE ASKED, so the diff is BOUNDED and a
 # surprise is a refusal rather than a silent dependency bump inside a release
-# commit. Measured on the same checkout: the update touches exactly the four
+# commit. Measured on the same checkout: the update touches exactly the
 # workspace member version lines and no dependency at all. If it ever touches
 # anything else, the release stops -- **the one moment a resolver change must not
 # ride along unnoticed is the commit the tag points at.**
@@ -788,28 +800,22 @@ fi
 # as AGENTS.md is delegated to `intent agents sync`. The engine renders
 # lib/templates/llm/_CLAUDE.md, preserves the user section and diffs, so the
 # version + date restamp falls out of it. this handler renders no template itself:
-# the substitution logic already has three homes and does not need a fourth.
+# the substitution logic already has its homes and does not need another.
 #
-# THERE IS NO `--skip-settings`, AND THREE LINES HERE SAID THERE WAS.
+# THE CALL CARRIES `--apply` AND NOTHING ELSE. v3's `intent claude upgrade`
+# takes `--apply`, `--daemon`, `--force` and `--skip-settings` (`intent claude
+# upgrade --help`); this handler passes only `--apply`, so `.claude/settings.json`
+# is re-provisioned along with everything else the engine owns.
 #
-# This comment justified the flag at length; the dry-run line printed a command
-# with it; and the real call had never carried it. **v3 does not implement it at
-# all** -- `intent claude upgrade` takes `--apply`, `--daemon`, `--force` and
-# nothing else, and `--skip-settings` exits 1. v2 had it and the port dropped it
-# (CLAUDE.md records this under "Session hooks"). So the paragraph explained a
-# safeguard that no reader could have found in the code, and the DRY RUN
-# described a command the real path does not run -- which is worse than no dry
-# run, because it is consulted precisely when someone wants to know what will
-# happen.
-#
-# THE HAZARD IT DESCRIBED IS REAL AND IS NOW UNGUARDED, so it is measured rather
-# than repeated. `intent claude upgrade` (report-only) names what `--apply`
-# writes here: `.claude/settings.json`, `CLAUDE.md`, `AGENTS.md`,
-# `usage-rules.md`, `.intent_critic.yml`, and both `.githooks/pre-commit` files.
-# Five of those are TRACKED and only two -- CLAUDE.md and AGENTS.md -- are in
-# `SIDECAR_FILES`. If any of the other three differs from canon when a release
-# runs, the engine rewrites it, the tree is left dirty outside the sidecar list,
-# and the cut aborts.
+# THE HAZARD IS MEASURED RATHER THAN REPEATED. `intent claude upgrade` without
+# `--apply` reports what `--apply` writes here: `.claude/settings.json`,
+# `CLAUDE.md`, `AGENTS.md`, `usage-rules.md`, `.intent_critic.yml`, and the
+# `pre-commit` and `pre-commit.intent` files in the hooks directory
+# (`.githooks/`). All but `pre-commit.intent` are TRACKED, and only CLAUDE.md and
+# AGENTS.md are in `SIDECAR_FILES`. If any other tracked one differs from canon
+# when a release runs, the engine rewrites it, the tree is left dirty outside
+# the sidecar list, and the cut aborts. `--skip-settings` would spare only
+# `.claude/settings.json`; the rest would still be rewritten.
 #
 # It aborted LATE, and that was the damaging part: the leftover check sits AFTER
 # the commit block, so the version commit landed and then the release stopped --
@@ -818,9 +824,8 @@ fi
 # leaving a reader to work out why a tree they never touched is dirty.
 #
 # THE REAL FIX IS A NARROWER VERB and it is not this file's to make: the release
-# needs CLAUDE.md's banner restamped and nothing else re-provisioned. Restoring a
-# `--skip-settings` equivalent to v3's `claude upgrade` is CLI surface work --
-# a flag, a dispatch-table row, tests -- and belongs to whoever owns that surface.
+# needs CLAUDE.md's banner restamped and nothing else re-provisioned, and no
+# `claude upgrade` flag scopes the write to that.
 if [ "$DRY_RUN" = "true" ]; then
   log_dry "would run 'intent claude upgrade --apply' to refresh CLAUDE.md"
   log_dry "would then refuse the cut if that rewrote anything outside the sidecar list"
@@ -878,7 +883,7 @@ if [ "$NEEDS_COMMIT" = "true" ]; then
     # demands a clean tree, so the index is empty when a run starts -- but
     # everything between that check and this line is minutes of wall clock:
     # doctor, the bats suite, the cargo gate, `agents sync` and the canon
-    # regeneration. FOUR NODES COMMIT INTO THIS CLONE. A peer staging work
+    # regeneration. PEER NODES COMMIT INTO THIS CLONE. A peer staging work
     # inside that window would land it in the commit the TAG POINTS AT, under
     # the message `release: v<target>`, and nothing downstream would report it:
     # the leftover check below passes precisely because the peer's work was

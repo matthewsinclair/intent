@@ -15,7 +15,7 @@
 # PUBLIC CLAIM.** This is the second extraction under that rule after
 # `clone.lib`, and the first one where the AUTHOR of the rule was the one it
 # caught: on 2026-08-22 dc published a command-surface sweep from a binary
-# fifteen commits behind HEAD, three hours after building the remedy into
+# well behind HEAD, three hours after building the remedy into
 # `int suite` and writing that sentence into `clone.lib`. The remedy existed,
 # was correct, and did not reach the next measurement anyone took.
 #

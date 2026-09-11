@@ -2,9 +2,18 @@
 #
 # devbin: summary = Report which tree a run's verdict actually describes
 #
-# int measured           -- the current referent, and what each gate's most
-#                           recent run describes.
-# int measured <run>     -- one named run (its .out or .errors path).
+# bin/devbin measured                 -- the current referent, and what each
+#                                        gate's most recent run describes.
+# bin/devbin measured <run>           -- one named run (its .out or .errors path).
+# bin/devbin measured --stamp         -- print the `devbin-referent:` log line.
+# bin/devbin measured --value         -- print the referent for a human; this is
+#                                        `project.referent` in config.yaml, which
+#                                        devbin echoes beside every verdict.
+# bin/devbin measured --exec <cmd...> -- print the stamp, then exec <cmd>; every
+#                                        `run:` gate in config.yaml is wrapped in it.
+#
+# Run logs are read from tmp/*/*.out under the project root. There is no
+# --help: any other first argument is read as a run path.
 #
 # THE DEFECT THIS ANSWERS (issue 0049). A seal records WHICH TESTS FAILED.
 # Nothing anywhere records WHICH TREE they failed against. A run over a dirty
@@ -14,15 +23,15 @@
 # still, and a summary line outliving the tree state it describes is a confident
 # statement about nothing in particular.
 #
-# Measured 2026-08-17: the full suite went red on two legs; three sessions
-# established that neither was a regression, because both failure sites were in
+# Measured 2026-08-17: the full suite went red on some legs; several sessions
+# established that none was a regression, because every failure site was in
 # files uncommitted in the shared tree. NOTHING MISBEHAVED. No gate was wrong, no
 # seal was wrong, no exit code was wrong -- every artefact was accurate about
 # what it measured, and no artefact could say what that was.
 #
-# THE HALF THAT COSTS MORE IS NOT THE RED ONE. That same run produced four GREEN
-# legs against the same dirty tree. A red gets investigated and self-corrects, at
-# the cost of three sessions' attention. A green certifying a tree nobody has is
+# THE HALF THAT COSTS MORE IS NOT THE RED ONE. That same run produced GREEN legs
+# against the same dirty tree. A red gets investigated and self-corrects, at the
+# cost of several sessions' attention. A green certifying a tree nobody has is
 # believed, acted on, and never revisited, because nothing prompts a second look.
 # That asymmetry is why the current referent prints unconditionally here rather
 # than only when something has failed.
@@ -30,11 +39,13 @@
 # WHY THIS LIVES IN THE PROJECT AND NOT IN DEVBIN -- hv's ruling, 2026-08-17, and
 # it dissolved a question the rest of us had been treating as a design problem.
 # INTENT KNOWS IT IS A GIT CHECKOUT. DEVBIN DOES NOT, AND MUST NOT HAVE TO. A
-# generic gate runner has no business knowing what a commit is. Measured:
-# `bin/.devbin/lib/` contains ZERO git invocations, and that property is what
-# lets the sealed-gate subsystem run anywhere. The dependency argument is true
-# and downstream of the layer argument. `cmd/` is project territory by the
-# manifest header's own words, so this adds no divergence to a vendored tree.
+# generic gate runner has no business knowing what a commit is: devbin never
+# composes or parses a referent, it only echoes the string this command
+# produces. (devbin's lib/ does call git elsewhere -- version identity, install
+# provenance, `check critic`'s staged-file default -- so the boundary is the
+# layer, not an absence of git from the vendored tree.) `cmd/` is project
+# territory by the manifest header's own words, so this adds no divergence to a
+# vendored tree.
 #
 # IT NEVER TREATS A `LATEST_*` POINTER AS AUTHORITY. Those are re-pointed by
 # every run in the tree, so with several sessions working they are
@@ -180,7 +191,7 @@ case "${1:-}" in
   --value)
     # What `bin/int` exports as DEVBIN_RUN_REFERENT. Kept behind the same early
     # exit as --stamp because it runs on EVERY int invocation, so it must cost
-    # two git calls and nothing else.
+    # tree_state's git calls and nothing else.
     referent_value
     exit 0
     ;;
@@ -199,10 +210,10 @@ init_colors auto
 # Directories whose churn is not evidence about a gate. Named here and PRINTED
 # below, because a scope that is not stated is a scope nobody can disagree with.
 #
-# TWO LISTS, BECAUSE THE FIRST VERSION HAD ONE AND WAS WRONG BY A FACTOR OF
-# THREE THOUSAND. Pruning `$ROOT/target` matches nothing here: the cargo output
-# lives at `native/rust/target`, so build artefacts were never excluded and the
-# first run reported 164,142 files moved. That is the wrong-maximum shape --
+# TWO LISTS, BECAUSE THE FIRST VERSION HAD ONE AND WAS WRONG BY ORDERS OF
+# MAGNITUDE. Pruning `$ROOT/target` matches nothing here: the cargo output lives
+# at `native/rust/target`, so build artefacts were never excluded and the first
+# run reported most of the build tree as moved. That is the wrong-maximum shape --
 # an alarming number reads as a finding, and nobody re-checks an instrument that
 # has just found something big. The sanity control is below: a count near the
 # tree's total file count is a broken scope, not a busy afternoon.
@@ -312,8 +323,8 @@ moved_since() {
 # `moved` was purely an mtime test, and an mtime answers "was this file written"
 # -- NOT "is this tree different". A suite that backs a file up and restores it
 # rewrites identical bytes and moves the mtime: tests/unit/rule_index.bats does
-# exactly that to the LIVE canon index. On a real run, three of eleven files
-# reported as moved were byte-identical to HEAD. So the output said "changed
+# exactly that to the LIVE canon index. On a real run, some files reported as
+# moved were byte-identical to HEAD. So the output said "changed
 # after the run started" and was read as "changed by someone other than the run"
 # -- different subjects, same line. An instrument reporting movement that is not
 # evidence is precisely what this command was built to stop, reintroduced inside
@@ -339,8 +350,8 @@ content_differs_from() {
 # in_scope_total -- how many files the scope covers at all.
 #
 # THE CONTROL, and it is the same one as everywhere else in this estate: a count
-# is only meaningful beside the population it came from. "412 of 1,203 moved" is
-# a fact; "164,142 moved" is an instrument reporting its own breakage in the most
+# is only meaningful beside the population it came from. "N of M moved" is a
+# fact; a bare huge N is an instrument reporting its own breakage in the most
 # persuasive available direction.
 in_scope_total() {
   local expr=()
@@ -377,7 +388,7 @@ print_tree_now() {
   dirt="$(git -C "$ROOT" status --porcelain 2>/dev/null || printf '')"
   # Read the index column positionally. `awk '{print $1}'` collapses the leading
   # space, so a worktree-only ` M` reads as staged -- measured here, it inflated
-  # a count ninefold.
+  # the staged count.
   printf '%s\n' "$dirt" | while IFS= read -r line; do
     printf '    %s%s %s%s\n' "${dim:-}" "${line:0:2}" "${line:3}" "${reset:-}"
   done
@@ -422,11 +433,12 @@ referent_commit_of() {
 # print_run_referent <referent-line>
 #
 # ABSENT IS NOT CLEAN, and this is the same four-states-not-two lesson as the
-# seal. Only the five gates declared as `run:` lines in config.yaml carry the
-# stamp; `check critic`, the docs gates and `fmt md` are builtins with no `run:`
-# line to wrap, so their runs record nothing. Printing nothing for those would
-# let an unstamped run read exactly like a run that started clean -- which is the
-# defect this whole command exists to close, reintroduced one level up.
+# seal. Only the gates declared as `run:` lines in config.yaml carry the stamp;
+# the catalogue builtins (`check critic`, `check toolchain`, the docs gates,
+# `fmt md`, ...) have no `run:` line to wrap, so their runs record nothing.
+# Printing nothing for those would let an unstamped run read exactly like a run
+# that started clean -- which is the defect this whole command exists to close,
+# reintroduced one level up.
 print_run_referent() {
   local ref="$1" commit tree
   if [ -z "$ref" ]; then
@@ -509,7 +521,7 @@ report_run() {
 
   # THE REFERENCE IS NAMED UNCONDITIONALLY, even when nothing differs. A test
   # caught this printing only alongside the differ bucket, which left a run whose
-  # movement was entirely byte-identical saying "9 are BYTE-IDENTICAL" without
+  # movement was entirely byte-identical saying "N are BYTE-IDENTICAL" without
   # ever stating identical TO WHAT -- a measurement with an unstated subject,
   # which is the whole defect this command exists to close.
   printf '      vs      %scompared against %s -- %s%s\n' "${dim:-}" "$against" "$source" "${reset:-}"

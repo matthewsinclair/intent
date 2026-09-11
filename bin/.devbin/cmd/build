@@ -2,21 +2,22 @@
 #
 # devbin: summary = Build this project's artefacts, and cut its releases
 #
-# intent build <cli|daemon|all|release> ...
+# bin/devbin build <all|cli|daemon|release> ...
 #
-#   cli      [cargo opts]   the Rust CLI binary        -> cmd/build.d/cli
-#   daemon   [cargo opts]   the intentd daemon binary  -> cmd/build.d/daemon
-#   all      [cargo opts]   every binary (cli+daemon)  -> cmd/build.d/all
-#   release  <bump|vX.Y.Z>  cut, tag and publish       -> cmd/build.d/release
+#   all      [--debug] [cargo opts]  intent + intentd, release profile by default
+#   cli      [--debug] [cargo opts]  the intent CLI binary (cargo -p intent-cli)
+#   daemon   [--debug] [cargo opts]  the intentd daemon binary (cargo -p intentd)
+#   release  <--patch|--minor|--major|vX.Y.Z> [flags]  cut, tag and publish
 #
-# Every sub is routed straight to its handler by the descent; what arrives here
-# is bare, -h, and mistakes.
+# `all` without --debug is the guarded release build: a dirty tree builds into
+# native/rust/target/private/release; a clean one is verified and then promoted
+# into native/rust/target/release. `cli` and `daemon` refuse a release build of
+# one binary unless CARGO_TARGET_DIR is set. Extra arguments, --help included,
+# go to cargo; `release` answers its own --help. Each arm is a handler under
+# cmd/build.d/, and this file answers only bare, -h/--help and unknown targets.
 #
-# `all` means all BINARIES and pointedly not `release`. This block used to read
-# "there is deliberately no `all`: one arm compiles a binary and the other
-# publishes a release, and no one wants those in a single pass" -- that
-# reasoning is right and is preserved by keeping release outside `all`, not by
-# refusing to have an `all` at all.
+# `all` means all BINARIES and pointedly not `release`: one arm compiles a
+# binary and the other publishes a release, and no one wants both in one pass.
 #
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"

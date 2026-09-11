@@ -2,21 +2,33 @@
 #
 # devbin: summary = Clone what you are about to push and build it (post-move check)
 #
-# intent prepush [--force] -- clone THIS repository at HEAD into a temp dir and
-# build it, to check that the artefact a stranger receives is coherent.
-# Invoked by .git/hooks/pre-push; safe to run by hand.
+# bin/devbin prepush [--force] [<remote-name> <remote-url>] -- clone THIS
+# repository at HEAD into a temp dir and build it, to check that the artefact a
+# stranger receives is coherent. Invoked by .githooks/pre-push (the tracked
+# hooks directory core.hooksPath points at) as `bin/int prepush "$@"`, which
+# forwards git's destination arguments and the ref pairs on stdin; safe to run
+# by hand.
+#
+#   --force        build the clone even when no native/ or build-manifest path
+#                  changed
+#   --list-frozen  (first argument only) print FROZEN_REMOTES, one per line,
+#                  and exit 0; `bin/devbin build release` reads it
+#   INTENT_ALLOW_FROZEN_PUSH=1  let one push reach a frozen remote
+#
+# Exits 0 when the clone builds and its binaries run (or when no build input
+# changed), 1 on a frozen remote or any failure.
 #
 # THE FAILURE THIS EXISTS FOR, and it is not hypothetical. On 2026-08-15 a
-# commit titled "all native code moves to native/rust/" committed 58 additions
-# and left 55 files plus three root build files at HEAD, then pushed to both
-# remotes. Five of the duplicated files were DIVERGENT rather than
+# commit titled "all native code moves to native/rust/" committed the additions
+# and left the originals plus the root build files at HEAD, then pushed to both
+# remotes. Some of the duplicated files were DIVERGENT rather than
 # stale-identical, and the root Cargo.toml still pointed a workspace at the
 # stale copy -- so a fresh clone would have built a second implementation
 # nobody knew existed.
 #
-# Every local instrument was green throughout: 234 tests, fmt, clippy, lint, six
-# acceptance gates. None of them could have caught it, and that is the point
-# rather than an oversight. `--only` commits the paths you NAME and a rename is
+# Every local instrument was green throughout: the test suite, fmt, clippy,
+# lint and the acceptance gates. None of them could have caught it, and that is
+# the point rather than an oversight. `--only` commits the paths you NAME and a rename is
 # TWO index entries; name the addition and the deletion stays staged. The
 # working tree was correct. Only the repository was wrong.
 #
@@ -24,9 +36,9 @@
 # PUSHED.** The only instrument that can tell the difference is one that reads
 # the repository rather than the working tree, which means cloning it.
 #
-# WHY PRE-PUSH AND NOT PRE-COMMIT OR CI. Measured 2026-08-15: a depth-1 local
-# clone plus a cold `cargo build --workspace --bins` is ~16s. That is too slow
-# to sit in front of every commit -- and a slow gate gets --no-verify'd, which
+# WHY PRE-PUSH AND NOT PRE-COMMIT OR CI. A depth-1 local clone plus a cold
+# `cargo build --workspace --bins` is too slow to sit in front of every
+# commit -- and a slow gate gets --no-verify'd, which
 # is cry-wolf arriving through a different door. CI does clone fresh, but it is
 # path-filtered and it reports AFTER the push has already landed on remotes;
 # this failure's whole cost is that the bad state is public. Push is the moment
@@ -35,17 +47,18 @@
 #
 # PATH-TRIGGERED for the same reason. The failure class is a move or a
 # restructure of native code and build files. A whiteboard-only push -- which is
-# most pushes on this project -- cannot produce it, and charging those 16s would
-# guarantee the gate gets bypassed. Sound rather than a fudge: the build cannot
+# most pushes on this project -- cannot produce it, and charging those the
+# clone-and-build would guarantee the gate gets bypassed. Sound rather than a fudge: the build cannot
 # break unless something the build reads has changed.
 #
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"
 . "$DEVBIN_LIB/helpers"
-# The single-writer clone, shared with `int suite`. Extracted from HERE 2026-08-22
-# (dc): it was the general answer to "which revision does this figure describe"
-# and had one consumer for a year, because it lived inside a command about
-# pushing. See the file for why that is its own defect class.
+# The single-writer clone, shared with `int suite` and `int hosting`. Extracted
+# from HERE 2026-08-22 (dc): it was the general answer to "which revision does
+# this figure describe" and had only this consumer from 2026-08-15, because it
+# lived inside a command about pushing. See the file for why that is its own
+# defect class.
 . "$(dirname "${BASH_SOURCE[0]}")/shared/clone.lib"
 
 ROOT="${PROJECT_ROOT:?}"
@@ -88,7 +101,7 @@ done
 # about the freeze: "I don't know why we have this formal/technical freeze like
 # that. All I wanted was to not push to upstream." The intent was one sentence
 # and it acquired a gate, a URL matcher, an escape hatch, a second consumer and
-# forty lines of reasoning. Matching by URL as well as by name was load-bearing;
+# a long comment of reasoning. Matching by URL as well as by name was load-bearing;
 # the rest was a simple instruction growing a mechanism around itself. Worth
 # reading before the next control gets built here.
 FROZEN_REMOTES=""
@@ -146,8 +159,8 @@ fi
 # PUSH, not of the tracked remote.
 #
 # THE DEFECT THIS REPLACES, measured by cc 2026-08-15: the gate printed
-# `no native/ or build-manifest change in this push` on a push whose diff was 14
-# files under `native/` and `schema/`. The grep was fine. The RANGE was wrong.
+# `no native/ or build-manifest change in this push` on a push whose diff
+# touched `native/` and `schema/`. The grep was fine. The RANGE was wrong.
 #
 # The old computation was `git diff --name-only @{upstream}...HEAD`, and
 # `@{upstream}` names exactly ONE remote -- `upstream/main` here. **This hook
@@ -215,12 +228,12 @@ $(git -C "$ROOT" diff --name-only "$rsha"..."$lsha" 2>/dev/null || true)"
 fi
 
 # NAMED, NOT SILENT. `pairs > 0` means git invoked this as a hook, so a missing
-# REMOTE means the hook line did not forward argv -- an older `.git/hooks/pre-push`
-# from before that generator changed. The frozen-remote check above then does
-# NOTHING, and it does nothing in the shape that looks exactly like passing.
-# .git/hooks is never tracked, so this is the normal state of every clone until
-# someone re-runs the installer, and a guard that is quietly inactive in most
-# clones is worse than one that was never written.
+# REMOTE means the hook line did not forward argv. The tracked
+# `.githooks/pre-push` does forward it; what does not is an older, untracked
+# `.git/hooks/pre-push` in a clone whose core.hooksPath is unset, written before
+# that generator changed. The frozen-remote check above then does NOTHING, and
+# it does nothing in the shape that looks exactly like passing -- a guard that
+# is quietly inactive is worse than one that was never written.
 if [ "$pairs" -gt 0 ] && [ -z "$REMOTE" ]; then
   warn "this clone's pre-push hook does not forward argv, so the frozen-remote check is INACTIVE."
   warn "  fix: bin/int hooks --install   (rewrites the line to \`bin/int prepush \"\$@\"\`)"
@@ -295,26 +308,27 @@ done
 
 # THE FORMAT AND LINT ARMS WERE REMOVED FROM THIS GATE ON 2026-08-29 (hv's
 # ruling, executed by vc). They were `cargo fmt --all --check` and `cargo clippy
-# --workspace --all-targets -- -D warnings`, added 2026-08-20 after two CI reds
-# in one day.
+# --workspace --all-targets -- -D warnings`, added 2026-08-20 after CI went red.
 #
-# THEY WERE NOT WRONG, THEY WERE A SECOND HOME. `.github/workflows/rust.yml:67`
-# and `:69` run the IDENTICAL two commands, on macos AND ubuntu, on every push
-# to main and on every PR. CI is the authority and always was; this pair only
-# moved the same verdict earlier, on one machine, at one operator's expense.
+# THEY WERE NOT WRONG, THEY WERE A SECOND HOME. The `fmt` and `clippy` steps of
+# `.github/workflows/rust.yml` run the same checks (`cargo fmt --check` and the
+# identical clippy line, in native/rust), on macos AND ubuntu, on every push to
+# main and every PR that touches native/rust, schema, surface or the workflow
+# itself. CI is the authority and always was; this pair only moved the same
+# verdict earlier, on one machine, at one operator's expense.
 #
 # WHAT DECIDED IT WAS THE CADENCE, NOT THE COST. The removed comment argued that
 # a push gate is "the right moment, not merely a safe one" -- which is true when
-# pushes are frequent, and this estate's are 925 commits apart. Over a window
-# that long the arm stops being early warning and becomes a wall: hv met it
-# holding 113 accumulated findings at the moment they wanted to publish, the
+# pushes are frequent, and this estate's are far apart. Over a window that long
+# the arm stops being early warning and becomes a wall: hv met it holding a
+# backlog of accumulated findings at the moment they wanted to publish, the
 # most expensive moment it could have picked. CI would have returned the same
 # verdict minutes later and cost nobody a session.
 #
 # DO NOT RE-ADD THEM WITHOUT RE-ANSWERING THE CADENCE QUESTION. If pushes become
 # frequent, and a red `upstream/main` starts costing something -- which it will
-# once 3.0.0 publishes for real and upstream is the delivery path rather than
-# the dev tree -- a local arm earns its keep again. Until then the check has a
+# once upstream is the delivery path rather than the dev tree -- a local arm
+# earns its keep again. Until then the check has a
 # dispatcher in CI, so this is NOT a return of the 2026-08-20 defect these arms
 # were built to fix: a check nothing dispatches. One that something else
 # dispatches is a different thing, and the distinction is the whole ruling.

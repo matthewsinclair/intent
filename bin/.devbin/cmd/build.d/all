@@ -2,13 +2,17 @@
 #
 # devbin: summary = Every native binary in the workspace (cli + daemon)
 #
-# intent build all [cargo opts] -- build every binary the workspace produces.
+# bin/devbin build all [--debug] [cargo opts] -- build every binary the
+# workspace produces (intent and intentd).
 #
-# ALL MEANS ALL BINARIES, AND DELIBERATELY NOT `release`. This file's parent
-# used to say "there is deliberately no `all`: one arm compiles a binary and
-# the other publishes a release, and no one wants those in a single pass" --
-# and that reasoning is correct and preserved. `all` builds; `release`
-# publishes; a target that did both would be the thing that comment refused.
+# ALL MEANS ALL BINARIES, AND DELIBERATELY NOT `release`. `all` builds;
+# `release` publishes; a target that did both would put a compile and a
+# publication in one pass.
+#
+# Without --debug this is the guarded release build in shared/releasebuild.lib:
+# a dirty build-input tree redirects to native/rust/target/private/release, and
+# a clean one builds in native/rust/target/staging/release, is verified, and is
+# then promoted into native/rust/target/release.
 #
 # One `cargo build` over the workspace rather than a loop over the other
 # handlers: cargo already builds members in parallel and shares the dependency
@@ -31,8 +35,8 @@ done
 # THE GUARDED ENTRANCE. This file used to be `exec cargo build --workspace
 # --bins` and nothing else, which is how a batch rebuild split the release pair
 # and blocked a whole lane: cargo rebuilt the crates whose source had changed
-# and left the other binary at an older commit, because the source stamp is
-# embedded at COMPILE time and is not an input cargo tracks. The set
+# and left the other binary at an older commit, because at the time the source
+# stamp's build script re-ran only on changes inside its own package. The set
 # verification did not pass that pair -- IT NEVER RAN, because it lived in
 # `int local build`, and the verb whose own help says ALL BINARIES was the bare
 # one. The name stated the action; the guard lived somewhere else.
@@ -47,12 +51,12 @@ if [ -n "$profile" ]; then
   exit 0
 fi
 
-# `--debug` IS THE STATED EXCEPTION AND BYPASSES ALL THREE GUARDS.
+# `--debug` IS THE STATED EXCEPTION AND BYPASSES EVERY GUARD ABOVE.
 #
 # Not an oversight and not a shortcut: a debug build exists precisely TO run
 # uncommitted code, so a dirt verdict here would refuse the one workflow it
 # serves. Nothing downstream reads a debug binary's STAMP either -- and that
 # narrow wording is load-bearing, because the wider claim that nothing reads a
-# debug BINARY is false: `cmd/cli:30` and `cmd/dogfood:49` both exec one.
+# debug BINARY is false: `cmd/cli --debug` and `cmd/dogfood` both exec one.
 cd "$PROJECT_ROOT/native/rust" || die "no Rust workspace at native/rust"
 exec cargo build --workspace --bins "${args[@]}"

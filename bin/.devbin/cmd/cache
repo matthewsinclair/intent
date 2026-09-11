@@ -2,11 +2,17 @@
 #
 # devbin: summary = Report build-cache staleness cargo's own freshness check cannot see
 #
-# intent cache          -- REPORT whether target/ carries artefacts from a path
-#                          the workspace no longer occupies.
-# intent cache --clean  -- remove the stale cache (destructive; read the warning).
+# bin/devbin cache          -- REPORT whether native/rust/target/debug/deps
+#                              carries artefacts naming a target root the
+#                              workspace no longer occupies. Exit 0 when none
+#                              do, exit 1 when some do.
+# bin/devbin cache --clean  -- the same report; when residue is found, ask and
+#                              then remove the WHOLE native/rust/target (every
+#                              profile, not just the stale files). A clean
+#                              cache exits 0 without asking or removing.
+#                              Any other argument is ignored.
 #
-# THE CLASS, in cc's words after it cost them an hour and 1.2G: **a build cache
+# THE CLASS, in cc's words after it cost them an hour: **a build cache
 # can be stale in a way its own freshness check cannot see.** Every freshness
 # check has a SCOPE. Cargo compares timestamps and input hashes, not the
 # location of the manifest ROOT, so moving the tree bakes the old absolute path
@@ -14,8 +20,8 @@
 # test that passes in isolation and fails in the suite -- which is a CONCLUSION
 # (something is shared and one of the two runs is lying), not flakiness.
 #
-# WHY A CHECK RATHER THAN A NOTE. cc cleaned 1.2G believing the class was
-# closed. Measured 2026-08-15 at e8d689b, it was not: 228 dep files in
+# WHY A CHECK RATHER THAN A NOTE. cc cleaned the cache believing the class was
+# closed. Measured 2026-08-15 at e8d689b, it was not: dep files in
 # native/rust/target still named `native/target`, an intermediate location from
 # an earlier move, and that directory does not exist. Nothing reported it,
 # because nothing was looking. A rule that depends on remembering to look is
@@ -23,14 +29,14 @@
 #
 # THE DISCRIMINATOR, and it is what makes this a measurement rather than a
 # guess: a cold build of a fresh clone at the same revision produced ZERO
-# references to the stale root and 222 to the correct one, against 228 and 304
-# in the working cache. Same source, same revision, different cache -- so the
+# references to the stale root, where the working cache carried them. Same
+# source, same revision, different cache -- so the
 # difference is the cache, not the code. Any future version of this check should
 # be validated the same way: build somewhere clean and diff the signature.
 #
 # WHY IT WARNS RATHER THAN REFUSING, unlike the other gates here. Stale residue
-# is LATENT, not wrong: the tree above built, tested and shipped green with all
-# 228 present. Refusing to build over a condition that is usually harmless is
+# is LATENT, not wrong: the tree above built, tested and shipped green with the
+# residue present. Refusing to build over a condition that is usually harmless is
 # how a gate gets switched off, and a switched-off gate protects nothing. This
 # reports, names the cost of ignoring it, and leaves the decision.
 #
@@ -100,14 +106,14 @@ printf '  and input hashes, never the manifest root, so a path move is invisible
 # with a correct-rooted build of the same crate beside it has been SUPERSEDED --
 # dead weight. One with no such sibling is the copy still being used.
 #
-# Measured once, on the 2026-08-15 residue: 211 distinct crates, 181 superseded,
-# and the 30 with no sibling were ALL proc-macro or build-script crates
+# Measured once, on the 2026-08-15 residue: most stale crates were superseded,
+# and the ones with no sibling were ALL proc-macro or build-script crates
 # (serde_derive, schemars_derive, syn, quote, proc_macro2, thiserror_impl ...).
 # They have no target-side sibling because they are HOST artefacts. That is not
 # random leftovers -- it is exactly the code-generating half, including the
 # derives that produce the JSON Schema face the drift guard compares against.
 #
-# "228 artefacts" reads as noise. "30 with no current sibling, all proc-macro"
+# A bare artefact count reads as noise. "No current sibling, all proc-macro"
 # reads as a reason to act, and it was what made cc act rather than file it.
 crate_of() { basename "$1" .d | sed -E 's/-[0-9a-f]{8,}$//'; }
 

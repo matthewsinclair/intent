@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 #
-# int cli -- THE path from a shell to the native v3 CLI. There is exactly one,
-# and it refuses an incoherent binary pair rather than running it.
+# devbin: summary = Run this checkout's native intent build, refusing a split or stale release pair
+# devbin: args = [--debug] [intent args...]
+#
+# bin/devbin cli [--debug] [args...] -- exec this checkout's
+# native/rust/target/release/intent with <args>, after the currency check
+# below; it refuses an incoherent or stale binary pair rather than running it.
+# `--debug` execs native/rust/target/debug/intent instead, with no check.
 #
 # THIS VERB USED TO PICK BY MTIME AND CHECK NOTHING. It ran whichever of
 # target/debug and target/release had been touched last, which turns "which
@@ -12,16 +17,15 @@
 # where the traffic was not.
 #
 # WHY A COHERENCE CHECK AT ALL, since `cargo build --release` returns green.
-# `intentd` declares no dependencies, so its build script never re-runs and the
-# previous build's commit stays baked in. dc drove this in August with a
-# 48-hour-old marker; it recurred on 2026-08-27 mid-port with `intent` at
-# f438d0d5 and `intentd` still at cd032508. AC-00.1 on ST0058 names it.
+# Cargo reasons per package, and the pair's coherence is a property of the SET.
+# Before issue 0285 each binary's source-commit build script re-ran only on
+# changes inside its own package, so a pair could carry two different commits:
+# dc drove this in August with a 48-hour-old marker, and it recurred on
+# 2026-08-27 mid-port with `intent` at f438d0d5 and `intentd` still at
+# cd032508. AC-00.1 on ST0058 names it.
 #
-# AND THE OBVIOUS VERIFICATION CANNOT SEE IT: `intentd --version` prints
-# `intentd 3.0.0 -- not yet implemented` and no commit at all, so reading
-# --version off both halves of a pair looks clean while the pair disagrees.
-# The provenance is embedded, not printed, which is why this reads it through
-# artefact.lib rather than by running the binary and believing it.
+# The provenance is read out of the embedded marker through artefact.lib rather
+# than by running the binary and believing what it prints.
 #
 # RELEASE BY STATED CHOICE. `--debug` is the only way to the debug build, and
 # it is deliberately a flag you type rather than a timestamp you lose a race
@@ -48,7 +52,7 @@ if [ "$want" = debug ]; then
   # strips nothing else, so a cargo command named inside quotes is counted as a
   # cargo command RUN. cc hit it on this file at 2026-08-27 and it blocked every
   # node's commit. The guard's own header calls this the estate's oldest
-  # instrument defect and records meeting it twice; this was the third.
+  # instrument defect and records meeting it before; this was another.
   [ -x "$dbg" ] || die "no debug binary at $dbg -- run \`cargo build -p intent-cli --manifest-path native/rust/Cargo.toml\`"
   printf 'int cli: --debug, so NO coherence guard (a debug build has no pair to check)\n' >&2
   exec "$dbg" "$@"
@@ -99,16 +103,16 @@ case "$verdict" in
     printf 'error: %s\n' "${verdict#refuse:}" >&2
     # THE REASON SPEAKS AND THIS CALLER DOES NOT SPEAK OVER IT. These two lines
     # used to assert "the binary really does not describe this tree" on EVERY
-    # refusal. Two of the five reasons say exactly that already and say it more
-    # precisely; the other three say currency CANNOT BE DECIDED, and the prose
-    # contradicted them in the confident direction. A caller must not conclude
+    # refusal. Some reasons say exactly that already and say it more precisely;
+    # the others say currency CANNOT BE DECIDED, and the prose contradicted them
+    # in the confident direction. A caller must not conclude
     # what its library declined to conclude (issue 0294).
     printf "  remedy: run 'int local build' -- it rebuilds and verifies the SET.\n" >&2
     exit 1
     ;;
   *)
-    # An unrecognised verdict is not a pass. The three cases above are the
-    # whole contract; a fourth means the lib moved under this caller.
+    # An unrecognised verdict is not a pass. ok, warn: and refuse: are the
+    # whole contract; anything else means the lib moved under this caller.
     die "unrecognised currency verdict '$verdict' -- refusing rather than guessing"
     ;;
 esac

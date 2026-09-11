@@ -2,16 +2,14 @@
 #
 # devbin: summary = The intentd daemon binary (cargo build -p intentd)
 #
-# intent build daemon [cargo opts] -- build the ST0056 machine-level daemon.
+# bin/devbin build daemon [--debug] [cargo opts] -- build the machine-level
+# `intentd` daemon.
 #
-# Same shape as `build cli`: release profile by default because the reason to
-# build it is to run or ship it, `--debug` for a debug build, extra arguments
-# ride through to cargo untouched.
-#
-# The crate exists and is a workspace member from WP-02; WP-08 is what fills
-# it in. Building a stub is not a waste -- it is what keeps the workspace
-# honest, since a member that never compiles is a member nobody notices has
-# rotted.
+# Same shape as `build cli`: release profile by default, and a release build of
+# this one binary is REFUSED unless CARGO_TARGET_DIR names a private target,
+# because it would split the shared intent/intentd pair. `--debug` for a debug
+# build; `bin/devbin build all` for the release pair. Extra arguments ride
+# through to cargo untouched.
 #
 set -euo pipefail
 : "${DEVBIN_LIB:?run me through the devbin dispatcher}"

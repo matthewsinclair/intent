@@ -2,6 +2,12 @@
 #
 # devbin: summary = Clear the stale index entries a partial commit leaves behind (issue 0028)
 #
+# bin/devbin postcommit -- unstage every index entry whose worktree already
+# equals HEAD. Invoked by .githooks/post-commit (the tracked hooks directory
+# core.hooksPath points at) as `bin/int postcommit "$@"`; safe to run by hand.
+# Takes no arguments. Does nothing, at exit 0, mid-rebase, merge, cherry-pick,
+# revert or bisect. Exits 0 unless a git command it runs fails.
+#
 # WHY THIS EXISTS, AND WHY IT CANNOT BE A PRE-COMMIT FIX.
 #
 # The whiteboard protocol requires `git commit --only <paths>` so that one node
@@ -10,29 +16,30 @@
 # leaves every other index entry exactly as it found it, forever** -- so once
 # anything is staged, no number of `--only` commits will ever clear it.
 #
-# THE SEEDING IS OUR OWN HOOK, not a habit and not the on-save linter. Measured
-# in a scratch repo, 2026-08-15, and reproduced deterministically:
+# A PRE-COMMIT HOOK THAT WRITES SEEDS THE SHAPE, and deterministically. Measured
+# in a scratch repo, 2026-08-15:
 #
-#   .git/hooks/pre-commit formats the staged markdown and runs `git add`. During
-#   a partial commit git points the hook at a TEMPORARY index (GIT_INDEX_FILE is
-#   set to `.git/next-index-<pid>.lock`), so that add lands in the commit, which
-#   is correct and is why formatting reaches HEAD. **Git then writes the real
-#   index from a snapshot it took BEFORE the hook ran** -- so the real index is
-#   left holding the pre-format content, which now matches neither HEAD nor the
-#   worktree.
+#   During a partial commit git points the hook at a TEMPORARY index
+#   (GIT_INDEX_FILE is set to `.git/next-index-<pid>.lock`), so a hook's
+#   `git add` lands in the commit. **Git then writes the real index from a
+#   snapshot it took BEFORE the hook ran** -- so the real index is left holding
+#   the pre-hook content, which now matches neither HEAD nor the worktree.
 #
-# That is issue 0028's `MM`-with-clean-`git diff HEAD` signature, and it is
-# produced by every markdown commit this repository makes. With five nodes
-# committing coordination markdown continuously, it accumulates in shared state,
-# and a single bare `git commit` by anyone publishes the lot.
+# That is issue 0028's `MM`-with-clean-`git diff HEAD` signature. This
+# repository's own `.githooks/pre-commit` does not write -- its formatters check
+# the staged blob and refuse -- so it does not seed these entries. The sweep
+# acts on the shape, whatever leaves it: a staged entry whose worktree already
+# equals HEAD (a path staged and then reverted in the worktree is the other
+# known source; see the ambiguous case below). In shared state such entries
+# accumulate, and a single bare `git commit` by anyone publishes the lot.
 #
 # **A PRE-COMMIT FIX IS IMPOSSIBLE, AND THIS WAS TESTED RATHER THAN ASSUMED.**
 # The obvious repair -- have the hook re-add against the real index as well as
 # the temporary one -- was built and measured, and it does nothing: git
 # overwrites the real index after the hook returns. Anything the hook writes
 # there is discarded. The only moment the index can be corrected is after the
-# commit, which is why this is a post-commit runner and not four more lines in
-# the pre-commit one.
+# commit, which is why this is a post-commit runner and not more lines in the
+# pre-commit one.
 #
 # WHAT IT WILL NOT TOUCH, which is the whole safety argument. It unstages ONLY
 # entries whose worktree already equals HEAD. If the worktree differs from HEAD
@@ -47,7 +54,7 @@
 # already in the object store, so `git cat-file -p <sha>` recovers it in full.
 # **The sweep is reversible by construction, which is what earns it the right to
 # act rather than merely report** -- and reporting is what the estate has been
-# doing for eight measured instances without any of them getting cleared.
+# doing for every measured instance without any of them getting cleared.
 #
 # **THE RECOVERY HAS A HORIZON, AND SAYING SO IS THE DIFFERENCE BETWEEN AN
 # HONEST GUARANTEE AND AN OVERSTATED ONE** (vc, reviewing this file; verified
