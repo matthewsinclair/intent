@@ -79,6 +79,8 @@ Each is recorded in the named commit's message. None is on a list until hv rules
 
 The docs now describe each as built. None is worked until hv rules.
 
+0. **THE v3.0.1 TAG SHIPPED A RED SUITE** (cc, confirmed by vc). `v3.0.1:schema/*` carries `INTENT_VER: 3.0.0` beside `VERSION` 3.0.1, so five schema tests fail at the tag (`schema_faces_drift`, `schema_command`, `schema_versioning`). The release stamps the version without re-blessing the published schema faces. The faces are being regenerated in the audit (a generated doc, rule 4); **the release step that should do it is the defect, and it is hv's to rule.**
+
 1. **The 3.0.1 keg ships no subagents tree** (dc, confirmed by vc). `bin/.devbin/cmd/macos:177` SUPPORT_PATHS omits `intent/plugins/claude/subagents`. The coverage guard reads only literal joins, and `payload.rs:590-592` builds that root with a non-literal one. On a brew install, `intent claude subagents list` says `no subagents in this install`. **High: a shipped omission of the same class as 3.0.0's missing rule library.**
 2. **`intent init` does not keep the store out of git** (vc). There's no `.gitignore` for `intent/.cache/`, so `git add .` stages `intent.db`, which D34 says never enters history.
 3. **`st done` ignores work-package status** (vc). A thread closed with a `not-started` WP; the gate is over criteria only.
