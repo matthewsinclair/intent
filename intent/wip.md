@@ -25,8 +25,8 @@ intent_version: 3.0.0
 | --- | ------ | ------ | ---- | --------------------------------------------------------------------------------------------- |
 | 10  | `0138` | high   | cc   | v2 ingest has two behaviours for one input shape; only the destructive one is detectable.     |
 | 11  | `0129` | medium | cc   | v2 ingest rewrites an authored full stop into its own field delimiter.                        |
-| 12  | `0216` | high   | cc   | A canon write reports ok, lands, and the daemon's disk ingest reverts it (under contention).  |
-| 13  | `0212` | high   | cc   | A daemon ingest reverts a completed store write when the on-disk extract lags.                |
+| 12  | `0216` | high   | dc   | A canon write reports ok, lands, and the daemon's disk ingest reverts it (under contention).  |
+| 13  | `0212` | high   | dc   | A daemon ingest reverts a completed store write when the on-disk extract lags.                |
 | 14  | `0206` | high   | cc   | Canon verbs are read-modify-write with no compare-and-swap; concurrent sessions lose a write. |
 | 15  | `0131` | high   | cc   | Two concurrent `issues add` both report created; one silently replaces the other.             |
 | 16  | `0135` | medium | cc   | Two facades can both take one child id.                                                       |
@@ -42,12 +42,11 @@ intent_version: 3.0.0
 | 27  | `0137` | high   | ic   | `ac list` shows a fiat-closed criterion as satisfied: no.                           |
 | 31  | `0194` | high   | ic   | `intent search` with a hyphenated term leaks a SQLite error.                        |
 | 32  | `0268` | high   | cc   | A failed migration rung prints a raw SQLite error naming nothing; its remedy loops. |
-| 34  | `0299` | medium | ic   | `at lint` says a file lacks an id it carries (the cross-thread case).               |
+| 34  | `0299` | medium | dc   | `at lint` says a file lacks an id it carries (the cross-thread case).               |
 | 35  | `0223` | medium | ic   | A mistyped subcommand becomes the title of a real artefact at rc=0.                 |
 | 36  | `0240` | medium | ic   | `edit` returns a path at rc=0 for an AC, AT or attachment that does not exist.      |
 | 38  | `0097` | medium | cc   | `ingest --from-md` prints ok and writes nothing.                                    |
 | 39  | `0069` | medium | cc   | `sync` misdescribes its own scope, twice.                                           |
-| 41  | `0235` | medium | dc   | A running intentd cannot say which build it is.                                     |
 | 42  | `0195` | medium | ic   | `intent search` reports every hit at line 0.                                        |
 | 43  | `0083` | low    | ic   | `st hydrate` reports exists for a file it just created.                             |
 
@@ -55,7 +54,6 @@ intent_version: 3.0.0
 
 | #   | id     | sev    | lane | defect                                                                           |
 | --- | ------ | ------ | ---- | -------------------------------------------------------------------------------- |
-| 44  | `0162` | high   | dc   | `intentd --help` starts a daemon instead of printing help.                       |
 | 47  | `0154` | high   | ic   | No door to edit a WP body after creation (issue bodies and titles now have one). |
 | 48  | `0185` | medium | ic   | No verb writes a thread's title, objective, context or body.                     |
 | 49  | `0168` | medium | ic   | `ac list` never shows criterion text, and there is no `ac show`.                 |
