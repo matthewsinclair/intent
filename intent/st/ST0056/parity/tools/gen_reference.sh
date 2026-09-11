@@ -238,7 +238,12 @@ def arg_rows:
 def takes:
   if .type == "bool" then "no"
   else ((.value // .accepts // .type) | tostring) as $v
-    | if ($v | test("\\|")) then ([ $v | split("|")[] | bt ] | join(" or "))
+    # A VALUE SET IS ONE PLACEHOLDER, RENDERED WHOLE, THE WAY CLAP PRINTS IT:
+    # `--kind <test|non-test>`. Splitting it on the pipe into code spans joined
+    # by "or" broke every `<a|b>` the register spells with its brackets into
+    # `<a` and `b>`. A bare `a|b` gets the brackets clap adds; `cell` escapes
+    # the pipe for the table.
+    | if ($v | test("\\|")) and ($v | startswith("<") | not) then (decorate("<" + $v + ">") | bt)
       else (decorate($v) | bt) end
   end;
 
