@@ -74,3 +74,13 @@ Each is recorded in the named commit's message. None is on a list until hv rules
 5. **Stale plugin references** (`77b724c55`, dc): MODULES.md's plugin table lists six scripts that are gone, and DECISION_TREE.md:29 and writing-extensions.md:151 cite `claude_plugin_helpers.sh` as live. **Now in the doc audit, cc's lane.**
 6. **ST0073 AC-05.1 names a WP-05 the thread lacks.** `doctor --scope all` shows it; the thread is closed.
 7. **`set <ac> kind non-test` leaves state `computed`**, illegal for non-test, and only withdraw-then-reinstate moves it (`7c40da0ab`).
+
+## Found by the doc audit: code defects surfaced to hv, not fixed
+
+The docs now describe each as built. None is worked until hv rules.
+
+1. **The 3.0.1 keg ships no subagents tree** (dc, confirmed by vc). `bin/.devbin/cmd/macos:177` SUPPORT_PATHS omits `intent/plugins/claude/subagents`. The coverage guard reads only literal joins, and `payload.rs:590-592` builds that root with a non-literal one. On a brew install, `intent claude subagents list` says `no subagents in this install`. **High: a shipped omission of the same class as 3.0.0's missing rule library.**
+2. **`intent init` does not keep the store out of git** (vc). There's no `.gitignore` for `intent/.cache/`, so `git add .` stages `intent.db`, which D34 says never enters history.
+3. **`st done` ignores work-package status** (vc). A thread closed with a `not-started` WP; the gate is over criteria only.
+4. **`at new --covers <missing AC>` refuses correctly, but with a PUT/POST remedy** unrelated to the error (vc).
+5. **The critic prints `ok:` and then refuses at rc=2 over an empty rule library** (dc). `render.rs:10437-10441` prints before the exit-code match at `:10272`.
