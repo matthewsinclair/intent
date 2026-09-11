@@ -170,6 +170,8 @@ Documented in `--help`, accepted without complaint, and read by nothing. Passing
 
 **Without `--force`, `uninstall` removes a skill you edited after installing it**, which is the case `--force` describes. Driven on v3.0.1: `intent claude skills install in-debug`, append a line to `~/.claude/skills/in-debug/SKILL.md`, then `intent claude skills uninstall in-debug` prints `in-debug removed (1 file(s))` over `ok: 1 changed, 0 already settled, 0 need a decision`, at exit 0. The edited file is gone, no checksum of it is reported, and the skill's directory is left behind empty. Copy out anything you changed in an installed skill before uninstalling it.
 
+**Subagents have the same hole.** Driven with a source build (the keg carries no subagents): `intent claude subagents install critic-shell`, append a line to `~/.claude/agents/critic-shell.md`, then `intent claude subagents uninstall critic-shell` prints `critic-shell removed (1 file(s))` over `ok: 1 changed, 0 already settled, 0 need a decision`, at exit 0, and the edited file is gone. The output is identical to uninstalling an unedited subagent, so nothing distinguishes the two.
+
 For a skill this build did not write, the file is still on disk afterwards, and that is the tool being careful: it will not delete what it has no record of writing, and it says so. **The summary still miscounts one case:** run `uninstall` again on a skill it has already removed and it prints `removed (0 file(s))` over `ok: 1 changed, 0 already settled, 0 need a decision`, at exit 0, when nothing changed. Read the per-skill line, not the total.
 
 ## What this page does not cover

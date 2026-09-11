@@ -302,7 +302,7 @@ intent wp new ST{NNNN} "<Component name>"          # once per component, in orde
 intent wp new ST{NNNN} "Cross-Component Synthesis" # always last
 ```
 
-`info.md` (the thread's and each WP's) and `acceptance.md` are generated views rendered from the store: do not edit them by hand, because `intent doctor` reports a hand edit as view skew and `intent sync --to-disk` discards it. Write their prose with `intent set` (below) and mint acceptance criteria with `intent ac new`. `intent wp done` and `intent st done` refuse while the contract is empty or unsatisfied. The audit's own documents are files you write into the thread directory:
+`info.md` (the thread's and each WP's) and `acceptance.md` are generated views rendered from the store: do not edit them by hand, because `intent doctor` reports a hand edit as view skew and `intent sync --to-disk` discards it. Write their prose with `intent set` (below) and mint acceptance criteria with `intent ac new`. `intent st done` refuses while the thread has no criteria or any criterion is unsatisfied. `intent wp done` checks only a work package's own criteria (those numbered for it, `AC-<NN>.n`): a WP with none closes without a contract check once the thread has any criterion, while a thread with no criteria at all refuses it too, and a WP whose own criteria are all descoped or withdrawn is refused. Give each component WP its own criteria if its close should mean anything. The audit's own documents are files you write into the thread directory:
 
 ```
 intent/st/ST{NNNN}/
