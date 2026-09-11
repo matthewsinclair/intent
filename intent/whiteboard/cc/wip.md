@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 14:29Z
+heartbeat_at: 2026-09-11 14:50Z
 status: active
-focus: "FOLDED 2026-09-11 14:29Z FOR hv'S PAUSE -- not a release. ON THE BOUNCE: #84 0231, banked as scratchpad 0231-banked.patch (sha256 fe930c8c300a0a49), NOT committed, run.rs clean. With vc: 0066 f74fbf31, 0145 ff78b917, 0153 ca2dd018, 0146 367bd6d4 + 75ce790d. Held on hv: 0100 (decision 2), 0084 (decision 11). No unclaimed cc work remains."
+focus: "ON THE BOUNCE after the compact. With vc for the re-drive: 0231 ea06d7c3, 0066 f74fbf31, 0145 ff78b917, 0153 ca2dd018, 0146 367bd6d4 + 75ce790d. Held on hv: 0100 (decision 2), 0084 (decision 11). Nothing startable remains in the cc column."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,11 +14,9 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**FOLDED 2026-09-11 14:29Z FOR hv'S PAUSE -- not a release. NOTHING OF MINE IS DIRTY IN THE TREE.** The board before this fold is verbatim at `.history/20260911/wip-prefold-1429Z.md`, and every fix since the last fold is in `git log` under its id.
+**FOLDED 2026-09-11 14:29Z FOR hv'S PAUSE; BACK ON THE BOUNCE AFTER THE COMPACT. NOTHING OF MINE IS DIRTY IN THE TREE.** The board before this fold is verbatim at `.history/20260911/wip-prefold-1429Z.md`, and every fix since the last fold is in `git log` under its id.
 
-**ON THE BOUNCE: #84 `0231`** (TUI frames declare no DEC 2026 boundary). vc approved the shape, and it is **BANKED, NOT COMMITTED**: scratchpad `0231-banked.patch`, sha256 `fe930c8c300a0a49`. `run.rs` was restored from HEAD. Repro at HEAD, through a real pty (`expect` + `script -q`, a 30x100 pty, `intent explore`): real frames, zero `ESC[?2026h`/`l`. The patch holds the extraction of `draw_frame`, the call at run.rs:511, and two tests. **What is left: the markers (queue Begin, draw, ALWAYS execute End), and one compile error in the tests.** `CrosstermBackend::writer()` is private in this ratatui build, so the test writer must share its buffer (eg `Rc<RefCell<Vec<u8>>>`) rather than read it back through the backend. Then: see the tests red with no markers, add the markers, go green, and do the pty capture after. **The commit message must carry vc's line verbatim: "tearing gone on a real terminal is hv's eyes, not ours".** vc's baseline for the re-drive is HEAD's zero, from the debug build at `75ce790d`, not `951cbac2`.
-
-**WITH vc FOR THE RE-DRIVE, nothing of mine left on them:** `0066` at `f74fbf31`, `0145` at `ff78b917`, `0153` at `ca2dd018`, `0146` at `367bd6d4` + `75ce790d` (the branched remedy is accepted). **Ruled by vc and out of my column:** `0176` (close, no code), `0172` (not workable in 3.0.1, lane `--`).
+**WITH vc FOR THE RE-DRIVE, nothing of mine left on them:** `0231` at `ea06d7c3` (told vc 2026-09-11 14:50Z), `0066` at `f74fbf31`, `0145` at `ff78b917`, `0153` at `ca2dd018`, `0146` at `367bd6d4` + `75ce790d` (the branched remedy is accepted). **Ruled by vc and out of my column:** `0176` (close, no code), `0172` (not workable in 3.0.1, lane `--`).
 
 **THE RULES ON THE BOUNCE (vc):** one item at a time, claimed here; the id in the commit subject; tell vc, who re-drives and closes it. The only new test allowed is the proving one, seen red. No new instruments, guards, criteria or threads. A defect found while fixing goes in the commit message, not on the list. **hv: _THERE IS NO NEW WORK TO BE DONE._** The list in `intent/wip.md` is the authority, and `intent issues list` is the live state. **Read the lane column there, never a copy here.**
 
