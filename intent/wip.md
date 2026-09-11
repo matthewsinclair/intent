@@ -106,4 +106,21 @@ The docs now describe each as built. None is worked until hv rules.
     - `lib/templates/hooks/module_check_hook.json`: nothing reads it, but a roster row in `exit_code_consumers.rs:128` names it.
     - `lib/templates/hooks/critic-guard.sh` is parked and has drifted: it lacks 0242's zero-scope report. Retire it, or re-roster it after porting that report.
     - The `rules/_schema/index-generator.md`, `rules/index.json` and `.template` trio sit behind the unwired `claude rules index`, whose retirement is pending hv. `index.json` is also wrong.
-12. **The v2 exit tables in the dispatch register** (ic): its `as-observed` rows claim v3 reproduces v2's exits, and five of six sampled are false. The pages stop publishing them; re-measuring the register is size L+ and waits on hv.
+12. **`intent claude skills uninstall <name>` WITHOUT `--force` deletes a skill the user edited after install** (dc, re-driven by vc under an isolated HOME). It prints `removed (1 file(s))` at rc 0 and leaves an empty directory, and `--force`'s own help says it is the flag for "a skill that was changed here". **High: it loses user data.**
+13. **Driven by dc on the keg:**
+    - `at new` fails in the argument order its usage prints, because the `--covers` variadic swallows the ids.
+    - A project stamped below v2.19.0 is told to `install intent@2`, which no tap has.
+    - A pre-v2.10 project (a top-level `.intent/`) is told "no Intent project found" (`project.rs:866`).
+14. **Reported by dc's agents, not yet re-driven:**
+    - `intent edit <ac address> --path` returns info.md, but the criterion renders in acceptance.md.
+    - The `edit wp` remedy names `intent wp`, which has no body writer.
+    - The `edit` kind refusal offers `issue`, then refuses it.
+    - `intent set ... acceptance exempt` succeeds, though `transitions.rs` declares the field Immutable.
+    - A losing concurrent write surfaces a raw `sqlite: database is locked`.
+    - The generated info.md Acceptance paragraph routes readers to hand-edit canon plus `sync --to-store`, as if the verbs did not exist.
+15. **CI, Swift and skill scripts** (dc):
+    - `tests.yml` puts `bin/` on PATH, never the built `intent`, and its shellcheck selector `find bin -name "intent*"` matches nothing. `pr-checks.yml` watches `bin/` for source changes.
+    - `IntentCLI.swift:192-194` reads stdout to EOF before stderr, so it can deadlock. `DaemonService.swift:69` sequences a restart that `daemon restart` ships.
+    - `tail-orphan-probe.sh:135,182` reports a false LEAKED in its guarded arm.
+    - `in-tca-init/scripts/tca-init.sh` makes WP directories the store never registers, and `tca-report.sh:128-144`'s guard can never fire.
+16. **The v2 exit tables in the dispatch register** (ic): its `as-observed` rows claim v3 reproduces v2's exits, and five of six sampled are false. The pages stop publishing them; re-measuring the register is size L+ and waits on hv.
