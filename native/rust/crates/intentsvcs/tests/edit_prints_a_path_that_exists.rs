@@ -50,6 +50,13 @@ fn fixture() -> Fixture {
     "design.md",
     "# Design\n\nAuthored on disk, which is why `edit` hands it over.\n",
   ));
+  // A work package carries files of its own, under `WP/<NN>/` (issue 0291).
+  // Without this one, editing `design` through a WP address could only be
+  // answered with the THREAD's `design.md`, which is the defect.
+  thread.attachments.push(intentsvcs::model::Attachment::new(
+    "WP/02/design.md",
+    "# WP-02 design\n\nThe work package's own file.\n",
+  ));
   fx.write_thread(&thread);
   fx.write_file("intent/.intentfiles", MANIFEST);
   fx
@@ -316,6 +323,29 @@ fn an_unknown_id_is_reported_as_unknown_whichever_file_is_asked_for() {
       "`{file}` pinned a thread that does not exist into a TRACKED file:\n{manifest}"
     );
   }
+}
+
+/// Issue 0291: `edit wp ST0064/01 --path` validated the work package, then
+/// printed the THREAD's `info.md` at rc=0 -- a caller editing the result edited
+/// the thread. The WP's own `info.md` is a generated view with no read-back, so
+/// the answer is the refusal for THAT file, naming it.
+#[test]
+fn failure_a_work_package_is_not_answered_with_its_thread_file() {
+  let fx = fixture();
+  let mut facade = fx.facade();
+  let err = facade
+    .edit(
+      &at(Entity::Wp {
+        thread: "ST0001".to_string(),
+        wp: "02".to_string(),
+      }),
+      "info",
+    )
+    .expect_err("a work package's generated view is refused, never swapped for the thread's");
+  assert!(
+    matches!(&err, FacadeError::NotEditable { path, .. } if path == "intent/st/ST0001/WP/02/info.md"),
+    "the refusal names the WORK PACKAGE's file: {err:?}"
+  );
 }
 
 /// **EVERY FORM THE VERB DISPATCHES ON IS EDITED OR REFUSED BY NAME.**

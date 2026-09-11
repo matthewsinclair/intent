@@ -4454,8 +4454,11 @@ impl Facade {
       // IT.** A real WP-01 and an absent WP-99 printed the SAME BYTES -- so no
       // comparison of outputs could ever have separated them, and refusing
       // before answering is the only available fix rather than the chosen one.
-      // The path itself is right either way: `artefact()` rules that a work
-      // package has no files of its own, and that ruling is not in question.
+      // **THE PATH WAS WRONG TOO, AND THIS COMMENT SAID IT WAS NOT** (issue
+      // 0291). It read *`artefact()` rules that a work package has no files of
+      // its own*. `artefact()` rules which ARTEFACT is realised, which is the
+      // thread; the work package's view is `WP/<NN>/info.md` inside it, and it
+      // is on disk. So the file is resolved under the WP's own directory below.
       //
       // **THREE SIBLINGS ARE STILL OPEN, AND ARE NAMED HERE RATHER THAN LEFT
       // SILENT.** `Ac`, `At` and `Attachment` reach this door through the
@@ -4476,6 +4479,28 @@ impl Facade {
         self.wp_of(thread, wp)?;
       }
     }
+
+    // **A WORK PACKAGE'S FILE IS UNDER ITS OWN DIRECTORY, THREAD-RELATIVE**
+    // (issue 0291). `edit wp ST0064/01 --path` resolved and validated the WP,
+    // then printed the THREAD's `info.md` at rc=0 while `WP/01/info.md` was on
+    // disk -- a caller editing the result edited the thread. The directory
+    // comes from `Project::wp_info_view`, the one spelling of that layout, and
+    // everything below -- the disposition, the refusal's path, the membership
+    // check -- already reads `rel` against the thread directory.
+    let rel = match &address.entity {
+      crate::address::Entity::Wp { thread, wp } => {
+        let seq = self.wp_of(thread, wp)?.seq;
+        let view = self.project.wp_info_view(thread, seq);
+        // Never a fallback to the thread-relative `rel`: that fallback IS the
+        // defect, so a layout that broke this would have to fail loudly.
+        view
+          .parent()
+          .and_then(|dir| dir.strip_prefix(self.project.thread_dir(thread)).ok())
+          .expect("wp_info_view is under thread_dir by construction")
+          .join(&rel)
+      }
+      _ => rel,
+    };
 
     if let Some((_, id)) = address.entity.artefact()
       && let crate::project::EditDisposition::Refuse { author_with } =
