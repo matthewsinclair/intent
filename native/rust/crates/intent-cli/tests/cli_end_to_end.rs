@@ -688,11 +688,20 @@ fn an_unwired_verb_is_distinguishable_from_a_missing_one() {
   // The population is drained deliberately -- every unwired verb is one someone
   // intends to build -- so the honest form is to ask which are left and assert
   // the question is still answerable.
+  //
+  // **TOP-LEVEL COMMANDS, NOT VERBS, SINCE 2026-09-11.** hv's decision 3
+  // retired `st bootstrap`, the last unwired verb under a WIRED family; the
+  // verbs still unwired sit under an unwired root (`ext list`), whose refusal
+  // names the family rather than the verb. A declared-but-unbuilt command
+  // still exists at the top level (`config`, `learn`), so this question keeps
+  // a real subject. The family-form case -- a leaf with no arm under a wired
+  // family -- is carried in-process by `render.rs`'s
+  // `an_unwired_verb_in_a_wired_family_is_sent_to_that_family`.
   let candidates: Vec<String> = dispatch::table()
     .families
     .iter()
     .flat_map(|f| f.entries.iter())
-    .filter(|e| e.verb().is_some() && e.is_shipped())
+    .filter(|e| e.verb().is_none() && e.is_shipped())
     .map(|e| e.path.clone())
     .collect();
 
@@ -706,7 +715,7 @@ fn an_unwired_verb_is_distinguishable_from_a_missing_one() {
         .then(|| (path.clone(), out))
     })
     .expect(
-      "no shipped verb is unwired any more -- this arm has nothing left to check. \
+      "no shipped top-level command is unwired any more -- this arm has nothing left to check. \
        That is a good day and a dead test: delete it, or repoint it at whatever \
        now stands for a declared-but-unbuilt command.",
     );

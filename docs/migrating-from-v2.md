@@ -48,7 +48,7 @@ Three things a hand-rolled scanner gets wrong, and each of them is worth more th
 
 **The last row is the one that changes daily habits.** Files under `intent/st/<ID>/` are generated in v3. Editing one is not reported as an error; it is silently overwritten at the next sync. See [The store](concepts/the-store.md) for the edit path that works.
 
-**Eight v2 commands are retired** and refuse with an exit code that distinguishes removed from never-built: `st organize`, `issues hydrate`, `issues dehydrate`, `organize`, `lang sync`, `treeindex`, `help`, `st_zero`.
+**Ten v2 commands are retired** and refuse with an exit code that distinguishes removed from never-built: `st organize`, `issues hydrate`, `issues dehydrate`, `organize`, `lang sync`, `treeindex`, `help`, `st_zero`, `agents template`, `claude prime`.
 
 **A ninth, `st repair`, is declared retired at `HEAD` and was never built in v3.0.0 either.** In the published tag it answered `is a known command that is not implemented yet`; it now answers `was retired in Intent v3`. **Nothing you can run changes across the hop** -- only the message you get for running something that never worked.
 

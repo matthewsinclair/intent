@@ -180,12 +180,15 @@ fn the_table_declares_retirements_for_this_file_to_measure() {
     "the dispatch table yielded {} retired spellings. Every case in this file iterates that set, so an empty or near-empty one makes the whole file vacuous",
     spellings.len()
   );
-  assert!(
-    spellings
-      .iter()
-      .any(|(_, replacement)| replacement.as_deref().is_some_and(|r| !r.is_empty())),
-    "no retired row carries a replacement spelling, so the branch that names one is never exercised -- and that branch is what issue 0044 asks for"
-  );
+  // **NO RETIRED ROW NAMES A REPLACEMENT SINCE 2026-09-11, AND THE BRANCH
+  // THAT NAMES ONE NOW RUNS WITHOUT A CONTROL.** `st_zero` was the only row
+  // with a named successor, `st bootstrap`; hv's decision 3 struck that
+  // successor and cleared the spelling, because a refusal must never send
+  // anyone to a struck door. The assertion that a Named row existed is deleted
+  // rather than satisfied by borrowing one. So the Named arm of
+  // `every_retired_spelling_is_refused_by_name` exercises nothing until a
+  // retirement with a real successor is declared -- stated here, and in the
+  // commit that did it, so nobody reads that arm's green as evidence.
 }
 
 /// **The refusal names the command and says what happened to it.**

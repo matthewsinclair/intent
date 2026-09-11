@@ -444,10 +444,9 @@ const DECLARED_BUT_UNWIRED: &[(&str, &str)] = &[
     "fc",
     "intent-cli/tests/cli_write_moves_only_what_changed.rs -- `rc=2`, `is a known command that is not implemented yet`, projected estate byte-identical. **DECLARED AHEAD OF ITS ARM ON PURPOSE, WHICH IS THE ONE ORDERING THIS BUCKET IS FOR**: ic authored the row so the service side could be built against a fixed shape rather than a guessed one, and the row generates a real clap subcommand today. The SERVICE side is built and green (`Facade::ac_fc`, `fiat_close_is_stamped_by_the_database.rs`), so what is missing is the renderer arm alone -- and the driven case goes RED the day it lands, which is what forces the re-bucket rather than leaving a live mutator in an excuse list. Driven WITH `--because`, because clap refuses its absence at rc=1 before dispatch, and a case passing on that refusal would prove nothing about the unwired arm.",
   ),
-  (
-    "st bootstrap",
-    "intent-cli/tests/cli_write_moves_only_what_changed.rs -- `rc=2`, `is a known command that is not implemented yet`, and the projected estate byte-identical. Driven at the CLI because it reaches no `intentsvcs` path to drive.",
-  ),
+  // **`st bootstrap` LEFT THIS BUCKET ON 2026-09-11** (hv's decision 3,
+  // ST0058 AC-00.3): struck rather than built, its row is retired, so it is
+  // no longer a shipped mutator and there is nothing here to excuse.
   // **`st repair` LEFT THIS BUCKET THE SAME WAY, ON 2026-08-28** (hv, issue
   // 0118). v2's `st repair` fixed malformed frontmatter in a hand-authored
   // file; v3 generates that file, so a mangled one is reported by `doctor` and
@@ -653,7 +652,6 @@ const UNPROVEN: &[&str] = &[
   "backup",
   "bootstrap",
   "claude hook",
-  "claude prime",
   "claude rules",
   "claude skills",
   "claude start",

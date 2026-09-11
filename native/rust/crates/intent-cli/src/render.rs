@@ -5624,12 +5624,10 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
 /// because there is not one yet, so reaching for the facade would refuse the
 /// command on the exact condition it is meant to remove.
 ///
-/// **`--with-st0000` IS DECLARED `keep` IN THE TABLE AND IS REFUSED HERE BY
-/// NAME**, because `st bootstrap` still answers 2 in this build, so accepting it
-/// would report a project set up in a way it is not. **A flag that is silently
-/// ignored is worse than one that refuses**: the operator gets what they asked
-/// for in the exit code and not in the tree, and nothing downstream ever says
-/// so. Refusing names the flag, the reason and the state.
+/// **`--with-st0000` IS RETIRED** (hv's decision 3, 2026-09-11), with the
+/// `st bootstrap` it would have run, so clap refuses it before this arm. It was
+/// refused here by name while that command was unimplemented, with a remedy
+/// promising the step once the command landed -- which it will not.
 ///
 /// **`--lang` WAS REFUSED THE SAME WAY UNTIL ISSUE `0187`, AND IS NOW HONOURED.**
 /// The refusal said `intent lang init` was not implemented, which stopped
@@ -5640,34 +5638,6 @@ fn todo_done(a: &ArgMatches) -> Result<(), Failure> {
 /// nothing behind, and they are then declared through [`declare_languages`],
 /// the same code `intent lang init` runs.
 fn init(a: &ArgMatches) -> Result<(), Failure> {
-  // **THE ID IS THE LONG SPELLING WITH `--` STRIPPED AND THE HYPHENS KEPT.**
-  // `DispatchFlag::arg_id` returns `self.long()`, so the table's
-  // `--with-st0000` is the id `with-st0000`. The first version of this loop
-  // spelled it `with_st0000`, snake-cased out of habit, and **the refusal
-  // never fired** -- `init --with-st0000` created the project and ignored the
-  // flag. cc drove it and found it inside the hour.
-  //
-  // **THE ONE-CHARACTER TYPO IS NOT THE DEFECT. `.ok()` WAS.** The original
-  // read `try_get_one::<bool>(flag).ok().flatten()`, which turns clap's
-  // `UnknownArgument` -- an id that does not exist, which is only ever a bug --
-  // into `None`, indistinguishable from a flag the operator did not pass. So
-  // the guard written to stop a flag being silently ignored was itself
-  // silently ignored, three lines under a comment saying why that is the worse
-  // failure. An unknown id now panics: it cannot happen in a shipped build,
-  // and if it does, the renderer and the table have drifted and nothing else
-  // would say so.
-  let flag = "with-st0000";
-  let asked = match a.try_get_one::<bool>(flag) {
-    Ok(v) => v.copied().unwrap_or(false),
-    Err(e) => panic!("`init` reads a flag id the surface does not build: {flag} ({e})"),
-  };
-  if asked {
-    return Err(Failure::Unavailable(format!(
-      "error: `--{flag}` cannot be honoured in this build -- the ST0000 bootstrap is not implemented yet\n  \
-       remedy: nothing was created. Run `intent init` without it; nothing about the project it \
-       creates forecloses running that step once the command lands"
-    )));
-  }
   let langs = init_langs(a)?;
 
   let cwd = std::env::current_dir().map_err(|e| Failure::Unavailable(format!("error: {e}")))?;
@@ -9895,12 +9865,6 @@ fn opt(m: &ArgMatches, name: &str) -> Option<String> {
 /// so a caller here legitimately asks about an id that may not exist on this
 /// row, and panicking would turn a correct absence into a crash.
 ///
-/// **`init`'s `with-st0000` LOOP ASKS A DIFFERENT QUESTION AND IS DELIBERATELY
-/// NOT FOLDED IN HERE.** Its ids are declared on its own row unconditionally,
-/// so a miss there is renderer-table DRIFT and it panics by design -- which is
-/// the fix for `init --with-st0000` being silently ignored. Collapsing the two
-/// would either lose that drift check or crash `uninstall`. Two questions, and
-/// the one thing that must not happen is a helper that quietly answers both.
 fn given(m: &ArgMatches, name: &str) -> bool {
   // **`value_source` PANICS ON AN ID THIS SUBCOMMAND DOES NOT DECLARE**, with
   // `"json" is not an id of an argument or a group` -- so establishing that the
@@ -11103,15 +11067,26 @@ mod tests {
   /// **`IN-AG-RED-CONTROL-001` in its quietest form** -- not a control that
   /// broke, but one that never could break, wearing a name that says it does.
   ///
-  /// The fixture is now `bootstrap`. `repair` is the other genuinely-unwired
-  /// verb in this family and was passed over on purpose: its surface row is
-  /// `pending-hv`, so it could move under this test without anybody touching
-  /// the test. `bootstrap` is `keep` and hv-ratified.
+  /// The fixture was `bootstrap` until hv's decision 3 retired it (2026-09-11),
+  /// and with it the last real unwired verb under a wired family: `repair` was
+  /// retired before it. **So the subject is now SYNTHETIC** -- a copy of the
+  /// table with `st bootstrap` declared again, which is the state the real row
+  /// was in. The arm under test is the spine's, not the row's, so a declared
+  /// row with no dispatch arm is all the subject has to be.
   #[test]
   fn an_unwired_verb_in_a_wired_family_is_sent_to_that_family() {
-    let matches = crate::spine::build(&dispatch::table())
+    let mut table = dispatch::table();
+    let entry = table
+      .families
+      .iter_mut()
+      .flat_map(|f| f.entries.iter_mut())
+      .find(|e| e.path == "st bootstrap")
+      .expect("the retired `st bootstrap` row is still in the table");
+    entry.disposition = "keep".to_string();
+    entry.target.state = "corrected".to_string();
+    let matches = crate::spine::build(&table)
       .try_get_matches_from(["intent", "st", "bootstrap"])
-      .expect("`st bootstrap` is DECLARED, so it parses -- only its dispatch arm is missing");
+      .expect("`st bootstrap` is DECLARED in this copy, so it parses -- it has no dispatch arm");
     let failure = run(&matches).expect_err("an unwired verb fails");
     assert_eq!(failure.code(), 2, "an unwired verb must exit 2, never 1");
 

@@ -245,14 +245,16 @@ fn the_unavailable_exception_is_not_flattened_by_the_override() {
 /// pointing at the retired file would still have resolved through git and told
 /// a reader the mechanism is a loop it no longer is.
 ///
-/// So this WILL red again the day `st dehydrate` is implemented, and that is
-/// the design working: pick another member from the roster. On the day the
+/// So this WILL red again the day `learn` is implemented, and that is
+/// the design working: pick another member from the roster. (It was `st
+/// dehydrate`, then `st bootstrap` until hv's decision 3 retired it on
+/// 2026-09-11.) On the day the
 /// roster empties, these three assertions have no subject left in the surface
 /// and should be RETIRED rather than repaired -- there would be no
 /// declared-but-unimplemented command for the contract to be about.
 #[test]
 fn an_unbuilt_command_is_not_the_same_event_as_a_bad_invocation() {
-  let unbuilt = run(&["st", "bootstrap"]).status.code();
+  let unbuilt = run(&["learn"]).status.code();
   let unknown = run(&["nosuchfamily"]).status.code();
   let usage = run(&["st", "show"]).status.code();
 
@@ -563,12 +565,13 @@ fn the_guides_exit_code_claims_are_what_the_binary_does() {
   // The claim about `2`, FIRST cause, driven: a declared-but-unimplemented
   // command, carrying the stderr line the guide tells an agent to recognise it
   // by. Exemplar borrowed from the `DECLARED_BUT_UNWIRED` roster -- **it was `st
-  // dehydrate` until 2026-08-26, when wiring that verb turned both of these red.
+  // dehydrate` until 2026-08-26, when wiring that verb turned both of these red,
+  // and `st bootstrap` until hv's decision 3 retired it on 2026-09-11.
   // The roster is the denominator; when a verb leaves it, every exemplar
   // borrowed from it has to move, and these two reds are how that is found.**
   // See the note
   // on `an_unbuilt_command_is_not_the_same_event_as_a_bad_invocation`.
-  let unbuilt = run(&["st", "bootstrap"]);
+  let unbuilt = run(&["learn"]);
   assert_eq!(
     unbuilt.status.code(),
     Some(2),

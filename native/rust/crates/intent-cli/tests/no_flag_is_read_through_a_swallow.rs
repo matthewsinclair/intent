@@ -37,7 +37,7 @@
 
 use std::path::Path;
 
-/// The one place the expression is still written, and the reason.
+/// The sites allowed to keep the expression, each with its reason.
 ///
 /// **DECLARED, NOT FILTERED, for the reason the mode machine's Esc exemption is
 /// declared:** `!line.contains("init")` would also pass for a site that had
@@ -45,16 +45,11 @@ use std::path::Path;
 /// identical to a predicate. As a declared pair, a second entry is an edit
 /// somebody has to justify -- and the assertion below is an EQUALITY, so adding
 /// one goes red.
-const EXEMPT: &[(&str, &str)] = &[(
-  "let asked = match a.try_get_one::<bool>(flag) {",
-  "`init`'s drift check. Its ids are declared unconditionally on its own row, so a \
-   miss is renderer-table DRIFT and panics by design -- the fix for \
-   `init --with-st0000` being silently ignored. `given` cannot carry that \
-   contract: it must answer `false` for an id the row does not declare, because \
-   `claude skills uninstall` asks about a `--force` its own row omits and a panic \
-   there turns a correct absence into a crash. Two questions; the thing that must \
-   not happen is one helper quietly answering both.",
-)];
+// **EMPTY SINCE 2026-09-11.** Its one entry was `init`'s `with-st0000` drift
+// check, and hv's decision 3 retired that flag with `st bootstrap`, so the
+// site is gone. An empty list forgives nothing: every `try_get_one::<bool>`
+// in `render.rs` is now an offender.
+const EXEMPT: &[(&str, &str)] = &[];
 
 fn render_rs() -> String {
   let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/render.rs");

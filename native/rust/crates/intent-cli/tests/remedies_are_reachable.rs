@@ -687,9 +687,17 @@ fn the_remedy_a_family_emits_matches_the_verbs_it_actually_wires() {
   // **THE POPULATION BEFORE THE PROPERTY.** If the walk stops reaching the
   // binary, every check above passes on nothing and says the word it says when
   // the estate is clean.
+  //
+  // **ROOT-FORM ONLY SINCE 2026-09-11.** The FAMILY-FORM population emptied
+  // when hv's decision 3 retired `st bootstrap`, the last unwired leaf under a
+  // wired family, so this census can no longer reach that remedy on the real
+  // binary. Its one home is `render.rs`'s in-process
+  // `an_unwired_verb_in_a_wired_family_is_sent_to_that_family`. If a wired
+  // family gains an unwired verb again, `family_form` fills and `wrong` above
+  // judges it as before.
   assert!(
-    !root_form.is_empty() && !family_form.is_empty(),
-    "this census must reach BOTH remedies or it confirms neither -- root-form: \
+    !root_form.is_empty(),
+    "this census must reach the root-form remedy or it confirms nothing -- root-form: \
      {root_form:?}, family-form: {family_form:?}, emitting nothing: {silent:?}"
   );
 }

@@ -981,7 +981,7 @@ The violations found in both audits were preventable. See **Intent ST0026 (Steel
 3. **Archetype templates** -> pre-wired thin coordinators
 4. **Automated enforcement** -> custom Credo checks for mechanical rules
 5. **Decision tree** -> "where does this go?" flowchart
-6. **Memory injection** -> `intent claude prime` for session knowledge
+6. **Memory injection** -> session knowledge carried into every session (v3 ships no command for this; v2's `intent claude prime` is not carried over)
 7. **Periodic health checks** -> `intent critic <lang>` (headless rule-library runner) for drift detection
 
 # Appendix F: Lessons Learned from Umbrella Project Remediation

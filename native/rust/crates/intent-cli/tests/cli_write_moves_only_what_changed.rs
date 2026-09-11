@@ -44,8 +44,9 @@
 //! Ten verbs came here as "unproven". **Only three of them write.** The rest
 //! are classified `mutate` on a surface that never drove them:
 //!
-//! - `st bootstrap`, `st repair` -- `rc=2`, *is a known command that is not
-//!   implemented yet*. Declared, unwired.
+//! - `st bootstrap`, `st repair` -- `rc=2`, *was retired in Intent v3*.
+//!   `st bootstrap` answered *not implemented yet* until hv's decision 3
+//!   retired it (2026-09-11); `st repair` was retired before it.
 //! - `at lint --fix` -- `rc=1`, *`at lint --fix` is not implemented in v3*. The
 //!   whole reason `at lint` was classified `mutate` is a flag that does not
 //!   exist; the bare form leaves the estate byte-identical.
@@ -271,16 +272,6 @@ enum Expect {
   WritesNothing(i32),
 }
 
-/// The phrase `render::unwired` emits.
-///
-/// **Duplicated as a literal, deliberately, and the duplication is the point.**
-/// `flag_reachability.rs` carries the same string with the same reasoning: if
-/// the wording changes, every file asserting it must notice, and a shared
-/// constant in one of them would make every other copy look derived. **No copy
-/// is authoritative and none may be promoted to it** -- which is why this file
-/// carries its own rather than importing one, and why retiring any single
-/// holder of the string must leave at least two behind.
-const UNWIRED_PHRASE: &str = "is a known command that is not implemented yet";
 /// A command the surface has RETIRED, which is a different refusal from an
 /// unbuilt one: unwired says *not yet*, this says *not ever, and here is what
 /// to do instead*. `st repair` moved between the two on 2026-08-28 without its
@@ -440,8 +431,8 @@ fn cases() -> Vec<Case> {
       args: &["st", "bootstrap"],
       prep: NOOP,
       expect: Expect::WritesNothing(2),
-      must_say: Some(UNWIRED_PHRASE),
-      why: "rc=2, `is a known command that is not implemented yet` -- declared on the surface, implemented by nothing",
+      must_say: Some(RETIRED_PHRASE),
+      why: "rc=2, `was retired in Intent v3` -- declared and unwired until hv's decision 3 retired it (2026-09-11)",
     },
     Case {
       verb: "fc",

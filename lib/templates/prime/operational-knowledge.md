@@ -9,7 +9,6 @@
 - Specifiers accept bare numbers: a bare `5` names the steel thread whose id ends `0005`, and `5/01` names its work package `01`
 - `intent claude skills list` / `install` / `sync` / `show` -- skill management
 - `intent claude subagents list` / `install` / `sync` -- subagent management
-- `intent claude prime [--refresh] [--dry-run]` -- refresh this memory file
 - `intent plugin list` -- discover available plugins
 - `intent doctor` -- check dependencies and configuration
 

@@ -703,8 +703,9 @@ const INHERITED_UNREAD: &[&str] = &[
   // declared and as unread as they were; what changed is that the probe now
   // asks `st bootstrap` for ITSELF and it answers the unwired refusal, so the
   // three are DEFERRED -- named on every run in that bucket -- rather than
-  // graded as if an arm existed to read them. They return to the gate the day
-  // dc wires `st bootstrap`, and on that day each is either read or back here.
+  // graded as if an arm existed to read them. hv's decision 3 then retired
+  // `st bootstrap` and its three flags with it (2026-09-11), so they left the
+  // surface rather than the gate.
   //
   // **SURFACED BY THE SAME CHANGE, AND THEY ARE THE MIRROR OF THE TRIO.** Both
   // sit under a root whose bare form answers the unwired refusal -- `agents`
@@ -1024,10 +1025,14 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
 /// already has). Each pin names where the estate makes the same claim, so a
 /// pin that expires is a pin somebody will notice moving.
 ///
-/// - `st bootstrap` is UNWIRED under a WIRED `st`: the `DECLARED_BUT_UNWIRED`
-///   roster carries it and `AT-06.8`'s note was about exactly its three flags.
-///   **This is the instance the family-keyed probe got wrong, in the direction
-///   that graded inert flags as wired.**
+/// - **An unwired leaf under a WIRED root has NO INSTANCE on the surface since
+///   2026-09-11**, when hv's decision 3 retired `st bootstrap`, the last one.
+///   It was the instance the family-keyed probe got wrong, in the direction
+///   that graded inert flags as wired. Its positive pin is deleted rather than
+///   borrowed: the one home for that behaviour is now `render.rs`'s in-process
+///   `an_unwired_verb_in_a_wired_family_is_sent_to_that_family`, over a table
+///   copy that declares `st bootstrap` again. This probe drives the real
+///   binary, so it has no subject for that direction until a real one exists.
 /// - `claude skills` is WIRED under a `claude` whose bare form refuses: driven
 ///   2026-08-31, `intent claude skills list` answers rc=0 with the canon
 ///   roster in an empty directory. **This is the other direction -- flags never
@@ -1042,27 +1047,14 @@ fn every_declared_flag_on_a_wired_family_is_read_by_the_renderer() {
 ///   kinds, which is why its flags left DEFERRED for the gate with no edit to
 ///   either list.
 ///
-///   **AND THE FIRST DIRECTION IS NOW DOWN TO ONE REAL INSTANCE, WHICH IS
-///   STATED RATHER THAN LEFT TO BE DISCOVERED.** `st bootstrap` is the only
-///   unwired leaf under a wired root left on the surface: the
-///   `DECLARED_BUT_UNWIRED` roster's other members (`browse`, `fc`) are
-///   top-level entries, so they cannot exhibit leaf-under-wired-root at all.
-///   When `st bootstrap` is wired there is no real instance left and the
-///   synthetic subject named below is not optional.
 /// - `daemon run` and `mcp` are NOT PROBED, from the table's own list.
 ///
-/// **WHEN `st bootstrap` IS WIRED THIS CONTROL EXPIRES, AND THE MESSAGE SAYS
-/// WHAT TO DO:** move the pin to the next unwired verb under a wired root, and
-/// if the surface has none left, the direction still needs a subject -- a
-/// synthetic one, per vc's ruling on borrowed instances.
+/// **IF AN UNWIRED LEAF UNDER A WIRED ROOT RETURNS TO THE SURFACE, PIN IT HERE
+/// AGAIN.** Until then the direction is carried in-process by the `render.rs`
+/// test named above (vc's ruling on decision 3, 2026-09-11).
 #[test]
 fn the_wiredness_probe_asks_about_the_entry_and_not_its_parent() {
   let probed = wiredness();
-  assert!(
-    probed.unwired.contains("st bootstrap"),
-    "`st bootstrap` did not answer the unwired refusal. If it has been WIRED, this control has expired: pin the next unwired verb under a wired root (the `DECLARED_BUT_UNWIRED` roster lists the candidates), or synthesise one -- the direction it guards is an unwired leaf under a wired family being graded as wired.\n  unwired: {:?}",
-    probed.unwired
-  );
   assert!(
     !probed.unwired.contains("st"),
     "`st` answered the unwired refusal bare, so the probe cannot tell a wired root from an unwired leaf under it"

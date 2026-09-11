@@ -260,7 +260,6 @@ fn the_schema_faces_the_cli_prints_carry_no_pm_state() {
 fn every_declared_commands_help_carries_no_pm_state() {
   let dir = tempfile::tempdir().expect("tempdir");
   let mut offenders = Vec::new();
-  let mut blessed_seen = 0;
 
   let mut invocations: Vec<Vec<String>> = vec![vec!["--help".to_string()]];
   for path in declared_paths() {
@@ -272,9 +271,6 @@ fn every_declared_commands_help_carries_no_pm_state() {
   for args in &invocations {
     let borrowed: Vec<&str> = args.iter().map(String::as_str).collect();
     let printed = run(dir.path(), &borrowed);
-    if printed.contains(READERS_OWN) {
-      blessed_seen += 1;
-    }
     for id in pm_identifiers(&printed, Decisions::Ambiguous) {
       offenders.push(format!("`intent {}` printed `{id}`", args.join(" ")));
     }
@@ -287,16 +283,14 @@ fn every_declared_commands_help_carries_no_pm_state() {
     offenders.join("\n  ")
   );
 
-  // **The carve-out, proven on the real surface rather than a fixture.**
-  // `ST0000` genuinely appears in shipped help text, describing the reader's
-  // own STZero retrofit. If this drops to zero the corpus stopped exercising
-  // the distinction and the test above is no longer discriminating -- it would
-  // be passing because there is nothing left to get wrong.
-  assert!(
-    blessed_seen > 0,
-    "no shipped help text mentions {READERS_OWN} any more, so this test no longer proves it can \
-     tell the reader's own ids from Intent's -- which is the only hard part of the check"
-  );
+  // **THE CARVE-OUT IS NO LONGER PROVEN ON THE REAL SURFACE, SINCE
+  // 2026-09-11, AND THE CHECK ABOVE NOW RUNS WITHOUT THAT CONTROL.** The only
+  // shipped help text naming `ST0000` was `st bootstrap`'s and `init
+  // --with-st0000`'s, and hv's decision 3 retired both. The assertion that
+  // some help mentioned it is deleted rather than satisfied by planting help
+  // text. What remains is the planted-string proof in
+  // `the_rule_keys_on_referent_and_not_on_shape` -- `ST0000` stays green,
+  // `ST0056` goes red -- not a proof on what ships.
 }
 
 // ---------------------------------------------------------------------------

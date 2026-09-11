@@ -30,7 +30,7 @@ Three files make up the contract, and the split is deliberate:
 
 **Nothing is stated twice across them.** `CLAUDE.md` does not restate the rules `AGENTS.md` carries, because a second copy in the document that defines the no-second-copies rule is the joke writing itself.
 
-`intent agents validate` checks the generated contract against the project; `intent agents template` shows what it is generated from.
+`intent agents validate` checks the generated contract against the project.
 
 **Deeper:** [`intent/docs/working-with-llms.md`](../intent/docs/working-with-llms.md) is the full narrative — why the three files are split this way, how session hooks compose with them, and the eleven decisions behind the architecture.
 

@@ -57,9 +57,11 @@ enum Note {
 /// it FAILS.** An undeclared entry is a failure rather than a skip, for the
 /// reason `mutation_completeness.rs` gives about a `State` field with no drive
 /// arm: nobody has decided about it, and a quiet pass reads as coverage.
-const CLASSIFIED: [(&str, Note); 2] = [
+const CLASSIFIED: [(&str, Note); 3] = [
   ("help:spelling_note", Note::Scheduled("0086")),
   ("schema:spelling_note", Note::Durable),
+  // Settled: hv's decision 3 struck the successor it named, so none remains.
+  ("st_zero:spelling_note", Note::Durable),
 ];
 
 /// Collect every `spelling_note` in the raw table, keyed by the nearest
