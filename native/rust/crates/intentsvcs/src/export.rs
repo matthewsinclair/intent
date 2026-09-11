@@ -564,23 +564,30 @@ pub fn canon_parts(bundle: &Bundle) -> Result<Vec<(String, String)>, serde_json:
 /// attachments to carry -- which is a fact about the corpus and not about the
 /// function, and is why the test for it constructs its own.
 pub fn canon_blobs(bundle: &Bundle) -> Vec<(String, Vec<u8>)> {
-  let mut out = Vec::new();
-  for thread in &bundle.threads {
-    for att in &thread.attachments {
+  bundle.threads.iter().flat_map(thread_blobs).collect()
+}
+
+/// One thread's opaque attachments, as [`canon_blobs`] emits them. The one
+/// place a sidecar's canon path and bytes are paired, for the exporter, the
+/// store's projection and the migrator alike (0084).
+pub fn thread_blobs(thread: &crate::model::Thread) -> Vec<(String, Vec<u8>)> {
+  thread
+    .attachments
+    .iter()
+    .filter_map(|att| {
       // **Asked of `blob`, not of `is_opaque`, and the difference is a file.**
       // An opaque attachment whose sidecar was never loaded is `is_opaque()`
       // and has no bytes; emitting it would write an EMPTY file over the only
       // copy of its content. `blob` is `Some` exactly when there is something
       // to write.
-      if let Some(raw) = &att.blob {
-        out.push((
+      att.blob.as_ref().map(|raw| {
+        (
           crate::project::canon_blob_rel(&thread.id, &att.path),
           raw.clone(),
-        ));
-      }
-    }
-  }
-  out
+        )
+      })
+    })
+    .collect()
 }
 
 /// Name the first byte that differs, with a little of each side around it.

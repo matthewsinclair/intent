@@ -89,7 +89,7 @@ struct Prior {
 /// A batch of file writes that lands completely or not at all.
 #[derive(Debug, Default)]
 pub struct WriteSet {
-  writes: Vec<(PathBuf, String)>,
+  writes: Vec<(PathBuf, Vec<u8>)>,
 }
 
 impl WriteSet {
@@ -98,6 +98,12 @@ impl WriteSet {
   }
 
   pub fn add(&mut self, path: PathBuf, content: String) {
+    self.writes.push((path, content.into_bytes()));
+  }
+
+  /// Add a write whose content is not text: an opaque attachment's canon
+  /// sidecar (0084), whose bytes must land as they are.
+  pub fn add_bytes(&mut self, path: PathBuf, content: Vec<u8>) {
     self.writes.push((path, content));
   }
 
@@ -117,11 +123,11 @@ impl WriteSet {
   /// preventable: everything after `commit` is a receipt for something that
   /// already happened, which is the same objection AC-03.9 makes to a summary
   /// printed after a restore.
-  pub fn writes(&self) -> impl Iterator<Item = (&std::path::Path, &str)> {
+  pub fn writes(&self) -> impl Iterator<Item = (&std::path::Path, &[u8])> {
     self
       .writes
       .iter()
-      .map(|(path, content)| (path.as_path(), content.as_str()))
+      .map(|(path, content)| (path.as_path(), content.as_slice()))
   }
 
   /// Apply every write. On failure, restore everything already written and
@@ -154,7 +160,7 @@ impl WriteSet {
       // `written: false` is the EXISTING "nothing to undo for this path"
       // semantics -- the same state a path that FAILED carries -- so rollback
       // stays correct with no new field and no new case.
-      let unchanged = prior.content.as_deref() == Some(content.as_bytes());
+      let unchanged = prior.content.as_deref() == Some(content.as_slice());
       priors.push(prior);
       if unchanged {
         continue;
@@ -310,7 +316,7 @@ fn record(path: &Path) -> Result<Prior, WriteError> {
 /// failed `NotFound`, reported against the view. The pid separates processes,
 /// as the daemon's address publish already does; the counter separates writes
 /// within one.
-pub(crate) fn write_atomically(path: &Path, content: &str) -> Result<(), WriteError> {
+pub(crate) fn write_atomically(path: &Path, content: &[u8]) -> Result<(), WriteError> {
   static WRITES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
   let dir = path.parent().unwrap_or(Path::new("."));
   let name = path

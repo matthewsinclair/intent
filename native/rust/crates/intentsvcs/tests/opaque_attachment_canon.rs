@@ -299,3 +299,54 @@ fn the_estate_denominator_is_reported_and_every_opaque_attachment_in_it_round_tr
     );
   }
 }
+
+/// **0084: A NON-UTF-8 ATTACHMENT SURVIVES A RESTORE THEN A RESTORE.** Each
+/// pass is its own facade over the one on-disk store, as two runs of
+/// `sync --to-store` are. The first failed outright: the file index labelled
+/// the file `unknown-file-shape` and ingest refused the whole thread on that
+/// label, before the collector that carries it as bytes was consulted. Lifting
+/// that alone moved the failure to the second pass, because canon then named
+/// the attachment and no door wrote its bytes into canon, so the second read
+/// refused `broken-reference`.
+#[test]
+fn a_non_utf8_attachment_survives_a_restore_then_a_restore() {
+  const LATIN1: &[u8] = b"caf\xe9 cr\xe8me\n";
+  let fx = Fixture::new();
+  fx.write_thread(&sample_thread(ID));
+  let dir = fx.path(&format!("intent/st/{ID}"));
+  std::fs::create_dir_all(&dir).expect("mkdir");
+  std::fs::write(dir.join("notes.txt"), LATIN1).expect("write");
+  let scope = intentsvcs::sync::Scope::Threads(vec![ID.to_string()]);
+
+  for pass in ["first", "second"] {
+    let mut facade = fx.facade_on_disk();
+    facade
+      .sync_from_disk(&scope)
+      .unwrap_or_else(|e| panic!("the {pass} restore refused: {e:?}"));
+    let thread = facade
+      .canon()
+      .threads
+      .iter()
+      .find(|t| t.id == ID)
+      .expect("the thread is in the store")
+      .clone();
+    let carried = thread
+      .attachments
+      .iter()
+      .find(|a| a.path == "notes.txt")
+      .unwrap_or_else(|| panic!("the {pass} restore did not carry notes.txt"));
+    assert_eq!(
+      carried.as_bytes(),
+      Some(LATIN1),
+      "the {pass} restore changed the bytes"
+    );
+  }
+  let sidecar = fx.path(&format!(
+    "intent/{}",
+    intentsvcs::project::canon_blob_rel(ID, "notes.txt")
+  ));
+  assert_eq!(
+    std::fs::read(&sidecar).expect("canon holds the attachment's bytes"),
+    LATIN1
+  );
+}

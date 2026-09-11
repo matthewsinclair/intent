@@ -4242,6 +4242,13 @@ impl Facade {
         path,
         to_canonical_json(thread).map_err(|e| FacadeError::Store(StoreError::Serde(e)))?,
       );
+      // **THE BYTES THE CANON FILE NAMES LAND BESIDE IT (0084).** Canon names an
+      // opaque attachment by hash and size and keeps its bytes in a sidecar;
+      // without this write the next read of canon found the name and not the
+      // file, and refused `broken-reference`.
+      for (rel, raw) in crate::export::thread_blobs(thread) {
+        set.add_bytes(self.project.intent_dir().join(rel), raw);
+      }
     }
     for issue in issues {
       let path = self.project.issue_json(issue.number);
@@ -4431,7 +4438,7 @@ impl Facade {
     canon_files: &[(std::path::PathBuf, String)],
   ) -> Result<(), FacadeError> {
     let index = self.store.file_index().map_err(FacadeError::Store)?;
-    let writes: std::collections::HashMap<&std::path::Path, &str> = set.writes().collect();
+    let writes: std::collections::HashMap<&std::path::Path, &[u8]> = set.writes().collect();
     let mut moved: Vec<String> = Vec::new();
     for (path, subject) in canon_files {
       let bytes = match std::fs::read(path) {
@@ -4441,7 +4448,7 @@ impl Facade {
       };
       if writes
         .get(path.as_path())
-        .is_some_and(|w| w.as_bytes() == bytes.as_slice())
+        .is_some_and(|w| *w == bytes.as_slice())
       {
         continue;
       }

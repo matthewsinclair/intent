@@ -34,7 +34,9 @@ use std::path::Path;
 use std::process::Command;
 
 /// Not valid UTF-8, so strict ingest reports it as residue if -- and only if
-/// -- it is in corpus.
+/// -- it is in corpus. **Written OUTSIDE any thread directory (0084)**: a
+/// thread directory carries a non-UTF-8 file as an opaque attachment, so there
+/// it reads clean in corpus or not.
 const NOT_UTF8: &[u8] = b"\xff\xfe\x00Bud1\xff\xfe";
 
 /// Deliberately an extension nobody's real global gitignore carries. `*.sql`
@@ -132,15 +134,15 @@ impl Fixture {
 fn a_global_gitignore_rule_does_not_shrink_the_corpus() {
   let fx = Fixture::new();
   fx.thread("ST0001");
-  fx.write(&format!("intent/st/ST0001/{PROBE}"), NOT_UTF8);
-  fx.write("intent/st/ST0001/shared.bin", NOT_UTF8);
+  fx.write(&format!("intent/st/{PROBE}"), NOT_UTF8);
+  fx.write("intent/st/shared.bin", NOT_UTF8);
 
   // THE ORACLE. git's own answer under this exact configuration. If git does
   // not consider the probe ignored, the temporary global config never took
   // effect and everything below would pass for the wrong reason.
   let (ignored_by_git, _) = fx.run(
     "git",
-    &["check-ignore", "-q", &format!("intent/st/ST0001/{PROBE}")],
+    &["check-ignore", "-q", &format!("intent/st/{PROBE}")],
   );
   assert!(
     ignored_by_git,

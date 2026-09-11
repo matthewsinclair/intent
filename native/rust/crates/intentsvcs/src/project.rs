@@ -599,9 +599,11 @@ pub fn write_config(root: &Path, config: &Config) -> Result<(), ConfigWriteError
   // this rewrites keeps the shape of one it laid down.
   let mut body = serde_json::to_string_pretty(&members).map_err(ConfigWriteError::Encode)?;
   body.push('\n');
-  crate::write_set::write_atomically(&path, &body).map_err(|source| ConfigWriteError::Write {
-    path: path.display().to_string(),
-    source,
+  crate::write_set::write_atomically(&path, body.as_bytes()).map_err(|source| {
+    ConfigWriteError::Write {
+      path: path.display().to_string(),
+      source,
+    }
   })
 }
 

@@ -774,6 +774,14 @@ pub(crate) fn entry_for(
 /// Everything that makes a file unreadable-as-what-it-claims-to-be.
 fn inspect(rel: &str, bytes: &[u8]) -> Vec<Finding> {
   let Ok(text) = std::str::from_utf8(bytes) else {
+    // **AN ATTACHMENT CLAIMS NOTHING ABOUT ITS BYTES (0084).** The collector
+    // carries a non-UTF-8 attachment as opaque bytes, and retired its own
+    // UTF-8 refusal to do so; this was the survivor, and it ran first -- so
+    // the whole thread refused, under a remedy telling the operator to move
+    // the one file the model keeps.
+    if is_carried_attachment(rel) {
+      return Vec::new();
+    }
     return vec![Finding::new(
       rel,
       FindingClass::UnknownFileShape,
@@ -816,6 +824,28 @@ fn inspect(rel: &str, bytes: &[u8]) -> Vec<Finding> {
     }
   }
   findings
+}
+
+/// Is `rel` (relative to the project root, as [`scan`] walks it) a file the
+/// attachment collector carries: one under a thread's directory that
+/// [`crate::project::Project::classify`] calls the author's -- or that
+/// attachment's canon sidecar ([`crate::project::canon_blob_rel`]), which holds
+/// the same bytes and so claims no more about them?
+fn is_carried_attachment(rel: &str) -> bool {
+  let Some(under) = rel
+    .strip_prefix("intent/st/")
+    .or_else(|| rel.strip_prefix("intent/.canon/st/"))
+  else {
+    return false;
+  };
+  match under.split_once('/') {
+    Some((id, file)) => {
+      crate::model::is_thread_id(id)
+        && crate::project::Project::classify(Path::new(file))
+          == crate::project::ThreadFile::Attachment
+    }
+    None => false,
+  }
 }
 
 /// Git conflict markers.

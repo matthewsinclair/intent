@@ -590,10 +590,21 @@ fn assemble(
       .map(|(rel, content)| (intent_dir.join(rel), content)),
   );
   batch.extend(views.into_iter().map(|view| (view.path, view.content)));
+  // **THE BYTES THE CANON NAMES (0084).** An opaque attachment's canon entry
+  // is its hash and size; its bytes are a sidecar, and a migration that wrote
+  // the entry and not the sidecar left canon naming a file that did not exist.
+  let blobs: Vec<(PathBuf, Vec<u8>)> = export::canon_blobs(&bundle)
+    .into_iter()
+    .map(|(rel, raw)| (intent_dir.join(rel), raw))
+    .collect();
 
   {
     let mut seen: BTreeSet<&PathBuf> = BTreeSet::new();
-    for (path, _) in &batch {
+    for path in batch
+      .iter()
+      .map(|(p, _)| p)
+      .chain(blobs.iter().map(|(p, _)| p))
+    {
       if !seen.insert(path) {
         return Err(Blocked::Collision {
           path: project.relative(path),
@@ -605,6 +616,9 @@ fn assemble(
   let mut writes = WriteSet::new();
   for (path, content) in batch {
     writes.add(path, content);
+  }
+  for (path, raw) in blobs {
+    writes.add_bytes(path, raw);
   }
 
   Ok(Plan {

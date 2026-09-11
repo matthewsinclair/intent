@@ -177,7 +177,7 @@ fn the_planned_canon_holds_every_bucketed_files_content() {
     .writes
     .writes()
     .filter(|(path, _)| path.to_string_lossy().contains("/.canon/st/"))
-    .map(|(_, content)| content)
+    .map(|(_, content)| String::from_utf8_lossy(content))
     .collect::<Vec<_>>()
     .join("\n");
 

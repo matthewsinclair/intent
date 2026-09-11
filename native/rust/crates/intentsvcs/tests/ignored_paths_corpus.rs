@@ -30,6 +30,11 @@ use std::process::Command;
 /// Spelled out because the first version of this fixture used `\x00\x01` and
 /// friends, which ARE valid UTF-8 control characters -- so the file parsed
 /// fine, nothing was flagged, and the test passed while proving nothing.
+///
+/// **A probe sits OUTSIDE any thread directory (0084).** A thread directory
+/// carries a non-UTF-8 file as an opaque attachment, so one written there reads
+/// clean whether or not it is in corpus, and a test keyed on its being flagged
+/// would pass with the ignore rule broken.
 const NOT_UTF8: &[u8] = b"\xff\xfe\x00Bud1\xff\xfe";
 
 struct Project {
@@ -193,7 +198,7 @@ fn a_project_without_git_still_has_a_corpus() {
 fn the_rule_is_general_and_not_a_ds_store_special_case() {
   let fx = Project::new().with_git("*.bin\n");
   fx.thread("ST0001");
-  fx.write("intent/st/ST0001/artefact.bin", NOT_UTF8);
+  fx.write("intent/st/artefact.bin", NOT_UTF8);
 
   assert!(
     !intentsvcs::sync::SKIPPED_DIRS.contains(&"artefact.bin"),
@@ -213,11 +218,11 @@ fn the_rule_is_general_and_not_a_ds_store_special_case() {
 fn a_negated_ignore_rule_puts_a_file_back_in_scope() {
   let fx = Project::new().with_git("*.bin\n!keep.bin\n");
   fx.thread("ST0001");
-  fx.write("intent/st/ST0001/keep.bin", NOT_UTF8);
+  fx.write("intent/st/keep.bin", NOT_UTF8);
 
   assert_eq!(
     fx.unparsed(),
-    vec!["intent/st/ST0001/keep.bin".to_string()],
+    vec!["intent/st/keep.bin".to_string()],
     "git would commit this file, so it is in corpus, so strict ingest refuses it"
   );
 }
@@ -239,12 +244,12 @@ fn a_clone_local_exclude_does_not_shrink_the_corpus() {
     .with_git("*.bin\n")
     .with_local_exclude("local.dat\n");
   fx.thread("ST0001");
-  fx.write("intent/st/ST0001/local.dat", NOT_UTF8);
-  fx.write("intent/st/ST0001/shared.bin", NOT_UTF8);
+  fx.write("intent/st/local.dat", NOT_UTF8);
+  fx.write("intent/st/shared.bin", NOT_UTF8);
 
   assert_eq!(
     fx.unparsed(),
-    vec!["intent/st/ST0001/local.dat".to_string()],
+    vec!["intent/st/local.dat".to_string()],
     "the committed `.gitignore` rule takes `shared.bin` out of corpus; the \
      clone-local exclude must NOT take `local.dat` out, because a fresh clone \
      would carry it"
