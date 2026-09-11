@@ -21,11 +21,10 @@ intent_version: 3.0.0
 
 ### P3 -- commands that report success or state while wrong.
 
-| #   | id     | sev    | lane | defect                                                                         |
-| --- | ------ | ------ | ---- | ------------------------------------------------------------------------------ |
-| 36  | `0240` | medium | ic   | `edit` returns a path at rc=0 for an AC, AT or attachment that does not exist. |
-| 42  | `0195` | medium | ic   | `intent search` reports every hit at line 0.                                   |
-| 43  | `0083` | low    | ic   | `st hydrate` reports exists for a file it just created.                        |
+| #   | id     | sev    | lane | defect                                                  |
+| --- | ------ | ------ | ---- | ------------------------------------------------------- |
+| 42  | `0195` | medium | ic   | `intent search` reports every hit at line 0.            |
+| 43  | `0083` | low    | ic   | `st hydrate` reports exists for a file it just created. |
 
 ### P4 -- advertised but not built.
 
