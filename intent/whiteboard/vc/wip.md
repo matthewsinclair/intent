@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 14:28Z
+heartbeat_at: 2026-09-11 14:46Z
 status: active
 focus: "LOCALFOLD FOR A COMPACT, 2026-09-11 13:14Z, refreshed 14:28Z, then back on the bounce. hv: no new work; the open defects in intent/wip.md are the whole of it (`intent issues list` is the live count). vc keeps the list, drives every fix before closing its issue, rules fix shapes under the pen, and holds hv's decisions (now 1-14). Pre-fold board verbatim at .history/20260911/wip-prefold-1314Z.md. RUN THE VERBS; every figure here rots."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
