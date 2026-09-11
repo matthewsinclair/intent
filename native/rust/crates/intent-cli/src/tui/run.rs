@@ -470,6 +470,26 @@ fn dropdown(app: &App) -> Vec<(String, layout::Ink)> {
   lines
 }
 
+/// Draw one frame inside a synchronised update (DEC 2026), so a terminal that
+/// implements it presents the frame whole rather than as it streams in. The
+/// end is sent even when the draw fails: a terminal told a frame has begun
+/// holds it until told it has ended.
+fn draw_frame<W: io::Write>(
+  term: &mut Terminal<CrosstermBackend<W>>,
+  render: impl FnOnce(&mut ratatui::Frame),
+) -> io::Result<()> {
+  crossterm::queue!(
+    term.backend_mut(),
+    crossterm::terminal::BeginSynchronizedUpdate
+  )?;
+  let drawn = term.draw(render).map(|_| ());
+  let ended = crossterm::execute!(
+    term.backend_mut(),
+    crossterm::terminal::EndSynchronizedUpdate
+  );
+  drawn.and(ended)
+}
+
 /// Drive the TUI until the operator quits.
 ///
 /// **THE TERMINAL IS RESTORED ON EVERY EXIT PATH INCLUDING A PANIC**
@@ -508,7 +528,9 @@ pub fn run(app: &mut App, source: &mut impl Source, mut session: impl Session) -
     // key. A resize repaints through this same line before another keystroke
     // can arrive, so it has no window in which to go stale.
     app.page_rows = Screen::body_height(area.height as usize);
-    term.draw(|f| draw::render(&screen, first, f.area(), f.buffer_mut()))?;
+    draw_frame(&mut term, |f| {
+      draw::render(&screen, first, f.area(), f.buffer_mut())
+    })?;
     let mut lent_the_terminal = false;
 
     // Only key presses move the machine. A resize repaints on the next pass
@@ -1464,6 +1486,112 @@ mod tests {
       at("wait") < at("enter_raw"),
       "the terminal was taken back before the operator signalled, so the \
        explorer repaints over the command's own output: {seen:?}"
+    );
+  }
+
+  const BEGIN: &[u8] = b"\x1b[?2026h";
+  const END: &[u8] = b"\x1b[?2026l";
+
+  fn count(bytes: &[u8], marker: &[u8]) -> usize {
+    bytes.windows(marker.len()).filter(|w| *w == marker).count()
+  }
+
+  /// A writer that keeps what it was sent where the test can read it, since
+  /// the backend does not lend its writer back. `fail_next_flush` makes one
+  /// flush error, so a draw fails after its cells went out.
+  #[derive(Clone, Default)]
+  struct Tape {
+    bytes: std::rc::Rc<std::cell::RefCell<Vec<u8>>>,
+    fail_next_flush: std::rc::Rc<std::cell::Cell<bool>>,
+  }
+
+  impl Tape {
+    fn read(&self) -> Vec<u8> {
+      self.bytes.borrow().clone()
+    }
+  }
+
+  impl io::Write for Tape {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+      self.bytes.borrow_mut().extend_from_slice(buf);
+      Ok(buf.len())
+    }
+    fn flush(&mut self) -> io::Result<()> {
+      if self.fail_next_flush.replace(false) {
+        return Err(io::Error::other("the terminal went away mid-frame"));
+      }
+      Ok(())
+    }
+  }
+
+  /// A terminal over a tape, with a fixed viewport so nothing asks a real
+  /// terminal for its size.
+  fn over(tape: &Tape) -> Terminal<CrosstermBackend<Tape>> {
+    Terminal::with_options(
+      CrosstermBackend::new(tape.clone()),
+      ratatui::TerminalOptions {
+        viewport: ratatui::Viewport::Fixed(ratatui::layout::Rect::new(0, 0, 20, 2)),
+      },
+    )
+    .expect("a fixed viewport asks the terminal nothing")
+  }
+
+  fn text(said: &'static str) -> impl FnOnce(&mut ratatui::Frame) {
+    move |f| {
+      f.buffer_mut()
+        .set_string(0, 0, said, ratatui::style::Style::default());
+    }
+  }
+
+  /// **0231: EVERY FRAME IS DECLARED, SO A TERMINAL THAT IMPLEMENTS DEC 2026
+  /// PRESENTS IT WHOLE.** No layer below `run` emits the markers -- ratatui
+  /// 0.30's backend does not -- so each repaint reached the terminal as an
+  /// undelimited stream of writes. Read off the bytes the backend actually
+  /// wrote: per frame, one begin FIRST, one end LAST, and the frame's cells
+  /// between them. The two frames differ in every cell, because a repaint
+  /// writes only the cells that changed.
+  #[test]
+  fn every_frame_is_bracketed_by_a_synchronised_update() {
+    let tape = Tape::default();
+    let mut term = over(&tape);
+    for said in ["one", "two"] {
+      let start = tape.read().len();
+      draw_frame(&mut term, text(said)).expect("a frame draws");
+      let all = tape.read();
+      let frame = &all[start..];
+      assert!(
+        frame.starts_with(BEGIN) && frame.ends_with(END),
+        "`{said}` is not bracketed by a synchronised update: {:?}",
+        String::from_utf8_lossy(frame)
+      );
+      assert_eq!(
+        (count(frame, BEGIN), count(frame, END)),
+        (1, 1),
+        "one frame, one boundary"
+      );
+      assert!(
+        count(frame, said.as_bytes()) == 1,
+        "the frame's cells are inside it: {:?}",
+        String::from_utf8_lossy(frame)
+      );
+    }
+  }
+
+  /// **A FAILED DRAW STILL ENDS THE FRAME.** A terminal told a frame has begun
+  /// holds it until told it has ended, so an error that skipped the end would
+  /// leave it holding.
+  #[test]
+  fn a_failed_draw_still_ends_the_frame() {
+    let tape = Tape::default();
+    let mut term = over(&tape);
+    tape.fail_next_flush.set(true);
+    let drawn = draw_frame(&mut term, text("half"));
+    assert!(drawn.is_err(), "precondition: the draw failed");
+    let bytes = tape.read();
+    assert!(
+      bytes.ends_with(END) && count(&bytes, BEGIN) == count(&bytes, END),
+      "the frame was begun and never ended: {:?}",
+      String::from_utf8_lossy(&bytes)
     );
   }
 }
