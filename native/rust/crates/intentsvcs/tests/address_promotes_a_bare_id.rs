@@ -155,11 +155,14 @@ fn a_typo_is_a_usage_error_naming_both_forms() {
     "not a not-found and not a URL complaint, got: {e}"
   );
 
+  // **AMENDED FOR 0153 ON vc's RULING, 2026-09-11.** This limb asserted the
+  // remedy named an issue id (`0042`) beside the thread. The text is shared by
+  // `edit`, `set` and `browse`, and `edit` refuses every issue form, so it now
+  // names only what every door accepts: a thread id and a full address.
   let said = format!("{e} -- {}", e.remedy());
   assert!(
-    said.contains("ST0000") && said.contains("0042"),
-    "the refusal must name BOTH accepted forms, since which one the caller \n       \
-     meant is exactly what it cannot tell. said: {said}"
+    said.contains("`ST0000`") && said.contains("`intent:///threads/ST0000`"),
+    "the refusal must name the forms every door accepts. said: {said}"
   );
   assert!(
     !said.contains("no such") && !said.contains("not found"),

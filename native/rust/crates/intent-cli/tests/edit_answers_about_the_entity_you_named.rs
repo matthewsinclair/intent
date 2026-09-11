@@ -244,3 +244,42 @@ fn a_bare_id_is_told_what_it_is_ambiguous_between() {
     "the refusal must name what the number is ambiguous BETWEEN: {out}"
   );
 }
+
+/// **0153: EVERY FORM THE REFUSAL RECOMMENDS IS ONE `edit` RESOLVES.**
+///
+/// The refusal for a spelling that names nothing is one text shared by `edit`,
+/// `set` and `browse`, and it recommended an issue id -- a form `edit` refuses
+/// in every spelling, because an issue has no realised form. The operator was
+/// told what to type, typed it, and was refused again.
+///
+/// **THE FORMS ARE READ FROM THE RENDERED REMEDY, NEVER RETYPED HERE**, so the
+/// next edit to that text stays under this assertion. Its placeholder ids are
+/// swapped for the fixture's, whose thread and issue numbers collide.
+#[test]
+fn every_form_the_unaddressable_refusal_recommends_is_one_edit_resolves() {
+  let dir = seeded();
+  let (refusal, rc) = run(dir.path(), &["edit", "nonsense", "--path"]);
+  assert_ne!(rc, 0, "precondition: `nonsense` is refused: {refusal}");
+  let remedy = refusal
+    .lines()
+    .find_map(|l| l.trim().strip_prefix("remedy: "))
+    .unwrap_or_else(|| panic!("the refusal carries a remedy: {refusal}"));
+  let forms: Vec<String> = remedy
+    .split('`')
+    .skip(1)
+    .step_by(2)
+    .map(|form| form.replace("ST0000", "ST0001").replace("0042", "0001"))
+    .collect();
+  assert!(
+    forms.iter().any(|f| f.starts_with("intent://")),
+    "the remedy's forms were read, including its full address: {forms:?}"
+  );
+
+  for form in &forms {
+    let (out, rc) = run(dir.path(), &["edit", form, "--path"]);
+    assert_eq!(
+      rc, 0,
+      "the remedy recommends `{form}` and `edit` refuses it: {out}"
+    );
+  }
+}

@@ -381,10 +381,11 @@ impl Remedy for AddressError {
       AddressError::AmbiguousId { seq, .. } => {
         format!("`s{seq}` names the steel thread, `i{seq}` the issue")
       }
+      // **ONLY FORMS EVERY DOOR ACCEPTS** (0153). This text is shared by
+      // `edit`, `set` and `browse`, and it named an issue id -- which `edit`
+      // refuses in every spelling, so following it earned a second refusal.
       AddressError::NotAddressable { .. } => {
-        format!(
-          "name a thread (`ST0000`), an issue (`0042`), or a full address (`{SCHEME}/threads/ST0000`)"
-        )
+        format!("name a thread (`ST0000`) or a full address (`{SCHEME}/threads/ST0000`)")
       }
     }
   }
