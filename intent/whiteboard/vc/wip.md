@@ -3,7 +3,7 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 19:34Z
+heartbeat_at: 2026-09-11 19:40Z
 status: active
 focus: "3.0.1 SHIPPED and installed on rhadamanth. Close-out done except ST0056 AC-00.5/11.1 (clean Mac). hv rulings pending on the seven cut findings in intent/wip.md."
 claims: [ST0056, ST0057, ST0060, ST0070]
