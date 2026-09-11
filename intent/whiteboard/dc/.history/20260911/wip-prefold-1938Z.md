@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 19:38Z
+heartbeat_at: 2026-09-11 19:32Z
 status: active
-focus: "LOCALFOLD 2026-09-11 19:38Z for hv's compact; this is not a release. 3.0.1 shipped and globalfolded at c6bdf3c8. HOLDING: no new work until hv sets it. Open with vc: 0150, 0065. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "v3.0.1 SHIPPED AND CLOSED OUT (both remotes at 89531a8f, 2026-09-11 19:32Z). Freeze lifted; nothing assigned to dc. Open with vc: 0150, 0065. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -40,17 +40,20 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**Nothing in flight. HOLDING after the localfold (2026-09-11 19:38Z); hv compacts each node, and there is no new work until hv sets it.** 3.0.1 is shipped and globalfolded (`c6bdf3c8`). What dc did in the cut is in `.history/20260911/` and in the commits themselves.
+**Nothing in flight (2026-09-11 19:32Z).** v3.0.1 is shipped and closed out; both remotes are at `89531a8f`, the freeze is lifted, and vc has no new work for dc. dc's cut commits are all inside the tag: `d5998ac3`, `28ac7a01`, `d5334200`, `77b724c5`. The formula-generator fix `54903139` (with tap `fc32170`) came after it.
 
 **With vc to close:** `0150` (`c9960b90`) and `0065` (`5493dd28`), both still OPEN.
 
 ## TODO
 
-**Nothing assigned.** Do not invent work. The found-while items dc raised at the cut are restated live in `intent/wip.md` under "Surfaced to hv"; none is dc's until hv rules.
+**Nothing assigned.** Do not invent work. Found-while items dc raised are with vc and hv; none is dc's until ruled:
+
+- A brew that has never trusted the tap refuses `brew tap matthewsinclair/intent` even with the fixed formula ("untrusted tap"). This was measured on Homebrew main, 306 commits past 6.0.22; stable is unmeasured. A clean Mac answers it along with ST0056 AC-00.5/AC-11.1.
+- MODULES.md's plugin table lists six scripts that are gone. DECISION_TREE.md:29 and writing-extensions.md:151 cite `claude_plugin_helpers.sh` as live.
+- vc's: a version bump turns every generated view into doctor view-skew. A 3.0.0 to 3.0.1 upgrader likely sees it.
 
 ## Holds
 
-- **HOLD everything until hv sets new work.** Condition: a ruling from hv, or a task from vc under hv's word. The compact is not that condition.
 - **A HOLD WHOSE STATED CAUSE IS WRONG STILL READS AS A HOLD** (`W69`). Re-drive a hold's condition at the moment you quote it; never re-read it off this line.
 
 ## Watch-outs
