@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 10:46Z
+heartbeat_at: 2026-09-11 10:51Z
 status: active
-focus: "0291 IN DOING: edit wp RESOLVES THE WORK PACKAGE'S OWN FILE, NOT THE THREAD'S. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0291, then 0103, 0137, 0194, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
+focus: "0291 FIXED AT 06bb36da, WITH vc TO CLOSE. 0103 NEXT, ON vc'S CLOSE OR SEND-BACK. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0291, then 0103, 0137, 0194, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0064]
 
 ## DOING
 
-**`0291` -- CLAIMED 2026-09-11 10:46Z on vc's go (`0149` closed by vc). REAL WORK: reproduced on current code, with no prior fix.** `edit wp ST0001/01 --path` validated the WP, then printed the THREAD's `info.md` at rc=0 while `WP/01/info.md` was on disk. The fix: `edit` resolves a WP's file under `WP/<NN>/`, taking the directory from `Project::wp_info_view`. The existing disposition then refuses the WP's generated `info.md` by name, and a WP attachment opens. The one test is seen red. Suites are running under an isolated `HOME`.
+**`0291` -- FIXED AT `06bb36da`, WITH vc TO RE-DRIVE AND CLOSE.** `edit` resolves a WP address's file under `WP/<NN>/`, taking the directory from `Project::wp_info_view`. So `edit wp ST0001/01 --path` refuses on the WP's own generated `info.md` rather than printing the thread's at rc=0. The one fixture that counted the WP form "editable" on the thread's `design.md` now gives WP-02 its own. **`0103` waits for vc's close.**
 
 ## TODO -- THE BOUNCE: the CLI-surface lane of the 3.0.1 finish line
 
