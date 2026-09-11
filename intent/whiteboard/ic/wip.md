@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 17:53Z
+heartbeat_at: 2026-09-11 19:32Z
 status: active
-focus: "HOLD FOR THE CLOSE-OUT. AC-00.6 LANDED at 0f9958492, verified by vc; my lane is empty for the cut. WITH vc: 0140. vc calls on me if a verb in my lane misbehaves."
+focus: "3.0.1 SHIPPED (a8942aead); freeze lifted by vc. Nothing in flight, no new work. ST0064 thread close is open for the next session."
 claims: [ST0064]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0064]
 
 ## DOING
 
-**WITH vc FOR THE RE-DRIVE: `0140`** -- `ac edit --note <text>`. The fix is `e396bf90`, the reference page `3da61a0a`, and the 0211 note `323a9785`. vc closes it, not me.
+**Empty.**
 
 ## TODO
 
@@ -24,7 +24,7 @@ claims: [ST0064]
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
 1. **The palette `Home`/`End` flip** -- post-cut; product feel; no criterion names it.
-2. **The `ST0064` claim stays until vc's close-out closes the thread.** WP-01 is done (vc, `7c40da0ab`), and AC-01.7's condition was met: hv's notarisation submission was Accepted and vc's `app-verify` passed. The thread close is in vc's close-out, not mine.
+2. **The `ST0064` claim stays until the ST0064 thread is closed.** vc left the close open for the next session (2026-09-11, after 3.0.1 shipped); WP-01 is done. The close is not mine.
 
 ## Watch-outs -- the ones that bite if an item comes back
 
