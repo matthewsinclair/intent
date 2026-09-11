@@ -8743,6 +8743,22 @@ fn payload_change(
         moved += 1;
         format!("removed ({} file(s))", removed.len())
       }
+      // **NOTHING REMOVED AND SOMETHING LEFT IS A HELD STEP, NOT A CHANGE**
+      // (issue `0078`). Every file here is one this build did not write, so the
+      // conservatism is right and the skill is exactly as loadable as before.
+      // It was counted as `changed`, so the summary read `ok: 1 changed` over a
+      // detail line saying `removed (0 file(s))`. Counted as a decision, the
+      // summary agrees with the detail and the exit is 1, as for every other
+      // state that leaves the operator something to do.
+      Outcome::Removed { removed, left } if removed.is_empty() => {
+        needs_decision += 1;
+        format!(
+          "removed nothing; left {} this build did not install, so it is still loadable: {} -- delete {} by hand if you mean to remove it",
+          left.len(),
+          left.join(", "),
+          if left.len() == 1 { "it" } else { "them" }
+        )
+      }
       Outcome::Removed { removed, left } => {
         moved += 1;
         format!(

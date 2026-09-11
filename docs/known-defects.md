@@ -252,7 +252,7 @@ These flags are documented in `--help`, accepted without complaint, and read by 
   ok: 1 changed, 0 already settled, 0 need a decision
 ```
 
-The file is still on disk afterwards, and **that is the tool being careful rather than the tool failing** — it will not delete what it has no record of writing, and the per-skill line says so, gives the count, and names the file. **What is wrong is one line lower: the summary says `1 changed` when no file changed.** Read the per-skill line, not the total.
+The file is still on disk afterwards, and **that is the tool being careful rather than the tool failing** — it will not delete what it has no record of writing, and the per-skill line says so, gives the count, and names the file. **What is wrong is one line lower: the summary says `1 changed` when no file changed.** Read the per-skill line, not the total. **v3.0.1 counts that step as a decision:** the summary reads `0 changed, 0 already settled, 1 need a decision` at exit 1, and the per-skill line says the skill is still loadable and that you delete it by hand if you mean to. `--force` still changes nothing.
 
 ## Recorded against v3.0.0 and NOT present in it
 

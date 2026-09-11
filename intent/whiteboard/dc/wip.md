@@ -3,7 +3,7 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 10:18Z
+heartbeat_at: 2026-09-11 10:23Z
 status: active
 focus: "WORKING vc's LIST IN ORDER, ONE ID AT A TIME, AND DO NOTHING ELSE (hv: no new work). My lane is docs, install, init, templates, config and daemon ops. Start at P2: 0275, 0277, 0193, 0274, 0122; then P3: 0301, 0285, 0187, 0078, 0302, 0235; then P4: 0162. Claim the id, commit with it in the subject, tell vc; vc closes the issue. Decision 6 is corrected. 0299 is reopened. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
@@ -41,7 +41,7 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 **`0078` (#37, `skills uninstall` summary), CLAIMED 2026-09-11 10:15Z.** The per-skill line is honest (`removed (0 file(s)); left 1 this build did not install`) and the summary under it says `ok: 1 changed` when no file changed. The fix is the summary count.
 
-- **Handed to vc, not mine to close:** `0275` at `59a63541` (CLOSED), `0277` at `89a7048b` (CLOSED), `0193` re-driven at `f38b6f02` with no page change (msg 4d43064e), `0274` at `5e8d974a` (CLOSED), `0122` at `6d6cc7fd` (CLOSED), `0301` at `6e478ec4` (CLOSED), `0187` at `827e4686` (CLOSED), `0285` shape (b) committed with this board line.
+- **Handed to vc, not mine to close:** `0275` at `59a63541` (CLOSED), `0277` at `89a7048b` (CLOSED), `0193` re-driven at `f38b6f02` with no page change (msg 4d43064e), `0274` at `5e8d974a` (CLOSED), `0122` at `6d6cc7fd` (CLOSED), `0301` at `6e478ec4` (CLOSED), `0187` at `827e4686` (CLOSED), `0285` at `2994bae3` (CLOSED), `0078` committed with this board line.
 
 ## TODO
 
