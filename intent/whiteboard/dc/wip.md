@@ -3,9 +3,9 @@ node: dc
 name: DevX Claude
 role: worker
 session_id: b9e78c72-479d-4984-9df9-ac1bedfe7f2d
-heartbeat_at: 2026-09-11 15:40Z
+heartbeat_at: 2026-09-11 15:57Z
 status: active
-focus: "ON THE BOUNCE, 2026-09-11 15:40Z (vc: pause over). DOING: #68 0065 (doctor acknowledgement, decision 14). With vc: 0150 (c9960b90); 0259 half 2 driven and found to have NO instance at HEAD, so vc rules. Then decision 2's notice. Test suites run ONLY from a worktree's own sources. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
+focus: "COLUMN EMPTY, 2026-09-11 15:57Z. With vc: 0150 (c9960b90), 0065 (5493dd28), decision 2's notice (c2ea14c1). Nothing in flight and no worktree open; I've asked vc for the next column. Decision 6 is cut-time only. Test suites run ONLY from a worktree's own sources. hv: no new work. NO FIGURE HERE IS EVIDENCE; RUN THE VERBS."
 claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 ---
 
@@ -40,27 +40,21 @@ claims: [ST0056/07, ST0056/11, ST0056/12, ST0058]
 
 ## DOING
 
-**`0065` (#68), claimed 2026-09-11 15:40Z:** the doctor acknowledgement, decision 14 as ruled (spec in TODO below). Worktree off HEAD, one proving test red first, tests compiled only from the worktree's own sources, isolated HOME. Pre-fold board verbatim at `.history/20260911/wip-prefold-1316Z.md`.
+**Nothing in flight. Nothing of mine is uncommitted in the shared checkout, and no dc worktree is open.** Pre-fold board verbatim at `.history/20260911/wip-prefold-1316Z.md`.
 
-**With vc, for its re-drive and close:**
+**With vc, for its re-drive and close** (0212, 0259 and 0283 are CLOSED, read with `intent issues show` at 15:57Z):
 
-- **`0259` HALF 2**: driven 2026-09-11 15:40Z and found to have NO INSTANCE at HEAD, so nothing is built; the ruling is vc's. With the store edited alone, one doctor run flags `model-inconsistent` and reports zero view-skew, and that zero is TRUE. `diagnose` takes its model from committed canon (`ingest::read`, doctor.rs:317, since at least `a1a949cf`). Its two store-backed checks, backups and the op census, read tables `derived_dump` does not compare (store.rs:3439). I offered vc an optional S clarification of the finding's sentence as new work, not built. Found while: `model-inconsistent`'s class remedy is wrong for the store-vs-canon instance.
+- **`0150`**: landed at `c9960b90`. A second arm in `payload_list` names what is on disk that the roster does not; nothing is removed, and 0218 stands.
+- **`0065`**: landed at `5493dd28` (decision 14 as ruled, plus vc's one getting-started sentence). The drive recipe was sent to vc. Found while: nothing.
+- **Decision 2's notice**: landed at `c2ea14c1` (CHANGELOG line and release-notes backup sentence; "speaks 17" corrected to 18). Driven against the v3.0.0 keg; fixture at `scratchpad/drived2.sh`.
 
-- **`0150`**: landed at `c9960b90` (a second arm in `payload_list` names what is on disk and the roster does not; nothing removed, 0218 stands). Told vc 2026-09-11 14:38Z.
-
-- **`0283`**: both halves are in -- half A (mine) at `62f2db60`, half B (cc) at `fe8775ed`. C (a renderer-writes record) is out of 3.0.1 by vc's ruling.
-- **`0212`**: delivered by `be0422d9`; vc re-drives it through its own CLI drive.
-
-**Off my column by ruling, so do not pick them up:** `0177` (not workable in 3.0.1), `0220` (hv decision 13). **`0065` was on this line as NOT to be built until hv ruled decision 14 on 2026-09-11. It is now ON my column (TODO).**
+**Off my column by ruling, so do not pick them up:** `0177` (not workable in 3.0.1), `0220` (hv decision 13).
 
 ## TODO
 
-**vc's column for me, in order:** `0065` (DOING), then decision 2's notice. `0259` half 2 is with vc (above). `intent/wip.md` records all fourteen decisions as ruled at `3221118c` (vc). `0172` moved to cc. When these land, ask vc for the column rather than inventing work.
+**vc's column for me is EMPTY** as of 2026-09-11 15:57Z. Everything is delivered and with vc (above), and I asked vc for the next column in the 0065 hand-off. Do not invent work. `intent/wip.md` records all fourteen decisions as ruled at `3221118c`.
 
 - **Decision 6, CUT-TIME ONLY -- NOT A NOW TASK** (relayed by vc; ruled in `intent/wip.md` at `3221118c`, line 67 at that read): keep the two v3 bats files (`daemon_commands.bats`, `config_undefined.bats`). When the v2 trunk goes at the cut, point `test_helper.bash` at the v3 binary.
-
-- **`0065` (decision 14, ruled: my S design as written):** the key is `"doctor": {"acknowledged": {"<finding-class>": "<reason>"}}` in project config, using the FindingClass kebab name. An acknowledged class still RUNS and still prints `acknowledged: <class> -- <reason> (N finding(s))` in place of its warnings. **Its findings DROP OUT of the finding count and the exit code** (my original wording; "leaves" in decision 14's text means departs). `--format json` carries `acknowledged: true` and the reason. An acknowledgement naming no real class is itself reported, so a typo cannot silence a check. The write path is a hand edit. One test.
-- **Decision 2's notice (docs item):** one CHANGELOG line and one backup sentence in the migration docs, saying that 13 -> 17 and the 17 -> 18 rung cannot be reversed. The rung landed at `9046156b` (`0100`, cc: `status_legacy` on `wps`). hv recovered the live store's accidental 17 -> 18 by a rebuild at HEAD; that is an incident, not something the notice describes.
 
 **THE RULES ON THE BOUNCE** are unchanged and live in the paragraph below. Two practices that paid off today:
 
