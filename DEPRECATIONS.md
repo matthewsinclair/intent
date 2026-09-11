@@ -1,11 +1,41 @@
 ---
-verblock: "14 Aug 2026:v0.5: Matthew Sinclair - Updated for Intent v2.19.0"
-intent_version: 2.19.0
+verblock: "11 Sep 2026:v0.6: Matthew Sinclair - Updated for Intent v3.0.1"
+intent_version: 3.0.1
 ---
 
 # Intent Deprecations
 
 This document tracks features, files, and functionality that have been deprecated in Intent (formerly STP).
+
+Each entry's migration path is written for the version it names. To bring a v2 project to v3, see [Migrating from v2](docs/migrating-from-v2.md).
+
+## August and September 2026 (v3.0.0, v3.0.1): the v2 Bash implementation
+
+### What was deprecated
+
+The Bash implementation of Intent: the `bin/intent` CLI and its `bin/intent_*` scripts, the v2 shell critic and its rule-library helpers under `intent/plugins/claude/lib/`, and the `bin/intent_claude_hook` launcher. v3.0.0 replaced them with a native binary, and v3.0.1 removed them from the repository. v3's critic and its `intent claude hook` launcher are built into the binary.
+
+With them went `INTENT_HOME`. v3 resolves its install root from its own location and does not read the variable.
+
+These v2 commands are retired, and v3 refuses each one at exit 2 with a message saying it was retired: `st organize`, `st repair`, `st_zero`, `st bootstrap`, `issues hydrate`, `issues dehydrate`, `lang sync`, `treeindex`, `agents template`, `claude prime`. `intent init --with-st0000` is gone with `st bootstrap`.
+
+### Why it was deprecated
+
+v2 kept a project's truth in markdown and parsed it back out on every read. v3 keeps it in a store with a schema, commits a JSON extract of that store, and generates the markdown, so the model is validated on the way in rather than recovered from prose on the way out.
+
+### Migration path
+
+Run `intent ingest` to check that a v2 project would migrate, then `intent upgrade` to migrate it. [Migrating from v2](docs/migrating-from-v2.md) covers the hop and what to check afterwards. Remove `INTENT_HOME` from your environment, and remove calls to retired commands from your scripts.
+
+### Impact
+
+- The Homebrew install never carried the v2 scripts. Only someone running `bin/intent` from a checkout of this repository is affected by their removal.
+- The last released v2, v2.19.0, does not recognise a v3 project and will write v2 files into it. Take v2 off your `PATH` once a project is migrated.
+- A script calling a retired command gets exit 2.
+
+### Version deprecated
+
+Intent version 3.0.0; removed from the repository in 3.0.1.
 
 ## August 2026 (v2.19.0): free-form acceptance-test references
 
@@ -20,11 +50,11 @@ The AT row's reference field had no grammar. In practice that admitted a test na
 
 ### Why it was deprecated
 
-A field with no grammar cannot fail to parse; it can only be partially recovered, silently, one piece at a time. On the estate that surfaced this, that produced five mutually incompatible reference forms across 314 rows and two live `green` acceptance tests citing CSS utility classes as their test files, with no diagnostic anywhere. Coverage that cannot be resolved was still being counted as coverage.
+A field with no grammar cannot fail to parse; it can only be partially recovered, silently, one piece at a time. On the estate that surfaced this, that produced mutually incompatible reference forms and live `green` acceptance tests citing CSS utility classes as their test files, with no diagnostic anywhere. Coverage that cannot be resolved was still being counted as coverage.
 
 ### Migration path
 
-`intent at lint <ID> --fix` migrates the mechanical half (backticking a bare path, stripping a `::name` suffix, converting `and` separators to commas, delimiting a trailing note). Rows needing a human judgement are reported by name and never guessed at. `intent upgrade` runs the same sweep, so a consumer is migrated by upgrading rather than by knowing the command exists.
+In v2.19.0, `intent at lint <ID> --fix` migrates the mechanical half (backticking a bare path, stripping a `::name` suffix, converting `and` separators to commas, delimiting a trailing note), and v2.19.0's `intent upgrade` runs the same sweep. Rows needing a human judgement are reported by name and never guessed at. v3's `intent at lint <ID>` checks rows against the grammar and has no `--fix`.
 
 ### Impact
 
@@ -152,14 +182,11 @@ Users migrating from STP to Intent should:
 
 ### Where to find deprecated content
 
-- Original STP executables remain in the repository for reference
-- Migration is handled automatically by `intent upgrade`
-- Backwards compatibility maintained through symlinks
+- STP-era project layouts survive as example projects under `examples/`
 
 ### Impact
 
 - All new projects should use Intent commands and structure
-- Existing projects can continue using `stp` via compatibility symlink
 - Documentation has been updated to use Intent terminology
 - Repository renamed from `stp` to `intent`
 

@@ -8,11 +8,11 @@ Your code says what it does and version control says when it changed. Neither sa
   $ brew install matthewsinclair/intent/intent
 ```
 
-Full documentation is in [`docs/`](./docs/). If you are new, start at [the documentation index](./docs/index.md); if you are moving a v2 project across, start at [Migrating from v2](./docs/migrating-from-v2.md).
+The Homebrew build is for macOS on Apple silicon; anywhere else, [build from source](./docs/install.md#from-source). Full documentation is in [`docs/`](./docs/). If you are new, start at [the documentation index](./docs/index.md); if you are moving a v2 project across, start at [Migrating from v2](./docs/migrating-from-v2.md).
 
 ## What it is
 
-A single CLI, written in Rust, that manages a small set of durable objects inside your repository.
+A CLI, written in Rust, that manages a small set of durable objects inside your repository. A machine-level daemon, `intentd`, and a macOS menubar app ship beside it; the CLI does its work in-process and needs neither.
 
 A **steel thread** is one intention followed end to end. It breaks into **work packages**, and it states **acceptance criteria** — the conditions that decide whether the intention was met. Each criterion is backed by an **acceptance test**, so whether a thread is satisfied is computed rather than asserted.
 
@@ -52,7 +52,7 @@ The reasoning is now a tracked object rather than a paragraph in a chat log, and
 
 For the surface of a build you actually have in front of you, ask that build: `intent --help`, and `intent <command> --help`.
 
-> **`intent help` was retired in v3.** It refuses with a message saying so. Use `intent --help`.
+`intent help` prints the same top-level usage as `intent --help`. It takes no command name: for one command, use `intent <command> --help`.
 
 ## Repository layout
 
@@ -62,12 +62,14 @@ For the surface of a build you actually have in front of you, ask that build: `i
 ├── CLAUDE.md          # Claude Code-specific overlay
 ├── usage-rules.md     # Prescriptive DO / NEVER contract
 ├── native/rust/       # The v3 CLI, daemon and services -- the tool itself
-├── bin/               # The v2 Bash line, retained while v3 finishes its port
+├── native/macos/      # The Intent menubar app
+├── bin/               # devbin, the development launcher (bin/int is its alias)
 ├── docs/              # Public documentation (docs/v2/ is the frozen v2 archive)
 ├── surface/           # The dispatch register the command reference is generated from
 ├── lib/templates/     # Single source for all generated content
 └── intent/            # This project's own Intent artefacts
-    ├── .canon/        # The store: threads and issues as canon
+    ├── .canon/        # The committed extract of the store: threads and issues
+    ├── .cache/        # This machine's store (intent.db); not committed
     ├── .config/       # Per-project config and metadata
     ├── st/            # Steel threads (info.md and acceptance.md are generated views)
     ├── docs/          # Internal authoring canon
@@ -77,7 +79,7 @@ For the surface of a build you actually have in front of you, ask that build: `i
 
 **Intent is built with Intent**, so `intent/` here is both the tool's own working record and a worked example of what the tool produces.
 
-**Note on `intent/st/`:** `info.md` and `acceptance.md` are rendered from the store and say so in their own first lines. Edit them through the CLI; a hand-edit is discarded by the next sync and nothing fails at the moment you make it. `design.md`, `impl.md` and `tasks.md` are yours to write.
+**Note on `intent/st/`:** `info.md` and `acceptance.md` are rendered from the store and each says so in the file. Edit them through the CLI: a hand-edit never reaches the store, `intent doctor` reports it as view-skew, and the next render overwrites it. `design.md`, `impl.md` and `tasks.md` are prose you write; `intent st attach <ID> design.md --from <file>` records one in the store, and `intent st edit <ID> design` opens it once it is attached.
 
 ## Working with coding agents
 
