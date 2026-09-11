@@ -326,16 +326,14 @@ read -r -d '' JQ_PAGE <<'JQEOF' || true
        "| | |", "| --- | --- |",
        "| Revision this describes | " + ($revsha | bt) + " (" + ($rev | bt) + ") |",
        "| Release presence is reported against | " + (if $has_base then ($baseline | bt) else "none -- no register at the baseline" end) + " |",
-       "| Commands on this page | " + ($live | length | tostring) + " |",
-       "| ...with a stated exit contract | " + ($with_exit | tostring) + " |",
        "",
        "**The register is a declaration, not a behaviour claim.** The command surface is built from `surface/dispatch-table.json`, so the register at a revision states what that revision exposes. It does not state that any of it works. Where this page and your binary disagree, **your binary is right**.",
        "" ]
      + (if $with_exit < ($live | length) then
-          [ "**Exit codes are stated for " + ($with_exit | tostring) + " of these " + ($live | length | tostring) + " commands, and that is the register's coverage rather than an omission here.** A row carries the exit codes measured on _v2_; whether v3 reproduces them is a separate field. Where the register says v3 corrects v2 without recording what it corrects it to, this page says so instead of reprinting the behaviour the rewrite exists to remove.", "" ]
+          [ "**Exit codes are stated only where the register gives a command an exit contract, and not every command on this page has one -- that is the register's coverage rather than an omission here.** A row carries the exit codes measured on _v2_; whether v3 reproduces them is a separate field. Where the register says v3 corrects v2 without recording what it corrects it to, this page says so instead of reprinting the behaviour the rewrite exists to remove.", "" ]
         else [] end)
      + (if $preconditions > 0 then
-          [ "**" + ($preconditions | tostring) + " description" + (if $preconditions == 1 then " on this page asserts" else "s on this page assert" end) + " a precondition, flagged inline below.** Refusals have no declared home in the register, so they can only be stated as prose in a help string. The detector that finds them is a regex over English and is therefore a floor, not a ceiling: a precondition phrased without one of its words is invisible to it. Issue `0142`.", "" ]
+          [ "**Descriptions on this page that assert a precondition are flagged inline below.** Refusals have no declared home in the register, so they can only be stated as prose in a help string. The detector that finds them is a regex over English and is therefore a floor, not a ceiling: a precondition phrased without one of its words is invisible to it. Issue `0142`.", "" ]
         else [] end)
      + [ "## The commands", "",
          "| Command | What it does | In " + (if $has_base then $baseline else "release" end) + " | Reads or writes | Undo |",
@@ -436,8 +434,7 @@ SHIPPED_N="$(wc -l < "$TMP/shipped" | tr -d ' ')"
 # The prose is vc's, from `cf7cd4c8` and `6afd9d89`, moved here rather than
 # rewritten. What changed is the parts that are claims about the surface.
 render_index() {
-  local out="$1" retired_n added removed
-  retired_n="$(DISPATCH_TABLE="$TMP/rev.json" surface_retired | wc -l | tr -d ' ')"
+  local out="$1" added removed
   {
     cat <<HDR
 # Command reference
@@ -450,7 +447,7 @@ render_index() {
 
 Intent's command surface is declared in a register -- \`surface/dispatch-table.json\` -- which is the one home for what verbs exist, what arguments and flags they take, and what they do. **A hand-typed reference beside that register would be a transcribed copy of a measured mapping, and it would drift from the thing it copies.** So the reference is emitted from the register by a generator, and the emitted output names the revision it was made from.
 
-**That is not a hypothetical.** The family table below was hand-typed once and was short by twelve shipping commands, in the document whose own second paragraph says why that happens.
+**That is not a hypothetical.** The family table below was hand-typed once and went short of shipping commands, in the document whose own second paragraph says why that happens.
 
 ## Why the revision matters more than you would expect
 
@@ -471,17 +468,17 @@ Where this reference and your binary disagree, **your binary is right** and the 
 
 ## The surface, by family
 
-Intent ships **${SHIPPED_N}** commands at \`${REV}\`, across these pages.
+The commands Intent ships at \`${REV}\`, by page. Your own binary lists its surface: \`intent --help\` and \`intent <family> --help\`.
 
-| Page | What it covers | Commands |
-| --- | --- | --- |
+| Page | What it covers |
+| --- | --- |
 HDR
-    while IFS=$'\t' read -r title file blurb n; do
-      printf '| [%s](%s) | %s | %s |\n' "$title" "$file" "$blurb" "$n"
+    while IFS=$'\t' read -r title file blurb _n; do
+      printf '| [%s](%s) | %s |\n' "$title" "$file" "$blurb"
     done < "$TMP/manifest.tsv"
     printf '\n'
 
-    printf '**%s commands are retired** and refuse with an exit code that distinguishes "this was removed" from "this was never built":\n\n' "$retired_n"
+    printf '**These commands are retired** and refuse with an exit code that distinguishes "this was removed" from "this was never built". \`intent surface retired\` lists them from your own binary:\n\n'
     DISPATCH_TABLE="$TMP/rev.json" surface_retired | sed 's/^/- `/; s/$/`/'
     printf '\n'
 

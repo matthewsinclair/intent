@@ -186,16 +186,11 @@ table_at "$REV_SHA" "$TMP/rev.json"
 shipped_at "$TMP/rev.json" > "$TMP/rev.shipped"
 REV_N="$(wc -l < "$TMP/rev.shipped" | tr -d ' ')"
 flags_at "$TMP/rev.json" "$TMP/rev.shipped" > "$TMP/rev.flags"
-REV_F="$(wc -l < "$TMP/rev.flags" | tr -d ' ')"
 
-BASE_N="--"
-BASE_F="--"
 if [ -n "$BASE_SHA" ]; then
   if table_at "$BASE_SHA" "$TMP/base.json" 2>/dev/null; then
     shipped_at "$TMP/base.json" > "$TMP/base.shipped"
-    BASE_N="$(wc -l < "$TMP/base.shipped" | tr -d ' ')"
     flags_at "$TMP/base.json" "$TMP/base.shipped" > "$TMP/base.flags"
-    BASE_F="$(wc -l < "$TMP/base.flags" | tr -d ' ')"
   else
     echo "note: no register at ${BASELINE}; comparison omitted" >&2
     BASE_SHA=""
@@ -227,13 +222,8 @@ emit() {
 | --- | --- |
 | Revision this describes | \`${REV_SHA}\` (\`${REV}\`) |
 | Compared against | ${COMPARED} |
-| Commands shipped at this revision | **${REV_N}** |
-| Commands shipped at the baseline | ${BASE_N} |
-| Flags on shipped commands at this revision | **${REV_F}** |
-| Flags on shipped commands at the baseline | ${BASE_F} |
-| Refusals declared at this revision | ${REFUSAL_N} |
 
-**Every figure here is a property of one revision.** A count copied out of this file without the revision beside it is true when copied and silently false at the next merge -- which is the exact defect this artefact was built to stop, so it would be a poor place to reintroduce it.
+**Everything here is a property of one revision.** A list copied out of this file without the revision beside it is true when copied and silently false at the next merge -- which is the exact defect this artefact was built to stop. **It carries no counts for the same reason.** Your own binary answers for itself: \`intent --help\` and \`intent <family> --help\` list what it ships, and \`intent surface retired\` lists what it refuses as retired.
 
 **This is a DECLARATION, not a behaviour claim.** The command surface is built from \`surface/dispatch-table.json\`, so the register at a revision states what that revision exposes. It does not state that any of it works.
 HDR
@@ -302,7 +292,7 @@ HDR
   sed 's/^/- `/; s/$/`/' "$TMP/rev.shipped"
 
   printf '\n## Refusals\n\n'
-  printf 'The %s refusal variants declared at this revision, from `ALL_VARIANTS` in `%s`.\n\n' "$REFUSAL_N" "$ROSTER"
+  printf 'The refusal variants declared at this revision, from `ALL_VARIANTS` in `%s`.\n\n' "$ROSTER"
   printf '**The register does not carry refusals and it should.** A row declares its path, args, flags, target, disposition, recoverability, MCP exposure and read-or-mutate, and nothing about what it refuses. This list therefore comes from a roster that declares itself exhaustive and is checked as one, which is the same kind of object as `.populations` -- but it lives somewhere else, and a reader who assumes the register carries refusals because this document has them would be wrong. **Filed as owed.**\n\n'
   sed 's/^/- `/; s/$/`/' "$TMP/refusals"
 
@@ -310,9 +300,9 @@ HDR
 
 ## Two traps for anyone computing from the register
 
-**1. The populations are keyed by spelling, and spelling is not unique.** `organize` is in `shipped` AND in `retired`, correctly: they are two different commands sharing a name -- the retired v2 one, and an unrelated new-surface command that reconciles the tree with `.intentfiles`. So `declared` is 127 rows over 126 distinct spellings, and the natural computation `shipped - retired` returns 117 and **silently drops a shipping command**. Key on the row.
+**1. The populations are keyed by spelling, and spelling is not unique.** Spellings such as `organize` and `help` are in `shipped` AND in `retired`, correctly: each is two different commands sharing a name -- a retired v2 one, and an unrelated new-surface command. So `declared` has more rows than distinct spellings, and the natural computation `shipped - retired` **silently drops a shipping command**. Key on the row.
 
-**2. `shipped` is duplicate-free, and that is a measurement rather than a rule.** 118 rows, 118 distinct, so a spelling IS a key within that one list -- which is why the diff above is sound. Do not carry that property to the other lists; it was measured for one.
+**2. `shipped` is duplicate-free, and that is a measurement rather than a rule.** Every row in it is a distinct spelling, so a spelling IS a key within that one list -- which is why the diff above is sound. Do not carry that property to the other lists; it was measured for one, and it is worth re-measuring before relying on it.
 TRAP
 }
 
