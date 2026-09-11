@@ -84,3 +84,5 @@ The docs now describe each as built. None is worked until hv rules.
 3. **`st done` ignores work-package status** (vc). A thread closed with a `not-started` WP; the gate is over criteria only.
 4. **`at new --covers <missing AC>` refuses correctly, but with a PUT/POST remedy** unrelated to the error (vc).
 5. **The critic prints `ok:` and then refuses at rc=2 over an empty rule library** (dc). `render.rs:10437-10441` prints before the exit-code match at `:10272`.
+6. **`intent upgrade` reports a whiteboard "still on disk" in a project that has none** (dc). `sync.rs:201-213` prints the static NOT_YET_BUILT list from `sync.rs:168` without checking for it.
+7. **The app-not-installed remedy names `bin/devbin`, which a Homebrew user does not have** (dc, from reading the code at `macapp.rs:178`). Their route is `Intent.app.zip` from the release.

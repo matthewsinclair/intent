@@ -42,7 +42,7 @@ Intent's answer is to make the reasoning a tracked object with a state the tool 
 
 ## What this documentation covers
 
-This set describes **Intent v3**, the Rust implementation. Intent v2 was a Bash implementation whose final release was v2.19.0; it is documented separately and frozen at [`docs/v2/`](v2/). The two are not interchangeable — a v2 binary refuses a v3 project deliberately, and [Migrating from v2](migrating-from-v2.md) describes the hop.
+This set describes **Intent v3**, the Rust implementation. Intent v2 was a Bash implementation whose final release was v2.19.0; it is documented separately and frozen at [`docs/v2/`](v2/). The two are not interchangeable, and nothing in the released v2 stops you mixing them: v2.19.0 does not recognise a v3 project and writes v2-shaped files into it. Take v2 off your `PATH` once a project is migrated; [Migrating from v2](migrating-from-v2.md) describes the hop.
 
 Deeper authoring guides — writing rules, writing critics, writing extensions, and the full narrative on how Intent composes with coding agents — live at `intent/docs/` in this repository. They are not part of the installed tool. This set links across to them rather than duplicating them.
 
