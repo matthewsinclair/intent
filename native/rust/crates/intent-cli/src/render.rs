@@ -8278,14 +8278,19 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
   };
   let root = f.project().root();
   let hooks = intentsvcs::canon::hooks_dir(root);
+  let skip_settings = m.get_flag("skip-settings");
 
   if !m.get_flag("apply") {
     println!(
       "canon (dry run): would apply v3 canon to {}",
       root.display()
     );
+    if skip_settings {
+      println!("  .claude/settings.json -- skipped (--skip-settings)");
+    } else {
+      println!("  .claude/settings.json");
+    }
     for name in [
-      ".claude/settings.json",
       "CLAUDE.md",
       "AGENTS.md",
       "usage-rules.md (only if absent)",
@@ -8316,6 +8321,7 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
     &ctx,
     hooks.as_deref(),
     m.get_flag("force"),
+    skip_settings,
   )
   .map_err(|e| Failure::Error(e.to_string()))?;
 
@@ -8341,12 +8347,18 @@ fn claude_upgrade(m: &ArgMatches) -> Result<(), Failure> {
       rel(root, p)
     );
   }
+  // Named, like every other disposition: a skipped file must not read as one
+  // canon forgot (issue `0143`).
+  for p in &applied.skipped {
+    println!("skipped: {} (--skip-settings)", rel(root, p));
+  }
   println!(
-    "ok: {} written, {} already canonical, {} preserved, {} held.",
+    "ok: {} written, {} already canonical, {} preserved, {} held, {} skipped.",
     applied.written.len(),
     applied.unchanged.len(),
     applied.preserved.len(),
-    applied.held.len()
+    applied.held.len(),
+    applied.skipped.len()
   );
 
   // **WHETHER THE GATE JUST INSTALLED CAN ACTUALLY RUN.** Everything above is a

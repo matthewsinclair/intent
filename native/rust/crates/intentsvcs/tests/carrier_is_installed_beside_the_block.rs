@@ -69,6 +69,7 @@ fn apply(fx: &crate::common::Fixture, hooks: &Path) -> canon::Applied {
     &crate::common::ctx(),
     Some(hooks),
     false,
+    false,
   )
   .expect("canon apply")
 }
@@ -257,6 +258,7 @@ fn no_repository_means_no_carrier_and_no_error() {
     &crate::common::ctx(),
     None,
     false,
+    false,
   )
   .expect("a project without git is a supported shape, not an error");
 
@@ -267,5 +269,79 @@ fn no_repository_means_no_carrier_and_no_error() {
       .chain(applied.unchanged.iter())
       .any(|p| p.ends_with("pre-commit.intent")),
     "no repository, no carrier: {applied:?}"
+  );
+}
+
+/// `--skip-settings` (issue `0143`): a project's own `.claude/settings.json` is
+/// left byte-for-byte as it was, reported as skipped, and the rest of canon --
+/// the gate included -- is still applied.
+///
+/// **THE FILE IS PLANTED WITH NON-CANON BYTES, SO THE ARM CAN FAIL.** Against
+/// an absent or already-canonical file, "left alone" and "rewritten" would look
+/// the same; the control run without the flag shows the same fixture DOES get
+/// rewritten.
+#[test]
+fn skip_settings_leaves_the_settings_file_alone_and_says_so() {
+  let project_settings = r#"{ "hooks": {}, "mine": true }"#;
+  let run = |skip: bool| {
+    let fx = crate::common::Fixture::new();
+    fx.git_init();
+    let hooks = hooks_dir(&fx);
+    let settings = fx.root().join(".claude/settings.json");
+    std::fs::create_dir_all(settings.parent().expect("parent")).expect("mkdir .claude");
+    std::fs::write(&settings, project_settings).expect("plant settings");
+    let project = fx.project();
+    let applied = canon::apply(
+      fx.root(),
+      &home(),
+      project.config(),
+      &crate::common::ctx(),
+      Some(&hooks),
+      false,
+      skip,
+    )
+    .expect("canon apply");
+    let after = std::fs::read_to_string(&settings).expect("settings still readable");
+    (applied, after, settings, hooks)
+  };
+
+  let (applied, after, settings, hooks) = run(true);
+  assert_eq!(
+    after, project_settings,
+    "--skip-settings rewrote the project's settings.json"
+  );
+  assert_eq!(
+    applied.skipped,
+    vec![settings.clone()],
+    "the skip must be reported: {applied:?}"
+  );
+  assert!(
+    !applied
+      .written
+      .iter()
+      .chain(applied.unchanged.iter())
+      .any(|p| p == &settings),
+    "a skipped file must not also report as written or unchanged: {applied:?}"
+  );
+  assert!(
+    applied
+      .written
+      .iter()
+      .any(|p| p == &hooks.join("pre-commit.intent")),
+    "skipping the settings must not skip the rest of canon: {applied:?}"
+  );
+
+  let (control, after, settings, _) = run(false);
+  assert_ne!(
+    after, project_settings,
+    "the control run must rewrite the planted file, or the arm above proves nothing"
+  );
+  assert!(
+    control.skipped.is_empty(),
+    "nothing is skipped without the flag: {control:?}"
+  );
+  assert!(
+    control.written.iter().any(|p| p == &settings),
+    "{control:?}"
   );
 }

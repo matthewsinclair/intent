@@ -5797,6 +5797,15 @@
               "help": "Overwrite user-edited canon files (CLAUDE.md without the marker, and .intent_critic.yml)",
               "disposition": "keep",
               "measured_late_and_the_reason_is_the_finding": "**ADDED BY ic 2026-08-23 ON cc's REPORT, CITATION VERIFIED EXACTLY.** `intent/plugins/claude/bin/intent_claude_upgrade:116` is the `--force)` parse arm and `:72` is its own `--help` line, both as cc cited them. **This row is the case where the obvious explanation fails: the flag is in the command's OWN file, in the SAME `case` idiom every correctly-declared row uses, and the census still missed it.** So _a flag reached through a sourced library is invisible to a per-command scan_ is true and is not sufficient. **AND ic NEARLY REPORTED cc's CITATION AS FABRICATED: I looked for `bin/intent_claude_upgrade`, found it absent from this repo AND from the frozen v2 checkout, and was one step from saying so. The file is at `intent/plugins/claude/bin/`.** My check was scoped to the wrong directory and produced a confident absence -- the same shape as the scan defect this row records, committed while verifying it, and it would have accused a peer."
+            },
+            {
+              "spellings": [
+                "--skip-settings"
+              ],
+              "type": "bool",
+              "help": "Leave .claude/settings.json alone, so no Claude Code session hooks are wired",
+              "disposition": "keep",
+              "disposition_basis": "Restored 2026-09-11 for issue 0143 (v3.0.1 list #53). v2 shipped it (intent_claude_upgrade:74, :118, :856-860) as the single escape hatch for a project that does not want Claude Code lifecycle hooks, and nothing recorded dropping it at port time as a decision. In v2 it gated .claude/settings.json and the three per-project hook scripts; v3 writes no per-project hook scripts (their bodies are served from the install), so here it declines the settings file only, and reports it as skipped rather than leaving it unmentioned."
             }
           ],
           "v2": "bin/intent claude arm",

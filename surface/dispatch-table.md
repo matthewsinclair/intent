@@ -2547,17 +2547,17 @@ Claude Code integration: subagents, skills, rules, hooks, workstreams
 - **`intent claude rules` bare does not print usage -- it LISTS rules**, defaulting to the `list` verb. Measured.
 - `claude hook <name>` must stay byte-compatible on day one (parity.md): issue 0016's runtime-resolved hooks plus byte-identical settings.json is what makes the v2-to-v3 binary swap invisible at the consumer hook layer. It propagates the hook's own exit code, including 2, by design (INV-04).
 
-| command            | args             | flags                            | help                                            | disposition |
-| ------------------ | ---------------- | -------------------------------- | ----------------------------------------------- | ----------- |
-| `claude`           | <subcommand>     | --                               | Claude Code integration                         | keep        |
-| `claude subagents` | <verb> [name]... | -v, --force/-f, --all            | Manage Claude Code subagents                    | keep        |
-| `claude skills`    | <verb> [name]... | -v, --force/-f, --dry-run, --all | Manage Claude Code skills                       | keep        |
-| `claude rules`     | [verb] [id]      | --lang <lang>                    | List and show rule-library rules                | keep        |
-| `claude hook`      | <name>           | --                               | Run a named Intent hook                         | keep        |
-| `claude upgrade`   | --               | --apply, --force                 | Apply Claude canon to the project               | keep        |
-| `claude prime`     | --               | --                               | Generate MEMORY.md content for a Claude session | keep        |
-| `claude ws`        | <verb> [wsid]    | --                               | Manage whiteboard workstreams                   | keep        |
-| `claude start`     | <ws>             | --                               | Launch a Claude session bound to a workstream   | keep        |
+| command            | args             | flags                             | help                                            | disposition |
+| ------------------ | ---------------- | --------------------------------- | ----------------------------------------------- | ----------- |
+| `claude`           | <subcommand>     | --                                | Claude Code integration                         | keep        |
+| `claude subagents` | <verb> [name]... | -v, --force/-f, --all             | Manage Claude Code subagents                    | keep        |
+| `claude skills`    | <verb> [name]... | -v, --force/-f, --dry-run, --all  | Manage Claude Code skills                       | keep        |
+| `claude rules`     | [verb] [id]      | --lang <lang>                     | List and show rule-library rules                | keep        |
+| `claude hook`      | <name>           | --                                | Run a named Intent hook                         | keep        |
+| `claude upgrade`   | --               | --apply, --force, --skip-settings | Apply Claude canon to the project               | keep        |
+| `claude prime`     | --               | --                                | Generate MEMORY.md content for a Claude session | keep        |
+| `claude ws`        | <verb> [wsid]    | --                                | Manage whiteboard workstreams                   | keep        |
+| `claude start`     | <ws>             | --                                | Launch a Claude session bound to a workstream   | keep        |
 
 ### `claude`
 
@@ -2713,6 +2713,9 @@ Apply Claude canon to the project
   - `--force` (bool) -- Overwrite user-edited canon files (CLAUDE.md without the marker, and .intent_critic.yml)
     - **disposition:** keep
     - **measured late and the reason is the finding:** **ADDED BY ic 2026-08-23 ON cc's REPORT, CITATION VERIFIED EXACTLY.** `intent/plugins/claude/bin/intent_claude_upgrade:116` is the `--force)` parse arm and `:72` is its own `--help` line, both as cc cited them. **This row is the case where the obvious explanation fails: the flag is in the command's OWN file, in the SAME `case` idiom every correctly-declared row uses, and the census still missed it.** So _a flag reached through a sourced library is invisible to a per-command scan_ is true and is not sufficient. **AND ic NEARLY REPORTED cc's CITATION AS FABRICATED: I looked for `bin/intent_claude_upgrade`, found it absent from this repo AND from the frozen v2 checkout, and was one step from saying so. The file is at `intent/plugins/claude/bin/`.** My check was scoped to the wrong directory and produced a confident absence -- the same shape as the scan defect this row records, committed while verifying it, and it would have accused a peer.
+  - `--skip-settings` (bool) -- Leave .claude/settings.json alone, so no Claude Code session hooks are wired
+    - **disposition:** keep
+    - **disposition basis:** Restored 2026-09-11 for issue 0143 (v3.0.1 list #53). v2 shipped it (intent_claude_upgrade:74, :118, :856-860) as the single escape hatch for a project that does not want Claude Code lifecycle hooks, and nothing recorded dropping it at port time as a decision. In v2 it gated .claude/settings.json and the three per-project hook scripts; v3 writes no per-project hook scripts (their bodies are served from the install), so here it declines the settings file only, and reports it as skipped rather than leaving it unmentioned.
 - **Exit codes:**
   - `0` -- applied or reported
   - `1` -- canon source missing

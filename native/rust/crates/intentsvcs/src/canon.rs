@@ -173,6 +173,10 @@ pub struct Applied {
   /// generated marker and `--force` was not given. Distinct from `preserved`:
   /// canon owns the template for these, and held back on consent grounds.
   pub held: Vec<PathBuf>,
+  /// Paths the caller told canon not to examine at all -- `.claude/settings.json`
+  /// under `--skip-settings` (issue `0143`). Not `preserved`: nothing here was
+  /// read, so nothing can be said about whose it is.
+  pub skipped: Vec<PathBuf>,
   /// The machine's install pointer as it stood when the carrier was installed;
   /// `None` when no carrier was installed at all.
   ///
@@ -372,6 +376,12 @@ pub fn hooks_dir(root: &Path) -> Option<PathBuf> {
 /// way against a fixture as against a real clone -- and so a project with no
 /// git is a `None` the caller decides about rather than a failure invented in
 /// the middle of a write.
+///
+/// `skip_settings` leaves `.claude/settings.json` alone and reports it as
+/// [`Applied::skipped`] -- v2's `--skip-settings`, the one way for a project to
+/// take Intent's canon without Claude Code lifecycle hooks (issue `0143`). It
+/// declines the settings file only: v3 writes no per-project hook scripts, so
+/// the other half of v2's escape hatch has nothing to skip.
 pub fn apply(
   root: &Path,
   home: &Path,
@@ -379,6 +389,7 @@ pub fn apply(
   ctx: &RenderContext<'_>,
   git_hooks: Option<&Path>,
   force: bool,
+  skip_settings: bool,
 ) -> Result<Applied, CanonError> {
   let mut applied = Applied::default();
 
@@ -386,8 +397,13 @@ pub fn apply(
   //    three hook names and their timeouts are canon, and a second spelling of
   //    them in Rust is the two-homes defect in the file whose whole job is to
   //    make every project agree.
-  let settings = template(home, ".claude/settings.json")?;
-  write_if_changed(&root.join(".claude/settings.json"), &settings, &mut applied)?;
+  let settings_path = root.join(".claude/settings.json");
+  if skip_settings {
+    applied.skipped.push(settings_path);
+  } else {
+    let settings = template(home, ".claude/settings.json")?;
+    write_if_changed(&settings_path, &settings, &mut applied)?;
+  }
 
   // 2. Generated root files. DELEGATED -- `rootfiles` owns substitution and the
   //    language-conditional blocks, and a second renderer here would drift from

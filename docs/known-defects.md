@@ -242,7 +242,7 @@ These flags are documented in `--help`, accepted without complaint, and read by 
 
 **`intent agents init --template`** (`intent#0180`) and **`intent llm usage_rules --symlink`** (`intent#0181`). Both confirmed present in v3.0.0's own help output. **v3.0.1 closes the `--template` half by withdrawing the flag, not by porting v2's templates**: it is gone from `agents init --help`, and passing it is refused at exit 1 with `unexpected argument '--template'`, whether or not the template name exists. On the same build, bare `agents init` writes `AGENTS.md` at exit 0.
 
-**`intent claude upgrade` has no `--skip-settings`** (`intent#0143`). v2 had a flag to decline the Claude Code settings file. v3.0.0's `claude upgrade --help` offers only `--apply`, `--force` and `--help`, so there is no way to ask it to leave your settings alone.
+**`intent claude upgrade` has no `--skip-settings`** (`intent#0143`). v2 had a flag to decline the Claude Code settings file. v3.0.0's `claude upgrade --help` offers only `--apply`, `--force` and `--help`, so there is no way to ask it to leave your settings alone. **v3.0.1 restores the flag**: `intent claude upgrade --apply --skip-settings` leaves `.claude/settings.json` as it found it, reports it as `skipped`, and applies the rest of canon.
 
 **`intent claude skills uninstall --force`** (`intent#0078`). The flag is in `--help` and the call behind it takes no force argument at all, so passing it changes nothing. Driven on v3.0.0 against a skill this build did not write:
 
