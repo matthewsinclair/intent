@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-11 16:50Z
+heartbeat_at: 2026-09-11 17:13Z
 status: active
-focus: "LOCALFOLD 2026-09-11 16:50Z FOR THE COMPACT -- not a release. HOLDING while vc cuts 3.0.1: every cc item is closed and verified. One loose end: wt-cc stays until ~/.intent/home names the main checkout again (hv restores it). intentsvcs and intent-cli suites run ONLY from a private worktree under an isolated HOME."
+focus: "AC-00.6 (the cut): my eight mixed bats files. 2 v2 tests deleted in a private worktree, 13 v3 differences with vc for ruling; lands as ONE commit after dc's prune, rebased. Suites run only in a private worktree under an isolated HOME."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -16,7 +16,9 @@ claims: [ST0056/06, ST0056/10]
 
 **FOLDED 2026-09-11 16:50Z FOR THE COMPACT -- not a release. HOLDING WHILE vc CUTS 3.0.1.** The board before this fold is verbatim at `.history/20260911/wip-prefold-1650Z.md`, and every fix is in `git log` under its id. Every cc item is closed, re-driven by vc before each close (`0066`, `0084`, `0100`, `0145`, `0146`, `0153`, `0176`, `0231`), and hv's decisions 4 (`7d3ffe61`), 5 (`32958364`) and 7 (`56322937`; AC-01.7 satisfied at `23bca1b1`, notarised as `afbcaa0b`) are verified. The list has no workable row.
 
-**ONE LOOSE END, MINE:** my scratch worktree `wt-cc` (scratchpad, detached at `32958364`) is named by `~/.intent/home` since 15:34:59Z -- see W5. **Remove it only after `cat ~/.intent/home` names the main checkout.** hv is restoring the pointer (`~/.local/bin/intent bootstrap` from the main checkout); I do not touch it.
+**AC-00.6 (THE CUT), ROUTED BY vc, CONFIRMED BY hv LIVE:** my eight mixed bats files -- `claude_md_template`, `co_language_code_guard`, `critic_arming_census`, `critic_config`, `critic_report_format`, `devbin_seal_disagreement`, `ext_seed_validity`, `no_absolute_home_paths`. Driven in private worktree `wt-cut` (v2 deleted locally, its own release build, isolated HOME). **Deleted (v2 subject):** `critic_arming_census` test 9 (v2 critic wording), `no_absolute_home_paths` test 4 (greps the deleted v2 `intent_claude_upgrade`). **With vc for ruling:** 13 tests in groups A-G (`critic --rules` not honoured; JSON shape; the template's rule index; `INTENT_AUTHOR`; an IN-CO fixture id collision; a stale devbin grep; `ext` unbuilt). Patch banked at scratchpad `ac006-cc.patch`. **Lands as ONE commit, `AC-00.6` in the subject, only after dc's prune is on main** -- then send vc the sha and the per-file counts.
+
+`wt-cc` is removed: vc restored `~/.intent/home` on hv's word, and it reads the main checkout.
 
 ## TODO
 
