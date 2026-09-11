@@ -14,7 +14,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**#66 `0066` -- CLAIMED 2026-09-11 13:31Z (routed by vc), FIXED AT `f74fbf31`, WITH vc FOR THE RE-DRIVE.** On v3 the defect is sharper than the issue's v2 evidence. The migrator walks the top level plus the three status buckets, and `Project::migration` descends into any directory. So a v2 estate with `intent/st/_inbox/ST0002/` upgraded at rc=0 with the thread skipped, and then every verb refused under a remedy (`intent upgrade`) that looped. Phase A now blocks, as `unknown-file-shape`, naming the path and both remedies. The proving test is in `migrate_refusal.rs`, seen red first (`Upgraded { threads: 1 }`). A census of 24 estates found no holding today.
+**#66 `0066` -- ROUTED BY vc AND CLAIMED (no clock was read at the claim, so it carries no time), FIXED AT `f74fbf31`, WITH vc FOR THE RE-DRIVE.** On v3 the defect is sharper than the issue's v2 evidence. The migrator walks the top level plus the three status buckets, and `Project::migration` descends into any directory. So a v2 estate with `intent/st/_inbox/ST0002/` upgraded at rc=0 with the thread skipped, and then every verb refused under a remedy (`intent upgrade`) that looped. Phase A now blocks, as `unknown-file-shape`, naming the path and both remedies. The proving test is in `migrate_refusal.rs`, seen red first (`Upgraded { threads: 1 }`). A census of 24 estates found no holding today.
 
 **#77 `0176` -- RULED BY vc: close as not a defect at HEAD, no code.** vc carries the false remedy (a positional reason; `st reopen` printed for a WP) in the close message. The board before the fold is verbatim at `.history/20260911/wip-prefold-1311Z.md`.
 
