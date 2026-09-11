@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 09:15Z
+heartbeat_at: 2026-09-11 09:27Z
 status: active
-focus: "THE WORK LIST, 2026-09-11 09:15Z. hv: no new work; the 92 open defects in intent/wip.md, in 3.0.1 priority order, are the whole of it. vc keeps the list, drives every fix before closing its issue, and holds hv's pen for the ten decisions. AGGRESSIVE LOCALFOLD: pre-fold board verbatim at .history/20260911/wip-prefold-0914Z.md. RUN THE VERBS; every figure here rots."
+focus: "ON THE BOUNCE, 2026-09-11 09:27Z. hv: no new work; the 92 open defects in intent/wip.md, in 3.0.1 priority order, are the whole of it. vc keeps the list, drives every fix before closing its issue, and holds hv's pen for the ten decisions. Pre-fold board verbatim at .history/20260911/wip-prefold-0914Z.md. RUN THE VERBS; every figure here rots."
 claims: [ST0056, ST0057, ST0060, ST0068, ST0070, ST0073]
 ---
 
