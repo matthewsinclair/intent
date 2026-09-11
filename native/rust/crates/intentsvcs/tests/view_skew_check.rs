@@ -263,3 +263,76 @@ fn an_absent_or_unreadable_manifest_keeps_every_view_in_scope() {
     assert_eq!(findings[0].file, "intent/st/ST0056/info.md");
   }
 }
+
+/// **0283 HALF B: A MUTATION REFRESHES AN UNDECLARED THREAD'S VIEW ONLY WHEN
+/// THE DISK STILL HOLDS WHAT THE STORE LAST RENDERED.** A closed thread drops
+/// out of `.intentfiles` while its files stay on disk, and the projection
+/// skipped every undeclared view -- so `ac new` on it left `acceptance.md`
+/// stale, and doctor called the store-ahead gap a hand edit.
+///
+/// Disk equal to the render of canon BEFORE the change is store-ahead by
+/// construction, so it is refreshed; anything else is a hand edit and is left
+/// for doctor. Either way the thread is not re-declared: that is `st hydrate`'s
+/// act, not a mutation's side effect.
+#[test]
+fn a_mutation_refreshes_an_undeclared_view_only_when_the_disk_is_what_the_store_last_rendered() {
+  use intentsvcs::address::{Address, Entity};
+  use intentsvcs::model::{AcKind, ThreadStatus};
+  const NOTHING_DECLARED: &str = "# .intentfiles\n\n# BEGIN INTENT\n# END INTENT\n";
+
+  // Realise a closed thread, then undeclare it, optionally hand-edit its
+  // contract view, then add a criterion. Returns the view before and after the
+  // mutation, and the manifest after.
+  let drive = |hand_edit: bool| -> (String, String, String) {
+    let fx = Fixture::new();
+    let mut thread = sample_thread("ST0001");
+    thread.status = ThreadStatus::Completed;
+    fx.write_thread(&thread);
+    fx.write_file("intent/.intentfiles", NOTHING_DECLARED);
+    let mut facade = fx.facade();
+    facade
+      .hydrate(&Address {
+        authority: None,
+        entity: Entity::Thread {
+          id: "ST0001".to_string(),
+        },
+        format: None,
+      })
+      .expect("realise the thread");
+    fx.write_file("intent/.intentfiles", NOTHING_DECLARED);
+    let view = fx.path("intent/st/ST0001/acceptance.md");
+    if hand_edit {
+      let mut text = std::fs::read_to_string(&view).expect("the realised view");
+      text.push_str("\na hand edit\n");
+      std::fs::write(&view, text).expect("hand-edit the view");
+    }
+    let before = std::fs::read_to_string(&view).expect("the view before");
+    facade
+      .ac_new(
+        "ST0001",
+        "AC-09.1",
+        "added after the close",
+        AcKind::NonTest,
+      )
+      .expect("add a criterion to the closed thread");
+    let after = std::fs::read_to_string(&view).expect("the view after");
+    let manifest = std::fs::read_to_string(fx.path("intent/.intentfiles")).expect("manifest");
+    (before, after, manifest)
+  };
+
+  let (before, after, manifest) = drive(false);
+  assert!(
+    !before.contains("AC-09.1") && after.contains("AC-09.1"),
+    "the store is ahead and the disk held its last render, so the view is refreshed: {after}"
+  );
+  assert_eq!(
+    manifest, NOTHING_DECLARED,
+    "the mutation does not re-declare the thread"
+  );
+
+  let (before, after, _) = drive(true);
+  assert_eq!(
+    after, before,
+    "a hand-edited view is left for doctor, byte for byte"
+  );
+}

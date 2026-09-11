@@ -3597,7 +3597,7 @@ impl Facade {
     let Projection {
       mut set,
       canon_files,
-    } = self.projection(&canon, &all_threads, &all_issues, None)?;
+    } = self.projection(&canon, &all_threads, &all_issues, None, None)?;
     for (path, content) in self.attachments_the_disk_lacks(&canon, scope)? {
       set.add(path, content);
     }
@@ -3783,7 +3783,7 @@ impl Facade {
     // The rest keep the store's value, so re-rendering their covers changes
     // nothing but a hand edit a peer is holding -- which it discards.
     let Projection { set, canon_files } =
-      self.projection(&canon, &all_threads, &all_issues, Some(scope))?;
+      self.projection(&canon, &all_threads, &all_issues, Some(scope), None)?;
     let applied = set.commit()?;
     self.record_landed(&canon_files)?;
     let wrote = self.estate_paths(&applied);
@@ -4189,6 +4189,7 @@ impl Facade {
     threads: &[&Thread],
     issues: &[&Issue],
     views_of: Option<&SyncScope>,
+    before: Option<&Canon>,
   ) -> Result<Projection, FacadeError> {
     let mut set = WriteSet::new();
     let mut canon_files: Vec<(std::path::PathBuf, String)> = Vec::new();
@@ -4251,12 +4252,44 @@ impl Facade {
     .into_iter()
     .map(|h| h.thread)
     .collect();
+    // **AN UNDECLARED THREAD'S VIEW IS REFRESHED ONLY WHEN THE STORE IS AHEAD
+    // OF IT (0283).** A closed thread drops out of `.intentfiles` while its
+    // files stay on disk, so a mutation on it left them stale -- and doctor then
+    // called the gap a hand edit. Disk bytes equal to the render of canon BEFORE
+    // this change are what the store last put there, so the store is ahead by
+    // construction; anything else is a hand edit and is left for doctor. No
+    // file index is consulted: it holds scan rows, not renderer writes, so it
+    // cannot tell direction. A missing file stays missing, and the thread is
+    // never re-declared -- realising is `st hydrate`'s act, not a mutation's.
+    let changed: std::collections::BTreeSet<&str> = threads.iter().map(|t| t.id.as_str()).collect();
+    // Rendered only when a changed thread is undeclared -- the ordinary
+    // mutation on a declared thread pays nothing for this.
+    let undeclared_changed = match &realised {
+      Realised::Declared(declared) => changed.iter().any(|id| !declared.contains(*id)),
+      // Neither skips a view below, so neither needs the prior render.
+      Realised::NothingSaid | Realised::Unreadable => false,
+    };
+    let rendered_before: Vec<views::View> = match before {
+      Some(prior) if undeclared_changed => {
+        views::render_all(&self.project, prior, &self.render_ctx()?)
+      }
+      _ => Vec::new(),
+    };
     for view in views::render_all(&self.project, canon, &self.render_ctx()?) {
       if let Realised::Declared(ref declared) = realised
         && let Some(owner) = self.owning_thread(&view.path, canon)
         && !declared.contains(&owner)
       {
-        continue;
+        let store_ahead = changed.contains(owner.as_str())
+          && rendered_before
+            .iter()
+            .find(|v| v.path == view.path)
+            .is_some_and(|prior| {
+              std::fs::read_to_string(&view.path).is_ok_and(|disk| disk == prior.content)
+            });
+        if !store_ahead {
+          continue;
+        }
       }
       if let Some(owner) = self.owning_thread(&view.path, canon)
         && held.contains(&owner)
@@ -9016,8 +9049,13 @@ impl Facade {
       .iter()
       .filter(|i| changed_issue_numbers.contains(&i.number))
       .collect();
-    let Projection { set, canon_files } =
-      self.projection(&next, &changed_threads, &changed_issues, None)?;
+    let Projection { set, canon_files } = self.projection(
+      &next,
+      &changed_threads,
+      &changed_issues,
+      None,
+      Some(&self.canon),
+    )?;
     drop(changed_threads);
     drop(changed_issues);
 
