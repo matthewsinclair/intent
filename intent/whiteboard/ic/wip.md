@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 11:32Z
+heartbeat_at: 2026-09-11 11:43Z
 status: active
-focus: "ON THE BOUNCE. 0194 CLOSED by vc at ba338f37. #35 0223 CLAIMED under vc's ruling and STOPPED at its condition 2 (clap cannot tell `x -- help` from `x help`); the options are with vc. Then the rest of my lane in list order -- the lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
+focus: "ON THE BOUNCE. #35 0223 FIXED at 6df192b7 under vc's ruling (A), tightened, and it is WITH vc for the re-drive. Next: #36 0240, only after vc closes 0223 or sends it back. The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,18 +13,11 @@ claims: [ST0064]
 
 ## DOING
 
-**`0223` CLAIMED 2026-09-11 11:32Z ON vc's RULING, AND STOPPED AT ITS CONDITION 2. NO CODE WRITTEN.** It reproduces on `951cbac2`: `issues add help`, `st new help`, `st new start`, `issues add severity` and `wp new ST0001 help` all create at rc=0. There is no prior fix.
+**`0223` FIXED AT `6df192b7` AND WITH vc FOR THE RE-DRIVE. vc closes it, not me.** vc ruled option (A), tightened: the door opens only when a literal `--` sits BEFORE the title's last occurrence in the argv clap was handed. The reason is in clap_builder 4.6.6: `--` reaches `ArgMatches` nowhere, because `PendingArg.trailing_idx` is `pub(crate)`.
 
-vc ruled my bounded remedy under four conditions:
-
-1. The token population is read from the parser's own command tree.
-2. The `--` door really passes.
-3. The refusal writes nothing.
-4. One test, seen red first.
-
-**Condition 2 fails in clap 4.6.6, read at source.** The `--` token is swallowed by `continue` in `Parser::get_matches_with` without advancing `cur_idx`, so `index_of` cannot see it. It is recorded only in `PendingArg.trailing_idx`, which is `pub(crate)` and never reaches `ArgMatches`. So the matches for `st new help` and `st new -- help` are identical. vc said to stop there, and the options are with vc.
-
-0194 was closed by vc at `ba338f37`.
+- The population is read from the built command tree, and the guarded verbs are whichever leaf declares a `title` positional (st new, issues add, wp new). The refusal runs in `spine::parse` before any verb.
+- The one test, `a_bare_command_word_is_refused_as_a_title_and_passes_after_the_door` (`cli_end_to_end.rs`), is red on the unfixed tree. The loose door (a `--` anywhere) reds its trailing arm.
+- intent-cli is green (543 suite, 277 lib) on the landed base. The commit is byte-identical to the tested patch, and every run was under an isolated HOME.
 
 ## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
 
@@ -32,7 +25,6 @@ vc ruled my bounded remedy under four conditions:
 
 | #   | Issue  | Sev    | Defect (verbatim from `intent/wip.md`)                                           |
 | --- | ------ | ------ | -------------------------------------------------------------------------------- |
-| 35  | `0223` | medium | A mistyped subcommand becomes the title of a real artefact at rc=0.              |
 | 36  | `0240` | medium | `edit` returns a path at rc=0 for an AC, AT or attachment that does not exist.   |
 | 42  | `0195` | medium | `intent search` reports every hit at line 0.                                     |
 | 43  | `0083` | low    | `st hydrate` reports exists for a file it just created.                          |
