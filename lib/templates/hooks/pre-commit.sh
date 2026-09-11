@@ -47,7 +47,7 @@ fi
 cd "$PROJECT_ROOT" || exit 0
 
 # MOVED ABOVE BOTH FAIL-OPEN EXITS, 2026-08-17, because it was BELOW them and
-# the comment below has always said otherwise. Two exits sat between: no
+# the comment below has always said otherwise. The exits between were: no
 # `intent` on PATH, and no `intent/.config/config.json`. Either one returned 0
 # and NO whiteboard guard ran, with nothing printed to say so -- an exit written
 # when there was one arm is a claim that the run is over.
@@ -551,7 +551,7 @@ if [ "${#LANGS[@]}" -gt 0 ]; then
     # Capture output so we can surface findings only when present.
     out="$(intent critic "$lang" --staged --severity-min "$SEVERITY" --format text 2>&1)"
     rc=$?
-    # THREE OUTCOMES, NOT TWO-AND-A-BUCKET. `*)` used to swallow every rc that
+    # EACH OUTCOME ITS OWN ARM, NOT A BUCKET. `*)` used to swallow every rc that
     # was not 0 or 1 and fail open on all of them, which was fine only while
     # exactly one such code existed. The rule is that a tool-armed rule REFUSES
     # when its tool is absent on a project that armed it, and that refusal needs

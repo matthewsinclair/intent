@@ -69,8 +69,8 @@ GUARDS=(
   'intent/whiteboard|whiteboard-header-guard.sh|header values are UNCHECKED'
   'intent/.canon|canon-ignore-guard.sh|an ignore rule reaching canon is UNCHECKED'
   # `intent` RATHER THAN EITHER SUBJECT, AND THE WIDTH IS DELIBERATE (cc's
-  # proposal, taken). This guard has TWO subjects -- `intent/whiteboard/*/.history/**`
-  # and `intent/events.jsonl` -- so neither path alone is right, and two entries
+  # proposal, taken). This guard's subjects are `intent/whiteboard/*/.history/**`
+  # and `intent/events.jsonl`, so neither path alone is right, and an entry per subject
   # would dispatch one guard twice. `intent` is the smallest path containing both.
   #
   # IT DOES WEAKEN THE PROPERTY ARGUED FOR ABOVE, and saying so is cheaper than

@@ -258,7 +258,7 @@ added_lines="$(git diff --cached --unified=0 -- "${WB_PATHS[@]}" 2>/dev/null |
 # baize-vc; measured on Intent's own board, where no dated Decisions bullet was
 # scanned.
 #
-# THE DECISIONS FORM IS POSITIONAL LIKE THE OTHER TWO, WHICH IS PORT 2's WHOLE
+# THE DECISIONS FORM IS POSITIONAL LIKE THE OTHER FORMS, WHICH IS PORT 2's WHOLE
 # POINT: it anchors to the bullet opening, so only a date sitting where the
 # protocol reserves a decision's OWN date is read, and a node quoting a peer's
 # bad date mid-sentence is still not blocked for reporting it.
@@ -284,7 +284,7 @@ added_lines="$(git diff --cached --unified=0 -- "${WB_PATHS[@]}" 2>/dev/null |
 #     **the unscanned form correlates with the highest-authority content on the
 #     board.** All of Intent's are on the `hv` node -- the rulings record --
 #     and on Lamplight the hv node uses ONLY this form, so that estate's rulings
-#     are entirely unscanned. Two estates, arrived at independently, and it is
+#     are entirely unscanned. Separate estates arrived at it independently, and it is
 #     not coincidence: a dated `###` heading is the NATURAL shape for a rulings
 #     record, and it is the one shape this guard does not read. Whoever weighs
 #     widening should weigh that rather than the count.
@@ -420,7 +420,7 @@ EOF
 # An entry heading closes its paren straight after the minutes when the Z is
 # missing; a heartbeat ends the line there. PORT 3: either ISO separator.
 #
-# A `## Decisions` BULLET IS THE THIRD ARM, AND IT IS SCOPED TO THE ONES THAT
+# A `## Decisions` BULLET IS AN ARM OF ITS OWN, AND IT IS SCOPED TO THE ONES THAT
 # CARRY A TIME. A date-only decision has no zone to mark, so B is inapplicable to
 # it BY CONSTRUCTION rather than by exemption -- but the claim that Decisions
 # dates are date-only is false: a census of one board found timed bullets
