@@ -312,6 +312,12 @@ fn a_clean_estate_converges_its_gitignore_by_path_and_not_by_glob() {
     ignored.lines().any(|l| l.trim() == "intent/events.jsonl"),
     "the event log's file form is not gitignored after a migration: {ignored:?}"
   );
+  // Issue 0120: store snapshots and text exports, which doctor's own remedy
+  // (`intent backup`) writes into the consumer's tree.
+  assert!(
+    ignored.lines().any(|l| l.trim() == "intent/.backup/"),
+    "store snapshots are not gitignored after a migration: {ignored:?}"
+  );
   assert!(
     !ignored.contains("*.db"),
     "the ignore rule is a PATH rule -- `*.db` would swallow a database the operator \

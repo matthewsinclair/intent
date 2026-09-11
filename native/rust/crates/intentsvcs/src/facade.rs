@@ -165,6 +165,16 @@ fn declare_default_if_absent(project: &Project, threads: &[Thread]) -> Result<()
 /// writer is `intent export`. Intent's own `.gitignore` carried that rule while
 /// this converger, which gives every OTHER estate its rules, knew only one
 /// member of the class.
+///
+/// **`.backup/` joined for issue `0120`, and with it the table is the WHOLE of
+/// the class, enumerated rather than patched.** Intent's own `.gitignore`
+/// ignores exactly three paths under its intent directory -- `.cache/` (:125),
+/// `.backup/` (:143) and `events.jsonl` (:149) -- and v3 writes per-machine
+/// artefacts nowhere else: `backup` and `export --text` both write under
+/// `<intent>/.backup/`. The ROOT `/.backup/` that file also ignores is v2's
+/// upgrade-rollback namespace, which v3 does not write, so it is not here.
+/// `.backup/` is the one that dirtied a consumer's tree through doctor's own
+/// remedy: `intent backup` left a 46MB snapshot untracked on Conflab.
 const IGNORED: &[(&str, &str)] = &[
   (
     ".cache/",
@@ -173,6 +183,10 @@ const IGNORED: &[(&str, &str)] = &[
   (
     "events.jsonl",
     "The event log lives in the store (D53); its file form is produced by `intent export`.",
+  ),
+  (
+    ".backup/",
+    "Intent's store snapshots and text exports: per-machine, never committed.",
   ),
 ];
 
