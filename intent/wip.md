@@ -21,9 +21,8 @@ intent_version: 3.0.0
 
 ### P1 -- data loss or corruption. These decide whether 3.0.1 ships.
 
-| #   | id     | sev  | lane | defect                                                                         |
-| --- | ------ | ---- | ---- | ------------------------------------------------------------------------------ |
-| 13  | `0212` | high | dc   | A daemon ingest reverts a completed store write when the on-disk extract lags. |
+| #   | id  | sev | lane | defect |
+| --- | --- | --- | ---- | ------ |
 
 ### P3 -- commands that report success or state while wrong.
 
