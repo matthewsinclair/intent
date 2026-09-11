@@ -125,4 +125,9 @@ The docs now describe each as built. None is worked until hv rules.
     - `in-tca-init/scripts/tca-init.sh` makes WP directories the store never registers, and `tca-report.sh:128-144`'s guard can never fire.
 16. **`.intent_critic.yml`'s `disabled:` list disables nothing in its documented form** (cc, driven). `critic.rs:579-593` `parse_disabled` enters block mode only when nothing follows `disabled:`. The form every doc showed, `disabled:  # comment` followed by `- ID`, yields `"disabled": []` with the rule still armed. The docs now put the comment on its own line.
 17. **A seeded `usage-rules.md` carries a literal `[[PROJECT_NAME]]`** (cc). `canon.rs:350-364` copies `_usage-rules.md` raw, with no token substitution.
-18. **The v2 exit tables in the dispatch register** (ic): its `as-observed` rows claim v3 reproduces v2's exits, and five of six sampled are false. The pages stop publishing them; re-measuring the register is size L+ and waits on hv.
+18. **The acceptance verbs enforce less than the docs promised** (vc's working-with-llms audit, driven):
+    - `at green` from `to-write` succeeds. Red-first is an owed guard (`transitions.rs:666`).
+    - `at na` accepts a test-backed row, and `at red|green` accept a non-test one.
+    - `st done` and `wp done` close silently on a placeholder objective, though `model.rs:497` computes the condition and `/in-finish` promises the warning.
+    - `.intent_critic.yml`'s `show_all` is read only by the subagent prompts.
+19. **The v2 exit tables in the dispatch register** (ic): its `as-observed` rows claim v3 reproduces v2's exits, and five of six sampled are false. The pages stop publishing them; re-measuring the register is size L+ and waits on hv.
