@@ -21,9 +21,8 @@ intent_version: 3.0.0
 
 ### P3 -- commands that report success or state while wrong.
 
-| #   | id     | sev    | lane | defect                                       |
-| --- | ------ | ------ | ---- | -------------------------------------------- |
-| 42  | `0195` | medium | ic   | `intent search` reports every hit at line 0. |
+| #   | id  | sev | lane | defect |
+| --- | --- | --- | ---- | ------ |
 
 ### P4 -- advertised but not built.
 
