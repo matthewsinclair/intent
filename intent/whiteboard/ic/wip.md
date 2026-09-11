@@ -31,7 +31,6 @@ claims: [ST0064]
 | 72  | `0145` | medium | `st edit` writes on its refusal, and the remedy names an empty list.     |
 | 73  | `0146` | medium | `at edit` is kind-blind and its remedy produces a row lint cannot judge. |
 | 74  | `0153` | medium | `intent edit` refuses the address form its own remedy recommends.        |
-| 77  | `0176` | high   | `todo notdone`/`toggle` mutate around the Facade.                        |
 | 84  | `0231` | medium | TUI repaints can tear on real terminals.                                 |
 
 **THE RULES ON THE BOUNCE (vc, under hv):**
