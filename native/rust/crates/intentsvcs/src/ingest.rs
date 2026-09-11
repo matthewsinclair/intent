@@ -824,7 +824,7 @@ fn resync_inner(
     .filter(|e| e.state == FileState::Changed && baseline.contains(e.path.as_str()))
     .map(|e| e.path.as_str())
     .collect();
-  let findings = carry_info_round_trip(project, &mut canon, &touched);
+  let findings = carry_info_round_trip(project, &mut canon, &touched, scope);
   if !findings.is_empty() {
     return Err(Refusal::new(findings).into());
   }
@@ -966,6 +966,7 @@ fn carry_info_round_trip(
   project: &Project,
   canon: &mut Canon,
   touched: &std::collections::HashSet<&str>,
+  scope: &Scope,
 ) -> Vec<Finding> {
   let ctx = crate::views::RenderContext {
     version: crate::faces::INTENT_VER,
@@ -974,6 +975,12 @@ fn carry_info_round_trip(
   let mut findings = Vec::new();
 
   for thread in &mut canon.threads {
+    // **ONLY A THREAD THE SCOPE TAKES FROM DISK IS READ BACK (0259).** The
+    // rest keep the store's value, so a peer's hand edit in its own cover
+    // refused this run while deciding nothing it would write.
+    if !scope.selects(&thread.id) {
+      continue;
+    }
     let path = project.info_view(&thread.id);
     let rel = project.relative(&path);
 

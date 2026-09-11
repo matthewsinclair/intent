@@ -3563,7 +3563,7 @@ impl Facade {
     let Projection {
       mut set,
       canon_files,
-    } = self.projection(&canon, &all_threads, &all_issues)?;
+    } = self.projection(&canon, &all_threads, &all_issues, None)?;
     for (path, content) in self.attachments_the_disk_lacks(&canon, scope)? {
       set.add(path, content);
     }
@@ -3745,7 +3745,11 @@ impl Facade {
       Some(_) => Vec::new(),
     };
     let count = all_threads.len();
-    let Projection { set, canon_files } = self.projection(&canon, &all_threads, &all_issues)?;
+    // **A SCOPED RESTORE RENDERS ONLY THE VIEWS OF THE THREADS IT TOOK (0259).**
+    // The rest keep the store's value, so re-rendering their covers changes
+    // nothing but a hand edit a peer is holding -- which it discards.
+    let Projection { set, canon_files } =
+      self.projection(&canon, &all_threads, &all_issues, Some(scope))?;
     let applied = set.commit()?;
     self.record_landed(&canon_files)?;
     let wrote = self.estate_paths(&applied);
@@ -4150,6 +4154,7 @@ impl Facade {
     canon: &Canon,
     threads: &[&Thread],
     issues: &[&Issue],
+    views_of: Option<&SyncScope>,
   ) -> Result<Projection, FacadeError> {
     let mut set = WriteSet::new();
     let mut canon_files: Vec<(std::path::PathBuf, String)> = Vec::new();
@@ -4221,6 +4226,12 @@ impl Facade {
       }
       if let Some(owner) = self.owning_thread(&view.path, canon)
         && held.contains(&owner)
+      {
+        continue;
+      }
+      if let Some(scope) = views_of
+        && let Some(owner) = self.owning_thread(&view.path, canon)
+        && !scope.selects(&owner)
       {
         continue;
       }
@@ -8972,7 +8983,7 @@ impl Facade {
       .filter(|i| changed_issue_numbers.contains(&i.number))
       .collect();
     let Projection { set, canon_files } =
-      self.projection(&next, &changed_threads, &changed_issues)?;
+      self.projection(&next, &changed_threads, &changed_issues, None)?;
     drop(changed_threads);
     drop(changed_issues);
 

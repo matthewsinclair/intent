@@ -228,3 +228,45 @@ fn the_overwrite_warning_narrows_with_the_scope() {
     "the scoped warning still names the thread the scope excludes: {narrow:?}"
   );
 }
+
+/// **0259: A SCOPED RESTORE IS NOT REFUSED BY A HAND EDIT IN A THREAD IT DID
+/// NOT NAME.** The read-back gate walked every thread, so a peer's
+/// non-round-tripping section in its own cover refused this node's restore of
+/// its own thread -- under a remedy, `sync --to-disk`, that discards the
+/// peer's edit. A thread outside the scope takes its value from the store, so
+/// reading its cover back decides nothing.
+#[test]
+fn a_scoped_restore_is_not_refused_by_a_hand_edit_in_a_thread_it_did_not_name() {
+  let fx = Fixture::new();
+  let mut facade = two_threads(&fx);
+  // A second restore, so the covers the first one wrote are in the file index
+  // and a hand edit to one reads as touched -- the state a live tree is in.
+  facade
+    .sync_from_disk(&Scope::All)
+    .expect("index the covers");
+
+  let peers_cover = fx.path(&format!("intent/st/{PEERS}/info.md"));
+  let cover = std::fs::read_to_string(&peers_cover).expect("the peer's cover is realised");
+  assert!(
+    cover.contains("## Objective\n"),
+    "the peer's cover has a section to edit beside"
+  );
+  let edited = cover.replacen(
+    "## Objective\n",
+    "## Hand Added\n\na peer is writing this\n\n## Objective\n",
+    1,
+  );
+  std::fs::write(&peers_cover, &edited).expect("the peer edits its cover");
+  retitle_on_disk(&fx, MINE, "my work");
+
+  facade
+    .sync_from_disk(&Scope::Threads(vec![MINE.to_string()]))
+    .expect("a peer's hand edit in its own cover does not refuse my scoped restore");
+
+  assert_eq!(title_in_store(&mut facade, MINE), "my work");
+  assert_eq!(
+    std::fs::read_to_string(&peers_cover).expect("the peer's cover"),
+    edited,
+    "the peer's edit is left where it was"
+  );
+}
