@@ -232,6 +232,12 @@ fn the_realised_set_equals_the_listed_set() {
   fx.facade_on_disk()
     .sync_to_disk(&Scope::All)
     .expect("realise everything");
+  // **ONE LISTED THREAD IS TAKEN OFF DISK, SO THE RUN HAS SOMETHING TO
+  // HYDRATE.** Until 0082 the egest above left every attachment unwritten,
+  // and those were the only files `organize` ever hydrated here -- so the
+  // both-directions assertion at the end was standing on that defect. With the
+  // egest writing attachments, a listed thread has to be genuinely absent.
+  std::fs::remove_dir_all(fx.project().thread_dir("ST0002")).expect("take ST0002 off disk");
 
   // The list declares an odd, non-contiguous minority -- so a rule keyed on
   // "the first two" or "the low ids" is a different set from this one.

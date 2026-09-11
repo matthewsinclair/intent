@@ -3521,7 +3521,13 @@ impl Facade {
       Some(_) => Vec::new(),
     };
     let count = all_threads.len();
-    let Projection { set, canon_files } = self.projection(&canon, &all_threads, &all_issues)?;
+    let Projection {
+      mut set,
+      canon_files,
+    } = self.projection(&canon, &all_threads, &all_issues)?;
+    for (path, content) in self.attachments_the_disk_lacks(&canon, scope)? {
+      set.add(path, content);
+    }
     self.refuse_if_this_would_empty_a_populated_face(&canon, &set)?;
     self.refuse_if_canon_moved_under_the_store(&set, &canon_files)?;
     let applied = set.commit()?;
@@ -4075,6 +4081,49 @@ impl Facade {
       set.add(view.path, view.content);
     }
     Ok(Projection { set, canon_files })
+  }
+
+  /// **The attachments the store carries and the disk lacks, for an egest to
+  /// write** (0082).
+  ///
+  /// `st attach` writes the store and canon and never the disk, so an
+  /// attachment authored canon-first reached nobody who opens files, and
+  /// `--to-disk` reported `ok` over it. This asks `organize::plan` -- the
+  /// classifier `hydrate` already acts on -- for its `HydrateAttachment` steps
+  /// rather than deciding again what is absent.
+  ///
+  /// **ABSENT ONLY, NEVER A PRESENT ONE.** Attachments are authored on disk, so
+  /// one that is present and differs is the author's newer work, and the plan
+  /// already calls that `AttachmentDiverged` and names both remedies. Writing
+  /// the store's copy over it would be 0260's loss arriving by another door.
+  ///
+  /// Declared threads only, as the views are, and only within `scope`. A step
+  /// with no bytes -- an opaque attachment whose sidecar was never loaded --
+  /// is skipped, as `organize` skips it: absent beats present and wrong.
+  fn attachments_the_disk_lacks(
+    &self,
+    canon: &Canon,
+    scope: &SyncScope,
+  ) -> Result<Vec<(std::path::PathBuf, String)>, FacadeError> {
+    let realised = self.manifest_for_action()?;
+    let previous = self.store.file_index().map_err(FacadeError::Store)?;
+    let (tree, digest) =
+      organize::observe(&self.project, &previous).map_err(FacadeError::Organize)?;
+    let ctx = self.render_ctx()?;
+    let plan = organize::plan(&self.project, canon, &realised, &ctx, &tree, digest);
+    Ok(
+      plan
+        .steps
+        .into_iter()
+        .filter(|step| step.action == organize::Action::HydrateAttachment)
+        .filter(|step| {
+          self
+            .owning_thread(&step.path, canon)
+            .is_some_and(|id| scope.selects(&id))
+        })
+        .filter_map(|step| step.content.map(|content| (step.path, content)))
+        .collect(),
+    )
   }
 
   /// **Record the canon files a projection just landed** (0260), through

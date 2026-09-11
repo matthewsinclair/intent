@@ -350,6 +350,8 @@ mod sync_reports_uncommitted_attachment;
 mod sync_scan;
 #[path = "sync_scope.rs"]
 mod sync_scope;
+#[path = "sync_to_disk_materialises_a_canon_authored_attachment.rs"]
+mod sync_to_disk_materialises_a_canon_authored_attachment;
 #[path = "template_pins.rs"]
 mod template_pins;
 #[path = "text_realisation.rs"]
