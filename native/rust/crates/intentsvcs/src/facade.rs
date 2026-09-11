@@ -4515,23 +4515,29 @@ impl Facade {
       // thread; the work package's view is `WP/<NN>/info.md` inside it, and it
       // is on disk. So the file is resolved under the WP's own directory below.
       //
-      // **THREE SIBLINGS ARE STILL OPEN, AND ARE NAMED HERE RATHER THAN LEFT
-      // SILENT.** `Ac`, `At` and `Attachment` reach this door through the
-      // `intent://` address grammar -- which bypasses the `kind` enum that
-      // bounds the `<kind> <id>` spelling, so bounding the surface by that enum
-      // (as this author first did) misses them. Driven: `edit
-      // intent:///threads/ST0001/ac/1 --path` is rc=0, and so is an
-      // `attachments/` path for a file that was never created. They are NOT
-      // fixed because the facade has no `ac_show`, no `at_show` and no
-      // attachment resolver to check them with; minting three model doors is a
-      // different piece of work from a contained check.
+      // **`Ac` AND `At` ARE CHECKED HERE TOO, BEFORE ANYTHING IS WRITTEN**
+      // (issue 0240). They reach this door through the `intent://` address
+      // grammar, which bypasses the `kind` enum that bounds the `<kind> <id>`
+      // spelling, so bounding the surface by that enum misses them. Driven:
+      // `edit intent:///threads/ST0001/ac/1 --path` printed the thread's
+      // `info.md` at rc=0 for a criterion that does not exist. `Attachment` is
+      // checked by the membership test below instead, because its path IS the
+      // file it names.
       //
-      // **THE TWO COLLECTION VARIANTS ARE DELIBERATELY ABSENT FROM THAT LIST.**
-      // The `ac` or `wp` collection of a thread that exists also exists, empty
-      // or not, so `st_show` above is already the right and complete check for
-      // them. Listing them as gaps would invent two defects.
-      if let crate::address::Entity::Wp { thread, wp } = &address.entity {
-        self.wp_of(thread, wp)?;
+      // **THE TWO COLLECTION VARIANTS ARE DELIBERATELY ABSENT.** The `ac` or
+      // `wp` collection of a thread that exists also exists, empty or not, so
+      // `st_show` above is already the right and complete check for them.
+      match &address.entity {
+        crate::address::Entity::Wp { thread, wp } => {
+          self.wp_of(thread, wp)?;
+        }
+        crate::address::Entity::Ac { thread, ac } => {
+          self.criterion(thread, ac)?;
+        }
+        crate::address::Entity::At { thread, at } => {
+          self.acceptance_test(thread, at)?;
+        }
+        _ => {}
       }
     }
 
@@ -4554,6 +4560,12 @@ impl Facade {
           .expect("wp_info_view is under thread_dir by construction")
           .join(&rel)
       }
+      // **AN ATTACHMENT ADDRESS NAMES ITS OWN FILE** (issue 0240), already
+      // thread-relative, as `Attachment.path` is. It printed the thread's
+      // `info.md` at rc=0 for `attachments/notes.md`, which was never created.
+      // Resolved here, an absent one fails the membership check below, which
+      // names what the thread does carry.
+      crate::address::Entity::Attachment { path, .. } => std::path::PathBuf::from(path),
       _ => rel,
     };
 
@@ -6651,6 +6663,20 @@ impl Facade {
       .ok_or_else(|| FacadeError::NoSuchCriterion {
         st: st.to_string(),
         ac: ac.to_string(),
+      })
+  }
+
+  /// [`Self::criterion`]'s twin for an acceptance test: the row, or
+  /// `NoSuchTest`.
+  fn acceptance_test(&self, st: &str, at: &str) -> Result<&AcceptanceTest, FacadeError> {
+    self
+      .st_show(st)?
+      .tests
+      .iter()
+      .find(|t| t.id == at)
+      .ok_or_else(|| FacadeError::NoSuchTest {
+        st: st.to_string(),
+        at: at.to_string(),
       })
   }
 

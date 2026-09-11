@@ -348,6 +348,73 @@ fn failure_a_work_package_is_not_answered_with_its_thread_file() {
   );
 }
 
+/// Issue 0240: an `Ac`, `At` or `Attachment` address that names nothing was
+/// answered at rc=0 with the THREAD's `info.md`, the same bytes a real one got,
+/// so no comparison of outputs could separate them. Each is now refused by what
+/// it names, and a real attachment opens its OWN file.
+#[test]
+fn failure_an_ac_at_or_attachment_that_does_not_exist_is_refused() {
+  let fx = fixture();
+  let mut facade = fx.facade();
+  let thread = || "ST0001".to_string();
+
+  let err = facade
+    .edit(
+      &at(Entity::Ac {
+        thread: thread(),
+        ac: "AC-99.9".to_string(),
+      }),
+      "info",
+    )
+    .expect_err("AC-99.9 names no criterion");
+  assert!(
+    matches!(&err, FacadeError::NoSuchCriterion { st, ac } if st == "ST0001" && ac == "AC-99.9"),
+    "an absent criterion is refused by name: {err:?}"
+  );
+
+  let err = facade
+    .edit(
+      &at(Entity::At {
+        thread: thread(),
+        at: "AT-99.9".to_string(),
+      }),
+      "info",
+    )
+    .expect_err("AT-99.9 names no acceptance test");
+  assert!(
+    matches!(&err, FacadeError::NoSuchTest { st, at } if st == "ST0001" && at == "AT-99.9"),
+    "an absent acceptance test is refused by name: {err:?}"
+  );
+
+  let err = facade
+    .edit(
+      &at(Entity::Attachment {
+        thread: thread(),
+        path: "notes.md".to_string(),
+      }),
+      "info",
+    )
+    .expect_err("notes.md was never attached");
+  assert!(
+    matches!(&err, FacadeError::NoSuchEditable { path, .. } if path == "intent/st/ST0001/notes.md"),
+    "an absent attachment is refused on its own path: {err:?}"
+  );
+
+  let path = facade
+    .edit(
+      &at(Entity::Attachment {
+        thread: thread(),
+        path: "reference.md".to_string(),
+      }),
+      "info",
+    )
+    .expect("a real attachment opens");
+  assert!(
+    path.ends_with("intent/st/ST0001/reference.md") && path.exists(),
+    "a real attachment is answered with its own file, not the thread's: {path:?}"
+  );
+}
+
 /// **EVERY FORM THE VERB DISPATCHES ON IS EDITED OR REFUSED BY NAME.**
 #[test]
 fn every_address_form_is_edited_or_refused_by_name() {
