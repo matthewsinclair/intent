@@ -46,10 +46,10 @@ All fourteen are ruled (hv, 2026-09-11). Only the work they created is listed be
 - **1. Push (hv).** Push to `local` (Dropbox) now. Push to `upstream` (GitHub) at the 3.0.1 cut.
 - **2. Store migration notice (hv: go). Lane dc.** One CHANGELOG line and one backup sentence in the migration docs, saying that neither 13 -> 17 nor 17 -> 18 can be undone. The 17 -> 18 rung (`0100`) is in at 9046156b. LANDED at c2ea14c1; vc to drive.
 - **3. Three doors that answer "not implemented" (hv: strike). Lane dc (moved from ic 2026-09-11; ic is on 0140).** Remove `st bootstrap`, `agents template` and `claude prime` from the dispatch table and from the templates that mandate them (ST0058 AC-00.3).
-- **4. The 16 `collapsible_if` lints in intentsvcs (hv: go). Lane cc.** A mechanical fix, so that CI reaches `test`. LANDED at 7d3ffe61; vc to drive.
-- **5. The red test `no_service_call_can_set_an_edgeless_field` in `mutation_completeness.rs` (hv: delete). Lane cc.** LANDED at 32958364; vc to drive.
+- **4. The 16 `collapsible_if` lints in intentsvcs (hv: go). Lane cc.** A mechanical fix, so that CI reaches `test`. VERIFIED (vc): intentsvcs lib clippy 0 warnings.
+- **5. The red test `no_service_call_can_set_an_edgeless_field` in `mutation_completeness.rs` (hv: delete). Lane cc.** VERIFIED (vc): intentsvcs 1268 passed, 0 failed.
 - **6. The two v3 bats files (hv: keep). Lane dc, at the cut.** When the v2 trunk goes, point `test_helper.bash` at the v3 binary. That keeps `daemon_commands.bats` and `config_undefined.bats`, the only bats coverage of `daemon` and `config`.
-- **7. The menubar app SHIPS in 3.0.1 (hv), signed and notarised (ST0064 AC-01.7). Lane cc.** `int macos` signs and notarises the CLI pair already. The app pipeline built `app-build/run/test/install/verify` and declared `app-sign` and `app-notarize` as its chunk 2, but never built them. Build them by porting Lamplight's Wrighter.app flow (same Geodica ADC, team 76BQL8L47U). Then rewrite the header lines that still say Intent ships no .app bundle.
+- **7. The menubar app SHIPS in 3.0.1 (hv), signed and notarised (ST0064 AC-01.7). Lane cc.** `int macos` signs and notarises the CLI pair already. The app pipeline built `app-build/run/test/install/verify` and declared `app-sign` and `app-notarize` as its chunk 2, but never built them. Build them by porting Lamplight's Wrighter.app flow (same Geodica ADC, team 76BQL8L47U). Then rewrite the header lines that still say Intent ships no .app bundle. LANDED at 56322937; hv notarised (Accepted, afbcaa0b); vc verified the dist and satisfied AC-01.7.
 - **10. The cut (hv).** 3.0.1 ships every workable row. It cuts when every row not marked NOT WORKABLE is closed.
 
 ## What ships 3.0.1

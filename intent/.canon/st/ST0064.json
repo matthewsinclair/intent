@@ -140,7 +140,8 @@
       "text": "**THE BUILD, RUN, TEST AND INSTALL PIPELINE IS A DEVBIN VERB RATHER THAN A SEQUENCE ANYONE REMEMBERS**, and the shipped artefact is signed and notarised per `D38` on the `int macos sign|notarize|verify` path that `AC-11.1` already established. **`D38` requires both, unconditionally**, and the app is the first artefact on this estate where the operator meets Gatekeeper directly: an unnotarised menubar app does not fail loudly, it fails as a dialog the user cannot get past, on a machine the developer does not own. **The verb is the deliverable, not the invocation it wraps** -- the same argument that put `int macos ...` ahead of cargo-dist, which signs only and does not notarise at all.",
       "kind": "non-test",
       "state": {
-        "is": "unsatisfied"
+        "is": "satisfied",
+        "evidence": "bin/devbin macos app-sign|app-notarize|app-verify (56322937); vc ran app-verify dist 2026-09-11 on ~/.local/state/intent/build/macos/dist/Intent.app: valid, team 76BQL8L47U, runtime, stapled ticket validates, quarantined copy accepted as Notarized Developer ID (hv's submission afbcaa0b-9f5d-4f73-87cb-50026c7f4e49 Accepted)"
       }
     },
     {
