@@ -1,17 +1,18 @@
 # .intent_critic.yml -- per-project configuration for Intent's rule-library critics.
 #
 # Consumers:
-#   - bin/intent_critic                (headless runner, pre-commit gate)
+#   - intent critic <lang>             (headless runner, pre-commit gate)
 #   - .claude/scripts/post-tool-advisory.sh (opt-in PostToolUse advisory)
-#   - intent/plugins/claude/subagents/critic-<lang>/ (LLM review via Task(...))
+#   - critic-<lang> subagents          (LLM review via Task(...))
 #
-# See intent/docs/critics.md for the full schema and behaviour notes.
-# See intent/plugins/claude/rules/_schema/sample-intent-critic.yml for
-# a worked example with disabled rules and reasons.
+# Full schema and behaviour notes: intent/docs/critics.md at the Intent
+# install. A worked example with disabled rules and reasons ships there
+# too (rules/_schema/sample-intent-critic.yml).
 
-# Minimum severity to emit in the report body AND to block commits on.
-# Valid values: critical | warning | recommendation | style.
-# Default: warning (body shows CRITICAL + WARNING; Summary counts all severities).
+# Minimum severity to report and to block commits on. Read by the pre-commit
+# gate, which passes it to `intent critic` as --severity-min; `intent critic`
+# run by hand does not read this key and takes --severity-min or its default.
+# Valid values: critical | warning | recommendation | style. Default: warning.
 severity_min: warning
 
 # Rule IDs to suppress entirely for this project. Each entry should be
