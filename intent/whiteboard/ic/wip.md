@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 11:00Z
+heartbeat_at: 2026-09-11 11:05Z
 status: active
-focus: "0137 IN DOING, ALREADY DELIVERED AT 587105cb AND RE-DRIVEN; WITH vc TO CLOSE. 0194 NEXT. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0137, then 0194, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
+focus: "LOCALFOLD 2026-09-11 11:05Z ON hv'S PAUSE, THEN THE COMPACT. NOTHING IN FLIGHT, NOTHING UNCOMMITTED. ON THE BOUNCE: #31 0194 FIRST, THEN THE REST OF MY LANE IN LIST ORDER -- the lane column of `intent/wip.md` is the authority, and it grew today. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,25 +13,41 @@ claims: [ST0064]
 
 ## DOING
 
-**`0137` -- CLAIMED 2026-09-11 11:00Z on vc's go (`0103` closed by vc, no code change). NO CODE CHANGE: delivered at `587105cb` (2026-08-30),** which gave `ac list` an explicit `Fiat` arm through `model::fiat_status` and covered the fourth surface in `fiat_close_is_visible_on_every_surface.rs`. The issue reading `open` is W129 again. Re-driven on my private build in a throwaway project, WITHOUT `intent fc`: a criterion hand-set to `{"is":"fiat",...}` in canon and synced in lists as `fiat-closed: <because>`, and the open control lists `satisfied: no`. **With vc to close. `0194` waits for that.**
+**LOCALFOLD 2026-09-11 11:05Z ON hv's PAUSE (via vc), ON EXECUTION.** The pre-fold board is verbatim at `.history/20260911/wip-prefold-1104Z.md`, committed alone and confirmed TRACKED at `7f7f0b56` before this line cited it. **Nothing in flight, nothing uncommitted, and no private worktree left.**
 
-## TODO -- THE BOUNCE: the CLI-surface lane of the 3.0.1 finish line
+**`0194` IS NEXT AND NOT STARTED (vc: not before the compact).** One read-only drive on a throwaway project, and the note it earned: **a fresh project has NOTHING INDEXED**, so `intent search 'Rate-limited'` answered `note: nothing is indexed ... an empty result here does NOT mean ... absent` at rc=0, which says nothing about the hyphen. The reproduction needs prose that is ON DISK and read into the store (`sync --to-store` after the view or attachment exists) before the query can reach FTS5.
 
-**Source: `intent/wip.md`, the numbered list. hv's words: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._ hv cuts from the bottom.** Re-drive the list on return -- it is vc's and it moves.
+## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
 
-| Order | #   | Issue  | Defect                                                                  |
-| ----- | --- | ------ | ----------------------------------------------------------------------- |
-| 8     | 27  | `0137` | `ac list` shows a fiat-closed criterion as satisfied: no                |
-| 9     | 31  | `0194` | `intent search` with a hyphenated term leaks a SQLite error             |
-| 11    | 73  | `0146` | `at edit` ignores the row's kind (vc: `87465f97` fixed only the remedy) |
+**Source: the lane column of `intent/wip.md`. hv: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._ hv cuts from the bottom.** Re-drive it on return; it is vc's and it moves.
+
+| #   | Issue  | Sev    | Defect (verbatim from `intent/wip.md`)                                           |
+| --- | ------ | ------ | -------------------------------------------------------------------------------- |
+| 31  | `0194` | high   | `intent search` with a hyphenated term leaks a SQLite error.                     |
+| 35  | `0223` | medium | A mistyped subcommand becomes the title of a real artefact at rc=0.              |
+| 36  | `0240` | medium | `edit` returns a path at rc=0 for an AC, AT or attachment that does not exist.   |
+| 42  | `0195` | medium | `intent search` reports every hit at line 0.                                     |
+| 43  | `0083` | low    | `st hydrate` reports exists for a file it just created.                          |
+| 47  | `0154` | high   | No door to edit a WP body after creation (issue bodies and titles now have one). |
+| 48  | `0185` | medium | No verb writes a thread's title, objective, context or body.                     |
+| 49  | `0168` | medium | `ac list` never shows criterion text, and there is no `ac show`.                 |
+| 50  | `0139` | medium | `at lint --fix` is advertised and refuses.                                       |
+| 54  | `0140` | medium | An unsatisfied note is writable only by migration.                               |
+| 66  | `0066` | medium | `_inbox/` is invisible to st show/list, ac gate, at lint, todo.                  |
+| 67  | `0121` | medium | `st list` defaults to in-progress and does not say so.                           |
+| 72  | `0145` | medium | `st edit` writes on its refusal, and the remedy names an empty list.             |
+| 73  | `0146` | medium | `at edit` is kind-blind and its remedy produces a row lint cannot judge.         |
+| 74  | `0153` | medium | `intent edit` refuses the address form its own remedy recommends.                |
+| 77  | `0176` | high   | `todo notdone`/`toggle` mutate around the Facade.                                |
+| 84  | `0231` | medium | TUI repaints can tear on real terminals.                                         |
 
 **THE RULES ON THE BOUNCE (vc, under hv):**
 
-- Claim the id in DOING, **one item at a time**.
-- Commit with the id in the subject, tell vc; **vc closes the issue after re-driving the fix.** Never close it myself.
+- Claim the id in DOING, **one item at a time**. The next starts only after vc closes the last or sends it back.
+- Commit with the id in the subject and tell vc: **the fix sha, the issue's reproduction as it prints now, and ONE control.** vc re-drives, then closes. Never close it myself.
+- **Check for a prior fix FIRST** (`git log -S`, the issue id in source comments). Of today's eight, four were delivered and never closed, and one no longer reproduced.
 - **A defect found while fixing goes in the commit message, not on the list.**
-- **No new tests beyond the ONE that proves the item fixed. No new instruments, guards, criteria or threads.**
-- `AC-01.7` is hv's decision 7 (credentials), not a list item.
+- **No new tests beyond the ONE that proves the item, seen RED on the old code.** No new instruments, guards, criteria or threads.
 
 ## Holds -- work I am NOT doing, each with the condition that releases it
 
@@ -56,3 +72,8 @@ Culled with the loop: the estate-wide burn (AC-06.1 and AC-00.1 withdrawn), the 
 - **THE BASH TOOL'S SHELL IS zsh:** no word-splitting on an unquoted `$var`, an unmatched glob aborts the command, and it's `pipestatus` rather than `PIPESTATUS`. **Backticks inside a double-quoted argument are command substitution**, so the command that runs is the one you were writing about.
 - **A STATUS FIELD IS A CLAIM BY WHOEVER LAST DROVE A VERB; A COMPUTED RESULT IS DERIVED (W129).** When the two disagree, believe the derived one. That includes an issue reading `open` against a commit that delivered it (`0218`, 2026-09-11).
 - **MEASURE BEFORE SPEAKING. The ordering is the whole rule:** three of four wrong claims on 2026-09-10 went out before the evidence existed. Name the observable and stop, because a mechanism nobody drove is a story.
+- **EVERY `cargo test` AND BUILD RUNS UNDER AN ISOLATED `HOME`** (`CARGO_HOME`/`RUSTUP_HOME` pointed at the real toolchain). `dual_path_conformance` runs `intent bootstrap` IN-PROCESS under the real `HOME`, and `publish_home()` resolves the install from the TEST BINARY's location. From a scratch worktree it repointed `~/.intent/home` at 09:58:55Z, and deleting the worktree then made the pre-commit shim refuse EVERY commit in the repo. Restored with `~/.local/bin/intent bootstrap` (no `--force`).
+- **DEVELOP IN A PRIVATE DETACHED WORKTREE; LAND BY PATCH.** cc keeps `facade.rs` dirty, and `commit --only` is whole-file, so wait for the peer's commit, rebase the worktree onto `HEAD`, rerun, `git apply --check`, apply, commit exactly my paths, and `diff` the commit against the tested patch.
+- **AN EXISTING FIXTURE CAN ENCODE THE DEFECT** (three for `0079`, one for `0291`). Repair the fixture so it reaches its state honestly; never touch the assertion.
+- **`intent fc` IS THE HUMAN'S VERB EVEN IN A SANDBOX.** To drive a fiat state, hand-set `{"is":"fiat",...}` in canon and `sync --to-store`.
+- **READ THE CLOCK BEFORE WRITING THE STAMP, IN THE SAME COMMAND.** On 2026-09-11 I typed `10:47Z` into a script whose own `date -u` read `10:35Z`, and caught it before the commit. Pass the read value in (`NOW=$(date -u ...)`), never a literal.
