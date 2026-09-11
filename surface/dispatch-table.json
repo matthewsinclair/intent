@@ -168,7 +168,7 @@
     {
       "id": "INV-04",
       "title": "Exit codes observed in the shipped surface are 0, 1, 2 and 3",
-      "rule": "0 success; 1 findings-or-failure; 2 usage/invocation error -- the caller got the invocation wrong, so the run never happened; 3 REFUSED -- a rule the project armed could not be enforced here. `intent claude hook` propagates the hook's own code by design. In the shipped surface only `intent critic` emits 2 or 3.",
+      "rule": "0 success. 1 the command RAN and the answer is no -- findings, a refused verb, a blocked gate, a usage error (INV-02). 2 this build could not answer at all, and it carries no verdict about the work -- a declared command that is not implemented yet, `intent critic` rejecting an invocation it cannot act on or finding no rule library, a `--daemon` that cannot be reached; the shipped pre-commit gate fails OPEN on it. 3 REFUSED -- a rule the project armed could not be enforced here (`intent critic`); the gate BLOCKS on it. `intent claude hook` propagates the hook's own code by design. The codes are `EXIT_UNAVAILABLE` and `EXIT_REFUSED` in `native/rust/crates/intent-cli/src/spine.rs`.",
       "v2": "bin/intent_critic: `:89` error_out and `:95` no-args-help both exit 2 (usage); `:335` clean exits 0; `:348` FINDINGS PRESENT exits 1; `:334` and `:347` CRITIC_REFUSED exit 3. Read directly 2026-08-20.",
       "corrected_2026_08_20": "**THIS ROW HAD `intent critic`'s EXIT 2 EXACTLY BACKWARDS AND WOULD HAVE SHIPPED A PERMANENT SILENT GATE BYPASS** (dc, who found it reading the contract before building the v3 critic, and refused to build to it; ic verified at zero hops and reworded). The row said _2 only from `intent critic` (findings-present)_, citing `:89,95` -- **but those two lines are the USAGE paths, findings-present is `exit 1` at `:348`, and exit 3 has two live sites the row did not mention at all.** The harm is specific and it is in `lib/templates/hooks/pre-commit.sh:350-369`: `1` blocks, `3` blocks, and `*)` -- where 2 lands -- prints `invocation error; fail-open` and never sets `AGGREGATE`. **A v3 critic built to the old wording would have exited 2 on every finding, the gate would have failed open every time, and the commit would have proceeded unchecked -- here and in every consumer project through one symlink -- while the binary remained CONFORMANT TO THIS TABLE.** A gate bypass that passes its own surface check. **AND THE EVIDENCE CLAUSE IS THE LESSON: `measured across 108 probes` could establish that exit 2 OCCURS and can never establish what it MEANS**, which needs the branch that produces it read. A count of occurrences reported as a semantics -- the same shape as `1 refused` standing for 423 files, and the first instance that would have propagated into a BUILD rather than into a report.",
       "why_2_is_correct_for_critic": "**`intent critic` exiting 2 on a USAGE error is deliberate and right, and it is NOT an exception grudgingly tolerated** (ic ruling, 2026-08-20, on dc's question of whether it is a v2 defect worth a `corrected` row). The gate states the principle itself at `pre-commit.sh:349`: _a gate should fail open on its own breakage and closed on yours._ **A critic that cannot parse its own invocation is the gate's breakage, not the developer's code**, so fail-open is the correct disposition and 2 is the code that produces it. `guide.rs` already teaches the same reading -- _2 means this build cannot answer the question at all_. So v3 keeps it: 0 clean, 1 findings, 2 usage, 3 refused.",
@@ -367,7 +367,7 @@
               "name": "title",
               "type": "string",
               "arity": "1",
-              "note": "v2 collects ALL non-flag args into ARGS and uses only ARGS[0] (bin/intent_st:305, 314) -- surplus positionals are silently discarded. v3 should refuse them (INV-02); flagged, not assumed."
+              "note": "Exactly one title. A surplus positional is refused as a usage error -- `unexpected argument`, exit 1 (INV-02). v2 kept the first positional and silently discarded the rest."
             }
           ],
           "flags": [
@@ -4437,7 +4437,7 @@
               "name": "command",
               "type": "subcommand",
               "arity": "0..1",
-              "note": "DECLARED AFTER A MEASURED DIVERGENCE (ic, 2026-08-16). This row carried NO args at all, and `config` was the only family in the table that did. `spine.rs`'s `build()` reads the arity off this slot and defaults an ABSENT slot to REQUIRED (`is_none_or(|slot| slot.arity == `1`)`), so v3 answered `intent config` with `requires a subcommand` at exit 1 while v2 exits 0 -- see this row's own `observed.exit`. Found by `implemented_check.sh`, which could not classify the row because clap turned the invocation away before dispatch. `0..1` with NO `default`, unlike `issues` and `todo`: those declare `default: list` because bare means run-the-list-verb, whereas bare `config` is its own action -- this row's help is `Display the resolved project configuration`, which is neither `get` nor `set`. Same shape as `llm`. The wider point is about the ABSENT declaration rather than this row: one missing slot was silently answered by a default nobody chose for it, and `config` was the only row exercising that default, so it was also the only evidence the default existed."
+              "note": "`0..1` with no `default`: bare `config` is its own action rather than a default verb, unlike `issues` and `todo`, which declare `default: list`. **`config` is declared and not built in this release** (hv, 2026-08-31): every `intent config` invocation, bare or with a verb, answers exit 2, `a known command that is not implemented yet`."
             }
           ],
           "flags": [],
@@ -4554,7 +4554,7 @@
               "name": "key",
               "type": "config-key",
               "arity": "1",
-              "note": "A DOTTED PATH addressing a nested value, eg `backup.retain.daily`. Worth stating because v2 cannot do this: `read_config_field` (bin/intent_helpers:75) is a FLAT `.[$key]` lookup, so v2 can read `project_name` and cannot read anything below the first level -- which is why every nested consumer in v2 rolls its own jq. v3 reads the path."
+              "note": "A dotted path addressing a nested value, eg `backup.retain.daily`. **`config` is declared and not built in this release** (hv, 2026-08-31): `intent config get` answers exit 2, `a known command that is not implemented yet`."
             }
           ],
           "flags": [],
@@ -8667,7 +8667,7 @@
           "name": "child",
           "type": "ac-id|at-id",
           "arity": "0..1",
-          "note": "Present to close a criterion or an acceptance test, as `ac satisfy` and `at edit` already spell it. ABSENT means the target itself, and AC-00.3 cascade then reaches its open children. **THE TWO CHILD KINDS ARE NOT EQUALLY WIRED, AND THE MARKER THIS ROW ANSWERS WITH IS WRONG ABOUT ITS OWN SUBJECT.** Measured 2026-08-29 by ic against the debug binary, with the safe probe this row already prescribes: `fc ST9999 AC-99.9 --because <text>` reaches the arm and refuses on the unknown thread, so the AC door is WIRED; `fc ST9999 AT-99.9 --because <text>` answers `fc` is a known command that is not implemented yet, so the AT door is NOT. **The exit codes are the sharpest statement of it: rc=1 through the AC door, rc=2 through the AT door, from ONE invocation shape differing in one child prefix.** rc=2 is this tool `known command, not implemented` -- so the register now carries a row where that code is returned by a command that IS implemented, which is a FALSE instance of the meaning rather than a fifth meaning, and it is the first one measured. dc reported the cause -- the CLI arm still routes `AT-` to unwired while `Facade::at_fc` exists behind it. **The defect worth recording is not the gap but the SENTENCE: the marker names the COMMAND, and this command IS implemented.** A caller is told nothing in this build provides `fc` by a build that provides `fc`. The unwired marker has no vocabulary for a wired verb with an unwired BRANCH, and `probeable` has no vocabulary for a row that is both -- so a probe reading this row through the AC door and a probe reading it through the AT door disagree, and neither is lying. This is a member of the marker population cc is consolidating (12 files, six constants under five names) and it is the first member whose defect is the marker being WRONG rather than the marker being COPIED."
+          "note": "Present to close a criterion or an acceptance test, as `ac satisfy` and `at edit` already spell it. ABSENT means the target itself, and AC-00.3 cascade then reaches its open children. Both child kinds are wired: `fn fc` in `native/rust/crates/intent-cli/src/render.rs` routes an `AC-` child to `ac_fc` and an `AT-` child to `at_fc`."
         }
       ],
       "flags": [

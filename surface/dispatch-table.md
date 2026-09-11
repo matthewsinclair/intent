@@ -88,7 +88,7 @@ Commands that need a project refuse outside one with exactly `error: not in an I
 
 ### INV-04 -- Exit codes observed in the shipped surface are 0, 1, 2 and 3
 
-0 success; 1 findings-or-failure; 2 usage/invocation error -- the caller got the invocation wrong, so the run never happened; 3 REFUSED -- a rule the project armed could not be enforced here. `intent claude hook` propagates the hook's own code by design. In the shipped surface only `intent critic` emits 2 or 3.
+0 success. 1 the command RAN and the answer is no -- findings, a refused verb, a blocked gate, a usage error (INV-02). 2 this build could not answer at all, and it carries no verdict about the work -- a declared command that is not implemented yet, `intent critic` rejecting an invocation it cannot act on or finding no rule library, a `--daemon` that cannot be reached; the shipped pre-commit gate fails OPEN on it. 3 REFUSED -- a rule the project armed could not be enforced here (`intent critic`); the gate BLOCKS on it. `intent claude hook` propagates the hook's own code by design. The codes are `EXIT_UNAVAILABLE` and `EXIT_REFUSED` in `native/rust/crates/intent-cli/src/spine.rs`.
 
 - **v2:** bin/intent_critic: `:89` error_out and `:95` no-args-help both exit 2 (usage); `:335` clean exits 0; `:348` FINDINGS PRESENT exits 1; `:334` and `:347` CRITIC_REFUSED exit 3. Read directly 2026-08-20.
 - **Target:** `as-observed`
@@ -232,7 +232,7 @@ Create a new steel thread
 - **v2:** bin/intent_st:296-445
 - **Arguments:**
   - `title` (string, arity `1`)
-    - v2 collects ALL non-flag args into ARGS and uses only ARGS[0] (bin/intent_st:305, 314) -- surplus positionals are silently discarded. v3 should refuse them (INV-02); flagged, not assumed.
+    - Exactly one title. A surplus positional is refused as a usage error -- `unexpected argument`, exit 1 (INV-02). v2 kept the first positional and silently discarded the rest.
 - **Flags:**
   - `-s`, `--start` (bool) -- Mark the new thread in progress immediately
     - **disposition:** keep
@@ -2085,7 +2085,7 @@ Display the resolved project configuration
 - **v2:** bin/intent_config
 - **Arguments:**
   - `command` (subcommand, arity `0..1`)
-    - DECLARED AFTER A MEASURED DIVERGENCE (ic, 2026-08-16). This row carried NO args at all, and `config` was the only family in the table that did. `spine.rs`'s `build()` reads the arity off this slot and defaults an ABSENT slot to REQUIRED (`is_none_or(|slot| slot.arity == `1`)`), so v3 answered `intent config` with `requires a subcommand` at exit 1 while v2 exits 0 -- see this row's own `observed.exit`. Found by `implemented_check.sh`, which could not classify the row because clap turned the invocation away before dispatch. `0..1` with NO `default`, unlike `issues` and `todo`: those declare `default: list` because bare means run-the-list-verb, whereas bare `config` is its own action -- this row's help is `Display the resolved project configuration`, which is neither `get` nor `set`. Same shape as `llm`. The wider point is about the ABSENT declaration rather than this row: one missing slot was silently answered by a default nobody chose for it, and `config` was the only row exercising that default, so it was also the only evidence the default existed.
+    - `0..1` with no `default`: bare `config` is its own action rather than a default verb, unlike `issues` and `todo`, which declare `default: list`. **`config` is declared and not built in this release** (hv, 2026-08-31): every `intent config` invocation, bare or with a verb, answers exit 2, `a known command that is not implemented yet`.
 - **Exit codes:**
   - `0` -- bare -- ZERO bytes on both streams
   - `0` -- `--help` -- also zero bytes
@@ -2144,7 +2144,7 @@ Print one configuration value
 - **v2:** new-surface
 - **Arguments:**
   - `key` (config-key, arity `1`)
-    - A DOTTED PATH addressing a nested value, eg `backup.retain.daily`. Worth stating because v2 cannot do this: `read_config_field` (bin/intent_helpers:75) is a FLAT `.[$key]` lookup, so v2 can read `project_name` and cannot read anything below the first level -- which is why every nested consumer in v2 rolls its own jq. v3 reads the path.
+    - A dotted path addressing a nested value, eg `backup.retain.daily`. **`config` is declared and not built in this release** (hv, 2026-08-31): `intent config get` answers exit 2, `a known command that is not implemented yet`.
 - **Observed:** nothing to observe -- no v2 antecedent, so there was never anything to run
 - **Target:** `new-surface` -- ratified: hv, 2026-08-15, answering D35's `configurable from intent config`: `config get` / `config set` are new surface and should exist.
 - **unknown key refuses:** AN UNKNOWN KEY EXITS NON-ZERO AND SAYS SO. It must NOT print an empty line at exit 0, because empty is indistinguishable from a key legitimately set to empty -- the same absence-as-meaning collapse that makes an absent retention count different from `0`. A user scripting against this needs the two cases separable, and the only place that can be decided is here.
