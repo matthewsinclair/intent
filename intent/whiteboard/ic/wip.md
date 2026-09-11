@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 12:57Z
+heartbeat_at: 2026-09-11 13:10Z
 status: active
-focus: "ON THE BOUNCE. 0195 CLOSED by vc at 8d3b13ae. #47 0154 + #48 0185 CLAIMED TOGETHER under vc's ruling (1): ONE scriptable door, `intent set`, over Facade::set, one commit naming both. The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
+focus: "ON THE BOUNCE. #47 0154 + #48 0185 FIXED together at 1f2f8f6a (`intent set`, a scriptable door over Facade::set) and WITH vc for the re-drive. Next: #50 0139, only after vc closes these or sends them back. The lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,11 +13,13 @@ claims: [ST0064]
 
 ## DOING
 
-**`0154` + `0185` CLAIMED 2026-09-11 12:57Z, TOGETHER, ON vc's RULING (1). ONE COMMIT NAMING BOTH.** `intent set <address> <field> (<value> | --from <file>)` is one scriptable door over the existing `Facade::set`. The spelling is `set`, ruled by vc under the pen and reported to hv, because the door already carries that name in `Facade::set` and `Op::Set`.
+**`0154` + `0185` FIXED TOGETHER AT `1f2f8f6a` AND WITH vc FOR THE RE-DRIVE. vc closes them, not me.** `intent set <address> <field> (<value> | --from <file>)` is one scriptable door over the existing `Facade::set`, with no new facade code: one render arm and one table row (withheld from MCP, as `issues edit` is).
 
-- Condition 3, the scope check, PASSES ON SOURCE. `title`, `objective`, `context`, `body` and `preamble` are plain `Thread` fields, and `body` is a plain `WorkPackage` field. None is in `unsettable()` or `CHILD_COLLECTIONS`. The drive has to prove it.
-- The conditions: no new facade code (a render arm and a table row, with every refusal `set`'s own); exactly one of the value or `--from`; the address parsed by `address_of`, the parser `edit` and `browse` use; one test, seen red first, read back from the STORE; and a drive that reads back past a daemon ingest.
-- The table row copies `issues edit`'s MCP disposition: withheld, with an authorship anomaly, because it replaces human-authored prose.
+- Scope check: title, objective, context, body and preamble are settable on a thread, and body on a WP. Driven.
+- The one test, `set_writes_a_wp_body_and_a_thread_title_and_refuses_an_unsettable_field`, is red on the unfixed tree (`unrecognized subcommand 'set'`) and reads both writes back from the STORE.
+- Past a daemon ingest: a real isolated intentd took an unrelated `design.md` in (`disk.sync_from_disk`), and both values held in the store and in canon.
+- intent-cli is green (549 suite, 277 lib). intentsvcs is green except the known red. Rebased onto `fe8775ed` after cc's 0283. The commit is byte-identical to the tested patch.
+- Found while fixing, in the commit message only: the generator accepts `owner_wp: null`, which then panics EVERY command at rc=101; `no_named_verb_sets` is stale now that `set` exists; and an unknown-field refusal carries a generic remedy.
 
 ## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
 
