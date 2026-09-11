@@ -1338,6 +1338,8 @@ fn acceptance(
   // A test-backed row carrying fields only an authored criterion can hold.
   // **The row arrives; the ambiguity is reported.** See `criterion`.
   let mut authored_on_test: Vec<(String, u32, String)> = Vec::new();
+  // `(row id, line)` for every row that arrived, for the duplicate check below.
+  let mut arrived: Vec<(String, u32)> = Vec::new();
   let findings_before = out.residue.len() + out.carried.len();
 
   for (i, line) in text.lines().enumerate() {
@@ -1378,6 +1380,7 @@ fn acceptance(
               authored_on_test.push((c.id.clone(), line_no, stray.join("`, `")));
             }
           }
+          arrived.push((c.id.clone(), line_no));
           criteria.push(c)
         }
         Err((class, detail)) => {
@@ -1414,6 +1417,7 @@ fn acceptance(
               ),
             });
           }
+          arrived.push((t.id.clone(), line_no));
           tests.push(t);
         }
         Err((class, detail)) => {
@@ -1462,6 +1466,36 @@ fn acceptance(
        {unaccounted} unaccounted for. This migration cannot say what it converted, so it refuses \
        rather than reporting a total it cannot support"
     )));
+  }
+
+  // **ONE ID DECLARED TWICE IN ONE CONTRACT (0268).** The store keys a thread's
+  // criteria and tests by id, so the second cannot land -- and when this was
+  // left to the store, the rebuild rung refused with a raw `UNIQUE constraint
+  // failed: tests.thread_id, tests.id` naming neither thread nor id, on a
+  // project that had no model for `doctor` to read. Here the file, the line and
+  // the id are all in hand.
+  //
+  // **BLOCKS ON A CLOSED THREAD, AND `record` WOULD BE WRONG.** Carrying routes
+  // the finding and still hands both rows to the rebuild, which refuses them
+  // regardless -- so a carried duplicate is the raw error again, one rung later.
+  // After the arithmetic, like the passes below: both rows arrived.
+  let mut first_at: BTreeMap<&str, u32> = BTreeMap::new();
+  for (id, line_no) in &arrived {
+    match first_at.get(id.as_str()) {
+      Some(first) => out.block(
+        Finding::new(
+          &rel,
+          FindingClass::DuplicateId,
+          format!(
+            "{id} is declared again here, first at line {first}; a thread's criteria and tests are keyed by id, so both cannot be stored"
+          ),
+        )
+        .at_line(*line_no),
+      ),
+      None => {
+        first_at.insert(id, *line_no);
+      }
+    }
   }
 
   // **A FIELD THE LINE CARRIES AND THIS READER WALKED PAST.** After the

@@ -216,3 +216,46 @@ fn the_same_defect_in_a_closed_thread_carries_and_the_migration_does_run() {
      byte-identity asserted above is a property of this fixture rather than of a refusal"
   );
 }
+
+/// **0268: A CONTRACT THAT DECLARES ONE TEST ID TWICE IS REFUSED IN PHASE A,
+/// NAMING THE FILE, THE LINE AND THE ID.**
+///
+/// Lamplight's real estate carried two: `ST0298 AT-02.3` and `ST0198 AT-16.1`,
+/// both in `COMPLETED/`. The store keys a thread's tests by id, so the rebuild
+/// rung refused with `UNIQUE constraint failed: tests.thread_id, tests.id` --
+/// naming no thread and no id -- and sent the operator to a `doctor` that
+/// cannot see an unmigrated model.
+///
+/// **The thread is CLOSED on purpose.** Closed-thread residue carries, and a
+/// carried duplicate still reaches the primary key, so this is the case the
+/// check must block rather than route.
+#[test]
+fn a_duplicate_test_id_in_a_closed_thread_is_refused_in_phase_a_and_named() {
+  let fx = v2_estate_in_git();
+  v2_thread(&fx, "ST0001", "WIP");
+  fx.write_file(
+    "intent/st/COMPLETED/ST0002/info.md",
+    "---\nverblock: \"14 Aug 2026:v0.1: cc - x\"\nintent_version: 2.19.0\nstatus: Completed\nslug: a-slug\ncreated: 20260814\ncompleted: 20260815\n---\n\n# ST0002: A thread\n\n## Objective\n\nShip it.\n\n## Context\n\nBecause.\n",
+  );
+  let acceptance = "# Acceptance\n\n## Criteria\n\n- AC-02.1 The field round-trips.\n\n## Tests\n\n- AT-02.3 test/a_test.exs -- covers AC-02.1 -- status: green\n- AT-02.3 test/b_test.exs -- covers AC-02.1 -- status: green\n";
+  fx.write_file("intent/st/COMPLETED/ST0002/acceptance.md", acceptance);
+  let second = acceptance
+    .lines()
+    .enumerate()
+    .filter(|(_, l)| l.starts_with("- AT-02.3 "))
+    .nth(1)
+    .map(|(i, _)| i + 1)
+    .expect("the fixture declares AT-02.3 twice");
+  fx.git_commit_all();
+
+  let refusal = Facade::upgrade(&fx.project(), &facade_ctx())
+    .expect_err("a duplicate test id cannot enter a store keyed by it")
+    .to_string();
+
+  assert!(
+    refusal.contains(&format!(
+      "residue: intent/st/COMPLETED/ST0002/acceptance.md:{second} -- duplicate-id -- AT-02.3 "
+    )),
+    "the refusal names the file, the line and the id, in Phase A's classed form: {refusal}"
+  );
+}
