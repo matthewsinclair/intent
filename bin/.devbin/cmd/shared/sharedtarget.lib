@@ -130,7 +130,13 @@ GIT_ISOLATED="env -u GIT_DIR -u GIT_INDEX_FILE -u GIT_WORK_TREE -u GIT_OBJECT_DI
 # generated embed has no literal for a grep to find. **Arm 6b printed `ok` over
 # this gap for as long as it existed.** Same widening, same reason, one mark and
 # one home; arm 6d is what will red the day a third generator appears.
-SHARED_TARGET_DIRT_SCOPES=(':(top)native/rust' ':(top)surface' ':(top)docs/design' ':(top)lib/templates')
+#
+# `lib/templates/llm` and `lib/templates/prj` joined on 2026-09-11 (`0285`),
+# because the marker's `DIRT_SCOPE` gained exactly those two and arm 6 checks
+# containment entry by entry, as literal strings. `:(top)lib/templates` already
+# covers them as a pathspec, so this changes nothing the guard refuses; it only
+# keeps the containment arm able to see that.
+SHARED_TARGET_DIRT_SCOPES=(':(top)native/rust' ':(top)surface' ':(top)docs/design' ':(top)lib/templates' ':(top)lib/templates/llm' ':(top)lib/templates/prj')
 
 # shared_target_dirt <repo>
 #

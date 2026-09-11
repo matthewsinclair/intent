@@ -24,6 +24,14 @@
 // already ruled this shape once, on the two whiteboard guards: one concern, one
 // home, because a guard's name must not come to cover checks it does not name.
 //
+// **SINCE ISSUE `0285` THIS SCRIPT'S TRIGGER IS `source_commit.rs`'s LIST, NOT
+// CARGO'S DEFAULT.** That file now emits `rerun-if-changed` for every tracked
+// path under the provenance scope, which contains this package, so the
+// coverage below is unchanged: `Cargo.toml` still fires this, and an edit to
+// `VERSION` alone still waits for the next change in scope. The paragraph below
+// remains right that THIS file must not emit its own line; it is the other
+// file's list that governs.
+//
 // THERE IS DELIBERATELY NO `cargo:rerun-if-changed` HERE, AND THE REASON IS THE
 // ONE `source_commit.rs` RECORDS AT LENGTH: emitting NO line is not "no
 // trigger", it is cargo's default of re-running the script when any file in the

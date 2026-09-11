@@ -37,7 +37,19 @@
 // beside it in a second field, so a consumer that forgets to read the second
 // field cannot silently treat a dirty build as clean.
 //
-// AND THERE IS DELIBERATELY NO `cargo:rerun-if-changed` ON `.git/HEAD`.
+// **THE TRIGGER NOW MATCHES THE CLAIM, AS OF ISSUE `0285` (vc's ruling,
+// 2026-09-11).** Until then this script emitted no `rerun-if-changed` and ran
+// on cargo's default, which is the PACKAGE -- `crates/<this crate>/**` -- while
+// the value it emits claims `DIRT_SCOPE`. A commit touching `intentsvcs` alone
+// relinked the binary and left the marker naming an OLDER commit, clean tree
+// throughout: a marker that is an ANCESTOR of the bytes, so the binary read
+// less current than it was. [`emit_rerun_triggers`] now names every tracked
+// path under `DIRT_SCOPE`: the first of the "both lines" below, widened from
+// `src` to the whole claimed scope. **The second line, `logs/HEAD`, was built,
+// measured and declined** -- see that function for the figures and the
+// residual. The history below is kept because it is the reasoning both rest on.
+//
+// THE REASONING UNTIL 0285: NO `cargo:rerun-if-changed` ON `.git/HEAD`.
 // Emitting NO line is not "no trigger": it restores cargo's default of
 // re-running this script when any file in the PACKAGE changes, which is the
 // trigger that tracks the code. **Emitting ANY `rerun-if-changed` REPLACES
@@ -171,7 +183,20 @@ use std::process::Command;
 /// **THE ALTERNATIVE WAS A SECOND COPY OF THE LOGO UNDER `native/rust` AND IT
 /// IS THE WRONG FIX** (vc's ruling, 2026-08-30). One mark, one home; a copy is
 /// a thing to update when the mark changes, and a stale logo still renders.
-const DIRT_SCOPE: &[&str] = &[":(top)native/rust", ":(top)surface", ":(top)docs/design"];
+///
+/// **`lib/templates/llm` AND `lib/templates/prj` ARE HERE BECAUSE THEY ARE
+/// EMBEDDED** (issue `0285`, cc's limb): `embed_templates.rs` walks exactly
+/// those two subtrees into `intentsvcs`, so their bytes are in the binary. The
+/// rest of `lib/templates/` is deliberately NOT here -- `hooks/` is read live
+/// out of the install and `.claude/` belongs to `claude upgrade`, so naming the
+/// whole directory would move the marker on commits that change no shipped
+/// byte, which is this issue's other direction.
+///
+/// **ONE LINE, AND `rustfmt::skip` KEEPS IT ONE LINE:** arm 6 of
+/// `shared_artefact_build_guard.sh` reads this constant with a single-line
+/// `sed` pattern, and five entries are past the width at which rustfmt wraps.
+#[rustfmt::skip]
+const DIRT_SCOPE: &[&str] = &[":(top)native/rust", ":(top)surface", ":(top)docs/design", ":(top)lib/templates/llm", ":(top)lib/templates/prj"];
 
 fn git(args: &[&str]) -> Option<String> {
   let out = Command::new("git").args(args).output().ok()?;
@@ -281,4 +306,54 @@ fn emit_source_commit() {
   // a manifest and a dirty tree does not make it a different number.
   let version = std::env::var("CARGO_PKG_VERSION").unwrap_or_else(|_| "unknown".to_string());
   println!("cargo:rustc-env=INTENT_SOURCE_VERSION_MARKER=[intent-source-version:{version}]");
+
+  emit_rerun_triggers();
+}
+
+/// Re-run this script whenever a file in the scope the marker claims changes
+/// (issue `0285`): every path git tracks under `DIRT_SCOPE`.
+///
+/// **DERIVED FROM `DIRT_SCOPE`, NOT A SECOND LIST.** Each scope contributes its
+/// immediate children as tracked at HEAD, and cargo scans a named directory
+/// recursively. Tracked is the point: `native/rust/target/` is inside the
+/// scope, ignored by git, and rewritten by every build, so naming `native/rust`
+/// itself would re-run this script on every build forever.
+///
+/// **`logs/HEAD` IS DELIBERATELY NOT WATCHED, AND IT WAS MEASURED BEFORE IT WAS
+/// DROPPED** (vc's ruling, 2026-09-11). Watching it made every commit, in any
+/// path and by any node, re-run this script, and cargo recompiles a crate whose
+/// script re-ran even when the output is identical: a no-op commit cost 54.5s
+/// on the next warm RELEASE build of the pair (0.3s without it) and 0.9s on
+/// debug. What it would have bought is narrow. If a dirty tree is BUILT and then
+/// committed with no further edit, no watched file moves, so the marker keeps
+/// saying `dirty-<old>` until the next edit in scope. That residual reads DIRTY,
+/// never a stale clean sha, and it fails closed: `int macos publish` refuses a
+/// dirty marker. A commit outside the scope leaving the marker on the last
+/// in-scope commit is the marker's documented meaning, not a defect.
+///
+/// **ALL OR NOTHING.** Naming SOME paths replaces cargo's package default with a
+/// partial list, which is a staleness hole in whatever was left out. So if any
+/// query fails, no line is emitted, cargo keeps its default, and the failure is
+/// said as a `cargo:warning` rather than swallowed.
+fn emit_rerun_triggers() {
+  let fallback = |why: &str| {
+    println!(
+      "cargo:warning=provenance trigger fell back to cargo's package default ({why}), so `--version` can lag a change outside this crate -- issue 0285"
+    );
+  };
+  let Some(top) = git(&["rev-parse", "--show-toplevel"]) else {
+    return fallback("git cannot say where the repository is");
+  };
+  let mut list: Vec<&str> = vec!["-C", &top, "ls-tree", "--name-only", "HEAD", "--"];
+  let dirs: Vec<String> = DIRT_SCOPE
+    .iter()
+    .map(|s| format!("{}/", s.trim_start_matches(":(top)")))
+    .collect();
+  list.extend(dirs.iter().map(String::as_str));
+  let Some(tracked) = git(&list).filter(|t| !t.is_empty()) else {
+    return fallback("git listed nothing tracked under the scope");
+  };
+  for path in tracked.lines() {
+    println!("cargo:rerun-if-changed={top}/{path}");
+  }
 }
