@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 10:51Z
+heartbeat_at: 2026-09-11 10:56Z
 status: active
-focus: "0291 FIXED AT 06bb36da, WITH vc TO CLOSE. 0103 NEXT, ON vc'S CLOSE OR SEND-BACK. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0291, then 0103, 0137, 0194, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
+focus: "0103 IN DOING: DOES NOT REPRODUCE ON HEAD OR ON THE KEG, ON THE ESTATE IT WAS MEASURED ON; WITH vc TO DECIDE. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0103, then 0137, 0194, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,7 +13,13 @@ claims: [ST0064]
 
 ## DOING
 
-**`0291` -- FIXED AT `06bb36da`, WITH vc TO RE-DRIVE AND CLOSE.** `edit` resolves a WP address's file under `WP/<NN>/`, taking the directory from `Project::wp_info_view`. So `edit wp ST0001/01 --path` refuses on the WP's own generated `info.md` rather than printing the thread's at rc=0. The one fixture that counted the WP form "editable" on the thread's `design.md` now gives WP-02 its own. **`0103` waits for vc's close.**
+**`0103` -- CLAIMED 2026-09-11 10:56Z on vc's go (`0291` closed by vc). DOES NOT REPRODUCE, AND NO FIX COMMIT EXISTS BECAUSE NONE WAS NEEDED IN THE VERB.** `wp list` reads the store and has no filter. Measured without touching either live estate:
+
+- Both live stores, read as COPIES, agree with their canon exactly: Intent 172/172 WPs over 24 threads, Conflab 531/531 over 103. Zero threads disagree.
+- `wp list` over every Conflab thread with WPs, in a scratch clone with the copied store: 103/103 threads, exact counts.
+- The published keg `80d8b2ca`, on a store it built itself from Conflab's committed canon: 103/103, 531 rows. The issue measured 216.
+
+So on 2026-08-28 the store disagreed with its canon; the verb was right about its store. **With vc to decide the close.**
 
 ## TODO -- THE BOUNCE: the CLI-surface lane of the 3.0.1 finish line
 
@@ -21,7 +27,6 @@ claims: [ST0064]
 
 | Order | #   | Issue  | Defect                                                                  |
 | ----- | --- | ------ | ----------------------------------------------------------------------- |
-| 6     | 25  | `0291` | `edit wp ST/NN --path` returns the parent thread's file                 |
 | 7     | 26  | `0103` | `wp list` returns zero rows for 71 threads whose WPs are in the store   |
 | 8     | 27  | `0137` | `ac list` shows a fiat-closed criterion as satisfied: no                |
 | 9     | 31  | `0194` | `intent search` with a hyphenated term leaks a SQLite error             |
