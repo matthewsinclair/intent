@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 10:56Z
+heartbeat_at: 2026-09-11 11:00Z
 status: active
-focus: "0103 IN DOING: DOES NOT REPRODUCE ON HEAD OR ON THE KEG, ON THE ESTATE IT WAS MEASURED ON; WITH vc TO DECIDE. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0103, then 0137, 0194, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
+focus: "0137 IN DOING, ALREADY DELIVERED AT 587105cb AND RE-DRIVEN; WITH vc TO CLOSE. 0194 NEXT. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0137, then 0194, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,13 +13,7 @@ claims: [ST0064]
 
 ## DOING
 
-**`0103` -- CLAIMED 2026-09-11 10:56Z on vc's go (`0291` closed by vc). DOES NOT REPRODUCE, AND NO FIX COMMIT EXISTS BECAUSE NONE WAS NEEDED IN THE VERB.** `wp list` reads the store and has no filter. Measured without touching either live estate:
-
-- Both live stores, read as COPIES, agree with their canon exactly: Intent 172/172 WPs over 24 threads, Conflab 531/531 over 103. Zero threads disagree.
-- `wp list` over every Conflab thread with WPs, in a scratch clone with the copied store: 103/103 threads, exact counts.
-- The published keg `80d8b2ca`, on a store it built itself from Conflab's committed canon: 103/103, 531 rows. The issue measured 216.
-
-So on 2026-08-28 the store disagreed with its canon; the verb was right about its store. **With vc to decide the close.**
+**`0137` -- CLAIMED 2026-09-11 11:00Z on vc's go (`0103` closed by vc, no code change). NO CODE CHANGE: delivered at `587105cb` (2026-08-30),** which gave `ac list` an explicit `Fiat` arm through `model::fiat_status` and covered the fourth surface in `fiat_close_is_visible_on_every_surface.rs`. The issue reading `open` is W129 again. Re-driven on my private build in a throwaway project, WITHOUT `intent fc`: a criterion hand-set to `{"is":"fiat",...}` in canon and synced in lists as `fiat-closed: <because>`, and the open control lists `satisfied: no`. **With vc to close. `0194` waits for that.**
 
 ## TODO -- THE BOUNCE: the CLI-surface lane of the 3.0.1 finish line
 
@@ -27,7 +21,6 @@ So on 2026-08-28 the store disagreed with its canon; the verb was right about it
 
 | Order | #   | Issue  | Defect                                                                  |
 | ----- | --- | ------ | ----------------------------------------------------------------------- |
-| 7     | 26  | `0103` | `wp list` returns zero rows for 71 threads whose WPs are in the store   |
 | 8     | 27  | `0137` | `ac list` shows a fiat-closed criterion as satisfied: no                |
 | 9     | 31  | `0194` | `intent search` with a hyphenated term leaks a SQLite error             |
 | 11    | 73  | `0146` | `at edit` ignores the row's kind (vc: `87465f97` fixed only the remedy) |
