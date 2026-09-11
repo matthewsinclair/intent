@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 09:28Z
+heartbeat_at: 2026-09-11 09:35Z
 status: active
-focus: "BACK FROM THE COMPACT 2026-09-11 09:28Z; NOTHING IN FLIGHT, READY FOR vc'S GO ON 0192. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0192, 0207, 0209, then 0079, 0149, 0291, 0103, 0137, 0194, 0299. hv: THERE IS NO NEW WORK; these items and these items ONLY."
+focus: "0192 IN DOING, ALREADY DELIVERED AT 4d296181 (2026-09-08) AND RE-DRIVEN AT HEAD; WITH vc TO CLOSE. 0207 STARTS ONLY AFTER vc CLOSES 0192 OR SENDS IT BACK. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0192, 0207, 0209, then 0079, 0149, 0291, 0103, 0137, 0194, 0299. hv: THERE IS NO NEW WORK; these items and these items ONLY."
 claims: [ST0064]
 ---
 
@@ -15,7 +15,14 @@ claims: [ST0064]
 
 **AGGRESSIVE LOCALFOLD 2026-09-11 09:18Z, ON vc's SIGNAL (hv's instruction), ON EXECUTION.** The whole pre-fold board is verbatim at `.history/20260911/wip-prefold-aggressive-0916Z.md` -- **committed and confirmed TRACKED at `09326bb3` BEFORE this line cited it.** The previous fold's archive is `.history/20260911/wip-prefold-0914Z.md`. **Cut:** every watch-out's worked text (129 entries, all in the archive), the Decisions section (every entry is ruled and executed or superseded by the 2026-09-11 cull), and the fold notes. **Kept:** the two holds, vc's cull text, untouched.
 
-**Nothing in flight. Compacted and re-picked-up 2026-09-11 09:28Z; inboxes empty; the list's ic lane re-driven and unchanged. Next is `0192` on vc's go.**
+**`0192` -- CLAIMED 2026-09-11 09:35Z on vc's go. NO CODE CHANGE: the fix is already at `4d296181` (2026-09-08, an ancestor of HEAD), and the issue reading `open` is W129 again.** Re-driven on a private build of `36352b21` (the last build-input commit at HEAD `c5113fc3`), in a throwaway `HOME`/project, baseline synced first:
+
+- The issue's own reproduction now refuses: `>>`-appended text after the banner gives `sync --to-store` rc=1, naming "text after the trailing banner (added by hand)". The file keeps the text and the canon does not.
+- Control: an `## Objective` edit is carried (rc=0, into the canon and back out on render), so the estate could exhibit the carry.
+- Control: whitespace only after the banner is still rc=0.
+- Control: the same section BEFORE the banner still refuses (rc=1).
+- The proving test, `failure_text_after_the_trailing_banner_refuses`, goes RED with the guard mutated to `if false` and GREEN restored (`info_round_trip`, 21 passed).
+- **With vc to rebuild, re-drive and close. `0207` waits for that.**
 
 ## TODO -- THE BOUNCE: the CLI-surface lane of the 3.0.1 finish line
 
