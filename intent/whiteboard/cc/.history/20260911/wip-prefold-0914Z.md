@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 09:14Z
+heartbeat_at: 2026-09-11 08:26Z
 status: paused
-focus: "FOLDED 2026-09-11 for the compact. ON RETURN: work the outstanding 3.0.1 items under vc's instruction and nothing else. The finish line is intent/wip.md, ten hv decisions in order, culled by vc with hv's authority (6918a2e5). Mine on it: #4, the 16 collapsible_if (waiting on hv's go), and #10, ship-or-block on 0216/0212 and 0206. Take work from vc, not from this board. Nothing in flight, nothing dirty. RUN THE VERBS; every figure here rots."
+focus: "LEANED 2026-09-11 on hv's instruction and HOLDING while vc rounds up. Full self-contained status went to vc at 08:24Z. hv/inbox.cc.md is leaned to a pointer; the three prior entries are archived verbatim (sha256 170f70fe2e2b488a), and the 09-10 entry went partly because it carried two claims I have since falsified. Nothing in flight, nothing dirty. The rust workflow's sole blocker is 16 collapsible_if that are our own code; they are held for the human's word and for clean shared files. Every other item waits on a ruling, a run or a peer. RUN THE VERBS; every figure here rots."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,17 +14,17 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**NOTHING IN FLIGHT. NOTHING OF MINE DIRTY.** Verified by `git status` at the fold, not recalled.
+**NOTHING IN FLIGHT. NOTHING OF MINE DIRTY.** Verified by `git status` at the lean, not recalled.
 
-**ON RETURN FROM THE COMPACT: WORK THE OUTSTANDING 3.0.1 ITEMS UNDER vc's INSTRUCTION, AND NOTHING ELSE.** hv's instruction on 2026-09-11. **The finish line is `intent/wip.md`**: ten decisions for hv, in order. vc culled every board and inbox to that list with hv's authority (`6918a2e5`, `0b7b24a4`). **Take work from vc and not from this board.** Mine on the list: **#4**, the 16 `collapsible_if` (waiting on hv's go), and **#10**, ship-or-block on `0216`/`0212` and `0206`. **READ THE LIST, NOT THIS SUMMARY OF IT.** Its numbering is vc's, and vc can change it.
+**LEANED 2026-09-11 ON hv's INSTRUCTION: no more work, everything routed to vc, hold while vc rounds up.** Full status went to vc at 08:24Z. **vc restarted as a fresh session at around 08:20Z, so the message was written self-contained.** My three messages from the previous night had gone to vc's previous session and did not survive it. Pre-lean board: `.history/20260911/wip-prelean-0825Z.md`, sha256 `4602b07ae5d165c0`. The CI evidence (the prettier half, the 16 lints being our code, the onset correction) lives in `5313e5c1`, `51de2e93` and `c5ffdcee`. Read it there, not here.
 
 **RUN THE GATES RATHER THAN READING A FIGURE HERE.**
 
 ## TODO -- startable, mine, smallest first
 
-**NOTHING STARTABLE WITHOUT vc's WORD.** The 3.0.1 finish line is the only queue.
+**NOTHING IN MY OWN COLUMN IS STARTABLE.** Everything is behind a ruling, a run or a peer, and is listed in `## Holds` with its condition.
 
-- **NOT 3.0.1 WORK. DO IT ONLY IF vc ASKS:** the Spotlight/Gatekeeper causal link, which is unmeasured and mine. vc has one leg: 43,898 items indexed under `native/rust/target`, `syspolicyd` at 69% with zero daemons, and `.metadata_never_index` placed by the human. It needs a full-suite run either side of the exclusion, and full-suite runs belong to hv.
+- **The Spotlight/Gatekeeper causal link. It is MINE and still unmeasured.** vc has one leg: 43,898 items indexed under `native/rust/target`, `syspolicyd` at 69% with zero daemons, and the human has placed `.metadata_never_index`. **Closing it needs one suite run either side of the exclusion, and full-suite runs belong to hv.**
 
 ## Holds -- mine, with the CONDITION that releases each
 
@@ -32,16 +32,17 @@ claims: [ST0056/06, ST0056/10]
 
 - **L** `0216`/`0226` fix -- RELEASED WHEN a monotonic version the ingest does not own exists. The obvious fix collides with `written_at`, which the ingest rewrites wholesale.
 - **POST-CUT (culled from the 3.0.1 loop 2026-09-11):** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). Their conditions stand and none is 3.0.1 work.
-- **The 16 `collapsible_if` in intentsvcs -- RELEASED WHEN hv says go on finish-line #4 AND `facade.rs`/`store.rs`/`daemon.rs` carry no peer's uncommitted work.** They are our own code at a fixed compiler (10 -> 10 across 1.98.0 -> 1.98.1), so this is mechanical, not a policy call. They are the SOLE blocker on the `rust` workflow, and they gate the five prettier arms that have never measured in CI. My REC is to collapse them.
+- **The 16 `collapsible_if` in intentsvcs -- RELEASED WHEN the human says go AND `facade.rs`/`store.rs`/`daemon.rs` carry no peer's uncommitted work.** They are our own code at a fixed compiler (10 -> 10 across 1.98.0 -> 1.98.1), so this is mechanical, not a policy call. They are the SOLE blocker on the `rust` workflow, and they gate the five prettier arms that have never measured in CI. My REC is to collapse them.
 
 ## Decisions
 
 - (2026-09-09) **A ROUTE RECORDED IS NOT A ROUTE TAKEN.** ic's board read _`0218` released to cc ... Routed, not taken_, while `cc/inbox.ic.md` was `_(empty)_`. **A pickup reads your own board and your own inboxes, so under the protocol that release was invisible to me at every step of my boot** -- I have it only because I grepped a peer's board for my own moniker, which is not a procedure.
 - (2026-09-09) **EVERYTHING SHIPS AS 3.0.1. SETTLED BY hv, NOT OWED, NOT MINE TO RE-OPEN.** Ruled twice and restated a fourth time in hv's own words. The new-surface argument is DEAD, not deferred. **I do not raise it again.**
+- (2026-09-09) **`AC-06.1`'s BURN SUBJECT IS THE RELEASE BINARY AT A NAMED COMMIT, AND THE BASELINE MUST RECORD IT.** Mine to call. NOT the debug build, which self-reports `dirty-<sha>` and names no reproducible revision -- **that would reintroduce in the SUBJECT the drift `coverage_map.sh` refuses in the CORPUS.** Not the path, the COMMIT.
 
 ## Owed -- vc holds hv's pen; question, options, recommendation
 
-**NOTHING IS OWED FROM THIS BOARD. hv's DECISIONS LIVE IN `intent/wip.md`, WHICH IS THEIR ONE HOME.** My items there are #4 and #10. `hv/inbox.cc.md` is a pointer, and the pre-lean record is at `.history/20260911/hv-inbox-cc-prelean-0825Z.md`.
+**EVERYTHING I OWED hv IS WITH vc. vc's ROUND-UP IS ITS ONE HOME, AND THIS SECTION DOES NOT RESTATE IT.** Routed 2026-09-11 08:24Z. `hv/inbox.cc.md` was leaned to a pointer. The three prior entries are archived verbatim at `.history/20260911/hv-inbox-cc-prelean-0825Z.md`, sha256 `170f70fe2e2b488a`. **Two items went with caveats that must not be dropped:** [7]'s ZERO broken intra-doc links disagrees with `config.yaml:244`'s NINE and needs one drive before hv rules; and `learn`'s no-clock CLASS had never been routed at all. vc confirmed this against a controlled grep and has now put it in the round-up.
 
 ## Open, no owner
 
@@ -72,7 +73,7 @@ claims: [ST0056/06, ST0056/10]
 
 **W10. THIS BOX AND THIS SHELL.** **NOT AN INSTANCE:** a command whose quoting and exit code were driven rather than assumed. **A probe whose EXIT CODE is the finding never goes through a pipe** -- `cmd | head` reports head's status, and zsh has `pipestatus`, not `PIPESTATUS`; reaching for either is already the wrong shape, so redirect to a file and read it. **The Bash tool's shell is zsh:** an unquoted `$var` does NOT word-split, so a multi-word string becomes ONE argument and clap answers `unrecognized subcommand 'st bootstrap'` -- the space inside the quotes is the tell, and it is all that separates _your finding is wrong_ from _my probe is wrong_. An unmatched glob (`--include=*.rs`) aborts the whole command. `find` is bfs, not GNU find. **All of these return a plausible wrong answer rather than an error you notice.** **AND IT FIRED INSIDE THE FOLD THAT WROTE THIS FAMILY, 2026-09-10 19:50Z:** `if git commit ... | tail -5; then echo COMMITTED` printed COMMITTED while the pre-commit gate had REFUSED the commit on formatting -- zsh gives the pipeline `tail`'s status, so the guard's refusal was reported as a success and HEAD was a peer's commit. **The remedy is the one written two sentences up and I did not apply it to my own retry loop:** redirect to a file, read the file, test the rc of the command you actually care about. **A retry loop whose success test is wrong does not retry -- it declares victory once.**
 
-**W11. FOLDING THIS BOARD.** **NOT AN INSTANCE:** a cut keyed on EXECUTION, with the pre-fold banked first and the asker confirmed. **hv's rule and mine were reached independently from opposite sides** -- a fold never archives an UNEXECUTED ruling, and a fold never cuts by byte count -- **and a rule two people reached independently is harder to talk yourself out of at 2am.** **ANCHOR ON LINE NUMBERS, NEVER ON A HEADING STRING:** `index("## Decisions")` matches `"## Decisions owed by hv"` occurring MID-SENTENCE, inverts the slice and orphans the tail as a fake heading -- it has now bitten me and vc within an hour of my describing it. **`hygiene: ok` PASSES ON A CORRUPTED BODY** -- its contract is the header block, deliberately -- so verify section and family counts by hand. **BEFORE A LESSON GOES INTO A NO-STATE DOCUMENT, COUNT ITS SPECIFICS THAT CAN ROT:** a lesson carrying dated instances is STATE WEARING A LESSON'S CLOTHES. **A principle that tells you what to COUNT is not the weaker half of that pair.** **INSTANCE 2026-09-11, at the lean:** I spliced sections by searching for the heading STRING `## Holds`, which also appeared inline in a TODO paragraph. An orphaned tail survived under a fake heading, and `ws hygiene` reported ok. **Splice by EXACT FULL-LINE INDEX and list the headings by hand afterwards. A hygiene pass on the body is not evidence about the body.**
+**W11. FOLDING THIS BOARD.** **NOT AN INSTANCE:** a cut keyed on EXECUTION, with the pre-fold banked first and the asker confirmed. **hv's rule and mine were reached independently from opposite sides** -- a fold never archives an UNEXECUTED ruling, and a fold never cuts by byte count -- **and a rule two people reached independently is harder to talk yourself out of at 2am.** **ANCHOR ON LINE NUMBERS, NEVER ON A HEADING STRING:** `index("## Decisions")` matches `"## Decisions owed by hv"` occurring MID-SENTENCE, inverts the slice and orphans the tail as a fake heading -- it has now bitten me and vc within an hour of my describing it. **`hygiene: ok` PASSES ON A CORRUPTED BODY** -- its contract is the header block, deliberately -- so verify section and family counts by hand. **BEFORE A LESSON GOES INTO A NO-STATE DOCUMENT, COUNT ITS SPECIFICS THAT CAN ROT:** a lesson carrying dated instances is STATE WEARING A LESSON'S CLOTHES. **A principle that tells you what to COUNT is not the weaker half of that pair.**
 
 **W12. A PRECONDITION THAT IS CORRECT CAN STILL BE A MIGRATION, AND THE ONLY WAY TO TELL IS TO COUNT.** **NOT AN INSTANCE:** a fix whose blast radius was counted across the real population BEFORE it was proposed. Measure how many members a new refusal actually turns away; a guard that refuses 0 of 18 is a precondition, and one that refuses 11 is a migration wearing a precondition's clothes. **THE COROLLARY THAT CAME BACK TODAY: the honest repair for `at_edit`'s argument count is a struct across THIRTEEN call sites in another work package -- a refactor wearing a lint fix's clothes, which is how a small change becomes unreviewable.** Suppress with the reason and the removal condition, and route the refactor; do not smuggle it.
 
