@@ -3,10 +3,10 @@ node: cc
 name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
-commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 16:15Z
+commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
+heartbeat_at: 2026-09-11 16:50Z
 status: active
-focus: "HOLDING. Every cc item is closed (0066, 0084, 0100, 0145, 0146, 0153, 0176, 0231 read CLOSED; hv decisions 4, 5 and 7 verified by vc, AC-01.7 at 23bca1b1). The list has no workable row; what remains is dc's decision 3 and the notice fix, then the cut. intentsvcs suites run ONLY from a private worktree."
+focus: "LOCALFOLD 2026-09-11 16:50Z FOR THE COMPACT -- not a release. HOLDING while vc cuts 3.0.1: every cc item is closed and verified. One loose end: wt-cc stays until ~/.intent/home names the main checkout again (hv restores it). intentsvcs and intent-cli suites run ONLY from a private worktree under an isolated HOME."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,36 +14,17 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**NOTHING IN FLIGHT, AND NOTHING WITH vc.** Every cc item is closed, driven by vc before each close: `0066`, `0084`, `0100`, `0145`, `0146`, `0153`, `0176` and `0231` read CLOSED, and hv's decisions 4 (`7d3ffe61`), 5 (`32958364`) and 7 (`56322937`, AC-01.7 satisfied at `23bca1b1`) are verified. **HOLDING on vc's word:** the list has no workable row; what remains is dc's decision 3 and the notice fix, then the cut. Every fix is in `git log` under its id.
+**FOLDED 2026-09-11 16:50Z FOR THE COMPACT -- not a release. HOLDING WHILE vc CUTS 3.0.1.** The board before this fold is verbatim at `.history/20260911/wip-prefold-1650Z.md`, and every fix is in `git log` under its id. Every cc item is closed, re-driven by vc before each close (`0066`, `0084`, `0100`, `0145`, `0146`, `0153`, `0176`, `0231`), and hv's decisions 4 (`7d3ffe61`), 5 (`32958364`) and 7 (`56322937`; AC-01.7 satisfied at `23bca1b1`, notarised as `afbcaa0b`) are verified. The list has no workable row.
 
-**THE RULES ON THE BOUNCE (vc):** one item at a time, claimed here; the id in the commit subject; tell vc, who re-drives and closes it. The only new test allowed is the proving one, seen red. No new instruments, guards, criteria or threads. A defect found while fixing goes in the commit message, not on the list. **hv: _THERE IS NO NEW WORK TO BE DONE._** The list in `intent/wip.md` is the authority, and `intent issues list` is the live state. **Read the lane column there, never a copy here.**
+**ONE LOOSE END, MINE:** my scratch worktree `wt-cc` (scratchpad, detached at `32958364`) is named by `~/.intent/home` since 15:34:59Z -- see W5. **Remove it only after `cat ~/.intent/home` names the main checkout.** hv is restoring the pointer (`~/.local/bin/intent bootstrap` from the main checkout); I do not touch it.
 
-**RUN THE GATES RATHER THAN READING A FIGURE HERE.**
+## TODO
 
-## TODO -- startable, mine, in the list's order
-
-- **Empty.** Every cc row in `intent/wip.md` is with vc. Read the lane column there, never a copy here.
+- **Empty.** Read the lane column in `intent/wip.md`, never a copy here.
 
 ## Holds -- mine, with the CONDITION that releases each
 
-**A hold whose condition still stands is never archived by a fold. None below is released.** `0100`, `0084` and the 16 `collapsible_if` left this section when hv released them on 2026-09-11; each is in `git log` under its id.
-
-- **POST-CUT (culled from the 3.0.1 loop 2026-09-11):** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). Their conditions stand and none is 3.0.1 work.
-
-## Decisions
-
-- (2026-09-11, cc) **A HOLD'S CONDITION NAMES THE ARTEFACT IT WAITS ON, NOT A STRING.** `git log --grep 0216` matched `69ebc932`, an issue-body edit from 2026-09-03, and I told vc the `0226` hold was released a minute before `0216`'s code landed. The working form is `git log --since=<when> --grep <id> -- <path>`.
-- (2026-09-11, cc) **A FIX THAT REMOVES A REFUSAL MUST FIRST ASK WHAT THE REFUSAL WAS PROTECTING.** `0084`'s UTF-8 refusal looked like a survivor to delete, and it was the only thing stopping canon from naming a sidecar that no door writes. Driving the fix through the verbs, not just the unit, is what showed it.
-- (2026-09-09) **A ROUTE RECORDED IS NOT A ROUTE TAKEN.** ic's board read _`0218` released to cc ... Routed, not taken_, while `cc/inbox.ic.md` was `_(empty)_`. **A pickup reads your own board and your own inboxes, so under the protocol that release was invisible to me at every step of my boot** -- I have it only because I grepped a peer's board for my own moniker, which is not a procedure.
-- (2026-09-09) **EVERYTHING SHIPS AS 3.0.1. SETTLED BY hv, NOT OWED, NOT MINE TO RE-OPEN.** Ruled twice and restated a fourth time in hv's own words. The new-surface argument is DEAD, not deferred. **I do not raise it again.**
-
-## Owed -- vc holds hv's pen; question, options, recommendation
-
-**NOTHING IS OWED FROM THIS BOARD. hv's DECISIONS LIVE IN `intent/wip.md`, WHICH IS THEIR ONE HOME.** My items there are #4 and #10. `hv/inbox.cc.md` is a pointer, and the pre-lean record is at `.history/20260911/hv-inbox-cc-prelean-0825Z.md`.
-
-## Open, no owner
-
-- **Something WALKS the CLI surface.** Seven CLI-token-titled creations in `event_log`, two episodes eight days apart. **This is `0223`'s -- re-read it, do not restate from here.** Two episodes is ONE interval, and one interval is not a period.
+- **POST-CUT (culled from the 3.0.1 loop 2026-09-11):** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; none is 3.0.1 work.
 
 ## Watch-outs
 
@@ -57,7 +38,7 @@ claims: [ST0056/06, ST0056/10]
 
 **W4. ONE NAME, TWO ARTEFACTS.** A NAME resolves to TWO artefacts, a check examines ONE, and the claim is phrased about the NAME. **NOT AN INSTANCE:** a verdict that names the artefact it examined.
 
-**W5. THE SHARED CHECKOUT.** Canon cannot be split, so every canon commit is silently multi-node. **NOT AN INSTANCE:** a change confined to a private worktree, or to a file no peer has touched, verified by looking rather than assumed. **THE ONLY SAFE WRITE:** `git add` your paths, then `git commit --only` them, retry the SAME command against a peer's index lock, never remove the lock, and judge success by `git log`, not by the loop. **A test run here compiles peers' UNCOMMITTED edits too** (2026-09-11: I pinned a red on `6e478ec4` by recency, and it was dc's mid-edit `render.rs`; the wrong sha now stands in `86071c36`'s message). Attribute a red only after re-running with `git status --short native/` empty. **AND RUN THE intentsvcs SUITES ONLY FROM A PRIVATE WORKTREE** (2026-09-11): `attachment_drift_detected.rs` runs `doctor` on `repo_root()`, `doctor::db_checks` calls `Store::open` on that project's store, and `Store::open` migrates. `repo_root()` is baked in at compile time (`testkit/src/lib.rs:128`), so a test binary built in the shared checkout reaches the live store from any CWD. My run with rung 18 in the tree moved the live store 17 -> 18 and locked every 17 binary out; hv recovered it by a rebuild. The vector is in `d0777bc8`'s message.
+**W5. THE SHARED CHECKOUT.** Canon cannot be split, so every canon commit is silently multi-node. **NOT AN INSTANCE:** a change confined to a private worktree, or to a file no peer has touched, verified by looking rather than assumed. **THE ONLY SAFE WRITE:** `git add` your paths, then `git commit --only` them, retry the SAME command against a peer's index lock, never remove the lock, and judge success by `git log`, not by the loop. **A test run here compiles peers' UNCOMMITTED edits too** (2026-09-11: I pinned a red on `6e478ec4` by recency, and it was dc's mid-edit `render.rs`; the wrong sha now stands in `86071c36`'s message). Attribute a red only after re-running with `git status --short native/` empty. **AND RUN THE intentsvcs SUITES ONLY FROM A PRIVATE WORKTREE** (2026-09-11): `attachment_drift_detected.rs` runs `doctor` on `repo_root()`, `doctor::db_checks` calls `Store::open` on that project's store, and `Store::open` migrates. `repo_root()` is baked in at compile time (`testkit/src/lib.rs:128`), so a test binary built in the shared checkout reaches the live store from any CWD. My run with rung 18 in the tree moved the live store 17 -> 18 and locked every 17 binary out; hv recovered it by a rebuild. The vector is in `d0777bc8`'s message. **AND UNDER AN ISOLATED `HOME` TOO** (same day): my `cargo test -p intent-cli` in that worktree ran `intent bootstrap` in-process under the real `HOME`, and `publish_home()` repointed `~/.intent/home` at the worktree -- remove the worktree and the pre-commit shim refuses every commit in the repo. ic caught it; hv restores the pointer, never me.
 
 **W6. A CLAIM THAT DOES NOT FEEL LIKE A CLAIM IS THE ONE TO DRIVE.** **NOT AN INSTANCE:** a premise driven in the same turn, against an artefact of the right era.
 
@@ -73,22 +54,12 @@ claims: [ST0056/06, ST0056/10]
 
 **W12. A PRECONDITION THAT IS CORRECT CAN STILL BE A MIGRATION, AND THE ONLY WAY TO TELL IS TO COUNT.** **NOT AN INSTANCE:** a fix whose blast radius was counted across the real population BEFORE it was proposed.
 
-## Decisions -- durable principles, carried across folds
+## Decisions -- rulings in force and the lessons of this bounce
 
-**CUT 2026-09-11 TO WHAT GOVERNS THE INGEST, MIGRATION AND STORE-WRITE LANE, OR STANDS AS A RULING IN FORCE.** The rows about the instrument and criteria loop that hv ended are archived verbatim at `.history/20260911/wip-prefold-aggressive-0917Z.md`.
+**CUT 2026-09-11 16:50Z TO RULINGS STILL IN FORCE AND THIS BOUNCE'S LESSONS.** Everything else is verbatim in `.history/20260911/wip-prefold-1650Z.md`.
 
-- (2026-09-09, cc, after vc) **A PEER CONTRADICTING MY BOARD IS A PROMPT TO DRIVE THE SUBJECT, NOT TO ESCALATE A CONFLICT.** I routed _vc says placing `WP-14` is theirs, my board says hv descoped it whole_ to vc as an unresolvable state conflict. **My board was right and had been since 2026-09-02**, and `intent ac list ST0056 | grep AC-14` settles it in one second: all twelve rows read `descoped-to: ST0069`. **I escalated a question I already held the answer to** -- which spends a peer's turn and puts a false open item on hv's desk. vc drove it, found the same thing, and struck their own entry. **This is A27 in the other direction: there I trusted my board over a verb, here I distrusted it over a peer, and the cure is the same verb both times.** Residue vc found and routed to hv, NOT mine to touch: `intent wp show ST0056/14` still reads `Not Started`, scope L, with zero in-scope criteria -- a work-package shell is what made both of us read it as live.
-- (2026-09-04, cc) **A CITATION INHERITS THE CITED CLAIM'S TRUTH AT CITATION TIME AND NEVER UPDATES.** `0223` rests on `0090`+`0151` to conclude a junk row _can only be closed_; all three are open, the underlying verb shipped, and **none of the three noticed.** Currency is a property of a CLAIM (F3) and equally of every REFERENCE to it -- and a reference is worse, because it reads as sourced.
-- (2026-09-04, cc) **A PUBLISHED FIGURE IS A CLAIM ABOUT AN ARTEFACT, AND THE ARTEFACT IS THE COMMITTED ONE.**
-- (2026-09-04, hv via cc) **`config`, `ext` AND `learn` SHIP DECLARED-AND-UNBUILT IN 3.0.1** (2026-08-31). **A general ruling stated later does not vacate a specific one.**
-- (2026-09-04, cc+dc) **A DIRECTORY `add` PROTECTS A PATH AND A DIRECTORY PATH IS NOT A FILE.** And **a path that moves on its own is not a path either node can own** (`project.json`'s `todo_watermark`).
-- (2026-09-04, cc) **THE CANON STORE AND DISK DO NOT DISAGREE.** The divergence is git-only. Filing writes store and disk atomically; **git is a separate human-gated act and NOTHING REPORTS THE GAP.**
-- (2026-09-04, cc) **A SET PASSING TOGETHER IS NOT EVIDENCE ABOUT ITS SUBSETS.**
-- (2026-09-03, cc+vc) **CONTENTION IS `0216`'s VARIABLE** -- not spacing, not corpus size. **Refusals (`0226`) and silent losses (`0216`) TRADE OFF**, so a single counter prints _fewer losses under load_ and reads as improvement.
-- (2026-09-02, cc+vc) **`0216`'s FIX IS DAEMON-SIDE, NOT USAGE DISCIPLINE.** A hazard reachable by an ordinary shell loop cannot be mitigated by how carefully nodes write.
-- (2026-09-02) **TWO MACHINE PROJECTIONS OF ONE VALUE MUST NOT DRIFT; A HUMAN RENDERING OF IT IS NOT A COPY AT ALL.**
-- (2026-09-02) **CONTENT COMPARISON DOMINATES A VERSION COUNTER FOR A COMPARE-AND-SWAP.**
-- (2026-09-01, hv) **v3.0.1 IS FEATURE COMPLETE, THERE IS NO TAG WINDOW AND NO EXTERNAL CONSUMER, AND COST IS NOT A CONSTRAINT.** The scarcity register is retired as a class.
-- (2026-09-01) **A REFUSAL THAT CANNOT SAY WHAT IT FOUND MAKES ITS OWN DEFECT UNDIAGNOSABLE.**
-- (2026-09-01) **A REMEDY INHERITS ITS BRANCH'S ASYMMETRY.** Confirm-before-refuse is SAFE on the lock and WRONG on the probe.
-- (2026-08-31, ic correcting me) **AN OWNERSHIP SPLIT IS A PURPOSE, NOT A BOUNDARY.** Two hands in one file IS `0206` in miniature.
+- (2026-09-11, cc) **A HOLD'S CONDITION NAMES THE ARTEFACT IT WAITS ON, NOT A STRING.** The working form is `git log --since=<when> --grep <id> -- <path>`.
+- (2026-09-11, cc) **A FIX THAT REMOVES A REFUSAL MUST FIRST ASK WHAT THE REFUSAL WAS PROTECTING.** `0084`'s UTF-8 refusal was the only thing stopping canon from naming a sidecar no door wrote; driving the fix through the verbs, not just the unit, is what showed it.
+- (2026-09-11, cc) **A SUITE THAT OPENS THE ESTATE IT LIVES IN IS A WRITER, AND A TEST RUN IS A DEPLOY TO IT.** Twice in one day: the live store's rung (via `doctor`) and `~/.intent/home` (via `bootstrap`). Isolate the repo AND `HOME`, and read both back after the run.
+- (2026-09-09, hv) **EVERYTHING SHIPS AS 3.0.1. NOT MINE TO RE-OPEN.** The new-surface argument is dead, not deferred.
+- (2026-08-31, hv) **`config`, `ext` AND `learn` SHIP DECLARED-AND-UNBUILT IN 3.0.1.** A general ruling stated later does not vacate a specific one.
