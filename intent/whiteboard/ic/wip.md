@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 09:41Z
+heartbeat_at: 2026-09-11 10:00Z
 status: active
-focus: "0207 IN DOING, ALREADY DELIVERED AT e331b7c8 (2026-09-02) AND RE-DRIVEN AT HEAD; WITH vc TO CLOSE. 0209 STARTS ONLY AFTER vc CLOSES 0207 OR SENDS IT BACK. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0207, 0209, then 0079, 0149, 0291, 0103, 0137, 0194, 0299. hv: THERE IS NO NEW WORK; these items and these items ONLY."
+focus: "0209 IN DOING: A REAL FIX, PATCHED AND TESTED IN A PRIVATE WORKTREE, WAITING ON cc's facade.rs TO LAND BEFORE IT CAN COMMIT. THE LANE: the CLI-surface lane of the 3.0.1 finish line in `intent/wip.md`, ONE ITEM AT A TIME, in list order -- 0209, then 0079, 0149, 0291, 0103, 0137, 0194, 0299, 0146. hv: THERE IS NO NEW WORK; these items and these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,23 +13,27 @@ claims: [ST0064]
 
 ## DOING
 
-**`0207` -- CLAIMED 2026-09-11 09:41Z on vc's go (`0192` closed by vc at `840c925c`). NO CODE CHANGE: the fix is already at `e331b7c8` (2026-09-02, "the status verbs extend a note, at edit replaces it (0207)", an ancestor of HEAD); the issue reading `open` is W129 a third time.** Re-driven on a private build of `36352b21` in a throwaway `HOME`/project: after `at new ... --status red --note "$HIST"`, `at green --note "<fresh reason only>"` refuses at rc=1, naming the 87 bytes it would drop and pointing at `at edit`, and the row stays `red` with its note intact. Control: `at green --note "$HIST green: passes"` gives rc=0, `green`, and the note extended. **With vc to re-drive and close. `0209` waits for that.**
+**`0209` -- CLAIMED 2026-09-11 on vc's go (`0207` closed by vc). REAL WORK: no prior fix.** Driven on HEAD first. With a manifest, `st start` only pins and writes no files. The smaller copy is written by the REALISING verbs, `organize --apply` and `st hydrate`, at rc=0: two views at `intent/st/ST0001/` while `intent/st/NOT-STARTED/ST0001/` keeps three files the store never carried, reported only as `unclaimed` inventory.
+
+**The fix, patched and tested in a private worktree:** `organize::plan` HOLDS a declared thread that has nothing at its own directory while a v2 status bucket holds its files. `run` reports each hold as a refusal in both modes (rc=1 on `--apply`), and `hydrate` refuses it. The bucket names get one home in `legacy::V2_STATUS_BUCKETS`. The one test, `failure_a_thread_still_in_a_v2_bucket_is_not_realised_beside_it`, goes red with the guard disabled and green with it. intent-cli is green. intentsvcs is green except `mutation_completeness::no_service_call_can_set_an_edgeless_field`, which is RED AT CLEAN HEAD `4a477aca` too (`AcceptanceTest.kind`; it names itself a decision pending hv).
+
+**BLOCKED ON COMMIT ONLY:** cc has uncommitted hunks in `facade.rs`, and `commit --only` is whole-file. Asked cc at 2026-09-11 10:00Z to say when theirs lands, then `git apply --check` and commit my five paths.
 
 ## TODO -- THE BOUNCE: the CLI-surface lane of the 3.0.1 finish line
 
 **Source: `intent/wip.md`, the numbered list. hv's words: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._ hv cuts from the bottom.** Re-drive the list on return -- it is vc's and it moves.
 
-| Order | #   | Issue  | Defect                                                                 |
-| ----- | --- | ------ | ---------------------------------------------------------------------- |
-| 2     | 4   | `0207` | `at green/red/na --note` replaces the whole note, destroying history   |
-| 3     | 5   | `0209` | `st start` writes a smaller copy of an unhydrated thread over the path |
-| 4     | 23  | `0079` | `st new` says created and writes no files                              |
-| 5     | 24  | `0149` | `intent edit` ignores the kind it was given and answers about a thread |
-| 6     | 25  | `0291` | `edit wp ST/NN --path` returns the parent thread's file                |
-| 7     | 26  | `0103` | `wp list` returns zero rows for 71 threads whose WPs are in the store  |
-| 8     | 27  | `0137` | `ac list` shows a fiat-closed criterion as satisfied: no               |
-| 9     | 31  | `0194` | `intent search` with a hyphenated term leaks a SQLite error            |
-| 10    | 34  | `0299` | `at lint` says a file lacks an id it carries (the cross-thread case)   |
+| Order | #   | Issue  | Defect                                                                  |
+| ----- | --- | ------ | ----------------------------------------------------------------------- |
+| 3     | 5   | `0209` | `st start` writes a smaller copy of an unhydrated thread over the path  |
+| 4     | 23  | `0079` | `st new` says created and writes no files                               |
+| 5     | 24  | `0149` | `intent edit` ignores the kind it was given and answers about a thread  |
+| 6     | 25  | `0291` | `edit wp ST/NN --path` returns the parent thread's file                 |
+| 7     | 26  | `0103` | `wp list` returns zero rows for 71 threads whose WPs are in the store   |
+| 8     | 27  | `0137` | `ac list` shows a fiat-closed criterion as satisfied: no                |
+| 9     | 31  | `0194` | `intent search` with a hyphenated term leaks a SQLite error             |
+| 10    | 34  | `0299` | `at lint` says a file lacks an id it carries (the cross-thread case)    |
+| 11    | 73  | `0146` | `at edit` ignores the row's kind (vc: `87465f97` fixed only the remedy) |
 
 **THE RULES ON THE BOUNCE (vc, under hv):**
 
