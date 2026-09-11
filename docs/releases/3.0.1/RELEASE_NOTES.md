@@ -70,6 +70,6 @@
 
 **The reassuring half of that is true, which is why it is worth stating the other half.** A project readable by v3.0.0 is indeed readable by v3.0.1 -- by being migrated. **What changes is the converse: once migrated, it is not readable by v3.0.0 again.** So if you run more than one v3 install -- an older one on another machine, a colleague who has not upgraded, a pinned CI image -- **the first v3.0.1 command to touch a shared project ends the older install's access to it.** The refusal that install then gives names the store and both version numbers, which is enough to diagnose and does not say that an upgrade elsewhere caused it.
 
-**Your project's files are not touched by this.** Steel threads, work packages and criteria on disk are unchanged; what moves is the runtime store under `intent/.cache/`, which is derived from them.
+**Your project's files are not touched by this.** Steel threads, work packages and criteria on disk are unchanged; what moves is the runtime store under `intent/.cache/`, which is rebuilt from them except for its event log, which exists only in the store.
 
 **Evidence already destroyed by the third fault is not recovered by upgrading.** The fix stops the loss; it cannot reconstruct text the store never held. If you migrated an estate under v3.0.0 and criteria authored unsatisfied carried evidence clauses, that text is in your v2 history and not in your store.
