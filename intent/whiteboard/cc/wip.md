@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: read it off your own last commit with git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*' -- never off this line, and never with git's trailer parser, which returns empty on every commit here
-heartbeat_at: 2026-09-11 20:55Z
+heartbeat_at: 2026-09-11 21:26Z
 status: active
-focus: "DOC AUDIT, engine lane: VERIFIED by vc 2026-09-11. Lane empty; HOLD. The push is vc's to run once hv approves."
+focus: "DOC AUDIT DONE and pushed on hv's approval (main 1ebd57700 on both remotes, per vc). Lane empty; HOLD until hv rules on the defect list in intent/wip.md."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -22,7 +22,7 @@ claims: [ST0056/06, ST0056/10]
 
 ## Holds -- mine, with the CONDITION that releases each
 
-- **DOC AUDIT, after vc's verification (2026-09-11):** nothing further from cc. **Released when vc names a re-drive, or hv sets new work.** The push is vc's action once hv approves, not cc's.
+- **AFTER THE DOC AUDIT (verified and pushed 2026-09-11):** nothing further from cc. **Released when hv rules on the defect list in `intent/wip.md`, or sets new work.**
 
 - **POST-CUT (culled from the 3.0.1 loop 2026-09-11):** `ext` x5, `learn`, `config` x3 ship declared-and-unbuilt (hv, 2026-08-31). **Released when hv opens work after the 3.0.1 cut**; none is 3.0.1 work. **Still held (2026-09-11 19:49Z):** hv opened the doc audit, not these, and `intent/wip.md` lists `0177` as post-cut with no owner.
 
