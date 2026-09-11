@@ -632,16 +632,14 @@ impl Schema {
       }
       // A field row is `| \`name\` | ...`. The separator row and the header row
       // both fail the backtick test, so neither needs special-casing.
-      if let Some(bucket) = into.as_deref_mut() {
-        if let Some(cell) = line.strip_prefix("| ").and_then(|l| l.split('|').next()) {
-          if let Some(name) = cell
-            .trim()
-            .strip_prefix('`')
-            .and_then(|c| c.strip_suffix('`'))
-          {
-            bucket.push(name.to_string());
-          }
-        }
+      if let Some(bucket) = into.as_deref_mut()
+        && let Some(cell) = line.strip_prefix("| ").and_then(|l| l.split('|').next())
+        && let Some(name) = cell
+          .trim()
+          .strip_prefix('`')
+          .and_then(|c| c.strip_suffix('`'))
+      {
+        bucket.push(name.to_string());
       }
     }
     if schema.required.is_empty() || schema.optional.is_empty() {
@@ -698,10 +696,10 @@ pub fn attributions(canon: &Path) -> Result<Vec<(String, String)>, RulesError> {
           .and_then(|v| v.strip_suffix('`'))
           .map(str::to_string)
       };
-      if let (Some(id), Some(slug)) = (ticked(cells[1]), ticked(cells[2])) {
-        if id.starts_with("IN-") {
-          out.push((id, slug));
-        }
+      if let (Some(id), Some(slug)) = (ticked(cells[1]), ticked(cells[2]))
+        && id.starts_with("IN-")
+      {
+        out.push((id, slug));
       }
     }
   }
@@ -834,13 +832,14 @@ pub fn check(docs: &[RuleDoc], schema: &Schema, attributions: &[(String, String)
     if let (Some(up), Some(id)) = (
       doc.front.scalars.get("upstream_id"),
       doc.front.scalars.get("id"),
-    ) {
-      if !up.is_empty() && up != "null" && !attributions.iter().any(|(a, s)| a == id && s == up) {
-        say(
-          Level::Error,
-          format!("`upstream_id: {up}` has no matching row in `_attribution/` for `{id}`"),
-        );
-      }
+    ) && !up.is_empty()
+      && up != "null"
+      && !attributions.iter().any(|(a, s)| a == id && s == up)
+    {
+      say(
+        Level::Error,
+        format!("`upstream_id: {up}` has no matching row in `_attribution/` for `{id}`"),
+      );
     }
   }
   findings

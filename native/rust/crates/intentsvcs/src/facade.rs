@@ -6906,17 +6906,16 @@ impl Facade {
     // The exposure it closes is larger than the row's one instance: **36
     // `to-write` rows cite a file that has never existed**, and every one of them
     // is this door, armed.
-    if matches!(status, AtStatus::Green | AtStatus::Red) {
-      if let Some(path) = cited.as_deref() {
-        if !self.project.root().join(path).exists() {
-          return Err(FacadeError::VerdictCitesAbsentFile {
-            st: st.to_string(),
-            at: at.to_string(),
-            path: path.to_string(),
-            status: status.display().to_string(),
-          });
-        }
-      }
+    if matches!(status, AtStatus::Green | AtStatus::Red)
+      && let Some(path) = cited.as_deref()
+      && !self.project.root().join(path).exists()
+    {
+      return Err(FacadeError::VerdictCitesAbsentFile {
+        st: st.to_string(),
+        at: at.to_string(),
+        path: path.to_string(),
+        status: status.display().to_string(),
+      });
     }
 
     // **`at.set` is declared with an EMPTY from-set, so without this a self-loop
@@ -6994,16 +6993,16 @@ impl Facade {
         // **`materially longer` WAS ITSELF INSTANCE-SHAPED.** It was written
         // looking at a 7803 -> 683 destruction, where length was the visible
         // symptom. The mechanism was never length; it is CONTENT LOSS.
-        if let Some(existing) = row.note.as_ref() {
-          if !text.contains(existing.as_str()) {
-            let opening: String = existing.chars().take(120).collect();
-            return Err(FacadeError::NoteWouldBeLost {
-              url: format!("{st}/{at}"),
-              existing_bytes: existing.len(),
-              incoming_bytes: text.len(),
-              opening,
-            });
-          }
+        if let Some(existing) = row.note.as_ref()
+          && !text.contains(existing.as_str())
+        {
+          let opening: String = existing.chars().take(120).collect();
+          return Err(FacadeError::NoteWouldBeLost {
+            url: format!("{st}/{at}"),
+            existing_bytes: existing.len(),
+            incoming_bytes: text.len(),
+            opening,
+          });
         }
         row.note = Some(text.clone());
       }
@@ -9106,30 +9105,30 @@ impl Facade {
     // reached, so a thread or package closed on authority rendered with no time
     // at all -- the two kinds a cascade STARTS from.
     for thread in &mut next.threads {
-      if let Some(record) = thread.fiat.as_mut() {
-        if record.at.is_empty() {
+      if let Some(record) = thread.fiat.as_mut()
+        && record.at.is_empty()
+      {
+        record.at = dates.event_ts.clone();
+      }
+      for wp in &mut thread.wps {
+        if let Some(record) = wp.fiat.as_mut()
+          && record.at.is_empty()
+        {
           record.at = dates.event_ts.clone();
         }
       }
-      for wp in &mut thread.wps {
-        if let Some(record) = wp.fiat.as_mut() {
-          if record.at.is_empty() {
-            record.at = dates.event_ts.clone();
-          }
-        }
-      }
       for criterion in &mut thread.criteria {
-        if let AcState::Fiat(record) = &mut criterion.state {
-          if record.at.is_empty() {
-            record.at = dates.event_ts.clone();
-          }
+        if let AcState::Fiat(record) = &mut criterion.state
+          && record.at.is_empty()
+        {
+          record.at = dates.event_ts.clone();
         }
       }
       for test in &mut thread.tests {
-        if let Some(record) = test.fiat.as_mut() {
-          if record.at.is_empty() {
-            record.at = dates.event_ts.clone();
-          }
+        if let Some(record) = test.fiat.as_mut()
+          && record.at.is_empty()
+        {
+          record.at = dates.event_ts.clone();
         }
       }
     }

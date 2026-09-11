@@ -2291,10 +2291,10 @@ impl Store {
     }
     let mut t = t.clone();
     let fill = |r: &mut Option<crate::model::FiatRecord>| {
-      if let Some(r) = r.as_mut() {
-        if r.at.is_empty() {
-          r.at = event_ts.to_string();
-        }
+      if let Some(r) = r.as_mut()
+        && r.at.is_empty()
+      {
+        r.at = event_ts.to_string();
       }
     };
     fill(&mut t.fiat);
@@ -2305,10 +2305,10 @@ impl Store {
       fill(&mut x.fiat);
     }
     for c in &mut t.criteria {
-      if let crate::model::AcState::Fiat(r) = &mut c.state {
-        if r.at.is_empty() {
-          r.at = event_ts.to_string();
-        }
+      if let crate::model::AcState::Fiat(r) = &mut c.state
+        && r.at.is_empty()
+      {
+        r.at = event_ts.to_string();
       }
     }
     Some(t)

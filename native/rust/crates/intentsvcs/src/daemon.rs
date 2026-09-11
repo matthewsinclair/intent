@@ -1024,10 +1024,10 @@ impl Drop for Published {
   /// accepted: a small window rather than a structural inversion, and closing
   /// it needs a lock this file must not become.
   fn drop(&mut self) {
-    if let Ok(text) = std::fs::read_to_string(&self.path) {
-      if text.trim() == self.addr.to_string() {
-        let _ = std::fs::remove_file(&self.path);
-      }
+    if let Ok(text) = std::fs::read_to_string(&self.path)
+      && text.trim() == self.addr.to_string()
+    {
+      let _ = std::fs::remove_file(&self.path);
     }
   }
 }
@@ -1138,10 +1138,10 @@ impl Drop for Token {
   /// unwinding and there is nobody left to tell. The residue is a stale secret
   /// for a port nothing is listening on, which authorises nothing.
   fn drop(&mut self) {
-    if let Ok(text) = std::fs::read_to_string(&self.path) {
-      if text.trim() == self.secret {
-        let _ = std::fs::remove_file(&self.path);
-      }
+    if let Ok(text) = std::fs::read_to_string(&self.path)
+      && text.trim() == self.secret
+    {
+      let _ = std::fs::remove_file(&self.path);
     }
   }
 }
@@ -1461,10 +1461,10 @@ impl Drop for Bound {
   /// successor's on the way out -- that would leave a live daemon unreachable,
   /// which is the false negative no probe can correct.
   fn drop(&mut self) {
-    if let Ok(meta) = std::fs::metadata(&self.path) {
-      if (meta.dev(), meta.ino()) == self.identity {
-        let _ = std::fs::remove_file(&self.path);
-      }
+    if let Ok(meta) = std::fs::metadata(&self.path)
+      && (meta.dev(), meta.ino()) == self.identity
+    {
+      let _ = std::fs::remove_file(&self.path);
     }
   }
 }
