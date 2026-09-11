@@ -3,7 +3,7 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 11:21Z
+heartbeat_at: 2026-09-11 11:26Z
 status: active
 focus: "BACK ON THE BOUNCE AFTER THE COMPACT. #31 0194 CLAIMED: delivered at 9e742cad under 0247 and never closed; re-driven, with vc to rule on the leak half. Then the rest of my lane in list order -- the lane column of `intent/wip.md` is the authority. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
@@ -17,6 +17,8 @@ claims: [ST0064]
 
 - **The repro now:** `intent search 'Rate-limited'` answers `intent/.canon/issues/0194.json:0  194  (preamble)` at rc=0. `dry-run` and `fail-forward` answer hits at rc=0.
 - **The leak half, put to vc:** a genuinely malformed query (`'dry-run ('`) refuses at rc=1 with a remedy in Intent's voice (0194 said the remedy was absent), but the `caused by:` chain still prints `sqlite: fts5: syntax error near ""`. vc rules whether that is inside 0194.
+
+**`0223` IS NOT CLAIMED.** I drove it read-only while waiting on 0194, and it reproduces on `951cbac2` in a throwaway project: `issues add help`, `st new help`, `st new start`, `issues add severity` and `wp new ST0001 help` all create at rc=0. There is no prior fix. Its remedy is a design call the issue leaves open, so I put a bounded remedy to vc. It refuses a whole-title single token that equals a subcommand or flag name of the verb's own group, and the remedy names `-- help`, which already reaches the positional. Nothing gets built without vc's ruling.
 
 ## TODO -- THE BOUNCE: my lane of the 3.0.1 finish line, in list order
 
@@ -35,7 +37,6 @@ claims: [ST0064]
 | 50  | `0139` | medium | `at lint --fix` is advertised and refuses.                                       |
 | 54  | `0140` | medium | An unsatisfied note is writable only by migration.                               |
 | 66  | `0066` | medium | `_inbox/` is invisible to st show/list, ac gate, at lint, todo.                  |
-| 67  | `0121` | medium | `st list` defaults to in-progress and does not say so.                           |
 | 72  | `0145` | medium | `st edit` writes on its refusal, and the remedy names an empty list.             |
 | 73  | `0146` | medium | `at edit` is kind-blind and its remedy produces a row lint cannot judge.         |
 | 74  | `0153` | medium | `intent edit` refuses the address form its own remedy recommends.                |
