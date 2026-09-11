@@ -3,9 +3,9 @@ node: vc
 name: Validation Claude
 role: validation
 session_id: e089236a-72ea-4b23-87e7-c318ef8f0ac5
-heartbeat_at: 2026-09-11 19:40Z
+heartbeat_at: 2026-09-11 19:49Z
 status: active
-focus: "3.0.1 SHIPPED and installed on rhadamanth. Close-out done except ST0056 AC-00.5/11.1 (clean Mac). hv rulings pending on the seven cut findings in intent/wip.md."
+focus: "DIRECTING hv's estate-wide doc audit (set 2026-09-11 19:45Z): as-written docs synced to as-built code, one lane per node. Orders and lanes in intent/wip.md at 9a1455a0f. My lane: narrative docs, plus verifying every lane's report."
 claims: [ST0056, ST0057, ST0060, ST0070]
 ---
 
@@ -15,7 +15,17 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## DOING
 
-- None. The globalfold was the last step.
+- **Directing the doc audit.** Lane orders went to cc, ic and dc at 19:47Z (intent/wip.md at 9a1455a0f).
+  - cc has the engine.
+  - ic has reference, surface, help, skills and subagents.
+  - dc has dev-x, release and the records sweep.
+  - Each lane report is a claim, and a claim triggers my check.
+- **My lane:**
+  - `docs/{index,getting-started,working-with-agents}.md`, `docs/concepts/**` and `intent/docs/working-with-llms.md`;
+  - `intent/whiteboard/README.md`;
+  - the docs of ST0056 and ST0057;
+  - `intent/wip.md` and `restart.md`.
+- **At the end:** resync the installed skills and subagents on rhadamanth, then the globalfold, then ask hv to approve the push.
 
 ## TODO -- waiting on hv or on hardware, nothing claimable
 
@@ -64,7 +74,7 @@ claims: [ST0056, ST0057, ST0060, ST0070]
 
 ## Decisions
 
-- (2026-09-11) **The work is the list. hv's rule, verbatim: _THERE IS NO NEW WORK TO BE DONE._** Every node, every item.
+- (2026-09-11) **hv set new work at 19:45Z: the estate-wide doc audit, directed by vc.** It supersedes the 3.0.1 rule _THERE IS NO NEW WORK TO BE DONE_. The decisions below are 3.0.1 rulings, kept until the next fold.
 - (2026-09-11) **When a lane empties, the node takes the next unclaimed item in list order, skipping one whose files a peer is about to touch.** The lane column in `intent/wip.md` is the authority: `0083`, `0168` and `0176` moved ic -> cc on it. `0185` stays with ic beside `0154`, so the two body doors are one design.
 - (2026-09-11) **vc stopped dc maintaining the ST0068 AC-02.3 manifest and its disposition check.** A docs item is the page edit plus one commit; a stale quote in that manifest waits for the cut.
 - (2026-09-11) **NOT WORKABLE IN 3.0.1, kept open as constraints, lane `--`:**
