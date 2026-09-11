@@ -36,7 +36,6 @@ intent_version: 3.0.0
 
 | #   | id     | sev    | lane | defect                                                                              |
 | --- | ------ | ------ | ---- | ----------------------------------------------------------------------------------- |
-| 24  | `0149` | high   | ic   | `intent edit` ignores the kind it was given and answers about a thread.             |
 | 25  | `0291` | high   | ic   | `edit wp ST/NN --path` returns the parent thread's file.                            |
 | 26  | `0103` | high   | ic   | `wp list` returns zero rows for 71 threads whose WPs are in the store.              |
 | 27  | `0137` | high   | ic   | `ac list` shows a fiat-closed criterion as satisfied: no.                           |
