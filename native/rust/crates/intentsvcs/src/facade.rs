@@ -5842,7 +5842,7 @@ impl Facade {
       text: text.to_string(),
       kind,
       state: match kind {
-        AcKind::Test => AcState::Computed,
+        AcKind::Test => AcState::Computed {},
         AcKind::NonTest => AcState::Unsatisfied { note: None },
       },
     };

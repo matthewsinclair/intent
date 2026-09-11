@@ -1828,7 +1828,7 @@ fn criterion(row: &str) -> Result<Criterion, RowRejection> {
 
     // A test-backed criterion's satisfaction is COMPUTED from its covering
     // tests, so nothing is carried onto the row.
-    (AcKind::Test, AcState::Computed)
+    (AcKind::Test, AcState::Computed {})
   };
 
   Ok(Criterion {

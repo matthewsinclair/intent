@@ -237,7 +237,7 @@ pub fn resolve(thread: &Thread, criterion: &Criterion) -> Resolved {
     // `Computed` recorded on a non-test criterion is the mirror inconsistency,
     // reported by `doctor` and treated here as the honest answer: nothing
     // computes satisfaction for an authored criterion, so it has none.
-    AcState::Unsatisfied { .. } | AcState::Computed => Resolved::Unsatisfied,
+    AcState::Unsatisfied { .. } | AcState::Computed {} => Resolved::Unsatisfied,
   }
 }
 
@@ -961,7 +961,7 @@ mod tests {
   /// A test-backed criterion in scope, which under the collapse records
   /// `Computed` and nothing else.
   fn computed(id: &str) -> Criterion {
-    ac(id, AcKind::Test, AcState::Computed)
+    ac(id, AcKind::Test, AcState::Computed {})
   }
 
   fn at(id: &str, covers: &str, status: AtStatus) -> AcceptanceTest {

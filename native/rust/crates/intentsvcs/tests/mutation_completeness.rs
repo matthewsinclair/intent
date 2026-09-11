@@ -1224,7 +1224,7 @@ fn parse<T: serde::de::DeserializeOwned>(name: &str) -> T {
 
 fn state_named(name: &str) -> AcState {
   match name {
-    "computed" => AcState::Computed,
+    "computed" => AcState::Computed {},
     "unsatisfied" => AcState::Unsatisfied { note: None },
     "satisfied" => AcState::Satisfied {
       evidence: "the render itself".to_string(),
@@ -2119,7 +2119,7 @@ fn perturb(thread: &mut Thread, unmet: Option<Unmet>) {
       // flipping `kind` alone is invalid canon and the fixture would be refused
       // by ingest rather than by the guard.
       thread.criteria[1].kind = AcKind::Test;
-      thread.criteria[1].state = AcState::Computed;
+      thread.criteria[1].state = AcState::Computed {};
     }
   }
 }

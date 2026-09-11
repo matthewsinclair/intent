@@ -85,7 +85,7 @@ fn at(id: &str, covers: &str, status: AtStatus) -> AcceptanceTest {
 #[test]
 fn a_fully_satisfied_thread_passes() {
   let t = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-01.1", AtStatus::Green)],
   );
   assert_eq!(
@@ -98,7 +98,7 @@ fn a_fully_satisfied_thread_passes() {
 fn an_unsatisfied_ac_blocks_and_is_named() {
   let t = thread(
     vec![
-      ac("AC-01.1", AcKind::Test, AcState::Computed),
+      ac("AC-01.1", AcKind::Test, AcState::Computed {}),
       ac(
         "AC-01.2",
         AcKind::NonTest,
@@ -119,7 +119,7 @@ fn an_unsatisfied_ac_blocks_and_is_named() {
 fn offscope_counts_are_reported_separately_from_satisfied() {
   let t = thread(
     vec![
-      ac("AC-01.1", AcKind::Test, AcState::Computed),
+      ac("AC-01.1", AcKind::Test, AcState::Computed {}),
       ac(
         "AC-01.2",
         AcKind::Test,
@@ -191,7 +191,7 @@ fn exempt_passes_and_announces_itself() {
 #[test]
 fn an_ac_free_wp_rolls_up_and_says_so() {
   let mut t = thread(
-    vec![ac("AC-00.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-00.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-00.1", "AC-00.1", AtStatus::Green)],
   );
   t.wps.push(WorkPackage {
@@ -218,7 +218,7 @@ fn an_ac_free_wp_rolls_up_and_says_so() {
 #[test]
 fn a_nonexistent_wp_blocks_rather_than_rolling_up() {
   let t = thread(
-    vec![ac("AC-00.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-00.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-00.1", "AC-00.1", AtStatus::Green)],
   );
   let line = gate(&t, Scope::WorkPackage(99), &AllResolve).line("ST0001/99");
@@ -232,8 +232,8 @@ fn a_nonexistent_wp_blocks_rather_than_rolling_up() {
 fn a_wp_scope_evaluates_only_that_wps_criteria() {
   let mut t = thread(
     vec![
-      ac("AC-01.1", AcKind::Test, AcState::Computed),
-      ac("AC-02.1", AcKind::Test, AcState::Computed),
+      ac("AC-01.1", AcKind::Test, AcState::Computed {}),
+      ac("AC-02.1", AcKind::Test, AcState::Computed {}),
     ],
     vec![at("AT-01.1", "AC-01.1", AtStatus::Green)],
   );
@@ -270,7 +270,7 @@ fn a_wp_scope_evaluates_only_that_wps_criteria() {
 #[test]
 fn an_n_a_test_does_not_satisfy_a_test_backed_ac() {
   let mut t = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-01.1", AtStatus::Na)],
   );
   t.tests[0].kind = AtKind::NonTest;
@@ -289,7 +289,7 @@ fn an_n_a_test_does_not_satisfy_a_test_backed_ac() {
 #[test]
 fn the_grammar_blocked_paths_are_unconstructible() {
   let t = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-01.1", AtStatus::Green)],
   );
   let line = gate(&t, Scope::Thread, &AllResolve).line("ST0001");
@@ -312,7 +312,7 @@ fn a_cited_file_that_does_not_carry_the_at_id_blocks() {
   fx.write_file("crates/x/tests/y.rs", "// a test about something else\n");
 
   let t = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-01.1", AtStatus::Green)],
   );
   let verdict = gate(&t, Scope::Thread, &RepoFiles(fx.root()));
@@ -349,7 +349,7 @@ fn a_to_write_row_is_exempt_from_the_file_checks() {
   let fx = Fixture::new();
   // Deliberately no file on disk.
   let t = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-01.1", AtStatus::ToWrite)],
   );
   let verdict = gate(&t, Scope::Thread, &RepoFiles(fx.root()));
@@ -373,7 +373,7 @@ fn a_completed_thread_is_exempt_from_the_id_check() {
   fx.write_file("crates/x/tests/y.rs", "// a test with no id label\n");
 
   let mut t = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-01.1", AtStatus::Green)],
   );
   assert!(
@@ -394,7 +394,7 @@ fn a_completed_thread_is_exempt_from_the_id_check() {
 #[test]
 fn a_covers_id_that_names_no_criterion_blocks() {
   let t = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-09.9", AtStatus::Green)],
   );
   let line = gate(&t, Scope::Thread, &AllResolve).line("ST0001");
@@ -415,7 +415,7 @@ fn a_covers_id_that_names_no_criterion_blocks() {
 #[test]
 fn a_non_test_at_covering_a_test_backed_ac_blocks_with_the_reason() {
   let mut t = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-01.1", AtStatus::Na)],
   );
   t.tests[0].kind = AtKind::NonTest;
@@ -459,7 +459,7 @@ fn the_four_contract_rules_have_four_distinguishable_diagnoses() {
   );
 
   let l2 = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-01.1", AtStatus::Green)],
   );
 
@@ -467,12 +467,12 @@ fn the_four_contract_rules_have_four_distinguishable_diagnoses() {
   l3.tests[0].file = Some("crates/x/tests/wrong.rs".to_string());
 
   let l4 = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-09.9", AtStatus::ToWrite)],
   );
 
   let mut l5 = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-01.1", AtStatus::Na)],
   );
   l5.tests[0].kind = AtKind::NonTest;
@@ -574,7 +574,7 @@ fn v2_and_v3_agree_on_a_real_contract() {
     });
 
   let t = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-01.1", AtStatus::Green)],
   );
   let verdict = gate(&t, Scope::Thread, &RepoFiles(fx.root()));
@@ -631,7 +631,7 @@ fn v2_and_v3_agree_that_a_missing_cited_file_blocks() {
     .expect("v2 printed a gate line");
 
   let t = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-01.1", AtStatus::Green)],
   );
   let verdict = gate(&t, Scope::Thread, &RepoFiles(fx.root()));
@@ -710,7 +710,7 @@ fn v2_and_v3_agree_on_l4_and_l5() {
   );
 
   let t4 = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-09.9", AtStatus::Green)],
   );
   let v4 = gate(&t4, Scope::Thread, &RepoFiles(l4.root()));
@@ -739,7 +739,7 @@ fn v2_and_v3_agree_on_l4_and_l5() {
   );
 
   let mut t5 = thread(
-    vec![ac("AC-01.1", AcKind::Test, AcState::Computed)],
+    vec![ac("AC-01.1", AcKind::Test, AcState::Computed {})],
     vec![at("AT-01.1", "AC-01.1", AtStatus::Na)],
   );
   t5.tests[0].kind = AtKind::NonTest;

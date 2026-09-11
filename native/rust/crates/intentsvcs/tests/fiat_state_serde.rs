@@ -157,3 +157,20 @@ fn a_cascaded_record_is_distinguishable_from_a_directly_closed_one() {
     "the cascade marker did not reach the extract: {cascaded}"
   );
 }
+
+/// **0136: THE UNIT VARIANT REFUSES AN UNKNOWN FIELD TOO.** Under internal
+/// tagging `deny_unknown_fields` is a property of the variant's SHAPE, and a
+/// unit variant has no field set to check against -- so `computed`, the state
+/// every test-backed criterion sits in, dropped a sibling key in silence while
+/// the other five refused it.
+#[test]
+fn a_computed_state_refuses_an_unknown_field() {
+  assert!(
+    serde_json::from_str::<AcState>(r#"{"is":"computed"}"#).is_ok(),
+    "the clean document is accepted, or the refusal below says nothing about the unknown field"
+  );
+  assert!(
+    serde_json::from_str::<AcState>(r#"{"is":"computed","smuggled":"value"}"#).is_err(),
+    "an unknown field was ACCEPTED on a computed state and would be dropped in silence"
+  );
+}

@@ -77,9 +77,9 @@ fn an_unknown_field_is_refused_inside_an_unsatisfied_state() {
   // **DO NOT DELETE THIS AS A DUPLICATE OF SERDE'S OWN BEHAVIOUR. IT IS NOT
   // ONE, AND THAT IS MEASURED.** `deny_unknown_fields` on the enum does NOT
   // give every variant the property: it is a function of the variant's SHAPE.
-  // `AcState::Computed`, the one remaining unit variant, accepts unknown keys
-  // today and always has -- issue 0136. So this arm is checking the thing that
-  // is actually in question, not restating an attribute.
+  // `AcState::Computed` accepted unknown keys as a unit variant until 0136
+  // made it an empty struct. So this arm is checking the thing that is
+  // actually in question, not restating an attribute.
   //
   // It matters here specifically because `unsatisfied` CHANGED SHAPE: it was a
   // unit variant, and 0133 made it a struct variant. It gained this protection

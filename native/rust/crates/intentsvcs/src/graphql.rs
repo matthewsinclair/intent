@@ -157,7 +157,7 @@ impl From<&AcState> for AcStateView {
       inherited_from: None,
     };
     match state {
-      AcState::Computed => base,
+      AcState::Computed {} => base,
       AcState::Unsatisfied { note } => Self {
         state: AcStateName::Unsatisfied,
         note: note.clone(),

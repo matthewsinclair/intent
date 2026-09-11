@@ -241,7 +241,7 @@ fn every_enum_reaches_the_sdl_with_all_its_variants() {
 fn projection_cases() -> Vec<intentsvcs::model::AcState> {
   use intentsvcs::model::AcState;
   vec![
-    AcState::Computed,
+    AcState::Computed {},
     AcState::Unsatisfied { note: None },
     AcState::Satisfied {
       evidence: "the render itself".into(),

@@ -42,7 +42,7 @@ use serde_json::Value;
 /// variant this list does not produce.
 fn samples() -> Vec<AcState> {
   vec![
-    AcState::Computed,
+    AcState::Computed {},
     AcState::Unsatisfied { note: None },
     AcState::Satisfied {
       evidence: "the render itself".to_string(),
@@ -200,7 +200,7 @@ fn the_three_nonsense_pairs_are_refused_and_the_refusal_names_the_value() {
       },
     ),
     (AcKind::Test, AcState::Unsatisfied { note: None }),
-    (AcKind::NonTest, AcState::Computed),
+    (AcKind::NonTest, AcState::Computed {}),
   ];
 
   for (kind, state) in nonsense {

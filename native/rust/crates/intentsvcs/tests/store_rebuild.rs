@@ -74,7 +74,7 @@ fn canon() -> (Vec<Thread>, Vec<Issue>) {
         id: "AC-02.3".to_string(),
         text: "rebuild identity".to_string(),
         kind: AcKind::Test,
-        state: AcState::Computed,
+        state: AcState::Computed {},
       },
       Criterion {
         id: "AC-02.9".to_string(),

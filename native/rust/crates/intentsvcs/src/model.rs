@@ -1459,7 +1459,13 @@ pub enum AcState {
   /// **nothing is stored**. Carries no payload -- a test-backed criterion's
   /// evidence IS the AT relation and must not be copied into a state field
   /// (hv, 2026-08-15).
-  Computed,
+  //
+  // **AN EMPTY STRUCT, NOT A UNIT, AND THE BRACES ARE THE STRICTNESS (0136).**
+  // Under internal tagging `deny_unknown_fields` only reaches a variant with a
+  // field set, so as a unit this one dropped a sibling key in silence. The
+  // serialised form (`{"is":"computed"}`) and the published schema's shape are
+  // unchanged. A `//` comment, so this note stays out of the schema face.
+  Computed {},
   /// Non-test and in scope, not yet satisfied. The entry state for an authored
   /// criterion.
   ///
@@ -1565,7 +1571,7 @@ impl AcState {
   /// reach, so a count written here is a fact with no guard behind it.
   pub fn name(&self) -> &'static str {
     match self {
-      Self::Computed => "computed",
+      Self::Computed {} => "computed",
       Self::Unsatisfied { .. } => "unsatisfied",
       Self::Satisfied { .. } => "satisfied",
       Self::Descoped { .. } => "descoped",
@@ -1582,7 +1588,7 @@ impl AcState {
   /// combination the two-field model made representable.
   pub fn entry(kind: AcKind) -> Self {
     match kind {
-      AcKind::Test => Self::Computed,
+      AcKind::Test => Self::Computed {},
       AcKind::NonTest => Self::Unsatisfied { note: None },
     }
   }
@@ -1603,7 +1609,7 @@ impl AcState {
   pub fn permitted_for(&self, kind: AcKind) -> bool {
     match self {
       // Derived from covering ATs, so there must be ATs to derive from.
-      Self::Computed => kind == AcKind::Test,
+      Self::Computed {} => kind == AcKind::Test,
       // A recorded satisfaction, which is double truth on a test-backed
       // criterion: its satisfaction is computed and cannot also be asserted.
       Self::Unsatisfied { .. } | Self::Satisfied { .. } => kind == AcKind::NonTest,
@@ -1627,7 +1633,7 @@ impl AcState {
     // that never owed the work.
     matches!(
       self,
-      Self::Computed | Self::Unsatisfied { .. } | Self::Satisfied { .. } | Self::Fiat(..)
+      Self::Computed {} | Self::Unsatisfied { .. } | Self::Satisfied { .. } | Self::Fiat(..)
     )
   }
 

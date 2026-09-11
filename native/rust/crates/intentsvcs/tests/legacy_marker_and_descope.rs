@@ -187,7 +187,7 @@ fn a_descoped_row_is_neither_green_nor_a_failure() {
     .into_iter()
     .filter(|id| {
       criterion(&scan, id)
-        .map(|c| matches!(c.state, AcState::Computed | AcState::Unsatisfied { .. }))
+        .map(|c| matches!(c.state, AcState::Computed {} | AcState::Unsatisfied { .. }))
         .unwrap_or(true)
     })
     .collect();
@@ -214,7 +214,7 @@ fn a_bare_satisfied_field_on_a_test_backed_row_is_still_ignored() {
     "no marker and no non-test-only field: test-backed"
   );
   assert!(
-    matches!(ac.state, AcState::Computed),
+    matches!(ac.state, AcState::Computed {}),
     "a test-backed criterion's satisfaction is computed from its covering tests: {:?}",
     ac.state
   );
@@ -361,7 +361,7 @@ fn prose_quoting_the_marker_does_not_mark_the_row() {
      and the covering test stops counting for anything"
   );
   assert!(
-    matches!(ac.state, AcState::Computed),
+    matches!(ac.state, AcState::Computed {}),
     "and its satisfaction still comes from AT-03.1: {:?}",
     ac.state
   );

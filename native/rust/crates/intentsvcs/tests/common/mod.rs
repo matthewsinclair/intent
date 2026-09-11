@@ -415,7 +415,7 @@ pub fn sample_thread(id: &str) -> Thread {
         id: "AC-03.1".to_string(),
         text: "strict ingest refuses schema-invalid canon".to_string(),
         kind: AcKind::Test,
-        state: AcState::Computed,
+        state: AcState::Computed {},
       },
       Criterion {
         id: "AC-03.2".to_string(),

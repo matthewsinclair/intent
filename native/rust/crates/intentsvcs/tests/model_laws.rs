@@ -79,7 +79,7 @@ fn at_status() -> impl Strategy<Value = AtStatus> {
 /// mechanical directly below by [`every_ac_state_variant_has_a_generator_arm`].
 fn ac_state() -> impl Strategy<Value = AcState> {
   prop_oneof![
-    Just(AcState::Computed),
+    Just(AcState::Computed {}),
     // **Generated BOTH ways deliberately.** `Just(AcState::Unsatisfied)` would
     // pin the empty case forever -- and an unsatisfied criterion CARRYING a note
     // is the exact state this variant was widened to make representable, so the
@@ -198,7 +198,7 @@ fn fiat_record() -> impl Strategy<Value = Option<FiatRecord>> {
 #[allow(dead_code)]
 fn every_ac_state_variant_has_a_generator_arm(state: &AcState) {
   match state {
-    AcState::Computed => (),
+    AcState::Computed {} => (),
     AcState::Unsatisfied { .. } => (),
     AcState::Satisfied { .. } => (),
     AcState::Descoped { .. } => (),
@@ -416,7 +416,7 @@ fn sample_thread() -> Thread {
       id: "AC-02.4".to_string(),
       text: "laws hold".to_string(),
       kind: AcKind::Test,
-      state: AcState::Computed,
+      state: AcState::Computed {},
     }],
     tests: vec![AcceptanceTest {
       fiat: None,

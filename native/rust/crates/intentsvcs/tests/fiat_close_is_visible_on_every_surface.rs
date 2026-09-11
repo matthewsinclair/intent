@@ -401,7 +401,7 @@ fn test_backed(ats: usize, fiat_first: bool) -> Thread {
     id: "AC-00.1".to_string(),
     text: "a test-backed requirement".to_string(),
     kind: AcKind::Test,
-    state: AcState::Computed,
+    state: AcState::Computed {},
   });
   for n in 1..=ats {
     t.tests.push(intentsvcs::model::AcceptanceTest {

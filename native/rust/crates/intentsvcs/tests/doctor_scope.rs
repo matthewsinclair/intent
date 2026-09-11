@@ -103,7 +103,7 @@ fn thread(id: &str, status: ThreadStatus, orphans: usize) -> Thread {
       id: "AC-01.1".to_string(),
       text: "the thing works".to_string(),
       kind: AcKind::Test,
-      state: AcState::Computed,
+      state: AcState::Computed {},
     }],
     tests,
   }

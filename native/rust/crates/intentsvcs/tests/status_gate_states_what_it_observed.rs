@@ -62,7 +62,7 @@ fn park_shaped() -> Thread {
       id: "AC-01.1".to_string(),
       text: "the park is recorded".to_string(),
       kind: AcKind::Test,
-      state: AcState::Computed,
+      state: AcState::Computed {},
     }],
     tests: vec![AcceptanceTest {
       fiat: None,

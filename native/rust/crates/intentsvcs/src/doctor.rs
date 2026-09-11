@@ -896,7 +896,7 @@ fn model_checks(thread: &Thread, canon: &Canon, file: &str, out: &mut Vec<Findin
       let complaint = match (criterion.kind, &criterion.state) {
         (AcKind::Test, AcState::Satisfied { .. } | AcState::Unsatisfied { .. }) =>
           "is test-backed but records its own satisfaction, which is double truth -- satisfaction comes from its covering tests, so its recorded state must be `computed`".to_string(),
-        (AcKind::NonTest, AcState::Computed) =>
+        (AcKind::NonTest, AcState::Computed {}) =>
           "is `(non-test)` but records `computed`, which claims a satisfaction nothing computes -- an authored criterion has no covering tests to derive one from".to_string(),
         (kind, state) => format!(
           "records a state its kind cannot hold: {state:?} on a {kind:?} criterion"

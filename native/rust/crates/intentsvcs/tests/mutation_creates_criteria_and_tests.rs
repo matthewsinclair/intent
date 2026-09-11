@@ -199,7 +199,7 @@ fn ac_new_reaches_what_a_canon_hand_edit_reaches() {
     id: NEW_AC.to_string(),
     text: "the same criterion, both ways".to_string(),
     kind: AcKind::Test,
-    state: AcState::Computed,
+    state: AcState::Computed {},
   };
 
   // Route 1: the hand-edit the criterion says was the only route.
@@ -257,7 +257,7 @@ fn ac_new_honours_the_kind_state_invariant() {
   };
 
   assert!(
-    matches!(state_of(&facade, "AC-09.1"), AcState::Computed),
+    matches!(state_of(&facade, "AC-09.1"), AcState::Computed {}),
     "a test-backed criterion starts `computed` -- its satisfaction is DERIVED, so any other start claims a measurement nothing ran"
   );
   assert!(

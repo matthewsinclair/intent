@@ -69,7 +69,7 @@ fn clean_thread(id: &str) -> Thread {
       id: "AC-01.1".to_string(),
       text: "the thing works".to_string(),
       kind: AcKind::Test,
-      state: AcState::Computed,
+      state: AcState::Computed {},
     }],
     tests: vec![AcceptanceTest {
       fiat: None,
@@ -308,7 +308,7 @@ fn the_model_check_still_reports_the_pair_for_the_paths_that_bypass_the_schema()
     "the model still knows the pair is wrong"
   );
   assert!(
-    !AcState::Computed.permitted_for(AcKind::NonTest),
+    !AcState::Computed {}.permitted_for(AcKind::NonTest),
     "and knows it in both directions"
   );
   assert!(
@@ -885,7 +885,7 @@ fn a_done_work_package_over_a_blocked_gate_is_found() {
     id: "AC-01.2".to_string(),
     text: "the second thing works".to_string(),
     kind: AcKind::Test,
-    state: AcState::Computed,
+    state: AcState::Computed {},
   });
   seed(&fx, &thread);
 

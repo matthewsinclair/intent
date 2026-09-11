@@ -90,7 +90,7 @@ fn canon_with_an_authored_edit_and_a_duplicate(fx: &Fixture) -> Thread {
     id: "AC-03.13".to_string(),
     text: AUTHORED.to_string(),
     kind: AcKind::Test,
-    state: AcState::Computed,
+    state: AcState::Computed {},
   });
   fx.write_thread(&thread);
   thread
