@@ -43,7 +43,13 @@ _co_rule() {
   assert_output_contains "does not match"
 }
 
-@test "content is registered in the canon-enumeration LANG_SUBDIRS default" {
-  run grep -E 'LANG_SUBDIRS:=.*\bcontent\b' "${INTENT_PROJECT_ROOT}/intent/plugins/claude/lib/rules_lib.sh"
+# Discovery site: validating by path is not enough -- the canon enumerator only
+# walks the languages it registers, so `content` must be registered or the
+# pack is invisible to `list` / `index`. Asked of the enumeration itself:
+# its v3 home is `intentsvcs::rules::LANGUAGES` (the v2 `LANG_SUBDIRS` in
+# rules_lib.sh went with the v2 shell).
+@test "content is registered in the canon enumeration" {
+  run run_intent claude rules list --lang content
   assert_success
+  assert_output_contains "IN-CO-"
 }

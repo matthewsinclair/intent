@@ -13,7 +13,6 @@ tests/
 ├── fixtures/                      # Test fixtures (sample files, etc.)
 ├── lib/                           # Test libraries
 │   └── test_helper.bash           # Common test functions
-├── cutover_guard.bash             # AT-12.1: nothing surviving the v2 prune depends on bin/
 ├── run_tests.sh                   # Main test runner
 └── README.md                      # This file
 ```

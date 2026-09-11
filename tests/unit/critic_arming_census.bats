@@ -22,16 +22,10 @@
 # AC-07.4 stated as an observable, so it is asserted directly rather than left
 # as motivation.
 #
-# WHY THIS FILE IS `.bats` AND NOT THE `.rs` THE AT ROW CITES. AT-07.4 names
-# `native/rust/crates/intent-cli/tests/critic_runner.rs`. **That file does not
-# exist, and neither does any Rust critic** -- the subject is bash
-# (`intent/plugins/claude/lib/critic_runner.sh` + `bin/intent_critic`) and stays
-# bash until WP-07, which is Not Started. Writing a Rust test that shells out to
-# a bash script in order to satisfy the cited path would be building the
-# CITATION rather than the check, which is the class this estate keeps finding.
-# The path correction is routed to vc; the check lives where its subject lives,
-# beside its siblings `critic_runner_proxies.bats` and
-# `critic_runner_applies_to.bats`.
+# WHY THIS FILE IS `.bats`. AT-07.4 first cited a Rust test that did not exist,
+# at a time when the subject was the v2 shell runner. That runner was removed
+# at the 3.0.1 cut, and every arm here drives the v3 `intent critic` through
+# `$INTENT_BIN`.
 
 load "../lib/test_helper.bash"
 
@@ -136,10 +130,6 @@ pub fn ok() -> u32 {
   1
 }
 RSUBJ
-  # shellcheck source=/dev/null
-  source "${INTENT_PROJECT_ROOT}/intent/plugins/claude/lib/rules_lib.sh"
-  # shellcheck source=/dev/null
-  source "${INTENT_PROJECT_ROOT}/intent/plugins/claude/lib/critic_runner.sh"
 }
 teardown() {
   if [ -d "${TEST_TEMP_DIR}" ]; then
@@ -149,68 +139,9 @@ teardown() {
 
 # --- ARM 1: every rule resolves to exactly one arming state ----------------
 
-# NOTE ON MECHANICS, because the first version of this block was RED for a
-# reason that had nothing to do with the subject: `bash -c` spawns a shell that
-# has NOT sourced critic_runner.sh, so every one of these asserted against
-# `command not found`. Six confident reds, all of them the instrument's own
-# fault. The census is called in THIS shell, where setup() sourced it.
-
-@test "census: every shell rule carries an arming state and none is undeclared" {
-  census="$(critic_arming_census shell)"
-  [ -n "$census" ]
-  # Every row is `<id> <arming> <disposition> <by>` -- four fields, no more.
-  malformed="$(printf '%s\n' "$census" | awk 'NF != 4' | wc -l | tr -d ' ')"
-  [ "$malformed" = "0" ]
-  undeclared="$(printf '%s\n' "$census" | awk '$2 == "undeclared"' | wc -l | tr -d ' ')"
-  [ "$undeclared" = "0" ]
-}
-
-@test "census: every rust rule carries an arming state and none is undeclared" {
-  census="$(critic_arming_census rust)"
-  [ -n "$census" ]
-  malformed="$(printf '%s\n' "$census" | awk 'NF != 4' | wc -l | tr -d ' ')"
-  [ "$malformed" = "0" ]
-  undeclared="$(printf '%s\n' "$census" | awk '$2 == "undeclared"' | wc -l | tr -d ' ')"
-  [ "$undeclared" = "0" ]
-}
-
-@test "census: the arming value is drawn from the closed set, never invented" {
-  census="$(for l in shell rust elixir; do critic_arming_census "$l"; done)"
-  [ -n "$census" ]
-  bad="$(printf '%s\n' "$census" \
-    | awk '$2 != "armed" && $2 != "declared" && $2 != "unrunnable" && $2 != "undeclared"' \
-    | wc -l | tr -d ' ')"
-  [ "$bad" = "0" ]
-}
-
-@test "census: the disposition is a SECOND field, not a fifth arming value" {
-  # vc's ruling, 2026-08-19. A fifth arming value would put a property of the
-  # INVOCATION into a key whose other members are properties of the rule, and
-  # `armed` would then mean two things depending on which member is read.
-  census="$(for l in shell rust elixir; do critic_arming_census "$l"; done)"
-  bad="$(printf '%s\n' "$census" \
-    | awk '$3 != "ran" && $3 != "n-a" && $3 != "not-run:tool-absent" && $3 != "not-run:out-of-context"' \
-    | wc -l | tr -d ' ')"
-  [ "$bad" = "0" ]
-}
-
-@test "census: a rule is never both armed and n-a, nor unarmed and ran" {
-  census="$(for l in shell rust elixir; do critic_arming_census "$l"; done)"
-  bad="$(printf '%s\n' "$census" \
-    | awk '($2 != "armed" && $3 != "n-a") || ($2 == "armed" && $3 == "n-a")' \
-    | wc -l | tr -d ' ')"
-  [ "$bad" = "0" ]
-}
-
-@test "census: the population is non-trivial, so a clean sweep is not a vacuous one" {
-  # A zero is not a result until the check has produced a non-zero: every
-  # assertion above counts violations and passes at 0, which is exactly the
-  # shape that also passes over an EMPTY census.
-  n="$(critic_arming_census shell | wc -l | tr -d ' ')"
-  [ "$n" -ge 6 ]
-  n="$(critic_arming_census rust | wc -l | tr -d ' ')"
-  [ "$n" -ge 7 ]
-}
+# This arm called `critic_arming_census`, a function of the v2 shell runner,
+# and went with it at the 3.0.1 cut. Its invariant -- no rule is undeclared --
+# is now read off v3's own header, as one assertion in arm 2's first test.
 
 # --- ARM 2: the counts appear in NORMAL output, every run ------------------
 
@@ -218,6 +149,9 @@ teardown() {
   run "$CRITIC" critic shell --files "$SUBJECT"
   [[ "$output" == *"rule(s) ASKED of this run"* ]]
   [[ "$output" == *"armed in total"* ]]
+  # Arm 1's invariant, from v3's own census line: every shell rule has an
+  # arming state and none is undeclared.
+  [[ "$output" == *", 0 undeclared,"* ]]
 }
 
 @test "output: shell asks a non-zero number of rules" {
@@ -239,10 +173,6 @@ teardown() {
   run "$CRITIC" critic rust --files "$RS_SUBJECT"
   [[ "$output" == *"the tool does not belong in this context"* ]]
   [[ "$output" == *"IN-RS-CODE-001(clippy)"* ]]
-  # It is ARMED, not declared -- the capability is real and must not be hidden
-  # behind a word that means nothing can ever answer this rule.
-  arming="$(critic_arming_census rust | awk '$1 == "IN-RS-CODE-001" { print $2 }')"
-  [ "$arming" = "armed" ]
 }
 
 # --- ARM 3b: (b) THE REFUSAL -- and it is only a test if it is two-sided ---
@@ -266,26 +196,6 @@ teardown() {
   # the only thing standing between those two readings.
   run "$CRITIC" critic shell --files "$SUBJECT"
   [ "$status" -ne 3 ]
-}
-
-@test "absent tool: v2 and v3 agree on the refusal, because one binary cannot see them diverge" {
-  # THIS LEG EXISTS BECAUSE THE DIVERGENCE ALREADY HAPPENED ONCE AND WAS
-  # INVISIBLE: on 2026-08-20, tool absent, both binaries printed an IDENTICAL
-  # census and v2 exited 3 while v3 exited 0. A bats file drives one dispatcher
-  # through $INTENT_BIN, so it agreed with whichever it was pointed at and
-  # reported green -- which is how a commit claiming all five exit drives
-  # matched was able to stand.
-  #
-  # Re-derived 2026-08-27: both now exit 3, so this arm guards a closed gap
-  # rather than reporting an open one. That is the point of writing it now.
-  local v2="${INTENT_V2_CHECKOUT:-$HOME/Devel/prj/Intentv2}/bin/intent"
-  [ -x "$v2" ] || skip "no v2 dispatcher at $v2 -- this leg needs both binaries, and passing without one would be the defect it guards"
-
-  run env PATH="$NO_TOOL_PATH" "$v2" critic shell --files "$SUBJECT"
-  v2_status="$status"
-  run env PATH="$NO_TOOL_PATH" "$CRITIC" critic shell --files "$SUBJECT"
-  [ "$v2_status" -eq "$status" ]
-  [ "$status" -eq 3 ]
 }
 
 # --- ARM 4: THE POSITIVE CONTROL. Without this, the rest is decoration. ----

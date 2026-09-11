@@ -182,6 +182,6 @@ Adding a new language requires:
 - Rule directory `rules/<lang>/` created.
 - At least one seed rule in the new pack — subsequent rules copy from it.
 - `language` enum in `rules/_schema/rule-schema.md` extended; the codes table + regex here and the duplicate regex in `index-generator.md` updated.
-- Validator regex updated in `intent/plugins/claude/bin/intent_claude_rules`, AND the language added to `LANG_SUBDIRS` in `intent/plugins/claude/lib/rules_lib.sh` -- the canon-enumeration allowlist. Without the latter the pack validates by path but is invisible to `list` / `index` / anything that enumerates canon.
+- The language added to `LANGUAGES` in `native/rust/crates/intentsvcs/src/rules.rs` -- the canon-enumeration allowlist, which `intent lang init` also derives its accepted languages from. Without it the pack is invisible to `intent claude rules list` / `index` / anything that enumerates canon. The v3 validator (`intent claude rules validate`) checks an id's shape and keeps no list of language codes, so it needs no change. (In v2 this step was the validator regex in `intent_claude_rules` plus `LANG_SUBDIRS` in `rules_lib.sh`, both removed with the v2 shell.)
 
 Adding a new category code within an existing language: lighter process. Add the category code to the `rule-schema.md` category table and start numbering from `001`.
