@@ -38,37 +38,30 @@ intent_version: 3.0.0
 | 16  | `0135` | medium   | cc   | Two facades can both take one child id.                                                                                                      |
 | 17  | `0226` | high     | cc   | `st new` fails on a watched project once the corpus is large (render race with the daemon).                                                  |
 
-### P2 -- docs that are wrong. They ship in the tag; no code.
-
-| #   | id     | sev    | lane | defect                                                                      |
-| --- | ------ | ------ | ---- | --------------------------------------------------------------------------- |
-| 22  | `0122` | medium | dc   | `modules` errors route the operator to `intent upgrade`, which cannot help. |
-
 ### P3 -- commands that report success or state while wrong.
 
-| #   | id     | sev    | lane | defect                                                                               |
-| --- | ------ | ------ | ---- | ------------------------------------------------------------------------------------ |
-| 23  | `0079` | high   | ic   | `st new` says created and writes no files.                                           |
-| 24  | `0149` | high   | ic   | `intent edit` ignores the kind it was given and answers about a thread.              |
-| 25  | `0291` | high   | ic   | `edit wp ST/NN --path` returns the parent thread's file.                             |
-| 26  | `0103` | high   | ic   | `wp list` returns zero rows for 71 threads whose WPs are in the store.               |
-| 27  | `0137` | high   | ic   | `ac list` shows a fiat-closed criterion as satisfied: no.                            |
-| 28  | `0301` | high   | dc   | `daemon status` prints the same ok whether many daemons hold the store or none.      |
-| 29  | `0285` | high   | dc   | `--version` can name the wrong commit on a clean build.                              |
-| 30  | `0187` | high   | dc   | `init --lang` refuses saying `lang init` is unimplemented; it is implemented.        |
-| 31  | `0194` | high   | ic   | `intent search` with a hyphenated term leaks a SQLite error.                         |
-| 32  | `0268` | high   | cc   | A failed migration rung prints a raw SQLite error naming nothing; its remedy loops.  |
-| 33  | `0111` | high   | cc   | `sync --to-store` reports overwriting nothing and replacing the store in one breath. |
-| 34  | `0299` | medium | ic   | `at lint` says a file lacks an id it carries (the cross-thread case).                |
-| 35  | `0223` | medium | ic   | A mistyped subcommand becomes the title of a real artefact at rc=0.                  |
-| 36  | `0240` | medium | ic   | `edit` returns a path at rc=0 for an AC, AT or attachment that does not exist.       |
-| 37  | `0078` | medium | dc   | `skills uninstall --force` says ok and leaves the skill loadable.                    |
-| 38  | `0097` | medium | cc   | `ingest --from-md` prints ok and writes nothing.                                     |
-| 39  | `0069` | medium | cc   | `sync` misdescribes its own scope, twice.                                            |
-| 40  | `0302` | medium | dc   | A live daemon can outlive its socket and look like a clean machine.                  |
-| 41  | `0235` | medium | dc   | A running intentd cannot say which build it is.                                      |
-| 42  | `0195` | medium | ic   | `intent search` reports every hit at line 0.                                         |
-| 43  | `0083` | low    | ic   | `st hydrate` reports exists for a file it just created.                              |
+| #   | id     | sev    | lane | defect                                                                              |
+| --- | ------ | ------ | ---- | ----------------------------------------------------------------------------------- |
+| 23  | `0079` | high   | ic   | `st new` says created and writes no files.                                          |
+| 24  | `0149` | high   | ic   | `intent edit` ignores the kind it was given and answers about a thread.             |
+| 25  | `0291` | high   | ic   | `edit wp ST/NN --path` returns the parent thread's file.                            |
+| 26  | `0103` | high   | ic   | `wp list` returns zero rows for 71 threads whose WPs are in the store.              |
+| 27  | `0137` | high   | ic   | `ac list` shows a fiat-closed criterion as satisfied: no.                           |
+| 28  | `0301` | high   | dc   | `daemon status` prints the same ok whether many daemons hold the store or none.     |
+| 29  | `0285` | high   | dc   | `--version` can name the wrong commit on a clean build.                             |
+| 30  | `0187` | high   | dc   | `init --lang` refuses saying `lang init` is unimplemented; it is implemented.       |
+| 31  | `0194` | high   | ic   | `intent search` with a hyphenated term leaks a SQLite error.                        |
+| 32  | `0268` | high   | cc   | A failed migration rung prints a raw SQLite error naming nothing; its remedy loops. |
+| 34  | `0299` | medium | ic   | `at lint` says a file lacks an id it carries (the cross-thread case).               |
+| 35  | `0223` | medium | ic   | A mistyped subcommand becomes the title of a real artefact at rc=0.                 |
+| 36  | `0240` | medium | ic   | `edit` returns a path at rc=0 for an AC, AT or attachment that does not exist.      |
+| 37  | `0078` | medium | dc   | `skills uninstall --force` says ok and leaves the skill loadable.                   |
+| 38  | `0097` | medium | cc   | `ingest --from-md` prints ok and writes nothing.                                    |
+| 39  | `0069` | medium | cc   | `sync` misdescribes its own scope, twice.                                           |
+| 40  | `0302` | medium | dc   | A live daemon can outlive its socket and look like a clean machine.                 |
+| 41  | `0235` | medium | dc   | A running intentd cannot say which build it is.                                     |
+| 42  | `0195` | medium | ic   | `intent search` reports every hit at line 0.                                        |
+| 43  | `0083` | low    | ic   | `st hydrate` reports exists for a file it just created.                             |
 
 ### P4 -- advertised but not built.
 
