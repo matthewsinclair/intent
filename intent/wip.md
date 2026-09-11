@@ -53,7 +53,7 @@ intent_version: 3.0.0
 | 79  | `0141` | medium | --    | NOT WORKABLE IN 3.0.1 (vc, 2026-09-11): no instance today, because both wildcard fields (AT status, WP scope) carry no payload and both self-loops are needed by rulings. The only fix is a new guard. Stays open as the constraint on either field gaining a payload.                               |
 | 80  | `0114` | medium | --    | HELD ON hv, decision 12: cap a thread's inline attachment total, or close as by-design.                                                                                                                                                                                                              |
 | 81  | `0172` | medium | --    | NOT WORKABLE IN 3.0.1 (vc, 2026-09-11): hv ruled it NARROW, DO NOT BUILD on 2026-08-30. The reopen condition (a user reporting missed backups while intentd ran the whole time) is unmet, and a fix needs a new per-user registry file. Stays open.                                                  |
-| 84  | `0231` | medium | ic    | TUI repaints can tear on real terminals.                                                                                                                                                                                                                                                             |
+| 84  | `0231` | medium | cc    | TUI repaints can tear on real terminals.                                                                                                                                                                                                                                                             |
 
 ### P6 -- to CLOSE on hv's word, not to work.
 
