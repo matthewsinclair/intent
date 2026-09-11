@@ -127,6 +127,17 @@ jobs:
         clone_with_retry https://github.com/bats-core/bats-assert.git tests/lib/bats-assert
         clone_with_retry https://github.com/bats-core/bats-file.git tests/lib/bats-file
 
+    # **THE BATS SUITE DRIVES THE v3 BINARY SINCE THE 3.0.1 CUT** (hv's decision
+    # 6, with the v2 shell pruned under AC-00.6): `tests/lib/test_helper.bash`
+    # defaults INTENT_BIN to native/rust/target/release/intent, so the pair is
+    # built here first. Same toolchain and cache setup as `rust.yml`.
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: native/rust
+    - name: Build the v3 binaries the suite drives
+      run: cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli -p intentd
+
     - name: Run tests
       env:
         BATS_LIB_PATH: ${{ github.workspace }}/tests/lib
@@ -234,6 +245,17 @@ jobs:
         # NORMALIZE_GITIGNORE scenarios call git commit; needs identity.
         git config --global user.email "ci@intent.local"
         git config --global user.name "Intent CI"
+
+    # **THE BATS SUITE DRIVES THE v3 BINARY SINCE THE 3.0.1 CUT** (hv's decision
+    # 6, with the v2 shell pruned under AC-00.6): `tests/lib/test_helper.bash`
+    # defaults INTENT_BIN to native/rust/target/release/intent, so the pair is
+    # built here first. Same toolchain and cache setup as `rust.yml`.
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: native/rust
+    - name: Build the v3 binaries the suite drives
+      run: cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli -p intentd
 
     - name: Run tests
       env:

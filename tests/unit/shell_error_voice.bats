@@ -45,14 +45,13 @@
 
 load "../lib/test_helper.bash"
 
-# The corpus: every shell entrypoint Intent ships, in the three roots that hold
-# them. Kept as a function so all three arms drive the same instrument -- a
+# The corpus: every shell entrypoint Intent ships, in the two roots that hold
+# them (three until the 3.0.1 cut pruned v2's `intent/plugins/agents/bin`). Kept as a function so all three arms drive the same instrument -- a
 # positive control over a DIFFERENT invocation from the one it vouches for is
 # decoration.
 corpus_roots() {
   echo "${INTENT_PROJECT_ROOT}/bin"
   echo "${INTENT_PROJECT_ROOT}/intent/plugins/claude/bin"
-  echo "${INTENT_PROJECT_ROOT}/intent/plugins/agents/bin"
 }
 
 scan() {

@@ -18,10 +18,19 @@ set -e
 # processes resolve the project themselves, which is what the suites test.
 unset PROJECT_ROOT INTENT_ROOT BIN_DIR
 
-# Locate the project root and source canonical helpers (error/warning/info).
+# Locate the project root. The v2 shell's `bin/intent_helpers` was sourced here
+# for `error` and `info` until the v2 trunk was pruned at the 3.0.1 cut; both
+# are defined in place, exported as that file exported them.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-source "$PROJECT_ROOT/bin/intent_helpers"
+error() {
+  echo "error: $*" >&2
+  exit 1
+}
+info() {
+  echo "$*"
+}
+export -f error info
 
 # Check if bats is installed
 if ! command -v bats &> /dev/null; then

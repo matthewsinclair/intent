@@ -11,7 +11,17 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
-    
+
+    # **THE CHECK ASKS THE v3 BINARY SINCE THE 3.0.1 CUT**, which pruned the v2
+    # shell (`bin/intent`) under AC-00.6. It is built here, with the same
+    # toolchain and cache setup as `rust.yml`.
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+      with:
+        workspaces: native/rust
+    - name: Build the v3 binary the check asks
+      run: cargo build --release --manifest-path native/rust/Cargo.toml -p intent-cli
+
     - name: Check for steel thread reference
       run: |
         echo "Checking if PR references a steel thread..."
@@ -40,7 +50,7 @@ jobs:
           # Verified in a clean clone with no local config or cache, which is
           # what this job has: flat/WIP, relocated/Completed, relocated/Not
           # Started and absent all return the right code.
-          if ./bin/intent st show "$THREAD_ID" >/dev/null 2>&1; then
+          if native/rust/target/release/intent st show "$THREAD_ID" >/dev/null 2>&1; then
             echo "✅ Steel thread ${THREAD_ID} exists"
           else
             echo "❌ Error: Steel thread ${THREAD_ID} not found"

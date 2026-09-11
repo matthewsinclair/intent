@@ -2,8 +2,9 @@
 # ST0056: the BATS estate is the v3 conformance harness, so every test that
 # means to exercise THE CLI must reach it through `$INTENT_BIN`.
 #
-# `tests/lib/test_helper.bash` defines `INTENT_BIN` (defaulting to this repo's
-# `bin/intent`) and `run_intent` calls it. A test that spells the dispatcher's
+# `tests/lib/test_helper.bash` defines `INTENT_BIN` (defaulting to the v3
+# binary this repo builds, since the 3.0.1 cut; this repo's v2 `bin/intent`
+# before it) and `run_intent` calls it. A test that spells the dispatcher's
 # path directly instead runs v2's shell script no matter what `INTENT_BIN` is
 # pointed at -- so under a v3 binary it silently keeps testing v2 and reports
 # green. That is the worst available failure: not a red, but a green that means
@@ -27,12 +28,8 @@ load "../lib/test_helper.bash"
 # Files permitted to name the dispatcher path directly, each for a stated
 # reason. Adding a row here is a decision; leave the reason with it.
 #
-#   no_template_fallback.bats -- builds a deliberately BROKEN copy of the
-#     install in a scratch dir and runs THAT. It cannot go through $INTENT_BIN,
-#     because the whole point is to invoke an install that is not this one.
-#
 #   intent_bin_retarget_guard.bats -- this file; it contains the needle as data.
-ALLOWLIST_RE='tests/unit/(no_template_fallback|intent_bin_retarget_guard)\.bats'
+ALLOWLIST_RE='tests/unit/(intent_bin_retarget_guard)\.bats'
 
 # **A LINE-LEVEL EXEMPTION, NOT A FILE ONE, AND THE DIFFERENCE IS THE WHOLE
 # REASON IT IS SEPARATE FROM `ALLOWLIST_RE` ABOVE.**
@@ -103,7 +100,9 @@ offending_sites() {
 @test "the allowlist names only files that exist" {
   # A stale allowlist entry is a hole nobody can see: it suppresses a real
   # finding under a filename that has moved or gone.
-  for f in no_template_fallback intent_bin_retarget_guard; do
+  # `no_template_fallback` was the other entry until the 3.0.1 cut pruned it
+  # with the v2 shell it tested.
+  for f in intent_bin_retarget_guard; do
     assert_file_exists "${INTENT_PROJECT_ROOT}/tests/unit/${f}.bats"
   done
 }

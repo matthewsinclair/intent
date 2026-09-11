@@ -8,32 +8,17 @@ This directory contains the test suite for Intent. The tests are written using [
 
 ```
 tests/
-├── unit/                          # Unit tests for individual commands
-│   ├── agent_commands.bats        # AGENTS.md management tests
-│   ├── basic.bats                 # Basic infrastructure tests
-│   ├── learn_commands.bats       # Learn command tests
-│   ├── modules_commands.bats    # Modules command tests
-│   ├── bootstrap.bats             # Bootstrap command tests
-│   ├── config.bats                # Configuration and PROJECT_ROOT tests
-│   ├── fileindex_commands.bats    # Fileindex command tests
-│   ├── global_commands.bats       # Tests for global commands
-│   ├── help_commands.bats         # Help system tests
-│   ├── init_commands.bats         # Init command tests
-│   ├── project_commands.bats      # Tests for project-specific commands
-│   ├── skills_commands.bats       # Skills management command tests
-│   ├── st_commands.bats           # Steel thread command tests
-│   ├── st_zero_commands.bats     # ST Zero retrofit command tests
-│   ├── test_autopsy.bats           # Autopsy skill + directory install tests
-│   ├── test_diogenes.bats         # Diogenes subagent + testing skill tests
-│   └── treeindex_commands.bats    # Treeindex command tests
-├── integration/                   # Integration tests
-│   └── end_to_end.bats            # Full workflow tests
+├── unit/                          # One .bats file per subject
+├── conformance/                   # BASELINE.md: the recorded v2-conformance baseline
 ├── fixtures/                      # Test fixtures (sample files, etc.)
 ├── lib/                           # Test libraries
 │   └── test_helper.bash           # Common test functions
+├── cutover_guard.bash             # AT-12.1: nothing surviving the v2 prune depends on bin/
 ├── run_tests.sh                   # Main test runner
 └── README.md                      # This file
 ```
+
+The suite drives the v3 binary at `native/rust/target/release/intent`, so build it first (`cargo build --release` under `native/rust`), or set `INTENT_BIN` to another binary. The v2 shell implementation and the bats files that tested its commands were removed at the 3.0.1 cut.
 
 ## Prerequisites
 
@@ -60,19 +45,13 @@ cd bats-core
 ### Run specific test file:
 
 ```bash
-./tests/run_tests.sh tests/unit/global_commands.bats
+./tests/run_tests.sh tests/unit/daemon_commands.bats
 ```
 
 ### Run all unit tests:
 
 ```bash
 ./tests/run_tests.sh tests/unit/
-```
-
-### Run all integration tests:
-
-```bash
-./tests/run_tests.sh tests/integration/
 ```
 
 ## Writing Tests
@@ -113,30 +92,7 @@ load "../lib/test_helper.bash"
 
 ### Unit Tests
 
-Unit tests focus on individual commands and features:
-
-- **agent_commands.bats** - Tests for AGENTS.md management (`intent agents init/generate/sync/validate`)
-- **basic.bats** - Tests for basic infrastructure and environment setup
-- **learn_commands.bats** - Tests for the learn command (`intent learn`)
-- **modules_commands.bats** - Tests for the modules command (`intent modules check`, `intent modules find`)
-- **bootstrap.bats** - Tests for the bootstrap command
-- **config.bats** - Tests configuration loading and PROJECT_ROOT detection
-- **fileindex_commands.bats** - Tests for the fileindex command (file tracking and checkbox states)
-- **global_commands.bats** - Tests commands that work without a project (help, doctor, info, etc.)
-- **help_commands.bats** - Tests for the help system
-- **init_commands.bats** - Tests for the init command
-- **project_commands.bats** - Tests commands that require a project context
-- **st_commands.bats** - Tests for steel thread management commands
-- **st_zero_commands.bats** - Tests for ST Zero retrofit command (`intent st zero install`)
-- **skills_commands.bats** - Tests for skills management (`intent claude skills install/list/sync/uninstall/show`)
-- **test_diogenes.bats** - Tests for Diogenes subagent and in-elixir-testing skill (install/list/sync/show/uninstall)
-- **treeindex_commands.bats** - Tests for the treeindex command (directory summaries)
-
-### Integration Tests
-
-Integration tests verify complete workflows:
-
-- **end_to_end.bats** - Tests full user workflows like creating a project and managing steel threads
+Each file under `unit/` names its subject in its header comment; read that rather than a list here, which goes stale the first time a file is added or removed.
 
 ## Key Test Scenarios
 
