@@ -329,3 +329,97 @@ fn a_self_loop_with_no_note_is_still_nothing_to_do() {
      envelope records a movement that did not happen: {outcome:?}"
   );
 }
+
+/// **0146: A WRITE THAT PUTS A FILE ON A NON-TEST ROW IS REFUSED, AT BOTH
+/// DOORS, AND ONLY WHAT THE CALL WRITES IS JUDGED.**
+///
+/// `at new`'s remedy used to name `--file` whatever the row's kind, and `at
+/// edit --file` on a non-test row answered rc=0 and left it carrying a file
+/// AND prose -- a kind whose vocabulary says they are alternatives. A row
+/// already in that state must stay editable, so the check reads what THIS call
+/// moves and never the row as it was found.
+#[test]
+fn a_file_written_onto_a_non_test_row_is_refused_and_nothing_existing_freezes() {
+  let fx = Fixture::new();
+  let mut thread = sample_thread("ST0001");
+  let prose_row =
+    |id: &str, file: Option<&str>, status: AtStatus| intentsvcs::model::AcceptanceTest {
+      id: id.to_string(),
+      kind: AtKind::NonTest,
+      file: file.map(str::to_string),
+      prose: Some("the render was eyeballed".to_string()),
+      status,
+      ..thread.tests[0].clone()
+    };
+  let awaiting = prose_row("AT-03.8", None, AtStatus::ToWrite);
+  let both = prose_row("AT-03.9", Some("some/test.rs"), AtStatus::Na);
+  thread.tests.push(awaiting);
+  thread.tests.push(both);
+  fx.write_thread(&thread);
+  let mut facade = fx.facade();
+  assert_eq!(
+    row(&facade, "AT-03.2").kind,
+    AtKind::NonTest,
+    "precondition"
+  );
+
+  let refused = facade.at_edit(
+    "ST0001",
+    "AT-03.2",
+    Some("some/test.rs".to_string()),
+    None,
+    None,
+    None,
+    None,
+  );
+  assert!(
+    matches!(&refused, Err(FacadeError::ValueNotRecordable { why, .. }) if why.contains("--kind test")),
+    "`at edit --file` on a non-test row is refused, naming the re-kind: {refused:?}"
+  );
+  assert_eq!(
+    row(&facade, "AT-03.2").file,
+    None,
+    "and nothing was written"
+  );
+
+  let address = intentsvcs::address::parse("intent:///threads/ST0001/at/AT-03.2").expect("address");
+  let refused = facade.set(
+    &address,
+    "file",
+    serde_json::Value::String("some/test.rs".into()),
+  );
+  assert!(
+    matches!(&refused, Err(FacadeError::ValueNotRecordable { .. })),
+    "`intent set ... file` meets the same check: {refused:?}"
+  );
+  assert_eq!(
+    row(&facade, "AT-03.2").file,
+    None,
+    "and nothing was written"
+  );
+
+  facade
+    .at_edit(
+      "ST0001",
+      "AT-03.8",
+      Some("some/test.rs".to_string()),
+      None,
+      None,
+      None,
+      Some(AtKind::Test),
+    )
+    .expect("`--kind test --file` in one call leaves a test row, which is where a file belongs");
+  assert_eq!(row(&facade, "AT-03.8").kind, AtKind::Test);
+
+  facade
+    .at_edit(
+      "ST0001",
+      "AT-03.9",
+      None,
+      Some("re-read after the fix".to_string()),
+      None,
+      None,
+      None,
+    )
+    .expect("a row already carrying both stays editable: this call wrote no file");
+}

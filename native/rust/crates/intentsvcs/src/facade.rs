@@ -6355,6 +6355,7 @@ impl Facade {
         ),
       });
     }
+    Self::refuse_a_file_written_onto_a_non_test_row(st, existing, &row)?;
     if &row == existing {
       return Ok(Outcome::AlreadyThere {
         state: "unchanged".to_string(),
@@ -6376,6 +6377,34 @@ impl Facade {
         next,
       )
       .map(|()| Outcome::Moved)
+  }
+
+  /// **A WRITE THAT PUTS A `file` ON A NON-TEST ROW IS REFUSED** (0146), and
+  /// this is the one home both `at edit` and `intent set` call.
+  ///
+  /// A non-test row asserts prose INSTEAD of a file, and `at edit --file`
+  /// answered rc=0 and left one carrying both. **Judged on what the call
+  /// WRITES -- the file moving -- never on the row as found**, so a row already
+  /// carrying both stays editable, and `--kind test --file` in one call passes
+  /// because the row it leaves is a test row. `--prose` on a test row is not
+  /// refused: it is in deliberate use as the note on a row with no file yet.
+  fn refuse_a_file_written_onto_a_non_test_row(
+    st: &str,
+    before: &AcceptanceTest,
+    after: &AcceptanceTest,
+  ) -> Result<(), FacadeError> {
+    let file = after.file.as_deref().unwrap_or_default();
+    if matches!(after.kind, AtKind::NonTest) && after.file != before.file && !file.is_empty() {
+      return Err(FacadeError::ValueNotRecordable {
+        field: "file".to_string(),
+        given: file.to_string(),
+        why: format!(
+          "{at} is a non-test row, which asserts prose INSTEAD of a file. Re-kind it in the same call -- `intent at edit {st} {at} --kind test --file {file}`",
+          at = after.id
+        ),
+      });
+    }
+    Ok(())
   }
 
   pub fn ac_satisfy(&mut self, st: &str, ac: &str, evidence: &str) -> Result<Outcome, FacadeError> {
@@ -8040,6 +8069,7 @@ impl Facade {
             state: "unchanged".to_string(),
           });
         };
+        Self::refuse_a_file_written_onto_a_non_test_row(thread, existing, &row)?;
         *existing = row;
         (
           "at.set",
