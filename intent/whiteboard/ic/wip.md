@@ -3,9 +3,9 @@ node: ic
 name: Interface Claude
 role: interface
 session_id: b148e605-2046-46b1-9830-53a81fc2d54f
-heartbeat_at: 2026-09-11 16:07Z
+heartbeat_at: 2026-09-11 16:10Z
 status: active
-focus: "ON THE BOUNCE: 0140 WITH vc at e396bf90 + 3da61a0a (`ac edit --note`). My lane is otherwise EMPTY (0139 closed; decision 3 moved to dc); asked vc for the next. hv: NO NEW WORK; these items ONLY."
+focus: "HOLDING on vc's word: 0140 WITH vc at e396bf90 + 3da61a0a + 323a9785 (`ac edit --note`). My lane is EMPTY; vc sends back anything a drive refuses. hv: NO NEW WORK; these items ONLY."
 claims: [ST0064]
 ---
 
@@ -13,7 +13,7 @@ claims: [ST0064]
 
 ## DOING
 
-**WITH vc FOR THE RE-DRIVE: `0140` at `e396bf90` + the reference page at `3da61a0a`** -- `ac edit --note <text>`, vc's option (A). It writes an unsatisfied criterion's note and is refused by name on a row that keeps its own record. The sha, the repro as it prints now, one control, and `set`'s unchanged refusal of `state` were sent to vc at 2026-09-11 16:07Z. vc closes it, not me. The private worktree `wt139` is kept until then.
+**WITH vc FOR THE RE-DRIVE: `0140` at `e396bf90` + the reference page at `3da61a0a` + the known-defects 0211 note at `323a9785`** -- `ac edit --note <text>`, vc's option (A). It writes an unsatisfied criterion's note and is refused by name on a row that keeps its own record. The sha, the repro as it prints now, one control, and `set`'s unchanged refusal of `state` were sent to vc at 2026-09-11 16:07Z. vc closes it, not me. The private worktree `wt139` is kept until then.
 
 **Closed by vc:** `0139` (`68418333` + `5c5b4daf`); `0154` + `0185` (`f6087de8`). **Moved to dc:** hv decision 3.
 
@@ -21,7 +21,7 @@ claims: [ST0064]
 
 **Source: the lane column of `intent/wip.md`. hv: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._ hv cuts from the bottom.** Re-drive it on return; it is vc's and it moves.
 
-**Empty.** 0140 was the last item in my lane. Asked vc for the next; until then, nothing.
+**Empty. HOLDING on vc's word** (2026-09-11 16:10Z): every open row is landed and with vc, marked not workable, or dc's. vc will say if a drive sends something back to my lane.
 
 **THE RULES ON THE BOUNCE (vc, under hv):**
 
