@@ -575,3 +575,47 @@ fn a_satisfaction_with_no_evidence_arrives_unsatisfied_with_no_note() {
     "the migration synthesised a note for a row whose author wrote none"
   );
 }
+
+/// **0124: prose the author wrote AFTER a keyed field, before the next one, is
+/// part of that field and survives the migration.**
+///
+/// `field` ended a value at the first ` -- `, so in
+/// `-- evidence: E -- NOT TEST-BACKED: ... -- satisfied: no` the middle
+/// segment was read by nothing and the row still read complete. Measured
+/// before the fix: 180 rows and 58,536 characters in Lamplight's pre-hop tree,
+/// 217 of the 223 segments following `evidence:`.
+///
+/// The control arm is the boundary the extension must not cross: a KEYED next
+/// field still ends the evidence exactly where it did.
+#[test]
+fn prose_after_a_keyed_field_is_carried_and_the_next_keyed_field_still_ends_it() {
+  let fixture = Fixture::new();
+  v2_estate(
+    &fixture,
+    "## Acceptance Criteria\n\n\
+     - AC-01.1 (non-test) A provider with no key is reported -- evidence: detail() returns the reason -- NOT TEST-BACKED: the standing gap -- and the class this row is the specimen of. -- satisfied: yes\n\
+     - AC-01.2 (non-test) A second row -- evidence: exactly this -- satisfied: yes\n",
+  );
+  let scan = scan(&fixture);
+  let criteria = &scan.threads[0].criteria;
+
+  let AcState::Satisfied { evidence } = &criteria[0].state else {
+    panic!(
+      "the row claims satisfaction with evidence: {:?}",
+      criteria[0].state
+    );
+  };
+  assert_eq!(
+    evidence,
+    "detail() returns the reason -- NOT TEST-BACKED: the standing gap -- and the class this row is the specimen of.",
+    "the prose between `evidence:` and `satisfied:` did not survive the migration"
+  );
+
+  let AcState::Satisfied { evidence } = &criteria[1].state else {
+    panic!("the control row claims satisfaction with evidence");
+  };
+  assert_eq!(
+    evidence, "exactly this",
+    "CONTROL: a keyed next field must still end the evidence"
+  );
+}

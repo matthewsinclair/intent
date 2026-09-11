@@ -1550,12 +1550,14 @@ fn criterion(row: &str) -> Result<Criterion, RowRejection> {
   let non_test = rest.trim_start().starts_with("(non-test)");
   let body = rest.trim_start().trim_start_matches("(non-test)").trim();
 
-  let evidence = field(body, "evidence");
+  // The two PROSE fields run to the next keyed field (0124); the rest are
+  // single values and end at the next separator, as they always did.
+  let evidence = prose_field(body, "evidence");
   let satisfied = field(body, "satisfied");
   let descoped_to = field(body, "descoped-to");
   let withdrawn = field(body, "withdrawn");
   let by = field(body, "by");
-  let reason = field(body, "reason");
+  let reason = prose_field(body, "reason");
 
   // The criterion text ends at the FIRST keyed field, not at `evidence:` or
   // `satisfied:` specifically. Cutting on those two alone left a descope
@@ -2453,6 +2455,45 @@ fn field(row: &str, key: &str) -> Option<String> {
   let start = row.find(&marker)? + marker.len();
   let rest = &row[start..];
   Some(rest[..field_end(rest)].trim().to_string())
+}
+
+/// The value of a PROSE field -- ` -- evidence: ` or ` -- reason: ` -- which
+/// runs to the next KEYED field rather than to the next ` -- ` (0124).
+///
+/// **[`field`] ended every value at the first separator, and prose is where
+/// authors write the separator.** In `-- evidence: E -- NOT TEST-BACKED: the
+/// gap -- satisfied: no` the middle segment is neither a field nor the note
+/// region, so NOTHING read it, and the migrated row still read complete.
+/// Measured before this: 180 rows and 58,536 characters in Lamplight's pre-hop
+/// tree, 217 of the 223 segments after `evidence:`, 3 after `reason:`, and 0
+/// after any single-valued field -- which is why only these two widen.
+///
+/// A key is what [`field_key`] says one is, so an unknown key still ends the
+/// value and is still reported by [`unread_field_keys`]. An unbalanced bracket
+/// falls back to [`field_end`]'s cut, so a truncation is not newly swallowed.
+fn prose_field(row: &str, key: &str) -> Option<String> {
+  let marker = format!(" -- {key}: ");
+  let start = row.find(&marker)? + marker.len();
+  let rest = &row[start..];
+  let mut depth = 0usize;
+  let mut end = rest.len();
+  for (i, ch) in rest.char_indices() {
+    match ch {
+      '(' | '[' => depth += 1,
+      ')' | ']' => depth = depth.saturating_sub(1),
+      _ => {}
+    }
+    // `i + 4` is safe: the `starts_with` proves four ASCII bytes follow.
+    if depth == 0 && rest[i..].starts_with(" -- ") && field_key(&rest[i + 4..]).is_some() {
+      end = i;
+      break;
+    }
+  }
+  let end = match depth {
+    0 => end,
+    _ => field_end(rest),
+  };
+  Some(rest[..end].trim().to_string())
 }
 
 /// Where a field's value ends: the first ` -- ` that is **not inside a
