@@ -4,9 +4,9 @@ name: Control Claude
 role: control
 session_id: 2fa2121a-51bb-433f-8459-97b1d78b71c9
 commit_session_id: NONE ON THIS SESSION'S COMMITS -- read off my own 981a55049 with the grep below and it came back EMPTY, while vc's b13d58d2c four commits earlier carries session_01QdJZysgcMJ1SEeyo7wAUpE. So the marker is written by SOME commit paths and not mine, and the previous value on this line (0167bZhMQsEXFM5JZUZxL5g7) is a different session's and has been deleted rather than carried. UNEXPLAINED, not investigated -- it is a lead for whoever owns the stamper. READ IT WITH grep, NEVER WITH THE TRAILER PARSER: git's %(trailers:key=Claude-Session,valueonly) and git interpret-trailers --parse return EMPTY on EVERY commit here, because the mandated (C) line is a non-trailer line in the final paragraph and git rejects the whole paragraph. THE WORKING READ: git log -1 --format=%B <sha> | grep -o 'session_[A-Za-z0-9]*'. POINT-IN-TIME -- read it off your own last commit, never off this line.
-heartbeat_at: 2026-09-11 09:28Z
+heartbeat_at: 2026-09-11 09:33Z
 status: active
-focus: "BOUNCED 2026-09-11. DOING #1 0133. hv's words: no new work, these items ONLY. The work is intent/wip.md, 92 defects in 3.0.1 priority order, and that list is the authority. MY LANE is ingest, migration and the store write path, in list order. One id at a time: claim it in DOING, put the id in the commit subject, tell vc, and vc closes it. No new tests beyond the proof, and no instruments, guards, criteria or threads. The 16 clippy lints are hv's decision 4 and wait on hv's go."
+focus: "BOUNCED 2026-09-11. DOING #2 0260 (re-examine first); 0133 is with vc for re-drive. hv's words: no new work, these items ONLY. The work is intent/wip.md, 92 defects in 3.0.1 priority order, and that list is the authority. MY LANE is ingest, migration and the store write path, in list order. One id at a time: claim it in DOING, put the id in the commit subject, tell vc, and vc closes it. No new tests beyond the proof, and no instruments, guards, criteria or threads. The 16 clippy lints are hv's decision 4 and wait on hv's go."
 claims: [ST0056/06, ST0056/10]
 ---
 
@@ -14,7 +14,9 @@ claims: [ST0056/06, ST0056/10]
 
 ## DOING
 
-**#1 `0133` (critical), claimed 2026-09-11 09:28Z:** the v2 ingest routes `(satisfied: no, evidence: Some)` to the unit variant `AcState::Unsatisfied`, which has nowhere to put the evidence. The issue names the fix: `Unsatisfied` carries optional evidence.
+**#2 `0260` (critical), claimed 2026-09-11 09:33Z. RE-EXAMINING FIRST, as the list says.** The title's surviving claim is _the v3 migration froze generated sections into authored body on 326 of 358 threads_. The body carries neither that figure nor the withdrawal, so the first step is to find the measurement behind the title.
+
+**WITH vc FOR RE-DRIVE, NOT IN FLIGHT: #1 `0133`.** It was already fixed at `04cf6f18` (2026-08-29) and had been left open in the register. I re-drove the issue's two-arm repro through `intent upgrade` at HEAD's upgrade path: the `no` arm's text now lands as `{"is":"unsatisfied","note":...}` in canon, and the 18 proof tests are green. vc rebuilds, re-drives, and closes it or sends it back.
 
 **ON THE BOUNCE, hv's WORDS VIA vc: _THERE IS NO NEW WORK TO BE DONE. We are working on these items and these items ONLY._** The work is the numbered list in `intent/wip.md`: the 92 open defects in 3.0.1 priority order. **That list is the authority; this board only points at it.** hv cuts from the bottom.
 
@@ -28,7 +30,6 @@ claims: [ST0056/06, ST0056/10]
 
 **MY ITEMS FROM `intent/wip.md`, IN LIST ORDER. RE-READ THE LIST AT PICKUP, because vc owns its numbering.**
 
-- **#2 `0260`** (critical): the v3 migration froze generated sections into authored body on 326 of 358 threads. **RE-EXAMINE FIRST**, as the list says.
 - **#6 `0082`**: a new attachment authored in canon never reaches disk (`sync --to-disk`).
 - **#7 `0276`**: a committed attachment whose bytes differ from canon enters canon with no warning.
 - **#8 `0124`**, **#9 `0126`**, **#10 `0138`**, **#11 `0129`**: v2 ingest drops prose between fields, splices to a zero length delta, has two behaviours for one shape, and rewrites an authored full stop.
