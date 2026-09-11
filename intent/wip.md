@@ -48,7 +48,6 @@ intent_version: 3.0.0
 | 34  | `0299` | medium | ic   | `at lint` says a file lacks an id it carries (the cross-thread case).               |
 | 35  | `0223` | medium | ic   | A mistyped subcommand becomes the title of a real artefact at rc=0.                 |
 | 36  | `0240` | medium | ic   | `edit` returns a path at rc=0 for an AC, AT or attachment that does not exist.      |
-| 37  | `0078` | medium | dc   | `skills uninstall --force` says ok and leaves the skill loadable.                   |
 | 38  | `0097` | medium | cc   | `ingest --from-md` prints ok and writes nothing.                                    |
 | 39  | `0069` | medium | cc   | `sync` misdescribes its own scope, twice.                                           |
 | 40  | `0302` | medium | dc   | A live daemon can outlive its socket and look like a clean machine.                 |
