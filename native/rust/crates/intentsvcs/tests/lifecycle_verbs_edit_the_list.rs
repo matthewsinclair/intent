@@ -488,6 +488,33 @@ fn triage_removes_and_start_adds_it_back() {
   );
 }
 
+/// Issue 0079: `st new --start` listed the thread in `.intentfiles` exactly
+/// like a realised one and wrote no files, because the pin landed after the
+/// write's own projection -- the files appeared on the next write by anyone.
+/// The `st new`, `st triage`, `st start` sequence is what `--start` drives.
+#[test]
+fn st_new_then_start_leaves_the_thread_realised_with_no_further_write() {
+  let fx = Fixture::new();
+  fx.write_file(
+    "intent/.intentfiles",
+    "# BEGIN INTENT\nSTEELTHREAD:ST0099\n# END INTENT\n",
+  );
+
+  let mut facade = fx.facade();
+  let id = facade.st_new("started on creation").expect("new");
+  facade.st_triage(&id).expect("triage");
+  facade.st_start(&id).expect("start");
+  assert!(
+    declared(&fx).declares(&id),
+    "precondition: `st start` declares:\n{}",
+    manifest_text(&fx)
+  );
+  assert!(
+    fx.path(&format!("intent/st/{id}/info.md")).exists(),
+    "a thread `st start` lists as realised must have its files on disk when the verb returns"
+  );
+}
+
 /// **THE ONE CASE THAT STILL FORCES THE TABLE TO BE KEYED ON THE OP.**
 ///
 /// `st.triage` and `st.reinstate` both land on `not-started` and they take

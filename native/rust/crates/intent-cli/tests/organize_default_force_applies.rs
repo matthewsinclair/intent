@@ -223,6 +223,9 @@ fn project(satisfied: bool) -> tempfile::TempDir {
   }
   ok(root, &["st", "start", "ST0001"]);
   ok(root, &["st", "start", "ST0003"]);
+  // `st start` realises the thread it declares since issue 0079; ST0003 must
+  // start UNrealised, so its files are removed rather than never written.
+  std::fs::remove_dir_all(root.join("intent/st/ST0003")).expect("unrealise ST0003");
   dir
 }
 

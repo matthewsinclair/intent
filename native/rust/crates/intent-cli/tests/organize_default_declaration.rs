@@ -427,8 +427,8 @@ fn default_removes_no_file_belonging_to_an_undeclared_thread() {
 /// first half of it.
 ///
 /// **THE ORDERING IS THE FIXTURE AND IT IS EASY TO GET BACKWARDS.** `st start`
-/// runs while the manifest is still PRESENT, so it edits the list and realises
-/// nothing; the manifest is removed AFTER. Reverse those two and the write
+/// runs while the manifest is still PRESENT, so it edits the list; its realised
+/// files are removed (issue 0079), and the manifest is removed AFTER. Reverse those two and the write
 /// lands with the manifest absent, which means nobody has said what is realised,
 /// so everything is -- and the estate arrives fully on disk with nothing left
 /// for this test to catch.
@@ -438,8 +438,11 @@ fn default_creates_no_file_for_a_declared_thread_it_has_not_realised() {
   let root = dir.path();
   assert!(
     intent(root, &["st", "start", "ST0001"]).status.success(),
-    "WIP while the manifest is present, so the id is declared and nothing is realised"
+    "WIP while the manifest is present, so the id is declared"
   );
+  // `st start` realises the thread it declares since issue 0079, so the
+  // declared-and-absent state this test needs is made by removing it.
+  std::fs::remove_dir_all(root.join("intent/st/ST0001")).expect("unrealise ST0001");
   std::fs::remove_file(root.join("intent/.intentfiles")).expect("make --default act");
 
   let before = tree(root);

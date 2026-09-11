@@ -95,6 +95,9 @@ fn project() -> tempfile::TempDir {
     "the thread must reach WIP -- only WIP threads are declared, so a triage \
      thread would leave the manifest empty and the preview with no action lines"
   );
+  // `st start` realises the thread it declares since issue 0079; the two
+  // action rows this fixture needs are hydrations, so its views are removed.
+  std::fs::remove_dir_all(root.join("intent/st/ST0001")).expect("unrealise ST0001");
   assert!(
     intent(root, &["organize", "--default"]).status.success(),
     "the declaration must be written, or there is nothing to hydrate"

@@ -5104,10 +5104,37 @@ impl Facade {
         &record,
       ));
     }
-    self.apply_envelopes(envelopes, next, crate::store::ProjectStateEdit::Unchanged)?;
-    // **AFTER `apply`, DELIBERATELY** -- see [`Facade::edit_list`] for why the
-    // interrupted-between state has to be the one that degrades into `--keep`.
-    self.edit_list(op, id, list)?;
+    // **A REMOVAL IS EDITED AFTER `apply` AND AN ADDITION BEFORE IT** (issue
+    // 0079) -- see [`Facade::edit_list`] for why each order is chosen for its
+    // failure mode. Pinned after, `st start` was the one write that missed its
+    // own thread: the projection inside `apply` reads the manifest, so the
+    // thread was listed with no files until the next write by anyone. Pinned
+    // before, this write renders it exactly as every write renders every
+    // declared thread -- no second realiser, and attachments stay `organize`'s.
+    let adds = list == ListEdit::AsDeclared && declared_list_edit(op) == Some(ListAction::Add);
+    let manifest = self.project.intentfiles_path();
+    let before = adds
+      .then(|| std::fs::read_to_string(&manifest).ok())
+      .flatten();
+    if adds {
+      self.edit_list(op, id, list)?;
+    }
+    if let Err(refused) =
+      self.apply_envelopes(envelopes, next, crate::store::ProjectStateEdit::Unchanged)
+    {
+      // The status did not move, so neither may the list it follows.
+      if let Some(text) = before
+        && std::fs::read_to_string(&manifest).ok().as_deref() != Some(text.as_str())
+      {
+        let mut set = WriteSet::new();
+        set.add(manifest, text);
+        set.commit()?.keep();
+      }
+      return Err(refused);
+    }
+    if !adds {
+      self.edit_list(op, id, list)?;
+    }
     // **ASKED AFTER THE PIN, BECAUSE THE PIN IS WHAT MAKES IT HELD** (issue
     // 0209). A thread this verb has just declared, with a v2 bucket copy and
     // nothing at its home, will be skipped by every write -- and this verb is
@@ -8900,7 +8927,7 @@ impl Facade {
 
   /// Make a lifecycle op's declared edit to `.intentfiles` (AC-05.2).
   ///
-  /// **IT RUNS AFTER `apply`, AND THE ORDER IS CHOSEN FOR ITS FAILURE MODE.**
+  /// **A REMOVAL RUNS AFTER `apply`, AND THE ORDER IS CHOSEN FOR ITS FAILURE MODE.**
   /// Both orders can be interrupted between the two writes, so the question is
   /// only which half-done state is survivable. Manifest first, store second,
   /// leaves the list saying NOT REALISED while the thread is still open -- and
@@ -8908,6 +8935,13 @@ impl Facade {
   /// Store first leaves a closed thread still listed, which is precisely what
   /// `--keep` asks for on purpose. **One order degrades into a supported
   /// outcome and the other into a deletion nobody asked for.**
+  ///
+  /// **THAT ARGUMENT IS ABOUT A REMOVAL, AND AN ADDITION RUNS BEFORE `apply`**
+  /// (issue 0079). Manifest first for an addition leaves a thread listed whose
+  /// status did not move -- the state `st hydrate` leaves on purpose, and one
+  /// that deletes nothing -- and the caller restores the list when `apply`
+  /// refuses. Store first left the thread listed with no files, because the
+  /// projection inside `apply` had already read the manifest.
   ///
   /// **THIS IS THE OPPOSITE ORDER FROM [`Facade::hydrate`], WHICH PINS FIRST,
   /// AND THE TWO ARE NOT IN TENSION.** Hydrate's ordering answers a different
