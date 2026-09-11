@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Every document in the repository was checked against v3.0.1 as built and corrected where it disagreed. **This fixes no behaviour.** The defects the audit found are described on [Known defects](docs/known-defects.md) and are unchanged in the binary.
+
+### Changed
+
+- **The documentation says what v3.0.1 does.** The README, the install, migration and known-defects pages, the command reference, the concept pages, the guides under `intent/docs/`, the skills, the subagents, the rule library, and the comments in the release scripts, the workflows and the menubar app were each measured against the build and rewritten where they were wrong. Hardcoded counts are gone from all of them: where the tool reports a figure about itself, the page names the command that reports it.
+- **The templates `intent claude upgrade --apply` writes into a project say what v3 does.** The generated `AGENTS.md` and `CLAUDE.md`, and the seeded `usage-rules.md` and `.intent_critic.yml`, no longer point at documentation "at the Intent install", which a Homebrew install does not carry, and no longer describe `$INTENT_HOME` or v2's leading-zeros rule, or say that `intent critic` reads the file's severity threshold (only the pre-commit gate does). A project picks up the generated files on its next `intent claude upgrade --apply`; `usage-rules.md` and `.intent_critic.yml` are yours once seeded and are not rewritten.
+- **The shipped hook scripts' comments** describe how v3 installs and runs them. Only comments changed; every hook behaves as it did.
+- **The command register's prose** (`surface/dispatch-table.json`), which the command reference is generated from, is corrected: the exit codes stated for `INV-04`, argument notes that claimed behaviour the build does not have, and the `intent claude` verb list, which still named the retired `prime`. None of the changed text reaches a command's help or output, so no command behaves or reads differently.
+- **The published schema faces under `schema/` carry 3.0.1.** At the v3.0.1 tag they still said 3.0.0. Their generator re-stamped them and only the version line changed; the release step that should have stamped them is unchanged.
+
+### Fixed
+
+- **A new project's `intent/wip.md` carries its own date and author.** The template stamped every project's `wip.md` with a fixed 2025 date and one person's name; `intent init` now fills in the date and the project's author.
+
+### Removed
+
+- **The worker-bee extension seed** (`lib/templates/ext-seeds/`). Nothing in v3 read it, and `intent ext` is declared and not implemented.
+- **Template trees nothing in v3 reads**: `lib/templates/archetypes/`, `lib/templates/issues/`, `lib/templates/prime/` and `lib/templates/_treeindexignore`, and the per-language templates under `intent/plugins/agents/templates/`, which the Homebrew install never carried.
+- **`lib/help/`**, v2's help files. No v3 binary reads them, and the Homebrew install never carried them.
+
 ## [3.0.1] - 2026-09-11
 
 Full detail, including what an upgrade does and does not recover: `docs/releases/3.0.1/RELEASE_NOTES.md`.
